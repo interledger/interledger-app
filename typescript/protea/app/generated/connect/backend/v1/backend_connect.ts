@@ -543,15 +543,6 @@ export const BackendService = {
       kind: MethodKind.Unary,
     },
     /**
-     * @generated from rpc backend.v1.BackendService.StartKYC
-     */
-    startKYC: {
-      name: "StartKYC",
-      I: Empty,
-      O: Empty,
-      kind: MethodKind.Unary,
-    },
-    /**
      * @generated from rpc backend.v1.BackendService.GetPersonaInquiry
      */
     getPersonaInquiry: {

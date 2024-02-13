@@ -6,22 +6,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/bxcodec/faker/v3"
 	"time"
 
-	"gitlab.com/fynbos/backend/country"
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/notify"
-	"gitlab.com/fynbos/backend/providers/xago"
-	"gitlab.com/fynbos/backend/slack"
-	"gitlab.com/fynbos/env"
-	"gitlab.com/fynbos/log"
-	"go.uber.org/zap"
+	"go.temporal.io/api/enums/v1"
+	"go.temporal.io/api/serviceerror"
+	"go.temporal.io/sdk/client"
+
+	"github.com/bxcodec/faker/v3"
 
 	"gitlab.com/fynbos/backend/kyc"
-	"gitlab.com/fynbos/backend/kyc/workflows"
-	"go.temporal.io/api/enums/v1"
-	temporal "go.temporal.io/sdk/client"
 )
 
 func mergeIdentities(old dbIndividualDetails, new kyc.IndividualDetails) (dbIndividualDetails, bool, error) {
@@ -194,75 +187,41 @@ func convertDBDetails(details dbIndividualDetails) (*kyc.IndividualDetails, erro
 }
 
 func SetKYCStatus(ctx context.Context, b Backends, walletID string, status kyc.Status) error {
-	old, err := GetKYCStatus(ctx, b, walletID)
-	if err != nil {
-		return err
+	wo := client.StartWorkflowOptions{
+		ID:                       "kyc_set_status_" + walletID + "_" + status.String(),
+		TaskQueue:                "backend",
+		WorkflowExecutionTimeout: 2 * time.Minute,
+		WorkflowIDReusePolicy:    enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
 	}
 
-	_, err = b.DB().ExecContext(ctx,
-		"INSERT INTO wallet_kyc_status (wallet_id, status) VALUES ($1, $2) ON CONFLICT (wallet_id) DO UPDATE SET status = excluded.status;",
-		walletID, status)
-	if err != nil {
+	var workflowStatus enums.WorkflowExecutionStatus
+	wflow, err := b.Temporal().DescribeWorkflowExecution(ctx, wo.ID, "")
+	switch err.(type) {
+	case *serviceerror.Internal,
+		*serviceerror.Unavailable,
+		*serviceerror.InvalidArgument:
+		return fmt.Errorf("%w %s", kyc.ErrInternal, err)
+	case *serviceerror.NotFound:
+		// do nothing
+	default:
+		if wflow != nil {
+			workflowStatus = wflow.GetWorkflowExecutionInfo().Status
+		}
+	}
+
+	// return workflow if it's running
+	var await client.WorkflowRun
+	var executeErr error
+	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
+		await = b.Temporal().GetWorkflow(ctx, wo.ID, "")
+	} else {
+		await, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, SetKYCStatusWorkflow, walletID, status)
+	}
+	if executeErr != nil {
 		return fmt.Errorf("%w %s", kyc.ErrInternal, err)
 	}
 
-	err = b.Notify().NotifyWallet(ctx, walletID, notify.NotificationTypeKyc)
-	if err != nil {
-		log.Error("notify error", zap.Error(err), zap.String("type", "kyc"))
-	}
-
-	if old != kyc.StatusDenied && status == kyc.StatusDenied {
-		b.Email().SendApplicationDeniedEmail(ctx, walletID)
-
-		// we don't send out approved email if user moves from kyc level 1 to kyc level 2
-	} else if old != kyc.StatusLevel1 && old != kyc.StatusLevel2 && (status == kyc.StatusLevel1 || status == kyc.StatusLevel2) {
-		onKYCApproved(ctx, b, walletID)
-	} else if old != kyc.StatusInReview && status == kyc.StatusInReview {
-		b.Email().SendApplicationPendingEmail(ctx, walletID)
-	}
-
-	// Reset the KYC over the limit notifications for going to L2
-	if status == kyc.StatusLevel2 {
-		_, err = b.Wallets().SetExceededLimits(ctx, walletID, false)
-		if err != nil {
-			log.Error("failed to set wallet exceeded limit on KYC upgrade", zap.Error(err))
-		}
-	}
-
-	return nil
-}
-
-func onKYCApproved(ctx context.Context, b Backends, walletID string) {
-	b.Email().SendApplicationApprovedEmail(ctx, walletID)
-
-	w, err := b.Wallets().Get(ctx, walletID)
-	if err != nil {
-		log.Error("Unhandled KYC approved", zap.String("walletID", walletID), zap.Error(err))
-		slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "fynbot", fmt.Sprintf("Unhandled KYC approved. %s/wallet/%s/profile", env.AdminURL(), walletID))
-		return
-	}
-
-	if w.Country == country.US {
-		err = b.Astra().StartKYC(ctx, walletID)
-		if err != nil {
-			slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "fynbot", fmt.Sprintf("Failed to start astra KYC process for wallet. %s/wallet/%s/profile", env.AdminURL(), walletID))
-		}
-	}
-
-	if w.Country != country.ZA {
-		slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "fynbot", fmt.Sprintf("KYC approved for wallet. %s/wallet/%s/profile. Country=%s. Manual creation of balance account required.", env.AdminURL(), walletID, w.Country))
-		return
-	}
-	c := currency.ZAR
-	_, err = b.Xago().CreateBalanceAccount(ctx, xago.CreateBalanceAccArgs{
-		WalletID: w.ID,
-		Nickname: "ZAR Balance",
-		Title:    "ZAR Balance",
-		Currency: c,
-	})
-	if err != nil {
-		slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "fynbot", fmt.Sprintf("Failed to create ZAR balance for wallet. %s/wallet/%s/profile", env.AdminURL(), walletID))
-	}
+	return await.Get(ctx, nil)
 }
 
 func GetKYCStatus(ctx context.Context, b Backends, walletID string) (kyc.Status, error) {
@@ -277,22 +236,6 @@ func GetKYCStatus(ctx context.Context, b Backends, walletID string) (kyc.Status,
 	}
 
 	return s, nil
-}
-
-func StartKYC(ctx context.Context, b Backends, walletID string) error {
-
-	workflowOptions := temporal.StartWorkflowOptions{
-		ID:                       "start_kyc_" + walletID,
-		TaskQueue:                "backend",
-		WorkflowExecutionTimeout: time.Hour * 24 * 8, // Workflow has 8 days to complete
-		WorkflowIDReusePolicy:    enums.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
-	}
-
-	_, err := b.Temporal().ExecuteWorkflow(ctx, workflowOptions, workflows.StartKYC, workflows.StartKYCArgs{
-		WalletID: walletID,
-	})
-
-	return err
 }
 
 func GenerateKycData(ctx context.Context, b Backends, walletID string) error {

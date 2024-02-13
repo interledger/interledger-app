@@ -91,7 +91,6 @@ type BackendServiceClient interface {
 	// KYC
 	KYCStatus(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*KYCStatusResponse, error)
 	SetKYCStatusPending(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
-	StartKYC(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
 	GetPersonaInquiry(ctx context.Context, in *KYCPersonaInquiryRequest, opts ...grpc.CallOption) (*KYCPersonaInquiryResponse, error)
 	// Basistheory
 	CreateCard(ctx context.Context, in *CreateCardRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
@@ -655,15 +654,6 @@ func (c *backendServiceClient) SetKYCStatusPending(ctx context.Context, in *Empt
 	return out, nil
 }
 
-func (c *backendServiceClient) StartKYC(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error) {
-	out := new(Empty)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/StartKYC", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *backendServiceClient) GetPersonaInquiry(ctx context.Context, in *KYCPersonaInquiryRequest, opts ...grpc.CallOption) (*KYCPersonaInquiryResponse, error) {
 	out := new(KYCPersonaInquiryResponse)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetPersonaInquiry", in, out, opts...)
@@ -1052,7 +1042,6 @@ type BackendServiceServer interface {
 	// KYC
 	KYCStatus(context.Context, *Empty) (*KYCStatusResponse, error)
 	SetKYCStatusPending(context.Context, *Empty) (*Empty, error)
-	StartKYC(context.Context, *Empty) (*Empty, error)
 	GetPersonaInquiry(context.Context, *KYCPersonaInquiryRequest) (*KYCPersonaInquiryResponse, error)
 	// Basistheory
 	CreateCard(context.Context, *CreateCardRequest) (*LinkedAccount, error)
@@ -1275,9 +1264,6 @@ func (UnimplementedBackendServiceServer) KYCStatus(context.Context, *Empty) (*KY
 }
 func (UnimplementedBackendServiceServer) SetKYCStatusPending(context.Context, *Empty) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetKYCStatusPending not implemented")
-}
-func (UnimplementedBackendServiceServer) StartKYC(context.Context, *Empty) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method StartKYC not implemented")
 }
 func (UnimplementedBackendServiceServer) GetPersonaInquiry(context.Context, *KYCPersonaInquiryRequest) (*KYCPersonaInquiryResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPersonaInquiry not implemented")
@@ -2404,24 +2390,6 @@ func _BackendService_SetKYCStatusPending_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BackendService_StartKYC_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Empty)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).StartKYC(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/StartKYC",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).StartKYC(ctx, req.(*Empty))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _BackendService_GetPersonaInquiry_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(KYCPersonaInquiryRequest)
 	if err := dec(in); err != nil {
@@ -3282,10 +3250,6 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetKYCStatusPending",
 			Handler:    _BackendService_SetKYCStatusPending_Handler,
-		},
-		{
-			MethodName: "StartKYC",
-			Handler:    _BackendService_StartKYC_Handler,
 		},
 		{
 			MethodName: "GetPersonaInquiry",

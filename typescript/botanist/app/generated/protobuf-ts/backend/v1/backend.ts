@@ -10611,7 +10611,6 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "VerifyIdentity", options: {}, I: VerifyIdentityRequest, O: Empty },
     { name: "KYCStatus", options: {}, I: Empty, O: KYCStatusResponse },
     { name: "SetKYCStatusPending", options: {}, I: Empty, O: Empty },
-    { name: "StartKYC", options: {}, I: Empty, O: Empty },
     { name: "GetPersonaInquiry", options: {}, I: KYCPersonaInquiryRequest, O: KYCPersonaInquiryResponse },
     { name: "CreateCard", options: {}, I: CreateCardRequest, O: LinkedAccount },
     { name: "GetCardDetails", options: {}, I: GetCardDetailsRequest, O: CardDetails },
