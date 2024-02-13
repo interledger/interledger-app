@@ -94,7 +94,6 @@ service BackendService {
   // KYC
   rpc KYCStatus(Empty) returns (KYCStatusResponse);
   rpc SetKYCStatusPending(Empty) returns (Empty);
-  rpc StartKYC(Empty) returns (Empty);
   rpc GetPersonaInquiry(KYCPersonaInquiryRequest) returns (KYCPersonaInquiryResponse);
 
   // Basistheory

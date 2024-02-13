@@ -139,20 +139,6 @@ func (mr *MockClientMockRecorder) SetKYCStatus(ctx, walletID, status interface{}
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetKYCStatus", reflect.TypeOf((*MockClient)(nil).SetKYCStatus), ctx, walletID, status)
 }
 
-// StartKYC mocks base method.
-func (m *MockClient) StartKYC(ctx context.Context, walletID string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "StartKYC", ctx, walletID)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// StartKYC indicates an expected call of StartKYC.
-func (mr *MockClientMockRecorder) StartKYC(ctx, walletID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartKYC", reflect.TypeOf((*MockClient)(nil).StartKYC), ctx, walletID)
-}
-
 // UpdateIndividualDetails mocks base method.
 func (m *MockClient) UpdateIndividualDetails(ctx context.Context, args kyc.IndividualDetails) (*kyc.IndividualDetails, error) {
 	m.ctrl.T.Helper()

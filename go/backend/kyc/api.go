@@ -8,7 +8,6 @@ type Client interface {
 	IsUSPSAddress(ctx context.Context, address Address) (bool, error)
 	GetKYCStatus(ctx context.Context, walletID string) (Status, error)
 	SetKYCStatus(ctx context.Context, walletID string, status Status) error
-	StartKYC(ctx context.Context, walletID string) error
 	GetPersonaInquiry(ctx context.Context, walletID, idempotencyKey string) (*PersonaInquiry, error)
 	GetPersonaIDNumbers(ctx context.Context, walletID string) (*PersonaIDNumbers, error)
 	GetPersonaZAIDNumber(ctx context.Context, walletID string) (string, error)
