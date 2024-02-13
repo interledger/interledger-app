@@ -273,7 +273,7 @@ export async function action({ request }: ActionFunctionArgs) {
     email,
     countryCode: country,
     fullName,
-    betaOptIn: betaOptIn != null,
+    betaOptIn: betaOptIn != null
   })
 
   if (isConnectError(response)) {
