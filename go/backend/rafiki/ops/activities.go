@@ -94,7 +94,6 @@ func (a *Activity) CreateWebMonetizationPayment(ctx context.Context, payment Pay
 		Type:           payments.TypeWebMonetization,
 		SenderAmount:   currency.FromUInt64(payment.Amount, currency.ParseCurrency(payment.Asset)),
 		ReceiverAmount: currency.FromUInt64(payment.Amount, currency.ParseCurrency(payment.Asset)),
-		Note:           "Web Monetization payment",
 		IPAddress:      "198.0.0.2", // TODO: Add a our static IP Address
 	})
 

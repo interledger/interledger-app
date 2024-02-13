@@ -841,7 +841,9 @@ func Confirm(ctx context.Context, b Backends, id string) (*payments.Payment, []p
 			txType = transactions.TransactionTypeWithdrawal
 		}
 		if dbp.Type == payments.TypeWebMonetization {
-			title = "Web Monetization"
+			if receiverWallet != nil {
+				title = receiverWallet.Name
+			}
 			txType = transactions.TransactionTypeWebMonetizationOutgoing
 		}
 		txID, err := b.Transactions().CreateTransactionTx(ctx, tx, transactions.CreateTransactionArgs{

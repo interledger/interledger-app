@@ -233,8 +233,12 @@ func (a *Activity) CreatePayoutTransaction(ctx context.Context, paymentID, txID,
 	}
 
 	txType := transactions.TransactionTypeReceived
+	var title string
 	if p.Type == payments.TypeWebMonetization {
 		txType = transactions.TransactionTypeWebMonetizationIncoming
+		if senderWallet != nil {
+			title = senderWallet.Name
+		}
 	}
 
 	return a.b.Transactions().CreateTransaction(ctx, transactions.CreateTransactionArgs{
@@ -262,6 +266,7 @@ func (a *Activity) CreatePayoutTransaction(ctx context.Context, paymentID, txID,
 			},
 		},
 		PaymentProtectionFeePercentage: p.ProtectionFeePercentage,
+		Title:                          title,
 	})
 }
 
