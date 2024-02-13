@@ -373,3 +373,63 @@ export const VisaLogo: FC<LogoProps> = ({ className, height }) => {
     </svg>
   )
 }
+
+export const WebMoLogo: FC<LogoProps> = ({ className, height }) => {
+  return (
+    <svg
+      viewBox='0 0 24 24'
+      className={clsx('flex-none', height ? height : 'h-6', className)}
+      fill='none'
+      xmlns='http://www.w3.org/2000/svg'
+    >
+      <path
+        d='M17.1994 15.8177V16.8897H4.18422V9.62664L5.90936 9.62719L5.90992 8.45164L3.00922 8.45053V8.45219H3.00867V9.2049V9.62553V17.995H3.00922V18.0653H17.1994V18.0658H18.375V15.8177H17.1994Z'
+        className={clsx(className ? 'fill-current' : 'fill-[#FF7A7F]')}
+      />
+      <path
+        d='M7.44465 16.8897H4.1842V18.0741H7.44465V16.8897Z'
+        className={clsx(className ? 'fill-current' : 'fill-[#FFC8DC]')}
+      />
+      <path
+        d='M4.18445 18.074L4.18445 14.8135H3.00004L3.00004 18.074H4.18445Z'
+        className={clsx(className ? 'fill-current' : 'fill-[#A3BEDC]')}
+      />
+      <path
+        d='M4.18481 14.8133L4.18481 11.5529H3.00041L3.00041 14.8133H4.18481Z'
+        className={clsx(className ? 'fill-current' : 'fill-[#56B7B5]')}
+      />
+      <path
+        d='M10.6901 16.8897H7.42969V18.0741H10.6901V16.8897Z'
+        className={clsx(className ? 'fill-current' : 'fill-[#FF9852]')}
+      />
+      <path
+        d='M13.9594 16.8897H10.699V18.0741H13.9594V16.8897Z'
+        className={clsx(className ? 'fill-current' : 'fill-[#98E1D0]')}
+      />
+      <path
+        d='M17.2199 16.8897H13.9595V18.0741H17.2199V16.8897Z'
+        className={clsx(className ? 'fill-current' : 'fill-[#8075B3]')}
+      />
+      <path
+        d='M18.3751 18.0733V15.2645H17.1907V18.0733H18.3751Z'
+        className={clsx(className ? 'fill-current' : 'fill-[#8075B3]')}
+      />
+      <path
+        d='M5.63354 15.5406L20.9999 15.5406L20.9999 5.9259L5.63354 5.9259L5.63354 15.5406Z'
+        className={clsx(className ? 'fill-current' : 'fill-[#98E1D0]')}
+      />
+      <path
+        d='M7.76112 11.4758H8.79388C8.92062 11.4758 9.02301 11.3734 9.02301 11.2467V10.2145C9.02301 10.0877 8.92062 9.98532 8.79388 9.98532H7.76112C7.63437 9.98532 7.53198 10.0877 7.53198 10.2145V11.2472C7.53198 11.3734 7.63437 11.4758 7.76112 11.4758Z'
+        className={clsx(className ? 'fill-current' : 'fill-white')}
+      />
+      <path
+        d='M13.3168 13.1583C14.6385 13.1583 15.7099 12.0869 15.7099 10.7652C15.7099 9.44344 14.6385 8.37198 13.3168 8.37198C11.995 8.37198 10.9236 9.44344 10.9236 10.7652C10.9236 12.0869 11.995 13.1583 13.3168 13.1583Z'
+        className={clsx(className ? 'fill-current' : 'fill-white')}
+      />
+      <path
+        d='M17.838 11.4758H18.8708C18.9975 11.4758 19.0999 11.3734 19.0999 11.2467V10.2145C19.0999 10.0877 18.9975 9.98532 18.8708 9.98532H17.838C17.7113 9.98532 17.6089 10.0877 17.6089 10.2145V11.2472C17.6089 11.3734 17.7113 11.4758 17.838 11.4758Z'
+        className={clsx(className ? 'fill-current' : 'fill-white')}
+      />
+    </svg>
+  )
+}

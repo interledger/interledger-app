@@ -28,7 +28,8 @@ import {
   Router,
   SlackIcon,
   TextButton,
-  TwitterIcon
+  TwitterIcon,
+  WebMoLogo
 } from '~/components'
 import { Label } from '~/components/Label'
 import type { PublicWalletInfo } from '~/generated/connect/backend/v1/backend_pb'
@@ -163,10 +164,12 @@ export default function Page() {
 
   return (
     <>
-      {transaction.type == 'sent' && (
+      {(transaction.type == 'sent' ||
+        transaction.type == 'web_monetization_outgoing') && (
         <Sent openDialog={() => setShowDialog(true)} />
       )}
-      {transaction.type == 'received' && (
+      {(transaction.type == 'received' ||
+        transaction.type == 'web_monetization_incoming') && (
         <Received openDialog={() => setShowDialog(true)} />
       )}
       {transaction.type == 'withdrawal' && <Withdrawal />}
@@ -582,6 +585,18 @@ function Sent({ openDialog }: { openDialog: () => void }) {
           </div>
         </CardButton>
       </Card>
+      {transaction.type == 'web_monetization_outgoing' && (
+        <Alert>
+          <WebMoLogo />
+          <AlertContent>
+            <AlertTitle>Web monetization</AlertTitle>
+            <AlertBody>
+              Payments for the web monetized sites you support are consolidated
+              and refreshed daily.
+            </AlertBody>
+          </AlertContent>
+        </Alert>
+      )}
       {transaction.refundState == TransactionRefundState.PENDING && (
         <Alert>
           <Icon>error</Icon>
@@ -771,6 +786,18 @@ function Received({ openDialog }: { openDialog: () => void }) {
           </div>
         </CardButton>
       </Card>
+      {transaction.type == 'web_monetization_incoming' && (
+        <Alert>
+          <WebMoLogo />
+          <AlertContent>
+            <AlertTitle>Web monetization</AlertTitle>
+            <AlertBody>
+              Payments for the web monetized sites you support are consolidated
+              and refreshed daily.
+            </AlertBody>
+          </AlertContent>
+        </Alert>
+      )}
       <Card>
         <Label>Payment ID</Label>
         <CardCopy

@@ -35,6 +35,9 @@ import {
 import { Label } from '~/components/Label'
 import { getKycStatus, getTransactionsWithPending } from '~/data/wallet.server'
 import type { Transaction } from '~/generated/connect/backend/v1/backend_pb'
+import { grpc } from '~/lib/grpc.server'
+
+import { isConnectError } from '~/lib/error.server'
 import { mergeMeta } from '~/lib/meta'
 import { KycStatus } from '~/routes/_index/route'
 
@@ -63,6 +66,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
 
   let allTransactions: Transaction[] = []
+
+  const webmo = await grpc.listPendingWebMonetization(request, {})
+  if (isConnectError(webmo)) throw webmo.errorResponse
+
+  allTransactions = webmo.transactions
 
   /**
    * We can loop over pages as fetcher should omit this.
@@ -274,71 +282,107 @@ export default function Page() {
           transactions.map((transactionGroup, index) => (
             <Card key={`group-${index}`}>
               <Label>{transactionGroup[0].formattedDate}</Label>
-              {transactionGroup.map((transaction) => (
-                <CardLink
-                  preventScrollReset={!isMobile}
-                  prefetch='none'
-                  key={transaction.id + transaction.state}
-                  to={route('/payments/:paymentId', {
-                    paymentId: transaction.id
-                  })}
-                  className='justify-between space-x-4'
-                >
-                  <div className='flex w-7/12 items-center space-x-2'>
-                    {transaction.state == 'Pending' && <Icon>schedule</Icon>}
-                    {transaction.state == 'Failed' && (
-                      <Icon className='text-error'>exclamation</Icon>
-                    )}
-                    {transaction.state != 'Pending' &&
-                      transaction.state != 'Failed' && (
-                        <>
-                          {transaction.destinationIdentityType == 'wallet' && (
-                            <>
-                              {transaction.type != 'withdrawal' &&
-                                transaction.type != 'deposit' && <FynbosIcon />}
-                              {transaction.type == 'withdrawal' && (
-                                <Icon>south_west</Icon>
-                              )}
-                              {transaction.type == 'deposit' && (
-                                <Icon>north_east</Icon>
-                              )}
-                            </>
-                          )}
-                          {transaction.destinationIdentityType == 'Twitter' && (
-                            <TwitterIcon />
-                          )}
-                          {transaction.destinationIdentityType == 'Discord' && (
-                            <DiscordIcon />
-                          )}
-                          {transaction.destinationIdentityType == 'Slack' && (
-                            <SlackIcon />
-                          )}
-                        </>
-                      )}
-                    <div className='flex w-full flex-col space-y-1'>
-                      <span className='truncate text-medium'>
-                        {transaction.title}
+              {transactionGroup.map((transaction) =>
+                transaction.type.includes('web_monetization_') &&
+                transaction.state == 'Pending' ? (
+                  // Can't disable a link :/
+                  <div
+                    key={transaction.id + transaction.state}
+                    className='my-1 flex justify-between space-x-4 rounded-xl p-3 first:mt-0 last-of-type:mb-0'
+                  >
+                    <div className='flex w-7/12 items-center space-x-2'>
+                      <Icon>schedule</Icon>
+                      <div className='flex w-full flex-col space-y-1'>
+                        <span className='truncate text-medium'>
+                          {transaction.title}
+                        </span>
+                        <span className='text-xs text-weak'>
+                          {transaction.formattedTime}
+                        </span>
+                      </div>
+                    </div>
+                    <div className='flex min-w-max flex-initial items-center space-x-2'>
+                      <span
+                        className={clsx(
+                          'min-w-max font-medium',
+                          transaction.type == 'web_monetization_outgoing'
+                            ? 'text-error'
+                            : 'text-medium'
+                        )}
+                      >
+                        {transaction.subtotal}
                       </span>
-                      <span className='text-xs text-weak'>
-                        {transaction.formattedTime}
-                      </span>
+                      <div className='h-6 w-6' />
                     </div>
                   </div>
-                  <div className='flex min-w-max flex-initial items-center space-x-2'>
-                    <span
-                      className={clsx(
-                        'min-w-max font-medium',
-                        transaction.type == 'sent'
-                          ? 'text-error'
-                          : 'text-medium'
+                ) : (
+                  <CardLink
+                    preventScrollReset={!isMobile}
+                    prefetch='none'
+                    key={transaction.id + transaction.state}
+                    to={route('/payments/:paymentId', {
+                      paymentId: transaction.id
+                    })}
+                    className='justify-between space-x-4'
+                  >
+                    <div className='flex w-7/12 items-center space-x-2'>
+                      {transaction.state == 'Pending' && <Icon>schedule</Icon>}
+                      {transaction.state == 'Failed' && (
+                        <Icon className='text-error'>exclamation</Icon>
                       )}
-                    >
-                      {transaction.subtotal}
-                    </span>
-                    <Icon>navigate_next</Icon>
-                  </div>
-                </CardLink>
-              ))}
+                      {transaction.state != 'Pending' &&
+                        transaction.state != 'Failed' && (
+                          <>
+                            {transaction.destinationIdentityType ==
+                              'wallet' && (
+                              <>
+                                {transaction.type != 'withdrawal' &&
+                                  transaction.type != 'deposit' && (
+                                    <FynbosIcon />
+                                  )}
+                                {transaction.type == 'withdrawal' && (
+                                  <Icon>south_west</Icon>
+                                )}
+                                {transaction.type == 'deposit' && (
+                                  <Icon>north_east</Icon>
+                                )}
+                              </>
+                            )}
+                            {transaction.destinationIdentityType ==
+                              'Twitter' && <TwitterIcon />}
+                            {transaction.destinationIdentityType ==
+                              'Discord' && <DiscordIcon />}
+                            {transaction.destinationIdentityType == 'Slack' && (
+                              <SlackIcon />
+                            )}
+                          </>
+                        )}
+                      <div className='flex w-full flex-col space-y-1'>
+                        <span className='truncate text-medium'>
+                          {transaction.title}
+                        </span>
+                        <span className='text-xs text-weak'>
+                          {transaction.formattedTime}
+                        </span>
+                      </div>
+                    </div>
+                    <div className='flex min-w-max flex-initial items-center space-x-2'>
+                      <span
+                        className={clsx(
+                          'min-w-max font-medium',
+                          transaction.type == 'sent' ||
+                            transaction.type == 'web_monetization_outgoing'
+                            ? 'text-error'
+                            : 'text-medium'
+                        )}
+                      >
+                        {transaction.subtotal}
+                      </span>
+                      <Icon>navigate_next</Icon>
+                    </div>
+                  </CardLink>
+                )
+              )}
             </Card>
           ))}
       </GridColumn>
