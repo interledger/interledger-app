@@ -187,8 +187,11 @@ export async function action({ request }: ActionFunctionArgs) {
   const url = new URL(request.url)
   let interactId = url.searchParams.get('interactId') || ''
   let nonce = url.searchParams.get('nonce') || ''
-
+  console.log("interactID", interactId)
+  console.log("nonce", nonce)
   let grants = await getInteraction(interactId, nonce)
+
+  console.log("grants", grants)
 
   // there should be a grant. Throw 404 for now.
   if (grants.length < 1) {
@@ -196,6 +199,7 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   let walletInfo = await getWalletInfo(request)
+  console.log("walletInfo", walletInfo)
   let ownsResource = true
   grants.forEach((a) => {
     if (!a.identifier) {
@@ -204,12 +208,16 @@ export async function action({ request }: ActionFunctionArgs) {
       ownsResource = false
     }
   })
+
+  console.log("ownsResource", ownsResource)
   if (!ownsResource) {
     throw json({}, 403)
   }
 
   let userDecision: 'accept' | 'reject' =
     action == 'approve' ? 'accept' : 'reject'
+
+  console.log("userDecision", userDecision)
   await consent(interactId, nonce, userDecision)
 
   let publicOpenPaymentsAuthHost = 'fynbos.me'
@@ -218,7 +226,7 @@ export async function action({ request }: ActionFunctionArgs) {
   } else if (process.env.FYNBOS_ENV == 'local') {
     publicOpenPaymentsAuthHost = 'local.fynbos.me'
   }
-
+  console.log("redirecting", `https://${publicOpenPaymentsAuthHost}/interact/${interactId}/${nonce}/finish`)
   return redirect(
     `https://${publicOpenPaymentsAuthHost}/interact/${interactId}/${nonce}/finish`
   )
