@@ -132,6 +132,10 @@ func main() {
 			return err
 		}
 
+		if _, err = ecr.NewPrivateRepository(ctx, "mockbos", accountID, crossAccountIds); err != nil {
+			return err
+		}
+
 		ctx.Export("certWatcherRepoUri", certWatcherRepo.RepositoryUri)
 		ctx.Export("certWatcherDockerImage", certWatcherImage.ImageName)
 		ctx.Export("eksRepoUri", eksRepo.RepositoryUri)
