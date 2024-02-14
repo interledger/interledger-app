@@ -200,12 +200,10 @@ export async function action({ request }: ActionFunctionArgs) {
 
   let walletInfo = await getWalletInfo(request)
   console.log("walletInfo", walletInfo)
-  let ownsResource = true
+  let ownsResource = false
   grants.forEach((a) => {
-    if (!a.identifier) {
-      ownsResource = false
-    } else if (!a.identifier.includes(walletInfo.url)) {
-      ownsResource = false
+    if (a.identifier?.includes(walletInfo.url)) {
+      ownsResource = true
     }
   })
 
