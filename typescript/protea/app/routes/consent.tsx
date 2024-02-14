@@ -4,7 +4,7 @@ import type {
   MetaFunction
 } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { Form, useLoaderData } from '@remix-run/react'
+import { Form, useLoaderData, useSearchParams } from '@remix-run/react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import {
@@ -58,22 +58,16 @@ export const meta: MetaFunction = mergeMeta(() => [
 
 export default function Page() {
   const { type, interactId, nonce } = useLoaderData<typeof loader>()
+  const [params] = useSearchParams()
 
   return (
     <>
       <Form
         id='consent'
-        action={route('/consent')}
+        action={`/consent?${params}`}
         method='post'
         className='hidden'
       />
-      <input
-        form='consent'
-        value={interactId}
-        name='interactId'
-        type='hidden'
-      />
-      <input form='consent' value={nonce} name='nonce' type='hidden' />
 
       {type == 'outgoing-payment' && <OutgoingPaymentGrant />}
       {type == 'incoming-payment' && <IncomingPaymentGrant />}
@@ -190,8 +184,9 @@ function formatAmount(amount: Amount): string {
 export async function action({ request }: ActionFunctionArgs) {
   const form = await request.formData()
   const action = String(form.get('action') || '')
-  const interactId = String(form.get('interactId') || '')
-  const nonce = String(form.get('nonce') || '')
+  const url = new URL(request.url)
+  let interactId = url.searchParams.get('interactId') || ''
+  let nonce = url.searchParams.get('nonce') || ''
 
   let grants = await getInteraction(interactId, nonce)
 
