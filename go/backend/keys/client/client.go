@@ -23,8 +23,8 @@ func (c client) ProvisionPrivateKey(ctx context.Context, walletID string) error 
 	return ops.GeneratePrivateKey(ctx, c.b, walletID)
 }
 
-func (c client) AddPublicKey(ctx context.Context, walletID, publicKeyBase64 string, name string) (*keys.Key, error) {
-	return ops.AddPublicKey(ctx, c.b, walletID, publicKeyBase64, name)
+func (c client) AddPublicKey(ctx context.Context, walletID, publicKeyBase64 string, name, keyID string) (*keys.Key, error) {
+	return ops.AddPublicKey(ctx, c.b, walletID, publicKeyBase64, name, keyID)
 }
 
 func (c client) DeletePublicKey(ctx context.Context, id string) error {

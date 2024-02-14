@@ -46,8 +46,8 @@ func GeneratePrivateKey(ctx context.Context, b Backends, walletID string) error 
 		publicKeyBase64 := base64.StdEncoding.EncodeToString(publicKey)
 		var id string
 		err = b.DB().GetContext(ctx, &id,
-			"INSERT INTO wallet_keys (wallet_id,key_type,location, reference, name, public_key) values ($1, $2, $3, $4, $5, $6) returning id",
-			walletID, keys.Custodial.String(), "database", base64.StdEncoding.EncodeToString(privateKey.Seed()), "Fynbos Managed", publicKeyBase64)
+			"INSERT INTO wallet_keys (wallet_id,key_type,location, reference, name, public_key, key_id) values ($1, $2, $3, $4, $5, $6, $7) returning id",
+			walletID, keys.Custodial.String(), "database", base64.StdEncoding.EncodeToString(privateKey.Seed()), "Fynbos Managed", publicKeyBase64, uuid.NewString())
 		if err != nil {
 			return fmt.Errorf("%w %s", keys.ErrInternal, err)
 		}
@@ -69,8 +69,8 @@ func GeneratePrivateKey(ctx context.Context, b Backends, walletID string) error 
 	}
 
 	err = b.DB().GetContext(ctx, &id,
-		"INSERT INTO wallet_keys (wallet_id,key_type,location, reference, name, public_key) values ($1, $2, $3, $4, $5, $6) returning id",
-		walletID, keys.Custodial.String(), "vault", keyID, "Fynbos Managed", publicKey)
+		"INSERT INTO wallet_keys (wallet_id,key_type,location, reference, name, public_key, key_id) values ($1, $2, $3, $4, $5, $6, $7) returning id",
+		walletID, keys.Custodial.String(), "vault", keyID, "Fynbos Managed", publicKey, uuid.NewString())
 	if err != nil {
 		return fmt.Errorf("%w %s", keys.ErrInternal, err)
 	}
@@ -79,7 +79,7 @@ func GeneratePrivateKey(ctx context.Context, b Backends, walletID string) error 
 }
 
 func ListKeys(ctx context.Context, b Backends, walletID string) ([]keys.Key, error) {
-	sql := "SELECT id, wallet_id, key_type, location, reference, name, public_key FROM wallet_keys where wallet_id = $1 AND deleted_at IS NULL;"
+	sql := "SELECT id, wallet_id, key_type, location, reference, name, public_key, key_id FROM wallet_keys where wallet_id = $1 AND deleted_at IS NULL;"
 
 	var ks []keyDB
 	err := b.DB().SelectContext(ctx, &ks, sql, walletID)
@@ -106,7 +106,7 @@ func GetPublicKey(ctx context.Context, b Backends, id string, walletID string) (
 	return &key, nil
 }
 
-func AddPublicKey(ctx context.Context, b Backends, walletID string, publicKeyBase64 string, name string) (*keys.Key, error) {
+func AddPublicKey(ctx context.Context, b Backends, walletID, publicKeyBase64, name, keyID string) (*keys.Key, error) {
 	var id string
 	err := b.DB().GetContext(ctx, &id,
 		"select id from wallet_keys where wallet_id = $1 and key_type = $2 and public_key = $3", walletID, keys.NonCustodial.String(), publicKeyBase64)
@@ -119,8 +119,8 @@ func AddPublicKey(ctx context.Context, b Backends, walletID string, publicKeyBas
 
 	createdAt := time.Now()
 	err = b.DB().GetContext(ctx, &id,
-		"INSERT INTO wallet_keys (wallet_id,key_type,location, public_key, name, created_at) values ($1, $2, $3, $4, $5, $6) returning id",
-		walletID, keys.NonCustodial.String(), "database", publicKeyBase64, name, createdAt)
+		"INSERT INTO wallet_keys (wallet_id,key_type,location, public_key, name, created_at, key_id) values ($1, $2, $3, $4, $5, $6, $7) returning id",
+		walletID, keys.NonCustodial.String(), "database", publicKeyBase64, name, createdAt, keyID)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", keys.ErrInternal, err)
 	}
@@ -128,6 +128,7 @@ func AddPublicKey(ctx context.Context, b Backends, walletID string, publicKeyBas
 	return &keys.Key{
 		ID:        id,
 		Name:      name,
+		KeyID:     keyID,
 		WalletID:  walletID,
 		Type:      keys.NonCustodial,
 		Location:  "database",
@@ -147,7 +148,7 @@ func DeletePublicKey(ctx context.Context, b Backends, id string) error {
 }
 
 func getKey(ctx context.Context, b Backends, keyID string, walletID string) (*keyDB, error) {
-	sqlQuery := "SELECT id, wallet_id, key_type, location, reference, name, public_key FROM wallet_keys where id = $1 and wallet_id = $2"
+	sqlQuery := "SELECT id, wallet_id, key_type, location, reference, name, key_id, public_key, key_id FROM wallet_keys where id = $1 and wallet_id = $2"
 
 	var k keyDB
 	err := b.DB().GetContext(ctx, &k, sqlQuery, keyID, walletID)
@@ -269,6 +270,7 @@ func convertToKeyPublic(keyDB keyDB) keys.Key {
 	return keys.Key{
 		ID:        keyDB.ID,
 		Name:      keyDB.Name,
+		KeyID:     keyDB.KeyID,
 		WalletID:  keyDB.WalletID,
 		Type:      keyDB.Type,
 		Location:  keyDB.Location,
