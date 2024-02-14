@@ -4,7 +4,7 @@ import type {
   MetaFunction
 } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { Form, useLoaderData } from '@remix-run/react'
+import { Form, useLoaderData, useSearchParams } from '@remix-run/react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import {
@@ -58,22 +58,16 @@ export const meta: MetaFunction = mergeMeta(() => [
 
 export default function Page() {
   const { type, interactId, nonce } = useLoaderData<typeof loader>()
+  const [params] = useSearchParams()
 
   return (
     <>
       <Form
         id='consent'
-        action={route('/consent')}
+        action={`/consent?${params}`}
         method='post'
         className='hidden'
       />
-      <input
-        form='consent'
-        value={interactId}
-        name='interactId'
-        type='hidden'
-      />
-      <input form='consent' value={nonce} name='nonce' type='hidden' />
 
       {type == 'outgoing-payment' && <OutgoingPaymentGrant />}
       {type == 'incoming-payment' && <IncomingPaymentGrant />}
@@ -190,10 +184,14 @@ function formatAmount(amount: Amount): string {
 export async function action({ request }: ActionFunctionArgs) {
   const form = await request.formData()
   const action = String(form.get('action') || '')
-  const interactId = String(form.get('interactId') || '')
-  const nonce = String(form.get('nonce') || '')
-
+  const url = new URL(request.url)
+  let interactId = url.searchParams.get('interactId') || ''
+  let nonce = url.searchParams.get('nonce') || ''
+  console.log("interactID", interactId)
+  console.log("nonce", nonce)
   let grants = await getInteraction(interactId, nonce)
+
+  console.log("grants", grants)
 
   // there should be a grant. Throw 404 for now.
   if (grants.length < 1) {
@@ -201,6 +199,7 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   let walletInfo = await getWalletInfo(request)
+  console.log("walletInfo", walletInfo)
   let ownsResource = true
   grants.forEach((a) => {
     if (!a.identifier) {
@@ -209,12 +208,16 @@ export async function action({ request }: ActionFunctionArgs) {
       ownsResource = false
     }
   })
+
+  console.log("ownsResource", ownsResource)
   if (!ownsResource) {
     throw json({}, 403)
   }
 
   let userDecision: 'accept' | 'reject' =
     action == 'approve' ? 'accept' : 'reject'
+
+  console.log("userDecision", userDecision)
   await consent(interactId, nonce, userDecision)
 
   let publicOpenPaymentsAuthHost = 'fynbos.me'
@@ -223,7 +226,7 @@ export async function action({ request }: ActionFunctionArgs) {
   } else if (process.env.FYNBOS_ENV == 'local') {
     publicOpenPaymentsAuthHost = 'local.fynbos.me'
   }
-
+  console.log("redirecting", `https://${publicOpenPaymentsAuthHost}/interact/${interactId}/${nonce}/finish`)
   return redirect(
     `https://${publicOpenPaymentsAuthHost}/interact/${interactId}/${nonce}/finish`
   )
