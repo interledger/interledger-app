@@ -320,7 +320,7 @@ func listKeys(b Backends, walletID string, w http.ResponseWriter, req *http.Requ
 	for i, k := range wKeys {
 		jwks[i] = Jwk{
 			Kty: "OKP",
-			Kid: k.ID,
+			Kid: k.KeyID,
 			Crv: "Ed25519",
 			Alg: "EdDSA",
 			X:   convertToBase64Url(k.PublicKey),

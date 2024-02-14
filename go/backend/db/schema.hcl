@@ -1616,6 +1616,11 @@ table "wallet_keys" {
     type = text
   }
   column "public_key" {
+    null = false
+    type = text
+    default = ""
+  }
+  column "key_id" {
     null = true
     type = text
   }

@@ -67,7 +67,7 @@ func TestCanAddAndSoftDeleteAPublicKey(t *testing.T) {
 	pubKey, _, err := ed25519.GenerateKey(nil)
 	require.NoError(t, err)
 
-	_, err = ops.AddPublicKey(ctx, b, walletID, base64.StdEncoding.EncodeToString(pubKey), "My Key")
+	_, err = ops.AddPublicKey(ctx, b, walletID, base64.StdEncoding.EncodeToString(pubKey), "My Key", "123")
 	require.NoError(t, err)
 
 	ks, err := ops.ListKeys(ctx, b, walletID)
@@ -78,6 +78,7 @@ func TestCanAddAndSoftDeleteAPublicKey(t *testing.T) {
 	require.Equal(t, "database", key.Location)
 	require.Equal(t, keys.NonCustodial.String(), key.Type.String())
 	require.Equal(t, "My Key", key.Name)
+	require.Equal(t, "123", key.KeyID)
 
 	err = ops.DeletePublicKey(ctx, b, key.ID)
 	require.NoError(t, err)
@@ -93,10 +94,10 @@ func TestCantAddADuplicatePublicKey(t *testing.T) {
 	walletID := uuid.NewString()
 	pubKey, _, err := ed25519.GenerateKey(nil)
 	require.NoError(t, err)
-	_, err = ops.AddPublicKey(ctx, b, walletID, base64.StdEncoding.EncodeToString(pubKey), "My Key")
+	_, err = ops.AddPublicKey(ctx, b, walletID, base64.StdEncoding.EncodeToString(pubKey), "My Key", "123")
 	require.NoError(t, err)
 
-	_, err = ops.AddPublicKey(ctx, b, walletID, base64.StdEncoding.EncodeToString(pubKey), "My Key")
+	_, err = ops.AddPublicKey(ctx, b, walletID, base64.StdEncoding.EncodeToString(pubKey), "My Key", "123")
 
 	require.ErrorIs(t, err, keys.ErrDuplicate)
 }
@@ -127,7 +128,7 @@ func TestCantSignWithNonCustodialKeys(t *testing.T) {
 	walletID := uuid.NewString()
 	pubKey, _, err := ed25519.GenerateKey(nil)
 	require.NoError(t, err)
-	_, err = ops.AddPublicKey(ctx, b, walletID, base64.StdEncoding.EncodeToString(pubKey), "My Key")
+	_, err = ops.AddPublicKey(ctx, b, walletID, base64.StdEncoding.EncodeToString(pubKey), "My Key", "123")
 	require.NoError(t, err)
 	keys, err := ops.ListKeys(ctx, b, walletID)
 	require.NoError(t, err)
@@ -146,7 +147,7 @@ func TestCanVerifyNonCustodialKeys(t *testing.T) {
 	walletID := uuid.NewString()
 	pubKey, privKey, err := ed25519.GenerateKey(nil)
 	require.NoError(t, err)
-	_, err = ops.AddPublicKey(ctx, b, walletID, base64.StdEncoding.EncodeToString(pubKey), "My Key")
+	_, err = ops.AddPublicKey(ctx, b, walletID, base64.StdEncoding.EncodeToString(pubKey), "My Key", "123")
 	require.NoError(t, err)
 	keys, err := ops.ListKeys(ctx, b, walletID)
 	require.NoError(t, err)

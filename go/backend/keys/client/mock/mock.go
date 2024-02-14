@@ -36,18 +36,18 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 }
 
 // AddPublicKey mocks base method.
-func (m *MockClient) AddPublicKey(ctx context.Context, walletID, publicKeyBase64, name string) (*keys.Key, error) {
+func (m *MockClient) AddPublicKey(ctx context.Context, walletID, publicKeyBase64, name, keyID string) (*keys.Key, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddPublicKey", ctx, walletID, publicKeyBase64, name)
+	ret := m.ctrl.Call(m, "AddPublicKey", ctx, walletID, publicKeyBase64, name, keyID)
 	ret0, _ := ret[0].(*keys.Key)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // AddPublicKey indicates an expected call of AddPublicKey.
-func (mr *MockClientMockRecorder) AddPublicKey(ctx, walletID, publicKeyBase64, name interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) AddPublicKey(ctx, walletID, publicKeyBase64, name, keyID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddPublicKey", reflect.TypeOf((*MockClient)(nil).AddPublicKey), ctx, walletID, publicKeyBase64, name)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddPublicKey", reflect.TypeOf((*MockClient)(nil).AddPublicKey), ctx, walletID, publicKeyBase64, name, keyID)
 }
 
 // DeletePublicKey mocks base method.

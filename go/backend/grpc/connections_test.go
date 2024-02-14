@@ -37,10 +37,11 @@ func TestCreatePublicKey(t *testing.T) {
 	base64PublicKey := "JrQLj5P/89iXES9+vFgrIy29clF9CC/oPPsw3c5D0bs="
 
 	keyID := uuid.NewString()
-	c.keys.EXPECT().AddPublicKey(gomock.Any(), wallet.ID, base64PublicKey, "FynTest").Return(
+	c.keys.EXPECT().AddPublicKey(gomock.Any(), wallet.ID, base64PublicKey, "FynTest", "test-key-ed25519").Return(
 		&keys.Key{
 			ID:        keyID,
 			Name:      "FynTest",
+			KeyID:     "test-key-ed25519",
 			WalletID:  wallet.ID,
 			Reference: "",
 			PublicKey: "base64PublicKey",

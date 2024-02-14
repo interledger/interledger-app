@@ -15,6 +15,7 @@ import (
 type Key struct {
 	ID        string
 	Name      string
+	KeyID     string `db:"key_id"`
 	WalletID  string `db:"wallet_id"`
 	Type      Type   `db:"key_type"`
 	Location  string
