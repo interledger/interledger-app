@@ -46,6 +46,11 @@ export async function getInteraction(
       headers: { 'x-idp-secret': RAFIKI_AUTH_SECRET }
     }
   )
+
+  console.log("get interaction response", rpc)
+  if (rpc.status > 300) {
+    throw json({}, rpc.status)
+  }
   let body = (await rpc.json()) as GrantDetails
 
   return body.access
