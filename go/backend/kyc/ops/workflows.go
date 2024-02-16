@@ -35,7 +35,7 @@ func SetKYCStatusWorkflow(ctx workflow.Context, walletID string, status kyc.Stat
 	logger := workflow.GetLogger(ctx)
 
 	var oldStatus kyc.Status
-	err := workflow.ExecuteActivity(ctx, a.GetKYCStatus).Get(ctx, &oldStatus)
+	err := workflow.ExecuteActivity(ctx, a.GetKYCStatus, walletID).Get(ctx, &oldStatus)
 	if err != nil {
 		logger.Error("failed to get old KYC status", "err", err)
 		return err
