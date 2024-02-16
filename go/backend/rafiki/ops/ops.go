@@ -180,12 +180,30 @@ func ListGrants(ctx context.Context, b Backends, walletID string) ([]rafiki.Gran
 	for _, g := range grants {
 		// 2024-02-01T14:17:12.219Z - comes from rafiki like this
 		createdAt, _ := time.Parse(time.RFC3339, g.CreatedAt)
+
+		var access []rafiki.Access
+		for _, a := range g.Access {
+			access = append(access, rafiki.Access{
+				ID:         a.Id,
+				Identifier: a.Identifier,
+				Type:       a.Type,
+				Actions:    a.Actions,
+				Limits: rafiki.Limits{
+					Receiver:      a.Limits.Receiver,
+					Interval:      a.Limits.Interval,
+					DebitAmount:   currency.FromUInt64(a.Limits.DebitAmount.Value, currency.ParseCurrency(a.Limits.DebitAmount.AssetCode)),
+					ReceiveAmount: currency.FromUInt64(a.Limits.ReceiveAmount.Value, currency.ParseCurrency(a.Limits.ReceiveAmount.AssetCode)),
+				},
+			})
+		}
+
 		resp = append(resp, rafiki.Grant{
 			Id:                 g.Id,
 			Client:             g.Client,
 			State:              string(g.State),
 			FinalizationReason: string(g.FinalizationReason),
 			CreatedAt:          createdAt.Format("2 Jan 2006 - 15:04"),
+			Access:             access,
 		})
 	}
 
@@ -199,6 +217,21 @@ func GetGrant(ctx context.Context, b Backends, grantID string) (*rafiki.Grant, e
 	}
 
 	createdAt, _ := time.Parse(time.RFC3339, g.CreatedAt)
+	var access []rafiki.Access
+	for _, a := range g.Access {
+		access = append(access, rafiki.Access{
+			ID:         a.Id,
+			Identifier: a.Identifier,
+			Type:       a.Type,
+			Actions:    a.Actions,
+			Limits: rafiki.Limits{
+				Receiver:      a.Limits.Receiver,
+				Interval:      a.Limits.Interval,
+				DebitAmount:   currency.FromUInt64(a.Limits.DebitAmount.Value, currency.ParseCurrency(a.Limits.DebitAmount.AssetCode)),
+				ReceiveAmount: currency.FromUInt64(a.Limits.ReceiveAmount.Value, currency.ParseCurrency(a.Limits.ReceiveAmount.AssetCode)),
+			},
+		})
+	}
 
 	return &rafiki.Grant{
 		Id:                 g.Id,
@@ -206,6 +239,7 @@ func GetGrant(ctx context.Context, b Backends, grantID string) (*rafiki.Grant, e
 		State:              string(g.State),
 		FinalizationReason: string(g.FinalizationReason),
 		CreatedAt:          createdAt.Format("2 Jan 2006 - 15:04"),
+		Access:             access,
 	}, nil
 }
 

@@ -278,6 +278,8 @@ type GetGrantGrant struct {
 	FinalizationReason GrantFinalization `json:"finalizationReason"`
 	// Date-time of creation
 	CreatedAt string `json:"createdAt"`
+	// Access details
+	Access []GetGrantGrantAccess `json:"access"`
 }
 
 // GetId returns GetGrantGrant.Id, and is useful for accessing the field via an interface.
@@ -294,6 +296,119 @@ func (v *GetGrantGrant) GetFinalizationReason() GrantFinalization { return v.Fin
 
 // GetCreatedAt returns GetGrantGrant.CreatedAt, and is useful for accessing the field via an interface.
 func (v *GetGrantGrant) GetCreatedAt() string { return v.CreatedAt }
+
+// GetAccess returns GetGrantGrant.Access, and is useful for accessing the field via an interface.
+func (v *GetGrantGrant) GetAccess() []GetGrantGrantAccess { return v.Access }
+
+// GetGrantGrantAccess includes the requested fields of the GraphQL type Access.
+type GetGrantGrantAccess struct {
+	// Access id
+	Id string `json:"id"`
+	// Wallet address of a sub-resource (incoming payment, outgoing payment, or quote)
+	Identifier string `json:"identifier"`
+	// Access type (incoming payment, outgoing payment, or quote)
+	Type string `json:"type"`
+	// Access action (create, read, list or complete)
+	Actions []string `json:"actions"`
+	// Date-time of creation
+	CreatedAt string `json:"createdAt"`
+	// Payment limits
+	Limits GetGrantGrantAccessLimitsLimitData `json:"limits"`
+}
+
+// GetId returns GetGrantGrantAccess.Id, and is useful for accessing the field via an interface.
+func (v *GetGrantGrantAccess) GetId() string { return v.Id }
+
+// GetIdentifier returns GetGrantGrantAccess.Identifier, and is useful for accessing the field via an interface.
+func (v *GetGrantGrantAccess) GetIdentifier() string { return v.Identifier }
+
+// GetType returns GetGrantGrantAccess.Type, and is useful for accessing the field via an interface.
+func (v *GetGrantGrantAccess) GetType() string { return v.Type }
+
+// GetActions returns GetGrantGrantAccess.Actions, and is useful for accessing the field via an interface.
+func (v *GetGrantGrantAccess) GetActions() []string { return v.Actions }
+
+// GetCreatedAt returns GetGrantGrantAccess.CreatedAt, and is useful for accessing the field via an interface.
+func (v *GetGrantGrantAccess) GetCreatedAt() string { return v.CreatedAt }
+
+// GetLimits returns GetGrantGrantAccess.Limits, and is useful for accessing the field via an interface.
+func (v *GetGrantGrantAccess) GetLimits() GetGrantGrantAccessLimitsLimitData { return v.Limits }
+
+// GetGrantGrantAccessLimitsLimitData includes the requested fields of the GraphQL type LimitData.
+type GetGrantGrantAccessLimitsLimitData struct {
+	// Wallet address URL of the receiver
+	Receiver string `json:"receiver"`
+	// Interval between payments
+	Interval string `json:"interval"`
+	// Amount to debit
+	DebitAmount GetGrantGrantAccessLimitsLimitDataDebitAmountPaymentAmount `json:"debitAmount"`
+	// Amount to receive
+	ReceiveAmount GetGrantGrantAccessLimitsLimitDataReceiveAmountPaymentAmount `json:"receiveAmount"`
+}
+
+// GetReceiver returns GetGrantGrantAccessLimitsLimitData.Receiver, and is useful for accessing the field via an interface.
+func (v *GetGrantGrantAccessLimitsLimitData) GetReceiver() string { return v.Receiver }
+
+// GetInterval returns GetGrantGrantAccessLimitsLimitData.Interval, and is useful for accessing the field via an interface.
+func (v *GetGrantGrantAccessLimitsLimitData) GetInterval() string { return v.Interval }
+
+// GetDebitAmount returns GetGrantGrantAccessLimitsLimitData.DebitAmount, and is useful for accessing the field via an interface.
+func (v *GetGrantGrantAccessLimitsLimitData) GetDebitAmount() GetGrantGrantAccessLimitsLimitDataDebitAmountPaymentAmount {
+	return v.DebitAmount
+}
+
+// GetReceiveAmount returns GetGrantGrantAccessLimitsLimitData.ReceiveAmount, and is useful for accessing the field via an interface.
+func (v *GetGrantGrantAccessLimitsLimitData) GetReceiveAmount() GetGrantGrantAccessLimitsLimitDataReceiveAmountPaymentAmount {
+	return v.ReceiveAmount
+}
+
+// GetGrantGrantAccessLimitsLimitDataDebitAmountPaymentAmount includes the requested fields of the GraphQL type PaymentAmount.
+type GetGrantGrantAccessLimitsLimitDataDebitAmountPaymentAmount struct {
+	Value uint64 `json:"value"`
+	// [ISO 4217 currency code](https://en.wikipedia.org/wiki/ISO_4217), e.g. `USD`
+	AssetCode string `json:"assetCode"`
+	// Difference in orders of magnitude between the standard unit of an asset and a corresponding fractional unit
+	AssetScale uint8 `json:"assetScale"`
+}
+
+// GetValue returns GetGrantGrantAccessLimitsLimitDataDebitAmountPaymentAmount.Value, and is useful for accessing the field via an interface.
+func (v *GetGrantGrantAccessLimitsLimitDataDebitAmountPaymentAmount) GetValue() uint64 {
+	return v.Value
+}
+
+// GetAssetCode returns GetGrantGrantAccessLimitsLimitDataDebitAmountPaymentAmount.AssetCode, and is useful for accessing the field via an interface.
+func (v *GetGrantGrantAccessLimitsLimitDataDebitAmountPaymentAmount) GetAssetCode() string {
+	return v.AssetCode
+}
+
+// GetAssetScale returns GetGrantGrantAccessLimitsLimitDataDebitAmountPaymentAmount.AssetScale, and is useful for accessing the field via an interface.
+func (v *GetGrantGrantAccessLimitsLimitDataDebitAmountPaymentAmount) GetAssetScale() uint8 {
+	return v.AssetScale
+}
+
+// GetGrantGrantAccessLimitsLimitDataReceiveAmountPaymentAmount includes the requested fields of the GraphQL type PaymentAmount.
+type GetGrantGrantAccessLimitsLimitDataReceiveAmountPaymentAmount struct {
+	Value uint64 `json:"value"`
+	// [ISO 4217 currency code](https://en.wikipedia.org/wiki/ISO_4217), e.g. `USD`
+	AssetCode string `json:"assetCode"`
+	// Difference in orders of magnitude between the standard unit of an asset and a corresponding fractional unit
+	AssetScale uint8 `json:"assetScale"`
+}
+
+// GetValue returns GetGrantGrantAccessLimitsLimitDataReceiveAmountPaymentAmount.Value, and is useful for accessing the field via an interface.
+func (v *GetGrantGrantAccessLimitsLimitDataReceiveAmountPaymentAmount) GetValue() uint64 {
+	return v.Value
+}
+
+// GetAssetCode returns GetGrantGrantAccessLimitsLimitDataReceiveAmountPaymentAmount.AssetCode, and is useful for accessing the field via an interface.
+func (v *GetGrantGrantAccessLimitsLimitDataReceiveAmountPaymentAmount) GetAssetCode() string {
+	return v.AssetCode
+}
+
+// GetAssetScale returns GetGrantGrantAccessLimitsLimitDataReceiveAmountPaymentAmount.AssetScale, and is useful for accessing the field via an interface.
+func (v *GetGrantGrantAccessLimitsLimitDataReceiveAmountPaymentAmount) GetAssetScale() uint8 {
+	return v.AssetScale
+}
 
 // GetGrantResponse is returned by GetGrant on success.
 type GetGrantResponse struct {
@@ -489,6 +604,8 @@ type ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrant struct {
 	FinalizationReason GrantFinalization `json:"finalizationReason"`
 	// Date-time of creation
 	CreatedAt string `json:"createdAt"`
+	// Access details
+	Access []ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccess `json:"access"`
 }
 
 // GetId returns ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrant.Id, and is useful for accessing the field via an interface.
@@ -510,6 +627,135 @@ func (v *ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrant) GetFinalizatio
 // GetCreatedAt returns ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrant.CreatedAt, and is useful for accessing the field via an interface.
 func (v *ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrant) GetCreatedAt() string {
 	return v.CreatedAt
+}
+
+// GetAccess returns ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrant.Access, and is useful for accessing the field via an interface.
+func (v *ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrant) GetAccess() []ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccess {
+	return v.Access
+}
+
+// ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccess includes the requested fields of the GraphQL type Access.
+type ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccess struct {
+	// Access id
+	Id string `json:"id"`
+	// Wallet address of a sub-resource (incoming payment, outgoing payment, or quote)
+	Identifier string `json:"identifier"`
+	// Access type (incoming payment, outgoing payment, or quote)
+	Type string `json:"type"`
+	// Access action (create, read, list or complete)
+	Actions []string `json:"actions"`
+	// Date-time of creation
+	CreatedAt string `json:"createdAt"`
+	// Payment limits
+	Limits ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccessLimitsLimitData `json:"limits"`
+}
+
+// GetId returns ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccess.Id, and is useful for accessing the field via an interface.
+func (v *ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccess) GetId() string { return v.Id }
+
+// GetIdentifier returns ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccess.Identifier, and is useful for accessing the field via an interface.
+func (v *ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccess) GetIdentifier() string {
+	return v.Identifier
+}
+
+// GetType returns ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccess.Type, and is useful for accessing the field via an interface.
+func (v *ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccess) GetType() string {
+	return v.Type
+}
+
+// GetActions returns ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccess.Actions, and is useful for accessing the field via an interface.
+func (v *ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccess) GetActions() []string {
+	return v.Actions
+}
+
+// GetCreatedAt returns ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccess.CreatedAt, and is useful for accessing the field via an interface.
+func (v *ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccess) GetCreatedAt() string {
+	return v.CreatedAt
+}
+
+// GetLimits returns ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccess.Limits, and is useful for accessing the field via an interface.
+func (v *ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccess) GetLimits() ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccessLimitsLimitData {
+	return v.Limits
+}
+
+// ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccessLimitsLimitData includes the requested fields of the GraphQL type LimitData.
+type ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccessLimitsLimitData struct {
+	// Wallet address URL of the receiver
+	Receiver string `json:"receiver"`
+	// Interval between payments
+	Interval string `json:"interval"`
+	// Amount to debit
+	DebitAmount ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccessLimitsLimitDataDebitAmountPaymentAmount `json:"debitAmount"`
+	// Amount to receive
+	ReceiveAmount ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccessLimitsLimitDataReceiveAmountPaymentAmount `json:"receiveAmount"`
+}
+
+// GetReceiver returns ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccessLimitsLimitData.Receiver, and is useful for accessing the field via an interface.
+func (v *ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccessLimitsLimitData) GetReceiver() string {
+	return v.Receiver
+}
+
+// GetInterval returns ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccessLimitsLimitData.Interval, and is useful for accessing the field via an interface.
+func (v *ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccessLimitsLimitData) GetInterval() string {
+	return v.Interval
+}
+
+// GetDebitAmount returns ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccessLimitsLimitData.DebitAmount, and is useful for accessing the field via an interface.
+func (v *ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccessLimitsLimitData) GetDebitAmount() ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccessLimitsLimitDataDebitAmountPaymentAmount {
+	return v.DebitAmount
+}
+
+// GetReceiveAmount returns ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccessLimitsLimitData.ReceiveAmount, and is useful for accessing the field via an interface.
+func (v *ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccessLimitsLimitData) GetReceiveAmount() ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccessLimitsLimitDataReceiveAmountPaymentAmount {
+	return v.ReceiveAmount
+}
+
+// ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccessLimitsLimitDataDebitAmountPaymentAmount includes the requested fields of the GraphQL type PaymentAmount.
+type ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccessLimitsLimitDataDebitAmountPaymentAmount struct {
+	Value uint64 `json:"value"`
+	// [ISO 4217 currency code](https://en.wikipedia.org/wiki/ISO_4217), e.g. `USD`
+	AssetCode string `json:"assetCode"`
+	// Difference in orders of magnitude between the standard unit of an asset and a corresponding fractional unit
+	AssetScale uint8 `json:"assetScale"`
+}
+
+// GetValue returns ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccessLimitsLimitDataDebitAmountPaymentAmount.Value, and is useful for accessing the field via an interface.
+func (v *ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccessLimitsLimitDataDebitAmountPaymentAmount) GetValue() uint64 {
+	return v.Value
+}
+
+// GetAssetCode returns ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccessLimitsLimitDataDebitAmountPaymentAmount.AssetCode, and is useful for accessing the field via an interface.
+func (v *ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccessLimitsLimitDataDebitAmountPaymentAmount) GetAssetCode() string {
+	return v.AssetCode
+}
+
+// GetAssetScale returns ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccessLimitsLimitDataDebitAmountPaymentAmount.AssetScale, and is useful for accessing the field via an interface.
+func (v *ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccessLimitsLimitDataDebitAmountPaymentAmount) GetAssetScale() uint8 {
+	return v.AssetScale
+}
+
+// ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccessLimitsLimitDataReceiveAmountPaymentAmount includes the requested fields of the GraphQL type PaymentAmount.
+type ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccessLimitsLimitDataReceiveAmountPaymentAmount struct {
+	Value uint64 `json:"value"`
+	// [ISO 4217 currency code](https://en.wikipedia.org/wiki/ISO_4217), e.g. `USD`
+	AssetCode string `json:"assetCode"`
+	// Difference in orders of magnitude between the standard unit of an asset and a corresponding fractional unit
+	AssetScale uint8 `json:"assetScale"`
+}
+
+// GetValue returns ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccessLimitsLimitDataReceiveAmountPaymentAmount.Value, and is useful for accessing the field via an interface.
+func (v *ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccessLimitsLimitDataReceiveAmountPaymentAmount) GetValue() uint64 {
+	return v.Value
+}
+
+// GetAssetCode returns ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccessLimitsLimitDataReceiveAmountPaymentAmount.AssetCode, and is useful for accessing the field via an interface.
+func (v *ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccessLimitsLimitDataReceiveAmountPaymentAmount) GetAssetCode() string {
+	return v.AssetCode
+}
+
+// GetAssetScale returns ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccessLimitsLimitDataReceiveAmountPaymentAmount.AssetScale, and is useful for accessing the field via an interface.
+func (v *ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccessLimitsLimitDataReceiveAmountPaymentAmount) GetAssetScale() uint8 {
+	return v.AssetScale
 }
 
 // ListGrantsGrantsGrantsConnectionPageInfo includes the requested fields of the GraphQL type PageInfo.
@@ -822,6 +1068,27 @@ query GetGrant ($id: ID!) {
 		state
 		finalizationReason
 		createdAt
+		access {
+			id
+			identifier
+			type
+			actions
+			createdAt
+			limits {
+				receiver
+				interval
+				debitAmount {
+					value
+					assetCode
+					assetScale
+				}
+				receiveAmount {
+					value
+					assetCode
+					assetScale
+				}
+			}
+		}
 	}
 }
 `
@@ -908,6 +1175,27 @@ query ListGrants ($filter: GrantFilter) {
 				state
 				finalizationReason
 				createdAt
+				access {
+					id
+					identifier
+					type
+					actions
+					createdAt
+					limits {
+						receiver
+						interval
+						debitAmount {
+							value
+							assetCode
+							assetScale
+						}
+						receiveAmount {
+							value
+							assetCode
+							assetScale
+						}
+					}
+				}
 			}
 			cursor
 		}

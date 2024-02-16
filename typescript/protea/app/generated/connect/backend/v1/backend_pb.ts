@@ -220,6 +220,11 @@ export class RafikiGrant extends Message<RafikiGrant> {
    */
   createdAt = "";
 
+  /**
+   * @generated from field: repeated backend.v1.RafikiAccess access = 6;
+   */
+  access: RafikiAccess[] = [];
+
   constructor(data?: PartialMessage<RafikiGrant>) {
     super();
     proto3.util.initPartial(data, this);
@@ -233,6 +238,7 @@ export class RafikiGrant extends Message<RafikiGrant> {
     { no: 3, name: "state", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "finalizationReason", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 5, name: "createdAt", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "access", kind: "message", T: RafikiAccess, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RafikiGrant {
@@ -249,6 +255,122 @@ export class RafikiGrant extends Message<RafikiGrant> {
 
   static equals(a: RafikiGrant | PlainMessage<RafikiGrant> | undefined, b: RafikiGrant | PlainMessage<RafikiGrant> | undefined): boolean {
     return proto3.util.equals(RafikiGrant, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.RafikiAccess
+ */
+export class RafikiAccess extends Message<RafikiAccess> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  /**
+   * @generated from field: string identifier = 2;
+   */
+  identifier = "";
+
+  /**
+   * @generated from field: string type = 3;
+   */
+  type = "";
+
+  /**
+   * @generated from field: repeated string actions = 4;
+   */
+  actions: string[] = [];
+
+  /**
+   * @generated from field: backend.v1.RafikiLimits limits = 5;
+   */
+  limits?: RafikiLimits;
+
+  constructor(data?: PartialMessage<RafikiAccess>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.RafikiAccess";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "identifier", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "actions", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 5, name: "limits", kind: "message", T: RafikiLimits },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RafikiAccess {
+    return new RafikiAccess().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): RafikiAccess {
+    return new RafikiAccess().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): RafikiAccess {
+    return new RafikiAccess().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: RafikiAccess | PlainMessage<RafikiAccess> | undefined, b: RafikiAccess | PlainMessage<RafikiAccess> | undefined): boolean {
+    return proto3.util.equals(RafikiAccess, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.RafikiLimits
+ */
+export class RafikiLimits extends Message<RafikiLimits> {
+  /**
+   * @generated from field: string receiver = 1;
+   */
+  receiver = "";
+
+  /**
+   * @generated from field: string interval = 2;
+   */
+  interval = "";
+
+  /**
+   * @generated from field: backend.v1.Amount debitAmount = 3;
+   */
+  debitAmount?: Amount;
+
+  /**
+   * @generated from field: backend.v1.Amount receiveAmount = 4;
+   */
+  receiveAmount?: Amount;
+
+  constructor(data?: PartialMessage<RafikiLimits>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.RafikiLimits";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "receiver", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "interval", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "debitAmount", kind: "message", T: Amount },
+    { no: 4, name: "receiveAmount", kind: "message", T: Amount },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RafikiLimits {
+    return new RafikiLimits().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): RafikiLimits {
+    return new RafikiLimits().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): RafikiLimits {
+    return new RafikiLimits().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: RafikiLimits | PlainMessage<RafikiLimits> | undefined, b: RafikiLimits | PlainMessage<RafikiLimits> | undefined): boolean {
+    return proto3.util.equals(RafikiLimits, a, b);
   }
 }
 

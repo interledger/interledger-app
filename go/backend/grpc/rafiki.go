@@ -3,6 +3,8 @@ package grpc
 import (
 	"context"
 
+	"gitlab.com/fynbos/backend/rafiki"
+
 	"gitlab.com/fynbos/backend/db"
 
 	pb "gitlab.com/fynbos/proto/backend/v1"
@@ -26,16 +28,36 @@ func (s *rpcService) ListRafikiGrants(ctx context.Context, _ *pb.Empty) (*pb.Lis
 
 	resp := make([]*pb.RafikiGrant, len(gl))
 	for i, g := range gl {
-		resp[i] = &pb.RafikiGrant{
-			Id:                 g.Id,
-			Client:             g.Client,
-			State:              g.State,
-			FinalizationReason: g.FinalizationReason,
-			CreatedAt:          g.CreatedAt,
-		}
+		resp[i] = transformRafikiGrant(g)
 	}
 
 	return &pb.ListRafikiGrantsResponse{Grants: resp}, nil
+}
+
+func transformRafikiGrant(g rafiki.Grant) *pb.RafikiGrant {
+	access := make([]*pb.RafikiAccess, len(g.Access))
+	for i, a := range g.Access {
+		access[i] = &pb.RafikiAccess{
+			Id:         a.ID,
+			Identifier: a.Identifier,
+			Type:       a.Type,
+			Actions:    a.Actions,
+			Limits: &pb.RafikiLimits{
+				Receiver:      a.Limits.Receiver,
+				Interval:      a.Limits.Interval,
+				DebitAmount:   a.Limits.DebitAmount.ToPB(),
+				ReceiveAmount: a.Limits.ReceiveAmount.ToPB(),
+			},
+		}
+	}
+	return &pb.RafikiGrant{
+		Id:                 g.Id,
+		Client:             g.Client,
+		State:              g.State,
+		FinalizationReason: g.FinalizationReason,
+		CreatedAt:          g.CreatedAt,
+		Access:             access,
+	}
 }
 
 func (s *rpcService) GetRafikiGrant(ctx context.Context, req *pb.GetRafikiGrantRequest) (*pb.RafikiGrant, error) {
@@ -54,13 +76,7 @@ func (s *rpcService) GetRafikiGrant(ctx context.Context, req *pb.GetRafikiGrantR
 		return nil, toGRPCError(err)
 	}
 
-	return &pb.RafikiGrant{
-		Id:                 g.Id,
-		Client:             g.Client,
-		State:              g.State,
-		FinalizationReason: g.FinalizationReason,
-		CreatedAt:          g.CreatedAt,
-	}, nil
+	return transformRafikiGrant(*g), nil
 }
 
 func (s *rpcService) RevokeRafikiGrant(ctx context.Context, req *pb.RevokeRafikiGrantRequest) (*pb.Empty, error) {
