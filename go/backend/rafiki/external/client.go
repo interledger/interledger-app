@@ -15,7 +15,7 @@ import (
 
 type Client interface {
 	CreatePaymentPointer(ctx context.Context, wallet wallets.Wallet, assetCode string) (string, error)
-	CreatePaymentPointerKey(ctx context.Context, paymentPointerID string, key keys.Key) error
+	CreatePaymentPointerKey(ctx context.Context, paymentPointerID string, key keys.Key) (string, error)
 	RevokePaymentPointerKey(ctx context.Context, keyID string) error
 	FundOutgoingPayment(ctx context.Context, eventID string) error
 	ListGrants(ctx context.Context, paymentPointer string) ([]ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrant, error)
@@ -92,28 +92,28 @@ func (c client) FundOutgoingPayment(ctx context.Context, eventID string) error {
 	return nil
 }
 
-func (c client) CreatePaymentPointerKey(ctx context.Context, walletAddressID string, key keys.Key) error {
-	fmt.Println("CreatePaymentPointerKey Key ID:" + key.ID)
+func (c client) CreatePaymentPointerKey(ctx context.Context, walletAddressID string, key keys.Key) (string, error) {
 	r, err := CreateWalletAddressKey(ctx, c.backendClient, CreateWalletAddressKeyInput{
 		WalletAddressId: walletAddressID,
 		Jwk: JwkInput{
-			Kid: key.ID,
+			Kid: key.KeyID,
 			X:   key.PublicKey,
 			Alg: "EdDSA",
 			Kty: "OKP",
 			Crv: "Ed25519",
 		},
+		IdempotencyKey: key.KeyID,
 	})
 	if err != nil {
-		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+		return "", fmt.Errorf("%w %s", rafiki.ErrInternal, err)
 	}
 	if !r.GetCreateWalletAddressKey().Success {
-		return fmt.Errorf("error code (%s) message (%s)", r.GetCreateWalletAddressKey().Code, r.GetCreateWalletAddressKey().Message)
+		return "", fmt.Errorf("error code (%s) message (%s)", r.GetCreateWalletAddressKey().Code, r.GetCreateWalletAddressKey().Message)
 	}
 
-	fmt.Println(r.CreateWalletAddressKey.GetWalletAddressKey())
+	resp := r.CreateWalletAddressKey.GetWalletAddressKey()
 
-	return nil
+	return resp.Id, nil
 }
 
 func (c client) RevokePaymentPointerKey(ctx context.Context, keyID string) error {
