@@ -55,7 +55,7 @@ func CreatePaymentPointer(ctx context.Context, b Backends, w wallets.Wallet, ass
 	}
 
 	for _, key := range keys {
-		err := b.External().CreatePaymentPointerKey(ctx, ppID, key)
+		err := CreatePaymentPointerKey(ctx, b, key.ID, w.ID)
 		if err != nil {
 			return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
 		}
@@ -132,16 +132,33 @@ func CreatePaymentPointerKey(ctx context.Context, b Backends, keyID string, wall
 		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
 	}
 
-	err = b.External().CreatePaymentPointerKey(ctx, ppID, *key)
+	externalID, err := b.External().CreatePaymentPointerKey(ctx, ppID, *key)
 	if err != nil {
 		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+	}
+
+	result, err := b.DB().ExecContext(ctx, "INSERT INTO rafiki_wallet_keys (external_id, internal_id) VALUES ($1, $2);", externalID, key.ID)
+	if err != nil {
+		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+	}
+	if rows, _ := result.RowsAffected(); rows < 1 {
+		return fmt.Errorf("%w Mapping rafiki keys to fynbos key failed.", rafiki.ErrInternal)
 	}
 
 	return nil
 }
 
 func RevokePaymentPointerKey(ctx context.Context, b Backends, keyID string) error {
-	err := b.External().RevokePaymentPointerKey(ctx, keyID)
+	var externalID string
+	err := b.DB().GetContext(ctx, &externalID, "SELECT external_id FROM rafiki_wallet_keys WHERE internal_id=$1;", keyID)
+	if err != nil {
+		return fmt.Errorf("%w %s ", rafiki.ErrInternal, err)
+	}
+	if externalID == "" {
+		return rafiki.ErrNotFound
+	}
+
+	err = b.External().RevokePaymentPointerKey(ctx, externalID)
 	if err != nil {
 		return fmt.Errorf("%w %s ", rafiki.ErrInternal, err)
 	}

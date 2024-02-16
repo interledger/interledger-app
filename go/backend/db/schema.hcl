@@ -2750,6 +2750,33 @@ table "rafiki_payment_pointers" {
   }
 }
 
+table "rafiki_wallet_keys" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "external_id" {
+    type = text
+    null = false
+  }
+  column "internal_id" {
+    null = false
+    type = uuid
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+}
+
 table "rafiki_outgoing_payments" {
   schema = schema.public
   column "id" {
