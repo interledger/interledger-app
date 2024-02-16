@@ -4,3 +4,9 @@ schema: schema.graphql
 operations:
 - genqlient.graphql
 generated: generated.go
+
+bindings:
+  UInt64:
+    type: uint64
+  UInt8:
+    type: uint8

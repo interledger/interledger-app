@@ -82,6 +82,56 @@ export interface RafikiGrant {
      * @generated from protobuf field: string createdAt = 5;
      */
     createdAt: string;
+    /**
+     * @generated from protobuf field: repeated backend.v1.RafikiAccess access = 6;
+     */
+    access: RafikiAccess[];
+}
+/**
+ * @generated from protobuf message backend.v1.RafikiAccess
+ */
+export interface RafikiAccess {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+    /**
+     * @generated from protobuf field: string identifier = 2;
+     */
+    identifier: string;
+    /**
+     * @generated from protobuf field: string type = 3;
+     */
+    type: string;
+    /**
+     * @generated from protobuf field: repeated string actions = 4;
+     */
+    actions: string[];
+    /**
+     * @generated from protobuf field: backend.v1.RafikiLimits limits = 5;
+     */
+    limits?: RafikiLimits;
+}
+/**
+ * @generated from protobuf message backend.v1.RafikiLimits
+ */
+export interface RafikiLimits {
+    /**
+     * @generated from protobuf field: string receiver = 1;
+     */
+    receiver: string;
+    /**
+     * @generated from protobuf field: string interval = 2;
+     */
+    interval: string;
+    /**
+     * @generated from protobuf field: backend.v1.Amount debitAmount = 3;
+     */
+    debitAmount?: Amount;
+    /**
+     * @generated from protobuf field: backend.v1.Amount receiveAmount = 4;
+     */
+    receiveAmount?: Amount;
 }
 /**
  * @generated from protobuf message backend.v1.AstraDepositFromCardRequest
@@ -2546,11 +2596,12 @@ class RafikiGrant$Type extends MessageType<RafikiGrant> {
             { no: 2, name: "client", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "state", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 4, name: "finalizationReason", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 5, name: "createdAt", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 5, name: "createdAt", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "access", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => RafikiAccess }
         ]);
     }
     create(value?: PartialMessage<RafikiGrant>): RafikiGrant {
-        const message = { id: "", client: "", state: "", finalizationReason: "", createdAt: "" };
+        const message = { id: "", client: "", state: "", finalizationReason: "", createdAt: "", access: [] };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<RafikiGrant>(this, message, value);
@@ -2575,6 +2626,9 @@ class RafikiGrant$Type extends MessageType<RafikiGrant> {
                     break;
                 case /* string createdAt */ 5:
                     message.createdAt = reader.string();
+                    break;
+                case /* repeated backend.v1.RafikiAccess access */ 6:
+                    message.access.push(RafikiAccess.internalBinaryRead(reader, reader.uint32(), options));
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -2603,6 +2657,9 @@ class RafikiGrant$Type extends MessageType<RafikiGrant> {
         /* string createdAt = 5; */
         if (message.createdAt !== "")
             writer.tag(5, WireType.LengthDelimited).string(message.createdAt);
+        /* repeated backend.v1.RafikiAccess access = 6; */
+        for (let i = 0; i < message.access.length; i++)
+            RafikiAccess.internalBinaryWrite(message.access[i], writer.tag(6, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -2613,6 +2670,149 @@ class RafikiGrant$Type extends MessageType<RafikiGrant> {
  * @generated MessageType for protobuf message backend.v1.RafikiGrant
  */
 export const RafikiGrant = new RafikiGrant$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class RafikiAccess$Type extends MessageType<RafikiAccess> {
+    constructor() {
+        super("backend.v1.RafikiAccess", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "identifier", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "actions", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "limits", kind: "message", T: () => RafikiLimits }
+        ]);
+    }
+    create(value?: PartialMessage<RafikiAccess>): RafikiAccess {
+        const message = { id: "", identifier: "", type: "", actions: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<RafikiAccess>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: RafikiAccess): RafikiAccess {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                case /* string identifier */ 2:
+                    message.identifier = reader.string();
+                    break;
+                case /* string type */ 3:
+                    message.type = reader.string();
+                    break;
+                case /* repeated string actions */ 4:
+                    message.actions.push(reader.string());
+                    break;
+                case /* backend.v1.RafikiLimits limits */ 5:
+                    message.limits = RafikiLimits.internalBinaryRead(reader, reader.uint32(), options, message.limits);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: RafikiAccess, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* string identifier = 2; */
+        if (message.identifier !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.identifier);
+        /* string type = 3; */
+        if (message.type !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.type);
+        /* repeated string actions = 4; */
+        for (let i = 0; i < message.actions.length; i++)
+            writer.tag(4, WireType.LengthDelimited).string(message.actions[i]);
+        /* backend.v1.RafikiLimits limits = 5; */
+        if (message.limits)
+            RafikiLimits.internalBinaryWrite(message.limits, writer.tag(5, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.RafikiAccess
+ */
+export const RafikiAccess = new RafikiAccess$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class RafikiLimits$Type extends MessageType<RafikiLimits> {
+    constructor() {
+        super("backend.v1.RafikiLimits", [
+            { no: 1, name: "receiver", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "interval", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "debitAmount", kind: "message", T: () => Amount },
+            { no: 4, name: "receiveAmount", kind: "message", T: () => Amount }
+        ]);
+    }
+    create(value?: PartialMessage<RafikiLimits>): RafikiLimits {
+        const message = { receiver: "", interval: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<RafikiLimits>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: RafikiLimits): RafikiLimits {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string receiver */ 1:
+                    message.receiver = reader.string();
+                    break;
+                case /* string interval */ 2:
+                    message.interval = reader.string();
+                    break;
+                case /* backend.v1.Amount debitAmount */ 3:
+                    message.debitAmount = Amount.internalBinaryRead(reader, reader.uint32(), options, message.debitAmount);
+                    break;
+                case /* backend.v1.Amount receiveAmount */ 4:
+                    message.receiveAmount = Amount.internalBinaryRead(reader, reader.uint32(), options, message.receiveAmount);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: RafikiLimits, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string receiver = 1; */
+        if (message.receiver !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.receiver);
+        /* string interval = 2; */
+        if (message.interval !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.interval);
+        /* backend.v1.Amount debitAmount = 3; */
+        if (message.debitAmount)
+            Amount.internalBinaryWrite(message.debitAmount, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        /* backend.v1.Amount receiveAmount = 4; */
+        if (message.receiveAmount)
+            Amount.internalBinaryWrite(message.receiveAmount, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.RafikiLimits
+ */
+export const RafikiLimits = new RafikiLimits$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class AstraDepositFromCardRequest$Type extends MessageType<AstraDepositFromCardRequest> {
     constructor() {

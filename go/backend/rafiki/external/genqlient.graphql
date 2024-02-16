@@ -54,6 +54,27 @@ query GetGrant ($id: ID!) {
         state
         finalizationReason
         createdAt
+        access {
+            id
+            identifier
+            type
+            actions
+            createdAt
+            limits {
+                receiver
+                interval
+                debitAmount {
+                    value
+                    assetCode
+                    assetScale
+                }
+                receiveAmount {
+                    value
+                    assetCode
+                    assetScale
+                }
+            }
+        }
     }
 }
 
@@ -74,6 +95,27 @@ query ListGrants ($filter: GrantFilter) {
                 state
                 finalizationReason
                 createdAt
+                access {
+                    id
+                    identifier
+                    type
+                    actions
+                    createdAt
+                    limits {
+                        receiver
+                        interval
+                        debitAmount {
+                            value
+                            assetCode
+                            assetScale
+                        }
+                        receiveAmount {
+                            value
+                            assetCode
+                            assetScale
+                        }
+                    }
+                }
             }
             cursor
         }

@@ -179,6 +179,22 @@ message RafikiGrant {
   string state = 3;
   string finalizationReason = 4;
   string createdAt = 5;
+  repeated RafikiAccess access = 6;
+}
+
+message RafikiAccess {
+  string id = 1;
+  string identifier = 2;
+  string type = 3;
+  repeated string actions = 4;
+  RafikiLimits limits = 5;
+}
+
+message RafikiLimits {
+  string receiver = 1;
+  string interval = 2;
+  Amount debitAmount = 3;
+  Amount receiveAmount = 4;
 }
 
 message AstraDepositFromCardRequest {

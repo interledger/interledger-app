@@ -77,7 +77,6 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 		if err != nil {
 			log.Fatalln(err)
 		}
-
 		ptiPrivateKey, err = jwk.FromRaw(privateKey)
 		if err != nil {
 			log.Fatalln(err)
