@@ -149,7 +149,7 @@ export class ConnectError {
     })
 
     if (err.code === Code.Unauthenticated) {
-      url.searchParams.set('returnTo', url.pathname)
+      url.searchParams.set('returnTo', url.pathname + url.search)
 
       throw redirect(route('/login') + url.search)
     }
