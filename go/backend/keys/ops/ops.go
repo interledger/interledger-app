@@ -109,7 +109,7 @@ func GetPublicKey(ctx context.Context, b Backends, id string, walletID string) (
 func AddPublicKey(ctx context.Context, b Backends, walletID, publicKeyBase64, name, keyID string) (*keys.Key, error) {
 	var id string
 	err := b.DB().GetContext(ctx, &id,
-		"select id from wallet_keys where wallet_id = $1 and key_type = $2 and public_key = $3", walletID, keys.NonCustodial.String(), publicKeyBase64)
+		"select id from wallet_keys where wallet_id = $1 and key_type = $2 and public_key = $3 and deleted_at IS NULL", walletID, keys.NonCustodial.String(), publicKeyBase64)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, fmt.Errorf("%w %s", keys.ErrInternal, err)
 	}
