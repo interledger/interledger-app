@@ -86,6 +86,19 @@ func TestCanAddAndSoftDeleteAPublicKey(t *testing.T) {
 	ks, err = ops.ListKeys(ctx, b, walletID)
 	require.NoError(t, err)
 	assert.Empty(t, ks)
+
+	_, err = ops.AddPublicKey(ctx, b, walletID, base64.StdEncoding.EncodeToString(pubKey), "My Key", "123")
+	require.NoError(t, err)
+
+	ks, err = ops.ListKeys(ctx, b, walletID)
+	require.NoError(t, err)
+	require.Len(t, ks, 1)
+	key = ks[0]
+	require.Equal(t, walletID, key.WalletID)
+	require.Equal(t, "database", key.Location)
+	require.Equal(t, keys.NonCustodial.String(), key.Type.String())
+	require.Equal(t, "My Key", key.Name)
+	require.Equal(t, "123", key.KeyID)
 }
 
 func TestCantAddADuplicatePublicKey(t *testing.T) {

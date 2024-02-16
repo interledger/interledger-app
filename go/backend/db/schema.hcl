@@ -1621,8 +1621,9 @@ table "wallet_keys" {
     default = ""
   }
   column "key_id" {
-    null = true
+    null = false
     type = text
+    default = ""
   }
   index "wallet_id_ind" {
     unique  = false
