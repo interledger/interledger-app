@@ -148,6 +148,7 @@ func GetTrustedAuthenticationInfo(b Backends) http.HandlerFunc {
 
 		walletID := chi.URLParam(r, "id")
 		var ret WalletInfoResponse
+		ret.CustomerID = walletID
 		data, err := b.KYC().GetIndividualDetails(r.Context(), walletID)
 		if errors.Is(err, kyc.ErrNoKYCInfo) {
 			log.Error("Failed to respond to Astra trusted authentication request", zap.Error(err))
@@ -190,6 +191,7 @@ func GetTrustedAuthenticationInfo(b Backends) http.HandlerFunc {
 			}
 		}
 
+		w.Header().Set("Content-Type", "application/json")
 		err = json.NewEncoder(w).Encode(ret)
 		if err != nil {
 			log.Error("Failed to respond to Astra trusted authentication request", zap.Error(err))
