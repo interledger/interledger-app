@@ -1,6 +1,6 @@
 data_dir = "/var/lib/nomad"
 
-bind_addr = "172.17.0.1" # Use docker network interface
+bind_addr = "0.0.0.0" # Use docker network interface
 
 server {
   enabled          = true
