@@ -37,8 +37,8 @@ connect {
   # enable_mesh_gateway_wan_federation = true
 }
 enable_central_service_config = true
-protocol = 1
-raft_protocol = 1
+protocol = 3
+raft_protocol = 3
 recursors = [
   "8.8.8.8",
   "8.8.4.4",
