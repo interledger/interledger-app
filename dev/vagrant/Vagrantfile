@@ -73,4 +73,5 @@ Vagrant.configure("2") do |config|
   config.vm.provision "docker", preserve_order: true, type: "shell", path: "docker/docker.sh"
   config.vm.provision "consul", preserve_order: true, type: "shell", path: "consul.sh"
   config.vm.provision "nomad", preserve_order: true, type: "shell", path: "nomad.sh"
+  config.vm.provision "guestadditions", preserve_order: true, type: "shell", path: "guestadditions.sh"
 end
