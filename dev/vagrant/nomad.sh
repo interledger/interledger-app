@@ -52,8 +52,9 @@ client {
   options = {
     "docker.volumes.enabled" = true
   }
-  host_volume "waypoint" {
-    path      = "/opt/nomad/data/volume/waypoint"
+
+  host_volume "postgres" {
+    path      = "/opt/nomad/data/volume/postgres"
     read_only = false
   }
 }
@@ -111,6 +112,9 @@ OOMScoreAdjust=-1000
 [Install]
 WantedBy=multi-user.target
 EOF
+
+  echo -e '\e[38;5;198m'"++++ Creating Postgres host volume /opt/nomad/data/volume/postgres"
+  sudo mkdir -p /opt/nomad/data/volume/postgres
   sudo chmod -R 777 /opt/nomad
   # check if nomad is installed, start and exit
   if [ -f /usr/local/bin/nomad ]; then

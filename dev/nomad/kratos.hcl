@@ -18,6 +18,19 @@ job "kratos" {
     }
 
     service {
+      connect {
+        sidecar_service {
+          proxy {
+            upstreams {
+              destination_name = "postgres"
+              local_bind_port  = 5432
+            }
+          }
+        }
+      }
+    }
+
+    service {
       name = "kratos"
       port = 4433
       connect {
