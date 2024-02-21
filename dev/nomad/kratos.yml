@@ -1,4 +1,4 @@
-dsn: "memory"
+dsn: "postgres://postgres:password@localhost:5432/kratos?sslmode=disable"
 cookies:
   same_site: Strict
 courier:
