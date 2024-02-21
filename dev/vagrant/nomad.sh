@@ -68,8 +68,49 @@ consul {
   address = "10.9.99.10:8500"
 }
 EOF
-  echo -e '\e[38;5;198m'"++++ Creating Waypoint host volume /opt/nomad/data/volume/waypoint"
-  sudo mkdir -p /opt/nomad/data/volume/waypoint
+
+  # create a Nomad service file at /etc/systemd/system/nomad.service
+  cat <<EOF | sudo tee /etc/systemd/system/nomad.service
+[Unit]
+Description=Nomad
+Documentation=https://nomadproject.io/docs/
+Wants=network-online.target
+After=network-online.target
+
+# When using Nomad with Consul it is not necessary to start Consul first. These
+# lines start Consul before Nomad as an optimization to avoid Nomad logging
+# that Consul is unavailable at startup.
+Wants=consul.service
+After=consul.service
+
+[Service]
+# EnvironmentFile=/etc/nomad.d/nomad.env
+ExecReload=/bin/kill -HUP $MAINPID
+ExecStart=/usr/local/bin/nomad agent -config=/etc/nomad/server.conf -dev-connect
+KillMode=process
+KillSignal=SIGINT
+LimitNOFILE=65536
+LimitNPROC=infinity
+Restart=on-failure
+RestartSec=2
+LogsDirectory=nomad
+StandardOutput=append:/var/log/nomad.log
+StandardError=append:/var/log/nomad.log
+StartLimitBurst=3
+
+## Configure unit start rate limiting. Units which are started more than
+## *burst* times within an *interval* time span are not permitted to start any
+## more. Use StartLimitIntervalSec or StartLimitInterval (depending on
+## systemd version) to configure the checking interval and StartLimitBurst
+## to configure how many starts per interval are allowed. The values in the
+## commented lines are defaults.
+
+TasksMax=infinity
+OOMScoreAdjust=-1000
+
+[Install]
+WantedBy=multi-user.target
+EOF
   sudo chmod -R 777 /opt/nomad
   # check if nomad is installed, start and exit
   if [ -f /usr/local/bin/nomad ]; then
