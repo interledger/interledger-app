@@ -29,7 +29,8 @@ func (s *rpcService) GetCurrentWallet(ctx context.Context, req *pb.Empty) (*pb.G
 	}
 
 	return &pb.GetCurrentWalletResponse{
-		Id: w.ID,
+		Id:      w.ID,
+		Country: w.Country.String(),
 	}, toGRPCError(err)
 }
 
