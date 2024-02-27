@@ -1830,6 +1830,10 @@ export interface GetCurrentWalletResponse {
      * @generated from protobuf field: string id = 1;
      */
     id: string;
+    /**
+     * @generated from protobuf field: string country = 2;
+     */
+    country: string;
 }
 /**
  * @generated from protobuf message backend.v1.Limit
@@ -8553,11 +8557,12 @@ export const LookupTransactionRequest = new LookupTransactionRequest$Type();
 class GetCurrentWalletResponse$Type extends MessageType<GetCurrentWalletResponse> {
     constructor() {
         super("backend.v1.GetCurrentWalletResponse", [
-            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "country", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<GetCurrentWalletResponse>): GetCurrentWalletResponse {
-        const message = { id: "" };
+        const message = { id: "", country: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<GetCurrentWalletResponse>(this, message, value);
@@ -8570,6 +8575,9 @@ class GetCurrentWalletResponse$Type extends MessageType<GetCurrentWalletResponse
             switch (fieldNo) {
                 case /* string id */ 1:
                     message.id = reader.string();
+                    break;
+                case /* string country */ 2:
+                    message.country = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -8586,6 +8594,9 @@ class GetCurrentWalletResponse$Type extends MessageType<GetCurrentWalletResponse
         /* string id = 1; */
         if (message.id !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* string country = 2; */
+        if (message.country !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.country);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
