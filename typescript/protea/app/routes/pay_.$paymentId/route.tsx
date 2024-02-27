@@ -23,11 +23,7 @@ import {
 } from '~/components'
 import type { FormattedLinkedAccount } from '~/data/accounts.server'
 import { getLinkedAccountsForPayment } from '~/data/accounts.server'
-import {
-  getFeatures,
-  getKycStatus,
-  getWalletCountry
-} from '~/data/wallet.server'
+import { getFeatures, getKycStatus } from '~/data/wallet.server'
 import type {
   Features,
   Payment,
@@ -76,8 +72,6 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   let features: Features | null = null
   let payment: PlainMessage<Payment> | ConnectError
   let phoneMask: string = ''
-
-  const walletCountry = await getWalletCountry(request)
 
   const { kycStatus } = await getKycStatus(request)
   if (kycStatus != KycStatus.Approved)
@@ -154,7 +148,6 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     fynbosEnv: process.env.FYNBOS_ENV,
     payment,
     requiresOTP: payment.requiredActions.includes(PaymentRequiredAction.OTP),
-    walletCountry,
     PTIClientId: process.env.PTI_CLIENT_ID || ''
   })
 }
