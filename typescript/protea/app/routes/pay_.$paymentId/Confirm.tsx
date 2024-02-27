@@ -26,21 +26,14 @@ import { PaymentDetailsCard } from './PaymentDetailsCard'
 import type { confirmPaymentAction, loader } from './route'
 
 export function Confirm() {
-  const {
-    payment,
-    account,
-    phoneMask,
-    requiresOTP,
-    csrfToken,
-    PTIClientId,
-    walletCountry
-  } = useLoaderData<typeof loader>()
+  const { payment, account, phoneMask, requiresOTP, csrfToken, PTIClientId } =
+    useLoaderData<typeof loader>()
   const actionData = useActionData<typeof confirmPaymentAction>()
   const otpFetcher = useFetcher<typeof otpAction>()
 
   const [showOTPDialog, setShowOTPDialog] = useState<boolean>(false)
 
-  usePTISdk(walletCountry, payment.id, PTIClientId)
+  usePTISdk(payment.id, PTIClientId)
 
   useEffect(() => {
     if (

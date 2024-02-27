@@ -10,7 +10,7 @@ import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Icon, Layouts } from '~/components'
 import { Label } from '~/components/Label'
-import { getKycStatus, getWalletCountry } from '~/data/wallet.server'
+import { getKycStatus } from '~/data/wallet.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
@@ -25,8 +25,6 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const { kycStatus } = await getKycStatus(request)
   if (kycStatus != KycStatus.Approved)
     return redirect(route('/personal-details'))
-
-  const walletCountry = await getWalletCountry(request)
 
   const payment = await grpc.getPayment(request, { id: params.paymentId })
 
@@ -47,8 +45,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     )?.title,
     payment,
     requiresOTP: payment.requiredActions.includes(PaymentRequiredAction.OTP),
-    PTIClientId: process.env.PTI_CLIENT_ID || '',
-    walletCountry
+    PTIClientId: process.env.PTI_CLIENT_ID || ''
   })
 }
 
@@ -71,10 +68,10 @@ export default function Page() {
     receiverAccountTitle,
     senderAccountTitle,
     csrfToken,
-    walletCountry,
     PTIClientId
   } = useLoaderData<typeof loader>()
-  usePTISdk(walletCountry, payment.id, PTIClientId)
+
+  usePTISdk(payment.id, PTIClientId)
 
   return (
     <>
