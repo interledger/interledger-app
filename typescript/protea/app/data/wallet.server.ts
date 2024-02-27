@@ -39,6 +39,14 @@ export async function getWalletId(request: Request): Promise<string> {
   return response.id
 }
 
+export async function getWalletCountry(request: Request): Promise<string> {
+  let response = await grpc.getCurrentWallet(request, {})
+
+  if (isConnectError(response)) throw response.errorResponse
+
+  return response.country
+}
+
 export async function getPublicWalletDetails(
   request: Request,
   id: string

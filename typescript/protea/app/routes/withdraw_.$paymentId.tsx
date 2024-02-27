@@ -10,13 +10,14 @@ import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Icon, Layouts } from '~/components'
 import { Label } from '~/components/Label'
-import { getKycStatus } from '~/data/wallet.server'
+import { getKycStatus, getWalletCountry } from '~/data/wallet.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { getClientIP } from '~/lib/ip.server'
 import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
+import { usePTISdk } from '~/lib/usePTISdk'
 import { KycStatus } from '~/routes/_index/route'
 import { PaymentRequiredAction } from './pay_.$paymentId/route'
 
@@ -24,6 +25,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const { kycStatus } = await getKycStatus(request)
   if (kycStatus != KycStatus.Approved)
     return redirect(route('/personal-details'))
+
+  const walletCountry = await getWalletCountry(request)
 
   const payment = await grpc.getPayment(request, { id: params.paymentId })
 
@@ -43,7 +46,9 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       (account) => account.id == payment.senderAccount
     )?.title,
     payment,
-    requiresOTP: payment.requiredActions.includes(PaymentRequiredAction.OTP)
+    requiresOTP: payment.requiredActions.includes(PaymentRequiredAction.OTP),
+    PTIClientId: process.env.PTI_CLIENT_ID || '',
+    walletCountry
   })
 }
 
@@ -61,8 +66,15 @@ export const meta: MetaFunction = mergeMeta(() => [
 ])
 
 export default function Page() {
-  const { payment, receiverAccountTitle, senderAccountTitle, csrfToken } =
-    useLoaderData<typeof loader>()
+  const {
+    payment,
+    receiverAccountTitle,
+    senderAccountTitle,
+    csrfToken,
+    PTIClientId,
+    walletCountry
+  } = useLoaderData<typeof loader>()
+  usePTISdk(walletCountry, payment.id, PTIClientId)
 
   return (
     <>

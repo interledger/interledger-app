@@ -21,16 +21,26 @@ import { Label } from '~/components/Label'
 import type { action as otpAction } from '~/routes/api_.sendOtp'
 
 import { DateTime } from 'luxon'
+import { usePTISdk } from '~/lib/usePTISdk'
 import { PaymentDetailsCard } from './PaymentDetailsCard'
 import type { confirmPaymentAction, loader } from './route'
 
 export function Confirm() {
-  const { payment, account, phoneMask, requiresOTP, csrfToken } =
-    useLoaderData<typeof loader>()
+  const {
+    payment,
+    account,
+    phoneMask,
+    requiresOTP,
+    csrfToken,
+    PTIClientId,
+    walletCountry
+  } = useLoaderData<typeof loader>()
   const actionData = useActionData<typeof confirmPaymentAction>()
   const otpFetcher = useFetcher<typeof otpAction>()
 
   const [showOTPDialog, setShowOTPDialog] = useState<boolean>(false)
+
+  usePTISdk(walletCountry, payment.id, PTIClientId)
 
   useEffect(() => {
     if (
