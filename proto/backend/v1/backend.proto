@@ -782,6 +782,7 @@ message LookupTransactionRequest {
 
 message GetCurrentWalletResponse {
   string id = 1;
+  string country = 2;
 }
 
 message Limit {
