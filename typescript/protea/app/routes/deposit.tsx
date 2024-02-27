@@ -73,7 +73,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
   } else {
     balanceAccount = balanceResponse.balances[0]
   }
-
   balance = balances.find((acc) => acc.id == balanceAccount?.linkedAccount)
   if (
     !balanceAccount ||
@@ -88,7 +87,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     balanceAccount.linkedAccount
   )
 
-  if (linkedAccounts.length == 0) {
+  if (linkedAccounts.length == 0 && balanceAccount.countryCode == 'ZA') {
     let details = await grpc.getXagoDepositDetails(request, {
       linkedAccount: balanceAccount.linkedAccount
     })
