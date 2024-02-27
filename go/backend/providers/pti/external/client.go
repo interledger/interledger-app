@@ -33,6 +33,7 @@ var (
 	ptiRequestIDHeader      = "x-pti-request-id"
 	ptiScenarioIDHeader     = "x-pti-scenario-id"
 	ptiDisableWebhookHeader = "x-pti-disable-webhook"
+	ptiSessionIDHeader      = "x-pti-session-id"
 )
 
 type client struct {
@@ -751,6 +752,7 @@ func (c client) StartTransferAssessment(ctx context.Context, args TransferArgs) 
 	req.Header.Add(ptiScenarioIDHeader, args.ScenarioID)
 	req.Header.Add(ptiRequestIDHeader, requestID)
 	req.Header.Add(ptiClientIDHeader, c.clientID)
+	req.Header.Add(ptiSessionIDHeader, args.SessionID)
 	req.Header.Add(ptiDisableWebhookHeader, fmt.Sprintf("%t", args.DisableWebhook))
 	req.Header.Add("Content-Type", "application/json")
 	date := time.Now()
@@ -871,6 +873,7 @@ func (c client) CreateTransfer(ctx context.Context, args TransferArgs) (*IDRespo
 	req.Header.Add(ptiScenarioIDHeader, args.ScenarioID)
 	req.Header.Add(ptiRequestIDHeader, requestID)
 	req.Header.Add(ptiClientIDHeader, c.clientID)
+	req.Header.Add(ptiSessionIDHeader, args.SessionID)
 	req.Header.Add(ptiDisableWebhookHeader, fmt.Sprintf("%t", args.DisableWebhook))
 	req.Header.Add("Content-Type", "application/json")
 	date := time.Now()
@@ -1015,6 +1018,7 @@ func (c client) WalletDeposit(ctx context.Context, args DepositArgs) (string, er
 	req.Header.Add(ptiScenarioIDHeader, args.ScenarioID)
 	req.Header.Add(ptiRequestIDHeader, args.RequestID)
 	req.Header.Add(ptiClientIDHeader, c.clientID)
+	req.Header.Add(ptiClientIDHeader, args.SessionID)
 	req.Header.Add("Content-Type", "application/json")
 	date := time.Now()
 	req.Header.Add("Date", date.Format(http.TimeFormat))
@@ -1105,6 +1109,7 @@ func (c client) WalletWithdrawal(ctx context.Context, args WithdrawalArgs) (stri
 	req.Header.Add(ptiScenarioIDHeader, args.ScenarioID)
 	req.Header.Add(ptiRequestIDHeader, args.RequestID)
 	req.Header.Add(ptiClientIDHeader, c.clientID)
+	req.Header.Add(ptiSessionIDHeader, args.SessionID)
 	req.Header.Add("Content-Type", "application/json")
 	date := time.Now()
 	req.Header.Add("Date", date.Format(http.TimeFormat))

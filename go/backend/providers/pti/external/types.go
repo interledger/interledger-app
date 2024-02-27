@@ -58,6 +58,7 @@ type (
 	TransferArgs struct {
 		RequestID                 string                 `json:"-"`
 		ScenarioID                string                 `json:"-"`
+		SessionID                 string                 `json:"-"`
 		TransactionGroup          string                 `json:"transactionGroupId,omitempty"`
 		SubClientID               string                 `json:"subClientId,omitempty"`
 		USDValue                  float64                `json:"usdValue,omitempty"`
@@ -164,6 +165,7 @@ type (
 		RequestID        string `json:"-"`
 		ScenarioID       string `json:"-"`
 		UserID           string `json:"-"`
+		SessionID        string `json:"-"`
 		ExternalWalletID string
 		Amount           currency.Amount
 	}
@@ -171,6 +173,7 @@ type (
 		RequestID        string `json:"-"`
 		ScenarioID       string `json:"-"`
 		UserID           string `json:"-"`
+		SessionID        string `json:"-"`
 		ExternalWalletID string
 		Amount           currency.Amount
 	}

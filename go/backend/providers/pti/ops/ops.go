@@ -140,6 +140,7 @@ func DepositToWallet(ctx context.Context, b Backends, ec external.Client, args p
 	txID, err := ec.WalletDeposit(ctx, external.DepositArgs{
 		RequestID:        args.PaymentID,
 		ScenarioID:       pti.ScenarioDeposit,
+		SessionID:        args.PaymentID,
 		UserID:           externalUser.ExternalID,
 		ExternalWalletID: la.ProviderID,
 		Amount:           args.Amount,
@@ -167,6 +168,7 @@ func WithdrawFromWallet(ctx context.Context, b Backends, ec external.Client, arg
 
 	txID, err := ec.WalletWithdrawal(ctx, external.WithdrawalArgs{
 		RequestID:        args.PaymentID,
+		SessionID:        args.PaymentID,
 		ScenarioID:       pti.ScenarioWithdrawal,
 		UserID:           externalUser.ExternalID,
 		ExternalWalletID: la.ProviderID,
