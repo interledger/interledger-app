@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"gitlab.com/fynbos/backend/providers/pti"
+	pti_external "gitlab.com/fynbos/backend/providers/pti/external"
 
 	"gitlab.com/fynbos/backend/providers/astra"
 
@@ -568,6 +569,9 @@ func (a *Activity) PTIWithdrawal(ctx context.Context, paymentID string) (string,
 		Amount:          p.SenderAmount,
 		LinkedAccountID: p.SenderAccount,
 	})
+	if errors.Is(err, pti_external.ErrUnprocessableEntity) {
+		return "", temporal.NewApplicationError("PTI unable to process withdrawal", "ErrUnprocessableEntity", err)
+	}
 	if err != nil {
 		return "", err
 	}
