@@ -67,7 +67,7 @@ func (s *AdminRpcService) GetPTIBalance(
 	// Check that the linked account doesn't already exist
 	var ptiLa *linkedaccounts.LinkedAccount
 	for _, la := range lal {
-		if la.Provider == pti.ProviderName && la.Type == pti.AccTypeBalance && la.SendCurrency.String() == c.String() {
+		if la.Provider == pti.ProviderName && la.Type == pti.AccTypeBalance && la.SendCurrency.String() == c.String() && la.DeletedAt.Time.IsZero() {
 			ptiLa = &la
 			break
 		}
