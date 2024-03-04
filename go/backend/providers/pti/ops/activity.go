@@ -209,7 +209,7 @@ func (a *Activity) CreatePtiWalletLinkedAccount(ctx context.Context, args linked
 	if err != nil && !errors.Is(err, linkedaccounts.ErrNotFound) {
 		return nil, err
 	}
-	if existing != nil {
+	if existing != nil && existing.DeletedAt.Time.IsZero() {
 		return existing, nil
 	}
 
