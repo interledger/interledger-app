@@ -209,7 +209,7 @@ func (a *Activity) CreatePtiWalletLinkedAccount(ctx context.Context, args linked
 	if err != nil && !errors.Is(err, linkedaccounts.ErrNotFound) {
 		return nil, err
 	}
-	if existing != nil {
+	if existing != nil && existing.DeletedAt.Time.IsZero() {
 		return existing, nil
 	}
 
@@ -308,7 +308,7 @@ func (a *Activity) CreateWalletTransfer(ctx context.Context, paymentID, requestI
 		return nil, temporal.NewNonRetryableApplicationError("PTI user not found", "ErrNotFound", err)
 	}
 	if errors.Is(err, external.ErrUnprocessableEntity) {
-		return nil, temporal.NewNonRetryableApplicationError("PTI unable to process assessment", "ErrInternal", err)
+		return nil, temporal.NewApplicationError("PTI unable to process transfer", "ErrUnprocessableEntity", err)
 	}
 
 	return trxResp, err
