@@ -102,7 +102,7 @@ func handleUserIntentUpdated(ctx context.Context, b Backends, hook Webhook, w ht
 
 	var walletID string
 	err = b.DB().GetContext(ctx, &walletID, "UPDATE astra_user_intents SET status=$1, user_id=$2, updated_at=now() WHERE intent_id=$3 RETURNING  wallet_id",
-		intent.UserID, intent.Status, hook.ResourceID)
+		intent.Status, intent.UserID, hook.ResourceID)
 	if err != nil {
 		log.Error("failed to update astra intent for webhook", zap.Error(err))
 		w.WriteHeader(http.StatusInternalServerError)
