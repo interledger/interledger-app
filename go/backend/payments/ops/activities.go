@@ -631,13 +631,24 @@ func (a *Activity) PTIWithdrawalComplete(ctx context.Context, paymentID string, 
 		PaymentID:     paymentID,
 		TransactionID: trxID,
 		Status:        state,
+		Amount:        p.SenderAmount,
 	})
 }
 
 func (a *Activity) PTIDepositComplete(ctx context.Context, paymentID, txID string) error {
+	p, err := Lookup(ctx, a.b, paymentID)
+	if err != nil {
+		return err
+	}
+
+	if p.Type != payments.TypeDeposit {
+		return nil
+	}
+
 	return a.b.PTI().UpdateTransactionStatus(ctx, pti.TransactionStatusArgs{
 		PaymentID:     paymentID,
 		TransactionID: txID,
 		Status:        pti.TransactionFeedbackSettled,
+		Amount:        p.SenderAmount,
 	})
 }
