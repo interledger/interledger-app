@@ -75,6 +75,7 @@ type TransactionStatusArgs struct {
 	PaymentID     string
 	TransactionID string
 	Status        TransactionFeedback
+	Amount        currency.Amount
 }
 
 type Balance struct {
