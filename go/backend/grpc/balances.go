@@ -30,7 +30,7 @@ func (s *rpcService) GetBalances(ctx context.Context, req *backend.Empty) (*back
 
 	var resp []*pb.Balance
 	for _, la := range lal {
-		if la.Provider == pti.ProviderName && la.Type == pti.AccTypeBalance {
+		if la.Provider == pti.ProviderName && la.Type == pti.AccTypeBalance && la.DeletedAt.Time.IsZero() {
 			ptiBalance, err := s.b.PTI().GetBalance(ctx, la.ID)
 			if err != nil {
 				return nil, toGRPCError(err)
@@ -45,7 +45,7 @@ func (s *rpcService) GetBalances(ctx context.Context, req *backend.Empty) (*back
 			})
 		}
 
-		if la.Provider == xago.ProviderName && la.Type == xago.AccTypeBalance {
+		if la.Provider == xago.ProviderName && la.Type == xago.AccTypeBalance && la.DeletedAt.Time.IsZero() {
 			bal, err := s.b.Xago().GetBalance(ctx, la.ID)
 			if err != nil {
 				return nil, toGRPCError(err)
