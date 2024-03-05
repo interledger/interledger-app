@@ -1079,6 +1079,19 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 		}()
 	}
 
+	if args.AddAstraCorrelationID && !payment.AstraCorrelationID.Valid {
+		corID, err := newCorrelationID()
+		if err != nil {
+			return nil, err
+		}
+
+		payment.AstraCorrelationID = sql.NullString{
+			String: corID,
+			Valid:  len(corID) == 8,
+		}
+		noop = false
+	}
+
 	// Wait for parallel checks to complete
 	wg.Wait()
 	if pErr != nil {
@@ -1128,17 +1141,6 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 		}
 		payment.SenderAmount = amt.Value
 		payment.ProtectionFeePercentage = fee
-	}
-
-	if args.AddAstraCorrelationID && !payment.AstraCorrelationID.Valid {
-		corID, err := newCorrelationID()
-		if err != nil {
-			return nil, err
-		}
-		payment.AstraCorrelationID = sql.NullString{
-			String: corID,
-			Valid:  len(corID) == 8,
-		}
 	}
 
 	err = validateWithdrawal(ctx, b, payment.Type, payment.SenderAccount.String, payment.ReceiverAccount.String)
