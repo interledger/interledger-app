@@ -59,7 +59,7 @@ func New(args ClientArgs) Client {
 	base := "https://pti.apistaging.pticlient.com/v1"
 	if args.BaseURL != "" {
 		base = args.BaseURL
-	} else if env.IsLocal() || env.IsDev() {
+	} else if env.IsLocal() {
 		base = "http://mockbos.mockbos/pti"
 	}
 
