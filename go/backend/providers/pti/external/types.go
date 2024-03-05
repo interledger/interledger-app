@@ -159,6 +159,22 @@ type (
 		TransactionID string    `json:"transactionId"`
 		Feedback      string    `json:"feedback"`
 		Date          time.Time `json:"date"`
+		ProviderName  string    `json:"providerName"`
+		Payload       string    `json:"payload"`
+	}
+
+	Subtotal struct {
+		Amount float64 `json:"amount"`
+	}
+
+	PaymentTotal struct {
+		Subtotal Subtotal `json:"subtotal"`
+	}
+
+	StatusPayload struct {
+		Status       string       `json:"status"`
+		PaymentTotal PaymentTotal `json:"paymentTotal"`
+		ProviderName string       `json:"providerName"`
 	}
 
 	DepositArgs struct {
