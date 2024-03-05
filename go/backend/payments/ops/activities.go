@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"gitlab.com/fynbos/backend/providers/pti"
+	pti_external "gitlab.com/fynbos/backend/providers/pti/external"
 
 	"gitlab.com/fynbos/backend/providers/astra"
 
@@ -537,6 +538,20 @@ func (a *Activity) CheckAstraTransferStatus(ctx context.Context, paymentID, txID
 	return tx.Status, nil
 }
 
+func (a *Activity) CheckAstraRoutineStatus(ctx context.Context, paymentID, routineID string) (string, error) {
+	p, err := Lookup(ctx, a.b, paymentID)
+	if err != nil {
+		return "", err
+	}
+
+	routine, err := a.b.Astra().LookupRoutine(ctx, p.Sender.WalletID, routineID)
+	if err != nil {
+		return "", err
+	}
+
+	return routine.Status, nil
+}
+
 func (a *Activity) PTIDeposit(ctx context.Context, paymentID string) (string, error) {
 	p, err := Lookup(ctx, a.b, paymentID)
 	if err != nil {
@@ -568,6 +583,9 @@ func (a *Activity) PTIWithdrawal(ctx context.Context, paymentID string) (string,
 		Amount:          p.SenderAmount,
 		LinkedAccountID: p.SenderAccount,
 	})
+	if errors.Is(err, pti_external.ErrUnprocessableEntity) {
+		return "", temporal.NewApplicationError("PTI unable to process withdrawal", "ErrUnprocessableEntity", err)
+	}
 	if err != nil {
 		return "", err
 	}

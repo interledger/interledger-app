@@ -28,7 +28,7 @@ func SetupDevMock(t *testing.T) *MockClient {
 		id := uuid.NewString()
 
 		if args.Amount == 6.66 {
-			txStatus[id] = astra.TransferStatusFailed
+			txStatus[id] = astra.RoutineStatusFailed
 		}
 
 		return &external.CardToAccountResp{ID: id}, nil
@@ -38,7 +38,7 @@ func SetupDevMock(t *testing.T) *MockClient {
 		id := uuid.NewString()
 
 		if args.Amount == 6.66 {
-			txStatus[id] = astra.TransferStatusFailed
+			txStatus[id] = astra.RoutineStatusFailed
 		}
 
 		return &external.AccountToCardResp{ID: id}, nil
@@ -52,6 +52,19 @@ func SetupDevMock(t *testing.T) *MockClient {
 		}
 
 		return &external.Transaction{
+			ID:     txID,
+			Status: string(status),
+		}, nil
+	}).AnyTimes()
+
+	cl.EXPECT().GetRoutine(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, token string, txID string) (*external.Routine, error) {
+
+		status, ok := txStatus[txID]
+		if !ok {
+			status = astra.RoutineStatusComplete
+		}
+
+		return &external.Routine{
 			ID:     txID,
 			Status: string(status),
 		}, nil
