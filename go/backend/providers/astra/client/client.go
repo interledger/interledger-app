@@ -99,3 +99,7 @@ func (c client) CreditCard(ctx context.Context, args astra.AccountToCardsArgs) (
 func (c client) LookupTransfer(ctx context.Context, walletID, txID string) (*astra.Transfer, error) {
 	return ops.LookupTransfer(ctx, c.b, walletID, txID)
 }
+
+func (c client) LookupRoutine(ctx context.Context, walletID, routineID string) (*astra.Routine, error) {
+	return ops.LookupRoutine(ctx, c.b, walletID, routineID)
+}
