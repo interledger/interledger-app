@@ -60,6 +60,7 @@ type (
 		ScenarioID                string                 `json:"-"`
 		SessionID                 string                 `json:"-"`
 		TransactionGroup          string                 `json:"transactionGroupId,omitempty"`
+		TransactionTotal          Total                  `json:"transactionTotal"`
 		SubClientID               string                 `json:"subClientId,omitempty"`
 		USDValue                  float64                `json:"usdValue,omitempty"`
 		Amount                    float64                `json:"amount,omitempty"`
