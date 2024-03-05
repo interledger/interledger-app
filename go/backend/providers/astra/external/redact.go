@@ -4,6 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"strings"
+
+	"gitlab.com/fynbos/log"
+	"go.uber.org/zap"
 )
 
 var redactFields = []string{"email", "ssn", "card_number"}
@@ -12,7 +15,8 @@ func Redact(ctx context.Context, req []byte) ([]byte, error) {
 	js := make(map[string]interface{})
 	err := json.Unmarshal(req, &js)
 	if err != nil {
-		return nil, err
+		log.Error("Redacting Astra request failed. JSON unmarshalling failed", zap.Error(err))
+		return req, nil
 	}
 	redact(js)
 
