@@ -258,7 +258,7 @@ func (a *Activity) CreateWalletTransfer(ctx context.Context, paymentID, requestI
 		return nil, err
 	}
 
-	receiverPTIUser, err := GetUser(ctx, a.b, p.Sender.WalletID)
+	receiverPTIUser, err := GetUser(ctx, a.b, p.Receiver.WalletID)
 	if errors.Is(err, pti.ErrNotFound) {
 		return nil, temporal.NewNonRetryableApplicationError("PTI user not found for sender", "ErrNotFound", err)
 	}
@@ -280,6 +280,20 @@ func (a *Activity) CreateWalletTransfer(ctx context.Context, paymentID, requestI
 		SessionID:  p.ID,
 		Amount:     p.SenderAmount.Float64(),
 		USDValue:   p.SenderAmount.Float64(),
+		TransactionTotal: external.Total{
+			Fee: external.Cost{
+				Amount:   0,
+				Currency: p.SenderAmount.Currency.String(),
+			},
+			Subtotal: external.Cost{
+				Amount:   p.SenderAmount.Float64(),
+				Currency: p.SenderAmount.Currency.String(),
+			},
+			Total: external.Cost{
+				Amount:   p.SenderAmount.Float64(),
+				Currency: p.SenderAmount.Currency.String(),
+			},
+		},
 		Initiator: external.User{
 			ID:   senderPTIUser.ExternalID,
 			Type: "PERSON",
