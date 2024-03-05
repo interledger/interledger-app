@@ -1,10 +1,12 @@
 package ops
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/google/uuid"
+	"go.uber.org/zap"
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
@@ -16,6 +18,7 @@ import (
 	"gitlab.com/fynbos/backend/providers/xago"
 	temporal_utils "gitlab.com/fynbos/backend/temporal/utils"
 	"gitlab.com/fynbos/backend/transactions"
+	"gitlab.com/fynbos/log"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
@@ -156,7 +159,7 @@ func PayinWorkflow(ctx workflow.Context, paymentID string) error {
 		case astra.ProviderName:
 			txID, success, err = astraPayIn(ctx, a, paymentID)
 		case pti.ProviderName:
-			txID, success, err = ptiPayIn(ctx, a, ptiActivity, paymentID)
+			txID, success, err = ptiPayIn(ctx, a, ptiActivity, paymentID, la.WalletID)
 		default:
 			return temporal.NewNonRetryableApplicationError("unsupported linked account provider", "InvalidArgument", nil, "provider", la.Provider)
 		}
@@ -265,7 +268,7 @@ func PayinWorkflow(ctx workflow.Context, paymentID string) error {
 	return workflow.ExecuteChildWorkflow(childCtx, RollbackPayInWorkflow, paymentID).Get(childCtx, nil)
 }
 
-func ptiPayIn(ctx workflow.Context, a *Activity, ptiA *pti_ops.Activity, paymentID string) (string, bool, error) {
+func ptiPayIn(ctx workflow.Context, a *Activity, ptiA *pti_ops.Activity, paymentID, walletID string) (string, bool, error) {
 	var pt payments.Type
 	err := workflow.ExecuteActivity(ctx, a.GetPaymentType, paymentID).Get(ctx, &pt)
 	if err != nil {
@@ -284,6 +287,28 @@ func ptiPayIn(ctx workflow.Context, a *Activity, ptiA *pti_ops.Activity, payment
 			return "", false, err
 		}
 
+		var applicationError *temporal.ApplicationError
+		// PTI lets us know they need more user info through 422 errors
+		if errors.As(err, &applicationError) && applicationError.Type() == "ErrUnprocessableEntity" {
+			innerErr := workflow.ExecuteActivity(ctx, ptiA.StartUserAssessment, walletID, pti.ScenarioWithdrawal).Get(ctx, nil)
+			if innerErr != nil {
+				return "", false, innerErr
+			}
+
+			innerErr = workflow.ExecuteActivity(ctx, ptiA.CheckUserAssessmentAccepted, walletID).Get(ctx, nil)
+			if innerErr != nil {
+				return "", false, innerErr
+			}
+
+			// now retry withdrawal
+			innerErr = workflow.ExecuteActivity(ctx, a.PTIWithdrawal, paymentID).Get(ctx, &txID)
+			if innerErr != nil {
+				return "", false, err
+			}
+		} else if err != nil {
+			return "", false, err
+		}
+
 		return txID, true, nil
 
 		// Webmonetization is assumed to be Fynbos to Fynbos
@@ -297,7 +322,25 @@ func ptiPayIn(ctx workflow.Context, a *Activity, ptiA *pti_ops.Activity, payment
 		}
 
 		err = workflow.ExecuteActivity(ctx, ptiA.CreateWalletTransfer, paymentID, txID).Get(ctx, nil)
-		if err != nil {
+		var applicationError *temporal.ApplicationError
+		// PTI lets us know they need more user info through 422 errors
+		if errors.As(err, &applicationError) && applicationError.Type() == "ErrUnprocessableEntity" {
+			innerErr := workflow.ExecuteActivity(ctx, ptiA.StartUserAssessment, walletID, pti.ScenarioTransfer).Get(ctx, nil)
+			if innerErr != nil {
+				return "", false, innerErr
+			}
+
+			innerErr = workflow.ExecuteActivity(ctx, ptiA.CheckUserAssessmentAccepted, walletID).Get(ctx, nil)
+			if innerErr != nil {
+				return "", false, innerErr
+			}
+
+			// now retry transfer
+			innerErr = workflow.ExecuteActivity(ctx, ptiA.CreateWalletTransfer, paymentID, txID).Get(ctx, nil)
+			if innerErr != nil {
+				return "", false, err
+			}
+		} else if err != nil {
 			return "", false, err
 		}
 
@@ -389,16 +432,21 @@ func astraPayIn(ctx workflow.Context, a *Activity, paymentID string) (string, bo
 		selector.Select(ctx)
 
 		var status string
-		err = workflow.ExecuteActivity(ctx, a.CheckAstraTransferStatus, paymentID, txID).Get(ctx, &status)
+		err = workflow.ExecuteActivity(ctx, a.CheckAstraRoutineStatus, paymentID, txID).Get(ctx, &status)
 		if err != nil {
 			return "", false, err
 		}
 
-		if status == astra.TransferStatusProcessed {
+		if status == astra.RoutineStatusCompleted {
 			return txID, true, nil
 		}
 
-		if status == astra.TransferStatusPending {
+		if status == astra.RoutineStatusRequiresUserVerification || status == astra.RoutineStatusPendingAccountAuth || status == astra.RoutineStatusInactive {
+			log.Warn("astra routine requires manual correction", zap.String("paymentID", paymentID), zap.String("routine_status", status))
+			continue
+		}
+
+		if status == astra.RoutineStatusActive {
 			continue
 		}
 
@@ -517,7 +565,7 @@ func PayoutWorkflow(ctx workflow.Context, paymentID string) error {
 	case xago.ProviderName:
 		externalTXID, success, err = xagoPayOut(ctx, accountsCtx, a, paymentID, txID)
 	case pti.ProviderName:
-		externalTXID, success, err = ptiPayOut(ctx, accountsCtx, a, ptiActivity, paymentID, txID)
+		externalTXID, success, err = ptiPayOut(ctx, accountsCtx, a, ptiActivity, paymentID, txID, la.WalletID)
 	case astra.ProviderName:
 		externalTXID, success, err = astraPayOut(ctx, a, paymentID)
 	default:
@@ -577,7 +625,7 @@ func PayoutWorkflow(ctx workflow.Context, paymentID string) error {
 	return nil
 }
 
-func ptiPayOut(ctx, accountsCtx workflow.Context, a *Activity, ptiA *pti_ops.Activity, paymentID, trxID string) (string, bool, error) {
+func ptiPayOut(ctx, accountsCtx workflow.Context, a *Activity, ptiA *pti_ops.Activity, paymentID, trxID, walletID string) (string, bool, error) {
 	var pt payments.Type
 	err := workflow.ExecuteActivity(ctx, a.GetPaymentType, paymentID).Get(ctx, &pt)
 	if err != nil {
@@ -586,9 +634,30 @@ func ptiPayOut(ctx, accountsCtx workflow.Context, a *Activity, ptiA *pti_ops.Act
 
 	var externalTxID string
 	if pt == payments.TypeDeposit {
-		// Create Deposit
 		err = workflow.ExecuteActivity(ctx, a.PTIDeposit, paymentID).Get(ctx, &externalTxID)
 		if err != nil {
+			return "", false, err
+		}
+
+		var applicationError *temporal.ApplicationError
+		// PTI lets us know they need more user info through 422 errors
+		if errors.As(err, &applicationError) && applicationError.Type() == "ErrUnprocessableEntity" {
+			innerErr := workflow.ExecuteActivity(ctx, ptiA.StartUserAssessment, walletID, pti.ScenarioDeposit).Get(ctx, nil)
+			if innerErr != nil {
+				return "", false, innerErr
+			}
+
+			innerErr = workflow.ExecuteActivity(ctx, ptiA.CheckUserAssessmentAccepted, walletID).Get(ctx, nil)
+			if innerErr != nil {
+				return "", false, innerErr
+			}
+
+			// now retry transfer
+			innerErr = workflow.ExecuteActivity(ctx, a.PTIDeposit, paymentID).Get(ctx, &externalTxID)
+			if innerErr != nil {
+				return "", false, err
+			}
+		} else if err != nil {
 			return "", false, err
 		}
 
@@ -703,16 +772,21 @@ func astraPayOut(ctx workflow.Context, a *Activity, paymentID string) (string, b
 		selector.Select(ctx)
 
 		var status string
-		err = workflow.ExecuteActivity(ctx, a.CheckAstraTransferStatus, paymentID, txID).Get(ctx, &status)
+		err = workflow.ExecuteActivity(ctx, a.CheckAstraRoutineStatus, paymentID, txID).Get(ctx, &status)
 		if err != nil {
 			return "", false, err
 		}
 
-		if status == astra.TransferStatusProcessed {
+		if status == astra.RoutineStatusCompleted {
 			return txID, true, nil
 		}
 
-		if status == astra.TransferStatusPending {
+		if status == astra.RoutineStatusRequiresUserVerification || status == astra.RoutineStatusPendingAccountAuth || status == astra.RoutineStatusInactive {
+			log.Warn("astra routine requires manual correction", zap.String("paymentID", paymentID), zap.String("routine_status", status))
+			continue
+		}
+
+		if status == astra.RoutineStatusActive {
 			continue
 		}
 
