@@ -1018,7 +1018,7 @@ func (c client) WalletDeposit(ctx context.Context, args DepositArgs) (string, er
 	req.Header.Add(ptiScenarioIDHeader, args.ScenarioID)
 	req.Header.Add(ptiRequestIDHeader, args.RequestID)
 	req.Header.Add(ptiClientIDHeader, c.clientID)
-	req.Header.Add(ptiClientIDHeader, args.SessionID)
+	req.Header.Add(ptiSessionIDHeader, args.SessionID)
 	req.Header.Add("Content-Type", "application/json")
 	date := time.Now()
 	req.Header.Add("Date", date.Format(http.TimeFormat))
