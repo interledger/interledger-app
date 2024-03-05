@@ -258,7 +258,7 @@ func (a *Activity) CreateWalletTransfer(ctx context.Context, paymentID, requestI
 		return nil, err
 	}
 
-	receiverPTIUser, err := GetUser(ctx, a.b, p.Sender.WalletID)
+	receiverPTIUser, err := GetUser(ctx, a.b, p.Receiver.WalletID)
 	if errors.Is(err, pti.ErrNotFound) {
 		return nil, temporal.NewNonRetryableApplicationError("PTI user not found for sender", "ErrNotFound", err)
 	}
