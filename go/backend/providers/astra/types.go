@@ -21,6 +21,15 @@ const (
 	TransferStatusProcessed = "processed"
 	TransferStatusCancelled = "cancelled"
 	TransferStatusFailed    = "failed"
+
+	RoutineStatusRequiresUserVerification = "requires_user_verification"
+	RoutineStatusPendingAccountAuth       = "pending_account_authorization"
+	RoutineStatusUserSuspended            = "user_suspended"
+	RoutineStatusActive                   = "active"
+	RoutineStatusInactive                 = "inactive"
+	RoutineStatusCancelled                = "cancelled"
+	RoutineStatusFailed                   = "failed"
+	RoutineStatusComplete                 = "complete"
 )
 
 type Await func(ctx context.Context, result interface{}) error
@@ -60,4 +69,14 @@ type Transfer struct {
 	AstraSettlementReason string
 	FailureReason         string
 	Status                string
+}
+
+type Routine struct {
+	ID        string
+	Active    bool
+	Blocked   bool
+	Status    string
+	Name      string
+	Type      string
+	StartDate string
 }
