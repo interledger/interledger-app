@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/lestrrat-go/jwx/v2/jwk"
@@ -303,6 +304,7 @@ func (a *Activity) CreateWalletTransfer(ctx context.Context, paymentID, requestI
 		},
 		Type:           "TRANSFER",
 		DisableWebhook: true, // our workflows keep the context
+		Date:           time.Now().Format(time.RFC3339),
 	})
 	if errors.Is(err, external.ErrNotFound) {
 		return nil, temporal.NewNonRetryableApplicationError("PTI user not found", "ErrNotFound", err)
