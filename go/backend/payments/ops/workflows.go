@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"go.uber.org/zap"
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
@@ -17,6 +18,7 @@ import (
 	"gitlab.com/fynbos/backend/providers/xago"
 	temporal_utils "gitlab.com/fynbos/backend/temporal/utils"
 	"gitlab.com/fynbos/backend/transactions"
+	"gitlab.com/fynbos/log"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
@@ -430,16 +432,21 @@ func astraPayIn(ctx workflow.Context, a *Activity, paymentID string) (string, bo
 		selector.Select(ctx)
 
 		var status string
-		err = workflow.ExecuteActivity(ctx, a.CheckAstraTransferStatus, paymentID, txID).Get(ctx, &status)
+		err = workflow.ExecuteActivity(ctx, a.CheckAstraRoutineStatus, paymentID, txID).Get(ctx, &status)
 		if err != nil {
 			return "", false, err
 		}
 
-		if status == astra.TransferStatusProcessed {
+		if status == astra.RoutineStatusCompleted {
 			return txID, true, nil
 		}
 
-		if status == astra.TransferStatusPending {
+		if status == astra.RoutineStatusRequiresUserVerification || status == astra.RoutineStatusPendingAccountAuth || status == astra.RoutineStatusInactive {
+			log.Warn("astra routine requires manual correction", zap.String("paymentID", paymentID), zap.String("routine_status", status))
+			continue
+		}
+
+		if status == astra.RoutineStatusActive {
 			continue
 		}
 
@@ -765,16 +772,21 @@ func astraPayOut(ctx workflow.Context, a *Activity, paymentID string) (string, b
 		selector.Select(ctx)
 
 		var status string
-		err = workflow.ExecuteActivity(ctx, a.CheckAstraTransferStatus, paymentID, txID).Get(ctx, &status)
+		err = workflow.ExecuteActivity(ctx, a.CheckAstraRoutineStatus, paymentID, txID).Get(ctx, &status)
 		if err != nil {
 			return "", false, err
 		}
 
-		if status == astra.TransferStatusProcessed {
+		if status == astra.RoutineStatusCompleted {
 			return txID, true, nil
 		}
 
-		if status == astra.TransferStatusPending {
+		if status == astra.RoutineStatusRequiresUserVerification || status == astra.RoutineStatusPendingAccountAuth || status == astra.RoutineStatusInactive {
+			log.Warn("astra routine requires manual correction", zap.String("paymentID", paymentID), zap.String("routine_status", status))
+			continue
+		}
+
+		if status == astra.RoutineStatusActive {
 			continue
 		}
 
