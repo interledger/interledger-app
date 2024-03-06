@@ -1,5 +1,7 @@
 package external
 
+import "time"
+
 type CreateIntentReq struct {
 	Email          string `json:"email"`
 	Phone          string `json:"phone"`
@@ -219,4 +221,20 @@ type Transaction struct {
 		UserID                 string  `json:"user_id"`
 	} `json:"chargeback"`
 	Status string `json:"status"`
+}
+
+type Routine struct {
+	Active          bool        `json:"active"`
+	Amount          float64     `json:"amount"`
+	Blocked         bool        `json:"blocked"`
+	Created         time.Time   `json:"created"`
+	DebitFeePercent float64     `json:"debit_fee_percent"`
+	Destination     Destination `json:"destination"`
+	ID              string      `json:"id"`
+	Name            string      `json:"name"`
+	PaymentRoute    string      `json:"payment_route"`
+	Source          Source      `json:"source"`
+	StartDate       string      `json:"start_date"`
+	Status          string      `json:"status"`
+	Type            string      `json:"type"`
 }
