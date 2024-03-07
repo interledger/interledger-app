@@ -152,7 +152,7 @@ type (
 		Currency          string `json:"currency,omitempty"`
 		BillingEmail      string `json:"billingEmail,omitempty"`
 		BankAccountNumber string `json:"bankAccountNumber,omitempty"`
-		WalletID          string `json:"walletID,omitempty"`
+		WalletID          string `json:"walletId,omitempty"`
 	}
 
 	UpdateTxStatusArgs struct {
