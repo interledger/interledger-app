@@ -25,6 +25,10 @@ func New(b ops.Backends) linkedaccounts.Client {
 	}
 }
 
+func (c client) ListBalances(ctx context.Context, walletID string) ([]linkedaccounts.LinkedAccount, error) {
+	return ops.ListBalances(ctx, c.b, walletID)
+}
+
 func (c client) Create(ctx context.Context, args *linkedaccounts.CreateArgs) (fs *linkedaccounts.LinkedAccount, err error) {
 	defer func(begin time.Time) {
 		if err != nil {

@@ -288,6 +288,24 @@ func ListByWalletId(ctx context.Context, b Backends, walletId string) ([]linkeda
 	return linkedAccounts, nil
 }
 
+func ListBalances(ctx context.Context, b Backends, walletID string) ([]linkedaccounts.LinkedAccount, error) {
+	las, err := ListByWalletId(ctx, b, walletID)
+	if err != nil {
+		return nil, err
+	}
+
+	var ret []linkedaccounts.LinkedAccount
+	for _, la := range las {
+		if la.Provider == pti.ProviderName && la.Type == pti.AccTypeBalance {
+			ret = append(ret, la)
+		} else if la.Provider == xago.ProviderName && la.Type == xago.AccTypeBalance {
+			ret = append(ret, la)
+		}
+	}
+
+	return ret, nil
+}
+
 func GetDefaultReceive(ctx context.Context, b Backends, walletID string, cc currency.Currency) (*linkedaccounts.LinkedAccount, error) {
 	lal, err := ListByWalletId(ctx, b, walletID)
 	if err != nil {
