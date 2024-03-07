@@ -59,7 +59,7 @@ func New(args ClientArgs) Client {
 	base := "https://pti.apistaging.pticlient.com/v1"
 	if args.BaseURL != "" {
 		base = args.BaseURL
-	} else if env.IsLocal() || env.IsDev() {
+	} else if env.IsLocal() {
 		base = "http://mockbos.mockbos/pti"
 	}
 
@@ -1018,7 +1018,7 @@ func (c client) WalletDeposit(ctx context.Context, args DepositArgs) (string, er
 	req.Header.Add(ptiScenarioIDHeader, args.ScenarioID)
 	req.Header.Add(ptiRequestIDHeader, args.RequestID)
 	req.Header.Add(ptiClientIDHeader, c.clientID)
-	req.Header.Add(ptiClientIDHeader, args.SessionID)
+	req.Header.Add(ptiSessionIDHeader, args.SessionID)
 	req.Header.Add("Content-Type", "application/json")
 	date := time.Now()
 	req.Header.Add("Date", date.Format(http.TimeFormat))
@@ -1079,7 +1079,6 @@ func (c client) WalletWithdrawal(ctx context.Context, args WithdrawalArgs) (stri
 			Type:   "PERSON",
 		},
 		SourceMethod: SourceMethod{
-			Currency: args.Amount.Currency.String(),
 			PaymentInformation: PaymentInformation{
 				Type:     "WALLET",
 				WalletID: args.ExternalWalletID,
@@ -1087,14 +1086,15 @@ func (c client) WalletWithdrawal(ctx context.Context, args WithdrawalArgs) (stri
 			PaymentMethodType: "WALLET",
 		},
 		DestinationMethod: WithdrawalDestinationMethod{
-			PaymentMethodType: "ACH",
+			PaymentMethodType: "FIAT",
 			PaymentInformation: PaymentInformation{
-				Type:              "FIAT",
+				Type:              "BANK_ACCOUNT",
 				BankAccountNumber: astra.AccountNumber,
 			},
 		},
 		Amount: args.Amount.Float64(),
 		Type:   "WITHDRAWAL",
+		Date:   time.Now().Format(time.RFC3339),
 	}
 
 	payload, err := json.Marshal(reqArgs)

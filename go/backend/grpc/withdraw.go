@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 	"errors"
+
 	"gitlab.com/fynbos/backend/providers/pti"
 
 	"gitlab.com/fynbos/backend/currency"
@@ -41,7 +42,7 @@ func (s *rpcService) WithdrawBalance(ctx context.Context, req *pb.TransferBalanc
 		return nil, NotFoundError("to linked account not found")
 	}
 
-	amt := currency.FromPB(req.Amount)
+	amt := currency.FromUInt64(req.Amount.Amount, fromLA.SendCurrency)
 
 	// check that does not exceed kyc limits.
 	exceedsLimits, limitType, err := s.b.Limits().ExceedsKYCLimits(ctx, w.ID, currency.FromUInt64(0, amt.Currency))
@@ -64,7 +65,7 @@ func (s *rpcService) WithdrawBalance(ctx context.Context, req *pb.TransferBalanc
 		Receiver:        payments.Identity{Type: payments.IdentityTypeWalletID, Identifier: w.ID},
 		SenderAmount:    amt,
 		SenderAccount:   fromLA.ID,
-		ReceiverAmount:  currency.FromPB(req.Amount),
+		ReceiverAmount:  amt,
 		ReceiverAccount: toLA.ID,
 		Type:            payments.TypeWithdrawal,
 		Note:            req.GetNote(),

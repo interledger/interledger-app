@@ -97,7 +97,7 @@ func AstraRenewTokensWorkflow(ctx workflow.Context) error {
 func (a *Activity) ListExpiringTokens(ctx context.Context) ([]string, error) {
 	// Select all tokens that expire in the next 12 hours, (we a day grace period built in)
 	var walletIDs []string
-	err := a.b.DB().SelectContext(ctx, &walletIDs, "SELECT wallet_id FROM astra_access_tokens WHERE refresh_expire_at<$1", time.Now().Add(time.Hour*12))
+	err := a.b.DB().SelectContext(ctx, &walletIDs, "SELECT wallet_id FROM astra_access_tokens WHERE refresh_expires_at<$1", time.Now().Add(time.Hour*12))
 	if err != nil {
 		return nil, err
 	}
