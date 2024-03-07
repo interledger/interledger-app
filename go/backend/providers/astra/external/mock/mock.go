@@ -140,6 +140,21 @@ func (mr *MockClientMockRecorder) GetIntent(ctx, intentID interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIntent", reflect.TypeOf((*MockClient)(nil).GetIntent), ctx, intentID)
 }
 
+// GetRoutine mocks base method.
+func (m *MockClient) GetRoutine(ctx context.Context, token, routineID string) (*external.Routine, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetRoutine", ctx, token, routineID)
+	ret0, _ := ret[0].(*external.Routine)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetRoutine indicates an expected call of GetRoutine.
+func (mr *MockClientMockRecorder) GetRoutine(ctx, token, routineID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRoutine", reflect.TypeOf((*MockClient)(nil).GetRoutine), ctx, token, routineID)
+}
+
 // GetTransfer mocks base method.
 func (m *MockClient) GetTransfer(ctx context.Context, token, transferID string) (*external.Transaction, error) {
 	m.ctrl.T.Helper()
