@@ -283,10 +283,6 @@ func ptiPayIn(ctx workflow.Context, a *Activity, ptiA *pti_ops.Activity, payment
 	if pt == payments.TypeWithdrawal {
 		var txID string
 		err = workflow.ExecuteActivity(ctx, a.PTIWithdrawal, paymentID).Get(ctx, &txID)
-		if err != nil {
-			return "", false, err
-		}
-
 		var applicationError *temporal.ApplicationError
 		// PTI lets us know they need more user info through 422 errors
 		if errors.As(err, &applicationError) && applicationError.Type() == "ErrUnprocessableEntity" {
@@ -635,10 +631,6 @@ func ptiPayOut(ctx, accountsCtx workflow.Context, a *Activity, ptiA *pti_ops.Act
 	var externalTxID string
 	if pt == payments.TypeDeposit {
 		err = workflow.ExecuteActivity(ctx, a.PTIDeposit, paymentID).Get(ctx, &externalTxID)
-		if err != nil {
-			return "", false, err
-		}
-
 		var applicationError *temporal.ApplicationError
 		// PTI lets us know they need more user info through 422 errors
 		if errors.As(err, &applicationError) && applicationError.Type() == "ErrUnprocessableEntity" {

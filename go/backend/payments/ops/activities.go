@@ -564,6 +564,9 @@ func (a *Activity) PTIDeposit(ctx context.Context, paymentID string) (string, er
 		Amount:          p.ReceiverAmount,
 		LinkedAccountID: p.ReceiverAccount,
 	})
+	if errors.Is(err, pti_external.ErrUnprocessableEntity) {
+		return "", temporal.NewNonRetryableApplicationError("PTI unable to process deposit", "ErrUnprocessableEntity", err)
+	}
 	if err != nil {
 		return "", err
 	}
@@ -584,7 +587,7 @@ func (a *Activity) PTIWithdrawal(ctx context.Context, paymentID string) (string,
 		LinkedAccountID: p.SenderAccount,
 	})
 	if errors.Is(err, pti_external.ErrUnprocessableEntity) {
-		return "", temporal.NewApplicationError("PTI unable to process withdrawal", "ErrUnprocessableEntity", err)
+		return "", temporal.NewNonRetryableApplicationError("PTI unable to process withdrawal", "ErrUnprocessableEntity", err)
 	}
 	if err != nil {
 		return "", err
