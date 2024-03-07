@@ -359,6 +359,42 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 		return nil, err
 	}
 
+	receiverWallet, err := lookupWallet(ctx, b, p.Receiver)
+	if err != nil && !errors.Is(err, identities.ErrNotFound) {
+		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+
+	if p.SenderAccount == "" && p.ReceiverAccount == "" {
+		sendBalances, err := b.LinkedAccounts().ListBalances(ctx, senderWallet.ID)
+		if err != nil {
+			return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+		}
+
+		var recvBalances []linkedaccounts.LinkedAccount
+		if receiverWallet != nil {
+			recvBalances, err = b.LinkedAccounts().ListBalances(ctx, receiverWallet.ID)
+			if err != nil {
+				return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+			}
+		}
+
+		for _, sendLA := range sendBalances {
+			for _, recvLA := range recvBalances {
+				if sendLA.CanPay(recvLA) {
+					p.SenderAccount = sendLA.ID
+					p.ReceiverAccount = recvLA.ID
+					p.SenderAmount.Currency = sendLA.SendCurrency
+					p.ReceiverAmount.Currency = recvLA.ReceiveCurrency
+					break
+				}
+			}
+
+			if p.SenderAccount != "" && p.ReceiverAccount != "" {
+				break
+			}
+		}
+	}
+
 	canSend, sendCurrency, err := accountCanSend(ctx, b, senderWallet, p.SenderAccount, p.Type)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
@@ -368,11 +404,6 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 	}
 	if p.SenderAmount.Currency.String() == "" && canSend {
 		p.SenderAmount.Currency = sendCurrency
-	}
-
-	receiverWallet, err := lookupWallet(ctx, b, p.Receiver)
-	if err != nil && !errors.Is(err, identities.ErrNotFound) {
-		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
 
 	canReceive, _, err := accountCanReceive(ctx, b, receiverWallet, p.ReceiverAccount, p.Type)

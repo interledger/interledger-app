@@ -18,6 +18,7 @@ type Client interface {
 	ListByWalletId(ctx context.Context, walletID string) ([]LinkedAccount, error)
 	ListByProviderID(ctx context.Context, provider, providerID string) ([]LinkedAccount, error)
 	SetNickname(ctx context.Context, id, nickname string) (*LinkedAccount, error)
+	ListBalances(ctx context.Context, walletID string) ([]LinkedAccount, error)
 
 	GetDefaultReceive(ctx context.Context, walletID string, cc currency.Currency) (*LinkedAccount, error)
 	GetDefaultSend(ctx context.Context, walletID string, cc currency.Currency) (*LinkedAccount, error)

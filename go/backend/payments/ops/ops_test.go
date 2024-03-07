@@ -45,6 +45,7 @@ func TestCreate(t *testing.T) {
 		Pti: pti_mock.NewMockClient(ctrl),
 	}
 	walletID := uuid.NewString()
+	b.Lac.EXPECT().ListBalances(ctx, gomock.Any()).Return([]linkedaccounts.LinkedAccount{}, nil).AnyTimes()
 	b.Pti.EXPECT().GetBalance(ctx, gomock.Any()).Return(&pti.Balance{Available: currency.FromFloat64(1000, currency.USD), Total: currency.FromFloat64(1000, currency.USD)}, nil).AnyTimes()
 	b.Lac.EXPECT().Get(ctx, gomock.Any()).Return(&linkedaccounts.LinkedAccount{CanSend: true, CanReceive: true, Type: pti.AccTypeBalance, Provider: pti.ProviderName, State: linkedaccounts.Verified, WalletID: walletID, SendCurrency: currency.USD, ReceiveCurrency: currency.USD}, nil).AnyTimes()
 	b.Lac.EXPECT().GetDefaultReceive(ctx, gomock.Any(), gomock.Any()).Return(nil, errors.New("not found")).AnyTimes()
@@ -196,6 +197,7 @@ func TestGetRequiredActions(t *testing.T) {
 	}
 	walletID := uuid.NewString()
 	b.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{ID: walletID}, nil).AnyTimes()
+	b.Lac.EXPECT().ListBalances(ctx, gomock.Any()).Return([]linkedaccounts.LinkedAccount{}, nil).AnyTimes()
 	b.Lac.EXPECT().Get(ctx, gomock.Any()).Return(&linkedaccounts.LinkedAccount{WalletID: walletID, Provider: pti.ProviderName}, nil).AnyTimes()
 
 	p, err := ops.Create(ctx, b, payments.CreateArgs{
@@ -231,6 +233,7 @@ func TestConfirm(t *testing.T) {
 	}
 	walletID := uuid.NewString()
 	txID := uuid.NewString()
+	b.Lac.EXPECT().ListBalances(ctx, gomock.Any()).Return([]linkedaccounts.LinkedAccount{}, nil).AnyTimes()
 	b.Lac.EXPECT().Get(ctx, gomock.Any()).Return(&linkedaccounts.LinkedAccount{CanSend: true, CanReceive: true, Provider: pti.ProviderName, State: linkedaccounts.Verified, WalletID: walletID, SendCurrency: currency.USD, ReceiveCurrency: currency.USD}, nil).AnyTimes()
 	b.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{ID: walletID}, nil).AnyTimes()
 	b.Wc.EXPECT().GetFromAddress(ctx, "https://fynbos.me/charlie").Return(&wallets.Wallet{
