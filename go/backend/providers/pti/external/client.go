@@ -1079,7 +1079,6 @@ func (c client) WalletWithdrawal(ctx context.Context, args WithdrawalArgs) (stri
 			Type:   "PERSON",
 		},
 		SourceMethod: SourceMethod{
-			Currency: args.Amount.Currency.String(),
 			PaymentInformation: PaymentInformation{
 				Type:     "WALLET",
 				WalletID: args.ExternalWalletID,
@@ -1087,7 +1086,7 @@ func (c client) WalletWithdrawal(ctx context.Context, args WithdrawalArgs) (stri
 			PaymentMethodType: "WALLET",
 		},
 		DestinationMethod: WithdrawalDestinationMethod{
-			PaymentMethodType: "ACH",
+			PaymentMethodType: "FIAT",
 			PaymentInformation: PaymentInformation{
 				Type:              "FIAT",
 				BankAccountNumber: astra.AccountNumber,
