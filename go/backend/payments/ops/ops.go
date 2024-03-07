@@ -359,6 +359,42 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 		return nil, err
 	}
 
+	receiverWallet, err := lookupWallet(ctx, b, p.Receiver)
+	if err != nil && !errors.Is(err, identities.ErrNotFound) {
+		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+
+	if p.SenderAccount == "" && p.ReceiverAccount == "" {
+		sendBalances, err := b.LinkedAccounts().ListBalances(ctx, senderWallet.ID)
+		if err != nil {
+			return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+		}
+
+		var recvBalances []linkedaccounts.LinkedAccount
+		if receiverWallet != nil {
+			recvBalances, err = b.LinkedAccounts().ListBalances(ctx, receiverWallet.ID)
+			if err != nil {
+				return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+			}
+		}
+
+		for _, sendLA := range sendBalances {
+			for _, recvLA := range recvBalances {
+				if sendLA.CanPay(recvLA) {
+					p.SenderAccount = sendLA.ID
+					p.ReceiverAccount = recvLA.ID
+					p.SenderAmount.Currency = sendLA.SendCurrency
+					p.ReceiverAmount.Currency = recvLA.ReceiveCurrency
+					break
+				}
+			}
+
+			if p.SenderAccount != "" && p.ReceiverAccount != "" {
+				break
+			}
+		}
+	}
+
 	canSend, sendCurrency, err := accountCanSend(ctx, b, senderWallet, p.SenderAccount, p.Type)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
@@ -368,11 +404,6 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 	}
 	if p.SenderAmount.Currency.String() == "" && canSend {
 		p.SenderAmount.Currency = sendCurrency
-	}
-
-	receiverWallet, err := lookupWallet(ctx, b, p.Receiver)
-	if err != nil && !errors.Is(err, identities.ErrNotFound) {
-		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
 
 	canReceive, _, err := accountCanReceive(ctx, b, receiverWallet, p.ReceiverAccount, p.Type)
@@ -846,6 +877,10 @@ func Confirm(ctx context.Context, b Backends, id string) (*payments.Payment, []p
 			}
 			txType = transactions.TransactionTypeWebMonetizationOutgoing
 		}
+		if dbp.Type == payments.TypeDeposit {
+			title = "Deposit"
+			txType = transactions.TransactionTypeDeposit
+		}
 		txID, err := b.Transactions().CreateTransactionTx(ctx, tx, transactions.CreateTransactionArgs{
 			WalletID:                       senderWallet.ID,
 			ForeignID:                      dbp.ID,
@@ -1079,6 +1114,19 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 		}()
 	}
 
+	if args.AddAstraCorrelationID && !payment.AstraCorrelationID.Valid {
+		corID, err := newCorrelationID()
+		if err != nil {
+			return nil, err
+		}
+
+		payment.AstraCorrelationID = sql.NullString{
+			String: corID,
+			Valid:  len(corID) == 8,
+		}
+		noop = false
+	}
+
 	// Wait for parallel checks to complete
 	wg.Wait()
 	if pErr != nil {
@@ -1128,17 +1176,6 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 		}
 		payment.SenderAmount = amt.Value
 		payment.ProtectionFeePercentage = fee
-	}
-
-	if args.AddAstraCorrelationID && !payment.AstraCorrelationID.Valid {
-		corID, err := newCorrelationID()
-		if err != nil {
-			return nil, err
-		}
-		payment.AstraCorrelationID = sql.NullString{
-			String: corID,
-			Valid:  len(corID) == 8,
-		}
 	}
 
 	err = validateWithdrawal(ctx, b, payment.Type, payment.SenderAccount.String, payment.ReceiverAccount.String)

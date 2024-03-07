@@ -60,6 +60,7 @@ type (
 		ScenarioID                string                 `json:"-"`
 		SessionID                 string                 `json:"-"`
 		TransactionGroup          string                 `json:"transactionGroupId,omitempty"`
+		TransactionTotal          Total                  `json:"transactionTotal"`
 		SubClientID               string                 `json:"subClientId,omitempty"`
 		USDValue                  float64                `json:"usdValue,omitempty"`
 		Amount                    float64                `json:"amount,omitempty"`
@@ -151,7 +152,7 @@ type (
 		Currency          string `json:"currency,omitempty"`
 		BillingEmail      string `json:"billingEmail,omitempty"`
 		BankAccountNumber string `json:"bankAccountNumber,omitempty"`
-		WalletID          string `json:"walletID,omitempty"`
+		WalletID          string `json:"walletId,omitempty"`
 	}
 
 	UpdateTxStatusArgs struct {
@@ -159,6 +160,22 @@ type (
 		TransactionID string    `json:"transactionId"`
 		Feedback      string    `json:"feedback"`
 		Date          time.Time `json:"date"`
+		ProviderName  string    `json:"providerName"`
+		Payload       string    `json:"payload"`
+	}
+
+	Subtotal struct {
+		Amount float64 `json:"amount"`
+	}
+
+	PaymentTotal struct {
+		Subtotal Subtotal `json:"subtotal"`
+	}
+
+	StatusPayload struct {
+		Status       string       `json:"status"`
+		PaymentTotal PaymentTotal `json:"paymentTotal"`
+		ProviderName string       `json:"providerName"`
 	}
 
 	DepositArgs struct {
@@ -190,6 +207,7 @@ type (
 		Amount            float64                     `json:"amount,omitempty"`
 		USDAmount         float64                     `json:"usdValue,omitempty"`
 		Type              string                      `json:"type,omitempty"`
+		Date              string                      `json:"date,omitempty"`
 	}
 
 	WithdrawalDestinationMethod struct {
@@ -283,7 +301,7 @@ type (
 		TransactionType     string                 `json:"transactionType"`
 		PaymentMethod       string                 `json:"paymentMethod"`
 		PaymentStatusDetail PaymentStatusDetail    `json:"paymentStatusDetail"`
-		Amount              float64                `json:"amount"`
+		Amount              string                 `json:"amount"`
 		BillingEmail        string                 `json:"billingEmail"`
 		Total               Total                  `json:"total"`
 		Currency            string                 `json:"currency"`

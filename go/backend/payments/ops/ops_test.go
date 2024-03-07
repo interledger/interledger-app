@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"testing"
 
+	"gitlab.com/fynbos/backend/providers/astra"
 	pti_mock "gitlab.com/fynbos/backend/providers/pti/client/mock"
 
 	"gitlab.com/fynbos/backend/providers/pti"
@@ -44,6 +45,7 @@ func TestCreate(t *testing.T) {
 		Pti: pti_mock.NewMockClient(ctrl),
 	}
 	walletID := uuid.NewString()
+	b.Lac.EXPECT().ListBalances(ctx, gomock.Any()).Return([]linkedaccounts.LinkedAccount{}, nil).AnyTimes()
 	b.Pti.EXPECT().GetBalance(ctx, gomock.Any()).Return(&pti.Balance{Available: currency.FromFloat64(1000, currency.USD), Total: currency.FromFloat64(1000, currency.USD)}, nil).AnyTimes()
 	b.Lac.EXPECT().Get(ctx, gomock.Any()).Return(&linkedaccounts.LinkedAccount{CanSend: true, CanReceive: true, Type: pti.AccTypeBalance, Provider: pti.ProviderName, State: linkedaccounts.Verified, WalletID: walletID, SendCurrency: currency.USD, ReceiveCurrency: currency.USD}, nil).AnyTimes()
 	b.Lac.EXPECT().GetDefaultReceive(ctx, gomock.Any(), gomock.Any()).Return(nil, errors.New("not found")).AnyTimes()
@@ -195,6 +197,7 @@ func TestGetRequiredActions(t *testing.T) {
 	}
 	walletID := uuid.NewString()
 	b.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{ID: walletID}, nil).AnyTimes()
+	b.Lac.EXPECT().ListBalances(ctx, gomock.Any()).Return([]linkedaccounts.LinkedAccount{}, nil).AnyTimes()
 	b.Lac.EXPECT().Get(ctx, gomock.Any()).Return(&linkedaccounts.LinkedAccount{WalletID: walletID, Provider: pti.ProviderName}, nil).AnyTimes()
 
 	p, err := ops.Create(ctx, b, payments.CreateArgs{
@@ -230,6 +233,7 @@ func TestConfirm(t *testing.T) {
 	}
 	walletID := uuid.NewString()
 	txID := uuid.NewString()
+	b.Lac.EXPECT().ListBalances(ctx, gomock.Any()).Return([]linkedaccounts.LinkedAccount{}, nil).AnyTimes()
 	b.Lac.EXPECT().Get(ctx, gomock.Any()).Return(&linkedaccounts.LinkedAccount{CanSend: true, CanReceive: true, Provider: pti.ProviderName, State: linkedaccounts.Verified, WalletID: walletID, SendCurrency: currency.USD, ReceiveCurrency: currency.USD}, nil).AnyTimes()
 	b.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{ID: walletID}, nil).AnyTimes()
 	b.Wc.EXPECT().GetFromAddress(ctx, "https://fynbos.me/charlie").Return(&wallets.Wallet{
@@ -430,6 +434,66 @@ func TestUpdate(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, float64(0), p.ProtectionFeePercentage)
 	assert.Equal(t, uint64(5500), p.SenderAmount.Value)
+}
+
+func TestAstraCorrelactionID(t *testing.T) {
+	ctx := context.Background()
+	ctrl := gomock.NewController(t)
+	t.Cleanup(func() {
+		ctrl.Finish()
+	})
+	b := &ops.TestBackends{
+		DBC: db.MigrateTestDB(t, ctx),
+		Wc:  wallets_mock.NewMockClient(ctrl),
+		Lac: linkedaccounts_mock.NewMockClient(ctrl),
+		Txc: transactions_mock.NewMockClient(ctrl),
+	}
+	walletID, receiverWalletID := uuid.NewString(), uuid.NewString()
+	senderAccount := uuid.NewString()
+	receiverAccount := uuid.NewString()
+	b.Lac.EXPECT().Get(ctx, gomock.Any()).DoAndReturn(func(ctx context.Context, id string) (*linkedaccounts.LinkedAccount, error) {
+		ret := &linkedaccounts.LinkedAccount{CanSend: true, CanReceive: true, Provider: astra.ProviderName, State: linkedaccounts.Verified, WalletID: walletID, SendCurrency: currency.USD, ReceiveCurrency: currency.USD}
+		return ret, nil
+	}).AnyTimes()
+	b.Lac.EXPECT().GetDefaultReceive(ctx, gomock.Any(), gomock.Any()).Return(nil, errors.New("not found")).AnyTimes()
+	b.Lac.EXPECT().Get(ctx, gomock.Any()).Return(&linkedaccounts.LinkedAccount{CanSend: true, CanReceive: true, Provider: pti.ProviderName, State: linkedaccounts.Verified, WalletID: walletID, SendCurrency: currency.USD, ReceiveCurrency: currency.USD}, nil).AnyTimes()
+	b.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{ID: walletID}, nil).AnyTimes()
+	b.Wc.EXPECT().Get(ctx, receiverWalletID).Return(&wallets.Wallet{ID: receiverWalletID}, nil).AnyTimes()
+	b.Wc.EXPECT().GetFromAddress(ctx, "https://fynbos.me/charlie").Return(&wallets.Wallet{
+		ID: receiverWalletID,
+	}, nil).AnyTimes()
+	b.Txc.EXPECT().GetHasTransacted(ctx, gomock.Any(), gomock.Any()).Return(true, nil)
+	b.Txc.EXPECT().CountSendTransactions(ctx, gomock.Any()).DoAndReturn(func(ctx context.Context, walletID string) (int, error) {
+		if walletID == "" {
+			t.Fatal("walletID is empty for CountSendTransactions")
+		}
+		return 0, nil
+	}).AnyTimes()
+
+	p, err := ops.Create(ctx, b, payments.CreateArgs{
+		Sender: payments.Identity{
+			Type:       payments.IdentityTypeWalletID,
+			Identifier: walletID,
+		},
+		Receiver: payments.Identity{
+			Type:       payments.IdentityTypeWalletURL,
+			Identifier: "https://fynbos.me/charlie",
+		},
+		SenderAmount:    currency.FromFloat64(51, currency.USD),
+		SenderAccount:   senderAccount,
+		ReceiverAccount: receiverAccount,
+	})
+	require.NoError(t, err)
+	paymentID := p.ID
+	assert.Empty(t, p.AstraCorrelationID)
+
+	p, err = ops.Update(ctx, b, payments.UpdateArgs{
+		ID:                    paymentID,
+		AddAstraCorrelationID: true,
+	})
+	require.NoError(t, err)
+
+	assert.NotEmpty(t, p.AstraCorrelationID)
 }
 
 func TestSellerRisk(t *testing.T) {
