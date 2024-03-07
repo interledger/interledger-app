@@ -152,7 +152,7 @@ type (
 		Currency          string `json:"currency,omitempty"`
 		BillingEmail      string `json:"billingEmail,omitempty"`
 		BankAccountNumber string `json:"bankAccountNumber,omitempty"`
-		WalletID          string `json:"walletID,omitempty"`
+		WalletID          string `json:"walletId,omitempty"`
 	}
 
 	UpdateTxStatusArgs struct {
@@ -207,6 +207,7 @@ type (
 		Amount            float64                     `json:"amount,omitempty"`
 		USDAmount         float64                     `json:"usdValue,omitempty"`
 		Type              string                      `json:"type,omitempty"`
+		Date              string                      `json:"date,omitempty"`
 	}
 
 	WithdrawalDestinationMethod struct {
