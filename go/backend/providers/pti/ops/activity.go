@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/lestrrat-go/jwx/v2/jwk"
@@ -209,7 +210,7 @@ func (a *Activity) CreatePtiWalletLinkedAccount(ctx context.Context, args linked
 	if err != nil && !errors.Is(err, linkedaccounts.ErrNotFound) {
 		return nil, err
 	}
-	if existing != nil {
+	if existing != nil && existing.DeletedAt.Time.IsZero() {
 		return existing, nil
 	}
 
@@ -257,7 +258,7 @@ func (a *Activity) CreateWalletTransfer(ctx context.Context, paymentID, requestI
 		return nil, err
 	}
 
-	receiverPTIUser, err := GetUser(ctx, a.b, p.Sender.WalletID)
+	receiverPTIUser, err := GetUser(ctx, a.b, p.Receiver.WalletID)
 	if errors.Is(err, pti.ErrNotFound) {
 		return nil, temporal.NewNonRetryableApplicationError("PTI user not found for sender", "ErrNotFound", err)
 	}
@@ -279,6 +280,20 @@ func (a *Activity) CreateWalletTransfer(ctx context.Context, paymentID, requestI
 		SessionID:  p.ID,
 		Amount:     p.SenderAmount.Float64(),
 		USDValue:   p.SenderAmount.Float64(),
+		TransactionTotal: external.Total{
+			Fee: external.Cost{
+				Amount:   0,
+				Currency: p.SenderAmount.Currency.String(),
+			},
+			Subtotal: external.Cost{
+				Amount:   p.SenderAmount.Float64(),
+				Currency: p.SenderAmount.Currency.String(),
+			},
+			Total: external.Cost{
+				Amount:   p.SenderAmount.Float64(),
+				Currency: p.SenderAmount.Currency.String(),
+			},
+		},
 		Initiator: external.User{
 			ID:   senderPTIUser.ExternalID,
 			Type: "PERSON",
@@ -303,12 +318,13 @@ func (a *Activity) CreateWalletTransfer(ctx context.Context, paymentID, requestI
 		},
 		Type:           "TRANSFER",
 		DisableWebhook: true, // our workflows keep the context
+		Date:           time.Now().Format(time.RFC3339),
 	})
 	if errors.Is(err, external.ErrNotFound) {
 		return nil, temporal.NewNonRetryableApplicationError("PTI user not found", "ErrNotFound", err)
 	}
 	if errors.Is(err, external.ErrUnprocessableEntity) {
-		return nil, temporal.NewNonRetryableApplicationError("PTI unable to process assessment", "ErrInternal", err)
+		return nil, temporal.NewApplicationError("PTI unable to process transfer", "ErrUnprocessableEntity", err)
 	}
 
 	return trxResp, err
