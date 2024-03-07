@@ -3,6 +3,7 @@ package ops
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -182,11 +183,26 @@ func WithdrawFromWallet(ctx context.Context, b Backends, ec external.Client, arg
 }
 
 func UpdateTransactionStatus(ctx context.Context, b Backends, ex external.Client, args pti.TransactionStatusArgs) error {
-	_, err := ex.UpdateTransactionStatus(ctx, external.UpdateTxStatusArgs{
+	payload, err := json.Marshal(external.StatusPayload{
+		ProviderName: "UNKNOWN",
+		Status:       string(args.Status),
+		PaymentTotal: external.PaymentTotal{
+			Subtotal: external.Subtotal{
+				Amount: args.Amount.Float64(),
+			},
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+
+	_, err = ex.UpdateTransactionStatus(ctx, external.UpdateTxStatusArgs{
 		RequestID:     args.PaymentID,
 		TransactionID: args.TransactionID,
 		Feedback:      string(args.Status),
 		Date:          time.Now(),
+		ProviderName:  "UNKNOWN",
+		Payload:       string(payload),
 	})
 	if err != nil {
 		return fmt.Errorf("%w %s", pti.ErrInternal, err)
