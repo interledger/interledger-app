@@ -146,6 +146,9 @@ func DepositToWallet(ctx context.Context, b Backends, ec external.Client, args p
 		ExternalWalletID: la.ProviderID,
 		Amount:           args.Amount,
 	})
+	if errors.Is(err, external.ErrUnprocessableEntity) {
+		return "", err
+	}
 	if err != nil {
 		return "", fmt.Errorf("%w %s", pti.ErrInternal, err)
 	}
@@ -175,6 +178,9 @@ func WithdrawFromWallet(ctx context.Context, b Backends, ec external.Client, arg
 		ExternalWalletID: la.ProviderID,
 		Amount:           args.Amount,
 	})
+	if errors.Is(err, external.ErrUnprocessableEntity) {
+		return "", err
+	}
 	if err != nil {
 		return "", fmt.Errorf("%w %s", pti.ErrInternal, err)
 	}
