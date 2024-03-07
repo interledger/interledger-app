@@ -160,6 +160,28 @@ func LookupTransfer(ctx context.Context, b Backends, walletID, txID string) (*as
 	}, nil
 }
 
+func LookupRoutine(ctx context.Context, b Backends, walletID, routineID string) (*astra.Routine, error) {
+	token, err := GetToken(ctx, b, walletID)
+	if err != nil {
+		return nil, err
+	}
+
+	routine, err := b.External().GetRoutine(ctx, token, routineID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", astra.ErrInternal, err)
+	}
+
+	return &astra.Routine{
+		ID:        routine.ID,
+		Type:      routine.Type,
+		Name:      routine.Name,
+		Status:    routine.Status,
+		Active:    routine.Active,
+		Blocked:   routine.Blocked,
+		StartDate: routine.StartDate,
+	}, nil
+}
+
 func CreateIntent(ctx context.Context, b Backends, walletID string) error {
 	id, err := b.KYC().GetIndividualDetails(ctx, walletID)
 	if err != nil {

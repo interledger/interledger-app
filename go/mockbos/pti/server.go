@@ -653,7 +653,7 @@ func (s *Server) GetTransaction(w http.ResponseWriter, r *http.Request) {
 			ProviderResponseCode:     trx.PaymentStatusProviderResponseCode.String,
 			ProviderResponseCategory: trx.PaymentStatusProviderResponseCategory.String,
 		},
-		Amount:   amt.Float64(),
+		Amount:   amt.FormatAmount(),
 		Currency: cc.String(),
 		Total: external.Total{
 			Fee: external.Cost{
