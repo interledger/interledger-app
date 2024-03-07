@@ -1079,7 +1079,6 @@ func (c client) WalletWithdrawal(ctx context.Context, args WithdrawalArgs) (stri
 			Type:   "PERSON",
 		},
 		SourceMethod: SourceMethod{
-			Currency: args.Amount.Currency.String(),
 			PaymentInformation: PaymentInformation{
 				Type:     "WALLET",
 				WalletID: args.ExternalWalletID,
