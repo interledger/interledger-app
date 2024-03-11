@@ -48,7 +48,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
   if (isConnectError(transaction)) throw transaction.errorResponse
 
-  if (transaction.type == 'withdrawal') {
+  if (transaction.type == 'withdrawal' || transaction.type == 'deposit') {
     const linkedAccountsResponse = await grpc.getLinkedAccounts(request, {})
     if (isConnectError(linkedAccountsResponse))
       throw linkedAccountsResponse.error
