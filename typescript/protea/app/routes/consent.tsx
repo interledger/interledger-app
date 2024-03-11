@@ -57,7 +57,7 @@ export const meta: MetaFunction = mergeMeta(() => [
 ])
 
 export default function Page() {
-  const { type, interactId, nonce } = useLoaderData<typeof loader>()
+  const { type } = useLoaderData<typeof loader>()
   const [params] = useSearchParams()
 
   return (
