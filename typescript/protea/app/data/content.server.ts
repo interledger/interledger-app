@@ -2,13 +2,10 @@ import { gql } from '@apollo/client'
 import type {
   Query,
   QueryAllBlogPostsArgs,
-  QueryAllPeopleArgs,
   QueryBlogPostArgs,
   QueryDocArgs,
-  QueryFormArgs,
   QueryLegalPageArgs,
-  QueryMarketingPageArgs,
-  QueryThankYouArgs
+  QueryMarketingPageArgs
 } from '~/generated/dato-cms-graphql'
 import { apolloClient } from '~/lib/apollo.server'
 
@@ -28,43 +25,6 @@ export const RESPONSIVE_IMAGE = gql`
     }
   }
 `
-
-export const getAboutRoute = async () => {
-  return apolloClient
-    .query<{
-      aboutRoute: Query['aboutRoute']
-      footer: Query['footer']
-    }>({
-      query: gql`
-        ${FOOTER}
-        ${SECTION}
-        query GetRouteContent {
-          aboutRoute {
-            id
-            body {
-              ...Section
-            }
-            _status
-            _seoMetaTags {
-              tag
-              attributes
-              content
-            }
-          }
-          footer {
-            ...Footer
-          }
-        }
-      `
-    })
-    .then((res) => {
-      return res.data
-    })
-    .catch((error) => {
-      console.log(error)
-      return { aboutRoute: null, footer: null }
-    })
-}
 
 export const getAllDocs = async () => {
   return apolloClient
@@ -164,118 +124,6 @@ export const getCurrentDocPage = async (variables: QueryDocArgs) => {
     .catch((error) => {
       console.log(error)
       return { doc: null, footer: null }
-    })
-}
-
-export const getCurrentFormPage = async (variables: QueryFormArgs) => {
-  return apolloClient
-    .query<{ form: Query['form'] }, QueryFormArgs>({
-      query: gql`
-        query GetCurrentFormQuery($filter: FormModelFilter) {
-          form(filter: $filter) {
-            id
-            title
-            slug
-            requireAuth
-            returnTo
-            _status
-            sections {
-              id
-              ... on FormSectionRecord {
-                description
-                content {
-                  ... on FormLandingRecord {
-                    id
-                    steps {
-                      ... on FormLandingStepRecord {
-                        id
-                        title
-                        body
-                        shapes {
-                          url
-                          height
-                          width
-                        }
-                      }
-                    }
-                  }
-                  ... on FormTextRecord {
-                    id
-                    label
-                    fieldName
-                    fieldType
-                    required
-                  }
-                  ... on FormSelectRecord {
-                    id
-                    label
-                    fieldName
-                    options
-                    required
-                  }
-                }
-                buttonText
-              }
-            }
-            _seoMetaTags {
-              tag
-              attributes
-              content
-            }
-          }
-        }
-      `,
-      variables
-    })
-    .then((res) => {
-      return res.data
-    })
-    .catch((error) => {
-      console.log(error)
-      return { form: null }
-    })
-}
-
-export const getCurrentThankYouPage = async (variables: QueryThankYouArgs) => {
-  return apolloClient
-    .query<
-      {
-        thankYou: Query['thankYou']
-        footer: Query['footer']
-      },
-      QueryThankYouArgs
-    >({
-      query: gql`
-        ${FOOTER}
-        ${SECTION}
-        query GetCurrentThankYouQuery($filter: ThankYouModelFilter) {
-          thankYou(filter: $filter) {
-            id
-            title
-            slug
-            _status
-            body {
-              ...Section
-            }
-            _seoMetaTags {
-              tag
-              attributes
-              content
-            }
-          }
-          footer {
-            ...Footer
-          }
-        }
-      `,
-      variables
-    })
-    .then((res) => {
-      return res.data
-    })
-    .catch((error) => {
-      console.log(error)
-      return { thankYou: null, footer: null }
     })
 }
 
@@ -475,43 +323,6 @@ export const getCurrentBlogPost = async (variables: QueryBlogPostArgs) => {
     })
 }
 
-export const getPerson = async (variables: QueryAllPeopleArgs) => {
-  return apolloClient
-    .query<{ person: Query['person'] }, QueryAllPeopleArgs>({
-      query: gql`
-        query GetPersonProfile($filter: PersonModelFilter) {
-          person(filter: $filter) {
-            id
-            name
-            avatar {
-              responsiveImage(
-                imgixParams: { fit: max, w: 120, h: 120, auto: format }
-              ) {
-                srcSet
-                sizes
-                src
-                width
-                height
-                aspectRatio
-                alt
-                title
-                base64
-              }
-            }
-          }
-        }
-      `,
-      variables
-    })
-    .then((res) => {
-      return res.data
-    })
-    .catch((error) => {
-      console.log(error)
-      return { person: null }
-    })
-}
-
 export const getContactRoute = async () => {
   return apolloClient
     .query<{
@@ -546,190 +357,6 @@ export const getContactRoute = async () => {
     .catch((error) => {
       console.log(error)
       return { contactRoute: null, footer: null }
-    })
-}
-
-export const getDiscordRoute = async () => {
-  return apolloClient
-    .query<{
-      discordRoute: Query['discordRoute']
-      footer: Query['footer']
-    }>({
-      query: gql`
-        ${FOOTER}
-        ${SECTION}
-        query GetDiscordRouteContent {
-          discordRoute {
-            id
-            body {
-              ...Section
-            }
-            _status
-            _seoMetaTags {
-              tag
-              attributes
-              content
-            }
-          }
-          footer {
-            ...Footer
-          }
-        }
-      `
-    })
-    .then((res) => {
-      return res.data
-    })
-    .catch((error) => {
-      console.log(error)
-      return { discordRoute: null, footer: null }
-    })
-}
-
-export const getCollectablesRoute = async () => {
-  return apolloClient
-    .query<{
-      collectablesRoute: Query['collectablesRoute']
-      footer: Query['footer']
-    }>({
-      query: gql`
-        ${FOOTER}
-        ${SECTION}
-        query GetCollectablesRouteContent {
-          collectablesRoute {
-            id
-            body {
-              ...Section
-            }
-            _status
-            _seoMetaTags {
-              tag
-              attributes
-              content
-            }
-          }
-          footer {
-            ...Footer
-          }
-        }
-      `
-    })
-    .then((res) => {
-      return res.data
-    })
-    .catch((error) => {
-      console.log(error)
-      return { collectablesRoute: null, footer: null }
-    })
-}
-
-export const getReferralRoute = async () => {
-  return apolloClient
-    .query<{
-      referralRoute: Query['referralRoute']
-      footer: Query['footer']
-    }>({
-      query: gql`
-        ${FOOTER}
-        ${SECTION}
-        query GetReferralRouteContent {
-          referralRoute {
-            id
-            body {
-              ...Section
-            }
-            _status
-            _seoMetaTags {
-              tag
-              attributes
-              content
-            }
-          }
-          footer {
-            ...Footer
-          }
-        }
-      `
-    })
-    .then((res) => {
-      return res.data
-    })
-    .catch((error) => {
-      console.log(error)
-      return { referralRoute: null, footer: null }
-    })
-}
-export const getSlackRoute = async () => {
-  return apolloClient
-    .query<{
-      slackRoute: Query['slackRoute']
-      footer: Query['footer']
-    }>({
-      query: gql`
-        ${FOOTER}
-        ${SECTION}
-        query GetSlackRouteContent {
-          slackRoute {
-            id
-            body {
-              ...Section
-            }
-            _status
-            _seoMetaTags {
-              tag
-              attributes
-              content
-            }
-          }
-          footer {
-            ...Footer
-          }
-        }
-      `
-    })
-    .then((res) => {
-      return res.data
-    })
-    .catch((error) => {
-      console.log(error)
-      return { slackRoute: null, footer: null }
-    })
-}
-
-export const getLegalRoute = async () => {
-  return apolloClient
-    .query<{
-      legalRoute: Query['legalRoute']
-      footer: Query['footer']
-    }>({
-      query: gql`
-        ${FOOTER}
-        ${SECTION}
-        query GetLegalRouteContent {
-          legalRoute {
-            id
-            body {
-              ...Section
-            }
-            _status
-            _seoMetaTags {
-              tag
-              attributes
-              content
-            }
-          }
-          footer {
-            ...Footer
-          }
-        }
-      `
-    })
-    .then((res) => {
-      return res.data
-    })
-    .catch((error) => {
-      console.log(error)
-      return { legalRoute: null, footer: null }
     })
 }
 
@@ -849,43 +476,6 @@ export const getHomeRoute = async () => {
     .catch((error) => {
       console.log(error)
       return { homeRoute: null, footer: null }
-    })
-}
-
-export const getWalletRoute = async () => {
-  return apolloClient
-    .query<{
-      walletRoute: Query['walletRoute']
-      footer: Query['footer']
-    }>({
-      query: gql`
-        ${FOOTER}
-        ${SECTION}
-        query GetWalletRouteContent {
-          walletRoute {
-            id
-            body {
-              ...Section
-            }
-            _status
-            _seoMetaTags {
-              tag
-              attributes
-              content
-            }
-          }
-          footer {
-            ...Footer
-          }
-        }
-      `
-    })
-    .then((res) => {
-      return res.data
-    })
-    .catch((error) => {
-      console.log(error)
-      return { walletRoute: null, footer: null }
     })
 }
 
