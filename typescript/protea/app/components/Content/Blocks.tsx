@@ -401,7 +401,7 @@ export function HomeHeroContentRecordComponent({
         />
       </AnimatePresence>
       <div className='flex w-full flex-col space-y-8 lg:w-1/2'>
-        <div className='font-display text-5xl font-bold'>
+        <div className='font-display text-5xl font-medium'>
           {titleSegments.map((segment, index) => {
             if (segment.animated) {
               return (

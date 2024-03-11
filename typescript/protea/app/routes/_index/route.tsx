@@ -22,7 +22,6 @@ import { datoMeta, mergeMeta } from '~/lib/meta'
 import { getPusherArgs } from '~/lib/pusher.server'
 import flagStyles from '~/styles/flags.css'
 import { AppPage } from './app'
-import styles from './home.css'
 import { MarketingPage } from './marketing'
 
 export enum KycStatus {
@@ -37,10 +36,7 @@ export enum KycStatus {
 }
 
 export const links: LinksFunction = () => {
-  return [
-    { rel: 'stylesheet', href: styles },
-    { rel: 'stylesheet', href: flagStyles }
-  ]
+  return [{ rel: 'stylesheet', href: flagStyles }]
 }
 
 export async function loader(args: LoaderFunctionArgs) {
