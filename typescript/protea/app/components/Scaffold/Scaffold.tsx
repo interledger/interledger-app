@@ -1,3 +1,4 @@
+import { Popover, Transition } from '@headlessui/react'
 import type { SerializeFrom } from '@remix-run/node'
 import type { UIMatch } from '@remix-run/react'
 import {
@@ -12,12 +13,13 @@ import clsx from 'clsx'
 import type { MotionProps } from 'framer-motion'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { FC, ReactNode } from 'react'
-import { forwardRef, useEffect, useState } from 'react'
+import { Fragment, forwardRef, useEffect, useState } from 'react'
 import { StructuredText } from 'react-datocms'
 import { route } from 'routes-gen'
 import {
   AnchorRouter,
   ButtonRouter,
+  CardLink,
   FynbosLogo,
   Icon,
   IconButton,
@@ -253,8 +255,9 @@ export function Scaffold() {
               </Router>
             </div>
             <div className='hidden space-x-10 pb-2 pl-10 pt-3 lg:flex'>
-              <HeaderLink to='/wallet' title='Wallet' />
               <HeaderLink to='/about' title='About' />
+              {/*<HeaderLink to='/wallet' title='Wallet' />*/}
+              <HeaderPopover />
               {/*<HeaderLink to={route('/docs')} title='Docs' />*/}
               <HeaderLink to={route('/blog')} title='Blog' />
               <HeaderLink to={route('/contact')} title='Contact' />
@@ -587,8 +590,9 @@ export function Scaffold() {
                   </div>
                 </div>
                 <NavDrawer.ListItem to={route('/')}>Home</NavDrawer.ListItem>
-                <NavDrawer.ListItem to='/wallet'>Wallet</NavDrawer.ListItem>
                 <NavDrawer.ListItem to='/about'>About</NavDrawer.ListItem>
+                <NavDrawer.ListItem to='/wallet'>Wallet</NavDrawer.ListItem>
+                <NavDrawer.ListItem to='/wealth'>Wealth</NavDrawer.ListItem>
                 {/*<NavDrawer.ListItem to={route('/docs')}>*/}
                 {/*  Docs*/}
                 {/*</NavDrawer.ListItem>*/}
@@ -670,6 +674,56 @@ const HeaderLink: FC<HeaderLinkProps> = ({ title, to }) => {
         </>
       )}
     </NavLink>
+  )
+}
+
+const HeaderPopover: FC = () => {
+  return (
+    <Popover className='relative'>
+      {({ open }) => (
+        <>
+          <Popover.Button className='inline-flex items-center gap-x-2 rounded text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus'>
+            <span>Products</span>
+            <Icon>expand_more</Icon>
+          </Popover.Button>
+          <Transition
+            as={Fragment}
+            enter='transition ease-out duration-200'
+            enterFrom='opacity-0 translate-y-1'
+            enterTo='opacity-100 translate-y-0'
+            leave='transition ease-in duration-150'
+            leaveFrom='opacity-100 translate-y-0'
+            leaveTo='opacity-0 translate-y-1'
+          >
+            <Popover.Panel
+              static
+              className='absolute left-1/2 z-10 mt-3 w-screen max-w-sm -translate-x-1/2 transform px-4 sm:px-0'
+            >
+              <div className='relative flex flex-col gap-y-1 rounded-[1.25rem] bg-mk-section p-2 shadow-lg'>
+                <Popover.Button
+                  as={CardLink}
+                  to='/wallet'
+                  className='flex flex-col space-y-1'
+                >
+                  <p className='text-sm font-medium text-strong'>Wallet</p>
+                  <p className='text-sm text-weak'>
+                    Send money as easily email.
+                  </p>
+                </Popover.Button>
+                <Popover.Button
+                  as={CardLink}
+                  to='/wealth'
+                  className='flex flex-col space-y-1'
+                >
+                  <p className='text-sm font-medium text-strong'>Wealth</p>
+                  <p className='text-sm text-weak'>Grow your wealth easily.</p>
+                </Popover.Button>
+              </div>
+            </Popover.Panel>
+          </Transition>
+        </>
+      )}
+    </Popover>
   )
 }
 

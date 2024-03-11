@@ -695,7 +695,7 @@ export function StoryContentRecordComponent({
 }: {
   content: StoryContentRecord
 }) {
-  return (
+  return content.blurb?.value.document.children[0].children[0].value != '' ? (
     <div
       key={content.id}
       className='grid w-full grid-cols-12 gap-x-6 gap-y-10 px-4 lg:gap-y-14 lg:px-0'
@@ -747,6 +747,53 @@ export function StoryContentRecordComponent({
               customNodeRules={[renderLinkNodeRule]}
             />
           </Prose>
+        </div>
+      </div>
+    </div>
+  ) : (
+    <div
+      key={content.id}
+      className='grid w-full grid-cols-12 gap-x-6 gap-y-10 px-4 lg:gap-y-14 lg:px-0'
+    >
+      <div className='col-span-full flex items-start lg:col-span-4'>
+        <AnimatePresence mode='wait'>
+          <motion.img
+            alt='Fynbos shapes'
+            key={content.image?.url + 'image'}
+            src={content.image?.url}
+            height={content.image?.height}
+            width={content.image?.width}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1, transition: { duration: 0.15 } }}
+            exit={{ opacity: 0 }}
+            className='block dark:hidden'
+          />
+          <motion.img
+            alt='Fynbos shapes'
+            key={content.imageDark?.url + 'imageDark'}
+            src={content.imageDark?.url}
+            height={content.imageDark?.height}
+            width={content.imageDark?.width}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1, transition: { duration: 0.15 } }}
+            exit={{ opacity: 0 }}
+            className='hidden dark:block'
+          />
+        </AnimatePresence>
+      </div>
+      <div className='col-span-full flex w-full flex-col items-center space-y-14 lg:col-span-8'>
+        <div className='flex w-full items-center'>
+          <h2 className='text-4xl font-medium'>{content.title}</h2>
+        </div>
+        <div>
+          <div className='text-2xl text-medium'>
+            <Prose className='max-w-none prose-p:text-lg prose-p:lg:text-2xl'>
+              <StructuredText
+                data={content.bodyText?.value}
+                customNodeRules={[renderLinkNodeRule]}
+              />
+            </Prose>
+          </div>
         </div>
       </div>
     </div>
