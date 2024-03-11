@@ -253,8 +253,8 @@ export function Scaffold() {
               </Router>
             </div>
             <div className='hidden space-x-10 pb-2 pl-10 pt-3 lg:flex'>
-              <HeaderLink to={route('/wallet')} title='Wallet' />
-              <HeaderLink to={route('/about')} title='About' />
+              <HeaderLink to='/wallet' title='Wallet' />
+              <HeaderLink to='/about' title='About' />
               {/*<HeaderLink to={route('/docs')} title='Docs' />*/}
               <HeaderLink to={route('/blog')} title='Blog' />
               <HeaderLink to={route('/contact')} title='Contact' />
@@ -420,10 +420,7 @@ export function Scaffold() {
             <span className='text-xs font-medium text-medium'>
               &copy;&nbsp;Fynbos
             </span>
-            <Router
-              className='text-xs font-medium text-primary'
-              to={route('/legal')}
-            >
+            <Router className='text-xs font-medium text-primary' to='/legal'>
               Privacy &amp; Terms
             </Router>
           </>
@@ -538,7 +535,7 @@ export function Scaffold() {
                 </span>
                 <Router
                   className='text-xs font-medium text-primary'
-                  to={route('/legal')}
+                  to='/legal'
                 >
                   Privacy &amp; Terms
                 </Router>
@@ -590,12 +587,8 @@ export function Scaffold() {
                   </div>
                 </div>
                 <NavDrawer.ListItem to={route('/')}>Home</NavDrawer.ListItem>
-                <NavDrawer.ListItem to={route('/wallet')}>
-                  Wallet
-                </NavDrawer.ListItem>
-                <NavDrawer.ListItem to={route('/about')}>
-                  About
-                </NavDrawer.ListItem>
+                <NavDrawer.ListItem to='/wallet'>Wallet</NavDrawer.ListItem>
+                <NavDrawer.ListItem to='/about'>About</NavDrawer.ListItem>
                 {/*<NavDrawer.ListItem to={route('/docs')}>*/}
                 {/*  Docs*/}
                 {/*</NavDrawer.ListItem>*/}
