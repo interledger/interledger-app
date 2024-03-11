@@ -841,7 +841,7 @@ export function TextContentRecordComponent({
       key={content.id}
       className={clsx(
         content.textCentered && 'text-center',
-        'flex flex-col items-center space-y-6 px-4 py-20 lg:px-0'
+        'flex w-full flex-col items-center space-y-6 px-4 py-20 lg:px-0'
       )}
     >
       {content.image && (
@@ -864,7 +864,7 @@ export function TextContentRecordComponent({
       {content.bodyText && (
         <Prose
           className={clsx(
-            'max-w-none',
+            'w-full max-w-none',
             !content.textStandard && 'prose-p:text-lg prose-p:lg:text-2xl'
           )}
         >
