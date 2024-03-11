@@ -2,7 +2,6 @@ declare module "routes-gen" {
   export type RouteParams = {
     "/": Record<string, never>;
     "/:slug": { "slug": string };
-    "/about": Record<string, never>;
     "/accounts": Record<string, never>;
     "/accounts/:accountId": { "accountId": string };
     "/accounts/:accountId/name": { "accountId": string };
@@ -12,7 +11,6 @@ declare module "routes-gen" {
     "/api/sendOtp": Record<string, never>;
     "/blog": Record<string, never>;
     "/blog/:slug": { "slug": string };
-    "/collectables": Record<string, never>;
     "/connect/bank/za": Record<string, never>;
     "/connect/card": Record<string, never>;
     "/connect/discord": Record<string, never>;
@@ -24,13 +22,10 @@ declare module "routes-gen" {
     "/contact/success": Record<string, never>;
     "/deposit": Record<string, never>;
     "/deposit/:paymentId": { "paymentId": string };
-    "/discord": Record<string, never>;
     "/docs": Record<string, never>;
     "/docs/:slug": { "slug": string };
-    "/form/:slug": { "slug": string };
     "/identities": Record<string, never>;
     "/identities/:identityId": { "identityId": string };
-    "/legal": Record<string, never>;
     "/legal/:jurisdiction?/:slug": { "jurisdiction"?: string, "slug": string };
     "/login": Record<string, never>;
     "/login/challenge": Record<string, never>;
@@ -44,7 +39,6 @@ declare module "routes-gen" {
     "/personal-details": Record<string, never>;
     "/recovery": Record<string, never>;
     "/recovery/password": Record<string, never>;
-    "/referral": Record<string, never>;
     "/settings": Record<string, never>;
     "/settings/grants": Record<string, never>;
     "/settings/grants/:grantId": { "grantId": string };
@@ -58,16 +52,13 @@ declare module "routes-gen" {
     "/settings/profile-public": Record<string, never>;
     "/settings/profile-public/name": Record<string, never>;
     "/signup": Record<string, never>;
-    "/slack": Record<string, never>;
     "/support": Record<string, never>;
     "/temp-cloudflare-error": Record<string, never>;
-    "/thank-you/:slug": { "slug": string };
     "/transactions": Record<string, never>;
     "/transactions/:transactionId": { "transactionId": string };
     "/verify": Record<string, never>;
     "/waitlist": Record<string, never>;
     "/waitlist/success": Record<string, never>;
-    "/wallet": Record<string, never>;
     "/wallet-address": Record<string, never>;
     "/what-is-a-payment-pointer": Record<string, never>;
     "/withdraw": Record<string, never>;
@@ -78,7 +69,6 @@ declare module "routes-gen" {
     T extends
       | ["/"]
       | ["/:slug", RouteParams["/:slug"]]
-      | ["/about"]
       | ["/accounts"]
       | ["/accounts/:accountId", RouteParams["/accounts/:accountId"]]
       | ["/accounts/:accountId/name", RouteParams["/accounts/:accountId/name"]]
@@ -88,7 +78,6 @@ declare module "routes-gen" {
       | ["/api/sendOtp"]
       | ["/blog"]
       | ["/blog/:slug", RouteParams["/blog/:slug"]]
-      | ["/collectables"]
       | ["/connect/bank/za"]
       | ["/connect/card"]
       | ["/connect/discord"]
@@ -100,13 +89,10 @@ declare module "routes-gen" {
       | ["/contact/success"]
       | ["/deposit"]
       | ["/deposit/:paymentId", RouteParams["/deposit/:paymentId"]]
-      | ["/discord"]
       | ["/docs"]
       | ["/docs/:slug", RouteParams["/docs/:slug"]]
-      | ["/form/:slug", RouteParams["/form/:slug"]]
       | ["/identities"]
       | ["/identities/:identityId", RouteParams["/identities/:identityId"]]
-      | ["/legal"]
       | ["/legal/:jurisdiction?/:slug", RouteParams["/legal/:jurisdiction?/:slug"]]
       | ["/login"]
       | ["/login/challenge"]
@@ -120,7 +106,6 @@ declare module "routes-gen" {
       | ["/personal-details"]
       | ["/recovery"]
       | ["/recovery/password"]
-      | ["/referral"]
       | ["/settings"]
       | ["/settings/grants"]
       | ["/settings/grants/:grantId", RouteParams["/settings/grants/:grantId"]]
@@ -134,16 +119,13 @@ declare module "routes-gen" {
       | ["/settings/profile-public"]
       | ["/settings/profile-public/name"]
       | ["/signup"]
-      | ["/slack"]
       | ["/support"]
       | ["/temp-cloudflare-error"]
-      | ["/thank-you/:slug", RouteParams["/thank-you/:slug"]]
       | ["/transactions"]
       | ["/transactions/:transactionId", RouteParams["/transactions/:transactionId"]]
       | ["/verify"]
       | ["/waitlist"]
       | ["/waitlist/success"]
-      | ["/wallet"]
       | ["/wallet-address"]
       | ["/what-is-a-payment-pointer"]
       | ["/withdraw"]

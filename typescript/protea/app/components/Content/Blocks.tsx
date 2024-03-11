@@ -401,7 +401,7 @@ export function HomeHeroContentRecordComponent({
         />
       </AnimatePresence>
       <div className='flex w-full flex-col space-y-8 lg:w-1/2'>
-        <div className='font-display text-5xl font-bold'>
+        <div className='font-display text-5xl font-medium'>
           {titleSegments.map((segment, index) => {
             if (segment.animated) {
               return (
@@ -695,7 +695,7 @@ export function StoryContentRecordComponent({
 }: {
   content: StoryContentRecord
 }) {
-  return (
+  return content.blurb?.value.document.children[0].children[0].value != '' ? (
     <div
       key={content.id}
       className='grid w-full grid-cols-12 gap-x-6 gap-y-10 px-4 lg:gap-y-14 lg:px-0'
@@ -747,6 +747,53 @@ export function StoryContentRecordComponent({
               customNodeRules={[renderLinkNodeRule]}
             />
           </Prose>
+        </div>
+      </div>
+    </div>
+  ) : (
+    <div
+      key={content.id}
+      className='grid w-full grid-cols-12 gap-x-6 gap-y-10 px-4 lg:gap-y-14 lg:px-0'
+    >
+      <div className='col-span-full flex items-start lg:col-span-4'>
+        <AnimatePresence mode='wait'>
+          <motion.img
+            alt='Fynbos shapes'
+            key={content.image?.url + 'image'}
+            src={content.image?.url}
+            height={content.image?.height}
+            width={content.image?.width}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1, transition: { duration: 0.15 } }}
+            exit={{ opacity: 0 }}
+            className='block dark:hidden'
+          />
+          <motion.img
+            alt='Fynbos shapes'
+            key={content.imageDark?.url + 'imageDark'}
+            src={content.imageDark?.url}
+            height={content.imageDark?.height}
+            width={content.imageDark?.width}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1, transition: { duration: 0.15 } }}
+            exit={{ opacity: 0 }}
+            className='hidden dark:block'
+          />
+        </AnimatePresence>
+      </div>
+      <div className='col-span-full flex w-full flex-col items-center space-y-14 lg:col-span-8'>
+        <div className='flex w-full items-center'>
+          <h2 className='text-4xl font-medium'>{content.title}</h2>
+        </div>
+        <div>
+          <div className='text-2xl text-medium'>
+            <Prose className='max-w-none prose-p:text-lg prose-p:lg:text-2xl'>
+              <StructuredText
+                data={content.bodyText?.value}
+                customNodeRules={[renderLinkNodeRule]}
+              />
+            </Prose>
+          </div>
         </div>
       </div>
     </div>
@@ -841,7 +888,7 @@ export function TextContentRecordComponent({
       key={content.id}
       className={clsx(
         content.textCentered && 'text-center',
-        'flex flex-col items-center space-y-6 px-4 py-20 lg:px-0'
+        'flex w-full flex-col items-center space-y-6 px-4 py-20 lg:px-0'
       )}
     >
       {content.image && (
@@ -864,7 +911,7 @@ export function TextContentRecordComponent({
       {content.bodyText && (
         <Prose
           className={clsx(
-            'max-w-none',
+            'w-full max-w-none',
             !content.textStandard && 'prose-p:text-lg prose-p:lg:text-2xl'
           )}
         >
