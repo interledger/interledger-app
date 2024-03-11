@@ -97,8 +97,7 @@ export const handle: ApplicationProps = {
     header: {
       title: 'Home'
     },
-    fab: Fab.Pay,
-    footer: (match: UIMatch<typeof marketingLoader>) => match.data.footer
+    fab: Fab.Pay
   }
 }
 
