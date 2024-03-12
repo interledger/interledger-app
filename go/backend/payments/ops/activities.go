@@ -52,7 +52,7 @@ func (a *Activity) SetPaymentStateComplete(ctx context.Context, id string) error
 	}
 
 	if payment.Type == payments.TypeWithdrawal {
-		a.b.Email().SendDepositReceivedEmail(ctx, payment.Sender.WalletID, payment.SenderAmount)
+		a.b.Email().SendWithdrawalEmail(ctx, payment.Sender.WalletID, payment.SenderAmount)
 		return nil
 	}
 
