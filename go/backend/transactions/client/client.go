@@ -108,10 +108,6 @@ func (c *client) GetTransactedCount(ctx context.Context, walletID, destination s
 	return ops.GetTransactedCount(ctx, c.b, walletID, destination)
 }
 
-func (c *client) CountReferralsInPastDay(ctx context.Context, destination string) (int, error) {
-	return ops.CountReferralsInPastDay(ctx, c.b, destination)
-}
-
 func (c *client) CountReceiveTransactions(ctx context.Context, walletID string) (int, error) {
 	return ops.CountReceiveTransactions(ctx, c.b, walletID)
 }

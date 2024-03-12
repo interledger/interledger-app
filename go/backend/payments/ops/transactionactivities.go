@@ -78,8 +78,6 @@ func (a *Activity) AddPayInTransfer(ctx context.Context, paymentID, fkID string)
 		transferType = transactions.TransferTypeDebitBalance
 	case payments.TypeWebMonetization:
 		transferType = transactions.TransferTypeDebitWebMonetization
-	case payments.TypeReferral:
-		transferType = transactions.TransferTypeDebitReferral
 	}
 
 	return a.b.Transactions().AddTransfers(ctx, p.SendTransactionID, []transactions.TransferArgs{

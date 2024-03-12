@@ -188,7 +188,7 @@ func MigrateTestDB(t *testing.T, ctx context.Context) *sqlx.DB {
 func seedSysAccounts(ctx context.Context, dbc *sqlx.DB) error {
 	log.Info("Seeding system accounts...")
 	// Can't use linkedaccount/rafiki constants for cyclic dependencies
-	_, err := dbc.ExecContext(ctx, fmt.Sprintf(seedSQL, env.OpenPaymentsURL(), env.OpenPaymentsURL()))
+	_, err := dbc.ExecContext(ctx, fmt.Sprintf(seedSQL, env.OpenPaymentsURL()))
 
 	return err
 }
@@ -203,7 +203,4 @@ INSERT INTO wallet_addresses(id, url, wallet_id) VALUES ('c4916e50-9b8c-4b54-87f
 INSERT INTO linked_accounts(id, wallet_id, name, mask, provider, provider_id, type, nickname, state, can_send, can_receive, send_currency, receive_currency) VALUES ('8d97fe51-543c-4577-9ab1-18078caa371d','31db2044-0b83-4aae-9cd8-b5b63cc85414', 'web_monetization', '1234', 'rafiki', '0000', 'rafiki_web_monetization', 'Web Monetization', 'Verified', true, false, 'USD','USD') ON CONFLICT (id)
 do update set can_receive = false, send_currency = 'USD', receive_currency = 'USD';
 INSERT INTO linked_accounts(id, wallet_id, name, mask, provider, provider_id, type, nickname, state, can_send, can_receive, send_currency, receive_currency) VALUES ('905e2c9b-a8b7-4cf2-9449-197e7029052e','31db2044-0b83-4aae-9cd8-b5b63cc85414', 'web_monetization_zar', '1234', 'xago', '0000', 'balance', 'Web Monetization ZAR', 'Verified', true, false, 'ZAR','ZAR') ON CONFLICT DO NOTHING;
-
-INSERT INTO wallets (id, name) VALUES ('9d0357f9-10f0-4450-8dda-0a97f9acdca2', 'Referrals') ON CONFLICT DO NOTHING;
-INSERT INTO wallet_addresses(id, url, wallet_id) VALUES ('7d1cc37c-1efb-46bf-af53-eb289f93fa8f','%s/referrals', '9d0357f9-10f0-4450-8dda-0a97f9acdca2') ON CONFLICT DO NOTHING;
-INSERT INTO linked_accounts(id, wallet_id, name, mask, provider, provider_id, type, nickname, state, can_send, can_receive, send_currency, receive_currency) VALUES ('d7476edd-4cfe-41ff-8955-1048598e8108', '9d0357f9-10f0-4450-8dda-0a97f9acdca2', 'referrals', '1234', 'referrals', '0000', 'referrals', 'Referrals', 'Verified', true, false, 'USD','USD') ON CONFLICT (id) do update set can_receive = false, send_currency = 'USD', receive_currency = 'USD';`
+`
