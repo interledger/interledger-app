@@ -30,10 +30,7 @@ type Client interface {
 
 	GetHasTransacted(ctx context.Context, walletID, destination string) (bool, error)
 	GetTransactedCount(ctx context.Context, walletID, destination string) (int, error)
-	CountReferralsInPastDay(ctx context.Context, destination string) (int, error)
-	CountReceiveTransactions(ctx context.Context, walletID string) (int, error)
 	CountSendTransactions(ctx context.Context, walletID string) (int, error)
-
 	ListTransactionsInRange(ctx context.Context, walletID string, inRange TransactionRangeFilter) ([]Transaction, error)
 	List(ctx context.Context, page db.Pagination, walletID string) ([]Transaction, error)
 	ListWithPending(ctx context.Context, page db.Pagination, walletID string) ([]Transaction, error)

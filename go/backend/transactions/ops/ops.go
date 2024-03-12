@@ -441,7 +441,6 @@ func GetHasTransacted(ctx context.Context, b Backends, walletID, destination str
 
 	return txCnt > 0, nil
 }
-
 func GetTransactedCount(ctx context.Context, b Backends, walletID, destination string) (int, error) {
 	var txCnt int
 	err := b.DB().GetContext(ctx, &txCnt, "SELECT count(id) FROM transactions WHERE wallet_id=$1 AND state=$2 AND destination ILIKE $3", walletID, transactions.StateCompleted, destination)
@@ -461,7 +460,6 @@ func CountReceiveTransactions(ctx context.Context, b Backends, walletID string) 
 
 	return txCnt, nil
 }
-
 func CountSendTransactions(ctx context.Context, b Backends, walletID string) (int, error) {
 	var txCnt int
 	err := b.DB().GetContext(ctx, &txCnt, "SELECT count(id) FROM transactions WHERE wallet_id=$1 AND state=$2 AND (type=$3 OR type=$4)", walletID, transactions.StateCompleted, transactions.TransactionTypeSent, transactions.TransactionTypeOpenOutgoingPayment)
@@ -471,17 +469,6 @@ func CountSendTransactions(ctx context.Context, b Backends, walletID string) (in
 
 	return txCnt, nil
 }
-
-func CountReferralsInPastDay(ctx context.Context, b Backends, destination string) (int, error) {
-	var txCnt int
-	err := b.DB().GetContext(ctx, &txCnt, "SELECT count(id) FROM transactions WHERE wallet_id=$1 AND state=$2 AND destination ILIKE $3 AND updated_at >= now() - INTERVAL '1 day';", wallets.ReferralsWalletID, transactions.StateCompleted, destination)
-	if err != nil {
-		return 0, fmt.Errorf("%w %s", transactions.ErrInternal, err)
-	}
-
-	return txCnt, nil
-}
-
 func SetTransactionForeignID(ctx context.Context, b Backends, ID string, foreignID string) error {
 	var walletID string
 	err := b.DB().GetContext(ctx, &walletID, "UPDATE transactions SET foreign_id=$1, updated_at=now() WHERE id=$2 returning wallet_id",
