@@ -134,9 +134,10 @@ func (a *Activity) CreatePtiUser(ctx context.Context, walletID string) (string, 
 			First: kycData.FirstName,
 			Last:  kycData.LastName,
 		},
-		Emails:    emails,
-		Phones:    phones,
-		Addresses: addresses,
+		Emails:               emails,
+		Phones:               phones,
+		Addresses:            addresses,
+		CountryOfCitizenship: kycData.CountryCode,
 	})
 }
 
