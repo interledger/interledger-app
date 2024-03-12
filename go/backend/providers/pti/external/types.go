@@ -8,14 +8,15 @@ import (
 
 type (
 	CreateUserArgs struct {
-		ID            string    `json:"id,omitempty"`
-		Type          string    `json:"type,omitempty"`
-		DateOfBirth   string    `json:"dateOfBirth,omitempty"`
-		Name          Name      `json:"name,omitempty"`
-		Emails        []Email   `json:"emails,omitempty"`
-		Addresses     []Address `json:"addresses,omitempty"`
-		Phones        []Phone   `json:"phones,omitempty"`
-		SourceOfFunds string    `json:"sourceOfFunds,omitempty"`
+		ID                   string    `json:"id,omitempty"`
+		Type                 string    `json:"type,omitempty"`
+		DateOfBirth          string    `json:"dateOfBirth,omitempty"`
+		Name                 Name      `json:"name,omitempty"`
+		Emails               []Email   `json:"emails,omitempty"`
+		Addresses            []Address `json:"addresses,omitempty"`
+		Phones               []Phone   `json:"phones,omitempty"`
+		SourceOfFunds        string    `json:"sourceOfFunds,omitempty"`
+		CountryOfCitizenship string    `json:"countryOfCitizenship,omitempty"`
 	}
 	PutUserArgs = CreateUserArgs
 
