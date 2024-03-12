@@ -247,7 +247,7 @@ const Amount = () => {
           <div className='flex flex-col gap-y-1'>
             <div className='flex w-full justify-between'>
               <span className='text-weak'>Fees</span>
-              <span className='text-medium'>R 0.00</span>
+              <span className='text-medium'>0.00</span>
             </div>
             <span className='text-xs text-weak'>
               For a limited time, Fynbos will absorb all fees.
