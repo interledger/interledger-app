@@ -45,7 +45,6 @@ const (
 	TransferTypeDebitBankAccount     TransferType = "debit_bank_acc"
 	TransferTypeCreditBankAccount    TransferType = "credit_bank_acc"
 	TransferTypeDebitWebMonetization TransferType = "debit_web_monetization"
-	TransferTypeDebitReferral        TransferType = "debit_referral"
 	TransferTypeDebitBalance         TransferType = "debit_balance"
 	TransferTypeCreditBalance        TransferType = "credit_balance"
 )

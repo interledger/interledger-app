@@ -81,15 +81,6 @@ func ListUsers(ctx context.Context, b Backends, walletID string) ([]user.User, e
 			},
 		}, nil
 	}
-	if walletID == wallets.ReferralsWalletID {
-		return []user.User{
-			{
-				ID:          "ec849e68-d113-466c-828f-9f0286fb173c",
-				Email:       "referrals@fynbos.dev",
-				PhoneNumber: "",
-			},
-		}, nil
-	}
 	if walletID == wallets.AstraBusinessWalletID {
 		return []user.User{
 			{
