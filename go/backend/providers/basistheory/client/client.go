@@ -50,6 +50,10 @@ func (c client) GetCard(ctx context.Context, id string) (*basistheory.Card, erro
 	return ops.GetCard(ctx, c.b, id)
 }
 
+func (c client) GetCardByLinkedAccountID(ctx context.Context, linkedAccountID string) (*basistheory.Card, error) {
+	return ops.GetCardByLinkedAccountID(ctx, c.b, linkedAccountID)
+}
+
 func (c client) CreateCardToken(ctx context.Context, args basistheory.CreateCardTokenArgs) (string, error) {
 	token, err := c.b.External().CreateCardToken(ctx, args)
 	if err != nil {

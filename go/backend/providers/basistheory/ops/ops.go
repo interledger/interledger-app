@@ -184,6 +184,33 @@ func ListCards(ctx context.Context, b Backends, limit uint) ([]basistheory.Card,
 	return ret, nil
 }
 
+func GetCardByLinkedAccountID(ctx context.Context, b Backends, linkedAccountID string) (*basistheory.Card, error) {
+	var basisTheoryCardID string
+	err := b.DB().GetContext(ctx, &basisTheoryCardID, "SELECT basis_theory_card_id FROM basis_theory_linked_accounts WHERE linked_account_id=$1;", linkedAccountID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, basistheory.ErrNotFound
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", basistheory.ErrInternal, err)
+	}
+
+	var card basistheory.Card
+	err = b.DB().GetContext(
+		ctx,
+		&card,
+		fmt.Sprintf("SELECT %s FROM basistheory_cards WHERE id=$1;", cardFields),
+		basisTheoryCardID,
+	)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, basistheory.ErrNotFound
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", basistheory.ErrInternal, err)
+	}
+
+	return &card, nil
+}
+
 func GetCard(ctx context.Context, b Backends, id string) (*basistheory.Card, error) {
 	var card basistheory.Card
 	err := b.DB().GetContext(

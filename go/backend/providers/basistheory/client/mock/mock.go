@@ -80,6 +80,21 @@ func (mr *MockClientMockRecorder) GetCard(ctx, id interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCard", reflect.TypeOf((*MockClient)(nil).GetCard), ctx, id)
 }
 
+// GetCardByLinkedAccountID mocks base method.
+func (m *MockClient) GetCardByLinkedAccountID(ctx context.Context, linkedAccountID string) (*basistheory.Card, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCardByLinkedAccountID", ctx, linkedAccountID)
+	ret0, _ := ret[0].(*basistheory.Card)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCardByLinkedAccountID indicates an expected call of GetCardByLinkedAccountID.
+func (mr *MockClientMockRecorder) GetCardByLinkedAccountID(ctx, linkedAccountID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCardByLinkedAccountID", reflect.TypeOf((*MockClient)(nil).GetCardByLinkedAccountID), ctx, linkedAccountID)
+}
+
 // ListCards mocks base method.
 func (m *MockClient) ListCards(ctx context.Context) ([]basistheory.Card, error) {
 	m.ctrl.T.Helper()
