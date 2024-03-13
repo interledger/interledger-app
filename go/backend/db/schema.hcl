@@ -3329,6 +3329,38 @@ table "pti_transactions" {
   }
 }
 
+table "basis_theory_linked_accounts" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "basis_theory_card_id" {
+    null = false
+    type = uuid
+  }
+  column "linked_account_id" {
+    null = false
+    type = uuid
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+
+  index "basis_theory_linked_account_id_idx" {
+    unique = true
+    columns = [column.basis_theory_card_id, column.linked_account_id]
+  }
+}
+
 table "atlas_schema_history" {
   schema = schema.public
   column "id" {
