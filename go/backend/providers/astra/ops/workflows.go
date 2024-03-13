@@ -61,17 +61,27 @@ func CreateAstraCardWorkflow(ctx workflow.Context, args astra.CreateCardArgs) (*
 	if errors.As(err, &applicationError) && applicationError.Type() != "NotFound" {
 		return nil, err
 	}
-	if la.ID == tokenizedCard.ID {
-		return &la, nil
+	if la.ID == "" {
+		err = workflow.ExecuteActivity(ctx, a.CreateAstraCardLinkedAccount, args, cardInfo, tokenizedCard).Get(ctx, &la)
+		if err != nil {
+			logger.Error("Failed to create linked account for card", zap.Error(err))
+			return nil, err
+		}
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.CreateAstraCardLinkedAccount, args, cardInfo, tokenizedCard).Get(ctx, &la)
+	err = workflow.ExecuteActivity(ctx, a.MapAstraLinkedAccountToBasisTheoryCard, la.ID, tokenizedCard.ID).Get(ctx, &la)
 	if err != nil {
-		logger.Error("Failed to create linked account for card", zap.Error(err))
+		logger.Error("Failed to map basis theory card to astra linked account.", zap.Error(err))
 		return nil, err
 	}
 
 	return &la, nil
+}
+
+func (a *Activity) MapAstraLinkedAccountToBasisTheoryCard(ctx context.Context, linkedAccountID, basisTheoryCardID string) error {
+	_, err := a.b.DB().ExecContext(ctx, "INSERT INTO basis_theory_linked_accounts (basis_theory_card_id, linked_account_id) VALUES ($1, $2) ON CONFLICT DO NOTHING;", basisTheoryCardID, linkedAccountID)
+
+	return err
 }
 
 func (a *Activity) CreateAccount(ctx context.Context, walletID string) error {
@@ -112,7 +122,6 @@ func (a *Activity) CreateAstraCardLinkedAccount(ctx context.Context, args astra.
 	}
 
 	la, err := a.b.LinkedAccounts().Create(ctx, &linkedaccounts.CreateArgs{
-		ID:                  tokenCard.ID,
 		WalletID:            args.WalletID,
 		Name:                fmt.Sprintf("%s %s", network, mask),
 		Nickname:            fmt.Sprintf("%s %s", network, mask),
@@ -222,8 +231,17 @@ func (a *Activity) AddCardToAstra(ctx context.Context, args astra.CreateCardArgs
 	return card, nil
 }
 
-func (a *Activity) MarkAstraCardNotDeleted(ctx context.Context, id string) (*linkedaccounts.LinkedAccount, error) {
-	la, err := a.b.LinkedAccounts().MarkNotDeleted(ctx, id)
+func (a *Activity) MarkAstraCardNotDeleted(ctx context.Context, basisTheoryCardID string) (*linkedaccounts.LinkedAccount, error) {
+	var linkedAccountID string
+	err := a.b.DB().GetContext(ctx, &linkedAccountID, "SELECT linked_account_id FROM basis_theory_linked_accounts WHERE basis_theory_card_id=$1;", basisTheoryCardID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "NotFound", err)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	la, err := a.b.LinkedAccounts().MarkNotDeleted(ctx, linkedAccountID)
 	if errors.Is(err, linkedaccounts.ErrNotFound) {
 		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "NotFound", err)
 	}

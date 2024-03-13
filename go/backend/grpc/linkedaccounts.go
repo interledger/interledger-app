@@ -162,7 +162,7 @@ func (s *rpcService) GetCardDetails(ctx context.Context, req *pb.GetCardDetailsR
 		return nil, NotFoundError("ErrNotFound")
 	}
 
-	card, err := s.b.BasisTheory().GetCard(ctx, req.GetId())
+	card, err := s.b.BasisTheory().GetCardByLinkedAccountID(ctx, req.GetId())
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
