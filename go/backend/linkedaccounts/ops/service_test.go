@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"gitlab.com/fynbos/backend/providers/astra"
 	"gitlab.com/fynbos/backend/providers/pti"
 
 	"gitlab.com/fynbos/backend/linkedaccounts/ops"
@@ -32,8 +33,8 @@ func TestLinkedAccounts(s *testing.T) {
 			WalletID:   walletID,
 			Name:       "Test",
 			Mask:       "1234",
-			Provider:   pti.ProviderName,
-			Type:       pti.AccTypeBalance,
+			Provider:   astra.ProviderName,
+			Type:       astra.TypeCard,
 			CanSend:    true,
 			CanReceive: true,
 			State:      linkedaccounts.OwnershipReviewRequired,
@@ -41,9 +42,9 @@ func TestLinkedAccounts(s *testing.T) {
 		require.NoError(t, err)
 
 		assert.NotNil(t, linkedAccount)
-		assert.Equal(t, linkedAccount.Provider, pti.ProviderName)
+		assert.Equal(t, linkedAccount.Provider, astra.ProviderName)
 		assert.Equal(t, linkedAccount.ProviderID, "")
-		assert.Equal(t, linkedAccount.Type, pti.AccTypeBalance)
+		assert.Equal(t, linkedAccount.Type, astra.TypeCard)
 		assert.Equal(t, linkedAccount.WalletID, walletID)
 		assert.True(t, linkedAccount.CanSend)
 		assert.True(t, linkedAccount.CanReceive)
