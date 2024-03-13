@@ -12,7 +12,7 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
-func MigrateUSWalletsToPTIJob(ctx workflow.Context) error {
+func MigrateUSWalletsToPTIJob(ctx workflow.Context) ([]string, error) {
 	var a *Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 10 * time.Second,
@@ -25,7 +25,7 @@ func MigrateUSWalletsToPTIJob(ctx workflow.Context) error {
 	var usWalletIDs []string
 	err := workflow.ExecuteActivity(ctx, a.ListUSWallets).Get(ctx, &usWalletIDs)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var results []workflow.Future
@@ -39,19 +39,20 @@ func MigrateUSWalletsToPTIJob(ctx workflow.Context) error {
 		results = append(results, future)
 	}
 
-	for _, result := range results {
+	var failedWalletIDs []string
+	for i, result := range results {
 		err := result.Get(ctx, nil)
 		if err != nil {
-			return err
+			failedWalletIDs = append(failedWalletIDs, usWalletIDs[i])
 		}
 	}
 
 	err = workflow.ExecuteActivity(ctx, a.SoftDeleteTabapayCards).Get(ctx, nil)
 	if err != nil {
-		return err
+		return failedWalletIDs, err
 	}
 
-	return nil
+	return failedWalletIDs, nil
 }
 
 func (a *Activity) ListUSWallets(ctx context.Context) ([]string, error) {
