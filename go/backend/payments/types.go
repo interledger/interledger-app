@@ -174,7 +174,7 @@ const (
 	TypeUnknown         Type = 0
 	TypePeer2Peer       Type = 1
 	TypeWebMonetization Type = 2
-	TypeReferral        Type = 3
+	// TypeReferral        Type = 3 // Deprecated
 	TypeRafikiPeer2Peer Type = 4
 	TypeRafiki2External Type = 5
 	TypeWithdrawal      Type = 6

@@ -461,7 +461,6 @@ const (
 	identityChanName    = "payment_identity_account_signals"
 	payinWorkflowFmt    = "payment_pay_in_%s"
 	payoutWorkflowFmt   = "payment_pay_out_%s"
-	referralWorkflowFmt = "referrals_%s"
 	astraNotifyChanName = "payment_astra_signals"
 )
 
@@ -948,33 +947,4 @@ func AwaitReceiverWorkflow(ctx workflow.Context, paymentID string) (bool, error)
 	}
 
 	return true, nil
-}
-
-func CreateReferralsWorkflow(ctx workflow.Context, originalPaymentID string) error {
-	var a *Activity
-
-	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: 20 * time.Minute,
-	}
-	ctx = workflow.WithActivityOptions(ctx, ao)
-
-	logger := workflow.GetLogger(ctx)
-
-	var paymentIDs []string
-	err := workflow.ExecuteActivity(ctx, a.CreateReferrals, originalPaymentID).Get(ctx, &paymentIDs)
-	if err != nil {
-		logger.Error("Failed to create referral payments.", err)
-		return err
-	}
-
-	for _, paymentID := range paymentIDs {
-		var requiredActions []payments.RequiredActionType
-		innerErr := workflow.ExecuteActivity(ctx, a.ConfirmPaymentsEnginePayment, paymentID).Get(ctx, &requiredActions)
-		if err != nil {
-			logger.Error("Payment has required actions", "paymentID=", paymentID, "requiredActions=", requiredActions)
-			err = innerErr
-		}
-	}
-
-	return err
 }

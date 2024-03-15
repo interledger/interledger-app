@@ -66,36 +66,6 @@ func (mr *MockClientMockRecorder) AddTransfersTx(ctx, tx, trxID, args interface{
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddTransfersTx", reflect.TypeOf((*MockClient)(nil).AddTransfersTx), ctx, tx, trxID, args)
 }
 
-// CountReceiveTransactions mocks base method.
-func (m *MockClient) CountReceiveTransactions(ctx context.Context, walletID string) (int, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CountReceiveTransactions", ctx, walletID)
-	ret0, _ := ret[0].(int)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// CountReceiveTransactions indicates an expected call of CountReceiveTransactions.
-func (mr *MockClientMockRecorder) CountReceiveTransactions(ctx, walletID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountReceiveTransactions", reflect.TypeOf((*MockClient)(nil).CountReceiveTransactions), ctx, walletID)
-}
-
-// CountReferralsInPastDay mocks base method.
-func (m *MockClient) CountReferralsInPastDay(ctx context.Context, destination string) (int, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CountReferralsInPastDay", ctx, destination)
-	ret0, _ := ret[0].(int)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// CountReferralsInPastDay indicates an expected call of CountReferralsInPastDay.
-func (mr *MockClientMockRecorder) CountReferralsInPastDay(ctx, destination interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountReferralsInPastDay", reflect.TypeOf((*MockClient)(nil).CountReferralsInPastDay), ctx, destination)
-}
-
 // CountSendTransactions mocks base method.
 func (m *MockClient) CountSendTransactions(ctx context.Context, walletID string) (int, error) {
 	m.ctrl.T.Helper()
