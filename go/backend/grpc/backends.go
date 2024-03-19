@@ -21,6 +21,7 @@ import (
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/astra"
 	"gitlab.com/fynbos/backend/providers/basistheory"
+	"gitlab.com/fynbos/backend/providers/gatehub"
 	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/providers/xago"
 	"gitlab.com/fynbos/backend/rafiki"
@@ -70,4 +71,5 @@ type Backends interface {
 	Xago() xago.Client
 	PTI() pti.Client
 	Astra() astra.Client
+	Gatehub() gatehub.Client
 }
