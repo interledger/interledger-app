@@ -69,6 +69,7 @@ import (
 	astra_client "gitlab.com/fynbos/backend/providers/astra/client"
 	"gitlab.com/fynbos/backend/providers/basistheory"
 	bt_client "gitlab.com/fynbos/backend/providers/basistheory/client"
+	"gitlab.com/fynbos/backend/providers/gatehub"
 	"gitlab.com/fynbos/backend/providers/pti"
 	pti_client "gitlab.com/fynbos/backend/providers/pti/client"
 	pti_ops "gitlab.com/fynbos/backend/providers/pti/ops"
@@ -455,6 +456,11 @@ type backends struct {
 	pac            pacioli.Client
 	pti            pti.Client
 	astr           astra.Client
+	gatehub        gatehub.Client
+}
+
+func (b backends) Gatehub() gatehub.Client {
+	return b.gatehub
 }
 
 func (b backends) Astra() astra.Client {
