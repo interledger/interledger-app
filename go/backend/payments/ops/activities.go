@@ -513,14 +513,13 @@ func (a *Activity) AstraWithdrawal(ctx context.Context, paymentID string) (strin
 		return "", err
 	}
 
-	return a.b.Astra().DebitCard(ctx, astra.CardToAccountArgs{
-		WalletID:            la.WalletID,
-		IdempotencyKey:      p.ID,
-		Name:                "Fynbos Deposit",
-		Amount:              p.SenderAmount,
-		ClientCorrelationID: p.AstraCorrelationID,
-		DebitFeePercent:     0,
-		CardID:              la.ProviderID,
+	return a.b.Astra().CreditCard(ctx, astra.AccountToCardsArgs{
+		WalletID:        la.WalletID,
+		IdempotencyKey:  p.ID,
+		Name:            "Fynbos Withdrawal",
+		Amount:          p.SenderAmount,
+		DebitFeePercent: 0,
+		CardID:          la.ProviderID,
 	})
 }
 

@@ -87,8 +87,9 @@ func CreditCard(ctx context.Context, b Backends, args astra.AccountToCardsArgs) 
 			UserID: userID,
 		},
 		Account: external.Source{
-			ID: accID,
+			ID: accID, // TODO: this should be astra account id of the Fynbos op account
 		},
+		SettlementMode: "net_debit",
 	})
 	if err != nil {
 		return "", err
