@@ -46,6 +46,7 @@ const (
 	Backend_ListCountries_FullMethodName                      = "/backend.admin.v1.Backend/ListCountries"
 	Backend_EnablePTIBalance_FullMethodName                   = "/backend.admin.v1.Backend/EnablePTIBalance"
 	Backend_GetPTIBalance_FullMethodName                      = "/backend.admin.v1.Backend/GetPTIBalance"
+	Backend_CreateGatehubUser_FullMethodName                  = "/backend.admin.v1.Backend/CreateGatehubUser"
 )
 
 // BackendClient is the client API for Backend service.
@@ -79,6 +80,8 @@ type BackendClient interface {
 	// PTI
 	EnablePTIBalance(ctx context.Context, in *EnablePTIBalanceRequest, opts ...grpc.CallOption) (*Empty, error)
 	GetPTIBalance(ctx context.Context, in *GetPTIBalanceRequest, opts ...grpc.CallOption) (*GetPTIBalanceResponse, error)
+	// Gatehub
+	CreateGatehubUser(ctx context.Context, in *CreateGatehubUserRequest, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type backendClient struct {
@@ -346,6 +349,15 @@ func (c *backendClient) GetPTIBalance(ctx context.Context, in *GetPTIBalanceRequ
 	return out, nil
 }
 
+func (c *backendClient) CreateGatehubUser(ctx context.Context, in *CreateGatehubUserRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, Backend_CreateGatehubUser_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServer is the server API for Backend service.
 // All implementations should embed UnimplementedBackendServer
 // for forward compatibility
@@ -377,6 +389,8 @@ type BackendServer interface {
 	// PTI
 	EnablePTIBalance(context.Context, *EnablePTIBalanceRequest) (*Empty, error)
 	GetPTIBalance(context.Context, *GetPTIBalanceRequest) (*GetPTIBalanceResponse, error)
+	// Gatehub
+	CreateGatehubUser(context.Context, *CreateGatehubUserRequest) (*Empty, error)
 }
 
 // UnimplementedBackendServer should be embedded to have forward compatible implementations.
@@ -460,6 +474,9 @@ func (UnimplementedBackendServer) EnablePTIBalance(context.Context, *EnablePTIBa
 }
 func (UnimplementedBackendServer) GetPTIBalance(context.Context, *GetPTIBalanceRequest) (*GetPTIBalanceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPTIBalance not implemented")
+}
+func (UnimplementedBackendServer) CreateGatehubUser(context.Context, *CreateGatehubUserRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateGatehubUser not implemented")
 }
 
 // UnsafeBackendServer may be embedded to opt out of forward compatibility for this service.
@@ -944,6 +961,24 @@ func _Backend_GetPTIBalance_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Backend_CreateGatehubUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateGatehubUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServer).CreateGatehubUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Backend_CreateGatehubUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServer).CreateGatehubUser(ctx, req.(*CreateGatehubUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Backend_ServiceDesc is the grpc.ServiceDesc for Backend service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1050,6 +1085,10 @@ var Backend_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetPTIBalance",
 			Handler:    _Backend_GetPTIBalance_Handler,
+		},
+		{
+			MethodName: "CreateGatehubUser",
+			Handler:    _Backend_CreateGatehubUser_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
