@@ -9,7 +9,12 @@ import (
 func (s *AdminRpcService) CreateGatehubUser(
 	ctx context.Context, req *pb.CreateGatehubUserRequest,
 ) (*pb.Empty, error) {
-	_, err := s.b.Gatehub().CreateUser(ctx, req.GetWalletID())
+	await, err := s.b.Gatehub().CreateUser(ctx, req.GetWalletID())
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	err = await(ctx, nil)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
