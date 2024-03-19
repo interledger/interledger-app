@@ -81,6 +81,43 @@ export class Empty extends Message<Empty> {
 }
 
 /**
+ * @generated from message backend.v1.GatehubOnboardingWidget
+ */
+export class GatehubOnboardingWidget extends Message<GatehubOnboardingWidget> {
+  /**
+   * @generated from field: string widgetUrl = 1;
+   */
+  widgetUrl = "";
+
+  constructor(data?: PartialMessage<GatehubOnboardingWidget>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.GatehubOnboardingWidget";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "widgetUrl", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GatehubOnboardingWidget {
+    return new GatehubOnboardingWidget().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GatehubOnboardingWidget {
+    return new GatehubOnboardingWidget().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GatehubOnboardingWidget {
+    return new GatehubOnboardingWidget().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GatehubOnboardingWidget | PlainMessage<GatehubOnboardingWidget> | undefined, b: GatehubOnboardingWidget | PlainMessage<GatehubOnboardingWidget> | undefined): boolean {
+    return proto3.util.equals(GatehubOnboardingWidget, a, b);
+  }
+}
+
+/**
  * @generated from message backend.v1.RevokeRafikiGrantRequest
  */
 export class RevokeRafikiGrantRequest extends Message<RevokeRafikiGrantRequest> {
