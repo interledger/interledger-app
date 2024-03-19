@@ -24,3 +24,12 @@ func CreateUser(ctx context.Context, b Backends, ec external.Client, walletID st
 
 	return resp.ID, nil
 }
+
+func SaveUser(ctx context.Context, b Backends, walletID, externalID string) error {
+	_, err := b.DB().ExecContext(ctx, "INSERT INTO gatehub_users (external_id, wallet_id) VALUES ($1, $2) ON CONFLICT DO NOTHING;", externalID, walletID)
+	if err != nil {
+		return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	return nil
+}

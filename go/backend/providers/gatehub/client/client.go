@@ -46,3 +46,7 @@ func New(b Backends) *Client {
 func (c Client) CreateUser(ctx context.Context, walletID string) (string, error) {
 	return ops.CreateUser(ctx, c.b, c.ec, walletID)
 }
+
+func (c Client) SaveUser(ctx context.Context, walletID, externalID string) error {
+	return ops.SaveUser(ctx, c.b, walletID, externalID)
+}
