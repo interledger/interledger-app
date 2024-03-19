@@ -14,7 +14,9 @@ import (
 	"strings"
 	"time"
 
+	httplog "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/env"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 var (
@@ -32,9 +34,11 @@ type client struct {
 	apiSecret          string
 	baseURL            string
 	onboardingBaseURL  string
+
+	api *http.Client
 }
 
-func NewClient(appID, secret string) Client {
+func NewClient(appID, secret string, transport *http.Client) Client {
 	onOffRampClientID := "f8119dfd-e563-44ee-9ae2-1e60a4fce74f"
 	onboardingClientID := "4df24d1b-5796-4eec-951b-21699d61b970"
 	exchangeClientID := "4e28d4df-22d7-414c-97a3-d71956df29ba"
@@ -48,6 +52,11 @@ func NewClient(appID, secret string) Client {
 		onboardingBaseURL = "https://onboarding.gatehub.net"
 	}
 
+	api := otelhttp.DefaultClient
+	if transport != nil {
+		api = transport
+	}
+
 	return &client{
 		onOffRampClientID:  onOffRampClientID,
 		onboardingClientID: onboardingClientID,
@@ -56,10 +65,22 @@ func NewClient(appID, secret string) Client {
 		apiSecret:          secret,
 		baseURL:            baseURL,
 		onboardingBaseURL:  onboardingBaseURL,
+		api:                api,
 	}
 }
 
 func (c *client) IssueToken(ctx context.Context, product Product) (*IssueTokenResponse, error) {
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "POST"
+		meta.Provider = "gatehub"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "POST",
+			Provider: "gatehub",
+		})
+	}
+
 	endpoint, err := url.JoinPath(c.baseURL, "auth", "v1", "tokens")
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
@@ -94,7 +115,7 @@ func (c *client) IssueToken(ctx context.Context, product Product) (*IssueTokenRe
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := c.api.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
@@ -120,6 +141,17 @@ func (c *client) IssueToken(ctx context.Context, product Product) (*IssueTokenRe
 }
 
 func (c *client) CreateUser(ctx context.Context, email string) (*CreateUserResponse, error) {
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "POST"
+		meta.Provider = "gatehub"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "POST",
+			Provider: "gatehub",
+		})
+	}
+
 	endpoint, err := url.JoinPath(c.baseURL, "auth", "v1", "users", "managed")
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
@@ -142,7 +174,7 @@ func (c *client) CreateUser(ctx context.Context, email string) (*CreateUserRespo
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := c.api.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}

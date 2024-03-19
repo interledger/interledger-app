@@ -16,7 +16,7 @@ func TestClient(t *testing.T) {
 	if os.Getenv("GATEHUB_APP_ID") == "" || os.Getenv("GATEHUB_SECRET") == "" {
 		t.SkipNow()
 	}
-	c := external.NewClient(os.Getenv("GATEHUB_APP_ID"), os.Getenv("GATEHUB_SECRET"))
+	c := external.NewClient(os.Getenv("GATEHUB_APP_ID"), os.Getenv("GATEHUB_SECRET"), nil)
 
 	token, err := c.IssueToken(context.Background(), external.Onboarding)
 	require.NoError(t, err)
