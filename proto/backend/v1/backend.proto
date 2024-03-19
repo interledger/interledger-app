@@ -159,6 +159,13 @@ service BackendService {
   rpc ListRafikiGrants(Empty) returns (ListRafikiGrantsResponse);
   rpc GetRafikiGrant(GetRafikiGrantRequest) returns (RafikiGrant);
   rpc RevokeRafikiGrant(RevokeRafikiGrantRequest) returns (Empty);
+
+  // Gatehub
+  rpc GetGatehubOnboardingWidget(Empty) returns (GatehubOnboardingWidget);
+}
+
+message GatehubOnboardingWidget {
+  string widgetUrl = 1;
 }
 
 message RevokeRafikiGrantRequest {
