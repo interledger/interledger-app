@@ -17,4 +17,8 @@ type (
 		Token     string `json:"token,omitempty"`
 		ExpiresAt string `json:"expires,omitempty"`
 	}
+
+	CreateUserRequest struct {
+		Email string `json:"email,omitempty"`
+	}
 )
