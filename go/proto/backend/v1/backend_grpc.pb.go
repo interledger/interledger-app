@@ -110,6 +110,7 @@ const (
 	BackendService_ListRafikiGrants_FullMethodName               = "/backend.v1.BackendService/ListRafikiGrants"
 	BackendService_GetRafikiGrant_FullMethodName                 = "/backend.v1.BackendService/GetRafikiGrant"
 	BackendService_RevokeRafikiGrant_FullMethodName              = "/backend.v1.BackendService/RevokeRafikiGrant"
+	BackendService_GetGatehubOnboardingWidget_FullMethodName     = "/backend.v1.BackendService/GetGatehubOnboardingWidget"
 )
 
 // BackendServiceClient is the client API for BackendService service.
@@ -234,6 +235,8 @@ type BackendServiceClient interface {
 	ListRafikiGrants(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListRafikiGrantsResponse, error)
 	GetRafikiGrant(ctx context.Context, in *GetRafikiGrantRequest, opts ...grpc.CallOption) (*RafikiGrant, error)
 	RevokeRafikiGrant(ctx context.Context, in *RevokeRafikiGrantRequest, opts ...grpc.CallOption) (*Empty, error)
+	// Gatehub
+	GetGatehubOnboardingWidget(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GatehubOnboardingWidget, error)
 }
 
 type backendServiceClient struct {
@@ -1063,6 +1066,15 @@ func (c *backendServiceClient) RevokeRafikiGrant(ctx context.Context, in *Revoke
 	return out, nil
 }
 
+func (c *backendServiceClient) GetGatehubOnboardingWidget(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GatehubOnboardingWidget, error) {
+	out := new(GatehubOnboardingWidget)
+	err := c.cc.Invoke(ctx, BackendService_GetGatehubOnboardingWidget_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServiceServer is the server API for BackendService service.
 // All implementations should embed UnimplementedBackendServiceServer
 // for forward compatibility
@@ -1185,6 +1197,8 @@ type BackendServiceServer interface {
 	ListRafikiGrants(context.Context, *Empty) (*ListRafikiGrantsResponse, error)
 	GetRafikiGrant(context.Context, *GetRafikiGrantRequest) (*RafikiGrant, error)
 	RevokeRafikiGrant(context.Context, *RevokeRafikiGrantRequest) (*Empty, error)
+	// Gatehub
+	GetGatehubOnboardingWidget(context.Context, *Empty) (*GatehubOnboardingWidget, error)
 }
 
 // UnimplementedBackendServiceServer should be embedded to have forward compatible implementations.
@@ -1463,6 +1477,9 @@ func (UnimplementedBackendServiceServer) GetRafikiGrant(context.Context, *GetRaf
 }
 func (UnimplementedBackendServiceServer) RevokeRafikiGrant(context.Context, *RevokeRafikiGrantRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RevokeRafikiGrant not implemented")
+}
+func (UnimplementedBackendServiceServer) GetGatehubOnboardingWidget(context.Context, *Empty) (*GatehubOnboardingWidget, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetGatehubOnboardingWidget not implemented")
 }
 
 // UnsafeBackendServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -3114,6 +3131,24 @@ func _BackendService_RevokeRafikiGrant_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_GetGatehubOnboardingWidget_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).GetGatehubOnboardingWidget(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_GetGatehubOnboardingWidget_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).GetGatehubOnboardingWidget(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BackendService_ServiceDesc is the grpc.ServiceDesc for BackendService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -3484,6 +3519,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RevokeRafikiGrant",
 			Handler:    _BackendService_RevokeRafikiGrant_Handler,
+		},
+		{
+			MethodName: "GetGatehubOnboardingWidget",
+			Handler:    _BackendService_GetGatehubOnboardingWidget_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
