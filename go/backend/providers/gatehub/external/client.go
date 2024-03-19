@@ -20,10 +20,10 @@ import (
 )
 
 var (
-	appIDHeader     = "x-gatehub-app-id"
-	timestampHeader = "x-gatehub-timestamp"
-	signatureHeader = "x-gatehub-signature"
-	// managedUserHeader = "x-gatehub-managed-user-uuid"
+	appIDHeader       = "x-gatehub-app-id"
+	timestampHeader   = "x-gatehub-timestamp"
+	signatureHeader   = "x-gatehub-signature"
+	managedUserHeader = "x-gatehub-managed-user-uuid"
 )
 
 type client struct {
@@ -69,7 +69,16 @@ func NewClient(appID, secret string, transport *http.Client) Client {
 	}
 }
 
-func (c *client) IssueToken(ctx context.Context, product Product) (*IssueTokenResponse, error) {
+func (c *client) GetOnboardingWidget(ctx context.Context, userID string) (string, error) {
+	token, err := c.IssueToken(ctx, userID, Onboarding)
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("%s?bearer=%s", c.onboardingBaseURL, token), nil
+}
+
+func (c *client) IssueToken(ctx context.Context, userID string, product Product) (*IssueTokenResponse, error) {
 	meta, ok := httplog.MetaForContext(ctx)
 	if ok {
 		meta.Method = "POST"
@@ -110,6 +119,7 @@ func (c *client) IssueToken(ctx context.Context, product Product) (*IssueTokenRe
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set(managedUserHeader, userID)
 	err = c.Sign(ctx, req, time.Now(), body, endpoint)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
