@@ -120,7 +120,7 @@ func (c *client) IssueToken(ctx context.Context, product Product) (*IssueTokenRe
 }
 
 func (c *client) CreateUser(ctx context.Context, email string) error {
-	endpoint, err := url.JoinPath(c.baseURL, "auth", "v1", "users")
+	endpoint, err := url.JoinPath(c.baseURL, "auth", "v1", "users", "managed")
 	if err != nil {
 		return fmt.Errorf("%w %s", ErrInternal, err)
 	}
