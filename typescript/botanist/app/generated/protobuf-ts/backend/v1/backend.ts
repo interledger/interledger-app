@@ -32,6 +32,15 @@ export interface PaginationRequest {
 export interface Empty {
 }
 /**
+ * @generated from protobuf message backend.v1.GatehubOnboardingWidget
+ */
+export interface GatehubOnboardingWidget {
+    /**
+     * @generated from protobuf field: string widgetUrl = 1;
+     */
+    widgetUrl: string;
+}
+/**
  * @generated from protobuf message backend.v1.RevokeRafikiGrantRequest
  */
 export interface RevokeRafikiGrantRequest {
@@ -2427,6 +2436,53 @@ class Empty$Type extends MessageType<Empty> {
  * @generated MessageType for protobuf message backend.v1.Empty
  */
 export const Empty = new Empty$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GatehubOnboardingWidget$Type extends MessageType<GatehubOnboardingWidget> {
+    constructor() {
+        super("backend.v1.GatehubOnboardingWidget", [
+            { no: 1, name: "widgetUrl", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<GatehubOnboardingWidget>): GatehubOnboardingWidget {
+        const message = { widgetUrl: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GatehubOnboardingWidget>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GatehubOnboardingWidget): GatehubOnboardingWidget {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string widgetUrl */ 1:
+                    message.widgetUrl = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GatehubOnboardingWidget, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string widgetUrl = 1; */
+        if (message.widgetUrl !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.widgetUrl);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.GatehubOnboardingWidget
+ */
+export const GatehubOnboardingWidget = new GatehubOnboardingWidget$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class RevokeRafikiGrantRequest$Type extends MessageType<RevokeRafikiGrantRequest> {
     constructor() {
@@ -10790,5 +10846,6 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "AstraWithdrawToCard", options: {}, I: AstraWithdrawToCardRequest, O: Payment },
     { name: "ListRafikiGrants", options: {}, I: Empty, O: ListRafikiGrantsResponse },
     { name: "GetRafikiGrant", options: {}, I: GetRafikiGrantRequest, O: RafikiGrant },
-    { name: "RevokeRafikiGrant", options: {}, I: RevokeRafikiGrantRequest, O: Empty }
+    { name: "RevokeRafikiGrant", options: {}, I: RevokeRafikiGrantRequest, O: Empty },
+    { name: "GetGatehubOnboardingWidget", options: {}, I: Empty, O: GatehubOnboardingWidget }
 ]);
