@@ -131,12 +131,13 @@ type CardToAccountArgs struct {
 
 type AccountToCardArgs struct {
 	IdempotencyKey  string      `json:"-"`
-	Transfer        Transfer    `json:"transfer"`
+	Transfer        *Transfer   `json:"transfer,omitempty"`
 	Account         Source      `json:"source"`
 	Card            Destination `json:"destination"`
 	DebitFeePercent float64     `json:"debit_fee_percent"`
 	Amount          float64     `json:"amount"`
 	Name            string      `json:"name"`
+	SettlementMode  string      `json:"settlement_mode"`
 }
 
 type Transfer struct {
