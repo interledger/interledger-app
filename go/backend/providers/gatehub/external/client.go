@@ -119,6 +119,54 @@ func (c *client) IssueToken(ctx context.Context, product Product) (*IssueTokenRe
 	return &tokenResp, nil
 }
 
+func (c *client) CreateUser(ctx context.Context, email string) (*CreateUserResponse, error) {
+	endpoint, err := url.JoinPath(c.baseURL, "auth", "v1", "users", "managed")
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	body, err := json.Marshal(CreateUserRequest{
+		Email: email,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	req, err := http.NewRequest(http.MethodPost, endpoint, bytes.NewBuffer(body))
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	err = c.Sign(ctx, req, time.Now(), body, endpoint)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	err = checkResponseStatusCode(resp)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	body, err = io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+	defer resp.Body.Close()
+
+	var userResp CreateUserResponse
+	err = json.Unmarshal(body, &userResp)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	return &userResp, nil
+}
+
 func (c *client) Sign(ctx context.Context, req *http.Request, date time.Time, payload []byte, targetURL string) error {
 	base := fmt.Sprintf("%d|%s|%s|%s", date.UnixMilli(), req.Method, targetURL, string(payload))
 	base = strings.Trim(base, "|")
