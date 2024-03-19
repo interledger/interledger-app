@@ -10,6 +10,7 @@ import (
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
+	"gitlab.com/fynbos/backend/providers/gatehub"
 	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/providers/xago"
 	"gitlab.com/fynbos/backend/transactions"
@@ -34,4 +35,5 @@ type Backends interface {
 	Payments() payments.Client
 	Xago() xago.Client
 	PTI() pti.Client
+	Gatehub() gatehub.Client
 }
