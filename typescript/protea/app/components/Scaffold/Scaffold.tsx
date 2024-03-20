@@ -712,7 +712,7 @@ const HeaderPopover: FC = () => {
                 </Popover.Button>
                 <Popover.Button
                   as={CardLink}
-                  to='/wealth'
+                  to='https://wealth.fynbos.app'
                   className='flex flex-col space-y-1'
                 >
                   <p className='text-sm font-medium text-strong'>Wealth</p>
