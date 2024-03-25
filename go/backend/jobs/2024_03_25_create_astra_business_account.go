@@ -40,6 +40,11 @@ func CreateAstraBusinessProfile(ctx workflow.Context) error {
 		return err
 	}
 
+	err = workflow.ExecuteActivity(ctx, a.SaveIntent, externalID).Get(ctx, nil)
+	if err != nil {
+		return err
+	}
+
 	err = workflow.ExecuteActivity(ctx, asrtaActivity.CreateAccount, wallets.AstraBusinessWalletID).Get(ctx, nil)
 	if err != nil {
 		return err
