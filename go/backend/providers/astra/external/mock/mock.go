@@ -110,6 +110,21 @@ func (mr *MockClientMockRecorder) CreateAccessToken(ctx, intentID, walletID inte
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAccessToken", reflect.TypeOf((*MockClient)(nil).CreateAccessToken), ctx, intentID, walletID)
 }
 
+// CreateBusinessProfile mocks base method.
+func (m *MockClient) CreateBusinessProfile(ctx context.Context, args external.CreateBusinessUserReq) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateBusinessProfile", ctx, args)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateBusinessProfile indicates an expected call of CreateBusinessProfile.
+func (mr *MockClientMockRecorder) CreateBusinessProfile(ctx, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateBusinessProfile", reflect.TypeOf((*MockClient)(nil).CreateBusinessProfile), ctx, args)
+}
+
 // CreateIntent mocks base method.
 func (m *MockClient) CreateIntent(ctx context.Context, args external.CreateIntentReq) (string, error) {
 	m.ctrl.T.Helper()
