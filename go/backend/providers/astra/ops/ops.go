@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"gitlab.com/fynbos/backend/wallets"
+
 	"gitlab.com/fynbos/backend/currency"
 
 	"gitlab.com/fynbos/backend/providers/astra"
@@ -24,7 +26,7 @@ func DebitCard(ctx context.Context, b Backends, args astra.CardToAccountArgs) (s
 	}
 
 	var accID string
-	err = b.DB().GetContext(ctx, &accID, "SELECT account_id FROM astra_accounts WHERE wallet_id=$1", args.WalletID)
+	err = b.DB().GetContext(ctx, &accID, "SELECT account_id FROM astra_accounts WHERE wallet_id=$1", wallets.AstraBusinessWalletID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return "", astra.ErrNotFound
 	}
@@ -32,7 +34,7 @@ func DebitCard(ctx context.Context, b Backends, args astra.CardToAccountArgs) (s
 		return "", fmt.Errorf("%w %s", astra.ErrInternal, err)
 	}
 
-	userID, err := getUserID(ctx, b, args.WalletID)
+	userID, err := getUserID(ctx, b, wallets.AstraBusinessWalletID)
 	if err != nil {
 		return "", err
 	}
@@ -59,15 +61,15 @@ func DebitCard(ctx context.Context, b Backends, args astra.CardToAccountArgs) (s
 }
 
 func CreditCard(ctx context.Context, b Backends, args astra.AccountToCardsArgs) (string, error) {
-	token, err := GetToken(ctx, b, args.WalletID)
+	token, err := GetToken(ctx, b, wallets.AstraBusinessWalletID)
 	if err != nil {
 		return "", err
 	}
 
 	var accID string
-	err = b.DB().GetContext(ctx, &accID, "SELECT account_id FROM astra_accounts WHERE wallet_id=$1", args.WalletID)
+	err = b.DB().GetContext(ctx, &accID, "SELECT account_id FROM astra_accounts WHERE wallet_id=$1", wallets.AstraBusinessWalletID)
 	if errors.Is(err, sql.ErrNoRows) {
-		return "", astra.ErrNotFound
+		return "", fmt.Errorf("%w %s", astra.ErrNotFound, "No astra account found for wallet")
 	}
 	if err != nil {
 		return "", fmt.Errorf("%w %s", astra.ErrInternal, err)
@@ -87,7 +89,7 @@ func CreditCard(ctx context.Context, b Backends, args astra.AccountToCardsArgs) 
 			UserID: userID,
 		},
 		Account: external.Source{
-			ID: accID, // TODO: this should be astra account id of the Fynbos op account
+			ID: accID, // This os the astra business account of Fynbos
 		},
 		SettlementMode: "net_debit",
 	})

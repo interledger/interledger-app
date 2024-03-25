@@ -50,11 +50,6 @@ func CreateAstraCardWorkflow(ctx workflow.Context, args astra.CreateCardArgs) (*
 		return nil, err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.CreateAccount, args.WalletID).Get(ctx, nil)
-	if err != nil {
-		return nil, err
-	}
-
 	var la linkedaccounts.LinkedAccount
 	err = workflow.ExecuteActivity(ctx, a.MarkAstraCardNotDeleted, tokenizedCard.ID).Get(ctx, &la)
 	var applicationError *temporal.ApplicationError
