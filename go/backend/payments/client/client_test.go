@@ -781,8 +781,11 @@ func createTestWallet(t *testing.T, b *TestBackends) testWallet {
 	// Astra Intent
 	_, err = b.DB().Exec("INSERT INTO astra_user_intents (intent_id, wallet_id, user_id, status) VALUES ($1, $2, $3, 'unknown')", uuid.NewString(), walletID, uuid.NewString())
 	require.NoError(t, err)
+	// Astra Intent Business account
+	_, err = b.DB().Exec("INSERT INTO astra_user_intents (intent_id, wallet_id, user_id, status) VALUES ($1, $2, $3, 'verified') ON CONFLICT DO NOTHING", uuid.NewString(), wallets.AstraBusinessWalletID, uuid.NewString())
+	require.NoError(t, err)
 	// Astra account
-	_, err = b.DB().Exec("INSERT INTO astra_accounts(wallet_id, account_id) VALUES ($1, $2) ON CONFLICT DO NOTHING", walletID, uuid.NewString())
+	_, err = b.DB().Exec("INSERT INTO astra_accounts(wallet_id, account_id) VALUES ($1, $2) ON CONFLICT DO NOTHING", wallets.AstraBusinessWalletID, uuid.NewString())
 	require.NoError(t, err)
 	// PTI user
 	_, err = b.DB().Exec(" INSERT INTO pti_users(external_id, wallet_id, status, assessment_status) VALUES ($1, $2, 'confirmed', 'confirmed')", uuid.NewString(), walletID)
