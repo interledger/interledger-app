@@ -2,6 +2,64 @@ package external
 
 import "time"
 
+type CreateBusinessUserReq struct {
+	BusinessInfo       BusinessInfo       `json:"business_info,omitempty"`
+	BusinessAdmin      BusinessAdmin      `json:"business_admin,omitempty"`
+	BusinessController BusinessController `json:"business_controller,omitempty"`
+	KybType            string             `json:"kyb_type,omitempty"`
+	Phone              string             `json:"phone,omitempty"`
+	FirstName          string             `json:"first_name,omitempty"`
+	LastName           string             `json:"last_name,omitempty"`
+	Email              string             `json:"email,omitempty"`
+	BeneficialOwners   []BeneficialOwners `json:"beneficial_owners,omitempty"`
+}
+type BusinessInfo struct {
+	BusinessType    string `json:"business_type,omitempty"`
+	BusinessName    string `json:"business_name,omitempty"`
+	Ein             string `json:"ein,omitempty"`
+	DoingBusinessAs string `json:"doing_business_as,omitempty"`
+	Phone           string `json:"phone,omitempty"`
+	Address1        string `json:"address1,omitempty"`
+	Address2        string `json:"address2,omitempty"`
+	City            string `json:"city,omitempty"`
+	PostalCode      string `json:"postal_code,omitempty"`
+	State           string `json:"state,omitempty"`
+	Website         string `json:"website,omitempty"`
+}
+type BusinessAdmin struct {
+	FirstName   string `json:"first_name,omitempty"`
+	LastName    string `json:"last_name,omitempty"`
+	Email       string `json:"email,omitempty"`
+	DateOfBirth string `json:"date_of_birth,omitempty"`
+	Address1    string `json:"address1,omitempty"`
+	Address2    string `json:"address2,omitempty"`
+	City        string `json:"city,omitempty"`
+	State       string `json:"state,omitempty"`
+}
+type BusinessController struct {
+	FirstName   string `json:"first_name,omitempty"`
+	LastName    string `json:"last_name,omitempty"`
+	Email       string `json:"email,omitempty"`
+	Title       string `json:"title,omitempty"`
+	DateOfBirth string `json:"date_of_birth,omitempty"`
+	Address1    string `json:"address1,omitempty"`
+	Address2    string `json:"address2,omitempty"`
+	City        string `json:"city,omitempty"`
+	State       string `json:"state,omitempty"`
+	PostalCode  string `json:"postal_code,omitempty"`
+}
+type BeneficialOwners struct {
+	Email       string `json:"email,omitempty"`
+	FirstName   string `json:"first_name,omitempty"`
+	DateOfBirth string `json:"date_of_birth,omitempty"`
+	LastName    string `json:"last_name,omitempty"`
+	Address1    string `json:"address1,omitempty"`
+	Address2    string `json:"address2,omitempty"`
+	City        string `json:"city,omitempty"`
+	State       string `json:"state,omitempty"`
+	PostalCode  string `json:"postal_code,omitempty"`
+}
+
 type CreateIntentReq struct {
 	Email          string `json:"email"`
 	Phone          string `json:"phone"`
