@@ -17,6 +17,7 @@ import (
 )
 
 type Client interface {
+	CreateBusinessProfile(ctx context.Context, args CreateBusinessUserReq) (string, error)
 	CreateIntent(ctx context.Context, args CreateIntentReq) (string, error)
 	GetIntent(ctx context.Context, intentID string) (*Intent, error)
 	CreateAccessToken(ctx context.Context, intentID, walletID string) (*AccessToken, error)
@@ -70,6 +71,60 @@ func New(transport *http.Client) Client {
 		clientSecret:      os.Getenv("ASTRA_CLIENT_SECRET"),
 		basisTheoryAPIKey: os.Getenv("BASISTHEORY_API_KEY"),
 	}
+}
+
+func (c client) CreateBusinessProfile(ctx context.Context, args CreateBusinessUserReq) (string, error) {
+	reqURL, err := url.JoinPath(c.baseURL, "business_profile")
+	if err != nil {
+		return "", err
+	}
+
+	reqBody, err := json.Marshal(args)
+	if err != nil {
+		return "", err
+	}
+
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "POST"
+		meta.Provider = "astra"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "POST",
+			Provider: "astra",
+		})
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, bytes.NewReader(reqBody))
+	if err != nil {
+		return "", err
+	}
+	req.SetBasicAuth(c.clientID, c.clientSecret)
+
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return "", err
+	}
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("failed to create astra business user (%d - %s - %s)", resp.StatusCode, resp.Status, string(respBody))
+	}
+
+	var respData CreateIntentResp
+	err = json.Unmarshal(respBody, &respData)
+	if err != nil {
+		return "", err
+	}
+
+	return respData.ID, nil
 }
 
 func (c client) RefreshAccessToken(ctx context.Context, refreshToken string) (*AccessToken, error) {
