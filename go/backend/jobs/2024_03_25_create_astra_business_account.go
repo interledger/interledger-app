@@ -7,6 +7,12 @@ import (
 	"fmt"
 	"time"
 
+	"gitlab.com/fynbos/backend/providers/astra/external"
+
+	"gitlab.com/fynbos/env"
+
+	"gitlab.com/fynbos/backend/slack"
+
 	"gitlab.com/fynbos/backend/providers/astra"
 	"gitlab.com/fynbos/backend/providers/astra/ops"
 	"gitlab.com/fynbos/backend/wallets"
@@ -44,11 +50,53 @@ func CreateAstraBusinessProfile(ctx workflow.Context) error {
 		return err
 	}
 
+	err = workflow.ExecuteActivity(ctx, a.NotifySlack, externalID).Get(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	var code string
+	signalChan := workflow.GetSignalChannel(ctx, "temp-astra")
+	for {
+		signalChan.Receive(ctx, &code)
+		if code != "" {
+			break
+		}
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.ExchangeCode, code).Get(ctx, nil)
+	if err != nil {
+		return err
+	}
+
 	err = workflow.ExecuteActivity(ctx, asrtaActivity.CreateAccount, wallets.AstraBusinessWalletID).Get(ctx, nil)
 	if err != nil {
 		return err
 	}
 
+	return nil
+}
+
+func (a *Activity) ExchangeCode(ctx context.Context, code string) error {
+	ex := external.New(nil)
+	accessToken, err := ex.CodeExchange(ctx, code)
+	if err != nil {
+		return err
+	}
+	_, err = a.b.DB().ExecContext(ctx, "INSERT INTO astra_access_tokens (wallet_id, token, expires_at, refresh_token, refresh_expires_at) VALUES ($1, $2, $3, $4, $5)"+
+		" ON CONFLICT (wallet_id) DO UPDATE SET token = excluded.token, expires_at = excluded.expires_at, refresh_token = excluded.refresh_token, refresh_expires_at = excluded.refresh_expires_at",
+		wallets.AstraBusinessWalletID, accessToken.AccessToken, time.Now().Add(time.Minute*110), accessToken.RefreshToken, time.Now().Add(time.Hour*24*9))
+
+	return err
+}
+
+func (a *Activity) NotifySlack(ctx context.Context, externalID string) error {
+	sandbox := "-sandbox"
+	if env.IsProd() {
+		sandbox = ""
+	}
+
+	slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "Astra Business", fmt.Sprintf("Go To {https://app%s.astra.finance/login/oauth/authorize?client_id=%s&redirect_uri=%s&response_type=code&business=true&business_profile_id=%s} then signal the workflow with the code", sandbox, "29b899344bfb462d98fa4dff08ca1fe8", "https://httpdump.app/dumps/27d4218a-23a8-4eef-92de-01f631b0bd2d", externalID))
 	return nil
 }
 
