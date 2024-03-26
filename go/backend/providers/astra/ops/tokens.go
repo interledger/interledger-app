@@ -56,7 +56,8 @@ func CreateOrRefreshToken(ctx context.Context, b Backends, walletID string) (str
 			if err != nil {
 				return fmt.Errorf("%w %s", astra.ErrInternal, err)
 			}
-			_, err = tx.ExecContext(ctx, "INSERT INTO astra_access_tokens (wallet_id, token, expires_at, refresh_token, refresh_expires_at) VALUES ($1, $2, $3, $4, $5)",
+			_, err = tx.ExecContext(ctx, "INSERT INTO astra_access_tokens (wallet_id, token, expires_at, refresh_token, refresh_expires_at) VALUES ($1, $2, $3, $4, $5)"+
+				" ON CONFLICT (wallet_id) DO UPDATE SET token = excluded.token, expires_at = excluded.expires_at, refresh_token = excluded.refresh_token, refresh_expires_at = excluded.refresh_expires_at",
 				walletID, accessToken.AccessToken, time.Now().Add(time.Minute*110), accessToken.RefreshToken, time.Now().Add(time.Hour*24*9))
 		} else {
 			// Use the refresh token
