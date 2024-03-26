@@ -95,6 +95,21 @@ func (mr *MockClientMockRecorder) CardToAccount(ctx, token, args interface{}) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CardToAccount", reflect.TypeOf((*MockClient)(nil).CardToAccount), ctx, token, args)
 }
 
+// CodeExchange mocks base method.
+func (m *MockClient) CodeExchange(ctx context.Context, code string) (*external.AccessToken, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CodeExchange", ctx, code)
+	ret0, _ := ret[0].(*external.AccessToken)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CodeExchange indicates an expected call of CodeExchange.
+func (mr *MockClientMockRecorder) CodeExchange(ctx, code interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CodeExchange", reflect.TypeOf((*MockClient)(nil).CodeExchange), ctx, code)
+}
+
 // CreateAccessToken mocks base method.
 func (m *MockClient) CreateAccessToken(ctx context.Context, intentID, walletID string) (*external.AccessToken, error) {
 	m.ctrl.T.Helper()
@@ -108,6 +123,21 @@ func (m *MockClient) CreateAccessToken(ctx context.Context, intentID, walletID s
 func (mr *MockClientMockRecorder) CreateAccessToken(ctx, intentID, walletID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAccessToken", reflect.TypeOf((*MockClient)(nil).CreateAccessToken), ctx, intentID, walletID)
+}
+
+// CreateBusinessProfile mocks base method.
+func (m *MockClient) CreateBusinessProfile(ctx context.Context, args external.CreateBusinessUserReq) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateBusinessProfile", ctx, args)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateBusinessProfile indicates an expected call of CreateBusinessProfile.
+func (mr *MockClientMockRecorder) CreateBusinessProfile(ctx, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateBusinessProfile", reflect.TypeOf((*MockClient)(nil).CreateBusinessProfile), ctx, args)
 }
 
 // CreateIntent mocks base method.
