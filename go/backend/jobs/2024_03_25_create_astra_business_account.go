@@ -107,37 +107,52 @@ func (a *Activity) SaveIntent(ctx context.Context, externalID string) error {
 }
 
 func (a *Activity) CreateExternalBusinessAccount(ctx context.Context) (string, error) {
-	return "350868d5-509b-40d2-a61a-02caa4752259", nil
-	/*
-		ex := external.New(nil)
-		return ex.CreateBusinessProfile(ctx, external.CreateBusinessUserReq{
-			BusinessInfo: external.BusinessInfo{
-				BusinessType:    "llc",
-				BusinessName:    "Fynbos Technologies",
-				Ein:             "37-2028338",
-				DoingBusinessAs: "Fynbos",
-				Phone:           "+17178445997",
-				Address1:        "30 North Gould Street",
-				Address2:        "Suite R",
-				City:            "Sheridan",
-				PostalCode:      "82801",
-				State:           "WY",
-				Website:         "https://fynbos.app/",
-			},
-			BusinessAdmin: external.BusinessAdmin{
-				FirstName: "Adrian",
-				LastName:  "Hope-Bailie",
-				Email:     "adrian@fynbos.dev",
-				Address1:  "30 North Gould Street",
-				Address2:  "Suite R",
-				City:      "Sheridan",
-				State:     "WY",
-			},
-			BusinessController: external.BusinessController{
+	ex := external.New(nil)
+	return ex.CreateBusinessProfile(ctx, external.CreateBusinessUserReq{
+		BusinessInfo: external.BusinessInfo{
+			BusinessType:    "llc",
+			BusinessName:    "Fynbos Technologies",
+			Ein:             "37-2028338",
+			DoingBusinessAs: "Fynbos",
+			Phone:           "+13073819218",
+			Address1:        "30 North Gould Street",
+			Address2:        "Suite R",
+			City:            "Sheridan",
+			PostalCode:      "82801",
+			State:           "WY",
+			Website:         "https://fynbos.app/",
+		},
+		BusinessAdmin: external.BusinessAdmin{
+			FirstName: "Adrian",
+			LastName:  "Hope-Bailie",
+			Email:     "adrian@fynbos.dev",
+			Address1:  "30 North Gould Street",
+			Address2:  "Suite R",
+			City:      "Sheridan",
+			State:     "WY",
+		},
+		BusinessController: external.BusinessController{
+			FirstName:   "Adrian",
+			LastName:    "Hope-Bailie",
+			Email:       "adrian@fynbos",
+			Title:       "CEO",
+			DateOfBirth: "1982-10-02",
+			Address1:    "30 North Gould Street",
+			Address2:    "Suite R",
+			City:        "Sheridan",
+			PostalCode:  "82801",
+			State:       "WY",
+		},
+		KybType:   "verified",
+		Phone:     "+13073819218",
+		FirstName: "Adrian",
+		LastName:  "Hope-Bailie",
+		Email:     "adrian@fynbos.dev",
+		BeneficialOwners: []external.BeneficialOwners{
+			{
 				FirstName:   "Adrian",
 				LastName:    "Hope-Bailie",
 				Email:       "adrian@fynbos",
-				Title:       "CEO",
 				DateOfBirth: "1982-10-02",
 				Address1:    "30 North Gould Street",
 				Address2:    "Suite R",
@@ -145,25 +160,8 @@ func (a *Activity) CreateExternalBusinessAccount(ctx context.Context) (string, e
 				PostalCode:  "82801",
 				State:       "WY",
 			},
-			KybType:   "verified",
-			Phone:     "+17178445997",
-			FirstName: "Adrian",
-			LastName:  "Hope-Bailie",
-			Email:     "adrian@fynbos.dev",
-			BeneficialOwners: []external.BeneficialOwners{
-				{
-					FirstName:   "Adrian",
-					LastName:    "Hope-Bailie",
-					Email:       "adrian@fynbos",
-					DateOfBirth: "1982-10-02",
-					Address1:    "30 North Gould Street",
-					Address2:    "Suite R",
-					City:        "Sheridan",
-					PostalCode:  "82801",
-					State:       "WY",
-				},
-			},
-		})*/
+		},
+	})
 }
 
 func (a *Activity) IntentExists(ctx context.Context) (bool, error) {
