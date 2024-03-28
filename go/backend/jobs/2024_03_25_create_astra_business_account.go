@@ -20,7 +20,7 @@ import (
 )
 
 func CreateAstraBusinessProfile(ctx workflow.Context) error {
-	var a *Activity
+	//var a *Activity
 	var asrtaActivity *ops.Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 10 * time.Minute,
@@ -28,48 +28,48 @@ func CreateAstraBusinessProfile(ctx workflow.Context) error {
 	ctx = workflow.WithActivityOptions(ctx, ao)
 	logger := workflow.GetLogger(ctx)
 	logger.Info("CreateAstraBusinessProfile workflow started")
-
-	var exists bool
-	err := workflow.ExecuteActivity(ctx, a.IntentExists).Get(ctx, &exists)
-	if err != nil {
-		return err
-	}
-
-	if exists {
-		return nil
-	}
-
-	var externalID string
-	err = workflow.ExecuteActivity(ctx, a.CreateExternalBusinessAccount).Get(ctx, &externalID)
-	if err != nil {
-		return err
-	}
-
-	err = workflow.ExecuteActivity(ctx, a.SaveIntent, externalID).Get(ctx, nil)
-	if err != nil {
-		return err
-	}
-
-	err = workflow.ExecuteActivity(ctx, a.NotifySlack, externalID).Get(ctx, nil)
-	if err != nil {
-		return err
-	}
-
-	var code string
-	signalChan := workflow.GetSignalChannel(ctx, "temp-astra")
-	for {
-		signalChan.Receive(ctx, &code)
-		if code != "" {
-			break
+	/*
+		var exists bool
+		err := workflow.ExecuteActivity(ctx, a.IntentExists).Get(ctx, &exists)
+		if err != nil {
+			return err
 		}
-	}
 
-	err = workflow.ExecuteActivity(ctx, a.ExchangeCode, code).Get(ctx, nil)
-	if err != nil {
-		return err
-	}
+		if exists {
+			return nil
+		}
 
-	err = workflow.ExecuteActivity(ctx, asrtaActivity.CreateAccount, wallets.AstraBusinessWalletID).Get(ctx, nil)
+		var externalID string
+		err = workflow.ExecuteActivity(ctx, a.CreateExternalBusinessAccount).Get(ctx, &externalID)
+		if err != nil {
+			return err
+		}
+
+		err = workflow.ExecuteActivity(ctx, a.SaveIntent, externalID).Get(ctx, nil)
+		if err != nil {
+			return err
+		}
+
+		err = workflow.ExecuteActivity(ctx, a.NotifySlack, externalID).Get(ctx, nil)
+		if err != nil {
+			return err
+		}
+
+		var code string
+		signalChan := workflow.GetSignalChannel(ctx, "temp-astra")
+		for {
+			signalChan.Receive(ctx, &code)
+			if code != "" {
+				break
+			}
+		}
+
+		err = workflow.ExecuteActivity(ctx, a.ExchangeCode, code).Get(ctx, nil)
+		if err != nil {
+			return err
+		}
+	*/
+	err := workflow.ExecuteActivity(ctx, asrtaActivity.CreateAccount, wallets.AstraBusinessWalletID).Get(ctx, nil)
 	if err != nil {
 		return err
 	}
@@ -96,7 +96,7 @@ func (a *Activity) NotifySlack(ctx context.Context, externalID string) error {
 		sandbox = ""
 	}
 
-	slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "Astra Business", fmt.Sprintf("Go To {https://app%s.astra.finance/login/oauth/authorize?client_id=%s&redirect_uri=%s&response_type=code&business=true&business_profile_id=%s} then signal the workflow with the code", sandbox, "29b899344bfb462d98fa4dff08ca1fe8", "https://httpdump.app/dumps/27d4218a-23a8-4eef-92de-01f631b0bd2d", externalID))
+	slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "Astra Business", fmt.Sprintf("Go To {https://app%s.astra.finance/login/oauth/authorize?client_id=%s&redirect_uri=%s&response_type=code&business=true&business_profile_id=%s} then signal the workflow with the code", sandbox, "29b899344bfb462d98fa4dff08ca1fe8", "https%3A%2F%2Fcommonly-detect-broadcasting-assess.trycloudflare.com%2F", externalID))
 	return nil
 }
 
