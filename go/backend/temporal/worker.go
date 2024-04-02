@@ -48,6 +48,7 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(jobs.UpdateTransactionTypes)
 	w.RegisterWorkflow(jobs.GenerateWalletPaymentPointersJob)
 	w.RegisterWorkflow(jobs.MigrateUSWalletsToPTIJob)
+	w.RegisterWorkflow(jobs.CreateAstraBusinessProfile)
 
 	// Payment Engine
 	w.RegisterActivity(payments_workflows.NewActivity(b))
