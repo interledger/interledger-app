@@ -6,18 +6,15 @@ import (
 	"strings"
 	"time"
 
-	"gitlab.com/fynbos/backend/providers/pti"
-	pti_external "gitlab.com/fynbos/backend/providers/pti/external"
-
-	"gitlab.com/fynbos/backend/providers/astra"
-
 	"gitlab.com/fynbos/backend/currency"
-
-	"gitlab.com/fynbos/backend/providers/xago"
-
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
+	"gitlab.com/fynbos/backend/providers/astra"
+	"gitlab.com/fynbos/backend/providers/pti"
+	pti_external "gitlab.com/fynbos/backend/providers/pti/external"
+	"gitlab.com/fynbos/backend/providers/xago"
 	"gitlab.com/fynbos/backend/transactions"
+	"gitlab.com/fynbos/backend/wallets"
 	"go.temporal.io/sdk/temporal"
 )
 
@@ -543,9 +540,17 @@ func (a *Activity) CheckAstraRoutineStatus(ctx context.Context, paymentID, routi
 		return "", err
 	}
 
-	routine, err := a.b.Astra().LookupRoutine(ctx, p.Sender.WalletID, routineID)
-	if err != nil {
-		return "", err
+	var routine *astra.Routine
+	if p.Type == payments.TypeWithdrawal {
+		routine, err = a.b.Astra().LookupRoutine(ctx, wallets.AstraBusinessWalletID, routineID)
+		if err != nil {
+			return "", err
+		}
+	} else {
+		routine, err = a.b.Astra().LookupRoutine(ctx, p.Sender.WalletID, routineID)
+		if err != nil {
+			return "", err
+		}
 	}
 
 	return routine.Status, nil
