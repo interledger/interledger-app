@@ -41,6 +41,13 @@ service Backend {
   // PTI
   rpc EnablePTIBalance(EnablePTIBalanceRequest) returns (Empty);
   rpc GetPTIBalance(GetPTIBalanceRequest) returns (GetPTIBalanceResponse);
+
+  // Gatehub
+  rpc CreateGatehubUser(CreateGatehubUserRequest) returns (Empty);
+}
+
+message CreateGatehubUserRequest {
+  string walletID = 1;
 }
 
 message GetPTIBalanceRequest {
