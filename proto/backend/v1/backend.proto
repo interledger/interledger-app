@@ -357,8 +357,6 @@ message Transaction {
   string destinationIdentity = 20;
   string destinationIdentityType = 21;
   int32 refundState = 22; // NA , PENDING , COMPLETE
-  string paymentProtectionAmount = 23;
-  bool hasPaymentProtection = 24;
 }
 
 message ListTransactionsResponse {
@@ -386,7 +384,6 @@ message UpdatePaymentRequest {
   optional string threeDSID = 9;
   optional string otp = 10;
   optional string ipAddress = 11;
-  optional bool addPaymentProtection = 12;
 }
 
 message Payment {
@@ -400,14 +397,12 @@ message Payment {
   string senderAccount = 8; // Linked Account ID
   string note = 9;
   repeated int32 requiredActions = 10; // 1 - ThreeDS
-  bool hasPaymentProtection = 11;
-  string paymentProtectionAmount = 12;
-  string fxRate = 13;
-  Amount receiverAmount = 14;
-  string totalSendAmount = 15; // total debit amount
-  string receiverLinkedAccountCountryCode = 16;
-  string formattedFees = 17;
-  string receiverAccount = 18; // Linked account ID. Only populated on withdrawals
+  string fxRate = 11;
+  Amount receiverAmount = 12;
+  string totalSendAmount = 13; // total debit amount
+  string receiverLinkedAccountCountryCode = 14;
+  string formattedFees = 15;
+  string receiverAccount = 16; // Linked account ID. Only populated on withdrawals
 }
 
 message CreatePaymentRequest {
@@ -419,7 +414,6 @@ message CreatePaymentRequest {
   optional string receiverAccount = 6; // Linked Account ID
   optional string note = 7;
   optional string ipAddress = 8;
-  optional bool addPaymentProtection = 9;
 }
 
 message TransferBalanceRequest {
