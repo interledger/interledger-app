@@ -7,78 +7,56 @@ import (
 )
 
 type CreateArgs struct {
-	IdempotencyKey       string
-	Sender               Identity
-	Receiver             Identity
-	SenderAmount         currency.Amount
-	SenderAccount        string `validate:"omitempty,uuid"`
-	ReceiverAmount       currency.Amount
-	ReceiverAccount      string `validate:"omitempty,uuid"`
-	Note                 string
-	IPAddress            string `validate:"omitempty,ip_addr"`
-	Type                 Type
-	AddPaymentProtection bool
+	IdempotencyKey  string
+	Sender          Identity
+	Receiver        Identity
+	SenderAmount    currency.Amount
+	SenderAccount   string `validate:"omitempty,uuid"`
+	ReceiverAmount  currency.Amount
+	ReceiverAccount string `validate:"omitempty,uuid"`
+	Note            string
+	IPAddress       string `validate:"omitempty,ip_addr"`
+	Type            Type
 }
 
 type UpdateArgs struct {
-	ID                      string
-	Receiver                Identity
-	ReceiverAmount          currency.Amount
-	ReceiverAccount         string
-	SenderAccount           string
-	SenderAmount            currency.Amount
-	ThreeDSID               string
-	OTP                     string
-	Note                    string
-	IPAddress               string
-	UpdatedAt               time.Time
-	Type                    Type
-	FXRate                  float64
-	FXFeePercentage         float64
-	UpdatePaymentProtection bool
-	AddPaymentProtection    bool
-	AddAstraCorrelationID   bool
+	ID                    string
+	Receiver              Identity
+	ReceiverAmount        currency.Amount
+	ReceiverAccount       string
+	SenderAccount         string
+	SenderAmount          currency.Amount
+	ThreeDSID             string
+	OTP                   string
+	Note                  string
+	IPAddress             string
+	UpdatedAt             time.Time
+	Type                  Type
+	FXRate                float64
+	FXFeePercentage       float64
+	AddAstraCorrelationID bool
 }
 
 type Payment struct {
-	ID                      string
-	PublicID                string
-	State                   State
-	Sender                  Identity
-	Receiver                Identity
-	SenderAmount            currency.Amount
-	ReceiverAmount          currency.Amount
-	SenderAccount           string
-	ReceiverAccount         string
-	SendTransactionID       string
-	ReceiveTransactionID    string
-	RequiredActions         []RequiredActionType
-	Note                    string
-	IPAddress               string
-	UpdatedAt               time.Time
-	Type                    Type
-	FXRate                  float64
-	FXFeePercentage         float64
-	ProtectionFeePercentage float64
-	AstraCorrelationID      string
-}
-
-// This works out the payment protection amount from the send amount as
-// x_paymentprotection
-// = x_sendamount - x_sendamountwithoutpaymentprotection
-// = x_sendamount - x_sendamount / (1 + r_paymentprotectionfeepercentage)
-// = x_sendamount * (r_paymentprotectionfeepercentage / 1 + r_paymentprotectionfeepercentage)
-func (p Payment) PaymentProtectionAmount() currency.Amount {
-	sendAmount := p.SenderAmount.Float64()
-	rate := p.ProtectionFeePercentage / (float64(1) + p.ProtectionFeePercentage)
-
-	paymentProtectionFee := sendAmount * rate
-	smallestFee := currency.FromUInt64(1, p.SenderAmount.Currency)
-	if paymentProtectionFee < smallestFee.Float64() {
-		paymentProtectionFee = 0
-	}
-
-	return currency.FromFloat64(paymentProtectionFee, p.SenderAmount.Currency)
+	ID                   string
+	PublicID             string
+	State                State
+	Sender               Identity
+	Receiver             Identity
+	SenderAmount         currency.Amount
+	ReceiverAmount       currency.Amount
+	SenderAccount        string
+	ReceiverAccount      string
+	SendTransactionID    string
+	ReceiveTransactionID string
+	RequiredActions      []RequiredActionType
+	Note                 string
+	IPAddress            string
+	UpdatedAt            time.Time
+	Type                 Type
+	FXRate               float64
+	FXFeePercentage      float64
+	AstraCorrelationID   string
 }
 
 //go:generate stringer -type=RequiredActionType -trimprefix=RequiredActionType

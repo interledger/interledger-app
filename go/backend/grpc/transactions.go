@@ -113,14 +113,6 @@ func transformTransaction(tx transactions.Transaction, transfers []transactions.
 
 	fees := currency.FromFloat64(0, tx.Amount.Currency)
 
-	paymentProtection := tx.PaymentProtectionAmount()
-
-	// For outgoing transactions we need to minus the payment protection fee from the amount for the subtotal
-	if tx.Type == transactions.TransactionTypeOpenOutgoingPayment || tx.Type == transactions.TransactionTypeSent {
-		subTotalAmount := currency.FromUInt64(tx.Amount.Value-paymentProtection.Value, tx.Amount.Currency)
-		subTotal = subTotalAmount.Format()
-	}
-
 	ret := &pb.Transaction{
 		Id:                      tx.ID,
 		Type:                    string(tx.Type),
@@ -141,8 +133,6 @@ func transformTransaction(tx transactions.Transaction, transfers []transactions.
 		DestinationIdentity:     tx.DestinationIdentity,
 		DestinationIdentityType: destinationIdentityType,
 		RefundState:             int32(tx.RefundState),
-		HasPaymentProtection:    tx.PaymentProtectionFeePercentage != 0,
-		PaymentProtectionAmount: paymentProtection.Format(),
 	}
 
 	// only adding the send and receive accounts to withdrawals
