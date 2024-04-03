@@ -180,13 +180,12 @@ func (s *rpcService) CreatePayment(ctx context.Context, req *pb.CreatePaymentReq
 			Type:       payments.IdentityType(req.ReceiverIdentityType),
 			Identifier: req.ReceiverIdentity,
 		},
-		SenderAmount:         sendAmount,
-		SenderAccount:        senderAccount,
-		ReceiverAmount:       currency.FromPB(req.GetReceiverAmount()),
-		ReceiverAccount:      req.GetReceiverAccount(),
-		Note:                 req.GetNote(),
-		IPAddress:            req.GetIpAddress(),
-		AddPaymentProtection: req.GetAddPaymentProtection(),
+		SenderAmount:    sendAmount,
+		SenderAccount:   senderAccount,
+		ReceiverAmount:  currency.FromPB(req.GetReceiverAmount()),
+		ReceiverAccount: req.GetReceiverAccount(),
+		Note:            req.GetNote(),
+		IPAddress:       req.GetIpAddress(),
 	}
 
 	p, err := s.b.Payments().Create(ctx, args)
@@ -263,13 +262,11 @@ func (s *rpcService) UpdatePayment(ctx context.Context, req *pb.UpdatePaymentReq
 			Type:       payments.IdentityType(req.GetReceiverIdentityType()),
 			Identifier: req.GetReceiverIdentity(),
 		},
-		ReceiverAccount:         req.GetReceiverAccount(),
-		Note:                    req.GetNote(),
-		ThreeDSID:               req.GetThreeDSID(),
-		OTP:                     req.GetOtp(),
-		IPAddress:               req.GetIpAddress(),
-		UpdatePaymentProtection: req.AddPaymentProtection != nil,
-		AddPaymentProtection:    req.GetAddPaymentProtection(),
+		ReceiverAccount: req.GetReceiverAccount(),
+		Note:            req.GetNote(),
+		ThreeDSID:       req.GetThreeDSID(),
+		OTP:             req.GetOtp(),
+		IPAddress:       req.GetIpAddress(),
 	}
 
 	p, err = s.b.Payments().Update(ctx, args)
@@ -371,29 +368,23 @@ func transformPayment(ctx context.Context, b Backends, p *payments.Payment) (*pb
 		receiveWalletAddress = receiveWallet.AddressString()
 	}
 
-	// TODO: update to include exchange rate fee
-	paymentProtection := p.PaymentProtectionAmount()
-	inputSendAmount := currency.FromUInt64(p.SenderAmount.Value-paymentProtection.Value, p.SenderAmount.Currency)
-
 	// hard-coded to be 0 for now
-	fees := currency.FromUInt64(0, inputSendAmount.Currency)
+	fees := currency.FromUInt64(0, p.SenderAmount.Currency)
 	ret := &pb.Payment{
-		Id:                      p.ID,
-		PublicID:                p.PublicID,
-		State:                   int32(p.State),
-		ReceiverWalletUrl:       receiveWalletAddress,
-		ReceiverIdentity:        p.Receiver.Identifier,
-		ReceiverIdentityType:    int32(p.Receiver.Type),
-		SenderAmount:            inputSendAmount.ToPB(),
-		SenderAccount:           p.SenderAccount,
-		TotalSendAmount:         p.SenderAmount.Format(),
-		Note:                    p.Note,
-		RequiredActions:         requiredActions,
-		HasPaymentProtection:    p.ProtectionFeePercentage != 0,
-		PaymentProtectionAmount: paymentProtection.Format(),
-		FxRate:                  fmt.Sprintf("%6f", p.FXRate),
-		ReceiverAmount:          p.ReceiverAmount.ToPB(),
-		FormattedFees:           fees.Format(),
+		Id:                   p.ID,
+		PublicID:             p.PublicID,
+		State:                int32(p.State),
+		ReceiverWalletUrl:    receiveWalletAddress,
+		ReceiverIdentity:     p.Receiver.Identifier,
+		ReceiverIdentityType: int32(p.Receiver.Type),
+		SenderAmount:         p.SenderAmount.ToPB(),
+		SenderAccount:        p.SenderAccount,
+		TotalSendAmount:      p.SenderAmount.Format(),
+		Note:                 p.Note,
+		RequiredActions:      requiredActions,
+		FxRate:               fmt.Sprintf("%6f", p.FXRate),
+		ReceiverAmount:       p.ReceiverAmount.ToPB(),
+		FormattedFees:        fees.Format(),
 	}
 
 	if p.Type == payments.TypeWithdrawal {
