@@ -593,14 +593,6 @@ export interface Transaction {
      * @generated from protobuf field: int32 refundState = 22;
      */
     refundState: number; // NA , PENDING , COMPLETE
-    /**
-     * @generated from protobuf field: string paymentProtectionAmount = 23;
-     */
-    paymentProtectionAmount: string;
-    /**
-     * @generated from protobuf field: bool hasPaymentProtection = 24;
-     */
-    hasPaymentProtection: boolean;
 }
 /**
  * @generated from protobuf message backend.v1.ListTransactionsResponse
@@ -681,10 +673,6 @@ export interface UpdatePaymentRequest {
      * @generated from protobuf field: optional string ipAddress = 11;
      */
     ipAddress?: string;
-    /**
-     * @generated from protobuf field: optional bool addPaymentProtection = 12;
-     */
-    addPaymentProtection?: boolean;
 }
 /**
  * @generated from protobuf message backend.v1.Payment
@@ -731,35 +719,27 @@ export interface Payment {
      */
     requiredActions: number[]; // 1 - ThreeDS
     /**
-     * @generated from protobuf field: bool hasPaymentProtection = 11;
-     */
-    hasPaymentProtection: boolean;
-    /**
-     * @generated from protobuf field: string paymentProtectionAmount = 12;
-     */
-    paymentProtectionAmount: string;
-    /**
-     * @generated from protobuf field: string fxRate = 13;
+     * @generated from protobuf field: string fxRate = 11;
      */
     fxRate: string;
     /**
-     * @generated from protobuf field: backend.v1.Amount receiverAmount = 14;
+     * @generated from protobuf field: backend.v1.Amount receiverAmount = 12;
      */
     receiverAmount?: Amount;
     /**
-     * @generated from protobuf field: string totalSendAmount = 15;
+     * @generated from protobuf field: string totalSendAmount = 13;
      */
     totalSendAmount: string; // total debit amount
     /**
-     * @generated from protobuf field: string receiverLinkedAccountCountryCode = 16;
+     * @generated from protobuf field: string receiverLinkedAccountCountryCode = 14;
      */
     receiverLinkedAccountCountryCode: string;
     /**
-     * @generated from protobuf field: string formattedFees = 17;
+     * @generated from protobuf field: string formattedFees = 15;
      */
     formattedFees: string;
     /**
-     * @generated from protobuf field: string receiverAccount = 18;
+     * @generated from protobuf field: string receiverAccount = 16;
      */
     receiverAccount: string; // Linked account ID. Only populated on withdrawals
 }
@@ -799,10 +779,6 @@ export interface CreatePaymentRequest {
      * @generated from protobuf field: optional string ipAddress = 8;
      */
     ipAddress?: string;
-    /**
-     * @generated from protobuf field: optional bool addPaymentProtection = 9;
-     */
-    addPaymentProtection?: boolean;
 }
 /**
  * @generated from protobuf message backend.v1.TransferBalanceRequest
@@ -4235,13 +4211,11 @@ class Transaction$Type extends MessageType<Transaction> {
             { no: 19, name: "reference", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 20, name: "destinationIdentity", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 21, name: "destinationIdentityType", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 22, name: "refundState", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
-            { no: 23, name: "paymentProtectionAmount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 24, name: "hasPaymentProtection", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+            { no: 22, name: "refundState", kind: "scalar", T: 5 /*ScalarType.INT32*/ }
         ]);
     }
     create(value?: PartialMessage<Transaction>): Transaction {
-        const message = { id: "", type: "", source: "", destination: "", state: "", foreignId: "", receiverAccountId: "", senderAccountId: "", title: "", formattedAmount: "", formattedTime: "", formattedDate: "", subtotal: "", fees: "", accountTitle: "", reference: "", destinationIdentity: "", destinationIdentityType: "", refundState: 0, paymentProtectionAmount: "", hasPaymentProtection: false };
+        const message = { id: "", type: "", source: "", destination: "", state: "", foreignId: "", receiverAccountId: "", senderAccountId: "", title: "", formattedAmount: "", formattedTime: "", formattedDate: "", subtotal: "", fees: "", accountTitle: "", reference: "", destinationIdentity: "", destinationIdentityType: "", refundState: 0 };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Transaction>(this, message, value);
@@ -4314,12 +4288,6 @@ class Transaction$Type extends MessageType<Transaction> {
                     break;
                 case /* int32 refundState */ 22:
                     message.refundState = reader.int32();
-                    break;
-                case /* string paymentProtectionAmount */ 23:
-                    message.paymentProtectionAmount = reader.string();
-                    break;
-                case /* bool hasPaymentProtection */ 24:
-                    message.hasPaymentProtection = reader.bool();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -4396,12 +4364,6 @@ class Transaction$Type extends MessageType<Transaction> {
         /* int32 refundState = 22; */
         if (message.refundState !== 0)
             writer.tag(22, WireType.Varint).int32(message.refundState);
-        /* string paymentProtectionAmount = 23; */
-        if (message.paymentProtectionAmount !== "")
-            writer.tag(23, WireType.LengthDelimited).string(message.paymentProtectionAmount);
-        /* bool hasPaymentProtection = 24; */
-        if (message.hasPaymentProtection !== false)
-            writer.tag(24, WireType.Varint).bool(message.hasPaymentProtection);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -4574,8 +4536,7 @@ class UpdatePaymentRequest$Type extends MessageType<UpdatePaymentRequest> {
             { no: 8, name: "receiverIdentityType", kind: "scalar", opt: true, T: 5 /*ScalarType.INT32*/ },
             { no: 9, name: "threeDSID", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
             { no: 10, name: "otp", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
-            { no: 11, name: "ipAddress", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
-            { no: 12, name: "addPaymentProtection", kind: "scalar", opt: true, T: 8 /*ScalarType.BOOL*/ }
+            { no: 11, name: "ipAddress", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<UpdatePaymentRequest>): UpdatePaymentRequest {
@@ -4623,9 +4584,6 @@ class UpdatePaymentRequest$Type extends MessageType<UpdatePaymentRequest> {
                 case /* optional string ipAddress */ 11:
                     message.ipAddress = reader.string();
                     break;
-                case /* optional bool addPaymentProtection */ 12:
-                    message.addPaymentProtection = reader.bool();
-                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -4671,9 +4629,6 @@ class UpdatePaymentRequest$Type extends MessageType<UpdatePaymentRequest> {
         /* optional string ipAddress = 11; */
         if (message.ipAddress !== undefined)
             writer.tag(11, WireType.LengthDelimited).string(message.ipAddress);
-        /* optional bool addPaymentProtection = 12; */
-        if (message.addPaymentProtection !== undefined)
-            writer.tag(12, WireType.Varint).bool(message.addPaymentProtection);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -4698,18 +4653,16 @@ class Payment$Type extends MessageType<Payment> {
             { no: 8, name: "senderAccount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 9, name: "note", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 10, name: "requiredActions", kind: "scalar", repeat: 1 /*RepeatType.PACKED*/, T: 5 /*ScalarType.INT32*/ },
-            { no: 11, name: "hasPaymentProtection", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 12, name: "paymentProtectionAmount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 13, name: "fxRate", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 14, name: "receiverAmount", kind: "message", T: () => Amount },
-            { no: 15, name: "totalSendAmount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 16, name: "receiverLinkedAccountCountryCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 17, name: "formattedFees", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 18, name: "receiverAccount", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 11, name: "fxRate", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 12, name: "receiverAmount", kind: "message", T: () => Amount },
+            { no: 13, name: "totalSendAmount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 14, name: "receiverLinkedAccountCountryCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 15, name: "formattedFees", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 16, name: "receiverAccount", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Payment>): Payment {
-        const message = { id: "", publicID: "", state: 0, receiverWalletUrl: "", receiverIdentity: "", receiverIdentityType: 0, senderAccount: "", note: "", requiredActions: [], hasPaymentProtection: false, paymentProtectionAmount: "", fxRate: "", totalSendAmount: "", receiverLinkedAccountCountryCode: "", formattedFees: "", receiverAccount: "" };
+        const message = { id: "", publicID: "", state: 0, receiverWalletUrl: "", receiverIdentity: "", receiverIdentityType: 0, senderAccount: "", note: "", requiredActions: [], fxRate: "", totalSendAmount: "", receiverLinkedAccountCountryCode: "", formattedFees: "", receiverAccount: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Payment>(this, message, value);
@@ -4754,28 +4707,22 @@ class Payment$Type extends MessageType<Payment> {
                     else
                         message.requiredActions.push(reader.int32());
                     break;
-                case /* bool hasPaymentProtection */ 11:
-                    message.hasPaymentProtection = reader.bool();
-                    break;
-                case /* string paymentProtectionAmount */ 12:
-                    message.paymentProtectionAmount = reader.string();
-                    break;
-                case /* string fxRate */ 13:
+                case /* string fxRate */ 11:
                     message.fxRate = reader.string();
                     break;
-                case /* backend.v1.Amount receiverAmount */ 14:
+                case /* backend.v1.Amount receiverAmount */ 12:
                     message.receiverAmount = Amount.internalBinaryRead(reader, reader.uint32(), options, message.receiverAmount);
                     break;
-                case /* string totalSendAmount */ 15:
+                case /* string totalSendAmount */ 13:
                     message.totalSendAmount = reader.string();
                     break;
-                case /* string receiverLinkedAccountCountryCode */ 16:
+                case /* string receiverLinkedAccountCountryCode */ 14:
                     message.receiverLinkedAccountCountryCode = reader.string();
                     break;
-                case /* string formattedFees */ 17:
+                case /* string formattedFees */ 15:
                     message.formattedFees = reader.string();
                     break;
-                case /* string receiverAccount */ 18:
+                case /* string receiverAccount */ 16:
                     message.receiverAccount = reader.string();
                     break;
                 default:
@@ -4824,30 +4771,24 @@ class Payment$Type extends MessageType<Payment> {
                 writer.int32(message.requiredActions[i]);
             writer.join();
         }
-        /* bool hasPaymentProtection = 11; */
-        if (message.hasPaymentProtection !== false)
-            writer.tag(11, WireType.Varint).bool(message.hasPaymentProtection);
-        /* string paymentProtectionAmount = 12; */
-        if (message.paymentProtectionAmount !== "")
-            writer.tag(12, WireType.LengthDelimited).string(message.paymentProtectionAmount);
-        /* string fxRate = 13; */
+        /* string fxRate = 11; */
         if (message.fxRate !== "")
-            writer.tag(13, WireType.LengthDelimited).string(message.fxRate);
-        /* backend.v1.Amount receiverAmount = 14; */
+            writer.tag(11, WireType.LengthDelimited).string(message.fxRate);
+        /* backend.v1.Amount receiverAmount = 12; */
         if (message.receiverAmount)
-            Amount.internalBinaryWrite(message.receiverAmount, writer.tag(14, WireType.LengthDelimited).fork(), options).join();
-        /* string totalSendAmount = 15; */
+            Amount.internalBinaryWrite(message.receiverAmount, writer.tag(12, WireType.LengthDelimited).fork(), options).join();
+        /* string totalSendAmount = 13; */
         if (message.totalSendAmount !== "")
-            writer.tag(15, WireType.LengthDelimited).string(message.totalSendAmount);
-        /* string receiverLinkedAccountCountryCode = 16; */
+            writer.tag(13, WireType.LengthDelimited).string(message.totalSendAmount);
+        /* string receiverLinkedAccountCountryCode = 14; */
         if (message.receiverLinkedAccountCountryCode !== "")
-            writer.tag(16, WireType.LengthDelimited).string(message.receiverLinkedAccountCountryCode);
-        /* string formattedFees = 17; */
+            writer.tag(14, WireType.LengthDelimited).string(message.receiverLinkedAccountCountryCode);
+        /* string formattedFees = 15; */
         if (message.formattedFees !== "")
-            writer.tag(17, WireType.LengthDelimited).string(message.formattedFees);
-        /* string receiverAccount = 18; */
+            writer.tag(15, WireType.LengthDelimited).string(message.formattedFees);
+        /* string receiverAccount = 16; */
         if (message.receiverAccount !== "")
-            writer.tag(18, WireType.LengthDelimited).string(message.receiverAccount);
+            writer.tag(16, WireType.LengthDelimited).string(message.receiverAccount);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -4869,8 +4810,7 @@ class CreatePaymentRequest$Type extends MessageType<CreatePaymentRequest> {
             { no: 5, name: "senderAccount", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
             { no: 6, name: "receiverAccount", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
             { no: 7, name: "note", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
-            { no: 8, name: "ipAddress", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
-            { no: 9, name: "addPaymentProtection", kind: "scalar", opt: true, T: 8 /*ScalarType.BOOL*/ }
+            { no: 8, name: "ipAddress", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<CreatePaymentRequest>): CreatePaymentRequest {
@@ -4909,9 +4849,6 @@ class CreatePaymentRequest$Type extends MessageType<CreatePaymentRequest> {
                 case /* optional string ipAddress */ 8:
                     message.ipAddress = reader.string();
                     break;
-                case /* optional bool addPaymentProtection */ 9:
-                    message.addPaymentProtection = reader.bool();
-                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -4948,9 +4885,6 @@ class CreatePaymentRequest$Type extends MessageType<CreatePaymentRequest> {
         /* optional string ipAddress = 8; */
         if (message.ipAddress !== undefined)
             writer.tag(8, WireType.LengthDelimited).string(message.ipAddress);
-        /* optional bool addPaymentProtection = 9; */
-        if (message.addPaymentProtection !== undefined)
-            writer.tag(9, WireType.Varint).bool(message.addPaymentProtection);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
