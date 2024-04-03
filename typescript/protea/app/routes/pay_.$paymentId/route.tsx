@@ -338,7 +338,6 @@ export async function updatePaymentAction({
   const form = await request.formData()
   const send = String(form.get('send') || '')
   const receive = String(form.get('receive') || '')
-  const hasPaymentProtection = form.get('hasPaymentProtection') as string
   const note = String(form.get('note') || '')
   const accountId = String(form.get('accountId') || '')
   const sendCurrency = String(form.get('sendCurrency') || '')
@@ -382,7 +381,6 @@ export async function updatePaymentAction({
     id: params.paymentId,
     note,
     senderAccount: accountId,
-    addPaymentProtection: hasPaymentProtection == 'true',
     senderAmount,
     receiverAmount,
     ipAddress: clientIpAddress

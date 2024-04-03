@@ -40,19 +40,11 @@ type AmountState = {
   send: string
   receive: string
   linkedAccount: FormattedLinkedAccount
-  hasPaymentProtection: boolean
-  paymentProtectionAmount: string
   totalSendAmount: string
 }
 
 type Action = {
-  type:
-    | 'focussed'
-    | 'send'
-    | 'receive'
-    | 'hasPaymentProtection'
-    | 'linkedAccount'
-    | 'network'
+  type: 'focussed' | 'send' | 'receive' | 'linkedAccount' | 'network'
 } & Partial<AmountState>
 
 type InitialState = {
@@ -68,14 +60,11 @@ function createInitialState({ account, payment }: InitialState): AmountState {
     send,
     receive,
     linkedAccount: account,
-    hasPaymentProtection: payment.hasPaymentProtection,
-    paymentProtectionAmount: payment.paymentProtectionAmount,
     totalSendAmount: payment.totalSendAmount
   }
 }
 
 function reducer(state: AmountState, action: Action): AmountState {
-  // TODO On set hasPaymentProtection, set focussed to none
   switch (action.type) {
     case 'focussed':
       return { ...state, focussed: action.focussed! }
@@ -85,16 +74,9 @@ function reducer(state: AmountState, action: Action): AmountState {
       return { ...state, receive: action.receive! }
     case 'linkedAccount':
       return { ...state, linkedAccount: action.linkedAccount! }
-    case 'hasPaymentProtection':
-      return {
-        ...state,
-        focussed: 'none',
-        hasPaymentProtection: action.hasPaymentProtection!
-      }
     case 'network':
       let newSend = state.send
       let newReceive = state.receive
-      let newHasPaymentProtection = state.hasPaymentProtection
       if (state.focussed == 'send') {
         newReceive = action.receive!
       } else if (state.focussed == 'receive') {
@@ -107,8 +89,6 @@ function reducer(state: AmountState, action: Action): AmountState {
         ...state,
         send: newSend,
         receive: newReceive,
-        hasPaymentProtection: newHasPaymentProtection,
-        paymentProtectionAmount: action.paymentProtectionAmount!,
         totalSendAmount: action.totalSendAmount!
       }
     default:
@@ -139,13 +119,12 @@ export const Amount = () => {
         {
           formName: 'updatePayment',
           accountId: linkedAccount.id,
-          hasPaymentProtection: localPayment.hasPaymentProtection.toString(),
           csrfToken
         },
         { method: 'post' }
       )
     },
-    [csrfToken, localPayment, updatePaymentFetcher]
+    [csrfToken, updatePaymentFetcher]
   )
 
   let onChangeSendAmountDismissRef = useRef<NodeJS.Timeout>()
@@ -164,7 +143,6 @@ export const Amount = () => {
             send,
             accountId: localPayment.linkedAccount.id,
             sendCurrency: payment.senderAmount?.asset || '',
-            hasPaymentProtection: localPayment.hasPaymentProtection.toString(),
             csrfToken
           },
           { method: 'post' }
@@ -173,7 +151,6 @@ export const Amount = () => {
     },
     [
       csrfToken,
-      localPayment.hasPaymentProtection,
       localPayment.linkedAccount.id,
       updatePaymentFetcher,
       payment.senderAmount?.asset
@@ -198,7 +175,6 @@ export const Amount = () => {
             receive,
             receiveCurrency: payment.receiverAmount?.asset || '',
             accountId: localPayment.linkedAccount.id,
-            hasPaymentProtection: localPayment.hasPaymentProtection.toString(),
             csrfToken
           },
           { method: 'post' }
@@ -207,7 +183,6 @@ export const Amount = () => {
     },
     [
       csrfToken,
-      localPayment.hasPaymentProtection,
       localPayment.linkedAccount.id,
       payment.receiverAmount?.asset,
       updatePaymentFetcher
@@ -252,8 +227,6 @@ export const Amount = () => {
         receive: formatAmount(
           updatePaymentFetcher.data?.payment?.receiverAmount
         ),
-        paymentProtectionAmount:
-          updatePaymentFetcher.data?.payment.paymentProtectionAmount,
         totalSendAmount: updatePaymentFetcher.data?.payment?.totalSendAmount
       })
     }
@@ -277,12 +250,6 @@ export const Amount = () => {
         type='hidden'
         name='accountId'
         value={localPayment.linkedAccount.id}
-        form='amount-form'
-      />
-      <input
-        type='hidden'
-        name='hasPaymentProtection'
-        value={localPayment.hasPaymentProtection.toString()}
         form='amount-form'
       />
       <input

@@ -25,7 +25,6 @@ import {
   Icon,
   Layouts,
   LinkedInIcon,
-  Router,
   SlackIcon,
   TextButton,
   TwitterIcon,
@@ -699,14 +698,6 @@ function Sent({ openDialog }: { openDialog: () => void }) {
               <span className='text-weak'>Fees</span>
               <span className='text-medium'>{transaction.fees}</span>
             </div>
-            {transaction.hasPaymentProtection && (
-              <div className='mt-2 flex w-full justify-between'>
-                <span className='text-weak'>Payment protection (3%)</span>
-                <span className='text-medium'>
-                  {transaction.paymentProtectionAmount}
-                </span>
-              </div>
-            )}
             <div className='mt-4 flex w-full justify-between font-medium'>
               <span className='text-medium'>Total amount to debit</span>
               <span className='text-medium'>{transaction.formattedAmount}</span>
@@ -721,21 +712,6 @@ function Sent({ openDialog }: { openDialog: () => void }) {
             <div className='flex w-full flex-col space-y-1'>
               <span className='text-weak'>Payment note</span>
               <span className='text-medium'>{transaction.reference}</span>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-      {transaction.hasPaymentProtection && (
-        <Card>
-          <CardContent>
-            <div className='flex w-full flex-col space-y-1'>
-              <span className='text-weak'>Payment protection</span>
-              <Router
-                to='/payment-protection'
-                className='font-medium text-primary'
-              >
-                Eligible
-              </Router>
             </div>
           </CardContent>
         </Card>
@@ -826,28 +802,6 @@ function Received({ openDialog }: { openDialog: () => void }) {
               <span className='text-weak'>Payment note</span>
               <span className='text-medium'>{transaction.reference}</span>
             </div>
-          </CardContent>
-        </Card>
-      )}
-      {transaction.hasPaymentProtection && (
-        <Card>
-          <CardContent>
-            <div className='mb-4 flex w-full justify-between'>
-              <span className='text-weak'>Payment protection</span>
-              <Router
-                to='/payment-protection'
-                className='font-medium text-primary'
-              >
-                Eligible
-              </Router>
-            </div>
-            <span className='text-medium'>
-              For any disputes, please{' '}
-              <Router to='/support' className='font-medium text-primary'>
-                contact support
-              </Router>
-              .
-            </span>
           </CardContent>
         </Card>
       )}

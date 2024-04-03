@@ -96,12 +96,6 @@ export function Confirm() {
             <span className='text-weak'>Fees</span>
             <span className='text-medium'>{payment.formattedFees}</span>
           </div>
-          <div className='mt-2 flex w-full justify-between'>
-            <span className='text-weak'>Payment protection (3%)</span>
-            <span className='text-medium'>
-              {payment.paymentProtectionAmount}
-            </span>
-          </div>
           <div className='mt-4 flex w-full justify-between font-medium'>
             <span className='text-medium'>Total amount to debit</span>
             <span className='text-error'>{payment.totalSendAmount}</span>
