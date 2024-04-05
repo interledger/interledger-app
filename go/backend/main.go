@@ -338,6 +338,12 @@ func migrate(args *cli.MigrationArgs) {
 			Asset: currency.USD.String(),
 			Scale: uint8(currency.USD.Scale()),
 		},
+		{
+			ID:    gatehub.LedgerIDEUR,
+			Name:  "Gatehub EUR Ledger",
+			Asset: currency.EUR.String(),
+			Scale: uint8(currency.EUR.Scale()),
+		},
 	})
 	if err != nil {
 		log.Fatalln(err)
