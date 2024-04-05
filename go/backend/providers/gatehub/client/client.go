@@ -41,3 +41,7 @@ func (c Client) CreateUser(ctx context.Context, walletID string) (gatehub.Await,
 func (c Client) GetOnboardingWidget(ctx context.Context, walletID string) (string, error) {
 	return ops.GetOnboardingWidget(ctx, c.b, c.external, walletID)
 }
+
+func (c Client) GetBalance(ctx context.Context, linkedAccountID string) (*gatehub.Balance, error) {
+	return ops.GetBalance(ctx, c.b, linkedAccountID)
+}
