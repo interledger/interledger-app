@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 
+	"gitlab.com/fynbos/backend/linkedaccounts"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
@@ -32,6 +33,17 @@ func CreateGatehubUserWorkflow(ctx workflow.Context, walletID string) (string, e
 	}
 
 	err = workflow.ExecuteActivity(ctx, a.SaveGatehubUser, walletID, externalUserID).Get(ctx, nil)
+	if err != nil {
+		return "", err
+	}
+
+	var la linkedaccounts.LinkedAccount
+	err = workflow.ExecuteActivity(ctx, a.CreateGatehubWalletLinkedAccount, walletID).Get(ctx, &la)
+	if err != nil {
+		return "", err
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.CreateGatehubBalanceAccount, la.ID).Get(ctx, nil)
 	if err != nil {
 		return "", err
 	}
