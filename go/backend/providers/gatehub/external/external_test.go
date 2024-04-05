@@ -18,8 +18,12 @@ func TestClient(t *testing.T) {
 	}
 	c := external.NewClient(os.Getenv("GATEHUB_APP_ID"), os.Getenv("GATEHUB_SECRET"), nil)
 
-	token, err := c.IssueToken(context.Background(), "", external.Onboarding)
+	externalUserID := "c5b40ec1-b450-451b-b8c0-1b45f94b9db0"
+
+	_, err := c.IssueToken(context.Background(), externalUserID, external.Onboarding)
 	require.NoError(t, err)
 
-	fmt.Printf("token: %+v", token)
+	userWallets, err := c.GetUserWallets(context.Background(), externalUserID)
+	require.NoError(t, err)
+	fmt.Printf("userWallets %+v\n", userWallets)
 }
