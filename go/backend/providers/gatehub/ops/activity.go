@@ -8,9 +8,14 @@ import (
 	"net/http"
 	"os"
 
+	"gitlab.com/fynbos/backend/currency"
+	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	"gitlab.com/fynbos/backend/providers/gatehub/external"
 	httplogger "gitlab.com/fynbos/backend/providers/http"
+	"gitlab.com/fynbos/backend/providers/pti"
+	"gitlab.com/fynbos/backend/wallets"
+	"gitlab.com/fynbos/pacioli"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.temporal.io/sdk/temporal"
 )
@@ -73,4 +78,83 @@ func (a *Activity) GetGatehubUser(ctx context.Context, walletID string) (string,
 	}
 
 	return externalID, nil
+}
+
+func (a *Activity) CreateGatehubWalletLinkedAccount(ctx context.Context, walletID string) (*linkedaccounts.LinkedAccount, error) {
+	w, err := a.b.Wallets().Get(ctx, walletID)
+	if errors.Is(err, wallets.ErrNoWalletFound) {
+		return nil, temporal.NewNonRetryableApplicationError("Wallet not found", "ErrNotFound", err)
+	} else if err != nil {
+		return nil, err
+	}
+
+	externalID, err := getExternalUserID(ctx, a.b, w.ID)
+	if errors.Is(err, gatehub.ErrNotFound) {
+		return nil, temporal.NewNonRetryableApplicationError("Gatehub user not found for wallet", "ErrNotFound", err)
+	} else if err != nil {
+		return nil, err
+	}
+
+	userWallets, err := a.external.GetUserWallets(ctx, externalID)
+	if err != nil {
+		return nil, err
+	}
+
+	var primaryWallet *external.Wallet
+	for _, w := range userWallets.Wallets {
+		if w.Primary {
+			primaryWallet = &w
+			break
+		}
+	}
+	if primaryWallet == nil {
+		return nil, fmt.Errorf("%w Could not find a primary wallet for gatehub user", gatehub.ErrInternal)
+	}
+
+	la, err := a.b.LinkedAccounts().Create(ctx, &linkedaccounts.CreateArgs{
+		WalletID:        w.ID,
+		Type:            gatehub.AccTypeBalance,
+		Provider:        gatehub.ProviderName,
+		ProviderID:      primaryWallet.UUID,
+		Name:            "EUR Balance",
+		Nickname:        "EUR Balance",
+		CanReceive:      true,
+		ReceiveCountry:  w.Country,
+		ReceiveCurrency: currency.EUR,
+		SendCountry:     w.Country,
+		SendCurrency:    currency.EUR,
+		CanSend:         true,
+		State:           linkedaccounts.Verified,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return la, nil
+}
+
+func (a *Activity) CreateGatehubBalanceAccount(ctx context.Context, id string) error {
+	accs, err := a.b.Pacioli().ConfigureAccounts(ctx, []pacioli.ConfigureAccountArgs{
+		{
+			ID:                         id,
+			LedgerID:                   gatehub.LedgerIDEUR,
+			Code:                       1,
+			DebitsMustNotExceedCredits: true,
+			CreditsMustNotExceedDebits: false,
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	if len(accs) == 0 {
+		// No error codes to speak of
+		return nil
+	}
+
+	if accs[0].Code != pacioli.AccountOK && accs[0].Code != pacioli.AccountExists {
+		return fmt.Errorf("%w failed to setup account status(%s)", pti.ErrInternal, accs[0].Code)
+	}
+
+	return nil
 }
