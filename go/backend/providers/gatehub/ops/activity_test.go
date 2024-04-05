@@ -9,9 +9,14 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/db"
+	"gitlab.com/fynbos/backend/linkedaccounts"
+	la_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
 	"gitlab.com/fynbos/backend/providers/gatehub/ops"
 	"gitlab.com/fynbos/backend/user"
 	user_mock "gitlab.com/fynbos/backend/user/client/mock"
+	"gitlab.com/fynbos/backend/wallets"
+	wallet_mock "gitlab.com/fynbos/backend/wallets/client/mock"
+	"gitlab.com/fynbos/pacioli"
 	temporal "go.temporal.io/sdk/client"
 )
 
@@ -40,6 +45,8 @@ func TestSaveUser(t *testing.T) {
 type Backends struct {
 	db    *sqlx.DB
 	users *user_mock.MockClient
+	la    *la_mock.MockClient
+	wc    *wallet_mock.MockClient
 }
 
 func (b Backends) Users() user.Client {
@@ -51,5 +58,17 @@ func (b Backends) DB() *sqlx.DB {
 }
 
 func (b Backends) Temporal() temporal.Client {
+	return nil
+}
+
+func (b Backends) LinkedAccounts() linkedaccounts.Client {
+	return b.la
+}
+
+func (b Backends) Wallets() wallets.Client {
+	return b.wc
+}
+
+func (b Backends) Pacioli() pacioli.Client {
 	return nil
 }

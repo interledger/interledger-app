@@ -2,6 +2,8 @@ package ops
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 
 	"gitlab.com/fynbos/backend/providers/gatehub"
@@ -70,4 +72,16 @@ func GetOnboardingWidget(ctx context.Context, b Backends, ec external.Client, wa
 	}
 
 	return widget, nil
+}
+
+func getExternalUserID(ctx context.Context, b Backends, walletID string) (string, error) {
+	var externalID string
+	err := b.DB().GetContext(ctx, &externalID, "SELECT external_id FROM gatehub_users WHERE wallet_id=$1;", walletID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", fmt.Errorf("%w %s", gatehub.ErrNotFound, err)
+	} else if err != nil {
+		return "", fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	return externalID, err
 }
