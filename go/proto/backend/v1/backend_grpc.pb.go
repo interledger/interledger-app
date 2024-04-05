@@ -76,6 +76,7 @@ const (
 	BackendService_KYCStatus_FullMethodName                      = "/backend.v1.BackendService/KYCStatus"
 	BackendService_SetKYCStatusPending_FullMethodName            = "/backend.v1.BackendService/SetKYCStatusPending"
 	BackendService_GetPersonaInquiry_FullMethodName              = "/backend.v1.BackendService/GetPersonaInquiry"
+	BackendService_GetKYCProviderWidget_FullMethodName           = "/backend.v1.BackendService/GetKYCProviderWidget"
 	BackendService_CreateCard_FullMethodName                     = "/backend.v1.BackendService/CreateCard"
 	BackendService_GetCardDetails_FullMethodName                 = "/backend.v1.BackendService/GetCardDetails"
 	BackendService_ListFeatures_FullMethodName                   = "/backend.v1.BackendService/ListFeatures"
@@ -187,6 +188,7 @@ type BackendServiceClient interface {
 	KYCStatus(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*KYCStatusResponse, error)
 	SetKYCStatusPending(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
 	GetPersonaInquiry(ctx context.Context, in *KYCPersonaInquiryRequest, opts ...grpc.CallOption) (*KYCPersonaInquiryResponse, error)
+	GetKYCProviderWidget(ctx context.Context, in *GetKYCProviderWidgetRequest, opts ...grpc.CallOption) (*KYCProviderWidget, error)
 	// Basistheory
 	CreateCard(ctx context.Context, in *CreateCardRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
 	GetCardDetails(ctx context.Context, in *GetCardDetailsRequest, opts ...grpc.CallOption) (*CardDetails, error)
@@ -760,6 +762,15 @@ func (c *backendServiceClient) GetPersonaInquiry(ctx context.Context, in *KYCPer
 	return out, nil
 }
 
+func (c *backendServiceClient) GetKYCProviderWidget(ctx context.Context, in *GetKYCProviderWidgetRequest, opts ...grpc.CallOption) (*KYCProviderWidget, error) {
+	out := new(KYCProviderWidget)
+	err := c.cc.Invoke(ctx, BackendService_GetKYCProviderWidget_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *backendServiceClient) CreateCard(ctx context.Context, in *CreateCardRequest, opts ...grpc.CallOption) (*LinkedAccount, error) {
 	out := new(LinkedAccount)
 	err := c.cc.Invoke(ctx, BackendService_CreateCard_FullMethodName, in, out, opts...)
@@ -1149,6 +1160,7 @@ type BackendServiceServer interface {
 	KYCStatus(context.Context, *Empty) (*KYCStatusResponse, error)
 	SetKYCStatusPending(context.Context, *Empty) (*Empty, error)
 	GetPersonaInquiry(context.Context, *KYCPersonaInquiryRequest) (*KYCPersonaInquiryResponse, error)
+	GetKYCProviderWidget(context.Context, *GetKYCProviderWidgetRequest) (*KYCProviderWidget, error)
 	// Basistheory
 	CreateCard(context.Context, *CreateCardRequest) (*LinkedAccount, error)
 	GetCardDetails(context.Context, *GetCardDetailsRequest) (*CardDetails, error)
@@ -1375,6 +1387,9 @@ func (UnimplementedBackendServiceServer) SetKYCStatusPending(context.Context, *E
 }
 func (UnimplementedBackendServiceServer) GetPersonaInquiry(context.Context, *KYCPersonaInquiryRequest) (*KYCPersonaInquiryResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPersonaInquiry not implemented")
+}
+func (UnimplementedBackendServiceServer) GetKYCProviderWidget(context.Context, *GetKYCProviderWidgetRequest) (*KYCProviderWidget, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetKYCProviderWidget not implemented")
 }
 func (UnimplementedBackendServiceServer) CreateCard(context.Context, *CreateCardRequest) (*LinkedAccount, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateCard not implemented")
@@ -2519,6 +2534,24 @@ func _BackendService_GetPersonaInquiry_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_GetKYCProviderWidget_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetKYCProviderWidgetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).GetKYCProviderWidget(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_GetKYCProviderWidget_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).GetKYCProviderWidget(ctx, req.(*GetKYCProviderWidgetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _BackendService_CreateCard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateCardRequest)
 	if err := dec(in); err != nil {
@@ -3383,6 +3416,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetPersonaInquiry",
 			Handler:    _BackendService_GetPersonaInquiry_Handler,
+		},
+		{
+			MethodName: "GetKYCProviderWidget",
+			Handler:    _BackendService_GetKYCProviderWidget_Handler,
 		},
 		{
 			MethodName: "CreateCard",

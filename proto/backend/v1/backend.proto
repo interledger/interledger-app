@@ -95,6 +95,7 @@ service BackendService {
   rpc KYCStatus(Empty) returns (KYCStatusResponse);
   rpc SetKYCStatusPending(Empty) returns (Empty);
   rpc GetPersonaInquiry(KYCPersonaInquiryRequest) returns (KYCPersonaInquiryResponse);
+  rpc GetKYCProviderWidget(GetKYCProviderWidgetRequest) returns (KYCProviderWidget);
 
   // Basistheory
   rpc CreateCard(CreateCardRequest) returns (LinkedAccount);
@@ -162,6 +163,16 @@ service BackendService {
 
   // Gatehub
   rpc GetGatehubOnboardingWidget(Empty) returns (GatehubOnboardingWidget);
+}
+
+message GetKYCProviderWidgetRequest {
+  string idempotencyKey = 1;
+}
+
+message KYCProviderWidget {
+  string provider = 1;
+  GatehubOnboardingWidget gatehubWidget = 2;
+  KYCPersonaInquiryResponse personaInquiry = 3;
 }
 
 message GatehubOnboardingWidget {
