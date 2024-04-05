@@ -111,6 +111,16 @@ func (a *Activity) CreateGatehubWalletLinkedAccount(ctx context.Context, walletI
 		return nil, fmt.Errorf("%w Could not find a primary wallet for gatehub user", gatehub.ErrInternal)
 	}
 
+	las, err := a.b.LinkedAccounts().ListBalances(ctx, w.ID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+	for _, la := range las {
+		if la.Provider == gatehub.ProviderName && la.Type == gatehub.AccTypeBalance {
+			return &la, nil
+		}
+	}
+
 	la, err := a.b.LinkedAccounts().Create(ctx, &linkedaccounts.CreateArgs{
 		WalletID:        w.ID,
 		Type:            gatehub.AccTypeBalance,
