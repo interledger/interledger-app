@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"gitlab.com/fynbos/backend/providers/astra"
+	"gitlab.com/fynbos/backend/providers/gatehub"
 
 	pti "gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/providers/xago"
@@ -233,6 +234,10 @@ func (t TestContainer) Twitter() twitter.Client {
 }
 
 func (t TestContainer) PTI() pti.Client {
+	return nil
+}
+
+func (t TestContainer) Gatehub() gatehub.Client {
 	return nil
 }
 

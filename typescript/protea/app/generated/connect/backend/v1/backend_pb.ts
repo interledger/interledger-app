@@ -81,6 +81,129 @@ export class Empty extends Message<Empty> {
 }
 
 /**
+ * @generated from message backend.v1.GetKYCProviderWidgetRequest
+ */
+export class GetKYCProviderWidgetRequest extends Message<GetKYCProviderWidgetRequest> {
+  /**
+   * @generated from field: string idempotencyKey = 1;
+   */
+  idempotencyKey = "";
+
+  constructor(data?: PartialMessage<GetKYCProviderWidgetRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.GetKYCProviderWidgetRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "idempotencyKey", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetKYCProviderWidgetRequest {
+    return new GetKYCProviderWidgetRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetKYCProviderWidgetRequest {
+    return new GetKYCProviderWidgetRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetKYCProviderWidgetRequest {
+    return new GetKYCProviderWidgetRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetKYCProviderWidgetRequest | PlainMessage<GetKYCProviderWidgetRequest> | undefined, b: GetKYCProviderWidgetRequest | PlainMessage<GetKYCProviderWidgetRequest> | undefined): boolean {
+    return proto3.util.equals(GetKYCProviderWidgetRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.KYCProviderWidget
+ */
+export class KYCProviderWidget extends Message<KYCProviderWidget> {
+  /**
+   * @generated from field: string provider = 1;
+   */
+  provider = "";
+
+  /**
+   * @generated from field: backend.v1.GatehubOnboardingWidget gatehubWidget = 2;
+   */
+  gatehubWidget?: GatehubOnboardingWidget;
+
+  /**
+   * @generated from field: backend.v1.KYCPersonaInquiryResponse personaInquiry = 3;
+   */
+  personaInquiry?: KYCPersonaInquiryResponse;
+
+  constructor(data?: PartialMessage<KYCProviderWidget>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.KYCProviderWidget";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "provider", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "gatehubWidget", kind: "message", T: GatehubOnboardingWidget },
+    { no: 3, name: "personaInquiry", kind: "message", T: KYCPersonaInquiryResponse },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): KYCProviderWidget {
+    return new KYCProviderWidget().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): KYCProviderWidget {
+    return new KYCProviderWidget().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): KYCProviderWidget {
+    return new KYCProviderWidget().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: KYCProviderWidget | PlainMessage<KYCProviderWidget> | undefined, b: KYCProviderWidget | PlainMessage<KYCProviderWidget> | undefined): boolean {
+    return proto3.util.equals(KYCProviderWidget, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.GatehubOnboardingWidget
+ */
+export class GatehubOnboardingWidget extends Message<GatehubOnboardingWidget> {
+  /**
+   * @generated from field: string widgetUrl = 1;
+   */
+  widgetUrl = "";
+
+  constructor(data?: PartialMessage<GatehubOnboardingWidget>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.GatehubOnboardingWidget";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "widgetUrl", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GatehubOnboardingWidget {
+    return new GatehubOnboardingWidget().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GatehubOnboardingWidget {
+    return new GatehubOnboardingWidget().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GatehubOnboardingWidget {
+    return new GatehubOnboardingWidget().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GatehubOnboardingWidget | PlainMessage<GatehubOnboardingWidget> | undefined, b: GatehubOnboardingWidget | PlainMessage<GatehubOnboardingWidget> | undefined): boolean {
+    return proto3.util.equals(GatehubOnboardingWidget, a, b);
+  }
+}
+
+/**
  * @generated from message backend.v1.RevokeRafikiGrantRequest
  */
 export class RevokeRafikiGrantRequest extends Message<RevokeRafikiGrantRequest> {

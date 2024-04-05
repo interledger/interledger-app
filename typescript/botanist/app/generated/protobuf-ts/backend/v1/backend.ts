@@ -32,6 +32,41 @@ export interface PaginationRequest {
 export interface Empty {
 }
 /**
+ * @generated from protobuf message backend.v1.GetKYCProviderWidgetRequest
+ */
+export interface GetKYCProviderWidgetRequest {
+    /**
+     * @generated from protobuf field: string idempotencyKey = 1;
+     */
+    idempotencyKey: string;
+}
+/**
+ * @generated from protobuf message backend.v1.KYCProviderWidget
+ */
+export interface KYCProviderWidget {
+    /**
+     * @generated from protobuf field: string provider = 1;
+     */
+    provider: string;
+    /**
+     * @generated from protobuf field: backend.v1.GatehubOnboardingWidget gatehubWidget = 2;
+     */
+    gatehubWidget?: GatehubOnboardingWidget;
+    /**
+     * @generated from protobuf field: backend.v1.KYCPersonaInquiryResponse personaInquiry = 3;
+     */
+    personaInquiry?: KYCPersonaInquiryResponse;
+}
+/**
+ * @generated from protobuf message backend.v1.GatehubOnboardingWidget
+ */
+export interface GatehubOnboardingWidget {
+    /**
+     * @generated from protobuf field: string widgetUrl = 1;
+     */
+    widgetUrl: string;
+}
+/**
  * @generated from protobuf message backend.v1.RevokeRafikiGrantRequest
  */
 export interface RevokeRafikiGrantRequest {
@@ -2427,6 +2462,161 @@ class Empty$Type extends MessageType<Empty> {
  * @generated MessageType for protobuf message backend.v1.Empty
  */
 export const Empty = new Empty$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GetKYCProviderWidgetRequest$Type extends MessageType<GetKYCProviderWidgetRequest> {
+    constructor() {
+        super("backend.v1.GetKYCProviderWidgetRequest", [
+            { no: 1, name: "idempotencyKey", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<GetKYCProviderWidgetRequest>): GetKYCProviderWidgetRequest {
+        const message = { idempotencyKey: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GetKYCProviderWidgetRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetKYCProviderWidgetRequest): GetKYCProviderWidgetRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string idempotencyKey */ 1:
+                    message.idempotencyKey = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GetKYCProviderWidgetRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string idempotencyKey = 1; */
+        if (message.idempotencyKey !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.idempotencyKey);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.GetKYCProviderWidgetRequest
+ */
+export const GetKYCProviderWidgetRequest = new GetKYCProviderWidgetRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class KYCProviderWidget$Type extends MessageType<KYCProviderWidget> {
+    constructor() {
+        super("backend.v1.KYCProviderWidget", [
+            { no: 1, name: "provider", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "gatehubWidget", kind: "message", T: () => GatehubOnboardingWidget },
+            { no: 3, name: "personaInquiry", kind: "message", T: () => KYCPersonaInquiryResponse }
+        ]);
+    }
+    create(value?: PartialMessage<KYCProviderWidget>): KYCProviderWidget {
+        const message = { provider: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<KYCProviderWidget>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: KYCProviderWidget): KYCProviderWidget {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string provider */ 1:
+                    message.provider = reader.string();
+                    break;
+                case /* backend.v1.GatehubOnboardingWidget gatehubWidget */ 2:
+                    message.gatehubWidget = GatehubOnboardingWidget.internalBinaryRead(reader, reader.uint32(), options, message.gatehubWidget);
+                    break;
+                case /* backend.v1.KYCPersonaInquiryResponse personaInquiry */ 3:
+                    message.personaInquiry = KYCPersonaInquiryResponse.internalBinaryRead(reader, reader.uint32(), options, message.personaInquiry);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: KYCProviderWidget, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string provider = 1; */
+        if (message.provider !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.provider);
+        /* backend.v1.GatehubOnboardingWidget gatehubWidget = 2; */
+        if (message.gatehubWidget)
+            GatehubOnboardingWidget.internalBinaryWrite(message.gatehubWidget, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        /* backend.v1.KYCPersonaInquiryResponse personaInquiry = 3; */
+        if (message.personaInquiry)
+            KYCPersonaInquiryResponse.internalBinaryWrite(message.personaInquiry, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.KYCProviderWidget
+ */
+export const KYCProviderWidget = new KYCProviderWidget$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GatehubOnboardingWidget$Type extends MessageType<GatehubOnboardingWidget> {
+    constructor() {
+        super("backend.v1.GatehubOnboardingWidget", [
+            { no: 1, name: "widgetUrl", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<GatehubOnboardingWidget>): GatehubOnboardingWidget {
+        const message = { widgetUrl: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GatehubOnboardingWidget>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GatehubOnboardingWidget): GatehubOnboardingWidget {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string widgetUrl */ 1:
+                    message.widgetUrl = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GatehubOnboardingWidget, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string widgetUrl = 1; */
+        if (message.widgetUrl !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.widgetUrl);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.GatehubOnboardingWidget
+ */
+export const GatehubOnboardingWidget = new GatehubOnboardingWidget$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class RevokeRafikiGrantRequest$Type extends MessageType<RevokeRafikiGrantRequest> {
     constructor() {
@@ -10757,6 +10947,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "KYCStatus", options: {}, I: Empty, O: KYCStatusResponse },
     { name: "SetKYCStatusPending", options: {}, I: Empty, O: Empty },
     { name: "GetPersonaInquiry", options: {}, I: KYCPersonaInquiryRequest, O: KYCPersonaInquiryResponse },
+    { name: "GetKYCProviderWidget", options: {}, I: GetKYCProviderWidgetRequest, O: KYCProviderWidget },
     { name: "CreateCard", options: {}, I: CreateCardRequest, O: LinkedAccount },
     { name: "GetCardDetails", options: {}, I: GetCardDetailsRequest, O: CardDetails },
     { name: "ListFeatures", options: {}, I: Empty, O: Features },
@@ -10790,5 +10981,6 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "AstraWithdrawToCard", options: {}, I: AstraWithdrawToCardRequest, O: Payment },
     { name: "ListRafikiGrants", options: {}, I: Empty, O: ListRafikiGrantsResponse },
     { name: "GetRafikiGrant", options: {}, I: GetRafikiGrantRequest, O: RafikiGrant },
-    { name: "RevokeRafikiGrant", options: {}, I: RevokeRafikiGrantRequest, O: Empty }
+    { name: "RevokeRafikiGrant", options: {}, I: RevokeRafikiGrantRequest, O: Empty },
+    { name: "GetGatehubOnboardingWidget", options: {}, I: Empty, O: GatehubOnboardingWidget }
 ]);

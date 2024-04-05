@@ -69,6 +69,8 @@ import (
 	astra_client "gitlab.com/fynbos/backend/providers/astra/client"
 	"gitlab.com/fynbos/backend/providers/basistheory"
 	bt_client "gitlab.com/fynbos/backend/providers/basistheory/client"
+	"gitlab.com/fynbos/backend/providers/gatehub"
+	gatehub_client "gitlab.com/fynbos/backend/providers/gatehub/client"
 	"gitlab.com/fynbos/backend/providers/pti"
 	pti_client "gitlab.com/fynbos/backend/providers/pti/client"
 	pti_ops "gitlab.com/fynbos/backend/providers/pti/ops"
@@ -336,6 +338,12 @@ func migrate(args *cli.MigrationArgs) {
 			Asset: currency.USD.String(),
 			Scale: uint8(currency.USD.Scale()),
 		},
+		{
+			ID:    gatehub.LedgerIDEUR,
+			Name:  "Gatehub EUR Ledger",
+			Asset: currency.EUR.String(),
+			Scale: uint8(currency.EUR.Scale()),
+		},
 	})
 	if err != nil {
 		log.Fatalln(err)
@@ -455,6 +463,11 @@ type backends struct {
 	pac            pacioli.Client
 	pti            pti.Client
 	astr           astra.Client
+	gatehub        gatehub.Client
+}
+
+func (b backends) Gatehub() gatehub.Client {
+	return b.gatehub
 }
 
 func (b backends) Astra() astra.Client {
@@ -761,6 +774,8 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	b.astr = astra_client.New(b)
 
 	b.pti = pti_client.New(b)
+
+	b.gatehub = gatehub_client.New(b)
 
 	return b
 }
