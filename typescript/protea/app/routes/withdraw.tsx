@@ -25,6 +25,7 @@ import {
   Card,
   CardContent,
   CardIcon,
+  Dialog,
   Icon,
   Layouts,
   Router,
@@ -49,7 +50,26 @@ import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { PaySelect } from '~/routes/pay_.$paymentId/PaySelect'
 import styles from '~/styles/flags.css'
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader(args: LoaderFunctionArgs) {
+  const providerResponse = await grpc.getOnOffRampProvider(args.request, {})
+  if (isConnectError(providerResponse)) throw providerResponse.error
+
+  if (providerResponse.provider == 'gatehub') {
+    return gatehubWithdrawalLoader(args)
+  } else return fynbosWithdrawalLoader(args)
+}
+
+async function gatehubWithdrawalLoader({ request }: LoaderFunctionArgs) {
+  const widgetResponse = await grpc.getGatehubWithdrawalWidget(request, {})
+  if (isConnectError(widgetResponse)) throw widgetResponse.error
+
+  return jsonWithCSRF(request, {
+    provider: 'gatehub',
+    gatehubWidgetUrl: widgetResponse.widgetUrl
+  })
+}
+
+async function fynbosWithdrawalLoader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
 
   const balanceResponse = await grpc.getBalances(request, {})
@@ -77,6 +97,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   )
 
   return jsonWithCSRF(request, {
+    provider: 'fynbos',
     balanceAccount,
     balance,
     balances,
@@ -105,7 +126,28 @@ export function links() {
 }
 
 export default function Page() {
-  const { linkedAccounts } = useLoaderData<typeof loader>()
+  const { provider } = useLoaderData<typeof loader>()
+
+  if (provider == 'gatehub') {
+    return <GatehubWithdrawalPage />
+  } else return <FynbosWithdrawalPage />
+}
+
+function GatehubWithdrawalPage() {
+  const { gatehubWidgetUrl } = useLoaderData<typeof gatehubWithdrawalLoader>()
+
+  return <iframe
+    title='Withdraw'
+    src={gatehubWidgetUrl}
+    sandbox='allow-top-navigation allow-forms allow-same-origin allow-popups allow-scripts'
+    scrolling='no'
+    frameBorder='0'
+    className='h-[750px]'
+  />
+}
+
+function FynbosWithdrawalPage() {
+  const { linkedAccounts } = useLoaderData<typeof fynbosWithdrawalLoader>()
 
   const [setLoading] = useScaffoldStore((state) => [state.setLoading])
 
@@ -155,7 +197,7 @@ const formatAmount = (amount?: PlainMessage<RpcAmount>): string => {
 
 const Amount = () => {
   const { balance, balances, balanceAccount, linkedAccounts, csrfToken } =
-    useLoaderData<typeof loader>()
+    useLoaderData<typeof fynbosWithdrawalLoader>()
   const [, setSearchParams] = useSearchParams()
   const actionData = useActionData<typeof action>()
 
