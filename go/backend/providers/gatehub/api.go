@@ -5,6 +5,7 @@ import "context"
 type Client interface {
 	CreateUser(ctx context.Context, walletID string) (Await, error)
 	GetOnboardingWidget(ctx context.Context, walletID string) (string, error)
+	GetOnOffRampWidget(ctx context.Context, walletID string, isDeposit bool) (string, error)
 	GetBalance(ctx context.Context, linkedAccountID string) (*Balance, error)
 }
 

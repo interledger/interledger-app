@@ -75,6 +75,30 @@ func GetOnboardingWidget(ctx context.Context, b Backends, ec external.Client, wa
 	return widget, nil
 }
 
+func GetOnOffRampWidget(ctx context.Context, b Backends, ec external.Client, walletID string, isDeposit bool) (string, error) {
+	externalUserID, err := getExternalUserID(ctx, b, walletID)
+	if errors.Is(err, gatehub.ErrNotFound) {
+		await, innerErr := CreateUser(ctx, b, walletID)
+		if innerErr != nil {
+			return "", innerErr
+		}
+
+		innerErr = await(ctx, &externalUserID)
+		if innerErr != nil {
+			return "", fmt.Errorf("%w %s", gatehub.ErrInternal, innerErr)
+		}
+	} else if err != nil {
+		return "", err
+	}
+
+	widget, err := ec.GetOnOffRampWidget(ctx, externalUserID, isDeposit)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	return widget, nil
+}
+
 func getExternalUserID(ctx context.Context, b Backends, walletID string) (string, error) {
 	var externalID string
 	err := b.DB().GetContext(ctx, &externalID, "SELECT external_id FROM gatehub_users WHERE wallet_id=$1;", walletID)

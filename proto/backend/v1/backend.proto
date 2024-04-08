@@ -162,7 +162,14 @@ service BackendService {
   rpc RevokeRafikiGrant(RevokeRafikiGrantRequest) returns (Empty);
 
   // Gatehub
-  rpc GetGatehubOnboardingWidget(Empty) returns (GatehubOnboardingWidget);
+  rpc GetGatehubOnboardingWidget(Empty) returns (GatehubWidget);
+  rpc GetOnOffRampProvider(Empty) returns (GetOnOffRampProviderResponse);
+  rpc GetGatehubDepositWidget(Empty) returns (GatehubWidget);
+  rpc GetGatehubWithdrawalWidget(Empty) returns (GatehubWidget);
+}
+
+message GetOnOffRampProviderResponse {
+  string provider = 1;
 }
 
 message GetKYCProviderWidgetRequest {
@@ -171,11 +178,11 @@ message GetKYCProviderWidgetRequest {
 
 message KYCProviderWidget {
   string provider = 1;
-  GatehubOnboardingWidget gatehubWidget = 2;
+  GatehubWidget gatehubWidget = 2;
   KYCPersonaInquiryResponse personaInquiry = 3;
 }
 
-message GatehubOnboardingWidget {
+message GatehubWidget {
   string widgetUrl = 1;
 }
 

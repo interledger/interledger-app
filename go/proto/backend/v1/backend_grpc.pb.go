@@ -112,6 +112,9 @@ const (
 	BackendService_GetRafikiGrant_FullMethodName                 = "/backend.v1.BackendService/GetRafikiGrant"
 	BackendService_RevokeRafikiGrant_FullMethodName              = "/backend.v1.BackendService/RevokeRafikiGrant"
 	BackendService_GetGatehubOnboardingWidget_FullMethodName     = "/backend.v1.BackendService/GetGatehubOnboardingWidget"
+	BackendService_GetOnOffRampProvider_FullMethodName           = "/backend.v1.BackendService/GetOnOffRampProvider"
+	BackendService_GetGatehubDepositWidget_FullMethodName        = "/backend.v1.BackendService/GetGatehubDepositWidget"
+	BackendService_GetGatehubWithdrawalWidget_FullMethodName     = "/backend.v1.BackendService/GetGatehubWithdrawalWidget"
 )
 
 // BackendServiceClient is the client API for BackendService service.
@@ -238,7 +241,10 @@ type BackendServiceClient interface {
 	GetRafikiGrant(ctx context.Context, in *GetRafikiGrantRequest, opts ...grpc.CallOption) (*RafikiGrant, error)
 	RevokeRafikiGrant(ctx context.Context, in *RevokeRafikiGrantRequest, opts ...grpc.CallOption) (*Empty, error)
 	// Gatehub
-	GetGatehubOnboardingWidget(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GatehubOnboardingWidget, error)
+	GetGatehubOnboardingWidget(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GatehubWidget, error)
+	GetOnOffRampProvider(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetOnOffRampProviderResponse, error)
+	GetGatehubDepositWidget(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GatehubWidget, error)
+	GetGatehubWithdrawalWidget(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GatehubWidget, error)
 }
 
 type backendServiceClient struct {
@@ -1077,9 +1083,36 @@ func (c *backendServiceClient) RevokeRafikiGrant(ctx context.Context, in *Revoke
 	return out, nil
 }
 
-func (c *backendServiceClient) GetGatehubOnboardingWidget(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GatehubOnboardingWidget, error) {
-	out := new(GatehubOnboardingWidget)
+func (c *backendServiceClient) GetGatehubOnboardingWidget(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GatehubWidget, error) {
+	out := new(GatehubWidget)
 	err := c.cc.Invoke(ctx, BackendService_GetGatehubOnboardingWidget_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) GetOnOffRampProvider(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetOnOffRampProviderResponse, error) {
+	out := new(GetOnOffRampProviderResponse)
+	err := c.cc.Invoke(ctx, BackendService_GetOnOffRampProvider_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) GetGatehubDepositWidget(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GatehubWidget, error) {
+	out := new(GatehubWidget)
+	err := c.cc.Invoke(ctx, BackendService_GetGatehubDepositWidget_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) GetGatehubWithdrawalWidget(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GatehubWidget, error) {
+	out := new(GatehubWidget)
+	err := c.cc.Invoke(ctx, BackendService_GetGatehubWithdrawalWidget_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1210,7 +1243,10 @@ type BackendServiceServer interface {
 	GetRafikiGrant(context.Context, *GetRafikiGrantRequest) (*RafikiGrant, error)
 	RevokeRafikiGrant(context.Context, *RevokeRafikiGrantRequest) (*Empty, error)
 	// Gatehub
-	GetGatehubOnboardingWidget(context.Context, *Empty) (*GatehubOnboardingWidget, error)
+	GetGatehubOnboardingWidget(context.Context, *Empty) (*GatehubWidget, error)
+	GetOnOffRampProvider(context.Context, *Empty) (*GetOnOffRampProviderResponse, error)
+	GetGatehubDepositWidget(context.Context, *Empty) (*GatehubWidget, error)
+	GetGatehubWithdrawalWidget(context.Context, *Empty) (*GatehubWidget, error)
 }
 
 // UnimplementedBackendServiceServer should be embedded to have forward compatible implementations.
@@ -1493,8 +1529,17 @@ func (UnimplementedBackendServiceServer) GetRafikiGrant(context.Context, *GetRaf
 func (UnimplementedBackendServiceServer) RevokeRafikiGrant(context.Context, *RevokeRafikiGrantRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RevokeRafikiGrant not implemented")
 }
-func (UnimplementedBackendServiceServer) GetGatehubOnboardingWidget(context.Context, *Empty) (*GatehubOnboardingWidget, error) {
+func (UnimplementedBackendServiceServer) GetGatehubOnboardingWidget(context.Context, *Empty) (*GatehubWidget, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetGatehubOnboardingWidget not implemented")
+}
+func (UnimplementedBackendServiceServer) GetOnOffRampProvider(context.Context, *Empty) (*GetOnOffRampProviderResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOnOffRampProvider not implemented")
+}
+func (UnimplementedBackendServiceServer) GetGatehubDepositWidget(context.Context, *Empty) (*GatehubWidget, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetGatehubDepositWidget not implemented")
+}
+func (UnimplementedBackendServiceServer) GetGatehubWithdrawalWidget(context.Context, *Empty) (*GatehubWidget, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetGatehubWithdrawalWidget not implemented")
 }
 
 // UnsafeBackendServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -3182,6 +3227,60 @@ func _BackendService_GetGatehubOnboardingWidget_Handler(srv interface{}, ctx con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_GetOnOffRampProvider_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).GetOnOffRampProvider(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_GetOnOffRampProvider_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).GetOnOffRampProvider(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_GetGatehubDepositWidget_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).GetGatehubDepositWidget(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_GetGatehubDepositWidget_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).GetGatehubDepositWidget(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_GetGatehubWithdrawalWidget_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).GetGatehubWithdrawalWidget(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_GetGatehubWithdrawalWidget_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).GetGatehubWithdrawalWidget(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BackendService_ServiceDesc is the grpc.ServiceDesc for BackendService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -3560,6 +3659,18 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetGatehubOnboardingWidget",
 			Handler:    _BackendService_GetGatehubOnboardingWidget_Handler,
+		},
+		{
+			MethodName: "GetOnOffRampProvider",
+			Handler:    _BackendService_GetOnOffRampProvider_Handler,
+		},
+		{
+			MethodName: "GetGatehubDepositWidget",
+			Handler:    _BackendService_GetGatehubDepositWidget_Handler,
+		},
+		{
+			MethodName: "GetGatehubWithdrawalWidget",
+			Handler:    _BackendService_GetGatehubWithdrawalWidget_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

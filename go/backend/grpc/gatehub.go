@@ -9,7 +9,7 @@ import (
 
 func (r *rpcService) GetGatehubOnboardingWidget(
 	ctx context.Context, req *pb.Empty,
-) (*pb.GatehubOnboardingWidget, error) {
+) (*pb.GatehubWidget, error) {
 	_, err := r.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, UnauthenticatedError("Unauthenticated.")
@@ -30,7 +30,63 @@ func (r *rpcService) GetGatehubOnboardingWidget(
 		return nil, toGRPCError(err)
 	}
 
-	return &pb.GatehubOnboardingWidget{
+	return &pb.GatehubWidget{
+		WidgetUrl: widget,
+	}, nil
+}
+
+func (r *rpcService) GetGatehubDepositWidget(
+	ctx context.Context, req *pb.Empty,
+) (*pb.GatehubWidget, error) {
+	_, err := r.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	wallet, err := r.b.Wallets().ForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	_, isEU := country.EUCountries[wallet.Country]
+	if !isEU {
+		return nil, toGRPCError(FailedPreconditionError("Wallet not in the EU region"))
+	}
+
+	widget, err := r.b.Gatehub().GetOnOffRampWidget(ctx, wallet.ID, true)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &pb.GatehubWidget{
+		WidgetUrl: widget,
+	}, nil
+}
+
+func (r *rpcService) GetGatehubWithdrawalWidget(
+	ctx context.Context, req *pb.Empty,
+) (*pb.GatehubWidget, error) {
+	_, err := r.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	wallet, err := r.b.Wallets().ForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	_, isEU := country.EUCountries[wallet.Country]
+	if !isEU {
+		return nil, toGRPCError(FailedPreconditionError("Wallet not in the EU region"))
+	}
+
+	widget, err := r.b.Gatehub().GetOnOffRampWidget(ctx, wallet.ID, false)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &pb.GatehubWidget{
 		WidgetUrl: widget,
 	}, nil
 }

@@ -47,7 +47,7 @@ func (s *rpcService) GetKYCProviderWidget(ctx context.Context, req *pb.GetKYCPro
 
 		return &pb.KYCProviderWidget{
 			Provider: gatehub.ProviderName,
-			GatehubWidget: &pb.GatehubOnboardingWidget{
+			GatehubWidget: &pb.GatehubWidget{
 				WidgetUrl: onboardingWidget,
 			},
 		}, nil
