@@ -703,20 +703,75 @@ const HeaderPopover: FC = () => {
                 <Popover.Button
                   as={CardLink}
                   to='/wallet'
-                  className='flex flex-col space-y-1'
+                  className='flex gap-2 rounded-xl p-3 hover:bg-nav focus-visible:outline-2 focus-visible:outline-focus'
                 >
-                  <p className='text-sm font-medium text-strong'>Wallet</p>
-                  <p className='text-sm text-weak'>
-                    Send money as easily email.
-                  </p>
+                  <svg
+                    width='24'
+                    height='24'
+                    viewBox='0 0 24 24'
+                    fill='none'
+                    xmlns='http://www.w3.org/2000/svg'
+                  >
+                    <path
+                      d='M12 18C12 14.6863 14.6863 12 18 12C21.3137 12 24 14.6863 24 18C24 21.3137 21.3137 24 18 24C14.6863 24 12 21.3137 12 18Z'
+                      fill='#FED7AA'
+                    />
+                    <path
+                      d='M0 12C0 5.37258 5.37258 0 12 0V18C12 21.3137 9.31371 24 6 24C2.68629 24 0 21.3137 0 18V12Z'
+                      fill='#F97316'
+                    />
+                    <path
+                      d='M12 0H24V6C24 9.31371 21.3137 12 18 12C14.6863 12 12 9.31371 12 6V0Z'
+                      fill='#FB923C'
+                    />
+                    <path
+                      d='M0 18C0 14.6863 2.68629 12 6 12C9.31371 12 12 14.6863 12 18C12 21.3137 9.31371 24 6 24C2.68629 24 0 21.3137 0 18Z'
+                      fill='#F1F5F9'
+                    />
+                  </svg>
+                  <div className='flex flex-col gap-2'>
+                    <p className='text-sm font-medium text-strong'>Wallet</p>
+                    <p className='text-sm text-weak'>
+                      Send money as easily as email.
+                    </p>
+                  </div>
                 </Popover.Button>
                 <Popover.Button
                   as={CardLink}
                   to='https://wealth.fynbos.app'
-                  className='flex flex-col space-y-1'
+                  className='flex gap-2 rounded-xl p-3 hover:bg-nav focus-visible:outline-2 focus-visible:outline-focus'
                 >
-                  <p className='text-sm font-medium text-strong'>Wealth</p>
-                  <p className='text-sm text-weak'>Grow your wealth easily.</p>
+                  <svg
+                    width='24'
+                    height='24'
+                    viewBox='0 0 24 24'
+                    fill='none'
+                    xmlns='http://www.w3.org/2000/svg'
+                  >
+                    <path
+                      d='M12 12C12 5.37258 17.3726 0 24 0V12C24 18.6274 18.6274 24 12 24V12Z'
+                      fill='#84CC16'
+                    />
+                    <path
+                      d='M0 6C0 2.68629 2.68629 0 6 0C9.31371 0 12 2.68629 12 6V12H0V6Z'
+                      fill='#A3E635'
+                    />
+                    <path
+                      d='M0 12C0 8.68629 2.68629 6 6 6C9.31371 6 12 8.68629 12 12C12 15.3137 9.31371 18 6 18C2.68629 18 0 15.3137 0 12Z'
+                      fill='#F1F5F9'
+                    />
+                    <path
+                      d='M0 12C6.62742 12 12 17.3726 12 24C5.37258 24 0 18.6274 0 12Z'
+                      fill='#A3E635'
+                    />
+                  </svg>
+
+                  <div className='flex flex-col gap-2'>
+                    <p className='text-sm font-medium text-strong'>Wealth</p>
+                    <p className='text-sm text-weak'>
+                      Grow your wealth easily.
+                    </p>
+                  </div>
                 </Popover.Button>
               </div>
             </Popover.Panel>
@@ -731,7 +786,7 @@ interface ButtonProps extends MotionProps {
   shrink?: boolean // sm:max-w-fit
 }
 
-export const FAB = forwardRef<any, ButtonProps>(
+export const FAB = forwardRef<never, ButtonProps>(
   ({ children, shrink, ...buttonProps }, ref) => {
     return (
       <motion.button
