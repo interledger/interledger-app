@@ -4,7 +4,8 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { BackendService } from "./backend";
-import type { GatehubOnboardingWidget } from "./backend";
+import type { GetOnOffRampProviderResponse } from "./backend";
+import type { GatehubWidget } from "./backend";
 import type { RevokeRafikiGrantRequest } from "./backend";
 import type { RafikiGrant } from "./backend";
 import type { GetRafikiGrantRequest } from "./backend";
@@ -556,9 +557,21 @@ export interface IBackendServiceClient {
     /**
      * Gatehub
      *
-     * @generated from protobuf rpc: GetGatehubOnboardingWidget(backend.v1.Empty) returns (backend.v1.GatehubOnboardingWidget);
+     * @generated from protobuf rpc: GetGatehubOnboardingWidget(backend.v1.Empty) returns (backend.v1.GatehubWidget);
      */
-    getGatehubOnboardingWidget(input: Empty, options?: RpcOptions): UnaryCall<Empty, GatehubOnboardingWidget>;
+    getGatehubOnboardingWidget(input: Empty, options?: RpcOptions): UnaryCall<Empty, GatehubWidget>;
+    /**
+     * @generated from protobuf rpc: GetOnOffRampProvider(backend.v1.Empty) returns (backend.v1.GetOnOffRampProviderResponse);
+     */
+    getOnOffRampProvider(input: Empty, options?: RpcOptions): UnaryCall<Empty, GetOnOffRampProviderResponse>;
+    /**
+     * @generated from protobuf rpc: GetGatehubDepositWidget(backend.v1.Empty) returns (backend.v1.GatehubWidget);
+     */
+    getGatehubDepositWidget(input: Empty, options?: RpcOptions): UnaryCall<Empty, GatehubWidget>;
+    /**
+     * @generated from protobuf rpc: GetGatehubWithdrawalWidget(backend.v1.Empty) returns (backend.v1.GatehubWidget);
+     */
+    getGatehubWithdrawalWidget(input: Empty, options?: RpcOptions): UnaryCall<Empty, GatehubWidget>;
 }
 /**
  * @generated from protobuf service backend.v1.BackendService
@@ -1270,10 +1283,31 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
     /**
      * Gatehub
      *
-     * @generated from protobuf rpc: GetGatehubOnboardingWidget(backend.v1.Empty) returns (backend.v1.GatehubOnboardingWidget);
+     * @generated from protobuf rpc: GetGatehubOnboardingWidget(backend.v1.Empty) returns (backend.v1.GatehubWidget);
      */
-    getGatehubOnboardingWidget(input: Empty, options?: RpcOptions): UnaryCall<Empty, GatehubOnboardingWidget> {
+    getGatehubOnboardingWidget(input: Empty, options?: RpcOptions): UnaryCall<Empty, GatehubWidget> {
         const method = this.methods[92], opt = this._transport.mergeOptions(options);
-        return stackIntercept<Empty, GatehubOnboardingWidget>("unary", this._transport, method, opt, input);
+        return stackIntercept<Empty, GatehubWidget>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: GetOnOffRampProvider(backend.v1.Empty) returns (backend.v1.GetOnOffRampProviderResponse);
+     */
+    getOnOffRampProvider(input: Empty, options?: RpcOptions): UnaryCall<Empty, GetOnOffRampProviderResponse> {
+        const method = this.methods[93], opt = this._transport.mergeOptions(options);
+        return stackIntercept<Empty, GetOnOffRampProviderResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: GetGatehubDepositWidget(backend.v1.Empty) returns (backend.v1.GatehubWidget);
+     */
+    getGatehubDepositWidget(input: Empty, options?: RpcOptions): UnaryCall<Empty, GatehubWidget> {
+        const method = this.methods[94], opt = this._transport.mergeOptions(options);
+        return stackIntercept<Empty, GatehubWidget>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: GetGatehubWithdrawalWidget(backend.v1.Empty) returns (backend.v1.GatehubWidget);
+     */
+    getGatehubWithdrawalWidget(input: Empty, options?: RpcOptions): UnaryCall<Empty, GatehubWidget> {
+        const method = this.methods[95], opt = this._transport.mergeOptions(options);
+        return stackIntercept<Empty, GatehubWidget>("unary", this._transport, method, opt, input);
     }
 }

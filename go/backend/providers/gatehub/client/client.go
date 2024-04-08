@@ -42,6 +42,10 @@ func (c Client) GetOnboardingWidget(ctx context.Context, walletID string) (strin
 	return ops.GetOnboardingWidget(ctx, c.b, c.external, walletID)
 }
 
+func (c Client) GetOnOffRampWidget(ctx context.Context, walletID string, isDeposit bool) (string, error) {
+	return ops.GetOnOffRampWidget(ctx, c.b, c.external, walletID, isDeposit)
+}
+
 func (c Client) GetBalance(ctx context.Context, linkedAccountID string) (*gatehub.Balance, error) {
 	return ops.GetBalance(ctx, c.b, linkedAccountID)
 }

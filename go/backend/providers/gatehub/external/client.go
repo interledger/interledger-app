@@ -34,6 +34,7 @@ type client struct {
 	apiSecret          string
 	baseURL            string
 	onboardingBaseURL  string
+	onOffRampBaseURL   string
 
 	api *http.Client
 }
@@ -44,12 +45,14 @@ func NewClient(appID, secret string, transport *http.Client) Client {
 	exchangeClientID := "4e28d4df-22d7-414c-97a3-d71956df29ba"
 	baseURL := "https://api.sandbox.gatehub.net"
 	onboardingBaseURL := "https://onboarding.sandbox.gatehub.net"
+	onOffRampBaseURL := "https://managed-ramp.sandbox.gatehub.net"
 	if env.IsProd() {
 		onOffRampClientID = "f4c8f30f-7fc3-4aa1-8573-520cb67565e3"
 		onboardingClientID = "40a22fc5-9091-4c6f-aff6-a3fddf475b331"
 		exchangeClientID = "50e7c590-f6f9-4fa9-9498-260bd978c5d6"
 		baseURL = "https://api.gatehub.net"
 		onboardingBaseURL = "https://onboarding.gatehub.net"
+		onOffRampBaseURL = "https://managed-ramp.gatehub.net"
 	}
 
 	api := otelhttp.DefaultClient
@@ -65,6 +68,7 @@ func NewClient(appID, secret string, transport *http.Client) Client {
 		apiSecret:          secret,
 		baseURL:            baseURL,
 		onboardingBaseURL:  onboardingBaseURL,
+		onOffRampBaseURL:   onOffRampBaseURL,
 		api:                api,
 	}
 }
@@ -76,6 +80,20 @@ func (c *client) GetOnboardingWidget(ctx context.Context, userID string) (string
 	}
 
 	return fmt.Sprintf("%s?bearer=%s", c.onboardingBaseURL, token.Token), nil
+}
+
+func (c *client) GetOnOffRampWidget(ctx context.Context, userID string, isDeposit bool) (string, error) {
+	token, err := c.IssueToken(ctx, userID, OnOffRamp)
+	if err != nil {
+		return "", err
+	}
+
+	paymentType := "deposit"
+	if !isDeposit {
+		paymentType = "withdrawal"
+	}
+
+	return fmt.Sprintf("%s?paymentType=%s&bearer=%s", c.onOffRampBaseURL, paymentType, token.Token), nil
 }
 
 func (c *client) IssueToken(ctx context.Context, userID string, product Product) (*IssueTokenResponse, error) {
