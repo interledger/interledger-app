@@ -65,6 +65,14 @@ plugin "raw_exec" {
   }
 }
 
+plugin "docker" {
+  config {
+    auth {
+      config = "/home/vagrant/.docker/config.json"
+    }
+  }
+}
+
 consul {
   address = "10.9.99.10:8500"
 }
