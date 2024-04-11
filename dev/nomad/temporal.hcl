@@ -25,7 +25,7 @@ job "temporal" {
     task "temporal" {
       driver = "docker"
       config {
-        image = "temporal:local"
+        image = "localhost:5002/temporal"
       }
 
       resources {
