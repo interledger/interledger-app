@@ -46,6 +46,32 @@ job "kratos" {
       }
     }
 
+    task "kratos-migrate" {
+      driver = "docker"
+
+      config {
+        image   = "oryd/kratos:v1.0.0"
+        args    = [
+          "migrate",
+          "sql",
+          "-e",
+          "--yes",
+          "--config",
+          "/local/kratos.yml"
+        ]
+      }
+
+      template {
+        data = file("kratos.yml")
+        destination = "local/kratos.yml"
+      }
+
+      lifecycle {
+        hook    = "prestart"
+        sidecar = false
+      }
+    }
+
     task "kratos" {
       driver = "docker"
 
