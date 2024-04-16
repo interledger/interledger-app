@@ -22,5 +22,6 @@ typescript/**/node_modules
 testmigrations
 
 .env
+*.env
 
 **/.vagrant

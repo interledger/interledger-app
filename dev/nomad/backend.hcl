@@ -38,6 +38,14 @@ job "backend" {
     }
 
     service {
+      name = "backend-admin"
+      port = 8448
+      connect {
+        sidecar_service {}
+      }
+    }
+
+    service {
       connect {
         sidecar_service {
           proxy {
