@@ -9,7 +9,10 @@ job "protea" {
     network {
       mode = "bridge"
       port "http" {
-        to = 8080
+        to = 3000
+      }
+      port "websocket" {
+        to = 8002
       }
     }
 
@@ -36,6 +39,24 @@ job "protea" {
           }
         }
       }
+    }
+
+    service {
+      name = "protea"
+      port = "http"
+      tags = [
+        "traefik.enable=true",
+        "traefik.http.routers.protea.rule=Host(`fynbos.test`)"
+      ]
+    }
+
+    service {
+      name = "protea-ws"
+      port = "websocket"
+      tags = [
+        "traefik.enable=true",
+        "traefik.http.routers.protea-ws.rule=Host(`fynbos.test`) && PathPrefix(`/socket`)"
+      ]
     }
 
     task "protea" {
