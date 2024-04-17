@@ -15,10 +15,17 @@ job "traefik" {
     }
 
     service {
-      name = "traefik-http"
+      name = "traefik"
+      check {
+        name     = "alive"
+        type     = "tcp"
+        port     = "http"
+        interval = "10s"
+        timeout  = "2s"
+      }
     }
 
-    task "server" {
+    task "traefik" {
       driver = "docker"
       config {
         image = "traefik:2.10"
@@ -33,9 +40,12 @@ job "traefik" {
         data = <<EOF
 [entryPoints]
     [entryPoints.http]
-    address = ":80"
+      address = ":80"
     [entryPoints.traefik]
-    address = "127.0.0.1:8080"
+      address = "127.0.0.1::8080"
+
+[log]
+  level = "DEBUG"
 
 [api]
     dashboard = true
