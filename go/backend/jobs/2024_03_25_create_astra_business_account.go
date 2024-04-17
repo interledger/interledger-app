@@ -28,31 +28,31 @@ func CreateAstraBusinessProfile(ctx workflow.Context) error {
 	logger := workflow.GetLogger(ctx)
 	logger.Info("CreateAstraBusinessProfile workflow started")
 
-	var exists bool
-	err := workflow.ExecuteActivity(ctx, a.IntentExists).Get(ctx, &exists)
-	if err != nil {
-		return err
-	}
+	// var exists bool
+	// err := workflow.ExecuteActivity(ctx, a.IntentExists).Get(ctx, &exists)
+	// if err != nil {
+	// 	return err
+	// }
 
-	if exists {
-		return nil
-	}
+	// if exists {
+	// 	return nil
+	// }
 
-	var externalID string
-	err = workflow.ExecuteActivity(ctx, a.CreateExternalBusinessAccount).Get(ctx, &externalID)
-	if err != nil {
-		return err
-	}
+	// var externalID string
+	// err = workflow.ExecuteActivity(ctx, a.CreateExternalBusinessAccount).Get(ctx, &externalID)
+	// if err != nil {
+	// 	return err
+	// }
 
-	err = workflow.ExecuteActivity(ctx, a.SaveIntent, externalID).Get(ctx, nil)
-	if err != nil {
-		return err
-	}
+	// err = workflow.ExecuteActivity(ctx, a.SaveIntent, externalID).Get(ctx, nil)
+	// if err != nil {
+	// 	return err
+	// }
 
-	err = workflow.ExecuteActivity(ctx, a.NotifySlack, externalID).Get(ctx, nil)
-	if err != nil {
-		return err
-	}
+	// err = workflow.ExecuteActivity(ctx, a.NotifySlack, externalID).Get(ctx, nil)
+	// if err != nil {
+	// 	return err
+	// }
 
 	var code string
 	signalChan := workflow.GetSignalChannel(ctx, "temp-astra")
@@ -63,7 +63,7 @@ func CreateAstraBusinessProfile(ctx workflow.Context) error {
 		}
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.ExchangeCode, code).Get(ctx, nil)
+	err := workflow.ExecuteActivity(ctx, a.ExchangeCode, code).Get(ctx, nil)
 	if err != nil {
 		return err
 	}
