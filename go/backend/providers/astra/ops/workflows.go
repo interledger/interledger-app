@@ -98,8 +98,8 @@ func (a *Activity) CreateAccount(ctx context.Context, walletID string) error {
 	acc, err := a.b.External().AddAccount(ctx, token, external.CreateAccountArgs{
 		BankAccountType: external.AccountTypeChecking,
 		Name:            "Universal",
-		AccountNumber:   astra.AccountNumber,
-		RoutingNumber:   astra.RoutingNumber,
+		AccountNumber:   astra.AccountNumber(),
+		RoutingNumber:   astra.RoutingNumber(),
 	})
 	if err != nil {
 		return err

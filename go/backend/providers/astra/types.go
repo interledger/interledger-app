@@ -2,17 +2,52 @@ package astra
 
 import (
 	"context"
+	"os"
+	"sync"
 
 	"gitlab.com/fynbos/backend/currency"
+	"gitlab.com/fynbos/env"
 )
 
 const (
 	ProviderName = "astra"
 	TypeCard     = "card"
-
-	AccountNumber = "90643128"  // TODO: Get real values
-	RoutingNumber = "434253106" // TODO: Get real values
 )
+
+var (
+	accountNumber string
+	routingNumber string
+
+	once = sync.Once{}
+)
+
+func AccountNumber() string {
+	once.Do(func() {
+		if env.IsProd() {
+			accountNumber = os.Getenv("ASTRA_ACCOUNT_NUMBER")
+			routingNumber = os.Getenv("ASTRA_ROUTING_NUMBER")
+		} else {
+			accountNumber = "90643128"
+			routingNumber = "434253106"
+		}
+	})
+
+	return accountNumber
+}
+
+func RoutingNumber() string {
+	once.Do(func() {
+		if env.IsProd() {
+			accountNumber = os.Getenv("ASTRA_ACCOUNT_NUMBER")
+			routingNumber = os.Getenv("ASTRA_ROUTING_NUMBER")
+		} else {
+			accountNumber = "90643128"
+			routingNumber = "434253106"
+		}
+	})
+
+	return routingNumber
+}
 
 type TransferStatus string
 

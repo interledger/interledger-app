@@ -992,7 +992,7 @@ func (c client) WalletDeposit(ctx context.Context, args DepositArgs) (string, er
 			Currency: args.Amount.Currency.String(),
 			PaymentInformation: PaymentInformation{
 				Type:              "BANK_ACCOUNT",
-				BankAccountNumber: astra.AccountNumber,
+				BankAccountNumber: astra.AccountNumber(),
 			},
 			PaymentMethodType: "FIAT",
 		},
@@ -1091,7 +1091,7 @@ func (c client) WalletWithdrawal(ctx context.Context, args WithdrawalArgs) (stri
 			PaymentMethodType: "FIAT",
 			PaymentInformation: PaymentInformation{
 				Type:              "BANK_ACCOUNT",
-				BankAccountNumber: astra.AccountNumber,
+				BankAccountNumber: astra.AccountNumber(),
 			},
 		},
 		Amount: args.Amount.Float64(),
