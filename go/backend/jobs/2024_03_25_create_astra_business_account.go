@@ -147,7 +147,7 @@ func (a *Activity) CreateExternalBusinessAccount(ctx context.Context) (string, e
 		Phone:     "+13475834006",
 		FirstName: "Adrian",
 		LastName:  "Hope-Bailie",
-		Email:     "adrian@fynbos.dev",
+		Email:     "adrian+astra@fynbos.dev",
 		BeneficialOwners: []external.BeneficialOwners{
 			{
 				FirstName:   "Adrian",
