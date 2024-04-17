@@ -19,7 +19,7 @@ import (
 )
 
 func CreateAstraBusinessProfile(ctx workflow.Context) error {
-	//var a *Activity
+	var a *Activity
 	var asrtaActivity *ops.Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 10 * time.Minute,
@@ -27,48 +27,48 @@ func CreateAstraBusinessProfile(ctx workflow.Context) error {
 	ctx = workflow.WithActivityOptions(ctx, ao)
 	logger := workflow.GetLogger(ctx)
 	logger.Info("CreateAstraBusinessProfile workflow started")
-	/*
-		var exists bool
-		err := workflow.ExecuteActivity(ctx, a.IntentExists).Get(ctx, &exists)
-		if err != nil {
-			return err
-		}
 
-		if exists {
-			return nil
-		}
+	var exists bool
+	err := workflow.ExecuteActivity(ctx, a.IntentExists).Get(ctx, &exists)
+	if err != nil {
+		return err
+	}
 
-		var externalID string
-		err = workflow.ExecuteActivity(ctx, a.CreateExternalBusinessAccount).Get(ctx, &externalID)
-		if err != nil {
-			return err
-		}
+	if exists {
+		return nil
+	}
 
-		err = workflow.ExecuteActivity(ctx, a.SaveIntent, externalID).Get(ctx, nil)
-		if err != nil {
-			return err
-		}
+	var externalID string
+	err = workflow.ExecuteActivity(ctx, a.CreateExternalBusinessAccount).Get(ctx, &externalID)
+	if err != nil {
+		return err
+	}
 
-		err = workflow.ExecuteActivity(ctx, a.NotifySlack, externalID).Get(ctx, nil)
-		if err != nil {
-			return err
-		}
+	err = workflow.ExecuteActivity(ctx, a.SaveIntent, externalID).Get(ctx, nil)
+	if err != nil {
+		return err
+	}
 
-		var code string
-		signalChan := workflow.GetSignalChannel(ctx, "temp-astra")
-		for {
-			signalChan.Receive(ctx, &code)
-			if code != "" {
-				break
-			}
-		}
+	err = workflow.ExecuteActivity(ctx, a.NotifySlack, externalID).Get(ctx, nil)
+	if err != nil {
+		return err
+	}
 
-		err = workflow.ExecuteActivity(ctx, a.ExchangeCode, code).Get(ctx, nil)
-		if err != nil {
-			return err
+	var code string
+	signalChan := workflow.GetSignalChannel(ctx, "temp-astra")
+	for {
+		signalChan.Receive(ctx, &code)
+		if code != "" {
+			break
 		}
-	*/
-	err := workflow.ExecuteActivity(ctx, asrtaActivity.CreateAccount, wallets.AstraBusinessWalletID).Get(ctx, nil)
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.ExchangeCode, code).Get(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	err = workflow.ExecuteActivity(ctx, asrtaActivity.CreateAccount, wallets.AstraBusinessWalletID).Get(ctx, nil)
 	if err != nil {
 		return err
 	}
@@ -95,7 +95,7 @@ func (a *Activity) NotifySlack(ctx context.Context, externalID string) error {
 		sandbox = ""
 	}
 
-	slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "Astra Business", fmt.Sprintf("Go To {https://app%s.astra.finance/login/oauth/authorize?client_id=%s&redirect_uri=%s&response_type=code&business=true&business_profile_id=%s} then signal the workflow with the code", sandbox, "29b899344bfb462d98fa4dff08ca1fe8", "https%3A%2F%2Fcommonly-detect-broadcasting-assess.trycloudflare.com%2F", externalID))
+	slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "Astra Business", fmt.Sprintf("Go To {https://app%s.astra.finance/login/oauth/authorize?client_id=%s&redirect_uri=%s&response_type=code&business=true&business_profile_id=%s} then signal the workflow with the code", sandbox, "29b899344bfb462d98fa4dff08ca1fe8", "https%3A%2F%2Fsuite-they-indonesia-consumer.trycloudflare.com%2F", externalID))
 	return nil
 }
 
@@ -113,22 +113,23 @@ func (a *Activity) CreateExternalBusinessAccount(ctx context.Context) (string, e
 			BusinessName:    "Fynbos Technologies",
 			Ein:             "37-2028338",
 			DoingBusinessAs: "Fynbos",
-			Phone:           "+13073819218",
-			Address1:        "30 North Gould Street",
-			Address2:        "Suite R",
-			City:            "Sheridan",
-			PostalCode:      "82801",
-			State:           "WY",
+			Phone:           "+13472450091",
+			Address1:        "447 Broadway",
+			Address2:        "2nd Floor Suite #2233",
+			City:            "New York",
+			PostalCode:      "10013",
+			State:           "NY",
 			Website:         "https://fynbos.app/",
 		},
 		BusinessAdmin: external.BusinessAdmin{
-			FirstName: "Adrian",
-			LastName:  "Hope-Bailie",
-			Email:     "adrian@fynbos.dev",
-			Address1:  "30 North Gould Street",
-			Address2:  "Suite R",
-			City:      "Sheridan",
-			State:     "WY",
+			FirstName:   "Adrian",
+			LastName:    "Hope-Bailie",
+			Email:       "adrian@fynbos.dev",
+			DateOfBirth: "1982-10-02",
+			Address1:    "447 Broadway",
+			Address2:    "2nd Floor Suite #2233",
+			City:        "New York",
+			State:       "NY",
 		},
 		BusinessController: external.BusinessController{
 			FirstName:   "Adrian",
@@ -136,14 +137,14 @@ func (a *Activity) CreateExternalBusinessAccount(ctx context.Context) (string, e
 			Email:       "adrian@fynbos",
 			Title:       "CEO",
 			DateOfBirth: "1982-10-02",
-			Address1:    "30 North Gould Street",
-			Address2:    "Suite R",
-			City:        "Sheridan",
-			PostalCode:  "82801",
-			State:       "WY",
+			Address1:    "447 Broadway",
+			Address2:    "2nd Floor Suite #2233",
+			City:        "New York",
+			PostalCode:  "10013",
+			State:       "NY",
 		},
 		KybType:   "verified",
-		Phone:     "+13073819218",
+		Phone:     "+13472450091",
 		FirstName: "Adrian",
 		LastName:  "Hope-Bailie",
 		Email:     "adrian@fynbos.dev",
@@ -151,13 +152,46 @@ func (a *Activity) CreateExternalBusinessAccount(ctx context.Context) (string, e
 			{
 				FirstName:   "Adrian",
 				LastName:    "Hope-Bailie",
-				Email:       "adrian@fynbos",
+				Email:       "adrian@fynbos.dev",
 				DateOfBirth: "1982-10-02",
-				Address1:    "30 North Gould Street",
-				Address2:    "Suite R",
-				City:        "Sheridan",
-				PostalCode:  "82801",
-				State:       "WY",
+				Address1:    "447 Broadway",
+				Address2:    "2nd Floor Suite #2233",
+				City:        "New York",
+				PostalCode:  "10013",
+				State:       "NY",
+			},
+			{
+				FirstName:   "Donovan",
+				LastName:    "Changfoot",
+				Email:       "don@fynbos.dev",
+				DateOfBirth: "1992-03-25",
+				Address1:    "447 Broadway",
+				Address2:    "2nd Floor Suite #2233",
+				City:        "New York",
+				PostalCode:  "10013",
+				State:       "NY",
+			},
+			{
+				FirstName:   "Matthew",
+				LastName:    "De Haast",
+				Email:       "matt@fynbos.dev",
+				DateOfBirth: "1991-08-21",
+				Address1:    "447 Broadway",
+				Address2:    "2nd Floor Suite #2233",
+				City:        "New York",
+				PostalCode:  "10013",
+				State:       "NY",
+			},
+			{
+				FirstName:   "Cairin",
+				LastName:    "Michie",
+				Email:       "cairin@fynbos.dev",
+				DateOfBirth: "1994-02-18",
+				Address1:    "447 Broadway",
+				Address2:    "2nd Floor Suite #2233",
+				City:        "New York",
+				PostalCode:  "10013",
+				State:       "NY",
 			},
 		},
 	})
