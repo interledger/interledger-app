@@ -185,10 +185,10 @@ func (s *service) ListSuccessfulVerificationAttempts(ctx context.Context, args L
 		}, nil
 	}
 
-	approved := "approved"
+	converted := "converted"
 	params := &verify.ListVerificationAttemptParams{
 		ChannelDataTo:    &args.To,
-		Status:           &approved,
+		Status:           &converted,
 		Limit:            &args.Limit,
 		DateCreatedAfter: &args.After,
 	}

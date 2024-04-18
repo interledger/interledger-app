@@ -59,12 +59,6 @@ func (c *client) UserForCookie(ctx context.Context, cookie string) (usr *user.Us
 }
 
 func (c *client) UserForContext(ctx context.Context) (usr *user.User, err error) {
-	defer func(begin time.Time) {
-		if err != nil {
-			log.Info("no user in context", zap.Error(err))
-		}
-	}(time.Now())
-
 	return ops.UserForContext(ctx)
 }
 
