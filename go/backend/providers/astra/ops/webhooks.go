@@ -133,6 +133,7 @@ func GetTrustedAuthenticationInfo(b Backends) http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		log.Info("Astra trusted authentication", zap.String("walletID", chi.URLParam(r, "id")))
 		authHeader := r.Header.Get("Authorization")
 		parts := strings.Split(authHeader, " ")
 		var bearerToken string
@@ -182,6 +183,7 @@ func GetTrustedAuthenticationInfo(b Backends) http.HandlerFunc {
 				After: time.Now().AddDate(0, 0, -30),
 			})
 			if err != nil {
+				log.Error("Failed to respond to Astra trusted authentication request", zap.Error(err))
 				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 				return
 			}
