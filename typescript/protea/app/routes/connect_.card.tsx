@@ -130,7 +130,7 @@ export default function Page() {
           wallet_id: walletId
         },
         deduplicate_token: fynbosEnv == 'prod',
-        fingerprint_expression: '{{ metadata.wallet_id }}{{ data.number }}'
+        fingerprint_expression: 'astra{{ metadata.wallet_id }}{{ data.number }}'
       })
       .then((token) => {
         let formData = new FormData()
