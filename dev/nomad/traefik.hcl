@@ -9,6 +9,9 @@ job "traefik" {
       port  "http"{
         static = 80
       }
+      port  "https"{
+        static = 443
+      }
       port  "admin"{
         static = 8080
       }
@@ -33,16 +36,37 @@ job "traefik" {
         network_mode = "host"
         volumes = [
           "local/traefik.toml:/etc/traefik/traefik.toml",
+          "local/config.toml:/etc/traefik/config.toml",
+          "secrets/tls.cert:/etc/traefik/tls.cert",
+          "secrets/tls.key:/etc/traefik/tls.key"
         ]
+      }
+
+      template {
+        data = file("tls.cert.pem")
+        destination = "secrets/tls.cert"
+      }
+
+      template {
+        data = file("tls.key.pem")
+        destination = "secrets/tls.key"
       }
 
       template {
         data = <<EOF
 [entryPoints]
-    [entryPoints.http]
+    [entryPoints.web]
       address = ":80"
+        [entryPoints.web.http]
+          [entryPoints.web.http.redirections]
+            [entryPoints.web.http.redirections.entryPoint]
+              to = "websecure"
+              scheme = "https"
+    [entryPoints.websecure]
+      address = ":443"
+        [entryPoints.websecure.http.tls]
     [entryPoints.traefik]
-      address = "127.0.0.1::8080"
+      address = ":8080"
 
 [log]
   level = "DEBUG"
@@ -59,10 +83,26 @@ job "traefik" {
     [providers.consulCatalog.endpoint]
       address = "127.0.0.1:8500"
       scheme  = "http"
+
+[providers.file]
+    filename = "/etc/traefik/config.toml"
+    watch = true
 EOF
 
         destination = "local/traefik.toml"
       }
+
+      template {
+        data = <<EOF
+[tls]
+  [[tls.certificates]]
+    certFile = "/etc/traefik/tls.cert"
+    keyFile = "/etc/traefik/tls.key"
+EOF
+        
+        destination = "local/config.toml"
+      }
+
     }
   }
 }
