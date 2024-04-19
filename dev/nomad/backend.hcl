@@ -22,16 +22,8 @@ job "backend" {
     }
 
     service {
-      name = "backend"
-      port = "grpc"
-      connect {
-        sidecar_service {}
-      }
-    }
-
-    service {
-      name = "backend-admin"
-      port = "admin"
+      name = "backend-grpc"
+      port = 8443
       connect {
         sidecar_service {}
       }
