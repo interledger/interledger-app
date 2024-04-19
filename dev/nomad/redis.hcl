@@ -29,7 +29,7 @@ job "redis" {
       driver = "docker"
 
       config {
-        image = "redis:6.0-alpine"
+        image = "redis:alpine"
       }
 
       resources {
