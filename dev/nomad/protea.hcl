@@ -21,7 +21,7 @@ job "protea" {
         sidecar_service {
           proxy {
             upstreams {
-              destination_name = "backend"
+              destination_name = "backend-grpc"
               local_bind_port  = 8443
             }
             upstreams {
