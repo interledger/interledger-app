@@ -263,16 +263,16 @@ export function Scaffold() {
               <HeaderLink to={route('/contact')} title='Contact' />
             </div>
             <div className='ml-auto hidden items-center lg:flex'>
-              {!isUser && (
-                <div className='flex space-x-10 pb-2 pt-3'>
-                  <Router to={route('/login')}>
-                    <span className='text-sm font-medium'>Log in</span>
-                  </Router>
-                  <Router to={route('/signup')}>
-                    <span className='text-sm font-medium'>Sign up</span>
-                  </Router>
-                </div>
-              )}
+              {/*{!isUser && (*/}
+              {/*  <div className='flex space-x-10 pb-2 pt-3'>*/}
+              {/*    <Router to={route('/login')}>*/}
+              {/*      <span className='text-sm font-medium'>Log in</span>*/}
+              {/*    </Router>*/}
+              {/*    <Router to={route('/signup')}>*/}
+              {/*      <span className='text-sm font-medium'>Sign up</span>*/}
+              {/*    </Router>*/}
+              {/*  </div>*/}
+              {/*)}*/}
               {isUser && (
                 <div className='flex items-center '>
                   <ButtonRouter to={route('/')}>
@@ -550,19 +550,19 @@ export function Scaffold() {
             <>
               <DocsNavDrawer onClick={() => setOpenNavModal(!openNavModal)} />
               <NavDrawer.List>
-                {!isUser && (
-                  <div className='flex flex-col space-y-2'>
-                    <Router
-                      className='flex h-11 w-full items-center justify-center'
-                      to={route('/login')}
-                    >
-                      <span className='font-medium text-medium'>Log in</span>
-                    </Router>
-                    <ButtonRouter className='h-11' to={route('/signup')}>
-                      Sign up
-                    </ButtonRouter>
-                  </div>
-                )}
+                {/*{!isUser && (*/}
+                {/*  <div className='flex flex-col space-y-2'>*/}
+                {/*    <Router*/}
+                {/*      className='flex h-11 w-full items-center justify-center'*/}
+                {/*      to={route('/login')}*/}
+                {/*    >*/}
+                {/*      <span className='font-medium text-medium'>Log in</span>*/}
+                {/*    </Router>*/}
+                {/*    <ButtonRouter className='h-11' to={route('/signup')}>*/}
+                {/*      Sign up*/}
+                {/*    </ButtonRouter>*/}
+                {/*  </div>*/}
+                {/*)}*/}
                 {isUser && (
                   <div className='flex flex-col space-y-2'>
                     <ButtonRouter className='h-11' to={route('/')}>
@@ -604,19 +604,19 @@ export function Scaffold() {
                 </NavDrawer.ListItem>
               </NavDrawer.List>
               <NavDrawer.List>
-                {!isUser && (
-                  <div className='flex flex-col space-y-2'>
-                    <Router
-                      className='flex h-11 w-full items-center justify-center'
-                      to={route('/login')}
-                    >
-                      <span className='font-medium text-medium'>Log in</span>
-                    </Router>
-                    <ButtonRouter className='h-11' to={route('/signup')}>
-                      Sign up
-                    </ButtonRouter>
-                  </div>
-                )}
+                {/*{!isUser && (*/}
+                {/*  <div className='flex flex-col space-y-2'>*/}
+                {/*    <Router*/}
+                {/*      className='flex h-11 w-full items-center justify-center'*/}
+                {/*      to={route('/login')}*/}
+                {/*    >*/}
+                {/*      <span className='font-medium text-medium'>Log in</span>*/}
+                {/*    </Router>*/}
+                {/*    <ButtonRouter className='h-11' to={route('/signup')}>*/}
+                {/*      Sign up*/}
+                {/*    </ButtonRouter>*/}
+                {/*  </div>*/}
+                {/*)}*/}
                 {isUser && (
                   <div className='flex flex-col space-y-2'>
                     <ButtonRouter className='h-11' to={route('/')}>
