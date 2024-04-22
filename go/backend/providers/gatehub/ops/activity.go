@@ -10,10 +10,12 @@ import (
 
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	"gitlab.com/fynbos/backend/providers/gatehub/external"
 	httplogger "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/backend/providers/pti"
+	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/wallets"
 	"gitlab.com/fynbos/pacioli"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -167,4 +169,136 @@ func (a *Activity) CreateGatehubBalanceAccount(ctx context.Context, id string) e
 	}
 
 	return nil
+}
+
+func (a *Activity) CreateGatehubDepositTransaction(ctx context.Context, webhookID, walletID string, amount currency.Amount) (string, error) {
+	existingDeposit, err := a.b.Transactions().GetTransactionByForeignID(ctx, walletID, webhookID)
+	if err != nil && !errors.Is(err, transactions.ErrNotFound) {
+		return "", err
+	}
+	if existingDeposit != nil {
+		return existingDeposit.ID, nil
+	}
+
+	if amount.Currency != currency.EUR {
+		return "", temporal.NewNonRetryableApplicationError("Invalid currency", "ErrInternal", fmt.Errorf("%w invalid currency", gatehub.ErrInternal))
+	}
+
+	wallet, err := a.b.Wallets().Get(ctx, walletID)
+	if errors.Is(err, gatehub.ErrNotFound) {
+		return "", temporal.NewNonRetryableApplicationError("Invalid currency", "ErrNotFound", fmt.Errorf("%w No wallet found for gatehub user", gatehub.ErrNotFound))
+	}
+	if err != nil {
+		return "", err
+	}
+
+	las, err := a.b.LinkedAccounts().ListBalances(ctx, walletID)
+	if err != nil {
+		return "", err
+	}
+
+	var eurBalance *linkedaccounts.LinkedAccount
+	for _, la := range las {
+		if la.Provider == gatehub.ProviderName && la.Type == gatehub.AccTypeBalance {
+			eurBalance = &la
+			break
+		}
+	}
+	if eurBalance == nil {
+		return "", temporal.NewNonRetryableApplicationError("Gatehub EUR balance account not found", "ErrInternal", fmt.Errorf("%w Gatehub EUR balance account not found", gatehub.ErrInternal))
+	}
+
+	tx, err := a.b.Transactions().CreateTransaction(ctx, transactions.CreateTransactionArgs{
+		ID:                      webhookID,
+		WalletID:                walletID,
+		ForeignID:               webhookID,
+		ForeignType:             transactions.TransactionTypeDeposit,
+		Provider:                gatehub.ProviderName,
+		State:                   transactions.StateCompleted,
+		Source:                  wallet.AddressString(),
+		Destination:             wallet.AddressString(),
+		Title:                   "Deposit",
+		DestinationIdentity:     walletID,
+		DestinationIdentityType: payments.IdentityTypeWalletID.String(),
+		Amount:                  amount,
+		LinkedAccountTitle:      "EUR Balance",
+		Transfers: []transactions.TransferArgs{
+			{
+				LinkedAccountID: eurBalance.ID,
+				ForeignID:       webhookID,
+				Amount:          amount,
+				Type:            transactions.TransferTypeCreditBalance,
+				State:           transactions.StateCompleted,
+			},
+		},
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return tx, nil
+}
+
+func (a *Activity) FinalizeGatehubDeposit(ctx context.Context, id, walletID string, amount currency.Amount) error {
+	if amount.Currency != currency.EUR {
+		return temporal.NewNonRetryableApplicationError("Invalid currency", "ErrInternal", fmt.Errorf("%w invalid currency", gatehub.ErrInternal))
+	}
+
+	las, err := a.b.LinkedAccounts().ListBalances(ctx, walletID)
+	if err != nil {
+		return err
+	}
+
+	var eurBalance *linkedaccounts.LinkedAccount
+	for _, la := range las {
+		if la.Provider == gatehub.ProviderName && la.Type == gatehub.AccTypeBalance {
+			eurBalance = &la
+			break
+		}
+	}
+	if eurBalance == nil {
+		return temporal.NewNonRetryableApplicationError("Gatehub EUR balance account not found", "ErrInternal", fmt.Errorf("%w Gatehub EUR balance account not found", gatehub.ErrInternal))
+	}
+
+	opsAcc := gatehub.EUROpsAccount
+	ledger := gatehub.LedgerIDEUR
+	tx, err := a.b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
+		{
+			ID:              id,
+			Amount:          amount.Value,
+			CreditAccountID: eurBalance.ID,
+			DebitAccountID:  opsAcc,
+			Pending:         false,
+			Code:            1,
+			Ledger:          ledger,
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+	if len(tx) > 0 {
+		if tx[0].Code == pacioli.TransferExists {
+			return nil
+		}
+		if tx[0].Code == pacioli.TransferExceedsCredits || tx[0].Code == pacioli.TransferExceedsDebits || tx[0].Code == pacioli.TransferExceedsPendingTransferAmount {
+			return fmt.Errorf("%w insufficient balance code (%s)", pti.ErrInsufficientBalance, tx[0].Code.String())
+		}
+		if tx[0].Code != 0 {
+			return fmt.Errorf("%w non success code (%s)", pti.ErrInternal, tx[0].Code.String())
+		}
+	}
+
+	return nil
+}
+
+func (a *Activity) GetWalletFromGatehubUser(ctx context.Context, externalUserID string) (string, error) {
+	walletID, err := getWalletID(ctx, a.b, externalUserID)
+	if errors.Is(err, gatehub.ErrNotFound) {
+		return "", temporal.NewNonRetryableApplicationError("Invalid currency", "ErrNotFound", fmt.Errorf("%w No wallet found for gatehub user", gatehub.ErrNotFound))
+	}
+	if err != nil {
+		return "", err
+	}
+
+	return walletID, nil
 }

@@ -71,6 +71,7 @@ import (
 	bt_client "gitlab.com/fynbos/backend/providers/basistheory/client"
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	gatehub_client "gitlab.com/fynbos/backend/providers/gatehub/client"
+	gatehub_ops "gitlab.com/fynbos/backend/providers/gatehub/ops"
 	"gitlab.com/fynbos/backend/providers/pti"
 	pti_client "gitlab.com/fynbos/backend/providers/pti/client"
 	pti_ops "gitlab.com/fynbos/backend/providers/pti/ops"
@@ -194,6 +195,7 @@ func start(args *cli.StartArgs) {
 		log.Fatalln(err)
 	}
 	router.Handle("/webhooks/pti", ptiWebhook)
+	router.Handle("/webhooks/gatehub", gatehub_ops.NewWebhook(b))
 	router.Handle("/webhooks/astra/updates", b.Astra().WebhookHandler())
 	router.Handle("/webhooks/astra/wallet/{id}", b.Astra().TrustedAuthInfoWebhook())
 	router.Handle("/{wallet_id}/identities/{identity_sig_hash}", wallet_handler.GetIdentityHandler(b))
@@ -379,6 +381,13 @@ func migrate(args *cli.MigrationArgs) {
 		{
 			ID:                         pti.USDOpsAccount,
 			LedgerID:                   pti.LedgerIDUSD,
+			Code:                       1,
+			DebitsMustNotExceedCredits: false,
+			CreditsMustNotExceedDebits: false,
+		},
+		{
+			ID:                         gatehub.EUROpsAccount,
+			LedgerID:                   gatehub.LedgerIDEUR,
 			Code:                       1,
 			DebitsMustNotExceedCredits: false,
 			CreditsMustNotExceedDebits: false,

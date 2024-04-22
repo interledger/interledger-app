@@ -111,6 +111,18 @@ func getExternalUserID(ctx context.Context, b Backends, walletID string) (string
 	return externalID, err
 }
 
+func getWalletID(ctx context.Context, b Backends, externalUserID string) (string, error) {
+	var walletID string
+	err := b.DB().GetContext(ctx, &walletID, "SELECT wallet_id FROM gatehub_users WHERE external_id=$1;", externalUserID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", fmt.Errorf("%w %s", gatehub.ErrNotFound, err)
+	} else if err != nil {
+		return "", fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	return walletID, nil
+}
+
 func GetBalance(ctx context.Context, b Backends, linkedAccountID string) (*gatehub.Balance, error) {
 	la, err := b.LinkedAccounts().Get(ctx, linkedAccountID)
 	if err != nil {

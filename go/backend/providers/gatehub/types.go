@@ -6,7 +6,8 @@ const (
 	ProviderName   = "gatehub"
 	AccTypeBalance = "balance"
 
-	LedgerIDEUR uint32 = 4482387 // Spells ghubeur on a Nokia 3320 keyboard
+	LedgerIDEUR   uint32 = 4482387 // Spells ghubeur on a Nokia 3320 keyboard
+	EUROpsAccount        = "1854f171-eafa-4e30-bf66-7dbfe167ccfa"
 )
 
 type Balance struct {

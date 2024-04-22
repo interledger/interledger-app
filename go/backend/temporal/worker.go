@@ -104,6 +104,7 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	// Gatehub
 	w.RegisterActivity(gatehub_workflows.NewActivity(b))
 	w.RegisterWorkflow(gatehub_workflows.CreateGatehubUserWorkflow)
+	w.RegisterWorkflow(gatehub_workflows.CreateGatehubDeposit)
 
 	return w, nil
 }
