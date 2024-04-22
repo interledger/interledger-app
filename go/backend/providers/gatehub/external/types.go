@@ -65,14 +65,14 @@ type (
 	}
 
 	GetUserWalletsResponse struct {
-		UUID         string    `json:"uuid"`
-		Email        string    `json:"email"`
-		Paystring    *string   `json:"paystring"` // Using pointer to handle null
-		Enabled      int       `json:"enabled"`   // Assuming an int based on the example, could also be a bool depending on the actual data definition
-		PrimaryVault *string   `json:"primary_vault"`
-		DisplayVault *string   `json:"display_vault"`
-		CreatedAt    time.Time `json:"created_at"`
-		UpdatedAt    time.Time `json:"updated_at"`
-		Wallets      []Wallet  `json:"wallets"`
+		UUID      string  `json:"uuid"`
+		Email     string  `json:"email"`
+		Paystring *string `json:"paystring"` // Using pointer to handle null
+		Enabled   int     `json:"enabled"`   // Assuming an int based on the example, could also be a bool depending on the actual data definition
+		// PrimaryVault *string   `json:"primary_vault"`
+		// DisplayVault *string   `json:"display_vault"`
+		CreatedAt time.Time `json:"created_at"`
+		UpdatedAt time.Time `json:"updated_at"`
+		Wallets   []Wallet  `json:"wallets"`
 	}
 )
