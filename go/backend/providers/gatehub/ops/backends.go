@@ -2,7 +2,9 @@ package ops
 
 import (
 	"github.com/jmoiron/sqlx"
+	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/backend/wallets"
 	"gitlab.com/fynbos/pacioli"
@@ -16,4 +18,6 @@ type Backends interface {
 	Temporal() temporal.Client
 	Wallets() wallets.Client
 	Pacioli() pacioli.Client
+	KYC() kyc.Client
+	Transactions() transactions.Client
 }
