@@ -42,7 +42,7 @@ func (c client) CodeExchange(ctx context.Context, code string) (*AccessToken, er
 	data := url.Values{}
 	data.Set("code", code)
 	data.Set("grant_type", "authorization_code")
-	data.Set("redirect_uri", "https://httpdump.app/inspect/27d4218a-23a8-4eef-92de-01f631b0bd2d")
+	data.Set("redirect_uri", os.Getenv("ASTRA_CODE_EXCHANGE_REDIRECT"))
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, strings.NewReader(data.Encode()))
 	if err != nil {

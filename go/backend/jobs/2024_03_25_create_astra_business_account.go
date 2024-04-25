@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"net/url"
+	"os"
 	"time"
 
 	"gitlab.com/fynbos/env"
@@ -20,7 +22,6 @@ import (
 
 func CreateAstraBusinessProfile(ctx workflow.Context) error {
 	var a *Activity
-	var asrtaActivity *ops.Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 10 * time.Minute,
 	}
@@ -28,31 +29,44 @@ func CreateAstraBusinessProfile(ctx workflow.Context) error {
 	logger := workflow.GetLogger(ctx)
 	logger.Info("CreateAstraBusinessProfile workflow started")
 
-	// var exists bool
-	// err := workflow.ExecuteActivity(ctx, a.IntentExists).Get(ctx, &exists)
-	// if err != nil {
-	// 	return err
-	// }
+	var exists bool
+	err := workflow.ExecuteActivity(ctx, a.IntentExists).Get(ctx, &exists)
+	if err != nil {
+		return err
+	}
 
-	// if exists {
-	// 	return nil
-	// }
+	if exists {
+		return nil
+	}
 
-	// var externalID string
-	// err = workflow.ExecuteActivity(ctx, a.CreateExternalBusinessAccount).Get(ctx, &externalID)
-	// if err != nil {
-	// 	return err
-	// }
+	var externalID string
+	err = workflow.ExecuteActivity(ctx, a.CreateExternalBusinessAccount).Get(ctx, &externalID)
+	if err != nil {
+		return err
+	}
 
-	// err = workflow.ExecuteActivity(ctx, a.SaveIntent, externalID).Get(ctx, nil)
-	// if err != nil {
-	// 	return err
-	// }
+	err = workflow.ExecuteActivity(ctx, a.SaveIntent, externalID).Get(ctx, nil)
+	if err != nil {
+		return err
+	}
 
-	// err = workflow.ExecuteActivity(ctx, a.NotifySlack, externalID).Get(ctx, nil)
-	// if err != nil {
-	// 	return err
-	// }
+	err = workflow.ExecuteActivity(ctx, a.NotifySlack, externalID).Get(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ExchangeAstraBusinessProfileCode(ctx workflow.Context) error {
+	var a *Activity
+	var asrtaActivity *ops.Activity
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Minute,
+	}
+	ctx = workflow.WithActivityOptions(ctx, ao)
+	logger := workflow.GetLogger(ctx)
+	logger.Info("CreateAstraBusinessProfile workflow started")
 
 	var code string
 	signalChan := workflow.GetSignalChannel(ctx, "temp-astra")
@@ -95,7 +109,7 @@ func (a *Activity) NotifySlack(ctx context.Context, externalID string) error {
 		sandbox = ""
 	}
 
-	slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "Astra Business", fmt.Sprintf("Go To {https://app%s.astra.finance/login/oauth/authorize?client_id=%s&redirect_uri=%s&response_type=code&business=true&business_profile_id=%s} then signal the workflow with the code", sandbox, "29b899344bfb462d98fa4dff08ca1fe8", "https%3A%2F%2Fsuite-they-indonesia-consumer.trycloudflare.com%2F", externalID))
+	slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "Astra Business", fmt.Sprintf("Go To {https://app%s.astra.finance/login/oauth/authorize?client_id=%s&redirect_uri=%s&response_type=code&business=true&business_profile_id=%s} then signal the workflow with the code", sandbox, os.Getenv("ASTRA_CLIENT_ID"), url.QueryEscape(os.Getenv("ASTRA_CODE_EXCHANGE_REDIRECT")), externalID))
 	return nil
 }
 
@@ -110,8 +124,8 @@ func (a *Activity) CreateExternalBusinessAccount(ctx context.Context) (string, e
 	return ex.CreateBusinessProfile(ctx, external.CreateBusinessUserReq{
 		BusinessInfo: external.BusinessInfo{
 			BusinessType:    "llc",
-			BusinessName:    "Fynbos Technologies",
-			Ein:             "37-2028338",
+			BusinessName:    "Fynbos Inc.",
+			Ein:             "37-2102250",
 			DoingBusinessAs: "Fynbos",
 			Phone:           "+13475834006",
 			Address1:        "447 Broadway",
