@@ -2,6 +2,7 @@ package external_test
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"testing"
@@ -18,12 +19,24 @@ func TestClient(t *testing.T) {
 	}
 	c := external.NewClient(os.Getenv("GATEHUB_APP_ID"), os.Getenv("GATEHUB_SECRET"), nil)
 
-	externalUserID := "c5b40ec1-b450-451b-b8c0-1b45f94b9db0"
+	ctx := context.Background()
+	sendingExternalUserID := "66f1427e-43e4-48a0-9692-190c24d75058"
+	// trx, err := c.CreateTransaction(ctx, external.CreateTransactionRequest{
+	// 	SendingUserID:    sendingExternalUserID,
+	// 	SendingAddress:   "107720301",
+	// 	ReceivingAddress: "506541309", // belongs to "19227839-caa1-458f-a5ec-a3f03aa3e0e5"
+	// 	Amount:           5.00,
+	// 	VaultID:          "a09a0a2c-1a3a-44c5-a1b9-603a6eea9341",
+	// 	Message:          "test transfer",
+	// 	Type:             external.TransactionTypeHosted,
+	// })
+	// require.NoError(t, err)
 
-	_, err := c.IssueToken(context.Background(), externalUserID, external.Onboarding)
+	trx, err := c.GetTransaction(ctx, sendingExternalUserID, "b063d802-f0d7-463c-bc14-4310b6e313f4")
 	require.NoError(t, err)
 
-	userWallets, err := c.GetUserWallets(context.Background(), externalUserID)
+	temp, err := json.MarshalIndent(trx, "", " ")
 	require.NoError(t, err)
-	fmt.Printf("userWallets %+v\n", userWallets)
+	fmt.Printf("transaction: %s\n", temp)
+
 }
