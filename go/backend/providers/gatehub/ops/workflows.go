@@ -105,3 +105,38 @@ func CreateGatehubDeposit(ctx workflow.Context, wh DepositWebhook) (string, erro
 
 	return txID, nil
 }
+
+func CreateGatehubWithdrawal(ctx workflow.Context, walletID, externalTransactionID string) error {
+	var a *Activity
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Second,
+	}
+
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	logger := workflow.GetLogger(ctx)
+	logger.Info("Creating gatehub withdrawal.")
+
+	err := workflow.ExecuteActivity(ctx, a.ValidateGatehubWithdrawal, walletID, externalTransactionID).Get(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.CheckGatehubTransactionComplete, walletID, externalTransactionID).Get(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	var trxID string
+	err = workflow.ExecuteActivity(ctx, a.CreateGatehubWithdrawalTransaction, walletID, externalTransactionID).Get(ctx, &trxID)
+	if err != nil {
+		return err
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.AssignGatehubWithdrawal, trxID, walletID).Get(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
