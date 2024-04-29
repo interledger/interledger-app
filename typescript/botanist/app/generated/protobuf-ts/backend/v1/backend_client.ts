@@ -4,6 +4,8 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { BackendService } from "./backend";
+import type { CreateGatehubWithdrawalResponse } from "./backend";
+import type { CreateGatehubWithdrawalRequest } from "./backend";
 import type { GetOnOffRampProviderResponse } from "./backend";
 import type { GatehubWidget } from "./backend";
 import type { RevokeRafikiGrantRequest } from "./backend";
@@ -572,6 +574,10 @@ export interface IBackendServiceClient {
      * @generated from protobuf rpc: GetGatehubWithdrawalWidget(backend.v1.Empty) returns (backend.v1.GatehubWidget);
      */
     getGatehubWithdrawalWidget(input: Empty, options?: RpcOptions): UnaryCall<Empty, GatehubWidget>;
+    /**
+     * @generated from protobuf rpc: CreateGatehubWithdrawal(backend.v1.CreateGatehubWithdrawalRequest) returns (backend.v1.CreateGatehubWithdrawalResponse);
+     */
+    createGatehubWithdrawal(input: CreateGatehubWithdrawalRequest, options?: RpcOptions): UnaryCall<CreateGatehubWithdrawalRequest, CreateGatehubWithdrawalResponse>;
 }
 /**
  * @generated from protobuf service backend.v1.BackendService
@@ -1309,5 +1315,12 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
     getGatehubWithdrawalWidget(input: Empty, options?: RpcOptions): UnaryCall<Empty, GatehubWidget> {
         const method = this.methods[95], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, GatehubWidget>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: CreateGatehubWithdrawal(backend.v1.CreateGatehubWithdrawalRequest) returns (backend.v1.CreateGatehubWithdrawalResponse);
+     */
+    createGatehubWithdrawal(input: CreateGatehubWithdrawalRequest, options?: RpcOptions): UnaryCall<CreateGatehubWithdrawalRequest, CreateGatehubWithdrawalResponse> {
+        const method = this.methods[96], opt = this._transport.mergeOptions(options);
+        return stackIntercept<CreateGatehubWithdrawalRequest, CreateGatehubWithdrawalResponse>("unary", this._transport, method, opt, input);
     }
 }

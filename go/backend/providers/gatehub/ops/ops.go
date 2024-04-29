@@ -147,3 +147,46 @@ func GetBalance(ctx context.Context, b Backends, linkedAccountID string) (*gateh
 		Available: currency.FromUInt64(accs[0].CreditsPosted-accs[0].DebitsPosted-accs[0].DebitsPending, la.SendCurrency),
 	}, nil
 }
+
+func CreateWithdrawal(ctx context.Context, b Backends, walletID, externalTransactionID string) (string, error) {
+	_, err := createWithdrawal(ctx, b, walletID, externalTransactionID)
+
+	return "", err
+}
+
+func createWithdrawal(ctx context.Context, b Backends, walletID, externalTransactionID string) (gatehub.Await, error) {
+	wo := client.StartWorkflowOptions{
+		ID:                    fmt.Sprintf("gatehub_create_withdrawal_%s_%s", walletID, externalTransactionID),
+		TaskQueue:             "backend",
+		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+	}
+
+	var workflowStatus enums.WorkflowExecutionStatus
+	wflow, err := b.Temporal().DescribeWorkflowExecution(ctx, wo.ID, "")
+	switch err.(type) {
+	case *serviceerror.Internal,
+		*serviceerror.Unavailable,
+		*serviceerror.InvalidArgument:
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	case *serviceerror.NotFound:
+		// do nothing
+	default:
+		if wflow != nil {
+			workflowStatus = wflow.GetWorkflowExecutionInfo().Status
+		}
+	}
+
+	// return workflow if it's running
+	var await client.WorkflowRun
+	var executeErr error
+	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
+		await = b.Temporal().GetWorkflow(ctx, wo.ID, "")
+	} else {
+		await, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, CreateGatehubWithdrawal, walletID, externalTransactionID)
+	}
+	if executeErr != nil {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	return await.Get, nil
+}
