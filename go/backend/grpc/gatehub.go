@@ -90,3 +90,29 @@ func (r *rpcService) GetGatehubWithdrawalWidget(
 		WidgetUrl: widget,
 	}, nil
 }
+
+func (r *rpcService) CreateGatehubWithdrawal(ctx context.Context, req *pb.CreateGatehubWithdrawalRequest) (*pb.CreateGatehubWithdrawalResponse, error) {
+	_, err := r.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	wallet, err := r.b.Wallets().ForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	_, isEU := country.EUCountries[wallet.Country]
+	if !isEU {
+		return nil, toGRPCError(FailedPreconditionError("Wallet not in the EU region"))
+	}
+
+	txID, err := r.b.Gatehub().CreateWithdrawal(ctx, wallet.ID, req.GetExternalTransactionId())
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &pb.CreateGatehubWithdrawalResponse{
+		TransactionId: txID,
+	}, nil
+}

@@ -49,3 +49,7 @@ func (c Client) GetOnOffRampWidget(ctx context.Context, walletID string, isDepos
 func (c Client) GetBalance(ctx context.Context, linkedAccountID string) (*gatehub.Balance, error) {
 	return ops.GetBalance(ctx, c.b, linkedAccountID)
 }
+
+func (c Client) CreateWithdrawal(ctx context.Context, walletID, externalTransactionID string) (gatehub.Await, error) {
+	return ops.CreateWithdrawal(ctx, c.b, walletID, externalTransactionID)
+}

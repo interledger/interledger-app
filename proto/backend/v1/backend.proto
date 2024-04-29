@@ -166,7 +166,17 @@ service BackendService {
   rpc GetOnOffRampProvider(Empty) returns (GetOnOffRampProviderResponse);
   rpc GetGatehubDepositWidget(Empty) returns (GatehubWidget);
   rpc GetGatehubWithdrawalWidget(Empty) returns (GatehubWidget);
+  rpc CreateGatehubWithdrawal(CreateGatehubWithdrawalRequest) returns (CreateGatehubWithdrawalResponse);
 }
+
+message CreateGatehubWithdrawalRequest {
+  string externalTransactionId = 1;
+}
+
+message CreateGatehubWithdrawalResponse {
+  string transactionId = 1;
+}
+
 
 message GetOnOffRampProviderResponse {
   string provider = 1;

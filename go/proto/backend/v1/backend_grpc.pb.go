@@ -115,6 +115,7 @@ const (
 	BackendService_GetOnOffRampProvider_FullMethodName           = "/backend.v1.BackendService/GetOnOffRampProvider"
 	BackendService_GetGatehubDepositWidget_FullMethodName        = "/backend.v1.BackendService/GetGatehubDepositWidget"
 	BackendService_GetGatehubWithdrawalWidget_FullMethodName     = "/backend.v1.BackendService/GetGatehubWithdrawalWidget"
+	BackendService_CreateGatehubWithdrawal_FullMethodName        = "/backend.v1.BackendService/CreateGatehubWithdrawal"
 )
 
 // BackendServiceClient is the client API for BackendService service.
@@ -245,6 +246,7 @@ type BackendServiceClient interface {
 	GetOnOffRampProvider(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetOnOffRampProviderResponse, error)
 	GetGatehubDepositWidget(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GatehubWidget, error)
 	GetGatehubWithdrawalWidget(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GatehubWidget, error)
+	CreateGatehubWithdrawal(ctx context.Context, in *CreateGatehubWithdrawalRequest, opts ...grpc.CallOption) (*CreateGatehubWithdrawalResponse, error)
 }
 
 type backendServiceClient struct {
@@ -1119,6 +1121,15 @@ func (c *backendServiceClient) GetGatehubWithdrawalWidget(ctx context.Context, i
 	return out, nil
 }
 
+func (c *backendServiceClient) CreateGatehubWithdrawal(ctx context.Context, in *CreateGatehubWithdrawalRequest, opts ...grpc.CallOption) (*CreateGatehubWithdrawalResponse, error) {
+	out := new(CreateGatehubWithdrawalResponse)
+	err := c.cc.Invoke(ctx, BackendService_CreateGatehubWithdrawal_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServiceServer is the server API for BackendService service.
 // All implementations should embed UnimplementedBackendServiceServer
 // for forward compatibility
@@ -1247,6 +1258,7 @@ type BackendServiceServer interface {
 	GetOnOffRampProvider(context.Context, *Empty) (*GetOnOffRampProviderResponse, error)
 	GetGatehubDepositWidget(context.Context, *Empty) (*GatehubWidget, error)
 	GetGatehubWithdrawalWidget(context.Context, *Empty) (*GatehubWidget, error)
+	CreateGatehubWithdrawal(context.Context, *CreateGatehubWithdrawalRequest) (*CreateGatehubWithdrawalResponse, error)
 }
 
 // UnimplementedBackendServiceServer should be embedded to have forward compatible implementations.
@@ -1540,6 +1552,9 @@ func (UnimplementedBackendServiceServer) GetGatehubDepositWidget(context.Context
 }
 func (UnimplementedBackendServiceServer) GetGatehubWithdrawalWidget(context.Context, *Empty) (*GatehubWidget, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetGatehubWithdrawalWidget not implemented")
+}
+func (UnimplementedBackendServiceServer) CreateGatehubWithdrawal(context.Context, *CreateGatehubWithdrawalRequest) (*CreateGatehubWithdrawalResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateGatehubWithdrawal not implemented")
 }
 
 // UnsafeBackendServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -3281,6 +3296,24 @@ func _BackendService_GetGatehubWithdrawalWidget_Handler(srv interface{}, ctx con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_CreateGatehubWithdrawal_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateGatehubWithdrawalRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).CreateGatehubWithdrawal(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_CreateGatehubWithdrawal_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).CreateGatehubWithdrawal(ctx, req.(*CreateGatehubWithdrawalRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BackendService_ServiceDesc is the grpc.ServiceDesc for BackendService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -3671,6 +3704,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetGatehubWithdrawalWidget",
 			Handler:    _BackendService_GetGatehubWithdrawalWidget_Handler,
+		},
+		{
+			MethodName: "CreateGatehubWithdrawal",
+			Handler:    _BackendService_CreateGatehubWithdrawal_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
