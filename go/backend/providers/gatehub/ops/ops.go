@@ -5,10 +5,17 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strconv"
+	"strings"
+	"time"
 
 	"gitlab.com/fynbos/backend/currency"
+	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	"gitlab.com/fynbos/backend/providers/gatehub/external"
+	"gitlab.com/fynbos/backend/transactions"
+	"gitlab.com/fynbos/pacioli"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/serviceerror"
 	"go.temporal.io/sdk/client"
@@ -148,15 +155,120 @@ func GetBalance(ctx context.Context, b Backends, linkedAccountID string) (*gateh
 	}, nil
 }
 
-func CreateWithdrawal(ctx context.Context, b Backends, walletID, externalTransactionID string) (string, error) {
-	_, err := createWithdrawal(ctx, b, walletID, externalTransactionID)
+func CreateWithdrawal(ctx context.Context, b Backends, ec external.Client, walletID, externalTransactionID string) (string, error) {
+	existingWithdrawal, err := b.Transactions().GetTransactionByForeignID(ctx, walletID, externalTransactionID)
+	if err != nil && !errors.Is(err, transactions.ErrNotFound) {
+		return "", fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+	if existingWithdrawal != nil {
+		_, err = processWithdrawal(ctx, b, walletID, existingWithdrawal.ID)
+		if err != nil {
+			return "", fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+		}
+		return existingWithdrawal.ID, nil
+	}
 
-	return "", err
+	amount, balanceAccount, err := validateWithdrawal(ctx, b, ec, walletID, externalTransactionID)
+	if err != nil {
+		return "", err
+	}
+
+	wallet, err := b.Wallets().Get(ctx, walletID)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	trxID, err := b.Transactions().CreateTransaction(ctx, transactions.CreateTransactionArgs{
+		WalletID:                walletID,
+		ForeignID:               externalTransactionID,
+		Provider:                gatehub.ProviderName,
+		State:                   transactions.StatePending,
+		ForeignType:             transactions.TransactionTypeWithdrawal,
+		Source:                  wallet.AddressString(),
+		Destination:             wallet.AddressString(),
+		Title:                   "Withdrawal",
+		DestinationIdentity:     walletID,
+		DestinationIdentityType: payments.IdentityTypeWalletID.String(),
+		Amount:                  amount,
+		LinkedAccountTitle:      "EUR Balance",
+		Transfers: []transactions.TransferArgs{
+			{
+				LinkedAccountID: balanceAccount.ID,
+				ForeignID:       externalTransactionID,
+				Amount:          amount,
+				Type:            transactions.TransferTypeDebitBalance,
+				State:           transactions.StatePending,
+			},
+		},
+	})
+	if err != nil {
+		return "", fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	_, err = processWithdrawal(ctx, b, walletID, trxID)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	return trxID, err
 }
 
-func createWithdrawal(ctx context.Context, b Backends, walletID, externalTransactionID string) (gatehub.Await, error) {
+func validateWithdrawal(ctx context.Context, b Backends, ec external.Client, walletID, externalTransactionID string) (currency.Amount, *linkedaccounts.LinkedAccount, error) {
+	externalUserID, err := getExternalUserID(ctx, b, walletID)
+	if err != nil {
+		return currency.Amount{}, nil, err
+	}
+
+	trx, err := ec.GetTransaction(ctx, externalUserID, externalTransactionID)
+	if err != nil {
+		return currency.Amount{}, nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+	if trx.Type != external.TransactionTypeWithdrawal {
+		return currency.Amount{}, nil, fmt.Errorf("%w Transaction is not a withdrawal", gatehub.ErrInternal)
+	}
+	cc := currency.ParseCurrency(trx.Vault.AssetCode)
+	if cc != currency.EUR {
+		return currency.Amount{}, nil, fmt.Errorf("%w Invalid currency", gatehub.ErrInternal)
+	}
+
+	balances, err := b.LinkedAccounts().ListBalances(ctx, walletID)
+	if err != nil {
+		return currency.Amount{}, nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	var balance *linkedaccounts.LinkedAccount
+	for _, bal := range balances {
+		if bal.Provider == gatehub.ProviderName && bal.Type == gatehub.AccTypeBalance {
+			balance = &bal
+			break
+		}
+	}
+	if balance == nil {
+		return currency.Amount{}, nil, fmt.Errorf("%w Gatehub balance linked account not found", gatehub.ErrNotFound)
+	}
+	if balance.ProviderID != trx.SendingWallet.Address {
+		return currency.Amount{}, nil, fmt.Errorf("%w Gatehub withdrawal is not for this Fynbos wallet", gatehub.ErrInternal)
+	}
+
+	parts := strings.Split(trx.Amount, ".")
+	if len(parts) < 1 {
+		return currency.Amount{}, nil, fmt.Errorf("%w invalid amount", gatehub.ErrInternal)
+	}
+
+	value, err := strconv.ParseUint(parts[0], 10, 64)
+	if err != nil {
+		return currency.Amount{}, nil, fmt.Errorf("%w invalid amount", gatehub.ErrInternal)
+	}
+
+	return currency.Amount{
+		Value:    value * 100, // EUR scale = 2
+		Currency: cc,
+	}, balance, nil
+}
+
+func processWithdrawal(ctx context.Context, b Backends, walletID, transactionID string) (gatehub.Await, error) {
 	wo := client.StartWorkflowOptions{
-		ID:                    fmt.Sprintf("gatehub_create_withdrawal_%s_%s", walletID, externalTransactionID),
+		ID:                    fmt.Sprintf("gatehub_create_withdrawal_%s", transactionID),
 		TaskQueue:             "backend",
 		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
 	}
@@ -182,11 +294,101 @@ func createWithdrawal(ctx context.Context, b Backends, walletID, externalTransac
 	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
 		await = b.Temporal().GetWorkflow(ctx, wo.ID, "")
 	} else {
-		await, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, CreateGatehubWithdrawal, walletID, externalTransactionID)
+		await, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, ProcessGatehubWithdrawal, walletID, transactionID)
 	}
 	if executeErr != nil {
 		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
 	}
 
 	return await.Get, nil
+}
+
+func ReserveBalance(ctx context.Context, b Backends, linkedAccountID, txID string, amt currency.Amount, timeout time.Duration) (*gatehub.Balance, error) {
+	if amt.Currency != currency.EUR {
+		return nil, fmt.Errorf("%w %s not supported.", gatehub.ErrInternal, amt.Currency)
+	}
+
+	la, err := b.LinkedAccounts().Get(ctx, linkedAccountID)
+	if err != nil {
+		return nil, err
+	}
+	if la.Provider != gatehub.ProviderName || la.Type != gatehub.AccTypeBalance {
+		return nil, fmt.Errorf("%w Not a Gatehub linked account", gatehub.ErrInternal)
+	}
+
+	opsAcc := gatehub.EUROpsAccount
+	ledger := gatehub.LedgerIDEUR
+	tx, err := b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
+		{
+			ID:              txID,
+			Amount:          amt.Value,
+			DebitAccountID:  la.ID,
+			CreditAccountID: opsAcc,
+			Pending:         true,
+			Code:            1,
+			Timeout:         uint64(timeout),
+			Ledger:          ledger,
+		},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+	if len(tx) > 0 {
+		if tx[0].Code == pacioli.TransferExceedsCredits || tx[0].Code == pacioli.TransferExceedsDebits || tx[0].Code == pacioli.TransferExceedsPendingTransferAmount {
+			return nil, fmt.Errorf("%w insufficiens balance cod (%s)", gatehub.ErrInsufficientBalance, tx[0].Code.String())
+		}
+		if tx[0].Code != 0 {
+			return nil, fmt.Errorf("%w non success code (%s)", gatehub.ErrInternal, tx[0].Code.String())
+		}
+	}
+
+	accs, err := b.Pacioli().GetAccounts(ctx, []string{la.ID})
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	if len(accs) != 1 {
+		return nil, fmt.Errorf("%w account not found", gatehub.ErrNotFound)
+	}
+
+	return &gatehub.Balance{
+		Total:     currency.FromUInt64(accs[0].CreditsPosted-accs[0].DebitsPosted, la.SendCurrency),
+		Available: currency.FromUInt64(accs[0].CreditsPosted-accs[0].DebitsPosted-accs[0].DebitsPending, la.SendCurrency),
+	}, nil
+}
+
+func FinaliseReserve(ctx context.Context, b Backends, trxID string) error {
+	tx, err := b.Pacioli().PostTransfers(ctx, []string{trxID})
+	if err != nil {
+		return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+	if len(tx) == 0 {
+		return nil
+	}
+	if tx[0].Code == pacioli.TransferPendingTransferAlreadyPosted {
+		return nil
+	}
+	if tx[0].Code == pacioli.TransferExceedsCredits || tx[0].Code == pacioli.TransferExceedsDebits || tx[0].Code == pacioli.TransferExceedsPendingTransferAmount {
+		return fmt.Errorf("%w insufficiens balance cod (%s)", gatehub.ErrInsufficientBalance, tx[0].Code.String())
+	}
+	if tx[0].Code != 0 {
+		return fmt.Errorf("%w non success code (%s)", gatehub.ErrInternal, tx[0].Code.String())
+	}
+
+	return nil
+}
+
+func RollbackReserve(ctx context.Context, b Backends, txID string) error {
+	tx, err := b.Pacioli().VoidTransfers(ctx, []string{txID})
+	if err != nil {
+		return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+	if len(tx) == 0 {
+		return nil
+	}
+	if tx[0].Code != 0 {
+		return fmt.Errorf("%w non success code (%s)", gatehub.ErrInternal, tx[0].Code.String())
+	}
+
+	return nil
 }
