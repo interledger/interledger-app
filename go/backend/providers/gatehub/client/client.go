@@ -4,7 +4,9 @@ import (
 	"context"
 	"net/http"
 	"os"
+	"time"
 
+	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	"gitlab.com/fynbos/backend/providers/gatehub/external"
 	ops "gitlab.com/fynbos/backend/providers/gatehub/ops"
@@ -50,6 +52,18 @@ func (c Client) GetBalance(ctx context.Context, linkedAccountID string) (*gatehu
 	return ops.GetBalance(ctx, c.b, linkedAccountID)
 }
 
-func (c Client) CreateWithdrawal(ctx context.Context, walletID, externalTransactionID string) (gatehub.Await, error) {
-	return ops.CreateWithdrawal(ctx, c.b, walletID, externalTransactionID)
+func (c Client) CreateWithdrawal(ctx context.Context, walletID, externalTransactionID string) (string, error) {
+	return ops.CreateWithdrawal(ctx, c.b, c.external, walletID, externalTransactionID)
+}
+
+func (c Client) ReserveBalance(ctx context.Context, linkedAccountID, txID string, amt currency.Amount, timeout time.Duration) (*gatehub.Balance, error) {
+	return ops.ReserveBalance(ctx, c.b, linkedAccountID, txID, amt, timeout)
+}
+
+func (c Client) FinaliseReserve(ctx context.Context, trxID string) error {
+	return ops.FinaliseReserve(ctx, c.b, trxID)
+}
+
+func (c Client) RollbackReserve(ctx context.Context, trxID string) error {
+	return ops.RollbackReserve(ctx, c.b, trxID)
 }

@@ -10,6 +10,7 @@ import (
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/gatehub"
+	"gitlab.com/fynbos/backend/transactions"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
@@ -106,7 +107,7 @@ func CreateGatehubDeposit(ctx workflow.Context, wh DepositWebhook) (string, erro
 	return txID, nil
 }
 
-func CreateGatehubWithdrawal(ctx workflow.Context, walletID, externalTransactionID string) error {
+func ProcessGatehubWithdrawal(ctx workflow.Context, walletID, transactionID string) error {
 	var a *Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 10 * time.Second,
@@ -117,26 +118,37 @@ func CreateGatehubWithdrawal(ctx workflow.Context, walletID, externalTransaction
 	logger := workflow.GetLogger(ctx)
 	logger.Info("Creating gatehub withdrawal.")
 
-	err := workflow.ExecuteActivity(ctx, a.ValidateGatehubWithdrawal, walletID, externalTransactionID).Get(ctx, nil)
+	err := workflow.ExecuteActivity(ctx, a.ReserveGatehubBalance, transactionID, walletID).Get(ctx, nil)
 	if err != nil {
+		handleFailedWithdrawal(ctx, a, walletID, transactionID)
 		return err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.CheckGatehubTransactionComplete, walletID, externalTransactionID).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.CheckGatehubWithdrawalComplete, walletID, transactionID).Get(ctx, nil)
 	if err != nil {
+		handleFailedWithdrawal(ctx, a, walletID, transactionID)
 		return err
 	}
 
-	var trxID string
-	err = workflow.ExecuteActivity(ctx, a.CreateGatehubWithdrawalTransaction, walletID, externalTransactionID).Get(ctx, &trxID)
+	err = workflow.ExecuteActivity(ctx, a.FinalizeGatehubBalance, transactionID, walletID).Get(ctx, nil)
 	if err != nil {
+		handleFailedWithdrawal(ctx, a, walletID, transactionID)
 		return err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.AssignGatehubWithdrawal, trxID, walletID).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.UpdateGatehubWithdrawalState, walletID, transactionID, transactions.StateCompleted).Get(ctx, nil)
 	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func handleFailedWithdrawal(ctx workflow.Context, a *Activity, walletID, transactionID string) {
+	logger := workflow.GetLogger(ctx)
+
+	err := workflow.ExecuteActivity(ctx, a.UpdateGatehubWithdrawalState, walletID, transactionID, transactions.StateFailed).Get(ctx, nil)
+	if err != nil {
+		logger.Error("Unable to update transaction state to failed", transactionID)
+	}
 }
