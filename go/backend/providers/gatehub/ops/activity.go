@@ -129,7 +129,7 @@ func (a *Activity) CreateGatehubWalletLinkedAccount(ctx context.Context, walletI
 		WalletID:        w.ID,
 		Type:            gatehub.AccTypeBalance,
 		Provider:        gatehub.ProviderName,
-		ProviderID:      primaryWallet.UUID,
+		ProviderID:      primaryWallet.Address,
 		Name:            "EUR Balance",
 		Nickname:        "EUR Balance",
 		CanReceive:      true,
@@ -499,7 +499,7 @@ func (a *Activity) ValidateGatehubWithdrawal(ctx context.Context, walletID strin
 	if balance == nil {
 		return temporal.NewNonRetryableApplicationError("Gatehub balance linked account not found", "ErrNotFound", fmt.Errorf("%w Gatehub balance linked account not found", gatehub.ErrNotFound))
 	}
-	if balance.ProviderID != trx.SendingWallet.UUID {
+	if balance.ProviderID != trx.SendingWallet.Address {
 		return temporal.NewNonRetryableApplicationError("Gatehub withdrawal not for this Fynbos wallet", "ErrInternal", fmt.Errorf("%w Gatehub withdrawal not for this Fynbos wallet", gatehub.ErrInternal))
 	}
 
