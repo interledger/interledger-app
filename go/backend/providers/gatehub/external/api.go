@@ -8,4 +8,8 @@ type Client interface {
 	GetOnboardingWidget(ctx context.Context, userID string) (string, error)
 	GetOnOffRampWidget(ctx context.Context, userID string, isDeposit bool) (string, error)
 	GetUserWallets(ctx context.Context, userID string) (*GetUserWalletsResponse, error)
+	GetWalletBalances(ctx context.Context, userID, addressID string) ([]WalletBalance, error)
+	CreateTransaction(ctx context.Context, args CreateTransactionRequest) (*Transaction, error)
+	GetUserTransactions(ctx context.Context, userID string) ([]Transaction, error)
+	GetTransaction(ctx context.Context, userID, id string) (*Transaction, error)
 }

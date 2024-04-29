@@ -8,6 +8,21 @@ var (
 	OnOffRamp  Product = "OnOffRamp"
 	Onboarding Product = "Onboarding"
 	Exchange   Product = "Exchange"
+
+	TransactionTypeWithdrawal int = 0
+	TransactionTypeDeposit    int = 1
+	TransactionTypeHosted     int = 2
+	TransactionTypeExchange   int = 3
+
+	TransactionStatusPending        int = 0
+	TransactionStatusProcessing     int = 1
+	TransactionStatusUnmatched      int = 3
+	TransactionStatusReturning      int = 5
+	TransactionStatusManualReview   int = 10
+	TransactionStatusCompleted      int = 100
+	TransactionStatusFailed         int = 101
+	TransactionStatusUserCancelled  int = 102
+	TransactionStatusAdminCancelled int = 103
 )
 
 type (
@@ -74,5 +89,45 @@ type (
 		CreatedAt time.Time `json:"created_at"`
 		UpdatedAt time.Time `json:"updated_at"`
 		Wallets   []Wallet  `json:"wallets"`
+	}
+
+	Vault struct {
+		UUID      string `json:"uuid"`
+		Name      string `json:"name"`
+		AssetCode string `json:"asset_code"`
+		CreatedAt string `json:"created_at"`
+		UpdatedAt string `json:"updated_at"`
+	}
+
+	WalletBalance struct {
+		Available string `json:"available"`
+		Pending   string `json:"pending"`
+		Total     string `json:"total"`
+		Vault     Vault  `json:"vault"`
+	}
+
+	CreateTransactionRequest struct {
+		SendingUserID    string  `json:"-"`
+		Amount           float64 `json:"amount"`
+		SendingAddress   string  `json:"sending_address"`
+		ReceivingAddress string  `json:"receiving_address"`
+		Message          string  `json:"message"`
+		Type             int     `json:"type"`
+		VaultID          string  `json:"vault_uuid"`
+	}
+
+	Transaction struct {
+		ID              string `json:"uuid"`
+		CreatedAt       string `json:"created_at"`
+		CompletedAt     string `json:"completed_at"`
+		Amount          string `json:"amount"`
+		Total           string `json:"total_amount"`
+		Fee             string `json:"fee"`
+		SendingWallet   Wallet `json:"sending_wallet"`
+		ReceivingWallet Wallet `json:"receiving_wallet"`
+		Vault           Vault  `json:"vault"`
+		Status          int    `json:"status"`
+		SubStatus       int    `json:"substatus"`
+		Type            int    `json:"type"`
 	}
 )
