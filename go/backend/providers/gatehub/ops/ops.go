@@ -14,6 +14,7 @@ import (
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	"gitlab.com/fynbos/backend/providers/gatehub/external"
+	"gitlab.com/fynbos/backend/providers/xago"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/pacioli"
 	"go.temporal.io/api/enums/v1"
@@ -391,4 +392,103 @@ func RollbackReserve(ctx context.Context, b Backends, txID string) error {
 	}
 
 	return nil
+}
+
+func AssignBalance(ctx context.Context, b Backends, linkedAccountID, txID string, amt currency.Amount) (*gatehub.Balance, error) {
+	la, err := b.LinkedAccounts().Get(ctx, linkedAccountID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	if la.Provider != gatehub.ProviderName || la.Type != gatehub.AccTypeBalance {
+		return nil, fmt.Errorf("%w linked account not correct type", gatehub.ErrNotFound)
+	}
+
+	opsAcc := gatehub.EUROpsAccount
+	ledger := gatehub.LedgerIDEUR
+	tx, err := b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
+		{
+			ID:              txID,
+			Amount:          amt.Value,
+			CreditAccountID: la.ID,
+			DebitAccountID:  opsAcc,
+			Pending:         false,
+			Code:            1,
+			Ledger:          ledger,
+		},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+	if len(tx) != 0 {
+		if tx[0].Code == pacioli.TransferExceedsCredits || tx[0].Code == pacioli.TransferExceedsDebits || tx[0].Code == pacioli.TransferExceedsPendingTransferAmount {
+			return nil, fmt.Errorf("%w insufficiens balance cod (%s)", gatehub.ErrInsufficientBalance, tx[0].Code.String())
+		}
+		if tx[0].Code != 0 {
+			return nil, fmt.Errorf("%w non success code (%s)", gatehub.ErrInternal, tx[0].Code.String())
+		}
+	}
+
+	accs, err := b.Pacioli().GetAccounts(ctx, []string{la.ID})
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	if len(accs) != 1 {
+		return nil, fmt.Errorf("%w account not found", xago.ErrNotFound)
+	}
+
+	return &gatehub.Balance{
+		Total:     currency.FromUInt64(accs[0].CreditsPosted-accs[0].DebitsPosted, la.SendCurrency),
+		Available: currency.FromUInt64(accs[0].CreditsPosted-accs[0].DebitsPosted-accs[0].DebitsPending, la.SendCurrency),
+	}, nil
+}
+
+func CreateTransfer(ctx context.Context, b Backends, ec external.Client, args gatehub.CreateTransferArgs) (*external.Transaction, error) {
+	sendLA, err := b.LinkedAccounts().Get(ctx, args.SendingLinkedAccountID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	recvLA, err := b.LinkedAccounts().Get(ctx, args.ReceivingLinkedAccountID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	recvWallet, err := b.Wallets().Get(ctx, recvLA.WalletID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	sendingUser, err := getExternalUserID(ctx, b, sendLA.WalletID)
+	if err != nil {
+		return nil, err
+	}
+
+	externalTx, err := ec.CreateTransaction(ctx, external.CreateTransactionRequest{
+		SendingUserID:    sendingUser,
+		SendingAddress:   sendLA.ProviderID,
+		ReceivingAddress: recvLA.ProviderID,
+		Amount:           args.Amount.Float64(),
+		Message:          fmt.Sprintf("Payment to %s", recvWallet.Name),
+		Type:             external.TransactionTypeHosted,
+		VaultID:          ec.GetVaultID(),
+	})
+	if errors.Is(err, external.ErrNotFound) {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrNotFound, err)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	return externalTx, nil
+}
+
+func GetTransaction(ctx context.Context, b Backends, ec external.Client, walletID, id string) (*external.Transaction, error) {
+	externalUser, err := getExternalUserID(ctx, b, walletID)
+	if err != nil {
+		return nil, err
+	}
+
+	return ec.GetTransaction(ctx, externalUser, id)
 }

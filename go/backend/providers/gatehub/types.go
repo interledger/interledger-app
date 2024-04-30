@@ -14,3 +14,9 @@ type Balance struct {
 	Total     currency.Amount
 	Available currency.Amount
 }
+
+type CreateTransferArgs struct {
+	SendingLinkedAccountID   string
+	ReceivingLinkedAccountID string
+	Amount                   currency.Amount
+}

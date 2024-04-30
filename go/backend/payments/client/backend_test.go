@@ -8,6 +8,7 @@ import (
 
 	rafiki_mock "gitlab.com/fynbos/backend/rafiki/client/mock"
 
+	"gitlab.com/fynbos/backend/providers/gatehub"
 	pti_ops "gitlab.com/fynbos/backend/providers/pti/ops"
 
 	"gitlab.com/fynbos/backend/providers/basistheory"
@@ -243,6 +244,10 @@ func (b *TestBackends) RestoreTemporalEnv() {
 	env.RegisterActivity(pti_ops.NewActivity(b, nil))
 
 	b.env = env
+}
+
+func (b *TestBackends) Gatehub() gatehub.Client {
+	return nil
 }
 
 func (b *TestBackends) Astra() astra.Client {
