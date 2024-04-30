@@ -89,7 +89,8 @@ func NewWebhook(b Backends) http.HandlerFunc {
 
 		body, err := Verify(r.Context(), r, key)
 		if errors.Is(err, gatehub.ErrInvalidWebhook) {
-			http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+			log.Warn("Webhook failed validation", zap.Error(err))
+			w.WriteHeader(http.StatusOK) // Gatehub sends empty POST to test the webhook when registering
 			return
 		}
 		if err != nil {
