@@ -17,6 +17,17 @@ func transformLinkedAccount(la linkedaccounts.LinkedAccount) *pb.LinkedAccount {
 		title = la.Mask
 	}
 
+	// EUR is a special case where we want to show the Euro flag on the frontend
+	sendCurrencyCountryCode := country.ParseCountry(la.SendCurrency.ISO4217()).String()
+	if _, isEU := country.EUCountries[la.SendCountry]; isEU {
+		sendCurrencyCountryCode = "EU"
+	}
+
+	recvCurrencyCountryCode := country.ParseCountry(la.ReceiveCurrency.ISO4217()).String()
+	if _, isEU := country.EUCountries[la.ReceiveCountry]; isEU {
+		recvCurrencyCountryCode = "EU"
+	}
+
 	return &pb.LinkedAccount{
 		Id:                         la.ID,
 		Type:                       la.Type,
@@ -27,9 +38,9 @@ func transformLinkedAccount(la linkedaccounts.LinkedAccount) *pb.LinkedAccount {
 		CanReceive:                 la.CanReceive,
 		Title:                      title,
 		SendCurrencyCode:           la.SendCurrency.String(),
-		SendCurrencyCountryCode:    country.ParseCountry(la.SendCurrency.ISO4217()).String(),
+		SendCurrencyCountryCode:    sendCurrencyCountryCode,
 		ReceiveCurrencyCode:        la.ReceiveCurrency.String(),
-		ReceiveCurrencyCountryCode: country.ParseCountry(la.ReceiveCurrency.ISO4217()).String(),
+		ReceiveCurrencyCountryCode: recvCurrencyCountryCode,
 		DefaultSend:                la.DefaultSend,
 		DefaultReceive:             la.DefaultReceive,
 		State:                      string(la.State),

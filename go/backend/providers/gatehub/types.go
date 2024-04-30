@@ -1,0 +1,22 @@
+package gatehub
+
+import "gitlab.com/fynbos/backend/currency"
+
+const (
+	ProviderName   = "gatehub"
+	AccTypeBalance = "balance"
+
+	LedgerIDEUR   uint32 = 4482387 // Spells ghubeur on a Nokia 3320 keyboard
+	EUROpsAccount        = "1854f171-eafa-4e30-bf66-7dbfe167ccfa"
+)
+
+type Balance struct {
+	Total     currency.Amount
+	Available currency.Amount
+}
+
+type CreateTransferArgs struct {
+	SendingLinkedAccountID   string
+	ReceivingLinkedAccountID string
+	Amount                   currency.Amount
+}

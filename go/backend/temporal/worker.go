@@ -14,6 +14,7 @@ import (
 	kyc_workflows "gitlab.com/fynbos/backend/kyc/ops"
 	payments_workflows "gitlab.com/fynbos/backend/payments/ops"
 	asta_workflows "gitlab.com/fynbos/backend/providers/astra/ops"
+	gatehub_workflows "gitlab.com/fynbos/backend/providers/gatehub/ops"
 	pti_workflows "gitlab.com/fynbos/backend/providers/pti/ops"
 	xago_workflows "gitlab.com/fynbos/backend/providers/xago/ops"
 	rafiki_workflows "gitlab.com/fynbos/backend/rafiki/ops"
@@ -99,6 +100,12 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(asta_workflows.CreateAstraCardWorkflow)
 
 	asta_workflows.StartTokenRefreshing(b)
+
+	// Gatehub
+	w.RegisterActivity(gatehub_workflows.NewActivity(b))
+	w.RegisterWorkflow(gatehub_workflows.CreateGatehubUserWorkflow)
+	w.RegisterWorkflow(gatehub_workflows.CreateGatehubDeposit)
+	w.RegisterWorkflow(gatehub_workflows.ProcessGatehubWithdrawal)
 
 	return w, nil
 }

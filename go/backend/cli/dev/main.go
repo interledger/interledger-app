@@ -6,6 +6,8 @@ import (
 
 	"gitlab.com/fynbos/backend/providers/basistheory"
 	bt_client "gitlab.com/fynbos/backend/providers/basistheory/client"
+	"gitlab.com/fynbos/backend/providers/gatehub"
+	gh_client "gitlab.com/fynbos/backend/providers/gatehub/client"
 	"gitlab.com/fynbos/backend/providers/pti"
 	pti_client "gitlab.com/fynbos/backend/providers/pti/client"
 	"gitlab.com/fynbos/pacioli"
@@ -148,6 +150,14 @@ type backends struct {
 	pc             pacioli.Client
 	pcDB           *sqlx.DB
 	pti            pti.Client
+	gh             gatehub.Client
+}
+
+func (b *backends) Gatehub() gatehub.Client {
+	if b.gh == nil {
+		b.gh = gh_client.New(b)
+	}
+	return b.gh
 }
 
 func (b *backends) PTI() pti.Client {

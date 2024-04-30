@@ -53,7 +53,26 @@ import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { PaySelect } from '~/routes/pay_.$paymentId/PaySelect'
 import styles from '~/styles/flags.css'
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader(args: LoaderFunctionArgs) {
+  const providerResponse = await grpc.getOnOffRampProvider(args.request, {})
+  if (isConnectError(providerResponse)) throw providerResponse.error
+
+  if (providerResponse.provider == 'gatehub') {
+    return gatehubDepositLoader(args)
+  } else return fynbosDepositLoader(args)
+}
+
+async function gatehubDepositLoader({ request }: LoaderFunctionArgs) {
+  const widgetResponse = await grpc.getGatehubDepositWidget(request, {})
+  if (isConnectError(widgetResponse)) throw widgetResponse.error
+
+  return jsonWithCSRF(request, {
+    provider: 'gatehub',
+    gatehubWidgetUrl: widgetResponse.widgetUrl
+  })
+}
+
+async function fynbosDepositLoader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
   let balanceAccount: Balance | undefined
   let balance: FormattedLinkedAccount | undefined
@@ -100,6 +119,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
 
   return jsonWithCSRF(request, {
+    provider: 'fynbos',
     balanceAccount,
     balance,
     balances,
@@ -129,7 +149,30 @@ export function links() {
 }
 
 export default function Page() {
-  const { depositDetails } = useLoaderData<typeof loader>()
+  const { provider } = useLoaderData<typeof loader>()
+
+  if (provider == 'gatehub') {
+    return <GatehubDepositPage />
+  } else return <FynbosDepositPage />
+}
+
+function GatehubDepositPage() {
+  const { gatehubWidgetUrl } = useLoaderData<typeof gatehubDepositLoader>()
+
+  return (
+    <iframe
+      title='Withdraw'
+      src={gatehubWidgetUrl}
+      sandbox='allow-top-navigation allow-forms allow-same-origin allow-popups allow-scripts'
+      scrolling='no'
+      frameBorder='0'
+      className='h-[750px]'
+    />
+  )
+}
+
+function FynbosDepositPage() {
+  const { depositDetails } = useLoaderData<typeof fynbosDepositLoader>()
 
   const [setLoading] = useScaffoldStore((state) => [state.setLoading])
 
@@ -147,7 +190,7 @@ export default function Page() {
 
 const Amount = () => {
   const { balance, balances, balanceAccount, linkedAccounts, csrfToken } =
-    useLoaderData<typeof loader>()
+    useLoaderData<typeof fynbosDepositLoader>()
   const [, setSearchParams] = useSearchParams()
   const actionData = useActionData<typeof action>()
 
@@ -297,7 +340,7 @@ const Amount = () => {
 }
 
 function DepositDetails() {
-  const { depositDetails } = useLoaderData<typeof loader>()
+  const { depositDetails } = useLoaderData<typeof fynbosDepositLoader>()
 
   return (
     <>
