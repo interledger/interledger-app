@@ -12,4 +12,5 @@ type Client interface {
 	CreateTransaction(ctx context.Context, args CreateTransactionRequest) (*Transaction, error)
 	GetUserTransactions(ctx context.Context, userID string) ([]Transaction, error)
 	GetTransaction(ctx context.Context, userID, id string) (*Transaction, error)
+	GetVaultID() string
 }

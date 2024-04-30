@@ -3395,6 +3395,40 @@ table "gatehub_users" {
   }
 }
 
+table "gatehub_transactions" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "external_id" {
+    null = false
+    type = text
+  }
+  column "payment_id" {
+    null = false
+    type = uuid
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "gatehub_transactions_external_id_payment_id" {
+    unique = true
+    columns = [column.payment_id, column.external_id]
+  }
+}
+
 table "atlas_schema_history" {
   schema = schema.public
   column "id" {

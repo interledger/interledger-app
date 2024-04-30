@@ -73,6 +73,14 @@ func NewClient(appID, secret string, transport *http.Client) Client {
 	}
 }
 
+func (c *client) GetVaultID() string {
+	if env.IsProd() {
+		return ""
+	}
+
+	return "a09a0a2c-1a3a-44c5-a1b9-603a6eea9341" // sandbox EUR vault
+}
+
 func (c *client) GetOnboardingWidget(ctx context.Context, userID string) (string, error) {
 	token, err := c.IssueToken(ctx, userID, Onboarding)
 	if err != nil {

@@ -67,3 +67,15 @@ func (c Client) FinaliseReserve(ctx context.Context, trxID string) error {
 func (c Client) RollbackReserve(ctx context.Context, trxID string) error {
 	return ops.RollbackReserve(ctx, c.b, trxID)
 }
+
+func (c Client) AssignBalance(ctx context.Context, linkedAccountID string, txID string, amt currency.Amount) (*gatehub.Balance, error) {
+	return ops.AssignBalance(ctx, c.b, linkedAccountID, txID, amt)
+}
+
+func (c Client) CreateTransfer(ctx context.Context, args gatehub.CreateTransferArgs) (*external.Transaction, error) {
+	return ops.CreateTransfer(ctx, c.b, c.external, args)
+}
+
+func (c Client) GetTransaction(ctx context.Context, walletID, id string) (*external.Transaction, error) {
+	return ops.GetTransaction(ctx, c.b, c.external, walletID, id)
+}

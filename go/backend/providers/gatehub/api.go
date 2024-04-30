@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"gitlab.com/fynbos/backend/currency"
+	"gitlab.com/fynbos/backend/providers/gatehub/external"
 )
 
 type Client interface {
@@ -13,10 +14,13 @@ type Client interface {
 	GetOnOffRampWidget(ctx context.Context, walletID string, isDeposit bool) (string, error)
 	GetBalance(ctx context.Context, linkedAccountID string) (*Balance, error)
 	CreateWithdrawal(ctx context.Context, walletID, externalTransactionID string) (string, error)
+	CreateTransfer(ctx context.Context, args CreateTransferArgs) (*external.Transaction, error)
+	GetTransaction(ctx context.Context, walletID, id string) (*external.Transaction, error)
 
 	ReserveBalance(ctx context.Context, linkedAccountID, txID string, amt currency.Amount, timeout time.Duration) (*Balance, error)
 	FinaliseReserve(ctx context.Context, txID string) error
 	RollbackReserve(ctx context.Context, txID string) error
+	AssignBalance(ctx context.Context, linkedAccountID, trxID string, amount currency.Amount) (*Balance, error)
 }
 
 type Await func(ctx context.Context, result interface{}) error
