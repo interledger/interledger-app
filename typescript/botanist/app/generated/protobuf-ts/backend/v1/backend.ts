@@ -32,6 +32,68 @@ export interface PaginationRequest {
 export interface Empty {
 }
 /**
+ * @generated from protobuf message backend.v1.CreateGatehubWithdrawalRequest
+ */
+export interface CreateGatehubWithdrawalRequest {
+    /**
+     * @generated from protobuf field: string externalTransactionId = 1;
+     */
+    externalTransactionId: string;
+}
+/**
+ * @generated from protobuf message backend.v1.CreateGatehubWithdrawalResponse
+ */
+export interface CreateGatehubWithdrawalResponse {
+    /**
+     * @generated from protobuf field: string transactionId = 1;
+     */
+    transactionId: string;
+}
+/**
+ * @generated from protobuf message backend.v1.GetOnOffRampProviderResponse
+ */
+export interface GetOnOffRampProviderResponse {
+    /**
+     * @generated from protobuf field: string provider = 1;
+     */
+    provider: string;
+}
+/**
+ * @generated from protobuf message backend.v1.GetKYCProviderWidgetRequest
+ */
+export interface GetKYCProviderWidgetRequest {
+    /**
+     * @generated from protobuf field: string idempotencyKey = 1;
+     */
+    idempotencyKey: string;
+}
+/**
+ * @generated from protobuf message backend.v1.KYCProviderWidget
+ */
+export interface KYCProviderWidget {
+    /**
+     * @generated from protobuf field: string provider = 1;
+     */
+    provider: string;
+    /**
+     * @generated from protobuf field: backend.v1.GatehubWidget gatehubWidget = 2;
+     */
+    gatehubWidget?: GatehubWidget;
+    /**
+     * @generated from protobuf field: backend.v1.KYCPersonaInquiryResponse personaInquiry = 3;
+     */
+    personaInquiry?: KYCPersonaInquiryResponse;
+}
+/**
+ * @generated from protobuf message backend.v1.GatehubWidget
+ */
+export interface GatehubWidget {
+    /**
+     * @generated from protobuf field: string widgetUrl = 1;
+     */
+    widgetUrl: string;
+}
+/**
  * @generated from protobuf message backend.v1.RevokeRafikiGrantRequest
  */
 export interface RevokeRafikiGrantRequest {
@@ -2427,6 +2489,302 @@ class Empty$Type extends MessageType<Empty> {
  * @generated MessageType for protobuf message backend.v1.Empty
  */
 export const Empty = new Empty$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CreateGatehubWithdrawalRequest$Type extends MessageType<CreateGatehubWithdrawalRequest> {
+    constructor() {
+        super("backend.v1.CreateGatehubWithdrawalRequest", [
+            { no: 1, name: "externalTransactionId", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<CreateGatehubWithdrawalRequest>): CreateGatehubWithdrawalRequest {
+        const message = { externalTransactionId: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CreateGatehubWithdrawalRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CreateGatehubWithdrawalRequest): CreateGatehubWithdrawalRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string externalTransactionId */ 1:
+                    message.externalTransactionId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CreateGatehubWithdrawalRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string externalTransactionId = 1; */
+        if (message.externalTransactionId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.externalTransactionId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.CreateGatehubWithdrawalRequest
+ */
+export const CreateGatehubWithdrawalRequest = new CreateGatehubWithdrawalRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CreateGatehubWithdrawalResponse$Type extends MessageType<CreateGatehubWithdrawalResponse> {
+    constructor() {
+        super("backend.v1.CreateGatehubWithdrawalResponse", [
+            { no: 1, name: "transactionId", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<CreateGatehubWithdrawalResponse>): CreateGatehubWithdrawalResponse {
+        const message = { transactionId: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CreateGatehubWithdrawalResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CreateGatehubWithdrawalResponse): CreateGatehubWithdrawalResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string transactionId */ 1:
+                    message.transactionId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CreateGatehubWithdrawalResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string transactionId = 1; */
+        if (message.transactionId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.transactionId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.CreateGatehubWithdrawalResponse
+ */
+export const CreateGatehubWithdrawalResponse = new CreateGatehubWithdrawalResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GetOnOffRampProviderResponse$Type extends MessageType<GetOnOffRampProviderResponse> {
+    constructor() {
+        super("backend.v1.GetOnOffRampProviderResponse", [
+            { no: 1, name: "provider", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<GetOnOffRampProviderResponse>): GetOnOffRampProviderResponse {
+        const message = { provider: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GetOnOffRampProviderResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetOnOffRampProviderResponse): GetOnOffRampProviderResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string provider */ 1:
+                    message.provider = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GetOnOffRampProviderResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string provider = 1; */
+        if (message.provider !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.provider);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.GetOnOffRampProviderResponse
+ */
+export const GetOnOffRampProviderResponse = new GetOnOffRampProviderResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GetKYCProviderWidgetRequest$Type extends MessageType<GetKYCProviderWidgetRequest> {
+    constructor() {
+        super("backend.v1.GetKYCProviderWidgetRequest", [
+            { no: 1, name: "idempotencyKey", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<GetKYCProviderWidgetRequest>): GetKYCProviderWidgetRequest {
+        const message = { idempotencyKey: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GetKYCProviderWidgetRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetKYCProviderWidgetRequest): GetKYCProviderWidgetRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string idempotencyKey */ 1:
+                    message.idempotencyKey = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GetKYCProviderWidgetRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string idempotencyKey = 1; */
+        if (message.idempotencyKey !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.idempotencyKey);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.GetKYCProviderWidgetRequest
+ */
+export const GetKYCProviderWidgetRequest = new GetKYCProviderWidgetRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class KYCProviderWidget$Type extends MessageType<KYCProviderWidget> {
+    constructor() {
+        super("backend.v1.KYCProviderWidget", [
+            { no: 1, name: "provider", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "gatehubWidget", kind: "message", T: () => GatehubWidget },
+            { no: 3, name: "personaInquiry", kind: "message", T: () => KYCPersonaInquiryResponse }
+        ]);
+    }
+    create(value?: PartialMessage<KYCProviderWidget>): KYCProviderWidget {
+        const message = { provider: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<KYCProviderWidget>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: KYCProviderWidget): KYCProviderWidget {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string provider */ 1:
+                    message.provider = reader.string();
+                    break;
+                case /* backend.v1.GatehubWidget gatehubWidget */ 2:
+                    message.gatehubWidget = GatehubWidget.internalBinaryRead(reader, reader.uint32(), options, message.gatehubWidget);
+                    break;
+                case /* backend.v1.KYCPersonaInquiryResponse personaInquiry */ 3:
+                    message.personaInquiry = KYCPersonaInquiryResponse.internalBinaryRead(reader, reader.uint32(), options, message.personaInquiry);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: KYCProviderWidget, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string provider = 1; */
+        if (message.provider !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.provider);
+        /* backend.v1.GatehubWidget gatehubWidget = 2; */
+        if (message.gatehubWidget)
+            GatehubWidget.internalBinaryWrite(message.gatehubWidget, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        /* backend.v1.KYCPersonaInquiryResponse personaInquiry = 3; */
+        if (message.personaInquiry)
+            KYCPersonaInquiryResponse.internalBinaryWrite(message.personaInquiry, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.KYCProviderWidget
+ */
+export const KYCProviderWidget = new KYCProviderWidget$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GatehubWidget$Type extends MessageType<GatehubWidget> {
+    constructor() {
+        super("backend.v1.GatehubWidget", [
+            { no: 1, name: "widgetUrl", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<GatehubWidget>): GatehubWidget {
+        const message = { widgetUrl: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GatehubWidget>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GatehubWidget): GatehubWidget {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string widgetUrl */ 1:
+                    message.widgetUrl = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GatehubWidget, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string widgetUrl = 1; */
+        if (message.widgetUrl !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.widgetUrl);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.GatehubWidget
+ */
+export const GatehubWidget = new GatehubWidget$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class RevokeRafikiGrantRequest$Type extends MessageType<RevokeRafikiGrantRequest> {
     constructor() {
@@ -10757,6 +11115,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "KYCStatus", options: {}, I: Empty, O: KYCStatusResponse },
     { name: "SetKYCStatusPending", options: {}, I: Empty, O: Empty },
     { name: "GetPersonaInquiry", options: {}, I: KYCPersonaInquiryRequest, O: KYCPersonaInquiryResponse },
+    { name: "GetKYCProviderWidget", options: {}, I: GetKYCProviderWidgetRequest, O: KYCProviderWidget },
     { name: "CreateCard", options: {}, I: CreateCardRequest, O: LinkedAccount },
     { name: "GetCardDetails", options: {}, I: GetCardDetailsRequest, O: CardDetails },
     { name: "ListFeatures", options: {}, I: Empty, O: Features },
@@ -10790,5 +11149,10 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "AstraWithdrawToCard", options: {}, I: AstraWithdrawToCardRequest, O: Payment },
     { name: "ListRafikiGrants", options: {}, I: Empty, O: ListRafikiGrantsResponse },
     { name: "GetRafikiGrant", options: {}, I: GetRafikiGrantRequest, O: RafikiGrant },
-    { name: "RevokeRafikiGrant", options: {}, I: RevokeRafikiGrantRequest, O: Empty }
+    { name: "RevokeRafikiGrant", options: {}, I: RevokeRafikiGrantRequest, O: Empty },
+    { name: "GetGatehubOnboardingWidget", options: {}, I: Empty, O: GatehubWidget },
+    { name: "GetOnOffRampProvider", options: {}, I: Empty, O: GetOnOffRampProviderResponse },
+    { name: "GetGatehubDepositWidget", options: {}, I: Empty, O: GatehubWidget },
+    { name: "GetGatehubWithdrawalWidget", options: {}, I: Empty, O: GatehubWidget },
+    { name: "CreateGatehubWithdrawal", options: {}, I: CreateGatehubWithdrawalRequest, O: CreateGatehubWithdrawalResponse }
 ]);

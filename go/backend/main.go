@@ -69,6 +69,9 @@ import (
 	astra_client "gitlab.com/fynbos/backend/providers/astra/client"
 	"gitlab.com/fynbos/backend/providers/basistheory"
 	bt_client "gitlab.com/fynbos/backend/providers/basistheory/client"
+	"gitlab.com/fynbos/backend/providers/gatehub"
+	gatehub_client "gitlab.com/fynbos/backend/providers/gatehub/client"
+	gatehub_ops "gitlab.com/fynbos/backend/providers/gatehub/ops"
 	"gitlab.com/fynbos/backend/providers/pti"
 	pti_client "gitlab.com/fynbos/backend/providers/pti/client"
 	pti_ops "gitlab.com/fynbos/backend/providers/pti/ops"
@@ -192,6 +195,7 @@ func start(args *cli.StartArgs) {
 		log.Fatalln(err)
 	}
 	router.Handle("/webhooks/pti", ptiWebhook)
+	router.Handle("/webhooks/gatehub", gatehub_ops.NewWebhook(b))
 	router.Handle("/webhooks/astra/updates", b.Astra().WebhookHandler())
 	router.Handle("/webhooks/astra/wallet/{id}", b.Astra().TrustedAuthInfoWebhook())
 	router.Handle("/{wallet_id}/identities/{identity_sig_hash}", wallet_handler.GetIdentityHandler(b))
@@ -336,6 +340,12 @@ func migrate(args *cli.MigrationArgs) {
 			Asset: currency.USD.String(),
 			Scale: uint8(currency.USD.Scale()),
 		},
+		{
+			ID:    gatehub.LedgerIDEUR,
+			Name:  "Gatehub EUR Ledger",
+			Asset: currency.EUR.String(),
+			Scale: uint8(currency.EUR.Scale()),
+		},
 	})
 	if err != nil {
 		log.Fatalln(err)
@@ -371,6 +381,13 @@ func migrate(args *cli.MigrationArgs) {
 		{
 			ID:                         pti.USDOpsAccount,
 			LedgerID:                   pti.LedgerIDUSD,
+			Code:                       1,
+			DebitsMustNotExceedCredits: false,
+			CreditsMustNotExceedDebits: false,
+		},
+		{
+			ID:                         gatehub.EUROpsAccount,
+			LedgerID:                   gatehub.LedgerIDEUR,
 			Code:                       1,
 			DebitsMustNotExceedCredits: false,
 			CreditsMustNotExceedDebits: false,
@@ -455,6 +472,11 @@ type backends struct {
 	pac            pacioli.Client
 	pti            pti.Client
 	astr           astra.Client
+	gatehub        gatehub.Client
+}
+
+func (b backends) Gatehub() gatehub.Client {
+	return b.gatehub
 }
 
 func (b backends) Astra() astra.Client {
@@ -761,6 +783,8 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	b.astr = astra_client.New(b)
 
 	b.pti = pti_client.New(b)
+
+	b.gatehub = gatehub_client.New(b)
 
 	return b
 }
