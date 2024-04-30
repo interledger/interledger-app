@@ -48,6 +48,36 @@ func (c Country) IsSupported() bool {
 	return details.Supported
 }
 
+var EUCountries = map[Country]bool{
+	AT: true, // Austria
+	BE: true, // Belgium
+	BG: true, // Bulgaria
+	HR: true, // Croatia
+	CY: true, // Cyprus
+	CZ: true, // Czech Republic
+	DK: true, // Denmark
+	EE: true, // Estonia
+	FI: true, // Finland
+	FR: true, // France
+	DE: true, // Germany
+	GR: true, // Greece
+	HU: true, // Hungary
+	IE: true, // Ireland
+	IT: true, // Italy
+	LV: true, // Latvia
+	LT: true, // Lithuania
+	LU: true, // Luxembourg
+	MT: true, // Malta
+	NL: true, // Netherlands
+	PL: true, // Poland
+	PT: true, // Portugal
+	RO: true, // Romania
+	SK: true, // Slovakia
+	SI: true, // Slovenia
+	ES: true, // Spain
+	SE: true, // Sweden
+}
+
 const (
 	AD Country = "AD"
 	AE Country = "AE"

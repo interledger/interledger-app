@@ -95,6 +95,7 @@ service BackendService {
   rpc KYCStatus(Empty) returns (KYCStatusResponse);
   rpc SetKYCStatusPending(Empty) returns (Empty);
   rpc GetPersonaInquiry(KYCPersonaInquiryRequest) returns (KYCPersonaInquiryResponse);
+  rpc GetKYCProviderWidget(GetKYCProviderWidgetRequest) returns (KYCProviderWidget);
 
   // Basistheory
   rpc CreateCard(CreateCardRequest) returns (LinkedAccount);
@@ -159,6 +160,40 @@ service BackendService {
   rpc ListRafikiGrants(Empty) returns (ListRafikiGrantsResponse);
   rpc GetRafikiGrant(GetRafikiGrantRequest) returns (RafikiGrant);
   rpc RevokeRafikiGrant(RevokeRafikiGrantRequest) returns (Empty);
+
+  // Gatehub
+  rpc GetGatehubOnboardingWidget(Empty) returns (GatehubWidget);
+  rpc GetOnOffRampProvider(Empty) returns (GetOnOffRampProviderResponse);
+  rpc GetGatehubDepositWidget(Empty) returns (GatehubWidget);
+  rpc GetGatehubWithdrawalWidget(Empty) returns (GatehubWidget);
+  rpc CreateGatehubWithdrawal(CreateGatehubWithdrawalRequest) returns (CreateGatehubWithdrawalResponse);
+}
+
+message CreateGatehubWithdrawalRequest {
+  string externalTransactionId = 1;
+}
+
+message CreateGatehubWithdrawalResponse {
+  string transactionId = 1;
+}
+
+
+message GetOnOffRampProviderResponse {
+  string provider = 1;
+}
+
+message GetKYCProviderWidgetRequest {
+  string idempotencyKey = 1;
+}
+
+message KYCProviderWidget {
+  string provider = 1;
+  GatehubWidget gatehubWidget = 2;
+  KYCPersonaInquiryResponse personaInquiry = 3;
+}
+
+message GatehubWidget {
+  string widgetUrl = 1;
 }
 
 message RevokeRafikiGrantRequest {

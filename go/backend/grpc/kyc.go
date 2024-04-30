@@ -7,7 +7,9 @@ import (
 	"math"
 	"time"
 
+	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/kyc/persona"
+	"gitlab.com/fynbos/backend/providers/gatehub"
 
 	"gitlab.com/fynbos/env"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -24,6 +26,50 @@ type validateIndividualKYC struct {
 	State              string `validate:"omitempty,iso3166_2"`
 	AddressCountryCode string `validate:"omitempty,iso3166_1_alpha2"`
 	AddressState       string `validate:"omitempty,iso3166_2"`
+}
+
+func (s *rpcService) GetKYCProviderWidget(ctx context.Context, req *pb.GetKYCProviderWidgetRequest) (*pb.KYCProviderWidget, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	wallet, err := s.b.Wallets().ForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	if _, isEU := country.EUCountries[wallet.Country]; isEU {
+		onboardingWidget, err := s.b.Gatehub().GetOnboardingWidget(ctx, wallet.ID)
+		if err != nil {
+			return nil, toGRPCError(err)
+		}
+
+		return &pb.KYCProviderWidget{
+			Provider: gatehub.ProviderName,
+			GatehubWidget: &pb.GatehubWidget{
+				WidgetUrl: onboardingWidget,
+			},
+		}, nil
+	}
+
+	operation := func() (*kyc.PersonaInquiry, error) {
+		return s.b.KYC().GetPersonaInquiry(ctx, wallet.ID, req.GetIdempotencyKey())
+	}
+
+	// loop until we get a response
+	wrappedOperation := retryWithBackoff(operation)
+	inq, err := wrappedOperation()
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &pb.KYCProviderWidget{
+		Provider: "persona",
+		PersonaInquiry: &pb.KYCPersonaInquiryResponse{
+			Id: inq.ID,
+		},
+	}, nil
 }
 
 func (s *rpcService) UpdateIndividualKYC(ctx context.Context, req *pb.UpdateIndividualKYCRequest) (*pb.Empty, error) {

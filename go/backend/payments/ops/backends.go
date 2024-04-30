@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"gitlab.com/fynbos/backend/providers/astra"
+	"gitlab.com/fynbos/backend/providers/gatehub"
 	"gitlab.com/fynbos/backend/providers/pti"
 	pti_mock "gitlab.com/fynbos/backend/providers/pti/client/mock"
 
@@ -46,6 +47,7 @@ type Backends interface {
 	Limits() limits.Client
 	Astra() astra.Client
 	PTI() pti.Client
+	Gatehub() gatehub.Client
 }
 
 type TestBackends struct {
@@ -60,6 +62,10 @@ type TestBackends struct {
 	Lac *linkedaccounts_mock.MockClient
 	Txc *transactions_mock.MockClient
 	Pti *pti_mock.MockClient
+}
+
+func (t TestBackends) Gatehub() gatehub.Client {
+	return nil
 }
 
 func (t TestBackends) PTI() pti.Client {

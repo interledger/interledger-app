@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/providers/pti"
 
 	"gitlab.com/fynbos/backend/currency"
@@ -13,6 +14,27 @@ import (
 	"gitlab.com/fynbos/backend/user"
 	pb "gitlab.com/fynbos/proto/backend/v1"
 )
+
+func (s *rpcService) GetOnOffRampProvider(ctx context.Context, req *pb.Empty) (*pb.GetOnOffRampProviderResponse, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil && !errors.Is(err, user.ErrNoUserFound) {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	w, err := s.b.Wallets().ForContext(ctx)
+	if err != nil && !errors.Is(err, user.ErrNoUserFound) {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	provider := "fynbos"
+	if _, isEU := country.EUCountries[w.Country]; isEU {
+		provider = "gatehub"
+	}
+
+	return &pb.GetOnOffRampProviderResponse{
+		Provider: provider,
+	}, nil
+}
 
 func (s *rpcService) DepositBalance(ctx context.Context, req *pb.TransferBalanceRequest) (*pb.Payment, error) {
 	_, err := s.b.Users().UserForContext(ctx)
