@@ -30,7 +30,6 @@ import {
   CardHeader,
   CardIcon,
   CardTitle,
-  Dialog,
   Icon,
   Layouts,
   Router,
@@ -160,14 +159,16 @@ export default function Page() {
 function GatehubDepositPage() {
   const { gatehubWidgetUrl } = useLoaderData<typeof gatehubDepositLoader>()
 
-  return <iframe
-    title='Withdraw'
-    src={gatehubWidgetUrl}
-    sandbox='allow-top-navigation allow-forms allow-same-origin allow-popups allow-scripts'
-    scrolling='no'
-    frameBorder='0'
-    className='h-[750px]'
-  />
+  return (
+    <iframe
+      title='Withdraw'
+      src={gatehubWidgetUrl}
+      sandbox='allow-top-navigation allow-forms allow-same-origin allow-popups allow-scripts'
+      scrolling='no'
+      frameBorder='0'
+      className='h-[750px]'
+    />
+  )
 }
 
 function FynbosDepositPage() {
