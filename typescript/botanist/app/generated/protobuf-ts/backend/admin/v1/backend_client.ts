@@ -4,6 +4,7 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { Backend } from "./backend";
+import type { CreateGatehubUserRequest } from "./backend";
 import type { GetPTIBalanceResponse } from "./backend";
 import type { GetPTIBalanceRequest } from "./backend";
 import type { EnablePTIBalanceRequest } from "./backend";
@@ -160,6 +161,12 @@ export interface IBackendClient {
      * @generated from protobuf rpc: GetPTIBalance(backend.admin.v1.GetPTIBalanceRequest) returns (backend.admin.v1.GetPTIBalanceResponse);
      */
     getPTIBalance(input: GetPTIBalanceRequest, options?: RpcOptions): UnaryCall<GetPTIBalanceRequest, GetPTIBalanceResponse>;
+    /**
+     * Gatehub
+     *
+     * @generated from protobuf rpc: CreateGatehubUser(backend.admin.v1.CreateGatehubUserRequest) returns (backend.admin.v1.Empty);
+     */
+    createGatehubUser(input: CreateGatehubUserRequest, options?: RpcOptions): UnaryCall<CreateGatehubUserRequest, Empty$>;
 }
 /**
  * @generated from protobuf service backend.admin.v1.Backend
@@ -353,5 +360,14 @@ export class BackendClient implements IBackendClient, ServiceInfo {
     getPTIBalance(input: GetPTIBalanceRequest, options?: RpcOptions): UnaryCall<GetPTIBalanceRequest, GetPTIBalanceResponse> {
         const method = this.methods[25], opt = this._transport.mergeOptions(options);
         return stackIntercept<GetPTIBalanceRequest, GetPTIBalanceResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * Gatehub
+     *
+     * @generated from protobuf rpc: CreateGatehubUser(backend.admin.v1.CreateGatehubUserRequest) returns (backend.admin.v1.Empty);
+     */
+    createGatehubUser(input: CreateGatehubUserRequest, options?: RpcOptions): UnaryCall<CreateGatehubUserRequest, Empty$> {
+        const method = this.methods[26], opt = this._transport.mergeOptions(options);
+        return stackIntercept<CreateGatehubUserRequest, Empty$>("unary", this._transport, method, opt, input);
     }
 }

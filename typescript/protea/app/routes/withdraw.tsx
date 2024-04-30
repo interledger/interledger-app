@@ -10,7 +10,8 @@ import {
   Form,
   useActionData,
   useLoaderData,
-  useSearchParams
+  useSearchParams,
+  useSubmit
 } from '@remix-run/react'
 import {
   useCallback,
@@ -25,6 +26,7 @@ import {
   Card,
   CardContent,
   CardIcon,
+  Dialog,
   Icon,
   Layouts,
   Router,
@@ -49,7 +51,26 @@ import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { PaySelect } from '~/routes/pay_.$paymentId/PaySelect'
 import styles from '~/styles/flags.css'
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader(args: LoaderFunctionArgs) {
+  const providerResponse = await grpc.getOnOffRampProvider(args.request, {})
+  if (isConnectError(providerResponse)) throw providerResponse.error
+
+  if (providerResponse.provider == 'gatehub') {
+    return gatehubWithdrawalLoader(args)
+  } else return fynbosWithdrawalLoader(args)
+}
+
+async function gatehubWithdrawalLoader({ request }: LoaderFunctionArgs) {
+  const widgetResponse = await grpc.getGatehubWithdrawalWidget(request, {})
+  if (isConnectError(widgetResponse)) throw widgetResponse.error
+
+  return jsonWithCSRF(request, {
+    provider: 'gatehub',
+    gatehubWidgetUrl: widgetResponse.widgetUrl
+  })
+}
+
+async function fynbosWithdrawalLoader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
 
   const balanceResponse = await grpc.getBalances(request, {})
@@ -77,6 +98,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   )
 
   return jsonWithCSRF(request, {
+    provider: 'fynbos',
     balanceAccount,
     balance,
     balances,
@@ -105,7 +127,49 @@ export function links() {
 }
 
 export default function Page() {
-  const { linkedAccounts } = useLoaderData<typeof loader>()
+  const { provider } = useLoaderData<typeof loader>()
+
+  if (provider == 'gatehub') {
+    return <GatehubWithdrawalPage />
+  } else return <FynbosWithdrawalPage />
+}
+
+function GatehubWithdrawalPage() {
+  const submit = useSubmit()
+  const { gatehubWidgetUrl } = useLoaderData<typeof gatehubWithdrawalLoader>()
+
+  useEffect(() => {
+    if (window) {
+      console.log("registering message event handler")
+      window.addEventListener('message', event => {
+        console.log("received message")
+        console.log("source", event.source)
+        console.log("data", event.data)
+
+        let formData = new FormData()
+        formData.append("provider", "gatehub")
+        formData.append("withdrawalId", event.data)
+
+        submit(formData, {
+          action: "/withdraw",
+          method: "post"
+        })
+      })
+    }
+  })
+
+  return <iframe
+    title='Withdraw'
+    src={gatehubWidgetUrl}
+    sandbox='allow-top-navigation allow-forms allow-same-origin allow-popups allow-scripts'
+    scrolling='no'
+    frameBorder='0'
+    className='h-[750px]'
+  />
+}
+
+function FynbosWithdrawalPage() {
+  const { linkedAccounts } = useLoaderData<typeof fynbosWithdrawalLoader>()
 
   const [setLoading] = useScaffoldStore((state) => [state.setLoading])
 
@@ -155,7 +219,7 @@ const formatAmount = (amount?: PlainMessage<RpcAmount>): string => {
 
 const Amount = () => {
   const { balance, balances, balanceAccount, linkedAccounts, csrfToken } =
-    useLoaderData<typeof loader>()
+    useLoaderData<typeof fynbosWithdrawalLoader>()
   const [, setSearchParams] = useSearchParams()
   const actionData = useActionData<typeof action>()
 
@@ -304,6 +368,10 @@ export async function action({ request }: ActionFunctionArgs) {
 
   await validateCSRFToken(request, form)
 
+  if (form.get('provider') as string == 'gatehub') {
+    return createGatehubWithdrawal(request, form)
+  }
+
   // TODO This needs a mapping
   const errors = {
     form: '',
@@ -354,6 +422,21 @@ export async function action({ request }: ActionFunctionArgs) {
   return redirect(
     route('/withdraw/:paymentId', {
       paymentId: withdrawResponse.id
+    })
+  )
+}
+
+async function createGatehubWithdrawal(request: Request, formData: FormData) {
+  const withdrawResponse = await grpc.createGatehubWithdrawal(request, {
+    externalTransactionId: formData.get('withdrawalId') as string
+  })
+  if (isConnectError(withdrawResponse)) {
+    throw withdrawResponse.error
+  }
+
+  return redirect(
+    route('/withdraw/:paymentId', {
+      paymentId: withdrawResponse.transactionId
     })
   )
 }
