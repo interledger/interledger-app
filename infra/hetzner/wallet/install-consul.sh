@@ -47,7 +47,7 @@ tls {
       cert_file = "/etc/consul.d/certs/dc1-server-consul-0.pem"
       key_file = "/etc/consul.d/certs/dc1-server-consul-0-key.pem"
 
-      verify_incoming = true
+      # verify_incoming = true
       verify_outgoing = true
    }
    internal_rpc {

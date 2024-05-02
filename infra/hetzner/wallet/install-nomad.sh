@@ -81,6 +81,7 @@ plugin "raw_exec" {
 consul {
   address = "127.0.0.1:8501"
   ssl = true
+  grpc_ca_file = "/etc/nomad.d/certs/consul/consul-agent-ca.pem"
   ca_file = "/etc/nomad.d/certs/consul/consul-agent-ca.pem"
   cert_file = "/etc/nomad.d/certs/consul/dc1-client-consul-0.pem"
   key_file = "/etc/nomad.d/certs/consul/dc1-client-consul-0-key.pem"
