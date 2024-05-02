@@ -59,11 +59,11 @@ auto_encrypt {
   allow_tls = true
 }
 
-acl {
-  enabled = true
-  default_policy = "deny"
-  enable_token_persistence = true
-}
+# acl {
+#   enabled = true
+#   default_policy = "deny"
+#   enable_token_persistence = true
+# }
 
 connect {
   enabled = true
@@ -75,6 +75,9 @@ addresses {
 
 ports {
   grpc_tls  = 8502
+  dns   = 8600
+  http  = 8500
+  https = 8501
 }
 
 ui_config {
