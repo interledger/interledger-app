@@ -86,6 +86,20 @@ consul {
   cert_file = "/etc/nomad.d/certs/consul/dc1-client-consul-0.pem"
   key_file = "/etc/nomad.d/certs/consul/dc1-client-consul-0-key.pem"
 }
+
+acl {
+  enabled = true
+}
+
+vault {
+  enabled = true
+  address = "http://127.0.0.1:8200"
+
+  default_identity {
+    aud = ["vault.io"]
+    ttl = "1h"
+  }
+}
 EOF
 
     cat << EOF | sudo tee /etc/systemd/system/nomad.service
