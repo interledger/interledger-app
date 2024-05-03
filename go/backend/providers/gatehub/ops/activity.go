@@ -190,7 +190,7 @@ func (a *Activity) CreateGatehubDepositTransaction(ctx context.Context, webhookI
 
 	wallet, err := a.b.Wallets().Get(ctx, walletID)
 	if errors.Is(err, gatehub.ErrNotFound) {
-		return "", temporal.NewNonRetryableApplicationError("Invalid currency", "ErrNotFound", fmt.Errorf("%w No wallet found for gatehub user", gatehub.ErrNotFound))
+		return "", temporal.NewNonRetryableApplicationError("Wallet not found", "ErrNotFound", fmt.Errorf("%w No wallet found for gatehub user", gatehub.ErrNotFound))
 	}
 	if err != nil {
 		return "", err
