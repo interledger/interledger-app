@@ -20,8 +20,7 @@ func (r *rpcService) GetGatehubOnboardingWidget(
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	_, isEU := country.EUCountries[wallet.Country]
-	if !isEU {
+	if !country.EUCountries[wallet.Country] {
 		return nil, toGRPCError(FailedPreconditionError("Wallet not in the EU region"))
 	}
 

@@ -27,7 +27,7 @@ func (s *rpcService) GetOnOffRampProvider(ctx context.Context, req *pb.Empty) (*
 	}
 
 	provider := "fynbos"
-	if _, isEU := country.EUCountries[w.Country]; isEU {
+	if country.EUCountries[w.Country] {
 		provider = "gatehub"
 	}
 

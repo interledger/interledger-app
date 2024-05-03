@@ -74,7 +74,7 @@ func CreateGatehubDeposit(ctx workflow.Context, wh DepositWebhook) (string, erro
 	}
 
 	parts := strings.Split(wh.Data.Amount, ".")
-	if len(parts) < 1 {
+	if len(parts) < 2 {
 		return "", temporal.NewNonRetryableApplicationError("Invalid amount", "ErrInternal", fmt.Errorf("%w invalid amount", gatehub.ErrInternal))
 	}
 
@@ -82,8 +82,12 @@ func CreateGatehubDeposit(ctx workflow.Context, wh DepositWebhook) (string, erro
 	if err != nil {
 		return "", temporal.NewNonRetryableApplicationError("Invalid amount", "ErrInternal", fmt.Errorf("%w %s", gatehub.ErrInternal, err))
 	}
+	cents, err := strconv.ParseUint(parts[1], 10, 64)
+	if err != nil {
+		return "", temporal.NewNonRetryableApplicationError("Invalid amount", "ErrInternal", fmt.Errorf("%w %s", gatehub.ErrInternal, err))
+	}
 	amt := currency.Amount{
-		Value:    value * 100, // EUR scale = 2
+		Value:    (value * 100) + cents, // EUR scale = 2
 		Currency: cc,
 	}
 
