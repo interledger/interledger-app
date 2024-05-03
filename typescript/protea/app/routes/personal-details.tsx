@@ -7,7 +7,7 @@ import { json } from '@remix-run/node'
 import { useLoaderData, useSubmit } from '@remix-run/react'
 import { useEffect, useRef, useState } from 'react'
 import { route } from 'routes-gen'
-import { Button, Card, CardContent, Layouts, Shape } from '~/components'
+import { Button, Card, CardContent, Dialog, Layouts, Shape } from '~/components'
 import { isConnectError } from '~/lib/error.server'
 import { exitFlow, flowType, requireFlow } from '~/lib/flows.server'
 import { grpc } from '~/lib/grpc.server'
@@ -18,15 +18,16 @@ import { useScript } from '~/lib/useScript'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const flow = await requireFlow(request, flowType.PersonalDetails)
-  const response = await grpc.getPersonaInquiry(request, {
+  const response = await grpc.getKYCProviderWidget(request, {
     idempotencyKey: flow.data.idempotencyKey
   })
 
   if (isConnectError(response)) throw response.errorResponse
 
   return json({
-    inquiryId: response.id,
-    sessionToken: response.sessionToken
+    provider: response.provider,
+    gatehubWidget: response.gatehubWidget,
+    personaWidget: response.personaInquiry
   })
 }
 
@@ -46,9 +47,9 @@ export const meta: MetaFunction = mergeMeta(() => [
   }
 ])
 
-export default function Page() {
+function PersonaPage() {
   const submit = useSubmit()
-  const { inquiryId, sessionToken } = useLoaderData<typeof loader>()
+  const { personaWidget } = useLoaderData<typeof loader>()
   const [ready, setReady] = useState(false)
   const status = useScript(
     'https://cdn.withpersona.com/dist/persona-v4.8.0-alpha.js'
@@ -72,8 +73,8 @@ export default function Page() {
     if (typeof window !== 'undefined' && status == 'ready') {
       personaRef.current = (window as any).Persona
       personaRef.current = new (window as any).Persona.Client({
-        inquiryId,
-        sessionToken,
+        inquiryId: personaWidget?.id,
+        sessionToken: personaWidget?.sessionToken,
         onReady: () => setReady(true),
         onComplete: ({ inquiryId, status, fields }: any) => {
           setReady(false)
@@ -86,8 +87,43 @@ export default function Page() {
         onError: (error: any) => console.log(error)
       })
     }
-  }, [inquiryId, sessionToken, status, submit])
+  }, [personaWidget, status, submit])
 
+  return <KycIntro onClick={() => personaRef.current.open()} ready={ready} />
+}
+
+function GatehubPage() {
+  const { gatehubWidget } = useLoaderData<typeof loader>()
+  const [dialogOpen, setDialogOpen] = useState(false)
+
+  return (
+    <>
+      <KycIntro
+        onClick={() => {
+          setDialogOpen(true)
+        }}
+        ready
+      />
+      <Dialog open={dialogOpen} setOpen={setDialogOpen} grow>
+        <iframe
+          title='Activate wallet'
+          src={gatehubWidget?.widgetUrl}
+          sandbox='allow-top-navigation allow-forms allow-same-origin allow-popups allow-scripts'
+          scrolling='yes'
+          allow='camera;microphone'
+          className='h-[750px]'
+        />
+      </Dialog>
+    </>
+  )
+}
+
+type KycIntroProps = {
+  onClick: () => void
+  ready: Boolean
+}
+
+function KycIntro({ onClick, ready }: KycIntroProps) {
   return (
     <>
       <Card>
@@ -118,15 +154,19 @@ export default function Page() {
           </div>
         </CardContent>
       </Card>
-      <Button
-        disabled={!ready}
-        type='button'
-        onClick={() => personaRef.current.open()}
-      >
+      <Button disabled={!ready} type='button' onClick={onClick}>
         Continue
       </Button>
     </>
   )
+}
+
+export default function Page() {
+  const { provider } = useLoaderData<typeof loader>()
+
+  if (provider == 'persona') {
+    return <PersonaPage />
+  } else return <GatehubPage />
 }
 
 export async function action({ request }: ActionFunctionArgs) {

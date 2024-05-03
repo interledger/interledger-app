@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"gitlab.com/fynbos/backend/providers/gatehub"
 	"gitlab.com/fynbos/backend/providers/pti"
 
 	"gitlab.com/fynbos/backend/providers/xago"
@@ -296,9 +297,9 @@ func ListBalances(ctx context.Context, b Backends, walletID string) ([]linkedacc
 
 	var ret []linkedaccounts.LinkedAccount
 	for _, la := range las {
-		if la.Provider == pti.ProviderName && la.Type == pti.AccTypeBalance {
-			ret = append(ret, la)
-		} else if la.Provider == xago.ProviderName && la.Type == xago.AccTypeBalance {
+		if (la.Provider == pti.ProviderName && la.Type == pti.AccTypeBalance) ||
+			(la.Provider == xago.ProviderName && la.Type == xago.AccTypeBalance) ||
+			(la.Provider == gatehub.ProviderName && la.Type == gatehub.AccTypeBalance) {
 			ret = append(ret, la)
 		}
 	}

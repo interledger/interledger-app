@@ -2,7 +2,9 @@ package ops
 
 import (
 	"context"
+	"database/sql"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -10,6 +12,8 @@ import (
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/astra"
+	"gitlab.com/fynbos/backend/providers/gatehub"
+	gatehub_external "gitlab.com/fynbos/backend/providers/gatehub/external"
 	"gitlab.com/fynbos/backend/providers/pti"
 	pti_external "gitlab.com/fynbos/backend/providers/pti/external"
 	"gitlab.com/fynbos/backend/providers/xago"
@@ -340,6 +344,11 @@ func (a *Activity) ReserveBalance(ctx context.Context, paymentID string) error {
 		if errors.Is(err, xago.ErrInsufficientBalance) {
 			return temporal.NewNonRetryableApplicationError("insufficient balance to service withdrawal", "insufficient_balance", err, "withdrawal", p.SenderAmount.Format())
 		}
+	} else if linkedAccount.Provider == gatehub.ProviderName {
+		_, err = a.b.Gatehub().ReserveBalance(ctx, p.SenderAccount, p.SendTransactionID, p.SenderAmount, timeout)
+		if errors.Is(err, gatehub.ErrInsufficientBalance) {
+			return temporal.NewNonRetryableApplicationError("insufficient balance to service withdrawal", "insufficient_balance", err, "withdrawal", p.SenderAmount.Format())
+		}
 	}
 
 	return err
@@ -367,6 +376,8 @@ func (a *Activity) AssignBalance(ctx context.Context, paymentID, txID string) er
 		_, err = a.b.Xago().AssignBalance(ctx, linkedAccount.ID, txID, p.ReceiverAmount)
 	} else if linkedAccount.Provider == pti.ProviderName {
 		_, err = a.b.PTI().AssignBalance(ctx, linkedAccount.ID, txID, p.ReceiverAmount)
+	} else if linkedAccount.Provider == gatehub.ProviderName {
+		_, err = a.b.Gatehub().AssignBalance(ctx, linkedAccount.ID, txID, p.ReceiverAmount)
 	}
 
 	return err
@@ -398,6 +409,8 @@ func (a *Activity) FinalizeBalance(ctx context.Context, paymentID string) error 
 		err = a.b.Xago().FinaliseReserve(ctx, p.SendTransactionID)
 	} else if linkedAccount.Provider == pti.ProviderName {
 		err = a.b.PTI().FinaliseReserve(ctx, p.SendTransactionID)
+	} else if linkedAccount.Provider == gatehub.ProviderName {
+		err = a.b.Gatehub().FinaliseReserve(ctx, p.SendTransactionID)
 	}
 
 	return err
@@ -421,6 +434,8 @@ func (a *Activity) RollbackBalance(ctx context.Context, paymentID string) error 
 		err = a.b.Xago().RollbackReserve(ctx, p.SendTransactionID)
 	} else if la.Provider == pti.ProviderName {
 		err = a.b.PTI().RollbackReserve(ctx, p.SendTransactionID)
+	} else if la.Provider == gatehub.ProviderName {
+		err = a.b.Gatehub().RollbackReserve(ctx, p.SendTransactionID)
 	}
 
 	return err
@@ -658,4 +673,61 @@ func (a *Activity) PTIDepositComplete(ctx context.Context, paymentID, txID strin
 		Status:        pti.TransactionFeedbackSettled,
 		Amount:        p.SenderAmount,
 	})
+}
+
+func (a *Activity) GatehubTransfer(ctx context.Context, paymentID string) (string, error) {
+	p, err := Lookup(ctx, a.b, paymentID)
+	if err != nil {
+		return "", err
+	}
+
+	externalTx, err := a.b.Gatehub().CreateTransfer(ctx, gatehub.CreateTransferArgs{
+		SendingLinkedAccountID:   p.SenderAccount,
+		ReceivingLinkedAccountID: p.ReceiverAccount,
+		Amount:                   p.SenderAmount,
+	})
+	if errors.Is(err, gatehub.ErrNotFound) {
+		return "", temporal.NewNonRetryableApplicationError("Gatehub account not found", "ErrNotFound", err)
+	}
+	if err != nil {
+		return "", err
+	}
+
+	return externalTx.ID, nil
+}
+
+func (a *Activity) SaveGatehubTransfer(ctx context.Context, paymentID, externalTransactionID string) error {
+	_, err := a.b.DB().ExecContext(ctx, "INSERT into gatehub_transactions (payment_id, external_id) VALUES ($1, $2) ON CONFLICT DO NOTHING;", paymentID, externalTransactionID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (a *Activity) CheckGatehubTransferCompleted(ctx context.Context, paymentID string) (string, error) {
+	var externalID string
+	err := a.b.DB().GetContext(ctx, &externalID, "SELECT external_id FROM gatehub_transactions WHERE payment_id = $1;", paymentID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", temporal.NewNonRetryableApplicationError("Payment not mapped to Gatehub transaction.", "ErrInternal", fmt.Errorf("%w Payment not mapped to Gatehub transaction.", payments.ErrInternal))
+	}
+	if err != nil {
+		return "", err
+	}
+
+	p, err := Lookup(ctx, a.b, paymentID)
+	if err != nil {
+		return "", err
+	}
+
+	externalTrx, err := a.b.Gatehub().GetTransaction(ctx, p.Sender.WalletID, externalID)
+	if err != nil {
+		return "", err
+	}
+
+	if externalTrx.Status != gatehub_external.TransactionStatusCompleted {
+		return "", fmt.Errorf("%w gatehub transaction not in completed state.", payments.ErrInternal)
+	}
+
+	return externalID, nil
 }

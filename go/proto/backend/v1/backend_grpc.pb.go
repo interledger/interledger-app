@@ -76,6 +76,7 @@ const (
 	BackendService_KYCStatus_FullMethodName                      = "/backend.v1.BackendService/KYCStatus"
 	BackendService_SetKYCStatusPending_FullMethodName            = "/backend.v1.BackendService/SetKYCStatusPending"
 	BackendService_GetPersonaInquiry_FullMethodName              = "/backend.v1.BackendService/GetPersonaInquiry"
+	BackendService_GetKYCProviderWidget_FullMethodName           = "/backend.v1.BackendService/GetKYCProviderWidget"
 	BackendService_CreateCard_FullMethodName                     = "/backend.v1.BackendService/CreateCard"
 	BackendService_GetCardDetails_FullMethodName                 = "/backend.v1.BackendService/GetCardDetails"
 	BackendService_ListFeatures_FullMethodName                   = "/backend.v1.BackendService/ListFeatures"
@@ -110,6 +111,11 @@ const (
 	BackendService_ListRafikiGrants_FullMethodName               = "/backend.v1.BackendService/ListRafikiGrants"
 	BackendService_GetRafikiGrant_FullMethodName                 = "/backend.v1.BackendService/GetRafikiGrant"
 	BackendService_RevokeRafikiGrant_FullMethodName              = "/backend.v1.BackendService/RevokeRafikiGrant"
+	BackendService_GetGatehubOnboardingWidget_FullMethodName     = "/backend.v1.BackendService/GetGatehubOnboardingWidget"
+	BackendService_GetOnOffRampProvider_FullMethodName           = "/backend.v1.BackendService/GetOnOffRampProvider"
+	BackendService_GetGatehubDepositWidget_FullMethodName        = "/backend.v1.BackendService/GetGatehubDepositWidget"
+	BackendService_GetGatehubWithdrawalWidget_FullMethodName     = "/backend.v1.BackendService/GetGatehubWithdrawalWidget"
+	BackendService_CreateGatehubWithdrawal_FullMethodName        = "/backend.v1.BackendService/CreateGatehubWithdrawal"
 )
 
 // BackendServiceClient is the client API for BackendService service.
@@ -186,6 +192,7 @@ type BackendServiceClient interface {
 	KYCStatus(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*KYCStatusResponse, error)
 	SetKYCStatusPending(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
 	GetPersonaInquiry(ctx context.Context, in *KYCPersonaInquiryRequest, opts ...grpc.CallOption) (*KYCPersonaInquiryResponse, error)
+	GetKYCProviderWidget(ctx context.Context, in *GetKYCProviderWidgetRequest, opts ...grpc.CallOption) (*KYCProviderWidget, error)
 	// Basistheory
 	CreateCard(ctx context.Context, in *CreateCardRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
 	GetCardDetails(ctx context.Context, in *GetCardDetailsRequest, opts ...grpc.CallOption) (*CardDetails, error)
@@ -234,6 +241,12 @@ type BackendServiceClient interface {
 	ListRafikiGrants(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListRafikiGrantsResponse, error)
 	GetRafikiGrant(ctx context.Context, in *GetRafikiGrantRequest, opts ...grpc.CallOption) (*RafikiGrant, error)
 	RevokeRafikiGrant(ctx context.Context, in *RevokeRafikiGrantRequest, opts ...grpc.CallOption) (*Empty, error)
+	// Gatehub
+	GetGatehubOnboardingWidget(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GatehubWidget, error)
+	GetOnOffRampProvider(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetOnOffRampProviderResponse, error)
+	GetGatehubDepositWidget(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GatehubWidget, error)
+	GetGatehubWithdrawalWidget(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GatehubWidget, error)
+	CreateGatehubWithdrawal(ctx context.Context, in *CreateGatehubWithdrawalRequest, opts ...grpc.CallOption) (*CreateGatehubWithdrawalResponse, error)
 }
 
 type backendServiceClient struct {
@@ -757,6 +770,15 @@ func (c *backendServiceClient) GetPersonaInquiry(ctx context.Context, in *KYCPer
 	return out, nil
 }
 
+func (c *backendServiceClient) GetKYCProviderWidget(ctx context.Context, in *GetKYCProviderWidgetRequest, opts ...grpc.CallOption) (*KYCProviderWidget, error) {
+	out := new(KYCProviderWidget)
+	err := c.cc.Invoke(ctx, BackendService_GetKYCProviderWidget_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *backendServiceClient) CreateCard(ctx context.Context, in *CreateCardRequest, opts ...grpc.CallOption) (*LinkedAccount, error) {
 	out := new(LinkedAccount)
 	err := c.cc.Invoke(ctx, BackendService_CreateCard_FullMethodName, in, out, opts...)
@@ -1063,6 +1085,51 @@ func (c *backendServiceClient) RevokeRafikiGrant(ctx context.Context, in *Revoke
 	return out, nil
 }
 
+func (c *backendServiceClient) GetGatehubOnboardingWidget(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GatehubWidget, error) {
+	out := new(GatehubWidget)
+	err := c.cc.Invoke(ctx, BackendService_GetGatehubOnboardingWidget_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) GetOnOffRampProvider(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetOnOffRampProviderResponse, error) {
+	out := new(GetOnOffRampProviderResponse)
+	err := c.cc.Invoke(ctx, BackendService_GetOnOffRampProvider_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) GetGatehubDepositWidget(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GatehubWidget, error) {
+	out := new(GatehubWidget)
+	err := c.cc.Invoke(ctx, BackendService_GetGatehubDepositWidget_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) GetGatehubWithdrawalWidget(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GatehubWidget, error) {
+	out := new(GatehubWidget)
+	err := c.cc.Invoke(ctx, BackendService_GetGatehubWithdrawalWidget_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) CreateGatehubWithdrawal(ctx context.Context, in *CreateGatehubWithdrawalRequest, opts ...grpc.CallOption) (*CreateGatehubWithdrawalResponse, error) {
+	out := new(CreateGatehubWithdrawalResponse)
+	err := c.cc.Invoke(ctx, BackendService_CreateGatehubWithdrawal_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServiceServer is the server API for BackendService service.
 // All implementations should embed UnimplementedBackendServiceServer
 // for forward compatibility
@@ -1137,6 +1204,7 @@ type BackendServiceServer interface {
 	KYCStatus(context.Context, *Empty) (*KYCStatusResponse, error)
 	SetKYCStatusPending(context.Context, *Empty) (*Empty, error)
 	GetPersonaInquiry(context.Context, *KYCPersonaInquiryRequest) (*KYCPersonaInquiryResponse, error)
+	GetKYCProviderWidget(context.Context, *GetKYCProviderWidgetRequest) (*KYCProviderWidget, error)
 	// Basistheory
 	CreateCard(context.Context, *CreateCardRequest) (*LinkedAccount, error)
 	GetCardDetails(context.Context, *GetCardDetailsRequest) (*CardDetails, error)
@@ -1185,6 +1253,12 @@ type BackendServiceServer interface {
 	ListRafikiGrants(context.Context, *Empty) (*ListRafikiGrantsResponse, error)
 	GetRafikiGrant(context.Context, *GetRafikiGrantRequest) (*RafikiGrant, error)
 	RevokeRafikiGrant(context.Context, *RevokeRafikiGrantRequest) (*Empty, error)
+	// Gatehub
+	GetGatehubOnboardingWidget(context.Context, *Empty) (*GatehubWidget, error)
+	GetOnOffRampProvider(context.Context, *Empty) (*GetOnOffRampProviderResponse, error)
+	GetGatehubDepositWidget(context.Context, *Empty) (*GatehubWidget, error)
+	GetGatehubWithdrawalWidget(context.Context, *Empty) (*GatehubWidget, error)
+	CreateGatehubWithdrawal(context.Context, *CreateGatehubWithdrawalRequest) (*CreateGatehubWithdrawalResponse, error)
 }
 
 // UnimplementedBackendServiceServer should be embedded to have forward compatible implementations.
@@ -1362,6 +1436,9 @@ func (UnimplementedBackendServiceServer) SetKYCStatusPending(context.Context, *E
 func (UnimplementedBackendServiceServer) GetPersonaInquiry(context.Context, *KYCPersonaInquiryRequest) (*KYCPersonaInquiryResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPersonaInquiry not implemented")
 }
+func (UnimplementedBackendServiceServer) GetKYCProviderWidget(context.Context, *GetKYCProviderWidgetRequest) (*KYCProviderWidget, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetKYCProviderWidget not implemented")
+}
 func (UnimplementedBackendServiceServer) CreateCard(context.Context, *CreateCardRequest) (*LinkedAccount, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateCard not implemented")
 }
@@ -1463,6 +1540,21 @@ func (UnimplementedBackendServiceServer) GetRafikiGrant(context.Context, *GetRaf
 }
 func (UnimplementedBackendServiceServer) RevokeRafikiGrant(context.Context, *RevokeRafikiGrantRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RevokeRafikiGrant not implemented")
+}
+func (UnimplementedBackendServiceServer) GetGatehubOnboardingWidget(context.Context, *Empty) (*GatehubWidget, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetGatehubOnboardingWidget not implemented")
+}
+func (UnimplementedBackendServiceServer) GetOnOffRampProvider(context.Context, *Empty) (*GetOnOffRampProviderResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOnOffRampProvider not implemented")
+}
+func (UnimplementedBackendServiceServer) GetGatehubDepositWidget(context.Context, *Empty) (*GatehubWidget, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetGatehubDepositWidget not implemented")
+}
+func (UnimplementedBackendServiceServer) GetGatehubWithdrawalWidget(context.Context, *Empty) (*GatehubWidget, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetGatehubWithdrawalWidget not implemented")
+}
+func (UnimplementedBackendServiceServer) CreateGatehubWithdrawal(context.Context, *CreateGatehubWithdrawalRequest) (*CreateGatehubWithdrawalResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateGatehubWithdrawal not implemented")
 }
 
 // UnsafeBackendServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -2502,6 +2594,24 @@ func _BackendService_GetPersonaInquiry_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_GetKYCProviderWidget_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetKYCProviderWidgetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).GetKYCProviderWidget(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_GetKYCProviderWidget_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).GetKYCProviderWidget(ctx, req.(*GetKYCProviderWidgetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _BackendService_CreateCard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateCardRequest)
 	if err := dec(in); err != nil {
@@ -3114,6 +3224,96 @@ func _BackendService_RevokeRafikiGrant_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_GetGatehubOnboardingWidget_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).GetGatehubOnboardingWidget(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_GetGatehubOnboardingWidget_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).GetGatehubOnboardingWidget(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_GetOnOffRampProvider_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).GetOnOffRampProvider(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_GetOnOffRampProvider_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).GetOnOffRampProvider(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_GetGatehubDepositWidget_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).GetGatehubDepositWidget(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_GetGatehubDepositWidget_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).GetGatehubDepositWidget(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_GetGatehubWithdrawalWidget_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).GetGatehubWithdrawalWidget(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_GetGatehubWithdrawalWidget_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).GetGatehubWithdrawalWidget(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_CreateGatehubWithdrawal_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateGatehubWithdrawalRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).CreateGatehubWithdrawal(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_CreateGatehubWithdrawal_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).CreateGatehubWithdrawal(ctx, req.(*CreateGatehubWithdrawalRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BackendService_ServiceDesc is the grpc.ServiceDesc for BackendService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -3350,6 +3550,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _BackendService_GetPersonaInquiry_Handler,
 		},
 		{
+			MethodName: "GetKYCProviderWidget",
+			Handler:    _BackendService_GetKYCProviderWidget_Handler,
+		},
+		{
 			MethodName: "CreateCard",
 			Handler:    _BackendService_CreateCard_Handler,
 		},
@@ -3484,6 +3688,26 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RevokeRafikiGrant",
 			Handler:    _BackendService_RevokeRafikiGrant_Handler,
+		},
+		{
+			MethodName: "GetGatehubOnboardingWidget",
+			Handler:    _BackendService_GetGatehubOnboardingWidget_Handler,
+		},
+		{
+			MethodName: "GetOnOffRampProvider",
+			Handler:    _BackendService_GetOnOffRampProvider_Handler,
+		},
+		{
+			MethodName: "GetGatehubDepositWidget",
+			Handler:    _BackendService_GetGatehubDepositWidget_Handler,
+		},
+		{
+			MethodName: "GetGatehubWithdrawalWidget",
+			Handler:    _BackendService_GetGatehubWithdrawalWidget_Handler,
+		},
+		{
+			MethodName: "CreateGatehubWithdrawal",
+			Handler:    _BackendService_CreateGatehubWithdrawal_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -11,6 +11,7 @@ import (
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/astra"
+	"gitlab.com/fynbos/backend/providers/gatehub"
 	httplog "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/providers/pti/external"
@@ -160,6 +161,8 @@ func PayinWorkflow(ctx workflow.Context, paymentID string) error {
 			txID, success, err = astraPayIn(ctx, a, paymentID)
 		case pti.ProviderName:
 			txID, success, err = ptiPayIn(ctx, a, ptiActivity, paymentID, la.WalletID)
+		case gatehub.ProviderName:
+			txID, success, err = gatehubPayIn(ctx, a, paymentID, la.WalletID)
 		default:
 			return temporal.NewNonRetryableApplicationError("unsupported linked account provider", "InvalidArgument", nil, "provider", la.Provider)
 		}
@@ -266,6 +269,70 @@ func PayinWorkflow(ctx workflow.Context, paymentID string) error {
 	})
 
 	return workflow.ExecuteChildWorkflow(childCtx, RollbackPayInWorkflow, paymentID).Get(childCtx, nil)
+}
+
+func gatehubPayIn(ctx workflow.Context, a *Activity, paymentID, walletID string) (string, bool, error) {
+	var pt payments.Type
+	err := workflow.ExecuteActivity(ctx, a.GetPaymentType, paymentID).Get(ctx, &pt)
+	if err != nil {
+		return "", false, err
+	}
+
+	// Webmonetization is assumed to be Fynbos to Fynbos
+	if pt != payments.TypePeer2Peer && pt != payments.TypeRafikiPeer2Peer && pt != payments.TypeWebMonetization {
+		return "", false, temporal.NewNonRetryableApplicationError("incorrect payment type for gatehub pay in flow", "InvalidArgument", gatehub.ErrInternal, "paymentID", paymentID, "type", pt)
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.ReserveBalance, paymentID).Get(ctx, nil)
+	if err != nil {
+		return "", false, err
+	}
+
+	var externalTransactionID string
+	err = workflow.ExecuteActivity(ctx, a.GatehubTransfer, paymentID).Get(ctx, &externalTransactionID)
+	if err != nil {
+		return "", false, err
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.SaveGatehubTransfer, paymentID, externalTransactionID).Get(ctx, nil)
+	if err != nil {
+		return "", false, err
+	}
+
+	return externalTransactionID, true, nil
+}
+
+func gatehubPayOut(ctx workflow.Context, a *Activity, paymentID, trxID, walletID string) (string, bool, error) {
+	var pt payments.Type
+	err := workflow.ExecuteActivity(ctx, a.GetPaymentType, paymentID).Get(ctx, &pt)
+	if err != nil {
+		return "", false, err
+	}
+
+	// Webmonetization is assumed to be Fynbos to Fynbos
+	if pt != payments.TypePeer2Peer && pt != payments.TypeRafikiPeer2Peer && pt != payments.TypeWebMonetization {
+		return "", false, temporal.NewNonRetryableApplicationError("incorrect payment type for gatehub pay in flow", "InvalidArgument", gatehub.ErrInternal, "paymentID", paymentID, "type", pt)
+	}
+
+	var externalTransactionID string
+	err = workflow.ExecuteActivity(ctx, a.CheckGatehubTransferCompleted, paymentID).Get(ctx, &externalTransactionID)
+	if err != nil {
+		return "", false, err
+	}
+
+	// Commit balances for transfers and withdrawals
+	err = workflow.ExecuteActivity(ctx, a.FinalizeBalance, paymentID).Get(ctx, nil)
+	if err != nil {
+		return "", false, err
+	}
+
+	// Assign balances for deposits and p2p receiver
+	err = workflow.ExecuteActivity(ctx, a.AssignBalance, paymentID, trxID).Get(ctx, nil)
+	if err != nil {
+		return "", false, err
+	}
+
+	return externalTransactionID, true, nil
 }
 
 func ptiPayIn(ctx workflow.Context, a *Activity, ptiA *pti_ops.Activity, paymentID, walletID string) (string, bool, error) {
@@ -563,6 +630,8 @@ func PayoutWorkflow(ctx workflow.Context, paymentID string) error {
 		externalTXID, success, err = ptiPayOut(ctx, accountsCtx, a, ptiActivity, paymentID, txID, la.WalletID)
 	case astra.ProviderName:
 		externalTXID, success, err = astraPayOut(ctx, a, paymentID)
+	case gatehub.ProviderName:
+		externalTXID, success, err = gatehubPayOut(ctx, a, paymentID, txID, la.WalletID)
 	default:
 		return temporal.NewNonRetryableApplicationError("unsupported linked account provider", "InvalidArgument", nil, "provider", la.Provider)
 	}
