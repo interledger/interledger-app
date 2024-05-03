@@ -78,6 +78,7 @@ func NewWebhook(b Backends) http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		log.Info("Gatehub webhook", zap.String("method", r.Method))
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusOK)
 			return
@@ -201,6 +202,7 @@ func Verify(ctx context.Context, r *http.Request, key []byte) ([]byte, error) {
 		log.Error("gatehub webhook: Failed to get request body.", zap.Error(err))
 		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
 	}
+	log.Info("Gatehub webhook: ", zap.String("body", string(payload)))
 	hmac := hmac.New(sha256.New, key)
 	_, err = hmac.Write(payload)
 	if err != nil {
