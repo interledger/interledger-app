@@ -54,7 +54,7 @@ func Webhook(b Backends) (http.HandlerFunc, error) {
 			return
 		}
 
-		d, err := jwe.Decrypt(body, jwe.WithKey(jwa.RS512, ptiPrivateKey))
+		d, err := jwe.Decrypt(body, jwe.WithKey(jwa.RSA_OAEP_256, ptiPrivateKey))
 		if err != nil {
 			log.Error("pti webhook: Failed to decrypt", zap.Error(err))
 			http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
