@@ -35,7 +35,8 @@ function install_nomad () {
 	sudo mkdir -p /opt/nomad/data
 
 	# make volume for postgres
-	sudo mkdir -p /opt/nomad/data/volume/postgres
+	sudo mkdir -p /opt/nomad/data/volume/db-prod
+  sudo mkdir -p /opt/nomad/data/volume/db-dev
 	sudo chown --recursive nomad:nomad /opt/nomad
 
 cat << EOF | sudo tee /etc/nomad.d/server.hcl
@@ -66,8 +67,13 @@ client {
     "docker.volumes.enabled" = true
   }
 
-  host_volume "postgres" {
-    path      = "/opt/nomad/data/volume/postgres"
+  host_volume "db-prod" {
+    path      = "/opt/nomad/data/volume/db-prod"
+    read_only = false
+  }
+
+  host_volume "db-dev" {
+    path      = "/opt/nomad/data/volume/db-dev"
     read_only = false
   }
 }
