@@ -23,7 +23,7 @@ job "postgres" {
       mode = "bridge"
       port "postgres" {
         to = 5432
-        static = 6432
+        static = 5432
       }
     }
 
@@ -34,6 +34,8 @@ job "postgres" {
         sidecar_service {}
       }
     }
+
+    vault {}
 
     task "postgres" {
       driver = "docker"
@@ -58,10 +60,6 @@ job "postgres" {
 
       template {
         data = <<EOH
-          -- Create an ADMIN user
-          CREATE ROLE roach WITH LOGIN SUPERUSER PASSWORD 'roach';
-          CREATE ROLE vault WITH LOGIN SUPERUSER PASSWORD 'vault';
-
           -- Create Kratos user and DB
           CREATE DATABASE kratos;
 
