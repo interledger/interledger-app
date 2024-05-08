@@ -32,8 +32,11 @@ type client struct {
 }
 
 func New() Client {
-	baseURL := "http://rafiki-rafiki-backend.rafiki:3001/graphql"
-	cl := graphql.NewClient(baseURL, otelhttp.DefaultClient) // TODO: set auth headers maybe
+	backendGraphql := "http://rafiki-rafiki-backend.rafiki:3001/graphql"
+	if os.Getenv("RAFIKI_BACKEND_GRAPHQL_URL") != "" {
+		backendGraphql = os.Getenv("RAFIKI_BACKEND_GRAPHQL_URL")
+	}
+	cl := graphql.NewClient(backendGraphql, otelhttp.DefaultClient) // TODO: set auth headers maybe
 
 	// Default value for eu1
 	assetUSD := os.Getenv("RAFIKI_USD_ASSET")
@@ -46,7 +49,11 @@ func New() Client {
 		assetZAR = "9913bb55-64a2-41c8-a20a-1d607ef8267a"
 	}
 
-	authCl := graphql.NewClient("http://rafiki-rafiki-auth.rafiki:3003/graphql", otelhttp.DefaultClient)
+	authGraphql := "http://rafiki-rafiki-auth.rafiki:3003/graphql"
+	if os.Getenv("RAFIKI_AUTH_GRAPHQL_URL") != "" {
+		authGraphql = os.Getenv("RAFIKI_AUTH_GRAPHQL_URL")
+	}
+	authCl := graphql.NewClient(authGraphql, otelhttp.DefaultClient)
 
 	return &client{backendClient: cl, usdID: assetUSD, authClient: authCl, zarID: assetZAR}
 }
