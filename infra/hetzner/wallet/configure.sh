@@ -30,7 +30,7 @@ function configure_vault_workload_identities () {
 
   cat << EOF | tee vault-auth-method-jwt-nomad.json
 {
-  "jwks_url": "http://127.0.0.1:4646/.well-known/jwks.json",
+  "jwks_url": "http://10.0.0.10:4646/.well-known/jwks.json",
   "jwt_supported_algs": ["RS256", "EdDSA"],
   "default_role": "nomad-workloads"
 }
@@ -102,6 +102,7 @@ function generate_database_root_passwords () {
 
 mkdir configuration && cd configuration
 export VAULT_ADDR=http://127.0.0.1:8200
+export CONSUL_HTTP_ADDR=http://10.0.0.10:8500
 
 init_vault
 bootstrap_nomad_acl
