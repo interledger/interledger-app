@@ -42,7 +42,7 @@ function install_nomad () {
 cat << EOF | sudo tee /etc/nomad.d/server.hcl
 data_dir  = "/opt/nomad/data"
 
-bind_addr = "0.0.0.0" # the default
+bind_addr = "10.0.0.10" # the default
 
 datacenter = "dc1"
 

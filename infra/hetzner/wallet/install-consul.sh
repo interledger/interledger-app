@@ -37,9 +37,9 @@ log_level = "INFO"
 server = true
 bootstrap_expect = 1
 
-client_addr = "0.0.0.0"
-bind_addr = "0.0.0.0"
-advertise_addr = "127.0.0.1"
+client_addr = "127.0.0.1"
+bind_addr = "10.0.0.10"
+advertise_addr = "10.0.0.10"
 
 tls {
    defaults {
@@ -70,7 +70,7 @@ connect {
 }
 
 addresses {
-  grpc = "127.0.0.1"
+
 }
 
 ports {
