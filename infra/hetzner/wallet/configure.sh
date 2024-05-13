@@ -9,10 +9,6 @@ function init_vault () {
   # Store the vault unseal keys securely
   vault operator init | tee vault-tokens.txt
 
-  vault operator unseal $(cat vault-tokens.txt | grep 'Key 1' | cut -d':' -f2 | xargs)
-  vault operator unseal $(cat vault-tokens.txt | grep 'Key 2' | cut -d':' -f2 | xargs)
-  vault operator unseal $(cat vault-tokens.txt | grep 'Key 3' | cut -d':' -f2 | xargs)
-
   export VAULT_TOKEN=$(cat vault-tokens.txt | grep 'Root' | cut -d':' -f2 | xargs)
 }
 
