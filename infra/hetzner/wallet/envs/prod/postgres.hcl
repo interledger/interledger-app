@@ -60,10 +60,6 @@ job "postgres" {
 
       template {
         data = <<EOH
-          -- Create an ADMIN user
-          CREATE ROLE roach WITH LOGIN SUPERUSER PASSWORD 'roach';
-          CREATE ROLE vault WITH LOGIN SUPERUSER PASSWORD 'vault';
-
           -- Create Kratos user and DB
           CREATE DATABASE kratos;
 

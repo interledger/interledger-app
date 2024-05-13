@@ -30,17 +30,18 @@ function install_nomad () {
 	sudo chown --recursive nomad:nomad /etc/nomad.d
 	sudo chmod 640 /etc/nomad.d/nomad.hcl
 	
-	sudo mkdir -p /opt/nomad
-	sudo chmod 750 /opt/nomad
-	sudo mkdir -p /opt/nomad/data
+  # make volume for nomad data. Assumes there is a zfs file system mounted at /data
+	sudo mkdir -p /data/live/nomad
+	sudo chmod 750 /data/live/nomad
+	sudo mkdir -p /data/live/nomad/data
 
 	# make volume for postgres
-	sudo mkdir -p /opt/nomad/data/volume/db-prod
-  sudo mkdir -p /opt/nomad/data/volume/db-dev
-	sudo chown --recursive nomad:nomad /opt/nomad
+	sudo mkdir -p /data/live/nomad/data/volume/db-prod
+  sudo mkdir -p /data/live/nomad/data/volume/db-dev
+	sudo chown --recursive nomad:nomad /data/live/nomad
 
 cat << EOF | sudo tee /etc/nomad.d/server.hcl
-data_dir  = "/opt/nomad/data"
+data_dir  = "/data/live/nomad/data"
 
 bind_addr = "10.0.0.10" # the default
 
@@ -68,12 +69,12 @@ client {
   }
 
   host_volume "db-prod" {
-    path      = "/opt/nomad/data/volume/db-prod"
+    path      = "/data/live/nomad/data/volume/db-prod"
     read_only = false
   }
 
   host_volume "db-dev" {
-    path      = "/opt/nomad/data/volume/db-dev"
+    path      = "/data/live/nomad/data/volume/db-dev"
     read_only = false
   }
 }
