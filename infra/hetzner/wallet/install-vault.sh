@@ -22,21 +22,29 @@ function install_vault () {
 	sudo chown --recursive vault:vault /etc/vault.d
 	sudo chmod 640 /etc/vault.d/vault.hcl
 	
-	sudo mkdir -p /opt/vault
-	sudo mkdir -p /opt/vault/data
-	sudo chown --recursive vault:vault /opt/vault
+	  # make volume for vault data. Assumes there is a zfs file system mounted at /data
+	sudo mkdir -p /data/live/vault
+	sudo mkdir -p /data/live/vault/data
+	sudo chown --recursive vault:vault /data/live/vault
 	
 	# allow vault to use mlock and create vault user
 	sudo setcap cap_ipc_lock=+ep /usr/bin/vault
 
 	cat << EOF | sudo tee /etc/vault.d/vault.hcl
 storage "file" {
-  path    = "/opt/vault/data"
+  path    = "/data/live/vault/data"
 }
 
 listener "tcp" {
   address     = "127.0.0.1:8200"
   tls_disable = "true"
+}
+
+seal "awskms" {
+  region     = "eu-west-1"
+  access_key = ""
+  secret_key = ""
+  kms_key_id = ""
 }
 
 api_addr = "http://127.0.0.1:8200"
