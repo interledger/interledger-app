@@ -22,6 +22,7 @@ build_botanist:
   before_script:
     - docker login -u AWS -p $(aws ecr get-login-password --profile shared
       --region eu-west-1) 823058932981.dkr.ecr.eu-west-1.amazonaws.com
+    - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
     - cd $BOTANIST_PROJECT_PATH
   script:
     - docker build -t
@@ -29,3 +30,5 @@ build_botanist:
       .
     - docker push
       "823058932981.dkr.ecr.eu-west-1.amazonaws.com/botanist:${BOTANIST_IMAGE_HASH}"
+    - docker tag "823058932981.dkr.ecr.eu-west-1.amazonaws.com/botanist:${BOTANIST_IMAGE_HASH}" "$CI_REGISTRY/fynbos/fynbos/botanist:${BOTANIST_IMAGE_HASH}"
+    - docker push "$CI_REGISTRY/fynbos/fynbos/botanist:${BOTANIST_IMAGE_HASH}"
