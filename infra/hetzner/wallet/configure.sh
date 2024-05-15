@@ -23,6 +23,8 @@ function bootstrap_nomad_acl () {
 
 function configure_vault_workload_identities () {
   vault auth enable -path 'jwt-nomad' 'jwt'
+  vault secrets enable -path 'transit/dev/backend' transit
+  vault secrets enable -path 'transit/prod/backend' transit
 
   cat << EOF | tee vault-auth-method-jwt-nomad.json
 {
@@ -75,6 +77,18 @@ path "kv/metadata/*" {
 
 path "database-{{identity.entity.aliases.$AUTH_METHOD_ACCESSOR.metadata.nomad_namespace}}/static-creds/*" {
   capabilities = ["read"]
+}
+
+path "transit/{{identity.entity.aliases.$AUTH_METHOD_ACCESSOR.metadata.nomad_namespace}}/{{identity.entity.aliases.$AUTH_METHOD_ACCESSOR.metadata.nomad_job_id}}/keys/*" {
+    capabilities = ["create", "update", "read", "list"]
+}
+
+path "transit/{{identity.entity.aliases.$AUTH_METHOD_ACCESSOR.metadata.nomad_namespace}}/{{identity.entity.aliases.$AUTH_METHOD_ACCESSOR.metadata.nomad_job_id}}/sign/*" {
+    capabilities = ["create", "update"]
+}
+
+path "transit/{{identity.entity.aliases.$AUTH_METHOD_ACCESSOR.metadata.nomad_namespace}}/{{identity.entity.aliases.$AUTH_METHOD_ACCESSOR.metadata.nomad_job_id}}/verify/*" {
+    capabilities = ["create", "update"]
 }
 EOF
 
