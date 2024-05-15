@@ -25,6 +25,7 @@ build_protea:
   before_script:
     - docker login -u AWS -p $(aws ecr get-login-password --profile shared
       --region eu-west-1) 823058932981.dkr.ecr.eu-west-1.amazonaws.com
+    - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
     - cd $PROTEA_PROJECT_PATH
   script:
     - echo -en
@@ -40,3 +41,5 @@ build_protea:
       .
     - docker push
       "823058932981.dkr.ecr.eu-west-1.amazonaws.com/protea:${PROTEA_IMAGE_HASH}"
+    - docker tag "823058932981.dkr.ecr.eu-west-1.amazonaws.com/protea:${PROTEA_IMAGE_HASH}" "$CI_REGISTRY/fynbos/fynbos/protea:${PROTEA_IMAGE_HASH}"
+    - docker push "$CI_REGISTRY/fynbos/fynbos/protea:${PROTEA_IMAGE_HASH}"
