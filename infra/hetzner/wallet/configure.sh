@@ -73,7 +73,7 @@ path "kv/metadata/*" {
   capabilities = ["list"]
 }
 
-path "database-{{identity.entity.aliases.$AUTH_METHOD_ACCESSOR.metadata.nomad_namespace}}/creds/*" {
+path "database-{{identity.entity.aliases.$AUTH_METHOD_ACCESSOR.metadata.nomad_namespace}}/static-creds/*" {
   capabilities = ["read"]
 }
 EOF

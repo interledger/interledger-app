@@ -10,14 +10,6 @@ export DEV_DATABASE_PASSWORD=$(cat dev-database-root-password.txt)
 function vault_manage_prod_database_credentials () {
   vault secrets enable -path=database-prod database
 
-  tee accessdb.sql <<EOF
-CREATE USER "{{name}}" WITH ENCRYPTED PASSWORD '{{password}}' VALID UNTIL
-'{{expiration}}';
-GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO "{{name}}";
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO "{{name}}";
-GRANT ALL ON SCHEMA public TO "{{name}}";
-EOF
-
   for role in "backend" "pacioli" "temporal" "temporal_visibility" "rafiki_backend" "rafiki_auth" "kratos"
   do
     echo "role: $role"
@@ -32,22 +24,15 @@ EOF
 EOF
 
     vault write database-prod/config/$role @prod-$role-connection.json
-    vault write database-prod/roles/$role db_name=$role \
-    creation_statements=@accessdb.sql default_ttl=1h max_ttl=168h
+    vault write database-prod/static-roles/$role db_name=$role rotation_period="168h" \
+    username=$role rotation_statements='ALTER USER "{{name}}"" WITH PASSWORD "{{password}}";'
+    rm prod-$role-connection.json
   done
 
 }
 
 function vault_manage_dev_database_credentials () {
   vault secrets enable -path=database-dev database
-
-  tee accessdb.sql <<EOF
-CREATE USER "{{name}}" WITH ENCRYPTED PASSWORD '{{password}}' VALID UNTIL
-'{{expiration}}';
-GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO "{{name}}";
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO "{{name}}";
-GRANT ALL ON SCHEMA public TO "{{name}}";
-EOF
 
   for role in "backend" "pacioli" "temporal" "temporal_visibility" "rafiki_backend" "rafiki_auth" "kratos"
   do
@@ -62,11 +47,12 @@ EOF
 EOF
 
     vault write database-dev/config/$role @dev-$role-connection.json
-    vault write database-dev/roles/$role db_name=$role \
-    creation_statements=@accessdb.sql default_ttl=1h max_ttl=168h
+    vault write database-dev/static-roles/$role db_name=$role rotation_period="168h" \
+    username=$role rotation_statements='ALTER USER "{{name}}" WITH PASSWORD "{{password}}";'
+    rm dev-$role-connection.json
   done
 
 }
 
 vault_manage_prod_database_credentials
-# vault_manage_dev_database_credentials
+vault_manage_dev_database_credentials
