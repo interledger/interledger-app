@@ -127,7 +127,7 @@ func ParseStartArgs() (*StartArgs, error) {
 	}
 	logOutputPath := os.Getenv("LOG_OUTPUT_PATH")
 	if logOutputPath == "" {
-		logOutputPath = "stderr"
+		logOutputPath = "stdout"
 	}
 
 	temporalUrl := os.Getenv("TEMPORAL_URL")

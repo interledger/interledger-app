@@ -2789,12 +2789,12 @@ table "rafiki_wallet_keys" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
@@ -3194,12 +3194,12 @@ table "pti_users" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
@@ -3235,12 +3235,12 @@ table "astra_user_intents" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
@@ -3309,12 +3309,12 @@ table "astra_accounts" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
 
   primary_key {
@@ -3344,12 +3344,12 @@ table "pti_transactions" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
@@ -3374,12 +3374,12 @@ table "basis_theory_linked_accounts" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
 
   index "basis_theory_linked_account_id_idx" {
@@ -3409,12 +3409,12 @@ table "gatehub_users" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
@@ -3443,12 +3443,12 @@ table "gatehub_transactions" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
