@@ -1,14 +1,12 @@
 package vault
 
 import (
-	"context"
 	"encoding/base64"
 	"fmt"
 	"os"
 	"strings"
 
 	vault "github.com/hashicorp/vault/api"
-	auth "github.com/hashicorp/vault/api/auth/kubernetes"
 	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/log"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -24,7 +22,6 @@ func NewClient() (Client, error) {
 	// Only login to vault on non-local environments.
 	if !(env.IsLocal() || env.IsTest()) {
 		addr := os.Getenv("VAULT_ADDR")
-		mountPath := os.Getenv("VAULT_AUTH_PATH")
 		transitEnginePath := os.Getenv("VAULT_TRANSIT_ENGINE_PATH")
 
 		config := vault.DefaultConfig()
@@ -33,23 +30,6 @@ func NewClient() (Client, error) {
 		vc, err := vault.NewClient(config)
 		if err != nil {
 			return nil, fmt.Errorf("unable to initialize Vault client: %w", err)
-		}
-
-		k8sAuth, err := auth.NewKubernetesAuth(
-			"k8s-app",
-			auth.WithMountPath(mountPath),
-		)
-		if err != nil {
-			return nil, fmt.Errorf("unable to initialize Kubernetes auth method: %w", err)
-		}
-
-		log.Info("Attempting to auth vault")
-		authInfo, err := vc.Auth().Login(context.Background(), k8sAuth)
-		if err != nil {
-			return nil, fmt.Errorf("unable to log in with Kubernetes auth: %w", err)
-		}
-		if authInfo == nil {
-			return nil, fmt.Errorf("no auth info was returned after login")
 		}
 
 		log.Info("Successfully authed vault")
