@@ -72,8 +72,6 @@ func Migrate(ctx context.Context, connString string) error {
 		"schema",
 		"apply",
 		"--auto-approve",
-		"--dev-url",
-		connString,
 		"-u",
 		connString,
 		"-f",
