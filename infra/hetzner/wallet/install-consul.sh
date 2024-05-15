@@ -69,9 +69,9 @@ connect {
   enabled = true
 }
 
-addresses {
+#addresses {
 
-}
+#}
 
 ports {
   grpc_tls  = 8502
