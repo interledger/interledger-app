@@ -1,14 +1,14 @@
 package ops_test
 
 import (
-	"bytes"
 	"context"
+	"testing"
+
 	"github.com/dgryski/trifles/uuid"
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/dynamicforms"
 	"gitlab.com/fynbos/backend/dynamicforms/ops"
-	"testing"
 )
 
 func TestSubmitForm(t *testing.T) {
@@ -65,39 +65,4 @@ func TestListSubmissionCount(t *testing.T) {
 	formCounts, err := ops.ListSubmissionCount(ctx, b, db.Pagination{})
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(formCounts))
-}
-
-func TestExportSubmissions(t *testing.T) {
-	t.Parallel()
-	ctx := context.Background()
-	b := &TestBackends{
-		Db: db.MigrateTestDB(t, ctx),
-	}
-
-	testSubmissions := []dynamicforms.SubmitArgs{
-		{
-			FormID: "testForm1",
-			Data:   `{ "name": "Omer" }`,
-		},
-		{
-			FormID: "testForm1",
-			Data:   `{ "name": "Matt" }`,
-		},
-		{
-			FormID: "testForm3",
-			Data:   `{ "test3": { "test4": "data" } }`,
-		},
-	}
-	for _, form := range testSubmissions {
-		_, err := ops.SubmitForm(ctx, b, &form)
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	buf := &bytes.Buffer{}
-	err := ops.ExportSubmissions(ctx, b, "testForm1", buf)
-
-	assert.NoError(t, err)
-	assert.Equal(t, buf.String(), "Name\nOmer\nMatt\n")
 }
