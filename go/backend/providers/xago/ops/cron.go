@@ -136,8 +136,9 @@ func (a *Activity) SaveDeposits(ctx context.Context, deposits []external.Deposit
 		if err != nil {
 			return err
 		}
+
 		// Best effort
-		a.b.Email().SendDepositReceivedEmail(ctx, subAcc.WalletID, currency.FromFloat64(dep.Amount, currency.ZAR))
+		a.b.Email().SendDepositReceivedEmail(ctx, subAcc.WalletID, currency.FromFloat64(dep.Amount, currency.ZAR), "", "")
 	}
 
 	return nil

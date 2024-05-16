@@ -2,8 +2,11 @@ package jobs
 
 import (
 	"github.com/jmoiron/sqlx"
+	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/keys"
 	"gitlab.com/fynbos/backend/kyc"
+	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/basistheory"
 	"gitlab.com/fynbos/backend/rafiki"
 	"gitlab.com/fynbos/backend/transactions"
@@ -20,6 +23,9 @@ type Backends interface {
 	Wallets() wallets.Client
 	Transactions() transactions.Client
 	Rafiki() rafiki.Client
+	Email() email.Client
+	Payments() payments.Client
+	LinkedAccounts() linkedaccounts.Client
 }
 
 type Activity struct {
