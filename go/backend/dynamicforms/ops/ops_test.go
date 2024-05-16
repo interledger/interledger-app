@@ -3,12 +3,13 @@ package ops_test
 import (
 	"bytes"
 	"context"
+	"testing"
+
 	"github.com/dgryski/trifles/uuid"
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/dynamicforms"
 	"gitlab.com/fynbos/backend/dynamicforms/ops"
-	"testing"
 )
 
 func TestSubmitForm(t *testing.T) {
@@ -99,5 +100,5 @@ func TestExportSubmissions(t *testing.T) {
 	err := ops.ExportSubmissions(ctx, b, "testForm1", buf)
 
 	assert.NoError(t, err)
-	assert.Equal(t, buf.String(), "Name\nOmer\nMatt\n")
+	assert.Equal(t, buf.String(), "Name\nMatt\nOmer\n")
 }

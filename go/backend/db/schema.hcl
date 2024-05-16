@@ -310,6 +310,9 @@ table "linked_account_reviews" {
     null = true
     type = timestamp
   }
+  primary_key {
+    columns = [column.id]
+  }
 }
 table "basistheory_cards" {
   schema = schema.public
@@ -1647,6 +1650,9 @@ table "wallet_keys" {
     null    = true
     type    = timestamp
   }
+  primary_key {
+    columns = [column.id]
+  }
 }
 table "kyc_persona_inquiries" {
   schema = schema.public
@@ -2006,6 +2012,9 @@ table "external_api_logs" {
     null    = false
     type    = timestamp
     default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
   }
 }
 
@@ -2464,6 +2473,9 @@ table "dynamic_forms" {
     type    = timestamp
     default = sql("now():::TIMESTAMP")
   }
+  primary_key {
+    columns = [column.id]
+  }
 }
 
 table "slack_bot_installs" {
@@ -2507,6 +2519,9 @@ table "slack_bot_installs" {
     unique  = true
     columns = [column.team_id]
   }
+  primary_key {
+    columns = [column.id]
+  }
 }
 
 table "slack_unsignedup_payments" {
@@ -2540,6 +2555,9 @@ table "slack_unsignedup_payments" {
   }
   index "slack_unsignedup_payments_user_ind" {
     columns = [column.team_id, column.user_id]
+  }
+  primary_key {
+    columns = [column.id]
   }
 }
 
@@ -2710,6 +2728,9 @@ table "discord_payment_interactions" {
     null    = true
     type    = timestamp
   }
+  primary_key {
+    columns = [column.id]
+  }
 }
 
 table "rafiki_payment_pointers" {
@@ -2774,6 +2795,9 @@ table "rafiki_wallet_keys" {
     null    = false
     type    = timestamp
     default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
   }
 }
 
@@ -3327,6 +3351,9 @@ table "pti_transactions" {
     type    = timestamp
     default = sql("now():::TIMESTAMP")
   }
+  primary_key {
+    columns = [column.id]
+  }
 }
 
 table "basis_theory_linked_accounts" {
@@ -3358,6 +3385,9 @@ table "basis_theory_linked_accounts" {
   index "basis_theory_linked_account_id_idx" {
     unique = true
     columns = [column.basis_theory_card_id, column.linked_account_id]
+  }
+  primary_key {
+    columns = [column.id]
   }
 }
 
