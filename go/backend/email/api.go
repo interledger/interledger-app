@@ -19,9 +19,9 @@ type Client interface {
 
 	SendPaymentSentEmailV2(ctx context.Context, walletID string, payment *payments.Payment)
 	SendPaymentReceivedEmailV2(ctx context.Context, walletID string, payment *payments.Payment)
-	SendDepositReceivedEmail(ctx context.Context, walletID string, amt currency.Amount)
+	SendDepositReceivedEmail(ctx context.Context, walletID string, amt currency.Amount, sourceAccountName, date string)
 	SendDepositFailedEmail(ctx context.Context, walletID string)
-	SendWithdrawalEmail(ctx context.Context, walletID string, amt currency.Amount)
+	SendWithdrawalEmail(ctx context.Context, walletID string, amt currency.Amount, destinationAccount, date string)
 	SendWithdrawalFailedEmail(ctx context.Context, walletID string)
 	SendLimitsExceededEmail(ctx context.Context, walletID string)
 }

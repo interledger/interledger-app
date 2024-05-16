@@ -64,12 +64,12 @@ func (c *client) SendPaymentFailedEmail(ctx context.Context, walletID string) {
 	ops.SendPaymentFailedEmail(ctx, c.b, walletID)
 }
 
-func (c *client) SendDepositReceivedEmail(ctx context.Context, walletID string, amt currency.Amount) {
-	ops.SendDepositReceivedEmail(ctx, c.b, walletID, amt)
+func (c *client) SendDepositReceivedEmail(ctx context.Context, walletID string, amt currency.Amount, sourceAccount, date string) {
+	ops.SendDepositReceivedEmail(ctx, c.b, walletID, amt, sourceAccount, date)
 }
 
-func (c *client) SendWithdrawalEmail(ctx context.Context, walletID string, amt currency.Amount) {
-	ops.SendWithdrawalEmail(ctx, c.b, walletID, amt)
+func (c *client) SendWithdrawalEmail(ctx context.Context, walletID string, amt currency.Amount, destinationAccount, date string) {
+	ops.SendWithdrawalEmail(ctx, c.b, walletID, amt, destinationAccount, date)
 }
 
 func (c *client) SendLimitsExceededEmail(ctx context.Context, walletID string) {

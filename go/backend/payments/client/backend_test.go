@@ -99,8 +99,8 @@ func NewTestBackends(t *testing.T) *TestBackends {
 	em.EXPECT().SendPaymentSentEmailV2(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
 	em.EXPECT().SendPaymentFailedEmail(gomock.Any(), gomock.Any()).AnyTimes()
 	em.EXPECT().SendConnectedAccountEmail(gomock.Any(), gomock.Any()).AnyTimes()
-	em.EXPECT().SendDepositReceivedEmail(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
-	em.EXPECT().SendWithdrawalEmail(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
+	em.EXPECT().SendDepositReceivedEmail(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
+	em.EXPECT().SendWithdrawalEmail(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
 
 	_, pacDB := pacioli_db.MigrateTestDB(t, context.Background())
 	b := &TestBackends{
