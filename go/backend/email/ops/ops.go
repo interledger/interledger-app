@@ -302,11 +302,19 @@ func SendPaymentFailedEmail(ctx context.Context, b Backends, walletID string) {
 	}
 }
 
-func SendDepositReceivedEmail(ctx context.Context, b Backends, walletID string, amt currency.Amount) {
+func SendDepositReceivedEmail(ctx context.Context, b Backends, walletID string, amt currency.Amount, sourceAccount, date string) {
 	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
 	if err != nil {
 		log.Error("Failed to send deposit received email.", zap.Error(err), zap.String("walletID", walletID))
 		return
+	}
+
+	tableinfo := []map[string]interface{}{{"label": "Amount", "text": amt.Format(), "large": true}}
+	if sourceAccount != "" {
+		tableinfo = append(tableinfo, map[string]interface{}{"label": "From", "text": sourceAccount, "large": true})
+	}
+	if date != "" {
+		tableinfo = append(tableinfo, map[string]interface{}{"label": "Date", "text": date, "large": true})
 	}
 
 	err = b.External().SendTemplate(ctx, "Deposit received", sendTo, oneTemplateID, map[string]interface{}{
@@ -314,10 +322,7 @@ func SendDepositReceivedEmail(ctx context.Context, b Backends, walletID string, 
 		"data": []map[string]interface{}{
 			{"paragraph": greeting},
 			{"heading": "Your deposit has been received"},
-			{
-				"table": []map[string]interface{}{
-					{"label": "Amount", "text": amt.Format(), "large": true},
-				}},
+			{"table": tableinfo},
 		},
 		"cta": map[string]interface{}{
 			"text": "View new Balance",
@@ -329,11 +334,19 @@ func SendDepositReceivedEmail(ctx context.Context, b Backends, walletID string, 
 	}
 }
 
-func SendWithdrawalEmail(ctx context.Context, b Backends, walletID string, amt currency.Amount) {
+func SendWithdrawalEmail(ctx context.Context, b Backends, walletID string, amt currency.Amount, destinationAccount, date string) {
 	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
 	if err != nil {
 		log.Error("Failed to send withdrawal email.", zap.Error(err), zap.String("walletID", walletID))
 		return
+	}
+
+	tableinfo := []map[string]interface{}{{"label": "Amount", "text": amt.Format(), "large": true}}
+	if destinationAccount != "" {
+		tableinfo = append(tableinfo, map[string]interface{}{"label": "To", "text": destinationAccount, "large": true})
+	}
+	if date != "" {
+		tableinfo = append(tableinfo, map[string]interface{}{"label": "Date", "text": date, "large": true})
 	}
 
 	err = b.External().SendTemplate(ctx, "Withdrawal complete", sendTo, oneTemplateID, map[string]interface{}{
@@ -341,10 +354,7 @@ func SendWithdrawalEmail(ctx context.Context, b Backends, walletID string, amt c
 		"data": []map[string]interface{}{
 			{"paragraph": greeting},
 			{"heading": "Your withdrawal has been processed"},
-			{
-				"table": []map[string]interface{}{
-					{"label": "Amount", "text": amt.Format(), "large": true},
-				}},
+			{"table": tableinfo},
 		},
 		"cta": map[string]interface{}{
 			"text": "View new Balance",

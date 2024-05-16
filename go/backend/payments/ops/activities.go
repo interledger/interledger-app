@@ -48,12 +48,39 @@ func (a *Activity) SetPaymentStateComplete(ctx context.Context, id string) error
 	}
 
 	if payment.Type == payments.TypeDeposit {
-		a.b.Email().SendDepositReceivedEmail(ctx, payment.Sender.WalletID, payment.SenderAmount)
+		la, err := a.b.LinkedAccounts().Get(ctx, payment.SenderAccount)
+		if err != nil {
+
+			return nil
+		}
+		sourceAccountName := la.Name
+		if la.Provider == astra.ProviderName {
+			sourceAccountName = "Card ending " + strings.Replace(la.Mask, "*", "", -1)
+		}
+		if la.Provider == xago.ProviderName && la.Type == xago.AccTypeBank {
+			sourceAccountName = fmt.Sprintf("%s %s", la.ReceiveNetwork, la.Mask)
+		}
+
+		a.b.Email().SendDepositReceivedEmail(ctx, payment.Sender.WalletID, payment.SenderAmount, sourceAccountName, payment.UpdatedAt.Format("02 Jan 2006"))
 		return nil
 	}
 
 	if payment.Type == payments.TypeWithdrawal {
-		a.b.Email().SendWithdrawalEmail(ctx, payment.Sender.WalletID, payment.SenderAmount)
+		la, err := a.b.LinkedAccounts().Get(ctx, payment.ReceiverAccount)
+		if err != nil {
+
+			return nil
+		}
+
+		destAccountName := la.Name
+		if la.Provider == astra.ProviderName {
+			destAccountName = "Card ending " + strings.Replace(la.Mask, "*", "", -1)
+		}
+		if la.Provider == xago.ProviderName && la.Type == xago.AccTypeBank {
+			destAccountName = fmt.Sprintf("%s %s", la.ReceiveNetwork, la.Mask)
+		}
+
+		a.b.Email().SendWithdrawalEmail(ctx, payment.Sender.WalletID, payment.SenderAmount, destAccountName, payment.UpdatedAt.Format("02 Jan 2006"))
 		return nil
 	}
 
