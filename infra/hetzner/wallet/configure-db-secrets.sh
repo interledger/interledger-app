@@ -25,7 +25,7 @@ EOF
 
     vault write database-prod/config/$role @prod-$role-connection.json
     vault write database-prod/static-roles/$role db_name=$role rotation_period="168h" \
-    username=$role rotation_statements='ALTER USER "{{name}}"" WITH PASSWORD "{{password}}";'
+    username=$role rotation_statements=`ALTER USER "{{name}}" WITH PASSWORD '{{password}}';`
     rm prod-$role-connection.json
   done
 
@@ -48,7 +48,7 @@ EOF
 
     vault write database-dev/config/$role @dev-$role-connection.json
     vault write database-dev/static-roles/$role db_name=$role rotation_period="168h" \
-    username=$role rotation_statements='ALTER USER "{{name}}" WITH PASSWORD "{{password}}";'
+    username=$role rotation_statements=`ALTER USER "{{name}}" WITH PASSWORD '{{password}}';`
     rm dev-$role-connection.json
   done
 
