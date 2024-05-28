@@ -47,10 +47,7 @@ trigger_deploy_dev_eu1:
     - echo "Deploying $CI_ENVIRONMENT_NAME found at $CI_ENVIRONMENT_URL"
     - cd rooibos
     - git checkout -b gitlabcd/deploy-eu1-dev-$CI_COMMIT_SHORT_SHA
-    - (cd backend/envs/dev-eu1 && kustomize edit set image 823058932981.dkr.ecr.eu-west-1.amazonaws.com/backend=823058932981.dkr.ecr.eu-west-1.amazonaws.com/backend:$CI_COMMIT_SHORT_SHA)
-    - (cd backend/envs/dev-eu1 && kustomize edit set image 823058932981.dkr.ecr.eu-west-1.amazonaws.com/discordbot=823058932981.dkr.ecr.eu-west-1.amazonaws.com/discordbot:$CI_COMMIT_SHORT_SHA)
-    - (cd protea/envs/dev-eu1 && kustomize edit set image 823058932981.dkr.ecr.eu-west-1.amazonaws.com/protea=823058932981.dkr.ecr.eu-west-1.amazonaws.com/protea:$CI_COMMIT_SHORT_SHA)
-    - (cd botanist/envs/dev-eu1 && kustomize edit set image 823058932981.dkr.ecr.eu-west-1.amazonaws.com/botanist=823058932981.dkr.ecr.eu-west-1.amazonaws.com/botanist:$CI_COMMIT_SHORT_SHA)
+    - (cd nomad && sed -i "s/NOMAD_VAR_image_hash=.*/NOMAD_VAR_image_hash=$CI_COMMIT_SHORT_SHA/g" ./.gitlab-dev-ci.yml)
     - git commit -am "Dev EU1 image update for ${CI_COMMIT_SHORT_SHA}"
     - git push -o merge_request.create -o merge_request.target=main -o merge_request.title="Deploy dev-eu1 $CI_COMMIT_SHORT_SHA" -o merge_request.assign="$GITLAB_USER_ID" -o merge_request.remove_source_branch --set-upstream origin gitlabcd/deploy-eu1-dev-$CI_COMMIT_SHORT_SHA
 
@@ -78,9 +75,6 @@ trigger_deploy_prod_use2:
     - echo "Deploying $CI_ENVIRONMENT_NAME found at $CI_ENVIRONMENT_URL"
     - cd rooibos
     - git checkout -b gitlabcd/deploy-prod-use2-$CI_COMMIT_SHORT_SHA
-    - (cd backend/envs/prod-use2 && kustomize edit set image 823058932981.dkr.ecr.eu-west-1.amazonaws.com/backend=823058932981.dkr.ecr.eu-west-1.amazonaws.com/backend:$CI_COMMIT_SHORT_SHA)
-    - (cd backend/envs/prod-use2 && kustomize edit set image 823058932981.dkr.ecr.eu-west-1.amazonaws.com/discordbot=823058932981.dkr.ecr.eu-west-1.amazonaws.com/discordbot:$CI_COMMIT_SHORT_SHA)
-    - (cd protea/envs/prod-use2 && kustomize edit set image 823058932981.dkr.ecr.eu-west-1.amazonaws.com/protea=823058932981.dkr.ecr.eu-west-1.amazonaws.com/protea:$CI_COMMIT_SHORT_SHA)
-    - (cd botanist/envs/prod-use2 && kustomize edit set image 823058932981.dkr.ecr.eu-west-1.amazonaws.com/botanist=823058932981.dkr.ecr.eu-west-1.amazonaws.com/botanist:$CI_COMMIT_SHORT_SHA)
+    - (cd nomad && sed -i "s/NOMAD_VAR_image_hash=.*/NOMAD_VAR_image_hash=$CI_COMMIT_SHORT_SHA/g" ./.gitlab-prod-ci.yml)
     - git commit -am "Prod USE2 image update for ${CI_COMMIT_SHORT_SHA}"
     - git push -o merge_request.create -o merge_request.target=main -o merge_request.title="Deploy prod-use2 $CI_COMMIT_SHORT_SHA" -o merge_request.assign="$GITLAB_USER_ID" -o merge_request.remove_source_branch --set-upstream origin gitlabcd/deploy-prod-use2-$CI_COMMIT_SHORT_SHA
