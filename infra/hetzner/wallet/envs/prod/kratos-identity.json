@@ -1,0 +1,53 @@
+{
+  "$id": "https://fynbos.dev/users/email-password/identity.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "User",
+  "type": "object",
+  "properties": {
+    "traits": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email",
+          "title": "E-Mail",
+          "ory.sh/kratos": {
+            "credentials": {
+              "password": {
+                "identifier": true
+              }
+            },
+            "recovery": {
+              "via": "email"
+            }
+          }
+        },
+        "phone": {
+          "title": "Phone",
+          "type": "string",
+          "format": "tel",
+          "ory.sh/kratos": {
+            "credentials": {
+              "password": {
+                "identifier": true
+              }
+            }
+          }
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "countryCode": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "email", "phone", "firstName", "lastName", "countryCode" 
+      ],
+      "additionalProperties": false
+    }
+  }
+}
