@@ -1,18 +1,19 @@
 version: "3.5"
 
 services:
-  crdb:
-    image: cockroachdb/cockroach:v22.2.8
+  postgres:
+    image: postgres:16.1
     networks:
       fynbos-dev:
     ports:
-      - "26257:26257"
-    command: start-single-node --insecure --store=type=mem,size=641MiB --advertise-addr=localhost
+      - "5432:5432"
     volumes:
-      - "crdb:/cockroach/cockroach-data"
-      - "./db/testdbinit.sql:/docker-entrypoint-initdb.d/init.sql"
+      - "postgres:/var/lib/postgresql/data"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
 volumes:
-  crdb:
+  postgres:
 
 networks:
   fynbos-dev:

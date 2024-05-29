@@ -27,7 +27,7 @@ import (
 	"go.uber.org/zap"
 )
 
-const testingCrdbConnectionString = "postgres://root@0.0.0.0:26257/%s?sslmode=disable"
+const testingConnectionString = "postgres://postgres:password@0.0.0.0:5432/%s?sslmode=disable"
 
 func Migrate(ctx context.Context, connString string) error {
 	_, moduleDir, _, ok := runtime.Caller(0)
@@ -119,16 +119,39 @@ func MigrateTestDB(t *testing.T, ctx context.Context) *sqlx.DB {
 	}
 
 	dbName := "backend_test_" + strings.Replace(uuid.NewString(), "-", "", 4)
-	connString := os.Getenv("DB_URL")
-	if connString == "" {
-		connString = testingCrdbConnectionString
+	baseString := os.Getenv("DB_URL")
+	if baseString == "" {
+		baseString = testingConnectionString
 	}
-	connString = fmt.Sprintf(connString, dbName)
+	connString := fmt.Sprintf(baseString, "")
 	db, err := sqlx.Connect("postgres", connString)
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	query := fmt.Sprintf("CREATE DATABASE %s;", dbName)
+	_, err = db.ExecContext(ctx, query)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	connString = fmt.Sprintf(baseString, dbName)
+	conn, err := sqlx.Connect("postgres", connString)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	query = "CREATE EXTENSION IF NOT EXISTS pg_trgm;"
+	_, err = conn.ExecContext(ctx, query)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	t.Cleanup(func() {
+		if err = conn.Close(); err != nil {
+			t.Fatal(err)
+		}
+
 		cleanupQuery := fmt.Sprintf("DROP DATABASE %s;", dbName)
 		_, err := db.ExecContext(ctx, cleanupQuery)
 		if err != nil {
@@ -139,12 +162,6 @@ func MigrateTestDB(t *testing.T, ctx context.Context) *sqlx.DB {
 			t.Fatal(err)
 		}
 	})
-
-	query := fmt.Sprintf("CREATE DATABASE %s;", dbName)
-	_, err = db.ExecContext(ctx, query)
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	var migrations string
 	err = filepath.Walk(filepath.Join(moduleDir, "../testmigrations"), func(path string, info fs.FileInfo, err error) error {
@@ -165,22 +182,22 @@ func MigrateTestDB(t *testing.T, ctx context.Context) *sqlx.DB {
 		t.Fatal("No migrations found.")
 	}
 
-	_, err = db.ExecContext(ctx, migrations)
+	_, err = conn.ExecContext(ctx, migrations)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = db.ExecContext(ctx, waExpIndex)
+	_, err = conn.ExecContext(ctx, waExpIndex)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = seedSysAccounts(ctx, db)
+	err = seedSysAccounts(ctx, conn)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	return db
+	return conn
 }
 
 func seedSysAccounts(ctx context.Context, dbc *sqlx.DB) error {

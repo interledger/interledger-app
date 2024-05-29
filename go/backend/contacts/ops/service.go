@@ -74,7 +74,7 @@ func Get(ctx context.Context, b Backends, walletID string, wa wallets.Address) (
 
 func SetLastPaidAtNow(ctx context.Context, b Backends, walletID string, wa wallets.Address) error {
 	_, err := b.DB().ExecContext(ctx,
-		"UPDATE contacts set last_paid_at = now() where wallet_id = $1 and payment_pointer = $2",
+		"UPDATE contacts set last_paid_at = now()::TIMESTAMP where wallet_id = $1 and payment_pointer = $2",
 		walletID, wa.String())
 	if err != nil {
 		return fmt.Errorf("%w %s", contacts.ErrInternal, err)
