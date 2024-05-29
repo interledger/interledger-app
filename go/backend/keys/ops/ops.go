@@ -139,7 +139,7 @@ func AddPublicKey(ctx context.Context, b Backends, walletID, publicKeyBase64, na
 }
 
 func DeletePublicKey(ctx context.Context, b Backends, id string) error {
-	_, err := b.DB().ExecContext(ctx, "UPDATE wallet_keys SET deleted_at=now():::TIMESTAMP WHERE id=$1 AND key_type=$2;", id, keys.NonCustodial)
+	_, err := b.DB().ExecContext(ctx, "UPDATE wallet_keys SET deleted_at=now()::TIMESTAMP WHERE id=$1 AND key_type=$2;", id, keys.NonCustodial)
 	if err != nil {
 		return fmt.Errorf("%w %s", keys.ErrInternal, err)
 	}
