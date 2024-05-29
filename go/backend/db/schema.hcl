@@ -20,12 +20,12 @@ table "agreement_signatures" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
@@ -61,12 +61,12 @@ table "agreements" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
@@ -126,7 +126,7 @@ table "individual_kyc_details" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
@@ -239,12 +239,12 @@ table "linked_accounts" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "deleted_at" {
     null = true
@@ -304,7 +304,7 @@ table "linked_account_reviews" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "completed_at" {
     null = true
@@ -399,12 +399,12 @@ table "basistheory_cards" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "deleted_at" {
     null = true
@@ -477,12 +477,12 @@ table "openpayments_incoming_payment" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "from_payment_pointer_id" {
     null = true
@@ -539,12 +539,12 @@ table "openpayments_outgoing_payment" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "to_payment_pointer_id" {
     null = true
@@ -631,12 +631,12 @@ table "openpayments_quotes" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "send_linked_acc_id" {
     null = true
@@ -736,12 +736,12 @@ table "signups" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
@@ -793,7 +793,7 @@ table "waitlist_signups" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "notified_at" {
     null = true
@@ -857,12 +857,12 @@ table "wallets" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
@@ -890,12 +890,12 @@ table "wallet_addresses" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
@@ -995,12 +995,12 @@ table "transactions" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
@@ -1011,7 +1011,7 @@ table "transactions" {
   index "grant_id_limits_overall_ind" {
     columns = [column.grant_id, column.wallet_id, column.state]
   }
-  index "wallet_id_ind" {
+  index "transactions_wallet_id_ind" {
     columns = [column.wallet_id]
   }
   index "wallet_id_state_ind" {
@@ -1069,12 +1069,12 @@ table "transfers" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
@@ -1106,12 +1106,12 @@ table "authorisation_clients" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
@@ -1147,12 +1147,12 @@ table "authorisation_grants" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
@@ -1205,12 +1205,12 @@ table "authorisation_tokens" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
@@ -1353,12 +1353,12 @@ table "identities" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
@@ -1367,7 +1367,7 @@ table "identities" {
     unique  = false
     columns = [column.platform, column.identifier, column.state]
   }
-  index "wallet_id_ind" {
+  index "identities_wallet_id_ind" {
     unique  = false
     columns = [column.wallet_id]
   }
@@ -1415,17 +1415,17 @@ table "authorisation_limits" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
   }
-  index "wallet_id_ind" {
+  index "auth_limits_wallet_id_ind" {
     unique  = false
     columns = [column.wallet_id]
   }
@@ -1453,12 +1453,12 @@ table "wallet_kyc_status" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
@@ -1486,17 +1486,17 @@ table "gmt_users" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.wallet_id]
   }
-  index "wallet_id_ind" {
+  index "gmt_users_wallet_id_ind" {
     columns = [column.wallet_id]
     unique  = true
   }
@@ -1535,12 +1535,12 @@ table "gmt_receipts" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
@@ -1576,12 +1576,12 @@ table "gmt_workflow_refs" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
@@ -1628,7 +1628,7 @@ table "wallet_keys" {
     type = text
     default = ""
   }
-  index "wallet_id_ind" {
+  index "wallet_keys_wallet_id_ind" {
     unique  = false
     columns = [column.wallet_id]
   }
@@ -1639,12 +1639,12 @@ table "wallet_keys" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "deleted_at" {
     null    = true
@@ -1676,7 +1676,7 @@ table "kyc_persona_inquiries" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = true
@@ -1689,7 +1689,7 @@ table "kyc_persona_inquiries" {
     unique  = true
     columns = [column.external_id]
   }
-  index "wallet_id_ind" {
+  index "kyc_persona_wallet_id_ind" {
     unique  = false
     columns = [column.wallet_id]
   }
@@ -1712,17 +1712,17 @@ table "kyc_persona_accounts" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
   }
-  index "wallet_id_ind" {
+  index "kyc_persona_accounts_wallet_id_ind" {
     unique  = true
     columns = [column.wallet_id]
   }
@@ -1753,7 +1753,7 @@ table "admin_audit_log" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
@@ -1831,7 +1831,7 @@ table "tabapay_3ds_sessions" {
   column "init_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "lookup_at" {
     null    = true
@@ -1884,7 +1884,7 @@ table "tabapay_fx_rates" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
@@ -1952,17 +1952,17 @@ table "wallet_features" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
   }
-  index "wallet_id_ind" {
+  index "wallet_features_wallet_id_ind" {
     unique  = true
     columns = [column.wallet_id]
   }
@@ -2011,7 +2011,7 @@ table "external_api_logs" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
@@ -2052,12 +2052,12 @@ table "twitter_authorizations" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
@@ -2114,12 +2114,12 @@ table "twitter_connections" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
@@ -2235,12 +2235,12 @@ table "payments" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "type" {
     null    = false
@@ -2304,12 +2304,12 @@ table "payments_workflow_refs" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
@@ -2362,12 +2362,12 @@ table "discord_authorizations" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
@@ -2428,12 +2428,12 @@ table "discord_connections" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
@@ -2466,12 +2466,12 @@ table "dynamic_forms" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
@@ -2508,12 +2508,12 @@ table "slack_bot_installs" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   index "slack_bot_installs_team_ind" {
     unique  = true
@@ -2546,12 +2546,12 @@ table "slack_unsignedup_payments" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   index "slack_unsignedup_payments_user_ind" {
     columns = [column.team_id, column.user_id]
@@ -2595,12 +2595,12 @@ table "slack_authorizations" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
@@ -2669,12 +2669,12 @@ table "slack_connections" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
@@ -2722,7 +2722,7 @@ table "discord_payment_interactions" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "expired_at" {
     null    = true
@@ -2751,12 +2751,12 @@ table "rafiki_payment_pointers" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
@@ -2789,12 +2789,12 @@ table "rafiki_wallet_keys" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
@@ -2840,12 +2840,12 @@ table "rafiki_outgoing_payments" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
@@ -2889,12 +2889,12 @@ table "rafiki_incoming_payments" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
@@ -2934,12 +2934,12 @@ table "xago_sub_accounts" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
@@ -2988,12 +2988,12 @@ table "xago_deposit_details" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
@@ -3045,12 +3045,12 @@ table "xago_beneficiaries" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
@@ -3090,12 +3090,12 @@ table "xago_transactions" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
@@ -3135,7 +3135,7 @@ table "xago_deposits" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
@@ -3194,12 +3194,12 @@ table "pti_users" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
@@ -3235,12 +3235,12 @@ table "astra_user_intents" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
@@ -3309,12 +3309,12 @@ table "astra_accounts" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
 
   primary_key {
@@ -3344,12 +3344,12 @@ table "pti_transactions" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
@@ -3374,12 +3374,12 @@ table "basis_theory_linked_accounts" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
 
   index "basis_theory_linked_account_id_idx" {
@@ -3409,12 +3409,12 @@ table "gatehub_users" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
@@ -3443,12 +3443,12 @@ table "gatehub_transactions" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
@@ -3473,7 +3473,7 @@ table "atlas_schema_history" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
 }
 schema "public" {
