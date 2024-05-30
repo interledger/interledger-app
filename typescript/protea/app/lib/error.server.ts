@@ -62,7 +62,8 @@ export const error: JsonWithErrorFunction = async (
     const url = new URL(request.url)
     captureMessage('Non GRPC error returned to user', {
       extra: {
-        url: url.pathname
+        url: url.pathname,
+        data
       }
     })
   }
