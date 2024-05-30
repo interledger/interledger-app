@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"strconv"
 	"time"
 
 	"gitlab.com/fynbos/backend/providers/pti"
@@ -16,17 +17,11 @@ import (
 
 	"gitlab.com/fynbos/backend/db"
 
-	"gitlab.com/fynbos/env"
-
 	"gitlab.com/fynbos/backend/rafiki"
 	"gitlab.com/fynbos/backend/wallets"
 )
 
 func CreatePaymentPointer(ctx context.Context, b Backends, w wallets.Wallet, assetCode string) error {
-	if env.IsProd() {
-		return nil
-	}
-
 	var ppID string
 	err := b.DB().GetContext(ctx, &ppID, "SELECT payment_pointer_id FROM rafiki_payment_pointers WHERE wallet_id=$1", w.ID)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
@@ -183,6 +178,15 @@ func ListGrants(ctx context.Context, b Backends, walletID string) ([]rafiki.Gran
 
 		var access []rafiki.Access
 		for _, a := range g.Access {
+			debitAmount, err := strconv.ParseUint(a.Limits.DebitAmount.Value, 10, 64)
+			if err != nil {
+				return nil, fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+			}
+
+			recvAmount, err := strconv.ParseUint(a.Limits.ReceiveAmount.Value, 10, 64)
+			if err != nil {
+				return nil, fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+			}
 			access = append(access, rafiki.Access{
 				ID:         a.Id,
 				Identifier: a.Identifier,
@@ -191,8 +195,8 @@ func ListGrants(ctx context.Context, b Backends, walletID string) ([]rafiki.Gran
 				Limits: rafiki.Limits{
 					Receiver:      a.Limits.Receiver,
 					Interval:      a.Limits.Interval,
-					DebitAmount:   currency.FromUInt64(a.Limits.DebitAmount.Value, currency.ParseCurrency(a.Limits.DebitAmount.AssetCode)),
-					ReceiveAmount: currency.FromUInt64(a.Limits.ReceiveAmount.Value, currency.ParseCurrency(a.Limits.ReceiveAmount.AssetCode)),
+					DebitAmount:   currency.FromUInt64(debitAmount, currency.ParseCurrency(a.Limits.DebitAmount.AssetCode)),
+					ReceiveAmount: currency.FromUInt64(recvAmount, currency.ParseCurrency(a.Limits.ReceiveAmount.AssetCode)),
 				},
 			})
 		}
@@ -219,6 +223,15 @@ func GetGrant(ctx context.Context, b Backends, grantID string) (*rafiki.Grant, e
 	createdAt, _ := time.Parse(time.RFC3339, g.CreatedAt)
 	var access []rafiki.Access
 	for _, a := range g.Access {
+		debitAmount, err := strconv.ParseUint(a.Limits.DebitAmount.Value, 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+		}
+
+		recvAmount, err := strconv.ParseUint(a.Limits.ReceiveAmount.Value, 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+		}
 		access = append(access, rafiki.Access{
 			ID:         a.Id,
 			Identifier: a.Identifier,
@@ -227,8 +240,8 @@ func GetGrant(ctx context.Context, b Backends, grantID string) (*rafiki.Grant, e
 			Limits: rafiki.Limits{
 				Receiver:      a.Limits.Receiver,
 				Interval:      a.Limits.Interval,
-				DebitAmount:   currency.FromUInt64(a.Limits.DebitAmount.Value, currency.ParseCurrency(a.Limits.DebitAmount.AssetCode)),
-				ReceiveAmount: currency.FromUInt64(a.Limits.ReceiveAmount.Value, currency.ParseCurrency(a.Limits.ReceiveAmount.AssetCode)),
+				DebitAmount:   currency.FromUInt64(debitAmount, currency.ParseCurrency(a.Limits.DebitAmount.AssetCode)),
+				ReceiveAmount: currency.FromUInt64(recvAmount, currency.ParseCurrency(a.Limits.ReceiveAmount.AssetCode)),
 			},
 		})
 	}

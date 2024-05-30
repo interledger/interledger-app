@@ -210,9 +210,9 @@ export async function action({ request }: ActionFunctionArgs) {
     action == 'approve' ? 'accept' : 'reject'
   await consent(interactId, nonce, userDecision)
 
-  let publicOpenPaymentsAuthHost = 'fynbos.me'
+  let publicOpenPaymentsAuthHost = 'auth.fynbos.app'
   if (process.env.FYNBOS_ENV == 'dev') {
-    publicOpenPaymentsAuthHost = 'eu1.fynbos.me'
+    publicOpenPaymentsAuthHost = 'auth.eu1.fynbos.dev'
   } else if (process.env.FYNBOS_ENV == 'local') {
     publicOpenPaymentsAuthHost = 'local.fynbos.me'
   }

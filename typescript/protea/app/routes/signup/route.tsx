@@ -26,7 +26,7 @@ import {
 import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { SignupStep, useSignupStore } from '~/lib/useSignupStore'
-import { About } from '~/routes/signup/About'
+import { About, isEUCountry } from '~/routes/signup/About'
 import { Landing } from '~/routes/signup/Landing'
 import { Password } from '~/routes/signup/Password'
 import { Phone } from '~/routes/signup/Phone'
@@ -161,7 +161,7 @@ export async function detailsAction({ request }: ActionFunctionArgs) {
   const country = form.get('country') as string
   const email = form.get('email') as string
 
-  if (!(country == 'US' || country == 'ZA')) {
+  if (!(country == 'US' || country == 'ZA' || isEUCountry(country))) {
     return redirect(
       `/waitlist?country=${country}&email=${email}&fullName=${firstName} ${lastName}`
     )
