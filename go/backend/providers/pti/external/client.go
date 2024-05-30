@@ -1003,9 +1003,10 @@ func (c client) WalletDeposit(ctx context.Context, args DepositArgs) (string, er
 				WalletID: args.ExternalWalletID,
 			},
 		},
-		Amount: args.Amount.Float64(),
-		Type:   "DEPOSIT",
-		Date:   time.Now().Format(time.RFC3339),
+		Amount:    args.Amount.Float64(),
+		USDAmount: args.Amount.Float64(),
+		Type:      "DEPOSIT",
+		Date:      time.Now().Format(time.RFC3339),
 	}
 
 	payload, err := json.Marshal(reqArgs)
@@ -1094,9 +1095,10 @@ func (c client) WalletWithdrawal(ctx context.Context, args WithdrawalArgs) (stri
 				BankAccountNumber: astra.AccountNumber(),
 			},
 		},
-		Amount: args.Amount.Float64(),
-		Type:   "WITHDRAWAL",
-		Date:   time.Now().Format(time.RFC3339),
+		Amount:    args.Amount.Float64(),
+		USDAmount: args.Amount.Float64(),
+		Type:      "WITHDRAWAL",
+		Date:      time.Now().Format(time.RFC3339),
 	}
 
 	payload, err := json.Marshal(reqArgs)
