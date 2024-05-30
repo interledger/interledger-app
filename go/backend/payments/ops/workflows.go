@@ -419,7 +419,7 @@ func ptiPayIn(ctx workflow.Context, a *Activity, ptiA *pti_ops.Activity, payment
 				return "", false, err
 			}
 
-			if ptiTrx.Status == "AUTHORIZED" || ptiTrx.Status == "SETTLED" {
+			if ptiTrx.Status == "AUTHORIZED" || ptiTrx.Status == "SETTLED" || ptiTrx.Status == "ACCEPTED" {
 				break
 			} else if ptiTrx.Status == "ERROR" || ptiTrx.Status == "REFUSED" || ptiTrx.Status == "CANCELED" {
 				// Notify the Payout worklfow of failure
