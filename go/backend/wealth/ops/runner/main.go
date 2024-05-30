@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	var username, password string
+	/*var username, password string
 	fmt.Println("Username: ")
 	fmt.Scanln(&username)
 	fmt.Println("Password:")
@@ -22,5 +22,6 @@ func main() {
 	fmt.Println("err", err)
 	if err != nil {
 		return
-	}
+	}*/
+	fmt.Println(ops.ParseTXHistory(context.Background(), "/home/barnard/Downloads/transactions.xlsx"))
 }

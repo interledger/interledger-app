@@ -2,10 +2,16 @@ package ops
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/base64"
 	"fmt"
+	"slices"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/playwright-community/playwright-go"
+	"github.com/xuri/excelize/v2"
 )
 
 func setupPlaywright() (playwright.Browser, error) {
@@ -77,18 +83,17 @@ func Login(ctx context.Context, username, password string) (*EasyEquitiesSession
 			return nil, err
 		}
 
-		err = page.Locator("input[name='RememberMe']").SetChecked(true)
+		err = page.GetByRole("Button").Click()
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	txt, err := page.Locator(".validation-summary-errors li, #trust-account-types").TextContent()
+	txt, err := page.Locator(".validation-summary-errors li, #trust-account-types").Nth(0).TextContent()
 	if err != nil {
 		return nil, err
 	}
 
-	fmt.Println(txt, page.URL())
 	if strings.Contains(txt, "Credentials supplied are invalid") {
 		return &resp, nil
 	}
@@ -113,13 +118,67 @@ func GetTFSATransactions(ctx context.Context, session *EasyEquitiesSession) ([]b
 		return nil, err
 	}
 
-	session.page.OnDownload(func(download playwright.Download) {
-		fmt.Println("/tmp/" + download.SuggestedFilename())
-		err = download.SaveAs("/tmp/" + download.SuggestedFilename())
+	download, err := session.page.ExpectDownload(func() error {
+		fmt.Println("GGGGGGGGGGGGGGGGG")
+		return session.page.Locator("[data-role='export']").Click()
 	})
-	err = session.page.Locator("[data-role='export']").Click()
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Println("/tmp/" + download.SuggestedFilename())
+	err = download.SaveAs("/tmp/" + download.SuggestedFilename())
 	if err != nil {
 		return nil, err
 	}
 	return nil, err
+}
+
+type EasyEquitiesDeposit struct {
+	Hash        string
+	Amount      float64
+	Date        time.Time
+	Description string
+}
+
+func ParseTXHistory(ctx context.Context, filePath string) ([]EasyEquitiesDeposit, error) {
+	f, err := excelize.OpenFile(filePath)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	h := sha256.New()
+
+	var resp []EasyEquitiesDeposit
+	sheets := f.GetSheetList()
+	for _, s := range sheets {
+		rows, err := f.GetRows(s)
+		if err != nil {
+			return nil, err
+		}
+
+		// Chronological order, so we can use the index as part of the hash
+		slices.Reverse(rows)
+		for i, r := range rows {
+			date, _ := time.Parse("2006/01/02", r[0])
+			desc := r[1]
+			amt, _ := strconv.ParseFloat(r[2], 64)
+
+			if strings.HasPrefix(desc, "EE-") {
+				h.Reset()
+				h.Write([]byte(fmt.Sprintf("%d_%s_%s_%s", i, r[0], r[1], r[2])))
+				hashStr := base64.StdEncoding.EncodeToString(h.Sum(nil))
+
+				resp = append(resp, EasyEquitiesDeposit{
+					Hash:        hashStr,
+					Amount:      amt,
+					Date:        date,
+					Description: desc,
+				})
+			}
+		}
+	}
+
+	return resp, nil
 }
