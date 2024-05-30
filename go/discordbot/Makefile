@@ -1,7 +1,7 @@
 
 IMAGE_REPO := 823058932981.dkr.ecr.eu-west-1.amazonaws.com/discordbot
 IMAGE_HASH := latest
-CRDB_HOST?=0.0.0.0
+PG_HOST?=0.0.0.0
 
 PF_SCRIPT=../backend/forward.sh
 
