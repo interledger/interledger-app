@@ -17,17 +17,11 @@ import (
 
 	"gitlab.com/fynbos/backend/db"
 
-	"gitlab.com/fynbos/env"
-
 	"gitlab.com/fynbos/backend/rafiki"
 	"gitlab.com/fynbos/backend/wallets"
 )
 
 func CreatePaymentPointer(ctx context.Context, b Backends, w wallets.Wallet, assetCode string) error {
-	if env.IsProd() {
-		return nil
-	}
-
 	var ppID string
 	err := b.DB().GetContext(ctx, &ppID, "SELECT payment_pointer_id FROM rafiki_payment_pointers WHERE wallet_id=$1", w.ID)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
