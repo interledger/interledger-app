@@ -7,6 +7,6 @@ generated: generated.go
 
 bindings:
   UInt64:
-    type: uint64
+    type: string
   UInt8:
     type: uint8
