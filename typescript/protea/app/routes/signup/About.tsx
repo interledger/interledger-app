@@ -10,6 +10,7 @@ import {
   Icon,
   TextField
 } from '~/components'
+import { isEUCountry } from '~/data/wallet.server'
 import type { Country } from '~/generated/connect/backend/v1/backend_pb'
 import { SignupStep, useSignupStore } from '~/lib/useSignupStore'
 import type { detailsAction, loader } from './route'
@@ -164,23 +165,26 @@ export function About() {
           type='hidden'
         />
       </Card>
-      {country && country?.id !== 'US' && country?.id !== 'ZA' && (
-        <Card>
-          <CardContent>
-            <div className='flex items-center space-x-4'>
-              <CardIcon className='!bg-error'>
-                <Icon className='text-error'>exclamation</Icon>
-              </CardIcon>
-              <div className='flex flex-col space-y-1'>
-                <p className='text-sm text-medium'>
-                  Country not yet supported. Click "Continue" to join the
-                  waitlist.
-                </p>
+      {country &&
+        country?.id !== 'US' &&
+        country?.id !== 'ZA' &&
+        !isEUCountry(country?.id) && (
+          <Card>
+            <CardContent>
+              <div className='flex items-center space-x-4'>
+                <CardIcon className='!bg-error'>
+                  <Icon className='text-error'>exclamation</Icon>
+                </CardIcon>
+                <div className='flex flex-col space-y-1'>
+                  <p className='text-sm text-medium'>
+                    Country not yet supported. Click "Continue" to join the
+                    waitlist.
+                  </p>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+            </CardContent>
+          </Card>
+        )}
       <Button
         form='signup-about-details'
         name='formName'
