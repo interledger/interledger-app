@@ -13,6 +13,40 @@ import type {
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 
+export function isEUCountry(countryCode: string) {
+  const euCountryCodes = [
+    'AT',
+    'BE',
+    'BG',
+    'HR',
+    'CY',
+    'CZ',
+    'DK',
+    'EE',
+    'FI',
+    'FR',
+    'DE',
+    'GR',
+    'HU',
+    'IE',
+    'IT',
+    'LV',
+    'LT',
+    'LU',
+    'MT',
+    'NL',
+    'PL',
+    'PT',
+    'RO',
+    'SK',
+    'SI',
+    'ES',
+    'SE'
+  ]
+
+  return euCountryCodes.includes(countryCode.toUpperCase())
+}
+
 export async function getKycStatus(
   request: Request
 ): Promise<KYCStatusResponse> {
