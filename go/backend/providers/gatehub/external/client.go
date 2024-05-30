@@ -48,7 +48,7 @@ func NewClient(appID, secret string, transport *http.Client) Client {
 	onOffRampBaseURL := "https://managed-ramp.sandbox.gatehub.net"
 	if env.IsProd() {
 		onOffRampClientID = "f4c8f30f-7fc3-4aa1-8573-520cb67565e3"
-		onboardingClientID = "40a22fc5-9091-4c6f-aff6-a3fddf475b331"
+		onboardingClientID = "40a22fc5-9091-4c6f-aff6-a3fddf475b33"
 		exchangeClientID = "50e7c590-f6f9-4fa9-9498-260bd978c5d6"
 		baseURL = "https://api.gatehub.net"
 		onboardingBaseURL = "https://onboarding.gatehub.net"
