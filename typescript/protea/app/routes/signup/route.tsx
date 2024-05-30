@@ -12,6 +12,7 @@ import { useEffect } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import { Layouts } from '~/components'
+import { isEUCountry } from '~/data/wallet.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { error, isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
@@ -161,7 +162,7 @@ export async function detailsAction({ request }: ActionFunctionArgs) {
   const country = form.get('country') as string
   const email = form.get('email') as string
 
-  if (!(country == 'US' || country == 'ZA')) {
+  if (!(country == 'US' || country == 'ZA') || isEUCountry(country)) {
     return redirect(
       `/waitlist?country=${country}&email=${email}&fullName=${firstName} ${lastName}`
     )
