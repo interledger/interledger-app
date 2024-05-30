@@ -364,7 +364,7 @@ func (v *GetGrantGrantAccessLimitsLimitData) GetReceiveAmount() GetGrantGrantAcc
 
 // GetGrantGrantAccessLimitsLimitDataDebitAmountPaymentAmount includes the requested fields of the GraphQL type PaymentAmount.
 type GetGrantGrantAccessLimitsLimitDataDebitAmountPaymentAmount struct {
-	Value uint64 `json:"value"`
+	Value string `json:"value"`
 	// [ISO 4217 currency code](https://en.wikipedia.org/wiki/ISO_4217), e.g. `USD`
 	AssetCode string `json:"assetCode"`
 	// Difference in orders of magnitude between the standard unit of an asset and a corresponding fractional unit
@@ -372,7 +372,7 @@ type GetGrantGrantAccessLimitsLimitDataDebitAmountPaymentAmount struct {
 }
 
 // GetValue returns GetGrantGrantAccessLimitsLimitDataDebitAmountPaymentAmount.Value, and is useful for accessing the field via an interface.
-func (v *GetGrantGrantAccessLimitsLimitDataDebitAmountPaymentAmount) GetValue() uint64 {
+func (v *GetGrantGrantAccessLimitsLimitDataDebitAmountPaymentAmount) GetValue() string {
 	return v.Value
 }
 
@@ -388,7 +388,7 @@ func (v *GetGrantGrantAccessLimitsLimitDataDebitAmountPaymentAmount) GetAssetSca
 
 // GetGrantGrantAccessLimitsLimitDataReceiveAmountPaymentAmount includes the requested fields of the GraphQL type PaymentAmount.
 type GetGrantGrantAccessLimitsLimitDataReceiveAmountPaymentAmount struct {
-	Value uint64 `json:"value"`
+	Value string `json:"value"`
 	// [ISO 4217 currency code](https://en.wikipedia.org/wiki/ISO_4217), e.g. `USD`
 	AssetCode string `json:"assetCode"`
 	// Difference in orders of magnitude between the standard unit of an asset and a corresponding fractional unit
@@ -396,7 +396,7 @@ type GetGrantGrantAccessLimitsLimitDataReceiveAmountPaymentAmount struct {
 }
 
 // GetValue returns GetGrantGrantAccessLimitsLimitDataReceiveAmountPaymentAmount.Value, and is useful for accessing the field via an interface.
-func (v *GetGrantGrantAccessLimitsLimitDataReceiveAmountPaymentAmount) GetValue() uint64 {
+func (v *GetGrantGrantAccessLimitsLimitDataReceiveAmountPaymentAmount) GetValue() string {
 	return v.Value
 }
 
@@ -712,7 +712,7 @@ func (v *ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccessLimitsLimi
 
 // ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccessLimitsLimitDataDebitAmountPaymentAmount includes the requested fields of the GraphQL type PaymentAmount.
 type ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccessLimitsLimitDataDebitAmountPaymentAmount struct {
-	Value uint64 `json:"value"`
+	Value string `json:"value"`
 	// [ISO 4217 currency code](https://en.wikipedia.org/wiki/ISO_4217), e.g. `USD`
 	AssetCode string `json:"assetCode"`
 	// Difference in orders of magnitude between the standard unit of an asset and a corresponding fractional unit
@@ -720,7 +720,7 @@ type ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccessLimitsLimitDat
 }
 
 // GetValue returns ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccessLimitsLimitDataDebitAmountPaymentAmount.Value, and is useful for accessing the field via an interface.
-func (v *ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccessLimitsLimitDataDebitAmountPaymentAmount) GetValue() uint64 {
+func (v *ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccessLimitsLimitDataDebitAmountPaymentAmount) GetValue() string {
 	return v.Value
 }
 
@@ -736,7 +736,7 @@ func (v *ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccessLimitsLimi
 
 // ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccessLimitsLimitDataReceiveAmountPaymentAmount includes the requested fields of the GraphQL type PaymentAmount.
 type ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccessLimitsLimitDataReceiveAmountPaymentAmount struct {
-	Value uint64 `json:"value"`
+	Value string `json:"value"`
 	// [ISO 4217 currency code](https://en.wikipedia.org/wiki/ISO_4217), e.g. `USD`
 	AssetCode string `json:"assetCode"`
 	// Difference in orders of magnitude between the standard unit of an asset and a corresponding fractional unit
@@ -744,7 +744,7 @@ type ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccessLimitsLimitDat
 }
 
 // GetValue returns ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccessLimitsLimitDataReceiveAmountPaymentAmount.Value, and is useful for accessing the field via an interface.
-func (v *ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccessLimitsLimitDataReceiveAmountPaymentAmount) GetValue() uint64 {
+func (v *ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrantAccessLimitsLimitDataReceiveAmountPaymentAmount) GetValue() string {
 	return v.Value
 }
 
