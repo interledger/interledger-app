@@ -222,6 +222,7 @@ type (
 		SourceMethod      SourceMethod      `json:"sourceMethod,omitempty"`
 		DestinationMethod DestinationMethod `json:"destinationMethod,omitempty"`
 		Amount            float64           `json:"amount,omitempty"`
+		USDAmount         float64           `json:"usdValue,omitempty"`
 		Type              string            `json:"type,omitempty"`
 		Date              string            `json:"date,omitempty"`
 	}
