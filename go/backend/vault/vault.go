@@ -8,7 +8,6 @@ import (
 
 	vault "github.com/hashicorp/vault/api"
 	"gitlab.com/fynbos/env"
-	"gitlab.com/fynbos/log"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
@@ -31,8 +30,8 @@ func NewClient() (Client, error) {
 		if err != nil {
 			return nil, fmt.Errorf("unable to initialize Vault client: %w", err)
 		}
+		vc.SetToken(os.Getenv("VAULT_TOKEN"))
 
-		log.Info("Successfully authed vault")
 		return client{vc: vc, transitEnginePath: transitEnginePath}, nil
 	}
 
