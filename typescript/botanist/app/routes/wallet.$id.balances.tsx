@@ -5,8 +5,10 @@ import { useCallback } from 'react'
 import { route } from 'routes-gen'
 import { GridCard, Switch } from '~/components'
 import {
+  EnablGatehubBalance,
   EnablePtiWalletBalance,
   EnableXagoWalletBalance,
+  GetGatehubWalletBalance,
   GetPtiWalletBalance,
   GetXagoWalletBalance
 } from '~/lib/wallet.server'
@@ -14,15 +16,17 @@ import {
 export async function loader({ request, params }: LoaderArgs) {
   const xagoBalance = await GetXagoWalletBalance(request, params.id as string)
   const ptiBalance = await GetPtiWalletBalance(request, params.id as string)
+  const gatehubBalance = await GetGatehubWalletBalance(request, params.id as string)
 
   return json({
     zarBalance: xagoBalance,
-    usdBalance: ptiBalance
+    usdBalance: ptiBalance,
+    eurBalance: gatehubBalance
   })
 }
 
 export default function Page() {
-  const { zarBalance, usdBalance } = useLoaderData<typeof loader>()
+  const { zarBalance, usdBalance, eurBalance } = useLoaderData<typeof loader>()
   const { id } = useParams()
   const fetcher = useFetcher()
 
@@ -75,6 +79,23 @@ export default function Page() {
           onChange={() => _onChangeSwitch('USD')}
         />
       </div>
+      {eurBalance && (
+        <GridCard
+          className='col-span-full lg:col-span-4'
+          title='EUR Balance'
+          options={eurBalance}
+        />
+      )}
+      <div className='flex w-full items-center justify-between'>
+        <dt className='text-xs font-medium capitalize text-weak'>
+          Enable EUR Balance
+        </dt>
+        <Switch
+          checked={!!eurBalance}
+          disabled={!!eurBalance}
+          onChange={() => _onChangeSwitch('EUR')}
+        />
+      </div>
     </>
   )
 }
@@ -87,6 +108,8 @@ export async function action({ request, params }: ActionArgs) {
     await EnableXagoWalletBalance(request, params.id as string)
   } else if (currency == 'USD') {
     await EnablePtiWalletBalance(request, params.id as string)
+  } else if (currency == 'EUR') {
+    await EnablGatehubBalance(request, params.id as string)
   }
 
   return null

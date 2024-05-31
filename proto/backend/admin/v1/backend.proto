@@ -44,10 +44,20 @@ service Backend {
 
   // Gatehub
   rpc CreateGatehubUser(CreateGatehubUserRequest) returns (Empty);
+  rpc GetGatehubBalance(GetGatehubBalanceRequest) returns (GetGatehubBalanceResponse);
 }
 
 message CreateGatehubUserRequest {
   string walletID = 1;
+}
+
+message GetGatehubBalanceRequest {
+  string walletID = 1;
+}
+
+message GetGatehubBalanceResponse {
+  Amount balance = 1;
+  Amount available = 2;
 }
 
 message GetPTIBalanceRequest {
