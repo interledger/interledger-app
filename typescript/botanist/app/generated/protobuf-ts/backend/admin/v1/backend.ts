@@ -24,6 +24,28 @@ export interface CreateGatehubUserRequest {
     walletID: string;
 }
 /**
+ * @generated from protobuf message backend.admin.v1.GetGatehubBalanceRequest
+ */
+export interface GetGatehubBalanceRequest {
+    /**
+     * @generated from protobuf field: string walletID = 1;
+     */
+    walletID: string;
+}
+/**
+ * @generated from protobuf message backend.admin.v1.GetGatehubBalanceResponse
+ */
+export interface GetGatehubBalanceResponse {
+    /**
+     * @generated from protobuf field: backend.admin.v1.Amount balance = 1;
+     */
+    balance?: Amount;
+    /**
+     * @generated from protobuf field: backend.admin.v1.Amount available = 2;
+     */
+    available?: Amount;
+}
+/**
  * @generated from protobuf message backend.admin.v1.GetPTIBalanceRequest
  */
 export interface GetPTIBalanceRequest {
@@ -1032,6 +1054,107 @@ class CreateGatehubUserRequest$Type extends MessageType<CreateGatehubUserRequest
  * @generated MessageType for protobuf message backend.admin.v1.CreateGatehubUserRequest
  */
 export const CreateGatehubUserRequest = new CreateGatehubUserRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GetGatehubBalanceRequest$Type extends MessageType<GetGatehubBalanceRequest> {
+    constructor() {
+        super("backend.admin.v1.GetGatehubBalanceRequest", [
+            { no: 1, name: "walletID", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<GetGatehubBalanceRequest>): GetGatehubBalanceRequest {
+        const message = { walletID: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GetGatehubBalanceRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetGatehubBalanceRequest): GetGatehubBalanceRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string walletID */ 1:
+                    message.walletID = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GetGatehubBalanceRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string walletID = 1; */
+        if (message.walletID !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.walletID);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.GetGatehubBalanceRequest
+ */
+export const GetGatehubBalanceRequest = new GetGatehubBalanceRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GetGatehubBalanceResponse$Type extends MessageType<GetGatehubBalanceResponse> {
+    constructor() {
+        super("backend.admin.v1.GetGatehubBalanceResponse", [
+            { no: 1, name: "balance", kind: "message", T: () => Amount },
+            { no: 2, name: "available", kind: "message", T: () => Amount }
+        ]);
+    }
+    create(value?: PartialMessage<GetGatehubBalanceResponse>): GetGatehubBalanceResponse {
+        const message = {};
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GetGatehubBalanceResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetGatehubBalanceResponse): GetGatehubBalanceResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* backend.admin.v1.Amount balance */ 1:
+                    message.balance = Amount.internalBinaryRead(reader, reader.uint32(), options, message.balance);
+                    break;
+                case /* backend.admin.v1.Amount available */ 2:
+                    message.available = Amount.internalBinaryRead(reader, reader.uint32(), options, message.available);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GetGatehubBalanceResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* backend.admin.v1.Amount balance = 1; */
+        if (message.balance)
+            Amount.internalBinaryWrite(message.balance, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* backend.admin.v1.Amount available = 2; */
+        if (message.available)
+            Amount.internalBinaryWrite(message.available, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.GetGatehubBalanceResponse
+ */
+export const GetGatehubBalanceResponse = new GetGatehubBalanceResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class GetPTIBalanceRequest$Type extends MessageType<GetPTIBalanceRequest> {
     constructor() {
@@ -4419,5 +4542,6 @@ export const Backend = new ServiceType("backend.admin.v1.Backend", [
     { name: "ListCountries", options: {}, I: Empty, O: ListCountriesResponse },
     { name: "EnablePTIBalance", options: {}, I: EnablePTIBalanceRequest, O: Empty },
     { name: "GetPTIBalance", options: {}, I: GetPTIBalanceRequest, O: GetPTIBalanceResponse },
-    { name: "CreateGatehubUser", options: {}, I: CreateGatehubUserRequest, O: Empty }
+    { name: "CreateGatehubUser", options: {}, I: CreateGatehubUserRequest, O: Empty },
+    { name: "GetGatehubBalance", options: {}, I: GetGatehubBalanceRequest, O: GetGatehubBalanceResponse }
 ]);
