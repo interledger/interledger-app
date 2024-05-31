@@ -88,10 +88,10 @@ export async function GetWalletDetails(
       response.response.gender == 0
         ? 'Unknown'
         : response.response.gender == 1
-        ? 'Male'
-        : response.response.gender == 2
-        ? 'Female'
-        : 'Other',
+          ? 'Male'
+          : response.response.gender == 2
+            ? 'Female'
+            : 'Other',
     dateOfBirth: DateTime.fromSeconds(
       parseInt(response.response.dateOfBirth?.seconds ?? '')
     ).toLocaleString(DateTime.DATETIME_FULL)
@@ -695,6 +695,45 @@ export async function GetPtiWalletBalance(request: Request, walletId: string) {
   return rpc.response
 }
 
+export async function GetGatehubWalletBalance(request: Request, walletId: string) {
+  let rpc = await grpcClient
+    .getGatehubBalance(
+      {
+        walletID: walletId
+      },
+      { meta: { cookies: String(request.headers.get('cookie')) } }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+
+  if (isGrpcError(rpc)) {
+    if (rpc.code == Code.NOT_FOUND) {
+      return null
+    }
+    throw json({}, httpMapping(rpc.code))
+  }
+
+  return rpc.response
+}
+
+export async function EnablGatehubBalance(request: Request, walletId: string) {
+  let rpc = await grpcClient
+    .createGatehubUser(
+      {
+        walletID: walletId
+      },
+      { meta: { cookies: String(request.headers.get('cookie')) } }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+
+  if (isGrpcError(rpc)) {
+    throw json({}, httpMapping(rpc.code))
+  }
+
+  return rpc.response
+}
+
 export async function EnablePtiWalletBalance(
   request: Request,
   walletId: string
@@ -718,20 +757,20 @@ export async function EnablePtiWalletBalance(
 
 
 export async function ListCountries(
-    request: Request
+  request: Request
 ): Promise<ListCountriesResponse> {
   const cookie = String(request.headers.get('cookie'))
   let response = await grpcClient
-      .listCountries(
-          { },
-          {
-            meta: {
-              cookies: cookie || ''
-            }
-          }
-      )
-      .then((v) => v)
-      .catch(StatusError)
+    .listCountries(
+      {},
+      {
+        meta: {
+          cookies: cookie || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
   if (isGrpcError(response)) {
     throw json({}, httpMapping(response.code))
   }
