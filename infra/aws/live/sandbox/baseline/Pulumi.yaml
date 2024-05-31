@@ -1,4 +1,0 @@
-name: aws-sandbox-baseline
-runtime:
-  name: go
-description: AWS Sandbox Account

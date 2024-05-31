@@ -1,3 +1,0 @@
-name: aws-shared-eu-west-1-shared-k8s-config
-runtime: go
-description: Shared k8s cluster configuration

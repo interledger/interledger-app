@@ -1,3 +1,0 @@
-name: aws-clusters-dev-euw1-vault
-runtime: go
-description: Deploy vault to dev-euw1 cluster

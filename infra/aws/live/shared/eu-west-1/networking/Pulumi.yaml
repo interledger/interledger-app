@@ -1,4 +1,0 @@
-name: aws-shared-euwest1-networking
-runtime:
-  name: go
-description: Networking for aws shared account in eu-west-1

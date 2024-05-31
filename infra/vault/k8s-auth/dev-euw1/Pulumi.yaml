@@ -1,3 +1,0 @@
-name: vault-k8s-auth-dev-euw1
-runtime: go
-description: Vault k8s auth for dev eu west 1

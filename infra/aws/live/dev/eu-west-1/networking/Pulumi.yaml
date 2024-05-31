@@ -1,4 +1,0 @@
-name: aws-dev-euwest1-networking
-runtime:
-  name: go
-description: Networking for aws dev account in eu-west-1

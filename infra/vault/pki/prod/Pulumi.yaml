@@ -1,3 +1,0 @@
-name: vault-pki-prod
-description: Vault CA chain for prod
-runtime: go

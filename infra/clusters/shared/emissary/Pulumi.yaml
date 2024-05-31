@@ -1,3 +1,0 @@
-name: aws-clusters-shared-euw1-emissary
-runtime: go
-description: Deploy emissary to shared cluster

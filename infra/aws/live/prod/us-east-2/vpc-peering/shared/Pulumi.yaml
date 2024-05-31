@@ -1,4 +1,0 @@
-name: aws-prod-useast2-vpc-peering-shared
-runtime:
-  name: go
-description: Vpc peering with the shared vpc

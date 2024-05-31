@@ -1,3 +1,0 @@
-name: aws-shared-euwest1-glrunner
-runtime: go
-description: Gitlab Runner in AWS Shared Account (EU-WEST-1)

@@ -1,5 +1,0 @@
-config:
-  aws:region: eu-west-1
-  fynbos:accountId: 634848879735
-  cluster:oidcProvider: oidc.eks.eu-west-1.amazonaws.com/id/AF83FFCC8A31D16D2E1C9C1788205863
-  cluster:name: dev-eu-west-1-cluster

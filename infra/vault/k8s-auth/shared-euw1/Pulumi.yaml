@@ -1,3 +1,0 @@
-name: vault-k8s-auth-shared-euw1
-runtime: go
-description: Vault k8s auth for shared eu west 1

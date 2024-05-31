@@ -1,3 +1,0 @@
-name: vault-k8s-auth-prod-use2
-runtime: go
-description: Vault k8s auth for prod us east 2

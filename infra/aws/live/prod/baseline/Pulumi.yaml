@@ -1,4 +1,0 @@
-name: aws-prod-baseline
-runtime:
-  name: go
-description: AWS Prod Account
