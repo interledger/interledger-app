@@ -3,23 +3,13 @@ module gitlab.com/fynbos/infra
 go 1.18
 
 require (
-	github.com/pulumi/pulumi-aws-native/sdk v0.6.0
-	github.com/pulumi/pulumi-aws/sdk/v4 v4.38.1
 	github.com/pulumi/pulumi-cloudflare/sdk/v3 v3.6.0
 	github.com/pulumi/pulumi-cloudflare/sdk/v4 v4.12.1
-	github.com/pulumi/pulumi-docker/sdk/v3 v3.1.0
-	github.com/pulumi/pulumi-eks/sdk v0.37.1
-	github.com/pulumi/pulumi-kubernetes/sdk/v3 v3.14.0
-	github.com/pulumi/pulumi-random/sdk/v4 v4.2.0
 	github.com/pulumi/pulumi-tls/sdk/v4 v4.0.0
-	github.com/pulumi/pulumi-vault/sdk/v4 v4.5.0
-	github.com/pulumi/pulumi-vault/sdk/v5 v5.5.0
 	github.com/pulumi/pulumi/sdk/v3 v3.30.0
-	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c
 )
 
 require (
-	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/cheggaaa/pb v1.0.18 // indirect
 	github.com/djherbis/times v1.2.0 // indirect
@@ -34,6 +24,7 @@ require (
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 	github.com/kevinburke/ssh_config v0.0.0-20190725054713-01f96b0aa0cd // indirect
+	github.com/kr/pretty v0.3.0 // indirect
 	github.com/mattn/go-runewidth v0.0.8 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/go-ps v1.0.0 // indirect
@@ -45,7 +36,6 @@ require (
 	github.com/rogpeppe/go-internal v1.8.1 // indirect
 	github.com/sabhiram/go-gitignore v0.0.0-20180611051255-d3107576ba94 // indirect
 	github.com/sergi/go-diff v1.1.0 // indirect
-	github.com/spf13/cast v1.3.1 // indirect
 	github.com/spf13/cobra v1.4.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/src-d/gcfg v1.4.0 // indirect

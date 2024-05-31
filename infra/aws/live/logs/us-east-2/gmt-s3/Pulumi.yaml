@@ -1,4 +1,0 @@
-name: aws-logs-useast2-gmt-s3
-runtime:
-  name: go
-description: GMT s3 for aws logs account in us-east-2

@@ -1,3 +1,0 @@
-name: aws-clusters-shared-cert-manager
-runtime: go
-description: Deploy cert manager to shared cluster

@@ -1,3 +1,0 @@
-name: shared-cluster-vault
-runtime: go
-description: Vault deployment on shared cluster

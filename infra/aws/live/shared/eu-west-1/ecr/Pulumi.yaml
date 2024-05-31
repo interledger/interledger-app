@@ -1,3 +1,0 @@
-name: aws-shared-eu-west-1-ecr
-runtime: go
-description: Private fynbos repository

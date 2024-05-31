@@ -1,3 +1,0 @@
-name: aws-clusters-dev-euw1-kratos
-runtime: go
-description: Deploy kratos to dev-euw1 cluster

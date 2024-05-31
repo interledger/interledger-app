@@ -1,3 +1,0 @@
-name: aws-dev-eu-west-1-dev-k8s-config
-runtime: go
-description: Dev k8s cluster configuration

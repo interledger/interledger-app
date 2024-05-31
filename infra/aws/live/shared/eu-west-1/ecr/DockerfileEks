@@ -1,6 +1,0 @@
-FROM alpine:3.14
-
-RUN apk add --no-cache jq curl python3 py3-pip bash && \
-	pip install awscli && \
-	curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && \
-	install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl

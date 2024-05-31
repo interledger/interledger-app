@@ -1,9 +1,0 @@
-name: aws-logs-baseline
-runtime:
-  name: go
-description: AWS Logs Account
-template:
-  config:
-    aws:region:
-      description: The AWS region to deploy into.
-      default: eu-west-1

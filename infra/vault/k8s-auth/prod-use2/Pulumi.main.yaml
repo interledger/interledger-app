@@ -1,4 +1,0 @@
-config:
-  vault:max_retries: "10"
-  vault:tls_server_name: "vault1.fynbos.cloud"
-  vault:address: "https://127.0.0.1:8200"

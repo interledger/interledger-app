@@ -1,5 +1,0 @@
-config:
-  aws:region: us-east-2
-  fynbos:accountId: 806897333161
-  cluster:oidcProvider: oidc.eks.us-east-2.amazonaws.com/id/D96FC8BD3B90B6BDDCA89F3B56A234DE
-  cluster:name: prod-us-east-2-cluster

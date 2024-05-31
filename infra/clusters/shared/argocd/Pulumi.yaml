@@ -1,3 +1,0 @@
-name: aws-clusters-shared-argocd
-runtime: go
-description: Deploy argocd to shared cluster
