@@ -44,6 +44,86 @@ export class CreateGatehubUserRequest extends Message<CreateGatehubUserRequest> 
 }
 
 /**
+ * @generated from message backend.admin.v1.GetGatehubBalanceRequest
+ */
+export class GetGatehubBalanceRequest extends Message<GetGatehubBalanceRequest> {
+  /**
+   * @generated from field: string walletID = 1;
+   */
+  walletID = "";
+
+  constructor(data?: PartialMessage<GetGatehubBalanceRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.GetGatehubBalanceRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "walletID", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetGatehubBalanceRequest {
+    return new GetGatehubBalanceRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetGatehubBalanceRequest {
+    return new GetGatehubBalanceRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetGatehubBalanceRequest {
+    return new GetGatehubBalanceRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetGatehubBalanceRequest | PlainMessage<GetGatehubBalanceRequest> | undefined, b: GetGatehubBalanceRequest | PlainMessage<GetGatehubBalanceRequest> | undefined): boolean {
+    return proto3.util.equals(GetGatehubBalanceRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.admin.v1.GetGatehubBalanceResponse
+ */
+export class GetGatehubBalanceResponse extends Message<GetGatehubBalanceResponse> {
+  /**
+   * @generated from field: backend.admin.v1.Amount balance = 1;
+   */
+  balance?: Amount;
+
+  /**
+   * @generated from field: backend.admin.v1.Amount available = 2;
+   */
+  available?: Amount;
+
+  constructor(data?: PartialMessage<GetGatehubBalanceResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.GetGatehubBalanceResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "balance", kind: "message", T: Amount },
+    { no: 2, name: "available", kind: "message", T: Amount },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetGatehubBalanceResponse {
+    return new GetGatehubBalanceResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetGatehubBalanceResponse {
+    return new GetGatehubBalanceResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetGatehubBalanceResponse {
+    return new GetGatehubBalanceResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetGatehubBalanceResponse | PlainMessage<GetGatehubBalanceResponse> | undefined, b: GetGatehubBalanceResponse | PlainMessage<GetGatehubBalanceResponse> | undefined): boolean {
+    return proto3.util.equals(GetGatehubBalanceResponse, a, b);
+  }
+}
+
+/**
  * @generated from message backend.admin.v1.GetPTIBalanceRequest
  */
 export class GetPTIBalanceRequest extends Message<GetPTIBalanceRequest> {
