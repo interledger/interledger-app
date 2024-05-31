@@ -28,6 +28,7 @@ import (
 	"gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/backend/twitter"
 	"gitlab.com/fynbos/backend/user"
+	"gitlab.com/fynbos/backend/vault"
 	"gitlab.com/fynbos/backend/wallets"
 	"gitlab.com/fynbos/pacioli"
 	"go.temporal.io/sdk/client"
@@ -64,4 +65,5 @@ type Backends interface {
 	PTI() pti.Client
 	Signup() signup.Client
 	Gatehub() gatehub.Client
+	Vault() vault.Client
 }

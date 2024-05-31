@@ -102,6 +102,7 @@ import (
 	"gitlab.com/fynbos/backend/wallets"
 	wallets_client "gitlab.com/fynbos/backend/wallets/client"
 	wallet_handler "gitlab.com/fynbos/backend/wallets/handler"
+	wealth_ops "gitlab.com/fynbos/backend/wealth/ops"
 	"gitlab.com/fynbos/log"
 	"gitlab.com/fynbos/pacioli"
 	pacioli_client "gitlab.com/fynbos/pacioli/client"
@@ -198,6 +199,7 @@ func start(args *cli.StartArgs) {
 	router.Handle("/webhooks/gatehub", gatehub_ops.NewWebhook(b))
 	router.Handle("/webhooks/astra/updates", b.Astra().WebhookHandler())
 	router.Handle("/webhooks/astra/wallet/{id}", b.Astra().TrustedAuthInfoWebhook())
+	router.Handle("/webhooks/easyequities/credentials", wealth_ops.CheckCredentialsHandler(b))
 	router.Handle("/{wallet_id}/identities/{identity_sig_hash}", wallet_handler.GetIdentityHandler(b))
 	router.NotFound(wallet_handler.WalletRedirectHandler(b))
 

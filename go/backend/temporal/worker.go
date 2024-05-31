@@ -5,6 +5,8 @@ import (
 	"crypto/rsa"
 	"os"
 
+	wealth_ops "gitlab.com/fynbos/backend/wealth/ops"
+
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/log"
@@ -108,6 +110,11 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(gatehub_workflows.CreateGatehubUserWorkflow)
 	w.RegisterWorkflow(gatehub_workflows.CreateGatehubDeposit)
 	w.RegisterWorkflow(gatehub_workflows.ProcessGatehubWithdrawal)
+
+	// Fynbos Wealth
+	w.RegisterActivity(wealth_ops.NewActivity(b))
+	w.RegisterWorkflow(wealth_ops.GetEasyTFSATransactionsWorkflow)
+	wealth_ops.StartTransactionsPolling(b)
 
 	return w, nil
 }

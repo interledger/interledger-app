@@ -3459,6 +3459,40 @@ table "gatehub_transactions" {
   }
 }
 
+table "wealth_users" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "external_id" {
+    null = false
+    type = bigint
+  }
+  column "easy_equities_username" {
+    null = false
+    type = text
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "wealth_users_external_id" {
+    unique = true
+    columns = [column.column.external_id]
+  }
+}
+
 table "atlas_schema_history" {
   schema = schema.public
   column "id" {

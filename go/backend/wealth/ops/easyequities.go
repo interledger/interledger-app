@@ -1,7 +1,6 @@
 package ops
 
 import (
-	"context"
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
@@ -31,13 +30,7 @@ func setupPlaywright() (playwright.Browser, error) {
 	return browser, nil
 }
 
-type EasyEquitiesSession struct {
-	page             playwright.Page
-	hasMFA           bool
-	credentialsValid bool
-}
-
-func Login(ctx context.Context, username, password string) (*EasyEquitiesSession, error) {
+func Login(username, password string) (*EasyEquitiesSession, error) {
 	var resp EasyEquitiesSession
 	browser, err := setupPlaywright()
 	if err != nil {
@@ -70,23 +63,11 @@ func Login(ctx context.Context, username, password string) (*EasyEquitiesSession
 		return nil, err
 	}
 
-	// TODO: delete MFA, only for testing
 	if strings.EqualFold(page.URL(), "https://identity.openeasy.io/Mfa/Authenticate") {
 		resp.credentialsValid = true
 		resp.hasMFA = true
-		var mfa string
-		fmt.Println("MFA code:")
-		fmt.Scanln(&mfa)
 
-		err = page.Locator("input[name='Code']").Fill(mfa)
-		if err != nil {
-			return nil, err
-		}
-
-		err = page.GetByRole("Button").Click()
-		if err != nil {
-			return nil, err
-		}
+		return &resp, nil
 	}
 
 	txt, err := page.Locator(".validation-summary-errors li, #trust-account-types").Nth(0).TextContent()
@@ -103,45 +84,37 @@ func Login(ctx context.Context, username, password string) (*EasyEquitiesSession
 	return &resp, nil
 }
 
-func GetTFSATransactions(ctx context.Context, session *EasyEquitiesSession) ([]byte, error) {
+func DownloadTFSATransactions(userID int64, session *EasyEquitiesSession) (string, error) {
 	if session == nil {
-		return nil, nil
+		return "", nil
 	}
 
 	_, err := session.page.Goto("https://platform.easyequities.io/TransactionHistory")
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	err = session.page.Locator("//div[@class=\"inactive-tab-account-type\" and text()=\"TFSA\"]").Click()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	download, err := session.page.ExpectDownload(func() error {
-		fmt.Println("GGGGGGGGGGGGGGGGG")
 		return session.page.Locator("[data-role='export']").Click()
 	})
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	fmt.Println("/tmp/" + download.SuggestedFilename())
-	err = download.SaveAs("/tmp/" + download.SuggestedFilename())
+	fn := fmt.Sprintf("/tmp/wealt_user_%d_%s.xlsx", userID, time.Now().Format("2006_01_02"))
+	err = download.SaveAs(fn)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	return nil, err
+	return fn, nil
 }
 
-type EasyEquitiesDeposit struct {
-	Hash        string
-	Amount      float64
-	Date        time.Time
-	Description string
-}
-
-func ParseTXHistory(ctx context.Context, filePath string) ([]EasyEquitiesDeposit, error) {
+func ParseTXHistory(filePath string) ([]EasyEquitiesDeposit, error) {
 	f, err := excelize.OpenFile(filePath)
 	if err != nil {
 		return nil, err
@@ -158,16 +131,16 @@ func ParseTXHistory(ctx context.Context, filePath string) ([]EasyEquitiesDeposit
 			return nil, err
 		}
 
-		// Chronological order, so we can use the index as part of the hash
+		// Chronological order
 		slices.Reverse(rows)
-		for i, r := range rows {
+		for _, r := range rows {
 			date, _ := time.Parse("2006/01/02", r[0])
 			desc := r[1]
 			amt, _ := strconv.ParseFloat(r[2], 64)
 
 			if strings.HasPrefix(desc, "EE-") {
 				h.Reset()
-				h.Write([]byte(fmt.Sprintf("%d_%s_%s_%s", i, r[0], r[1], r[2])))
+				h.Write([]byte(fmt.Sprintf("%s_%s_%s", r[0], r[1], r[2])))
 				hashStr := base64.StdEncoding.EncodeToString(h.Sum(nil))
 
 				resp = append(resp, EasyEquitiesDeposit{
