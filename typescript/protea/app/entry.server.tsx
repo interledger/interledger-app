@@ -1,6 +1,6 @@
 import type { DataFunctionArgs, EntryContext } from '@remix-run/node'
 import { createReadableStreamFromReadable } from '@remix-run/node'
-import { RemixServer } from '@remix-run/react'
+import { RemixServer, isRouteErrorResponse } from '@remix-run/react'
 import * as Sentry from '@sentry/remix'
 import isbot from 'isbot'
 import { renderToPipeableStream } from 'react-dom/server'
@@ -29,9 +29,16 @@ export function handleError(
   { request }: DataFunctionArgs
 ): void {
   if (error instanceof Error) {
-    Sentry.captureRemixServerException(error, 'remix.server', request)
+    Sentry.captureRemixServerException(error, 'remix.server', request).catch(
+      (e) => {
+        console.error('Error capturing error', e)
+      }
+    )
   } else {
-    // Optionally capture non-Error objects
+    // Opt out for 404 errors
+    if (isRouteErrorResponse(error) && error.status === 404) {
+      return
+    }
     Sentry.captureException(error)
   }
   console.error(error)
