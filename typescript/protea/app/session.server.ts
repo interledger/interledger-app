@@ -1,6 +1,6 @@
 import { createCookie, createSessionStorage } from '@remix-run/node'
 import { v4 } from 'uuid'
-import { redisClient } from '~/lib/redis.server'
+import { redisClient, waitForRedisConnection } from '~/lib/redis.server'
 
 const EXPIRATION_DURATION_IN_SECONDS = 60 * 60 * 24 // a day
 const COOKIE_SECRETS = JSON.parse(
@@ -19,6 +19,7 @@ export const { getSession, commitSession, destroySession } =
   createSessionStorage({
     cookie,
     async createData(data, expires) {
+      await waitForRedisConnection()
       const id = v4()
       await redisClient.set(id, JSON.stringify(data), {
         PXAT: expires?.valueOf()
@@ -26,11 +27,13 @@ export const { getSession, commitSession, destroySession } =
       return id
     },
     async readData(id) {
+      await waitForRedisConnection()
       const data = await redisClient.get(id)
       if (data == null) return null
       return JSON.parse(data)
     },
     async updateData(id, data, expires) {
+      await waitForRedisConnection()
       /**
        * NOTE: Don't set the update only flag here, because we want to always set the data.
        * Remix doesn't know if the data has changed or not, so we need to always set it.
@@ -40,6 +43,7 @@ export const { getSession, commitSession, destroySession } =
       })
     },
     async deleteData(id) {
+      await waitForRedisConnection()
       await redisClient.del(id)
     }
   })

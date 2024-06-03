@@ -35,4 +35,31 @@ if (process.env.NODE_ENV === 'production') {
   redisClient = global.__redisClient
 }
 
-export { redisClient }
+// Function to wait for Redis connection
+const waitForRedisConnection = (timeout: number = 5000): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    if (redisClient.isReady) {
+      resolve()
+      return
+    }
+
+    const timer = setTimeout(() => {
+      reject(new Error('Timeout waiting for Redis connection'))
+    }, timeout)
+
+    const onConnect = () => {
+      clearTimeout(timer)
+      resolve()
+    }
+
+    const onError = (error: Error) => {
+      clearTimeout(timer)
+      reject(error)
+    }
+
+    redisClient.once('connect', onConnect)
+    redisClient.once('error', onError)
+  })
+}
+
+export { redisClient, waitForRedisConnection }
