@@ -113,7 +113,8 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 
 	// Fynbos Wealth
 	w.RegisterActivity(wealth_ops.NewActivity(b))
-	w.RegisterWorkflow(wealth_ops.GetEasyTFSATransactionsWorkflow)
+	w.RegisterWorkflow(wealth_ops.GetAllEasyTFSATransactionsWorkflow)
+	w.RegisterWorkflow(wealth_ops.GetUserTFSATransactionsWorkflow)
 	wealth_ops.StartTransactionsPolling(b)
 
 	return w, nil

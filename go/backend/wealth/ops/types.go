@@ -13,8 +13,8 @@ type CredentialsCheckRequest struct {
 }
 
 type CredentialsCheckResponse struct {
-	HasMFA           bool
-	CredentialsValid bool
+	HasMFA           bool `json:"has_mfa"`
+	CredentialsValid bool `json:"credentials_valid"`
 }
 
 type EasyEquitiesSession struct {
@@ -24,8 +24,8 @@ type EasyEquitiesSession struct {
 }
 
 type EasyEquitiesDeposit struct {
-	Hash        string
-	Amount      float64
-	Date        time.Time
-	Description string
+	Hash        string    `json:"hash"`
+	Amount      float64   `json:"amount"`
+	Date        time.Time `json:"date"`
+	Description string    `json:"description"`
 }

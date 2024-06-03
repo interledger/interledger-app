@@ -4,24 +4,36 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
-	"slices"
 	"strconv"
 	"strings"
 	"time"
 
+	"go.uber.org/zap"
+
+	"gitlab.com/fynbos/log"
+
 	"github.com/playwright-community/playwright-go"
 	"github.com/xuri/excelize/v2"
 )
+
+func initialSetup() {
+	err := playwright.Install()
+	if err != nil {
+		log.Error("failed to install playwright", zap.Error(err))
+	}
+}
 
 func setupPlaywright() (playwright.Browser, error) {
 	err := playwright.Install()
 	if err != nil {
 		return nil, err
 	}
+
 	pw, err := playwright.Run()
 	if err != nil {
 		return nil, err
 	}
+
 	browser, err := pw.Chromium.Launch()
 	if err != nil {
 		return nil, err
@@ -114,7 +126,7 @@ func DownloadTFSATransactions(userID int64, session *EasyEquitiesSession) (strin
 	return fn, nil
 }
 
-func ParseTXHistory(filePath string) ([]EasyEquitiesDeposit, error) {
+func ParseTXHistory(userID int64, filePath string) ([]EasyEquitiesDeposit, error) {
 	f, err := excelize.OpenFile(filePath)
 	if err != nil {
 		return nil, err
@@ -131,8 +143,6 @@ func ParseTXHistory(filePath string) ([]EasyEquitiesDeposit, error) {
 			return nil, err
 		}
 
-		// Chronological order
-		slices.Reverse(rows)
 		for _, r := range rows {
 			date, _ := time.Parse("2006/01/02", r[0])
 			desc := r[1]
@@ -140,7 +150,7 @@ func ParseTXHistory(filePath string) ([]EasyEquitiesDeposit, error) {
 
 			if strings.HasPrefix(desc, "EE-") {
 				h.Reset()
-				h.Write([]byte(fmt.Sprintf("%s_%s_%s", r[0], r[1], r[2])))
+				h.Write([]byte(fmt.Sprintf("%d_%s_%s_%s", userID, r[0], r[1], r[2])))
 				hashStr := base64.StdEncoding.EncodeToString(h.Sum(nil))
 
 				resp = append(resp, EasyEquitiesDeposit{

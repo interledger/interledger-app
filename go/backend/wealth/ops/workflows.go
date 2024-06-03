@@ -8,6 +8,8 @@ import (
 	"os"
 	"time"
 
+	"gitlab.com/fynbos/env"
+
 	"gitlab.com/fynbos/log"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.temporal.io/api/enums/v1"
@@ -35,7 +37,7 @@ func StartTransactionsPolling(b Backends) {
 		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING, // There can be only one
 	}
 
-	we, err := b.Temporal().ExecuteWorkflow(context.Background(), workflowOptions, GetEasyTFSATransactionsWorkflow)
+	we, err := b.Temporal().ExecuteWorkflow(context.Background(), workflowOptions, GetAllEasyTFSATransactionsWorkflow)
 	if err != nil {
 		log.Fatal("Unable to execute workflow", zap.Error(err))
 	}
@@ -49,7 +51,29 @@ func (a *Activity) ListWealthUsers(ctx context.Context) ([]int64, error) {
 	return ids, err
 }
 
-func GetEasyTFSATransactionsWorkflow(ctx workflow.Context) error {
+func GetUserTFSATransactionsWorkflow(ctx workflow.Context, wealthUser int64) error {
+	var a *Activity
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 5 * time.Minute,
+	}
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	var filename string
+	err := workflow.ExecuteActivity(ctx, a.DownloadTransactions, wealthUser).Get(ctx, &filename)
+	if err != nil {
+		return err
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.PostDepositsToWealth, wealthUser, filename).Get(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.DeleteTransactionsFile, filename).Get(ctx, nil)
+	return err
+}
+
+func GetAllEasyTFSATransactionsWorkflow(ctx workflow.Context) error {
 	var a *Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 5 * time.Minute,
@@ -75,22 +99,32 @@ func GetEasyTFSATransactionsWorkflow(ctx workflow.Context) error {
 		}
 
 		err = workflow.ExecuteActivity(ctx, a.DeleteTransactionsFile, filename).Get(ctx, nil)
-		return err
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
 }
 
-func (a *Activity) DownloadTransactions(_ context.Context, wealthUser int64) (string, error) {
-	// TODO: get these values from Vault (possibly)
-	var username, password string
+func (a *Activity) DownloadTransactions(ctx context.Context, wealthUser int64) (string, error) {
+	var username string
+	err := a.b.DB().GetContext(ctx, &username, "SELECT easy_equities_username FROM wealth_users WHERE external_id=$1", wealthUser)
+	if err != nil {
+		return "", err
+	}
+
+	password, err := a.b.Vault().ReadSecret(fmt.Sprintf("%s/credentials/%d/ee", env.GetEnv(), wealthUser))
+	if err != nil {
+		return "", err
+	}
 
 	session, err := Login(username, password)
 	if err != nil {
 		return "", err
 	}
 
-	if session.credentialsValid == false || session.hasMFA {
+	if !session.credentialsValid || session.hasMFA {
 		return "", temporal.NewNonRetryableApplicationError("can't use credentials to login", "authentication", fmt.Errorf("invalid login"), "hasMFA", session.hasMFA, "valid credentials", session.credentialsValid)
 	}
 
@@ -98,7 +132,7 @@ func (a *Activity) DownloadTransactions(_ context.Context, wealthUser int64) (st
 }
 
 func (a *Activity) PostDepositsToWealth(_ context.Context, wealthUser int64, filename string) error {
-	deposits, err := ParseTXHistory(filename)
+	deposits, err := ParseTXHistory(wealthUser, filename)
 	if err != nil {
 		return err
 	}
@@ -113,7 +147,12 @@ func (a *Activity) PostDepositsToWealth(_ context.Context, wealthUser int64, fil
 	}
 
 	// TODO: change address on env
-	_, err = otelhttp.DefaultClient.Post("https://wealh.fynbos.app/api/easy/tfsa/deposits", "application/json", bytes.NewReader(body))
+	if !env.IsProd() {
+		_, err = otelhttp.DefaultClient.Post(fmt.Sprintf("https://wealh.fynbos.dev/api/easy/tfsa/deposits/%d", wealthUser), "application/json", bytes.NewReader(body))
+	} else {
+		_, err = otelhttp.DefaultClient.Post(fmt.Sprintf("https://wealh.fynbos.app/api/easy/tfsa/deposits/%d", wealthUser), "application/json", bytes.NewReader(body))
+	}
+
 	return err
 }
 

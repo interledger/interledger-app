@@ -3489,7 +3489,7 @@ table "wealth_users" {
   }
   index "wealth_users_external_id" {
     unique = true
-    columns = [column.column.external_id]
+    columns = [column.external_id]
   }
 }
 
