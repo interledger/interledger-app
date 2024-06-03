@@ -16,6 +16,9 @@ declare global {
 if (process.env.NODE_ENV === 'production') {
   redisClient = createClient({ url })
   redisClient.connect()
+  redisClient.on('error', (err) => {
+    console.error('Redis error:', err)
+  })
 } else {
   if (!global.__redisClient) {
     global.__redisClient = createClient({
