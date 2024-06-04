@@ -241,7 +241,8 @@ export async function kratosErrorMapping<T extends object>(
     // form message validation errors
     // This gets rendered in a snackbar - only use one.
     Object.assign(fieldErrors, {
-      form: kratosErrorMessage(data.ui.messages[0])
+      form: kratosErrorMessage(data.ui.messages[0]),
+      data
     })
   }
   return fieldErrors
