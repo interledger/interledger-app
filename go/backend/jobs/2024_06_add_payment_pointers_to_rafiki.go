@@ -1,0 +1,55 @@
+package jobs
+
+import (
+	"context"
+	"time"
+
+	"gitlab.com/fynbos/backend/country"
+	"gitlab.com/fynbos/backend/currency"
+	"gitlab.com/fynbos/backend/db"
+	"gitlab.com/fynbos/backend/wallets"
+	"go.temporal.io/sdk/temporal"
+	"go.temporal.io/sdk/workflow"
+)
+
+func CreateRafikiPaymentPointersJob(ctx workflow.Context) ([]string, error) {
+	var a *Activity
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Second,
+		RetryPolicy: &temporal.RetryPolicy{
+			MaximumAttempts: 3,
+		},
+	}
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	var wallets []wallets.Wallet
+	err := workflow.ExecuteActivity(ctx, a.ListAllWallets).Get(ctx, &wallets)
+	if err != nil {
+		return nil, err
+	}
+
+	var failedWallets []string
+	for _, w := range wallets {
+		err := workflow.ExecuteActivity(ctx, a.ListAllWallets).Get(ctx, &wallets)
+		if err != nil {
+			failedWallets = append(failedWallets, w.ID)
+		}
+	}
+
+	return failedWallets, nil
+}
+
+func (a *Activity) ListAllWallets(ctx context.Context) ([]wallets.Wallet, error) {
+	return a.b.Wallets().ListAll(ctx, db.Pagination{})
+}
+
+func (a *Activity) AddWalletToRafiki(ctx context.Context, w wallets.Wallet) error {
+	assetCode := currency.USD.String() // default to USD
+	if w.Country == country.ZA {
+		assetCode = currency.ZAR.String()
+	} else if country.EUCountries[w.Country] {
+		assetCode = currency.EUR.String()
+	}
+
+	return a.b.Rafiki().CreatePaymentPointer(ctx, w, assetCode)
+}
