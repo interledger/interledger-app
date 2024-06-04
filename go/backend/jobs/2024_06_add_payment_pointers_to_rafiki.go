@@ -2,6 +2,7 @@ package jobs
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"gitlab.com/fynbos/backend/country"
@@ -30,7 +31,7 @@ func CreateRafikiPaymentPointersJob(ctx workflow.Context) ([]string, error) {
 
 	var failedWallets []string
 	for _, w := range wallets {
-		err := workflow.ExecuteActivity(ctx, a.ListAllWallets).Get(ctx, &wallets)
+		err := workflow.ExecuteActivity(ctx, a.AddWalletToRafiki, w.ID).Get(ctx, nil)
 		if err != nil {
 			failedWallets = append(failedWallets, w.ID)
 		}
@@ -43,7 +44,15 @@ func (a *Activity) ListAllWallets(ctx context.Context) ([]wallets.Wallet, error)
 	return a.b.Wallets().ListAll(ctx, db.Pagination{})
 }
 
-func (a *Activity) AddWalletToRafiki(ctx context.Context, w wallets.Wallet) error {
+func (a *Activity) AddWalletToRafiki(ctx context.Context, walletID string) error {
+	w, err := a.b.Wallets().Get(ctx, walletID)
+	if errors.Is(err, wallets.ErrNoWalletFound) {
+		return temporal.NewNonRetryableApplicationError("create rafiki payment pointer job: no wallet found", "ErrInternal", err)
+	}
+	if err != nil {
+		return err
+	}
+
 	assetCode := currency.USD.String() // default to USD
 	if w.Country == country.ZA {
 		assetCode = currency.ZAR.String()
@@ -51,5 +60,5 @@ func (a *Activity) AddWalletToRafiki(ctx context.Context, w wallets.Wallet) erro
 		assetCode = currency.EUR.String()
 	}
 
-	return a.b.Rafiki().CreatePaymentPointer(ctx, w, assetCode)
+	return a.b.Rafiki().CreatePaymentPointer(ctx, *w, assetCode)
 }
