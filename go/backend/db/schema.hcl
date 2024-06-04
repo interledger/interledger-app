@@ -3477,12 +3477,12 @@ table "wealth_users" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
