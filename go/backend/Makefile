@@ -3,8 +3,6 @@ IMAGE_REPO := 823058932981.dkr.ecr.eu-west-1.amazonaws.com/backend
 IMAGE_HASH := latest
 PG_HOST?=0.0.0.0
 
-PF_SCRIPT=./forward.sh
-
 pull:
 	@echo "Pulling required images"
 	docker pull 823058932981.dkr.ecr.eu-west-1.amazonaws.com/cockroach:latest-v21.1
@@ -65,17 +63,13 @@ generate:
 	go generate ./...
 	@echo "Graphql generated"
 
-port-forward-crdb:
-	@echo "Port forwarding cockroachdb"
-	bash $(PF_SCRIPT) cockroachdb pod/cockroachdb-0 26257 26257
+port-forward-db-dev:
+	@echo "Port forwarding dev db"
+	cloudflared access tcp --hostname hetzner.mgnt.fynbos.dev/db-dev --url localhost:6432
 
-port-forward-temporal-ui:
-	@echo "Port forwarding temporal ui"
-	bash $(PF_SCRIPT) temporal service/temporal-web 8080 8080
-
-port-forward-rafiki:
-	@echo "Port forwarding Rafiki admin"
-	bash $(PF_SCRIPT) rafiki service/rafiki-rafiki-frontend 3010 3010
+port-forward-db-prod:
+	@echo "Port forwarding dev db"
+	cloudflared access tcp --hostname hetzner.mgnt.fynbos.dev/db-prod --url localhost:5432
 
 job:
 	echo "package jobs" >> "./jobs/$$(date +%Y_%m)_$(name).go"
