@@ -3,21 +3,23 @@
 This assumes that this is being run using Hetzner Cloud or Hetzner dedicated server.
 
 ## Initial machine config
-Use the Hetzner Recovery Image to boot the machine and then ssh into it. We want to make the root
-partition where the OS lives quite small and allocate the rest of the space to a partition that we
-will use ZFS to manage.
+Use the Hetzner Recovery Image to boot the machine and then ssh into it. We will install Debian
+Bookworm on ZFS. 
 
-- Install Debian Bookworm onto the machine.
-- Turn on software RAID1
-- Adjust the partition sizes: 
-	- Make the root partition where the OS is being installed 32GB
-	- Allocate the rest of the space to a new partition.
-	- Remove the new partition from software raid
+**Stop and remove software RAID**
+```sh
+# Find the disk IDs using ls -la /dev/disk/by-id
 
-Save and exit. Wait till the machine boots up again and then ssh into it.
+# See if one or more MD arrays are active:
+cat /proc/mdstat
+# If so, stop them (replace ``md0`` as required):
+mdadm --stop /dev/md0
 
-Follow [this tutorial](https://www.cyberciti.biz/faq/installing-zfs-on-debian-12-bookworm-linux-apt-get/) 
-to install ZFS and create the pools. Skip the part about creating a new dataset - this will be restored from s3.
+# For an array using the whole disk:
+mdadm --zero-superblock --force $DISK # (remember to do for each disk)
+```
+
+Copy the `debian-12-on-zfs.sh` script onto the host and run it.
 
 **FIREWALL**
 Configure the Hetzner firewall to allow http, https and openSSH.
@@ -58,7 +60,7 @@ bash -s" < install.sh
 ```
 
 ## Restore a snapshot from ZFS
-You will need AWS credentials for the `` to read from the S3 bucket `s3://fynbos-wallet`.
+You will need AWS credentials for the `hetzner-backup` IAM user to read from the S3 bucket `s3://fynbos-wallet`.
 ```sh
 export AWS_REGION="..."
 export AWS_ACCESS_KEY_ID="..."
