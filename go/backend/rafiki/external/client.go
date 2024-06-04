@@ -29,6 +29,7 @@ type client struct {
 	authClient    graphql.Client
 	usdID         string
 	zarID         string
+	eurID         string
 }
 
 func New() Client {
@@ -42,11 +43,22 @@ func New() Client {
 	assetUSD := os.Getenv("RAFIKI_USD_ASSET")
 	if assetUSD == "" && env.IsDev() {
 		assetUSD = "80d80585-5341-413a-acaf-169779b4642c"
+	} else if assetUSD == "" && env.IsProd() {
+		assetUSD = "22fd68aa-d9b3-40eb-a69d-6a45f4b9cbeb"
 	}
 
 	assetZAR := os.Getenv("RAFIKI_ZAR_ASSET")
 	if assetZAR == "" && env.IsDev() {
 		assetZAR = "9913bb55-64a2-41c8-a20a-1d607ef8267a"
+	} else if assetZAR == "" && env.IsProd() {
+		assetZAR = "622c7646-a8aa-491b-b260-40e33a433d1c"
+	}
+
+	assetEUR := os.Getenv("RAFIKI_EUR_ASSET")
+	if assetEUR == "" && env.IsDev() {
+		assetEUR = "108e1cc9-a3b0-4d33-a876-b4c992ddbaed"
+	} else if assetEUR == "" && env.IsProd() {
+		assetEUR = "9c73e88a-be59-4246-b2fe-dfa8b657b4b5"
 	}
 
 	authGraphql := "http://rafiki-rafiki-auth.rafiki:3003/graphql"
@@ -55,7 +67,7 @@ func New() Client {
 	}
 	authCl := graphql.NewClient(authGraphql, otelhttp.DefaultClient)
 
-	return &client{backendClient: cl, usdID: assetUSD, authClient: authCl, zarID: assetZAR}
+	return &client{backendClient: cl, usdID: assetUSD, authClient: authCl, zarID: assetZAR, eurID: assetEUR}
 }
 
 func (c client) CreatePaymentPointer(ctx context.Context, w wallets.Wallet, assetCode string) (string, error) {
@@ -65,6 +77,8 @@ func (c client) CreatePaymentPointer(ctx context.Context, w wallets.Wallet, asse
 		assetID = c.usdID
 	case "ZAR":
 		assetID = c.zarID
+	case "EUR":
+		assetID = c.eurID
 	default:
 		return "", fmt.Errorf("%w: asset code (%s) not found", rafiki.ErrInternal, assetCode)
 	}
