@@ -30,7 +30,7 @@ func CreateRafikiPaymentPointersJob(ctx workflow.Context) ([]string, error) {
 
 	var failedWallets []string
 	for _, w := range wallets {
-		err := workflow.ExecuteActivity(ctx, a.ListAllWallets).Get(ctx, &wallets)
+		err := workflow.ExecuteActivity(ctx, a.AddWalletToRafiki, w).Get(ctx, nil)
 		if err != nil {
 			failedWallets = append(failedWallets, w.ID)
 		}
