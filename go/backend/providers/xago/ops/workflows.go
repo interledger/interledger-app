@@ -15,6 +15,7 @@ import (
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
+	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	httplogger "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/backend/providers/xago"
@@ -103,12 +104,15 @@ func (a *Activity) CreateSubAccount(ctx context.Context, walletID string) (*exte
 		return nil, err
 	}
 
-	idNum, err := a.b.KYC().GetPersonaZAIDNumber(ctx, walletID)
+	personaInquiry, err := a.b.KYC().GetApprovedPersonaInquiryURL(ctx, walletID)
+	if errors.Is(err, kyc.ErrNoKYCInfo) {
+		return nil, temporal.NewNonRetryableApplicationError("xago internal error: wallet does not have an approved persona inquiry.", "ErrInternal", err)
+	}
 	if err != nil {
 		return nil, err
 	}
 
-	return a.b.External().CreateSubAccount(ctx, ul[0], *id, idNum)
+	return a.b.External().CreateSubAccount(ctx, ul[0], *id, personaInquiry)
 }
 
 func CreateBalanceAccountWorkflow(ctx workflow.Context, args xago.CreateBalanceAccArgs) (*linkedaccounts.LinkedAccount, error) {

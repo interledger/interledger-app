@@ -35,6 +35,21 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
 }
 
+// GetApprovedPersonaInquiryURL mocks base method.
+func (m *MockClient) GetApprovedPersonaInquiryURL(ctx context.Context, walletID string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetApprovedPersonaInquiryURL", ctx, walletID)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetApprovedPersonaInquiryURL indicates an expected call of GetApprovedPersonaInquiryURL.
+func (mr *MockClientMockRecorder) GetApprovedPersonaInquiryURL(ctx, walletID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetApprovedPersonaInquiryURL", reflect.TypeOf((*MockClient)(nil).GetApprovedPersonaInquiryURL), ctx, walletID)
+}
+
 // GetIndividualDetails mocks base method.
 func (m *MockClient) GetIndividualDetails(ctx context.Context, walletID string) (*kyc.IndividualDetails, error) {
 	m.ctrl.T.Helper()
