@@ -229,12 +229,15 @@ export async function kratosErrorMapping<T extends object>(
   fieldErrors: T
 ): Promise<T> {
   const data = await response.json()
-  for (let node of data.ui.nodes) {
-    // Field validation errors
-    if (node.messages.length > 0) {
-      Object.assign(fieldErrors, {
-        [node.attributes.name]: kratosErrorMessage(node.messages[0])
-      })
+  console.log('Kratos error log', data)
+  if (data.ui) {
+    for (let node of data.ui.nodes) {
+      // Field validation errors
+      if (node.messages.length > 0) {
+        Object.assign(fieldErrors, {
+          [node.attributes.name]: kratosErrorMessage(node.messages[0])
+        })
+      }
     }
   }
   if (data.ui.messages && data.ui.messages.length > 0) {
@@ -242,7 +245,9 @@ export async function kratosErrorMapping<T extends object>(
     // This gets rendered in a snackbar - only use one.
     Object.assign(fieldErrors, {
       form: kratosErrorMessage(data.ui.messages[0]),
-      data
+      kratosErrorId: data.ui.messages[0].id,
+      kratosMessages: data.ui.messages,
+      data: data.toString()
     })
   }
   return fieldErrors
