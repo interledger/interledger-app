@@ -22,6 +22,7 @@ COPY pacioli ./pacioli
 COPY log ./log
 COPY tracing ./tracing
 COPY httpmessagesignatures ./httpmessagesignatures
+RUN go run github.com/playwright-community/playwright-go/cmd/playwright@latest install --with-deps
 ENTRYPOINT ["/build/backend/entrypoint.sh"]
 
 FROM base as builder

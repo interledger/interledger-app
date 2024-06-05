@@ -63,6 +63,21 @@ func (mr *MockClientMockRecorder) GetPublicKey(keyName interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPublicKey", reflect.TypeOf((*MockClient)(nil).GetPublicKey), keyName)
 }
 
+// ReadSecret mocks base method.
+func (m *MockClient) ReadSecret(path string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ReadSecret", path)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ReadSecret indicates an expected call of ReadSecret.
+func (mr *MockClientMockRecorder) ReadSecret(path interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadSecret", reflect.TypeOf((*MockClient)(nil).ReadSecret), path)
+}
+
 // Sign mocks base method.
 func (m *MockClient) Sign(keyName, input string) ([]byte, error) {
 	m.ctrl.T.Helper()
@@ -76,6 +91,20 @@ func (m *MockClient) Sign(keyName, input string) ([]byte, error) {
 func (mr *MockClientMockRecorder) Sign(keyName, input interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Sign", reflect.TypeOf((*MockClient)(nil).Sign), keyName, input)
+}
+
+// StoreSecret mocks base method.
+func (m *MockClient) StoreSecret(path, secret string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "StoreSecret", path, secret)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// StoreSecret indicates an expected call of StoreSecret.
+func (mr *MockClientMockRecorder) StoreSecret(path, secret interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StoreSecret", reflect.TypeOf((*MockClient)(nil).StoreSecret), path, secret)
 }
 
 // Verify mocks base method.

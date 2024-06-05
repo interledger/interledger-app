@@ -5,4 +5,6 @@ type Client interface {
 	GetPublicKey(keyName string) (string, error)
 	Sign(keyName string, input string) ([]byte, error)
 	Verify(keyName string, input VerifyInput) (bool, error)
+	StoreSecret(path, secret string) error
+	ReadSecret(path string) (string, error)
 }
