@@ -183,11 +183,12 @@ export async function action({ request }: ActionFunctionArgs) {
     method: 'POST',
     body: JSON.stringify({
       method: 'password',
-      password_identifier: email,
+      identifier: email,
       password: password,
       csrf_token: csrfToken
     }),
     headers: {
+      Accept: 'application/json',
       'Content-type': 'application/json',
       cookie: String(request.headers.get('cookie'))
     }

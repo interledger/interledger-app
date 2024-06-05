@@ -245,9 +245,10 @@ export async function kratosErrorMapping<T extends object>(
     // This gets rendered in a snackbar - only use one.
     Object.assign(fieldErrors, {
       form: kratosErrorMessage(data.ui.messages[0]),
-      kratosErrorId: data.ui.messages[0].id,
-      kratosMessages: data.ui.messages,
-      data: data.toString()
+      kratosErrorId: data.id,
+      kratosMessagesText: data.ui.messages[0].text,
+      kratosMessagesContext: data.ui.messages[0].context,
+      data: JSON.stringify(data)
     })
   }
   return fieldErrors
