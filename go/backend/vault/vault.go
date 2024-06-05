@@ -123,3 +123,26 @@ func (c client) GetPublicKey(keyName string) (string, error) {
 
 	return pubKey, nil
 }
+
+func (c client) StoreSecret(path, secret string) error {
+	_, err := c.vc.Logical().Write(path, map[string]interface{}{
+		"secret": secret,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to store secret to path (%s) %w", path, err)
+	}
+	return nil
+}
+
+func (c client) ReadSecret(path string) (string, error) {
+	s, err := c.vc.Logical().Read(path)
+	if err != nil {
+		return "", fmt.Errorf("failed to read secret from path (%s) %w", path, err)
+	}
+	secret, ok := s.Data["secret"]
+	if !ok {
+		return "", fmt.Errorf("no secret key found in secreat at path (%s)", path)
+	}
+
+	return secret.(string), nil
+}
