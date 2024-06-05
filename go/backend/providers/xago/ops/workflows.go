@@ -314,6 +314,23 @@ func (a *Activity) CreateExternalBeneficiaries(ctx context.Context, bankAcc xago
 		return nil, err
 	}
 
+	userList, err := a.b.Users().ListUsers(ctx, bankAcc.WalletID)
+	if err != nil {
+		return nil, err
+	}
+	if len(userList) < 1 {
+		err = fmt.Errorf("%w wallet has (%d) users associated", xago.ErrInternal, len(userList))
+		return nil, err
+	}
+
+	personaInquiryURL, err := a.b.KYC().GetApprovedPersonaInquiryURL(ctx, bankAcc.WalletID)
+	if errors.Is(err, kyc.ErrNoKYCInfo) {
+		return nil, temporal.NewNonRetryableApplicationError("xago internal error: wallet does not have an approved persona inquiry.", "ErrInternal", err)
+	}
+	if err != nil {
+		return nil, err
+	}
+
 	reqStruct := external.CreateBeneficiaryReq{
 		Name:                details.FirstName + " " + details.LastName,
 		Scope:               "bank",
@@ -328,6 +345,13 @@ func (a *Activity) CreateExternalBeneficiaries(ctx context.Context, bankAcc xago
 		Iban:                bankAcc.IBAN,
 		Bic:                 bankAcc.BIC,
 		AccountType:         "typeAccountNumber",
+		IdentityType:        external.IdentityTypeIndividual,
+		IsOwn:               false,
+		PersonaURL:          personaInquiryURL,
+		FirstName:           details.FirstName,
+		LastName:            details.LastName,
+		Email:               userList[0].Email,
+		MobileNumber:        userList[0].PhoneNumber,
 	}
 	if details.Address != nil {
 		reqStruct.BeneficiaryPhysicalAddress = details.Address.Line1
@@ -335,6 +359,7 @@ func (a *Activity) CreateExternalBeneficiaries(ctx context.Context, bankAcc xago
 		reqStruct.BeneficiaryCountry = details.Address.CountryCode
 		reqStruct.BeneficiaryPostalCode = details.Address.ZipCode
 		reqStruct.BeneficiaryAddress = details.Address.Line1
+		reqStruct.BeneficiaryDistrict = details.Address.State
 	}
 
 	ben, err := a.b.External().AddBeneficiary(ctx, reqStruct)

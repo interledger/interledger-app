@@ -83,6 +83,13 @@ type CreateBeneficiaryReq struct {
 	BeneficiaryPostalCode      string `json:"beneficiaryPostalCode,omitempty"`
 	BeneficiaryAddress         string `json:"beneficiaryAddress,omitempty"`
 	AccountType                string `json:"accountType,omitempty"`
+	FirstName                  string `json:"firstName,omitempty"`
+	LastName                   string `json:"lastName,omitempty"`
+	Email                      string `json:"email,omitempty"`
+	MobileNumber               string `json:"mobileNumber,omitempty"`
+	PersonaURL                 string `json:"thirdPartyVerificationUrl,omitempty"`
+	IdentityType               string `json:"identityType,omitempty"`
+	IsOwn                      bool   `json:"isOwn"`
 }
 
 type CreateBeneficiaryResp struct {
