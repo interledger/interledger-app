@@ -68,8 +68,16 @@ port-forward-db-dev:
 	cloudflared access tcp --hostname hetzner.mgnt.fynbos.dev/db-dev --url localhost:6432
 
 port-forward-db-prod:
-	@echo "Port forwarding dev db"
+	@echo "Port forwarding prod db"
 	cloudflared access tcp --hostname hetzner.mgnt.fynbos.dev/db-prod --url localhost:5432
+
+port-forward-temporal-dev:
+	@echo "Port forwarding dev temporal"
+	cloudflared access tcp --hostname hetzner.mgnt.fynbos.dev/temporal-dev --url localhost:7233
+
+port-forward-temporal-prod:
+	@echo "Port forwarding prod temporal"
+	cloudflared access tcp --hostname hetzner.mgnt.fynbos.dev/temporal-prod --url localhost:7233
 
 job:
 	echo "package jobs" >> "./jobs/$$(date +%Y_%m)_$(name).go"
