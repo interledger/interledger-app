@@ -146,11 +146,11 @@ func CreatePaymentPointerKey(ctx context.Context, b Backends, keyID string, wall
 func RevokePaymentPointerKey(ctx context.Context, b Backends, keyID string) error {
 	var externalID string
 	err := b.DB().GetContext(ctx, &externalID, "SELECT external_id FROM rafiki_wallet_keys WHERE internal_id=$1;", keyID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return rafiki.ErrNotFound
+	}
 	if err != nil {
 		return fmt.Errorf("%w %s ", rafiki.ErrInternal, err)
-	}
-	if externalID == "" {
-		return rafiki.ErrNotFound
 	}
 
 	err = b.External().RevokePaymentPointerKey(ctx, externalID)
