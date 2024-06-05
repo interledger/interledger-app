@@ -28,7 +28,7 @@ import (
 )
 
 type Client interface {
-	CreateSubAccount(ctx context.Context, user user.User, details kyc.IndividualDetails, zaIDNum string) (*SubAccount, error)
+	CreateSubAccount(ctx context.Context, user user.User, details kyc.IndividualDetails, personaInquiryURL string) (*SubAccount, error)
 	AddBeneficiary(ctx context.Context, reqStruct CreateBeneficiaryReq) (*CreateBeneficiaryResp, error)
 	CreateTransaction(ctx context.Context, amt currency.Amount, idempotencyKey, beneficiaryID, reference string) (string, error)
 	ListDeposits(ctx context.Context, page int) ([]Deposit, error)
@@ -200,34 +200,19 @@ func (c *client) AccessToken(ctx context.Context, forceRefresh bool) (*AccessTok
 	return &c.accessToken, nil
 }
 
-func (c *client) CreateSubAccount(ctx context.Context, user user.User, details kyc.IndividualDetails, zaIDNum string) (*SubAccount, error) {
+func (c *client) CreateSubAccount(ctx context.Context, user user.User, details kyc.IndividualDetails, personaInquiryURL string) (*SubAccount, error) {
 	reqUrl, err := url.JoinPath(c.baseURL, "company", "accounts")
 	if err != nil {
 		return nil, err
 	}
 
-	dob, err := strconv.Atoi(details.DateOfBirth.Format("20060102"))
-	if err != nil {
-		return nil, err
-	}
-
 	reqStruct := SubAccountReq{
-		FirstName:                  details.FirstName,
-		LastName:                   details.LastName,
-		Email:                      user.Email,
-		MobileNumber:               user.PhoneNumber,
-		IdentificationNumber:       zaIDNum,
-		IdentificationDocumentType: "ID Smart Card",
-		AddressDocumentType:        "Bank account statement",
-		Country:                    "ZA",
-		Nationality:                "ZA",
-		DateOfBirth:                dob,
-	}
-	if details.Address != nil {
-		reqStruct.Address = details.Address.Line1
-		reqStruct.City = details.Address.City
-		reqStruct.PostalCode = details.Address.ZipCode
-		reqStruct.District = details.Address.City
+		FirstName:    details.FirstName,
+		LastName:     details.LastName,
+		Email:        user.Email,
+		MobileNumber: user.PhoneNumber,
+		IdentityType: IdentityTypeIndividual,
+		PersonaURL:   personaInquiryURL,
 	}
 
 	reqBody, err := json.Marshal(reqStruct)

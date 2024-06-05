@@ -2,6 +2,7 @@ package ops_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -10,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/db"
+	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/kyc/ops"
 	"gitlab.com/fynbos/backend/kyc/persona"
 	persona_mock "gitlab.com/fynbos/backend/kyc/persona/mock"
@@ -80,4 +82,35 @@ func TestGetPersonaInquiry(t *testing.T) {
 		assert.Equal(st, "itmpl_tpPr4WDZHkcBSWjWL4Qt9iYjLhdq", string(persona.GetTemplateIDForCountry(ctx, country.US)))
 		assert.Equal(st, "itmpl_EJAHdJABX5xztmk7JbC9gNLH", string(persona.GetTemplateIDForCountry(ctx, country.GB)))
 	})
+}
+
+func TestGetApprovedPersonaInquiryURL(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+
+	ctrl := gomock.NewController(t)
+	uc := user_mock.NewMock()
+	walletID := uuid.NewString()
+	userID := uuid.NewString()
+	uc.WalletUser[walletID] = userID
+	wc := wallet_mock.NewMockClient(ctrl)
+	sc := signup_mock.NewMockClient(ctrl)
+	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx), nil, uc, sc, nil, nil, wc)
+
+	inquiryID := uuid.NewString()
+	b.DB().MustExec("INSERT INTO kyc_persona_inquiries (external_id, wallet_id, state) VALUES ($1,$2,$3);", inquiryID, walletID, persona.InquiryFailed)
+
+	// Must fail as it is not approved
+	_, err := ops.GetApprovedPersonaInquiryURL(context.Background(), b, uuid.NewString())
+	assert.ErrorIs(t, err, kyc.ErrNoKYCInfo)
+
+	// update state to check that only approved ones are returned
+	b.DB().MustExec("UPDATE kyc_persona_inquiries SET state=$1 WHERE external_id=$2;", persona.InquiryApproved, inquiryID)
+
+	inquiryURL, err := ops.GetApprovedPersonaInquiryURL(context.Background(), b, walletID)
+	require.NoError(t, err)
+	assert.Equal(t, fmt.Sprintf("https://app.withpersona.com/dashboard/inquiries/%s", inquiryID), inquiryURL)
+
+	_, err = ops.GetApprovedPersonaInquiryURL(context.Background(), b, uuid.NewString())
+	assert.ErrorIs(t, err, kyc.ErrNoKYCInfo)
 }
