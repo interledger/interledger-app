@@ -10,7 +10,9 @@ import (
 	"gitlab.com/fynbos/backend/rafiki"
 	"gitlab.com/fynbos/backend/wallets"
 	"gitlab.com/fynbos/env"
+	"gitlab.com/fynbos/log"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.uber.org/zap"
 )
 
 type Client interface {
@@ -83,6 +85,7 @@ func (c client) CreatePaymentPointer(ctx context.Context, w wallets.Wallet, asse
 		return "", fmt.Errorf("%w: asset code (%s) not found", rafiki.ErrInternal, assetCode)
 	}
 
+	log.Info("Creating payment pointer in rafiki", zap.String("url", w.AddressString()))
 	pp, err := CreateWalletAddress(ctx, c.backendClient, CreateWalletAddressInput{
 		AssetId:        assetID,
 		Url:            w.AddressString(),
