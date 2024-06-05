@@ -6,6 +6,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+	"os"
+	"strconv"
+	"time"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"gitlab.com/fynbos/backend/providers/xago/external"
@@ -14,10 +19,6 @@ import (
 	"gitlab.com/fynbos/mockbos/db"
 	"gitlab.com/fynbos/mockbos/utils"
 	"go.uber.org/zap"
-	"net/http"
-	"os"
-	"strconv"
-	"time"
 )
 
 type Server struct {
@@ -53,28 +54,12 @@ func (s *Server) CreateSubAccount() http.HandlerFunc {
 			return
 		}
 
-		dob, err := intToDate(req.DateOfBirth)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-
 		sa, err := s.db.CreateXagoSubAccount(r.Context(), db.CreateXagoSubAccountParams{
-			DepositTag:                 "",
-			FirstName:                  req.FirstName,
-			LastName:                   req.LastName,
-			Email:                      req.Email,
-			MobileNumber:               req.MobileNumber,
-			Country:                    req.Country,
-			Nationality:                req.Nationality,
-			IdentificationDocumentType: req.IdentificationDocumentType,
-			IdentificationNumber:       req.IdentificationNumber,
-			Address:                    req.Address,
-			City:                       req.City,
-			District:                   req.District,
-			PostalCode:                 req.PostalCode,
-			AddressDocumentType:        req.AddressDocumentType,
-			DateOfBirth:                dob,
+			DepositTag:   "",
+			FirstName:    req.FirstName,
+			LastName:     req.LastName,
+			Email:        req.Email,
+			MobileNumber: req.MobileNumber,
 		})
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -125,24 +110,6 @@ func (s *Server) CreateSubAccount() http.HandlerFunc {
 		}
 		w.WriteHeader(http.StatusOK)
 	}
-}
-
-func intToDate(intDate int) (pgtype.Date, error) {
-	year := intDate / 10000
-	month := (intDate % 10000) / 100
-	day := intDate % 100
-
-	// Construct time.Time object
-	t := time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.UTC)
-
-	// Convert time.Time to pgtypes.Date
-	var date pgtype.Date
-	err := date.Scan(t)
-	if err != nil {
-		return date, err
-	}
-
-	return date, nil
 }
 
 func (s *Server) AddBeneficiary() http.HandlerFunc {
