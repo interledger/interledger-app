@@ -6,6 +6,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+	"os"
+	"strconv"
+	"time"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"gitlab.com/fynbos/backend/providers/xago/external"
@@ -14,10 +19,6 @@ import (
 	"gitlab.com/fynbos/mockbos/db"
 	"gitlab.com/fynbos/mockbos/utils"
 	"go.uber.org/zap"
-	"net/http"
-	"os"
-	"strconv"
-	"time"
 )
 
 type Server struct {
@@ -53,28 +54,12 @@ func (s *Server) CreateSubAccount() http.HandlerFunc {
 			return
 		}
 
-		dob, err := intToDate(req.DateOfBirth)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-
 		sa, err := s.db.CreateXagoSubAccount(r.Context(), db.CreateXagoSubAccountParams{
-			DepositTag:                 "",
-			FirstName:                  req.FirstName,
-			LastName:                   req.LastName,
-			Email:                      req.Email,
-			MobileNumber:               req.MobileNumber,
-			Country:                    req.Country,
-			Nationality:                req.Nationality,
-			IdentificationDocumentType: req.IdentificationDocumentType,
-			IdentificationNumber:       req.IdentificationNumber,
-			Address:                    req.Address,
-			City:                       req.City,
-			District:                   req.District,
-			PostalCode:                 req.PostalCode,
-			AddressDocumentType:        req.AddressDocumentType,
-			DateOfBirth:                dob,
+			DepositTag:   "",
+			FirstName:    req.FirstName,
+			LastName:     req.LastName,
+			Email:        req.Email,
+			MobileNumber: req.MobileNumber,
 		})
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -127,24 +112,6 @@ func (s *Server) CreateSubAccount() http.HandlerFunc {
 	}
 }
 
-func intToDate(intDate int) (pgtype.Date, error) {
-	year := intDate / 10000
-	month := (intDate % 10000) / 100
-	day := intDate % 100
-
-	// Construct time.Time object
-	t := time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.UTC)
-
-	// Convert time.Time to pgtypes.Date
-	var date pgtype.Date
-	err := date.Scan(t)
-	if err != nil {
-		return date, err
-	}
-
-	return date, nil
-}
-
 func (s *Server) AddBeneficiary() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
@@ -159,23 +126,18 @@ func (s *Server) AddBeneficiary() http.HandlerFunc {
 		}
 
 		_, err := s.db.CreateXagoBeneficiary(r.Context(), db.CreateXagoBeneficiaryParams{
-			Name:                       pgtype.Text{String: req.Name, Valid: true},
-			Scope:                      pgtype.Text{String: req.Scope, Valid: true},
-			CurrencyCode:               pgtype.Text{String: req.CurrencyCode, Valid: true},
-			AccountNumber:              pgtype.Text{String: req.AccountNumber, Valid: true},
-			BranchCode:                 pgtype.Text{String: req.BranchCode, Valid: true},
-			BankName:                   pgtype.Text{String: req.BankName, Valid: true},
-			BankCountry:                pgtype.Text{String: req.BankCountry, Valid: true},
-			AccountName:                pgtype.Text{String: req.AccountName, Valid: true},
-			BankBeneficiaryType:        pgtype.Text{String: req.BankBeneficiaryType, Valid: true},
-			Reference:                  pgtype.Text{String: req.Reference, Valid: true},
-			Iban:                       pgtype.Text{String: req.Iban, Valid: true},
-			Bic:                        pgtype.Text{String: req.Bic, Valid: true},
-			BeneficiaryPhysicalAddress: pgtype.Text{String: req.BeneficiaryPhysicalAddress, Valid: true},
-			BeneficiaryCity:            pgtype.Text{String: req.BeneficiaryCity, Valid: true},
-			BeneficiaryCountry:         pgtype.Text{String: req.BeneficiaryCountry, Valid: true},
-			BeneficiaryPostalCode:      pgtype.Text{String: req.BeneficiaryPostalCode, Valid: true},
-			BeneficiaryAddress:         pgtype.Text{String: req.BeneficiaryAddress, Valid: true},
+			Name:                pgtype.Text{String: req.Name, Valid: true},
+			Scope:               pgtype.Text{String: req.Scope, Valid: true},
+			CurrencyCode:        pgtype.Text{String: req.CurrencyCode, Valid: true},
+			AccountNumber:       pgtype.Text{String: req.AccountNumber, Valid: true},
+			BranchCode:          pgtype.Text{String: req.BranchCode, Valid: true},
+			BankName:            pgtype.Text{String: req.BankName, Valid: true},
+			BankCountry:         pgtype.Text{String: req.BankCountry, Valid: true},
+			AccountName:         pgtype.Text{String: req.AccountName, Valid: true},
+			BankBeneficiaryType: pgtype.Text{String: req.BankBeneficiaryType, Valid: true},
+			Reference:           pgtype.Text{String: req.Reference, Valid: true},
+			Iban:                pgtype.Text{String: req.Iban, Valid: true},
+			Bic:                 pgtype.Text{String: req.Bic, Valid: true},
 		})
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
