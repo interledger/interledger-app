@@ -20,10 +20,12 @@ import (
 	httplogger "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/backend/providers/xago"
 	"gitlab.com/fynbos/backend/providers/xago/external"
+	"gitlab.com/fynbos/log"
 	"gitlab.com/fynbos/pacioli"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
+	"go.uber.org/zap"
 )
 
 type opsBackends struct {
@@ -381,8 +383,9 @@ func (a *Activity) GetExternalBeneficiary(ctx context.Context, externalID string
 	if err != nil {
 		return nil, err
 	}
-
+	fmt.Printf("beneficiaries: %+v\n", bens)
 	for _, acc := range bens {
+		log.Info("comparing xago beneficiary ids", zap.String("externalID", externalID), zap.String("ben uuid", acc.ID))
 		if acc.ID == externalID {
 			return &acc, nil
 		}
