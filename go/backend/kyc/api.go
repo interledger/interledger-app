@@ -11,4 +11,5 @@ type Client interface {
 	GetPersonaInquiry(ctx context.Context, walletID, idempotencyKey string) (*PersonaInquiry, error)
 	GetPersonaIDNumbers(ctx context.Context, walletID string) (*PersonaIDNumbers, error)
 	GetPersonaZAIDNumber(ctx context.Context, walletID string) (string, error)
+	GetApprovedPersonaInquiryURL(ctx context.Context, walletID string) (string, error)
 }

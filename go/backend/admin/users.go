@@ -8,6 +8,8 @@ import (
 
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/user"
+	"gitlab.com/fynbos/log"
+	"go.uber.org/zap"
 
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/kyc"
@@ -28,7 +30,7 @@ func (s *AdminRpcService) ListWallets(ctx context.Context, req *adminv1.Paginati
 	for i, w := range wallets {
 		users, err := s.b.Users().ListUsers(ctx, w.ID)
 		if err != nil {
-			return nil, toGRPCError(err)
+			log.Error("Failed to fetch Kratos users", zap.Error(err), zap.String("walletID", w.ID))
 		}
 
 		usersPB := make([]*adminv1.User, len(users))
