@@ -34,7 +34,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   if (
     isConnectError(balancesResponse) ||
     balancesResponse.balances.filter((bal) => bal.countryCode == 'ZA').length ==
-      0
+    0
   )
     throw redirect(route('/'))
 
