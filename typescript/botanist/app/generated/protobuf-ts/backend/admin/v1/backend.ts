@@ -15,6 +15,199 @@ import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
 import { Timestamp } from "../../../google/protobuf/timestamp";
 /**
+ * @generated from protobuf message backend.admin.v1.GatehubUser
+ */
+export interface GatehubUser {
+    /**
+     * @generated from protobuf field: string walletID = 1;
+     */
+    walletID: string;
+    /**
+     * @generated from protobuf field: string externalID = 2;
+     */
+    externalID: string;
+    /**
+     * @generated from protobuf field: string email = 3;
+     */
+    email: string;
+    /**
+     * @generated from protobuf field: int32 verificationLevel = 4;
+     */
+    verificationLevel: number;
+    /**
+     * @generated from protobuf field: repeated backend.admin.v1.GatehubVerification verifications = 5;
+     */
+    verifications: GatehubVerification[];
+    /**
+     * @generated from protobuf field: backend.admin.v1.GatehubProfile profile = 6;
+     */
+    profile?: GatehubProfile;
+    /**
+     * @generated from protobuf field: repeated backend.admin.v1.GatehubDocument documents = 7;
+     */
+    documents: GatehubDocument[];
+}
+/**
+ * @generated from protobuf message backend.admin.v1.GatehubVerification
+ */
+export interface GatehubVerification {
+    /**
+     * @generated from protobuf field: string uuid = 1;
+     */
+    uuid: string;
+    /**
+     * @generated from protobuf field: int32 state = 2;
+     */
+    state: number;
+    /**
+     * @generated from protobuf field: int32 status = 3;
+     */
+    status: number;
+    /**
+     * @generated from protobuf field: string provider_type = 4;
+     */
+    providerType: string;
+}
+/**
+ * @generated from protobuf message backend.admin.v1.GatehubDocument
+ */
+export interface GatehubDocument {
+    /**
+     * @generated from protobuf field: int32 id = 1;
+     */
+    id: number;
+    /**
+     * @generated from protobuf field: string createdAt = 2;
+     */
+    createdAt: string;
+    /**
+     * @generated from protobuf field: string uuid = 3;
+     */
+    uuid: string;
+    /**
+     * @generated from protobuf field: string updatedAt = 4;
+     */
+    updatedAt: string;
+    /**
+     * @generated from protobuf field: string type = 5;
+     */
+    type: string;
+    /**
+     * @generated from protobuf field: string subtype = 6;
+     */
+    subtype: string;
+    /**
+     * @generated from protobuf field: string value = 7;
+     */
+    value: string;
+    /**
+     * @generated from protobuf field: int32 profileId = 8;
+     */
+    profileId: number;
+    /**
+     * @generated from protobuf field: int32 userId = 9;
+     */
+    userId: number;
+    /**
+     * @generated from protobuf field: string expiryDate = 10;
+     */
+    expiryDate: string;
+}
+/**
+ * @generated from protobuf message backend.admin.v1.GatehubProfile
+ */
+export interface GatehubProfile {
+    /**
+     * @generated from protobuf field: string uuid = 1;
+     */
+    uuid: string;
+    /**
+     * @generated from protobuf field: google.protobuf.Timestamp createdAt = 2;
+     */
+    createdAt?: Timestamp;
+    /**
+     * @generated from protobuf field: int32 birthDay = 3;
+     */
+    birthDay: number;
+    /**
+     * @generated from protobuf field: int32 birthMonth = 4;
+     */
+    birthMonth: number;
+    /**
+     * @generated from protobuf field: int32 birthYear = 5;
+     */
+    birthYear: number;
+    /**
+     * @generated from protobuf field: string gender = 6;
+     */
+    gender: string;
+    /**
+     * @generated from protobuf field: string firstName = 7;
+     */
+    firstName: string;
+    /**
+     * @generated from protobuf field: string middleName = 8;
+     */
+    middleName: string;
+    /**
+     * @generated from protobuf field: string lastName = 9;
+     */
+    lastName: string;
+    /**
+     * @generated from protobuf field: string citizenship = 10;
+     */
+    citizenship: string;
+    /**
+     * @generated from protobuf field: string addressPostalCode = 11;
+     */
+    addressPostalCode: string;
+    /**
+     * @generated from protobuf field: string addressSubdivision = 12;
+     */
+    addressSubdivision: string;
+    /**
+     * @generated from protobuf field: string addressCountryCode = 13;
+     */
+    addressCountryCode: string;
+    /**
+     * @generated from protobuf field: string addressCity = 14;
+     */
+    addressCity: string;
+    /**
+     * @generated from protobuf field: string addressStreet1 = 15;
+     */
+    addressStreet1: string;
+    /**
+     * @generated from protobuf field: string addressStreet2 = 16;
+     */
+    addressStreet2: string;
+    /**
+     * @generated from protobuf field: string birthCity = 19;
+     */
+    birthCity: string;
+    /**
+     * @generated from protobuf field: string birthCountryCode = 20;
+     */
+    birthCountryCode: string;
+    /**
+     * @generated from protobuf field: string taxResidency = 21;
+     */
+    taxResidency: string;
+    /**
+     * @generated from protobuf field: string expectedVolume = 22;
+     */
+    expectedVolume: string;
+}
+/**
+ * @generated from protobuf message backend.admin.v1.GetGatehubUserRequest
+ */
+export interface GetGatehubUserRequest {
+    /**
+     * @generated from protobuf field: string walletID = 1;
+     */
+    walletID: string;
+}
+/**
  * @generated from protobuf message backend.admin.v1.CreateGatehubUserRequest
  */
 export interface CreateGatehubUserRequest {
@@ -1007,6 +1200,500 @@ export interface Amount {
      */
     country: string;
 }
+// @generated message type with reflection information, may provide speed optimized methods
+class GatehubUser$Type extends MessageType<GatehubUser> {
+    constructor() {
+        super("backend.admin.v1.GatehubUser", [
+            { no: 1, name: "walletID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "externalID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "email", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "verificationLevel", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 5, name: "verifications", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => GatehubVerification },
+            { no: 6, name: "profile", kind: "message", T: () => GatehubProfile },
+            { no: 7, name: "documents", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => GatehubDocument }
+        ]);
+    }
+    create(value?: PartialMessage<GatehubUser>): GatehubUser {
+        const message = { walletID: "", externalID: "", email: "", verificationLevel: 0, verifications: [], documents: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GatehubUser>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GatehubUser): GatehubUser {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string walletID */ 1:
+                    message.walletID = reader.string();
+                    break;
+                case /* string externalID */ 2:
+                    message.externalID = reader.string();
+                    break;
+                case /* string email */ 3:
+                    message.email = reader.string();
+                    break;
+                case /* int32 verificationLevel */ 4:
+                    message.verificationLevel = reader.int32();
+                    break;
+                case /* repeated backend.admin.v1.GatehubVerification verifications */ 5:
+                    message.verifications.push(GatehubVerification.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* backend.admin.v1.GatehubProfile profile */ 6:
+                    message.profile = GatehubProfile.internalBinaryRead(reader, reader.uint32(), options, message.profile);
+                    break;
+                case /* repeated backend.admin.v1.GatehubDocument documents */ 7:
+                    message.documents.push(GatehubDocument.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GatehubUser, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string walletID = 1; */
+        if (message.walletID !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.walletID);
+        /* string externalID = 2; */
+        if (message.externalID !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.externalID);
+        /* string email = 3; */
+        if (message.email !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.email);
+        /* int32 verificationLevel = 4; */
+        if (message.verificationLevel !== 0)
+            writer.tag(4, WireType.Varint).int32(message.verificationLevel);
+        /* repeated backend.admin.v1.GatehubVerification verifications = 5; */
+        for (let i = 0; i < message.verifications.length; i++)
+            GatehubVerification.internalBinaryWrite(message.verifications[i], writer.tag(5, WireType.LengthDelimited).fork(), options).join();
+        /* backend.admin.v1.GatehubProfile profile = 6; */
+        if (message.profile)
+            GatehubProfile.internalBinaryWrite(message.profile, writer.tag(6, WireType.LengthDelimited).fork(), options).join();
+        /* repeated backend.admin.v1.GatehubDocument documents = 7; */
+        for (let i = 0; i < message.documents.length; i++)
+            GatehubDocument.internalBinaryWrite(message.documents[i], writer.tag(7, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.GatehubUser
+ */
+export const GatehubUser = new GatehubUser$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GatehubVerification$Type extends MessageType<GatehubVerification> {
+    constructor() {
+        super("backend.admin.v1.GatehubVerification", [
+            { no: 1, name: "uuid", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "state", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 3, name: "status", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 4, name: "provider_type", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<GatehubVerification>): GatehubVerification {
+        const message = { uuid: "", state: 0, status: 0, providerType: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GatehubVerification>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GatehubVerification): GatehubVerification {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string uuid */ 1:
+                    message.uuid = reader.string();
+                    break;
+                case /* int32 state */ 2:
+                    message.state = reader.int32();
+                    break;
+                case /* int32 status */ 3:
+                    message.status = reader.int32();
+                    break;
+                case /* string provider_type */ 4:
+                    message.providerType = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GatehubVerification, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string uuid = 1; */
+        if (message.uuid !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.uuid);
+        /* int32 state = 2; */
+        if (message.state !== 0)
+            writer.tag(2, WireType.Varint).int32(message.state);
+        /* int32 status = 3; */
+        if (message.status !== 0)
+            writer.tag(3, WireType.Varint).int32(message.status);
+        /* string provider_type = 4; */
+        if (message.providerType !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.providerType);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.GatehubVerification
+ */
+export const GatehubVerification = new GatehubVerification$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GatehubDocument$Type extends MessageType<GatehubDocument> {
+    constructor() {
+        super("backend.admin.v1.GatehubDocument", [
+            { no: 1, name: "id", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 2, name: "createdAt", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "uuid", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "updatedAt", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "subtype", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 7, name: "value", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 8, name: "profileId", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 9, name: "userId", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 10, name: "expiryDate", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<GatehubDocument>): GatehubDocument {
+        const message = { id: 0, createdAt: "", uuid: "", updatedAt: "", type: "", subtype: "", value: "", profileId: 0, userId: 0, expiryDate: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GatehubDocument>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GatehubDocument): GatehubDocument {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* int32 id */ 1:
+                    message.id = reader.int32();
+                    break;
+                case /* string createdAt */ 2:
+                    message.createdAt = reader.string();
+                    break;
+                case /* string uuid */ 3:
+                    message.uuid = reader.string();
+                    break;
+                case /* string updatedAt */ 4:
+                    message.updatedAt = reader.string();
+                    break;
+                case /* string type */ 5:
+                    message.type = reader.string();
+                    break;
+                case /* string subtype */ 6:
+                    message.subtype = reader.string();
+                    break;
+                case /* string value */ 7:
+                    message.value = reader.string();
+                    break;
+                case /* int32 profileId */ 8:
+                    message.profileId = reader.int32();
+                    break;
+                case /* int32 userId */ 9:
+                    message.userId = reader.int32();
+                    break;
+                case /* string expiryDate */ 10:
+                    message.expiryDate = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GatehubDocument, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* int32 id = 1; */
+        if (message.id !== 0)
+            writer.tag(1, WireType.Varint).int32(message.id);
+        /* string createdAt = 2; */
+        if (message.createdAt !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.createdAt);
+        /* string uuid = 3; */
+        if (message.uuid !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.uuid);
+        /* string updatedAt = 4; */
+        if (message.updatedAt !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.updatedAt);
+        /* string type = 5; */
+        if (message.type !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.type);
+        /* string subtype = 6; */
+        if (message.subtype !== "")
+            writer.tag(6, WireType.LengthDelimited).string(message.subtype);
+        /* string value = 7; */
+        if (message.value !== "")
+            writer.tag(7, WireType.LengthDelimited).string(message.value);
+        /* int32 profileId = 8; */
+        if (message.profileId !== 0)
+            writer.tag(8, WireType.Varint).int32(message.profileId);
+        /* int32 userId = 9; */
+        if (message.userId !== 0)
+            writer.tag(9, WireType.Varint).int32(message.userId);
+        /* string expiryDate = 10; */
+        if (message.expiryDate !== "")
+            writer.tag(10, WireType.LengthDelimited).string(message.expiryDate);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.GatehubDocument
+ */
+export const GatehubDocument = new GatehubDocument$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GatehubProfile$Type extends MessageType<GatehubProfile> {
+    constructor() {
+        super("backend.admin.v1.GatehubProfile", [
+            { no: 1, name: "uuid", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "createdAt", kind: "message", T: () => Timestamp },
+            { no: 3, name: "birthDay", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 4, name: "birthMonth", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 5, name: "birthYear", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 6, name: "gender", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 7, name: "firstName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 8, name: "middleName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 9, name: "lastName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 10, name: "citizenship", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 11, name: "addressPostalCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 12, name: "addressSubdivision", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 13, name: "addressCountryCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 14, name: "addressCity", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 15, name: "addressStreet1", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 16, name: "addressStreet2", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 19, name: "birthCity", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 20, name: "birthCountryCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 21, name: "taxResidency", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 22, name: "expectedVolume", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<GatehubProfile>): GatehubProfile {
+        const message = { uuid: "", birthDay: 0, birthMonth: 0, birthYear: 0, gender: "", firstName: "", middleName: "", lastName: "", citizenship: "", addressPostalCode: "", addressSubdivision: "", addressCountryCode: "", addressCity: "", addressStreet1: "", addressStreet2: "", birthCity: "", birthCountryCode: "", taxResidency: "", expectedVolume: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GatehubProfile>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GatehubProfile): GatehubProfile {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string uuid */ 1:
+                    message.uuid = reader.string();
+                    break;
+                case /* google.protobuf.Timestamp createdAt */ 2:
+                    message.createdAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.createdAt);
+                    break;
+                case /* int32 birthDay */ 3:
+                    message.birthDay = reader.int32();
+                    break;
+                case /* int32 birthMonth */ 4:
+                    message.birthMonth = reader.int32();
+                    break;
+                case /* int32 birthYear */ 5:
+                    message.birthYear = reader.int32();
+                    break;
+                case /* string gender */ 6:
+                    message.gender = reader.string();
+                    break;
+                case /* string firstName */ 7:
+                    message.firstName = reader.string();
+                    break;
+                case /* string middleName */ 8:
+                    message.middleName = reader.string();
+                    break;
+                case /* string lastName */ 9:
+                    message.lastName = reader.string();
+                    break;
+                case /* string citizenship */ 10:
+                    message.citizenship = reader.string();
+                    break;
+                case /* string addressPostalCode */ 11:
+                    message.addressPostalCode = reader.string();
+                    break;
+                case /* string addressSubdivision */ 12:
+                    message.addressSubdivision = reader.string();
+                    break;
+                case /* string addressCountryCode */ 13:
+                    message.addressCountryCode = reader.string();
+                    break;
+                case /* string addressCity */ 14:
+                    message.addressCity = reader.string();
+                    break;
+                case /* string addressStreet1 */ 15:
+                    message.addressStreet1 = reader.string();
+                    break;
+                case /* string addressStreet2 */ 16:
+                    message.addressStreet2 = reader.string();
+                    break;
+                case /* string birthCity */ 19:
+                    message.birthCity = reader.string();
+                    break;
+                case /* string birthCountryCode */ 20:
+                    message.birthCountryCode = reader.string();
+                    break;
+                case /* string taxResidency */ 21:
+                    message.taxResidency = reader.string();
+                    break;
+                case /* string expectedVolume */ 22:
+                    message.expectedVolume = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GatehubProfile, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string uuid = 1; */
+        if (message.uuid !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.uuid);
+        /* google.protobuf.Timestamp createdAt = 2; */
+        if (message.createdAt)
+            Timestamp.internalBinaryWrite(message.createdAt, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        /* int32 birthDay = 3; */
+        if (message.birthDay !== 0)
+            writer.tag(3, WireType.Varint).int32(message.birthDay);
+        /* int32 birthMonth = 4; */
+        if (message.birthMonth !== 0)
+            writer.tag(4, WireType.Varint).int32(message.birthMonth);
+        /* int32 birthYear = 5; */
+        if (message.birthYear !== 0)
+            writer.tag(5, WireType.Varint).int32(message.birthYear);
+        /* string gender = 6; */
+        if (message.gender !== "")
+            writer.tag(6, WireType.LengthDelimited).string(message.gender);
+        /* string firstName = 7; */
+        if (message.firstName !== "")
+            writer.tag(7, WireType.LengthDelimited).string(message.firstName);
+        /* string middleName = 8; */
+        if (message.middleName !== "")
+            writer.tag(8, WireType.LengthDelimited).string(message.middleName);
+        /* string lastName = 9; */
+        if (message.lastName !== "")
+            writer.tag(9, WireType.LengthDelimited).string(message.lastName);
+        /* string citizenship = 10; */
+        if (message.citizenship !== "")
+            writer.tag(10, WireType.LengthDelimited).string(message.citizenship);
+        /* string addressPostalCode = 11; */
+        if (message.addressPostalCode !== "")
+            writer.tag(11, WireType.LengthDelimited).string(message.addressPostalCode);
+        /* string addressSubdivision = 12; */
+        if (message.addressSubdivision !== "")
+            writer.tag(12, WireType.LengthDelimited).string(message.addressSubdivision);
+        /* string addressCountryCode = 13; */
+        if (message.addressCountryCode !== "")
+            writer.tag(13, WireType.LengthDelimited).string(message.addressCountryCode);
+        /* string addressCity = 14; */
+        if (message.addressCity !== "")
+            writer.tag(14, WireType.LengthDelimited).string(message.addressCity);
+        /* string addressStreet1 = 15; */
+        if (message.addressStreet1 !== "")
+            writer.tag(15, WireType.LengthDelimited).string(message.addressStreet1);
+        /* string addressStreet2 = 16; */
+        if (message.addressStreet2 !== "")
+            writer.tag(16, WireType.LengthDelimited).string(message.addressStreet2);
+        /* string birthCity = 19; */
+        if (message.birthCity !== "")
+            writer.tag(19, WireType.LengthDelimited).string(message.birthCity);
+        /* string birthCountryCode = 20; */
+        if (message.birthCountryCode !== "")
+            writer.tag(20, WireType.LengthDelimited).string(message.birthCountryCode);
+        /* string taxResidency = 21; */
+        if (message.taxResidency !== "")
+            writer.tag(21, WireType.LengthDelimited).string(message.taxResidency);
+        /* string expectedVolume = 22; */
+        if (message.expectedVolume !== "")
+            writer.tag(22, WireType.LengthDelimited).string(message.expectedVolume);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.GatehubProfile
+ */
+export const GatehubProfile = new GatehubProfile$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GetGatehubUserRequest$Type extends MessageType<GetGatehubUserRequest> {
+    constructor() {
+        super("backend.admin.v1.GetGatehubUserRequest", [
+            { no: 1, name: "walletID", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<GetGatehubUserRequest>): GetGatehubUserRequest {
+        const message = { walletID: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GetGatehubUserRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetGatehubUserRequest): GetGatehubUserRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string walletID */ 1:
+                    message.walletID = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GetGatehubUserRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string walletID = 1; */
+        if (message.walletID !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.walletID);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.GetGatehubUserRequest
+ */
+export const GetGatehubUserRequest = new GetGatehubUserRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class CreateGatehubUserRequest$Type extends MessageType<CreateGatehubUserRequest> {
     constructor() {
@@ -4543,5 +5230,6 @@ export const Backend = new ServiceType("backend.admin.v1.Backend", [
     { name: "EnablePTIBalance", options: {}, I: EnablePTIBalanceRequest, O: Empty },
     { name: "GetPTIBalance", options: {}, I: GetPTIBalanceRequest, O: GetPTIBalanceResponse },
     { name: "CreateGatehubUser", options: {}, I: CreateGatehubUserRequest, O: Empty },
-    { name: "GetGatehubBalance", options: {}, I: GetGatehubBalanceRequest, O: GetGatehubBalanceResponse }
+    { name: "GetGatehubBalance", options: {}, I: GetGatehubBalanceRequest, O: GetGatehubBalanceResponse },
+    { name: "GetGatehubUser", options: {}, I: GetGatehubUserRequest, O: GatehubUser }
 ]);

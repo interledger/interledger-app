@@ -59,6 +59,20 @@ func CreateUser(ctx context.Context, b Backends, walletID string) (gatehub.Await
 	return await.Get, nil
 }
 
+func GetUser(ctx context.Context, b Backends, ec external.Client, walletID string) (*gatehub.User, error) {
+	externalUserID, err := getExternalUserID(ctx, b, walletID)
+	if err != nil {
+		return nil, err
+	}
+
+	usr, err := ec.GetUser(ctx, externalUserID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	return usr, nil
+}
+
 func GetOnboardingWidget(ctx context.Context, b Backends, ec external.Client, walletID string) (string, error) {
 	externalUserID, err := getExternalUserID(ctx, b, walletID)
 	if errors.Is(err, gatehub.ErrNotFound) {
