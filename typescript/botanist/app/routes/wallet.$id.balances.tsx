@@ -16,7 +16,10 @@ import {
 export async function loader({ request, params }: LoaderArgs) {
   const xagoBalance = await GetXagoWalletBalance(request, params.id as string)
   const ptiBalance = await GetPtiWalletBalance(request, params.id as string)
-  const gatehubBalance = await GetGatehubWalletBalance(request, params.id as string)
+  const gatehubBalance = await GetGatehubWalletBalance(
+    request,
+    params.id as string
+  )
 
   return json({
     zarBalance: xagoBalance,
