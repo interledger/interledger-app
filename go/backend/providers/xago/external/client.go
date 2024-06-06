@@ -29,7 +29,8 @@ import (
 
 type Client interface {
 	CreateSubAccount(ctx context.Context, user user.User, details kyc.IndividualDetails, personaInquiryURL string) (*SubAccount, error)
-	AddBeneficiary(ctx context.Context, reqStruct CreateBeneficiaryReq) (*CreateBeneficiaryResp, error)
+	AddBeneficiary(ctx context.Context, reqStruct CreateBeneficiaryReq) (string, error)
+	ListBeneficiaries(ctx context.Context) ([]AccountBeneficiaries, error)
 	CreateTransaction(ctx context.Context, amt currency.Amount, idempotencyKey, beneficiaryID, reference string) (string, error)
 	ListDeposits(ctx context.Context, page int) ([]Deposit, error)
 	GetWithdrawal(ctx context.Context, id string) (*Withdrawal, error)
@@ -282,15 +283,15 @@ func (c *client) CreateSubAccount(ctx context.Context, user user.User, details k
 	return &respData, nil
 }
 
-func (c *client) AddBeneficiary(ctx context.Context, reqStruct CreateBeneficiaryReq) (*CreateBeneficiaryResp, error) {
+func (c *client) AddBeneficiary(ctx context.Context, reqStruct CreateBeneficiaryReq) (string, error) {
 	reqUrl, err := url.JoinPath(c.identityBaseURL, "beneficiaries")
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	reqBody, err := json.Marshal(reqStruct)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	meta, ok := httplog.MetaForContext(ctx)
@@ -305,6 +306,68 @@ func (c *client) AddBeneficiary(ctx context.Context, reqStruct CreateBeneficiary
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqUrl, bytes.NewReader(reqBody))
+	if err != nil {
+		return "", err
+	}
+	token, err := c.AccessToken(ctx, false)
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token.Token)
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return "", err
+	}
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		token, err = c.AccessToken(ctx, true)
+		if err != nil {
+			return "", err
+		}
+		req.Header.Set("Authorization", "Bearer "+token.Token)
+
+		resp, err = c.api.Do(req)
+		if err != nil {
+			return "", err
+		}
+		if resp.StatusCode == http.StatusUnauthorized {
+			log.Info("refreshed xago token not authorized for add beneficiary")
+		}
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("failed to add xargo beneficiary (%d - %s)", resp.StatusCode, resp.Status)
+	}
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	return string(respBody), nil
+}
+
+func (c *client) ListBeneficiaries(ctx context.Context) ([]AccountBeneficiaries, error) {
+	reqUrl, err := url.JoinPath(c.identityBaseURL, "beneficiaries")
+	if err != nil {
+		return nil, err
+	}
+
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "GET"
+		meta.Provider = "xago"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "GET",
+			Provider: "xago",
+		})
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqUrl, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -333,12 +396,12 @@ func (c *client) AddBeneficiary(ctx context.Context, reqStruct CreateBeneficiary
 			return nil, err
 		}
 		if resp.StatusCode == http.StatusUnauthorized {
-			log.Info("refreshed xago token not authorized for add beneficiary")
+			log.Info("refreshed xago token not authorized for list beneficiaries")
 		}
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to add xargo beneficiary (%d - %s)", resp.StatusCode, resp.Status)
+		return nil, fmt.Errorf("failed to list xargo beneficiaries (%d - %s)", resp.StatusCode, resp.Status)
 	}
 
 	respBody, err := io.ReadAll(resp.Body)
@@ -346,13 +409,13 @@ func (c *client) AddBeneficiary(ctx context.Context, reqStruct CreateBeneficiary
 		return nil, err
 	}
 
-	var respData CreateBeneficiaryResp
+	var respData []AccountBeneficiaries
 	err = json.Unmarshal(respBody, &respData)
 	if err != nil {
 		return nil, err
 	}
 
-	return &respData, nil
+	return respData, nil
 }
 
 func (c *client) CreateTransaction(ctx context.Context, amt currency.Amount, idempotencyKey, beneficiaryID, reference string) (string, error) {
