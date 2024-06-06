@@ -38,5 +38,29 @@ func TestClient(t *testing.T) {
 	temp, err := json.MarshalIndent(trx, "", " ")
 	require.NoError(t, err)
 	fmt.Printf("transaction: %s\n", temp)
+}
 
+func TestUser(t *testing.T) {
+	env.SetEnv(t, "local")
+	if os.Getenv("GATEHUB_APP_ID") == "" || os.Getenv("GATEHUB_SECRET") == "" {
+		t.SkipNow()
+	}
+	c := external.NewClient(os.Getenv("GATEHUB_APP_ID"), os.Getenv("GATEHUB_SECRET"), nil)
+	ctx := context.Background()
+
+	// usr, err := c.CreateUser(ctx, "local314@test.com")
+	// require.NoError(t, err)
+
+	// temp, err := json.MarshalIndent(usr, "", " ")
+	// require.NoError(t, err)
+	// fmt.Printf("created user: %s\n", temp)
+	// local314User := "bb1ec907-c1e3-4a60-84de-f05e89e610c5"
+
+	userID := "66f1427e-43e4-48a0-9692-190c24d75058"
+	u, err := c.GetUser(ctx, userID)
+	require.NoError(t, err)
+
+	temp, err := json.MarshalIndent(u, "", " ")
+	require.NoError(t, err)
+	fmt.Printf("fetched user: %s\n", temp)
 }
