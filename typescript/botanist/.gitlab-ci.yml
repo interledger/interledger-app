@@ -20,10 +20,10 @@ build_botanist:
   image:
     name: registry.gitlab.com/fynbos/fynbos/debian-runner-base:b59a3751
   before_script:
-    - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
+    - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u
+      $CI_REGISTRY_USER --password-stdin
     - cd $BOTANIST_PROJECT_PATH
   script:
     - docker build -t
-      "$CI_REGISTRY/fynbos/fynbos/botanist:${BOTANIST_IMAGE_HASH}"
-      .
+      "$CI_REGISTRY/fynbos/fynbos/botanist:${BOTANIST_IMAGE_HASH}" .
     - docker push "$CI_REGISTRY/fynbos/fynbos/botanist:${BOTANIST_IMAGE_HASH}"
