@@ -9,7 +9,8 @@ import {
   GetWalletDetails,
   GetWalletFeatures,
   SetWalletFeatures,
-  setWalletCountry, ListCountries
+  setWalletCountry,
+  ListCountries
 } from '~/lib/wallet.server'
 
 export async function loader({ request, params }: LoaderArgs) {

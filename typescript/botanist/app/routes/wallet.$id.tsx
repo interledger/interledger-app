@@ -1,7 +1,7 @@
-import { Grid } from '~/components'
 import { NavLink, Outlet, useParams } from '@remix-run/react'
 import type { FC, ReactNode } from 'react'
 import { route } from 'routes-gen'
+import { Grid } from '~/components'
 
 type TabItemProps = {
   to: string
@@ -49,6 +49,9 @@ export default function Page() {
           </TabItem>
           <TabItem to={route('/wallet/:id/balances', { id: id as string })}>
             Balances
+          </TabItem>
+          <TabItem to={route('/wallet/:id/gatehub', { id: id as string })}>
+            Gatehub User
           </TabItem>
         </div>
       </div>
