@@ -39,5 +39,5 @@ COPY --from=builder /bin/atlas /bin/atlas
 COPY --from=builder /build/backend/db/schema.hcl /build/backend/db/schema.hcl
 COPY --from=builder /build/pacioli/db/schema.hcl /build/pacioli/db/schema.hcl
 COPY --from=builder /build/main .
-COPY --chown=nonroot:nonroot --from=builder /root/.cache/ms-playwright-go /home/nonroot/.cache/ms-playwright-go
+COPY --from=builder --chown=nonroot:nonroot /root/.cache/ms-playwright-go /home/nonroot/.cache/ms-playwright-go
 ENTRYPOINT ["/dist/main"]
