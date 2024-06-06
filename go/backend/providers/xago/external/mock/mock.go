@@ -39,10 +39,10 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 }
 
 // AddBeneficiary mocks base method.
-func (m *MockClient) AddBeneficiary(ctx context.Context, reqStruct external.CreateBeneficiaryReq) (*external.CreateBeneficiaryResp, error) {
+func (m *MockClient) AddBeneficiary(ctx context.Context, reqStruct external.CreateBeneficiaryReq) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddBeneficiary", ctx, reqStruct)
-	ret0, _ := ret[0].(*external.CreateBeneficiaryResp)
+	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -96,6 +96,21 @@ func (m *MockClient) GetWithdrawal(ctx context.Context, id string) (*external.Wi
 func (mr *MockClientMockRecorder) GetWithdrawal(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWithdrawal", reflect.TypeOf((*MockClient)(nil).GetWithdrawal), ctx, id)
+}
+
+// ListBeneficiaries mocks base method.
+func (m *MockClient) ListBeneficiaries(ctx context.Context) ([]external.AccountBeneficiaries, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListBeneficiaries", ctx)
+	ret0, _ := ret[0].([]external.AccountBeneficiaries)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListBeneficiaries indicates an expected call of ListBeneficiaries.
+func (mr *MockClientMockRecorder) ListBeneficiaries(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListBeneficiaries", reflect.TypeOf((*MockClient)(nil).ListBeneficiaries), ctx)
 }
 
 // ListDeposits mocks base method.

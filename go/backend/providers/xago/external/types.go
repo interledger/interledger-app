@@ -111,6 +111,11 @@ type AccountBeneficiaries struct {
 	Wallet             json.RawMessage `json:"wallet"`
 }
 
+type ListBeneficiariesResponse struct {
+	Status        int                    `json:"status"`
+	Beneficiaries []AccountBeneficiaries `json:"beneficiaries,omitempty"`
+}
+
 type CreateTransactionReq struct {
 	Values []TransactionValues `json:"values,omitempty"`
 }
