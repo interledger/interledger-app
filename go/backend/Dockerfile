@@ -15,6 +15,7 @@ RUN wget -qO/bin/atlas https://release.ariga.io/atlas/atlas-linux-${BUILDARCH}-v
 # Fetch dependencies.
 COPY go.mod go.sum ./
 RUN go mod download
+RUN go run github.com/playwright-community/playwright-go/cmd/playwright@latest install --with-deps
 COPY backend ./backend
 COPY env ./env
 COPY proto ./proto
@@ -38,4 +39,5 @@ COPY --from=builder /bin/atlas /bin/atlas
 COPY --from=builder /build/backend/db/schema.hcl /build/backend/db/schema.hcl
 COPY --from=builder /build/pacioli/db/schema.hcl /build/pacioli/db/schema.hcl
 COPY --from=builder /build/main .
+COPY --chown=nonroot:nonroot --from=builder /root/.cache/ms-playwright-go /home/nonroot/.cache/ms-playwright-go
 ENTRYPOINT ["/dist/main"]
