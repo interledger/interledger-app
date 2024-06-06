@@ -40,6 +40,10 @@ func (c Client) CreateUser(ctx context.Context, walletID string) (gatehub.Await,
 	return ops.CreateUser(ctx, c.b, walletID)
 }
 
+func (c Client) GetUser(ctx context.Context, walletID string) (*gatehub.User, error) {
+	return ops.GetUser(ctx, c.b, c.external, walletID)
+}
+
 func (c Client) GetOnboardingWidget(ctx context.Context, walletID string) (string, error) {
 	return ops.GetOnboardingWidget(ctx, c.b, c.external, walletID)
 }
