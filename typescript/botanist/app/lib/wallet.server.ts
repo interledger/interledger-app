@@ -2,11 +2,13 @@ import { json } from '@remix-run/node'
 import { DateTime } from 'luxon'
 import type {
   Features,
+  GatehubUser,
   GetTransactionDetailsResponse,
   LinkedAccount,
   LinkedAccountReview,
   LinkedAccountReviews,
-  ListAuditResponse, ListCountriesResponse,
+  ListAuditResponse,
+  ListCountriesResponse,
   ListWalletsResponse,
   PaginationRequest,
   User,
@@ -88,10 +90,10 @@ export async function GetWalletDetails(
       response.response.gender == 0
         ? 'Unknown'
         : response.response.gender == 1
-          ? 'Male'
-          : response.response.gender == 2
-            ? 'Female'
-            : 'Other',
+        ? 'Male'
+        : response.response.gender == 2
+        ? 'Female'
+        : 'Other',
     dateOfBirth: DateTime.fromSeconds(
       parseInt(response.response.dateOfBirth?.seconds ?? '')
     ).toLocaleString(DateTime.DATETIME_FULL)
@@ -695,7 +697,10 @@ export async function GetPtiWalletBalance(request: Request, walletId: string) {
   return rpc.response
 }
 
-export async function GetGatehubWalletBalance(request: Request, walletId: string) {
+export async function GetGatehubWalletBalance(
+  request: Request,
+  walletId: string
+) {
   let rpc = await grpcClient
     .getGatehubBalance(
       {
@@ -755,7 +760,6 @@ export async function EnablePtiWalletBalance(
   return rpc.response
 }
 
-
 export async function ListCountries(
   request: Request
 ): Promise<ListCountriesResponse> {
@@ -763,6 +767,29 @@ export async function ListCountries(
   let response = await grpcClient
     .listCountries(
       {},
+      {
+        meta: {
+          cookies: cookie || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(response)) {
+    throw json({}, httpMapping(response.code))
+  }
+
+  return response.response
+}
+
+export async function GetGatehubUser(
+  request: Request,
+  walletID: string
+): Promise<GatehubUser> {
+  const cookie = String(request.headers.get('cookie'))
+  let response = await grpcClient
+    .getGatehubUser(
+      { walletID },
       {
         meta: {
           cookies: cookie || ''
