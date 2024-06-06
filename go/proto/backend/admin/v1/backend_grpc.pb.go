@@ -53,6 +53,7 @@ type BackendClient interface {
 	// Gatehub
 	CreateGatehubUser(ctx context.Context, in *CreateGatehubUserRequest, opts ...grpc.CallOption) (*Empty, error)
 	GetGatehubBalance(ctx context.Context, in *GetGatehubBalanceRequest, opts ...grpc.CallOption) (*GetGatehubBalanceResponse, error)
+	GetGatehubUser(ctx context.Context, in *GetGatehubUserRequest, opts ...grpc.CallOption) (*GatehubUser, error)
 }
 
 type backendClient struct {
@@ -338,6 +339,15 @@ func (c *backendClient) GetGatehubBalance(ctx context.Context, in *GetGatehubBal
 	return out, nil
 }
 
+func (c *backendClient) GetGatehubUser(ctx context.Context, in *GetGatehubUserRequest, opts ...grpc.CallOption) (*GatehubUser, error) {
+	out := new(GatehubUser)
+	err := c.cc.Invoke(ctx, "/backend.admin.v1.Backend/GetGatehubUser", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServer is the server API for Backend service.
 // All implementations should embed UnimplementedBackendServer
 // for forward compatibility
@@ -372,6 +382,7 @@ type BackendServer interface {
 	// Gatehub
 	CreateGatehubUser(context.Context, *CreateGatehubUserRequest) (*Empty, error)
 	GetGatehubBalance(context.Context, *GetGatehubBalanceRequest) (*GetGatehubBalanceResponse, error)
+	GetGatehubUser(context.Context, *GetGatehubUserRequest) (*GatehubUser, error)
 }
 
 // UnimplementedBackendServer should be embedded to have forward compatible implementations.
@@ -461,6 +472,9 @@ func (UnimplementedBackendServer) CreateGatehubUser(context.Context, *CreateGate
 }
 func (UnimplementedBackendServer) GetGatehubBalance(context.Context, *GetGatehubBalanceRequest) (*GetGatehubBalanceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetGatehubBalance not implemented")
+}
+func (UnimplementedBackendServer) GetGatehubUser(context.Context, *GetGatehubUserRequest) (*GatehubUser, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetGatehubUser not implemented")
 }
 
 // UnsafeBackendServer may be embedded to opt out of forward compatibility for this service.
@@ -981,6 +995,24 @@ func _Backend_GetGatehubBalance_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Backend_GetGatehubUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetGatehubUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServer).GetGatehubUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.admin.v1.Backend/GetGatehubUser",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServer).GetGatehubUser(ctx, req.(*GetGatehubUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Backend_ServiceDesc is the grpc.ServiceDesc for Backend service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1095,6 +1127,10 @@ var Backend_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetGatehubBalance",
 			Handler:    _Backend_GetGatehubBalance_Handler,
+		},
+		{
+			MethodName: "GetGatehubUser",
+			Handler:    _Backend_GetGatehubUser_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

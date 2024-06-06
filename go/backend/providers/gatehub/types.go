@@ -1,6 +1,9 @@
 package gatehub
 
-import "gitlab.com/fynbos/backend/currency"
+import (
+	"gitlab.com/fynbos/backend/currency"
+	"gitlab.com/fynbos/backend/providers/gatehub/external"
+)
 
 const (
 	ProviderName   = "gatehub"
@@ -20,3 +23,5 @@ type CreateTransferArgs struct {
 	ReceivingLinkedAccountID string
 	Amount                   currency.Amount
 }
+
+type User = external.User

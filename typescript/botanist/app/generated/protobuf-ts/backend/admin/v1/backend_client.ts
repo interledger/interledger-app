@@ -4,6 +4,8 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { Backend } from "./backend";
+import type { GatehubUser } from "./backend";
+import type { GetGatehubUserRequest } from "./backend";
 import type { GetGatehubBalanceResponse } from "./backend";
 import type { GetGatehubBalanceRequest } from "./backend";
 import type { CreateGatehubUserRequest } from "./backend";
@@ -173,6 +175,10 @@ export interface IBackendClient {
      * @generated from protobuf rpc: GetGatehubBalance(backend.admin.v1.GetGatehubBalanceRequest) returns (backend.admin.v1.GetGatehubBalanceResponse);
      */
     getGatehubBalance(input: GetGatehubBalanceRequest, options?: RpcOptions): UnaryCall<GetGatehubBalanceRequest, GetGatehubBalanceResponse>;
+    /**
+     * @generated from protobuf rpc: GetGatehubUser(backend.admin.v1.GetGatehubUserRequest) returns (backend.admin.v1.GatehubUser);
+     */
+    getGatehubUser(input: GetGatehubUserRequest, options?: RpcOptions): UnaryCall<GetGatehubUserRequest, GatehubUser>;
 }
 /**
  * @generated from protobuf service backend.admin.v1.Backend
@@ -382,5 +388,12 @@ export class BackendClient implements IBackendClient, ServiceInfo {
     getGatehubBalance(input: GetGatehubBalanceRequest, options?: RpcOptions): UnaryCall<GetGatehubBalanceRequest, GetGatehubBalanceResponse> {
         const method = this.methods[27], opt = this._transport.mergeOptions(options);
         return stackIntercept<GetGatehubBalanceRequest, GetGatehubBalanceResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: GetGatehubUser(backend.admin.v1.GetGatehubUserRequest) returns (backend.admin.v1.GatehubUser);
+     */
+    getGatehubUser(input: GetGatehubUserRequest, options?: RpcOptions): UnaryCall<GetGatehubUserRequest, GatehubUser> {
+        const method = this.methods[28], opt = this._transport.mergeOptions(options);
+        return stackIntercept<GetGatehubUserRequest, GatehubUser>("unary", this._transport, method, opt, input);
     }
 }
