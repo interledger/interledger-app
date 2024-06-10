@@ -185,7 +185,12 @@ func (s *rpcService) GetIndividualKYC(ctx context.Context, req *pb.Empty) (*pb.I
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	details, err := s.b.KYC().GetIndividualDetails(ctx, wallet.ID)
+	var details *kyc.IndividualDetails
+	if country.EUCountries[wallet.Country] {
+		details, err = getGatehubKYCDetails(ctx, s.b, wallet.ID)
+	} else {
+		details, err = s.b.KYC().GetIndividualDetails(ctx, wallet.ID)
+	}
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
@@ -217,6 +222,46 @@ func (s *rpcService) GetIndividualKYC(ctx context.Context, req *pb.Empty) (*pb.I
 	}
 
 	return resp, nil
+}
+
+func getGatehubKYCDetails(ctx context.Context, b Backends, walletID string) (*kyc.IndividualDetails, error) {
+	gatehubDetails, err := b.Gatehub().GetUser(ctx, walletID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	location, err := time.LoadLocation("UTC")
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	gender := kyc.GenderUnknown
+	if "male" == gatehubDetails.Profile.Gender {
+		gender = kyc.GenderMale
+	} else if "female" == gatehubDetails.Profile.Gender {
+		gender = kyc.GenderFemale
+	}
+
+	details := &kyc.IndividualDetails{
+		WalletID:     walletID,
+		FirstName:    gatehubDetails.Profile.FirstName,
+		LastName:     gatehubDetails.Profile.LastName,
+		CountryCode:  gatehubDetails.Profile.AddressCountryCode,
+		PlaceOfBirth: gatehubDetails.Profile.BirthCity,
+		Nationality:  gatehubDetails.Profile.Citizenship,
+		Gender:       gender,
+		DateOfBirth:  time.Date(gatehubDetails.Profile.BirthYear, time.Month(gatehubDetails.Profile.BirthMonth), gatehubDetails.Profile.BirthDay, 0, 0, 0, 0, location),
+		Address: &kyc.Address{
+			Line1:       gatehubDetails.Profile.AddressStreet1,
+			Line2:       gatehubDetails.Profile.AddressStreet2,
+			City:        gatehubDetails.Profile.AddressCity,
+			State:       gatehubDetails.Profile.AddressSubdivision,
+			ZipCode:     gatehubDetails.Profile.AddressPostalCode,
+			CountryCode: gatehubDetails.Profile.AddressCountryCode,
+		},
+	}
+
+	return details, nil
 }
 
 func (s *rpcService) KYCStatus(ctx context.Context, req *pb.Empty) (*pb.KYCStatusResponse, error) {
