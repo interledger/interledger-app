@@ -5,7 +5,9 @@ import (
 	"gitlab.com/fynbos/backend/keys"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
+	"gitlab.com/fynbos/backend/providers/gatehub"
 	"gitlab.com/fynbos/backend/providers/pti"
+	"gitlab.com/fynbos/backend/providers/xago"
 	"gitlab.com/fynbos/backend/rafiki/external"
 	"gitlab.com/fynbos/backend/wallets"
 	temporal "go.temporal.io/sdk/client"
@@ -20,6 +22,8 @@ type Backends interface {
 	Wallets() wallets.Client
 	Keys() keys.Client
 	PTI() pti.Client
+	Gatehub() gatehub.Client
+	Xago() xago.Client
 }
 
 type ActivityBackends interface {

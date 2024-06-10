@@ -15,7 +15,6 @@ import (
 	"gitlab.com/fynbos/backend/wallets"
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/providers/pti"
 
 	"gitlab.com/fynbos/env"
 
@@ -130,36 +129,36 @@ func getAccounts(ctx context.Context, b Backends, op outgoingPaymentData) (*link
 		return nil, nil, err
 	}
 
-	senderAccs, err := b.LinkedAccounts().ListByWalletId(ctx, senderWallet)
+	senderAccs, err := b.LinkedAccounts().ListBalances(ctx, senderWallet)
 	if err != nil {
-		log.Error("failed to lookup default send account", zap.Error(err))
-		return nil, nil, err
+		log.Error("failed to lookup balance accounts for sender", zap.Error(err))
+		return nil, nil, fmt.Errorf("%w %s", rafiki.ErrInternal, err)
 	}
 	var senderAcc linkedaccounts.LinkedAccount
 	for _, la := range senderAccs {
-		if la.Provider == pti.ProviderName && la.Type == pti.AccTypeBalance {
+		if op.DebitAmount.AssetCode == la.SendCurrency.String() {
 			senderAcc = la
 			break
 		}
 	}
 	if senderAcc.ID == "" {
-		return nil, nil, fmt.Errorf("%w fialed to find sender PTI account", rafiki.ErrNotFound)
+		return nil, nil, fmt.Errorf("%w failed to find sender account for currency=%s", rafiki.ErrNotFound, op.DebitAmount.AssetCode)
 	}
 
-	receiverAccs, err := b.LinkedAccounts().ListByWalletId(ctx, receiverWallet.ID)
+	receiverAccs, err := b.LinkedAccounts().ListBalances(ctx, receiverWallet.ID)
 	if err != nil {
-		log.Error("failed to lookup default receive account", zap.Error(err))
+		log.Error("failed to lookup balance accounts for receiver", zap.Error(err))
 		return nil, nil, err
 	}
 	var receiverAcc linkedaccounts.LinkedAccount
 	for _, la := range receiverAccs {
-		if la.Provider == pti.ProviderName && la.Type == pti.AccTypeBalance {
+		if op.DebitAmount.AssetCode == la.ReceiveCurrency.String() {
 			receiverAcc = la
 			break
 		}
 	}
 	if receiverAcc.ID == "" {
-		return nil, nil, fmt.Errorf("%w fialed to find receiver PTI account", rafiki.ErrNotFound)
+		return nil, nil, fmt.Errorf("%w failed to find receiver account for currency=%s", rafiki.ErrNotFound, op.DebitAmount.AssetCode)
 	}
 
 	return &senderAcc, &receiverAcc, nil
@@ -241,7 +240,7 @@ func outgoingPayment(ctx context.Context, b Backends, hook webhook) error {
 	}
 
 	// Reserve the funds for 26 hours, Cron runs every 24.
-	err = b.PTI().ReserveTransfer(ctx, senderAcc.ID, receiverAcc.ID, op.ID, currency.FromUInt64(amt, currency.USD), time.Hour*26)
+	err = reserveTransfer(ctx, b, senderAcc, receiverAcc, op.ID, amt, time.Hour*26)
 	if err != nil {
 		return err
 	}
@@ -256,6 +255,38 @@ func outgoingPayment(ctx context.Context, b Backends, hook webhook) error {
 	err = b.External().FundOutgoingPayment(ctx, hook.ID)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func reserveTransfer(
+	ctx context.Context,
+	b Backends,
+	senderAcc, receiverAcc *linkedaccounts.LinkedAccount,
+	txID string,
+	amt uint64,
+	timeout time.Duration,
+) error {
+	if senderAcc == nil || receiverAcc == nil {
+		return fmt.Errorf("%w send and receive accounts not specified when reserving balances.", rafiki.ErrInternal)
+	}
+	if senderAcc.SendCurrency != receiverAcc.ReceiveCurrency {
+		return fmt.Errorf("%w send: %s, receive: %s", rafiki.ErrCurrencyNotSupported, senderAcc.SendCurrency, receiverAcc.ReceiveCurrency)
+	}
+
+	var err error
+	if senderAcc.SendCurrency == currency.EUR {
+		_, err = b.Gatehub().ReserveBalance(ctx, senderAcc.ID, txID, currency.FromUInt64(amt, currency.EUR), time.Hour*26)
+	} else if senderAcc.SendCurrency == currency.ZAR {
+		_, err = b.Xago().ReserveBalance(ctx, senderAcc.ID, txID, currency.FromUInt64(amt, currency.ZAR), time.Hour*26)
+	} else if senderAcc.SendCurrency == currency.USD {
+		err = b.PTI().ReserveTransfer(ctx, senderAcc.ID, receiverAcc.ID, txID, currency.FromUInt64(amt, currency.USD), time.Hour*26)
+	} else {
+		return fmt.Errorf("%w %s", rafiki.ErrCurrencyNotSupported, senderAcc.SendCurrency)
+	}
+	if err != nil {
+		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
 	}
 
 	return nil
