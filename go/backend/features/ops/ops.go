@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+
 	"gitlab.com/fynbos/backend/country"
 
 	"gitlab.com/fynbos/backend/providers/astra"
@@ -89,6 +90,14 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		res.BanksEnabled = true
 		res.CardsEnabled = false
 		res.AddCardsEnabled = false
+	}
+	if country.EUCountries[w.Country] {
+		res.ReceiveEnabled = true
+		res.SendEnabled = true
+		res.LinkedAccEnabled = true
+		res.BanksEnabled = true
+		res.CardsEnabled = false
+		res.AddCardsEnabled = true
 	}
 
 	return &res, nil
