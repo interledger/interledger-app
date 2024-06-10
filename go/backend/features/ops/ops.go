@@ -94,10 +94,12 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 	if country.EUCountries[w.Country] {
 		res.ReceiveEnabled = true
 		res.SendEnabled = true
-		res.LinkedAccEnabled = true
-		res.BanksEnabled = true
+
+		// eu wallets use the Gatehub ramp widget to add cards, do deposits etc.
+		res.LinkedAccEnabled = false
+		res.BanksEnabled = false
 		res.CardsEnabled = false
-		res.AddCardsEnabled = true
+		res.AddCardsEnabled = false
 	}
 
 	return &res, nil
