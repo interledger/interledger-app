@@ -136,7 +136,7 @@ func HandleUserVerificationWebhook(ctx context.Context, b Backends, raw json.Raw
 	}
 
 	if wh.Data.Verified.Short == verificationAccepted {
-		err = b.KYC().SetKYCStatus(ctx, walletID, kyc.StatusApproved)
+		err = b.KYC().SetKYCStatus(ctx, walletID, kyc.StatusLevel1)
 	} else if wh.Data.Verified.Short == verificationRejected {
 		err = b.KYC().SetKYCStatus(ctx, walletID, kyc.StatusDenied)
 	} else {
