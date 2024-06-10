@@ -4,7 +4,9 @@ import (
 	"context"
 	"net/http"
 
+	"gitlab.com/fynbos/backend/providers/gatehub"
 	"gitlab.com/fynbos/backend/providers/pti"
+	"gitlab.com/fynbos/backend/providers/xago"
 	"gitlab.com/fynbos/backend/transactions"
 
 	"github.com/jmoiron/sqlx"
@@ -26,6 +28,8 @@ type Backends interface {
 	Wallets() wallets.Client
 	Keys() keys.Client
 	PTI() pti.Client
+	Gatehub() gatehub.Client
+	Xago() xago.Client
 }
 
 var _ ops.Backends = opsBackends{}

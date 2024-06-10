@@ -2,6 +2,7 @@ package admin
 
 import (
 	"context"
+
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/xago"
@@ -59,8 +60,6 @@ func (s *AdminRpcService) SetWalletXagoBalanceEnabled(
 		return nil, toGRPCError(err)
 	}
 
-	c := currency.ParseCurrency(currency.ZAR.String())
-
 	lal, err := s.b.LinkedAccounts().ListByWalletId(ctx, w.ID)
 	if err != nil {
 		return nil, toGRPCError(err)
@@ -68,7 +67,7 @@ func (s *AdminRpcService) SetWalletXagoBalanceEnabled(
 
 	// Check that the linked account doesn't already exist
 	for _, la := range lal {
-		if la.Provider == xago.ProviderName && la.Type == xago.AccTypeBalance && la.SendCurrency.String() == c.String() {
+		if la.Provider == xago.ProviderName && la.Type == xago.AccTypeBalance {
 			return nil, nil
 		}
 	}
@@ -77,7 +76,7 @@ func (s *AdminRpcService) SetWalletXagoBalanceEnabled(
 		WalletID: w.ID,
 		Nickname: "ZAR Balance",
 		Title:    "ZAR Balance",
-		Currency: c,
+		Currency: currency.ZAR,
 	})
 	if err != nil {
 		return nil, toGRPCError(err)
