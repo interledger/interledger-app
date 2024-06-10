@@ -91,22 +91,27 @@ func (a *Activity) CreateKYCWallets(ctx context.Context, walletID string) error 
 		if err != nil {
 			return err
 		}
-	}
 
-	if w.Country != country.ZA {
+		_, err = a.b.PTI().CreateWallet(ctx, walletID, currency.USD)
+		if err != nil {
+			return err
+		}
+	} else if country.EUCountries[w.Country] {
+		// nothing to do. Gatehub user should already be created
+	} else if w.Country == country.ZA {
+		c := currency.ZAR
+		_, err = a.b.Xago().CreateBalanceAccount(ctx, xago.CreateBalanceAccArgs{
+			WalletID: w.ID,
+			Nickname: "ZAR Balance",
+			Title:    "ZAR Balance",
+			Currency: c,
+		})
+		if err != nil {
+			return err
+		}
+	} else {
 		slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "fynbot", fmt.Sprintf("KYC approved for wallet. %s/wallet/%s/profile. Country=%s. Manual creation of balance account required.", env.AdminURL(), walletID, w.Country))
 		return nil
-	}
-
-	c := currency.ZAR
-	_, err = a.b.Xago().CreateBalanceAccount(ctx, xago.CreateBalanceAccArgs{
-		WalletID: w.ID,
-		Nickname: "ZAR Balance",
-		Title:    "ZAR Balance",
-		Currency: c,
-	})
-	if err != nil {
-		return err
 	}
 
 	return nil
