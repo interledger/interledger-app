@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	prodUrl  = "https://fynbos.app"
+	prodUrl  = "https://wallet.fynbos.app"
 	devUrl   = "https://eu1.fynbos.dev"
 	localUrl = "https://fynbos.test"
 )
