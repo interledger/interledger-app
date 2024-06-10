@@ -62,7 +62,7 @@ func New(args ClientArgs) Client {
 	} else if env.IsLocal() {
 		base = "http://mockbos.mockbos/pti"
 	} else if env.IsProd() {
-		base = "https://api.pearsurge.io/v1"
+		base = "https://api.platform.fiant.io/v1"
 	}
 
 	transport := otelhttp.DefaultClient
