@@ -72,7 +72,6 @@ type CreateBeneficiaryReq struct {
 	BankName                   string `json:"bankName,omitempty"`
 	BankCountry                string `json:"bankCountry,omitempty"`
 	AccountName                string `json:"accountName,omitempty"`
-	BankBeneficiaryType        string `json:"bankBeneficiaryType,omitempty"`
 	Reference                  string `json:"reference,omitempty"`
 	Iban                       string `json:"IBAN,omitempty"`
 	Bic                        string `json:"BIC,omitempty"`
