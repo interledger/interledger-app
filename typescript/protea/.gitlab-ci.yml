@@ -36,6 +36,5 @@ build_protea:
       = $CDN_ACCESS_KEY" > .env.rclone
     - docker build --build-arg REMIX_PUBLIC_PATH=${REMIX_PUBLIC_PATH}
       --build-arg IMAGE_HASH="${PROTEA_IMAGE_HASH}" -t
-      "$CI_REGISTRY/fynbos/fynbos/protea:${PROTEA_IMAGE_HASH}"
-      .
+      "$CI_REGISTRY/fynbos/fynbos/protea:${PROTEA_IMAGE_HASH}" .
     - docker push "$CI_REGISTRY/fynbos/fynbos/protea:${PROTEA_IMAGE_HASH}"
