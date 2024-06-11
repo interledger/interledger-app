@@ -119,7 +119,7 @@ func AuthURL() string {
 		authURL = os.Getenv("AUTH_BASE_URL")
 		if authURL == "" {
 			if IsProd() {
-				authURL = "https://auth.fynbos.app"
+				authURL = "https://auth.fynbos.me"
 			} else if IsDev() {
 				authURL = "https://auth.eu1.fynbos.dev"
 			} else if IsLocal() || IsTest() {
