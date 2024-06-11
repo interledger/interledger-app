@@ -59,6 +59,25 @@ func CreatePaymentPointer(ctx context.Context, b Backends, w wallets.Wallet, ass
 	return nil
 }
 
+func GetWalletAddress(ctx context.Context, b Backends, walletID string) (*rafiki.WalletAddress, error) {
+	externalID, err := LookupPaymentPointerID(ctx, b, walletID)
+	if err != nil {
+		return nil, err
+	}
+
+	address, err := b.External().GetWalletAddress(ctx, externalID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+	}
+
+	return &rafiki.WalletAddress{
+		ID:         address.Id,
+		AssetCode:  address.Asset.Code,
+		AssetScale: address.Asset.Scale,
+		URL:        address.Url,
+	}, nil
+}
+
 func LookupWalletID(ctx context.Context, b Backends, paymentPointerID string) (string, error) {
 	var wid string
 	err := b.DB().GetContext(ctx, &wid, "SELECT wallet_id FROM rafiki_payment_pointers WHERE payment_pointer_id=$1", paymentPointerID)

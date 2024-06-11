@@ -30,3 +30,10 @@ type Limits struct {
 	DebitAmount   currency.Amount
 	ReceiveAmount currency.Amount
 }
+
+type WalletAddress struct {
+	ID         string
+	AssetCode  string
+	AssetScale uint8
+	URL        string
+}

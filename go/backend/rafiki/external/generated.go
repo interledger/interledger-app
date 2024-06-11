@@ -459,6 +459,60 @@ func (v *GetIncomingPaymentResponse) GetIncomingPayment() GetIncomingPaymentInco
 	return v.IncomingPayment
 }
 
+// GetWalletAddressResponse is returned by GetWalletAddress on success.
+type GetWalletAddressResponse struct {
+	// Fetch a wallet address
+	WalletAddress GetWalletAddressWalletAddress `json:"walletAddress"`
+}
+
+// GetWalletAddress returns GetWalletAddressResponse.WalletAddress, and is useful for accessing the field via an interface.
+func (v *GetWalletAddressResponse) GetWalletAddress() GetWalletAddressWalletAddress {
+	return v.WalletAddress
+}
+
+// GetWalletAddressWalletAddress includes the requested fields of the GraphQL type WalletAddress.
+type GetWalletAddressWalletAddress struct {
+	// Wallet address id
+	Id string `json:"id"`
+	// Status of the wallet address
+	Status WalletAddressStatus `json:"status"`
+	// Wallet Address URL
+	Url string `json:"url"`
+	// Asset of the wallet address
+	Asset GetWalletAddressWalletAddressAsset `json:"asset"`
+}
+
+// GetId returns GetWalletAddressWalletAddress.Id, and is useful for accessing the field via an interface.
+func (v *GetWalletAddressWalletAddress) GetId() string { return v.Id }
+
+// GetStatus returns GetWalletAddressWalletAddress.Status, and is useful for accessing the field via an interface.
+func (v *GetWalletAddressWalletAddress) GetStatus() WalletAddressStatus { return v.Status }
+
+// GetUrl returns GetWalletAddressWalletAddress.Url, and is useful for accessing the field via an interface.
+func (v *GetWalletAddressWalletAddress) GetUrl() string { return v.Url }
+
+// GetAsset returns GetWalletAddressWalletAddress.Asset, and is useful for accessing the field via an interface.
+func (v *GetWalletAddressWalletAddress) GetAsset() GetWalletAddressWalletAddressAsset { return v.Asset }
+
+// GetWalletAddressWalletAddressAsset includes the requested fields of the GraphQL type Asset.
+type GetWalletAddressWalletAddressAsset struct {
+	// Asset id
+	Id string `json:"id"`
+	// [ISO 4217 currency code](https://en.wikipedia.org/wiki/ISO_4217), e.g. `USD`
+	Code string `json:"code"`
+	// Difference in orders of magnitude between the standard unit of an asset and a corresponding fractional unit
+	Scale uint8 `json:"scale"`
+}
+
+// GetId returns GetWalletAddressWalletAddressAsset.Id, and is useful for accessing the field via an interface.
+func (v *GetWalletAddressWalletAddressAsset) GetId() string { return v.Id }
+
+// GetCode returns GetWalletAddressWalletAddressAsset.Code, and is useful for accessing the field via an interface.
+func (v *GetWalletAddressWalletAddressAsset) GetCode() string { return v.Code }
+
+// GetScale returns GetWalletAddressWalletAddressAsset.Scale, and is useful for accessing the field via an interface.
+func (v *GetWalletAddressWalletAddressAsset) GetScale() uint8 { return v.Scale }
+
 type GrantFilter struct {
 	Identifier         FilterString             `json:"identifier"`
 	State              FilterGrantState         `json:"state"`
@@ -873,6 +927,15 @@ func (v *RevokeWalletAddressKeyRevokeWalletAddressKeyRevokeWalletAddressKeyMutat
 	return v.Message
 }
 
+type WalletAddressStatus string
+
+const (
+	// Status after deactivating
+	WalletAddressStatusInactive WalletAddressStatus = "INACTIVE"
+	// Default status
+	WalletAddressStatusActive WalletAddressStatus = "ACTIVE"
+)
+
 // __CreateWalletAddressInput is used internally by genqlient
 type __CreateWalletAddressInput struct {
 	Input CreateWalletAddressInput `json:"input"`
@@ -912,6 +975,14 @@ type __GetIncomingPaymentInput struct {
 
 // GetId returns __GetIncomingPaymentInput.Id, and is useful for accessing the field via an interface.
 func (v *__GetIncomingPaymentInput) GetId() string { return v.Id }
+
+// __GetWalletAddressInput is used internally by genqlient
+type __GetWalletAddressInput struct {
+	Id string `json:"id"`
+}
+
+// GetId returns __GetWalletAddressInput.Id, and is useful for accessing the field via an interface.
+func (v *__GetWalletAddressInput) GetId() string { return v.Id }
 
 // __ListGrantsInput is used internally by genqlient
 type __ListGrantsInput struct {
@@ -1147,6 +1218,48 @@ func GetIncomingPayment(
 	var err error
 
 	var data GetIncomingPaymentResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by GetWalletAddress.
+const GetWalletAddress_Operation = `
+query GetWalletAddress ($id: String!) {
+	walletAddress(id: $id) {
+		id
+		status
+		url
+		asset {
+			id
+			code
+			scale
+		}
+	}
+}
+`
+
+func GetWalletAddress(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*GetWalletAddressResponse, error) {
+	req := &graphql.Request{
+		OpName: "GetWalletAddress",
+		Query:  GetWalletAddress_Operation,
+		Variables: &__GetWalletAddressInput{
+			Id: id,
+		},
+	}
+	var err error
+
+	var data GetWalletAddressResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(

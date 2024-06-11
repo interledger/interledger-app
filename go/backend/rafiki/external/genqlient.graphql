@@ -131,3 +131,16 @@ query GetIncomingPayment ($id: String!) {
         createdAt
     }
 }
+
+query GetWalletAddress ($id: String!) {
+    walletAddress(id: $id) {
+        id
+        status
+        url
+        asset {
+            id
+            code
+            scale
+        }
+    }
+}
