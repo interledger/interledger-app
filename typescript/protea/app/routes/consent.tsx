@@ -5,7 +5,6 @@ import type {
 } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useLoaderData, useSearchParams } from '@remix-run/react'
-import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import {
   Button,
@@ -21,10 +20,6 @@ import type { Amount } from '~/lib/rafikiauth'
 import { consent, getInteraction } from '~/lib/rafikiauth'
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  if (process.env.FYNBOS_ENV == 'prod') {
-    return redirect(route('/'))
-  }
-
   const url = new URL(request.url)
   let interactId = url.searchParams.get('interactId') || ''
   let nonce = url.searchParams.get('nonce') || ''
