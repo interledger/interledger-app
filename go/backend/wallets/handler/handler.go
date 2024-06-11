@@ -14,6 +14,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/keys"
+	"gitlab.com/fynbos/backend/rafiki"
 	"gitlab.com/fynbos/backend/wallets"
 	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/log"
@@ -24,6 +25,7 @@ type Backends interface {
 	Wallets() wallets.Client
 	Identities() identities.Client
 	Keys() keys.Client
+	Rafiki() rafiki.Client
 }
 
 // this handler handles fynbos.me redirects done by openpayments server previously
@@ -106,12 +108,18 @@ func WalletRedirectHandler(b Backends) http.HandlerFunc {
 			}
 		}
 
+		rafikiWalletAddress, err := b.Rafiki().GetWalletAddress(ctx, wallet.ID)
+		if err != nil {
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+
 		jsonResponse := JsonResponse{
 			Id:                wallet.AddressString(),
 			PublicName:        wallet.Name,
 			Identities:        jsonIds,
-			AssetCode:         "USD",
-			AssetScale:        2,
+			AssetCode:         rafikiWalletAddress.AssetCode,
+			AssetScale:        uint(rafikiWalletAddress.AssetScale),
 			AuthServerURL:     env.AuthURL(),
 			ResourceServerURL: env.OpenPaymentsURL(),
 		}
@@ -121,6 +129,8 @@ func WalletRedirectHandler(b Backends) http.HandlerFunc {
 
 		// Fallback to get payment pointer
 		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "'GET,HEAD,PUT,POST,DELETE,PATCH'")
 		err = json.NewEncoder(w).Encode(jsonResponse)
 		if err != nil {
 			log.Error("error writing http response", zap.Error(err), zap.String("url", req.URL.String()))

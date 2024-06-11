@@ -17,6 +17,7 @@ import (
 
 type Client interface {
 	CreatePaymentPointer(ctx context.Context, wallet wallets.Wallet, assetCode string) (string, error)
+	GetWalletAddress(ctx context.Context, id string) (*GetWalletAddressWalletAddress, error)
 	CreatePaymentPointerKey(ctx context.Context, paymentPointerID string, key keys.Key) (string, error)
 	RevokePaymentPointerKey(ctx context.Context, keyID string) error
 	FundOutgoingPayment(ctx context.Context, eventID string) error
@@ -70,6 +71,15 @@ func New() Client {
 	authCl := graphql.NewClient(authGraphql, otelhttp.DefaultClient)
 
 	return &client{backendClient: cl, usdID: assetUSD, authClient: authCl, zarID: assetZAR, eurID: assetEUR}
+}
+
+func (c client) GetWalletAddress(ctx context.Context, id string) (*GetWalletAddressWalletAddress, error) {
+	pp, err := GetWalletAddress(ctx, c.backendClient, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return &pp.WalletAddress, nil
 }
 
 func (c client) CreatePaymentPointer(ctx context.Context, w wallets.Wallet, assetCode string) (string, error) {

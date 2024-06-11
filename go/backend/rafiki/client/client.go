@@ -55,6 +55,10 @@ func New(b Backends) rafiki.Client {
 	return &client{b: &opsBackends{Backends: b, rafikiExt: se}}
 }
 
+func (c *client) GetWalletAddress(ctx context.Context, walletID string) (*rafiki.WalletAddress, error) {
+	return ops.GetWalletAddress(ctx, c.b, walletID)
+}
+
 func (c *client) CreatePaymentPointer(ctx context.Context, w wallets.Wallet, assetCode string) error {
 	return ops.CreatePaymentPointer(ctx, c.b, w, assetCode)
 }

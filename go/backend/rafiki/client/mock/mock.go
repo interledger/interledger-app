@@ -109,6 +109,21 @@ func (mr *MockClientMockRecorder) GetGrant(ctx, grantID interface{}) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGrant", reflect.TypeOf((*MockClient)(nil).GetGrant), ctx, grantID)
 }
 
+// GetWalletAddress mocks base method.
+func (m *MockClient) GetWalletAddress(ctx context.Context, walletID string) (*rafiki.WalletAddress, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetWalletAddress", ctx, walletID)
+	ret0, _ := ret[0].(*rafiki.WalletAddress)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetWalletAddress indicates an expected call of GetWalletAddress.
+func (mr *MockClientMockRecorder) GetWalletAddress(ctx, walletID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWalletAddress", reflect.TypeOf((*MockClient)(nil).GetWalletAddress), ctx, walletID)
+}
+
 // ListGrants mocks base method.
 func (m *MockClient) ListGrants(ctx context.Context, walletID string) ([]rafiki.Grant, error) {
 	m.ctrl.T.Helper()
