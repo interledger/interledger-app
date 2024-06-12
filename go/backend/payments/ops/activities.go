@@ -347,7 +347,7 @@ func (a *Activity) ReserveBalance(ctx context.Context, paymentID string) error {
 		return err
 	}
 
-	if p.Type != payments.TypeWithdrawal && p.Type != payments.TypePeer2Peer {
+	if p.Type != payments.TypeWithdrawal && p.Type != payments.TypePeer2Peer && p.Type != payments.TypeRafikiPeer2Peer {
 		return nil
 	}
 
@@ -387,7 +387,7 @@ func (a *Activity) AssignBalance(ctx context.Context, paymentID, txID string) er
 		return err
 	}
 
-	if p.Type != payments.TypePeer2Peer && p.Type != payments.TypeDeposit {
+	if p.Type != payments.TypePeer2Peer && p.Type != payments.TypeRafikiPeer2Peer && p.Type != payments.TypeDeposit {
 		return nil
 	}
 
@@ -420,7 +420,7 @@ func (a *Activity) FinalizeBalance(ctx context.Context, paymentID string) error 
 		return a.b.Rafiki().FinalizeWebMonetization(ctx, paymentID)
 	}
 
-	if p.Type != payments.TypeWithdrawal && p.Type != payments.TypePeer2Peer {
+	if p.Type != payments.TypeWithdrawal && p.Type != payments.TypePeer2Peer && p.Type != payments.TypeRafikiPeer2Peer {
 		return nil
 	}
 
@@ -449,7 +449,7 @@ func (a *Activity) RollbackBalance(ctx context.Context, paymentID string) error 
 		return err
 	}
 
-	if p.Type != payments.TypeWithdrawal && p.Type != payments.TypePeer2Peer {
+	if p.Type != payments.TypeWithdrawal && p.Type != payments.TypePeer2Peer && p.Type != payments.TypeRafikiPeer2Peer {
 		return nil
 	}
 
