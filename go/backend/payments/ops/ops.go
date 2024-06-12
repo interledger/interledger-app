@@ -825,6 +825,9 @@ func Confirm(ctx context.Context, b Backends, id string) (*payments.Payment, []p
 			}
 			txType = transactions.TransactionTypeWebMonetizationOutgoing
 		}
+		if dbp.Type == payments.TypeRafikiPeer2Peer && receiverWallet != nil {
+			title = receiverWallet.Name
+		}
 		if dbp.Type == payments.TypeDeposit {
 			title = "Deposit"
 			txType = transactions.TransactionTypeDeposit
