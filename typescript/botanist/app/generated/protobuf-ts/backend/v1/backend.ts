@@ -194,6 +194,14 @@ export interface RafikiLimits {
      * @generated from protobuf field: backend.v1.Amount receiveAmount = 4;
      */
     receiveAmount?: Amount;
+    /**
+     * @generated from protobuf field: string formattedDebitAmount = 5;
+     */
+    formattedDebitAmount: string;
+    /**
+     * @generated from protobuf field: string formattdReceiveAmount = 6;
+     */
+    formattdReceiveAmount: string;
 }
 /**
  * @generated from protobuf message backend.v1.AstraDepositFromCardRequest
@@ -3090,11 +3098,13 @@ class RafikiLimits$Type extends MessageType<RafikiLimits> {
             { no: 1, name: "receiver", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "interval", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "debitAmount", kind: "message", T: () => Amount },
-            { no: 4, name: "receiveAmount", kind: "message", T: () => Amount }
+            { no: 4, name: "receiveAmount", kind: "message", T: () => Amount },
+            { no: 5, name: "formattedDebitAmount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "formattdReceiveAmount", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<RafikiLimits>): RafikiLimits {
-        const message = { receiver: "", interval: "" };
+        const message = { receiver: "", interval: "", formattedDebitAmount: "", formattdReceiveAmount: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<RafikiLimits>(this, message, value);
@@ -3116,6 +3126,12 @@ class RafikiLimits$Type extends MessageType<RafikiLimits> {
                     break;
                 case /* backend.v1.Amount receiveAmount */ 4:
                     message.receiveAmount = Amount.internalBinaryRead(reader, reader.uint32(), options, message.receiveAmount);
+                    break;
+                case /* string formattedDebitAmount */ 5:
+                    message.formattedDebitAmount = reader.string();
+                    break;
+                case /* string formattdReceiveAmount */ 6:
+                    message.formattdReceiveAmount = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -3141,6 +3157,12 @@ class RafikiLimits$Type extends MessageType<RafikiLimits> {
         /* backend.v1.Amount receiveAmount = 4; */
         if (message.receiveAmount)
             Amount.internalBinaryWrite(message.receiveAmount, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
+        /* string formattedDebitAmount = 5; */
+        if (message.formattedDebitAmount !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.formattedDebitAmount);
+        /* string formattdReceiveAmount = 6; */
+        if (message.formattdReceiveAmount !== "")
+            writer.tag(6, WireType.LengthDelimited).string(message.formattdReceiveAmount);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

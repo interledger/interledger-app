@@ -230,6 +230,8 @@ message RafikiLimits {
   string interval = 2;
   Amount debitAmount = 3;
   Amount receiveAmount = 4;
+  string formattedDebitAmount = 5;
+  string formattdReceiveAmount = 6;
 }
 
 message AstraDepositFromCardRequest {
