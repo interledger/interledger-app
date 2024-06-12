@@ -1,4 +1,8 @@
-import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
+import type {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  MetaFunction
+} from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import {
   Form,
@@ -41,6 +45,7 @@ import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { getClientIP } from '~/lib/ip.server'
 import { hasUserSession } from '~/lib/kratos.server'
+import { mergeMeta } from '~/lib/meta'
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const walletAddressParam = params['*'] as string
@@ -90,6 +95,15 @@ export const handle: ApplicationProps = {
     header: {}
   }
 }
+
+export const meta: MetaFunction<typeof loader> = mergeMeta(
+  ({ data, location }) => [
+    {
+      rel: 'monetization',
+      href: data?.walletAddress.address
+    }
+  ]
+)
 
 export default function Page() {
   const {

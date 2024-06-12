@@ -577,6 +577,16 @@ export class RafikiLimits extends Message<RafikiLimits> {
    */
   receiveAmount?: Amount;
 
+  /**
+   * @generated from field: string formattedDebitAmount = 5;
+   */
+  formattedDebitAmount = "";
+
+  /**
+   * @generated from field: string formattdReceiveAmount = 6;
+   */
+  formattdReceiveAmount = "";
+
   constructor(data?: PartialMessage<RafikiLimits>) {
     super();
     proto3.util.initPartial(data, this);
@@ -589,6 +599,8 @@ export class RafikiLimits extends Message<RafikiLimits> {
     { no: 2, name: "interval", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "debitAmount", kind: "message", T: Amount },
     { no: 4, name: "receiveAmount", kind: "message", T: Amount },
+    { no: 5, name: "formattedDebitAmount", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "formattdReceiveAmount", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RafikiLimits {

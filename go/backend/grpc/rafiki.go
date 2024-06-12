@@ -43,10 +43,12 @@ func transformRafikiGrant(g rafiki.Grant) *pb.RafikiGrant {
 			Type:       a.Type,
 			Actions:    a.Actions,
 			Limits: &pb.RafikiLimits{
-				Receiver:      a.Limits.Receiver,
-				Interval:      a.Limits.Interval,
-				DebitAmount:   a.Limits.DebitAmount.ToPB(),
-				ReceiveAmount: a.Limits.ReceiveAmount.ToPB(),
+				Receiver:              a.Limits.Receiver,
+				Interval:              a.Limits.Interval,
+				DebitAmount:           a.Limits.DebitAmount.ToPB(),
+				ReceiveAmount:         a.Limits.ReceiveAmount.ToPB(),
+				FormattedDebitAmount:  a.Limits.DebitAmount.Format(),
+				FormattdReceiveAmount: a.Limits.ReceiveAmount.Format(),
 			},
 		}
 	}
