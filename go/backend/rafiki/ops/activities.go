@@ -7,12 +7,15 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	"go.temporal.io/sdk/temporal"
 
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
 
 	"gitlab.com/fynbos/backend/currency"
+	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
+	"gitlab.com/fynbos/backend/rafiki"
 )
 
 type Activity struct {
@@ -76,9 +79,38 @@ func (a *Activity) ListPaymentsToMake(ctx context.Context) ([]Payment, error) {
 }
 
 func (a *Activity) CreateWebMonetizationPayment(ctx context.Context, payment Payment) (string, error) {
-	senderAcc, err := a.b.LinkedAccounts().GetDefaultSend(ctx, payment.FromWalletID, currency.Currency(payment.Asset))
+	senderBalances, err := a.b.LinkedAccounts().ListBalances(ctx, payment.FromWalletID)
 	if err != nil {
 		return "", err
+	}
+
+	var senderAcc *linkedaccounts.LinkedAccount
+	for _, bal := range senderBalances {
+		if bal.SendCurrency == currency.Currency(payment.Asset) {
+			senderAcc = &bal
+			break
+		}
+	}
+	if senderAcc == nil {
+		err = fmt.Errorf("%w failed to find sender account for currency=%s", rafiki.ErrNotFound, payment.Asset)
+		return "", temporal.NewNonRetryableApplicationError("web monetization payment cron: no sending account found", "ErrInternal", err)
+	}
+
+	receiverAccs, err := a.b.LinkedAccounts().ListBalances(ctx, payment.ToWalletID)
+	if err != nil {
+		log.Error("failed to lookup balance accounts for receiver", zap.Error(err))
+		return "", err
+	}
+	var receiverAcc *linkedaccounts.LinkedAccount
+	for _, la := range receiverAccs {
+		if currency.Currency(payment.Asset) == la.ReceiveCurrency {
+			receiverAcc = &la
+			break
+		}
+	}
+	if receiverAcc == nil {
+		err = fmt.Errorf("%w failed to find receiver account for currency=%s", rafiki.ErrNotFound, payment.Asset)
+		return "", temporal.NewNonRetryableApplicationError("web monetization payment cron: no receiving account found", "ErrInternal", err)
 	}
 
 	p, err := a.b.Payments().Create(ctx, payments.CreateArgs{
@@ -90,11 +122,12 @@ func (a *Activity) CreateWebMonetizationPayment(ctx context.Context, payment Pay
 			Type:       payments.IdentityTypeWalletID,
 			Identifier: payment.ToWalletID,
 		},
-		SenderAccount:  senderAcc.ID,
-		Type:           payments.TypeWebMonetization,
-		SenderAmount:   currency.FromUInt64(payment.Amount, currency.ParseCurrency(payment.Asset)),
-		ReceiverAmount: currency.FromUInt64(payment.Amount, currency.ParseCurrency(payment.Asset)),
-		IPAddress:      "198.0.0.2", // TODO: Add a our static IP Address
+		SenderAccount:   senderAcc.ID,
+		ReceiverAccount: receiverAcc.ID,
+		Type:            payments.TypeWebMonetization,
+		SenderAmount:    currency.FromUInt64(payment.Amount, currency.ParseCurrency(payment.Asset)),
+		ReceiverAmount:  currency.FromUInt64(payment.Amount, currency.ParseCurrency(payment.Asset)),
+		IPAddress:       "198.0.0.2", // TODO: Add a our static IP Address
 	})
 
 	if err != nil {
