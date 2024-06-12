@@ -197,15 +197,22 @@ func ListGrants(ctx context.Context, b Backends, walletID string) ([]rafiki.Gran
 
 		var access []rafiki.Access
 		for _, a := range g.Access {
-			debitAmount, err := strconv.ParseUint(a.Limits.DebitAmount.Value, 10, 64)
-			if err != nil {
-				return nil, fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+			var debitAmount uint64
+			if a.Limits.DebitAmount.Value != "" {
+				debitAmount, err = strconv.ParseUint(a.Limits.DebitAmount.Value, 10, 64)
+				if err != nil {
+					return nil, fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+				}
 			}
 
-			recvAmount, err := strconv.ParseUint(a.Limits.ReceiveAmount.Value, 10, 64)
-			if err != nil {
-				return nil, fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+			var recvAmount uint64
+			if a.Limits.ReceiveAmount.Value != "" {
+				recvAmount, err = strconv.ParseUint(a.Limits.ReceiveAmount.Value, 10, 64)
+				if err != nil {
+					return nil, fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+				}
 			}
+
 			access = append(access, rafiki.Access{
 				ID:         a.Id,
 				Identifier: a.Identifier,
@@ -242,15 +249,22 @@ func GetGrant(ctx context.Context, b Backends, grantID string) (*rafiki.Grant, e
 	createdAt, _ := time.Parse(time.RFC3339, g.CreatedAt)
 	var access []rafiki.Access
 	for _, a := range g.Access {
-		debitAmount, err := strconv.ParseUint(a.Limits.DebitAmount.Value, 10, 64)
-		if err != nil {
-			return nil, fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+		var debitAmount uint64
+		if a.Limits.DebitAmount.Value != "" {
+			debitAmount, err = strconv.ParseUint(a.Limits.DebitAmount.Value, 10, 64)
+			if err != nil {
+				return nil, fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+			}
 		}
 
-		recvAmount, err := strconv.ParseUint(a.Limits.ReceiveAmount.Value, 10, 64)
-		if err != nil {
-			return nil, fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+		var recvAmount uint64
+		if a.Limits.ReceiveAmount.Value != "" {
+			recvAmount, err = strconv.ParseUint(a.Limits.ReceiveAmount.Value, 10, 64)
+			if err != nil {
+				return nil, fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+			}
 		}
+
 		access = append(access, rafiki.Access{
 			ID:         a.Id,
 			Identifier: a.Identifier,
