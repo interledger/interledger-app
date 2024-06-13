@@ -99,6 +99,7 @@ export const handle: ApplicationProps = {
 export const meta: MetaFunction<typeof loader> = mergeMeta(
   ({ data, location }) => [
     {
+      tagName: 'link',
       rel: 'monetization',
       href: data?.walletAddress.address
     }
