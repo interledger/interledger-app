@@ -101,27 +101,29 @@ export default function Page() {
         </CardContent>
       </Card>
 
-      {
-        grant.access.map(a => (
-          <Card>
-            <Label>{a.type}</Label>
-            <CardContent className='mt-2 flex flex-col gap-y-4'>
-              <div className='flex w-full justify-between'>
-                <span className='text-weak'>Identifier</span>
-                <span className='text-medium'>{a.identifier}</span>
-              </div>
-              <div className='flex w-full justify-between'>
-                <span className='text-weak'>Actions</span>
-                <span className='text-medium'>{a.actions.reduce((prev, curr) => `${prev}, ${curr}`)}</span>
-              </div>
-              <div className='flex w-full justify-between'>
-                <span className='text-weak'>Amount</span>
-                <span className='text-medium'>{a.limits?.formattedDebitAmount}</span>
-              </div>
-            </CardContent>
-          </Card>
-        ))
-      }
+      {grant.access.map((a) => (
+        <Card>
+          <Label>{a.type}</Label>
+          <CardContent className='mt-2 flex flex-col gap-y-4'>
+            <div className='flex w-full justify-between'>
+              <span className='text-weak'>Identifier</span>
+              <span className='text-medium'>{a.identifier}</span>
+            </div>
+            <div className='flex w-full justify-between'>
+              <span className='text-weak'>Actions</span>
+              <span className='text-medium'>
+                {a.actions.reduce((prev, curr) => `${prev}, ${curr}`)}
+              </span>
+            </div>
+            <div className='flex w-full justify-between'>
+              <span className='text-weak'>Amount</span>
+              <span className='text-medium'>
+                {a.limits?.formattedDebitAmount}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
 
       <OutlineButton
         className='text-red-700 outline-red-700 focus-visible:outline-red-800'
