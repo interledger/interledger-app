@@ -126,18 +126,17 @@ func (s *Server) AddBeneficiary() http.HandlerFunc {
 		}
 
 		_, err := s.db.CreateXagoBeneficiary(r.Context(), db.CreateXagoBeneficiaryParams{
-			Name:                pgtype.Text{String: req.Name, Valid: true},
-			Scope:               pgtype.Text{String: req.Scope, Valid: true},
-			CurrencyCode:        pgtype.Text{String: req.CurrencyCode, Valid: true},
-			AccountNumber:       pgtype.Text{String: req.AccountNumber, Valid: true},
-			BranchCode:          pgtype.Text{String: req.BranchCode, Valid: true},
-			BankName:            pgtype.Text{String: req.BankName, Valid: true},
-			BankCountry:         pgtype.Text{String: req.BankCountry, Valid: true},
-			AccountName:         pgtype.Text{String: req.AccountName, Valid: true},
-			BankBeneficiaryType: pgtype.Text{String: req.BankBeneficiaryType, Valid: true},
-			Reference:           pgtype.Text{String: req.Reference, Valid: true},
-			Iban:                pgtype.Text{String: req.Iban, Valid: true},
-			Bic:                 pgtype.Text{String: req.Bic, Valid: true},
+			Name:          pgtype.Text{String: req.Name, Valid: true},
+			Scope:         pgtype.Text{String: req.Scope, Valid: true},
+			CurrencyCode:  pgtype.Text{String: req.CurrencyCode, Valid: true},
+			AccountNumber: pgtype.Text{String: req.AccountNumber, Valid: true},
+			BranchCode:    pgtype.Text{String: req.BranchCode, Valid: true},
+			BankName:      pgtype.Text{String: req.BankName, Valid: true},
+			BankCountry:   pgtype.Text{String: req.BankCountry, Valid: true},
+			AccountName:   pgtype.Text{String: req.AccountName, Valid: true},
+			Reference:     pgtype.Text{String: req.Reference, Valid: true},
+			Iban:          pgtype.Text{String: req.Iban, Valid: true},
+			Bic:           pgtype.Text{String: req.Bic, Valid: true},
 		})
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -193,15 +192,13 @@ func (s *Server) CreateTransaction() http.HandlerFunc {
 			return
 		}
 
-		var req external.CreateTransactionReq
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		var trx external.CreateTransferReq
+		if err := json.NewDecoder(r.Body).Decode(&trx); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
 		// Validations
-		trx := req.Values[0]
-
 		if trx.Amount < 1.0 {
 			http.Error(w, "amount must be greater than 1.0", http.StatusBadRequest)
 			return
