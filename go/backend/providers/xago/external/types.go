@@ -115,11 +115,7 @@ type ListBeneficiariesResponse struct {
 	Beneficiaries []AccountBeneficiaries `json:"beneficiaries,omitempty"`
 }
 
-type CreateTransactionReq struct {
-	Values []TransactionValues `json:"values,omitempty"`
-}
-
-type TransactionValues struct {
+type CreateTransferReq struct {
 	Amount          float64 `json:"amount,omitempty"`
 	CurrencyCode    string  `json:"currencyCode,omitempty"`
 	BeneficiaryID   string  `json:"beneficiaryId,omitempty"`

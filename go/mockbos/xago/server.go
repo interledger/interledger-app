@@ -192,15 +192,13 @@ func (s *Server) CreateTransaction() http.HandlerFunc {
 			return
 		}
 
-		var req external.CreateTransactionReq
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		var trx external.CreateTransferReq
+		if err := json.NewDecoder(r.Body).Decode(&trx); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
 		// Validations
-		trx := req.Values[0]
-
 		if trx.Amount < 1.0 {
 			http.Error(w, "amount must be greater than 1.0", http.StatusBadRequest)
 			return
