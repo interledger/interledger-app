@@ -419,24 +419,20 @@ func (c *client) ListBeneficiaries(ctx context.Context) ([]AccountBeneficiaries,
 }
 
 func (c *client) CreateTransaction(ctx context.Context, amt currency.Amount, idempotencyKey, beneficiaryID, reference string) (string, error) {
-	reqUrl, err := url.JoinPath(c.baseURL, "transactions", "transfer")
+	reqUrl, err := url.JoinPath(c.baseURL, "transfers")
 	if err != nil {
 		return "", err
 	}
 	if reference == "" {
 		reference = "Fynbos"
 	}
-	reqStruct := CreateTransactionReq{
-		Values: []TransactionValues{
-			{
-				Amount:          amt.Float64(),
-				CurrencyCode:    amt.Currency.String(),
-				BeneficiaryID:   beneficiaryID,
-				IdempotencyKey:  idempotencyKey,
-				TransactionType: "transfer",
-				Reference:       reference,
-			},
-		},
+	reqStruct := CreateTransferReq{
+		Amount:          amt.Float64(),
+		CurrencyCode:    amt.Currency.String(),
+		BeneficiaryID:   beneficiaryID,
+		IdempotencyKey:  idempotencyKey,
+		TransactionType: "transfer",
+		Reference:       reference,
 	}
 
 	reqBody, err := json.Marshal(reqStruct)
