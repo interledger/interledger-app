@@ -59,6 +59,104 @@ HOST_IP='$HOST_IP' \
 bash -s" < install.sh
 ```
 
+## Unattended Security Updates
+This uses the `unattended-upgrades` package to check for and install package updates on a schedule.
+Any failures to do so will be emailed to `engineering@fynbos.dev`.
+
+*Configure unattended-upgrades*
+Update the following lines:
+```sh
+# /etc/apt/apt.conf.d/50unattended-upgrades
+Unattended-Upgrade::Mail "root";
+Unattended-Upgrade::MailReport "on-change";
+Unattended-Upgrade::Remove-Unused-Kernel-Packages "true";
+Unattended-Upgrade::Remove-New-Unused-Dependencies "true";
+Unattended-Upgrade::Remove-Unused-Dependencies "true";
+Unattended-Upgrade::Automatic-Reboot "false";
+
+Unattended-Upgrade::Package-Blacklist {
+    // We will manage these manually
+    "consul";
+    "vault";
+    "nomad";
+};
+```
+NB! run `sudo systemctl status unattended-upgrades` and check it is enabled and active.
+
+*Update systemd timers*
+```sh
+# run sudo systemctl edit apt-daily.timer
+[Unit]
+Description=Daily apt download activities
+
+[Timer]
+OnCalendar=*-*-* 01:00
+RandomizedDelaySec=12h
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+
+# run sudo systemctl edit apt-daily-upgrade.timer
+[Unit]
+Description=Daily apt upgrade and clean activities
+After=apt-daily.timer
+
+[Timer]
+OnCalendar=*-*-* 02:00
+RandomizedDelaySec=60m
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+```
+
+*Configure exim4 with SendGrid*
+```sh
+# /etc/exim4/update-exim4.conf.conf
+
+dc_eximconfig_configtype='smarthost'
+dc_other_hostnames='fynbos.app'
+dc_local_interfaces='127.0.0.1'
+dc_readhost='fynbos.app'
+dc_relay_domains=''
+dc_minimaldns='false'
+dc_relay_nets=''
+dc_smarthost='smtp.sendgrid.net::587'
+CFILEMODE='644'
+dc_use_split_config='false'
+dc_hide_mailname='true'
+dc_mailname_in_oh='true'
+dc_localdelivery='mail_spool'
+
+# /etc/exim4/passwd.client
+*:apikey:<SendGrid apikey> # this apikey must only be allowed to use the MailSend api
+```
+NB! run `sudo systemctl restart exim4`
+
+*Configure alias for root*
+```sh
+# /etc/aliases
+mailer-daemon: postmaster
+postmaster: root
+nobody: root
+hostmaster: root
+usenet: root
+news: root
+webmaster: root
+www: root
+ftp: root
+abuse: root
+noc: root
+security: root
+root: engineering@fynbos.dev
+```
+NB! run `sudo newaliases`
+
+Test everything is working as expected with `sudo unattended-upgrades -d`. Note that you may not
+get an email if no packages were installed. you can set `Unattended-Upgrade::MailReport "always";` 
+temporarily to test the email notifications.
+
 ## Restore a snapshot from ZFS
 You will need AWS credentials for the `hetzner-backup` IAM user to read from the S3 bucket `s3://fynbos-wallet`.
 ```sh
