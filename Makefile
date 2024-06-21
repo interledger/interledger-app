@@ -30,5 +30,24 @@ tiltup:
 	@echo "Running tilt"
 	tilt up -f ./dev/tilt/Tiltfile
 
+devup:
+	@echo "Installing local CA..."
+	(cd ./dev/vagrant && ./installCA.sh)
+	@echo "Bringing local environment online..."
+	(cd ./dev/vagrant && vagrant up)
+	@echo "Deploying to local environment..."
+	(cd ./dev/vagrant && vagrant reload && vagrant ssh < deploy.sh)
+	@echo "Done."
+
+devdeploy:
+	@echo "Deploying to local environment..."
+	(cd ./dev/vagrant && vagrant reload && vagrant ssh < deploy.sh)
+	@echo "Done."
+
+devdown:
+	@echo "Deleting local environment..."
+	(cd ./dev/vagrant && vagrant destroy)
+	@echo "Done."
+
 localwallet:
 	FYNBOS_ENV=local go run go/backend/cli/dev/main.go make wallet -k -l

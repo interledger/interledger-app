@@ -47,7 +47,7 @@ Vagrant.configure("2") do |config|
   # the path on the host to the actual folder. The second argument is
   # the path on the guest to mount the folder. And the optional third
   # argument is a set of non-required options.
-  config.vm.synced_folder "../nomad", "/home/vagrant/deploy", type: "rsync"
+  config.vm.synced_folder "../../", "/home/vagrant/fynbos", disabled: false
 
   # Provider-specific configuration so you can fine-tune various
   # backing providers for Vagrant. These expose provider-specific options.
@@ -72,8 +72,5 @@ Vagrant.configure("2") do |config|
   #   apt-get update
   #   apt-get install -y apache2
   # SHELL
-  config.vm.provision "docker", preserve_order: true, type: "shell", path: "docker/docker.sh"
-  config.vm.provision "consul", preserve_order: true, type: "shell", path: "consul.sh"
-  config.vm.provision "nomad", preserve_order: true, type: "shell", path: "nomad.sh"
-  config.vm.provision "guestadditions", preserve_order: true, type: "shell", path: "guestadditions.sh"
+  config.vm.provision "install", preserve_order: true, type: "shell", path: "install.sh"
 end
