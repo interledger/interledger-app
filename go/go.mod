@@ -3,7 +3,6 @@ module gitlab.com/fynbos
 go 1.19
 
 require (
-	github.com/99designs/gqlgen v0.17.31
 	github.com/AlecAivazis/survey/v2 v2.3.6
 	github.com/Khan/genqlient v0.6.0
 	github.com/Netflix/go-env v0.0.0-20220526054621-78278af1949d
@@ -24,7 +23,6 @@ require (
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.3.0
 	github.com/hashicorp/vault/api v1.9.0
-	github.com/hashicorp/vault/api/auth/kubernetes v0.4.0
 	github.com/jackc/pgx/v5 v5.5.0
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/joho/godotenv v1.4.0
@@ -126,6 +124,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.11.1 // indirect
 	go.opentelemetry.io/proto/otlp v0.18.0 // indirect
 	golang.org/x/image v0.0.0-20210216034530-4410531fe030 // indirect
+	golang.org/x/sync v0.6.0 // indirect
 	golang.org/x/term v0.16.0 // indirect
 )
 
@@ -134,7 +133,6 @@ require (
 	github.com/Basis-Theory/basistheory-go/v3 v3.13.0
 	github.com/Microsoft/go-winio v0.5.0 // indirect
 	github.com/Microsoft/hcsshim v0.8.21 // indirect
-	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
 	github.com/containerd/cgroups v1.0.1 // indirect
 	github.com/containerd/containerd v1.5.7 // indirect
@@ -178,13 +176,11 @@ require (
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.7.0 // indirect
 	golang.org/x/crypto v0.18.0 // indirect
-	golang.org/x/mod v0.14.0 // indirect
 	golang.org/x/net v0.20.0 // indirect
 	golang.org/x/oauth2 v0.11.0
 	golang.org/x/sys v0.16.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
-	golang.org/x/tools v0.17.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	gopkg.in/square/go-jose.v2 v2.5.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
