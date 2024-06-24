@@ -82,3 +82,7 @@ port-forward-temporal-prod:
 job:
 	echo "package jobs" >> "./jobs/$$(date +%Y_%m)_$(name).go"
 
+devdeploy:
+	@echo "Deploying to local environment..."
+	(cd ../../dev/vagrant && vagrant ssh -c 'nomad job run /home/vagrant/fynbos/dev/nomad/backend.hcl')
+
