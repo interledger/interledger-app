@@ -98,6 +98,11 @@ EOF
   [[tls.certificates]]
     certFile = "/etc/traefik/tls.cert"
     keyFile = "/etc/traefik/tls.key"
+
+[tls.stores.default]
+  [tls.stores.default.defaultCertificate]
+    certFile = "/etc/traefik/tls.cert"
+    keyFile = "/etc/traefik/tls.key"
 EOF
         
         destination = "local/config.toml"
