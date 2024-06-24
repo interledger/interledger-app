@@ -20,3 +20,7 @@ push:
 	@echo "Pushing image"
 	docker push "$(IMAGE_REPO):$(IMAGE_HASH)"
 	@echo "Image pushed"
+
+devdeploy:
+	@echo "Deploying to local environment..."
+	(cd ../../dev/vagrant && vagrant ssh -c 'nomad job run /home/vagrant/fynbos/dev/nomad/botanist.hcl')

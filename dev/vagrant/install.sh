@@ -272,6 +272,11 @@ client {
     path      = "/home/vagrant/fynbos/typescript/protea"
     read_only = false
   }
+
+  host_volume "botanist" {
+    path      = "/home/vagrant/fynbos/typescript/botanist"
+    read_only = false
+  }
 }
 
 plugin "docker" {
