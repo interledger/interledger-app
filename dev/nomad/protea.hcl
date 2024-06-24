@@ -96,7 +96,7 @@ job "protea" {
       }
 
       resources {
-        memory = 1024
+        memory = 512
       }
     }
   }

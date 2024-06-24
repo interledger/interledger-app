@@ -54,7 +54,7 @@ job "botanist" {
       driver = "docker"
 
       config {
-        image = "http://localhost:5002/botanist"
+        image = "localhost:5002/botanist"
         volumes = ["/home/vagrant/fynbos/typescript/botanist:/app"]
       }
 
@@ -65,7 +65,7 @@ job "botanist" {
       }
 
       resources {
-        memory = 1024
+        memory = 512
       }
     }
   }
