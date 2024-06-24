@@ -13,3 +13,5 @@ go install filippo.io/mkcert@v1.4.4
 mkcert -install
 
 mkcert -cert-file ../nomad/tls.cert.pem -key-file ../nomad/tls.key.pem fynbos.test "*.fynbos.test" local.fynbos.me "*.mgnt.fynbos.test"
+
+echo "10.9.99.10 wallet.fynbos.test admin.mgnt.fynbos.test temporal.mgnt.fynbos.test local.fynbos.me" | sudo tee -a /etc/hosts
