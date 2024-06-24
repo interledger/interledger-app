@@ -38,6 +38,8 @@ function deploy () {
 	nomad job run -detach kratos.hcl
 	nomad job run -detach backend.hcl
 	nomad job run -detach protea.hcl
+	nomad job run -detach botanist.hcl
+	nomad job run -detach traefik.hcl
 }
 
 function main () {
