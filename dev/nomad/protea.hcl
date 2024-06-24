@@ -27,7 +27,7 @@ job "protea" {
       port = "http"
       tags = [
         "traefik.enable=true",
-        "traefik.http.routers.protea.rule=Host(`fynbos.test`)"
+        "traefik.http.routers.protea.rule=Host(`wallet.fynbos.test`)"
       ]
 
       check {    
@@ -71,7 +71,7 @@ job "protea" {
       port = "websocket"
       tags = [
         "traefik.enable=true",
-        "traefik.http.routers.protea-ws.rule=Host(`fynbos.test`) && PathPrefix(`/socket`)"
+        "traefik.http.routers.protea-ws.rule=Host(`wallet.fynbos.test`) && PathPrefix(`/socket`)"
       ]
     }
 
