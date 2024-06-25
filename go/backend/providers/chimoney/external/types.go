@@ -53,3 +53,18 @@ type DepositReq struct {
 	SubAccountID string
 	Email        string
 }
+
+type DepositResp struct {
+	PaymentLink string `json:"paymentLink,omitempty"`
+	ValueInUSD  string `json:"valueInUSD,omitempty"`
+	Chimoney    string `json:"chimoney,omitempty"`
+	IssueID     string `json:"issueID,omitempty"`
+	Type        string `json:"type,omitempty"`
+	Issuer      string `json:"issuer,omitempty"`
+	PayerEmail  string `json:"payerEmail,omitempty"`
+	InitiatedBy string `json:"initiatedBy,omitempty"`
+	IssueDate   string `json:"issueDate,omitempty"`
+	Status      string `json:"status,omitempty"`
+	ChiRef      string `json:"chiRef,omitempty"`
+	Error       string `json:"error,omitempty"`
+}
