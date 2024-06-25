@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 
 	"gitlab.com/fynbos/env"
@@ -17,7 +18,7 @@ import (
 type Client interface {
 	CreateSubAccount(ctx context.Context, req CreateSubAccountReq) (string, error)
 	Transfer(ctx context.Context, req TransferReq) error
-	Deposit(ctx context.Context, req DepositReq) (string, error)
+	Deposit(ctx context.Context, req DepositReq) (*DepositResp, error)
 	Withdraw(ctx context.Context, req WithdrawalReq) error
 }
 
@@ -39,9 +40,9 @@ func New(transport *http.Client) Client {
 	}
 
 	return &client{
-		api:     api, // TODO redact and intercept
+		api:     api,
 		baseURL: baseURL,
-		apiKey:  "TODO",
+		apiKey:  os.Getenv("CHIMONEY_TOKEN"),
 	}
 }
 
@@ -191,44 +192,50 @@ func (c client) Withdraw(ctx context.Context, req WithdrawalReq) error {
 	return nil
 }
 
-func (c client) Deposit(ctx context.Context, req DepositReq) (string, error) {
+func (c client) Deposit(ctx context.Context, req DepositReq) (*DepositResp, error) {
 	endpoint, err := url.JoinPath(c.baseURL, "payouts", "interac")
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	body, err := json.Marshal(req)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewBuffer(body))
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	httpReq.Header.Add("Content-Type", "application/json")
 	httpReq.Header.Add("Accept", "application/json")
 
 	httpResp, err := c.api.Do(httpReq)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	body, err = io.ReadAll(httpResp.Body)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer httpResp.Body.Close()
 
 	var respWrapper APIResponse
 	err = json.Unmarshal(body, &respWrapper)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	if !strings.EqualFold(respWrapper.Status, "success") || respWrapper.Error != "" {
-		return "", fmt.Errorf("request failed on withdrawal with status (%s) error (%s)", respWrapper.Status, respWrapper.Error)
+		return nil, fmt.Errorf("request failed on withdrawal with status (%s) error (%s)", respWrapper.Status, respWrapper.Error)
 	}
 
-	return "", nil
+	var resp DepositResp
+	err = json.Unmarshal(respWrapper.Data, &resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return &resp, nil
 }
