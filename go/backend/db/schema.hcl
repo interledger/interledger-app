@@ -3459,6 +3459,74 @@ table "gatehub_transactions" {
   }
 }
 
+table "chi_money_sub_accounts" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "external_id" {
+    null = false
+    type = text
+  }
+  column "wallet_id" {
+    null = false
+    type = uuid
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now()::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now()::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "chi_money_sub_accounts_wallet_id" {
+    unique = true
+    columns = [column.wallet_id]
+  }
+}
+
+table "chi_money_interac_emails" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "email" {
+    null = false
+    type = text
+  }
+  column "wallet_id" {
+    null = false
+    type = uuid
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now()::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now()::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "chi_money_interac_emails_wallet_id" {
+    unique = true
+    columns = [column.wallet_id]
+  }
+}
+
 table "atlas_schema_history" {
   schema = schema.public
   column "id" {
