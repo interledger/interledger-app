@@ -16,7 +16,7 @@ import (
 )
 
 type Client interface {
-	CreateSubAccount(ctx context.Context, req CreateSubAccountReq) (string, error)
+	CreateWallet(ctx context.Context, req CreateWalletReq) (string, error)
 	Transfer(ctx context.Context, req TransferReq) error
 	Deposit(ctx context.Context, req DepositReq) (*DepositResp, error)
 	Withdraw(ctx context.Context, req WithdrawalReq) error
@@ -46,7 +46,7 @@ func New(transport *http.Client) Client {
 	}
 }
 
-func (c client) CreateSubAccount(ctx context.Context, req CreateSubAccountReq) (string, error) {
+func (c client) CreateWallet(ctx context.Context, req CreateWalletReq) (string, error) {
 	endpoint, err := url.JoinPath(c.baseURL, "multicurrency-wallets", "create")
 	if err != nil {
 		return "", err
@@ -85,7 +85,7 @@ func (c client) CreateSubAccount(ctx context.Context, req CreateSubAccountReq) (
 		return "", fmt.Errorf("request failed on creating sub account with status (%s) error (%s)", respWrapper.Status, respWrapper.Error)
 	}
 
-	var resp CreateSubAccountResp
+	var resp WalletResp
 	err = json.Unmarshal(respWrapper.Data, &resp)
 	if err != nil {
 		return "", err
@@ -198,6 +198,7 @@ func (c client) Deposit(ctx context.Context, req DepositReq) (*DepositResp, erro
 		return nil, err
 	}
 
+	// TODO unmarshal amount
 	body, err := json.Marshal(req)
 	if err != nil {
 		return nil, err

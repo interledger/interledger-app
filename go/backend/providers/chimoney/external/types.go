@@ -6,7 +6,7 @@ import (
 	"gitlab.com/fynbos/backend/currency"
 )
 
-type CreateSubAccountReq struct {
+type CreateWalletReq struct {
 	Name        string `json:"name"`
 	Email       string `json:"email"`
 	FirstName   string `json:"firstName,omitempty"`
@@ -20,7 +20,7 @@ type APIResponse struct {
 	Data   json.RawMessage `json:"data,omitempty"`
 }
 
-type CreateSubAccountResp struct {
+type WalletResp struct {
 	ID         string `json:"id,omitempty"`
 	Parent     string `json:"parent,omitempty"`
 	UID        string `json:"uid,omitempty"`
@@ -49,9 +49,11 @@ type Interacs struct {
 }
 
 type DepositReq struct {
-	Amount       currency.Currency
-	SubAccountID string
-	Email        string
+	Amount               string `json:"amount,omitempty"`
+	Currency             string `json:"currency,omitempty"`
+	ChimoneyWallet       string `json:"subAccount,omitempty"`
+	Email                string `json:"payerEmail,omitempty"`
+	TurnOffNotifications bool   `json:"turnOffNotifications,omitempty"`
 }
 
 type DepositResp struct {

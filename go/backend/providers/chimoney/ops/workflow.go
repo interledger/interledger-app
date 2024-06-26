@@ -45,12 +45,12 @@ func CreateChimoneyUserWorkflow(ctx workflow.Context, walletID string) (string, 
 	logger.Info("Creating chimoney sub account.")
 
 	var exID string
-	err := workflow.ExecuteActivity(ctx, a.CreateSubAccount, walletID).Get(ctx, &exID)
+	err := workflow.ExecuteActivity(ctx, a.CreateChimoneyWallet, walletID).Get(ctx, &exID)
 	if err != nil {
 		return "", err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.CreateSubAccount, walletID, exID).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.SaveChimoneyWallet, walletID, exID).Get(ctx, nil)
 	if err != nil {
 		return "", err
 	}
@@ -58,8 +58,8 @@ func CreateChimoneyUserWorkflow(ctx workflow.Context, walletID string) (string, 
 	return exID, nil
 }
 
-func (a *Activity) SaveSubAccount(ctx context.Context, walletID, exID string) error {
-	_, err := a.b.DB().ExecContext(ctx, "INSERT INTO chi_money_sub_accounts (external_id, wallet_id) VALUES ($1, $2) ON CONFLICT DO NOTHING;", exID, walletID)
+func (a *Activity) SaveChimoneyWallet(ctx context.Context, walletID, exID string) error {
+	_, err := a.b.DB().ExecContext(ctx, "INSERT INTO chi_money_wallets (external_id, wallet_id) VALUES ($1, $2) ON CONFLICT DO NOTHING;", exID, walletID)
 	if err != nil {
 		return fmt.Errorf("%w %s", chimoney.ErrInternal, err)
 	}
@@ -67,7 +67,7 @@ func (a *Activity) SaveSubAccount(ctx context.Context, walletID, exID string) er
 	return nil
 }
 
-func (a *Activity) CreateSubAccount(ctx context.Context, walletID string) (string, error) {
+func (a *Activity) CreateChimoneyWallet(ctx context.Context, walletID string) (string, error) {
 	ul, err := a.b.Users().ListUsers(ctx, walletID)
 	if err != nil {
 		return "", fmt.Errorf("%w %s", chimoney.ErrInternal, err)
@@ -81,7 +81,7 @@ func (a *Activity) CreateSubAccount(ctx context.Context, walletID string) (strin
 		return "", fmt.Errorf("%w %s", chimoney.ErrInternal, err)
 	}
 
-	exID, err := a.external.CreateSubAccount(ctx, external.CreateSubAccountReq{
+	exID, err := a.external.CreateWallet(ctx, external.CreateWalletReq{
 		Name:        userInfo.FirstName + " " + userInfo.LastName,
 		Email:       ul[0].Email,
 		FirstName:   userInfo.FirstName,

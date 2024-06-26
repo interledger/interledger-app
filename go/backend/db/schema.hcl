@@ -3459,7 +3459,7 @@ table "gatehub_transactions" {
   }
 }
 
-table "chi_money_sub_accounts" {
+table "chi_money_wallets" {
   schema = schema.public
   column "id" {
     null = false
@@ -3487,7 +3487,7 @@ table "chi_money_sub_accounts" {
   primary_key {
     columns = [column.id]
   }
-  index "chi_money_sub_accounts_wallet_id" {
+  index "chi_money_wallets_wallet_id" {
     unique = true
     columns = [column.wallet_id]
   }
