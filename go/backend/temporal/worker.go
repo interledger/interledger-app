@@ -14,6 +14,7 @@ import (
 	kyc_workflows "gitlab.com/fynbos/backend/kyc/ops"
 	payments_workflows "gitlab.com/fynbos/backend/payments/ops"
 	asta_workflows "gitlab.com/fynbos/backend/providers/astra/ops"
+	chimoney_workflows "gitlab.com/fynbos/backend/providers/chimoney/ops"
 	gatehub_workflows "gitlab.com/fynbos/backend/providers/gatehub/ops"
 	pti_workflows "gitlab.com/fynbos/backend/providers/pti/ops"
 	xago_workflows "gitlab.com/fynbos/backend/providers/xago/ops"
@@ -108,6 +109,10 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(gatehub_workflows.CreateGatehubUserWorkflow)
 	w.RegisterWorkflow(gatehub_workflows.CreateGatehubDeposit)
 	w.RegisterWorkflow(gatehub_workflows.ProcessGatehubWithdrawal)
+
+	// Chimoney
+	w.RegisterActivity(chimoney_workflows.NewActivity(b))
+	w.RegisterWorkflow(chimoney_workflows.CreateChimoneyUserWorkflow)
 
 	return w, nil
 }
