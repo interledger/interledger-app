@@ -32,6 +32,33 @@ export interface PaginationRequest {
 export interface Empty {
 }
 /**
+ * @generated from protobuf message backend.v1.GetChimoneyDepositLinkResponse
+ */
+export interface GetChimoneyDepositLinkResponse {
+    /**
+     * @generated from protobuf field: string link = 1;
+     */
+    link: string;
+}
+/**
+ * @generated from protobuf message backend.v1.ChimoneyInterlocEmail
+ */
+export interface ChimoneyInterlocEmail {
+    /**
+     * @generated from protobuf field: string email = 1;
+     */
+    email: string;
+}
+/**
+ * @generated from protobuf message backend.v1.SetChimoneyInterlocEmailRequest
+ */
+export interface SetChimoneyInterlocEmailRequest {
+    /**
+     * @generated from protobuf field: string email = 1;
+     */
+    email: string;
+}
+/**
  * @generated from protobuf message backend.v1.CreateGatehubWithdrawalRequest
  */
 export interface CreateGatehubWithdrawalRequest {
@@ -2497,6 +2524,147 @@ class Empty$Type extends MessageType<Empty> {
  * @generated MessageType for protobuf message backend.v1.Empty
  */
 export const Empty = new Empty$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GetChimoneyDepositLinkResponse$Type extends MessageType<GetChimoneyDepositLinkResponse> {
+    constructor() {
+        super("backend.v1.GetChimoneyDepositLinkResponse", [
+            { no: 1, name: "link", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<GetChimoneyDepositLinkResponse>): GetChimoneyDepositLinkResponse {
+        const message = { link: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GetChimoneyDepositLinkResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetChimoneyDepositLinkResponse): GetChimoneyDepositLinkResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string link */ 1:
+                    message.link = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GetChimoneyDepositLinkResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string link = 1; */
+        if (message.link !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.link);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.GetChimoneyDepositLinkResponse
+ */
+export const GetChimoneyDepositLinkResponse = new GetChimoneyDepositLinkResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ChimoneyInterlocEmail$Type extends MessageType<ChimoneyInterlocEmail> {
+    constructor() {
+        super("backend.v1.ChimoneyInterlocEmail", [
+            { no: 1, name: "email", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<ChimoneyInterlocEmail>): ChimoneyInterlocEmail {
+        const message = { email: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ChimoneyInterlocEmail>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ChimoneyInterlocEmail): ChimoneyInterlocEmail {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string email */ 1:
+                    message.email = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ChimoneyInterlocEmail, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string email = 1; */
+        if (message.email !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.email);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.ChimoneyInterlocEmail
+ */
+export const ChimoneyInterlocEmail = new ChimoneyInterlocEmail$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class SetChimoneyInterlocEmailRequest$Type extends MessageType<SetChimoneyInterlocEmailRequest> {
+    constructor() {
+        super("backend.v1.SetChimoneyInterlocEmailRequest", [
+            { no: 1, name: "email", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<SetChimoneyInterlocEmailRequest>): SetChimoneyInterlocEmailRequest {
+        const message = { email: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<SetChimoneyInterlocEmailRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: SetChimoneyInterlocEmailRequest): SetChimoneyInterlocEmailRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string email */ 1:
+                    message.email = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: SetChimoneyInterlocEmailRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string email = 1; */
+        if (message.email !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.email);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.SetChimoneyInterlocEmailRequest
+ */
+export const SetChimoneyInterlocEmailRequest = new SetChimoneyInterlocEmailRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class CreateGatehubWithdrawalRequest$Type extends MessageType<CreateGatehubWithdrawalRequest> {
     constructor() {
@@ -11176,5 +11344,9 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "GetOnOffRampProvider", options: {}, I: Empty, O: GetOnOffRampProviderResponse },
     { name: "GetGatehubDepositWidget", options: {}, I: Empty, O: GatehubWidget },
     { name: "GetGatehubWithdrawalWidget", options: {}, I: Empty, O: GatehubWidget },
-    { name: "CreateGatehubWithdrawal", options: {}, I: CreateGatehubWithdrawalRequest, O: CreateGatehubWithdrawalResponse }
+    { name: "CreateGatehubWithdrawal", options: {}, I: CreateGatehubWithdrawalRequest, O: CreateGatehubWithdrawalResponse },
+    { name: "SetChimoneyInterlocEmail", options: {}, I: SetChimoneyInterlocEmailRequest, O: ChimoneyInterlocEmail },
+    { name: "GetChimoneyInterlocEmail", options: {}, I: Empty, O: ChimoneyInterlocEmail },
+    { name: "CreateChimoneyWallet", options: {}, I: Empty, O: Empty },
+    { name: "GetChimoneyDepositLink", options: {}, I: Amount, O: GetChimoneyDepositLinkResponse }
 ]);

@@ -167,6 +167,24 @@ service BackendService {
   rpc GetGatehubDepositWidget(Empty) returns (GatehubWidget);
   rpc GetGatehubWithdrawalWidget(Empty) returns (GatehubWidget);
   rpc CreateGatehubWithdrawal(CreateGatehubWithdrawalRequest) returns (CreateGatehubWithdrawalResponse);
+
+  // Chimoney
+  rpc SetChimoneyInterlocEmail(SetChimoneyInterlocEmailRequest) returns (ChimoneyInterlocEmail);
+  rpc GetChimoneyInterlocEmail(Empty) returns (ChimoneyInterlocEmail);
+  rpc CreateChimoneyWallet(Empty) returns (Empty);
+  rpc GetChimoneyDepositLink(Amount) returns (GetChimoneyDepositLinkResponse);
+}
+
+message GetChimoneyDepositLinkResponse {
+  string link = 1;
+}
+
+message ChimoneyInterlocEmail {
+  string email = 1;
+}
+
+message SetChimoneyInterlocEmailRequest {
+  string email = 1;
 }
 
 message CreateGatehubWithdrawalRequest {

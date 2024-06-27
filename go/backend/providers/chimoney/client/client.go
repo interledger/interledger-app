@@ -40,6 +40,10 @@ func (c *Client) AddInterlocEmail(ctx context.Context, walletID, email string) (
 	return ops.UpsertInteracEmail(ctx, c.b, walletID, email)
 }
 
+func (c *Client) GetInterlocEmail(ctx context.Context, walletID string) (string, error) {
+	return ops.GetInteracEmail(ctx, c.b, walletID)
+}
+
 func (c *Client) CreateDepositLink(ctx context.Context, walletID string, amt currency.Amount) (string, error) {
 	return ops.CreateDepositLink(ctx, c.b, c.external, walletID, amt)
 }
