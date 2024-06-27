@@ -351,12 +351,14 @@ func (a *Activity) CreateExternalBeneficiaries(ctx context.Context, bankAcc xago
 		Bic:           bankAcc.BIC,
 		AccountType:   "typeAccountNumber",
 		IdentityType:  external.IdentityTypeIndividual,
-		IsOwn:         false,
-		PersonaURL:    personaInquiryURL,
-		FirstName:     details.FirstName,
-		LastName:      details.LastName,
-		Email:         userList[0].Email,
-		MobileNumber:  userList[0].PhoneNumber,
+		KYCRequest: external.CreateBeneficiaryKYCRequest{
+			IsOwn: false,
+		},
+		PersonaURL:   personaInquiryURL,
+		FirstName:    details.FirstName,
+		LastName:     details.LastName,
+		Email:        userList[0].Email,
+		MobileNumber: userList[0].PhoneNumber,
 	}
 	if details.Address != nil {
 		reqStruct.BeneficiaryPhysicalAddress = details.Address.Line1
