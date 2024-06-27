@@ -42,10 +42,10 @@ type WithdrawalReq struct {
 }
 
 type Interacs struct {
-	Name      string `json:"name,omitempty"`
-	Email     string `json:"email,omitempty"`
-	Amount    int    `json:"amount,omitempty"`
-	Narration string `json:"narration,omitempty"`
+	Name      string  `json:"name,omitempty"`
+	Email     string  `json:"email,omitempty"`
+	Amount    float64 `json:"amount,omitempty"`
+	Narration string  `json:"narration,omitempty"`
 }
 
 type DepositReq struct {
