@@ -81,6 +81,117 @@ export class Empty extends Message<Empty> {
 }
 
 /**
+ * @generated from message backend.v1.GetChimoneyDepositLinkResponse
+ */
+export class GetChimoneyDepositLinkResponse extends Message<GetChimoneyDepositLinkResponse> {
+  /**
+   * @generated from field: string link = 1;
+   */
+  link = "";
+
+  constructor(data?: PartialMessage<GetChimoneyDepositLinkResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.GetChimoneyDepositLinkResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "link", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetChimoneyDepositLinkResponse {
+    return new GetChimoneyDepositLinkResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetChimoneyDepositLinkResponse {
+    return new GetChimoneyDepositLinkResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetChimoneyDepositLinkResponse {
+    return new GetChimoneyDepositLinkResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetChimoneyDepositLinkResponse | PlainMessage<GetChimoneyDepositLinkResponse> | undefined, b: GetChimoneyDepositLinkResponse | PlainMessage<GetChimoneyDepositLinkResponse> | undefined): boolean {
+    return proto3.util.equals(GetChimoneyDepositLinkResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.ChimoneyInterlocEmail
+ */
+export class ChimoneyInterlocEmail extends Message<ChimoneyInterlocEmail> {
+  /**
+   * @generated from field: string email = 1;
+   */
+  email = "";
+
+  constructor(data?: PartialMessage<ChimoneyInterlocEmail>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.ChimoneyInterlocEmail";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "email", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChimoneyInterlocEmail {
+    return new ChimoneyInterlocEmail().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ChimoneyInterlocEmail {
+    return new ChimoneyInterlocEmail().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ChimoneyInterlocEmail {
+    return new ChimoneyInterlocEmail().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ChimoneyInterlocEmail | PlainMessage<ChimoneyInterlocEmail> | undefined, b: ChimoneyInterlocEmail | PlainMessage<ChimoneyInterlocEmail> | undefined): boolean {
+    return proto3.util.equals(ChimoneyInterlocEmail, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.SetChimoneyInterlocEmailRequest
+ */
+export class SetChimoneyInterlocEmailRequest extends Message<SetChimoneyInterlocEmailRequest> {
+  /**
+   * @generated from field: string email = 1;
+   */
+  email = "";
+
+  constructor(data?: PartialMessage<SetChimoneyInterlocEmailRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.SetChimoneyInterlocEmailRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "email", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SetChimoneyInterlocEmailRequest {
+    return new SetChimoneyInterlocEmailRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SetChimoneyInterlocEmailRequest {
+    return new SetChimoneyInterlocEmailRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SetChimoneyInterlocEmailRequest {
+    return new SetChimoneyInterlocEmailRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SetChimoneyInterlocEmailRequest | PlainMessage<SetChimoneyInterlocEmailRequest> | undefined, b: SetChimoneyInterlocEmailRequest | PlainMessage<SetChimoneyInterlocEmailRequest> | undefined): boolean {
+    return proto3.util.equals(SetChimoneyInterlocEmailRequest, a, b);
+  }
+}
+
+/**
  * @generated from message backend.v1.CreateGatehubWithdrawalRequest
  */
 export class CreateGatehubWithdrawalRequest extends Message<CreateGatehubWithdrawalRequest> {
