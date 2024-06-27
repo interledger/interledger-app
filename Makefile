@@ -20,5 +20,8 @@ devdown:
 	(cd ./dev/vagrant && vagrant destroy)
 	@echo "Done."
 
+devssh:
+	(cd ./dev/vagrant && vagrant ssh)
+
 localwallet:
 	FYNBOS_ENV=local go run go/backend/cli/dev/main.go make wallet -k -l

@@ -12,6 +12,19 @@ job "temporal" {
       port "temporal" {
         to = 7233
       }
+
+      port "ui" {
+        to = 8233
+      }
+    }
+
+    service {
+      name = "temporalui"
+      port = "ui"
+      tags = [
+        "traefik.enable=true",
+        "traefik.http.routers.temporalui.rule=Host(`temporal.mgnt.fynbos.test`)"
+      ]
     }
 
     service {

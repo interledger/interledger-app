@@ -106,15 +106,37 @@ job "backend" {
       }
     }
 
-    task "backend-migrations" {
+    task "mod-download" {
       driver = "docker"
-      kill_timeout = "120s"
 
       config {
         image = "localhost:5002/backend"
-        entrypoint = ["air"]
+        entrypoint = ["/bin/sh"]
+        args =  ["-c", "go mod download && go install github.com/air-verse/air@latest"]
+        volumes = [
+          "/home/vagrant/fynbos/go:/build",
+          "${NOMAD_ALLOC_DIR}/go:/go"
+        ]
+      }
+
+      lifecycle {
+        hook = "prestart"
+        sidecar = false
+      }
+    }
+
+    task "backend-migrations" {
+      driver = "docker"
+
+      config {
+        image = "localhost:5002/backend"
+        entrypoint = ["/go/bin/air"]
         args =  ["--build.poll", "true", "--build.include_ext", "hcl", "--build.cmd", "go build -o /local/main /build/backend/main.go", "--build.bin", "/local/main migrate"]
-        volumes = ["/home/vagrant/fynbos/go:/build"]
+        volumes = [
+          "/home/vagrant/fynbos/go:/build",
+          "${NOMAD_ALLOC_DIR}/go:/go",
+          "${NOMAD_ALLOC_DIR}/go/cache:/root/.cache/go-build"
+        ]
       }
 
       env {
@@ -126,8 +148,7 @@ job "backend" {
       }
 
       resources {
-        cpu    = 512
-        memory = 1024
+        memory_max = 750
       }
     }
 
@@ -136,9 +157,13 @@ job "backend" {
 
       config {
         image = "localhost:5002/backend"
-        entrypoint = ["air"]
-        args =  ["--build.poll", "true", "--build.cmd", "go build -o /local/main /build/backend/main.go", "--build.bin", "/local/main start"]
-        volumes = ["/home/vagrant/fynbos/go:/build"]
+        entrypoint = ["/go/bin/air"]
+        args =  ["--build.poll", "true", "--build.cmd", "go build -o /local/main /build/backend/main.go", "--build.bin", "/local/main dev"]
+        volumes = [
+          "/home/vagrant/fynbos/go:/build",
+          "${NOMAD_ALLOC_DIR}/go:/go",
+          "${NOMAD_ALLOC_DIR}/go/cache:/root/.cache/go-build"
+        ]
       }
 
       env {
@@ -167,49 +192,7 @@ job "backend" {
       }
 
       resources {
-        cpu    = 512
-        memory = 1024
-      }   
-    }
-
-    task "worker" {
-      driver = "docker"
-
-      config {
-        image = "localhost:5002/backend"
-        entrypoint = ["air"]
-        args =  ["--build.poll", "true", "--build.cmd", "go build -o /local/main /build/backend/main.go", "--build.bin", "/local/main worker"]
-        volumes = ["/home/vagrant/fynbos/go:/build"]
-      }
-
-      env {
-        FYNBOS_ENV = "local"
-        DB_URL_WITH_CERTS = "postgres://postgres:password@localhost:5432/backend?sslmode=disable"
-        DB_URL = "postgres://postgres:password@localhost:5432/backend?sslmode=disable"
-        PACIOLI_DB_URL_WITH_CERTS = "postgres://postgres:password@localhost:5432/pacioli?sslmode=disable"
-        PACIOLI_DB_URL = "postgres://postgres:password@localhost:5432/pacioli?sslmode=disable"
-        KRATOS_URL = "http://localhost:4433"
-        KRATOS_ADMIN_URL = "http://localhost:4434"
-        LOG_LEVEL = "info"
-        USD_LEDGER_ID = "1"
-        NOOP_EQUITY_ACCOUNT_ID = "43d4b2bd-e29b-4a63-9aa8-7990776c714e"
-        GOOGLE_OUATH2_CLIENT_ID = "google_oauth"
-        RAFIKI_GRAPHQL_URL = "http://rafiki.rafiki/graphql"
-        TEMPORAL_URL = "localhost:7233"
-        ENV_FILE = ""
-        TWILIO_ACCOUNT_SID = "SK021f793191208ba69c3bea87dd426085"
-        TWILIO_SERVICE_SID = "VA8af4e130da63b9fac4c042acbc33a267"
-        TWILIO_ACCOUNT_TOKEN = "test"
-        ZENDESK_USER = "matt@fynbos.dev"
-        ZENDESK_TOKEN = "test"
-        OTEL_EXPORTER_OTLP_ENDPOINT = "grpc://api.honeycomb.io:443"
-        OTEL_EXPORTER_OTLP_HEADERS = "x-honeycomb-team=7Qskhns7Dc7wgazrDe6yZD"
-        OTEL_SERVICE_NAME = "backend"
-      }
-
-      resources {
-        cpu    = 512
-        memory = 1024
+        memory_max = 750
       }
     }
 

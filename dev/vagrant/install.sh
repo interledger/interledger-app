@@ -231,7 +231,7 @@ function install_nomad () {
 	sudo chmod 640 /etc/nomad.d/nomad.hcl
 
 	cat << NOMADCONFIG | sudo tee /etc/nomad.d/server.hcl
-data_dir  = "/data/live/nomad/data"
+data_dir  = "/opt/nomad/data"
 
 bind_addr = "0.0.0.0"
 

@@ -22,6 +22,7 @@ job "postgres" {
       mode = "bridge"
       port "postgres" {
         to = 5432
+        static = 7432
       }
     }
 
@@ -36,12 +37,6 @@ job "postgres" {
     task "postgres" {
       driver = "docker"
 
-      volume_mount {
-        volume = "postgres"
-        destination = "/var/lib/postgresql"
-        read_only = false
-      }
-
       template {
         data = <<EOH
           POSTGRES_USER=postgres
@@ -54,40 +49,26 @@ job "postgres" {
 
       template {
         data = <<EOH
-          -- Create an ADMIN user
-          CREATE ROLE roach WITH LOGIN SUPERUSER PASSWORD 'roach';
-
-          -- Create Kratos user and DB
           CREATE DATABASE kratos;
-          CREATE USER kratos;
-          GRANT ALL ON DATABASE kratos TO kratos;
-
-          -- Create backend user and DB
           CREATE DATABASE backend;
-          CREATE USER backend;
-          GRANT ALL ON DATABASE backend TO backend;
-
-          -- Create pacioli user and DB
-          CREATE DATABASE  pacioli;
-          CREATE USER pacioli;
-          GRANT ALL ON DATABASE pacioli TO backend;
-          
-          -- Create temporal user and DB
-          CREATE USER temporal;
+          CREATE DATABASE pacioli;
           CREATE DATABASE temporal;
-          GRANT ALL ON DATABASE temporal TO temporal;
           CREATE DATABASE temporal_visibility;
-          GRANT ALL ON DATABASE temporal_visibility TO temporal;
+          CREATE DATABASE rafiki_backend;
+          CREATE DATABASE rafiki_auth;
         EOH
 
-        destination = "$NOMAD_TASK_DIR/init-user-db.sql"
+        destination = "local/init-user-db.sql"
         env = false
       }
 
       config {
         image = "postgres:16.1"
 
-        volumes = ["$NOMAD_TASK_DIR:/docker-entrypoint-initdb.d"]
+        volumes = [
+          "local/init-user-db.sql:/docker-entrypoint-initdb.d/init-user-db.sql",
+          "/opt/nomad/data/volume/postgres:/var/lib/postgresql/data"
+        ]
       }
 
       resources {
