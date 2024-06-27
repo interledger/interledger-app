@@ -64,31 +64,35 @@ type SubAccountReq struct {
 }
 
 type CreateBeneficiaryReq struct {
-	Name                       string `json:"name,omitempty"`
-	Scope                      string `json:"scope,omitempty"`
-	CurrencyCode               string `json:"currencyCode,omitempty"`
-	AccountNumber              string `json:"accountNumber,omitempty"`
-	BranchCode                 string `json:"branchCode,omitempty"`
-	BankName                   string `json:"bankName,omitempty"`
-	BankCountry                string `json:"bankCountry,omitempty"`
-	AccountName                string `json:"accountName,omitempty"`
-	Reference                  string `json:"reference,omitempty"`
-	Iban                       string `json:"IBAN,omitempty"`
-	Bic                        string `json:"BIC,omitempty"`
-	BeneficiaryPhysicalAddress string `json:"beneficiaryPhysicalAddress,omitempty"`
-	BeneficiaryDistrict        string `json:"beneficiaryDistrict,omitempty"`
-	BeneficiaryCity            string `json:"beneficiaryCity,omitempty"`
-	BeneficiaryCountry         string `json:"beneficiaryCountry,omitempty"`
-	BeneficiaryPostalCode      string `json:"beneficiaryPostalCode,omitempty"`
-	BeneficiaryAddress         string `json:"beneficiaryAddress,omitempty"`
-	AccountType                string `json:"accountType,omitempty"`
-	FirstName                  string `json:"firstName,omitempty"`
-	LastName                   string `json:"lastName,omitempty"`
-	Email                      string `json:"email,omitempty"`
-	MobileNumber               string `json:"mobileNumber,omitempty"`
-	PersonaURL                 string `json:"thirdPartyVerificationUrl,omitempty"`
-	IdentityType               string `json:"identityType,omitempty"`
-	IsOwn                      bool   `json:"isOwn"`
+	Name                       string                      `json:"name,omitempty"`
+	Scope                      string                      `json:"scope,omitempty"`
+	CurrencyCode               string                      `json:"currencyCode,omitempty"`
+	AccountNumber              string                      `json:"accountNumber,omitempty"`
+	BranchCode                 string                      `json:"branchCode,omitempty"`
+	BankName                   string                      `json:"bankName,omitempty"`
+	BankCountry                string                      `json:"bankCountry,omitempty"`
+	AccountName                string                      `json:"accountName,omitempty"`
+	Reference                  string                      `json:"reference,omitempty"`
+	Iban                       string                      `json:"IBAN,omitempty"`
+	Bic                        string                      `json:"BIC,omitempty"`
+	BeneficiaryPhysicalAddress string                      `json:"beneficiaryPhysicalAddress,omitempty"`
+	BeneficiaryDistrict        string                      `json:"beneficiaryDistrict,omitempty"`
+	BeneficiaryCity            string                      `json:"beneficiaryCity,omitempty"`
+	BeneficiaryCountry         string                      `json:"beneficiaryCountry,omitempty"`
+	BeneficiaryPostalCode      string                      `json:"beneficiaryPostalCode,omitempty"`
+	BeneficiaryAddress         string                      `json:"beneficiaryAddress,omitempty"`
+	AccountType                string                      `json:"accountType,omitempty"`
+	FirstName                  string                      `json:"firstName,omitempty"`
+	LastName                   string                      `json:"lastName,omitempty"`
+	Email                      string                      `json:"email,omitempty"`
+	MobileNumber               string                      `json:"mobileNumber,omitempty"`
+	PersonaURL                 string                      `json:"thirdPartyVerificationUrl,omitempty"`
+	IdentityType               string                      `json:"identityType,omitempty"`
+	KYCRequest                 CreateBeneficiaryKYCRequest `json:"kycReqeust"`
+}
+
+type CreateBeneficiaryKYCRequest struct {
+	IsOwn bool `json:"isOwn"`
 }
 
 type CreateBeneficiaryResp struct {
