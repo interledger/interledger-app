@@ -37,9 +37,13 @@ func (c *Client) CreateWallet(ctx context.Context, walletID string) (chimoney.Aw
 }
 
 func (c *Client) AddInterlocEmail(ctx context.Context, walletID, email string) (string, error) {
-	return ops.UpsertInterlocEmail(ctx, c.b, walletID, email)
+	return ops.UpsertInteracEmail(ctx, c.b, walletID, email)
 }
 
 func (c *Client) CreateDepositLink(ctx context.Context, walletID string, amt currency.Amount) (string, error) {
 	return ops.CreateDepositLink(ctx, c.b, c.external, walletID, amt)
+}
+
+func (c *Client) Withdraw(ctx context.Context, walletID string, amt currency.Amount) error {
+	return ops.Withdraw(ctx, c.b, c.external, walletID, amt)
 }

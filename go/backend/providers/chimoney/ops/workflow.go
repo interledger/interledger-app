@@ -81,12 +81,17 @@ func (a *Activity) CreateChimoneyWallet(ctx context.Context, walletID string) (s
 		return "", fmt.Errorf("%w %s", chimoney.ErrInternal, err)
 	}
 
+	email, err := GetInteracEmail(ctx, a.b, walletID)
+	if err != nil {
+		return "", err
+	}
+
 	exID, err := a.external.CreateWallet(ctx, external.CreateWalletReq{
 		Name:        userInfo.FirstName + " " + userInfo.LastName,
 		Email:       ul[0].Email,
 		FirstName:   userInfo.FirstName,
 		LastName:    userInfo.LastName,
-		PhoneNumber: ul[0].Email,
+		PhoneNumber: email,
 	})
 	if err != nil {
 		return "", fmt.Errorf("%w %s", chimoney.ErrInternal, err)

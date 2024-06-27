@@ -15,6 +15,12 @@ import (
 )
 
 func CreateWallet(ctx context.Context, b Backends, walletID string) (chimoney.Await, error) {
+	// Check that user has an interac email before beginning workflow
+	_, err := GetInteracEmail(ctx, b, walletID)
+	if err != nil {
+		return nil, err
+	}
+
 	wo := client.StartWorkflowOptions{
 		ID:                    "chimoney_create_wallet_" + walletID,
 		TaskQueue:             "backend",
@@ -51,7 +57,7 @@ func CreateWallet(ctx context.Context, b Backends, walletID string) (chimoney.Aw
 	return await.Get, nil
 }
 
-func UpsertInterlocEmail(ctx context.Context, b Backends, walletID, email string) (string, error) {
+func UpsertInteracEmail(ctx context.Context, b Backends, walletID, email string) (string, error) {
 	var mail string
 	err := b.DB().GetContext(ctx, &mail, `INSERT INTO chi_money_interac_emails (wallet_id, email)
 		VALUES ($1, $2)
@@ -66,7 +72,7 @@ func UpsertInterlocEmail(ctx context.Context, b Backends, walletID, email string
 	return mail, nil
 }
 
-func CreateDepositLink(ctx context.Context, b Backends, ex external.Client, walletID string, amt currency.Amount) (string, error) {
+func GetInteracEmail(ctx context.Context, b Backends, walletID string) (string, error) {
 	var email string
 	err := b.DB().GetContext(ctx, &email, "SELECT email FROM chi_money_interac_emails WHERE wallet_id=$1", walletID)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -76,8 +82,23 @@ func CreateDepositLink(ctx context.Context, b Backends, ex external.Client, wall
 		return "", fmt.Errorf("%w %s", chimoney.ErrNotFound, err)
 	}
 
+	return email, nil
+}
+
+func CreateDepositLink(ctx context.Context, b Backends, ex external.Client, walletID string, amt currency.Amount) (string, error) {
+	email, err := GetInteracEmail(ctx, b, walletID)
+	if err != nil {
+		return "", err
+	}
+
 	var chiWallet string
 	err = b.DB().GetContext(ctx, &chiWallet, "SELECT external_id FROM chi_money_wallets WHERE wallet_id=$1", walletID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", fmt.Errorf("%w no chimoney wallet found for user", chimoney.ErrNotFound)
+	}
+	if err != nil {
+		return "", chimoney.ErrInternal
+	}
 
 	resp, err := ex.Deposit(ctx, external.DepositReq{
 		Amount:               amt.FormatAmount(),
@@ -91,4 +112,42 @@ func CreateDepositLink(ctx context.Context, b Backends, ex external.Client, wall
 	}
 
 	return resp.PaymentLink, nil
+}
+
+func Withdraw(ctx context.Context, b Backends, ex external.Client, walletID string, amt currency.Amount) error {
+	var chiWallet string
+	err := b.DB().GetContext(ctx, &chiWallet, "SELECT external_id FROM chi_money_wallets WHERE wallet_id=$1", walletID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return fmt.Errorf("%w no chimoney wallet found for user", chimoney.ErrNotFound)
+	}
+	if err != nil {
+		return chimoney.ErrInternal
+	}
+
+	email, err := GetInteracEmail(ctx, b, walletID)
+	if err != nil {
+		return err
+	}
+
+	userInfo, err := b.KYC().GetIndividualDetails(ctx, walletID)
+	if err != nil {
+		return fmt.Errorf("%w %s", chimoney.ErrInternal, err)
+	}
+
+	err = ex.Withdraw(ctx, external.WithdrawalReq{
+		DebitCurrency:       amt.Currency.String(),
+		SubAccount:          chiWallet,
+		TurnOffNotification: true,
+		Interacs: []external.Interacs{{
+			Name:      userInfo.FirstName + " " + userInfo.LastName,
+			Email:     email,
+			Amount:    amt.Float64(),
+			Narration: "Fynbos wallet withdrawal",
+		}},
+	})
+	if err != nil {
+		return fmt.Errorf("%w %s", chimoney.ErrInternal, err)
+	}
+
+	return nil
 }
