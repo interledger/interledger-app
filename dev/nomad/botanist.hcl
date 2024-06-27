@@ -10,6 +10,9 @@ job "botanist" {
       port "http" {
         to = 3000
       }
+      port "websocket" {
+        to = 8002
+      }
     }
 
     volume "botanist" {
@@ -29,7 +32,7 @@ job "botanist" {
       check {    
         type     = "http"
         port     = "http"
-        path     = "/"
+        path     = "/healthz"
         interval = "5s"
         timeout  = "2s"
       }
@@ -50,6 +53,15 @@ job "botanist" {
       }
     }
 
+    service {
+      name = "botanist-ws"
+      port = "websocket"
+      tags = [
+        "traefik.enable=true",
+        "traefik.http.routers.botanist-ws.rule=Host(`admin.mgnt.fynbos.test`) && PathPrefix(`/socket`)"
+      ]
+    }
+
     task "botanist" {
       driver = "docker"
 
@@ -65,7 +77,7 @@ job "botanist" {
       }
 
       resources {
-        memory = 512
+        memory = 1024
       }
     }
   }

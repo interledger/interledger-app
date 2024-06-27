@@ -1,47 +1,31 @@
 # Fynbos
 
-## Local Dev
+### Create local dev environment
 
-Below is roughly how local dev works. This document will be updated as the process evolves. Generally
-you will only need to run the Create Cluster and Initialize Services once or when new configs are added.
-
-
-### Update Host File
-
-Ensure you have updated your host (`/etc/hosts`) to point `fynbos.test` to `127.0.0.1`
-
+This spins up a Nomad and Consul deployment in a VM using VirtualBox and Vagrant.
 ```shell
-127.0.0.1      fynbos.test
+make devup
 ```
 
-### Create local cluster
+### Delete local dev environment
 
-To create the local Kind cluster and registry run the following command
+To delete the local environment run the following command
 ```shell
-make kindup
+make devdown
 ```
 
-### Delete local cluster
+### Rerunning deployment 
 
-To delete the local Kind cluster and registry run the following command
+To deploy all the services or when deployment config has changed, run
 ```shell
-make kinddown
+make devdeploy
 ```
+*NB!* Sometimes the files on your host are not mounted into the VM. This often appears
+as a file not found error. Rerun `make devdeploy` or `(cd dev/vagrant && vagrant reload)`.
 
-### Initialize services 
+### SSH into dev environment
 
-To initialize all the services within the cluster run 
+To ssh into the vagrant VM, run
 ```shell
-make kindpulumiup
+make devssh
 ```
-
-This will run a local pulumi instance to deploy all services to the cluster
-
-### Run Tilt
-
-To run Tilt for your local inner dev loop run
-
-```shell
-make tiltup
-```
-

@@ -26,11 +26,17 @@ function build_docker_images () {
 	docker push ${REGISTRY}/botanist
 
 	echo "Building backend image..."
-	docker build -t ${REGISTRY}/backend --target=builder -f ${REPO}/go/backend/Dockerfile ${REPO}/go
+	docker build -t ${REGISTRY}/backend --target=base -f ${REPO}/go/backend/Dockerfile ${REPO}/go
 	docker push ${REGISTRY}/backend
 }
 
 function deploy () {
+	  # allow memory over subscription
+	sudo apt install -y jq
+	curl -s http://localhost:4646/v1/operator/scheduler/configuration | \
+	  jq '.SchedulerConfig | .MemoryOversubscriptionEnabled=true' | \
+	  curl -X PUT http://localhost:4646/v1/operator/scheduler/configuration -d @-
+	
 	cd $REPO/dev/nomad
 	nomad job run -detach postgres.hcl
 	nomad job run -detach redis.hcl

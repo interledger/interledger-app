@@ -33,7 +33,7 @@ job "protea" {
       check {    
         type     = "http"
         port     = "http"
-        path     = "/"
+        path     = "/healthz"
         interval = "5s"
         timeout  = "2s"
       }
@@ -96,7 +96,7 @@ job "protea" {
       }
 
       resources {
-        memory = 512
+        memory = 1024
       }
     }
   }
