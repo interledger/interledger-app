@@ -69,6 +69,8 @@ import (
 	astra_client "gitlab.com/fynbos/backend/providers/astra/client"
 	"gitlab.com/fynbos/backend/providers/basistheory"
 	bt_client "gitlab.com/fynbos/backend/providers/basistheory/client"
+	"gitlab.com/fynbos/backend/providers/chimoney"
+	chimoney_client "gitlab.com/fynbos/backend/providers/chimoney/client"
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	gatehub_client "gitlab.com/fynbos/backend/providers/gatehub/client"
 	gatehub_ops "gitlab.com/fynbos/backend/providers/gatehub/ops"
@@ -343,6 +345,12 @@ func migrate(args *cli.MigrationArgs) {
 			Asset: currency.EUR.String(),
 			Scale: uint8(currency.EUR.Scale()),
 		},
+		{
+			ID:    chimoney.LedgerIDCAD,
+			Name:  "Gatehub CAD Ledger",
+			Asset: currency.CAD.String(),
+			Scale: uint8(currency.CAD.Scale()),
+		},
 	})
 	if err != nil {
 		log.Fatalln(err)
@@ -385,6 +393,13 @@ func migrate(args *cli.MigrationArgs) {
 		{
 			ID:                         gatehub.EUROpsAccount,
 			LedgerID:                   gatehub.LedgerIDEUR,
+			Code:                       1,
+			DebitsMustNotExceedCredits: false,
+			CreditsMustNotExceedDebits: false,
+		},
+		{
+			ID:                         chimoney.CADOpsAccount,
+			LedgerID:                   chimoney.LedgerIDCAD,
 			Code:                       1,
 			DebitsMustNotExceedCredits: false,
 			CreditsMustNotExceedDebits: false,
@@ -470,6 +485,11 @@ type backends struct {
 	pti            pti.Client
 	astr           astra.Client
 	gatehub        gatehub.Client
+	chimoney       chimoney.Client
+}
+
+func (b backends) Chimoney() chimoney.Client {
+	return b.chimoney
 }
 
 func (b backends) Gatehub() gatehub.Client {
@@ -782,6 +802,8 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	b.pti = pti_client.New(b)
 
 	b.gatehub = gatehub_client.New(b)
+
+	b.chimoney = chimoney_client.New(b)
 
 	return b
 }

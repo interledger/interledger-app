@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"gitlab.com/fynbos/backend/providers/chimoney"
 	"strings"
 	"time"
 
@@ -299,7 +300,8 @@ func ListBalances(ctx context.Context, b Backends, walletID string) ([]linkedacc
 	for _, la := range las {
 		if (la.Provider == pti.ProviderName && la.Type == pti.AccTypeBalance) ||
 			(la.Provider == xago.ProviderName && la.Type == xago.AccTypeBalance) ||
-			(la.Provider == gatehub.ProviderName && la.Type == gatehub.AccTypeBalance) {
+			(la.Provider == gatehub.ProviderName && la.Type == gatehub.AccTypeBalance) ||
+			(la.Provider == chimoney.ProviderName && la.Type == chimoney.AccTypeBalance) {
 			ret = append(ret, la)
 		}
 	}

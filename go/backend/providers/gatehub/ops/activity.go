@@ -169,7 +169,7 @@ func (a *Activity) CreateGatehubBalanceAccount(ctx context.Context, id string) e
 	}
 
 	if accs[0].Code != pacioli.AccountOK && accs[0].Code != pacioli.AccountExists {
-		return fmt.Errorf("%w failed to setup account status(%s)", pti.ErrInternal, accs[0].Code)
+		return fmt.Errorf("%w failed to setup account status(%s)", gatehub.ErrInternal, accs[0].Code)
 	}
 
 	return nil

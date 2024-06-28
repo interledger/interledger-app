@@ -2,10 +2,11 @@ package currency
 
 import (
 	"fmt"
-	adminv1 "gitlab.com/fynbos/proto/backend/admin/v1"
 	"math"
 	"strconv"
 	"strings"
+
+	adminv1 "gitlab.com/fynbos/proto/backend/admin/v1"
 
 	"gitlab.com/fynbos/backend/country"
 	pb "gitlab.com/fynbos/proto/backend/v1"
@@ -76,6 +77,7 @@ const (
 	JPY Currency = "JPY"
 	GBP Currency = "GBP"
 	INR Currency = "INR"
+	CAD Currency = "CAD"
 )
 
 var currencyScale = map[Currency]int{
@@ -85,6 +87,7 @@ var currencyScale = map[Currency]int{
 	JPY: 0,
 	GBP: 2,
 	INR: 2,
+	CAD: 2,
 }
 
 var currencyFormat = map[Currency]string{
@@ -94,6 +97,7 @@ var currencyFormat = map[Currency]string{
 	JPY: "%s ¥",
 	GBP: "£ %s",
 	INR: "₹ %s",
+	CAD: "$ %s",
 }
 
 var iso4217 = map[Currency]string{
@@ -103,6 +107,7 @@ var iso4217 = map[Currency]string{
 	JPY: "392",
 	GBP: "826",
 	INR: "356",
+	CAD: "124",
 }
 
 var iso4217Currency = map[string]Currency{
@@ -112,6 +117,7 @@ var iso4217Currency = map[string]Currency{
 	"392": JPY,
 	"826": GBP,
 	"356": INR,
+	"124": CAD,
 }
 
 type Amount struct {
