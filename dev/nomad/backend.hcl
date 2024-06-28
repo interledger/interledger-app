@@ -93,14 +93,18 @@ job "backend" {
               destination_name = "temporal"
               local_bind_port = 7233
             }
-            # upstreams {
-            #   destination_name = "dev-rafiki-auth-admin"
-            #   local_bind_port = 3003
-            # }
-            # upstreams {
-            #   destination_name = "dev-rafiki-backend-admin"
-            #   local_bind_port = 3001
-            # }
+            upstreams {
+              destination_name = "mockbos"
+              local_bind_port = 9080
+            }
+            upstreams {
+              destination_name = "rafiki-auth-admin"
+              local_bind_port = 3003
+            }
+            upstreams {
+              destination_name = "rafiki-backend-admin"
+              local_bind_port = 3001
+            }
           }
         }
       }

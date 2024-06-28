@@ -6,6 +6,8 @@ ARG BUILDARCH
 RUN wget -qO/bin/atlas https://release.ariga.io/atlas/atlas-linux-${BUILDARCH}-v0.15.0 && \
 	chmod +x /bin/atlas
 
+RUN go install github.com/air-verse/air@latest
+
 # Fetch dependencies.
 COPY go.mod go.sum ./
 RUN go mod download

@@ -56,6 +56,7 @@ job "postgres" {
           CREATE DATABASE temporal_visibility;
           CREATE DATABASE rafiki_backend;
           CREATE DATABASE rafiki_auth;
+          CREATE DATABASE mockbos;
         EOH
 
         destination = "local/init-user-db.sql"
