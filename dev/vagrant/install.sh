@@ -288,6 +288,8 @@ plugin "docker" {
     volumes {
     	enabled = true
     }
+
+    allow_privileged = true
   }
 }
 

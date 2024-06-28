@@ -28,6 +28,25 @@ function build_docker_images () {
 	echo "Building backend image..."
 	docker build -t ${REGISTRY}/backend --target=base -f ${REPO}/go/backend/Dockerfile ${REPO}/go
 	docker push ${REGISTRY}/backend
+
+	echo "Building mockbos image..."
+	docker build -t ${REGISTRY}/mockbos --target=base -f ${REPO}/go/mockbos/Dockerfile ${REPO}/go
+	docker push ${REGISTRY}/mockbos
+
+	echo "Pulling rafiki backend"
+	docker pull ghcr.io/interledger/rafiki-backend:v1.0.0-alpha.11
+	docker tag ghcr.io/interledger/rafiki-backend:v1.0.0-alpha.11 localhost:5002/rafiki-backend
+	docker push localhost:5002/rafiki-backend
+
+	echo "Pulling rafiki auth"
+	docker pull ghcr.io/interledger/rafiki-auth:v1.0.0-alpha.11
+	docker tag ghcr.io/interledger/rafiki-auth:v1.0.0-alpha.11 localhost:5002/rafiki-auth
+	docker push localhost:5002/rafiki-auth
+
+	echo "Pulling rafiki frontend"
+	docker pull ghcr.io/interledger/rafiki-frontend:v1.0.0-alpha.9
+	docker tag ghcr.io/interledger/rafiki-frontend:v1.0.0-alpha.9 localhost:5002/rafiki-frontend
+	docker push localhost:5002/rafiki-frontend
 }
 
 function deploy () {
@@ -43,8 +62,10 @@ function deploy () {
 	nomad job run -detach temporal.hcl
 	nomad job run -detach kratos.hcl
 	nomad job run -detach backend.hcl
+	nomad job run -detach mockbos.hcl
 	nomad job run -detach protea.hcl
 	nomad job run -detach botanist.hcl
+	nomad job run -detach rafiki.hcl
 	nomad job run -detach traefik.hcl
 }
 
