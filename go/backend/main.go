@@ -156,6 +156,17 @@ func main() {
 			log.Fatalln(err)
 		}
 		startWorker(args)
+	case "dev":
+		args, err := cli.ParseStartArgs()
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		go func() {
+			startWorker(args)
+		}()
+
+		start(args)
 	default:
 		log.Fatal("Unknown command:", zap.String("command", command))
 	}
