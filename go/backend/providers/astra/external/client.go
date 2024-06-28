@@ -97,10 +97,10 @@ func New(transport *http.Client) Client {
 		secureBaseURL = "https://secure.api.astra.finance/v1"
 		institutionID = "astra_ins_131" // TODO
 	} else if env.IsLocal() {
-		baseURL = "http://mockbos.mockbos/astra/v1"
-		secureBaseURL = "http://mockbos.mockbos/astra/v1"
+		baseURL = "http://localhost:9080/astra/v1"
+		secureBaseURL = "http://localhost:9080/astra/v1"
 		institutionID = "astra_ins_131" // TODO
-		basisTheoryProxyUrl = "http://mockbos.mockbos/basistheory"
+		basisTheoryProxyUrl = "http://localhost:9080/basistheory"
 	}
 
 	if transport == nil {
