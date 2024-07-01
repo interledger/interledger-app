@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/jmoiron/sqlx"
+	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/user"
@@ -20,6 +21,8 @@ type Backends interface {
 	Wallets() wallets.Client
 	Pacioli() pacioli.Client
 	KYC() kyc.Client
+	Transactions() transactions.Client
+	Email() email.Client
 }
 
 type TestBackends struct {
@@ -52,6 +55,14 @@ func (t TestBackends) KYC() kyc.Client {
 
 func (t TestBackends) DB() *sqlx.DB {
 	return t.DBC
+}
+
+func (t TestBackends) Transactions() transactions.Client {
+	return nil
+}
+
+func (t TestBackends) Email() email.Client {
+	return nil
 }
 
 func NewTestBackends(_ *testing.T, opts ...func(*TestBackends)) Backends {

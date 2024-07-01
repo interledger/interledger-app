@@ -147,6 +147,55 @@ func Withdraw(ctx context.Context, b Backends, ex external.Client, walletID stri
 	return nil
 }
 
+func CreateWithdrawal(ctx context.Context, b Backends, walletID string, amount currency.Amount) (chimoney.Await, error) {
+	// Check that user has a chimoney wallet before beginning workflow
+	_, err := GetChiWallet(ctx, b, walletID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check that user has an interac email before beginning workflow
+	_, err = GetInteracEmail(ctx, b, walletID)
+	if err != nil {
+		return nil, err
+	}
+
+	wo := client.StartWorkflowOptions{
+		ID:                    "chimoney_create_withdrawal_" + walletID + "_" + amount.FormatAmount(),
+		TaskQueue:             "backend",
+		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+	}
+
+	var workflowStatus enums.WorkflowExecutionStatus
+	wflow, err := b.Temporal().DescribeWorkflowExecution(ctx, wo.ID, "")
+	switch err.(type) {
+	case *serviceerror.Internal,
+		*serviceerror.Unavailable,
+		*serviceerror.InvalidArgument:
+		return nil, fmt.Errorf("%w %s", chimoney.ErrInternal, err)
+	case *serviceerror.NotFound:
+		// do nothing
+	default:
+		if wflow != nil {
+			workflowStatus = wflow.GetWorkflowExecutionInfo().Status
+		}
+	}
+
+	// return workflow if it's running
+	var await client.WorkflowRun
+	var executeErr error
+	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
+		await = b.Temporal().GetWorkflow(ctx, wo.ID, "")
+	} else {
+		await, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, CreateChimoneyWithdrawalWorkflow, walletID, amount)
+	}
+	if executeErr != nil {
+		return nil, fmt.Errorf("%w %s", chimoney.ErrInternal, err)
+	}
+
+	return await.Get, nil
+}
+
 func GetChiWallet(ctx context.Context, b Backends, walletID string) (string, error) {
 	var chiWallet string
 	err := b.DB().GetContext(ctx, &chiWallet, "SELECT external_id FROM chi_money_wallets WHERE wallet_id=$1", walletID)
