@@ -472,6 +472,8 @@ func (a *Activity) RollbackBalance(ctx context.Context, paymentID string) error 
 		err = a.b.PTI().RollbackReserve(ctx, p.SendTransactionID)
 	} else if la.Provider == gatehub.ProviderName {
 		err = a.b.Gatehub().RollbackReserve(ctx, p.SendTransactionID)
+	} else if la.Provider == chimoney.ProviderName {
+		err = a.b.Chimoney().RollbackReserve(ctx, p.SendTransactionID)
 	}
 
 	return err
