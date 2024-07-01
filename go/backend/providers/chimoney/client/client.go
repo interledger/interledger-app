@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/providers/chimoney"
@@ -50,4 +51,24 @@ func (c *Client) CreateDepositLink(ctx context.Context, walletID string, amt cur
 
 func (c *Client) Withdraw(ctx context.Context, walletID string, amt currency.Amount) error {
 	return ops.Withdraw(ctx, c.b, c.external, walletID, amt)
+}
+
+func (c *Client) ReserveBalance(ctx context.Context, linkedAccountID, txID string, amt currency.Amount, timeout time.Duration) (*chimoney.Balance, error) {
+	return ops.ReserveBalance(ctx, c.b, linkedAccountID, txID, amt, timeout)
+}
+
+func (c *Client) Transfer(ctx context.Context, args chimoney.TransferArgs) error {
+	return ops.Transfer(ctx, c.b, c.external, args)
+}
+
+func (c *Client) FinaliseReserve(ctx context.Context, txID string) error {
+	return ops.FinaliseReserve(ctx, c.b, txID)
+}
+
+func (c *Client) AssignBalance(ctx context.Context, linkedAccountID, trxID string, amount currency.Amount) (*chimoney.Balance, error) {
+	return ops.AssignBalance(ctx, c.b, linkedAccountID, trxID, amount)
+}
+
+func (c *Client) RollbackReserve(ctx context.Context, txID string) error {
+	return ops.RollbackReserve(ctx, c.b, txID)
 }

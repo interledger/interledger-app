@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"gitlab.com/fynbos/backend/providers/chimoney"
+
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
@@ -376,6 +378,11 @@ func (a *Activity) ReserveBalance(ctx context.Context, paymentID string) error {
 		if errors.Is(err, gatehub.ErrInsufficientBalance) {
 			return temporal.NewNonRetryableApplicationError("insufficient balance to service withdrawal", "insufficient_balance", err, "withdrawal", p.SenderAmount.Format())
 		}
+	} else if linkedAccount.Provider == chimoney.ProviderName {
+		_, err = a.b.Chimoney().ReserveBalance(ctx, p.SenderAccount, p.SendTransactionID, p.SenderAmount, timeout)
+		if errors.Is(err, chimoney.ErrInsufficientBalance) {
+			return temporal.NewNonRetryableApplicationError("insufficient balance to service withdrawal", "insufficient_balance", err, "withdrawal", p.SenderAmount.Format())
+		}
 	}
 
 	return err
@@ -438,6 +445,8 @@ func (a *Activity) FinalizeBalance(ctx context.Context, paymentID string) error 
 		err = a.b.PTI().FinaliseReserve(ctx, p.SendTransactionID)
 	} else if linkedAccount.Provider == gatehub.ProviderName {
 		err = a.b.Gatehub().FinaliseReserve(ctx, p.SendTransactionID)
+	} else if linkedAccount.Provider == chimoney.ProviderName {
+		err = a.b.Chimoney().FinaliseReserve(ctx, p.SendTransactionID)
 	}
 
 	return err
@@ -700,6 +709,34 @@ func (a *Activity) PTIDepositComplete(ctx context.Context, paymentID, txID strin
 		Status:        pti.TransactionFeedbackSettled,
 		Amount:        p.SenderAmount,
 	})
+}
+
+func (a *Activity) ChimoneyTransfer(ctx context.Context, paymentID string) error {
+	p, err := Lookup(ctx, a.b, paymentID)
+	if err != nil {
+		return err
+	}
+
+	sender, err := a.b.LinkedAccounts().Get(ctx, p.SenderAccount)
+	if err != nil {
+		return err
+	}
+
+	receiver, err := a.b.LinkedAccounts().Get(ctx, p.ReceiverAccount)
+	if err != nil {
+		return err
+	}
+
+	err = a.b.Chimoney().Transfer(ctx, chimoney.TransferArgs{
+		SendingWalletID:   sender.WalletID,
+		ReceivingWalletID: receiver.WalletID,
+		Amount:            p.SenderAmount,
+	})
+	if errors.Is(err, chimoney.ErrNotFound) {
+		return temporal.NewNonRetryableApplicationError("chimoney wallet not found", "ErrNotFound", err)
+	}
+
+	return err
 }
 
 func (a *Activity) GatehubTransfer(ctx context.Context, paymentID string) (string, error) {

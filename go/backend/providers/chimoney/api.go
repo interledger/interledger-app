@@ -2,6 +2,7 @@ package chimoney
 
 import (
 	"context"
+	"time"
 
 	"gitlab.com/fynbos/backend/currency"
 )
@@ -12,6 +13,12 @@ type Client interface {
 	GetInterlocEmail(ctx context.Context, walletID string) (string, error)
 	CreateDepositLink(ctx context.Context, walletID string, amt currency.Amount) (string, error)
 	Withdraw(ctx context.Context, walletID string, amt currency.Amount) error
+	Transfer(ctx context.Context, args TransferArgs) error
+
+	ReserveBalance(ctx context.Context, linkedAccountID, txID string, amt currency.Amount, timeout time.Duration) (*Balance, error)
+	FinaliseReserve(ctx context.Context, txID string) error
+	AssignBalance(ctx context.Context, linkedAccountID, trxID string, amount currency.Amount) (*Balance, error)
+	RollbackReserve(ctx context.Context, txID string) error
 }
 
 type Await func(ctx context.Context, result interface{}) error

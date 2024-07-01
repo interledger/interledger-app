@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"gitlab.com/fynbos/backend/providers/chimoney"
+
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 
@@ -163,6 +165,8 @@ func PayinWorkflow(ctx workflow.Context, paymentID string) error {
 			txID, success, err = ptiPayIn(ctx, a, ptiActivity, paymentID, la.WalletID)
 		case gatehub.ProviderName:
 			txID, success, err = gatehubPayIn(ctx, a, paymentID, la.WalletID)
+		case chimoney.ProviderName:
+			txID, success, err = chimoneyPayIn(ctx, a, paymentID, la.WalletID)
 		default:
 			return temporal.NewNonRetryableApplicationError("unsupported linked account provider", "InvalidArgument", nil, "provider", la.Provider)
 		}
@@ -269,6 +273,74 @@ func PayinWorkflow(ctx workflow.Context, paymentID string) error {
 	})
 
 	return workflow.ExecuteChildWorkflow(childCtx, RollbackPayInWorkflow, paymentID).Get(childCtx, nil)
+}
+
+func chimoneyPayIn(ctx workflow.Context, a *Activity, paymentID, walletID string) (string, bool, error) {
+	var pt payments.Type
+	err := workflow.ExecuteActivity(ctx, a.GetPaymentType, paymentID).Get(ctx, &pt)
+	if err != nil {
+		return "", false, err
+	}
+
+	// Webmonetization is assumed to be Fynbos to Fynbos
+	if pt != payments.TypePeer2Peer && pt != payments.TypeRafikiPeer2Peer && pt != payments.TypeWebMonetization {
+		return "", false, temporal.NewNonRetryableApplicationError("incorrect payment type for chimoney pay in flow", "InvalidArgument", chimoney.ErrInternal, "paymentID", paymentID, "type", pt)
+	}
+
+	var txID string
+	err = workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
+		return uuid.NewString()
+	}).Get(&txID)
+	if err != nil {
+		return "", false, err
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.ReserveBalance, paymentID).Get(ctx, nil)
+	if err != nil {
+		return "", false, err
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.ChimoneyTransfer, paymentID).Get(ctx, nil)
+	if err != nil {
+		return "", false, err
+	}
+
+	return txID, true, nil
+}
+
+func chimoneyPayOut(ctx workflow.Context, a *Activity, paymentID, trxID, walletID string) (string, bool, error) {
+	var pt payments.Type
+	err := workflow.ExecuteActivity(ctx, a.GetPaymentType, paymentID).Get(ctx, &pt)
+	if err != nil {
+		return "", false, err
+	}
+
+	// Webmonetization is assumed to be Fynbos to Fynbos
+	if pt != payments.TypePeer2Peer && pt != payments.TypeRafikiPeer2Peer && pt != payments.TypeWebMonetization {
+		return "", false, temporal.NewNonRetryableApplicationError("incorrect payment type for chimoney pay in flow", "InvalidArgument", gatehub.ErrInternal, "paymentID", paymentID, "type", pt)
+	}
+
+	var txID string
+	err = workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
+		return uuid.NewString()
+	}).Get(&txID)
+	if err != nil {
+		return "", false, err
+	}
+
+	// Commit balances for transfers and withdrawals
+	err = workflow.ExecuteActivity(ctx, a.FinalizeBalance, paymentID).Get(ctx, nil)
+	if err != nil {
+		return "", false, err
+	}
+
+	// Assign balances for p2p receiver
+	err = workflow.ExecuteActivity(ctx, a.AssignBalance, paymentID, trxID).Get(ctx, nil)
+	if err != nil {
+		return "", false, err
+	}
+
+	return txID, true, nil
 }
 
 func gatehubPayIn(ctx workflow.Context, a *Activity, paymentID, walletID string) (string, bool, error) {
@@ -632,6 +704,8 @@ func PayoutWorkflow(ctx workflow.Context, paymentID string) error {
 		externalTXID, success, err = astraPayOut(ctx, a, paymentID)
 	case gatehub.ProviderName:
 		externalTXID, success, err = gatehubPayOut(ctx, a, paymentID, txID, la.WalletID)
+	case chimoney.ProviderName:
+		externalTXID, success, err = chimoneyPayOut(ctx, a, paymentID, txID, la.WalletID)
 	default:
 		return temporal.NewNonRetryableApplicationError("unsupported linked account provider", "InvalidArgument", nil, "provider", la.Provider)
 	}

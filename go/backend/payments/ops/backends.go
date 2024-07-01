@@ -3,6 +3,8 @@ package ops
 import (
 	"testing"
 
+	"gitlab.com/fynbos/backend/providers/chimoney"
+
 	"gitlab.com/fynbos/backend/providers/astra"
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	"gitlab.com/fynbos/backend/providers/pti"
@@ -48,6 +50,7 @@ type Backends interface {
 	Astra() astra.Client
 	PTI() pti.Client
 	Gatehub() gatehub.Client
+	Chimoney() chimoney.Client
 }
 
 type TestBackends struct {
@@ -62,6 +65,10 @@ type TestBackends struct {
 	Lac *linkedaccounts_mock.MockClient
 	Txc *transactions_mock.MockClient
 	Pti *pti_mock.MockClient
+}
+
+func (t TestBackends) Chimoney() chimoney.Client {
+	return nil
 }
 
 func (t TestBackends) Gatehub() gatehub.Client {

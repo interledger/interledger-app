@@ -5,6 +5,9 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
+
+	"gitlab.com/fynbos/pacioli"
 
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/providers/chimoney"
@@ -115,13 +118,9 @@ func CreateDepositLink(ctx context.Context, b Backends, ex external.Client, wall
 }
 
 func Withdraw(ctx context.Context, b Backends, ex external.Client, walletID string, amt currency.Amount) error {
-	var chiWallet string
-	err := b.DB().GetContext(ctx, &chiWallet, "SELECT external_id FROM chi_money_wallets WHERE wallet_id=$1", walletID)
-	if errors.Is(err, sql.ErrNoRows) {
-		return fmt.Errorf("%w no chimoney wallet found for user", chimoney.ErrNotFound)
-	}
+	chiWallet, err := GetChiWallet(ctx, b, walletID)
 	if err != nil {
-		return chimoney.ErrInternal
+		return err
 	}
 
 	email, err := GetInteracEmail(ctx, b, walletID)
@@ -147,6 +146,182 @@ func Withdraw(ctx context.Context, b Backends, ex external.Client, walletID stri
 	})
 	if err != nil {
 		return fmt.Errorf("%w %s", chimoney.ErrInternal, err)
+	}
+
+	return nil
+}
+
+func GetChiWallet(ctx context.Context, b Backends, walletID string) (string, error) {
+	var chiWallet string
+	err := b.DB().GetContext(ctx, &chiWallet, "SELECT external_id FROM chi_money_wallets WHERE wallet_id=$1", walletID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", fmt.Errorf("%w no chimoney wallet found for user", chimoney.ErrNotFound)
+	}
+	if err != nil {
+		return "", chimoney.ErrInternal
+	}
+
+	return chiWallet, err
+}
+
+func Transfer(ctx context.Context, b Backends, ex external.Client, args chimoney.TransferArgs) error {
+	sender, err := GetChiWallet(ctx, b, args.SendingWalletID)
+	if err != nil {
+		return err
+	}
+
+	receiver, err := GetChiWallet(ctx, b, args.SendingWalletID)
+	if err != nil {
+		return err
+	}
+
+	err = ex.Transfer(ctx, external.TransferReq{
+		SenderSubAccount:   sender,
+		ReceiverSubAccount: receiver,
+		Amount:             args.Amount,
+	})
+	if err != nil {
+		return fmt.Errorf("%w %s", chimoney.ErrInternal, err)
+	}
+
+	return err
+}
+
+func ReserveBalance(ctx context.Context, b Backends, linkedAccountID, txID string, amt currency.Amount, timeout time.Duration) (*chimoney.Balance, error) {
+	if amt.Currency != currency.EUR {
+		return nil, fmt.Errorf("%w %s not supported", chimoney.ErrInternal, amt.Currency)
+	}
+
+	la, err := b.LinkedAccounts().Get(ctx, linkedAccountID)
+	if err != nil {
+		return nil, err
+	}
+	if la.Provider != chimoney.ProviderName || la.Type != chimoney.AccTypeBalance {
+		return nil, fmt.Errorf("%w Not a Chimoney linked account", chimoney.ErrInternal)
+	}
+
+	opsAcc := chimoney.CADOpsAccount
+	ledger := chimoney.LedgerIDCAD
+	tx, err := b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
+		{
+			ID:              txID,
+			Amount:          amt.Value,
+			DebitAccountID:  la.ID,
+			CreditAccountID: opsAcc,
+			Pending:         true,
+			Code:            1,
+			Timeout:         uint64(timeout),
+			Ledger:          ledger,
+		},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", chimoney.ErrInternal, err)
+	}
+	if len(tx) > 0 {
+		if tx[0].Code == pacioli.TransferExceedsCredits || tx[0].Code == pacioli.TransferExceedsDebits || tx[0].Code == pacioli.TransferExceedsPendingTransferAmount {
+			return nil, fmt.Errorf("%w insufficiens balance cod (%s)", chimoney.ErrInsufficientBalance, tx[0].Code.String())
+		}
+		if tx[0].Code != 0 {
+			return nil, fmt.Errorf("%w non success code (%s)", chimoney.ErrInternal, tx[0].Code.String())
+		}
+	}
+
+	accs, err := b.Pacioli().GetAccounts(ctx, []string{la.ID})
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", chimoney.ErrInternal, err)
+	}
+
+	if len(accs) != 1 {
+		return nil, fmt.Errorf("%w account not found", chimoney.ErrNotFound)
+	}
+
+	return &chimoney.Balance{
+		Total:     currency.FromUInt64(accs[0].CreditsPosted-accs[0].DebitsPosted, la.SendCurrency),
+		Available: currency.FromUInt64(accs[0].CreditsPosted-accs[0].DebitsPosted-accs[0].DebitsPending, la.SendCurrency),
+	}, nil
+}
+
+func FinaliseReserve(ctx context.Context, b Backends, trxID string) error {
+	tx, err := b.Pacioli().PostTransfers(ctx, []string{trxID})
+	if err != nil {
+		return fmt.Errorf("%w %s", chimoney.ErrInternal, err)
+	}
+	if len(tx) == 0 {
+		return nil
+	}
+	if tx[0].Code == pacioli.TransferPendingTransferAlreadyPosted {
+		return nil
+	}
+	if tx[0].Code == pacioli.TransferExceedsCredits || tx[0].Code == pacioli.TransferExceedsDebits || tx[0].Code == pacioli.TransferExceedsPendingTransferAmount {
+		return fmt.Errorf("%w insufficiens balance cod (%s)", chimoney.ErrInsufficientBalance, tx[0].Code.String())
+	}
+	if tx[0].Code != 0 {
+		return fmt.Errorf("%w non success code (%s)", chimoney.ErrInternal, tx[0].Code.String())
+	}
+
+	return nil
+}
+
+func AssignBalance(ctx context.Context, b Backends, linkedAccountID, txID string, amt currency.Amount) (*chimoney.Balance, error) {
+	la, err := b.LinkedAccounts().Get(ctx, linkedAccountID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", chimoney.ErrInternal, err)
+	}
+
+	if la.Provider != chimoney.ProviderName || la.Type != chimoney.AccTypeBalance {
+		return nil, fmt.Errorf("%w chimoney account not correct type", chimoney.ErrNotFound)
+	}
+
+	opsAcc := chimoney.CADOpsAccount
+	ledger := chimoney.LedgerIDCAD
+	tx, err := b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
+		{
+			ID:              txID,
+			Amount:          amt.Value,
+			CreditAccountID: la.ID,
+			DebitAccountID:  opsAcc,
+			Pending:         false,
+			Code:            1,
+			Ledger:          ledger,
+		},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", chimoney.ErrInternal, err)
+	}
+	if len(tx) != 0 {
+		if tx[0].Code == pacioli.TransferExceedsCredits || tx[0].Code == pacioli.TransferExceedsDebits || tx[0].Code == pacioli.TransferExceedsPendingTransferAmount {
+			return nil, fmt.Errorf("%w insufficiens balance cod (%s)", chimoney.ErrInsufficientBalance, tx[0].Code.String())
+		}
+		if tx[0].Code != 0 {
+			return nil, fmt.Errorf("%w non success code (%s)", chimoney.ErrInternal, tx[0].Code.String())
+		}
+	}
+
+	accs, err := b.Pacioli().GetAccounts(ctx, []string{la.ID})
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", chimoney.ErrInternal, err)
+	}
+
+	if len(accs) != 1 {
+		return nil, fmt.Errorf("%w account not found", chimoney.ErrNotFound)
+	}
+
+	return &chimoney.Balance{
+		Total:     currency.FromUInt64(accs[0].CreditsPosted-accs[0].DebitsPosted, la.SendCurrency),
+		Available: currency.FromUInt64(accs[0].CreditsPosted-accs[0].DebitsPosted-accs[0].DebitsPending, la.SendCurrency),
+	}, nil
+}
+
+func RollbackReserve(ctx context.Context, b Backends, txID string) error {
+	tx, err := b.Pacioli().VoidTransfers(ctx, []string{txID})
+	if err != nil {
+		return fmt.Errorf("%w %s", chimoney.ErrInternal, err)
+	}
+	if len(tx) == 0 {
+		return nil
+	}
+	if tx[0].Code != 0 {
+		return fmt.Errorf("%w non success code (%s)", chimoney.ErrInternal, tx[0].Code.String())
 	}
 
 	return nil
