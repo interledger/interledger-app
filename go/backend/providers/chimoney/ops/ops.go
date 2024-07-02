@@ -94,13 +94,9 @@ func CreateDepositLink(ctx context.Context, b Backends, ex external.Client, wall
 		return "", err
 	}
 
-	var chiWallet string
-	err = b.DB().GetContext(ctx, &chiWallet, "SELECT external_id FROM chi_money_wallets WHERE wallet_id=$1", walletID)
-	if errors.Is(err, sql.ErrNoRows) {
-		return "", fmt.Errorf("%w no chimoney wallet found for user", chimoney.ErrNotFound)
-	}
+	chiWallet, err := GetChiWallet(ctx, b, walletID)
 	if err != nil {
-		return "", chimoney.ErrInternal
+		return "", err
 	}
 
 	resp, err := ex.Deposit(ctx, external.DepositReq{
