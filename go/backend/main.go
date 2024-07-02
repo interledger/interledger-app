@@ -82,7 +82,6 @@ import (
 	"gitlab.com/fynbos/backend/signup"
 	signup_client "gitlab.com/fynbos/backend/signup/client"
 	"gitlab.com/fynbos/backend/slack"
-	"gitlab.com/fynbos/backend/slack/bot"
 	slack_client "gitlab.com/fynbos/backend/slack/client"
 	"gitlab.com/fynbos/backend/statements"
 	statements_client "gitlab.com/fynbos/backend/statements/client"
@@ -187,8 +186,6 @@ func start(args *cli.StartArgs) {
 	router.Handle("/rafiki", b.rafiki.WebhookHandler())
 	router.Handle("/webhooks/xago", b.xago.WebhookHandler())
 	router.Handle("/webhooks/persona", kyc_ops.NewHandlePersonaWebhook(b))
-	router.Handle("/webhooks/slack/pay", bot.NewSlackCommandHandler(b))
-	router.Handle("/webhooks/slack/bot/install", b.slack.BotInstallWebhook())
 
 	ptiWebhook, err := pti_ops.Webhook(b)
 	if err != nil {
