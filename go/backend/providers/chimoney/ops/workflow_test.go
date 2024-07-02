@@ -44,7 +44,8 @@ func TestChimoneyWithdrawWorkflowIntegration(t *testing.T) {
 	require.NoError(t, env.GetWorkflowError())
 
 	var result string
-	env.GetWorkflowResult(&result)
+	err := env.GetWorkflowResult(&result)
+	require.NoError(t, err)
 	assert.Equal(t, "test", result)
 
 	trx, err := trxMock.GetTransaction(context.Background(), "", "test")
