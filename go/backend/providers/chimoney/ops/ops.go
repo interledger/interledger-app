@@ -110,6 +110,16 @@ func CreateDepositLink(ctx context.Context, b Backends, ex external.Client, wall
 		return "", fmt.Errorf("%w %s", chimoney.ErrInternal, err)
 	}
 
+	// store a reference to this in the database so we can look up the details when we receive
+	// the `payment.completed` webhook.
+	result, err := b.DB().ExecContext(ctx, "INSERT INTO chimoney_deposit_links (issue_id, chimoney_wallet_id, wallet_id, amount, currency) VALUES ($1, $2, $3, $4, $5);", resp.IssueID, chiWallet, walletID, amt.Value, amt.Currency)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", chimoney.ErrInternal, err)
+	}
+	if rows, _ := result.RowsAffected(); rows < 1 {
+		return "", fmt.Errorf("%w reference to deposit link was not inserted", chimoney.ErrInternal)
+	}
+
 	return resp.PaymentLink, nil
 }
 

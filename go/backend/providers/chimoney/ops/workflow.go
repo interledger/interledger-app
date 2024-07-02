@@ -2,6 +2,7 @@ package ops
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"net/http"
@@ -282,11 +283,29 @@ func ExecuteChimoneyWithdrawalWorkflow(
 
 func (a *Activity) CreateChimoneyWithdrawalTransaction(ctx context.Context, walletID string, amount currency.Amount) (string, error) {
 	trx, err := a.b.Transactions().CreateTransaction(ctx, transactions.CreateTransactionArgs{
-		WalletID: walletID,
-		State:    transactions.StatePending,
-		Provider: chimoney.ProviderName,
-		Amount:   amount,
-		Title:    "Withdrawal",
+		WalletID:    walletID,
+		State:       transactions.StatePending,
+		Provider:    chimoney.ProviderName,
+		Amount:      amount,
+		Title:       "Withdrawal",
+		ForeignType: transactions.TransactionTypeWithdrawal,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return trx, nil
+}
+
+func (a *Activity) CreateChimoneyDepositTransaction(ctx context.Context, walletID, issueID string, amount currency.Amount) (string, error) {
+	trx, err := a.b.Transactions().CreateTransaction(ctx, transactions.CreateTransactionArgs{
+		WalletID:    walletID,
+		State:       transactions.StatePending,
+		Provider:    chimoney.ProviderName,
+		Amount:      amount,
+		Title:       "Deposit",
+		ForeignType: transactions.TransactionTypeDeposit,
+		ForeignID:   issueID,
 	})
 	if err != nil {
 		return "", err
@@ -335,6 +354,34 @@ func (a *Activity) RollbackChimoneyBalance(ctx context.Context, trxID string) er
 	return RollbackReserve(ctx, a.b, trxID)
 }
 
+func (a *Activity) AssignChimoneyBalance(ctx context.Context, walletID, trxID string) error {
+	trx, err := a.b.Transactions().GetTransaction(ctx, walletID, trxID)
+	if err != nil {
+		return err
+	}
+
+	// look up chimoney balance account
+	balanceAccs, err := a.b.LinkedAccounts().ListBalances(ctx, walletID)
+	if err != nil {
+		return err
+	}
+
+	var chimoneyAcc *linkedaccounts.LinkedAccount
+	for _, bal := range balanceAccs {
+		if bal.Provider == chimoney.ProviderName && bal.Type == chimoney.AccTypeBalance {
+			chimoneyAcc = &bal
+			break
+		}
+	}
+	if chimoneyAcc == nil {
+		return temporal.NewNonRetryableApplicationError("chimoney withdrawal: balance account not found", "ErrInternal", nil)
+	}
+
+	_, err = AssignBalance(ctx, a.b, chimoneyAcc.ID, trxID, trx.Amount)
+
+	return err
+}
+
 func (a *Activity) ChimoneyWithdraw(ctx context.Context, walletID, trxID string) error {
 	trx, err := a.b.Transactions().GetTransaction(ctx, walletID, trxID)
 	if err != nil {
@@ -359,12 +406,20 @@ func (a *Activity) CompleteChimoneyTransaction(ctx context.Context, walletID, tr
 		return err
 	}
 
-	interacEmail, err := GetInteracEmail(ctx, a.b, walletID)
+	users, err := a.b.Users().ListUsers(ctx, walletID)
 	if err != nil {
 		return err
 	}
+	if len(users) < 1 {
+		return nil
+	}
 
-	a.b.Email().SendWithdrawalEmail(ctx, walletID, trx.Amount, interacEmail, trx.Timestamp.Format("02 Jan 2006"))
+	email := users[0].Email
+	if trx.Type == transactions.TransactionTypeWithdrawal {
+		a.b.Email().SendWithdrawalEmail(ctx, walletID, trx.Amount, email, trx.Timestamp.Format("02 Jan 2006"))
+	} else if trx.Type == transactions.TransactionTypeDeposit {
+		a.b.Email().SendDepositReceivedEmail(ctx, walletID, trx.Amount, email, trx.Timestamp.Format("02 Jan 2006"))
+	}
 
 	return nil
 }
@@ -375,7 +430,16 @@ func (a *Activity) FailChimoneyTransaction(ctx context.Context, walletID, trxID 
 		return err
 	}
 
-	a.b.Email().SendWithdrawalFailedEmail(ctx, walletID)
+	trx, err := a.b.Transactions().GetTransaction(ctx, walletID, trxID)
+	if err != nil {
+		return err
+	}
+
+	if trx.Type == transactions.TransactionTypeWithdrawal {
+		a.b.Email().SendWithdrawalFailedEmail(ctx, walletID)
+	} else if trx.Type == transactions.TransactionTypeDeposit {
+		a.b.Email().SendDepositFailedEmail(ctx, walletID)
+	}
 
 	return nil
 }
@@ -405,6 +469,62 @@ func rollBackWithdrawal(ctx workflow.Context, a *Activity, stage withdrawalStage
 		if err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (a *Activity) MarkChimoneyDepositLinkCompleted(ctx context.Context, issueID string) (*depositDetails, error) {
+	var deposit depositDetails
+	err := a.b.DB().GetContext(ctx, &deposit, "UPDATE chimoney_deposit_links SET completed_at = now()::TIMESTAMP WHERE issue_id=$1 AND completed_at IS NOT NULL;", issueID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, temporal.NewNonRetryableApplicationError("chimoney deposit link not found", "ErrNotFound", err)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return &deposit, nil
+}
+
+type depositDetails struct {
+	WalletID string `db:"wallet_id"`
+	Amount   uint64 `db:"amount"`
+	Currency string `db:"currency"`
+	IssueID  string `db:"issue_id"`
+}
+
+func CreateChimoneyDepositWorkflow(ctx workflow.Context, issueID string) error {
+	var a *Activity
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Second,
+	}
+
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	logger := workflow.GetLogger(ctx)
+	logger.Info("Creating chimoney deposit.")
+
+	var deposit depositDetails
+	err := workflow.ExecuteLocalActivity(ctx, a.MarkChimoneyDepositLinkCompleted, issueID).Get(ctx, &deposit)
+	if err != nil {
+		return err
+	}
+
+	var transaction transactions.Transaction
+	err = workflow.ExecuteActivity(ctx, a.CreateChimoneyDepositTransaction, deposit.WalletID, deposit.IssueID, currency.FromUInt64(deposit.Amount, currency.Currency(deposit.Currency))).Get(ctx, &transaction)
+	if err != nil {
+		return err
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.AssignChimoneyBalance, deposit.WalletID, transaction.ID).Get(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.FinalizeChimoneyBalance, transaction.ID).Get(ctx, nil)
+	if err != nil {
+		return err
 	}
 
 	return nil
