@@ -13,7 +13,6 @@ import (
 	"os"
 	"regexp"
 	"strings"
-	"time"
 
 	"gitlab.com/fynbos/backend/providers/chimoney"
 	"gitlab.com/fynbos/backend/providers/gatehub"
@@ -24,64 +23,14 @@ import (
 	"go.uber.org/zap"
 )
 
-const (
-	EventPaymentCompleted    = "chimoney.payment.completed"
-	EventPaymentFailed       = "chimoney.payment.failed"
-	EventPaymentInitiated    = "chimoney.payment.initiated"
-	EventPayoutBankCompleted = "chimoney.bank.completed"
-	EventPayoutBankDelivered = "chimoney.bank.delivered"
-	EventPayoutBankInitiated = "chimoney.bank.initiated"
-)
-
 type (
 	Webhook struct {
 		EventType string `json:"eventType"`
 	}
 
-	ChargeCardEvent struct {
-		EventType string `json:"eventType"`
-		Amount    string `json:"amount"`
-		IssueID   string `json:"issueID"`
-	}
-
 	PaymentEvent struct {
 		EventType string `json:"eventType"`
 		IssueID   string `json:"issueID"`
-	}
-
-	BankMeta struct {
-		ChiRef     string  `json:"chiRef"`
-		Country    string  `json:"country"`
-		Currency   string  `json:"currency"`
-		Type       string  `json:"type"`
-		ValueInUSD float64 `json:"valueInUSD"`
-	}
-
-	BankData struct {
-		AccountNumber    string    `json:"account_number"`
-		Amount           int       `json:"amount"`
-		BankCode         string    `json:"bank_code"`
-		BankName         string    `json:"bank_name"`
-		CompleteMessage  string    `json:"complete_message"`
-		CreatedAt        time.Time `json:"created_at"`
-		Currency         string    `json:"currency"`
-		DebitCurrency    string    `json:"debit_currency"`
-		EventType        string    `json:"eventType"`
-		Fee              int       `json:"fee"`
-		FullName         string    `json:"full_name"`
-		ID               int       `json:"id"`
-		IsApproved       int       `json:"is_approved"`
-		Meta             BankMeta  `json:"meta"`
-		Narration        string    `json:"narration"`
-		Reference        string    `json:"reference"`
-		RequiresApproval int       `json:"requires_approval"`
-		Status           string    `json:"status"`
-	}
-
-	BankEvent struct {
-		Data      BankData `json:"data"`
-		EventType string   `json:"eventType"`
-		Status    string   `json:"status"`
 	}
 )
 
@@ -137,7 +86,7 @@ func NewWebhook(b Backends) http.HandlerFunc {
 		}
 
 		switch wh.EventType {
-		case "payment.completed":
+		case "chimoney.payment.completed":
 			err = handlePaymentCompletedWebhook(r.Context(), b, body)
 		default:
 			log.Warn("chimoney webhook. Unhandled webhook type", zap.String("event_type", wh.EventType), zap.String("payload", string(body)))

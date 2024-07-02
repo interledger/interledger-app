@@ -476,7 +476,7 @@ func rollBackWithdrawal(ctx workflow.Context, a *Activity, stage withdrawalStage
 
 func (a *Activity) MarkChimoneyDepositLinkCompleted(ctx context.Context, issueID string) (*depositDetails, error) {
 	var deposit depositDetails
-	err := a.b.DB().GetContext(ctx, &deposit, "UPDATE chimoney_deposit_links SET completed_at = now()::TIMESTAMP WHERE issue_id=$1 AND completed_at IS NOT NULL;", issueID)
+	err := a.b.DB().GetContext(ctx, &deposit, "UPDATE chimoney_deposit_links SET completed_at = now()::TIMESTAMP WHERE issue_id=$1 AND completed_at IS NOT NULL RETURNING wallet_id, amount, currency, issue_id;", issueID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, temporal.NewNonRetryableApplicationError("chimoney deposit link not found", "ErrNotFound", err)
 	}
