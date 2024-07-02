@@ -3,6 +3,7 @@ package client_test
 import (
 	"context"
 	"fmt"
+	"gitlab.com/fynbos/backend/providers/chimoney"
 	"testing"
 	"time"
 
@@ -244,6 +245,10 @@ func (b *TestBackends) RestoreTemporalEnv() {
 	env.RegisterActivity(pti_ops.NewActivity(b, nil))
 
 	b.env = env
+}
+
+func (b *TestBackends) Chimoney() chimoney.Client {
+	return nil
 }
 
 func (b *TestBackends) Gatehub() gatehub.Client {

@@ -60,5 +60,4 @@ func TestGetChiWallet(t *testing.T) {
 	chiW, err := ops.GetChiWallet(ctx, b, walletID)
 	require.NoError(t, err)
 	require.Equal(t, chiWallet, chiW)
-
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"gitlab.com/fynbos/backend/providers/chimoney"
 	"log"
 	"os"
 
@@ -151,6 +152,10 @@ type backends struct {
 	pcDB           *sqlx.DB
 	pti            pti.Client
 	gh             gatehub.Client
+}
+
+func (b *backends) Chimoney() chimoney.Client {
+	return nil
 }
 
 func (b *backends) Gatehub() gatehub.Client {
