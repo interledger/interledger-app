@@ -14,9 +14,9 @@ import (
 func TestUpsertInteracEmail(t *testing.T) {
 	ctx := context.Background()
 
-	b := ops.NewTestBackends(t, func(tb *ops.TestBackends) {
-		tb.DBC = db.MigrateTestDB(t, ctx)
-	})
+	b := backends{
+		db: db.MigrateTestDB(t, ctx),
+	}
 
 	walletID := uuid.NewString()
 	email := "test@test.com"
@@ -47,9 +47,9 @@ func TestUpsertInteracEmail(t *testing.T) {
 func TestGetChiWallet(t *testing.T) {
 	ctx := context.Background()
 
-	b := ops.NewTestBackends(t, func(tb *ops.TestBackends) {
-		tb.DBC = db.MigrateTestDB(t, ctx)
-	})
+	b := backends{
+		db: db.MigrateTestDB(t, ctx),
+	}
 
 	walletID := uuid.NewString()
 	chiWallet := uuid.NewString()
