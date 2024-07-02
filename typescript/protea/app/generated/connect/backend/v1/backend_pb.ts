@@ -81,6 +81,43 @@ export class Empty extends Message<Empty> {
 }
 
 /**
+ * @generated from message backend.v1.AstraRequiresOTPResponse
+ */
+export class AstraRequiresOTPResponse extends Message<AstraRequiresOTPResponse> {
+  /**
+   * @generated from field: bool isRequired = 1;
+   */
+  isRequired = false;
+
+  constructor(data?: PartialMessage<AstraRequiresOTPResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.AstraRequiresOTPResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "isRequired", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AstraRequiresOTPResponse {
+    return new AstraRequiresOTPResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): AstraRequiresOTPResponse {
+    return new AstraRequiresOTPResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): AstraRequiresOTPResponse {
+    return new AstraRequiresOTPResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: AstraRequiresOTPResponse | PlainMessage<AstraRequiresOTPResponse> | undefined, b: AstraRequiresOTPResponse | PlainMessage<AstraRequiresOTPResponse> | undefined): boolean {
+    return proto3.util.equals(AstraRequiresOTPResponse, a, b);
+  }
+}
+
+/**
  * @generated from message backend.v1.CreateGatehubWithdrawalRequest
  */
 export class CreateGatehubWithdrawalRequest extends Message<CreateGatehubWithdrawalRequest> {
