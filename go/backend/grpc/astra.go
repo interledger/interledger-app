@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/env"
 	"go.temporal.io/sdk/temporal"
 
@@ -16,6 +17,41 @@ import (
 	"gitlab.com/fynbos/backend/user"
 	pb "gitlab.com/fynbos/proto/backend/v1"
 )
+
+func (s *rpcService) AstraRequiresOTP(
+	ctx context.Context, req *pb.Empty,
+) (*pb.AstraRequiresOTPResponse, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	w, err := s.b.Wallets().ForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	// OTP is required to have been sent in the past 30 days. We'll refresh pre-emptively and use
+	// 29 days.
+	usrs, err := s.b.Users().ListUsers(ctx, w.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+	if len(usrs) < 1 {
+		return nil, InternalError("no user found for wallet")
+	}
+
+	verifications, err := s.b.Twilio().ListSuccessfulVerificationAttempts(ctx, twilio.ListSuccessfulVerificationAttemptsArgs{
+		To:    usrs[0].PhoneNumber,
+		Limit: 1,
+		After: time.Now().AddDate(0, 0, -29),
+	})
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &pb.AstraRequiresOTPResponse{IsRequired: len(verifications) > 1}, nil
+}
 
 func (s *rpcService) CreateCard(
 	ctx context.Context, req *pb.CreateCardRequest,
