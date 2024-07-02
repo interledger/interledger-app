@@ -64,8 +64,14 @@ func CreateChimoneyUserWorkflow(ctx workflow.Context, walletID string) (string, 
 
 	var la linkedaccounts.LinkedAccount
 	err = workflow.ExecuteActivity(ctx, a.CreateLinkedAccount, walletID, exID).Get(ctx, &la)
+	if err != nil {
+		return "", err
+	}
 
 	err = workflow.ExecuteActivity(ctx, a.CreateBalanceAccount, walletID, exID).Get(ctx, nil)
+	if err != nil {
+		return "", err
+	}
 
 	return exID, nil
 }

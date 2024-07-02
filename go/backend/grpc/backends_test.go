@@ -5,6 +5,8 @@ import (
 	"net"
 	"testing"
 
+	"gitlab.com/fynbos/backend/providers/chimoney"
+
 	"gitlab.com/fynbos/backend/providers/astra"
 	"gitlab.com/fynbos/backend/providers/gatehub"
 
@@ -238,6 +240,10 @@ func (t TestContainer) PTI() pti.Client {
 }
 
 func (t TestContainer) Gatehub() gatehub.Client {
+	return nil
+}
+
+func (t TestContainer) Chimoney() chimoney.Client {
 	return nil
 }
 
