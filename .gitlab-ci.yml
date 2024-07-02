@@ -6,7 +6,6 @@ include:
   - local: /.gitlab-refs.yaml
   - local: go/backend/.gitlab-ci.yml
   - local: go/pacioli/.gitlab-ci.yml
-  - local: go/discordbot/.gitlab-ci.yml
   - local: go/.gitlab-ci.yml
   - local: typescript/**/.gitlab-ci.yml
   - local: infra/gitlab/runner-image/.gitlab-ci.yml
