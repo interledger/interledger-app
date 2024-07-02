@@ -59,6 +59,15 @@ export interface SetChimoneyInterlocEmailRequest {
     email: string;
 }
 /**
+ * @generated from protobuf message backend.v1.AstraRequiresOTPResponse
+ */
+export interface AstraRequiresOTPResponse {
+    /**
+     * @generated from protobuf field: bool isRequired = 1;
+     */
+    isRequired: boolean;
+}
+/**
  * @generated from protobuf message backend.v1.CreateGatehubWithdrawalRequest
  */
 export interface CreateGatehubWithdrawalRequest {
@@ -2665,6 +2674,53 @@ class SetChimoneyInterlocEmailRequest$Type extends MessageType<SetChimoneyInterl
  * @generated MessageType for protobuf message backend.v1.SetChimoneyInterlocEmailRequest
  */
 export const SetChimoneyInterlocEmailRequest = new SetChimoneyInterlocEmailRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class AstraRequiresOTPResponse$Type extends MessageType<AstraRequiresOTPResponse> {
+    constructor() {
+        super("backend.v1.AstraRequiresOTPResponse", [
+            { no: 1, name: "isRequired", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+        ]);
+    }
+    create(value?: PartialMessage<AstraRequiresOTPResponse>): AstraRequiresOTPResponse {
+        const message = { isRequired: false };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<AstraRequiresOTPResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: AstraRequiresOTPResponse): AstraRequiresOTPResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* bool isRequired */ 1:
+                    message.isRequired = reader.bool();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: AstraRequiresOTPResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* bool isRequired = 1; */
+        if (message.isRequired !== false)
+            writer.tag(1, WireType.Varint).bool(message.isRequired);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.AstraRequiresOTPResponse
+ */
+export const AstraRequiresOTPResponse = new AstraRequiresOTPResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class CreateGatehubWithdrawalRequest$Type extends MessageType<CreateGatehubWithdrawalRequest> {
     constructor() {
@@ -11337,6 +11393,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "GetPtiBalances", options: {}, I: Empty, O: GetPtiBalancesResponse },
     { name: "AstraDepositFromCard", options: {}, I: AstraDepositFromCardRequest, O: Payment },
     { name: "AstraWithdrawToCard", options: {}, I: AstraWithdrawToCardRequest, O: Payment },
+    { name: "AstraRequiresOTP", options: {}, I: Empty, O: AstraRequiresOTPResponse },
     { name: "ListRafikiGrants", options: {}, I: Empty, O: ListRafikiGrantsResponse },
     { name: "GetRafikiGrant", options: {}, I: GetRafikiGrantRequest, O: RafikiGrant },
     { name: "RevokeRafikiGrant", options: {}, I: RevokeRafikiGrantRequest, O: Empty },

@@ -155,6 +155,7 @@ service BackendService {
   // Astra
   rpc AstraDepositFromCard(AstraDepositFromCardRequest) returns (Payment);
   rpc AstraWithdrawToCard(AstraWithdrawToCardRequest) returns (Payment);
+  rpc AstraRequiresOTP(Empty) returns (AstraRequiresOTPResponse);
 
   // Rafiki
   rpc ListRafikiGrants(Empty) returns (ListRafikiGrantsResponse);
@@ -185,6 +186,10 @@ message ChimoneyInterlocEmail {
 
 message SetChimoneyInterlocEmailRequest {
   string email = 1;
+}
+
+message AstraRequiresOTPResponse {
+  bool isRequired = 1;
 }
 
 message CreateGatehubWithdrawalRequest {

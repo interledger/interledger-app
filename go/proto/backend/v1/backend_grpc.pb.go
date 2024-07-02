@@ -137,6 +137,7 @@ type BackendServiceClient interface {
 	// Astra
 	AstraDepositFromCard(ctx context.Context, in *AstraDepositFromCardRequest, opts ...grpc.CallOption) (*Payment, error)
 	AstraWithdrawToCard(ctx context.Context, in *AstraWithdrawToCardRequest, opts ...grpc.CallOption) (*Payment, error)
+	AstraRequiresOTP(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*AstraRequiresOTPResponse, error)
 	// Rafiki
 	ListRafikiGrants(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListRafikiGrantsResponse, error)
 	GetRafikiGrant(ctx context.Context, in *GetRafikiGrantRequest, opts ...grpc.CallOption) (*RafikiGrant, error)
@@ -963,6 +964,15 @@ func (c *backendServiceClient) AstraWithdrawToCard(ctx context.Context, in *Astr
 	return out, nil
 }
 
+func (c *backendServiceClient) AstraRequiresOTP(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*AstraRequiresOTPResponse, error) {
+	out := new(AstraRequiresOTPResponse)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/AstraRequiresOTP", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *backendServiceClient) ListRafikiGrants(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListRafikiGrantsResponse, error) {
 	out := new(ListRafikiGrantsResponse)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/ListRafikiGrants", in, out, opts...)
@@ -1190,6 +1200,7 @@ type BackendServiceServer interface {
 	// Astra
 	AstraDepositFromCard(context.Context, *AstraDepositFromCardRequest) (*Payment, error)
 	AstraWithdrawToCard(context.Context, *AstraWithdrawToCardRequest) (*Payment, error)
+	AstraRequiresOTP(context.Context, *Empty) (*AstraRequiresOTPResponse, error)
 	// Rafiki
 	ListRafikiGrants(context.Context, *Empty) (*ListRafikiGrantsResponse, error)
 	GetRafikiGrant(context.Context, *GetRafikiGrantRequest) (*RafikiGrant, error)
@@ -1477,6 +1488,9 @@ func (UnimplementedBackendServiceServer) AstraDepositFromCard(context.Context, *
 }
 func (UnimplementedBackendServiceServer) AstraWithdrawToCard(context.Context, *AstraWithdrawToCardRequest) (*Payment, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AstraWithdrawToCard not implemented")
+}
+func (UnimplementedBackendServiceServer) AstraRequiresOTP(context.Context, *Empty) (*AstraRequiresOTPResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AstraRequiresOTP not implemented")
 }
 func (UnimplementedBackendServiceServer) ListRafikiGrants(context.Context, *Empty) (*ListRafikiGrantsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListRafikiGrants not implemented")
@@ -3128,6 +3142,24 @@ func _BackendService_AstraWithdrawToCard_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_AstraRequiresOTP_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).AstraRequiresOTP(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/AstraRequiresOTP",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).AstraRequiresOTP(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _BackendService_ListRafikiGrants_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Empty)
 	if err := dec(in); err != nil {
@@ -3706,6 +3738,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AstraWithdrawToCard",
 			Handler:    _BackendService_AstraWithdrawToCard_Handler,
+		},
+		{
+			MethodName: "AstraRequiresOTP",
+			Handler:    _BackendService_AstraRequiresOTP_Handler,
 		},
 		{
 			MethodName: "ListRafikiGrants",
