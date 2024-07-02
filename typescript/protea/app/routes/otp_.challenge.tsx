@@ -132,6 +132,12 @@ export async function action({ request }: ActionFunctionArgs) {
     } else return response.error({ errors }, {}, { action: 'Contact support' })
   }
 
+  let url = new URL(request.url)
+  let returnTo = url.searchParams.get('returnTo')
+  if (returnTo) {
+    return redirect(returnTo)
+  }
+
   const cookie = String(request.headers.get('cookie'))
   let flow
   const flowRes = await fetch(`${KRATOS_URL}/self-service/settings/browser`, {

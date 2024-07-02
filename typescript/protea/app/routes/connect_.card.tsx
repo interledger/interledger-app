@@ -1,7 +1,8 @@
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
+import {
+  redirect,
+  type ActionFunctionArgs,
+  type LoaderFunctionArgs,
+  type MetaFunction
 } from '@remix-run/node'
 import { useActionData, useLoaderData, useSubmit } from '@remix-run/react'
 import { useEffect, useRef, useState } from 'react'
@@ -32,7 +33,7 @@ import {
   MasterCardLogo,
   VisaLogo
 } from '~/components'
-import { getWalletId } from '~/data/wallet.server'
+import { astraRequiresOtp, getWalletId } from '~/data/wallet.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
@@ -41,6 +42,13 @@ import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
+  const otpRequired = await astraRequiresOtp(request)
+  if (otpRequired) {
+    return redirect(
+      route('/otp/challenge') + '?returnTo=' + route('/connect/card')
+    )
+  }
+
   const walletId = await getWalletId(request)
   return jsonWithCSRF(request, {
     walletId,
