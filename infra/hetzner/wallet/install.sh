@@ -301,6 +301,18 @@ plugin "raw_exec" {
   }
 }
 
+plugin "docker" {
+  config {
+    allow_privileged = true
+    auth {
+      config = "/etc/nomad.d/.docker/config.json"
+    }
+    volumes {
+     enabled = true
+    }
+  }
+}
+
 consul {
   address = "127.0.0.1:8501"
   ssl = true
@@ -394,6 +406,17 @@ function create_promtail_directory () {
 	sudo mkdir /etc/promtail.d
 }
 
+function install_gitlab_runner () {
+	curl -L "https://packages.gitlab.com/install/repositories/runner/gitlab-runner/script.deb.sh" | sudo bash
+	sudo apt install gitlab-runner
+	cat <<EOF | sudo tee /etc/apt/preferences.d/pin-gitlab-runner.pref
+Explanation: Prefer GitLab provided packages over the Debian native ones
+Package: gitlab-runner
+Pin: origin packages.gitlab.com
+Pin-Priority: 1001
+EOF
+}
+
 function main () {
 	add_remote_repositories
 	install_docker
@@ -402,6 +425,7 @@ function main () {
 	install_nomad
 	create_snapshot_scripts
 	create_promtail_directory
+	install_gitlab_runner
 }
 
 main "${@}"
