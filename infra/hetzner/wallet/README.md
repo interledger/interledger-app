@@ -157,18 +157,79 @@ Test everything is working as expected with `sudo unattended-upgrades -d`. Note 
 get an email if no packages were installed. you can set `Unattended-Upgrade::MailReport "always";` 
 temporarily to test the email notifications.
 
-## Restore a snapshot from ZFS
+## Restore the Wallet
+
+* 0) Stop hashistack
+
+Make sure vault, nomad and consul aren't running
+```sh
+sudo systemctl stop nomad consul vault
+```
+
+* 1) Restore the zfs snapshot
+
 You will need AWS credentials for the `hetzner-backup` IAM user to read from the S3 bucket `s3://fynbos-wallet`.
 ```sh
 export AWS_REGION="..."
 export AWS_ACCESS_KEY_ID="..."
 export AWS_SECRET_ACCESS_KEY="..."
 
-aws s3 cp "s3://fynbos-wallet/full/${snapshot_name}" - | zfs receive /backup/live
-zfs set mountpoint=/data backup/live
+sudo zfs create -o mountpoint=/data rpool/backup
+aws s3 cp --include ".zfs" "s3://fynbos-wallet/full/${snapshot_name}" - | zfs receive rpool/backup/live
 ```
 
-Remember to start vault, nomad and consul.
+* 2) Start hashistack
+
+Start the hashistack using
+```sh
+sudo systemctl start vault nomad consul
+```
+
+Watch the logs for any errors
+```sh
+sudo journalctl -r -u nomad
+```
+
+* 3) update the Vault `jwt-nomad` auth method
+
+Vault has been configured with the `jwt-nomad` access method. This needs to be updated with the new ip of the host.
+The easiest way to do this is to do this is to port forward 8200 to the host
+```sh
+ssh -N -L 8200:127.0.0.1:8200 <user>@$HOST_IP
+```
+Then open `http://localhost:8200` in your browser and use the Vault UI to edit the `jwt-nomad` access method.
+
+* 4) Authenticate the docker client with gitlab registry
+
+The easiest way is to first create a `Deploy Token` at `https://gitlab.com/fynbos/fynbos/-/settings/repository`.
+Then authenticate with the registry using 
+```sh
+# set the $CI_DEPLOY_PASSWORD and $CI_DEPLOY_USER with the values from the previous step
+echo "$CI_DEPLOY_PASSWORD" | docker login registry.gitlab.com/fynbos/fynbos -u $CI_DEPLOY_USER --password-stdin
+```
+Then copy the `~/.docker/config.json` file to `/etc/nomad.d/.docker/config.json`. It should look like
+```sh
+{
+        "auths": {
+                "registry.gitlab.com": {
+                        "auth": "..."
+                }
+        }
+}
+```
+
+* 5) Authenticate the gitlab runner
+
+It is easiest to delete the `Hetzner-Wallet` runner at `https://gitlab.com/fynbos/fynbos/-/settings/ci_cd#js-runners-settings`
+and recreate it. Then run
+```sh
+sudo gitlab-runner register \
+  --non-interactive \
+  --url "https://gitlab.com/" \
+  --token "$RUNNER_TOKEN" \
+  --executor "shell" \
+  --description "wallet"
+```
 
 ## Bootstrapping hashistack
 `bootstrap.sh` does not need to be run if you are restoring from a snapshot. This was used for the
