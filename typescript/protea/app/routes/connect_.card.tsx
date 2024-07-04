@@ -46,7 +46,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
   // Astra trusted authentication requires us to have 2fa the user within the past 30 days - 
   // otherwise the add card will fail.
-  if (otpRequired) {
+  if (true) {
     const url = new URL(request.url)
     url.searchParams.set('returnTo', url.pathname + url.search)
     throw redirect(route('/login') + url.search)
