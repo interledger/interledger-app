@@ -91,6 +91,11 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		res.CardsEnabled = false
 		res.AddCardsEnabled = false
 	}
+	if w.Country == country.CA {
+		res.ReceiveEnabled = true
+		res.SendEnabled = true
+		res.LinkedAccEnabled = true
+	}
 	if country.EUCountries[w.Country] {
 		res.ReceiveEnabled = true
 		res.SendEnabled = true
