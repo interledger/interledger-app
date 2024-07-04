@@ -41,8 +41,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
   })
   if (isConnectError(response)) throw response.errorResponse
 
+  const url = new URL(request.url)
+  const returnTo = url.searchParams.get('returnTo')
+
   return jsonWithCSRF(request, {
-    phoneMask
+    phoneMask,
+    returnTo: returnTo ?? ''
   })
 }
 
@@ -64,7 +68,7 @@ export const meta: MetaFunction = mergeMeta(() => [
 
 export default function Page() {
   const actionData = useActionData<typeof action>()
-  const { csrfToken, phoneMask } = useLoaderData<typeof loader>()
+  const { csrfToken, phoneMask, returnTo } = useLoaderData<typeof loader>()
 
   return (
     <>
@@ -78,6 +82,12 @@ export default function Page() {
         form='otp-challenge'
         defaultValue={csrfToken}
         name='csrf_token'
+        type='hidden'
+      />
+      <input
+        form='otp-challenge'
+        value={returnTo}
+        name='return_to'
         type='hidden'
       />
       <Card>
@@ -112,6 +122,7 @@ export default function Page() {
 export async function action({ request }: ActionFunctionArgs) {
   const form = await request.formData()
   const otp = form.get('otp') as string
+  const returnTo = form.get('return_to') as string
 
   const session = await getUserSession(request)
 
@@ -130,6 +141,10 @@ export async function action({ request }: ActionFunctionArgs) {
     if (response.code == Code.InvalidArgument) {
       return response.error({ errors })
     } else return response.error({ errors }, {}, { action: 'Contact support' })
+  }
+
+  if (returnTo) {
+    return redirect(returnTo)
   }
 
   const cookie = String(request.headers.get('cookie'))

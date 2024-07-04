@@ -102,7 +102,7 @@ export default function Page() {
       </Card>
 
       {grant.access.map((a) => (
-        <Card>
+        <Card key={a.id}>
           <Label>{a.type}</Label>
           <CardContent className='mt-2 flex flex-col gap-y-4'>
             <div className='flex w-full justify-between'>
