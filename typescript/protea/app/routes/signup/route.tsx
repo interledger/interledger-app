@@ -161,7 +161,7 @@ export async function detailsAction({ request }: ActionFunctionArgs) {
   const country = form.get('country') as string
   const email = form.get('email') as string
 
-  if (!(country == 'US' || country == 'ZA' || isEUCountry(country))) {
+  if (!(country == 'CA' || country == 'US' || country == 'ZA' || isEUCountry(country))) {
     return redirect(
       `/waitlist?country=${country}&email=${email}&fullName=${firstName} ${lastName}`
     )

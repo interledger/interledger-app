@@ -199,6 +199,7 @@ export function About() {
         />
       </Card>
       {country &&
+        country?.id != 'CA' &&
         country?.id !== 'US' &&
         country?.id !== 'ZA' &&
         !isEUCountry(country?.id) && (
