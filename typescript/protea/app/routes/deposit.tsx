@@ -59,7 +59,19 @@ export async function loader(args: LoaderFunctionArgs) {
 
   if (providerResponse.provider == 'gatehub') {
     return gatehubDepositLoader(args)
+  } else if (providerResponse.provider == 'chimoney') {
+    return chimoneyDepositLoader(args)
   } else return fynbosDepositLoader(args)
+}
+
+async function chimoneyDepositLoader({ request }: LoaderFunctionArgs) {
+  const response = await grpc.getChimoneyDepositLink(request, {})
+  if (isConnectError(response)) throw response.error
+
+  return jsonWithCSRF(request, {
+    provider: 'chimoney',
+    chimoneyWidgetUrl: response.link
+  })
 }
 
 async function gatehubDepositLoader({ request }: LoaderFunctionArgs) {
@@ -153,7 +165,34 @@ export default function Page() {
 
   if (provider == 'gatehub') {
     return <GatehubDepositPage />
+  } else if (provider == 'chimoney') {
+    return <ChimoneyDepositPage />
   } else return <FynbosDepositPage />
+}
+
+function ChimoneyDepositPage() {
+  const { chimoneyWidgetUrl } = useLoaderData<typeof chimoneyDepositLoader>()
+
+  const onEvent = (e: MessageEvent) => {
+    console.log("successful payment", e)
+  }
+
+  useEffect(() => {
+    window.addEventListener('message', onEvent, false)
+
+    return () => { window.removeEventListener('message', onEvent) }
+  }, [chimoneyWidgetUrl])
+
+  return (
+    <iframe
+      title='Deposit'
+      src={chimoneyWidgetUrl}
+      sandbox='allow-top-navigation allow-forms allow-same-origin allow-popups allow-scripts'
+      scrolling='no'
+      frameBorder='0'
+      className='h-[750px]'
+    />
+  )
 }
 
 function GatehubDepositPage() {
@@ -161,7 +200,7 @@ function GatehubDepositPage() {
 
   return (
     <iframe
-      title='Withdraw'
+      title='Deposit'
       src={gatehubWidgetUrl}
       sandbox='allow-top-navigation allow-forms allow-same-origin allow-popups allow-scripts'
       scrolling='no'
