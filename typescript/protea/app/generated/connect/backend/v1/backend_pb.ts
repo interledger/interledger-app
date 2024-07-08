@@ -395,6 +395,11 @@ export class KYCProviderWidget extends Message<KYCProviderWidget> {
    */
   personaInquiry?: KYCPersonaInquiryResponse;
 
+  /**
+   * @generated from field: string chimoneyWidget = 4;
+   */
+  chimoneyWidget = "";
+
   constructor(data?: PartialMessage<KYCProviderWidget>) {
     super();
     proto3.util.initPartial(data, this);
@@ -406,6 +411,7 @@ export class KYCProviderWidget extends Message<KYCProviderWidget> {
     { no: 1, name: "provider", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "gatehubWidget", kind: "message", T: GatehubWidget },
     { no: 3, name: "personaInquiry", kind: "message", T: KYCPersonaInquiryResponse },
+    { no: 4, name: "chimoneyWidget", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): KYCProviderWidget {

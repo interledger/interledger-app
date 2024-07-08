@@ -11,6 +11,7 @@ import (
 	"gitlab.com/fynbos/pacioli"
 
 	"gitlab.com/fynbos/backend/currency"
+	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/chimoney"
 	"gitlab.com/fynbos/backend/providers/chimoney/external"
@@ -42,6 +43,39 @@ func NewActivity(b Backends) *Activity {
 		b:        b,
 		external: ec,
 	}
+}
+
+func ChimomeyWatchForSuccessfulKYC(ctx workflow.Context, walletID string) error {
+	var a *Activity
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Second,
+	}
+
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	logger := workflow.GetLogger(ctx)
+	logger.Info("Polling chimoney for sub account kyc status.")
+
+	for {
+		var wallet external.WalletResp
+		err := workflow.ExecuteActivity(ctx, a.GetChimoneyWallet, walletID).Get(ctx, nil)
+		if err != nil {
+			return err
+		}
+
+		if wallet.Verification.Status != "completed" {
+			err := workflow.ExecuteActivity(ctx, a.SetChimoneyKYCStatus, walletID, kyc.StatusApproved).Get(ctx, nil)
+			if err != nil {
+				return err
+			}
+
+			break
+		}
+
+		_ = workflow.Sleep(ctx, 30*time.Second)
+	}
+
+	return nil
 }
 
 func CreateChimoneyUserWorkflow(ctx workflow.Context, walletID string) (string, error) {
@@ -80,6 +114,22 @@ func CreateChimoneyUserWorkflow(ctx workflow.Context, walletID string) (string, 
 	return exID, nil
 }
 
+func (a *Activity) GetChimoneyWallet(ctx context.Context, walletID string) (*external.WalletResp, error) {
+	externalID, err := GetChiWallet(ctx, a.b, walletID)
+	if errors.Is(err, chimoney.ErrNotFound) {
+		return nil, temporal.NewNonRetryableApplicationError("chimoney: wallet not found", "ErrNotFound", err)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return a.external.GetWallet(ctx, externalID)
+}
+
+func (a *Activity) SetChimoneyKYCStatus(ctx context.Context, walletID string, status kyc.Status) error {
+	return a.b.KYC().SetKYCStatus(ctx, walletID, status)
+}
+
 func (a *Activity) CreateLinkedAccount(ctx context.Context, walletID, externalID string) (*linkedaccounts.LinkedAccount, error) {
 	w, err := a.b.Wallets().Get(ctx, walletID)
 	if errors.Is(err, wallets.ErrNoWalletFound) {
@@ -109,7 +159,7 @@ func (a *Activity) CreateLinkedAccount(ctx context.Context, walletID, externalID
 		ReceiveCountry:  w.Country,
 		ReceiveCurrency: currency.CAD,
 		SendCountry:     w.Country,
-		SendCurrency:    currency.EUR,
+		SendCurrency:    currency.CAD,
 		CanSend:         true,
 		State:           linkedaccounts.Verified,
 	})

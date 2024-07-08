@@ -72,3 +72,11 @@ func (c *Client) AssignBalance(ctx context.Context, linkedAccountID, trxID strin
 func (c *Client) RollbackReserve(ctx context.Context, txID string) error {
 	return ops.RollbackReserve(ctx, c.b, txID)
 }
+
+func (c *Client) GetKYCWidget(ctx context.Context, walletID string) (string, error) {
+	return ops.GetKYCWidget(ctx, c.b, walletID)
+}
+
+func (c *Client) WatchForSuccessfulKYC(ctx context.Context, walletID string) error {
+	return ops.WatchForSuccessfulKYC(ctx, c.b, walletID)
+}

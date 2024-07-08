@@ -213,6 +213,7 @@ message KYCProviderWidget {
   string provider = 1;
   GatehubWidget gatehubWidget = 2;
   KYCPersonaInquiryResponse personaInquiry = 3;
+  string chimoneyWidget = 4;
 }
 
 message GatehubWidget {

@@ -17,6 +17,7 @@ import (
 
 type Client interface {
 	CreateWallet(ctx context.Context, req CreateWalletReq) (string, error)
+	GetWallet(ctx context.Context, id string) (*WalletResp, error)
 	Transfer(ctx context.Context, req TransferReq) error
 	Deposit(ctx context.Context, req DepositReq) (*DepositResp, error)
 	Withdraw(ctx context.Context, req WithdrawalReq) error
@@ -92,6 +93,49 @@ func (c client) CreateWallet(ctx context.Context, req CreateWalletReq) (string, 
 	}
 
 	return resp.ID, nil
+}
+
+func (c client) GetWallet(ctx context.Context, id string) (*WalletResp, error) {
+	endpoint, err := url.JoinPath(c.baseURL, "multicurrency-wallets", "get")
+	if err != nil {
+		return nil, err
+	}
+
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("%s?id=%s", endpoint, id), nil)
+	if err != nil {
+		return nil, err
+	}
+	httpReq.Header.Add("Content-Type", "application/json")
+	httpReq.Header.Add("Accept", "application/json")
+
+	httpResp, err := c.api.Do(httpReq)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := io.ReadAll(httpResp.Body)
+	if err != nil {
+		return nil, err
+	}
+	defer httpResp.Body.Close()
+
+	var respWrapper APIResponse
+	err = json.Unmarshal(body, &respWrapper)
+	if err != nil {
+		return nil, err
+	}
+
+	if !strings.EqualFold(respWrapper.Status, "success") || respWrapper.Error != "" {
+		return nil, fmt.Errorf("request failed on fetching sub account with status (%s) error (%s)", respWrapper.Status, respWrapper.Error)
+	}
+
+	var resp WalletResp
+	err = json.Unmarshal(respWrapper.Data, &resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return &resp, nil
 }
 
 func (c client) Transfer(ctx context.Context, req TransferReq) error {

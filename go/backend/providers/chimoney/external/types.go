@@ -21,11 +21,16 @@ type APIResponse struct {
 }
 
 type WalletResp struct {
-	ID         string `json:"id,omitempty"`
-	Parent     string `json:"parent,omitempty"`
-	UID        string `json:"uid,omitempty"`
-	Name       string `json:"name,omitempty"`
-	SubAccount bool   `json:"subAccount,omitempty"`
+	ID           string       `json:"id,omitempty"`
+	Parent       string       `json:"parent,omitempty"`
+	UID          string       `json:"uid,omitempty"`
+	Name         string       `json:"name,omitempty"`
+	SubAccount   bool         `json:"subAccount,omitempty"`
+	Verification Verification `json:"verification,omitempty"`
+}
+
+type Verification struct {
+	Status string `json:"status,omitempty"`
 }
 
 type TransferReq struct {
