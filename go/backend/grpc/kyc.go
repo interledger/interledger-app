@@ -9,6 +9,7 @@ import (
 
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/kyc/persona"
+	"gitlab.com/fynbos/backend/providers/chimoney"
 	"gitlab.com/fynbos/backend/providers/gatehub"
 
 	"gitlab.com/fynbos/env"
@@ -50,6 +51,17 @@ func (s *rpcService) GetKYCProviderWidget(ctx context.Context, req *pb.GetKYCPro
 			GatehubWidget: &pb.GatehubWidget{
 				WidgetUrl: onboardingWidget,
 			},
+		}, nil
+	}
+	if country.CA == wallet.Country {
+		widget, err := s.b.Chimoney().GetKYCWidget(ctx, wallet.ID)
+		if err != nil {
+			return nil, toGRPCError(err)
+		}
+
+		return &pb.KYCProviderWidget{
+			Provider:       chimoney.ProviderName,
+			ChimoneyWidget: widget,
 		}, nil
 	}
 

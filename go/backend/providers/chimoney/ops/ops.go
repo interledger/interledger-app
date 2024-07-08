@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/pacioli"
 
 	"gitlab.com/fynbos/backend/currency"
@@ -58,6 +59,39 @@ func CreateWallet(ctx context.Context, b Backends, walletID string) (chimoney.Aw
 	}
 
 	return await.Get, nil
+}
+
+func WatchForSuccessfulKYC(ctx context.Context, b Backends, walletID string) error {
+	wo := client.StartWorkflowOptions{
+		ID:                    "chimoney_poll_wallet_kyc" + walletID,
+		TaskQueue:             "backend",
+		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+	}
+
+	var workflowStatus enums.WorkflowExecutionStatus
+	wflow, err := b.Temporal().DescribeWorkflowExecution(ctx, wo.ID, "")
+	switch err.(type) {
+	case *serviceerror.Internal,
+		*serviceerror.Unavailable,
+		*serviceerror.InvalidArgument:
+		return fmt.Errorf("%w %s", chimoney.ErrInternal, err)
+	case *serviceerror.NotFound:
+		// do nothing
+	default:
+		if wflow != nil {
+			workflowStatus = wflow.GetWorkflowExecutionInfo().Status
+		}
+	}
+
+	// return workflow if it's running
+	var executeErr error
+	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
+		// Do nothing
+	} else {
+		_, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, ChimomeyWatchForSuccessfulKYC, walletID)
+	}
+
+	return executeErr
 }
 
 func UpsertInteracEmail(ctx context.Context, b Backends, walletID, email string) (string, error) {
@@ -380,4 +414,20 @@ func RollbackReserve(ctx context.Context, b Backends, txID string) error {
 	}
 
 	return nil
+}
+
+func GetKYCWidget(ctx context.Context, b Backends, walletID string) (string, error) {
+	externalID, err := GetChiWallet(ctx, b, walletID)
+	if err != nil {
+		return "", err
+	}
+
+	baseURL := "dash.chimoney.io"
+	if !env.IsProd() {
+		baseURL = "sandbox.chimoney.io"
+	}
+
+	widgetURL := fmt.Sprintf("%s/verify/kyc/%s", baseURL, externalID)
+
+	return widgetURL, nil
 }

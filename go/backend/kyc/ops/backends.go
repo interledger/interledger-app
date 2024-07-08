@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"gitlab.com/fynbos/backend/providers/astra"
+	"gitlab.com/fynbos/backend/providers/chimoney"
 	"gitlab.com/fynbos/backend/providers/pti"
 
 	"gitlab.com/fynbos/backend/email"
@@ -32,6 +33,7 @@ type Backends interface {
 	Xago() xago.Client
 	Astra() astra.Client
 	PTI() pti.Client
+	Chimoney() chimoney.Client
 }
 
 type testBackends struct {
@@ -44,6 +46,10 @@ type testBackends struct {
 	em  email.Client
 	wc  wallets.Client
 	xg  xago.Client
+}
+
+func (b testBackends) Chimoney() chimoney.Client {
+	return nil
 }
 
 func (t testBackends) PTI() pti.Client {

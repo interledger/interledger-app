@@ -11,6 +11,7 @@ import (
 	"gitlab.com/fynbos/backend/notify"
 	"gitlab.com/fynbos/backend/providers/xago"
 	"gitlab.com/fynbos/backend/slack"
+	"gitlab.com/fynbos/backend/wallets"
 	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/log"
 	"go.temporal.io/sdk/workflow"
@@ -72,7 +73,27 @@ func SetKYCStatusWorkflow(ctx workflow.Context, walletID string, status kyc.Stat
 		}
 	}
 
+	var wallet wallets.Wallet
+	err = workflow.ExecuteActivity(ctx, a.KYCGetWallet, walletID).Get(ctx, &wallet)
+	if err != nil {
+		return err
+	}
+	if status == kyc.StatusPending && wallet.Country == country.CA {
+		err = workflow.ExecuteActivity(ctx, a.KYCWatchForChimoneySuccessfulKYC, walletID).Get(ctx, nil)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
+}
+
+func (a *Activity) KYCGetWallet(ctx context.Context, walletID string) (*wallets.Wallet, error) {
+	return a.b.Wallets().Get(ctx, walletID)
+}
+
+func (a *Activity) KYCWatchForChimoneySuccessfulKYC(ctx context.Context, walletID string) error {
+	return a.b.Chimoney().WatchForSuccessfulKYC(ctx, walletID)
 }
 
 func (a *Activity) ResetExceededLimits(ctx context.Context, walletID string) error {

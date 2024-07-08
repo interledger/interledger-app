@@ -119,6 +119,10 @@ export interface KYCProviderWidget {
      * @generated from protobuf field: backend.v1.KYCPersonaInquiryResponse personaInquiry = 3;
      */
     personaInquiry?: KYCPersonaInquiryResponse;
+    /**
+     * @generated from protobuf field: string chimoneyWidget = 4;
+     */
+    chimoneyWidget: string;
 }
 /**
  * @generated from protobuf message backend.v1.GatehubWidget
@@ -2915,11 +2919,12 @@ class KYCProviderWidget$Type extends MessageType<KYCProviderWidget> {
         super("backend.v1.KYCProviderWidget", [
             { no: 1, name: "provider", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "gatehubWidget", kind: "message", T: () => GatehubWidget },
-            { no: 3, name: "personaInquiry", kind: "message", T: () => KYCPersonaInquiryResponse }
+            { no: 3, name: "personaInquiry", kind: "message", T: () => KYCPersonaInquiryResponse },
+            { no: 4, name: "chimoneyWidget", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<KYCProviderWidget>): KYCProviderWidget {
-        const message = { provider: "" };
+        const message = { provider: "", chimoneyWidget: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<KYCProviderWidget>(this, message, value);
@@ -2938,6 +2943,9 @@ class KYCProviderWidget$Type extends MessageType<KYCProviderWidget> {
                     break;
                 case /* backend.v1.KYCPersonaInquiryResponse personaInquiry */ 3:
                     message.personaInquiry = KYCPersonaInquiryResponse.internalBinaryRead(reader, reader.uint32(), options, message.personaInquiry);
+                    break;
+                case /* string chimoneyWidget */ 4:
+                    message.chimoneyWidget = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -2960,6 +2968,9 @@ class KYCProviderWidget$Type extends MessageType<KYCProviderWidget> {
         /* backend.v1.KYCPersonaInquiryResponse personaInquiry = 3; */
         if (message.personaInquiry)
             KYCPersonaInquiryResponse.internalBinaryWrite(message.personaInquiry, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        /* string chimoneyWidget = 4; */
+        if (message.chimoneyWidget !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.chimoneyWidget);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

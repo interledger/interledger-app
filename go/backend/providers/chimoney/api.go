@@ -14,6 +14,8 @@ type Client interface {
 	CreateDepositLink(ctx context.Context, walletID string, amt currency.Amount) (string, error)
 	Withdraw(ctx context.Context, walletID string, amt currency.Amount) error
 	Transfer(ctx context.Context, args TransferArgs) error
+	GetKYCWidget(ctx context.Context, walletID string) (string, error)
+	WatchForSuccessfulKYC(ctx context.Context, walletID string) error
 
 	ReserveBalance(ctx context.Context, linkedAccountID, txID string, amt currency.Amount, timeout time.Duration) (*Balance, error)
 	FinaliseReserve(ctx context.Context, txID string) error
