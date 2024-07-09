@@ -23,7 +23,7 @@ import {
   ChipColor,
   DiscordIcon,
   Fab,
-  FynbosIcon,
+  InterledgerIcon,
   GridColumn,
   Icon,
   Layouts,
@@ -338,7 +338,7 @@ export default function Page() {
                               <>
                                 {transaction.type != 'withdrawal' &&
                                   transaction.type != 'deposit' && (
-                                    <FynbosIcon />
+                                    <InterledgerIcon />
                                   )}
                                 {transaction.type == 'withdrawal' && (
                                   <Icon>south_west</Icon>
