@@ -15,7 +15,7 @@ func Redact(ctx context.Context, req []byte) ([]byte, error) {
 	js := make(map[string]interface{})
 	err := json.Unmarshal(req, &js)
 	if err != nil {
-		log.Error("Redacting Astra request failed. JSON unmarshalling failed", zap.Error(err))
+		log.Error("Redacting Chimoney request failed. JSON unmarshalling failed", zap.Error(err))
 		return req, nil
 	}
 	redact(js)

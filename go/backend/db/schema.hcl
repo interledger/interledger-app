@@ -3527,57 +3527,6 @@ table "chi_money_interac_emails" {
   }
 }
 
-table "chi_money_deposit_links" {
-  schema = schema.public
-  column "id" {
-    null = false
-    type = uuid
-    default = sql("gen_random_uuid()")
-  }
-  column "issue_id" {
-    null = false
-    type = text
-  }
-  column "wallet_id" {
-    null = false
-    type = uuid
-  }
-  column "chimoney_wallet_id" {
-    null = false
-    type = uuid
-  }
-  column "amount" {
-    null = false
-    type = bigint
-  }
-  column "currency" {
-    null = false
-    type = text
-  }
-  column "created_at" {
-    null    = false
-    type    = timestamp
-    default = sql("now()::TIMESTAMP")
-  }
-  column "updated_at" {
-    null    = false
-    type    = timestamp
-    default = sql("now()::TIMESTAMP")
-  }
-  column "completed_at" {
-    null    = true
-    type    = timestamp
-  }
-  primary_key {
-    columns = [column.id]
-  }
-  index "chi_money_interac_issue_id" {
-    unique = true
-    columns = [column.issue_id]
-  }
-}
-
-
 table "atlas_schema_history" {
   schema = schema.public
   column "id" {

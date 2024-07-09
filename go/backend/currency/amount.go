@@ -265,3 +265,12 @@ func FromUInt64(i uint64, cc Currency) Amount {
 		Scale:    cc.Scale(),
 	}
 }
+
+func FromString(value string, cc Currency) (Amount, error) {
+	f, err := strconv.ParseFloat(value, 64)
+	if err != nil {
+		return Amount{}, err
+	}
+
+	return FromFloat64(f, cc), nil
+}

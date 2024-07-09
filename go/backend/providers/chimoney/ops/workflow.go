@@ -2,7 +2,6 @@ package ops
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"net/http"
@@ -24,6 +23,8 @@ import (
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
+
+const depositChannel = "chimoney_deposits"
 
 type Activity struct {
 	b        Backends
@@ -514,27 +515,12 @@ func rollBackWithdrawal(ctx workflow.Context, a *Activity, stage withdrawalStage
 	return nil
 }
 
-func (a *Activity) MarkChimoneyDepositLinkCompleted(ctx context.Context, issueID string) (*depositDetails, error) {
-	var deposit depositDetails
-	err := a.b.DB().GetContext(ctx, &deposit, "UPDATE chimoney_deposit_links SET completed_at = now()::TIMESTAMP WHERE issue_id=$1 AND completed_at IS NOT NULL RETURNING wallet_id, amount, currency, issue_id;", issueID)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, temporal.NewNonRetryableApplicationError("chimoney deposit link not found", "ErrNotFound", err)
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	return &deposit, nil
+type depositSignal struct {
+	IssueID string
+	Success bool
 }
 
-type depositDetails struct {
-	WalletID string `db:"wallet_id"`
-	Amount   uint64 `db:"amount"`
-	Currency string `db:"currency"`
-	IssueID  string `db:"issue_id"`
-}
-
-func CreateChimoneyDepositWorkflow(ctx workflow.Context, issueID string) error {
+func CreateChimoneyDepositWorkflow(ctx workflow.Context, walletID, issueID string, amount currency.Amount) error {
 	var a *Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 10 * time.Second,
@@ -545,24 +531,39 @@ func CreateChimoneyDepositWorkflow(ctx workflow.Context, issueID string) error {
 	logger := workflow.GetLogger(ctx)
 	logger.Info("Creating chimoney deposit.")
 
-	var deposit depositDetails
-	err := workflow.ExecuteLocalActivity(ctx, a.MarkChimoneyDepositLinkCompleted, issueID).Get(ctx, &deposit)
-	if err != nil {
-		return err
-	}
-
 	var transaction transactions.Transaction
-	err = workflow.ExecuteActivity(ctx, a.CreateChimoneyDepositTransaction, deposit.WalletID, deposit.IssueID, currency.FromUInt64(deposit.Amount, currency.Currency(deposit.Currency))).Get(ctx, &transaction)
+	err := workflow.ExecuteActivity(ctx, a.CreateChimoneyDepositTransaction, walletID, issueID, amount).Get(ctx, &transaction)
 	if err != nil {
 		return err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.AssignChimoneyBalance, deposit.WalletID, transaction.ID).Get(ctx, nil)
+	signalChan := workflow.GetSignalChannel(ctx, depositChannel)
+	var signal depositSignal
+	for {
+		signalChan.Receive(ctx, &signal)
+		if issueID != signal.IssueID {
+			logger.Warn("chimoney: Received signal for wrong deposit", "issueID", issueID, "received", signal.IssueID)
+			continue
+		}
+
+		break
+	}
+
+	if !signal.Success {
+		err = workflow.ExecuteActivity(ctx, a.FailChimoneyTransaction, walletID, transaction.ID).Get(ctx, nil)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.AssignChimoneyBalance, walletID, transaction.ID).Get(ctx, nil)
 	if err != nil {
 		return err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.FinalizeChimoneyBalance, transaction.ID).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.CompleteChimoneyTransaction, walletID, transaction.ID).Get(ctx, nil)
 	if err != nil {
 		return err
 	}

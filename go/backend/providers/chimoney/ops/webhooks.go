@@ -14,12 +14,8 @@ import (
 	"regexp"
 	"strings"
 
-	"gitlab.com/fynbos/backend/providers/chimoney"
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	"gitlab.com/fynbos/log"
-	"go.temporal.io/api/enums/v1"
-	"go.temporal.io/api/serviceerror"
-	"go.temporal.io/sdk/client"
 	"go.uber.org/zap"
 )
 
@@ -141,34 +137,9 @@ func handlePaymentCompletedWebhook(ctx context.Context, b Backends, raw json.Raw
 		return err
 	}
 
-	wo := client.StartWorkflowOptions{
-		ID:                    "chimoney_payment_completed_" + wh.IssueID,
-		TaskQueue:             "backend",
-		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+	signal := depositSignal{
+		IssueID: wh.IssueID,
+		Success: true,
 	}
-
-	var workflowStatus enums.WorkflowExecutionStatus
-	wflow, err := b.Temporal().DescribeWorkflowExecution(ctx, wo.ID, "")
-	switch err.(type) {
-	case *serviceerror.Internal,
-		*serviceerror.Unavailable,
-		*serviceerror.InvalidArgument:
-		return fmt.Errorf("%w %s", chimoney.ErrInternal, err)
-	case *serviceerror.NotFound:
-		// do nothing
-	default:
-		if wflow != nil {
-			workflowStatus = wflow.GetWorkflowExecutionInfo().Status
-		}
-	}
-
-	// start workflow if it's running
-	var executeErr error
-	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
-		// do nothing
-	} else {
-		_, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, CreateChimoneyDepositWorkflow, wh.IssueID)
-	}
-
-	return executeErr
+	return b.Temporal().SignalWorkflow(ctx, fmt.Sprintf("chimoney_deposit_%s", wh.IssueID), "", depositChannel, signal)
 }

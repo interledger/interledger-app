@@ -74,10 +74,12 @@ export const PaySelect = forwardRef<HTMLInputElement, PayTextFieldProps>(
                   {...inputProps}
                   className='w-full overflow-hidden border-none bg-transparent px-4 text-2xl focus:ring-0'
                 />
-                <Listbox.Button className='flex h-full items-center gap-x-2 bg-nav px-4 text-medium focus-visible:bg-nav-active focus-visible:outline-none'>
-                  <Icon>{linkedAccount?.icon}</Icon>
-                  {linkedAccount?.mask && <span>{linkedAccount?.mask}</span>}
-                </Listbox.Button>
+                {linkedAccountOptions.length > 0 && (
+                  <Listbox.Button className='flex h-full items-center gap-x-2 bg-nav px-4 text-medium focus-visible:bg-nav-active focus-visible:outline-none'>
+                    <Icon>{linkedAccount?.icon}</Icon>
+                    {linkedAccount?.mask && <span>{linkedAccount?.mask}</span>}
+                  </Listbox.Button>
+                )}
               </div>
             </div>
             <Transition
