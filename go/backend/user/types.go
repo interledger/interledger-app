@@ -7,6 +7,8 @@ type User struct {
 	Email       string
 	PhoneNumber string
 	Country     country.Country
+	FirstName   string
+	LastName    string
 }
 
 type UserCtxKey string
