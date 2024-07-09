@@ -21,7 +21,7 @@ import {
   ChipColor,
   Dialog,
   DiscordIcon,
-  FynbosIcon,
+  InterledgerIcon,
   Icon,
   Layouts,
   LinkedInIcon,
@@ -200,7 +200,7 @@ export default function Page() {
             <CardLink className='flex w-full' to={publicWalletInfo.address}>
               <div className='flex w-full items-center justify-between text-medium'>
                 <div className='flex space-x-2'>
-                  <FynbosIcon />
+                  <InterledgerIcon />
                   <span>{publicWalletInfo.shortAddress}</span>
                 </div>
                 <Icon>navigate_next</Icon>
@@ -418,7 +418,7 @@ function Deposit() {
         <div className='my-1 flex space-x-2 rounded-xl bg-nav p-3'>
           <div className='flex w-full items-center justify-between text-medium'>
             <div className='flex space-x-2'>
-              <FynbosIcon />
+              <InterledgerIcon />
               <span>{receiverAccountTitle}</span>
             </div>
           </div>
@@ -566,7 +566,7 @@ function Sent({ openDialog }: { openDialog: () => void }) {
           <div className='flex w-full items-center justify-between text-medium'>
             <div className='flex space-x-2'>
               {transaction.destinationIdentityType === 'wallet' && (
-                <FynbosIcon />
+                <InterledgerIcon />
               )}
               {transaction.destinationIdentityType === 'linkedin' && (
                 <TwitterIcon />
@@ -744,7 +744,7 @@ function Received({ openDialog }: { openDialog: () => void }) {
           <div className='flex w-full items-center justify-between text-medium'>
             <div className='flex space-x-2'>
               {transaction.destinationIdentityType === 'wallet' && (
-                <FynbosIcon />
+                <InterledgerIcon />
               )}
               {transaction.destinationIdentityType === 'linkedin' && (
                 <TwitterIcon />
