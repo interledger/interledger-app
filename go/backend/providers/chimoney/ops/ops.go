@@ -19,12 +19,6 @@ import (
 )
 
 func CreateWallet(ctx context.Context, b Backends, walletID string) (chimoney.Await, error) {
-	// Check that user has an interac email before beginning workflow
-	_, err := GetInteracEmail(ctx, b, walletID)
-	if err != nil {
-		return nil, err
-	}
-
 	wo := client.StartWorkflowOptions{
 		ID:                    "chimoney_create_wallet_" + walletID,
 		TaskQueue:             "backend",
@@ -418,13 +412,23 @@ func RollbackReserve(ctx context.Context, b Backends, txID string) error {
 
 func GetKYCWidget(ctx context.Context, b Backends, walletID string) (string, error) {
 	externalID, err := GetChiWallet(ctx, b, walletID)
-	if err != nil {
+	if errors.Is(err, chimoney.ErrNotFound) {
+		await, innerErr := CreateWallet(ctx, b, walletID)
+		if innerErr != nil {
+			return "", innerErr
+		}
+
+		innerErr = await(ctx, &externalID)
+		if innerErr != nil {
+			return "", innerErr
+		}
+	} else if err != nil {
 		return "", err
 	}
 
-	baseURL := "dash.chimoney.io"
+	baseURL := "https://dash.chimoney.io"
 	if !env.IsProd() {
-		baseURL = "sandbox.chimoney.io"
+		baseURL = "https://sandbox.chimoney.io"
 	}
 
 	widgetURL := fmt.Sprintf("%s/verify/kyc/%s", baseURL, externalID)

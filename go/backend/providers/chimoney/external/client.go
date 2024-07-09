@@ -64,6 +64,7 @@ func (c client) CreateWallet(ctx context.Context, req CreateWalletReq) (string, 
 	}
 	httpReq.Header.Add("Content-Type", "application/json")
 	httpReq.Header.Add("Accept", "application/json")
+	httpReq.Header.Add("X-API-KEY", c.apiKey)
 
 	httpResp, err := c.api.Do(httpReq)
 	if err != nil {
@@ -107,6 +108,7 @@ func (c client) GetWallet(ctx context.Context, id string) (*WalletResp, error) {
 	}
 	httpReq.Header.Add("Content-Type", "application/json")
 	httpReq.Header.Add("Accept", "application/json")
+	httpReq.Header.Add("X-API-KEY", c.apiKey)
 
 	httpResp, err := c.api.Do(httpReq)
 	if err != nil {
@@ -169,6 +171,7 @@ func (c client) Transfer(ctx context.Context, req TransferReq) error {
 	}
 	httpReq.Header.Add("Content-Type", "application/json")
 	httpReq.Header.Add("Accept", "application/json")
+	httpReq.Header.Add("X-API-KEY", c.apiKey)
 
 	httpResp, err := c.api.Do(httpReq)
 	if err != nil {
@@ -211,6 +214,7 @@ func (c client) Withdraw(ctx context.Context, req WithdrawalReq) error {
 	}
 	httpReq.Header.Add("Content-Type", "application/json")
 	httpReq.Header.Add("Accept", "application/json")
+	httpReq.Header.Add("X-API-KEY", c.apiKey)
 
 	httpResp, err := c.api.Do(httpReq)
 	if err != nil {
@@ -254,6 +258,7 @@ func (c client) Deposit(ctx context.Context, req DepositReq) (*DepositResp, erro
 	}
 	httpReq.Header.Add("Content-Type", "application/json")
 	httpReq.Header.Add("Accept", "application/json")
+	httpReq.Header.Add("X-API-KEY", c.apiKey)
 
 	httpResp, err := c.api.Do(httpReq)
 	if err != nil {

@@ -64,7 +64,7 @@ func ChimomeyWatchForSuccessfulKYC(ctx workflow.Context, walletID string) error 
 		}
 
 		if wallet.Verification.Status != "completed" {
-			err := workflow.ExecuteActivity(ctx, a.SetChimoneyKYCStatus, walletID, kyc.StatusApproved).Get(ctx, nil)
+			err := workflow.ExecuteActivity(ctx, a.SetChimoneyKYCStatus, walletID, kyc.StatusLevel1).Get(ctx, nil)
 			if err != nil {
 				return err
 			}
@@ -214,22 +214,12 @@ func (a *Activity) CreateChimoneyWallet(ctx context.Context, walletID string) (s
 		return "", fmt.Errorf("%w No Fynbos user found for walletID", chimoney.ErrInternal)
 	}
 
-	userInfo, err := a.b.KYC().GetIndividualDetails(ctx, walletID)
-	if err != nil {
-		return "", fmt.Errorf("%w %s", chimoney.ErrInternal, err)
-	}
-
-	email, err := GetInteracEmail(ctx, a.b, walletID)
-	if err != nil {
-		return "", err
-	}
-
 	exID, err := a.external.CreateWallet(ctx, external.CreateWalletReq{
-		Name:        userInfo.FirstName + " " + userInfo.LastName,
+		Name:        ul[0].FirstName + " " + ul[0].LastName,
 		Email:       ul[0].Email,
-		FirstName:   userInfo.FirstName,
-		LastName:    userInfo.LastName,
-		PhoneNumber: email,
+		FirstName:   ul[0].FirstName,
+		LastName:    ul[0].LastName,
+		PhoneNumber: ul[0].PhoneNumber,
 	})
 	if err != nil {
 		return "", fmt.Errorf("%w %s", chimoney.ErrInternal, err)

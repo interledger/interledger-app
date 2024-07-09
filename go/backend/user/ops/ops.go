@@ -58,6 +58,8 @@ func convertTraits(userID string, traits interface{}) user.User {
 		Email:       traitsMap["email"].(string),
 		PhoneNumber: traitsMap["phone"].(string),
 		Country:     country.ParseCountry(traitsMap["countryCode"].(string)),
+		FirstName:   traitsMap["firstName"].(string),
+		LastName:    traitsMap["lastName"].(string),
 	}
 	// All trait values:  "email", "phone", "firstName", "lastName", "countryCode"
 	return u
