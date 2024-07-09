@@ -96,7 +96,7 @@ export const PaymentDetailsCard = () => {
             >
               <div className='flex w-full items-center justify-between text-medium'>
                 <div className='flex space-x-2'>
-                  <InterledgerLogo />
+                  <InterledgerIcon />
                   <span>{publicWalletInfo?.shortAddress}</span>
                 </div>
                 <Icon>navigate_next</Icon>
