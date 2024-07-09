@@ -14,9 +14,9 @@ import {
   Chip,
   ChipColor,
   DiscordIcon,
-  FynbosIcon,
   GridColumn,
   Icon,
+  InterledgerIcon,
   Router,
   SlackIcon,
   TwitterIcon,
@@ -192,7 +192,7 @@ export function AppPage() {
                           {transaction.destinationIdentityType == 'wallet' && (
                             <>
                               {transaction.type != 'withdrawal' &&
-                                transaction.type != 'deposit' && <FynbosIcon />}
+                                transaction.type != 'deposit' && <InterledgerIcon />}
                               {transaction.type == 'withdrawal' && (
                                 <Icon>south_west</Icon>
                               )}

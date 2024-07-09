@@ -30,7 +30,7 @@ import {
   Chip,
   ChipColor,
   DiscordIcon,
-  FynbosIcon,
+  InterledgerIcon,
   Icon,
   Layouts,
   Router,
@@ -291,7 +291,7 @@ export default function Page() {
           <CardContent>
             <div className='flex items-start space-x-4'>
               <CardIcon>
-                <FynbosIcon />
+                <InterledgerIcon />
               </CardIcon>
               <div className='flex flex-col space-y-4'>
                 <p className='text-sm text-medium'>

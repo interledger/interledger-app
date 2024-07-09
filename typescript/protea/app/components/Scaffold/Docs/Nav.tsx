@@ -10,7 +10,7 @@ import { AnimatePresence, motion, useIsPresent } from 'framer-motion'
 import type { FC, ReactNode } from 'react'
 import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
-import { FynbosLogo, IconButton, Router } from '~/components'
+import { InterledgerLogo, IconButton, Router } from '~/components'
 import type { DocsNav } from '~/components/Scaffold/Docs/useDocsStore'
 import { useDocsStore } from '~/components/Scaffold/Docs/useDocsStore'
 import { NavDrawer } from '~/components/Scaffold/NavDrawer'
@@ -154,7 +154,7 @@ export const DocsNavDrawer: FC<NavDrawerRootProps> = ({ onClick }) => {
           menu_open
         </IconButton>
         <Router to={route('/')} aria-label='Fynbos logo'>
-          <FynbosLogo className='h-8' />
+          <InterledgerLogo className='h-8' />
         </Router>
       </div>
 

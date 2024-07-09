@@ -12,8 +12,8 @@ import {
   ChipColor,
   Dialog,
   DiscordIcon,
-  FynbosIcon,
   Icon,
+  InterledgerIcon,
   LinkedInIcon,
   SlackIcon,
   TextButton,
@@ -38,7 +38,7 @@ export const PaymentDetailsCard = () => {
               {(payment.receiverIdentityType ===
                 PaymentIdentityType.WalletURL ||
                 payment.receiverIdentityType ===
-                  PaymentIdentityType.WalletID) && <FynbosIcon />}
+                  PaymentIdentityType.WalletID) && <InterledgerIcon />}
               {payment.receiverIdentityType === PaymentIdentityType.Twitter && (
                 <TwitterIcon />
               )}
@@ -96,7 +96,7 @@ export const PaymentDetailsCard = () => {
             >
               <div className='flex w-full items-center justify-between text-medium'>
                 <div className='flex space-x-2'>
-                  <FynbosIcon />
+                  <InterledgerLogo />
                   <span>{publicWalletInfo?.shortAddress}</span>
                 </div>
                 <Icon>navigate_next</Icon>
