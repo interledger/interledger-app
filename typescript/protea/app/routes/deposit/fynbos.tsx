@@ -1,9 +1,5 @@
 import { Code } from '@bufbuild/connect'
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
+import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import {
   Form,
@@ -11,14 +7,9 @@ import {
   useLoaderData,
   useSearchParams
 } from '@remix-run/react'
-import {
-  useCallback,
-  useEffect,
-  useState,
-  type ChangeEventHandler
-} from 'react'
+import type { ChangeEventHandler } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { route } from 'routes-gen'
-import type { ApplicationProps } from '~/components'
 import {
   Alert,
   AlertBody,
@@ -31,15 +22,14 @@ import {
   CardIcon,
   CardTitle,
   Icon,
-  Layouts,
   Router,
   Select,
   TextField
 } from '~/components'
+import type { FormattedLinkedAccount } from '~/data/accounts.server'
 import {
   getBalancesForTransfer,
-  getLinkedAccountsForDeposit,
-  type FormattedLinkedAccount
+  getLinkedAccountsForDeposit
 } from '~/data/accounts.server'
 import type {
   Balance,
@@ -48,43 +38,10 @@ import type {
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
-import { mergeMeta } from '~/lib/meta'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
-import { PaySelect } from '~/routes/pay_.$paymentId/PaySelect'
-import styles from '~/styles/flags.css'
+import { PaySelect } from '../pay_.$paymentId/PaySelect'
 
-export async function loader(args: LoaderFunctionArgs) {
-  const providerResponse = await grpc.getOnOffRampProvider(args.request, {})
-  if (isConnectError(providerResponse)) throw providerResponse.error
-
-  if (providerResponse.provider == 'gatehub') {
-    return gatehubDepositLoader(args)
-  } else if (providerResponse.provider == 'chimoney') {
-    return chimoneyDepositLoader(args)
-  } else return fynbosDepositLoader(args)
-}
-
-async function chimoneyDepositLoader({ request }: LoaderFunctionArgs) {
-  const response = await grpc.getChimoneyDepositLink(request, {})
-  if (isConnectError(response)) throw response.error
-
-  return jsonWithCSRF(request, {
-    provider: 'chimoney',
-    chimoneyWidgetUrl: response.link
-  })
-}
-
-async function gatehubDepositLoader({ request }: LoaderFunctionArgs) {
-  const widgetResponse = await grpc.getGatehubDepositWidget(request, {})
-  if (isConnectError(widgetResponse)) throw widgetResponse.error
-
-  return jsonWithCSRF(request, {
-    provider: 'gatehub',
-    gatehubWidgetUrl: widgetResponse.widgetUrl
-  })
-}
-
-async function fynbosDepositLoader({ request }: LoaderFunctionArgs) {
+export async function fynbosDepositLoader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
   let balanceAccount: Balance | undefined
   let balance: FormattedLinkedAccount | undefined
@@ -140,77 +97,7 @@ async function fynbosDepositLoader({ request }: LoaderFunctionArgs) {
   })
 }
 
-export const handle: ApplicationProps = {
-  layout: Layouts.Focus,
-  scaffold: {
-    header: {
-      title: 'Deposit',
-      back: '/'
-    }
-  }
-}
-
-export const meta: MetaFunction = mergeMeta(() => [
-  {
-    title: 'Deposit'
-  }
-])
-
-export function links() {
-  return [{ rel: 'stylesheet', href: styles }]
-}
-
-export default function Page() {
-  const { provider } = useLoaderData<typeof loader>()
-
-  if (provider == 'gatehub') {
-    return <GatehubDepositPage />
-  } else if (provider == 'chimoney') {
-    return <ChimoneyDepositPage />
-  } else return <FynbosDepositPage />
-}
-
-function ChimoneyDepositPage() {
-  const { chimoneyWidgetUrl } = useLoaderData<typeof chimoneyDepositLoader>()
-
-  const onEvent = (e: MessageEvent) => {
-    console.log("successful payment", e)
-  }
-
-  useEffect(() => {
-    window.addEventListener('message', onEvent, false)
-
-    return () => { window.removeEventListener('message', onEvent) }
-  }, [chimoneyWidgetUrl])
-
-  return (
-    <iframe
-      title='Deposit'
-      src={chimoneyWidgetUrl}
-      sandbox='allow-top-navigation allow-forms allow-same-origin allow-popups allow-scripts'
-      scrolling='no'
-      frameBorder='0'
-      className='h-[750px]'
-    />
-  )
-}
-
-function GatehubDepositPage() {
-  const { gatehubWidgetUrl } = useLoaderData<typeof gatehubDepositLoader>()
-
-  return (
-    <iframe
-      title='Deposit'
-      src={gatehubWidgetUrl}
-      sandbox='allow-top-navigation allow-forms allow-same-origin allow-popups allow-scripts'
-      scrolling='no'
-      frameBorder='0'
-      className='h-[750px]'
-    />
-  )
-}
-
-function FynbosDepositPage() {
+export function FynbosDepositPage() {
   const { depositDetails } = useLoaderData<typeof fynbosDepositLoader>()
 
   const [setLoading] = useScaffoldStore((state) => [state.setLoading])
@@ -231,7 +118,7 @@ const Amount = () => {
   const { balance, balances, balanceAccount, linkedAccounts, csrfToken } =
     useLoaderData<typeof fynbosDepositLoader>()
   const [, setSearchParams] = useSearchParams()
-  const actionData = useActionData<typeof action>()
+  const actionData = useActionData<typeof fynbosDepositAction>()
 
   const [amount, setAmount] = useState<string>('')
 
@@ -378,7 +265,7 @@ const Amount = () => {
   )
 }
 
-function DepositDetails() {
+export function DepositDetails() {
   const { depositDetails } = useLoaderData<typeof fynbosDepositLoader>()
 
   return (
@@ -423,7 +310,7 @@ function DepositDetails() {
   )
 }
 
-function stringToBigInt(amount: string) {
+export function stringToBigInt(amount: string) {
   if (amount == '') return BigInt(0)
   const dotIndex = amount.lastIndexOf('.')
   if (dotIndex > -1) {
@@ -433,7 +320,7 @@ function stringToBigInt(amount: string) {
   return BigInt(parseFloat(amount) * 100)
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function fynbosDepositAction({ request }: ActionFunctionArgs) {
   const form = await request.formData()
   const depositAmount = String(form.get('depositAmount') || '')
   const toLinkedAccount = form.get('toLinkedAccount') as string

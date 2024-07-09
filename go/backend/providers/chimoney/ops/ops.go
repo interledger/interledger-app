@@ -117,9 +117,12 @@ func GetInteracEmail(ctx context.Context, b Backends, walletID string) (string, 
 }
 
 func CreateDepositLink(ctx context.Context, b Backends, ex external.Client, walletID string, amt currency.Amount) (string, error) {
-	email, err := GetInteracEmail(ctx, b, walletID)
+	userList, err := b.Users().ListUsers(ctx, walletID)
 	if err != nil {
 		return "", err
+	}
+	if len(userList) < 1 {
+		return "", fmt.Errorf("%w No user found for wallet", chimoney.ErrInternal)
 	}
 
 	chiWallet, err := GetChiWallet(ctx, b, walletID)
@@ -131,21 +134,11 @@ func CreateDepositLink(ctx context.Context, b Backends, ex external.Client, wall
 		Amount:               amt.FormatAmount(),
 		Currency:             amt.Currency.String(),
 		ChimoneyWallet:       chiWallet,
-		Email:                email,
+		Email:                userList[0].Email,
 		TurnOffNotifications: true,
 	})
 	if err != nil {
 		return "", fmt.Errorf("%w %s", chimoney.ErrInternal, err)
-	}
-
-	// store a reference to this in the database so we can look up the details when we receive
-	// the `payment.completed` webhook.
-	result, err := b.DB().ExecContext(ctx, "INSERT INTO chimoney_deposit_links (issue_id, chimoney_wallet_id, wallet_id, amount, currency) VALUES ($1, $2, $3, $4, $5);", resp.IssueID, chiWallet, walletID, amt.Value, amt.Currency)
-	if err != nil {
-		return "", fmt.Errorf("%w %s", chimoney.ErrInternal, err)
-	}
-	if rows, _ := result.RowsAffected(); rows < 1 {
-		return "", fmt.Errorf("%w reference to deposit link was not inserted", chimoney.ErrInternal)
 	}
 
 	return resp.PaymentLink, nil
@@ -271,7 +264,7 @@ func Transfer(ctx context.Context, b Backends, ex external.Client, args chimoney
 }
 
 func ReserveBalance(ctx context.Context, b Backends, linkedAccountID, txID string, amt currency.Amount, timeout time.Duration) (*chimoney.Balance, error) {
-	if amt.Currency != currency.EUR {
+	if amt.Currency != currency.CAD {
 		return nil, fmt.Errorf("%w %s not supported", chimoney.ErrInternal, amt.Currency)
 	}
 
@@ -434,4 +427,59 @@ func GetKYCWidget(ctx context.Context, b Backends, walletID string) (string, err
 	widgetURL := fmt.Sprintf("%s/verify/kyc/%s", baseURL, externalID)
 
 	return widgetURL, nil
+}
+
+func CreateDeposit(ctx context.Context, b Backends, ex external.Client, walletID, issueID string) (chimoney.Await, error) {
+	externalID, err := GetChiWallet(ctx, b, walletID)
+	if err != nil {
+		return nil, err
+	}
+
+	depositDetails, err := ex.VerifyPayment(ctx, external.VerifyPaymentReq{
+		ChiWallet: externalID,
+		IssueID:   issueID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", chimoney.ErrInternal, err)
+	}
+
+	amount, err := currency.FromString(depositDetails.Amount, currency.ParseCurrency(depositDetails.Currency))
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", chimoney.ErrInternal, err)
+	}
+
+	wo := client.StartWorkflowOptions{
+		ID:                    "chimoney_deposit_" + issueID,
+		TaskQueue:             "backend",
+		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+	}
+
+	var workflowStatus enums.WorkflowExecutionStatus
+	wflow, err := b.Temporal().DescribeWorkflowExecution(ctx, wo.ID, "")
+	switch err.(type) {
+	case *serviceerror.Internal,
+		*serviceerror.Unavailable,
+		*serviceerror.InvalidArgument:
+		return nil, fmt.Errorf("%w %s", chimoney.ErrInternal, err)
+	case *serviceerror.NotFound:
+		// do nothing
+	default:
+		if wflow != nil {
+			workflowStatus = wflow.GetWorkflowExecutionInfo().Status
+		}
+	}
+
+	// return workflow if it's running
+	var await client.WorkflowRun
+	var executeErr error
+	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
+		await = b.Temporal().GetWorkflow(ctx, wo.ID, "")
+	} else {
+		await, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, CreateChimoneyDepositWorkflow, walletID, issueID, amount)
+	}
+	if executeErr != nil {
+		return nil, fmt.Errorf("%w %s", chimoney.ErrInternal, err)
+	}
+
+	return await.Get, nil
 }

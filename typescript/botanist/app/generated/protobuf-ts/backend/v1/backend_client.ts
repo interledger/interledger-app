@@ -4,6 +4,7 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { BackendService } from "./backend";
+import type { CreateChimoneyDepositRequest } from "./backend";
 import type { GetChimoneyDepositLinkResponse } from "./backend";
 import type { Amount } from "./backend";
 import type { ChimoneyInterlocEmail } from "./backend";
@@ -605,6 +606,10 @@ export interface IBackendServiceClient {
      * @generated from protobuf rpc: GetChimoneyDepositLink(backend.v1.Amount) returns (backend.v1.GetChimoneyDepositLinkResponse);
      */
     getChimoneyDepositLink(input: Amount, options?: RpcOptions): UnaryCall<Amount, GetChimoneyDepositLinkResponse>;
+    /**
+     * @generated from protobuf rpc: CreateChimoneyDeposit(backend.v1.CreateChimoneyDepositRequest) returns (backend.v1.Empty);
+     */
+    createChimoneyDeposit(input: CreateChimoneyDepositRequest, options?: RpcOptions): UnaryCall<CreateChimoneyDepositRequest, Empty>;
 }
 /**
  * @generated from protobuf service backend.v1.BackendService
@@ -1386,5 +1391,12 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
     getChimoneyDepositLink(input: Amount, options?: RpcOptions): UnaryCall<Amount, GetChimoneyDepositLinkResponse> {
         const method = this.methods[101], opt = this._transport.mergeOptions(options);
         return stackIntercept<Amount, GetChimoneyDepositLinkResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: CreateChimoneyDeposit(backend.v1.CreateChimoneyDepositRequest) returns (backend.v1.Empty);
+     */
+    createChimoneyDeposit(input: CreateChimoneyDepositRequest, options?: RpcOptions): UnaryCall<CreateChimoneyDepositRequest, Empty> {
+        const method = this.methods[102], opt = this._transport.mergeOptions(options);
+        return stackIntercept<CreateChimoneyDepositRequest, Empty>("unary", this._transport, method, opt, input);
     }
 }

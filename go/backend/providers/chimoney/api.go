@@ -12,6 +12,7 @@ type Client interface {
 	AddInterlocEmail(ctx context.Context, walletID, email string) (string, error)
 	GetInterlocEmail(ctx context.Context, walletID string) (string, error)
 	CreateDepositLink(ctx context.Context, walletID string, amt currency.Amount) (string, error)
+	CreateDeposit(ctx context.Context, walletID, issueID string) (Await, error)
 	Withdraw(ctx context.Context, walletID string, amt currency.Amount) error
 	Transfer(ctx context.Context, args TransferArgs) error
 	GetKYCWidget(ctx context.Context, walletID string) (string, error)

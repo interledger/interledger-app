@@ -95,3 +95,22 @@ func (s *rpcService) GetChimoneyDepositLink(ctx context.Context, pbAmt *pb.Amoun
 
 	return &pb.GetChimoneyDepositLinkResponse{Link: link}, err
 }
+
+func (s *rpcService) CreateChimoneyDeposit(ctx context.Context, req *pb.CreateChimoneyDepositRequest) (*pb.Empty, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	w, err := s.b.Wallets().ForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	_, err = s.b.Chimoney().CreateDeposit(ctx, w.ID, req.GetIssueId())
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &pb.Empty{}, nil
+}

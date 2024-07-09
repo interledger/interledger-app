@@ -80,3 +80,7 @@ func (c *Client) GetKYCWidget(ctx context.Context, walletID string) (string, err
 func (c *Client) WatchForSuccessfulKYC(ctx context.Context, walletID string) error {
 	return ops.WatchForSuccessfulKYC(ctx, c.b, walletID)
 }
+
+func (c *Client) CreateDeposit(ctx context.Context, walletID, issueID string) (chimoney.Await, error) {
+	return ops.CreateDeposit(ctx, c.b, c.external, walletID, issueID)
+}
