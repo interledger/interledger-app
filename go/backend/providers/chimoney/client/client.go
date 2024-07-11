@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"gitlab.com/fynbos/backend/currency"
+	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/chimoney"
 	"gitlab.com/fynbos/backend/providers/chimoney/external"
 	"gitlab.com/fynbos/backend/providers/chimoney/ops"
@@ -37,8 +38,8 @@ func (c *Client) CreateWallet(ctx context.Context, walletID string) (chimoney.Aw
 	return ops.CreateWallet(ctx, c.b, walletID)
 }
 
-func (c *Client) AddInterlocEmail(ctx context.Context, walletID, email string) (string, error) {
-	return ops.UpsertInteracEmail(ctx, c.b, walletID, email)
+func (c *Client) AddInterlocEmail(ctx context.Context, walletID, email string) (*linkedaccounts.LinkedAccount, error) {
+	return ops.SetInteracEmail(ctx, c.b, walletID, email)
 }
 
 func (c *Client) GetInterlocEmail(ctx context.Context, walletID string) (string, error) {

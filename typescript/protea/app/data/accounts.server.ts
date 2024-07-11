@@ -11,6 +11,7 @@ export type FormattedLinkedAccount = {
 } & PlainMessage<LinkedAccount>
 
 type LinkedAccountsResponse = {
+  interacAccounts: Array<FormattedLinkedAccount>
   bankAccounts: Array<FormattedLinkedAccount>
   cardAccounts: Array<FormattedLinkedAccount>
 }
@@ -41,7 +42,8 @@ export async function getLinkedAccounts(
 
   return {
     bankAccounts: linkedAccounts.filter(({ type }) => type == 'bank'),
-    cardAccounts: linkedAccounts.filter(({ type }) => type == 'card')
+    cardAccounts: linkedAccounts.filter(({ type }) => type == 'card'),
+    interacAccounts: linkedAccounts.filter(({ type }) => type == 'interac')
   }
 }
 
@@ -134,6 +136,7 @@ const formatLinkedAccount = (
       break
     case 'bank_account':
     case 'bankAccount':
+    case 'interac':
       type = 'bank'
       name = linkedAccount.title
       icon = 'account_balance'

@@ -5,11 +5,12 @@ import (
 	"time"
 
 	"gitlab.com/fynbos/backend/currency"
+	"gitlab.com/fynbos/backend/linkedaccounts"
 )
 
 type Client interface {
 	CreateWallet(ctx context.Context, walletID string) (Await, error)
-	AddInterlocEmail(ctx context.Context, walletID, email string) (string, error)
+	AddInterlocEmail(ctx context.Context, walletID, email string) (*linkedaccounts.LinkedAccount, error)
 	GetInterlocEmail(ctx context.Context, walletID string) (string, error)
 	CreateDepositLink(ctx context.Context, walletID string, amt currency.Amount) (string, error)
 	CreateDeposit(ctx context.Context, walletID, issueID string) (Await, error)

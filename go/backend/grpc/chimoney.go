@@ -22,12 +22,12 @@ func (s *rpcService) SetChimoneyInterlocEmail(ctx context.Context, req *pb.SetCh
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	email, err := s.b.Chimoney().AddInterlocEmail(ctx, w.ID, req.Email)
+	la, err := s.b.Chimoney().AddInterlocEmail(ctx, w.ID, req.Email)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
 
-	return &pb.ChimoneyInterlocEmail{Email: email}, nil
+	return &pb.ChimoneyInterlocEmail{Email: la.ProviderID}, nil
 }
 
 func (s *rpcService) GetChimoneyInterlocEmail(ctx context.Context, _ *pb.Empty) (*pb.ChimoneyInterlocEmail, error) {
