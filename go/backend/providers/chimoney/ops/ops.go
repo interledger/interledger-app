@@ -10,7 +10,9 @@ import (
 	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/pacioli"
 
+	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/currency"
+	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/chimoney"
 	"gitlab.com/fynbos/backend/providers/chimoney/external"
 	"go.temporal.io/api/enums/v1"
@@ -88,32 +90,65 @@ func WatchForSuccessfulKYC(ctx context.Context, b Backends, walletID string) err
 	return executeErr
 }
 
-func UpsertInteracEmail(ctx context.Context, b Backends, walletID, email string) (string, error) {
-	var mail string
-	err := b.DB().GetContext(ctx, &mail, `INSERT INTO chi_money_interac_emails (wallet_id, email)
-		VALUES ($1, $2)
-		ON CONFLICT (wallet_id) 
-		DO UPDATE SET 
-			email = EXCLUDED.email,
-			updated_at = NOW() RETURNING email;`, walletID, email)
+func SetInteracEmail(ctx context.Context, b Backends, walletID, email string) (*linkedaccounts.LinkedAccount, error) {
+	las, err := b.LinkedAccounts().ListByWalletId(ctx, walletID)
 	if err != nil {
-		return "", fmt.Errorf("%w failed to insert interloc email: %s", chimoney.ErrInternal, err)
+		return nil, fmt.Errorf("%w %s", chimoney.ErrInternal, err)
 	}
 
-	return mail, nil
+	var interacAcc *linkedaccounts.LinkedAccount
+	for _, la := range las {
+		if la.Provider == chimoney.ProviderName && la.Type == chimoney.AccTypeInterac && la.DeletedAt.Time.IsZero() {
+			interacAcc = &la
+			break
+		}
+	}
+	if interacAcc != nil && interacAcc.ProviderID != email {
+		return nil, chimoney.ErrInteracAlreadyLinked
+	} else if interacAcc != nil {
+		return interacAcc, nil
+	}
+
+	return b.LinkedAccounts().Create(ctx, &linkedaccounts.CreateArgs{
+		WalletID:            walletID,
+		Name:                "Interac",
+		Nickname:            "Interac",
+		Mask:                email,
+		Type:                chimoney.AccTypeInterac,
+		Provider:            chimoney.ProviderName,
+		ProviderID:          email,
+		CanSend:             false,
+		State:               linkedaccounts.Verified,
+		SendCountry:         country.CA,
+		SendCurrency:        currency.CAD,
+		SendAvailability:    linkedaccounts.Few,
+		SendNetwork:         "interac",
+		CanReceive:          true,
+		ReceiveCountry:      country.CA,
+		ReceiveCurrency:     currency.CAD,
+		ReceiveAvailability: linkedaccounts.Few,
+		ReceiveNetwork:      "interac",
+	})
 }
 
 func GetInteracEmail(ctx context.Context, b Backends, walletID string) (string, error) {
-	var email string
-	err := b.DB().GetContext(ctx, &email, "SELECT email FROM chi_money_interac_emails WHERE wallet_id=$1", walletID)
-	if errors.Is(err, sql.ErrNoRows) {
-		return "", fmt.Errorf("%w user interac email not found", chimoney.ErrNotFound)
-	}
+	las, err := b.LinkedAccounts().ListByWalletId(ctx, walletID)
 	if err != nil {
-		return "", fmt.Errorf("%w %s", chimoney.ErrNotFound, err)
+		return "", fmt.Errorf("%w %s", chimoney.ErrInternal, err)
 	}
 
-	return email, nil
+	var interacAcc *linkedaccounts.LinkedAccount
+	for _, la := range las {
+		if la.Provider == chimoney.ProviderName && la.Type == chimoney.AccTypeInterac && la.DeletedAt.Time.IsZero() {
+			interacAcc = &la
+			break
+		}
+	}
+	if interacAcc == nil {
+		return "", fmt.Errorf("%w interac email not found", chimoney.ErrNotFound)
+	}
+
+	return interacAcc.ProviderID, nil
 }
 
 func CreateDepositLink(ctx context.Context, b Backends, ex external.Client, walletID string, amt currency.Amount) (string, error) {

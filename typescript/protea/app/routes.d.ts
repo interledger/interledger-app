@@ -15,6 +15,7 @@ declare module "routes-gen" {
     "/connect/card": Record<string, never>;
     "/connect/discord": Record<string, never>;
     "/connect/domain": Record<string, never>;
+    "/connect/interac": Record<string, never>;
     "/connect/slack": Record<string, never>;
     "/connect/twitter": Record<string, never>;
     "/consent": Record<string, never>;
@@ -83,6 +84,7 @@ declare module "routes-gen" {
       | ["/connect/card"]
       | ["/connect/discord"]
       | ["/connect/domain"]
+      | ["/connect/interac"]
       | ["/connect/slack"]
       | ["/connect/twitter"]
       | ["/consent"]

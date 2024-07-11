@@ -4,44 +4,58 @@ import (
 	"context"
 	"testing"
 
+	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/db"
+	"gitlab.com/fynbos/backend/linkedaccounts"
+	la_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
+	"gitlab.com/fynbos/backend/providers/chimoney"
 	"gitlab.com/fynbos/backend/providers/chimoney/ops"
 )
 
-func TestUpsertInteracEmail(t *testing.T) {
+func TestSetInteracEmail(t *testing.T) {
 	ctx := context.Background()
-
+	ctrl := gomock.NewController(t)
+	laMock := la_mock.NewMockClient(ctrl)
 	b := backends{
-		db: db.MigrateTestDB(t, ctx),
+		db:  db.MigrateTestDB(t, ctx),
+		las: laMock,
 	}
+
+	laMock.EXPECT().Create(gomock.Any(), gomock.Any()).Return(
+		&linkedaccounts.LinkedAccount{
+			ProviderID: "test@test.com",
+		}, nil,
+	).Times(1)
+	laMock.EXPECT().ListByWalletId(gomock.Any(), gomock.Any()).Return(
+		[]linkedaccounts.LinkedAccount{}, nil,
+	).Times(1)
 
 	walletID := uuid.NewString()
 	email := "test@test.com"
 
-	ne, err := ops.UpsertInteracEmail(ctx, b, walletID, email)
-
+	ne, err := ops.SetInteracEmail(ctx, b, walletID, email)
 	require.NoError(t, err)
-	assert.Equal(t, email, ne)
+	assert.Equal(t, email, ne.ProviderID)
 
-	ne, err = ops.GetInteracEmail(ctx, b, walletID)
-
+	laMock.EXPECT().ListByWalletId(gomock.Any(), gomock.Any()).Return(
+		[]linkedaccounts.LinkedAccount{{
+			Provider:   chimoney.ProviderName,
+			Type:       chimoney.AccTypeInterac,
+			ProviderID: "test@test.com",
+		}}, nil,
+	).AnyTimes()
+	e, err := ops.GetInteracEmail(ctx, b, walletID)
 	require.NoError(t, err)
-	assert.Equal(t, email, ne)
+	assert.Equal(t, email, e)
 
 	email = "test2@test2.com"
 
-	ne, err = ops.UpsertInteracEmail(ctx, b, walletID, email)
-
-	require.NoError(t, err)
-	assert.Equal(t, email, ne)
-
-	ne, err = ops.GetInteracEmail(ctx, b, walletID)
-
-	require.NoError(t, err)
-	assert.Equal(t, email, ne)
+	ne, err = ops.SetInteracEmail(ctx, b, walletID, email)
+	require.ErrorIs(t, err, chimoney.ErrInteracAlreadyLinked)
+	require.Nil(t, ne)
 }
 
 func TestGetChiWallet(t *testing.T) {
