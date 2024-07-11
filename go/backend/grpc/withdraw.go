@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"gitlab.com/fynbos/backend/providers/chimoney"
 	"gitlab.com/fynbos/backend/providers/pti"
 
 	"gitlab.com/fynbos/backend/currency"
@@ -110,6 +111,15 @@ func (s *rpcService) GetLinkedAccountsForWithdraw(ctx context.Context, req *pb.G
 		}
 
 		if balance.Provider == pti.ProviderName && la.Provider == astra.ProviderName && la.Type == astra.TypeCard {
+			acc := &pb.LinkedAccountForPayment{
+				Details: transformLinkedAccount(la),
+				Enabled: balance.CanPay(la),
+			}
+
+			las = append(las, acc)
+		}
+
+		if balance.Provider == chimoney.ProviderName && la.Provider == chimoney.ProviderName && la.Type == chimoney.AccTypeInterac {
 			acc := &pb.LinkedAccountForPayment{
 				Details: transformLinkedAccount(la),
 				Enabled: balance.CanPay(la),

@@ -19,6 +19,7 @@ type Client interface {
 	GetKYCWidget(ctx context.Context, walletID string) (string, error)
 	WatchForSuccessfulKYC(ctx context.Context, walletID string) error
 
+	GetBalance(ctx context.Context, linkedAccountID string) (*Balance, error)
 	ReserveBalance(ctx context.Context, linkedAccountID, txID string, amt currency.Amount, timeout time.Duration) (*Balance, error)
 	FinaliseReserve(ctx context.Context, txID string) error
 	AssignBalance(ctx context.Context, linkedAccountID, trxID string, amount currency.Amount) (*Balance, error)

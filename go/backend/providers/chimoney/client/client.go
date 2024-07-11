@@ -66,6 +66,10 @@ func (c *Client) FinaliseReserve(ctx context.Context, txID string) error {
 	return ops.FinaliseReserve(ctx, c.b, txID)
 }
 
+func (c *Client) GetBalance(ctx context.Context, linkedAccountID string) (*chimoney.Balance, error) {
+	return ops.GetBalance(ctx, c.b, linkedAccountID)
+}
+
 func (c *Client) AssignBalance(ctx context.Context, linkedAccountID, trxID string, amount currency.Amount) (*chimoney.Balance, error) {
 	return ops.AssignBalance(ctx, c.b, linkedAccountID, trxID, amount)
 }
