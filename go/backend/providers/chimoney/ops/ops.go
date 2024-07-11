@@ -298,6 +298,31 @@ func Transfer(ctx context.Context, b Backends, ex external.Client, args chimoney
 	return err
 }
 
+func GetBalance(ctx context.Context, b Backends, linkedAccountID string) (*chimoney.Balance, error) {
+	la, err := b.LinkedAccounts().Get(ctx, linkedAccountID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", chimoney.ErrInternal, err)
+	}
+
+	if la.Provider != chimoney.ProviderName || la.Type != chimoney.AccTypeBalance {
+		return nil, fmt.Errorf("%w linked account not correct type", chimoney.ErrNotFound)
+	}
+
+	accs, err := b.Pacioli().GetAccounts(ctx, []string{la.ID})
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", chimoney.ErrInternal, err)
+	}
+
+	if len(accs) != 1 {
+		return nil, fmt.Errorf("%w account not found", chimoney.ErrNotFound)
+	}
+
+	return &chimoney.Balance{
+		Total:     currency.FromUInt64(accs[0].CreditsPosted-accs[0].DebitsPosted, la.SendCurrency),
+		Available: currency.FromUInt64(accs[0].CreditsPosted-accs[0].DebitsPosted-accs[0].DebitsPending, la.SendCurrency),
+	}, nil
+}
+
 func ReserveBalance(ctx context.Context, b Backends, linkedAccountID, txID string, amt currency.Amount, timeout time.Duration) (*chimoney.Balance, error) {
 	if amt.Currency != currency.CAD {
 		return nil, fmt.Errorf("%w %s not supported", chimoney.ErrInternal, amt.Currency)

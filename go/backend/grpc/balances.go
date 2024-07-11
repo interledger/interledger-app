@@ -5,6 +5,7 @@ import (
 	"errors"
 	"sort"
 
+	"gitlab.com/fynbos/backend/providers/chimoney"
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/providers/xago"
@@ -71,6 +72,21 @@ func (s *rpcService) GetBalances(ctx context.Context, req *backend.Empty) (*back
 				Balance:          bal.Available.ToPB(),
 				Currency:         la.SendCurrency.String(),
 				CountryCode:      "EU", // EUR is a special case where we want to show the Euro flag on the frontend
+				LinkedAccount:    la.ID,
+				FormattedBalance: bal.Available.Format(),
+			})
+		}
+
+		if la.Provider == chimoney.ProviderName && la.Type == chimoney.AccTypeBalance && la.DeletedAt.Time.IsZero() {
+			bal, err := s.b.Chimoney().GetBalance(ctx, la.ID)
+			if err != nil {
+				return nil, toGRPCError(err)
+			}
+
+			resp = append(resp, &pb.Balance{
+				Balance:          bal.Available.ToPB(),
+				Currency:         la.SendCurrency.String(),
+				CountryCode:      la.ReceiveCountry.String(),
 				LinkedAccount:    la.ID,
 				FormattedBalance: bal.Available.Format(),
 			})
