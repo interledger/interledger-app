@@ -114,9 +114,15 @@ type AccountBeneficiaries struct {
 	Wallet             json.RawMessage `json:"wallet"`
 }
 
+type Pagination struct {
+	NumberOfPages int `json:"numberOfPages,omitempty"`
+	Limit         int `json:"limit"`
+	PageNumber    int `json:"pageNumber"`
+}
+
 type ListBeneficiariesResponse struct {
-	Status        int                    `json:"status"`
-	Beneficiaries []AccountBeneficiaries `json:"beneficiaries,omitempty"`
+	Pagination    Pagination             `json:"meta,omitempty"`
+	Beneficiaries []AccountBeneficiaries `json:"values,omitempty"`
 }
 
 type CreateTransferReq struct {

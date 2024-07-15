@@ -30,7 +30,7 @@ import (
 type Client interface {
 	CreateSubAccount(ctx context.Context, user user.User, details kyc.IndividualDetails, personaInquiryURL string) (*SubAccount, error)
 	AddBeneficiary(ctx context.Context, reqStruct CreateBeneficiaryReq) (string, error)
-	ListBeneficiaries(ctx context.Context) ([]AccountBeneficiaries, error)
+	ListBeneficiaries(ctx context.Context, limit, page uint) (*ListBeneficiariesResponse, error)
 	CreateTransaction(ctx context.Context, amt currency.Amount, idempotencyKey, beneficiaryID, reference string) (string, error)
 	ListDeposits(ctx context.Context, page int) ([]Deposit, error)
 	GetWithdrawal(ctx context.Context, id string) (*Withdrawal, error)
@@ -350,8 +350,8 @@ func (c *client) AddBeneficiary(ctx context.Context, reqStruct CreateBeneficiary
 	return strings.Trim(string(respBody), "\""), nil
 }
 
-func (c *client) ListBeneficiaries(ctx context.Context) ([]AccountBeneficiaries, error) {
-	reqUrl, err := url.JoinPath(c.identityBaseURL, "beneficiaries")
+func (c *client) ListBeneficiaries(ctx context.Context, limit, page uint) (*ListBeneficiariesResponse, error) {
+	reqUrl, err := url.Parse(fmt.Sprintf("%s/beneficiaries", c.identityBaseURL))
 	if err != nil {
 		return nil, err
 	}
@@ -367,7 +367,12 @@ func (c *client) ListBeneficiaries(ctx context.Context) ([]AccountBeneficiaries,
 		})
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqUrl, nil)
+	q := reqUrl.Query()
+	q.Set("limit", fmt.Sprintf("%d", limit))
+	q.Set("page", fmt.Sprintf("%d", page))
+	reqUrl.RawQuery = q.Encode()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqUrl.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -415,7 +420,7 @@ func (c *client) ListBeneficiaries(ctx context.Context) ([]AccountBeneficiaries,
 		return nil, err
 	}
 
-	return respData.Beneficiaries, nil
+	return respData, nil
 }
 
 func (c *client) CreateTransaction(ctx context.Context, amt currency.Amount, idempotencyKey, beneficiaryID, reference string) (string, error) {
