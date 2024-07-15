@@ -50,8 +50,8 @@ func (c *Client) CreateDepositLink(ctx context.Context, walletID string, amt cur
 	return ops.CreateDepositLink(ctx, c.b, c.external, walletID, amt)
 }
 
-func (c *Client) Withdraw(ctx context.Context, walletID string, amt currency.Amount) error {
-	return ops.Withdraw(ctx, c.b, c.external, walletID, amt)
+func (c *Client) ExecuteWithdraw(ctx context.Context, walletID, transactionID string) error {
+	return ops.ExecuteWithdraw(ctx, c.b, walletID, transactionID)
 }
 
 func (c *Client) ReserveBalance(ctx context.Context, linkedAccountID, txID string, amt currency.Amount, timeout time.Duration) (*chimoney.Balance, error) {

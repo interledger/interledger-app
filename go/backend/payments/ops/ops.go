@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"gitlab.com/fynbos/backend/providers/astra"
+	"gitlab.com/fynbos/backend/providers/chimoney"
 	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/rafiki"
 
@@ -578,8 +579,9 @@ func validateWithdrawal(ctx context.Context, b Backends, typ payments.Type, send
 		return fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
 
-	// Only Xago and Astra supports withdrawal
+	// Only Xago, Chimoney and Astra supports withdrawal
 	if !(senderAcc.Provider == xago.ProviderName && senderAcc.Type == xago.AccTypeBalance) &&
+		!(senderAcc.Provider == chimoney.ProviderName && senderAcc.Type == chimoney.AccTypeBalance) &&
 		!(senderAcc.Provider == pti.ProviderName && senderAcc.Type == pti.AccTypeBalance) {
 		return fmt.Errorf("%w sender provider(%s) type(%s)", payments.ErrInvalidWithdrawal, senderAcc.Provider, senderAcc.Type)
 	}
@@ -588,7 +590,9 @@ func validateWithdrawal(ctx context.Context, b Backends, typ payments.Type, send
 	if err != nil {
 		return fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
-	if (!(receiverAcc.Provider == xago.ProviderName && receiverAcc.Type == xago.AccTypeBank) && !(receiverAcc.Provider == astra.ProviderName && receiverAcc.Type == astra.TypeCard)) ||
+	if (!(receiverAcc.Provider == xago.ProviderName && receiverAcc.Type == xago.AccTypeBank) &&
+		!(receiverAcc.Provider == astra.ProviderName && receiverAcc.Type == astra.TypeCard) &&
+		!(receiverAcc.Provider == chimoney.ProviderName && receiverAcc.Type == chimoney.AccTypeInterac)) ||
 		senderAcc.WalletID != receiverAcc.WalletID {
 		return fmt.Errorf("%w receiver provider(%s) type(%s)", payments.ErrInvalidWithdrawal, receiverAcc.Provider, receiverAcc.Type)
 	}
@@ -863,6 +867,20 @@ func Confirm(ctx context.Context, b Backends, id string) (*payments.Payment, []p
 		return nil, nil, err
 	}
 
+	payment, err := Lookup(ctx, b, id)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if payment.Type == payments.TypeWithdrawal && la.Provider == chimoney.ProviderName && la.Type == chimoney.AccTypeBalance {
+		err = b.Chimoney().ExecuteWithdraw(ctx, la.WalletID, payment.SendTransactionID)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		return payment, nil, nil
+	}
+
 	workflowOptions := temporal_client.StartWorkflowOptions{
 		ID:                       "payments_" + dbp.ID,
 		TaskQueue:                "backend",
@@ -873,11 +891,6 @@ func Confirm(ctx context.Context, b Backends, id string) (*payments.Payment, []p
 	_, err = b.Temporal().ExecuteWorkflow(ctx, workflowOptions, PaymentWorkflow, dbp.ID)
 	if err != nil {
 		return nil, nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
-	}
-
-	payment, err := Lookup(ctx, b, id)
-	if err != nil {
-		return nil, nil, err
 	}
 
 	return payment, nil, nil

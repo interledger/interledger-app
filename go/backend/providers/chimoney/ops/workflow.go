@@ -19,7 +19,6 @@ import (
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/wallets"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
-	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
@@ -229,39 +228,6 @@ func (a *Activity) CreateChimoneyWallet(ctx context.Context, walletID string) (s
 	return exID, nil
 }
 
-func CreateChimoneyWithdrawalWorkflow(
-	ctx workflow.Context, walletID string, amount currency.Amount,
-) (string, error) {
-	var a *Activity
-	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: 10 * time.Second,
-	}
-
-	ctx = workflow.WithActivityOptions(ctx, ao)
-
-	logger := workflow.GetLogger(ctx)
-	logger.Info("Creating chimoney withdrawal.")
-
-	// create transaction in pending state
-	var trxID string
-	err := workflow.ExecuteActivity(ctx, a.CreateChimoneyWithdrawalTransaction, walletID, amount).Get(ctx, &trxID)
-	if err != nil {
-		return "", err
-	}
-
-	// start child workflow but don't wait for it to complete
-	cwo := workflow.ChildWorkflowOptions{
-		WorkflowID:            fmt.Sprintf("chimoney_execute_withdrawal_%s", trxID),
-		TaskQueue:             "backend",
-		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
-		ParentClosePolicy:     enums.PARENT_CLOSE_POLICY_ABANDON, // run independently of parent
-	}
-	childCtx := workflow.WithChildOptions(ctx, cwo)
-	_ = workflow.ExecuteChildWorkflow(childCtx, ExecuteChimoneyWithdrawalWorkflow, walletID, trxID).GetChildWorkflowExecution()
-
-	return trxID, nil
-}
-
 type withdrawalStage uint8
 
 var (
@@ -289,8 +255,10 @@ func ExecuteChimoneyWithdrawalWorkflow(
 	if err != nil {
 		return err
 	}
-	if trx.State != transactions.StatePending || !(trx.Provider == chimoney.ProviderName && trx.Type == transactions.TransactionTypeWithdrawal) {
-		return temporal.NewNonRetryableApplicationError("chimoney withdrawal: transaction is either not pending or not a chimoney withdrawal", "ErrInternal", nil)
+
+	err = workflow.ExecuteActivity(ctx, a.SetWithdrawalTransfer, walletID, trxID).Get(ctx, &trx)
+	if err != nil {
+		return err
 	}
 
 	// reserve liquidity and surface Insufficient balance errors.
@@ -383,6 +351,39 @@ func (a *Activity) CreateChimoneyDepositTransaction(ctx context.Context, walletI
 
 func (a *Activity) GetChimoneyTransaction(ctx context.Context, walletID, trxID string) (*transactions.Transaction, error) {
 	return a.b.Transactions().GetTransaction(ctx, walletID, trxID)
+}
+
+func (a *Activity) SetWithdrawalTransfer(ctx context.Context, walletID, trxID string) error {
+	trx, err := a.b.Transactions().GetTransaction(ctx, walletID, trxID)
+	if err != nil {
+		return err
+	}
+
+	// look up chimoney balance account
+	balanceAccs, err := a.b.LinkedAccounts().ListByWalletId(ctx, walletID)
+	if err != nil {
+		return err
+	}
+
+	var interaccAcc *linkedaccounts.LinkedAccount
+	for _, bal := range balanceAccs {
+		if bal.Provider == chimoney.ProviderName && bal.Type == chimoney.AccTypeInterac {
+			interaccAcc = &bal
+			break
+		}
+	}
+	if interaccAcc == nil {
+		return temporal.NewNonRetryableApplicationError("chimoney withdrawal: interac account not found", "ErrInternal", nil)
+	}
+
+	return a.b.Transactions().AddTransfers(ctx, trxID, []transactions.TransferArgs{
+		{
+			LinkedAccountID: interaccAcc.ID,
+			Type:            transactions.TransferTypeCreditBankAccount,
+			State:           transactions.StateCompleted,
+			Amount:          trx.Amount,
+		},
+	})
 }
 
 func (a *Activity) ReserveChimoneyBalance(ctx context.Context, walletID, trxID string) error {

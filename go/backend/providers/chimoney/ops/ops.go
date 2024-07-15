@@ -179,6 +179,42 @@ func CreateDepositLink(ctx context.Context, b Backends, ex external.Client, wall
 	return resp.PaymentLink, nil
 }
 
+func ExecuteWithdraw(ctx context.Context, b Backends, walletID, transactionID string) error {
+	wo := client.StartWorkflowOptions{
+		ID:                    "chimoney_withdrawal_" + walletID + "_" + transactionID,
+		TaskQueue:             "backend",
+		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+	}
+
+	var workflowStatus enums.WorkflowExecutionStatus
+	wflow, err := b.Temporal().DescribeWorkflowExecution(ctx, wo.ID, "")
+	switch err.(type) {
+	case *serviceerror.Internal,
+		*serviceerror.Unavailable,
+		*serviceerror.InvalidArgument:
+		return fmt.Errorf("%w %s", chimoney.ErrInternal, err)
+	case *serviceerror.NotFound:
+		// do nothing
+	default:
+		if wflow != nil {
+			workflowStatus = wflow.GetWorkflowExecutionInfo().Status
+		}
+	}
+
+	// return workflow if it's running
+	var executeErr error
+	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
+		_ = b.Temporal().GetWorkflow(ctx, wo.ID, "")
+	} else {
+		_, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, ExecuteChimoneyWithdrawalWorkflow, walletID, transactionID)
+	}
+	if executeErr != nil {
+		return fmt.Errorf("%w %s", chimoney.ErrInternal, err)
+	}
+
+	return nil
+}
+
 func Withdraw(ctx context.Context, b Backends, ex external.Client, walletID string, amt currency.Amount) error {
 	chiWallet, err := GetChiWallet(ctx, b, walletID)
 	if err != nil {
@@ -190,9 +226,12 @@ func Withdraw(ctx context.Context, b Backends, ex external.Client, walletID stri
 		return err
 	}
 
-	userInfo, err := b.KYC().GetIndividualDetails(ctx, walletID)
+	ul, err := b.Users().ListUsers(ctx, walletID)
 	if err != nil {
-		return fmt.Errorf("%w %s", chimoney.ErrInternal, err)
+		return err
+	}
+	if len(ul) < 1 {
+		return fmt.Errorf("%w No user infomration found", chimoney.ErrInternal)
 	}
 
 	err = ex.Withdraw(ctx, external.WithdrawalReq{
@@ -200,7 +239,7 @@ func Withdraw(ctx context.Context, b Backends, ex external.Client, walletID stri
 		SubAccount:          chiWallet,
 		TurnOffNotification: true,
 		Interacs: []external.Interacs{{
-			Name:      userInfo.FirstName + " " + userInfo.LastName,
+			Name:      fmt.Sprintf("%s %s", ul[0].FirstName, ul[0].LastName),
 			Email:     email,
 			Amount:    amt.Float64(),
 			Narration: "Fynbos wallet withdrawal",
@@ -211,55 +250,6 @@ func Withdraw(ctx context.Context, b Backends, ex external.Client, walletID stri
 	}
 
 	return nil
-}
-
-func CreateWithdrawal(ctx context.Context, b Backends, walletID string, amount currency.Amount) (chimoney.Await, error) {
-	// Check that user has a chimoney wallet before beginning workflow
-	_, err := GetChiWallet(ctx, b, walletID)
-	if err != nil {
-		return nil, err
-	}
-
-	// Check that user has an interac email before beginning workflow
-	_, err = GetInteracEmail(ctx, b, walletID)
-	if err != nil {
-		return nil, err
-	}
-
-	wo := client.StartWorkflowOptions{
-		ID:                    "chimoney_create_withdrawal_" + walletID + "_" + amount.FormatAmount(),
-		TaskQueue:             "backend",
-		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
-	}
-
-	var workflowStatus enums.WorkflowExecutionStatus
-	wflow, err := b.Temporal().DescribeWorkflowExecution(ctx, wo.ID, "")
-	switch err.(type) {
-	case *serviceerror.Internal,
-		*serviceerror.Unavailable,
-		*serviceerror.InvalidArgument:
-		return nil, fmt.Errorf("%w %s", chimoney.ErrInternal, err)
-	case *serviceerror.NotFound:
-		// do nothing
-	default:
-		if wflow != nil {
-			workflowStatus = wflow.GetWorkflowExecutionInfo().Status
-		}
-	}
-
-	// return workflow if it's running
-	var await client.WorkflowRun
-	var executeErr error
-	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
-		await = b.Temporal().GetWorkflow(ctx, wo.ID, "")
-	} else {
-		await, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, CreateChimoneyWithdrawalWorkflow, walletID, amount)
-	}
-	if executeErr != nil {
-		return nil, fmt.Errorf("%w %s", chimoney.ErrInternal, err)
-	}
-
-	return await.Get, nil
 }
 
 func GetChiWallet(ctx context.Context, b Backends, walletID string) (string, error) {
