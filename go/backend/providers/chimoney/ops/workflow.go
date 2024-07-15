@@ -339,6 +339,23 @@ func (a *Activity) CreateChimoneyWithdrawalTransaction(ctx context.Context, wall
 }
 
 func (a *Activity) CreateChimoneyDepositTransaction(ctx context.Context, walletID, issueID string, amount currency.Amount) (string, error) {
+	// find chimoney balance account
+	balances, err := a.b.LinkedAccounts().ListBalances(ctx, walletID)
+	if err != nil {
+		return "", err
+	}
+
+	var chimoneyBalance *linkedaccounts.LinkedAccount
+	for _, la := range balances {
+		if la.Provider == chimoney.ProviderName && la.Type == chimoney.AccTypeBalance {
+			chimoneyBalance = &la
+			break
+		}
+	}
+	if chimoneyBalance == nil {
+		return "", temporal.NewNonRetryableApplicationError("chimoney deposit: no balance account found", "ErrInternal", nil)
+	}
+
 	trx, err := a.b.Transactions().CreateTransaction(ctx, transactions.CreateTransactionArgs{
 		WalletID:    walletID,
 		State:       transactions.StatePending,
@@ -347,6 +364,15 @@ func (a *Activity) CreateChimoneyDepositTransaction(ctx context.Context, walletI
 		Title:       "Deposit",
 		ForeignType: transactions.TransactionTypeDeposit,
 		ForeignID:   issueID,
+		Transfers: []transactions.TransferArgs{
+			{
+				LinkedAccountID: chimoneyBalance.ID,
+				Type:            transactions.TransferTypeCreditBalance,
+				Amount:          amount,
+				State:           transactions.StatePending,
+				ForeignID:       issueID,
+			},
+		},
 	})
 	if err != nil {
 		return "", err
@@ -531,8 +557,8 @@ func CreateChimoneyDepositWorkflow(ctx workflow.Context, walletID, issueID strin
 	logger := workflow.GetLogger(ctx)
 	logger.Info("Creating chimoney deposit.")
 
-	var transaction transactions.Transaction
-	err := workflow.ExecuteActivity(ctx, a.CreateChimoneyDepositTransaction, walletID, issueID, amount).Get(ctx, &transaction)
+	var transactionID string
+	err := workflow.ExecuteActivity(ctx, a.CreateChimoneyDepositTransaction, walletID, issueID, amount).Get(ctx, &transactionID)
 	if err != nil {
 		return err
 	}
@@ -550,7 +576,7 @@ func CreateChimoneyDepositWorkflow(ctx workflow.Context, walletID, issueID strin
 	}
 
 	if !signal.Success {
-		err = workflow.ExecuteActivity(ctx, a.FailChimoneyTransaction, walletID, transaction.ID).Get(ctx, nil)
+		err = workflow.ExecuteActivity(ctx, a.FailChimoneyTransaction, walletID, transactionID).Get(ctx, nil)
 		if err != nil {
 			return err
 		}
@@ -558,12 +584,12 @@ func CreateChimoneyDepositWorkflow(ctx workflow.Context, walletID, issueID strin
 		return nil
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.AssignChimoneyBalance, walletID, transaction.ID).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.AssignChimoneyBalance, walletID, transactionID).Get(ctx, nil)
 	if err != nil {
 		return err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.CompleteChimoneyTransaction, walletID, transaction.ID).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.CompleteChimoneyTransaction, walletID, transactionID).Get(ctx, nil)
 	if err != nil {
 		return err
 	}

@@ -60,7 +60,7 @@ const (
 type CreateTransactionArgs struct {
 	ID                      string          `validate:"omitempty,uuid"`
 	WalletID                string          `validate:"uuid"` // Fynbos wallet ID
-	ForeignID               string          `validate:"omitempty,uuid"`
+	ForeignID               string          `validate:"omitempty"`
 	ForeignType             TransactionType `validate:"required"`
 	Provider                Provider        `validate:"required"`
 	State                   State           `validate:"required"`
