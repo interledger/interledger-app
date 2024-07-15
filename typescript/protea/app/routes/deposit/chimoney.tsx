@@ -77,9 +77,9 @@ export function ChimoneyDepositPage() {
             title='Deposit'
             src={actionData.chimoneyWidget}
             sandbox='allow-top-navigation allow-forms allow-same-origin allow-popups allow-scripts'
-            scrolling='no'
+            scrolling='yes'
             frameBorder='0'
-            className='h-[750px]'
+            className='h-[850px] overflow-scroll'
           />
         </>
       )}
