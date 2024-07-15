@@ -107,7 +107,7 @@ func CreateChimoneyUserWorkflow(ctx workflow.Context, walletID string) (string, 
 		return "", err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.CreateBalanceAccount, walletID, exID).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.CreateBalanceAccount, la.ID).Get(ctx, nil)
 	if err != nil {
 		return "", err
 	}
