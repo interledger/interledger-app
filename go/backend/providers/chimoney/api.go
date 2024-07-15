@@ -14,7 +14,7 @@ type Client interface {
 	GetInterlocEmail(ctx context.Context, walletID string) (string, error)
 	CreateDepositLink(ctx context.Context, walletID string, amt currency.Amount) (string, error)
 	CreateDeposit(ctx context.Context, walletID, issueID string) (Await, error)
-	Withdraw(ctx context.Context, walletID string, amt currency.Amount) error
+	ExecuteWithdraw(ctx context.Context, walletID string, transactionID string) error
 	Transfer(ctx context.Context, args TransferArgs) error
 	GetKYCWidget(ctx context.Context, walletID string) (string, error)
 	WatchForSuccessfulKYC(ctx context.Context, walletID string) error

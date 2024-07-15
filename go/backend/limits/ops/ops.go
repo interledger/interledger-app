@@ -251,9 +251,19 @@ func ExceedsKYCLimits(ctx context.Context, b Backends, walletID string, amount c
 		return exceedsKYCLimitsUSD(ctx, b, walletID, amount)
 	case currency.ZAR:
 		return exceedsKYCLimitsZAR(ctx, b, walletID, amount)
+	case currency.CAD:
+		return exceedsKYCLimitsCAD(ctx, b, walletID, amount)
 	default:
 		log.Warn("Unknown currency to apply limits to", zap.String("currency", amount.Currency.String()))
 	}
+	return false, "", nil
+}
+
+func exceedsKYCLimitsCAD(ctx context.Context, b Backends, walletID string, amount currency.Amount) (bool, limits.LimitType, error) {
+	if amount.Value > 10_000_00 {
+		return true, limits.LimitTypeTransaction, nil
+	}
+
 	return false, "", nil
 }
 
