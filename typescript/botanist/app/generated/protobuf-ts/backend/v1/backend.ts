@@ -1141,6 +1141,10 @@ export interface Features {
      * @generated from protobuf field: bool addCardsEnabled = 8;
      */
     addCardsEnabled: boolean;
+    /**
+     * @generated from protobuf field: bool interacEnabled = 9;
+     */
+    interacEnabled: boolean;
 }
 /**
  * @generated from protobuf message backend.v1.CreateCardRequest
@@ -6217,11 +6221,12 @@ class Features$Type extends MessageType<Features> {
             { no: 5, name: "banksEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 6, name: "identitiesEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 7, name: "twitterEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 8, name: "addCardsEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+            { no: 8, name: "addCardsEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 9, name: "interacEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
         ]);
     }
     create(value?: PartialMessage<Features>): Features {
-        const message = { sendEnabled: false, receiveEnabled: false, linkedAccountsEnabled: false, cardsEnabled: false, banksEnabled: false, identitiesEnabled: false, twitterEnabled: false, addCardsEnabled: false };
+        const message = { sendEnabled: false, receiveEnabled: false, linkedAccountsEnabled: false, cardsEnabled: false, banksEnabled: false, identitiesEnabled: false, twitterEnabled: false, addCardsEnabled: false, interacEnabled: false };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Features>(this, message, value);
@@ -6255,6 +6260,9 @@ class Features$Type extends MessageType<Features> {
                     break;
                 case /* bool addCardsEnabled */ 8:
                     message.addCardsEnabled = reader.bool();
+                    break;
+                case /* bool interacEnabled */ 9:
+                    message.interacEnabled = reader.bool();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -6292,6 +6300,9 @@ class Features$Type extends MessageType<Features> {
         /* bool addCardsEnabled = 8; */
         if (message.addCardsEnabled !== false)
             writer.tag(8, WireType.Varint).bool(message.addCardsEnabled);
+        /* bool interacEnabled = 9; */
+        if (message.interacEnabled !== false)
+            writer.tag(9, WireType.Varint).bool(message.interacEnabled);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

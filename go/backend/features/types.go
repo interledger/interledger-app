@@ -9,4 +9,5 @@ type WalletFeatures struct {
 	IdentitiesEnabled bool `db:"identities_enabled"`
 	TwitterEnabled    bool `db:"twitter_enabled"`
 	AddCardsEnabled   bool `db:"add_cards_enabled"`
+	InteraccEnabled   bool `db:"interac_enabled"`
 }
