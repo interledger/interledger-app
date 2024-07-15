@@ -26,8 +26,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const balancesResponse = await grpc.getBalances(request, {})
   if (
     isConnectError(balancesResponse) ||
-    balancesResponse.balances.filter((bal) => bal.countryCode == 'CAD')
-      .length == 0
+    balancesResponse.balances.filter((bal) => bal.currency == 'CAD').length == 0
   )
     throw redirect(route('/'))
 
@@ -72,7 +71,7 @@ export default function Page() {
   return (
     <>
       <Form
-        id='connect-interc'
+        id='connect-interac'
         action={route('/connect/interac')}
         method='post'
         className='hidden'
@@ -117,7 +116,7 @@ export default function Page() {
 
 export async function action({ request }: ActionFunctionArgs) {
   const form = await request.formData()
-  const email = String(form.get('accountNumber') || '')
+  const email = String(form.get('email') || '')
 
   await validateCSRFToken(request, form)
 

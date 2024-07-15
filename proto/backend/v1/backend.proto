@@ -558,6 +558,7 @@ message Features {
   bool identitiesEnabled = 6;
   bool twitterEnabled = 7;
   bool addCardsEnabled = 8;
+  bool interacEnabled = 9;
 }
 
 message CreateCardRequest {

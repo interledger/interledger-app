@@ -1924,6 +1924,11 @@ table "wallet_features" {
     type = boolean
     default = false
   }
+  column "interac_enabled" {
+    null = false
+    type = boolean
+    default = false
+  }
   column "cards_enabled" {
     null = false
     type = boolean
