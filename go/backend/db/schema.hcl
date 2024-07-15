@@ -920,7 +920,7 @@ table "transactions" {
   }
   column "foreign_id" {
     null = true
-    type = uuid
+    type = text
   }
   column "grant_id" {
     null = true
