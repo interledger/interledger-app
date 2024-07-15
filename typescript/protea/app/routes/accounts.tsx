@@ -28,7 +28,8 @@ import { KycStatus } from '~/routes/_index/route'
 import styles from '~/styles/flags.css'
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { bankAccounts, cardAccounts } = await getLinkedAccounts(request)
+  const { bankAccounts, cardAccounts, interacAccounts } =
+    await getLinkedAccounts(request)
   const kycStatus = await getKycStatus(request)
 
   const balancesResponse = await grpc.getBalances(request, {})
@@ -41,8 +42,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
     features,
     bankAccounts,
     cardAccounts,
+    interacAccounts,
     hasCard: cardAccounts.length > 0,
     hasBank: bankAccounts.length > 0,
+    hasInterac: interacAccounts.length > 0,
     hasZABalance:
       balancesResponse.balances.filter((bal) => bal.countryCode == 'ZA')
         .length > 0
@@ -74,6 +77,8 @@ export default function Page() {
     features,
     bankAccounts,
     cardAccounts,
+    interacAccounts,
+    hasInterac,
     hasCard,
     hasBank,
     kycStatus,
@@ -203,6 +208,30 @@ export default function Page() {
             {/*    Connect another bank account*/}
             {/*  </Router>*/}
             {/*</CardContent>*/}
+          </Card>
+        )}
+        {interacAccounts && hasInterac && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Connected interac accounts</CardTitle>
+            </CardHeader>
+            {interacAccounts.map((method) => (
+              <CardLink
+                key={method.id}
+                to={route('/accounts/:accountId', {
+                  accountId: method.id
+                })}
+                className='items-center justify-between'
+              >
+                <div className='flex space-x-3'>
+                  <Icon>account_balance</Icon>
+                  <span>{method.name}</span>
+                </div>
+                <div className='flex items-center space-x-2'>
+                  <Icon>navigate_next</Icon>
+                </div>
+              </CardLink>
+            ))}
           </Card>
         )}
         {kycStatus == KycStatus.Approved && !hasBank && hasZABalance && (

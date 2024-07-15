@@ -48,6 +48,10 @@ export async function loader(args: LoaderFunctionArgs) {
     return bankLoader(args, account)
   }
 
+  if (account.type == 'interac') {
+    return bankLoader(args, account)
+  }
+
   throw json({}, { status: 404 })
 }
 
@@ -132,6 +136,39 @@ export default function Page() {
     <>
       {account.type == 'card' && <CardDetailsPage />}
       {account.type == 'bank' && <BankDetailsPage />}
+      {account.type == 'interac' && <InteracDetailsPage />}
+    </>
+  )
+}
+
+function InteracDetailsPage() {
+  const { account } = useLoaderData<typeof bankLoader>()
+  const params = useParams()
+  return (
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>Interac account details</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className='flex w-full flex-col justify-between space-y-1'>
+            <span className='text-weak'>Email</span>
+            <span className='text-medium'>{account.mask}</span>
+          </div>
+        </CardContent>
+      </Card>
+      <Card>
+        <Label>Nickname</Label>
+        <CardLink
+          className='flex items-center justify-between'
+          to={route('/accounts/:accountId/name', {
+            accountId: params.accountId as string
+          })}
+        >
+          {account?.nickname}
+          <Icon>navigate_next</Icon>
+        </CardLink>
+      </Card>
     </>
   )
 }

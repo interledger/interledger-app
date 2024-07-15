@@ -136,8 +136,12 @@ const formatLinkedAccount = (
       break
     case 'bank_account':
     case 'bankAccount':
-    case 'interac':
       type = 'bank'
+      name = linkedAccount.title
+      icon = 'account_balance'
+      break
+    case 'interac':
+      type = 'interac'
       name = linkedAccount.title
       icon = 'account_balance'
       break
