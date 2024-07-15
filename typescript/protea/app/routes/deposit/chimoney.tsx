@@ -8,6 +8,7 @@ import { Button, Card } from '~/components'
 import { jsonWithCSRF } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
+import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { PaySelect } from '../pay_.$paymentId/PaySelect'
 import { stringToBigInt } from './fynbos'
 
@@ -27,6 +28,17 @@ export function ChimoneyDepositPage() {
   >((event) => {
     setAmount(event.target.value)
   }, [])
+  const [setLoading] = useScaffoldStore((state) => [state.setLoading])
+
+  useEffect(() => {
+    if (navigation.state == 'submitting') {
+      setLoading(true)
+    } else if (navigation.state == 'loading' || navigation.state == 'idle') {
+      setLoading(false)
+    }
+    // This ensures that loading is false when this route is unmounted.
+    return () => setLoading(false)
+  }, [navigation.formMethod, navigation.state, setLoading])
 
   useEffect(() => {
     const onSuccessfullPayment = (e: MessageEvent) => {
