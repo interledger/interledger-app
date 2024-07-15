@@ -99,18 +99,18 @@ func (mr *MockClientMockRecorder) GetWithdrawal(ctx, id interface{}) *gomock.Cal
 }
 
 // ListBeneficiaries mocks base method.
-func (m *MockClient) ListBeneficiaries(ctx context.Context) ([]external.AccountBeneficiaries, error) {
+func (m *MockClient) ListBeneficiaries(ctx context.Context, limit, page uint) (*external.ListBeneficiariesResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListBeneficiaries", ctx)
-	ret0, _ := ret[0].([]external.AccountBeneficiaries)
+	ret := m.ctrl.Call(m, "ListBeneficiaries", ctx, limit, page)
+	ret0, _ := ret[0].(*external.ListBeneficiariesResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ListBeneficiaries indicates an expected call of ListBeneficiaries.
-func (mr *MockClientMockRecorder) ListBeneficiaries(ctx interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) ListBeneficiaries(ctx, limit, page interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListBeneficiaries", reflect.TypeOf((*MockClient)(nil).ListBeneficiaries), ctx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListBeneficiaries", reflect.TypeOf((*MockClient)(nil).ListBeneficiaries), ctx, limit, page)
 }
 
 // ListDeposits mocks base method.
