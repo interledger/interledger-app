@@ -412,6 +412,8 @@ func (a *Activity) AssignBalance(ctx context.Context, paymentID, txID string) er
 		_, err = a.b.PTI().AssignBalance(ctx, linkedAccount.ID, txID, p.ReceiverAmount)
 	} else if linkedAccount.Provider == gatehub.ProviderName {
 		_, err = a.b.Gatehub().AssignBalance(ctx, linkedAccount.ID, txID, p.ReceiverAmount)
+	} else if linkedAccount.Provider == chimoney.ProviderName {
+		_, err = a.b.Chimoney().AssignBalance(ctx, linkedAccount.ID, txID, p.ReceiverAmount)
 	}
 
 	return err
