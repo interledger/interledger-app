@@ -154,7 +154,7 @@ export const DocsNavDrawer: FC<NavDrawerRootProps> = ({ onClick }) => {
           menu_open
         </IconButton>
         <Router to={route('/')} aria-label='Fynbos logo'>
-          <InterledgerLogo className='h-8' />
+          <InterledgerLogo className='h-12' />
         </Router>
       </div>
 

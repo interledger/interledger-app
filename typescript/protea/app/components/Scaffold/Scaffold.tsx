@@ -192,7 +192,7 @@ export function Scaffold() {
           <NavDrawer.List>
             <div className='ml-4'>
               <Router to={route('/')} aria-label='Fynbos logo'>
-                <InterledgerLogo className='h-8' />
+                <InterledgerLogo className='h-12' />
               </Router>
             </div>
             <button
@@ -251,15 +251,15 @@ export function Scaffold() {
             </div>
             <div className='ml-4 lg:ml-0'>
               <Router to={route('/')} aria-label='Fynbos logo'>
-                <InterledgerLogo className='h-8' />
+                <InterledgerLogo className='h-12' />
               </Router>
             </div>
             <div className='hidden space-x-10 pb-2 pl-10 pt-3 lg:flex'>
               <HeaderLink to='/about' title='About' />
               {/*<HeaderLink to='/wallet' title='Wallet' />*/}
-              <HeaderPopover />
+              {/*<HeaderPopover />*/}
               {/*<HeaderLink to={route('/docs')} title='Docs' />*/}
-              <HeaderLink to={route('/blog')} title='Blog' />
+              {/*<HeaderLink to={route('/blog')} title='Blog' />*/}
               <HeaderLink to={route('/contact')} title='Contact' />
             </div>
             <div className='ml-auto hidden items-center lg:flex'>
@@ -352,11 +352,11 @@ export function Scaffold() {
               to={route('/')}
               aria-label='Fynbos logo'
             >
-              <InterledgerLogo className='h-8' />
+              <InterledgerLogo className='h-12' />
             </Router>
             <div className='ml-auto flex items-center space-x-4'>
               <AnimatePresence mode='wait'>
-                {actions == null && <WalletShapes key='WalletShapes' />}
+                {actions == null && ''}
                 {actions != null && (
                   <motion.div
                     key={'header-action' + actions.key}
@@ -420,9 +420,15 @@ export function Scaffold() {
       >
         {layout !== Layouts.Marketing && (
           <>
-            <span className='text-xs font-medium text-medium'>
-              &copy;&nbsp;Fynbos
-            </span>
+            <span className='text-xs font-medium text-medium'>&copy;</span>
+            <Router className='text-xs font-medium text-primary' to='https://interledger.app'>
+              Fynbos
+            </Router>
+            <span className='text-xs font-medium text-medium'>&amp;</span>
+            <Router className='text-xs font-medium text-primary' to='https://interledger.org'>
+              The Interledger Foundation
+            </Router>
+            <span className='text-xs font-medium text-medium'>|</span>
             <Router className='text-xs font-medium text-primary' to='/legal'>
               Privacy &amp; Terms
             </Router>
@@ -431,8 +437,8 @@ export function Scaffold() {
         {layout === Layouts.Marketing && footer && (
           <div className='relative mx-auto flex w-full flex-col px-4 pb-12 pt-52 lg:px-0 lg:pl-40 lg:pt-20 xl:max-w-[59rem]'>
             <img
-              alt='Fynbos logo'
-              className='absolute left-4 top-10 lg:left-4 lg:top-20'
+              alt='Interledger logo'
+              className='absolute left-4 top-10 lg:left-3 lg:top-20 max-h-20'
               loading='lazy'
               src={footer.logo?.url}
             />
@@ -512,7 +518,7 @@ export function Scaffold() {
                     menu_open
                   </IconButton>
                   <Router to={route('/')} aria-label='Fynbos logo'>
-                    <InterledgerLogo className='h-8' />
+                    <InterledgerLogo className='h-21' />
                   </Router>
                 </div>
                 <NavDrawer.ListItem to={route('/')}>Home</NavDrawer.ListItem>
@@ -585,7 +591,7 @@ export function Scaffold() {
                   </IconButton>
                   <div className='ml-4 lg:ml-0'>
                     <Router to={route('/')} aria-label='Interledger App logo'>
-                      <InterledgerLogo className='h-8' />
+                      <InterledgerLogo className='h-12' />
                     </Router>
                   </div>
                 </div>
