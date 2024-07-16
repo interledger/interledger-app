@@ -271,7 +271,7 @@ func Transfer(ctx context.Context, b Backends, ex external.Client, args chimoney
 		return err
 	}
 
-	receiver, err := GetChiWallet(ctx, b, args.SendingWalletID)
+	receiver, err := GetChiWallet(ctx, b, args.ReceivingWalletID)
 	if err != nil {
 		return err
 	}
