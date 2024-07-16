@@ -315,6 +315,11 @@ func CreateBeneficiaryWorkflow(ctx workflow.Context, bankAcc xago.CreateBankAcco
 }
 
 func (a *Activity) CreateExternalBeneficiaries(ctx context.Context, bankAcc xago.CreateBankAccountArgs) (string, error) {
+	subAccount, err := LookupSubAccount(ctx, a.b, bankAcc.WalletID)
+	if err != nil {
+		return "", err
+	}
+
 	details, err := a.b.KYC().GetIndividualDetails(ctx, bankAcc.WalletID)
 	if err != nil {
 		return "", err
@@ -326,14 +331,6 @@ func (a *Activity) CreateExternalBeneficiaries(ctx context.Context, bankAcc xago
 	}
 	if len(userList) < 1 {
 		err = fmt.Errorf("%w wallet has (%d) users associated", xago.ErrInternal, len(userList))
-		return "", err
-	}
-
-	personaInquiryURL, err := a.b.KYC().GetApprovedPersonaInquiryURL(ctx, bankAcc.WalletID)
-	if errors.Is(err, kyc.ErrNoKYCInfo) {
-		return "", temporal.NewNonRetryableApplicationError("xago internal error: wallet does not have an approved persona inquiry.", "ErrInternal", err)
-	}
-	if err != nil {
 		return "", err
 	}
 
@@ -350,14 +347,9 @@ func (a *Activity) CreateExternalBeneficiaries(ctx context.Context, bankAcc xago
 		Iban:          bankAcc.IBAN,
 		Bic:           bankAcc.BIC,
 		AccountType:   "typeAccountNumber",
-		IdentityType:  external.IdentityTypeIndividual,
 		KYCRequest: external.CreateBeneficiaryKYCRequest{
-			IsOwn: false,
+			SubAccountID: subAccount.AccountID,
 		},
-		PersonaURL:   personaInquiryURL,
-		FirstName:    details.FirstName,
-		LastName:     details.LastName,
-		Email:        userList[0].Email,
 		MobileNumber: userList[0].PhoneNumber,
 	}
 	if details.Address != nil {
