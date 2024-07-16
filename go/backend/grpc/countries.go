@@ -17,13 +17,15 @@ func (s *rpcService) GetCountries(
 		ret = append(ret, &backendv1.Country{Id: c.String(), Name: details.Name})
 	}
 
-	var us, za *backendv1.Country
+	var us, za, ca *backendv1.Country
 	var filteredRet []*backendv1.Country
 	for _, c := range ret {
-		if c.Id == "US" {
+		if c.Id == country.US.String() {
 			us = c
-		} else if c.Id == "ZA" {
+		} else if c.Id == country.ZA.String() {
 			za = c
+		} else if c.Id == country.CA.String() {
+			ca = c
 		} else {
 			filteredRet = append(filteredRet, c)
 		}
@@ -34,8 +36,8 @@ func (s *rpcService) GetCountries(
 		return filteredRet[i].Name < filteredRet[j].Name
 	})
 
-	// Prepend US and ZA in deterministic order
-	finalRet := []*backendv1.Country{us, za}
+	// Prepend US, CA and ZA in deterministic order
+	finalRet := []*backendv1.Country{us, za, ca}
 	finalRet = append(finalRet, filteredRet...)
 
 	return &backendv1.GetCountriesResponse{
