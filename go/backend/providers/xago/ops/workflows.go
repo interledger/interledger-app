@@ -378,15 +378,28 @@ func (a *Activity) CreateExternalBeneficiaries(ctx context.Context, bankAcc xago
 }
 
 func (a *Activity) GetExternalBeneficiary(ctx context.Context, externalID string) (*external.AccountBeneficiaries, error) {
-	bens, err := a.b.External().ListBeneficiaries(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, acc := range bens {
-		if acc.ID == externalID {
-			return &acc, nil
+	var err error
+	var response *external.ListBeneficiariesResponse
+	limit, page := uint(20), uint(1)
+	hasNextPage := true
+	for {
+		if !hasNextPage {
+			break
 		}
+
+		response, err = a.b.External().ListBeneficiaries(ctx, limit, page)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, acc := range response.Beneficiaries {
+			if acc.ID == externalID {
+				return &acc, nil
+			}
+		}
+
+		hasNextPage = response.Pagination.NumberOfPages >= response.Pagination.PageNumber
+		page++
 	}
 
 	return nil, temporal.NewNonRetryableApplicationError("xago beneficiary not found in list", "external", nil)
