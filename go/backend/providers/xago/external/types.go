@@ -82,17 +82,13 @@ type CreateBeneficiaryReq struct {
 	BeneficiaryPostalCode      string                      `json:"beneficiaryPostalCode,omitempty"`
 	BeneficiaryAddress         string                      `json:"beneficiaryAddress,omitempty"`
 	AccountType                string                      `json:"accountType,omitempty"`
-	FirstName                  string                      `json:"firstName,omitempty"`
-	LastName                   string                      `json:"lastName,omitempty"`
-	Email                      string                      `json:"email,omitempty"`
 	MobileNumber               string                      `json:"mobileNumber,omitempty"`
-	PersonaURL                 string                      `json:"thirdPartyVerificationUrl,omitempty"`
-	IdentityType               string                      `json:"identityType,omitempty"`
-	KYCRequest                 CreateBeneficiaryKYCRequest `json:"kycReqeust"`
+	KYCRequest                 CreateBeneficiaryKYCRequest `json:"kycRequest"`
 }
 
 type CreateBeneficiaryKYCRequest struct {
-	IsOwn bool `json:"isOwn"`
+	IsOwn        bool   `json:"isOwn,omitempty"`
+	SubAccountID string `json:"existingIdentityId,omitempty"`
 }
 
 type CreateBeneficiaryResp struct {
@@ -114,9 +110,15 @@ type AccountBeneficiaries struct {
 	Wallet             json.RawMessage `json:"wallet"`
 }
 
+type Pagination struct {
+	NumberOfPages int `json:"numberOfPages,omitempty"`
+	Limit         int `json:"limit"`
+	PageNumber    int `json:"pageNumber"`
+}
+
 type ListBeneficiariesResponse struct {
-	Status        int                    `json:"status"`
-	Beneficiaries []AccountBeneficiaries `json:"beneficiaries,omitempty"`
+	Pagination    Pagination             `json:"meta,omitempty"`
+	Beneficiaries []AccountBeneficiaries `json:"values,omitempty"`
 }
 
 type CreateTransferReq struct {
