@@ -88,7 +88,7 @@ type CreateBeneficiaryReq struct {
 	MobileNumber               string                      `json:"mobileNumber,omitempty"`
 	PersonaURL                 string                      `json:"thirdPartyVerificationUrl,omitempty"`
 	IdentityType               string                      `json:"identityType,omitempty"`
-	KYCRequest                 CreateBeneficiaryKYCRequest `json:"kycReqeust"`
+	KYCRequest                 CreateBeneficiaryKYCRequest `json:"kycRequest"`
 }
 
 type CreateBeneficiaryKYCRequest struct {
