@@ -375,7 +375,7 @@ var Details = map[Country]Detail{
 	BW: {Name: "Botswana", Numeric: "072"},
 	BY: {Name: "Belarus", Numeric: "112"},
 	BZ: {Name: "Belize", Numeric: "084"},
-	CA: {Name: "Canada", Numeric: "124"},
+	CA: {Name: "Canada", Numeric: "124", Supported: true},
 	CC: {Name: "Cocos (Keeling) Islands", Numeric: "166"},
 	CD: {Name: "Congo, the Democratic Republic of the", Numeric: "180"},
 	CF: {Name: "Central African Republic", Numeric: "140"},
