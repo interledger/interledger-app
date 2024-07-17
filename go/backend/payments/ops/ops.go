@@ -17,6 +17,8 @@ import (
 	"gitlab.com/fynbos/backend/providers/chimoney"
 	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/rafiki"
+	"gitlab.com/fynbos/log"
+	"go.uber.org/zap"
 
 	"gitlab.com/fynbos/backend/providers/xago"
 
@@ -1264,6 +1266,19 @@ func SignalAstraTransferUpdate(ctx context.Context, b Backends, correlation stri
 
 	// Withdrawal
 	return b.Temporal().SignalWorkflow(ctx, fmt.Sprintf(payoutWorkflowFmt, dbp.ID), "", astraNotifyChanName, nil)
+}
+
+func SignalGatehubTransferComplete(ctx context.Context, b Backends, externalTransactionID string) error {
+	var paymentID string
+	err := b.DB().GetContext(ctx, &paymentID, "SELECT payment_id FROM gatehub_transactions WHERE external_id=$1;", externalTransactionID)
+	if errors.Is(err, sql.ErrNoRows) {
+		log.Error("%w No payment found for gatehub transfer complete signal", zap.String("external_transaction_id", externalTransactionID))
+		return nil
+	} else if err != nil {
+		return err
+	}
+
+	return b.Temporal().SignalWorkflow(ctx, fmt.Sprintf(payoutWorkflowFmt, paymentID), "", gatehubNotifyChanName, nil)
 }
 
 func ListAwaitingSignal(ctx context.Context, b Backends) ([]payments.Payment, error) {

@@ -14,6 +14,7 @@ import (
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/astra"
 	"gitlab.com/fynbos/backend/providers/gatehub"
+	gatehub_external "gitlab.com/fynbos/backend/providers/gatehub/external"
 	httplog "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/providers/pti/external"
@@ -386,10 +387,31 @@ func gatehubPayOut(ctx workflow.Context, a *Activity, paymentID, trxID, walletID
 		return "", false, temporal.NewNonRetryableApplicationError("incorrect payment type for gatehub pay in flow", "InvalidArgument", gatehub.ErrInternal, "paymentID", paymentID, "type", pt)
 	}
 
-	var externalTransactionID string
-	err = workflow.ExecuteActivity(ctx, a.CheckGatehubTransferCompleted, paymentID).Get(ctx, &externalTransactionID)
-	if err != nil {
-		return "", false, err
+	// Wait for gatehub completion, webhook or poll
+	var externalTransaction gatehub_external.Transaction
+	for {
+		selector := workflow.NewSelector(ctx)
+
+		// Wait for 20 minutes to check the status or for the signal from the webhook
+		selector.AddFuture(workflow.NewTimer(ctx, 20*time.Minute), func(f workflow.Future) {})
+		selector.AddReceive(workflow.GetSignalChannel(ctx, gatehubNotifyChanName), func(c workflow.ReceiveChannel, more bool) {
+			c.Receive(ctx, nil)
+		})
+
+		selector.Select(ctx)
+
+		err = workflow.ExecuteActivity(ctx, a.GetGatehubTransfer, paymentID).Get(ctx, &externalTransaction)
+		if err != nil {
+			return "", false, err
+		}
+
+		if externalTransaction.Status == gatehub_external.TransactionStatusCompleted {
+			break
+		} else if externalTransaction.Status == gatehub_external.TransactionStatusFailed {
+			return "", false, nil
+		} else {
+			continue
+		}
 	}
 
 	// Commit balances for transfers and withdrawals
@@ -404,7 +426,7 @@ func gatehubPayOut(ctx workflow.Context, a *Activity, paymentID, trxID, walletID
 		return "", false, err
 	}
 
-	return externalTransactionID, true, nil
+	return externalTransaction.ID, true, nil
 }
 
 func ptiPayIn(ctx workflow.Context, a *Activity, ptiA *pti_ops.Activity, paymentID, walletID string) (string, bool, error) {
@@ -596,11 +618,12 @@ type PaySignal struct {
 }
 
 const (
-	signalChanName      = "payment_signals"
-	identityChanName    = "payment_identity_account_signals"
-	payinWorkflowFmt    = "payment_pay_in_%s"
-	payoutWorkflowFmt   = "payment_pay_out_%s"
-	astraNotifyChanName = "payment_astra_signals"
+	signalChanName        = "payment_signals"
+	identityChanName      = "payment_identity_account_signals"
+	payinWorkflowFmt      = "payment_pay_in_%s"
+	payoutWorkflowFmt     = "payment_pay_out_%s"
+	astraNotifyChanName   = "payment_astra_signals"
+	gatehubNotifyChanName = "payment_gatehub_signals"
 )
 
 func PayoutWorkflow(ctx workflow.Context, paymentID string) error {

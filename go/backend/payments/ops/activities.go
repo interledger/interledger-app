@@ -787,29 +787,25 @@ func (a *Activity) SaveGatehubTransfer(ctx context.Context, paymentID, externalT
 	return nil
 }
 
-func (a *Activity) CheckGatehubTransferCompleted(ctx context.Context, paymentID string) (string, error) {
+func (a *Activity) GetGatehubTransfer(ctx context.Context, paymentID string) (*gatehub_external.Transaction, error) {
 	var externalID string
 	err := a.b.DB().GetContext(ctx, &externalID, "SELECT external_id FROM gatehub_transactions WHERE payment_id = $1;", paymentID)
 	if errors.Is(err, sql.ErrNoRows) {
-		return "", temporal.NewNonRetryableApplicationError("Payment not mapped to Gatehub transaction.", "ErrInternal", fmt.Errorf("%w Payment not mapped to Gatehub transaction.", payments.ErrInternal))
+		return nil, temporal.NewNonRetryableApplicationError("Payment not mapped to Gatehub transaction.", "ErrInternal", fmt.Errorf("%w Payment not mapped to Gatehub transaction.", payments.ErrInternal))
 	}
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	p, err := Lookup(ctx, a.b, paymentID)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	externalTrx, err := a.b.Gatehub().GetTransaction(ctx, p.Sender.WalletID, externalID)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	if externalTrx.Status != gatehub_external.TransactionStatusCompleted {
-		return "", fmt.Errorf("%w gatehub transaction not in completed state.", payments.ErrInternal)
-	}
-
-	return externalID, nil
+	return externalTrx, nil
 }

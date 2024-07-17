@@ -68,6 +68,10 @@ func (c client) SignalAstraTransferUpdate(ctx context.Context, correlation strin
 	return ops.SignalAstraTransferUpdate(ctx, c.b, correlation)
 }
 
+func (c client) SignalGatehubTransferComplete(ctx context.Context, externalTransactionID string) error {
+	return ops.SignalGatehubTransferComplete(ctx, c.b, externalTransactionID)
+}
+
 var maxRetries = 3
 var baseDelay = 1 * time.Millisecond
 

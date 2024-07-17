@@ -61,9 +61,11 @@ type (
 	}
 
 	DepositWebhookData struct {
-		Amount   string `json:"amount"`
-		Currency string `json:"currency"`
-		Address  string `json:"address"`
+		Amount      string `json:"amount"`
+		Currency    string `json:"currency"`
+		Address     string `json:"address"`
+		DepositType string `json:"deposit_type"` // hosted or external
+		TrxID       string `json:"tx_uuid"`
 	}
 )
 
@@ -159,6 +161,20 @@ func HandleUserDeposit(ctx context.Context, b Backends, raw json.RawMessage, w h
 		return
 	}
 
+	// `hosted` deposit type is for wallet-to-wallet transfers. Here we signal the payments engine
+	if wh.Data.DepositType == "hosted" {
+		err = b.Payments().SignalGatehubTransferComplete(ctx, wh.Data.TrxID)
+		if err != nil {
+			log.Error("gatehub webhook: Failed to signal payments workflow about wallet transfer", zap.String("external_user_uuid", wh.UserID), zap.String("external_transaction_id", wh.Data.TrxID), zap.Error(err))
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+
+		return
+	}
+
+	// `external` deposit type is for a deposit done through the ramp widget. We start a workflow
+	// to handle this.
 	wo := client.StartWorkflowOptions{
 		ID:                    "gatehub_deposit_webhook" + wh.ID,
 		TaskQueue:             "backend",
