@@ -138,6 +138,20 @@ func (mr *MockClientMockRecorder) SignalExternalPayoutComplete(ctx, id, success 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignalExternalPayoutComplete", reflect.TypeOf((*MockClient)(nil).SignalExternalPayoutComplete), ctx, id, success)
 }
 
+// SignalGatehubTransferComplete mocks base method.
+func (m *MockClient) SignalGatehubTransferComplete(ctx context.Context, externalTransactionID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SignalGatehubTransferComplete", ctx, externalTransactionID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SignalGatehubTransferComplete indicates an expected call of SignalGatehubTransferComplete.
+func (mr *MockClientMockRecorder) SignalGatehubTransferComplete(ctx, externalTransactionID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignalGatehubTransferComplete", reflect.TypeOf((*MockClient)(nil).SignalGatehubTransferComplete), ctx, externalTransactionID)
+}
+
 // SignalIdentityCreated mocks base method.
 func (m *MockClient) SignalIdentityCreated(ctx context.Context, identifier string) error {
 	m.ctrl.T.Helper()
