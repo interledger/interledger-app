@@ -13,6 +13,7 @@ type Client interface {
 	SignalAccountLinked(ctx context.Context, walletID string) error
 	SignalExternalPayoutComplete(ctx context.Context, id string, success bool) error
 	SignalAstraTransferUpdate(ctx context.Context, correlation string) error
+	SignalGatehubTransferComplete(ctx context.Context, externalTransactionID string) error
 
 	AdminListAwaitingSignal(ctx context.Context) ([]Payment, error)
 }
