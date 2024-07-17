@@ -14,6 +14,7 @@ import (
 
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/providers/gatehub"
+	"gitlab.com/fynbos/backend/slack"
 	"gitlab.com/fynbos/log"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/serviceerror"
@@ -61,9 +62,11 @@ type (
 	}
 
 	DepositWebhookData struct {
-		Amount   string `json:"amount"`
-		Currency string `json:"currency"`
-		Address  string `json:"address"`
+		Amount      string `json:"amount"`
+		Currency    string `json:"currency"`
+		Address     string `json:"address"`
+		DepositType string `json:"deposit_type"` // hosted or external
+		TrxID       string `json:"tx_uuid"`
 	}
 )
 
@@ -111,12 +114,20 @@ func NewWebhook(b Backends) http.HandlerFunc {
 			HandleUserVerificationWebhook(r.Context(), b, body, w)
 		case "core.deposit.completed":
 			HandleUserDeposit(r.Context(), b, body, w)
+		case "id.document_notice.expired", "id.document_notice.warning", "id.verification.action_required":
+			HandleActionRequiredWebhook(r.Context(), b, body, w)
 		default:
 			log.Warn("gatehub webhook. Unhandled webhook type", zap.String("event_type", wh.EventType), zap.String("payload", string(body)))
 		}
 
 		w.WriteHeader(http.StatusOK)
 	}
+}
+
+func HandleActionRequiredWebhook(ctx context.Context, b Backends, raw json.RawMessage, w http.ResponseWriter) {
+	slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "Fynbot", fmt.Sprintf("gatehub verification action required: %s", string(raw)))
+
+	w.WriteHeader(http.StatusOK)
 }
 
 func HandleUserVerificationWebhook(ctx context.Context, b Backends, raw json.RawMessage, w http.ResponseWriter) {
@@ -159,6 +170,20 @@ func HandleUserDeposit(ctx context.Context, b Backends, raw json.RawMessage, w h
 		return
 	}
 
+	// `hosted` deposit type is for wallet-to-wallet transfers. Here we signal the payments engine
+	if wh.Data.DepositType == "hosted" {
+		err = b.Payments().SignalGatehubTransferComplete(ctx, wh.Data.TrxID)
+		if err != nil {
+			log.Error("gatehub webhook: Failed to signal payments workflow about wallet transfer", zap.String("external_user_uuid", wh.UserID), zap.String("external_transaction_id", wh.Data.TrxID), zap.Error(err))
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+
+		return
+	}
+
+	// `external` deposit type is for a deposit done through the ramp widget. We start a workflow
+	// to handle this.
 	wo := client.StartWorkflowOptions{
 		ID:                    "gatehub_deposit_webhook" + wh.ID,
 		TaskQueue:             "backend",

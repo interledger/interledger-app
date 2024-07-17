@@ -12,6 +12,7 @@ import (
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	la_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
+	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/gatehub/ops"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/user"
@@ -49,6 +50,10 @@ type Backends struct {
 	users *user_mock.MockClient
 	la    *la_mock.MockClient
 	wc    *wallet_mock.MockClient
+}
+
+func (b Backends) Payments() payments.Client {
+	return nil
 }
 
 func (b Backends) Users() user.Client {

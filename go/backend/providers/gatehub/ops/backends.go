@@ -4,6 +4,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/backend/wallets"
@@ -20,4 +21,5 @@ type Backends interface {
 	Pacioli() pacioli.Client
 	KYC() kyc.Client
 	Transactions() transactions.Client
+	Payments() payments.Client
 }
