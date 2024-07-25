@@ -71,6 +71,7 @@ import (
 	bt_client "gitlab.com/fynbos/backend/providers/basistheory/client"
 	"gitlab.com/fynbos/backend/providers/chimoney"
 	chimoney_client "gitlab.com/fynbos/backend/providers/chimoney/client"
+	chimoney_ops "gitlab.com/fynbos/backend/providers/chimoney/ops"
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	gatehub_client "gitlab.com/fynbos/backend/providers/gatehub/client"
 	gatehub_ops "gitlab.com/fynbos/backend/providers/gatehub/ops"
@@ -199,6 +200,7 @@ func start(args *cli.StartArgs) {
 	router.Handle("/rafiki", b.rafiki.WebhookHandler())
 	router.Handle("/webhooks/xago", b.xago.WebhookHandler())
 	router.Handle("/webhooks/persona", kyc_ops.NewHandlePersonaWebhook(b))
+	router.Handle("/webhooks/chimoney", chimoney_ops.NewWebhook(b))
 
 	ptiWebhook, err := pti_ops.Webhook(b)
 	if err != nil {
