@@ -564,25 +564,35 @@ func CreateChimoneyDepositWorkflow(ctx workflow.Context, walletID, issueID strin
 		return err
 	}
 
-	signalChan := workflow.GetSignalChannel(ctx, depositChannel)
-	var signal depositSignal
 	for {
-		signalChan.Receive(ctx, &signal)
-		if issueID != signal.IssueID {
-			logger.Warn("chimoney: Received signal for wrong deposit", "issueID", issueID, "received", signal.IssueID)
-			continue
-		}
+		selector := workflow.NewSelector(ctx)
 
-		break
-	}
+		// Wait for 5 minutes to check the status or for the signal from the webhook
+		selector.AddFuture(workflow.NewTimer(ctx, 5*time.Minute), func(f workflow.Future) {})
+		selector.AddReceive(workflow.GetSignalChannel(ctx, depositChannel), func(c workflow.ReceiveChannel, more bool) {
+			c.Receive(ctx, nil)
+		})
 
-	if !signal.Success {
-		err = workflow.ExecuteActivity(ctx, a.FailChimoneyTransaction, walletID, transactionID).Get(ctx, nil)
+		selector.Select(ctx)
+
+		var externalPayment external.Payment
+		err = workflow.ExecuteActivity(ctx, a.VerifyChimoneyPayment, walletID, issueID).Get(ctx, nil)
 		if err != nil {
 			return err
 		}
 
-		return nil
+		if externalPayment.Status == "paid" {
+			break
+		}
+
+		if externalPayment.Status == "failed" || externalPayment.Status == "expired" {
+			err = workflow.ExecuteActivity(ctx, a.FailChimoneyTransaction, walletID, transactionID).Get(ctx, nil)
+			if err != nil {
+				return err
+			}
+
+			return nil
+		}
 	}
 
 	err = workflow.ExecuteActivity(ctx, a.AssignChimoneyBalance, walletID, transactionID).Get(ctx, nil)
@@ -596,4 +606,19 @@ func CreateChimoneyDepositWorkflow(ctx workflow.Context, walletID, issueID strin
 	}
 
 	return nil
+}
+
+func (a *Activity) VerifyChimoneyPayment(ctx context.Context, walletID, issueID string) (*external.Payment, error) {
+	chiWalletID, err := GetChiWallet(ctx, a.b, walletID)
+	if errors.Is(err, chimoney.ErrNotFound) {
+		return nil, temporal.NewNonRetryableApplicationError("Wallet not found", "ErrNotFound", err)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return a.external.VerifyPayment(ctx, external.VerifyPaymentReq{
+		IssueID:   issueID,
+		ChiWallet: chiWalletID,
+	})
 }
