@@ -82,8 +82,8 @@ func NewWebhook(b Backends) http.HandlerFunc {
 		}
 
 		switch wh.EventType {
-		case "chimoney.payment.completed":
-			err = handlePaymentCompletedWebhook(r.Context(), b, body)
+		case "chimoney.redeem.completed", "chimoney.redeem.failed":
+			err = handleRedeemWebhook(r.Context(), b, body)
 		default:
 			log.Warn("chimoney webhook. Unhandled webhook type", zap.String("event_type", wh.EventType), zap.String("payload", string(body)))
 		}
@@ -130,7 +130,7 @@ func Verify(ctx context.Context, r *http.Request, key []byte) ([]byte, error) {
 	return payload, nil
 }
 
-func handlePaymentCompletedWebhook(ctx context.Context, b Backends, raw json.RawMessage) error {
+func handleRedeemWebhook(ctx context.Context, b Backends, raw json.RawMessage) error {
 	var wh PaymentEvent
 	err := json.Unmarshal(raw, &wh)
 	if err != nil {
