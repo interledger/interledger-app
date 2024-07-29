@@ -11,6 +11,7 @@ declare module "routes-gen" {
     "/api/sendOtp": Record<string, never>;
     "/blog": Record<string, never>;
     "/blog/:slug": { "slug": string };
+    "/callbacks/chimoney": Record<string, never>;
     "/connect/bank/za": Record<string, never>;
     "/connect/card": Record<string, never>;
     "/connect/discord": Record<string, never>;
@@ -80,6 +81,7 @@ declare module "routes-gen" {
       | ["/api/sendOtp"]
       | ["/blog"]
       | ["/blog/:slug", RouteParams["/blog/:slug"]]
+      | ["/callbacks/chimoney"]
       | ["/connect/bank/za"]
       | ["/connect/card"]
       | ["/connect/discord"]

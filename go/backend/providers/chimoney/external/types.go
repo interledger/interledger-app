@@ -61,6 +61,7 @@ type DepositReq struct {
 	ChimoneyWallet       string  `json:"subAccount,omitempty"`
 	Email                string  `json:"payerEmail,omitempty"`
 	TurnOffNotifications bool    `json:"turnOffNotifications,omitempty"`
+	RedirectURL          string  `json:"redirect_url,omitempty"`
 }
 
 type DepositResp struct {
