@@ -20,7 +20,7 @@ func TestVerifyPaymentLink(t *testing.T) {
 
 	c := external.New(nil)
 	p, err := c.VerifyPayment(context.Background(), external.VerifyPaymentReq{
-		IssueID:   "203757a3-6980-4af1-bf66-bbeaa8de62fc_10.00_1722253969171",
+		IssueID:   "203757a3-6980-4af1-bf66-bbeaa8de62fc_13.00_1722259698483",
 		ChiWallet: "203757a3-6980-4af1-bf66-bbeaa8de62fc",
 	})
 	require.NoError(t, err)
