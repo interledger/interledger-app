@@ -581,7 +581,7 @@ func CreateChimoneyDepositWorkflow(ctx workflow.Context, walletID, issueID strin
 			return err
 		}
 
-		if externalPayment.Status == "paid" {
+		if externalPayment.Status == "redeemed" {
 			break
 		}
 
