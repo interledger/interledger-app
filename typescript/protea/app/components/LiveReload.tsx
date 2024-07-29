@@ -23,7 +23,7 @@ export const LiveReload =
                   let REMIX_DEV_ORIGIN = ${JSON.stringify(
                     process.env.REMIX_DEV_ORIGIN
                   )};
-                  let url = new URL("wss://fynbos.test/socket");
+                  let url = new URL("wss://wallet.fynbos.test/socket");
 
                   url.port =
                     ${port} ||
