@@ -576,12 +576,12 @@ func CreateChimoneyDepositWorkflow(ctx workflow.Context, walletID, issueID strin
 		selector.Select(ctx)
 
 		var externalPayment external.Payment
-		err = workflow.ExecuteActivity(ctx, a.VerifyChimoneyPayment, walletID, issueID).Get(ctx, nil)
+		err = workflow.ExecuteActivity(ctx, a.VerifyChimoneyPayment, walletID, issueID).Get(ctx, &externalPayment)
 		if err != nil {
 			return err
 		}
 
-		if externalPayment.Status == "paid" {
+		if externalPayment.Status == "redeemed" {
 			break
 		}
 
