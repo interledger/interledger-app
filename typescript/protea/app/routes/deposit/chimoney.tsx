@@ -13,9 +13,7 @@ import { PaySelect } from '../pay_.$paymentId/PaySelect'
 import { stringToBigInt } from './fynbos'
 
 export async function chimoneyDepositLoader({ request }: LoaderFunctionArgs) {
-  return jsonWithCSRF(request, {
-    provider: 'chimoney'
-  })
+  return jsonWithCSRF(request, { provider: 'chimoney' })
 }
 
 export function ChimoneyDepositPage() {
