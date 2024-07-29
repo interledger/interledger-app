@@ -9,7 +9,7 @@ import (
 const (
 	prodUrl  = "https://wallet.fynbos.app"
 	devUrl   = "https://eu1.fynbos.dev"
-	localUrl = "https://fynbos.test"
+	localUrl = "https://wallet.fynbos.test"
 )
 
 var fynbosEnv = "prod"

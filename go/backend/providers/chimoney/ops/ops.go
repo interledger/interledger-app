@@ -171,6 +171,7 @@ func CreateDepositLink(ctx context.Context, b Backends, ex external.Client, wall
 		ChimoneyWallet:       chiWallet,
 		Email:                userList[0].Email,
 		TurnOffNotifications: true,
+		RedirectURL:          fmt.Sprintf("%s/callbacks/chimoney", env.GetUrl()),
 	})
 	if err != nil {
 		return "", fmt.Errorf("%w %s", chimoney.ErrInternal, err)
