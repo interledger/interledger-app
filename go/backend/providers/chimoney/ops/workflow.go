@@ -268,12 +268,40 @@ func ExecuteChimoneyWithdrawalWorkflow(
 	}
 
 	// perform the withdrawal. Rollback on failure
-	err = workflow.ExecuteActivity(ctx, a.ChimoneyWithdraw, walletID, trxID).Get(ctx, nil)
+	var externalTrx external.WithdrawResponse
+	err = workflow.ExecuteActivity(ctx, a.ChimoneyWithdraw, walletID, trxID).Get(ctx, &externalTrx)
 	if err != nil {
 		return rollBackWithdrawal(ctx, a, externalWithdrawal, walletID, trxID)
 	}
 
-	// wait until it is succesful?
+	if len(externalTrx.Data) < 1 {
+		logger.Error("chimoney withdrawal: No payout data found")
+		return rollBackWithdrawal(ctx, a, externalWithdrawal, walletID, trxID)
+	}
+
+	// wait until it is succesfull i.e. in redeemed state
+	for {
+		selector := workflow.NewSelector(ctx)
+
+		// Wait for 5 minutes to check the status
+		selector.AddFuture(workflow.NewTimer(ctx, 5*time.Minute), func(f workflow.Future) {})
+		selector.Select(ctx)
+
+		var externalStatus external.PayoutStatusResponse
+		err = workflow.ExecuteActivity(ctx, a.ChimoneyPayoutStatus, walletID, externalTrx.Data[0].ChiRef).Get(ctx, &externalStatus)
+		if err != nil {
+			return err
+		}
+
+		// 'redeemed' corresponds to payment finality
+		if externalStatus.Status == "redeemed" {
+			break
+		}
+
+		if externalStatus.Status == "failed" || externalStatus.Status == "expired" {
+			return rollBackWithdrawal(ctx, a, externalWithdrawal, walletID, trxID)
+		}
+	}
 
 	// finalize balance
 	err = workflow.ExecuteActivity(ctx, a.FinalizeChimoneyBalance, trxID).Get(ctx, nil)
@@ -288,6 +316,22 @@ func ExecuteChimoneyWithdrawalWorkflow(
 	}
 
 	return nil
+}
+
+func (a *Activity) ChimoneyPayoutStatus(ctx context.Context, walletID string, chiRef string) (*external.PayoutStatusResponse, error) {
+	chiWallet, err := GetChiWallet(ctx, a.b, walletID)
+	if errors.Is(err, chimoney.ErrNotFound) {
+		return nil, temporal.NewNonRetryableApplicationError("Wallet not found", "ErrNotFound", err)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return a.external.PayoutStatus(ctx, external.PayoutStatusRequest{
+		ChiWallet:           chiWallet,
+		TurnOffNotification: true,
+		Reference:           chiRef,
+	})
 }
 
 func (a *Activity) CreateChimoneyWithdrawalTransaction(ctx context.Context, walletID string, amount currency.Amount) (string, error) {
@@ -450,10 +494,10 @@ func (a *Activity) AssignChimoneyBalance(ctx context.Context, walletID, trxID st
 	return err
 }
 
-func (a *Activity) ChimoneyWithdraw(ctx context.Context, walletID, trxID string) error {
+func (a *Activity) ChimoneyWithdraw(ctx context.Context, walletID, trxID string) (*external.WithdrawResponse, error) {
 	trx, err := a.b.Transactions().GetTransaction(ctx, walletID, trxID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	return Withdraw(ctx, a.b, a.external, walletID, trx.Amount)

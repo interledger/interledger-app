@@ -22,7 +22,8 @@ type Client interface {
 	GetWallet(ctx context.Context, id string) (*WalletResp, error)
 	Transfer(ctx context.Context, req TransferReq) error
 	Deposit(ctx context.Context, req DepositReq) (*DepositResp, error)
-	Withdraw(ctx context.Context, req WithdrawalReq) error
+	Withdraw(ctx context.Context, req WithdrawalReq) (*WithdrawResponse, error)
+	PayoutStatus(ctx context.Context, req PayoutStatusRequest) (*PayoutStatusResponse, error)
 	ConvertToUSD(ctx context.Context, req ConvertToUSDRequest) (*currency.Amount, error)
 	VerifyPayment(ctx context.Context, req VerifyPaymentReq) (*Payment, error)
 }
@@ -223,10 +224,10 @@ func (c client) Transfer(ctx context.Context, req TransferReq) error {
 	return nil
 }
 
-func (c client) Withdraw(ctx context.Context, req WithdrawalReq) error {
+func (c client) Withdraw(ctx context.Context, req WithdrawalReq) (*WithdrawResponse, error) {
 	endpoint, err := url.JoinPath(c.baseURL, "payouts", "interac")
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	meta, ok := httplog.MetaForContext(ctx)
@@ -242,12 +243,12 @@ func (c client) Withdraw(ctx context.Context, req WithdrawalReq) error {
 
 	body, err := json.Marshal(req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewBuffer(body))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	httpReq.Header.Add("Content-Type", "application/json")
 	httpReq.Header.Add("Accept", "application/json")
@@ -255,26 +256,32 @@ func (c client) Withdraw(ctx context.Context, req WithdrawalReq) error {
 
 	httpResp, err := c.api.Do(httpReq)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	body, err = io.ReadAll(httpResp.Body)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer httpResp.Body.Close()
 
 	var respWrapper APIResponse
 	err = json.Unmarshal(body, &respWrapper)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if !strings.EqualFold(respWrapper.Status, "success") || respWrapper.Error != "" {
-		return fmt.Errorf("request failed on withdrawal with status (%s) error (%s)", respWrapper.Status, respWrapper.Error)
+		return nil, fmt.Errorf("request failed on withdrawal with status (%s) error (%s)", respWrapper.Status, respWrapper.Error)
 	}
 
-	return nil
+	var resp WithdrawResponse
+	err = json.Unmarshal(respWrapper.Data, &resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return &resp, nil
 }
 
 func (c client) Deposit(ctx context.Context, req DepositReq) (*DepositResp, error) {
@@ -451,6 +458,66 @@ func (c client) VerifyPayment(ctx context.Context, req VerifyPaymentReq) (*Payme
 	}
 
 	var resp Payment
+	err = json.Unmarshal(respWrapper.Data, &resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return &resp, nil
+}
+
+func (c client) PayoutStatus(ctx context.Context, req PayoutStatusRequest) (*PayoutStatusResponse, error) {
+	endpoint, err := url.JoinPath(c.baseURL, "payouts", "status")
+	if err != nil {
+		return nil, err
+	}
+
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "POST"
+		meta.Provider = "chimoney"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "POST",
+			Provider: "chimoney",
+		})
+	}
+
+	body, err := json.Marshal(req)
+	if err != nil {
+		return nil, err
+	}
+
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewBuffer(body))
+	if err != nil {
+		return nil, err
+	}
+	httpReq.Header.Add("Content-Type", "application/json")
+	httpReq.Header.Add("Accept", "application/json")
+	httpReq.Header.Add("X-API-KEY", c.apiKey)
+
+	httpResp, err := c.api.Do(httpReq)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err = io.ReadAll(httpResp.Body)
+	if err != nil {
+		return nil, err
+	}
+	defer httpResp.Body.Close()
+
+	var respWrapper APIResponse
+	err = json.Unmarshal(body, &respWrapper)
+	if err != nil {
+		return nil, err
+	}
+
+	if !strings.EqualFold(respWrapper.Status, "success") || respWrapper.Error != "" {
+		return nil, fmt.Errorf("request failed on verify payment with status (%s) error (%s)", respWrapper.Status, respWrapper.Error)
+	}
+
+	var resp PayoutStatusResponse
 	err = json.Unmarshal(respWrapper.Data, &resp)
 	if err != nil {
 		return nil, err
