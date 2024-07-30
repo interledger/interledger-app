@@ -47,6 +47,22 @@ type WithdrawalReq struct {
 	TurnOffNotification bool       `json:"turnOffNotification,omitempty"`
 }
 
+type WithdrawResponse struct {
+	Data        []WithdrawData `json:"data"`
+	Error       string         `json:"error"`
+	PaymentLink string         `json:"paymentLink"`
+}
+
+type WithdrawData struct {
+	ID       string  `json:"id"`
+	IssueID  string  `json:"issueID"`
+	Amount   float64 `json:"amount"`
+	Fee      float64 `json:"fee"`
+	Currency string  `json:"debitCurrency"`
+	Type     string  `json:"type"`
+	ChiRef   string  `json:"chiref"`
+}
+
 type Interacs struct {
 	Name      string  `json:"name,omitempty"`
 	Email     string  `json:"email,omitempty"`
@@ -135,4 +151,19 @@ type Payment struct {
 type VerifyPaymentReq struct {
 	IssueID   string `json:"id,omitempty"`
 	ChiWallet string `json:"subAccount,omitempty"`
+}
+
+type PayoutStatusRequest struct {
+	ChiWallet           string `json:"subAccount,omitempty"`
+	TurnOffNotification bool   `json:"turnOffNotification,omitempty"`
+	Reference           string `json:"chiRef"`
+}
+
+type PayoutStatusResponse struct {
+	ID      string  `json:"id"`
+	Amount  float64 `json:"amount"`
+	Fee     float64 `json:"fee"`
+	Type    string  `json:"type"`
+	IssueID string  `json:"issueID"`
+	Status  string  `json:"status"`
 }

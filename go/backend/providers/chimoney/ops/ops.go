@@ -216,26 +216,26 @@ func ExecuteWithdraw(ctx context.Context, b Backends, walletID, transactionID st
 	return nil
 }
 
-func Withdraw(ctx context.Context, b Backends, ex external.Client, walletID string, amt currency.Amount) error {
+func Withdraw(ctx context.Context, b Backends, ex external.Client, walletID string, amt currency.Amount) (*external.WithdrawResponse, error) {
 	chiWallet, err := GetChiWallet(ctx, b, walletID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	email, err := GetInteracEmail(ctx, b, walletID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	ul, err := b.Users().ListUsers(ctx, walletID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if len(ul) < 1 {
-		return fmt.Errorf("%w No user infomration found", chimoney.ErrInternal)
+		return nil, fmt.Errorf("%w No user infomration found", chimoney.ErrInternal)
 	}
 
-	err = ex.Withdraw(ctx, external.WithdrawalReq{
+	resp, err := ex.Withdraw(ctx, external.WithdrawalReq{
 		DebitCurrency:       amt.Currency.String(),
 		SubAccount:          chiWallet,
 		TurnOffNotification: true,
@@ -247,10 +247,10 @@ func Withdraw(ctx context.Context, b Backends, ex external.Client, walletID stri
 		}},
 	})
 	if err != nil {
-		return fmt.Errorf("%w %s", chimoney.ErrInternal, err)
+		return nil, fmt.Errorf("%w %s", chimoney.ErrInternal, err)
 	}
 
-	return nil
+	return resp, nil
 }
 
 func GetChiWallet(ctx context.Context, b Backends, walletID string) (string, error) {
