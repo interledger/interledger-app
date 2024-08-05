@@ -1,8 +1,8 @@
-import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node';
+import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { useEffect } from 'react'
-import type { ApplicationProps} from '~/components';
+import type { ApplicationProps } from '~/components'
 import { Layouts } from '~/components'
 import { mergeMeta } from '~/lib/meta'
 
@@ -11,18 +11,13 @@ export async function loader(args: LoaderFunctionArgs) {
 
   return json({
     issueID: url.searchParams.get('issueID'),
-    status: url.searchParams.get('status')
+    status: url.searchParams.get('status'),
+    kyc: url.searchParams.has('kyc')
   })
 }
 
 export const handle: ApplicationProps = {
   layout: Layouts.Focus,
-  scaffold: {
-    header: {
-      title: 'Deposit',
-      back: '/'
-    }
-  }
 }
 
 export const meta: MetaFunction = mergeMeta(() => [
@@ -32,11 +27,11 @@ export const meta: MetaFunction = mergeMeta(() => [
 ])
 
 export default function Page() {
-  const { issueID, status } = useLoaderData<typeof loader>()
+  const { issueID, status, kyc } = useLoaderData<typeof loader>()
 
   useEffect(() => {
     if (parent) {
-      parent.postMessage({ issueID, status })
+      parent.postMessage({ issueID, status, kyc })
     }
-  }, [])
+  }, [issueID, status, kyc])
 }
