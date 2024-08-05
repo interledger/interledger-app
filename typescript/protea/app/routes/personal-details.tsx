@@ -3,7 +3,7 @@ import type {
   LoaderFunctionArgs,
   MetaFunction
 } from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
+import { json } from '@remix-run/node'
 import { useLoaderData, useSubmit } from '@remix-run/react'
 import { useEffect, useRef, useState } from 'react'
 import { route } from 'routes-gen'
@@ -24,16 +24,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   if (isConnectError(response)) throw response.errorResponse
 
-  const url = new URL(request.url)
-  const completedChimoneyKYC = url.searchParams.has('chimoneyCompleted')
-
-  if (response.provider == 'chimoney' && !completedChimoneyKYC)
-    return redirect(response.chimoneyWidget)
-
   return json({
     provider: response.provider,
     gatehubWidget: response.gatehubWidget,
-    personaWidget: response.personaInquiry
+    personaWidget: response.personaInquiry,
+    chimoneyWidget: response.chimoneyWidget
   })
 }
 
@@ -55,45 +50,36 @@ export const meta: MetaFunction = mergeMeta(() => [
 
 function ChimoneyPage() {
   const submit = useSubmit()
+  const { chimoneyWidget } = useLoaderData<typeof loader>()
+
+  useEffect(() => {
+    const onKYCComplete = (e: MessageEvent) => {
+      if (!e.data) return
+
+      if (e.data.kyc) {
+        submit(null, {
+          action: '/personal-details',
+          method: 'post'
+        })
+      }
+    }
+
+    window.addEventListener('message', onKYCComplete)
+
+    return () => {
+      window.removeEventListener('message', onKYCComplete)
+    }
+  }, [submit])
 
   return (
-    <>
-      <Card>
-        <CardContent>
-          <div className='mt-6 flex items-start'>
-            <Shape
-              flex='flex-none'
-              width='w-8'
-              radius='rounded-t-full'
-              color='bg-purple-200'
-            />
-            <Shape
-              flex='flex-none'
-              width='w-8'
-              radius='rounded-tr-full'
-              color='bg-purple-400'
-            />
-            <div className='ml-5'>
-              <h3 className='mb-1 font-medium text-strong'>Personal details</h3>
-              <p className='text-medium'>
-                You will be notified once your information has been verified
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      <Button
-        type='button'
-        onClick={() => {
-          submit(null, {
-            action: '/personal-details',
-            method: 'post'
-          })
-        }}
-      >
-        Continue
-      </Button>
-    </>
+    <iframe
+      title='Activate wallet'
+      src={chimoneyWidget}
+      sandbox='allow-top-navigation allow-forms allow-same-origin allow-popups allow-scripts'
+      scrolling='yes'
+      allow='camera;microphone'
+      className='h-[750px]'
+    />
   )
 }
 
