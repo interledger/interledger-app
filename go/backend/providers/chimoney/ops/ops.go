@@ -471,11 +471,12 @@ func GetKYCWidget(ctx context.Context, b Backends, walletID string) (string, err
 	}
 
 	baseURL := "https://dash.chimoney.io"
+	redirectURL := fmt.Sprintf("%s/callbacks/chimoney?kyc", env.GetUrl())
 	if !env.IsProd() {
 		baseURL = "https://sandbox.chimoney.io"
 	}
 
-	widgetURL := fmt.Sprintf("%s/verify/kyc/%s", baseURL, externalID)
+	widgetURL := fmt.Sprintf("%s/verify/kyc/%s?redirect=%s", baseURL, externalID, redirectURL)
 
 	return widgetURL, nil
 }
