@@ -282,6 +282,8 @@ func reserveTransfer(
 		_, err = b.Xago().ReserveBalance(ctx, senderAcc.ID, txID, currency.FromUInt64(amt, currency.ZAR), time.Hour*26)
 	} else if senderAcc.SendCurrency == currency.USD {
 		err = b.PTI().ReserveTransfer(ctx, senderAcc.ID, receiverAcc.ID, txID, currency.FromUInt64(amt, currency.USD), time.Hour*26)
+	} else if senderAcc.SendCurrency == currency.CAD {
+		_, err = b.Chimoney().ReserveBalance(ctx, senderAcc.ID, txID, currency.FromUInt64(amt, currency.CAD), time.Hour*26)
 	} else {
 		return fmt.Errorf("%w %s", rafiki.ErrCurrencyNotSupported, senderAcc.SendCurrency)
 	}
