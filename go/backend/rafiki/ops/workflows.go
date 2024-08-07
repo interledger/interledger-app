@@ -4,8 +4,6 @@ import (
 	"context"
 	"time"
 
-	"gitlab.com/fynbos/env"
-
 	"gitlab.com/fynbos/log"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/client"
@@ -14,9 +12,6 @@ import (
 )
 
 func StartRafikiIncomingPaymentsPolling(b ActivityBackends) {
-	if !env.IsDev() {
-		return
-	}
 	// This workflow ID can be user business logic identifier as well.
 	workflowID := "cron_rafiki_web_monetization_payouts_pti"
 	workflowOptions := client.StartWorkflowOptions{
