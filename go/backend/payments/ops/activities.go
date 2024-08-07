@@ -431,6 +431,9 @@ func (a *Activity) FinalizeBalance(ctx context.Context, paymentID string) error 
 		if errors.Is(err, rafiki.ErrTimedOut) {
 			return temporal.NewNonRetryableApplicationError("Web monetization payment has timed out", "ErrInternal", err)
 		}
+		if errors.Is(err, rafiki.ErrNotFound) {
+			return temporal.NewNonRetryableApplicationError("Web monetization reserved transfer not found", "ErrNotFound", err)
+		}
 		if err != nil {
 			return err
 		}
