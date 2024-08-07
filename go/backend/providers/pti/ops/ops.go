@@ -307,7 +307,8 @@ func RollbackReserve(ctx context.Context, b Backends, txID string) error {
 		return nil
 	}
 	if tx[0].Code == pacioli.TransferPendingTransferNotFound ||
-		tx[0].Code == pacioli.TransferPendingTransferAlreadyVoided {
+		tx[0].Code == pacioli.TransferPendingTransferAlreadyVoided ||
+		tx[0].Code == pacioli.TransferPendingTransferExpired {
 		return nil
 	}
 	if tx[0].Code != 0 {
