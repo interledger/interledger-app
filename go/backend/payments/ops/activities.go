@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"gitlab.com/fynbos/backend/providers/chimoney"
+	"gitlab.com/fynbos/backend/rafiki"
 
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -426,7 +427,13 @@ func (a *Activity) FinalizeBalance(ctx context.Context, paymentID string) error 
 	}
 
 	if p.Type == payments.TypeWebMonetization {
-		return a.b.Rafiki().FinalizeWebMonetization(ctx, paymentID)
+		err = a.b.Rafiki().FinalizeWebMonetization(ctx, paymentID)
+		if errors.Is(err, rafiki.ErrTimedOut) {
+			return temporal.NewNonRetryableApplicationError("Web monetization payment has timed out", "ErrInternal", err)
+		}
+		if err != nil {
+			return err
+		}
 	}
 
 	if p.Type != payments.TypeWithdrawal && p.Type != payments.TypePeer2Peer && p.Type != payments.TypeRafikiPeer2Peer {
@@ -458,6 +465,10 @@ func (a *Activity) RollbackBalance(ctx context.Context, paymentID string) error 
 	p, err := Lookup(ctx, a.b, paymentID)
 	if err != nil {
 		return err
+	}
+
+	if p.Type == payments.TypeWebMonetization {
+		return a.b.Rafiki().RollbackWebMonetization(ctx, paymentID)
 	}
 
 	if p.Type != payments.TypeWithdrawal && p.Type != payments.TypePeer2Peer && p.Type != payments.TypeRafikiPeer2Peer {

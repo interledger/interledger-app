@@ -384,7 +384,10 @@ func FinaliseReserve(ctx context.Context, b Backends, trxID string) error {
 		return nil
 	}
 	if tx[0].Code == pacioli.TransferExceedsCredits || tx[0].Code == pacioli.TransferExceedsDebits || tx[0].Code == pacioli.TransferExceedsPendingTransferAmount {
-		return fmt.Errorf("%w insufficiens balance cod (%s)", gatehub.ErrInsufficientBalance, tx[0].Code.String())
+		return fmt.Errorf("%w insufficient balance code (%s)", gatehub.ErrInsufficientBalance, tx[0].Code.String())
+	}
+	if tx[0].Code == pacioli.TransferPendingTransferExpired {
+		return fmt.Errorf("%w transfer timed out code (%s)", gatehub.ErrTimedOut, tx[0].Code.String())
 	}
 	if tx[0].Code != 0 {
 		return fmt.Errorf("%w non success code (%s)", gatehub.ErrInternal, tx[0].Code.String())

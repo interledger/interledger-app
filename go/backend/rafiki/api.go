@@ -17,6 +17,7 @@ type Client interface {
 	RevokePaymentPointerKey(ctx context.Context, keyID string) error
 	FundOutgoingPayment(ctx context.Context, paymentID string) error
 	FinalizeWebMonetization(ctx context.Context, paymentID string) error
+	RollbackWebMonetization(ctx context.Context, paymentID string) error
 	ListGrants(ctx context.Context, walletID string) ([]Grant, error)
 	GetGrant(ctx context.Context, grantID string) (*Grant, error)
 	RevokeGrant(ctx context.Context, grantID string) error

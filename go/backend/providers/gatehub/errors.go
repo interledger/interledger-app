@@ -7,4 +7,5 @@ var (
 	ErrNotFound            = errors.New("gatehub: not found")
 	ErrInvalidWebhook      = errors.New("gatehub: invalid webhook")
 	ErrInsufficientBalance = errors.New("gatehub: insufficient balance")
+	ErrTimedOut            = errors.New("gatehub: timed out")
 )

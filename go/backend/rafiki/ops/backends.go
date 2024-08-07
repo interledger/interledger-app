@@ -5,6 +5,7 @@ import (
 	"gitlab.com/fynbos/backend/keys"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
+	"gitlab.com/fynbos/backend/providers/chimoney"
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/providers/xago"
@@ -24,6 +25,7 @@ type Backends interface {
 	PTI() pti.Client
 	Gatehub() gatehub.Client
 	Xago() xago.Client
+	Chimoney() chimoney.Client
 }
 
 type ActivityBackends interface {

@@ -15,7 +15,6 @@ import (
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	"gitlab.com/fynbos/backend/providers/gatehub/external"
 	httplogger "gitlab.com/fynbos/backend/providers/http"
-	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/slack"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/wallets"
@@ -347,10 +346,10 @@ func (a *Activity) FinalizeGatehubDeposit(ctx context.Context, id, walletID stri
 			return nil
 		}
 		if tx[0].Code == pacioli.TransferExceedsCredits || tx[0].Code == pacioli.TransferExceedsDebits || tx[0].Code == pacioli.TransferExceedsPendingTransferAmount {
-			return fmt.Errorf("%w insufficient balance code (%s)", pti.ErrInsufficientBalance, tx[0].Code.String())
+			return fmt.Errorf("%w insufficient balance code (%s)", gatehub.ErrInsufficientBalance, tx[0].Code.String())
 		}
 		if tx[0].Code != 0 {
-			return fmt.Errorf("%w non success code (%s)", pti.ErrInternal, tx[0].Code.String())
+			return fmt.Errorf("%w non success code (%s)", gatehub.ErrInternal, tx[0].Code.String())
 		}
 	}
 

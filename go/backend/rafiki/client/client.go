@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"gitlab.com/fynbos/backend/providers/chimoney"
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/providers/xago"
@@ -30,6 +31,7 @@ type Backends interface {
 	PTI() pti.Client
 	Gatehub() gatehub.Client
 	Xago() xago.Client
+	Chimoney() chimoney.Client
 }
 
 var _ ops.Backends = opsBackends{}
@@ -73,6 +75,10 @@ func (c *client) FundOutgoingPayment(ctx context.Context, paymentID string) erro
 
 func (c *client) FinalizeWebMonetization(ctx context.Context, paymentID string) error {
 	return ops.FinalizeWebMonetization(ctx, c.b, paymentID)
+}
+
+func (c *client) RollbackWebMonetization(ctx context.Context, paymentID string) error {
+	return ops.RollbackWebMonetization(ctx, c.b, paymentID)
 }
 
 func (c *client) CreatePaymentPointerKey(ctx context.Context, keyID string, walletID string) error {
