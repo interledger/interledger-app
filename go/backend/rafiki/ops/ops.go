@@ -151,6 +151,9 @@ func FinalizeWebMonetization(ctx context.Context, b Backends, paymentID string) 
 		if errors.Is(err, xago.ErrTimedOut) || errors.Is(err, chimoney.ErrTimedOut) || errors.Is(err, gatehub.ErrTimedOut) || errors.Is(err, pti.ErrTimedOut) {
 			return fmt.Errorf("%w %s", rafiki.ErrTimedOut, err)
 		}
+		if errors.Is(err, xago.ErrNotFound) || errors.Is(err, chimoney.ErrNotFound) || errors.Is(err, gatehub.ErrNotFound) || errors.Is(err, pti.ErrNotFound) {
+			return fmt.Errorf("%w %s", rafiki.ErrTimedOut, err)
+		}
 		if err != nil {
 			return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
 		}

@@ -385,6 +385,9 @@ func FinaliseReserve(ctx context.Context, b Backends, trxID string) error {
 	if tx[0].Code == pacioli.TransferPendingTransferExpired {
 		return fmt.Errorf("%w transfer timed out code (%s)", chimoney.ErrTimedOut, tx[0].Code.String())
 	}
+	if tx[0].Code == pacioli.TransferPendingTransferNotPending {
+		return fmt.Errorf("%w pending transfer not found code (%s)", chimoney.ErrNotFound, tx[0].Code.String())
+	}
 	if tx[0].Code != 0 {
 		return fmt.Errorf("%w non success code (%s)", chimoney.ErrInternal, tx[0].Code.String())
 	}
@@ -448,6 +451,10 @@ func RollbackReserve(ctx context.Context, b Backends, txID string) error {
 		return fmt.Errorf("%w %s", chimoney.ErrInternal, err)
 	}
 	if len(tx) == 0 {
+		return nil
+	}
+	if tx[0].Code == pacioli.TransferPendingTransferNotFound ||
+		tx[0].Code == pacioli.TransferPendingTransferAlreadyVoided {
 		return nil
 	}
 	if tx[0].Code != 0 {
