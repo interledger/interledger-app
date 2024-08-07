@@ -9,7 +9,10 @@ import (
 	"strconv"
 	"time"
 
+	"gitlab.com/fynbos/backend/providers/chimoney"
+	"gitlab.com/fynbos/backend/providers/gatehub"
 	"gitlab.com/fynbos/backend/providers/pti"
+	"gitlab.com/fynbos/backend/providers/xago"
 
 	"gitlab.com/fynbos/backend/currency"
 
@@ -125,8 +128,26 @@ func FinalizeWebMonetization(ctx context.Context, b Backends, paymentID string) 
 		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
 	}
 
+	payment, err := b.Payments().Lookup(ctx, paymentID)
+	if err != nil {
+		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+	}
+
+	senderAcc, err := b.LinkedAccounts().Get(ctx, payment.SenderAccount)
+	if err != nil {
+		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+	}
+
 	for _, id := range reserveIDs {
-		err = b.PTI().FinaliseReserve(ctx, id)
+		if senderAcc.Provider == xago.ProviderName {
+			err = b.Xago().FinaliseReserve(ctx, id)
+		} else if senderAcc.Provider == pti.ProviderName {
+			err = b.PTI().FinaliseReserve(ctx, id)
+		} else if senderAcc.Provider == gatehub.ProviderName {
+			err = b.Gatehub().FinaliseReserve(ctx, id)
+		} else if senderAcc.Provider == chimoney.ProviderName {
+			err = b.Chimoney().FinaliseReserve(ctx, id)
+		}
 		if err != nil {
 			return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
 		}

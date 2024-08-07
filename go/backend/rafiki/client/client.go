@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"gitlab.com/fynbos/backend/providers/chimoney"
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/providers/xago"
@@ -30,6 +31,7 @@ type Backends interface {
 	PTI() pti.Client
 	Gatehub() gatehub.Client
 	Xago() xago.Client
+	Chimoney() chimoney.Client
 }
 
 var _ ops.Backends = opsBackends{}
