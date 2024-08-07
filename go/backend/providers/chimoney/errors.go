@@ -7,4 +7,5 @@ var (
 	ErrNotFound             = errors.New("chimoney: not found")
 	ErrInsufficientBalance  = errors.New("chimoney: insufficient balance")
 	ErrInteracAlreadyLinked = errors.New("chimoney: interac account already linked")
+	ErrTimedOut             = errors.New("chimoney: timed out")
 )

@@ -77,6 +77,10 @@ func (c *client) FinalizeWebMonetization(ctx context.Context, paymentID string) 
 	return ops.FinalizeWebMonetization(ctx, c.b, paymentID)
 }
 
+func (c *client) RollbackWebMonetization(ctx context.Context, paymentID string) error {
+	return ops.RollbackWebMonetization(ctx, c.b, paymentID)
+}
+
 func (c *client) CreatePaymentPointerKey(ctx context.Context, keyID string, walletID string) error {
 	return ops.CreatePaymentPointerKey(ctx, c.b, keyID, walletID)
 }
