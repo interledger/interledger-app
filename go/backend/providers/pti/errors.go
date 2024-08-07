@@ -7,4 +7,5 @@ var (
 	ErrAssessmentFailed    = errors.New("pti: assessment failed")
 	ErrNotFound            = errors.New("pti: not found.")
 	ErrInsufficientBalance = errors.New("pti: insufficient balance")
+	ErrTimedOut            = errors.New("pti: timed out")
 )

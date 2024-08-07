@@ -148,6 +148,44 @@ func FinalizeWebMonetization(ctx context.Context, b Backends, paymentID string) 
 		} else if senderAcc.Provider == chimoney.ProviderName {
 			err = b.Chimoney().FinaliseReserve(ctx, id)
 		}
+		if errors.Is(err, xago.ErrTimedOut) || errors.Is(err, chimoney.ErrTimedOut) || errors.Is(err, gatehub.ErrTimedOut) || errors.Is(err, pti.ErrTimedOut) {
+			return fmt.Errorf("%w %s", rafiki.ErrTimedOut, err)
+		}
+		if err != nil {
+			return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+		}
+	}
+
+	return nil
+}
+
+func RollbackWebMonetization(ctx context.Context, b Backends, paymentID string) error {
+	var reserveIDs []string
+	err := b.DB().SelectContext(ctx, &reserveIDs, "SELECT id FROM rafiki_outgoing_payments WHERE payment_id=$1", paymentID)
+	if err != nil {
+		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+	}
+
+	payment, err := b.Payments().Lookup(ctx, paymentID)
+	if err != nil {
+		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+	}
+
+	senderAcc, err := b.LinkedAccounts().Get(ctx, payment.SenderAccount)
+	if err != nil {
+		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+	}
+
+	for _, id := range reserveIDs {
+		if senderAcc.Provider == xago.ProviderName {
+			err = b.Xago().RollbackReserve(ctx, id)
+		} else if senderAcc.Provider == pti.ProviderName {
+			err = b.PTI().RollbackReserve(ctx, id)
+		} else if senderAcc.Provider == gatehub.ProviderName {
+			err = b.Gatehub().RollbackReserve(ctx, id)
+		} else if senderAcc.Provider == chimoney.ProviderName {
+			err = b.Chimoney().RollbackReserve(ctx, id)
+		}
 		if err != nil {
 			return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
 		}

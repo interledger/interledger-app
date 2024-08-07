@@ -182,6 +182,20 @@ func (mr *MockClientMockRecorder) RevokePaymentPointerKey(ctx, keyID interface{}
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RevokePaymentPointerKey", reflect.TypeOf((*MockClient)(nil).RevokePaymentPointerKey), ctx, keyID)
 }
 
+// RollbackWebMonetization mocks base method.
+func (m *MockClient) RollbackWebMonetization(ctx context.Context, paymentID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RollbackWebMonetization", ctx, paymentID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RollbackWebMonetization indicates an expected call of RollbackWebMonetization.
+func (mr *MockClientMockRecorder) RollbackWebMonetization(ctx, paymentID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RollbackWebMonetization", reflect.TypeOf((*MockClient)(nil).RollbackWebMonetization), ctx, paymentID)
+}
+
 // WebhookHandler mocks base method.
 func (m *MockClient) WebhookHandler() http.HandlerFunc {
 	m.ctrl.T.Helper()
