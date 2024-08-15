@@ -140,7 +140,9 @@ export default function Page() {
         metadata: {
           wallet_id: walletId
         },
-        deduplicate_token: fynbosEnv == 'prod',
+        // cvv is only stored for an hour at basis theory. Empty CVVs were being sent to Astra
+        // when the user tried to add a card they had added before.
+        deduplicate_token: false,
         fingerprint_expression: 'astra{{ metadata.wallet_id }}{{ data.number }}'
       })
       .then((token) => {
