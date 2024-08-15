@@ -17,7 +17,7 @@ export async function loader(args: LoaderFunctionArgs) {
 }
 
 export const handle: ApplicationProps = {
-  layout: Layouts.Focus,
+  layout: Layouts.Focus
 }
 
 export const meta: MetaFunction = mergeMeta(() => [
