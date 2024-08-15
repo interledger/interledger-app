@@ -3,7 +3,6 @@ import { useNavigate } from '@remix-run/react'
 import clsx from 'clsx'
 import type { FC, ReactNode } from 'react'
 import { Fragment, useEffect } from 'react'
-import { route } from 'routes-gen'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 
 type CommandPaletteProps = {
@@ -25,10 +24,6 @@ export const CommandPalette: FC<CommandPaletteProps> = ({
       if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault()
         setCommandPaletteOpen(!commandPaletteOpen)
-      } else if (e.key === 'd' && !commandPaletteOpen) {
-        navigate(route('/deposit'))
-      } else if (e.key === 'w' && !commandPaletteOpen) {
-        navigate(route('/withdraw'))
       }
     }
 
