@@ -252,7 +252,7 @@ func outgoingPayment(ctx context.Context, b Backends, hook webhook) error {
 	}
 
 	// Tell rafiki the payment is successful, we'll actually action it later but the fund are reserved
-	err = b.External().FundOutgoingPayment(ctx, hook.ID)
+	err = b.External().FundOutgoingPayment(ctx, op.ID)
 	if err != nil {
 		return err
 	}

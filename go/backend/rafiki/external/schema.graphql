@@ -1,23 +1,6 @@
 type Query {
-    "Fetch a page of grants."
-    grants(
-        "Paginating forwards: the cursor before the the requested page."
-        after: String
-        "Paginating backwards: the cursor after the the requested page."
-        before: String
-        "Paginating forwards: The first **n** elements from the page."
-        first: Int
-        "Paginating backwards: The last **n** elements from the page."
-        last: Int
-        "Filter grants based on specific criteria."
-        filter: GrantFilter
-    ): GrantsConnection!
-
-    "Fetch a grant"
-    grant(id: ID!): Grant!
-
-    "Fetch an asset"
-    asset(id: String!): Asset
+  "Fetch an asset"
+  asset(id: String!): Asset
 
   "Fetch a page of assets."
   assets(
@@ -50,7 +33,7 @@ type Query {
     sortOrder: SortOrder
   ): PeersConnection!
 
-  "Fetch a wallet address"
+  "Fetch a wallet address."
   walletAddress(id: String!): WalletAddress
 
   "Fetch a page of wallet addresses."
@@ -107,20 +90,46 @@ type Query {
     "Filter payment events based on specific criteria."
     filter: PaymentFilter
   ): PaymentConnection!
+
+  "Get an local or remote Open Payments Incoming Payment. The receiver has a wallet address on either this or another Open Payments resource server."
+  receiver(id: String!): Receiver
+
+  "Fetch a page of grants."
+  grants(
+    "Paginating forwards: the cursor before the the requested page."
+    after: String
+    "Paginating backwards: the cursor after the the requested page."
+    before: String
+    "Paginating forwards: The first **n** elements from the page."
+    first: Int
+    "Paginating backwards: The last **n** elements from the page."
+    last: Int
+    "Filter grants based on specific criteria."
+    filter: GrantFilter
+    "Ascending or descending order of creation."
+    sortOrder: SortOrder
+  ): GrantsConnection!
+
+  "Fetch a grant"
+  grant(id: ID!): Grant!
 }
 
 type Mutation {
-    "Revoke Grant"
-    revokeGrant(input: RevokeGrantInput!): RevokeGrantMutationResponse!
-
-    "Create an asset"
-    createAsset(input: CreateAssetInput!): AssetMutationResponse!
+  "Revoke Grant"
+  revokeGrant(input: RevokeGrantInput!): RevokeGrantMutationResponse!
+  "Create an asset"
+  createAsset(input: CreateAssetInput!): AssetMutationResponse!
 
   "Update an asset"
   updateAsset(input: UpdateAssetInput!): AssetMutationResponse!
 
-  "Add asset liquidity"
-  addAssetLiquidity(input: AddAssetLiquidityInput!): LiquidityMutationResponse
+  "Delete an asset"
+  deleteAsset(input: DeleteAssetInput!): DeleteAssetMutationResponse!
+
+  "Deposit asset liquidity"
+  depositAssetLiquidity(
+    input: DepositAssetLiquidityInput!
+  ): LiquidityMutationResponse
 
   "Withdraw asset liquidity"
   createAssetLiquidityWithdrawal(
@@ -141,8 +150,10 @@ type Mutation {
   "Delete a peer"
   deletePeer(input: DeletePeerInput!): DeletePeerMutationResponse!
 
-  "Add peer liquidity"
-  addPeerLiquidity(input: AddPeerLiquidityInput!): LiquidityMutationResponse
+  "Deposit peer liquidity"
+  depositPeerLiquidity(
+    input: DepositPeerLiquidityInput!
+  ): LiquidityMutationResponse
 
   "Withdraw peer liquidity"
   createPeerLiquidityWithdrawal(
@@ -195,14 +206,43 @@ type Mutation {
     input: CreateOutgoingPaymentInput!
   ): OutgoingPaymentResponse!
 
+  "Cancel Outgoing Payment"
+  cancelOutgoingPayment(
+    input: CancelOutgoingPaymentInput!
+  ): OutgoingPaymentResponse!
+
+  "Create an Open Payments Outgoing Payment from an incoming payment"
+  createOutgoingPaymentFromIncomingPayment(
+    input: CreateOutgoingPaymentFromIncomingPaymentInput!
+  ): OutgoingPaymentResponse!
+
   "Deposit webhook event liquidity"
   depositEventLiquidity(
     input: DepositEventLiquidityInput!
   ): LiquidityMutationResponse
+    @deprecated(reason: "Use `depositOutgoingPaymentLiquidity`")
 
   "Withdraw webhook event liquidity"
   withdrawEventLiquidity(
     input: WithdrawEventLiquidityInput!
+  ): LiquidityMutationResponse
+    @deprecated(
+      reason: "Use `createOutgoingPaymentWithdrawal, createIncomingPaymentWithdrawal, or createWalletAddressWithdrawal`"
+    )
+
+  "Withdraw incoming payment liquidity"
+  createIncomingPaymentWithdrawal(
+    input: CreateIncomingPaymentWithdrawalInput!
+  ): LiquidityMutationResponse
+
+  "Withdraw outgoing payment liquidity"
+  createOutgoingPaymentWithdrawal(
+    input: CreateOutgoingPaymentWithdrawalInput!
+  ): LiquidityMutationResponse
+
+  "Deposit outgoing payment liquidity"
+  depositOutgoingPaymentLiquidity(
+    input: DepositOutgoingPaymentLiquidityInput!
   ): LiquidityMutationResponse
 
   "Withdraw liquidity from a wallet address received via Web Monetization."
@@ -264,6 +304,13 @@ input UpdateAssetInput {
   idempotencyKey: String
 }
 
+input DeleteAssetInput {
+  "Asset id"
+  id: ID!
+  "Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)"
+  idempotencyKey: String
+}
+
 type PeersConnection {
   pageInfo: PageInfo!
   edges: [PeerEdge!]!
@@ -287,7 +334,7 @@ input CreatePeerInput {
   name: String
   "Account Servicing Entity will be notified via a webhook event if peer liquidity falls below this value"
   liquidityThreshold: UInt64
-  "Initial amount of liquidity to add for peer"
+  "Initial amount of liquidity to deposit for peer"
   initialLiquidity: UInt64
   "Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)"
   idempotencyKey: String
@@ -304,8 +351,8 @@ input CreateOrUpdatePeerByUrlInput {
   name: String
   "Account Servicing Entity will be notified via a webhook event if peer liquidity falls below this value"
   liquidityThreshold: UInt64
-  "Initial amount of liquidity to add for peer"
-  addedLiquidity: UInt64
+  "Amount of liquidity to deposit for peer"
+  liquidityToDeposit: UInt64
   "Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)"
   idempotencyKey: String
 }
@@ -346,10 +393,10 @@ input HttpOutgoingInput {
   endpoint: String!
 }
 
-input AddPeerLiquidityInput {
-  "The id of the peer to add liquidity."
+input DepositPeerLiquidityInput {
+  "The id of the peer to deposit liquidity."
   peerId: String!
-  "Amount of liquidity to add."
+  "Amount of liquidity to deposit."
   amount: UInt64!
   "The id of the transfer."
   id: String!
@@ -357,10 +404,10 @@ input AddPeerLiquidityInput {
   idempotencyKey: String!
 }
 
-input AddAssetLiquidityInput {
-  "The id of the asset to add liquidity."
+input DepositAssetLiquidityInput {
+  "The id of the asset to deposit liquidity."
   assetId: String!
-  "Amount of liquidity to add."
+  "Amount of liquidity to deposit."
   amount: UInt64!
   "The id of the transfer."
   id: String!
@@ -377,6 +424,8 @@ input CreatePeerLiquidityWithdrawalInput {
   id: String!
   "Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)"
   idempotencyKey: String!
+  "This is the interval in seconds after a pending transfer's created at which it may be posted or voided. Zero denotes a no timeout single-phase posted transfer."
+  timeoutSeconds: UInt64!
 }
 
 input CreateAssetLiquidityWithdrawalInput {
@@ -388,6 +437,8 @@ input CreateAssetLiquidityWithdrawalInput {
   id: String!
   "Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)"
   idempotencyKey: String!
+  "This is the interval in seconds after a pending transfer's created at which it may be posted or voided. Zero denotes a no timeout single-phase posted transfer."
+  timeoutSeconds: UInt64!
 }
 
 input PostLiquidityWithdrawalInput {
@@ -402,6 +453,31 @@ input VoidLiquidityWithdrawalInput {
   withdrawalId: String!
   "Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)"
   idempotencyKey: String!
+}
+
+input DepositOutgoingPaymentLiquidityInput {
+  "The id of the outgoing payment to deposit into."
+  outgoingPaymentId: String!
+  "Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)"
+  idempotencyKey: String!
+}
+
+input CreateIncomingPaymentWithdrawalInput {
+  "The id of the incoming payment to withdraw from."
+  incomingPaymentId: String!
+  "Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)"
+  idempotencyKey: String!
+  "This is the interval in seconds after a pending transfer's created at which it may be posted or voided. Zero denotes a no timeout single-phase posted transfer."
+  timeoutSeconds: UInt64!
+}
+
+input CreateOutgoingPaymentWithdrawalInput {
+  "The id of the outgoing payment to withdraw from."
+  outgoingPaymentId: String!
+  "Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)"
+  idempotencyKey: String!
+  "This is the interval in seconds after a pending transfer's created at which it may be posted or voided. Zero denotes a no timeout single-phase posted transfer."
+  timeoutSeconds: UInt64!
 }
 
 input DepositEventLiquidityInput {
@@ -425,6 +501,8 @@ input CreateWalletAddressWithdrawalInput {
   id: String!
   "Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)"
   idempotencyKey: String!
+  "This is the interval in seconds after a pending transfer's created at which it may be posted or voided. Zero denotes a no timeout single-phase posted transfer."
+  timeoutSeconds: UInt64!
 }
 
 input JwkInput {
@@ -564,12 +642,19 @@ type WalletAddressEdge {
 type WalletAddress implements Model {
   "Wallet address id"
   id: ID!
+
   "Asset of the wallet address"
   asset: Asset!
+
+  "Available liquidity"
+  liquidity: UInt64
+
   "Wallet Address URL"
   url: String!
+
   "Public name associated with the wallet address"
   publicName: String
+
   "List of incoming payments received by this wallet address"
   incomingPayments(
     "Paginating forwards: the cursor before the the requested page."
@@ -583,6 +668,7 @@ type WalletAddress implements Model {
     "Ascending or descending order of creation."
     sortOrder: SortOrder
   ): IncomingPaymentConnection
+
   "List of quotes created at this wallet address"
   quotes(
     "Paginating forwards: the cursor before the the requested page."
@@ -596,6 +682,7 @@ type WalletAddress implements Model {
     "Ascending or descending order of creation."
     sortOrder: SortOrder
   ): QuoteConnection
+
   "List of outgoing payments sent from this wallet address"
   outgoingPayments(
     "Paginating forwards: the cursor before the the requested page."
@@ -609,10 +696,45 @@ type WalletAddress implements Model {
     "Ascending or descending order of creation."
     sortOrder: SortOrder
   ): OutgoingPaymentConnection
+
   "Date-time of creation"
   createdAt: String!
+
   "Status of the wallet address"
   status: WalletAddressStatus!
+
+  "List of keys associated with this wallet address"
+  walletAddressKeys(
+    "Paginating forwards: the cursor before the the requested page."
+    after: String
+    "Paginating backwards: the cursor after the the requested page."
+    before: String
+    "Paginating forwards: The first **n** elements from the page."
+    first: Int
+    "Paginating backwards: The last **n** elements from the page."
+    last: Int
+    "Ascending or descending order of creation."
+    sortOrder: SortOrder
+  ): WalletAddressKeyConnection
+
+  "List additional properties associated with this wallet address."
+  additionalProperties: [AdditionalProperty]
+}
+
+type AdditionalProperty {
+  key: String!
+  value: String!
+  visibleInOpenPayments: Boolean!
+}
+
+type WalletAddressKeyConnection {
+  pageInfo: PageInfo!
+  edges: [WalletAddressKeyEdge!]!
+}
+
+type WalletAddressKeyEdge {
+  node: WalletAddressKey!
+  cursor: String!
 }
 
 enum WalletAddressStatus {
@@ -637,13 +759,18 @@ interface BasePayment {
   walletAddressId: ID!
   metadata: JSONObject
   createdAt: String!
+  client: String
 }
 
 type IncomingPayment implements BasePayment & Model {
   "Incoming Payment id"
   id: ID!
-  "Id of the wallet address under which this incoming payment was created"
+  "Id of the wallet address under which this incoming payment was created."
   walletAddressId: ID!
+  "Information about the wallet address of the Open Payments client that created the incoming payment."
+  client: String
+  "Available liquidity"
+  liquidity: UInt64
   "Incoming payment state"
   state: IncomingPaymentState!
   "Date-time of expiry. After this time, the incoming payment will not accept further payments made to it."
@@ -713,6 +840,10 @@ type OutgoingPayment implements BasePayment & Model {
   id: ID!
   "Id of the wallet address under which this outgoing payment was created"
   walletAddressId: ID!
+  "Information about the wallet address of the Open Payments client that created the outgoing payment."
+  client: String
+  "Available liquidity"
+  liquidity: UInt64
   "Outgoing payment state"
   state: OutgoingPaymentState!
   error: String
@@ -742,6 +873,8 @@ enum OutgoingPaymentState {
   COMPLETED
   "Payment failed"
   FAILED
+  "Payment cancelled"
+  CANCELLED
 }
 
 type PaymentConnection {
@@ -761,8 +894,12 @@ type Payment implements BasePayment & Model {
   type: PaymentType!
   "Id of the wallet address under which this payment was created"
   walletAddressId: ID!
+  "Information about the wallet address of the Open Payments client that created the payment."
+  client: String
   "Either the IncomingPaymentState or OutgoingPaymentState according to type"
   state: String!
+  "Available liquidity"
+  liquidity: UInt64
   "Additional metadata associated with the payment."
   metadata: JSONObject
   "Date-time of creation"
@@ -836,9 +973,6 @@ input CreateQuoteInput {
 }
 
 type QuoteResponse {
-  code: String!
-  success: Boolean!
-  message: String
   quote: Quote
 }
 
@@ -847,6 +981,26 @@ input CreateOutgoingPaymentInput {
   walletAddressId: String!
   "Id of the corresponding quote for that outgoing payment"
   quoteId: String!
+  "Additional metadata associated with the outgoing payment."
+  metadata: JSONObject
+  "Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)"
+  idempotencyKey: String
+}
+
+input CancelOutgoingPaymentInput {
+  "Outgoing payment id"
+  id: ID!
+  "Reason why this Outgoing Payment has been cancelled. This value will be publicly visible in the metadata field if this outgoing payment is requested through Open Payments."
+  reason: String
+}
+
+input CreateOutgoingPaymentFromIncomingPaymentInput {
+  "Id of the wallet address under which the outgoing payment will be created"
+  walletAddressId: String!
+  "Incoming payment url to create the outgoing payment from"
+  incomingPayment: String!
+  "Amount to send (fixed send)"
+  debitAmount: AmountInput!
   "Additional metadata associated with the outgoing payment."
   metadata: JSONObject
   "Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)"
@@ -880,23 +1034,14 @@ input CreateReceiverInput {
 }
 
 type OutgoingPaymentResponse {
-  code: String!
-  success: Boolean!
-  message: String
   payment: OutgoingPayment
 }
 
 type IncomingPaymentResponse {
-  code: String!
-  success: Boolean!
-  message: String
   payment: IncomingPayment
 }
 
 type CreateReceiverResponse {
-  code: String!
-  success: Boolean!
-  message: String
   receiver: Receiver
 }
 
@@ -909,6 +1054,14 @@ input CreateWalletAddressInput {
   publicName: String
   "Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)"
   idempotencyKey: String
+  "Additional properties associated with the [walletAddress]."
+  additionalProperties: [AdditionalPropertyInput!]
+}
+
+input AdditionalPropertyInput {
+  key: String!
+  value: String!
+  visibleInOpenPayments: Boolean!
 }
 
 input UpdateWalletAddressInput {
@@ -920,6 +1073,8 @@ input UpdateWalletAddressInput {
   status: WalletAddressStatus
   "Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)"
   idempotencyKey: String
+  "List additional properties associated with this wallet address."
+  additionalProperties: [AdditionalPropertyInput!]
 }
 
 enum Alg {
@@ -1051,225 +1206,177 @@ input WebhookEventFilter {
   type: FilterString
 }
 
+input FilterString {
+  in: [String!]!
+}
+
 interface Model {
   id: ID!
   createdAt: String!
 }
 
-type CreateWalletAddressMutationResponse implements MutationResponse {
-  code: String!
-  success: Boolean!
-  message: String!
+type CreateWalletAddressMutationResponse {
   walletAddress: WalletAddress
 }
 
-type UpdateWalletAddressMutationResponse implements MutationResponse {
-  code: String!
-  success: Boolean!
-  message: String!
+type UpdateWalletAddressMutationResponse {
   walletAddress: WalletAddress
 }
 
-type TriggerWalletAddressEventsMutationResponse implements MutationResponse {
-  code: String!
-  success: Boolean!
-  message: String!
+type TriggerWalletAddressEventsMutationResponse {
   "Number of events triggered"
   count: Int
 }
 
-type AssetMutationResponse implements MutationResponse {
-  code: String!
-  success: Boolean!
-  message: String!
+type AssetMutationResponse {
   asset: Asset
 }
 
-type CreatePeerMutationResponse implements MutationResponse {
-  code: String!
-  success: Boolean!
-  message: String!
+type DeleteAssetMutationResponse {
+  asset: Asset
+}
+
+type CreatePeerMutationResponse {
   peer: Peer
 }
 
-type CreateOrUpdatePeerByUrlMutationResponse implements MutationResponse {
-  code: String!
-  success: Boolean!
-  message: String!
+type CreateOrUpdatePeerByUrlMutationResponse {
   peer: Peer
 }
 
-type UpdatePeerMutationResponse implements MutationResponse {
-  code: String!
-  success: Boolean!
-  message: String!
+type UpdatePeerMutationResponse {
   peer: Peer
 }
 
-type DeletePeerMutationResponse implements MutationResponse {
-  code: String!
+type DeletePeerMutationResponse {
   success: Boolean!
-  message: String!
 }
 
-type TransferMutationResponse implements MutationResponse {
-  code: String!
+type LiquidityMutationResponse {
   success: Boolean!
-  message: String!
 }
 
-type LiquidityMutationResponse implements MutationResponse {
-  code: String!
-  success: Boolean!
-  message: String!
-  error: LiquidityError
-}
-
-type WalletAddressWithdrawalMutationResponse implements MutationResponse {
-  code: String!
-  success: Boolean!
-  message: String!
-  error: LiquidityError
+type WalletAddressWithdrawalMutationResponse {
   withdrawal: WalletAddressWithdrawal
 }
 
-type CreateWalletAddressKeyMutationResponse implements MutationResponse {
-  code: String!
-  success: Boolean!
-  message: String!
+type CreateWalletAddressKeyMutationResponse {
   walletAddressKey: WalletAddressKey
 }
 
-type RevokeWalletAddressKeyMutationResponse implements MutationResponse {
-  code: String!
-  success: Boolean!
-  message: String!
+type RevokeWalletAddressKeyMutationResponse {
   walletAddressKey: WalletAddressKey
 }
 
-type SetFeeResponse implements MutationResponse {
-  code: String!
-  success: Boolean!
-  message: String!
+type SetFeeResponse {
   fee: Fee
 }
 
-type GrantsConnection {
-    pageInfo: PageInfo!
-    edges: [GrantEdge!]!
-}
 
-type GrantEdge {
-    node: Grant!
-    cursor: String!
-}
-
-input GrantFilter {
-    identifier: FilterString
-    state: FilterGrantState
-    finalizationReason: FilterFinalizationReason
-}
-
-input FilterString {
-    in: [String!]
-}
-
-input FilterGrantState {
-    in: [GrantState!]
-    notIn: [GrantState!]
-}
-
-input FilterFinalizationReason {
-    in: [GrantFinalization!]
-    notIn: [GrantFinalization!]
-}
-
-input RevokeGrantInput {
-    grantId: String!
-}
 
 type Grant implements Model {
-    "Grant id"
-    id: ID!
-    "Wallet address of the grantee's account"
-    client: String!
-    "Access details"
-    access: [Access!]!
-    "State of the grant"
-    state: GrantState!
-    "Reason a grant was finalized"
-    finalizationReason: GrantFinalization
-    "Date-time of creation"
-    createdAt: String!
+  "Grant id"
+  id: ID!
+  "Wallet address of the grantee's account"
+  client: String!
+  "Access details"
+  access: [Access!]!
+  "State of the grant"
+  state: GrantState!
+  "Reason a grant was finalized"
+  finalizationReason: GrantFinalization
+  "Date-time of creation"
+  createdAt: String!
 }
 
 type Access implements Model {
-    "Access id"
-    id: ID!
-    "Wallet address of a sub-resource (incoming payment, outgoing payment, or quote)"
-    identifier: String
-    "Access type (incoming payment, outgoing payment, or quote)"
-    type: String!
-    "Access action (create, read, list or complete)"
-    actions: [String]!
-    "Payment limits"
-    limits: LimitData
-    "Date-time of creation"
-    createdAt: String!
+  "Access id"
+  id: ID!
+  "Wallet address of a sub-resource (incoming payment, outgoing payment, or quote)"
+  identifier: String
+  "Access type (incoming payment, outgoing payment, or quote)"
+  type: String!
+  "Access action (create, read, list or complete)"
+  actions: [String]!
+  "Payment limits"
+  limits: LimitData
+  "Date-time of creation"
+  createdAt: String!
 }
 
 type LimitData {
-    "Wallet address URL of the receiver"
-    receiver: String
-    "Amount to debit"
-    debitAmount: PaymentAmount
-    "Amount to receive"
-    receiveAmount: PaymentAmount
-    "Interval between payments"
-    interval: String
+  "Wallet address URL of the receiver"
+  receiver: String
+  "Amount to debit"
+  debitAmount: PaymentAmount
+  "Amount to receive"
+  receiveAmount: PaymentAmount
+  "Interval between payments"
+  interval: String
 }
 
 type PaymentAmount {
-    value: UInt64!
-    "[ISO 4217 currency code](https://en.wikipedia.org/wiki/ISO_4217), e.g. `USD`"
-    assetCode: String!
-    "Difference in orders of magnitude between the standard unit of an asset and a corresponding fractional unit"
-    assetScale: UInt8!
+  value: UInt64!
+  "[ISO 4217 currency code](https://en.wikipedia.org/wiki/ISO_4217), e.g. `USD`"
+  assetCode: String!
+  "Difference in orders of magnitude between the standard unit of an asset and a corresponding fractional unit"
+  assetScale: UInt8!
 }
 
-type RevokeGrantMutationResponse implements MutationResponse {
-    code: String!
-    success: Boolean!
-    message: String!
-}
-
-interface MutationResponse {
-  code: String!
-  success: Boolean!
-  message: String!
+type RevokeGrantMutationResponse {
+  id: ID!
 }
 
 enum GrantState {
-    "grant request is determining what state to enter next"
-    PROCESSING
-    "grant request is awaiting interaction"
-    PENDING
-    "grant was approved"
-    APPROVED
-    "grant was finalized and no more access tokens or interactions can be made on it"
-    FINALIZED
+  "grant request is determining what state to enter next"
+  PROCESSING
+  "grant request is awaiting interaction"
+  PENDING
+  "grant was approved"
+  APPROVED
+  "grant was finalized and no more access tokens or interactions can be made on it"
+  FINALIZED
 }
 
 enum GrantFinalization {
-    "grant was issued"
-    ISSUED
-    "grant was revoked"
-    REVOKED
-    "grant was rejected"
-    REJECTED
+  "grant was issued"
+  ISSUED
+  "grant was revoked"
+  REVOKED
+  "grant was rejected"
+  REJECTED
+}
+
+type GrantsConnection {
+  pageInfo: PageInfo!
+  edges: [GrantEdge!]!
+}
+
+type GrantEdge {
+  node: Grant!
+  cursor: String!
+}
+
+input GrantFilter {
+  identifier: FilterString
+  state: FilterGrantState
+  finalizationReason: FilterFinalizationReason
+}
+
+input FilterGrantState {
+  in: [GrantState!]
+  notIn: [GrantState!]
+}
+
+input FilterFinalizationReason {
+  in: [GrantFinalization!]
+  notIn: [GrantFinalization!]
+}
+
+input RevokeGrantInput {
+  grantId: String!
 }
 
 scalar UInt8
 scalar UInt64
 scalar JSONObject
-

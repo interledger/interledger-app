@@ -20,7 +20,7 @@ type Client interface {
 	GetWalletAddress(ctx context.Context, id string) (*GetWalletAddressWalletAddress, error)
 	CreatePaymentPointerKey(ctx context.Context, paymentPointerID string, key keys.Key) (string, error)
 	RevokePaymentPointerKey(ctx context.Context, keyID string) error
-	FundOutgoingPayment(ctx context.Context, eventID string) error
+	FundOutgoingPayment(ctx context.Context, outgoingPaymentID string) error
 	ListGrants(ctx context.Context, paymentPointer string) ([]ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrant, error)
 	GetGrant(ctx context.Context, grantID string) (*GetGrantGrant, error)
 	RevokeGrant(ctx context.Context, grantID string) error
@@ -105,24 +105,19 @@ func (c client) CreatePaymentPointer(ctx context.Context, w wallets.Wallet, asse
 	if err != nil {
 		return "", err
 	}
-	if !pp.GetCreateWalletAddress().Success {
-		return "", fmt.Errorf("error code (%s) message (%s)", pp.GetCreateWalletAddress().Code, pp.GetCreateWalletAddress().Message)
-	}
 
 	return pp.CreateWalletAddress.WalletAddress.Id, nil
 }
 
-func (c client) FundOutgoingPayment(ctx context.Context, eventID string) error {
-	r, err := DepositEventLiquidity(ctx, c.backendClient, DepositEventLiquidityInput{
-		EventId:        eventID,
-		IdempotencyKey: eventID,
+func (c client) FundOutgoingPayment(ctx context.Context, outgoingPaymentID string) error {
+	_, err := DepositOutgoingPaymentLiquidity(ctx, c.backendClient, DepositOutgoingPaymentLiquidityInput{
+		OutgoingPaymentId: outgoingPaymentID,
+		IdempotencyKey:    outgoingPaymentID,
 	})
 	if err != nil {
 		return err
 	}
-	if !r.GetDepositEventLiquidity().Success {
-		return fmt.Errorf("error code (%s) message (%s)", r.GetDepositEventLiquidity().Code, r.GetDepositEventLiquidity().Message)
-	}
+
 	return nil
 }
 
@@ -141,26 +136,18 @@ func (c client) CreatePaymentPointerKey(ctx context.Context, walletAddressID str
 	if err != nil {
 		return "", fmt.Errorf("%w %s", rafiki.ErrInternal, err)
 	}
-	if !r.GetCreateWalletAddressKey().Success {
-		return "", fmt.Errorf("error code (%s) message (%s)", r.GetCreateWalletAddressKey().Code, r.GetCreateWalletAddressKey().Message)
-	}
 
-	resp := r.CreateWalletAddressKey.GetWalletAddressKey()
-
-	return resp.Id, nil
+	return r.CreateWalletAddressKey.GetWalletAddressKey().Id, nil
 }
 
 func (c client) RevokePaymentPointerKey(ctx context.Context, keyID string) error {
-	r, err := RevokeWalletAddressKey(ctx, c.backendClient, RevokeWalletAddressKeyInput{
+	_, err := RevokeWalletAddressKey(ctx, c.backendClient, RevokeWalletAddressKeyInput{
 		Id: keyID,
 	})
 	if err != nil {
 		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
 	}
 
-	if !r.GetRevokeWalletAddressKey().Success {
-		return fmt.Errorf("error code (%s) message (%s)", r.GetRevokeWalletAddressKey().Code, r.GetRevokeWalletAddressKey().Message)
-	}
 	return nil
 }
 
@@ -191,13 +178,9 @@ func (c client) GetGrant(ctx context.Context, grantID string) (*GetGrantGrant, e
 }
 
 func (c client) RevokeGrant(ctx context.Context, grantID string) error {
-	r, err := RevokeGrant(ctx, c.authClient, RevokeGrantInput{GrantId: grantID})
+	_, err := RevokeGrant(ctx, c.authClient, RevokeGrantInput{GrantId: grantID})
 	if err != nil {
 		return err
-	}
-
-	if !r.GetRevokeGrant().Success {
-		return fmt.Errorf("error code (%s) message (%s)", r.GetRevokeGrant().Code, r.GetRevokeGrant().Message)
 	}
 
 	return nil
