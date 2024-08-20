@@ -1,26 +1,17 @@
 mutation CreateWalletAddress($input: CreateWalletAddressInput!){
     createWalletAddress(input: $input) {
-        code
-        success
-        message
         walletAddress {
             id
         }
     }
 }
-mutation DepositEventLiquidity($input: DepositEventLiquidityInput!) {
-    depositEventLiquidity(input: $input) {
-        code
-        error
+mutation DepositOutgoingPaymentLiquidity($input: DepositOutgoingPaymentLiquidityInput!) {
+    depositOutgoingPaymentLiquidity(input: $input) {
         success
-        message
     }
 }
 mutation CreateWalletAddressKey($input: CreateWalletAddressKeyInput!){
     createWalletAddressKey(input: $input) {
-        code
-        success
-        message
         walletAddressKey {
             id
             walletAddressId
@@ -32,18 +23,19 @@ mutation CreateWalletAddressKey($input: CreateWalletAddressKeyInput!){
 }
 mutation RevokeWalletAddressKey($input: RevokeWalletAddressKeyInput!){
     revokeWalletAddressKey(input: $input) {
-        code
-        success
-        message
+        walletAddressKey {
+            id
+            walletAddressId
+            revoked
+            createdAt
+        }
     }
 }
 mutation RevokeGrant ($input: RevokeGrantInput!) {
     revokeGrant (
         input: $input
     ) {
-        code
-        success
-        message
+        id
     }
 }
 

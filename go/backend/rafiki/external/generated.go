@@ -8,6 +8,21 @@ import (
 	"github.com/Khan/genqlient/graphql"
 )
 
+type AdditionalPropertyInput struct {
+	Key                   string `json:"key"`
+	Value                 string `json:"value"`
+	VisibleInOpenPayments bool   `json:"visibleInOpenPayments"`
+}
+
+// GetKey returns AdditionalPropertyInput.Key, and is useful for accessing the field via an interface.
+func (v *AdditionalPropertyInput) GetKey() string { return v.Key }
+
+// GetValue returns AdditionalPropertyInput.Value, and is useful for accessing the field via an interface.
+func (v *AdditionalPropertyInput) GetValue() string { return v.Value }
+
+// GetVisibleInOpenPayments returns AdditionalPropertyInput.VisibleInOpenPayments, and is useful for accessing the field via an interface.
+func (v *AdditionalPropertyInput) GetVisibleInOpenPayments() bool { return v.VisibleInOpenPayments }
+
 type Alg string
 
 const (
@@ -16,25 +31,7 @@ const (
 
 // CreateWalletAddressCreateWalletAddressCreateWalletAddressMutationResponse includes the requested fields of the GraphQL type CreateWalletAddressMutationResponse.
 type CreateWalletAddressCreateWalletAddressCreateWalletAddressMutationResponse struct {
-	Code          string                                                                                 `json:"code"`
-	Success       bool                                                                                   `json:"success"`
-	Message       string                                                                                 `json:"message"`
 	WalletAddress CreateWalletAddressCreateWalletAddressCreateWalletAddressMutationResponseWalletAddress `json:"walletAddress"`
-}
-
-// GetCode returns CreateWalletAddressCreateWalletAddressCreateWalletAddressMutationResponse.Code, and is useful for accessing the field via an interface.
-func (v *CreateWalletAddressCreateWalletAddressCreateWalletAddressMutationResponse) GetCode() string {
-	return v.Code
-}
-
-// GetSuccess returns CreateWalletAddressCreateWalletAddressCreateWalletAddressMutationResponse.Success, and is useful for accessing the field via an interface.
-func (v *CreateWalletAddressCreateWalletAddressCreateWalletAddressMutationResponse) GetSuccess() bool {
-	return v.Success
-}
-
-// GetMessage returns CreateWalletAddressCreateWalletAddressCreateWalletAddressMutationResponse.Message, and is useful for accessing the field via an interface.
-func (v *CreateWalletAddressCreateWalletAddressCreateWalletAddressMutationResponse) GetMessage() string {
-	return v.Message
 }
 
 // GetWalletAddress returns CreateWalletAddressCreateWalletAddressCreateWalletAddressMutationResponse.WalletAddress, and is useful for accessing the field via an interface.
@@ -62,6 +59,8 @@ type CreateWalletAddressInput struct {
 	PublicName string `json:"publicName"`
 	// Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)
 	IdempotencyKey string `json:"idempotencyKey"`
+	// Additional properties associated with the [walletAddress].
+	AdditionalProperties []AdditionalPropertyInput `json:"additionalProperties"`
 }
 
 // GetAssetId returns CreateWalletAddressInput.AssetId, and is useful for accessing the field via an interface.
@@ -76,27 +75,14 @@ func (v *CreateWalletAddressInput) GetPublicName() string { return v.PublicName 
 // GetIdempotencyKey returns CreateWalletAddressInput.IdempotencyKey, and is useful for accessing the field via an interface.
 func (v *CreateWalletAddressInput) GetIdempotencyKey() string { return v.IdempotencyKey }
 
+// GetAdditionalProperties returns CreateWalletAddressInput.AdditionalProperties, and is useful for accessing the field via an interface.
+func (v *CreateWalletAddressInput) GetAdditionalProperties() []AdditionalPropertyInput {
+	return v.AdditionalProperties
+}
+
 // CreateWalletAddressKeyCreateWalletAddressKeyCreateWalletAddressKeyMutationResponse includes the requested fields of the GraphQL type CreateWalletAddressKeyMutationResponse.
 type CreateWalletAddressKeyCreateWalletAddressKeyCreateWalletAddressKeyMutationResponse struct {
-	Code             string                                                                                             `json:"code"`
-	Success          bool                                                                                               `json:"success"`
-	Message          string                                                                                             `json:"message"`
 	WalletAddressKey CreateWalletAddressKeyCreateWalletAddressKeyCreateWalletAddressKeyMutationResponseWalletAddressKey `json:"walletAddressKey"`
-}
-
-// GetCode returns CreateWalletAddressKeyCreateWalletAddressKeyCreateWalletAddressKeyMutationResponse.Code, and is useful for accessing the field via an interface.
-func (v *CreateWalletAddressKeyCreateWalletAddressKeyCreateWalletAddressKeyMutationResponse) GetCode() string {
-	return v.Code
-}
-
-// GetSuccess returns CreateWalletAddressKeyCreateWalletAddressKeyCreateWalletAddressKeyMutationResponse.Success, and is useful for accessing the field via an interface.
-func (v *CreateWalletAddressKeyCreateWalletAddressKeyCreateWalletAddressKeyMutationResponse) GetSuccess() bool {
-	return v.Success
-}
-
-// GetMessage returns CreateWalletAddressKeyCreateWalletAddressKeyCreateWalletAddressKeyMutationResponse.Message, and is useful for accessing the field via an interface.
-func (v *CreateWalletAddressKeyCreateWalletAddressKeyCreateWalletAddressKeyMutationResponse) GetMessage() string {
-	return v.Message
 }
 
 // GetWalletAddressKey returns CreateWalletAddressKeyCreateWalletAddressKeyCreateWalletAddressKeyMutationResponse.WalletAddressKey, and is useful for accessing the field via an interface.
@@ -185,56 +171,40 @@ const (
 	CrvEd25519 Crv = "Ed25519"
 )
 
-// DepositEventLiquidityDepositEventLiquidityLiquidityMutationResponse includes the requested fields of the GraphQL type LiquidityMutationResponse.
-type DepositEventLiquidityDepositEventLiquidityLiquidityMutationResponse struct {
-	Code    string         `json:"code"`
-	Error   LiquidityError `json:"error"`
-	Success bool           `json:"success"`
-	Message string         `json:"message"`
+// DepositOutgoingPaymentLiquidityDepositOutgoingPaymentLiquidityLiquidityMutationResponse includes the requested fields of the GraphQL type LiquidityMutationResponse.
+type DepositOutgoingPaymentLiquidityDepositOutgoingPaymentLiquidityLiquidityMutationResponse struct {
+	Success bool `json:"success"`
 }
 
-// GetCode returns DepositEventLiquidityDepositEventLiquidityLiquidityMutationResponse.Code, and is useful for accessing the field via an interface.
-func (v *DepositEventLiquidityDepositEventLiquidityLiquidityMutationResponse) GetCode() string {
-	return v.Code
-}
-
-// GetError returns DepositEventLiquidityDepositEventLiquidityLiquidityMutationResponse.Error, and is useful for accessing the field via an interface.
-func (v *DepositEventLiquidityDepositEventLiquidityLiquidityMutationResponse) GetError() LiquidityError {
-	return v.Error
-}
-
-// GetSuccess returns DepositEventLiquidityDepositEventLiquidityLiquidityMutationResponse.Success, and is useful for accessing the field via an interface.
-func (v *DepositEventLiquidityDepositEventLiquidityLiquidityMutationResponse) GetSuccess() bool {
+// GetSuccess returns DepositOutgoingPaymentLiquidityDepositOutgoingPaymentLiquidityLiquidityMutationResponse.Success, and is useful for accessing the field via an interface.
+func (v *DepositOutgoingPaymentLiquidityDepositOutgoingPaymentLiquidityLiquidityMutationResponse) GetSuccess() bool {
 	return v.Success
 }
 
-// GetMessage returns DepositEventLiquidityDepositEventLiquidityLiquidityMutationResponse.Message, and is useful for accessing the field via an interface.
-func (v *DepositEventLiquidityDepositEventLiquidityLiquidityMutationResponse) GetMessage() string {
-	return v.Message
-}
-
-type DepositEventLiquidityInput struct {
-	// The id of the event to deposit into.
-	EventId string `json:"eventId"`
+type DepositOutgoingPaymentLiquidityInput struct {
+	// The id of the outgoing payment to deposit into.
+	OutgoingPaymentId string `json:"outgoingPaymentId"`
 	// Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)
 	IdempotencyKey string `json:"idempotencyKey"`
 }
 
-// GetEventId returns DepositEventLiquidityInput.EventId, and is useful for accessing the field via an interface.
-func (v *DepositEventLiquidityInput) GetEventId() string { return v.EventId }
-
-// GetIdempotencyKey returns DepositEventLiquidityInput.IdempotencyKey, and is useful for accessing the field via an interface.
-func (v *DepositEventLiquidityInput) GetIdempotencyKey() string { return v.IdempotencyKey }
-
-// DepositEventLiquidityResponse is returned by DepositEventLiquidity on success.
-type DepositEventLiquidityResponse struct {
-	// Deposit webhook event liquidity
-	DepositEventLiquidity DepositEventLiquidityDepositEventLiquidityLiquidityMutationResponse `json:"depositEventLiquidity"`
+// GetOutgoingPaymentId returns DepositOutgoingPaymentLiquidityInput.OutgoingPaymentId, and is useful for accessing the field via an interface.
+func (v *DepositOutgoingPaymentLiquidityInput) GetOutgoingPaymentId() string {
+	return v.OutgoingPaymentId
 }
 
-// GetDepositEventLiquidity returns DepositEventLiquidityResponse.DepositEventLiquidity, and is useful for accessing the field via an interface.
-func (v *DepositEventLiquidityResponse) GetDepositEventLiquidity() DepositEventLiquidityDepositEventLiquidityLiquidityMutationResponse {
-	return v.DepositEventLiquidity
+// GetIdempotencyKey returns DepositOutgoingPaymentLiquidityInput.IdempotencyKey, and is useful for accessing the field via an interface.
+func (v *DepositOutgoingPaymentLiquidityInput) GetIdempotencyKey() string { return v.IdempotencyKey }
+
+// DepositOutgoingPaymentLiquidityResponse is returned by DepositOutgoingPaymentLiquidity on success.
+type DepositOutgoingPaymentLiquidityResponse struct {
+	// Deposit outgoing payment liquidity
+	DepositOutgoingPaymentLiquidity DepositOutgoingPaymentLiquidityDepositOutgoingPaymentLiquidityLiquidityMutationResponse `json:"depositOutgoingPaymentLiquidity"`
+}
+
+// GetDepositOutgoingPaymentLiquidity returns DepositOutgoingPaymentLiquidityResponse.DepositOutgoingPaymentLiquidity, and is useful for accessing the field via an interface.
+func (v *DepositOutgoingPaymentLiquidityResponse) GetDepositOutgoingPaymentLiquidity() DepositOutgoingPaymentLiquidityDepositOutgoingPaymentLiquidityLiquidityMutationResponse {
+	return v.DepositOutgoingPaymentLiquidity
 }
 
 type FilterFinalizationReason struct {
@@ -423,7 +393,7 @@ func (v *GetGrantResponse) GetGrant() GetGrantGrant { return v.Grant }
 type GetIncomingPaymentIncomingPayment struct {
 	// Incoming Payment id
 	Id string `json:"id"`
-	// Id of the wallet address under which this incoming payment was created
+	// Id of the wallet address under which this incoming payment was created.
 	WalletAddressId string `json:"walletAddressId"`
 	// Incoming payment state
 	State IncomingPaymentState `json:"state"`
@@ -461,7 +431,7 @@ func (v *GetIncomingPaymentResponse) GetIncomingPayment() GetIncomingPaymentInco
 
 // GetWalletAddressResponse is returned by GetWalletAddress on success.
 type GetWalletAddressResponse struct {
-	// Fetch a wallet address
+	// Fetch a wallet address.
 	WalletAddress GetWalletAddressWalletAddress `json:"walletAddress"`
 }
 
@@ -597,23 +567,6 @@ type Kty string
 
 const (
 	KtyOkp Kty = "OKP"
-)
-
-type LiquidityError string
-
-const (
-	LiquidityErrorAlreadyposted          LiquidityError = "AlreadyPosted"
-	LiquidityErrorAlreadyvoided          LiquidityError = "AlreadyVoided"
-	LiquidityErrorAmountzero             LiquidityError = "AmountZero"
-	LiquidityErrorInsufficientbalance    LiquidityError = "InsufficientBalance"
-	LiquidityErrorInvalidid              LiquidityError = "InvalidId"
-	LiquidityErrorTransferexists         LiquidityError = "TransferExists"
-	LiquidityErrorUnknownasset           LiquidityError = "UnknownAsset"
-	LiquidityErrorUnknownincomingpayment LiquidityError = "UnknownIncomingPayment"
-	LiquidityErrorUnknownpayment         LiquidityError = "UnknownPayment"
-	LiquidityErrorUnknownwalletaddress   LiquidityError = "UnknownWalletAddress"
-	LiquidityErrorUnknownpeer            LiquidityError = "UnknownPeer"
-	LiquidityErrorUnknowntransfer        LiquidityError = "UnknownTransfer"
 )
 
 // ListGrantsGrantsGrantsConnection includes the requested fields of the GraphQL type GrantsConnection.
@@ -867,19 +820,11 @@ func (v *RevokeGrantResponse) GetRevokeGrant() RevokeGrantRevokeGrantRevokeGrant
 
 // RevokeGrantRevokeGrantRevokeGrantMutationResponse includes the requested fields of the GraphQL type RevokeGrantMutationResponse.
 type RevokeGrantRevokeGrantRevokeGrantMutationResponse struct {
-	Code    string `json:"code"`
-	Success bool   `json:"success"`
-	Message string `json:"message"`
+	Id string `json:"id"`
 }
 
-// GetCode returns RevokeGrantRevokeGrantRevokeGrantMutationResponse.Code, and is useful for accessing the field via an interface.
-func (v *RevokeGrantRevokeGrantRevokeGrantMutationResponse) GetCode() string { return v.Code }
-
-// GetSuccess returns RevokeGrantRevokeGrantRevokeGrantMutationResponse.Success, and is useful for accessing the field via an interface.
-func (v *RevokeGrantRevokeGrantRevokeGrantMutationResponse) GetSuccess() bool { return v.Success }
-
-// GetMessage returns RevokeGrantRevokeGrantRevokeGrantMutationResponse.Message, and is useful for accessing the field via an interface.
-func (v *RevokeGrantRevokeGrantRevokeGrantMutationResponse) GetMessage() string { return v.Message }
+// GetId returns RevokeGrantRevokeGrantRevokeGrantMutationResponse.Id, and is useful for accessing the field via an interface.
+func (v *RevokeGrantRevokeGrantRevokeGrantMutationResponse) GetId() string { return v.Id }
 
 type RevokeWalletAddressKeyInput struct {
 	// Internal id of key
@@ -907,24 +852,44 @@ func (v *RevokeWalletAddressKeyResponse) GetRevokeWalletAddressKey() RevokeWalle
 
 // RevokeWalletAddressKeyRevokeWalletAddressKeyRevokeWalletAddressKeyMutationResponse includes the requested fields of the GraphQL type RevokeWalletAddressKeyMutationResponse.
 type RevokeWalletAddressKeyRevokeWalletAddressKeyRevokeWalletAddressKeyMutationResponse struct {
-	Code    string `json:"code"`
-	Success bool   `json:"success"`
-	Message string `json:"message"`
+	WalletAddressKey RevokeWalletAddressKeyRevokeWalletAddressKeyRevokeWalletAddressKeyMutationResponseWalletAddressKey `json:"walletAddressKey"`
 }
 
-// GetCode returns RevokeWalletAddressKeyRevokeWalletAddressKeyRevokeWalletAddressKeyMutationResponse.Code, and is useful for accessing the field via an interface.
-func (v *RevokeWalletAddressKeyRevokeWalletAddressKeyRevokeWalletAddressKeyMutationResponse) GetCode() string {
-	return v.Code
+// GetWalletAddressKey returns RevokeWalletAddressKeyRevokeWalletAddressKeyRevokeWalletAddressKeyMutationResponse.WalletAddressKey, and is useful for accessing the field via an interface.
+func (v *RevokeWalletAddressKeyRevokeWalletAddressKeyRevokeWalletAddressKeyMutationResponse) GetWalletAddressKey() RevokeWalletAddressKeyRevokeWalletAddressKeyRevokeWalletAddressKeyMutationResponseWalletAddressKey {
+	return v.WalletAddressKey
 }
 
-// GetSuccess returns RevokeWalletAddressKeyRevokeWalletAddressKeyRevokeWalletAddressKeyMutationResponse.Success, and is useful for accessing the field via an interface.
-func (v *RevokeWalletAddressKeyRevokeWalletAddressKeyRevokeWalletAddressKeyMutationResponse) GetSuccess() bool {
-	return v.Success
+// RevokeWalletAddressKeyRevokeWalletAddressKeyRevokeWalletAddressKeyMutationResponseWalletAddressKey includes the requested fields of the GraphQL type WalletAddressKey.
+type RevokeWalletAddressKeyRevokeWalletAddressKeyRevokeWalletAddressKeyMutationResponseWalletAddressKey struct {
+	// Internal id of key
+	Id string `json:"id"`
+	// Id of the wallet address to which this key belongs to
+	WalletAddressId string `json:"walletAddressId"`
+	// Indicator whether the key has been revoked
+	Revoked bool `json:"revoked"`
+	// Date-time of creation
+	CreatedAt string `json:"createdAt"`
 }
 
-// GetMessage returns RevokeWalletAddressKeyRevokeWalletAddressKeyRevokeWalletAddressKeyMutationResponse.Message, and is useful for accessing the field via an interface.
-func (v *RevokeWalletAddressKeyRevokeWalletAddressKeyRevokeWalletAddressKeyMutationResponse) GetMessage() string {
-	return v.Message
+// GetId returns RevokeWalletAddressKeyRevokeWalletAddressKeyRevokeWalletAddressKeyMutationResponseWalletAddressKey.Id, and is useful for accessing the field via an interface.
+func (v *RevokeWalletAddressKeyRevokeWalletAddressKeyRevokeWalletAddressKeyMutationResponseWalletAddressKey) GetId() string {
+	return v.Id
+}
+
+// GetWalletAddressId returns RevokeWalletAddressKeyRevokeWalletAddressKeyRevokeWalletAddressKeyMutationResponseWalletAddressKey.WalletAddressId, and is useful for accessing the field via an interface.
+func (v *RevokeWalletAddressKeyRevokeWalletAddressKeyRevokeWalletAddressKeyMutationResponseWalletAddressKey) GetWalletAddressId() string {
+	return v.WalletAddressId
+}
+
+// GetRevoked returns RevokeWalletAddressKeyRevokeWalletAddressKeyRevokeWalletAddressKeyMutationResponseWalletAddressKey.Revoked, and is useful for accessing the field via an interface.
+func (v *RevokeWalletAddressKeyRevokeWalletAddressKeyRevokeWalletAddressKeyMutationResponseWalletAddressKey) GetRevoked() bool {
+	return v.Revoked
+}
+
+// GetCreatedAt returns RevokeWalletAddressKeyRevokeWalletAddressKeyRevokeWalletAddressKeyMutationResponseWalletAddressKey.CreatedAt, and is useful for accessing the field via an interface.
+func (v *RevokeWalletAddressKeyRevokeWalletAddressKeyRevokeWalletAddressKeyMutationResponseWalletAddressKey) GetCreatedAt() string {
+	return v.CreatedAt
 }
 
 type WalletAddressStatus string
@@ -952,13 +917,15 @@ type __CreateWalletAddressKeyInput struct {
 // GetInput returns __CreateWalletAddressKeyInput.Input, and is useful for accessing the field via an interface.
 func (v *__CreateWalletAddressKeyInput) GetInput() CreateWalletAddressKeyInput { return v.Input }
 
-// __DepositEventLiquidityInput is used internally by genqlient
-type __DepositEventLiquidityInput struct {
-	Input DepositEventLiquidityInput `json:"input"`
+// __DepositOutgoingPaymentLiquidityInput is used internally by genqlient
+type __DepositOutgoingPaymentLiquidityInput struct {
+	Input DepositOutgoingPaymentLiquidityInput `json:"input"`
 }
 
-// GetInput returns __DepositEventLiquidityInput.Input, and is useful for accessing the field via an interface.
-func (v *__DepositEventLiquidityInput) GetInput() DepositEventLiquidityInput { return v.Input }
+// GetInput returns __DepositOutgoingPaymentLiquidityInput.Input, and is useful for accessing the field via an interface.
+func (v *__DepositOutgoingPaymentLiquidityInput) GetInput() DepositOutgoingPaymentLiquidityInput {
+	return v.Input
+}
 
 // __GetGrantInput is used internally by genqlient
 type __GetGrantInput struct {
@@ -1012,9 +979,6 @@ func (v *__RevokeWalletAddressKeyInput) GetInput() RevokeWalletAddressKeyInput {
 const CreateWalletAddress_Operation = `
 mutation CreateWalletAddress ($input: CreateWalletAddressInput!) {
 	createWalletAddress(input: $input) {
-		code
-		success
-		message
 		walletAddress {
 			id
 		}
@@ -1052,9 +1016,6 @@ func CreateWalletAddress(
 const CreateWalletAddressKey_Operation = `
 mutation CreateWalletAddressKey ($input: CreateWalletAddressKeyInput!) {
 	createWalletAddressKey(input: $input) {
-		code
-		success
-		message
 		walletAddressKey {
 			id
 			walletAddressId
@@ -1092,33 +1053,30 @@ func CreateWalletAddressKey(
 	return &data, err
 }
 
-// The query or mutation executed by DepositEventLiquidity.
-const DepositEventLiquidity_Operation = `
-mutation DepositEventLiquidity ($input: DepositEventLiquidityInput!) {
-	depositEventLiquidity(input: $input) {
-		code
-		error
+// The query or mutation executed by DepositOutgoingPaymentLiquidity.
+const DepositOutgoingPaymentLiquidity_Operation = `
+mutation DepositOutgoingPaymentLiquidity ($input: DepositOutgoingPaymentLiquidityInput!) {
+	depositOutgoingPaymentLiquidity(input: $input) {
 		success
-		message
 	}
 }
 `
 
-func DepositEventLiquidity(
+func DepositOutgoingPaymentLiquidity(
 	ctx context.Context,
 	client graphql.Client,
-	input DepositEventLiquidityInput,
-) (*DepositEventLiquidityResponse, error) {
+	input DepositOutgoingPaymentLiquidityInput,
+) (*DepositOutgoingPaymentLiquidityResponse, error) {
 	req := &graphql.Request{
-		OpName: "DepositEventLiquidity",
-		Query:  DepositEventLiquidity_Operation,
-		Variables: &__DepositEventLiquidityInput{
+		OpName: "DepositOutgoingPaymentLiquidity",
+		Query:  DepositOutgoingPaymentLiquidity_Operation,
+		Variables: &__DepositOutgoingPaymentLiquidityInput{
 			Input: input,
 		},
 	}
 	var err error
 
-	var data DepositEventLiquidityResponse
+	var data DepositOutgoingPaymentLiquidityResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
@@ -1346,9 +1304,7 @@ func ListGrants(
 const RevokeGrant_Operation = `
 mutation RevokeGrant ($input: RevokeGrantInput!) {
 	revokeGrant(input: $input) {
-		code
-		success
-		message
+		id
 	}
 }
 `
@@ -1383,9 +1339,12 @@ func RevokeGrant(
 const RevokeWalletAddressKey_Operation = `
 mutation RevokeWalletAddressKey ($input: RevokeWalletAddressKeyInput!) {
 	revokeWalletAddressKey(input: $input) {
-		code
-		success
-		message
+		walletAddressKey {
+			id
+			walletAddressId
+			revoked
+			createdAt
+		}
 	}
 }
 `
