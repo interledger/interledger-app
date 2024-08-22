@@ -75,7 +75,7 @@ func NewClient(appID, secret string, transport *http.Client) Client {
 
 func (c *client) GetVaultID() string {
 	if env.IsProd() {
-		return ""
+		return "546ac540-4362-49cb-b639-afc5d4280d03"
 	}
 
 	return "a09a0a2c-1a3a-44c5-a1b9-603a6eea9341" // sandbox EUR vault
