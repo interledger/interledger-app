@@ -493,20 +493,16 @@ func GetKYCWidget(ctx context.Context, b Backends, walletID string) (string, err
 }
 
 func CreateDeposit(ctx context.Context, b Backends, ex external.Client, walletID, issueID string) (chimoney.Await, error) {
+	// check that chimoney wallet and issueID exist
 	externalID, err := GetChiWallet(ctx, b, walletID)
 	if err != nil {
 		return nil, err
 	}
 
-	depositDetails, err := ex.VerifyPayment(ctx, external.VerifyPaymentReq{
+	_, err = ex.VerifyPayment(ctx, external.VerifyPaymentReq{
 		ChiWallet: externalID,
 		IssueID:   issueID,
 	})
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", chimoney.ErrInternal, err)
-	}
-
-	amount, err := currency.FromString(depositDetails.Amount, currency.ParseCurrency(depositDetails.Currency))
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", chimoney.ErrInternal, err)
 	}
@@ -538,7 +534,7 @@ func CreateDeposit(ctx context.Context, b Backends, ex external.Client, walletID
 	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
 		await = b.Temporal().GetWorkflow(ctx, wo.ID, "")
 	} else {
-		await, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, CreateChimoneyDepositWorkflow, walletID, issueID, amount)
+		await, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, CreateChimoneyDepositWorkflow, walletID, issueID)
 	}
 	if executeErr != nil {
 		return nil, fmt.Errorf("%w %s", chimoney.ErrInternal, err)
