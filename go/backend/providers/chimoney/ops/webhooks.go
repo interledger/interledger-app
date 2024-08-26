@@ -14,8 +14,11 @@ import (
 	"regexp"
 	"strings"
 
+	"gitlab.com/fynbos/backend/providers/chimoney/external"
 	"gitlab.com/fynbos/backend/providers/gatehub"
+	httplogger "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/log"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.uber.org/zap"
 )
 
@@ -52,6 +55,14 @@ func NewWebhook(b Backends) http.HandlerFunc {
 	}
 	secret := ParseWebhookSecret(os.Getenv("CHIMONEY_WEBHOOK_SECRET"))
 
+	ec := external.New(
+		&http.Client{
+			Transport: otelhttp.NewTransport(
+				httplogger.NewTransport(http.DefaultTransport, b, external.Redact),
+			),
+		},
+	)
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Info("Chimoney webhook", zap.String("method", r.Method))
 		if r.Method == http.MethodOptions {
@@ -84,6 +95,12 @@ func NewWebhook(b Backends) http.HandlerFunc {
 		switch wh.EventType {
 		case "chimoney.redeem.completed", "chimoney.redeem.failed":
 			err = handleRedeemWebhook(r.Context(), b, body)
+		case "charge.card.completed",
+			"charge.chimoney-wallet.completed",
+			"charge.interac.completed",
+			"charge.crypto.xrpl.confirmed",
+			"charge.crypto.celo.confirmed":
+			err = handleConfirmedOrCompletedCharge(r.Context(), b, ec, body)
 		default:
 			log.Warn("chimoney webhook. Unhandled webhook type", zap.String("event_type", wh.EventType), zap.String("payload", string(body)))
 		}
@@ -142,4 +159,15 @@ func handleRedeemWebhook(ctx context.Context, b Backends, raw json.RawMessage) e
 		Success: true,
 	}
 	return b.Temporal().SignalWorkflow(ctx, fmt.Sprintf("chimoney_deposit_%s", wh.IssueID), "", depositChannel, signal)
+}
+
+func handleConfirmedOrCompletedCharge(ctx context.Context, b Backends, ec external.Client, raw json.RawMessage) error {
+	var wh PaymentEvent
+	err := json.Unmarshal(raw, &wh)
+	if err != nil {
+		return err
+	}
+
+	_, err = CreateDeposit(ctx, b, ec, wh.IssueID)
+	return err
 }
