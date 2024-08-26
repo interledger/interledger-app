@@ -173,14 +173,14 @@ func NewPTI() *PTI {
 	if _, err := os.Stat(dataFilePath); errors.Is(err, os.ErrNotExist) {
 		file, fileErr := os.Create(dataFilePath)
 		if fileErr != nil {
-			log.Fatalf(fmt.Sprintf("Failed to create data file %s. %s", dataFilePath, err))
+			log.Fatalf("Failed to create data file %s. %s", dataFilePath, err)
 		}
 		_ = file.Close()
 	}
 
 	rawData, err := os.ReadFile(dataFilePath)
 	if err != nil && !errors.Is(err, fs.ErrNotExist) {
-		log.Fatalf(fmt.Sprintf("Failed to read PTI data file %s. %s", dataFilePath, err))
+		log.Fatalf("Failed to read PTI data file %s. %s", dataFilePath, err)
 	}
 
 	mock := PTI{
@@ -191,7 +191,7 @@ func NewPTI() *PTI {
 	if len(rawData) > 0 {
 		err = json.Unmarshal(rawData, &mock)
 		if err != nil {
-			log.Fatalf(fmt.Sprintf("Failed to unmarshal PTI data file %s. %s", dataFilePath, err))
+			log.Fatalf("Failed to unmarshal PTI data file %s. %s", dataFilePath, err)
 		}
 	}
 
