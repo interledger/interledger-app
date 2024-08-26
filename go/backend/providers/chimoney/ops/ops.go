@@ -266,6 +266,19 @@ func GetChiWallet(ctx context.Context, b Backends, walletID string) (string, err
 	return chiWallet, err
 }
 
+func GetWalletID(ctx context.Context, b Backends, chiWalletID string) (string, error) {
+	var walletID string
+	err := b.DB().GetContext(ctx, &walletID, "SELECT wallet_ID FROM chi_money_wallets WHERE external_id=$1;", chiWalletID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", fmt.Errorf("%w no wallet found for chiWalletID", chimoney.ErrNotFound)
+	}
+	if err != nil {
+		return "", chimoney.ErrInternal
+	}
+
+	return walletID, nil
+}
+
 func Transfer(ctx context.Context, b Backends, ex external.Client, args chimoney.TransferArgs) error {
 	sender, err := GetChiWallet(ctx, b, args.SendingWalletID)
 	if err != nil {
@@ -492,21 +505,7 @@ func GetKYCWidget(ctx context.Context, b Backends, walletID string) (string, err
 	return widgetURL, nil
 }
 
-func CreateDeposit(ctx context.Context, b Backends, ex external.Client, walletID, issueID string) (chimoney.Await, error) {
-	// check that chimoney wallet and issueID exist
-	externalID, err := GetChiWallet(ctx, b, walletID)
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = ex.VerifyPayment(ctx, external.VerifyPaymentReq{
-		ChiWallet: externalID,
-		IssueID:   issueID,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", chimoney.ErrInternal, err)
-	}
-
+func CreateDeposit(ctx context.Context, b Backends, ex external.Client, issueID string) (chimoney.Await, error) {
 	wo := client.StartWorkflowOptions{
 		ID:                    "chimoney_deposit_" + issueID,
 		TaskQueue:             "backend",
@@ -534,7 +533,7 @@ func CreateDeposit(ctx context.Context, b Backends, ex external.Client, walletID
 	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
 		await = b.Temporal().GetWorkflow(ctx, wo.ID, "")
 	} else {
-		await, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, CreateChimoneyDepositWorkflow, walletID, issueID)
+		await, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, CreateChimoneyDepositWorkflow, issueID)
 	}
 	if executeErr != nil {
 		return nil, fmt.Errorf("%w %s", chimoney.ErrInternal, err)

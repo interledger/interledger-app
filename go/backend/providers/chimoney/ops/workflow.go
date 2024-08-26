@@ -612,7 +612,7 @@ type depositSignal struct {
 	Success bool
 }
 
-func CreateChimoneyDepositWorkflow(ctx workflow.Context, walletID, issueID string) error {
+func CreateChimoneyDepositWorkflow(ctx workflow.Context, issueID string) error {
 	var a *Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 10 * time.Second,
@@ -623,8 +623,15 @@ func CreateChimoneyDepositWorkflow(ctx workflow.Context, walletID, issueID strin
 	logger := workflow.GetLogger(ctx)
 	logger.Info("Creating chimoney deposit.")
 
+	// Try get the Fynbos walletID so we know that it is for one of our wallets
+	var walletID string
+	err := workflow.ExecuteActivity(ctx, a.GetWalletIDFromIssueID, issueID).Get(ctx, &walletID)
+	if err != nil {
+		return err
+	}
+
 	var transactionID string
-	err := workflow.ExecuteActivity(ctx, a.CreateChimoneyDepositTransaction, walletID, issueID).Get(ctx, &transactionID)
+	err = workflow.ExecuteActivity(ctx, a.CreateChimoneyDepositTransaction, walletID, issueID).Get(ctx, &transactionID)
 	if err != nil {
 		return err
 	}
@@ -671,6 +678,17 @@ func CreateChimoneyDepositWorkflow(ctx workflow.Context, walletID, issueID strin
 	}
 
 	return nil
+}
+
+func (a *Activity) GetWalletIDFromIssueID(ctx context.Context, issueID string) (string, error) {
+	details, err := a.external.VerifyPayment(ctx, external.VerifyPaymentReq{
+		IssueID: issueID,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return GetWalletID(ctx, a.b, details.SubAccount)
 }
 
 func (a *Activity) VerifyChimoneyPayment(ctx context.Context, walletID, issueID string) (*external.Payment, error) {

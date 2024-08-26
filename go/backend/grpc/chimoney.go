@@ -102,12 +102,12 @@ func (s *rpcService) CreateChimoneyDeposit(ctx context.Context, req *pb.CreateCh
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	w, err := s.b.Wallets().ForContext(ctx)
+	_, err = s.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	_, err = s.b.Chimoney().CreateDeposit(ctx, w.ID, req.GetIssueId())
+	_, err = s.b.Chimoney().CreateDeposit(ctx, req.GetIssueId())
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
