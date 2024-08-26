@@ -173,7 +173,7 @@ func tableFromRows(pdf *gopdf.GoPdf, args tableFromRowsArgs) error {
 	// check table structure
 	for i, row := range args.Rows {
 		if len(row.Entries) != len(args.ColWidths) {
-			return fmt.Errorf(fmt.Sprintf("pdf error: row %d does not have %d columns.", i, len(args.ColWidths)))
+			return fmt.Errorf("pdf error: row %d does not have %d columns.", i, len(args.ColWidths))
 		}
 	}
 

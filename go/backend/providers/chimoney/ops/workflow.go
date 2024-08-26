@@ -350,7 +350,28 @@ func (a *Activity) CreateChimoneyWithdrawalTransaction(ctx context.Context, wall
 	return trx, nil
 }
 
-func (a *Activity) CreateChimoneyDepositTransaction(ctx context.Context, walletID, issueID string, amount currency.Amount) (string, error) {
+func (a *Activity) CreateChimoneyDepositTransaction(ctx context.Context, walletID, issueID string) (string, error) {
+	chiWalletID, err := GetChiWallet(ctx, a.b, walletID)
+	if errors.Is(err, chimoney.ErrNotFound) {
+		return "", temporal.NewNonRetryableApplicationError("Wallet not found", "ErrNotFound", err)
+	}
+	if err != nil {
+		return "", fmt.Errorf("%w %s", chimoney.ErrInternal, err)
+	}
+
+	depositDetails, err := a.external.VerifyPayment(ctx, external.VerifyPaymentReq{
+		IssueID:   issueID,
+		ChiWallet: chiWalletID,
+	})
+	if err != nil {
+		return "", fmt.Errorf("%w %s", chimoney.ErrInternal, err)
+	}
+
+	amount, err := currency.FromString(depositDetails.Amount, currency.ParseCurrency(depositDetails.Currency))
+	if err != nil {
+		return "", fmt.Errorf("%w %s", chimoney.ErrInternal, err)
+	}
+
 	// find chimoney balance account
 	balances, err := a.b.LinkedAccounts().ListBalances(ctx, walletID)
 	if err != nil {
@@ -591,7 +612,7 @@ type depositSignal struct {
 	Success bool
 }
 
-func CreateChimoneyDepositWorkflow(ctx workflow.Context, walletID, issueID string, amount currency.Amount) error {
+func CreateChimoneyDepositWorkflow(ctx workflow.Context, issueID string) error {
 	var a *Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 10 * time.Second,
@@ -602,8 +623,15 @@ func CreateChimoneyDepositWorkflow(ctx workflow.Context, walletID, issueID strin
 	logger := workflow.GetLogger(ctx)
 	logger.Info("Creating chimoney deposit.")
 
+	// Try get the Fynbos walletID so we know that it is for one of our wallets
+	var walletID string
+	err := workflow.ExecuteActivity(ctx, a.GetWalletIDFromIssueID, issueID).Get(ctx, &walletID)
+	if err != nil {
+		return err
+	}
+
 	var transactionID string
-	err := workflow.ExecuteActivity(ctx, a.CreateChimoneyDepositTransaction, walletID, issueID, amount).Get(ctx, &transactionID)
+	err = workflow.ExecuteActivity(ctx, a.CreateChimoneyDepositTransaction, walletID, issueID).Get(ctx, &transactionID)
 	if err != nil {
 		return err
 	}
@@ -650,6 +678,17 @@ func CreateChimoneyDepositWorkflow(ctx workflow.Context, walletID, issueID strin
 	}
 
 	return nil
+}
+
+func (a *Activity) GetWalletIDFromIssueID(ctx context.Context, issueID string) (string, error) {
+	details, err := a.external.VerifyPayment(ctx, external.VerifyPaymentReq{
+		IssueID: issueID,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return GetWalletID(ctx, a.b, details.SubAccount)
 }
 
 func (a *Activity) VerifyChimoneyPayment(ctx context.Context, walletID, issueID string) (*external.Payment, error) {
