@@ -993,6 +993,7 @@ func (c client) WalletDeposit(ctx context.Context, args DepositArgs) (string, er
 			PaymentInformation: PaymentInformation{
 				Type:              "BANK_ACCOUNT",
 				BankAccountNumber: astra.AccountNumber(),
+				BankRoutingNumber: astra.RoutingNumber(),
 			},
 			PaymentMethodType: "FIAT",
 		},
