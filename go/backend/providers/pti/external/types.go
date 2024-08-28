@@ -153,6 +153,7 @@ type (
 		Currency          string `json:"currency,omitempty"`
 		BillingEmail      string `json:"billingEmail,omitempty"`
 		BankAccountNumber string `json:"bankAccountNumber,omitempty"`
+		BankRoutingNumber string `json:"bankRoutingNumber,omitempty"`
 		WalletID          string `json:"walletId,omitempty"`
 	}
 
