@@ -33,6 +33,7 @@ type client struct {
 	usdID         string
 	zarID         string
 	eurID         string
+	cadID         string
 }
 
 func New() Client {
@@ -64,13 +65,20 @@ func New() Client {
 		assetEUR = "9c73e88a-be59-4246-b2fe-dfa8b657b4b5"
 	}
 
+	assetCAD := os.Getenv("RAFIKI_CAD_ASSET")
+	if assetCAD == "" && env.IsDev() {
+		assetCAD = "7e09ec86-dc19-445b-8483-ca4d91362605"
+	} else if assetCAD == "" && env.IsProd() {
+		assetCAD = "e254ae75-a520-42e0-8045-badf09c24ece"
+	}
+
 	authGraphql := "http://rafiki-rafiki-auth.rafiki:3003/graphql"
 	if os.Getenv("RAFIKI_AUTH_GRAPHQL_URL") != "" {
 		authGraphql = os.Getenv("RAFIKI_AUTH_GRAPHQL_URL")
 	}
 	authCl := graphql.NewClient(authGraphql, otelhttp.DefaultClient)
 
-	return &client{backendClient: cl, usdID: assetUSD, authClient: authCl, zarID: assetZAR, eurID: assetEUR}
+	return &client{backendClient: cl, usdID: assetUSD, authClient: authCl, zarID: assetZAR, eurID: assetEUR, cadID: assetCAD}
 }
 
 func (c client) GetWalletAddress(ctx context.Context, id string) (*GetWalletAddressWalletAddress, error) {
@@ -91,6 +99,8 @@ func (c client) CreatePaymentPointer(ctx context.Context, w wallets.Wallet, asse
 		assetID = c.zarID
 	case "EUR":
 		assetID = c.eurID
+	case "CAD":
+		assetID = c.cadID
 	default:
 		return "", fmt.Errorf("%w: asset code (%s) not found", rafiki.ErrInternal, assetCode)
 	}
