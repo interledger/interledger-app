@@ -79,7 +79,7 @@ func GeneratePrivateKey(ctx context.Context, b Backends, walletID string) error 
 }
 
 func ListKeys(ctx context.Context, b Backends, walletID string) ([]keys.Key, error) {
-	sql := "SELECT id, wallet_id, key_type, location, reference, name, public_key, key_id FROM wallet_keys where wallet_id = $1 AND deleted_at IS NULL;"
+	sql := "SELECT id, wallet_id, key_type, location, reference, name, public_key, key_id, created_at FROM wallet_keys where wallet_id = $1 AND deleted_at IS NULL;"
 
 	var ks []keyDB
 	err := b.DB().SelectContext(ctx, &ks, sql, walletID)
