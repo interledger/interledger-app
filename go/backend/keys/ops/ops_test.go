@@ -79,6 +79,7 @@ func TestCanAddAndSoftDeleteAPublicKey(t *testing.T) {
 	require.Equal(t, keys.NonCustodial.String(), key.Type.String())
 	require.Equal(t, "My Key", key.Name)
 	require.Equal(t, "123", key.KeyID)
+	require.NotEmpty(t, key.CreatedAt)
 
 	err = ops.DeletePublicKey(ctx, b, key.ID)
 	require.NoError(t, err)
