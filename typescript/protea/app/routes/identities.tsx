@@ -23,7 +23,6 @@ import {
   LinkedInIcon,
   Router,
   SlackIcon,
-  TwitterIcon,
   WalletGrid
 } from '~/components'
 import { getIdentities } from '~/data/identity.server'
@@ -95,68 +94,6 @@ export default function Page() {
                 </div>
               </div>
             </CardContent>
-          </Card>
-        )}
-        {linkedIdentities.twitter && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Twitter</CardTitle>
-            </CardHeader>
-            {linkedIdentities.twitter.map((identity) => (
-              <CardLink
-                key={identity.id}
-                className='mt-2 flex items-center justify-between first-of-type:mt-4'
-                to={route('/identities/:identityId', {
-                  identityId: identity.id
-                })}
-              >
-                <div className='flex space-x-3'>
-                  <TwitterIcon className='text-medium' />
-                  <span>@{identity.identifier}</span>
-                </div>
-                <div className='flex items-center space-x-3'>
-                  {identity.state == 'verified' && (
-                    <Chip color={ChipColor.green}>Verified</Chip>
-                  )}
-                  {identity.state == 'unverified' && (
-                    <Chip color={ChipColor.yellow}>Unverified</Chip>
-                  )}
-                  {identity.state == 'failed' && (
-                    <Chip color={ChipColor.red}>Failed</Chip>
-                  )}
-                  {identity.state == 'pending' && (
-                    <Chip color={ChipColor.orange}>Pending</Chip>
-                  )}
-                  <Icon>navigate_next</Icon>
-                </div>
-              </CardLink>
-            ))}
-            <CardContent>
-              <Router
-                className='rounded text-sm font-medium text-primary'
-                to={route('/connect/twitter')}
-              >
-                Connect another Twitter identity
-              </Router>
-            </CardContent>
-          </Card>
-        )}
-        {!linkedIdentities.twitter && kycStatus == KycStatus.Approved && (
-          <Card>
-            <div className='flex items-center space-x-4'>
-              <CardIcon>
-                <TwitterIcon />
-              </CardIcon>
-              <div className='flex flex-col space-y-1'>
-                <h3 className='font-medium text-medium'>Twitter</h3>
-                <Router
-                  className='text-sm font-medium text-primary'
-                  to={route('/connect/twitter')}
-                >
-                  Connect a Twitter identity
-                </Router>
-              </div>
-            </div>
           </Card>
         )}
         {linkedIdentities.discord && (
