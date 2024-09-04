@@ -867,5 +867,6 @@ var States = map[Country]map[string]string{
 		"WV": "WEST VIRGINIA",
 		"WI": "WISCONSIN",
 		"WY": "WYOMING",
+		"DC": "DISTRICT OF COLUMBIA",
 	},
 }
