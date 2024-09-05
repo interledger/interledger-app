@@ -6,8 +6,10 @@ import (
 	"os"
 
 	"github.com/Khan/genqlient/graphql"
+	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/keys"
 	"gitlab.com/fynbos/backend/rafiki"
+	"gitlab.com/fynbos/backend/slack"
 	"gitlab.com/fynbos/backend/wallets"
 	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/log"
@@ -16,7 +18,7 @@ import (
 )
 
 type Client interface {
-	CreatePaymentPointer(ctx context.Context, wallet wallets.Wallet, assetCode string) (string, error)
+	CreatePaymentPointer(ctx context.Context, wallet wallets.Wallet) (string, error)
 	GetWalletAddress(ctx context.Context, id string) (*GetWalletAddressWalletAddress, error)
 	CreatePaymentPointerKey(ctx context.Context, paymentPointerID string, key keys.Key) (string, error)
 	RevokePaymentPointerKey(ctx context.Context, keyID string) error
@@ -90,19 +92,19 @@ func (c client) GetWalletAddress(ctx context.Context, id string) (*GetWalletAddr
 	return &pp.WalletAddress, nil
 }
 
-func (c client) CreatePaymentPointer(ctx context.Context, w wallets.Wallet, assetCode string) (string, error) {
+func (c client) CreatePaymentPointer(ctx context.Context, w wallets.Wallet) (string, error) {
 	var assetID string
-	switch assetCode {
-	case "USD":
+	if w.Country == country.US {
 		assetID = c.usdID
-	case "ZAR":
+	} else if w.Country == country.ZA {
 		assetID = c.zarID
-	case "EUR":
+	} else if country.EUCountries[w.Country] {
 		assetID = c.eurID
-	case "CAD":
+	} else if w.Country == country.CA {
 		assetID = c.cadID
-	default:
-		return "", fmt.Errorf("%w: asset code (%s) not found", rafiki.ErrInternal, assetCode)
+	} else {
+		assetID = c.usdID
+		slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "Fynbot", fmt.Sprintf("Rafiki external: Asset not configured for country=%s. Defaulting to USD. walletID=%s", w.Country, w.ID))
 	}
 
 	log.Info("Creating payment pointer in rafiki", zap.String("url", w.AddressString()))

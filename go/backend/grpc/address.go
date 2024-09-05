@@ -5,8 +5,6 @@ import (
 	"errors"
 	"strings"
 
-	"gitlab.com/fynbos/backend/country"
-	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/wallets"
 	pb "gitlab.com/fynbos/proto/backend/v1"
 )
@@ -40,14 +38,7 @@ func (g *rpcService) CreateWalletAddress(ctx context.Context, req *pb.CreateWall
 		return nil, toGRPCError(err)
 	}
 
-	assetCode := currency.USD.String() // default to USD
-	if wallet.Country == country.ZA {
-		assetCode = currency.ZAR.String()
-	} else if country.EUCountries[wallet.Country] {
-		assetCode = currency.EUR.String()
-	}
-
-	err = g.b.Rafiki().CreatePaymentPointer(ctx, *wallet, assetCode)
+	err = g.b.Rafiki().CreatePaymentPointer(ctx, *wallet)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
