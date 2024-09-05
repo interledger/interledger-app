@@ -2,9 +2,10 @@ package jobs
 
 import (
 	"context"
+	"time"
+
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
-	"time"
 
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
@@ -45,7 +46,7 @@ func (a *Activity) GenerateWalletPaymentPointers(ctx context.Context) error {
 			log.Error("could not get wallet", zap.String("walletID", id), zap.Error(err))
 			continue
 		}
-		err = a.b.Rafiki().CreatePaymentPointer(ctx, *w, "USD")
+		err = a.b.Rafiki().CreatePaymentPointer(ctx, *w)
 		if err != nil {
 			log.Error("couldn't create payment point for wallet", zap.String("walletAddress", w.AddressString()), zap.String("walletID", w.ID), zap.Error(err))
 		}
