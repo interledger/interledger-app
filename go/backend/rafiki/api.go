@@ -11,7 +11,7 @@ import (
 
 type Client interface {
 	WebhookHandler() http.HandlerFunc
-	CreatePaymentPointer(ctx context.Context, address wallets.Wallet, assetCode string) error
+	CreatePaymentPointer(ctx context.Context, address wallets.Wallet) error
 	GetWalletAddress(ctx context.Context, walletID string) (*WalletAddress, error)
 	CreatePaymentPointerKey(ctx context.Context, keyID string, walletID string) error
 	RevokePaymentPointerKey(ctx context.Context, keyID string) error

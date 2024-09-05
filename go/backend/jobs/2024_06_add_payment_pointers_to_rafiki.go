@@ -5,8 +5,6 @@ import (
 	"errors"
 	"time"
 
-	"gitlab.com/fynbos/backend/country"
-	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/wallets"
 	"go.temporal.io/sdk/temporal"
@@ -53,12 +51,5 @@ func (a *Activity) AddWalletToRafiki(ctx context.Context, walletID string) error
 		return err
 	}
 
-	assetCode := currency.USD.String() // default to USD
-	if w.Country == country.ZA {
-		assetCode = currency.ZAR.String()
-	} else if country.EUCountries[w.Country] {
-		assetCode = currency.EUR.String()
-	}
-
-	return a.b.Rafiki().CreatePaymentPointer(ctx, *w, assetCode)
+	return a.b.Rafiki().CreatePaymentPointer(ctx, *w)
 }

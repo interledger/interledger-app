@@ -61,8 +61,8 @@ func (c *client) GetWalletAddress(ctx context.Context, walletID string) (*rafiki
 	return ops.GetWalletAddress(ctx, c.b, walletID)
 }
 
-func (c *client) CreatePaymentPointer(ctx context.Context, w wallets.Wallet, assetCode string) error {
-	return ops.CreatePaymentPointer(ctx, c.b, w, assetCode)
+func (c *client) CreatePaymentPointer(ctx context.Context, w wallets.Wallet) error {
+	return ops.CreatePaymentPointer(ctx, c.b, w)
 }
 
 func (c *client) WebhookHandler() http.HandlerFunc {
