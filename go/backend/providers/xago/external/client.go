@@ -572,13 +572,13 @@ func (c *client) ListDeposits(ctx context.Context, page int) ([]Deposit, error) 
 		return nil, err
 	}
 
-	var respData []Deposit
-	err = json.Unmarshal(respBody, &respData)
+	var list ListDepositsResponse
+	err = json.Unmarshal(respBody, &list)
 	if err != nil {
 		return nil, err
 	}
 
-	return respData, nil
+	return list.Deposits, nil
 }
 
 func (c *client) GetWithdrawal(ctx context.Context, id string) (*Withdrawal, error) {
