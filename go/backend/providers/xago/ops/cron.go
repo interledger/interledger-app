@@ -77,7 +77,7 @@ func XagoDepositPollWorkflow(ctx workflow.Context) error {
 }
 
 func (a *Activity) PollDeposits(ctx context.Context) ([]external.Deposit, error) {
-	var page int
+	var page int = 1
 	var deposits []external.Deposit
 	for {
 		deps, err := a.b.External().ListDeposits(ctx, page)
