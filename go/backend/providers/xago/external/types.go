@@ -143,6 +143,11 @@ type Deposit struct {
 	TransactionID          string    `json:"transactionId"`
 }
 
+type ListDepositsResponse struct {
+	Pagination Pagination `json:"meta,omitempty"`
+	Deposits   []Deposit  `json:"data,omitempty"`
+}
+
 type Withdrawal struct {
 	ID         string  `json:"id"`
 	Total      float64 `json:"total"`
