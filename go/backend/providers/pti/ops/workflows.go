@@ -12,6 +12,39 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
+func CreateUserWorkflow(ctx workflow.Context, walletID string) (*pti.User, error) {
+	var a *Activity
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Second,
+	}
+
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	logger := workflow.GetLogger(ctx)
+	logger.Info("Creating pti user.")
+
+	var externalUser pti.User
+	err := workflow.ExecuteActivity(ctx, a.GetPtiUser, walletID).Get(ctx, &externalUser)
+	if err != nil {
+		return nil, err
+	}
+
+	if externalUser.ID == "" {
+		var externalUserID string
+		err = workflow.ExecuteActivity(ctx, a.CreatePtiUser, walletID).Get(ctx, &externalUserID)
+		if err != nil {
+			return nil, err
+		}
+
+		err = workflow.ExecuteActivity(ctx, a.SavePtiUser, externalUserID, walletID).Get(ctx, &externalUser)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &externalUser, nil
+}
+
 func CreateWalletWorkflow(ctx workflow.Context, args pti.CreateWalletArgs) (*linkedaccounts.LinkedAccount, error) {
 	if args.Currency != currency.USD {
 		return nil, fmt.Errorf("%w Only supports USD wallets", pti.ErrInternal)
