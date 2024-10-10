@@ -51,3 +51,29 @@ func (s *rpcService) GetPtiBalances(ctx context.Context, req *backend.Empty) (*b
 		Balances: resp,
 	}, nil
 }
+
+func (s *rpcService) CreatePtiToken(ctx context.Context, req *backend.PtiTokenRequest) (*backend.PtiTokenResponse, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil && !errors.Is(err, user.ErrNoUserFound) {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	_, err = s.b.Wallets().ForContext(ctx)
+	if err != nil && !errors.Is(err, user.ErrNoUserFound) {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	token, err := s.b.PTI().CreateJWT(ctx, pti.TokenArgs{
+		URL:    req.GetUrl(),
+		Method: req.GetMethod(),
+	})
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &backend.PtiTokenResponse{
+		AccessToken: token.AccessToken,
+		ExpiresAt:   token.ExpiresAt,
+		TokenType:   token.TokenType,
+	}, nil
+}

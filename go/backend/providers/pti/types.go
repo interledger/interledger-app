@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"gitlab.com/fynbos/backend/currency"
+	"gitlab.com/fynbos/backend/providers/pti/external"
 )
 
 const (
@@ -82,3 +83,6 @@ type Balance struct {
 	Total     currency.Amount
 	Available currency.Amount
 }
+
+type TokenArgs = external.TokenArgs
+type TokenResponse = external.TokenResponse

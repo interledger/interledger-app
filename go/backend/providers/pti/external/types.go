@@ -75,6 +75,17 @@ type (
 		Destination               User                   `json:"destination,omitempty"`
 		DisableWebhook            bool                   `json:"-"`
 	}
+
+	TokenArgs struct {
+		URL    string `json:"url"`
+		Method string `json:"method"`
+	}
+
+	TokenResponse struct {
+		AccessToken string `json:"accessToken"`
+		ExpiresAt   string `json:"expiresAt"`
+		TokenType   string `json:"tokenType"`
+	}
 )
 
 type (

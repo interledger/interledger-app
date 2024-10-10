@@ -32,6 +32,36 @@ export interface PaginationRequest {
 export interface Empty {
 }
 /**
+ * @generated from protobuf message backend.v1.PtiTokenRequest
+ */
+export interface PtiTokenRequest {
+    /**
+     * @generated from protobuf field: string url = 1;
+     */
+    url: string;
+    /**
+     * @generated from protobuf field: string method = 2;
+     */
+    method: string;
+}
+/**
+ * @generated from protobuf message backend.v1.PtiTokenResponse
+ */
+export interface PtiTokenResponse {
+    /**
+     * @generated from protobuf field: string accessToken = 1;
+     */
+    accessToken: string;
+    /**
+     * @generated from protobuf field: string expiresAt = 2;
+     */
+    expiresAt: string;
+    /**
+     * @generated from protobuf field: string tokenType = 3;
+     */
+    tokenType: string;
+}
+/**
  * @generated from protobuf message backend.v1.CreateChimoneyDepositRequest
  */
 export interface CreateChimoneyDepositRequest {
@@ -2529,6 +2559,121 @@ class Empty$Type extends MessageType<Empty> {
  * @generated MessageType for protobuf message backend.v1.Empty
  */
 export const Empty = new Empty$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class PtiTokenRequest$Type extends MessageType<PtiTokenRequest> {
+    constructor() {
+        super("backend.v1.PtiTokenRequest", [
+            { no: 1, name: "url", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "method", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<PtiTokenRequest>): PtiTokenRequest {
+        const message = { url: "", method: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<PtiTokenRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: PtiTokenRequest): PtiTokenRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string url */ 1:
+                    message.url = reader.string();
+                    break;
+                case /* string method */ 2:
+                    message.method = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: PtiTokenRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string url = 1; */
+        if (message.url !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.url);
+        /* string method = 2; */
+        if (message.method !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.method);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.PtiTokenRequest
+ */
+export const PtiTokenRequest = new PtiTokenRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class PtiTokenResponse$Type extends MessageType<PtiTokenResponse> {
+    constructor() {
+        super("backend.v1.PtiTokenResponse", [
+            { no: 1, name: "accessToken", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "expiresAt", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "tokenType", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<PtiTokenResponse>): PtiTokenResponse {
+        const message = { accessToken: "", expiresAt: "", tokenType: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<PtiTokenResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: PtiTokenResponse): PtiTokenResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string accessToken */ 1:
+                    message.accessToken = reader.string();
+                    break;
+                case /* string expiresAt */ 2:
+                    message.expiresAt = reader.string();
+                    break;
+                case /* string tokenType */ 3:
+                    message.tokenType = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: PtiTokenResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string accessToken = 1; */
+        if (message.accessToken !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.accessToken);
+        /* string expiresAt = 2; */
+        if (message.expiresAt !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.expiresAt);
+        /* string tokenType = 3; */
+        if (message.tokenType !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.tokenType);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.PtiTokenResponse
+ */
+export const PtiTokenResponse = new PtiTokenResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class CreateChimoneyDepositRequest$Type extends MessageType<CreateChimoneyDepositRequest> {
     constructor() {
@@ -11379,6 +11524,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "GetXagoBalances", options: {}, I: Empty, O: GetXagoBalanceResponse },
     { name: "GetXagoDepositDetails", options: {}, I: GetXagoDepositDetailsRequest, O: GetXagoDepositDetailsResponse },
     { name: "GetPtiBalances", options: {}, I: Empty, O: GetPtiBalancesResponse },
+    { name: "CreatePtiToken", options: {}, I: PtiTokenRequest, O: PtiTokenResponse },
     { name: "AstraDepositFromCard", options: {}, I: AstraDepositFromCardRequest, O: Payment },
     { name: "AstraWithdrawToCard", options: {}, I: AstraWithdrawToCardRequest, O: Payment },
     { name: "AstraRequiresOTP", options: {}, I: Empty, O: AstraRequiresOTPResponse },
