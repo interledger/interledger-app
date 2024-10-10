@@ -124,3 +124,7 @@ func (c Client) ReserveTransfer(ctx context.Context, fromAccount, toAccount, txI
 func (c Client) CreateJWT(ctx context.Context, args pti.TokenArgs) (*pti.TokenResponse, error) {
 	return c.external.CreateJWT(ctx, args)
 }
+
+func (c Client) GetKYCWidget(ctx context.Context, walletID string) (*pti.KYCWidgetDetails, error) {
+	return ops.GetKYCWidget(ctx, c.b, walletID)
+}
