@@ -162,6 +162,35 @@ export interface KYCProviderWidget {
      * @generated from protobuf field: string chimoneyWidget = 4;
      */
     chimoneyWidget: string;
+    /**
+     * @generated from protobuf field: backend.v1.PtiWidget ptiWidget = 5;
+     */
+    ptiWidget?: PtiWidget;
+}
+/**
+ * @generated from protobuf message backend.v1.PtiWidget
+ */
+export interface PtiWidget {
+    /**
+     * @generated from protobuf field: string scenarioId = 1;
+     */
+    scenarioId: string;
+    /**
+     * @generated from protobuf field: string userId = 2;
+     */
+    userId: string;
+    /**
+     * @generated from protobuf field: string requestId = 3;
+     */
+    requestId: string;
+    /**
+     * @generated from protobuf field: string clientId = 4;
+     */
+    clientId: string;
+    /**
+     * @generated from protobuf field: string generateTokenPath = 5;
+     */
+    generateTokenPath: string;
 }
 /**
  * @generated from protobuf message backend.v1.GatehubWidget
@@ -3104,7 +3133,8 @@ class KYCProviderWidget$Type extends MessageType<KYCProviderWidget> {
             { no: 1, name: "provider", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "gatehubWidget", kind: "message", T: () => GatehubWidget },
             { no: 3, name: "personaInquiry", kind: "message", T: () => KYCPersonaInquiryResponse },
-            { no: 4, name: "chimoneyWidget", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 4, name: "chimoneyWidget", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "ptiWidget", kind: "message", T: () => PtiWidget }
         ]);
     }
     create(value?: PartialMessage<KYCProviderWidget>): KYCProviderWidget {
@@ -3131,6 +3161,9 @@ class KYCProviderWidget$Type extends MessageType<KYCProviderWidget> {
                 case /* string chimoneyWidget */ 4:
                     message.chimoneyWidget = reader.string();
                     break;
+                case /* backend.v1.PtiWidget ptiWidget */ 5:
+                    message.ptiWidget = PtiWidget.internalBinaryRead(reader, reader.uint32(), options, message.ptiWidget);
+                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -3155,6 +3188,9 @@ class KYCProviderWidget$Type extends MessageType<KYCProviderWidget> {
         /* string chimoneyWidget = 4; */
         if (message.chimoneyWidget !== "")
             writer.tag(4, WireType.LengthDelimited).string(message.chimoneyWidget);
+        /* backend.v1.PtiWidget ptiWidget = 5; */
+        if (message.ptiWidget)
+            PtiWidget.internalBinaryWrite(message.ptiWidget, writer.tag(5, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -3165,6 +3201,81 @@ class KYCProviderWidget$Type extends MessageType<KYCProviderWidget> {
  * @generated MessageType for protobuf message backend.v1.KYCProviderWidget
  */
 export const KYCProviderWidget = new KYCProviderWidget$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class PtiWidget$Type extends MessageType<PtiWidget> {
+    constructor() {
+        super("backend.v1.PtiWidget", [
+            { no: 1, name: "scenarioId", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "userId", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "requestId", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "clientId", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "generateTokenPath", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<PtiWidget>): PtiWidget {
+        const message = { scenarioId: "", userId: "", requestId: "", clientId: "", generateTokenPath: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<PtiWidget>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: PtiWidget): PtiWidget {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string scenarioId */ 1:
+                    message.scenarioId = reader.string();
+                    break;
+                case /* string userId */ 2:
+                    message.userId = reader.string();
+                    break;
+                case /* string requestId */ 3:
+                    message.requestId = reader.string();
+                    break;
+                case /* string clientId */ 4:
+                    message.clientId = reader.string();
+                    break;
+                case /* string generateTokenPath */ 5:
+                    message.generateTokenPath = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: PtiWidget, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string scenarioId = 1; */
+        if (message.scenarioId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.scenarioId);
+        /* string userId = 2; */
+        if (message.userId !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.userId);
+        /* string requestId = 3; */
+        if (message.requestId !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.requestId);
+        /* string clientId = 4; */
+        if (message.clientId !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.clientId);
+        /* string generateTokenPath = 5; */
+        if (message.generateTokenPath !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.generateTokenPath);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.PtiWidget
+ */
+export const PtiWidget = new PtiWidget$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class GatehubWidget$Type extends MessageType<GatehubWidget> {
     constructor() {
