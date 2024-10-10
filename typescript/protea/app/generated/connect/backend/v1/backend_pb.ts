@@ -529,6 +529,11 @@ export class KYCProviderWidget extends Message<KYCProviderWidget> {
    */
   chimoneyWidget = "";
 
+  /**
+   * @generated from field: backend.v1.PtiWidget ptiWidget = 5;
+   */
+  ptiWidget?: PtiWidget;
+
   constructor(data?: PartialMessage<KYCProviderWidget>) {
     super();
     proto3.util.initPartial(data, this);
@@ -541,6 +546,7 @@ export class KYCProviderWidget extends Message<KYCProviderWidget> {
     { no: 2, name: "gatehubWidget", kind: "message", T: GatehubWidget },
     { no: 3, name: "personaInquiry", kind: "message", T: KYCPersonaInquiryResponse },
     { no: 4, name: "chimoneyWidget", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "ptiWidget", kind: "message", T: PtiWidget },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): KYCProviderWidget {
@@ -557,6 +563,67 @@ export class KYCProviderWidget extends Message<KYCProviderWidget> {
 
   static equals(a: KYCProviderWidget | PlainMessage<KYCProviderWidget> | undefined, b: KYCProviderWidget | PlainMessage<KYCProviderWidget> | undefined): boolean {
     return proto3.util.equals(KYCProviderWidget, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.PtiWidget
+ */
+export class PtiWidget extends Message<PtiWidget> {
+  /**
+   * @generated from field: string scenarioId = 1;
+   */
+  scenarioId = "";
+
+  /**
+   * @generated from field: string userId = 2;
+   */
+  userId = "";
+
+  /**
+   * @generated from field: string requestId = 3;
+   */
+  requestId = "";
+
+  /**
+   * @generated from field: string clientId = 4;
+   */
+  clientId = "";
+
+  /**
+   * @generated from field: string generateTokenPath = 5;
+   */
+  generateTokenPath = "";
+
+  constructor(data?: PartialMessage<PtiWidget>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.PtiWidget";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "scenarioId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "userId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "requestId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "clientId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "generateTokenPath", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PtiWidget {
+    return new PtiWidget().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PtiWidget {
+    return new PtiWidget().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PtiWidget {
+    return new PtiWidget().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PtiWidget | PlainMessage<PtiWidget> | undefined, b: PtiWidget | PlainMessage<PtiWidget> | undefined): boolean {
+    return proto3.util.equals(PtiWidget, a, b);
   }
 }
 

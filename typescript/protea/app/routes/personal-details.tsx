@@ -28,7 +28,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
     provider: response.provider,
     gatehubWidget: response.gatehubWidget,
     personaWidget: response.personaInquiry,
-    chimoneyWidget: response.chimoneyWidget
+    chimoneyWidget: response.chimoneyWidget,
+    ptiWidget: response.ptiWidget
   })
 }
 
@@ -154,6 +155,33 @@ function GatehubPage() {
   )
 }
 
+function PtiPage() {
+  const { ptiWidget } = useLoaderData<typeof loader>()
+  const scriptStatus = useScript('https://sdk.fiant.io/0.0.21/index.js')
+
+  useEffect(() => {
+    if (scriptStatus == 'ready' && typeof (window as any).PTI !== 'undefined') {
+      ;(window as any).PTI.init({
+        clientId: ptiWidget.clientId,
+        generateTokenPath: ptiWidget.generateTokenPath
+      })(window as any).PTI.form({
+        type: 'KYC',
+        requestId: ptiWidget.requestId,
+        userId: ptiWidget.userId,
+        scenarioId: ptiWidget.scenarioId,
+        parentElement: document.getElementById('kyc_form'),
+        lang: 'en'
+      })
+    }
+  }, [scriptStatus, ptiWidget])
+
+  return (
+    <>
+      <div id='kyc_form' />
+    </>
+  )
+}
+
 type KycIntroProps = {
   onClick: () => void
   ready: Boolean
@@ -204,6 +232,8 @@ export default function Page() {
     return <PersonaPage />
   } else if (provider == 'chimoney') {
     return <ChimoneyPage />
+  } else if (provider == 'pti') {
+    return <PtiPage />
   } else return <GatehubPage />
 }
 
