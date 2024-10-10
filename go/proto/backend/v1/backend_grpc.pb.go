@@ -105,6 +105,7 @@ const (
 	BackendService_GetXagoBalances_FullMethodName                = "/backend.v1.BackendService/GetXagoBalances"
 	BackendService_GetXagoDepositDetails_FullMethodName          = "/backend.v1.BackendService/GetXagoDepositDetails"
 	BackendService_GetPtiBalances_FullMethodName                 = "/backend.v1.BackendService/GetPtiBalances"
+	BackendService_CreatePtiToken_FullMethodName                 = "/backend.v1.BackendService/CreatePtiToken"
 	BackendService_AstraDepositFromCard_FullMethodName           = "/backend.v1.BackendService/AstraDepositFromCard"
 	BackendService_AstraWithdrawToCard_FullMethodName            = "/backend.v1.BackendService/AstraWithdrawToCard"
 	BackendService_AstraRequiresOTP_FullMethodName               = "/backend.v1.BackendService/AstraRequiresOTP"
@@ -238,6 +239,7 @@ type BackendServiceClient interface {
 	GetXagoDepositDetails(ctx context.Context, in *GetXagoDepositDetailsRequest, opts ...grpc.CallOption) (*GetXagoDepositDetailsResponse, error)
 	// Pti
 	GetPtiBalances(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetPtiBalancesResponse, error)
+	CreatePtiToken(ctx context.Context, in *PtiTokenRequest, opts ...grpc.CallOption) (*PtiTokenResponse, error)
 	// Astra
 	AstraDepositFromCard(ctx context.Context, in *AstraDepositFromCardRequest, opts ...grpc.CallOption) (*Payment, error)
 	AstraWithdrawToCard(ctx context.Context, in *AstraWithdrawToCardRequest, opts ...grpc.CallOption) (*Payment, error)
@@ -1042,6 +1044,15 @@ func (c *backendServiceClient) GetPtiBalances(ctx context.Context, in *Empty, op
 	return out, nil
 }
 
+func (c *backendServiceClient) CreatePtiToken(ctx context.Context, in *PtiTokenRequest, opts ...grpc.CallOption) (*PtiTokenResponse, error) {
+	out := new(PtiTokenResponse)
+	err := c.cc.Invoke(ctx, BackendService_CreatePtiToken_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *backendServiceClient) AstraDepositFromCard(ctx context.Context, in *AstraDepositFromCardRequest, opts ...grpc.CallOption) (*Payment, error) {
 	out := new(Payment)
 	err := c.cc.Invoke(ctx, BackendService_AstraDepositFromCard_FullMethodName, in, out, opts...)
@@ -1301,6 +1312,7 @@ type BackendServiceServer interface {
 	GetXagoDepositDetails(context.Context, *GetXagoDepositDetailsRequest) (*GetXagoDepositDetailsResponse, error)
 	// Pti
 	GetPtiBalances(context.Context, *Empty) (*GetPtiBalancesResponse, error)
+	CreatePtiToken(context.Context, *PtiTokenRequest) (*PtiTokenResponse, error)
 	// Astra
 	AstraDepositFromCard(context.Context, *AstraDepositFromCardRequest) (*Payment, error)
 	AstraWithdrawToCard(context.Context, *AstraWithdrawToCardRequest) (*Payment, error)
@@ -1584,6 +1596,9 @@ func (UnimplementedBackendServiceServer) GetXagoDepositDetails(context.Context, 
 }
 func (UnimplementedBackendServiceServer) GetPtiBalances(context.Context, *Empty) (*GetPtiBalancesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPtiBalances not implemented")
+}
+func (UnimplementedBackendServiceServer) CreatePtiToken(context.Context, *PtiTokenRequest) (*PtiTokenResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreatePtiToken not implemented")
 }
 func (UnimplementedBackendServiceServer) AstraDepositFromCard(context.Context, *AstraDepositFromCardRequest) (*Payment, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AstraDepositFromCard not implemented")
@@ -3193,6 +3208,24 @@ func _BackendService_GetPtiBalances_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_CreatePtiToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PtiTokenRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).CreatePtiToken(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_CreatePtiToken_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).CreatePtiToken(ctx, req.(*PtiTokenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _BackendService_AstraDepositFromCard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AstraDepositFromCardRequest)
 	if err := dec(in); err != nil {
@@ -3831,6 +3864,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetPtiBalances",
 			Handler:    _BackendService_GetPtiBalances_Handler,
+		},
+		{
+			MethodName: "CreatePtiToken",
+			Handler:    _BackendService_CreatePtiToken_Handler,
 		},
 		{
 			MethodName: "AstraDepositFromCard",

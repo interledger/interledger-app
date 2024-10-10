@@ -150,6 +150,7 @@ service BackendService {
 
   // Pti
   rpc GetPtiBalances(Empty) returns (GetPtiBalancesResponse);
+  rpc CreatePtiToken(PtiTokenRequest) returns (PtiTokenResponse);
 
   // Astra
   rpc AstraDepositFromCard(AstraDepositFromCardRequest) returns (Payment);
@@ -174,6 +175,17 @@ service BackendService {
   rpc CreateChimoneyWallet(Empty) returns (Empty);
   rpc GetChimoneyDepositLink(Amount) returns (GetChimoneyDepositLinkResponse);
   rpc CreateChimoneyDeposit(CreateChimoneyDepositRequest) returns (Empty);
+}
+
+message PtiTokenRequest{
+  string url = 1;
+  string method = 2;
+}
+
+message PtiTokenResponse {
+  string accessToken = 1;
+  string expiresAt = 2;
+  string tokenType = 3;
 }
 
 message CreateChimoneyDepositRequest {

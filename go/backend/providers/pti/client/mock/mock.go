@@ -52,6 +52,21 @@ func (mr *MockClientMockRecorder) AssignBalance(ctx, linkedAccountID, txID, amt 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AssignBalance", reflect.TypeOf((*MockClient)(nil).AssignBalance), ctx, linkedAccountID, txID, amt)
 }
 
+// CreateJWT mocks base method.
+func (m *MockClient) CreateJWT(ctx context.Context, args pti.TokenArgs) (*pti.TokenResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateJWT", ctx, args)
+	ret0, _ := ret[0].(*pti.TokenResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateJWT indicates an expected call of CreateJWT.
+func (mr *MockClientMockRecorder) CreateJWT(ctx, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateJWT", reflect.TypeOf((*MockClient)(nil).CreateJWT), ctx, args)
+}
+
 // CreateWallet mocks base method.
 func (m *MockClient) CreateWallet(ctx context.Context, walletID string, currency currency.Currency) (pti.Await, error) {
 	m.ctrl.T.Helper()

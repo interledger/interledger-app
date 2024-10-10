@@ -19,4 +19,5 @@ type Client interface {
 	GetTransactionAssessment(ctx context.Context, requestID string) (*TransactionAssessment, error)
 	CreateTransfer(ctx context.Context, args TransferArgs) (*IDResponse, error)
 	GetTransaction(ctx context.Context, requestID string) (*TransactionStatus, error)
+	CreateJWT(ctx context.Context, args TokenArgs) (*TokenResponse, error)
 }

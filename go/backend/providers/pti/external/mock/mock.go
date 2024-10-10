@@ -35,6 +35,21 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
 }
 
+// CreateJWT mocks base method.
+func (m *MockClient) CreateJWT(ctx context.Context, args external.TokenArgs) (*external.TokenResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateJWT", ctx, args)
+	ret0, _ := ret[0].(*external.TokenResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateJWT indicates an expected call of CreateJWT.
+func (mr *MockClientMockRecorder) CreateJWT(ctx, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateJWT", reflect.TypeOf((*MockClient)(nil).CreateJWT), ctx, args)
+}
+
 // CreateTransfer mocks base method.
 func (m *MockClient) CreateTransfer(ctx context.Context, args external.TransferArgs) (*external.IDResponse, error) {
 	m.ctrl.T.Helper()

@@ -81,6 +81,98 @@ export class Empty extends Message<Empty> {
 }
 
 /**
+ * @generated from message backend.v1.PtiTokenRequest
+ */
+export class PtiTokenRequest extends Message<PtiTokenRequest> {
+  /**
+   * @generated from field: string url = 1;
+   */
+  url = "";
+
+  /**
+   * @generated from field: string method = 2;
+   */
+  method = "";
+
+  constructor(data?: PartialMessage<PtiTokenRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.PtiTokenRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "method", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PtiTokenRequest {
+    return new PtiTokenRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PtiTokenRequest {
+    return new PtiTokenRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PtiTokenRequest {
+    return new PtiTokenRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PtiTokenRequest | PlainMessage<PtiTokenRequest> | undefined, b: PtiTokenRequest | PlainMessage<PtiTokenRequest> | undefined): boolean {
+    return proto3.util.equals(PtiTokenRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.PtiTokenResponse
+ */
+export class PtiTokenResponse extends Message<PtiTokenResponse> {
+  /**
+   * @generated from field: string accessToken = 1;
+   */
+  accessToken = "";
+
+  /**
+   * @generated from field: string expiresAt = 2;
+   */
+  expiresAt = "";
+
+  /**
+   * @generated from field: string tokenType = 3;
+   */
+  tokenType = "";
+
+  constructor(data?: PartialMessage<PtiTokenResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.PtiTokenResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "accessToken", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "expiresAt", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "tokenType", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PtiTokenResponse {
+    return new PtiTokenResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PtiTokenResponse {
+    return new PtiTokenResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PtiTokenResponse {
+    return new PtiTokenResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PtiTokenResponse | PlainMessage<PtiTokenResponse> | undefined, b: PtiTokenResponse | PlainMessage<PtiTokenResponse> | undefined): boolean {
+    return proto3.util.equals(PtiTokenResponse, a, b);
+  }
+}
+
+/**
  * @generated from message backend.v1.CreateChimoneyDepositRequest
  */
 export class CreateChimoneyDepositRequest extends Message<CreateChimoneyDepositRequest> {
