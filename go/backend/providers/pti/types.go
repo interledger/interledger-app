@@ -86,3 +86,11 @@ type Balance struct {
 
 type TokenArgs = external.TokenArgs
 type TokenResponse = external.TokenResponse
+
+type KYCWidgetDetails = struct {
+	ScenarioID        string
+	RequestID         string
+	UserID            string
+	GenerateTokenPath string
+	ClientID          string
+}

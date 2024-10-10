@@ -23,4 +23,5 @@ type Client interface {
 	ReserveTransfer(ctx context.Context, fromAccount, toAccount, txID string, amt currency.Amount, timeout time.Duration) error
 
 	CreateJWT(ctx context.Context, args TokenArgs) (*TokenResponse, error)
+	GetKYCWidget(ctx context.Context, walletID string) (*KYCWidgetDetails, error)
 }
