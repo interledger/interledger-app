@@ -120,3 +120,7 @@ func (c Client) RollbackReserve(ctx context.Context, trxID string) error {
 func (c Client) ReserveTransfer(ctx context.Context, fromAccount, toAccount, txID string, amt currency.Amount, timeout time.Duration) error {
 	return ops.ReserveTransfer(ctx, c.b, fromAccount, toAccount, txID, amt, timeout)
 }
+
+func (c Client) CreateJWT(ctx context.Context, args pti.TokenArgs) (*pti.TokenResponse, error) {
+	return c.external.CreateJWT(ctx, args)
+}
