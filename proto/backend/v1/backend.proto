@@ -231,6 +231,15 @@ message KYCProviderWidget {
   GatehubWidget gatehubWidget = 2;
   KYCPersonaInquiryResponse personaInquiry = 3;
   string chimoneyWidget = 4;
+  PtiWidget ptiWidget = 5;
+}
+
+message PtiWidget {
+  string scenarioId = 1;
+  string userId = 2;
+  string requestId = 3;
+  string clientId = 4;
+  string generateTokenPath = 5;
 }
 
 message GatehubWidget {
