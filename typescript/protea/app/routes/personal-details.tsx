@@ -162,13 +162,13 @@ function PtiPage() {
   useEffect(() => {
     if (scriptStatus == 'ready' && typeof (window as any).PTI !== 'undefined') {
       ;(window as any).PTI.init({
-        clientId: ptiWidget.clientId,
-        generateTokenPath: ptiWidget.generateTokenPath
+        clientId: ptiWidget?.clientId,
+        generateTokenPath: ptiWidget?.generateTokenPath
       })(window as any).PTI.form({
         type: 'KYC',
-        requestId: ptiWidget.requestId,
-        userId: ptiWidget.userId,
-        scenarioId: ptiWidget.scenarioId,
+        requestId: ptiWidget?.requestId,
+        userId: ptiWidget?.userId,
+        scenarioId: ptiWidget?.scenarioId,
         parentElement: document.getElementById('kyc_form'),
         lang: 'en'
       })

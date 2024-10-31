@@ -8,6 +8,7 @@ declare module "routes-gen" {
     "/api/fern": Record<string, never>;
     "/api/maps/geocode": Record<string, never>;
     "/api/maps/placesAutocomplete": Record<string, never>;
+    "/api/pti/token": Record<string, never>;
     "/api/sendOtp": Record<string, never>;
     "/blog": Record<string, never>;
     "/blog/:slug": { "slug": string };
@@ -78,6 +79,7 @@ declare module "routes-gen" {
       | ["/api/fern"]
       | ["/api/maps/geocode"]
       | ["/api/maps/placesAutocomplete"]
+      | ["/api/pti/token"]
       | ["/api/sendOtp"]
       | ["/blog"]
       | ["/blog/:slug", RouteParams["/blog/:slug"]]
