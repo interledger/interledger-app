@@ -157,7 +157,9 @@ function GatehubPage() {
 
 function PtiPage() {
   const { ptiWidget } = useLoaderData<typeof loader>()
-  const scriptStatus = useScript('https://sdk.fiant.io/0.0.21/index.js')
+  const scriptStatus = useScript(
+    'https://sdk.platform.fiant.io/0.0.21/index.js'
+  )
 
   useEffect(() => {
     if (scriptStatus == 'ready' && typeof (window as any).PTI !== 'undefined') {
