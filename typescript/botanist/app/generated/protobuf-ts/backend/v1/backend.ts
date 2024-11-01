@@ -53,9 +53,9 @@ export interface PtiTokenResponse {
      */
     accessToken: string;
     /**
-     * @generated from protobuf field: string expiresAt = 2;
+     * @generated from protobuf field: double expiresAt = 2;
      */
-    expiresAt: string;
+    expiresAt: number;
     /**
      * @generated from protobuf field: string tokenType = 3;
      */
@@ -2647,12 +2647,12 @@ class PtiTokenResponse$Type extends MessageType<PtiTokenResponse> {
     constructor() {
         super("backend.v1.PtiTokenResponse", [
             { no: 1, name: "accessToken", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "expiresAt", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "expiresAt", kind: "scalar", T: 1 /*ScalarType.DOUBLE*/ },
             { no: 3, name: "tokenType", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<PtiTokenResponse>): PtiTokenResponse {
-        const message = { accessToken: "", expiresAt: "", tokenType: "" };
+        const message = { accessToken: "", expiresAt: 0, tokenType: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<PtiTokenResponse>(this, message, value);
@@ -2666,8 +2666,8 @@ class PtiTokenResponse$Type extends MessageType<PtiTokenResponse> {
                 case /* string accessToken */ 1:
                     message.accessToken = reader.string();
                     break;
-                case /* string expiresAt */ 2:
-                    message.expiresAt = reader.string();
+                case /* double expiresAt */ 2:
+                    message.expiresAt = reader.double();
                     break;
                 case /* string tokenType */ 3:
                     message.tokenType = reader.string();
@@ -2687,9 +2687,9 @@ class PtiTokenResponse$Type extends MessageType<PtiTokenResponse> {
         /* string accessToken = 1; */
         if (message.accessToken !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.accessToken);
-        /* string expiresAt = 2; */
-        if (message.expiresAt !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.expiresAt);
+        /* double expiresAt = 2; */
+        if (message.expiresAt !== 0)
+            writer.tag(2, WireType.Bit64).double(message.expiresAt);
         /* string tokenType = 3; */
         if (message.tokenType !== "")
             writer.tag(3, WireType.LengthDelimited).string(message.tokenType);
