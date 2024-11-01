@@ -73,7 +73,7 @@ func (s *rpcService) CreatePtiToken(ctx context.Context, req *backend.PtiTokenRe
 
 	return &backend.PtiTokenResponse{
 		AccessToken: token.AccessToken,
-		ExpiresAt:   token.ExpiresAt,
+		ExpiresAt:   int32(token.ExpiresAt),
 		TokenType:   token.TokenType,
 	}, nil
 }

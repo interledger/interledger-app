@@ -133,9 +133,9 @@ export class PtiTokenResponse extends Message<PtiTokenResponse> {
   accessToken = "";
 
   /**
-   * @generated from field: string expiresAt = 2;
+   * @generated from field: int32 expiresAt = 2;
    */
-  expiresAt = "";
+  expiresAt = 0;
 
   /**
    * @generated from field: string tokenType = 3;
@@ -151,7 +151,7 @@ export class PtiTokenResponse extends Message<PtiTokenResponse> {
   static readonly typeName = "backend.v1.PtiTokenResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "accessToken", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "expiresAt", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "expiresAt", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
     { no: 3, name: "tokenType", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 

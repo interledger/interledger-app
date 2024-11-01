@@ -185,7 +185,7 @@ message PtiTokenRequest{
 
 message PtiTokenResponse {
   string accessToken = 1;
-  string expiresAt = 2;
+  int32 expiresAt = 2;
   string tokenType = 3;
 }
 
