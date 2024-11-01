@@ -82,9 +82,9 @@ type (
 	}
 
 	TokenResponse struct {
-		AccessToken string `json:"accessToken"`
-		ExpiresAt   string `json:"expiresAt"`
-		TokenType   string `json:"tokenType"`
+		AccessToken string  `json:"accessToken"`
+		ExpiresAt   float64 `json:"expiresAt"`
+		TokenType   string  `json:"tokenType"`
 	}
 )
 
