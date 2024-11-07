@@ -79,6 +79,8 @@ func (s *rpcService) GetKYCProviderWidget(ctx context.Context, req *pb.GetKYCPro
 				RequestId:         widget.RequestID,
 				ClientId:          widget.ClientID,
 				GenerateTokenPath: widget.GenerateTokenPath,
+				SdkUrl:            widget.SdkUrl,
+				FormsUrl:          widget.FormsUrl,
 			},
 		}, nil
 	}

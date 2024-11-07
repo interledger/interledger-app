@@ -191,6 +191,14 @@ export interface PtiWidget {
      * @generated from protobuf field: string generateTokenPath = 5;
      */
     generateTokenPath: string;
+    /**
+     * @generated from protobuf field: string sdkUrl = 6;
+     */
+    sdkUrl: string;
+    /**
+     * @generated from protobuf field: string formsUrl = 7;
+     */
+    formsUrl: string;
 }
 /**
  * @generated from protobuf message backend.v1.GatehubWidget
@@ -3230,11 +3238,13 @@ class PtiWidget$Type extends MessageType<PtiWidget> {
             { no: 2, name: "userId", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "requestId", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 4, name: "clientId", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 5, name: "generateTokenPath", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 5, name: "generateTokenPath", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "sdkUrl", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 7, name: "formsUrl", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<PtiWidget>): PtiWidget {
-        const message = { scenarioId: "", userId: "", requestId: "", clientId: "", generateTokenPath: "" };
+        const message = { scenarioId: "", userId: "", requestId: "", clientId: "", generateTokenPath: "", sdkUrl: "", formsUrl: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<PtiWidget>(this, message, value);
@@ -3259,6 +3269,12 @@ class PtiWidget$Type extends MessageType<PtiWidget> {
                     break;
                 case /* string generateTokenPath */ 5:
                     message.generateTokenPath = reader.string();
+                    break;
+                case /* string sdkUrl */ 6:
+                    message.sdkUrl = reader.string();
+                    break;
+                case /* string formsUrl */ 7:
+                    message.formsUrl = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -3287,6 +3303,12 @@ class PtiWidget$Type extends MessageType<PtiWidget> {
         /* string generateTokenPath = 5; */
         if (message.generateTokenPath !== "")
             writer.tag(5, WireType.LengthDelimited).string(message.generateTokenPath);
+        /* string sdkUrl = 6; */
+        if (message.sdkUrl !== "")
+            writer.tag(6, WireType.LengthDelimited).string(message.sdkUrl);
+        /* string formsUrl = 7; */
+        if (message.formsUrl !== "")
+            writer.tag(7, WireType.LengthDelimited).string(message.formsUrl);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
