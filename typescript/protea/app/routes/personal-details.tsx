@@ -158,7 +158,7 @@ function GatehubPage() {
 function PtiPage() {
   const { ptiWidget } = useLoaderData<typeof loader>()
   const scriptStatus = useScript(
-    'https://sdk.platform.fiant.io/0.0.23/index.js'
+    'https://sdk.staging.fiant.io/0.0.23/index.js'
   )
 
   useEffect(() => {
