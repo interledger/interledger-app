@@ -180,7 +180,7 @@ function PtiPage() {
 
   return (
     <>
-      <div id='kyc_form' />
+      <div id='kyc_form' className='h-[750px]' />
     </>
   )
 }
