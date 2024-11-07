@@ -165,7 +165,8 @@ function PtiPage() {
     if (scriptStatus == 'ready' && typeof (window as any).PTI !== 'undefined') {
       ;(window as any).PTI.init({
         clientId: ptiWidget?.clientId,
-        generateTokenPath: ptiWidget?.generateTokenPath
+        generateTokenPath: ptiWidget?.generateTokenPath,
+        ptiFormsUrl: "https://forms.platform.fiant.io"
       })
       ;(window as any).PTI.form({
         type: 'KYC',
