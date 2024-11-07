@@ -595,6 +595,16 @@ export class PtiWidget extends Message<PtiWidget> {
    */
   generateTokenPath = "";
 
+  /**
+   * @generated from field: string sdkUrl = 6;
+   */
+  sdkUrl = "";
+
+  /**
+   * @generated from field: string formsUrl = 7;
+   */
+  formsUrl = "";
+
   constructor(data?: PartialMessage<PtiWidget>) {
     super();
     proto3.util.initPartial(data, this);
@@ -608,6 +618,8 @@ export class PtiWidget extends Message<PtiWidget> {
     { no: 3, name: "requestId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "clientId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 5, name: "generateTokenPath", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "sdkUrl", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 7, name: "formsUrl", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PtiWidget {
