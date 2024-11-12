@@ -113,6 +113,19 @@ func GetUser(ctx context.Context, b Backends, walletID string) (*pti.User, error
 	return &user, nil
 }
 
+func GetUserFromExternalID(ctx context.Context, b Backends, externalID string) (*pti.User, error) {
+	var user pti.User
+	err := b.DB().GetContext(ctx, &user, fmt.Sprintf("SELECT %s from pti_users where external_id=$1;", userFields), externalID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, pti.ErrNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
 func GetWallet(ctx context.Context, b Backends, external external.Client, linkedAccountID string) (*pti.Wallet, error) {
 	la, err := b.LinkedAccounts().Get(ctx, linkedAccountID)
 	if err != nil {
