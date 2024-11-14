@@ -7,13 +7,13 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/lestrrat-go/jwx/v2/jwk"
+	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
 	httplogger "gitlab.com/fynbos/backend/providers/http"
@@ -21,9 +21,11 @@ import (
 	"gitlab.com/fynbos/backend/providers/pti/external"
 	external_mock "gitlab.com/fynbos/backend/providers/pti/external/mock"
 	"gitlab.com/fynbos/env"
+	"gitlab.com/fynbos/log"
 	"gitlab.com/fynbos/pacioli"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.temporal.io/sdk/temporal"
+	"go.uber.org/zap"
 )
 
 type Activity struct {
@@ -162,6 +164,40 @@ func (a *Activity) CheckUserAssessmentAccepted(ctx context.Context, walletID str
 
 	if assessment.Assessment != "ACCEPTED" {
 		return fmt.Errorf("%w", pti.ErrAssessmentFailed)
+	}
+
+	// now update the personal details needed for front-end
+	externalUser, err := a.external.GetUser(ctx, usr.ExternalID)
+	if err != nil {
+		log.Error("pti activity (checkUserAssessmentAccepted): failed to fetch external user", zap.Error(err))
+		return nil
+	}
+
+	dob, err := time.Parse(time.DateOnly, externalUser.DateOfBirth)
+	if err != nil {
+		log.Error("pti activity (checkUserAssessmentAccepted): failed to parse date of birth", zap.Error(err))
+		return nil
+	}
+
+	args := kyc.IndividualDetails{
+		WalletID:    walletID,
+		FirstName:   externalUser.Name.First,
+		LastName:    externalUser.Name.Last,
+		DateOfBirth: dob,
+		IPAddress:   "10.0.0.1",
+	}
+	if len(externalUser.Addresses) > 0 {
+		args.Address = &kyc.Address{
+			State:   externalUser.Addresses[0].StateCode.Code,
+			Line1:   externalUser.Addresses[0].Street,
+			City:    externalUser.Addresses[0].City,
+			ZipCode: externalUser.Addresses[0].PostalCode,
+		}
+	}
+
+	_, err = a.b.KYC().UpdateIndividualDetails(ctx, args)
+	if err != nil {
+		log.Error("pti activity (checkUserAssessmentAccepted): failed to update individual details", zap.Error(err))
 	}
 
 	return nil
