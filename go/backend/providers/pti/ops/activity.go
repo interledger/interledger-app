@@ -7,13 +7,13 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/lestrrat-go/jwx/v2/jwk"
+	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
 	httplogger "gitlab.com/fynbos/backend/providers/http"
@@ -21,9 +21,11 @@ import (
 	"gitlab.com/fynbos/backend/providers/pti/external"
 	external_mock "gitlab.com/fynbos/backend/providers/pti/external/mock"
 	"gitlab.com/fynbos/env"
+	"gitlab.com/fynbos/log"
 	"gitlab.com/fynbos/pacioli"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.temporal.io/sdk/temporal"
+	"go.uber.org/zap"
 )
 
 type Activity struct {
