@@ -473,11 +473,20 @@ func GetKYCWidget(ctx context.Context, b Backends, walletID string) (*pti.KYCWid
 		return nil, err
 	}
 
+	sdkUrl := "https://sdk.staging.fiant.io/0.0.23/index.js"
+	formsUrl := "https://forms.staging.fiant.io"
+	if env.IsProd() {
+		sdkUrl = "https://sdk.platform.fiant.io/0.0.23/index.js"
+		formsUrl = "https://forms.platform.fiant.io"
+	}
+
 	return &pti.KYCWidgetDetails{
 		ScenarioID:        pti.ScenarioDeposit,
 		RequestID:         uuid.NewString(),
 		UserID:            externalUser.ExternalID,
 		ClientID:          os.Getenv("PTI_CLIENT_ID"),
 		GenerateTokenPath: fmt.Sprintf("%s/api/pti/token", env.GetUrl()),
+		SdkUrl:            sdkUrl,
+		FormsUrl:          formsUrl,
 	}, nil
 }
