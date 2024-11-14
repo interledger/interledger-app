@@ -12,7 +12,9 @@ import (
 	"github.com/lestrrat-go/jwx/v2/jwe"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/lestrrat-go/jwx/v2/jws"
+	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/providers/pti"
+	"gitlab.com/fynbos/backend/slack"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
 )
@@ -28,7 +30,11 @@ var ptiPublicKeyJwk = `
 // var ptiPublicKeySource = "https://raw.githubusercontent.com/provenancetech/pti-docs/master/utils/pti-prod-public.jwk"
 
 func ParsePTIPublicKey() (jwk.Key, error) {
-	return jwk.ParseKey([]byte(ptiPublicKeyJwk), jwk.WithPEM(false))
+	keyToParse := os.Getenv("PTI_PUBLIC_KEY_JWK")
+	if keyToParse == "" {
+		keyToParse = ptiPublicKeyJwk
+	}
+	return jwk.ParseKey([]byte(keyToParse), jwk.WithPEM(false))
 }
 
 func Webhook(b Backends) (http.HandlerFunc, error) {
@@ -54,7 +60,30 @@ func Webhook(b Backends) (http.HandlerFunc, error) {
 			return
 		}
 
-		d, err := jwe.Decrypt(body, jwe.WithKey(jwa.RSA_OAEP_256, ptiPrivateKey))
+		// hack: add header field if it's missing - otherwise jwe library will fail to parse the message
+		var result map[string]interface{}
+		err = json.Unmarshal(body, &result)
+		if err != nil {
+			log.Error("pti webhook: Failed to unmarshal payload", zap.Error(err))
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+
+		if result["headers"] == nil {
+			headers := map[string]string{}
+			headers["alg"] = "RSA-OAEP-256"
+			headers["enc"] = "A256CBC-HS512"
+			result["header"] = headers
+		}
+
+		payloadWithHeader, err := json.Marshal(result)
+		if err != nil {
+			log.Error("pti webhook: Failed to marshal payload with header", zap.Error(err))
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+
+		d, err := jwe.Decrypt(payloadWithHeader, jwe.WithKey(jwa.RSA_OAEP_256, ptiPrivateKey))
 		if err != nil {
 			log.Error("pti webhook: Failed to decrypt", zap.Error(err))
 			http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
@@ -84,7 +113,7 @@ func Webhook(b Backends) (http.HandlerFunc, error) {
 		switch data.ResourceType {
 		case "USER":
 			err = HandleUserUpdate(r.Context(), b, v)
-		case "USER_ASSESSMENT":
+		case "USER_ASSESSMENT", "KYC":
 			err = HandleAssessmentUpdate(r.Context(), b, v)
 		case "TRANSACTION_STATUS":
 			log.Error("Unhandled pti transaction status webhook", zap.String("externalUserId", data.UserId), zap.String("requestId", data.RequestID))
@@ -92,10 +121,11 @@ func Webhook(b Backends) (http.HandlerFunc, error) {
 			log.Error("Unhandled pti transaction assessment webhook", zap.String("externalUserId", data.UserId), zap.String("requestId", data.RequestID))
 		default:
 			log.Error("Unknown pti webhook type", zap.String("externalUserId", data.UserId), zap.String("resourceType", data.ResourceType), zap.String("requestId", data.RequestID))
-			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return
 		}
 		if err != nil {
+			log.Error("failed to handle pti webhook", zap.String("externalUserId", data.UserId), zap.String("resourceType", data.ResourceType), zap.String("requestId", data.RequestID), zap.Error(err))
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return
 		}
@@ -138,6 +168,26 @@ func HandleAssessmentUpdate(ctx context.Context, b Backends, data []byte) error 
 		return fmt.Errorf("%w Failed to update pti user assessment", pti.ErrInternal)
 	}
 
+	ptiUser, err := GetUserFromExternalID(ctx, b, assessmentData.UserId)
+	if err != nil {
+		return fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+
+	if "ACCEPTED" == assessmentData.Assessment {
+		err = b.KYC().SetKYCStatus(ctx, ptiUser.WalletID, kyc.StatusLevel2)
+		if err != nil {
+			return fmt.Errorf("%w %s", pti.ErrInternal, err)
+		}
+	} else if "REFUSED" == assessmentData.Assessment {
+		err = b.KYC().SetKYCStatus(ctx, ptiUser.WalletID, kyc.StatusDenied)
+		if err != nil {
+			return fmt.Errorf("%w %s", pti.ErrInternal, err)
+		}
+	} else {
+		log.Error("failed to handle pti user assessment webhook", zap.String("externalUserId", assessmentData.UserId), zap.String("assessment_status", assessmentData.Assessment))
+		slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "Fynbot", fmt.Sprintf("fiant webhook: kyc assessment status=%s walletID=%s", assessmentData.Assessment, ptiUser.WalletID))
+	}
+
 	return nil
 }
 
@@ -158,12 +208,10 @@ type UserWebhook struct {
 }
 
 type AssessmentWebhook struct {
-	ResourceType  string `json:"resourceType"`
-	ClientID      string `json:"clientId"`
-	RequestID     string `json:"requestId"`
-	UserId        string `json:"userId"`
-	Date          string `json:"date"`
-	Assessment    string `json:"assessment"`
-	Tier          int    `json:"tier"`
-	RefusalReason string `json:"refusalReason"`
+	ResourceType string `json:"resourceType"`
+	ClientID     string `json:"clientId"`
+	RequestID    string `json:"requestId"`
+	UserId       string `json:"userId"`
+	Assessment   string `json:"assessment"`
+	Tier         string `json:"tier"`
 }
