@@ -85,7 +85,7 @@ func SetKYCStatusWorkflow(ctx workflow.Context, walletID string, status kyc.Stat
 		}
 	}
 	if status == kyc.StatusPending && wallet.Country == country.US {
-		err = workflow.ExecuteActivity(ctx, a.CreateKYCWallets, walletID).Get(ctx, nil)
+		err = workflow.ExecuteActivity(ctx, a.KYCCreatePTIWallet, walletID).Get(ctx, nil)
 		if err != nil {
 			return err
 		}
@@ -107,17 +107,21 @@ func (a *Activity) ResetExceededLimits(ctx context.Context, walletID string) err
 	return err
 }
 
+func (a *Activity) KYCCreatePTIWallet(ctx context.Context, walletID string) error {
+	_, err := a.b.PTI().CreateWallet(ctx, walletID, currency.USD)
+	return err
+}
+
 func (a *Activity) CreateKYCWallets(ctx context.Context, walletID string) error {
 	w, err := a.b.Wallets().Get(ctx, walletID)
 	if err != nil {
 		return err
 	}
 
-	if w.Country == country.US {
-		_, err = a.b.PTI().CreateWallet(ctx, walletID, currency.USD)
-		if err != nil {
-			return err
-		}
+	if w.Country == country.CA {
+		// nothing to do. wallet already created
+	} else if w.Country == country.US {
+		// nothing to do. wallet already created when state was pending
 	} else if country.EUCountries[w.Country] {
 		// nothing to do. Gatehub user should already be created
 	} else if w.Country == country.ZA {
