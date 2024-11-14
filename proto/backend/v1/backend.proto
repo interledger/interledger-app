@@ -239,6 +239,8 @@ message PtiWidget {
   string requestId = 3;
   string clientId = 4;
   string generateTokenPath = 5;
+  string sdkUrl = 6;
+  string formsUrl = 7;
 }
 
 message GatehubWidget {

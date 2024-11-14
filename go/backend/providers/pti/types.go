@@ -93,4 +93,6 @@ type KYCWidgetDetails = struct {
 	UserID            string
 	GenerateTokenPath string
 	ClientID          string
+	SdkUrl            string
+	FormsUrl          string
 }
