@@ -84,6 +84,12 @@ func SetKYCStatusWorkflow(ctx workflow.Context, walletID string, status kyc.Stat
 			return err
 		}
 	}
+	if status == kyc.StatusPending && wallet.Country == country.US {
+		err = workflow.ExecuteActivity(ctx, a.CreateKYCWallets, walletID).Get(ctx, nil)
+		if err != nil {
+			return err
+		}
+	}
 
 	return nil
 }
@@ -108,11 +114,6 @@ func (a *Activity) CreateKYCWallets(ctx context.Context, walletID string) error 
 	}
 
 	if w.Country == country.US {
-		err = a.b.Astra().StartKYC(ctx, walletID)
-		if err != nil {
-			return err
-		}
-
 		_, err = a.b.PTI().CreateWallet(ctx, walletID, currency.USD)
 		if err != nil {
 			return err
