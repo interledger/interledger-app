@@ -158,6 +158,8 @@ func HandleAssessmentUpdate(ctx context.Context, b Backends, data []byte) error 
 		return err
 	}
 
+	fmt.Printf("%+v \n", assessmentData)
+
 	result, err := b.DB().ExecContext(ctx, "UPDATE pti_users SET assessment_status=$1, updated_at=now() WHERE external_id=$2;", assessmentData.Status, assessmentData.UserId)
 	if err != nil {
 		return fmt.Errorf("%w %s", pti.ErrInternal, err)
