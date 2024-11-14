@@ -84,6 +84,12 @@ func SetKYCStatusWorkflow(ctx workflow.Context, walletID string, status kyc.Stat
 			return err
 		}
 	}
+	if status == kyc.StatusPending && wallet.Country == country.US {
+		err = workflow.ExecuteActivity(ctx, a.CreateKYCWallets, walletID).Get(ctx, nil)
+		if err != nil {
+			return err
+		}
+	}
 
 	return nil
 }
