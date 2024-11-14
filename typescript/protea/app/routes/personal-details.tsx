@@ -158,14 +158,15 @@ function GatehubPage() {
 function PtiPage() {
   const { ptiWidget } = useLoaderData<typeof loader>()
   const scriptStatus = useScript(
-    'https://sdk.platform.fiant.io/0.0.23/index.js'
+    ptiWidget?.sdkUrl || 'https://sdk.platform.fiant.io/0.0.23/index.js'
   )
 
   useEffect(() => {
     if (scriptStatus == 'ready' && typeof (window as any).PTI !== 'undefined') {
       ;(window as any).PTI.init({
         clientId: ptiWidget?.clientId,
-        generateTokenPath: ptiWidget?.generateTokenPath
+        generateTokenPath: ptiWidget?.generateTokenPath,
+        ptiFormsUrl: ptiWidget?.formsUrl || 'https://forms.platform.fiant.io'
       })
       ;(window as any).PTI.form({
         type: 'KYC',
