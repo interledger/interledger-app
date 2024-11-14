@@ -66,24 +66,6 @@ func CreateWalletWorkflow(ctx workflow.Context, args pti.CreateWalletArgs) (*lin
 		return nil, err
 	}
 
-	if externalUser.ID == "" {
-		var externalUserID string
-		err = workflow.ExecuteActivity(ctx, a.CreatePtiUser, args.WalletID).Get(ctx, &externalUserID)
-		if err != nil {
-			return nil, err
-		}
-
-		err = workflow.ExecuteActivity(ctx, a.SavePtiUser, externalUserID, args.WalletID).Get(ctx, &externalUser)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	err = workflow.ExecuteActivity(ctx, a.StartUserAssessment, args.WalletID, pti.ScenarioDeposit).Get(ctx, nil)
-	if err != nil {
-		return nil, err
-	}
-
 	err = workflow.ExecuteActivity(ctx, a.CheckUserAssessmentAccepted, args.WalletID).Get(ctx, nil)
 	if err != nil {
 		return nil, err
