@@ -14,7 +14,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/lestrrat-go/jwx/v2/jwk"
-	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
 	httplogger "gitlab.com/fynbos/backend/providers/http"
@@ -85,33 +84,14 @@ func (a *Activity) GetPtiUser(ctx context.Context, walletID string) (*pti.User, 
 }
 
 func (a *Activity) CreatePtiUser(ctx context.Context, walletID string) (string, error) {
-	kycData, err := a.b.KYC().GetIndividualDetails(ctx, walletID)
-	if errors.Is(err, kyc.ErrNoKYCInfo) {
-		return "", temporal.NewNonRetryableApplicationError("No KYC data for wallet.", "ErrNotFound", err)
-	}
-
-	var addresses []external.Address
-	if kycData.Address != nil {
-		addresses = append(addresses, external.Address{
-			Street: kycData.Address.Line1,
-			City:   kycData.Address.City,
-			StateCode: external.StateCode{
-				Code: kycData.Address.State,
-			},
-			Country: external.CountryCode{
-				Code: kycData.Address.CountryCode,
-			},
-			PostalCode: kycData.Address.ZipCode,
-			Default:    true,
-		})
-	}
-
 	var emails []external.Email
 	var phones []external.Phone
 	usrs, err := a.b.Users().ListUsers(ctx, walletID)
 	if err != nil {
 		return "", err
 	}
+
+	var firstName, lastName string
 
 	for i, usr := range usrs {
 		emails = append(emails, external.Email{
@@ -124,20 +104,25 @@ func (a *Activity) CreatePtiUser(ctx context.Context, walletID string) (string, 
 			Type:    "MOBILE",
 			Default: i == 0,
 		})
+
+		if firstName == "" {
+			firstName = usr.FirstName
+		}
+
+		if lastName == "" {
+			lastName = usr.LastName
+		}
 	}
 
 	return a.external.CreateUser(ctx, external.CreateUserArgs{
-		ID:          uuid.NewString(),
-		Type:        "PERSON",
-		DateOfBirth: kycData.DateOfBirth.Format("2006-01-02"),
+		ID:   uuid.NewString(),
+		Type: "PERSON",
 		Name: external.Name{
-			First: kycData.FirstName,
-			Last:  kycData.LastName,
+			First: firstName,
+			Last:  lastName,
 		},
-		Emails:               emails,
-		Phones:               phones,
-		Addresses:            addresses,
-		CountryOfCitizenship: kycData.CountryCode,
+		Emails: emails,
+		Phones: phones,
 	})
 }
 
