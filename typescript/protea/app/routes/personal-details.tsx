@@ -163,6 +163,7 @@ function PtiPage() {
     ptiWidget?.sdkUrl || 'https://sdk.platform.fiant.io/0.0.23/index.js'
   )
   const handleMessage = (message: MessageEvent<FiantSdkMessage>) => {
+    console.log('message', message.data)
     if (message.data.name === 'UserAssessmentCompleted') {
       submit(null, {
         action: '/personal-details',
@@ -186,8 +187,12 @@ function PtiPage() {
         parentElement: document.getElementById('kyc_form'),
         lang: 'en'
       })
+    }
 
-      window.addEventListener('message', handleMessage)
+    window.addEventListener('message', handleMessage)
+
+    return () => {
+      window.removeEventListener('message', handleMessage)
     }
   }, [scriptStatus, ptiWidget])
 
