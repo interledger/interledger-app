@@ -110,6 +110,8 @@ func Webhook(b Backends) (http.HandlerFunc, error) {
 			return
 		}
 
+		log.Info("pti webhook: received webhook", zap.String("payload", string(body)))
+
 		switch data.ResourceType {
 		case "USER":
 			err = HandleUserUpdate(r.Context(), b, v)
