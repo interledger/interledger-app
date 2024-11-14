@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from 'react'
 import { route } from 'routes-gen'
 import { Button, Card, CardContent, Dialog, Layouts, Shape } from '~/components'
 import { isConnectError } from '~/lib/error.server'
+import type { FiantSdkMessage } from '~/lib/fiant'
 import { exitFlow, flowType, requireFlow } from '~/lib/flows.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
@@ -157,9 +158,27 @@ function GatehubPage() {
 
 function PtiPage() {
   const { ptiWidget } = useLoaderData<typeof loader>()
+  const submit = useSubmit()
   const scriptStatus = useScript(
     ptiWidget?.sdkUrl || 'https://sdk.platform.fiant.io/0.0.23/index.js'
   )
+  const [setLoading] = useScaffoldStore((state) => [state.setLoading])
+  const handleMessage = (message: MessageEvent<FiantSdkMessage>) => {
+    if (message.data.name === 'UserAssessmentCompleted') {
+      setLoading(true)
+      submit(null, {
+        action: '/personal-details',
+        method: 'post'
+      })
+    }
+  }
+
+  // Unmount make sure the loading state is set to false
+  useEffect(() => {
+    return () => {
+      setLoading(false)
+    }
+  }, [setLoading])
 
   useEffect(() => {
     if (scriptStatus == 'ready' && typeof (window as any).PTI !== 'undefined') {
@@ -176,6 +195,12 @@ function PtiPage() {
         parentElement: document.getElementById('kyc_form'),
         lang: 'en'
       })
+    }
+
+    window.addEventListener('message', handleMessage)
+
+    return () => {
+      window.removeEventListener('message', handleMessage)
     }
   }, [scriptStatus, ptiWidget])
 
