@@ -48,10 +48,10 @@ export default function Page() {
               <div className='mt-2 flex items-center space-x-2 text-medium'>
                 <Icon>mail</Icon>
                 <AnchorRouter
-                  to='mailto:support@fynbos.app'
+                  to='mailto:support@interledger.app'
                   className='text-sm text-primary'
                 >
-                  support@fynbos.app
+                  support@interledger.app
                 </AnchorRouter>
               </div>
             </div>
