@@ -28,7 +28,6 @@ import (
 	"gitlab.com/fynbos/backend/rafiki"
 	"gitlab.com/fynbos/backend/signup"
 	"gitlab.com/fynbos/backend/slack"
-	"gitlab.com/fynbos/backend/supporttickets"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/backend/twitter"
@@ -46,7 +45,6 @@ type Backends interface {
 	LinkedAccounts() linkedaccounts.Client
 	HealthCheck() healthcheck.Service
 	Signup() signup.Client
-	SupportTickets() supporttickets.Client
 	Temporal() temporal.Client
 	Twilio() twilio.Service
 	Users() user.Client
