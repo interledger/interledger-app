@@ -63,8 +63,6 @@ import (
 	rafiki_mock "gitlab.com/fynbos/backend/rafiki/client/mock"
 	"gitlab.com/fynbos/backend/signup"
 	signup_mock "gitlab.com/fynbos/backend/signup/client/mock"
-	"gitlab.com/fynbos/backend/supporttickets"
-	support_mock "gitlab.com/fynbos/backend/supporttickets/client/mock"
 	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
 	"gitlab.com/fynbos/backend/twilio"
 	twitter_mock "gitlab.com/fynbos/backend/twitter/client/mock"
@@ -91,7 +89,6 @@ type TestContainer struct {
 	SignupService      *signup_mock.MockClient
 	WaitlistClient     *waitlist_mock.MockClient
 	TemporalImpl       *mocks.Client
-	TicketClient       *support_mock.MockClient
 	KYCClient          *kyc_mock.MockClient
 	EmailClient        *email_mock.MockClient
 	TransactionsClient *transactions_mock.MockClient
@@ -195,10 +192,6 @@ func (t TestContainer) Signup() signup.Client {
 	return t.SignupService
 }
 
-func (t TestContainer) SupportTickets() supporttickets.Client {
-	return t.TicketClient
-}
-
 func (t TestContainer) Temporal() client.Client {
 	return t.TemporalImpl
 }
@@ -266,7 +259,6 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 		TwilioService:      twilio.NewMockService(ctrl),
 		SignupService:      signup_mock.NewMockClient(ctrl),
 		WaitlistClient:     waitlist_mock.NewMockClient(ctrl),
-		TicketClient:       support_mock.NewMockClient(ctrl),
 		TemporalImpl:       &mocks.Client{},
 		KYCClient:          kyc_mock.NewMockClient(ctrl),
 		TransactionsClient: transactions_mock.NewMockClient(ctrl),

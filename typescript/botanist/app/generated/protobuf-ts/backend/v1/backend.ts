@@ -1331,27 +1331,6 @@ export interface ListStatementsResponse {
     nextPageToken: string;
 }
 /**
- * @generated from protobuf message backend.v1.CreateSupportTicketRequest
- */
-export interface CreateSupportTicketRequest {
-    /**
-     * @generated from protobuf field: string description = 1;
-     */
-    description: string;
-    /**
-     * @generated from protobuf field: string firstName = 2;
-     */
-    firstName: string;
-    /**
-     * @generated from protobuf field: string lastName = 3;
-     */
-    lastName: string;
-    /**
-     * @generated from protobuf field: string email = 4;
-     */
-    email: string;
-}
-/**
  * @generated from protobuf message backend.v1.IndividualKYCResponse
  */
 export interface IndividualKYCResponse {
@@ -7011,74 +6990,6 @@ class ListStatementsResponse$Type extends MessageType<ListStatementsResponse> {
  */
 export const ListStatementsResponse = new ListStatementsResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class CreateSupportTicketRequest$Type extends MessageType<CreateSupportTicketRequest> {
-    constructor() {
-        super("backend.v1.CreateSupportTicketRequest", [
-            { no: 1, name: "description", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "firstName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "lastName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 4, name: "email", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
-        ]);
-    }
-    create(value?: PartialMessage<CreateSupportTicketRequest>): CreateSupportTicketRequest {
-        const message = { description: "", firstName: "", lastName: "", email: "" };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<CreateSupportTicketRequest>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CreateSupportTicketRequest): CreateSupportTicketRequest {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string description */ 1:
-                    message.description = reader.string();
-                    break;
-                case /* string firstName */ 2:
-                    message.firstName = reader.string();
-                    break;
-                case /* string lastName */ 3:
-                    message.lastName = reader.string();
-                    break;
-                case /* string email */ 4:
-                    message.email = reader.string();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: CreateSupportTicketRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string description = 1; */
-        if (message.description !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.description);
-        /* string firstName = 2; */
-        if (message.firstName !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.firstName);
-        /* string lastName = 3; */
-        if (message.lastName !== "")
-            writer.tag(3, WireType.LengthDelimited).string(message.lastName);
-        /* string email = 4; */
-        if (message.email !== "")
-            writer.tag(4, WireType.LengthDelimited).string(message.email);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message backend.v1.CreateSupportTicketRequest
- */
-export const CreateSupportTicketRequest = new CreateSupportTicketRequest$Type();
-// @generated message type with reflection information, may provide speed optimized methods
 class IndividualKYCResponse$Type extends MessageType<IndividualKYCResponse> {
     constructor() {
         super("backend.v1.IndividualKYCResponse", [
@@ -11406,7 +11317,6 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "SetDefaultSendLinkedAccount", options: {}, I: SetDefaultSendLinkedAccountRequest, O: LinkedAccount },
     { name: "SetNicknameLinkedAccount", options: {}, I: SetNicknameLinkedAccountRequest, O: LinkedAccount },
     { name: "DeleteLinkedAccount", options: {}, I: DeleteLinkedAccountRequest, O: Empty },
-    { name: "CreateSupportTicket", options: {}, I: CreateSupportTicketRequest, O: Empty },
     { name: "GetCountries", options: {}, I: Empty, O: GetCountriesResponse },
     { name: "GetCurrentWallet", options: {}, I: Empty, O: GetCurrentWalletResponse },
     { name: "JoinWaitlist", options: {}, I: JoinWaitlistRequest, O: JoinWaitlistResponse },

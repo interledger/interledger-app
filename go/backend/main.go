@@ -88,8 +88,6 @@ import (
 	slack_client "gitlab.com/fynbos/backend/slack/client"
 	"gitlab.com/fynbos/backend/statements"
 	statements_client "gitlab.com/fynbos/backend/statements/client"
-	"gitlab.com/fynbos/backend/supporttickets"
-	support_client "gitlab.com/fynbos/backend/supporttickets/client"
 	"gitlab.com/fynbos/backend/temporal"
 	"gitlab.com/fynbos/backend/transactions"
 	transactions_client "gitlab.com/fynbos/backend/transactions/client"
@@ -466,7 +464,6 @@ type backends struct {
 	linkedaccounts linkedaccounts.Client
 	healthcheck    healthcheck.Service
 	signup         signup.Client
-	supportTickets supporttickets.Client
 	temporal       client.Client
 	twilio         _twilio.Service
 	users          user.Client
@@ -583,10 +580,6 @@ func (b backends) AdminAuth() auth.Service {
 
 func (b backends) Agreements() agreements.Client {
 	return b.agreements
-}
-
-func (b backends) SupportTickets() supporttickets.Client {
-	return b.supportTickets
 }
 
 func (b backends) Waitlist() waitlist.Client {
@@ -766,8 +759,6 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	}
 
 	b.agreements = agreements_client.New(b)
-
-	b.supportTickets = support_client.NewClient(b, args.ZendeskUser, args.ZendeskToken)
 
 	b.kyc, err = kyc_client.New(b, args.SmartyAuthID, args.SmartyAuthToken)
 	if err != nil {

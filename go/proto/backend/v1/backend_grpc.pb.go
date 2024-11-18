@@ -43,7 +43,6 @@ const (
 	BackendService_SetDefaultSendLinkedAccount_FullMethodName    = "/backend.v1.BackendService/SetDefaultSendLinkedAccount"
 	BackendService_SetNicknameLinkedAccount_FullMethodName       = "/backend.v1.BackendService/SetNicknameLinkedAccount"
 	BackendService_DeleteLinkedAccount_FullMethodName            = "/backend.v1.BackendService/DeleteLinkedAccount"
-	BackendService_CreateSupportTicket_FullMethodName            = "/backend.v1.BackendService/CreateSupportTicket"
 	BackendService_GetCountries_FullMethodName                   = "/backend.v1.BackendService/GetCountries"
 	BackendService_GetCurrentWallet_FullMethodName               = "/backend.v1.BackendService/GetCurrentWallet"
 	BackendService_JoinWaitlist_FullMethodName                   = "/backend.v1.BackendService/JoinWaitlist"
@@ -157,7 +156,6 @@ type BackendServiceClient interface {
 	SetDefaultSendLinkedAccount(ctx context.Context, in *SetDefaultSendLinkedAccountRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
 	SetNicknameLinkedAccount(ctx context.Context, in *SetNicknameLinkedAccountRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
 	DeleteLinkedAccount(ctx context.Context, in *DeleteLinkedAccountRequest, opts ...grpc.CallOption) (*Empty, error)
-	CreateSupportTicket(ctx context.Context, in *CreateSupportTicketRequest, opts ...grpc.CallOption) (*Empty, error)
 	GetCountries(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetCountriesResponse, error)
 	GetCurrentWallet(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetCurrentWalletResponse, error)
 	// Waitlist
@@ -480,15 +478,6 @@ func (c *backendServiceClient) SetNicknameLinkedAccount(ctx context.Context, in 
 func (c *backendServiceClient) DeleteLinkedAccount(ctx context.Context, in *DeleteLinkedAccountRequest, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
 	err := c.cc.Invoke(ctx, BackendService_DeleteLinkedAccount_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *backendServiceClient) CreateSupportTicket(ctx context.Context, in *CreateSupportTicketRequest, opts ...grpc.CallOption) (*Empty, error) {
-	out := new(Empty)
-	err := c.cc.Invoke(ctx, BackendService_CreateSupportTicket_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1230,7 +1219,6 @@ type BackendServiceServer interface {
 	SetDefaultSendLinkedAccount(context.Context, *SetDefaultSendLinkedAccountRequest) (*LinkedAccount, error)
 	SetNicknameLinkedAccount(context.Context, *SetNicknameLinkedAccountRequest) (*LinkedAccount, error)
 	DeleteLinkedAccount(context.Context, *DeleteLinkedAccountRequest) (*Empty, error)
-	CreateSupportTicket(context.Context, *CreateSupportTicketRequest) (*Empty, error)
 	GetCountries(context.Context, *Empty) (*GetCountriesResponse, error)
 	GetCurrentWallet(context.Context, *Empty) (*GetCurrentWalletResponse, error)
 	// Waitlist
@@ -1410,9 +1398,6 @@ func (UnimplementedBackendServiceServer) SetNicknameLinkedAccount(context.Contex
 }
 func (UnimplementedBackendServiceServer) DeleteLinkedAccount(context.Context, *DeleteLinkedAccountRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteLinkedAccount not implemented")
-}
-func (UnimplementedBackendServiceServer) CreateSupportTicket(context.Context, *CreateSupportTicketRequest) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateSupportTicket not implemented")
 }
 func (UnimplementedBackendServiceServer) GetCountries(context.Context, *Empty) (*GetCountriesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCountries not implemented")
@@ -2088,24 +2073,6 @@ func _BackendService_DeleteLinkedAccount_Handler(srv interface{}, ctx context.Co
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BackendServiceServer).DeleteLinkedAccount(ctx, req.(*DeleteLinkedAccountRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _BackendService_CreateSupportTicket_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateSupportTicketRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).CreateSupportTicket(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: BackendService_CreateSupportTicket_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).CreateSupportTicket(ctx, req.(*CreateSupportTicketRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -3616,10 +3583,6 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteLinkedAccount",
 			Handler:    _BackendService_DeleteLinkedAccount_Handler,
-		},
-		{
-			MethodName: "CreateSupportTicket",
-			Handler:    _BackendService_CreateSupportTicket_Handler,
 		},
 		{
 			MethodName: "GetCountries",

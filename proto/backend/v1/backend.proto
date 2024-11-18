@@ -46,7 +46,6 @@ service BackendService {
   rpc SetDefaultSendLinkedAccount(SetDefaultSendLinkedAccountRequest) returns (LinkedAccount);
   rpc SetNicknameLinkedAccount(SetNicknameLinkedAccountRequest) returns (LinkedAccount);
   rpc DeleteLinkedAccount(DeleteLinkedAccountRequest) returns (Empty);
-  rpc CreateSupportTicket(CreateSupportTicketRequest) returns (Empty);
   rpc GetCountries(Empty) returns (GetCountriesResponse);
   rpc GetCurrentWallet(Empty) returns (GetCurrentWalletResponse);
 
@@ -626,13 +625,6 @@ message Transfer {
 message ListStatementsResponse {
   repeated string periods = 1;
   string nextPageToken = 2;
-}
-
-message CreateSupportTicketRequest {
-  string description = 1;
-  string firstName = 2;
-  string lastName = 3;
-  string email = 4;
 }
 
 message IndividualKYCResponse {
