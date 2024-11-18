@@ -166,7 +166,9 @@ export function CommandActions() {
                 />
                 <div className='flex gap-x-3'>
                   {(result.identifierType == 'wallet' ||
-                    result.identifierType == 'wallet_url') && <InterledgerIcon />}
+                    result.identifierType == 'wallet_url') && (
+                    <InterledgerIcon />
+                  )}
                   {result.identifierType == 'twitter' && <TwitterIcon />}
                   {result.identifierType == 'discord' && <DiscordIcon />}
                   {result.identifierType == 'domain' && (

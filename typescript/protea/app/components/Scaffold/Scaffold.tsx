@@ -1,4 +1,3 @@
-import { Popover, Transition } from '@headlessui/react'
 import type { SerializeFrom } from '@remix-run/node'
 import type { UIMatch } from '@remix-run/react'
 import {
@@ -13,19 +12,17 @@ import clsx from 'clsx'
 import type { MotionProps } from 'framer-motion'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { FC, ReactNode } from 'react'
-import { Fragment, forwardRef, useEffect, useState } from 'react'
+import { forwardRef, useEffect, useState } from 'react'
 import { StructuredText } from 'react-datocms'
 import { route } from 'routes-gen'
 import {
   AnchorRouter,
   ButtonRouter,
-  CardLink,
-  InterledgerLogo,
   Icon,
   IconButton,
+  InterledgerLogo,
   Router,
-  SnackbarStage,
-  WalletShapes
+  SnackbarStage
 } from '~/components'
 import { ContentRouter, Prose } from '~/components/Content'
 import { CommandActions } from '~/components/Scaffold/CommandActions'
@@ -421,11 +418,17 @@ export function Scaffold() {
         {layout !== Layouts.Marketing && (
           <>
             <span className='text-xs font-medium text-medium'>&copy;</span>
-            <Router className='text-xs font-medium text-primary' to='https://interledger.app'>
+            <Router
+              className='text-xs font-medium text-primary'
+              to='https://interledger.app'
+            >
               Fynbos
             </Router>
             <span className='text-xs font-medium text-medium'>&amp;</span>
-            <Router className='text-xs font-medium text-primary' to='https://interledger.org'>
+            <Router
+              className='text-xs font-medium text-primary'
+              to='https://interledger.org'
+            >
               The Interledger Foundation
             </Router>
             <span className='text-xs font-medium text-medium'>|</span>
@@ -438,7 +441,7 @@ export function Scaffold() {
           <div className='relative mx-auto flex w-full flex-col px-4 pb-12 pt-52 lg:px-0 lg:pl-40 lg:pt-20 xl:max-w-[59rem]'>
             <img
               alt='Interledger logo'
-              className='absolute left-4 top-10 lg:left-3 lg:top-20 max-h-20'
+              className='absolute left-4 top-10 max-h-20 lg:left-3 lg:top-20'
               loading='lazy'
               src={footer.logo?.url}
             />
@@ -683,109 +686,109 @@ const HeaderLink: FC<HeaderLinkProps> = ({ title, to }) => {
   )
 }
 
-const HeaderPopover: FC = () => {
-  return (
-    <Popover className='relative'>
-      {({ open }) => (
-        <>
-          <Popover.Button className='inline-flex items-center gap-x-2 rounded text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus'>
-            <span>Products</span>
-            <Icon>expand_more</Icon>
-          </Popover.Button>
-          <Transition
-            as={Fragment}
-            enter='transition ease-out duration-200'
-            enterFrom='opacity-0 translate-y-1'
-            enterTo='opacity-100 translate-y-0'
-            leave='transition ease-in duration-150'
-            leaveFrom='opacity-100 translate-y-0'
-            leaveTo='opacity-0 translate-y-1'
-          >
-            <Popover.Panel
-              static
-              className='absolute left-1/2 z-10 mt-3 w-screen max-w-sm -translate-x-1/2 transform px-4 sm:px-0'
-            >
-              <div className='relative flex flex-col gap-y-1 rounded-[1.25rem] bg-mk-section p-2 shadow-lg'>
-                <Popover.Button
-                  as={CardLink}
-                  to='/wallet'
-                  className='flex gap-2 rounded-xl p-3 hover:bg-nav focus-visible:outline-2 focus-visible:outline-focus'
-                >
-                  <svg
-                    width='24'
-                    height='24'
-                    viewBox='0 0 24 24'
-                    fill='none'
-                    xmlns='http://www.w3.org/2000/svg'
-                  >
-                    <path
-                      d='M12 18C12 14.6863 14.6863 12 18 12V12C21.3137 12 24 14.6863 24 18V18C24 21.3137 21.3137 24 18 24V24C14.6863 24 12 21.3137 12 18V18Z'
-                      fill='#FED7AA'
-                    />
-                    <path
-                      d='M12 0H24V6C24 9.31371 21.3137 12 18 12V12C14.6863 12 12 9.31371 12 6V0Z'
-                      fill='#FB923C'
-                    />
-                    <path
-                      fillRule='evenodd'
-                      clipRule='evenodd'
-                      d='M12 0C5.37258 0 0 5.37258 0 12V18C0 14.6863 2.68629 12 6 12C9.31371 12 12 14.6863 12 18V0Z'
-                      fill='#F97316'
-                    />
-                  </svg>
+// const HeaderPopover: FC = () => {
+//   return (
+//     <Popover className='relative'>
+//       {({ open }) => (
+//         <>
+//           <Popover.Button className='inline-flex items-center gap-x-2 rounded text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus'>
+//             <span>Products</span>
+//             <Icon>expand_more</Icon>
+//           </Popover.Button>
+//           <Transition
+//             as={Fragment}
+//             enter='transition ease-out duration-200'
+//             enterFrom='opacity-0 translate-y-1'
+//             enterTo='opacity-100 translate-y-0'
+//             leave='transition ease-in duration-150'
+//             leaveFrom='opacity-100 translate-y-0'
+//             leaveTo='opacity-0 translate-y-1'
+//           >
+//             <Popover.Panel
+//               static
+//               className='absolute left-1/2 z-10 mt-3 w-screen max-w-sm -translate-x-1/2 transform px-4 sm:px-0'
+//             >
+//               <div className='relative flex flex-col gap-y-1 rounded-[1.25rem] bg-mk-section p-2 shadow-lg'>
+//                 <Popover.Button
+//                   as={CardLink}
+//                   to='/wallet'
+//                   className='flex gap-2 rounded-xl p-3 hover:bg-nav focus-visible:outline-2 focus-visible:outline-focus'
+//                 >
+//                   <svg
+//                     width='24'
+//                     height='24'
+//                     viewBox='0 0 24 24'
+//                     fill='none'
+//                     xmlns='http://www.w3.org/2000/svg'
+//                   >
+//                     <path
+//                       d='M12 18C12 14.6863 14.6863 12 18 12V12C21.3137 12 24 14.6863 24 18V18C24 21.3137 21.3137 24 18 24V24C14.6863 24 12 21.3137 12 18V18Z'
+//                       fill='#FED7AA'
+//                     />
+//                     <path
+//                       d='M12 0H24V6C24 9.31371 21.3137 12 18 12V12C14.6863 12 12 9.31371 12 6V0Z'
+//                       fill='#FB923C'
+//                     />
+//                     <path
+//                       fillRule='evenodd'
+//                       clipRule='evenodd'
+//                       d='M12 0C5.37258 0 0 5.37258 0 12V18C0 14.6863 2.68629 12 6 12C9.31371 12 12 14.6863 12 18V0Z'
+//                       fill='#F97316'
+//                     />
+//                   </svg>
 
-                  <div className='flex flex-col gap-2'>
-                    <p className='text-sm font-medium text-strong'>Wallet</p>
-                    <p className='text-sm text-weak'>
-                      Send money as easily as email.
-                    </p>
-                  </div>
-                </Popover.Button>
-                <Popover.Button
-                  as={CardLink}
-                  to='https://wealth.fynbos.app'
-                  className='flex gap-2 rounded-xl p-3 hover:bg-nav focus-visible:outline-2 focus-visible:outline-focus'
-                >
-                  <svg
-                    width='24'
-                    height='24'
-                    viewBox='0 0 24 24'
-                    fill='none'
-                    xmlns='http://www.w3.org/2000/svg'
-                  >
-                    <path
-                      d='M12 12C12 5.37258 17.3726 0 24 0V12C24 18.6274 18.6274 24 12 24V12Z'
-                      fill='#84CC16'
-                    />
-                    <path
-                      d='M0 6C0 2.68629 2.68629 0 6 0C9.31371 0 12 2.68629 12 6V12H0V6Z'
-                      fill='#A3E635'
-                    />
-                    <path
-                      d='M0 12C0 8.68629 2.68629 6 6 6C9.31371 6 12 8.68629 12 12C12 15.3137 9.31371 18 6 18C2.68629 18 0 15.3137 0 12Z'
-                      fill='#F1F5F9'
-                    />
-                    <path
-                      d='M0 12C6.62742 12 12 17.3726 12 24C5.37258 24 0 18.6274 0 12Z'
-                      fill='#A3E635'
-                    />
-                  </svg>
+//                   <div className='flex flex-col gap-2'>
+//                     <p className='text-sm font-medium text-strong'>Wallet</p>
+//                     <p className='text-sm text-weak'>
+//                       Send money as easily as email.
+//                     </p>
+//                   </div>
+//                 </Popover.Button>
+//                 <Popover.Button
+//                   as={CardLink}
+//                   to='https://wealth.fynbos.app'
+//                   className='flex gap-2 rounded-xl p-3 hover:bg-nav focus-visible:outline-2 focus-visible:outline-focus'
+//                 >
+//                   <svg
+//                     width='24'
+//                     height='24'
+//                     viewBox='0 0 24 24'
+//                     fill='none'
+//                     xmlns='http://www.w3.org/2000/svg'
+//                   >
+//                     <path
+//                       d='M12 12C12 5.37258 17.3726 0 24 0V12C24 18.6274 18.6274 24 12 24V12Z'
+//                       fill='#84CC16'
+//                     />
+//                     <path
+//                       d='M0 6C0 2.68629 2.68629 0 6 0C9.31371 0 12 2.68629 12 6V12H0V6Z'
+//                       fill='#A3E635'
+//                     />
+//                     <path
+//                       d='M0 12C0 8.68629 2.68629 6 6 6C9.31371 6 12 8.68629 12 12C12 15.3137 9.31371 18 6 18C2.68629 18 0 15.3137 0 12Z'
+//                       fill='#F1F5F9'
+//                     />
+//                     <path
+//                       d='M0 12C6.62742 12 12 17.3726 12 24C5.37258 24 0 18.6274 0 12Z'
+//                       fill='#A3E635'
+//                     />
+//                   </svg>
 
-                  <div className='flex flex-col gap-2'>
-                    <p className='text-sm font-medium text-strong'>Wealth</p>
-                    <p className='text-sm text-weak'>
-                      Grow your wealth easily.
-                    </p>
-                  </div>
-                </Popover.Button>
-              </div>
-            </Popover.Panel>
-          </Transition>
-        </>
-      )}
-    </Popover>
-  )
-}
+//                   <div className='flex flex-col gap-2'>
+//                     <p className='text-sm font-medium text-strong'>Wealth</p>
+//                     <p className='text-sm text-weak'>
+//                       Grow your wealth easily.
+//                     </p>
+//                   </div>
+//                 </Popover.Button>
+//               </div>
+//             </Popover.Panel>
+//           </Transition>
+//         </>
+//       )}
+//     </Popover>
+//   )
+// }
 
 interface ButtonProps extends MotionProps {
   shrink?: boolean // sm:max-w-fit
