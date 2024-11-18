@@ -192,7 +192,9 @@ export function AppPage() {
                           {transaction.destinationIdentityType == 'wallet' && (
                             <>
                               {transaction.type != 'withdrawal' &&
-                                transaction.type != 'deposit' && <InterledgerIcon />}
+                                transaction.type != 'deposit' && (
+                                  <InterledgerIcon />
+                                )}
                               {transaction.type == 'withdrawal' && (
                                 <Icon>south_west</Icon>
                               )}
