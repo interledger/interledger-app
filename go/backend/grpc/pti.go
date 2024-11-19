@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/proto/backend/v1"
@@ -76,4 +77,43 @@ func (s *rpcService) CreatePtiToken(ctx context.Context, req *backend.PtiTokenRe
 		ExpiresAt:   token.ExpiresAt,
 		TokenType:   token.TokenType,
 	}, nil
+}
+
+func (s *rpcService) CreateCard(
+	ctx context.Context, req *pb.CreateCardRequest,
+) (*pb.LinkedAccount, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	w, err := s.b.Wallets().ForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	feats, err := s.b.Features().Features(ctx, w.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	if !feats.AddCardsEnabled {
+		return nil, NewValidationError("Form", "You have connected the maximum number of cards to Fynbos.")
+	}
+
+	await, err := s.b.PTI().CreateCard(ctx, w.ID, req.GetTokenID())
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	var la linkedaccounts.LinkedAccount
+	err = await(ctx, &la)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+	if la.ID == "" {
+		return nil, toGRPCError(errors.New("Linked account not returned from create card workflow."))
+	}
+
+	return transformLinkedAccount(la), nil
 }

@@ -11,6 +11,7 @@ import (
 const (
 	ProviderName   = "pti"
 	AccTypeBalance = "balance"
+	TypeCard       = "card"
 
 	ScenarioTransfer   = "fynbos_transfer"
 	ScenarioDeposit    = "fynbos_deposit"
@@ -87,7 +88,7 @@ type Balance struct {
 type TokenArgs = external.TokenArgs
 type TokenResponse = external.TokenResponse
 
-type KYCWidgetDetails = struct {
+type WidgetDetails = struct {
 	ScenarioID        string
 	RequestID         string
 	UserID            string
