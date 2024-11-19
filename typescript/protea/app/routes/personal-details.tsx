@@ -163,15 +163,6 @@ function PtiPage() {
     ptiWidget?.sdkUrl || 'https://sdk.platform.fiant.io/0.0.23/index.js'
   )
   const [setLoading] = useScaffoldStore((state) => [state.setLoading])
-  const handleMessage = (message: MessageEvent<FiantSdkMessage>) => {
-    if (message.data.name === 'UserAssessmentCompleted') {
-      setLoading(true)
-      submit(null, {
-        action: '/personal-details',
-        method: 'post'
-      })
-    }
-  }
 
   // Unmount make sure the loading state is set to false
   useEffect(() => {
@@ -197,12 +188,21 @@ function PtiPage() {
       })
     }
 
+    const handleMessage = (message: MessageEvent<FiantSdkMessage>) => {
+      if (message.data.name === 'UserAssessmentCompleted') {
+        setLoading(true)
+        submit(null, {
+          action: '/personal-details',
+          method: 'post'
+        })
+      }
+    }
     window.addEventListener('message', handleMessage)
 
     return () => {
       window.removeEventListener('message', handleMessage)
     }
-  }, [scriptStatus, ptiWidget])
+  }, [scriptStatus, ptiWidget, setLoading, submit])
 
   return (
     <>
