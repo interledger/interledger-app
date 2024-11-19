@@ -108,3 +108,23 @@ func CreateWalletWorkflow(ctx workflow.Context, args pti.CreateWalletArgs) (*lin
 
 	return &la, nil
 }
+
+func CreateCardWorkflow(ctx workflow.Context, walletID, tokenID string) (*linkedaccounts.LinkedAccount, error) {
+	var a *Activity
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Second,
+	}
+
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	logger := workflow.GetLogger(ctx)
+	logger.Info("Creating pti card.")
+
+	var linkedAccount linkedaccounts.LinkedAccount
+	err := workflow.ExecuteActivity(ctx, a.CreatePTICard, walletID, tokenID).Get(ctx, &linkedAccount)
+	if err != nil {
+		return nil, err
+	}
+
+	return &linkedAccount, nil
+}

@@ -125,6 +125,10 @@ func (c Client) CreateJWT(ctx context.Context, args pti.TokenArgs) (*pti.TokenRe
 	return c.external.CreateJWT(ctx, args)
 }
 
-func (c Client) GetKYCWidget(ctx context.Context, walletID string) (*pti.KYCWidgetDetails, error) {
+func (c Client) GetWidget(ctx context.Context, walletID string) (*pti.WidgetDetails, error) {
 	return ops.GetKYCWidget(ctx, c.b, walletID)
+}
+
+func (c Client) CreateCard(ctx context.Context, walletID, tokenID string) (pti.Await, error) {
+	return ops.CreateCard(ctx, c.b, walletID, tokenID)
 }

@@ -5,10 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/twilio"
-	"gitlab.com/fynbos/env"
-	"go.temporal.io/sdk/temporal"
 
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/payments"
@@ -51,94 +48,6 @@ func (s *rpcService) AstraRequiresOTP(
 	}
 
 	return &pb.AstraRequiresOTPResponse{IsRequired: len(verifications) > 1}, nil
-}
-
-func (s *rpcService) CreateCard(
-	ctx context.Context, req *pb.CreateCardRequest,
-) (*pb.LinkedAccount, error) {
-	_, err := s.b.Users().UserForContext(ctx)
-	if err != nil {
-		return nil, UnauthenticatedError("Unauthenticated.")
-	}
-
-	w, err := s.b.Wallets().ForContext(ctx)
-	if err != nil {
-		return nil, UnauthenticatedError("Unauthenticated.")
-	}
-
-	feats, err := s.b.Features().Features(ctx, w.ID)
-	if err != nil {
-		return nil, toGRPCError(err)
-	}
-
-	if !feats.AddCardsEnabled {
-		return nil, NewValidationError("Form", "You have connected the maximum number of cards to Fynbos.")
-	}
-
-	las, err := s.b.LinkedAccounts().ListByWalletId(ctx, w.ID)
-	if err != nil {
-		return nil, toGRPCError(err)
-	}
-	var linkedCards []linkedaccounts.LinkedAccount
-	for _, la := range las {
-		if la.Provider == astra.ProviderName && la.Type == astra.TypeCard {
-			linkedCards = append(linkedCards, la)
-		}
-	}
-
-	// limit the number of cards that can be connected to fynbos
-	// active cards are cards that are not deleted
-	// cards created this week are cards that were created in the last week whether they are active or not
-	if env.IsProd() {
-		var activeCardCount int
-		var cardsCreatedWK int
-		for _, la := range linkedCards {
-			if !la.DeletedAt.Valid {
-				activeCardCount++
-			}
-			if time.Since(la.CreatedAt) < 7*24*time.Hour {
-				cardsCreatedWK++
-			}
-		}
-		if activeCardCount >= 5 {
-			return nil, CardPreconditionError("cardsVelocityLimit", "You have connected the maximum number of cards to Fynbos")
-		}
-		if cardsCreatedWK >= 2 {
-			return nil, CardPreconditionError("cardsMaxLimit", "You have connected the maximum number of cards to Fynbos this week")
-		}
-	}
-
-	await, err := s.b.Astra().CreateCard(ctx, astra.CreateCardArgs{
-		WalletID:           w.ID,
-		BasisTheoryTokenID: req.GetTokenID(),
-	})
-	if err != nil {
-		return nil, toGRPCError(err)
-	}
-
-	var la linkedaccounts.LinkedAccount
-	err = await(ctx, &la)
-	var applicationError *temporal.ApplicationError
-	if errors.As(err, &applicationError) {
-		switch applicationError.Type() {
-		case "ErrDuplicateCard":
-			return nil, AlreadyExistsError("ErrDuplicateCard")
-		case "ErrUnsupportedCard":
-			return nil, NewValidationError("CardNumber", "Your card is unsupported and cannot be connected to Fynbos.")
-		case "ErrUnsupportedCountry":
-			return nil, NewValidationError("CardNumber", "Your card originates from an unsupported country and cannot be connected to Fynbos.")
-		case "ErrMultiStatus":
-			return nil, UnavailableError("ErrMultiStatus")
-		}
-	}
-	if err != nil {
-		return nil, toGRPCError(err)
-	}
-	if la.ID == "" {
-		return nil, toGRPCError(errors.New("Linked account not returned from create card workflow."))
-	}
-
-	return transformLinkedAccount(la), nil
 }
 
 func (s *rpcService) AstraDepositFromCard(ctx context.Context, req *pb.AstraDepositFromCardRequest) (*pb.Payment, error) {

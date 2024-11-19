@@ -2,6 +2,8 @@ package mock
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -56,6 +58,13 @@ func SetupDevMock(t *testing.T) *MockClient {
 		return &external.IDResponse{
 			ID: uuid.NewString(),
 		}, nil
+	}).AnyTimes()
+
+	encryptedCardInfoPattern := `{"id":"%s","type":"ENCRYPTED_CREDIT_CARD","creditCardLast4":"1234","creditCardBin":"123456","creditCardReference":"reference","creditCardAddress":{"streetAddress":"123 main st","city":"New York","stateCode":"US-NY","country":"US","postalCode":"10005"}}`
+	cl.EXPECT().GetUsersPaymentInformation(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, userID, id string) (json.RawMessage, error) {
+		raw := fmt.Sprintf(encryptedCardInfoPattern, id)
+
+		return []byte(raw), nil
 	}).AnyTimes()
 
 	return cl

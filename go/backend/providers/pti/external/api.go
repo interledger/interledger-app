@@ -1,6 +1,9 @@
 package external
 
-import "context"
+import (
+	"context"
+	"encoding/json"
+)
 
 type Client interface {
 	CreateUser(ctx context.Context, args CreateUserArgs) (string, error)
@@ -20,4 +23,5 @@ type Client interface {
 	CreateTransfer(ctx context.Context, args TransferArgs) (*IDResponse, error)
 	GetTransaction(ctx context.Context, requestID string) (*TransactionStatus, error)
 	CreateJWT(ctx context.Context, args TokenArgs) (*TokenResponse, error)
+	GetUsersPaymentInformation(ctx context.Context, userID, id string) (json.RawMessage, error)
 }
