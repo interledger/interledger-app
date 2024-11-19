@@ -97,7 +97,6 @@ service BackendService {
   rpc GetKYCProviderWidget(GetKYCProviderWidgetRequest) returns (KYCProviderWidget);
 
   // Basistheory
-  rpc CreateCard(CreateCardRequest) returns (LinkedAccount);
   rpc GetCardDetails(GetCardDetailsRequest) returns (CardDetails);
 
   // Features
@@ -151,6 +150,7 @@ service BackendService {
   // Pti
   rpc GetPtiBalances(Empty) returns (GetPtiBalancesResponse);
   rpc CreatePtiToken(PtiTokenRequest) returns (PtiTokenResponse);
+  rpc CreateCard(CreateCardRequest) returns (LinkedAccount);
 
   // Astra
   rpc AstraDepositFromCard(AstraDepositFromCardRequest) returns (Payment);

@@ -52,6 +52,21 @@ func (mr *MockClientMockRecorder) AssignBalance(ctx, linkedAccountID, txID, amt 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AssignBalance", reflect.TypeOf((*MockClient)(nil).AssignBalance), ctx, linkedAccountID, txID, amt)
 }
 
+// CreateCard mocks base method.
+func (m *MockClient) CreateCard(ctx context.Context, walletID, tokenID string) (pti.Await, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateCard", ctx, walletID, tokenID)
+	ret0, _ := ret[0].(pti.Await)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateCard indicates an expected call of CreateCard.
+func (mr *MockClientMockRecorder) CreateCard(ctx, walletID, tokenID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCard", reflect.TypeOf((*MockClient)(nil).CreateCard), ctx, walletID, tokenID)
+}
+
 // CreateJWT mocks base method.
 func (m *MockClient) CreateJWT(ctx context.Context, args pti.TokenArgs) (*pti.TokenResponse, error) {
 	m.ctrl.T.Helper()
@@ -126,21 +141,6 @@ func (mr *MockClientMockRecorder) GetBalance(ctx, linkedAccountID interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBalance", reflect.TypeOf((*MockClient)(nil).GetBalance), ctx, linkedAccountID)
 }
 
-// GetKYCWidget mocks base method.
-func (m *MockClient) GetKYCWidget(ctx context.Context, walletID string) (*pti.KYCWidgetDetails, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetKYCWidget", ctx, walletID)
-	ret0, _ := ret[0].(*pti.KYCWidgetDetails)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetKYCWidget indicates an expected call of GetKYCWidget.
-func (mr *MockClientMockRecorder) GetKYCWidget(ctx, walletID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetKYCWidget", reflect.TypeOf((*MockClient)(nil).GetKYCWidget), ctx, walletID)
-}
-
 // GetWallet mocks base method.
 func (m *MockClient) GetWallet(ctx context.Context, linkedAccountID string) (*pti.Wallet, error) {
 	m.ctrl.T.Helper()
@@ -154,6 +154,21 @@ func (m *MockClient) GetWallet(ctx context.Context, linkedAccountID string) (*pt
 func (mr *MockClientMockRecorder) GetWallet(ctx, linkedAccountID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWallet", reflect.TypeOf((*MockClient)(nil).GetWallet), ctx, linkedAccountID)
+}
+
+// GetWidget mocks base method.
+func (m *MockClient) GetWidget(ctx context.Context, walletID string) (*pti.WidgetDetails, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetWidget", ctx, walletID)
+	ret0, _ := ret[0].(*pti.WidgetDetails)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetWidget indicates an expected call of GetWidget.
+func (mr *MockClientMockRecorder) GetWidget(ctx, walletID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWidget", reflect.TypeOf((*MockClient)(nil).GetWidget), ctx, walletID)
 }
 
 // ReserveBalance mocks base method.

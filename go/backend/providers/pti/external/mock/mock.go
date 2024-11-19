@@ -6,6 +6,7 @@ package mock
 
 import (
 	context "context"
+	json "encoding/json"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -153,6 +154,21 @@ func (m *MockClient) GetUserAssessment(ctx context.Context, userID string) (*ext
 func (mr *MockClientMockRecorder) GetUserAssessment(ctx, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserAssessment", reflect.TypeOf((*MockClient)(nil).GetUserAssessment), ctx, userID)
+}
+
+// GetUsersPaymentInformation mocks base method.
+func (m *MockClient) GetUsersPaymentInformation(ctx context.Context, userID, id string) (json.RawMessage, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUsersPaymentInformation", ctx, userID, id)
+	ret0, _ := ret[0].(json.RawMessage)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUsersPaymentInformation indicates an expected call of GetUsersPaymentInformation.
+func (mr *MockClientMockRecorder) GetUsersPaymentInformation(ctx, userID, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUsersPaymentInformation", reflect.TypeOf((*MockClient)(nil).GetUsersPaymentInformation), ctx, userID, id)
 }
 
 // GetWallet mocks base method.

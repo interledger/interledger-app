@@ -469,7 +469,7 @@ func ReserveTransfer(ctx context.Context, b Backends, fromAccount, toAccount, tx
 	return nil
 }
 
-func GetKYCWidget(ctx context.Context, b Backends, walletID string) (*pti.KYCWidgetDetails, error) {
+func GetKYCWidget(ctx context.Context, b Backends, walletID string) (*pti.WidgetDetails, error) {
 	externalUser, err := GetUser(ctx, b, walletID)
 	if errors.Is(err, pti.ErrNotFound) {
 		await, innerErr := CreateUser(ctx, b, walletID)
@@ -493,7 +493,7 @@ func GetKYCWidget(ctx context.Context, b Backends, walletID string) (*pti.KYCWid
 		formsUrl = "https://forms.platform.fiant.io"
 	}
 
-	return &pti.KYCWidgetDetails{
+	return &pti.WidgetDetails{
 		ScenarioID:        pti.ScenarioDeposit,
 		RequestID:         uuid.NewString(),
 		UserID:            externalUser.ExternalID,
@@ -502,4 +502,41 @@ func GetKYCWidget(ctx context.Context, b Backends, walletID string) (*pti.KYCWid
 		SdkUrl:            sdkUrl,
 		FormsUrl:          formsUrl,
 	}, nil
+}
+
+func CreateCard(ctx context.Context, b Backends, walletID, tokenID string) (pti.Await, error) {
+	wo := client.StartWorkflowOptions{
+		ID:                    "pti_create_card_" + walletID + "_" + tokenID,
+		TaskQueue:             "backend",
+		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+	}
+
+	var workflowStatus enums.WorkflowExecutionStatus
+	wflow, err := b.Temporal().DescribeWorkflowExecution(ctx, wo.ID, "")
+	switch err.(type) {
+	case *serviceerror.Internal,
+		*serviceerror.Unavailable,
+		*serviceerror.InvalidArgument:
+		return nil, fmt.Errorf("%w %s", pti.ErrInternal, err)
+	case *serviceerror.NotFound:
+		// do nothing
+	default:
+		if wflow != nil {
+			workflowStatus = wflow.GetWorkflowExecutionInfo().Status
+		}
+	}
+
+	// return workflow if it's running
+	var await client.WorkflowRun
+	var executeErr error
+	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
+		await = b.Temporal().GetWorkflow(ctx, wo.ID, "")
+	} else {
+		await, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, CreateCardWorkflow, walletID, tokenID)
+	}
+	if executeErr != nil {
+		return nil, fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+
+	return await.Get, nil
 }

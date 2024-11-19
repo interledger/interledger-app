@@ -66,7 +66,7 @@ func (s *rpcService) GetKYCProviderWidget(ctx context.Context, req *pb.GetKYCPro
 		}, nil
 	}
 	if country.US == wallet.Country {
-		widget, err := s.b.PTI().GetKYCWidget(ctx, wallet.ID)
+		widget, err := s.b.PTI().GetWidget(ctx, wallet.ID)
 		if err != nil {
 			return nil, toGRPCError(err)
 		}
