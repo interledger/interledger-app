@@ -5,14 +5,18 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/lestrrat-go/jwx/v2/jwk"
+	"gitlab.com/fynbos/backend/country"
+	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
@@ -413,4 +417,66 @@ func (a *Activity) CreatePTIBalanceAccount(ctx context.Context, id string) error
 	}
 
 	return nil
+}
+
+func (a *Activity) CreatePTICard(ctx context.Context, walletID, tokenID string) (*linkedaccounts.LinkedAccount, error) {
+	ptiUser, err := GetUser(ctx, a.b, walletID)
+	if errors.Is(err, pti.ErrNotFound) {
+		return nil, temporal.NewNonRetryableApplicationError("pti create card: no external user found", "ErrNotFound", err)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	externalCardRawJson, err := a.external.GetUsersPaymentInformation(ctx, ptiUser.ExternalID, tokenID)
+	if err != nil {
+		return nil, err
+	}
+
+	var d external.PaymentInformation
+	err = json.Unmarshal(externalCardRawJson, &d)
+	if err != nil {
+		return nil, err
+	}
+
+	if d.Type != external.CardPaymentInformationType {
+		return nil, temporal.NewNonRetryableApplicationError("pti create card: payment method is not a card", "ErrInternal", fmt.Errorf("%w payment method is not a card", pti.ErrInternal))
+	}
+
+	var cardInfo external.EncryptedCreditCardPaymentInformation
+	err = json.Unmarshal(externalCardRawJson, &cardInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	network := ""
+	if cardInfo.CreditCardType != "" {
+		network = cardInfo.CreditCardType
+	}
+
+	la, err := a.b.LinkedAccounts().Create(ctx, &linkedaccounts.CreateArgs{
+		WalletID:            walletID,
+		Name:                strings.TrimSpace(fmt.Sprintf("%s %s", network, cardInfo.CreditCardLast4)),
+		Nickname:            strings.TrimSpace(fmt.Sprintf("%s %s", network, cardInfo.CreditCardLast4)),
+		Provider:            pti.ProviderName,
+		ProviderID:          tokenID,
+		Mask:                cardInfo.CreditCardLast4,
+		State:               linkedaccounts.Verified,
+		Type:                pti.TypeCard,
+		CanSend:             true,
+		CanReceive:          true,
+		SendCountry:         country.US,
+		SendCurrency:        currency.USD,
+		SendNetwork:         network,
+		SendAvailability:    linkedaccounts.Immediate,
+		ReceiveCountry:      country.US,
+		ReceiveCurrency:     currency.USD,
+		ReceiveNetwork:      network,
+		ReceiveAvailability: linkedaccounts.Immediate,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return la, nil
 }

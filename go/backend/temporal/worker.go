@@ -97,6 +97,7 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterActivity(pti_workflows.NewActivity(b, ptiPrivateKey))
 	w.RegisterWorkflow(pti_workflows.CreateWalletWorkflow)
 	w.RegisterWorkflow(pti_workflows.CreateUserWorkflow)
+	w.RegisterWorkflow(pti_workflows.CreateCardWorkflow)
 
 	// Astra
 	w.RegisterActivity(asta_workflows.NewActivity(b))

@@ -6,6 +6,8 @@ import (
 	"gitlab.com/fynbos/backend/currency"
 )
 
+const CardPaymentInformationType = "ENCRYPTED_CREDIT_CARD"
+
 type (
 	CreateUserArgs struct {
 		ID                   string    `json:"id,omitempty"`
@@ -320,6 +322,45 @@ type (
 		Total               Total                  `json:"total"`
 		Currency            string                 `json:"currency"`
 		AdditionalInfos     map[string]interface{} `json:"additionalInfos"`
+	}
+
+	ExternalPaymentInformation struct {
+		ID   string `json:"id,omitempty"`
+		Type string `json:"type,omitempty"`
+	}
+
+	EncryptedCreditCardPaymentInformation struct {
+		ID                  string   `json:"id,omitempty"`
+		Type                string   `json:"type,omitempty"`
+		CreditCardLast4     string   `json:"creditCardLast4,omitempty"`
+		CreditCardType      string   `json:"creditCardType,omitempty"`
+		CreditCardBin       string   `json:"creditCardBin,omitempty"`
+		CreditCardReference string   `json:"creditCardReference,omitempty"`
+		CreditCardAddress   *Address `json:"creditCardAddress,omitempty"`
+		ExpirationYear      string   `json:"expirationYear,omitempty"`
+		ExpirationMonth     string   `json:"expirationMonth,omitempty"`
+		CardHolderFirstName string   `json:"cardHolderFirstName,omitempty"`
+		CardHolderLastName  string   `json:"cardHolderLastName,omitempty"`
+	}
+
+	BankAccountPaymentInformation struct {
+		ID                    string `json:"id,omitempty"`
+		Type                  string `json:"type,omitempty"`
+		BankAccountNumner     string `json:"bankAccountNumber,omitempty"`
+		BankAccountType       string `json:"bankAccountType,omitempty"`
+		BankSwiftCode         string `json:"bankSwiftCode,omitempty"`
+		BankRoutingNumber     string `json:"bankRoutingNumber,omitempty"`
+		BankRoutingCheckDigit string `json:"bankRoutingCheckDigit,omitempty"`
+		AccountBankName       string `json:"accountBankName,omitempty"`
+	}
+
+	TokenPaymentInformation struct {
+		ID                string `json:"id,omitempty"`
+		Type              string `json:"type,omitempty"`
+		TokenAddress      string `json:"tokenAddress,omitempty"`
+		TokenType         string `json:"tokenType,omitempty"`
+		Blockchain        string `json:"blockchain,omitempty"`
+		PrivateBlockchain bool   `json:"privateBlockchain,omitempty"`
 	}
 )
 
