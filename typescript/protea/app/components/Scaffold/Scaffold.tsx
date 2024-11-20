@@ -20,7 +20,7 @@ import {
   ButtonRouter,
   Icon,
   IconButton,
-  InterledgerLogo,
+  InterledgerWalletLogo,
   Router,
   SnackbarStage
 } from '~/components'
@@ -188,7 +188,7 @@ export function Scaffold() {
           <NavDrawer.List>
             <div className='ml-4'>
               <Router to={route('/')} aria-label='Fynbos logo'>
-                <InterledgerLogo className='h-12' />
+                <InterledgerWalletLogo className='h-12' />
               </Router>
             </div>
             <button
@@ -242,7 +242,7 @@ export function Scaffold() {
             </div>
             <div className='ml-4 lg:ml-0'>
               <Router to={route('/')} aria-label='Fynbos logo'>
-                <InterledgerLogo className='h-12' />
+                <InterledgerWalletLogo className='h-12' />
               </Router>
             </div>
             <div className='hidden space-x-10 pb-2 pl-10 pt-3 lg:flex'>
@@ -343,7 +343,7 @@ export function Scaffold() {
               to={route('/')}
               aria-label='Fynbos logo'
             >
-              <InterledgerLogo className='h-12' />
+              <InterledgerWalletLogo className='h-12' />
             </Router>
             <div className='ml-auto flex items-center space-x-4'>
               <AnimatePresence mode='wait'>
@@ -515,7 +515,7 @@ export function Scaffold() {
                     menu_open
                   </IconButton>
                   <Router to={route('/')} aria-label='Fynbos logo'>
-                    <InterledgerLogo className='h-21' />
+                    <InterledgerWalletLogo className='h-21' />
                   </Router>
                 </div>
                 <NavDrawer.ListItem to={route('/')}>Home</NavDrawer.ListItem>
@@ -587,7 +587,7 @@ export function Scaffold() {
                   </IconButton>
                   <div className='ml-4 lg:ml-0'>
                     <Router to={route('/')} aria-label='Interledger App logo'>
-                      <InterledgerLogo className='h-12' />
+                      <InterledgerWalletLogo className='h-12' />
                     </Router>
                   </div>
                 </div>
