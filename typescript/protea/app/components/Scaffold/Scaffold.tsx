@@ -27,7 +27,6 @@ import {
 import { ContentRouter, Prose } from '~/components/Content'
 import { CommandActions } from '~/components/Scaffold/CommandActions'
 import { CommandPalette } from '~/components/Scaffold/CommandPalette'
-import { DocsNavDrawer } from '~/components/Scaffold/Docs'
 import type { FooterRecord } from '~/generated/dato-cms-graphql'
 import {
   ConnectDomainStep,
@@ -216,11 +215,6 @@ export function Scaffold() {
               Support
             </NavDrawer.ListItem>
           </NavDrawer.List>
-        </NavDrawerRoot>
-      )}
-      {layout === Layouts.Docs && (
-        <NavDrawerRoot>
-          <DocsNavDrawer />
         </NavDrawerRoot>
       )}
       <header
@@ -557,7 +551,6 @@ export function Scaffold() {
 
           {layout === Layouts.Docs && (
             <>
-              <DocsNavDrawer onClick={() => setOpenNavModal(!openNavModal)} />
               <NavDrawer.List>
                 {!isUser && (
                   <div className='flex flex-col space-y-2'>
@@ -600,14 +593,11 @@ export function Scaffold() {
                 </div>
                 <NavDrawer.ListItem to={route('/')}>Home</NavDrawer.ListItem>
                 <NavDrawer.ListItem to='/about'>About</NavDrawer.ListItem>
-                <NavDrawer.ListItem to='/wallet'>Wallet</NavDrawer.ListItem>
-                <NavDrawer.ListItem to='/wealth'>Wealth</NavDrawer.ListItem>
+                {/* <NavDrawer.ListItem to='/wallet'>Wallet</NavDrawer.ListItem> */}
+                {/* <NavDrawer.ListItem to='/wealth'>Wealth</NavDrawer.ListItem> */}
                 {/*<NavDrawer.ListItem to={route('/docs')}>*/}
                 {/*  Docs*/}
                 {/*</NavDrawer.ListItem>*/}
-                <NavDrawer.ListItem to={route('/blog')}>
-                  Blog
-                </NavDrawer.ListItem>
                 <NavDrawer.ListItem to={route('/contact')}>
                   Contact
                 </NavDrawer.ListItem>
