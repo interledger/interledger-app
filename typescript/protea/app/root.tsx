@@ -28,8 +28,8 @@ import { useSegment } from '~/lib/useSegment'
 import styles from '~/styles/app.css'
 
 const metaContent = {
-  title: 'Fynbos',
-  description: 'Connect. Verify. Transact with certainty.'
+  title: 'Interledger',
+  description: 'The modern way to send payments.'
 }
 
 export const meta: MetaFunction = () => [
@@ -39,30 +39,12 @@ export const meta: MetaFunction = () => [
     content: metaContent.title
   },
   {
-    name: 'twitter:title',
-    content: metaContent.title
-  },
-  {
     name: 'description',
     content: metaContent.description
   },
   {
     property: 'og:description',
     content: metaContent.description
-  },
-  {
-    name: 'twitter:description',
-    content: metaContent.description
-  },
-  {
-    property: 'og:image',
-    content:
-      'https://www.datocms-assets.com/101040/1691759191-og-banner-6.png?auto=format&fit=max&w=1200'
-  },
-  {
-    name: 'twitter:image',
-    content:
-      'https://www.datocms-assets.com/101040/1691759191-og-banner-6.png?auto=format&fit=max&w=1200'
   },
   {
     property: 'og:locale',
@@ -75,14 +57,6 @@ export const meta: MetaFunction = () => [
   {
     property: 'og:site_name',
     content: metaContent.title
-  },
-  {
-    name: 'twitter:card',
-    content: 'summary_large_image'
-  },
-  {
-    name: 'twitter:site',
-    content: '@fynbosdev'
   }
 ]
 
@@ -240,9 +214,9 @@ function CloudFlareError() {
                   If the problem persists, send an email to{' '}
                   <AnchorRouter
                     className='text-primary'
-                    to='mailto:support@fynbos.app'
+                    to='mailto:support@interledger.app'
                   >
-                    support@fynbos.app
+                    support@interledger.app
                   </AnchorRouter>{' '}
                   outlining what you were trying to do.
                 </p>
