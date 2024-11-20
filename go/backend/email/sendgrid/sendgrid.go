@@ -31,7 +31,7 @@ func NewClient(apiKey string) Client {
 	rest.DefaultClient.HTTPClient = otelhttp.DefaultClient
 
 	return &client{
-		from:   mail.NewEmail("Interledger", "support@interledger.app"),
+		from:   mail.NewEmail("Interledger Wallet", "support@interledger.app"),
 		mailer: sendgrid.NewSendClient(apiKey),
 	}
 }
