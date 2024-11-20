@@ -44,28 +44,14 @@ export function datoMeta(
   metaTags?: Array<Tag>,
   location?: Location
 ): MetaDescriptor[] {
-  const locationTags = [
+  return [
     {
       name: 'og:url',
-      content: `https://fynbos.app${location?.pathname}`
+      content: `https://interledger.app${location?.pathname}`
     },
     {
       name: 'twitter:url',
-      content: `https://fynbos.app${location?.pathname}`
+      content: `https://interledger.app${location?.pathname}`
     }
   ]
-
-  if (!metaTags) {
-    return [...locationTags]
-  }
-
-  let tags: MetaDescriptor[] = locationTags
-  for (const metaTag of metaTags) {
-    if (metaTag.tag === 'title' && metaTag.content) {
-      tags.push({ title: metaTag.content })
-    } else if (metaTag.tag === 'meta' && metaTag.attributes) {
-      tags.push(metaTag.attributes)
-    }
-  }
-  return tags
 }

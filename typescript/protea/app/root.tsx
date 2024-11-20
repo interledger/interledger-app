@@ -28,8 +28,9 @@ import { useSegment } from '~/lib/useSegment'
 import styles from '~/styles/app.css'
 
 const metaContent = {
-  title: 'Interledger',
-  description: 'The modern way to send payments.'
+  title: 'Interledger Wallet',
+  description:
+    'Unlock the potential of Open Payments and Web Monetization through the Interledger Wallet and help drive the evolution of digital financial services.'
 }
 
 export const meta: MetaFunction = () => [
