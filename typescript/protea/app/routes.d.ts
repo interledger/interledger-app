@@ -9,8 +9,6 @@ declare module "routes-gen" {
     "/api/maps/geocode": Record<string, never>;
     "/api/maps/placesAutocomplete": Record<string, never>;
     "/api/sendOtp": Record<string, never>;
-    "/blog": Record<string, never>;
-    "/blog/:slug": { "slug": string };
     "/callbacks/chimoney": Record<string, never>;
     "/connect/bank/za": Record<string, never>;
     "/connect/card": Record<string, never>;
@@ -24,8 +22,6 @@ declare module "routes-gen" {
     "/contact/success": Record<string, never>;
     "/deposit": Record<string, never>;
     "/deposit/:paymentId": { "paymentId": string };
-    "/docs": Record<string, never>;
-    "/docs/:slug": { "slug": string };
     "/healthz": Record<string, never>;
     "/identities": Record<string, never>;
     "/identities/:identityId": { "identityId": string };
@@ -63,7 +59,6 @@ declare module "routes-gen" {
     "/waitlist": Record<string, never>;
     "/waitlist/success": Record<string, never>;
     "/wallet-address": Record<string, never>;
-    "/what-is-a-payment-pointer": Record<string, never>;
     "/withdraw": Record<string, never>;
     "/withdraw/:paymentId": { "paymentId": string };
   };
@@ -79,8 +74,6 @@ declare module "routes-gen" {
       | ["/api/maps/geocode"]
       | ["/api/maps/placesAutocomplete"]
       | ["/api/sendOtp"]
-      | ["/blog"]
-      | ["/blog/:slug", RouteParams["/blog/:slug"]]
       | ["/callbacks/chimoney"]
       | ["/connect/bank/za"]
       | ["/connect/card"]
@@ -94,8 +87,6 @@ declare module "routes-gen" {
       | ["/contact/success"]
       | ["/deposit"]
       | ["/deposit/:paymentId", RouteParams["/deposit/:paymentId"]]
-      | ["/docs"]
-      | ["/docs/:slug", RouteParams["/docs/:slug"]]
       | ["/healthz"]
       | ["/identities"]
       | ["/identities/:identityId", RouteParams["/identities/:identityId"]]
@@ -133,7 +124,6 @@ declare module "routes-gen" {
       | ["/waitlist"]
       | ["/waitlist/success"]
       | ["/wallet-address"]
-      | ["/what-is-a-payment-pointer"]
       | ["/withdraw"]
       | ["/withdraw/:paymentId", RouteParams["/withdraw/:paymentId"]]
   >(...args: T): typeof args[0];
