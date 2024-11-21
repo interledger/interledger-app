@@ -25,20 +25,14 @@ import {
   CardCopy,
   CardHeader,
   CardIcon,
-  CardLink,
   CardTitle,
   Chip,
   ChipColor,
-  DiscordIcon,
-  Icon,
   InterledgerIcon,
   Layouts,
-  Router,
-  SlackIcon,
-  TwitterIcon
+  Router
 } from '~/components'
 import { Label } from '~/components/Label'
-import { getPublicIdentities } from '~/data/identity.server'
 import { getPublicWalletDetails } from '~/data/wallet.server'
 import type { Query } from '~/generated/dato-cms-graphql'
 import { isConnectError } from '~/lib/error.server'
@@ -65,7 +59,6 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     return redirect(walletAddress.address)
 
   const wallet = await getPublicWalletDetails(request, walletAddress.walletID)
-  const identities = await getPublicIdentities(request, walletAddress.walletID)
 
   let canSendToAddress = false
   const isUser = hasUserSession(request)
@@ -83,7 +76,6 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     isUser,
     canSendToAddress,
     wallet,
-    identities,
     walletAddress: walletAddress,
     paymentPointerParam: walletAddressParam
   })
@@ -111,7 +103,6 @@ export default function Page() {
     profilePicture,
     isUser,
     wallet,
-    identities,
     canSendToAddress,
     walletAddress,
     paymentPointerParam
@@ -157,106 +148,6 @@ export default function Page() {
         >
           {walletAddress.shortAddress}
         </CardCopy>
-        {identities.twitter && (
-          <>
-            <Label className='mt-4'>Twitter</Label>
-            {identities.twitter.map((identity) => (
-              <CardLink
-                key={identity.id}
-                className='items-center justify-between'
-                to={route('/me/identities/:identityId', {
-                  identityId: identity.signatureHash
-                })}
-              >
-                <div className='flex space-x-3'>
-                  <TwitterIcon />
-                  <span>@{identity.identifier}</span>
-                </div>
-                <div className='flex space-x-3'>
-                  {identity.state == 'verified' && (
-                    <Chip color={ChipColor.green}>Verified</Chip>
-                  )}
-                  <Icon>navigate_next</Icon>
-                </div>
-              </CardLink>
-            ))}
-          </>
-        )}
-        {identities.discord && (
-          <>
-            <Label className='mt-4'>Discord</Label>
-            {identities.discord.map((identity) => (
-              <CardLink
-                key={identity.id}
-                className='items-center justify-between'
-                to={route('/me/identities/:identityId', {
-                  identityId: identity.signatureHash
-                })}
-              >
-                <div className='flex space-x-3'>
-                  <DiscordIcon />
-                  <span>{identity.identifier}</span>
-                </div>
-                <div className='flex space-x-3'>
-                  {identity.state == 'verified' && (
-                    <Chip color={ChipColor.green}>Verified</Chip>
-                  )}
-                  <Icon>navigate_next</Icon>
-                </div>
-              </CardLink>
-            ))}
-          </>
-        )}
-        {identities.slack && (
-          <>
-            <Label className='mt-4'>Slack</Label>
-            {identities.slack.map((identity) => (
-              <CardLink
-                key={identity.id}
-                className='items-center justify-between'
-                to={route('/me/identities/:identityId', {
-                  identityId: identity.signatureHash
-                })}
-              >
-                <div className='flex space-x-3'>
-                  <SlackIcon />
-                  <span>{identity.identifier}</span>
-                </div>
-                <div className='flex space-x-3'>
-                  {identity.state == 'verified' && (
-                    <Chip color={ChipColor.green}>Verified</Chip>
-                  )}
-                  <Icon>navigate_next</Icon>
-                </div>
-              </CardLink>
-            ))}
-          </>
-        )}
-        {identities.domain && (
-          <>
-            <Label className='mt-4'>Domain</Label>
-            {identities.domain.map((identity) => (
-              <CardLink
-                key={identity.id}
-                className='items-center justify-between'
-                to={route('/me/identities/:identityId', {
-                  identityId: identity.signatureHash
-                })}
-              >
-                <div className='flex space-x-3'>
-                  <Icon>captive_portal</Icon>
-                  <span>{identity.identifier}</span>
-                </div>
-                <div className='flex space-x-3'>
-                  {identity.state == 'verified' && (
-                    <Chip color={ChipColor.green}>Verified</Chip>
-                  )}
-                  <Icon>navigate_next</Icon>
-                </div>
-              </CardLink>
-            ))}
-          </>
-        )}
       </Card>
       <Form
         id='me'
