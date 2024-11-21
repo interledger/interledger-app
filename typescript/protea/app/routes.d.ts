@@ -12,24 +12,17 @@ declare module "routes-gen" {
     "/callbacks/chimoney": Record<string, never>;
     "/connect/bank/za": Record<string, never>;
     "/connect/card": Record<string, never>;
-    "/connect/discord": Record<string, never>;
-    "/connect/domain": Record<string, never>;
     "/connect/interac": Record<string, never>;
-    "/connect/slack": Record<string, never>;
-    "/connect/twitter": Record<string, never>;
     "/consent": Record<string, never>;
     "/contact": Record<string, never>;
     "/contact/success": Record<string, never>;
     "/deposit": Record<string, never>;
     "/deposit/:paymentId": { "paymentId": string };
     "/healthz": Record<string, never>;
-    "/identities": Record<string, never>;
-    "/identities/:identityId": { "identityId": string };
     "/legal/:jurisdiction?/:slug": { "jurisdiction"?: string, "slug": string };
     "/login": Record<string, never>;
     "/login/challenge": Record<string, never>;
     "/logout": Record<string, never>;
-    "/me/identities/:identityId": { "identityId": string };
     "/otp/challenge": Record<string, never>;
     "/pay": Record<string, never>;
     "/pay/:paymentId": { "paymentId": string };
@@ -77,24 +70,17 @@ declare module "routes-gen" {
       | ["/callbacks/chimoney"]
       | ["/connect/bank/za"]
       | ["/connect/card"]
-      | ["/connect/discord"]
-      | ["/connect/domain"]
       | ["/connect/interac"]
-      | ["/connect/slack"]
-      | ["/connect/twitter"]
       | ["/consent"]
       | ["/contact"]
       | ["/contact/success"]
       | ["/deposit"]
       | ["/deposit/:paymentId", RouteParams["/deposit/:paymentId"]]
       | ["/healthz"]
-      | ["/identities"]
-      | ["/identities/:identityId", RouteParams["/identities/:identityId"]]
       | ["/legal/:jurisdiction?/:slug", RouteParams["/legal/:jurisdiction?/:slug"]]
       | ["/login"]
       | ["/login/challenge"]
       | ["/logout"]
-      | ["/me/identities/:identityId", RouteParams["/me/identities/:identityId"]]
       | ["/otp/challenge"]
       | ["/pay"]
       | ["/pay/:paymentId", RouteParams["/pay/:paymentId"]]

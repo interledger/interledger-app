@@ -356,28 +356,6 @@ function CTACards() {
           </CardContent>
         </Card>
       )}
-      {features.twitterEnabled && !walletInfo.hasIdentities && (
-        <Card>
-          <CardContent>
-            <div className='flex items-start space-x-4'>
-              <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
-                <TwitterIcon className='text-medium' />
-              </div>
-              <div className='flex flex-col space-y-4'>
-                <p className='text-sm text-medium'>
-                  Connect a Twitter identity to transact with your audience.
-                </p>
-                <Router
-                  className='text-sm font-medium text-primary'
-                  to={route('/connect/twitter')}
-                >
-                  Connect Twitter identity
-                </Router>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </>
   )
 }
