@@ -1,24 +1,22 @@
+import { Code } from '@bufbuild/connect'
 import {
   type ActionFunctionArgs,
   type LoaderFunctionArgs,
   type MetaFunction
 } from '@remix-run/node'
-import { useActionData, useLoaderData, useSubmit } from '@remix-run/react'
+import { useLoaderData, useSubmit } from '@remix-run/react'
 import { useEffect } from 'react'
-import { Code } from '@bufbuild/connect'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import {
-  Layouts,
-} from '~/components'
+import { Layouts } from '~/components'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
+import type { FiantSdkMessage } from '~/lib/fiant'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { useScript } from '~/lib/useScript'
-import { FiantSdkMessage } from '~/lib/fiant'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const response = await grpc.getKYCProviderWidget(request, {
@@ -28,7 +26,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   if (isConnectError(response)) throw response.errorResponse
 
   return jsonWithCSRF(request, {
-    widget: response.ptiWidget,
+    widget: response.ptiWidget
   })
 }
 
@@ -58,6 +56,7 @@ export default function Page() {
   )
   useEffect(() => {
     // This ensures that loading is false when this route is unmounted.
+    setLoading(true)
     return () => {
       setLoading(false)
     }
@@ -65,24 +64,30 @@ export default function Page() {
 
   useEffect(() => {
     if (scriptStatus == 'ready' && typeof (window as any).PTI !== 'undefined') {
-      ; (window as any).PTI.init({
+      ;(window as any).PTI.init({
         clientId: widget?.clientId,
         generateTokenPath: widget?.generateTokenPath,
         ptiFormsUrl: widget?.formsUrl || 'https://forms.platform.fiant.io'
       })
-        ; (window as any).PTI.form({
-          type: 'ADD_CC',
-          requestId: widget?.requestId,
-          userId: widget?.userId,
-          scenarioId: widget?.scenarioId,
-          parentElement: document.getElementById('card_form'),
-          lang: 'en'
-        })
+      ;(window as any).PTI.form({
+        type: 'ADD_CC',
+        requestId: widget?.requestId,
+        userId: widget?.userId,
+        scenarioId: widget?.scenarioId,
+        parentElement: document.getElementById('card_form'),
+        lang: 'en'
+      })
+      setLoading(false)
     }
 
     const handleMessage = (message: MessageEvent<FiantSdkMessage>) => {
-      console.log("message:", message.data)
-      const messagesToHandle = ['AddCreditCardCompleted', 'AddPaymentMethodCompleted', 'AddBankAccountCompleted', 'AddCryptoWalletCompleted']
+      console.log('message:', message.data)
+      const messagesToHandle = [
+        'AddCreditCardCompleted',
+        'AddPaymentMethodCompleted',
+        'AddBankAccountCompleted',
+        'AddCryptoWalletCompleted'
+      ]
       if (messagesToHandle.includes(message.data.name)) {
         setLoading(true)
         let formData = new FormData()
@@ -99,7 +104,7 @@ export default function Page() {
     return () => {
       window.removeEventListener('message', handleMessage)
     }
-  }, [scriptStatus, widget, setLoading, submit])
+  }, [scriptStatus, widget, setLoading, submit, csrfToken])
 
   return (
     <>
