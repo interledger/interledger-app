@@ -554,15 +554,6 @@ export const BackendService = {
     /**
      * Basistheory
      *
-     * @generated from rpc backend.v1.BackendService.CreateCard
-     */
-    createCard: {
-      name: "CreateCard",
-      I: CreateCardRequest,
-      O: LinkedAccount,
-      kind: MethodKind.Unary,
-    },
-    /**
      * @generated from rpc backend.v1.BackendService.GetCardDetails
      */
     getCardDetails: {
@@ -843,6 +834,15 @@ export const BackendService = {
       name: "CreatePtiToken",
       I: PtiTokenRequest,
       O: PtiTokenResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc backend.v1.BackendService.CreateCard
+     */
+    createCard: {
+      name: "CreateCard",
+      I: CreateCardRequest,
+      O: LinkedAccount,
       kind: MethodKind.Unary,
     },
     /**

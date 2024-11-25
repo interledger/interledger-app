@@ -440,6 +440,11 @@ export class GetOnOffRampProviderResponse extends Message<GetOnOffRampProviderRe
    */
   provider = "";
 
+  /**
+   * @generated from field: backend.v1.PtiWidget ptiWidget = 2;
+   */
+  ptiWidget?: PtiWidget;
+
   constructor(data?: PartialMessage<GetOnOffRampProviderResponse>) {
     super();
     proto3.util.initPartial(data, this);
@@ -449,6 +454,7 @@ export class GetOnOffRampProviderResponse extends Message<GetOnOffRampProviderRe
   static readonly typeName = "backend.v1.GetOnOffRampProviderResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "provider", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "ptiWidget", kind: "message", T: PtiWidget },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetOnOffRampProviderResponse {

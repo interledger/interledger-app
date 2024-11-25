@@ -132,6 +132,10 @@ export interface GetOnOffRampProviderResponse {
      * @generated from protobuf field: string provider = 1;
      */
     provider: string;
+    /**
+     * @generated from protobuf field: backend.v1.PtiWidget ptiWidget = 2;
+     */
+    ptiWidget?: PtiWidget;
 }
 /**
  * @generated from protobuf message backend.v1.GetKYCProviderWidgetRequest
@@ -3044,7 +3048,8 @@ export const CreateGatehubWithdrawalResponse = new CreateGatehubWithdrawalRespon
 class GetOnOffRampProviderResponse$Type extends MessageType<GetOnOffRampProviderResponse> {
     constructor() {
         super("backend.v1.GetOnOffRampProviderResponse", [
-            { no: 1, name: "provider", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 1, name: "provider", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "ptiWidget", kind: "message", T: () => PtiWidget }
         ]);
     }
     create(value?: PartialMessage<GetOnOffRampProviderResponse>): GetOnOffRampProviderResponse {
@@ -3062,6 +3067,9 @@ class GetOnOffRampProviderResponse$Type extends MessageType<GetOnOffRampProvider
                 case /* string provider */ 1:
                     message.provider = reader.string();
                     break;
+                case /* backend.v1.PtiWidget ptiWidget */ 2:
+                    message.ptiWidget = PtiWidget.internalBinaryRead(reader, reader.uint32(), options, message.ptiWidget);
+                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -3077,6 +3085,9 @@ class GetOnOffRampProviderResponse$Type extends MessageType<GetOnOffRampProvider
         /* string provider = 1; */
         if (message.provider !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.provider);
+        /* backend.v1.PtiWidget ptiWidget = 2; */
+        if (message.ptiWidget)
+            PtiWidget.internalBinaryWrite(message.ptiWidget, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -11628,7 +11639,6 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "SetKYCStatusPending", options: {}, I: Empty, O: Empty },
     { name: "GetPersonaInquiry", options: {}, I: KYCPersonaInquiryRequest, O: KYCPersonaInquiryResponse },
     { name: "GetKYCProviderWidget", options: {}, I: GetKYCProviderWidgetRequest, O: KYCProviderWidget },
-    { name: "CreateCard", options: {}, I: CreateCardRequest, O: LinkedAccount },
     { name: "GetCardDetails", options: {}, I: GetCardDetailsRequest, O: CardDetails },
     { name: "ListFeatures", options: {}, I: Empty, O: Features },
     { name: "CreateTwitterAuthURL", options: {}, I: Empty, O: CreateTwitterAuthURLResponse },
@@ -11658,6 +11668,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "GetXagoDepositDetails", options: {}, I: GetXagoDepositDetailsRequest, O: GetXagoDepositDetailsResponse },
     { name: "GetPtiBalances", options: {}, I: Empty, O: GetPtiBalancesResponse },
     { name: "CreatePtiToken", options: {}, I: PtiTokenRequest, O: PtiTokenResponse },
+    { name: "CreateCard", options: {}, I: CreateCardRequest, O: LinkedAccount },
     { name: "AstraDepositFromCard", options: {}, I: AstraDepositFromCardRequest, O: Payment },
     { name: "AstraWithdrawToCard", options: {}, I: AstraWithdrawToCardRequest, O: Payment },
     { name: "AstraRequiresOTP", options: {}, I: Empty, O: AstraRequiresOTPResponse },

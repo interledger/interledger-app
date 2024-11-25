@@ -26,16 +26,36 @@ func (s *rpcService) GetOnOffRampProvider(ctx context.Context, req *pb.Empty) (*
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	provider := "fynbos"
 	if country.EUCountries[w.Country] {
-		provider = "gatehub"
+		return &pb.GetOnOffRampProviderResponse{
+			Provider: "gatehub",
+		}, nil
 	} else if country.CA == w.Country {
-		provider = "chimoney"
+		return &pb.GetOnOffRampProviderResponse{
+			Provider: "chimoney",
+		}, nil
+	} else if country.US == w.Country {
+		data, err := s.b.PTI().GetWidget(ctx, w.ID)
+		if err != nil {
+			return nil, toGRPCError(err)
+		}
+		return &pb.GetOnOffRampProviderResponse{
+			Provider: "pti",
+			PtiWidget: &pb.PtiWidget{
+				ScenarioId:        pti.ScenarioDeposit,
+				UserId:            data.UserID,
+				RequestId:         data.RequestID,
+				ClientId:          data.ClientID,
+				GenerateTokenPath: data.GenerateTokenPath,
+				SdkUrl:            data.SdkUrl,
+				FormsUrl:          data.FormsUrl,
+			},
+		}, nil
+	} else {
+		return &pb.GetOnOffRampProviderResponse{
+			Provider: "fynbos",
+		}, nil
 	}
-
-	return &pb.GetOnOffRampProviderResponse{
-		Provider: provider,
-	}, nil
 }
 
 func (s *rpcService) DepositBalance(ctx context.Context, req *pb.TransferBalanceRequest) (*pb.Payment, error) {
