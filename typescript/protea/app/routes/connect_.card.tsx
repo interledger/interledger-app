@@ -64,19 +64,29 @@ export default function Page() {
 
   useEffect(() => {
     if (scriptStatus == 'ready' && typeof (window as any).PTI !== 'undefined') {
-      ;(window as any).PTI.init({
-        clientId: widget?.clientId,
-        generateTokenPath: widget?.generateTokenPath,
-        ptiFormsUrl: widget?.formsUrl || 'https://forms.platform.fiant.io'
-      })
-      ;(window as any).PTI.form({
-        type: 'ADD_CC',
-        requestId: widget?.requestId,
-        userId: widget?.userId,
-        scenarioId: widget?.scenarioId,
-        parentElement: document.getElementById('card_form'),
-        lang: 'en'
-      })
+      const styling = {
+        mode: window.matchMedia('(prefers-color-scheme: dark)').matches
+          ? 'dark'
+          : 'light',
+        primaryColor: '#3b82f6',
+        backgroundColor: '#f8fafc',
+        fontFamily: 'Poppins'
+      }
+
+        ; (window as any).PTI.init({
+          clientId: widget?.clientId,
+          generateTokenPath: widget?.generateTokenPath,
+          ptiFormsUrl: widget?.formsUrl || 'https://forms.platform.fiant.io'
+        })
+        ; (window as any).PTI.form({
+          type: 'ADD_CC',
+          requestId: widget?.requestId,
+          userId: widget?.userId,
+          scenarioId: widget?.scenarioId,
+          parentElement: document.getElementById('card_form'),
+          lang: 'en',
+          styleConfig: styling
+        })
       setLoading(false)
     }
 
