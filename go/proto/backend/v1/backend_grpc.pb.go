@@ -76,7 +76,6 @@ const (
 	BackendService_SetKYCStatusPending_FullMethodName            = "/backend.v1.BackendService/SetKYCStatusPending"
 	BackendService_GetPersonaInquiry_FullMethodName              = "/backend.v1.BackendService/GetPersonaInquiry"
 	BackendService_GetKYCProviderWidget_FullMethodName           = "/backend.v1.BackendService/GetKYCProviderWidget"
-	BackendService_CreateCard_FullMethodName                     = "/backend.v1.BackendService/CreateCard"
 	BackendService_GetCardDetails_FullMethodName                 = "/backend.v1.BackendService/GetCardDetails"
 	BackendService_ListFeatures_FullMethodName                   = "/backend.v1.BackendService/ListFeatures"
 	BackendService_CreateTwitterAuthURL_FullMethodName           = "/backend.v1.BackendService/CreateTwitterAuthURL"
@@ -106,6 +105,7 @@ const (
 	BackendService_GetXagoDepositDetails_FullMethodName          = "/backend.v1.BackendService/GetXagoDepositDetails"
 	BackendService_GetPtiBalances_FullMethodName                 = "/backend.v1.BackendService/GetPtiBalances"
 	BackendService_CreatePtiToken_FullMethodName                 = "/backend.v1.BackendService/CreatePtiToken"
+	BackendService_CreateCard_FullMethodName                     = "/backend.v1.BackendService/CreateCard"
 	BackendService_AstraDepositFromCard_FullMethodName           = "/backend.v1.BackendService/AstraDepositFromCard"
 	BackendService_AstraWithdrawToCard_FullMethodName            = "/backend.v1.BackendService/AstraWithdrawToCard"
 	BackendService_AstraRequiresOTP_FullMethodName               = "/backend.v1.BackendService/AstraRequiresOTP"
@@ -199,7 +199,6 @@ type BackendServiceClient interface {
 	GetPersonaInquiry(ctx context.Context, in *KYCPersonaInquiryRequest, opts ...grpc.CallOption) (*KYCPersonaInquiryResponse, error)
 	GetKYCProviderWidget(ctx context.Context, in *GetKYCProviderWidgetRequest, opts ...grpc.CallOption) (*KYCProviderWidget, error)
 	// Basistheory
-	CreateCard(ctx context.Context, in *CreateCardRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
 	GetCardDetails(ctx context.Context, in *GetCardDetailsRequest, opts ...grpc.CallOption) (*CardDetails, error)
 	// Features
 	ListFeatures(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Features, error)
@@ -240,6 +239,7 @@ type BackendServiceClient interface {
 	// Pti
 	GetPtiBalances(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetPtiBalancesResponse, error)
 	CreatePtiToken(ctx context.Context, in *PtiTokenRequest, opts ...grpc.CallOption) (*PtiTokenResponse, error)
+	CreateCard(ctx context.Context, in *CreateCardRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
 	// Astra
 	AstraDepositFromCard(ctx context.Context, in *AstraDepositFromCardRequest, opts ...grpc.CallOption) (*Payment, error)
 	AstraWithdrawToCard(ctx context.Context, in *AstraWithdrawToCardRequest, opts ...grpc.CallOption) (*Payment, error)
@@ -783,15 +783,6 @@ func (c *backendServiceClient) GetKYCProviderWidget(ctx context.Context, in *Get
 	return out, nil
 }
 
-func (c *backendServiceClient) CreateCard(ctx context.Context, in *CreateCardRequest, opts ...grpc.CallOption) (*LinkedAccount, error) {
-	out := new(LinkedAccount)
-	err := c.cc.Invoke(ctx, BackendService_CreateCard_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *backendServiceClient) GetCardDetails(ctx context.Context, in *GetCardDetailsRequest, opts ...grpc.CallOption) (*CardDetails, error) {
 	out := new(CardDetails)
 	err := c.cc.Invoke(ctx, BackendService_GetCardDetails_FullMethodName, in, out, opts...)
@@ -1053,6 +1044,15 @@ func (c *backendServiceClient) CreatePtiToken(ctx context.Context, in *PtiTokenR
 	return out, nil
 }
 
+func (c *backendServiceClient) CreateCard(ctx context.Context, in *CreateCardRequest, opts ...grpc.CallOption) (*LinkedAccount, error) {
+	out := new(LinkedAccount)
+	err := c.cc.Invoke(ctx, BackendService_CreateCard_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *backendServiceClient) AstraDepositFromCard(ctx context.Context, in *AstraDepositFromCardRequest, opts ...grpc.CallOption) (*Payment, error) {
 	out := new(Payment)
 	err := c.cc.Invoke(ctx, BackendService_AstraDepositFromCard_FullMethodName, in, out, opts...)
@@ -1272,7 +1272,6 @@ type BackendServiceServer interface {
 	GetPersonaInquiry(context.Context, *KYCPersonaInquiryRequest) (*KYCPersonaInquiryResponse, error)
 	GetKYCProviderWidget(context.Context, *GetKYCProviderWidgetRequest) (*KYCProviderWidget, error)
 	// Basistheory
-	CreateCard(context.Context, *CreateCardRequest) (*LinkedAccount, error)
 	GetCardDetails(context.Context, *GetCardDetailsRequest) (*CardDetails, error)
 	// Features
 	ListFeatures(context.Context, *Empty) (*Features, error)
@@ -1313,6 +1312,7 @@ type BackendServiceServer interface {
 	// Pti
 	GetPtiBalances(context.Context, *Empty) (*GetPtiBalancesResponse, error)
 	CreatePtiToken(context.Context, *PtiTokenRequest) (*PtiTokenResponse, error)
+	CreateCard(context.Context, *CreateCardRequest) (*LinkedAccount, error)
 	// Astra
 	AstraDepositFromCard(context.Context, *AstraDepositFromCardRequest) (*Payment, error)
 	AstraWithdrawToCard(context.Context, *AstraWithdrawToCardRequest) (*Payment, error)
@@ -1510,9 +1510,6 @@ func (UnimplementedBackendServiceServer) GetPersonaInquiry(context.Context, *KYC
 func (UnimplementedBackendServiceServer) GetKYCProviderWidget(context.Context, *GetKYCProviderWidgetRequest) (*KYCProviderWidget, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetKYCProviderWidget not implemented")
 }
-func (UnimplementedBackendServiceServer) CreateCard(context.Context, *CreateCardRequest) (*LinkedAccount, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateCard not implemented")
-}
 func (UnimplementedBackendServiceServer) GetCardDetails(context.Context, *GetCardDetailsRequest) (*CardDetails, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCardDetails not implemented")
 }
@@ -1599,6 +1596,9 @@ func (UnimplementedBackendServiceServer) GetPtiBalances(context.Context, *Empty)
 }
 func (UnimplementedBackendServiceServer) CreatePtiToken(context.Context, *PtiTokenRequest) (*PtiTokenResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreatePtiToken not implemented")
+}
+func (UnimplementedBackendServiceServer) CreateCard(context.Context, *CreateCardRequest) (*LinkedAccount, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateCard not implemented")
 }
 func (UnimplementedBackendServiceServer) AstraDepositFromCard(context.Context, *AstraDepositFromCardRequest) (*Payment, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AstraDepositFromCard not implemented")
@@ -2686,24 +2686,6 @@ func _BackendService_GetKYCProviderWidget_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BackendService_CreateCard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateCardRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).CreateCard(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: BackendService_CreateCard_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).CreateCard(ctx, req.(*CreateCardRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _BackendService_GetCardDetails_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetCardDetailsRequest)
 	if err := dec(in); err != nil {
@@ -3222,6 +3204,24 @@ func _BackendService_CreatePtiToken_Handler(srv interface{}, ctx context.Context
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BackendServiceServer).CreatePtiToken(ctx, req.(*PtiTokenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_CreateCard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateCardRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).CreateCard(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_CreateCard_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).CreateCard(ctx, req.(*CreateCardRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -3750,10 +3750,6 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _BackendService_GetKYCProviderWidget_Handler,
 		},
 		{
-			MethodName: "CreateCard",
-			Handler:    _BackendService_CreateCard_Handler,
-		},
-		{
 			MethodName: "GetCardDetails",
 			Handler:    _BackendService_GetCardDetails_Handler,
 		},
@@ -3868,6 +3864,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreatePtiToken",
 			Handler:    _BackendService_CreatePtiToken_Handler,
+		},
+		{
+			MethodName: "CreateCard",
+			Handler:    _BackendService_CreateCard_Handler,
 		},
 		{
 			MethodName: "AstraDepositFromCard",

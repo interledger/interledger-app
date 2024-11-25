@@ -22,6 +22,8 @@ import {
   fynbosDepositLoader
 } from './fynbos'
 import { GatehubDepositPage, gatehubDepositLoader } from './gatehub'
+import { jsonWithCSRF } from '~/lib/csrf.server'
+import PtiDepositPage from './pti'
 
 export async function loader(args: LoaderFunctionArgs) {
   const providerResponse = await grpc.getOnOffRampProvider(args.request, {})
@@ -31,6 +33,11 @@ export async function loader(args: LoaderFunctionArgs) {
     return gatehubDepositLoader(args)
   } else if (providerResponse.provider == 'chimoney') {
     return chimoneyDepositLoader(args)
+  } else if (providerResponse.provider == 'pti') {
+    return jsonWithCSRF(args.request, {
+      provider: 'pti',
+      ptiWidget: providerResponse.ptiWidget
+    })
   } else return fynbosDepositLoader(args)
 }
 
@@ -61,6 +68,8 @@ export default function Page() {
     return <GatehubDepositPage />
   } else if (provider == 'chimoney') {
     return <ChimoneyDepositPage />
+  } else if (provider == 'pti') {
+    return <PtiDepositPage />
   } else return <FynbosDepositPage />
 }
 

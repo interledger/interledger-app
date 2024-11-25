@@ -219,6 +219,7 @@ message CreateGatehubWithdrawalResponse {
 
 message GetOnOffRampProviderResponse {
   string provider = 1;
+  PtiWidget ptiWidget = 2;
 }
 
 message GetKYCProviderWidgetRequest {
