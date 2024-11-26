@@ -12,9 +12,7 @@
     "routes-gen": "routes-gen -d @routes-gen/remix",
     "build:css": "tailwindcss -m -i ./styles/app.css -o app/styles/app.css",
     "dev:css": "tailwindcss -w -i ./styles/app.css -o app/styles/app.css",
-    "precommit": "pnpm format && pnpm lint && pnpm routes-gen && pnpm build",
-    "test": "playwright test",
-    "test:report": "playwright show-report"
+    "precommit": "pnpm format && pnpm lint && pnpm routes-gen && pnpm build"
   },
   "dependencies": {
     "@grpc/grpc-js": "^1.8.14",
