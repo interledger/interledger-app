@@ -7,7 +7,6 @@ import (
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
-	"gitlab.com/fynbos/backend/providers/basistheory"
 	"gitlab.com/fynbos/backend/rafiki"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/user"
@@ -19,7 +18,6 @@ type Backends interface {
 	Users() user.Client
 	Keys() keys.Client
 	KYC() kyc.Client
-	BasisTheory() basistheory.Client
 	Wallets() wallets.Client
 	Transactions() transactions.Client
 	Rafiki() rafiki.Client

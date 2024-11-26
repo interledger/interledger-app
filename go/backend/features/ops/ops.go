@@ -9,8 +9,8 @@ import (
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 
-	"gitlab.com/fynbos/backend/providers/astra"
 	"gitlab.com/fynbos/backend/providers/chimoney"
+	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/providers/xago"
 
 	"gitlab.com/fynbos/backend/kyc"
@@ -140,8 +140,8 @@ func canAddCards(ctx context.Context, b Backends, lal []linkedaccounts.LinkedAcc
 			continue
 		}
 
-		if la.Provider == astra.ProviderName &&
-			la.Type == astra.TypeCard {
+		if la.Provider == pti.ProviderName &&
+			la.Type == pti.TypeCard {
 			cnt++
 		}
 	}

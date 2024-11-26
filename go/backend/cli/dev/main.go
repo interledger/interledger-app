@@ -5,17 +5,12 @@ import (
 	"log"
 	"os"
 
-	"gitlab.com/fynbos/backend/providers/basistheory"
-	bt_client "gitlab.com/fynbos/backend/providers/basistheory/client"
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	gh_client "gitlab.com/fynbos/backend/providers/gatehub/client"
 	"gitlab.com/fynbos/backend/providers/pti"
 	pti_client "gitlab.com/fynbos/backend/providers/pti/client"
 	"gitlab.com/fynbos/pacioli"
 	pacioli_client "gitlab.com/fynbos/pacioli/client"
-
-	"gitlab.com/fynbos/backend/providers/astra"
-	astra_client "gitlab.com/fynbos/backend/providers/astra/client"
 
 	"gitlab.com/fynbos/backend/limits"
 
@@ -146,8 +141,6 @@ type backends struct {
 	img            images.Client
 	walletImpl     wallets.Client
 	pay            payments.Client
-	astra          astra.Client
-	bt             basistheory.Client
 	pc             pacioli.Client
 	pcDB           *sqlx.DB
 	pti            pti.Client
@@ -176,13 +169,6 @@ func (b *backends) Limits() limits.Client {
 	return nil
 }
 
-func (b *backends) Astra() astra.Client {
-	if b.astra == nil {
-		b.astra = astra_client.New(b)
-	}
-	return b.astra
-}
-
 func (b *backends) PacioliDB() *sqlx.DB {
 	if b.pcDB == nil {
 		db, err := sqlx.Connect("postgres", "postgres://roach:roach@crdb.fynbos.test:26256/pacioli")
@@ -200,13 +186,6 @@ func (b *backends) Pacioli() pacioli.Client {
 		b.pc = pacioli_client.NewLocal(b.PacioliDB())
 	}
 	return b.pc
-}
-
-func (b *backends) BasisTheory() basistheory.Client {
-	if b.bt == nil {
-		b.bt = bt_client.New("", b)
-	}
-	return b.bt
 }
 
 func (b *backends) Xago() xago.Client {

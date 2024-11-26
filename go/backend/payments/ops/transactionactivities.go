@@ -6,8 +6,6 @@ import (
 
 	"gitlab.com/fynbos/backend/providers/pti"
 
-	"gitlab.com/fynbos/backend/providers/astra"
-
 	"gitlab.com/fynbos/backend/providers/xago"
 
 	"gitlab.com/fynbos/backend/payments"
@@ -124,7 +122,7 @@ func (a *Activity) AddWithdrawalTransfer(ctx context.Context, paymentID string) 
 	}
 
 	typ := transactions.TransferTypeCreditBankAccount
-	if la.Provider == astra.ProviderName {
+	if la.Provider == pti.ProviderName && la.Type == pti.TypeCard {
 		typ = transactions.TransferTypeCreditCard
 	}
 
@@ -154,7 +152,7 @@ func (a *Activity) AddDepositTransfer(ctx context.Context, paymentID string) err
 		return err
 	}
 
-	if la.Provider == astra.ProviderName {
+	if la.Provider == pti.ProviderName && la.Type == pti.TypeCard {
 		return nil
 	}
 

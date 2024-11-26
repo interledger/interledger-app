@@ -16,8 +16,6 @@ import (
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/notify"
 	"gitlab.com/fynbos/backend/payments"
-	"gitlab.com/fynbos/backend/providers/astra"
-	"gitlab.com/fynbos/backend/providers/basistheory"
 	"gitlab.com/fynbos/backend/providers/chimoney"
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	"gitlab.com/fynbos/backend/providers/pti"
@@ -49,7 +47,6 @@ type Backends interface {
 	Analytics() analytics.Client
 	Contacts() contacts.Client
 	Keys() keys.Client
-	BasisTheory() basistheory.Client
 	Limits() limits.Client
 	Identities() identities.Client
 	Images() images.Client
@@ -61,7 +58,6 @@ type Backends interface {
 	Rafiki() rafiki.Client
 	Xago() xago.Client
 	Pacioli() pacioli.Client
-	Astra() astra.Client
 	PTI() pti.Client
 	Signup() signup.Client
 	Gatehub() gatehub.Client
