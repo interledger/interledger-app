@@ -87,7 +87,7 @@ type Balance struct {
 
 type TokenArgs = external.TokenArgs
 type TokenResponse = external.TokenResponse
-
+type EncryptedCreditCardPaymentInformation = external.EncryptedCreditCardPaymentInformation
 type WidgetDetails = struct {
 	ScenarioID        string
 	RequestID         string

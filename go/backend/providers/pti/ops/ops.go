@@ -7,10 +7,12 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/currency"
+	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/providers/pti/external"
 	"gitlab.com/fynbos/backend/providers/xago"
@@ -539,4 +541,38 @@ func CreateCard(ctx context.Context, b Backends, walletID, tokenID string) (pti.
 	}
 
 	return await.Get, nil
+}
+
+func GetLinkedAccountCardDetails(ctx context.Context, b Backends, ex external.Client, id string) (*pti.EncryptedCreditCardPaymentInformation, error) {
+	la, err := b.LinkedAccounts().Get(ctx, id)
+	if errors.Is(err, linkedaccounts.ErrNotFound) {
+		return nil, fmt.Errorf("%w %s", pti.ErrNotFound, err)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+
+	ptiUser, err := GetUser(ctx, b, la.WalletID)
+	if err != nil {
+		return nil, err
+	}
+
+	details, err := ex.GetUsersPaymentInformation(ctx, ptiUser.ExternalID, la.ProviderID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+
+	var card external.EncryptedCreditCardPaymentInformation
+	err = json.Unmarshal(details, &card)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+
+	network := card.CreditCardType
+	if len(network) > 0 {
+		network = strings.ToUpper(network[0:1]) + network[1:]
+	}
+	card.CreditCardType = network
+
+	return &card, nil
 }

@@ -141,6 +141,21 @@ func (mr *MockClientMockRecorder) GetBalance(ctx, linkedAccountID interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBalance", reflect.TypeOf((*MockClient)(nil).GetBalance), ctx, linkedAccountID)
 }
 
+// GetLinkedAccountCardDetails mocks base method.
+func (m *MockClient) GetLinkedAccountCardDetails(ctx context.Context, id string) (*pti.EncryptedCreditCardPaymentInformation, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetLinkedAccountCardDetails", ctx, id)
+	ret0, _ := ret[0].(*pti.EncryptedCreditCardPaymentInformation)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetLinkedAccountCardDetails indicates an expected call of GetLinkedAccountCardDetails.
+func (mr *MockClientMockRecorder) GetLinkedAccountCardDetails(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLinkedAccountCardDetails", reflect.TypeOf((*MockClient)(nil).GetLinkedAccountCardDetails), ctx, id)
+}
+
 // GetWallet mocks base method.
 func (m *MockClient) GetWallet(ctx context.Context, linkedAccountID string) (*pti.Wallet, error) {
 	m.ctrl.T.Helper()
