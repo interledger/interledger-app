@@ -15,8 +15,6 @@ import (
 	"strings"
 	"time"
 
-	"gitlab.com/fynbos/backend/providers/astra"
-
 	"github.com/google/uuid"
 	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwk"
@@ -991,11 +989,10 @@ func (c client) WalletDeposit(ctx context.Context, args DepositArgs) (string, er
 		SourceMethod: SourceMethod{
 			Currency: args.Amount.Currency.String(),
 			PaymentInformation: PaymentInformation{
-				Type:              "BANK_ACCOUNT",
-				BankAccountNumber: astra.AccountNumber(),
-				BankRoutingNumber: astra.RoutingNumber(),
+				Type: "ENCRYPTED_CREDIT_CARD",
+				ID:   args.ExternalCardID,
 			},
-			PaymentMethodType: "FIAT",
+			PaymentMethodType: "CREDIT_CARD",
 		},
 		DestinationMethod: DestinationMethod{
 			PaymentMethodType: "WALLET",
@@ -1090,10 +1087,10 @@ func (c client) WalletWithdrawal(ctx context.Context, args WithdrawalArgs) (stri
 			PaymentMethodType: "WALLET",
 		},
 		DestinationMethod: WithdrawalDestinationMethod{
-			PaymentMethodType: "FIAT",
+			PaymentMethodType: "CREDIT_CARD",
 			PaymentInformation: PaymentInformation{
-				Type:              "BANK_ACCOUNT",
-				BankAccountNumber: astra.AccountNumber(),
+				Type: "ENCRYPTED_CREDIT_CARD",
+				ID:   args.ExternalCardID,
 			},
 		},
 		Amount:    args.Amount.Float64(),
