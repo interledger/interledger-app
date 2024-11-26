@@ -132,3 +132,7 @@ func (c Client) GetWidget(ctx context.Context, walletID string) (*pti.WidgetDeta
 func (c Client) CreateCard(ctx context.Context, walletID, tokenID string) (pti.Await, error) {
 	return ops.CreateCard(ctx, c.b, walletID, tokenID)
 }
+
+func (c Client) GetLinkedAccountCardDetails(ctx context.Context, id string) (*pti.EncryptedCreditCardPaymentInformation, error) {
+	return ops.GetLinkedAccountCardDetails(ctx, c.b, c.external, id)
+}

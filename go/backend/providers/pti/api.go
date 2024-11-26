@@ -25,4 +25,5 @@ type Client interface {
 	CreateJWT(ctx context.Context, args TokenArgs) (*TokenResponse, error)
 	GetWidget(ctx context.Context, walletID string) (*WidgetDetails, error)
 	CreateCard(ctx context.Context, walletID, tokenID string) (Await, error)
+	GetLinkedAccountCardDetails(ctx context.Context, id string) (*EncryptedCreditCardPaymentInformation, error)
 }
