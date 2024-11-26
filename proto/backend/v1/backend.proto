@@ -152,11 +152,6 @@ service BackendService {
   rpc CreatePtiToken(PtiTokenRequest) returns (PtiTokenResponse);
   rpc CreateCard(CreateCardRequest) returns (LinkedAccount);
 
-  // Astra
-  rpc AstraDepositFromCard(AstraDepositFromCardRequest) returns (Payment);
-  rpc AstraWithdrawToCard(AstraWithdrawToCardRequest) returns (Payment);
-  rpc AstraRequiresOTP(Empty) returns (AstraRequiresOTPResponse);
-
   // Rafiki
   rpc ListRafikiGrants(Empty) returns (ListRafikiGrantsResponse);
   rpc GetRafikiGrant(GetRafikiGrantRequest) returns (RafikiGrant);
@@ -202,10 +197,6 @@ message ChimoneyInterlocEmail {
 
 message SetChimoneyInterlocEmailRequest {
   string email = 1;
-}
-
-message AstraRequiresOTPResponse {
-  bool isRequired = 1;
 }
 
 message CreateGatehubWithdrawalRequest {
@@ -283,20 +274,6 @@ message RafikiLimits {
   Amount receiveAmount = 4;
   string formattedDebitAmount = 5;
   string formattdReceiveAmount = 6;
-}
-
-message AstraDepositFromCardRequest {
-  string fromLinkedAccount = 1; // Astra Card
-  string toLinkedAccount = 2; // PTI Balance
-  Amount amount = 3;
-  string note = 4;
-}
-
-message AstraWithdrawToCardRequest {
-  string fromLinkedAccount = 1; // PTI Balance
-  string toLinkedAccount = 2; // Astra Card
-  Amount amount = 3;
-  string note = 4;
 }
 
 message GetLinkedAccountsForTransferRequest {

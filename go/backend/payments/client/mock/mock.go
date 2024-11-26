@@ -110,20 +110,6 @@ func (mr *MockClientMockRecorder) SignalAccountLinked(ctx, walletID interface{})
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignalAccountLinked", reflect.TypeOf((*MockClient)(nil).SignalAccountLinked), ctx, walletID)
 }
 
-// SignalAstraTransferUpdate mocks base method.
-func (m *MockClient) SignalAstraTransferUpdate(ctx context.Context, correlation string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SignalAstraTransferUpdate", ctx, correlation)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// SignalAstraTransferUpdate indicates an expected call of SignalAstraTransferUpdate.
-func (mr *MockClientMockRecorder) SignalAstraTransferUpdate(ctx, correlation interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignalAstraTransferUpdate", reflect.TypeOf((*MockClient)(nil).SignalAstraTransferUpdate), ctx, correlation)
-}
-
 // SignalExternalPayoutComplete mocks base method.
 func (m *MockClient) SignalExternalPayoutComplete(ctx context.Context, id string, success bool) error {
 	m.ctrl.T.Helper()

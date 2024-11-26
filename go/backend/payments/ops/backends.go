@@ -5,7 +5,6 @@ import (
 
 	"gitlab.com/fynbos/backend/providers/chimoney"
 
-	"gitlab.com/fynbos/backend/providers/astra"
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	"gitlab.com/fynbos/backend/providers/pti"
 	pti_mock "gitlab.com/fynbos/backend/providers/pti/client/mock"
@@ -47,7 +46,6 @@ type Backends interface {
 	Rafiki() rafiki.Client
 	Xago() xago.Client
 	Limits() limits.Client
-	Astra() astra.Client
 	PTI() pti.Client
 	Gatehub() gatehub.Client
 	Chimoney() chimoney.Client
@@ -77,10 +75,6 @@ func (t TestBackends) Gatehub() gatehub.Client {
 
 func (t TestBackends) PTI() pti.Client {
 	return t.Pti
-}
-
-func (t TestBackends) Astra() astra.Client {
-	return nil
 }
 
 func (t TestBackends) Limits() limits.Client {

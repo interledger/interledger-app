@@ -9,8 +9,6 @@ import (
 
 	"gitlab.com/fynbos/backend/providers/pti"
 
-	"gitlab.com/fynbos/backend/providers/astra"
-
 	"gitlab.com/fynbos/pacioli"
 
 	"gitlab.com/fynbos/backend/country"
@@ -203,14 +201,14 @@ func TestClient(t *testing.T) {
 			},
 		},
 		{
-			Name: "Golden path astra to pti deposit",
+			Name: "Golden path pti deposit",
 			Args: payments.CreateArgs{
 				Type: payments.TypeDeposit,
 				Sender: payments.Identity{
 					Type:       payments.IdentityTypeWalletID,
 					Identifier: sendWallet.walletID,
 				},
-				SenderAccount: sendWallet.astraLinkedAcc,
+				SenderAccount: sendWallet.ptiCardLinkedAcc,
 				Receiver: payments.Identity{
 					Type:       payments.IdentityTypeWalletID,
 					Identifier: sendWallet.walletID,
@@ -236,7 +234,7 @@ func TestClient(t *testing.T) {
 			},
 		},
 		{
-			Name: "Golden path pti to astra withdrawal",
+			Name: "Golden path pti withdrawal",
 			Args: payments.CreateArgs{
 				Type: payments.TypeWithdrawal,
 				Sender: payments.Identity{
@@ -248,7 +246,7 @@ func TestClient(t *testing.T) {
 					Type:       payments.IdentityTypeWalletID,
 					Identifier: sendWallet.walletID,
 				},
-				ReceiverAccount: sendWallet.astraLinkedAcc,
+				ReceiverAccount: sendWallet.ptiCardLinkedAcc,
 				SenderAmount:    currency.FromUInt64(10000, currency.USD),
 				ReceiverAmount:  currency.FromUInt64(10000, currency.USD),
 				IPAddress:       "192.36.8.4",
@@ -440,7 +438,7 @@ type testWallet struct {
 	walletID          string
 	xagoZARLinkedAcc  string
 	xagoBankLinkedAcc string
-	astraLinkedAcc    string
+	ptiCardLinkedAcc  string
 	ptiUSDLinkedAcc   string
 }
 
@@ -526,25 +524,16 @@ func createTestWallet(t *testing.T, b *TestBackends) testWallet {
 	})
 	require.NoError(t, err)
 
-	// Astra Intent
-	_, err = b.DB().Exec("INSERT INTO astra_user_intents (intent_id, wallet_id, user_id, status) VALUES ($1, $2, $3, 'unknown')", uuid.NewString(), walletID, uuid.NewString())
-	require.NoError(t, err)
-	// Astra Intent Business account
-	_, err = b.DB().Exec("INSERT INTO astra_user_intents (intent_id, wallet_id, user_id, status) VALUES ($1, $2, $3, 'verified') ON CONFLICT DO NOTHING", uuid.NewString(), wallets.AstraBusinessWalletID, uuid.NewString())
-	require.NoError(t, err)
-	// Astra account
-	_, err = b.DB().Exec("INSERT INTO astra_accounts(wallet_id, account_id) VALUES ($1, $2) ON CONFLICT DO NOTHING", wallets.AstraBusinessWalletID, uuid.NewString())
-	require.NoError(t, err)
 	// PTI user
 	_, err = b.DB().Exec(" INSERT INTO pti_users(external_id, wallet_id, status, assessment_status) VALUES ($1, $2, 'confirmed', 'confirmed')", uuid.NewString(), walletID)
 	require.NoError(t, err)
 
-	astraCard, err := b.LinkedAccounts().Create(context.Background(), &linkedaccounts.CreateArgs{
+	ptiCard, err := b.LinkedAccounts().Create(context.Background(), &linkedaccounts.CreateArgs{
 		WalletID:        wallet.ID,
-		Name:            "astra card",
-		Provider:        astra.ProviderName,
+		Name:            "pti card",
+		Provider:        pti.ProviderName,
 		ProviderID:      uuid.NewString(),
-		Type:            astra.TypeCard,
+		Type:            pti.TypeCard,
 		CanSend:         false,
 		CanReceive:      false,
 		State:           linkedaccounts.Verified,
@@ -601,7 +590,7 @@ func createTestWallet(t *testing.T, b *TestBackends) testWallet {
 		walletID:          walletID,
 		xagoZARLinkedAcc:  xBalance.ID,
 		xagoBankLinkedAcc: xBank.ID,
-		astraLinkedAcc:    astraCard.ID,
+		ptiCardLinkedAcc:  ptiCard.ID,
 		ptiUSDLinkedAcc:   ptiBal.ID,
 	}
 }
