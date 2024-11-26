@@ -162,6 +162,7 @@ type (
 	}
 
 	PaymentInformation struct {
+		ID                string `json:"id,omitempty"`
 		Type              string `json:"type"` // BANK_ACCOUNT, ENCRYPTED_CREDIT_CARD, TOKEN, WALLET
 		Currency          string `json:"currency,omitempty"`
 		BillingEmail      string `json:"billingEmail,omitempty"`
@@ -199,6 +200,7 @@ type (
 		UserID           string `json:"-"`
 		SessionID        string `json:"-"`
 		ExternalWalletID string
+		ExternalCardID   string
 		Amount           currency.Amount
 	}
 	WithdrawalArgs struct {
@@ -207,6 +209,7 @@ type (
 		UserID           string `json:"-"`
 		SessionID        string `json:"-"`
 		ExternalWalletID string
+		ExternalCardID   string
 		Amount           currency.Amount
 	}
 

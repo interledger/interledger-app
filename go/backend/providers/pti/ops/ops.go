@@ -185,12 +185,31 @@ func DepositToWallet(ctx context.Context, b Backends, ec external.Client, args p
 		return "", err
 	}
 
-	la, err := b.LinkedAccounts().Get(ctx, args.LinkedAccountID)
+	las, err := b.LinkedAccounts().ListByWalletId(ctx, args.WalletID)
 	if err != nil {
 		return "", fmt.Errorf("%w %s", pti.ErrInternal, err)
 	}
-	if la.Provider != pti.ProviderName || la.WalletID != args.WalletID {
-		return "", pti.ErrNotFound
+
+	var balance *linkedaccounts.LinkedAccount
+	for _, la := range las {
+		if la.Provider == pti.ProviderName && la.Type == pti.AccTypeBalance {
+			balance = &la
+			break
+		}
+	}
+
+	var card *linkedaccounts.LinkedAccount
+	for _, la := range las {
+		if la.Provider == pti.ProviderName && la.Type == pti.TypeCard && la.ID == args.LinkedAccountID {
+			card = &la
+			break
+		}
+	}
+	if balance == nil {
+		return "", fmt.Errorf("%w balance account not found", pti.ErrNotFound)
+	}
+	if card == nil {
+		return "", fmt.Errorf("%w source account not found", pti.ErrNotFound)
 	}
 
 	txID, err := ec.WalletDeposit(ctx, external.DepositArgs{
@@ -198,7 +217,8 @@ func DepositToWallet(ctx context.Context, b Backends, ec external.Client, args p
 		ScenarioID:       pti.ScenarioDeposit,
 		SessionID:        args.PaymentID,
 		UserID:           externalUser.ExternalID,
-		ExternalWalletID: la.ProviderID,
+		ExternalWalletID: balance.ProviderID,
+		ExternalCardID:   card.ProviderID,
 		Amount:           args.Amount,
 	})
 	if errors.Is(err, external.ErrUnprocessableEntity) {
@@ -217,12 +237,31 @@ func WithdrawFromWallet(ctx context.Context, b Backends, ec external.Client, arg
 		return "", err
 	}
 
-	la, err := b.LinkedAccounts().Get(ctx, args.LinkedAccountID)
+	las, err := b.LinkedAccounts().ListByWalletId(ctx, args.WalletID)
 	if err != nil {
 		return "", fmt.Errorf("%w %s", pti.ErrInternal, err)
 	}
-	if la.Provider != pti.ProviderName || la.WalletID != args.WalletID {
-		return "", pti.ErrNotFound
+
+	var balance *linkedaccounts.LinkedAccount
+	for _, la := range las {
+		if la.Provider == pti.ProviderName && la.Type == pti.AccTypeBalance {
+			balance = &la
+			break
+		}
+	}
+
+	var card *linkedaccounts.LinkedAccount
+	for _, la := range las {
+		if la.Provider == pti.ProviderName && la.Type == pti.TypeCard && la.ID == args.LinkedAccountID {
+			card = &la
+			break
+		}
+	}
+	if balance == nil {
+		return "", fmt.Errorf("%w balance account not found", pti.ErrNotFound)
+	}
+	if card == nil {
+		return "", fmt.Errorf("%w source account not found", pti.ErrNotFound)
 	}
 
 	txID, err := ec.WalletWithdrawal(ctx, external.WithdrawalArgs{
@@ -230,7 +269,8 @@ func WithdrawFromWallet(ctx context.Context, b Backends, ec external.Client, arg
 		SessionID:        args.PaymentID,
 		ScenarioID:       pti.ScenarioWithdrawal,
 		UserID:           externalUser.ExternalID,
-		ExternalWalletID: la.ProviderID,
+		ExternalWalletID: balance.ProviderID,
+		ExternalCardID:   card.ID,
 		Amount:           args.Amount,
 	})
 	if errors.Is(err, external.ErrUnprocessableEntity) {
