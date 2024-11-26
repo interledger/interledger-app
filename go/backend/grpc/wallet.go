@@ -8,8 +8,6 @@ import (
 
 	"gitlab.com/fynbos/backend/providers/pti"
 
-	"gitlab.com/fynbos/backend/providers/astra"
-
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/providers/xago"
 	"gitlab.com/fynbos/backend/user"
@@ -131,7 +129,7 @@ func (s *rpcService) GetWalletInfo(ctx context.Context, _ *pb.Empty) (*pb.Wallet
 			if la.DeletedAt.Valid {
 				continue
 			}
-			if la.Provider == astra.ProviderName && la.Type == astra.TypeCard {
+			if la.Provider == pti.ProviderName && la.Type == pti.TypeCard {
 				hasCard = true
 			}
 			if la.Provider == xago.ProviderName || (la.Provider == pti.ProviderName && la.Type == pti.AccTypeBalance) {

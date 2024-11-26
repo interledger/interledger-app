@@ -10,7 +10,6 @@ import (
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/limits"
 	"gitlab.com/fynbos/backend/payments"
-	"gitlab.com/fynbos/backend/providers/astra"
 	"gitlab.com/fynbos/backend/user"
 	pb "gitlab.com/fynbos/proto/backend/v1"
 )
@@ -123,7 +122,7 @@ func (s *rpcService) GetLinkedAccountsForDeposit(ctx context.Context, req *pb.Ge
 
 	var las []*pb.LinkedAccountForPayment
 	for _, la := range lal {
-		if balance.Provider == pti.ProviderName && la.Provider == astra.ProviderName && la.Type == astra.TypeCard {
+		if balance.Provider == pti.ProviderName && la.Provider == pti.ProviderName && la.Type == pti.TypeCard {
 			acc := &pb.LinkedAccountForPayment{
 				Details: transformLinkedAccount(la),
 				Enabled: la.CanPay(*balance),
