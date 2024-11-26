@@ -72,20 +72,20 @@ export default function Page() {
         fontFamily: 'Poppins'
       }
 
-      ;(window as any).PTI.init({
-        clientId: widget?.clientId,
-        generateTokenPath: widget?.generateTokenPath,
-        ptiFormsUrl: widget?.formsUrl || 'https://forms.platform.fiant.io'
-      })
-      ;(window as any).PTI.form({
-        type: 'ADD_CC',
-        requestId: widget?.requestId,
-        userId: widget?.userId,
-        scenarioId: widget?.scenarioId,
-        parentElement: document.getElementById('card_form'),
-        lang: 'en',
-        styleConfig: styling
-      })
+        ; (window as any).PTI.init({
+          clientId: widget?.clientId,
+          generateTokenPath: widget?.generateTokenPath,
+          ptiFormsUrl: widget?.formsUrl || 'https://forms.platform.fiant.io'
+        })
+        ; (window as any).PTI.form({
+          type: 'ADD_CC',
+          requestId: widget?.requestId,
+          userId: widget?.userId,
+          scenarioId: widget?.scenarioId,
+          parentElement: document.getElementById('card_form'),
+          lang: 'en',
+          styleConfig: styling
+        })
       setLoading(false)
     }
 
@@ -136,6 +136,7 @@ export async function action({ request }: ActionFunctionArgs) {
     number: 'CardNumber'
   }
 
+  console.log("card token", cardToken)
   let response = await grpc.createCard(
     request,
     { tokenID: cardToken },

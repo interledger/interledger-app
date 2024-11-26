@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/pti"
@@ -82,6 +83,7 @@ func (s *rpcService) CreatePtiToken(ctx context.Context, req *backend.PtiTokenRe
 func (s *rpcService) CreateCard(
 	ctx context.Context, req *pb.CreateCardRequest,
 ) (*pb.LinkedAccount, error) {
+	fmt.Printf("card token %s\n", req.GetTokenID())
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, UnauthenticatedError("Unauthenticated.")
