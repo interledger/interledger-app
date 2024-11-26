@@ -117,17 +117,14 @@ export default function Page() {
 
 export async function action({ request }: ActionFunctionArgs) {
   const form = await request.formData()
-  const cardToken = form.get('tokenId') as string
-
+  const cardToken = String(form.get('tokenId') || '')
+  console.log('cardToken', cardToken)
   await validateCSRFToken(request, form)
 
   const errors = {
-    form: '',
-    number: ''
+    form: ''
   }
-  const mapping = {
-    number: 'CardNumber'
-  }
+  const mapping = {}
 
   let response = await grpc.createCard(
     request,
