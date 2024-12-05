@@ -3104,6 +3104,11 @@ export class WalletInfo extends Message<WalletInfo> {
    */
   exceededLimits = false;
 
+  /**
+   * @generated from field: string country = 11;
+   */
+  country = "";
+
   constructor(data?: PartialMessage<WalletInfo>) {
     super();
     proto3.util.initPartial(data, this);
@@ -3122,6 +3127,7 @@ export class WalletInfo extends Message<WalletInfo> {
     { no: 8, name: "hasWalletAddress", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 9, name: "hasBalances", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 10, name: "exceededLimits", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 11, name: "country", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): WalletInfo {

@@ -174,6 +174,7 @@ func (s *rpcService) GetWalletInfo(ctx context.Context, _ *pb.Empty) (*pb.Wallet
 		HasTransacted:    hasTxs,
 		HasWalletAddress: hasWalletAddress,
 		HasBalances:      hasBalances,
+		Country:          w.Country.String(),
 	}, nil
 }
 
