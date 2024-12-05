@@ -195,22 +195,23 @@ type (
 	}
 
 	DepositArgs struct {
-		RequestID        string `json:"-"`
-		ScenarioID       string `json:"-"`
-		UserID           string `json:"-"`
-		SessionID        string `json:"-"`
-		ExternalWalletID string
-		ExternalCardID   string
-		Amount           currency.Amount
+		RequestID                 string `json:"-"`
+		ScenarioID                string `json:"-"`
+		UserID                    string `json:"-"`
+		SessionID                 string `json:"-"`
+		ExternalWalletID          string
+		ExternalPaymentMethodID   string
+		ExternalPaymentMethodType string // card or bank
+		Amount                    currency.Amount
 	}
 	WithdrawalArgs struct {
-		RequestID        string `json:"-"`
-		ScenarioID       string `json:"-"`
-		UserID           string `json:"-"`
-		SessionID        string `json:"-"`
-		ExternalWalletID string
-		ExternalCardID   string
-		Amount           currency.Amount
+		RequestID             string `json:"-"`
+		ScenarioID            string `json:"-"`
+		UserID                string `json:"-"`
+		SessionID             string `json:"-"`
+		ExternalWalletID      string
+		ExternalBankAccountID string
+		Amount                currency.Amount
 	}
 
 	CreateTxResponse struct {

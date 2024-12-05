@@ -981,6 +981,13 @@ func (c client) WalletDeposit(ctx context.Context, args DepositArgs) (string, er
 		return "", fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
+	sourcePaymentMethodType := "CREDIT_CARD"
+	sourcePaymentInformationType := "ENCRYPTED_CREDIT_CARD"
+	if args.ExternalPaymentMethodType == "bank" {
+		sourcePaymentMethodType = "ACH"
+		sourcePaymentInformationType = "BANK_ACCOUNT"
+	}
+
 	reqArgs := internalCreateDepositArgs{
 		Initiator: User{
 			ID:   args.UserID,
@@ -989,10 +996,10 @@ func (c client) WalletDeposit(ctx context.Context, args DepositArgs) (string, er
 		SourceMethod: SourceMethod{
 			Currency: args.Amount.Currency.String(),
 			PaymentInformation: PaymentInformation{
-				Type: "ENCRYPTED_CREDIT_CARD",
-				ID:   args.ExternalCardID,
+				Type: sourcePaymentInformationType,
+				ID:   args.ExternalPaymentMethodID,
 			},
-			PaymentMethodType: "CREDIT_CARD",
+			PaymentMethodType: sourcePaymentMethodType,
 		},
 		DestinationMethod: DestinationMethod{
 			PaymentMethodType: "WALLET",
@@ -1088,10 +1095,10 @@ func (c client) WalletWithdrawal(ctx context.Context, args WithdrawalArgs) (stri
 		},
 		DestinationMethod: WithdrawalDestinationMethod{
 			Currency:          args.Amount.Currency.String(),
-			PaymentMethodType: "CREDIT_CARD",
+			PaymentMethodType: "ACH",
 			PaymentInformation: PaymentInformation{
-				Type: "ENCRYPTED_CREDIT_CARD",
-				ID:   args.ExternalCardID,
+				Type: "BANK_ACCOUNT",
+				ID:   args.ExternalBankAccountID,
 			},
 		},
 		Amount:    args.Amount.Float64(),

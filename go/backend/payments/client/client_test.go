@@ -246,7 +246,7 @@ func TestClient(t *testing.T) {
 					Type:       payments.IdentityTypeWalletID,
 					Identifier: sendWallet.walletID,
 				},
-				ReceiverAccount: sendWallet.ptiCardLinkedAcc,
+				ReceiverAccount: sendWallet.ptiBankLinkedAcc,
 				SenderAmount:    currency.FromUInt64(10000, currency.USD),
 				ReceiverAmount:  currency.FromUInt64(10000, currency.USD),
 				IPAddress:       "192.36.8.4",
@@ -260,7 +260,7 @@ func TestClient(t *testing.T) {
 						State:        transactions.StateCompleted,
 					},
 					{
-						TransferType: transactions.TransferTypeCreditCard,
+						TransferType: transactions.TransferTypeCreditBankAccount,
 						State:        transactions.StateCompleted,
 					},
 				},
@@ -439,6 +439,7 @@ type testWallet struct {
 	xagoZARLinkedAcc  string
 	xagoBankLinkedAcc string
 	ptiCardLinkedAcc  string
+	ptiBankLinkedAcc  string
 	ptiUSDLinkedAcc   string
 }
 
@@ -544,6 +545,22 @@ func createTestWallet(t *testing.T, b *TestBackends) testWallet {
 	})
 	require.NoError(t, err)
 
+	ptiBankAccount, err := b.LinkedAccounts().Create(context.Background(), &linkedaccounts.CreateArgs{
+		WalletID:        wallet.ID,
+		Name:            "pti bank",
+		Provider:        pti.ProviderName,
+		ProviderID:      uuid.NewString(),
+		Type:            pti.TypeBank,
+		CanSend:         true,
+		CanReceive:      true,
+		State:           linkedaccounts.Verified,
+		SendCountry:     country.US,
+		SendCurrency:    currency.USD,
+		ReceiveCountry:  country.US,
+		ReceiveCurrency: currency.USD,
+	})
+	require.NoError(t, err)
+
 	ptiBal, err := b.LinkedAccounts().Create(context.Background(), &linkedaccounts.CreateArgs{
 		WalletID:        wallet.ID,
 		Name:            "pti balance",
@@ -591,6 +608,7 @@ func createTestWallet(t *testing.T, b *TestBackends) testWallet {
 		xagoZARLinkedAcc:  xBalance.ID,
 		xagoBankLinkedAcc: xBank.ID,
 		ptiCardLinkedAcc:  ptiCard.ID,
+		ptiBankLinkedAcc:  ptiBankAccount.ID,
 		ptiUSDLinkedAcc:   ptiBal.ID,
 	}
 }

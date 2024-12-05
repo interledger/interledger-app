@@ -579,7 +579,7 @@ func validateWithdrawal(ctx context.Context, b Backends, typ payments.Type, send
 		return fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
 	if (!(receiverAcc.Provider == xago.ProviderName && receiverAcc.Type == xago.AccTypeBank) &&
-		!(receiverAcc.Provider == pti.ProviderName && receiverAcc.Type == pti.TypeCard) &&
+		!(receiverAcc.Provider == pti.ProviderName && receiverAcc.Type == pti.TypeBank) &&
 		!(receiverAcc.Provider == chimoney.ProviderName && receiverAcc.Type == chimoney.AccTypeInterac)) ||
 		senderAcc.WalletID != receiverAcc.WalletID {
 		return fmt.Errorf("%w receiver provider(%s) type(%s)", payments.ErrInvalidWithdrawal, receiverAcc.Provider, receiverAcc.Type)
