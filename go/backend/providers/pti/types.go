@@ -12,7 +12,7 @@ const (
 	ProviderName   = "pti"
 	AccTypeBalance = "balance"
 	TypeCard       = "card"
-	TypeBank       = "bank"
+	TypeBank       = "bank_account"
 
 	ScenarioTransfer   = "fynbos_transfer"
 	ScenarioDeposit    = "fynbos_deposit"
