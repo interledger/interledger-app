@@ -106,6 +106,7 @@ const (
 	BackendService_GetPtiBalances_FullMethodName                 = "/backend.v1.BackendService/GetPtiBalances"
 	BackendService_CreatePtiToken_FullMethodName                 = "/backend.v1.BackendService/CreatePtiToken"
 	BackendService_CreateCard_FullMethodName                     = "/backend.v1.BackendService/CreateCard"
+	BackendService_CreatePtiBankAccount_FullMethodName           = "/backend.v1.BackendService/CreatePtiBankAccount"
 	BackendService_ListRafikiGrants_FullMethodName               = "/backend.v1.BackendService/ListRafikiGrants"
 	BackendService_GetRafikiGrant_FullMethodName                 = "/backend.v1.BackendService/GetRafikiGrant"
 	BackendService_RevokeRafikiGrant_FullMethodName              = "/backend.v1.BackendService/RevokeRafikiGrant"
@@ -237,6 +238,7 @@ type BackendServiceClient interface {
 	GetPtiBalances(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetPtiBalancesResponse, error)
 	CreatePtiToken(ctx context.Context, in *PtiTokenRequest, opts ...grpc.CallOption) (*PtiTokenResponse, error)
 	CreateCard(ctx context.Context, in *CreateCardRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
+	CreatePtiBankAccount(ctx context.Context, in *CreatePtiBankAccountRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
 	// Rafiki
 	ListRafikiGrants(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListRafikiGrantsResponse, error)
 	GetRafikiGrant(ctx context.Context, in *GetRafikiGrantRequest, opts ...grpc.CallOption) (*RafikiGrant, error)
@@ -1046,6 +1048,15 @@ func (c *backendServiceClient) CreateCard(ctx context.Context, in *CreateCardReq
 	return out, nil
 }
 
+func (c *backendServiceClient) CreatePtiBankAccount(ctx context.Context, in *CreatePtiBankAccountRequest, opts ...grpc.CallOption) (*LinkedAccount, error) {
+	out := new(LinkedAccount)
+	err := c.cc.Invoke(ctx, BackendService_CreatePtiBankAccount_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *backendServiceClient) ListRafikiGrants(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListRafikiGrantsResponse, error) {
 	out := new(ListRafikiGrantsResponse)
 	err := c.cc.Invoke(ctx, BackendService_ListRafikiGrants_FullMethodName, in, out, opts...)
@@ -1279,6 +1290,7 @@ type BackendServiceServer interface {
 	GetPtiBalances(context.Context, *Empty) (*GetPtiBalancesResponse, error)
 	CreatePtiToken(context.Context, *PtiTokenRequest) (*PtiTokenResponse, error)
 	CreateCard(context.Context, *CreateCardRequest) (*LinkedAccount, error)
+	CreatePtiBankAccount(context.Context, *CreatePtiBankAccountRequest) (*LinkedAccount, error)
 	// Rafiki
 	ListRafikiGrants(context.Context, *Empty) (*ListRafikiGrantsResponse, error)
 	GetRafikiGrant(context.Context, *GetRafikiGrantRequest) (*RafikiGrant, error)
@@ -1561,6 +1573,9 @@ func (UnimplementedBackendServiceServer) CreatePtiToken(context.Context, *PtiTok
 }
 func (UnimplementedBackendServiceServer) CreateCard(context.Context, *CreateCardRequest) (*LinkedAccount, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateCard not implemented")
+}
+func (UnimplementedBackendServiceServer) CreatePtiBankAccount(context.Context, *CreatePtiBankAccountRequest) (*LinkedAccount, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreatePtiBankAccount not implemented")
 }
 func (UnimplementedBackendServiceServer) ListRafikiGrants(context.Context, *Empty) (*ListRafikiGrantsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListRafikiGrants not implemented")
@@ -3179,6 +3194,24 @@ func _BackendService_CreateCard_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_CreatePtiBankAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreatePtiBankAccountRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).CreatePtiBankAccount(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_CreatePtiBankAccount_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).CreatePtiBankAccount(ctx, req.(*CreatePtiBankAccountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _BackendService_ListRafikiGrants_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Empty)
 	if err := dec(in); err != nil {
@@ -3767,6 +3800,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateCard",
 			Handler:    _BackendService_CreateCard_Handler,
+		},
+		{
+			MethodName: "CreatePtiBankAccount",
+			Handler:    _BackendService_CreatePtiBankAccount_Handler,
 		},
 		{
 			MethodName: "ListRafikiGrants",

@@ -32,6 +32,27 @@ export interface PaginationRequest {
 export interface Empty {
 }
 /**
+ * @generated from protobuf message backend.v1.CreatePtiBankAccountRequest
+ */
+export interface CreatePtiBankAccountRequest {
+    /**
+     * @generated from protobuf field: string bankName = 1;
+     */
+    bankName: string;
+    /**
+     * @generated from protobuf field: string accountNumber = 2;
+     */
+    accountNumber: string;
+    /**
+     * @generated from protobuf field: string routingNumber = 3;
+     */
+    routingNumber: string;
+    /**
+     * @generated from protobuf field: string accountType = 4;
+     */
+    accountType: string;
+}
+/**
  * @generated from protobuf message backend.v1.PtiTokenRequest
  */
 export interface PtiTokenRequest {
@@ -2545,6 +2566,74 @@ class Empty$Type extends MessageType<Empty> {
  * @generated MessageType for protobuf message backend.v1.Empty
  */
 export const Empty = new Empty$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CreatePtiBankAccountRequest$Type extends MessageType<CreatePtiBankAccountRequest> {
+    constructor() {
+        super("backend.v1.CreatePtiBankAccountRequest", [
+            { no: 1, name: "bankName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "accountNumber", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "routingNumber", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "accountType", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<CreatePtiBankAccountRequest>): CreatePtiBankAccountRequest {
+        const message = { bankName: "", accountNumber: "", routingNumber: "", accountType: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CreatePtiBankAccountRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CreatePtiBankAccountRequest): CreatePtiBankAccountRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string bankName */ 1:
+                    message.bankName = reader.string();
+                    break;
+                case /* string accountNumber */ 2:
+                    message.accountNumber = reader.string();
+                    break;
+                case /* string routingNumber */ 3:
+                    message.routingNumber = reader.string();
+                    break;
+                case /* string accountType */ 4:
+                    message.accountType = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CreatePtiBankAccountRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string bankName = 1; */
+        if (message.bankName !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.bankName);
+        /* string accountNumber = 2; */
+        if (message.accountNumber !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.accountNumber);
+        /* string routingNumber = 3; */
+        if (message.routingNumber !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.routingNumber);
+        /* string accountType = 4; */
+        if (message.accountType !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.accountType);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.CreatePtiBankAccountRequest
+ */
+export const CreatePtiBankAccountRequest = new CreatePtiBankAccountRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class PtiTokenRequest$Type extends MessageType<PtiTokenRequest> {
     constructor() {
@@ -11424,6 +11513,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "GetPtiBalances", options: {}, I: Empty, O: GetPtiBalancesResponse },
     { name: "CreatePtiToken", options: {}, I: PtiTokenRequest, O: PtiTokenResponse },
     { name: "CreateCard", options: {}, I: CreateCardRequest, O: LinkedAccount },
+    { name: "CreatePtiBankAccount", options: {}, I: CreatePtiBankAccountRequest, O: LinkedAccount },
     { name: "ListRafikiGrants", options: {}, I: Empty, O: ListRafikiGrantsResponse },
     { name: "GetRafikiGrant", options: {}, I: GetRafikiGrantRequest, O: RafikiGrant },
     { name: "RevokeRafikiGrant", options: {}, I: RevokeRafikiGrantRequest, O: Empty },

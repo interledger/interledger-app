@@ -26,4 +26,5 @@ type Client interface {
 	GetWidget(ctx context.Context, walletID string) (*WidgetDetails, error)
 	CreateCard(ctx context.Context, walletID, tokenID string) (Await, error)
 	GetLinkedAccountCardDetails(ctx context.Context, id string) (*EncryptedCreditCardPaymentInformation, error)
+	CreateBankAccount(ctx context.Context, args CreateBankAccountArgs) (Await, error)
 }

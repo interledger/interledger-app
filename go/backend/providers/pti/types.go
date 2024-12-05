@@ -12,6 +12,7 @@ const (
 	ProviderName   = "pti"
 	AccTypeBalance = "balance"
 	TypeCard       = "card"
+	TypeBank       = "bank"
 
 	ScenarioTransfer   = "fynbos_transfer"
 	ScenarioDeposit    = "fynbos_deposit"
@@ -96,4 +97,13 @@ type WidgetDetails = struct {
 	ClientID          string
 	SdkUrl            string
 	FormsUrl          string
+}
+
+type CreateBankAccountArgs struct {
+	WalletID                string
+	AccountNumber           string
+	AccountType             string
+	RoutingNumber           string
+	RoutingNumberCheckDigit string
+	Bank                    string
 }

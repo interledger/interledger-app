@@ -52,6 +52,21 @@ func (mr *MockClientMockRecorder) AssignBalance(ctx, linkedAccountID, txID, amt 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AssignBalance", reflect.TypeOf((*MockClient)(nil).AssignBalance), ctx, linkedAccountID, txID, amt)
 }
 
+// CreateBankAccount mocks base method.
+func (m *MockClient) CreateBankAccount(ctx context.Context, args pti.CreateBankAccountArgs) (pti.Await, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateBankAccount", ctx, args)
+	ret0, _ := ret[0].(pti.Await)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateBankAccount indicates an expected call of CreateBankAccount.
+func (mr *MockClientMockRecorder) CreateBankAccount(ctx, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateBankAccount", reflect.TypeOf((*MockClient)(nil).CreateBankAccount), ctx, args)
+}
+
 // CreateCard mocks base method.
 func (m *MockClient) CreateCard(ctx context.Context, walletID, tokenID string) (pti.Await, error) {
 	m.ctrl.T.Helper()

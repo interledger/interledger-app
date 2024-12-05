@@ -24,4 +24,5 @@ type Client interface {
 	GetTransaction(ctx context.Context, requestID string) (*TransactionStatus, error)
 	CreateJWT(ctx context.Context, args TokenArgs) (*TokenResponse, error)
 	GetUsersPaymentInformation(ctx context.Context, userID, id string) (json.RawMessage, error)
+	CreateBankAccount(ctx context.Context, userID string, args BankAccountPaymentInformation) (*BankAccountPaymentInformation, error)
 }

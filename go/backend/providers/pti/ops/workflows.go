@@ -8,6 +8,7 @@ import (
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/pti"
+	"gitlab.com/fynbos/backend/providers/pti/external"
 
 	"go.temporal.io/sdk/workflow"
 )
@@ -122,6 +123,32 @@ func CreateCardWorkflow(ctx workflow.Context, walletID, tokenID string) (*linked
 
 	var linkedAccount linkedaccounts.LinkedAccount
 	err := workflow.ExecuteActivity(ctx, a.CreatePTICard, walletID, tokenID).Get(ctx, &linkedAccount)
+	if err != nil {
+		return nil, err
+	}
+
+	return &linkedAccount, nil
+}
+
+func CreatePtiBankAccountWorkflow(ctx workflow.Context, args pti.CreateBankAccountArgs) (*linkedaccounts.LinkedAccount, error) {
+	var a *Activity
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Second,
+	}
+
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	logger := workflow.GetLogger(ctx)
+	logger.Info("Creating pti bank account.")
+
+	var externalBankDetails external.BankAccountPaymentInformation
+	err := workflow.ExecuteActivity(ctx, a.CreatePtiBankAccount, args).Get(ctx, &externalBankDetails)
+	if err != nil {
+		return nil, err
+	}
+
+	var linkedAccount linkedaccounts.LinkedAccount
+	err = workflow.ExecuteActivity(ctx, a.SavePtiBankAccount, args.WalletID, externalBankDetails.ID).Get(ctx, &linkedAccount)
 	if err != nil {
 		return nil, err
 	}

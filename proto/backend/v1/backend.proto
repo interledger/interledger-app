@@ -151,6 +151,7 @@ service BackendService {
   rpc GetPtiBalances(Empty) returns (GetPtiBalancesResponse);
   rpc CreatePtiToken(PtiTokenRequest) returns (PtiTokenResponse);
   rpc CreateCard(CreateCardRequest) returns (LinkedAccount);
+  rpc CreatePtiBankAccount(CreatePtiBankAccountRequest) returns (LinkedAccount);
 
   // Rafiki
   rpc ListRafikiGrants(Empty) returns (ListRafikiGrantsResponse);
@@ -170,6 +171,13 @@ service BackendService {
   rpc CreateChimoneyWallet(Empty) returns (Empty);
   rpc GetChimoneyDepositLink(Amount) returns (GetChimoneyDepositLinkResponse);
   rpc CreateChimoneyDeposit(CreateChimoneyDepositRequest) returns (Empty);
+}
+
+message CreatePtiBankAccountRequest {
+  string bankName = 1;
+  string accountNumber = 2;
+  string routingNumber = 3;
+  string accountType = 4;
 }
 
 message PtiTokenRequest{

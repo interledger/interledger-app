@@ -36,6 +36,21 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
 }
 
+// CreateBankAccount mocks base method.
+func (m *MockClient) CreateBankAccount(ctx context.Context, userID string, args external.BankAccountPaymentInformation) (*external.BankAccountPaymentInformation, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateBankAccount", ctx, userID, args)
+	ret0, _ := ret[0].(*external.BankAccountPaymentInformation)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateBankAccount indicates an expected call of CreateBankAccount.
+func (mr *MockClientMockRecorder) CreateBankAccount(ctx, userID, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateBankAccount", reflect.TypeOf((*MockClient)(nil).CreateBankAccount), ctx, userID, args)
+}
+
 // CreateJWT mocks base method.
 func (m *MockClient) CreateJWT(ctx context.Context, args external.TokenArgs) (*external.TokenResponse, error) {
 	m.ctrl.T.Helper()

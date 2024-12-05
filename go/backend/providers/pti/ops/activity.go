@@ -480,3 +480,79 @@ func (a *Activity) CreatePTICard(ctx context.Context, walletID, tokenID string) 
 
 	return la, nil
 }
+
+func (a *Activity) CreatePtiBankAccount(ctx context.Context, args pti.CreateBankAccountArgs) (*external.BankAccountPaymentInformation, error) {
+	ptiUser, err := GetUser(ctx, a.b, args.WalletID)
+	if errors.Is(err, pti.ErrNotFound) {
+		return nil, temporal.NewNonRetryableApplicationError("save pti bank account: pti user not found", "ErrNotFound", err)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	bank, err := a.external.CreateBankAccount(ctx, ptiUser.ExternalID, external.BankAccountPaymentInformation{
+		Type:                  "BANK_ACCOUNT",
+		BankAccountNumner:     args.AccountNumber,
+		BankAccountType:       args.AccountType,
+		BankRoutingNumber:     args.RoutingNumber,
+		BankRoutingCheckDigit: args.RoutingNumberCheckDigit,
+		AccountBankName:       args.Bank,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return bank, nil
+}
+
+func (a *Activity) SavePtiBankAccount(ctx context.Context, walletID, externalPaymentMethodID string) (*linkedaccounts.LinkedAccount, error) {
+	ptiUser, err := GetUser(ctx, a.b, walletID)
+	if errors.Is(err, pti.ErrNotFound) {
+		return nil, temporal.NewNonRetryableApplicationError("save pti bank account: pti user not found", "ErrNotFound", err)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := a.external.GetUsersPaymentInformation(ctx, ptiUser.ExternalID, externalPaymentMethodID)
+	if err != nil {
+		return nil, err
+	}
+
+	var bank external.BankAccountPaymentInformation
+	err = json.Unmarshal(data, &bank)
+	if err != nil {
+		return nil, err
+	}
+
+	mask := bank.BankAccountNumner
+	if len(mask) > 4 {
+		mask = bank.BankAccountNumner[len(mask)-4:]
+	}
+
+	la, err := a.b.LinkedAccounts().Create(ctx, &linkedaccounts.CreateArgs{
+		WalletID:            walletID,
+		Name:                strings.TrimSpace(fmt.Sprintf("%s %s", bank.AccountBankName, mask)),
+		Nickname:            strings.TrimSpace(fmt.Sprintf("%s %s", bank.AccountBankName, mask)),
+		Provider:            pti.ProviderName,
+		ProviderID:          externalPaymentMethodID,
+		Mask:                mask,
+		State:               linkedaccounts.Verified,
+		Type:                pti.TypeBank,
+		CanSend:             true,
+		CanReceive:          true,
+		SendCountry:         country.US,
+		SendCurrency:        currency.USD,
+		SendNetwork:         "ACH",
+		SendAvailability:    linkedaccounts.Few,
+		ReceiveCountry:      country.US,
+		ReceiveCurrency:     currency.USD,
+		ReceiveNetwork:      "ACH",
+		ReceiveAvailability: linkedaccounts.Few,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return la, nil
+}

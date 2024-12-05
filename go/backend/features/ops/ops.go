@@ -8,6 +8,7 @@ import (
 
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/backend/wallets"
 
 	"gitlab.com/fynbos/backend/providers/chimoney"
 	"gitlab.com/fynbos/backend/providers/pti"
@@ -84,7 +85,7 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		return nil, err
 	}
 
-	canAddBank, err := canAddBanks(ctx, b, lal)
+	canAddBank, err := canAddBanks(ctx, b, w, lal)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +99,7 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		res.ReceiveEnabled = true
 		res.SendEnabled = true
 		res.LinkedAccEnabled = true
-		res.BanksEnabled = false
+		res.BanksEnabled = canAddBank
 		res.CardsEnabled = true
 		res.AddCardsEnabled = canAddCard
 	}
@@ -149,15 +150,19 @@ func canAddCards(ctx context.Context, b Backends, lal []linkedaccounts.LinkedAcc
 	return cnt <= 3, nil
 }
 
-// This assumes that the wallet is in ZA. The wallet can only add at most 1 bank
-func canAddBanks(ctx context.Context, b Backends, lal []linkedaccounts.LinkedAccount) (bool, error) {
+// This assumes that the wallet is in US/ZA. The wallet can only add at most 1 bank
+func canAddBanks(ctx context.Context, b Backends, w *wallets.Wallet, lal []linkedaccounts.LinkedAccount) (bool, error) {
 	for _, la := range lal {
 		if la.DeletedAt.Valid {
 			continue
 		}
 
-		if la.Provider == xago.ProviderName &&
+		if w.Country == country.ZA && la.Provider == xago.ProviderName &&
 			la.Type == xago.AccTypeBank {
+			return false, nil
+		}
+
+		if w.Country == country.US && la.Provider == pti.ProviderName && la.Type == pti.TypeBank {
 			return false, nil
 		}
 	}

@@ -136,3 +136,7 @@ func (c Client) CreateCard(ctx context.Context, walletID, tokenID string) (pti.A
 func (c Client) GetLinkedAccountCardDetails(ctx context.Context, id string) (*pti.EncryptedCreditCardPaymentInformation, error) {
 	return ops.GetLinkedAccountCardDetails(ctx, c.b, c.external, id)
 }
+
+func (c Client) CreateBankAccount(ctx context.Context, args pti.CreateBankAccountArgs) (pti.Await, error) {
+	return ops.CreateBankAccount(ctx, c.b, args)
+}

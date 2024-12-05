@@ -117,3 +117,54 @@ func (s *rpcService) CreateCard(
 
 	return transformLinkedAccount(la), nil
 }
+
+func (s *rpcService) CreatePtiBankAccount(
+	ctx context.Context, req *pb.CreatePtiBankAccountRequest,
+) (*pb.LinkedAccount, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	w, err := s.b.Wallets().ForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	feats, err := s.b.Features().Features(ctx, w.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	if !feats.BanksEnabled {
+		return nil, NewValidationError("Form", "You have connected the maximum number of bank accounts to Fynbos.")
+	}
+
+	checkDigit := ""
+	if len(req.GetRoutingNumber()) > 0 {
+		checkDigit = req.GetRoutingNumber()[len(req.GetRoutingNumber())-1:]
+	}
+
+	await, err := s.b.PTI().CreateBankAccount(ctx, pti.CreateBankAccountArgs{
+		WalletID:                w.ID,
+		AccountType:             req.GetAccountType(),
+		AccountNumber:           req.GetAccountNumber(),
+		RoutingNumber:           req.GetRoutingNumber(),
+		RoutingNumberCheckDigit: checkDigit,
+		Bank:                    req.GetBankName(),
+	})
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	var la linkedaccounts.LinkedAccount
+	err = await(ctx, &la)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+	if la.ID == "" {
+		return nil, toGRPCError(errors.New("Linked account not returned from create pti bank account workflow."))
+	}
+
+	return transformLinkedAccount(la), nil
+}

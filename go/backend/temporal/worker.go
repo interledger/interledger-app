@@ -95,6 +95,7 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(pti_workflows.CreateWalletWorkflow)
 	w.RegisterWorkflow(pti_workflows.CreateUserWorkflow)
 	w.RegisterWorkflow(pti_workflows.CreateCardWorkflow)
+	w.RegisterWorkflow(pti_workflows.CreatePtiBankAccountWorkflow)
 
 	// Gatehub
 	w.RegisterActivity(gatehub_workflows.NewActivity(b))

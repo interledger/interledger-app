@@ -81,6 +81,61 @@ export class Empty extends Message<Empty> {
 }
 
 /**
+ * @generated from message backend.v1.CreatePtiBankAccountRequest
+ */
+export class CreatePtiBankAccountRequest extends Message<CreatePtiBankAccountRequest> {
+  /**
+   * @generated from field: string bankName = 1;
+   */
+  bankName = "";
+
+  /**
+   * @generated from field: string accountNumber = 2;
+   */
+  accountNumber = "";
+
+  /**
+   * @generated from field: string routingNumber = 3;
+   */
+  routingNumber = "";
+
+  /**
+   * @generated from field: string accountType = 4;
+   */
+  accountType = "";
+
+  constructor(data?: PartialMessage<CreatePtiBankAccountRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.CreatePtiBankAccountRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "bankName", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "accountNumber", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "routingNumber", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "accountType", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreatePtiBankAccountRequest {
+    return new CreatePtiBankAccountRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CreatePtiBankAccountRequest {
+    return new CreatePtiBankAccountRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CreatePtiBankAccountRequest {
+    return new CreatePtiBankAccountRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CreatePtiBankAccountRequest | PlainMessage<CreatePtiBankAccountRequest> | undefined, b: CreatePtiBankAccountRequest | PlainMessage<CreatePtiBankAccountRequest> | undefined): boolean {
+    return proto3.util.equals(CreatePtiBankAccountRequest, a, b);
+  }
+}
+
+/**
  * @generated from message backend.v1.PtiTokenRequest
  */
 export class PtiTokenRequest extends Message<PtiTokenRequest> {

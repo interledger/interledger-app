@@ -109,7 +109,7 @@ func (s *rpcService) GetLinkedAccountsForWithdraw(ctx context.Context, req *pb.G
 			las = append(las, acc)
 		}
 
-		if balance.Provider == pti.ProviderName && la.Provider == pti.ProviderName && la.Type == pti.TypeCard {
+		if balance.Provider == pti.ProviderName && la.Provider == pti.ProviderName && la.Type == pti.TypeBank {
 			acc := &pb.LinkedAccountForPayment{
 				Details: transformLinkedAccount(la),
 				Enabled: balance.CanPay(la),

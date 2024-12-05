@@ -126,6 +126,7 @@ func TestFeatures(t *testing.T) {
 				CardsEnabled:      true,
 				SendEnabled:       true,
 				AddCardsEnabled:   true,
+				BanksEnabled:      true,
 			},
 		},
 		{
@@ -141,6 +142,7 @@ func TestFeatures(t *testing.T) {
 				CardsEnabled:      true,
 				SendEnabled:       true,
 				AddCardsEnabled:   false,
+				BanksEnabled:      true,
 			},
 		},
 		{
