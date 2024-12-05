@@ -538,7 +538,8 @@ func validateDeposit(ctx context.Context, b Backends, typ payments.Type, senderA
 	if err != nil {
 		return fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
-	if senderAcc.Provider != pti.ProviderName || senderAcc.Type != pti.TypeCard {
+	if !(senderAcc.Provider == pti.ProviderName && senderAcc.Type == pti.TypeCard) &&
+		!(senderAcc.Provider == pti.ProviderName && senderAcc.Type == pti.TypeBank) {
 		return payments.ErrInvalidDeposit
 	}
 
