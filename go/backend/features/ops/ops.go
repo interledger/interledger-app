@@ -80,11 +80,6 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		return nil, err
 	}
 
-	canAddCard, err := canAddCards(ctx, b, lal)
-	if err != nil {
-		return nil, err
-	}
-
 	canAddBank, err := canAddBanks(ctx, b, w, lal)
 	if err != nil {
 		return nil, err
@@ -99,9 +94,9 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		res.ReceiveEnabled = true
 		res.SendEnabled = true
 		res.LinkedAccEnabled = true
-		res.BanksEnabled = canAddBank
-		res.CardsEnabled = true
-		res.AddCardsEnabled = canAddCard
+		res.BanksEnabled = true
+		res.CardsEnabled = false
+		res.AddCardsEnabled = false
 	}
 	if w.Country == country.ZA {
 		res.ReceiveEnabled = true
@@ -134,21 +129,21 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 	return &res, nil
 }
 
-func canAddCards(ctx context.Context, b Backends, lal []linkedaccounts.LinkedAccount) (bool, error) {
-	var cnt int
-	for _, la := range lal {
-		if la.DeletedAt.Valid {
-			continue
-		}
+// func canAddCards(ctx context.Context, b Backends, lal []linkedaccounts.LinkedAccount) (bool, error) {
+// 	var cnt int
+// 	for _, la := range lal {
+// 		if la.DeletedAt.Valid {
+// 			continue
+// 		}
 
-		if la.Provider == pti.ProviderName &&
-			la.Type == pti.TypeCard {
-			cnt++
-		}
-	}
+// 		if la.Provider == pti.ProviderName &&
+// 			la.Type == pti.TypeCard {
+// 			cnt++
+// 		}
+// 	}
 
-	return cnt <= 3, nil
-}
+// 	return cnt <= 3, nil
+// }
 
 // This assumes that the wallet is in US/ZA. The wallet can only add at most 1 bank
 func canAddBanks(ctx context.Context, b Backends, w *wallets.Wallet, lal []linkedaccounts.LinkedAccount) (bool, error) {
