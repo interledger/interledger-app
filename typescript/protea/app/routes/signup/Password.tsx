@@ -141,7 +141,7 @@ export function Password() {
             }
             errorMessage={passwordFetcher.data?.errors?.serviceAgreement}
           >
-            I agree to the Fynbos&nbsp;
+            I agree to the Interledger Wallet&nbsp;
             <Router className='text-primary' to='/legal/privacy-policy'>
               Privacy Policy
             </Router>

@@ -150,11 +150,12 @@ export default function Page() {
               <span className='text-2xl font-medium'>Congratulations!</span>
               <div className='mt-4 flex flex-col space-y-4 sm:flex-row-reverse sm:items-center sm:space-x-6 sm:space-y-0 sm:space-x-reverse'>
                 <span className='text-medium'>
-                  You got your hands on a limited edition Fynbos mug.
+                  You got your hands on a limited edition Interledger Wallet
+                  mug.
                 </span>
                 <img
                   className='w-full sm:w-2/5'
-                  alt='Fynbos mug'
+                  alt='Interledger Wallet mug'
                   src='https://cdn.fynbos.app/marketing/enamel-mug-waitlist.webp'
                 />
               </div>
@@ -163,8 +164,8 @@ export default function Page() {
                 yours.
               </span>
               <span className='mt-4 text-medium'>
-                Sign up to the waitlist and we'll link this mug's payment
-                pointer to your Fynbos wallet.
+                Sign up to the waitlist and we'll link this mug's wallet address
+                to your Interledger Wallet.
               </span>
               <span className='mt-4 text-medium'>
                 If you’re already on the waitlist, submit your details again and

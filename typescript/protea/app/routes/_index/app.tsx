@@ -121,7 +121,7 @@ export function AppPage() {
               copyContent={walletInfo.url}
               shareData={{
                 title: 'Wallet address',
-                text: 'You can pay me using Fynbos with my wallet address.',
+                text: 'You can pay me using my wallet address.',
                 url: walletInfo.url
               }}
               success='Wallet address copied to clipboard.'
