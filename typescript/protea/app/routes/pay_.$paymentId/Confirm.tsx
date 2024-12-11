@@ -129,11 +129,12 @@ export function Confirm() {
             }
             errorMessage={actionData?.errors?.serviceAgreement}
           >
-            I authorize Fynbos to debit
+            I authorize Interledger Wallet to debit
             {account?.type == 'card' ? ' the card indicated ' : ' my account '}
-            for the amount noted on today’s date. I will not dispute Fynbos
-            debiting my account, so long as the transaction corresponds to the
-            terms in this online form and my agreement with Fynbos.
+            for the amount noted on today’s date. I will not dispute Interledger
+            Wallet debiting my account, so long as the transaction corresponds
+            to the terms in this online form and my agreement with Interledger
+            Wallet.
           </Checkbox>
         </CardContent>
       </Card>

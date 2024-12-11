@@ -180,7 +180,7 @@ export default function Page() {
         {publicWalletInfo.walletID == 'not-found' && (
           <CardContent>
             <span className='text-medium'>
-              This person is not a Fynbos user yet.
+              This person is not an Interledger Wallet user yet.
             </span>
           </CardContent>
         )}
