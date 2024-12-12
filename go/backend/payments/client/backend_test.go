@@ -12,14 +12,9 @@ import (
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	pti_ops "gitlab.com/fynbos/backend/providers/pti/ops"
 
-	"gitlab.com/fynbos/backend/providers/basistheory"
 	pti_client "gitlab.com/fynbos/backend/providers/pti/client"
 
-	astra_client "gitlab.com/fynbos/backend/providers/astra/client"
-
 	"gitlab.com/fynbos/backend/providers/pti"
-
-	"gitlab.com/fynbos/backend/providers/astra"
 
 	"gitlab.com/fynbos/backend/currency"
 
@@ -252,14 +247,6 @@ func (b *TestBackends) Chimoney() chimoney.Client {
 }
 
 func (b *TestBackends) Gatehub() gatehub.Client {
-	return nil
-}
-
-func (b *TestBackends) Astra() astra.Client {
-	return astra_client.New(b)
-}
-
-func (b *TestBackends) BasisTheory() basistheory.Client {
 	return nil
 }
 

@@ -32,6 +32,57 @@ export interface PaginationRequest {
 export interface Empty {
 }
 /**
+ * @generated from protobuf message backend.v1.CreatePtiBankAccountRequest
+ */
+export interface CreatePtiBankAccountRequest {
+    /**
+     * @generated from protobuf field: string bankName = 1;
+     */
+    bankName: string;
+    /**
+     * @generated from protobuf field: string accountNumber = 2;
+     */
+    accountNumber: string;
+    /**
+     * @generated from protobuf field: string routingNumber = 3;
+     */
+    routingNumber: string;
+    /**
+     * @generated from protobuf field: string accountType = 4;
+     */
+    accountType: string;
+}
+/**
+ * @generated from protobuf message backend.v1.PtiTokenRequest
+ */
+export interface PtiTokenRequest {
+    /**
+     * @generated from protobuf field: string url = 1;
+     */
+    url: string;
+    /**
+     * @generated from protobuf field: string method = 2;
+     */
+    method: string;
+}
+/**
+ * @generated from protobuf message backend.v1.PtiTokenResponse
+ */
+export interface PtiTokenResponse {
+    /**
+     * @generated from protobuf field: string accessToken = 1;
+     */
+    accessToken: string;
+    /**
+     * @generated from protobuf field: double expiresAt = 2;
+     */
+    expiresAt: number;
+    /**
+     * @generated from protobuf field: string tokenType = 3;
+     */
+    tokenType: string;
+}
+/**
  * @generated from protobuf message backend.v1.CreateChimoneyDepositRequest
  */
 export interface CreateChimoneyDepositRequest {
@@ -66,15 +117,6 @@ export interface SetChimoneyInterlocEmailRequest {
      * @generated from protobuf field: string email = 1;
      */
     email: string;
-}
-/**
- * @generated from protobuf message backend.v1.AstraRequiresOTPResponse
- */
-export interface AstraRequiresOTPResponse {
-    /**
-     * @generated from protobuf field: bool isRequired = 1;
-     */
-    isRequired: boolean;
 }
 /**
  * @generated from protobuf message backend.v1.CreateGatehubWithdrawalRequest
@@ -132,6 +174,43 @@ export interface KYCProviderWidget {
      * @generated from protobuf field: string chimoneyWidget = 4;
      */
     chimoneyWidget: string;
+    /**
+     * @generated from protobuf field: backend.v1.PtiWidget ptiWidget = 5;
+     */
+    ptiWidget?: PtiWidget;
+}
+/**
+ * @generated from protobuf message backend.v1.PtiWidget
+ */
+export interface PtiWidget {
+    /**
+     * @generated from protobuf field: string scenarioId = 1;
+     */
+    scenarioId: string;
+    /**
+     * @generated from protobuf field: string userId = 2;
+     */
+    userId: string;
+    /**
+     * @generated from protobuf field: string requestId = 3;
+     */
+    requestId: string;
+    /**
+     * @generated from protobuf field: string clientId = 4;
+     */
+    clientId: string;
+    /**
+     * @generated from protobuf field: string generateTokenPath = 5;
+     */
+    generateTokenPath: string;
+    /**
+     * @generated from protobuf field: string sdkUrl = 6;
+     */
+    sdkUrl: string;
+    /**
+     * @generated from protobuf field: string formsUrl = 7;
+     */
+    formsUrl: string;
 }
 /**
  * @generated from protobuf message backend.v1.GatehubWidget
@@ -251,48 +330,6 @@ export interface RafikiLimits {
      * @generated from protobuf field: string formattdReceiveAmount = 6;
      */
     formattdReceiveAmount: string;
-}
-/**
- * @generated from protobuf message backend.v1.AstraDepositFromCardRequest
- */
-export interface AstraDepositFromCardRequest {
-    /**
-     * @generated from protobuf field: string fromLinkedAccount = 1;
-     */
-    fromLinkedAccount: string; // Astra Card
-    /**
-     * @generated from protobuf field: string toLinkedAccount = 2;
-     */
-    toLinkedAccount: string; // PTI Balance
-    /**
-     * @generated from protobuf field: backend.v1.Amount amount = 3;
-     */
-    amount?: Amount;
-    /**
-     * @generated from protobuf field: string note = 4;
-     */
-    note: string;
-}
-/**
- * @generated from protobuf message backend.v1.AstraWithdrawToCardRequest
- */
-export interface AstraWithdrawToCardRequest {
-    /**
-     * @generated from protobuf field: string fromLinkedAccount = 1;
-     */
-    fromLinkedAccount: string; // PTI Balance
-    /**
-     * @generated from protobuf field: string toLinkedAccount = 2;
-     */
-    toLinkedAccount: string; // Astra Card
-    /**
-     * @generated from protobuf field: backend.v1.Amount amount = 3;
-     */
-    amount?: Amount;
-    /**
-     * @generated from protobuf field: string note = 4;
-     */
-    note: string;
 }
 /**
  * @generated from protobuf message backend.v1.GetLinkedAccountsForTransferRequest
@@ -1104,6 +1141,10 @@ export interface WalletInfo {
      * @generated from protobuf field: bool exceededLimits = 10;
      */
     exceededLimits: boolean;
+    /**
+     * @generated from protobuf field: string country = 11;
+     */
+    country: string;
 }
 /**
  * @generated from protobuf message backend.v1.Features
@@ -2530,6 +2571,189 @@ class Empty$Type extends MessageType<Empty> {
  */
 export const Empty = new Empty$Type();
 // @generated message type with reflection information, may provide speed optimized methods
+class CreatePtiBankAccountRequest$Type extends MessageType<CreatePtiBankAccountRequest> {
+    constructor() {
+        super("backend.v1.CreatePtiBankAccountRequest", [
+            { no: 1, name: "bankName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "accountNumber", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "routingNumber", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "accountType", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<CreatePtiBankAccountRequest>): CreatePtiBankAccountRequest {
+        const message = { bankName: "", accountNumber: "", routingNumber: "", accountType: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CreatePtiBankAccountRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CreatePtiBankAccountRequest): CreatePtiBankAccountRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string bankName */ 1:
+                    message.bankName = reader.string();
+                    break;
+                case /* string accountNumber */ 2:
+                    message.accountNumber = reader.string();
+                    break;
+                case /* string routingNumber */ 3:
+                    message.routingNumber = reader.string();
+                    break;
+                case /* string accountType */ 4:
+                    message.accountType = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CreatePtiBankAccountRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string bankName = 1; */
+        if (message.bankName !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.bankName);
+        /* string accountNumber = 2; */
+        if (message.accountNumber !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.accountNumber);
+        /* string routingNumber = 3; */
+        if (message.routingNumber !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.routingNumber);
+        /* string accountType = 4; */
+        if (message.accountType !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.accountType);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.CreatePtiBankAccountRequest
+ */
+export const CreatePtiBankAccountRequest = new CreatePtiBankAccountRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class PtiTokenRequest$Type extends MessageType<PtiTokenRequest> {
+    constructor() {
+        super("backend.v1.PtiTokenRequest", [
+            { no: 1, name: "url", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "method", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<PtiTokenRequest>): PtiTokenRequest {
+        const message = { url: "", method: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<PtiTokenRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: PtiTokenRequest): PtiTokenRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string url */ 1:
+                    message.url = reader.string();
+                    break;
+                case /* string method */ 2:
+                    message.method = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: PtiTokenRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string url = 1; */
+        if (message.url !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.url);
+        /* string method = 2; */
+        if (message.method !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.method);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.PtiTokenRequest
+ */
+export const PtiTokenRequest = new PtiTokenRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class PtiTokenResponse$Type extends MessageType<PtiTokenResponse> {
+    constructor() {
+        super("backend.v1.PtiTokenResponse", [
+            { no: 1, name: "accessToken", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "expiresAt", kind: "scalar", T: 1 /*ScalarType.DOUBLE*/ },
+            { no: 3, name: "tokenType", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<PtiTokenResponse>): PtiTokenResponse {
+        const message = { accessToken: "", expiresAt: 0, tokenType: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<PtiTokenResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: PtiTokenResponse): PtiTokenResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string accessToken */ 1:
+                    message.accessToken = reader.string();
+                    break;
+                case /* double expiresAt */ 2:
+                    message.expiresAt = reader.double();
+                    break;
+                case /* string tokenType */ 3:
+                    message.tokenType = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: PtiTokenResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string accessToken = 1; */
+        if (message.accessToken !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.accessToken);
+        /* double expiresAt = 2; */
+        if (message.expiresAt !== 0)
+            writer.tag(2, WireType.Bit64).double(message.expiresAt);
+        /* string tokenType = 3; */
+        if (message.tokenType !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.tokenType);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.PtiTokenResponse
+ */
+export const PtiTokenResponse = new PtiTokenResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
 class CreateChimoneyDepositRequest$Type extends MessageType<CreateChimoneyDepositRequest> {
     constructor() {
         super("backend.v1.CreateChimoneyDepositRequest", [
@@ -2717,53 +2941,6 @@ class SetChimoneyInterlocEmailRequest$Type extends MessageType<SetChimoneyInterl
  * @generated MessageType for protobuf message backend.v1.SetChimoneyInterlocEmailRequest
  */
 export const SetChimoneyInterlocEmailRequest = new SetChimoneyInterlocEmailRequest$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class AstraRequiresOTPResponse$Type extends MessageType<AstraRequiresOTPResponse> {
-    constructor() {
-        super("backend.v1.AstraRequiresOTPResponse", [
-            { no: 1, name: "isRequired", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
-        ]);
-    }
-    create(value?: PartialMessage<AstraRequiresOTPResponse>): AstraRequiresOTPResponse {
-        const message = { isRequired: false };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<AstraRequiresOTPResponse>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: AstraRequiresOTPResponse): AstraRequiresOTPResponse {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* bool isRequired */ 1:
-                    message.isRequired = reader.bool();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: AstraRequiresOTPResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* bool isRequired = 1; */
-        if (message.isRequired !== false)
-            writer.tag(1, WireType.Varint).bool(message.isRequired);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message backend.v1.AstraRequiresOTPResponse
- */
-export const AstraRequiresOTPResponse = new AstraRequiresOTPResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class CreateGatehubWithdrawalRequest$Type extends MessageType<CreateGatehubWithdrawalRequest> {
     constructor() {
@@ -2959,7 +3136,8 @@ class KYCProviderWidget$Type extends MessageType<KYCProviderWidget> {
             { no: 1, name: "provider", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "gatehubWidget", kind: "message", T: () => GatehubWidget },
             { no: 3, name: "personaInquiry", kind: "message", T: () => KYCPersonaInquiryResponse },
-            { no: 4, name: "chimoneyWidget", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 4, name: "chimoneyWidget", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "ptiWidget", kind: "message", T: () => PtiWidget }
         ]);
     }
     create(value?: PartialMessage<KYCProviderWidget>): KYCProviderWidget {
@@ -2986,6 +3164,9 @@ class KYCProviderWidget$Type extends MessageType<KYCProviderWidget> {
                 case /* string chimoneyWidget */ 4:
                     message.chimoneyWidget = reader.string();
                     break;
+                case /* backend.v1.PtiWidget ptiWidget */ 5:
+                    message.ptiWidget = PtiWidget.internalBinaryRead(reader, reader.uint32(), options, message.ptiWidget);
+                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -3010,6 +3191,9 @@ class KYCProviderWidget$Type extends MessageType<KYCProviderWidget> {
         /* string chimoneyWidget = 4; */
         if (message.chimoneyWidget !== "")
             writer.tag(4, WireType.LengthDelimited).string(message.chimoneyWidget);
+        /* backend.v1.PtiWidget ptiWidget = 5; */
+        if (message.ptiWidget)
+            PtiWidget.internalBinaryWrite(message.ptiWidget, writer.tag(5, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -3020,6 +3204,95 @@ class KYCProviderWidget$Type extends MessageType<KYCProviderWidget> {
  * @generated MessageType for protobuf message backend.v1.KYCProviderWidget
  */
 export const KYCProviderWidget = new KYCProviderWidget$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class PtiWidget$Type extends MessageType<PtiWidget> {
+    constructor() {
+        super("backend.v1.PtiWidget", [
+            { no: 1, name: "scenarioId", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "userId", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "requestId", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "clientId", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "generateTokenPath", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "sdkUrl", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 7, name: "formsUrl", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<PtiWidget>): PtiWidget {
+        const message = { scenarioId: "", userId: "", requestId: "", clientId: "", generateTokenPath: "", sdkUrl: "", formsUrl: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<PtiWidget>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: PtiWidget): PtiWidget {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string scenarioId */ 1:
+                    message.scenarioId = reader.string();
+                    break;
+                case /* string userId */ 2:
+                    message.userId = reader.string();
+                    break;
+                case /* string requestId */ 3:
+                    message.requestId = reader.string();
+                    break;
+                case /* string clientId */ 4:
+                    message.clientId = reader.string();
+                    break;
+                case /* string generateTokenPath */ 5:
+                    message.generateTokenPath = reader.string();
+                    break;
+                case /* string sdkUrl */ 6:
+                    message.sdkUrl = reader.string();
+                    break;
+                case /* string formsUrl */ 7:
+                    message.formsUrl = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: PtiWidget, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string scenarioId = 1; */
+        if (message.scenarioId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.scenarioId);
+        /* string userId = 2; */
+        if (message.userId !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.userId);
+        /* string requestId = 3; */
+        if (message.requestId !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.requestId);
+        /* string clientId = 4; */
+        if (message.clientId !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.clientId);
+        /* string generateTokenPath = 5; */
+        if (message.generateTokenPath !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.generateTokenPath);
+        /* string sdkUrl = 6; */
+        if (message.sdkUrl !== "")
+            writer.tag(6, WireType.LengthDelimited).string(message.sdkUrl);
+        /* string formsUrl = 7; */
+        if (message.formsUrl !== "")
+            writer.tag(7, WireType.LengthDelimited).string(message.formsUrl);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.PtiWidget
+ */
+export const PtiWidget = new PtiWidget$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class GatehubWidget$Type extends MessageType<GatehubWidget> {
     constructor() {
@@ -3447,142 +3720,6 @@ class RafikiLimits$Type extends MessageType<RafikiLimits> {
  * @generated MessageType for protobuf message backend.v1.RafikiLimits
  */
 export const RafikiLimits = new RafikiLimits$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class AstraDepositFromCardRequest$Type extends MessageType<AstraDepositFromCardRequest> {
-    constructor() {
-        super("backend.v1.AstraDepositFromCardRequest", [
-            { no: 1, name: "fromLinkedAccount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "toLinkedAccount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "amount", kind: "message", T: () => Amount },
-            { no: 4, name: "note", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
-        ]);
-    }
-    create(value?: PartialMessage<AstraDepositFromCardRequest>): AstraDepositFromCardRequest {
-        const message = { fromLinkedAccount: "", toLinkedAccount: "", note: "" };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<AstraDepositFromCardRequest>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: AstraDepositFromCardRequest): AstraDepositFromCardRequest {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string fromLinkedAccount */ 1:
-                    message.fromLinkedAccount = reader.string();
-                    break;
-                case /* string toLinkedAccount */ 2:
-                    message.toLinkedAccount = reader.string();
-                    break;
-                case /* backend.v1.Amount amount */ 3:
-                    message.amount = Amount.internalBinaryRead(reader, reader.uint32(), options, message.amount);
-                    break;
-                case /* string note */ 4:
-                    message.note = reader.string();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: AstraDepositFromCardRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string fromLinkedAccount = 1; */
-        if (message.fromLinkedAccount !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.fromLinkedAccount);
-        /* string toLinkedAccount = 2; */
-        if (message.toLinkedAccount !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.toLinkedAccount);
-        /* backend.v1.Amount amount = 3; */
-        if (message.amount)
-            Amount.internalBinaryWrite(message.amount, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
-        /* string note = 4; */
-        if (message.note !== "")
-            writer.tag(4, WireType.LengthDelimited).string(message.note);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message backend.v1.AstraDepositFromCardRequest
- */
-export const AstraDepositFromCardRequest = new AstraDepositFromCardRequest$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class AstraWithdrawToCardRequest$Type extends MessageType<AstraWithdrawToCardRequest> {
-    constructor() {
-        super("backend.v1.AstraWithdrawToCardRequest", [
-            { no: 1, name: "fromLinkedAccount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "toLinkedAccount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "amount", kind: "message", T: () => Amount },
-            { no: 4, name: "note", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
-        ]);
-    }
-    create(value?: PartialMessage<AstraWithdrawToCardRequest>): AstraWithdrawToCardRequest {
-        const message = { fromLinkedAccount: "", toLinkedAccount: "", note: "" };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<AstraWithdrawToCardRequest>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: AstraWithdrawToCardRequest): AstraWithdrawToCardRequest {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string fromLinkedAccount */ 1:
-                    message.fromLinkedAccount = reader.string();
-                    break;
-                case /* string toLinkedAccount */ 2:
-                    message.toLinkedAccount = reader.string();
-                    break;
-                case /* backend.v1.Amount amount */ 3:
-                    message.amount = Amount.internalBinaryRead(reader, reader.uint32(), options, message.amount);
-                    break;
-                case /* string note */ 4:
-                    message.note = reader.string();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: AstraWithdrawToCardRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string fromLinkedAccount = 1; */
-        if (message.fromLinkedAccount !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.fromLinkedAccount);
-        /* string toLinkedAccount = 2; */
-        if (message.toLinkedAccount !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.toLinkedAccount);
-        /* backend.v1.Amount amount = 3; */
-        if (message.amount)
-            Amount.internalBinaryWrite(message.amount, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
-        /* string note = 4; */
-        if (message.note !== "")
-            writer.tag(4, WireType.LengthDelimited).string(message.note);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message backend.v1.AstraWithdrawToCardRequest
- */
-export const AstraWithdrawToCardRequest = new AstraWithdrawToCardRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class GetLinkedAccountsForTransferRequest$Type extends MessageType<GetLinkedAccountsForTransferRequest> {
     constructor() {
@@ -6092,11 +6229,12 @@ class WalletInfo$Type extends MessageType<WalletInfo> {
             { no: 7, name: "hasTransacted", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 8, name: "hasWalletAddress", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 9, name: "hasBalances", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 10, name: "exceededLimits", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+            { no: 10, name: "exceededLimits", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 11, name: "country", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<WalletInfo>): WalletInfo {
-        const message = { walletID: "", url: "", formattedURL: "", hasCard: false, hasBank: false, hasIdentities: false, hasTransacted: false, hasWalletAddress: false, hasBalances: false, exceededLimits: false };
+        const message = { walletID: "", url: "", formattedURL: "", hasCard: false, hasBank: false, hasIdentities: false, hasTransacted: false, hasWalletAddress: false, hasBalances: false, exceededLimits: false, country: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<WalletInfo>(this, message, value);
@@ -6136,6 +6274,9 @@ class WalletInfo$Type extends MessageType<WalletInfo> {
                     break;
                 case /* bool exceededLimits */ 10:
                     message.exceededLimits = reader.bool();
+                    break;
+                case /* string country */ 11:
+                    message.country = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -6179,6 +6320,9 @@ class WalletInfo$Type extends MessageType<WalletInfo> {
         /* bool exceededLimits = 10; */
         if (message.exceededLimits !== false)
             writer.tag(10, WireType.Varint).bool(message.exceededLimits);
+        /* string country = 11; */
+        if (message.country !== "")
+            writer.tag(11, WireType.LengthDelimited).string(message.country);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -11350,7 +11494,6 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "SetKYCStatusPending", options: {}, I: Empty, O: Empty },
     { name: "GetPersonaInquiry", options: {}, I: KYCPersonaInquiryRequest, O: KYCPersonaInquiryResponse },
     { name: "GetKYCProviderWidget", options: {}, I: GetKYCProviderWidgetRequest, O: KYCProviderWidget },
-    { name: "CreateCard", options: {}, I: CreateCardRequest, O: LinkedAccount },
     { name: "GetCardDetails", options: {}, I: GetCardDetailsRequest, O: CardDetails },
     { name: "ListFeatures", options: {}, I: Empty, O: Features },
     { name: "CreateTwitterAuthURL", options: {}, I: Empty, O: CreateTwitterAuthURLResponse },
@@ -11379,9 +11522,9 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "GetXagoBalances", options: {}, I: Empty, O: GetXagoBalanceResponse },
     { name: "GetXagoDepositDetails", options: {}, I: GetXagoDepositDetailsRequest, O: GetXagoDepositDetailsResponse },
     { name: "GetPtiBalances", options: {}, I: Empty, O: GetPtiBalancesResponse },
-    { name: "AstraDepositFromCard", options: {}, I: AstraDepositFromCardRequest, O: Payment },
-    { name: "AstraWithdrawToCard", options: {}, I: AstraWithdrawToCardRequest, O: Payment },
-    { name: "AstraRequiresOTP", options: {}, I: Empty, O: AstraRequiresOTPResponse },
+    { name: "CreatePtiToken", options: {}, I: PtiTokenRequest, O: PtiTokenResponse },
+    { name: "CreateCard", options: {}, I: CreateCardRequest, O: LinkedAccount },
+    { name: "CreatePtiBankAccount", options: {}, I: CreatePtiBankAccountRequest, O: LinkedAccount },
     { name: "ListRafikiGrants", options: {}, I: Empty, O: ListRafikiGrantsResponse },
     { name: "GetRafikiGrant", options: {}, I: GetRafikiGrantRequest, O: RafikiGrant },
     { name: "RevokeRafikiGrant", options: {}, I: RevokeRafikiGrantRequest, O: Empty },

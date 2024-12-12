@@ -6,12 +6,17 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
+	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/currency"
+	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/providers/pti/external"
 	"gitlab.com/fynbos/backend/providers/xago"
+	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/pacioli"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/serviceerror"
@@ -22,6 +27,43 @@ var (
 	userFields       = "id, external_id, wallet_id, status, assessment_status, created_at, updated_at"
 	userInsertFields = "external_id, wallet_id"
 )
+
+func CreateUser(ctx context.Context, b Backends, walletID string) (pti.Await, error) {
+	wo := client.StartWorkflowOptions{
+		ID:                    "pti_create_user_" + walletID,
+		TaskQueue:             "backend",
+		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+	}
+
+	var workflowStatus enums.WorkflowExecutionStatus
+	wflow, err := b.Temporal().DescribeWorkflowExecution(ctx, wo.ID, "")
+	switch err.(type) {
+	case *serviceerror.Internal,
+		*serviceerror.Unavailable,
+		*serviceerror.InvalidArgument:
+		return nil, fmt.Errorf("%w %s", pti.ErrInternal, err)
+	case *serviceerror.NotFound:
+		// do nothing
+	default:
+		if wflow != nil {
+			workflowStatus = wflow.GetWorkflowExecutionInfo().Status
+		}
+	}
+
+	// return workflow if it's running
+	var await client.WorkflowRun
+	var executeErr error
+	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
+		await = b.Temporal().GetWorkflow(ctx, wo.ID, "")
+	} else {
+		await, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, CreateUserWorkflow, walletID)
+	}
+	if executeErr != nil {
+		return nil, fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+
+	return await.Get, nil
+}
 
 func CreateWallet(ctx context.Context, b Backends, args pti.CreateWalletArgs) (pti.Await, error) {
 	wo := client.StartWorkflowOptions{
@@ -63,6 +105,19 @@ func CreateWallet(ctx context.Context, b Backends, args pti.CreateWalletArgs) (p
 func GetUser(ctx context.Context, b Backends, walletID string) (*pti.User, error) {
 	var user pti.User
 	err := b.DB().GetContext(ctx, &user, fmt.Sprintf("SELECT %s from pti_users where wallet_id=$1;", userFields), walletID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, pti.ErrNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+func GetUserFromExternalID(ctx context.Context, b Backends, externalID string) (*pti.User, error) {
+	var user pti.User
+	err := b.DB().GetContext(ctx, &user, fmt.Sprintf("SELECT %s from pti_users where external_id=$1;", userFields), externalID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, pti.ErrNotFound
 	}
@@ -130,21 +185,51 @@ func DepositToWallet(ctx context.Context, b Backends, ec external.Client, args p
 		return "", err
 	}
 
-	la, err := b.LinkedAccounts().Get(ctx, args.LinkedAccountID)
+	las, err := b.LinkedAccounts().ListByWalletId(ctx, args.WalletID)
 	if err != nil {
 		return "", fmt.Errorf("%w %s", pti.ErrInternal, err)
 	}
-	if la.Provider != pti.ProviderName || la.WalletID != args.WalletID {
-		return "", pti.ErrNotFound
+
+	var balance *linkedaccounts.LinkedAccount
+	for _, la := range las {
+		if la.Provider == pti.ProviderName && la.Type == pti.AccTypeBalance {
+			balance = &la
+			break
+		}
+	}
+
+	// only allow depositing from card or bank
+	var source *linkedaccounts.LinkedAccount
+	var sourceType string
+	for _, la := range las {
+		if la.Provider == pti.ProviderName && la.Type == pti.TypeCard && la.ID == args.LinkedAccountID {
+			source = &la
+			sourceType = "card"
+			break
+		}
+
+		if la.Provider == pti.ProviderName && la.Type == pti.TypeBank && la.ID == args.LinkedAccountID {
+			source = &la
+			sourceType = "bank"
+			break
+		}
+	}
+	if balance == nil {
+		return "", fmt.Errorf("%w balance account not found", pti.ErrNotFound)
+	}
+	if source == nil {
+		return "", fmt.Errorf("%w source account not found", pti.ErrNotFound)
 	}
 
 	txID, err := ec.WalletDeposit(ctx, external.DepositArgs{
-		RequestID:        args.PaymentID,
-		ScenarioID:       pti.ScenarioDeposit,
-		SessionID:        args.PaymentID,
-		UserID:           externalUser.ExternalID,
-		ExternalWalletID: la.ProviderID,
-		Amount:           args.Amount,
+		RequestID:                 args.PaymentID,
+		ScenarioID:                pti.ScenarioDeposit,
+		SessionID:                 args.PaymentID,
+		UserID:                    externalUser.ExternalID,
+		ExternalWalletID:          balance.ProviderID,
+		ExternalPaymentMethodID:   source.ProviderID,
+		ExternalPaymentMethodType: sourceType,
+		Amount:                    args.Amount,
 	})
 	if errors.Is(err, external.ErrUnprocessableEntity) {
 		return "", err
@@ -162,21 +247,42 @@ func WithdrawFromWallet(ctx context.Context, b Backends, ec external.Client, arg
 		return "", err
 	}
 
-	la, err := b.LinkedAccounts().Get(ctx, args.LinkedAccountID)
+	las, err := b.LinkedAccounts().ListByWalletId(ctx, args.WalletID)
 	if err != nil {
 		return "", fmt.Errorf("%w %s", pti.ErrInternal, err)
 	}
-	if la.Provider != pti.ProviderName || la.WalletID != args.WalletID {
-		return "", pti.ErrNotFound
+
+	var balance *linkedaccounts.LinkedAccount
+	for _, la := range las {
+		if la.Provider == pti.ProviderName && la.Type == pti.AccTypeBalance {
+			balance = &la
+			break
+		}
+	}
+
+	// only allow withdrawing from bank
+	var bank *linkedaccounts.LinkedAccount
+	for _, la := range las {
+		if la.Provider == pti.ProviderName && la.Type == pti.TypeBank && la.ID == args.LinkedAccountID {
+			bank = &la
+			break
+		}
+	}
+	if balance == nil {
+		return "", fmt.Errorf("%w balance account not found", pti.ErrNotFound)
+	}
+	if bank == nil {
+		return "", fmt.Errorf("%w source account not found or is not a bank account", pti.ErrNotFound)
 	}
 
 	txID, err := ec.WalletWithdrawal(ctx, external.WithdrawalArgs{
-		RequestID:        args.PaymentID,
-		SessionID:        args.PaymentID,
-		ScenarioID:       pti.ScenarioWithdrawal,
-		UserID:           externalUser.ExternalID,
-		ExternalWalletID: la.ProviderID,
-		Amount:           args.Amount,
+		RequestID:             args.PaymentID,
+		SessionID:             args.PaymentID,
+		ScenarioID:            pti.ScenarioWithdrawal,
+		UserID:                externalUser.ExternalID,
+		ExternalWalletID:      balance.ProviderID,
+		ExternalBankAccountID: bank.ProviderID,
+		Amount:                args.Amount,
 	})
 	if errors.Is(err, external.ErrUnprocessableEntity) {
 		return "", err
@@ -414,4 +520,147 @@ func ReserveTransfer(ctx context.Context, b Backends, fromAccount, toAccount, tx
 	}
 
 	return nil
+}
+
+func GetKYCWidget(ctx context.Context, b Backends, walletID string) (*pti.WidgetDetails, error) {
+	externalUser, err := GetUser(ctx, b, walletID)
+	if errors.Is(err, pti.ErrNotFound) {
+		await, innerErr := CreateUser(ctx, b, walletID)
+		if innerErr != nil {
+			return nil, err
+		}
+
+		innerErr = await(ctx, &externalUser)
+
+		if innerErr != nil {
+			return nil, innerErr
+		}
+	} else if err != nil {
+		return nil, err
+	}
+
+	sdkUrl := "https://sdk.staging.fiant.io/0.0.23/index.js"
+	formsUrl := "https://forms.staging.fiant.io"
+	if env.IsProd() {
+		sdkUrl = "https://sdk.platform.fiant.io/0.0.23/index.js"
+		formsUrl = "https://forms.platform.fiant.io"
+	}
+
+	return &pti.WidgetDetails{
+		ScenarioID:        pti.ScenarioDeposit,
+		RequestID:         uuid.NewString(),
+		UserID:            externalUser.ExternalID,
+		ClientID:          os.Getenv("PTI_CLIENT_ID"),
+		GenerateTokenPath: fmt.Sprintf("%s/api/pti/token", env.GetUrl()),
+		SdkUrl:            sdkUrl,
+		FormsUrl:          formsUrl,
+	}, nil
+}
+
+func CreateCard(ctx context.Context, b Backends, walletID, tokenID string) (pti.Await, error) {
+	wo := client.StartWorkflowOptions{
+		ID:                    "pti_create_card_" + walletID + "_" + tokenID,
+		TaskQueue:             "backend",
+		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+	}
+
+	var workflowStatus enums.WorkflowExecutionStatus
+	wflow, err := b.Temporal().DescribeWorkflowExecution(ctx, wo.ID, "")
+	switch err.(type) {
+	case *serviceerror.Internal,
+		*serviceerror.Unavailable,
+		*serviceerror.InvalidArgument:
+		return nil, fmt.Errorf("%w %s", pti.ErrInternal, err)
+	case *serviceerror.NotFound:
+		// do nothing
+	default:
+		if wflow != nil {
+			workflowStatus = wflow.GetWorkflowExecutionInfo().Status
+		}
+	}
+
+	// return workflow if it's running
+	var await client.WorkflowRun
+	var executeErr error
+	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
+		await = b.Temporal().GetWorkflow(ctx, wo.ID, "")
+	} else {
+		await, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, CreateCardWorkflow, walletID, tokenID)
+	}
+	if executeErr != nil {
+		return nil, fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+
+	return await.Get, nil
+}
+
+func GetLinkedAccountCardDetails(ctx context.Context, b Backends, ex external.Client, id string) (*pti.EncryptedCreditCardPaymentInformation, error) {
+	la, err := b.LinkedAccounts().Get(ctx, id)
+	if errors.Is(err, linkedaccounts.ErrNotFound) {
+		return nil, fmt.Errorf("%w %s", pti.ErrNotFound, err)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+
+	ptiUser, err := GetUser(ctx, b, la.WalletID)
+	if err != nil {
+		return nil, err
+	}
+
+	details, err := ex.GetUsersPaymentInformation(ctx, ptiUser.ExternalID, la.ProviderID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+
+	var card external.EncryptedCreditCardPaymentInformation
+	err = json.Unmarshal(details, &card)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+
+	network := card.CreditCardType
+	if len(network) > 0 {
+		network = strings.ToUpper(network[0:1]) + network[1:]
+	}
+	card.CreditCardType = network
+
+	return &card, nil
+}
+
+func CreateBankAccount(ctx context.Context, b Backends, args pti.CreateBankAccountArgs) (pti.Await, error) {
+	wo := client.StartWorkflowOptions{
+		ID:                    "pti_create_bank_" + args.WalletID + "_" + args.AccountNumber,
+		TaskQueue:             "backend",
+		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+	}
+
+	var workflowStatus enums.WorkflowExecutionStatus
+	wflow, err := b.Temporal().DescribeWorkflowExecution(ctx, wo.ID, "")
+	switch err.(type) {
+	case *serviceerror.Internal,
+		*serviceerror.Unavailable,
+		*serviceerror.InvalidArgument:
+		return nil, fmt.Errorf("%w %s", pti.ErrInternal, err)
+	case *serviceerror.NotFound:
+		// do nothing
+	default:
+		if wflow != nil {
+			workflowStatus = wflow.GetWorkflowExecutionInfo().Status
+		}
+	}
+
+	// return workflow if it's running
+	var await client.WorkflowRun
+	var executeErr error
+	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
+		await = b.Temporal().GetWorkflow(ctx, wo.ID, "")
+	} else {
+		await, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, CreatePtiBankAccountWorkflow, args)
+	}
+	if executeErr != nil {
+		return nil, fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+
+	return await.Get, nil
 }

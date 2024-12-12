@@ -10,7 +10,6 @@ import (
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/limits"
 	"gitlab.com/fynbos/backend/payments"
-	"gitlab.com/fynbos/backend/providers/astra"
 	"gitlab.com/fynbos/backend/providers/xago"
 	"gitlab.com/fynbos/backend/user"
 	pb "gitlab.com/fynbos/proto/backend/v1"
@@ -110,7 +109,7 @@ func (s *rpcService) GetLinkedAccountsForWithdraw(ctx context.Context, req *pb.G
 			las = append(las, acc)
 		}
 
-		if balance.Provider == pti.ProviderName && la.Provider == astra.ProviderName && la.Type == astra.TypeCard {
+		if balance.Provider == pti.ProviderName && la.Provider == pti.ProviderName && la.Type == pti.TypeBank {
 			acc := &pb.LinkedAccountForPayment{
 				Details: transformLinkedAccount(la),
 				Enabled: balance.CanPay(la),

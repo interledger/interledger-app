@@ -8,9 +8,43 @@ import (
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/pti"
+	"gitlab.com/fynbos/backend/providers/pti/external"
 
 	"go.temporal.io/sdk/workflow"
 )
+
+func CreateUserWorkflow(ctx workflow.Context, walletID string) (*pti.User, error) {
+	var a *Activity
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Second,
+	}
+
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	logger := workflow.GetLogger(ctx)
+	logger.Info("Creating pti user.")
+
+	var externalUser pti.User
+	err := workflow.ExecuteActivity(ctx, a.GetPtiUser, walletID).Get(ctx, &externalUser)
+	if err != nil {
+		return nil, err
+	}
+
+	if externalUser.ID == "" {
+		var externalUserID string
+		err = workflow.ExecuteActivity(ctx, a.CreatePtiUser, walletID).Get(ctx, &externalUserID)
+		if err != nil {
+			return nil, err
+		}
+
+		err = workflow.ExecuteActivity(ctx, a.SavePtiUser, externalUserID, walletID).Get(ctx, &externalUser)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &externalUser, nil
+}
 
 func CreateWalletWorkflow(ctx workflow.Context, args pti.CreateWalletArgs) (*linkedaccounts.LinkedAccount, error) {
 	if args.Currency != currency.USD {
@@ -29,24 +63,6 @@ func CreateWalletWorkflow(ctx workflow.Context, args pti.CreateWalletArgs) (*lin
 
 	var externalUser pti.User
 	err := workflow.ExecuteActivity(ctx, a.GetPtiUser, args.WalletID).Get(ctx, &externalUser)
-	if err != nil {
-		return nil, err
-	}
-
-	if externalUser.ID == "" {
-		var externalUserID string
-		err = workflow.ExecuteActivity(ctx, a.CreatePtiUser, args.WalletID).Get(ctx, &externalUserID)
-		if err != nil {
-			return nil, err
-		}
-
-		err = workflow.ExecuteActivity(ctx, a.SavePtiUser, externalUserID, args.WalletID).Get(ctx, &externalUser)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	err = workflow.ExecuteActivity(ctx, a.StartUserAssessment, args.WalletID, pti.ScenarioDeposit).Get(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -92,4 +108,50 @@ func CreateWalletWorkflow(ctx workflow.Context, args pti.CreateWalletArgs) (*lin
 	}
 
 	return &la, nil
+}
+
+func CreateCardWorkflow(ctx workflow.Context, walletID, tokenID string) (*linkedaccounts.LinkedAccount, error) {
+	var a *Activity
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Second,
+	}
+
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	logger := workflow.GetLogger(ctx)
+	logger.Info("Creating pti card.")
+
+	var linkedAccount linkedaccounts.LinkedAccount
+	err := workflow.ExecuteActivity(ctx, a.CreatePTICard, walletID, tokenID).Get(ctx, &linkedAccount)
+	if err != nil {
+		return nil, err
+	}
+
+	return &linkedAccount, nil
+}
+
+func CreatePtiBankAccountWorkflow(ctx workflow.Context, args pti.CreateBankAccountArgs) (*linkedaccounts.LinkedAccount, error) {
+	var a *Activity
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Second,
+	}
+
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	logger := workflow.GetLogger(ctx)
+	logger.Info("Creating pti bank account.")
+
+	var externalBankDetails external.BankAccountPaymentInformation
+	err := workflow.ExecuteActivity(ctx, a.CreatePtiBankAccount, args).Get(ctx, &externalBankDetails)
+	if err != nil {
+		return nil, err
+	}
+
+	var linkedAccount linkedaccounts.LinkedAccount
+	err = workflow.ExecuteActivity(ctx, a.SavePtiBankAccount, args.WalletID, externalBankDetails.ID).Get(ctx, &linkedAccount)
+	if err != nil {
+		return nil, err
+	}
+
+	return &linkedAccount, nil
 }

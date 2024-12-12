@@ -5,11 +5,14 @@ import (
 	"time"
 
 	"gitlab.com/fynbos/backend/currency"
+	"gitlab.com/fynbos/backend/providers/pti/external"
 )
 
 const (
 	ProviderName   = "pti"
 	AccTypeBalance = "balance"
+	TypeCard       = "card"
+	TypeBank       = "bank_account"
 
 	ScenarioTransfer   = "fynbos_transfer"
 	ScenarioDeposit    = "fynbos_deposit"
@@ -81,4 +84,26 @@ type TransactionStatusArgs struct {
 type Balance struct {
 	Total     currency.Amount
 	Available currency.Amount
+}
+
+type TokenArgs = external.TokenArgs
+type TokenResponse = external.TokenResponse
+type EncryptedCreditCardPaymentInformation = external.EncryptedCreditCardPaymentInformation
+type WidgetDetails = struct {
+	ScenarioID        string
+	RequestID         string
+	UserID            string
+	GenerateTokenPath string
+	ClientID          string
+	SdkUrl            string
+	FormsUrl          string
+}
+
+type CreateBankAccountArgs struct {
+	WalletID                string
+	AccountNumber           string
+	AccountType             string
+	RoutingNumber           string
+	RoutingNumberCheckDigit string
+	Bank                    string
 }

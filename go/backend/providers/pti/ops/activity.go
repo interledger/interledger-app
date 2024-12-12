@@ -5,15 +5,18 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/lestrrat-go/jwx/v2/jwk"
+	"gitlab.com/fynbos/backend/country"
+	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
@@ -22,9 +25,11 @@ import (
 	"gitlab.com/fynbos/backend/providers/pti/external"
 	external_mock "gitlab.com/fynbos/backend/providers/pti/external/mock"
 	"gitlab.com/fynbos/env"
+	"gitlab.com/fynbos/log"
 	"gitlab.com/fynbos/pacioli"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.temporal.io/sdk/temporal"
+	"go.uber.org/zap"
 )
 
 type Activity struct {
@@ -85,33 +90,14 @@ func (a *Activity) GetPtiUser(ctx context.Context, walletID string) (*pti.User, 
 }
 
 func (a *Activity) CreatePtiUser(ctx context.Context, walletID string) (string, error) {
-	kycData, err := a.b.KYC().GetIndividualDetails(ctx, walletID)
-	if errors.Is(err, kyc.ErrNoKYCInfo) {
-		return "", temporal.NewNonRetryableApplicationError("No KYC data for wallet.", "ErrNotFound", err)
-	}
-
-	var addresses []external.Address
-	if kycData.Address != nil {
-		addresses = append(addresses, external.Address{
-			Street: kycData.Address.Line1,
-			City:   kycData.Address.City,
-			StateCode: external.StateCode{
-				Code: kycData.Address.State,
-			},
-			Country: external.CountryCode{
-				Code: kycData.Address.CountryCode,
-			},
-			PostalCode: kycData.Address.ZipCode,
-			Default:    true,
-		})
-	}
-
 	var emails []external.Email
 	var phones []external.Phone
 	usrs, err := a.b.Users().ListUsers(ctx, walletID)
 	if err != nil {
 		return "", err
 	}
+
+	var firstName, lastName string
 
 	for i, usr := range usrs {
 		emails = append(emails, external.Email{
@@ -124,20 +110,25 @@ func (a *Activity) CreatePtiUser(ctx context.Context, walletID string) (string, 
 			Type:    "MOBILE",
 			Default: i == 0,
 		})
+
+		if firstName == "" {
+			firstName = usr.FirstName
+		}
+
+		if lastName == "" {
+			lastName = usr.LastName
+		}
 	}
 
 	return a.external.CreateUser(ctx, external.CreateUserArgs{
-		ID:          uuid.NewString(),
-		Type:        "PERSON",
-		DateOfBirth: kycData.DateOfBirth.Format("2006-01-02"),
+		ID:   uuid.NewString(),
+		Type: "PERSON",
 		Name: external.Name{
-			First: kycData.FirstName,
-			Last:  kycData.LastName,
+			First: firstName,
+			Last:  lastName,
 		},
-		Emails:               emails,
-		Phones:               phones,
-		Addresses:            addresses,
-		CountryOfCitizenship: kycData.CountryCode,
+		Emails: emails,
+		Phones: phones,
 	})
 }
 
@@ -177,6 +168,47 @@ func (a *Activity) CheckUserAssessmentAccepted(ctx context.Context, walletID str
 
 	if assessment.Assessment != "ACCEPTED" {
 		return fmt.Errorf("%w", pti.ErrAssessmentFailed)
+	}
+
+	// now update the personal details needed for front-end
+	externalUser, err := a.external.GetUser(ctx, usr.ExternalID)
+	if err != nil {
+		log.Error("pti activity (checkUserAssessmentAccepted): failed to fetch external user", zap.Error(err))
+		return nil
+	}
+
+	dob, err := time.Parse(time.DateOnly, externalUser.DateOfBirth)
+	if err != nil {
+		log.Error("pti activity (checkUserAssessmentAccepted): failed to parse date of birth", zap.Error(err))
+		return nil
+	}
+
+	args := kyc.IndividualDetails{
+		WalletID:    walletID,
+		FirstName:   externalUser.Name.First,
+		LastName:    externalUser.Name.Last,
+		DateOfBirth: dob,
+		IPAddress:   "10.0.0.1",
+	}
+	if len(externalUser.Addresses) > 0 {
+		args.Address = &kyc.Address{
+			State:   externalUser.Addresses[0].StateCode.Code,
+			Line1:   externalUser.Addresses[0].Street,
+			City:    externalUser.Addresses[0].City,
+			ZipCode: externalUser.Addresses[0].PostalCode,
+		}
+	}
+
+	_, err = a.b.KYC().UpdateIndividualDetails(ctx, args)
+	if err != nil {
+		log.Error("pti activity (checkUserAssessmentAccepted): failed to update individual details", zap.Error(err))
+		return nil
+	}
+
+	err = a.b.KYC().SetKYCStatus(ctx, walletID, kyc.StatusLevel2)
+	if err != nil {
+		log.Error("pti activity (checkUserAssessmentAccepted): failed to set kyc status to level2", zap.Error(err))
+		return nil
 	}
 
 	return nil
@@ -385,4 +417,142 @@ func (a *Activity) CreatePTIBalanceAccount(ctx context.Context, id string) error
 	}
 
 	return nil
+}
+
+func (a *Activity) CreatePTICard(ctx context.Context, walletID, tokenID string) (*linkedaccounts.LinkedAccount, error) {
+	ptiUser, err := GetUser(ctx, a.b, walletID)
+	if errors.Is(err, pti.ErrNotFound) {
+		return nil, temporal.NewNonRetryableApplicationError("pti create card: no external user found", "ErrNotFound", err)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	externalCardRawJson, err := a.external.GetUsersPaymentInformation(ctx, ptiUser.ExternalID, tokenID)
+	if err != nil {
+		return nil, err
+	}
+
+	var d external.PaymentInformation
+	err = json.Unmarshal(externalCardRawJson, &d)
+	if err != nil {
+		return nil, err
+	}
+
+	if d.Type != external.CardPaymentInformationType {
+		return nil, temporal.NewNonRetryableApplicationError("pti create card: payment method is not a card", "ErrInternal", fmt.Errorf("%w payment method is not a card", pti.ErrInternal))
+	}
+
+	var cardInfo external.EncryptedCreditCardPaymentInformation
+	err = json.Unmarshal(externalCardRawJson, &cardInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	network := ""
+	if cardInfo.CreditCardType != "" {
+		network = cardInfo.CreditCardType
+	}
+
+	la, err := a.b.LinkedAccounts().Create(ctx, &linkedaccounts.CreateArgs{
+		WalletID:            walletID,
+		Name:                strings.TrimSpace(fmt.Sprintf("%s %s", network, cardInfo.CreditCardLast4)),
+		Nickname:            strings.TrimSpace(fmt.Sprintf("%s %s", network, cardInfo.CreditCardLast4)),
+		Provider:            pti.ProviderName,
+		ProviderID:          tokenID,
+		Mask:                cardInfo.CreditCardLast4,
+		State:               linkedaccounts.Verified,
+		Type:                pti.TypeCard,
+		CanSend:             true,
+		CanReceive:          true,
+		SendCountry:         country.US,
+		SendCurrency:        currency.USD,
+		SendNetwork:         network,
+		SendAvailability:    linkedaccounts.Immediate,
+		ReceiveCountry:      country.US,
+		ReceiveCurrency:     currency.USD,
+		ReceiveNetwork:      network,
+		ReceiveAvailability: linkedaccounts.Immediate,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return la, nil
+}
+
+func (a *Activity) CreatePtiBankAccount(ctx context.Context, args pti.CreateBankAccountArgs) (*external.BankAccountPaymentInformation, error) {
+	ptiUser, err := GetUser(ctx, a.b, args.WalletID)
+	if errors.Is(err, pti.ErrNotFound) {
+		return nil, temporal.NewNonRetryableApplicationError("save pti bank account: pti user not found", "ErrNotFound", err)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	bank, err := a.external.CreateBankAccount(ctx, ptiUser.ExternalID, external.BankAccountPaymentInformation{
+		Type:                  "BANK_ACCOUNT",
+		BankAccountNumner:     args.AccountNumber,
+		BankAccountType:       args.AccountType,
+		BankRoutingNumber:     args.RoutingNumber,
+		BankRoutingCheckDigit: args.RoutingNumberCheckDigit,
+		AccountBankName:       args.Bank,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return bank, nil
+}
+
+func (a *Activity) SavePtiBankAccount(ctx context.Context, walletID, externalPaymentMethodID string) (*linkedaccounts.LinkedAccount, error) {
+	ptiUser, err := GetUser(ctx, a.b, walletID)
+	if errors.Is(err, pti.ErrNotFound) {
+		return nil, temporal.NewNonRetryableApplicationError("save pti bank account: pti user not found", "ErrNotFound", err)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := a.external.GetUsersPaymentInformation(ctx, ptiUser.ExternalID, externalPaymentMethodID)
+	if err != nil {
+		return nil, err
+	}
+
+	var bank external.BankAccountPaymentInformation
+	err = json.Unmarshal(data, &bank)
+	if err != nil {
+		return nil, err
+	}
+
+	mask := bank.BankAccountNumner
+	if len(mask) > 4 {
+		mask = bank.BankAccountNumner[len(mask)-4:]
+	}
+
+	la, err := a.b.LinkedAccounts().Create(ctx, &linkedaccounts.CreateArgs{
+		WalletID:            walletID,
+		Name:                strings.TrimSpace(fmt.Sprintf("%s %s", bank.AccountBankName, mask)),
+		Nickname:            strings.TrimSpace(fmt.Sprintf("%s %s", bank.AccountBankName, mask)),
+		Provider:            pti.ProviderName,
+		ProviderID:          externalPaymentMethodID,
+		Mask:                mask,
+		State:               linkedaccounts.Verified,
+		Type:                pti.TypeBank,
+		CanSend:             true,
+		CanReceive:          true,
+		SendCountry:         country.US,
+		SendCurrency:        currency.USD,
+		SendNetwork:         "ACH",
+		SendAvailability:    linkedaccounts.Few,
+		ReceiveCountry:      country.US,
+		ReceiveCurrency:     currency.USD,
+		ReceiveNetwork:      "ACH",
+		ReceiveAvailability: linkedaccounts.Few,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return la, nil
 }

@@ -8,8 +8,10 @@ declare module "routes-gen" {
     "/api/fern": Record<string, never>;
     "/api/maps/geocode": Record<string, never>;
     "/api/maps/placesAutocomplete": Record<string, never>;
+    "/api/pti/token": Record<string, never>;
     "/api/sendOtp": Record<string, never>;
     "/callbacks/chimoney": Record<string, never>;
+    "/connect/bank/us": Record<string, never>;
     "/connect/bank/za": Record<string, never>;
     "/connect/card": Record<string, never>;
     "/connect/interac": Record<string, never>;
@@ -66,8 +68,10 @@ declare module "routes-gen" {
       | ["/api/fern"]
       | ["/api/maps/geocode"]
       | ["/api/maps/placesAutocomplete"]
+      | ["/api/pti/token"]
       | ["/api/sendOtp"]
       | ["/callbacks/chimoney"]
+      | ["/connect/bank/us"]
       | ["/connect/bank/za"]
       | ["/connect/card"]
       | ["/connect/interac"]

@@ -21,4 +21,10 @@ type Client interface {
 	AssignBalance(ctx context.Context, linkedAccountID, txID string, amt currency.Amount) (*Balance, error)
 
 	ReserveTransfer(ctx context.Context, fromAccount, toAccount, txID string, amt currency.Amount, timeout time.Duration) error
+
+	CreateJWT(ctx context.Context, args TokenArgs) (*TokenResponse, error)
+	GetWidget(ctx context.Context, walletID string) (*WidgetDetails, error)
+	CreateCard(ctx context.Context, walletID, tokenID string) (Await, error)
+	GetLinkedAccountCardDetails(ctx context.Context, id string) (*EncryptedCreditCardPaymentInformation, error)
+	CreateBankAccount(ctx context.Context, args CreateBankAccountArgs) (Await, error)
 }

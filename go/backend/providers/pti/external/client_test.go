@@ -15,7 +15,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/providers/pti"
 )
 
 func TestClientSignature(t *testing.T) {
@@ -141,7 +140,7 @@ func TestStartAssessment(t *testing.T) {
 	a, err := client.StartUserAssessment(context.Background(), StartUserAssessmentArgs{
 		ID:         "a3034411-11bd-4379-89ed-867eb476ef8a",
 		Type:       "PERSON",
-		ScenarioID: pti.ScenarioDeposit,
+		ScenarioID: "fynbos_deposit",
 	})
 	require.NoError(t, err)
 
@@ -248,7 +247,7 @@ func TestDeposit(t *testing.T) {
 	requestID := "9c18c969-dca9-4a94-8c13-f5ca1c247521"
 	_, err = client.WalletDeposit(ctx, DepositArgs{
 		RequestID:        requestID,
-		ScenarioID:       pti.ScenarioDeposit,
+		ScenarioID:       "fynbos_deposit",
 		UserID:           ptiUserID,
 		ExternalWalletID: ptiWalletID,
 		Amount: currency.Amount{
@@ -293,7 +292,7 @@ func TestWalletTransfer(t *testing.T) {
 	requestID := "92984a38-e4f1-4e9e-a106-12ff1e3937ec"
 	transferArgs := TransferArgs{
 		RequestID:  requestID,
-		ScenarioID: pti.ScenarioTransfer,
+		ScenarioID: "fynbos_deposit",
 		Amount:     1.00,
 		USDValue:   1.00,
 		Date:       time.Now().Format(time.RFC3339),

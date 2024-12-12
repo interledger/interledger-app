@@ -120,3 +120,23 @@ func (c Client) RollbackReserve(ctx context.Context, trxID string) error {
 func (c Client) ReserveTransfer(ctx context.Context, fromAccount, toAccount, txID string, amt currency.Amount, timeout time.Duration) error {
 	return ops.ReserveTransfer(ctx, c.b, fromAccount, toAccount, txID, amt, timeout)
 }
+
+func (c Client) CreateJWT(ctx context.Context, args pti.TokenArgs) (*pti.TokenResponse, error) {
+	return c.external.CreateJWT(ctx, args)
+}
+
+func (c Client) GetWidget(ctx context.Context, walletID string) (*pti.WidgetDetails, error) {
+	return ops.GetKYCWidget(ctx, c.b, walletID)
+}
+
+func (c Client) CreateCard(ctx context.Context, walletID, tokenID string) (pti.Await, error) {
+	return ops.CreateCard(ctx, c.b, walletID, tokenID)
+}
+
+func (c Client) GetLinkedAccountCardDetails(ctx context.Context, id string) (*pti.EncryptedCreditCardPaymentInformation, error) {
+	return ops.GetLinkedAccountCardDetails(ctx, c.b, c.external, id)
+}
+
+func (c Client) CreateBankAccount(ctx context.Context, args pti.CreateBankAccountArgs) (pti.Await, error) {
+	return ops.CreateBankAccount(ctx, c.b, args)
+}

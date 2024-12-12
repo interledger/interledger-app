@@ -2,11 +2,11 @@ package ops_test
 
 import (
 	"context"
-	"gitlab.com/fynbos/backend/wallets"
-	wallet_mock "gitlab.com/fynbos/backend/wallets/client/mock"
 	"testing"
 
-	"gitlab.com/fynbos/backend/providers/astra"
+	"gitlab.com/fynbos/backend/providers/pti"
+	"gitlab.com/fynbos/backend/wallets"
+	wallet_mock "gitlab.com/fynbos/backend/wallets/client/mock"
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
 
@@ -123,9 +123,10 @@ func TestFeatures(t *testing.T) {
 				TwitterEnabled:    true,
 				ReceiveEnabled:    true,
 				LinkedAccEnabled:  true,
-				CardsEnabled:      true,
+				CardsEnabled:      false,
 				SendEnabled:       true,
-				AddCardsEnabled:   true,
+				AddCardsEnabled:   false,
+				BanksEnabled:      true,
 			},
 		},
 		{
@@ -138,9 +139,10 @@ func TestFeatures(t *testing.T) {
 				TwitterEnabled:    true,
 				ReceiveEnabled:    true,
 				LinkedAccEnabled:  true,
-				CardsEnabled:      true,
+				CardsEnabled:      false,
 				SendEnabled:       true,
 				AddCardsEnabled:   false,
+				BanksEnabled:      true,
 			},
 		},
 		{
@@ -173,8 +175,8 @@ func TestFeatures(t *testing.T) {
 			for i := 0; i < tc.numCards; i++ {
 				lal = append(lal, linkedaccounts.LinkedAccount{
 					State:    linkedaccounts.Verified,
-					Provider: astra.ProviderName,
-					Type:     astra.TypeCard,
+					Provider: pti.ProviderName,
+					Type:     pti.TypeCard,
 				})
 			}
 

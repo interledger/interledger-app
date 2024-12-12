@@ -13,7 +13,6 @@ import (
 	"gitlab.com/fynbos/backend/jobs"
 	kyc_workflows "gitlab.com/fynbos/backend/kyc/ops"
 	payments_workflows "gitlab.com/fynbos/backend/payments/ops"
-	asta_workflows "gitlab.com/fynbos/backend/providers/astra/ops"
 	chimoney_workflows "gitlab.com/fynbos/backend/providers/chimoney/ops"
 	gatehub_workflows "gitlab.com/fynbos/backend/providers/gatehub/ops"
 	pti_workflows "gitlab.com/fynbos/backend/providers/pti/ops"
@@ -50,8 +49,6 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(jobs.UpdateTransactionTypes)
 	w.RegisterWorkflow(jobs.GenerateWalletPaymentPointersJob)
 	w.RegisterWorkflow(jobs.MigrateUSWalletsToPTIJob)
-	w.RegisterWorkflow(jobs.CreateAstraBusinessProfile)
-	w.RegisterWorkflow(jobs.ExchangeAstraBusinessProfileCode)
 	w.RegisterWorkflow(jobs.ResendOnOffRampEmailJob)
 	w.RegisterWorkflow(jobs.CreateRafikiPaymentPointersJob)
 
@@ -96,13 +93,9 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	}
 	w.RegisterActivity(pti_workflows.NewActivity(b, ptiPrivateKey))
 	w.RegisterWorkflow(pti_workflows.CreateWalletWorkflow)
-
-	// Astra
-	w.RegisterActivity(asta_workflows.NewActivity(b))
-	w.RegisterWorkflow(asta_workflows.AstraRenewTokensWorkflow)
-	w.RegisterWorkflow(asta_workflows.CreateAstraCardWorkflow)
-
-	asta_workflows.StartTokenRefreshing(b)
+	w.RegisterWorkflow(pti_workflows.CreateUserWorkflow)
+	w.RegisterWorkflow(pti_workflows.CreateCardWorkflow)
+	w.RegisterWorkflow(pti_workflows.CreatePtiBankAccountWorkflow)
 
 	// Gatehub
 	w.RegisterActivity(gatehub_workflows.NewActivity(b))

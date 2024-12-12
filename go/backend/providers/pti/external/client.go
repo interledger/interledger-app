@@ -15,8 +15,6 @@ import (
 	"strings"
 	"time"
 
-	"gitlab.com/fynbos/backend/providers/astra"
-
 	"github.com/google/uuid"
 	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwk"
@@ -56,7 +54,7 @@ type ClientArgs struct {
 }
 
 func New(args ClientArgs) Client {
-	base := "http://api.staging.fiant.io/v1"
+	base := "https://api.staging.fiant.io/v1"
 	if args.BaseURL != "" {
 		base = args.BaseURL
 	} else if env.IsLocal() {
@@ -983,6 +981,13 @@ func (c client) WalletDeposit(ctx context.Context, args DepositArgs) (string, er
 		return "", fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
+	sourcePaymentMethodType := "CREDIT_CARD"
+	sourcePaymentInformationType := "ENCRYPTED_CREDIT_CARD"
+	if args.ExternalPaymentMethodType == "bank" {
+		sourcePaymentMethodType = "ACH"
+		sourcePaymentInformationType = "BANK_ACCOUNT"
+	}
+
 	reqArgs := internalCreateDepositArgs{
 		Initiator: User{
 			ID:   args.UserID,
@@ -991,11 +996,10 @@ func (c client) WalletDeposit(ctx context.Context, args DepositArgs) (string, er
 		SourceMethod: SourceMethod{
 			Currency: args.Amount.Currency.String(),
 			PaymentInformation: PaymentInformation{
-				Type:              "BANK_ACCOUNT",
-				BankAccountNumber: astra.AccountNumber(),
-				BankRoutingNumber: astra.RoutingNumber(),
+				Type: sourcePaymentInformationType,
+				ID:   args.ExternalPaymentMethodID,
 			},
-			PaymentMethodType: "FIAT",
+			PaymentMethodType: sourcePaymentMethodType,
 		},
 		DestinationMethod: DestinationMethod{
 			PaymentMethodType: "WALLET",
@@ -1090,10 +1094,11 @@ func (c client) WalletWithdrawal(ctx context.Context, args WithdrawalArgs) (stri
 			PaymentMethodType: "WALLET",
 		},
 		DestinationMethod: WithdrawalDestinationMethod{
-			PaymentMethodType: "FIAT",
+			Currency:          args.Amount.Currency.String(),
+			PaymentMethodType: "ACH",
 			PaymentInformation: PaymentInformation{
-				Type:              "BANK_ACCOUNT",
-				BankAccountNumber: astra.AccountNumber(),
+				Type: "BANK_ACCOUNT",
+				ID:   args.ExternalBankAccountID,
 			},
 		},
 		Amount:    args.Amount.Float64(),
@@ -1212,6 +1217,169 @@ func (c client) UpdateTransactionStatus(ctx context.Context, args UpdateTxStatus
 	return txResp.ID, nil
 }
 
+func (c client) CreateJWT(ctx context.Context, args TokenArgs) (*TokenResponse, error) {
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "POST"
+		meta.Provider = "pti"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "POST",
+			Provider: "pti",
+		})
+	}
+
+	url, err := url.JoinPath(c.baseURL, "auth", "jwt")
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	payload, err := json.Marshal(args)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(payload))
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+	req.Header.Add(ptiClientIDHeader, c.clientID)
+	req.Header.Add("Content-Type", "application/json")
+	date := time.Now()
+	req.Header.Add("Date", date.Format(http.TimeFormat))
+	if err := Sign(ctx, req, date, payload, c.privateKey, c.publicKeyThumbprint); err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	err = checkResponseStatusCode(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+	defer resp.Body.Close()
+
+	var tokenResp TokenResponse
+	err = json.Unmarshal(body, &tokenResp)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	return &tokenResp, nil
+}
+
+func (c client) GetUsersPaymentInformation(ctx context.Context, userID, id string) (json.RawMessage, error) {
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "GET"
+		meta.Provider = "pti"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "GET",
+			Provider: "pti",
+		})
+	}
+
+	url, err := url.JoinPath(c.baseURL, "users", userID, "payment-information", id)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+	req.Header.Add(ptiClientIDHeader, c.clientID)
+	date := time.Now()
+	req.Header.Add("Date", date.Format(http.TimeFormat))
+	if err := Sign(ctx, req, date, nil, c.privateKey, c.publicKeyThumbprint); err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	err = checkResponseStatusCode(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	return body, nil
+}
+
+func (c client) CreateBankAccount(ctx context.Context, userID string, args BankAccountPaymentInformation) (*BankAccountPaymentInformation, error) {
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "POST"
+		meta.Provider = "pti"
+
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "POST",
+			Provider: "pti",
+		})
+	}
+
+	url, err := url.JoinPath(c.baseURL, "users", userID, "payment-information")
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	payload, err := json.Marshal(args)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(payload))
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+	req.Header.Add(ptiClientIDHeader, c.clientID)
+	req.Header.Add("Content-Type", "application/json")
+	date := time.Now()
+	req.Header.Add("Date", date.Format(http.TimeFormat))
+	if err := Sign(ctx, req, date, payload, c.privateKey, c.publicKeyThumbprint); err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	err = checkResponseStatusCode(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	var storedBankAccount BankAccountPaymentInformation
+	err = json.Unmarshal(body, &storedBankAccount)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	return &storedBankAccount, nil
+}
 func checkResponseStatusCode(r *http.Response) error {
 	if http.StatusOK <= r.StatusCode && r.StatusCode < http.StatusMultipleChoices {
 		return nil
