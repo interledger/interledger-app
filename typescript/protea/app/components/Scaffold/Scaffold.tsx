@@ -408,14 +408,6 @@ export function Scaffold() {
       >
         {layout !== Layouts.Marketing && (
           <>
-            <span className='text-xs font-medium text-medium'>&copy;</span>
-            <Router
-              className='text-xs font-medium text-primary'
-              to='https://interledger.app'
-            >
-              Fynbos
-            </Router>
-            <span className='text-xs font-medium text-medium'>&amp;</span>
             <Router
               className='text-xs font-medium text-primary'
               to='https://interledger.org'
@@ -530,9 +522,6 @@ export function Scaffold() {
                 </NavDrawer.ListItem>
               </NavDrawer.List>
               <footer className='flex w-full space-x-3 pb-2 pl-4'>
-                <span className='text-xs font-medium text-medium'>
-                  &copy;&nbsp;Fynbos
-                </span>
                 <Router
                   className='text-xs font-medium text-primary'
                   to='/legal'

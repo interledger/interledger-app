@@ -159,7 +159,7 @@ export function HeaderContentRecordComponent({
     >
       {content.shapes && (
         <img
-          alt='Fynbos shapes'
+          alt='shapes'
           className='block h-64 lg:-mr-20'
           src={content.shapes?.url}
           height={content.shapes?.height}
@@ -703,7 +703,7 @@ export function StoryContentRecordComponent({
       <div className='col-span-full flex items-start lg:col-span-4'>
         <AnimatePresence mode='wait'>
           <motion.img
-            alt='Fynbos shapes'
+            alt='shapes'
             key={content.image?.url + 'image'}
             src={content.image?.url}
             height={content.image?.height}
@@ -714,7 +714,7 @@ export function StoryContentRecordComponent({
             className='block dark:hidden'
           />
           <motion.img
-            alt='Fynbos shapes'
+            alt='shapes'
             key={content.imageDark?.url + 'imageDark'}
             src={content.imageDark?.url}
             height={content.imageDark?.height}
@@ -758,7 +758,7 @@ export function StoryContentRecordComponent({
       <div className='col-span-full flex items-start lg:col-span-4'>
         <AnimatePresence mode='wait'>
           <motion.img
-            alt='Fynbos shapes'
+            alt='shapes'
             key={content.image?.url + 'image'}
             src={content.image?.url}
             height={content.image?.height}
@@ -769,7 +769,7 @@ export function StoryContentRecordComponent({
             className='block dark:hidden'
           />
           <motion.img
-            alt='Fynbos shapes'
+            alt='shapes'
             key={content.imageDark?.url + 'imageDark'}
             src={content.imageDark?.url}
             height={content.imageDark?.height}
@@ -813,7 +813,7 @@ export function TeamContentRecordComponent({
       <div className='col-span-full flex flex-col items-center space-y-10 text-center'>
         <AnimatePresence mode='wait'>
           <motion.img
-            alt='Fynbos shapes'
+            alt='shapes'
             key={content.image?.url + 'image'}
             src={content.image?.url}
             height={content.image?.height}
@@ -824,7 +824,7 @@ export function TeamContentRecordComponent({
             className='block dark:hidden'
           />
           <motion.img
-            alt='Fynbos shapes'
+            alt='shapes'
             key={content.imageDark?.url + 'imageDark'}
             src={content.imageDark?.url}
             height={content.imageDark?.height}
