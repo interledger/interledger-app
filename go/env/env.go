@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	prodUrl  = "https://wallet.fynbos.app"
+	prodUrl  = "https://interledger.app"
 	devUrl   = "https://eu1.fynbos.dev"
 	localUrl = "https://wallet.fynbos.test"
 )
