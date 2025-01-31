@@ -56,7 +56,7 @@ type ClientArgs struct {
 }
 
 func New(args ClientArgs) Client {
-	base := "http://api.staging.fiant.io/v1"
+	base := "https://api.staging.fiant.io/v1"
 	if args.BaseURL != "" {
 		base = args.BaseURL
 	} else if env.IsLocal() {
