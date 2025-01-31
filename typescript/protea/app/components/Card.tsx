@@ -146,12 +146,6 @@ const CardCopy = forwardRef<HTMLButtonElement, CardCopyProps>(
       ) {
         setFeatures((prev) => ({ ...prev, clipboard: true }))
       }
-      if (
-        typeof navigator !== 'undefined' &&
-        typeof navigator.share !== 'undefined'
-      ) {
-        setFeatures((prev) => ({ ...prev, share: true }))
-      }
     }, [])
 
     return (
