@@ -70,6 +70,7 @@ function deploy () {
 }
 
 function install_node_modules() { 
+	export DEBIAN_FRONTEND=noninteractive
 
     # TODO: Use Corepack and pin PNPM version as well across the projects
     sudo apt-get install npm
