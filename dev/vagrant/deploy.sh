@@ -79,7 +79,7 @@ function install_node_modules() {
     cd $REPO/typescript/protea
     pnpm install
 
-    cd $REPO/botanist
+    cd $REPO/typescript/botanist
     pnpm install
 }
 

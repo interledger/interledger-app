@@ -47,7 +47,9 @@ func New() Client {
 
 	// Default value for eu1
 	assetUSD := os.Getenv("RAFIKI_USD_ASSET")
-	if assetUSD == "" && env.IsDev() {
+	if assetUSD == "" && env.IsLocal() {
+		assetUSD = "<replace-me>"
+	} else if assetUSD == "" && env.IsDev() {
 		assetUSD = "80d80585-5341-413a-acaf-169779b4642c"
 	} else if assetUSD == "" && env.IsProd() {
 		assetUSD = "22fd68aa-d9b3-40eb-a69d-6a45f4b9cbeb"
