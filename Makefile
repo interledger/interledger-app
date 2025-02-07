@@ -1,4 +1,3 @@
-
 current_dir := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 
 devup:
@@ -12,7 +11,7 @@ devup:
 
 devdeploy:
 	@echo "Deploying to local environment..."
-	(cd ./dev/vagrant && vagrant reload && vagrant ssh < deploy.sh)
+	(cd ./dev/vagrant && vagrant ssh < deploy.sh)
 	@echo "Done."
 
 devdown:

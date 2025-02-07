@@ -39,7 +39,7 @@ type client struct {
 }
 
 func New() Client {
-	backendGraphql := "http://rafiki-rafiki-backend.rafiki:3001/graphql"
+	backendGraphql := "http://localhost:3001/graphql"
 	if os.Getenv("RAFIKI_BACKEND_GRAPHQL_URL") != "" {
 		backendGraphql = os.Getenv("RAFIKI_BACKEND_GRAPHQL_URL")
 	}
@@ -74,7 +74,7 @@ func New() Client {
 		assetCAD = "e254ae75-a520-42e0-8045-badf09c24ece"
 	}
 
-	authGraphql := "http://rafiki-rafiki-auth.rafiki:3003/graphql"
+	authGraphql := "http://localhost:3003/graphql"
 	if os.Getenv("RAFIKI_AUTH_GRAPHQL_URL") != "" {
 		authGraphql = os.Getenv("RAFIKI_AUTH_GRAPHQL_URL")
 	}

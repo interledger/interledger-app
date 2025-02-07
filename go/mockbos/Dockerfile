@@ -1,9 +1,9 @@
-FROM public.ecr.aws/docker/library/golang:1.20.1 AS base
+FROM public.ecr.aws/docker/library/golang:1.23.6 AS base
 
 WORKDIR /build
 ARG BUILDARCH
 
-RUN wget -qO/bin/atlas https://release.ariga.io/atlas/atlas-linux-${BUILDARCH}-v0.15.0 && \
+RUN wget -qO/bin/atlas https://release.ariga.io/atlas/atlas-linux-arm64-latest && \
 	chmod +x /bin/atlas
 
 RUN go install github.com/air-verse/air@latest

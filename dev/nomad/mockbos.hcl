@@ -42,8 +42,8 @@ job "mockbos" {
 
       config {
         image = "localhost:5002/mockbos"
-        entrypoint = ["/go/bin/air"]
-        args =  ["--build.poll", "true", "--build.include_ext", "go,hcl", "--build.cmd", "go build -o /local/main /build/mockbos/main.go", "--build.bin", "/local/main"]
+        # entrypoint = ["/go/bin/air"]
+        # args =  ["--build.poll", "true", "--build.include_ext", "go,hcl", "--build.cmd", "go build -o /local/main /build/mockbos/main.go", "--build.bin", "/local/main"]
         volumes = ["/home/vagrant/fynbos/go:/build"]
       }
 

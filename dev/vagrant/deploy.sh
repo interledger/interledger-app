@@ -69,9 +69,23 @@ function deploy () {
 	nomad job run -detach traefik.hcl
 }
 
+function install_node_modules() { 
+
+    # TODO: Use Corepack and pin PNPM version as well across the projects
+    sudo apt-get install npm
+    npm install -g pnpm
+
+    cd $REPO/typescript/protea
+    pnpm install
+
+    cd $REPO/botanist
+    pnpm install
+}
+
 function main () {
-	build_docker_images
-	deploy
+    build_docker_images
+    deploy
+    install_node_modules
 }
 
 main "${@}"
