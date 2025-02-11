@@ -45,7 +45,7 @@ job "botanist" {
 
           proxy {
             upstreams {
-              destination_name = "backend"
+              destination_name = "backend-admin"
               local_bind_port = 8448
             }
           }
@@ -73,7 +73,7 @@ job "botanist" {
       env {
         CHOKIDAR_USEPOLLING = "true"
         BACKEND_GRPC_URL = "0.0.0.0:8448"
-        FYNBOS_ENV = "dev"
+        FYNBOS_ENV = "local"
       }
 
       resources {
