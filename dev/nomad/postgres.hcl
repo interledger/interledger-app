@@ -57,6 +57,7 @@ job "postgres" {
           CREATE DATABASE rafiki_backend;
           CREATE DATABASE rafiki_auth;
           CREATE DATABASE mockbos;
+          CREATE EXTENSION pg_trgm;
         EOH
 
         destination = "local/init-user-db.sql"

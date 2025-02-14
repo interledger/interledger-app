@@ -1,4 +1,4 @@
-# Fynbos
+# Interledger-app
 
 ### Create local dev environment
 
@@ -6,6 +6,11 @@ This spins up a Nomad and Consul deployment in a VM using VirtualBox and Vagrant
 ```shell
 make devup
 ```
+
+### If running first time 
+ Generate a asset in rafiki (https://rafiki.mgnt.fynbos.test/assets)
+ copy the ID to /go/backend/rafiki/external/client.go <replace-me>
+
 
 ### Delete local dev environment
 
