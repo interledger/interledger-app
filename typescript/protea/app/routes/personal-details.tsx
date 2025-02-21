@@ -24,6 +24,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   if (isConnectError(response)) throw response.errorResponse
 
+  if(response.provider === 'local') {
+    throw redirect('/')
+  }
+
   return json({
     provider: response.provider,
     gatehubWidget: response.gatehubWidget,
