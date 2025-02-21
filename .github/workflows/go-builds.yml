@@ -67,7 +67,7 @@ jobs:
           working-directory: go
           version: 'v1.51.1'
 
-  go1_23_linter_v1_51_1:
+  golangci_go1_23_linter_v1_51_1:
     name: go1_23_linter_v1_51_1
     runs-on: ubuntu-latest
     steps:
