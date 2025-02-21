@@ -2,6 +2,8 @@
 
 ### Create local dev environment
 
+*NB!* Kill docker-desktop if you have it installed / runing
+
 This spins up a Nomad and Consul deployment in a VM using VirtualBox and Vagrant.
 ```shell
 make devup

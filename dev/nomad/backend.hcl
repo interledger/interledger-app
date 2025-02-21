@@ -48,8 +48,8 @@ job "backend" {
       port = "http"
       
       tags = [
-        "traefik.enable = true",
-        "traefik.http.routers.backend-openpayments.rule = Host(`local.fynbos.me`)"
+        "traefik.enable=true",
+        "traefik.http.routers.backend-openpayments.rule=Host(`local.fynbos.me`)"
       ]
     }
 

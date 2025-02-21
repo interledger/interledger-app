@@ -3,7 +3,7 @@ import type {
   LoaderFunctionArgs,
   MetaFunction
 } from '@remix-run/node'
-import { json } from '@remix-run/node'
+import { json, redirect } from '@remix-run/node'
 import { useLoaderData, useSubmit } from '@remix-run/react'
 import { useEffect, useRef, useState } from 'react'
 import { route } from 'routes-gen'
@@ -23,6 +23,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
   })
 
   if (isConnectError(response)) throw response.errorResponse
+
+  if(response.provider === 'local') {
+    console.log('----------------------------------------------------->',response);
+    redirect('/')
+    return
+  }
 
   return json({
     provider: response.provider,

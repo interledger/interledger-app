@@ -20,7 +20,7 @@ FROM public.ecr.aws/docker/library/node:18-alpine AS builder
 ARG REMIX_PUBLIC_PATH
 ARG IMAGE_HASH
 RUN apk add --no-cache curl unzip
-ARG BUILDARCH
+ARG BUILDARCH=amd64
 RUN curl -O https://downloads.rclone.org/rclone-current-linux-${BUILDARCH}.zip && unzip rclone-current-linux-${BUILDARCH}.zip && cd rclone-*-linux-${BUILDARCH} && cp rclone /usr/bin/rclone
 WORKDIR /app
 COPY . .

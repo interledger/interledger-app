@@ -120,7 +120,7 @@ job "rafiki" {
     }
 
     service {
-      name = "dev-rafiki-auth-admin"
+      name = "rafiki-auth-admin"
       port = 3003
       connect {
         sidecar_service {}
