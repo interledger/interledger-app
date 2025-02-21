@@ -39,42 +39,53 @@ type client struct {
 }
 
 func New() Client {
-	backendGraphql := "http://rafiki-rafiki-backend.rafiki:3001/graphql"
+	backendGraphql := "http://localhost:3001/graphql"
 	if os.Getenv("RAFIKI_BACKEND_GRAPHQL_URL") != "" {
 		backendGraphql = os.Getenv("RAFIKI_BACKEND_GRAPHQL_URL")
 	}
 	cl := graphql.NewClient(backendGraphql, otelhttp.DefaultClient) // TODO: set auth headers maybe
 
 	// Default value for eu1
+	// TODO: Load assets at startup/cache them.
+	// We might have to have a temporal and sometimes reach out to Rafiki to
+	// retrieve all the assets - in case a new one has been added.
 	assetUSD := os.Getenv("RAFIKI_USD_ASSET")
-	if assetUSD == "" && env.IsDev() {
+	if assetUSD == "" && env.IsLocal() {
+		assetUSD = "<replace-me>"
+	} else if assetUSD == "" && env.IsDev() {
 		assetUSD = "80d80585-5341-413a-acaf-169779b4642c"
 	} else if assetUSD == "" && env.IsProd() {
 		assetUSD = "22fd68aa-d9b3-40eb-a69d-6a45f4b9cbeb"
 	}
 
 	assetZAR := os.Getenv("RAFIKI_ZAR_ASSET")
-	if assetZAR == "" && env.IsDev() {
+	if assetZAR == "" && env.IsLocal() {
+		assetZAR = "<replace-me>"
+	} else if assetZAR == "" && env.IsDev() {
 		assetZAR = "9913bb55-64a2-41c8-a20a-1d607ef8267a"
 	} else if assetZAR == "" && env.IsProd() {
 		assetZAR = "622c7646-a8aa-491b-b260-40e33a433d1c"
 	}
 
 	assetEUR := os.Getenv("RAFIKI_EUR_ASSET")
-	if assetEUR == "" && env.IsDev() {
+	if assetEUR == "" && env.IsLocal() {
+		assetEUR = "<replace-me>"
+	} else if assetEUR == "" && env.IsDev() {
 		assetEUR = "108e1cc9-a3b0-4d33-a876-b4c992ddbaed"
 	} else if assetEUR == "" && env.IsProd() {
 		assetEUR = "9c73e88a-be59-4246-b2fe-dfa8b657b4b5"
 	}
 
 	assetCAD := os.Getenv("RAFIKI_CAD_ASSET")
-	if assetCAD == "" && env.IsDev() {
+	if assetCAD == "" && env.IsLocal() {
+		assetCAD = "<replace-me>"
+	} else if assetCAD == "" && env.IsDev() {
 		assetCAD = "7e09ec86-dc19-445b-8483-ca4d91362605"
 	} else if assetCAD == "" && env.IsProd() {
 		assetCAD = "e254ae75-a520-42e0-8045-badf09c24ece"
 	}
 
-	authGraphql := "http://rafiki-rafiki-auth.rafiki:3003/graphql"
+	authGraphql := "http://localhost:3003/graphql"
 	if os.Getenv("RAFIKI_AUTH_GRAPHQL_URL") != "" {
 		authGraphql = os.Getenv("RAFIKI_AUTH_GRAPHQL_URL")
 	}
