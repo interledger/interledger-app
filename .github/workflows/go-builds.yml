@@ -33,6 +33,61 @@ jobs:
           working-directory: go
           version: 'v1.51.1'
 
+  golangci_go1_21_linter_v1_51_1:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '~1.21'
+          check-latest: true
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          working-directory: go
+          version: 'v1.51.1'
+
+  golangci_go1_22_linter_v1_51_1:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '~1.22'
+          check-latest: true
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          working-directory: go
+          version: 'v1.51.1'
+
+  go1_23_linter_v1_51_1:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '~1.23'
+          check-latest: true
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          working-directory: go
+          version: 'v1.51.1'
+
+  # This doesn't work because
+  # - deadline configuration has been removed in v1.57.0
+  # - skip-dirs has also been deprecated, cant find the exact release when
+  # amongst other reasons
   golangci_go1_23_linter_v1_60_3:
     name: lint
     runs-on: ubuntu-latest
