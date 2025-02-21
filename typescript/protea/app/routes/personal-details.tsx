@@ -3,7 +3,7 @@ import type {
   LoaderFunctionArgs,
   MetaFunction
 } from '@remix-run/node'
-import { json } from '@remix-run/node'
+import { json, redirect } from '@remix-run/node'
 import { useLoaderData, useSubmit } from '@remix-run/react'
 import { useEffect, useRef, useState } from 'react'
 import { route } from 'routes-gen'
@@ -21,9 +21,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const response = await grpc.getKYCProviderWidget(request, {
     idempotencyKey: flow.data.idempotencyKey
   })
-
   if (isConnectError(response)) throw response.errorResponse
-
+  if(response.provider === 'local') {
+    redirect('/')
+    return 
+  }
   return json({
     provider: response.provider,
     gatehubWidget: response.gatehubWidget,
