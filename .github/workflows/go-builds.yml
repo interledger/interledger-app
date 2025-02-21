@@ -37,7 +37,6 @@ jobs:
       matrix: 
         package: 
           - name: backend
-          - name: pacioli
           - name: mockbos
         platform:
           - os: linux
@@ -75,7 +74,6 @@ jobs:
       matrix: 
         package: 
           - name: backend
-          - name: pacioli
           - name: mockbos
         platform:
           - os: linux
