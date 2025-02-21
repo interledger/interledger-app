@@ -120,7 +120,7 @@ job "rafiki" {
     }
 
     service {
-      name = "dev-rafiki-auth-admin"
+      name = "rafiki-auth-admin"
       port = 3003
       connect {
         sidecar_service {}
@@ -128,7 +128,7 @@ job "rafiki" {
     }
 
     service {
-      name = "dev-rafiki-frontend"
+      name = "rafiki-frontend"
       port = "frontend"
       tags = [
         "traefik.enable=true",
