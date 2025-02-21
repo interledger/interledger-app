@@ -1,5 +1,7 @@
 name: Go build
 
+# This whole pipeline is an experiment to figure out the linting issues we are having with the golangci-lint-action
+
 on:
   workflow_dispatch:
   schedule:
@@ -9,11 +11,12 @@ on:
       - '**'
   push:
     branches:
-      - main
+      - experiment-different-golang-linting-issues
 
 jobs:
 
-  golangci:
+
+  golangci_go1_20_linter_v1_51_1:
     name: lint
     runs-on: ubuntu-latest
     steps:
@@ -29,65 +32,21 @@ jobs:
         with:
           working-directory: go
           version: 'v1.51.1'
-          
-  builds:
-    needs: golangci
-    runs-on: ubuntu-latest
-    strategy:
-      matrix: 
-        package: 
-          - name: backend
-          - name: mockbos
-        platform:
-          - os: linux
-            arch: amd64
-    steps:
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      - name: Checkout code
-        uses: actions/checkout@v4        
-      - name: Build
-        uses: docker/build-push-action@v5
-        with:
-          push: false
-          platforms: ${{ matrix.platform.os }}/${{ matrix.platform.arch }}
-          context: ./go
-          file: ./go/${{ matrix.package.name }}/Dockerfile
-          build-args: |
-            GOLANG_VERSION=1.23
-            ATLAS_VERSION=v0.31.0
-            AIR_VERSE_VERSION=v1.52
-            GRPC_HEALTH_PROBE_VERSION=v0.4.7
-            BUILDARCH=${{ matrix.platform.arch }}
-            BUILDOS=${{ matrix.platform.os }}
-          outputs: type=docker,dest=/tmp/${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}.tar
-      - name: Save docker image to cache
-        uses: actions/cache@v4
-        with:
-          path: /tmp/${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}.tar
-          key: ${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}
 
-  push:
-    needs: builds
+  golangci_go1_23_linter_v1_60_3:
+    name: lint
     runs-on: ubuntu-latest
-    strategy:
-      matrix: 
-        package: 
-          - name: backend
-          - name: mockbos
-        platform:
-          - os: linux
-            arch: amd64      
     steps:
-      - name: Load cache
-        uses: actions/cache/restore@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
         with:
-          path: /tmp/${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}.tar
-          key: ${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}
-          fail-on-cache-miss: true
-      - name: Load Docker image
-        run: docker load -i /tmp/${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}.tar
-      - name: List images
-        run: docker images
-      
-      # TODO Push to registry. Will do this with next iteration. Need to understand how tags will work first.
+          go-version: '~1.23'
+          check-latest: true
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          working-directory: go
+          version: 'v1.60.3'
+    
