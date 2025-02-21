@@ -79,11 +79,10 @@ function deploy () {
 }
 
 function install_node_modules() { 
-    export DEBIAN_FRONTEND=noninteractive
-    sudo apt-get install nodejs
+    sudo apt-get install -y npm
+    npm install -g pnpm
 
     cd $REPO/typescript/protea
-    corepack enable
     pnpm install
 
     cd $REPO/typescript/botanist
