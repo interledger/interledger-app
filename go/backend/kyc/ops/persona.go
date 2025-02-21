@@ -17,9 +17,13 @@ import (
 )
 
 func GetPersonaInquiry(ctx context.Context, b Backends, cl persona.Client, walletID, idempotencyKey string) (*kyc.PersonaInquiry, error) {
+
 	if env.IsLocal() {
 		err := GenerateKycData(ctx, b, walletID)
-		return nil, err
+		return &kyc.PersonaInquiry{
+			ID:     "local-inquiry-id",
+			Status: persona.InquiryStatus(persona.InquiryApproved),
+		}, err
 	}
 
 	// Check current KYC status fro the user.
