@@ -48,8 +48,8 @@ job "backend" {
       port = "http"
       
       tags = [
-        "traefik.enable = true",
-        "traefik.http.routers.backend-openpayments.rule = Host(`local.fynbos.me`)"
+        "traefik.enable=true",
+        "traefik.http.routers.backend-openpayments.rule=Host(`local.fynbos.me`)"
       ]
     }
 
@@ -58,8 +58,8 @@ job "backend" {
       port = "http"
 
       tags = [
-        "traefik.enable = true",
-        "traefik.http.routers.backend.rule = Host(`wallet.fynbos.test`) && PathPrefix(`/webhooks`)"
+        "traefik.enable=true",
+        "traefik.http.routers.backend.rule=Host(`wallet.fynbos.test`) && PathPrefix(`/webhooks`)"
       ]
 
       check {    
@@ -73,7 +73,7 @@ job "backend" {
       connect {
         sidecar_service {
           tags = [
-            "traefik.enable = false"
+            "traefik.enable=false"
           ]
 
           proxy {
