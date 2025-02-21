@@ -18,9 +18,9 @@ Vagrant.configure("2") do |config|
 
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://vagrantcloud.com/search.
-  if is_arm64?  
+  if is_arm64?
     config.vm.box = "bento/debian-12-arm64"
-  else 
+  else
     config.vm.box = "bento/debian-12"
   end
 
@@ -64,12 +64,13 @@ Vagrant.configure("2") do |config|
   # backing providers for Vagrant. These expose provider-specific options.
   # Example for VirtualBox:
 
-  if is_arm64? 
+  if is_arm64?
     config.vm.provider "parallels" do |provider|
       # Customize the amount of memory on the VM:
       provider.memory = "12000"
       provider.cpus = 4
-  else 
+    end
+  else
     config.vm.provider "virtualbox" do |provider|
       # Display the VirtualBox GUI when booting the machine
       # provider.gui = true
@@ -77,6 +78,7 @@ Vagrant.configure("2") do |config|
       # Customize the amount of memory on the VM:
       provider.memory = "12000"
       provider.cpus = 4
+    end
   end
   
   # View the documentation for the provider you are using for more
