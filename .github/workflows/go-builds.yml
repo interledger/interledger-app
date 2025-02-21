@@ -17,7 +17,7 @@ jobs:
 
 
   golangci_go1_20_linter_v1_51_1:
-    name: lint
+    name: golangci_go1_20_linter_v1_51_1
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -34,7 +34,7 @@ jobs:
           version: 'v1.51.1'
 
   golangci_go1_21_linter_v1_51_1:
-    name: lint
+    name: golangci_go1_21_linter_v1_51_1
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -51,7 +51,7 @@ jobs:
           version: 'v1.51.1'
 
   golangci_go1_22_linter_v1_51_1:
-    name: lint
+    name: golangci_go1_22_linter_v1_51_1
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -68,7 +68,7 @@ jobs:
           version: 'v1.51.1'
 
   go1_23_linter_v1_51_1:
-    name: lint
+    name: go1_23_linter_v1_51_1
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -89,7 +89,7 @@ jobs:
   # - skip-dirs has also been deprecated, cant find the exact release when
   # amongst other reasons
   golangci_go1_23_linter_v1_60_3:
-    name: lint
+    name: golangci_go1_23_linter_v1_60_3
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
