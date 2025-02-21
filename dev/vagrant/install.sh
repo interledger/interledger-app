@@ -23,14 +23,11 @@ function add_remote_repositories() {
 
 	export DEBIAN_FRONTEND=noninteractive
 
-	# add hashicorp gpg key
-	curl --fail --silent --show-error --location https://apt.releases.hashicorp.com/gpg | \
-      gpg --dearmor | \
-      sudo dd of=/usr/share/keyrings/hashicorp-archive-keyring.gpg
+	wget -O- https://apt.releases.hashicorp.com/gpg | \
+  		sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
 
-    # add hashicorp linux repo
-    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | \
-	sudo tee -a /etc/apt/sources.list.d/hashicorp.list
+	echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" \
+	    | sudo tee /etc/apt/sources.list.d/hashicorp.list
 
 	# add docker key
 	sudo install -m 0755 -d /etc/apt/keyrings
@@ -306,7 +303,7 @@ acl {
   enabled = false
 }
 NOMADCONFIG
-	
+    
 	echo "Creating Nomad data directories..."
 	sudo mkdir -p /opt/nomad
 	sudo chmod 750 /opt/nomad
