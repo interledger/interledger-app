@@ -47,8 +47,9 @@ func New() Client {
 
 	// Default value for eu1
 	// TODO: Load assets at startup/cache them.
-	// We might have to have a temporal and sometimes reach out to Rafiki to
-	// retrieve all the assets - in case a new one has been added.
+	// We might have to have a temporary cache and reach out to Rafiki to
+	// retrieve all the assets if the cache expired - in case a new asset has
+	// been added.
 	assetUSD := os.Getenv("RAFIKI_USD_ASSET")
 	if assetUSD == "" && env.IsLocal() {
 		assetUSD = "<replace-me>"
