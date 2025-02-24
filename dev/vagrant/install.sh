@@ -129,8 +129,8 @@ log_level = "INFO"
 server = true
 bootstrap_expect = 1
 
-client_addr = "127.0.0.1"
-bind_addr = "127.0.0.1"
+client_addr = "0.0.0.0"
+bind_addr = "0.0.0.0"
 advertise_addr = "127.0.0.1"
 
 tls {
@@ -314,8 +314,10 @@ cat << NOMADSERVICE | sudo tee /etc/systemd/system/nomad.service
 [Unit]
 Description="HashiCorp Nomad - An orchestration tool"
 Documentation=https://nomadproject.io/docs/
-Wants=network-online.target
-After=network-online.target
+Wants=network-online.target consul.service
+After=network-online.target consul.service
+Requires=consul.service
+
 
 [Service]
 ExecStart=/usr/bin/nomad agent -config=/etc/nomad.d/server.hcl
