@@ -10,6 +10,7 @@ on:
   push:
     branches:
       - main
+      - bosbaber-push-built-images
 
 jobs:
 
@@ -116,6 +117,12 @@ jobs:
             SHOULD_PUSH_TAG=false
           fi
 
+          # Output for debugging
+          echo "LATEST_TAG=$LATEST_TAG"
+          echo "VERSION_BASE=$VERSION_BASE"
+          echo "COMMITS=$COMMITS"
+          echo "NEW_VERSION=$NEW_VERSION"
+
           # Output variables
           echo "NEW_VERSION=$NEW_VERSION" >> "$GITHUB_ENV"
           echo "SHOULD_PUSH_TAG=$SHOULD_PUSH_TAG" >> "$GITHUB_ENV"
@@ -123,7 +130,7 @@ jobs:
           echo "GENERATE_RELEASE=$GENERATE_RELEASE" >> "$GITHUB_ENV"  
 
   builds:
-    needs: golangci
+    needs: [golangci, version-generator]
     runs-on: ubuntu-latest
     strategy:
       matrix: 
