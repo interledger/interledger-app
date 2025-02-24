@@ -96,7 +96,7 @@ function main () {
     # For ARM64 we have to install node_modules in the VM, not locally. Remix is
     # using esbuild under the hood and for people that use Mac, it will use the
     # macOS ARM 64-bit binary. If node_modules are installed locally and synced
-    # into the VM, esbuld will raise an error because it has the wrong binary.
+    # into the VM, esbuild will raise an error because it has the wrong binary.
     if [[ $BUILDARCH == "arm64" ]]; then
         install_node_modules
     fi
