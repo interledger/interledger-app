@@ -1,4 +1,4 @@
-ARG NODE_IMAGE_PREFIX
+ARG NODE_IMAGE_PREFIX=""
 
 # Install dependencies only when needed
 FROM ${NODE_IMAGE_PREFIX}node:16-alpine AS deps
