@@ -29,7 +29,80 @@ jobs:
         with:
           working-directory: go
           version: 'v1.51.1'
-          
+
+  # Shameslessly plagiarized from the Rafiki pipeline because that is what developers are used to
+  version-generator:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version-generator.outputs.NEW_VERSION }}
+      tagPushed: ${{ steps.version-generator.outputs.SHOULD_PUSH_TAG }}
+      dockerPush: ${{ steps.version-generator.outputs.PUSH_DOCKER_IMAGE }}
+      generateRelease: ${{ steps.version-generator.outputs.GENERATE_RELEASE }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - name: Configure git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+      - id: version-generator
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          SHOULD_PUSH_TAG=false
+          PUSH_DOCKER_IMAGE=false
+          GENERATE_RELEASE=false
+          if [ "${{ github.event_name == 'schedule' }}" = true ]; then
+            PUSH_DOCKER_IMAGE=true
+            NEW_VERSION="nightly"
+          elif [ "${{ github.event_name == 'workflow_dispatch' }}" = true ]; then
+            NEW_VERSION="manual"
+          elif [ "${{ startsWith(github.ref_name, 'release/v')}}" = true ]; then
+            PUSH_DOCKER_IMAGE=true
+            SHOULD_PUSH_TAG=true
+            GENERATE_RELEASE=true
+            VERSION_PREFIX=$(echo "${{ github.ref_name }}" | sed 's|release/||')
+            read major minor patch pre_release <<< $(echo "$VERSION_PREFIX" | awk -F'[.v-]' '{print $2, $3, $4, $5}')
+            version_search="v$major.$minor.*"
+            if [ -n "$pre_release" ]; then
+                version_search="$version_search-$pre_release"
+            fi
+            echo "VERSION_SEARCH: $version_search"
+            VERSION_PREFIX=$(git tag -l $version_search --sort=-taggerdate | head -n 1)
+            if [ -n "$VERSION_PREFIX" ]; then
+              read major minor patch pre_release <<< $(echo "$VERSION_PREFIX" | awk -F'[.v-]' '{print $2, $3, $4, $5}')
+              patch=$((patch + 1))
+            fi
+            NEW_VERSION="v${major}.${minor}.${patch}"
+            if [ -n "$pre_release" ]; then
+              NEW_VERSION="$NEW_VERSION-${pre_release}"
+            fi
+          else
+            NEW_VERSION=$(echo "${{ github.ref_name }}" | sed 's/[^a-zA-Z0-9_.-]/_/g')
+
+            if [[ ! "$NEW_VERSION" =~ ^[a-zA-Z0-9] ]]; then
+                NEW_VERSION="tag_$NEW_VERSION"
+            fi
+          fi
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "New version will be: $NEW_VERSION"
+
+          echo "SHOULD_PUSH_TAG=$SHOULD_PUSH_TAG" >> $GITHUB_OUTPUT
+          echo "Will tag be pushed? $SHOULD_PUSH_TAG"
+
+          echo "PUSH_DOCKER_IMAGE=$PUSH_DOCKER_IMAGE" >> $GITHUB_OUTPUT
+          echo "Will docker image be pushed? $PUSH_DOCKER_IMAGE"
+
+          echo "GENERATE_RELEASE=$GENERATE_RELEASE" >> $GITHUB_OUTPUT
+          echo "Will generate release noted? $GENERATE_RELEASE"
+
+          if [ "$SHOULD_PUSH_TAG" = true ]; then
+            git tag -fa $NEW_VERSION -m "$NEW_VERSION"
+            git push -f origin $NEW_VERSION
+          fi
+
   builds:
     needs: golangci
     runs-on: ubuntu-latest
@@ -68,8 +141,10 @@ jobs:
           key: ${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}
 
   push:
-    needs: builds
+    name: Push to registry
+    needs: [builds, version-generator]
     runs-on: ubuntu-latest
+    if: needs.version-generator.outputs.dockerPush == 'true'
     strategy:
       matrix: 
         package: 
@@ -85,9 +160,19 @@ jobs:
           path: /tmp/${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}.tar
           key: ${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}
           fail-on-cache-miss: true
+      # Loads the docker image from cache
       - name: Load Docker image
         run: docker load -i /tmp/${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}.tar
       - name: List images
         run: docker images
-      
-      # TODO Push to registry. Will do this with next iteration. Need to understand how tags will work first.
+      # Push it to the registry
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Push to registry
+        # Push latest image
+        run: |
+          docker push ghcr.io/${{ github.repository_owner }}/interledger-app-${{ matrix.package }}-${{ matrix.platform.os }}${{ matrix.platform.arch }}:${{ needs.version-generator.outputs.version }}
