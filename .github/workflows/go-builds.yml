@@ -10,7 +10,6 @@ on:
   push:
     branches:
       - main
-      - bosbaber-push-built-images
 
 jobs:
 
@@ -42,7 +41,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 100
           fetch-tags: true
 
       - name: Configure git
@@ -166,9 +165,22 @@ jobs:
           path: /tmp/${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}.tar
           key: ${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}
 
-  push:
-    name: Push to registry
+
+  push-version-tag:
+    name: Push semantic version 2 tag
     needs: [builds, version-generator]
+    if: needs.version-generator.outputs.dockerPush == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Push tag
+        if: ${{ needs.version-generator.outputs.tagPushed == 'true' }}
+        run: |
+          git tag ${{ needs.version-generator.outputs.version }}
+          git push origin ${{ needs.version-generator.outputs.version }}
+
+  push-image:
+    name: Push to registry
+    needs: [builds, version-generator,push-version-tag]
     runs-on: ubuntu-latest
     if: needs.version-generator.outputs.dockerPush == 'true'
     strategy:
