@@ -30,7 +30,7 @@ jobs:
           working-directory: go
           version: 'v1.51.1'
 
-  # Shameslessly plagiarized from the Rafiki pipeline because that is what developers are used to
+
   version-generator:
     runs-on: ubuntu-latest
     outputs:
@@ -43,65 +43,84 @@ jobs:
         with:
           fetch-depth: 0
           fetch-tags: true
+
       - name: Configure git
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
       - id: version-generator
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_ID: ${{ github.run_id }}  # GitHub Workflow Run ID
+          COMMIT_SHA: ${{ github.sha }} # Commit SHA to ensure uniqueness
         run: |
           SHOULD_PUSH_TAG=false
           PUSH_DOCKER_IMAGE=false
           GENERATE_RELEASE=false
-          if [ "${{ github.event_name == 'schedule' }}" = true ]; then
-            PUSH_DOCKER_IMAGE=true
-            NEW_VERSION="nightly"
-          elif [ "${{ github.event_name == 'workflow_dispatch' }}" = true ]; then
-            NEW_VERSION="manual"
-          elif [ "${{ startsWith(github.ref_name, 'release/v')}}" = true ]; then
-            PUSH_DOCKER_IMAGE=true
-            SHOULD_PUSH_TAG=true
-            GENERATE_RELEASE=true
-            VERSION_PREFIX=$(echo "${{ github.ref_name }}" | sed 's|release/||')
-            read major minor patch pre_release <<< $(echo "$VERSION_PREFIX" | awk -F'[.v-]' '{print $2, $3, $4, $5}')
-            version_search="v$major.$minor.*"
-            if [ -n "$pre_release" ]; then
-                version_search="$version_search-$pre_release"
+
+          # Get latest tag following SemVer
+          LATEST_TAG=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+(\-[a-z]+[0-9]*)?(\+build\.[0-9]+)?$' | head -n 1)
+          [ -z "$LATEST_TAG" ] && LATEST_TAG="v0.0.0"
+
+          # Extract version components
+          VERSION_BASE=$(echo "$LATEST_TAG" | sed -E 's/\+build\.[0-9]+//')
+
+          # Parse commits since last tag
+          COMMITS=$(git log "$LATEST_TAG"..HEAD --pretty=format:"%s")
+
+          MAJOR=0; MINOR=0; PATCH=0; BREAKING=false
+
+          while IFS= read -r COMMIT; do
+            if [[ "$COMMIT" =~ ^(feat|BREAKING CHANGE) ]]; then
+              MAJOR=$((MAJOR + 1))
+              BREAKING=true
+            elif [[ "$COMMIT" =~ ^fix ]]; then
+              PATCH=$((PATCH + 1))
+            else
+              MINOR=$((MINOR + 1))
             fi
-            echo "VERSION_SEARCH: $version_search"
-            VERSION_PREFIX=$(git tag -l $version_search --sort=-taggerdate | head -n 1)
-            if [ -n "$VERSION_PREFIX" ]; then
-              read major minor patch pre_release <<< $(echo "$VERSION_PREFIX" | awk -F'[.v-]' '{print $2, $3, $4, $5}')
-              patch=$((patch + 1))
-            fi
-            NEW_VERSION="v${major}.${minor}.${patch}"
-            if [ -n "$pre_release" ]; then
-              NEW_VERSION="$NEW_VERSION-${pre_release}"
-            fi
+          done <<< "$COMMITS"
+
+          # Extract old version
+          IFS='.' read -r OLD_MAJOR OLD_MINOR OLD_PATCH <<< "$(echo "$VERSION_BASE" | sed 's/v//')"
+
+          # Apply SemVer rules
+          if [ "$BREAKING" = true ]; then
+            NEW_VERSION="v$((OLD_MAJOR + 1)).0.0"
+          elif [ "$MINOR" -gt 0 ]; then
+            NEW_VERSION="v$OLD_MAJOR.$((OLD_MINOR + 1)).0"
+          elif [ "$PATCH" -gt 0 ]; then
+            NEW_VERSION="v$OLD_MAJOR.$OLD_MINOR.$((OLD_PATCH + 1))"
           else
-            NEW_VERSION=$(echo "${{ github.ref_name }}" | sed 's/[^a-zA-Z0-9_.-]/_/g')
-
-            if [[ ! "$NEW_VERSION" =~ ^[a-zA-Z0-9] ]]; then
-                NEW_VERSION="tag_$NEW_VERSION"
-            fi
+            NEW_VERSION="$LATEST_TAG"
           fi
-          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_OUTPUT
-          echo "New version will be: $NEW_VERSION"
 
-          echo "SHOULD_PUSH_TAG=$SHOULD_PUSH_TAG" >> $GITHUB_OUTPUT
-          echo "Will tag be pushed? $SHOULD_PUSH_TAG"
+          BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
-          echo "PUSH_DOCKER_IMAGE=$PUSH_DOCKER_IMAGE" >> $GITHUB_OUTPUT
-          echo "Will docker image be pushed? $PUSH_DOCKER_IMAGE"
-
-          echo "GENERATE_RELEASE=$GENERATE_RELEASE" >> $GITHUB_OUTPUT
-          echo "Will generate release noted? $GENERATE_RELEASE"
-
-          if [ "$SHOULD_PUSH_TAG" = true ]; then
-            git tag -fa $NEW_VERSION -m "$NEW_VERSION"
-            git push -f origin $NEW_VERSION
+          if [ "$BRANCH" == "main" ]; then
+            SHOULD_PUSH_TAG=true
+            PUSH_DOCKER_IMAGE=true
+            GENERATE_RELEASE=false
+            NEW_VERSION="$NEW_VERSION+build.$RUN_ID"
+          elif [ "$BRANCH" == "release" ]; then
+            SHOULD_PUSH_TAG=true
+            PUSH_DOCKER_IMAGE=true
+            GENERATE_RELEASE=true
+            NEW_VERSION="$NEW_VERSION-rc.$RUN_ID"
           fi
+
+          # Check if tag already exists before pushing
+          if git rev-parse "$NEW_VERSION" >/dev/null 2>&1; then
+            echo "Tag $NEW_VERSION already exists. Skipping tagging."
+            SHOULD_PUSH_TAG=false
+          fi
+
+          # Output variables
+          echo "NEW_VERSION=$NEW_VERSION" >> "$GITHUB_ENV"
+          echo "SHOULD_PUSH_TAG=$SHOULD_PUSH_TAG" >> "$GITHUB_ENV"
+          echo "PUSH_DOCKER_IMAGE=$PUSH_DOCKER_IMAGE" >> "$GITHUB_ENV"
+          echo "GENERATE_RELEASE=$GENERATE_RELEASE" >> "$GITHUB_ENV"  
 
   builds:
     needs: golangci
