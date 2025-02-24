@@ -91,16 +91,7 @@ function install_node_modules() {
 
 function main () {
 	build_docker_images
-
-	# For AMD64, node_modules can be installed locally.
-    # For ARM64 we have to install node_modules in the VM, not locally. Remix is
-    # using esbuild under the hood and for people that use Mac, it will use the
-    # macOS ARM 64-bit binary. If node_modules are installed locally and synced
-    # into the VM, esbuild will raise an error because it has the wrong binary.
-    if [[ $BUILDARCH == "arm64" ]]; then
-        install_node_modules
-    fi
-
+    install_node_modules
 	deploy
 }
 
