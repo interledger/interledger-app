@@ -80,7 +80,7 @@ function deploy () {
 
 function install_node_modules() { 
     sudo apt-get install -y npm
-    npm install -g pnpm
+    sudo npm install -g pnpm
 
     cd $REPO/typescript/protea
     pnpm install
