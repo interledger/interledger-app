@@ -20,6 +20,11 @@ devdown:
 	(cd ./dev/vagrant && vagrant destroy)
 	@echo "Done."
 
+devnomad:
+	@echo "Restarting Nomad..."
+	(cd ./dev/vagrant && vagrant ssh -c "sudo systemctl restart nomad")
+	@echo "Done."
+
 devssh:
 	(cd ./dev/vagrant && vagrant ssh)
 
