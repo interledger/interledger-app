@@ -139,6 +139,12 @@ jobs:
           - os: linux
             arch: amd64
     steps:
+      - name: Load cache
+        uses: actions/cache/restore@v4
+        with:
+          path: /tmp/${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}.tar
+          key: ${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}
+          fail-on-cache-miss: true
       - name: Load Docker image
         run: docker load -i /tmp/${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}.tar
       - name: Push to registry
