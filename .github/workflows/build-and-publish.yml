@@ -154,12 +154,6 @@ jobs:
       - name: List Docker images
         run: docker images
   
-      - name: Tag the image properly
-        run: |
-          IMAGE_ID=$(docker images --format "{{.Repository}}:{{.Tag}}" | grep "${{ matrix.package.name }}" | awk 'NR==1')
-          echo "Found image ID: $IMAGE_ID"
-          docker tag $IMAGE_ID ghcr.io/${{ github.repository_owner }}/interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}:${{ needs.version-generator.outputs.version }} 
-
       - name: Push to registry
         run: |
           docker push ghcr.io/${{ github.repository_owner }}/interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}:${{ needs.version-generator.outputs.version }}
