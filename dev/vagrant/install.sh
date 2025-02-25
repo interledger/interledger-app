@@ -318,8 +318,8 @@ Wants=network-online.target consul.service
 After=network-online.target consul.service
 Requires=consul.service
 
-
 [Service]
+ExecStartPre=/usr/bin/bash -c "until curl -s -k https://127.0.0.1:8501/v1/status/leader | grep -q .; do echo 'Waiting for Consul HTTPS API...'; sleep 1; done"
 ExecStart=/usr/bin/nomad agent -config=/etc/nomad.d/server.hcl
 ExecReload=/bin/kill --signal HUP
 KillMode=process
