@@ -1,4 +1,4 @@
-name: Build and Publish
+name: Code quality checks
 
 on:
   workflow_dispatch:
@@ -14,7 +14,7 @@ on:
 jobs:
 
   golangci:
-    name: lint
+    name: GoLang Linting
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
