@@ -45,7 +45,7 @@ job "botanist" {
 
           proxy {
             upstreams {
-              destination_name = "backend_admin"
+              destination_name = "backend-admin"
               local_bind_port = 8448
             }
           }
