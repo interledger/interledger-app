@@ -33,5 +33,5 @@ make devssh
 > Rerun `make devdeploy`.
 
 > [!WARNING]
-> Sometimes the Nomad jobs might fail because of a placement error: "Constraint `${attr.consul.version} semver >= 1.8.0` filtered 1 node"
+> Sometimes the Nomad jobs might fail because of a placement error: "Constraint `${attr.consul.version} semver >= 1.8.0` filtered 1 node".
 > Run `make devnomad` to fix this issue.
