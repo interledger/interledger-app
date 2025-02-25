@@ -23,14 +23,11 @@ function add_remote_repositories() {
 
 	export DEBIAN_FRONTEND=noninteractive
 
-	# add hashicorp gpg key
-	curl --fail --silent --show-error --location https://apt.releases.hashicorp.com/gpg | \
-      gpg --dearmor | \
-      sudo dd of=/usr/share/keyrings/hashicorp-archive-keyring.gpg
+	wget -O- https://apt.releases.hashicorp.com/gpg | \
+  		sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
 
-    # add hashicorp linux repo
-    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | \
-	sudo tee -a /etc/apt/sources.list.d/hashicorp.list
+	echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" \
+	    | sudo tee /etc/apt/sources.list.d/hashicorp.list
 
 	# add docker key
 	sudo install -m 0755 -d /etc/apt/keyrings
@@ -132,8 +129,8 @@ log_level = "INFO"
 server = true
 bootstrap_expect = 1
 
-client_addr = "127.0.0.1"
-bind_addr = "127.0.0.1"
+client_addr = "0.0.0.0"
+bind_addr = "0.0.0.0"
 advertise_addr = "127.0.0.1"
 
 tls {
@@ -306,7 +303,7 @@ acl {
   enabled = false
 }
 NOMADCONFIG
-	
+    
 	echo "Creating Nomad data directories..."
 	sudo mkdir -p /opt/nomad
 	sudo chmod 750 /opt/nomad
@@ -317,10 +314,12 @@ cat << NOMADSERVICE | sudo tee /etc/systemd/system/nomad.service
 [Unit]
 Description="HashiCorp Nomad - An orchestration tool"
 Documentation=https://nomadproject.io/docs/
-Wants=network-online.target
-After=network-online.target
+Wants=network-online.target consul.service
+After=network-online.target consul.service
+Requires=consul.service
 
 [Service]
+ExecStartPre=/usr/bin/bash -c "until curl -s -k https://127.0.0.1:8501/v1/status/leader | grep -q .; do echo 'Waiting for Consul HTTPS API...'; sleep 1; done"
 ExecStart=/usr/bin/nomad agent -config=/etc/nomad.d/server.hcl
 ExecReload=/bin/kill --signal HUP
 KillMode=process
