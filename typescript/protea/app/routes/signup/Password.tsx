@@ -122,7 +122,7 @@ export function Password() {
               ? 'password-error'
               : undefined
           }
-     
+          required
           errorMessage={passwordFetcher.data?.errors?.password}
         />
       </Card>
@@ -176,7 +176,7 @@ export function Password() {
         value='password'
         type='submit'
       >
-        Confirm 
+        Confirm
       </Button>
     </>
   )
