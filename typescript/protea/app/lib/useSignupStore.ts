@@ -18,11 +18,15 @@ interface SignupState {
   country: PlainMessage<Country> | null
   countries: PlainMessage<Country>[]
   phone: string
+  isCompleted: boolean
 }
 
 interface SignupActions {
   setStep: (step: SignupStep) => void
   stepBack: () => void
+  setFirstName: (firstName: string) => void
+  setLastName: (lastName: string) => void
+  setEmail: (email: string) => void
   setCountry: (country: PlainMessage<Country>) => void
   setCountries: (countries: PlainMessage<Country>[]) => void
   setDetails: (
@@ -35,7 +39,10 @@ interface SignupActions {
   reset: () => void
 }
 
+type StateType = SignupState & SignupActions
+
 const signupInitialState = {
+  isCompleted: false,
   step: SignupStep.LANDING,
   id: '',
   firstName: '',
@@ -46,7 +53,7 @@ const signupInitialState = {
   phone: ''
 }
 
-export const useSignupStore = create<SignupState & SignupActions>((set) => ({
+export const useSignupStore = create<StateType>((set) => ({
   ...signupInitialState,
   setStep: (step) => set((state) => ({ step: step })),
   stepBack: () =>
@@ -62,7 +69,26 @@ export const useSignupStore = create<SignupState & SignupActions>((set) => ({
           return { ...signupInitialState }
       }
     }),
-  setCountry: (country) => set((state) => ({ country })),
+  setFirstName: (firstName) =>
+    set((state) => ({
+      isCompleted: !!(state.lastName && state.email && state.country && firstName),
+      firstName
+    })),
+  setLastName: (lastName) =>
+    set((state) => ({
+      isCompleted: !!(state.firstName && state.email && state.country && lastName),
+      lastName
+    })),
+  setEmail: (email) =>
+    set((state) => ({
+      isCompleted: !!(state.firstName && state.lastName && state.country && email),
+      email
+    })),
+  setCountry: (country) =>
+    set((state) => ({
+      isCompleted: !!(state.firstName && state.lastName, state.email && country),
+      country
+    })),
   setCountries: (countries) => set((state) => ({ countries })),
   setDetails: (id, firstName, lastName, email) =>
     set((state) => ({ id, firstName, lastName, email })),

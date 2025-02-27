@@ -7,6 +7,7 @@ export function Landing() {
   const setStep = useSignupStore((state) => state.setStep)
 
   const _onClick = useCallback(() => {
+    console.log('clicked')
     setStep(SignupStep.ABOUT)
   }, [setStep])
 

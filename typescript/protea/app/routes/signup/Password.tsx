@@ -1,5 +1,5 @@
 import { useFetcher, useLoaderData } from '@remix-run/react'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
 import {
   AnchorRouter,
@@ -20,7 +20,18 @@ export function Password() {
     useLoaderData<typeof loader>()
 
   const [pushSnackbar] = useScaffoldStore((state) => [state.pushSnackbar])
+  const [ formState, setFormState ] = useState({
+    password: '',
+    serviceAgreement: false
+  })
 
+  const isCompleted = formState.password && formState.serviceAgreement;
+  const setPassword = (password: string) => {
+    setFormState((state) => ({ ...state, password }))
+  }
+  const setServiceAgreement = (serviceAgreement: boolean) => {
+    setFormState((state) => ({ ...state, serviceAgreement }))
+  }
   useEffect(() => {
     if (passwordFetcher.data?.errors?.form) {
       pushSnackbar({
@@ -32,16 +43,7 @@ export function Password() {
     }
   }, [passwordFetcher.data?.errors?.form, pushSnackbar])
 
-  const [firstName, lastName, email, country, id, phone] = useSignupStore(
-    (state) => [
-      state.firstName,
-      state.lastName,
-      state.email,
-      state.country,
-      state.id,
-      state.phone
-    ]
-  )
+  const {firstName, lastName, email, country, id, phone} = useSignupStore()
 
   return (
     <>
@@ -110,6 +112,7 @@ export function Password() {
           name='password'
           form='signup-password'
           type='password'
+          onChange={(e) => setPassword(e.target.value)}
           className='mt-2'
           aria-invalid={
             Boolean(passwordFetcher.data?.errors?.password) || undefined
@@ -119,7 +122,7 @@ export function Password() {
               ? 'password-error'
               : undefined
           }
-          required
+     
           errorMessage={passwordFetcher.data?.errors?.password}
         />
       </Card>
@@ -129,6 +132,7 @@ export function Password() {
             id='service-agreement'
             name='service-agreement'
             form='signup-password'
+            onChange={(e) => setServiceAgreement(e.target.checked)}
             className='flex'
             aria-invalid={
               Boolean(passwordFetcher.data?.errors?.serviceAgreement) ||
@@ -166,12 +170,13 @@ export function Password() {
         </CardContent>
       </Card>
       <Button
+        disabled={!isCompleted}
         form='signup-password'
         name='formName'
         value='password'
         type='submit'
       >
-        Confirm
+        Confirm 
       </Button>
     </>
   )
