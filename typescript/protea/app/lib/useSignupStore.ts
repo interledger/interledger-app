@@ -35,10 +35,7 @@ interface SignupActions {
   reset: () => void
 }
 
-type StateType = SignupState & SignupActions
-
 const signupInitialState = {
-  isCompleted: false,
   step: SignupStep.LANDING,
   id: '',
   firstName: '',
@@ -49,7 +46,7 @@ const signupInitialState = {
   phone: ''
 }
 
-export const useSignupStore = create<StateType>((set) => ({
+export const useSignupStore = create<SignupState & SignupActions>((set) => ({
   ...signupInitialState,
   setStep: (step) => set((state) => ({ step: step })),
   stepBack: () =>
