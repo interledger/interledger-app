@@ -60,15 +60,15 @@ export function About() {
     setCountry,
     setDetails,
     setStep
-  ] = useSignupStore(store => [
-    store.firstName,
-    store.lastName,
-    store.email,
-    store.country,
-    store.countries,
-    store.setCountry,
-    store.setDetails,
-    store.setStep
+  ] = useSignupStore((state) => [
+    state.firstName,
+    state.lastName,
+    state.email,
+    state.country,
+    state.countries,
+    state.setCountry,
+    state.setDetails,
+    state.setStep
   ])
 
   const [query, setQuery] = useState<string>('')
