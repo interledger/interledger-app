@@ -52,15 +52,11 @@ export function About() {
   const { csrfToken } = useLoaderData<typeof loader>()
   
   const {
-    isCompleted,
     firstName,
     lastName,
     email,
     country,
     countries,
-    setFirstName,
-    setLastName,
-    setEmail,
     setCountry,
     setDetails,
     setStep
@@ -130,7 +126,6 @@ export function About() {
           defaultValue={firstName}
           type='text'
           className='mt-2'
-          onChange={(e) => setFirstName(e.target.value)}
           aria-invalid={Boolean(details.data?.errors?.firstName) || undefined}
           aria-describedby={
             details.data?.errors?.firstName ? 'firstName-error' : undefined
@@ -148,7 +143,6 @@ export function About() {
           defaultValue={lastName}
           type='text'
           className='mt-4'
-          onChange={(e) => setLastName(e.target.value)}
           aria-invalid={Boolean(details.data?.errors?.lastName) || undefined}
           aria-describedby={
             details.data?.errors?.lastName ? 'lastName-error' : undefined
@@ -165,7 +159,6 @@ export function About() {
           defaultValue={email}
           type='text'
           className='mt-4'
-          onChange={(e) => setEmail(e.target.value)}
           aria-invalid={Boolean(details.data?.errors?.email) || undefined}
           aria-describedby={
             details.data?.errors?.email ? 'email-error' : undefined
@@ -215,9 +208,8 @@ export function About() {
               </div>
             </CardContent>
           </Card>
-        )} 
+        )}
       <Button
-        disabled={!isCompleted}
         form='signup-about-details'
         name='formName'
         value='details'

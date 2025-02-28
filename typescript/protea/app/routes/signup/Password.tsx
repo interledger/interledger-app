@@ -20,18 +20,8 @@ export function Password() {
     useLoaderData<typeof loader>()
 
   const [pushSnackbar] = useScaffoldStore((state) => [state.pushSnackbar])
-  const [ formState, setFormState ] = useState({
-    password: '',
-    serviceAgreement: false
-  })
+  const [ serviceAgreement, setServiceAgreement ] = useState(false)
 
-  const isCompleted = formState.password && formState.serviceAgreement;
-  const setPassword = (password: string) => {
-    setFormState((state) => ({ ...state, password }))
-  }
-  const setServiceAgreement = (serviceAgreement: boolean) => {
-    setFormState((state) => ({ ...state, serviceAgreement }))
-  }
   useEffect(() => {
     if (passwordFetcher.data?.errors?.form) {
       pushSnackbar({
@@ -112,7 +102,6 @@ export function Password() {
           name='password'
           form='signup-password'
           type='password'
-          onChange={(e) => setPassword(e.target.value)}
           className='mt-2'
           aria-invalid={
             Boolean(passwordFetcher.data?.errors?.password) || undefined
@@ -170,7 +159,7 @@ export function Password() {
         </CardContent>
       </Card>
       <Button
-        disabled={!isCompleted}
+        disabled={!serviceAgreement}
         form='signup-password'
         name='formName'
         value='password'
