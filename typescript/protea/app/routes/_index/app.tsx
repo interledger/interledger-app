@@ -1,6 +1,5 @@
-import { useLoaderData, useRevalidator } from '@remix-run/react'
+import { useLoaderData } from '@remix-run/react'
 import clsx from 'clsx'
-import { useEffect } from 'react'
 import { route } from 'routes-gen'
 import {
   Alert,
@@ -37,15 +36,8 @@ export function AppPage() {
     pusherArgs,
     balances
   } = useLoaderData<typeof appLoader>()
-  const { revalidate } = useRevalidator()
 
   usePusher(pusherArgs, ['transaction', 'kyc'])
-
-  useEffect(() => {
-    if (kycStatus == KycStatus.Approved && !balances.length) {
-      setTimeout(() => revalidate(), 1000)
-    }
-  }, [balances, kycStatus, revalidate])
 
   return (
     <WalletGrid>
