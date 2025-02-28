@@ -20,7 +20,7 @@ export function Password() {
     useLoaderData<typeof loader>()
 
   const [pushSnackbar] = useScaffoldStore((state) => [state.pushSnackbar])
-  const [ serviceAgreement, setServiceAgreement ] = useState(false)
+  const [serviceAgreement, setServiceAgreement] = useState(false)
 
   useEffect(() => {
     if (passwordFetcher.data?.errors?.form) {
@@ -33,14 +33,16 @@ export function Password() {
     }
   }, [passwordFetcher.data?.errors?.form, pushSnackbar])
 
-  const [firstName, lastName, email, country, id, phone] = useSignupStore(store => [
-    store.firstName,
-    store.lastName,
-    store.email,
-    store.country,
-    store.id,
-    store.phone
-  ])
+  const [firstName, lastName, email, country, id, phone] = useSignupStore(
+    (state) => [
+      state.firstName,
+      state.lastName,
+      state.email,
+      state.country,
+      state.id,
+      state.phone
+    ]
+  )
 
   return (
     <>

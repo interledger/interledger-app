@@ -24,7 +24,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   if (isConnectError(response)) throw response.errorResponse
 
-  if(response.provider === 'local') {
+  if (response.provider === 'local') {
     throw redirect('/')
   }
 

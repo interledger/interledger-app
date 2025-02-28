@@ -50,7 +50,7 @@ export function isEUCountry(countryCode: string) {
 export function About() {
   const details = useFetcher<typeof detailsAction>()
   const { csrfToken } = useLoaderData<typeof loader>()
-  
+
   const [
     firstName,
     lastName,
