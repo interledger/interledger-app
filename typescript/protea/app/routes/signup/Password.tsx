@@ -33,7 +33,14 @@ export function Password() {
     }
   }, [passwordFetcher.data?.errors?.form, pushSnackbar])
 
-  const {firstName, lastName, email, country, id, phone} = useSignupStore()
+  const [firstName, lastName, email, country, id, phone] = useSignupStore(store => [
+    store.firstName,
+    store.lastName,
+    store.email,
+    store.country,
+    store.id,
+    store.phone
+  ])
 
   return (
     <>

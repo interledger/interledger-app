@@ -51,7 +51,7 @@ export function About() {
   const details = useFetcher<typeof detailsAction>()
   const { csrfToken } = useLoaderData<typeof loader>()
   
-  const {
+  const [
     firstName,
     lastName,
     email,
@@ -60,7 +60,16 @@ export function About() {
     setCountry,
     setDetails,
     setStep
-  } = useSignupStore()
+  ] = useSignupStore(store => [
+    store.firstName,
+    store.lastName,
+    store.email,
+    store.country,
+    store.countries,
+    store.setCountry,
+    store.setDetails,
+    store.setStep
+  ])
 
   const [query, setQuery] = useState<string>('')
   const [filteredCountries, setFilteredCountries] = useState(countries)
