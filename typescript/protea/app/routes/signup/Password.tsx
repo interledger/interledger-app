@@ -1,5 +1,5 @@
 import { useFetcher, useLoaderData } from '@remix-run/react'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
 import {
   AnchorRouter,
@@ -20,6 +20,7 @@ export function Password() {
     useLoaderData<typeof loader>()
 
   const [pushSnackbar] = useScaffoldStore((state) => [state.pushSnackbar])
+  const [serviceAgreement, setServiceAgreement] = useState(false)
 
   useEffect(() => {
     if (passwordFetcher.data?.errors?.form) {
@@ -129,6 +130,7 @@ export function Password() {
             id='service-agreement'
             name='service-agreement'
             form='signup-password'
+            onChange={(e) => setServiceAgreement(e.target.checked)}
             className='flex'
             aria-invalid={
               Boolean(passwordFetcher.data?.errors?.serviceAgreement) ||
@@ -166,6 +168,7 @@ export function Password() {
         </CardContent>
       </Card>
       <Button
+        disabled={!serviceAgreement}
         form='signup-password'
         name='formName'
         value='password'
