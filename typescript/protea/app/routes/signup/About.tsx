@@ -56,8 +56,8 @@ export function About() {
     lastName,
     email,
     country,
-    countries,
     setCountry,
+    countries,
     setDetails,
     setStep
   ] = useSignupStore((state) => [
@@ -65,8 +65,8 @@ export function About() {
     state.lastName,
     state.email,
     state.country,
-    state.countries,
     state.setCountry,
+    state.countries,
     state.setDetails,
     state.setStep
   ])
