@@ -10,7 +10,6 @@ import {
   Icon,
   TextField
 } from '~/components'
-import type { Country } from '~/generated/connect/backend/v1/backend_pb'
 import { SignupStep, useSignupStore } from '~/lib/useSignupStore'
 import type { detailsAction, loader } from './route'
 
@@ -179,7 +178,7 @@ export function About() {
 
         <Autocomplete
           id='country'
-          value={country as Country}
+          value={country ?? undefined}
           onChange={setCountry}
           onQuery={setQuery}
           options={filteredCountries}
