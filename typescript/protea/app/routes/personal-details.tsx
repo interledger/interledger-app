@@ -25,6 +25,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
   if (isConnectError(response)) throw response.errorResponse
 
   if (response.provider === 'local') {
+    // wait 1s on local for the async processes to finish
+    await new Promise((resolve) => setTimeout(resolve, 1000))
     throw redirect('/')
   }
 
