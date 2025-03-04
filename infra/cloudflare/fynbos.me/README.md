@@ -1,6 +1,6 @@
 ## Fynbos.dev Cloudflare
 
-The following stack is used to provision all CF resources for `fynbos.me`. In order to run the stack you need to 
+The following stack is used to provision all CF resources for `ilp.link`. In order to run the stack you need to 
 get keys from the cloudflare UI. The two keys required are:
 * `CLOUDFLARE_API_TOKEN`
 * `CLOUDFLARE_API_USER_SERVICE_KEY` 

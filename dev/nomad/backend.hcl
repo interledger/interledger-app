@@ -49,7 +49,7 @@ job "backend" {
       
       tags = [
         "traefik.enable=true",
-        "traefik.http.routers.backend-openpayments.rule=Host(`local.fynbos.me`)"
+        "traefik.http.routers.backend-openpayments.rule=Host(`local.ilp.link`)"
       ]
     }
 
@@ -59,7 +59,7 @@ job "backend" {
 
       tags = [
         "traefik.enable=true",
-        "traefik.http.routers.backend.rule=Host(`wallet.fynbos.test`) && PathPrefix(`/webhooks`)"
+        "traefik.http.routers.backend.rule=Host(`wallet.interledger.test`) && PathPrefix(`/webhooks`)"
       ]
 
       check {    

@@ -14,7 +14,7 @@ fynbos config set [key] [value] [flags]
 
 ```
 
-		fynbos config set wallet https://fynbos.me/protea
+		fynbos config set wallet https://ilp.link/protea
 		
 ```
 

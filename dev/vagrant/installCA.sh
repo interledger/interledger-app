@@ -12,6 +12,6 @@ set -o errexit
 go install filippo.io/mkcert@v1.4.4
 mkcert -install
 
-mkcert -cert-file ../nomad/tls.cert.pem -key-file ../nomad/tls.key.pem fynbos.test "*.fynbos.test" local.fynbos.me "*.mgnt.fynbos.test"
+mkcert -cert-file ../nomad/tls.cert.pem -key-file ../nomad/tls.key.pem interledger.test "*.interledger.test" local.ilp.link "*.mgnt.interledger.test"
 
-sudo grep 10.9.99.10 /etc/hosts || echo "10.9.99.10 wallet.fynbos.test admin.mgnt.fynbos.test temporal.mgnt.fynbos.test local.fynbos.me rafiki.mgnt.fynbos.test auth.fynbos.test" | sudo tee -a /etc/hosts
+sudo grep 10.9.99.10 /etc/hosts || echo "10.9.99.10 wallet.interledger.test admin.mgnt.interledger.test temporal.mgnt.interledger.test local.ilp.link rafiki.mgnt.interledger.test auth.interledger.test" | sudo tee -a /etc/hosts

@@ -14,7 +14,7 @@ fynbos pay [payment-pointer] [flags]
 
 ```
 
-		fynbos pay https://fynbos.me/money
+		fynbos pay https://ilp.link/money
 		
 ```
 

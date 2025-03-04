@@ -50,7 +50,7 @@ func TestSetPaymentState(t *testing.T) {
 	b.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{
 		ID: walletID,
 	}, nil).AnyTimes()
-	b.Wc.EXPECT().GetFromAddress(ctx, "https://fynbos.me/charlie").Return(&wallets.Wallet{
+	b.Wc.EXPECT().GetFromAddress(ctx, "https://ilp.link/charlie").Return(&wallets.Wallet{
 		ID: walletID,
 	}, nil).AnyTimes()
 	b.Txc.EXPECT().GetHasTransacted(gomock.Any(), gomock.Any(), gomock.Any()).Return(true, nil).AnyTimes() // No OTP
@@ -64,7 +64,7 @@ func TestSetPaymentState(t *testing.T) {
 		},
 		Receiver: payments.Identity{
 			Type:       payments.IdentityTypeWalletURL,
-			Identifier: "https://fynbos.me/charlie",
+			Identifier: "https://ilp.link/charlie",
 		},
 		SenderAmount:    currency.FromFloat64(51, currency.USD),
 		ReceiverAmount:  currency.FromFloat64(50, currency.USD),

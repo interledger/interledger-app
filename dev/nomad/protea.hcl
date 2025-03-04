@@ -27,7 +27,7 @@ job "protea" {
       port = "http"
       tags = [
         "traefik.enable=true",
-        "traefik.http.routers.protea.rule=Host(`wallet.fynbos.test`)"
+        "traefik.http.routers.protea.rule=Host(`wallet.interledger.test`)"
       ]
 
       check {    
@@ -71,7 +71,7 @@ job "protea" {
       port = "websocket"
       tags = [
         "traefik.enable=true",
-        "traefik.http.routers.protea-ws.rule=Host(`wallet.fynbos.test`) && PathPrefix(`/socket`)"
+        "traefik.http.routers.protea-ws.rule=Host(`wallet.interledger.test`) && PathPrefix(`/socket`)"
       ]
     }
 
@@ -89,7 +89,7 @@ job "protea" {
         PUSHER_APP_KEY = "91988d6075551d29760a"
         PUSHER_APP_CLUSTER = "eu"
         KRATOS_URL = "http://127.0.0.1:4433"
-        PAYMENT_POINTER_BASE = "local.fynbos.me"
+        PAYMENT_POINTER_BASE = "local.ilp.link"
         RAFIKI_AUTH_ENDPOINT = "http://127.0.0.1:3006"
         DATO_API_TOKEN = "b96709bce873f5280722da965b0e9d"
         FYNBOS_ENV = "local"

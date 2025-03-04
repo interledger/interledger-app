@@ -9,7 +9,7 @@ import (
 const (
 	prodUrl  = "https://interledger.app"
 	devUrl   = "https://eu1.fynbos.dev"
-	localUrl = "https://wallet.fynbos.test"
+	localUrl = "https://wallet.interledger.test"
 )
 
 var fynbosEnv = "prod"
@@ -97,13 +97,13 @@ func OpenPaymentsURL() string {
 		openPaymentsURL = os.Getenv("OPEN_PAYMENTS_BASE_URL")
 		if openPaymentsURL == "" {
 			if IsProd() {
-				openPaymentsURL = "https://fynbos.me"
+				openPaymentsURL = "https://ilp.link"
 			} else if IsDev() {
-				openPaymentsURL = "https://eu1.fynbos.me"
+				openPaymentsURL = "https://eu1.ilp.link"
 			} else if IsLocal() || IsTest() {
-				openPaymentsURL = "https://local.fynbos.me"
+				openPaymentsURL = "https://local.ilp.link"
 			} else {
-				openPaymentsURL = "https://eu1.fynbos.me"
+				openPaymentsURL = "https://eu1.ilp.link"
 			}
 		}
 	})
@@ -119,11 +119,11 @@ func AuthURL() string {
 		authURL = os.Getenv("AUTH_BASE_URL")
 		if authURL == "" {
 			if IsProd() {
-				authURL = "https://auth.fynbos.me"
+				authURL = "https://auth.ilp.link"
 			} else if IsDev() {
 				authURL = "https://auth.eu1.fynbos.dev"
 			} else if IsLocal() || IsTest() {
-				authURL = "https://auth.fynbos.test"
+				authURL = "https://auth.interledger.test"
 			} else {
 				authURL = "https://auth.eu1.fynbos.dev"
 			}
@@ -145,7 +145,7 @@ func AdminURL() string {
 			} else if IsDev() {
 				adminURL = "https://admin-dev.mgnt.fynbos.dev"
 			} else if IsLocal() || IsTest() {
-				adminURL = "https://admin.fynbos.test"
+				adminURL = "https://admin.interledger.test"
 			} else {
 				adminURL = "https://admin-dev.mgnt.fynbos.dev"
 			}

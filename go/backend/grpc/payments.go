@@ -93,7 +93,7 @@ func identifySource(input string) string {
 		}
 		parts := strings.Split(input, "/")
 		hostParts := strings.Split(parts[0], ".")
-		if strings.Contains(parts[0], "fynbos.me") {
+		if strings.Contains(parts[0], "ilp.link") {
 			return "fynbos"
 		}
 		if strings.Contains(parts[0], "twitter.com") {
@@ -102,7 +102,7 @@ func identifySource(input string) string {
 		return hostParts[0]
 	}
 
-	if strings.Contains(u.Hostname(), "fynbos.me") {
+	if strings.Contains(u.Hostname(), "ilp.link") {
 		return "fynbos"
 	}
 	if strings.Contains(u.Hostname(), "twitter.com") {

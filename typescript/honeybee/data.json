@@ -10,7 +10,7 @@
     {
       "heading": "Your recent payment was successful",
       "paragraph": "This is a paragraph of text.",
-      "code": "fynbos.me/alice",
+      "code": "ilp.link/alice",
       "table": [
         {
           "label": "Total amount",

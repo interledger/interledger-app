@@ -8,9 +8,9 @@ import (
 func main() {
 	pulumi.Run(func(ctx *pulumi.Context) error {
 
-		zone, err := cloudflare.NewZone(ctx, "fynbos.me", &cloudflare.ZoneArgs{
+		zone, err := cloudflare.NewZone(ctx, "ilp.link", &cloudflare.ZoneArgs{
 			Type: pulumi.String("full"),
-			Zone: pulumi.String("fynbos.me"),
+			Zone: pulumi.String("ilp.link"),
 		}, pulumi.Protect(true))
 		if err != nil {
 			return err
@@ -20,7 +20,7 @@ func main() {
 		// EU1 Dev Cluster
 		_, err = cloudflare.NewRecord(ctx, "eu1-dev-cluster", &cloudflare.RecordArgs{
 			ZoneId:  zone.ID().ToStringOutput(),
-			Name:    pulumi.String("eu1.fynbos.me"),
+			Name:    pulumi.String("eu1.ilp.link"),
 			Value:   pulumi.String("k8s-emissary-emissary-7be6ccefa6-ef78c501a78a76be.elb.eu-west-1.amazonaws.com"),
 			Type:    pulumi.String("CNAME"),
 			Ttl:     pulumi.Int(1),
@@ -30,7 +30,7 @@ func main() {
 		// Prod Cluster
 		_, err = cloudflare.NewRecord(ctx, "use2-prod-cluster", &cloudflare.RecordArgs{
 			ZoneId:  zone.ID().ToStringOutput(),
-			Name:    pulumi.String("fynbos.me"),
+			Name:    pulumi.String("ilp.link"),
 			Value:   pulumi.String("k8s-emissary-emissary-308d683aeb-2f6d1ec4587303c6.elb.us-east-2.amazonaws.com"),
 			Type:    pulumi.String("CNAME"),
 			Ttl:     pulumi.Int(1),

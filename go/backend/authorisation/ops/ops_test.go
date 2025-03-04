@@ -25,13 +25,13 @@ func TestCreateClient(t *testing.T) {
 	}{
 		{
 			name:          "success",
-			address:       "https://fynbos.me/tables",
+			address:       "https://ilp.link/tables",
 			addressExists: true,
 			err:           nil,
 		},
 		{
 			name:          "does not exist",
-			address:       "https://fynbos.me/notehere",
+			address:       "https://ilp.link/notehere",
 			addressExists: false,
 			err:           wallets.ErrNoWalletFound,
 		},
@@ -70,9 +70,9 @@ func TestCreateGrant(t *testing.T) {
 	wc := wallets_mock.NewMockClient(ctrl)
 
 	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx), wc)
-	clientAddress, err := wallets.ParseAddress("https://fynbos.me/alice")
+	clientAddress, err := wallets.ParseAddress("https://ilp.link/alice")
 	require.NoError(t, err)
-	resourceAddress, err := wallets.ParseAddress("https://fynbos.me/bobby")
+	resourceAddress, err := wallets.ParseAddress("https://ilp.link/bobby")
 	require.NoError(t, err)
 
 	wc.EXPECT().GetFromAddress(ctx, clientAddress.String()).Return(&wallets.Wallet{Addresses: []wallets.Address{clientAddress}}, nil).AnyTimes()
@@ -117,13 +117,13 @@ func TestCreateGrant(t *testing.T) {
 	assert.Len(t, g.Tokens[0].Access, 2)
 	for _, access := range g.Tokens[0].Access {
 		if access.Type == "incoming-payment" {
-			assert.EqualValues(t, access.Locations, []string{"https://fynbos.me/incoming"})
+			assert.EqualValues(t, access.Locations, []string{"https://ilp.link/incoming"})
 			assert.EqualValues(t, access.Actions, []string{"write", "read"})
 			continue
 		}
 
 		if access.Type == "outgoing-payment" {
-			assert.EqualValues(t, access.Locations, []string{"https://fynbos.me/outgoing"})
+			assert.EqualValues(t, access.Locations, []string{"https://ilp.link/outgoing"})
 			assert.EqualValues(t, access.Actions, []string{"write", "read"})
 			continue
 		}
@@ -137,13 +137,13 @@ func TestCreateGrant(t *testing.T) {
 	assert.Len(t, grant.Tokens[0].Access, 2)
 	for _, access := range grant.Tokens[0].Access {
 		if access.Type == "incoming-payment" {
-			assert.EqualValues(t, access.Locations, []string{"https://fynbos.me/incoming"})
+			assert.EqualValues(t, access.Locations, []string{"https://ilp.link/incoming"})
 			assert.EqualValues(t, access.Actions, []string{"write", "read"})
 			continue
 		}
 
 		if access.Type == "outgoing-payment" {
-			assert.EqualValues(t, access.Locations, []string{"https://fynbos.me/outgoing"})
+			assert.EqualValues(t, access.Locations, []string{"https://ilp.link/outgoing"})
 			assert.EqualValues(t, access.Actions, []string{"write", "read"})
 			continue
 		}
