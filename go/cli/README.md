@@ -40,6 +40,6 @@ specify limits your cli is able to spend.
 
 You're all set. Try
 ```sh
-fynbos pay https://ilp.link/adrian
+fynbos pay https://fynbos.me/adrian
 ```
 and follow the prompts to make your first payment.

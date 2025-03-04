@@ -52,7 +52,7 @@ export default function Page() {
           <p>
             The following information will appear on your public{' '}
             <AnchorRouter className='text-primary' to={walletInfo.url}>
-              ilp.link
+              fynbos.me
             </AnchorRouter>{' '}
             page.
           </p>

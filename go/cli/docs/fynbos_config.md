@@ -10,7 +10,7 @@ Manage config for the Fynbos CLI.
 
 ```
 
-		fynbos config set wallet https://ilp.link/protea
+		fynbos config set wallet https://fynbos.me/protea
 		fynbos config get wallet
 		fynbos config list
 		

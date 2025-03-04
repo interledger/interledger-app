@@ -14,8 +14,8 @@ fynbos get [payment-pointer] [flags]
 
 ```
 
-fynbos get https://ilp.link/protea
-fynbos get https://ilp.link/791f09c0-c6a2-4a27-8e05-6f7ae37a8a28
+fynbos get https://fynbos.me/protea
+fynbos get https://fynbos.me/791f09c0-c6a2-4a27-8e05-6f7ae37a8a28
 		
 ```
 
