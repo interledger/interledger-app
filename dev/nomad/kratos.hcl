@@ -50,7 +50,7 @@ job "kratos" {
       driver = "docker"
 
       config {
-        image   = "oryd/kratos:v1.1.0"
+        image   = "oryd/kratos:v1.3.1"
         args    = [
           "migrate",
           "sql",
@@ -86,7 +86,7 @@ job "kratos" {
       }
 
       config {
-        image   = "oryd/kratos:v1.1.0"
+        image   = "oryd/kratos:v1.3.1"
         args    = [
           "serve",
           "all",
