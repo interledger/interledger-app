@@ -103,7 +103,7 @@ job "rafiki" {
       tags = [
         "traefik.enable=true",
         "traefik.http.middlewares.rafiki-auth-stripprefix.stripprefix.prefixes=/gnap",
-        "traefik.http.routers.rafiki-auth.rule=((Host(`local.fynbos.me`) && Path(`/gnap`)) || Host(`auth.fynbos.test`))",
+        "traefik.http.routers.rafiki-auth.rule=((Host(`local.fynbos.me`) && Path(`/gnap`)) || Host(`auth.interledger.test`))",
         "traefik.http.routers.rafiki-auth-token.rule=Host(`local.fynbos.me`) && PathPrefix(`/token`)",
         "traefik.http.routers.rafiki-auth-interact.rule=Host(`local.fynbos.me`) && PathPrefix(`/interact`)",
         "traefik.http.routers.rafiki-auth-continue.rule=Host(`local.fynbos.me`) && PathPrefix(`/continue`)",
@@ -132,7 +132,7 @@ job "rafiki" {
       port = "frontend"
       tags = [
         "traefik.enable=true",
-        "traefik.http.routers.rafiki-frontend.rule=Host(`rafiki.mgnt.fynbos.test`)"
+        "traefik.http.routers.rafiki-frontend.rule=Host(`rafiki.mgnt.interledger.test`)"
       ]
     }
 
@@ -151,10 +151,10 @@ job "rafiki" {
         ACCESS_TOKEN_EXPIRY_SECONDS = "600"
         ADMIN_PORT = "3003"
         AUTH_PORT = "3006"
-        AUTH_SERVER_URL = "https://auth.fynbos.test"
+        AUTH_SERVER_URL = "https://auth.interledger.test"
         DATABASE_CLEANUP_WORKERS = "1"
         ENV_FILE = "" 
-        IDENTITY_SERVER_URL = "https://wallet.fynbos.test/consent"
+        IDENTITY_SERVER_URL = "https://wallet.interledger.test/consent"
         INCOMING_PAYMENT_INTERACTION = "false"
         QUOTE_INTERACTION = "false"
         INTROSPECTION_PORT = "3007"
@@ -190,7 +190,7 @@ job "rafiki" {
         EXCHANGE_RATES_LIFETIME = "15000"
         GRAPHQL_IDEMPOTENCY_KEY_TTL_MS = "8.64e+07"
         GRAPHQL_IDEMPOTENCY_KEY_LOCK_MS = "2000"
-        IDENTITY_SERVER_URL = "https://wallet.fynbos.test/consent"
+        IDENTITY_SERVER_URL = "https://wallet.interledger.test/consent"
         ILP_ADDRESS = "test.fynbos"
         ILP_CONNECTOR_URL = "https://local.fynbos.me/ilp"
         INCOMING_PAYMENT_WORKERS = "1"

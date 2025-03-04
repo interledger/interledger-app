@@ -26,7 +26,7 @@ job "botanist" {
       port = "http"
       tags = [
         "traefik.enable=true",
-        "traefik.http.routers.dev-botanist.rule=Host(`admin.mgnt.fynbos.test`)"
+        "traefik.http.routers.dev-botanist.rule=Host(`admin.mgnt.interledger.test`)"
       ]
 
       check {    
@@ -58,7 +58,7 @@ job "botanist" {
       port = "websocket"
       tags = [
         "traefik.enable=true",
-        "traefik.http.routers.botanist-ws.rule=Host(`admin.mgnt.fynbos.test`) && PathPrefix(`/socket`)"
+        "traefik.http.routers.botanist-ws.rule=Host(`admin.mgnt.interledger.test`) && PathPrefix(`/socket`)"
       ]
     }
 

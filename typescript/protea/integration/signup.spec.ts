@@ -2,10 +2,10 @@ import { expect, test } from '@playwright/test'
 import { v4 } from 'uuid'
 
 const FLOW_URL_PREFIX =
-  '^http://fynbos.test/flows/[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}/signup'
+  '^http://interledger.test/flows/[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}/signup'
 
 test.beforeEach(async ({ page }) => {
-  await page.goto('http://fynbos.test/signup')
+  await page.goto('http://interledger.test/signup')
 })
 
 test.describe('Signup', () => {
@@ -43,7 +43,7 @@ test.describe('Signup', () => {
     await page.locator('input[name="service-agreement"]').check()
     await page.locator('text=Confirm').click()
 
-    await expect(page).toHaveURL('http://fynbos.test/onboarding/unit')
+    await expect(page).toHaveURL('http://interledger.test/onboarding/unit')
   })
 
   test('The form values are successfully stored and refilled on navigation.', async ({
@@ -105,6 +105,6 @@ test.describe('Signup', () => {
     await page.locator('input[name="service-agreement"]').check()
     await page.locator('text=Confirm').click()
 
-    await expect(page).toHaveURL('http://fynbos.test/onboarding/unit')
+    await expect(page).toHaveURL('http://interledger.test/onboarding/unit')
   })
 })
