@@ -9,7 +9,7 @@ import (
 const (
 	prodUrl  = "https://interledger.app"
 	devUrl   = "https://eu1.fynbos.dev"
-	localUrl = "https://wallet.interledger.test"
+	localUrl = "https://interledger.test"
 )
 
 var fynbosEnv = "prod"

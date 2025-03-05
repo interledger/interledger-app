@@ -27,7 +27,7 @@ job "protea" {
       port = "http"
       tags = [
         "traefik.enable=true",
-        "traefik.http.routers.protea.rule=Host(`wallet.interledger.test`)"
+        "traefik.http.routers.protea.rule=Host(`interledger.test`)"
       ]
 
       check {    
@@ -71,7 +71,7 @@ job "protea" {
       port = "websocket"
       tags = [
         "traefik.enable=true",
-        "traefik.http.routers.protea-ws.rule=Host(`wallet.interledger.test`) && PathPrefix(`/socket`)"
+        "traefik.http.routers.protea-ws.rule=Host(`interledger.test`) && PathPrefix(`/socket`)"
       ]
     }
 
