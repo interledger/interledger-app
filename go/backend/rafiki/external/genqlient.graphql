@@ -136,3 +136,14 @@ query GetWalletAddress ($id: String!) {
         }
     }
 }
+
+query GetAssets () {
+    assets() {
+        edges {
+            node {
+                id
+                code
+            }
+        }
+    }
+}
