@@ -29,7 +29,7 @@ func TestCreateAuthURL(t *testing.T) {
 		ClientID:     "test",
 		WalletID:     uuid.NewString(),
 		Scopes:       []string{"identify"},
-		RedirectURL:  "https://fynbos.test/connect/discord",
+		RedirectURL:  "https://interledger.test/connect/discord",
 		AuthEndpoint: "https://discord.com/api/oauth2/authorize",
 		State:        "state",
 	})
@@ -44,7 +44,7 @@ func TestCreateAuthURL(t *testing.T) {
 	assert.Equal(t, "code", query.Get("response_type"))
 	assert.Equal(t, "identify", query.Get("scope"))
 	assert.Equal(t, "state", query.Get("state"))
-	assert.Equal(t, "https://fynbos.test/connect/discord", query.Get("redirect_uri"))
+	assert.Equal(t, "https://interledger.test/connect/discord", query.Get("redirect_uri"))
 }
 
 func TestCreateToken(t *testing.T) {
@@ -60,7 +60,7 @@ func TestCreateToken(t *testing.T) {
 		ClientID:     "test",
 		WalletID:     walletID,
 		Scopes:       []string{"identify"},
-		RedirectURL:  "https://fynbos.test/connect/discord",
+		RedirectURL:  "https://interledger.test/connect/discord",
 		AuthEndpoint: "https://discord.com/api/oauth2/authorize",
 		State:        "state",
 	})

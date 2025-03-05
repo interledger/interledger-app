@@ -59,7 +59,7 @@ func TestCreateAuthURL(t *testing.T) {
 			TokenURL:  "https://slack.com/api/oauth2/token",
 			AuthStyle: 0,
 		},
-		RedirectURL: "https://fynbos.test/redirect/slack",
+		RedirectURL: "https://interledger.test/redirect/slack",
 		Scopes:      []string{oidc.ScopeOpenID, "profile", "email"},
 	}).AnyTimes()
 
@@ -77,7 +77,7 @@ func TestCreateAuthURL(t *testing.T) {
 	assert.Equal(t, "123", query.Get("client_id"))
 	assert.Equal(t, "code", query.Get("response_type"))
 	assert.Equal(t, "openid profile email", query.Get("scope"))
-	assert.Equal(t, "https://fynbos.test/redirect/slack", query.Get("redirect_uri"))
+	assert.Equal(t, "https://interledger.test/redirect/slack", query.Get("redirect_uri"))
 }
 
 func TestCreateConnection(t *testing.T) {
@@ -96,7 +96,7 @@ func TestCreateConnection(t *testing.T) {
 			TokenURL:  "https://slack.com/api/oauth2/token",
 			AuthStyle: 0,
 		},
-		RedirectURL: "https://fynbos.test/redirect/slack",
+		RedirectURL: "https://interledger.test/redirect/slack",
 		Scopes:      []string{oidc.ScopeOpenID, "profile", "email"},
 	}).AnyTimes()
 

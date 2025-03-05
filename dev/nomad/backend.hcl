@@ -59,7 +59,7 @@ job "backend" {
 
       tags = [
         "traefik.enable=true",
-        "traefik.http.routers.backend.rule=Host(`wallet.fynbos.test`) && PathPrefix(`/webhooks`)"
+        "traefik.http.routers.backend.rule=Host(`interledger.test`) && PathPrefix(`/webhooks`)"
       ]
 
       check {    
