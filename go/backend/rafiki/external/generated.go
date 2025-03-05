@@ -236,6 +236,49 @@ type FilterString struct {
 // GetIn returns FilterString.In, and is useful for accessing the field via an interface.
 func (v *FilterString) GetIn() []string { return v.In }
 
+// GetAssetsAssetsAssetsConnection includes the requested fields of the GraphQL type AssetsConnection.
+type GetAssetsAssetsAssetsConnection struct {
+	Edges []GetAssetsAssetsAssetsConnectionEdgesAssetEdge `json:"edges"`
+}
+
+// GetEdges returns GetAssetsAssetsAssetsConnection.Edges, and is useful for accessing the field via an interface.
+func (v *GetAssetsAssetsAssetsConnection) GetEdges() []GetAssetsAssetsAssetsConnectionEdgesAssetEdge {
+	return v.Edges
+}
+
+// GetAssetsAssetsAssetsConnectionEdgesAssetEdge includes the requested fields of the GraphQL type AssetEdge.
+type GetAssetsAssetsAssetsConnectionEdgesAssetEdge struct {
+	Node GetAssetsAssetsAssetsConnectionEdgesAssetEdgeNodeAsset `json:"node"`
+}
+
+// GetNode returns GetAssetsAssetsAssetsConnectionEdgesAssetEdge.Node, and is useful for accessing the field via an interface.
+func (v *GetAssetsAssetsAssetsConnectionEdgesAssetEdge) GetNode() GetAssetsAssetsAssetsConnectionEdgesAssetEdgeNodeAsset {
+	return v.Node
+}
+
+// GetAssetsAssetsAssetsConnectionEdgesAssetEdgeNodeAsset includes the requested fields of the GraphQL type Asset.
+type GetAssetsAssetsAssetsConnectionEdgesAssetEdgeNodeAsset struct {
+	// Asset id
+	Id string `json:"id"`
+	// [ISO 4217 currency code](https://en.wikipedia.org/wiki/ISO_4217), e.g. `USD`
+	Code string `json:"code"`
+}
+
+// GetId returns GetAssetsAssetsAssetsConnectionEdgesAssetEdgeNodeAsset.Id, and is useful for accessing the field via an interface.
+func (v *GetAssetsAssetsAssetsConnectionEdgesAssetEdgeNodeAsset) GetId() string { return v.Id }
+
+// GetCode returns GetAssetsAssetsAssetsConnectionEdgesAssetEdgeNodeAsset.Code, and is useful for accessing the field via an interface.
+func (v *GetAssetsAssetsAssetsConnectionEdgesAssetEdgeNodeAsset) GetCode() string { return v.Code }
+
+// GetAssetsResponse is returned by GetAssets on success.
+type GetAssetsResponse struct {
+	// Fetch a page of assets.
+	Assets GetAssetsAssetsAssetsConnection `json:"assets"`
+}
+
+// GetAssets returns GetAssetsResponse.Assets, and is useful for accessing the field via an interface.
+func (v *GetAssetsResponse) GetAssets() GetAssetsAssetsAssetsConnection { return v.Assets }
+
 // GetGrantGrant includes the requested fields of the GraphQL type Grant.
 type GetGrantGrant struct {
 	// Grant id
@@ -1077,6 +1120,42 @@ func DepositOutgoingPaymentLiquidity(
 	var err error
 
 	var data DepositOutgoingPaymentLiquidityResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by GetAssets.
+const GetAssets_Operation = `
+query GetAssets {
+	assets {
+		edges {
+			node {
+				id
+				code
+			}
+		}
+	}
+}
+`
+
+func GetAssets(
+	ctx context.Context,
+	client graphql.Client,
+) (*GetAssetsResponse, error) {
+	req := &graphql.Request{
+		OpName: "GetAssets",
+		Query:  GetAssets_Operation,
+	}
+	var err error
+
+	var data GetAssetsResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
