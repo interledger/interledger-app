@@ -98,7 +98,7 @@ jobs:
     strategy:
       matrix:
         package:
-#          - name: backend
+          - name: backend
           - name: mockbos
         platform:
           - os: linux
@@ -137,7 +137,7 @@ jobs:
     strategy:
       matrix:
         package:
-#          - name: backend
+          - name: backend
           - name: mockbos
         platform:
           - os: linux
