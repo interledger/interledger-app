@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"sync"
 
 	"github.com/Khan/genqlient/graphql"
 	"gitlab.com/fynbos/backend/country"
@@ -11,7 +12,6 @@ import (
 	"gitlab.com/fynbos/backend/rafiki"
 	"gitlab.com/fynbos/backend/slack"
 	"gitlab.com/fynbos/backend/wallets"
-	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/log"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.uber.org/zap"
@@ -29,13 +29,15 @@ type Client interface {
 	GetIncomingPayment(ctx context.Context, id string) (*GetIncomingPaymentIncomingPayment, error)
 }
 
+type assets struct {
+	data map[string]string
+	mu   sync.RWMutex
+}
+
 type client struct {
 	backendClient graphql.Client
 	authClient    graphql.Client
-	usdID         string
-	zarID         string
-	eurID         string
-	cadID         string
+	a             *assets
 }
 
 func New() Client {
@@ -45,54 +47,13 @@ func New() Client {
 	}
 	cl := graphql.NewClient(backendGraphql, otelhttp.DefaultClient) // TODO: set auth headers maybe
 
-	// Default value for eu1
-	// TODO: Load assets at startup/cache them.
-	// We might have to have a temporary cache and reach out to Rafiki to
-	// retrieve all the assets if the cache expired - in case a new asset has
-	// been added.
-	assetUSD := os.Getenv("RAFIKI_USD_ASSET")
-	if assetUSD == "" && env.IsLocal() {
-		assetUSD = "<replace-me>"
-	} else if assetUSD == "" && env.IsDev() {
-		assetUSD = "80d80585-5341-413a-acaf-169779b4642c"
-	} else if assetUSD == "" && env.IsProd() {
-		assetUSD = "22fd68aa-d9b3-40eb-a69d-6a45f4b9cbeb"
-	}
-
-	assetZAR := os.Getenv("RAFIKI_ZAR_ASSET")
-	if assetZAR == "" && env.IsLocal() {
-		assetZAR = "<replace-me>"
-	} else if assetZAR == "" && env.IsDev() {
-		assetZAR = "9913bb55-64a2-41c8-a20a-1d607ef8267a"
-	} else if assetZAR == "" && env.IsProd() {
-		assetZAR = "622c7646-a8aa-491b-b260-40e33a433d1c"
-	}
-
-	assetEUR := os.Getenv("RAFIKI_EUR_ASSET")
-	if assetEUR == "" && env.IsLocal() {
-		assetEUR = "<replace-me>"
-	} else if assetEUR == "" && env.IsDev() {
-		assetEUR = "108e1cc9-a3b0-4d33-a876-b4c992ddbaed"
-	} else if assetEUR == "" && env.IsProd() {
-		assetEUR = "9c73e88a-be59-4246-b2fe-dfa8b657b4b5"
-	}
-
-	assetCAD := os.Getenv("RAFIKI_CAD_ASSET")
-	if assetCAD == "" && env.IsLocal() {
-		assetCAD = "<replace-me>"
-	} else if assetCAD == "" && env.IsDev() {
-		assetCAD = "7e09ec86-dc19-445b-8483-ca4d91362605"
-	} else if assetCAD == "" && env.IsProd() {
-		assetCAD = "e254ae75-a520-42e0-8045-badf09c24ece"
-	}
-
 	authGraphql := "http://localhost:3003/graphql"
 	if os.Getenv("RAFIKI_AUTH_GRAPHQL_URL") != "" {
 		authGraphql = os.Getenv("RAFIKI_AUTH_GRAPHQL_URL")
 	}
 	authCl := graphql.NewClient(authGraphql, otelhttp.DefaultClient)
 
-	return &client{backendClient: cl, usdID: assetUSD, authClient: authCl, zarID: assetZAR, eurID: assetEUR, cadID: assetCAD}
+	return &client{backendClient: cl, authClient: authCl, a: &assets{data: nil}}
 }
 
 func (c client) GetWalletAddress(ctx context.Context, id string) (*GetWalletAddressWalletAddress, error) {
@@ -105,18 +66,26 @@ func (c client) GetWalletAddress(ctx context.Context, id string) (*GetWalletAddr
 }
 
 func (c client) CreatePaymentPointer(ctx context.Context, w wallets.Wallet) (string, error) {
-	var assetID string
+	var assetCode string
+
 	if w.Country == country.US {
-		assetID = c.usdID
+		assetCode = "USD"
 	} else if w.Country == country.ZA {
-		assetID = c.zarID
+		assetCode = "ZAR"
 	} else if country.EUCountries[w.Country] {
-		assetID = c.eurID
+		assetCode = "EUR"
 	} else if w.Country == country.CA {
-		assetID = c.cadID
+		assetCode = "CAD"
 	} else {
-		assetID = c.usdID
+		assetCode = "USD"
 		slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "Fynbot", fmt.Sprintf("Rafiki external: Asset not configured for country=%s. Defaulting to USD. walletID=%s", w.Country, w.ID))
+	}
+
+	assetID, err := c.a.Get(ctx, c.backendClient, assetCode)
+
+	if err != nil {
+		log.Info(err.Error())
+		return "", err
 	}
 
 	log.Info("Creating payment pointer in rafiki", zap.String("url", w.AddressString()))
@@ -217,4 +186,43 @@ func (c client) GetIncomingPayment(ctx context.Context, id string) (*GetIncoming
 	}
 
 	return &r.IncomingPayment, nil
+}
+
+func (a *assets) Get(ctx context.Context, backendClient graphql.Client, assetCode string) (string, error) {
+	a.mu.RLock()
+	if a.data != nil {
+		if val, ok := a.data[assetCode]; ok {
+			defer a.mu.RUnlock()
+			return val, nil
+		}
+	}
+	a.mu.RUnlock()
+
+	a.mu.Lock()
+	defer a.mu.Unlock()
+
+	// Double checked locking pattern
+	if a.data != nil {
+		if val, ok := a.data[assetCode]; ok {
+			return val, nil
+		}
+	}
+
+	assets, err := GetAssets(ctx, backendClient)
+	if err != nil {
+		return "", fmt.Errorf("failed to fetch assets from Rafiki: %w", err)
+	}
+
+	data := make(map[string]string)
+	for _, v := range assets.Assets.Edges {
+		data[v.Node.Code] = v.Node.Id
+	}
+
+	a.data = data
+
+	if val, ok := a.data[assetCode]; ok {
+		return val, nil
+	}
+
+	return "", fmt.Errorf("asset %s not found after fetching from Rafiki", assetCode)
 }
