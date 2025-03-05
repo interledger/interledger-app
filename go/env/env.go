@@ -9,7 +9,7 @@ import (
 const (
 	prodUrl  = "https://interledger.app"
 	devUrl   = "https://eu1.fynbos.dev"
-	localUrl = "https://wallet.fynbos.test"
+	localUrl = "https://interledger.test"
 )
 
 var fynbosEnv = "prod"
@@ -123,7 +123,7 @@ func AuthURL() string {
 			} else if IsDev() {
 				authURL = "https://auth.eu1.fynbos.dev"
 			} else if IsLocal() || IsTest() {
-				authURL = "https://auth.fynbos.test"
+				authURL = "https://auth.interledger.test"
 			} else {
 				authURL = "https://auth.eu1.fynbos.dev"
 			}
@@ -145,7 +145,7 @@ func AdminURL() string {
 			} else if IsDev() {
 				adminURL = "https://admin-dev.mgnt.fynbos.dev"
 			} else if IsLocal() || IsTest() {
-				adminURL = "https://admin.fynbos.test"
+				adminURL = "https://admin.interledger.test"
 			} else {
 				adminURL = "https://admin-dev.mgnt.fynbos.dev"
 			}

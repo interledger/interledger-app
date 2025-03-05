@@ -23,7 +23,7 @@ job "temporal" {
       port = "ui"
       tags = [
         "traefik.enable=true",
-        "traefik.http.routers.temporalui.rule=Host(`temporal.mgnt.fynbos.test`)"
+        "traefik.http.routers.temporalui.rule=Host(`temporal.mgnt.interledger.test`)"
       ]
     }
 
