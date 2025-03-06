@@ -1,4 +1,4 @@
-# Fynbos
+# Interledger Wallet
 
 ### Create local dev environment
 
