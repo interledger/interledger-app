@@ -74,6 +74,10 @@ jobs:
                 NEW_VERSION="tag_$NEW_VERSION"
             fi
           fi
+
+          # Remove any characters that are not alphanumeric, period, underscore, or hyphen
+          NEW_VERSION=$(echo $NEW_VERSION | tr -c '[:alnum:]._-' '-')
+
           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_OUTPUT
           echo "New version will be: $NEW_VERSION"
 
