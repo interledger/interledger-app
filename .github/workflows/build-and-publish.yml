@@ -14,6 +14,9 @@ on:
     branches:
       - "**"
 
+permissions:
+  id-token: write
+  contents: read
 
 jobs:
 
@@ -218,6 +221,7 @@ jobs:
         with:
             service_account: 'githubci@wallet-451208.iam.gserviceaccount.com'
             workload_identity_provider: 'projects/826231443086/locations/global/workloadIdentityPools/github-pipelines/providers/github'
+            export_environment_variables: true
 
       - name: 'Set up Cloud SDK'
         uses: 'google-github-actions/setup-gcloud@v2'
