@@ -20,6 +20,18 @@ permissions:
 
 jobs:
 
+  select_packages:
+    # Selects and outputs the list of packages to be used in subsequent matrix builds
+    runs-on: ubuntu-latest
+    outputs:
+      builds: ${{ steps.select_packages.outputs.builds }}
+    steps:
+      - name: Select packages
+        id: select_packages
+        run: |
+          builds=$(echo "backend mockbos")
+          echo "::set-output name=builds::$builds"
+
   version-generator:
     runs-on: ubuntu-latest
     outputs:
@@ -100,13 +112,11 @@ jobs:
 
 
   builds:
-    needs: version-generator
+    needs: [select_packages, version-generator]
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        package:
-          - name: backend
-          - name: mockbos
+        package: ${{fromJson(needs.select_packages.outputs.builds)}}
         platform:
           - os: linux
             arch: amd64
@@ -138,14 +148,12 @@ jobs:
 
   push-image-ghcr:
     name: Push to GitHub container registry
-    needs: [builds, version-generator]
+    needs: [builds, version-generator, select_packages]
     runs-on: ubuntu-latest
     if: needs.version-generator.outputs.dockerPush == 'true'
     strategy:
       matrix:
-        package:
-          - name: backend
-          - name: mockbos
+        package: ${{fromJson(needs.select_packages.outputs.builds)}}
         platform:
           - os: linux
             arch: amd64
@@ -185,14 +193,12 @@ jobs:
 
   push-image-gcr:
     name: Push to Google Container Registry
-    needs: [builds, version-generator]
+    needs: [builds, version-generator, select_packages]
     runs-on: ubuntu-latest
     if: needs.version-generator.outputs.dockerPush == 'true'
     strategy:
       matrix:
-        package:
-          - name: backend
-          - name: mockbos
+        package: ${{fromJson(needs.select_packages.outputs.builds)}}
         platform:
           - os: linux
             arch: amd64
