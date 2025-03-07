@@ -215,7 +215,7 @@ jobs:
           # Tag appropriately for our wallet-451208 GCP project
           PUSH_IMAGE=gcr.io/wallet-451208/interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}:${{ needs.version-generator.outputs.version }}
           docker tag $IMAGE_ID $PUSH_IMAGE
-          echo "PUSH_IMAGE=$PUSH_IMAGE" >> $GITHUB_OUTPUT
+          echo "PUSH_IMAGE=$PUSH_IMAGE" >> $GITHUB_ENV 
 
       - uses: 'google-github-actions/auth@v2'
         with:
