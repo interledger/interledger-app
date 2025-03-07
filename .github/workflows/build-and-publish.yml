@@ -212,8 +212,8 @@ jobs:
       - name: Retag for GCR
         run: |
           IMAGE_ID=$(docker images ghcr.io/${{ github.repository_owner }}/interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }} --format "{{.ID}}" | head -n 1)
-          # Tag appropriately
-          docker tag $IMAGE_ID gcr.io/${{ github.repository_owner }}/interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}:${{ needs.version-generator.outputs.version }}
+          # Tag appropriately for our wallet-451208 GCP project
+          docker tag $IMAGE_ID gcr.io/wallet-451208/interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}:${{ needs.version-generator.outputs.version }}
 
       - uses: 'google-github-actions/auth@v2'
         with:
