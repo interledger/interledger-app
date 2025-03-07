@@ -35,8 +35,11 @@ jobs:
       - name: Select packages
         id: select_packages
         run: |
-          echo builds='{"package":[{"name":"hello"}],"platform":[{"os":"linux","arch":"amd64"}]}' >> "$GITHUB_OUTPUT"          
-
+          # When troubleshooting use this selection for limited build
+          # echo builds='{"package":[{"name":"hello"}],"platform":[{"os":"linux","arch":"amd64"}]}' >> "$GITHUB_OUTPUT"          
+          
+          # Full build - names in list must match up to Golang package names
+          echo builds='{"package":[{"name":"hello"}, {"name":"backend"}, {"name":"mockbos"}],"platform":[{"os":"linux","arch":"amd64"}]}' >> "$GITHUB_OUTPUT"          
 
   version-generator:
     runs-on: ubuntu-latest
