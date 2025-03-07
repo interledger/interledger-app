@@ -17,6 +17,7 @@ on:
 permissions:
   id-token: write
   contents: read
+  packages: write
 
 jobs:
 
@@ -29,8 +30,9 @@ jobs:
       - name: Select packages
         id: select_packages
         run: |
-          builds=$(echo "backend mockbos")
-          echo "::set-output name=builds::$builds"
+          # echo builds='{"packages":["hello", "backend","mockbos"]}' >> "$GITHUB_OUTPUT"          
+          echo builds='{"packages":["hello"]}' >> "$GITHUB_OUTPUT"
+
 
   version-generator:
     runs-on: ubuntu-latest
@@ -209,6 +211,9 @@ jobs:
           path: /tmp/${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}.tar
           key: ${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}
           fail-on-cache-miss: true
+
+      - name: Checkout code
+        uses: actions/checkout@v4
       
       - name: Load Docker image
         run: |

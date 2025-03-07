@@ -1,0 +1,1 @@
+This folder is a minimalistic sample package to demonstrate and test the CI functionality.
