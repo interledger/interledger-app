@@ -134,7 +134,7 @@ jobs:
           key: ${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}
 
   push-image:
-    name: Push to registry
+    name: Push to container registries
     needs: [builds, version-generator]
     runs-on: ubuntu-latest
     if: needs.version-generator.outputs.dockerPush == 'true'
@@ -161,7 +161,7 @@ jobs:
       - name: List Docker images
         run: docker images
 
-      - name: Re-tag
+      - name: Re-tag for GHCR
         run: |
           # Get id of the first matching image. The tag is not always consistent because of caching
           IMAGE_ID=$(docker images ghcr.io/${{ github.repository_owner }}/interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }} --format "{{.ID}}" | head -n 1)
@@ -179,3 +179,29 @@ jobs:
       - name: Push to registry
         run: |
           docker push ghcr.io/${{ github.repository_owner }}/interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}:${{ needs.version-generator.outputs.version }}
+
+      - name: Retag for GCR
+        run: |
+          # Tag appropriately
+          docker tag $IMAGE_ID gcr.io/${{ github.repository_owner }}/interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}:${{ needs.version-generator.outputs.version }}
+
+      - uses: 'google-github-actions/auth@v2'
+        with:
+            service_account: 'githubci@wallet-451208.iam.gserviceaccount.com'
+            workload_identity_provider: 'projects/826231443086/locations/global/workloadIdentityPools/github-pipelines/providers/github'
+
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
+        with:
+          version: '>= 363.0.0'
+  
+
+      - name: Configure Docker to use the gcloud command-line tool as a credential helper for authentication
+        run: |-
+          gcloud --quiet auth configure-docker
+
+      - name: Push to GCR
+        run: |
+          # Tag appropriately
+          docker push gcr.io/${{ github.repository_owner }}/interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}:${{ needs.version-generator.outputs.version }}
+
