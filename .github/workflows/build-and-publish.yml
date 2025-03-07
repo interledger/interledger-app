@@ -74,6 +74,10 @@ jobs:
                 NEW_VERSION="tag_$NEW_VERSION"
             fi
           fi
+
+          # Remove any characters that are not alphanumeric, period, underscore, or hyphen
+          NEW_VERSION=$(echo $NEW_VERSION | tr -c '[:alnum:]._-' '-')
+
           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_OUTPUT
           echo "New version will be: $NEW_VERSION"
 
@@ -153,11 +157,17 @@ jobs:
       - name: Load Docker image
         run: |
           docker load -i /tmp/${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}.tar
-          # Tag appropriately
-          docker tag ghcr.io/${{ github.repository_owner }}/interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}:${{ needs.version-generator.outputs.version }} ghcr.io/${{ github.repository_owner }}/interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}:${{ needs.version-generator.outputs.version }}
     
       - name: List Docker images
         run: docker images
+
+      - name: Re-tag
+        run: |
+          # Get id of the first matching image. The tag is not always consistent because of caching
+          IMAGE_ID=$(docker images ghcr.io/${{ github.repository_owner }}/interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }} --format "{{.ID}}" | head -n 1)
+
+          # Tag appropriately
+          docker tag $IMAGE_ID ghcr.io/${{ github.repository_owner }}/interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}:${{ needs.version-generator.outputs.version }}
 
       - name: Login to GHCR
         uses: docker/login-action@v3
