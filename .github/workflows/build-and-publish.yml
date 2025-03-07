@@ -213,7 +213,8 @@ jobs:
         run: |
           IMAGE_ID=$(docker images ghcr.io/${{ github.repository_owner }}/interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }} --format "{{.ID}}" | head -n 1)
           # Tag appropriately for our wallet-451208 GCP project
-          docker tag $IMAGE_ID gcr.io/wallet-451208/interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}:${{ needs.version-generator.outputs.version }}
+          PUSH_IMAGE=gcr.io/wallet-451208/interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}:${{ needs.version-generator.outputs.version }}
+          docker tag $IMAGE_ID $PUSH_IMAGE
 
       - uses: 'google-github-actions/auth@v2'
         with:
@@ -233,4 +234,4 @@ jobs:
       - name: Push to GCR
         run: |
           # Tag appropriately
-          docker push gcr.io/${{ github.repository_owner }}/interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}:${{ needs.version-generator.outputs.version }}
+          docker push $PUSH_IMAGE
