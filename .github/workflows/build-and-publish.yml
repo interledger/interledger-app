@@ -218,7 +218,7 @@ jobs:
       - uses: 'google-github-actions/auth@v2'
         with:
             service_account: 'githubci@wallet-451208.iam.gserviceaccount.com'
-            workload_identity_provider: 'projects/826231443086/locations/global/workloadIdentityPools/github-pipelines/providers/github'
+            workload_identity_provider: 'projects/826231443086/locations/global/workloadIdentityPools/github-pipelines/providers/interledger-app-github'
             export_environment_variables: true
 
       - name: 'Set up Cloud SDK'
