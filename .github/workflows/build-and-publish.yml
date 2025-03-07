@@ -30,8 +30,7 @@ jobs:
       - name: Select packages
         id: select_packages
         run: |
-          # echo builds='{"packages":["hello", "backend","mockbos"]}' >> "$GITHUB_OUTPUT"          
-          echo builds='{"packages":["hello"]}' >> "$GITHUB_OUTPUT"
+          echo builds='{"package":[{"name":"hello"}],"platform":[{"os":"linux","arch":"amd64"}]}' >> "$GITHUB_OUTPUT"          
 
 
   version-generator:
@@ -117,11 +116,7 @@ jobs:
     needs: [select_packages, version-generator]
     runs-on: ubuntu-latest
     strategy:
-      matrix:
-        package: ${{fromJson(needs.select_packages.outputs.builds)}}
-        platform:
-          - os: linux
-            arch: amd64
+      matrix: ${{fromJson(needs.select_packages.outputs.builds)}}
     steps:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -154,11 +149,7 @@ jobs:
     runs-on: ubuntu-latest
     if: needs.version-generator.outputs.dockerPush == 'true'
     strategy:
-      matrix:
-        package: ${{fromJson(needs.select_packages.outputs.builds)}}
-        platform:
-          - os: linux
-            arch: amd64
+      matrix: ${{fromJson(needs.select_packages.outputs.builds)}}
     steps:
       - name: Load cache
         uses: actions/cache/restore@v4
@@ -199,11 +190,7 @@ jobs:
     runs-on: ubuntu-latest
     if: needs.version-generator.outputs.dockerPush == 'true'
     strategy:
-      matrix:
-        package: ${{fromJson(needs.select_packages.outputs.builds)}}
-        platform:
-          - os: linux
-            arch: amd64
+      matrix: ${{fromJson(needs.select_packages.outputs.builds)}}
     steps:
       - name: Load cache
         uses: actions/cache/restore@v4
