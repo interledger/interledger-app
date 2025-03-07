@@ -133,8 +133,8 @@ jobs:
           path: /tmp/${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}.tar
           key: ${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}
 
-  push-image:
-    name: Push to container registries
+  push-image-ghcr:
+    name: Push to GitHub container registry
     needs: [builds, version-generator]
     runs-on: ubuntu-latest
     if: needs.version-generator.outputs.dockerPush == 'true'
@@ -180,8 +180,37 @@ jobs:
         run: |
           docker push ghcr.io/${{ github.repository_owner }}/interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}:${{ needs.version-generator.outputs.version }}
 
+  push-image-gcr:
+    name: Push to Google Container Registry
+    needs: [builds, version-generator]
+    runs-on: ubuntu-latest
+    if: needs.version-generator.outputs.dockerPush == 'true'
+    strategy:
+      matrix:
+        package:
+          - name: backend
+          - name: mockbos
+        platform:
+          - os: linux
+            arch: amd64
+    steps:
+      - name: Load cache
+        uses: actions/cache/restore@v4
+        with:
+          path: /tmp/${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}.tar
+          key: ${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}
+          fail-on-cache-miss: true
+      
+      - name: Load Docker image
+        run: |
+          docker load -i /tmp/${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}.tar
+    
+      - name: List Docker images
+        run: docker images
+
       - name: Retag for GCR
         run: |
+          IMAGE_ID=$(docker images ghcr.io/${{ github.repository_owner }}/interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }} --format "{{.ID}}" | head -n 1)
           # Tag appropriately
           docker tag $IMAGE_ID gcr.io/${{ github.repository_owner }}/interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}:${{ needs.version-generator.outputs.version }}
 
@@ -194,7 +223,6 @@ jobs:
         uses: 'google-github-actions/setup-gcloud@v2'
         with:
           version: '>= 363.0.0'
-  
 
       - name: Configure Docker to use the gcloud command-line tool as a credential helper for authentication
         run: |-
@@ -204,4 +232,3 @@ jobs:
         run: |
           # Tag appropriately
           docker push gcr.io/${{ github.repository_owner }}/interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}:${{ needs.version-generator.outputs.version }}
-
