@@ -19,6 +19,11 @@ permissions:
   contents: read
   packages: write
 
+env:
+  GCR_PROJECT: wallet-451208
+  GSA_EMAIL: githubci@wallet-451208.iam.gserviceaccount.com
+  GCR_WORKLOAD_IDENTITY_PROVIDER: projects/826231443086/locations/global/workloadIdentityPools/github-pipelines/providers/interledger-app-github
+
 jobs:
 
   select_packages:
@@ -212,15 +217,15 @@ jobs:
       - name: Retag for GCR
         run: |
           IMAGE_ID=$(docker images ghcr.io/${{ github.repository_owner }}/interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }} --format "{{.ID}}" | head -n 1)
-          # Tag appropriately for our wallet-451208 GCP project
-          PUSH_IMAGE=gcr.io/wallet-451208/interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}:${{ needs.version-generator.outputs.version }}
+          # Tag appropriately for our GCP project
+          PUSH_IMAGE=gcr.io/${{ env.GCR_PROJECT }}/interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}:${{ needs.version-generator.outputs.version }}
           docker tag $IMAGE_ID $PUSH_IMAGE
           echo "PUSH_IMAGE=$PUSH_IMAGE" >> $GITHUB_ENV 
 
       - uses: 'google-github-actions/auth@v2'
         with:
-            service_account: 'githubci@wallet-451208.iam.gserviceaccount.com'
-            workload_identity_provider: 'projects/826231443086/locations/global/workloadIdentityPools/github-pipelines/providers/interledger-app-github'
+            service_account: ${{ env.GSA_EMAIL }}
+            workload_identity_provider: ${{ env.GCR_WORKLOAD_IDENTITY_PROVIDER}}
             export_environment_variables: true
 
       - name: 'Set up Cloud SDK'
