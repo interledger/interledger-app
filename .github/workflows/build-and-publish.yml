@@ -201,7 +201,7 @@ jobs:
           gcloud --quiet auth configure-docker \
               europe-west4-docker.pkg.dev
 
-      - name: Push to GCR
+      - name: Push to Artifact Registry
         run: |
           echo "Pushing $PUSH_IMAGE"
           docker push $PUSH_IMAGE
