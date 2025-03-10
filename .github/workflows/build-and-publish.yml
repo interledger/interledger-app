@@ -20,7 +20,7 @@ permissions:
   packages: write
 
 env:
-  # We use Artifactory, GCR references are legacy as GCR has been deprecated.
+  # We use Artifact Repository, GCR references are legacy as GCR has been deprecated.
   GCR_PROJECT: ${{ secrets.GCR_PROJECT }}
   GSA_EMAIL: ${{ secrets.GSA_EMAIL }}
   GCR_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCR_WORKLOAD_IDENTITY_PROVIDER }}
