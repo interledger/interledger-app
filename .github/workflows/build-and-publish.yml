@@ -20,9 +20,10 @@ permissions:
   packages: write
 
 env:
-  GCR_PROJECT: wallet-451208
-  GSA_EMAIL: githubci@wallet-451208.iam.gserviceaccount.com
-  GCR_WORKLOAD_IDENTITY_PROVIDER: projects/826231443086/locations/global/workloadIdentityPools/github-pipelines/providers/interledger-app-github
+  # We use Artifactory, GCR references are legacy as GCR has been deprecated.
+  GCR_PROJECT: ${{ secrets.GCR_PROJECT }}
+  GSA_EMAIL: ${{ secrets.GSA_EMAIL }}
+  GCR_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCR_WORKLOAD_IDENTITY_PROVIDER }}
 
 jobs:
 
@@ -137,7 +138,7 @@ jobs:
           platforms: ${{ matrix.platform.os }}/${{ matrix.platform.arch }}
           context: ./go
           file: ./go/${{ matrix.package.name }}/Dockerfile
-          tags: ghcr.io/${{ github.repository_owner }}/interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}:${{ needs.version-generator.outputs.version }}
+          tags: interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}:${{ needs.version-generator.outputs.version }}
           build-args: |
             GOLANG_VERSION=1.23
             BUILDARCH=${{ matrix.platform.arch }}
@@ -151,7 +152,7 @@ jobs:
           path: /tmp/${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}.tar
           key: ${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}
 
-  push-image-gcr:
+  push-image-gcp-artifact-registry:
     name: Push to Google Artifact Registry
     needs: [builds, version-generator, select_packages]
     runs-on: ubuntu-latest
@@ -178,7 +179,7 @@ jobs:
 
       - name: Retag for Artifact Registry
         run: |
-          IMAGE_ID=$(docker images ghcr.io/${{ github.repository_owner }}/interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }} --format "{{.ID}}" | head -n 1)
+          IMAGE_ID=$(docker images interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }} --format "{{.ID}}" | head -n 1)
           # Tag appropriately for our GCP project
           PUSH_IMAGE=europe-west4-docker.pkg.dev/${{ env.GCR_PROJECT }}/interledger-app/wallet-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}:${{ needs.version-generator.outputs.version }}
           docker tag $IMAGE_ID $PUSH_IMAGE
