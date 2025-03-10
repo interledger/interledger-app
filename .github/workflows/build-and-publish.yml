@@ -193,7 +193,7 @@ jobs:
           docker push ghcr.io/${{ github.repository_owner }}/interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}:${{ needs.version-generator.outputs.version }}
 
   push-image-gcr:
-    name: Push to Google Container Registry
+    name: Push to Google Artifact Registry
     needs: [builds, version-generator, select_packages]
     runs-on: ubuntu-latest
     if: needs.version-generator.outputs.dockerPush == 'true'
@@ -217,11 +217,11 @@ jobs:
       - name: List Docker images
         run: docker images
 
-      - name: Retag for GCR
+      - name: Retag for Artifact Registry
         run: |
           IMAGE_ID=$(docker images ghcr.io/${{ github.repository_owner }}/interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }} --format "{{.ID}}" | head -n 1)
           # Tag appropriately for our GCP project
-          PUSH_IMAGE=gcr.io/${{ env.GCR_PROJECT }}/interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}:${{ needs.version-generator.outputs.version }}
+          PUSH_IMAGE=europe-west4-docker.pkg.dev/${{ env.GCR_PROJECT }}/interledger-app/wallet-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}:${{ needs.version-generator.outputs.version }}
           docker tag $IMAGE_ID $PUSH_IMAGE
           echo "PUSH_IMAGE=$PUSH_IMAGE" >> $GITHUB_ENV 
 
@@ -238,7 +238,8 @@ jobs:
 
       - name: Configure Docker to use the gcloud command-line tool as a credential helper for authentication
         run: |-
-          gcloud --quiet auth configure-docker
+          gcloud --quiet auth configure-docker \
+              europe-west4-docker.pkg.dev
 
       - name: Push to GCR
         run: |
