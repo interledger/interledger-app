@@ -174,8 +174,8 @@ job "backend" {
 
       env {
         FYNBOS_ENV = "local"
-        RAFIKI_DB_URL = "postgres://postgres:password@127.0.0.1:5432/rafiki_backend?sslmode=disable"
-        RAFIKI_AUTH_DB_URL = "postgres://postgres:password@127.0.0.1:5432/rafiki_auth?sslmode=disable"
+        RAFIKI_DB_URL = "postgres://postgres:password@localhost:5432/rafiki_backend?sslmode=disable"
+        RAFIKI_AUTH_DB_URL = "postgres://postgres:password@localhost:5432/rafiki_auth?sslmode=disable"
         DB_URL_WITH_CERTS = "postgres://postgres:password@localhost:5432/backend?sslmode=disable"
         DB_URL = "postgres://postgres:password@localhost:5432/backend?sslmode=disable"
         PACIOLI_DB_URL_WITH_CERTS = "postgres://postgres:password@localhost:5432/pacioli?sslmode=disable"

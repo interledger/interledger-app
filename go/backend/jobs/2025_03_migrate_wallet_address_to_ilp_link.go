@@ -16,6 +16,11 @@ import (
 	"go.uber.org/zap"
 )
 
+const oldDomain = "fynbos.me"
+const newDomain = "ilp.link"
+const oldAppDomain = "fynbos.app"
+const newAppDomain = "interledger.app"
+
 func MigrateWalletAddressesToIlpLinkJob(ctx workflow.Context) error {
 	var a *Activity
 	ao := workflow.ActivityOptions{
@@ -26,7 +31,7 @@ func MigrateWalletAddressesToIlpLinkJob(ctx workflow.Context) error {
 	}
 	ctx = workflow.WithActivityOptions(ctx, ao)
 	logger := workflow.GetLogger(ctx)
-	logger.Info("Starting job MigrateWalletAddressesToIlpLinkJob update wallet to ilp.link")
+	logger.Info("Starting job MigrateWalletAddressesToIlpLinkJob migrate wallet to " + newDomain)
 
 	if err := executeActivity(ctx, a.UpdateBackendWalletRootToIlpActivity, "backend"); err != nil {
 		return err
@@ -37,7 +42,7 @@ func MigrateWalletAddressesToIlpLinkJob(ctx workflow.Context) error {
 	if err := executeActivity(ctx, a.UpdateRafikiAuthWalletRootToIlpActivity, "rafiki auth"); err != nil {
 		return err
 	}
-	logger.Info("Completed job MigrateWalletAddressesToIlpLinkJob update wallet to ilp.link")
+	logger.Info("Completed job MigrateWalletAddressesToIlpLinkJob migrate wallet to " + newDomain)
 	return nil
 }
 
@@ -45,95 +50,66 @@ func executeActivity(ctx workflow.Context, activityFunc interface{}, activityNam
 	logger := workflow.GetLogger(ctx)
 	err := workflow.ExecuteActivity(ctx, activityFunc).Get(ctx, nil)
 	if err != nil {
-		logger.Error("Migrate ["+activityName+"] to ilp.link failed", "Error", err)
+		logger.Error("Migrate ["+activityName+"] to "+newDomain+" failed", "Error", err)
 		return err
 	}
-	logger.Info("Migrate [" + activityName + "] to ilp.link completed")
+	logger.Info("Migrate [" + activityName + "] to " + newDomain + " completed")
 	return nil
 }
 
 func (a *Activity) UpdateBackendWalletRootToIlpActivity(ctx context.Context) error {
-	log.Info("Starting [backend] wallet update to ilp.link")
+	log.Info("Starting [backend] wallet update to " + newDomain)
 
-	err := ExecuteTransaction(a.b.DB(), []string{
-		"UPDATE openpayments_incoming_payment " +
-			"SET sender_wallet_address = replace(sender_wallet_address,'fynbos.me', 'ilp.link'), " +
-			"receiver_wallet_address = replace(receiver_wallet_address,'fynbos.me', 'ilp.link'), " +
-			"created_by = replace(created_by,'fynbos.me', 'ilp.link');",
+	queries := []struct {
+		query string
+		args  []interface{}
+	}{
+		{"UPDATE openpayments_incoming_payment SET sender_wallet_address = replace(sender_wallet_address, $1, $2), receiver_wallet_address = replace(receiver_wallet_address, $1, $2), created_by = replace(created_by, $1, $2);", []interface{}{oldDomain, newDomain}},
+		{"UPDATE openpayments_outgoing_payment SET sender_wallet_address = replace(sender_wallet_address, $1, $2), receiver_wallet_address = replace(receiver_wallet_address, $1, $2), created_by = replace(created_by, $1, $2);", []interface{}{oldDomain, newDomain}},
+		{"UPDATE openpayments_quotes SET sender_wallet_address = replace(sender_wallet_address, $1, $2), receiver_wallet_address = replace(receiver_wallet_address, $1, $2), created_by = replace(created_by, $1, $2);", []interface{}{oldDomain, newDomain}},
+		{"UPDATE payments SET receiver_id = replace(receiver_id, $1, $2);", []interface{}{oldDomain, newDomain}},
+		{"UPDATE contacts SET payment_pointer = replace(payment_pointer, $1, $2);", []interface{}{oldDomain, newDomain}},
+		{"UPDATE discord_authorizations SET redirect_url = replace(redirect_url, $1, $2);", []interface{}{oldDomain, newDomain}},
+		{"UPDATE transactions SET source = replace(source, $1, $2), destination_identity = replace(destination_identity, $1, $2);", []interface{}{oldDomain, newDomain}},
+		{"UPDATE wallet_addresses SET url = replace(url, $1, $2);", []interface{}{oldDomain, newDomain}},
+		{"UPDATE wallet_keys SET name = replace(name, 'Fynbos', 'Interledger');", nil},
+		{"UPDATE public.slack_authorizations SET redirect_url = replace(redirect_url, $1, $2);", []interface{}{oldAppDomain, newAppDomain}},
+		{"UPDATE public.twitter_authorizations SET redirect_url = replace(redirect_url, $1, $2);", []interface{}{oldAppDomain, newAppDomain}},
+	}
 
-		"UPDATE openpayments_outgoing_payment " +
-			"SET sender_wallet_address = replace(sender_wallet_address,'fynbos.me', 'ilp.link'), " +
-			"receiver_wallet_address = replace(receiver_wallet_address,'fynbos.me', 'ilp.link'), " +
-			"created_by = replace(created_by,'fynbos.me', 'ilp.link');",
-
-		"UPDATE openpayments_quotes " +
-			"SET sender_wallet_address = replace(sender_wallet_address,'fynbos.me', 'ilp.link'), " +
-			"receiver_wallet_address = replace(receiver_wallet_address,'fynbos.me', 'ilp.link'), " +
-			"created_by = replace(created_by,'fynbos.me', 'ilp.link');",
-
-		"UPDATE payments " +
-			"SET receiver_id = replace(receiver_id,'fynbos.me', 'ilp.link'); ",
-
-		"UPDATE contacts " +
-			"SET payment_pointer = replace(payment_pointer,'fynbos.me', 'ilp.link');",
-
-		"UPDATE discord_authorizations " +
-			"SET redirect_url = replace(redirect_url,'fynbos.me', 'ilp.link');",
-
-		"UPDATE transactions " +
-			"SET source = replace(source,'fynbos.me', 'ilp.link'), " +
-			"destination_identity = replace(destination_identity,'fynbos.me', 'ilp.link');",
-
-		"UPDATE wallet_addresses " +
-			"SET url = replace(url,'fynbos.me', 'ilp.link');",
-
-		"UPDATE wallet_keys  " +
-			"SET name =  replace(name,'Fynbos', 'Interledger');",
-		// redirect form slack and twitter (functionalities not used at this point)
-		"UPDATE public.slack_authorizations  " +
-			"SET redirect_url  =  replace(redirect_url, 'fynbos.app', 'interledger.app');",
-
-		"UPDATE  public.twitter_authorizations " +
-			"SET redirect_url =  replace(redirect_url,'fynbos.app', 'interledger.app');",
-	})
+	err := ExecuteTransaction(a.b.DB(), queries)
 	if err != nil {
-		log.Error("Error updating [backend] wallet to ilp.link: %v", zap.Error(err))
+		log.Error("Error updating [backend] wallet to "+newDomain+": %v", zap.Error(err))
 		return err
 	}
-	log.Info("Completed [backend] wallet update to ilp.link")
+	log.Info("Completed [backend] wallet update to " + newDomain)
 	return nil
 }
 
 func (a *Activity) UpdateRafikiWalletRootToIlpActivity(ctx context.Context) error {
-	log.Info("Starting [rafiki] wallet update to ilp.link")
+	log.Info("Starting [rafiki] wallet update to " + newDomain)
 	connString := os.Getenv("RAFIKI_DB_URL")
 	log.Info("Connection string: %v", zap.String("connString", connString))
+
 	db, err := DbConnection(connString)
 	if err != nil {
 		log.Error("Error establishing db connection: %v", zap.Error(err))
 		return err
 	}
+	defer db.Close()
 
-	trErr := ExecuteTransaction(db, []string{
-		"UPDATE authServers " +
-			"SET url = replace(url,'fynbos.me', 'ilp.link');",
+	queries := []struct {
+		query string
+		args  []interface{}
+	}{
+		{"UPDATE \"authServers\" SET url = replace(url, $1, $2);", []interface{}{oldDomain, newDomain}},
+		{"UPDATE \"incomingPayments\" SET client = replace(client, $1, $2);", []interface{}{oldDomain, newDomain}},
+		{"UPDATE quotes SET client = replace(client, $1, $2), receiver = replace(receiver, $1, $2);", []interface{}{oldDomain, newDomain}},
+		{"UPDATE \"walletAddresses\" SET url = replace(url, $1, $2);", []interface{}{oldDomain, newDomain}},
+		{"UPDATE \"webhookEvents\" SET data = REPLACE(data::TEXT, $1, $2)::JSON WHERE data::TEXT LIKE '%' || $1 || '%';", []interface{}{oldDomain, newDomain}},
+	}
 
-		"UPDATE \"incomingPayments\" " +
-			"SET client = replace(client,'fynbos.me', 'ilp.link');",
-
-		"UPDATE quotes " +
-			"SET client = replace(client,'fynbos.me', 'ilp.link'), " +
-			"receiver = replace(receiver,'fynbos.me', 'ilp.link');",
-
-		"UPDATE \"walletAddresses\" " +
-			"SET url = replace(url,'fynbos.me', 'ilp.link');",
-
-		"UPDATE webhookEvents " +
-			"SET data = REPLACE(data::TEXT, 'fynbos.me', 'ilp.link')::JSON " +
-			"WHERE data::TEXT LIKE '%fynbos.me%' ;",
-	})
-
-	db.Close()
+	trErr := ExecuteTransaction(db, queries)
 	if trErr != nil {
 		return trErr
 	}
@@ -141,7 +117,7 @@ func (a *Activity) UpdateRafikiWalletRootToIlpActivity(ctx context.Context) erro
 }
 
 func (a *Activity) UpdateRafikiAuthWalletRootToIlpActivity(ctx context.Context) error {
-	log.Info("Starting [rafiki auth] wallet update to ilp.link")
+	log.Info("Starting [rafiki auth] wallet update to " + newDomain)
 	connString := os.Getenv("RAFIKI_AUTH_DB_URL")
 
 	db, err := DbConnection(connString)
@@ -149,15 +125,17 @@ func (a *Activity) UpdateRafikiAuthWalletRootToIlpActivity(ctx context.Context) 
 		log.Error("Error establishing db connection: %v", zap.Error(err))
 		return err
 	}
+	defer db.Close()
 
-	trErr := ExecuteTransaction(db, []string{
-		"UPDATE accesses " +
-			"SET identifier = replace(identifier,'fynbos.me', 'ilp.link');",
+	queries := []struct {
+		query string
+		args  []interface{}
+	}{
+		{"UPDATE accesses SET identifier = replace(identifier, $1, $2);", []interface{}{oldDomain, newDomain}},
+		{"UPDATE grants SET client = replace(client, $1, $2);", []interface{}{oldDomain, newDomain}},
+	}
 
-		"UPDATE grants " +
-			"SET client = replace(client,'fynbos.me', 'ilp.link');",
-	})
-	db.Close()
+	trErr := ExecuteTransaction(db, queries)
 	if trErr != nil {
 		return trErr
 	}
@@ -171,37 +149,43 @@ func DbConnection(connString string) (*sqlx.DB, error) {
 	}
 	log.Info("Establishing db connection")
 	db, err := otelsqlx.Connect("postgres", connString, otelsql.WithAttributes(semconv.DBSystemCockroachdb), otelsql.WithDBName("cockroachdb"))
-	if err == nil {
-		return db, nil
-	} else {
+	if err != nil {
 		log.Error("Failed to connect to the database", zap.Error(err))
-		defer db.Close()
 		return nil, err
 	}
-
+	return db, nil
 }
 
-func ExecuteTransaction(db *sqlx.DB, updates []string) error {
-	if len(updates) == 0 {
-		log.Error("No updates to execute")
-		return nil
-	}
-	tx, err := db.Beginx()
+func ExecuteTransaction(db *sqlx.DB, queries []struct {
+	query string
+	args  []interface{}
+}) error {
+	tx, err := db.BeginTxx(context.Background(), nil)
 	if err != nil {
-		log.Error("Error starting wallet update transaction: %v", zap.Error(err))
+		log.Error("Error starting transaction", zap.Error(err))
+		return err
 	}
 
-	for _, update := range updates {
-		_, err := tx.Exec(update)
-		if err != nil {
-			tx.Rollback() // Rollback if any update fails
-			log.Error("Error executing wallet update: %v", zap.Error(err))
-			return err
+	for _, q := range queries {
+		if q.args == nil {
+			if _, err := tx.Exec(q.query); err != nil {
+				tx.Rollback()
+				log.Error("Error executing query", zap.Error(err))
+				return err
+			}
+		} else {
+			if _, err := tx.Exec(q.query, q.args...); err != nil {
+				tx.Rollback()
+				log.Error("Error executing query", zap.Error(err))
+				return err
+			}
 		}
 	}
 
 	if err := tx.Commit(); err != nil {
-		log.Error("Error committing wallet update transaction: %v", zap.Error(err))
+		log.Error("Error committing transaction", zap.Error(err))
+		return err
 	}
+
 	return nil
 }
