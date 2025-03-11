@@ -64,17 +64,31 @@ func (a *Activity) UpdateBackendWalletRootToIlpActivity(ctx context.Context) err
 		query string
 		args  []interface{}
 	}{
-		{"UPDATE openpayments_incoming_payment SET sender_wallet_address = replace(sender_wallet_address, $1, $2), receiver_wallet_address = replace(receiver_wallet_address, $1, $2), created_by = replace(created_by, $1, $2);", []interface{}{oldDomain, newDomain}},
-		{"UPDATE openpayments_outgoing_payment SET sender_wallet_address = replace(sender_wallet_address, $1, $2), receiver_wallet_address = replace(receiver_wallet_address, $1, $2), created_by = replace(created_by, $1, $2);", []interface{}{oldDomain, newDomain}},
-		{"UPDATE openpayments_quotes SET sender_wallet_address = replace(sender_wallet_address, $1, $2), receiver_wallet_address = replace(receiver_wallet_address, $1, $2), created_by = replace(created_by, $1, $2);", []interface{}{oldDomain, newDomain}},
-		{"UPDATE payments SET receiver_id = replace(receiver_id, $1, $2);", []interface{}{oldDomain, newDomain}},
-		{"UPDATE contacts SET payment_pointer = replace(payment_pointer, $1, $2);", []interface{}{oldDomain, newDomain}},
-		{"UPDATE discord_authorizations SET redirect_url = replace(redirect_url, $1, $2);", []interface{}{oldDomain, newDomain}},
-		{"UPDATE transactions SET source = replace(source, $1, $2), destination_identity = replace(destination_identity, $1, $2);", []interface{}{oldDomain, newDomain}},
-		{"UPDATE wallet_addresses SET url = replace(url, $1, $2);", []interface{}{oldDomain, newDomain}},
-		{"UPDATE wallet_keys SET name = replace(name, 'Fynbos', 'Interledger');", nil},
-		{"UPDATE public.slack_authorizations SET redirect_url = replace(redirect_url, $1, $2);", []interface{}{oldAppDomain, newAppDomain}},
-		{"UPDATE public.twitter_authorizations SET redirect_url = replace(redirect_url, $1, $2);", []interface{}{oldAppDomain, newAppDomain}},
+		{"UPDATE openpayments_incoming_payment SET sender_wallet_address = replace(sender_wallet_address, $1, $2) WHERE sender_wallet_address ILIKE '%' || $1 || '%';", []interface{}{oldDomain, newDomain}},
+		{"UPDATE openpayments_incoming_payment SET receiver_wallet_address = replace(receiver_wallet_address, $1, $2) WHERE receiver_wallet_address ILIKE '%' || $1 || '%';", []interface{}{oldDomain, newDomain}},
+		{"UPDATE openpayments_incoming_payment SET created_by = replace(created_by, $1, $2) WHERE created_by ILIKE '%' || $1 || '%';", []interface{}{oldDomain, newDomain}},
+
+		{"UPDATE openpayments_outgoing_payment SET sender_wallet_address = replace(sender_wallet_address, $1, $2) WHERE sender_wallet_address ILIKE '%' || $1 || '%';", []interface{}{oldDomain, newDomain}},
+		{"UPDATE openpayments_outgoing_payment SET receiver_wallet_address = replace(receiver_wallet_address, $1, $2) WHERE receiver_wallet_address ILIKE '%' || $1 || '%';", []interface{}{oldDomain, newDomain}},
+		{"UPDATE openpayments_outgoing_payment SET created_by = replace(created_by, $1, $2) WHERE created_by ILIKE '%' || $1 || '%';", []interface{}{oldDomain, newDomain}},
+
+		{"UPDATE openpayments_quotes SET sender_wallet_address = replace(sender_wallet_address, $1, $2) WHERE sender_wallet_address ILIKE '%' || $1 || '%';", []interface{}{oldDomain, newDomain}},
+		{"UPDATE openpayments_quotes SET receiver_wallet_address = replace(receiver_wallet_address, $1, $2) WHERE receiver_wallet_address ILIKE '%' || $1 || '%';", []interface{}{oldDomain, newDomain}},
+		{"UPDATE openpayments_quotes SET created_by = replace(created_by, $1, $2) WHERE created_by ILIKE '%' || $1 || '%';", []interface{}{oldDomain, newDomain}},
+
+		{"UPDATE payments SET receiver_id = replace(receiver_id, $1, $2) WHERE receiver_id ILIKE '%' || $1 || '%';", []interface{}{oldDomain, newDomain}},
+		{"UPDATE contacts SET payment_pointer = replace(payment_pointer, $1, $2) WHERE payment_pointer ILIKE '%' || $1 || '%';", []interface{}{oldDomain, newDomain}},
+		{"UPDATE discord_authorizations SET redirect_url = replace(redirect_url, $1, $2) WHERE redirect_url ILIKE '%' || $1 || '%';", []interface{}{oldDomain, newDomain}},
+
+		{"UPDATE transactions SET source = replace(source, $1, $2) WHERE source ILIKE '%' || $1 || '%';", []interface{}{oldDomain, newDomain}},
+		{"UPDATE transactions SET destination_identity = replace(destination_identity, $1, $2) WHERE destination_identity ILIKE '%' || $1 || '%';", []interface{}{oldDomain, newDomain}},
+		{"UPDATE transactions SET destination = replace(destination, $1, $2) WHERE destination ILIKE '%' || $1 || '%';", []interface{}{oldDomain, newDomain}},
+
+		{"UPDATE wallet_addresses SET url = replace(url, $1, $2) WHERE url ILIKE '%' || $1 || '%';", []interface{}{oldDomain, newDomain}},
+		{"UPDATE wallet_keys SET name = replace(name, 'Fynbos', 'Interledger') WHERE name ILIKE '%Fynbos%';", nil},
+
+		{"UPDATE public.slack_authorizations SET redirect_url = replace(redirect_url, $1, $2) WHERE redirect_url ILIKE '%' || $1 || '%';", []interface{}{oldAppDomain, newAppDomain}},
+		{"UPDATE public.twitter_authorizations SET redirect_url = replace(redirect_url, $1, $2) WHERE redirect_url ILIKE '%' || $1 || '%';", []interface{}{oldAppDomain, newAppDomain}},
 	}
 
 	err := ExecuteTransaction(a.b.DB(), queries)
@@ -102,10 +116,9 @@ func (a *Activity) UpdateRafikiWalletRootToIlpActivity(ctx context.Context) erro
 		query string
 		args  []interface{}
 	}{
-		{"UPDATE \"authServers\" SET url = replace(url, $1, $2);", []interface{}{oldDomain, newDomain}},
-		{"UPDATE \"incomingPayments\" SET client = replace(client, $1, $2);", []interface{}{oldDomain, newDomain}},
-		{"UPDATE quotes SET client = replace(client, $1, $2), receiver = replace(receiver, $1, $2);", []interface{}{oldDomain, newDomain}},
-		{"UPDATE \"walletAddresses\" SET url = replace(url, $1, $2);", []interface{}{oldDomain, newDomain}},
+		{"UPDATE \"incomingPayments\" SET client = replace(client, $1, $2) WHERE client ILIKE '%' || $1 || '%';", []interface{}{oldDomain, newDomain}},
+		{"UPDATE quotes SET client = replace(client, $1, $2), receiver = replace(receiver, $1, $2) WHERE receiver ILIKE '%' || $1 || '%';", []interface{}{oldDomain, newDomain}},
+		{"UPDATE \"walletAddresses\" SET url = replace(url, $1, $2) WHERE url  ILIKE '%' || $1 || '%';", []interface{}{oldDomain, newDomain}},
 		{"UPDATE \"webhookEvents\" SET data = REPLACE(data::TEXT, $1, $2)::JSON WHERE data::TEXT LIKE '%' || $1 || '%';", []interface{}{oldDomain, newDomain}},
 	}
 
@@ -131,8 +144,8 @@ func (a *Activity) UpdateRafikiAuthWalletRootToIlpActivity(ctx context.Context) 
 		query string
 		args  []interface{}
 	}{
-		{"UPDATE accesses SET identifier = replace(identifier, $1, $2);", []interface{}{oldDomain, newDomain}},
-		{"UPDATE grants SET client = replace(client, $1, $2);", []interface{}{oldDomain, newDomain}},
+		{"UPDATE accesses SET identifier = replace(identifier, $1, $2) WHERE identifier  ILIKE '%' || $1 || '%';", []interface{}{oldDomain, newDomain}},
+		{"UPDATE grants SET client = replace(client, $1, $2) WHERE client  ILIKE '%' || $1 || '%';", []interface{}{oldDomain, newDomain}},
 	}
 
 	trErr := ExecuteTransaction(db, queries)
