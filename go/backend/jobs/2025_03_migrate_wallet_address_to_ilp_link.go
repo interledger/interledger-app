@@ -211,18 +211,12 @@ func ExecuteTransaction(db *sqlx.DB, queries []struct {
 	}
 
 	for _, q := range queries {
-		if q.args == nil {
-			if _, err := tx.Exec(q.query); err != nil {
-				tx.Rollback()
-				log.Error("Error executing query", zap.Error(err))
-				return err
+		if _, err := tx.Exec(q.query, q.args...); err != nil {
+			if err := tx.Rollback(); err != nil {
+				log.Error("tx.Rollback failed: %v", zap.Error(err))
 			}
-		} else {
-			if _, err := tx.Exec(q.query, q.args...); err != nil {
-				tx.Rollback()
-				log.Error("Error executing query", zap.Error(err))
-				return err
-			}
+			log.Error("Error executing query", zap.Error(err))
+			return err
 		}
 	}
 
