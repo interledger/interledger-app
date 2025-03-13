@@ -203,24 +203,29 @@ func DbConnection(connString string) (*sqlx.DB, error) {
 func ExecuteTransaction(db *sqlx.DB, queries []struct {
 	query string
 	args  []interface{}
-}) error {
+}) (err error) {
 	tx, err := db.BeginTxx(context.Background(), nil)
 	if err != nil {
 		log.Error("Error starting transaction", zap.Error(err))
 		return err
 	}
 
-	for _, q := range queries {
-		if _, err := tx.Exec(q.query, q.args...); err != nil {
-			if err := tx.Rollback(); err != nil {
-				log.Error("tx.Rollback failed: %v", zap.Error(err))
+	defer func() {
+		if err != nil {
+			if rbErr := tx.Rollback(); rbErr != nil {
+				log.Error("tx.Rollback failed", zap.Error(rbErr))
 			}
 			log.Error("Error executing query", zap.Error(err))
+		}
+	}()
+
+	for _, q := range queries {
+		if _, err = tx.Exec(q.query, q.args...); err != nil {
 			return err
 		}
 	}
 
-	if err := tx.Commit(); err != nil {
+	if err = tx.Commit(); err != nil {
 		log.Error("Error committing transaction", zap.Error(err))
 		return err
 	}
