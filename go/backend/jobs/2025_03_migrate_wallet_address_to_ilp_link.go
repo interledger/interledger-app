@@ -110,12 +110,15 @@ func (a *Activity) UpdateBackendWalletRootToIlpActivity(ctx context.Context, dom
 
 		{"UPDATE transactions SET source = replace(source, $1, $2) WHERE source ILIKE '%' || $1 || '%';", []interface{}{domainInfo.OldDomain, domainInfo.NewDomain}},
 		{"UPDATE transactions SET destination_identity = replace(destination_identity, $1, $2) WHERE destination_identity ILIKE '%' || $1 || '%';", []interface{}{domainInfo.OldDomain, domainInfo.NewDomain}},
-		{"UPDATE transactions SET destination= replace(destination, $1, $2) WHERE destination ILIKE '%' || $1 || '%';", []interface{}{domainInfo.OldDomain, domainInfo.NewDomain}},
+		{"UPDATE transactions SET destination = replace(destination, $1, $2) WHERE destination ILIKE '%' || $1 || '%';", []interface{}{domainInfo.OldDomain, domainInfo.NewDomain}},
+		{"UPDATE transactions SET title = replace(title, $1, $2) WHERE title ILIKE '%' || $1 || '%';", []interface{}{domainInfo.OldDomain, domainInfo.NewDomain}},
 
 		{"UPDATE wallet_addresses SET url = replace(url, $1, $2) WHERE url ILIKE '%' || $1 || '%';", []interface{}{domainInfo.OldDomain, domainInfo.NewDomain}},
 		{"UPDATE wallet_keys SET name = replace(name, 'Fynbos', 'Interledger');", nil},
-		{"UPDATE public.slack_authorizations SET redirect_url = replace(redirect_url, $1, $2) WHERE redirect_url ILIKE '%' || $1 || '%';", []interface{}{domainInfo.OldAppDomain, domainInfo.NewAppDomain}},
-		{"UPDATE public.twitter_authorizations SET redirect_url = replace(redirect_url, $1, $2) WHERE redirect_url ILIKE '%' || $1 || '%';", []interface{}{domainInfo.OldAppDomain, domainInfo.NewAppDomain}},
+
+		{"UPDATE discord_authorizations SET redirect_url = replace(redirect_url, $1, $2) WHERE redirect_url ILIKE '%' || $1 || '%';", []interface{}{domainInfo.OldAppDomain, domainInfo.NewAppDomain}},
+		{"UPDATE slack_authorizations SET redirect_url = replace(redirect_url, $1, $2) WHERE redirect_url ILIKE '%' || $1 || '%';", []interface{}{domainInfo.OldAppDomain, domainInfo.NewAppDomain}},
+		{"UPDATE twitter_authorizations SET redirect_url = replace(redirect_url, $1, $2) WHERE redirect_url ILIKE '%' || $1 || '%';", []interface{}{domainInfo.OldAppDomain, domainInfo.NewAppDomain}},
 	}
 
 	err := ExecuteTransaction(a.b.DB(), queries)
@@ -145,6 +148,7 @@ func (a *Activity) UpdateRafikiWalletRootToIlpActivity(ctx context.Context, doma
 	}{
 		{"UPDATE \"incomingPayments\" SET client = replace(client, $1, $2) WHERE client ILIKE '%' || $1 || '%';", []interface{}{domainInfo.OldDomain, domainInfo.NewDomain}},
 		{"UPDATE quotes SET receiver = replace(receiver, $1, $2) WHERE receiver ILIKE '%' || $1 || '%';", []interface{}{domainInfo.OldDomain, domainInfo.NewDomain}},
+		{"UPDATE quotes SET client = replace(client, $1, $2) WHERE client ILIKE '%' || $1 || '%';", []interface{}{domainInfo.OldDomain, domainInfo.NewDomain}},
 		{"UPDATE \"walletAddresses\" SET url = replace(url, $1, $2) WHERE url ILIKE '%' || $1 || '%';", []interface{}{domainInfo.OldDomain, domainInfo.NewDomain}},
 		{"UPDATE \"webhookEvents\" SET data = REPLACE(data::TEXT, $1, $2)::JSON WHERE data::TEXT LIKE '%' || $1 || '%';", []interface{}{domainInfo.OldDomain, domainInfo.NewDomain}},
 	}
