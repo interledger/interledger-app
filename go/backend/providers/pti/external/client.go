@@ -995,7 +995,7 @@ func (c client) WalletDeposit(ctx context.Context, args DepositArgs) (string, er
 				BankAccountNumber: astra.AccountNumber(),
 				BankRoutingNumber: astra.RoutingNumber(),
 			},
-			PaymentMethodType: "FIAT",
+			PaymentMethodType: "ACH",
 		},
 		DestinationMethod: DestinationMethod{
 			PaymentMethodType: "WALLET",
@@ -1090,7 +1090,7 @@ func (c client) WalletWithdrawal(ctx context.Context, args WithdrawalArgs) (stri
 			PaymentMethodType: "WALLET",
 		},
 		DestinationMethod: WithdrawalDestinationMethod{
-			PaymentMethodType: "FIAT",
+			PaymentMethodType: "ACH",
 			PaymentInformation: PaymentInformation{
 				Type:              "BANK_ACCOUNT",
 				BankAccountNumber: astra.AccountNumber(),

@@ -99,6 +99,7 @@ func (s *service) SendVerificationCode(ctx context.Context, phoneNumber string) 
 	}
 
 	params := &verify.CreateVerificationParams{}
+	params.SetCustomFriendlyName("Interledger Wallet")
 	params.SetTo(phoneNumber)
 	params.SetChannel("sms")
 
