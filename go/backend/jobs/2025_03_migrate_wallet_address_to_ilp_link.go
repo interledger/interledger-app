@@ -3,6 +3,7 @@ package jobs
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"time"
 
@@ -58,8 +59,7 @@ func MigrateWalletAddressesToIlpLinkJob(ctx workflow.Context) error {
 		},
 	}
 	ctx = workflow.WithActivityOptions(ctx, ao)
-	logger := workflow.GetLogger(ctx)
-	logger.Info("Starting job MigrateWalletAddressesToIlpLinkJob update wallet to " + domainInfo.NewDomain)
+	log.Info("Starting job MigrateWalletAddressesToIlpLinkJob update wallet to " + domainInfo.NewDomain)
 
 	if err := executeActivity(ctx, a.UpdateBackendWalletRootToIlpActivity, "backend", domainInfo); err != nil {
 		return err
@@ -70,7 +70,7 @@ func MigrateWalletAddressesToIlpLinkJob(ctx workflow.Context) error {
 	if err := executeActivity(ctx, a.UpdateRafikiAuthWalletRootToIlpActivity, "rafiki auth", domainInfo); err != nil {
 		return err
 	}
-	logger.Info("Completed job MigrateWalletAddressesToIlpLinkJob update wallet to " + domainInfo.NewDomain)
+	log.Info("Completed job MigrateWalletAddressesToIlpLinkJob update wallet to " + domainInfo.NewDomain)
 	return nil
 }
 
@@ -78,15 +78,15 @@ func executeActivity(ctx workflow.Context, activityFunc interface{}, activityNam
 	logger := workflow.GetLogger(ctx)
 	err := workflow.ExecuteActivity(ctx, activityFunc, domainInfo).Get(ctx, nil)
 	if err != nil {
-		logger.Error("Migrate ["+activityName+"] to "+domainInfo.NewDomain+" failed", "Error", err)
+		logger.Error(fmt.Sprintf("Migrate [%s] to %s failed", activityName, domainInfo.NewDomain), "Error", err)
 		return err
 	}
-	logger.Info("Migrate [" + activityName + "] to " + domainInfo.NewDomain + " completed")
+	logger.Info(fmt.Sprintf("Migrate [%s] to %s completed", activityName, domainInfo.NewDomain))
 	return nil
 }
 
 func (a *Activity) UpdateBackendWalletRootToIlpActivity(ctx context.Context, domainInfo DomainInfo) error {
-	log.Info("Starting [backend] wallet update to " + domainInfo.NewDomain)
+	log.Info(fmt.Sprintf("Starting [backend] wallet update to %s", domainInfo.NewDomain))
 
 	queries := []struct {
 		query string
@@ -123,17 +123,15 @@ func (a *Activity) UpdateBackendWalletRootToIlpActivity(ctx context.Context, dom
 
 	err := ExecuteTransaction(a.b.DB(), queries)
 	if err != nil {
-		log.Error("Error updating [backend] wallet to "+domainInfo.NewDomain+": %v", zap.Error(err))
 		return err
 	}
-	log.Info("Completed [backend] wallet update to " + domainInfo.NewDomain)
 	return nil
 }
 
 func (a *Activity) UpdateRafikiWalletRootToIlpActivity(ctx context.Context, domainInfo DomainInfo) error {
-	log.Info("Starting [rafiki] wallet update to " + domainInfo.NewDomain)
+	log.Info(fmt.Sprintf("Starting [rafiki] wallet update to %s", domainInfo.NewDomain))
 	connString := os.Getenv("RAFIKI_DB_URL")
-	log.Info("Connection string: %v", zap.String("connString", connString))
+	log.Info(fmt.Sprintf("Connection string: %s", connString))
 
 	db, err := DbConnection(connString)
 	if err != nil {
@@ -161,7 +159,7 @@ func (a *Activity) UpdateRafikiWalletRootToIlpActivity(ctx context.Context, doma
 }
 
 func (a *Activity) UpdateRafikiAuthWalletRootToIlpActivity(ctx context.Context, domainInfo DomainInfo) error {
-	log.Info("Starting [rafiki auth] wallet update to " + domainInfo.NewDomain)
+	log.Info(fmt.Sprintf("Starting [rafiki auth] wallet update to %s", domainInfo.NewDomain))
 	connString := os.Getenv("RAFIKI_AUTH_DB_URL")
 
 	db, err := DbConnection(connString)
