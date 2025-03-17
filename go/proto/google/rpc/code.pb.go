@@ -1,3 +1,4 @@
+// +build !codeanalysis
 // Copyright 2020 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +19,7 @@
 // 	protoc        (unknown)
 // source: google/rpc/code.proto
 
-package code
+package errdetails
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
