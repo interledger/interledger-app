@@ -37,7 +37,7 @@ func TestCreateAContact(t *testing.T) {
 		db:        testDb,
 	}
 	wid := uuid.NewString()
-	pp, err := wallets.ParseAddress("$fynbos.me/marko")
+	pp, err := wallets.ParseAddress("$ilp.link/marko")
 	require.NoError(t, err)
 
 	c, err := ops.Create(ctx, b, contacts.CreateContactArgs{
@@ -73,7 +73,7 @@ func TestListContacts(t *testing.T) {
 		"John Jacob",
 	}
 	for _, name := range contactNames {
-		pp, err := wallets.ParseAddress("$fynbos.me/" + strings.ReplaceAll(name, " ", ""))
+		pp, err := wallets.ParseAddress("$ilp.link/" + strings.ReplaceAll(name, " ", ""))
 		require.NoError(t, err, "name", name)
 		_, err = ops.Create(ctx, b, contacts.CreateContactArgs{
 			Name:           name,
@@ -122,7 +122,7 @@ func TestGetContact(t *testing.T) {
 		db:        testDb,
 	}
 	wid := uuid.NewString()
-	pp, err := wallets.ParseAddress("$fynbos.me/marko")
+	pp, err := wallets.ParseAddress("$ilp.link/marko")
 	require.NoError(t, err)
 	c, err := ops.Create(ctx, b, contacts.CreateContactArgs{
 		Name:           "Marko polo",
@@ -138,7 +138,7 @@ func TestGetContact(t *testing.T) {
 	assert.Equal(t, c.PaymentPointer, gc.PaymentPointer)
 
 	// Unknown error
-	randomPP, err := wallets.ParseAddress("$fynbos.me/test")
+	randomPP, err := wallets.ParseAddress("$ilp.link/test")
 	require.NoError(t, err)
 
 	_, err = ops.Get(ctx, b, wid, randomPP)
@@ -153,7 +153,7 @@ func TestSetLastPaidAtContact(t *testing.T) {
 		db:        testDb,
 	}
 	wid := uuid.NewString()
-	pp, err := wallets.ParseAddress("$fynbos.me/marko")
+	pp, err := wallets.ParseAddress("$ilp.link/marko")
 	require.NoError(t, err)
 	c, err := ops.Create(ctx, b, contacts.CreateContactArgs{
 		Name:           "Marko polo",

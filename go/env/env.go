@@ -97,13 +97,13 @@ func OpenPaymentsURL() string {
 		openPaymentsURL = os.Getenv("OPEN_PAYMENTS_BASE_URL")
 		if openPaymentsURL == "" {
 			if IsProd() {
-				openPaymentsURL = "https://fynbos.me"
+				openPaymentsURL = "https://ilp.link"
 			} else if IsDev() {
-				openPaymentsURL = "https://eu1.fynbos.me"
+				openPaymentsURL = "https://sb.ilp.link"
 			} else if IsLocal() || IsTest() {
-				openPaymentsURL = "https://local.fynbos.me"
+				openPaymentsURL = "https://local.ilp.link"
 			} else {
-				openPaymentsURL = "https://eu1.fynbos.me"
+				openPaymentsURL = "https://sb.ilp.link"
 			}
 		}
 	})
@@ -114,12 +114,13 @@ func OpenPaymentsURL() string {
 var authURL string
 var authURLSync sync.Once
 
+// TODO -  is this used?
 func AuthURL() string {
 	authURLSync.Do(func() {
 		authURL = os.Getenv("AUTH_BASE_URL")
 		if authURL == "" {
 			if IsProd() {
-				authURL = "https://auth.fynbos.me"
+				authURL = "https://auth.ilp.link"
 			} else if IsDev() {
 				authURL = "https://auth.eu1.fynbos.dev"
 			} else if IsLocal() || IsTest() {
