@@ -19,7 +19,7 @@
 // 	protoc        (unknown)
 // source: google/rpc/code.proto
 
-package errdetails
+package code
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
