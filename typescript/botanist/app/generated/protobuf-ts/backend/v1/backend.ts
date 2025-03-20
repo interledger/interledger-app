@@ -32,6 +32,44 @@ export interface PaginationRequest {
 export interface Empty {
 }
 /**
+ * @generated from protobuf message backend.v1.Card
+ */
+export interface Card {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+    /**
+     * @generated from protobuf field: string nameOnCard = 2;
+     */
+    nameOnCard: string;
+    /**
+     * @generated from protobuf field: backend.v1.CardStatus status = 3;
+     */
+    status: CardStatus;
+    /**
+     * @generated from protobuf field: optional backend.v1.CardStatusReasonCode statusReasonCode = 4;
+     */
+    statusReasonCode?: CardStatusReasonCode;
+    /**
+     * @generated from protobuf field: optional backend.v1.CardLockLevel lockLevel = 5;
+     */
+    lockLevel?: CardLockLevel;
+    /**
+     * @generated from protobuf field: string expiryDate = 6;
+     */
+    expiryDate: string;
+}
+/**
+ * @generated from protobuf message backend.v1.ListCardsResponse
+ */
+export interface ListCardsResponse {
+    /**
+     * @generated from protobuf field: repeated backend.v1.Card cards = 1;
+     */
+    cards: Card[];
+}
+/**
  * @generated from protobuf message backend.v1.CreateChimoneyDepositRequest
  */
 export interface CreateChimoneyDepositRequest {
@@ -2449,6 +2487,123 @@ export interface SubmitFormRequest {
      */
     data: string;
 }
+/**
+ * @generated from protobuf enum backend.v1.CardStatus
+ */
+export enum CardStatus {
+    /**
+     * Used when we cannot correctly index the card status
+     *
+     * @generated from protobuf enum value: UnknownStatus = 0;
+     */
+    UnknownStatus = 0,
+    /**
+     * @generated from protobuf enum value: Active = 1;
+     */
+    Active = 1,
+    /**
+     * @generated from protobuf enum value: Blocked = 2;
+     */
+    Blocked = 2,
+    /**
+     * @generated from protobuf enum value: TemporaryBlocked = 3;
+     */
+    TemporaryBlocked = 3,
+    /**
+     * @generated from protobuf enum value: Replaced = 4;
+     */
+    Replaced = 4,
+    /**
+     * @generated from protobuf enum value: SoftDelete = 5;
+     */
+    SoftDelete = 5,
+    /**
+     * @generated from protobuf enum value: AccountBlocekd = 6;
+     */
+    AccountBlocekd = 6,
+    /**
+     * @generated from protobuf enum value: InCreation = 7;
+     */
+    InCreation = 7
+}
+/**
+ * @generated from protobuf enum backend.v1.CardStatusReasonCode
+ */
+export enum CardStatusReasonCode {
+    /**
+     * @generated from protobuf enum value: UnknownStatusReason = 0;
+     */
+    UnknownStatusReason = 0,
+    /**
+     * @generated from protobuf enum value: ClientRequestedLock = 1;
+     */
+    ClientRequestedLock = 1,
+    /**
+     * @generated from protobuf enum value: LostCard = 2;
+     */
+    LostCard = 2,
+    /**
+     * @generated from protobuf enum value: StolenCard = 3;
+     */
+    StolenCard = 3,
+    /**
+     * @generated from protobuf enum value: IssuerRequestGeneral = 4;
+     */
+    IssuerRequestGeneral = 4,
+    /**
+     * @generated from protobuf enum value: IssuerRequestFraud = 5;
+     */
+    IssuerRequestFraud = 5,
+    /**
+     * @generated from protobuf enum value: IssuerRequestLegal = 6;
+     */
+    IssuerRequestLegal = 6,
+    /**
+     * @generated from protobuf enum value: IssuerRequestIncorrectOpening = 7;
+     */
+    IssuerRequestIncorrectOpening = 7,
+    /**
+     * @generated from protobuf enum value: CardDamagedOrNotWorking = 8;
+     */
+    CardDamagedOrNotWorking = 8,
+    /**
+     * @generated from protobuf enum value: UserRequest = 9;
+     */
+    UserRequest = 9,
+    /**
+     * @generated from protobuf enum value: IssuerRequestCustomerDeceased = 10;
+     */
+    IssuerRequestCustomerDeceased = 10,
+    /**
+     * @generated from protobuf enum value: ProductDoesNotRenew = 11;
+     */
+    ProductDoesNotRenew = 11,
+    /**
+     * @generated from protobuf enum value: ProductChange = 12;
+     */
+    ProductChange = 12,
+    /**
+     * @generated from protobuf enum value: Renewed = 13;
+     */
+    Renewed = 13
+}
+/**
+ * @generated from protobuf enum backend.v1.CardLockLevel
+ */
+export enum CardLockLevel {
+    /**
+     * @generated from protobuf enum value: UnknownLockLevel = 0;
+     */
+    UnknownLockLevel = 0,
+    /**
+     * @generated from protobuf enum value: Client = 1;
+     */
+    Client = 1,
+    /**
+     * @generated from protobuf enum value: Admin = 2;
+     */
+    Admin = 2
+}
 // @generated message type with reflection information, may provide speed optimized methods
 class PaginationRequest$Type extends MessageType<PaginationRequest> {
     constructor() {
@@ -2529,6 +2684,135 @@ class Empty$Type extends MessageType<Empty> {
  * @generated MessageType for protobuf message backend.v1.Empty
  */
 export const Empty = new Empty$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class Card$Type extends MessageType<Card> {
+    constructor() {
+        super("backend.v1.Card", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "nameOnCard", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "status", kind: "enum", T: () => ["backend.v1.CardStatus", CardStatus] },
+            { no: 4, name: "statusReasonCode", kind: "enum", opt: true, T: () => ["backend.v1.CardStatusReasonCode", CardStatusReasonCode] },
+            { no: 5, name: "lockLevel", kind: "enum", opt: true, T: () => ["backend.v1.CardLockLevel", CardLockLevel] },
+            { no: 6, name: "expiryDate", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<Card>): Card {
+        const message = { id: "", nameOnCard: "", status: 0, expiryDate: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<Card>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Card): Card {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                case /* string nameOnCard */ 2:
+                    message.nameOnCard = reader.string();
+                    break;
+                case /* backend.v1.CardStatus status */ 3:
+                    message.status = reader.int32();
+                    break;
+                case /* optional backend.v1.CardStatusReasonCode statusReasonCode */ 4:
+                    message.statusReasonCode = reader.int32();
+                    break;
+                case /* optional backend.v1.CardLockLevel lockLevel */ 5:
+                    message.lockLevel = reader.int32();
+                    break;
+                case /* string expiryDate */ 6:
+                    message.expiryDate = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: Card, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* string nameOnCard = 2; */
+        if (message.nameOnCard !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.nameOnCard);
+        /* backend.v1.CardStatus status = 3; */
+        if (message.status !== 0)
+            writer.tag(3, WireType.Varint).int32(message.status);
+        /* optional backend.v1.CardStatusReasonCode statusReasonCode = 4; */
+        if (message.statusReasonCode !== undefined)
+            writer.tag(4, WireType.Varint).int32(message.statusReasonCode);
+        /* optional backend.v1.CardLockLevel lockLevel = 5; */
+        if (message.lockLevel !== undefined)
+            writer.tag(5, WireType.Varint).int32(message.lockLevel);
+        /* string expiryDate = 6; */
+        if (message.expiryDate !== "")
+            writer.tag(6, WireType.LengthDelimited).string(message.expiryDate);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.Card
+ */
+export const Card = new Card$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ListCardsResponse$Type extends MessageType<ListCardsResponse> {
+    constructor() {
+        super("backend.v1.ListCardsResponse", [
+            { no: 1, name: "cards", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Card }
+        ]);
+    }
+    create(value?: PartialMessage<ListCardsResponse>): ListCardsResponse {
+        const message = { cards: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ListCardsResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ListCardsResponse): ListCardsResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated backend.v1.Card cards */ 1:
+                    message.cards.push(Card.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ListCardsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated backend.v1.Card cards = 1; */
+        for (let i = 0; i < message.cards.length; i++)
+            Card.internalBinaryWrite(message.cards[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.ListCardsResponse
+ */
+export const ListCardsResponse = new ListCardsResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class CreateChimoneyDepositRequest$Type extends MessageType<CreateChimoneyDepositRequest> {
     constructor() {
@@ -11394,5 +11678,6 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "GetChimoneyInterlocEmail", options: {}, I: Empty, O: ChimoneyInterlocEmail },
     { name: "CreateChimoneyWallet", options: {}, I: Empty, O: Empty },
     { name: "GetChimoneyDepositLink", options: {}, I: Amount, O: GetChimoneyDepositLinkResponse },
-    { name: "CreateChimoneyDeposit", options: {}, I: CreateChimoneyDepositRequest, O: Empty }
+    { name: "CreateChimoneyDeposit", options: {}, I: CreateChimoneyDepositRequest, O: Empty },
+    { name: "ListCards", options: {}, I: Empty, O: ListCardsResponse }
 ]);
