@@ -133,6 +133,18 @@ func getExternalUserID(ctx context.Context, b Backends, walletID string) (string
 	return externalID, err
 }
 
+func getExternalUserIDAndCustomerID(ctx context.Context, b Backends, walletID string) (*gatehub.ExternalIDs, error) {
+	var externalIDs gatehub.ExternalIDs
+	err := b.DB().GetContext(ctx, &externalIDs, "SELECT external_id, external_customer_id FROM gatehub_users WHERE wallet_id=$1;", walletID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrNotFound, err)
+	} else if err != nil {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	return &externalIDs, nil
+}
+
 func getWalletID(ctx context.Context, b Backends, externalUserID string) (string, error) {
 	var walletID string
 	err := b.DB().GetContext(ctx, &walletID, "SELECT wallet_id FROM gatehub_users WHERE external_id=$1;", externalUserID)
@@ -516,4 +528,17 @@ func GetTransaction(ctx context.Context, b Backends, ec external.Client, walletI
 	}
 
 	return ec.GetTransaction(ctx, externalUser, id)
+}
+
+func ListCards(ctx context.Context, b Backends, ec external.Client, walletID string) ([]external.Card, error) {
+	externalIDs, err := getExternalUserIDAndCustomerID(ctx, b, walletID)
+	if err != nil {
+		return nil, err
+	}
+
+	if !externalIDs.CustomerID.Valid {
+		return []external.Card{}, nil
+	}
+
+	return ec.ListCards(ctx, externalIDs.ID, externalIDs.CustomerID.String)
 }
