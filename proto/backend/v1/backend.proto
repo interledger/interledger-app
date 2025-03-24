@@ -216,10 +216,11 @@ enum CardLockLevel {
 message Card {
   string id = 1;
   string nameOnCard = 2;
-  CardStatus status = 3;
-  optional CardStatusReasonCode statusReasonCode = 4;
-  optional CardLockLevel lockLevel = 5;
-  string expiryDate = 6;
+  string maskedPan = 3; 
+  CardStatus status = 4;
+  optional CardStatusReasonCode statusReasonCode = 5;
+  optional CardLockLevel lockLevel = 6;
+  string expiryDate = 7;
 }
 
 message ListCardsResponse {
