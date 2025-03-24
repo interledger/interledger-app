@@ -44,19 +44,23 @@ export interface Card {
      */
     nameOnCard: string;
     /**
-     * @generated from protobuf field: backend.v1.CardStatus status = 3;
+     * @generated from protobuf field: string maskedPan = 3;
+     */
+    maskedPan: string;
+    /**
+     * @generated from protobuf field: backend.v1.CardStatus status = 4;
      */
     status: CardStatus;
     /**
-     * @generated from protobuf field: optional backend.v1.CardStatusReasonCode statusReasonCode = 4;
+     * @generated from protobuf field: optional backend.v1.CardStatusReasonCode statusReasonCode = 5;
      */
     statusReasonCode?: CardStatusReasonCode;
     /**
-     * @generated from protobuf field: optional backend.v1.CardLockLevel lockLevel = 5;
+     * @generated from protobuf field: optional backend.v1.CardLockLevel lockLevel = 6;
      */
     lockLevel?: CardLockLevel;
     /**
-     * @generated from protobuf field: string expiryDate = 6;
+     * @generated from protobuf field: string expiryDate = 7;
      */
     expiryDate: string;
 }
@@ -2690,14 +2694,15 @@ class Card$Type extends MessageType<Card> {
         super("backend.v1.Card", [
             { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "nameOnCard", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "status", kind: "enum", T: () => ["backend.v1.CardStatus", CardStatus] },
-            { no: 4, name: "statusReasonCode", kind: "enum", opt: true, T: () => ["backend.v1.CardStatusReasonCode", CardStatusReasonCode] },
-            { no: 5, name: "lockLevel", kind: "enum", opt: true, T: () => ["backend.v1.CardLockLevel", CardLockLevel] },
-            { no: 6, name: "expiryDate", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 3, name: "maskedPan", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "status", kind: "enum", T: () => ["backend.v1.CardStatus", CardStatus] },
+            { no: 5, name: "statusReasonCode", kind: "enum", opt: true, T: () => ["backend.v1.CardStatusReasonCode", CardStatusReasonCode] },
+            { no: 6, name: "lockLevel", kind: "enum", opt: true, T: () => ["backend.v1.CardLockLevel", CardLockLevel] },
+            { no: 7, name: "expiryDate", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Card>): Card {
-        const message = { id: "", nameOnCard: "", status: 0, expiryDate: "" };
+        const message = { id: "", nameOnCard: "", maskedPan: "", status: 0, expiryDate: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Card>(this, message, value);
@@ -2714,16 +2719,19 @@ class Card$Type extends MessageType<Card> {
                 case /* string nameOnCard */ 2:
                     message.nameOnCard = reader.string();
                     break;
-                case /* backend.v1.CardStatus status */ 3:
+                case /* string maskedPan */ 3:
+                    message.maskedPan = reader.string();
+                    break;
+                case /* backend.v1.CardStatus status */ 4:
                     message.status = reader.int32();
                     break;
-                case /* optional backend.v1.CardStatusReasonCode statusReasonCode */ 4:
+                case /* optional backend.v1.CardStatusReasonCode statusReasonCode */ 5:
                     message.statusReasonCode = reader.int32();
                     break;
-                case /* optional backend.v1.CardLockLevel lockLevel */ 5:
+                case /* optional backend.v1.CardLockLevel lockLevel */ 6:
                     message.lockLevel = reader.int32();
                     break;
-                case /* string expiryDate */ 6:
+                case /* string expiryDate */ 7:
                     message.expiryDate = reader.string();
                     break;
                 default:
@@ -2744,18 +2752,21 @@ class Card$Type extends MessageType<Card> {
         /* string nameOnCard = 2; */
         if (message.nameOnCard !== "")
             writer.tag(2, WireType.LengthDelimited).string(message.nameOnCard);
-        /* backend.v1.CardStatus status = 3; */
+        /* string maskedPan = 3; */
+        if (message.maskedPan !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.maskedPan);
+        /* backend.v1.CardStatus status = 4; */
         if (message.status !== 0)
-            writer.tag(3, WireType.Varint).int32(message.status);
-        /* optional backend.v1.CardStatusReasonCode statusReasonCode = 4; */
+            writer.tag(4, WireType.Varint).int32(message.status);
+        /* optional backend.v1.CardStatusReasonCode statusReasonCode = 5; */
         if (message.statusReasonCode !== undefined)
-            writer.tag(4, WireType.Varint).int32(message.statusReasonCode);
-        /* optional backend.v1.CardLockLevel lockLevel = 5; */
+            writer.tag(5, WireType.Varint).int32(message.statusReasonCode);
+        /* optional backend.v1.CardLockLevel lockLevel = 6; */
         if (message.lockLevel !== undefined)
-            writer.tag(5, WireType.Varint).int32(message.lockLevel);
-        /* string expiryDate = 6; */
+            writer.tag(6, WireType.Varint).int32(message.lockLevel);
+        /* string expiryDate = 7; */
         if (message.expiryDate !== "")
-            writer.tag(6, WireType.LengthDelimited).string(message.expiryDate);
+            writer.tag(7, WireType.LengthDelimited).string(message.expiryDate);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

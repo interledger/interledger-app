@@ -271,22 +271,27 @@ export class Card extends Message<Card> {
   nameOnCard = "";
 
   /**
-   * @generated from field: backend.v1.CardStatus status = 3;
+   * @generated from field: string maskedPan = 3;
+   */
+  maskedPan = "";
+
+  /**
+   * @generated from field: backend.v1.CardStatus status = 4;
    */
   status = CardStatus.UnknownStatus;
 
   /**
-   * @generated from field: optional backend.v1.CardStatusReasonCode statusReasonCode = 4;
+   * @generated from field: optional backend.v1.CardStatusReasonCode statusReasonCode = 5;
    */
   statusReasonCode?: CardStatusReasonCode;
 
   /**
-   * @generated from field: optional backend.v1.CardLockLevel lockLevel = 5;
+   * @generated from field: optional backend.v1.CardLockLevel lockLevel = 6;
    */
   lockLevel?: CardLockLevel;
 
   /**
-   * @generated from field: string expiryDate = 6;
+   * @generated from field: string expiryDate = 7;
    */
   expiryDate = "";
 
@@ -300,10 +305,11 @@ export class Card extends Message<Card> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "nameOnCard", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "status", kind: "enum", T: proto3.getEnumType(CardStatus) },
-    { no: 4, name: "statusReasonCode", kind: "enum", T: proto3.getEnumType(CardStatusReasonCode), opt: true },
-    { no: 5, name: "lockLevel", kind: "enum", T: proto3.getEnumType(CardLockLevel), opt: true },
-    { no: 6, name: "expiryDate", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "maskedPan", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "status", kind: "enum", T: proto3.getEnumType(CardStatus) },
+    { no: 5, name: "statusReasonCode", kind: "enum", T: proto3.getEnumType(CardStatusReasonCode), opt: true },
+    { no: 6, name: "lockLevel", kind: "enum", T: proto3.getEnumType(CardLockLevel), opt: true },
+    { no: 7, name: "expiryDate", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Card {
