@@ -1,7 +1,7 @@
+import { Code } from '@bufbuild/connect'
 import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
-import { json } from '@remix-run/node'
+import { json, redirect } from '@remix-run/node'
 import { Outlet, useLoaderData, useLocation } from '@remix-run/react'
-import crypto from 'node:crypto'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import {
@@ -14,39 +14,40 @@ import {
   Layouts,
   WalletGrid
 } from '~/components'
-import { Card as GRPCCard } from '~/generated/connect/backend/v1/backend_pb'
-// import { isConnectError } from '~/lib/error.server'
-// import { grpc } from '~/lib/grpc.server'
+import { isConnectError } from '~/lib/error.server'
+import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
 
-export async function loader(_args: LoaderFunctionArgs) {
-  // const response = await grpc.listCards(request, {})
-  //
-  //
-  // if (isConnectError(response)) {
-  //   console.log(response.code)
-  //   if (response.code === Code.Internal) {
-  //     throw redirect('/')
-  //   }
-  //   throw response.errorResponse
-  // }
+export async function loader({ request }: LoaderFunctionArgs) {
+  const response = await grpc.listCards(request, {})
 
-  // return json({
-  //   cards: response.cards
-  // })
+  if (isConnectError(response)) {
+    console.log(response.code)
+    // Non-EU wallet
+    if (response.code === Code.FailedPrecondition) {
+      // TODO: Maybe show a message to the user that cards are not available
+      // in their jurisdiction?
+      throw redirect('/')
+    }
+    throw response.errorResponse
+  }
+
+  return json({
+    cards: response.cards
+  })
 
   // Dummy data for now
-  return json({
-    cards: Array.from(
-      { length: 10 },
-      () =>
-        new GRPCCard({
-          id: crypto.randomUUID(),
-          nameOnCard: 'Test',
-          expiryDate: '03/30'
-        })
-    ) as GRPCCard[]
-  })
+  // return json({
+  //   cards: Array.from(
+  //     { length: 10 },
+  //     () =>
+  //       new GRPCCard({
+  //         id: crypto.randomUUID(),
+  //         nameOnCard: 'Test',
+  //         expiryDate: '03/30'
+  //       })
+  //   ) as GRPCCard[]
+  // })
 }
 
 export const handle: ApplicationProps = {
