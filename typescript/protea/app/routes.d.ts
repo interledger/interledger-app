@@ -12,7 +12,7 @@ declare module "routes-gen" {
     "/callbacks/chimoney": Record<string, never>;
     "/cards": Record<string, never>;
     "/cards/:cardId": { "cardId": string };
-    "/cards/order": Record<string, never>;
+    "/cards/add": Record<string, never>;
     "/connect/bank/za": Record<string, never>;
     "/connect/card": Record<string, never>;
     "/connect/interac": Record<string, never>;
@@ -73,7 +73,7 @@ declare module "routes-gen" {
       | ["/callbacks/chimoney"]
       | ["/cards"]
       | ["/cards/:cardId", RouteParams["/cards/:cardId"]]
-      | ["/cards/order"]
+      | ["/cards/add"]
       | ["/connect/bank/za"]
       | ["/connect/card"]
       | ["/connect/interac"]

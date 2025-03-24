@@ -6,7 +6,7 @@ import { Layouts, type ApplicationProps } from '~/components'
 export const handle: ApplicationProps = {
   layout: Layouts.Focus,
   scaffold: {
-    header: { title: 'Order Card', back: route('/cards') }
+    header: { title: 'Add Card', back: route('/cards') }
   }
 }
 

@@ -22,11 +22,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const response = await grpc.listCards(request, {})
 
   if (isConnectError(response)) {
-    console.log(response.code)
-    // Non-EU wallet
+    // Temporary for non-EU wallets
+    // TODO: Maybe show a message to the user that cards are not available
+    // in their jurisdiction?
     if (response.code === Code.FailedPrecondition) {
-      // TODO: Maybe show a message to the user that cards are not available
-      // in their jurisdiction?
       throw redirect('/')
     }
     throw response.errorResponse
@@ -36,13 +35,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
     cards: response.cards
   })
 
-  // Dummy data for now
+  // Dummy data for testing
   // return json({
   //   cards: Array.from(
   //     { length: 10 },
   //     () =>
   //       new GRPCCard({
   //         id: crypto.randomUUID(),
+  //         maskedPan: '**** ' + crypto.randomUUID().substring(-1, 4),
   //         nameOnCard: 'Test',
   //         expiryDate: '03/30'
   //       })
@@ -98,10 +98,15 @@ export default function Page() {
                 className='justify-between space-x-4'
               >
                 <div className='flex w-7/12 items-center space-x-4'>
+                  {/* TODO: Maybe show card itself instead of the icon */}
                   <Icon>credit_card</Icon>
                   <div className='flex w-full flex-col space-y-1'>
-                    <span className='truncate text-medium'>{card.id}</span>
-                    <span className='text-xs text-weak'>{card.expiryDate}</span>
+                    <span className='truncate text-medium'>
+                      {card.maskedPan}
+                    </span>
+                    <span className='text-xs text-weak'>
+                      Expires at: {card.expiryDate}
+                    </span>
                   </div>
                 </div>
                 <div className='flex min-w-max flex-initial items-center space-x-2'>
@@ -110,7 +115,7 @@ export default function Page() {
               </CardLink>
             </Card>
           ))}
-        <ButtonRouter to={route('/cards/order')}>Order card</ButtonRouter>
+        <ButtonRouter to={route('/cards/add')}>Add card</ButtonRouter>
       </GridColumn>
       <GridColumn sticky className='col-span-full lg:col-span-6 lg:col-start-7'>
         {/*
