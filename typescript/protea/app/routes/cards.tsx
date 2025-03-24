@@ -122,9 +122,9 @@ export default function Page() {
          * TODO: Pass outlet context to avoid refetching the card details.
          * Based on the API reference there might be no difference in information
          * when fetching all cards for the current customer vs. fetching an
-         * indivifual card details.
+         * individual card details.
          *
-         * With this approach we avoid having another loader in the `card/:cardId` route.
+         * With this approach we avoid having another loader in the `cards/:cardId` route.
          */}
         <Outlet />
       </GridColumn>
