@@ -10,6 +10,9 @@ declare module "routes-gen" {
     "/api/maps/placesAutocomplete": Record<string, never>;
     "/api/sendOtp": Record<string, never>;
     "/callbacks/chimoney": Record<string, never>;
+    "/cards": Record<string, never>;
+    "/cards/:cardId": { "cardId": string };
+    "/cards/order": Record<string, never>;
     "/connect/bank/za": Record<string, never>;
     "/connect/card": Record<string, never>;
     "/connect/interac": Record<string, never>;
@@ -68,6 +71,9 @@ declare module "routes-gen" {
       | ["/api/maps/placesAutocomplete"]
       | ["/api/sendOtp"]
       | ["/callbacks/chimoney"]
+      | ["/cards"]
+      | ["/cards/:cardId", RouteParams["/cards/:cardId"]]
+      | ["/cards/order"]
       | ["/connect/bank/za"]
       | ["/connect/card"]
       | ["/connect/interac"]
