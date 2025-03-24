@@ -45,7 +45,7 @@ func (s *rpcService) ListCards(ctx context.Context, req *pb.Empty) (*pb.ListCard
 
 	_, isEU := country.EUCountries[wallet.Country]
 	if !isEU {
-		return nil, toGRPCError(FailedPreconditionError("Wallet not in the EU region"))
+		return nil, FailedPreconditionError("Wallet not in the EU region")
 	}
 
 	// TODO(@radu): Enable this check once the feature flag is in place;
