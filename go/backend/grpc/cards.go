@@ -5,6 +5,7 @@ import (
 
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/providers/gatehub"
+	"gitlab.com/fynbos/env"
 	pb "gitlab.com/fynbos/proto/backend/v1"
 )
 
@@ -34,6 +35,10 @@ func transformCard(c gatehub.Card) *pb.Card {
 }
 
 func (s *rpcService) ListCards(ctx context.Context, req *pb.Empty) (*pb.ListCardsResponse, error) {
+	if !env.IsLocal() {
+		return nil, ForbiddenError("Unauthorized.")
+	}
+
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, UnauthenticatedError("Unauthenticated.")
