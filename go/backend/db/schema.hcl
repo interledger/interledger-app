@@ -3411,6 +3411,14 @@ table "gatehub_users" {
     null = false
     type = uuid
   }
+  column "external_customer_id" {
+    null = true
+    type = text
+  }
+  column "external_account_id" {
+    null = true
+    type = text
+  }
   column "created_at" {
     null    = false
     type    = timestamp
