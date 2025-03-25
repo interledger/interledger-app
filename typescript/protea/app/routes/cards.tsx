@@ -1,4 +1,3 @@
-// import { Code } from '@bufbuild/connect'
 import { Code } from '@bufbuild/connect'
 import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
