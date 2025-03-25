@@ -25,6 +25,7 @@ func transformCard(c gatehub.Card) *pb.Card {
 	return &pb.Card{
 		Id:               c.ID,
 		NameOnCard:       c.NameOnCard,
+		MaskedPan:        c.MaskedPan,
 		Status:           status,
 		ExpiryDate:       c.ExpiryDate,
 		StatusReasonCode: &statusReasonCode,
