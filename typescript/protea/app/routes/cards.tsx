@@ -118,14 +118,6 @@ export default function Page() {
         <ButtonRouter to={route('/cards/add')}>Add card</ButtonRouter>
       </GridColumn>
       <GridColumn sticky className='col-span-full lg:col-span-6 lg:col-start-7'>
-        {/*
-         * TODO: Pass outlet context to avoid refetching the card details.
-         * Based on the API reference there might be no difference in information
-         * when fetching all cards for the current customer vs. fetching an
-         * individual card details.
-         *
-         * With this approach we avoid having another loader in the `cards/:cardId` route.
-         */}
         <Outlet context={cards} />
       </GridColumn>
     </WalletGrid>
