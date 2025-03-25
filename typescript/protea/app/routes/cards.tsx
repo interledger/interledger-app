@@ -1,3 +1,4 @@
+// import { Code } from '@bufbuild/connect'
 import { Code } from '@bufbuild/connect'
 import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
@@ -18,7 +19,13 @@ import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
 
+// TODO: How to differentiate between physical and virtual cards based on the
+// response from GateHub?
 export async function loader({ request }: LoaderFunctionArgs) {
+  if (process.env.FYNBOS_ENV !== 'local') {
+    throw redirect('/')
+  }
+
   const response = await grpc.listCards(request, {})
 
   if (isConnectError(response)) {
@@ -34,20 +41,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
   return json({
     cards: response.cards
   })
-
-  // Dummy data for testing
-  // return json({
-  //   cards: Array.from(
-  //     { length: 10 },
-  //     () =>
-  //       new GRPCCard({
-  //         id: crypto.randomUUID(),
-  //         maskedPan: '**** ' + crypto.randomUUID().substring(-1, 4),
-  //         nameOnCard: 'Test',
-  //         expiryDate: '03/30'
-  //       })
-  //   ) as GRPCCard[]
-  // })
 }
 
 export const handle: ApplicationProps = {
@@ -65,6 +58,13 @@ export const meta: MetaFunction = mergeMeta(() => [
   }
 ])
 
+// TODO: How to show card type when we can differentiate between phyiscal and
+// virtual?
+//
+// Options:
+//  * Chip component positioned on the right inside the CardLink
+// component with Virtual or Physical
+//  * Separate sections for Physical and Virtual cards
 export default function Page() {
   const { cards } = useLoaderData<typeof loader>()
   const location = useLocation()
@@ -126,7 +126,7 @@ export default function Page() {
          *
          * With this approach we avoid having another loader in the `cards/:cardId` route.
          */}
-        <Outlet />
+        <Outlet context={cards} />
       </GridColumn>
     </WalletGrid>
   )
