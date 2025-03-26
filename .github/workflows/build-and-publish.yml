@@ -181,7 +181,7 @@ jobs:
         run: |
           IMAGE_ID=$(docker images interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }} --format "{{.ID}}" | head -n 1)
           # Tag appropriately for our GCP project
-          PUSH_IMAGE=europe-west4-docker.pkg.dev/${{ env.GCR_PROJECT }}/interledger-app/wallet-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}:${{ needs.version-generator.outputs.version }}
+          PUSH_IMAGE=europe-west4-docker.pkg.dev/${{ env.GCR_PROJECT }}/interledger-app/${{ matrix.package.name }}:${{ needs.version-generator.outputs.version }}
           docker tag $IMAGE_ID $PUSH_IMAGE
           echo "PUSH_IMAGE=$PUSH_IMAGE" >> $GITHUB_ENV 
 
