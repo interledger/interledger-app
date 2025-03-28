@@ -1954,6 +1954,11 @@ table "wallet_features" {
     type = boolean
     default = false
   }
+  column "manage_cards" {
+    null = false
+    type = boolean
+    default = false
+  }
   column "created_at" {
     null    = false
     type    = timestamp
