@@ -765,48 +765,66 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 		log.Fatalln(err)
 	}
 
+	logger.Debug("initialising SendGrid")
 	b.email = email_client.New(b, args.SendgridAPIKey)
 
+	logger.Debug("initialising transactions")
 	b.transactions = transactions_client.New(b)
 
+	logger.Debug("initialising notify")
 	b.notify = notify_client.New(b, args.PusherAddr)
 
+	logger.Debug("initialising statements")
 	b.statements = statements_client.New()
 
+	logger.Debug("initialising limits")
 	b.limits = limits_client.New(b)
 
+	logger.Debug("initialising identities")
 	b.ident = identities_client.New(b)
 
+	logger.Debug("initialising contacts")
 	b.contacts = contacts_client.New(b)
-
+	
+	logger.Debug("initialising images")
 	b.img = img_client.New(b)
 
+	logger.Debug("initialising vault")
 	vc, err := vault.NewClient()
 	if err != nil {
 		log.Error("error vault", zap.Error(err))
 	}
 	b.vault = vc
 
+	logger.Debug("initialising keys")
 	b.keys = keys_client.New(b)
 
+	logger.Debug("initialising validator")
 	b.val = validator.New()
 
+	logger.Debug("initialising rafiki")
 	b.rafiki = rafiki_client.New(b)
 
+	logger.Debug("initialising pacioli")
 	pacDB, err := otelsqlx.Connect("postgres", args.PacioliDBConString, otelsql.WithAttributes(semconv.DBSystemCockroachdb), otelsql.WithDBName("cockroachdb"))
 	if err != nil {
 		log.Fatalln(err)
 	}
 	b.pac = pacioli_client.NewLocal(pacDB)
 
+	logger.Debug("initialising xago")
 	b.xago = xago_client.New(b)
 
+	logger.Debug("initialising Astra")
 	b.astr = astra_client.New(b)
 
+	logger.Debug("initialising FIANT") 
 	b.pti = pti_client.New(b)
 
+	logger.Debug("initialising Gatehub")
 	b.gatehub = gatehub_client.New(b)
 
+	logger.Debug("initialising Chimoney")
 	b.chimoney = chimoney_client.New(b)
 
 	return b
