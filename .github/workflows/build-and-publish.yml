@@ -26,27 +26,24 @@ env:
   GCR_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCR_WORKLOAD_IDENTITY_PROVIDER }}
 
 jobs:
-
   select_packages:
     # Selects and outputs the list of packages to be used in subsequent matrix builds
     runs-on: ubuntu-latest
     outputs:
-      go_builds: ${{ steps.select_packages.outputs.go_builds }}
-      ts_builds: ${{ steps.select_packages.outputs.ts_builds }}
-      all_builds: ${{ steps.select_packages.outputs.all_builds }}
+      builds: ${{ steps.select_packages.outputs.builds }}
     steps:
       - name: Select packages
         id: select_packages
         run: |
           # Define packages
           platform='[{"os": "linux", "arch": "amd64"}]'
-          go_pkgs='[{"name": "backend"}, {"name": "mockbos"}, {"name": "temporal"}]'
-          ts_pkgs='[{"name": "protea"}, {"name": "botanist"}]'
+          go_pkgs='[{"name": "backend", "context": "./go", "file": "./go/backend/Dockerfile"}, {"name": "mockbos", "context": "./go", "file": "./go/mockbos/Dockerfile"}, {"name": "temporal", "context": "./go", "file": "./go/temporal/Dockerfile"}]'
+          ts_pkgs='[{"name": "protea", "context": "./typescript/protea", "file": "./typescript/protea/Dockerfile"}, {"name": "botanist", "context": "./typescript/botanist", "file": "./typescript/botanist/Dockerfile"}]'
 
           # Create outputs
-          echo go_builds="{\"package\": $go_pkgs, \"platform\": $platform}" >> "$GITHUB_OUTPUT"
-          echo ts_builds="{\"package\": $ts_pkgs, \"platform\": $platform}" >> "$GITHUB_OUTPUT"
-          echo all_builds=$(jq -n --argjson go "$go_pkgs" --argjson ts "$ts_pkgs" --argjson platform "$platform" '{package: ($go + $ts), platform: $platform}') >> "$GITHUB_OUTPUT"
+          go_builds="{\"package\": $go_pkgs, \"platform\": $platform}"
+          ts_builds="{\"package\": $ts_pkgs, \"platform\": $platform}"
+          echo builds=$(jq -n --argjson go "$go_pkgs" --argjson ts "$ts_pkgs" --argjson platform "$platform" '{package: ($go + $ts), platform: $platform}') >> "$GITHUB_OUTPUT"
 
   version-generator:
     runs-on: ubuntu-latest
@@ -126,11 +123,11 @@ jobs:
             git push -f origin $NEW_VERSION
           fi
 
-  go_builds:
+  builds:
     needs: [select_packages, version-generator]
     runs-on: ubuntu-latest
     strategy:
-      matrix: ${{fromJson(needs.select_packages.outputs.go_builds)}}
+      matrix: ${{fromJson(needs.select_packages.outputs.builds)}}
     steps:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -141,8 +138,8 @@ jobs:
         with:
           push: false
           platforms: ${{ matrix.platform.os }}/${{ matrix.platform.arch }}
-          context: ./go
-          file: ./go/${{ matrix.package.name }}/Dockerfile
+          context: ${{ matrix.package.context }}
+          file: ${{ matrix.package.file }}
           tags: interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}:${{ needs.version-generator.outputs.version }}
           build-args: |
             GOLANG_VERSION=1.23
@@ -157,40 +154,13 @@ jobs:
           path: /tmp/${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}.tar
           key: ${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}
 
-  ts_builds:
-    needs: [select_packages, version-generator]
-    runs-on: ubuntu-latest
-    strategy:
-      matrix: ${{fromJson(needs.select_packages.outputs.ts_builds)}}
-    steps:
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Build
-        uses: docker/build-push-action@v5
-        with:
-          push: false
-          platforms: ${{ matrix.platform.os }}/${{ matrix.platform.arch }}
-          context: ./typescript/${{ matrix.package.name  }}
-          file: ./typescript/${{ matrix.package.name }}/Dockerfile
-          tags: interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}:${{ needs.version-generator.outputs.version }}
-          outputs: type=docker,dest=/tmp/${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}.tar
-      - name: List Docker images
-        run: docker images
-      - name: Save docker image to cache
-        uses: actions/cache@v4
-        with:
-          path: /tmp/${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}.tar
-          key: ${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}
-
   push-image-gcp-artifact-registry:
     name: Push to Google Artifact Registry
-    needs: [go_builds, ts_builds, version-generator, select_packages]
+    needs: [builds, version-generator, select_packages]
     runs-on: ubuntu-latest
     if: needs.version-generator.outputs.dockerPush == 'true'
     strategy:
-      matrix: ${{fromJson(needs.select_packages.outputs.all_builds)}}
+      matrix: ${{fromJson(needs.select_packages.outputs.builds)}}
     steps:
       - name: Load cache
         uses: actions/cache/restore@v4
