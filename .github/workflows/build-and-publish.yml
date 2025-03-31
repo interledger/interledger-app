@@ -26,7 +26,6 @@ env:
   GCR_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCR_WORKLOAD_IDENTITY_PROVIDER }}
 
 jobs:
-
   select_packages:
     # Selects and outputs the list of packages to be used in subsequent matrix builds
     runs-on: ubuntu-latest
@@ -36,11 +35,15 @@ jobs:
       - name: Select packages
         id: select_packages
         run: |
-          # When troubleshooting use this selection for limited build
-          # echo builds='{"package":[{"name":"hello"}],"platform":[{"os":"linux","arch":"amd64"}]}' >> "$GITHUB_OUTPUT"          
-          
-          # Full build - names in list must match up to Golang package names
-          echo builds='{"package":[{"name":"backend"}, {"name":"mockbos"}, {"name":"temporal"}],"platform":[{"os":"linux","arch":"amd64"}]}' >> "$GITHUB_OUTPUT"          
+          # Define packages
+          platform='[{"os": "linux", "arch": "amd64"}]'
+          go_pkgs='[{"name": "backend", "context": "./go", "file": "./go/backend/Dockerfile"}, {"name": "mockbos", "context": "./go", "file": "./go/mockbos/Dockerfile"}, {"name": "temporal", "context": "./go", "file": "./go/temporal/Dockerfile"}]'
+          ts_pkgs='[{"name": "protea", "context": "./typescript/protea", "file": "./typescript/protea/Dockerfile"}, {"name": "botanist", "context": "./typescript/botanist", "file": "./typescript/botanist/Dockerfile"}]'
+
+          # Create outputs
+          go_builds="{\"package\": $go_pkgs, \"platform\": $platform}"
+          ts_builds="{\"package\": $ts_pkgs, \"platform\": $platform}"
+          echo builds=$(jq -n --argjson go "$go_pkgs" --argjson ts "$ts_pkgs" --argjson platform "$platform" '{package: ($go + $ts), platform: $platform}') >> "$GITHUB_OUTPUT"
 
   version-generator:
     runs-on: ubuntu-latest
@@ -120,7 +123,6 @@ jobs:
             git push -f origin $NEW_VERSION
           fi
 
-
   builds:
     needs: [select_packages, version-generator]
     runs-on: ubuntu-latest
@@ -136,8 +138,8 @@ jobs:
         with:
           push: false
           platforms: ${{ matrix.platform.os }}/${{ matrix.platform.arch }}
-          context: ./go
-          file: ./go/${{ matrix.package.name }}/Dockerfile
+          context: ${{ matrix.package.context }}
+          file: ${{ matrix.package.file }}
           tags: interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}:${{ needs.version-generator.outputs.version }}
           build-args: |
             GOLANG_VERSION=1.23
