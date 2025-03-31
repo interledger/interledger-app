@@ -38,18 +38,14 @@ jobs:
       - name: Select packages
         id: select_packages
         run: |
-          # When troubleshooting use this selection for limited build
-          # echo builds='{"package":[{"name":"hello"}],"platform":[{"os":"linux","arch":"amd64"}]}' >> "$GITHUB_OUTPUT"          
-
           # Define packages
           platform='[{"os": "linux", "arch": "amd64"}]'
           go_pkgs='[{"name": "backend"}, {"name": "mockbos"}, {"name": "temporal"}]'
           ts_pkgs='[{"name": "protea"}, {"name": "botanist"}]'
 
           # Create outputs
-          echo go_builds='{"package": $go_pkgs, "platform": $platform}' >> "$GITHUB_OUTPUT"
-          echo ts_builds='{"package": $ts_pkgs, "platform": $platform}' >> "$GITHUB_OUTPUT"
-
+          echo go_builds="{\"package\": $go_pkgs, \"platform\": $platform}" >> "$GITHUB_OUTPUT"
+          echo ts_builds="{\"package\": $ts_pkgs, \"platform\": $platform}" >> "$GITHUB_OUTPUT"
           echo all_builds=$(jq -n --argjson go "$go_pkgs" --argjson ts "$ts_pkgs" --argjson platform "$platform" '{package: ($go + $ts), platform: $platform}') >> "$GITHUB_OUTPUT"
 
   version-generator:
