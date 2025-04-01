@@ -785,7 +785,7 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 
 	logger.Debug("initialising contacts")
 	b.contacts = contacts_client.New(b)
-	
+
 	logger.Debug("initialising images")
 	b.img = img_client.New(b)
 
@@ -818,7 +818,7 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	logger.Debug("initialising Astra")
 	b.astr = astra_client.New(b)
 
-	logger.Debug("initialising FIANT") 
+	logger.Debug("initialising FIANT")
 	b.pti = pti_client.New(b)
 
 	logger.Debug("initialising Gatehub")
