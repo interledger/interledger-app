@@ -29,9 +29,9 @@ COPY tracing ./tracing
 COPY env ./env
 ENTRYPOINT ["/build/backend/entrypoint.sh"]
 
-FROM base as builder
+FROM base AS builder
 
-ENV ENV GOCACHE=/root/.cache/go-build
+ENV GOCACHE=/root/.cache/go-build
 RUN --mount=type=cache,target="/root/.cache/go-build" go build -o main ./pacioli/pacioli/main.go
 
 FROM gcr.io/distroless/cc:nonroot
