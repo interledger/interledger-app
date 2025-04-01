@@ -41,7 +41,7 @@ func NewTemporalClient(temporalUrl string) (client.Client, error) {
 
 	var existsError *serviceerror.NamespaceAlreadyExists
 
-	defaultRetentionPeriod := 24 * 3 * time.Hour // 3 days
+	defaultRetentionPeriod := 3 * 24 * time.Hour // 3 days
 	err = nc.Register(context.Background(), &workflowservice.RegisterNamespaceRequest{
 		Namespace:                        "default",
 		WorkflowExecutionRetentionPeriod: &defaultRetentionPeriod,
