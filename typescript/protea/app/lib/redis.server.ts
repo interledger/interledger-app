@@ -3,8 +3,7 @@ import { createClient } from '@redis/client'
 
 let redisClient: RedisClientType
 
-// const url = process.env.REDIS_URL || 'redis://redis/'
-const url = 'redis://0.0.0.0:6379'
+const url = process.env.REDIS_URL || 'redis://0.0.0.0:6379'
 
 declare global {
   var __redisClient: RedisClientType | undefined
