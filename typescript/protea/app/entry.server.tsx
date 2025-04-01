@@ -50,6 +50,42 @@ export default function handleRequest(
   responseHeaders: Headers,
   remixContext: EntryContext
 ) {
+  // 1. Generate a nonce for each request (recommended for security)
+  //    You might skip this if using a simpler policy without nonces initially.
+  // const nonce = crypto.randomBytes(16).toString("hex")
+
+  // 2. Define your CSP policy string
+  //    Start restrictive and loosen as needed.
+  //    Using the nonce for scripts is highly recommended over 'unsafe-inline'.
+  const csp = [
+    // `default-src 'self'`,
+    // Allow scripts from 'self' and inline scripts using the generated nonce
+    // `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
+    // Allow styles from 'self' and potentially 'unsafe-inline' if needed,
+    // though external CSS files are better. Consider nonces for inline styles too if applicable.
+    // `style-src 'self' 'unsafe-inline'`,
+    // `img-src 'self' data:`, // Allow images from self and data URIs
+    // `font-src 'self'`,
+    // `connect-src 'self'`, // Control fetch/XHR/WebSockets
+    // `frame-src 'self'`, // Control frames
+    `object-src 'none'`, // Disallow plugins (Flash, etc.)
+    `base-uri 'self'`,
+    `form-action 'self'`,
+    `frame-ancestors 'none'` // Prevent clickjacking
+    // Add other directives as needed (e.g., connect-src for APIs, img-src for CDNs)
+  ].join('; ')
+
+  // 3. Add the CSP header to the response headers
+  responseHeaders.set('Content-Security-Policy', csp)
+
+  // 4. Some other security ones
+  responseHeaders.set(
+    'Strict-Transport-Security',
+    'max-age=31536000; includeSubDomains'
+  )
+  responseHeaders.set('X-Content-Type-Options', 'nosniff')
+  // responseHeaders.set('X-Frame-Options', 'SAMEORIGIN')
+
   return isbot(request.headers.get('user-agent'))
     ? handleBotRequest(
         request,
