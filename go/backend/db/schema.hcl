@@ -1954,7 +1954,7 @@ table "wallet_features" {
     type = boolean
     default = false
   }
-  column "manage_cards" {
+  column "manage_wallet_cards_enabled" {
     null = false
     type = boolean
     default = false
