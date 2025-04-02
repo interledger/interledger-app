@@ -129,9 +129,6 @@ devDependencies:
   '@graphql-typed-document-node/core':
     specifier: ^3.2.0
     version: 3.2.0(graphql@16.6.0)
-  '@playwright/test':
-    specifier: ^1.33.0
-    version: 1.33.0
   '@remix-run/dev':
     specifier: ^2.0.1
     version: 2.0.1(@remix-run/serve@2.0.1)(@types/node@20.1.7)(typescript@5.2.2)
@@ -4585,17 +4582,6 @@ packages:
       tslib: 2.5.0
     dev: true
 
-  /@playwright/test@1.33.0:
-    resolution: {integrity: sha512-YunBa2mE7Hq4CfPkGzQRK916a4tuZoVx/EpLjeWlTVOnD4S2+fdaQZE0LJkbfhN5FTSKNLdcl7MoT5XB37bTkg==}
-    engines: {node: '>=14'}
-    hasBin: true
-    dependencies:
-      '@types/node': 20.1.7
-      playwright-core: 1.33.0
-    optionalDependencies:
-      fsevents: 2.3.2
-    dev: true
-
   /@protobuf-ts/grpc-transport@2.9.0(@grpc/grpc-js@1.8.14):
     resolution: {integrity: sha512-LiPZ95G9BPVgxO6tJIXjaX3hxtTPrvzi7h4ZU9ce+3Wd9/nzYkawTMtZ6CpLZCSpsk4KlFuDfNmyfJLWefSdKw==}
     peerDependencies:
@@ -6985,6 +6971,7 @@ packages:
 
   /@storybook/expect@28.1.3-5:
     resolution: {integrity: sha512-lS1oJnY1qTAxnH87C765NdfvGhksA6hBcbUVI5CHiSbNsEtr456wtg/z+dT9XlPriq1D5t2SgfNL9dBAoIGyIA==}
+    deprecated: In Storybook 8, this package functionality has been integrated to a new package called @storybook/test, which uses Vitest APIs for an improved experience. When upgrading to Storybook 8 with 'npx storybook@latest upgrade', you will get prompted and will get an automigration for the new package. Please migrate when you can.
     dependencies:
       '@types/jest': 28.1.3
     dev: true
@@ -11410,14 +11397,6 @@ packages:
   /fs.realpath@1.0.0:
     resolution: {integrity: sha512-OO0pH2lK6a0hZnAdau5ItzHPI6pUlvI7jMVnxUQRtw4owF2wk8lOSabtGDCTP4Ggrg2MbGnWO9X8K1t4+fGMDw==}
     dev: true
-
-  /fsevents@2.3.2:
-    resolution: {integrity: sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==}
-    engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
-    os: [darwin]
-    requiresBuild: true
-    dev: true
-    optional: true
 
   /fsevents@2.3.3:
     resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
