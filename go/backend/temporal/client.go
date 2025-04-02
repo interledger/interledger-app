@@ -39,15 +39,24 @@ func NewTemporalClient(temporalUrl string) (client.Client, error) {
 		return c, nil
 	}
 
+	var existsError *serviceerror.NamespaceAlreadyExists
+
+	defaultRetentionPeriod := 3 * 24 * time.Hour // 3 days
+	err = nc.Register(context.Background(), &workflowservice.RegisterNamespaceRequest{
+		Namespace:                        "default",
+		WorkflowExecutionRetentionPeriod: &defaultRetentionPeriod,
+	})
+	if err != nil && !errors.As(err, &existsError) {
+		log.Error("Failed to register temporal default namespace.", zap.Error(err))
+	}
+
 	paymentsRetentionPeriod := 10 * 365 * 24 * time.Hour
 	err = nc.Register(context.Background(), &workflowservice.RegisterNamespaceRequest{
 		Namespace:                        "payments",
 		WorkflowExecutionRetentionPeriod: &paymentsRetentionPeriod,
 	})
-	var existsError *serviceerror.NamespaceAlreadyExists
 	if err != nil && !errors.As(err, &existsError) {
 		log.Error("Failed to register temporal payments namespace.", zap.Error(err))
-		return c, nil
 	}
 
 	return c, nil
