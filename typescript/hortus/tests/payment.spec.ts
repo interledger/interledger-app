@@ -1,10 +1,26 @@
 import { test } from '@playwright/test'
-import { PayPage } from '../fixtures/pages/pay'
+import { PayPage } from '../pages/pay'
 
 test.describe('Payment', () => {
-  test('should have the ability to search', async ({ page }) => {
-    const payPage = new PayPage(page)
-    await payPage.goto()
-    await payPage.search('radu')
+  let page: PayPage
+  const term = 'playwright1'
+
+  test.beforeEach(async ({ page: defaultPage }) => {
+    page = new PayPage(defaultPage)
+    await page.goto()
+  })
+
+  test('Successfully sends money to another user', async () => {
+    await test.step('Search for user', async () => {
+      await page.search(term)
+    })
+
+    await test.step('Create payment', async () => {
+      await page.createPayment(term)
+    })
+
+    await test.step('Fill amount', async () => {
+      await page.setAmount()
+    })
   })
 })
