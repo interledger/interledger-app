@@ -17,6 +17,13 @@ pnpm install
 playwright install --with-deps chromium
 ```
 
+3. Update `.env` file
+```sh
+cp .env.example .env
+```
+
+and provide the correct values for the specified environment variables.
+
 3. Run the tests
 ```sh
 pnpm test
