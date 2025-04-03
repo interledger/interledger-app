@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "scripts": {
     "format": "prettier --write .",
-    "test": "playwright test"
+    "test": "playwright test",
+    "test:ui": "playwright test --ui"
   },
   "devDependencies": {
     "@playwright/test": "^1.51.1",

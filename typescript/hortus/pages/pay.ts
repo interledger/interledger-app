@@ -53,7 +53,13 @@ export class PayPage {
       otp.fill('123456')
       verifyBtn.click()
     }
+  }
 
+  async validatePayment() {
     await this.page.waitForURL(process.env.BASE_URL)
+    await expect(
+      this.page.locator('text=Payment created successfully')
+    ).toBeVisible()
+    // TODO: Check the latest transactions in homepage or in transactions page.
   }
 }
