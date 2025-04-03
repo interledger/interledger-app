@@ -26,6 +26,7 @@ import { hasUserSession } from '~/lib/kratos.server'
 import { getSnackbar } from '~/lib/snackbar.server'
 import { useSegment } from '~/lib/useSegment'
 import styles from '~/styles/app.css'
+import { getFeatures } from './data/wallet.server'
 
 const metaContent = {
   title: 'Interledger Wallet',
@@ -118,9 +119,11 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({
 export async function loader({ request }: LoaderFunctionArgs) {
   const isUser = hasUserSession(request)
   const snackbar = await getSnackbar(request)
+  const features = await getFeatures(request)
   return json({
     isUser,
     snackbar,
+    features,
     env: {
       fynbosEnv: process.env.FYNBOS_ENV,
       sentryDsn: process.env.SENTRY_DSN,
