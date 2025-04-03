@@ -14,7 +14,7 @@ pnpm install
 
 2. Install Playwright browsers
 ```sh
-playwright install --with-deps chromium
+pnpm exec playwright install --with-deps chromium
 ```
 
 3. Update `.env` file
