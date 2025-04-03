@@ -32,4 +32,28 @@ export class PayPage {
     await amountField.fill(amount)
     await noteField.fill('Integration testing payment')
   }
+
+  async confirm() {
+    const continueBtn = this.page.locator('button', { hasText: 'continue' })
+    await continueBtn.click()
+
+    const confirmBtn = this.page.locator('button', {
+      hasText: 'confirm payment'
+    })
+    const checkbox = this.page.locator('input#service-agreement')
+    await checkbox.setChecked(true)
+
+    await confirmBtn.click()
+    const otp = await this.page
+      .waitForSelector('input#otp', { timeout: 2000 })
+      .catch(() => null)
+
+    if (otp) {
+      const verifyBtn = this.page.locator('button', { hasText: 'Verify' })
+      otp.fill('123456')
+      verifyBtn.click()
+    }
+
+    await this.page.waitForURL(process.env.BASE_URL)
+  }
 }

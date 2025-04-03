@@ -22,5 +22,9 @@ test.describe('Payment', () => {
     await test.step('Fill amount', async () => {
       await page.setAmount()
     })
+
+    await test.step('Send payment', async () => {
+      await page.confirm()
+    })
   })
 })
