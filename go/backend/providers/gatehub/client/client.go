@@ -26,6 +26,7 @@ func New(b ops.Backends) *Client {
 		b: b,
 		external: external.NewClient(
 			os.Getenv("GATEHUB_APP_ID"),
+			os.Getenv("GATEHUB_CARD_APP_ID"),
 			os.Getenv("GATEHUB_SECRET"),
 			&http.Client{
 				Transport: otelhttp.NewTransport(
@@ -82,4 +83,8 @@ func (c Client) CreateTransfer(ctx context.Context, args gatehub.CreateTransferA
 
 func (c Client) GetTransaction(ctx context.Context, walletID, id string) (*external.Transaction, error) {
 	return ops.GetTransaction(ctx, c.b, c.external, walletID, id)
+}
+
+func (c Client) ListCards(ctx context.Context, walletID string) ([]external.Card, error) {
+	return ops.ListCards(ctx, c.b, c.external, walletID)
 }

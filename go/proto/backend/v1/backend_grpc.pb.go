@@ -121,6 +121,7 @@ const (
 	BackendService_CreateChimoneyWallet_FullMethodName           = "/backend.v1.BackendService/CreateChimoneyWallet"
 	BackendService_GetChimoneyDepositLink_FullMethodName         = "/backend.v1.BackendService/GetChimoneyDepositLink"
 	BackendService_CreateChimoneyDeposit_FullMethodName          = "/backend.v1.BackendService/CreateChimoneyDeposit"
+	BackendService_ListCards_FullMethodName                      = "/backend.v1.BackendService/ListCards"
 )
 
 // BackendServiceClient is the client API for BackendService service.
@@ -258,6 +259,8 @@ type BackendServiceClient interface {
 	CreateChimoneyWallet(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
 	GetChimoneyDepositLink(ctx context.Context, in *Amount, opts ...grpc.CallOption) (*GetChimoneyDepositLinkResponse, error)
 	CreateChimoneyDeposit(ctx context.Context, in *CreateChimoneyDepositRequest, opts ...grpc.CallOption) (*Empty, error)
+	// Cards
+	ListCards(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListCardsResponse, error)
 }
 
 type backendServiceClient struct {
@@ -1186,6 +1189,15 @@ func (c *backendServiceClient) CreateChimoneyDeposit(ctx context.Context, in *Cr
 	return out, nil
 }
 
+func (c *backendServiceClient) ListCards(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListCardsResponse, error) {
+	out := new(ListCardsResponse)
+	err := c.cc.Invoke(ctx, BackendService_ListCards_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServiceServer is the server API for BackendService service.
 // All implementations should embed UnimplementedBackendServiceServer
 // for forward compatibility
@@ -1321,6 +1333,8 @@ type BackendServiceServer interface {
 	CreateChimoneyWallet(context.Context, *Empty) (*Empty, error)
 	GetChimoneyDepositLink(context.Context, *Amount) (*GetChimoneyDepositLinkResponse, error)
 	CreateChimoneyDeposit(context.Context, *CreateChimoneyDepositRequest) (*Empty, error)
+	// Cards
+	ListCards(context.Context, *Empty) (*ListCardsResponse, error)
 }
 
 // UnimplementedBackendServiceServer should be embedded to have forward compatible implementations.
@@ -1632,6 +1646,9 @@ func (UnimplementedBackendServiceServer) GetChimoneyDepositLink(context.Context,
 }
 func (UnimplementedBackendServiceServer) CreateChimoneyDeposit(context.Context, *CreateChimoneyDepositRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateChimoneyDeposit not implemented")
+}
+func (UnimplementedBackendServiceServer) ListCards(context.Context, *Empty) (*ListCardsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListCards not implemented")
 }
 
 // UnsafeBackendServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -3481,6 +3498,24 @@ func _BackendService_CreateChimoneyDeposit_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_ListCards_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).ListCards(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_ListCards_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).ListCards(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BackendService_ServiceDesc is the grpc.ServiceDesc for BackendService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -3895,6 +3930,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateChimoneyDeposit",
 			Handler:    _BackendService_CreateChimoneyDeposit_Handler,
+		},
+		{
+			MethodName: "ListCards",
+			Handler:    _BackendService_ListCards_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

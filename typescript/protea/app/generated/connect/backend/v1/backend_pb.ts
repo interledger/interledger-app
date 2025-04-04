@@ -7,6 +7,182 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
 
 /**
+ * @generated from enum backend.v1.CardStatus
+ */
+export enum CardStatus {
+  /**
+   * Used when we cannot correctly index the card status
+   *
+   * @generated from enum value: UnknownStatus = 0;
+   */
+  UnknownStatus = 0,
+
+  /**
+   * @generated from enum value: Active = 1;
+   */
+  Active = 1,
+
+  /**
+   * @generated from enum value: Blocked = 2;
+   */
+  Blocked = 2,
+
+  /**
+   * @generated from enum value: TemporaryBlocked = 3;
+   */
+  TemporaryBlocked = 3,
+
+  /**
+   * @generated from enum value: Replaced = 4;
+   */
+  Replaced = 4,
+
+  /**
+   * @generated from enum value: SoftDelete = 5;
+   */
+  SoftDelete = 5,
+
+  /**
+   * @generated from enum value: AccountBlocekd = 6;
+   */
+  AccountBlocekd = 6,
+
+  /**
+   * @generated from enum value: InCreation = 7;
+   */
+  InCreation = 7,
+}
+// Retrieve enum metadata with: proto3.getEnumType(CardStatus)
+proto3.util.setEnumType(CardStatus, "backend.v1.CardStatus", [
+  { no: 0, name: "UnknownStatus" },
+  { no: 1, name: "Active" },
+  { no: 2, name: "Blocked" },
+  { no: 3, name: "TemporaryBlocked" },
+  { no: 4, name: "Replaced" },
+  { no: 5, name: "SoftDelete" },
+  { no: 6, name: "AccountBlocekd" },
+  { no: 7, name: "InCreation" },
+]);
+
+/**
+ * @generated from enum backend.v1.CardStatusReasonCode
+ */
+export enum CardStatusReasonCode {
+  /**
+   * @generated from enum value: UnknownStatusReason = 0;
+   */
+  UnknownStatusReason = 0,
+
+  /**
+   * @generated from enum value: ClientRequestedLock = 1;
+   */
+  ClientRequestedLock = 1,
+
+  /**
+   * @generated from enum value: LostCard = 2;
+   */
+  LostCard = 2,
+
+  /**
+   * @generated from enum value: StolenCard = 3;
+   */
+  StolenCard = 3,
+
+  /**
+   * @generated from enum value: IssuerRequestGeneral = 4;
+   */
+  IssuerRequestGeneral = 4,
+
+  /**
+   * @generated from enum value: IssuerRequestFraud = 5;
+   */
+  IssuerRequestFraud = 5,
+
+  /**
+   * @generated from enum value: IssuerRequestLegal = 6;
+   */
+  IssuerRequestLegal = 6,
+
+  /**
+   * @generated from enum value: IssuerRequestIncorrectOpening = 7;
+   */
+  IssuerRequestIncorrectOpening = 7,
+
+  /**
+   * @generated from enum value: CardDamagedOrNotWorking = 8;
+   */
+  CardDamagedOrNotWorking = 8,
+
+  /**
+   * @generated from enum value: UserRequest = 9;
+   */
+  UserRequest = 9,
+
+  /**
+   * @generated from enum value: IssuerRequestCustomerDeceased = 10;
+   */
+  IssuerRequestCustomerDeceased = 10,
+
+  /**
+   * @generated from enum value: ProductDoesNotRenew = 11;
+   */
+  ProductDoesNotRenew = 11,
+
+  /**
+   * @generated from enum value: ProductChange = 12;
+   */
+  ProductChange = 12,
+
+  /**
+   * @generated from enum value: Renewed = 13;
+   */
+  Renewed = 13,
+}
+// Retrieve enum metadata with: proto3.getEnumType(CardStatusReasonCode)
+proto3.util.setEnumType(CardStatusReasonCode, "backend.v1.CardStatusReasonCode", [
+  { no: 0, name: "UnknownStatusReason" },
+  { no: 1, name: "ClientRequestedLock" },
+  { no: 2, name: "LostCard" },
+  { no: 3, name: "StolenCard" },
+  { no: 4, name: "IssuerRequestGeneral" },
+  { no: 5, name: "IssuerRequestFraud" },
+  { no: 6, name: "IssuerRequestLegal" },
+  { no: 7, name: "IssuerRequestIncorrectOpening" },
+  { no: 8, name: "CardDamagedOrNotWorking" },
+  { no: 9, name: "UserRequest" },
+  { no: 10, name: "IssuerRequestCustomerDeceased" },
+  { no: 11, name: "ProductDoesNotRenew" },
+  { no: 12, name: "ProductChange" },
+  { no: 13, name: "Renewed" },
+]);
+
+/**
+ * @generated from enum backend.v1.CardLockLevel
+ */
+export enum CardLockLevel {
+  /**
+   * @generated from enum value: UnknownLockLevel = 0;
+   */
+  UnknownLockLevel = 0,
+
+  /**
+   * @generated from enum value: Client = 1;
+   */
+  Client = 1,
+
+  /**
+   * @generated from enum value: Admin = 2;
+   */
+  Admin = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(CardLockLevel)
+proto3.util.setEnumType(CardLockLevel, "backend.v1.CardLockLevel", [
+  { no: 0, name: "UnknownLockLevel" },
+  { no: 1, name: "Client" },
+  { no: 2, name: "Admin" },
+]);
+
+/**
  * @generated from message backend.v1.PaginationRequest
  */
 export class PaginationRequest extends Message<PaginationRequest> {
@@ -77,6 +253,116 @@ export class Empty extends Message<Empty> {
 
   static equals(a: Empty | PlainMessage<Empty> | undefined, b: Empty | PlainMessage<Empty> | undefined): boolean {
     return proto3.util.equals(Empty, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.Card
+ */
+export class Card extends Message<Card> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  /**
+   * @generated from field: string nameOnCard = 2;
+   */
+  nameOnCard = "";
+
+  /**
+   * @generated from field: string maskedPan = 3;
+   */
+  maskedPan = "";
+
+  /**
+   * @generated from field: backend.v1.CardStatus status = 4;
+   */
+  status = CardStatus.UnknownStatus;
+
+  /**
+   * @generated from field: optional backend.v1.CardStatusReasonCode statusReasonCode = 5;
+   */
+  statusReasonCode?: CardStatusReasonCode;
+
+  /**
+   * @generated from field: optional backend.v1.CardLockLevel lockLevel = 6;
+   */
+  lockLevel?: CardLockLevel;
+
+  /**
+   * @generated from field: string expiryDate = 7;
+   */
+  expiryDate = "";
+
+  constructor(data?: PartialMessage<Card>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.Card";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "nameOnCard", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "maskedPan", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "status", kind: "enum", T: proto3.getEnumType(CardStatus) },
+    { no: 5, name: "statusReasonCode", kind: "enum", T: proto3.getEnumType(CardStatusReasonCode), opt: true },
+    { no: 6, name: "lockLevel", kind: "enum", T: proto3.getEnumType(CardLockLevel), opt: true },
+    { no: 7, name: "expiryDate", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Card {
+    return new Card().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Card {
+    return new Card().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Card {
+    return new Card().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Card | PlainMessage<Card> | undefined, b: Card | PlainMessage<Card> | undefined): boolean {
+    return proto3.util.equals(Card, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.ListCardsResponse
+ */
+export class ListCardsResponse extends Message<ListCardsResponse> {
+  /**
+   * @generated from field: repeated backend.v1.Card cards = 1;
+   */
+  cards: Card[] = [];
+
+  constructor(data?: PartialMessage<ListCardsResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.ListCardsResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "cards", kind: "message", T: Card, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListCardsResponse {
+    return new ListCardsResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListCardsResponse {
+    return new ListCardsResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListCardsResponse {
+    return new ListCardsResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ListCardsResponse | PlainMessage<ListCardsResponse> | undefined, b: ListCardsResponse | PlainMessage<ListCardsResponse> | undefined): boolean {
+    return proto3.util.equals(ListCardsResponse, a, b);
   }
 }
 

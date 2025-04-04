@@ -25,6 +25,14 @@ var (
 	TransactionStatusFailed         int = 101
 	TransactionStatusUserCancelled  int = 102
 	TransactionStatusAdminCancelled int = 103
+
+	CardStatusActive           string = "Active"
+	CardStatusBlocked          string = "Blocked"
+	CardStatusTemporaryBlocked string = "TemporaryBlocked"
+	CardStatusReplaced         string = "Replaced"
+	CardStatusSoftDelete       string = "SoftDelete"
+	CardStatusAccountBlocked   string = "AccountBlocked"
+	CardStatusInCreation       string = "InCreation"
 )
 
 type (
@@ -249,5 +257,32 @@ type (
 		CompanyProfile        interface{}    `json:"companyProfile,omitempty"`
 		Documents             []Document     `json:"documents,omitempty"`
 		Href                  string         `json:"href,omitempty"`
+	}
+
+	Pagination struct {
+		PageNumber uint `json:"pageNumber"`
+		PageSize   uint `json:"pageSize"`
+		TotalPages uint `json:"totalPages"`
+	}
+
+	Card struct {
+		ID               string  `json:"id"`
+		SourceID         string  `json:"sourceId"`
+		AccountID        string  `json:"accountId"`
+		AccountSourceID  string  `json:"accountSourceId"`
+		CustomerID       string  `json:"customerId"`
+		CustomerSourceID string  `json:"customerSourceId"`
+		NameOnCard       string  `json:"nameOnCard"`
+		ProductCode      string  `json:"productCode"`
+		MaskedPan        string  `json:"maskedPan"`
+		Status           string  `json:"status"`
+		StatusReasonCode *string `json:"statusReasonCode"`
+		LockLevel        *string `json:"lockLevel"`
+		ExpiryDate       string  `json:"expiryDate"`
+	}
+
+	ListCardsResponse struct {
+		Data       []Card     `json:"data"`
+		Pagination Pagination `json:"pagination"`
 	}
 )
