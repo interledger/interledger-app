@@ -265,6 +265,23 @@ type (
 		TotalPages uint `json:"totalPages"`
 	}
 
+	CustomerDeliveryAddress struct {
+		ID               string  `json:"id"`
+		SourceID         string  `json:"sourceId"`
+		CustomerID       string  `json:"customerId"`
+		CustomerSourceID string  `json:"customerSourceId"`
+		Type             string  `json:"type"`
+		Status           string  `json:"status"`
+		Line1            string  `json:"line1"`
+		Line2            *string `json:"line2"`
+		Line3            *string `json:"line3"`
+		PostOffice       *string `json:"postOffice"`
+		City             string  `json:"city"`
+		CountryCode      string  `json:"countryCode"`
+		ZipCode          string  `json:"zipCode"`
+		ManagedAddress   bool    `json:"managedAddress"`
+	}
+
 	Card struct {
 		ID               string  `json:"id"`
 		SourceID         string  `json:"sourceId"`

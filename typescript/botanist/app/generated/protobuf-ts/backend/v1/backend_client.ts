@@ -4,6 +4,8 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { BackendService } from "./backend";
+import type { GetCardApplicationProductsResponse } from "./backend";
+import type { GetCustomerDeliveryAddressesResponse } from "./backend";
 import type { ListCardsResponse } from "./backend";
 import type { CreateChimoneyDepositRequest } from "./backend";
 import type { GetChimoneyDepositLinkResponse } from "./backend";
@@ -612,6 +614,14 @@ export interface IBackendServiceClient {
      * @generated from protobuf rpc: ListCards(backend.v1.Empty) returns (backend.v1.ListCardsResponse);
      */
     listCards(input: Empty, options?: RpcOptions): UnaryCall<Empty, ListCardsResponse>;
+    /**
+     * @generated from protobuf rpc: GetCustomerDeliveryAddresses(backend.v1.Empty) returns (backend.v1.GetCustomerDeliveryAddressesResponse);
+     */
+    getCustomerDeliveryAddresses(input: Empty, options?: RpcOptions): UnaryCall<Empty, GetCustomerDeliveryAddressesResponse>;
+    /**
+     * @generated from protobuf rpc: GetCardApplicationProducts(backend.v1.Empty) returns (backend.v1.GetCardApplicationProductsResponse);
+     */
+    getCardApplicationProducts(input: Empty, options?: RpcOptions): UnaryCall<Empty, GetCardApplicationProductsResponse>;
 }
 /**
  * @generated from protobuf service backend.v1.BackendService
@@ -1402,5 +1412,19 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
     listCards(input: Empty, options?: RpcOptions): UnaryCall<Empty, ListCardsResponse> {
         const method = this.methods[102], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, ListCardsResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: GetCustomerDeliveryAddresses(backend.v1.Empty) returns (backend.v1.GetCustomerDeliveryAddressesResponse);
+     */
+    getCustomerDeliveryAddresses(input: Empty, options?: RpcOptions): UnaryCall<Empty, GetCustomerDeliveryAddressesResponse> {
+        const method = this.methods[103], opt = this._transport.mergeOptions(options);
+        return stackIntercept<Empty, GetCustomerDeliveryAddressesResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: GetCardApplicationProducts(backend.v1.Empty) returns (backend.v1.GetCardApplicationProductsResponse);
+     */
+    getCardApplicationProducts(input: Empty, options?: RpcOptions): UnaryCall<Empty, GetCardApplicationProductsResponse> {
+        const method = this.methods[104], opt = this._transport.mergeOptions(options);
+        return stackIntercept<Empty, GetCardApplicationProductsResponse>("unary", this._transport, method, opt, input);
     }
 }

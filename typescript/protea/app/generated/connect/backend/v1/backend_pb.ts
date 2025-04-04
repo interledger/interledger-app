@@ -7,6 +7,58 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
 
 /**
+ * @generated from enum backend.v1.CustomerDeliveryAddressType
+ */
+export enum CustomerDeliveryAddressType {
+  /**
+   * @generated from enum value: PermanentResidence = 0;
+   */
+  PermanentResidence = 0,
+
+  /**
+   * @generated from enum value: TemporaryResidence = 1;
+   */
+  TemporaryResidence = 1,
+
+  /**
+   * @generated from enum value: Work = 2;
+   */
+  Work = 2,
+
+  /**
+   * @generated from enum value: Other = 3;
+   */
+  Other = 3,
+}
+// Retrieve enum metadata with: proto3.getEnumType(CustomerDeliveryAddressType)
+proto3.util.setEnumType(CustomerDeliveryAddressType, "backend.v1.CustomerDeliveryAddressType", [
+  { no: 0, name: "PermanentResidence" },
+  { no: 1, name: "TemporaryResidence" },
+  { no: 2, name: "Work" },
+  { no: 3, name: "Other" },
+]);
+
+/**
+ * @generated from enum backend.v1.CardType
+ */
+export enum CardType {
+  /**
+   * @generated from enum value: Physical = 0;
+   */
+  Physical = 0,
+
+  /**
+   * @generated from enum value: Virtual = 1;
+   */
+  Virtual = 1,
+}
+// Retrieve enum metadata with: proto3.getEnumType(CardType)
+proto3.util.setEnumType(CardType, "backend.v1.CardType", [
+  { no: 0, name: "Physical" },
+  { no: 1, name: "Virtual" },
+]);
+
+/**
  * @generated from enum backend.v1.CardStatus
  */
 export enum CardStatus {
@@ -253,6 +305,258 @@ export class Empty extends Message<Empty> {
 
   static equals(a: Empty | PlainMessage<Empty> | undefined, b: Empty | PlainMessage<Empty> | undefined): boolean {
     return proto3.util.equals(Empty, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.CardApplicationProducts
+ */
+export class CardApplicationProducts extends Message<CardApplicationProducts> {
+  /**
+   * @generated from field: string code = 1;
+   */
+  code = "";
+
+  /**
+   * @generated from field: string name = 2;
+   */
+  name = "";
+
+  constructor(data?: PartialMessage<CardApplicationProducts>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.CardApplicationProducts";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "code", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CardApplicationProducts {
+    return new CardApplicationProducts().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CardApplicationProducts {
+    return new CardApplicationProducts().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CardApplicationProducts {
+    return new CardApplicationProducts().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CardApplicationProducts | PlainMessage<CardApplicationProducts> | undefined, b: CardApplicationProducts | PlainMessage<CardApplicationProducts> | undefined): boolean {
+    return proto3.util.equals(CardApplicationProducts, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.GetCardApplicationProductsResponse
+ */
+export class GetCardApplicationProductsResponse extends Message<GetCardApplicationProductsResponse> {
+  /**
+   * @generated from field: repeated backend.v1.CardApplicationProducts products = 1;
+   */
+  products: CardApplicationProducts[] = [];
+
+  constructor(data?: PartialMessage<GetCardApplicationProductsResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.GetCardApplicationProductsResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "products", kind: "message", T: CardApplicationProducts, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetCardApplicationProductsResponse {
+    return new GetCardApplicationProductsResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetCardApplicationProductsResponse {
+    return new GetCardApplicationProductsResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetCardApplicationProductsResponse {
+    return new GetCardApplicationProductsResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetCardApplicationProductsResponse | PlainMessage<GetCardApplicationProductsResponse> | undefined, b: GetCardApplicationProductsResponse | PlainMessage<GetCardApplicationProductsResponse> | undefined): boolean {
+    return proto3.util.equals(GetCardApplicationProductsResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.CustomerDeliveryAddress
+ */
+export class CustomerDeliveryAddress extends Message<CustomerDeliveryAddress> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  /**
+   * @generated from field: backend.v1.CustomerDeliveryAddressType type = 2;
+   */
+  type = CustomerDeliveryAddressType.PermanentResidence;
+
+  /**
+   * @generated from field: string countryCode = 3;
+   */
+  countryCode = "";
+
+  /**
+   * @generated from field: string line1 = 4;
+   */
+  line1 = "";
+
+  /**
+   * @generated from field: optional string line2 = 5;
+   */
+  line2?: string;
+
+  /**
+   * @generated from field: optional string line3 = 6;
+   */
+  line3?: string;
+
+  /**
+   * @generated from field: optional string postOffice = 7;
+   */
+  postOffice?: string;
+
+  /**
+   * @generated from field: string city = 8;
+   */
+  city = "";
+
+  /**
+   * @generated from field: string zipCode = 9;
+   */
+  zipCode = "";
+
+  constructor(data?: PartialMessage<CustomerDeliveryAddress>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.CustomerDeliveryAddress";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "type", kind: "enum", T: proto3.getEnumType(CustomerDeliveryAddressType) },
+    { no: 3, name: "countryCode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "line1", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "line2", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 6, name: "line3", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 7, name: "postOffice", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 8, name: "city", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 9, name: "zipCode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CustomerDeliveryAddress {
+    return new CustomerDeliveryAddress().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CustomerDeliveryAddress {
+    return new CustomerDeliveryAddress().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CustomerDeliveryAddress {
+    return new CustomerDeliveryAddress().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CustomerDeliveryAddress | PlainMessage<CustomerDeliveryAddress> | undefined, b: CustomerDeliveryAddress | PlainMessage<CustomerDeliveryAddress> | undefined): boolean {
+    return proto3.util.equals(CustomerDeliveryAddress, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.CustomerDeliveryAddressList
+ */
+export class CustomerDeliveryAddressList extends Message<CustomerDeliveryAddressList> {
+  /**
+   * @generated from field: repeated backend.v1.CustomerDeliveryAddress deliveryAddresses = 1;
+   */
+  deliveryAddresses: CustomerDeliveryAddress[] = [];
+
+  constructor(data?: PartialMessage<CustomerDeliveryAddressList>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.CustomerDeliveryAddressList";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "deliveryAddresses", kind: "message", T: CustomerDeliveryAddress, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CustomerDeliveryAddressList {
+    return new CustomerDeliveryAddressList().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CustomerDeliveryAddressList {
+    return new CustomerDeliveryAddressList().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CustomerDeliveryAddressList {
+    return new CustomerDeliveryAddressList().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CustomerDeliveryAddressList | PlainMessage<CustomerDeliveryAddressList> | undefined, b: CustomerDeliveryAddressList | PlainMessage<CustomerDeliveryAddressList> | undefined): boolean {
+    return proto3.util.equals(CustomerDeliveryAddressList, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.GetCustomerDeliveryAddressesResponse
+ */
+export class GetCustomerDeliveryAddressesResponse extends Message<GetCustomerDeliveryAddressesResponse> {
+  /**
+   * @generated from oneof backend.v1.GetCustomerDeliveryAddressesResponse.payload
+   */
+  payload: {
+    /**
+     * @generated from field: backend.v1.CustomerDeliveryAddress kycAddress = 1;
+     */
+    value: CustomerDeliveryAddress;
+    case: "kycAddress";
+  } | {
+    /**
+     * @generated from field: backend.v1.CustomerDeliveryAddressList deliveryAddressesList = 2;
+     */
+    value: CustomerDeliveryAddressList;
+    case: "deliveryAddressesList";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  constructor(data?: PartialMessage<GetCustomerDeliveryAddressesResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.GetCustomerDeliveryAddressesResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "kycAddress", kind: "message", T: CustomerDeliveryAddress, oneof: "payload" },
+    { no: 2, name: "deliveryAddressesList", kind: "message", T: CustomerDeliveryAddressList, oneof: "payload" },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetCustomerDeliveryAddressesResponse {
+    return new GetCustomerDeliveryAddressesResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetCustomerDeliveryAddressesResponse {
+    return new GetCustomerDeliveryAddressesResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetCustomerDeliveryAddressesResponse {
+    return new GetCustomerDeliveryAddressesResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetCustomerDeliveryAddressesResponse | PlainMessage<GetCustomerDeliveryAddressesResponse> | undefined, b: GetCustomerDeliveryAddressesResponse | PlainMessage<GetCustomerDeliveryAddressesResponse> | undefined): boolean {
+    return proto3.util.equals(GetCustomerDeliveryAddressesResponse, a, b);
   }
 }
 

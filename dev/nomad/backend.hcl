@@ -197,6 +197,9 @@ job "backend" {
         OTEL_EXPORTER_OTLP_ENDPOINT = "grpc://api.honeycomb.io:443"
         OTEL_EXPORTER_OTLP_HEADERS = "x-honeycomb-team=7Qskhns7Dc7wgazrDe6yZD"
         OTEL_SERVICE_NAME = "backend"
+        GATEHUB_APP_ID = "<replace-me>"
+        GATEHUB_SECRET = "<replace-me>"
+        GATEHUB_CARD_APP_ID = "<replace-me>"
       }
 
       resources {

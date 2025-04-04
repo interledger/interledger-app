@@ -27,7 +27,9 @@ import {
 import { ContentRouter, Prose } from '~/components/Content'
 import { CommandActions } from '~/components/Scaffold/CommandActions'
 import { CommandPalette } from '~/components/Scaffold/CommandPalette'
+import { CardType } from '~/generated/connect/backend/v1/backend_pb'
 import type { FooterRecord } from '~/generated/dato-cms-graphql'
+import { AddCardStep, useAddCardStore } from '~/lib/useAddCardStore'
 import {
   ConnectDomainStep,
   useConnectDomainStore
@@ -117,6 +119,9 @@ export function Scaffold() {
   const [connectDomainStep, connectDomainStepBack] = useConnectDomainStore(
     (state) => [state.step, state.stepBack]
   )
+  const [addCardStep, cardsStepBack, cardType, cardSetStep] = useAddCardStore(
+    (state) => [state.step, state.stepBack, state.type, state.setStep]
+  )
 
   // TODO should use second last match for scaffold if current match is nested (Only on desktop)
   let currentMatch = matches[matches.length - 1] as UIMatch<
@@ -174,6 +179,8 @@ export function Scaffold() {
     //   else actions = actionHandle ?? null
     // }
   }
+
+  console.log(scaffold?.header.back)
 
   return (
     <div
@@ -317,6 +324,22 @@ export function Scaffold() {
                       connectDomainStepBack()
                       navigate(-1)
                     } else connectDomainStepBack()
+                  } else if (scaffold.header.back === 'cards') {
+                    if (addCardStep === AddCardStep.CARD_TYPE) {
+                      cardsStepBack()
+                      navigate(-1)
+                    } else if (
+                      addCardStep === AddCardStep.CONFIRMATION &&
+                      cardType &&
+                      cardType === CardType.Virtual
+                    ) {
+                      cardSetStep(AddCardStep.CARD_TYPE)
+                    } else if (
+                      addCardStep === AddCardStep.DELIVERY &&
+                      cardType === CardType.Physical
+                    ) {
+                      cardSetStep(AddCardStep.CARD_TYPE)
+                    } else cardsStepBack()
                   } else navigate(-1)
                 }}
                 aria-label='Back'
