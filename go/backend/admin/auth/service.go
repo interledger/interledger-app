@@ -50,8 +50,8 @@ type service struct {
 }
 
 func NewService(policyAud, teamDomain string, db *sqlx.DB) (Service, error) {
-
 	if !env.IsLocal() {
+		log.Debug("CF Config", zap.String("AUD", policyAud), zap.String("teamDomain", teamDomain))
 		if policyAud == "" {
 			return nil, fmt.Errorf("%w %s", ErrInvalidArgument, "Policy audience required.")
 		}
@@ -99,15 +99,19 @@ func (s *service) verifyToken(ctx context.Context) (*oidc.IDToken, error) {
 			cfCookie = v
 		}
 	}
+
+	log.Debug("CF Cookie", zap.String("value", cfCookie))
 	if cfCookie == "" {
 		return nil, ErrInvalidToken
 	}
 
 	token, err := s.verifier.Verify(ctx, cfCookie)
 	if err != nil {
+		log.Debug("could not verify", zap.Any("err", err))
 		return nil, ErrInvalidToken
 	}
 
+	log.Debug("CF Token", zap.Any("token", token))
 	return token, nil
 }
 
@@ -141,6 +145,7 @@ func (s *service) MakeUnaryInterceptors() []grpc.ServerOption {
 					return nil, status.Error(codes.Internal, "error parsing claims")
 				}
 
+				log.Debug("idtoken claims", zap.Any("claims", claims))
 				user := &AdminUser{
 					Email: claims.Email,
 				}
