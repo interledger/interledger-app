@@ -1,6 +1,8 @@
 package gatehub
 
 import (
+	"database/sql"
+
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/providers/gatehub/external"
 )
@@ -25,3 +27,10 @@ type CreateTransferArgs struct {
 }
 
 type User = external.User
+
+type Card = external.Card
+
+type ExternalIDs struct {
+	ID         string         `db:"external_id"`
+	CustomerID sql.NullString `db:"external_customer_id"`
+}

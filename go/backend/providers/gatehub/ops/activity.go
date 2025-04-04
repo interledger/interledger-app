@@ -33,6 +33,7 @@ type Activity struct {
 func NewActivity(b Backends) *Activity {
 	ec := external.NewClient(
 		os.Getenv("GATEHUB_APP_ID"),
+		os.Getenv("GATEHUB_CARD_APP_ID"),
 		os.Getenv("GATEHUB_SECRET"),
 		&http.Client{
 			Transport: otelhttp.NewTransport(
