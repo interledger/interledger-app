@@ -15,7 +15,7 @@ import { MethodKind } from '@bufbuild/protobuf'
 import { BackendService } from '~/generated/connect/backend/v1/backend_connect'
 import { ConnectError } from '~/lib/error.server'
 
-const BACKEND_GRPC_URL = 'http://0.0.0.0:8443'
+const BACKEND_GRPC_URL = process.env.BACKEND_GRPC_URL || 'http://0.0.0.0:8443'
 
 let grpc: PromiseClient<typeof BackendService>
 
