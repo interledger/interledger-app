@@ -558,6 +558,8 @@ message Features {
   bool twitterEnabled = 7;
   bool addCardsEnabled = 8;
   bool interacEnabled = 9;
+  bool zarBalanceEnabled = 10;
+  bool manageWalletCardsEnabled = 11;
 }
 
 message CreateCardRequest {
