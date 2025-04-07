@@ -13,6 +13,7 @@ import {
   Layouts,
   type ApplicationProps
 } from '~/components'
+import { getFeatures } from '~/data/wallet.server'
 import { CardType } from '~/generated/connect/backend/v1/backend_pb'
 import { grpc } from '~/lib/grpc.server'
 import { AddCardStep, useAddCardStore } from '~/lib/useAddCardStore'
@@ -25,7 +26,8 @@ export const handle: ApplicationProps = {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  if (process.env.FYNBOS_ENV !== 'local') {
+  const features = await getFeatures(request)
+  if (!features.manageWalletCardsEnabled) {
     throw redirect('/')
   }
 
