@@ -7,7 +7,7 @@ import type {
 import { json, redirect } from '@remix-run/node'
 import { useFetcher, useLoaderData } from '@remix-run/react'
 import type { ChangeEventHandler } from 'react'
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import {
@@ -82,20 +82,56 @@ export const meta: MetaFunction = mergeMeta(() => [
   }
 ])
 
+// we allow only alpha numeric characters, _, and a length between 3 & 17 characters
+const validLength: { min: number, max: number } = { min: 3, max: 17 }
+const regex = new RegExp(`^[a-zA-Z0-9_]{0,${validLength.max}}$`)
+const isAllowed = (str: string): boolean => regex.test(str)
+
 export default function Page() {
   const fetcher = useFetcher<typeof action>()
   const { paymentPointerBase, username, csrfToken } =
     useLoaderData<typeof loader>()
+  const [userInput, setUserInput] = useState(username)
 
   const _onChangeInput = useCallback<ChangeEventHandler<HTMLInputElement>>(
     (event) => {
       const username = event.target.value
-      if (username?.length >= 3) {
+      if (isAllowed(username)) {
+        setUserInput(username)
+      }
+      if (isAllowed(username) && username?.length >= validLength.min) {
         fetcher.submit({ username, csrfToken }, { method: 'post' })
       }
     },
     [csrfToken, fetcher]
   )
+
+  const _validateInput = (username?: string) => {
+    const fetcherUserNameError = fetcher.data?.errors.username
+    const userInputError = (username || "").length < validLength.min
+    const hasError = userInputError || fetcherUserNameError
+    const displayMaxLength = validLength.max + paymentPointerBase.length + 1
+
+    const appendIcon =
+      hasError ? (
+        <Icon className='text-error'>error</Icon>
+      ) : (
+        <Icon className='text-success'>check</Icon>
+      )
+
+    const ariaInvalid = Boolean(hasError) || undefined
+    const ariaDescribedby =
+      hasError ? 'username-error' : undefined
+
+    const errorMessage = userInputError ? `Wallet address has to be between ${validLength.min} & ${displayMaxLength} characters long.` : (fetcherUserNameError || undefined)
+    const successMessage =
+      hasError
+        ? undefined
+        : 'This wallet address is available.'
+
+
+    return { appendIcon, "aria-invalid": ariaInvalid, "aria-describedby": ariaDescribedby, errorMessage, successMessage }
+  }
 
   return (
     <>
@@ -129,29 +165,11 @@ export default function Page() {
           label='Wallet address'
           name='username'
           prefix={`${paymentPointerBase}/`}
-          appendIcon={
-            username == '' &&
-            typeof fetcher.data == 'undefined' ? undefined : fetcher.data
-                ?.errors.username ? (
-              <Icon className='text-error'>error</Icon>
-            ) : (
-              <Icon className='text-success'>check</Icon>
-            )
-          }
-          defaultValue={username}
+          value={userInput}
           onChange={_onChangeInput}
           type='text'
           className='mt-2'
-          aria-invalid={Boolean(fetcher.data?.errors.username) || undefined}
-          aria-describedby={
-            fetcher.data?.errors.username ? 'username-error' : undefined
-          }
-          errorMessage={fetcher.data?.errors.username || undefined}
-          successMessage={
-            fetcher.data?.errors.username || username == ''
-              ? undefined
-              : 'This wallet address is available.'
-          }
+          {..._validateInput(userInput)}
         />
       </Card>
       <Button form='wallet-address' type='submit'>
@@ -177,6 +195,13 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   const publicName = username
+
+  if (!isAllowed(username) || username.length < validLength.min) {
+    const displayMaxLength = validLength.max + PAYMENT_POINTER_BASE.length + 1
+    errors.username =
+      `Wallet address has to be between ${validLength.min} & ${displayMaxLength} characters long.`
+    return error(request, { errors })
+  }
 
   let response = await grpc.walletAddressExists(request, {
     url: `https://${PAYMENT_POINTER_BASE}/${username}`
