@@ -55,14 +55,13 @@ func (s *rpcService) GetCustomerDeliveryAddresses(ctx context.Context, req *pb.E
 		return nil, FailedPreconditionError("Wallet not in the EU region")
 	}
 
-	// TODO(@radu): Enable this check once the feature flag is in place;
-	// feats, err := s.b.Features().Features(ctx, wallet.ID)
-	// if err != nil {
-	// 	return nil, toGRPCError(err)
-	// }
-	// if !feats.InterledgerCardsEnabled {
-	// 	return nil, ForbiddenError("TODO(@radu): message")
-	// }
+	feats, err := s.b.Features().Features(ctx, wallet.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+	if !feats.ManageWalletCardsEnabled {
+		return nil, ForbiddenError("Wallet cards not enabled")
+	}
 
 	isCustomer, err := s.b.Gatehub().IsCustomer(ctx, wallet.ID)
 	if err != nil {
@@ -128,14 +127,13 @@ func (s *rpcService) ListCards(ctx context.Context, req *pb.Empty) (*pb.ListCard
 		return nil, FailedPreconditionError("Wallet not in the EU region")
 	}
 
-	// TODO(@radu): Enable this check once the feature flag is in place;
-	// feats, err := s.b.Features().Features(ctx, wallet.ID)
-	// if err != nil {
-	// 	return nil, toGRPCError(err)
-	// }
-	// if !feats.InterledgerCardsEnabled {
-	// 	return nil, ForbiddenError("TODO(@radu): message")
-	// }
+	feats, err := s.b.Features().Features(ctx, wallet.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+	if !feats.ManageWalletCardsEnabled {
+		return nil, ForbiddenError("Wallet cards not enabled")
+	}
 
 	cards, err := s.b.Gatehub().ListCards(ctx, wallet.ID)
 	if err != nil {
