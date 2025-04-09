@@ -165,7 +165,7 @@ jobs:
             BUILDOS=${{ matrix.platform.os }}
             SENTRY_ORG=${{ secrets.SENTRY_ORG }}
             SENTRY_PROJECT=${{ matrix.package.sentry_project }}
-            SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_DSN }}
+            SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
           outputs: type=docker,dest=/tmp/${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}.tar
       - name: List Docker images
         run: docker images

@@ -36,8 +36,13 @@ RUN corepack enable && corepack prepare pnpm@8.5.0 --activate
 RUN pnpm build
 
 RUN pnpm build --sourcemap
-RUN echo -en "SENTRY_ORG=${SENTRY_ORG}\nSENTRY_PROJECT=${SENTRY_PROJECT}\nSENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}" > .env.sentry
-RUN env SENTRY_DOTENV_PATH=.env.sentry IMAGE_HASH=${IMAGE_HASH} pnpm upload-sourcemaps
+
+ENV SENTRY_ORG=${SENTRY_ORG}
+ENV SENTRY_PROJECT=${SENTRY_PROJECT}
+ENV SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}
+ENV SENTRY_LOG_LEVEL=debug
+
+RUN IMAGE_HASH=${IMAGE_HASH} pnpm upload-sourcemaps
 # REMIX_PUBLIC_PATH=${REMIX_PUBLIC_PATH}
 # RUN --mount=type=secret,id=cdn,dst=.env.rclone rclone --config=.env.rclone --progress sync public/build cdn:protea/build/
 
