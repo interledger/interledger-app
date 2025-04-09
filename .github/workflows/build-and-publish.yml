@@ -38,9 +38,14 @@ jobs:
           # Define packages
           platform='[{"os": "linux", "arch": "amd64"}]'
           go_pkgs='[{"name": "backend", "context": "./go", "file": "./go/backend/Dockerfile"}, {"name": "mockbos", "context": "./go", "file": "./go/mockbos/Dockerfile"}, {"name": "temporal", "context": "./go", "file": "./go/temporal/Dockerfile"}]'
-          ts_pkgs='[{"name": "protea", "context": "./typescript/protea", "file": "./typescript/protea/Dockerfile"}, {"name": "botanist", "context": "./typescript/botanist", "file": "./typescript/botanist/Dockerfile"}]'
+          ts_pkgs='[{"name": "protea", "context": "./typescript/protea", "file": "./typescript/protea/Dockerfile", "sentry_project":"frontend"}, {"name": "botanist", "context": "./typescript/botanist", "file": "./typescript/botanist/Dockerfile", "sentry_project""}]'
 
-          # Create outputs
+          # Add type=go to go_pkgs
+          go_pkgs=$(echo "$go_pkgs" | jq 'map(. + {type: "go"})')
+          # Add type=ts to ts_pkgs
+          ts_pkgs=$(echo "$ts_pkgs" | jq 'map(. + {type: "ts"})')
+
+          # Create outputs by combining platform, go_pkgs, and ts_pkgs into a single JSON object
           echo builds=$(jq -n --argjson go "$go_pkgs" --argjson ts "$ts_pkgs" --argjson platform "$platform" '{package: ($go + $ts), platform: $platform}') >> "$GITHUB_OUTPUT"
 
   version_generator:
@@ -131,7 +136,8 @@ jobs:
         uses: docker/setup-buildx-action@v3
       - name: Checkout code
         uses: actions/checkout@v4
-      - name: Build
+      - name: Build Go Docker image
+        if: matrix.package.type == 'go'
         uses: docker/build-push-action@v5
         with:
           push: false
@@ -143,6 +149,23 @@ jobs:
             GOLANG_VERSION=1.23
             BUILDARCH=${{ matrix.platform.arch }}
             BUILDOS=${{ matrix.platform.os }}
+          outputs: type=docker,dest=/tmp/${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}.tar
+      - name: Build TypeScript Docker image
+        if: matrix.package.type == 'ts'
+        uses: docker/build-push-action@v5
+        with:
+          push: false
+          platforms: ${{ matrix.platform.os }}/${{ matrix.platform.arch }}
+          context: ${{ matrix.package.context }}
+          file: ${{ matrix.package.file }}
+          tags: interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}:${{ needs.version_generator.outputs.version }}
+          build-args: |
+            IMAGE_HASH=$GITHUB_SHA
+            BUILDARCH=${{ matrix.platform.arch }}
+            BUILDOS=${{ matrix.platform.os }}
+            SENTRY_ORG=${{ secrets.SENTRY_ORG }}
+            SENTRY_PROJECT=${{ matrix.package.sentry_project }}
+            SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_DSN }}
           outputs: type=docker,dest=/tmp/${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}.tar
       - name: List Docker images
         run: docker images

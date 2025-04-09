@@ -20,20 +20,25 @@ CMD ["pnpm", "dev"]
 # Rebuild the source code only when needed
 FROM ${NODE_IMAGE_PREFIX}node:18-alpine AS builder
 # TODO: Uploading the client bundle and source maps will be handled later
-# ARG REMIX_PUBLIC_PATH
-# ARG IMAGE_HASH
+
 # RUN apk add --no-cache curl unzip
-# ARG BUILDARCH
 # RUN curl -O https://downloads.rclone.org/rclone-current-linux-${BUILDARCH}.zip && unzip rclone-current-linux-${BUILDARCH}.zip && cd rclone-*-linux-${BUILDARCH} && cp rclone /usr/bin/rclone
+
+ARG IMAGE_HASH
+ARG BUILDARCH
+ARG SENTRY_ORG
+ARG SENTRY_PROJECT
+ARG SENTRY_AUTH_TOKEN
 WORKDIR /app
 COPY . .
 COPY --from=deps /app/node_modules ./node_modules
 RUN corepack enable && corepack prepare pnpm@8.5.0 --activate
 RUN pnpm build
 
-# TODO: Uploading the client bundle and source maps will be handled later
-# RUN REMIX_PUBLIC_PATH=${REMIX_PUBLIC_PATH} pnpm build --sourcemap
-# RUN --mount=type=secret,id=sentry,dst=.env.sentry SENTRY_DOTENV_PATH=.env.sentry IMAGE_HASH=${IMAGE_HASH} REMIX_PUBLIC_PATH=${REMIX_PUBLIC_PATH} pnpm upload-sourcemaps
+RUN pnpm build --sourcemap
+RUN echo -en "SENTRY_ORG=${SENTRY_ORG}\nSENTRY_PROJECT=${SENTRY_PROJECT}\nSENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}" > .env.sentry
+RUN env SENTRY_DOTENV_PATH=.env.sentry IMAGE_HASH=${IMAGE_HASH} pnpm upload-sourcemaps
+# REMIX_PUBLIC_PATH=${REMIX_PUBLIC_PATH}
 # RUN --mount=type=secret,id=cdn,dst=.env.rclone rclone --config=.env.rclone --progress sync public/build cdn:protea/build/
 
 # Production image, copy all the files and run remix
