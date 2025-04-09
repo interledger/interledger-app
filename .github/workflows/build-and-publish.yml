@@ -160,9 +160,10 @@ jobs:
           file: ${{ matrix.package.file }}
           tags: interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}:${{ needs.version_generator.outputs.version }}
           build-args: |
-            IMAGE_HASH=${{ github.sha }}
+            IMAGE_HASH=${{ needs.version_generator.outputs.version }}
             BUILDARCH=${{ matrix.platform.arch }}
             BUILDOS=${{ matrix.platform.os }}
+            UPLOAD_SOURCEMAPS=${{ needs.version_generator.outputs.dockerPush }}
             SENTRY_ORG=${{ secrets.SENTRY_ORG }}
             SENTRY_PROJECT=${{ matrix.package.sentry_project }}
             SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}

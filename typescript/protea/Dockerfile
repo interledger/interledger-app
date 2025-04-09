@@ -29,6 +29,7 @@ ARG BUILDARCH
 ARG SENTRY_ORG
 ARG SENTRY_PROJECT
 ARG SENTRY_AUTH_TOKEN
+ARG UPLOAD_SOURCEMAPS
 WORKDIR /app
 COPY . .
 COPY --from=deps /app/node_modules ./node_modules
@@ -41,7 +42,7 @@ ENV SENTRY_ORG=${SENTRY_ORG}
 ENV SENTRY_PROJECT=${SENTRY_PROJECT}
 ENV SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}
 
-RUN [ -n "${SENTRY_PROJECT}" ] && IMAGE_HASH=${IMAGE_HASH} pnpm upload-sourcemaps || echo "SENTRY_PROJECT is empty, skipping sourcemap upload"
+RUN [ -n "${SENTRY_PROJECT}" ] && [ "${UPLOAD_SOURCEMAPS}" = "true" ] && IMAGE_HASH=${IMAGE_HASH} pnpm upload-sourcemaps || echo "Skipping sourcemap upload: SENTRY_PROJECT is empty or UPLOAD_SOURCEMAPS is not 'true'"
 # REMIX_PUBLIC_PATH=${REMIX_PUBLIC_PATH}
 # RUN --mount=type=secret,id=cdn,dst=.env.rclone rclone --config=.env.rclone --progress sync public/build cdn:protea/build/
 
