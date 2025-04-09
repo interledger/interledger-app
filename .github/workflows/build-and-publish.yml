@@ -160,7 +160,7 @@ jobs:
           file: ${{ matrix.package.file }}
           tags: interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}:${{ needs.version_generator.outputs.version }}
           build-args: |
-            IMAGE_HASH=$GITHUB_SHA
+            IMAGE_HASH=${{ github.sha }}
             BUILDARCH=${{ matrix.platform.arch }}
             BUILDOS=${{ matrix.platform.os }}
             SENTRY_ORG=${{ secrets.SENTRY_ORG }}
