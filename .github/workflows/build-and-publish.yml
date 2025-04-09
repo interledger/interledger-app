@@ -109,6 +109,9 @@ jobs:
           # Remove any characters that are not alphanumeric, period, underscore, or hyphen
           NEW_VERSION=$(echo $NEW_VERSION | tr -c '[:alnum:]._-' '-')
 
+          # Trim trailing hyphens
+          NEW_VERSION=$(echo $NEW_VERSION | sed 's/-*$//')
+
           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_OUTPUT
           echo "New version will be: $NEW_VERSION"
 
