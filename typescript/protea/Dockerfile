@@ -42,7 +42,7 @@ ENV SENTRY_PROJECT=${SENTRY_PROJECT}
 ENV SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}
 ENV SENTRY_LOG_LEVEL=debug
 
-RUN IMAGE_HASH=${IMAGE_HASH} pnpm upload-sourcemaps
+RUN [ -n "${SENTRY_PROJECT}" ] && IMAGE_HASH=${IMAGE_HASH} pnpm upload-sourcemaps || echo "SENTRY_PROJECT is empty, skipping sourcemap upload"
 # REMIX_PUBLIC_PATH=${REMIX_PUBLIC_PATH}
 # RUN --mount=type=secret,id=cdn,dst=.env.rclone rclone --config=.env.rclone --progress sync public/build cdn:protea/build/
 
