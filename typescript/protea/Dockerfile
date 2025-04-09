@@ -49,8 +49,8 @@ RUN [ -n "${SENTRY_PROJECT}" ] && [ "${UPLOAD_SOURCEMAPS}" = "true" ] && IMAGE_H
 # Production image, copy all the files and run remix
 FROM ${NODE_IMAGE_PREFIX}node:18.20-alpine AS runner
 
-ARG IMAGE_HASH
-ENV SENTRY_RELEASE=${IMAGE_HASH}
+ARG SENTRY_RELEASE
+ENV SENTRY_RELEASE=${SENTRY_RELEASE}
 
 WORKDIR /app
 
