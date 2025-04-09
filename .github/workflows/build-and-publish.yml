@@ -41,8 +41,6 @@ jobs:
           ts_pkgs='[{"name": "protea", "context": "./typescript/protea", "file": "./typescript/protea/Dockerfile"}, {"name": "botanist", "context": "./typescript/botanist", "file": "./typescript/botanist/Dockerfile"}]'
 
           # Create outputs
-          go_builds="{\"package\": $go_pkgs, \"platform\": $platform}"
-          ts_builds="{\"package\": $ts_pkgs, \"platform\": $platform}"
           echo builds=$(jq -n --argjson go "$go_pkgs" --argjson ts "$ts_pkgs" --argjson platform "$platform" '{package: ($go + $ts), platform: $platform}') >> "$GITHUB_OUTPUT"
 
   version_generator:
