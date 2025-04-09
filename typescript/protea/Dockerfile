@@ -48,12 +48,13 @@ RUN [ -n "${SENTRY_PROJECT}" ] && [ "${UPLOAD_SOURCEMAPS}" = "true" ] && IMAGE_H
 
 # Production image, copy all the files and run remix
 FROM ${NODE_IMAGE_PREFIX}node:18.20-alpine AS runner
+
 ARG IMAGE_HASH
+ENV SENTRY_RELEASE=${IMAGE_HASH}
 
 WORKDIR /app
 
 ENV NODE_ENV=production
-ENV SENTRY_RELEASE=${IMAGE_HASH}
 
 RUN addgroup -g 1001 -S nodejs
 RUN adduser -S remix -u 1001
