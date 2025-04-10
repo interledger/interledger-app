@@ -76,7 +76,7 @@ jobs:
             PUSH_DOCKER_IMAGE=true
             NEW_VERSION="nightly"
           elif [ "${{ github.event_name == 'workflow_dispatch' }}" = true ]; then
-            NEW_VERSION="manual-${{ github.ref_name }}"
+            NEW_VERSION="manual_${{ github.ref_name }}"
             PUSH_DOCKER_IMAGE=true
           elif [ "${{ startsWith(github.ref_name, 'release/v')}}" = true ]; then
             PUSH_DOCKER_IMAGE=true
@@ -108,9 +108,6 @@ jobs:
 
           # Remove any characters that are not alphanumeric, period, underscore, or hyphen
           NEW_VERSION=$(echo $NEW_VERSION | tr -c '[:alnum:]._-' '-')
-
-          # Trim trailing hyphens
-          NEW_VERSION=$(echo $NEW_VERSION | sed 's/-*$//')
 
           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_OUTPUT
           echo "New version will be: $NEW_VERSION"
@@ -170,6 +167,7 @@ jobs:
             SENTRY_ORG=${{ secrets.SENTRY_ORG }}
             SENTRY_PROJECT=${{ matrix.package.sentry_project }}
             SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
+            SENTRY_RELEASE=${{ needs.version_generator.outputs.version }}
           outputs: type=docker,dest=/tmp/${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}.tar
       - name: List Docker images
         run: docker images
