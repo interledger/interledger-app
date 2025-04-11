@@ -37,7 +37,7 @@ jobs:
         run: |
           # Define packages
           platform='[{"os": "linux", "arch": "amd64"}]'
-          go_pkgs='[{"name": "backend", "context": "./go", "file": "./go/backend/Dockerfile"}, {"name": "mockbos", "context": "./go", "file": "./go/mockbos/Dockerfile"}, {"name": "temporal", "context": "./go", "file": "./go/temporal/Dockerfile"}]'
+          go_pkgs='[{"name": "backend", "context": "./go", "file": "./go/backend/Dockerfile"}, {"name": "mockbos", "context": "./go", "file": "./go/mockbos/Dockerfile"}]'
           ts_pkgs='[{"name": "protea", "context": "./typescript/protea", "file": "./typescript/protea/Dockerfile", "sentry_project":"interledger-wallet"}, {"name": "botanist", "context": "./typescript/botanist", "file": "./typescript/botanist/Dockerfile", "sentry_project":""}]'
 
           # Add type=go to go_pkgs
