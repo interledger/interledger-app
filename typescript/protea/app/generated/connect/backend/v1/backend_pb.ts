@@ -3405,6 +3405,16 @@ export class Features extends Message<Features> {
    */
   interacEnabled = false;
 
+  /**
+   * @generated from field: bool zarBalanceEnabled = 10;
+   */
+  zarBalanceEnabled = false;
+
+  /**
+   * @generated from field: bool manageWalletCardsEnabled = 11;
+   */
+  manageWalletCardsEnabled = false;
+
   constructor(data?: PartialMessage<Features>) {
     super();
     proto3.util.initPartial(data, this);
@@ -3422,6 +3432,8 @@ export class Features extends Message<Features> {
     { no: 7, name: "twitterEnabled", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 8, name: "addCardsEnabled", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 9, name: "interacEnabled", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 10, name: "zarBalanceEnabled", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 11, name: "manageWalletCardsEnabled", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Features {
