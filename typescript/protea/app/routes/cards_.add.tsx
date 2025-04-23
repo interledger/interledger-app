@@ -10,11 +10,15 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  Icon,
   Layouts,
+  Select,
   type ApplicationProps
 } from '~/components'
 import { getFeatures } from '~/data/wallet.server'
+import { Label } from '~/components/Label'
 import { CardType } from '~/generated/connect/backend/v1/backend_pb'
+import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { AddCardStep, useAddCardStore } from '~/lib/useAddCardStore'
 
@@ -30,13 +34,22 @@ export async function loader({ request }: LoaderFunctionArgs) {
   if (!features.manageWalletCardsEnabled) {
     throw redirect('/')
   }
+  const deliveryAddresses = await grpc.getCustomerDeliveryAddresses(request, {})
+  if (isConnectError(deliveryAddresses)) throw deliveryAddresses.errorResponse
 
-  const response = await grpc.getCustomerDeliveryAddresses(request, {})
+ if(deliveryAddresses.payload.case === 'kycAddress') {
+  return json({
+    products: [{ code: 'test', name: 'testing' }],
+    addresses: [
+      deliveryAddresses.payload.value
+    ]
+  })
+ }
 
-  console.log(response)
 
   return json({
-    products: [{ code: 'test', name: 'testing' }]
+    products: [{ code: 'test', name: 'testing' }],
+    addresses: deliveryAddresses.payload.value?.deliveryAddresses ?? [],
   })
 }
 
@@ -101,6 +114,90 @@ function Product() {
   )
 }
 
+function ConfirmCard() {
+  const [address,productCode, products, type ] =
+    useAddCardStore((state) => [
+      state.address,
+      state.productCode,
+      state.products,
+      state.type
+    ])
+  const pickedProduct = products.find((p) => p.code === productCode);
+  return (
+    <Card>
+      <CardContent className='space-y-4'>
+        <CardHeader>
+          <CardTitle>Confirm Card</CardTitle>
+        </CardHeader>
+        <Label>{CardType[type]}</Label>
+        <div className='flex items-center justify-center gap-x-4'>
+           <img className='w-48' src={pickedProduct && `/cards/${pickedProduct.code}.png`} alt={pickedProduct?.name} />
+        </div>
+        { type === CardType.Physical && 
+        <>
+          <Label>Delivery Address</Label>
+          
+           <div className='mt-1 flex w-full justify-between p-3'>
+           <div className='flex space-x-3'>
+             <Icon>location_on</Icon>
+             <div className='flex flex-col'>
+                <span>{address?.line1}</span>
+                {address?.line2 && <span>{address?.line2}</span>}
+                {address?.line3 && <span>{address?.line3}</span>}
+                <span>{address?.zipCode}</span>
+                <span>{address?.city}</span>
+                <span>{address?.countryCode}</span>
+                {address?.postOffice && <span>{address?.postOffice}</span>}
+              </div>
+           </div>
+         </div>
+        </>          
+        }  
+        <Button>Confirm</Button>
+      </CardContent>
+    </Card>
+  )
+}
+
+
+function DeliveryAddresses() {
+  const { addresses } = useLoaderData<typeof loader>()
+  const pickedAddresses = addresses.map((a) => ({
+    id: a.id,
+    name: `${a.line1} ${a.city} (${a.countryCode})`,
+  }))
+  const selected = pickedAddresses[0];
+  const [setStep, setAddress] =
+    useAddCardStore((state) => [
+      state.setStep,
+      state.setAddress
+    ])
+  return (
+    <Card>
+      <CardContent className='space-y-4'>
+        <CardHeader>
+          <CardTitle>Pick a Delivery Address</CardTitle>
+        </CardHeader>
+        <Select
+              id='address'
+              label='Change Address'
+              options={pickedAddresses}
+              value={selected}
+              onChange={function (value): void {
+                console.log(value);
+              } }
+              />        
+        <Button onClick={() => {
+                setStep(AddCardStep.CONFIRMATION)
+                setAddress(addresses[0] as any)
+    }}>Confirm</Button>
+      </CardContent>
+    </Card>
+  )
+}
+
+
+
 export default function Page() {
   const { products } = useLoaderData<typeof loader>()
   const [step, setProducts, reset] = useAddCardStore((state) => [
@@ -120,8 +217,8 @@ export default function Page() {
   return (
     <>
       {step === AddCardStep.CARD_TYPE && <Product />}
-      {step === AddCardStep.DELIVERY && <>delivery</>}
-      {step === AddCardStep.CONFIRMATION && <>confirmation</>}
+      {step === AddCardStep.DELIVERY && <DeliveryAddresses/>}
+      {step === AddCardStep.CONFIRMATION && <ConfirmCard/>}
     </>
   )
 }

@@ -1,10 +1,13 @@
 import type { PlainMessage } from '@bufbuild/protobuf'
 import { create } from 'zustand'
 import { type SelectOptions } from '~/components'
+import type {
+  CustomerDeliveryAddress,
+  CardApplicationProducts
+} from '~/generated/connect/backend/v1/backend_pb';
 import {
-  CardType,
-  type CardApplicationProducts
-} from '~/generated/connect/backend/v1/backend_pb'
+  CardType
+} from '~/generated/connect/backend/v1/backend_pb';
 
 export enum AddCardStep {
   CARD_TYPE,
@@ -16,6 +19,7 @@ interface AddCardState {
   step: AddCardStep
   type: CardType
   products: PlainMessage<CardApplicationProducts>[]
+  address: CustomerDeliveryAddress | null
   productCode: string | null
 }
 
@@ -23,7 +27,8 @@ const initialState = {
   step: AddCardStep.CARD_TYPE,
   type: CardType.Physical,
   products: [],
-  productCode: null
+  productCode: null,
+  address: null
 } satisfies AddCardState
 
 interface AddCardActions {
@@ -32,6 +37,7 @@ interface AddCardActions {
   setCardType: (type: AddCardState['type']) => void
   setProductCode: (productCode: string) => void
   setProducts: (products: PlainMessage<CardApplicationProducts>[]) => void
+  setAddress: (address: CustomerDeliveryAddress | null) => void
   reset: () => void
 }
 
@@ -50,6 +56,7 @@ export const useAddCardStore = create<AddCardState & AddCardActions>((set) => ({
   ...initialState,
   setStep: (step) => set(() => ({ step: step })),
   setCardType: (type) => set(() => ({ type: type })),
+  setAddress: (address) => set(() => ({ address: address })),
   setProducts: (products) => set(() => ({ products: products })),
   setProductCode: (productCode) => set(() => ({ productCode: productCode })),
   stepBack: () =>
