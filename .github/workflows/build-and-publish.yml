@@ -37,21 +37,24 @@ jobs:
         run: |
           # Define packages
           platform='[{"os": "linux", "arch": "amd64"}]'
-          go_pkgs='[{"name": "backend", "context": "./go", "file": "./go/backend/Dockerfile"}, {"name": "mockbos", "context": "./go", "file": "./go/mockbos/Dockerfile"}, {"name": "temporal", "context": "./go", "file": "./go/temporal/Dockerfile"}]'
-          ts_pkgs='[{"name": "protea", "context": "./typescript/protea", "file": "./typescript/protea/Dockerfile"}, {"name": "botanist", "context": "./typescript/botanist", "file": "./typescript/botanist/Dockerfile"}]'
+          go_pkgs='[{"name": "backend", "context": "./go", "file": "./go/backend/Dockerfile"}, {"name": "mockbos", "context": "./go", "file": "./go/mockbos/Dockerfile"}]'
+          ts_pkgs='[{"name": "protea", "context": "./typescript/protea", "file": "./typescript/protea/Dockerfile", "sentry_project":"interledger-wallet"}, {"name": "botanist", "context": "./typescript/botanist", "file": "./typescript/botanist/Dockerfile", "sentry_project":""}]'
 
-          # Create outputs
-          go_builds="{\"package\": $go_pkgs, \"platform\": $platform}"
-          ts_builds="{\"package\": $ts_pkgs, \"platform\": $platform}"
+          # Add type=go to go_pkgs
+          go_pkgs=$(echo "$go_pkgs" | jq 'map(. + {type: "go"})')
+          # Add type=ts to ts_pkgs
+          ts_pkgs=$(echo "$ts_pkgs" | jq 'map(. + {type: "ts"})')
+
+          # Create outputs by combining platform, go_pkgs, and ts_pkgs into a single JSON object
           echo builds=$(jq -n --argjson go "$go_pkgs" --argjson ts "$ts_pkgs" --argjson platform "$platform" '{package: ($go + $ts), platform: $platform}') >> "$GITHUB_OUTPUT"
 
-  version-generator:
+  version_generator:
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ steps.version-generator.outputs.NEW_VERSION }}
-      tagPushed: ${{ steps.version-generator.outputs.SHOULD_PUSH_TAG }}
-      dockerPush: ${{ steps.version-generator.outputs.PUSH_DOCKER_IMAGE }}
-      generateRelease: ${{ steps.version-generator.outputs.GENERATE_RELEASE }}
+      version: ${{ steps.version_generator.outputs.NEW_VERSION }}
+      tagPushed: ${{ steps.version_generator.outputs.SHOULD_PUSH_TAG }}
+      dockerPush: ${{ steps.version_generator.outputs.PUSH_DOCKER_IMAGE }}
+      generateRelease: ${{ steps.version_generator.outputs.GENERATE_RELEASE }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -61,7 +64,7 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-      - id: version-generator
+      - id: version_generator
         name: Generate version properties
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -124,7 +127,7 @@ jobs:
           fi
 
   builds:
-    needs: [select_packages, version-generator]
+    needs: [select_packages, version_generator]
     runs-on: ubuntu-latest
     strategy:
       matrix: ${{fromJson(needs.select_packages.outputs.builds)}}
@@ -133,18 +136,38 @@ jobs:
         uses: docker/setup-buildx-action@v3
       - name: Checkout code
         uses: actions/checkout@v4
-      - name: Build
+      - name: Build Go Docker image
+        if: matrix.package.type == 'go'
         uses: docker/build-push-action@v5
         with:
           push: false
           platforms: ${{ matrix.platform.os }}/${{ matrix.platform.arch }}
           context: ${{ matrix.package.context }}
           file: ${{ matrix.package.file }}
-          tags: interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}:${{ needs.version-generator.outputs.version }}
+          tags: interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}:${{ needs.version_generator.outputs.version }}
           build-args: |
             GOLANG_VERSION=1.23
             BUILDARCH=${{ matrix.platform.arch }}
             BUILDOS=${{ matrix.platform.os }}
+          outputs: type=docker,dest=/tmp/${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}.tar
+      - name: Build TypeScript Docker image
+        if: matrix.package.type == 'ts'
+        uses: docker/build-push-action@v5
+        with:
+          push: false
+          platforms: ${{ matrix.platform.os }}/${{ matrix.platform.arch }}
+          context: ${{ matrix.package.context }}
+          file: ${{ matrix.package.file }}
+          tags: interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}:${{ needs.version_generator.outputs.version }}
+          build-args: |
+            IMAGE_HASH=${{ needs.version_generator.outputs.version }}
+            BUILDARCH=${{ matrix.platform.arch }}
+            BUILDOS=${{ matrix.platform.os }}
+            UPLOAD_SOURCEMAPS=${{ needs.version_generator.outputs.dockerPush }}
+            SENTRY_ORG=${{ secrets.SENTRY_ORG }}
+            SENTRY_PROJECT=${{ matrix.package.sentry_project }}
+            SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
+            SENTRY_RELEASE=${{ needs.version_generator.outputs.version }}
           outputs: type=docker,dest=/tmp/${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}.tar
       - name: List Docker images
         run: docker images
@@ -156,9 +179,9 @@ jobs:
 
   push-image-gcp-artifact-registry:
     name: Push to Google Artifact Registry
-    needs: [builds, version-generator, select_packages]
+    needs: [builds, version_generator, select_packages]
     runs-on: ubuntu-latest
-    if: needs.version-generator.outputs.dockerPush == 'true'
+    if: needs.version_generator.outputs.dockerPush == 'true'
     strategy:
       matrix: ${{fromJson(needs.select_packages.outputs.builds)}}
     steps:
@@ -183,7 +206,7 @@ jobs:
         run: |
           IMAGE_ID=$(docker images interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }} --format "{{.ID}}" | head -n 1)
           # Tag appropriately for our GCP project
-          PUSH_IMAGE=europe-west4-docker.pkg.dev/${{ env.GCR_PROJECT }}/interledger-app/${{ matrix.package.name }}:${{ needs.version-generator.outputs.version }}
+          PUSH_IMAGE=europe-west4-docker.pkg.dev/${{ env.GCR_PROJECT }}/interledger-app/${{ matrix.package.name }}:${{ needs.version_generator.outputs.version }}
           docker tag $IMAGE_ID $PUSH_IMAGE
           echo "PUSH_IMAGE=$PUSH_IMAGE" >> $GITHUB_ENV 
 
