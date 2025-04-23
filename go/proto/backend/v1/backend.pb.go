@@ -22,7 +22,7 @@ const (
 	_ = protoimpl.EnforceVersion(20 - protoimpl.MinVersion)
 	// Verify that runtime/protoimpl is sufficiently up-to-date.
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
-)
+) 
 
 type PaginationRequest struct {
 	state         protoimpl.MessageState
