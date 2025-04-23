@@ -24,6 +24,7 @@ var (
 	timestampHeader   = "x-gatehub-timestamp"
 	signatureHeader   = "x-gatehub-signature"
 	managedUserHeader = "x-gatehub-managed-user-uuid"
+	cardAppIDHeader   = "x-gatehub-card-app-id"
 )
 
 type client struct {
@@ -31,6 +32,7 @@ type client struct {
 	onboardingClientID string
 	exchangeClientID   string
 	appID              string
+	cardAppID          string
 	apiSecret          string
 	baseURL            string
 	onboardingBaseURL  string
@@ -39,7 +41,7 @@ type client struct {
 	api *http.Client
 }
 
-func NewClient(appID, secret string, transport *http.Client) Client {
+func NewClient(appID, cardAppID, secret string, transport *http.Client) Client {
 	onOffRampClientID := "f8119dfd-e563-44ee-9ae2-1e60a4fce74f"
 	onboardingClientID := "4df24d1b-5796-4eec-951b-21699d61b970"
 	exchangeClientID := "4e28d4df-22d7-414c-97a3-d71956df29ba"
@@ -65,6 +67,7 @@ func NewClient(appID, secret string, transport *http.Client) Client {
 		onboardingClientID: onboardingClientID,
 		exchangeClientID:   exchangeClientID,
 		appID:              appID,
+		cardAppID:          cardAppID,
 		apiSecret:          secret,
 		baseURL:            baseURL,
 		onboardingBaseURL:  onboardingBaseURL,
@@ -552,6 +555,62 @@ func (c *client) GetTransaction(ctx context.Context, userID, id string) (*Transa
 	}
 
 	return &ret, nil
+}
+
+// TODO(@radu): Pagination or fetch all by default?
+func (c *client) ListCards(ctx context.Context, userID, customerID string) ([]Card, error) {
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "GET"
+		meta.Provider = "gatehub"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "GET",
+			Provider: "gatehub",
+		})
+	}
+
+	endpoint, err := url.JoinPath(c.baseURL, "cards", "v1", "customers", customerID, "cards")
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	req.Header.Set(managedUserHeader, userID)
+	req.Header.Set(cardAppIDHeader, c.cardAppID)
+
+	err = c.Sign(ctx, req, time.Now(), nil, endpoint)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	err = checkResponseStatusCode(resp)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+	defer resp.Body.Close()
+
+	var cards ListCardsResponse
+	err = json.Unmarshal(body, &cards)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	return cards.Data, nil
 }
 
 func (c *client) Sign(ctx context.Context, req *http.Request, date time.Time, payload []byte, targetURL string) error {

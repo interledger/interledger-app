@@ -17,6 +17,7 @@ type Client interface {
 	CreateWithdrawal(ctx context.Context, walletID, externalTransactionID string) (string, error)
 	CreateTransfer(ctx context.Context, args CreateTransferArgs) (*external.Transaction, error)
 	GetTransaction(ctx context.Context, walletID, id string) (*external.Transaction, error)
+	ListCards(ctx context.Context, walletID string) ([]external.Card, error)
 
 	ReserveBalance(ctx context.Context, linkedAccountID, txID string, amt currency.Amount, timeout time.Duration) (*Balance, error)
 	FinaliseReserve(ctx context.Context, txID string) error

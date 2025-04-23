@@ -174,6 +174,57 @@ service BackendService {
   rpc CreateChimoneyWallet(Empty) returns (Empty);
   rpc GetChimoneyDepositLink(Amount) returns (GetChimoneyDepositLinkResponse);
   rpc CreateChimoneyDeposit(CreateChimoneyDepositRequest) returns (Empty);
+
+  // Cards
+  rpc ListCards(Empty) returns (ListCardsResponse);
+}
+
+enum CardStatus {
+  UnknownStatus = 0; // Used when we cannot correctly index the card status
+  Active = 1;
+  Blocked = 2;
+  TemporaryBlocked = 3;
+  Replaced = 4;
+  SoftDelete = 5;
+  AccountBlocekd = 6;
+  InCreation = 7;
+}
+
+enum CardStatusReasonCode {
+  UnknownStatusReason = 0;
+  ClientRequestedLock = 1;
+  LostCard = 2;
+  StolenCard = 3;
+  IssuerRequestGeneral = 4;
+  IssuerRequestFraud = 5;
+  IssuerRequestLegal = 6;
+  IssuerRequestIncorrectOpening = 7;
+  CardDamagedOrNotWorking = 8;
+  UserRequest = 9;
+  IssuerRequestCustomerDeceased = 10;
+  ProductDoesNotRenew = 11;
+  ProductChange = 12;
+  Renewed = 13;
+}
+
+enum CardLockLevel {
+  UnknownLockLevel = 0;
+  Client = 1;
+  Admin = 2;
+}
+
+message Card {
+  string id = 1;
+  string nameOnCard = 2;
+  string maskedPan = 3; 
+  CardStatus status = 4;
+  optional CardStatusReasonCode statusReasonCode = 5;
+  optional CardLockLevel lockLevel = 6;
+  string expiryDate = 7;
+}
+
+message ListCardsResponse {
+  repeated Card cards = 1;
 }
 
 message CreateChimoneyDepositRequest {
