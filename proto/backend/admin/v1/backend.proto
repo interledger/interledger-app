@@ -230,6 +230,7 @@ message Features {
   string walletID = 8;
   bool addCardsEnabled = 9;
   bool zarBalanceEnabled = 10;
+  bool manageWalletCardsEnabled = 11;
 }
 
 message ListAuditRequest {
