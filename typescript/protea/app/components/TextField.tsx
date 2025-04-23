@@ -38,6 +38,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
       prefix,
       prefixIcon,
       appendIcon,
+      onBeforeInput,
       ...inputProps
     },
     ref
@@ -77,6 +78,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
             <input
               ref={ref}
               {...inputProps}
+              onBeforeInput={onBeforeInput}
               className='z-0 h-full w-full overflow-hidden border-none bg-transparent px-4 focus:ring-0'
             />
             {appendIcon && (

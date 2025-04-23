@@ -7,7 +7,7 @@ import type {
 import { json, redirect } from '@remix-run/node'
 import { useFetcher, useLoaderData } from '@remix-run/react'
 import type { ChangeEventHandler } from 'react'
-import { useCallback, useState } from 'react'
+import { useCallback } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import {
@@ -83,7 +83,7 @@ export const meta: MetaFunction = mergeMeta(() => [
 ])
 
 // we allow only alpha numeric characters, _, and a length between 3 & 17 characters
-const validLength: { min: number, max: number } = { min: 3, max: 17 }
+const validLength: { min: number; max: number } = { min: 3, max: 17 }
 const regex = new RegExp(`^[a-zA-Z0-9_]{0,${validLength.max}}$`)
 const isAllowed = (str: string): boolean => regex.test(str)
 
@@ -91,46 +91,60 @@ export default function Page() {
   const fetcher = useFetcher<typeof action>()
   const { paymentPointerBase, username, csrfToken } =
     useLoaderData<typeof loader>()
-  const [userInput, setUserInput] = useState(username)
 
   const _onChangeInput = useCallback<ChangeEventHandler<HTMLInputElement>>(
     (event) => {
       const username = event.target.value
-      if (isAllowed(username)) {
-        setUserInput(username)
-      }
-      if (isAllowed(username) && username?.length >= validLength.min) {
-        fetcher.submit({ username, csrfToken }, { method: 'post' })
-      }
+      fetcher.submit({ username, csrfToken }, { method: 'post' })
     },
     [csrfToken, fetcher]
   )
 
-  const _validateInput = (username?: string) => {
+  const _onBeforeInput = (e: React.FormEvent<HTMLInputElement>) => {
+    const input = e.nativeEvent as InputEvent
+    const target = e.target as HTMLInputElement
+
+    if (!regex || input.type !== 'textInput') return
+
+    const nextValue =
+      target.value.slice(0, target.selectionStart ?? 0) +
+      input.data +
+      target.value.slice(target.selectionEnd ?? 0)
+
+    if (!isAllowed(nextValue)) {
+      e.preventDefault()
+    }
+  }
+
+  const _validateInput = (usernameInput?: string) => {
     const fetcherUserNameError = fetcher.data?.errors.username
-    const userInputError = (username || "").length < validLength.min
+    const userInputError = (usernameInput || '').length < validLength.min
     const hasError = userInputError || fetcherUserNameError
     const displayMaxLength = validLength.max + paymentPointerBase.length + 1
 
-    const appendIcon =
-      hasError ? (
-        <Icon className='text-error'>error</Icon>
-      ) : (
-        <Icon className='text-success'>check</Icon>
-      )
+    const appendIcon = hasError ? (
+      <Icon className='text-error'>error</Icon>
+    ) : (
+      <Icon className='text-success'>check</Icon>
+    )
 
     const ariaInvalid = Boolean(hasError) || undefined
-    const ariaDescribedby =
-      hasError ? 'username-error' : undefined
+    const ariaDescribedby = hasError ? 'username-error' : undefined
 
-    const errorMessage = userInputError ? `Wallet address has to be between ${validLength.min} & ${displayMaxLength} characters long.` : (fetcherUserNameError || undefined)
-    const successMessage =
-      hasError
-        ? undefined
-        : 'This wallet address is available.'
+    const errorMessage = userInputError
+      ? `Wallet address has to be between ${validLength.min} & ${displayMaxLength} characters long.`
+      : fetcherUserNameError || undefined
+    const successMessage = hasError
+      ? undefined
+      : 'This wallet address is available.'
 
-
-    return { appendIcon, "aria-invalid": ariaInvalid, "aria-describedby": ariaDescribedby, errorMessage, successMessage }
+    return {
+      appendIcon,
+      'aria-invalid': ariaInvalid,
+      'aria-describedby': ariaDescribedby,
+      errorMessage,
+      successMessage
+    }
   }
 
   return (
@@ -164,12 +178,13 @@ export default function Page() {
           form='wallet-address'
           label='Wallet address'
           name='username'
-          prefix={`${paymentPointerBase}/`}
-          value={userInput}
-          onChange={_onChangeInput}
           type='text'
           className='mt-2'
-          {..._validateInput(userInput)}
+          prefix={`${paymentPointerBase}/`}
+          defaultValue={username}
+          onBeforeInput={_onBeforeInput}
+          onChange={_onChangeInput}
+          {..._validateInput(username)}
         />
       </Card>
       <Button form='wallet-address' type='submit'>
@@ -198,8 +213,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   if (!isAllowed(username) || username.length < validLength.min) {
     const displayMaxLength = validLength.max + PAYMENT_POINTER_BASE.length + 1
-    errors.username =
-      `Wallet address has to be between ${validLength.min} & ${displayMaxLength} characters long.`
+    errors.username = `Wallet address has to be between ${validLength.min} & ${displayMaxLength} characters long.`
     return error(request, { errors })
   }
 
