@@ -42,7 +42,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     session.identity.traits.firstName + ' ' + session.identity.traits.lastName
 
   while (!usernameIsValid && attempts < 5) {
-    let response = await grpc.walletAddressExists(request, {
+    let response = await grpc.walletAddressValidAndNotExists(request, {
       url: `https://${PAYMENT_POINTER_BASE}/${username}`
     })
 
@@ -82,11 +82,6 @@ export const meta: MetaFunction = mergeMeta(() => [
   }
 ])
 
-// we allow only alpha numeric characters, _, and a length between 3 & 17 characters
-const validLength: { min: number; max: number } = { min: 3, max: 17 }
-const regex = new RegExp(`^[a-zA-Z0-9_]{0,${validLength.max}}$`)
-const isAllowed = (str: string): boolean => regex.test(str)
-
 export default function Page() {
   const fetcher = useFetcher<typeof action>()
   const { paymentPointerBase, username, csrfToken } =
@@ -100,27 +95,9 @@ export default function Page() {
     [csrfToken, fetcher]
   )
 
-  const _onBeforeInput = (e: React.FormEvent<HTMLInputElement>) => {
-    const input = e.nativeEvent as InputEvent
-    const target = e.target as HTMLInputElement
-
-    if (!regex || input.type !== 'textInput') return
-
-    const nextValue =
-      target.value.slice(0, target.selectionStart ?? 0) +
-      input.data +
-      target.value.slice(target.selectionEnd ?? 0)
-
-    if (!isAllowed(nextValue)) {
-      e.preventDefault()
-    }
-  }
-
-  const _validateInput = (usernameInput?: string) => {
+  const _validateInput = () => {
     const fetcherUserNameError = fetcher.data?.errors.username
-    const userInputError = (usernameInput || '').length < validLength.min
-    const hasError = userInputError || fetcherUserNameError
-    const displayMaxLength = validLength.max + paymentPointerBase.length + 1
+    const hasError = fetcherUserNameError || false
 
     const appendIcon = hasError ? (
       <Icon className='text-error'>error</Icon>
@@ -131,9 +108,7 @@ export default function Page() {
     const ariaInvalid = Boolean(hasError) || undefined
     const ariaDescribedby = hasError ? 'username-error' : undefined
 
-    const errorMessage = userInputError
-      ? `Wallet address has to be between ${validLength.min} & ${displayMaxLength} characters long.`
-      : fetcherUserNameError || undefined
+    const errorMessage = fetcherUserNameError || undefined
     const successMessage = hasError
       ? undefined
       : 'This wallet address is available.'
@@ -182,9 +157,8 @@ export default function Page() {
           className='mt-2'
           prefix={`${paymentPointerBase}/`}
           defaultValue={username}
-          onBeforeInput={_onBeforeInput}
           onChange={_onChangeInput}
-          {..._validateInput(username)}
+          {..._validateInput()}
         />
       </Card>
       <Button form='wallet-address' type='submit'>
@@ -211,13 +185,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   const publicName = username
 
-  if (!isAllowed(username) || username.length < validLength.min) {
-    const displayMaxLength = validLength.max + PAYMENT_POINTER_BASE.length + 1
-    errors.username = `Wallet address has to be between ${validLength.min} & ${displayMaxLength} characters long.`
-    return error(request, { errors })
-  }
-
-  let response = await grpc.walletAddressExists(request, {
+  let response = await grpc.walletAddressValidAndNotExists(request, {
     url: `https://${PAYMENT_POINTER_BASE}/${username}`
   })
   if (isConnectError(response)) {

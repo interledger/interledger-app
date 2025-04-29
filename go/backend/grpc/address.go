@@ -46,14 +46,8 @@ func (g *rpcService) CreateWalletAddress(ctx context.Context, req *pb.CreateWall
 	return &pb.Empty{}, nil
 }
 
-func WalletAddressExists(ctx context.Context, b Backends, addressURLRaw string) (bool, error) {
-	// Validate that this is a valid wallet address
-	addressURL, err := wallets.ParseAddress(addressURLRaw)
-	if err != nil {
-		return false, err
-	}
-
-	wa, err := b.Wallets().GetFromAddress(ctx, addressURL.String())
+func WalletAddressExists(ctx context.Context, b Backends, addressURL string) (bool, error) {
+	wa, err := b.Wallets().GetFromAddress(ctx, addressURL)
 	if err != nil && !errors.Is(err, wallets.ErrNoWalletFound) {
 		return false, err
 	}
@@ -61,8 +55,15 @@ func WalletAddressExists(ctx context.Context, b Backends, addressURLRaw string) 
 	return wa != nil, nil
 }
 
-func (g *rpcService) WalletAddressExists(ctx context.Context, req *pb.WalletAddressExistsRequest) (*pb.WalletAddressExistsResponse, error) {
-	exists, err := WalletAddressExists(ctx, g.b, req.Url)
+func (g *rpcService) WalletAddressValidAndNotExists(ctx context.Context, req *pb.WalletAddressExistsRequest) (*pb.WalletAddressExistsResponse, error) {
+	addressURLRaw := req.Url
+	// Validate that the wallet address matches validation criteria
+	addressURL, err := wallets.ParseAddress(addressURLRaw)
+	if err != nil {
+		return nil, NewValidationError("url", strings.TrimSpace(strings.TrimPrefix(err.Error(), wallets.ErrInvalidAddress.Error())))
+	}
+
+	exists, err := WalletAddressExists(ctx, g.b, addressURL.String())
 	if errors.Is(err, wallets.ErrInvalidAddress) {
 		return nil, NewValidationError("url", strings.TrimSpace(strings.TrimPrefix(err.Error(), wallets.ErrInvalidAddress.Error())))
 	}
