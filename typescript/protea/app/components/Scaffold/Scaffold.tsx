@@ -243,7 +243,7 @@ export function Scaffold() {
               </Router>
             </div>
             <div className='hidden space-x-10 pb-2 pl-10 pt-3 lg:flex'>
-              <HeaderLink to='/about' title='About' />
+              {/*<HeaderLink to='/about' title='About' />*/}
               {/*<HeaderLink to='/wallet' title='Wallet' />*/}
               {/*<HeaderPopover />*/}
               {/*<HeaderLink to={route('/docs')} title='Docs' />*/}
@@ -575,7 +575,7 @@ export function Scaffold() {
                   </div>
                 </div>
                 <NavDrawer.ListItem to={route('/')}>Home</NavDrawer.ListItem>
-                <NavDrawer.ListItem to='/about'>About</NavDrawer.ListItem>
+                {/*<NavDrawer.ListItem to='/about'>About</NavDrawer.ListItem>*/}
                 {/* <NavDrawer.ListItem to='/wallet'>Wallet</NavDrawer.ListItem> */}
                 {/* <NavDrawer.ListItem to='/wealth'>Wealth</NavDrawer.ListItem> */}
                 {/*<NavDrawer.ListItem to={route('/docs')}>*/}
