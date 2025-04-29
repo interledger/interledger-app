@@ -28,7 +28,7 @@ const (
 	BackendService_CompleteSignup_FullMethodName                 = "/backend.v1.BackendService/CompleteSignup"
 	BackendService_CreateUserDefaultWallet_FullMethodName        = "/backend.v1.BackendService/CreateUserDefaultWallet"
 	BackendService_CreateWalletAddress_FullMethodName            = "/backend.v1.BackendService/CreateWalletAddress"
-	BackendService_WalletAddressExists_FullMethodName            = "/backend.v1.BackendService/WalletAddressExists"
+	BackendService_WalletAddressValidAndNotExists_FullMethodName = "/backend.v1.BackendService/WalletAddressValidAndNotExists"
 	BackendService_SetWalletName_FullMethodName                  = "/backend.v1.BackendService/SetWalletName"
 	BackendService_GetWalletInfo_FullMethodName                  = "/backend.v1.BackendService/GetWalletInfo"
 	BackendService_GetPublicWalletInfo_FullMethodName            = "/backend.v1.BackendService/GetPublicWalletInfo"
@@ -139,7 +139,7 @@ type BackendServiceClient interface {
 	CreateUserDefaultWallet(ctx context.Context, in *CreateUserDefaultWalletRequest, opts ...grpc.CallOption) (*Empty, error)
 	// Wallet
 	CreateWalletAddress(ctx context.Context, in *CreateWalletAddressRequest, opts ...grpc.CallOption) (*Empty, error)
-	WalletAddressExists(ctx context.Context, in *WalletAddressExistsRequest, opts ...grpc.CallOption) (*WalletAddressExistsResponse, error)
+	WalletAddressValidAndNotExists(ctx context.Context, in *WalletAddressExistsRequest, opts ...grpc.CallOption) (*WalletAddressExistsResponse, error)
 	SetWalletName(ctx context.Context, in *SetWalletNameRequest, opts ...grpc.CallOption) (*Empty, error)
 	GetWalletInfo(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*WalletInfo, error)
 	GetPublicWalletInfo(ctx context.Context, in *GetPublicWalletInfoRequest, opts ...grpc.CallOption) (*PublicWalletInfo, error)
@@ -349,9 +349,9 @@ func (c *backendServiceClient) CreateWalletAddress(ctx context.Context, in *Crea
 	return out, nil
 }
 
-func (c *backendServiceClient) WalletAddressExists(ctx context.Context, in *WalletAddressExistsRequest, opts ...grpc.CallOption) (*WalletAddressExistsResponse, error) {
+func (c *backendServiceClient) WalletAddressValidAndNotExists(ctx context.Context, in *WalletAddressExistsRequest, opts ...grpc.CallOption) (*WalletAddressExistsResponse, error) {
 	out := new(WalletAddressExistsResponse)
-	err := c.cc.Invoke(ctx, BackendService_WalletAddressExists_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, BackendService_WalletAddressValidAndNotExists_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1202,7 +1202,7 @@ type BackendServiceServer interface {
 	CreateUserDefaultWallet(context.Context, *CreateUserDefaultWalletRequest) (*Empty, error)
 	// Wallet
 	CreateWalletAddress(context.Context, *CreateWalletAddressRequest) (*Empty, error)
-	WalletAddressExists(context.Context, *WalletAddressExistsRequest) (*WalletAddressExistsResponse, error)
+	WalletAddressValidAndNotExists(context.Context, *WalletAddressExistsRequest) (*WalletAddressExistsResponse, error)
 	SetWalletName(context.Context, *SetWalletNameRequest) (*Empty, error)
 	GetWalletInfo(context.Context, *Empty) (*WalletInfo, error)
 	GetPublicWalletInfo(context.Context, *GetPublicWalletInfoRequest) (*PublicWalletInfo, error)
@@ -1354,8 +1354,8 @@ func (UnimplementedBackendServiceServer) CreateUserDefaultWallet(context.Context
 func (UnimplementedBackendServiceServer) CreateWalletAddress(context.Context, *CreateWalletAddressRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateWalletAddress not implemented")
 }
-func (UnimplementedBackendServiceServer) WalletAddressExists(context.Context, *WalletAddressExistsRequest) (*WalletAddressExistsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method WalletAddressExists not implemented")
+func (UnimplementedBackendServiceServer) WalletAddressValidAndNotExists(context.Context, *WalletAddressExistsRequest) (*WalletAddressExistsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method WalletAddressValidAndNotExists not implemented")
 }
 func (UnimplementedBackendServiceServer) SetWalletName(context.Context, *SetWalletNameRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetWalletName not implemented")
@@ -1807,20 +1807,20 @@ func _BackendService_CreateWalletAddress_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BackendService_WalletAddressExists_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _BackendService_WalletAddressValidAndNotExists_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(WalletAddressExistsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(BackendServiceServer).WalletAddressExists(ctx, in)
+		return srv.(BackendServiceServer).WalletAddressValidAndNotExists(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: BackendService_WalletAddressExists_FullMethodName,
+		FullMethod: BackendService_WalletAddressValidAndNotExists_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).WalletAddressExists(ctx, req.(*WalletAddressExistsRequest))
+		return srv.(BackendServiceServer).WalletAddressValidAndNotExists(ctx, req.(*WalletAddressExistsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -3525,8 +3525,8 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _BackendService_CreateWalletAddress_Handler,
 		},
 		{
-			MethodName: "WalletAddressExists",
-			Handler:    _BackendService_WalletAddressExists_Handler,
+			MethodName: "WalletAddressValidAndNotExists",
+			Handler:    _BackendService_WalletAddressValidAndNotExists_Handler,
 		},
 		{
 			MethodName: "SetWalletName",

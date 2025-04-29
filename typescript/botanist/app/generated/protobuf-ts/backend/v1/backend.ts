@@ -11324,7 +11324,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "CompleteSignup", options: {}, I: CompleteSignupRequest, O: Empty },
     { name: "CreateUserDefaultWallet", options: {}, I: CreateUserDefaultWalletRequest, O: Empty },
     { name: "CreateWalletAddress", options: {}, I: CreateWalletAddressRequest, O: Empty },
-    { name: "WalletAddressExists", options: {}, I: WalletAddressExistsRequest, O: WalletAddressExistsResponse },
+    { name: "WalletAddressValidAndNotExists", options: {}, I: WalletAddressExistsRequest, O: WalletAddressExistsResponse },
     { name: "SetWalletName", options: {}, I: SetWalletNameRequest, O: Empty },
     { name: "GetWalletInfo", options: {}, I: Empty, O: WalletInfo },
     { name: "GetPublicWalletInfo", options: {}, I: GetPublicWalletInfoRequest, O: PublicWalletInfo },

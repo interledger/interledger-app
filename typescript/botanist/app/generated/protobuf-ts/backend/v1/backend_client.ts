@@ -182,9 +182,9 @@ export interface IBackendServiceClient {
      */
     createWalletAddress(input: CreateWalletAddressRequest, options?: RpcOptions): UnaryCall<CreateWalletAddressRequest, Empty>;
     /**
-     * @generated from protobuf rpc: WalletAddressExists(backend.v1.WalletAddressExistsRequest) returns (backend.v1.WalletAddressExistsResponse);
+     * @generated from protobuf rpc: WalletAddressValidAndNotExists(backend.v1.WalletAddressExistsRequest) returns (backend.v1.WalletAddressExistsResponse);
      */
-    walletAddressExists(input: WalletAddressExistsRequest, options?: RpcOptions): UnaryCall<WalletAddressExistsRequest, WalletAddressExistsResponse>;
+    walletAddressValidAndNotExists(input: WalletAddressExistsRequest, options?: RpcOptions): UnaryCall<WalletAddressExistsRequest, WalletAddressExistsResponse>;
     /**
      * @generated from protobuf rpc: SetWalletName(backend.v1.SetWalletNameRequest) returns (backend.v1.Empty);
      */
@@ -685,9 +685,9 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
         return stackIntercept<CreateWalletAddressRequest, Empty>("unary", this._transport, method, opt, input);
     }
     /**
-     * @generated from protobuf rpc: WalletAddressExists(backend.v1.WalletAddressExistsRequest) returns (backend.v1.WalletAddressExistsResponse);
+     * @generated from protobuf rpc: WalletAddressValidAndNotExists(backend.v1.WalletAddressExistsRequest) returns (backend.v1.WalletAddressExistsResponse);
      */
-    walletAddressExists(input: WalletAddressExistsRequest, options?: RpcOptions): UnaryCall<WalletAddressExistsRequest, WalletAddressExistsResponse> {
+    walletAddressValidAndNotExists(input: WalletAddressExistsRequest, options?: RpcOptions): UnaryCall<WalletAddressExistsRequest, WalletAddressExistsResponse> {
         const method = this.methods[9], opt = this._transport.mergeOptions(options);
         return stackIntercept<WalletAddressExistsRequest, WalletAddressExistsResponse>("unary", this._transport, method, opt, input);
     }

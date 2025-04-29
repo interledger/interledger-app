@@ -100,10 +100,10 @@ export const BackendService = {
       kind: MethodKind.Unary,
     },
     /**
-     * @generated from rpc backend.v1.BackendService.WalletAddressExists
+     * @generated from rpc backend.v1.BackendService.WalletAddressValidAndNotExists
      */
-    walletAddressExists: {
-      name: "WalletAddressExists",
+    walletAddressValidAndNotExists: {
+      name: "WalletAddressValidAndNotExists",
       I: WalletAddressExistsRequest,
       O: WalletAddressExistsResponse,
       kind: MethodKind.Unary,
