@@ -8,7 +8,7 @@ import (
 
 const (
 	prodUrl  = "https://interledger.app"
-	devUrl   = "https://eu1.fynbos.dev"
+	devUrl   = "https://sandbox.interledger.app"
 	localUrl = "https://interledger.test"
 )
 
@@ -99,11 +99,11 @@ func OpenPaymentsURL() string {
 			if IsProd() {
 				openPaymentsURL = "https://ilp.link"
 			} else if IsDev() {
-				openPaymentsURL = "https://sb.ilp.link"
+				openPaymentsURL = "https://sandbox.ilp.link"
 			} else if IsLocal() || IsTest() {
 				openPaymentsURL = "https://local.ilp.link"
 			} else {
-				openPaymentsURL = "https://sb.ilp.link"
+				openPaymentsURL = "https://sandbox.ilp.link"
 			}
 		}
 	})
@@ -122,11 +122,11 @@ func AuthURL() string {
 			if IsProd() {
 				authURL = "https://auth.ilp.link"
 			} else if IsDev() {
-				authURL = "https://auth.eu1.fynbos.dev"
+				authURL = "https://auth.ilp.link"
 			} else if IsLocal() || IsTest() {
 				authURL = "https://auth.interledger.test"
 			} else {
-				authURL = "https://auth.eu1.fynbos.dev"
+				authURL = "https://auth.ilp.link"
 			}
 		}
 	})

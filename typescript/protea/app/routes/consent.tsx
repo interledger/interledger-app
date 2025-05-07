@@ -207,7 +207,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   let publicOpenPaymentsAuthHost = 'auth.ilp.link'
   if (process.env.FYNBOS_ENV == 'dev') {
-    publicOpenPaymentsAuthHost = 'auth.eu1.fynbos.dev'
+    publicOpenPaymentsAuthHost = 'auth.sandbox.interledger.app'
   } else if (process.env.FYNBOS_ENV == 'local') {
     publicOpenPaymentsAuthHost = 'local.ilp.link'
   }
