@@ -20,9 +20,9 @@ COPY go.mod go.sum ./
 RUN go mod download
 COPY . ./
 
-FROM base as builder
+FROM base AS builder
 
-ENV ENV GOCACHE=/root/.cache/go-build
+ENV GOCACHE=/root/.cache/go-build
 RUN --mount=type=cache,target="/root/.cache/go-build" go build -C mockbos -o main
 ENTRYPOINT ["/build/mockbos/main"]
 
