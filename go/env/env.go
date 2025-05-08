@@ -142,13 +142,13 @@ func AdminURL() string {
 		adminURL = os.Getenv("ADMIN_BASE_URL")
 		if adminURL == "" {
 			if IsProd() {
-				adminURL = "https://admin.mgnt.fynbos.dev"
+				adminURL = "https://admin.interledger.app"
 			} else if IsDev() {
-				adminURL = "https://admin-dev.mgnt.fynbos.dev"
+				adminURL = "https://admin.sandbox.interledger.app"
 			} else if IsLocal() || IsTest() {
 				adminURL = "https://admin.interledger.test"
 			} else {
-				adminURL = "https://admin-dev.mgnt.fynbos.dev"
+				adminURL = "https://admin.sandbox.interledger.app"
 			}
 		}
 	})

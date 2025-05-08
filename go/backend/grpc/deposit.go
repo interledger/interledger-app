@@ -26,7 +26,7 @@ func (s *rpcService) GetOnOffRampProvider(ctx context.Context, req *pb.Empty) (*
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 	//TODO change to interledger it looks like it's only used for displaying the provider
-	provider := "fynbos"
+	provider := "interledger"
 	if country.EUCountries[w.Country] {
 		provider = "gatehub"
 	} else if country.CA == w.Country {

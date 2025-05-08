@@ -177,7 +177,7 @@ func identityToPB(identity *identities.Identity, walletURL string) *pb.Identity 
 	// TODO: change to interledger
 	var TxtRecord string
 	if identity.Platform == identities.PlatformDomain {
-		TxtRecord = fmt.Sprintf("_fynbos.%s=%s", identity.Identifier, base64SignatureHash)
+		TxtRecord = fmt.Sprintf("_interledger.%s=%s", identity.Identifier, base64SignatureHash)
 	}
 
 	return &pb.Identity{

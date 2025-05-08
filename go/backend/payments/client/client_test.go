@@ -74,7 +74,7 @@ func TestClient(t *testing.T) {
 				SenderAccount: sendWallet.ptiUSDLinkedAcc,
 				Receiver: payments.Identity{
 					Type:       payments.IdentityTypeSlack,
-					Identifier: "fynbos / DevTest",
+					Identifier: "interledger / DevTest",
 				},
 				SenderAmount:   currency.FromUInt64(10, currency.ParseCurrency("USD")),
 				ReceiverAmount: currency.FromUInt64(10, currency.ParseCurrency("USD")),
