@@ -38,6 +38,7 @@ import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { SignupStep, useSignupStore } from '~/lib/useSignupStore'
 import type { loader as rootLoader } from '~/root'
 import { NavDrawer } from './NavDrawer'
+import { WarningBanner } from '../WarningBanner'
 
 export type ApplicationProps = {
   layout: Layouts | ((match: UIMatch<any, ApplicationProps>) => Layouts)
@@ -222,7 +223,7 @@ export function Scaffold() {
           layout === Layouts.Focus &&
             'mx-auto h-16 select-none bg-page sm:mt-[5.5rem] sm:max-w-[29rem]',
           layout === Layouts.Wallet &&
-            'h-16 bg-page lg:mt-[5.5rem] lg:pl-[16.25rem]',
+          'min-h-16 bg-page lg:pl-[16.25rem] flex-col justify-end',
           layout === Layouts.Docs &&
             'h-16 bg-mk-page lg:mt-[5.5rem] lg:pl-[16.25rem]'
         )}
@@ -243,7 +244,7 @@ export function Scaffold() {
               </Router>
             </div>
             <div className='hidden space-x-10 pb-2 pl-10 pt-3 lg:flex'>
-              <HeaderLink to='/about' title='About' />
+              {/*<HeaderLink to='/about' title='About' />*/}
               {/*<HeaderLink to='/wallet' title='Wallet' />*/}
               {/*<HeaderPopover />*/}
               {/*<HeaderLink to={route('/docs')} title='Docs' />*/}
@@ -269,6 +270,12 @@ export function Scaffold() {
                 </div>
               )}
             </div>
+          </div>
+        )}
+
+        {layout === Layouts.Wallet && isUser && (
+          <div className='mx-auto flex w-full max-w-[59rem] items-center rounded-[1.25rem] bg-container-strong my-6 p-2 sm:max-w-lg lg:max-w-3xl'>
+            <WarningBanner text='The app is under maintainance and depending on your location it might not work as expected. But do not worry we are working tirelessly to solve the issues asap!' />
           </div>
         )}
         {layout !== Layouts.Marketing && (
@@ -575,7 +582,7 @@ export function Scaffold() {
                   </div>
                 </div>
                 <NavDrawer.ListItem to={route('/')}>Home</NavDrawer.ListItem>
-                <NavDrawer.ListItem to='/about'>About</NavDrawer.ListItem>
+                {/*<NavDrawer.ListItem to='/about'>About</NavDrawer.ListItem>*/}
                 {/* <NavDrawer.ListItem to='/wallet'>Wallet</NavDrawer.ListItem> */}
                 {/* <NavDrawer.ListItem to='/wealth'>Wealth</NavDrawer.ListItem> */}
                 {/*<NavDrawer.ListItem to={route('/docs')}>*/}
