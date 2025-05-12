@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -112,6 +111,11 @@ import (
 	"go.temporal.io/sdk/worker"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+
+	"strings"
+
+	"golang.org/x/net/http2"
+	"golang.org/x/net/http2/h2c"
 )
 
 func main() {
@@ -238,30 +242,49 @@ func start(args *cli.StartArgs) {
 }
 
 func serveGrpc(port string, server *grpc.Server, wg *sync.WaitGroup) {
-	ch := make(chan os.Signal, 1)
-	signal.Notify(ch, syscall.SIGTERM, syscall.SIGINT)
+    // channel for catching termination signals
+    sigCh := make(chan os.Signal, 1)
+    signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
 
-	listener, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%s", port))
-	if err != nil {
-		log.Fatalln(err)
-	}
+    grpcHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        // gRPC is always HTTP/2 + content-type "application/grpc"
+        if r.ProtoMajor == 2 && strings.Contains(r.Header.Get("Content-Type"), "application/grpc") {
+            server.ServeHTTP(w, r)
+        } else {
+            w.WriteHeader(http.StatusOK)
+            w.Write([]byte("200 OK — not a gRPC endpoint\n"))
+        }
+    })
 
-	wg.Add(1)
-	go func(sigCh chan os.Signal, wg *sync.WaitGroup) {
-		defer wg.Done()
-		<-sigCh
-		log.Info(fmt.Sprintf("got signal attempting graceful shutdown: 0.0.0.0:%s", port))
-		server.GracefulStop()
-	}(ch, wg)
+    h2s := &http2.Server{}
+    handler := h2c.NewHandler(grpcHandler, h2s)
 
-	go func() {
-		log.Info(fmt.Sprintf("grpc server: 0.0.0.0:%s", port))
-		err = server.Serve(listener)
-		if err != nil {
-			log.Fatalln(err)
-		}
-	}()
+    srv := &http.Server{
+        Addr:    ":" + port,
+        Handler: handler,
+    }
+
+    wg.Add(1)
+    go func() {
+        defer wg.Done()
+        <-sigCh
+        log.Info(fmt.Sprintf("got signal, shutting down gRPC server on :%s", port))
+        ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+        defer cancel()
+        srv.Shutdown(ctx)
+    }()
+
+    wg.Add(1)
+    go func() {
+        defer wg.Done()
+        log.Info(fmt.Sprintf("starting gRPC/H2C server on :%s", port))
+        // Note: ListenAndServe can serve both HTTP/1.1 and H2C
+        if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+            log.Fatalln(fmt.Errorf("gRPC server failed: %s", zap.Error(err)))
+        }
+    }()
 }
+
 
 func serveHTTP(server *http.Server, wg *sync.WaitGroup) {
 	ch := make(chan os.Signal, 1)
