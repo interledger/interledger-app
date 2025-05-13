@@ -270,8 +270,8 @@ func serveGrpcWithHC(port string, server *grpc.Server, wg *sync.WaitGroup) {
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, syscall.SIGTERM, syscall.SIGINT)
 
-	http.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprint(w, "ok")
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
 	})
 
 	mux := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
