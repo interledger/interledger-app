@@ -57,7 +57,7 @@ func (s *rpcService) CreateConnection(
 
 	rawAlg, ok := parsedKey.Get("crv")
 	if !ok {
-		return nil, toGRPCError(errors.New("Failed to parse jwk"))
+		return nil, toGRPCError(errors.New("failed to parse jwk"))
 	}
 
 	if !strings.EqualFold(fmt.Sprintf("%+v", rawAlg), "Ed25519") {
@@ -67,7 +67,7 @@ func (s *rpcService) CreateConnection(
 	n, _ := parsedKey.Get("x")
 	nn, ok := n.([]byte)
 	if !ok {
-		return nil, toGRPCError(errors.New("Failed to parse jwk"))
+		return nil, toGRPCError(errors.New("failed to parse jwk"))
 	}
 
 	keyID := parsedKey.KeyID()
