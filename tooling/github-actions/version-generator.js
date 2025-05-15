@@ -4,9 +4,9 @@ let generateRelease = false;
 
 /**
  * @param {string} event
- * @param {string} ref
+ * @param {string} refName
  */
-export function generateVersion(event, ref) {
+export function generateVersion(event, refName) {
   /** @type {string | undefined} }*/
   let newVersion = undefined;
 
@@ -14,11 +14,11 @@ export function generateVersion(event, ref) {
     pushDockerImage = true;
     newVersion = "nightly";
   } else if (event === "workflow_dispatch") {
-    newVersion = `manual_{ref}`;
+    newVersion = `manual_${refName}`;
     pushDockerImage = true;
-  } else if (ref.startsWith("release/v")) {
+  } else if (refName.startsWith("release/v")) {
   } else {
-    let newVersion = ref.replace(/[^a-zA-Z0-9_.-]/g, "_");
+    newVersion = refName.replace(/[^a-zA-Z0-9_.-]/g, "_");
 
     if (!/^[a-zA-Z0-9]/.test(newVersion)) {
       newVersion = `tag_${newVersion}`;
@@ -33,11 +33,11 @@ export function generateVersion(event, ref) {
 /** @param {import('github-script').AsyncFunctionArguments} AsyncFunctionArguments */
 export default async ({ core, context }) => {
   const eventName = context.eventName;
-  const ref = context.ref;
+  const refName = context.ref.replace(/^refs\/(?:heads|tags|pull)\//, "");
 
-  console.log(JSON.stringify(context, null, 2));
+  console.log(JSON.stringify({ eventName, refName }, null, 2));
 
-  const { newVersion } = generateVersion(eventName, ref);
+  const { newVersion } = generateVersion(eventName, refName);
 
   console.log("newVersion", newVersion);
 
