@@ -32,21 +32,14 @@ jobs:
     outputs:
       builds: ${{ steps.select_packages.outputs.builds }}
     steps:
+      - uses: actions/checkout@v4
       - name: Select packages
         id: select_packages
-        run: |
-          # Define packages
-          platform='[{"os": "linux", "arch": "amd64"}]'
-          go_pkgs='[{"name": "backend", "context": "./go", "file": "./go/backend/Dockerfile"}, {"name": "mockbos", "context": "./go", "file": "./go/mockbos/Dockerfile"}]'
-          ts_pkgs='[{"name": "protea", "context": "./typescript/protea", "file": "./typescript/protea/Dockerfile", "sentry_project":"interledger-wallet"}, {"name": "botanist", "context": "./typescript/botanist", "file": "./typescript/botanist/Dockerfile", "sentry_project":""}]'
-
-          # Add type=go to go_pkgs
-          go_pkgs=$(echo "$go_pkgs" | jq 'map(. + {type: "go"})')
-          # Add type=ts to ts_pkgs
-          ts_pkgs=$(echo "$ts_pkgs" | jq 'map(. + {type: "ts"})')
-
-          # Create outputs by combining platform, go_pkgs, and ts_pkgs into a single JSON object
-          echo builds=$(jq -n --argjson go "$go_pkgs" --argjson ts "$ts_pkgs" --argjson platform "$platform" '{package: ($go + $ts), platform: $platform}') >> "$GITHUB_OUTPUT"
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { default: selectPackages } = await import('${{ github.workspace }}/tooling/github-actions/select-packages.js')
+            await selectPackages({ github, core, context })
 
   version_generator:
     runs-on: ubuntu-latest
@@ -64,67 +57,13 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-      - id: version_generator
-        name: Generate version properties
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          SHOULD_PUSH_TAG=false
-          PUSH_DOCKER_IMAGE=false
-          GENERATE_RELEASE=false
-          if [ "${{ github.event_name == 'schedule' }}" = true ]; then
-            PUSH_DOCKER_IMAGE=true
-            NEW_VERSION="nightly"
-          elif [ "${{ github.event_name == 'workflow_dispatch' }}" = true ]; then
-            NEW_VERSION="manual_${{ github.ref_name }}"
-            PUSH_DOCKER_IMAGE=true
-          elif [ "${{ startsWith(github.ref_name, 'release/v')}}" = true ]; then
-            PUSH_DOCKER_IMAGE=true
-            SHOULD_PUSH_TAG=true
-            GENERATE_RELEASE=true
-            VERSION_PREFIX=$(echo "${{ github.ref_name }}" | sed 's|release/||')
-            read major minor patch pre_release <<< $(echo "$VERSION_PREFIX" | awk -F'[.v-]' '{print $2, $3, $4, $5}')
-            version_search="v$major.$minor.*"
-            if [ -n "$pre_release" ]; then
-                version_search="$version_search-$pre_release"
-            fi
-            echo "VERSION_SEARCH: $version_search"
-            VERSION_PREFIX=$(git tag -l $version_search --sort=-taggerdate | head -n 1)
-            if [ -n "$VERSION_PREFIX" ]; then
-              read major minor patch pre_release <<< $(echo "$VERSION_PREFIX" | awk -F'[.v-]' '{print $2, $3, $4, $5}')
-              patch=$((patch + 1))
-            fi
-            NEW_VERSION="v${major}.${minor}.${patch}"
-            if [ -n "$pre_release" ]; then
-              NEW_VERSION="$NEW_VERSION-${pre_release}"
-            fi
-          else
-            NEW_VERSION=$(echo "${{ github.ref_name }}" | sed 's/[^a-zA-Z0-9_.-]/_/g')
-
-            if [[ ! "$NEW_VERSION" =~ ^[a-zA-Z0-9] ]]; then
-                NEW_VERSION="tag_$NEW_VERSION"
-            fi
-          fi
-
-          # Remove any characters that are not alphanumeric, period, underscore, or hyphen
-          NEW_VERSION=$(echo $NEW_VERSION | tr -c '[:alnum:]._-' '-')
-
-          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_OUTPUT
-          echo "New version will be: $NEW_VERSION"
-
-          echo "SHOULD_PUSH_TAG=$SHOULD_PUSH_TAG" >> $GITHUB_OUTPUT
-          echo "Will tag be pushed? $SHOULD_PUSH_TAG"
-
-          echo "PUSH_DOCKER_IMAGE=$PUSH_DOCKER_IMAGE" >> $GITHUB_OUTPUT
-          echo "Will docker image be pushed? $PUSH_DOCKER_IMAGE"
-
-          echo "GENERATE_RELEASE=$GENERATE_RELEASE" >> $GITHUB_OUTPUT
-          echo "Will generate release noted? $GENERATE_RELEASE"
-
-          if [ "$SHOULD_PUSH_TAG" = true ]; then
-            git tag -fa $NEW_VERSION -m "$NEW_VERSION"
-            git push -f origin $NEW_VERSION
-          fi
+      - name: Generate version properties
+        id: version_generator
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { default: versionGenerator } = await import('${{ github.workspace }}/tooling/github-actions/version-generator.js')
+            await versionGenerator({ github, core, context })
 
   builds:
     needs: [select_packages, version_generator]
