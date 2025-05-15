@@ -1,20 +1,25 @@
-import { execSync } from "node:child_process";
-
-let shouldPushTag = /** @type {boolean} */ (false);
-let pushDockerImage = /** @type {boolean} */ (false);
-let generateRelease = /** @type {boolean} */ (false);
+import childProcess from "node:child_process";
 
 /**
  * @param {string} event
- * @param {string} refName
+ * @param {string} ref
  */
-export function generateVersion(event, refName) {
+export function generateVersion(event, ref) {
+  const refName = ref.replace(/^refs\/(?:heads|tags|pull)\//, "");
+
+  console.log("Event name:", event);
+  console.log("Ref:", ref);
+  console.log("Ref name:", refName);
+
   /** @type {string | undefined} */
   let version = undefined;
+  let shouldPushTag = /** @type {boolean} */ (false);
+  let pushDockerImage = /** @type {boolean} */ (false);
+  let generateRelease = /** @type {boolean} */ (false);
 
   if (event === "schedule") {
-    pushDockerImage = true;
     version = "nightly";
+    pushDockerImage = true;
   } else if (event === "workflow_dispatch") {
     version = `manual_${refName}`;
     pushDockerImage = true;
@@ -39,9 +44,10 @@ export function generateVersion(event, refName) {
 
     let latestTag = "";
     try {
-      latestTag = execSync(
-        `git tag -l "${versionSearch}" --sort=-taggerdate | head -n 1`,
-      )
+      latestTag = childProcess
+        .execSync(
+          `git tag -l "${versionSearch}" --sort=-taggerdate | head -n 1`,
+        )
         .toString()
         .trim();
     } catch (error) {
@@ -71,17 +77,18 @@ export function generateVersion(event, refName) {
     }
   }
 
-  return version;
+  return {
+    version,
+    shouldPushTag,
+    pushDockerImage,
+    generateRelease,
+  };
 }
 
 /** @param {import('github-script').AsyncFunctionArguments} AsyncFunctionArguments */
 export default async ({ core, context }) => {
-  const eventName = context.eventName;
-  const refName = context.ref.replace(/^refs\/(?:heads|tags|pull)\//, "");
-
-  console.log(JSON.stringify({ eventName, refName }, null, 2));
-
-  const version = generateVersion(eventName, refName);
+  const { version, generateRelease, pushDockerImage, shouldPushTag } =
+    generateVersion(context.eventName, context.ref);
 
   console.log(`New version will be: ${version}`);
   core.setOutput("NEW_VERSION", version);
@@ -97,10 +104,12 @@ export default async ({ core, context }) => {
 
   if (shouldPushTag) {
     try {
-      execSync(`git tag -fa ${version} -m "${version}"`, {
+      childProcess.execSync(`git tag -fa ${version} -m "${version}"`, {
         stdio: "inherit",
       });
-      execSync(`git push -f origin ${version}`, { stdio: "inherit" });
+      childProcess.execSync(`git push -f origin ${version}`, {
+        stdio: "inherit",
+      });
     } catch (error) {
       core.setFailed(
         `Failed to create or push tag: ${/** @type {Error} */ (error).message}`,
