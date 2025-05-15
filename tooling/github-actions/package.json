@@ -1,9 +1,6 @@
 {
   "name": "github-actions",
   "type": "module",
-  "scripts": {
-    "test": "node --test"
-  },
   "devDependencies": {
     "@types/github-script": "github:actions/github-script"
   },

@@ -26,4 +26,4 @@ jobs:
         working-directory: tooling/github-actions
         shell: bash
         run: |
-          pnpm test
+          node --test
