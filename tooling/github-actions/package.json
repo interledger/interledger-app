@@ -1,0 +1,11 @@
+{
+  "name": "github-actions",
+  "type": "module",
+  "script": {
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "@types/github-script": "github:actions/github-script"
+  },
+  "packageManager": "pnpm@8.5.0"
+}
