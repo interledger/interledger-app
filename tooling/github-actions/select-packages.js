@@ -18,5 +18,6 @@ export function generateBuilds() {
 export default async ({ core }) => {
   const builds = generateBuilds();
 
+  /* TODO: Remove - debug only */ console.log(JSON.stringify(builds, null, 2));
   core.setOutput("builds", JSON.stringify(builds));
 };

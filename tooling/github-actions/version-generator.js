@@ -35,7 +35,14 @@ export default async ({ core, context }) => {
   const eventName = context.eventName;
   const ref = context.ref;
 
+  console.log(JSON.stringify(context, null, 2));
+
   const { newVersion } = generateVersion(eventName, ref);
 
+  console.log("newVersion", newVersion);
+
   core.setOutput("NEW_VERSION", newVersion);
+  core.setOutput("SHOULD_PUSH_TAG", shouldPushTag);
+  core.setOutput("PUSH_DOCKER_IMAGE", pushDockerImage);
+  core.setOutput("GENERATE_RELEASE", generateRelease);
 };
