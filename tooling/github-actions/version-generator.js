@@ -7,10 +7,6 @@ import childProcess from "node:child_process";
 export function generateVersion(event, ref) {
   const refName = ref.replace(/^refs\/(?:heads|tags|pull)\//, "");
 
-  console.log("Event name:", event);
-  console.log("Ref:", ref);
-  console.log("Ref name:", refName);
-
   /** @type {string | undefined} */
   let version = undefined;
   let shouldPushTag = /** @type {boolean} */ (false);
