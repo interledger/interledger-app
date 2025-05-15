@@ -8,8 +8,6 @@ describe("select-packages/generateBuilds", () => {
   it("should return the correct builds struncture", () => {
     const builds = generateBuilds();
 
-    console.log(builds);
-
     assert.equal(
       Object.keys(builds).length,
       2,
