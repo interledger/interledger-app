@@ -25,5 +25,3 @@ testmigrations
 *.env
 
 **/.vagrant
-
-node_modules
