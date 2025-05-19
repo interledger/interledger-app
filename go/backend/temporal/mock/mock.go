@@ -13,6 +13,7 @@ import (
 	workflowservice "go.temporal.io/api/workflowservice/v1"
 	internal "go.temporal.io/sdk/client"
 	converter "go.temporal.io/sdk/converter"
+	operatorservice "go.temporal.io/api/operatorservice/v1"	
 )
 
 // MockClient is a mock of Client interface.
@@ -443,4 +444,69 @@ func (m *MockClient) WorkflowService() workflowservice.WorkflowServiceClient {
 func (mr *MockClientMockRecorder) WorkflowService() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WorkflowService", reflect.TypeOf((*MockClient)(nil).WorkflowService))
+}
+
+// GetWorkerBuildIdCompatibility mocks base method.
+func (mc *MockClient) GetWorkerBuildIdCompatibility(ctx context.Context, options *internal.GetWorkerBuildIdCompatibilityOptions) (*internal.WorkerBuildIDVersionSets, error) {
+	mc.ctrl.T.Helper()
+	ret := mc.ctrl.Call(mc, "GetWorkerBuildIdCompatibility", ctx, options)
+	ret0, _ := ret[0].(*internal.WorkerBuildIDVersionSets)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (mc *MockClient) GetWorkerTaskReachability(ctx context.Context, options *internal.GetWorkerTaskReachabilityOptions) (*internal.WorkerTaskReachability, error) {
+	mc.ctrl.T.Helper()
+	ret := mc.ctrl.Call(mc, "GetWorkerTaskReachability", ctx, options)
+	ret0, _ := ret[0].(*internal.WorkerTaskReachability)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (mc *MockClient) GetWorkflowUpdateHandle(internal.GetWorkflowUpdateHandleOptions) internal.WorkflowUpdateHandle {
+	mc.ctrl.T.Helper()
+	ret := mc.ctrl.Call(mc, "GetWorkflowUpdateHandle")
+	ret0, _ := ret[0].(internal.WorkflowUpdateHandle)
+	return ret0
+}
+
+func (mc *MockClient) OperatorService() operatorservice.OperatorServiceClient {
+	mc.ctrl.T.Helper()
+	ret := mc.ctrl.Call(mc, "OperatorService")
+	ret0, _ := ret[0].(operatorservice.OperatorServiceClient)
+	return ret0
+}
+
+func (mc *MockClient) ScheduleClient() internal.ScheduleClient{
+	mc.ctrl.T.Helper()
+	ret := mc.ctrl.Call(mc, "ScheduleClient")
+	ret0, _ := ret[0].(internal.ScheduleClient)
+	return ret0
+}
+
+func (mc *MockClient) UpdateWorkerBuildIdCompatibility(ctx context.Context, options *internal.UpdateWorkerBuildIdCompatibilityOptions) error {
+	mc.ctrl.T.Helper()
+	ret := mc.ctrl.Call(mc, "UpdateWorkerBuildIdCompatibility", ctx, options)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (mc *MockClient) UpdateWorkflow(ctx context.Context, workflowID string, workflowRunID string, updateName string, args ...interface{}) (internal.WorkflowUpdateHandle, error) {
+	mc.ctrl.T.Helper()
+	varargs := []interface{}{ctx, workflowID, workflowRunID, updateName}
+	for _, a := range args {
+		varargs = append(varargs, a)
+	}
+	ret := mc.ctrl.Call(mc, "UpdateWorkflow", varargs...)
+	ret0, _ := ret[0].(internal.WorkflowUpdateHandle)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (mc *MockClient) UpdateWorkflowWithOptions(ctx context.Context, request *internal.UpdateWorkflowWithOptionsRequest) (internal.WorkflowUpdateHandle, error) {
+	mc.ctrl.T.Helper()
+	ret := mc.ctrl.Call(mc, "UpdateWorkflowWithOptions", ctx, request)
+	ret0, _ := ret[0].(internal.WorkflowUpdateHandle)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
