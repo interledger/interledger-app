@@ -1,5 +1,3 @@
-// @ts-check
-
 import { PLATFORMS, GO_PACKAGES, TS_PACKAGES } from "./constants.js";
 
 /**

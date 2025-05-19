@@ -1,5 +1,5 @@
 {
-  "name": "github-actions",
+  "name": "github-scripts",
   "type": "module",
   "devDependencies": {
     "@types/github-script": "github:actions/github-script"

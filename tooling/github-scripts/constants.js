@@ -1,7 +1,7 @@
 /** @type {Array<Platform>} */
 export const PLATFORMS = [{ os: "linux", arch: "amd64" }];
 
-/** @type Array<GoPackage> */
+/** @type {Array<GoPackage>} */
 export const GO_PACKAGES = [
   {
     name: "backend",
@@ -17,7 +17,7 @@ export const GO_PACKAGES = [
   },
 ];
 
-/** @type Array<TsPackage> */
+/** @type {Array<TsPackage>} */
 export const TS_PACKAGES = [
   {
     name: "protea",

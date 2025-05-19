@@ -1,11 +1,11 @@
-name: Test GitHub Actions Tooling
+name: Test GitHub Scripts
 
 on:
   pull_request:
     branches:
       - main
     paths:
-      - 'tooling/github-actions/**'
+      - 'tooling/github-scripts/**'
 
   push:
     branches:
@@ -23,7 +23,7 @@ jobs:
         with:
           node-version: '20'
       - name: Run tests
-        working-directory: tooling/github-actions
+        working-directory: tooling/github-scripts
         shell: bash
         run: |
           node --test
