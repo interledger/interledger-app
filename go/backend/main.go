@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -112,8 +111,6 @@ import (
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
 	"go.uber.org/zap"
-	"golang.org/x/net/http2"
-	"golang.org/x/net/http2/h2c"
 	"google.golang.org/grpc"
 )
 
@@ -225,7 +222,7 @@ func start(args *cli.StartArgs) {
 		log.Fatalln(err)
 	}
 
-	serveGrpcWithHC("8443", server, &wg)
+	serveGrpc("8443", server, &wg)
 
 	adminServer, err := admin.NewServer(b)
 	if err != nil {
@@ -258,46 +255,11 @@ func serveGrpc(port string, server *grpc.Server, wg *sync.WaitGroup) {
 	}(ch, wg)
 
 	go func() {
+		log.Info(fmt.Sprintf("grpc server: 0.0.0.0:%s", port))
 		err = server.Serve(listener)
-		log.Info(fmt.Sprintf("grpc server: 0.0.0.0:%s", port))
 		if err != nil {
 			log.Fatalln(err)
 		}
-	}()
-}
-
-func serveGrpcWithHC(port string, server *grpc.Server, wg *sync.WaitGroup) {
-	ch := make(chan os.Signal, 1)
-	signal.Notify(ch, syscall.SIGTERM, syscall.SIGINT)
-
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	})
-
-	mux := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.ProtoMajor == 2 && strings.HasPrefix(r.Header.Get("Content-Type"), "application/grpc") {
-			server.ServeHTTP(w, r)
-			return
-		}
-
-		http.DefaultServeMux.ServeHTTP(w, r)
-	})
-
-	wg.Add(1)
-	go func(sigCh chan os.Signal, wg *sync.WaitGroup) {
-		defer wg.Done()
-		<-sigCh
-		log.Info(fmt.Sprintf("got signal attempting graceful shutdown: 0.0.0.0:%s", port))
-		server.GracefulStop()
-	}(ch, wg)
-
-	go func() {
-		err := http.ListenAndServe("0.0.0.0:"+port, h2c.NewHandler(mux, &http2.Server{}))
-		if err != nil {
-			log.Fatalln(err)
-		}
-
-		log.Info(fmt.Sprintf("grpc server: 0.0.0.0:%s", port))
 	}()
 }
 
