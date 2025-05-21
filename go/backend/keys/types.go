@@ -30,7 +30,7 @@ func (key Key) Fingerprint() (string, error) {
 	if key.PublicKey == "" {
 		return "", fmt.Errorf("%w Key is empty.", ErrInternal)
 	}
-	keyBytes, err := base64.StdEncoding.DecodeString(key.PublicKey)
+	keyBytes, err := base64.RawURLEncoding.DecodeString(key.PublicKey)
 	if err != nil {
 		return "", fmt.Errorf("%w %s", ErrInternal, err)
 	}

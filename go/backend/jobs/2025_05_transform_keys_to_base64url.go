@@ -12,6 +12,7 @@ import (
 	"go.uber.org/zap"
 )
 
+const limit = 100
 const batchSize = 100
 
 func TranformKeysToBase64URLJob(ctx workflow.Context, params MigrateWalletAddressesParams) error {
@@ -41,18 +42,22 @@ func TranformKeysToBase64URLJob(ctx workflow.Context, params MigrateWalletAddres
 }
 
 type walletKey struct {
-	ID        int    `db:"id"`
+	ID        string `db:"id"`
 	PublicKey string `db:"public_key"`
 }
 
 func (a *Activity) TransformWalletKeys() error {
+	offset := 0
+
 	for {
 		var walletsKeys []walletKey
 
-		err := a.b.DB().Select(&walletsKeys, "SELECT id, public_key FROM wallet_keys WHERE key_type = $1 AND location = 'database' AND deleted_at IS NULL LIMIT $2", keys.NonCustodial, batchSize)
+		err := a.b.DB().Select(&walletsKeys, "SELECT id, public_key FROM wallet_keys WHERE public_key IS NOT NULL AND key_type = $1 AND location = 'database' AND deleted_at IS NULL ORDER BY created_at ASC LIMIT $2 OFFSET $3", keys.NonCustodial, limit, offset)
 		if err != nil {
 			return err
 		}
+
+		log.Info("testing", zap.Any("wallets", walletsKeys))
 
 		if len(walletsKeys) == 0 {
 			break
@@ -68,7 +73,7 @@ func (a *Activity) TransformWalletKeys() error {
 			encoded := base64.RawURLEncoding.EncodeToString(decoded)
 
 			// Update the row
-			_, err = tx.Exec(`UPDATE keys SET x = $1 WHERE id = $2`, encoded, key.ID)
+			_, err = tx.Exec(`UPDATE wallet_keys SET public_key = $1 WHERE id = $2`, encoded, key.ID)
 			if err != nil {
 				return err
 			}
@@ -78,17 +83,19 @@ func (a *Activity) TransformWalletKeys() error {
 		if err != nil {
 			return err
 		}
+		offset += batchSize
 	}
 
 	return nil
 }
 
 type rafikiKey struct {
-	ID int    `db:"id"`
+	ID string `db:"id"`
 	X  string `db:"x"`
 }
 
 func (a *Activity) TransformRafikiKeys() error {
+	offset := 100
 	connString := os.Getenv("RAFIKI_DB_URL")
 
 	db, err := DbConnection(connString)
@@ -101,7 +108,7 @@ func (a *Activity) TransformRafikiKeys() error {
 	for {
 		var rafikiKeys []rafikiKey
 
-		err := a.b.DB().Select(&rafikiKeys, `SELECT id, x FROM \"walletAddressKeys\" WHERE LIMIT $1`, batchSize)
+		err := a.b.DB().Select(&rafikiKeys, `SELECT id, x FROM \"walletAddressKeys\" WHERE revoked = false ORDER BY "createdAt" DESC LIMIT $1 OFFSET $2`, limit, offset)
 		if err != nil {
 			return err
 		}
@@ -129,6 +136,7 @@ func (a *Activity) TransformRafikiKeys() error {
 		if err != nil {
 			return err
 		}
+		offset += batchSize
 	}
 
 	return nil
