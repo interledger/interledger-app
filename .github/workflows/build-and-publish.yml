@@ -38,7 +38,7 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const { default: selectPackages } = await import('${{ github.workspace }}/tooling/github-actions/select-packages.js')
+            const { default: selectPackages } = await import('${{ github.workspace }}/tooling/github-scripts/select-packages.js')
             await selectPackages({ github, core, context })
 
   version_generator:
@@ -62,7 +62,7 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const { default: versionGenerator } = await import('${{ github.workspace }}/tooling/github-actions/version-generator.js')
+            const { default: versionGenerator } = await import('${{ github.workspace }}/tooling/github-scripts/version-generator.js')
             await versionGenerator({ github, core, context })
 
   builds:
