@@ -13,9 +13,6 @@ import (
 	"go.uber.org/zap"
 )
 
-const limit = 100
-const batchSize = 100
-
 func RemoveCustodialKeysJob(ctx workflow.Context) error {
 	var a *Activity
 	ao := workflow.ActivityOptions{
