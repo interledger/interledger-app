@@ -55,6 +55,7 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(jobs.ResendOnOffRampEmailJob)
 	w.RegisterWorkflow(jobs.CreateRafikiPaymentPointersJob)
 	w.RegisterWorkflow(jobs.MigrateWalletAddressesToIlpLinkJob)
+	w.RegisterWorkflow(jobs.RemoveCustodialKeysJob)
 
 	// Payment Engine
 	w.RegisterActivity(payments_workflows.NewActivity(b))

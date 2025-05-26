@@ -280,3 +280,56 @@ func convertToKeyPublic(keyDB keyDB) keys.Key {
 		UpdatedAt: keyDB.UpdatedAt,
 	}
 }
+
+func RemoveCustodialKeysForWallet(ctx context.Context, b Backends, walletID string) error {
+	ks, err := ListKeys(ctx, b, walletID)
+
+	if err != nil {
+		return err
+	}
+
+	tx, err := b.DB().BeginTxx(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		err = tx.Rollback()
+	}()
+
+	txStmtWK, err := tx.PrepareContext(ctx, "DELETE FROM wallet_keys WHERE id = $1 AND key_type = $2")
+	if err != nil {
+		return fmt.Errorf("%w %s", keys.ErrInternal, err.Error())
+	}
+
+	txStmtRWK, err := tx.PrepareContext(ctx, "DELETE FROM rafiki_wallet_keys WHERE internal_id = $1")
+	if err != nil {
+		return fmt.Errorf("%w %s", keys.ErrInternal, err.Error())
+	}
+
+	for _, k := range ks {
+		if k.Type == keys.Custodial {
+			_, err = txStmtWK.ExecContext(ctx, k.ID, keys.Custodial.String())
+			if err != nil {
+				return fmt.Errorf("%w %s", keys.ErrInternal, err)
+			}
+
+			_, err = txStmtRWK.ExecContext(ctx, k.ID)
+			if err != nil {
+				return fmt.Errorf("%w %s", keys.ErrInternal, err)
+			}
+
+			err = b.Rafiki().RevokePaymentPointerKey(ctx, k.ID)
+			if err != nil {
+				return fmt.Errorf("%w %s", keys.ErrInternal, err)
+			}
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return fmt.Errorf("%w %s", keys.ErrInternal, err)
+	}
+
+	return nil
+}
