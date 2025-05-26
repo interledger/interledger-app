@@ -74,7 +74,7 @@ func (s *rpcService) CreateConnection(
 	if keyID == "" {
 		return nil, NewValidationError("kid", "kid is required for JWK")
 	}
-	key, err := s.b.Keys().AddPublicKey(ctx, wallet.ID, base64.StdEncoding.EncodeToString(nn), req.GetApplicationName(), keyID)
+	key, err := s.b.Keys().AddPublicKey(ctx, wallet.ID, base64.RawURLEncoding.EncodeToString(nn), req.GetApplicationName(), keyID)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
