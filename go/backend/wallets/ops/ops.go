@@ -8,8 +8,6 @@ import (
 
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/log"
-	"go.uber.org/zap"
 
 	"gitlab.com/fynbos/backend/user"
 
@@ -82,11 +80,11 @@ func Create(ctx context.Context, b Backends, args wallets.CreateArgs) (*wallets.
 		return nil, err
 	}
 	// Do not provision custodial private key
-	err = b.Keys().ProvisionPrivateKey(ctx, walletID)
-	if err != nil {
-		log.Error("could not provision private key", zap.Error(err))
-		return nil, err
-	}
+	// err = b.Keys().ProvisionPrivateKey(ctx, walletID)
+	// if err != nil {
+	// 	log.Error("could not provision private key", zap.Error(err))
+	// 	return nil, err
+	// }
 
 	return Get(ctx, b, walletID)
 }
