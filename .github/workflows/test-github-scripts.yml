@@ -1,0 +1,29 @@
+name: Test GitHub Scripts
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'tooling/github-scripts/**'
+
+  push:
+    branches:
+      - main
+    paths:
+      - 'tooling/github-actions/**'
+
+jobs:
+  test-tooling:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Run tests
+        working-directory: tooling/github-scripts
+        shell: bash
+        run: |
+          node --test
