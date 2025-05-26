@@ -47,6 +47,9 @@ func CreatePaymentPointer(ctx context.Context, b Backends, w wallets.Wallet) err
 		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
 	}
 
+	// This shouldn't really happen from now on since we are not provisioning a
+	// custodial key anymore when the wallet is created.
+
 	keys, err := b.Keys().List(ctx, w.ID)
 	if err != nil {
 		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)

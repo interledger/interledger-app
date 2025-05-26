@@ -1,12 +1,15 @@
 package jobs
 
 import (
+	"context"
 	"encoding/base64"
 	"os"
 	"time"
 
+	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/keys"
 	"gitlab.com/fynbos/log"
+	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 	"go.uber.org/zap"
@@ -15,7 +18,7 @@ import (
 const limit = 100
 const batchSize = 100
 
-func TranformKeysToBase64URLJob(ctx workflow.Context, params MigrateWalletAddressesParams) error {
+func RemoveCustodialKeysAndTranformKeysJob(ctx workflow.Context) error {
 	var a *Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 10 * time.Second,
@@ -27,7 +30,12 @@ func TranformKeysToBase64URLJob(ctx workflow.Context, params MigrateWalletAddres
 	ctx = workflow.WithActivityOptions(ctx, ao)
 	log.Info("Starting job TransformKeysToBase64URL: transforming public keys values from Base64 to Base64URL")
 
-	err := workflow.ExecuteActivity(ctx, a.TransformWalletKeys).Get(ctx, nil)
+	err := workflow.ExecuteActivity(ctx, a.RemoveCustodialKeys).Get(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.TransformWalletKeys).Get(ctx, nil)
 	if err != nil {
 		return err
 	}
@@ -38,6 +46,40 @@ func TranformKeysToBase64URLJob(ctx workflow.Context, params MigrateWalletAddres
 	}
 
 	log.Info("Completed job TransformKeysToBase64URL.")
+	return nil
+}
+
+func (a *Activity) RemoveCustodialKeys(ctx context.Context) error {
+	logger := activity.GetLogger(ctx)
+
+	wallets, err := a.b.Wallets().ListAll(ctx, db.Pagination{
+		PageToken: "",
+		PageSize:  50,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	for _, wallet := range wallets {
+		logger.Info("removing custodial keys for wallet", "wallet", wallet.ID)
+		err = a.b.Keys().RemoveCustodialKeysForWallet(ctx, wallet.ID)
+		if err != nil {
+			return err
+		}
+	}
+
+	rows, err := a.b.DB().ExecContext(ctx, "DELETE FROM wallet_keys WHERE key_type = $1", keys.Custodial)
+	if err != nil {
+		return err
+	}
+
+	affected, err := rows.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	log.Info("deleted custodial wallet keys", zap.Int64("rows-affected", affected))
 	return nil
 }
 
@@ -56,8 +98,6 @@ func (a *Activity) TransformWalletKeys() error {
 		if err != nil {
 			return err
 		}
-
-		log.Info("testing", zap.Any("wallets", walletsKeys))
 
 		if len(walletsKeys) == 0 {
 			break
