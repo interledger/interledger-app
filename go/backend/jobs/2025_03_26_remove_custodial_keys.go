@@ -5,12 +5,10 @@ import (
 	"time"
 
 	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/keys"
 	"gitlab.com/fynbos/log"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
-	"go.uber.org/zap"
 )
 
 func RemoveCustodialKeysJob(ctx workflow.Context) error {
