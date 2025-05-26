@@ -21,7 +21,7 @@ func RemoveCustodialKeysJob(ctx workflow.Context) error {
 	}
 
 	ctx = workflow.WithActivityOptions(ctx, ao)
-	log.Info("Starting job RemoveCustodialkeys: removing custodial keys for all wallets")
+	log.Info("Starting job RemoveCustodialKeys: removing custodial keys for all wallets")
 
 	err := workflow.ExecuteActivity(ctx, a.RemoveCustodialKeys).Get(ctx, nil)
 	if err != nil {
