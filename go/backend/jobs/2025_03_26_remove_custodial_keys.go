@@ -54,16 +54,6 @@ func (a *Activity) RemoveCustodialKeys(ctx context.Context) error {
 		}
 	}
 
-	rows, err := a.b.DB().ExecContext(ctx, "DELETE FROM wallet_keys WHERE key_type = $1", keys.Custodial)
-	if err != nil {
-		return err
-	}
-
-	affected, err := rows.RowsAffected()
-	if err != nil {
-		return err
-	}
-
-	log.Info("Deleted custodial wallet keys", zap.Int64("rows-affected", affected))
+	log.Info("Deleted custodial wallet keys")
 	return nil
 }
