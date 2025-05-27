@@ -52,7 +52,7 @@ func (a *Activity) TransformWalletKeys() error {
 	for {
 		var wKeys []key
 
-		err := a.b.DB().Select(&wKeys, "SELECT id, public_key FROM wallet_keys WHERE public_key IS NOT NULL AND key_type = $1 AND location = 'database' AND deleted_at IS NULL ORDER BY created_at ASC LIMIT $2 OFFSET $3", keys.NonCustodial, limit, offset)
+		err := a.b.DB().Select(&wKeys, "SELECT id, public_key FROM wallet_keys WHERE public_key IS NOT NULL AND key_type = $1 AND location = 'database' AND deleted_at IS NULL ORDER BY created_at ASC LIMIT $2 OFFSET $3", keys.NonCustodial.String(), limit, offset)
 		if err != nil {
 			return err
 		}
