@@ -55,7 +55,7 @@ func WalletAddressExists(ctx context.Context, b Backends, addressURL string) (bo
 	return wa != nil, nil
 }
 
-func (g *rpcService) WalletAddressValidAndNotExists(ctx context.Context, req *pb.WalletAddressExistsRequest) (*pb.WalletAddressExistsResponse, error) {
+func (g *rpcService) WalletAddressValid(ctx context.Context, req *pb.WalletAddressValidRequest) (*pb.WalletAddressValidResponse, error) {
 	addressURLRaw := req.Url
 	// Validate that the wallet address matches validation criteria
 	addressURL, err := wallets.ParseAddress(addressURLRaw)
@@ -71,7 +71,7 @@ func (g *rpcService) WalletAddressValidAndNotExists(ctx context.Context, req *pb
 		return nil, toGRPCError(err)
 	}
 
-	return &pb.WalletAddressExistsResponse{
+	return &pb.WalletAddressValidResponse{
 		Exists: exists,
 	}, nil
 }

@@ -42,7 +42,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     session.identity.traits.firstName + ' ' + session.identity.traits.lastName
 
   while (!usernameIsValid && attempts < 5) {
-    let response = await grpc.walletAddressValidAndNotExists(request, {
+    let response = await grpc.walletAddressValid(request, {
       url: `https://${PAYMENT_POINTER_BASE}/${username}`
     })
 
@@ -185,7 +185,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   const publicName = username
 
-  let response = await grpc.walletAddressValidAndNotExists(request, {
+  let response = await grpc.walletAddressValid(request, {
     url: `https://${PAYMENT_POINTER_BASE}/${username}`
   })
   if (isConnectError(response)) {
