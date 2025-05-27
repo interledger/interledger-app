@@ -20,7 +20,7 @@ func TransformKeysToBase64URLJob(ctx workflow.Context) error {
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 10 * time.Second,
 		RetryPolicy: &temporal.RetryPolicy{
-			MaximumAttempts: 3,
+			MaximumAttempts: 1,
 		},
 	}
 
@@ -46,6 +46,7 @@ func (a *Activity) TransformWalletKeys() error {
 		ID        string `db:"id"`
 		PublicKey string `db:"public_key"`
 	}
+
 	offset := 0
 
 	for {
@@ -64,7 +65,8 @@ func (a *Activity) TransformWalletKeys() error {
 		for _, key := range wKeys {
 			decoded, err := base64.StdEncoding.DecodeString(key.PublicKey)
 			if err != nil {
-				return err
+				log.Error("could not decode", zap.String("key", key.ID), zap.Any("err", err))
+				continue
 			}
 
 			encoded := base64.RawURLEncoding.EncodeToString(decoded)
@@ -90,9 +92,10 @@ func (a *Activity) TransformRafikiKeys() error {
 		ID string `db:"id"`
 		X  string `db:"x"`
 	}
-	offset := 100
-	connString := os.Getenv("RAFIKI_DB_URL")
 
+	offset := 0
+
+	connString := os.Getenv("RAFIKI_DB_URL")
 	db, err := DbConnection(connString)
 	if err != nil {
 		log.Error("Error establishing db connection: %v", zap.Error(err))
@@ -103,7 +106,7 @@ func (a *Activity) TransformRafikiKeys() error {
 	for {
 		var rKeys []key
 
-		err := db.Select(&rKeys, `SELECT id, x FROM "walletAddressKeys" WHERE revoked = false ORDER BY "createdAt" DESC LIMIT $1 OFFSET $2`, limit, offset)
+		err = db.Select(&rKeys, `SELECT id, x FROM "walletAddressKeys" WHERE revoked = false ORDER BY "createdAt" ASC LIMIT $1 OFFSET $2`, limit, offset)
 		if err != nil {
 			return err
 		}
@@ -112,11 +115,12 @@ func (a *Activity) TransformRafikiKeys() error {
 			break
 		}
 
-		tx := a.b.DB().MustBegin()
+		tx := db.MustBegin()
 		for _, key := range rKeys {
 			decoded, err := base64.StdEncoding.DecodeString(key.X)
 			if err != nil {
-				return err
+				log.Error("could not decode", zap.String("key", key.ID), zap.Any("err", err))
+				continue
 			}
 
 			encoded := base64.RawURLEncoding.EncodeToString(decoded)
