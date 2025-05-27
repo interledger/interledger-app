@@ -106,7 +106,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
                 damping: 20,
                 duration: 0.3
               }}
-              className='h-7 pl-2 pt-2'
+              className='min-h-[1.75rem] pl-2 pt-2'
             >
               {errorMessage && (
                 <p className='text-sm text-error'>{errorMessage}</p>

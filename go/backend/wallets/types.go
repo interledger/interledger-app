@@ -97,13 +97,12 @@ func TestAddress(_ *testing.T, address *url.URL) Address {
 }
 
 func ParseAddress(rawAddress string) (Address, error) {
-
 	rawAddress = strings.TrimSuffix(rawAddress, "/")
 
 	unescaped, err := url.PathUnescape(rawAddress)
 	if err != nil || unescaped != rawAddress {
 		// Some URL escapes where added or invalid URL escapes are present
-		return Address{}, fmt.Errorf("%w %s", ErrInvalidAddress, "Your wallet address can only contain letters, numbers and '_'")
+		return Address{}, fmt.Errorf("%w %s", ErrInvalidAddress, "Your wallet address name can only contain letters, numbers and '_'")
 	}
 
 	wa := standardize(rawAddress)
@@ -114,22 +113,30 @@ func ParseAddress(rawAddress string) (Address, error) {
 	}
 
 	if waURL.Scheme == "" || waURL.Host == "" {
-		return Address{}, fmt.Errorf("%w %s", ErrInvalidAddress, "Your wallet address needs to contain a host and a http scheme")
+		return Address{}, fmt.Errorf("%w %s", ErrInvalidAddress, "Your wallet address name needs to contain a host and a http scheme")
 	}
 
 	// Fragments are after a '#' character in the url.
 	// Payment pointers do not contain queries.
 	if waURL.Fragment != "" || waURL.RawQuery != "" {
-		return Address{}, fmt.Errorf("%w %s", ErrInvalidAddress, "Your wallet address can only contain letters, numbers and '_'")
+		return Address{}, fmt.Errorf("%w %s", ErrInvalidAddress, "Your wallet address name can only contain letters, numbers and '_'")
 	}
 
 	waPath := strings.TrimPrefix(waURL.Path, "/")
 
 	if len(waPath) < identityLength.Min {
-		return Address{}, fmt.Errorf("%w Your wallet address must be longer than %d characters", ErrInvalidAddress, identityLength.Min)
+		return Address{}, fmt.Errorf("%w Your wallet address name must be longer than %d characters", ErrInvalidAddress, identityLength.Min)
 	}
 	if len(waPath) > identityLength.Max {
-		return Address{}, fmt.Errorf("%w Your wallet address must be shorter than %d characters", ErrInvalidAddress, identityLength.Max)
+		return Address{}, fmt.Errorf("%w Your wallet address name must be shorter than %d characters", ErrInvalidAddress, identityLength.Max)
+	}
+
+	if strings.HasSuffix(waPath, "_") {
+		return Address{}, fmt.Errorf("%w Your wallet address name can not end with an underscore", ErrInvalidAddress)
+	}
+
+	if strings.Contains(waPath, "__") {
+		return Address{}, fmt.Errorf("%w Your wallet address name can not contain two or more consecutives underscores", ErrInvalidAddress)
 	}
 
 	if !addressPrefixRegex.MatchString(waPath[:3]) {
@@ -137,14 +144,14 @@ func ParseAddress(rawAddress string) (Address, error) {
 	}
 
 	if !addressRegex.MatchString(waPath) {
-		return Address{}, fmt.Errorf("%w %s", ErrInvalidAddress, "Your wallet address can only contain letters, numbers and '_'")
+		return Address{}, fmt.Errorf("%w %s", ErrInvalidAddress, "Your wallet address name can only contain letters, numbers and '_'")
 	}
 
 	pathParts := strings.Split(waPath, "/")
 	for _, pp := range pathParts {
 		for _, res := range ReservedURLParts {
 			if strings.EqualFold(pp, res) {
-				return Address{}, fmt.Errorf("%w %s", ErrInvalidAddress, "Your wallet address cannot contain reserved path parts")
+				return Address{}, fmt.Errorf("%w %s", ErrInvalidAddress, "Your wallet address name cannot contain reserved path parts")
 			}
 		}
 	}
@@ -160,27 +167,29 @@ func ParseAddress(rawAddress string) (Address, error) {
 // - $fynbos.me/alice
 // Returns the standard format of : https:///fynbos.me/alice
 func standardize(wa string) string {
-	if strings.HasPrefix(wa, "https://") {
-		return wa
+	addr := strings.ToLower(wa)
+
+	if strings.HasPrefix(addr, "https://") {
+		return addr
 	}
 
 	// Replace the $ with https://
-	if strings.HasPrefix(wa, "$") {
-		return strings.Replace(wa, "$", "https://", 1)
+	if strings.HasPrefix(addr, "$") {
+		return strings.Replace(addr, "$", "https://", 1)
 	}
 
 	// We use https here
-	if strings.HasPrefix(wa, "http://") {
-		return strings.Replace(wa, "http://", "https://", 1)
+	if strings.HasPrefix(addr, "http://") {
+		return strings.Replace(addr, "http://", "https://", 1)
 	}
 
 	// Payment pointer URLs have at least one slash after the prefix, let the chips fall and the URL parsing fail
-	if !strings.Contains(wa, "/") {
-		return wa
+	if !strings.Contains(addr, "/") {
+		return addr
 	}
 
 	// The payment pointer has no prefix assume we need to add https://
-	return "https://" + wa
+	return "https://" + addr
 }
 
 const (
