@@ -154,7 +154,7 @@ func (c *client) IssueToken(ctx context.Context, userID string, product Product)
 	}
 	req.Header.Add("Content-Type", "application/json")
 
-	log.Info("request", zap.Any("req", req))
+	log.Info("request", zap.Any("headers", req.Header), zap.String("user-id", userID), zap.String("app-id", c.appID))
 
 	resp, err := c.api.Do(req)
 	if err != nil {
