@@ -1,4 +1,4 @@
-ARG GOLANG_VERSION=1.23
+ARG GOLANG_VERSION=1.24.3
 
 FROM public.ecr.aws/docker/library/golang:${GOLANG_VERSION} AS base
 
@@ -31,9 +31,9 @@ COPY tracing ./tracing
 COPY httpmessagesignatures ./httpmessagesignatures
 ENTRYPOINT ["/build/backend/entrypoint.sh"]
 
-FROM base as builder
+FROM base AS builder
 
-ENV ENV GOCACHE=/root/.cache/go-build
+ENV GOCACHE=/root/.cache/go-build
 RUN --mount=type=cache,target="/root/.cache/go-build" go build -o main ./backend/main.go
 ENTRYPOINT ["/build/main"]
 

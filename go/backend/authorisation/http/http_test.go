@@ -118,7 +118,7 @@ func TestGrantRequest(t *testing.T) {
 	digest, err := httpmessagesignatures.CreateContentDigest(ctx, body, []string{"sha-256"})
 	require.NoError(t, err)
 
-	req := httptest.NewRequest("POST", "http://auth.fynbos.test/grant", bytes.NewBuffer(body))
+	req := httptest.NewRequest("POST", "http://auth.interledger.test/grant", bytes.NewBuffer(body))
 	req.Header.Set("Content-Digest", digest)
 	err = httpmessagesignatures.SignRequest(
 		ctx,

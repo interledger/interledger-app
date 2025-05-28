@@ -10,6 +10,7 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 	enums "go.temporal.io/api/enums/v1"
+	operatorservice "go.temporal.io/api/operatorservice/v1"
 	workflowservice "go.temporal.io/api/workflowservice/v1"
 	internal "go.temporal.io/sdk/client"
 	converter "go.temporal.io/sdk/converter"
@@ -122,6 +123,20 @@ func (mr *MockClientMockRecorder) CountWorkflow(arg0, arg1 interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountWorkflow", reflect.TypeOf((*MockClient)(nil).CountWorkflow), arg0, arg1)
 }
 
+// DeploymentClient mocks base method.
+func (m *MockClient) DeploymentClient() internal.DeploymentClient {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeploymentClient")
+	ret0, _ := ret[0].(internal.DeploymentClient)
+	return ret0
+}
+
+// DeploymentClient indicates an expected call of DeploymentClient.
+func (mr *MockClientMockRecorder) DeploymentClient() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeploymentClient", reflect.TypeOf((*MockClient)(nil).DeploymentClient))
+}
+
 // DescribeTaskQueue mocks base method.
 func (m *MockClient) DescribeTaskQueue(arg0 context.Context, arg1 string, arg2 enums.TaskQueueType) (*workflowservice.DescribeTaskQueueResponse, error) {
 	m.ctrl.T.Helper()
@@ -135,6 +150,21 @@ func (m *MockClient) DescribeTaskQueue(arg0 context.Context, arg1 string, arg2 e
 func (mr *MockClientMockRecorder) DescribeTaskQueue(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DescribeTaskQueue", reflect.TypeOf((*MockClient)(nil).DescribeTaskQueue), arg0, arg1, arg2)
+}
+
+// DescribeTaskQueueEnhanced mocks base method.
+func (m *MockClient) DescribeTaskQueueEnhanced(arg0 context.Context, arg1 internal.DescribeTaskQueueEnhancedOptions) (internal.TaskQueueDescription, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DescribeTaskQueueEnhanced", arg0, arg1)
+	ret0, _ := ret[0].(internal.TaskQueueDescription)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DescribeTaskQueueEnhanced indicates an expected call of DescribeTaskQueueEnhanced.
+func (mr *MockClientMockRecorder) DescribeTaskQueueEnhanced(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DescribeTaskQueueEnhanced", reflect.TypeOf((*MockClient)(nil).DescribeTaskQueueEnhanced), arg0, arg1)
 }
 
 // DescribeWorkflowExecution mocks base method.
@@ -187,6 +217,51 @@ func (mr *MockClientMockRecorder) GetSearchAttributes(arg0 interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSearchAttributes", reflect.TypeOf((*MockClient)(nil).GetSearchAttributes), arg0)
 }
 
+// GetWorkerBuildIdCompatibility mocks base method.
+func (m *MockClient) GetWorkerBuildIdCompatibility(arg0 context.Context, arg1 *internal.GetWorkerBuildIdCompatibilityOptions) (*internal.WorkerBuildIDVersionSets, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetWorkerBuildIdCompatibility", arg0, arg1)
+	ret0, _ := ret[0].(*internal.WorkerBuildIDVersionSets)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetWorkerBuildIdCompatibility indicates an expected call of GetWorkerBuildIdCompatibility.
+func (mr *MockClientMockRecorder) GetWorkerBuildIdCompatibility(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWorkerBuildIdCompatibility", reflect.TypeOf((*MockClient)(nil).GetWorkerBuildIdCompatibility), arg0, arg1)
+}
+
+// GetWorkerTaskReachability mocks base method.
+func (m *MockClient) GetWorkerTaskReachability(arg0 context.Context, arg1 *internal.GetWorkerTaskReachabilityOptions) (*internal.WorkerTaskReachability, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetWorkerTaskReachability", arg0, arg1)
+	ret0, _ := ret[0].(*internal.WorkerTaskReachability)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetWorkerTaskReachability indicates an expected call of GetWorkerTaskReachability.
+func (mr *MockClientMockRecorder) GetWorkerTaskReachability(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWorkerTaskReachability", reflect.TypeOf((*MockClient)(nil).GetWorkerTaskReachability), arg0, arg1)
+}
+
+// GetWorkerVersioningRules mocks base method.
+func (m *MockClient) GetWorkerVersioningRules(arg0 context.Context, arg1 internal.GetWorkerVersioningOptions) (*internal.WorkerVersioningRules, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetWorkerVersioningRules", arg0, arg1)
+	ret0, _ := ret[0].(*internal.WorkerVersioningRules)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetWorkerVersioningRules indicates an expected call of GetWorkerVersioningRules.
+func (mr *MockClientMockRecorder) GetWorkerVersioningRules(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWorkerVersioningRules", reflect.TypeOf((*MockClient)(nil).GetWorkerVersioningRules), arg0, arg1)
+}
+
 // GetWorkflow mocks base method.
 func (m *MockClient) GetWorkflow(arg0 context.Context, arg1, arg2 string) internal.WorkflowRun {
 	m.ctrl.T.Helper()
@@ -213,6 +288,20 @@ func (m *MockClient) GetWorkflowHistory(arg0 context.Context, arg1, arg2 string,
 func (mr *MockClientMockRecorder) GetWorkflowHistory(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWorkflowHistory", reflect.TypeOf((*MockClient)(nil).GetWorkflowHistory), arg0, arg1, arg2, arg3, arg4)
+}
+
+// GetWorkflowUpdateHandle mocks base method.
+func (m *MockClient) GetWorkflowUpdateHandle(arg0 internal.GetWorkflowUpdateHandleOptions) internal.WorkflowUpdateHandle {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetWorkflowUpdateHandle", arg0)
+	ret0, _ := ret[0].(internal.WorkflowUpdateHandle)
+	return ret0
+}
+
+// GetWorkflowUpdateHandle indicates an expected call of GetWorkflowUpdateHandle.
+func (mr *MockClientMockRecorder) GetWorkflowUpdateHandle(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWorkflowUpdateHandle", reflect.TypeOf((*MockClient)(nil).GetWorkflowUpdateHandle), arg0)
 }
 
 // ListArchivedWorkflow mocks base method.
@@ -273,6 +362,39 @@ func (m *MockClient) ListWorkflow(arg0 context.Context, arg1 *workflowservice.Li
 func (mr *MockClientMockRecorder) ListWorkflow(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListWorkflow", reflect.TypeOf((*MockClient)(nil).ListWorkflow), arg0, arg1)
+}
+
+// NewWithStartWorkflowOperation mocks base method.
+func (m *MockClient) NewWithStartWorkflowOperation(arg0 internal.StartWorkflowOptions, arg1 interface{}, arg2 ...interface{}) internal.WithStartWorkflowOperation {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "NewWithStartWorkflowOperation", varargs...)
+	ret0, _ := ret[0].(internal.WithStartWorkflowOperation)
+	return ret0
+}
+
+// NewWithStartWorkflowOperation indicates an expected call of NewWithStartWorkflowOperation.
+func (mr *MockClientMockRecorder) NewWithStartWorkflowOperation(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewWithStartWorkflowOperation", reflect.TypeOf((*MockClient)(nil).NewWithStartWorkflowOperation), varargs...)
+}
+
+// OperatorService mocks base method.
+func (m *MockClient) OperatorService() operatorservice.OperatorServiceClient {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "OperatorService")
+	ret0, _ := ret[0].(operatorservice.OperatorServiceClient)
+	return ret0
+}
+
+// OperatorService indicates an expected call of OperatorService.
+func (mr *MockClientMockRecorder) OperatorService() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OperatorService", reflect.TypeOf((*MockClient)(nil).OperatorService))
 }
 
 // QueryWorkflow mocks base method.
@@ -378,6 +500,20 @@ func (mr *MockClientMockRecorder) ScanWorkflow(arg0, arg1 interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ScanWorkflow", reflect.TypeOf((*MockClient)(nil).ScanWorkflow), arg0, arg1)
 }
 
+// ScheduleClient mocks base method.
+func (m *MockClient) ScheduleClient() internal.ScheduleClient {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ScheduleClient")
+	ret0, _ := ret[0].(internal.ScheduleClient)
+	return ret0
+}
+
+// ScheduleClient indicates an expected call of ScheduleClient.
+func (mr *MockClientMockRecorder) ScheduleClient() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ScheduleClient", reflect.TypeOf((*MockClient)(nil).ScheduleClient))
+}
+
 // SignalWithStartWorkflow mocks base method.
 func (m *MockClient) SignalWithStartWorkflow(arg0 context.Context, arg1, arg2 string, arg3 interface{}, arg4 internal.StartWorkflowOptions, arg5 interface{}, arg6 ...interface{}) (internal.WorkflowRun, error) {
 	m.ctrl.T.Helper()
@@ -429,6 +565,94 @@ func (mr *MockClientMockRecorder) TerminateWorkflow(arg0, arg1, arg2, arg3 inter
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{arg0, arg1, arg2, arg3}, arg4...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TerminateWorkflow", reflect.TypeOf((*MockClient)(nil).TerminateWorkflow), varargs...)
+}
+
+// UpdateWithStartWorkflow mocks base method.
+func (m *MockClient) UpdateWithStartWorkflow(arg0 context.Context, arg1 internal.UpdateWithStartWorkflowOptions) (internal.WorkflowUpdateHandle, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateWithStartWorkflow", arg0, arg1)
+	ret0, _ := ret[0].(internal.WorkflowUpdateHandle)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateWithStartWorkflow indicates an expected call of UpdateWithStartWorkflow.
+func (mr *MockClientMockRecorder) UpdateWithStartWorkflow(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateWithStartWorkflow", reflect.TypeOf((*MockClient)(nil).UpdateWithStartWorkflow), arg0, arg1)
+}
+
+// UpdateWorkerBuildIdCompatibility mocks base method.
+func (m *MockClient) UpdateWorkerBuildIdCompatibility(arg0 context.Context, arg1 *internal.UpdateWorkerBuildIdCompatibilityOptions) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateWorkerBuildIdCompatibility", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateWorkerBuildIdCompatibility indicates an expected call of UpdateWorkerBuildIdCompatibility.
+func (mr *MockClientMockRecorder) UpdateWorkerBuildIdCompatibility(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateWorkerBuildIdCompatibility", reflect.TypeOf((*MockClient)(nil).UpdateWorkerBuildIdCompatibility), arg0, arg1)
+}
+
+// UpdateWorkerVersioningRules mocks base method.
+func (m *MockClient) UpdateWorkerVersioningRules(arg0 context.Context, arg1 internal.UpdateWorkerVersioningRulesOptions) (*internal.WorkerVersioningRules, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateWorkerVersioningRules", arg0, arg1)
+	ret0, _ := ret[0].(*internal.WorkerVersioningRules)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateWorkerVersioningRules indicates an expected call of UpdateWorkerVersioningRules.
+func (mr *MockClientMockRecorder) UpdateWorkerVersioningRules(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateWorkerVersioningRules", reflect.TypeOf((*MockClient)(nil).UpdateWorkerVersioningRules), arg0, arg1)
+}
+
+// UpdateWorkflow mocks base method.
+func (m *MockClient) UpdateWorkflow(arg0 context.Context, arg1 internal.UpdateWorkflowOptions) (internal.WorkflowUpdateHandle, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateWorkflow", arg0, arg1)
+	ret0, _ := ret[0].(internal.WorkflowUpdateHandle)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateWorkflow indicates an expected call of UpdateWorkflow.
+func (mr *MockClientMockRecorder) UpdateWorkflow(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateWorkflow", reflect.TypeOf((*MockClient)(nil).UpdateWorkflow), arg0, arg1)
+}
+
+// UpdateWorkflowExecutionOptions mocks base method.
+func (m *MockClient) UpdateWorkflowExecutionOptions(arg0 context.Context, arg1 internal.UpdateWorkflowExecutionOptionsRequest) (internal.WorkflowExecutionOptions, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateWorkflowExecutionOptions", arg0, arg1)
+	ret0, _ := ret[0].(internal.WorkflowExecutionOptions)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateWorkflowExecutionOptions indicates an expected call of UpdateWorkflowExecutionOptions.
+func (mr *MockClientMockRecorder) UpdateWorkflowExecutionOptions(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateWorkflowExecutionOptions", reflect.TypeOf((*MockClient)(nil).UpdateWorkflowExecutionOptions), arg0, arg1)
+}
+
+// WorkerDeploymentClient mocks base method.
+func (m *MockClient) WorkerDeploymentClient() internal.WorkerDeploymentClient {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WorkerDeploymentClient")
+	ret0, _ := ret[0].(internal.WorkerDeploymentClient)
+	return ret0
+}
+
+// WorkerDeploymentClient indicates an expected call of WorkerDeploymentClient.
+func (mr *MockClientMockRecorder) WorkerDeploymentClient() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WorkerDeploymentClient", reflect.TypeOf((*MockClient)(nil).WorkerDeploymentClient))
 }
 
 // WorkflowService mocks base method.

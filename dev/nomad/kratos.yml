@@ -30,7 +30,7 @@ courier:
             plaintext: https://cdn.fynbos.app/emails/recovery/v2/invalid/email.body.plaintext.gotmpl
           subject: https://cdn.fynbos.app/emails/recovery/v2/invalid/email.subject.gotmpl
   smtp:
-    from_address: no-reply@fynbos.test
+    from_address: no-reply@interledger.test
     connection_uri: "smtp://mailhog:1025/?disable_starttls=true"
 hashers:
   algorithm: argon2
@@ -54,45 +54,45 @@ log:
   level: debug
 selfservice:
   allowed_return_urls:
-    - http://fynbos.test
-  default_browser_return_url: http://fynbos.test
+    - http://interledger.test
+  default_browser_return_url: http://interledger.test
   flows:
     error:
-      ui_url: http://fynbos.test/error
+      ui_url: http://interledger.test/error
     login:
       after:
-        default_browser_return_url: http://fynbos.test
+        default_browser_return_url: http://interledger.test
       lifespan: 10m
-      ui_url: http://fynbos.test/login
+      ui_url: http://interledger.test/login
     logout:
       after:
-        default_browser_return_url: http://fynbos.test
+        default_browser_return_url: http://interledger.test
     recovery:
       enabled: true
       lifespan: 15m
-      ui_url: http://fynbos.test/error
+      ui_url: http://interledger.test/error
     registration:
       after:
-        default_browser_return_url: http://fynbos.test
+        default_browser_return_url: http://interledger.test
         password:
-          default_browser_return_url: http://fynbos.test
+          default_browser_return_url: http://interledger.test
           hooks:
             - hook: session
       enabled: true
       lifespan: 10m
-      ui_url: http://fynbos.test/signup
+      ui_url: http://interledger.test/signup
     settings:
       privileged_session_max_age: 15m
-      ui_url: http://fynbos.test/settings
+      ui_url: http://interledger.test/settings
     verification:
       after:
-        default_browser_return_url: http://fynbos.test
+        default_browser_return_url: http://interledger.test
       enabled: true
-      ui_url: http://fynbos.test/verify
+      ui_url: http://interledger.test/verify
   methods:
     link:
       config:
-        base_url: http://fynbos.test
+        base_url: http://interledger.test
         lifespan: 1h
       enabled: true
     password:
@@ -101,7 +101,7 @@ serve:
   admin:
     port: 4434
   public:
-    base_url: http://fynbos.test
+    base_url: http://interledger.test
     cors:
       enabled: true
     port: 4433

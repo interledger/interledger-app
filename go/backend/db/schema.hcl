@@ -1954,6 +1954,11 @@ table "wallet_features" {
     type = boolean
     default = false
   }
+  column "manage_wallet_cards_enabled" {
+    null = false
+    type = boolean
+    default = false
+  }
   column "created_at" {
     null    = false
     type    = timestamp
@@ -3410,6 +3415,14 @@ table "gatehub_users" {
   column "wallet_id" {
     null = false
     type = uuid
+  }
+  column "external_customer_id" {
+    null = true
+    type = text
+  }
+  column "external_account_id" {
+    null = true
+    type = text
   }
   column "created_at" {
     null    = false

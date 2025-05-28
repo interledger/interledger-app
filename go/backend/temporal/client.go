@@ -14,6 +14,7 @@ import (
 	"go.temporal.io/sdk/interceptor"
 	"go.temporal.io/sdk/workflow"
 	"go.uber.org/zap"
+	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 func NewTemporalClient(temporalUrl string) (client.Client, error) {
@@ -39,15 +40,25 @@ func NewTemporalClient(temporalUrl string) (client.Client, error) {
 		return c, nil
 	}
 
-	paymentsRetentionPeriod := 10 * 365 * 24 * time.Hour
+	var existsError *serviceerror.NamespaceAlreadyExists
+
+	var defaultRetentionPeriod durationpb.Duration = *durationpb.New(3 * 24 * time.Hour)
+	err = nc.Register(context.Background(), &workflowservice.RegisterNamespaceRequest{
+		Namespace:                        "default",
+		WorkflowExecutionRetentionPeriod: &defaultRetentionPeriod,
+	})
+	if err != nil && !errors.As(err, &existsError) {
+		log.Error("Failed to register temporal default namespace.", zap.Error(err))
+	}
+
+	var paymentsRetentionPeriod durationpb.Duration = *durationpb.New(10 * 365 * 24 * time.Hour)
+
 	err = nc.Register(context.Background(), &workflowservice.RegisterNamespaceRequest{
 		Namespace:                        "payments",
 		WorkflowExecutionRetentionPeriod: &paymentsRetentionPeriod,
 	})
-	var existsError *serviceerror.NamespaceAlreadyExists
 	if err != nil && !errors.As(err, &existsError) {
 		log.Error("Failed to register temporal payments namespace.", zap.Error(err))
-		return c, nil
 	}
 
 	return c, nil
