@@ -42,7 +42,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     session.identity.traits.firstName + ' ' + session.identity.traits.lastName
 
   while (!usernameIsValid && attempts < 5) {
-    let response = await grpc.walletAddressExists(request, {
+    let response = await grpc.walletAddressValid(request, {
       url: `https://${PAYMENT_POINTER_BASE}/${username}`
     })
 
@@ -90,12 +90,37 @@ export default function Page() {
   const _onChangeInput = useCallback<ChangeEventHandler<HTMLInputElement>>(
     (event) => {
       const username = event.target.value
-      if (username?.length >= 3) {
-        fetcher.submit({ username, csrfToken }, { method: 'post' })
-      }
+      fetcher.submit({ username, csrfToken }, { method: 'post' })
     },
     [csrfToken, fetcher]
   )
+
+  const _validateInput = () => {
+    const fetcherUserNameError = fetcher.data?.errors.username
+    const hasError = fetcherUserNameError || false
+
+    const appendIcon = hasError ? (
+      <Icon className='text-error'>error</Icon>
+    ) : (
+      <Icon className='text-success'>check</Icon>
+    )
+
+    const ariaInvalid = Boolean(hasError) || undefined
+    const ariaDescribedby = hasError ? 'username-error' : undefined
+
+    const errorMessage = fetcherUserNameError || undefined
+    const successMessage = hasError
+      ? undefined
+      : 'This wallet address is available.'
+
+    return {
+      appendIcon,
+      'aria-invalid': ariaInvalid,
+      'aria-describedby': ariaDescribedby,
+      errorMessage,
+      successMessage
+    }
+  }
 
   return (
     <>
@@ -128,30 +153,12 @@ export default function Page() {
           form='wallet-address'
           label='Wallet address'
           name='username'
-          prefix={`${paymentPointerBase}/`}
-          appendIcon={
-            username == '' &&
-            typeof fetcher.data == 'undefined' ? undefined : fetcher.data
-                ?.errors.username ? (
-              <Icon className='text-error'>error</Icon>
-            ) : (
-              <Icon className='text-success'>check</Icon>
-            )
-          }
-          defaultValue={username}
-          onChange={_onChangeInput}
           type='text'
           className='mt-2'
-          aria-invalid={Boolean(fetcher.data?.errors.username) || undefined}
-          aria-describedby={
-            fetcher.data?.errors.username ? 'username-error' : undefined
-          }
-          errorMessage={fetcher.data?.errors.username || undefined}
-          successMessage={
-            fetcher.data?.errors.username || username == ''
-              ? undefined
-              : 'This wallet address is available.'
-          }
+          prefix={`${paymentPointerBase}/`}
+          defaultValue={username}
+          onChange={_onChangeInput}
+          {..._validateInput()}
         />
       </Card>
       <Button form='wallet-address' type='submit'>
@@ -178,7 +185,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   const publicName = username
 
-  let response = await grpc.walletAddressExists(request, {
+  let response = await grpc.walletAddressValid(request, {
     url: `https://${PAYMENT_POINTER_BASE}/${username}`
   })
   if (isConnectError(response)) {
