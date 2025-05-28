@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/db"
@@ -205,7 +206,8 @@ func ListAll(ctx context.Context, b Backends, _ db.Pagination) ([]wallets.Wallet
 }
 
 func SetWalletName(ctx context.Context, b Backends, id, name string) (*wallets.Wallet, error) {
-	_, err := b.DB().ExecContext(ctx, "UPDATE wallets set name = $1 where id = $2", name, id)
+	// We convert the public name to lowercase as well, to match the wallet address name.
+	_, err := b.DB().ExecContext(ctx, "UPDATE wallets set name = $1 where id = $2", strings.ToLower(name), id)
 	if err != nil {
 		return nil, err
 	}

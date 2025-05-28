@@ -117,8 +117,8 @@ import type { PublicWalletInfo } from "./backend";
 import type { GetPublicWalletInfoRequest } from "./backend";
 import type { WalletInfo } from "./backend";
 import type { SetWalletNameRequest } from "./backend";
-import type { WalletAddressExistsResponse } from "./backend";
-import type { WalletAddressExistsRequest } from "./backend";
+import type { WalletAddressValidResponse } from "./backend";
+import type { WalletAddressValidRequest } from "./backend";
 import type { CreateWalletAddressRequest } from "./backend";
 import type { CreateUserDefaultWalletRequest } from "./backend";
 import type { CompleteSignupRequest } from "./backend";
@@ -182,9 +182,9 @@ export interface IBackendServiceClient {
      */
     createWalletAddress(input: CreateWalletAddressRequest, options?: RpcOptions): UnaryCall<CreateWalletAddressRequest, Empty>;
     /**
-     * @generated from protobuf rpc: WalletAddressExists(backend.v1.WalletAddressExistsRequest) returns (backend.v1.WalletAddressExistsResponse);
+     * @generated from protobuf rpc: WalletAddressValid(backend.v1.WalletAddressValidRequest) returns (backend.v1.WalletAddressValidResponse);
      */
-    walletAddressExists(input: WalletAddressExistsRequest, options?: RpcOptions): UnaryCall<WalletAddressExistsRequest, WalletAddressExistsResponse>;
+    walletAddressValid(input: WalletAddressValidRequest, options?: RpcOptions): UnaryCall<WalletAddressValidRequest, WalletAddressValidResponse>;
     /**
      * @generated from protobuf rpc: SetWalletName(backend.v1.SetWalletNameRequest) returns (backend.v1.Empty);
      */
@@ -685,11 +685,11 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
         return stackIntercept<CreateWalletAddressRequest, Empty>("unary", this._transport, method, opt, input);
     }
     /**
-     * @generated from protobuf rpc: WalletAddressExists(backend.v1.WalletAddressExistsRequest) returns (backend.v1.WalletAddressExistsResponse);
+     * @generated from protobuf rpc: WalletAddressValid(backend.v1.WalletAddressValidRequest) returns (backend.v1.WalletAddressValidResponse);
      */
-    walletAddressExists(input: WalletAddressExistsRequest, options?: RpcOptions): UnaryCall<WalletAddressExistsRequest, WalletAddressExistsResponse> {
+    walletAddressValid(input: WalletAddressValidRequest, options?: RpcOptions): UnaryCall<WalletAddressValidRequest, WalletAddressValidResponse> {
         const method = this.methods[9], opt = this._transport.mergeOptions(options);
-        return stackIntercept<WalletAddressExistsRequest, WalletAddressExistsResponse>("unary", this._transport, method, opt, input);
+        return stackIntercept<WalletAddressValidRequest, WalletAddressValidResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: SetWalletName(backend.v1.SetWalletNameRequest) returns (backend.v1.Empty);
