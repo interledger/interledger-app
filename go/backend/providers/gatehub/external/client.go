@@ -16,7 +16,9 @@ import (
 
 	httplog "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/env"
+	"gitlab.com/fynbos/log"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.uber.org/zap"
 )
 
 var (
@@ -151,6 +153,8 @@ func (c *client) IssueToken(ctx context.Context, userID string, product Product)
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 	req.Header.Add("Content-Type", "application/json")
+
+	log.Info("request", zap.Any("req", req))
 
 	resp, err := c.api.Do(req)
 	if err != nil {
