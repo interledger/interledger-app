@@ -11,10 +11,6 @@ import (
 	"go.uber.org/zap"
 )
 
-type wa struct {
-	ID string
-}
-
 func MigrateWalletAddressesToLowercaseJob(ctx workflow.Context) error {
 	var a *Activity
 	ao := workflow.ActivityOptions{
