@@ -14,10 +14,8 @@ import (
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
-	"go.uber.org/zap"
 
 	"gitlab.com/fynbos/backend/wallets"
-	"gitlab.com/fynbos/log"
 )
 
 func Create(ctx context.Context, b Backends, args wallets.CreateArgs) (*wallets.Wallet, error) {
@@ -81,11 +79,12 @@ func Create(ctx context.Context, b Backends, args wallets.CreateArgs) (*wallets.
 	if err != nil {
 		return nil, err
 	}
-	err = b.Keys().ProvisionPrivateKey(ctx, walletID)
-	if err != nil {
-		log.Error("could not provision private key", zap.Error(err))
-		return nil, err
-	}
+	// Do not provision custodial private key
+	// err = b.Keys().ProvisionPrivateKey(ctx, walletID)
+	// if err != nil {
+	// 	log.Error("could not provision private key", zap.Error(err))
+	// 	return nil, err
+	// }
 
 	return Get(ctx, b, walletID)
 }
