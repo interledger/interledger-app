@@ -243,7 +243,7 @@ func Withdraw(ctx context.Context, b Backends, ex external.Client, walletID stri
 			Name:      fmt.Sprintf("%s %s", ul[0].FirstName, ul[0].LastName),
 			Email:     email,
 			Amount:    amt.Float64(),
-			Narration: "Fynbos wallet withdrawal",
+			Narration: "Interledger wallet withdrawal",
 		}},
 	})
 	if err != nil {

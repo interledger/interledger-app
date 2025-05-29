@@ -25,7 +25,7 @@ func (a *Activity) WithdrawFromXagoBalance(ctx context.Context, paymentID string
 		LinkedAccountID: p.ReceiverAccount,
 		TransactionID:   p.SendTransactionID,
 		Amount:          p.ReceiverAmount,
-		Reference:       "Fynbos - " + p.PublicID,
+		Reference:       "Interledger - " + p.PublicID,
 	})
 	if err != nil {
 		return "", err

@@ -38,7 +38,7 @@ func TestGeneratePrivateAndListKeys(t *testing.T) {
 	require.Equal(t, walletID, key.WalletID)
 	require.Equal(t, "database", key.Location)
 	require.Equal(t, keys.Custodial.String(), key.Type.String())
-	require.Equal(t, "Fynbos Managed", key.Name)
+	require.Equal(t, "Interledger Managed", key.Name)
 }
 
 func TestCantGeneratePrivateDuplicateKeys(t *testing.T) {
@@ -204,7 +204,7 @@ func TestGeneratePrivateVaultKey(t *testing.T) {
 	require.Equal(t, walletID, key.WalletID)
 	require.Equal(t, "vault", key.Location)
 	require.Equal(t, keys.Custodial.String(), key.Type.String())
-	require.Equal(t, "Fynbos Managed", key.Name)
+	require.Equal(t, "Interledger Managed", key.Name)
 }
 
 func TestCanSignAndVerifyCustodialKeysVault(t *testing.T) {

@@ -162,10 +162,10 @@ func ParseAddress(rawAddress string) (Address, error) {
 }
 
 // standardize takes in a wallet address in either the forms:
-// - https://fynbos.me/alice
-// - fynbos.me/alice
-// - $fynbos.me/alice
-// Returns the standard format of : https:///fynbos.me/alice
+// - https://ilp.link/alice
+// - ilp.link/alice
+// - $ilp.link/alice
+// Returns the standard format of : https:///ilp.link/alice
 func standardize(wa string) string {
 	addr := strings.ToLower(wa)
 

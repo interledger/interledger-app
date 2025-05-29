@@ -22,7 +22,7 @@ if (
       new Sentry.Replay()
     ],
     tracesSampleRate: 1.0,
-    tracePropagationTargets: ['https://fynbos.app'],
+    tracePropagationTargets: ['https://interledger.app'],
     replaysSessionSampleRate: 0,
     replaysOnErrorSampleRate: 1.0
   })

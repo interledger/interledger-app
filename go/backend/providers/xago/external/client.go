@@ -428,6 +428,7 @@ func (c *client) CreateTransaction(ctx context.Context, amt currency.Amount, ide
 	if err != nil {
 		return "", err
 	}
+	// TODO: after talking to xago
 	if reference == "" {
 		reference = "Fynbos"
 	}

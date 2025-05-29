@@ -64,7 +64,7 @@ func (a *Activity) PostProofTweet(ctx context.Context, identityID string) (strin
 	// Post Tweet
 	base64SigHas := base64.URLEncoding.EncodeToString(id.SignatureHash)
 
-	tweetCopy := "Just connected my @fynbosdev wallet with my @Twitter account! Now it's easier than ever to send and receive payments using @" + connection.Username + ". \n\n#ConnectedWallet " + wallet.AddressString() + "/identities/" + base64SigHas
+	tweetCopy := "Just connected my @Interledgerdev wallet with my @Twitter account! Now it's easier than ever to send and receive payments using @" + connection.Username + ". \n\n#ConnectedWallet " + wallet.AddressString() + "/identities/" + base64SigHas
 
 	tweet, err := a.b.Twitter().PostTweet(ctx, connection.ID, tweetCopy)
 	if err != nil {
