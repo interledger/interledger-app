@@ -122,9 +122,9 @@ func AuthURL() string {
 			if IsProd() {
 				authURL = "https://auth.ilp.link"
 			} else if IsDev() {
-				authURL = "https://auth.ilp.link"
+				authURL = "https://auth.sandbox.ilp.link"
 			} else if IsLocal() || IsTest() {
-				authURL = "https://auth.interledger.test"
+				authURL = "https://auth.local.ilp.link"
 			} else {
 				authURL = "https://auth.ilp.link"
 			}
@@ -142,13 +142,13 @@ func AdminURL() string {
 		adminURL = os.Getenv("ADMIN_BASE_URL")
 		if adminURL == "" {
 			if IsProd() {
-				adminURL = "https://admin.interledger.app"
+				adminURL = "https://admin.interledger.tech"
 			} else if IsDev() {
-				adminURL = "https://admin.sandbox.interledger.app"
+				adminURL = "https://admin.sandbox.interledger.tech"
 			} else if IsLocal() || IsTest() {
 				adminURL = "https://admin.interledger.test"
 			} else {
-				adminURL = "https://admin.sandbox.interledger.app"
+				adminURL = "https://admin.sandbox.interledger.tech"
 			}
 		}
 	})

@@ -16,7 +16,9 @@ import (
 
 	httplog "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/env"
+	"gitlab.com/fynbos/log"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.uber.org/zap"
 )
 
 var (

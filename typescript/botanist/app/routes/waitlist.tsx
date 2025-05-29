@@ -41,7 +41,7 @@ export default function Page() {
       }
     } else {
       await navigator.clipboard.writeText(
-        `https://fynbos.app/signup?waitlistSignupId=${id}`
+        `https://interledger.app/signup?waitlistSignupId=${id}`
       )
     }
   }

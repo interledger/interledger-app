@@ -11,6 +11,7 @@ import { captureMessage } from '@sentry/remix'
 
 const token = process.env.DATO_API_TOKEN || ''
 
+// Can be removed after we migrate away from the DATO responses
 const httpLink = createHttpLink({
   uri: 'https://dato.fynbos.workers.dev/'
 })

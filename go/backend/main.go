@@ -221,7 +221,27 @@ func start(args *cli.StartArgs) {
 	if err != nil {
 		log.Fatalln(err)
 	}
-
+	//
+	// type testt struct {
+	// 	Test string `json:"test"`
+	// }
+	//
+	// body, err := json.Marshal(&testt{Test: "test"})
+	// if err != nil {
+	// 	panic("test")
+	// }
+	//
+	// log.Info("waiting for shutdown")
+	//
+	// req, err := http.NewRequest("GET", "http://test.com", bytes.NewBuffer(body))
+	// if err != nil {
+	// 	panic("test")
+	// }
+	//
+	// req.Header.Add("test", "test")
+	//
+	// log.Info("req", zap.Any("req", req.Header))
+	//
 	serveGrpc("8443", server, &wg)
 
 	adminServer, err := admin.NewServer(b)
@@ -231,7 +251,6 @@ func start(args *cli.StartArgs) {
 
 	serveGrpc("8448", adminServer, &wg)
 
-	log.Info("waiting for shutdown")
 	wg.Wait()
 	b.analytics.Close()
 	log.Info("clean shutdown")

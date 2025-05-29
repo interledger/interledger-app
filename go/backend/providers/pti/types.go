@@ -7,11 +7,12 @@ import (
 	"gitlab.com/fynbos/backend/currency"
 )
 
-// TODO: asked fot 12 may 2025
+// TODO: asked for 12 may 2025
 const (
 	ProviderName   = "pti"
 	AccTypeBalance = "balance"
 
+	// TODO: Ask?
 	ScenarioTransfer   = "fynbos_transfer"
 	ScenarioDeposit    = "fynbos_deposit"
 	ScenarioWithdrawal = "fynbos_withdrawal"

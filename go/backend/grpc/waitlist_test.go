@@ -17,10 +17,10 @@ func TestJoinWaitlist(t *testing.T) {
 	c := NewTestContainer(t, ctrl)
 	_, _, client := startTestServer(t, c)
 
-	c.WaitlistClient.EXPECT().Add(gomock.Any(), "join@fynbos.dev", "ZA", "Bob", "", false).Return(nil).Times(1)
+	c.WaitlistClient.EXPECT().Add(gomock.Any(), "join@interledger.test", "ZA", "Bob", "", false).Return(nil).Times(1)
 
 	_, err := client.JoinWaitlist(context.Background(), &pb.JoinWaitlistRequest{
-		Email:       "join@fynbos.dev",
+		Email:       "join@interledger.test",
 		CountryCode: "ZA",
 		FullName:    "Bob",
 		BetaOptIn:   false,
@@ -34,10 +34,10 @@ func TestJoinWaitlistWithBetaOptIn(t *testing.T) {
 	c := NewTestContainer(t, ctrl)
 	_, _, client := startTestServer(t, c)
 
-	c.WaitlistClient.EXPECT().Add(gomock.Any(), "join@fynbos.dev", "ZA", "Bob", "", true).Return(nil).Times(1)
+	c.WaitlistClient.EXPECT().Add(gomock.Any(), "join@interledger.test", "ZA", "Bob", "", true).Return(nil).Times(1)
 
 	_, err := client.JoinWaitlist(context.Background(), &pb.JoinWaitlistRequest{
-		Email:       "join@fynbos.dev",
+		Email:       "join@interledger.test",
 		CountryCode: "ZA",
 		FullName:    "Bob",
 		BetaOptIn:   true,
