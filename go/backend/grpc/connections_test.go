@@ -148,7 +148,7 @@ func TestUpdatePublicKeyLimits(t *testing.T) {
 		ID: uuid.NewString(),
 	}
 
-	wa, err := wallets.ParseAddress("https://local.fynbos.me/test")
+	wa, err := wallets.ParseAddress("https://local.ilp.link/test")
 	require.NoError(t, err)
 
 	wallet := wallets.Wallet{

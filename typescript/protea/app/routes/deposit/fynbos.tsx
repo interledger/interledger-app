@@ -88,7 +88,7 @@ export async function fynbosDepositLoader({ request }: LoaderFunctionArgs) {
   }
 
   return jsonWithCSRF(request, {
-    provider: 'fynbos',
+    provider: 'interledger',
     balanceAccount,
     balance,
     balances,

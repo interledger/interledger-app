@@ -156,6 +156,7 @@ export default function Page() {
                 <img
                   className='w-full sm:w-2/5'
                   alt='Interledger Wallet mug'
+                  // TODO: Use our own CDN
                   src='https://cdn.fynbos.app/marketing/enamel-mug-waitlist.webp'
                 />
               </div>

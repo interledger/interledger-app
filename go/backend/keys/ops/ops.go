@@ -47,7 +47,7 @@ func GeneratePrivateKey(ctx context.Context, b Backends, walletID string) error 
 		var id string
 		err = b.DB().GetContext(ctx, &id,
 			"INSERT INTO wallet_keys (wallet_id,key_type,location, reference, name, public_key, key_id) values ($1, $2, $3, $4, $5, $6, $7) returning id",
-			walletID, keys.Custodial.String(), "database", base64.StdEncoding.EncodeToString(privateKey.Seed()), "Fynbos Managed", publicKeyBase64, uuid.NewString())
+			walletID, keys.Custodial.String(), "database", base64.StdEncoding.EncodeToString(privateKey.Seed()), "Interledger Managed", publicKeyBase64, uuid.NewString())
 		if err != nil {
 			return fmt.Errorf("%w %s", keys.ErrInternal, err)
 		}
@@ -70,7 +70,7 @@ func GeneratePrivateKey(ctx context.Context, b Backends, walletID string) error 
 
 	err = b.DB().GetContext(ctx, &id,
 		"INSERT INTO wallet_keys (wallet_id,key_type,location, reference, name, public_key, key_id) values ($1, $2, $3, $4, $5, $6, $7) returning id",
-		walletID, keys.Custodial.String(), "vault", keyID, "Fynbos Managed", publicKey, uuid.NewString())
+		walletID, keys.Custodial.String(), "vault", keyID, "Interledger Managed", publicKey, uuid.NewString())
 	if err != nil {
 		return fmt.Errorf("%w %s", keys.ErrInternal, err)
 	}

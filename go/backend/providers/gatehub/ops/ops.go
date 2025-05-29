@@ -262,7 +262,7 @@ func validateWithdrawal(ctx context.Context, b Backends, ec external.Client, wal
 		return currency.Amount{}, nil, fmt.Errorf("%w Gatehub balance linked account not found", gatehub.ErrNotFound)
 	}
 	if balance.ProviderID != trx.SendingWallet.Address {
-		return currency.Amount{}, nil, fmt.Errorf("%w Gatehub withdrawal is not for this Fynbos wallet", gatehub.ErrInternal)
+		return currency.Amount{}, nil, fmt.Errorf("%w Gatehub withdrawal is not for this Interledger wallet", gatehub.ErrInternal)
 	}
 
 	parts := strings.Split(trx.Amount, ".")

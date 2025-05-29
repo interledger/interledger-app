@@ -73,6 +73,7 @@ func UserForContext(ctx context.Context) (*user.User, error) {
 	return u, nil
 }
 
+// TODO: Modify?
 func ListUsers(ctx context.Context, b Backends, walletID string) ([]user.User, error) {
 	if walletID == wallets.WebMonetizationWalletID {
 		return []user.User{

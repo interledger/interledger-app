@@ -35,7 +35,7 @@ func (s *rpcService) GetPaymentAddress(ctx context.Context, req *pb.GetPaymentAd
 		walletID = w.ID
 	}
 
-	if source == "fynbos" {
+	if source == "interledger" {
 		wallet, err := s.b.Wallets().GetFromAddress(ctx, add)
 		if err != nil {
 			return nil, toGRPCError(err)
@@ -93,8 +93,8 @@ func identifySource(input string) string {
 		}
 		parts := strings.Split(input, "/")
 		hostParts := strings.Split(parts[0], ".")
-		if strings.Contains(parts[0], "fynbos.me") {
-			return "fynbos"
+		if strings.Contains(parts[0], "ilp.link") {
+			return "interledger"
 		}
 		if strings.Contains(parts[0], "twitter.com") {
 			return "twitter"
@@ -102,8 +102,8 @@ func identifySource(input string) string {
 		return hostParts[0]
 	}
 
-	if strings.Contains(u.Hostname(), "fynbos.me") {
-		return "fynbos"
+	if strings.Contains(u.Hostname(), "ilp.link") {
+		return "interledger"
 	}
 	if strings.Contains(u.Hostname(), "twitter.com") {
 		return "twitter"

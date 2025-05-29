@@ -221,7 +221,7 @@ func CreatePaymentPointerKey(ctx context.Context, b Backends, keyID string, wall
 		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
 	}
 	if rows, _ := result.RowsAffected(); rows < 1 {
-		return fmt.Errorf("%w Mapping rafiki keys to fynbos key failed.", rafiki.ErrInternal)
+		return fmt.Errorf("%w Mapping rafiki keys to interledger key failed.", rafiki.ErrInternal)
 	}
 
 	return nil

@@ -53,7 +53,7 @@ func (a *Activity) CreateGatehubUser(ctx context.Context, walletID string) (stri
 		return "", fmt.Errorf("%w %s", gatehub.ErrInternal, err)
 	}
 	if len(ul) < 1 {
-		return "", fmt.Errorf("%w No Fynbos user found for walletID", gatehub.ErrInternal)
+		return "", fmt.Errorf("%w No Interledger user found for walletID", gatehub.ErrInternal)
 	}
 
 	resp, err := a.external.CreateUser(ctx, ul[0].Email)

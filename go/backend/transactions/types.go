@@ -78,7 +78,7 @@ type CreateTransactionArgs struct {
 }
 
 type UpdateTransactionArgs struct {
-	WalletID        string `validate:"uuid"` // Fynbos wallet ID
+	WalletID        string `validate:"uuid"` // InterledgerApp wallet ID
 	ForeignID       string `validate:"uuid"`
 	State           State  `validate:"required"`
 	Amount          currency.Amount
