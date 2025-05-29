@@ -29,7 +29,7 @@ service BackendService {
   rpc CreateUserDefaultWallet(CreateUserDefaultWalletRequest) returns (Empty);
   // Wallet
   rpc CreateWalletAddress(CreateWalletAddressRequest) returns (Empty);
-  rpc WalletAddressExists(WalletAddressExistsRequest) returns (WalletAddressExistsResponse);
+  rpc WalletAddressValid(WalletAddressValidRequest) returns (WalletAddressValidResponse);
   rpc SetWalletName(SetWalletNameRequest) returns (Empty);
   rpc GetWalletInfo(Empty) returns (WalletInfo);
   rpc GetPublicWalletInfo(GetPublicWalletInfoRequest) returns(PublicWalletInfo);
@@ -853,11 +853,11 @@ message LimitAmount {
   int32 percentage = 3;
 }
 
-message WalletAddressExistsRequest {
+message WalletAddressValidRequest {
   string url = 1;
 }
 
-message WalletAddressExistsResponse {
+message WalletAddressValidResponse {
   bool exists = 1;
 }
 

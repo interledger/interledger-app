@@ -1960,18 +1960,18 @@ export interface LimitAmount {
     percentage: number;
 }
 /**
- * @generated from protobuf message backend.v1.WalletAddressExistsRequest
+ * @generated from protobuf message backend.v1.WalletAddressValidRequest
  */
-export interface WalletAddressExistsRequest {
+export interface WalletAddressValidRequest {
     /**
      * @generated from protobuf field: string url = 1;
      */
     url: string;
 }
 /**
- * @generated from protobuf message backend.v1.WalletAddressExistsResponse
+ * @generated from protobuf message backend.v1.WalletAddressValidResponse
  */
-export interface WalletAddressExistsResponse {
+export interface WalletAddressValidResponse {
     /**
      * @generated from protobuf field: bool exists = 1;
      */
@@ -9286,20 +9286,20 @@ class LimitAmount$Type extends MessageType<LimitAmount> {
  */
 export const LimitAmount = new LimitAmount$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class WalletAddressExistsRequest$Type extends MessageType<WalletAddressExistsRequest> {
+class WalletAddressValidRequest$Type extends MessageType<WalletAddressValidRequest> {
     constructor() {
-        super("backend.v1.WalletAddressExistsRequest", [
+        super("backend.v1.WalletAddressValidRequest", [
             { no: 1, name: "url", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
-    create(value?: PartialMessage<WalletAddressExistsRequest>): WalletAddressExistsRequest {
+    create(value?: PartialMessage<WalletAddressValidRequest>): WalletAddressValidRequest {
         const message = { url: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<WalletAddressExistsRequest>(this, message, value);
+            reflectionMergePartial<WalletAddressValidRequest>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: WalletAddressExistsRequest): WalletAddressExistsRequest {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: WalletAddressValidRequest): WalletAddressValidRequest {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
@@ -9318,7 +9318,7 @@ class WalletAddressExistsRequest$Type extends MessageType<WalletAddressExistsReq
         }
         return message;
     }
-    internalBinaryWrite(message: WalletAddressExistsRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+    internalBinaryWrite(message: WalletAddressValidRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
         /* string url = 1; */
         if (message.url !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.url);
@@ -9329,24 +9329,24 @@ class WalletAddressExistsRequest$Type extends MessageType<WalletAddressExistsReq
     }
 }
 /**
- * @generated MessageType for protobuf message backend.v1.WalletAddressExistsRequest
+ * @generated MessageType for protobuf message backend.v1.WalletAddressValidRequest
  */
-export const WalletAddressExistsRequest = new WalletAddressExistsRequest$Type();
+export const WalletAddressValidRequest = new WalletAddressValidRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class WalletAddressExistsResponse$Type extends MessageType<WalletAddressExistsResponse> {
+class WalletAddressValidResponse$Type extends MessageType<WalletAddressValidResponse> {
     constructor() {
-        super("backend.v1.WalletAddressExistsResponse", [
+        super("backend.v1.WalletAddressValidResponse", [
             { no: 1, name: "exists", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
         ]);
     }
-    create(value?: PartialMessage<WalletAddressExistsResponse>): WalletAddressExistsResponse {
+    create(value?: PartialMessage<WalletAddressValidResponse>): WalletAddressValidResponse {
         const message = { exists: false };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<WalletAddressExistsResponse>(this, message, value);
+            reflectionMergePartial<WalletAddressValidResponse>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: WalletAddressExistsResponse): WalletAddressExistsResponse {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: WalletAddressValidResponse): WalletAddressValidResponse {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
@@ -9365,7 +9365,7 @@ class WalletAddressExistsResponse$Type extends MessageType<WalletAddressExistsRe
         }
         return message;
     }
-    internalBinaryWrite(message: WalletAddressExistsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+    internalBinaryWrite(message: WalletAddressValidResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
         /* bool exists = 1; */
         if (message.exists !== false)
             writer.tag(1, WireType.Varint).bool(message.exists);
@@ -9376,9 +9376,9 @@ class WalletAddressExistsResponse$Type extends MessageType<WalletAddressExistsRe
     }
 }
 /**
- * @generated MessageType for protobuf message backend.v1.WalletAddressExistsResponse
+ * @generated MessageType for protobuf message backend.v1.WalletAddressValidResponse
  */
-export const WalletAddressExistsResponse = new WalletAddressExistsResponse$Type();
+export const WalletAddressValidResponse = new WalletAddressValidResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class CreateWalletAddressRequest$Type extends MessageType<CreateWalletAddressRequest> {
     constructor() {
@@ -11324,7 +11324,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "CompleteSignup", options: {}, I: CompleteSignupRequest, O: Empty },
     { name: "CreateUserDefaultWallet", options: {}, I: CreateUserDefaultWalletRequest, O: Empty },
     { name: "CreateWalletAddress", options: {}, I: CreateWalletAddressRequest, O: Empty },
-    { name: "WalletAddressExists", options: {}, I: WalletAddressExistsRequest, O: WalletAddressExistsResponse },
+    { name: "WalletAddressValid", options: {}, I: WalletAddressValidRequest, O: WalletAddressValidResponse },
     { name: "SetWalletName", options: {}, I: SetWalletNameRequest, O: Empty },
     { name: "GetWalletInfo", options: {}, I: Empty, O: WalletInfo },
     { name: "GetPublicWalletInfo", options: {}, I: GetPublicWalletInfoRequest, O: PublicWalletInfo },

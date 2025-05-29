@@ -50,3 +50,7 @@ func (c client) FixWalletPublicKey(ctx context.Context, walletID string) error {
 func (c client) GetPublicKey(ctx context.Context, id string, walletID string) (*keys.Key, error) {
 	return ops.GetPublicKey(ctx, c.b, id, walletID)
 }
+
+func (c client) RemoveCustodialKeysForWallet(ctx context.Context, walletID string) error {
+	return ops.RemoveCustodialKeysForWallet(ctx, c.b, walletID)
+}
