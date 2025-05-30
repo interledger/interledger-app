@@ -395,7 +395,7 @@ func (a *Activity) AssignBalance(ctx context.Context, paymentID, txID string) er
 		return err
 	}
 
-	if p.Type != payments.TypePeer2Peer && p.Type != payments.TypeRafikiPeer2Peer && p.Type != payments.TypeDeposit {
+	if p.Type != payments.TypePeer2Peer && p.Type != payments.TypeRafikiPeer2Peer && p.Type != payments.TypeDeposit && p.Type != payments.TypeWebMonetization {
 		return nil
 	}
 
