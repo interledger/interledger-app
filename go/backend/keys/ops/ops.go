@@ -323,11 +323,17 @@ func RemoveCustodialKeysForWallet(ctx context.Context, b Backends, walletID stri
 
 			err = b.Rafiki().RevokePaymentPointerKey(ctx, k.ID)
 			if err != nil {
-				// Skip this key and continue to the next one if the custodial
+				// Do not fail and continue to the next one if the custodial
 				// key was not added to Rafiki
-				if errors.Is(err, rafiki.ErrInternal) &&
-					strings.Contains(err.Error(), "no rows in result set") {
-					log.Info("Skipping key - no reference in Rafiki", zap.String("keyId", k.ID))
+				if errors.Is(err, rafiki.ErrInternal) && strings.Contains(err.Error(), "no rows in result set") {
+					log.Info("nothing to revoke from Rafiki - no reference in Rafiki", zap.String("keyId", k.ID))
+					continue
+				}
+
+				// Do not fail and continue to the next one if the Rafiki reference
+				// does not exist in Rafiki's store
+				if errors.Is(err, rafiki.ErrInternal) && strings.Contains(err.Error(), "Wallet address key not found") {
+					log.Info("nothing to revoke from Rafiki - rafiki reference present, but not present in Rafiki's store", zap.String("keyId", k.ID))
 					continue
 				}
 
