@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"gitlab.com/fynbos/log"
@@ -14,6 +15,7 @@ import (
 
 	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/keys"
+	"gitlab.com/fynbos/backend/rafiki"
 	"gitlab.com/fynbos/backend/vault"
 	"gitlab.com/fynbos/env"
 )
@@ -321,7 +323,15 @@ func RemoveCustodialKeysForWallet(ctx context.Context, b Backends, walletID stri
 
 			err = b.Rafiki().RevokePaymentPointerKey(ctx, k.ID)
 			if err != nil {
-				return fmt.Errorf("%w %s", keys.ErrInternal, err)
+				// Skip this key and continue to the next one if the custodial
+				// key was not added to Rafiki
+				if errors.Is(err, rafiki.ErrInternal) &&
+					strings.Contains(err.Error(), "no rows in result set") {
+					log.Info("Skipping key - no reference in Rafiki", zap.String("keyId", k.ID))
+					continue
+				}
+
+				return err
 			}
 		}
 	}
