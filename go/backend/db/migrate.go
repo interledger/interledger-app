@@ -74,6 +74,7 @@ func Migrate(ctx context.Context, connString string) error {
 		"--auto-approve",
 		"-u",
 		connString,
+		"--schema", "public", // Atlas MUST use schema name "public"
 		"-f",
 		filepath.Join(moduleDir, "../schema.hcl"),
 	}
