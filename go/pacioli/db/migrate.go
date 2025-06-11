@@ -47,12 +47,15 @@ func Migrate(ctx context.Context, connString string) error {
 		return fmt.Errorf("failed to write to temporary file: %w", err)
 	}
 
+	log.Info("Applying pacioli migrations")
+
 	args := []string{
 		"schema",
 		"apply",
 		"--auto-approve",
 		"-u",
 		connString,
+		"--schema", "public",
 		"-f",
 		tmpFile.Name(),
 	}
@@ -64,6 +67,8 @@ func Migrate(ctx context.Context, connString string) error {
 		return err
 	}
 
+	log.Info("Pacioli Atlas migration applied successfully", zap.String("output", string(out)))
+	
 	return nil
 }
 
