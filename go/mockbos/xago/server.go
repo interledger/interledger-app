@@ -60,6 +60,11 @@ func (s *Server) CreateSubAccount() http.HandlerFunc {
 			LastName:     req.LastName,
 			Email:        req.Email,
 			MobileNumber: req.MobileNumber,
+			DateOfBirth: pgtype.Date{
+				Time:             time.Date(1985, time.July, 23, 0, 0, 0, 0, time.UTC),
+				InfinityModifier: pgtype.Finite,
+				Valid:            true,
+			},
 		})
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -167,14 +172,14 @@ func (s *Server) AddBeneficiary() http.HandlerFunc {
 			})
 		}
 
-		// Mock response
-		var resp = external.CreateBeneficiaryResp{
-			Status:        200,
-			Beneficiaries: bs,
-		}
+		// // Mock response
+		// var resp = external.CreateBeneficiaryResp{
+		// 	Status:        200,
+		// 	Beneficiaries: bs,
+		// }
 
 		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(resp); err != nil {
+		if err := json.NewEncoder(w).Encode(bs); err != nil {
 			// At this point, since the header and possibly part of the body are already written,
 			// you cannot send a new status code or additional headers.
 			// Log the error for server-side diagnostics.
