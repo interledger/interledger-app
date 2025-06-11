@@ -29,7 +29,7 @@ import (
 
 type Client interface {
 	CreateSubAccount(ctx context.Context, user user.User, details kyc.IndividualDetails, personaInquiryURL string) (*SubAccount, error)
-	AddBeneficiary(ctx context.Context, reqStruct CreateBeneficiaryReq) (string, error)
+	AddBeneficiary(ctx context.Context, reqStruct CreateBeneficiaryReq) (*AccountBeneficiaries, error)
 	ListBeneficiaries(ctx context.Context, limit, page uint) (*ListBeneficiariesResponse, error)
 	CreateTransaction(ctx context.Context, amt currency.Amount, idempotencyKey, beneficiaryID, reference string) (string, error)
 	ListDeposits(ctx context.Context, page int) ([]Deposit, error)
@@ -283,15 +283,15 @@ func (c *client) CreateSubAccount(ctx context.Context, user user.User, details k
 	return &respData, nil
 }
 
-func (c *client) AddBeneficiary(ctx context.Context, reqStruct CreateBeneficiaryReq) (string, error) {
+func (c *client) AddBeneficiary(ctx context.Context, reqStruct CreateBeneficiaryReq) (*AccountBeneficiaries, error) {
 	reqUrl, err := url.JoinPath(c.identityBaseURL, "beneficiaries")
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	reqBody, err := json.Marshal(reqStruct)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	meta, ok := httplog.MetaForContext(ctx)
@@ -307,11 +307,11 @@ func (c *client) AddBeneficiary(ctx context.Context, reqStruct CreateBeneficiary
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqUrl, bytes.NewReader(reqBody))
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	token, err := c.AccessToken(ctx, false)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json")
@@ -319,19 +319,19 @@ func (c *client) AddBeneficiary(ctx context.Context, reqStruct CreateBeneficiary
 
 	resp, err := c.api.Do(req)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		token, err = c.AccessToken(ctx, true)
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 		req.Header.Set("Authorization", "Bearer "+token.Token)
 
 		resp, err = c.api.Do(req)
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 		if resp.StatusCode == http.StatusUnauthorized {
 			log.Info("refreshed xago token not authorized for add beneficiary")
@@ -339,15 +339,21 @@ func (c *client) AddBeneficiary(ctx context.Context, reqStruct CreateBeneficiary
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("failed to add xargo beneficiary (%d - %s)", resp.StatusCode, resp.Status)
+		return nil, fmt.Errorf("failed to add xargo beneficiary (%d - %s)", resp.StatusCode, resp.Status)
 	}
 
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return strings.Trim(string(respBody), "\""), nil
+	var respData []AccountBeneficiaries
+	err = json.Unmarshal(respBody, &respData)
+	if err != nil {
+		return nil, err
+	}
+
+	return &respData[0], nil
 }
 
 func (c *client) ListBeneficiaries(ctx context.Context, limit, page uint) (*ListBeneficiariesResponse, error) {
