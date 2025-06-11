@@ -279,14 +279,8 @@ func CreateBeneficiaryWorkflow(ctx workflow.Context, bankAcc xago.CreateBankAcco
 		}
 	}
 
-	var externalBeneficiaryID string
-	err = workflow.ExecuteActivity(ctx, a.CreateExternalBeneficiaries, bankAcc).Get(ctx, &externalBeneficiaryID)
-	if err != nil {
-		return nil, err
-	}
-
 	var beneficiary external.AccountBeneficiaries
-	err = workflow.ExecuteActivity(ctx, a.GetExternalBeneficiary, externalBeneficiaryID).Get(ctx, &beneficiary)
+	err = workflow.ExecuteActivity(ctx, a.CreateExternalBeneficiaries, bankAcc).Get(ctx, &beneficiary)
 	if err != nil {
 		return nil, err
 	}
@@ -314,24 +308,24 @@ func CreateBeneficiaryWorkflow(ctx workflow.Context, bankAcc xago.CreateBankAcco
 	return &la, nil
 }
 
-func (a *Activity) CreateExternalBeneficiaries(ctx context.Context, bankAcc xago.CreateBankAccountArgs) (string, error) {
+func (a *Activity) CreateExternalBeneficiaries(ctx context.Context, bankAcc xago.CreateBankAccountArgs) (*external.AccountBeneficiaries, error) {
 	subAccount, err := LookupSubAccount(ctx, a.b, bankAcc.WalletID)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	details, err := a.b.KYC().GetIndividualDetails(ctx, bankAcc.WalletID)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	userList, err := a.b.Users().ListUsers(ctx, bankAcc.WalletID)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	if len(userList) < 1 {
 		err = fmt.Errorf("%w wallet has (%d) users associated", xago.ErrInternal, len(userList))
-		return "", err
+		return nil, err
 	}
 
 	reqStruct := external.CreateBeneficiaryReq{
@@ -361,12 +355,12 @@ func (a *Activity) CreateExternalBeneficiaries(ctx context.Context, bankAcc xago
 		reqStruct.BeneficiaryDistrict = details.Address.State
 	}
 
-	beneficiaryID, err := a.b.External().AddBeneficiary(ctx, reqStruct)
+	beneficiary, err := a.b.External().AddBeneficiary(ctx, reqStruct)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return beneficiaryID, nil
+	return beneficiary, nil
 }
 
 func (a *Activity) GetExternalBeneficiary(ctx context.Context, externalID string) (*external.AccountBeneficiaries, error) {
