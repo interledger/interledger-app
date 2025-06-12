@@ -363,6 +363,7 @@ func (a *Activity) CreateExternalBeneficiaries(ctx context.Context, bankAcc xago
 	return beneficiary, nil
 }
 
+// Not used at the moment; can be removed once the Xago integration is updated
 func (a *Activity) GetExternalBeneficiary(ctx context.Context, externalID string) (*external.AccountBeneficiaries, error) {
 	var err error
 	var response *external.ListBeneficiariesResponse
