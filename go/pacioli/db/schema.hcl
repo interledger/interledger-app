@@ -65,6 +65,16 @@ table "ledger_accounts" {
   check "credits_pending_non_negative" {
     expr = "credits_pending >= 0"
   }
+  check "credits_posted_non_negative" {
+    expr = "credits_posted >= 0"
+  }
+  check "debits_pending_non_negative" {
+    expr = "debits_pending >= 0"
+  }
+  check "debits_posted_non_negative" {
+    expr = "debits_posted >= 0"
+  }
+
 }
 table "ledger_transfers" {
   schema = schema.public
