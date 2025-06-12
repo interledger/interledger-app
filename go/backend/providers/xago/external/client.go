@@ -347,13 +347,13 @@ func (c *client) AddBeneficiary(ctx context.Context, reqStruct CreateBeneficiary
 		return nil, err
 	}
 
-	var respData []AccountBeneficiaries
-	err = json.Unmarshal(respBody, &respData)
+	var beneficiary AccountBeneficiaries
+	err = json.Unmarshal(respBody, &beneficiary)
 	if err != nil {
 		return nil, err
 	}
 
-	return &respData[0], nil
+	return &beneficiary, nil
 }
 
 func (c *client) ListBeneficiaries(ctx context.Context, limit, page uint) (*ListBeneficiariesResponse, error) {
