@@ -4,5 +4,4 @@ toolchain go1.24.3
 
 use (
 	./go
-	./infra
 )
