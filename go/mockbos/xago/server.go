@@ -6,11 +6,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math/rand"
 	"net/http"
 	"os"
 	"strconv"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"gitlab.com/fynbos/backend/providers/xago/external"
@@ -98,9 +100,9 @@ func (s *Server) CreateSubAccount() http.HandlerFunc {
 			},
 			Beneficiaries: []external.Beneficiaries{
 				{
-					BeneficiaryID:    "d7df4a5d-0294-4280-bf09-7651f335ace5",
+					BeneficiaryID:    uuid.New().String(),
 					BeneficiaryType:  "rollup",
-					DepositReference: "testDW85PQ",
+					DepositReference: generateDepositReference(),
 				},
 			},
 		}
@@ -527,4 +529,15 @@ func (s *Server) CreateLogin() http.HandlerFunc {
 		}
 		w.WriteHeader(http.StatusOK)
 	}
+}
+
+func generateDepositReference() string {
+	alphabet := "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
+	code := make([]byte, 6)
+	for i := range code {
+		code[i] = alphabet[rand.Intn(len(alphabet))]
+	}
+
+	return fmt.Sprintf("test%s", string(code))
 }
