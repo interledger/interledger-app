@@ -11,6 +11,9 @@ returning id;
 -- name: GetXagoSubAccount :one
 select * from xago_sub_accounts where id = $1 limit 1;
 
+-- name: GetXagoSubAccountByDepositReference :one
+select * from xago_sub_accounts where deposit_tag = $1 limit 1;
+
 -- name: CreateXagoBeneficiary :one
 INSERT INTO xago_beneficiaries
 (id, name, scope, currency_code, account_number, branch_code,
@@ -34,7 +37,7 @@ where id = $1;
 -- name: CreateXagoTransaction :one
 insert into xago_transactions
 (id, currency_code, amount, origin_amount, status, beneficiary_id, idempotency_key, type)
-values (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7)
+values ($1, $2, $3, $4, $5, $6, $7, $8)
 returning *;
 
 -- name: GetXagoTransaction :one
