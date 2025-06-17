@@ -11,7 +11,7 @@ import (
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/providers/pti/external"
-	"gitlab.com/fynbos/backend/providers/xago"
+	"gitlab.com/fynbos/backend/slack"
 	"gitlab.com/fynbos/pacioli"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/serviceerror"
@@ -301,6 +301,7 @@ func FinaliseReserve(ctx context.Context, b Backends, trxID string) error {
 func RollbackReserve(ctx context.Context, b Backends, txID string) error {
 	tx, err := b.Pacioli().VoidTransfers(ctx, []string{txID})
 	if err != nil {
+		slack.SendToChannel(ctx, slack.ChannelNotifyErrors, "wallet-info-bot", fmt.Sprintf("*:::[Fiant ERROR]:::* \n *RollbackReserve txID:* %s,\n *error:* %s", txID, err))
 		return fmt.Errorf("%w %s", pti.ErrInternal, err)
 	}
 	if len(tx) == 0 {
@@ -359,7 +360,7 @@ func AssignBalance(ctx context.Context, b Backends, linkedAccountID, txID string
 	}
 
 	if len(accs) != 1 {
-		return nil, fmt.Errorf("%w account not found", xago.ErrNotFound)
+		return nil, fmt.Errorf("%w account not found", pti.ErrNotFound)
 	}
 
 	return &pti.Balance{

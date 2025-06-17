@@ -9,6 +9,7 @@ import (
 
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/providers/xago"
+	"gitlab.com/fynbos/backend/slack"
 	"gitlab.com/fynbos/pacioli"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/serviceerror"
@@ -289,6 +290,7 @@ func FinaliseReserve(ctx context.Context, b Backends, txID string) error {
 func RollbackReserve(ctx context.Context, b Backends, txID string) error {
 	tx, err := b.Pacioli().VoidTransfers(ctx, []string{txID})
 	if err != nil {
+		slack.SendToChannel(ctx, slack.ChannelNotifyErrors, "wallet-info-bot", fmt.Sprintf("*:::[XAGO ERROR]:::* \n *RollbackReserve txID:* %s,\n *error:* %s", txID, err))
 		return fmt.Errorf("%w %s", xago.ErrInternal, err)
 	}
 	if len(tx) == 0 {
