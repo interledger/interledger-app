@@ -734,10 +734,10 @@ const createXagoSubAccount = `-- name: CreateXagoSubAccount :one
 INSERT INTO xago_sub_accounts
 (id, deposit_tag, first_name, last_name, email, mobile_number,
  country, nationality, identification_document_type, identification_number,
- address, city, district, postal_code, address_document_type, date_of_birth)
+ address, city, district, postal_code, address_document_type, date_of_birth, deposit_reference)
 VALUES (gen_random_uuid(), $1, $2, $3, $4,
         $5, $6, $7, $8,
-        $9, $10, $11, $12, $13, $14, $15)
+        $9, $10, $11, $12, $13, $14, $15, $16)
 returning id
 `
 
@@ -757,6 +757,7 @@ type CreateXagoSubAccountParams struct {
 	PostalCode                 string
 	AddressDocumentType        string
 	DateOfBirth                pgtype.Date
+	DepositReference           string
 }
 
 func (q *Queries) CreateXagoSubAccount(ctx context.Context, arg CreateXagoSubAccountParams) (pgtype.UUID, error) {
@@ -776,6 +777,7 @@ func (q *Queries) CreateXagoSubAccount(ctx context.Context, arg CreateXagoSubAcc
 		arg.PostalCode,
 		arg.AddressDocumentType,
 		arg.DateOfBirth,
+		arg.DepositReference,
 	)
 	var id pgtype.UUID
 	err := row.Scan(&id)
@@ -1354,7 +1356,7 @@ func (q *Queries) GetXagoBeneficiary(ctx context.Context, id pgtype.UUID) (XagoB
 }
 
 const getXagoSubAccount = `-- name: GetXagoSubAccount :one
-select id, deposit_address, deposit_tag, first_name, last_name, email, mobile_number, country, nationality, identification_document_type, identification_number, address, city, district, postal_code, address_document_type, date_of_birth, created_at, updated_at from xago_sub_accounts where id = $1 limit 1
+select id, deposit_address, deposit_tag, deposit_reference, first_name, last_name, email, mobile_number, country, nationality, identification_document_type, identification_number, address, city, district, postal_code, address_document_type, date_of_birth, created_at, updated_at from xago_sub_accounts where id = $1 limit 1
 `
 
 func (q *Queries) GetXagoSubAccount(ctx context.Context, id pgtype.UUID) (XagoSubAccount, error) {
@@ -1364,6 +1366,7 @@ func (q *Queries) GetXagoSubAccount(ctx context.Context, id pgtype.UUID) (XagoSu
 		&i.ID,
 		&i.DepositAddress,
 		&i.DepositTag,
+		&i.DepositReference,
 		&i.FirstName,
 		&i.LastName,
 		&i.Email,
@@ -1385,16 +1388,17 @@ func (q *Queries) GetXagoSubAccount(ctx context.Context, id pgtype.UUID) (XagoSu
 }
 
 const getXagoSubAccountByDepositReference = `-- name: GetXagoSubAccountByDepositReference :one
-select id, deposit_address, deposit_tag, first_name, last_name, email, mobile_number, country, nationality, identification_document_type, identification_number, address, city, district, postal_code, address_document_type, date_of_birth, created_at, updated_at from xago_sub_accounts where deposit_tag = $1 limit 1
+select id, deposit_address, deposit_tag, deposit_reference, first_name, last_name, email, mobile_number, country, nationality, identification_document_type, identification_number, address, city, district, postal_code, address_document_type, date_of_birth, created_at, updated_at from xago_sub_accounts where deposit_reference = $1 limit 1
 `
 
-func (q *Queries) GetXagoSubAccountByDepositReference(ctx context.Context, depositTag string) (XagoSubAccount, error) {
-	row := q.db.QueryRow(ctx, getXagoSubAccountByDepositReference, depositTag)
+func (q *Queries) GetXagoSubAccountByDepositReference(ctx context.Context, depositReference string) (XagoSubAccount, error) {
+	row := q.db.QueryRow(ctx, getXagoSubAccountByDepositReference, depositReference)
 	var i XagoSubAccount
 	err := row.Scan(
 		&i.ID,
 		&i.DepositAddress,
 		&i.DepositTag,
+		&i.DepositReference,
 		&i.FirstName,
 		&i.LastName,
 		&i.Email,

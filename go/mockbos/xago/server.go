@@ -59,11 +59,11 @@ func (s *Server) CreateSubAccount() http.HandlerFunc {
 		depRef := generateDepositReference()
 
 		sa, err := s.db.CreateXagoSubAccount(r.Context(), db.CreateXagoSubAccountParams{
-			DepositTag:   depRef,
-			FirstName:    req.FirstName,
-			LastName:     req.LastName,
-			Email:        req.Email,
-			MobileNumber: req.MobileNumber,
+			DepositReference: depRef,
+			FirstName:        req.FirstName,
+			LastName:         req.LastName,
+			Email:            req.Email,
+			MobileNumber:     req.MobileNumber,
 			DateOfBirth: pgtype.Date{
 				Time:             time.Date(1985, time.July, 23, 0, 0, 0, 0, time.UTC),
 				InfinityModifier: pgtype.Finite,
