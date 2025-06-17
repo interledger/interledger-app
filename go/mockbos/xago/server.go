@@ -60,6 +60,11 @@ func (s *Server) CreateSubAccount() http.HandlerFunc {
 			LastName:     req.LastName,
 			Email:        req.Email,
 			MobileNumber: req.MobileNumber,
+			DateOfBirth: pgtype.Date{
+				Time:             time.Date(1985, time.July, 23, 0, 0, 0, 0, time.UTC),
+				InfinityModifier: pgtype.Finite,
+				Valid:            true,
+			},
 		})
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -125,7 +130,7 @@ func (s *Server) AddBeneficiary() http.HandlerFunc {
 			return
 		}
 
-		_, err := s.db.CreateXagoBeneficiary(r.Context(), db.CreateXagoBeneficiaryParams{
+		beneficiaryID, err := s.db.CreateXagoBeneficiary(r.Context(), db.CreateXagoBeneficiaryParams{
 			Name:          pgtype.Text{String: req.Name, Valid: true},
 			Scope:         pgtype.Text{String: req.Scope, Valid: true},
 			CurrencyCode:  pgtype.Text{String: req.CurrencyCode, Valid: true},
@@ -143,38 +148,28 @@ func (s *Server) AddBeneficiary() http.HandlerFunc {
 			return
 		}
 
-		//Get all beneficaries
-		ben, err := s.db.ListXagoBeneficiaries(r.Context())
+		// Get beneficiary and transform to AccountBeneficiaries
+		beneficiary, err := s.db.GetXagoBeneficiary(r.Context(), beneficiaryID)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		var bs []external.AccountBeneficiaries
-
-		for _, beneficiary := range ben {
-			bs = append(bs, external.AccountBeneficiaries{
-				ID:                 utils.BytesToUUID(beneficiary.ID.Bytes),
-				BranchCode:         beneficiary.BranchCode.String,
-				Reference:          beneficiary.Reference.String,
-				BeneficiaryAddress: beneficiary.BeneficiaryPhysicalAddress.String,
-				BankName:           beneficiary.BankName.String,
-				AccountNumber:      beneficiary.AccountNumber.String,
-				Status:             "active",
-				CurrencyCode:       beneficiary.CurrencyCode.String,
-				Name:               beneficiary.Name.String,
-				Wallet:             nil,
-			})
-		}
-
-		// Mock response
-		var resp = external.CreateBeneficiaryResp{
-			Status:        200,
-			Beneficiaries: bs,
+		b := external.AccountBeneficiaries{
+			ID:                 utils.BytesToUUID(beneficiary.ID.Bytes),
+			BranchCode:         beneficiary.BranchCode.String,
+			Reference:          beneficiary.Reference.String,
+			BeneficiaryAddress: beneficiary.BeneficiaryPhysicalAddress.String,
+			BankName:           beneficiary.BankName.String,
+			AccountNumber:      beneficiary.AccountNumber.String,
+			Status:             "active",
+			CurrencyCode:       beneficiary.CurrencyCode.String,
+			Name:               beneficiary.Name.String,
+			Wallet:             nil,
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(resp); err != nil {
+		if err := json.NewEncoder(w).Encode(b); err != nil {
 			// At this point, since the header and possibly part of the body are already written,
 			// you cannot send a new status code or additional headers.
 			// Log the error for server-side diagnostics.

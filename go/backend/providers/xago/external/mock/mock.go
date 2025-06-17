@@ -39,10 +39,10 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 }
 
 // AddBeneficiary mocks base method.
-func (m *MockClient) AddBeneficiary(ctx context.Context, reqStruct external.CreateBeneficiaryReq) (string, error) {
+func (m *MockClient) AddBeneficiary(ctx context.Context, reqStruct external.CreateBeneficiaryReq) (*external.AccountBeneficiaries, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddBeneficiary", ctx, reqStruct)
-	ret0, _ := ret[0].(string)
+	ret0, _ := ret[0].(*external.AccountBeneficiaries)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
