@@ -277,8 +277,6 @@ export function DepositDetails() {
     useLoaderData<typeof fynbosDepositLoader>()
   const { env } = useRouteLoaderData('root') as SerializeFrom<typeof rootLoader>
 
-  console.log(env)
-
   return (
     <>
       <Card>

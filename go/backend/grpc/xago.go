@@ -261,8 +261,6 @@ func (s *rpcService) DepositTestXago(ctx context.Context, req *pb.Empty) (*pb.Em
 		return nil, toGRPCError(err)
 	}
 
-	log.Info("subaccount", zap.Any("sa", sa))
-
 	err = s.b.Xago().TestDeposit(ctx, *sa)
 	if err != nil {
 		return nil, toGRPCError(err)

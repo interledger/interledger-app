@@ -412,8 +412,6 @@ func (s *Server) CreateDeposit() http.HandlerFunc {
 			return
 		}
 
-		log.Warn("here1")
-
 		var req external.TestDepositReq
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -421,7 +419,6 @@ func (s *Server) CreateDeposit() http.HandlerFunc {
 		}
 
 		// Check if sub account exists
-		log.Warn("here2")
 		sa, err := s.db.GetXagoSubAccountByDepositReference(r.Context(), req.DepositReference)
 		if err != nil {
 			if errors.Is(err, pgx.ErrNoRows) {
@@ -432,16 +429,12 @@ func (s *Server) CreateDeposit() http.HandlerFunc {
 			return
 		}
 
-		log.Warn("here3")
-
 		var trxID pgtype.UUID
 		err = trxID.Scan(req.BankTransactionID)
 		if err != nil {
 			http.Error(w, "bankTransactionId is not a UUID", http.StatusBadRequest)
 			return
 		}
-
-		log.Warn("here4")
 
 		t, err := s.db.CreateXagoTransaction(r.Context(), db.CreateXagoTransactionParams{
 			ID:             trxID,
@@ -458,8 +451,6 @@ func (s *Server) CreateDeposit() http.HandlerFunc {
 			http.Error(w, "error creating deposit", http.StatusBadRequest)
 			return
 		}
-
-		log.Warn("here5")
 
 		if s.webhookUrl != "" {
 			sendWebhook(r.Context(), s.webhookUrl, t)
