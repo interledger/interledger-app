@@ -29,7 +29,7 @@ const (
 )
 
 func SendToChannel(ctx context.Context, channel Channel, fromUser, message string) {
-	if channel == ChannelNotifyEvents && !env.IsProd() {
+	if channel == ChannelNotifyEvents && env.IsLocal() {
 		return
 	}
 
