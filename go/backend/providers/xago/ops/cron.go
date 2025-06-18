@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/env"
 
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -25,13 +24,7 @@ import (
 )
 
 func StartDepositsPolling(b ActivityBackends) {
-	// Every 5 minutes for local environment and sandbox.
-	// We can increase the time between polls for sandbox after we make sure
-	// that the integration works as expected.
-	schedule := "*/5 * * * *"
-	if env.IsProd() {
-		schedule = "0 */1 * * *"
-	}
+	schedule := "0 */1 * * *"
 	// This workflow ID can be user business logic identifier as well.
 	workflowID := "cron_xago_deposits_poll"
 	workflowOptions := client.StartWorkflowOptions{
