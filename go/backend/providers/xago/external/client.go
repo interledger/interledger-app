@@ -34,6 +34,7 @@ type Client interface {
 	CreateTransaction(ctx context.Context, amt currency.Amount, idempotencyKey, beneficiaryID, reference string) (string, error)
 	ListDeposits(ctx context.Context, page int) ([]Deposit, error)
 	GetWithdrawal(ctx context.Context, id string) (*Withdrawal, error)
+	TestDeposit(ctx context.Context, reqStruct TestDepositReq) error
 }
 
 type client struct {
@@ -658,4 +659,69 @@ func (c *client) GetWithdrawal(ctx context.Context, id string) (*Withdrawal, err
 	}
 
 	return &respData, nil
+}
+
+// Only used in local/sandbox environments to simulate a deposit.
+func (c *client) TestDeposit(ctx context.Context, reqStruct TestDepositReq) error {
+	reqURL, err := url.JoinPath(c.baseURL, "company", "accounts", "testdeposit")
+	if err != nil {
+		return err
+	}
+
+	reqBody, err := json.Marshal(reqStruct)
+	if err != nil {
+		return err
+	}
+
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "POST"
+		meta.Provider = "xago"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "POST",
+			Provider: "xago",
+		})
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, bytes.NewReader(reqBody))
+	if err != nil {
+		return err
+	}
+
+	token, err := c.AccessToken(ctx, false)
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token.Token)
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		token, err = c.AccessToken(ctx, true)
+		if err != nil {
+			return err
+		}
+		req.Header.Set("Authorization", "Bearer "+token.Token)
+
+		resp, err = c.api.Do(req)
+		if err != nil {
+			return err
+		}
+		if resp.StatusCode == http.StatusUnauthorized {
+			log.Info("refreshed xago token not authorized for get withdrawal")
+		}
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("failed to simulate xago deposits (%d - %s)", resp.StatusCode, resp.Status)
+	}
+
+	return err
 }

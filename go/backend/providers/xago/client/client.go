@@ -116,3 +116,7 @@ func (c *client) AssignBalance(ctx context.Context, linkedAccountID, txID string
 func (c *client) LookupWithdrawal(ctx context.Context, id string) (*xago.Withdrawal, error) {
 	return ops.LookupWithdrawal(ctx, c.b, id)
 }
+
+func (c *client) TestDeposit(ctx context.Context, sa xago.SubAccount) error {
+	return ops.TestDeposit(ctx, c.b, sa)
+}

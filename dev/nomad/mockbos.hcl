@@ -26,6 +26,10 @@ job "mockbos" {
               destination_name = "postgres"
               local_bind_port  = 5432
             }
+            upstreams {
+              destination_name = "backend-http"
+              local_bind_port = 9090
+            }
           }
         }
       }
@@ -49,6 +53,7 @@ job "mockbos" {
 
       env {
           DB_URL = "postgres://postgres:password@127.0.0.1:5432/mockbos?sslmode=disable"
+          XAGO_WEBHOOK_URL = "http://localhost:9090/webhooks/xago"
       }
 
       resources {
