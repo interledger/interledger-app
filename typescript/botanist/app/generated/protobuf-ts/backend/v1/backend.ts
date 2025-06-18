@@ -11400,6 +11400,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "WithdrawXagoBalance", options: {}, I: WithdrawXagoBalanceRequest, O: Payment },
     { name: "GetXagoBalances", options: {}, I: Empty, O: GetXagoBalanceResponse },
     { name: "GetXagoDepositDetails", options: {}, I: GetXagoDepositDetailsRequest, O: GetXagoDepositDetailsResponse },
+    { name: "DepositTestXago", options: {}, I: Empty, O: Empty },
     { name: "GetPtiBalances", options: {}, I: Empty, O: GetPtiBalancesResponse },
     { name: "AstraDepositFromCard", options: {}, I: AstraDepositFromCardRequest, O: Payment },
     { name: "AstraWithdrawToCard", options: {}, I: AstraWithdrawToCardRequest, O: Payment },

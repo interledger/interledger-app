@@ -826,6 +826,15 @@ export const BackendService = {
       kind: MethodKind.Unary,
     },
     /**
+     * @generated from rpc backend.v1.BackendService.DepositTestXago
+     */
+    depositTestXago: {
+      name: "DepositTestXago",
+      I: Empty,
+      O: Empty,
+      kind: MethodKind.Unary,
+    },
+    /**
      * Pti
      *
      * @generated from rpc backend.v1.BackendService.GetPtiBalances
