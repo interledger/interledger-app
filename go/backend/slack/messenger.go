@@ -2,14 +2,14 @@ package slack
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"sync"
 
 	"gitlab.com/fynbos/env"
 
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
-
 	"gitlab.com/fynbos/log"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.uber.org/zap"
 
 	ext_slack "github.com/slack-go/slack"
@@ -21,14 +21,15 @@ var initOnce sync.Once
 type Channel string
 
 const (
-	ChannelPersona      Channel = "C053HA9ANCF"
-	ChannelNotifyReview Channel = "C05KABR3Z8U"
-	ChannelNotifyEvents Channel = "C05L0Q20RJ9"
-	ChannelNotifyForms  Channel = "C05RA9HSNKG"
+	ChannelPersona      Channel = "C091T8JD0DS"
+	ChannelNotifyReview Channel = "C091T8JD0DS"
+	ChannelNotifyEvents Channel = "C091T8JD0DS"
+	ChannelNotifyForms  Channel = "C091T8JD0DS"
+	ChannelNotifyErrors Channel = "C091T8JD0DS"
 )
 
 func SendToChannel(ctx context.Context, channel Channel, fromUser, message string) {
-	if channel == ChannelNotifyEvents && !env.IsProd() {
+	if channel == ChannelNotifyEvents && env.IsLocal() {
 		return
 	}
 
@@ -38,6 +39,8 @@ func SendToChannel(ctx context.Context, channel Channel, fromUser, message strin
 	if api == nil {
 		return
 	}
+
+	message = formatMessageForEnvironment(message)
 
 	// Create the Slack attachment that we will send to the channel
 	attachment := ext_slack.Attachment{
@@ -49,4 +52,11 @@ func SendToChannel(ctx context.Context, channel Channel, fromUser, message strin
 	if err != nil {
 		log.Error("failed to send message to slack", zap.Error(err))
 	}
+}
+
+func formatMessageForEnvironment(message string) string {
+	if !env.IsProd() {
+		return fmt.Sprintf("%s\n*[%s]*", message, os.Getenv("FYNBOS_ENV"))
+	}
+	return message
 }

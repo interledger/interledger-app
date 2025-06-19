@@ -62,6 +62,19 @@ table "ledger_accounts" {
     on_update   = NO_ACTION
     on_delete   = NO_ACTION
   }
+  check "ledger_accounts_credits_pending_non_negative" {
+    expr = "credits_pending >= 0"
+  }
+  check "ledger_accounts_credits_posted_non_negative" {
+    expr = "credits_posted >= 0"
+  }
+  check "ledger_accounts_debits_pending_non_negative" {
+    expr = "debits_pending >= 0"
+  }
+  check "ledger_accounts_debits_posted_non_negative" {
+    expr = "debits_posted >= 0"
+  }
+
 }
 table "ledger_transfers" {
   schema = schema.public
