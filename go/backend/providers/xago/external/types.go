@@ -156,3 +156,13 @@ type Withdrawal struct {
 	Status     string  `json:"status"`
 	Currency   string  `json:"currencyCode"`
 }
+
+type TestDepositReq struct {
+	RunTestDeposit   bool    `json:"runTestDeposit"`
+	Amount           float64 `json:"amount"`
+	DepositReference string  `json:"depositReference"`
+
+	// Random UUID for testing
+	BankTransactionID string `json:"bankTransactionId"`
+	CurrencyCode      string `json:"currencyCode"`
+}

@@ -7,8 +7,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/providers/xago"
+	"gitlab.com/fynbos/backend/providers/xago/external"
 	"gitlab.com/fynbos/backend/slack"
 	"gitlab.com/fynbos/pacioli"
 	"go.temporal.io/api/enums/v1"
@@ -361,4 +363,24 @@ func AssignBalance(ctx context.Context, b Backends, linkedAccountID, txID string
 		Total:     currency.FromUInt64(accs[0].CreditsPosted-accs[0].DebitsPosted, la.SendCurrency),
 		Available: currency.FromUInt64(accs[0].CreditsPosted-accs[0].DebitsPosted-accs[0].DebitsPending, la.SendCurrency),
 	}, nil
+}
+
+// TestDeposit is only going to make the POST request. The deposit is going to
+// be processed by the cronjob that is polling Xago deposits or by using the webhook listerner.
+func TestDeposit(ctx context.Context, b Backends, sa xago.SubAccount) error {
+	reqStruct := external.TestDepositReq{
+		RunTestDeposit:    true,
+		Amount:            200.00,
+		DepositReference:  sa.DepositReference,
+		BankTransactionID: uuid.New().String(),
+		CurrencyCode:      string(currency.ZAR),
+	}
+
+	err := b.External().TestDeposit(ctx, reqStruct)
+
+	if err != nil {
+		return fmt.Errorf("%w %s", xago.ErrInternal, err)
+	}
+
+	return err
 }
