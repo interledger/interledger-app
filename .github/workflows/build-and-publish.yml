@@ -193,5 +193,5 @@ jobs:
 
       - name: Push to Artifact Registry
         run: |
-          echo "Pushing $PUSH_IMAGE"
-          docker push $PUSH_IMAGE
+          echo "Pushing $DEV_PUSH_IMAGE"
+          docker push $DEV_PUSH_IMAGE
