@@ -190,3 +190,8 @@ jobs:
           DEV_PUSH_IMAGE=europe-west4-docker.pkg.dev/${{ env.GCR_DEV_PROJECT }}/interledger-app/${{ matrix.package.name }}:${{ needs.version_generator.outputs.version }}
           docker tag $PUSH_IMAGE $DEV_PUSH_IMAGE
           echo "DEV_PUSH_IMAGE=$DEV_PUSH_IMAGE" >> $GITHUB_ENV
+
+      - name: Push to Artifact Registry
+        run: |
+          echo "Pushing $PUSH_IMAGE"
+          docker push $PUSH_IMAGE
