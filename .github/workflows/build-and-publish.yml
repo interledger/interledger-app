@@ -158,10 +158,10 @@ jobs:
             workload_identity_provider: ${{ env.GCR_WORKLOAD_IDENTITY_PROVIDER}}
             export_environment_variables: true
 
-      - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v2
-        with:
-          version: '>= 363.0.0'
+      - name: Sanity checks
+        run: |
+          gcloud auth list
+          gcloud config list
 
       - name: Configure Docker to use the gcloud command-line tool as a credential helper for authentication
         run: |-
@@ -190,6 +190,7 @@ jobs:
           DEV_PUSH_IMAGE=europe-west4-docker.pkg.dev/${{ env.GCR_DEV_PROJECT }}/interledger-app/${{ matrix.package.name }}:${{ needs.version_generator.outputs.version }}
           docker tag $PUSH_IMAGE $DEV_PUSH_IMAGE
           echo "DEV_PUSH_IMAGE=$DEV_PUSH_IMAGE" >> $GITHUB_ENV
+          docker images
 
       - name: Push to Artifact Registry
         run: |
