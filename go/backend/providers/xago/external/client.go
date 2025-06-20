@@ -77,7 +77,6 @@ func New(transport *http.Client, dbc *sqlx.DB) Client {
 }
 
 func (c *client) refreshAccessToken(ctx context.Context) error {
-
 	return crdbsqlx.ExecuteTx(ctx, c.dbc, nil, func(tx *sqlx.Tx) error {
 		var token AccessToken
 		err := tx.GetContext(ctx, &token, "SELECT token, expires_at FROM xago_access_token WHERE id=$1 FOR UPDATE", accessTokenID)
@@ -209,12 +208,14 @@ func (c *client) CreateSubAccount(ctx context.Context, user user.User, details k
 	}
 
 	reqStruct := SubAccountReq{
-		FirstName:    details.FirstName,
-		LastName:     details.LastName,
-		Email:        user.Email,
-		MobileNumber: user.PhoneNumber,
-		IdentityType: IdentityTypeIndividual,
-		PersonaURL:   personaInquiryURL,
+		FirstName:       details.FirstName,
+		LastName:        details.LastName,
+		Email:           user.Email,
+		MobileNumber:    user.PhoneNumber,
+		IdentityType:    IdentityTypeIndividual,
+		PersonaURL:      personaInquiryURL,
+		IDNumber:        "ABCDEF1234", // Retrieve this from Persona
+		PhysicalAddress: details.Address.String(),
 	}
 
 	reqBody, err := json.Marshal(reqStruct)
@@ -237,10 +238,12 @@ func (c *client) CreateSubAccount(ctx context.Context, user user.User, details k
 	if err != nil {
 		return nil, err
 	}
+
 	token, err := c.AccessToken(ctx, false)
 	if err != nil {
 		return nil, err
 	}
+
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+token.Token)
