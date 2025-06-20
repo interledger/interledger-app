@@ -169,3 +169,21 @@ jobs:
         run: |
           echo "Pushing $PUSH_IMAGE"
           docker push $PUSH_IMAGE
+
+      - name: Set up environment variables for DEV Artifact Registry
+        uses: 'google-github-actions/auth@v2'
+        with:
+            service_account: ${{ env.GSA_DEV_EMAIL }}
+            workload_identity_provider: ${{ env.GCR_DEV_WORKLOAD_IDENTITY_PROVIDER}}
+            export_environment_variables: true
+
+      - name: Configure Docker to use the gcloud command-line tool as a credential helper for authentication
+        run: |-
+          gcloud --quiet auth configure-docker \
+              europe-west4-docker.pkg.dev
+         
+      - name: Retag for DEV Artifact Registry
+        run: |
+          DEV_PUSH_IMAGE=europe-west4-docker.pkg.dev/${{ env.GCR_DEV_PROJECT }}/interledger-app/${{ matrix.package.name }}:${{ needs.version_generator.outputs.version }}
+          docker tag $PUSH_IMAGE $DEV_PUSH_IMAGE
+          echo "DEV_PUSH_IMAGE=$DEV_PUSH_IMAGE" >> $GITHUB_ENV
