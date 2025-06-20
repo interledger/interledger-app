@@ -163,6 +163,10 @@ jobs:
           gcloud auth list
           gcloud config list
 
+          gcloud artifacts repositories list \
+            --location=europe-west4 \
+            --project=wallet-dev-462809
+
       - name: Configure Docker to use the gcloud command-line tool as a credential helper for authentication
         run: |-
           gcloud --quiet auth configure-docker \
