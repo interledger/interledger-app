@@ -188,6 +188,13 @@ jobs:
           version: '>= 418.0.0'     # pick a version with external-account support
           project_id:   ${{ secrets.GCR_DEV_PROJECT }}
 
+      - name: Authenticate to GCP
+        uses: 'google-github-actions/auth@v2'
+        with:
+            service_account: ${{ env.GSA_DEV_EMAIL }}
+            workload_identity_provider: ${{ env.GCR_DEV_WORKLOAD_IDENTITY_PROVIDER}}
+            export_environment_variables: true
+
       - name: Load cache
         uses: actions/cache/restore@v4
         with:
@@ -212,13 +219,6 @@ jobs:
           PUSH_IMAGE=europe-west4-docker.pkg.dev/${{ env.GCR_DEV_PROJECT }}/interledger-app/${{ matrix.package.name }}:${{ needs.version_generator.outputs.version }}
           docker tag $IMAGE_ID $PUSH_IMAGE
           echo "PUSH_DEV_IMAGE=$PUSH_IMAGE" >> $GITHUB_ENV 
-
-      - name: Set up environment variables for DEV Artifact Registry
-        uses: 'google-github-actions/auth@v2'
-        with:
-            service_account: ${{ env.GSA_DEV_EMAIL }}
-            workload_identity_provider: ${{ env.GCR_DEV_WORKLOAD_IDENTITY_PROVIDER}}
-            export_environment_variables: true
 
       - name: Configure Docker to use the gcloud command-line tool as a credential helper for authentication
         run: |-
