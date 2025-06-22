@@ -19,14 +19,6 @@ permissions:
   contents: write
   packages: write
 
-env:
-  # We use Artifact Repository, GCR references are legacy as GCR has been deprecated.
-  GCR_PROJECT: ${{ secrets.GCR_PROJECT }}
-  GSA_EMAIL: ${{ secrets.GSA_EMAIL }}
-  GCR_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCR_WORKLOAD_IDENTITY_PROVIDER }}
-  GCR_DEV_PROJECT: wallet-dev-462809
-  GCR_DEV_WORKLOAD_IDENTITY_PROVIDER: projects/753406061820/locations/global/workloadIdentityPools/pipelines/providers/github
-  GSA_DEV_EMAIL: githubci@wallet-451208.iam.gserviceaccount.com
 
 jobs:
   select_packages:
@@ -123,6 +115,11 @@ jobs:
     name: Prod images push
     needs: [builds, version_generator, select_packages]
     runs-on: ubuntu-latest
+    env:
+      # We use Artifact Repository, GCR references are legacy as GCR has been deprecated.
+      GCR_PROJECT: ${{ secrets.GCR_PROJECT }}
+      GSA_EMAIL: ${{ secrets.GSA_EMAIL }}
+      GCR_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCR_WORKLOAD_IDENTITY_PROVIDER }}
     if: needs.version_generator.outputs.dockerPush == 'true'
     strategy:
       matrix: ${{fromJson(needs.select_packages.outputs.builds)}}
@@ -178,23 +175,15 @@ jobs:
     name: DEV Images push
     needs: [builds, version_generator, select_packages]
     runs-on: ubuntu-latest
+    env:
+      GCR_PROJECT: wallet-dev-462809
+      GSA_EMAIL: githubci@wallet-451208.iam.gserviceaccount.com
+      GCR_WORKLOAD_IDENTITY_PROVIDER: projects/753406061820/locations/global/workloadIdentityPools/pipelines/providers/github
+
     if: needs.version_generator.outputs.dockerPush == 'true'
     strategy:
       matrix: ${{fromJson(needs.select_packages.outputs.builds)}}
     steps:
-      - name: Set up gcloud CLI
-        uses: google-github-actions/setup-gcloud@v2
-        with:
-          version: '>= 418.0.0'     # pick a version with external-account support
-          project_id:   ${{ secrets.GCR_DEV_PROJECT }}
-
-      - name: Authenticate to GCP
-        uses: 'google-github-actions/auth@v2'
-        with:
-            service_account: ${{ env.GSA_DEV_EMAIL }}
-            workload_identity_provider: ${{ env.GCR_DEV_WORKLOAD_IDENTITY_PROVIDER}}
-            export_environment_variables: true
-
       - name: Load cache
         uses: actions/cache/restore@v4
         with:
@@ -216,20 +205,27 @@ jobs:
         run: |
           IMAGE_ID=$(docker images interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }} --format "{{.ID}}" | head -n 1)
           # Tag appropriately for our GCP project
-          PUSH_IMAGE=europe-west4-docker.pkg.dev/${{ env.GCR_DEV_PROJECT }}/interledger-app/${{ matrix.package.name }}:${{ needs.version_generator.outputs.version }}
+          PUSH_IMAGE=europe-west4-docker.pkg.dev/${{ env.GCR_PROJECT }}/interledger-app/${{ matrix.package.name }}:${{ needs.version_generator.outputs.version }}
           docker tag $IMAGE_ID $PUSH_IMAGE
-          echo "PUSH_DEV_IMAGE=$PUSH_IMAGE" >> $GITHUB_ENV 
+          echo "PUSH_IMAGE=$PUSH_IMAGE" >> $GITHUB_ENV 
+
+      - uses: 'google-github-actions/auth@v2'
+        with:
+            service_account: ${{ env.GSA_EMAIL }}
+            workload_identity_provider: ${{ env.GCR_WORKLOAD_IDENTITY_PROVIDER}}
+            export_environment_variables: true
+
+      - name: Sanity checks
+        run: |
+          gcloud auth list
+          gcloud config list
 
       - name: Configure Docker to use the gcloud command-line tool as a credential helper for authentication
         run: |-
           gcloud --quiet auth configure-docker \
               europe-west4-docker.pkg.dev
 
-          gcloud artifacts repositories list \
-            --location=europe-west4 \
-            --project=wallet-dev-462809
-
       - name: Push to Artifact Registry
         run: |
-          echo "Pushing $PUSH_DEV_IMAGE"
-          docker push $PUSH_DEV_IMAGE
+          echo "Pushing $PUSH_IMAGE"
+          docker push $PUSH_IMAGE
