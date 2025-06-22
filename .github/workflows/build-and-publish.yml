@@ -178,7 +178,7 @@ jobs:
     env:
       GCR_PROJECT: wallet-dev-462809
       GSA_EMAIL: githubci@wallet-dev-462809.iam.gserviceaccount.com
-      GCR_WORKLOAD_IDENTITY_PROVIDER: projects/753406061820/locations/global/workloadIdentityPools/pipelines/providers/github-pipelines
+      GCR_WORKLOAD_IDENTITY_PROVIDER: projects/753406061820/locations/global/workloadIdentityPools/github-pipelines/providers/interledger-app-github
 
     if: needs.version_generator.outputs.dockerPush == 'true'
     strategy:
