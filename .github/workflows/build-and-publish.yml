@@ -163,10 +163,6 @@ jobs:
           gcloud auth list
           gcloud config list
 
-          gcloud artifacts repositories list \
-            --location=europe-west4 \
-            --project=wallet-dev-462809
-
       - name: Configure Docker to use the gcloud command-line tool as a credential helper for authentication
         run: |-
           gcloud --quiet auth configure-docker \
@@ -176,6 +172,40 @@ jobs:
         run: |
           echo "Pushing $PUSH_IMAGE"
           docker push $PUSH_IMAGE
+
+
+  push-dev-image-gcp-artifact-registry:
+    name: Push to Google Artifact Registry
+    needs: [builds, version_generator, select_packages]
+    runs-on: ubuntu-latest
+    if: needs.version_generator.outputs.dockerPush == 'true'
+    strategy:
+      matrix: ${{fromJson(needs.select_packages.outputs.builds)}}
+    steps:
+      - name: Load cache
+        uses: actions/cache/restore@v4
+        with:
+          path: /tmp/${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}.tar
+          key: ${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}
+          fail-on-cache-miss: true
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Load Docker image
+        run: |
+          docker load -i /tmp/${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}.tar
+    
+      - name: List Docker images
+        run: docker images
+
+      - name: Retag for Artifact Registry
+        run: |
+          IMAGE_ID=$(docker images interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }} --format "{{.ID}}" | head -n 1)
+          # Tag appropriately for our GCP project
+          PUSH_IMAGE=europe-west4-docker.pkg.dev/${{ env.GCR_DEV_PROJECT }}/interledger-app/${{ matrix.package.name }}:${{ needs.version_generator.outputs.version }}
+          docker tag $IMAGE_ID $PUSH_IMAGE
+          echo "PUSH_DEV_IMAGE=$PUSH_IMAGE" >> $GITHUB_ENV 
 
       - name: Set up environment variables for DEV Artifact Registry
         uses: 'google-github-actions/auth@v2'
@@ -188,15 +218,12 @@ jobs:
         run: |-
           gcloud --quiet auth configure-docker \
               europe-west4-docker.pkg.dev
-         
-      - name: Retag for DEV Artifact Registry
-        run: |
-          DEV_PUSH_IMAGE=europe-west4-docker.pkg.dev/${{ env.GCR_DEV_PROJECT }}/interledger-app/${{ matrix.package.name }}:${{ needs.version_generator.outputs.version }}
-          docker tag $PUSH_IMAGE $DEV_PUSH_IMAGE
-          echo "DEV_PUSH_IMAGE=$DEV_PUSH_IMAGE" >> $GITHUB_ENV
-          docker images
+
+          gcloud artifacts repositories list \
+            --location=europe-west4 \
+            --project=wallet-dev-462809
 
       - name: Push to Artifact Registry
         run: |
-          echo "Pushing $DEV_PUSH_IMAGE"
-          docker push $DEV_PUSH_IMAGE
+          echo "Pushing $PUSH_DEV_IMAGE"
+          docker push $PUSH_DEV_IMAGE
