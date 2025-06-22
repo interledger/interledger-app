@@ -120,7 +120,7 @@ jobs:
           key: ${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}
 
   push-image-gcp-artifact-registry:
-    name: Push to Google Artifact Registry
+    name: Prod images push
     needs: [builds, version_generator, select_packages]
     runs-on: ubuntu-latest
     if: needs.version_generator.outputs.dockerPush == 'true'
@@ -175,13 +175,19 @@ jobs:
 
 
   push-dev-image-gcp-artifact-registry:
-    name: Push to Google Artifact Registry
+    name: DEV Images push
     needs: [builds, version_generator, select_packages]
     runs-on: ubuntu-latest
     if: needs.version_generator.outputs.dockerPush == 'true'
     strategy:
       matrix: ${{fromJson(needs.select_packages.outputs.builds)}}
     steps:
+      - name: Set up gcloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          version: '>= 418.0.0'     # pick a version with external-account support
+          project_id:   ${{ secrets.GCR_DEV_PROJECT }}
+
       - name: Load cache
         uses: actions/cache/restore@v4
         with:
