@@ -176,10 +176,9 @@ jobs:
     needs: [builds, version_generator, select_packages]
     runs-on: ubuntu-latest
     env:
-      GCR_PROJECT: wallet-dev-462809
-      GSA_EMAIL: githubci2@wallet-dev-462809.iam.gserviceaccount.com
-      GCR_WORKLOAD_IDENTITY_PROVIDER: projects/753406061820/locations/global/workloadIdentityPools/github-pipelines/providers/interledger-app-github
-
+      GCR_PROJECT: ${{ secrets.GCR_DEV_PROJECT }}
+      GSA_EMAIL: ${{ secrets.GSA_DEV_EMAIL }}
+      GCR_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCR_DEV_WORKLOAD_IDENTITY_PROVIDER }}
     if: needs.version_generator.outputs.dockerPush == 'true'
     strategy:
       matrix: ${{fromJson(needs.select_packages.outputs.builds)}}
