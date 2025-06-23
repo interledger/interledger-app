@@ -53,7 +53,7 @@ func (a *Activity) CreateGatehubUser(ctx context.Context, walletID string) (stri
 		return "", fmt.Errorf("%w %s", gatehub.ErrInternal, err)
 	}
 	if len(ul) < 1 {
-		return "", fmt.Errorf("%w No Fynbos user found for walletID", gatehub.ErrInternal)
+		return "", fmt.Errorf("%w No Interledger user found for walletID", gatehub.ErrInternal)
 	}
 
 	resp, err := a.external.CreateUser(ctx, ul[0].Email)
@@ -245,7 +245,7 @@ func (a *Activity) CreateGatehubDepositTransaction(ctx context.Context, webhookI
 func (a *Activity) UpdateGatehubWithdrawalState(ctx context.Context, walletID, transactionID string, state transactions.State) error {
 	info := activity.GetInfo(ctx)
 	if info.Attempt == 1 && state == transactions.StateFailed {
-		slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "Fynbot", fmt.Sprintf("Gatehub withdrawal failed. %s/wallet/%s/transactions/%s", env.AdminURL(), walletID, transactionID))
+		slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "wallet-info-bot", fmt.Sprintf("Gatehub withdrawal failed. %s/wallet/%s/transactions/%s", env.AdminURL(), walletID, transactionID))
 	}
 
 	trx, err := a.b.Transactions().GetTransaction(ctx, walletID, transactionID)

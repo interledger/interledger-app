@@ -108,8 +108,8 @@ func TestCreateConnection(t *testing.T) {
 	}, &external.User{
 		ID:         "user_id",
 		Username:   "batman",
-		TeamName:   "fynbos",
-		TeamDomain: "fynbosdev",
+		TeamName:   "interledger",
+		TeamDomain: "interledgertest",
 		TeamID:     "team_id",
 	}, nil).Times(1)
 
@@ -129,8 +129,8 @@ func TestCreateConnection(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	assert.Equal(t, "fynbosdev", con.TeamDomain)
-	assert.Equal(t, "fynbos", con.TeamName)
+	assert.Equal(t, "interledgertest", con.TeamDomain)
+	assert.Equal(t, "interledger", con.TeamName)
 	assert.Len(t, con.Scopes, 3)
 	assert.Equal(t, "access_token", con.AccessToken)
 	assert.Equal(t, "refresh_token", con.RefreshToken)

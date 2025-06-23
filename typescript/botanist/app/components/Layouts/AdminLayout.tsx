@@ -12,7 +12,7 @@ export function AdminLayout() {
         <NavDrawer>
           <NavDrawer.List>
             <div className='ml-4'>
-              <Router to={route('/')} aria-label='Fynbos logo'>
+              <Router to={route('/')} aria-label='Interledger logo'>
                 <Logo className='h-8' />
               </Router>
             </div>
@@ -32,7 +32,7 @@ export function AdminLayout() {
           </NavDrawer.List>
           <footer className='flex w-full space-x-3 pl-4 pb-2'>
             <span className='text-xs font-medium text-medium'>
-              &copy;Fynbos
+              &copy;Interledger
             </span>
           </footer>
         </NavDrawer>
@@ -46,7 +46,7 @@ export function AdminLayout() {
           >
             menu
           </IconButton>
-          <Router to={route('/')} aria-label='Fynbos logo'>
+          <Router to={route('/')} aria-label='Interledger logo'>
             <Logo className='h-8' />
           </Router>
         </header>
@@ -64,7 +64,7 @@ export function AdminLayout() {
               >
                 menu_open
               </IconButton>
-              <Router to={route('/')} aria-label='Fynbos logo'>
+              <Router to={route('/')} aria-label='Interledger logo'>
                 <Logo className='h-8' />
               </Router>
             </div>
@@ -81,7 +81,7 @@ export function AdminLayout() {
           </NavDrawer.List>
           <footer className='flex w-full space-x-3 pl-4 pb-2'>
             <span className='text-xs font-medium text-medium'>
-              &copy;Fynbos
+              &copy;Interledger
             </span>
           </footer>
         </NavDrawer>

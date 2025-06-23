@@ -28,7 +28,7 @@ const (
 	BackendService_CompleteSignup_FullMethodName                 = "/backend.v1.BackendService/CompleteSignup"
 	BackendService_CreateUserDefaultWallet_FullMethodName        = "/backend.v1.BackendService/CreateUserDefaultWallet"
 	BackendService_CreateWalletAddress_FullMethodName            = "/backend.v1.BackendService/CreateWalletAddress"
-	BackendService_WalletAddressExists_FullMethodName            = "/backend.v1.BackendService/WalletAddressExists"
+	BackendService_WalletAddressValid_FullMethodName             = "/backend.v1.BackendService/WalletAddressValid"
 	BackendService_SetWalletName_FullMethodName                  = "/backend.v1.BackendService/SetWalletName"
 	BackendService_GetWalletInfo_FullMethodName                  = "/backend.v1.BackendService/GetWalletInfo"
 	BackendService_GetPublicWalletInfo_FullMethodName            = "/backend.v1.BackendService/GetPublicWalletInfo"
@@ -104,6 +104,7 @@ const (
 	BackendService_WithdrawXagoBalance_FullMethodName            = "/backend.v1.BackendService/WithdrawXagoBalance"
 	BackendService_GetXagoBalances_FullMethodName                = "/backend.v1.BackendService/GetXagoBalances"
 	BackendService_GetXagoDepositDetails_FullMethodName          = "/backend.v1.BackendService/GetXagoDepositDetails"
+	BackendService_DepositTestXago_FullMethodName                = "/backend.v1.BackendService/DepositTestXago"
 	BackendService_GetPtiBalances_FullMethodName                 = "/backend.v1.BackendService/GetPtiBalances"
 	BackendService_AstraDepositFromCard_FullMethodName           = "/backend.v1.BackendService/AstraDepositFromCard"
 	BackendService_AstraWithdrawToCard_FullMethodName            = "/backend.v1.BackendService/AstraWithdrawToCard"
@@ -139,7 +140,7 @@ type BackendServiceClient interface {
 	CreateUserDefaultWallet(ctx context.Context, in *CreateUserDefaultWalletRequest, opts ...grpc.CallOption) (*Empty, error)
 	// Wallet
 	CreateWalletAddress(ctx context.Context, in *CreateWalletAddressRequest, opts ...grpc.CallOption) (*Empty, error)
-	WalletAddressExists(ctx context.Context, in *WalletAddressExistsRequest, opts ...grpc.CallOption) (*WalletAddressExistsResponse, error)
+	WalletAddressValid(ctx context.Context, in *WalletAddressValidRequest, opts ...grpc.CallOption) (*WalletAddressValidResponse, error)
 	SetWalletName(ctx context.Context, in *SetWalletNameRequest, opts ...grpc.CallOption) (*Empty, error)
 	GetWalletInfo(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*WalletInfo, error)
 	GetPublicWalletInfo(ctx context.Context, in *GetPublicWalletInfoRequest, opts ...grpc.CallOption) (*PublicWalletInfo, error)
@@ -236,6 +237,7 @@ type BackendServiceClient interface {
 	WithdrawXagoBalance(ctx context.Context, in *WithdrawXagoBalanceRequest, opts ...grpc.CallOption) (*Payment, error)
 	GetXagoBalances(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetXagoBalanceResponse, error)
 	GetXagoDepositDetails(ctx context.Context, in *GetXagoDepositDetailsRequest, opts ...grpc.CallOption) (*GetXagoDepositDetailsResponse, error)
+	DepositTestXago(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
 	// Pti
 	GetPtiBalances(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetPtiBalancesResponse, error)
 	// Astra
@@ -349,9 +351,9 @@ func (c *backendServiceClient) CreateWalletAddress(ctx context.Context, in *Crea
 	return out, nil
 }
 
-func (c *backendServiceClient) WalletAddressExists(ctx context.Context, in *WalletAddressExistsRequest, opts ...grpc.CallOption) (*WalletAddressExistsResponse, error) {
-	out := new(WalletAddressExistsResponse)
-	err := c.cc.Invoke(ctx, BackendService_WalletAddressExists_FullMethodName, in, out, opts...)
+func (c *backendServiceClient) WalletAddressValid(ctx context.Context, in *WalletAddressValidRequest, opts ...grpc.CallOption) (*WalletAddressValidResponse, error) {
+	out := new(WalletAddressValidResponse)
+	err := c.cc.Invoke(ctx, BackendService_WalletAddressValid_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1033,6 +1035,15 @@ func (c *backendServiceClient) GetXagoDepositDetails(ctx context.Context, in *Ge
 	return out, nil
 }
 
+func (c *backendServiceClient) DepositTestXago(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, BackendService_DepositTestXago_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *backendServiceClient) GetPtiBalances(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetPtiBalancesResponse, error) {
 	out := new(GetPtiBalancesResponse)
 	err := c.cc.Invoke(ctx, BackendService_GetPtiBalances_FullMethodName, in, out, opts...)
@@ -1202,7 +1213,7 @@ type BackendServiceServer interface {
 	CreateUserDefaultWallet(context.Context, *CreateUserDefaultWalletRequest) (*Empty, error)
 	// Wallet
 	CreateWalletAddress(context.Context, *CreateWalletAddressRequest) (*Empty, error)
-	WalletAddressExists(context.Context, *WalletAddressExistsRequest) (*WalletAddressExistsResponse, error)
+	WalletAddressValid(context.Context, *WalletAddressValidRequest) (*WalletAddressValidResponse, error)
 	SetWalletName(context.Context, *SetWalletNameRequest) (*Empty, error)
 	GetWalletInfo(context.Context, *Empty) (*WalletInfo, error)
 	GetPublicWalletInfo(context.Context, *GetPublicWalletInfoRequest) (*PublicWalletInfo, error)
@@ -1299,6 +1310,7 @@ type BackendServiceServer interface {
 	WithdrawXagoBalance(context.Context, *WithdrawXagoBalanceRequest) (*Payment, error)
 	GetXagoBalances(context.Context, *Empty) (*GetXagoBalanceResponse, error)
 	GetXagoDepositDetails(context.Context, *GetXagoDepositDetailsRequest) (*GetXagoDepositDetailsResponse, error)
+	DepositTestXago(context.Context, *Empty) (*Empty, error)
 	// Pti
 	GetPtiBalances(context.Context, *Empty) (*GetPtiBalancesResponse, error)
 	// Astra
@@ -1354,8 +1366,8 @@ func (UnimplementedBackendServiceServer) CreateUserDefaultWallet(context.Context
 func (UnimplementedBackendServiceServer) CreateWalletAddress(context.Context, *CreateWalletAddressRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateWalletAddress not implemented")
 }
-func (UnimplementedBackendServiceServer) WalletAddressExists(context.Context, *WalletAddressExistsRequest) (*WalletAddressExistsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method WalletAddressExists not implemented")
+func (UnimplementedBackendServiceServer) WalletAddressValid(context.Context, *WalletAddressValidRequest) (*WalletAddressValidResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method WalletAddressValid not implemented")
 }
 func (UnimplementedBackendServiceServer) SetWalletName(context.Context, *SetWalletNameRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetWalletName not implemented")
@@ -1582,6 +1594,9 @@ func (UnimplementedBackendServiceServer) GetXagoBalances(context.Context, *Empty
 func (UnimplementedBackendServiceServer) GetXagoDepositDetails(context.Context, *GetXagoDepositDetailsRequest) (*GetXagoDepositDetailsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetXagoDepositDetails not implemented")
 }
+func (UnimplementedBackendServiceServer) DepositTestXago(context.Context, *Empty) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DepositTestXago not implemented")
+}
 func (UnimplementedBackendServiceServer) GetPtiBalances(context.Context, *Empty) (*GetPtiBalancesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPtiBalances not implemented")
 }
@@ -1807,20 +1822,20 @@ func _BackendService_CreateWalletAddress_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BackendService_WalletAddressExists_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(WalletAddressExistsRequest)
+func _BackendService_WalletAddressValid_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WalletAddressValidRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(BackendServiceServer).WalletAddressExists(ctx, in)
+		return srv.(BackendServiceServer).WalletAddressValid(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: BackendService_WalletAddressExists_FullMethodName,
+		FullMethod: BackendService_WalletAddressValid_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).WalletAddressExists(ctx, req.(*WalletAddressExistsRequest))
+		return srv.(BackendServiceServer).WalletAddressValid(ctx, req.(*WalletAddressValidRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -3175,6 +3190,24 @@ func _BackendService_GetXagoDepositDetails_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_DepositTestXago_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).DepositTestXago(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_DepositTestXago_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).DepositTestXago(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _BackendService_GetPtiBalances_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Empty)
 	if err := dec(in); err != nil {
@@ -3525,8 +3558,8 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _BackendService_CreateWalletAddress_Handler,
 		},
 		{
-			MethodName: "WalletAddressExists",
-			Handler:    _BackendService_WalletAddressExists_Handler,
+			MethodName: "WalletAddressValid",
+			Handler:    _BackendService_WalletAddressValid_Handler,
 		},
 		{
 			MethodName: "SetWalletName",
@@ -3827,6 +3860,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetXagoDepositDetails",
 			Handler:    _BackendService_GetXagoDepositDetails_Handler,
+		},
+		{
+			MethodName: "DepositTestXago",
+			Handler:    _BackendService_DepositTestXago_Handler,
 		},
 		{
 			MethodName: "GetPtiBalances",

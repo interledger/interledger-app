@@ -8,7 +8,7 @@ import (
 
 const (
 	prodUrl  = "https://interledger.app"
-	devUrl   = "https://eu1.fynbos.dev"
+	devUrl   = "https://sandbox.interledger.app"
 	localUrl = "https://interledger.test"
 )
 
@@ -97,13 +97,13 @@ func OpenPaymentsURL() string {
 		openPaymentsURL = os.Getenv("OPEN_PAYMENTS_BASE_URL")
 		if openPaymentsURL == "" {
 			if IsProd() {
-				openPaymentsURL = "https://fynbos.me"
+				openPaymentsURL = "https://ilp.link"
 			} else if IsDev() {
-				openPaymentsURL = "https://eu1.fynbos.me"
+				openPaymentsURL = "https://sandbox.ilp.link"
 			} else if IsLocal() || IsTest() {
-				openPaymentsURL = "https://local.fynbos.me"
+				openPaymentsURL = "https://local.ilp.link"
 			} else {
-				openPaymentsURL = "https://eu1.fynbos.me"
+				openPaymentsURL = "https://sandbox.ilp.link"
 			}
 		}
 	})
@@ -114,18 +114,19 @@ func OpenPaymentsURL() string {
 var authURL string
 var authURLSync sync.Once
 
+// TODO -  is this used?
 func AuthURL() string {
 	authURLSync.Do(func() {
 		authURL = os.Getenv("AUTH_BASE_URL")
 		if authURL == "" {
 			if IsProd() {
-				authURL = "https://auth.fynbos.me"
+				authURL = "https://auth.ilp.link"
 			} else if IsDev() {
-				authURL = "https://auth.eu1.fynbos.dev"
+				authURL = "https://auth.sandbox.ilp.link"
 			} else if IsLocal() || IsTest() {
-				authURL = "https://auth.interledger.test"
+				authURL = "https://auth.local.ilp.link"
 			} else {
-				authURL = "https://auth.eu1.fynbos.dev"
+				authURL = "https://auth.ilp.link"
 			}
 		}
 	})
@@ -141,13 +142,13 @@ func AdminURL() string {
 		adminURL = os.Getenv("ADMIN_BASE_URL")
 		if adminURL == "" {
 			if IsProd() {
-				adminURL = "https://admin.mgnt.fynbos.dev"
+				adminURL = "https://admin.interledger.tech"
 			} else if IsDev() {
-				adminURL = "https://admin-dev.mgnt.fynbos.dev"
+				adminURL = "https://admin.sandbox.interledger.tech"
 			} else if IsLocal() || IsTest() {
 				adminURL = "https://admin.interledger.test"
 			} else {
-				adminURL = "https://admin-dev.mgnt.fynbos.dev"
+				adminURL = "https://admin.sandbox.interledger.tech"
 			}
 		}
 	})

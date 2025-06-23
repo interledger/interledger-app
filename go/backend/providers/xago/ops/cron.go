@@ -24,12 +24,13 @@ import (
 )
 
 func StartDepositsPolling(b ActivityBackends) {
+	schedule := "0 */1 * * *"
 	// This workflow ID can be user business logic identifier as well.
 	workflowID := "cron_xago_deposits_poll"
 	workflowOptions := client.StartWorkflowOptions{
 		ID:                    workflowID,
 		TaskQueue:             "backend",
-		CronSchedule:          "0 */1 * * *",                                       // Every hour
+		CronSchedule:          schedule,
 		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING, // There can be only one
 	}
 
@@ -178,6 +179,7 @@ func (a *Activity) CreateDepositTransactions(ctx context.Context, deposits []ext
 				ForeignType:             transactions.TransactionTypeDeposit,
 				Provider:                transactions.ProviderXago,
 				State:                   transactions.StateCompleted,
+				Title:                   "Deposit",
 				Note:                    "Deposit received",
 				Source:                  "Bank Deposit",
 				Destination:             acc.WalletID,

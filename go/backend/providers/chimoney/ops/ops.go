@@ -15,6 +15,7 @@ import (
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/chimoney"
 	"gitlab.com/fynbos/backend/providers/chimoney/external"
+	"gitlab.com/fynbos/backend/slack"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/serviceerror"
 	"go.temporal.io/sdk/client"
@@ -243,7 +244,7 @@ func Withdraw(ctx context.Context, b Backends, ex external.Client, walletID stri
 			Name:      fmt.Sprintf("%s %s", ul[0].FirstName, ul[0].LastName),
 			Email:     email,
 			Amount:    amt.Float64(),
-			Narration: "Fynbos wallet withdrawal",
+			Narration: "Interledger wallet withdrawal",
 		}},
 	})
 	if err != nil {
@@ -461,6 +462,7 @@ func AssignBalance(ctx context.Context, b Backends, linkedAccountID, txID string
 func RollbackReserve(ctx context.Context, b Backends, txID string) error {
 	tx, err := b.Pacioli().VoidTransfers(ctx, []string{txID})
 	if err != nil {
+		slack.SendToChannel(ctx, slack.ChannelNotifyErrors, "wallet-info-bot", fmt.Sprintf("*:::[Chimoney ERROR]:::* \n *RollbackReserve txID:* %s,\n *error:* %s", txID, err))
 		return fmt.Errorf("%w %s", chimoney.ErrInternal, err)
 	}
 	if len(tx) == 0 {

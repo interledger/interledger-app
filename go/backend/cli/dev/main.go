@@ -91,8 +91,8 @@ func main() {
 	}()
 
 	app := &cli.App{
-		Name:  "fynbos",
-		Usage: "Interact with Fynbos application resources.",
+		Name:  "interledger",
+		Usage: "Interact with Interledger application resources.",
 		Commands: []*cli.Command{
 			{
 				Name:    "make",
@@ -101,7 +101,7 @@ func main() {
 				Subcommands: []*cli.Command{
 					{
 						Name:   "wallet",
-						Usage:  "create a new Fynbos user and wallet",
+						Usage:  "create a new Interledger user and wallet",
 						Flags:  actions.MakeWalletFlags,
 						Action: actions.MakeWallet(b),
 					},

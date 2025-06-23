@@ -112,6 +112,12 @@ func GetPersonaInquiry(ctx context.Context, b Backends, cl persona.Client, walle
 }
 
 func GetApprovedPersonaInquiryURL(ctx context.Context, b Backends, walletID string) (string, error) {
+	urlFormat := "https://app.withpersona.com/dashboard/inquiries/%s"
+
+	if env.IsLocal() {
+		return fmt.Sprintf(urlFormat, "local-inquiry-id"), nil
+	}
+
 	var inquiryID string
 	err := b.DB().GetContext(ctx, &inquiryID, "SELECT external_id FROM kyc_persona_inquiries WHERE wallet_id=$1 AND state=$2;", walletID, persona.InquiryApproved)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -121,7 +127,7 @@ func GetApprovedPersonaInquiryURL(ctx context.Context, b Backends, walletID stri
 		return "", fmt.Errorf("%w %s", kyc.ErrInternal, err)
 	}
 
-	return fmt.Sprintf("https://app.withpersona.com/dashboard/inquiries/%s", inquiryID), nil
+	return fmt.Sprintf(urlFormat, inquiryID), nil
 }
 
 func GetPersonaIDNumbers(ctx context.Context, b Backends, cl persona.Client, walletID string) (*kyc.PersonaIDNumbers, error) {

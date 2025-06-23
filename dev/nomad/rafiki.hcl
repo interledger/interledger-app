@@ -72,7 +72,7 @@ job "rafiki" {
       tags = [
         "traefik.enable=true",
         "traefik.http.middlewares.rafiki-connector-stripprefix.stripprefix.prefixes=/ilp",
-        "traefik.http.routers.rafiki-connector.rule=Host(`local.fynbos.me`) && Path(`/ilp`)",
+        "traefik.http.routers.rafiki-connector.rule=Host(`local.ilp.link`) && Path(`/ilp`)",
         "traefik.http.routers.rafiki-connector.middlewares=rafiki-connector-stripprefix@consulcatalog"
       ]
     }
@@ -82,10 +82,10 @@ job "rafiki" {
       port = "open-payments"
       tags = [
         "traefik.enable=true",
-        "traefik.http.routers.rafiki-incomingpayments.rule=Host(`local.fynbos.me`) && PathPrefix(`/incoming-payments`)",
-        "traefik.http.routers.rafiki-outgoingpayments.rule=Host(`local.fynbos.me`) && PathPrefix(`/outgoing-payments`)",
-        "traefik.http.routers.rafiki-quotes.rule=Host(`local.fynbos.me`) && PathPrefix(`/quotes`)",
-        "traefik.http.routers.rafiki-wellknown.rule=Host(`local.fynbos.me`) && PathPrefix(`/.well-known`)"
+        "traefik.http.routers.rafiki-incomingpayments.rule=Host(`local.ilp.link`) && PathPrefix(`/incoming-payments`)",
+        "traefik.http.routers.rafiki-outgoingpayments.rule=Host(`local.ilp.link`) && PathPrefix(`/outgoing-payments`)",
+        "traefik.http.routers.rafiki-quotes.rule=Host(`local.ilp.link`) && PathPrefix(`/quotes`)",
+        "traefik.http.routers.rafiki-wellknown.rule=Host(`local.ilp.link`) && PathPrefix(`/.well-known`)"
       ]
 
       check {    
@@ -103,10 +103,10 @@ job "rafiki" {
       tags = [
         "traefik.enable=true",
         "traefik.http.middlewares.rafiki-auth-stripprefix.stripprefix.prefixes=/gnap",
-        "traefik.http.routers.rafiki-auth.rule=((Host(`local.fynbos.me`) && Path(`/gnap`)) || Host(`auth.interledger.test`))",
-        "traefik.http.routers.rafiki-auth-token.rule=Host(`local.fynbos.me`) && PathPrefix(`/token`)",
-        "traefik.http.routers.rafiki-auth-interact.rule=Host(`local.fynbos.me`) && PathPrefix(`/interact`)",
-        "traefik.http.routers.rafiki-auth-continue.rule=Host(`local.fynbos.me`) && PathPrefix(`/continue`)",
+        "traefik.http.routers.rafiki-auth.rule=((Host(`local.ilp.link`) && Path(`/gnap`)) || Host(`auth.interledger.test`))",
+        "traefik.http.routers.rafiki-auth-token.rule=Host(`local.ilp.link`) && PathPrefix(`/token`)",
+        "traefik.http.routers.rafiki-auth-interact.rule=Host(`local.ilp.link`) && PathPrefix(`/interact`)",
+        "traefik.http.routers.rafiki-auth-continue.rule=Host(`local.ilp.link`) && PathPrefix(`/continue`)",
         "traefik.http.routers.rafiki-auth.middlewares=rafiki-auth-stripprefix@consulcatalog"
       ]
 
@@ -192,7 +192,7 @@ job "rafiki" {
         GRAPHQL_IDEMPOTENCY_KEY_LOCK_MS = "2000"
         IDENTITY_SERVER_URL = "https://interledger.test/consent"
         ILP_ADDRESS = "test.fynbos"
-        ILP_CONNECTOR_URL = "https://local.fynbos.me/ilp"
+        ILP_CONNECTOR_URL = "https://local.ilp.link/ilp"
         INCOMING_PAYMENT_WORKERS = "1"
         INCOMING_PAYMENT_WORKER_IDLE = "200"
         INSTANCE_NAME = "fynbosdev"
@@ -200,14 +200,14 @@ job "rafiki" {
         LOG_LEVEL = "debug"
         NODE_ENV = "production"
         OPEN_PAYMENTS_PORT = "80"
-        OPEN_PAYMENTS_URL = "https://local.fynbos.me"
+        OPEN_PAYMENTS_URL = "https://local.ilp.link"
         OUTGOING_PAYMENT_WORKERS = "4"
         OUTGOING_PAYMENT_WORKER_IDLE = "200"
-        PAYMENT_POINTER_URL = "https://local.fynbos.me/.well-known/pay"
+        PAYMENT_POINTER_URL = "https://local.ilp.link/.well-known/pay"
         PAYMENT_POINTER_WORKERS = "1"
         PAYMENT_POINTER_WORKER_IDLE = "200"
         PRIVATE_KEY_FILE = ""
-        PUBLIC_HOST = "https://local.fynbos.me"
+        PUBLIC_HOST = "https://local.ilp.link"
         QUOTE_LIFESPAN = "300000"
         REDIS_TLS_CA_FILE_PATH = ""
         REDIS_TLS_CERT_FILE_PATH = ""
@@ -238,7 +238,7 @@ job "rafiki" {
         GRAPHQL_URL = "http://127.0.0.1:3001/graphql"
         LOG_LEVEL = "debug"
         AUTH_ENABLED = "false"
-        OPEN_PAYMENTS_URL = "https://local.fynbos.me"
+        OPEN_PAYMENTS_URL = "https://local.ilp.link"
         NODE_ENV = "production"
         PORT = "3010"
       }

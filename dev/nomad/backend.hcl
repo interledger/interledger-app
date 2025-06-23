@@ -49,7 +49,7 @@ job "backend" {
       
       tags = [
         "traefik.enable=true",
-        "traefik.http.routers.backend-openpayments.rule=Host(`local.fynbos.me`)"
+        "traefik.http.routers.backend-openpayments.rule=Host(`local.ilp.link`)"
       ]
     }
 
@@ -135,7 +135,7 @@ job "backend" {
       config {
         image = "localhost:5002/backend"
         entrypoint = ["/go/bin/air"]
-        args =  ["--build.poll", "true", "--build.include_ext", "hcl", "--build.cmd", "go build -o /local/main /build/backend/main.go", "--build.bin", "/local/main migrate"]
+        args =  ["--build.poll", "true", "--build.include_ext", "hcl", "--build.cmd", "go build -o /local/main /build/backend/main.go", "--build.bin", "/local/main", "--build.args_bin", "migrate"]
         volumes = [
           "/home/vagrant/fynbos/go:/build",
           "${NOMAD_ALLOC_DIR}/go:/go",
@@ -164,7 +164,7 @@ job "backend" {
       config {
         image = "localhost:5002/backend"
         entrypoint = ["/go/bin/air"]
-        args =  ["--build.poll", "true", "--build.cmd", "go build -o /local/main /build/backend/main.go", "--build.bin", "/local/main dev"]
+        args =  ["--build.poll", "true", "--build.cmd", "go build -o /local/main /build/backend/main.go", "--build.bin", "/local/main", "--build.args_bin", "dev"]
         volumes = [
           "/home/vagrant/fynbos/go:/build",
           "${NOMAD_ALLOC_DIR}/go:/go",

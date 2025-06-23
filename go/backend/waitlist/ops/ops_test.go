@@ -32,28 +32,28 @@ func TestAddSignup(t *testing.T) {
 	}{
 		{
 			name:      "success",
-			email:     "signup@fynbos.dev",
+			email:     "signup@interledger.test",
 			country:   "ZA",
 			fullName:  "Bob",
 			betaOptIn: false,
 		},
 		{
 			name:      "duplicate",
-			email:     "signup@fynbos.dev",
+			email:     "signup@interledger.test",
 			country:   "ZA",
 			fullName:  "Bob",
 			betaOptIn: false,
 		},
 		{
 			name:      "beta opt in",
-			email:     "signup@fynbos.dev",
+			email:     "signup@interledger.test",
 			country:   "ZA",
 			fullName:  "Bob",
 			betaOptIn: true,
 		},
 		{
 			name:      "duplicate new country",
-			email:     "signup@fynbos.dev",
+			email:     "signup@interledger.test",
 			country:   "GB",
 			fullName:  "Bob",
 			betaOptIn: false,
@@ -68,7 +68,7 @@ func TestAddSignup(t *testing.T) {
 		},
 		{
 			name:      "invalid country",
-			email:     "nocountry@fynbos.dev",
+			email:     "nocountry@interledger.test",
 			country:   "LALA",
 			fullName:  "Bob",
 			betaOptIn: false,
@@ -76,14 +76,14 @@ func TestAddSignup(t *testing.T) {
 		},
 		{
 			name:      "empty country",
-			email:     "nocountry@fynbos.dev",
+			email:     "nocountry@interledger.test",
 			fullName:  "Bob",
 			betaOptIn: false,
 			err:       waitlist.ErrInvalidCountry,
 		},
 		{
 			name:      "empty name",
-			email:     "signup@fynbos.dev",
+			email:     "signup@interledger.test",
 			country:   "ZA",
 			betaOptIn: false,
 			err:       waitlist.ErrInvalidName,
@@ -119,13 +119,13 @@ func TestAddSignupWithMug(t *testing.T) {
 	}{
 		{
 			name:     "success no mug",
-			email:    "signup@fynbos.dev",
+			email:    "signup@interledger.test",
 			country:  "ZA",
 			fullName: "Bob",
 		},
 		{
 			name:     "override with mug",
-			email:    "signup@fynbos.dev",
+			email:    "signup@interledger.test",
 			country:  "ZA",
 			fullName: "Bob",
 			mugID:    "1e25f533",
@@ -133,7 +133,7 @@ func TestAddSignupWithMug(t *testing.T) {
 		},
 		{
 			name:     "signup with duplicate mug",
-			email:    "taken@fynbos.dev",
+			email:    "taken@interledger.test",
 			country:  "ZA",
 			fullName: "Bob",
 			mugID:    "1e25f533",
@@ -141,7 +141,7 @@ func TestAddSignupWithMug(t *testing.T) {
 		},
 		{
 			name:     "not override mug with null",
-			email:    "signup@fynbos.dev",
+			email:    "signup@interledger.test",
 			country:  "ZA",
 			fullName: "Bob",
 			mugID:    "",
@@ -149,7 +149,7 @@ func TestAddSignupWithMug(t *testing.T) {
 		},
 		{
 			name:     "not override mug with new mug",
-			email:    "signup@fynbos.dev",
+			email:    "signup@interledger.test",
 			country:  "ZA",
 			fullName: "Bob",
 			mugID:    "16ba8774",
@@ -157,7 +157,7 @@ func TestAddSignupWithMug(t *testing.T) {
 		},
 		{
 			name:     "success with mug",
-			email:    "new_signup@fynbos.dev",
+			email:    "new_signup@interledger.test",
 			country:  "ZA",
 			fullName: "Bob",
 			mugID:    "625ee641",
@@ -196,7 +196,7 @@ func TestCanSignup(t *testing.T) {
 	}{
 		{
 			name:      "allowed",
-			email:     "allowed@fynbos.dev",
+			email:     "allowed@interledger.test",
 			country:   "ZA",
 			fullName:  "Bob",
 			betaOptIn: false,
@@ -204,7 +204,7 @@ func TestCanSignup(t *testing.T) {
 		},
 		{
 			name:      "not allowed",
-			email:     "nowallowed@fynbos.dev",
+			email:     "nowallowed@interledger.test",
 			country:   "ZA",
 			fullName:  "Robert",
 			betaOptIn: false,
@@ -251,7 +251,7 @@ func TestSetSignupComplete(t *testing.T) {
 	}{
 		{
 			name:        "complete signup",
-			email:       "allowed@fynbos.dev",
+			email:       "allowed@interledger.test",
 			country:     "ZA",
 			fullName:    "Bob",
 			canSignup:   true,
@@ -301,19 +301,19 @@ func TestListSignups(t *testing.T) {
 		betaOptIn bool
 	}{
 		{
-			email:     "bob@fynbos.dev",
+			email:     "bob@interledger.test",
 			country:   "ZA",
 			fullName:  "Bob",
 			betaOptIn: false,
 		},
 		{
-			email:     "alice@fynbos.dev",
+			email:     "alice@interledger.test",
 			country:   "ZA",
 			fullName:  "Alice",
 			betaOptIn: false,
 		},
 		{
-			email:     "beta@fynbos.dev",
+			email:     "beta@interledger.test",
 			country:   "US",
 			fullName:  "Beta Max",
 			betaOptIn: true,

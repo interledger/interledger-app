@@ -1,3 +1,4 @@
+// Todo: Can be removed. We are not going to use Astra and Basis Theory anymore.
 package jobs
 
 import (

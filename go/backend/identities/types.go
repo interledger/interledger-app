@@ -56,7 +56,7 @@ const (
 Example structure
 
 	{
-		"wallet": "https://fynbos.me/adrian",
+		"wallet": "https://ilp.link/adrian",
 		"type": "twitter",
 		"identifier": "@adrian",
 		"kid": "external_1",
