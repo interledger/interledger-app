@@ -31,19 +31,19 @@ func MigrateWalletAddressesToLowercaseJob(ctx workflow.Context) error {
 
 func (a *Activity) TransformWalletAddressesToLowerCase(ctx context.Context) error {
 	connString := os.Getenv("RAFIKI_DB_URL")
-	rafikiDb, err := DbConnection(connString)
+	rafikiDB, err := DbConnection(connString)
 	if err != nil {
 		log.Error("Error establishing db connection: %v", zap.Error(err))
 		return err
 	}
-	defer rafikiDb.Close()
+	defer rafikiDB.Close()
 
 	tx1, err := a.b.DB().BeginTxx(ctx, nil)
 	if err != nil {
 		return err
 	}
 
-	tx2, err := rafikiDb.BeginTxx(ctx, nil)
+	tx2, err := rafikiDB.BeginTxx(ctx, nil)
 	if err != nil {
 		return err
 	}
