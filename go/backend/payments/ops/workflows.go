@@ -1008,6 +1008,7 @@ func RollbackPayInWorkflow(ctx workflow.Context, paymentID string) error {
 	// Rollback PTI withdrawal
 	err = workflow.ExecuteActivity(ctx, a.PTIWithdrawalComplete, paymentID, false).Get(ctx, nil)
 	if err != nil {
+		logger.Error("error PTI withdrawal rolling back balance reserve", "Error", err)
 		return err
 	}
 

@@ -19,7 +19,8 @@ import {
 import {
   FynbosDepositPage,
   fynbosDepositAction,
-  fynbosDepositLoader
+  fynbosDepositLoader,
+  xagoTestAccountDepositAction
 } from './fynbos'
 import { GatehubDepositPage, gatehubDepositLoader } from './gatehub'
 
@@ -69,10 +70,12 @@ export async function action(args: ActionFunctionArgs) {
     'formName'
   ) as string
 
-  if (formName == 'chimoney-amount') {
+  if (formName === 'chimoney-amount') {
     return chimoneyAmountAction(args)
-  } else if (formName == 'chimoney-successfull-deposit') {
+  } else if (formName === 'chimoney-successfull-deposit') {
     return chimoneySuccessfullDepositAction(args)
+  } else if (formName === 'xago-test-account-deposit') {
+    return xagoTestAccountDepositAction(args)
   }
 
   return fynbosDepositAction(args)

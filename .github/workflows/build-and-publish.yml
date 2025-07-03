@@ -16,14 +16,9 @@ on:
 
 permissions:
   id-token: write
-  contents: read
+  contents: write
   packages: write
 
-env:
-  # We use Artifact Repository, GCR references are legacy as GCR has been deprecated.
-  GCR_PROJECT: ${{ secrets.GCR_PROJECT }}
-  GSA_EMAIL: ${{ secrets.GSA_EMAIL }}
-  GCR_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCR_WORKLOAD_IDENTITY_PROVIDER }}
 
 jobs:
   select_packages:
@@ -117,9 +112,14 @@ jobs:
           key: ${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}
 
   push-image-gcp-artifact-registry:
-    name: Push to Google Artifact Registry
+    name: Prod images push
     needs: [builds, version_generator, select_packages]
     runs-on: ubuntu-latest
+    env:
+      # We use Artifact Repository, GCR references are legacy as GCR has been deprecated.
+      GCR_PROJECT: ${{ secrets.GCR_PROJECT }}
+      GSA_EMAIL: ${{ secrets.GSA_EMAIL }}
+      GCR_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCR_WORKLOAD_IDENTITY_PROVIDER }}
     if: needs.version_generator.outputs.dockerPush == 'true'
     strategy:
       matrix: ${{fromJson(needs.select_packages.outputs.builds)}}
@@ -155,10 +155,69 @@ jobs:
             workload_identity_provider: ${{ env.GCR_WORKLOAD_IDENTITY_PROVIDER}}
             export_environment_variables: true
 
-      - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v2
+      - name: Sanity checks
+        run: |
+          gcloud auth list
+          gcloud config list
+
+      - name: Configure Docker to use the gcloud command-line tool as a credential helper for authentication
+        run: |-
+          gcloud --quiet auth configure-docker \
+              europe-west4-docker.pkg.dev
+
+      - name: Push to Artifact Registry
+        run: |
+          echo "Pushing $PUSH_IMAGE"
+          docker push $PUSH_IMAGE
+
+
+  push-dev-image-gcp-artifact-registry:
+    name: DEV Images push
+    needs: [builds, version_generator, select_packages]
+    runs-on: ubuntu-latest
+    env:
+      GCR_PROJECT: ${{ secrets.GCR_DEV_PROJECT }}
+      GSA_EMAIL: ${{ secrets.GSA_DEV_EMAIL }}
+      GCR_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCR_DEV_WORKLOAD_IDENTITY_PROVIDER }}
+    if: needs.version_generator.outputs.dockerPush == 'true'
+    strategy:
+      matrix: ${{fromJson(needs.select_packages.outputs.builds)}}
+    steps:
+      - name: Load cache
+        uses: actions/cache/restore@v4
         with:
-          version: '>= 363.0.0'
+          path: /tmp/${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}.tar
+          key: ${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}
+          fail-on-cache-miss: true
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Load Docker image
+        run: |
+          docker load -i /tmp/${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}.tar
+    
+      - name: List Docker images
+        run: docker images
+
+      - name: Retag for Artifact Registry
+        run: |
+          IMAGE_ID=$(docker images interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }} --format "{{.ID}}" | head -n 1)
+          # Tag appropriately for our GCP project
+          PUSH_IMAGE=europe-west4-docker.pkg.dev/${{ env.GCR_PROJECT }}/interledger-app/${{ matrix.package.name }}:${{ needs.version_generator.outputs.version }}
+          docker tag $IMAGE_ID $PUSH_IMAGE
+          echo "PUSH_IMAGE=$PUSH_IMAGE" >> $GITHUB_ENV 
+
+      - uses: 'google-github-actions/auth@v2'
+        with:
+            service_account: ${{ env.GSA_EMAIL }}
+            workload_identity_provider: ${{ env.GCR_WORKLOAD_IDENTITY_PROVIDER}}
+            export_environment_variables: true
+
+      - name: Sanity checks
+        run: |
+          gcloud auth list
+          gcloud config list
 
       - name: Configure Docker to use the gcloud command-line tool as a credential helper for authentication
         run: |-
