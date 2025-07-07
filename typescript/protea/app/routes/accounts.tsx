@@ -26,6 +26,7 @@ import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
 import { KycStatus } from '~/routes/_index/route'
 import styles from '~/styles/flags.css'
+import { BaseErrorBoundary } from "~/components/Error/BaseErrorBoundary";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const { bankAccounts, cardAccounts, interacAccounts } =
@@ -262,4 +263,17 @@ export default function Page() {
       </GridColumn>
     </WalletGrid>
   )
+}
+
+// For remix routes, export an ErrorBoundary component to handle errors
+export function ErrorBoundary() {
+  return (
+  <BaseErrorBoundary 
+    routeErrorConfig={{
+      fn: (error) => {
+        console.error("Caught route error in /accounts:", error);
+      },
+      render: (error) => (<div>Custom accounts error: {error.status} {error.statusText}</div>)
+    }}        
+  />);
 }
