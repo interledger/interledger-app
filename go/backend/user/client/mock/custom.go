@@ -76,6 +76,12 @@ func (mc MockClient) UserForCookie(ctx context.Context, cookie string) (*user.Us
 	return &usr, nil
 }
 
+// UserForToken TODO: Just to make the mock client happy for now?
+func (mc MockClient) UserForToken(ctx context.Context, token string) (*user.User, error) {
+	usr := user.User{}
+	return &usr, nil
+}
+
 func (mc MockClient) UserForContext(ctx context.Context) (*user.User, error) {
 	raw, ok := ctx.Value(user.CtxKey).(*user.User)
 	if !ok {
