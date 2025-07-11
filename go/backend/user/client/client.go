@@ -58,6 +58,16 @@ func (c *client) UserForCookie(ctx context.Context, cookie string) (usr *user.Us
 	return ops.UserForCookie(ctx, c.b, cookie)
 }
 
+func (c *client) UserForToken(ctx context.Context, token string) (usr *user.User, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			log.Debug("failed to parse user x-session-token", zap.Error(err))
+		}
+	}(time.Now())
+
+	return ops.UserForToken(ctx, c.b, token)
+}
+
 func (c *client) UserForContext(ctx context.Context) (usr *user.User, err error) {
 	return ops.UserForContext(ctx)
 }
