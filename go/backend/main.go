@@ -442,6 +442,19 @@ func startWorker(args *cli.StartArgs) {
 
 	b := NewBackends(args, true)
 
+	router := chi.NewRouter()
+	router.Routes()
+	router.Use(otelchi.Middleware("worker", otelchi.WithChiRoutes(router)))
+	router.Handle("/healthz", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(200)
+	}))
+
+	var wg sync.WaitGroup
+
+	// TODO: Replace the port
+	log.Info("worker http healthcheck running at http://localhost:%s", zap.String("port", "8081"))
+	serveHTTP(&http.Server{Addr: ":8081", Handler: router}, &wg)
+
 	log.Info("Worker creating")
 	w, err := temporal.NewTemporalWorker(b)
 	if err != nil {
