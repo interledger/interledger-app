@@ -28,7 +28,7 @@ import (
 )
 
 type Client interface {
-	CreateSubAccount(ctx context.Context, user user.User, details kyc.IndividualDetails, personaInquiryURL string) (*SubAccount, error)
+	CreateSubAccount(ctx context.Context, user user.User, details kyc.IndividualDetails, idNumber, personaInquiryURL string) (*SubAccount, error)
 	AddBeneficiary(ctx context.Context, reqStruct CreateBeneficiaryReq) (*AccountBeneficiaries, error)
 	ListBeneficiaries(ctx context.Context, limit, page uint) (*ListBeneficiariesResponse, error)
 	CreateTransaction(ctx context.Context, amt currency.Amount, idempotencyKey, beneficiaryID, reference string) (string, error)
@@ -201,7 +201,7 @@ func (c *client) AccessToken(ctx context.Context, forceRefresh bool) (*AccessTok
 	return &c.accessToken, nil
 }
 
-func (c *client) CreateSubAccount(ctx context.Context, user user.User, details kyc.IndividualDetails, personaInquiryURL string) (*SubAccount, error) {
+func (c *client) CreateSubAccount(ctx context.Context, user user.User, details kyc.IndividualDetails, idNumber, personaInquiryURL string) (*SubAccount, error) {
 	reqUrl, err := url.JoinPath(c.baseURL, "company", "accounts")
 	if err != nil {
 		return nil, err
@@ -214,7 +214,7 @@ func (c *client) CreateSubAccount(ctx context.Context, user user.User, details k
 		MobileNumber:    user.PhoneNumber,
 		IdentityType:    IdentityTypeIndividual,
 		PersonaURL:      personaInquiryURL,
-		IDNumber:        "ABCDEF1234", // Retrieve this from Persona
+		IDNumber:        idNumber,
 		PhysicalAddress: details.Address.String(),
 	}
 

@@ -112,7 +112,14 @@ func (a *Activity) CreateSubAccount(ctx context.Context, walletID string) (*exte
 		return nil, err
 	}
 
-	return a.b.External().CreateSubAccount(ctx, ul[0], *id, personaInquiry)
+	// TODO: This shouldn't be needed if we are going to rely on Persona later on,
+	// to retrieve all necessary data (not storing KYC details in database).
+	idNumber, err := a.b.KYC().GetPersonaZAIDNumber(ctx, walletID)
+	if err != nil {
+		return nil, err
+	}
+
+	return a.b.External().CreateSubAccount(ctx, ul[0], *id, idNumber, personaInquiry)
 }
 
 func CreateBalanceAccountWorkflow(ctx workflow.Context, args xago.CreateBalanceAccArgs) (*linkedaccounts.LinkedAccount, error) {
