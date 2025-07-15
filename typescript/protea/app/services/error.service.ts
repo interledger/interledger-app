@@ -17,5 +17,4 @@ export const ErrorMessageService = {
 }
 
 /** Example usage */
-const errorMessage = ErrorMessageService.getErrorMessage("login", 503);
-console.log(errorMessage);
+// const errorMessage = ErrorMessageService.getErrorMessage("login", 503);
