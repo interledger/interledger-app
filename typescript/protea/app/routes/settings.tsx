@@ -135,6 +135,18 @@ export default function Page() {
             end
             preventScrollReset
             prefetch='intent'
+            to={route('/totp/two-factor-authentication')}
+          >
+            <div className='mr-auto flex space-x-3'>
+              <Icon>scan</Icon>
+              <span>Two Factor Auth</span>
+            </div>
+            <Icon>navigate_next</Icon>
+          </CardLink>
+          <CardLink
+            end
+            preventScrollReset
+            prefetch='intent'
             to={route('/login/challenge')}
           >
             <div className='mr-auto flex space-x-3'>

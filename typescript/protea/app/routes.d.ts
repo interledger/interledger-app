@@ -46,6 +46,8 @@ declare module "routes-gen" {
     "/signup": Record<string, never>;
     "/support": Record<string, never>;
     "/temp-cloudflare-error": Record<string, never>;
+    "/totp/challenge": Record<string, never>;
+    "/totp/two-factor-authentication": Record<string, never>;
     "/transactions": Record<string, never>;
     "/transactions/:transactionId": { "transactionId": string };
     "/verify": Record<string, never>;
@@ -104,6 +106,8 @@ declare module "routes-gen" {
       | ["/signup"]
       | ["/support"]
       | ["/temp-cloudflare-error"]
+      | ["/totp/challenge"]
+      | ["/totp/two-factor-authentication"]
       | ["/transactions"]
       | ["/transactions/:transactionId", RouteParams["/transactions/:transactionId"]]
       | ["/verify"]
