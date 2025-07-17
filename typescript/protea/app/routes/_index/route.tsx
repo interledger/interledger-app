@@ -3,7 +3,7 @@ import type {
   LoaderFunctionArgs,
   MetaFunction
 } from '@remix-run/node'
-import { json } from '@remix-run/node'
+import { json, redirect } from '@remix-run/node'
 import type { UIMatch } from '@remix-run/react'
 import { useLoaderData } from '@remix-run/react'
 import type { ApplicationProps } from '~/components'
@@ -68,6 +68,11 @@ export async function appLoader({ request }: LoaderFunctionArgs) {
     grpc.getBalances(request, {})
   ])
   if (isConnectError(balanceResponse)) throw balanceResponse.error
+
+  // if wallet is in a region that is not enabled redirect
+  if (!features.accountEnabled) {
+    return redirect("/unavailable")
+  }
 
   return json({
     isUser: true,

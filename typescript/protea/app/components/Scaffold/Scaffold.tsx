@@ -273,11 +273,6 @@ export function Scaffold() {
           </div>
         )}
 
-        {layout === Layouts.Wallet && isUser && (
-          <div className='mx-auto flex w-full max-w-[59rem] items-center rounded-[1.25rem] bg-container-strong my-6 p-2 sm:max-w-lg lg:max-w-3xl'>
-            <WarningBanner text='The app is under maintainance and depending on your location it might not work as expected. But do not worry we are working tirelessly to solve the issues asap!' />
-          </div>
-        )}
         {layout !== Layouts.Marketing && (
           <div
             className={clsx(
