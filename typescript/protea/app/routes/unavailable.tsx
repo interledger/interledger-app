@@ -3,7 +3,9 @@ import type { ApplicationProps } from '~/components'
 import {
   Card,
   CardContent,
+  CardIcon,
   GridColumn,
+  Icon,
   Layouts,
   WalletGrid
 } from '~/components'
@@ -33,7 +35,10 @@ export default function Page() {
         className='col-span-full'
       >
         <Card>
-          <CardContent>
+          <CardIcon>
+            <Icon className='text-red-600'>warning</Icon>
+          </CardIcon>
+          <CardContent className='text-lg'>
             The app is not yet available in your location, but do not worry we are working tirelessly to solve it asap! <br />
             We will notify you by email once the app becomes fully functional in your region.
           </CardContent>
