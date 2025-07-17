@@ -44,16 +44,6 @@ job "backend" {
     }
 
     service {
-      name = "backend-openpayments"
-      port = "http"
-      
-      tags = [
-        "traefik.enable=true",
-        "traefik.http.routers.backend-openpayments.rule=Host(`local.ilp.link`)"
-      ]
-    }
-
-    service {
       name = "backend"
       port = "http"
 
