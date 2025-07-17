@@ -39,8 +39,8 @@ export default function Page() {
             <Icon className='text-red-600'>warning</Icon>
           </CardIcon>
           <CardContent className='text-lg'>
-            The app is not yet available in your location, but do not worry we are working tirelessly to solve it asap! <br />
-            We will notify you by email once the app becomes fully functional in your region.
+            The application is not yet available in your location, but do not worry we are working tirelessly to solve it as fast as possible! <br />
+            We will notify you by email once the application becomes fully functional in your region.
           </CardContent>
         </Card>
       </GridColumn>
