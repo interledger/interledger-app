@@ -3,7 +3,7 @@ import type {
   LoaderFunctionArgs,
   MetaFunction
 } from '@remix-run/node'
-import { json } from '@remix-run/node'
+import { json, redirect } from '@remix-run/node'
 import type { ShouldRevalidateFunction } from '@remix-run/react'
 import {
   Link,
@@ -26,6 +26,7 @@ import { hasUserSession } from '~/lib/kratos.server'
 import { getSnackbar } from '~/lib/snackbar.server'
 import { useSegment } from '~/lib/useSegment'
 import styles from '~/styles/app.css'
+import { getFeatures } from './data/wallet.server'
 
 const metaContent = {
   title: 'Interledger Wallet',
@@ -118,8 +119,16 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({
 export async function loader({ request }: LoaderFunctionArgs) {
   const isUser = hasUserSession(request)
   const snackbar = await getSnackbar(request)
+  const features = await getFeatures(request)
+
+  // if wallet is in a region that is not enabled redirect
+  if (!features.accountEnabled) {
+    return redirect("/unavailable")
+  }
+
   return json({
     isUser,
+    features,
     snackbar,
     env: {
       fynbosEnv: process.env.FYNBOS_ENV,
