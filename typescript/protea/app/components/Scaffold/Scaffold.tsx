@@ -98,7 +98,7 @@ export function Scaffold() {
   const matches = useMatches()
   const navigate = useNavigate()
   const [search] = useSearchParams()
-  const { isUser, snackbar } = useRouteLoaderData('root') as SerializeFrom<
+  const { isUser, snackbar, features } = useRouteLoaderData('root') as SerializeFrom<
     typeof rootLoader
   >
 
@@ -181,7 +181,7 @@ export function Scaffold() {
       className={clsx(
         'relative inset-0 flex min-h-screen flex-col',
         (layout === Layouts.Marketing || layout === Layouts.Docs) &&
-          'bg-mk-page'
+        'bg-mk-page'
       )}
     >
       {layout === Layouts.Wallet && (
@@ -192,13 +192,15 @@ export function Scaffold() {
                 <InterledgerWalletLogo className='h-8' />
               </Router>
             </div>
-            <button
-              onClick={() => setCommandPaletteOpen(true)}
-              className='mb-2 mt-10 flex w-full space-x-3 rounded-2xl bg-primary p-4 text-white'
-            >
-              <Icon>attach_money</Icon>
-              <span className='font-medium'>Pay</span>
-            </button>
+            {features && features.accountEnabled && (
+              <button
+                onClick={() => setCommandPaletteOpen(true)}
+                className='mb-2 mt-10 flex w-full space-x-3 rounded-2xl bg-primary p-4 text-white'
+              >
+                <Icon>attach_money</Icon>
+                <span className='font-medium'>Pay</span>
+              </button>
+            )}
             <NavDrawer.ListItem to={route('/')}>Home</NavDrawer.ListItem>
             <NavDrawer.ListItem to={route('/accounts')}>
               Accounts
@@ -219,13 +221,13 @@ export function Scaffold() {
         className={clsx(
           'sticky top-0 z-40 flex w-full select-none items-center justify-start space-x-4 p-4',
           layout === Layouts.Marketing &&
-            'h-16 border-b border-slate-200 bg-mk-page dark:border-slate-800 lg:h-24',
+          'h-16 border-b border-slate-200 bg-mk-page dark:border-slate-800 lg:h-24',
           layout === Layouts.Focus &&
-            'mx-auto h-16 select-none bg-page sm:mt-[5.5rem] sm:max-w-[29rem]',
+          'mx-auto h-16 select-none bg-page sm:mt-[5.5rem] sm:max-w-[29rem]',
           layout === Layouts.Wallet &&
           'min-h-16 bg-page lg:pl-[16.25rem] flex-col justify-end',
           layout === Layouts.Docs &&
-            'h-16 bg-mk-page lg:mt-[5.5rem] lg:pl-[16.25rem]'
+          'h-16 bg-mk-page lg:mt-[5.5rem] lg:pl-[16.25rem]'
         )}
       >
         {layout === Layouts.Marketing && (
@@ -390,7 +392,7 @@ export function Scaffold() {
           'relative flex w-full grow flex-col',
           layout === Layouts.Marketing && 'mx-auto xl:max-w-[80rem]',
           layout === Layouts.Focus &&
-            'mx-auto w-full gap-y-4 px-4 sm:max-w-[29rem] sm:px-0',
+          'mx-auto w-full gap-y-4 px-4 sm:max-w-[29rem] sm:px-0',
           layout === Layouts.Wallet && 'mb-32 w-full px-4 lg:pl-[16.25rem]',
           layout === Layouts.Docs && 'mb-32 w-full px-4 lg:pl-[16.25rem]'
         )}
@@ -401,11 +403,11 @@ export function Scaffold() {
         className={clsx(
           'w-full',
           layout === Layouts.Marketing &&
-            'mx-auto mb-8 flex max-w-[80rem] rounded-2xl bg-mk-footer',
+          'mx-auto mb-8 flex max-w-[80rem] rounded-2xl bg-mk-footer',
           layout === Layouts.Focus &&
-            'mx-auto flex w-full items-center gap-x-3 px-4 py-6 sm:max-w-[29rem] sm:px-0',
+          'mx-auto flex w-full items-center gap-x-3 px-4 py-6 sm:max-w-[29rem] sm:px-0',
           (layout === Layouts.Wallet || layout === Layouts.Docs) &&
-            'fixed bottom-0 z-50 hidden w-56 items-center gap-x-3 px-4 py-6 lg:flex'
+          'fixed bottom-0 z-50 hidden w-56 items-center gap-x-3 px-4 py-6 lg:flex'
         )}
       >
         {layout !== Layouts.Marketing && (
@@ -613,24 +615,26 @@ export function Scaffold() {
           )}
         </NavDrawer>
       </NavDrawer.Modal>
-      <div
-        className={clsx(
-          'fixed bottom-4 left-0 z-50 mx-auto flex w-full flex-col items-end justify-center gap-y-4 overflow-y-visible px-4 text-center lg:bottom-auto lg:top-4 lg:items-center',
-          layout === Layouts.Wallet && 'lg:pl-64 lg:pr-0'
-        )}
-      >
-        <AnimatePresence mode='popLayout'>
-          {scaffold?.fab && layout !== Layouts.Marketing && (
-            <FAB key='fab' onTap={() => setCommandPaletteOpen(true)} />
+      {features && features.accountEnabled && (
+        <div
+          className={clsx(
+            'fixed bottom-4 left-0 z-50 mx-auto flex w-full flex-col items-end justify-center gap-y-4 overflow-y-visible px-4 text-center lg:bottom-auto lg:top-4 lg:items-center',
+            layout === Layouts.Wallet && 'lg:pl-64 lg:pr-0'
           )}
-          <SnackbarStage />
-        </AnimatePresence>
-        {layout === Layouts.Wallet && (
-          <CommandPalette>
-            <CommandActions />
-          </CommandPalette>
-        )}
-      </div>
+        >
+          <AnimatePresence mode='popLayout'>
+            {scaffold?.fab && layout !== Layouts.Marketing && (
+              <FAB key='fab' onTap={() => setCommandPaletteOpen(true)} />
+            )}
+            <SnackbarStage />
+          </AnimatePresence>
+          {layout === Layouts.Wallet && (
+            <CommandPalette>
+              <CommandActions />
+            </CommandPalette>
+          )}
+        </div>
+      )}
     </div>
   )
 }
