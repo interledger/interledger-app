@@ -113,7 +113,9 @@ export default function Page() {
     <>
       <Form
         id='2fa-form'
-        action={`/totp/two-factor-authentication?flow=${flowId}&totpUnlink=${totpUnlink}`}
+        action={`/totp/two-factor-authentication?flow=${flowId}${
+          totpUnlink ? '&totpUnlink=true' : ''
+        }`}
         method='post'
       >
         <GridColumn className='col-span-full lg:col-span-6'>
@@ -176,7 +178,16 @@ export async function action({ request }: ActionFunctionArgs) {
   const flowId = form.get('flow')
   const csrfToken = form.get('csrf_token')
   const totpCode = form.get('totp_code')
-
+  console.log(
+    'TOTP Code:',
+    totpCode,
+    'Flow ID:',
+    flowId,
+    'CSRF Token:',
+    csrfToken,
+    'Unlink:',
+    totpUnlink
+  )
   try {
     const res = await fetch(
       `${KRATOS_URL}/self-service/settings?flow=${flowId}`,
@@ -205,14 +216,25 @@ export async function action({ request }: ActionFunctionArgs) {
     )
 
     if (res.status === 403) {
-      const redirectTo = await res.json()
-      return redirect(route('/totp/challenge') + `?flow=${redirectTo.id}`, {
+      const refresh = await fetch(
+        `${KRATOS_URL}/self-service/login/browser?refresh=true&return_to=/'`,
+        {
+          headers: {
+            Accept: 'application/json',
+            cookie: String(request.headers.get('cookie'))
+          }
+        }
+      )
+      // const flow = await refresh.json()
+      console.log('Refresh response:', refresh.status)
+      return redirect(route('/totp/two-factor-authentication'), {
         headers: res.headers
+        
       })
     }
 
     if (res.ok) {
-      return redirect(route('/totp/two-factor-authentication'))
+      return redirect(route('/'))
     }
 
     const data = await res.json()

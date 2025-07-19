@@ -1,9 +1,10 @@
+import { AuthenticatorAssuranceLevel } from '@ory/kratos-client'
 import type {
   LinksFunction,
   LoaderFunctionArgs,
   MetaFunction
 } from '@remix-run/node'
-import { json } from '@remix-run/node'
+import { json, redirect } from '@remix-run/node'
 import type { UIMatch } from '@remix-run/react'
 import { useLoaderData } from '@remix-run/react'
 import type { ApplicationProps } from '~/components'
@@ -17,7 +18,7 @@ import {
 } from '~/data/wallet.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
-import { hasUserSession } from '~/lib/kratos.server'
+import { getUserSession, hasUserSession } from '~/lib/kratos.server'
 import { datoMeta, mergeMeta } from '~/lib/meta'
 import { getPusherArgs } from '~/lib/pusher.server'
 import flagStyles from '~/styles/flags.css'
@@ -68,6 +69,17 @@ export async function appLoader({ request }: LoaderFunctionArgs) {
     grpc.getBalances(request, {})
   ])
   if (isConnectError(balanceResponse)) throw balanceResponse.error
+  const isUser = hasUserSession(request)
+  if (isUser) {
+    const session = await getUserSession(request)
+    console.log('Session ------------------', session)
+    if (
+      isUser &&
+      session.authenticator_assurance_level === AuthenticatorAssuranceLevel.Aal1
+    ) {
+      return redirect('/totp/two-factor-authentication?returnTo=/')
+    }
+  }
 
   return json({
     isUser: true,
