@@ -16,6 +16,7 @@ import (
 	"gitlab.com/fynbos/backend/kyc"
 
 	"gitlab.com/fynbos/backend/features"
+	"gitlab.com/fynbos/env"
 )
 
 func SetFeatures(ctx context.Context, b Backends, walletID string, feat features.WalletFeatures) (*features.WalletFeatures, error) {
@@ -104,7 +105,11 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		res.CardsEnabled = true
 		res.AddCardsEnabled = canAddCard
 		res.ManageWalletCardsEnabled = false
-		res.AccountEnabled = false
+		if env.IsProd() {
+			res.AccountEnabled = false
+		} else {
+			res.AccountEnabled = true
+		}
 	}
 	if w.Country == country.ZA {
 		res.ReceiveEnabled = true
@@ -114,7 +119,11 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		res.CardsEnabled = false
 		res.AddCardsEnabled = false
 		res.ManageWalletCardsEnabled = false
-		res.AccountEnabled = false
+		if env.IsProd() {
+			res.AccountEnabled = false
+		} else {
+			res.AccountEnabled = true
+		}
 	}
 	if country.EUCountries[w.Country] {
 		res.ReceiveEnabled = true
@@ -126,7 +135,11 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		res.CardsEnabled = false
 		res.AddCardsEnabled = false
 		res.ManageWalletCardsEnabled = false
-		res.AccountEnabled = false
+		if env.IsProd() {
+			res.AccountEnabled = false
+		} else {
+			res.AccountEnabled = true
+		}
 	}
 	if w.Country == country.CA {
 		res.ReceiveEnabled = true
@@ -137,7 +150,11 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		res.AddCardsEnabled = false
 		res.InteraccEnabled = canAddInterac
 		res.ManageWalletCardsEnabled = false
-		res.AccountEnabled = false
+		if env.IsProd() {
+			res.AccountEnabled = false
+		} else {
+			res.AccountEnabled = true
+		}
 	}
 
 	return &res, nil
