@@ -105,6 +105,7 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		res.CardsEnabled = true
 		res.AddCardsEnabled = canAddCard
 		res.ManageWalletCardsEnabled = false
+		// it enables the feature by default for sandbox / dev
 		if env.IsProd() {
 			res.AccountEnabled = false
 		} else {
