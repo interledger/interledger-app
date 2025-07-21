@@ -16,6 +16,7 @@ import (
 	"gitlab.com/fynbos/backend/kyc"
 
 	"gitlab.com/fynbos/backend/features"
+	"gitlab.com/fynbos/env"
 )
 
 func SetFeatures(ctx context.Context, b Backends, walletID string, feat features.WalletFeatures) (*features.WalletFeatures, error) {
@@ -96,6 +97,8 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		return nil, err
 	}
 
+	isProd := env.IsProd()
+
 	if w.Country == country.US {
 		res.ReceiveEnabled = true
 		res.SendEnabled = true
@@ -104,7 +107,8 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		res.CardsEnabled = true
 		res.AddCardsEnabled = canAddCard
 		res.ManageWalletCardsEnabled = false
-		res.AccountEnabled = false
+		// it enables the feature by default for sandbox / dev
+		res.AccountEnabled = isAccountEnabled(ctx, isProd, false)
 	}
 	if w.Country == country.ZA {
 		res.ReceiveEnabled = true
@@ -114,7 +118,7 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		res.CardsEnabled = false
 		res.AddCardsEnabled = false
 		res.ManageWalletCardsEnabled = false
-		res.AccountEnabled = false
+		res.AccountEnabled = isAccountEnabled(ctx, isProd, false)
 	}
 	if country.EUCountries[w.Country] {
 		res.ReceiveEnabled = true
@@ -126,7 +130,7 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		res.CardsEnabled = false
 		res.AddCardsEnabled = false
 		res.ManageWalletCardsEnabled = false
-		res.AccountEnabled = false
+		res.AccountEnabled = isAccountEnabled(ctx, isProd, false)
 	}
 	if w.Country == country.CA {
 		res.ReceiveEnabled = true
@@ -137,7 +141,7 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		res.AddCardsEnabled = false
 		res.InteraccEnabled = canAddInterac
 		res.ManageWalletCardsEnabled = false
-		res.AccountEnabled = false
+		res.AccountEnabled = isAccountEnabled(ctx, isProd, false)
 	}
 
 	return &res, nil
@@ -188,4 +192,12 @@ func canAddInterac(ctx context.Context, b Backends, lal []linkedaccounts.LinkedA
 	}
 
 	return true, nil
+}
+
+func isAccountEnabled(ctx context.Context, isProd bool, isEnabled bool) bool {
+	if !isProd {
+		return true
+	}
+
+	return isEnabled
 }
