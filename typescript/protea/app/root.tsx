@@ -103,6 +103,9 @@ function Document({ children, theme = 'theme-system' }: DocumentProps) {
 
 const validatePathsList = [
   '/',
+  '/pay',
+  '/deposit',
+  '/withdraw',
   '/accounts',
   '/payments',
   '/personal-details'
