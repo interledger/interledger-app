@@ -225,7 +225,7 @@ export function Scaffold() {
           layout === Layouts.Focus &&
           'mx-auto h-16 select-none bg-page sm:mt-[5.5rem] sm:max-w-[29rem]',
           layout === Layouts.Wallet &&
-          'min-h-16 bg-page lg:pl-[16.25rem] flex-col justify-end',
+          'min-h-16 bg-page lg:mt-[5.5rem] lg:pl-[16.25rem] flex-col justify-end',
           layout === Layouts.Docs &&
           'h-16 bg-mk-page lg:mt-[5.5rem] lg:pl-[16.25rem]'
         )}
