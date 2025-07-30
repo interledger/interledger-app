@@ -2,12 +2,10 @@ import type { PlainMessage } from '@bufbuild/protobuf'
 import { create } from 'zustand'
 import { type SelectOptions } from '~/components'
 import type {
-  CustomerDeliveryAddress,
-  CardApplicationProducts
-} from '~/generated/connect/backend/v1/backend_pb';
-import {
-  CardType
-} from '~/generated/connect/backend/v1/backend_pb';
+  CardApplicationProduct,
+  CustomerDeliveryAddress
+} from '~/generated/connect/backend/v1/backend_pb'
+import { CardType } from '~/generated/connect/backend/v1/backend_pb'
 
 export enum AddCardStep {
   CARD_TYPE,
@@ -18,7 +16,7 @@ export enum AddCardStep {
 interface AddCardState {
   step: AddCardStep
   type: CardType
-  products: PlainMessage<CardApplicationProducts>[]
+  products: PlainMessage<CardApplicationProduct>[]
   address: CustomerDeliveryAddress | null
   productCode: string | null
 }
@@ -36,7 +34,7 @@ interface AddCardActions {
   stepBack: () => void
   setCardType: (type: AddCardState['type']) => void
   setProductCode: (productCode: string) => void
-  setProducts: (products: PlainMessage<CardApplicationProducts>[]) => void
+  setProducts: (products: PlainMessage<CardApplicationProduct>[]) => void
   setAddress: (address: CustomerDeliveryAddress | null) => void
   reset: () => void
 }

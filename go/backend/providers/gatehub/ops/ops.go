@@ -567,3 +567,11 @@ func ListCards(ctx context.Context, b Backends, ec external.Client, walletID str
 
 	return ec.ListCards(ctx, externalIDs.ID, externalIDs.CustomerID.String)
 }
+
+func GetCardApplicationProducts(ctx context.Context, b Backends, ec external.Client) ([]external.CardApplicationProduct, error) {
+	return ec.GetCardApplicationProducts(ctx)
+}
+
+func OrderCard(ctx context.Context, b Backends, ec external.Client, walletID string) error {
+	return nil
+}

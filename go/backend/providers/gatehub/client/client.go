@@ -96,3 +96,11 @@ func (c Client) ListDeliveryAddresses(ctx context.Context, walletID string) ([]e
 func (c Client) ListCards(ctx context.Context, walletID string) ([]external.Card, error) {
 	return ops.ListCards(ctx, c.b, c.external, walletID)
 }
+
+func (c Client) GetCardApplicationProducts(ctx context.Context) ([]external.CardApplicationProduct, error) {
+	return ops.GetCardApplicationProducts(ctx, c.b, c.external)
+}
+
+func (c Client) OrderCard(ctx context.Context, args gatehub.OrderCardArgs) error {
+	return nil
+}

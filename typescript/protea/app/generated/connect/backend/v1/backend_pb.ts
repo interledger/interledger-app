@@ -309,9 +309,149 @@ export class Empty extends Message<Empty> {
 }
 
 /**
- * @generated from message backend.v1.CardApplicationProducts
+ * @generated from message backend.v1.NewCustomerDeliveryAddress
  */
-export class CardApplicationProducts extends Message<CardApplicationProducts> {
+export class NewCustomerDeliveryAddress extends Message<NewCustomerDeliveryAddress> {
+  /**
+   * @generated from field: backend.v1.CustomerDeliveryAddressType type = 1;
+   */
+  type = CustomerDeliveryAddressType.PermanentResidence;
+
+  /**
+   * @generated from field: string countryCode = 2;
+   */
+  countryCode = "";
+
+  /**
+   * @generated from field: string line1 = 3;
+   */
+  line1 = "";
+
+  /**
+   * @generated from field: optional string line2 = 4;
+   */
+  line2?: string;
+
+  /**
+   * @generated from field: optional string line3 = 5;
+   */
+  line3?: string;
+
+  /**
+   * @generated from field: optional string postOffice = 6;
+   */
+  postOffice?: string;
+
+  /**
+   * @generated from field: string city = 7;
+   */
+  city = "";
+
+  /**
+   * @generated from field: string zipCode = 8;
+   */
+  zipCode = "";
+
+  /**
+   * @generated from field: string reason = 9;
+   */
+  reason = "";
+
+  constructor(data?: PartialMessage<NewCustomerDeliveryAddress>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.NewCustomerDeliveryAddress";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "type", kind: "enum", T: proto3.getEnumType(CustomerDeliveryAddressType) },
+    { no: 2, name: "countryCode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "line1", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "line2", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 5, name: "line3", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 6, name: "postOffice", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 7, name: "city", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 8, name: "zipCode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 9, name: "reason", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): NewCustomerDeliveryAddress {
+    return new NewCustomerDeliveryAddress().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): NewCustomerDeliveryAddress {
+    return new NewCustomerDeliveryAddress().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): NewCustomerDeliveryAddress {
+    return new NewCustomerDeliveryAddress().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: NewCustomerDeliveryAddress | PlainMessage<NewCustomerDeliveryAddress> | undefined, b: NewCustomerDeliveryAddress | PlainMessage<NewCustomerDeliveryAddress> | undefined): boolean {
+    return proto3.util.equals(NewCustomerDeliveryAddress, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.OrderCardRequest
+ */
+export class OrderCardRequest extends Message<OrderCardRequest> {
+  /**
+   * @generated from field: backend.v1.CardType type = 1;
+   */
+  type = CardType.Physical;
+
+  /**
+   * @generated from field: string cardProductCode = 2;
+   */
+  cardProductCode = "";
+
+  /**
+   * @generated from field: optional string deliveryAddressId = 3;
+   */
+  deliveryAddressId?: string;
+
+  /**
+   * @generated from field: optional backend.v1.NewCustomerDeliveryAddress newDeliveryAddress = 4;
+   */
+  newDeliveryAddress?: NewCustomerDeliveryAddress;
+
+  constructor(data?: PartialMessage<OrderCardRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.OrderCardRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "type", kind: "enum", T: proto3.getEnumType(CardType) },
+    { no: 2, name: "cardProductCode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "deliveryAddressId", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 4, name: "newDeliveryAddress", kind: "message", T: NewCustomerDeliveryAddress, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): OrderCardRequest {
+    return new OrderCardRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): OrderCardRequest {
+    return new OrderCardRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): OrderCardRequest {
+    return new OrderCardRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: OrderCardRequest | PlainMessage<OrderCardRequest> | undefined, b: OrderCardRequest | PlainMessage<OrderCardRequest> | undefined): boolean {
+    return proto3.util.equals(OrderCardRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.CardApplicationProduct
+ */
+export class CardApplicationProduct extends Message<CardApplicationProduct> {
   /**
    * @generated from field: string code = 1;
    */
@@ -322,32 +462,32 @@ export class CardApplicationProducts extends Message<CardApplicationProducts> {
    */
   name = "";
 
-  constructor(data?: PartialMessage<CardApplicationProducts>) {
+  constructor(data?: PartialMessage<CardApplicationProduct>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "backend.v1.CardApplicationProducts";
+  static readonly typeName = "backend.v1.CardApplicationProduct";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "code", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CardApplicationProducts {
-    return new CardApplicationProducts().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CardApplicationProduct {
+    return new CardApplicationProduct().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CardApplicationProducts {
-    return new CardApplicationProducts().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CardApplicationProduct {
+    return new CardApplicationProduct().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CardApplicationProducts {
-    return new CardApplicationProducts().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CardApplicationProduct {
+    return new CardApplicationProduct().fromJsonString(jsonString, options);
   }
 
-  static equals(a: CardApplicationProducts | PlainMessage<CardApplicationProducts> | undefined, b: CardApplicationProducts | PlainMessage<CardApplicationProducts> | undefined): boolean {
-    return proto3.util.equals(CardApplicationProducts, a, b);
+  static equals(a: CardApplicationProduct | PlainMessage<CardApplicationProduct> | undefined, b: CardApplicationProduct | PlainMessage<CardApplicationProduct> | undefined): boolean {
+    return proto3.util.equals(CardApplicationProduct, a, b);
   }
 }
 
@@ -356,9 +496,9 @@ export class CardApplicationProducts extends Message<CardApplicationProducts> {
  */
 export class GetCardApplicationProductsResponse extends Message<GetCardApplicationProductsResponse> {
   /**
-   * @generated from field: repeated backend.v1.CardApplicationProducts products = 1;
+   * @generated from field: repeated backend.v1.CardApplicationProduct products = 1;
    */
-  products: CardApplicationProducts[] = [];
+  products: CardApplicationProduct[] = [];
 
   constructor(data?: PartialMessage<GetCardApplicationProductsResponse>) {
     super();
@@ -368,7 +508,7 @@ export class GetCardApplicationProductsResponse extends Message<GetCardApplicati
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "backend.v1.GetCardApplicationProductsResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "products", kind: "message", T: CardApplicationProducts, repeated: true },
+    { no: 1, name: "products", kind: "message", T: CardApplicationProduct, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetCardApplicationProductsResponse {

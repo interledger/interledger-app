@@ -124,6 +124,7 @@ const (
 	BackendService_ListCards_FullMethodName                      = "/backend.v1.BackendService/ListCards"
 	BackendService_GetCustomerDeliveryAddresses_FullMethodName   = "/backend.v1.BackendService/GetCustomerDeliveryAddresses"
 	BackendService_GetCardApplicationProducts_FullMethodName     = "/backend.v1.BackendService/GetCardApplicationProducts"
+	BackendService_OrderCard_FullMethodName                      = "/backend.v1.BackendService/OrderCard"
 )
 
 // BackendServiceClient is the client API for BackendService service.
@@ -265,6 +266,7 @@ type BackendServiceClient interface {
 	ListCards(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListCardsResponse, error)
 	GetCustomerDeliveryAddresses(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetCustomerDeliveryAddressesResponse, error)
 	GetCardApplicationProducts(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetCardApplicationProductsResponse, error)
+	OrderCard(ctx context.Context, in *OrderCardRequest, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type backendServiceClient struct {
@@ -1220,6 +1222,15 @@ func (c *backendServiceClient) GetCardApplicationProducts(ctx context.Context, i
 	return out, nil
 }
 
+func (c *backendServiceClient) OrderCard(ctx context.Context, in *OrderCardRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, BackendService_OrderCard_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServiceServer is the server API for BackendService service.
 // All implementations should embed UnimplementedBackendServiceServer
 // for forward compatibility
@@ -1359,6 +1370,7 @@ type BackendServiceServer interface {
 	ListCards(context.Context, *Empty) (*ListCardsResponse, error)
 	GetCustomerDeliveryAddresses(context.Context, *Empty) (*GetCustomerDeliveryAddressesResponse, error)
 	GetCardApplicationProducts(context.Context, *Empty) (*GetCardApplicationProductsResponse, error)
+	OrderCard(context.Context, *OrderCardRequest) (*Empty, error)
 }
 
 // UnimplementedBackendServiceServer should be embedded to have forward compatible implementations.
@@ -1679,6 +1691,9 @@ func (UnimplementedBackendServiceServer) GetCustomerDeliveryAddresses(context.Co
 }
 func (UnimplementedBackendServiceServer) GetCardApplicationProducts(context.Context, *Empty) (*GetCardApplicationProductsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCardApplicationProducts not implemented")
+}
+func (UnimplementedBackendServiceServer) OrderCard(context.Context, *OrderCardRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method OrderCard not implemented")
 }
 
 // UnsafeBackendServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -3582,6 +3597,24 @@ func _BackendService_GetCardApplicationProducts_Handler(srv interface{}, ctx con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_OrderCard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(OrderCardRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).OrderCard(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_OrderCard_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).OrderCard(ctx, req.(*OrderCardRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BackendService_ServiceDesc is the grpc.ServiceDesc for BackendService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -4008,6 +4041,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetCardApplicationProducts",
 			Handler:    _BackendService_GetCardApplicationProducts_Handler,
+		},
+		{
+			MethodName: "OrderCard",
+			Handler:    _BackendService_OrderCard_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -302,4 +302,9 @@ type (
 		Data       []Card     `json:"data"`
 		Pagination Pagination `json:"pagination"`
 	}
+
+	CardApplicationProduct struct {
+		Code string `json:"code"`
+		Name string `json:"name"`
+	}
 )

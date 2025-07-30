@@ -179,15 +179,35 @@ service BackendService {
   rpc ListCards(Empty) returns (ListCardsResponse);
   rpc GetCustomerDeliveryAddresses(Empty) returns (GetCustomerDeliveryAddressesResponse);
   rpc GetCardApplicationProducts(Empty) returns (GetCardApplicationProductsResponse);
+  rpc OrderCard(OrderCardRequest) returns (Empty);
 }
 
-message CardApplicationProducts {
+message NewCustomerDeliveryAddress {
+  CustomerDeliveryAddressType type = 1;
+  string countryCode = 2;
+  string line1 = 3;
+  optional string line2 = 4;
+  optional string line3 = 5;
+  optional string postOffice = 6;
+  string city = 7; 
+  string zipCode = 8;
+  string reason = 9;
+}
+
+message OrderCardRequest {
+  CardType type = 1;
+  string cardProductCode = 2;
+  optional string deliveryAddressId = 3;
+  optional NewCustomerDeliveryAddress newDeliveryAddress = 4;
+}
+
+message CardApplicationProduct {
   string code = 1;
   string name = 2;
 }
 
 message GetCardApplicationProductsResponse {
-  repeated CardApplicationProducts products = 1;
+  repeated CardApplicationProduct products = 1;
 }
 
 enum CustomerDeliveryAddressType {
