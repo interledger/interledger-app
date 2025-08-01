@@ -43,18 +43,18 @@ function build_docker_images () {
 	docker push ${REGISTRY}/mockbos
 
 	echo "Pulling rafiki backend"
-	docker pull ghcr.io/interledger/rafiki-backend:v1.0.0-alpha.15
-	docker tag ghcr.io/interledger/rafiki-backend:v1.0.0-alpha.15 localhost:5002/rafiki-backend
+	docker pull ghcr.io/interledger/rafiki-backend:v1.2.0-beta
+	docker tag ghcr.io/interledger/rafiki-backend:v1.2.0-beta localhost:5002/rafiki-backend
 	docker push localhost:5002/rafiki-backend
 
 	echo "Pulling rafiki auth"
-	docker pull ghcr.io/interledger/rafiki-auth:v1.0.0-alpha.15
-	docker tag ghcr.io/interledger/rafiki-auth:v1.0.0-alpha.15 localhost:5002/rafiki-auth
+	docker pull ghcr.io/interledger/rafiki-auth:v1.2.0-beta
+	docker tag ghcr.io/interledger/rafiki-auth:v1.2.0-beta localhost:5002/rafiki-auth
 	docker push localhost:5002/rafiki-auth
 
 	echo "Pulling rafiki frontend"
-	docker pull ghcr.io/interledger/rafiki-frontend:v1.0.0-alpha.16
-	docker tag ghcr.io/interledger/rafiki-frontend:v1.0.0-alpha.16 localhost:5002/rafiki-frontend
+	docker pull ghcr.io/interledger/rafiki-frontend:v1.2.0-beta
+	docker tag ghcr.io/interledger/rafiki-frontend:v1.2.0-beta localhost:5002/rafiki-frontend
 	docker push localhost:5002/rafiki-frontend
 }
 

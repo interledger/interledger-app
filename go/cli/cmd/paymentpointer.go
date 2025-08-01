@@ -15,8 +15,8 @@ func NewPaymentPointerCmd(b Backends) *cobra.Command {
 		Use:   "get [payment-pointer]",
 		Short: "View details about the payment pointer",
 		Example: `
-fynbos get https://fynbos.me/protea
-fynbos get https://fynbos.me/791f09c0-c6a2-4a27-8e05-6f7ae37a8a28
+fynbos get https://ilp.link/protea
+fynbos get https://ilp.link/791f09c0-c6a2-4a27-8e05-6f7ae37a8a28
 		`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return getPaymentPointer(cmd.Context(), b, args[0])

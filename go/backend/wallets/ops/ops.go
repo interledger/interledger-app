@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/db"
@@ -14,10 +15,8 @@ import (
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
-	"go.uber.org/zap"
 
 	"gitlab.com/fynbos/backend/wallets"
-	"gitlab.com/fynbos/log"
 )
 
 func Create(ctx context.Context, b Backends, args wallets.CreateArgs) (*wallets.Wallet, error) {
@@ -81,11 +80,12 @@ func Create(ctx context.Context, b Backends, args wallets.CreateArgs) (*wallets.
 	if err != nil {
 		return nil, err
 	}
-	err = b.Keys().ProvisionPrivateKey(ctx, walletID)
-	if err != nil {
-		log.Error("could not provision private key", zap.Error(err))
-		return nil, err
-	}
+	// Do not provision custodial private key
+	// err = b.Keys().ProvisionPrivateKey(ctx, walletID)
+	// if err != nil {
+	// 	log.Error("could not provision private key", zap.Error(err))
+	// 	return nil, err
+	// }
 
 	return Get(ctx, b, walletID)
 }
@@ -206,7 +206,8 @@ func ListAll(ctx context.Context, b Backends, _ db.Pagination) ([]wallets.Wallet
 }
 
 func SetWalletName(ctx context.Context, b Backends, id, name string) (*wallets.Wallet, error) {
-	_, err := b.DB().ExecContext(ctx, "UPDATE wallets set name = $1 where id = $2", name, id)
+	// We convert the public name to lowercase as well, to match the wallet address name.
+	_, err := b.DB().ExecContext(ctx, "UPDATE wallets set name = $1 where id = $2", strings.ToLower(name), id)
 	if err != nil {
 		return nil, err
 	}

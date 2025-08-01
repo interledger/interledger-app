@@ -395,7 +395,7 @@ func (a *Activity) AssignBalance(ctx context.Context, paymentID, txID string) er
 		return err
 	}
 
-	if p.Type != payments.TypePeer2Peer && p.Type != payments.TypeRafikiPeer2Peer && p.Type != payments.TypeDeposit {
+	if p.Type != payments.TypePeer2Peer && p.Type != payments.TypeRafikiPeer2Peer && p.Type != payments.TypeDeposit && p.Type != payments.TypeWebMonetization {
 		return nil
 	}
 
@@ -560,7 +560,7 @@ func (a *Activity) AstraDeposit(ctx context.Context, paymentID string) (string, 
 	return a.b.Astra().DebitCard(ctx, astra.CardToAccountArgs{
 		WalletID:            la.WalletID,
 		IdempotencyKey:      p.ID,
-		Name:                "Fynbos Deposit",
+		Name:                "Interledger Deposit",
 		Amount:              p.SenderAmount,
 		ClientCorrelationID: p.AstraCorrelationID,
 		DebitFeePercent:     0,
@@ -582,7 +582,7 @@ func (a *Activity) AstraWithdrawal(ctx context.Context, paymentID string) (strin
 	return a.b.Astra().CreditCard(ctx, astra.AccountToCardsArgs{
 		WalletID:        la.WalletID,
 		IdempotencyKey:  p.ID,
-		Name:            "Fynbos Withdrawal",
+		Name:            "Interledger Withdrawal",
 		Amount:          p.SenderAmount,
 		DebitFeePercent: 0,
 		CardID:          la.ProviderID,

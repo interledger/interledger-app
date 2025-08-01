@@ -122,6 +122,20 @@ func (mr *MockClientMockRecorder) ProvisionPrivateKey(ctx, walletID interface{})
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ProvisionPrivateKey", reflect.TypeOf((*MockClient)(nil).ProvisionPrivateKey), ctx, walletID)
 }
 
+// RemoveCustodialKeysForWallet mocks base method.
+func (m *MockClient) RemoveCustodialKeysForWallet(ctx context.Context, walletID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RemoveCustodialKeysForWallet", ctx, walletID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RemoveCustodialKeysForWallet indicates an expected call of RemoveCustodialKeysForWallet.
+func (mr *MockClientMockRecorder) RemoveCustodialKeysForWallet(ctx, walletID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveCustodialKeysForWallet", reflect.TypeOf((*MockClient)(nil).RemoveCustodialKeysForWallet), ctx, walletID)
+}
+
 // Sign mocks base method.
 func (m *MockClient) Sign(ctx context.Context, keyID, walletID string, message []byte) ([]byte, error) {
 	m.ctrl.T.Helper()

@@ -71,9 +71,7 @@ job "rafiki" {
       port = "connector"
       tags = [
         "traefik.enable=true",
-        "traefik.http.middlewares.rafiki-connector-stripprefix.stripprefix.prefixes=/ilp",
-        "traefik.http.routers.rafiki-connector.rule=Host(`local.fynbos.me`) && Path(`/ilp`)",
-        "traefik.http.routers.rafiki-connector.middlewares=rafiki-connector-stripprefix@consulcatalog"
+        "traefik.http.routers.rafiki-connector.rule=Host(`connector.local.ilp.link`)",
       ]
     }
 
@@ -82,10 +80,7 @@ job "rafiki" {
       port = "open-payments"
       tags = [
         "traefik.enable=true",
-        "traefik.http.routers.rafiki-incomingpayments.rule=Host(`local.fynbos.me`) && PathPrefix(`/incoming-payments`)",
-        "traefik.http.routers.rafiki-outgoingpayments.rule=Host(`local.fynbos.me`) && PathPrefix(`/outgoing-payments`)",
-        "traefik.http.routers.rafiki-quotes.rule=Host(`local.fynbos.me`) && PathPrefix(`/quotes`)",
-        "traefik.http.routers.rafiki-wellknown.rule=Host(`local.fynbos.me`) && PathPrefix(`/.well-known`)"
+        "traefik.http.routers.rafiki-incomingpayments.rule=Host(`local.ilp.link`)",
       ]
 
       check {    
@@ -102,12 +97,7 @@ job "rafiki" {
       port = "auth"
       tags = [
         "traefik.enable=true",
-        "traefik.http.middlewares.rafiki-auth-stripprefix.stripprefix.prefixes=/gnap",
-        "traefik.http.routers.rafiki-auth.rule=((Host(`local.fynbos.me`) && Path(`/gnap`)) || Host(`auth.interledger.test`))",
-        "traefik.http.routers.rafiki-auth-token.rule=Host(`local.fynbos.me`) && PathPrefix(`/token`)",
-        "traefik.http.routers.rafiki-auth-interact.rule=Host(`local.fynbos.me`) && PathPrefix(`/interact`)",
-        "traefik.http.routers.rafiki-auth-continue.rule=Host(`local.fynbos.me`) && PathPrefix(`/continue`)",
-        "traefik.http.routers.rafiki-auth.middlewares=rafiki-auth-stripprefix@consulcatalog"
+        "traefik.http.routers.rafiki-auth.rule=Host(`auth.local.ilp.link`)",
       ]
 
       check {    
@@ -132,7 +122,7 @@ job "rafiki" {
       port = "frontend"
       tags = [
         "traefik.enable=true",
-        "traefik.http.routers.rafiki-frontend.rule=Host(`rafiki.mgnt.interledger.test`)"
+        "traefik.http.routers.rafiki-frontend.rule=Host(`rafiki.mgnt.interledger.test`)",
       ]
     }
 
@@ -151,7 +141,7 @@ job "rafiki" {
         ACCESS_TOKEN_EXPIRY_SECONDS = "600"
         ADMIN_PORT = "3003"
         AUTH_PORT = "3006"
-        AUTH_SERVER_URL = "https://auth.interledger.test"
+        AUTH_SERVER_URL = "https://auth.local.ilp.link"
         DATABASE_CLEANUP_WORKERS = "1"
         ENV_FILE = "" 
         IDENTITY_SERVER_URL = "https://interledger.test/consent"
@@ -191,8 +181,8 @@ job "rafiki" {
         GRAPHQL_IDEMPOTENCY_KEY_TTL_MS = "8.64e+07"
         GRAPHQL_IDEMPOTENCY_KEY_LOCK_MS = "2000"
         IDENTITY_SERVER_URL = "https://interledger.test/consent"
-        ILP_ADDRESS = "test.fynbos"
-        ILP_CONNECTOR_URL = "https://local.fynbos.me/ilp"
+        ILP_ADDRESS = "test.interledger-local"
+        ILP_CONNECTOR_URL = "https://connector.local.ilp.link"
         INCOMING_PAYMENT_WORKERS = "1"
         INCOMING_PAYMENT_WORKER_IDLE = "200"
         INSTANCE_NAME = "fynbosdev"
@@ -200,14 +190,15 @@ job "rafiki" {
         LOG_LEVEL = "debug"
         NODE_ENV = "production"
         OPEN_PAYMENTS_PORT = "80"
-        OPEN_PAYMENTS_URL = "https://local.fynbos.me"
+        OPEN_PAYMENTS_URL = "https://local.ilp.link"
         OUTGOING_PAYMENT_WORKERS = "4"
         OUTGOING_PAYMENT_WORKER_IDLE = "200"
-        PAYMENT_POINTER_URL = "https://local.fynbos.me/.well-known/pay"
+        WALLET_ADDRESS_URL = "https://local.ilp.link/.well-known/pay"
+        WALLET_ADDRESS_REDIRECT_HTML_PAGE = "https://interledger.test/me/%wp"
         PAYMENT_POINTER_WORKERS = "1"
         PAYMENT_POINTER_WORKER_IDLE = "200"
         PRIVATE_KEY_FILE = ""
-        PUBLIC_HOST = "https://local.fynbos.me"
+        PUBLIC_HOST = "https://local.ilp.link"
         QUOTE_LIFESPAN = "300000"
         REDIS_TLS_CA_FILE_PATH = ""
         REDIS_TLS_CERT_FILE_PATH = ""
@@ -238,7 +229,7 @@ job "rafiki" {
         GRAPHQL_URL = "http://127.0.0.1:3001/graphql"
         LOG_LEVEL = "debug"
         AUTH_ENABLED = "false"
-        OPEN_PAYMENTS_URL = "https://local.fynbos.me"
+        OPEN_PAYMENTS_URL = "https://local.ilp.link"
         NODE_ENV = "production"
         PORT = "3010"
       }

@@ -19,7 +19,7 @@ func NewPayCmd(b Backends) *cobra.Command {
 		Use:   "pay [payment-pointer]",
 		Short: "Pay a payment pointer",
 		Example: `
-		fynbos pay https://fynbos.me/money
+		fynbos pay https://ilp.link/money
 		`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var opts struct {

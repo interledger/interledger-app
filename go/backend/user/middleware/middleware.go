@@ -34,6 +34,24 @@ func MakeUnaryInterceptor(client user.Client) grpc.ServerOption {
 		if !ok {
 			return nil, status.Error(codes.Internal, "Failed to parse metadata.")
 		}
+
+		authHeaders := meta.Get("Authorization")
+		if len(authHeaders) > 0 {
+			token := strings.TrimPrefix(authHeaders[0], "Bearer ")
+			token = strings.TrimSpace(token)
+
+			u, err := client.UserForToken(ctx, token)
+			if err != nil {
+				if !errors.Is(err, user.ErrNoUserFound) {
+					return nil, status.Error(codes.Internal, "Error verifying bearer token.")
+				}
+			}
+			if u != nil {
+				newCtx := context.WithValue(ctx, user.CtxKey, u)
+				return handler(newCtx, req)
+			}
+		}
+
 		rawCookies := meta.Get(cookieMetadataKey) // must match the metadata field key set on the front-end
 
 		if len(rawCookies) == 0 {

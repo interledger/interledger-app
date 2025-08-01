@@ -39,10 +39,10 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 }
 
 // AddBeneficiary mocks base method.
-func (m *MockClient) AddBeneficiary(ctx context.Context, reqStruct external.CreateBeneficiaryReq) (string, error) {
+func (m *MockClient) AddBeneficiary(ctx context.Context, reqStruct external.CreateBeneficiaryReq) (*external.AccountBeneficiaries, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddBeneficiary", ctx, reqStruct)
-	ret0, _ := ret[0].(string)
+	ret0, _ := ret[0].(*external.AccountBeneficiaries)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -126,4 +126,18 @@ func (m *MockClient) ListDeposits(ctx context.Context, page int) ([]external.Dep
 func (mr *MockClientMockRecorder) ListDeposits(ctx, page interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListDeposits", reflect.TypeOf((*MockClient)(nil).ListDeposits), ctx, page)
+}
+
+// TestDeposit mocks base method.
+func (m *MockClient) TestDeposit(ctx context.Context, reqStruct external.TestDepositReq) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "TestDeposit", ctx, reqStruct)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// TestDeposit indicates an expected call of TestDeposit.
+func (mr *MockClientMockRecorder) TestDeposit(ctx, reqStruct interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TestDeposit", reflect.TypeOf((*MockClient)(nil).TestDeposit), ctx, reqStruct)
 }

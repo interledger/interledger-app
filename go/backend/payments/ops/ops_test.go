@@ -51,7 +51,7 @@ func TestCreate(t *testing.T) {
 	b.Lac.EXPECT().GetDefaultReceive(ctx, gomock.Any(), gomock.Any()).Return(nil, errors.New("not found")).AnyTimes()
 	b.Ic.EXPECT().GetByIdentifier(ctx, gomock.Any()).Return(&identities.Identity{WalletID: walletID, Platform: identities.PlatformTwitter}, nil).AnyTimes()
 	b.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{ID: walletID}, nil).AnyTimes()
-	b.Wc.EXPECT().GetFromAddress(ctx, "https://fynbos.me/charlie").Return(&wallets.Wallet{
+	b.Wc.EXPECT().GetFromAddress(ctx, "https://ilp.link/charlie").Return(&wallets.Wallet{
 		ID: walletID,
 	}, nil).AnyTimes()
 	b.Txc.EXPECT().GetHasTransacted(gomock.Any(), gomock.Any(), gomock.Any()).Return(false, nil).AnyTimes() // Require OTP
@@ -71,7 +71,7 @@ func TestCreate(t *testing.T) {
 				},
 				Receiver: payments.Identity{
 					Type:       payments.IdentityTypeWalletURL,
-					Identifier: "https://fynbos.me/charlie",
+					Identifier: "https://ilp.link/charlie",
 				},
 				SenderAmount:    currency.FromFloat64(51, currency.USD),
 				ReceiverAmount:  currency.FromFloat64(51, currency.USD),
@@ -92,7 +92,7 @@ func TestCreate(t *testing.T) {
 				},
 				Receiver: payments.Identity{
 					Type:       payments.IdentityTypeWalletURL,
-					Identifier: "https://fynbos.me/charlie",
+					Identifier: "https://ilp.link/charlie",
 				},
 				SenderAmount:   currency.FromFloat64(51, currency.USD),
 				ReceiverAmount: currency.FromFloat64(51, currency.USD),
@@ -148,7 +148,7 @@ func TestSetState(t *testing.T) {
 	b.Lac.EXPECT().Get(ctx, gomock.Any()).Return(&linkedaccounts.LinkedAccount{CanSend: true, CanReceive: true, Provider: pti.ProviderName, State: linkedaccounts.Verified, ReceiveCurrency: currency.USD, SendCurrency: currency.USD}, nil).AnyTimes()
 	b.Ic.EXPECT().GetByIdentifier(ctx, gomock.Any()).Return(&identities.Identity{WalletID: walletID}, nil).AnyTimes()
 	b.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{ID: walletID}, nil).AnyTimes()
-	b.Wc.EXPECT().GetFromAddress(ctx, "https://fynbos.me/charlie").Return(&wallets.Wallet{
+	b.Wc.EXPECT().GetFromAddress(ctx, "https://ilp.link/charlie").Return(&wallets.Wallet{
 		ID: walletID,
 	}, nil).AnyTimes()
 	b.Txc.EXPECT().GetHasTransacted(gomock.Any(), gomock.Any(), gomock.Any()).Return(true, nil).AnyTimes() // No OTP
@@ -161,7 +161,7 @@ func TestSetState(t *testing.T) {
 		},
 		Receiver: payments.Identity{
 			Type:       payments.IdentityTypeWalletURL,
-			Identifier: "https://fynbos.me/charlie",
+			Identifier: "https://ilp.link/charlie",
 		},
 		SenderAmount:    currency.FromFloat64(51, currency.USD),
 		ReceiverAmount:  currency.FromFloat64(50, currency.USD),
@@ -227,7 +227,7 @@ func TestConfirm(t *testing.T) {
 	b.Lac.EXPECT().ListBalances(ctx, gomock.Any()).Return([]linkedaccounts.LinkedAccount{}, nil).AnyTimes()
 	b.Lac.EXPECT().Get(ctx, gomock.Any()).Return(&linkedaccounts.LinkedAccount{CanSend: true, CanReceive: true, Provider: pti.ProviderName, State: linkedaccounts.Verified, WalletID: walletID, SendCurrency: currency.USD, ReceiveCurrency: currency.USD}, nil).AnyTimes()
 	b.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{ID: walletID}, nil).AnyTimes()
-	b.Wc.EXPECT().GetFromAddress(ctx, "https://fynbos.me/charlie").Return(&wallets.Wallet{
+	b.Wc.EXPECT().GetFromAddress(ctx, "https://ilp.link/charlie").Return(&wallets.Wallet{
 		ID: walletID,
 	}, nil).AnyTimes()
 	b.Txc.EXPECT().CreateTransactionTx(gomock.Any(), gomock.Any(), gomock.Any()).Return(txID, nil).AnyTimes()
@@ -255,7 +255,7 @@ func TestConfirm(t *testing.T) {
 		ID: paymentID,
 		Receiver: payments.Identity{
 			Type:       payments.IdentityTypeWalletURL,
-			Identifier: "https://fynbos.me/charlie",
+			Identifier: "https://ilp.link/charlie",
 		},
 		SenderAmount:    currency.FromFloat64(51, currency.USD),
 		ReceiverAmount:  currency.FromFloat64(50, currency.USD),
@@ -310,7 +310,7 @@ func TestUpdate(t *testing.T) {
 	b.Lac.EXPECT().Get(ctx, gomock.Any()).Return(&linkedaccounts.LinkedAccount{CanSend: true, CanReceive: true, Provider: pti.ProviderName, State: linkedaccounts.Verified, WalletID: walletID, SendCurrency: currency.USD, ReceiveCurrency: currency.USD}, nil).AnyTimes()
 	b.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{ID: walletID}, nil).AnyTimes()
 	b.Wc.EXPECT().Get(ctx, receiverWalletID).Return(&wallets.Wallet{ID: receiverWalletID}, nil).AnyTimes()
-	b.Wc.EXPECT().GetFromAddress(ctx, "https://fynbos.me/charlie").Return(&wallets.Wallet{
+	b.Wc.EXPECT().GetFromAddress(ctx, "https://ilp.link/charlie").Return(&wallets.Wallet{
 		ID: receiverWalletID,
 	}, nil).AnyTimes()
 	b.Txc.EXPECT().GetHasTransacted(ctx, gomock.Any(), gomock.Any()).Return(true, nil)
@@ -328,7 +328,7 @@ func TestUpdate(t *testing.T) {
 		},
 		Receiver: payments.Identity{
 			Type:       payments.IdentityTypeWalletURL,
-			Identifier: "https://fynbos.me/charlie",
+			Identifier: "https://ilp.link/charlie",
 		},
 		SenderAmount:    currency.FromFloat64(51, currency.USD),
 		SenderAccount:   senderAccount,
@@ -341,14 +341,14 @@ func TestUpdate(t *testing.T) {
 		ID: paymentID,
 		Receiver: payments.Identity{
 			Type:       payments.IdentityTypeWalletURL,
-			Identifier: "https://fynbos.me/charlie",
+			Identifier: "https://ilp.link/charlie",
 		},
 		ReceiverAccount: receiverAccount,
 	})
 	require.NoError(t, err)
 	assert.True(t, p.Receiver.IsEqual(payments.Identity{
 		Type:       payments.IdentityTypeWalletURL,
-		Identifier: "https://fynbos.me/charlie",
+		Identifier: "https://ilp.link/charlie",
 	}))
 	assert.True(t, p.SenderAmount.IsEqual(currency.FromFloat64(51, currency.USD)))
 	assert.Equal(t, uint64(5100), p.ReceiverAmount.Value)
@@ -365,7 +365,7 @@ func TestUpdate(t *testing.T) {
 
 	assert.True(t, p.Receiver.IsEqual(payments.Identity{
 		Type:       payments.IdentityTypeWalletURL,
-		Identifier: "https://fynbos.me/charlie",
+		Identifier: "https://ilp.link/charlie",
 	}))
 
 	assert.Equal(t, uint64(5400), p.SenderAmount.Value)
@@ -413,7 +413,7 @@ func TestAstraCorrelactionID(t *testing.T) {
 	b.Lac.EXPECT().Get(ctx, gomock.Any()).Return(&linkedaccounts.LinkedAccount{CanSend: true, CanReceive: true, Provider: pti.ProviderName, State: linkedaccounts.Verified, WalletID: walletID, SendCurrency: currency.USD, ReceiveCurrency: currency.USD}, nil).AnyTimes()
 	b.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{ID: walletID}, nil).AnyTimes()
 	b.Wc.EXPECT().Get(ctx, receiverWalletID).Return(&wallets.Wallet{ID: receiverWalletID}, nil).AnyTimes()
-	b.Wc.EXPECT().GetFromAddress(ctx, "https://fynbos.me/charlie").Return(&wallets.Wallet{
+	b.Wc.EXPECT().GetFromAddress(ctx, "https://ilp.link/charlie").Return(&wallets.Wallet{
 		ID: receiverWalletID,
 	}, nil).AnyTimes()
 	b.Txc.EXPECT().GetHasTransacted(ctx, gomock.Any(), gomock.Any()).Return(true, nil)
@@ -431,7 +431,7 @@ func TestAstraCorrelactionID(t *testing.T) {
 		},
 		Receiver: payments.Identity{
 			Type:       payments.IdentityTypeWalletURL,
-			Identifier: "https://fynbos.me/charlie",
+			Identifier: "https://ilp.link/charlie",
 		},
 		SenderAmount:    currency.FromFloat64(51, currency.USD),
 		SenderAccount:   senderAccount,

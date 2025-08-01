@@ -283,7 +283,7 @@ func chimoneyPayIn(ctx workflow.Context, a *Activity, paymentID, walletID string
 		return "", false, err
 	}
 
-	// Webmonetization is assumed to be Fynbos to Fynbos
+	// Webmonetization is assumed to be Interledger to Interledger
 	if pt != payments.TypePeer2Peer && pt != payments.TypeRafikiPeer2Peer && pt != payments.TypeWebMonetization {
 		return "", false, temporal.NewNonRetryableApplicationError("incorrect payment type for chimoney pay in flow", "InvalidArgument", chimoney.ErrInternal, "paymentID", paymentID, "type", pt)
 	}
@@ -316,7 +316,7 @@ func chimoneyPayOut(ctx workflow.Context, a *Activity, paymentID, trxID, walletI
 		return "", false, err
 	}
 
-	// Webmonetization is assumed to be Fynbos to Fynbos
+	// Webmonetization is assumed to be Interledger to Interledger
 	if pt != payments.TypePeer2Peer && pt != payments.TypeRafikiPeer2Peer && pt != payments.TypeWebMonetization {
 		return "", false, temporal.NewNonRetryableApplicationError("incorrect payment type for chimoney pay in flow", "InvalidArgument", gatehub.ErrInternal, "paymentID", paymentID, "type", pt)
 	}
@@ -351,7 +351,7 @@ func gatehubPayIn(ctx workflow.Context, a *Activity, paymentID, walletID string)
 		return "", false, err
 	}
 
-	// Webmonetization is assumed to be Fynbos to Fynbos
+	// Webmonetization is assumed to be Interledger to Interledger
 	if pt != payments.TypePeer2Peer && pt != payments.TypeRafikiPeer2Peer && pt != payments.TypeWebMonetization {
 		return "", false, temporal.NewNonRetryableApplicationError("incorrect payment type for gatehub pay in flow", "InvalidArgument", gatehub.ErrInternal, "paymentID", paymentID, "type", pt)
 	}
@@ -382,7 +382,7 @@ func gatehubPayOut(ctx workflow.Context, a *Activity, paymentID, trxID, walletID
 		return "", false, err
 	}
 
-	// Webmonetization is assumed to be Fynbos to Fynbos
+	// Webmonetization is assumed to be Interledger to Interledger
 	if pt != payments.TypePeer2Peer && pt != payments.TypeRafikiPeer2Peer && pt != payments.TypeWebMonetization {
 		return "", false, temporal.NewNonRetryableApplicationError("incorrect payment type for gatehub pay in flow", "InvalidArgument", gatehub.ErrInternal, "paymentID", paymentID, "type", pt)
 	}
@@ -468,7 +468,7 @@ func ptiPayIn(ctx workflow.Context, a *Activity, ptiA *pti_ops.Activity, payment
 
 		return txID, true, nil
 
-		// Webmonetization is assumed to be Fynbos to Fynbos
+		// Webmonetization is assumed to be Interledger to Interledger
 	} else if pt == payments.TypePeer2Peer || pt == payments.TypeWebMonetization {
 		var txID string
 		err = workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
@@ -1008,6 +1008,7 @@ func RollbackPayInWorkflow(ctx workflow.Context, paymentID string) error {
 	// Rollback PTI withdrawal
 	err = workflow.ExecuteActivity(ctx, a.PTIWithdrawalComplete, paymentID, false).Get(ctx, nil)
 	if err != nil {
+		logger.Error("error PTI withdrawal rolling back balance reserve", "Error", err)
 		return err
 	}
 

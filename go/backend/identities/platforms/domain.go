@@ -7,13 +7,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net"
+	"time"
+
 	"gitlab.com/fynbos/backend/cdn"
 	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/keys"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
-	"net"
-	"time"
 )
 
 type domainPlatform struct {
@@ -193,7 +194,7 @@ func (a *DomainActivity) GetDomainIdentity(ctx context.Context, id string) (iden
 }
 
 func (a *DomainActivity) CheckTXTRecords(ctx context.Context, domain string, proof []byte) error {
-	txtRecords, err := net.LookupTXT("_fynbos." + domain)
+	txtRecords, err := net.LookupTXT("_interledger." + domain)
 	if err != nil {
 		return fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}

@@ -1,3 +1,3 @@
 # Botanist
 
-Fynbos admin dashboard.
+Interledger admin dashboard.
