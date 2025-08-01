@@ -3,7 +3,6 @@ import type { UIMatch } from '@remix-run/react'
 import {
   NavLink,
   Outlet,
-  useLoaderData,
   useMatches,
   useNavigate,
   useRouteLoaderData,
@@ -192,13 +191,15 @@ export function Scaffold() {
                 <InterledgerWalletLogo className='h-8' />
               </Router>
             </div>
-            <button
-              onClick={() => setCommandPaletteOpen(true)}
-              className='mb-2 mt-10 flex w-full space-x-3 rounded-2xl bg-primary p-4 text-white'
-            >
-              <Icon>attach_money</Icon>
-              <span className='font-medium'>Pay</span>
-            </button>
+            {features && features.accountEnabled && (
+              <button
+                onClick={() => setCommandPaletteOpen(true)}
+                className='mb-2 mt-10 flex w-full space-x-3 rounded-2xl bg-primary p-4 text-white'
+              >
+                <Icon>attach_money</Icon>
+                <span className='font-medium'>Pay</span>
+              </button>
+            )}
             <NavDrawer.ListItem to={route('/')}>Home</NavDrawer.ListItem>
             <NavDrawer.ListItem to={route('/accounts')}>
               Accounts
@@ -227,7 +228,7 @@ export function Scaffold() {
           layout === Layouts.Focus &&
           'mx-auto h-16 select-none bg-page sm:mt-[5.5rem] sm:max-w-[29rem]',
           layout === Layouts.Wallet &&
-          'h-16 bg-page lg:mt-[5.5rem] lg:pl-[16.25rem]',
+          'min-h-16 bg-page lg:mt-[5.5rem] lg:pl-[16.25rem] flex-col justify-end',
           layout === Layouts.Docs &&
           'h-16 bg-mk-page lg:mt-[5.5rem] lg:pl-[16.25rem]'
         )}
@@ -248,7 +249,7 @@ export function Scaffold() {
               </Router>
             </div>
             <div className='hidden space-x-10 pb-2 pl-10 pt-3 lg:flex'>
-              <HeaderLink to='/about' title='About' />
+              {/*<HeaderLink to='/about' title='About' />*/}
               {/*<HeaderLink to='/wallet' title='Wallet' />*/}
               {/*<HeaderPopover />*/}
               {/*<HeaderLink to={route('/docs')} title='Docs' />*/}
@@ -276,6 +277,7 @@ export function Scaffold() {
             </div>
           </div>
         )}
+
         {layout !== Layouts.Marketing && (
           <div
             className={clsx(
@@ -580,7 +582,7 @@ export function Scaffold() {
                   </div>
                 </div>
                 <NavDrawer.ListItem to={route('/')}>Home</NavDrawer.ListItem>
-                <NavDrawer.ListItem to='/about'>About</NavDrawer.ListItem>
+                {/*<NavDrawer.ListItem to='/about'>About</NavDrawer.ListItem>*/}
                 {/* <NavDrawer.ListItem to='/wallet'>Wallet</NavDrawer.ListItem> */}
                 {/* <NavDrawer.ListItem to='/wealth'>Wealth</NavDrawer.ListItem> */}
                 {/*<NavDrawer.ListItem to={route('/docs')}>*/}
@@ -616,24 +618,26 @@ export function Scaffold() {
           )}
         </NavDrawer>
       </NavDrawer.Modal>
-      <div
-        className={clsx(
-          'fixed bottom-4 left-0 z-50 mx-auto flex w-full flex-col items-end justify-center gap-y-4 overflow-y-visible px-4 text-center lg:bottom-auto lg:top-4 lg:items-center',
-          layout === Layouts.Wallet && 'lg:pl-64 lg:pr-0'
-        )}
-      >
-        <AnimatePresence mode='popLayout'>
-          {scaffold?.fab && layout !== Layouts.Marketing && (
-            <FAB key='fab' onTap={() => setCommandPaletteOpen(true)} />
+      {features && features.accountEnabled && (
+        <div
+          className={clsx(
+            'fixed bottom-4 left-0 z-50 mx-auto flex w-full flex-col items-end justify-center gap-y-4 overflow-y-visible px-4 text-center lg:bottom-auto lg:top-4 lg:items-center',
+            layout === Layouts.Wallet && 'lg:pl-64 lg:pr-0'
           )}
-          <SnackbarStage />
-        </AnimatePresence>
-        {layout === Layouts.Wallet && (
-          <CommandPalette>
-            <CommandActions />
-          </CommandPalette>
-        )}
-      </div>
+        >
+          <AnimatePresence mode='popLayout'>
+            {scaffold?.fab && layout !== Layouts.Marketing && (
+              <FAB key='fab' onTap={() => setCommandPaletteOpen(true)} />
+            )}
+            <SnackbarStage />
+          </AnimatePresence>
+          {layout === Layouts.Wallet && (
+            <CommandPalette>
+              <CommandActions />
+            </CommandPalette>
+          )}
+        </div>
+      )}
     </div>
   )
 }

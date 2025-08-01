@@ -13,7 +13,7 @@ import type { ReactNode } from 'react'
 import styles from '~/styles/app.css'
 
 const metaContent = {
-  title: 'Fynbos Admin',
+  title: 'Interledger Wallet Admin',
   description: ''
 }
 
@@ -44,7 +44,7 @@ export const links: LinksFunction = () => {
 
 function Document({
   children,
-  title = 'Fynbos Admin'
+  title = 'Interledger Wallet Admin'
 }: {
   children: ReactNode
   title?: string

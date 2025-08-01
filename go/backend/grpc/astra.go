@@ -72,7 +72,7 @@ func (s *rpcService) CreateCard(
 	}
 
 	if !feats.AddCardsEnabled {
-		return nil, NewValidationError("Form", "You have connected the maximum number of cards to Fynbos.")
+		return nil, NewValidationError("Form", "You have connected the maximum number of cards to Interledger.")
 	}
 
 	las, err := s.b.LinkedAccounts().ListByWalletId(ctx, w.ID)
@@ -86,7 +86,7 @@ func (s *rpcService) CreateCard(
 		}
 	}
 
-	// limit the number of cards that can be connected to fynbos
+	// limit the number of cards that can be connected to interledger
 	// active cards are cards that are not deleted
 	// cards created this week are cards that were created in the last week whether they are active or not
 	if env.IsProd() {
@@ -101,10 +101,10 @@ func (s *rpcService) CreateCard(
 			}
 		}
 		if activeCardCount >= 5 {
-			return nil, CardPreconditionError("cardsVelocityLimit", "You have connected the maximum number of cards to Fynbos")
+			return nil, CardPreconditionError("cardsVelocityLimit", "You have connected the maximum number of cards to Interledger")
 		}
 		if cardsCreatedWK >= 2 {
-			return nil, CardPreconditionError("cardsMaxLimit", "You have connected the maximum number of cards to Fynbos this week")
+			return nil, CardPreconditionError("cardsMaxLimit", "You have connected the maximum number of cards to Interledger this week")
 		}
 	}
 
@@ -124,9 +124,9 @@ func (s *rpcService) CreateCard(
 		case "ErrDuplicateCard":
 			return nil, AlreadyExistsError("ErrDuplicateCard")
 		case "ErrUnsupportedCard":
-			return nil, NewValidationError("CardNumber", "Your card is unsupported and cannot be connected to Fynbos.")
+			return nil, NewValidationError("CardNumber", "Your card is unsupported and cannot be connected to Interledger.")
 		case "ErrUnsupportedCountry":
-			return nil, NewValidationError("CardNumber", "Your card originates from an unsupported country and cannot be connected to Fynbos.")
+			return nil, NewValidationError("CardNumber", "Your card originates from an unsupported country and cannot be connected to Interledger.")
 		case "ErrMultiStatus":
 			return nil, UnavailableError("ErrMultiStatus")
 		}
@@ -135,7 +135,7 @@ func (s *rpcService) CreateCard(
 		return nil, toGRPCError(err)
 	}
 	if la.ID == "" {
-		return nil, toGRPCError(errors.New("Linked account not returned from create card workflow."))
+		return nil, toGRPCError(errors.New("linked account not returned from create card workflow"))
 	}
 
 	return transformLinkedAccount(la), nil

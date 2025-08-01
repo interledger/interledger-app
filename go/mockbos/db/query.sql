@@ -2,14 +2,17 @@
 INSERT INTO xago_sub_accounts
 (id, deposit_tag, first_name, last_name, email, mobile_number,
  country, nationality, identification_document_type, identification_number,
- address, city, district, postal_code, address_document_type, date_of_birth)
+ address, city, district, postal_code, address_document_type, date_of_birth, deposit_reference)
 VALUES (gen_random_uuid(), $1, $2, $3, $4,
         $5, $6, $7, $8,
-        $9, $10, $11, $12, $13, $14, $15)
+        $9, $10, $11, $12, $13, $14, $15, $16)
 returning id;
 
 -- name: GetXagoSubAccount :one
 select * from xago_sub_accounts where id = $1 limit 1;
+
+-- name: GetXagoSubAccountByDepositReference :one
+select * from xago_sub_accounts where deposit_reference = $1 limit 1;
 
 -- name: CreateXagoBeneficiary :one
 INSERT INTO xago_beneficiaries
@@ -34,7 +37,7 @@ where id = $1;
 -- name: CreateXagoTransaction :one
 insert into xago_transactions
 (id, currency_code, amount, origin_amount, status, beneficiary_id, idempotency_key, type)
-values (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7)
+values ($1, $2, $3, $4, $5, $6, $7, $8)
 returning *;
 
 -- name: GetXagoTransaction :one

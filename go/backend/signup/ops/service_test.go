@@ -50,7 +50,7 @@ func TestSetUserData(t *testing.T) {
 	id, err := ops.SetUserData(ctx, b, signup.UserDataArgs{
 		FirstName:   "FirstName",
 		LastName:    "LastName",
-		Email:       "test@fynbos.dev",
+		Email:       "test@interledger.test",
 		CountryCode: "ZA",
 	})
 	require.NoError(t, err)
@@ -61,14 +61,14 @@ func TestSetUserData(t *testing.T) {
 
 	assert.Equal(t, "FirstName", su.FirstName)
 	assert.Equal(t, "LastName", su.LastName)
-	assert.Equal(t, "test@fynbos.dev", su.Email)
+	assert.Equal(t, "test@interledger.test", su.Email)
 	assert.Equal(t, "ZA", su.CountryCode)
 
 	// Update
 	id, err = ops.SetUserData(ctx, b, signup.UserDataArgs{
 		FirstName:   "Jason",
 		LastName:    "Real Person",
-		Email:       "random@fynbos.dev",
+		Email:       "random@interledger.test",
 		CountryCode: "GB",
 	})
 	require.NoError(t, err)
@@ -79,7 +79,7 @@ func TestSetUserData(t *testing.T) {
 
 	assert.Equal(t, "Jason", su.FirstName)
 	assert.Equal(t, "Real Person", su.LastName)
-	assert.Equal(t, "random@fynbos.dev", su.Email)
+	assert.Equal(t, "random@interledger.test", su.Email)
 	assert.Equal(t, "GB", su.CountryCode)
 }
 
@@ -99,7 +99,7 @@ func TestSetMobileNumber(t *testing.T) {
 	id, err := ops.SetUserData(ctx, b, signup.UserDataArgs{
 		FirstName:   "FirstName",
 		LastName:    "LastName",
-		Email:       "test@fynbos.dev",
+		Email:       "test@interledger.test",
 		CountryCode: "ZA",
 	})
 	require.NoError(t, err)
@@ -117,7 +117,7 @@ func TestSetMobileNumber(t *testing.T) {
 
 	assert.Equal(t, "FirstName", su.FirstName)
 	assert.Equal(t, "LastName", su.LastName)
-	assert.Equal(t, "test@fynbos.dev", su.Email)
+	assert.Equal(t, "test@interledger.test", su.Email)
 	assert.Equal(t, "ZA", su.CountryCode)
 	assert.Equal(t, mobile, su.MobileNumber)
 	assert.False(t, su.Completed)
@@ -136,7 +136,7 @@ func TestFailsDuplicateCompleteMobileNumber(t *testing.T) {
 	id, err := ops.SetUserData(ctx, b, signup.UserDataArgs{
 		FirstName:   "FirstName",
 		LastName:    "LastName",
-		Email:       "test@fynbos.dev",
+		Email:       "test@interledger.test",
 		CountryCode: "ZA",
 	})
 	require.NoError(t, err)
@@ -154,7 +154,7 @@ func TestFailsDuplicateCompleteMobileNumber(t *testing.T) {
 	id1, err := ops.SetUserData(ctx, b, signup.UserDataArgs{
 		FirstName:   "FirstName1",
 		LastName:    "LastName1",
-		Email:       "test1@fynbos.dev",
+		Email:       "test1@interledger.test",
 		CountryCode: "ZA",
 	})
 	require.NoError(t, err)
@@ -182,7 +182,7 @@ func TestComplete(t *testing.T) {
 	id, err := ops.SetUserData(ctx, b, signup.UserDataArgs{
 		FirstName:   "FirstName",
 		LastName:    "LastName",
-		Email:       "test@fynbos.dev",
+		Email:       "test@interledger.test",
 		CountryCode: "ZA",
 	})
 	require.NoError(t, err)
@@ -204,7 +204,7 @@ func TestComplete(t *testing.T) {
 
 	assert.Equal(t, "FirstName", su.FirstName)
 	assert.Equal(t, "LastName", su.LastName)
-	assert.Equal(t, "test@fynbos.dev", su.Email)
+	assert.Equal(t, "test@interledger.test", su.Email)
 	assert.Equal(t, "ZA", su.CountryCode)
 	assert.Equal(t, mobile, su.MobileNumber)
 	assert.Equal(t, userID, su.UserID)
@@ -215,7 +215,7 @@ func TestComplete(t *testing.T) {
 
 	assert.Equal(t, "FirstName", su.FirstName)
 	assert.Equal(t, "LastName", su.LastName)
-	assert.Equal(t, "test@fynbos.dev", su.Email)
+	assert.Equal(t, "test@interledger.test", su.Email)
 	assert.Equal(t, "ZA", su.CountryCode)
 	assert.Equal(t, mobile, su.MobileNumber)
 	assert.Equal(t, userID, su.UserID)
@@ -238,7 +238,7 @@ func TestCompleteIdempotent(t *testing.T) {
 	id, err := ops.SetUserData(ctx, b, signup.UserDataArgs{
 		FirstName:   "FirstName",
 		LastName:    "LastName",
-		Email:       "test@fynbos.dev",
+		Email:       "test@interledger.test",
 		CountryCode: "ZA",
 	})
 	require.NoError(t, err)
@@ -275,7 +275,7 @@ func TestCompleteFailsAnotherUser(t *testing.T) {
 	id, err := ops.SetUserData(ctx, b, signup.UserDataArgs{
 		FirstName:   "FirstName",
 		LastName:    "LastName",
-		Email:       "test@fynbos.dev",
+		Email:       "test@interledger.test",
 		CountryCode: "ZA",
 	})
 	require.NoError(t, err)

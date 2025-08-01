@@ -211,7 +211,7 @@ func (a *Activity) CreateChimoneyWallet(ctx context.Context, walletID string) (s
 		return "", fmt.Errorf("%w %s", chimoney.ErrInternal, err)
 	}
 	if len(ul) < 1 {
-		return "", fmt.Errorf("%w No Fynbos user found for walletID", chimoney.ErrInternal)
+		return "", fmt.Errorf("%w No Interledger user found for walletID", chimoney.ErrInternal)
 	}
 
 	exID, err := a.external.CreateWallet(ctx, external.CreateWalletReq{
@@ -623,7 +623,7 @@ func CreateChimoneyDepositWorkflow(ctx workflow.Context, issueID string) error {
 	logger := workflow.GetLogger(ctx)
 	logger.Info("Creating chimoney deposit.")
 
-	// Try get the Fynbos walletID so we know that it is for one of our wallets
+	// Try get the Interledger walletID so we know that it is for one of our wallets
 	var walletID string
 	err := workflow.ExecuteActivity(ctx, a.GetWalletIDFromIssueID, issueID).Get(ctx, &walletID)
 	if err != nil {

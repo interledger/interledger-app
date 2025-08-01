@@ -174,10 +174,10 @@ func (s *rpcService) VerifyIdentity(
 func identityToPB(identity *identities.Identity, walletURL string) *pb.Identity {
 	base64Signature := base64.URLEncoding.EncodeToString(identity.Signature)
 	base64SignatureHash := base64.URLEncoding.EncodeToString(identity.SignatureHash)
-
+	// TODO: change to interledger
 	var TxtRecord string
 	if identity.Platform == identities.PlatformDomain {
-		TxtRecord = fmt.Sprintf("_fynbos.%s=%s", identity.Identifier, base64SignatureHash)
+		TxtRecord = fmt.Sprintf("_interledger.%s=%s", identity.Identifier, base64SignatureHash)
 	}
 
 	return &pb.Identity{

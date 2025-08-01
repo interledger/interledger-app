@@ -7,15 +7,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/dynamicforms"
-	"gitlab.com/fynbos/backend/slack"
-	"gitlab.com/fynbos/env"
 	"io"
 	"sort"
 	"strconv"
 	"strings"
 	"unicode"
+
+	"gitlab.com/fynbos/backend/db"
+	"gitlab.com/fynbos/backend/dynamicforms"
+	"gitlab.com/fynbos/backend/slack"
+	"gitlab.com/fynbos/env"
 )
 
 func SubmitForm(ctx context.Context, b Backends, args *dynamicforms.SubmitArgs) (*dynamicforms.Submission, error) {
@@ -37,7 +38,7 @@ func SubmitForm(ctx context.Context, b Backends, args *dynamicforms.SubmitArgs) 
 	}
 
 	if env.IsProd() {
-		slack.SendToChannel(ctx, slack.ChannelNotifyForms, "Fynbot", fmt.Sprintf(":incoming_envelope: New Form Submission: %s", args.FormID))
+		slack.SendToChannel(ctx, slack.ChannelNotifyForms, "wallet-info-bot", fmt.Sprintf(":incoming_envelope: New Form Submission: %s", args.FormID))
 	}
 
 	return &form, nil

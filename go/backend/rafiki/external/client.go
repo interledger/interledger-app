@@ -124,7 +124,6 @@ func (c client) CreatePaymentPointerKey(ctx context.Context, walletAddressID str
 			Kty: "OKP",
 			Crv: "Ed25519",
 		},
-		IdempotencyKey: key.KeyID,
 	})
 	if err != nil {
 		return "", fmt.Errorf("%w %s", rafiki.ErrInternal, err)
