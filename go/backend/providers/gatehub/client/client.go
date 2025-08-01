@@ -85,6 +85,22 @@ func (c Client) GetTransaction(ctx context.Context, walletID, id string) (*exter
 	return ops.GetTransaction(ctx, c.b, c.external, walletID, id)
 }
 
+func (c Client) IsCustomer(ctx context.Context, walletID string) (bool, error) {
+	return ops.IsCustomer(ctx, c.b, walletID)
+}
+
+func (c Client) ListDeliveryAddresses(ctx context.Context, walletID string) ([]external.CustomerDeliveryAddress, error) {
+	return ops.ListDeliveryAddresses(ctx, c.b, c.external, walletID)
+}
+
 func (c Client) ListCards(ctx context.Context, walletID string) ([]external.Card, error) {
 	return ops.ListCards(ctx, c.b, c.external, walletID)
+}
+
+func (c Client) GetCardApplicationProducts(ctx context.Context) ([]external.CardApplicationProduct, error) {
+	return ops.GetCardApplicationProducts(ctx, c.b, c.external)
+}
+
+func (c Client) OrderCard(ctx context.Context, args gatehub.OrderCardArgs) error {
+	return nil
 }

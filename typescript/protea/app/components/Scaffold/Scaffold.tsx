@@ -27,7 +27,9 @@ import {
 import { ContentRouter, Prose } from '~/components/Content'
 import { CommandActions } from '~/components/Scaffold/CommandActions'
 import { CommandPalette } from '~/components/Scaffold/CommandPalette'
+import { CardType } from '~/generated/connect/backend/v1/backend_pb'
 import type { FooterRecord } from '~/generated/dato-cms-graphql'
+import { AddCardStep, useAddCardStore } from '~/lib/useAddCardStore'
 import {
   ConnectDomainStep,
   useConnectDomainStore
@@ -117,6 +119,9 @@ export function Scaffold() {
   const [connectDomainStep, connectDomainStepBack] = useConnectDomainStore(
     (state) => [state.step, state.stepBack]
   )
+  const [addCardStep, cardsStepBack, cardType, cardSetStep] = useAddCardStore(
+    (state) => [state.step, state.stepBack, state.type, state.setStep]
+  )
 
   // TODO should use second last match for scaffold if current match is nested (Only on desktop)
   let currentMatch = matches[matches.length - 1] as UIMatch<
@@ -180,7 +185,7 @@ export function Scaffold() {
       className={clsx(
         'relative inset-0 flex min-h-screen flex-col',
         (layout === Layouts.Marketing || layout === Layouts.Docs) &&
-        'bg-mk-page'
+          'bg-mk-page'
       )}
     >
       {layout === Layouts.Wallet && (
@@ -204,10 +209,11 @@ export function Scaffold() {
             <NavDrawer.ListItem to={route('/accounts')}>
               Accounts
             </NavDrawer.ListItem>
-            {features.manageWalletCardsEnabled && <NavDrawer.ListItem to={route('/cards')}>
-              Cards
-            </NavDrawer.ListItem>
-            }
+            {features.manageWalletCardsEnabled && (
+              <NavDrawer.ListItem to={route('/cards')}>
+                Cards
+              </NavDrawer.ListItem>
+            )}
             <NavDrawer.ListItem to={route('/payments')}>
               Payments
             </NavDrawer.ListItem>
@@ -224,13 +230,13 @@ export function Scaffold() {
         className={clsx(
           'sticky top-0 z-40 flex w-full select-none items-center justify-start space-x-4 p-4',
           layout === Layouts.Marketing &&
-          'h-16 border-b border-slate-200 bg-mk-page dark:border-slate-800 lg:h-24',
+            'h-16 border-b border-slate-200 bg-mk-page dark:border-slate-800 lg:h-24',
           layout === Layouts.Focus &&
-          'mx-auto h-16 select-none bg-page sm:mt-[5.5rem] sm:max-w-[29rem]',
+            'mx-auto h-16 select-none bg-page sm:mt-[5.5rem] sm:max-w-[29rem]',
           layout === Layouts.Wallet &&
           'min-h-16 bg-page lg:mt-[5.5rem] lg:pl-[16.25rem] flex-col justify-end',
           layout === Layouts.Docs &&
-          'h-16 bg-mk-page lg:mt-[5.5rem] lg:pl-[16.25rem]'
+            'h-16 bg-mk-page lg:mt-[5.5rem] lg:pl-[16.25rem]'
         )}
       >
         {layout === Layouts.Marketing && (
@@ -324,6 +330,22 @@ export function Scaffold() {
                       connectDomainStepBack()
                       navigate(-1)
                     } else connectDomainStepBack()
+                  } else if (scaffold.header.back === 'cards') {
+                    if (addCardStep === AddCardStep.CARD_TYPE) {
+                      cardsStepBack()
+                      navigate(-1)
+                    } else if (
+                      addCardStep === AddCardStep.CONFIRMATION &&
+                      cardType &&
+                      cardType === CardType.Virtual
+                    ) {
+                      cardSetStep(AddCardStep.CARD_TYPE)
+                    } else if (
+                      addCardStep === AddCardStep.DELIVERY &&
+                      cardType === CardType.Physical
+                    ) {
+                      cardSetStep(AddCardStep.CARD_TYPE)
+                    } else cardsStepBack()
                   } else navigate(-1)
                 }}
                 aria-label='Back'
@@ -395,7 +417,7 @@ export function Scaffold() {
           'relative flex w-full grow flex-col',
           layout === Layouts.Marketing && 'mx-auto xl:max-w-[80rem]',
           layout === Layouts.Focus &&
-          'mx-auto w-full gap-y-4 px-4 sm:max-w-[29rem] sm:px-0',
+            'mx-auto w-full gap-y-4 px-4 sm:max-w-[29rem] sm:px-0',
           layout === Layouts.Wallet && 'mb-32 w-full px-4 lg:pl-[16.25rem]',
           layout === Layouts.Docs && 'mb-32 w-full px-4 lg:pl-[16.25rem]'
         )}
@@ -406,11 +428,11 @@ export function Scaffold() {
         className={clsx(
           'w-full',
           layout === Layouts.Marketing &&
-          'mx-auto mb-8 flex max-w-[80rem] rounded-2xl bg-mk-footer',
+            'mx-auto mb-8 flex max-w-[80rem] rounded-2xl bg-mk-footer',
           layout === Layouts.Focus &&
-          'mx-auto flex w-full items-center gap-x-3 px-4 py-6 sm:max-w-[29rem] sm:px-0',
+            'mx-auto flex w-full items-center gap-x-3 px-4 py-6 sm:max-w-[29rem] sm:px-0',
           (layout === Layouts.Wallet || layout === Layouts.Docs) &&
-          'fixed bottom-0 z-50 hidden w-56 items-center gap-x-3 px-4 py-6 lg:flex'
+            'fixed bottom-0 z-50 hidden w-56 items-center gap-x-3 px-4 py-6 lg:flex'
         )}
       >
         {layout !== Layouts.Marketing && (

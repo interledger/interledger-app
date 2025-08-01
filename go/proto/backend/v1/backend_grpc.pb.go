@@ -123,6 +123,9 @@ const (
 	BackendService_GetChimoneyDepositLink_FullMethodName         = "/backend.v1.BackendService/GetChimoneyDepositLink"
 	BackendService_CreateChimoneyDeposit_FullMethodName          = "/backend.v1.BackendService/CreateChimoneyDeposit"
 	BackendService_ListCards_FullMethodName                      = "/backend.v1.BackendService/ListCards"
+	BackendService_GetCustomerDeliveryAddresses_FullMethodName   = "/backend.v1.BackendService/GetCustomerDeliveryAddresses"
+	BackendService_GetCardApplicationProducts_FullMethodName     = "/backend.v1.BackendService/GetCardApplicationProducts"
+	BackendService_OrderCard_FullMethodName                      = "/backend.v1.BackendService/OrderCard"
 )
 
 // BackendServiceClient is the client API for BackendService service.
@@ -263,6 +266,9 @@ type BackendServiceClient interface {
 	CreateChimoneyDeposit(ctx context.Context, in *CreateChimoneyDepositRequest, opts ...grpc.CallOption) (*Empty, error)
 	// Cards
 	ListCards(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListCardsResponse, error)
+	GetCustomerDeliveryAddresses(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetCustomerDeliveryAddressesResponse, error)
+	GetCardApplicationProducts(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetCardApplicationProductsResponse, error)
+	OrderCard(ctx context.Context, in *OrderCardRequest, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type backendServiceClient struct {
@@ -1209,6 +1215,33 @@ func (c *backendServiceClient) ListCards(ctx context.Context, in *Empty, opts ..
 	return out, nil
 }
 
+func (c *backendServiceClient) GetCustomerDeliveryAddresses(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetCustomerDeliveryAddressesResponse, error) {
+	out := new(GetCustomerDeliveryAddressesResponse)
+	err := c.cc.Invoke(ctx, BackendService_GetCustomerDeliveryAddresses_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) GetCardApplicationProducts(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetCardApplicationProductsResponse, error) {
+	out := new(GetCardApplicationProductsResponse)
+	err := c.cc.Invoke(ctx, BackendService_GetCardApplicationProducts_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) OrderCard(ctx context.Context, in *OrderCardRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, BackendService_OrderCard_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServiceServer is the server API for BackendService service.
 // All implementations should embed UnimplementedBackendServiceServer
 // for forward compatibility
@@ -1347,6 +1380,9 @@ type BackendServiceServer interface {
 	CreateChimoneyDeposit(context.Context, *CreateChimoneyDepositRequest) (*Empty, error)
 	// Cards
 	ListCards(context.Context, *Empty) (*ListCardsResponse, error)
+	GetCustomerDeliveryAddresses(context.Context, *Empty) (*GetCustomerDeliveryAddressesResponse, error)
+	GetCardApplicationProducts(context.Context, *Empty) (*GetCardApplicationProductsResponse, error)
+	OrderCard(context.Context, *OrderCardRequest) (*Empty, error)
 }
 
 // UnimplementedBackendServiceServer should be embedded to have forward compatible implementations.
@@ -1664,6 +1700,15 @@ func (UnimplementedBackendServiceServer) CreateChimoneyDeposit(context.Context, 
 }
 func (UnimplementedBackendServiceServer) ListCards(context.Context, *Empty) (*ListCardsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListCards not implemented")
+}
+func (UnimplementedBackendServiceServer) GetCustomerDeliveryAddresses(context.Context, *Empty) (*GetCustomerDeliveryAddressesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCustomerDeliveryAddresses not implemented")
+}
+func (UnimplementedBackendServiceServer) GetCardApplicationProducts(context.Context, *Empty) (*GetCardApplicationProductsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCardApplicationProducts not implemented")
+}
+func (UnimplementedBackendServiceServer) OrderCard(context.Context, *OrderCardRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method OrderCard not implemented")
 }
 
 // UnsafeBackendServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -3549,6 +3594,60 @@ func _BackendService_ListCards_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_GetCustomerDeliveryAddresses_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).GetCustomerDeliveryAddresses(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_GetCustomerDeliveryAddresses_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).GetCustomerDeliveryAddresses(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_GetCardApplicationProducts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).GetCardApplicationProducts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_GetCardApplicationProducts_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).GetCardApplicationProducts(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_OrderCard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(OrderCardRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).OrderCard(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_OrderCard_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).OrderCard(ctx, req.(*OrderCardRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BackendService_ServiceDesc is the grpc.ServiceDesc for BackendService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -3971,6 +4070,18 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListCards",
 			Handler:    _BackendService_ListCards_Handler,
+		},
+		{
+			MethodName: "GetCustomerDeliveryAddresses",
+			Handler:    _BackendService_GetCustomerDeliveryAddresses_Handler,
+		},
+		{
+			MethodName: "GetCardApplicationProducts",
+			Handler:    _BackendService_GetCardApplicationProducts_Handler,
+		},
+		{
+			MethodName: "OrderCard",
+			Handler:    _BackendService_OrderCard_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

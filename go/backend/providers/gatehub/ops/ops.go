@@ -531,6 +531,31 @@ func GetTransaction(ctx context.Context, b Backends, ec external.Client, walletI
 	return ec.GetTransaction(ctx, externalUser, id)
 }
 
+func IsCustomer(ctx context.Context, b Backends, walletID string) (bool, error) {
+	var externalCustomerID sql.NullString
+	err := b.DB().GetContext(ctx, &externalCustomerID, "SELECT external_customer_id FROM gatehub_users WHERE wallet_id = $1;", walletID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return false, fmt.Errorf("%w %s", gatehub.ErrNotFound, err)
+	} else if err != nil {
+		return false, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	return externalCustomerID.Valid, nil
+}
+
+func ListDeliveryAddresses(ctx context.Context, b Backends, ec external.Client, walletID string) ([]external.CustomerDeliveryAddress, error) {
+	externalIDs, err := getExternalUserIDAndCustomerID(ctx, b, walletID)
+	if err != nil {
+		return nil, err
+	}
+
+	if !externalIDs.CustomerID.Valid {
+		return nil, fmt.Errorf("%w attempted to list delivery addresses for non-existing customer", gatehub.ErrInternal)
+	}
+
+	return ec.GetDeliveryAddresses(ctx, externalIDs.ID, "dsada")
+}
+
 func ListCards(ctx context.Context, b Backends, ec external.Client, walletID string) ([]external.Card, error) {
 	externalIDs, err := getExternalUserIDAndCustomerID(ctx, b, walletID)
 	if err != nil {
@@ -542,4 +567,17 @@ func ListCards(ctx context.Context, b Backends, ec external.Client, walletID str
 	}
 
 	return ec.ListCards(ctx, externalIDs.ID, externalIDs.CustomerID.String)
+}
+
+func GetCardApplicationProducts(ctx context.Context, b Backends, ec external.Client) ([]external.CardApplicationProduct, error) {
+	return ec.GetCardApplicationProducts(ctx)
+}
+
+func OrderCard(ctx context.Context, b Backends, ec external.Client, walletID string) error {
+	la, err := b.LinkedAccounts().ListByWalletId(ctx, walletID)
+	if err != nil {
+		return err
+	}
+
+	return ec.OrderCard(ctx, walletID, la[0].ProviderID)
 }

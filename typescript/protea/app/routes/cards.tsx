@@ -14,6 +14,7 @@ import {
   Layouts,
   WalletGrid
 } from '~/components'
+import { getFeatures } from '~/data/wallet.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
@@ -21,7 +22,8 @@ import { mergeMeta } from '~/lib/meta'
 // TODO: How to differentiate between physical and virtual cards based on the
 // response from GateHub?
 export async function loader({ request }: LoaderFunctionArgs) {
-  if (process.env.FYNBOS_ENV !== 'local') {
+  const features = await getFeatures(request)
+  if (!features.manageWalletCardsEnabled) {
     throw redirect('/')
   }
 

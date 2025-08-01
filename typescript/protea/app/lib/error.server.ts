@@ -152,7 +152,12 @@ export class ConnectError {
     if (err.code === Code.Unauthenticated) {
       url.searchParams.set('returnTo', url.pathname + url.search)
 
-      throw redirect(route('/login') + url.search)
+      throw redirect(route('/login') + url.search, {
+        headers: {
+          'Set-Cookie':
+            'ory_kratos_session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT'
+        }
+      })
     }
 
     // If Code.FailedPrecondition, store violations
