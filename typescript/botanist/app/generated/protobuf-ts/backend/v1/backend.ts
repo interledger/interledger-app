@@ -36,6 +36,72 @@ export interface Empty {
  */
 export interface NewCustomerDeliveryAddress {
     /**
+     * @generated from protobuf field: backend.v1.CustomerDeliveryAddressBase details = 1;
+     */
+    details?: CustomerDeliveryAddressBase;
+    /**
+     * @generated from protobuf field: string reason = 2;
+     */
+    reason: string;
+}
+/**
+ * @generated from protobuf message backend.v1.OrderCardRequest
+ */
+export interface OrderCardRequest {
+    /**
+     * @generated from protobuf field: backend.v1.CardType type = 1;
+     */
+    type: CardType;
+    /**
+     * @generated from protobuf field: string cardProductCode = 2;
+     */
+    cardProductCode: string;
+    /**
+     * @generated from protobuf oneof: deliveryAddress
+     */
+    deliveryAddress: {
+        oneofKind: "id";
+        /**
+         * @generated from protobuf field: string id = 3;
+         */
+        id: string;
+    } | {
+        oneofKind: "newAddress";
+        /**
+         * @generated from protobuf field: backend.v1.NewCustomerDeliveryAddress newAddress = 4;
+         */
+        newAddress: NewCustomerDeliveryAddress;
+    } | {
+        oneofKind: undefined;
+    };
+}
+/**
+ * @generated from protobuf message backend.v1.CardApplicationProduct
+ */
+export interface CardApplicationProduct {
+    /**
+     * @generated from protobuf field: string code = 1;
+     */
+    code: string;
+    /**
+     * @generated from protobuf field: string name = 2;
+     */
+    name: string;
+}
+/**
+ * @generated from protobuf message backend.v1.GetCardApplicationProductsResponse
+ */
+export interface GetCardApplicationProductsResponse {
+    /**
+     * @generated from protobuf field: repeated backend.v1.CardApplicationProduct products = 1;
+     */
+    products: CardApplicationProduct[];
+}
+/**
+ * @generated from protobuf message backend.v1.CustomerDeliveryAddressBase
+ */
+export interface CustomerDeliveryAddressBase {
+    /**
      * @generated from protobuf field: backend.v1.CustomerDeliveryAddressType type = 1;
      */
     type: CustomerDeliveryAddressType;
@@ -67,126 +133,28 @@ export interface NewCustomerDeliveryAddress {
      * @generated from protobuf field: string zipCode = 8;
      */
     zipCode: string;
-    /**
-     * @generated from protobuf field: string reason = 9;
-     */
-    reason: string;
-}
-/**
- * @generated from protobuf message backend.v1.OrderCardRequest
- */
-export interface OrderCardRequest {
-    /**
-     * @generated from protobuf field: backend.v1.CardType type = 1;
-     */
-    type: CardType;
-    /**
-     * @generated from protobuf field: string cardProductCode = 2;
-     */
-    cardProductCode: string;
-    /**
-     * @generated from protobuf field: optional string deliveryAddressId = 3;
-     */
-    deliveryAddressId?: string;
-    /**
-     * @generated from protobuf field: optional backend.v1.NewCustomerDeliveryAddress newDeliveryAddress = 4;
-     */
-    newDeliveryAddress?: NewCustomerDeliveryAddress;
-}
-/**
- * @generated from protobuf message backend.v1.CardApplicationProduct
- */
-export interface CardApplicationProduct {
-    /**
-     * @generated from protobuf field: string code = 1;
-     */
-    code: string;
-    /**
-     * @generated from protobuf field: string name = 2;
-     */
-    name: string;
-}
-/**
- * @generated from protobuf message backend.v1.GetCardApplicationProductsResponse
- */
-export interface GetCardApplicationProductsResponse {
-    /**
-     * @generated from protobuf field: repeated backend.v1.CardApplicationProduct products = 1;
-     */
-    products: CardApplicationProduct[];
 }
 /**
  * @generated from protobuf message backend.v1.CustomerDeliveryAddress
  */
 export interface CustomerDeliveryAddress {
     /**
-     * @generated from protobuf field: string id = 1;
+     * @generated from protobuf field: backend.v1.CustomerDeliveryAddressBase details = 1;
+     */
+    details?: CustomerDeliveryAddressBase;
+    /**
+     * @generated from protobuf field: string id = 2;
      */
     id: string;
-    /**
-     * @generated from protobuf field: backend.v1.CustomerDeliveryAddressType type = 2;
-     */
-    type: CustomerDeliveryAddressType;
-    /**
-     * @generated from protobuf field: string countryCode = 3;
-     */
-    countryCode: string;
-    /**
-     * @generated from protobuf field: string line1 = 4;
-     */
-    line1: string;
-    /**
-     * @generated from protobuf field: optional string line2 = 5;
-     */
-    line2?: string;
-    /**
-     * @generated from protobuf field: optional string line3 = 6;
-     */
-    line3?: string;
-    /**
-     * @generated from protobuf field: optional string postOffice = 7;
-     */
-    postOffice?: string;
-    /**
-     * @generated from protobuf field: string city = 8;
-     */
-    city: string;
-    /**
-     * @generated from protobuf field: string zipCode = 9;
-     */
-    zipCode: string;
-}
-/**
- * @generated from protobuf message backend.v1.CustomerDeliveryAddressList
- */
-export interface CustomerDeliveryAddressList {
-    /**
-     * @generated from protobuf field: repeated backend.v1.CustomerDeliveryAddress deliveryAddresses = 1;
-     */
-    deliveryAddresses: CustomerDeliveryAddress[];
 }
 /**
  * @generated from protobuf message backend.v1.GetCustomerDeliveryAddressesResponse
  */
 export interface GetCustomerDeliveryAddressesResponse {
     /**
-     * @generated from protobuf oneof: payload
+     * @generated from protobuf field: repeated backend.v1.CustomerDeliveryAddress deliveryAddresses = 1;
      */
-    payload: {
-        oneofKind: "kycAddress";
-        /**
-         * @generated from protobuf field: backend.v1.CustomerDeliveryAddress kycAddress = 1;
-         */
-        kycAddress: CustomerDeliveryAddress;
-    } | {
-        oneofKind: "deliveryAddressesList";
-        /**
-         * @generated from protobuf field: backend.v1.CustomerDeliveryAddressList deliveryAddressesList = 2;
-         */
-        deliveryAddressesList: CustomerDeliveryAddressList;
-    } | {
-        oneofKind: undefined;
-    };
+    deliveryAddresses: CustomerDeliveryAddress[];
 }
 /**
  * @generated from protobuf message backend.v1.Card
@@ -2895,19 +2863,12 @@ export const Empty = new Empty$Type();
 class NewCustomerDeliveryAddress$Type extends MessageType<NewCustomerDeliveryAddress> {
     constructor() {
         super("backend.v1.NewCustomerDeliveryAddress", [
-            { no: 1, name: "type", kind: "enum", T: () => ["backend.v1.CustomerDeliveryAddressType", CustomerDeliveryAddressType] },
-            { no: 2, name: "countryCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "line1", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 4, name: "line2", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
-            { no: 5, name: "line3", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
-            { no: 6, name: "postOffice", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
-            { no: 7, name: "city", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 8, name: "zipCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 9, name: "reason", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 1, name: "details", kind: "message", T: () => CustomerDeliveryAddressBase },
+            { no: 2, name: "reason", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<NewCustomerDeliveryAddress>): NewCustomerDeliveryAddress {
-        const message = { type: 0, countryCode: "", line1: "", city: "", zipCode: "", reason: "" };
+        const message = { reason: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<NewCustomerDeliveryAddress>(this, message, value);
@@ -2918,31 +2879,10 @@ class NewCustomerDeliveryAddress$Type extends MessageType<NewCustomerDeliveryAdd
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* backend.v1.CustomerDeliveryAddressType type */ 1:
-                    message.type = reader.int32();
+                case /* backend.v1.CustomerDeliveryAddressBase details */ 1:
+                    message.details = CustomerDeliveryAddressBase.internalBinaryRead(reader, reader.uint32(), options, message.details);
                     break;
-                case /* string countryCode */ 2:
-                    message.countryCode = reader.string();
-                    break;
-                case /* string line1 */ 3:
-                    message.line1 = reader.string();
-                    break;
-                case /* optional string line2 */ 4:
-                    message.line2 = reader.string();
-                    break;
-                case /* optional string line3 */ 5:
-                    message.line3 = reader.string();
-                    break;
-                case /* optional string postOffice */ 6:
-                    message.postOffice = reader.string();
-                    break;
-                case /* string city */ 7:
-                    message.city = reader.string();
-                    break;
-                case /* string zipCode */ 8:
-                    message.zipCode = reader.string();
-                    break;
-                case /* string reason */ 9:
+                case /* string reason */ 2:
                     message.reason = reader.string();
                     break;
                 default:
@@ -2957,33 +2897,12 @@ class NewCustomerDeliveryAddress$Type extends MessageType<NewCustomerDeliveryAdd
         return message;
     }
     internalBinaryWrite(message: NewCustomerDeliveryAddress, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* backend.v1.CustomerDeliveryAddressType type = 1; */
-        if (message.type !== 0)
-            writer.tag(1, WireType.Varint).int32(message.type);
-        /* string countryCode = 2; */
-        if (message.countryCode !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.countryCode);
-        /* string line1 = 3; */
-        if (message.line1 !== "")
-            writer.tag(3, WireType.LengthDelimited).string(message.line1);
-        /* optional string line2 = 4; */
-        if (message.line2 !== undefined)
-            writer.tag(4, WireType.LengthDelimited).string(message.line2);
-        /* optional string line3 = 5; */
-        if (message.line3 !== undefined)
-            writer.tag(5, WireType.LengthDelimited).string(message.line3);
-        /* optional string postOffice = 6; */
-        if (message.postOffice !== undefined)
-            writer.tag(6, WireType.LengthDelimited).string(message.postOffice);
-        /* string city = 7; */
-        if (message.city !== "")
-            writer.tag(7, WireType.LengthDelimited).string(message.city);
-        /* string zipCode = 8; */
-        if (message.zipCode !== "")
-            writer.tag(8, WireType.LengthDelimited).string(message.zipCode);
-        /* string reason = 9; */
+        /* backend.v1.CustomerDeliveryAddressBase details = 1; */
+        if (message.details)
+            CustomerDeliveryAddressBase.internalBinaryWrite(message.details, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* string reason = 2; */
         if (message.reason !== "")
-            writer.tag(9, WireType.LengthDelimited).string(message.reason);
+            writer.tag(2, WireType.LengthDelimited).string(message.reason);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -3000,12 +2919,12 @@ class OrderCardRequest$Type extends MessageType<OrderCardRequest> {
         super("backend.v1.OrderCardRequest", [
             { no: 1, name: "type", kind: "enum", T: () => ["backend.v1.CardType", CardType] },
             { no: 2, name: "cardProductCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "deliveryAddressId", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
-            { no: 4, name: "newDeliveryAddress", kind: "message", T: () => NewCustomerDeliveryAddress }
+            { no: 3, name: "id", kind: "scalar", oneof: "deliveryAddress", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "newAddress", kind: "message", oneof: "deliveryAddress", T: () => NewCustomerDeliveryAddress }
         ]);
     }
     create(value?: PartialMessage<OrderCardRequest>): OrderCardRequest {
-        const message = { type: 0, cardProductCode: "" };
+        const message = { type: 0, cardProductCode: "", deliveryAddress: { oneofKind: undefined } };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<OrderCardRequest>(this, message, value);
@@ -3022,11 +2941,17 @@ class OrderCardRequest$Type extends MessageType<OrderCardRequest> {
                 case /* string cardProductCode */ 2:
                     message.cardProductCode = reader.string();
                     break;
-                case /* optional string deliveryAddressId */ 3:
-                    message.deliveryAddressId = reader.string();
+                case /* string id */ 3:
+                    message.deliveryAddress = {
+                        oneofKind: "id",
+                        id: reader.string()
+                    };
                     break;
-                case /* optional backend.v1.NewCustomerDeliveryAddress newDeliveryAddress */ 4:
-                    message.newDeliveryAddress = NewCustomerDeliveryAddress.internalBinaryRead(reader, reader.uint32(), options, message.newDeliveryAddress);
+                case /* backend.v1.NewCustomerDeliveryAddress newAddress */ 4:
+                    message.deliveryAddress = {
+                        oneofKind: "newAddress",
+                        newAddress: NewCustomerDeliveryAddress.internalBinaryRead(reader, reader.uint32(), options, (message.deliveryAddress as any).newAddress)
+                    };
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -3046,12 +2971,12 @@ class OrderCardRequest$Type extends MessageType<OrderCardRequest> {
         /* string cardProductCode = 2; */
         if (message.cardProductCode !== "")
             writer.tag(2, WireType.LengthDelimited).string(message.cardProductCode);
-        /* optional string deliveryAddressId = 3; */
-        if (message.deliveryAddressId !== undefined)
-            writer.tag(3, WireType.LengthDelimited).string(message.deliveryAddressId);
-        /* optional backend.v1.NewCustomerDeliveryAddress newDeliveryAddress = 4; */
-        if (message.newDeliveryAddress)
-            NewCustomerDeliveryAddress.internalBinaryWrite(message.newDeliveryAddress, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
+        /* string id = 3; */
+        if (message.deliveryAddress.oneofKind === "id")
+            writer.tag(3, WireType.LengthDelimited).string(message.deliveryAddress.id);
+        /* backend.v1.NewCustomerDeliveryAddress newAddress = 4; */
+        if (message.deliveryAddress.oneofKind === "newAddress")
+            NewCustomerDeliveryAddress.internalBinaryWrite(message.deliveryAddress.newAddress, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -3164,57 +3089,53 @@ class GetCardApplicationProductsResponse$Type extends MessageType<GetCardApplica
  */
 export const GetCardApplicationProductsResponse = new GetCardApplicationProductsResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class CustomerDeliveryAddress$Type extends MessageType<CustomerDeliveryAddress> {
+class CustomerDeliveryAddressBase$Type extends MessageType<CustomerDeliveryAddressBase> {
     constructor() {
-        super("backend.v1.CustomerDeliveryAddress", [
-            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "type", kind: "enum", T: () => ["backend.v1.CustomerDeliveryAddressType", CustomerDeliveryAddressType] },
-            { no: 3, name: "countryCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 4, name: "line1", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 5, name: "line2", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
-            { no: 6, name: "line3", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
-            { no: 7, name: "postOffice", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
-            { no: 8, name: "city", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 9, name: "zipCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        super("backend.v1.CustomerDeliveryAddressBase", [
+            { no: 1, name: "type", kind: "enum", T: () => ["backend.v1.CustomerDeliveryAddressType", CustomerDeliveryAddressType] },
+            { no: 2, name: "countryCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "line1", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "line2", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "line3", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "postOffice", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
+            { no: 7, name: "city", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 8, name: "zipCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
-    create(value?: PartialMessage<CustomerDeliveryAddress>): CustomerDeliveryAddress {
-        const message = { id: "", type: 0, countryCode: "", line1: "", city: "", zipCode: "" };
+    create(value?: PartialMessage<CustomerDeliveryAddressBase>): CustomerDeliveryAddressBase {
+        const message = { type: 0, countryCode: "", line1: "", city: "", zipCode: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<CustomerDeliveryAddress>(this, message, value);
+            reflectionMergePartial<CustomerDeliveryAddressBase>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CustomerDeliveryAddress): CustomerDeliveryAddress {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CustomerDeliveryAddressBase): CustomerDeliveryAddressBase {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string id */ 1:
-                    message.id = reader.string();
-                    break;
-                case /* backend.v1.CustomerDeliveryAddressType type */ 2:
+                case /* backend.v1.CustomerDeliveryAddressType type */ 1:
                     message.type = reader.int32();
                     break;
-                case /* string countryCode */ 3:
+                case /* string countryCode */ 2:
                     message.countryCode = reader.string();
                     break;
-                case /* string line1 */ 4:
+                case /* string line1 */ 3:
                     message.line1 = reader.string();
                     break;
-                case /* optional string line2 */ 5:
+                case /* optional string line2 */ 4:
                     message.line2 = reader.string();
                     break;
-                case /* optional string line3 */ 6:
+                case /* optional string line3 */ 5:
                     message.line3 = reader.string();
                     break;
-                case /* optional string postOffice */ 7:
+                case /* optional string postOffice */ 6:
                     message.postOffice = reader.string();
                     break;
-                case /* string city */ 8:
+                case /* string city */ 7:
                     message.city = reader.string();
                     break;
-                case /* string zipCode */ 9:
+                case /* string zipCode */ 8:
                     message.zipCode = reader.string();
                     break;
                 default:
@@ -3228,34 +3149,85 @@ class CustomerDeliveryAddress$Type extends MessageType<CustomerDeliveryAddress> 
         }
         return message;
     }
-    internalBinaryWrite(message: CustomerDeliveryAddress, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string id = 1; */
-        if (message.id !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.id);
-        /* backend.v1.CustomerDeliveryAddressType type = 2; */
+    internalBinaryWrite(message: CustomerDeliveryAddressBase, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* backend.v1.CustomerDeliveryAddressType type = 1; */
         if (message.type !== 0)
-            writer.tag(2, WireType.Varint).int32(message.type);
-        /* string countryCode = 3; */
+            writer.tag(1, WireType.Varint).int32(message.type);
+        /* string countryCode = 2; */
         if (message.countryCode !== "")
-            writer.tag(3, WireType.LengthDelimited).string(message.countryCode);
-        /* string line1 = 4; */
+            writer.tag(2, WireType.LengthDelimited).string(message.countryCode);
+        /* string line1 = 3; */
         if (message.line1 !== "")
-            writer.tag(4, WireType.LengthDelimited).string(message.line1);
-        /* optional string line2 = 5; */
+            writer.tag(3, WireType.LengthDelimited).string(message.line1);
+        /* optional string line2 = 4; */
         if (message.line2 !== undefined)
-            writer.tag(5, WireType.LengthDelimited).string(message.line2);
-        /* optional string line3 = 6; */
+            writer.tag(4, WireType.LengthDelimited).string(message.line2);
+        /* optional string line3 = 5; */
         if (message.line3 !== undefined)
-            writer.tag(6, WireType.LengthDelimited).string(message.line3);
-        /* optional string postOffice = 7; */
+            writer.tag(5, WireType.LengthDelimited).string(message.line3);
+        /* optional string postOffice = 6; */
         if (message.postOffice !== undefined)
-            writer.tag(7, WireType.LengthDelimited).string(message.postOffice);
-        /* string city = 8; */
+            writer.tag(6, WireType.LengthDelimited).string(message.postOffice);
+        /* string city = 7; */
         if (message.city !== "")
-            writer.tag(8, WireType.LengthDelimited).string(message.city);
-        /* string zipCode = 9; */
+            writer.tag(7, WireType.LengthDelimited).string(message.city);
+        /* string zipCode = 8; */
         if (message.zipCode !== "")
-            writer.tag(9, WireType.LengthDelimited).string(message.zipCode);
+            writer.tag(8, WireType.LengthDelimited).string(message.zipCode);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.CustomerDeliveryAddressBase
+ */
+export const CustomerDeliveryAddressBase = new CustomerDeliveryAddressBase$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CustomerDeliveryAddress$Type extends MessageType<CustomerDeliveryAddress> {
+    constructor() {
+        super("backend.v1.CustomerDeliveryAddress", [
+            { no: 1, name: "details", kind: "message", T: () => CustomerDeliveryAddressBase },
+            { no: 2, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<CustomerDeliveryAddress>): CustomerDeliveryAddress {
+        const message = { id: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CustomerDeliveryAddress>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CustomerDeliveryAddress): CustomerDeliveryAddress {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* backend.v1.CustomerDeliveryAddressBase details */ 1:
+                    message.details = CustomerDeliveryAddressBase.internalBinaryRead(reader, reader.uint32(), options, message.details);
+                    break;
+                case /* string id */ 2:
+                    message.id = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CustomerDeliveryAddress, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* backend.v1.CustomerDeliveryAddressBase details = 1; */
+        if (message.details)
+            CustomerDeliveryAddressBase.internalBinaryWrite(message.details, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* string id = 2; */
+        if (message.id !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.id);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -3267,20 +3239,20 @@ class CustomerDeliveryAddress$Type extends MessageType<CustomerDeliveryAddress> 
  */
 export const CustomerDeliveryAddress = new CustomerDeliveryAddress$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class CustomerDeliveryAddressList$Type extends MessageType<CustomerDeliveryAddressList> {
+class GetCustomerDeliveryAddressesResponse$Type extends MessageType<GetCustomerDeliveryAddressesResponse> {
     constructor() {
-        super("backend.v1.CustomerDeliveryAddressList", [
+        super("backend.v1.GetCustomerDeliveryAddressesResponse", [
             { no: 1, name: "deliveryAddresses", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => CustomerDeliveryAddress }
         ]);
     }
-    create(value?: PartialMessage<CustomerDeliveryAddressList>): CustomerDeliveryAddressList {
+    create(value?: PartialMessage<GetCustomerDeliveryAddressesResponse>): GetCustomerDeliveryAddressesResponse {
         const message = { deliveryAddresses: [] };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<CustomerDeliveryAddressList>(this, message, value);
+            reflectionMergePartial<GetCustomerDeliveryAddressesResponse>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CustomerDeliveryAddressList): CustomerDeliveryAddressList {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetCustomerDeliveryAddressesResponse): GetCustomerDeliveryAddressesResponse {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
@@ -3299,70 +3271,10 @@ class CustomerDeliveryAddressList$Type extends MessageType<CustomerDeliveryAddre
         }
         return message;
     }
-    internalBinaryWrite(message: CustomerDeliveryAddressList, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+    internalBinaryWrite(message: GetCustomerDeliveryAddressesResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
         /* repeated backend.v1.CustomerDeliveryAddress deliveryAddresses = 1; */
         for (let i = 0; i < message.deliveryAddresses.length; i++)
             CustomerDeliveryAddress.internalBinaryWrite(message.deliveryAddresses[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message backend.v1.CustomerDeliveryAddressList
- */
-export const CustomerDeliveryAddressList = new CustomerDeliveryAddressList$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class GetCustomerDeliveryAddressesResponse$Type extends MessageType<GetCustomerDeliveryAddressesResponse> {
-    constructor() {
-        super("backend.v1.GetCustomerDeliveryAddressesResponse", [
-            { no: 1, name: "kycAddress", kind: "message", oneof: "payload", T: () => CustomerDeliveryAddress },
-            { no: 2, name: "deliveryAddressesList", kind: "message", oneof: "payload", T: () => CustomerDeliveryAddressList }
-        ]);
-    }
-    create(value?: PartialMessage<GetCustomerDeliveryAddressesResponse>): GetCustomerDeliveryAddressesResponse {
-        const message = { payload: { oneofKind: undefined } };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<GetCustomerDeliveryAddressesResponse>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetCustomerDeliveryAddressesResponse): GetCustomerDeliveryAddressesResponse {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* backend.v1.CustomerDeliveryAddress kycAddress */ 1:
-                    message.payload = {
-                        oneofKind: "kycAddress",
-                        kycAddress: CustomerDeliveryAddress.internalBinaryRead(reader, reader.uint32(), options, (message.payload as any).kycAddress)
-                    };
-                    break;
-                case /* backend.v1.CustomerDeliveryAddressList deliveryAddressesList */ 2:
-                    message.payload = {
-                        oneofKind: "deliveryAddressesList",
-                        deliveryAddressesList: CustomerDeliveryAddressList.internalBinaryRead(reader, reader.uint32(), options, (message.payload as any).deliveryAddressesList)
-                    };
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: GetCustomerDeliveryAddressesResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* backend.v1.CustomerDeliveryAddress kycAddress = 1; */
-        if (message.payload.oneofKind === "kycAddress")
-            CustomerDeliveryAddress.internalBinaryWrite(message.payload.kycAddress, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
-        /* backend.v1.CustomerDeliveryAddressList deliveryAddressesList = 2; */
-        if (message.payload.oneofKind === "deliveryAddressesList")
-            CustomerDeliveryAddressList.internalBinaryWrite(message.payload.deliveryAddressesList, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
