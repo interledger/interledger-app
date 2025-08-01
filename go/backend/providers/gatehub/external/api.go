@@ -14,5 +14,8 @@ type Client interface {
 	GetUserTransactions(ctx context.Context, userID string) ([]Transaction, error)
 	GetTransaction(ctx context.Context, userID, id string) (*Transaction, error)
 	ListCards(ctx context.Context, userID, customerID string) ([]Card, error)
+	GetDeliveryAddresses(ctx context.Context, userID, customerID string) ([]CustomerDeliveryAddress, error)
+	GetCardApplicationProducts(ctx context.Context) ([]CardApplicationProduct, error)
+	OrderCard(ctx context.Context, userID string, gatehubWalletAddress string) error
 	GetVaultID() string
 }

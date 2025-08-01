@@ -178,6 +178,72 @@ service BackendService {
 
   // Cards
   rpc ListCards(Empty) returns (ListCardsResponse);
+  rpc GetCustomerDeliveryAddresses(Empty) returns (GetCustomerDeliveryAddressesResponse);
+  rpc GetCardApplicationProducts(Empty) returns (GetCardApplicationProductsResponse);
+  rpc OrderCard(OrderCardRequest) returns (Empty);
+}
+
+message NewCustomerDeliveryAddress {
+  CustomerDeliveryAddressType type = 1;
+  string countryCode = 2;
+  string line1 = 3;
+  optional string line2 = 4;
+  optional string line3 = 5;
+  optional string postOffice = 6;
+  string city = 7; 
+  string zipCode = 8;
+  string reason = 9;
+}
+
+message OrderCardRequest {
+  CardType type = 1;
+  string cardProductCode = 2;
+  optional string deliveryAddressId = 3;
+  optional NewCustomerDeliveryAddress newDeliveryAddress = 4;
+}
+
+message CardApplicationProduct {
+  string code = 1;
+  string name = 2;
+}
+
+message GetCardApplicationProductsResponse {
+  repeated CardApplicationProduct products = 1;
+}
+
+enum CustomerDeliveryAddressType {
+  PermanentResidence = 0;
+  TemporaryResidence = 1;
+  Work = 2;
+  Other = 3;
+}
+
+message CustomerDeliveryAddress {
+  string id = 1;
+  CustomerDeliveryAddressType type = 2;
+  string countryCode = 3;
+  string line1 = 4;
+  optional string line2 = 5;
+  optional string line3 = 6;
+  optional string postOffice = 7;
+  string city = 8; 
+  string zipCode = 9;
+}
+
+message CustomerDeliveryAddressList {
+  repeated CustomerDeliveryAddress deliveryAddresses = 1;
+}
+
+message GetCustomerDeliveryAddressesResponse {
+  oneof payload {
+    CustomerDeliveryAddress kycAddress = 1;
+    CustomerDeliveryAddressList deliveryAddressesList = 2;
+  }
+}
+
+enum CardType {
+  Physical = 0;
+  Virtual = 1;
 }
 
 enum CardStatus {

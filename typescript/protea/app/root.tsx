@@ -130,7 +130,16 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({
 export async function loader({ request }: LoaderFunctionArgs) {
   const isUser = hasUserSession(request)
   const snackbar = await getSnackbar(request)
+
   let features = new Features()
+
+  // TODO: Retrieve features only when using the app but not the marketing page.
+  // If the cookie value gets tempered, the user will enter an infinite redirect,
+  // since the `hasUserSession` function only verifies if the cookie EXISTS and
+  // does not validate it.
+  if (isUser) {
+    features = await getFeatures(request)
+  }
 
   const url = new URL(request.url)
   const pathname = url.pathname
