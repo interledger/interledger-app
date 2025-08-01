@@ -2,14 +2,14 @@ import {
   ChimoneyLogo,
   FiantLogo,
   GatehubLogo,
-  InterledgerLogo,
+  InterledgerWalletLogo,
   XagoLogo
 } from '~/components'
 
 export function MarketingPage() {
   return (
     <div className='flex grow flex-col items-center justify-center space-y-24 p-4 text-center'>
-      <InterledgerLogo className='max-w-lg' />
+      <InterledgerWalletLogo className='max-w-lg' />
 
       <p className='max-w-4xl text-3xl text-strong'>
         Unlock the potential of Open Payments and Web Monetization through the

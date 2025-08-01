@@ -25,4 +25,4 @@ testmigrations
 *.env
 
 **/.vagrant
-.pnpm-store
+**/.pnpm-store

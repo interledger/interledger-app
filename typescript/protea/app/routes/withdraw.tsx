@@ -96,8 +96,9 @@ async function fynbosWithdrawalLoader({ request }: LoaderFunctionArgs) {
     balanceAccount.linkedAccount
   )
 
+  // TODO: check if provider is the same as in backend
   return jsonWithCSRF(request, {
-    provider: 'fynbos',
+    provider: 'interledger',
     balanceAccount,
     balance,
     balances,

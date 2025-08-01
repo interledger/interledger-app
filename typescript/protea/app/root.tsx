@@ -3,7 +3,7 @@ import type {
   LoaderFunctionArgs,
   MetaFunction
 } from '@remix-run/node'
-import { json } from '@remix-run/node'
+import { json, redirect } from '@remix-run/node'
 import type { ShouldRevalidateFunction } from '@remix-run/react'
 import {
   Link,
@@ -102,16 +102,26 @@ function Document({ children, theme = 'theme-system' }: DocumentProps) {
   )
 }
 
+const validatePathsList = [
+  '/',
+  '/pay',
+  '/deposit',
+  '/withdraw',
+  '/accounts',
+  '/payments',
+  '/personal-details'
+]
+
 export const shouldRevalidate: ShouldRevalidateFunction = ({
   defaultShouldRevalidate,
   nextUrl
 }) => {
   /**
-   * NOTE: We always revalidate when routing to /.
-   * To ensure the layout is in sync on client side navigation.
+   * NOTE: We always revalidate when routing to validatePathsList.
+   * To ensure the layout is in sync on client side navigation and to validate if account is disabled.
    * This needs to be done for any route that returns a function in its layout handle.
    */
-  if (nextUrl.pathname == '/') return true
+  if (validatePathsList.includes(nextUrl.pathname)) return true
   // TODO: possible also revalidate if an action has been submitted so that we can show global snackbars even on error
   // Could also just return json instead throwing an error
   return defaultShouldRevalidate
@@ -131,10 +141,22 @@ export async function loader({ request }: LoaderFunctionArgs) {
     features = await getFeatures(request)
   }
 
+  const url = new URL(request.url)
+  const pathname = url.pathname
+
+  // if wallet is in a region that is not enabled redirect
+  if (isUser && validatePathsList.includes(pathname)) {
+    features = await getFeatures(request)
+
+    if (features && !features.accountEnabled) {
+      return redirect('/unavailable')
+    }
+  }
+
   return json({
     isUser,
-    snackbar,
     features,
+    snackbar,
     env: {
       fynbosEnv: process.env.FYNBOS_ENV,
       sentryDsn: process.env.SENTRY_DSN,

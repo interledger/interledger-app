@@ -51,6 +51,7 @@ declare module "routes-gen" {
     "/temp-cloudflare-error": Record<string, never>;
     "/transactions": Record<string, never>;
     "/transactions/:transactionId": { "transactionId": string };
+    "/unavailable": Record<string, never>;
     "/verify": Record<string, never>;
     "/waitlist": Record<string, never>;
     "/waitlist/success": Record<string, never>;
@@ -112,6 +113,7 @@ declare module "routes-gen" {
       | ["/temp-cloudflare-error"]
       | ["/transactions"]
       | ["/transactions/:transactionId", RouteParams["/transactions/:transactionId"]]
+      | ["/unavailable"]
       | ["/verify"]
       | ["/waitlist"]
       | ["/waitlist/success"]

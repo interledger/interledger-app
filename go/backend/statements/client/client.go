@@ -13,6 +13,7 @@ import (
 
 var _ statements.Client = client{}
 
+// Not used.
 var (
 	walletStatementUrl = "https://cdn.fynbos.app/pdfs/statement-plain-A4.pdf"
 

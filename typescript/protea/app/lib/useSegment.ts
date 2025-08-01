@@ -6,6 +6,7 @@ declare global {
   var __segmentClient: AnalyticsBrowser | undefined
 }
 
+// TODO: Can it be removed?
 export function useSegment(apiKey: string) {
   const location = useLocation()
   if (!global.__segmentClient && apiKey && apiKey != '') {

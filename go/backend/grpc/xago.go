@@ -4,19 +4,16 @@ import (
 	"context"
 	"errors"
 
-	"gitlab.com/fynbos/backend/limits"
-
-	"gitlab.com/fynbos/backend/payments"
-
 	"gitlab.com/fynbos/backend/currency"
-
+	"gitlab.com/fynbos/backend/limits"
 	"gitlab.com/fynbos/backend/linkedaccounts"
-
+	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/xago"
-
 	"gitlab.com/fynbos/backend/user"
-
+	"gitlab.com/fynbos/env"
+	"gitlab.com/fynbos/log"
 	pb "gitlab.com/fynbos/proto/backend/v1"
+	"go.uber.org/zap"
 )
 
 func (s *rpcService) AddXagoBankAccount(ctx context.Context, req *pb.AddXagoBankAccountRequest) (*pb.LinkedAccount, error) {
@@ -241,4 +238,33 @@ func (s *rpcService) GetXagoDepositDetails(ctx context.Context, req *pb.GetXagoD
 	}
 
 	return &pb.GetXagoDepositDetailsResponse{Details: resp}, nil
+}
+
+func (s *rpcService) DepositTestXago(ctx context.Context, req *pb.Empty) (*pb.Empty, error) {
+	u, err := s.b.Users().UserForContext(ctx)
+	if err != nil && !errors.Is(err, user.ErrNoUserFound) {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	if env.IsProd() {
+		log.Warn("received xago test deposit RPC call in non-testing environment", zap.String("userId", u.ID))
+		return nil, ForbiddenError("Forbidden.")
+	}
+
+	w, err := s.b.Wallets().ForContext(ctx)
+	if err != nil && !errors.Is(err, user.ErrNoUserFound) {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	sa, err := s.b.Xago().LookupSubAccount(ctx, w.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	err = s.b.Xago().TestDeposit(ctx, *sa)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &pb.Empty{}, nil
 }

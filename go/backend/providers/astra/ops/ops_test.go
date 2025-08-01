@@ -65,7 +65,7 @@ func TestCreateIntent(t *testing.T) {
 	}, nil).AnyTimes()
 
 	ex.EXPECT().CreateIntent(ctx, external.CreateIntentReq{
-		Email:          "info@fynbos.com",
+		Email:          "info@interledger.app",
 		Phone:          "+27836321959",
 		FirstName:      "Bobby",
 		LastName:       "Tables",

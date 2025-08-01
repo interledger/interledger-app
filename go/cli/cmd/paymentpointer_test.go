@@ -14,8 +14,8 @@ func TestGetPaymentPointer(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		op := cmd.OutgoingPayment{
 			ID:               "testop",
-			PaymentPointer:   "https://local.fynbos.me/jimmy",
-			ToPaymentPointer: "https://local.fynbos.me/janey",
+			PaymentPointer:   "https://local.ilp.link/jimmy",
+			ToPaymentPointer: "https://local.ilp.link/janey",
 			SendAmount: cmd.Amount{
 				Amount:   10,
 				Currency: "USD",
