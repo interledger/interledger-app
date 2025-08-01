@@ -2,9 +2,7 @@ package grpc
 
 import (
 	"context"
-	"errors"
 
-	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	"gitlab.com/fynbos/env"
@@ -77,17 +75,19 @@ func (s *rpcService) GetCustomerDeliveryAddresses(ctx context.Context, req *pb.E
 
 		// TODO(@radu): How should we handle temporary residence?
 		return &pb.GetCustomerDeliveryAddressesResponse{
-			Payload: &pb.GetCustomerDeliveryAddressesResponse_KycAddress{
-				KycAddress: &pb.CustomerDeliveryAddress{
-					Id:          uuid.NewString(), // using a random ID - it should not be used
-					Type:        pb.CustomerDeliveryAddressType_PermanentResidence,
-					CountryCode: user.Profile.AddressCountryCode,
-					Line1:       user.Profile.AddressStreet1,
-					Line2:       &user.Profile.AddressStreet2,
-					Line3:       nil,
-					PostOffice:  nil,
-					City:        user.Profile.AddressCity,
-					ZipCode:     user.Profile.AddressPostalCode,
+			DeliveryAddresses: []*pb.CustomerDeliveryAddress{
+				{
+					Id: "kyc-address",
+					Details: &pb.CustomerDeliveryAddressBase{
+						Type:        pb.CustomerDeliveryAddressType_PermanentResidence,
+						CountryCode: user.Profile.AddressCountryCode,
+						Line1:       user.Profile.AddressStreet1,
+						Line2:       &user.Profile.AddressStreet2,
+						Line3:       nil,
+						PostOffice:  nil,
+						City:        user.Profile.AddressCity,
+						ZipCode:     user.Profile.AddressPostalCode,
+					},
 				},
 			},
 		}, nil
@@ -164,47 +164,47 @@ func (s *rpcService) ListCards(ctx context.Context, req *pb.Empty) (*pb.ListCard
 }
 
 func (s *rpcService) OrderCard(ctx context.Context, req *pb.OrderCardRequest) (*pb.Empty, error) {
-	_, err := s.b.Users().UserForContext(ctx)
-	if err != nil {
-		return nil, UnauthenticatedError("Unauthenticated.")
-	}
-
-	wallet, err := s.b.Wallets().ForContext(ctx)
-	if err != nil {
-		return nil, UnauthenticatedError("Unauthenticated.")
-	}
-
-	_, isEU := country.EUCountries[wallet.Country]
-	if !isEU {
-		return nil, FailedPreconditionError("Wallet not in the EU region")
-	}
-
-	args := gatehub.OrderCardArgs{
-		WalletID: wallet.ID,
-	}
-
-	if req.GetDeliveryAddressId() != "" && req.GetNewDeliveryAddress() != nil {
-		return nil, toGRPCError(errors.New("please only provide the delivery address or a new delivery address"))
-	}
-
-	if req.GetNewDeliveryAddress() != nil {
-		args.NewDeliveryAddress = &gatehub.NewCustomerDeliveryAddressArgs{
-			Type:        req.NewDeliveryAddress.Type.String(),
-			CountryCode: req.NewDeliveryAddress.CountryCode,
-			Line1:       req.NewDeliveryAddress.Line1,
-			Line2:       req.NewDeliveryAddress.Line2,
-			Line3:       req.NewDeliveryAddress.Line3,
-			City:        req.NewDeliveryAddress.City,
-			PostOffice:  req.NewDeliveryAddress.PostOffice,
-			ZipCode:     req.NewDeliveryAddress.ZipCode,
-			Reason:      req.NewDeliveryAddress.Reason,
-		}
-	}
-
-	err = s.b.Gatehub().OrderCard(ctx, args)
-	if err != nil {
-		return nil, toGRPCError(err)
-	}
+	// _, err := s.b.Users().UserForContext(ctx)
+	// if err != nil {
+	// 	return nil, UnauthenticatedError("Unauthenticated.")
+	// }
+	//
+	// wallet, err := s.b.Wallets().ForContext(ctx)
+	// if err != nil {
+	// 	return nil, UnauthenticatedError("Unauthenticated.")
+	// }
+	//
+	// _, isEU := country.EUCountries[wallet.Country]
+	// if !isEU {
+	// 	return nil, FailedPreconditionError("Wallet not in the EU region")
+	// }
+	//
+	// args := gatehub.OrderCardArgs{
+	// 	WalletID: wallet.ID,
+	// }
+	//
+	// if req.GetDeliveryAddressId() != "" && req.GetNewDeliveryAddress() != nil {
+	// 	return nil, toGRPCError(errors.New("please only provide the delivery address or a new delivery address"))
+	// }
+	//
+	// if req.GetNewDeliveryAddress() != nil {
+	// 	args.NewDeliveryAddress = &gatehub.NewCustomerDeliveryAddressArgs{
+	// 		Type:        req.NewDeliveryAddress.Type.String(),
+	// 		CountryCode: req.NewDeliveryAddress.CountryCode,
+	// 		Line1:       req.NewDeliveryAddress.Line1,
+	// 		Line2:       req.NewDeliveryAddress.Line2,
+	// 		Line3:       req.NewDeliveryAddress.Line3,
+	// 		City:        req.NewDeliveryAddress.City,
+	// 		PostOffice:  req.NewDeliveryAddress.PostOffice,
+	// 		ZipCode:     req.NewDeliveryAddress.ZipCode,
+	// 		Reason:      req.NewDeliveryAddress.Reason,
+	// 	}
+	// }
+	//
+	// err = s.b.Gatehub().OrderCard(ctx, args)
+	// if err != nil {
+	// 	return nil, toGRPCError(err)
+	// }
 
 	return &pb.Empty{}, nil
 }

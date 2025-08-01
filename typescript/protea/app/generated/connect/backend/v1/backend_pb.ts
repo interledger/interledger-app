@@ -313,47 +313,12 @@ export class Empty extends Message<Empty> {
  */
 export class NewCustomerDeliveryAddress extends Message<NewCustomerDeliveryAddress> {
   /**
-   * @generated from field: backend.v1.CustomerDeliveryAddressType type = 1;
+   * @generated from field: backend.v1.CustomerDeliveryAddressBase details = 1;
    */
-  type = CustomerDeliveryAddressType.PermanentResidence;
+  details?: CustomerDeliveryAddressBase;
 
   /**
-   * @generated from field: string countryCode = 2;
-   */
-  countryCode = "";
-
-  /**
-   * @generated from field: string line1 = 3;
-   */
-  line1 = "";
-
-  /**
-   * @generated from field: optional string line2 = 4;
-   */
-  line2?: string;
-
-  /**
-   * @generated from field: optional string line3 = 5;
-   */
-  line3?: string;
-
-  /**
-   * @generated from field: optional string postOffice = 6;
-   */
-  postOffice?: string;
-
-  /**
-   * @generated from field: string city = 7;
-   */
-  city = "";
-
-  /**
-   * @generated from field: string zipCode = 8;
-   */
-  zipCode = "";
-
-  /**
-   * @generated from field: string reason = 9;
+   * @generated from field: string reason = 2;
    */
   reason = "";
 
@@ -365,15 +330,8 @@ export class NewCustomerDeliveryAddress extends Message<NewCustomerDeliveryAddre
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "backend.v1.NewCustomerDeliveryAddress";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "type", kind: "enum", T: proto3.getEnumType(CustomerDeliveryAddressType) },
-    { no: 2, name: "countryCode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "line1", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 4, name: "line2", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
-    { no: 5, name: "line3", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
-    { no: 6, name: "postOffice", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
-    { no: 7, name: "city", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 8, name: "zipCode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 9, name: "reason", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "details", kind: "message", T: CustomerDeliveryAddressBase },
+    { no: 2, name: "reason", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): NewCustomerDeliveryAddress {
@@ -408,14 +366,21 @@ export class OrderCardRequest extends Message<OrderCardRequest> {
   cardProductCode = "";
 
   /**
-   * @generated from field: optional string deliveryAddressId = 3;
+   * @generated from oneof backend.v1.OrderCardRequest.deliveryAddress
    */
-  deliveryAddressId?: string;
-
-  /**
-   * @generated from field: optional backend.v1.NewCustomerDeliveryAddress newDeliveryAddress = 4;
-   */
-  newDeliveryAddress?: NewCustomerDeliveryAddress;
+  deliveryAddress: {
+    /**
+     * @generated from field: string id = 3;
+     */
+    value: string;
+    case: "id";
+  } | {
+    /**
+     * @generated from field: backend.v1.NewCustomerDeliveryAddress newAddress = 4;
+     */
+    value: NewCustomerDeliveryAddress;
+    case: "newAddress";
+  } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<OrderCardRequest>) {
     super();
@@ -427,8 +392,8 @@ export class OrderCardRequest extends Message<OrderCardRequest> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "type", kind: "enum", T: proto3.getEnumType(CardType) },
     { no: 2, name: "cardProductCode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "deliveryAddressId", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
-    { no: 4, name: "newDeliveryAddress", kind: "message", T: NewCustomerDeliveryAddress, opt: true },
+    { no: 3, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "deliveryAddress" },
+    { no: 4, name: "newAddress", kind: "message", T: NewCustomerDeliveryAddress, oneof: "deliveryAddress" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): OrderCardRequest {
@@ -529,53 +494,97 @@ export class GetCardApplicationProductsResponse extends Message<GetCardApplicati
 }
 
 /**
- * @generated from message backend.v1.CustomerDeliveryAddress
+ * @generated from message backend.v1.CustomerDeliveryAddressBase
  */
-export class CustomerDeliveryAddress extends Message<CustomerDeliveryAddress> {
+export class CustomerDeliveryAddressBase extends Message<CustomerDeliveryAddressBase> {
   /**
-   * @generated from field: string id = 1;
-   */
-  id = "";
-
-  /**
-   * @generated from field: backend.v1.CustomerDeliveryAddressType type = 2;
+   * @generated from field: backend.v1.CustomerDeliveryAddressType type = 1;
    */
   type = CustomerDeliveryAddressType.PermanentResidence;
 
   /**
-   * @generated from field: string countryCode = 3;
+   * @generated from field: string countryCode = 2;
    */
   countryCode = "";
 
   /**
-   * @generated from field: string line1 = 4;
+   * @generated from field: string line1 = 3;
    */
   line1 = "";
 
   /**
-   * @generated from field: optional string line2 = 5;
+   * @generated from field: optional string line2 = 4;
    */
   line2?: string;
 
   /**
-   * @generated from field: optional string line3 = 6;
+   * @generated from field: optional string line3 = 5;
    */
   line3?: string;
 
   /**
-   * @generated from field: optional string postOffice = 7;
+   * @generated from field: optional string postOffice = 6;
    */
   postOffice?: string;
 
   /**
-   * @generated from field: string city = 8;
+   * @generated from field: string city = 7;
    */
   city = "";
 
   /**
-   * @generated from field: string zipCode = 9;
+   * @generated from field: string zipCode = 8;
    */
   zipCode = "";
+
+  constructor(data?: PartialMessage<CustomerDeliveryAddressBase>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.CustomerDeliveryAddressBase";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "type", kind: "enum", T: proto3.getEnumType(CustomerDeliveryAddressType) },
+    { no: 2, name: "countryCode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "line1", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "line2", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 5, name: "line3", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 6, name: "postOffice", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 7, name: "city", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 8, name: "zipCode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CustomerDeliveryAddressBase {
+    return new CustomerDeliveryAddressBase().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CustomerDeliveryAddressBase {
+    return new CustomerDeliveryAddressBase().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CustomerDeliveryAddressBase {
+    return new CustomerDeliveryAddressBase().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CustomerDeliveryAddressBase | PlainMessage<CustomerDeliveryAddressBase> | undefined, b: CustomerDeliveryAddressBase | PlainMessage<CustomerDeliveryAddressBase> | undefined): boolean {
+    return proto3.util.equals(CustomerDeliveryAddressBase, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.CustomerDeliveryAddress
+ */
+export class CustomerDeliveryAddress extends Message<CustomerDeliveryAddress> {
+  /**
+   * @generated from field: backend.v1.CustomerDeliveryAddressBase details = 1;
+   */
+  details?: CustomerDeliveryAddressBase;
+
+  /**
+   * @generated from field: string id = 2;
+   */
+  id = "";
 
   constructor(data?: PartialMessage<CustomerDeliveryAddress>) {
     super();
@@ -585,15 +594,8 @@ export class CustomerDeliveryAddress extends Message<CustomerDeliveryAddress> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "backend.v1.CustomerDeliveryAddress";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "type", kind: "enum", T: proto3.getEnumType(CustomerDeliveryAddressType) },
-    { no: 3, name: "countryCode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 4, name: "line1", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 5, name: "line2", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
-    { no: 6, name: "line3", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
-    { no: 7, name: "postOffice", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
-    { no: 8, name: "city", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 9, name: "zipCode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "details", kind: "message", T: CustomerDeliveryAddressBase },
+    { no: 2, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CustomerDeliveryAddress {
@@ -614,62 +616,13 @@ export class CustomerDeliveryAddress extends Message<CustomerDeliveryAddress> {
 }
 
 /**
- * @generated from message backend.v1.CustomerDeliveryAddressList
- */
-export class CustomerDeliveryAddressList extends Message<CustomerDeliveryAddressList> {
-  /**
-   * @generated from field: repeated backend.v1.CustomerDeliveryAddress deliveryAddresses = 1;
-   */
-  deliveryAddresses: CustomerDeliveryAddress[] = [];
-
-  constructor(data?: PartialMessage<CustomerDeliveryAddressList>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "backend.v1.CustomerDeliveryAddressList";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "deliveryAddresses", kind: "message", T: CustomerDeliveryAddress, repeated: true },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CustomerDeliveryAddressList {
-    return new CustomerDeliveryAddressList().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CustomerDeliveryAddressList {
-    return new CustomerDeliveryAddressList().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CustomerDeliveryAddressList {
-    return new CustomerDeliveryAddressList().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: CustomerDeliveryAddressList | PlainMessage<CustomerDeliveryAddressList> | undefined, b: CustomerDeliveryAddressList | PlainMessage<CustomerDeliveryAddressList> | undefined): boolean {
-    return proto3.util.equals(CustomerDeliveryAddressList, a, b);
-  }
-}
-
-/**
  * @generated from message backend.v1.GetCustomerDeliveryAddressesResponse
  */
 export class GetCustomerDeliveryAddressesResponse extends Message<GetCustomerDeliveryAddressesResponse> {
   /**
-   * @generated from oneof backend.v1.GetCustomerDeliveryAddressesResponse.payload
+   * @generated from field: repeated backend.v1.CustomerDeliveryAddress deliveryAddresses = 1;
    */
-  payload: {
-    /**
-     * @generated from field: backend.v1.CustomerDeliveryAddress kycAddress = 1;
-     */
-    value: CustomerDeliveryAddress;
-    case: "kycAddress";
-  } | {
-    /**
-     * @generated from field: backend.v1.CustomerDeliveryAddressList deliveryAddressesList = 2;
-     */
-    value: CustomerDeliveryAddressList;
-    case: "deliveryAddressesList";
-  } | { case: undefined; value?: undefined } = { case: undefined };
+  deliveryAddresses: CustomerDeliveryAddress[] = [];
 
   constructor(data?: PartialMessage<GetCustomerDeliveryAddressesResponse>) {
     super();
@@ -679,8 +632,7 @@ export class GetCustomerDeliveryAddressesResponse extends Message<GetCustomerDel
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "backend.v1.GetCustomerDeliveryAddressesResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "kycAddress", kind: "message", T: CustomerDeliveryAddress, oneof: "payload" },
-    { no: 2, name: "deliveryAddressesList", kind: "message", T: CustomerDeliveryAddressList, oneof: "payload" },
+    { no: 1, name: "deliveryAddresses", kind: "message", T: CustomerDeliveryAddress, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetCustomerDeliveryAddressesResponse {

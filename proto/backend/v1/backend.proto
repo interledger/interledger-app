@@ -184,22 +184,18 @@ service BackendService {
 }
 
 message NewCustomerDeliveryAddress {
-  CustomerDeliveryAddressType type = 1;
-  string countryCode = 2;
-  string line1 = 3;
-  optional string line2 = 4;
-  optional string line3 = 5;
-  optional string postOffice = 6;
-  string city = 7; 
-  string zipCode = 8;
-  string reason = 9;
+  CustomerDeliveryAddressBase details = 1;
+  string reason = 2;
 }
 
 message OrderCardRequest {
   CardType type = 1;
   string cardProductCode = 2;
-  optional string deliveryAddressId = 3;
-  optional NewCustomerDeliveryAddress newDeliveryAddress = 4;
+
+  oneof deliveryAddress {
+    string id = 3;
+    NewCustomerDeliveryAddress newAddress = 4;
+  }
 }
 
 message CardApplicationProduct {
@@ -218,27 +214,24 @@ enum CustomerDeliveryAddressType {
   Other = 3;
 }
 
-message CustomerDeliveryAddress {
-  string id = 1;
-  CustomerDeliveryAddressType type = 2;
-  string countryCode = 3;
-  string line1 = 4;
-  optional string line2 = 5;
-  optional string line3 = 6;
-  optional string postOffice = 7;
-  string city = 8; 
-  string zipCode = 9;
+message CustomerDeliveryAddressBase {
+  CustomerDeliveryAddressType type = 1;
+  string countryCode = 2;
+  string line1 = 3;
+  optional string line2 = 4;
+  optional string line3 = 5;
+  optional string postOffice = 6;
+  string city = 7; 
+  string zipCode = 8;
 }
 
-message CustomerDeliveryAddressList {
-  repeated CustomerDeliveryAddress deliveryAddresses = 1;
+message CustomerDeliveryAddress {
+  CustomerDeliveryAddressBase details = 1;
+  string id = 2;
 }
 
 message GetCustomerDeliveryAddressesResponse {
-  oneof payload {
-    CustomerDeliveryAddress kycAddress = 1;
-    CustomerDeliveryAddressList deliveryAddressesList = 2;
-  }
+  repeated CustomerDeliveryAddress deliveryAddresses = 1;
 }
 
 enum CardType {
