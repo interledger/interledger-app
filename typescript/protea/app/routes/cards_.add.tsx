@@ -1,5 +1,10 @@
-import { json, redirect, type LoaderFunctionArgs } from '@remix-run/node'
-import { useLoaderData } from '@remix-run/react'
+import {
+  defer,
+  redirect,
+  type ActionFunctionArgs,
+  type LoaderFunctionArgs
+} from '@remix-run/node'
+import { Form, useLoaderData } from '@remix-run/react'
 import clsx from 'clsx'
 import { useEffect } from 'react'
 import {
@@ -36,24 +41,15 @@ export async function loader({ request }: LoaderFunctionArgs) {
     throw redirect('/')
   }
 
-  const [deliveryAddresses, products] = await Promise.all([
-    grpc.getCustomerDeliveryAddresses(request, {}),
-    grpc.getCardApplicationProducts(request, {})
-  ])
+  const deliveryAddresses = grpc.getCustomerDeliveryAddresses(request, {})
+  const products = await grpc.getCardApplicationProducts(request, {})
 
   if (isConnectError(deliveryAddresses)) throw deliveryAddresses.errorResponse
   if (isConnectError(products)) throw products.errorResponse
 
-  if (deliveryAddresses.payload.case === 'kycAddress') {
-    return json({
-      products: products.products,
-      addresses: [deliveryAddresses.payload.value]
-    })
-  }
-
-  return json({
+  return defer({
     products: products.products,
-    addresses: deliveryAddresses.payload.value?.deliveryAddresses ?? []
+    addresses: deliveryAddresses
   })
 }
 
@@ -127,42 +123,42 @@ function ConfirmCard() {
   ])
   const pickedProduct = products.find((p) => p.code === productCode)
   return (
-    <Card>
-      <CardContent className='space-y-4'>
-        <CardHeader>
-          <CardTitle>Confirm Card</CardTitle>
-        </CardHeader>
-        <Label>{CardType[type]}</Label>
-        <div className='flex items-center justify-center gap-x-4'>
-          <img
-            className='w-48'
-            src={pickedProduct && `/cards/${pickedProduct.code}.png`}
-            alt={pickedProduct?.name}
-          />
-        </div>
-        {type === CardType.Physical && (
-          <>
-            <Label>Delivery Address</Label>
+      <Card>
+        <CardContent className='space-y-4'>
+          <CardHeader>
+            <CardTitle>Confirm Card</CardTitle>
+          </CardHeader>
+          <Label>{CardType[type]}</Label>
+          <div className='flex items-center justify-center gap-x-4'>
+            <img
+              className='w-48'
+              src={pickedProduct && `/cards/${pickedProduct.code}.png`}
+              alt={pickedProduct?.name}
+            />
+          </div>
+          {type === CardType.Physical && (
+            <>
+              <Label>Delivery Address</Label>
 
-            <div className='mt-1 flex w-full justify-between p-3'>
-              <div className='flex space-x-3'>
-                <Icon>location_on</Icon>
-                <div className='flex flex-col'>
-                  <span>{address?.line1}</span>
-                  {address?.line2 && <span>{address?.line2}</span>}
-                  {address?.line3 && <span>{address?.line3}</span>}
-                  <span>{address?.zipCode}</span>
-                  <span>{address?.city}</span>
-                  <span>{address?.countryCode}</span>
-                  {address?.postOffice && <span>{address?.postOffice}</span>}
+              <div className='mt-1 flex w-full justify-between p-3'>
+                <div className='flex space-x-3'>
+                  <Icon>location_on</Icon>
+                  <div className='flex flex-col'>
+                    <span>{address?.line1}</span>
+                    {address?.line2 && <span>{address?.line2}</span>}
+                    {address?.line3 && <span>{address?.line3}</span>}
+                    <span>{address?.zipCode}</span>
+                    <span>{address?.city}</span>
+                    <span>{address?.countryCode}</span>
+                    {address?.postOffice && <span>{address?.postOffice}</span>}
+                  </div>
                 </div>
               </div>
-            </div>
-          </>
-        )}
-        <Button>Confirm</Button>
-      </CardContent>
-    </Card>
+            </>
+          )}
+          <Button>Confirm</Button>
+        </CardContent>
+      </Card>
   )
 }
 
@@ -177,6 +173,8 @@ function getAddressIcon(type: CustomerDeliveryAddressType) {
 
 function DeliveryAddresses() {
   const { addresses } = useLoaderData<typeof loader>()
+
+  //@ts-ignore
   const pickedAddresses = addresses.map((a) => ({
     id: a.id,
     name: `${a.line1} ${a.city} (${a.countryCode})`,
@@ -197,12 +195,12 @@ function DeliveryAddresses() {
           value={pickedAddresses[0]}
           options={pickedAddresses}
           // TODO: Fix
-          // @ts-expect-error: fix
           onChange={(v) => setAddress(pickedAddresses.id)}
         />
         <Button
           onClick={() => {
             setStep(AddCardStep.CONFIRMATION)
+            // @ts-expect-error: fix
             setAddress(addresses[0] as any)
           }}
         >

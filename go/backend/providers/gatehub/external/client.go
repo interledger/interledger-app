@@ -16,7 +16,9 @@ import (
 
 	httplog "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/env"
+	"gitlab.com/fynbos/log"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.uber.org/zap"
 )
 
 var (
@@ -625,7 +627,7 @@ func (c *client) GetDeliveryAddresses(ctx context.Context, userID, customerID st
 		})
 	}
 
-	endpoint, err := url.JoinPath(c.baseURL, "cards", "v1", "customers", customerID, "addresses")
+	endpoint, err := url.JoinPath(c.baseURL, "cards", "v2", "addresses")
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
@@ -635,7 +637,8 @@ func (c *client) GetDeliveryAddresses(ctx context.Context, userID, customerID st
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
-	req.Header.Set(managedUserHeader, userID)
+	// req.Header.Set(managedUserHeader, userID)
+	req.Header.Set(managedUserHeader, "0242a34b-b071-460e-9179-f4040d9895e8")
 	req.Header.Set(cardAppIDHeader, c.cardAppID)
 
 	err = c.Sign(ctx, req, time.Now(), nil, endpoint)
@@ -720,6 +723,81 @@ func (c *client) GetCardApplicationProducts(ctx context.Context) ([]CardApplicat
 	}
 
 	return products, nil
+}
+
+func (c *client) OrderCard(ctx context.Context, userID string, gatehubWalletAddress string) error {
+	type ghcard struct {
+		ProductCode string `json:"productCode"`
+	}
+
+	type testStruct struct {
+		WalletAddress string `json:"walletAddress"`
+		Card          ghcard `json:"card"`
+	}
+
+	body, _ := json.Marshal(testStruct{
+		WalletAddress: gatehubWalletAddress,
+		Card: ghcard{
+			ProductCode: "PMDSGWEEA",
+		},
+	})
+
+	fmt.Println("test")
+
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "POST"
+		meta.Provider = "gatehub"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "POST",
+			Provider: "gatehub",
+		})
+	}
+
+	endpoint, err := url.JoinPath(c.baseURL, "cards", "v2", "cards")
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewBuffer(body))
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+	fmt.Println("after-new-request")
+
+	log.Info("userId", zap.String("id", userID))
+	req.Header.Set(cardAppIDHeader, c.cardAppID)
+	req.Header.Set(managedUserHeader, "0242a34b-b071-460e-9179-f4040d9895e8")
+	req.Header.Set("Content-Type", "application/json")
+
+	err = c.Sign(ctx, req, time.Now(), body, endpoint)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	fmt.Println("after-sign")
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	fmt.Println(resp.StatusCode)
+
+	err = checkResponseStatusCode(resp)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	rbody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+	defer resp.Body.Close()
+	fmt.Println(string(rbody[:]))
+
+	return nil
 }
 
 func (c *client) Sign(ctx context.Context, req *http.Request, date time.Time, payload []byte, targetURL string) error {

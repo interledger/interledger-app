@@ -552,7 +552,7 @@ func ListDeliveryAddresses(ctx context.Context, b Backends, ec external.Client, 
 		return nil, fmt.Errorf("%w attempted to list delivery addresses for non-existing customer", gatehub.ErrInternal)
 	}
 
-	return ec.GetDeliveryAddresses(ctx, externalIDs.ID, externalIDs.CustomerID.String)
+	return ec.GetDeliveryAddresses(ctx, externalIDs.ID, "dsada")
 }
 
 func ListCards(ctx context.Context, b Backends, ec external.Client, walletID string) ([]external.Card, error) {
@@ -573,5 +573,10 @@ func GetCardApplicationProducts(ctx context.Context, b Backends, ec external.Cli
 }
 
 func OrderCard(ctx context.Context, b Backends, ec external.Client, walletID string) error {
-	return nil
+	la, err := b.LinkedAccounts().ListByWalletId(ctx, walletID)
+	if err != nil {
+		return err
+	}
+
+	return ec.OrderCard(ctx, walletID, la[0].ProviderID)
 }
