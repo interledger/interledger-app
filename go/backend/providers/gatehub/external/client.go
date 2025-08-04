@@ -627,7 +627,7 @@ func (c *client) GetDeliveryAddresses(ctx context.Context, userID, customerID st
 		})
 	}
 
-	endpoint, err := url.JoinPath(c.baseURL, "cards", "v2", "addresses")
+	endpoint, err := url.JoinPath(c.baseURL, "cards", "v1", customerID, "addresses")
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
@@ -637,8 +637,7 @@ func (c *client) GetDeliveryAddresses(ctx context.Context, userID, customerID st
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
-	// req.Header.Set(managedUserHeader, userID)
-	req.Header.Set(managedUserHeader, "0242a34b-b071-460e-9179-f4040d9895e8")
+	req.Header.Set(managedUserHeader, userID)
 	req.Header.Set(cardAppIDHeader, c.cardAppID)
 
 	err = c.Sign(ctx, req, time.Now(), nil, endpoint)
