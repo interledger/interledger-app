@@ -32,7 +32,7 @@ service BackendService {
   rpc WalletAddressValid(WalletAddressValidRequest) returns (WalletAddressValidResponse);
   rpc SetWalletName(SetWalletNameRequest) returns (Empty);
   rpc GetWalletInfo(Empty) returns (WalletInfo);
-  rpc GetPublicWalletInfo(GetPublicWalletInfoRequest) returns(PublicWalletInfo);
+  rpc GetPublicWalletInfo(GetPublicWalletInfoRequest) returns (PublicWalletInfo);
   // Allows sending and checking an sms verification.
   rpc SendPhoneVerification(SendPhoneVerificationRequest) returns (Empty);
   rpc CheckPhoneVerification(CheckPhoneVerificationRequest) returns (Empty);
@@ -183,11 +183,6 @@ service BackendService {
   rpc OrderCard(OrderCardRequest) returns (Empty);
 }
 
-message NewCustomerDeliveryAddress {
-  CustomerDeliveryAddressBase details = 1;
-  string reason = 2;
-}
-
 message OrderCardRequest {
   CardType type = 1;
   string cardProductCode = 2;
@@ -208,10 +203,10 @@ message GetCardApplicationProductsResponse {
 }
 
 enum CustomerDeliveryAddressType {
-  PermanentResidence = 0;
-  TemporaryResidence = 1;
-  Work = 2;
-  Other = 3;
+  CUSTOMER_DELIVERY_ADDRESS_TYPE_OTHER = 0;
+  PERMANENT_RESIDENCE = 1;
+  TEMPORARY_RESIDENCE = 2;
+  WORK = 3;
 }
 
 message CustomerDeliveryAddressBase {
@@ -221,7 +216,7 @@ message CustomerDeliveryAddressBase {
   optional string line2 = 4;
   optional string line3 = 5;
   optional string postOffice = 6;
-  string city = 7; 
+  string city = 7;
   string zipCode = 8;
 }
 
@@ -230,53 +225,58 @@ message CustomerDeliveryAddress {
   string id = 2;
 }
 
+message NewCustomerDeliveryAddress {
+  CustomerDeliveryAddressBase details = 1;
+  string reason = 2;
+}
+
 message GetCustomerDeliveryAddressesResponse {
   repeated CustomerDeliveryAddress deliveryAddresses = 1;
 }
 
 enum CardType {
-  Physical = 0;
-  Virtual = 1;
+  CARD_TYPE_PHYSICAL = 0;
+  CARD_TYPE_VIRTUAL = 1;
 }
 
 enum CardStatus {
-  UnknownStatus = 0; // Used when we cannot correctly index the card status
-  Active = 1;
-  Blocked = 2;
-  TemporaryBlocked = 3;
-  Replaced = 4;
-  SoftDelete = 5;
-  AccountBlocekd = 6;
-  InCreation = 7;
+  CARD_STATUS_UNSPECIFIED = 0;
+  CARD_STATUS_ACTIVE = 1;
+  CARD_STATUS_BLOCKED = 2;
+  CARD_STATUS_TEMPORARY_BLOCKED = 3;
+  CARD_STATUS_REPLACED = 4;
+  CARD_STATUS_SOFT_DELETE = 5;
+  CARD_STATUS_ACCOUNT_BLOCKED = 6;
+  CARD_STATUS_IN_CREATION = 7;
 }
 
 enum CardStatusReasonCode {
-  UnknownStatusReason = 0;
-  ClientRequestedLock = 1;
-  LostCard = 2;
-  StolenCard = 3;
-  IssuerRequestGeneral = 4;
-  IssuerRequestFraud = 5;
-  IssuerRequestLegal = 6;
-  IssuerRequestIncorrectOpening = 7;
-  CardDamagedOrNotWorking = 8;
-  UserRequest = 9;
-  IssuerRequestCustomerDeceased = 10;
-  ProductDoesNotRenew = 11;
-  ProductChange = 12;
-  Renewed = 13;
+  CARD_STATUS_REASON_CODE_UNSPECIFIED = 0;
+  CLIENT_REQUESTED_LOCK = 1;
+  LOST_CARD = 2;
+  STOLEN_CARD = 3;
+  ISSUER_REQUEST_GENERAL = 4;
+  ISSUER_REQUEST_FRAUD = 5;
+  ISSUER_REQUEST_LEGAL = 6;
+  ISSUER_REQUEST_INCORRECT_OPENING = 7;
+  CARD_DAMAGED_OR_NOT_WORKING = 8;
+  USER_REQUEST = 9;
+  ISSUER_REQUEST_CUSTOMER_DECEASED = 10;
+  PRODUCT_DOES_NOT_RENEW = 11;
+  PRODUCT_CHANGE = 12;
+  RENEWED = 13;
 }
 
 enum CardLockLevel {
-  UnknownLockLevel = 0;
-  Client = 1;
-  Admin = 2;
+  CARD_LOCK_LEVEL_UNSPECIFIED = 0;
+  CARD_LOCK_LEVEL_CLIENT = 1;
+  CARD_LOCK_LEVEL_ADMIN = 2;
 }
 
 message Card {
   string id = 1;
   string nameOnCard = 2;
-  string maskedPan = 3; 
+  string maskedPan = 3;
   CardStatus status = 4;
   optional CardStatusReasonCode statusReasonCode = 5;
   optional CardLockLevel lockLevel = 6;
@@ -315,7 +315,6 @@ message CreateGatehubWithdrawalResponse {
   string transactionId = 1;
 }
 
-
 message GetOnOffRampProviderResponse {
   string provider = 1;
 }
@@ -339,7 +338,7 @@ message RevokeRafikiGrantRequest {
   string id = 1;
 }
 
-message GetRafikiGrantRequest{
+message GetRafikiGrantRequest {
   string id = 1;
 }
 
@@ -627,7 +626,7 @@ message SearchWalletsResponse {
 message SearchResult {
   string walletID = 1;
   string walletUrl = 5;
-  bool canSend = 4 [deprecated=true];
+  bool canSend = 4 [deprecated = true];
   string identifier = 2;
   string identifierType = 3;
   repeated SearchResult subResults = 6;
@@ -1085,7 +1084,7 @@ message KYCPersonaInquiryRequest {
 
 message KYCPersonaInquiryResponse {
   string id = 1;
-  optional string session_token = 2 [deprecated=true];
+  optional string session_token = 2 [deprecated = true];
 }
 
 message CreateTwitterAuthURLResponse {
@@ -1114,15 +1113,15 @@ message CreateDiscordAuthURLResponse {
   string url = 1;
 }
 
-message GetIdentityRequest{
+message GetIdentityRequest {
   string id = 1;
 }
 
-message GetIdentityResponse{
-   Identity identity = 1;
+message GetIdentityResponse {
+  Identity identity = 1;
 }
 
-message GetIdentityBySignatureHashRequest{
+message GetIdentityBySignatureHashRequest {
   string signature_hash = 1;
 }
 
