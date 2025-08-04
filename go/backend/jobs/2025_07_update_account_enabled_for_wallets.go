@@ -23,20 +23,19 @@ func UpdateAccountEnabledJob(ctx workflow.Context, params WalletActive) error {
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 10 * time.Second,
 		RetryPolicy: &temporal.RetryPolicy{
-			MaximumAttempts: 3,
+			MaximumAttempts: 1,
 		},
 	}
 	ctx = workflow.WithActivityOptions(ctx, ao)
-	log.Info("Starting UpdateAccountEnabledJob", zap.Bool("account_enabled", params.IsActive), zap.String("region", params.Region), zap.Strings("wallet_ids", params.Wallets))
+	log.Info("starting UpdateAccountEnabledJob", zap.Bool("account_enabled", params.IsActive), zap.String("region", params.Region), zap.Strings("wallet_ids", params.Wallets))
 
-	logger := workflow.GetLogger(ctx)
 	err := workflow.ExecuteActivity(ctx, a.UpdateAppStatus, params).Get(ctx, nil)
 	if err != nil {
-		logger.Error("UpdateAccountEnabledJob Failed", "Error", err)
+		log.Error("UpdateAccountEnabledJob failed", zap.Any("err", err))
 		return err
 	}
 
-	log.Info("Completed UpdateAccountEnabledJob", zap.Bool("account_enabled", params.IsActive), zap.String("region", params.Region), zap.Strings("wallet_ids", params.Wallets))
+	log.Info("completed UpdateAccountEnabledJob", zap.Bool("account_enabled", params.IsActive), zap.String("region", params.Region), zap.Strings("wallet_ids", params.Wallets))
 	return nil
 }
 
