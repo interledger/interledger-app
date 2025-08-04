@@ -27,6 +27,15 @@ export interface PaginationRequest {
     pageToken?: string;
 }
 /**
+ * @generated from protobuf enum backend.v1.PaginationRequest.A2
+ */
+export enum PaginationRequest_A2 {
+    /**
+     * @generated from protobuf enum value: UNKNOWN = 0;
+     */
+    UNKNOWN = 0
+}
+/**
  * @generated from protobuf message backend.v1.Empty
  */
 export interface Empty {
@@ -2629,6 +2638,15 @@ export interface SubmitFormRequest {
     data: string;
 }
 /**
+ * @generated from protobuf enum backend.v1.A1
+ */
+export enum A1 {
+    /**
+     * @generated from protobuf enum value: UNKNOWN = 0;
+     */
+    UNKNOWN = 0
+}
+/**
  * @generated from protobuf enum backend.v1.CustomerDeliveryAddressType
  */
 export enum CustomerDeliveryAddressType {
@@ -2637,26 +2655,26 @@ export enum CustomerDeliveryAddressType {
      */
     CUSTOMER_DELIVERY_ADDRESS_TYPE_OTHER = 0,
     /**
-     * @generated from protobuf enum value: PERMANENT_RESIDENCE = 1;
+     * @generated from protobuf enum value: CUSTOMER_DELIVERY_ADDRESS_PERMANENT_RESIDENCE = 1;
      */
-    PERMANENT_RESIDENCE = 1,
+    CUSTOMER_DELIVERY_ADDRESS_PERMANENT_RESIDENCE = 1,
     /**
-     * @generated from protobuf enum value: TEMPORARY_RESIDENCE = 2;
+     * @generated from protobuf enum value: CUSTOMER_DELIVERY_ADDRESS_TEMPORARY_RESIDENCE = 2;
      */
-    TEMPORARY_RESIDENCE = 2,
+    CUSTOMER_DELIVERY_ADDRESS_TEMPORARY_RESIDENCE = 2,
     /**
-     * @generated from protobuf enum value: WORK = 3;
+     * @generated from protobuf enum value: CUSTOMER_DELIVERY_ADDRESS_WORK = 3;
      */
-    WORK = 3
+    CUSTOMER_DELIVERY_ADDRESS_WORK = 3
 }
 /**
  * @generated from protobuf enum backend.v1.CardType
  */
 export enum CardType {
     /**
-     * @generated from protobuf enum value: CARD_TYPE_UNSPECIFIED = 0;
+     * @generated from protobuf enum value: CARD_TYPE_UNKNOWN = 0;
      */
-    UNSPECIFIED = 0,
+    UNKNOWN = 0,
     /**
      * @generated from protobuf enum value: CARD_TYPE_PHYSICAL = 1;
      */
@@ -2671,9 +2689,9 @@ export enum CardType {
  */
 export enum CardStatus {
     /**
-     * @generated from protobuf enum value: CARD_STATUS_UNSPECIFIED = 0;
+     * @generated from protobuf enum value: CARD_STATUS_UNKNOWN = 0;
      */
-    UNSPECIFIED = 0,
+    UNKNOWN = 0,
     /**
      * @generated from protobuf enum value: CARD_STATUS_ACTIVE = 1;
      */
@@ -2708,59 +2726,59 @@ export enum CardStatus {
  */
 export enum CardStatusReasonCode {
     /**
-     * @generated from protobuf enum value: CARD_STATUS_REASON_CODE_UNSPECIFIED = 0;
+     * @generated from protobuf enum value: CARD_STATUS_REASON_CODE_UNKNOWN = 0;
      */
-    CARD_STATUS_REASON_CODE_UNSPECIFIED = 0,
+    UNKNOWN = 0,
     /**
-     * @generated from protobuf enum value: CLIENT_REQUESTED_LOCK = 1;
+     * @generated from protobuf enum value: CARD_STATUS_REASON_CODE_CLIENT_REQUESTED_LOCK = 1;
      */
     CLIENT_REQUESTED_LOCK = 1,
     /**
-     * @generated from protobuf enum value: LOST_CARD = 2;
+     * @generated from protobuf enum value: CARD_STATUS_REASON_CODE_LOST_CARD = 2;
      */
     LOST_CARD = 2,
     /**
-     * @generated from protobuf enum value: STOLEN_CARD = 3;
+     * @generated from protobuf enum value: CARD_STATUS_REASON_CODE_STOLEN_CARD = 3;
      */
     STOLEN_CARD = 3,
     /**
-     * @generated from protobuf enum value: ISSUER_REQUEST_GENERAL = 4;
+     * @generated from protobuf enum value: CARD_STATUS_REASON_CODE_ISSUER_REQUEST_GENERAL = 4;
      */
     ISSUER_REQUEST_GENERAL = 4,
     /**
-     * @generated from protobuf enum value: ISSUER_REQUEST_FRAUD = 5;
+     * @generated from protobuf enum value: CARD_STATUS_REASON_CODE_ISSUER_REQUEST_FRAUD = 5;
      */
     ISSUER_REQUEST_FRAUD = 5,
     /**
-     * @generated from protobuf enum value: ISSUER_REQUEST_LEGAL = 6;
+     * @generated from protobuf enum value: CARD_STATUS_REASON_CODE_ISSUER_REQUEST_LEGAL = 6;
      */
     ISSUER_REQUEST_LEGAL = 6,
     /**
-     * @generated from protobuf enum value: ISSUER_REQUEST_INCORRECT_OPENING = 7;
+     * @generated from protobuf enum value: CARD_STATUS_REASON_CODE_ISSUER_REQUEST_INCORRECT_OPENING = 7;
      */
     ISSUER_REQUEST_INCORRECT_OPENING = 7,
     /**
-     * @generated from protobuf enum value: CARD_DAMAGED_OR_NOT_WORKING = 8;
+     * @generated from protobuf enum value: CARD_STATUS_REASON_CODE_CARD_DAMAGED_OR_NOT_WORKING = 8;
      */
     CARD_DAMAGED_OR_NOT_WORKING = 8,
     /**
-     * @generated from protobuf enum value: USER_REQUEST = 9;
+     * @generated from protobuf enum value: CARD_STATUS_REASON_CODE_USER_REQUEST = 9;
      */
     USER_REQUEST = 9,
     /**
-     * @generated from protobuf enum value: ISSUER_REQUEST_CUSTOMER_DECEASED = 10;
+     * @generated from protobuf enum value: CARD_STATUS_REASON_CODE_ISSUER_REQUEST_CUSTOMER_DECEASED = 10;
      */
     ISSUER_REQUEST_CUSTOMER_DECEASED = 10,
     /**
-     * @generated from protobuf enum value: PRODUCT_DOES_NOT_RENEW = 11;
+     * @generated from protobuf enum value: CARD_STATUS_REASON_CODE_PRODUCT_DOES_NOT_RENEW = 11;
      */
     PRODUCT_DOES_NOT_RENEW = 11,
     /**
-     * @generated from protobuf enum value: PRODUCT_CHANGE = 12;
+     * @generated from protobuf enum value: CARD_STATUS_REASON_CODE_PRODUCT_CHANGE = 12;
      */
     PRODUCT_CHANGE = 12,
     /**
-     * @generated from protobuf enum value: RENEWED = 13;
+     * @generated from protobuf enum value: CARD_STATUS_REASON_CODE_RENEWED = 13;
      */
     RENEWED = 13
 }
@@ -2769,9 +2787,9 @@ export enum CardStatusReasonCode {
  */
 export enum CardLockLevel {
     /**
-     * @generated from protobuf enum value: CARD_LOCK_LEVEL_UNSPECIFIED = 0;
+     * @generated from protobuf enum value: CARD_LOCK_LEVEL_UNKNOWN = 0;
      */
-    UNSPECIFIED = 0,
+    UNKNOWN = 0,
     /**
      * @generated from protobuf enum value: CARD_LOCK_LEVEL_CLIENT = 1;
      */
@@ -3295,7 +3313,7 @@ class Card$Type extends MessageType<Card> {
             { no: 2, name: "nameOnCard", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "maskedPan", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 4, name: "status", kind: "enum", T: () => ["backend.v1.CardStatus", CardStatus, "CARD_STATUS_"] },
-            { no: 5, name: "statusReasonCode", kind: "enum", opt: true, T: () => ["backend.v1.CardStatusReasonCode", CardStatusReasonCode] },
+            { no: 5, name: "statusReasonCode", kind: "enum", opt: true, T: () => ["backend.v1.CardStatusReasonCode", CardStatusReasonCode, "CARD_STATUS_REASON_CODE_"] },
             { no: 6, name: "lockLevel", kind: "enum", opt: true, T: () => ["backend.v1.CardLockLevel", CardLockLevel, "CARD_LOCK_LEVEL_"] },
             { no: 7, name: "expiryDate", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);

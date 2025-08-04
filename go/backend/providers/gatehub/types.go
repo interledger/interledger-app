@@ -33,7 +33,7 @@ type Card = external.Card
 type CustomerDeliveryAddress = external.CustomerDeliveryAddress
 
 type ExternalIDs struct {
-	ID         string         `db:"external_id"`
+	ExternalID string         `db:"external_id"`
 	CustomerID sql.NullString `db:"external_customer_id"`
 }
 

@@ -7,6 +7,20 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
 
 /**
+ * @generated from enum backend.v1.A1
+ */
+export enum A1 {
+  /**
+   * @generated from enum value: UNKNOWN = 0;
+   */
+  UNKNOWN = 0,
+}
+// Retrieve enum metadata with: proto3.getEnumType(A1)
+proto3.util.setEnumType(A1, "backend.v1.A1", [
+  { no: 0, name: "UNKNOWN" },
+]);
+
+/**
  * @generated from enum backend.v1.CustomerDeliveryAddressType
  */
 export enum CustomerDeliveryAddressType {
@@ -16,26 +30,26 @@ export enum CustomerDeliveryAddressType {
   CUSTOMER_DELIVERY_ADDRESS_TYPE_OTHER = 0,
 
   /**
-   * @generated from enum value: PERMANENT_RESIDENCE = 1;
+   * @generated from enum value: CUSTOMER_DELIVERY_ADDRESS_PERMANENT_RESIDENCE = 1;
    */
-  PERMANENT_RESIDENCE = 1,
+  CUSTOMER_DELIVERY_ADDRESS_PERMANENT_RESIDENCE = 1,
 
   /**
-   * @generated from enum value: TEMPORARY_RESIDENCE = 2;
+   * @generated from enum value: CUSTOMER_DELIVERY_ADDRESS_TEMPORARY_RESIDENCE = 2;
    */
-  TEMPORARY_RESIDENCE = 2,
+  CUSTOMER_DELIVERY_ADDRESS_TEMPORARY_RESIDENCE = 2,
 
   /**
-   * @generated from enum value: WORK = 3;
+   * @generated from enum value: CUSTOMER_DELIVERY_ADDRESS_WORK = 3;
    */
-  WORK = 3,
+  CUSTOMER_DELIVERY_ADDRESS_WORK = 3,
 }
 // Retrieve enum metadata with: proto3.getEnumType(CustomerDeliveryAddressType)
 proto3.util.setEnumType(CustomerDeliveryAddressType, "backend.v1.CustomerDeliveryAddressType", [
   { no: 0, name: "CUSTOMER_DELIVERY_ADDRESS_TYPE_OTHER" },
-  { no: 1, name: "PERMANENT_RESIDENCE" },
-  { no: 2, name: "TEMPORARY_RESIDENCE" },
-  { no: 3, name: "WORK" },
+  { no: 1, name: "CUSTOMER_DELIVERY_ADDRESS_PERMANENT_RESIDENCE" },
+  { no: 2, name: "CUSTOMER_DELIVERY_ADDRESS_TEMPORARY_RESIDENCE" },
+  { no: 3, name: "CUSTOMER_DELIVERY_ADDRESS_WORK" },
 ]);
 
 /**
@@ -43,9 +57,9 @@ proto3.util.setEnumType(CustomerDeliveryAddressType, "backend.v1.CustomerDeliver
  */
 export enum CardType {
   /**
-   * @generated from enum value: CARD_TYPE_UNSPECIFIED = 0;
+   * @generated from enum value: CARD_TYPE_UNKNOWN = 0;
    */
-  UNSPECIFIED = 0,
+  UNKNOWN = 0,
 
   /**
    * @generated from enum value: CARD_TYPE_PHYSICAL = 1;
@@ -59,7 +73,7 @@ export enum CardType {
 }
 // Retrieve enum metadata with: proto3.getEnumType(CardType)
 proto3.util.setEnumType(CardType, "backend.v1.CardType", [
-  { no: 0, name: "CARD_TYPE_UNSPECIFIED" },
+  { no: 0, name: "CARD_TYPE_UNKNOWN" },
   { no: 1, name: "CARD_TYPE_PHYSICAL" },
   { no: 2, name: "CARD_TYPE_VIRTUAL" },
 ]);
@@ -69,9 +83,9 @@ proto3.util.setEnumType(CardType, "backend.v1.CardType", [
  */
 export enum CardStatus {
   /**
-   * @generated from enum value: CARD_STATUS_UNSPECIFIED = 0;
+   * @generated from enum value: CARD_STATUS_UNKNOWN = 0;
    */
-  UNSPECIFIED = 0,
+  UNKNOWN = 0,
 
   /**
    * @generated from enum value: CARD_STATUS_ACTIVE = 1;
@@ -110,7 +124,7 @@ export enum CardStatus {
 }
 // Retrieve enum metadata with: proto3.getEnumType(CardStatus)
 proto3.util.setEnumType(CardStatus, "backend.v1.CardStatus", [
-  { no: 0, name: "CARD_STATUS_UNSPECIFIED" },
+  { no: 0, name: "CARD_STATUS_UNKNOWN" },
   { no: 1, name: "CARD_STATUS_ACTIVE" },
   { no: 2, name: "CARD_STATUS_BLOCKED" },
   { no: 3, name: "CARD_STATUS_TEMPORARY_BLOCKED" },
@@ -125,91 +139,91 @@ proto3.util.setEnumType(CardStatus, "backend.v1.CardStatus", [
  */
 export enum CardStatusReasonCode {
   /**
-   * @generated from enum value: CARD_STATUS_REASON_CODE_UNSPECIFIED = 0;
+   * @generated from enum value: CARD_STATUS_REASON_CODE_UNKNOWN = 0;
    */
-  CARD_STATUS_REASON_CODE_UNSPECIFIED = 0,
+  UNKNOWN = 0,
 
   /**
-   * @generated from enum value: CLIENT_REQUESTED_LOCK = 1;
+   * @generated from enum value: CARD_STATUS_REASON_CODE_CLIENT_REQUESTED_LOCK = 1;
    */
   CLIENT_REQUESTED_LOCK = 1,
 
   /**
-   * @generated from enum value: LOST_CARD = 2;
+   * @generated from enum value: CARD_STATUS_REASON_CODE_LOST_CARD = 2;
    */
   LOST_CARD = 2,
 
   /**
-   * @generated from enum value: STOLEN_CARD = 3;
+   * @generated from enum value: CARD_STATUS_REASON_CODE_STOLEN_CARD = 3;
    */
   STOLEN_CARD = 3,
 
   /**
-   * @generated from enum value: ISSUER_REQUEST_GENERAL = 4;
+   * @generated from enum value: CARD_STATUS_REASON_CODE_ISSUER_REQUEST_GENERAL = 4;
    */
   ISSUER_REQUEST_GENERAL = 4,
 
   /**
-   * @generated from enum value: ISSUER_REQUEST_FRAUD = 5;
+   * @generated from enum value: CARD_STATUS_REASON_CODE_ISSUER_REQUEST_FRAUD = 5;
    */
   ISSUER_REQUEST_FRAUD = 5,
 
   /**
-   * @generated from enum value: ISSUER_REQUEST_LEGAL = 6;
+   * @generated from enum value: CARD_STATUS_REASON_CODE_ISSUER_REQUEST_LEGAL = 6;
    */
   ISSUER_REQUEST_LEGAL = 6,
 
   /**
-   * @generated from enum value: ISSUER_REQUEST_INCORRECT_OPENING = 7;
+   * @generated from enum value: CARD_STATUS_REASON_CODE_ISSUER_REQUEST_INCORRECT_OPENING = 7;
    */
   ISSUER_REQUEST_INCORRECT_OPENING = 7,
 
   /**
-   * @generated from enum value: CARD_DAMAGED_OR_NOT_WORKING = 8;
+   * @generated from enum value: CARD_STATUS_REASON_CODE_CARD_DAMAGED_OR_NOT_WORKING = 8;
    */
   CARD_DAMAGED_OR_NOT_WORKING = 8,
 
   /**
-   * @generated from enum value: USER_REQUEST = 9;
+   * @generated from enum value: CARD_STATUS_REASON_CODE_USER_REQUEST = 9;
    */
   USER_REQUEST = 9,
 
   /**
-   * @generated from enum value: ISSUER_REQUEST_CUSTOMER_DECEASED = 10;
+   * @generated from enum value: CARD_STATUS_REASON_CODE_ISSUER_REQUEST_CUSTOMER_DECEASED = 10;
    */
   ISSUER_REQUEST_CUSTOMER_DECEASED = 10,
 
   /**
-   * @generated from enum value: PRODUCT_DOES_NOT_RENEW = 11;
+   * @generated from enum value: CARD_STATUS_REASON_CODE_PRODUCT_DOES_NOT_RENEW = 11;
    */
   PRODUCT_DOES_NOT_RENEW = 11,
 
   /**
-   * @generated from enum value: PRODUCT_CHANGE = 12;
+   * @generated from enum value: CARD_STATUS_REASON_CODE_PRODUCT_CHANGE = 12;
    */
   PRODUCT_CHANGE = 12,
 
   /**
-   * @generated from enum value: RENEWED = 13;
+   * @generated from enum value: CARD_STATUS_REASON_CODE_RENEWED = 13;
    */
   RENEWED = 13,
 }
 // Retrieve enum metadata with: proto3.getEnumType(CardStatusReasonCode)
 proto3.util.setEnumType(CardStatusReasonCode, "backend.v1.CardStatusReasonCode", [
-  { no: 0, name: "CARD_STATUS_REASON_CODE_UNSPECIFIED" },
-  { no: 1, name: "CLIENT_REQUESTED_LOCK" },
-  { no: 2, name: "LOST_CARD" },
-  { no: 3, name: "STOLEN_CARD" },
-  { no: 4, name: "ISSUER_REQUEST_GENERAL" },
-  { no: 5, name: "ISSUER_REQUEST_FRAUD" },
-  { no: 6, name: "ISSUER_REQUEST_LEGAL" },
-  { no: 7, name: "ISSUER_REQUEST_INCORRECT_OPENING" },
-  { no: 8, name: "CARD_DAMAGED_OR_NOT_WORKING" },
-  { no: 9, name: "USER_REQUEST" },
-  { no: 10, name: "ISSUER_REQUEST_CUSTOMER_DECEASED" },
-  { no: 11, name: "PRODUCT_DOES_NOT_RENEW" },
-  { no: 12, name: "PRODUCT_CHANGE" },
-  { no: 13, name: "RENEWED" },
+  { no: 0, name: "CARD_STATUS_REASON_CODE_UNKNOWN" },
+  { no: 1, name: "CARD_STATUS_REASON_CODE_CLIENT_REQUESTED_LOCK" },
+  { no: 2, name: "CARD_STATUS_REASON_CODE_LOST_CARD" },
+  { no: 3, name: "CARD_STATUS_REASON_CODE_STOLEN_CARD" },
+  { no: 4, name: "CARD_STATUS_REASON_CODE_ISSUER_REQUEST_GENERAL" },
+  { no: 5, name: "CARD_STATUS_REASON_CODE_ISSUER_REQUEST_FRAUD" },
+  { no: 6, name: "CARD_STATUS_REASON_CODE_ISSUER_REQUEST_LEGAL" },
+  { no: 7, name: "CARD_STATUS_REASON_CODE_ISSUER_REQUEST_INCORRECT_OPENING" },
+  { no: 8, name: "CARD_STATUS_REASON_CODE_CARD_DAMAGED_OR_NOT_WORKING" },
+  { no: 9, name: "CARD_STATUS_REASON_CODE_USER_REQUEST" },
+  { no: 10, name: "CARD_STATUS_REASON_CODE_ISSUER_REQUEST_CUSTOMER_DECEASED" },
+  { no: 11, name: "CARD_STATUS_REASON_CODE_PRODUCT_DOES_NOT_RENEW" },
+  { no: 12, name: "CARD_STATUS_REASON_CODE_PRODUCT_CHANGE" },
+  { no: 13, name: "CARD_STATUS_REASON_CODE_RENEWED" },
 ]);
 
 /**
@@ -217,9 +231,9 @@ proto3.util.setEnumType(CardStatusReasonCode, "backend.v1.CardStatusReasonCode",
  */
 export enum CardLockLevel {
   /**
-   * @generated from enum value: CARD_LOCK_LEVEL_UNSPECIFIED = 0;
+   * @generated from enum value: CARD_LOCK_LEVEL_UNKNOWN = 0;
    */
-  UNSPECIFIED = 0,
+  UNKNOWN = 0,
 
   /**
    * @generated from enum value: CARD_LOCK_LEVEL_CLIENT = 1;
@@ -233,7 +247,7 @@ export enum CardLockLevel {
 }
 // Retrieve enum metadata with: proto3.getEnumType(CardLockLevel)
 proto3.util.setEnumType(CardLockLevel, "backend.v1.CardLockLevel", [
-  { no: 0, name: "CARD_LOCK_LEVEL_UNSPECIFIED" },
+  { no: 0, name: "CARD_LOCK_LEVEL_UNKNOWN" },
   { no: 1, name: "CARD_LOCK_LEVEL_CLIENT" },
   { no: 2, name: "CARD_LOCK_LEVEL_ADMIN" },
 ]);
@@ -282,6 +296,20 @@ export class PaginationRequest extends Message<PaginationRequest> {
 }
 
 /**
+ * @generated from enum backend.v1.PaginationRequest.A2
+ */
+export enum PaginationRequest_A2 {
+  /**
+   * @generated from enum value: UNKNOWN = 0;
+   */
+  UNKNOWN = 0,
+}
+// Retrieve enum metadata with: proto3.getEnumType(PaginationRequest_A2)
+proto3.util.setEnumType(PaginationRequest_A2, "backend.v1.PaginationRequest.A2", [
+  { no: 0, name: "UNKNOWN" },
+]);
+
+/**
  * @generated from message backend.v1.Empty
  */
 export class Empty extends Message<Empty> {
@@ -319,7 +347,7 @@ export class OrderCardRequest extends Message<OrderCardRequest> {
   /**
    * @generated from field: backend.v1.CardType type = 1;
    */
-  type = CardType.UNSPECIFIED;
+  type = CardType.UNKNOWN;
 
   /**
    * @generated from field: string cardProductCode = 2;
@@ -678,7 +706,7 @@ export class Card extends Message<Card> {
   /**
    * @generated from field: backend.v1.CardStatus status = 4;
    */
-  status = CardStatus.UNSPECIFIED;
+  status = CardStatus.UNKNOWN;
 
   /**
    * @generated from field: optional backend.v1.CardStatusReasonCode statusReasonCode = 5;

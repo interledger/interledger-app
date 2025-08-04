@@ -167,7 +167,7 @@ function ConfirmCard() {
 
 function getAddressIcon(type: CustomerDeliveryAddressType) {
   switch (type) {
-    case CustomerDeliveryAddressType.PERMANENT_RESIDENCE:
+    case CustomerDeliveryAddressType.CUSTOMER_DELIVERY_ADDRESS_PERMANENT_RESIDENCE:
       return 'home'
     default:
       return 'location_on'
