@@ -235,8 +235,9 @@ message GetCustomerDeliveryAddressesResponse {
 }
 
 enum CardType {
-  CARD_TYPE_PHYSICAL = 0;
-  CARD_TYPE_VIRTUAL = 1;
+  CARD_TYPE_UNSPECIFIED = 0;
+  CARD_TYPE_PHYSICAL = 1;
+  CARD_TYPE_VIRTUAL = 2;
 }
 
 enum CardStatus {

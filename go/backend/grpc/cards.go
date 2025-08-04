@@ -20,9 +20,9 @@ func strPointerToEnum[T ~int32](v *string, m map[string]int32, d T) T {
 }
 
 func transformCard(c gatehub.Card) *pb.Card {
-	lockLevel := strPointerToEnum(c.LockLevel, pb.CardLockLevel_value, pb.CardLockLevel_UnknownLockLevel)
-	statusReasonCode := strPointerToEnum(c.StatusReasonCode, pb.CardStatusReasonCode_value, pb.CardStatusReasonCode_UnknownStatusReason)
-	status := strPointerToEnum(&c.Status, pb.CardStatus_value, pb.CardStatus_UnknownStatus)
+	lockLevel := strPointerToEnum(c.LockLevel, pb.CardLockLevel_value, pb.CardLockLevel_CARD_LOCK_LEVEL_UNSPECIFIED)
+	statusReasonCode := strPointerToEnum(c.StatusReasonCode, pb.CardStatusReasonCode_value, pb.CardStatusReasonCode_CARD_STATUS_REASON_CODE_UNSPECIFIED)
+	status := strPointerToEnum(&c.Status, pb.CardStatus_value, pb.CardStatus_CARD_STATUS_UNSPECIFIED)
 	return &pb.Card{
 		Id:               c.ID,
 		NameOnCard:       c.NameOnCard,
@@ -79,7 +79,7 @@ func (s *rpcService) GetCustomerDeliveryAddresses(ctx context.Context, req *pb.E
 				{
 					Id: "kyc-address",
 					Details: &pb.CustomerDeliveryAddressBase{
-						Type:        pb.CustomerDeliveryAddressType_PermanentResidence,
+						Type:        pb.CustomerDeliveryAddressType_PERMANENT_RESIDENCE,
 						CountryCode: user.Profile.AddressCountryCode,
 						Line1:       user.Profile.AddressStreet1,
 						Line2:       &user.Profile.AddressStreet2,

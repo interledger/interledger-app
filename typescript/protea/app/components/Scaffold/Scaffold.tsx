@@ -99,9 +99,9 @@ export function Scaffold() {
   const matches = useMatches()
   const navigate = useNavigate()
   const [search] = useSearchParams()
-  const { isUser, snackbar, features } = useRouteLoaderData('root') as SerializeFrom<
-    typeof rootLoader
-  >
+  const { isUser, snackbar, features } = useRouteLoaderData(
+    'root'
+  ) as SerializeFrom<typeof rootLoader>
 
   const [payStep, payStepBack] = usePayStore((state) => [
     state.step,
@@ -234,7 +234,7 @@ export function Scaffold() {
           layout === Layouts.Focus &&
             'mx-auto h-16 select-none bg-page sm:mt-[5.5rem] sm:max-w-[29rem]',
           layout === Layouts.Wallet &&
-          'min-h-16 bg-page lg:mt-[5.5rem] lg:pl-[16.25rem] flex-col justify-end',
+            'min-h-16 flex-col justify-end bg-page lg:mt-[5.5rem] lg:pl-[16.25rem]',
           layout === Layouts.Docs &&
             'h-16 bg-mk-page lg:mt-[5.5rem] lg:pl-[16.25rem]'
         )}
@@ -337,12 +337,12 @@ export function Scaffold() {
                     } else if (
                       addCardStep === AddCardStep.CONFIRMATION &&
                       cardType &&
-                      cardType === CardType.Virtual
+                      cardType === CardType.VIRTUAL
                     ) {
                       cardSetStep(AddCardStep.CARD_TYPE)
                     } else if (
                       addCardStep === AddCardStep.DELIVERY &&
-                      cardType === CardType.Physical
+                      cardType === CardType.PHYSICAL
                     ) {
                       cardSetStep(AddCardStep.CARD_TYPE)
                     } else cardsStepBack()
