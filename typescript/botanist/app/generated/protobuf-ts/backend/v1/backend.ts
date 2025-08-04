@@ -32,19 +32,6 @@ export interface PaginationRequest {
 export interface Empty {
 }
 /**
- * @generated from protobuf message backend.v1.NewCustomerDeliveryAddress
- */
-export interface NewCustomerDeliveryAddress {
-    /**
-     * @generated from protobuf field: backend.v1.CustomerDeliveryAddressBase details = 1;
-     */
-    details?: CustomerDeliveryAddressBase;
-    /**
-     * @generated from protobuf field: string reason = 2;
-     */
-    reason: string;
-}
-/**
  * @generated from protobuf message backend.v1.OrderCardRequest
  */
 export interface OrderCardRequest {
@@ -146,6 +133,19 @@ export interface CustomerDeliveryAddress {
      * @generated from protobuf field: string id = 2;
      */
     id: string;
+}
+/**
+ * @generated from protobuf message backend.v1.NewCustomerDeliveryAddress
+ */
+export interface NewCustomerDeliveryAddress {
+    /**
+     * @generated from protobuf field: backend.v1.CustomerDeliveryAddressBase details = 1;
+     */
+    details?: CustomerDeliveryAddressBase;
+    /**
+     * @generated from protobuf field: string reason = 2;
+     */
+    reason: string;
 }
 /**
  * @generated from protobuf message backend.v1.GetCustomerDeliveryAddressesResponse
@@ -2633,151 +2633,149 @@ export interface SubmitFormRequest {
  */
 export enum CustomerDeliveryAddressType {
     /**
-     * @generated from protobuf enum value: PermanentResidence = 0;
+     * @generated from protobuf enum value: CUSTOMER_DELIVERY_ADDRESS_TYPE_OTHER = 0;
      */
-    PermanentResidence = 0,
+    CUSTOMER_DELIVERY_ADDRESS_TYPE_OTHER = 0,
     /**
-     * @generated from protobuf enum value: TemporaryResidence = 1;
+     * @generated from protobuf enum value: PERMANENT_RESIDENCE = 1;
      */
-    TemporaryResidence = 1,
+    PERMANENT_RESIDENCE = 1,
     /**
-     * @generated from protobuf enum value: Work = 2;
+     * @generated from protobuf enum value: TEMPORARY_RESIDENCE = 2;
      */
-    Work = 2,
+    TEMPORARY_RESIDENCE = 2,
     /**
-     * @generated from protobuf enum value: Other = 3;
+     * @generated from protobuf enum value: WORK = 3;
      */
-    Other = 3
+    WORK = 3
 }
 /**
  * @generated from protobuf enum backend.v1.CardType
  */
 export enum CardType {
     /**
-     * @generated from protobuf enum value: Physical = 0;
+     * @generated from protobuf enum value: CARD_TYPE_PHYSICAL = 0;
      */
-    Physical = 0,
+    PHYSICAL = 0,
     /**
-     * @generated from protobuf enum value: Virtual = 1;
+     * @generated from protobuf enum value: CARD_TYPE_VIRTUAL = 1;
      */
-    Virtual = 1
+    VIRTUAL = 1
 }
 /**
  * @generated from protobuf enum backend.v1.CardStatus
  */
 export enum CardStatus {
     /**
-     * Used when we cannot correctly index the card status
-     *
-     * @generated from protobuf enum value: UnknownStatus = 0;
+     * @generated from protobuf enum value: CARD_STATUS_UNSPECIFIED = 0;
      */
-    UnknownStatus = 0,
+    UNSPECIFIED = 0,
     /**
-     * @generated from protobuf enum value: Active = 1;
+     * @generated from protobuf enum value: CARD_STATUS_ACTIVE = 1;
      */
-    Active = 1,
+    ACTIVE = 1,
     /**
-     * @generated from protobuf enum value: Blocked = 2;
+     * @generated from protobuf enum value: CARD_STATUS_BLOCKED = 2;
      */
-    Blocked = 2,
+    BLOCKED = 2,
     /**
-     * @generated from protobuf enum value: TemporaryBlocked = 3;
+     * @generated from protobuf enum value: CARD_STATUS_TEMPORARY_BLOCKED = 3;
      */
-    TemporaryBlocked = 3,
+    TEMPORARY_BLOCKED = 3,
     /**
-     * @generated from protobuf enum value: Replaced = 4;
+     * @generated from protobuf enum value: CARD_STATUS_REPLACED = 4;
      */
-    Replaced = 4,
+    REPLACED = 4,
     /**
-     * @generated from protobuf enum value: SoftDelete = 5;
+     * @generated from protobuf enum value: CARD_STATUS_SOFT_DELETE = 5;
      */
-    SoftDelete = 5,
+    SOFT_DELETE = 5,
     /**
-     * @generated from protobuf enum value: AccountBlocekd = 6;
+     * @generated from protobuf enum value: CARD_STATUS_ACCOUNT_BLOCKED = 6;
      */
-    AccountBlocekd = 6,
+    ACCOUNT_BLOCKED = 6,
     /**
-     * @generated from protobuf enum value: InCreation = 7;
+     * @generated from protobuf enum value: CARD_STATUS_IN_CREATION = 7;
      */
-    InCreation = 7
+    IN_CREATION = 7
 }
 /**
  * @generated from protobuf enum backend.v1.CardStatusReasonCode
  */
 export enum CardStatusReasonCode {
     /**
-     * @generated from protobuf enum value: UnknownStatusReason = 0;
+     * @generated from protobuf enum value: CARD_STATUS_REASON_CODE_UNSPECIFIED = 0;
      */
-    UnknownStatusReason = 0,
+    CARD_STATUS_REASON_CODE_UNSPECIFIED = 0,
     /**
-     * @generated from protobuf enum value: ClientRequestedLock = 1;
+     * @generated from protobuf enum value: CLIENT_REQUESTED_LOCK = 1;
      */
-    ClientRequestedLock = 1,
+    CLIENT_REQUESTED_LOCK = 1,
     /**
-     * @generated from protobuf enum value: LostCard = 2;
+     * @generated from protobuf enum value: LOST_CARD = 2;
      */
-    LostCard = 2,
+    LOST_CARD = 2,
     /**
-     * @generated from protobuf enum value: StolenCard = 3;
+     * @generated from protobuf enum value: STOLEN_CARD = 3;
      */
-    StolenCard = 3,
+    STOLEN_CARD = 3,
     /**
-     * @generated from protobuf enum value: IssuerRequestGeneral = 4;
+     * @generated from protobuf enum value: ISSUER_REQUEST_GENERAL = 4;
      */
-    IssuerRequestGeneral = 4,
+    ISSUER_REQUEST_GENERAL = 4,
     /**
-     * @generated from protobuf enum value: IssuerRequestFraud = 5;
+     * @generated from protobuf enum value: ISSUER_REQUEST_FRAUD = 5;
      */
-    IssuerRequestFraud = 5,
+    ISSUER_REQUEST_FRAUD = 5,
     /**
-     * @generated from protobuf enum value: IssuerRequestLegal = 6;
+     * @generated from protobuf enum value: ISSUER_REQUEST_LEGAL = 6;
      */
-    IssuerRequestLegal = 6,
+    ISSUER_REQUEST_LEGAL = 6,
     /**
-     * @generated from protobuf enum value: IssuerRequestIncorrectOpening = 7;
+     * @generated from protobuf enum value: ISSUER_REQUEST_INCORRECT_OPENING = 7;
      */
-    IssuerRequestIncorrectOpening = 7,
+    ISSUER_REQUEST_INCORRECT_OPENING = 7,
     /**
-     * @generated from protobuf enum value: CardDamagedOrNotWorking = 8;
+     * @generated from protobuf enum value: CARD_DAMAGED_OR_NOT_WORKING = 8;
      */
-    CardDamagedOrNotWorking = 8,
+    CARD_DAMAGED_OR_NOT_WORKING = 8,
     /**
-     * @generated from protobuf enum value: UserRequest = 9;
+     * @generated from protobuf enum value: USER_REQUEST = 9;
      */
-    UserRequest = 9,
+    USER_REQUEST = 9,
     /**
-     * @generated from protobuf enum value: IssuerRequestCustomerDeceased = 10;
+     * @generated from protobuf enum value: ISSUER_REQUEST_CUSTOMER_DECEASED = 10;
      */
-    IssuerRequestCustomerDeceased = 10,
+    ISSUER_REQUEST_CUSTOMER_DECEASED = 10,
     /**
-     * @generated from protobuf enum value: ProductDoesNotRenew = 11;
+     * @generated from protobuf enum value: PRODUCT_DOES_NOT_RENEW = 11;
      */
-    ProductDoesNotRenew = 11,
+    PRODUCT_DOES_NOT_RENEW = 11,
     /**
-     * @generated from protobuf enum value: ProductChange = 12;
+     * @generated from protobuf enum value: PRODUCT_CHANGE = 12;
      */
-    ProductChange = 12,
+    PRODUCT_CHANGE = 12,
     /**
-     * @generated from protobuf enum value: Renewed = 13;
+     * @generated from protobuf enum value: RENEWED = 13;
      */
-    Renewed = 13
+    RENEWED = 13
 }
 /**
  * @generated from protobuf enum backend.v1.CardLockLevel
  */
 export enum CardLockLevel {
     /**
-     * @generated from protobuf enum value: UnknownLockLevel = 0;
+     * @generated from protobuf enum value: CARD_LOCK_LEVEL_UNSPECIFIED = 0;
      */
-    UnknownLockLevel = 0,
+    UNSPECIFIED = 0,
     /**
-     * @generated from protobuf enum value: Client = 1;
+     * @generated from protobuf enum value: CARD_LOCK_LEVEL_CLIENT = 1;
      */
-    Client = 1,
+    CLIENT = 1,
     /**
-     * @generated from protobuf enum value: Admin = 2;
+     * @generated from protobuf enum value: CARD_LOCK_LEVEL_ADMIN = 2;
      */
-    Admin = 2
+    ADMIN = 2
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class PaginationRequest$Type extends MessageType<PaginationRequest> {
@@ -2860,64 +2858,10 @@ class Empty$Type extends MessageType<Empty> {
  */
 export const Empty = new Empty$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class NewCustomerDeliveryAddress$Type extends MessageType<NewCustomerDeliveryAddress> {
-    constructor() {
-        super("backend.v1.NewCustomerDeliveryAddress", [
-            { no: 1, name: "details", kind: "message", T: () => CustomerDeliveryAddressBase },
-            { no: 2, name: "reason", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
-        ]);
-    }
-    create(value?: PartialMessage<NewCustomerDeliveryAddress>): NewCustomerDeliveryAddress {
-        const message = { reason: "" };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<NewCustomerDeliveryAddress>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: NewCustomerDeliveryAddress): NewCustomerDeliveryAddress {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* backend.v1.CustomerDeliveryAddressBase details */ 1:
-                    message.details = CustomerDeliveryAddressBase.internalBinaryRead(reader, reader.uint32(), options, message.details);
-                    break;
-                case /* string reason */ 2:
-                    message.reason = reader.string();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: NewCustomerDeliveryAddress, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* backend.v1.CustomerDeliveryAddressBase details = 1; */
-        if (message.details)
-            CustomerDeliveryAddressBase.internalBinaryWrite(message.details, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
-        /* string reason = 2; */
-        if (message.reason !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.reason);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message backend.v1.NewCustomerDeliveryAddress
- */
-export const NewCustomerDeliveryAddress = new NewCustomerDeliveryAddress$Type();
-// @generated message type with reflection information, may provide speed optimized methods
 class OrderCardRequest$Type extends MessageType<OrderCardRequest> {
     constructor() {
         super("backend.v1.OrderCardRequest", [
-            { no: 1, name: "type", kind: "enum", T: () => ["backend.v1.CardType", CardType] },
+            { no: 1, name: "type", kind: "enum", T: () => ["backend.v1.CardType", CardType, "CARD_TYPE_"] },
             { no: 2, name: "cardProductCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "id", kind: "scalar", oneof: "deliveryAddress", T: 9 /*ScalarType.STRING*/ },
             { no: 4, name: "newAddress", kind: "message", oneof: "deliveryAddress", T: () => NewCustomerDeliveryAddress }
@@ -3239,6 +3183,60 @@ class CustomerDeliveryAddress$Type extends MessageType<CustomerDeliveryAddress> 
  */
 export const CustomerDeliveryAddress = new CustomerDeliveryAddress$Type();
 // @generated message type with reflection information, may provide speed optimized methods
+class NewCustomerDeliveryAddress$Type extends MessageType<NewCustomerDeliveryAddress> {
+    constructor() {
+        super("backend.v1.NewCustomerDeliveryAddress", [
+            { no: 1, name: "details", kind: "message", T: () => CustomerDeliveryAddressBase },
+            { no: 2, name: "reason", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<NewCustomerDeliveryAddress>): NewCustomerDeliveryAddress {
+        const message = { reason: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<NewCustomerDeliveryAddress>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: NewCustomerDeliveryAddress): NewCustomerDeliveryAddress {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* backend.v1.CustomerDeliveryAddressBase details */ 1:
+                    message.details = CustomerDeliveryAddressBase.internalBinaryRead(reader, reader.uint32(), options, message.details);
+                    break;
+                case /* string reason */ 2:
+                    message.reason = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: NewCustomerDeliveryAddress, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* backend.v1.CustomerDeliveryAddressBase details = 1; */
+        if (message.details)
+            CustomerDeliveryAddressBase.internalBinaryWrite(message.details, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* string reason = 2; */
+        if (message.reason !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.reason);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.NewCustomerDeliveryAddress
+ */
+export const NewCustomerDeliveryAddress = new NewCustomerDeliveryAddress$Type();
+// @generated message type with reflection information, may provide speed optimized methods
 class GetCustomerDeliveryAddressesResponse$Type extends MessageType<GetCustomerDeliveryAddressesResponse> {
     constructor() {
         super("backend.v1.GetCustomerDeliveryAddressesResponse", [
@@ -3292,9 +3290,9 @@ class Card$Type extends MessageType<Card> {
             { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "nameOnCard", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "maskedPan", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 4, name: "status", kind: "enum", T: () => ["backend.v1.CardStatus", CardStatus] },
+            { no: 4, name: "status", kind: "enum", T: () => ["backend.v1.CardStatus", CardStatus, "CARD_STATUS_"] },
             { no: 5, name: "statusReasonCode", kind: "enum", opt: true, T: () => ["backend.v1.CardStatusReasonCode", CardStatusReasonCode] },
-            { no: 6, name: "lockLevel", kind: "enum", opt: true, T: () => ["backend.v1.CardLockLevel", CardLockLevel] },
+            { no: 6, name: "lockLevel", kind: "enum", opt: true, T: () => ["backend.v1.CardLockLevel", CardLockLevel, "CARD_LOCK_LEVEL_"] },
             { no: 7, name: "expiryDate", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }

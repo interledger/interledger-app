@@ -11,31 +11,31 @@ import { Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
  */
 export enum CustomerDeliveryAddressType {
   /**
-   * @generated from enum value: PermanentResidence = 0;
+   * @generated from enum value: CUSTOMER_DELIVERY_ADDRESS_TYPE_OTHER = 0;
    */
-  PermanentResidence = 0,
+  CUSTOMER_DELIVERY_ADDRESS_TYPE_OTHER = 0,
 
   /**
-   * @generated from enum value: TemporaryResidence = 1;
+   * @generated from enum value: PERMANENT_RESIDENCE = 1;
    */
-  TemporaryResidence = 1,
+  PERMANENT_RESIDENCE = 1,
 
   /**
-   * @generated from enum value: Work = 2;
+   * @generated from enum value: TEMPORARY_RESIDENCE = 2;
    */
-  Work = 2,
+  TEMPORARY_RESIDENCE = 2,
 
   /**
-   * @generated from enum value: Other = 3;
+   * @generated from enum value: WORK = 3;
    */
-  Other = 3,
+  WORK = 3,
 }
 // Retrieve enum metadata with: proto3.getEnumType(CustomerDeliveryAddressType)
 proto3.util.setEnumType(CustomerDeliveryAddressType, "backend.v1.CustomerDeliveryAddressType", [
-  { no: 0, name: "PermanentResidence" },
-  { no: 1, name: "TemporaryResidence" },
-  { no: 2, name: "Work" },
-  { no: 3, name: "Other" },
+  { no: 0, name: "CUSTOMER_DELIVERY_ADDRESS_TYPE_OTHER" },
+  { no: 1, name: "PERMANENT_RESIDENCE" },
+  { no: 2, name: "TEMPORARY_RESIDENCE" },
+  { no: 3, name: "WORK" },
 ]);
 
 /**
@@ -43,19 +43,19 @@ proto3.util.setEnumType(CustomerDeliveryAddressType, "backend.v1.CustomerDeliver
  */
 export enum CardType {
   /**
-   * @generated from enum value: Physical = 0;
+   * @generated from enum value: CARD_TYPE_PHYSICAL = 0;
    */
-  Physical = 0,
+  PHYSICAL = 0,
 
   /**
-   * @generated from enum value: Virtual = 1;
+   * @generated from enum value: CARD_TYPE_VIRTUAL = 1;
    */
-  Virtual = 1,
+  VIRTUAL = 1,
 }
 // Retrieve enum metadata with: proto3.getEnumType(CardType)
 proto3.util.setEnumType(CardType, "backend.v1.CardType", [
-  { no: 0, name: "Physical" },
-  { no: 1, name: "Virtual" },
+  { no: 0, name: "CARD_TYPE_PHYSICAL" },
+  { no: 1, name: "CARD_TYPE_VIRTUAL" },
 ]);
 
 /**
@@ -63,57 +63,55 @@ proto3.util.setEnumType(CardType, "backend.v1.CardType", [
  */
 export enum CardStatus {
   /**
-   * Used when we cannot correctly index the card status
-   *
-   * @generated from enum value: UnknownStatus = 0;
+   * @generated from enum value: CARD_STATUS_UNSPECIFIED = 0;
    */
-  UnknownStatus = 0,
+  UNSPECIFIED = 0,
 
   /**
-   * @generated from enum value: Active = 1;
+   * @generated from enum value: CARD_STATUS_ACTIVE = 1;
    */
-  Active = 1,
+  ACTIVE = 1,
 
   /**
-   * @generated from enum value: Blocked = 2;
+   * @generated from enum value: CARD_STATUS_BLOCKED = 2;
    */
-  Blocked = 2,
+  BLOCKED = 2,
 
   /**
-   * @generated from enum value: TemporaryBlocked = 3;
+   * @generated from enum value: CARD_STATUS_TEMPORARY_BLOCKED = 3;
    */
-  TemporaryBlocked = 3,
+  TEMPORARY_BLOCKED = 3,
 
   /**
-   * @generated from enum value: Replaced = 4;
+   * @generated from enum value: CARD_STATUS_REPLACED = 4;
    */
-  Replaced = 4,
+  REPLACED = 4,
 
   /**
-   * @generated from enum value: SoftDelete = 5;
+   * @generated from enum value: CARD_STATUS_SOFT_DELETE = 5;
    */
-  SoftDelete = 5,
+  SOFT_DELETE = 5,
 
   /**
-   * @generated from enum value: AccountBlocekd = 6;
+   * @generated from enum value: CARD_STATUS_ACCOUNT_BLOCKED = 6;
    */
-  AccountBlocekd = 6,
+  ACCOUNT_BLOCKED = 6,
 
   /**
-   * @generated from enum value: InCreation = 7;
+   * @generated from enum value: CARD_STATUS_IN_CREATION = 7;
    */
-  InCreation = 7,
+  IN_CREATION = 7,
 }
 // Retrieve enum metadata with: proto3.getEnumType(CardStatus)
 proto3.util.setEnumType(CardStatus, "backend.v1.CardStatus", [
-  { no: 0, name: "UnknownStatus" },
-  { no: 1, name: "Active" },
-  { no: 2, name: "Blocked" },
-  { no: 3, name: "TemporaryBlocked" },
-  { no: 4, name: "Replaced" },
-  { no: 5, name: "SoftDelete" },
-  { no: 6, name: "AccountBlocekd" },
-  { no: 7, name: "InCreation" },
+  { no: 0, name: "CARD_STATUS_UNSPECIFIED" },
+  { no: 1, name: "CARD_STATUS_ACTIVE" },
+  { no: 2, name: "CARD_STATUS_BLOCKED" },
+  { no: 3, name: "CARD_STATUS_TEMPORARY_BLOCKED" },
+  { no: 4, name: "CARD_STATUS_REPLACED" },
+  { no: 5, name: "CARD_STATUS_SOFT_DELETE" },
+  { no: 6, name: "CARD_STATUS_ACCOUNT_BLOCKED" },
+  { no: 7, name: "CARD_STATUS_IN_CREATION" },
 ]);
 
 /**
@@ -121,91 +119,91 @@ proto3.util.setEnumType(CardStatus, "backend.v1.CardStatus", [
  */
 export enum CardStatusReasonCode {
   /**
-   * @generated from enum value: UnknownStatusReason = 0;
+   * @generated from enum value: CARD_STATUS_REASON_CODE_UNSPECIFIED = 0;
    */
-  UnknownStatusReason = 0,
+  CARD_STATUS_REASON_CODE_UNSPECIFIED = 0,
 
   /**
-   * @generated from enum value: ClientRequestedLock = 1;
+   * @generated from enum value: CLIENT_REQUESTED_LOCK = 1;
    */
-  ClientRequestedLock = 1,
+  CLIENT_REQUESTED_LOCK = 1,
 
   /**
-   * @generated from enum value: LostCard = 2;
+   * @generated from enum value: LOST_CARD = 2;
    */
-  LostCard = 2,
+  LOST_CARD = 2,
 
   /**
-   * @generated from enum value: StolenCard = 3;
+   * @generated from enum value: STOLEN_CARD = 3;
    */
-  StolenCard = 3,
+  STOLEN_CARD = 3,
 
   /**
-   * @generated from enum value: IssuerRequestGeneral = 4;
+   * @generated from enum value: ISSUER_REQUEST_GENERAL = 4;
    */
-  IssuerRequestGeneral = 4,
+  ISSUER_REQUEST_GENERAL = 4,
 
   /**
-   * @generated from enum value: IssuerRequestFraud = 5;
+   * @generated from enum value: ISSUER_REQUEST_FRAUD = 5;
    */
-  IssuerRequestFraud = 5,
+  ISSUER_REQUEST_FRAUD = 5,
 
   /**
-   * @generated from enum value: IssuerRequestLegal = 6;
+   * @generated from enum value: ISSUER_REQUEST_LEGAL = 6;
    */
-  IssuerRequestLegal = 6,
+  ISSUER_REQUEST_LEGAL = 6,
 
   /**
-   * @generated from enum value: IssuerRequestIncorrectOpening = 7;
+   * @generated from enum value: ISSUER_REQUEST_INCORRECT_OPENING = 7;
    */
-  IssuerRequestIncorrectOpening = 7,
+  ISSUER_REQUEST_INCORRECT_OPENING = 7,
 
   /**
-   * @generated from enum value: CardDamagedOrNotWorking = 8;
+   * @generated from enum value: CARD_DAMAGED_OR_NOT_WORKING = 8;
    */
-  CardDamagedOrNotWorking = 8,
+  CARD_DAMAGED_OR_NOT_WORKING = 8,
 
   /**
-   * @generated from enum value: UserRequest = 9;
+   * @generated from enum value: USER_REQUEST = 9;
    */
-  UserRequest = 9,
+  USER_REQUEST = 9,
 
   /**
-   * @generated from enum value: IssuerRequestCustomerDeceased = 10;
+   * @generated from enum value: ISSUER_REQUEST_CUSTOMER_DECEASED = 10;
    */
-  IssuerRequestCustomerDeceased = 10,
+  ISSUER_REQUEST_CUSTOMER_DECEASED = 10,
 
   /**
-   * @generated from enum value: ProductDoesNotRenew = 11;
+   * @generated from enum value: PRODUCT_DOES_NOT_RENEW = 11;
    */
-  ProductDoesNotRenew = 11,
+  PRODUCT_DOES_NOT_RENEW = 11,
 
   /**
-   * @generated from enum value: ProductChange = 12;
+   * @generated from enum value: PRODUCT_CHANGE = 12;
    */
-  ProductChange = 12,
+  PRODUCT_CHANGE = 12,
 
   /**
-   * @generated from enum value: Renewed = 13;
+   * @generated from enum value: RENEWED = 13;
    */
-  Renewed = 13,
+  RENEWED = 13,
 }
 // Retrieve enum metadata with: proto3.getEnumType(CardStatusReasonCode)
 proto3.util.setEnumType(CardStatusReasonCode, "backend.v1.CardStatusReasonCode", [
-  { no: 0, name: "UnknownStatusReason" },
-  { no: 1, name: "ClientRequestedLock" },
-  { no: 2, name: "LostCard" },
-  { no: 3, name: "StolenCard" },
-  { no: 4, name: "IssuerRequestGeneral" },
-  { no: 5, name: "IssuerRequestFraud" },
-  { no: 6, name: "IssuerRequestLegal" },
-  { no: 7, name: "IssuerRequestIncorrectOpening" },
-  { no: 8, name: "CardDamagedOrNotWorking" },
-  { no: 9, name: "UserRequest" },
-  { no: 10, name: "IssuerRequestCustomerDeceased" },
-  { no: 11, name: "ProductDoesNotRenew" },
-  { no: 12, name: "ProductChange" },
-  { no: 13, name: "Renewed" },
+  { no: 0, name: "CARD_STATUS_REASON_CODE_UNSPECIFIED" },
+  { no: 1, name: "CLIENT_REQUESTED_LOCK" },
+  { no: 2, name: "LOST_CARD" },
+  { no: 3, name: "STOLEN_CARD" },
+  { no: 4, name: "ISSUER_REQUEST_GENERAL" },
+  { no: 5, name: "ISSUER_REQUEST_FRAUD" },
+  { no: 6, name: "ISSUER_REQUEST_LEGAL" },
+  { no: 7, name: "ISSUER_REQUEST_INCORRECT_OPENING" },
+  { no: 8, name: "CARD_DAMAGED_OR_NOT_WORKING" },
+  { no: 9, name: "USER_REQUEST" },
+  { no: 10, name: "ISSUER_REQUEST_CUSTOMER_DECEASED" },
+  { no: 11, name: "PRODUCT_DOES_NOT_RENEW" },
+  { no: 12, name: "PRODUCT_CHANGE" },
+  { no: 13, name: "RENEWED" },
 ]);
 
 /**
@@ -213,25 +211,25 @@ proto3.util.setEnumType(CardStatusReasonCode, "backend.v1.CardStatusReasonCode",
  */
 export enum CardLockLevel {
   /**
-   * @generated from enum value: UnknownLockLevel = 0;
+   * @generated from enum value: CARD_LOCK_LEVEL_UNSPECIFIED = 0;
    */
-  UnknownLockLevel = 0,
+  UNSPECIFIED = 0,
 
   /**
-   * @generated from enum value: Client = 1;
+   * @generated from enum value: CARD_LOCK_LEVEL_CLIENT = 1;
    */
-  Client = 1,
+  CLIENT = 1,
 
   /**
-   * @generated from enum value: Admin = 2;
+   * @generated from enum value: CARD_LOCK_LEVEL_ADMIN = 2;
    */
-  Admin = 2,
+  ADMIN = 2,
 }
 // Retrieve enum metadata with: proto3.getEnumType(CardLockLevel)
 proto3.util.setEnumType(CardLockLevel, "backend.v1.CardLockLevel", [
-  { no: 0, name: "UnknownLockLevel" },
-  { no: 1, name: "Client" },
-  { no: 2, name: "Admin" },
+  { no: 0, name: "CARD_LOCK_LEVEL_UNSPECIFIED" },
+  { no: 1, name: "CARD_LOCK_LEVEL_CLIENT" },
+  { no: 2, name: "CARD_LOCK_LEVEL_ADMIN" },
 ]);
 
 /**
@@ -309,56 +307,13 @@ export class Empty extends Message<Empty> {
 }
 
 /**
- * @generated from message backend.v1.NewCustomerDeliveryAddress
- */
-export class NewCustomerDeliveryAddress extends Message<NewCustomerDeliveryAddress> {
-  /**
-   * @generated from field: backend.v1.CustomerDeliveryAddressBase details = 1;
-   */
-  details?: CustomerDeliveryAddressBase;
-
-  /**
-   * @generated from field: string reason = 2;
-   */
-  reason = "";
-
-  constructor(data?: PartialMessage<NewCustomerDeliveryAddress>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "backend.v1.NewCustomerDeliveryAddress";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "details", kind: "message", T: CustomerDeliveryAddressBase },
-    { no: 2, name: "reason", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): NewCustomerDeliveryAddress {
-    return new NewCustomerDeliveryAddress().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): NewCustomerDeliveryAddress {
-    return new NewCustomerDeliveryAddress().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): NewCustomerDeliveryAddress {
-    return new NewCustomerDeliveryAddress().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: NewCustomerDeliveryAddress | PlainMessage<NewCustomerDeliveryAddress> | undefined, b: NewCustomerDeliveryAddress | PlainMessage<NewCustomerDeliveryAddress> | undefined): boolean {
-    return proto3.util.equals(NewCustomerDeliveryAddress, a, b);
-  }
-}
-
-/**
  * @generated from message backend.v1.OrderCardRequest
  */
 export class OrderCardRequest extends Message<OrderCardRequest> {
   /**
    * @generated from field: backend.v1.CardType type = 1;
    */
-  type = CardType.Physical;
+  type = CardType.PHYSICAL;
 
   /**
    * @generated from field: string cardProductCode = 2;
@@ -500,7 +455,7 @@ export class CustomerDeliveryAddressBase extends Message<CustomerDeliveryAddress
   /**
    * @generated from field: backend.v1.CustomerDeliveryAddressType type = 1;
    */
-  type = CustomerDeliveryAddressType.PermanentResidence;
+  type = CustomerDeliveryAddressType.CUSTOMER_DELIVERY_ADDRESS_TYPE_OTHER;
 
   /**
    * @generated from field: string countryCode = 2;
@@ -616,6 +571,49 @@ export class CustomerDeliveryAddress extends Message<CustomerDeliveryAddress> {
 }
 
 /**
+ * @generated from message backend.v1.NewCustomerDeliveryAddress
+ */
+export class NewCustomerDeliveryAddress extends Message<NewCustomerDeliveryAddress> {
+  /**
+   * @generated from field: backend.v1.CustomerDeliveryAddressBase details = 1;
+   */
+  details?: CustomerDeliveryAddressBase;
+
+  /**
+   * @generated from field: string reason = 2;
+   */
+  reason = "";
+
+  constructor(data?: PartialMessage<NewCustomerDeliveryAddress>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.NewCustomerDeliveryAddress";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "details", kind: "message", T: CustomerDeliveryAddressBase },
+    { no: 2, name: "reason", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): NewCustomerDeliveryAddress {
+    return new NewCustomerDeliveryAddress().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): NewCustomerDeliveryAddress {
+    return new NewCustomerDeliveryAddress().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): NewCustomerDeliveryAddress {
+    return new NewCustomerDeliveryAddress().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: NewCustomerDeliveryAddress | PlainMessage<NewCustomerDeliveryAddress> | undefined, b: NewCustomerDeliveryAddress | PlainMessage<NewCustomerDeliveryAddress> | undefined): boolean {
+    return proto3.util.equals(NewCustomerDeliveryAddress, a, b);
+  }
+}
+
+/**
  * @generated from message backend.v1.GetCustomerDeliveryAddressesResponse
  */
 export class GetCustomerDeliveryAddressesResponse extends Message<GetCustomerDeliveryAddressesResponse> {
@@ -674,7 +672,7 @@ export class Card extends Message<Card> {
   /**
    * @generated from field: backend.v1.CardStatus status = 4;
    */
-  status = CardStatus.UnknownStatus;
+  status = CardStatus.UNSPECIFIED;
 
   /**
    * @generated from field: optional backend.v1.CardStatusReasonCode statusReasonCode = 5;
