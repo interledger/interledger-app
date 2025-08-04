@@ -3,6 +3,7 @@ package jobs
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -31,10 +32,15 @@ func UpdateAccountEnabledJob(ctx workflow.Context, params WalletActive) error {
 
 	err := workflow.ExecuteActivity(ctx, a.UpdateAppStatus, params).Get(ctx, nil)
 	if err != nil {
-		log.Error("UpdateAccountEnabledJob failed", zap.Any("err", err))
+		log.Error("UpdateAppStatus failed", zap.Any("err", err))
 		return err
 	}
 
+	err = workflow.ExecuteActivity(ctx, a.UpdateRafikiWalletActiveStatus, params).Get(ctx, nil)
+	if err != nil {
+		log.Error("UpdateRafikiWalletActiveStatus failed", zap.Any("err", err))
+		return err
+	}
 	log.Info("completed UpdateAccountEnabledJob", zap.Bool("account_enabled", params.IsActive), zap.String("region", params.Region), zap.Strings("wallet_ids", params.Wallets))
 	return nil
 }
@@ -83,4 +89,103 @@ func (a *Activity) UpdateAppStatus(ctx context.Context, updateParams WalletActiv
 
 	_, err := a.b.DB().ExecContext(ctx, query, args...)
 	return err
+}
+
+func (a *Activity) UpdateRafikiWalletActiveStatus(ctx context.Context, params WalletActive) error {
+	connString := os.Getenv("RAFIKI_DB_URL")
+	if connString == "" {
+		log.Error("RAFIKI_DB_URL environment variable is not set")
+		return fmt.Errorf("RAFIKI_DB_URL environment variable is not set")
+	}
+
+	whereClause, args := buildWhereClause(params)
+
+	var wallets []string
+	if whereClause != "" {
+		query := "SELECT name FROM public.wallets " + whereClause
+		rows, err := a.b.DB().QueryContext(ctx, query, args...)
+		if err != nil {
+			log.Error("Error fetching wallets", zap.Error(err))
+			return err
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var name string
+			if err := rows.Scan(&name); err != nil {
+				log.Error("Row scan error", zap.Error(err))
+				return fmt.Errorf("row scan failed: %w", err)
+			}
+			wallets = append(wallets, name)
+		}
+		if err := rows.Err(); err != nil {
+			return fmt.Errorf("row iteration error: %w", err)
+		}
+		if len(wallets) == 0 {
+			return fmt.Errorf("no wallets found for the given criteria")
+		}
+	}
+
+	db, err := DbConnection(connString)
+	if err != nil {
+		log.Error("Error establishing db connection", zap.Error(err))
+		return err
+	}
+	defer db.Close()
+
+	updateQuery := "UPDATE \"walletAddresses\" SET \"deactivatedAt\" = "
+	if params.IsActive {
+		updateQuery += "null"
+	} else {
+		updateQuery += "NOW()"
+	}
+
+	var updateArgs []interface{}
+	if len(wallets) > 0 {
+		placeholders := make([]string, len(wallets))
+		for i, w := range wallets {
+			placeholders[i] = fmt.Sprintf("$%d", i+1)
+			updateArgs = append(updateArgs, w)
+		}
+		updateQuery += fmt.Sprintf(" WHERE \"publicName\" IN (%s)", strings.Join(placeholders, ", "))
+	}
+
+	_, err = db.ExecContext(ctx, updateQuery, updateArgs...)
+	if err != nil {
+		log.Error("Error executing update query", zap.Error(err))
+		return err
+	}
+
+	return nil
+}
+
+func buildWhereClause(params WalletActive) (string, []interface{}) {
+	var conditions []string
+	var args []interface{}
+	argIndex := 1
+
+	if params.Region != "" {
+		if params.Region == "EU" {
+			conditions = append(conditions, "country IS NOT NULL AND country NOT IN ('US', 'ZA', 'CA')")
+		} else {
+			conditions = append(conditions, fmt.Sprintf("country IS NOT NULL AND country = $%d", argIndex))
+			args = append(args, params.Region)
+			argIndex++
+		}
+	}
+
+	if len(params.Wallets) > 0 {
+		placeholders := make([]string, len(params.Wallets))
+		for i, w := range params.Wallets {
+			placeholders[i] = fmt.Sprintf("$%d", argIndex)
+			args = append(args, w)
+			argIndex++
+		}
+		conditions = append(conditions, fmt.Sprintf("id IN (%s)", strings.Join(placeholders, ", ")))
+	}
+
+	if len(conditions) == 0 {
+		return "", nil
+	}
+	return "WHERE " + strings.Join(conditions, " AND "), args
 }
