@@ -43,19 +43,25 @@ proto3.util.setEnumType(CustomerDeliveryAddressType, "backend.v1.CustomerDeliver
  */
 export enum CardType {
   /**
-   * @generated from enum value: CARD_TYPE_PHYSICAL = 0;
+   * @generated from enum value: CARD_TYPE_UNSPECIFIED = 0;
    */
-  PHYSICAL = 0,
+  UNSPECIFIED = 0,
 
   /**
-   * @generated from enum value: CARD_TYPE_VIRTUAL = 1;
+   * @generated from enum value: CARD_TYPE_PHYSICAL = 1;
    */
-  VIRTUAL = 1,
+  PHYSICAL = 1,
+
+  /**
+   * @generated from enum value: CARD_TYPE_VIRTUAL = 2;
+   */
+  VIRTUAL = 2,
 }
 // Retrieve enum metadata with: proto3.getEnumType(CardType)
 proto3.util.setEnumType(CardType, "backend.v1.CardType", [
-  { no: 0, name: "CARD_TYPE_PHYSICAL" },
-  { no: 1, name: "CARD_TYPE_VIRTUAL" },
+  { no: 0, name: "CARD_TYPE_UNSPECIFIED" },
+  { no: 1, name: "CARD_TYPE_PHYSICAL" },
+  { no: 2, name: "CARD_TYPE_VIRTUAL" },
 ]);
 
 /**
@@ -313,7 +319,7 @@ export class OrderCardRequest extends Message<OrderCardRequest> {
   /**
    * @generated from field: backend.v1.CardType type = 1;
    */
-  type = CardType.PHYSICAL;
+  type = CardType.UNSPECIFIED;
 
   /**
    * @generated from field: string cardProductCode = 2;

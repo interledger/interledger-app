@@ -90,7 +90,7 @@ function Product() {
           <div className='flex w-full flex-col justify-between gap-y-4'>
             <Button
               onClick={() => {
-                setType(CardType.Physical)
+                setType(CardType.PHYSICAL)
                 setStep(AddCardStep.DELIVERY)
               }}
             >
@@ -98,7 +98,7 @@ function Product() {
             </Button>
             <Button
               onClick={() => {
-                setType(CardType.Virtual)
+                setType(CardType.VIRTUAL)
                 setStep(AddCardStep.CONFIRMATION)
               }}
             >
@@ -133,7 +133,7 @@ function ConfirmCard() {
             alt={pickedProduct?.name}
           />
         </div>
-        {type === CardType.Physical && (
+        {type === CardType.PHYSICAL && (
           <>
             <Label>Delivery Address</Label>
 
@@ -167,7 +167,7 @@ function ConfirmCard() {
 
 function getAddressIcon(type: CustomerDeliveryAddressType) {
   switch (type) {
-    case CustomerDeliveryAddressType.PermanentResidence:
+    case CustomerDeliveryAddressType.PERMANENT_RESIDENCE:
       return 'home'
     default:
       return 'location_on'
@@ -181,6 +181,8 @@ function DeliveryAddresses() {
   const pickedAddresses = addresses.map((a) => ({
     id: a.id,
     name: `${a.details?.line1} ${a.details?.city} (${a.details?.countryCode})`,
+    // Remove once fully typed
+    // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
     icon: getAddressIcon(a.details?.type!)
   }))
   const [setStep, setAddress] = useAddCardStore((state) => [

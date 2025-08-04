@@ -2654,13 +2654,17 @@ export enum CustomerDeliveryAddressType {
  */
 export enum CardType {
     /**
-     * @generated from protobuf enum value: CARD_TYPE_PHYSICAL = 0;
+     * @generated from protobuf enum value: CARD_TYPE_UNSPECIFIED = 0;
      */
-    PHYSICAL = 0,
+    UNSPECIFIED = 0,
     /**
-     * @generated from protobuf enum value: CARD_TYPE_VIRTUAL = 1;
+     * @generated from protobuf enum value: CARD_TYPE_PHYSICAL = 1;
      */
-    VIRTUAL = 1
+    PHYSICAL = 1,
+    /**
+     * @generated from protobuf enum value: CARD_TYPE_VIRTUAL = 2;
+     */
+    VIRTUAL = 2
 }
 /**
  * @generated from protobuf enum backend.v1.CardStatus

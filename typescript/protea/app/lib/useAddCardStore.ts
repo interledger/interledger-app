@@ -23,7 +23,7 @@ interface AddCardState {
 
 const initialState = {
   step: AddCardStep.CARD_TYPE,
-  type: CardType.Physical,
+  type: CardType.PHYSICAL,
   products: [],
   productCode: null,
   address: null
