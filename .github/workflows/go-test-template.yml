@@ -1,0 +1,112 @@
+name: Go Test Template
+
+# If you are looking at this file to understand where test coverange thresholds come from,
+# go and look at the MAIN_COVERAGE repository variable configured in the GitHub repository settings.
+
+on:
+  workflow_call:
+    inputs:
+      test_path:
+        required: true
+        type: string
+      coverage_key:
+        required: true
+        type: string
+      db_name:
+        required: true
+        type: string
+
+jobs:
+  run-go-tests:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      PGSSLMODE: disable
+      MAIN_COVERAGE: ${{ vars.MAIN_COVERAGE }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.24'
+
+      - name: Cache Go modules and build cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Install Atlas CLI
+        run: |
+          curl -sSf https://atlasgo.sh | sh
+
+      - name: Wait for Postgres to be ready
+        run: |
+          until pg_isready -h localhost -p 5432; do
+            echo "Waiting for postgres..."
+            sleep 2
+          done
+
+      - name: Generate test migrations
+        if: ${{ inputs.db_name == 'backend' }}
+        run: |
+          set -e
+          echo "Generating test migrations for ${{ inputs.test_path }}"
+          cd ${{ inputs.test_path }}
+          # If the current folder has a sub folder called db
+          if [ -d "db" ]; then
+            export DB_URL=postgres://postgres:password@127.0.0.1:5432?sslmode=disable
+            atlas migrate diff create_all \
+              --dir "file://db/testmigrations" \
+              --to  "file://db/schema.hcl" \
+              --dev-url "${DB_URL}"
+          else
+            echo "No db directory found in ${{ inputs.test_path }}, skipping migration generation."
+          fi
+
+      - name: Run go tests and check coverage
+        run: |
+          go test -v -coverprofile=coverage.out ${{ inputs.test_path }}/...
+          COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}')
+          # strip the trailing '%' so bc can do its math
+          COVERAGE_NUM=${COVERAGE%\%}
+          echo "${{ inputs.coverage_key }} coverage: $COVERAGE_NUM%"
+          THRESHOLD=$(echo "${MAIN_COVERAGE}" | grep -oP '${{ inputs.coverage_key }}=\K[0-9.]+')
+          echo "${{ inputs.coverage_key }} coverage threshold: $THRESHOLD%"
+          
+          if ! command -v bc >/dev/null 2>&1; then
+            echo "::error::bc not found, cannot compare coverage"
+            exit 1
+          fi
+          
+          if (( $(echo "$COVERAGE_NUM < $THRESHOLD" | bc -l) )); then
+            echo "::error::${{ inputs.coverage_key }} coverage ($COVERAGE_NUM%) is below threshold ($THRESHOLD%)"
+            exit 1
+          else
+            echo "::notice::coverage check passed ($COVERAGE_NUM% ≥ $THRESHOLD%)"
+          fi
+        shell: bash
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.coverage_key }}-coverage-report
+          path: coverage.out

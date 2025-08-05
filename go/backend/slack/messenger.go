@@ -49,8 +49,8 @@ func SendToChannel(ctx context.Context, channel Channel, fromUser, message strin
 
 	_, _, err := api.PostMessageContext(ctx, string(channel), ext_slack.MsgOptionUsername(fromUser), ext_slack.MsgOptionAttachments(attachment))
 
-	if err != nil {
-		log.Error("failed to send message to slack", zap.Error(err))
+	if err != nil && !env.IsTest() {
+		log.Warn("failed to send message to slack", zap.Error(err))
 	}
 }
 

@@ -21,7 +21,6 @@ import (
 )
 
 func TestNewHandlePersonaWebhook(t *testing.T) {
-	t.Parallel()
 	const inquiryJsonFmt = `{ "data": {
   "type": "event",
   "id": "evt_APAvuMVuwRQHqSrLSw1ExpJi",
