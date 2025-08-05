@@ -61,9 +61,27 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 	if err != nil {
 		return nil, err
 	}
+
+	w, err := b.Wallets().Get(ctx, walletID)
+	if err != nil {
+		return nil, err
+	}
+	canEnableAccount := isAccountEnabled(walletID, w.Country)
 	// If you are not KYC approved you can do nothing
 	if kycStatus != kyc.StatusLevel1 && kycStatus != kyc.StatusLevel2 {
-		return &features.WalletFeatures{}, nil
+		return &features.WalletFeatures{
+			SendEnabled:              false,
+			ReceiveEnabled:           false,
+			LinkedAccEnabled:         false,
+			CardsEnabled:             false,
+			BanksEnabled:             false,
+			IdentitiesEnabled:        false,
+			TwitterEnabled:           false,
+			AddCardsEnabled:          false,
+			InteraccEnabled:          false,
+			ManageWalletCardsEnabled: false,
+			AccountEnabled:           canEnableAccount,
+		}, nil
 	}
 
 	// Identities are enabled default everywhere
@@ -72,32 +90,25 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		TwitterEnabled:    true,
 	}
 
-	w, err := b.Wallets().Get(ctx, walletID)
-	if err != nil {
-		return nil, err
-	}
-
 	lal, err := b.LinkedAccounts().ListByWalletId(ctx, walletID)
 	if err != nil {
 		return nil, err
 	}
 
-	canAddCard, err := canAddCards(ctx, b, lal)
+	canAddCard, err := canAddCards(lal)
 	if err != nil {
 		return nil, err
 	}
 
-	canAddBank, err := canAddBanks(ctx, b, lal)
+	canAddBank, err := canAddBanks(lal)
 	if err != nil {
 		return nil, err
 	}
 
-	canAddInterac, err := canAddInterac(ctx, b, lal)
+	canAddInterac, err := canAddInterac(lal)
 	if err != nil {
 		return nil, err
 	}
-
-	isProd := env.IsProd()
 
 	if w.Country == country.US {
 		res.ReceiveEnabled = true
@@ -108,7 +119,7 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		res.AddCardsEnabled = canAddCard
 		res.ManageWalletCardsEnabled = false
 		// it enables the feature by default for sandbox / dev
-		res.AccountEnabled = isAccountEnabled(ctx, isProd, false)
+		res.AccountEnabled = canEnableAccount
 	}
 	if w.Country == country.ZA {
 		res.ReceiveEnabled = true
@@ -118,7 +129,7 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		res.CardsEnabled = false
 		res.AddCardsEnabled = false
 		res.ManageWalletCardsEnabled = false
-		res.AccountEnabled = isAccountEnabled(ctx, isProd, false)
+		res.AccountEnabled = canEnableAccount
 	}
 	if country.EUCountries[w.Country] {
 		res.ReceiveEnabled = true
@@ -130,7 +141,7 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		res.CardsEnabled = false
 		res.AddCardsEnabled = false
 		res.ManageWalletCardsEnabled = false
-		res.AccountEnabled = isAccountEnabled(ctx, isProd, false)
+		res.AccountEnabled = canEnableAccount
 	}
 	if w.Country == country.CA {
 		res.ReceiveEnabled = true
@@ -141,13 +152,13 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		res.AddCardsEnabled = false
 		res.InteraccEnabled = canAddInterac
 		res.ManageWalletCardsEnabled = false
-		res.AccountEnabled = isAccountEnabled(ctx, isProd, false)
+		res.AccountEnabled = canEnableAccount
 	}
 
 	return &res, nil
 }
 
-func canAddCards(ctx context.Context, b Backends, lal []linkedaccounts.LinkedAccount) (bool, error) {
+func canAddCards(lal []linkedaccounts.LinkedAccount) (bool, error) {
 	var cnt int
 	for _, la := range lal {
 		if la.DeletedAt.Valid {
@@ -164,7 +175,7 @@ func canAddCards(ctx context.Context, b Backends, lal []linkedaccounts.LinkedAcc
 }
 
 // This assumes that the wallet is in ZA. The wallet can only add at most 1 bank
-func canAddBanks(ctx context.Context, b Backends, lal []linkedaccounts.LinkedAccount) (bool, error) {
+func canAddBanks(lal []linkedaccounts.LinkedAccount) (bool, error) {
 	for _, la := range lal {
 		if la.DeletedAt.Valid {
 			continue
@@ -179,7 +190,7 @@ func canAddBanks(ctx context.Context, b Backends, lal []linkedaccounts.LinkedAcc
 	return true, nil
 }
 
-func canAddInterac(ctx context.Context, b Backends, lal []linkedaccounts.LinkedAccount) (bool, error) {
+func canAddInterac(lal []linkedaccounts.LinkedAccount) (bool, error) {
 	for _, la := range lal {
 		if la.DeletedAt.Valid {
 			continue
@@ -194,10 +205,28 @@ func canAddInterac(ctx context.Context, b Backends, lal []linkedaccounts.LinkedA
 	return true, nil
 }
 
-func isAccountEnabled(ctx context.Context, isProd bool, isEnabled bool) bool {
-	if !isProd {
+func isAccountEnabled(walletID string, walletCountry country.Country) bool {
+	if contains(env.GetBlockListExertions(), walletID) {
 		return true
 	}
 
-	return isEnabled
+	if country.EUCountries[walletCountry] && contains(env.GetBlockedRegions(), "EU") {
+		return false
+	}
+
+	if contains(env.GetBlockedRegions(), walletCountry.String()) {
+		return false
+	}
+
+	return true
+}
+
+func contains(slice []string, item string) bool {
+	set := make(map[string]struct{}, len(slice))
+	for _, v := range slice {
+		set[v] = struct{}{}
+	}
+
+	_, exists := set[item]
+	return exists
 }

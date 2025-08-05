@@ -2,6 +2,7 @@ package env
 
 import (
 	"os"
+	"strings"
 	"sync"
 	"testing"
 )
@@ -13,7 +14,11 @@ const (
 )
 
 var fynbosEnv = "prod"
+var blockedRegions = []string{}
+var blockedExceptions = []string{}
 var once = sync.Once{}
+var onceExemption = sync.Once{}
+var onceRegions = sync.Once{}
 
 var allowedEnvs = []string{
 	"prod",    // Live production environment
@@ -29,6 +34,31 @@ func SetEnv(t *testing.T, env string) {
 	t.Cleanup(func() {
 		fynbosEnv = orig
 	})
+}
+
+func GetBlockListExertions() []string {
+	onceExemption.Do(func() {
+		a := os.Getenv("DEACTIVATED_REGIONS_EXERTION_IDS")
+
+		if a == "" {
+			blockedExceptions = []string{}
+		} else {
+			blockedExceptions = parseList(a)
+		}
+	})
+	return blockedExceptions
+}
+
+func GetBlockedRegions() []string {
+	onceRegions.Do(func() {
+		a := os.Getenv("DEACTIVATED_REGIONS")
+		if a == "" {
+			blockedRegions = []string{}
+		} else {
+			blockedRegions = parseList(a)
+		}
+	})
+	return blockedRegions
 }
 
 func GetEnv() string {
@@ -154,4 +184,13 @@ func AdminURL() string {
 	})
 
 	return adminURL
+}
+
+func parseList(input string) []string {
+	// Remove the brackets and spaces
+	input = strings.Trim(input, "[]")
+	input = strings.ReplaceAll(input, "'", "")
+	input = strings.ReplaceAll(input, " ", "")
+	// Split by comma
+	return strings.Split(input, ",")
 }
