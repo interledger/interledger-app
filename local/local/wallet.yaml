@@ -1,0 +1,86 @@
+services:
+  # 1. Migrations
+  migration:
+    build:
+      context: ../go
+      dockerfile: backend/Dockerfile
+    command: migrate
+    container_name: migration
+    restart: always
+    environment:
+      - FYNBOS_ENV=local
+      - RAFIKI_DB_URL=postgres://postgres:postgres@postgres:5432/rafiki_backend?sslmode=disable
+      - RAFIKI_AUTH_DB_URL=postgres://postgres:postgres@postgres:5432/rafiki_auth?sslmode=disable
+      - DB_URL_WITH_CERTS=postgres://postgres:postgres@postgres:5432/backend?sslmode=disable
+      - PACIOLI_DB_URL_WITH_CERTS=postgres://postgres:postgres@postgres:5432/pacioli?sslmode=disable
+      - KRATOS_URL=http://kratos:4434 # check it if is public or admin
+      - LOG_LEVEL=info
+    
+    depends_on:
+      - postgres
+      - kratos
+      - rafiki_backend
+
+  # 2. Backend 
+  backend:
+    build:
+      context: ../go
+      dockerfile: backend/Dockerfile
+    container_name: backend
+    command: dev
+    restart: always
+    ports:
+      - "8080:8080" # http port
+      - "8081:8081" # open payments port
+      - "8082:8082" # authorisation port
+      - "8443:8443" # grpc port
+      - "8448:8448" # wallet admin port
+    environment:
+      - LOG_LEVEL=info
+      - ENV_FILE=
+      - FYNBOS_ENV=local
+
+      - RAFIKI_DB_URL=postgres://postgres:postgres@postgres:5432/rafiki_backend?sslmode=disable
+      - RAFIKI_AUTH_DB_URL=postgres://postgres:postgres@postgres:5432/rafiki_auth?sslmode=disable
+
+      - DB_URL_WITH_CERTS=postgres://postgres:postgres@postgres:5432/backend?sslmode=disable
+      - DB_URL=postgres://postgres:postgres@postgres:5432/backend?sslmode=disable
+      - PACIOLI_DB_URL_WITH_CERTS=postgres://postgres:postgres@postgres:5432/pacioli?sslmode=disable
+      - PACIOLI_DB_URL=postgres://postgres:postgres@postgres:5432/pacioli?sslmode=disable
+
+      - KRATOS_URL=http://kratos:4433
+      - KRATOS_ADMIN_URL=http://kratos:4434
+
+      - USD_LEDGER_ID=1
+
+      - NOOP_EQUITY_ACCOUNT_ID=43d4b2bd-e29b-4a63-9aa8-7990776c714e
+
+      - GOOGLE_OAUTH2_CLIENT_ID=google_oauth
+      - RAFIKI_GRAPHQL_URL=http://rafiki_backend:3001/graphql
+
+      - TEMPORAL_URL=temporal:7233
+      
+      - TWILIO_ACCOUNT_SID=SK021f793191208ba69c3bea87dd426085
+      - TWILIO_SERVICE_SID=VA8af4e130da63b9fac4c042acbc33a267
+      - TWILIO_ACCOUNT_TOKEN=test
+
+      - ZENDESK_USER=matt@fynbos.dev
+      - ZENDESK_TOKEN=test
+
+      - OTEL_EXPORTER_OTLP_ENDPOINT=grpc://api.honeycomb.io:443
+      - OTEL_EXPORTER_OTLP_HEADERS=x-honeycomb-team=7Qskhns7Dc7wgazrDe6yZD
+      - OTEL_SERVICE_NAME=backend
+
+      # todo later on!
+      - PORT=8080
+      - OPEN_PAYMENTS_PORT=8081
+      - AUTHORISATION_PORT=8082
+      
+      - RAFIKI_BACKEND_GRAPHQL_URL=http://rafiki_backend:3001/graphql
+      - RAFIKI_AUTH_GRAPHQL_URL=http://rafiki_auth:3006/graphql # check 3003 if it fails
+
+    depends_on:
+      - postgres
+      - kratos
+      - temporal
+      - rafiki_backend
