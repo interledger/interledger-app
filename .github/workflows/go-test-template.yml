@@ -34,7 +34,6 @@ jobs:
           --health-retries 5
     env:
       PGSSLMODE: disable
-      MAIN_COVERAGE: ${{ vars.MAIN_COVERAGE }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -84,12 +83,12 @@ jobs:
 
       - name: Run go tests and check coverage
         run: |
-          go test -v -coverprofile=coverage.out ${{ inputs.test_path }}/...
+          go test -coverprofile=coverage.out ${{ inputs.test_path }}/...
           COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}')
           # strip the trailing '%' so bc can do its math
           COVERAGE_NUM=${COVERAGE%\%}
           echo "${{ inputs.coverage_key }} coverage: $COVERAGE_NUM%"
-          THRESHOLD=$(echo "${MAIN_COVERAGE}" | grep -oP '${{ inputs.coverage_key }}=\K[0-9.]+')
+          THRESHOLD=$(cat "./go/coverage.thresholds" | grep -oP '${{ inputs.coverage_key }}=\K[0-9.]+')
           echo "${{ inputs.coverage_key }} coverage threshold: $THRESHOLD%"
           
           if ! command -v bc >/dev/null 2>&1; then
