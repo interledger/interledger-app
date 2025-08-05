@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"strings"
 
-	"gitlab.com/fynbos/env"
 	adminv1 "gitlab.com/fynbos/proto/backend/admin/v1"
 
 	"gitlab.com/fynbos/backend/country"
@@ -54,9 +53,7 @@ func (c Currency) Valid() bool {
 func (c Currency) Scale() int {
 	scale, ok := currencyScale[c]
 	if !ok {
-		if !env.IsTest() {
-			log.Warn("unknown scale for currency", zap.String("currency", string(c)))
-		}
+		log.Warn("unknown scale for currency", zap.String("currency", string(c)))
 		return 2 // Default to cent scale
 	}
 
@@ -66,9 +63,7 @@ func (c Currency) Scale() int {
 func (c Currency) ISO4217() string {
 	code, ok := iso4217[c]
 	if !ok {
-		if !env.IsTest() {
-			log.Warn("unknown iso4217 code for currency", zap.String("currency", string(c)))
-		}
+		log.Warn("unknown iso4217 code for currency", zap.String("currency", string(c)))
 		return ""
 	}
 
