@@ -183,7 +183,8 @@ func TestCanVerifyNonCustodialKeys(t *testing.T) {
  * Test section for Vault based keys
  */
 
-func SkipTestGeneratePrivateVaultKey(t *testing.T) {
+func TestGeneratePrivateVaultKey(t *testing.T) {
+	t.Skip("Skipping test because we are not using vault anymore")
 	env.SetEnv(t, "local")	
 	ctx := context.Background()
 	mockCtrl := gomock.NewController(t)
@@ -211,7 +212,8 @@ func SkipTestGeneratePrivateVaultKey(t *testing.T) {
 	require.Equal(t, "Interledger Managed", key.Name)
 }
 
-func SkipTestCanSignAndVerifyCustodialKeysVault(t *testing.T) {
+func TestCanSignAndVerifyCustodialKeysVault(t *testing.T) {
+	t.Skip("Skipping because we are not using vault anymore")
 	env.SetEnv(t, "local")	
 	ctx := context.Background()
 	mockCtrl := gomock.NewController(t)
