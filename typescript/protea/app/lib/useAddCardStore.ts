@@ -1,4 +1,3 @@
-import type { PlainMessage } from '@bufbuild/protobuf'
 import { create } from 'zustand'
 import { type SelectOptions } from '~/components'
 import type {
@@ -14,33 +13,45 @@ export enum AddCardStep {
   CREATE_ADDRESS,
   CONFIRMATION
 }
+const ID_NEW_ADDRESS = 'new'
+
+export type StorableNewAddres = NewCustomerDeliveryAddress & {
+  id: typeof ID_NEW_ADDRESS
+}
+export type DeliveryAddress = CustomerDeliveryAddress | StorableNewAddres
 
 interface AddCardState {
   step: AddCardStep
   type: CardType
-  products: PlainMessage<CardApplicationProduct>[]
-  address: CustomerDeliveryAddress | null
-  newAddress: NewCustomerDeliveryAddress | null
   productCode: string | null
+  products: CardApplicationProduct[]
+  addresses: DeliveryAddress[]
+  newAddress: NewCustomerDeliveryAddress | null
+  selectedAddress: DeliveryAddress | null
 }
 
 const initialState = {
   step: AddCardStep.CARD_TYPE,
   type: CardType.PHYSICAL,
-  products: [],
   productCode: null,
-  address: null,
-  newAddress: null
+  products: [],
+  addresses: [],
+  newAddress: null,
+  selectedAddress: null
 } satisfies AddCardState
 
 interface AddCardActions {
+  setAddresses: (addresses: CustomerDeliveryAddress[]) => void
+  setNewAddress: (address: NewCustomerDeliveryAddress) => void
+  setSelectedAddress: (address: DeliveryAddress) => void
+  isNewAddressSelected: () => boolean
+
+  setProducts: (products: CardApplicationProduct[]) => void
+  setProductCode: (productCode: string) => void
+  setCardType: (type: AddCardState['type']) => void
+
   setStep: (step: AddCardStep) => void
   stepBack: () => void
-  setCardType: (type: AddCardState['type']) => void
-  setProductCode: (productCode: string) => void
-  setProducts: (products: PlainMessage<CardApplicationProduct>[]) => void
-  setAddress: (address: CustomerDeliveryAddress | null) => void
-  setNewAddress: (newAddress: NewCustomerDeliveryAddress | null) => void
   reset: () => void
 }
 
@@ -55,14 +66,25 @@ export const cardTypes: SelectOptions[] = [
   }
 ]
 
-export const useAddCardStore = create<AddCardState & AddCardActions>((set) => ({
+export const useAddCardStore = create<AddCardState & AddCardActions>((set, get) => ({
   ...initialState,
-  setStep: (step) => set(() => ({ step: step })),
-  setCardType: (type) => set(() => ({ type: type })),
-  setAddress: (address) => set(() => ({ address: address })),
-  setNewAddress: (newAddress) => set(() => ({ newAddress: newAddress })),
+
+  setAddresses: (addresses) => set(() => ({ addresses: addresses })),
+  setNewAddress: (address) => {
+    const newStorableAddress = { ...address, id: ID_NEW_ADDRESS } as StorableNewAddres
+    set((state) => ({
+      newAddress: address,
+      addresses: [newStorableAddress, ...state.addresses]
+    }))
+  },
+  setSelectedAddress: (address) => set(() => ({ selectedAddress: address })),
+  isNewAddressSelected: () => get().selectedAddress?.id === ID_NEW_ADDRESS,
+
   setProducts: (products) => set(() => ({ products: products })),
   setProductCode: (productCode) => set(() => ({ productCode: productCode })),
+  setCardType: (type) => set(() => ({ type: type })),
+
+  setStep: (step) => set(() => ({ step: step })),
   stepBack: () =>
     set((state) => {
       switch (state.step) {

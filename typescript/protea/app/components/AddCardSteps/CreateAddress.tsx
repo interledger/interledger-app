@@ -129,7 +129,6 @@ export const CreateAddress = () => {
   const onSubmit = (data: AddressFormData) => {
     const newAddress = createNewAddress(data)
     setNewAddress(newAddress)
-    console.log('newAddress', newAddress)
     setStep(AddCardStep.DELIVERY)
   }
 
