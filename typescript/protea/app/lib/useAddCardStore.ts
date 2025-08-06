@@ -3,13 +3,15 @@ import { create } from 'zustand'
 import { type SelectOptions } from '~/components'
 import type {
   CardApplicationProduct,
-  CustomerDeliveryAddress
+  CustomerDeliveryAddress,
+  NewCustomerDeliveryAddress
 } from '~/generated/connect/backend/v1/backend_pb'
 import { CardType } from '~/generated/connect/backend/v1/backend_pb'
 
 export enum AddCardStep {
   CARD_TYPE,
   DELIVERY,
+  CREATE_ADDRESS,
   CONFIRMATION
 }
 
@@ -18,6 +20,7 @@ interface AddCardState {
   type: CardType
   products: PlainMessage<CardApplicationProduct>[]
   address: CustomerDeliveryAddress | null
+  newAddress: NewCustomerDeliveryAddress | null
   productCode: string | null
 }
 
@@ -26,7 +29,8 @@ const initialState = {
   type: CardType.PHYSICAL,
   products: [],
   productCode: null,
-  address: null
+  address: null,
+  newAddress: null
 } satisfies AddCardState
 
 interface AddCardActions {
@@ -36,6 +40,7 @@ interface AddCardActions {
   setProductCode: (productCode: string) => void
   setProducts: (products: PlainMessage<CardApplicationProduct>[]) => void
   setAddress: (address: CustomerDeliveryAddress | null) => void
+  setNewAddress: (newAddress: NewCustomerDeliveryAddress | null) => void
   reset: () => void
 }
 
@@ -55,6 +60,7 @@ export const useAddCardStore = create<AddCardState & AddCardActions>((set) => ({
   setStep: (step) => set(() => ({ step: step })),
   setCardType: (type) => set(() => ({ type: type })),
   setAddress: (address) => set(() => ({ address: address })),
+  setNewAddress: (newAddress) => set(() => ({ newAddress: newAddress })),
   setProducts: (products) => set(() => ({ products: products })),
   setProductCode: (productCode) => set(() => ({ productCode: productCode })),
   stepBack: () =>
@@ -64,6 +70,8 @@ export const useAddCardStore = create<AddCardState & AddCardActions>((set) => ({
           return { step: AddCardStep.CARD_TYPE }
         case AddCardStep.CONFIRMATION:
           return { step: AddCardStep.CONFIRMATION }
+        case AddCardStep.CREATE_ADDRESS:
+          return { step: AddCardStep.DELIVERY }
         default:
           return { ...initialState }
       }

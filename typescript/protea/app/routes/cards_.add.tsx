@@ -1,4 +1,8 @@
-import { json, redirect, type LoaderFunctionArgs } from '@remix-run/node'
+import {
+  json,
+  redirect,
+  type LoaderFunctionArgs
+} from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import clsx from 'clsx'
 import { useEffect } from 'react'
@@ -13,10 +17,12 @@ import {
   RadioGroup,
   type ApplicationProps
 } from '~/components'
+import { CreateAddress } from '~/components/AddCardSteps/CreateAddress'
 import { Label } from '~/components/Label'
 import { getFeatures } from '~/data/wallet.server'
 import {
   CardType,
+  CustomerDeliveryAddress,
   CustomerDeliveryAddressType
 } from '~/generated/connect/backend/v1/backend_pb'
 import { isConnectError } from '~/lib/error.server'
@@ -174,21 +180,22 @@ function getAddressIcon(type: CustomerDeliveryAddressType) {
   }
 }
 
-function DeliveryAddresses() {
-  const { addresses } = useLoaderData<typeof loader>()
-
-  //@ts-ignore
+function DeliveryAddresses({
+  addresses
+}: {
+  addresses: CustomerDeliveryAddress[]
+}) {
+  console.log('addresses in delivery addresses', addresses)
   const pickedAddresses = addresses.map((a) => ({
     id: a.id,
     name: `${a.details?.line1} ${a.details?.city} (${a.details?.countryCode})`,
-    // Remove once fully typed
-    // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
     icon: getAddressIcon(a.details?.type!)
   }))
   const [setStep, setAddress] = useAddCardStore((state) => [
     state.setStep,
     state.setAddress
   ])
+
   return (
     <Card>
       <CardContent className='space-y-4'>
@@ -203,6 +210,9 @@ function DeliveryAddresses() {
           // @ts-expect-error: fix
           onChange={(v) => setAddress(pickedAddresses.id)}
         />
+        <Button onClick={() => setStep(AddCardStep.CREATE_ADDRESS)}>
+          Create new address
+        </Button>
         <Button
           onClick={() => {
             setStep(AddCardStep.CONFIRMATION)
@@ -217,7 +227,7 @@ function DeliveryAddresses() {
 }
 
 export default function Page() {
-  const { products } = useLoaderData<typeof loader>()
+  const { products, addresses } = useLoaderData<typeof loader>()
   const [step, setProducts, reset] = useAddCardStore((state) => [
     state.step,
     state.setProducts,
@@ -235,7 +245,11 @@ export default function Page() {
   return (
     <>
       {step === AddCardStep.CARD_TYPE && <Product />}
-      {step === AddCardStep.DELIVERY && <DeliveryAddresses />}
+      {step === AddCardStep.DELIVERY && (
+        // @ts-expect-error
+        <DeliveryAddresses addresses={addresses} />
+      )}
+      {step === AddCardStep.CREATE_ADDRESS && <CreateAddress />}
       {step === AddCardStep.CONFIRMATION && <ConfirmCard />}
     </>
   )
