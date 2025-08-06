@@ -46,9 +46,19 @@ func SetFeatures(ctx context.Context, b Backends, walletID string, feat features
 }
 
 func Features(ctx context.Context, b Backends, walletID string) (*features.WalletFeatures, error) {
-	// Check DB for feature overrides
+	// check if the wallet is enabled for the account
+	w, err := b.Wallets().Get(ctx, walletID)
+	if err != nil {
+		return nil, err
+	}
+	if !isAccountEnabled(walletID, w.Country) {
+		return &features.WalletFeatures{
+			AccountEnabled: false,
+		}, nil
+	}
 	var res features.WalletFeatures
-	err := b.DB().GetContext(ctx, &res,
+	// Check DB for feature overrides
+	err = b.DB().GetContext(ctx, &res,
 		"SELECT send_enabled, receive_enabled, linked_accounts_enabled, cards_enabled, banks_enabled, identities_enabled, twitter_enabled, add_cards_enabled, interac_enabled, manage_wallet_cards_enabled, account_enabled FROM wallet_features WHERE wallet_id=$1",
 		walletID)
 	if err == nil {
@@ -62,16 +72,10 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 	if err != nil {
 		return nil, err
 	}
-
-	w, err := b.Wallets().Get(ctx, walletID)
-	if err != nil {
-		return nil, err
-	}
-
 	// If you are not KYC approved you can do nothing
 	if kycStatus != kyc.StatusLevel1 && kycStatus != kyc.StatusLevel2 {
 		return &features.WalletFeatures{
-			AccountEnabled: isAccountEnabled(walletID, w.Country),
+			AccountEnabled: true,
 		}, nil
 	}
 
@@ -110,7 +114,7 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		res.AddCardsEnabled = canAddCard
 		res.ManageWalletCardsEnabled = false
 		// it enables the feature by default for sandbox / dev
-		res.AccountEnabled = isAccountEnabled(walletID, w.Country)
+		res.AccountEnabled = true
 	}
 	if w.Country == country.ZA {
 		res.ReceiveEnabled = true
@@ -120,7 +124,7 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		res.CardsEnabled = false
 		res.AddCardsEnabled = false
 		res.ManageWalletCardsEnabled = false
-		res.AccountEnabled = isAccountEnabled(walletID, w.Country)
+		res.AccountEnabled = true
 	}
 	if country.EUCountries[w.Country] {
 		res.ReceiveEnabled = true
@@ -132,7 +136,7 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		res.CardsEnabled = false
 		res.AddCardsEnabled = false
 		res.ManageWalletCardsEnabled = false
-		res.AccountEnabled = isAccountEnabled(walletID, w.Country)
+		res.AccountEnabled = true
 	}
 	if w.Country == country.CA {
 		res.ReceiveEnabled = true
@@ -143,7 +147,7 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		res.AddCardsEnabled = false
 		res.InteraccEnabled = canAddInterac
 		res.ManageWalletCardsEnabled = false
-		res.AccountEnabled = isAccountEnabled(walletID, w.Country)
+		res.AccountEnabled = true
 	}
 
 	return &res, nil
