@@ -1,9 +1,0 @@
-services:
-  dns:
-    image: coredns/coredns:latest
-    container_name: dns-server
-    volumes:
-      - ./config:/etc/coredns
-    ports:
-      - "53:53/udp"
-      - "53:53/tcp"

@@ -35,6 +35,10 @@ services:
       - "8082:8082" # authorisation port
       - "8443:8443" # grpc port
       - "8448:8448" # wallet admin port
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=Host(`interledger.test`) && PathPrefix(`/webhooks`)"
+      - "traefik.http.services.backend.loadbalancer.server.port=8080"
     environment:
       - LOG_LEVEL=info
       - ENV_FILE=

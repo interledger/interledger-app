@@ -1,0 +1,15 @@
+services:
+  mockbos:
+    build:
+      context: ../go
+      dockerfile: mockbos/Dockerfile
+    container_name: mockbos
+    restart: always
+    ports:
+      - "18080:8080" # http port
+    environment:
+      - DB_URL=postgres://postgres:postgres@postgres:5432/mockbos?sslmode=disable
+      - XAGO_WEBHOOK_URL=http://backend:8080/webhook/xago
+
+    depends_on:
+      - backend

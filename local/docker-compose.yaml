@@ -2,6 +2,7 @@ include:
   # tier 0 (infrastructure)
   - postgres.yaml
   - redis.yaml
+  - traefik.yaml
   # - coredns.yaml
 
   # tier 1 (operational)
@@ -16,4 +17,4 @@ include:
   - wallet.yaml
   - protea.yaml
   - botanist.yaml
-
+  - mockbos.yaml

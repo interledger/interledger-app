@@ -8,6 +8,10 @@ services:
       - "3003:3003"  # Admin port         http://localhost:3003
       - "3006:3006"  # Auth port          http://localhost:3006
       - "3007:3007"  # Introspection port http://localhost:3007
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.rafiki_auth.rule=Host(`auth.local.ilp.link`)"
+      - "traefik.http.services.rafiki_auth.loadbalancer.server.port=3006"
     environment:
       - ENV_FILE=
       - LOG_LEVEL=info
@@ -57,8 +61,19 @@ services:
     container_name: rafiki_backend
     restart: always
     ports:
+      - "3880:80"     # HTTP port
       - "3001:3001"  # Admin port
-      - "3002:3002"  # Connector port     
+      - "3002:3002"  # Connector port
+    labels:
+      - "traefik.enable=true"
+
+      - "traefik.http.routers.rafiki_backend_connector.service=rafiki_backend_connector"
+      - "traefik.http.routers.rafiki_backend_connector.rule=Host(`connector.local.ilp.link`)"
+      - "traefik.http.services.rafiki_backend_connector.loadbalancer.server.port=3002"
+
+      - "traefik.http.routers.rafiki_backend_openpayments.service=rafiki_backend_openpayments"
+      - "traefik.http.routers.rafiki_backend_openpayments.rule=Host(`local.ilp.link`)"
+      - "traefik.http.services.rafiki_backend_openpayments.loadbalancer.server.port=80"
     environment:
       - ENV_FILE=
       - LOG_LEVEL=debug
@@ -132,6 +147,10 @@ services:
     restart: always
     ports:
       - "3010:3010"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.rafiki_frontend.rule=Host(`rafiki.mgnt.interledger.test`)"
+      - "traefik.http.services.rafiki_frontend.loadbalancer.server.port=3010"
     environment:
       - ENV_FILE=
       - LOG_LEVEL=debug

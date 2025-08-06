@@ -1,2 +1,0 @@
-CREATE DATABASE backend;
-CREATE DATABASE pacioli;
