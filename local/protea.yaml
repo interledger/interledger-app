@@ -2,7 +2,10 @@ services:
   protea:
     build:
       context: ../typescript/protea
+      target: dev
     restart: always
+    volumes:
+      - ../typescript/protea:/app
     ports:
       - "3000:3000" # http port
       - "8002:8002" # websocket port
@@ -10,11 +13,6 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.protea.rule=Host(`interledger.test`)"
       - "traefik.http.services.protea.loadbalancer.server.port=3000"
-    # healthcheck:
-    #   test: ["CMD-SHELL", "curl -f http://localhost:3000/healthz || exit 1"]
-    #   interval: 5s
-    #   timeout: 2s
-    #   retries: 5
     environment:
       - FYNBOS_ENV=local
 
