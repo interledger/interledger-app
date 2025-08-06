@@ -187,6 +187,12 @@ job "backend" {
         OTEL_EXPORTER_OTLP_ENDPOINT = "grpc://api.honeycomb.io:443"
         OTEL_EXPORTER_OTLP_HEADERS = "x-honeycomb-team=7Qskhns7Dc7wgazrDe6yZD"
         OTEL_SERVICE_NAME = "backend"
+        GATEHUB_APP_ID="9f6bee06-858e-4062-9d0c-7100eb6ef1ac"
+        GATEHUB_SECRET="e032fc3cdeb111f7c74307ed69606babc83d6551"
+        GATEHUB_WEBHOOK_SECRET="13c038f4c430e2d223b25935f8d259c9f18411dafc74d243d488e6321d38bee5"
+        GATEHUB_FALLBACK_WEBHOOK_URL = "http://192.168.0.165:3003/gatehub-webhooks"
+        BLOCKED_REGIONS = "ZA,US, EU,CA"
+        ALLOWED_WALLET_IDS = "0a32bbca-f03f-4e78-a2de-b4e7d6ab3105,0a32bbca-f03f-4e78-a2de-b4e7d6ab3105"
       }
 
       resources {

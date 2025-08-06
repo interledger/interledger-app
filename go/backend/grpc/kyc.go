@@ -40,6 +40,7 @@ func (s *rpcService) GetKYCProviderWidget(ctx context.Context, req *pb.GetKYCPro
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
+	// Here add if US for KYC
 	if _, isEU := country.EUCountries[wallet.Country]; isEU {
 		onboardingWidget, err := s.b.Gatehub().GetOnboardingWidget(ctx, wallet.ID)
 		if err != nil {

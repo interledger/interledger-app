@@ -10,7 +10,9 @@ const (
 	AccTypeBalance = "balance"
 
 	LedgerIDEUR   uint32 = 4482387 // Spells ghubeur on a Nokia 3320 keyboard
+	LedgerIDUSD   uint32 = 4482873 // Spells xagousd on a Nokia 3320 keyboard
 	EUROpsAccount        = "1854f171-eafa-4e30-bf66-7dbfe167ccfa"
+	USDOpsAccount        = "xxxxxxxxx-xxxx-xxxx-xxxxxxxxxxxx" // Placeholder, replace with actual USD ops account ID
 )
 
 type Balance struct {
