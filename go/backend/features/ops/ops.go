@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"slices"
 
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -66,21 +67,11 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 	if err != nil {
 		return nil, err
 	}
-	canEnableAccount := isAccountEnabled(walletID, w.Country)
+
 	// If you are not KYC approved you can do nothing
 	if kycStatus != kyc.StatusLevel1 && kycStatus != kyc.StatusLevel2 {
 		return &features.WalletFeatures{
-			SendEnabled:              false,
-			ReceiveEnabled:           false,
-			LinkedAccEnabled:         false,
-			CardsEnabled:             false,
-			BanksEnabled:             false,
-			IdentitiesEnabled:        false,
-			TwitterEnabled:           false,
-			AddCardsEnabled:          false,
-			InteraccEnabled:          false,
-			ManageWalletCardsEnabled: false,
-			AccountEnabled:           canEnableAccount,
+			AccountEnabled: isAccountEnabled(walletID, w.Country),
 		}, nil
 	}
 
@@ -119,7 +110,7 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		res.AddCardsEnabled = canAddCard
 		res.ManageWalletCardsEnabled = false
 		// it enables the feature by default for sandbox / dev
-		res.AccountEnabled = canEnableAccount
+		res.AccountEnabled = isAccountEnabled(walletID, w.Country)
 	}
 	if w.Country == country.ZA {
 		res.ReceiveEnabled = true
@@ -129,7 +120,7 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		res.CardsEnabled = false
 		res.AddCardsEnabled = false
 		res.ManageWalletCardsEnabled = false
-		res.AccountEnabled = canEnableAccount
+		res.AccountEnabled = isAccountEnabled(walletID, w.Country)
 	}
 	if country.EUCountries[w.Country] {
 		res.ReceiveEnabled = true
@@ -141,7 +132,7 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		res.CardsEnabled = false
 		res.AddCardsEnabled = false
 		res.ManageWalletCardsEnabled = false
-		res.AccountEnabled = canEnableAccount
+		res.AccountEnabled = isAccountEnabled(walletID, w.Country)
 	}
 	if w.Country == country.CA {
 		res.ReceiveEnabled = true
@@ -152,7 +143,7 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		res.AddCardsEnabled = false
 		res.InteraccEnabled = canAddInterac
 		res.ManageWalletCardsEnabled = false
-		res.AccountEnabled = canEnableAccount
+		res.AccountEnabled = isAccountEnabled(walletID, w.Country)
 	}
 
 	return &res, nil
@@ -206,27 +197,17 @@ func canAddInterac(lal []linkedaccounts.LinkedAccount) (bool, error) {
 }
 
 func isAccountEnabled(walletID string, walletCountry country.Country) bool {
-	if contains(env.GetBlockListExertions(), walletID) {
+	if slices.Contains(env.GetAllowedWalletIds(), walletID) {
 		return true
 	}
 
-	if country.EUCountries[walletCountry] && contains(env.GetBlockedRegions(), "EU") {
+	if country.EUCountries[walletCountry] && slices.Contains(env.GetBlockedRegions(), "EU") {
 		return false
 	}
 
-	if contains(env.GetBlockedRegions(), walletCountry.String()) {
+	if slices.Contains(env.GetBlockedRegions(), walletCountry.String()) {
 		return false
 	}
 
 	return true
-}
-
-func contains(slice []string, item string) bool {
-	set := make(map[string]struct{}, len(slice))
-	for _, v := range slice {
-		set[v] = struct{}{}
-	}
-
-	_, exists := set[item]
-	return exists
 }

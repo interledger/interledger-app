@@ -15,10 +15,10 @@ const (
 
 var fynbosEnv = "prod"
 var blockedRegions = []string{}
-var blockedExceptions = []string{}
+var allowedWalletIds = []string{}
 var once = sync.Once{}
-var onceExemption = sync.Once{}
-var onceRegions = sync.Once{}
+var onceAllowedWalletIds = sync.Once{}
+var onceBlockedRegions = sync.Once{}
 
 var allowedEnvs = []string{
 	"prod",    // Live production environment
@@ -36,21 +36,21 @@ func SetEnv(t *testing.T, env string) {
 	})
 }
 
-func GetBlockListExertions() []string {
-	onceExemption.Do(func() {
-		a := os.Getenv("DEACTIVATED_REGIONS_EXERTION_IDS")
+func GetAllowedWalletIds() []string {
+	onceAllowedWalletIds.Do(func() {
+		a := os.Getenv("ALLOWED_WALLET_IDS")
 		if a == "" {
-			blockedExceptions = []string{}
+			allowedWalletIds = []string{}
 		} else {
-			blockedExceptions = parseList(a)
+			allowedWalletIds = parseList(a)
 		}
 	})
-	return blockedExceptions
+	return allowedWalletIds
 }
 
 func GetBlockedRegions() []string {
-	onceRegions.Do(func() {
-		a := os.Getenv("DEACTIVATED_REGIONS")
+	onceBlockedRegions.Do(func() {
+		a := os.Getenv("BLOCKED_REGIONS")
 		if a == "" {
 			blockedRegions = []string{}
 		} else {
@@ -186,8 +186,6 @@ func AdminURL() string {
 }
 
 func parseList(input string) []string {
-	input = strings.Trim(input, "[]")
-	input = strings.ReplaceAll(input, "'", "")
 	input = strings.ReplaceAll(input, " ", "")
 	return strings.Split(input, ",")
 }
