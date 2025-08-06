@@ -39,7 +39,6 @@ func SetEnv(t *testing.T, env string) {
 func GetBlockListExertions() []string {
 	onceExemption.Do(func() {
 		a := os.Getenv("DEACTIVATED_REGIONS_EXERTION_IDS")
-
 		if a == "" {
 			blockedExceptions = []string{}
 		} else {
@@ -187,10 +186,8 @@ func AdminURL() string {
 }
 
 func parseList(input string) []string {
-	// Remove the brackets and spaces
 	input = strings.Trim(input, "[]")
 	input = strings.ReplaceAll(input, "'", "")
 	input = strings.ReplaceAll(input, " ", "")
-	// Split by comma
 	return strings.Split(input, ",")
 }
