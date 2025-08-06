@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/log"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
@@ -67,25 +66,11 @@ func (a *Activity) fetchWallets(ctx context.Context, params WalletActive) ([]str
 	}
 
 	query := "SELECT name FROM public.wallets " + whereClause
-	rows, err := a.b.DB().QueryContext(ctx, query, args...)
+	var wallets []string
+	err := a.b.DB().GetContext(ctx, &wallets, query, args...)
 	if err != nil {
 		log.Error("Error fetching wallets", zap.Error(err))
 		return nil, err
-	}
-	defer rows.Close()
-
-	var wallets []string
-	for rows.Next() {
-		var name string
-		if err := rows.Scan(&name); err != nil {
-			log.Error("Row scan error", zap.Error(err))
-			return nil, fmt.Errorf("row scan failed: %w", err)
-		}
-		wallets = append(wallets, name)
-	}
-
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("row iteration error: %w", err)
 	}
 
 	if len(wallets) == 0 {
@@ -102,7 +87,7 @@ func (a *Activity) updateWalletAddresses(ctx context.Context, wallets []string, 
 		return fmt.Errorf("RAFIKI_DB_URL environment variable is not set")
 	}
 
-	db, err := sqlx.ConnectContext(ctx, "postgres", connString)
+	db, err := DbConnection(connString)
 	if err != nil {
 		return fmt.Errorf("failed to establish a new database connection: %w", err)
 	}
