@@ -23,7 +23,7 @@ import (
 func SetFeatures(ctx context.Context, b Backends, walletID string, feat features.WalletFeatures) (*features.WalletFeatures, error) {
 
 	_, err := b.DB().ExecContext(ctx, "INSERT INTO wallet_features "+
-		"(wallet_id, send_enabled, receive_enabled, linked_accounts_enabled, cards_enabled, banks_enabled, identities_enabled, twitter_enabled, add_cards_enabled, interac_enabled, manage_wallet_cards_enabled, account_enabled) "+
+		"(wallet_id, send_enabled, receive_enabled, linked_accounts_enabled, cards_enabled, banks_enabled, identities_enabled, twitter_enabled, add_cards_enabled, interac_enabled, manage_wallet_cards_enabled) "+
 		"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)  ON CONFLICT (wallet_id) DO UPDATE SET "+
 		"send_enabled = excluded.send_enabled, "+
 		"receive_enabled = excluded.receive_enabled, "+
@@ -35,9 +35,8 @@ func SetFeatures(ctx context.Context, b Backends, walletID string, feat features
 		"add_cards_enabled = excluded.add_cards_enabled, "+
 		"interac_enabled = excluded.interac_enabled, "+
 		"manage_wallet_cards_enabled = excluded.manage_wallet_cards_enabled, "+
-		"account_enabled = excluded.account_enabled, "+
 		"updated_at=now()",
-		walletID, feat.SendEnabled, feat.ReceiveEnabled, feat.LinkedAccEnabled, feat.CardsEnabled, feat.BanksEnabled, feat.IdentitiesEnabled, feat.TwitterEnabled, feat.AddCardsEnabled, feat.InteraccEnabled, feat.ManageWalletCardsEnabled, feat.AccountEnabled)
+		walletID, feat.SendEnabled, feat.ReceiveEnabled, feat.LinkedAccEnabled, feat.CardsEnabled, feat.BanksEnabled, feat.IdentitiesEnabled, feat.TwitterEnabled, feat.AddCardsEnabled, feat.InteraccEnabled, feat.ManageWalletCardsEnabled)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", features.ErrInternal, err)
 	}
@@ -47,11 +46,11 @@ func SetFeatures(ctx context.Context, b Backends, walletID string, feat features
 
 func Features(ctx context.Context, b Backends, walletID string) (*features.WalletFeatures, error) {
 	// check if the wallet is enabled for the account
-	w, err := b.Wallets().Get(ctx, walletID)
+	wallet, err := b.Wallets().Get(ctx, walletID)
 	if err != nil {
 		return nil, err
 	}
-	if !isAccountEnabled(walletID, w.Country) {
+	if !isAccountEnabled(walletID, wallet.Country) {
 		return &features.WalletFeatures{
 			AccountEnabled: false,
 		}, nil
@@ -59,7 +58,7 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 	var res features.WalletFeatures
 	// Check DB for feature overrides
 	err = b.DB().GetContext(ctx, &res,
-		"SELECT send_enabled, receive_enabled, linked_accounts_enabled, cards_enabled, banks_enabled, identities_enabled, twitter_enabled, add_cards_enabled, interac_enabled, manage_wallet_cards_enabled, account_enabled FROM wallet_features WHERE wallet_id=$1",
+		"SELECT send_enabled, receive_enabled, linked_accounts_enabled, cards_enabled, banks_enabled, identities_enabled, twitter_enabled, add_cards_enabled, interac_enabled, manage_wallet_cards_enabled FROM wallet_features WHERE wallet_id=$1",
 		walletID)
 	if err == nil {
 		return &res, nil
@@ -105,7 +104,7 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		return nil, err
 	}
 
-	if w.Country == country.US {
+	if wallet.Country == country.US {
 		res.ReceiveEnabled = true
 		res.SendEnabled = true
 		res.LinkedAccEnabled = true
@@ -116,7 +115,7 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		// it enables the feature by default for sandbox / dev
 		res.AccountEnabled = true
 	}
-	if w.Country == country.ZA {
+	if wallet.Country == country.ZA {
 		res.ReceiveEnabled = true
 		res.SendEnabled = true
 		res.LinkedAccEnabled = true
@@ -126,7 +125,7 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		res.ManageWalletCardsEnabled = false
 		res.AccountEnabled = true
 	}
-	if country.EUCountries[w.Country] {
+	if country.EUCountries[wallet.Country] {
 		res.ReceiveEnabled = true
 		res.SendEnabled = true
 
@@ -138,7 +137,7 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		res.ManageWalletCardsEnabled = false
 		res.AccountEnabled = true
 	}
-	if w.Country == country.CA {
+	if wallet.Country == country.CA {
 		res.ReceiveEnabled = true
 		res.SendEnabled = true
 		res.LinkedAccEnabled = true
