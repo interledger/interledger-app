@@ -24,7 +24,7 @@ func SetFeatures(ctx context.Context, b Backends, walletID string, feat features
 
 	_, err := b.DB().ExecContext(ctx, "INSERT INTO wallet_features "+
 		"(wallet_id, send_enabled, receive_enabled, linked_accounts_enabled, cards_enabled, banks_enabled, identities_enabled, twitter_enabled, add_cards_enabled, interac_enabled, manage_wallet_cards_enabled) "+
-		"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)  ON CONFLICT (wallet_id) DO UPDATE SET "+
+		"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)  ON CONFLICT (wallet_id) DO UPDATE SET "+
 		"send_enabled = excluded.send_enabled, "+
 		"receive_enabled = excluded.receive_enabled, "+
 		"linked_accounts_enabled = excluded.linked_accounts_enabled, "+
