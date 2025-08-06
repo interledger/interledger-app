@@ -19,4 +19,4 @@ services:
       - FYNBOS_ENV=local
 
       - CHOKIDAR_USEPOLLING=true
-      - BACKEND_GRPC_URL=http://backend:8443
+      - BACKEND_GRPC_URL=backend:8448

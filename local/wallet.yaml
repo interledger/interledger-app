@@ -40,7 +40,7 @@ services:
       - "traefik.http.routers.backend.rule=Host(`interledger.test`) && PathPrefix(`/webhooks`)"
       - "traefik.http.services.backend.loadbalancer.server.port=8080"
     environment:
-      - LOG_LEVEL=info
+      - LOG_LEVEL=debug
       - ENV_FILE=
       - FYNBOS_ENV=local
 

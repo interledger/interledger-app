@@ -27,6 +27,6 @@ services:
       - PUSHER_APP_CLUSTER=eu
       - PAYMENT_POINTER_BASE=local.ilp.link # todo find a way to figure the name
       - DATO_API_TOKEN=b96709bce873f5280722da965b0e9d
-      - BACKEND_GRPC_URL=backend:8443
+      - BACKEND_GRPC_URL=http://backend:8443
       
       - REDIS_URL=redis://redis:6379/2
