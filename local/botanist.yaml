@@ -2,7 +2,10 @@ services:
   botanist:
     build:
       context: ../typescript/botanist
+      target: dev
     restart: always
+    volumes:
+      - ../typescript/botanist:/app
     ports:
       - "13000:3000" # http port
       - "18002:8002" # websocket port
