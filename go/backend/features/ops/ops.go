@@ -50,7 +50,7 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 	if err != nil {
 		return nil, err
 	}
-	if !isAccountEnabled(walletID, wallet.Country) {
+	if isAccountDisabled(walletID, wallet.Country) {
 		return &features.WalletFeatures{
 			AccountEnabled: false,
 		}, nil
@@ -199,18 +199,18 @@ func canAddInterac(lal []linkedaccounts.LinkedAccount) (bool, error) {
 	return true, nil
 }
 
-func isAccountEnabled(walletID string, walletCountry country.Country) bool {
+func isAccountDisabled(walletID string, walletCountry country.Country) bool {
 	if slices.Contains(env.GetAllowedWalletIds(), walletID) {
-		return true
+		return false
 	}
 
 	if country.EUCountries[walletCountry] && slices.Contains(env.GetBlockedRegions(), "EU") {
-		return false
+		return true
 	}
 
 	if slices.Contains(env.GetBlockedRegions(), walletCountry.String()) {
-		return false
+		return true
 	}
 
-	return true
+	return false
 }
