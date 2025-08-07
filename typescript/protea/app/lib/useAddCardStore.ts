@@ -91,7 +91,7 @@ export const useAddCardStore = create<AddCardState & AddCardActions>((set, get) 
         case AddCardStep.DELIVERY:
           return { step: AddCardStep.CARD_TYPE }
         case AddCardStep.CONFIRMATION:
-          return { step: AddCardStep.CONFIRMATION }
+          return { step: AddCardStep.DELIVERY }
         case AddCardStep.CREATE_ADDRESS:
           return { step: AddCardStep.DELIVERY }
         default:

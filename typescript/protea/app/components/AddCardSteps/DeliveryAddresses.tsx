@@ -5,6 +5,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  OutlineButton,
   RadioGroup
 } from '~/components'
 import { AddCardStep, useAddCardStore } from '~/lib/useAddCardStore'
@@ -40,10 +41,14 @@ export const DeliveryAddresses = () => {
             setCurrentAddress(v)
           }}
         />
-        {!newAddress && (
+        {!newAddress ? (
           <Button onClick={() => setStep(AddCardStep.CREATE_ADDRESS)}>
             Create new address
           </Button>
+        ) : (
+          <OutlineButton onClick={() => setStep(AddCardStep.CREATE_ADDRESS)}>
+            Edit new address
+          </OutlineButton>
         )}
         <Button
           onClick={() => {

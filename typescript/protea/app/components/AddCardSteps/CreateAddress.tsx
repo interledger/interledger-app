@@ -93,6 +93,30 @@ const defaultValues: AddressFormData = {
 }
 
 export const CreateAddress = () => {
+  const { newAddress, setNewAddress, setStep } = useAddCardStore()
+
+  // Pre-populate form with existing address data
+  const getDefaultValues = (): AddressFormData => {
+    if (newAddress) {
+      return {
+        details: {
+          type:
+            newAddress.details?.type ||
+            CustomerDeliveryAddressType.CUSTOMER_DELIVERY_ADDRESS_TYPE_OTHER,
+          countryCode: newAddress.details?.countryCode || '',
+          line1: newAddress.details?.line1 || '',
+          line2: newAddress.details?.line2 || '',
+          line3: newAddress.details?.line3 || '',
+          postOffice: newAddress.details?.postOffice || '',
+          city: newAddress.details?.city || '',
+          zipCode: newAddress.details?.zipCode || ''
+        },
+        reason: newAddress.reason || ''
+      }
+    }
+    return defaultValues
+  }
+
   const {
     control,
     handleSubmit,
@@ -100,11 +124,10 @@ export const CreateAddress = () => {
     setValue,
     formState: { errors, isValid }
   } = useForm<AddressFormData>({
-    defaultValues,
+    defaultValues: getDefaultValues(),
     mode: 'onChange',
     resolver: zodResolver(addressFormSchema)
   })
-  const { setNewAddress, setStep } = useAddCardStore()
 
   const handleAddressTypeChange = (option: SelectOptions) => {
     let type: CustomerDeliveryAddressType
