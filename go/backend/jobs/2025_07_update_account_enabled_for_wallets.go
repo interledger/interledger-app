@@ -45,12 +45,12 @@ func (a *Activity) UpdateRafikiWalletActiveStatus(ctx context.Context, params Wa
 		return fmt.Errorf("RAFIKI_DB_URL environment variable is not set")
 	}
 
-	wallets, err := a.fetchWallets(ctx, params)
+	rafikiWalletIds, err := a.fetchRafikiWalletIds(ctx, params)
 	if err != nil {
 		return fmt.Errorf("failed to fetch wallets: %w", err)
 	}
 
-	err = a.updateWalletAddresses(ctx, wallets, params.IsActive)
+	err = a.updateWalletAddresses(ctx, rafikiWalletIds, params.IsActive)
 	if err != nil {
 		return fmt.Errorf("failed to update wallet addresses: %w", err)
 	}
@@ -58,14 +58,14 @@ func (a *Activity) UpdateRafikiWalletActiveStatus(ctx context.Context, params Wa
 	return nil
 }
 
-func (a *Activity) fetchWallets(ctx context.Context, params WalletActive) ([]string, error) {
+func (a *Activity) fetchRafikiWalletIds(ctx context.Context, params WalletActive) ([]string, error) {
 	whereClause, args := buildWhereClause(params)
 
 	if whereClause == "" {
 		return nil, nil
 	}
 
-	query := "SELECT name FROM public.wallets " + whereClause
+	query := "SELECT rafiki.payment_pointer_id FROM public.rafiki_payment_pointers as rafiki INNER JOIN wallets as wallets ON rafiki.wallet_id == wallets.id" + whereClause
 	var wallets []string
 	err := a.b.DB().GetContext(ctx, &wallets, query, args...)
 	if err != nil {
@@ -111,7 +111,7 @@ func (a *Activity) updateWalletAddresses(ctx context.Context, wallets []string, 
 			placeholders[i] = fmt.Sprintf("$%d", i+1)
 			updateArgs = append(updateArgs, w)
 		}
-		updateQuery += fmt.Sprintf(" WHERE \"publicName\" IN (%s)", strings.Join(placeholders, ", "))
+		updateQuery += fmt.Sprintf(" WHERE \"id\" IN (%s)", strings.Join(placeholders, ", "))
 	}
 
 	_, err = db.ExecContext(ctx, updateQuery, updateArgs...)
@@ -130,9 +130,9 @@ func buildWhereClause(params WalletActive) (string, []interface{}) {
 
 	if params.Region != "" {
 		if params.Region == "EU" {
-			conditions = append(conditions, "country IS NOT NULL AND country NOT IN ('US', 'ZA', 'CA')")
+			conditions = append(conditions, "wallets.country IS NOT NULL AND wallets.country NOT IN ('US', 'ZA', 'CA')")
 		} else {
-			conditions = append(conditions, fmt.Sprintf("country IS NOT NULL AND country = $%d", argIndex))
+			conditions = append(conditions, fmt.Sprintf("wallets.country IS NOT NULL AND wallets.country = $%d", argIndex))
 			args = append(args, params.Region)
 			argIndex++
 		}
@@ -145,7 +145,7 @@ func buildWhereClause(params WalletActive) (string, []interface{}) {
 			args = append(args, w)
 			argIndex++
 		}
-		conditions = append(conditions, fmt.Sprintf("id IN (%s)", strings.Join(placeholders, ", ")))
+		conditions = append(conditions, fmt.Sprintf("wallets.id IN (%s)", strings.Join(placeholders, ", ")))
 	}
 
 	if len(conditions) == 0 {
