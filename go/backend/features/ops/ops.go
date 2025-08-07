@@ -9,6 +9,8 @@ import (
 
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/log"
+	"go.uber.org/zap"
 
 	"gitlab.com/fynbos/backend/providers/astra"
 	"gitlab.com/fynbos/backend/providers/chimoney"
@@ -200,15 +202,18 @@ func canAddInterac(lal []linkedaccounts.LinkedAccount) (bool, error) {
 }
 
 func isAccountDisabled(walletID string, walletCountry country.Country) bool {
+	log.Debug("check if wallet is disabled", zap.String("country", walletCountry.String()), zap.String("walletID", walletID))
 	if slices.Contains(env.GetAllowedWalletIds(), walletID) {
 		return false
 	}
 
 	if country.EUCountries[walletCountry] && slices.Contains(env.GetBlockedRegions(), "EU") {
+		log.Info("account disabled due EU region restrictions", zap.String("country", walletCountry.String()), zap.String("walletID", walletID))
 		return true
 	}
 
 	if slices.Contains(env.GetBlockedRegions(), walletCountry.String()) {
+		log.Info("account disabled due to Country region restrictions", zap.String("country", walletCountry.String()), zap.String("walletID", walletID))
 		return true
 	}
 
