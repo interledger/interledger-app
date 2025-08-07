@@ -63,6 +63,7 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		"SELECT send_enabled, receive_enabled, linked_accounts_enabled, cards_enabled, banks_enabled, identities_enabled, twitter_enabled, add_cards_enabled, interac_enabled, manage_wallet_cards_enabled FROM wallet_features WHERE wallet_id=$1",
 		walletID)
 	if err == nil {
+		res.AccountEnabled = true
 		return &res, nil
 	}
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
