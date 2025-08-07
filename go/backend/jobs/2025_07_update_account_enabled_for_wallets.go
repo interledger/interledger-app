@@ -3,7 +3,6 @@ package jobs
 import (
 	"context"
 	"fmt"
-	"os"
 	"strings"
 	"time"
 
@@ -40,17 +39,11 @@ func UpdateRafikiWalletEnabledJob(ctx workflow.Context, params WalletActive) err
 }
 
 func (a *Activity) UpdateRafikiWalletActiveStatus(ctx context.Context, params WalletActive) error {
-	connString := os.Getenv("RAFIKI_DB_URL")
-	if connString == "" {
-		return fmt.Errorf("RAFIKI_DB_URL environment variable is not set")
-	}
-
-	rafikiWalletIds, err := a.fetchRafikiWalletIds(ctx, params)
+	rafikiWalletIds, err := a.FetchRafikiWalletIds(ctx, params)
 	if err != nil {
 		return fmt.Errorf("failed to fetch wallets: %w", err)
 	}
-
-	err = a.updateWalletAddresses(ctx, rafikiWalletIds, params.IsActive)
+	err = a.MutateRafikiWallets(ctx, rafikiWalletIds, params.IsActive)
 	if err != nil {
 		return fmt.Errorf("failed to update wallet addresses: %w", err)
 	}
@@ -58,18 +51,25 @@ func (a *Activity) UpdateRafikiWalletActiveStatus(ctx context.Context, params Wa
 	return nil
 }
 
-func (a *Activity) fetchRafikiWalletIds(ctx context.Context, params WalletActive) ([]string, error) {
-	whereClause, args := buildWhereClause(params)
-
-	if whereClause == "" {
-		return nil, nil
+func (a *Activity) MutateRafikiWallets(ctx context.Context, rafikiWalletIds []string, isActive bool) error {
+	client := a.b.Rafiki()
+	for _, walletId := range rafikiWalletIds {
+		err := client.UpdateWalletAddressStatus(ctx, walletId, isActive)
+		if err != nil {
+			return fmt.Errorf("failed to update wallet address status for %s: %w", walletId, err)
+		}
 	}
+	return nil
+}
 
-	query := "SELECT rafiki.payment_pointer_id FROM public.rafiki_payment_pointers as rafiki INNER JOIN wallets as wallets ON rafiki.wallet_id == wallets.id" + whereClause
+func (a *Activity) FetchRafikiWalletIds(ctx context.Context, params WalletActive) ([]string, error) {
+	whereClause, args := BuildWhereClause(params)
+
+	query := "SELECT rafiki.payment_pointer_id FROM public.rafiki_payment_pointers as rafiki INNER JOIN wallets as wallets ON rafiki.wallet_id = wallets.id " + whereClause
 	var wallets []string
-	err := a.b.DB().GetContext(ctx, &wallets, query, args...)
+	err := a.b.DB().SelectContext(ctx, &wallets, query, args...)
 	if err != nil {
-		log.Error("Error fetching wallets", zap.Error(err))
+
 		return nil, err
 	}
 
@@ -80,50 +80,7 @@ func (a *Activity) fetchRafikiWalletIds(ctx context.Context, params WalletActive
 	return wallets, nil
 }
 
-func (a *Activity) updateWalletAddresses(ctx context.Context, wallets []string, isActive bool) error {
-
-	connString := os.Getenv("RAFIKI_DB_URL")
-	if connString == "" {
-		return fmt.Errorf("RAFIKI_DB_URL environment variable is not set")
-	}
-
-	db, err := DbConnection(connString)
-	if err != nil {
-		return fmt.Errorf("failed to establish a new database connection: %w", err)
-	}
-	defer func() {
-		if closeErr := db.Close(); closeErr != nil {
-			log.Error("Failed to close the database connection", zap.Error(closeErr))
-		}
-	}()
-
-	updateQuery := "UPDATE \"walletAddresses\" SET \"deactivatedAt\" = "
-	if isActive {
-		updateQuery += "null"
-	} else {
-		updateQuery += "NOW()"
-	}
-
-	var updateArgs []interface{}
-	if len(wallets) > 0 {
-		placeholders := make([]string, len(wallets))
-		for i, w := range wallets {
-			placeholders[i] = fmt.Sprintf("$%d", i+1)
-			updateArgs = append(updateArgs, w)
-		}
-		updateQuery += fmt.Sprintf(" WHERE \"id\" IN (%s)", strings.Join(placeholders, ", "))
-	}
-
-	_, err = db.ExecContext(ctx, updateQuery, updateArgs...)
-	if err != nil {
-		return fmt.Errorf("failed to execute update query: %w", err)
-	}
-
-	log.Info("Wallet addresses updated successfully", zap.Int("count", len(wallets)))
-	return nil
-}
-
-func buildWhereClause(params WalletActive) (string, []interface{}) {
+func BuildWhereClause(params WalletActive) (string, []interface{}) {
 	var conditions []string
 	var args []interface{}
 	argIndex := 1
@@ -151,5 +108,5 @@ func buildWhereClause(params WalletActive) (string, []interface{}) {
 	if len(conditions) == 0 {
 		return "", nil
 	}
-	return "WHERE " + strings.Join(conditions, " AND "), args
+	return " WHERE " + strings.Join(conditions, " AND "), args
 }
