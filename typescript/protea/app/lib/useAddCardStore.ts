@@ -15,10 +15,10 @@ export enum AddCardStep {
 }
 const ID_NEW_ADDRESS = 'new'
 
-export type StorableNewAddres = NewCustomerDeliveryAddress & {
+export type StorableNewAddress = NewCustomerDeliveryAddress & {
   id: typeof ID_NEW_ADDRESS
 }
-export type DeliveryAddress = CustomerDeliveryAddress | StorableNewAddres
+export type DeliveryAddress = CustomerDeliveryAddress | StorableNewAddress
 
 interface AddCardState {
   step: AddCardStep
@@ -71,10 +71,12 @@ export const useAddCardStore = create<AddCardState & AddCardActions>((set, get) 
 
   setAddresses: (addresses) => set(() => ({ addresses: addresses })),
   setNewAddress: (address) => {
-    const newStorableAddress = { ...address, id: ID_NEW_ADDRESS } as StorableNewAddres
-    set((state) => ({
+    const newStorableAddress = { ...address, id: ID_NEW_ADDRESS } as StorableNewAddress
+    const existingAddresses = get().addresses.filter((a) => a.id !== ID_NEW_ADDRESS)
+  
+    set(() => ({
       newAddress: address,
-      addresses: [newStorableAddress, ...state.addresses]
+      addresses: [newStorableAddress, ...existingAddresses]
     }))
   },
   setSelectedAddress: (address) => set(() => ({ selectedAddress: address })),

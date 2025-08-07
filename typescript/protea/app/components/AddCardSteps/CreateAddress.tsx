@@ -305,7 +305,7 @@ export const CreateAddress = () => {
                 <TextField
                   id='zipCode'
                   label='Zip Code'
-                  placeholder='10001'
+                  placeholder='123456'
                   value={field.value}
                   onChange={field.onChange}
                   onBlur={field.onBlur}
