@@ -13,6 +13,8 @@ The development environment will serve the various services under the following 
 | http://temporal.mgnt.interledger.test    | Temporal admin portal                       |
 | http://local.fynbos.me                   | Backend endpoint                            |
 | http://local.ilp.link                    | Wallet address                              |
+| http://traefik.test                      | Traefik dashboard                           |
+
 
 Prerequisites:
 - Docker locally installed
@@ -21,7 +23,7 @@ Start environment
 1. Add host entries
 Edit your `/etc/hosts` file with an appropriate text editor and add the following line
 ```
-127.0.0.1 interledger.test admin.mgnt.interledger.test temporal.mgnt.interledger.test local.fynbos.me  local.ilp.link rafiki.mgnt.interledger.test auth.interledger.test
+127.0.0.1 interledger.test admin.mgnt.interledger.test temporal.mgnt.interledger.test local.fynbos.me  local.ilp.link rafiki.mgnt.interledger.test auth.interledger.test traefik.test
 ```
 All the domains used for local development will now point to your local host from where it will be served.
 
