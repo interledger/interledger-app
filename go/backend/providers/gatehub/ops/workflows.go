@@ -73,6 +73,9 @@ func CreateGatehubDeposit(ctx workflow.Context, wh DepositWebhook) (string, erro
 		return "", temporal.NewNonRetryableApplicationError("Invalid currency", "ErrInternal", fmt.Errorf("%w invalid currency", gatehub.ErrInternal))
 	}
 
+	// remove comas used as tousand separators
+	wh.Data.Amount = strings.ReplaceAll(wh.Data.Amount, ",", "")
+
 	parts := strings.Split(wh.Data.Amount, ".")
 	if len(parts) < 2 {
 		return "", temporal.NewNonRetryableApplicationError("Invalid amount", "ErrInternal", fmt.Errorf("%w invalid amount", gatehub.ErrInternal))
