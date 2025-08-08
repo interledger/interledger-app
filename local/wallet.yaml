@@ -5,7 +5,11 @@ services:
       context: ../go
       dockerfile: backend/Dockerfile
       target: builder
-    entrypoint: ["/go/bin/air", "--build.poll", "true", "--build.cmd", "go build -o /local/main /build/backend/main.go", "--build.bin", "/local/main", "--build.args_bin", "migrate"]
+    command: "migrate"
+    develop:
+      watch:
+        - path: ../go
+          action: rebuild
     container_name: migration
     restart: always
     environment:
@@ -29,9 +33,11 @@ services:
       dockerfile: backend/Dockerfile
       target: builder
     container_name: backend
-    entrypoint: ["/go/bin/air", "--build.poll", "true", "--build.cmd", "go build -o /local/main /build/backend/main.go", "--build.bin", "/local/main", "--build.args_bin", "dev"]
-    volumes:
-      - ../go:/build
+    command: "dev"
+    develop:
+      watch:
+        - path: ../go
+          action: rebuild
     restart: always
     ports:
       - "8080:8080" # http port

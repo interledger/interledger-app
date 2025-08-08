@@ -6,6 +6,10 @@ services:
       target: builder
     container_name: mockbos
     restart: always
+    develop:
+      watch:
+        - path: ../go
+          action: rebuild
     ports:
       - "18080:8080" # http port
     environment:
@@ -14,6 +18,3 @@ services:
 
     depends_on:
       - backend
-    entrypoint: ["/go/bin/air", "--build.poll", "true", "--build.include_ext", "go,hcl", "--build.cmd", "go build -o /local/main /build/mockbos/main.go", "--build.bin", "/local/main"]    
-    volumes:
-      - ../go:/build
