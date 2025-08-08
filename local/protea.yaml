@@ -4,8 +4,10 @@ services:
       context: ../typescript/protea
       target: dev
     restart: always
-    volumes:
-      - ../typescript/protea:/app
+    develop:
+      watch:
+        - path: ../typescript/protea
+          action: rebuild
     ports:
       - "3000:3000" # http port
       - "8002:8002" # websocket port

@@ -15,6 +15,6 @@ include:
   
   # tier 3 (application)
   - wallet.yaml
-  # - protea.yaml
-  # - botanist.yaml
+  - protea.yaml
+  - botanist.yaml
   - mockbos.yaml

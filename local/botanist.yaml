@@ -4,8 +4,10 @@ services:
       context: ../typescript/botanist
       target: dev
     restart: always
-    volumes:
-      - ../typescript/botanist:/app
+    develop:
+      watch:
+        - path: ../typescript/botanist
+          action: rebuild
     ports:
       - "13000:3000" # http port
       - "18002:8002" # websocket port
