@@ -22,4 +22,5 @@ type Client interface {
 	GetGrant(ctx context.Context, grantID string) (*Grant, error)
 	RevokeGrant(ctx context.Context, grantID string) error
 	ListPendingTransactions(ctx context.Context, walletID string) ([]transactions.Transaction, error)
+	UpdateWalletAddressStatus(ctx context.Context, walletId string, isActive bool) error
 }
