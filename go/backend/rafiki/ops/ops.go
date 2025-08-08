@@ -363,6 +363,11 @@ func RevokeGrant(ctx context.Context, b Backends, grantID string) error {
 	return nil
 }
 
+func UpdateWalletAddressStatus(ctx context.Context, b Backends, walletId string, status bool) error {
+	return b.External().UpdateWalletAddressStatus(ctx, walletId, status)
+
+}
+
 func ListPendingWebMonetization(ctx context.Context, b Backends, walletID string) ([]transactions.Transaction, error) {
 	var dbPayments []dbPayment
 	err := b.DB().SelectContext(ctx, &dbPayments, `SELECT id, from_wallet, to_wallet, amount, amount_asset, created_at FROM rafiki_outgoing_payments
