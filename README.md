@@ -1,37 +1,59 @@
 # Interledger Wallet
 
-### Create local dev environment
+## Local Development Environment
 
-This spins up a Nomad and Consul deployment in a VM using VirtualBox and Vagrant.
-```shell
-make devup
+Prerequisites:
+- Docker locally installed
+- Node >= 18.20
+- pnpm
+
+Start environment
+1. Add host entries
+Edit your `/etc/hosts` file with an appropriate text editor and add the following line
+```
+127.0.0.1 interledger.test admin.mgnt.interledger.test temporal.mgnt.interledger.test local.fynbos.me  local.ilp.link rafiki.mgnt.interledger.test auth.interledger.test
+```
+All the domains used for local development will now point to your local host from where it will be served.
+
+
+2. Use `pnpm` to download initial set of dependencies for frontend packages
+```sh
+# From repository folder
+
+cd typescript/botanist
+pnpm install
+
+cd ../protea
+pnpm install
 ```
 
-### Delete local dev environment
+3. Start all services using Docker Compose
+```sh
+# From repository folder
 
-To delete the local environment run the following command
-```shell
-make devdown
+cd ./local
+docker compose up -d
 ```
 
-### Rerunning deployment 
+All services should start asyncronously and automatically rebuild sources whenever code changes have been made.
 
-To deploy all the services or when deployment config has changed, run
-```shell
-make devdeploy
+## Troubleshooting
+
+### View log for a service
+The example below demonstrates how to view the last 100 logs for the protea service.
+```sh
+docker compose logs -f --tail=100 protea
 ```
 
-### SSH into dev environment
+### Recreating environment
+Removes the whole environment to start fresh
+```sh
+# Remove containers and volumes
+docker compose down -v
 
-To ssh into the vagrant VM, run
-```shell
-make devssh
+# You have to manually delete your node modules if you so desire
 ```
 
-> [!WARNING]
-> Sometimes the files on your host are not mounted into the VM. This oftwn appears as a file not found error.
-> Rerun `make devdeploy`.
+## Legacy Development environment
 
-> [!WARNING]
-> Sometimes the Nomad jobs might fail because of a placement error: "Constraint `${attr.consul.version} semver >= 1.8.0` filtered 1 node".
-> Run `make devnomad` to fix this issue.
+It is also possible to start up the project using Nomad and Vagrant VMs. See [this](./legacy-dev.md) document for more information.
