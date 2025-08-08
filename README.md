@@ -2,6 +2,16 @@
 
 ## Local Development Environment
 
+The development environment will serve the various services under the following URLs
+
+| URL                              | Description                                 |
+|-----------------------------------|---------------------------------------------|
+| http://interledger.test                  | Wallet frontend (previously called Protea)  |
+| http://admin.mgnt.interledger.test       | Wallet admin portal (previously Botanist)   |
+| http://temporal.mgnt.interledger.test    | Temporal admin portal                       |
+| http://local.fynbos.me                   | Backend endpoint                            |
+| http://local.ilp.link                    | Wallet address                              |
+
 Prerequisites:
 - Docker locally installed
 - Node >= 18.20
