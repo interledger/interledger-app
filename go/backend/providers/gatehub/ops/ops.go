@@ -44,7 +44,6 @@ func CreateUser(ctx context.Context, b Backends, walletID string) (gatehub.Await
 		}
 	}
 
-	// return workflow if it's running
 	var await client.WorkflowRun
 	var executeErr error
 	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING {

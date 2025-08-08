@@ -166,11 +166,12 @@ func HandleUserVerificationWebhook(ctx context.Context, b Backends, raw json.Raw
 		return
 	}
 
-	if wh.Data.Verified.Short == verificationAccepted {
+	switch wh.Data.Verified.Short {
+	case verificationAccepted:
 		err = b.KYC().SetKYCStatus(ctx, walletID, kyc.StatusLevel1)
-	} else if wh.Data.Verified.Short == verificationRejected {
+	case verificationRejected:
 		err = b.KYC().SetKYCStatus(ctx, walletID, kyc.StatusDenied)
-	} else {
+	default:
 		log.Error("Unknown gatehub user verification status", zap.String("external_user_uuid", wh.UserID), zap.String("short", wh.Data.Verified.Short), zap.Int("status", wh.Data.Verified.Status))
 	}
 	if err != nil {

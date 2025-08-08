@@ -148,11 +148,37 @@ func (a *Activity) CreateGatehubWalletLinkedAccount(ctx context.Context, walletI
 	return la, nil
 }
 
-func (a *Activity) CreateGatehubBalanceAccount(ctx context.Context, id string) error {
+func (a *Activity) CreateGatehubEuroBalanceAccount(ctx context.Context, id string) error {
 	accs, err := a.b.Pacioli().ConfigureAccounts(ctx, []pacioli.ConfigureAccountArgs{
 		{
 			ID:                         id,
 			LedgerID:                   gatehub.LedgerIDEUR,
+			Code:                       1,
+			DebitsMustNotExceedCredits: true,
+			CreditsMustNotExceedDebits: false,
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	if len(accs) == 0 {
+		// No error codes to speak of
+		return nil
+	}
+
+	if accs[0].Code != pacioli.AccountOK && accs[0].Code != pacioli.AccountExists {
+		return fmt.Errorf("%w failed to setup account status(%s)", gatehub.ErrInternal, accs[0].Code)
+	}
+
+	return nil
+}
+
+func (a *Activity) CreateGatehubUSDBalanceAccount(ctx context.Context, id string) error {
+	accs, err := a.b.Pacioli().ConfigureAccounts(ctx, []pacioli.ConfigureAccountArgs{
+		{
+			ID:                         id,
+			LedgerID:                   gatehub.LedgerIDUSD,
 			Code:                       1,
 			DebitsMustNotExceedCredits: true,
 			CreditsMustNotExceedDebits: false,
@@ -327,6 +353,11 @@ func (a *Activity) FinalizeGatehubDeposit(ctx context.Context, id, walletID stri
 
 	opsAcc := gatehub.EUROpsAccount
 	ledger := gatehub.LedgerIDEUR
+	if amount.Currency == currency.USD {
+		opsAcc = gatehub.USDOpsAccount
+		ledger = gatehub.LedgerIDUSD
+	}
+
 	tx, err := a.b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
 		{
 			ID:              id,

@@ -49,7 +49,7 @@ func CreateGatehubUserWorkflow(ctx workflow.Context, walletID string) (string, e
 		return "", err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.CreateGatehubBalanceAccount, la.ID).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.CreateGatehubEuroBalanceAccount, la.ID).Get(ctx, nil)
 	if err != nil {
 		return "", err
 	}

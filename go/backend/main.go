@@ -357,6 +357,12 @@ func migrate(args *cli.MigrationArgs) {
 			Scale: uint8(currency.EUR.Scale()),
 		},
 		{
+			ID:    gatehub.LedgerIDUSD,
+			Name:  "Gatehub USD Ledger",
+			Asset: currency.USD.String(),
+			Scale: uint8(currency.USD.Scale()),
+		},
+		{
 			ID:    chimoney.LedgerIDCAD,
 			Name:  "Gatehub CAD Ledger",
 			Asset: currency.CAD.String(),
@@ -404,6 +410,13 @@ func migrate(args *cli.MigrationArgs) {
 		{
 			ID:                         gatehub.EUROpsAccount,
 			LedgerID:                   gatehub.LedgerIDEUR,
+			Code:                       1,
+			DebitsMustNotExceedCredits: false,
+			CreditsMustNotExceedDebits: false,
+		},
+		{
+			ID:                         gatehub.USDOpsAccount,
+			LedgerID:                   gatehub.LedgerIDUSD,
 			Code:                       1,
 			DebitsMustNotExceedCredits: false,
 			CreditsMustNotExceedDebits: false,

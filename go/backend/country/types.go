@@ -76,6 +76,8 @@ var EUCountries = map[Country]bool{
 	SI: true, // Slovenia
 	ES: true, // Spain
 	SE: true, // Sweden
+	// TO allow US account to get the GATEHUB WALLET
+	US: true, // United States (not in EU, but often included in lists of European countries)
 }
 
 const (
