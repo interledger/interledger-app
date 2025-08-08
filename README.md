@@ -14,8 +14,6 @@ The development environment will serve the various services under the following 
 
 Prerequisites:
 - Docker locally installed
-- Node >= 18.20
-- pnpm
 
 Start environment
 1. Add host entries
@@ -48,8 +46,6 @@ Removes the whole environment to start fresh
 ```sh
 # Remove containers and volumes
 docker compose down -v
-
-# You have to manually delete your node modules if you so desire
 ```
 
 ## Legacy Development environment
