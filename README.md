@@ -2,7 +2,9 @@
 
 ## Local Development Environment
 
-The development environment will serve the various services under the following URLs
+We provide a `docker compose` managed environment that will attempt to automatically rebuild the sources upon any change. 
+
+The development environment will serve the various services under the following URLs.
 
 | URL                              | Description                                 |
 |-----------------------------------|---------------------------------------------|
