@@ -274,6 +274,7 @@ func forwardWebhookToFallback(ctx context.Context, body []byte, headers http.Hea
 		return fmt.Errorf("creating forward request: %w", err)
 	}
 
+	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("x-gh-webhook-signature", headers.Get("x-gh-webhook-signature"))
 	req.Header.Set("x-gh-webhook-timestamp", headers.Get("x-gh-webhook-timestamp"))
 
