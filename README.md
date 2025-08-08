@@ -25,19 +25,7 @@ Edit your `/etc/hosts` file with an appropriate text editor and add the followin
 ```
 All the domains used for local development will now point to your local host from where it will be served.
 
-
-2. Use `pnpm` to download initial set of dependencies for frontend packages
-```sh
-# From repository folder
-
-cd typescript/botanist
-pnpm install
-
-cd ../protea
-pnpm install
-```
-
-3. Start all services using Docker Compose
+2. Start all services using Docker Compose
 ```sh
 # From repository folder
 
