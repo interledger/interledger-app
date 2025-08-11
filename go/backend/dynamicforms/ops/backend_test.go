@@ -1,6 +1,18 @@
 package ops_test
 
-import "github.com/jmoiron/sqlx"
+import (
+	"testing"
+
+	"github.com/jmoiron/sqlx"
+)
+
+
+func NewTestBackends(t *testing.T, Db *sqlx.DB) *TestBackends {
+
+	return &TestBackends{
+		Db: Db,
+	}
+}
 
 type TestBackends struct {
 	Db *sqlx.DB
