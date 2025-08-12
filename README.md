@@ -1,5 +1,64 @@
 # Interledger Wallet
 
+## Local Development Environment
+
+### Create local dev environment
+
+We provide a `docker compose` managed environment that will attempt to automatically rebuild the sources upon any change. 
+
+The development environment will serve the various services under the following URLs.
+
+| URL                              | Description                                 |
+|-----------------------------------|---------------------------------------------|
+| http://interledger.test                  | Wallet frontend (previously called Protea)  |
+| http://admin.mgnt.interledger.test       | Wallet admin portal (previously Botanist)   |
+| http://temporal.mgnt.interledger.test    | Temporal admin portal                       |
+| http://local.fynbos.me                   | Backend endpoint                            |
+| http://local.ilp.link                    | Wallet address                              |
+| http://traefik.test                      | Traefik dashboard                           |
+
+
+Prerequisites:
+- Docker locally installed
+
+Start environment
+1. Add host entries
+Edit your `/etc/hosts` file with an appropriate text editor and add the following line
+```
+127.0.0.1 interledger.test admin.mgnt.interledger.test temporal.mgnt.interledger.test local.fynbos.me local.ilp.link rafiki.mgnt.interledger.test auth.interledger.test traefik.test
+```
+
+All the domains used for local development will now point to your local host from where it will be served.
+
+2. Start all services using Docker Compose
+```sh
+# From repository folder
+
+cd ./local
+docker compose up -d
+```
+
+All services should start asyncronously and automatically rebuild sources whenever code changes have been made.
+
+## Troubleshooting
+
+### View log for a service
+The example below demonstrates how to view the last 100 logs for the protea service.
+```sh
+docker compose logs -f --tail=100 protea
+```
+
+### Recreating environment
+Removes the whole environment to start fresh
+```sh
+# Remove containers and volumes
+docker compose down -v
+```
+
+## Legacy Development environment
+
+It is also possible to start up the project using Nomad and Vagrant VMs. See [this](./legacy-dev.md) document for more information.
+
 ## Testing
 
 ### GoLang unittests
@@ -33,44 +92,4 @@ Some notes
 - In previous iterations the project used postgres 15, so be on the lookout for issues relating to the move to pg 17
 - After performing the steps above you should be able to run the tests directly from vscode
 
-## Vagrant based dev environment
 
-The text below explains how to fire up the Vagrant and Nomad based development environment. This mechanism will become deprecated
-to be replaced by kubernetes kind based environment that runs directly on the host machine. The vagrant environment requires too
-much RAM for the average workstation and makes development inaccessible for most developers.
-
-### Create local dev environment
-
-This spins up a Nomad and Consul deployment in a VM using VirtualBox and Vagrant.
-```shell
-make devup
-```
-
-### Delete local dev environment
-
-To delete the local environment run the following command
-```shell
-make devdown
-```
-
-### Rerunning deployment 
-
-To deploy all the services or when deployment config has changed, run
-```shell
-make devdeploy
-```
-
-### SSH into dev environment
-
-To ssh into the vagrant VM, run
-```shell
-make devssh
-```
-
-> [!WARNING]
-> Sometimes the files on your host are not mounted into the VM. This oftwn appears as a file not found error.
-> Rerun `make devdeploy`.
-
-> [!WARNING]
-> Sometimes the Nomad jobs might fail because of a placement error: "Constraint `${attr.consul.version} semver >= 1.8.0` filtered 1 node".
-> Run `make devnomad` to fix this issue.
