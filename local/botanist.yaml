@@ -1,0 +1,27 @@
+services:
+  botanist:
+    build:
+      context: ../typescript/botanist
+      target: dev
+    restart: always
+    develop:
+      watch:
+        - path: ../typescript/botanist
+          action: rebuild
+    ports:
+      - "13000:3000" # http port
+      - "18002:8002" # websocket port
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.botanist.rule=Host(`admin.mgnt.interledger.test`)"
+      - "traefik.http.services.botanist.loadbalancer.server.port=3000"
+    # healthcheck:
+    #   test: ["CMD-SHELL", "curl -f http://localhost:3000/healthz || exit 1"]
+    #   interval: 5s
+    #   timeout: 2s
+    #   retries: 5
+    environment:
+      - FYNBOS_ENV=local
+
+      - CHOKIDAR_USEPOLLING=true
+      - BACKEND_GRPC_URL=backend:8448
