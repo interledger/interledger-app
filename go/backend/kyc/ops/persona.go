@@ -17,7 +17,6 @@ import (
 )
 
 func GetPersonaInquiry(ctx context.Context, b Backends, cl persona.Client, walletID, idempotencyKey string) (*kyc.PersonaInquiry, error) {
-
 	if env.IsLocal() {
 		err := GenerateKycData(ctx, b, walletID)
 		return &kyc.PersonaInquiry{

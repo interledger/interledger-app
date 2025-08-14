@@ -145,9 +145,9 @@ const (
 type InquiryTemplateID string
 
 var inquiryTemplateIDs = map[country.Country]InquiryTemplateID{
-	country.US: "itmpl_tpPr4WDZHkcBSWjWL4Qt9iYjLhdq", // only collect name, DOB and address
-	country.GB: "itmpl_EJAHdJABX5xztmk7JbC9gNLH",
-	country.ZA: "itmpl_btzBVE6jNCvP6eSbNurwT73L",
+	country.US: "itmpl_JYHP6J5MtyaSd9UzcZRB2KBiPKCo", // only collect name, DOB and address
+	country.GB: "itmpl_wAUZFdNhtuoQUoqf5uQmisEmX4qh",
+	country.ZA: "itmpl_p9xFdzFCVrRSv7zbPUtbHLfSRFZQ",
 }
 
 func GetTemplateIDForCountry(ctx context.Context, ctry country.Country) InquiryTemplateID {
