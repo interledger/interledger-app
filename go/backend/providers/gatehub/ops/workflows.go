@@ -110,7 +110,7 @@ func CreateGatehubDeposit(ctx workflow.Context, wh DepositWebhook) (string, erro
 	}
 
 	var txID string
-	err = workflow.ExecuteActivity(ctx, a.CreateGatehubDepositTransaction, wh.ID, walletID, amt, providerFee).Get(ctx, &txID)
+	err = workflow.ExecuteActivity(ctx, a.CreateGatehubDepositTransaction, wh.Data.TrxID, walletID, amt, providerFee).Get(ctx, &txID)
 	if err != nil {
 		return "", err
 	}
