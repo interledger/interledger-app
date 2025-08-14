@@ -42,10 +42,11 @@ func TestCreateTransaction(t *testing.T) {
 				Source:      "$ilp.link/alice",
 				Destination: "$ilp.link/bob",
 				Amount: currency.Amount{
-					Value:    1000,
+					Value:    990,
 					Currency: currency.USD,
 					Scale:    2,
 				},
+				ProviderFee:             currency.FromFloat64(10, currency.USD),
 				DestinationIdentityType: "Twitter",
 				DestinationIdentity:     "@elon",
 				LinkedAccountTitle:      "VISA XXX123",
@@ -62,10 +63,11 @@ func TestCreateTransaction(t *testing.T) {
 				Source:      "$ilp.link/alice",
 				Destination: "$ilp.link/bob",
 				Amount: currency.Amount{
-					Value:    1000,
+					Value:    990,
 					Currency: currency.USD,
 					Scale:    2,
 				},
+				ProviderFee: currency.FromFloat64(10, currency.USD),
 			},
 		},
 		{
@@ -78,10 +80,11 @@ func TestCreateTransaction(t *testing.T) {
 				Source:      "$ilp.link/alice",
 				Destination: "$ilp.link/bob",
 				Amount: currency.Amount{
-					Value:    1000,
+					Value:    990,
 					Currency: currency.USD,
 					Scale:    2,
 				},
+				ProviderFee: currency.FromFloat64(10, currency.USD),
 			},
 		},
 		{
@@ -95,10 +98,11 @@ func TestCreateTransaction(t *testing.T) {
 				Source:      "$ilp.link/alice",
 				Destination: "$ilp.link/bob",
 				Amount: currency.Amount{
-					Value:    1000,
+					Value:    990,
 					Currency: currency.USD,
 					Scale:    2,
 				},
+				ProviderFee: currency.FromFloat64(10, currency.USD),
 				Transfers: []transactions.TransferArgs{
 					{
 						ForeignID: uuid.NewString(),
@@ -189,10 +193,11 @@ func TestListWithPendingTransaction(t *testing.T) {
 				Source:      "$ilp.link/alice",
 				Destination: "$ilp.link/bob",
 				Amount: currency.Amount{
-					Value:    1000,
+					Value:    990,
 					Currency: currency.USD,
 					Scale:    2,
 				},
+				ProviderFee: currency.FromFloat64(10, currency.USD),
 			},
 		},
 		{
@@ -207,10 +212,11 @@ func TestListWithPendingTransaction(t *testing.T) {
 				Source:      "$ilp.link/alice",
 				Destination: "$ilp.link/bob",
 				Amount: currency.Amount{
-					Value:    1000,
+					Value:    990,
 					Currency: currency.USD,
 					Scale:    2,
 				},
+				ProviderFee: currency.FromFloat64(10, currency.USD),
 			},
 		},
 		{
@@ -225,10 +231,11 @@ func TestListWithPendingTransaction(t *testing.T) {
 				Source:      "$ilp.link/alice",
 				Destination: "$ilp.link/bob",
 				Amount: currency.Amount{
-					Value:    1000,
+					Value:    990,
 					Currency: currency.USD,
 					Scale:    2,
 				},
+				ProviderFee: currency.FromFloat64(10, currency.USD),
 			},
 		},
 		{
@@ -246,10 +253,11 @@ func TestListWithPendingTransaction(t *testing.T) {
 				DestinationIdentityType: "Twitter",
 				DestinationIdentity:     "@elon",
 				Amount: currency.Amount{
-					Value:    1000,
+					Value:    990,
 					Currency: currency.USD,
 					Scale:    2,
 				},
+				ProviderFee: currency.FromFloat64(10, currency.USD),
 				Transfers: []transactions.TransferArgs{
 					{
 						ForeignID: uuid.NewString(),
@@ -350,10 +358,11 @@ func TestListWithPendingPagination(t *testing.T) {
 			Source:      "$ilp.link/alice",
 			Destination: "$ilp.link/bob",
 			Amount: currency.Amount{
-				Value:    1000,
+				Value:    990,
 				Currency: currency.USD,
 				Scale:    2,
 			},
+			ProviderFee: currency.FromFloat64(10, currency.USD),
 		}
 	}
 
@@ -448,10 +457,11 @@ func TestSetTransactionForeignIDs(t *testing.T) {
 				Source:      "$ilp.link/alice",
 				Destination: "$ilp.link/bob",
 				Amount: currency.Amount{
-					Value:    1000,
+					Value:    990,
 					Currency: currency.USD,
 					Scale:    2,
 				},
+				ProviderFee: currency.FromFloat64(10, currency.USD),
 			},
 			foreignID: "4e57c03d-90f2-4555-b5e4-5f07c4e40583",
 		},
@@ -518,10 +528,11 @@ func TestSetTransferForeignID(t *testing.T) {
 				Source:      "$ilp.link/alice",
 				Destination: "$ilp.link/bob",
 				Amount: currency.Amount{
-					Value:    1000,
+					Value:    990,
 					Currency: currency.USD,
 					Scale:    2,
 				},
+				ProviderFee: currency.FromFloat64(10, currency.USD),
 				Transfers: []transactions.TransferArgs{
 					{
 						Type:  transactions.TransferTypeDebitCard,
@@ -606,10 +617,11 @@ func TestSetTransactionState(t *testing.T) {
 				Source:      "$ilp.link/alice",
 				Destination: "$ilp.link/bob",
 				Amount: currency.Amount{
-					Value:    1000,
+					Value:    990,
 					Currency: currency.USD,
 					Scale:    2,
 				},
+				ProviderFee: currency.FromFloat64(10, currency.USD),
 			},
 			state: transactions.StateCompleted,
 		},
@@ -676,10 +688,11 @@ func TestSetTransferState(t *testing.T) {
 				Source:      "$ilp.link/alice",
 				Destination: "$ilp.link/bob",
 				Amount: currency.Amount{
-					Value:    1000,
+					Value:    990,
 					Currency: currency.USD,
 					Scale:    2,
 				},
+				ProviderFee: currency.FromFloat64(10, currency.USD),
 				Transfers: []transactions.TransferArgs{
 					{
 						Type:  transactions.TransferTypeDebitCard,
