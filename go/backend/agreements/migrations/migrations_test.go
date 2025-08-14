@@ -21,11 +21,13 @@ func TestProdAgreements(t *testing.T) {
 func TestMigrationIdempotency(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	db := db.MigrateTestDB(t, ctx)
-	if err := migrations.MigrateFromMarkdowns(ctx, db, "assets/testing"); err != nil {
+	db1 := db.MigrateTestDB(t, ctx)
+	if err := migrations.MigrateFromMarkdowns(ctx, db1, "assets/testing"); err != nil {
 		t.Fatal(err)
 	}
-	err := migrations.MigrateFromMarkdowns(ctx, db, "assets/testing")
+	// Create a new test database for the second migration run to ensure clean state
+	db2 := db.MigrateTestDB(t, ctx)
+	err := migrations.MigrateFromMarkdowns(ctx, db2, "assets/testing")
 
 	assert.NoError(t, err)
 }

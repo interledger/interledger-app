@@ -1,6 +1,7 @@
 package ops
 
 import (
+	"bytes"
 	"context"
 	"crypto/hmac"
 	"crypto/sha256"
@@ -31,6 +32,7 @@ type (
 	Webhook struct {
 		ID        string `json:"uuid"`
 		EventType string `json:"event_type"`
+		UserID    string `json:"user_uuid"`
 	}
 
 	UserVerificationWebhook struct {
@@ -109,6 +111,25 @@ func NewWebhook(b Backends) http.HandlerFunc {
 			return
 		}
 
+		if _, err := getWalletID(r.Context(), b, wh.UserID); err != nil {
+			log.Info("Wallet not found for Gatehub user; attempting cards fallback",
+				zap.String("external_user_uuid", wh.UserID),
+				zap.Error(err),
+			)
+
+			if err := forwardWebhookToFallback(r.Context(), body, r.Header); err != nil {
+				log.Error("failed to forward webhook to cards fallback",
+					zap.Error(err),
+					zap.String("external_user_uuid", wh.UserID),
+				)
+				http.Error(w, "Failed to forward webhook", http.StatusInternalServerError)
+				return
+			}
+
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
 		switch wh.EventType {
 		case "id.verification.accepted", "id.verification.rejected":
 			HandleUserVerificationWebhook(r.Context(), b, body, w)
@@ -125,8 +146,7 @@ func NewWebhook(b Backends) http.HandlerFunc {
 }
 
 func HandleActionRequiredWebhook(ctx context.Context, b Backends, raw json.RawMessage, w http.ResponseWriter) {
-	slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "Fynbot", fmt.Sprintf("gatehub verification action required: %s", string(raw)))
-
+	slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "wallet-info-bot", fmt.Sprintf("gatehub verification action required: %s", string(raw)))
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -240,4 +260,35 @@ func Verify(ctx context.Context, r *http.Request, key []byte) ([]byte, error) {
 	}
 
 	return payload, nil
+}
+
+func forwardWebhookToFallback(ctx context.Context, body []byte, headers http.Header) error {
+	forwardURL := os.Getenv("GATEHUB_FALLBACK_WEBHOOK_URL")
+	if forwardURL == "" {
+		log.Error("GATEHUB_FALLBACK_WEBHOOK_URL is not set")
+		return fmt.Errorf("GATEHUB_FALLBACK_WEBHOOK_URL is not set")
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, forwardURL, bytes.NewReader(body))
+	if err != nil {
+		return fmt.Errorf("creating forward request: %w", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("x-gh-webhook-signature", headers.Get("x-gh-webhook-signature"))
+	req.Header.Set("x-gh-webhook-timestamp", headers.Get("x-gh-webhook-timestamp"))
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("sending forward request: %w", err)
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return fmt.Errorf("webhook forward failed with status %d to %s", resp.StatusCode, forwardURL)
+	}
+
+	log.Info("Webhook successfully forwarded", zap.String("url", forwardURL), zap.Int("status", resp.StatusCode))
+	return nil
 }

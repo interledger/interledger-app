@@ -37,15 +37,33 @@ func (b backends) Twilio() twilio.Service {
 	return b.twilio
 }
 
-func TestSetUserData(t *testing.T) {
+func setupTest(t *testing.T) (context.Context, *backends) {
+	
 	ctx := context.Background()
-
 	db := db.MigrateTestDB(t, ctx)
-
 	b := &backends{
 		validator: validator.New(),
 		db:        db,
 	}
+	return ctx, b
+}
+
+func setupTestWithTwilio(t *testing.T) (context.Context, *backends) {
+	
+	ctx := context.Background()
+	db := db.MigrateTestDB(t, ctx)
+	tw := twilio.NewMockService(gomock.NewController(t))
+	tw.EXPECT().CheckVerificationCode(ctx, gomock.Any()).Return(&twilio.Verification{Status: "approved"}, nil).AnyTimes()
+	b := &backends{
+		validator: validator.New(),
+		db:        db,
+		twilio:    tw,
+	}
+	return ctx, b
+}
+
+func TestSetUserData(t *testing.T) {
+	ctx, b := setupTest(t)
 
 	id, err := ops.SetUserData(ctx, b, signup.UserDataArgs{
 		FirstName:   "FirstName",
@@ -84,17 +102,7 @@ func TestSetUserData(t *testing.T) {
 }
 
 func TestSetMobileNumber(t *testing.T) {
-	ctx := context.Background()
-
-	db := db.MigrateTestDB(t, ctx)
-
-	tw := twilio.NewMockService(gomock.NewController(t))
-	tw.EXPECT().CheckVerificationCode(ctx, gomock.Any()).Return(&twilio.Verification{Status: "approved"}, nil).AnyTimes()
-	b := &backends{
-		validator: validator.New(),
-		db:        db,
-		twilio:    tw,
-	}
+	ctx, b := setupTestWithTwilio(t)
 
 	id, err := ops.SetUserData(ctx, b, signup.UserDataArgs{
 		FirstName:   "FirstName",
@@ -124,15 +132,8 @@ func TestSetMobileNumber(t *testing.T) {
 }
 
 func TestFailsDuplicateCompleteMobileNumber(t *testing.T) {
-	ctx := context.Background()
-	db := db.MigrateTestDB(t, ctx)
-	tw := twilio.NewMockService(gomock.NewController(t))
-	tw.EXPECT().CheckVerificationCode(ctx, gomock.Any()).Return(&twilio.Verification{Status: "approved"}, nil).AnyTimes()
-	b := &backends{
-		validator: validator.New(),
-		db:        db,
-		twilio:    tw,
-	}
+	ctx, b := setupTestWithTwilio(t)
+
 	id, err := ops.SetUserData(ctx, b, signup.UserDataArgs{
 		FirstName:   "FirstName",
 		LastName:    "LastName",
@@ -140,6 +141,7 @@ func TestFailsDuplicateCompleteMobileNumber(t *testing.T) {
 		CountryCode: "ZA",
 	})
 	require.NoError(t, err)
+
 	mobile := faker.E164PhoneNumber()
 	err = ops.SetMobileNumber(ctx, b, signup.MobileNumberArgs{
 		ID:           id,
@@ -147,6 +149,7 @@ func TestFailsDuplicateCompleteMobileNumber(t *testing.T) {
 		OTP:          "123456",
 	})
 	require.NoError(t, err)
+
 	userID := uuid.NewString()
 	err = ops.Complete(ctx, b, id, userID)
 	require.NoError(t, err)
@@ -158,6 +161,7 @@ func TestFailsDuplicateCompleteMobileNumber(t *testing.T) {
 		CountryCode: "ZA",
 	})
 	require.NoError(t, err)
+
 	err = ops.SetMobileNumber(ctx, b, signup.MobileNumberArgs{
 		ID:           id1,
 		MobileNumber: mobile,
@@ -167,17 +171,7 @@ func TestFailsDuplicateCompleteMobileNumber(t *testing.T) {
 }
 
 func TestComplete(t *testing.T) {
-	ctx := context.Background()
-
-	db := db.MigrateTestDB(t, ctx)
-
-	tw := twilio.NewMockService(gomock.NewController(t))
-	tw.EXPECT().CheckVerificationCode(ctx, gomock.Any()).Return(&twilio.Verification{Status: "approved"}, nil).AnyTimes()
-	b := &backends{
-		validator: validator.New(),
-		db:        db,
-		twilio:    tw,
-	}
+	ctx, b := setupTestWithTwilio(t)
 
 	id, err := ops.SetUserData(ctx, b, signup.UserDataArgs{
 		FirstName:   "FirstName",
@@ -223,17 +217,7 @@ func TestComplete(t *testing.T) {
 }
 
 func TestCompleteIdempotent(t *testing.T) {
-	ctx := context.Background()
-
-	db := db.MigrateTestDB(t, ctx)
-
-	tw := twilio.NewMockService(gomock.NewController(t))
-	tw.EXPECT().CheckVerificationCode(ctx, gomock.Any()).Return(&twilio.Verification{Status: "approved"}, nil).AnyTimes()
-	b := &backends{
-		validator: validator.New(),
-		db:        db,
-		twilio:    tw,
-	}
+	ctx, b := setupTestWithTwilio(t)
 
 	id, err := ops.SetUserData(ctx, b, signup.UserDataArgs{
 		FirstName:   "FirstName",
@@ -260,17 +244,7 @@ func TestCompleteIdempotent(t *testing.T) {
 }
 
 func TestCompleteFailsAnotherUser(t *testing.T) {
-	ctx := context.Background()
-
-	db := db.MigrateTestDB(t, ctx)
-
-	tw := twilio.NewMockService(gomock.NewController(t))
-	tw.EXPECT().CheckVerificationCode(ctx, gomock.Any()).Return(&twilio.Verification{Status: "approved"}, nil).AnyTimes()
-	b := &backends{
-		validator: validator.New(),
-		db:        db,
-		twilio:    tw,
-	}
+	ctx, b := setupTestWithTwilio(t)
 
 	id, err := ops.SetUserData(ctx, b, signup.UserDataArgs{
 		FirstName:   "FirstName",
