@@ -59,6 +59,7 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(jobs.TransformKeysToBase64URLJob)
 	w.RegisterWorkflow(jobs.MigrateWalletAddressesToLowercaseJob)
 	//w.RegisterWorkflow(jobs.BalanceDiscrepanciesJob)
+	w.RegisterWorkflow(jobs.UpdateRafikiWalletEnabledJob)
 
 	// Payment Engine
 	w.RegisterActivity(payments_workflows.NewActivity(b))

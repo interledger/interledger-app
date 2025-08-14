@@ -1,0 +1,31 @@
+services:
+  # 1. Temporal Server
+  temporal:
+    image: temporalio/auto-setup:latest
+    container_name: temporal
+    depends_on:
+      - postgres
+    environment:
+      - DB=postgres12
+      - DB_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PWD=postgres
+      - POSTGRES_SEEDS=postgres
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CLI_ADDRESS=temporal:7233
+    ports:
+      - 7233:7233
+
+  # 2. Temporal Web UI
+  temporal-ui:
+    image: temporalio/ui:latest
+    ports:
+      - "27016:8080"
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+    depends_on:
+      - temporal
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.temporal-ui.rule=Host(`temporal.mgnt.interledger.test`)"
+      - "traefik.http.services.temporal-ui.loadbalancer.server.port=8080"

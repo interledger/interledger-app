@@ -2,6 +2,7 @@ package env
 
 import (
 	"os"
+	"strings"
 	"sync"
 	"testing"
 )
@@ -13,7 +14,11 @@ const (
 )
 
 var fynbosEnv = "prod"
+var blockedRegions = []string{}
+var allowedWalletIds = []string{}
 var once = sync.Once{}
+var onceAllowedWalletIds = sync.Once{}
+var onceBlockedRegions = sync.Once{}
 
 var allowedEnvs = []string{
 	"prod",    // Live production environment
@@ -23,12 +28,37 @@ var allowedEnvs = []string{
 	"test",    // Go testing env
 }
 
+
 func SetEnv(t *testing.T, env string) {
 	orig := GetEnv()
 	fynbosEnv = env
 	t.Cleanup(func() {
 		fynbosEnv = orig
 	})
+}
+
+func GetAllowedWalletIds() []string {
+	onceAllowedWalletIds.Do(func() {
+		a := os.Getenv("ALLOWED_WALLET_IDS")
+		if a == "" {
+			allowedWalletIds = []string{}
+		} else {
+			allowedWalletIds = parseList(a)
+		}
+	})
+	return allowedWalletIds
+}
+
+func GetBlockedRegions() []string {
+	onceBlockedRegions.Do(func() {
+		a := os.Getenv("BLOCKED_REGIONS")
+		if a == "" {
+			blockedRegions = []string{}
+		} else {
+			blockedRegions = parseList(a)
+		}
+	})
+	return blockedRegions
 }
 
 func GetEnv() string {
@@ -154,4 +184,9 @@ func AdminURL() string {
 	})
 
 	return adminURL
+}
+
+func parseList(input string) []string {
+	input = strings.ReplaceAll(input, " ", "")
+	return strings.Split(input, ",")
 }
