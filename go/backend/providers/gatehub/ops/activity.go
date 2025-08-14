@@ -174,8 +174,8 @@ func (a *Activity) CreateGatehubBalanceAccount(ctx context.Context, id string) e
 	return nil
 }
 
-func (a *Activity) CreateGatehubDepositTransaction(ctx context.Context, webhookID, walletID string, amount currency.Amount) (string, error) {
-	existingDeposit, err := a.b.Transactions().GetTransactionByForeignID(ctx, walletID, webhookID)
+func (a *Activity) CreateGatehubDepositTransaction(ctx context.Context, transactionID, walletID string, amount currency.Amount) (string, error) {
+	existingDeposit, err := a.b.Transactions().GetTransactionByForeignID(ctx, walletID, transactionID)
 	if err != nil && !errors.Is(err, transactions.ErrNotFound) {
 		return "", err
 	}
@@ -212,9 +212,9 @@ func (a *Activity) CreateGatehubDepositTransaction(ctx context.Context, webhookI
 	}
 
 	tx, err := a.b.Transactions().CreateTransaction(ctx, transactions.CreateTransactionArgs{
-		ID:                      webhookID,
+		ID:                      transactionID,
 		WalletID:                walletID,
-		ForeignID:               webhookID,
+		ForeignID:               transactionID,
 		ForeignType:             transactions.TransactionTypeDeposit,
 		Provider:                gatehub.ProviderName,
 		State:                   transactions.StateCompleted,
@@ -228,7 +228,7 @@ func (a *Activity) CreateGatehubDepositTransaction(ctx context.Context, webhookI
 		Transfers: []transactions.TransferArgs{
 			{
 				LinkedAccountID: eurBalance.ID,
-				ForeignID:       webhookID,
+				ForeignID:       transactionID,
 				Amount:          amount,
 				Type:            transactions.TransferTypeCreditBalance,
 				State:           transactions.StateCompleted,
