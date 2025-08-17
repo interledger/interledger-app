@@ -848,6 +848,7 @@ func Confirm(ctx context.Context, b Backends, id string) (*payments.Payment, []p
 			Source:                  senderWallet.AddressString(),
 			Destination:             destination,
 			Amount:                  dbp.SenderAmount,
+			ProviderFee:             currency.FromFloat64(0, currency.USD),
 			LinkedAccountTitle:      la.Title(),
 			DestinationIdentity:     dbp.Receiver.Identifier,
 			DestinationIdentityType: dbp.Receiver.Type.String(),
