@@ -104,3 +104,7 @@ func (c *client) RevokeGrant(ctx context.Context, grantID string) error {
 func (c *client) ListPendingTransactions(ctx context.Context, walletID string) ([]transactions.Transaction, error) {
 	return ops.ListPendingWebMonetization(ctx, c.b, walletID)
 }
+
+func (c *client) UpdateWalletAddressStatus(ctx context.Context, walletID string, status bool) error {
+	return ops.UpdateWalletAddressStatus(ctx, c.b, walletID, status)
+}

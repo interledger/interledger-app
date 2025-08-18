@@ -30,20 +30,31 @@ import (
 	temporal_client "go.temporal.io/sdk/client"
 )
 
-func TestCreate(t *testing.T) {
+func setupTest(t *testing.T) (context.Context, *ops.TestBackends) {
+	
 	ctx := context.Background()
+	dbc := db.MigrateTestDB(t, ctx)
+
+	b := &ops.TestBackends{
+		DBC: dbc,
+		Ic:  identity_mock.NewMockClient(gomock.NewController(t)),
+		Wc:  wallets_mock.NewMockClient(gomock.NewController(t)),
+		Lac: linkedaccounts_mock.NewMockClient(gomock.NewController(t)),
+		Txc: transactions_mock.NewMockClient(gomock.NewController(t)),
+		Pti: pti_mock.NewMockClient(gomock.NewController(t)),
+	}
+
+	return ctx, b
+}
+
+func TestCreate(t *testing.T) {
+	ctx, b := setupTest(t)
+	
 	ctrl := gomock.NewController(t)
 	t.Cleanup(func() {
 		ctrl.Finish()
 	})
-	b := &ops.TestBackends{
-		DBC: db.MigrateTestDB(t, ctx),
-		Ic:  identity_mock.NewMockClient(ctrl),
-		Wc:  wallets_mock.NewMockClient(ctrl),
-		Lac: linkedaccounts_mock.NewMockClient(ctrl),
-		Txc: transactions_mock.NewMockClient(ctrl),
-		Pti: pti_mock.NewMockClient(ctrl),
-	}
+
 	walletID := uuid.NewString()
 	b.Lac.EXPECT().ListBalances(ctx, gomock.Any()).Return([]linkedaccounts.LinkedAccount{}, nil).AnyTimes()
 	b.Pti.EXPECT().GetBalance(ctx, gomock.Any()).Return(&pti.Balance{Available: currency.FromFloat64(1000, currency.USD), Total: currency.FromFloat64(1000, currency.USD)}, nil).AnyTimes()
@@ -132,18 +143,12 @@ func TestCreate(t *testing.T) {
 }
 
 func TestSetState(t *testing.T) {
-	ctx := context.Background()
+	ctx, b := setupTest(t)
 	ctrl := gomock.NewController(t)
 	t.Cleanup(func() {
 		ctrl.Finish()
 	})
-	b := &ops.TestBackends{
-		DBC: db.MigrateTestDB(t, ctx),
-		Ic:  identity_mock.NewMockClient(ctrl),
-		Wc:  wallets_mock.NewMockClient(ctrl),
-		Lac: linkedaccounts_mock.NewMockClient(ctrl),
-		Txc: transactions_mock.NewMockClient(ctrl),
-	}
+
 	walletID := uuid.NewString()
 	b.Lac.EXPECT().Get(ctx, gomock.Any()).Return(&linkedaccounts.LinkedAccount{CanSend: true, CanReceive: true, Provider: pti.ProviderName, State: linkedaccounts.Verified, ReceiveCurrency: currency.USD, SendCurrency: currency.USD}, nil).AnyTimes()
 	b.Ic.EXPECT().GetByIdentifier(ctx, gomock.Any()).Return(&identities.Identity{WalletID: walletID}, nil).AnyTimes()
@@ -176,16 +181,11 @@ func TestSetState(t *testing.T) {
 }
 
 func TestGetRequiredActions(t *testing.T) {
-	ctx := context.Background()
+	ctx, b := setupTest(t)
 	ctrl := gomock.NewController(t)
 	t.Cleanup(func() {
 		ctrl.Finish()
 	})
-	b := &ops.TestBackends{
-		DBC: db.MigrateTestDB(t, ctx),
-		Wc:  wallets_mock.NewMockClient(ctrl),
-		Lac: linkedaccounts_mock.NewMockClient(ctrl),
-	}
 	walletID := uuid.NewString()
 	b.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{ID: walletID}, nil).AnyTimes()
 	b.Lac.EXPECT().ListBalances(ctx, gomock.Any()).Return([]linkedaccounts.LinkedAccount{}, nil).AnyTimes()
@@ -210,18 +210,16 @@ func TestGetRequiredActions(t *testing.T) {
 }
 
 func TestConfirm(t *testing.T) {
-	ctx := context.Background()
+	ctx, b := setupTest(t)
 	ctrl := gomock.NewController(t)
 	t.Cleanup(func() {
 		ctrl.Finish()
 	})
-	b := &ops.TestBackends{
-		DBC: db.MigrateTestDB(t, ctx),
-		Tp:  temporal_mock.NewMockClient(ctrl),
-		Wc:  wallets_mock.NewMockClient(ctrl),
-		Lac: linkedaccounts_mock.NewMockClient(ctrl),
-		Txc: transactions_mock.NewMockClient(ctrl),
-	}
+	b.Tp = temporal_mock.NewMockClient(ctrl)
+	b.Wc = wallets_mock.NewMockClient(ctrl)
+	b.Lac = linkedaccounts_mock.NewMockClient(ctrl)
+	b.Txc = transactions_mock.NewMockClient(ctrl)
+
 	walletID := uuid.NewString()
 	txID := uuid.NewString()
 	b.Lac.EXPECT().ListBalances(ctx, gomock.Any()).Return([]linkedaccounts.LinkedAccount{}, nil).AnyTimes()
@@ -283,17 +281,11 @@ func TestConfirm(t *testing.T) {
 }
 
 func TestUpdate(t *testing.T) {
-	ctx := context.Background()
+	ctx, b := setupTest(t)
 	ctrl := gomock.NewController(t)
 	t.Cleanup(func() {
 		ctrl.Finish()
 	})
-	b := &ops.TestBackends{
-		DBC: db.MigrateTestDB(t, ctx),
-		Wc:  wallets_mock.NewMockClient(ctrl),
-		Lac: linkedaccounts_mock.NewMockClient(ctrl),
-		Txc: transactions_mock.NewMockClient(ctrl),
-	}
 	walletID, receiverWalletID := uuid.NewString(), uuid.NewString()
 	senderAccount := uuid.NewString()
 	receiverAccount := uuid.NewString()
@@ -391,17 +383,11 @@ func TestUpdate(t *testing.T) {
 }
 
 func TestAstraCorrelactionID(t *testing.T) {
-	ctx := context.Background()
+	ctx, b := setupTest(t)
 	ctrl := gomock.NewController(t)
 	t.Cleanup(func() {
 		ctrl.Finish()
 	})
-	b := &ops.TestBackends{
-		DBC: db.MigrateTestDB(t, ctx),
-		Wc:  wallets_mock.NewMockClient(ctrl),
-		Lac: linkedaccounts_mock.NewMockClient(ctrl),
-		Txc: transactions_mock.NewMockClient(ctrl),
-	}
 	walletID, receiverWalletID := uuid.NewString(), uuid.NewString()
 	senderAccount := uuid.NewString()
 	receiverAccount := uuid.NewString()

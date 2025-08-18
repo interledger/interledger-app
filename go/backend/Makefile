@@ -10,11 +10,6 @@ pull:
 	make -C ../pacioli build
 	@echo "Pull complete"
 
-testci:
-	@echo "Running tests"
-	go test ./...
-	@echo "Tests complete."
-
 generatetestmigrations:
 	@echo "Generating test migrations"
 	mkdir -p db/testmigrations
@@ -24,8 +19,8 @@ generatetestmigrations:
 
 test: testenvup generatetestmigrations
 	@echo "Running tests"
-	go test ./... -p 4
-	@echo "Tests complete."
+	go test -coverprofile=coverage.out ./...
+	go tool cover -func=coverage.out
 
 testenvup:
 	@echo "Starting test environment"
