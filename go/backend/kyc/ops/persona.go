@@ -130,7 +130,9 @@ func GetApprovedPersonaInquiryURL(ctx context.Context, b Backends, walletID stri
 }
 
 func GetPersonaIDNumbers(ctx context.Context, b Backends, cl persona.Client, walletID string) (*kyc.PersonaIDNumbers, error) {
-	if env.IsLocal() {
+	// I hate that we have to do this. It looks like there is no other way to override
+	// the Persona defaults - updating document issuing country from US to ZA.
+	if !env.IsProd() {
 		return generateLocalIDNumbers(), nil
 	}
 
@@ -174,7 +176,9 @@ func GetPersonaIDNumbers(ctx context.Context, b Backends, cl persona.Client, wal
 }
 
 func GetZAIDNumber(ctx context.Context, b Backends, cl persona.Client, walletID string) (string, error) {
-	// Local stuff
+	// I hate that we have to do this. It looks like there is no other way to override
+	// the Persona defaults in sandbox to have a full production workflow in the sandbox
+	// environment - updating document issuing country from US to ZA.
 	if env.IsLocal() {
 		return generateLocalTestIdNumber("male", true), nil
 	}
