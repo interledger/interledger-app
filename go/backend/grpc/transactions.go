@@ -4,7 +4,6 @@ import (
 	"context"
 	"math"
 
-	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/transactions"
@@ -111,7 +110,7 @@ func transformTransaction(tx transactions.Transaction, transfers []transactions.
 		destinationIdentityType = "wallet"
 	}
 
-	fees := currency.FromFloat64(0, tx.Amount.Currency)
+	fees := tx.ProviderFee.Format()
 
 	ret := &pb.Transaction{
 		Id:                      tx.ID,
@@ -127,7 +126,7 @@ func transformTransaction(tx transactions.Transaction, transfers []transactions.
 		FormattedTime:           tx.Timestamp.Format("15:04"),
 		FormattedDate:           tx.Timestamp.Format("02 Jan 2006"),
 		Subtotal:                subTotal,
-		Fees:                    fees.Format(),
+		Fees:                    fees,
 		AccountTitle:            tx.LinkedAccountTitle,
 		Reference:               tx.Reference,
 		DestinationIdentity:     tx.DestinationIdentity,
