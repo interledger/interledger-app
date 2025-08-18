@@ -15,9 +15,7 @@ func TestSubmitForm(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 
-	b := &TestBackends{
-		Db: db.MigrateTestDB(t, ctx),
-	}
+	b := NewTestBackends(t, db.MigrateTestDB(t, ctx))
 
 	walletID := uuid.UUIDv4()
 
@@ -36,9 +34,7 @@ func TestListSubmissionCount(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 
-	b := &TestBackends{
-		Db: db.MigrateTestDB(t, ctx),
-	}
+	b := NewTestBackends(t, db.MigrateTestDB(t, ctx))
 
 	testForms := []dynamicforms.SubmitArgs{
 		{
