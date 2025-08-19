@@ -61,7 +61,6 @@ export const Select: FC<SelectProps> = ({
             {({ disabled }: { disabled: boolean }) => (
               <div className='flex h-full items-center justify-between overflow-hidden rounded-xl'>
                 <span className='px-4 text-left text-sm'>
-                  {/* {JSON.stringify(value)} */} {/* TODO: Why is this needed */}
                   {disabled ? '' : value?.name}
                 </span>
                 <div className='flex h-full items-center bg-nav px-4 text-medium'>

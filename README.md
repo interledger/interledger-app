@@ -58,6 +58,7 @@ docker compose down -v
 ### Wallet development
 #### Running protea *locally*
 Comment `protea.yaml` in the `docker-compose.yaml` so it would not start the frontend app as a container.
+Create a `.env` in the `backend` directory starting from the `.env-example` and fill in the Gatehub credentials.
 
 Use `pnpm dev` in order to start the frontend locally at `localhost:3000`.
 
