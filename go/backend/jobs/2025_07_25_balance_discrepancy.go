@@ -16,7 +16,6 @@ import (
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	gatehub_external "gitlab.com/fynbos/backend/providers/gatehub/external"
 	httplogger "gitlab.com/fynbos/backend/providers/http"
-	"gitlab.com/fynbos/log"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
@@ -51,19 +50,6 @@ func (a *Activity) BalanceDiscrepancies(ctx context.Context) error {
 			),
 		})
 
-	// ebal, err := gatehubExternal.GetWalletBalances(ctx, "0326e583-1feb-4ff5-ad69-6e7368108cc2", "631861543")
-	// ebal, err := gatehubExternal.GetTransaction(ctx, "0326e583-1feb-4ff5-ad69-6e7368108cc2", "dd86fc1a-3484-427b-8eee-e1877d7fe83a")
-	// ebal, err := gatehubExternal.GetUserTransactions(ctx, "0326e583-1feb-4ff5-ad69-6e7368108cc2")
-
-	// ebal, err := gatehubExternal.GetFeeValue(ctx, "5", "EUR")
-	// if err != nil {
-	// 	log.Error("Error in gatehub: %v", zap.Error(err))
-	// 	return err
-	// }
-	// log.Info(fmt.Sprintf("HERE %s", ebal))
-
-	// return nil
-
 	type WalletsType struct {
 		ID   string `db:"id"`
 		NAME string `db:"name"`
@@ -95,10 +81,7 @@ func (a *Activity) BalanceDiscrepancies(ctx context.Context) error {
 				if err != nil {
 					continue
 				}
-				// REMOVE THIS
-				if externalUserID != "0326e583-1feb-4ff5-ad69-6e7368108cc2" || la.ProviderID != "631861543" {
-					continue
-				}
+
 				ebal, err := gatehubExternal.GetWalletBalances(ctx, externalUserID, la.ProviderID)
 				if err != nil {
 					continue
@@ -115,8 +98,6 @@ func (a *Activity) BalanceDiscrepancies(ctx context.Context) error {
 						continue
 					}
 
-					log.Info(fmt.Sprintf("Available %.2f", balance))
-					log.Info(fmt.Sprintf("External %.2f", externalBalance))
 				}
 
 				if externalBalance < balance {
