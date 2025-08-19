@@ -103,11 +103,6 @@ table "ledger_transfers" {
     null = false
     type = bigint
   }
-  column "provider_fee" {
-    null = false
-    type = bigint
-    default = 0
-  }
   column "state" {
     null = false
     type = smallint

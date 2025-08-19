@@ -187,8 +187,8 @@ func createTransfer(ctx context.Context, b Backends, args pacioli.CreateTransfer
 				Valid: true,
 			}
 		}
-		_, err := tx.ExecContext(ctx, "INSERT INTO ledger_transfers (id, ledger_id, code, debit_account_id, credit_account_id, amount, provider_fee, state, timeout_at) "+
-			"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)", args.ID, args.Ledger, args.Code, args.DebitAccountID, args.CreditAccountID, args.Amount, args.ProviderFee, state, timeoutAt)
+		_, err := tx.ExecContext(ctx, "INSERT INTO ledger_transfers (id, ledger_id, code, debit_account_id, credit_account_id, amount, state, timeout_at) "+
+			"VALUES ($1, $2, $3, $4, $5, $6, $7, $8)", args.ID, args.Ledger, args.Code, args.DebitAccountID, args.CreditAccountID, args.Amount, state, timeoutAt)
 		if err != nil {
 			return err
 		}
@@ -270,7 +270,6 @@ func GetTransfer(ctx context.Context, b Backends, id string) (*pacioli.Transfer,
 		DebitAccountID:  tr.DebitAccountID,
 		CreditAccountID: tr.CreditAccountID,
 		Amount:          tr.Amount,
-		ProviderFee:     tr.ProviderFee,
 		State:           tr.State,
 		Code:            tr.Code,
 		Timeout:         uint64(tr.Timeout.Time.UnixNano()),
@@ -296,7 +295,6 @@ func ListTransfers(ctx context.Context, b Backends, ids []string) ([]pacioli.Tra
 			DebitAccountID:  tr.DebitAccountID,
 			CreditAccountID: tr.CreditAccountID,
 			Amount:          tr.Amount,
-			ProviderFee:     tr.ProviderFee,
 			State:           tr.State,
 			Code:            tr.Code,
 			Timeout:         uint64(tr.Timeout.Time.UnixNano()),

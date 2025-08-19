@@ -58,7 +58,6 @@ type Transfer struct {
 	DebitAccountID  string        `db:"debit_account_id"`
 	CreditAccountID string        `db:"credit_account_id"`
 	Amount          uint64        `db:"amount"`
-	ProviderFee     uint64        `db:"provider_fee"`
 	Code            uint16        `db:"code"`
 	State           TransferState `db:"state"`
 	Timeout         uint64
@@ -67,7 +66,6 @@ type Transfer struct {
 type CreateTransferArgs struct {
 	ID              string `validate:"required,uuid4"`
 	Amount          uint64 `validate:"gt=0"`
-	ProviderFee     uint64
 	DebitAccountID  string `validate:"required,uuid4"`
 	CreditAccountID string `validate:"required,uuid4"`
 	Pending         bool
