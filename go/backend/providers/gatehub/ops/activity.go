@@ -335,7 +335,6 @@ func (a *Activity) FinalizeGatehubDeposit(ctx context.Context, id, walletID stri
 		{
 			ID:              id,
 			Amount:          amount.Value,
-			ProviderFee:     providerFee.Value,
 			CreditAccountID: eurBalance.ID,
 			DebitAccountID:  opsAcc,
 			Pending:         false,

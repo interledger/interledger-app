@@ -500,7 +500,6 @@ func createTestWallet(t *testing.T, b *TestBackends) testWallet {
 		{
 			ID:              uuid.NewString(),
 			Amount:          100000,
-			ProviderFee:     1000,
 			DebitAccountID:  xago.ZAROpsAccount,
 			CreditAccountID: xBalance.ID,
 			Pending:         false,
@@ -586,7 +585,6 @@ func createTestWallet(t *testing.T, b *TestBackends) testWallet {
 		{
 			ID:              uuid.NewString(),
 			Amount:          100000,
-			ProviderFee:     1000,
 			DebitAccountID:  pti.USDOpsAccount,
 			CreditAccountID: ptiBal.ID,
 			Pending:         false,
