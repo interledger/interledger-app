@@ -5,11 +5,14 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"math"
 	"net/http"
 	"os"
 	"strconv"
 	"time"
 
+	"github.com/google/uuid"
+	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	gatehub_external "gitlab.com/fynbos/backend/providers/gatehub/external"
 	httplogger "gitlab.com/fynbos/backend/providers/http"
@@ -17,7 +20,6 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
-	"go.uber.org/zap"
 )
 
 func BalanceDiscrepanciesJob(ctx workflow.Context) error {
@@ -122,7 +124,6 @@ func (a *Activity) BalanceDiscrepancies(ctx context.Context) error {
 					if err != nil || len(accs) == 0 {
 						continue
 					}
-					CreditAccountID := la.ID
 
 					uts, err := gatehubExternal.GetUserTransactions(ctx, externalUserID)
 					if err != nil {
@@ -140,13 +141,24 @@ func (a *Activity) BalanceDiscrepancies(ctx context.Context) error {
 
 					// backend transactions
 					// hardcoded 1% fee
-					_, err = a.b.DB().ExecContext(ctx, "UPDATE transactions SET provider_fee=amount*0.01, amount=amount*0.99, updated_at=now() WHERE provider_fee=0 AND type='deposit' AND provider='gatehub' AND wallet_id=$1;", wallet.ID)
+					_, err = a.b.DB().ExecContext(ctx, "UPDATE transactions SET provider_fee = amount / 100, amount = amount - (amount / 100), updated_at=now() WHERE provider_fee=0 AND type='deposit' AND provider='gatehub' AND wallet_id=$1;", wallet.ID)
 					if err != nil {
 						return err
 					}
+
 					//update pacioli side
-					args := &ActivityArgs{feeTotal: feesTotal, ID: CreditAccountID}
-					if err := getFeesAndAdjustBalance(ctx, args); err != nil {
+					timeout := time.Hour * 24 * 365
+					txID := uuid.NewString()
+					feeAmount := currency.Amount{
+						Value:    uint64(math.Round(feesTotal * 100)), // EUR scale = 2
+						Currency: "EUR",
+					}
+					_, err = a.b.Gatehub().ReserveBalance(ctx, la.ID, txID, feeAmount, timeout)
+					if err != nil {
+						return err
+					}
+					err = a.b.Gatehub().FinaliseReserve(ctx, txID)
+					if err != nil {
 						return err
 					}
 				}
@@ -162,34 +174,8 @@ func (a *Activity) BalanceDiscrepancies(ctx context.Context) error {
 }
 
 type ActivityArgs struct {
-	feeTotal float64
+	feeTotal currency.Amount
 	ID       string
-}
-
-func getFeesAndAdjustBalance(ctx context.Context, fargs *ActivityArgs) error {
-	log.Info("Starting pacioli update ")
-	connString := os.Getenv("PACIOLI_DB_URL")
-
-	db, err := DbConnection(connString)
-	if err != nil {
-		log.Error("Error establishing db connection: %v", zap.Error(err))
-		return err
-	}
-	defer db.Close()
-
-	queries := []struct {
-		query string
-		args  []interface{}
-	}{
-		{"UPDATE ledger_accounts SET credits_posted=credits_posted-$1, updated_at=now() WHERE id=$2;", []interface{}{fargs.feeTotal, fargs.ID}},
-		{"UPDATE ledger_transfers SET provider_fee=amount*0.01, amount=amount*0.99, updated_at=now() WHERE provider_fee=0 AND credit_account_id=$1;", []interface{}{fargs.ID}},
-	}
-
-	trErr := ExecuteTransaction(db, queries)
-	if trErr != nil {
-		return trErr
-	}
-	return nil
 }
 
 func getExternalUserID(ctx context.Context, b Backends, walletID string) (string, error) {
