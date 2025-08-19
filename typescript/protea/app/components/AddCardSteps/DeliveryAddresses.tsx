@@ -36,10 +36,7 @@ export const DeliveryAddresses = () => {
           id='address'
           value={currentAddress}
           options={displayableAddresses}
-          onChange={(v) => {
-            console.log('changed to', v)
-            setCurrentAddress(v)
-          }}
+          onChange={setCurrentAddress}
         />
         {!newAddress ? (
           <Button onClick={() => setStep(AddCardStep.CREATE_ADDRESS)}>

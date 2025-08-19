@@ -17,7 +17,6 @@ export const ConfirmCard = () => {
     state.products,
     state.type
   ])
-  console.log('address in confirm card', address)
   const pickedProduct = products.find((p) => p.code === productCode)
 
   return (
