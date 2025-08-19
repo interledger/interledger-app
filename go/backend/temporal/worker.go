@@ -108,7 +108,7 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(asta_workflows.AstraRenewTokensWorkflow)
 	w.RegisterWorkflow(asta_workflows.CreateAstraCardWorkflow)
 
-	asta_workflows.StartTokenRefreshing(b)
+	// asta_workflows.StartTokenRefreshing(b)
 
 	// Gatehub
 	w.RegisterActivity(gatehub_workflows.NewActivity(b))
