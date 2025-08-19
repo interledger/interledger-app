@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Form } from '@remix-run/react'
 import { Controller, useForm } from 'react-hook-form'
-import { z } from 'zod'
+import * as z from 'zod/mini'
 import {
   Button,
   Card,
@@ -32,37 +32,46 @@ export const addressTypeOptions = [
 const addressFormSchema = z.object({
   details: z.object({
     type: z.nativeEnum(CustomerDeliveryAddressType),
-    country: z.string().min(1, 'Country is required'),
+    country: z.string().check(z.minLength(1, 'Country is required')),
     line1: z
       .string()
-      .min(1, 'Address line 1 is required')
-      .max(128, 'Address line 1 is maximum 128 characters long'),
-    line2: z
-      .string()
-      .max(128, 'Address line 2 is maximum 128 characters long')
-      .optional(),
-    line3: z
-      .string()
-      .max(128, 'Address line 3 is maximum 128 characters long')
-      .optional(),
-    postOffice: z
-      .string()
-      .max(32, 'Post office is maximum 32 characters long')
-      .optional(),
+      .check(z.minLength(1, 'Address line 1 is required'))
+      .check(z.maxLength(128, 'Address line 1 is maximum 128 characters long')),
+    line2: z.optional(
+      z
+        .string()
+        .check(
+          z.maxLength(128, 'Address line 2 is maximum 128 characters long')
+        )
+    ),
+    line3: z.optional(
+      z
+        .string()
+        .check(
+          z.maxLength(128, 'Address line 3 is maximum 128 characters long')
+        )
+    ),
+    postOffice: z.nullable(
+      z.optional(
+        z
+          .string()
+          .check(z.maxLength(32, 'Post office is maximum 32 characters long'))
+      )
+    ),
     city: z
       .string()
-      .min(1, 'City is required')
-      .max(32, 'City is maximum 32 characters long'),
+      .check(z.minLength(1, 'City is required'))
+      .check(z.maxLength(32, 'City is maximum 32 characters long')),
     zipCode: z
       .string()
-      .regex(/^\d+$/, 'Zip code must contain digits only')
-      .min(1, 'Zip code is required')
-      .max(8, 'Zip code is maximum 8 characters long')
+      .check(z.minLength(1, 'Zip code is required'))
+      .check(z.maxLength(8, 'Zip code is maximum 8 characters long'))
+      .check(z.regex(/^\d+$/, 'Zip code must contain digits only'))
   }),
   reason: z
     .string()
-    .min(1, 'Reason is required')
-    .max(256, 'Reason is maximum 256 characters long')
+    .check(z.minLength(1, 'Reason is required'))
+    .check(z.maxLength(256, 'Reason is maximum 256 characters long'))
 })
 export type AddressFormData = z.infer<typeof addressFormSchema>
 
@@ -235,7 +244,7 @@ export const CreateAddress = () => {
                   id='postOffice'
                   label='Post Office (Optional)'
                   placeholder='Main Post Office'
-                  value={field.value}
+                  value={field.value || ''}
                   onChange={field.onChange}
                   onBlur={field.onBlur}
                   errorMessage={errors.details?.postOffice?.message}
