@@ -173,11 +173,6 @@ func (a *Activity) BalanceDiscrepancies(ctx context.Context) error {
 	return nil
 }
 
-type ActivityArgs struct {
-	feeTotal currency.Amount
-	ID       string
-}
-
 func getExternalUserID(ctx context.Context, b Backends, walletID string) (string, error) {
 	var externalID string
 	err := b.DB().GetContext(ctx, &externalID, "SELECT external_id FROM gatehub_users WHERE wallet_id=$1;", walletID)
