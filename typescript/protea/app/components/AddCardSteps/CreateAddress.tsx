@@ -33,17 +33,36 @@ const addressFormSchema = z.object({
   details: z.object({
     type: z.nativeEnum(CustomerDeliveryAddressType),
     country: z.string().min(1, 'Country is required'),
-    line1: z.string().min(1, 'Address line 1 is required'),
-    line2: z.string().optional(),
-    line3: z.string().optional(),
-    postOffice: z.string().optional(),
-    city: z.string().min(1, 'City is required'),
+    line1: z
+      .string()
+      .min(1, 'Address line 1 is required')
+      .max(128, 'Address line 1 is maximum 128 characters long'),
+    line2: z
+      .string()
+      .max(128, 'Address line 2 is maximum 128 characters long')
+      .optional(),
+    line3: z
+      .string()
+      .max(128, 'Address line 3 is maximum 128 characters long')
+      .optional(),
+    postOffice: z
+      .string()
+      .max(32, 'Post office is maximum 32 characters long')
+      .optional(),
+    city: z
+      .string()
+      .min(1, 'City is required')
+      .max(32, 'City is maximum 32 characters long'),
     zipCode: z
       .string()
       .regex(/^\d+$/, 'Zip code must contain digits only')
       .min(1, 'Zip code is required')
+      .max(8, 'Zip code is maximum 8 characters long')
   }),
-  reason: z.string().min(1, 'Reason is required')
+  reason: z
+    .string()
+    .min(1, 'Reason is required')
+    .max(256, 'Reason is maximum 256 characters long')
 })
 export type AddressFormData = z.infer<typeof addressFormSchema>
 
