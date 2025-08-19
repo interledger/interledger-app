@@ -3,6 +3,7 @@ import { type SelectOptions } from '~/components'
 import type {
   CardApplicationProduct,
   CustomerDeliveryAddress,
+  CustomerDeliveryAddressType,
   NewCustomerDeliveryAddress
 } from '~/generated/connect/backend/v1/backend_pb'
 import { CardType } from '~/generated/connect/backend/v1/backend_pb'

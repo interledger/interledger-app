@@ -20,19 +20,13 @@ import { AddCardStep, useAddCardStore } from '~/lib/useAddCardStore'
 
 const addressTypeOptions = [
   { id: 'other', name: 'Other' },
-  { id: 'permanent', name: 'Permanent Residence' },
-  { id: 'temporary', name: 'Temporary Residence' },
   { id: 'work', name: 'Work' }
 ]
 
 const getAddressTypeValue = (currentType: CustomerDeliveryAddressType) => {
   switch (currentType) {
-    case CustomerDeliveryAddressType.CUSTOMER_DELIVERY_ADDRESS_PERMANENT_RESIDENCE:
-      return addressTypeOptions[1]
-    case CustomerDeliveryAddressType.CUSTOMER_DELIVERY_ADDRESS_TEMPORARY_RESIDENCE:
-      return addressTypeOptions[2]
     case CustomerDeliveryAddressType.CUSTOMER_DELIVERY_ADDRESS_WORK:
-      return addressTypeOptions[3]
+      return addressTypeOptions[1]
     default:
       return addressTypeOptions[0]
   }
@@ -72,7 +66,7 @@ const addressFormSchema = z.object({
     zipCode: z
       .string()
       .regex(/^\d+$/, 'Zip code must contain digits only')
-      .length(6, 'Zip code must have 6 digits')
+      .min(1, 'Zip code is required')
   }),
   reason: z.string().min(1, 'Reason is required')
 })
@@ -95,7 +89,6 @@ const defaultValues: AddressFormData = {
 export const CreateAddress = () => {
   const { newAddress, setNewAddress, setStep } = useAddCardStore()
 
-  // Pre-populate form with existing address data
   const getDefaultValues = (): AddressFormData => {
     if (newAddress) {
       return {
@@ -132,14 +125,6 @@ export const CreateAddress = () => {
   const handleAddressTypeChange = (option: SelectOptions) => {
     let type: CustomerDeliveryAddressType
     switch (option.id) {
-      case 'permanent':
-        type =
-          CustomerDeliveryAddressType.CUSTOMER_DELIVERY_ADDRESS_PERMANENT_RESIDENCE
-        break
-      case 'temporary':
-        type =
-          CustomerDeliveryAddressType.CUSTOMER_DELIVERY_ADDRESS_TEMPORARY_RESIDENCE
-        break
       case 'work':
         type = CustomerDeliveryAddressType.CUSTOMER_DELIVERY_ADDRESS_WORK
         break
