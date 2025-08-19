@@ -17,47 +17,22 @@ import {
   NewCustomerDeliveryAddress
 } from '~/generated/connect/backend/v1/backend_pb'
 import { AddCardStep, useAddCardStore } from '~/lib/useAddCardStore'
+import {
+  createNewAddress,
+  getAddressTypeValue,
+  getCountryOptions,
+  getCountryValue
+} from './utils'
 
-const addressTypeOptions = [
+export const addressTypeOptions = [
   { id: 'other', name: 'Other' },
   { id: 'work', name: 'Work' }
 ]
 
-const getAddressTypeValue = (currentType: CustomerDeliveryAddressType) => {
-  switch (currentType) {
-    case CustomerDeliveryAddressType.CUSTOMER_DELIVERY_ADDRESS_WORK:
-      return addressTypeOptions[1]
-    default:
-      return addressTypeOptions[0]
-  }
-}
-
-const createNewAddress = (
-  data: AddressFormData
-): NewCustomerDeliveryAddress => {
-  return new NewCustomerDeliveryAddress({
-    details: {
-      type: data.details.type,
-      countryCode: data.details.countryCode.toUpperCase(),
-      line1: data.details.line1,
-      line2: data.details.line2 || undefined,
-      line3: data.details.line3 || undefined,
-      postOffice: data.details.postOffice || undefined,
-      city: data.details.city,
-      zipCode: data.details.zipCode
-    },
-    reason: data.reason
-  })
-}
-
 const addressFormSchema = z.object({
   details: z.object({
     type: z.nativeEnum(CustomerDeliveryAddressType),
-    countryCode: z
-      .string()
-      .length(2, 'Country code must have 2 characters')
-      .regex(/^[A-Za-z]+$/, 'Country code must contain only letters')
-      .toUpperCase(),
+    country: z.string().min(1, 'Country is required'),
     line1: z.string().min(1, 'Address line 1 is required'),
     line2: z.string().optional(),
     line3: z.string().optional(),
@@ -70,12 +45,12 @@ const addressFormSchema = z.object({
   }),
   reason: z.string().min(1, 'Reason is required')
 })
-type AddressFormData = z.infer<typeof addressFormSchema>
+export type AddressFormData = z.infer<typeof addressFormSchema>
 
 const defaultValues: AddressFormData = {
   details: {
     type: CustomerDeliveryAddressType.CUSTOMER_DELIVERY_ADDRESS_TYPE_OTHER,
-    countryCode: '',
+    country: '',
     line1: '',
     line2: '',
     line3: '',
@@ -86,29 +61,31 @@ const defaultValues: AddressFormData = {
   reason: ''
 }
 
-export const CreateAddress = () => {
-  const { newAddress, setNewAddress, setStep } = useAddCardStore()
-
-  const getDefaultValues = (): AddressFormData => {
-    if (newAddress) {
-      return {
-        details: {
-          type:
-            newAddress.details?.type ||
-            CustomerDeliveryAddressType.CUSTOMER_DELIVERY_ADDRESS_TYPE_OTHER,
-          countryCode: newAddress.details?.countryCode || '',
-          line1: newAddress.details?.line1 || '',
-          line2: newAddress.details?.line2 || '',
-          line3: newAddress.details?.line3 || '',
-          postOffice: newAddress.details?.postOffice || '',
-          city: newAddress.details?.city || '',
-          zipCode: newAddress.details?.zipCode || ''
-        },
-        reason: newAddress.reason || ''
-      }
+const getInitialValues = (
+  newAddress: NewCustomerDeliveryAddress | null
+): AddressFormData => {
+  if (newAddress) {
+    return {
+      details: {
+        type:
+          newAddress.details?.type ||
+          CustomerDeliveryAddressType.CUSTOMER_DELIVERY_ADDRESS_TYPE_OTHER,
+        country: newAddress.details?.countryCode || '',
+        line1: newAddress.details?.line1 || '',
+        line2: newAddress.details?.line2 || '',
+        line3: newAddress.details?.line3 || '',
+        postOffice: newAddress.details?.postOffice || '',
+        city: newAddress.details?.city || '',
+        zipCode: newAddress.details?.zipCode || ''
+      },
+      reason: newAddress.reason || ''
     }
-    return defaultValues
   }
+  return defaultValues
+}
+
+export const CreateAddress = () => {
+  const { newAddress, setNewAddress, setStep, countries } = useAddCardStore()
 
   const {
     control,
@@ -117,7 +94,7 @@ export const CreateAddress = () => {
     setValue,
     formState: { errors, isValid }
   } = useForm<AddressFormData>({
-    defaultValues: getDefaultValues(),
+    defaultValues: getInitialValues(newAddress),
     mode: 'onChange',
     resolver: zodResolver(addressFormSchema)
   })
@@ -132,6 +109,10 @@ export const CreateAddress = () => {
         type = CustomerDeliveryAddressType.CUSTOMER_DELIVERY_ADDRESS_TYPE_OTHER
     }
     setValue('details.type', type)
+  }
+
+  const handleCountryChange = (option: SelectOptions) => {
+    setValue('details.country', option.id)
   }
 
   const onSubmit = (data: AddressFormData) => {
@@ -161,29 +142,14 @@ export const CreateAddress = () => {
               errorMessage={errors.details?.type?.message}
             />
 
-            {/* Country Code */}
-            <Controller
-              name='details.countryCode'
-              control={control}
-              rules={{
-                required: 'Country code is required',
-                maxLength: {
-                  value: 2,
-                  message: 'Country code must be 2 characters'
-                }
-              }}
-              render={({ field }) => (
-                <TextField
-                  id='countryCode'
-                  label='Country Code'
-                  placeholder='US'
-                  value={field.value}
-                  onChange={field.onChange}
-                  onBlur={field.onBlur}
-                  errorMessage={errors.details?.countryCode?.message}
-                  maxLength={2}
-                />
-              )}
+            {/* Country */}
+            <Select
+              id='country'
+              label='Country'
+              value={getCountryValue(watch('details.country'), countries)}
+              options={getCountryOptions(countries)}
+              onChange={handleCountryChange}
+              errorMessage={errors.details?.country?.message}
             />
 
             {/* Address Line 1 */}
