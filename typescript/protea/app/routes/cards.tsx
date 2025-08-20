@@ -1,4 +1,3 @@
-import { Code } from '@bufbuild/connect'
 import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Outlet, useLoaderData, useLocation } from '@remix-run/react'
@@ -15,8 +14,6 @@ import {
   WalletGrid
 } from '~/components'
 import { getFeatures } from '~/data/wallet.server'
-import { isConnectError } from '~/lib/error.server'
-import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
 
 // TODO: How to differentiate between physical and virtual cards based on the
@@ -27,20 +24,28 @@ export async function loader({ request }: LoaderFunctionArgs) {
     throw redirect('/')
   }
 
-  const response = await grpc.listCards(request, {})
-
-  if (isConnectError(response)) {
-    // Temporary for non-EU wallets
-    // TODO: Maybe show a message to the user that cards are not available
-    // in their jurisdiction?
-    if (response.code === Code.FailedPrecondition) {
-      throw redirect('/')
-    }
-    throw response.errorResponse
+  // Replace gRPC call with dummy card data
+  const dummyCard = {
+    id: 'card-1',
+    nameOnCard: 'John Doe',
+    maskedPan: '**** **** **** 1234',
+    status: 1, // CARD_STATUS_ACTIVE
+    expiryDate: '12/25',
+    statusReasonCode: 0, // CARD_STATUS_REASON_CODE_UNKNOWN
+    lockLevel: 0 // CARD_LOCK_LEVEL_UNKNOWN
+  }
+  const dummyCard2 = {
+    id: 'card-2',
+    nameOnCard: 'Ion Macelarul',
+    maskedPan: '**** **** **** 7685',
+    status: 1, // CARD_STATUS_ACTIVE
+    expiryDate: '11/33',
+    statusReasonCode: 0, // CARD_STATUS_REASON_CODE_UNKNOWN
+    lockLevel: 0 // CARD_LOCK_LEVEL_UNKNOWN
   }
 
   return json({
-    cards: response.cards
+    cards: [dummyCard, dummyCard2]
   })
 }
 
