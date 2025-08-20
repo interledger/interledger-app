@@ -58,6 +58,7 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(jobs.RemoveCustodialKeysJob)
 	w.RegisterWorkflow(jobs.TransformKeysToBase64URLJob)
 	w.RegisterWorkflow(jobs.MigrateWalletAddressesToLowercaseJob)
+	w.RegisterWorkflow(jobs.UpdateRafikiWalletEnabledJob)
 
 	// Payment Engine
 	w.RegisterActivity(payments_workflows.NewActivity(b))
@@ -106,7 +107,7 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(asta_workflows.AstraRenewTokensWorkflow)
 	w.RegisterWorkflow(asta_workflows.CreateAstraCardWorkflow)
 
-	asta_workflows.StartTokenRefreshing(b)
+	// asta_workflows.StartTokenRefreshing(b)
 
 	// Gatehub
 	w.RegisterActivity(gatehub_workflows.NewActivity(b))

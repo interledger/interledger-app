@@ -21,6 +21,20 @@ type MockClient struct {
 	recorder *MockClientMockRecorder
 }
 
+// UpdateWalletAddressStatus mocks base method.
+func (m *MockClient) UpdateWalletAddressStatus(ctx context.Context, walletId string, status bool) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateWalletAddressStatus", ctx, walletId, status)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateWalletAddressStatus indicates an expected call of UpdateWalletAddressStatus.
+func (mr *MockClientMockRecorder) UpdateWalletAddressStatus(ctx, walletId string, status bool) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateWalletAddressStatus", reflect.TypeOf((*MockClient)(nil).UpdateWalletAddressStatus), ctx, walletId, status)
+}
+
 // MockClientMockRecorder is the mock recorder for MockClient.
 type MockClientMockRecorder struct {
 	mock *MockClient
