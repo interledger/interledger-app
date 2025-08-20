@@ -20,13 +20,13 @@ services:
       - PACIOLI_DB_URL_WITH_CERTS=postgres://postgres:postgres@postgres:5432/pacioli?sslmode=disable
       - KRATOS_URL=http://kratos:4434 # check it if is public or admin
       - LOG_LEVEL=info
-    
+
     depends_on:
       - postgres
       - kratos
       - rafiki_backend
 
-  # 2. Backend 
+  # 2. Backend
   backend:
     build:
       context: ../go
@@ -49,6 +49,8 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.backend.rule=Host(`interledger.test`) && PathPrefix(`/webhooks`)"
       - "traefik.http.services.backend.loadbalancer.server.port=8080"
+    env_file:
+      - path: ../go/backend/.env
     environment:
       - LOG_LEVEL=debug
       - ENV_FILE=
@@ -73,7 +75,7 @@ services:
       - RAFIKI_GRAPHQL_URL=http://rafiki_backend:3001/graphql
 
       - TEMPORAL_URL=temporal:7233
-      
+
       - TWILIO_ACCOUNT_SID=SK021f793191208ba69c3bea87dd426085
       - TWILIO_SERVICE_SID=VA8af4e130da63b9fac4c042acbc33a267
       - TWILIO_ACCOUNT_TOKEN=test
@@ -89,7 +91,7 @@ services:
       - PORT=8080
       - OPEN_PAYMENTS_PORT=8081
       - AUTHORISATION_PORT=8082
-      
+
       - RAFIKI_BACKEND_GRAPHQL_URL=http://rafiki_backend:3001/graphql
       - RAFIKI_AUTH_GRAPHQL_URL=http://rafiki_auth:3006/graphql # check 3003 if it fails
 

@@ -215,7 +215,10 @@ func SetKYCStatus(ctx context.Context, b Backends, walletID string, status kyc.S
 	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
 		await = b.Temporal().GetWorkflow(ctx, wo.ID, "")
 	} else {
-		await, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, SetKYCStatusWorkflow, walletID, status)
+		await, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, SetKYCStatusWorkflow, SetKYCStatusWorkflowArgs{
+			WalletID: walletID,
+			Status:   status,
+		})
 	}
 	if executeErr != nil {
 		return fmt.Errorf("%w %s", kyc.ErrInternal, err)
