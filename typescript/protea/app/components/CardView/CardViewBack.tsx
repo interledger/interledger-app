@@ -18,10 +18,10 @@ export const CardViewBack = ({
   showSensitiveData = false,
   ...props
 }: CardViewBackProps) => {
-  // Format card number with spaces or hide it
+  // Format card number with spaces or show last 4 digits
   const formattedCardNumber = showSensitiveData
     ? fullCardNumber.replace(/(\d{4})(?=\d)/g, '$1 ')
-    : '•••• •••• •••• ••••'
+    : `•••• •••• •••• ${fullCardNumber.slice(-4)}`
 
   return (
     <CardViewContainer className={className} {...props}>

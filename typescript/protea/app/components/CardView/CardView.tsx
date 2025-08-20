@@ -67,6 +67,7 @@ export const CardView = ({ card }: CardViewProps) => {
               expiryDate={card.expiryDate}
               isBlocked={isBlocked}
               showSensitiveData={showSensitiveData}
+              fullCardNumber={mockFullCardNumber}
             />
           </div>
 

@@ -8,6 +8,7 @@ interface CardViewFrontProps extends ComponentProps<'div'> {
   expiryDate: string
   isBlocked?: boolean
   showSensitiveData?: boolean
+  fullCardNumber?: string
 }
 
 export const CardViewFront = ({
@@ -16,14 +17,16 @@ export const CardViewFront = ({
   expiryDate,
   isBlocked = false,
   showSensitiveData = false,
+  fullCardNumber,
   className,
   ...props
 }: CardViewFrontProps) => {
-  // Extract last 4 digits from maskedPan or hide completely
+  // Show full card number in view mode, last 4 digits in hide mode
   const last4Digits = maskedPan.slice(-4)
-  const displayCardNumber = showSensitiveData
-    ? `•••• •••• •••• ${last4Digits}`
-    : '•••• •••• •••• ••••'
+  const displayCardNumber =
+    showSensitiveData && fullCardNumber
+      ? fullCardNumber.replace(/(\d{4})(?=\d)/g, '$1 ')
+      : `•••• •••• •••• ${last4Digits}`
 
   return (
     <CardViewContainer className={className} {...props}>
