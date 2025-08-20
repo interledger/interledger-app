@@ -112,8 +112,6 @@ func (a *Activity) CreateSubAccount(ctx context.Context, walletID string) (*exte
 		return nil, err
 	}
 
-	// TODO: This shouldn't be needed if we are going to rely on Persona later on,
-	// to retrieve all necessary data (not storing KYC details in database).
 	idNumber, err := a.b.KYC().GetPersonaZAIDNumber(ctx, walletID)
 	if err != nil {
 		return nil, err
