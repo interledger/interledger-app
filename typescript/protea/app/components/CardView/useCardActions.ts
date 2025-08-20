@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 interface Card {
   id: string
@@ -9,11 +9,6 @@ interface Card {
   lockLevel: number
 }
 
-interface UseCardActionsOptions {
-  initialShowSensitiveData?: boolean
-  initialIsFrozen?: boolean
-}
-
 interface UseCardActionsReturn {
   showSensitiveData: boolean
   isFrozen: boolean
@@ -21,15 +16,15 @@ interface UseCardActionsReturn {
   toggleFreeze: (card: Card, onSuccess?: () => void) => void
 }
 
-export const useCardActions = (
-  options: UseCardActionsOptions = {}
-): UseCardActionsReturn => {
-  const { initialShowSensitiveData = false, initialIsFrozen = false } = options
+export const useCardActions = (cardId: string): UseCardActionsReturn => {
+  const [showSensitiveData, setShowSensitiveData] = useState(false)
+  const [isFrozen, setIsFrozen] = useState(false)
 
-  const [showSensitiveData, setShowSensitiveData] = useState(
-    initialShowSensitiveData
-  )
-  const [isFrozen, setIsFrozen] = useState(initialIsFrozen)
+  // Reset state when card changes
+  useEffect(() => {
+    setShowSensitiveData(false)
+    setIsFrozen(false)
+  }, [cardId])
 
   const toggleSensitiveData = (card: Card, onSuccess?: () => void) => {
     try {

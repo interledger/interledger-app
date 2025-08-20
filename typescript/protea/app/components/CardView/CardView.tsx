@@ -22,7 +22,7 @@ export const CardView = ({ card }: CardViewProps) => {
 
   // Use the custom hook for card actions
   const { showSensitiveData, isFrozen, toggleSensitiveData, toggleFreeze } =
-    useCardActions()
+    useCardActions(card.id)
 
   // Mock data for card back view - in real implementation this would come from secure API
   const mockFullCardNumber = card.maskedPan
