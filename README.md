@@ -55,6 +55,21 @@ Removes the whole environment to start fresh
 docker compose down -v
 ```
 
+### Wallet development
+#### Running protea *locally*
+Comment `protea.yaml` in the `docker-compose.yaml` so it would not start the frontend app as a container.
+Create a `.env` in the `backend` directory starting from the `.env-example` and fill in the Gatehub credentials.
+
+Use `pnpm dev` in order to start the frontend locally at `localhost:3000`.
+
+#### Running protea as a *container*:
+Generate new certificates using 
+```
+./generate-certs.sh
+```
+Add the generated cert in Chrome or your other browser as trusted cert.
+Start the local development environment. 
+
 ## Legacy Development environment
 
 It is also possible to start up the project using Nomad and Vagrant VMs. See [this](./legacy-dev.md) document for more information.

@@ -25,9 +25,7 @@ export const LiveReload =
                   )};
                   let url = new URL("wss://interledger.test/socket");
 
-                  url.port =
-                    ${port} ||
-                    (REMIX_DEV_ORIGIN ? new URL(REMIX_DEV_ORIGIN).port : 8002);
+                  url.port = 8002
 
                   let ws = new WebSocket(url.href);
                   ws.onmessage = async (message) => {

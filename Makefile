@@ -25,6 +25,16 @@ devnomad:
 	(cd ./dev/vagrant && vagrant ssh -c "sudo systemctl restart nomad")
 	@echo "Done."
 
+devservice:
+	@if [ -z "$(SERVICE)" ]; then \
+		echo "Usage: make devservice SERVICE=<service_name>"; \
+		echo "Example: make devservice SERVICE=protea"; \
+		exit 1; \
+	fi
+	@echo "Restarting $(SERVICE)..."
+	(cd ./dev/vagrant && vagrant ssh -c "sudo systemctl restart $(SERVICE)")
+	@echo "Done."
+
 devssh:
 	(cd ./dev/vagrant && vagrant ssh)
 
