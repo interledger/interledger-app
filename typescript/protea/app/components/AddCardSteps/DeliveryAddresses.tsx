@@ -9,7 +9,7 @@ import {
   RadioGroup
 } from '~/components'
 import { AddCardStep, useAddCardStore } from '~/lib/useAddCardStore'
-import { toSelectableAddresses } from './utils'
+import { SelectableAddress, toSelectableAddresses } from './utils'
 
 export const DeliveryAddresses = () => {
   const [setStep, newAddress, existingAddresses, setSelectedAddress] =
@@ -24,7 +24,9 @@ export const DeliveryAddresses = () => {
     [existingAddresses]
   )
 
-  const [currentAddress, setCurrentAddress] = useState(displayableAddresses[0])
+  const [currentAddress, setCurrentAddress] = useState<SelectableAddress>(
+    displayableAddresses[0]
+  )
 
   return (
     <Card>
@@ -36,8 +38,9 @@ export const DeliveryAddresses = () => {
           id='address'
           value={currentAddress}
           options={displayableAddresses}
-          onChange={setCurrentAddress}
+          onChange={(value) => setCurrentAddress(value)}
         />
+
         {!newAddress ? (
           <Button onClick={() => setStep(AddCardStep.CREATE_ADDRESS)}>
             Create new address
