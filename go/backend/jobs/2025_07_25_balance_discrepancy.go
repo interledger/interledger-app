@@ -72,6 +72,7 @@ func (a *Activity) BalanceDiscrepancies(ctx context.Context) error {
 		for _, la := range lal {
 
 			if la.Provider == gatehub.ProviderName && la.Type == gatehub.AccTypeBalance && la.DeletedAt.Time.IsZero() {
+
 				bal, err := a.b.Gatehub().GetBalance(ctx, la.ID)
 				if err != nil {
 					continue
@@ -113,11 +114,13 @@ func (a *Activity) BalanceDiscrepancies(ctx context.Context) error {
 					var feesTotal float64 = 0
 
 					for _, ut := range uts {
-						tfee, err := strconv.ParseFloat(ut.Fee, 64)
-						if err != nil {
-							continue
+						if ut.Type == gatehub_external.TransactionTypeDeposit {
+							tfee, err := strconv.ParseFloat(ut.Fee, 64)
+							if err != nil {
+								continue
+							}
+							feesTotal += tfee
 						}
-						feesTotal += tfee
 					}
 
 					// backend transactions
