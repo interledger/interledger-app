@@ -1,0 +1,101 @@
+import clsx from 'clsx'
+import type { ComponentProps } from 'react'
+import { CardViewContainer } from './CardViewContainer'
+
+interface CardViewFrontProps extends ComponentProps<'div'> {
+  nameOnCard: string
+  maskedPan: string
+  expiryDate: string
+  isBlocked?: boolean
+  showSensitiveData?: boolean
+}
+
+export const CardViewFront = ({
+  nameOnCard,
+  maskedPan,
+  expiryDate,
+  isBlocked = false,
+  showSensitiveData = false,
+  className,
+  ...props
+}: CardViewFrontProps) => {
+  // Extract last 4 digits from maskedPan or hide completely
+  const last4Digits = maskedPan.slice(-4)
+  const displayCardNumber = showSensitiveData
+    ? `•••• •••• •••• ${last4Digits}`
+    : '•••• •••• •••• ••••'
+
+  return (
+    <CardViewContainer className={className} {...props}>
+      <div
+        className={clsx(
+          'flex h-full flex-col',
+          isBlocked ? 'pointer-events-none select-none blur-sm' : ''
+        )}
+      >
+        {/* Header with logos */}
+        <div className='flex items-center justify-between text-sm'>
+          <div className='flex items-center'>
+            {/* GateHub SVG Logo */}
+            <img
+              src='/gatehub.svg'
+              alt='GateHub logo'
+              className='h-8 max-w-[120px] object-contain opacity-90 brightness-0 invert filter'
+              onError={(e) => {
+                const target = e.target as HTMLImageElement
+                target.style.display = 'none'
+                const fallback = target.nextElementSibling as HTMLElement
+                if (fallback) fallback.classList.remove('hidden')
+              }}
+            />
+          </div>
+
+          <div className='flex items-center space-x-3'>
+            <span className='text-xs uppercase tracking-wider text-white/50'>
+              debit
+            </span>
+            {/* Mastercard logo */}
+            <div className='flex items-center'>
+              <div className='h-6 w-6 rounded-full bg-red-500 opacity-80'></div>
+              <div className='-ml-2 h-6 w-6 rounded-full bg-yellow-500 opacity-80'></div>
+            </div>
+          </div>
+        </div>
+
+        {/* Card number */}
+        <div className='mt-8'>
+          <div className='font-mono text-xl tracking-wider'>
+            {displayCardNumber}
+          </div>
+        </div>
+
+        {/* Footer with name and expiry */}
+        <div className='mt-auto flex items-end justify-between'>
+          <div className='flex flex-col'>
+            <div className='text-xs uppercase tracking-wide text-white/50'>
+              Card Holder
+            </div>
+            <span className='text-sm font-medium uppercase'>{nameOnCard}</span>
+          </div>
+          <div className='flex flex-col text-right'>
+            <div className='text-xs uppercase tracking-wide text-white/50'>
+              Expires
+            </div>
+            <span className='font-mono text-sm'>
+              {showSensitiveData ? expiryDate : '••/••'}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Blocked overlay */}
+      {isBlocked && (
+        <div className='absolute inset-0 z-10 flex items-center justify-center bg-black/30'>
+          <div className='rounded-lg bg-red-500 px-4 py-2 font-semibold text-white'>
+            CARD BLOCKED
+          </div>
+        </div>
+      )}
+    </CardViewContainer>
+  )
+}
