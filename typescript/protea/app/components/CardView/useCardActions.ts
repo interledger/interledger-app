@@ -28,6 +28,8 @@ interface UseCardActionsReturn {
   toggleUnfreeze: (onSuccess?: () => void) => void
 }
 
+const DELAY_AFTER_ACTION = 3000
+
 const getDefaultSensitiveData = (card: Card): SensitiveData => {
   return {
     cardNumber: card.maskedPan,
@@ -53,10 +55,34 @@ export const useCardActions = (card: Card): UseCardActionsReturn => {
     setSensitiveData(getDefaultSensitiveData(card))
   }, [card])
 
+  const resetStatus = (delay: number) => {
+    setTimeout(() => setActionStatus('idle'), delay)
+  }
+
+  const executeAction = async (
+    execute: () => void,
+    onSuccess?: () => void,
+    onError?: (error: any) => void
+  ) => {
+    try {
+      setActionStatus('loading')
+
+      execute()
+      onSuccess?.()
+
+      setActionStatus('success')
+      resetStatus(DELAY_AFTER_ACTION)
+    } catch (error) {
+      onError?.(error)
+
+      setActionStatus('error')
+      resetStatus(DELAY_AFTER_ACTION)
+    }
+  }
+
   const toggleSensitiveDataOff = async (onSuccess?: () => void) => {
     try {
       setActionStatus('loading')
-      console.log(`Turning off sensitive data visibility for card ${card.id}`)
 
       // Simulate API call delay
       await new Promise((resolve) => setTimeout(resolve, 500))
@@ -69,20 +95,18 @@ export const useCardActions = (card: Card): UseCardActionsReturn => {
         onSuccess()
       }
 
-      setTimeout(() => setActionStatus('idle'), 2000)
+      resetStatus(DELAY_AFTER_ACTION)
     } catch (error) {
       console.error('Failed to turn off sensitive data visibility:', error)
       setActionStatus('error')
 
-      // Reset status after showing error
-      setTimeout(() => setActionStatus('idle'), 3000)
+      resetStatus(DELAY_AFTER_ACTION)
     }
   }
 
   const toggleSensitiveDataOn = async (onSuccess?: () => void) => {
     try {
       setActionStatus('loading')
-      console.log(`Turning on sensitive data visibility for card ${card.id}`)
 
       // Mock fetching sensitive data for the given card
       await new Promise((resolve) => setTimeout(resolve, 1000))
@@ -104,21 +128,18 @@ export const useCardActions = (card: Card): UseCardActionsReturn => {
         onSuccess()
       }
 
-      // Reset status after showing success
-      setTimeout(() => setActionStatus('idle'), 2000)
+      resetStatus(DELAY_AFTER_ACTION)
     } catch (error) {
       console.error('Failed to turn on sensitive data visibility:', error)
       setActionStatus('error')
 
-      // Reset status after showing error
-      setTimeout(() => setActionStatus('idle'), 3000)
+      resetStatus(DELAY_AFTER_ACTION)
     }
   }
 
   const toggleFreeze = async (onSuccess?: () => void) => {
     try {
       setActionStatus('loading')
-      console.log(`Freezing card ${card.id}`)
 
       // Simulate API call delay
       await new Promise((resolve) => setTimeout(resolve, 800))
@@ -130,21 +151,18 @@ export const useCardActions = (card: Card): UseCardActionsReturn => {
         onSuccess()
       }
 
-      // Reset status after showing success
-      setTimeout(() => setActionStatus('idle'), 2000)
+      resetStatus(DELAY_AFTER_ACTION)
     } catch (error) {
       console.error('Failed to freeze card:', error)
       setActionStatus('error')
 
-      // Reset status after showing error
-      setTimeout(() => setActionStatus('idle'), 3000)
+      resetStatus(DELAY_AFTER_ACTION)
     }
   }
 
   const toggleUnfreeze = async (onSuccess?: () => void) => {
     try {
       setActionStatus('loading')
-      console.log(`Unfreezing card ${card.id}`)
 
       // Simulate API call delay
       await new Promise((resolve) => setTimeout(resolve, 800))
@@ -156,14 +174,12 @@ export const useCardActions = (card: Card): UseCardActionsReturn => {
         onSuccess()
       }
 
-      // Reset status after showing success
-      setTimeout(() => setActionStatus('idle'), 2000)
+      resetStatus(DELAY_AFTER_ACTION)
     } catch (error) {
       console.error('Failed to unfreeze card:', error)
       setActionStatus('error')
 
-      // Reset status after showing error
-      setTimeout(() => setActionStatus('idle'), 3000)
+      resetStatus(DELAY_AFTER_ACTION)
     }
   }
 

@@ -1,9 +1,9 @@
 import clsx from 'clsx'
-import { motion } from 'framer-motion'
 import { useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { CardViewBack } from './CardViewBack'
 import { CardViewFront } from './CardViewFront'
+import { StatusPopup } from './StatusPopup'
 import { useCardActions } from './useCardActions'
 
 interface CardViewProps {
@@ -104,6 +104,7 @@ export const CardView = ({ card }: CardViewProps) => {
 
       {/* Card actions */}
       <div className='flex space-x-4'>
+        {/* Flip card */}
         <button
           className='flex w-24 items-center justify-center space-x-2 rounded-lg bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600'
           onClick={() => setShowBack(!showBack)}
@@ -111,6 +112,7 @@ export const CardView = ({ card }: CardViewProps) => {
           <Icon>{showBack ? 'flip_to_front' : 'flip_to_back'}</Icon>
           <span>Flip</span>
         </button>
+        {/* Toggle sensitive data */}
         <button
           className='flex w-24 items-center justify-center space-x-2 rounded-lg bg-green-500 px-4 py-2 text-white transition-colors hover:bg-green-600'
           onClick={handleToggleSensitiveData}
@@ -118,6 +120,7 @@ export const CardView = ({ card }: CardViewProps) => {
           <Icon>{showSensitiveData ? 'visibility_off' : 'visibility'}</Icon>
           <span>{showSensitiveData ? 'Hide' : 'View'}</span>
         </button>
+        {/* Toggle freeze */}
         <button
           className='flex w-32 items-center justify-center space-x-2 rounded-lg bg-red-500 px-4 py-2 text-white transition-colors hover:bg-red-600'
           onClick={isFrozen ? handleToggleUnfreeze : handleToggleFreeze}
@@ -127,42 +130,16 @@ export const CardView = ({ card }: CardViewProps) => {
         </button>
       </div>
 
-      {/* Status popup - following SnackbarStage conventions */}
+      {/* Status popup */}
       {(actionStatus === 'success' || actionStatus === 'error') && (
-        <div className='fixed bottom-4 left-0 z-50 mx-auto flex w-full justify-center px-4'>
-          <motion.div
-            key={actionStatus}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            initial={{ opacity: 0, scale: 0.5, y: 8 }}
-            exit={{
-              opacity: 0,
-              scale: 0.5,
-              y: 8,
-              transition: {
-                duration: 0.2
-              }
-            }}
-            transition={{
-              type: 'spring',
-              stiffness: 400,
-              damping: 20,
-              duration: 0.3
-            }}
-            className={clsx(
-              'flex w-full items-center space-x-3 overflow-hidden rounded-xl px-4 py-3 text-left shadow-lg sm:max-w-xs',
-              actionStatus === 'success'
-                ? 'bg-green-500 text-white'
-                : 'bg-red-500 text-white'
-            )}
-          >
-            <Icon>{actionStatus === 'success' ? 'check_circle' : 'error'}</Icon>
-            <span className='text-sm'>
-              {actionStatus === 'success'
-                ? 'Card operation succeeded'
-                : 'Card operation failed'}
-            </span>
-          </motion.div>
-        </div>
+        <StatusPopup
+          type={actionStatus === 'success' ? 'success' : 'error'}
+          message={
+            actionStatus === 'success'
+              ? 'Card operation succeeded'
+              : 'Card operation failed'
+          }
+        />
       )}
     </div>
   )
