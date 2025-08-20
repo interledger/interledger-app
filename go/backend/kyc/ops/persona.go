@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"gitlab.com/fynbos/env"
+	"gitlab.com/fynbos/log"
 
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/kyc/persona"
@@ -133,6 +134,7 @@ func GetPersonaIDNumbers(ctx context.Context, b Backends, cl persona.Client, wal
 	// I hate that we have to do this. It looks like there is no other way to override
 	// the Persona defaults - updating document issuing country from US to ZA.
 	if !env.IsProd() {
+		log.Warn("generating fake ID number")
 		return generateLocalIDNumbers(), nil
 	}
 
@@ -179,7 +181,8 @@ func GetZAIDNumber(ctx context.Context, b Backends, cl persona.Client, walletID 
 	// I hate that we have to do this. It looks like there is no other way to override
 	// the Persona defaults in sandbox to have a full production workflow in the sandbox
 	// environment - updating document issuing country from US to ZA.
-	if env.IsLocal() {
+	if !env.IsProd() {
+		log.Warn("generating fake ID number")
 		return generateLocalTestIdNumber("male", true), nil
 	}
 
