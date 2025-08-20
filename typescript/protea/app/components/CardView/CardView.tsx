@@ -20,9 +20,14 @@ export const CardView = ({ card }: CardViewProps) => {
   const [showBack, setShowBack] = useState(false)
   const isBlocked = card.status !== 1 || card.lockLevel !== 0
 
-  // Use the custom hook for card actions
-  const { showSensitiveData, isFrozen, toggleSensitiveData, toggleFreeze } =
-    useCardActions(card.id)
+  const {
+    showSensitiveData,
+    isFrozen,
+    toggleSensitiveDataOff,
+    toggleSensitiveDataOn,
+    toggleFreeze,
+    toggleUnfreeze
+  } = useCardActions(card)
 
   // Mock data for card back view - in real implementation this would come from secure API
   const mockFullCardNumber = card.maskedPan
@@ -32,14 +37,26 @@ export const CardView = ({ card }: CardViewProps) => {
   const mockCvv = '123'
 
   const handleToggleSensitiveData = () => {
-    toggleSensitiveData(card, () => {
-      console.log('Sensitive data visibility toggled successfully')
-    })
+    if (showSensitiveData) {
+      toggleSensitiveDataOff(() => {
+        alert('Sensitive data visibility turned off successfully')
+      })
+    } else {
+      toggleSensitiveDataOn(() => {
+        alert('Sensitive data visibility turned on successfully')
+      })
+    }
   }
 
   const handleToggleFreeze = () => {
-    toggleFreeze(card, () => {
-      console.log('Card freeze status toggled successfully')
+    toggleFreeze(() => {
+      alert('Card freeze status toggled successfully')
+    })
+  }
+
+  const handleToggleUnfreeze = () => {
+    toggleUnfreeze(() => {
+      alert('Card unfreeze status toggled successfully')
     })
   }
 
@@ -107,7 +124,7 @@ export const CardView = ({ card }: CardViewProps) => {
         </button>
         <button
           className='flex w-32 items-center justify-center space-x-2 rounded-lg bg-red-500 px-4 py-2 text-white transition-colors hover:bg-red-600'
-          onClick={handleToggleFreeze}
+          onClick={isFrozen ? handleToggleUnfreeze : handleToggleFreeze}
         >
           <Icon>ac_unit</Icon>
           <span>{isFrozen ? 'Unfreeze' : 'Freeze'}</span>

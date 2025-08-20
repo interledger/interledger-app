@@ -12,11 +12,13 @@ interface Card {
 interface UseCardActionsReturn {
   showSensitiveData: boolean
   isFrozen: boolean
-  toggleSensitiveData: (card: Card, onSuccess?: () => void) => void
-  toggleFreeze: (card: Card, onSuccess?: () => void) => void
+  toggleSensitiveDataOff: (onSuccess?: () => void) => void
+  toggleSensitiveDataOn: (onSuccess?: () => void) => void
+  toggleFreeze: (onSuccess?: () => void) => void
+  toggleUnfreeze: (onSuccess?: () => void) => void
 }
 
-export const useCardActions = (cardId: string): UseCardActionsReturn => {
+export const useCardActions = (card: Card): UseCardActionsReturn => {
   const [showSensitiveData, setShowSensitiveData] = useState(false)
   const [isFrozen, setIsFrozen] = useState(false)
 
@@ -24,40 +26,70 @@ export const useCardActions = (cardId: string): UseCardActionsReturn => {
   useEffect(() => {
     setShowSensitiveData(false)
     setIsFrozen(false)
-  }, [cardId])
+  }, [card])
 
-  const toggleSensitiveData = (card: Card, onSuccess?: () => void) => {
+  const toggleSensitiveDataOff = (onSuccess?: () => void) => {
     try {
-      console.log(`Toggling sensitive data visibility for card ${card.id}`)
+      console.log(`Turning off sensitive data visibility for card ${card.id}`)
 
-      setShowSensitiveData((prev) => !prev)
+      setShowSensitiveData(false)
 
       if (onSuccess) {
         onSuccess()
       }
     } catch (error) {
-      console.error('Failed to toggle sensitive data visibility:', error)
+      console.error('Failed to turn off sensitive data visibility:', error)
     }
   }
 
-  const toggleFreeze = (card: Card, onSuccess?: () => void) => {
+  const toggleSensitiveDataOn = (onSuccess?: () => void) => {
     try {
-      console.log(`${isFrozen ? 'Unfreezing' : 'Freezing'} card ${card.id}`)
+      console.log(`Turning on sensitive data visibility for card ${card.id}`)
 
-      setIsFrozen((prev) => !prev)
+      setShowSensitiveData(true)
 
       if (onSuccess) {
         onSuccess()
       }
     } catch (error) {
+      console.error('Failed to turn on sensitive data visibility:', error)
+    }
+  }
+
+  const toggleFreeze = (onSuccess?: () => void) => {
+    try {
+      console.log(`Freezing card ${card.id}`)
+
+      if (onSuccess) {
+        onSuccess()
+      }
+      setIsFrozen(true)
+
+    } catch (error) {
       console.error('Failed to toggle card freeze status:', error)
+    }
+  }
+
+  const toggleUnfreeze = (onSuccess?: () => void) => {
+    try {
+      console.log(`Unfreezing card ${card.id}`)
+      
+      if (onSuccess) {
+        onSuccess()
+      }
+
+      setIsFrozen(false)
+    } catch (error) {
+      console.error('Failed to toggle card unfreeze status:', error)
     }
   }
 
   return {
     showSensitiveData,
     isFrozen,
-    toggleSensitiveData,
-    toggleFreeze
+    toggleSensitiveDataOff,
+    toggleSensitiveDataOn,
+    toggleFreeze,
+    toggleUnfreeze
   }
 }
