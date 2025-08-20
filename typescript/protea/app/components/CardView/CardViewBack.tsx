@@ -4,10 +4,9 @@ import { CardViewContainer } from './CardViewContainer'
 
 interface CardViewBackProps extends ComponentProps<'div'> {
   fullCardNumber: string
-  expiryDate: string
-  cvv: string
+  expiryDate: string | null
+  cvv: string | null
   className?: string
-  showSensitiveData?: boolean
 }
 
 export const CardViewBack = ({
@@ -15,13 +14,13 @@ export const CardViewBack = ({
   expiryDate,
   cvv,
   className,
-  showSensitiveData = false,
   ...props
 }: CardViewBackProps) => {
-  // Format card number with spaces or show last 4 digits
-  const formattedCardNumber = showSensitiveData
-    ? fullCardNumber.replace(/(\d{4})(?=\d)/g, '$1 ')
-    : `•••• •••• •••• ${fullCardNumber.slice(-4)}`
+  // Format card number with spaces
+  const formattedCardNumber = fullCardNumber.replace(/(\d{4})(?=\d)/g, '$1 ')
+  // Render censored versions if props are null
+  const displayExpiryDate = expiryDate || '••/••'
+  const displayCvv = cvv || '•••'
 
   return (
     <CardViewContainer className={className} {...props}>
@@ -47,15 +46,11 @@ export const CardViewBack = ({
               <p className='text-xs font-medium leading-3 text-white/50'>
                 Expiry
               </p>
-              <p className='font-mono text-sm'>
-                {showSensitiveData ? expiryDate : '••/••'}
-              </p>
+              <p className='font-mono text-sm'>{displayExpiryDate}</p>
             </div>
             <div>
               <p className='text-xs font-medium leading-3 text-white/50'>CVV</p>
-              <p className='font-mono text-sm'>
-                {showSensitiveData ? cvv : '•••'}
-              </p>
+              <p className='font-mono text-sm'>{displayCvv}</p>
             </div>
             <button className='-ml-3 mt-2.5 h-4 w-4 p-0 text-white/50 hover:text-white'>
               <Icon>content_copy</Icon>

@@ -4,29 +4,23 @@ import { CardViewContainer } from './CardViewContainer'
 
 interface CardViewFrontProps extends ComponentProps<'div'> {
   nameOnCard: string
-  maskedPan: string
-  expiryDate: string
+  cardNumber: string
+  expiryDate: string | null
   isBlocked?: boolean
-  showSensitiveData?: boolean
-  fullCardNumber?: string
 }
 
 export const CardViewFront = ({
   nameOnCard,
-  maskedPan,
+  cardNumber,
   expiryDate,
   isBlocked = false,
-  showSensitiveData = false,
-  fullCardNumber,
   className,
   ...props
 }: CardViewFrontProps) => {
-  // Show full card number in view mode, last 4 digits in hide mode
-  const last4Digits = maskedPan.slice(-4)
-  const displayCardNumber =
-    showSensitiveData && fullCardNumber
-      ? fullCardNumber.replace(/(\d{4})(?=\d)/g, '$1 ')
-      : `•••• •••• •••• ${last4Digits}`
+  // Format card number with spaces
+  const displayCardNumber = cardNumber.replace(/(\d{4})(?=\d)/g, '$1 ')
+  // Render censored expiry if null
+  const displayExpiryDate = expiryDate || '••/••'
 
   return (
     <CardViewContainer className={className} {...props}>
@@ -84,9 +78,7 @@ export const CardViewFront = ({
             <div className='text-xs uppercase tracking-wide text-white/50'>
               Expires
             </div>
-            <span className='font-mono text-sm'>
-              {showSensitiveData ? expiryDate : '••/••'}
-            </span>
+            <span className='font-mono text-sm'>{displayExpiryDate}</span>
           </div>
         </div>
       </div>
