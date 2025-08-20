@@ -6,19 +6,19 @@ import { Country, DeliveryAddress } from '~/lib/useAddCardStore'
 import { SelectOptions } from '../Select'
 import { AddressFormData, addressTypeOptions } from './CreateAddress'
 
-export function toSelectableAddresses(address: DeliveryAddress) {
+export type SelectableAddress = {
+  id: string
+  name: string
+  icon: string
+  label?: string
+}
+
+export function toSelectableAddresses(address: DeliveryAddress): SelectableAddress {
   return {
     id: address.id,
     name: `${address.details?.line1} ${address.details?.city} (${address.details?.countryCode})`,
-    icon: getAddressIcon(address.details?.type!)
-  }
-}
-
-export function toSelectableNewAddress(address: NewCustomerDeliveryAddress) {
-  return {
-    id: 'new',
-    name: `${address.details?.line1} ${address.details?.city} (${address.details?.countryCode})`,
-    icon: getAddressIcon(address.details?.type!)
+    icon: getAddressIcon(address.details?.type!),
+    label: address.id === 'new' ? 'New' : undefined
   }
 }
 
