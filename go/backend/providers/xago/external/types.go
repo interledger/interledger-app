@@ -8,8 +8,8 @@ import (
 const accessTokenID = "ad317668-0e30-4936-8b8d-b2517b2464fd"
 
 var (
-	IdentityTypeCorporate  = "Corporate"
-	IdentityTypeIndividual = "Individual"
+	IdentityTypeCorporate  = "corporate"
+	IdentityTypeIndividual = "individual"
 )
 
 type SubAccount struct {
@@ -55,12 +55,14 @@ func (ac *AccessToken) IsExpired() bool {
 }
 
 type SubAccountReq struct {
-	FirstName    string `json:"firstName,omitempty"`
-	LastName     string `json:"lastName,omitempty"`
-	Email        string `json:"email,omitempty"`
-	MobileNumber string `json:"mobileNumber,omitempty"`
-	IdentityType string `json:"identityType,omitempty"`
-	PersonaURL   string `json:"thirdPartyVerificationUrl,omitempty"`
+	FirstName       string `json:"firstName,omitempty"`
+	LastName        string `json:"lastName,omitempty"`
+	Email           string `json:"email,omitempty"`
+	MobileNumber    string `json:"mobileNumber,omitempty"`
+	IdentityType    string `json:"identityType,omitempty"`
+	IDNumber        string `json:"idNumber,omitempty"`
+	PhysicalAddress string `json:"physicalAddress,omitempty"`
+	PersonaURL      string `json:"thirdPartyVerificationUrl,omitempty"`
 }
 
 type CreateBeneficiaryReq struct {
