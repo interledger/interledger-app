@@ -21,6 +21,8 @@ typescript/**/node_modules
 # test migrations
 testmigrations
 
+coverage.out
+
 .env
 *.env
 

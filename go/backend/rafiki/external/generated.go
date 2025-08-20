@@ -935,6 +935,68 @@ func (v *RevokeWalletAddressKeyRevokeWalletAddressKeyRevokeWalletAddressKeyMutat
 	return v.CreatedAt
 }
 
+type UpdateWalletAddressInput struct {
+	// ID of wallet address to update
+	Id string `json:"id"`
+	// New public name for wallet address
+	PublicName string `json:"publicName"`
+	// New status to set the wallet address to
+	Status WalletAddressStatus `json:"status"`
+	// Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)
+	IdempotencyKey string `json:"idempotencyKey"`
+	// List additional properties associated with this wallet address.
+	AdditionalProperties []AdditionalPropertyInput `json:"additionalProperties"`
+}
+
+// GetId returns UpdateWalletAddressInput.Id, and is useful for accessing the field via an interface.
+func (v *UpdateWalletAddressInput) GetId() string { return v.Id }
+
+// GetPublicName returns UpdateWalletAddressInput.PublicName, and is useful for accessing the field via an interface.
+func (v *UpdateWalletAddressInput) GetPublicName() string { return v.PublicName }
+
+// GetStatus returns UpdateWalletAddressInput.Status, and is useful for accessing the field via an interface.
+func (v *UpdateWalletAddressInput) GetStatus() WalletAddressStatus { return v.Status }
+
+// GetIdempotencyKey returns UpdateWalletAddressInput.IdempotencyKey, and is useful for accessing the field via an interface.
+func (v *UpdateWalletAddressInput) GetIdempotencyKey() string { return v.IdempotencyKey }
+
+// GetAdditionalProperties returns UpdateWalletAddressInput.AdditionalProperties, and is useful for accessing the field via an interface.
+func (v *UpdateWalletAddressInput) GetAdditionalProperties() []AdditionalPropertyInput {
+	return v.AdditionalProperties
+}
+
+// UpdateWalletAddressResponse is returned by UpdateWalletAddress on success.
+type UpdateWalletAddressResponse struct {
+	// Update a wallet address
+	UpdateWalletAddress UpdateWalletAddressUpdateWalletAddressUpdateWalletAddressMutationResponse `json:"updateWalletAddress"`
+}
+
+// GetUpdateWalletAddress returns UpdateWalletAddressResponse.UpdateWalletAddress, and is useful for accessing the field via an interface.
+func (v *UpdateWalletAddressResponse) GetUpdateWalletAddress() UpdateWalletAddressUpdateWalletAddressUpdateWalletAddressMutationResponse {
+	return v.UpdateWalletAddress
+}
+
+// UpdateWalletAddressUpdateWalletAddressUpdateWalletAddressMutationResponse includes the requested fields of the GraphQL type UpdateWalletAddressMutationResponse.
+type UpdateWalletAddressUpdateWalletAddressUpdateWalletAddressMutationResponse struct {
+	WalletAddress UpdateWalletAddressUpdateWalletAddressUpdateWalletAddressMutationResponseWalletAddress `json:"walletAddress"`
+}
+
+// GetWalletAddress returns UpdateWalletAddressUpdateWalletAddressUpdateWalletAddressMutationResponse.WalletAddress, and is useful for accessing the field via an interface.
+func (v *UpdateWalletAddressUpdateWalletAddressUpdateWalletAddressMutationResponse) GetWalletAddress() UpdateWalletAddressUpdateWalletAddressUpdateWalletAddressMutationResponseWalletAddress {
+	return v.WalletAddress
+}
+
+// UpdateWalletAddressUpdateWalletAddressUpdateWalletAddressMutationResponseWalletAddress includes the requested fields of the GraphQL type WalletAddress.
+type UpdateWalletAddressUpdateWalletAddressUpdateWalletAddressMutationResponseWalletAddress struct {
+	// Wallet address id
+	Id string `json:"id"`
+}
+
+// GetId returns UpdateWalletAddressUpdateWalletAddressUpdateWalletAddressMutationResponseWalletAddress.Id, and is useful for accessing the field via an interface.
+func (v *UpdateWalletAddressUpdateWalletAddressUpdateWalletAddressMutationResponseWalletAddress) GetId() string {
+	return v.Id
+}
+
 type WalletAddressStatus string
 
 const (
@@ -1017,6 +1079,14 @@ type __RevokeWalletAddressKeyInput struct {
 
 // GetInput returns __RevokeWalletAddressKeyInput.Input, and is useful for accessing the field via an interface.
 func (v *__RevokeWalletAddressKeyInput) GetInput() RevokeWalletAddressKeyInput { return v.Input }
+
+// __UpdateWalletAddressInput is used internally by genqlient
+type __UpdateWalletAddressInput struct {
+	Input UpdateWalletAddressInput `json:"input"`
+}
+
+// GetInput returns __UpdateWalletAddressInput.Input, and is useful for accessing the field via an interface.
+func (v *__UpdateWalletAddressInput) GetInput() UpdateWalletAddressInput { return v.Input }
 
 // The query or mutation executed by CreateWalletAddress.
 const CreateWalletAddress_Operation = `
@@ -1443,6 +1513,43 @@ func RevokeWalletAddressKey(
 	var err error
 
 	var data RevokeWalletAddressKeyResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by UpdateWalletAddress.
+const UpdateWalletAddress_Operation = `
+mutation UpdateWalletAddress ($input: UpdateWalletAddressInput!) {
+	updateWalletAddress(input: $input) {
+		walletAddress {
+			id
+		}
+	}
+}
+`
+
+func UpdateWalletAddress(
+	ctx context.Context,
+	client graphql.Client,
+	input UpdateWalletAddressInput,
+) (*UpdateWalletAddressResponse, error) {
+	req := &graphql.Request{
+		OpName: "UpdateWalletAddress",
+		Query:  UpdateWalletAddress_Operation,
+		Variables: &__UpdateWalletAddressInput{
+			Input: input,
+		},
+	}
+	var err error
+
+	var data UpdateWalletAddressResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
