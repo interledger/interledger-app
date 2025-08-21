@@ -427,7 +427,7 @@ export const getContactRoute = async () => {
         },
         {
           tag: 'meta',
-          attributes: { property: 'og:site_name', content: 'Fynbos' },
+          attributes: { property: 'og:site_name', content: 'Interledger' },
           content: null,
           __typename: 'Tag'
         },
@@ -515,7 +515,7 @@ export const getContactRoute = async () => {
                 children: [
                   {
                     type: 'span',
-                    value: '© 2024 Fynbos Inc and the Interledger Foundation.'
+                    value: '© 2024 Interledger Inc and the Interledger Foundation.'
                   }
                 ]
               },
@@ -537,7 +537,7 @@ export const getContactRoute = async () => {
                   {
                     type: 'span',
                     value:
-                      '. The Interledger app is powered by Fynbos on behalf of the Interledger Foundation as a service to the Interledger community. Fynbos Inc is not a bank. Fynbos provides a technology platform and all payments and banking services are provided by our partners who are appropriately licensed.'
+                      '. The Interledger app is powered by Interledger on behalf of the Interledger Foundation as a service to the Interledger community. Interledger Inc is not a bank. Interledger provides a technology platform and all payments and banking services are provided by our partners who are appropriately licensed.'
                   }
                 ]
               }
@@ -912,7 +912,7 @@ export const getCurrentMarketingPage = async (
             },
             {
               tag: 'meta',
-              attributes: { property: 'og:site_name', content: 'Fynbos' },
+              attributes: { property: 'og:site_name', content: 'Interledger' },
               content: null,
               __typename: 'Tag'
             },
@@ -1004,7 +1004,7 @@ export const getCurrentMarketingPage = async (
                       {
                         type: 'span',
                         value:
-                          '© 2024 Fynbos Inc and the Interledger Foundation.'
+                          '© 2024 Interledger Inc and the Interledger Foundation.'
                       }
                     ]
                   },
@@ -1026,7 +1026,7 @@ export const getCurrentMarketingPage = async (
                       {
                         type: 'span',
                         value:
-                          '. The Interledger app is powered by Fynbos on behalf of the Interledger Foundation as a service to the Interledger community. Fynbos Inc is not a bank. Fynbos provides a technology platform and all payments and banking services are provided by our partners who are appropriately licensed.'
+                          '. The Interledger app is powered by Interledger on behalf of the Interledger Foundation as a service to the Interledger community. Interledger Inc is not a bank. Interledger provides a technology platform and all payments and banking services are provided by our partners who are appropriately licensed.'
                       }
                     ]
                   }
@@ -2098,7 +2098,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          'Fynbos Inc, the Fynbos mark and our logos, our product or service names, our slogans and the look and feel of the Services are trademarks of Corporation and may not be copied, imitated or used, in whole or in part, without our prior written permission. All other trademarks, registered trademarks, product names and company names or logos mentioned on the Services are the property of their respective owners. Reference to any products, services, processes or other information by trade name, trademark, manufacturer, supplier or otherwise does not constitute or imply endorsement, sponsorship or recommendation by us.'
+                          'Interledger Inc, the Interledger mark and our logos, our product or service names, our slogans and the look and feel of the Services are trademarks of Corporation and may not be copied, imitated or used, in whole or in part, without our prior written permission. All other trademarks, registered trademarks, product names and company names or logos mentioned on the Services are the property of their respective owners. Reference to any products, services, processes or other information by trade name, trademark, manufacturer, supplier or otherwise does not constitute or imply endorsement, sponsorship or recommendation by us.'
                       }
                     ]
                   },
@@ -2428,7 +2428,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                               {
                                 type: 'span',
                                 value:
-                                  ' or by certified mail addressed to Fynbos Inc, 447 Broadway, 2nd Floor Suite #2233, New York, 10013. The Notice must (I) include your name, residence address, email address, and telephone number; (II) describe the nature and basis of the Dispute; and (III) set forth the specific relief sought. Our notice to you will be similar in form to that described above. If you and Corporation cannot reach an agreement to resolve the Dispute within thirty (30) days after such Notice is received, then either party may submit the Dispute to binding arbitration administered by JAMS or, under the limited circumstances set forth above, in court. All Disputes submitted to JAMS will be resolved through confidential, binding arbitration before one arbitrator. Arbitration proceedings will be held in, Delaware unless you are a consumer, in which case you may elect to hold the arbitration in your county of residence. For purposes of this Section 17, a “'
+                                  ' or by certified mail addressed to Interledger Inc, 447 Broadway, 2nd Floor Suite #2233, New York, 10013. The Notice must (I) include your name, residence address, email address, and telephone number; (II) describe the nature and basis of the Dispute; and (III) set forth the specific relief sought. Our notice to you will be similar in form to that described above. If you and Corporation cannot reach an agreement to resolve the Dispute within thirty (30) days after such Notice is received, then either party may submit the Dispute to binding arbitration administered by JAMS or, under the limited circumstances set forth above, in court. All Disputes submitted to JAMS will be resolved through confidential, binding arbitration before one arbitrator. Arbitration proceedings will be held in, Delaware unless you are a consumer, in which case you may elect to hold the arbitration in your county of residence. For purposes of this Section 17, a “'
                               },
                               {
                                 type: 'span',
@@ -2566,7 +2566,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                               {
                                 type: 'span',
                                 value:
-                                  ' or by certified mail addressed to Fynbos Inc, 447 Broadway, 2nd Floor Suite #2233, New York, 10013. In order to be effective, the opt-out notice must include your full name and address and clearly indicate your intent to opt out of binding arbitration. By opting out of binding arbitration, you are agreeing to resolve Disputes in accordance with Section 17.'
+                                  ' or by certified mail addressed to Interledger Inc, 447 Broadway, 2nd Floor Suite #2233, New York, 10013. In order to be effective, the opt-out notice must include your full name and address and clearly indicate your intent to opt out of binding arbitration. By opting out of binding arbitration, you are agreeing to resolve Disputes in accordance with Section 17.'
                               }
                             ]
                           }
@@ -2794,7 +2794,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
             },
             {
               tag: 'meta',
-              attributes: { property: 'og:site_name', content: 'Fynbos' },
+              attributes: { property: 'og:site_name', content: 'Interledger' },
               content: null,
               __typename: 'Tag'
             },
@@ -2886,7 +2886,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          '© 2024 Fynbos Inc and the Interledger Foundation.'
+                          '© 2024 Interledger Inc and the Interledger Foundation.'
                       }
                     ]
                   },
@@ -2908,7 +2908,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          '. The Interledger app is powered by Fynbos on behalf of the Interledger Foundation as a service to the Interledger community. Fynbos Inc is not a bank. Fynbos provides a technology platform and all payments and banking services are provided by our partners who are appropriately licensed.'
+                          '. The Interledger app is powered by Interledger on behalf of the Interledger Foundation as a service to the Interledger community. Interledger Inc is not a bank. Interledger provides a technology platform and all payments and banking services are provided by our partners who are appropriately licensed.'
                       }
                     ]
                   }
@@ -2998,7 +2998,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          'Fynbos ("we," "us," or "our") respects your privacy and is committed to protecting your personal data. This Privacy Policy ("Policy") will inform you about how we collect, use, share, and protect your personal data when you use our online digital wallet services (collectively, the "Services").'
+                          'Interledger ("we," "us," or "our") respects your privacy and is committed to protecting your personal data. This Privacy Policy ("Policy") will inform you about how we collect, use, share, and protect your personal data when you use our online digital wallet services (collectively, the "Services").'
                       }
                     ]
                   },
@@ -3314,7 +3314,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          'Fynbos will never sell your personal data or disclose it to a third-party unless required to do so to deliver the Services to you.'
+                          'Interledger will never sell your personal data or disclose it to a third-party unless required to do so to deliver the Services to you.'
                       }
                     ]
                   },
@@ -4132,7 +4132,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
             },
             {
               tag: 'meta',
-              attributes: { property: 'og:site_name', content: 'Fynbos' },
+              attributes: { property: 'og:site_name', content: 'Interledger' },
               content: null,
               __typename: 'Tag'
             },
@@ -4224,7 +4224,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          '© 2024 Fynbos Inc and the Interledger Foundation.'
+                          '© 2024 Interledger Inc and the Interledger Foundation.'
                       }
                     ]
                   },
@@ -4246,7 +4246,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          '. The Interledger app is powered by Fynbos on behalf of the Interledger Foundation as a service to the Interledger community. Fynbos Inc is not a bank. Fynbos provides a technology platform and all payments and banking services are provided by our partners who are appropriately licensed.'
+                          '. The Interledger app is powered by Interledger on behalf of the Interledger Foundation as a service to the Interledger community. Interledger Inc is not a bank. Interledger provides a technology platform and all payments and banking services are provided by our partners who are appropriately licensed.'
                       }
                     ]
                   }
@@ -4771,7 +4771,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                               {
                                 type: 'span',
                                 value:
-                                  'remove, obscure or alter any proprietary notices associated with the wallet address, or give any express or implied misrepresentation that the Holder or another third party are Fynbos or the holder of the copyright or other applicable intellectual property rights in any wallet address;'
+                                  'remove, obscure or alter any proprietary notices associated with the wallet address, or give any express or implied misrepresentation that the Holder or another third party are Interledger or the holder of the copyright or other applicable intellectual property rights in any wallet address;'
                               }
                             ]
                           }
@@ -4974,7 +4974,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
             },
             {
               tag: 'meta',
-              attributes: { property: 'og:site_name', content: 'Fynbos' },
+              attributes: { property: 'og:site_name', content: 'Interledger' },
               content: null,
               __typename: 'Tag'
             },
@@ -5066,7 +5066,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          '© 2024 Fynbos Inc and the Interledger Foundation.'
+                          '© 2024 Interledger Inc and the Interledger Foundation.'
                       }
                     ]
                   },
@@ -5088,7 +5088,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          '. The Interledger app is powered by Fynbos on behalf of the Interledger Foundation as a service to the Interledger community. Fynbos Inc is not a bank. Fynbos provides a technology platform and all payments and banking services are provided by our partners who are appropriately licensed.'
+                          '. The Interledger app is powered by Interledger on behalf of the Interledger Foundation as a service to the Interledger community. Interledger Inc is not a bank. Interledger provides a technology platform and all payments and banking services are provided by our partners who are appropriately licensed.'
                       }
                     ]
                   }
@@ -5281,7 +5281,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
             },
             {
               tag: 'meta',
-              attributes: { property: 'og:site_name', content: 'Fynbos' },
+              attributes: { property: 'og:site_name', content: 'Interledger' },
               content: null,
               __typename: 'Tag'
             },
@@ -5373,7 +5373,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          '© 2024 Fynbos Inc and the Interledger Foundation.'
+                          '© 2024 Interledger Inc and the Interledger Foundation.'
                       }
                     ]
                   },
@@ -5395,7 +5395,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          '. The Interledger app is powered by Fynbos on behalf of the Interledger Foundation as a service to the Interledger community. Fynbos Inc is not a bank. Fynbos provides a technology platform and all payments and banking services are provided by our partners who are appropriately licensed.'
+                          '. The Interledger app is powered by Interledger on behalf of the Interledger Foundation as a service to the Interledger community. Interledger Inc is not a bank. Interledger provides a technology platform and all payments and banking services are provided by our partners who are appropriately licensed.'
                       }
                     ]
                   }
@@ -5796,7 +5796,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          '. However, withdrawal of your consent may result in termination of your access to Services. Any withdrawal of your consent will be effective after a reasonable period of time for processing your request, and Fynbos will confirm your withdrawal of consent and its effective date in writing.'
+                          '. However, withdrawal of your consent may result in termination of your access to Services. Any withdrawal of your consent will be effective after a reasonable period of time for processing your request, and Interledger will confirm your withdrawal of consent and its effective date in writing.'
                       }
                     ]
                   },
@@ -5817,7 +5817,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          'Fynbos may terminate this Agreement if you withdraw your consent to receive electronic Communications or if you violate the terms of the Agreement. Termination of the Agreement may result in the loss of access to Services and any associated data.'
+                          'Interledger may terminate this Agreement if you withdraw your consent to receive electronic Communications or if you violate the terms of the Agreement. Termination of the Agreement may result in the loss of access to Services and any associated data.'
                       }
                     ]
                   },
@@ -5859,7 +5859,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          'Fynbos reserves the right to update or modify this Agreement at any time. We will notify you of any changes to the Agreement via email or through the Services. Your continued use of the Services after receiving notice of any changes constitutes your acceptance of the revised Agreement.'
+                          'Interledger reserves the right to update or modify this Agreement at any time. We will notify you of any changes to the Agreement via email or through the Services. Your continued use of the Services after receiving notice of any changes constitutes your acceptance of the revised Agreement.'
                       }
                     ]
                   },
@@ -5994,7 +5994,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
             },
             {
               tag: 'meta',
-              attributes: { property: 'og:site_name', content: 'Fynbos' },
+              attributes: { property: 'og:site_name', content: 'Interledger' },
               content: null,
               __typename: 'Tag'
             },
@@ -6086,7 +6086,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          '© 2024 Fynbos Inc and the Interledger Foundation.'
+                          '© 2024 Interledger Inc and the Interledger Foundation.'
                       }
                     ]
                   },
@@ -6108,7 +6108,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          '. The Interledger app is powered by Fynbos on behalf of the Interledger Foundation as a service to the Interledger community. Fynbos Inc is not a bank. Fynbos provides a technology platform and all payments and banking services are provided by our partners who are appropriately licensed.'
+                          '. The Interledger app is powered by Interledger on behalf of the Interledger Foundation as a service to the Interledger community. Interledger Inc is not a bank. Interledger provides a technology platform and all payments and banking services are provided by our partners who are appropriately licensed.'
                       }
                     ]
                   }
