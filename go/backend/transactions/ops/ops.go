@@ -237,6 +237,7 @@ type dbTransaction struct {
 	Destination             sql.NullString               `db:"destination"`
 	Title                   sql.NullString               `db:"title"`
 	Amount                  uint64                       `db:"amount"`
+	ProviderFee             uint64                       `db:"provider_fee"`
 	Scale                   int                          `db:"asset_scale"`
 	Asset                   string                       `db:"asset_code"`
 	Timestamp               time.Time                    `db:"updated_at"`
