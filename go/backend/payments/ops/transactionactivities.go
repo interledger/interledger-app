@@ -10,6 +10,7 @@ import (
 
 	"gitlab.com/fynbos/backend/providers/xago"
 
+	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/transactions"
 )
@@ -86,6 +87,7 @@ func (a *Activity) AddPayInTransfer(ctx context.Context, paymentID, fkID string)
 			ForeignID:       fkID,
 			Type:            transferType,
 			Amount:          p.SenderAmount,
+			ProviderFee:     currency.FromFloat64(0, currency.USD),
 			State:           transactions.StateCompleted,
 		},
 	})
@@ -103,6 +105,7 @@ func (a *Activity) AddWebMonetizationPayInTransfer(ctx context.Context, paymentI
 			ForeignID:       paymentID,
 			Type:            transactions.TransferTypeDebitWebMonetization,
 			Amount:          p.SenderAmount,
+			ProviderFee:     currency.FromFloat64(0, currency.USD),
 			State:           transactions.StateCompleted,
 		},
 	})
@@ -134,6 +137,7 @@ func (a *Activity) AddWithdrawalTransfer(ctx context.Context, paymentID string) 
 			ForeignID:       paymentID,
 			Type:            typ,
 			Amount:          p.ReceiverAmount,
+			ProviderFee:     currency.FromFloat64(0, currency.USD),
 			State:           transactions.StateCompleted,
 		},
 	})
@@ -164,6 +168,7 @@ func (a *Activity) AddDepositTransfer(ctx context.Context, paymentID string) err
 			ForeignID:       paymentID,
 			Type:            transactions.TransferTypeCreditBalance,
 			Amount:          p.ReceiverAmount,
+			ProviderFee:     currency.FromFloat64(0, currency.USD),
 			State:           transactions.StateCompleted,
 		},
 	})
@@ -194,6 +199,7 @@ func (a *Activity) AddPayInRollbackTransfer(ctx context.Context, paymentID, fkID
 			ForeignID:       fkID,
 			Type:            typ,
 			Amount:          p.SenderAmount,
+			ProviderFee:     currency.FromFloat64(0, currency.USD),
 			State:           transactions.StateCompleted,
 		},
 	})
@@ -250,6 +256,7 @@ func (a *Activity) CreatePayoutTransaction(ctx context.Context, paymentID, txID,
 		Source:                  senderWallet.AddressString(),
 		Destination:             receiverWallet.AddressString(),
 		Amount:                  p.ReceiverAmount,
+		ProviderFee:             currency.FromFloat64(0, currency.USD),
 		LinkedAccountTitle:      la.Title(),
 		DestinationIdentity:     p.Receiver.Identifier,
 		DestinationIdentityType: p.Receiver.Type.String(),
@@ -260,6 +267,7 @@ func (a *Activity) CreatePayoutTransaction(ctx context.Context, paymentID, txID,
 				ForeignID:       fkID,
 				Type:            transType,
 				Amount:          p.ReceiverAmount,
+				ProviderFee:     currency.FromFloat64(0, currency.USD),
 				State:           transactions.StateCompleted,
 			},
 		},

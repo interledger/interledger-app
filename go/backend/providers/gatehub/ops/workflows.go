@@ -3,6 +3,7 @@ package ops
 import (
 	"errors"
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -59,6 +60,7 @@ func CreateGatehubUserWorkflow(ctx workflow.Context, walletID string) (string, e
 
 func CreateGatehubDeposit(ctx workflow.Context, wh DepositWebhook) (string, error) {
 	var a *Activity
+
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 10 * time.Second,
 	}
@@ -76,21 +78,28 @@ func CreateGatehubDeposit(ctx workflow.Context, wh DepositWebhook) (string, erro
 	// remove comas used as tousand separators
 	wh.Data.Amount = strings.ReplaceAll(wh.Data.Amount, ",", "")
 
-	parts := strings.Split(wh.Data.Amount, ".")
-	if len(parts) < 2 {
-		return "", temporal.NewNonRetryableApplicationError("Invalid amount", "ErrInternal", fmt.Errorf("%w invalid amount", gatehub.ErrInternal))
+	amountValue, err := strconv.ParseFloat(wh.Data.Amount, 64)
+	if err != nil {
+		return "", temporal.NewNonRetryableApplicationError("Invalid amount", "ErrInternal", fmt.Errorf("%w %s", gatehub.ErrInternal, err))
 	}
 
-	value, err := strconv.ParseUint(parts[0], 10, 64)
+	//get transaction and fee from it
+	var providerFeeValue float64
+	args := &FeeFromGhArgs{UserID: wh.UserID, TrxID: wh.Data.TrxID}
+	err = workflow.ExecuteActivity(ctx, a.GetFeeFromGatehubTrasaction, args).Get(ctx, &providerFeeValue)
 	if err != nil {
-		return "", temporal.NewNonRetryableApplicationError("Invalid amount", "ErrInternal", fmt.Errorf("%w %s", gatehub.ErrInternal, err))
+		return "", err
 	}
-	cents, err := strconv.ParseUint(parts[1], 10, 64)
-	if err != nil {
-		return "", temporal.NewNonRetryableApplicationError("Invalid amount", "ErrInternal", fmt.Errorf("%w %s", gatehub.ErrInternal, err))
+
+	remainder := amountValue - providerFeeValue
+
+	// calculate fee and remaining amount
+	providerFee := currency.Amount{
+		Value:    uint64(math.Round(providerFeeValue * 100)), // EUR scale = 2
+		Currency: cc,
 	}
 	amt := currency.Amount{
-		Value:    (value * 100) + cents, // EUR scale = 2
+		Value:    uint64(math.Round(remainder * 100)), // EUR scale = 2
 		Currency: cc,
 	}
 
@@ -101,12 +110,12 @@ func CreateGatehubDeposit(ctx workflow.Context, wh DepositWebhook) (string, erro
 	}
 
 	var txID string
-	err = workflow.ExecuteActivity(ctx, a.CreateGatehubDepositTransaction, wh.ID, walletID, amt).Get(ctx, &txID)
+	err = workflow.ExecuteActivity(ctx, a.CreateGatehubDepositTransaction, wh.Data.TrxID, walletID, amt, providerFee).Get(ctx, &txID)
 	if err != nil {
 		return "", err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.FinalizeGatehubDeposit, txID, walletID, amt).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.FinalizeGatehubDeposit, txID, walletID, amt, providerFee).Get(ctx, nil)
 	if err != nil {
 		return "", err
 	}

@@ -37,6 +37,7 @@ func createTransaction(ctx context.Context, dbc sqlx.ExecerContext, b Backends, 
 		Value("state", args.State).
 		Value("provider", args.Provider).
 		Value("amount", args.Amount.Value).
+		Value("provider_fee", args.ProviderFee.Value).
 		Value("asset_code", args.Amount.Currency).
 		Value("asset_scale", args.Amount.Scale).
 		Value("grant_id", sql.NullString{
@@ -109,14 +110,15 @@ func createTransaction(ctx context.Context, dbc sqlx.ExecerContext, b Backends, 
 
 	userID := getWalletUserID(ctx, b, args.WalletID)
 	b.Analytics().TrackWalletTransactionCreated(args.WalletID, analytics.WalletTransactionArgs{
-		ID:       transID,
-		TrxType:  args.ForeignType,
-		Provider: args.Provider,
-		Amount:   args.Amount,
-		UserID:   userID,
+		ID:          transID,
+		TrxType:     args.ForeignType,
+		Provider:    args.Provider,
+		Amount:      args.Amount,
+		ProviderFee: args.ProviderFee,
+		UserID:      userID,
 	})
 
-	slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "Fynbot", fmt.Sprintf(":money_with_wings: New Transaction Created\nID: %s\nWallet ID: %s\nAmount:%s\nLink: %s", transID, args.WalletID, args.Amount.Format(), env.AdminURL()+"/wallet/"+args.WalletID+"/transactions"))
+	slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "Fynbot", fmt.Sprintf(":money_with_wings: New Transaction Created\nID: %s\nWallet ID: %s\nAmount:%s\nFee:%s\nLink: %s", transID, args.WalletID, args.Amount.Format(), args.ProviderFee.Format(), env.AdminURL()+"/wallet/"+args.WalletID+"/transactions"))
 
 	return transID, nil
 }
