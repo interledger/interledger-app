@@ -164,7 +164,7 @@ func (a *Activity) BalanceDiscrepancies(ctx context.Context) error {
 					}
 
 				} else {
-					log.Error(fmt.Sprintf("BALANCES DO NOT MATCH ON WALLET %s %s %s", wallet.ID, externalBalance, totals.Amount))
+					log.Error(fmt.Sprintf("BALANCES DO NOT MATCH ON WALLET %s %v %v", wallet.ID, externalBalance, totals.Amount))
 					_ = tx.Rollback()
 				}
 
