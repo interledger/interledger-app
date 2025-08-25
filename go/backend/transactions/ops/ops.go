@@ -222,7 +222,7 @@ func AddTransfers(ctx context.Context, b Backends, trxID string, transferArgs []
 }
 
 const (
-	transactionCols = ` id, foreign_id, type, state, title, provider, note, source, destination, amount, asset_scale, asset_code, linked_account_title, destination_identity_type, destination_identity, reference, updated_at, refund_state `
+	transactionCols = ` id, foreign_id, type, state, title, provider, note, source, destination, amount, asset_scale, asset_code, linked_account_title, destination_identity_type, destination_identity, reference, updated_at, refund_state, provider_fee `
 	transferCols    = ` id, foreign_id, linked_acc_id, type, state, amount, asset_scale, asset_code, updated_at `
 )
 
