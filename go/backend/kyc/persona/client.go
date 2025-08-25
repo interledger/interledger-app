@@ -38,7 +38,7 @@ func New() Client {
 		api:           otelhttp.DefaultClient,
 		bearerToken:   os.Getenv("PERSONA_TOKEN"),
 		webhookSecret: os.Getenv("PERSONA_WEBHOOK_TOKEN"),
-		baseURL:       "https://withpersona.com/api/v1/",
+		baseURL:       "https://api.withpersona.com/api/v1/",
 	}
 }
 
