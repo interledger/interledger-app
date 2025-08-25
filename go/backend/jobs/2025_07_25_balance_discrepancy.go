@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"math"
 	"net/http"
 	"os"
 	"strconv"
@@ -16,6 +15,7 @@ import (
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	gatehub_external "gitlab.com/fynbos/backend/providers/gatehub/external"
 	httplogger "gitlab.com/fynbos/backend/providers/http"
+	"gitlab.com/fynbos/log"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
@@ -72,28 +72,66 @@ func (a *Activity) BalanceDiscrepancies(ctx context.Context) error {
 		for _, la := range lal {
 
 			if la.Provider == gatehub.ProviderName && la.Type == gatehub.AccTypeBalance && la.DeletedAt.Time.IsZero() {
-
-				bal, err := a.b.Gatehub().GetBalance(ctx, la.ID)
-				if err != nil {
-					continue
-				}
-
 				externalUserID, err := getExternalUserID(ctx, a.b, wallet.ID)
 				if err != nil {
 					continue
 				}
 
+				tx, err := a.b.DB().BeginTxx(ctx, nil)
+				if err != nil {
+					return err
+				}
+
+				defer func() {
+					_ = tx.Rollback()
+				}()
+
+				// update deposits //1% fee
+				_, err = tx.ExecContext(ctx, "UPDATE transactions SET provider_fee = amount / 100, amount = amount - (amount / 100), updated_at=now() WHERE provider_fee=0 AND type='deposit' AND provider='gatehub' AND wallet_id=$1;", wallet.ID)
+				if err != nil {
+					return err
+				}
+
+				// update withdrawals // 1 euro fee
+				_, err = tx.ExecContext(ctx, "UPDATE transactions SET provider_fee = 100, amount = amount - 100, updated_at=now() WHERE provider_fee=0 AND type='withdrawal' AND provider='gatehub' AND wallet_id=$1;", wallet.ID)
+				if err != nil {
+					return err
+				}
+
+				//sum of fees and amount
+				type Totals struct {
+					Amount float64 `db:"total_amount"`
+					Fees   uint64  `db:"total_fees"`
+				}
+				var totals Totals
+				err = tx.GetContext(ctx, &totals, `
+					SELECT 
+						COALESCE(SUM(
+							CASE 
+								WHEN type IN ('web_monetization_outgoing', 'withdrawal', 'open_payments_outgoing', 'sent') 
+									THEN -amount
+								ELSE amount
+							END
+						), 0) / 100 AS total_amount, 
+						COALESCE(SUM(provider_fee) , 0)  AS total_fees 
+					FROM transactions WHERE provider='gatehub' AND wallet_id=$1;`, wallet.ID)
+				if err != nil {
+					return err
+				}
+
+				// ignore users with 0 balance
+				if totals.Amount == 0 {
+					continue
+				}
+
+				// get provider balance
 				ebal, err := gatehubExternal.GetWalletBalances(ctx, externalUserID, la.ProviderID)
 				if err != nil {
 					continue
 				}
 
-				var balance, externalBalance float64
+				var externalBalance float64
 				if len(ebal) != 0 {
-					balance, err = strconv.ParseFloat(bal.Available.FormatAmount(), 64)
-					if err != nil {
-						continue
-					}
 					externalBalance, err = strconv.ParseFloat(ebal[0].Available, 64)
 					if err != nil {
 						continue
@@ -101,31 +139,10 @@ func (a *Activity) BalanceDiscrepancies(ctx context.Context) error {
 
 				}
 
-				if externalBalance < balance {
-					accs, err := a.b.Pacioli().GetAccounts(ctx, []string{la.ID})
-					if err != nil || len(accs) == 0 {
-						continue
-					}
-
-					uts, err := gatehubExternal.GetUserTransactions(ctx, externalUserID)
-					if err != nil {
-						continue
-					}
-					var feesTotal float64 = 0
-
-					for _, ut := range uts {
-						if ut.Type == gatehub_external.TransactionTypeDeposit {
-							tfee, err := strconv.ParseFloat(ut.Fee, 64)
-							if err != nil {
-								continue
-							}
-							feesTotal += tfee
-						}
-					}
-
-					// backend transactions
-					// hardcoded 1% fee
-					_, err = a.b.DB().ExecContext(ctx, "UPDATE transactions SET provider_fee = amount / 100, amount = amount - (amount / 100), updated_at=now() WHERE provider_fee=0 AND type='deposit' AND provider='gatehub' AND wallet_id=$1;", wallet.ID)
+				// sanity check
+				if externalBalance == totals.Amount {
+					//happy we match provider records
+					err = tx.Commit()
 					if err != nil {
 						return err
 					}
@@ -134,7 +151,7 @@ func (a *Activity) BalanceDiscrepancies(ctx context.Context) error {
 					timeout := time.Hour * 24 * 365
 					txID := uuid.NewString()
 					feeAmount := currency.Amount{
-						Value:    uint64(math.Round(feesTotal * 100)), // EUR scale = 2
+						Value:    uint64(totals.Fees), // EUR scale = 2
 						Currency: "EUR",
 					}
 					_, err = a.b.Gatehub().ReserveBalance(ctx, la.ID, txID, feeAmount, timeout)
@@ -145,6 +162,10 @@ func (a *Activity) BalanceDiscrepancies(ctx context.Context) error {
 					if err != nil {
 						return err
 					}
+
+				} else {
+					log.Error(fmt.Sprintf("BALANCES DO NOT MATCH ON WALLET %s %s %s", wallet.ID, externalBalance, totals.Amount))
+					_ = tx.Rollback()
 				}
 
 				time.Sleep(100 * time.Millisecond) // prevent  rate limit
