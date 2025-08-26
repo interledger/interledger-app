@@ -102,6 +102,10 @@ func CreateGatehubDeposit(ctx workflow.Context, wh DepositWebhook) (string, erro
 		Value:    uint64(math.Round(remainder * 100)), // EUR scale = 2
 		Currency: cc,
 	}
+	fullAMount := currency.Amount{
+		Value:    uint64(math.Round(amountValue * 100)), // EUR scale = 2
+		Currency: cc,
+	}
 
 	var walletID string
 	err = workflow.ExecuteActivity(ctx, a.GetWalletFromGatehubUser, wh.UserID).Get(ctx, &walletID)
@@ -110,7 +114,7 @@ func CreateGatehubDeposit(ctx workflow.Context, wh DepositWebhook) (string, erro
 	}
 
 	var txID string
-	err = workflow.ExecuteActivity(ctx, a.CreateGatehubDepositTransaction, wh.Data.TrxID, walletID, amt, providerFee).Get(ctx, &txID)
+	err = workflow.ExecuteActivity(ctx, a.CreateGatehubDepositTransaction, wh.Data.TrxID, walletID, fullAMount, providerFee).Get(ctx, &txID)
 	if err != nil {
 		return "", err
 	}
