@@ -74,6 +74,10 @@ func (a *Activity) BalanceDiscrepancies(ctx context.Context) error {
 		for _, la := range lal {
 
 			if la.Provider == gatehub.ProviderName && la.Type == gatehub.AccTypeBalance && la.DeletedAt.Time.IsZero() {
+				bal, err := a.b.Gatehub().GetBalance(ctx, la.ID)
+				if err != nil {
+					return err
+				}
 				externalUserID, err := getExternalUserID(ctx, a.b, wallet.ID)
 				if err != nil {
 					continue
@@ -89,21 +93,21 @@ func (a *Activity) BalanceDiscrepancies(ctx context.Context) error {
 				}()
 
 				// update deposits //1% fee
-				_, err = tx.ExecContext(ctx, "UPDATE transactions SET provider_fee = amount / 100, updated_at=now() WHERE type='deposit' AND provider='gatehub' AND wallet_id=$1;", wallet.ID)
+				_, err = tx.ExecContext(ctx, "UPDATE transactions SET provider_fee = ROUND(amount / 100,0), updated_at=now() WHERE provider_fee=0 AND type='deposit' AND provider='gatehub' AND wallet_id=$1;", wallet.ID)
 				if err != nil {
 					return err
 				}
 
 				// update withdrawals should add the 1// 1 euro fee
-				_, err = tx.ExecContext(ctx, "UPDATE transactions SET provider_fee = 100, updated_at=now() WHERE type='withdrawal' AND provider='gatehub' AND wallet_id=$1;", wallet.ID)
+				_, err = tx.ExecContext(ctx, "UPDATE transactions SET provider_fee = 100, updated_at=now() WHERE provider_fee=0 AND type='withdrawal' AND provider='gatehub' AND wallet_id=$1;", wallet.ID)
 				if err != nil {
 					return err
 				}
 
 				//sum of fees and amount
 				type Totals struct {
-					Amount float64 `db:"total_amount"`
-					Fees   float64 `db:"total_fees"`
+					Amount uint64 `db:"total_amount"`
+					Fees   uint64 `db:"total_fees"`
 				}
 				var totals Totals
 				err = tx.GetContext(ctx, &totals, `
@@ -114,8 +118,8 @@ func (a *Activity) BalanceDiscrepancies(ctx context.Context) error {
 									THEN -amount
 								ELSE amount
 							END
-						), 0) / 100 AS total_amount, 
-						COALESCE(SUM(provider_fee) , 0) / 100  AS total_fees 
+						), 0) AS total_amount, 
+						COALESCE(SUM(provider_fee), 0) AS total_fees 
 					FROM transactions WHERE state='Completed' AND wallet_id=$1;`, wallet.ID)
 
 				if err != nil {
@@ -124,7 +128,7 @@ func (a *Activity) BalanceDiscrepancies(ctx context.Context) error {
 
 				// ignore users with 0 balance
 				if totals.Amount <= 0 || totals.Fees <= 0 {
-					log.Debug("No amount found for wallet:", zap.Float64("fee", totals.Fees), zap.Float64("amount", totals.Amount), zap.String("wallet", wallet.ID))
+					log.Debug("No amount found for wallet:", zap.Uint64("fee", totals.Fees), zap.Uint64("amount", totals.Amount), zap.String("wallet", wallet.ID))
 					continue
 				}
 
@@ -134,17 +138,23 @@ func (a *Activity) BalanceDiscrepancies(ctx context.Context) error {
 					continue
 				}
 
-				var externalBalance float64
+				var externalBalance uint64
 				if len(ebal) != 0 {
-					externalBalance, err = strconv.ParseFloat(ebal[0].Available, 64)
+					externalBalanceFloat, err := strconv.ParseFloat(ebal[0].Available, 64)
 					if err != nil {
 						continue
 					}
+					externalBalance = uint64(externalBalanceFloat * 100)
 
 				}
 
 				// sanity check
-				userBalance := totals.Amount - totals.Fees
+				userBalance := uint64(totals.Amount - totals.Fees)
+				if bal.Total.Value == userBalance {
+					_ = tx.Rollback()
+					continue
+				}
+
 				if externalBalance == userBalance {
 					//happy we match provider records
 					err = tx.Commit()
@@ -169,7 +179,7 @@ func (a *Activity) BalanceDiscrepancies(ctx context.Context) error {
 					}
 
 				} else {
-					log.Error("balances do not match", zap.String("wallet", wallet.ID), zap.Float64("external_balance", externalBalance), zap.Float64("current_balance", userBalance))
+					log.Error("balances do not match", zap.String("wallet", wallet.ID), zap.Uint64("external_balance", externalBalance), zap.Uint64("current_balance", userBalance))
 					_ = tx.Rollback()
 				}
 
