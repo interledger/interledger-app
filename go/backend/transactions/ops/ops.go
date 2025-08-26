@@ -662,6 +662,11 @@ func transformTransaction(tx dbTransaction) transactions.Transaction {
 			Scale:    tx.Scale,
 		},
 		RefundState: tx.RefundState,
+		ProviderFee: currency.Amount{
+			Value:    tx.ProviderFee,
+			Currency: currency.ParseCurrency(tx.Asset),
+			Scale:    tx.Scale,
+		},
 	}
 }
 

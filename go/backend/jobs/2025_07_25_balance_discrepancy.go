@@ -123,7 +123,8 @@ func (a *Activity) BalanceDiscrepancies(ctx context.Context) error {
 				}
 
 				// ignore users with 0 balance
-				if totals.Amount == 0 {
+				if totals.Amount <= 0 || totals.Fees <= 0 {
+					log.Debug("No amount found for wallet:", zap.Uint64("fee", totals.Fees), zap.Float64("amount", totals.Amount), zap.String("wallet", wallet.ID))
 					continue
 				}
 

@@ -111,6 +111,8 @@ func transformTransaction(tx transactions.Transaction, transfers []transactions.
 	}
 
 	fees := tx.ProviderFee.Format()
+	// add the fee to the display amount
+	amt += fees
 
 	ret := &pb.Transaction{
 		Id:                      tx.ID,
