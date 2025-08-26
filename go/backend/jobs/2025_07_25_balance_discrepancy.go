@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"time"
 
+	"go.uber.org/zap"
+
 	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/providers/gatehub"
@@ -164,7 +166,7 @@ func (a *Activity) BalanceDiscrepancies(ctx context.Context) error {
 					}
 
 				} else {
-          log.Error("balances do not match", zap.String("wallet", wallet.ID), zap.Float("external_balance", externalBalance), zap.Float("current_balance", totals.Amount))
+					log.Error("balances do not match", zap.String("wallet", wallet.ID), zap.Float("external_balance", externalBalance), zap.Float("current_balance", totals.Amount))
 					_ = tx.Rollback()
 				}
 
