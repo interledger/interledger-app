@@ -116,7 +116,8 @@ func (a *Activity) BalanceDiscrepancies(ctx context.Context) error {
 							END
 						), 0) / 100 AS total_amount, 
 						COALESCE(SUM(provider_fee) , 0)  AS total_fees 
-					FROM transactions WHERE provider='gatehub' AND wallet_id=$1;`, wallet.ID)
+					FROM transactions WHERE provider='gatehub' AND state='Completed' AND wallet_id=$1;`, wallet.ID)
+
 				if err != nil {
 					return err
 				}
