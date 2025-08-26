@@ -12,7 +12,10 @@ include:
   - kratos.yaml
   - temporal.yaml
   - rafiki.yaml
-  
+
+  # enable ngrok if you are testing webhooks, see ngrok.yaml
+  # - ngrok.yaml
+
   # tier 3 (application)
   - wallet.yaml
   - protea.yaml
