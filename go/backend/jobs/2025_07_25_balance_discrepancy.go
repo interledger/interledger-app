@@ -94,8 +94,8 @@ func (a *Activity) BalanceDiscrepancies(ctx context.Context) error {
 					return err
 				}
 
-				// update withdrawals // 1 euro fee
-				_, err = tx.ExecContext(ctx, "UPDATE transactions SET provider_fee = 100, amount = amount - 100, updated_at=now() WHERE provider_fee=0 AND type='withdrawal' AND provider='gatehub' AND wallet_id=$1;", wallet.ID)
+				// update withdrawals should add the 1// 1 euro fee
+				_, err = tx.ExecContext(ctx, "UPDATE transactions SET provider_fee = 100, amount = amount + 100, updated_at=now() WHERE provider_fee=0 AND type='withdrawal' AND provider='gatehub' AND wallet_id=$1;", wallet.ID)
 				if err != nil {
 					return err
 				}
