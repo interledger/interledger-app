@@ -4,6 +4,7 @@ import (
 	"context"
 	"math"
 
+	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/transactions"
@@ -112,7 +113,8 @@ func transformTransaction(tx transactions.Transaction, transfers []transactions.
 
 	fees := tx.ProviderFee.Format()
 	// add the fee to the display amount
-	amt += fees
+	totalDeposited := tx.Amount.Value + tx.ProviderFee.Value
+	currencyAmt := currency.FromUInt64(totalDeposited, tx.Amount.Currency)
 
 	ret := &pb.Transaction{
 		Id:                      tx.ID,
@@ -124,7 +126,7 @@ func transformTransaction(tx transactions.Transaction, transfers []transactions.
 		State:                   string(tx.State),
 		ForeignId:               tx.ForeignID,
 		Title:                   tx.Title,
-		FormattedAmount:         amt,
+		FormattedAmount:         currencyAmt.Format(),
 		FormattedTime:           tx.Timestamp.Format("15:04"),
 		FormattedDate:           tx.Timestamp.Format("02 Jan 2006"),
 		Subtotal:                subTotal,
