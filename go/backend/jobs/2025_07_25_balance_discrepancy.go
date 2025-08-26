@@ -79,6 +79,10 @@ func (a *Activity) BalanceDiscrepancies(ctx context.Context) error {
 					continue
 				}
 
+				if externalUserID != "0326e583-1feb-4ff5-ad69-6e7368108cc2" || la.ProviderID != "631861543" {
+					continue
+				}
+
 				tx, err := a.b.DB().BeginTxx(ctx, nil)
 				if err != nil {
 					return err
@@ -116,7 +120,7 @@ func (a *Activity) BalanceDiscrepancies(ctx context.Context) error {
 							END
 						), 0) / 100 AS total_amount, 
 						COALESCE(SUM(provider_fee) , 0)  AS total_fees 
-					FROM transactions WHERE provider='gatehub' AND wallet_id=$1;`, wallet.ID)
+					FROM transactions WHERE provider='gatehub' AND state='Completed' AND wallet_id=$1;`, wallet.ID)
 				if err != nil {
 					return err
 				}
