@@ -79,10 +79,6 @@ func (a *Activity) BalanceDiscrepancies(ctx context.Context) error {
 					continue
 				}
 
-				if externalUserID != "a020578c-b017-4900-b650-d381d2273c0e" {
-					continue
-				}
-
 				tx, err := a.b.DB().BeginTxx(ctx, nil)
 				if err != nil {
 					return err
