@@ -121,7 +121,7 @@ func (a *Activity) BalanceDiscrepancies(ctx context.Context) error {
 				if err != nil {
 					return err
 				}
-				log.Error(fmt.Sprintf("HERE: %v", totals))
+
 				// ignore users with 0 balance
 				if totals.Amount == 0 {
 					continue
