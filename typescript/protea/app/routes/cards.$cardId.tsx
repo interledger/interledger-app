@@ -12,6 +12,7 @@ import { type RouteParams } from 'routes-gen'
 import { CardView, Layouts, type ApplicationProps } from '~/components'
 import type { loader as rootLoader } from '~/root'
 import type { loader } from './cards'
+import { useKeyGeneration } from '~/lib/useKeyGeneration'
 
 export const handle: ApplicationProps = {
   layout: Layouts.Wallet,
@@ -31,6 +32,9 @@ export default function PageCardID() {
   >
   const cards = useOutletContext<SerializeFrom<typeof loader>['cards']>()
   const { cardId } = useParams<RouteParams['/cards/:cardId']>()
+  const { keyPair } = useKeyGeneration()
+
+  console.log(keyPair)
 
   // goto root in case cards are not enabled
   if (!features.manageWalletCardsEnabled) {
