@@ -166,7 +166,7 @@ func (a *Activity) BalanceDiscrepancies(ctx context.Context) error {
 					timeout := time.Hour * 24 * 365
 					txID := uuid.NewString()
 					feeAmount := currency.Amount{
-						Value:    uint64(totals.Fees), // EUR scale = 2
+						Value:    uint64(totals.Fees * 100), // EUR scale = 2
 						Currency: "EUR",
 					}
 					_, err = a.b.Gatehub().ReserveBalance(ctx, la.ID, txID, feeAmount, timeout)
