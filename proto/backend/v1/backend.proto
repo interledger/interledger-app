@@ -423,6 +423,7 @@ message Transaction {
   string destinationIdentity = 20;
   string destinationIdentityType = 21;
   int32 refundState = 22; // NA , PENDING , COMPLETE
+  string fundsReceived = 23;
 }
 
 message ListTransactionsResponse {

@@ -113,8 +113,13 @@ func transformTransaction(tx transactions.Transaction, transfers []transactions.
 
 	fees := tx.ProviderFee.Format()
 	// add the fee to the display amount
-	totalDeposited := tx.Amount.Value + tx.ProviderFee.Value
-	currencyAmt := currency.FromUInt64(totalDeposited, tx.Amount.Currency)
+	fundsReceived := tx.Amount.Value
+	if tx.Type == "deposit" {
+		fundsReceived -= tx.ProviderFee.Value
+	} else {
+		fundsReceived += tx.ProviderFee.Value
+	}
+	currencyAmt := currency.FromUInt64(fundsReceived, tx.Amount.Currency)
 
 	ret := &pb.Transaction{
 		Id:                      tx.ID,
@@ -126,10 +131,11 @@ func transformTransaction(tx transactions.Transaction, transfers []transactions.
 		State:                   string(tx.State),
 		ForeignId:               tx.ForeignID,
 		Title:                   tx.Title,
-		FormattedAmount:         currencyAmt.Format(),
+		FormattedAmount:         amt,
 		FormattedTime:           tx.Timestamp.Format("15:04"),
 		FormattedDate:           tx.Timestamp.Format("02 Jan 2006"),
 		Subtotal:                subTotal,
+		FundsReceived:           currencyAmt.Format(),
 		Fees:                    fees,
 		AccountTitle:            tx.LinkedAccountTitle,
 		Reference:               tx.Reference,
