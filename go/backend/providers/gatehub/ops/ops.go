@@ -183,7 +183,7 @@ func CreateWithdrawal(ctx context.Context, b Backends, ec external.Client, walle
 		return existingWithdrawal.ID, nil
 	}
 
-	amount, balanceAccount, err := validateWithdrawal(ctx, b, ec, walletID, externalTransactionID)
+	amount, balanceAccount, fee, err := validateWithdrawal(ctx, b, ec, walletID, externalTransactionID)
 	if err != nil {
 		return "", err
 	}
@@ -203,6 +203,7 @@ func CreateWithdrawal(ctx context.Context, b Backends, ec external.Client, walle
 		Destination:             wallet.AddressString(),
 		Title:                   "Withdrawal",
 		DestinationIdentity:     walletID,
+		ProviderFee:             fee,
 		DestinationIdentityType: payments.IdentityTypeWalletID.String(),
 		Amount:                  amount,
 		LinkedAccountTitle:      "EUR Balance",
@@ -211,6 +212,7 @@ func CreateWithdrawal(ctx context.Context, b Backends, ec external.Client, walle
 				LinkedAccountID: balanceAccount.ID,
 				ForeignID:       externalTransactionID,
 				Amount:          amount,
+				ProviderFee:     fee,
 				Type:            transactions.TransferTypeDebitBalance,
 				State:           transactions.StatePending,
 			},
@@ -228,27 +230,36 @@ func CreateWithdrawal(ctx context.Context, b Backends, ec external.Client, walle
 	return trxID, err
 }
 
-func validateWithdrawal(ctx context.Context, b Backends, ec external.Client, walletID, externalTransactionID string) (currency.Amount, *linkedaccounts.LinkedAccount, error) {
+func validateWithdrawal(ctx context.Context, b Backends, ec external.Client, walletID, externalTransactionID string) (currency.Amount, *linkedaccounts.LinkedAccount, currency.Amount, error) {
 	externalUserID, err := getExternalUserID(ctx, b, walletID)
 	if err != nil {
-		return currency.Amount{}, nil, err
+		return currency.Amount{}, nil, currency.Amount{}, err
 	}
 
 	trx, err := ec.GetTransaction(ctx, externalUserID, externalTransactionID)
 	if err != nil {
-		return currency.Amount{}, nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+		return currency.Amount{}, nil, currency.Amount{}, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	fee, err := StringToScaledUInt(trx.Fee)
+	if err != nil {
+		return currency.Amount{}, nil, currency.Amount{}, fmt.Errorf("%w invalid fee", gatehub.ErrInternal)
+	}
+
+	if err != nil {
+		return currency.Amount{}, nil, currency.Amount{}, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
 	}
 	if trx.Type != external.TransactionTypeWithdrawal {
-		return currency.Amount{}, nil, fmt.Errorf("%w Transaction is not a withdrawal", gatehub.ErrInternal)
+		return currency.Amount{}, nil, currency.Amount{}, fmt.Errorf("%w Transaction is not a withdrawal", gatehub.ErrInternal)
 	}
 	cc := currency.ParseCurrency(trx.Vault.AssetCode)
 	if cc != currency.EUR {
-		return currency.Amount{}, nil, fmt.Errorf("%w Invalid currency", gatehub.ErrInternal)
+		return currency.Amount{}, nil, currency.Amount{}, fmt.Errorf("%w Invalid currency", gatehub.ErrInternal)
 	}
 
 	balances, err := b.LinkedAccounts().ListBalances(ctx, walletID)
 	if err != nil {
-		return currency.Amount{}, nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+		return currency.Amount{}, nil, currency.Amount{}, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
 	}
 
 	var balance *linkedaccounts.LinkedAccount
@@ -259,26 +270,30 @@ func validateWithdrawal(ctx context.Context, b Backends, ec external.Client, wal
 		}
 	}
 	if balance == nil {
-		return currency.Amount{}, nil, fmt.Errorf("%w Gatehub balance linked account not found", gatehub.ErrNotFound)
+		return currency.Amount{}, nil, currency.Amount{}, fmt.Errorf("%w Gatehub balance linked account not found", gatehub.ErrNotFound)
 	}
 	if balance.ProviderID != trx.SendingWallet.Address {
-		return currency.Amount{}, nil, fmt.Errorf("%w Gatehub withdrawal is not for this Interledger wallet", gatehub.ErrInternal)
+		return currency.Amount{}, nil, currency.Amount{}, fmt.Errorf("%w Gatehub withdrawal is not for this Interledger wallet", gatehub.ErrInternal)
 	}
 
 	parts := strings.Split(trx.Amount, ".")
 	if len(parts) < 1 {
-		return currency.Amount{}, nil, fmt.Errorf("%w invalid amount", gatehub.ErrInternal)
+		return currency.Amount{}, nil, currency.Amount{}, fmt.Errorf("%w invalid amount", gatehub.ErrInternal)
 	}
 
 	value, err := strconv.ParseUint(parts[0], 10, 64)
 	if err != nil {
-		return currency.Amount{}, nil, fmt.Errorf("%w invalid amount", gatehub.ErrInternal)
+		return currency.Amount{}, nil, currency.Amount{}, fmt.Errorf("%w invalid amount", gatehub.ErrInternal)
 	}
 
 	return currency.Amount{
-		Value:    value * 100, // EUR scale = 2
-		Currency: cc,
-	}, balance, nil
+			Value:    value * 100, // EUR scale = 2
+			Currency: cc,
+		}, balance, currency.Amount{
+			Value:    fee,
+			Currency: cc,
+			Scale:    2,
+		}, nil
 }
 
 func processWithdrawal(ctx context.Context, b Backends, walletID, transactionID string) (gatehub.Await, error) {
