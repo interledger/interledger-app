@@ -3,9 +3,6 @@ package ops
 import (
 	"errors"
 	"fmt"
-	"math"
-	"strconv"
-	"strings"
 	"time"
 
 	"gitlab.com/fynbos/backend/currency"
@@ -75,16 +72,13 @@ func CreateGatehubDeposit(ctx workflow.Context, wh DepositWebhook) (string, erro
 		return "", temporal.NewNonRetryableApplicationError("Invalid currency", "ErrInternal", fmt.Errorf("%w invalid currency", gatehub.ErrInternal))
 	}
 
-	// remove comas used as tousand separators
-	wh.Data.Amount = strings.ReplaceAll(wh.Data.Amount, ",", "")
-
-	amountValue, err := strconv.ParseFloat(wh.Data.Amount, 64)
+	amountValue, err := StringToScaledUInt(wh.Data.Amount)
 	if err != nil {
 		return "", temporal.NewNonRetryableApplicationError("Invalid amount", "ErrInternal", fmt.Errorf("%w %s", gatehub.ErrInternal, err))
 	}
 
 	//get transaction and fee from it
-	var providerFeeValue float64
+	var providerFeeValue uint64
 	args := &FeeFromGhArgs{UserID: wh.UserID, TrxID: wh.Data.TrxID}
 	err = workflow.ExecuteActivity(ctx, a.GetFeeFromGatehubTrasaction, args).Get(ctx, &providerFeeValue)
 	if err != nil {
@@ -95,15 +89,15 @@ func CreateGatehubDeposit(ctx workflow.Context, wh DepositWebhook) (string, erro
 
 	// calculate fee and remaining amount
 	providerFee := currency.Amount{
-		Value:    uint64(math.Round(providerFeeValue * 100)), // EUR scale = 2
+		Value:    providerFeeValue,
 		Currency: cc,
 	}
 	amt := currency.Amount{
-		Value:    uint64(math.Round(remainder * 100)), // EUR scale = 2
+		Value:    remainder,
 		Currency: cc,
 	}
 	fullAMount := currency.Amount{
-		Value:    uint64(math.Round(amountValue * 100)), // EUR scale = 2
+		Value:    amountValue,
 		Currency: cc,
 	}
 
