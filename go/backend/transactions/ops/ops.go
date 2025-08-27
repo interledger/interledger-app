@@ -37,7 +37,6 @@ func createTransaction(ctx context.Context, dbc sqlx.ExecerContext, b Backends, 
 		Value("state", args.State).
 		Value("provider", args.Provider).
 		Value("amount", args.Amount.Value).
-		Value("provider_fee", args.ProviderFee.Value).
 		Value("asset_code", args.Amount.Currency).
 		Value("asset_scale", args.Amount.Scale).
 		Value("grant_id", sql.NullString{
@@ -72,6 +71,9 @@ func createTransaction(ctx context.Context, dbc sqlx.ExecerContext, b Backends, 
 	}
 	if args.ForeignID != "" {
 		is.Value("foreign_id", args.ForeignID)
+	}
+	if args.ProviderFee != nil {
+		is.Value("provider_fee", args.ProviderFee.Value)
 	}
 	title := args.Title
 	if title == "" {
