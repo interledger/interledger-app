@@ -108,13 +108,14 @@ func createTransaction(ctx context.Context, dbc sqlx.ExecerContext, b Backends, 
 		log.Error("notify error", zap.Error(err))
 	}
 
+	fee := args.ProviderFee
 	userID := getWalletUserID(ctx, b, args.WalletID)
 	b.Analytics().TrackWalletTransactionCreated(args.WalletID, analytics.WalletTransactionArgs{
 		ID:          transID,
 		TrxType:     args.ForeignType,
 		Provider:    args.Provider,
 		Amount:      args.Amount,
-		ProviderFee: args.ProviderFee,
+		ProviderFee: fee,
 		UserID:      userID,
 	})
 
@@ -662,7 +663,7 @@ func transformTransaction(tx dbTransaction) transactions.Transaction {
 			Scale:    tx.Scale,
 		},
 		RefundState: tx.RefundState,
-		ProviderFee: currency.Amount{
+		ProviderFee: &currency.Amount{
 			Value:    tx.ProviderFee,
 			Currency: currency.ParseCurrency(tx.Asset),
 			Scale:    tx.Scale,
