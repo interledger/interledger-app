@@ -24,6 +24,7 @@ func TestCreateTransaction(t *testing.T) {
 
 	b := ops.NewTestBackends(t, dbc)
 	laClient := linkedaccounts_client.New(b)
+	fee := currency.FromFloat64(10, currency.USD)
 
 	cases := []struct {
 		name string
@@ -46,7 +47,7 @@ func TestCreateTransaction(t *testing.T) {
 					Currency: currency.USD,
 					Scale:    2,
 				},
-				ProviderFee:             currency.FromFloat64(10, currency.USD),
+				ProviderFee:             &fee,
 				DestinationIdentityType: "Twitter",
 				DestinationIdentity:     "@elon",
 				LinkedAccountTitle:      "VISA XXX123",
@@ -67,7 +68,7 @@ func TestCreateTransaction(t *testing.T) {
 					Currency: currency.USD,
 					Scale:    2,
 				},
-				ProviderFee: currency.FromFloat64(10, currency.USD),
+				ProviderFee: &fee,
 			},
 		},
 		{
@@ -84,7 +85,7 @@ func TestCreateTransaction(t *testing.T) {
 					Currency: currency.USD,
 					Scale:    2,
 				},
-				ProviderFee: currency.FromFloat64(10, currency.USD),
+				ProviderFee: &fee,
 			},
 		},
 		{
@@ -102,7 +103,7 @@ func TestCreateTransaction(t *testing.T) {
 					Currency: currency.USD,
 					Scale:    2,
 				},
-				ProviderFee: currency.FromFloat64(10, currency.USD),
+				ProviderFee: &fee,
 				Transfers: []transactions.TransferArgs{
 					{
 						ForeignID: uuid.NewString(),
@@ -113,7 +114,7 @@ func TestCreateTransaction(t *testing.T) {
 							Currency: currency.USD,
 							Scale:    2,
 						},
-						ProviderFee: currency.FromFloat64(10, currency.USD),
+						ProviderFee: &fee,
 					},
 					{
 						ForeignID: uuid.NewString(),
@@ -124,7 +125,7 @@ func TestCreateTransaction(t *testing.T) {
 							Currency: currency.USD,
 							Scale:    2,
 						},
-						ProviderFee: currency.FromFloat64(10, currency.USD),
+						ProviderFee: &fee,
 					},
 					{
 						ForeignID: uuid.NewString(),
@@ -135,7 +136,7 @@ func TestCreateTransaction(t *testing.T) {
 							Currency: currency.USD,
 							Scale:    2,
 						},
-						ProviderFee: currency.FromFloat64(10, currency.USD),
+						ProviderFee: &fee,
 					},
 				},
 			},
@@ -178,6 +179,7 @@ func TestListWithPendingTransaction(t *testing.T) {
 
 	b := ops.NewTestBackends(t, dbc)
 	laClient := linkedaccounts_client.New(b)
+	fee := currency.FromFloat64(10, currency.USD)
 
 	cases := []struct {
 		name string
@@ -200,7 +202,7 @@ func TestListWithPendingTransaction(t *testing.T) {
 					Currency: currency.USD,
 					Scale:    2,
 				},
-				ProviderFee: currency.FromFloat64(10, currency.USD),
+				ProviderFee: &fee,
 			},
 		},
 		{
@@ -219,7 +221,7 @@ func TestListWithPendingTransaction(t *testing.T) {
 					Currency: currency.USD,
 					Scale:    2,
 				},
-				ProviderFee: currency.FromFloat64(10, currency.USD),
+				ProviderFee: &fee,
 			},
 		},
 		{
@@ -238,7 +240,7 @@ func TestListWithPendingTransaction(t *testing.T) {
 					Currency: currency.USD,
 					Scale:    2,
 				},
-				ProviderFee: currency.FromFloat64(10, currency.USD),
+				ProviderFee: &fee,
 			},
 		},
 		{
@@ -260,7 +262,7 @@ func TestListWithPendingTransaction(t *testing.T) {
 					Currency: currency.USD,
 					Scale:    2,
 				},
-				ProviderFee: currency.FromFloat64(10, currency.USD),
+				ProviderFee: &fee,
 				Transfers: []transactions.TransferArgs{
 					{
 						ForeignID: uuid.NewString(),
@@ -271,7 +273,7 @@ func TestListWithPendingTransaction(t *testing.T) {
 							Currency: currency.USD,
 							Scale:    2,
 						},
-						ProviderFee: currency.FromFloat64(10, currency.USD),
+						ProviderFee: &fee,
 					},
 					{
 						ForeignID: uuid.NewString(),
@@ -282,7 +284,7 @@ func TestListWithPendingTransaction(t *testing.T) {
 							Currency: currency.USD,
 							Scale:    2,
 						},
-						ProviderFee: currency.FromFloat64(10, currency.USD),
+						ProviderFee: &fee,
 					},
 					{
 						ForeignID: uuid.NewString(),
@@ -293,7 +295,7 @@ func TestListWithPendingTransaction(t *testing.T) {
 							Currency: currency.USD,
 							Scale:    2,
 						},
-						ProviderFee: currency.FromFloat64(10, currency.USD),
+						ProviderFee: &fee,
 					},
 				},
 			},
@@ -368,7 +370,6 @@ func TestListWithPendingPagination(t *testing.T) {
 				Currency: currency.USD,
 				Scale:    2,
 			},
-			ProviderFee: currency.FromFloat64(10, currency.USD),
 		}
 	}
 
@@ -467,7 +468,6 @@ func TestSetTransactionForeignIDs(t *testing.T) {
 					Currency: currency.USD,
 					Scale:    2,
 				},
-				ProviderFee: currency.FromFloat64(10, currency.USD),
 			},
 			foreignID: "4e57c03d-90f2-4555-b5e4-5f07c4e40583",
 		},
@@ -538,7 +538,6 @@ func TestSetTransferForeignID(t *testing.T) {
 					Currency: currency.USD,
 					Scale:    2,
 				},
-				ProviderFee: currency.FromFloat64(10, currency.USD),
 				Transfers: []transactions.TransferArgs{
 					{
 						Type:  transactions.TransferTypeDebitCard,
@@ -548,7 +547,6 @@ func TestSetTransferForeignID(t *testing.T) {
 							Currency: currency.USD,
 							Scale:    2,
 						},
-						ProviderFee: currency.FromFloat64(10, currency.USD),
 					},
 				},
 			},
@@ -628,7 +626,6 @@ func TestSetTransactionState(t *testing.T) {
 					Currency: currency.USD,
 					Scale:    2,
 				},
-				ProviderFee: currency.FromFloat64(10, currency.USD),
 			},
 			state: transactions.StateCompleted,
 		},
@@ -699,7 +696,6 @@ func TestSetTransferState(t *testing.T) {
 					Currency: currency.USD,
 					Scale:    2,
 				},
-				ProviderFee: currency.FromFloat64(10, currency.USD),
 				Transfers: []transactions.TransferArgs{
 					{
 						Type:  transactions.TransferTypeDebitCard,
@@ -709,7 +705,6 @@ func TestSetTransferState(t *testing.T) {
 							Currency: currency.USD,
 							Scale:    2,
 						},
-						ProviderFee: currency.FromFloat64(10, currency.USD),
 					},
 				},
 			},
