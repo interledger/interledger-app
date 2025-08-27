@@ -354,6 +354,7 @@ func TestListWithPendingPagination(t *testing.T) {
 	dbc := db.MigrateTestDB(t, ctx)
 
 	b := ops.NewTestBackends(t, dbc)
+	fee := currency.FromFloat64(10, currency.USD)
 
 	pendingTxs := make([]transactions.CreateTransactionArgs, 20)
 	for i := range pendingTxs {
@@ -370,6 +371,7 @@ func TestListWithPendingPagination(t *testing.T) {
 				Currency: currency.USD,
 				Scale:    2,
 			},
+			ProviderFee: &fee,
 		}
 	}
 
@@ -448,6 +450,7 @@ func TestSetTransactionForeignIDs(t *testing.T) {
 
 	b := ops.NewTestBackends(t, dbc)
 	laClient := linkedaccounts_client.New(b)
+	fee := currency.FromFloat64(10, currency.USD)
 
 	cases := []struct {
 		name      string
@@ -468,6 +471,7 @@ func TestSetTransactionForeignIDs(t *testing.T) {
 					Currency: currency.USD,
 					Scale:    2,
 				},
+				ProviderFee: &fee,
 			},
 			foreignID: "4e57c03d-90f2-4555-b5e4-5f07c4e40583",
 		},
@@ -518,6 +522,7 @@ func TestSetTransferForeignID(t *testing.T) {
 
 	b := ops.NewTestBackends(t, dbc)
 	laClient := linkedaccounts_client.New(b)
+	fee := currency.FromFloat64(10, currency.USD)
 
 	cases := []struct {
 		name      string
@@ -538,6 +543,7 @@ func TestSetTransferForeignID(t *testing.T) {
 					Currency: currency.USD,
 					Scale:    2,
 				},
+				ProviderFee: &fee,
 				Transfers: []transactions.TransferArgs{
 					{
 						Type:  transactions.TransferTypeDebitCard,
@@ -547,6 +553,7 @@ func TestSetTransferForeignID(t *testing.T) {
 							Currency: currency.USD,
 							Scale:    2,
 						},
+						ProviderFee: &fee,
 					},
 				},
 			},
@@ -605,6 +612,7 @@ func TestSetTransactionState(t *testing.T) {
 
 	b := ops.NewTestBackends(t, dbc)
 	laClient := linkedaccounts_client.New(b)
+	fee := currency.FromFloat64(10, currency.USD)
 
 	cases := []struct {
 		name  string
@@ -626,6 +634,7 @@ func TestSetTransactionState(t *testing.T) {
 					Currency: currency.USD,
 					Scale:    2,
 				},
+				ProviderFee: &fee,
 			},
 			state: transactions.StateCompleted,
 		},
@@ -676,6 +685,7 @@ func TestSetTransferState(t *testing.T) {
 
 	b := ops.NewTestBackends(t, dbc)
 	laClient := linkedaccounts_client.New(b)
+	fee := currency.FromFloat64(10, currency.USD)
 
 	cases := []struct {
 		name  string
@@ -696,6 +706,7 @@ func TestSetTransferState(t *testing.T) {
 					Currency: currency.USD,
 					Scale:    2,
 				},
+				ProviderFee: &fee,
 				Transfers: []transactions.TransferArgs{
 					{
 						Type:  transactions.TransferTypeDebitCard,
@@ -705,6 +716,7 @@ func TestSetTransferState(t *testing.T) {
 							Currency: currency.USD,
 							Scale:    2,
 						},
+						ProviderFee: &fee,
 					},
 				},
 			},
