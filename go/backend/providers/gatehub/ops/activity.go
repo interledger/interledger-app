@@ -233,7 +233,6 @@ func (a *Activity) CreateGatehubDepositTransaction(ctx context.Context, transact
 				LinkedAccountID: eurBalance.ID,
 				ForeignID:       transactionID,
 				Amount:          amount,
-				ProviderFee:     &providerFee,
 				Type:            transactions.TransferTypeCreditBalance,
 				State:           transactions.StateCompleted,
 			},

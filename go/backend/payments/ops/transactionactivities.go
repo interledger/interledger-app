@@ -81,14 +81,12 @@ func (a *Activity) AddPayInTransfer(ctx context.Context, paymentID, fkID string)
 		transferType = transactions.TransferTypeDebitWebMonetization
 	}
 
-	fee := currency.FromFloat64(0, currency.USD)
 	return a.b.Transactions().AddTransfers(ctx, p.SendTransactionID, []transactions.TransferArgs{
 		{
 			LinkedAccountID: p.SenderAccount,
 			ForeignID:       fkID,
 			Type:            transferType,
 			Amount:          p.SenderAmount,
-			ProviderFee:     &fee,
 			State:           transactions.StateCompleted,
 		},
 	})
@@ -131,14 +129,12 @@ func (a *Activity) AddWithdrawalTransfer(ctx context.Context, paymentID string) 
 		typ = transactions.TransferTypeCreditCard
 	}
 
-	fee := currency.FromFloat64(1, currency.USD)
 	return a.b.Transactions().AddTransfers(ctx, p.SendTransactionID, []transactions.TransferArgs{
 		{
 			LinkedAccountID: p.ReceiverAccount,
 			ForeignID:       paymentID,
 			Type:            typ,
 			Amount:          p.ReceiverAmount,
-			ProviderFee:     &fee,
 			State:           transactions.StateCompleted,
 		},
 	})
@@ -267,7 +263,6 @@ func (a *Activity) CreatePayoutTransaction(ctx context.Context, paymentID, txID,
 				ForeignID:       fkID,
 				Type:            transType,
 				Amount:          p.ReceiverAmount,
-				ProviderFee:     &fee,
 				State:           transactions.StateCompleted,
 			},
 		},

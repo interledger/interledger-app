@@ -212,7 +212,6 @@ func CreateWithdrawal(ctx context.Context, b Backends, ec external.Client, walle
 				LinkedAccountID: balanceAccount.ID,
 				ForeignID:       externalTransactionID,
 				Amount:          amount,
-				ProviderFee:     &fee,
 				Type:            transactions.TransferTypeDebitBalance,
 				State:           transactions.StatePending,
 			},

@@ -114,7 +114,6 @@ func TestCreateTransaction(t *testing.T) {
 							Currency: currency.USD,
 							Scale:    2,
 						},
-						ProviderFee: &fee,
 					},
 					{
 						ForeignID: uuid.NewString(),
@@ -125,7 +124,6 @@ func TestCreateTransaction(t *testing.T) {
 							Currency: currency.USD,
 							Scale:    2,
 						},
-						ProviderFee: &fee,
 					},
 					{
 						ForeignID: uuid.NewString(),
@@ -136,7 +134,6 @@ func TestCreateTransaction(t *testing.T) {
 							Currency: currency.USD,
 							Scale:    2,
 						},
-						ProviderFee: &fee,
 					},
 				},
 			},
@@ -273,7 +270,6 @@ func TestListWithPendingTransaction(t *testing.T) {
 							Currency: currency.USD,
 							Scale:    2,
 						},
-						ProviderFee: &fee,
 					},
 					{
 						ForeignID: uuid.NewString(),
@@ -284,7 +280,6 @@ func TestListWithPendingTransaction(t *testing.T) {
 							Currency: currency.USD,
 							Scale:    2,
 						},
-						ProviderFee: &fee,
 					},
 					{
 						ForeignID: uuid.NewString(),
@@ -295,7 +290,6 @@ func TestListWithPendingTransaction(t *testing.T) {
 							Currency: currency.USD,
 							Scale:    2,
 						},
-						ProviderFee: &fee,
 					},
 				},
 			},
@@ -553,7 +547,6 @@ func TestSetTransferForeignID(t *testing.T) {
 							Currency: currency.USD,
 							Scale:    2,
 						},
-						ProviderFee: &fee,
 					},
 				},
 			},
@@ -716,7 +709,6 @@ func TestSetTransferState(t *testing.T) {
 							Currency: currency.USD,
 							Scale:    2,
 						},
-						ProviderFee: &fee,
 					},
 				},
 			},

@@ -97,7 +97,6 @@ type TransferArgs struct {
 	ForeignID       string
 	Type            TransferType `validate:"required"`
 	Amount          currency.Amount
-	ProviderFee     *currency.Amount
 	State           State `validate:"required"`
 }
 
