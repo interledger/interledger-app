@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"go.uber.org/zap"
@@ -140,11 +141,28 @@ func (a *Activity) BalanceDiscrepancies(ctx context.Context) error {
 
 				var externalBalance uint64
 				if len(ebal) != 0 {
-					externalBalanceFloat, err := strconv.ParseFloat(ebal[0].Available, 64)
-					if err != nil {
-						continue
+					parts := strings.Split(ebal[0].Available, ".")
+					if len(parts) < 1 {
+						return fmt.Errorf("%w invalid external balance", gatehub.ErrInternal)
 					}
-					externalBalance = uint64(externalBalanceFloat * 100)
+					if len(parts) > 2 {
+						return fmt.Errorf("%w invalid external balance more than 2 dots", gatehub.ErrInternal)
+					}
+
+					value, err := strconv.ParseUint(parts[0], 10, 64)
+					if err != nil {
+						return fmt.Errorf("%w invalid external balance", gatehub.ErrInternal)
+					}
+
+					var cents uint64 = 0
+					if len(parts) == 2 {
+						cents, err = strconv.ParseUint(parts[1], 10, 64)
+						if err != nil {
+							return fmt.Errorf("%w invalid external balance", gatehub.ErrInternal)
+						}
+					}
+
+					externalBalance = uint64(value*100 + cents)
 				}
 
 				// sanity check
