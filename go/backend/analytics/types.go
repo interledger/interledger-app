@@ -17,6 +17,6 @@ type WalletTransactionArgs struct {
 	TrxType     transactions.TransactionType
 	Provider    transactions.Provider
 	Amount      currency.Amount
-	ProviderFee currency.Amount
+	ProviderFee *currency.Amount
 	UserID      string
 }
