@@ -145,7 +145,6 @@ func (a *Activity) BalanceDiscrepancies(ctx context.Context) error {
 						continue
 					}
 					externalBalance = uint64(externalBalanceFloat * 100)
-
 				}
 
 				// sanity check
@@ -166,9 +165,10 @@ func (a *Activity) BalanceDiscrepancies(ctx context.Context) error {
 					timeout := time.Hour * 24 * 365
 					txID := uuid.NewString()
 					feeAmount := currency.Amount{
-						Value:    uint64(totals.Fees * 100), // EUR scale = 2
+						Value:    uint64(totals.Fees), // EUR scale = 2
 						Currency: "EUR",
 					}
+					log.Info("adding fees", zap.String("wallet_id", wallet.ID), zap.String("linked_account", la.ID), zap.Uint64("fee_amount", feeAmount.Value))
 					_, err = a.b.Gatehub().ReserveBalance(ctx, la.ID, txID, feeAmount, timeout)
 					if err != nil {
 						return err
@@ -177,7 +177,7 @@ func (a *Activity) BalanceDiscrepancies(ctx context.Context) error {
 					if err != nil {
 						return err
 					}
-
+					log.Info("added fees", zap.String("wallet_id", wallet.ID), zap.String("linked_account", la.ID), zap.Uint64("fee_amount", feeAmount.Value))
 				} else {
 					log.Error("balances do not match", zap.String("wallet", wallet.ID), zap.Uint64("external_balance", externalBalance), zap.Uint64("current_balance", userBalance))
 					_ = tx.Rollback()
