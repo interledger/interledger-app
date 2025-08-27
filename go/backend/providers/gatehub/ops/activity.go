@@ -292,7 +292,14 @@ func (a *Activity) ReserveGatehubBalance(ctx context.Context, id, walletID strin
 	}
 
 	timeout := time.Hour * 24 * 365 // Pending transfers must have a timeout.
-	_, err = ReserveBalance(ctx, a.b, transfers[0].LinkedAccountID, tx.ID, tx.Amount, timeout)
+
+	amountWithFee := currency.Amount{
+		Value:    tx.Amount.Value + tx.ProviderFee.Value,
+		Currency: tx.Amount.Currency,
+		Scale:    tx.Amount.Scale,
+	}
+
+	_, err = ReserveBalance(ctx, a.b, transfers[0].LinkedAccountID, tx.ID, amountWithFee, timeout)
 	return err
 }
 
@@ -374,6 +381,7 @@ func (a *Activity) GetFeeFromGatehubTrasaction(ctx context.Context, args FeeFrom
 	if err != nil {
 		return nil, err
 	}
+	// TODO don't handle with float
 	feeValue, err := strconv.ParseFloat(et.Fee, 64)
 	if err != nil {
 		return nil, err
