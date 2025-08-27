@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -372,23 +371,22 @@ type FeeFromGhArgs struct {
 	TrxID  string
 }
 
-func (a *Activity) GetFeeFromGatehubTrasaction(ctx context.Context, args FeeFromGhArgs) (*uint64, error) {
+func (a *Activity) GetFeeFromGatehubTrasaction(ctx context.Context, args FeeFromGhArgs) (uint64, error) {
 	if strings.TrimSpace(args.TrxID) == "" || strings.TrimSpace(args.UserID) == "" {
-		return nil, fmt.Errorf("%w missing args", gatehub.ErrInternal)
+		return 0, fmt.Errorf("%w missing args", gatehub.ErrInternal)
 	}
 
 	et, err := a.external.GetTransaction(ctx, args.UserID, args.TrxID)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
-	// TODO don't handle with float
-	feeValue, err := strconv.ParseFloat(et.Fee, 64)
+	// 23,35 -> 2335
+	providerFee, err := StringToScaledUInt(et.Fee)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 
-	providerFee := uint64(feeValue)
-	return &providerFee, nil
+	return providerFee, nil
 }
 
 func (a *Activity) GetWalletFromGatehubUser(ctx context.Context, externalUserID string) (string, error) {
