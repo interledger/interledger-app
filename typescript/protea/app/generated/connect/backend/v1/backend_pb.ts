@@ -2052,6 +2052,11 @@ export class Transaction extends Message<Transaction> {
    */
   refundState = 0;
 
+  /**
+   * @generated from field: string fundsReceived = 23;
+   */
+  fundsReceived = "";
+
   constructor(data?: PartialMessage<Transaction>) {
     super();
     proto3.util.initPartial(data, this);
@@ -2081,6 +2086,7 @@ export class Transaction extends Message<Transaction> {
     { no: 20, name: "destinationIdentity", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 21, name: "destinationIdentityType", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 22, name: "refundState", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
+    { no: 23, name: "fundsReceived", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Transaction {
