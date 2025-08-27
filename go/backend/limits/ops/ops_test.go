@@ -26,6 +26,7 @@ func TestExceeds(t *testing.T) {
 
 	b := NewTestBackends(t, dbc, users_mock.NewMock())
 	txClient := tx_client.New(b)
+	fee := currency.FromFloat64(2, currency.USD)
 
 	cases := []struct {
 		name   string
@@ -40,7 +41,7 @@ func TestExceeds(t *testing.T) {
 				Source:      "https://ilp.link/alice1",
 				Destination: "https://ilp.link/bob1",
 				Amount:      currency.FromFloat64(198, currency.USD),
-				ProviderFee: currency.FromFloat64(2, currency.USD),
+				ProviderFee: &fee,
 				Provider:    "test",
 				ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
 			},
@@ -53,8 +54,8 @@ func TestExceeds(t *testing.T) {
 				State:       transactions.StateCompleted,
 				Source:      "https://ilp.link/alice2",
 				Destination: "https://ilp.link/bob2",
-				Amount:      currency.FromFloat64(1.98, currency.USD),
-				ProviderFee: currency.FromFloat64(0.02, currency.USD),
+				Amount:      currency.FromFloat64(2.00, currency.USD),
+				ProviderFee: &fee,
 				Provider:    "test",
 				ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
 			},
@@ -176,6 +177,7 @@ func TestExceedsKYCLimits(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 	dbc := db.MigrateTestDB(t, ctx)
+	fee := currency.FromFloat64(2, currency.USD)
 
 	b := NewTestBackends(t, dbc, users_mock.NewMock())
 	txClient := tx_client.New(b)
@@ -207,7 +209,7 @@ func TestExceedsKYCLimits(t *testing.T) {
 				Source:      "https://ilp.link/alice2",
 				Destination: "https://ilp.link/bob2",
 				Amount:      currency.FromFloat64(2_900, currency.USD),
-				ProviderFee: currency.FromFloat64(2, currency.USD),
+				ProviderFee: &fee,
 				Provider:    "test",
 				ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
 			},
@@ -222,7 +224,7 @@ func TestExceedsKYCLimits(t *testing.T) {
 				Source:      "https://ilp.link/alice2",
 				Destination: "https://ilp.link/bob2",
 				Amount:      currency.FromFloat64(2_900, currency.USD),
-				ProviderFee: currency.FromFloat64(2, currency.USD),
+				ProviderFee: &fee,
 				Provider:    "test",
 				ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
 			},
@@ -259,7 +261,7 @@ func TestExceedsKYCLimits(t *testing.T) {
 				Source:      "https://ilp.link/alice2",
 				Destination: "https://ilp.link/bob2",
 				Amount:      currency.FromFloat64(20_000, currency.ZAR),
-				ProviderFee: currency.FromFloat64(2, currency.ZAR),
+				ProviderFee: &fee,
 				Provider:    "test",
 				ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
 			},
@@ -275,7 +277,7 @@ func TestExceedsKYCLimits(t *testing.T) {
 				Source:      "https://ilp.link/alice2",
 				Destination: "https://ilp.link/bob2",
 				Amount:      currency.FromFloat64(200_000, currency.ZAR),
-				ProviderFee: currency.FromFloat64(2, currency.ZAR),
+				ProviderFee: &fee,
 				Provider:    "test",
 				ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
 			},
