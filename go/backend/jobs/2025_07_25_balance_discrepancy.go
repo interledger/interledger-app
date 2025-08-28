@@ -7,8 +7,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"strconv"
-	"strings"
 	"time"
 
 	"go.uber.org/zap"
@@ -17,6 +15,7 @@ import (
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	gatehub_external "gitlab.com/fynbos/backend/providers/gatehub/external"
+	ops_gh "gitlab.com/fynbos/backend/providers/gatehub/ops"
 	httplogger "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/log"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -141,28 +140,10 @@ func (a *Activity) BalanceDiscrepancies(ctx context.Context) error {
 
 				var externalBalance uint64
 				if len(ebal) != 0 {
-					parts := strings.Split(ebal[0].Available, ".")
-					if len(parts) < 1 {
-						return fmt.Errorf("%w invalid external balance", gatehub.ErrInternal)
-					}
-					if len(parts) > 2 {
-						return fmt.Errorf("%w invalid external balance more than 2 dots", gatehub.ErrInternal)
-					}
-
-					value, err := strconv.ParseUint(parts[0], 10, 64)
+					externalBalance, err = ops_gh.StringToScaledUInt(ebal[0].Available)
 					if err != nil {
-						return fmt.Errorf("%w invalid external balance", gatehub.ErrInternal)
+						return err
 					}
-
-					var cents uint64 = 0
-					if len(parts) == 2 {
-						cents, err = strconv.ParseUint(parts[1], 10, 64)
-						if err != nil {
-							return fmt.Errorf("%w invalid external balance", gatehub.ErrInternal)
-						}
-					}
-
-					externalBalance = uint64(value*100 + cents)
 				}
 
 				// sanity check
