@@ -51,7 +51,10 @@ func (a *Activity) UpdateRafikiWalletActiveStatus(ctx context.Context, params Wa
 	return nil
 }
 
-func (a *Activity) MutateRafikiWallets(ctx context.Context, rafikiWalletIds []string, isActive bool) error {
+func (a *Activity) MutateRafikiWallets(ctx context.Context, rafikiWalletIds []struct {
+	Id   string `db:"payment_pointer_id"`
+	Name string `db:"name"`
+}, isActive bool) error {
 	client := a.b.Rafiki()
 	for _, walletId := range rafikiWalletIds {
 		err := client.UpdateWalletAddressStatus(ctx, walletId, isActive)
@@ -62,22 +65,30 @@ func (a *Activity) MutateRafikiWallets(ctx context.Context, rafikiWalletIds []st
 	return nil
 }
 
-func (a *Activity) FetchRafikiWalletIds(ctx context.Context, params WalletActive) ([]string, error) {
+func (a *Activity) FetchRafikiWalletIds(ctx context.Context, params WalletActive) ([]struct {
+	Id   string `db:"payment_pointer_id"`
+	Name string `db:"name"`
+}, error) {
 	whereClause, args := BuildWhereClause(params)
 
-	query := "SELECT rafiki.payment_pointer_id FROM public.rafiki_payment_pointers as rafiki INNER JOIN wallets as wallets ON rafiki.wallet_id = wallets.id " + whereClause
-	var wallets []string
-	err := a.b.DB().SelectContext(ctx, &wallets, query, args...)
+	query := "SELECT rafiki.payment_pointer_id, wallets.name FROM public.rafiki_payment_pointers as rafiki INNER JOIN wallets as wallets ON rafiki.wallet_id = wallets.id " + whereClause
+
+	var walletList []struct {
+		Id   string `db:"payment_pointer_id"`
+		Name string `db:"name"`
+	}
+
+	err := a.b.DB().SelectContext(ctx, &walletList, query, args...)
 	if err != nil {
 
 		return nil, err
 	}
 
-	if len(wallets) == 0 {
+	if len(walletList) == 0 {
 		return nil, fmt.Errorf("no wallets found for the given criteria")
 	}
 
-	return wallets, nil
+	return walletList, nil
 }
 
 func BuildWhereClause(params WalletActive) (string, []interface{}) {
