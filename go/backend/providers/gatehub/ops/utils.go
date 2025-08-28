@@ -26,6 +26,9 @@ func StringToScaledUInt(input string) (uint64, error) {
 	var afterDotValue uint64 = 0
 	if len(parts) == 2 {
 		afterDotValue, err = strconv.ParseUint(parts[1], 10, 64)
+		if len(parts[1]) == 1 {
+			afterDotValue = afterDotValue * 10
+		}
 		if err != nil {
 			return 0, errors.New("invalid string after decimal point should be numeric")
 		}
