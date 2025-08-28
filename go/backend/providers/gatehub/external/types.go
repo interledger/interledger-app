@@ -1,10 +1,37 @@
 package external
 
 import (
+	"encoding/json"
+	"fmt"
+	"strconv"
 	"time"
 )
 
 type Product string
+
+type Float64String float64
+
+func (f *Float64String) UnmarshalJSON(data []byte) error {
+	// Try to unmarshal as number first
+	var num float64
+	if err := json.Unmarshal(data, &num); err == nil {
+		*f = Float64String(num)
+		return nil
+	}
+
+	// Try to unmarshal as string
+	var str string
+	if err := json.Unmarshal(data, &str); err == nil {
+		parsed, err := strconv.ParseFloat(str, 64)
+		if err != nil {
+			return fmt.Errorf("invalid float string: %v", err)
+		}
+		*f = Float64String(parsed)
+		return nil
+	}
+
+	return fmt.Errorf("invalid type for Float64String: %s", string(data))
+}
 
 var (
 	OnOffRamp  Product = "OnOffRamp"
@@ -99,6 +126,28 @@ type (
 		AssetCode string `json:"asset_code"`
 		CreatedAt string `json:"created_at"`
 		UpdatedAt string `json:"updated_at"`
+
+		// Optional fee fields
+		FeeDepositAbsolute *Float64String `json:"fee_deposit_absolute"`
+		FeeDepositRelative *Float64String `json:"fee_deposit_relative"`
+		FeeDepositMin      *Float64String `json:"fee_deposit_min"`
+		FeeDepositMax      *Float64String `json:"fee_deposit_max"`
+
+		FeeWithdrawalAbsolute *Float64String `json:"fee_withdrawal_absolute"`
+		FeeWithdrawalRelative *Float64String `json:"fee_withdrawal_relative"`
+		FeeWithdrawalMin      *Float64String `json:"fee_withdrawal_min"`
+		FeeWithdrawalMax      *Float64String `json:"fee_withdrawal_max"`
+
+		FeeTransferAbsolute *Float64String `json:"fee_transfer_absolute"`
+		FeeTransferRelative *Float64String `json:"fee_transfer_relative"`
+		FeeTransferMin      *Float64String `json:"fee_transfer_min"`
+		FeeTransferMax      *Float64String `json:"fee_transfer_max"`
+
+		FeeNetwork *Float64String `json:"fee_network"`
+	}
+
+	VaultContainer struct {
+		Vaults []Vault `json:"vaults"`
 	}
 
 	WalletBalance struct {
