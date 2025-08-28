@@ -111,7 +111,14 @@ func transformTransaction(tx transactions.Transaction, transfers []transactions.
 		destinationIdentityType = "wallet"
 	}
 
-	fees := tx.ProviderFee.Format()
+	// This should always come from the module directly
+	feesPtr := currency.FromUInt64(0, currency.EUR)
+	fees := feesPtr.Format()
+
+	if tx.ProviderFee != nil {
+		fees = tx.ProviderFee.Format()
+	}
+
 	// add the fee to the display amount
 	fundsReceived := tx.Amount.Value
 	if tx.Type == "deposit" {
