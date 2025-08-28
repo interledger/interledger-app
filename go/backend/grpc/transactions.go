@@ -121,10 +121,13 @@ func transformTransaction(tx transactions.Transaction, transfers []transactions.
 
 	// add the fee to the display amount
 	fundsReceived := tx.Amount.Value
-	if tx.Type == "deposit" {
-		fundsReceived -= tx.ProviderFee.Value
-	} else {
-		fundsReceived += tx.ProviderFee.Value
+
+	if tx.ProviderFee != nil {
+		if tx.Type == "deposit" {
+			fundsReceived -= tx.ProviderFee.Value
+		} else {
+			fundsReceived += tx.ProviderFee.Value
+		}
 	}
 	currencyAmt := currency.FromUInt64(fundsReceived, tx.Amount.Currency)
 
