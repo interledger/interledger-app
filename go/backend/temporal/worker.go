@@ -60,6 +60,8 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(jobs.MigrateWalletAddressesToLowercaseJob)
 	w.RegisterWorkflow(jobs.BalanceDiscrepanciesJob)
 	w.RegisterWorkflow(jobs.UpdateRafikiWalletEnabledJob)
+	w.RegisterWorkflow(jobs.UpdatePersonaAccountIDs)
+	w.RegisterWorkflow(jobs.UpdatePersonaInquiryIDs)
 
 	// Payment Engine
 	w.RegisterActivity(payments_workflows.NewActivity(b))
