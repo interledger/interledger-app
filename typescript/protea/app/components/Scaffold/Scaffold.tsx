@@ -292,7 +292,7 @@ export function Scaffold() {
                 </IconButton>
               </div>
             )}
-            {scaffold?.header.back && (<>
+            {scaffold?.header.back && (
               <IconButton
                 className={clsx('mr-4', scaffold.isNested && 'lg:hidden')}
                 onClick={() => {
@@ -332,7 +332,7 @@ export function Scaffold() {
                 aria-label='Back'
               >
                 arrow_back
-              </IconButton></>
+              </IconButton>
             )}
             {title && (
               <h1 className='text-xl font-medium lg:hidden'>{title}</h1>
