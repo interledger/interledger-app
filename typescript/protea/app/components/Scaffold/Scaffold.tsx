@@ -38,7 +38,6 @@ import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { SignupStep, useSignupStore } from '~/lib/useSignupStore'
 import type { loader as rootLoader } from '~/root'
 import { NavDrawer } from './NavDrawer'
-import { WarningBanner } from '../WarningBanner'
 
 export type ApplicationProps = {
   layout: Layouts | ((match: UIMatch<any, ApplicationProps>) => Layouts)
@@ -293,7 +292,7 @@ export function Scaffold() {
                 </IconButton>
               </div>
             )}
-            {scaffold?.header.back && (
+            {scaffold?.header.back && (<>
               <IconButton
                 className={clsx('mr-4', scaffold.isNested && 'lg:hidden')}
                 onClick={() => {
@@ -321,12 +320,19 @@ export function Scaffold() {
                       connectDomainStepBack()
                       navigate(-1)
                     } else connectDomainStepBack()
-                  } else navigate(-1)
+                  } else {
+                    console.log(window.history.length)
+                    if (typeof scaffold.header.back === 'string') {
+                      navigate(scaffold.header.back)
+                    } else {
+                      navigate(-1)
+                    }
+                  }
                 }}
                 aria-label='Back'
               >
                 arrow_back
-              </IconButton>
+              </IconButton></>
             )}
             {title && (
               <h1 className='text-xl font-medium lg:hidden'>{title}</h1>
