@@ -137,32 +137,32 @@ export default function Page() {
 function GatehubWithdrawalPage() {
   const submit = useSubmit()
   const { gatehubWidgetUrl } = useLoaderData<typeof gatehubWithdrawalLoader>()
-
   useEffect(() => {
-    if (window) {
-      console.log('registering message event handler')
-      let url = new URL(gatehubWidgetUrl)
-      window.addEventListener('message', (event) => {
-        console.log('received message')
-        console.log('origin', event.origin)
-        console.log('data', event.data)
-
-        if (
-          event.origin == url.origin &&
-          event.data.type == 'WithdrawalCompleted'
-        ) {
-          let formData = new FormData()
-          formData.append('provider', 'gatehub')
-          formData.append('withdrawalId', event.data.uuid)
-
-          submit(formData, {
-            action: '/withdraw',
-            method: 'post'
-          })
-        }
-      })
+    const url = new URL(gatehubWidgetUrl)
+  
+    const handler = (event: MessageEvent) => {  
+      if (
+        event.origin === url.origin &&
+        event.data.type === 'WithdrawalCompleted'
+      ) {
+        const formData = new FormData()
+        formData.append('provider', 'gatehub')
+        formData.append('withdrawalId', event.data.uuid)
+  
+        submit(formData, {
+          action: '/withdraw',
+          method: 'post'
+        })
+      }
+    }
+  
+    window.addEventListener('message', handler)
+  
+    return () => {
+      window.removeEventListener('message', handler)
     }
   })
+  
 
   return (
     <iframe

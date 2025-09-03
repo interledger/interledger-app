@@ -21,9 +21,7 @@ export function GatehubDepositPage() {
   const [pushSnackbar] = useScaffoldStore((state) => [state.pushSnackbar])
   const navigate = useNavigate()
   useEffect(() => {
-    console.log('registering message event handler')
     const url = new URL(gatehubWidgetUrl)
-
     const handler = (event: MessageEvent) => {
       if (
         event.origin === url.origin &&
