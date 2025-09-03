@@ -321,7 +321,6 @@ export function Scaffold() {
                       navigate(-1)
                     } else connectDomainStepBack()
                   } else {
-                    console.log(window.history.length)
                     if (typeof scaffold.header.back === 'string') {
                       navigate(scaffold.header.back)
                     } else {
