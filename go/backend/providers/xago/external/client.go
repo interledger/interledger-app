@@ -440,15 +440,13 @@ func (c *client) CreateTransaction(ctx context.Context, amt currency.Amount, ide
 	}
 	// TODO: after talking to xago
 	if reference == "" {
-		reference = "Fynbos"
+		reference = "Interledger Wallet"
 	}
 	reqStruct := CreateTransferReq{
-		Amount:          amt.Float64(),
-		CurrencyCode:    amt.Currency.String(),
-		BeneficiaryID:   beneficiaryID,
-		IdempotencyKey:  idempotencyKey,
-		TransactionType: "transfer",
-		Reference:       reference,
+		Amount:        amt.Float64(),
+		CurrencyCode:  amt.Currency.String(),
+		BeneficiaryID: beneficiaryID,
+		Reference:     reference,
 	}
 
 	reqBody, err := json.Marshal(reqStruct)
