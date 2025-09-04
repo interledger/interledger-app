@@ -423,6 +423,7 @@ message Transaction {
   string destinationIdentity = 20;
   string destinationIdentityType = 21;
   int32 refundState = 22; // NA , PENDING , COMPLETE
+  string fundsReceived = 23;
 }
 
 message ListTransactionsResponse {
@@ -561,6 +562,7 @@ message Features {
   bool interacEnabled = 9;
   bool zarBalanceEnabled = 10;
   bool manageWalletCardsEnabled = 11;
+  bool accountEnabled = 12;
 }
 
 message CreateCardRequest {

@@ -76,6 +76,7 @@ func (t TestContainer) Payments() payments.Client {
 }
 
 func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error) {
+	
 	c := &TestContainer{ValidatorImpl: validator.New()}
 	c.Ctx = ctx
 	mdb := db.MigrateTestDB(t, ctx)

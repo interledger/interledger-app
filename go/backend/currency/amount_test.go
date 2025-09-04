@@ -10,6 +10,7 @@ import (
 
 func TestCurrency(t *testing.T) {
 	t.Parallel()
+		
 	cases := []struct {
 		cc    string
 		valid bool
@@ -33,7 +34,7 @@ func TestCurrency(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		t.Run(fmt.Sprintf("currenct=%s", tc.cc), func(t *testing.T) {
+		t.Run(fmt.Sprintf("currency=%s", tc.cc), func(t *testing.T) {
 			c := currency.ParseCurrency(tc.cc)
 			assert.Equal(t, tc.valid, c.Valid())
 			assert.Equal(t, tc.scale, c.Scale())
@@ -43,6 +44,7 @@ func TestCurrency(t *testing.T) {
 
 func TestAmount_Float64(t *testing.T) {
 	t.Parallel()
+		
 	cases := []struct {
 		name string
 		in   currency.Amount
@@ -83,6 +85,7 @@ func TestAmount_Float64(t *testing.T) {
 
 func TestAmount_FormatAmount(t *testing.T) {
 	t.Parallel()
+		
 	cases := []struct {
 		name string
 		in   currency.Amount
@@ -123,6 +126,7 @@ func TestAmount_FormatAmount(t *testing.T) {
 
 func TestAmount_Format(t *testing.T) {
 	t.Parallel()
+	
 	cases := []struct {
 		name string
 		in   currency.Amount
@@ -173,6 +177,7 @@ func TestAmount_Format(t *testing.T) {
 
 func TestFromFloat(t *testing.T) {
 	t.Parallel()
+		
 	cases := []struct {
 		name    string
 		in      float64

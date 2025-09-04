@@ -1,0 +1,8 @@
+.:53 {
+    hosts {
+        127.0.0.1 temporal-ui.local
+        fallthrough
+    }
+    log
+    errors
+}

@@ -246,6 +246,7 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 	t.Cleanup(func() {
 		ctrl.Finish()
 	})
+	
 	hs, err := healthcheck.NewService()
 	if err != nil {
 		t.Fatal(err)

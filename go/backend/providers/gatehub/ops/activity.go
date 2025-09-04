@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"gitlab.com/fynbos/backend/currency"
@@ -174,8 +175,8 @@ func (a *Activity) CreateGatehubBalanceAccount(ctx context.Context, id string) e
 	return nil
 }
 
-func (a *Activity) CreateGatehubDepositTransaction(ctx context.Context, webhookID, walletID string, amount currency.Amount) (string, error) {
-	existingDeposit, err := a.b.Transactions().GetTransactionByForeignID(ctx, walletID, webhookID)
+func (a *Activity) CreateGatehubDepositTransaction(ctx context.Context, transactionID, walletID string, amount, providerFee currency.Amount) (string, error) {
+	existingDeposit, err := a.b.Transactions().GetTransactionByForeignID(ctx, walletID, transactionID)
 	if err != nil && !errors.Is(err, transactions.ErrNotFound) {
 		return "", err
 	}
@@ -212,9 +213,9 @@ func (a *Activity) CreateGatehubDepositTransaction(ctx context.Context, webhookI
 	}
 
 	tx, err := a.b.Transactions().CreateTransaction(ctx, transactions.CreateTransactionArgs{
-		ID:                      webhookID,
+		ID:                      transactionID,
 		WalletID:                walletID,
-		ForeignID:               webhookID,
+		ForeignID:               transactionID,
 		ForeignType:             transactions.TransactionTypeDeposit,
 		Provider:                gatehub.ProviderName,
 		State:                   transactions.StateCompleted,
@@ -224,11 +225,12 @@ func (a *Activity) CreateGatehubDepositTransaction(ctx context.Context, webhookI
 		DestinationIdentity:     walletID,
 		DestinationIdentityType: payments.IdentityTypeWalletID.String(),
 		Amount:                  amount,
+		ProviderFee:             &providerFee,
 		LinkedAccountTitle:      "EUR Balance",
 		Transfers: []transactions.TransferArgs{
 			{
 				LinkedAccountID: eurBalance.ID,
-				ForeignID:       webhookID,
+				ForeignID:       transactionID,
 				Amount:          amount,
 				Type:            transactions.TransferTypeCreditBalance,
 				State:           transactions.StateCompleted,
@@ -288,7 +290,14 @@ func (a *Activity) ReserveGatehubBalance(ctx context.Context, id, walletID strin
 	}
 
 	timeout := time.Hour * 24 * 365 // Pending transfers must have a timeout.
-	_, err = ReserveBalance(ctx, a.b, transfers[0].LinkedAccountID, tx.ID, tx.Amount, timeout)
+
+	amountWithFee := currency.Amount{
+		Value:    tx.Amount.Value + tx.ProviderFee.Value,
+		Currency: tx.Amount.Currency,
+		Scale:    tx.Amount.Scale,
+	}
+
+	_, err = ReserveBalance(ctx, a.b, transfers[0].LinkedAccountID, tx.ID, amountWithFee, timeout)
 	return err
 }
 
@@ -304,7 +313,7 @@ func (a *Activity) FinalizeGatehubBalance(ctx context.Context, id, walletID stri
 	return FinaliseReserve(ctx, a.b, tx.ID)
 }
 
-func (a *Activity) FinalizeGatehubDeposit(ctx context.Context, id, walletID string, amount currency.Amount) error {
+func (a *Activity) FinalizeGatehubDeposit(ctx context.Context, id, walletID string, amount, providerFee currency.Amount) error {
 	if amount.Currency != currency.EUR {
 		return temporal.NewNonRetryableApplicationError("Invalid currency", "ErrInternal", fmt.Errorf("%w invalid currency", gatehub.ErrInternal))
 	}
@@ -354,6 +363,29 @@ func (a *Activity) FinalizeGatehubDeposit(ctx context.Context, id, walletID stri
 	}
 
 	return nil
+}
+
+type FeeFromGhArgs struct {
+	UserID string
+	TrxID  string
+}
+
+func (a *Activity) GetFeeFromGatehubTrasaction(ctx context.Context, args FeeFromGhArgs) (uint64, error) {
+	if strings.TrimSpace(args.TrxID) == "" || strings.TrimSpace(args.UserID) == "" {
+		return 0, fmt.Errorf("%w missing args", gatehub.ErrInternal)
+	}
+
+	et, err := a.external.GetTransaction(ctx, args.UserID, args.TrxID)
+	if err != nil {
+		return 0, err
+	}
+	// 23,35 -> 2335
+	providerFee, err := StringToScaledUInt(et.Fee)
+	if err != nil {
+		return 0, err
+	}
+
+	return providerFee, nil
 }
 
 func (a *Activity) GetWalletFromGatehubUser(ctx context.Context, externalUserID string) (string, error) {
