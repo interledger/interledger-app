@@ -46,6 +46,7 @@ import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
+import type { IframeMessage } from '~/lib/types'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { PaySelect } from '~/routes/pay_.$paymentId/PaySelect'
 import styles from '~/styles/flags.css'
@@ -139,8 +140,8 @@ function GatehubWithdrawalPage() {
   const { gatehubWidgetUrl } = useLoaderData<typeof gatehubWithdrawalLoader>()
   useEffect(() => {
     const url = new URL(gatehubWidgetUrl)
-  
-    const handler = (event: MessageEvent) => {  
+    const handler = (event: MessageEvent<IframeMessage>) => {  
+      console.log('event.data.type: ',event.data.type)
       if (
         event.origin === url.origin &&
         event.data.type === 'WithdrawalCompleted'
@@ -155,11 +156,15 @@ function GatehubWithdrawalPage() {
         })
       }
     }
-  
-    window.addEventListener('message', handler)
-  
+    if(window) {
+      window.addEventListener('message', handler)
+    }
+      
     return () => {
-      window.removeEventListener('message', handler)
+      if(window) {
+        window.removeEventListener('message', handler)
+      }
+      
     }
   })
   

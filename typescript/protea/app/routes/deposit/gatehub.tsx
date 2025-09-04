@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { jsonWithCSRF } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
+import type { IframeMessage } from '~/lib/types'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 
 export async function gatehubDepositLoader({ request }: LoaderFunctionArgs) {
@@ -22,7 +23,7 @@ export function GatehubDepositPage() {
   const navigate = useNavigate()
   useEffect(() => {
     const url = new URL(gatehubWidgetUrl)
-    const handler = (event: MessageEvent) => {
+    const handler = (event: MessageEvent<IframeMessage>) => {
       if (
         event.origin === url.origin &&
         event.data.type === 'StripeDepositCompleted'
@@ -36,11 +37,14 @@ export function GatehubDepositPage() {
         navigate('/')
       }
     }
-
-    window.addEventListener('message', handler)
-
+    if (window) {
+      window.addEventListener('message', handler)
+    }
+      
     return () => {
-      window.removeEventListener('message', handler)
+      if (window) {
+        window.removeEventListener('message', handler)
+      }
     }
   }, [gatehubWidgetUrl, navigate, pushSnackbar])
 
