@@ -167,7 +167,6 @@ function GatehubWithdrawalPage() {
       
     }
   })
-  
 
   return (
     <iframe
