@@ -24,26 +24,23 @@ import {
   xagoTestAccountDepositAction
 } from './fynbos'
 import { GatehubDepositPage, gatehubDepositLoader } from './gatehub'
+import { KRATOS_URL } from '~/lib/kratos.server'
 
 export async function loader(args: LoaderFunctionArgs) {
-  try {
-    const providerResponse = await grpc.getOnOffRampProvider(args.request, {})
-    if (isConnectError(providerResponse)) throw providerResponse.error
-    if (providerResponse.provider == 'gatehub') {
-      return gatehubDepositLoader(args)
-    } else if (providerResponse.provider == 'chimoney') {
-      return chimoneyDepositLoader(args)
-    } else return fynbosDepositLoader(args)
-  } catch (error) {
-    if (error instanceof Error) {
-      throw error.message
-    }
-    if (error instanceof Response && error.status == 401) {
+  const session = await fetch(`${KRATOS_URL}/sessions/whoami`, {
+      headers: args.request.headers
+    })
+    if (session.status === 401) {
       return redirect('/login')
-    } else {
-      throw error
     }
-  }
+
+  const providerResponse = await grpc.getOnOffRampProvider(args.request, {})
+  if (isConnectError(providerResponse)) throw providerResponse.error
+  if (providerResponse.provider == 'gatehub') {
+    return gatehubDepositLoader(args)
+  } else if (providerResponse.provider == 'chimoney') {
+    return chimoneyDepositLoader(args)
+  } else return fynbosDepositLoader(args)
 }
 
 export const handle: ApplicationProps = {
