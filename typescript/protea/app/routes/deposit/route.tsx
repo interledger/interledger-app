@@ -1,7 +1,8 @@
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
+import {
+  redirect,
+  type ActionFunctionArgs,
+  type LoaderFunctionArgs,
+  type MetaFunction
 } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import type { ApplicationProps } from '~/components'
@@ -25,14 +26,24 @@ import {
 import { GatehubDepositPage, gatehubDepositLoader } from './gatehub'
 
 export async function loader(args: LoaderFunctionArgs) {
-  const providerResponse = await grpc.getOnOffRampProvider(args.request, {})
-  if (isConnectError(providerResponse)) throw providerResponse.error
-
-  if (providerResponse.provider == 'gatehub') {
-    return gatehubDepositLoader(args)
-  } else if (providerResponse.provider == 'chimoney') {
-    return chimoneyDepositLoader(args)
-  } else return fynbosDepositLoader(args)
+  try {
+    const providerResponse = await grpc.getOnOffRampProvider(args.request, {})
+    if (isConnectError(providerResponse)) throw providerResponse.error
+    if (providerResponse.provider == 'gatehub') {
+      return gatehubDepositLoader(args)
+    } else if (providerResponse.provider == 'chimoney') {
+      return chimoneyDepositLoader(args)
+    } else return fynbosDepositLoader(args)
+  } catch (error) {
+    if (error instanceof Error) {
+      throw error.message
+    }
+    if (error instanceof Response && error.status == 401) {
+      return redirect('/login')
+    } else {
+      throw error
+    }
+  }
 }
 
 export const handle: ApplicationProps = {
