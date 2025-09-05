@@ -39,6 +39,14 @@ mutation RevokeGrant ($input: RevokeGrantInput!) {
     }
 }
 
+mutation UpdateWalletAddress($input: UpdateWalletStatusInput!) {
+		updateWalletAddress(input: $input) {
+		walletAddress {
+					id
+				}
+			}
+		}
+
 query GetGrant ($id: ID!) {
     grant (id: $id) {
         id
@@ -133,6 +141,17 @@ query GetWalletAddress ($id: String!) {
             id
             code
             scale
+        }
+    }
+}
+
+query GetAssets () {
+    assets() {
+        edges {
+            node {
+                id
+                code
+            }
         }
     }
 }

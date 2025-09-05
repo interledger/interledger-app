@@ -8,12 +8,14 @@ import (
 	"gitlab.com/fynbos/backend/providers/pti/external"
 )
 
+// TODO: asked for 12 may 2025
 const (
 	ProviderName   = "pti"
 	AccTypeBalance = "balance"
 	TypeCard       = "card"
 	TypeBank       = "bank_account"
 
+	// TODO: Ask?
 	ScenarioTransfer   = "fynbos_transfer"
 	ScenarioDeposit    = "fynbos_deposit"
 	ScenarioWithdrawal = "fynbos_withdrawal"

@@ -117,8 +117,8 @@ import type { PublicWalletInfo } from "./backend";
 import type { GetPublicWalletInfoRequest } from "./backend";
 import type { WalletInfo } from "./backend";
 import type { SetWalletNameRequest } from "./backend";
-import type { WalletAddressExistsResponse } from "./backend";
-import type { WalletAddressExistsRequest } from "./backend";
+import type { WalletAddressValidResponse } from "./backend";
+import type { WalletAddressValidRequest } from "./backend";
 import type { CreateWalletAddressRequest } from "./backend";
 import type { CreateUserDefaultWalletRequest } from "./backend";
 import type { CompleteSignupRequest } from "./backend";
@@ -182,9 +182,9 @@ export interface IBackendServiceClient {
      */
     createWalletAddress(input: CreateWalletAddressRequest, options?: RpcOptions): UnaryCall<CreateWalletAddressRequest, Empty>;
     /**
-     * @generated from protobuf rpc: WalletAddressExists(backend.v1.WalletAddressExistsRequest) returns (backend.v1.WalletAddressExistsResponse);
+     * @generated from protobuf rpc: WalletAddressValid(backend.v1.WalletAddressValidRequest) returns (backend.v1.WalletAddressValidResponse);
      */
-    walletAddressExists(input: WalletAddressExistsRequest, options?: RpcOptions): UnaryCall<WalletAddressExistsRequest, WalletAddressExistsResponse>;
+    walletAddressValid(input: WalletAddressValidRequest, options?: RpcOptions): UnaryCall<WalletAddressValidRequest, WalletAddressValidResponse>;
     /**
      * @generated from protobuf rpc: SetWalletName(backend.v1.SetWalletNameRequest) returns (backend.v1.Empty);
      */
@@ -524,6 +524,10 @@ export interface IBackendServiceClient {
      */
     getXagoDepositDetails(input: GetXagoDepositDetailsRequest, options?: RpcOptions): UnaryCall<GetXagoDepositDetailsRequest, GetXagoDepositDetailsResponse>;
     /**
+     * @generated from protobuf rpc: DepositTestXago(backend.v1.Empty) returns (backend.v1.Empty);
+     */
+    depositTestXago(input: Empty, options?: RpcOptions): UnaryCall<Empty, Empty>;
+    /**
      * Pti
      *
      * @generated from protobuf rpc: GetPtiBalances(backend.v1.Empty) returns (backend.v1.GetPtiBalancesResponse);
@@ -679,11 +683,11 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
         return stackIntercept<CreateWalletAddressRequest, Empty>("unary", this._transport, method, opt, input);
     }
     /**
-     * @generated from protobuf rpc: WalletAddressExists(backend.v1.WalletAddressExistsRequest) returns (backend.v1.WalletAddressExistsResponse);
+     * @generated from protobuf rpc: WalletAddressValid(backend.v1.WalletAddressValidRequest) returns (backend.v1.WalletAddressValidResponse);
      */
-    walletAddressExists(input: WalletAddressExistsRequest, options?: RpcOptions): UnaryCall<WalletAddressExistsRequest, WalletAddressExistsResponse> {
+    walletAddressValid(input: WalletAddressValidRequest, options?: RpcOptions): UnaryCall<WalletAddressValidRequest, WalletAddressValidResponse> {
         const method = this.methods[9], opt = this._transport.mergeOptions(options);
-        return stackIntercept<WalletAddressExistsRequest, WalletAddressExistsResponse>("unary", this._transport, method, opt, input);
+        return stackIntercept<WalletAddressValidRequest, WalletAddressValidResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: SetWalletName(backend.v1.SetWalletNameRequest) returns (backend.v1.Empty);
@@ -1246,33 +1250,40 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
         return stackIntercept<GetXagoDepositDetailsRequest, GetXagoDepositDetailsResponse>("unary", this._transport, method, opt, input);
     }
     /**
+     * @generated from protobuf rpc: DepositTestXago(backend.v1.Empty) returns (backend.v1.Empty);
+     */
+    depositTestXago(input: Empty, options?: RpcOptions): UnaryCall<Empty, Empty> {
+        const method = this.methods[84], opt = this._transport.mergeOptions(options);
+        return stackIntercept<Empty, Empty>("unary", this._transport, method, opt, input);
+    }
+    /**
      * Pti
      *
      * @generated from protobuf rpc: GetPtiBalances(backend.v1.Empty) returns (backend.v1.GetPtiBalancesResponse);
      */
     getPtiBalances(input: Empty, options?: RpcOptions): UnaryCall<Empty, GetPtiBalancesResponse> {
-        const method = this.methods[84], opt = this._transport.mergeOptions(options);
+        const method = this.methods[85], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, GetPtiBalancesResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: CreatePtiToken(backend.v1.PtiTokenRequest) returns (backend.v1.PtiTokenResponse);
      */
     createPtiToken(input: PtiTokenRequest, options?: RpcOptions): UnaryCall<PtiTokenRequest, PtiTokenResponse> {
-        const method = this.methods[85], opt = this._transport.mergeOptions(options);
+        const method = this.methods[86], opt = this._transport.mergeOptions(options);
         return stackIntercept<PtiTokenRequest, PtiTokenResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: CreateCard(backend.v1.CreateCardRequest) returns (backend.v1.LinkedAccount);
      */
     createCard(input: CreateCardRequest, options?: RpcOptions): UnaryCall<CreateCardRequest, LinkedAccount> {
-        const method = this.methods[86], opt = this._transport.mergeOptions(options);
+        const method = this.methods[87], opt = this._transport.mergeOptions(options);
         return stackIntercept<CreateCardRequest, LinkedAccount>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: CreatePtiBankAccount(backend.v1.CreatePtiBankAccountRequest) returns (backend.v1.LinkedAccount);
      */
     createPtiBankAccount(input: CreatePtiBankAccountRequest, options?: RpcOptions): UnaryCall<CreatePtiBankAccountRequest, LinkedAccount> {
-        const method = this.methods[87], opt = this._transport.mergeOptions(options);
+        const method = this.methods[88], opt = this._transport.mergeOptions(options);
         return stackIntercept<CreatePtiBankAccountRequest, LinkedAccount>("unary", this._transport, method, opt, input);
     }
     /**
@@ -1281,21 +1292,21 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
      * @generated from protobuf rpc: ListRafikiGrants(backend.v1.Empty) returns (backend.v1.ListRafikiGrantsResponse);
      */
     listRafikiGrants(input: Empty, options?: RpcOptions): UnaryCall<Empty, ListRafikiGrantsResponse> {
-        const method = this.methods[88], opt = this._transport.mergeOptions(options);
+        const method = this.methods[89], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, ListRafikiGrantsResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: GetRafikiGrant(backend.v1.GetRafikiGrantRequest) returns (backend.v1.RafikiGrant);
      */
     getRafikiGrant(input: GetRafikiGrantRequest, options?: RpcOptions): UnaryCall<GetRafikiGrantRequest, RafikiGrant> {
-        const method = this.methods[89], opt = this._transport.mergeOptions(options);
+        const method = this.methods[90], opt = this._transport.mergeOptions(options);
         return stackIntercept<GetRafikiGrantRequest, RafikiGrant>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: RevokeRafikiGrant(backend.v1.RevokeRafikiGrantRequest) returns (backend.v1.Empty);
      */
     revokeRafikiGrant(input: RevokeRafikiGrantRequest, options?: RpcOptions): UnaryCall<RevokeRafikiGrantRequest, Empty> {
-        const method = this.methods[90], opt = this._transport.mergeOptions(options);
+        const method = this.methods[91], opt = this._transport.mergeOptions(options);
         return stackIntercept<RevokeRafikiGrantRequest, Empty>("unary", this._transport, method, opt, input);
     }
     /**
@@ -1304,35 +1315,35 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
      * @generated from protobuf rpc: GetGatehubOnboardingWidget(backend.v1.Empty) returns (backend.v1.GatehubWidget);
      */
     getGatehubOnboardingWidget(input: Empty, options?: RpcOptions): UnaryCall<Empty, GatehubWidget> {
-        const method = this.methods[91], opt = this._transport.mergeOptions(options);
+        const method = this.methods[92], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, GatehubWidget>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: GetOnOffRampProvider(backend.v1.Empty) returns (backend.v1.GetOnOffRampProviderResponse);
      */
     getOnOffRampProvider(input: Empty, options?: RpcOptions): UnaryCall<Empty, GetOnOffRampProviderResponse> {
-        const method = this.methods[92], opt = this._transport.mergeOptions(options);
+        const method = this.methods[93], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, GetOnOffRampProviderResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: GetGatehubDepositWidget(backend.v1.Empty) returns (backend.v1.GatehubWidget);
      */
     getGatehubDepositWidget(input: Empty, options?: RpcOptions): UnaryCall<Empty, GatehubWidget> {
-        const method = this.methods[93], opt = this._transport.mergeOptions(options);
+        const method = this.methods[94], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, GatehubWidget>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: GetGatehubWithdrawalWidget(backend.v1.Empty) returns (backend.v1.GatehubWidget);
      */
     getGatehubWithdrawalWidget(input: Empty, options?: RpcOptions): UnaryCall<Empty, GatehubWidget> {
-        const method = this.methods[94], opt = this._transport.mergeOptions(options);
+        const method = this.methods[95], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, GatehubWidget>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: CreateGatehubWithdrawal(backend.v1.CreateGatehubWithdrawalRequest) returns (backend.v1.CreateGatehubWithdrawalResponse);
      */
     createGatehubWithdrawal(input: CreateGatehubWithdrawalRequest, options?: RpcOptions): UnaryCall<CreateGatehubWithdrawalRequest, CreateGatehubWithdrawalResponse> {
-        const method = this.methods[95], opt = this._transport.mergeOptions(options);
+        const method = this.methods[96], opt = this._transport.mergeOptions(options);
         return stackIntercept<CreateGatehubWithdrawalRequest, CreateGatehubWithdrawalResponse>("unary", this._transport, method, opt, input);
     }
     /**
@@ -1341,35 +1352,35 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
      * @generated from protobuf rpc: SetChimoneyInterlocEmail(backend.v1.SetChimoneyInterlocEmailRequest) returns (backend.v1.ChimoneyInterlocEmail);
      */
     setChimoneyInterlocEmail(input: SetChimoneyInterlocEmailRequest, options?: RpcOptions): UnaryCall<SetChimoneyInterlocEmailRequest, ChimoneyInterlocEmail> {
-        const method = this.methods[96], opt = this._transport.mergeOptions(options);
+        const method = this.methods[97], opt = this._transport.mergeOptions(options);
         return stackIntercept<SetChimoneyInterlocEmailRequest, ChimoneyInterlocEmail>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: GetChimoneyInterlocEmail(backend.v1.Empty) returns (backend.v1.ChimoneyInterlocEmail);
      */
     getChimoneyInterlocEmail(input: Empty, options?: RpcOptions): UnaryCall<Empty, ChimoneyInterlocEmail> {
-        const method = this.methods[97], opt = this._transport.mergeOptions(options);
+        const method = this.methods[98], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, ChimoneyInterlocEmail>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: CreateChimoneyWallet(backend.v1.Empty) returns (backend.v1.Empty);
      */
     createChimoneyWallet(input: Empty, options?: RpcOptions): UnaryCall<Empty, Empty> {
-        const method = this.methods[98], opt = this._transport.mergeOptions(options);
+        const method = this.methods[99], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, Empty>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: GetChimoneyDepositLink(backend.v1.Amount) returns (backend.v1.GetChimoneyDepositLinkResponse);
      */
     getChimoneyDepositLink(input: Amount, options?: RpcOptions): UnaryCall<Amount, GetChimoneyDepositLinkResponse> {
-        const method = this.methods[99], opt = this._transport.mergeOptions(options);
+        const method = this.methods[100], opt = this._transport.mergeOptions(options);
         return stackIntercept<Amount, GetChimoneyDepositLinkResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: CreateChimoneyDeposit(backend.v1.CreateChimoneyDepositRequest) returns (backend.v1.Empty);
      */
     createChimoneyDeposit(input: CreateChimoneyDepositRequest, options?: RpcOptions): UnaryCall<CreateChimoneyDepositRequest, Empty> {
-        const method = this.methods[100], opt = this._transport.mergeOptions(options);
+        const method = this.methods[101], opt = this._transport.mergeOptions(options);
         return stackIntercept<CreateChimoneyDepositRequest, Empty>("unary", this._transport, method, opt, input);
     }
 }

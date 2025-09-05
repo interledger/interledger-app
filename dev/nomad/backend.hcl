@@ -44,22 +44,12 @@ job "backend" {
     }
 
     service {
-      name = "backend-openpayments"
-      port = "http"
-      
-      tags = [
-        "traefik.enable = true",
-        "traefik.http.routers.backend-openpayments.rule = Host(`local.fynbos.me`)"
-      ]
-    }
-
-    service {
       name = "backend"
       port = "http"
 
       tags = [
-        "traefik.enable = true",
-        "traefik.http.routers.backend.rule = Host(`wallet.fynbos.test`) && PathPrefix(`/webhooks`)"
+        "traefik.enable=true",
+        "traefik.http.routers.backend.rule=Host(`interledger.test`) && PathPrefix(`/webhooks`)"
       ]
 
       check {    
@@ -73,7 +63,7 @@ job "backend" {
       connect {
         sidecar_service {
           tags = [
-            "traefik.enable = false"
+            "traefik.enable=false"
           ]
 
           proxy {
@@ -135,7 +125,7 @@ job "backend" {
       config {
         image = "localhost:5002/backend"
         entrypoint = ["/go/bin/air"]
-        args =  ["--build.poll", "true", "--build.include_ext", "hcl", "--build.cmd", "go build -o /local/main /build/backend/main.go", "--build.bin", "/local/main migrate"]
+        args =  ["--build.poll", "true", "--build.include_ext", "hcl", "--build.cmd", "go build -o /local/main /build/backend/main.go", "--build.bin", "/local/main", "--build.args_bin", "migrate"]
         volumes = [
           "/home/vagrant/fynbos/go:/build",
           "${NOMAD_ALLOC_DIR}/go:/go",
@@ -145,6 +135,8 @@ job "backend" {
 
       env {
           FYNBOS_ENV = "local"
+          RAFIKI_DB_URL = "postgres://postgres:password@127.0.0.1:5432/rafiki_backend?sslmode=disable"
+          RAFIKI_AUTH_DB_URL = "postgres://postgres:password@127.0.0.1:5432/rafiki_auth?sslmode=disable"
           DB_URL_WITH_CERTS = "postgres://postgres:password@127.0.0.1:5432/backend?sslmode=disable"
           PACIOLI_DB_URL_WITH_CERTS = "postgres://postgres:password@127.0.0.1:5432/pacioli?sslmode=disable"
           KRATOS_URL = "http://127.0.0.1:4433"
@@ -162,7 +154,7 @@ job "backend" {
       config {
         image = "localhost:5002/backend"
         entrypoint = ["/go/bin/air"]
-        args =  ["--build.poll", "true", "--build.cmd", "go build -o /local/main /build/backend/main.go", "--build.bin", "/local/main dev"]
+        args =  ["--build.poll", "true", "--build.cmd", "go build -o /local/main /build/backend/main.go", "--build.bin", "/local/main", "--build.args_bin", "dev"]
         volumes = [
           "/home/vagrant/fynbos/go:/build",
           "${NOMAD_ALLOC_DIR}/go:/go",
@@ -172,6 +164,8 @@ job "backend" {
 
       env {
         FYNBOS_ENV = "local"
+        RAFIKI_DB_URL = "postgres://postgres:password@localhost:5432/rafiki_backend?sslmode=disable"
+        RAFIKI_AUTH_DB_URL = "postgres://postgres:password@localhost:5432/rafiki_auth?sslmode=disable"
         DB_URL_WITH_CERTS = "postgres://postgres:password@localhost:5432/backend?sslmode=disable"
         DB_URL = "postgres://postgres:password@localhost:5432/backend?sslmode=disable"
         PACIOLI_DB_URL_WITH_CERTS = "postgres://postgres:password@localhost:5432/pacioli?sslmode=disable"

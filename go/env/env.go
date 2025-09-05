@@ -2,18 +2,23 @@ package env
 
 import (
 	"os"
+	"strings"
 	"sync"
 	"testing"
 )
 
 const (
-	prodUrl  = "https://wallet.fynbos.app"
-	devUrl   = "https://eu1.fynbos.dev"
-	localUrl = "https://wallet.fynbos.test"
+	prodUrl  = "https://interledger.app"
+	devUrl   = "https://sandbox.interledger.app"
+	localUrl = "https://interledger.test"
 )
 
 var fynbosEnv = "prod"
+var blockedRegions = []string{}
+var allowedWalletIds = []string{}
 var once = sync.Once{}
+var onceAllowedWalletIds = sync.Once{}
+var onceBlockedRegions = sync.Once{}
 
 var allowedEnvs = []string{
 	"prod",    // Live production environment
@@ -23,12 +28,37 @@ var allowedEnvs = []string{
 	"test",    // Go testing env
 }
 
+
 func SetEnv(t *testing.T, env string) {
 	orig := GetEnv()
 	fynbosEnv = env
 	t.Cleanup(func() {
 		fynbosEnv = orig
 	})
+}
+
+func GetAllowedWalletIds() []string {
+	onceAllowedWalletIds.Do(func() {
+		a := os.Getenv("ALLOWED_WALLET_IDS")
+		if a == "" {
+			allowedWalletIds = []string{}
+		} else {
+			allowedWalletIds = parseList(a)
+		}
+	})
+	return allowedWalletIds
+}
+
+func GetBlockedRegions() []string {
+	onceBlockedRegions.Do(func() {
+		a := os.Getenv("BLOCKED_REGIONS")
+		if a == "" {
+			blockedRegions = []string{}
+		} else {
+			blockedRegions = parseList(a)
+		}
+	})
+	return blockedRegions
 }
 
 func GetEnv() string {
@@ -97,13 +127,13 @@ func OpenPaymentsURL() string {
 		openPaymentsURL = os.Getenv("OPEN_PAYMENTS_BASE_URL")
 		if openPaymentsURL == "" {
 			if IsProd() {
-				openPaymentsURL = "https://fynbos.me"
+				openPaymentsURL = "https://ilp.link"
 			} else if IsDev() {
-				openPaymentsURL = "https://eu1.fynbos.me"
+				openPaymentsURL = "https://sandbox.ilp.link"
 			} else if IsLocal() || IsTest() {
-				openPaymentsURL = "https://local.fynbos.me"
+				openPaymentsURL = "https://local.ilp.link"
 			} else {
-				openPaymentsURL = "https://eu1.fynbos.me"
+				openPaymentsURL = "https://sandbox.ilp.link"
 			}
 		}
 	})
@@ -114,18 +144,19 @@ func OpenPaymentsURL() string {
 var authURL string
 var authURLSync sync.Once
 
+// TODO -  is this used?
 func AuthURL() string {
 	authURLSync.Do(func() {
 		authURL = os.Getenv("AUTH_BASE_URL")
 		if authURL == "" {
 			if IsProd() {
-				authURL = "https://auth.fynbos.me"
+				authURL = "https://auth.ilp.link"
 			} else if IsDev() {
-				authURL = "https://auth.eu1.fynbos.dev"
+				authURL = "https://auth.sandbox.ilp.link"
 			} else if IsLocal() || IsTest() {
-				authURL = "https://auth.fynbos.test"
+				authURL = "https://auth.local.ilp.link"
 			} else {
-				authURL = "https://auth.eu1.fynbos.dev"
+				authURL = "https://auth.ilp.link"
 			}
 		}
 	})
@@ -141,16 +172,21 @@ func AdminURL() string {
 		adminURL = os.Getenv("ADMIN_BASE_URL")
 		if adminURL == "" {
 			if IsProd() {
-				adminURL = "https://admin.mgnt.fynbos.dev"
+				adminURL = "https://admin.interledger.tech"
 			} else if IsDev() {
-				adminURL = "https://admin-dev.mgnt.fynbos.dev"
+				adminURL = "https://admin.sandbox.interledger.tech"
 			} else if IsLocal() || IsTest() {
-				adminURL = "https://admin.fynbos.test"
+				adminURL = "https://admin.interledger.test"
 			} else {
-				adminURL = "https://admin-dev.mgnt.fynbos.dev"
+				adminURL = "https://admin.sandbox.interledger.tech"
 			}
 		}
 	})
 
 	return adminURL
+}
+
+func parseList(input string) []string {
+	input = strings.ReplaceAll(input, " ", "")
+	return strings.Split(input, ",")
 }

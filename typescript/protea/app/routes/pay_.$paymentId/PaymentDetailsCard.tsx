@@ -59,8 +59,9 @@ export const PaymentDetailsCard = () => {
           <Alert>
             <Icon>error</Icon>
             <AlertBody>
-              This person is not a Fynbos user yet. Confirming the payment will
-              prompt them to sign up to Fynbos to receive it.
+              This person is not an Interledger Wallet user yet. Confirming the
+              payment will prompt them to sign up to the Interledger Wallet to
+              receive it.
             </AlertBody>
           </Alert>
         </>
@@ -73,7 +74,7 @@ export const PaymentDetailsCard = () => {
         {publicWalletInfo.walletID == 'not-found' && (
           <CardContent>
             <span className='text-medium'>
-              This person is not a Fynbos user yet.
+              This person is not an Interledger Wallet user yet.
             </span>
           </CardContent>
         )}

@@ -28,7 +28,7 @@ type Backends interface {
 	Rafiki() rafiki.Client
 }
 
-// this handler handles fynbos.me redirects done by openpayments server previously
+// this handler handles ilp.link redirects done by openpayments server previously
 func WalletRedirectHandler(b Backends) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		if req.Method != http.MethodGet {
@@ -36,7 +36,7 @@ func WalletRedirectHandler(b Backends) http.HandlerFunc {
 			return
 		}
 
-		// check if the hostname is one of the fynbos.me domains
+		// check if the hostname is one of the ilp.link domains
 		if req.Host != removeProtocol(env.OpenPaymentsURL()) {
 			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 			return
@@ -147,7 +147,7 @@ func GetIdentityHandler(b Backends) http.HandlerFunc {
 			return
 		}
 
-		// check if the hostname is one of the fynbos.me domains
+		// check if the hostname is one of the ilp.link domains
 		if req.Host != removeProtocol(env.OpenPaymentsURL()) {
 			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 			return
@@ -333,7 +333,7 @@ func listKeys(b Backends, walletID string, w http.ResponseWriter, req *http.Requ
 			Kid: k.KeyID,
 			Crv: "Ed25519",
 			Alg: "EdDSA",
-			X:   convertToBase64Url(k.PublicKey),
+			X:   k.PublicKey,
 		}
 		if !env.IsDev() {
 			jwks[i].Use = "sig"
@@ -352,15 +352,6 @@ func listKeys(b Backends, walletID string, w http.ResponseWriter, req *http.Requ
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
-}
-
-func convertToBase64Url(publicKey string) string {
-	bufferKey, err := base64.StdEncoding.DecodeString(publicKey)
-	if err != nil {
-		return publicKey
-	}
-
-	return base64.RawURLEncoding.EncodeToString(bufferKey)
 }
 
 type IdentityResponse struct {

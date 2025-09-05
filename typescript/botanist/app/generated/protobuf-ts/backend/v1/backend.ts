@@ -749,6 +749,10 @@ export interface Transaction {
      * @generated from protobuf field: int32 refundState = 22;
      */
     refundState: number; // NA , PENDING , COMPLETE
+    /**
+     * @generated from protobuf field: string fundsReceived = 23;
+     */
+    fundsReceived: string;
 }
 /**
  * @generated from protobuf message backend.v1.ListTransactionsResponse
@@ -1186,6 +1190,18 @@ export interface Features {
      * @generated from protobuf field: bool interacEnabled = 9;
      */
     interacEnabled: boolean;
+    /**
+     * @generated from protobuf field: bool zarBalanceEnabled = 10;
+     */
+    zarBalanceEnabled: boolean;
+    /**
+     * @generated from protobuf field: bool manageWalletCardsEnabled = 11;
+     */
+    manageWalletCardsEnabled: boolean;
+    /**
+     * @generated from protobuf field: bool accountEnabled = 12;
+     */
+    accountEnabled: boolean;
 }
 /**
  * @generated from protobuf message backend.v1.CreateCardRequest
@@ -1993,18 +2009,18 @@ export interface LimitAmount {
     percentage: number;
 }
 /**
- * @generated from protobuf message backend.v1.WalletAddressExistsRequest
+ * @generated from protobuf message backend.v1.WalletAddressValidRequest
  */
-export interface WalletAddressExistsRequest {
+export interface WalletAddressValidRequest {
     /**
      * @generated from protobuf field: string url = 1;
      */
     url: string;
 }
 /**
- * @generated from protobuf message backend.v1.WalletAddressExistsResponse
+ * @generated from protobuf message backend.v1.WalletAddressValidResponse
  */
-export interface WalletAddressExistsResponse {
+export interface WalletAddressValidResponse {
     /**
      * @generated from protobuf field: bool exists = 1;
      */
@@ -5002,11 +5018,12 @@ class Transaction$Type extends MessageType<Transaction> {
             { no: 19, name: "reference", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 20, name: "destinationIdentity", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 21, name: "destinationIdentityType", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 22, name: "refundState", kind: "scalar", T: 5 /*ScalarType.INT32*/ }
+            { no: 22, name: "refundState", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 23, name: "fundsReceived", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Transaction>): Transaction {
-        const message = { id: "", type: "", source: "", destination: "", state: "", foreignId: "", receiverAccountId: "", senderAccountId: "", title: "", formattedAmount: "", formattedTime: "", formattedDate: "", subtotal: "", fees: "", accountTitle: "", reference: "", destinationIdentity: "", destinationIdentityType: "", refundState: 0 };
+        const message = { id: "", type: "", source: "", destination: "", state: "", foreignId: "", receiverAccountId: "", senderAccountId: "", title: "", formattedAmount: "", formattedTime: "", formattedDate: "", subtotal: "", fees: "", accountTitle: "", reference: "", destinationIdentity: "", destinationIdentityType: "", refundState: 0, fundsReceived: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Transaction>(this, message, value);
@@ -5079,6 +5096,9 @@ class Transaction$Type extends MessageType<Transaction> {
                     break;
                 case /* int32 refundState */ 22:
                     message.refundState = reader.int32();
+                    break;
+                case /* string fundsReceived */ 23:
+                    message.fundsReceived = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -5155,6 +5175,9 @@ class Transaction$Type extends MessageType<Transaction> {
         /* int32 refundState = 22; */
         if (message.refundState !== 0)
             writer.tag(22, WireType.Varint).int32(message.refundState);
+        /* string fundsReceived = 23; */
+        if (message.fundsReceived !== "")
+            writer.tag(23, WireType.LengthDelimited).string(message.fundsReceived);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -6345,11 +6368,14 @@ class Features$Type extends MessageType<Features> {
             { no: 6, name: "identitiesEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 7, name: "twitterEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 8, name: "addCardsEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 9, name: "interacEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+            { no: 9, name: "interacEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 10, name: "zarBalanceEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 11, name: "manageWalletCardsEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 12, name: "accountEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
         ]);
     }
     create(value?: PartialMessage<Features>): Features {
-        const message = { sendEnabled: false, receiveEnabled: false, linkedAccountsEnabled: false, cardsEnabled: false, banksEnabled: false, identitiesEnabled: false, twitterEnabled: false, addCardsEnabled: false, interacEnabled: false };
+        const message = { sendEnabled: false, receiveEnabled: false, linkedAccountsEnabled: false, cardsEnabled: false, banksEnabled: false, identitiesEnabled: false, twitterEnabled: false, addCardsEnabled: false, interacEnabled: false, zarBalanceEnabled: false, manageWalletCardsEnabled: false, accountEnabled: false };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Features>(this, message, value);
@@ -6386,6 +6412,15 @@ class Features$Type extends MessageType<Features> {
                     break;
                 case /* bool interacEnabled */ 9:
                     message.interacEnabled = reader.bool();
+                    break;
+                case /* bool zarBalanceEnabled */ 10:
+                    message.zarBalanceEnabled = reader.bool();
+                    break;
+                case /* bool manageWalletCardsEnabled */ 11:
+                    message.manageWalletCardsEnabled = reader.bool();
+                    break;
+                case /* bool accountEnabled */ 12:
+                    message.accountEnabled = reader.bool();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -6426,6 +6461,15 @@ class Features$Type extends MessageType<Features> {
         /* bool interacEnabled = 9; */
         if (message.interacEnabled !== false)
             writer.tag(9, WireType.Varint).bool(message.interacEnabled);
+        /* bool zarBalanceEnabled = 10; */
+        if (message.zarBalanceEnabled !== false)
+            writer.tag(10, WireType.Varint).bool(message.zarBalanceEnabled);
+        /* bool manageWalletCardsEnabled = 11; */
+        if (message.manageWalletCardsEnabled !== false)
+            writer.tag(11, WireType.Varint).bool(message.manageWalletCardsEnabled);
+        /* bool accountEnabled = 12; */
+        if (message.accountEnabled !== false)
+            writer.tag(12, WireType.Varint).bool(message.accountEnabled);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -9408,20 +9452,20 @@ class LimitAmount$Type extends MessageType<LimitAmount> {
  */
 export const LimitAmount = new LimitAmount$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class WalletAddressExistsRequest$Type extends MessageType<WalletAddressExistsRequest> {
+class WalletAddressValidRequest$Type extends MessageType<WalletAddressValidRequest> {
     constructor() {
-        super("backend.v1.WalletAddressExistsRequest", [
+        super("backend.v1.WalletAddressValidRequest", [
             { no: 1, name: "url", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
-    create(value?: PartialMessage<WalletAddressExistsRequest>): WalletAddressExistsRequest {
+    create(value?: PartialMessage<WalletAddressValidRequest>): WalletAddressValidRequest {
         const message = { url: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<WalletAddressExistsRequest>(this, message, value);
+            reflectionMergePartial<WalletAddressValidRequest>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: WalletAddressExistsRequest): WalletAddressExistsRequest {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: WalletAddressValidRequest): WalletAddressValidRequest {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
@@ -9440,7 +9484,7 @@ class WalletAddressExistsRequest$Type extends MessageType<WalletAddressExistsReq
         }
         return message;
     }
-    internalBinaryWrite(message: WalletAddressExistsRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+    internalBinaryWrite(message: WalletAddressValidRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
         /* string url = 1; */
         if (message.url !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.url);
@@ -9451,24 +9495,24 @@ class WalletAddressExistsRequest$Type extends MessageType<WalletAddressExistsReq
     }
 }
 /**
- * @generated MessageType for protobuf message backend.v1.WalletAddressExistsRequest
+ * @generated MessageType for protobuf message backend.v1.WalletAddressValidRequest
  */
-export const WalletAddressExistsRequest = new WalletAddressExistsRequest$Type();
+export const WalletAddressValidRequest = new WalletAddressValidRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class WalletAddressExistsResponse$Type extends MessageType<WalletAddressExistsResponse> {
+class WalletAddressValidResponse$Type extends MessageType<WalletAddressValidResponse> {
     constructor() {
-        super("backend.v1.WalletAddressExistsResponse", [
+        super("backend.v1.WalletAddressValidResponse", [
             { no: 1, name: "exists", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
         ]);
     }
-    create(value?: PartialMessage<WalletAddressExistsResponse>): WalletAddressExistsResponse {
+    create(value?: PartialMessage<WalletAddressValidResponse>): WalletAddressValidResponse {
         const message = { exists: false };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<WalletAddressExistsResponse>(this, message, value);
+            reflectionMergePartial<WalletAddressValidResponse>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: WalletAddressExistsResponse): WalletAddressExistsResponse {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: WalletAddressValidResponse): WalletAddressValidResponse {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
@@ -9487,7 +9531,7 @@ class WalletAddressExistsResponse$Type extends MessageType<WalletAddressExistsRe
         }
         return message;
     }
-    internalBinaryWrite(message: WalletAddressExistsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+    internalBinaryWrite(message: WalletAddressValidResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
         /* bool exists = 1; */
         if (message.exists !== false)
             writer.tag(1, WireType.Varint).bool(message.exists);
@@ -9498,9 +9542,9 @@ class WalletAddressExistsResponse$Type extends MessageType<WalletAddressExistsRe
     }
 }
 /**
- * @generated MessageType for protobuf message backend.v1.WalletAddressExistsResponse
+ * @generated MessageType for protobuf message backend.v1.WalletAddressValidResponse
  */
-export const WalletAddressExistsResponse = new WalletAddressExistsResponse$Type();
+export const WalletAddressValidResponse = new WalletAddressValidResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class CreateWalletAddressRequest$Type extends MessageType<CreateWalletAddressRequest> {
     constructor() {
@@ -11446,7 +11490,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "CompleteSignup", options: {}, I: CompleteSignupRequest, O: Empty },
     { name: "CreateUserDefaultWallet", options: {}, I: CreateUserDefaultWalletRequest, O: Empty },
     { name: "CreateWalletAddress", options: {}, I: CreateWalletAddressRequest, O: Empty },
-    { name: "WalletAddressExists", options: {}, I: WalletAddressExistsRequest, O: WalletAddressExistsResponse },
+    { name: "WalletAddressValid", options: {}, I: WalletAddressValidRequest, O: WalletAddressValidResponse },
     { name: "SetWalletName", options: {}, I: SetWalletNameRequest, O: Empty },
     { name: "GetWalletInfo", options: {}, I: Empty, O: WalletInfo },
     { name: "GetPublicWalletInfo", options: {}, I: GetPublicWalletInfoRequest, O: PublicWalletInfo },
@@ -11521,6 +11565,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "WithdrawXagoBalance", options: {}, I: WithdrawXagoBalanceRequest, O: Payment },
     { name: "GetXagoBalances", options: {}, I: Empty, O: GetXagoBalanceResponse },
     { name: "GetXagoDepositDetails", options: {}, I: GetXagoDepositDetailsRequest, O: GetXagoDepositDetailsResponse },
+    { name: "DepositTestXago", options: {}, I: Empty, O: Empty },
     { name: "GetPtiBalances", options: {}, I: Empty, O: GetPtiBalancesResponse },
     { name: "CreatePtiToken", options: {}, I: PtiTokenRequest, O: PtiTokenResponse },
     { name: "CreateCard", options: {}, I: CreateCardRequest, O: LinkedAccount },

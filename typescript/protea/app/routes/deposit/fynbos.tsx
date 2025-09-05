@@ -1,10 +1,15 @@
 import { Code } from '@bufbuild/connect'
-import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
+import type {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  SerializeFrom
+} from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import {
   Form,
   useActionData,
   useLoaderData,
+  useRouteLoaderData,
   useSearchParams
 } from '@remix-run/react'
 import type { ChangeEventHandler } from 'react'
@@ -38,7 +43,9 @@ import type {
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
+import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
+import type { loader as rootLoader } from '~/root'
 import { PaySelect } from '../pay_.$paymentId/PaySelect'
 
 export async function fynbosDepositLoader({ request }: LoaderFunctionArgs) {
@@ -88,7 +95,7 @@ export async function fynbosDepositLoader({ request }: LoaderFunctionArgs) {
   }
 
   return jsonWithCSRF(request, {
-    provider: 'fynbos',
+    provider: 'interledger',
     balanceAccount,
     balance,
     balances,
@@ -239,7 +246,7 @@ const Amount = () => {
               <span className='text-medium'>0.00</span>
             </div>
             <span className='text-xs text-weak'>
-              For a limited time, Fynbos will absorb all fees.
+              For a limited time, the Interledger Wallet will absorb all fees.
             </span>
           </div>
         </CardContent>
@@ -266,7 +273,9 @@ const Amount = () => {
 }
 
 export function DepositDetails() {
-  const { depositDetails } = useLoaderData<typeof fynbosDepositLoader>()
+  const { depositDetails, csrfToken } =
+    useLoaderData<typeof fynbosDepositLoader>()
+  const { env } = useRouteLoaderData('root') as SerializeFrom<typeof rootLoader>
 
   return (
     <>
@@ -296,6 +305,21 @@ export function DepositDetails() {
           </div>
         </CardContent>
       </Card>
+      {env.fynbosEnv !== 'prod' ? (
+        <Form
+          id='xago-test-account-deposit'
+          action={route('/deposit')}
+          method='post'
+        >
+          <input
+            name='formName'
+            value='xago-test-account-deposit'
+            type='hidden'
+          />
+          <input value={csrfToken} name='csrfToken' type='hidden' />
+          <Button type='submit'>Test Deposit</Button>
+        </Form>
+      ) : null}
       <Alert>
         <Icon>error</Icon>
         <AlertContent className='items-start'>
@@ -381,4 +405,23 @@ export async function fynbosDepositAction({ request }: ActionFunctionArgs) {
       paymentId: depositResponse.id
     })
   )
+}
+
+export async function xagoTestAccountDepositAction({
+  request
+}: ActionFunctionArgs) {
+  const form = await request.formData()
+
+  await validateCSRFToken(request, form)
+
+  const response = await grpc.depositTestXago(request, {})
+
+  if (isConnectError(response)) {
+    return response.errorResponse
+  }
+
+  return redirectWithSnackbar(request, route('/'), {
+    message: 'Test deposit added successfully.',
+    icon: 'close'
+  })
 }

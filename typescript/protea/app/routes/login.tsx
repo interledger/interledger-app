@@ -156,7 +156,7 @@ export default function Page() {
         Log in
       </Button>
       <p className='text-center text-sm font-medium text-medium'>
-        New to Fynbos?{' '}
+        New to the Interledger Wallet?{' '}
         <Router className='text-primary' to={route('/signup')}>
           Sign up
         </Router>

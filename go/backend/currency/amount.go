@@ -121,7 +121,7 @@ var iso4217Currency = map[string]Currency{
 }
 
 type Amount struct {
-	Value    uint64   `validate:"gt=0" json:"amount,string"`
+	Value    uint64   `validate:"gte=0" json:"amount,string"`
 	Currency Currency `validate:"iso4217"  json:"currency"`
 	Scale    int      `validate:"omitempty,gte=0" json:"scale"`
 }

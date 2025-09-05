@@ -26,7 +26,7 @@ job "botanist" {
       port = "http"
       tags = [
         "traefik.enable=true",
-        "traefik.http.routers.dev-botanist.rule=Host(`admin.mgnt.fynbos.test`)"
+        "traefik.http.routers.dev-botanist.rule=Host(`admin.mgnt.interledger.test`)"
       ]
 
       check {    
@@ -45,7 +45,7 @@ job "botanist" {
 
           proxy {
             upstreams {
-              destination_name = "backend"
+              destination_name = "backend-admin"
               local_bind_port = 8448
             }
           }
@@ -58,7 +58,7 @@ job "botanist" {
       port = "websocket"
       tags = [
         "traefik.enable=true",
-        "traefik.http.routers.botanist-ws.rule=Host(`admin.mgnt.fynbos.test`) && PathPrefix(`/socket`)"
+        "traefik.http.routers.botanist-ws.rule=Host(`admin.mgnt.interledger.test`) && PathPrefix(`/socket`)"
       ]
     }
 
@@ -73,7 +73,7 @@ job "botanist" {
       env {
         CHOKIDAR_USEPOLLING = "true"
         BACKEND_GRPC_URL = "0.0.0.0:8448"
-        FYNBOS_ENV = "dev"
+        FYNBOS_ENV = "local"
       }
 
       resources {

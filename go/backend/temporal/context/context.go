@@ -11,6 +11,8 @@ import (
 // propagator implements the custom context propagator
 type propagator struct{}
 
+// TODO: Change?
+
 // propagationKey is the key used by the propagator to pass values through the
 // Temporal server headers
 const propagationKey = "fynbos-http-log"

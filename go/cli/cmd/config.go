@@ -14,7 +14,7 @@ func NewConfigCmd(b Backends) *cobra.Command {
 		Use:   "config [command]",
 		Short: "Manage config for the Fynbos CLI.",
 		Example: `
-		fynbos config set wallet https://fynbos.me/protea
+		fynbos config set wallet https://ilp.link/protea
 		fynbos config get wallet
 		fynbos config list
 		`,
@@ -30,7 +30,7 @@ func NewSetConfigCmd(b Backends) *cobra.Command {
 		Use:   "set [key] [value]",
 		Short: "Set config for the Fynbos CLI.",
 		Example: `
-		fynbos config set wallet https://fynbos.me/protea
+		fynbos config set wallet https://ilp.link/protea
 		`,
 		Args: cobra.MinimumNArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {

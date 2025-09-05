@@ -47,17 +47,20 @@ func CreatePaymentPointer(ctx context.Context, b Backends, w wallets.Wallet) err
 		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
 	}
 
-	keys, err := b.Keys().List(ctx, w.ID)
-	if err != nil {
-		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
-	}
+	// This shouldn't really happen from now on since we are not provisioning a
+	// custodial key anymore when the wallet is created.
 
-	for _, key := range keys {
-		err := CreatePaymentPointerKey(ctx, b, key.ID, w.ID)
-		if err != nil {
-			return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
-		}
-	}
+	// keys, err := b.Keys().List(ctx, w.ID)
+	// if err != nil {
+	// 	return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+	// }
+	//
+	// for _, key := range keys {
+	// 	err := CreatePaymentPointerKey(ctx, b, key.ID, w.ID)
+	// 	if err != nil {
+	// 		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+	// 	}
+	// }
 
 	return nil
 }
@@ -218,7 +221,7 @@ func CreatePaymentPointerKey(ctx context.Context, b Backends, keyID string, wall
 		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
 	}
 	if rows, _ := result.RowsAffected(); rows < 1 {
-		return fmt.Errorf("%w Mapping rafiki keys to fynbos key failed.", rafiki.ErrInternal)
+		return fmt.Errorf("%w Mapping rafiki keys to interledger key failed.", rafiki.ErrInternal)
 	}
 
 	return nil
@@ -358,6 +361,14 @@ func RevokeGrant(ctx context.Context, b Backends, grantID string) error {
 	}
 
 	return nil
+}
+
+func UpdateWalletAddressStatus(ctx context.Context, b Backends, walletId struct {
+	Id   string `db:"payment_pointer_id"`
+	Name string `db:"name"`
+}, status bool) error {
+	return b.External().UpdateWalletAddressStatus(ctx, walletId, status)
+
 }
 
 func ListPendingWebMonetization(ctx context.Context, b Backends, walletID string) ([]transactions.Transaction, error) {

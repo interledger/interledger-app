@@ -1,7 +1,6 @@
 package main
 
 import (
-	"gitlab.com/fynbos/backend/providers/chimoney"
 	"log"
 	"os"
 
@@ -85,8 +84,8 @@ func main() {
 	}()
 
 	app := &cli.App{
-		Name:  "fynbos",
-		Usage: "Interact with Fynbos application resources.",
+		Name:  "interledger",
+		Usage: "Interact with Interledger application resources.",
 		Commands: []*cli.Command{
 			{
 				Name:    "make",
@@ -95,7 +94,7 @@ func main() {
 				Subcommands: []*cli.Command{
 					{
 						Name:   "wallet",
-						Usage:  "create a new Fynbos user and wallet",
+						Usage:  "create a new Interledger user and wallet",
 						Flags:  actions.MakeWalletFlags,
 						Action: actions.MakeWallet(b),
 					},
@@ -171,7 +170,7 @@ func (b *backends) Limits() limits.Client {
 
 func (b *backends) PacioliDB() *sqlx.DB {
 	if b.pcDB == nil {
-		db, err := sqlx.Connect("postgres", "postgres://roach:roach@crdb.fynbos.test:26256/pacioli")
+		db, err := sqlx.Connect("postgres", "postgres://roach:roach@crdb.interledger.test:26256/pacioli")
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -216,7 +215,7 @@ func (b *backends) Transactions() transactions.Client {
 
 func (b *backends) DB() *sqlx.DB {
 	if b.db == nil {
-		db, err := sqlx.Connect("postgres", "postgres://roach:roach@crdb.fynbos.test:26256/backend")
+		db, err := sqlx.Connect("postgres", "postgres://roach:roach@crdb.interledger.test:26256/backend")
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -231,11 +230,11 @@ func (b *backends) Kratos() *kratos.APIClient {
 		b.kratos = kratos.NewAPIClient(&kratos.Configuration{
 			Servers: kratos.ServerConfigurations{
 				{
-					URL:         "https://kratos.fynbos.test",
+					URL:         "https://kratos.interledger.test",
 					Description: "Public Kratos",
 				},
 				{
-					URL:         "https://kratos-admin.fynbos.test",
+					URL:         "https://kratos-admin.interledger.test",
 					Description: "Admin Kratos",
 				},
 			},
@@ -253,7 +252,7 @@ func (b *backends) Validator() *validator.Validate {
 
 func (b *backends) Users() user.Client {
 	if b.user == nil {
-		b.user = user_client.New(b, "https://kratos.fynbos.test", "https://kratos-admin.fynbos.test")
+		b.user = user_client.New(b, "https://kratos.interledger.test", "https://kratos-admin.interledger.test")
 	}
 	return b.user
 }
@@ -332,7 +331,7 @@ func (b *backends) LinkedAccounts() linkedaccounts.Client {
 
 func (b *backends) Temporal() temporal.Client {
 	if b.temporal == nil {
-		tm, err := temporal_client.NewTemporalClient("temporal-frontend.fynbos.test:80")
+		tm, err := temporal_client.NewTemporalClient("temporal-frontend.interledger.test:80")
 		if err != nil {
 			log.Fatalln(err)
 		}

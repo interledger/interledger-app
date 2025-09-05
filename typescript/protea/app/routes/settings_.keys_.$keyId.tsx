@@ -67,7 +67,7 @@ export default function Page() {
           {/*<p className='mt-1 text-sm text-purple-500'>Last used {connection.lastUsedAt}</p>*/}
         </CardContent>
       </Card>
-      {connection.applicationName !== 'Fynbos Managed' && (
+      {connection.applicationName !== 'Interledger Wallet Managed' && (
         <OutlineButton
           // TODO error token colors
           className='text-red-700 outline-red-700 focus-visible:outline-red-800'

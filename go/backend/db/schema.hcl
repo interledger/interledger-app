@@ -966,6 +966,11 @@ table "transactions" {
     null = false
     type = bigint
   }
+  column "provider_fee" {
+    null = false
+    type = bigint
+    default = 0
+  }
   column "linked_account_title" {
     null = true
     type = text
@@ -1950,6 +1955,11 @@ table "wallet_features" {
     default = false
   }
   column "add_cards_enabled" {
+    null = false
+    type = boolean
+    default = false
+  }
+  column "manage_wallet_cards_enabled" {
     null = false
     type = boolean
     default = false
@@ -3410,6 +3420,14 @@ table "gatehub_users" {
   column "wallet_id" {
     null = false
     type = uuid
+  }
+  column "external_customer_id" {
+    null = true
+    type = text
+  }
+  column "external_account_id" {
+    null = true
+    type = text
   }
   column "created_at" {
     null    = false

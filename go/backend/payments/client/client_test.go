@@ -72,7 +72,7 @@ func TestClient(t *testing.T) {
 				SenderAccount: sendWallet.ptiUSDLinkedAcc,
 				Receiver: payments.Identity{
 					Type:       payments.IdentityTypeSlack,
-					Identifier: "fynbos / DevTest",
+					Identifier: "interledger / DevTest",
 				},
 				SenderAmount:   currency.FromUInt64(10, currency.ParseCurrency("USD")),
 				ReceiverAmount: currency.FromUInt64(10, currency.ParseCurrency("USD")),
@@ -398,8 +398,8 @@ func TestClient(t *testing.T) {
 
 			sendTransaction, err := b.Transactions().GetTransaction(ctx, sendWallet.walletID, p.SendTransactionID)
 			require.NoError(st, err)
-			assert.True(st, strings.HasPrefix(sendTransaction.Destination, "https://local.fynbos.me/"))
-			assert.True(st, strings.HasPrefix(sendTransaction.Source, "https://local.fynbos.me/"))
+			assert.True(st, strings.HasPrefix(sendTransaction.Destination, "https://local.ilp.link/"))
+			assert.True(st, strings.HasPrefix(sendTransaction.Source, "https://local.ilp.link/"))
 			assert.Equal(st, tc.Assertions.SendTransactionState, sendTransaction.State)
 			sendTransfers := []AssertTransfer{}
 
@@ -414,8 +414,8 @@ func TestClient(t *testing.T) {
 			if tc.Assertions.ReceiveTransactionState != "" {
 				recvTransaction, err := b.Transactions().GetTransaction(ctx, recvWallet.walletID, p.ReceiveTransactionID)
 				require.NoError(st, err)
-				assert.True(st, strings.HasPrefix(recvTransaction.Destination, "https://local.fynbos.me/"))
-				assert.True(st, strings.HasPrefix(recvTransaction.Source, "https://local.fynbos.me/"))
+				assert.True(st, strings.HasPrefix(recvTransaction.Destination, "https://local.ilp.link/"))
+				assert.True(st, strings.HasPrefix(recvTransaction.Source, "https://local.ilp.link/"))
 				assert.Equal(st, tc.Assertions.ReceiveTransactionState, recvTransaction.State)
 				recvTransfers := []AssertTransfer{}
 

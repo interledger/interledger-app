@@ -22,7 +22,7 @@ job "postgres" {
       mode = "bridge"
       port "postgres" {
         to = 5432
-        static = 7432
+        static = 5432
       }
     }
 
@@ -57,6 +57,8 @@ job "postgres" {
           CREATE DATABASE rafiki_backend;
           CREATE DATABASE rafiki_auth;
           CREATE DATABASE mockbos;
+          \c backend;
+          CREATE EXTENSION pg_trgm;
         EOH
 
         destination = "local/init-user-db.sql"

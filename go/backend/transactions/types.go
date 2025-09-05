@@ -68,6 +68,7 @@ type CreateTransactionArgs struct {
 	Source                  string // Usually the sending payment pointer
 	Destination             string // Usually the receiving payment pointer
 	Amount                  currency.Amount
+	ProviderFee             *currency.Amount
 	Transfers               []TransferArgs `validate:"omitempty,dive"`
 	GrantID                 string
 	LinkedAccountTitle      string
@@ -78,10 +79,11 @@ type CreateTransactionArgs struct {
 }
 
 type UpdateTransactionArgs struct {
-	WalletID        string `validate:"uuid"` // Fynbos wallet ID
+	WalletID        string `validate:"uuid"` // InterledgerApp wallet ID
 	ForeignID       string `validate:"uuid"`
 	State           State  `validate:"required"`
 	Amount          currency.Amount
+	ProviderFee     currency.Amount
 	UpdateTransfers []TransferArgs `validate:"omitempty,dive"`
 }
 
@@ -112,6 +114,7 @@ type Transaction struct {
 	Provider                Provider
 	State                   State
 	Amount                  currency.Amount
+	ProviderFee             *currency.Amount
 	LinkedAccountTitle      string
 	DestinationIdentity     string
 	DestinationIdentityType string
@@ -126,6 +129,7 @@ type Transfer struct {
 	ForeignID       string
 	Type            TransferType
 	Amount          currency.Amount
+	ProviderFee     *currency.Amount
 	State           State
 	Timestamp       time.Time
 }

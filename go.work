@@ -1,6 +1,5 @@
-go 1.19
+go 1.24.3
 
-use (
-	./go
-	./infra
-)
+toolchain go1.24.3
+
+use ./go

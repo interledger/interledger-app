@@ -6,11 +6,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math/rand"
 	"net/http"
 	"os"
 	"strconv"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"gitlab.com/fynbos/backend/providers/xago/external"
@@ -54,12 +56,21 @@ func (s *Server) CreateSubAccount() http.HandlerFunc {
 			return
 		}
 
+		depRef := generateDepositReference()
+
 		sa, err := s.db.CreateXagoSubAccount(r.Context(), db.CreateXagoSubAccountParams{
-			DepositTag:   "",
-			FirstName:    req.FirstName,
-			LastName:     req.LastName,
-			Email:        req.Email,
-			MobileNumber: req.MobileNumber,
+			DepositReference:           depRef,
+			FirstName:                  req.FirstName,
+			LastName:                   req.LastName,
+			Email:                      req.Email,
+			IdentificationDocumentType: "verification/government-id",
+			IdentificationNumber:       req.IDNumber,
+			MobileNumber:               req.MobileNumber,
+			DateOfBirth: pgtype.Date{
+				Time:             time.Date(1985, time.July, 23, 0, 0, 0, 0, time.UTC),
+				InfinityModifier: pgtype.Finite,
+				Valid:            true,
+			},
 		})
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -93,9 +104,9 @@ func (s *Server) CreateSubAccount() http.HandlerFunc {
 			},
 			Beneficiaries: []external.Beneficiaries{
 				{
-					BeneficiaryID:    "d7df4a5d-0294-4280-bf09-7651f335ace5",
+					BeneficiaryID:    uuid.New().String(),
 					BeneficiaryType:  "rollup",
-					DepositReference: "testDW85PQ",
+					DepositReference: depRef,
 				},
 			},
 		}
@@ -125,7 +136,7 @@ func (s *Server) AddBeneficiary() http.HandlerFunc {
 			return
 		}
 
-		_, err := s.db.CreateXagoBeneficiary(r.Context(), db.CreateXagoBeneficiaryParams{
+		beneficiaryID, err := s.db.CreateXagoBeneficiary(r.Context(), db.CreateXagoBeneficiaryParams{
 			Name:          pgtype.Text{String: req.Name, Valid: true},
 			Scope:         pgtype.Text{String: req.Scope, Valid: true},
 			CurrencyCode:  pgtype.Text{String: req.CurrencyCode, Valid: true},
@@ -143,38 +154,28 @@ func (s *Server) AddBeneficiary() http.HandlerFunc {
 			return
 		}
 
-		//Get all beneficaries
-		ben, err := s.db.ListXagoBeneficiaries(r.Context())
+		// Get beneficiary and transform to AccountBeneficiaries
+		beneficiary, err := s.db.GetXagoBeneficiary(r.Context(), beneficiaryID)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		var bs []external.AccountBeneficiaries
-
-		for _, beneficiary := range ben {
-			bs = append(bs, external.AccountBeneficiaries{
-				ID:                 utils.BytesToUUID(beneficiary.ID.Bytes),
-				BranchCode:         beneficiary.BranchCode.String,
-				Reference:          beneficiary.Reference.String,
-				BeneficiaryAddress: beneficiary.BeneficiaryPhysicalAddress.String,
-				BankName:           beneficiary.BankName.String,
-				AccountNumber:      beneficiary.AccountNumber.String,
-				Status:             "active",
-				CurrencyCode:       beneficiary.CurrencyCode.String,
-				Name:               beneficiary.Name.String,
-				Wallet:             nil,
-			})
-		}
-
-		// Mock response
-		var resp = external.CreateBeneficiaryResp{
-			Status:        200,
-			Beneficiaries: bs,
+		b := external.AccountBeneficiaries{
+			ID:                 utils.BytesToUUID(beneficiary.ID.Bytes),
+			BranchCode:         beneficiary.BranchCode.String,
+			Reference:          beneficiary.Reference.String,
+			BeneficiaryAddress: beneficiary.BeneficiaryPhysicalAddress.String,
+			BankName:           beneficiary.BankName.String,
+			AccountNumber:      beneficiary.AccountNumber.String,
+			Status:             "active",
+			CurrencyCode:       beneficiary.CurrencyCode.String,
+			Name:               beneficiary.Name.String,
+			Wallet:             nil,
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(resp); err != nil {
+		if err := json.NewEncoder(w).Encode(b); err != nil {
 			// At this point, since the header and possibly part of the body are already written,
 			// you cannot send a new status code or additional headers.
 			// Log the error for server-side diagnostics.
@@ -220,11 +221,19 @@ func (s *Server) CreateTransaction() http.HandlerFunc {
 			return
 		}
 
+		var trxID pgtype.UUID
+		err = trxID.Scan(uuid.New().String())
+		if err != nil {
+			http.Error(w, "could not generate transaction id", http.StatusBadRequest)
+			return
+		}
+
 		t, err := s.db.CreateXagoTransaction(r.Context(), db.CreateXagoTransactionParams{
+			ID:             trxID,
 			CurrencyCode:   trx.CurrencyCode,
 			Amount:         trx.Amount,
 			OriginAmount:   trx.Amount,
-			Status:         "pending",
+			Status:         "Success",
 			BeneficiaryID:  utils.BytesToUUID(b.ID.Bytes),
 			IdempotencyKey: trx.IdempotencyKey,
 			Type:           string(Withdrawal),
@@ -312,19 +321,6 @@ func (s *Server) GetTransaction() http.HandlerFunc {
 }
 
 func (s *Server) ListDepositTransactions() http.HandlerFunc {
-	type transaction struct {
-		TransactionId          string      `json:"transactionId"`
-		AccountId              string      `json:"accountId"`
-		OriginAmount           float64     `json:"originAmount"`
-		Amount                 float64     `json:"amount"`
-		Status                 string      `json:"status"`
-		IsRequested            bool        `json:"isRequested"`
-		IsDuplicate            bool        `json:"isDuplicate"`
-		DuplicateTransactionId interface{} `json:"duplicateTransactionId"`
-		CreatedAt              time.Time   `json:"createdAt"`
-		SettledAt              string      `json:"settledAt"`
-	}
-
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -372,21 +368,31 @@ func (s *Server) ListDepositTransactions() http.HandlerFunc {
 			return
 		}
 
-		resp := make([]transaction, 0)
+		deps := make([]external.Deposit, 0)
 
 		for _, xagoTransaction := range d {
-			resp = append(resp, transaction{
-				TransactionId:          utils.BytesToUUID(xagoTransaction.ID.Bytes),
-				AccountId:              xagoTransaction.BeneficiaryID,
+			deps = append(deps, external.Deposit{
+				TransactionID:          utils.BytesToUUID(xagoTransaction.ID.Bytes),
+				AccountID:              xagoTransaction.BeneficiaryID,
 				OriginAmount:           xagoTransaction.Amount,
 				Amount:                 xagoTransaction.Amount,
 				Status:                 xagoTransaction.Status,
 				IsRequested:            false,
 				IsDuplicate:            false,
-				DuplicateTransactionId: nil,
+				DuplicateTransactionID: "", // What does this represent?
 				CreatedAt:              xagoTransaction.CreatedAt.Time,
 				SettledAt:              "",
 			})
+		}
+
+		resp := external.ListDepositsResponse{
+			// Mock pagination
+			Pagination: external.Pagination{
+				NumberOfPages: 1,
+				Limit:         10,
+				PageNumber:    1,
+			},
+			Deposits: deps,
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -402,31 +408,20 @@ func (s *Server) ListDepositTransactions() http.HandlerFunc {
 }
 
 func (s *Server) CreateDeposit() http.HandlerFunc {
-	type depositReq struct {
-		Amount    float64 `json:"amount"`
-		AccountId string  `json:"accountId"`
-	}
-
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
 
-		var req depositReq
+		var req external.TestDepositReq
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
 		// Check if sub account exists
-		var subAccountId pgtype.UUID
-		err := subAccountId.Scan(req.AccountId)
-		if err != nil {
-			http.Error(w, "accountId is not a UUID", http.StatusBadRequest)
-			return
-		}
-		_, err = s.db.GetXagoSubAccount(r.Context(), subAccountId)
+		sa, err := s.db.GetXagoSubAccountByDepositReference(r.Context(), req.DepositReference)
 		if err != nil {
 			if errors.Is(err, pgx.ErrNoRows) {
 				http.Error(w, "account does not exist", http.StatusBadRequest)
@@ -436,15 +431,24 @@ func (s *Server) CreateDeposit() http.HandlerFunc {
 			return
 		}
 
+		var trxID pgtype.UUID
+		err = trxID.Scan(req.BankTransactionID)
+		if err != nil {
+			http.Error(w, "bankTransactionId is not a UUID", http.StatusBadRequest)
+			return
+		}
+
 		t, err := s.db.CreateXagoTransaction(r.Context(), db.CreateXagoTransactionParams{
+			ID:             trxID,
 			CurrencyCode:   "ZAR",
 			Amount:         req.Amount,
 			OriginAmount:   req.Amount,
 			Status:         "Success",
-			BeneficiaryID:  req.AccountId,
+			BeneficiaryID:  utils.BytesToUUID(sa.ID.Bytes),
 			IdempotencyKey: "",
 			Type:           string(Deposit),
 		})
+
 		if err != nil {
 			http.Error(w, "error creating deposit", http.StatusBadRequest)
 			return
@@ -473,7 +477,7 @@ func sendWebhook(ctx context.Context, webhookUrl string, trx db.XagoTransaction)
 		OriginAmount:           trx.OriginAmount,
 		ParentExtension:        "",
 		SettledAt:              "",
-		Code:                   200,
+		Code:                   104,
 		Status:                 trx.Status,
 		TransactionID:          utils.BytesToUUID(trx.ID.Bytes),
 		TransactionReference:   "",
@@ -532,4 +536,15 @@ func (s *Server) CreateLogin() http.HandlerFunc {
 		}
 		w.WriteHeader(http.StatusOK)
 	}
+}
+
+func generateDepositReference() string {
+	alphabet := "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
+	code := make([]byte, 6)
+	for i := range code {
+		code[i] = alphabet[rand.Intn(len(alphabet))]
+	}
+
+	return fmt.Sprintf("test%s", string(code))
 }

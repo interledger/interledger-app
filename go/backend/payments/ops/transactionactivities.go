@@ -8,6 +8,7 @@ import (
 
 	"gitlab.com/fynbos/backend/providers/xago"
 
+	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/transactions"
 )
@@ -237,6 +238,7 @@ func (a *Activity) CreatePayoutTransaction(ctx context.Context, paymentID, txID,
 		}
 	}
 
+	fee := currency.FromFloat64(0, currency.USD)
 	return a.b.Transactions().CreateTransaction(ctx, transactions.CreateTransactionArgs{
 		ID:                      txID,
 		WalletID:                receiverWallet.ID,
@@ -248,6 +250,7 @@ func (a *Activity) CreatePayoutTransaction(ctx context.Context, paymentID, txID,
 		Source:                  senderWallet.AddressString(),
 		Destination:             receiverWallet.AddressString(),
 		Amount:                  p.ReceiverAmount,
+		ProviderFee:             &fee,
 		LinkedAccountTitle:      la.Title(),
 		DestinationIdentity:     p.Receiver.Identifier,
 		DestinationIdentityType: p.Receiver.Type.String(),

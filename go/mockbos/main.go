@@ -46,13 +46,12 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 	})
 	router.Post("/xago/v1/company/accounts", xs.CreateSubAccount())
+	router.Post("/xago/v1/company/accounts/testdeposit", xs.CreateDeposit())
 	router.Post("/xago/v1/beneficiaries", xs.AddBeneficiary())
-	router.Post("/xago/v1/transactions/transfer", xs.CreateTransaction())
+	router.Post("/xago/v1/transfers", xs.CreateTransaction())
 	router.Get("/xago/v1/transactions", xs.GetTransaction())
 	router.Get("/xago/v1/company/transactions", xs.ListDepositTransactions())
 	router.Post("/xago/v1/login", xs.CreateLogin())
-
-	router.Post("/admin/xago/deposit", xs.CreateDeposit())
 
 	router.Route("/pti", ps.Register)
 

@@ -31,7 +31,7 @@ func TestCreateContact(t *testing.T) {
 	c.walletImpl.EXPECT().ForContext(gomock.Any()).Return(&w, nil).AnyTimes()
 
 	// Create contact
-	wa, err := wallets.ParseAddress("$fynbos.me/alice")
+	wa, err := wallets.ParseAddress("$ilp.link/alice")
 	require.NoError(t, err)
 	cw := wallets.Wallet{
 		ID:        uuid.NewString(),
@@ -82,7 +82,7 @@ func TestListContacts(t *testing.T) {
 	}
 	c.walletImpl.EXPECT().Get(gomock.Any(), cw.ID).Return(&cw, nil).AnyTimes()
 
-	pp, err := wallets.ParseAddress("$fynbos.me/alice")
+	pp, err := wallets.ParseAddress("$ilp.link/alice")
 	require.NoError(t, err)
 
 	c.ContactsClient.EXPECT().List(gomock.Any(), w.ID, gomock.Any(), gomock.Any()).Return([]contacts.Contact{

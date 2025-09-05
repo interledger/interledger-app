@@ -29,20 +29,31 @@ import (
 	temporal_client "go.temporal.io/sdk/client"
 )
 
-func TestCreate(t *testing.T) {
+func setupTest(t *testing.T) (context.Context, *ops.TestBackends) {
+
 	ctx := context.Background()
+	dbc := db.MigrateTestDB(t, ctx)
+
+	b := &ops.TestBackends{
+		DBC: dbc,
+		Ic:  identity_mock.NewMockClient(gomock.NewController(t)),
+		Wc:  wallets_mock.NewMockClient(gomock.NewController(t)),
+		Lac: linkedaccounts_mock.NewMockClient(gomock.NewController(t)),
+		Txc: transactions_mock.NewMockClient(gomock.NewController(t)),
+		Pti: pti_mock.NewMockClient(gomock.NewController(t)),
+	}
+
+	return ctx, b
+}
+
+func TestCreate(t *testing.T) {
+	ctx, b := setupTest(t)
+
 	ctrl := gomock.NewController(t)
 	t.Cleanup(func() {
 		ctrl.Finish()
 	})
-	b := &ops.TestBackends{
-		DBC: db.MigrateTestDB(t, ctx),
-		Ic:  identity_mock.NewMockClient(ctrl),
-		Wc:  wallets_mock.NewMockClient(ctrl),
-		Lac: linkedaccounts_mock.NewMockClient(ctrl),
-		Txc: transactions_mock.NewMockClient(ctrl),
-		Pti: pti_mock.NewMockClient(ctrl),
-	}
+
 	walletID := uuid.NewString()
 	b.Lac.EXPECT().ListBalances(ctx, gomock.Any()).Return([]linkedaccounts.LinkedAccount{}, nil).AnyTimes()
 	b.Pti.EXPECT().GetBalance(ctx, gomock.Any()).Return(&pti.Balance{Available: currency.FromFloat64(1000, currency.USD), Total: currency.FromFloat64(1000, currency.USD)}, nil).AnyTimes()
@@ -50,7 +61,7 @@ func TestCreate(t *testing.T) {
 	b.Lac.EXPECT().GetDefaultReceive(ctx, gomock.Any(), gomock.Any()).Return(nil, errors.New("not found")).AnyTimes()
 	b.Ic.EXPECT().GetByIdentifier(ctx, gomock.Any()).Return(&identities.Identity{WalletID: walletID, Platform: identities.PlatformTwitter}, nil).AnyTimes()
 	b.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{ID: walletID}, nil).AnyTimes()
-	b.Wc.EXPECT().GetFromAddress(ctx, "https://fynbos.me/charlie").Return(&wallets.Wallet{
+	b.Wc.EXPECT().GetFromAddress(ctx, "https://ilp.link/charlie").Return(&wallets.Wallet{
 		ID: walletID,
 	}, nil).AnyTimes()
 	b.Txc.EXPECT().GetHasTransacted(gomock.Any(), gomock.Any(), gomock.Any()).Return(false, nil).AnyTimes() // Require OTP
@@ -70,7 +81,7 @@ func TestCreate(t *testing.T) {
 				},
 				Receiver: payments.Identity{
 					Type:       payments.IdentityTypeWalletURL,
-					Identifier: "https://fynbos.me/charlie",
+					Identifier: "https://ilp.link/charlie",
 				},
 				SenderAmount:    currency.FromFloat64(51, currency.USD),
 				ReceiverAmount:  currency.FromFloat64(51, currency.USD),
@@ -91,7 +102,7 @@ func TestCreate(t *testing.T) {
 				},
 				Receiver: payments.Identity{
 					Type:       payments.IdentityTypeWalletURL,
-					Identifier: "https://fynbos.me/charlie",
+					Identifier: "https://ilp.link/charlie",
 				},
 				SenderAmount:   currency.FromFloat64(51, currency.USD),
 				ReceiverAmount: currency.FromFloat64(51, currency.USD),
@@ -131,23 +142,17 @@ func TestCreate(t *testing.T) {
 }
 
 func TestSetState(t *testing.T) {
-	ctx := context.Background()
+	ctx, b := setupTest(t)
 	ctrl := gomock.NewController(t)
 	t.Cleanup(func() {
 		ctrl.Finish()
 	})
-	b := &ops.TestBackends{
-		DBC: db.MigrateTestDB(t, ctx),
-		Ic:  identity_mock.NewMockClient(ctrl),
-		Wc:  wallets_mock.NewMockClient(ctrl),
-		Lac: linkedaccounts_mock.NewMockClient(ctrl),
-		Txc: transactions_mock.NewMockClient(ctrl),
-	}
+
 	walletID := uuid.NewString()
 	b.Lac.EXPECT().Get(ctx, gomock.Any()).Return(&linkedaccounts.LinkedAccount{CanSend: true, CanReceive: true, Provider: pti.ProviderName, State: linkedaccounts.Verified, ReceiveCurrency: currency.USD, SendCurrency: currency.USD}, nil).AnyTimes()
 	b.Ic.EXPECT().GetByIdentifier(ctx, gomock.Any()).Return(&identities.Identity{WalletID: walletID}, nil).AnyTimes()
 	b.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{ID: walletID}, nil).AnyTimes()
-	b.Wc.EXPECT().GetFromAddress(ctx, "https://fynbos.me/charlie").Return(&wallets.Wallet{
+	b.Wc.EXPECT().GetFromAddress(ctx, "https://ilp.link/charlie").Return(&wallets.Wallet{
 		ID: walletID,
 	}, nil).AnyTimes()
 	b.Txc.EXPECT().GetHasTransacted(gomock.Any(), gomock.Any(), gomock.Any()).Return(true, nil).AnyTimes() // No OTP
@@ -160,7 +165,7 @@ func TestSetState(t *testing.T) {
 		},
 		Receiver: payments.Identity{
 			Type:       payments.IdentityTypeWalletURL,
-			Identifier: "https://fynbos.me/charlie",
+			Identifier: "https://ilp.link/charlie",
 		},
 		SenderAmount:    currency.FromFloat64(51, currency.USD),
 		ReceiverAmount:  currency.FromFloat64(50, currency.USD),
@@ -175,16 +180,11 @@ func TestSetState(t *testing.T) {
 }
 
 func TestGetRequiredActions(t *testing.T) {
-	ctx := context.Background()
+	ctx, b := setupTest(t)
 	ctrl := gomock.NewController(t)
 	t.Cleanup(func() {
 		ctrl.Finish()
 	})
-	b := &ops.TestBackends{
-		DBC: db.MigrateTestDB(t, ctx),
-		Wc:  wallets_mock.NewMockClient(ctrl),
-		Lac: linkedaccounts_mock.NewMockClient(ctrl),
-	}
 	walletID := uuid.NewString()
 	b.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{ID: walletID}, nil).AnyTimes()
 	b.Lac.EXPECT().ListBalances(ctx, gomock.Any()).Return([]linkedaccounts.LinkedAccount{}, nil).AnyTimes()
@@ -209,24 +209,22 @@ func TestGetRequiredActions(t *testing.T) {
 }
 
 func TestConfirm(t *testing.T) {
-	ctx := context.Background()
+	ctx, b := setupTest(t)
 	ctrl := gomock.NewController(t)
 	t.Cleanup(func() {
 		ctrl.Finish()
 	})
-	b := &ops.TestBackends{
-		DBC: db.MigrateTestDB(t, ctx),
-		Tp:  temporal_mock.NewMockClient(ctrl),
-		Wc:  wallets_mock.NewMockClient(ctrl),
-		Lac: linkedaccounts_mock.NewMockClient(ctrl),
-		Txc: transactions_mock.NewMockClient(ctrl),
-	}
+	b.Tp = temporal_mock.NewMockClient(ctrl)
+	b.Wc = wallets_mock.NewMockClient(ctrl)
+	b.Lac = linkedaccounts_mock.NewMockClient(ctrl)
+	b.Txc = transactions_mock.NewMockClient(ctrl)
+
 	walletID := uuid.NewString()
 	txID := uuid.NewString()
 	b.Lac.EXPECT().ListBalances(ctx, gomock.Any()).Return([]linkedaccounts.LinkedAccount{}, nil).AnyTimes()
 	b.Lac.EXPECT().Get(ctx, gomock.Any()).Return(&linkedaccounts.LinkedAccount{CanSend: true, CanReceive: true, Provider: pti.ProviderName, State: linkedaccounts.Verified, WalletID: walletID, SendCurrency: currency.USD, ReceiveCurrency: currency.USD}, nil).AnyTimes()
 	b.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{ID: walletID}, nil).AnyTimes()
-	b.Wc.EXPECT().GetFromAddress(ctx, "https://fynbos.me/charlie").Return(&wallets.Wallet{
+	b.Wc.EXPECT().GetFromAddress(ctx, "https://ilp.link/charlie").Return(&wallets.Wallet{
 		ID: walletID,
 	}, nil).AnyTimes()
 	b.Txc.EXPECT().CreateTransactionTx(gomock.Any(), gomock.Any(), gomock.Any()).Return(txID, nil).AnyTimes()
@@ -254,7 +252,7 @@ func TestConfirm(t *testing.T) {
 		ID: paymentID,
 		Receiver: payments.Identity{
 			Type:       payments.IdentityTypeWalletURL,
-			Identifier: "https://fynbos.me/charlie",
+			Identifier: "https://ilp.link/charlie",
 		},
 		SenderAmount:    currency.FromFloat64(51, currency.USD),
 		ReceiverAmount:  currency.FromFloat64(50, currency.USD),
@@ -282,17 +280,11 @@ func TestConfirm(t *testing.T) {
 }
 
 func TestUpdate(t *testing.T) {
-	ctx := context.Background()
+	ctx, b := setupTest(t)
 	ctrl := gomock.NewController(t)
 	t.Cleanup(func() {
 		ctrl.Finish()
 	})
-	b := &ops.TestBackends{
-		DBC: db.MigrateTestDB(t, ctx),
-		Wc:  wallets_mock.NewMockClient(ctrl),
-		Lac: linkedaccounts_mock.NewMockClient(ctrl),
-		Txc: transactions_mock.NewMockClient(ctrl),
-	}
 	walletID, receiverWalletID := uuid.NewString(), uuid.NewString()
 	senderAccount := uuid.NewString()
 	receiverAccount := uuid.NewString()
@@ -309,7 +301,7 @@ func TestUpdate(t *testing.T) {
 	b.Lac.EXPECT().Get(ctx, gomock.Any()).Return(&linkedaccounts.LinkedAccount{CanSend: true, CanReceive: true, Provider: pti.ProviderName, State: linkedaccounts.Verified, WalletID: walletID, SendCurrency: currency.USD, ReceiveCurrency: currency.USD}, nil).AnyTimes()
 	b.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{ID: walletID}, nil).AnyTimes()
 	b.Wc.EXPECT().Get(ctx, receiverWalletID).Return(&wallets.Wallet{ID: receiverWalletID}, nil).AnyTimes()
-	b.Wc.EXPECT().GetFromAddress(ctx, "https://fynbos.me/charlie").Return(&wallets.Wallet{
+	b.Wc.EXPECT().GetFromAddress(ctx, "https://ilp.link/charlie").Return(&wallets.Wallet{
 		ID: receiverWalletID,
 	}, nil).AnyTimes()
 	b.Txc.EXPECT().GetHasTransacted(ctx, gomock.Any(), gomock.Any()).Return(true, nil)
@@ -327,7 +319,7 @@ func TestUpdate(t *testing.T) {
 		},
 		Receiver: payments.Identity{
 			Type:       payments.IdentityTypeWalletURL,
-			Identifier: "https://fynbos.me/charlie",
+			Identifier: "https://ilp.link/charlie",
 		},
 		SenderAmount:    currency.FromFloat64(51, currency.USD),
 		SenderAccount:   senderAccount,
@@ -340,14 +332,14 @@ func TestUpdate(t *testing.T) {
 		ID: paymentID,
 		Receiver: payments.Identity{
 			Type:       payments.IdentityTypeWalletURL,
-			Identifier: "https://fynbos.me/charlie",
+			Identifier: "https://ilp.link/charlie",
 		},
 		ReceiverAccount: receiverAccount,
 	})
 	require.NoError(t, err)
 	assert.True(t, p.Receiver.IsEqual(payments.Identity{
 		Type:       payments.IdentityTypeWalletURL,
-		Identifier: "https://fynbos.me/charlie",
+		Identifier: "https://ilp.link/charlie",
 	}))
 	assert.True(t, p.SenderAmount.IsEqual(currency.FromFloat64(51, currency.USD)))
 	assert.Equal(t, uint64(5100), p.ReceiverAmount.Value)
@@ -364,7 +356,7 @@ func TestUpdate(t *testing.T) {
 
 	assert.True(t, p.Receiver.IsEqual(payments.Identity{
 		Type:       payments.IdentityTypeWalletURL,
-		Identifier: "https://fynbos.me/charlie",
+		Identifier: "https://ilp.link/charlie",
 	}))
 
 	assert.Equal(t, uint64(5400), p.SenderAmount.Value)

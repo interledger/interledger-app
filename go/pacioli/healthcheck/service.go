@@ -16,6 +16,7 @@ import (
 type Service interface {
 	Check(ctx context.Context, req *grpc_health_v1.HealthCheckRequest) (*grpc_health_v1.HealthCheckResponse, error)
 	Watch(req *grpc_health_v1.HealthCheckRequest, server grpc_health_v1.Health_WatchServer) error
+	List(ctx context.Context, req *grpc_health_v1.HealthListRequest) (*grpc_health_v1.HealthListResponse, error)
 }
 
 func NewService() (Service, error) {
@@ -44,4 +45,8 @@ func (s *service) Watch(req *grpc_health_v1.HealthCheckRequest, server grpc_heal
 	return server.Send(&grpc_health_v1.HealthCheckResponse{
 		Status: grpc_health_v1.HealthCheckResponse_SERVING,
 	})
+}
+
+func (s *service) List(ctx context.Context, req *grpc_health_v1.HealthListRequest) (*grpc_health_v1.HealthListResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
 }

@@ -118,6 +118,7 @@ type XagoSubAccount struct {
 	ID                         pgtype.UUID
 	DepositAddress             string
 	DepositTag                 string
+	DepositReference           string
 	FirstName                  string
 	LastName                   string
 	Email                      string

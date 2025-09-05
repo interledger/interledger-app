@@ -21,7 +21,7 @@ import (
 	"go.uber.org/zap"
 )
 
-const oneTemplateID = "d-d1d84d89553a43f89d6c60e2497b24c3"
+const oneTemplateID = "d-12030774d225454ea91720034b9adb97"
 
 func getEmailsAndGreeting(ctx context.Context, b Backends, walletID string) ([]sendgrid.Email, string, error) {
 	users, err := b.Users().ListUsers(ctx, walletID)

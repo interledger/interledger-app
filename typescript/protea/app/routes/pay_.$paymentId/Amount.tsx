@@ -310,7 +310,7 @@ export const Amount = () => {
               <span className='text-medium'>{payment.formattedFees}</span>
             </div>
             <span className='text-xs text-weak'>
-              For a limited time, Fynbos will absorb all fees.
+              For a limited time, the Interledger Wallet will absorb all fees.
             </span>
           </div>
           <div className='flex w-full justify-between'>

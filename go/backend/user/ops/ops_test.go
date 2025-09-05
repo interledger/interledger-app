@@ -19,11 +19,11 @@ func TestUserForContext(t *testing.T) {
 
 	ctx = context.WithValue(ctx, user.UserCtxKey("user"), &user.User{
 		ID:    "1235",
-		Email: "test@fynbos.dev",
+		Email: "test@interledger.test",
 	})
 
 	u, err := ops.UserForContext(ctx)
 	require.NoError(t, err)
 	assert.Equal(t, u.ID, "1235")
-	assert.Equal(t, u.Email, "test@fynbos.dev")
+	assert.Equal(t, u.Email, "test@interledger.test")
 }

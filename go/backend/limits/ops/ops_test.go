@@ -26,6 +26,7 @@ func TestExceeds(t *testing.T) {
 
 	b := NewTestBackends(t, dbc, users_mock.NewMock())
 	txClient := tx_client.New(b)
+	fee := currency.FromFloat64(2, currency.USD)
 
 	cases := []struct {
 		name   string
@@ -37,9 +38,10 @@ func TestExceeds(t *testing.T) {
 			name: "exceeds daily defaults",
 			tx: transactions.CreateTransactionArgs{
 				State:       transactions.StateCompleted,
-				Source:      "https://fynbos.me/alice1",
-				Destination: "https://fynbos.me/bob1",
-				Amount:      currency.FromFloat64(200, currency.USD),
+				Source:      "https://ilp.link/alice1",
+				Destination: "https://ilp.link/bob1",
+				Amount:      currency.FromFloat64(198, currency.USD),
+				ProviderFee: &fee,
 				Provider:    "test",
 				ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
 			},
@@ -50,9 +52,10 @@ func TestExceeds(t *testing.T) {
 			name: "does not exceed daily defaults",
 			tx: transactions.CreateTransactionArgs{
 				State:       transactions.StateCompleted,
-				Source:      "https://fynbos.me/alice2",
-				Destination: "https://fynbos.me/bob2",
-				Amount:      currency.FromFloat64(2, currency.USD),
+				Source:      "https://ilp.link/alice2",
+				Destination: "https://ilp.link/bob2",
+				Amount:      currency.FromFloat64(2.00, currency.USD),
+				ProviderFee: &fee,
 				Provider:    "test",
 				ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
 			},
@@ -94,7 +97,7 @@ func TestUpdateClientLimits(t *testing.T) {
 
 	walletID := uuid.NewString()
 
-	_, err := auth_ops.CreateClient(ctx, b, "https://fynbos.me/bobby")
+	_, err := auth_ops.CreateClient(ctx, b, "https://ilp.link/bobby")
 	require.NoError(t, err)
 
 	cases := []struct {
@@ -121,7 +124,7 @@ func TestUpdateClientLimits(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := ops.UpdateClientLimits(ctx, b, walletID, "https://fynbos.me/bobby", tc.wl)
+			err := ops.UpdateClientLimits(ctx, b, walletID, "https://ilp.link/bobby", tc.wl)
 			require.NoError(t, err)
 		})
 	}
@@ -135,7 +138,7 @@ func TestListLimits(t *testing.T) {
 
 	walletID := uuid.NewString()
 
-	_, err := auth_ops.CreateClient(ctx, b, "https://fynbos.me/bobby")
+	_, err := auth_ops.CreateClient(ctx, b, "https://ilp.link/bobby")
 	require.NoError(t, err)
 
 	cases := []struct {
@@ -154,14 +157,14 @@ func TestListLimits(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			err = ops.UpdateClientLimits(ctx, b, walletID, "https://fynbos.me/bobby", tc.wl)
+			err = ops.UpdateClientLimits(ctx, b, walletID, "https://ilp.link/bobby", tc.wl)
 			require.NoError(t, err)
 
 			l, err := ops.ListLimits(ctx, b, walletID)
 			require.NoError(t, err)
 
 			assert.Len(t, l, 1)
-			assert.Equal(t, "https://fynbos.me/bobby", l[0].ForeignDisplay)
+			assert.Equal(t, "https://ilp.link/bobby", l[0].ForeignDisplay)
 			assert.Equal(t, limits.FKTypeClient, l[0].ForeignType)
 			assert.Equal(t, uint64(5_00), l[0].Limit.Daily.Value)
 			assert.Equal(t, uint64(20_00), l[0].Limit.Monthly.Value)
@@ -174,6 +177,7 @@ func TestExceedsKYCLimits(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 	dbc := db.MigrateTestDB(t, ctx)
+	fee := currency.FromFloat64(2, currency.USD)
 
 	b := NewTestBackends(t, dbc, users_mock.NewMock())
 	txClient := tx_client.New(b)
@@ -202,9 +206,10 @@ func TestExceedsKYCLimits(t *testing.T) {
 			name: "does not exceed daily defaults",
 			tx: &transactions.CreateTransactionArgs{
 				State:       transactions.StateCompleted,
-				Source:      "https://fynbos.me/alice2",
-				Destination: "https://fynbos.me/bob2",
+				Source:      "https://ilp.link/alice2",
+				Destination: "https://ilp.link/bob2",
 				Amount:      currency.FromFloat64(2_900, currency.USD),
+				ProviderFee: &fee,
 				Provider:    "test",
 				ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
 			},
@@ -216,9 +221,10 @@ func TestExceedsKYCLimits(t *testing.T) {
 			name: "does exceed daily limits",
 			tx: &transactions.CreateTransactionArgs{
 				State:       transactions.StateCompleted,
-				Source:      "https://fynbos.me/alice2",
-				Destination: "https://fynbos.me/bob2",
+				Source:      "https://ilp.link/alice2",
+				Destination: "https://ilp.link/bob2",
 				Amount:      currency.FromFloat64(2_900, currency.USD),
+				ProviderFee: &fee,
 				Provider:    "test",
 				ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
 			},
@@ -252,9 +258,10 @@ func TestExceedsKYCLimits(t *testing.T) {
 			name: "exceeds ZAR yearly limits",
 			tx: &transactions.CreateTransactionArgs{
 				State:       transactions.StateCompleted,
-				Source:      "https://fynbos.me/alice2",
-				Destination: "https://fynbos.me/bob2",
+				Source:      "https://ilp.link/alice2",
+				Destination: "https://ilp.link/bob2",
 				Amount:      currency.FromFloat64(20_000, currency.ZAR),
+				ProviderFee: &fee,
 				Provider:    "test",
 				ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
 			},
@@ -267,9 +274,10 @@ func TestExceedsKYCLimits(t *testing.T) {
 			name: "No ZAR limits",
 			tx: &transactions.CreateTransactionArgs{
 				State:       transactions.StateCompleted,
-				Source:      "https://fynbos.me/alice2",
-				Destination: "https://fynbos.me/bob2",
+				Source:      "https://ilp.link/alice2",
+				Destination: "https://ilp.link/bob2",
 				Amount:      currency.FromFloat64(200_000, currency.ZAR),
+				ProviderFee: &fee,
 				Provider:    "test",
 				ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
 			},

@@ -72,6 +72,9 @@ func createTransaction(ctx context.Context, dbc sqlx.ExecerContext, b Backends, 
 	if args.ForeignID != "" {
 		is.Value("foreign_id", args.ForeignID)
 	}
+	if args.ProviderFee != nil {
+		is.Value("provider_fee", args.ProviderFee.Value)
+	}
 	title := args.Title
 	if title == "" {
 		title = GenerateTransactionTitle(ctx, b.Wallets(), GenerateTransactionTitleArgs{
@@ -107,16 +110,18 @@ func createTransaction(ctx context.Context, dbc sqlx.ExecerContext, b Backends, 
 		log.Error("notify error", zap.Error(err))
 	}
 
+	fee := args.ProviderFee
 	userID := getWalletUserID(ctx, b, args.WalletID)
 	b.Analytics().TrackWalletTransactionCreated(args.WalletID, analytics.WalletTransactionArgs{
-		ID:       transID,
-		TrxType:  args.ForeignType,
-		Provider: args.Provider,
-		Amount:   args.Amount,
-		UserID:   userID,
+		ID:          transID,
+		TrxType:     args.ForeignType,
+		Provider:    args.Provider,
+		Amount:      args.Amount,
+		ProviderFee: fee,
+		UserID:      userID,
 	})
 
-	slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "Fynbot", fmt.Sprintf(":money_with_wings: New Transaction Created\nID: %s\nWallet ID: %s\nAmount:%s\nLink: %s", transID, args.WalletID, args.Amount.Format(), env.AdminURL()+"/wallet/"+args.WalletID+"/transactions"))
+	slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "Fynbot", fmt.Sprintf(":money_with_wings: New Transaction Created\nID: %s\nWallet ID: %s\nAmount:%s\nFee:%s\nLink: %s", transID, args.WalletID, args.Amount.Format(), args.ProviderFee.Format(), env.AdminURL()+"/wallet/"+args.WalletID+"/transactions"))
 
 	return transID, nil
 }
@@ -220,7 +225,7 @@ func AddTransfers(ctx context.Context, b Backends, trxID string, transferArgs []
 }
 
 const (
-	transactionCols = ` id, foreign_id, type, state, title, provider, note, source, destination, amount, asset_scale, asset_code, linked_account_title, destination_identity_type, destination_identity, reference, updated_at, refund_state `
+	transactionCols = ` id, foreign_id, type, state, title, provider, note, source, destination, amount, asset_scale, asset_code, linked_account_title, destination_identity_type, destination_identity, reference, updated_at, refund_state, provider_fee `
 	transferCols    = ` id, foreign_id, linked_acc_id, type, state, amount, asset_scale, asset_code, updated_at `
 )
 
@@ -235,6 +240,7 @@ type dbTransaction struct {
 	Destination             sql.NullString               `db:"destination"`
 	Title                   sql.NullString               `db:"title"`
 	Amount                  uint64                       `db:"amount"`
+	ProviderFee             uint64                       `db:"provider_fee"`
 	Scale                   int                          `db:"asset_scale"`
 	Asset                   string                       `db:"asset_code"`
 	Timestamp               time.Time                    `db:"updated_at"`
@@ -659,6 +665,11 @@ func transformTransaction(tx dbTransaction) transactions.Transaction {
 			Scale:    tx.Scale,
 		},
 		RefundState: tx.RefundState,
+		ProviderFee: &currency.Amount{
+			Value:    tx.ProviderFee,
+			Currency: currency.ParseCurrency(tx.Asset),
+			Scale:    tx.Scale,
+		},
 	}
 }
 

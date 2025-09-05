@@ -41,6 +41,26 @@ func UserForCookie(ctx context.Context, b Backends, cookie string) (*user.User, 
 	return &u, nil
 }
 
+func UserForToken(ctx context.Context, b Backends, token string) (*user.User, error) {
+	if token == "" {
+		return nil, user.ErrNoUserFound
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, kratosTimeout)
+	defer cancel()
+
+	session, resp, err := b.Kratos().FrontendApi.ToSession(ctx).XSessionToken(token).Execute()
+	if err != nil {
+		if resp != nil && resp.StatusCode == http.StatusUnauthorized {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	u := convertTraits(session.Identity.Id, session.Identity.Traits)
+	return &u, nil
+}
+
 func GetUser(ctx context.Context, b Backends, userID string) (*user.User, error) {
 	id, _, err := b.Kratos().IdentityApi.GetIdentity(ctx, userID).Execute()
 	if err != nil {
@@ -73,6 +93,7 @@ func UserForContext(ctx context.Context) (*user.User, error) {
 	return u, nil
 }
 
+// TODO: Modify?
 func ListUsers(ctx context.Context, b Backends, walletID string) ([]user.User, error) {
 	if walletID == wallets.WebMonetizationWalletID {
 		return []user.User{

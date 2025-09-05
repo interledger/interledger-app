@@ -15,42 +15,48 @@ func (s *AdminRpcService) GetWalletFeatures(ctx context.Context, req *pb.GetWall
 	}
 
 	return &pb.Features{
-		SendEnabled:           feat.SendEnabled,
-		ReceiveEnabled:        feat.ReceiveEnabled,
-		LinkedAccountsEnabled: feat.LinkedAccEnabled,
-		CardsEnabled:          feat.CardsEnabled,
-		BanksEnabled:          feat.BanksEnabled,
-		IdentitiesEnabled:     feat.IdentitiesEnabled,
-		TwitterEnabled:        feat.TwitterEnabled,
-		AddCardsEnabled:       feat.AddCardsEnabled,
-		WalletID:              req.WalletID,
+		SendEnabled:              feat.SendEnabled,
+		ReceiveEnabled:           feat.ReceiveEnabled,
+		LinkedAccountsEnabled:    feat.LinkedAccEnabled,
+		CardsEnabled:             feat.CardsEnabled,
+		BanksEnabled:             feat.BanksEnabled,
+		IdentitiesEnabled:        feat.IdentitiesEnabled,
+		TwitterEnabled:           feat.TwitterEnabled,
+		AddCardsEnabled:          feat.AddCardsEnabled,
+		ManageWalletCardsEnabled: feat.ManageWalletCardsEnabled,
+		AccountEnabled:           feat.AccountEnabled,
+		WalletID:                 req.WalletID,
 	}, nil
 }
 
 func (s *AdminRpcService) SetWalletFeatures(ctx context.Context, req *pb.Features) (*pb.Features, error) {
 	feat, err := s.b.Features().SetFeatures(ctx, req.WalletID, features.WalletFeatures{
-		SendEnabled:       req.SendEnabled,
-		ReceiveEnabled:    req.ReceiveEnabled,
-		LinkedAccEnabled:  req.LinkedAccountsEnabled,
-		CardsEnabled:      req.CardsEnabled,
-		BanksEnabled:      req.BanksEnabled,
-		IdentitiesEnabled: req.IdentitiesEnabled,
-		TwitterEnabled:    req.TwitterEnabled,
-		AddCardsEnabled:   req.AddCardsEnabled,
+		SendEnabled:              req.SendEnabled,
+		ReceiveEnabled:           req.ReceiveEnabled,
+		LinkedAccEnabled:         req.LinkedAccountsEnabled,
+		CardsEnabled:             req.CardsEnabled,
+		BanksEnabled:             req.BanksEnabled,
+		IdentitiesEnabled:        req.IdentitiesEnabled,
+		TwitterEnabled:           req.TwitterEnabled,
+		AddCardsEnabled:          req.AddCardsEnabled,
+		ManageWalletCardsEnabled: req.ManageWalletCardsEnabled,
+		AccountEnabled:           req.AccountEnabled,
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	return &pb.Features{
-		SendEnabled:           feat.SendEnabled,
-		ReceiveEnabled:        feat.ReceiveEnabled,
-		LinkedAccountsEnabled: feat.LinkedAccEnabled,
-		CardsEnabled:          feat.CardsEnabled,
-		BanksEnabled:          feat.BanksEnabled,
-		IdentitiesEnabled:     feat.IdentitiesEnabled,
-		TwitterEnabled:        feat.TwitterEnabled,
-		AddCardsEnabled:       feat.AddCardsEnabled,
-		WalletID:              req.WalletID,
+		SendEnabled:              feat.SendEnabled,
+		ReceiveEnabled:           feat.ReceiveEnabled,
+		LinkedAccountsEnabled:    feat.LinkedAccEnabled,
+		CardsEnabled:             feat.CardsEnabled,
+		BanksEnabled:             feat.BanksEnabled,
+		IdentitiesEnabled:        feat.IdentitiesEnabled,
+		TwitterEnabled:           feat.TwitterEnabled,
+		AddCardsEnabled:          feat.AddCardsEnabled,
+		ManageWalletCardsEnabled: feat.ManageWalletCardsEnabled,
+		AccountEnabled:           feat.AccountEnabled,
+		WalletID:                 req.WalletID,
 	}, nil
 }

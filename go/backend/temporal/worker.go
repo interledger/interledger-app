@@ -51,6 +51,12 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(jobs.MigrateUSWalletsToPTIJob)
 	w.RegisterWorkflow(jobs.ResendOnOffRampEmailJob)
 	w.RegisterWorkflow(jobs.CreateRafikiPaymentPointersJob)
+	w.RegisterWorkflow(jobs.MigrateWalletAddressesToIlpLinkJob)
+	w.RegisterWorkflow(jobs.RemoveCustodialKeysJob)
+	w.RegisterWorkflow(jobs.TransformKeysToBase64URLJob)
+	w.RegisterWorkflow(jobs.MigrateWalletAddressesToLowercaseJob)
+	w.RegisterWorkflow(jobs.BalanceDiscrepanciesJob)
+	w.RegisterWorkflow(jobs.UpdateRafikiWalletEnabledJob)
 
 	// Payment Engine
 	w.RegisterActivity(payments_workflows.NewActivity(b))
@@ -93,6 +99,7 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	}
 	w.RegisterActivity(pti_workflows.NewActivity(b, ptiPrivateKey))
 	w.RegisterWorkflow(pti_workflows.CreateWalletWorkflow)
+
 	w.RegisterWorkflow(pti_workflows.CreateUserWorkflow)
 	w.RegisterWorkflow(pti_workflows.CreateCardWorkflow)
 	w.RegisterWorkflow(pti_workflows.CreatePtiBankAccountWorkflow)

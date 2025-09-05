@@ -29,7 +29,7 @@ service BackendService {
   rpc CreateUserDefaultWallet(CreateUserDefaultWalletRequest) returns (Empty);
   // Wallet
   rpc CreateWalletAddress(CreateWalletAddressRequest) returns (Empty);
-  rpc WalletAddressExists(WalletAddressExistsRequest) returns (WalletAddressExistsResponse);
+  rpc WalletAddressValid(WalletAddressValidRequest) returns (WalletAddressValidResponse);
   rpc SetWalletName(SetWalletNameRequest) returns (Empty);
   rpc GetWalletInfo(Empty) returns (WalletInfo);
   rpc GetPublicWalletInfo(GetPublicWalletInfoRequest) returns(PublicWalletInfo);
@@ -146,6 +146,7 @@ service BackendService {
   rpc WithdrawXagoBalance(WithdrawXagoBalanceRequest) returns (Payment);
   rpc GetXagoBalances(Empty) returns (GetXagoBalanceResponse);
   rpc GetXagoDepositDetails(GetXagoDepositDetailsRequest) returns (GetXagoDepositDetailsResponse);
+  rpc DepositTestXago(Empty) returns (Empty);
 
   // Pti
   rpc GetPtiBalances(Empty) returns (GetPtiBalancesResponse);
@@ -430,6 +431,7 @@ message Transaction {
   string destinationIdentity = 20;
   string destinationIdentityType = 21;
   int32 refundState = 22; // NA , PENDING , COMPLETE
+  string fundsReceived = 23;
 }
 
 message ListTransactionsResponse {
@@ -567,6 +569,9 @@ message Features {
   bool twitterEnabled = 7;
   bool addCardsEnabled = 8;
   bool interacEnabled = 9;
+  bool zarBalanceEnabled = 10;
+  bool manageWalletCardsEnabled = 11;
+  bool accountEnabled = 12;
 }
 
 message CreateCardRequest {
@@ -860,11 +865,11 @@ message LimitAmount {
   int32 percentage = 3;
 }
 
-message WalletAddressExistsRequest {
+message WalletAddressValidRequest {
   string url = 1;
 }
 
-message WalletAddressExistsResponse {
+message WalletAddressValidResponse {
   bool exists = 1;
 }
 

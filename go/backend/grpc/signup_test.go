@@ -22,14 +22,14 @@ func TestSetSignupUserData(t *testing.T) {
 	c.SignupService.EXPECT().SetUserData(gomock.Any(), signup.UserDataArgs{
 		FirstName:   "FirstName",
 		LastName:    "LastName",
-		Email:       "test@fynbos.dev",
+		Email:       "test@interledger.test",
 		CountryCode: "ZA",
 	}).Return(sID, nil).Times(1)
 
 	resp, err := client.SetSignupUserData(context.Background(), &pb.SetSignupUserDataRequest{
 		FirstName:   "FirstName",
 		LastName:    "LastName",
-		Email:       "test@fynbos.dev",
+		Email:       "test@interledger.test",
 		CountryCode: "ZA",
 	})
 
@@ -72,7 +72,7 @@ func TestGetSignup(t *testing.T) {
 		FirstName:    "FirstName",
 		LastName:     "LastName",
 		CountryCode:  "ZA",
-		Email:        "test@fynbos.dev",
+		Email:        "test@interledger.test",
 		MobileNumber: mobile,
 		Completed:    true,
 	}, nil)
@@ -87,7 +87,7 @@ func TestGetSignup(t *testing.T) {
 	assert.Equal(t, "FirstName", resp.FirstName)
 	assert.Equal(t, "LastName", resp.LastName)
 	assert.Equal(t, "ZA", resp.CountryCode)
-	assert.Equal(t, "test@fynbos.dev", resp.Email)
+	assert.Equal(t, "test@interledger.test", resp.Email)
 	assert.Equal(t, mobile, resp.MobileNumber)
 	assert.True(t, resp.Completed)
 }

@@ -144,7 +144,7 @@ export async function action({ request }: ActionFunctionArgs) {
       errors.form = response.violations[0].description
       return response.error({ errors }, mapping)
     } else if (response.code == Code.AlreadyExists) {
-      errors.form = 'This card is already connected to Fynbos.'
+      errors.form = 'This card is already connected.'
       return response.error({ errors }, mapping)
     } else {
       if (response.code == Code.Unavailable) {

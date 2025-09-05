@@ -1,5 +1,5 @@
 import { useFetcher, useLoaderData } from '@remix-run/react'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
 import {
   Button,
@@ -19,6 +19,7 @@ export function Password() {
     useLoaderData<typeof loader>()
 
   const [pushSnackbar] = useScaffoldStore((state) => [state.pushSnackbar])
+  const [serviceAgreement, setServiceAgreement] = useState(false)
 
   useEffect(() => {
     if (passwordFetcher.data?.errors?.form) {
@@ -128,6 +129,7 @@ export function Password() {
             id='service-agreement'
             name='service-agreement'
             form='signup-password'
+            onChange={(e) => setServiceAgreement(e.target.checked)}
             className='flex'
             aria-invalid={
               Boolean(passwordFetcher.data?.errors?.serviceAgreement) ||
@@ -140,7 +142,7 @@ export function Password() {
             }
             errorMessage={passwordFetcher.data?.errors?.serviceAgreement}
           >
-            I agree to the Fynbos&nbsp;
+            I agree to the Interledger Wallet&nbsp;
             <Router className='text-primary' to='/legal/privacy-policy'>
               Privacy Policy
             </Router>
@@ -157,6 +159,7 @@ export function Password() {
         </CardContent>
       </Card>
       <Button
+        disabled={!serviceAgreement}
         form='signup-password'
         name='formName'
         value='password'

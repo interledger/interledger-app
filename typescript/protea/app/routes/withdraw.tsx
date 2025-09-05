@@ -96,8 +96,9 @@ async function fynbosWithdrawalLoader({ request }: LoaderFunctionArgs) {
     balanceAccount.linkedAccount
   )
 
+  // TODO: check if provider is the same as in backend
   return jsonWithCSRF(request, {
-    provider: 'fynbos',
+    provider: 'interledger',
     balanceAccount,
     balance,
     balances,
@@ -321,7 +322,7 @@ const Amount = () => {
               <span className='text-medium'>0.00</span>
             </div>
             <span className='text-xs text-weak'>
-              For a limited time, Fynbos will absorb all fees.
+              For a limited time, the Interledger Wallet will absorb all fees.
             </span>
           </div>
         </CardContent>

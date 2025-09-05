@@ -123,7 +123,7 @@ func CreateKeyPair(ctx context.Context, b Backends, keyID string, force bool) er
 		Bytes: pkixEncodedPubKey,
 	})
 
-	fmt.Println("You can connect this cli to your wallet at https://fynbos.app/connections/add-a-public-key")
+	fmt.Println("You can connect this cli to your wallet at https://interleddger.app/connections/add-a-public-key")
 	fmt.Println(string(pemEncodedPubKey))
 
 	fingerprint := sha256.Sum256(pemEncodedPubKey)

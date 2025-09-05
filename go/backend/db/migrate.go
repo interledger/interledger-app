@@ -74,6 +74,7 @@ func Migrate(ctx context.Context, connString string) error {
 		"--auto-approve",
 		"-u",
 		connString,
+		"--schema", "public",
 		"-f",
 		filepath.Join(moduleDir, "../schema.hcl"),
 	}
@@ -99,6 +100,10 @@ func Migrate(ctx context.Context, connString string) error {
 	}
 
 	err = seedSysAccounts(ctx, db)
+	
+	if err == nil {
+		log.Info("MIGRATION APPLIED for backend")
+	}
 
 	return err
 }
@@ -164,11 +169,17 @@ func MigrateTestDB(t *testing.T, ctx context.Context) *sqlx.DB {
 	})
 
 	var migrations string
-	err = filepath.Walk(filepath.Join(moduleDir, "../testmigrations"), func(path string, info fs.FileInfo, err error) error {
+	err = filepath.Walk(filepath.Join(filepath.Dir(moduleDir), "testmigrations"), func(path string, info fs.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if info == nil {
+			return fmt.Errorf("file info is nil for path %s", path)
+		}
 		if strings.Contains(info.Name(), ".sql") {
 			sql, err := os.ReadFile(path)
 			if err != nil {
-				t.Fatal(err)
+				return err
 			}
 
 			migrations = migrations + "\n" + string(sql)

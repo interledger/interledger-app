@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"gitlab.com/fynbos/env"
+	"gitlab.com/fynbos/log"
 
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/kyc/persona"
@@ -19,7 +20,10 @@ import (
 func GetPersonaInquiry(ctx context.Context, b Backends, cl persona.Client, walletID, idempotencyKey string) (*kyc.PersonaInquiry, error) {
 	if env.IsLocal() {
 		err := GenerateKycData(ctx, b, walletID)
-		return nil, err
+		return &kyc.PersonaInquiry{
+			ID:     "local-inquiry-id",
+			Status: persona.InquiryStatus(persona.InquiryApproved),
+		}, err
 	}
 
 	// Check current KYC status fro the user.
@@ -108,6 +112,12 @@ func GetPersonaInquiry(ctx context.Context, b Backends, cl persona.Client, walle
 }
 
 func GetApprovedPersonaInquiryURL(ctx context.Context, b Backends, walletID string) (string, error) {
+	urlFormat := "https://app.withpersona.com/dashboard/inquiries/%s"
+
+	if env.IsLocal() {
+		return fmt.Sprintf(urlFormat, "local-inquiry-id"), nil
+	}
+
 	var inquiryID string
 	err := b.DB().GetContext(ctx, &inquiryID, "SELECT external_id FROM kyc_persona_inquiries WHERE wallet_id=$1 AND state=$2;", walletID, persona.InquiryApproved)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -117,11 +127,14 @@ func GetApprovedPersonaInquiryURL(ctx context.Context, b Backends, walletID stri
 		return "", fmt.Errorf("%w %s", kyc.ErrInternal, err)
 	}
 
-	return fmt.Sprintf("https://app.withpersona.com/dashboard/inquiries/%s", inquiryID), nil
+	return fmt.Sprintf(urlFormat, inquiryID), nil
 }
 
 func GetPersonaIDNumbers(ctx context.Context, b Backends, cl persona.Client, walletID string) (*kyc.PersonaIDNumbers, error) {
-	if env.IsLocal() {
+	// I hate that we have to do this. It looks like there is no other way to override
+	// the Persona defaults - updating document issuing country from US to ZA.
+	if !env.IsProd() {
+		log.Warn("generating fake ID number")
 		return generateLocalIDNumbers(), nil
 	}
 
@@ -165,8 +178,11 @@ func GetPersonaIDNumbers(ctx context.Context, b Backends, cl persona.Client, wal
 }
 
 func GetZAIDNumber(ctx context.Context, b Backends, cl persona.Client, walletID string) (string, error) {
-	// Local stuff
-	if env.IsLocal() {
+	// I hate that we have to do this. It looks like there is no other way to override
+	// the Persona defaults in sandbox to have a full production workflow in the sandbox
+	// environment - updating document issuing country from US to ZA.
+	if !env.IsProd() {
+		log.Warn("generating fake ID number")
 		return generateLocalTestIdNumber("male", true), nil
 	}
 

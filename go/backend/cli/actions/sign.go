@@ -122,7 +122,7 @@ func MakeSignGrantRequest(b Backends) cli.ActionFunc {
 			return err
 		}
 
-		req := httptest.NewRequest("POST", "http://auth.fynbos.test/grant", bytes.NewBuffer(body))
+		req := httptest.NewRequest("POST", "http://auth.interledger.test/grant", bytes.NewBuffer(body))
 		req.Header.Set("Content-Digest", digest)
 		err = httpmessagesignatures.SignRequest(
 			context.Background(),

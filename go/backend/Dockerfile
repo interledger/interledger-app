@@ -1,18 +1,23 @@
-# cant use alpine as we need glibc for CGO
-FROM public.ecr.aws/docker/library/golang:1.20.1 AS base
+ARG GOLANG_VERSION=1.24.3
+
+FROM public.ecr.aws/docker/library/golang:${GOLANG_VERSION} AS base
+
+ARG ATLAS_VERSION=v0.31.0
+# ARG AIR_VERSE_VERSION=v1.52
+ARG GRPC_HEALTH_PROBE_VERSION=v0.4.7
+ARG BUILDARCH=amd64
+ARG BUILDOS=linux
 
 WORKDIR /build
 
 # Fetch grpc health prober until kubernetes 1.23 releases on EKS
-ARG BUILDARCH
-RUN GRPC_HEALTH_PROBE_VERSION=v0.4.7 && \
-	wget -qO/bin/grpc_health_probe https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-${BUILDARCH} && \
+RUN wget -qO/bin/grpc_health_probe "https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-${BUILDOS}-${BUILDARCH}" && \
 	chmod +x /bin/grpc_health_probe
 
-RUN wget -qO/bin/atlas https://release.ariga.io/atlas/atlas-linux-${BUILDARCH}-v0.21.0 && \
+RUN wget -qO/bin/atlas https://release.ariga.io/atlas/atlas-${BUILDOS}-${BUILDARCH}-${ATLAS_VERSION} && \
 	chmod +x /bin/atlas
 
-RUN go install github.com/air-verse/air@latest
+# RUN go install github.com/air-verse/air@${AIR_VERSE_VERSION}
 
 # Fetch dependencies.
 COPY go.mod go.sum ./
@@ -26,9 +31,9 @@ COPY tracing ./tracing
 COPY httpmessagesignatures ./httpmessagesignatures
 ENTRYPOINT ["/build/backend/entrypoint.sh"]
 
-FROM base as builder
+FROM base AS builder
 
-ENV ENV GOCACHE=/root/.cache/go-build
+ENV GOCACHE=/root/.cache/go-build
 RUN --mount=type=cache,target="/root/.cache/go-build" go build -o main ./backend/main.go
 ENTRYPOINT ["/build/main"]
 

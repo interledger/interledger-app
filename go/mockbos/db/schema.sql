@@ -3,6 +3,7 @@ CREATE TABLE public.xago_sub_accounts
     id                           UUID      DEFAULT gen_random_uuid()                    NOT NULL,
     deposit_address              TEXT      DEFAULT 'rU8cx5WJMFp2n4tQ3Engzzr8Nnqm3EsSfC' NOT NULL,
     deposit_tag                  TEXT      DEFAULT 'tag'                                NOT NULL,
+    deposit_reference            VARCHAR(255)                                           NOT NULL,
     first_name                   VARCHAR(255)                                           NOT NULL,
     last_name                    VARCHAR(255)                                           NOT NULL,
     email                        VARCHAR(255)                                           NOT NULL,
