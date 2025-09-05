@@ -2052,6 +2052,11 @@ export class Transaction extends Message<Transaction> {
    */
   refundState = 0;
 
+  /**
+   * @generated from field: string fundsReceived = 23;
+   */
+  fundsReceived = "";
+
   constructor(data?: PartialMessage<Transaction>) {
     super();
     proto3.util.initPartial(data, this);
@@ -2081,6 +2086,7 @@ export class Transaction extends Message<Transaction> {
     { no: 20, name: "destinationIdentity", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 21, name: "destinationIdentityType", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 22, name: "refundState", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
+    { no: 23, name: "fundsReceived", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Transaction {
@@ -3129,6 +3135,11 @@ export class Features extends Message<Features> {
    */
   manageWalletCardsEnabled = false;
 
+  /**
+   * @generated from field: bool accountEnabled = 12;
+   */
+  accountEnabled = false;
+
   constructor(data?: PartialMessage<Features>) {
     super();
     proto3.util.initPartial(data, this);
@@ -3148,6 +3159,7 @@ export class Features extends Message<Features> {
     { no: 9, name: "interacEnabled", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 10, name: "zarBalanceEnabled", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 11, name: "manageWalletCardsEnabled", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 12, name: "accountEnabled", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Features {

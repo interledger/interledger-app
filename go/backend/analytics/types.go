@@ -13,9 +13,10 @@ type IdentifyArgs struct {
 }
 
 type WalletTransactionArgs struct {
-	ID       string
-	TrxType  transactions.TransactionType
-	Provider transactions.Provider
-	Amount   currency.Amount
-	UserID   string
+	ID          string
+	TrxType     transactions.TransactionType
+	Provider    transactions.Provider
+	Amount      currency.Amount
+	ProviderFee *currency.Amount
+	UserID      string
 }

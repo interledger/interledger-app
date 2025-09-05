@@ -26,7 +26,14 @@ func NewActivity(b Backends) *Activity {
 	return &Activity{b: b}
 }
 
-func SetKYCStatusWorkflow(ctx workflow.Context, walletID string, status kyc.Status) error {
+type SetKYCStatusWorkflowArgs struct {
+	WalletID string
+	Status   kyc.Status
+}
+
+func SetKYCStatusWorkflow(ctx workflow.Context, args SetKYCStatusWorkflowArgs) error {
+	walletID := args.WalletID
+	status := args.Status
 	var a *Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute,

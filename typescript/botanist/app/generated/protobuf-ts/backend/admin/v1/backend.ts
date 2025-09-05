@@ -575,6 +575,10 @@ export interface Features {
      * @generated from protobuf field: bool manageWalletCardsEnabled = 11;
      */
     manageWalletCardsEnabled: boolean;
+    /**
+     * @generated from protobuf field: bool accountEnabled = 12;
+     */
+    accountEnabled: boolean;
 }
 /**
  * @generated from protobuf message backend.admin.v1.ListAuditRequest
@@ -2883,11 +2887,12 @@ class Features$Type extends MessageType<Features> {
             { no: 8, name: "walletID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 9, name: "addCardsEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 10, name: "zarBalanceEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 11, name: "manageWalletCardsEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+            { no: 11, name: "manageWalletCardsEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 12, name: "accountEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
         ]);
     }
     create(value?: PartialMessage<Features>): Features {
-        const message = { sendEnabled: false, receiveEnabled: false, linkedAccountsEnabled: false, cardsEnabled: false, banksEnabled: false, identitiesEnabled: false, twitterEnabled: false, walletID: "", addCardsEnabled: false, zarBalanceEnabled: false, manageWalletCardsEnabled: false };
+        const message = { sendEnabled: false, receiveEnabled: false, linkedAccountsEnabled: false, cardsEnabled: false, banksEnabled: false, identitiesEnabled: false, twitterEnabled: false, walletID: "", addCardsEnabled: false, zarBalanceEnabled: false, manageWalletCardsEnabled: false, accountEnabled: false };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Features>(this, message, value);
@@ -2930,6 +2935,9 @@ class Features$Type extends MessageType<Features> {
                     break;
                 case /* bool manageWalletCardsEnabled */ 11:
                     message.manageWalletCardsEnabled = reader.bool();
+                    break;
+                case /* bool accountEnabled */ 12:
+                    message.accountEnabled = reader.bool();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -2976,6 +2984,9 @@ class Features$Type extends MessageType<Features> {
         /* bool manageWalletCardsEnabled = 11; */
         if (message.manageWalletCardsEnabled !== false)
             writer.tag(11, WireType.Varint).bool(message.manageWalletCardsEnabled);
+        /* bool accountEnabled = 12; */
+        if (message.accountEnabled !== false)
+            writer.tag(12, WireType.Varint).bool(message.accountEnabled);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

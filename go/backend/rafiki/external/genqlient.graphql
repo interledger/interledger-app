@@ -39,6 +39,14 @@ mutation RevokeGrant ($input: RevokeGrantInput!) {
     }
 }
 
+mutation UpdateWalletAddress($input: UpdateWalletStatusInput!) {
+		updateWalletAddress(input: $input) {
+		walletAddress {
+					id
+				}
+			}
+		}
+
 query GetGrant ($id: ID!) {
     grant (id: $id) {
         id
