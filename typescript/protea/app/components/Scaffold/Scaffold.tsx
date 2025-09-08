@@ -38,7 +38,6 @@ import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { SignupStep, useSignupStore } from '~/lib/useSignupStore'
 import type { loader as rootLoader } from '~/root'
 import { NavDrawer } from './NavDrawer'
-import { WarningBanner } from '../WarningBanner'
 
 export type ApplicationProps = {
   layout: Layouts | ((match: UIMatch<any, ApplicationProps>) => Layouts)
@@ -321,7 +320,13 @@ export function Scaffold() {
                       connectDomainStepBack()
                       navigate(-1)
                     } else connectDomainStepBack()
-                  } else navigate(-1)
+                  } else {
+                    if (typeof scaffold.header.back === 'string') {
+                      navigate(scaffold.header.back)
+                    } else {
+                      navigate(-1)
+                    }
+                  }
                 }}
                 aria-label='Back'
               >
