@@ -1,4 +1,8 @@
 import { useEffect, useState } from 'react'
+import {
+  CardLockLevel,
+  CardStatus
+} from '~/generated/connect/backend/v1/backend_pb'
 import { ActionStatus, useActionExecute } from './useActionExecute'
 
 interface Card {
@@ -19,6 +23,7 @@ interface SensitiveData {
 interface UseCardActionsReturn {
   showSensitiveData: boolean
   isFrozen: boolean
+  isBlocked: boolean
   sensitiveData: SensitiveData
   actionStatus: ActionStatus
   toggleSensitiveDataOff: (onSuccess?: () => void) => void
@@ -35,9 +40,21 @@ const getDefaultSensitiveData = (card: Card): SensitiveData => {
   }
 }
 
+const isFrozen = (card: Card): boolean => {
+  return card.lockLevel === CardLockLevel.ADMIN
+}
+
+const isBlocked = (card: Card): boolean => {
+  return (
+    card.status === CardStatus.BLOCKED ||
+    card.status === CardStatus.TEMPORARY_BLOCKED
+  )
+}
+
 export const useCardActions = (card: Card): UseCardActionsReturn => {
   const [showSensitiveData, setShowSensitiveData] = useState(false)
-  const [isFrozen, setIsFrozen] = useState(false)
+  const [isFrozenState, setIsFrozenState] = useState(isFrozen(card))
+  const [isBlockedState, setIsBlockedState] = useState(isBlocked(card))
   const { actionStatus, executeAction, resetStatus } = useActionExecute()
 
   const [sensitiveData, setSensitiveData] = useState(
@@ -47,7 +64,8 @@ export const useCardActions = (card: Card): UseCardActionsReturn => {
   // Reset when switching cards
   useEffect(() => {
     setShowSensitiveData(false)
-    setIsFrozen(false)
+    setIsFrozenState(isFrozen(card))
+    setIsBlockedState(isBlocked(card))
     setSensitiveData(getDefaultSensitiveData(card))
     resetStatus()
   }, [card])
@@ -98,7 +116,7 @@ export const useCardActions = (card: Card): UseCardActionsReturn => {
         // Simulate API call delay
         await new Promise((resolve) => setTimeout(resolve, 800))
 
-        setIsFrozen(true)
+        setIsFrozenState(true)
       },
       onSuccess,
       onError: (error) => {
@@ -113,7 +131,7 @@ export const useCardActions = (card: Card): UseCardActionsReturn => {
         // Simulate API call delay
         await new Promise((resolve) => setTimeout(resolve, 800))
 
-        setIsFrozen(false)
+        setIsFrozenState(false)
       },
       onSuccess,
       onError: (error) => {
@@ -124,7 +142,8 @@ export const useCardActions = (card: Card): UseCardActionsReturn => {
 
   return {
     showSensitiveData,
-    isFrozen,
+    isFrozen: isFrozenState,
+    isBlocked: isBlockedState,
     sensitiveData,
     actionStatus,
     toggleSensitiveDataOff,

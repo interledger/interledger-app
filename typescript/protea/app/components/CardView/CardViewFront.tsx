@@ -1,4 +1,3 @@
-import clsx from 'clsx'
 import type { ComponentProps } from 'react'
 import { CardViewContainer } from './CardViewContainer'
 
@@ -6,14 +5,12 @@ interface CardViewFrontProps extends ComponentProps<'div'> {
   nameOnCard: string
   cardNumber: string
   expiryDate: string | null
-  isBlocked?: boolean
 }
 
 export const CardViewFront = ({
   nameOnCard,
   cardNumber,
   expiryDate,
-  isBlocked = false,
   className,
   ...props
 }: CardViewFrontProps) => {
@@ -24,12 +21,7 @@ export const CardViewFront = ({
 
   return (
     <CardViewContainer className={className} {...props}>
-      <div
-        className={clsx(
-          'flex h-full flex-col',
-          isBlocked ? 'pointer-events-none select-none blur-sm' : ''
-        )}
-      >
+      <div className='flex h-full flex-col'>
         {/* Header with logos */}
         <div className='flex items-center justify-between text-sm'>
           <div className='flex items-center'>
@@ -82,15 +74,6 @@ export const CardViewFront = ({
           </div>
         </div>
       </div>
-
-      {/* Blocked overlay */}
-      {isBlocked && (
-        <div className='absolute inset-0 z-10 flex items-center justify-center bg-black/30'>
-          <div className='rounded-lg bg-red-500 px-4 py-2 font-semibold text-white'>
-            CARD BLOCKED
-          </div>
-        </div>
-      )}
     </CardViewContainer>
   )
 }

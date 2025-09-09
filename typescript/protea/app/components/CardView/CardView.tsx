@@ -19,11 +19,11 @@ interface CardViewProps {
 
 export const CardView = ({ card }: CardViewProps) => {
   const [showBack, setShowBack] = useState(false)
-  const isBlocked = card.status !== 1 || card.lockLevel !== 0
 
   const {
     showSensitiveData,
     isFrozen,
+    isBlocked,
     sensitiveData,
     actionStatus,
     toggleSensitiveDataOff,
@@ -31,6 +31,7 @@ export const CardView = ({ card }: CardViewProps) => {
     toggleFreeze,
     toggleUnfreeze
   } = useCardActions(card)
+  console.log('is blocked', isBlocked)
 
   const handleToggleSensitiveData = () => {
     if (showSensitiveData) {
@@ -57,7 +58,8 @@ export const CardView = ({ card }: CardViewProps) => {
             'relative h-full w-full transition-transform duration-700 ease-in-out',
             showBack
               ? '[transform:rotateY(180deg)]'
-              : '[transform:rotateY(0deg)]'
+              : '[transform:rotateY(0deg)]',
+            isBlocked && 'blur-sm'
           )}
           style={{ transformStyle: 'preserve-3d' }}
         >
@@ -81,7 +83,6 @@ export const CardView = ({ card }: CardViewProps) => {
               nameOnCard={card.nameOnCard}
               cardNumber={sensitiveData.cardNumber}
               expiryDate={sensitiveData.expiryDate}
-              isBlocked={isBlocked}
             />
           </div>
 
@@ -100,6 +101,15 @@ export const CardView = ({ card }: CardViewProps) => {
             />
           </div>
         </div>
+
+        {/* Blocked overlay - outside flip container so text doesn't flip */}
+        {isBlocked && (
+          <div className='absolute inset-0 z-40 flex items-center justify-center rounded-xl bg-black/30'>
+            <div className='rounded-lg bg-red-500 px-4 py-2 font-semibold text-white'>
+              CARD BLOCKED
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Card actions */}

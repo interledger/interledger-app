@@ -1,6 +1,7 @@
 import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Outlet, useLoaderData, useLocation } from '@remix-run/react'
+import { useEffect } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import {
@@ -14,7 +15,11 @@ import {
   WalletGrid
 } from '~/components'
 import { getFeatures } from '~/data/wallet.server'
+import { Card as CardProto } from '~/generated/connect/backend/v1/backend_pb'
+import { useGateHubStore } from '~/lib/gatehub/hooks/useGateHubStore'
+import type { StorableCard } from '~/lib/gatehub/types'
 import { mergeMeta } from '~/lib/meta'
+import { mockCards } from '~/lib/mocks/cards'
 
 // TODO: How to differentiate between physical and virtual cards based on the
 // response from GateHub?
@@ -24,28 +29,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
     throw redirect('/')
   }
 
-  // Replace gRPC call with dummy card data
-  const dummyCard = {
-    id: 'card-1',
-    nameOnCard: 'John Doe',
-    maskedPan: '**** **** **** 1234',
-    status: 1, // CARD_STATUS_ACTIVE
-    expiryDate: '12/25',
-    statusReasonCode: 0, // CARD_STATUS_REASON_CODE_UNKNOWN
-    lockLevel: 0 // CARD_LOCK_LEVEL_UNKNOWN
-  }
-  const dummyCard2 = {
-    id: 'card-2',
-    nameOnCard: 'Ion Macelarul',
-    maskedPan: '**** **** **** 7685',
-    status: 1, // CARD_STATUS_ACTIVE
-    expiryDate: '11/33',
-    statusReasonCode: 0, // CARD_STATUS_REASON_CODE_UNKNOWN
-    lockLevel: 0 // CARD_LOCK_LEVEL_UNKNOWN
-  }
-
+  // Use mock cards instead of gRPC call until user has cards provisioned
   return json({
-    cards: [dummyCard, dummyCard2]
+    cards: mockCards
   })
 }
 
@@ -64,6 +50,20 @@ export const meta: MetaFunction = mergeMeta(() => [
   }
 ])
 
+/**
+ * Convert Card object to StorableCard format for the store
+ */
+function convertCardToStorableCard(card: CardProto): StorableCard {
+  return {
+    id: card.id,
+    nameOnCard: card.nameOnCard,
+    maskedPan: card.maskedPan,
+    expiryDate: card.expiryDate,
+    status: card.status,
+    lockLevel: card.lockLevel ?? 0
+  }
+}
+
 // TODO: How to show card type when we can differentiate between phyiscal and
 // virtual?
 //
@@ -74,6 +74,14 @@ export const meta: MetaFunction = mergeMeta(() => [
 export default function Page() {
   const { cards } = useLoaderData<typeof loader>()
   const location = useLocation()
+  const { setCards } = useGateHubStore()
+
+  useEffect(() => {
+    const storableCards = cards.map((c) =>
+      convertCardToStorableCard(c as CardProto)
+    )
+    setCards(storableCards)
+  }, [cards, setCards])
 
   const isMobile = typeof document !== 'undefined' && window.innerWidth < 1024
   const pathSegments = location.pathname.split('/').filter(Boolean)
