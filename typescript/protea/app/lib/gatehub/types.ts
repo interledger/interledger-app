@@ -1,17 +1,4 @@
-export interface GateHubAuthContext {
-  /** Application identifier for GateHub card integration */
-  cardAppId: string
-}
-
-export interface GateHubUserContext {
-  /** Unique identifier for the customer in Dinit system */
-  customerId?: string
-  /** User identifier for accessing user-specific data */
-  userUuid?: string
-  /** Managed user UUID for GateHub operations */
-  managedUserUuid?: string
-}
-
+/* Store models */
 export type StorableCard = {
   id: string
   nameOnCard: string
@@ -20,37 +7,59 @@ export type StorableCard = {
   status: number
   lockLevel: number
 }
-export type GateHubCardContext = {
+
+/* Store state types */
+interface GateHubAuthState {
+  /** Application identifier for GateHub card integration */
+  cardAppId: string
+}
+
+interface GateHubUserState {
+  /** Unique identifier for the customer in Dinit system */
+  customerId?: string
+  /** User identifier for accessing user-specific data */
+  userUuid?: string
+  /** Managed user UUID for GateHub operations */
+  managedUserUuid?: string
+}
+
+type GateHubCardState = {
   /** Currently active card identifier */
   activeCardId?: string
   /** List of user's cards for quick access */
   cards?: StorableCard[]
 }
 
-
-export type GateHubContextState = {
-  auth: GateHubAuthContext
-  user: GateHubUserContext
-  card: GateHubCardContext
+export type GateHubState = {
+  auth: GateHubAuthState
+  user: GateHubUserState
+  card: GateHubCardState
   token: string | null
 }
 
-export type GateHubActions = {
+type GateHubActions = {
   // Card actions
-  setActiveCardId: (cardId: string) => void
-  addCard: (card: StorableCard) => void
-  removeCard: (cardId: string) => void
-  setCards: (cards: StorableCard[]) => void
+  card: {
+    setActiveCardId: (cardId: string) => void
+    addCard: (card: StorableCard) => void
+    removeCard: (cardId: string) => void
+    setCards: (cards: StorableCard[]) => void
+  }
 
   // Token actions
-  setToken: (token: string) => void
+  token: {
+    setToken: (token: string) => void
+  }
 
   // Reset actions
   reset: () => void
 }
 
-export type GateHubStore = GateHubContextState & GateHubActions
+export type GateHubStore = GateHubState & {
+  actions: GateHubActions
+}
 
+/* GateHub Client types */
 export type GateHubRequestOptions = {
   /** Include x-gatehub-card-app-id header */
   includeCardAppId?: boolean

@@ -1,13 +1,8 @@
 import { create } from 'zustand'
-import {
-  GateHubContextState,
-  GateHubRequestOptions,
-  GateHubStore,
-  StorableCard
-} from '../types'
+import { GateHubState, GateHubStore, StorableCard } from '../types'
 
 // Initial state
-const initialState: GateHubContextState = {
+const initialState: GateHubState = {
   auth: {
     cardAppId: ''
   },
@@ -19,37 +14,43 @@ const initialState: GateHubContextState = {
 export const useGateHubStore = create<GateHubStore>((set, get) => ({
   ...initialState,
 
-  setActiveCardId: (cardId: string) =>
-    set((state) => ({
-      card: { ...state.card, activeCardId: cardId }
-    })),
-  addCard: (card: StorableCard) =>
-    set((state) => ({
-      card: {
-        ...state.card,
-        cards: [...(state.card.cards ?? []), card]
-      }
-    })),
-  removeCard: (cardId: string) =>
-    set((state) => ({
-      card: {
-        ...state.card,
-        cards: (state.card.cards ?? []).filter(
-          (c: StorableCard) => c.id !== cardId
-        )
-      }
-    })),
-  setCards: (cards: StorableCard[]) =>
-    set((state) => ({
-      card: {
-        ...state.card,
-        cards
-      }
-    })),
-  setToken: (token: string | null) =>
-    set(() => ({
-      token
-    })),
+  actions: {
+    card: {
+      setActiveCardId: (cardId: string) =>
+        set((state) => ({
+          card: { ...state.card, activeCardId: cardId }
+        })),
+      addCard: (card: StorableCard) =>
+        set((state) => ({
+          card: {
+            ...state.card,
+            cards: [...(state.card.cards ?? []), card]
+          }
+        })),
+      removeCard: (cardId: string) =>
+        set((state) => ({
+          card: {
+            ...state.card,
+            cards: (state.card.cards ?? []).filter(
+              (c: StorableCard) => c.id !== cardId
+            )
+          }
+        })),
+      setCards: (cards: StorableCard[]) =>
+        set((state) => ({
+          card: {
+            ...state.card,
+            cards
+          }
+        }))
+    },
+    token: {
+      setToken: (token: string | null) =>
+        set(() => ({
+          token: token
+        }))
+    },
 
-  reset: () => set(() => ({ ...initialState }))
+    reset: () => set(() => ({ ...initialState }))
+  }
 }))

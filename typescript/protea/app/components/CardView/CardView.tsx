@@ -31,7 +31,6 @@ export const CardView = ({ card }: CardViewProps) => {
     toggleFreeze,
     toggleUnfreeze
   } = useCardActions(card)
-  console.log('is blocked', isBlocked)
 
   const handleToggleSensitiveData = () => {
     if (showSensitiveData) {

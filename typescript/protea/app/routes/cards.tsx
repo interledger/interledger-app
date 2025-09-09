@@ -16,7 +16,7 @@ import {
 } from '~/components'
 import { getFeatures } from '~/data/wallet.server'
 import { Card as CardProto } from '~/generated/connect/backend/v1/backend_pb'
-import { useGateHubStore } from '~/lib/gatehub/hooks/useGateHubStore'
+import { useCardsStore } from '~/lib/gatehub/hooks/gatehub.stores'
 import type { StorableCard } from '~/lib/gatehub/types'
 import { mergeMeta } from '~/lib/meta'
 import { mockCards } from '~/lib/mocks/cards'
@@ -74,7 +74,7 @@ function convertCardToStorableCard(card: CardProto): StorableCard {
 export default function Page() {
   const { cards } = useLoaderData<typeof loader>()
   const location = useLocation()
-  const { setCards } = useGateHubStore()
+  const { setCards } = useCardsStore()
 
   useEffect(() => {
     const storableCards = cards.map((c) =>

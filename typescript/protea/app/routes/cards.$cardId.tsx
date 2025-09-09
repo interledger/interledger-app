@@ -1,9 +1,9 @@
 import { type SerializeFrom } from '@remix-run/node'
 import { useNavigate, useParams, useRouteLoaderData } from '@remix-run/react'
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { type RouteParams } from 'routes-gen'
 import { CardView, Layouts, type ApplicationProps } from '~/components'
-import { useGateHubStore } from '~/lib/gatehub/hooks/useGateHubStore'
+import { useCardsStore } from '~/lib/gatehub/hooks/gatehub.stores'
 import type { loader as rootLoader } from '~/root'
 
 export const handle: ApplicationProps = {
@@ -22,8 +22,14 @@ export default function PageCardID() {
   const { features } = useRouteLoaderData('root') as SerializeFrom<
     typeof rootLoader
   >
-  const { cards } = useGateHubStore((state) => state.card)
+  const { cards, setActiveCardId } = useCardsStore()
   const { cardId } = useParams<RouteParams['/cards/:cardId']>()
+
+  useEffect(() => {
+    if (cardId) {
+      setActiveCardId(cardId)
+    }
+  }, [cardId, setActiveCardId])
 
   // goto root in case cards are not enabled
   if (!features.manageWalletCardsEnabled) {
