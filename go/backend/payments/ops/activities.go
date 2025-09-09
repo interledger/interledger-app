@@ -55,6 +55,7 @@ func (a *Activity) SetPaymentStateComplete(ctx context.Context, id string) error
 			return nil
 		}
 		sourceAccountName := la.Name
+		// flag(bradu): check pti.TypeCard
 		if la.Provider == pti.ProviderName && la.Type == pti.TypeCard {
 			sourceAccountName = "Card ending " + strings.Replace(la.Mask, "*", "", -1)
 		}
@@ -536,9 +537,10 @@ func (a *Activity) PTIDeposit(ctx context.Context, paymentID string) (string, er
 	}
 
 	txID, err := a.b.PTI().DepositToWallet(ctx, pti.TransactionArgs{
-		PaymentID:       paymentID,
-		WalletID:        p.Receiver.WalletID,
-		Amount:          p.ReceiverAmount,
+		PaymentID: paymentID,
+		WalletID:  p.Receiver.WalletID,
+		Amount:    p.ReceiverAmount,
+		// flag(bradu): should be p.ReceiverAccount but for deposits the sender is the credit card
 		LinkedAccountID: p.SenderAccount, // sending from the credit card
 	})
 	if errors.Is(err, pti_external.ErrUnprocessableEntity) {

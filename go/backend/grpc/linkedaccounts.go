@@ -178,6 +178,7 @@ func (s *rpcService) GetCardDetails(ctx context.Context, req *pb.GetCardDetailsR
 		return nil, toGRPCError(err)
 	}
 
+	// flag(bradu): card details needs to be discussed with Fiant
 	return &pb.CardDetails{
 		Id:         card.ID,
 		Network:    card.CreditCardType,

@@ -129,6 +129,8 @@ func (s *rpcService) GetWalletInfo(ctx context.Context, _ *pb.Empty) (*pb.Wallet
 			if la.DeletedAt.Valid {
 				continue
 			}
+			// flag(bradu): card details needs to be discussed with Fiant
+			// also check hasCard thingie
 			if la.Provider == pti.ProviderName && la.Type == pti.TypeCard {
 				hasCard = true
 			}

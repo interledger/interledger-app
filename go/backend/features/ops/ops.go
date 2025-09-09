@@ -94,7 +94,7 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		return nil, err
 	}
 
-	canAddBank, err := canAddBanks(ctx, b, wallet, lal)
+	canAddBank, err := canAddBanks(wallet, lal)
 
 	if err != nil {
 		return nil, err
@@ -110,7 +110,7 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		res.SendEnabled = true
 		res.LinkedAccEnabled = true
 
-		res.BanksEnabled = true
+		res.BanksEnabled = false
 		res.CardsEnabled = true
 		res.AddCardsEnabled = false
 		res.ManageWalletCardsEnabled = false
@@ -155,7 +155,8 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 	return &res, nil
 }
 
-func canAddCards(ctx context.Context, b Backends, lal []linkedaccounts.LinkedAccount) (bool, error) {
+// flag(bradu): this might not be needed anymore
+func canAddCards(lal []linkedaccounts.LinkedAccount) (bool, error) {
 	var cnt int
 	for _, la := range lal {
 		if la.DeletedAt.Valid {
@@ -172,7 +173,7 @@ func canAddCards(ctx context.Context, b Backends, lal []linkedaccounts.LinkedAcc
 }
 
 // This assumes that the wallet is in US/ZA. The wallet can only add at most 1 bank
-func canAddBanks(ctx context.Context, b Backends, w *wallets.Wallet, lal []linkedaccounts.LinkedAccount) (bool, error) {
+func canAddBanks(w *wallets.Wallet, lal []linkedaccounts.LinkedAccount) (bool, error) {
 	for _, la := range lal {
 		if la.DeletedAt.Valid {
 			continue

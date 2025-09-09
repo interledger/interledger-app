@@ -125,6 +125,7 @@ func (a *Activity) CreateKYCWallets(ctx context.Context, walletID string) error 
 		return err
 	}
 
+	// flag(bradu): this business logic might need to be revisited
 	if w.Country == country.CA {
 		// nothing to do. wallet already created
 	} else if w.Country == country.US {
