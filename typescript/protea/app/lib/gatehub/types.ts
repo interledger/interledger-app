@@ -45,9 +45,6 @@ export type GateHubActions = {
   // Token actions
   setToken: (token: string) => void
 
-  // Helpers
-  buildHeaders: (options: GateHubRequestOptions) => Record<string, string>
-
   // Reset actions
   reset: () => void
 }
