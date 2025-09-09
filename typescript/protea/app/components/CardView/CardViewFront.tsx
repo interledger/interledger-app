@@ -1,5 +1,6 @@
 import type { ComponentProps } from 'react'
 import { CardViewContainer } from './CardViewContainer'
+import { MasterCardLogo } from './MasterCardLogo'
 
 interface CardViewFrontProps extends ComponentProps<'div'> {
   nameOnCard: string
@@ -67,10 +68,7 @@ export const CardViewFront = ({
               {nameOnCard}
             </span>
           </div>
-          <div className='flex items-center'>
-            <div className='h-8 w-8 rounded-full bg-red-500'></div>
-            <div className='-ml-3 h-8 w-8 rounded-full bg-orange-400'></div>
-          </div>
+          <MasterCardLogo />
         </div>
       </div>
     </CardViewContainer>

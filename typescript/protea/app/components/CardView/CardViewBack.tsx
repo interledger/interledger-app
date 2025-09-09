@@ -1,6 +1,7 @@
 import type { ComponentProps } from 'react'
 import { Icon } from '~/components/Icon'
 import { CardViewContainer } from './CardViewContainer'
+import { MasterCardLogo } from './MasterCardLogo'
 
 interface CardViewBackProps extends ComponentProps<'div'> {
   fullCardNumber: string
@@ -25,40 +26,50 @@ export const CardViewBack = ({
   return (
     <CardViewContainer className={className} {...props}>
       <div className='flex h-full flex-col'>
-        {/* Black stripe */}
-        <div className='-mx-5 mt-3 h-12 bg-black' />
+        {/* interledger.org text */}
+        <div className='mt-2 text-left'>
+          <p className='text-xs font-medium text-black'>interledger.org</p>
+        </div>
+        {/* Dark teal stripe */}
+        <div
+          className='-mx-5 mt-1 h-8'
+          style={{ backgroundColor: '#035d5e' }}
+        />
 
         {/* Card details */}
         <div className='mt-auto space-y-6'>
           <div>
-            <p className='text-xs font-medium leading-3 text-white/50'>
-              Card Number
-            </p>
+            {/* <p className='text-xs font-medium leading-3 text-black/70'>
+                Card Number
+              </p> */}
             <div className='flex items-center gap-x-3'>
-              <p className='font-mono text-lg'>{formattedCardNumber}</p>
-              <button className='h-4 w-4 p-0 text-white/50 hover:text-white'>
+              <p className='font-mono text-lg text-black'>
+                {formattedCardNumber}
+              </p>
+              <button className='h-4 w-4 p-0 text-black/50 hover:text-black'>
                 <Icon>content_copy</Icon>
               </button>
             </div>
           </div>
           <div className='flex gap-x-6'>
             <div>
-              <p className='text-xs font-medium leading-3 text-white/50'>
+              <p className='text-xs font-medium leading-3 text-black/70'>
                 Expiry
               </p>
-              <p className='font-mono text-sm'>{displayExpiryDate}</p>
+              <p className='font-mono text-sm text-black'>
+                {displayExpiryDate}
+              </p>
             </div>
             <div>
-              <p className='text-xs font-medium leading-3 text-white/50'>CVV</p>
-              <p className='font-mono text-sm'>{displayCvv}</p>
+              <p className='text-xs font-medium leading-3 text-black/70'>CVV</p>
+              <p className='font-mono text-sm text-black'>{displayCvv}</p>
             </div>
-            <button className='-ml-3 mt-2.5 h-4 w-4 p-0 text-white/50 hover:text-white'>
+            <button className='-ml-3 mt-2.5 h-4 w-4 p-0 text-black/50 hover:text-black'>
               <Icon>content_copy</Icon>
             </button>
             {/* Mastercard logo */}
-            <div className='ml-auto flex items-center'>
-              <div className='h-6 w-6 rounded-full bg-red-500 opacity-80'></div>
-              <div className='-ml-2 h-6 w-6 rounded-full bg-yellow-500 opacity-80'></div>
+            <div className='ml-auto'>
+              <MasterCardLogo />
             </div>
           </div>
         </div>
