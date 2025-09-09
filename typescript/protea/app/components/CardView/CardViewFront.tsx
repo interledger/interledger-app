@@ -40,7 +40,7 @@ export const CardViewFront = ({
           </div>
 
           <div className='flex items-center justify-end'>
-            <span className='text-xs font-light uppercase tracking-wider text-white/50'>
+            <span className='text-xs font-light uppercase tracking-wider text-black/80'>
               debit
             </span>
           </div>
@@ -60,14 +60,16 @@ export const CardViewFront = ({
         {/* Footer with name and mastercard logo */}
         <div className='mt-auto flex items-end justify-between'>
           <div className='flex flex-col'>
-            <div className='text-xs uppercase tracking-wide text-white/50'>
-              Card Holder
-            </div>
-            <span className='text-sm font-medium uppercase'>{nameOnCard}</span>
+            {/* <div className='text-xs uppercase tracking-wide text-black/50'>
+              CARDHOLDER NAME
+            </div> */}
+            <span className='text-sm font-medium uppercase text-black'>
+              {nameOnCard}
+            </span>
           </div>
           <div className='flex items-center'>
-            <div className='h-8 w-8 rounded-full bg-red-500 opacity-80'></div>
-            <div className='-ml-3 h-8 w-8 rounded-full bg-yellow-500 opacity-80'></div>
+            <div className='h-8 w-8 rounded-full bg-red-500'></div>
+            <div className='-ml-3 h-8 w-8 rounded-full bg-orange-400'></div>
           </div>
         </div>
       </div>
