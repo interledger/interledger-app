@@ -25,11 +25,11 @@ export const CardViewFront = ({
         {/* Header with logos */}
         <div className='flex items-center justify-between text-sm'>
           <div className='flex items-center'>
-            {/* GateHub SVG Logo */}
+            {/* Interledger Foundation SVG Logo */}
             <img
-              src='/gatehub.svg'
-              alt='GateHub logo'
-              className='h-8 max-w-[120px] object-contain opacity-90 brightness-0 invert filter'
+              src='/interledger-foundation.svg'
+              alt='Interledger Foundation logo'
+              className='h-8 max-w-[120px] object-contain opacity-90'
               onError={(e) => {
                 const target = e.target as HTMLImageElement
                 target.style.display = 'none'
@@ -39,26 +39,25 @@ export const CardViewFront = ({
             />
           </div>
 
-          <div className='flex items-center space-x-3'>
-            <span className='text-xs uppercase tracking-wider text-white/50'>
+          <div className='flex items-center justify-end'>
+            <span className='text-xs font-light uppercase tracking-wider text-white/50'>
               debit
             </span>
-            {/* Mastercard logo */}
-            <div className='flex items-center'>
-              <div className='h-6 w-6 rounded-full bg-red-500 opacity-80'></div>
-              <div className='-ml-2 h-6 w-6 rounded-full bg-yellow-500 opacity-80'></div>
-            </div>
           </div>
         </div>
 
-        {/* Card number */}
+        {/* EMV Chip */}
         <div className='mt-8'>
-          <div className='font-mono text-xl tracking-wider'>
-            {displayCardNumber}
+          <div className='w-fit'>
+            <img
+              src='/emv-chip.svg'
+              alt='EMV chip'
+              className='h-9 w-12 object-contain'
+            />
           </div>
         </div>
 
-        {/* Footer with name and expiry */}
+        {/* Footer with name and mastercard logo */}
         <div className='mt-auto flex items-end justify-between'>
           <div className='flex flex-col'>
             <div className='text-xs uppercase tracking-wide text-white/50'>
@@ -66,11 +65,9 @@ export const CardViewFront = ({
             </div>
             <span className='text-sm font-medium uppercase'>{nameOnCard}</span>
           </div>
-          <div className='flex flex-col text-right'>
-            <div className='text-xs uppercase tracking-wide text-white/50'>
-              Expires
-            </div>
-            <span className='font-mono text-sm'>{displayExpiryDate}</span>
+          <div className='flex items-center'>
+            <div className='h-8 w-8 rounded-full bg-red-500 opacity-80'></div>
+            <div className='-ml-3 h-8 w-8 rounded-full bg-yellow-500 opacity-80'></div>
           </div>
         </div>
       </div>
