@@ -20,21 +20,20 @@ type CreateArgs struct {
 }
 
 type UpdateArgs struct {
-	ID                    string
-	Receiver              Identity
-	ReceiverAmount        currency.Amount
-	ReceiverAccount       string
-	SenderAccount         string
-	SenderAmount          currency.Amount
-	ThreeDSID             string
-	OTP                   string
-	Note                  string
-	IPAddress             string
-	UpdatedAt             time.Time
-	Type                  Type
-	FXRate                float64
-	FXFeePercentage       float64
-	AddAstraCorrelationID bool
+	ID              string
+	Receiver        Identity
+	ReceiverAmount  currency.Amount
+	ReceiverAccount string
+	SenderAccount   string
+	SenderAmount    currency.Amount
+	ThreeDSID       string
+	OTP             string
+	Note            string
+	IPAddress       string
+	UpdatedAt       time.Time
+	Type            Type
+	FXRate          float64
+	FXFeePercentage float64
 }
 
 type Payment struct {
@@ -56,7 +55,6 @@ type Payment struct {
 	Type                 Type
 	FXRate               float64
 	FXFeePercentage      float64
-	AstraCorrelationID   string
 }
 
 //go:generate stringer -type=RequiredActionType -trimprefix=RequiredActionType

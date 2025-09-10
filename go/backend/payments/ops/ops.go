@@ -35,7 +35,7 @@ import (
 	temporal_client "go.temporal.io/sdk/client"
 )
 
-const cols = `id, public_id, state, sender_id, sender_id_type, sender_amount, sender_currency, sender_account, receiver_id, receiver_id_type, receiver_amount, receiver_currency, receiver_account, send_transaction_id, receive_transaction_id, action_three_ds_required, action_three_ds_id, action_otp_required, action_otp, note, ip_address, type, fx_rate, fx_fee_percentage, revision, astra_correlation_id, created_at, updated_at`
+const cols = `id, public_id, state, sender_id, sender_id_type, sender_amount, sender_currency, sender_account, receiver_id, receiver_id_type, receiver_amount, receiver_currency, receiver_account, send_transaction_id, receive_transaction_id, action_three_ds_required, action_three_ds_id, action_otp_required, action_otp, note, ip_address, type, fx_rate, fx_fee_percentage, revision, created_at, updated_at`
 
 type dbPayment struct {
 	ID                   string                `db:"id"`
@@ -65,7 +65,6 @@ type dbPayment struct {
 	FXRate               sql.NullFloat64       `db:"fx_rate"`
 	FXFeePercentage      sql.NullFloat64       `db:"fx_fee_percentage"`
 	Revision             int                   `db:"revision"`
-	AstraCorrelationID   sql.NullString        `db:"astra_correlation_id"`
 }
 
 func lookupWallet(ctx context.Context, b Backends, identity payments.Identity) (*wallets.Wallet, error) {
@@ -176,7 +175,6 @@ func transformPayment(ctx context.Context, b Backends, db dbPayment, senderWalle
 		Type:                 db.Type,
 		FXRate:               db.FXRate.Float64,
 		FXFeePercentage:      db.FXFeePercentage.Float64,
-		AstraCorrelationID:   db.AstraCorrelationID.String,
 	}, nil
 }
 

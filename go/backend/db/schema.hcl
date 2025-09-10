@@ -2267,19 +2267,11 @@ table "payments" {
     type    = int
     default = 1
   }
-  column "astra_correlation_id" {
-    null    = true
-    type    = text
-  }
   primary_key {
     columns = [column.id]
   }
   index "payments_public_id_ind" {
     columns = [column.public_id]
-    unique  = true
-  }
-  index "payments_astra_correlation_id_ind" {
-    columns = [column.astra_correlation_id]
     unique  = true
   }
 }
@@ -3220,122 +3212,6 @@ table "pti_users" {
     columns = [column.id]
   }
   index "pti_users_wallet_id_idx" {
-    unique = true
-    columns = [column.wallet_id]
-  }
-}
-table "astra_user_intents" {
-  schema = schema.public
-  column "id" {
-    null = false
-    type = uuid
-    default = sql("gen_random_uuid()")
-  }
-  column "wallet_id" {
-    null = false
-    type = uuid
-  }
-  column "intent_id" {
-    null = false
-    type = text
-  }
-  column "status" {
-    null = false
-    type = text
-  }
-  column "user_id" {
-    null = false
-    type = text
-  }
-  column "created_at" {
-    null    = false
-    type    = timestamp
-    default = sql("now()::TIMESTAMP")
-  }
-  column "updated_at" {
-    null    = false
-    type    = timestamp
-    default = sql("now()::TIMESTAMP")
-  }
-  primary_key {
-    columns = [column.id]
-  }
-  index "astra_user_intents_wallet_id_idx" {
-    unique = true
-    columns = [column.wallet_id]
-  }
-}
-
-table "astra_access_tokens" {
-  schema = schema.public
-  column "id" {
-    null = false
-    type = uuid
-    default = sql("gen_random_uuid()")
-  }
-  column "wallet_id" {
-    null = false
-    type = uuid
-  }
-  column "token" {
-    null = false
-    type = text
-  }
-  column "expires_at" {
-    null    = false
-    type    = timestamp
-  }
-  column "refresh_token" {
-    null = false
-    type = text
-  }
-  column "refresh_expires_at" {
-    null    = false
-    type    = timestamp
-  }
-
-  primary_key {
-    columns = [column.id]
-  }
-  index "astra_access_tokens_wallet_id_idx" {
-    unique = true
-    columns = [column.wallet_id]
-  }
-  index "astra_access_tokens_refresh_idx" {
-    columns = [column.refresh_expires_at]
-  }
-}
-
-table "astra_accounts" {
-  schema = schema.public
-  column "id" {
-    null = false
-    type = uuid
-    default = sql("gen_random_uuid()")
-  }
-  column "wallet_id" {
-    null = false
-    type = uuid
-  }
-  column "account_id" {
-    null = false
-    type = text
-  }
-  column "created_at" {
-    null    = false
-    type    = timestamp
-    default = sql("now()::TIMESTAMP")
-  }
-  column "updated_at" {
-    null    = false
-    type    = timestamp
-    default = sql("now()::TIMESTAMP")
-  }
-
-  primary_key {
-    columns = [column.id]
-  }
-  index "astra_accounts_wallet_id_idx" {
     unique = true
     columns = [column.wallet_id]
   }
