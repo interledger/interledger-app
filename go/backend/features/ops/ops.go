@@ -156,21 +156,22 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 }
 
 // flag(bradu): this might not be needed anymore
-func canAddCards(lal []linkedaccounts.LinkedAccount) (bool, error) {
-	var cnt int
-	for _, la := range lal {
-		if la.DeletedAt.Valid {
-			continue
-		}
+//
+// func canAddCards(lal []linkedaccounts.LinkedAccount) (bool, error) {
+// 	var cnt int
+// 	for _, la := range lal {
+// 		if la.DeletedAt.Valid {
+// 			continue
+// 		}
 
-		if la.Provider == pti.ProviderName &&
-			la.Type == pti.TypeCard {
-			cnt++
-		}
-	}
+// 		if la.Provider == pti.ProviderName &&
+// 			la.Type == pti.TypeCard {
+// 			cnt++
+// 		}
+// 	}
 
-	return cnt <= 3, nil
-}
+// 	return cnt <= 3, nil
+// }
 
 // This assumes that the wallet is in US/ZA. The wallet can only add at most 1 bank
 func canAddBanks(w *wallets.Wallet, lal []linkedaccounts.LinkedAccount) (bool, error) {
