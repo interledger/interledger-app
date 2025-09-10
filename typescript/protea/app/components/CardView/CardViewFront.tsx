@@ -51,7 +51,7 @@ export const CardViewFront = ({
         <div className='mt-8'>
           <div className='w-fit'>
             <img
-              src='/emv-chip.svg'
+              src='/emv_chip.svg'
               alt='EMV chip'
               className='h-9 w-12 object-contain'
             />

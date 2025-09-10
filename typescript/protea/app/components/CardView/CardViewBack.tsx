@@ -28,7 +28,7 @@ export const CardViewBack = ({
       <div className='flex h-full flex-col'>
         {/* interledger.org text */}
         <div className='mt-2 text-left'>
-          <p className='text-xs font-medium text-black'>interledger.org</p>
+          <p className='text-xs text-black'>interledger.org</p>
         </div>
         {/* Dark teal stripe */}
         <div
