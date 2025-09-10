@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 
+	"gitlab.com/fynbos/backend/providers/chimoney"
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	gh_client "gitlab.com/fynbos/backend/providers/gatehub/client"
 	"gitlab.com/fynbos/backend/providers/pti"

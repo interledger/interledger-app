@@ -4,9 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"gitlab.com/fynbos/backend/wallets"
-	wallet_mock "gitlab.com/fynbos/backend/wallets/client/mock"
-
 	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/wallets"
 	wallet_mock "gitlab.com/fynbos/backend/wallets/client/mock"
