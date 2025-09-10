@@ -41,7 +41,7 @@ export const CardViewFront = ({
           </div>
 
           <div className='flex items-center justify-end'>
-            <span className='text-xs font-light uppercase tracking-wider text-black/80'>
+            <span className='text-xs font-light tracking-wider text-black/80'>
               debit
             </span>
           </div>
