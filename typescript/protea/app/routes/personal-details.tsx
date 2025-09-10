@@ -86,7 +86,7 @@ function ChimoneyPage() {
       sandbox='allow-top-navigation allow-forms allow-same-origin allow-popups allow-scripts'
       scrolling='yes'
       allow='camera;microphone'
-      className='h-[750px]'
+      className='h-[750px] sm:min-w-[400px] md:min-w-[400px]'
     />
   )
 }
@@ -155,7 +155,7 @@ function GatehubPage() {
           sandbox='allow-top-navigation allow-forms allow-same-origin allow-popups allow-scripts'
           scrolling='yes'
           allow='camera;microphone'
-          className='h-[750px]'
+          className='h-[750px] sm:min-w-[400px] md:min-w-[400px]'
         />
       </Dialog>
     </>
