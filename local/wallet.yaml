@@ -93,6 +93,13 @@ services:
       - RAFIKI_BACKEND_GRAPHQL_URL=http://rafiki_backend:3001/graphql
       - RAFIKI_AUTH_GRAPHQL_URL=http://rafiki_auth:3006/graphql # check 3003 if it fails
 
+      - ALLOWED_WALLET_IDS=
+      - BLOCKED_REGIONS=
+
+      - GATEHUB_APP_ID=<fetch-me-from-vault>
+      - GATEHUB_SECRET=<fetch-me-from-vault>
+      - GATEHUB_CARD_APP_ID=<fetch-me-from-vault>
+
     depends_on:
       - postgres
       - kratos
