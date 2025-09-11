@@ -914,6 +914,10 @@ table "transactions" {
     type    = uuid
     default = sql("gen_random_uuid()")
   }
+  column "reference_id" {
+    null = true
+    type = text
+  }
   column "wallet_id" {
     null = false
     type = uuid
