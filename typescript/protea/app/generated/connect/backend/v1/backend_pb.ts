@@ -7,20 +7,6 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
 
 /**
- * @generated from enum backend.v1.A1
- */
-export enum A1 {
-  /**
-   * @generated from enum value: UNKNOWN = 0;
-   */
-  UNKNOWN = 0,
-}
-// Retrieve enum metadata with: proto3.getEnumType(A1)
-proto3.util.setEnumType(A1, "backend.v1.A1", [
-  { no: 0, name: "UNKNOWN" },
-]);
-
-/**
  * @generated from enum backend.v1.CustomerDeliveryAddressType
  */
 export enum CustomerDeliveryAddressType {
@@ -294,20 +280,6 @@ export class PaginationRequest extends Message<PaginationRequest> {
     return proto3.util.equals(PaginationRequest, a, b);
   }
 }
-
-/**
- * @generated from enum backend.v1.PaginationRequest.A2
- */
-export enum PaginationRequest_A2 {
-  /**
-   * @generated from enum value: UNKNOWN = 0;
-   */
-  UNKNOWN = 0,
-}
-// Retrieve enum metadata with: proto3.getEnumType(PaginationRequest_A2)
-proto3.util.setEnumType(PaginationRequest_A2, "backend.v1.PaginationRequest.A2", [
-  { no: 0, name: "UNKNOWN" },
-]);
 
 /**
  * @generated from message backend.v1.Empty
@@ -2766,6 +2738,11 @@ export class Transaction extends Message<Transaction> {
    */
   refundState = 0;
 
+  /**
+   * @generated from field: string fundsReceived = 23;
+   */
+  fundsReceived = "";
+
   constructor(data?: PartialMessage<Transaction>) {
     super();
     proto3.util.initPartial(data, this);
@@ -2795,6 +2772,7 @@ export class Transaction extends Message<Transaction> {
     { no: 20, name: "destinationIdentity", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 21, name: "destinationIdentityType", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 22, name: "refundState", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
+    { no: 23, name: "fundsReceived", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Transaction {

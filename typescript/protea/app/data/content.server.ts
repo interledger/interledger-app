@@ -427,7 +427,7 @@ export const getContactRoute = async () => {
         },
         {
           tag: 'meta',
-          attributes: { property: 'og:site_name', content: 'Fynbos' },
+          attributes: { property: 'og:site_name', content: 'Interledger' },
           content: null,
           __typename: 'Tag'
         },
@@ -515,7 +515,7 @@ export const getContactRoute = async () => {
                 children: [
                   {
                     type: 'span',
-                    value: '© 2024 Fynbos Inc and the Interledger Foundation.'
+                    value: '© 2024 Interledger Inc and the Interledger Foundation.'
                   }
                 ]
               },
@@ -537,7 +537,7 @@ export const getContactRoute = async () => {
                   {
                     type: 'span',
                     value:
-                      '. The Interledger app is powered by Fynbos on behalf of the Interledger Foundation as a service to the Interledger community. Fynbos Inc is not a bank. Fynbos provides a technology platform and all payments and banking services are provided by our partners who are appropriately licensed.'
+                      '. The Interledger app is powered by Interledger on behalf of the Interledger Foundation as a service to the Interledger community. Interledger Inc is not a bank. Interledger provides a technology platform and all payments and banking services are provided by our partners who are appropriately licensed.'
                   }
                 ]
               }
@@ -912,7 +912,7 @@ export const getCurrentMarketingPage = async (
             },
             {
               tag: 'meta',
-              attributes: { property: 'og:site_name', content: 'Fynbos' },
+              attributes: { property: 'og:site_name', content: 'Interledger' },
               content: null,
               __typename: 'Tag'
             },
@@ -1004,7 +1004,7 @@ export const getCurrentMarketingPage = async (
                       {
                         type: 'span',
                         value:
-                          '© 2024 Fynbos Inc and the Interledger Foundation.'
+                          '© 2024 Interledger Inc and the Interledger Foundation.'
                       }
                     ]
                   },
@@ -1026,7 +1026,7 @@ export const getCurrentMarketingPage = async (
                       {
                         type: 'span',
                         value:
-                          '. The Interledger app is powered by Fynbos on behalf of the Interledger Foundation as a service to the Interledger community. Fynbos Inc is not a bank. Fynbos provides a technology platform and all payments and banking services are provided by our partners who are appropriately licensed.'
+                          '. The Interledger app is powered by Interledger on behalf of the Interledger Foundation as a service to the Interledger community. Interledger Inc is not a bank. Interledger provides a technology platform and all payments and banking services are provided by our partners who are appropriately licensed.'
                       }
                     ]
                   }
@@ -1130,10 +1130,8 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          '”) apply to your access to and use of the Services (as defined in Section 1 below) provided by Fynbos Inc, a Delaware company (“Fynbos Inc, together with its affiliates and subsidiaries” or “'
+                          '") apply to your access to and use of the Services (as defined in Section 1 below) provided by of the Interledger Foundation, a California nonprofit public benefit corporation (the "Corporation"). '
                       },
-                      { type: 'span', marks: ['emphasis'], value: 'we' },
-                      { type: 'span', value: '”). ' },
                       {
                         type: 'span',
                         marks: ['strong'],
@@ -1169,7 +1167,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                     children: [
                       {
                         type: 'span',
-                        value: 'You and Company agree as follows:‍'
+                        value: 'You and Corporation agree as follows:‍'
                       }
                     ]
                   },
@@ -1184,7 +1182,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          'Company has developed a digital wallet that is accessible through the Company’s website (the “'
+                          'Corporation has developed a digital wallet that is accessible through the Corporation\'s website (the "'
                       },
                       { type: 'span', marks: ['emphasis'], value: 'Platform' },
                       { type: 'span', value: '”) at https://interledger.app. ' }
@@ -1196,7 +1194,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          'People who use the Services may license a unique wallet address, a URL, from the Company and associate it on the Platform with a third-party website URL, social media handle, payment account, email address, location data, text data, or other online data selected by the user (the “'
+                          'People who use the Services may license a unique wallet address, a URL, from the Corporation and associate it on the Platform with a third-party website URL, social media handle, payment account, email address, location data, text data, or other online data selected by the user (the "'
                       },
                       {
                         type: 'span',
@@ -1220,7 +1218,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          '”) that Company makes available to Platform users, including use or access to the Platform and other services provided by Company, the ability to license and associate a wallet address with Associated Data, resolve queries of a wallet address to the Associated Data, and obtain related services through the Platform. All references to Services in these Terms include wallet addresses unless otherwise specified.'
+                          '") that Corporation makes available to Platform users, including use or access to the Platform and other services provided by Corporation, the ability to license and associate a wallet address with Associated Data, resolve queries of a wallet address to the Associated Data, and obtain related services through the Platform. All references to Services in these Terms include wallet addresses unless otherwise specified.'
                       }
                     ]
                   },
@@ -1437,7 +1435,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                               {
                                 type: 'span',
                                 value:
-                                  'To register and activate a wallet address, you need to successfully complete a Know Your Customer (KYC) process through your account. You agree to pay all fees due for a wallet address at the time you activate the address, according to Company’s current fee schedule.'
+                                  'To register and activate a wallet address, you need to successfully complete a Know Your Customer (KYC) process through your account. You agree to pay all fees due for a wallet address at the time you activate the address, according to Corporation’s current fee schedule.'
                               }
                             ]
                           }
@@ -1452,7 +1450,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                               {
                                 type: 'span',
                                 value:
-                                  'Company may modify its fee schedule at any time, and modifications will be posted on the Platform and effective immediately with respect to future registrations without further notice. All registrations will be subject to these Terms, including the limited license set forth in Section 7, and will be non-refundable unless otherwise agreed.'
+                                  'Corporation may modify its fee schedule at any time, and modifications will be posted on the Platform and effective immediately with respect to future registrations without further notice. All registrations will be subject to these Terms, including the limited license set forth in Section 7, and will be non-refundable unless otherwise agreed.'
                               }
                             ]
                           }
@@ -1467,7 +1465,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                               {
                                 type: 'span',
                                 value:
-                                  'Company may collect a fee and/or commission (each, a “Transaction Fee”) on the total value of any transaction you undertake with your wallet. The applicable Transaction Fee will be determined by Company from time to time in its sole discretion and, if applicable, will be communicated to wallet owners at least 30 days prior to going into effect.'
+                                  'Corporation may collect a fee and/or commission (each, a “Transaction Fee”) on the total value of any transaction you undertake with your wallet. The applicable Transaction Fee will be determined by Corporation from time to time in its sole discretion and, if applicable, will be communicated to wallet owners at least 30 days prior to going into effect.'
                               }
                             ]
                           }
@@ -1508,7 +1506,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                               {
                                 type: 'span',
                                 value:
-                                  'Our Services allow you and other users to associate a wallet with Associated Data through your account. Except for the license you grant below, you retain all rights in and to the Associated Data that you associate with your wallet, as between you and Company.'
+                                  'Our Services allow you and other users to associate a wallet with Associated Data through your account. Except for the license you grant below, you retain all rights in and to the Associated Data that you associate with your wallet, as between you and Corporation.'
                               }
                             ]
                           }
@@ -1523,7 +1521,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                               {
                                 type: 'span',
                                 value:
-                                  'You grant Company and its subsidiaries and affiliates a nonexclusive, royalty-free, worldwide, fully paid, and sublicensable license to use, reproduce, modify, adapt, publish, translate, create derivative works from, distribute, publicly perform and display your Associated Data and any name, username or likeness provided in connection with your Associated Data in all media formats and channels now known or later developed without compensation to you. When you associate or otherwise share your Associated Data on or through our Services, you understand that your Associated Data may be visible to others.'
+                                  'You grant Corporation and its subsidiaries and affiliates a nonexclusive, royalty-free, worldwide, fully paid, and sublicensable license to use, reproduce, modify, adapt, publish, translate, create derivative works from, distribute, publicly perform and display your Associated Data and any name, username or likeness provided in connection with your Associated Data in all media formats and channels now known or later developed without compensation to you. When you associate or otherwise share your Associated Data on or through our Services, you understand that your Associated Data may be visible to others.'
                               }
                             ]
                           }
@@ -1635,7 +1633,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                               {
                                 type: 'span',
                                 value:
-                                  'Use or attempt to use another user’s account unless authorized to do so by that user and Company;'
+                                  'Use or attempt to use another user’s account unless authorized to do so by that user and Corporation;'
                               }
                             ]
                           }
@@ -1800,7 +1798,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                               {
                                 type: 'span',
                                 value:
-                                  'Engage in any conduct that, in our sole judgment, is objectionable, restricts or inhibits any other person from using or enjoying our Services, or may expose Company or others to any harm or liability of any type.'
+                                  'Engage in any conduct that, in our sole judgment, is objectionable, restricts or inhibits any other person from using or enjoying our Services, or may expose Corporation or others to any harm or liability of any type.'
                               }
                             ]
                           }
@@ -1972,7 +1970,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                               {
                                 type: 'span',
                                 value:
-                                  'In our sole judgment, is objectionable, restricts or inhibits any other person from using or enjoying our Services, or may expose Company or others to any harm or liability of any type.'
+                                  'In our sole judgment, is objectionable, restricts or inhibits any other person from using or enjoying our Services, or may expose Corporation or others to any harm or liability of any type.'
                               }
                             ]
                           }
@@ -1993,7 +1991,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                               {
                                 type: 'span',
                                 value:
-                                  "Enforcement of this Section 6 is solely at Company's discretion, and failure to enforce this section in some instances does not constitute a waiver of our right to enforce it in other instances. In addition, this Section 6 does not create any private right of action on the part of any third party or any reasonable expectation that the Services will not contain any content that is prohibited by such rules."
+                                  "Enforcement of this Section 6 is solely at Corporation's discretion, and failure to enforce this section in some instances does not constitute a waiver of our right to enforce it in other instances. In addition, this Section 6 does not create any private right of action on the part of any third party or any reasonable expectation that the Services will not contain any content that is prohibited by such rules."
                               }
                             ]
                           }
@@ -2021,7 +2019,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                               {
                                 type: 'span',
                                 value:
-                                  'The Services (which includes and any constituent part thereof including any wallet address, text, graphics, images, photographs, videos, illustrations and other content contained therein), are owned by Company or our licensors and are protected under both United States and foreign laws. Except as explicitly stated in these Terms, all rights in and to the Services are reserved by us or our licensors.'
+                                  'The Services (which includes and any constituent part thereof including any wallet address, text, graphics, images, photographs, videos, illustrations and other content contained therein), are owned by Corporation or our licensors and are protected under both United States and foreign laws. Except as explicitly stated in these Terms, all rights in and to the Services are reserved by us or our licensors.'
                               }
                             ]
                           }
@@ -2051,7 +2049,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                               {
                                 type: 'span',
                                 value:
-                                  'If you register a wallet address in accordance with Section 4, and subject to your compliance with these Terms, you are hereby granted a limited, exclusive, non-sublicensable, non-transferable, revocable license to access, copy, display, distribute and use the Services solely for the purpose of allowing third-parties to perform lookups of Associated Data associated to such wallet address via the Company’s application programming interface.'
+                                  'If you register a wallet address in accordance with Section 4, and subject to your compliance with these Terms, you are hereby granted a limited, exclusive, non-sublicensable, non-transferable, revocable license to access, copy, display, distribute and use the Services solely for the purpose of allowing third-parties to perform lookups of Associated Data associated to such wallet address via the Corporation’s application programming interface.'
                               }
                             ]
                           }
@@ -2066,7 +2064,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                               {
                                 type: 'span',
                                 value:
-                                  'Without limiting the foregoing provisions in this Section 7, you will not, directly or indirectly: (i) modify or create derivative works of the Services in whole or in part; (ii) rent, lease, lend, sell, advertise, assign, encumber, or otherwise commercially use the Services; (iii) remove any proprietary notices from the Services; or (iv) use the Services in any manner or for any purpose that infringes, misappropriates, or otherwise violates any intellectual property right or other right of the Company or any other person, or that violates any applicable law.'
+                                  'Without limiting the foregoing provisions in this Section 7, you will not, directly or indirectly: (i) modify or create derivative works of the Services in whole or in part; (ii) rent, lease, lend, sell, advertise, assign, encumber, or otherwise commercially use the Services; (iii) remove any proprietary notices from the Services; or (iv) use the Services in any manner or for any purpose that infringes, misappropriates, or otherwise violates any intellectual property right or other right of the Corporation or any other person, or that violates any applicable law.'
                               }
                             ]
                           }
@@ -2100,7 +2098,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          'Fynbos Inc, the Fynbos mark and our logos, our product or service names, our slogans and the look and feel of the Services are trademarks of Company and may not be copied, imitated or used, in whole or in part, without our prior written permission. All other trademarks, registered trademarks, product names and company names or logos mentioned on the Services are the property of their respective owners. Reference to any products, services, processes or other information by trade name, trademark, manufacturer, supplier or otherwise does not constitute or imply endorsement, sponsorship or recommendation by us.'
+                          'Interledger Inc, the Interledger mark and our logos, our product or service names, our slogans and the look and feel of the Services are trademarks of Corporation and may not be copied, imitated or used, in whole or in part, without our prior written permission. All other trademarks, registered trademarks, product names and company names or logos mentioned on the Services are the property of their respective owners. Reference to any products, services, processes or other information by trade name, trademark, manufacturer, supplier or otherwise does not constitute or imply endorsement, sponsorship or recommendation by us.'
                       }
                     ]
                   },
@@ -2115,13 +2113,13 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          'You may voluntarily post, submit or otherwise communicate to us any questions, comments, suggestions, ideas, original or creative materials or other information about Company or our Services (collectively, “'
+                          'You may voluntarily post, submit or otherwise communicate to us any questions, comments, suggestions, ideas, original or creative materials or other information about Corporation or our Services (collectively, “'
                       },
                       { type: 'span', marks: ['emphasis'], value: 'Feedback' },
                       {
                         type: 'span',
                         value:
-                          '”). You understand that we may use such Feedback for any purpose, commercial or otherwise, without acknowledgment or compensation to you, including to develop, copy, publish, or improve the Feedback in Company’s sole discretion. You understand that Company may treat Feedback as nonconfidential.'
+                          '”). You understand that we may use such Feedback for any purpose, commercial or otherwise, without acknowledgment or compensation to you, including to develop, copy, publish, or improve the Feedback in Corporation’s sole discretion. You understand that Corporation may treat Feedback as nonconfidential.'
                       }
                     ]
                   },
@@ -2142,7 +2140,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          'In accordance with the Digital Millennium Copyright Act and other applicable law, we have adopted a policy of terminating, in appropriate circumstances, the accounts of users who repeatedly infringe the intellectual property rights of others. If you believe that anything on our Services infringes any copyright that you own or control, you may notify Company’s designated agent as follows by sending an email to '
+                          'In accordance with the Digital Millennium Copyright Act and other applicable law, we have adopted a policy of terminating, in appropriate circumstances, the accounts of users who repeatedly infringe the intellectual property rights of others. If you believe that anything on our Services infringes any copyright that you own or control, you may notify Corporation’s designated agent as follows by sending an email to '
                       },
                       {
                         url: 'mailto:support@interledger.app',
@@ -2168,7 +2166,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          ' for the requirements of a proper notification. Also, please note that if you knowingly misrepresent that any activity or material on our Services is infringing, you may be liable to Company for certain costs and damages.'
+                          ' for the requirements of a proper notification. Also, please note that if you knowingly misrepresent that any activity or material on our Services is infringing, you may be liable to Corporation for certain costs and damages.'
                       }
                     ]
                   },
@@ -2195,7 +2193,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          '”). We provide Third-Party Content as a service to those interested in such content. Your dealings or correspondence with third parties and your use of or interaction with any Third-Party Content are solely between you and the third party. Company does not control or endorse, and makes no representations or warranties regarding, any Third-Party Content, and your access to and use of such Third-Party Content is at your own risk.'
+                          '”). We provide Third-Party Content as a service to those interested in such content. Your dealings or correspondence with third parties and your use of or interaction with any Third-Party Content are solely between you and the third party. Corporation does not control or endorse, and makes no representations or warranties regarding, any Third-Party Content, and your access to and use of such Third-Party Content is at your own risk.'
                       }
                     ]
                   },
@@ -2210,12 +2208,12 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          'To the fullest extent permitted by applicable law, you will indemnify, defend and hold harmless Company, and our past, present and future employees, officers, directors, contractors, consultants, equity holders, suppliers, vendors, service providers, parent companies, subsidiaries, affiliates, agents, representatives, predecessors, successors and assigns (individually and collectively, the “'
+                          'To the fullest extent permitted by applicable law, you will indemnify, defend and hold harmless Corporation, and our past, present and future employees, officers, directors, contractors, consultants, equity holders, suppliers, vendors, service providers, parent companies, subsidiaries, affiliates, agents, representatives, predecessors, successors and assigns (individually and collectively, the “'
                       },
                       {
                         type: 'span',
                         marks: ['emphasis'],
-                        value: 'Company Parties'
+                        value: 'Corporation Parties'
                       },
                       {
                         type: 'span',
@@ -2226,7 +2224,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          "”) arising out of or related to (a) your access to or use of the Services; (b) your Associated Data or Feedback; (c) your violation of these Terms; (d) your violation, misappropriation or infringement of any rights of another (including intellectual property rights or privacy rights); or (e) your conduct in connection with the Services. You agree to promptly notify Company Parties of any third-party Claims, cooperate with Company Parties in defending such Claims and pay all fees, costs and expenses associated with defending such Claims (including attorneys' fees). You also agree that the Company Parties will have control of the defense or settlement, at Company's sole option, of any third-party Claims. This indemnity is in addition to, and not in lieu of, any other indemnities set forth in a written agreement between you and Company or the other Company Parties."
+                          "”) arising out of or related to (a) your access to or use of the Services; (b) your Associated Data or Feedback; (c) your violation of these Terms; (d) your violation, misappropriation or infringement of any rights of another (including intellectual property rights or privacy rights); or (e) your conduct in connection with the Services. You agree to promptly notify Corporation Parties of any third-party Claims, cooperate with Corporation Parties in defending such Claims and pay all fees, costs and expenses associated with defending such Claims (including attorneys' fees). You also agree that the Corporation Parties will have control of the defense or settlement, at Corporation's sole option, of any third-party Claims. This indemnity is in addition to, and not in lieu of, any other indemnities set forth in a written agreement between you and Corporation or the other Corporation Parties."
                       }
                     ]
                   },
@@ -2241,7 +2239,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          'Your use of our Services is at your sole risk. Except as otherwise provided in a writing by us, our Services and any content therein are provided “as is” and “as available” without warranties of any kind, either express or implied, including implied warranties of merchantability, fitness for a particular purpose, title, and non-infringement. In addition, Company does not represent or warrant that our Services are accurate, complete, reliable, current or error-free. While Company attempts to make your use of our Services and any content therein safe, we cannot and do not represent or warrant that our Services or servers are free of malware, viruses or other harmful components. You assume the entire risk as to the quality and performance of the Services.'
+                          'Your use of our Services is at your sole risk. Except as otherwise provided in a writing by us, our Services and any content therein are provided “as is” and “as available” without warranties of any kind, either express or implied, including implied warranties of merchantability, fitness for a particular purpose, title, and non-infringement. In addition, Corporation does not represent or warrant that our Services are accurate, complete, reliable, current or error-free. While Corporation attempts to make your use of our Services and any content therein safe, we cannot and do not represent or warrant that our Services or servers are free of malware, viruses or other harmful components. You assume the entire risk as to the quality and performance of the Services.'
                       }
                     ]
                   },
@@ -2275,7 +2273,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                               {
                                 type: 'span',
                                 value:
-                                  'To the fullest extent permitted by applicable law, Company and the other Company Parties will not be liable to you under any theory of liability—whether based in contract, tort, negligence, strict liability, warranty, or otherwise—for any indirect, consequential, exemplary, incidental, punitive or special damages or lost profits, even if Company or the other Company Parties have been advised of the possibility of such damages.'
+                                  'To the fullest extent permitted by applicable law, Corporation and the other Corporation Parties will not be liable to you under any theory of liability—whether based in contract, tort, negligence, strict liability, warranty, or otherwise—for any indirect, consequential, exemplary, incidental, punitive or special damages or lost profits, even if Corporation or the other Corporation Parties have been advised of the possibility of such damages.'
                               }
                             ]
                           }
@@ -2290,7 +2288,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                               {
                                 type: 'span',
                                 value:
-                                  'The total liability of Company and the other Company Parties for any claim arising out of or relating to these Terms or our Services, regardless of the form of the action, is limited to the amount paid to the Company by you to use our Services.'
+                                  'The total liability of Corporation and the other Corporation Parties for any claim arising out of or relating to these Terms or our Services, regardless of the form of the action, is limited to the amount paid to the Corporation by you to use our Services.'
                               }
                             ]
                           }
@@ -2305,7 +2303,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                               {
                                 type: 'span',
                                 value:
-                                  'The limitations set forth in this Section 14 will not limit or exclude liability for the gross negligence, fraud or intentional misconduct of Company or the other Company Parties or for any other matters in which liability cannot be excluded or limited under applicable law. Additionally, some jurisdictions do not allow the exclusion or limitation of incidental or consequential damages, so the above limitations or exclusions may not apply to you.'
+                                  'The limitations set forth in this Section 14 will not limit or exclude liability for the gross negligence, fraud or intentional misconduct of Corporation or the other Corporation Parties or for any other matters in which liability cannot be excluded or limited under applicable law. Additionally, some jurisdictions do not allow the exclusion or limitation of incidental or consequential damages, so the above limitations or exclusions may not apply to you.'
                               }
                             ]
                           }
@@ -2324,7 +2322,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          'To the fullest extent permitted by applicable law, you release Company and the other Company Parties from responsibility, liability, claims, demands and/or damages (actual and consequential) of every kind and nature, known and unknown (including claims of negligence), arising out of or related to (a) disputes between you and other users of the Services; (b) disputes between you and third parties that view, access, use, host or otherwise interact with your wallet or Associated Data; and (c) the acts or omissions of third parties. You waive any statute or common law principles that would otherwise limit the coverage of this release to include only those claims which you may know or suspect to exist in your favor at the time of agreeing to this release.'
+                          'To the fullest extent permitted by applicable law, you release Corporation and the other Corporation Parties from responsibility, liability, claims, demands and/or damages (actual and consequential) of every kind and nature, known and unknown (including claims of negligence), arising out of or related to (a) disputes between you and other users of the Services; (b) disputes between you and third parties that view, access, use, host or otherwise interact with your wallet or Associated Data; and (c) the acts or omissions of third parties. You waive any statute or common law principles that would otherwise limit the coverage of this release to include only those claims which you may know or suspect to exist in your favor at the time of agreeing to this release.'
                       }
                     ]
                   },
@@ -2364,7 +2362,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          'Please read the following section carefully because it requires you to arbitrate certain disputes and claims with Company and limits the manner in which you can seek relief from us, unless you opt out of arbitration by following the instructions set forth below. No class or representative actions or arbitrations are allowed under this arbitration provision. In addition, arbitration precludes you from suing in court or having a jury trial.'
+                          'Please read the following section carefully because it requires you to arbitrate certain disputes and claims with Corporation and limits the manner in which you can seek relief from us, unless you opt out of arbitration by following the instructions set forth below. No class or representative actions or arbitrations are allowed under this arbitration provision. In addition, arbitration precludes you from suing in court or having a jury trial.'
                       }
                     ]
                   },
@@ -2381,7 +2379,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                               {
                                 type: 'span',
                                 value:
-                                  'No Representative Actions. You and Company agree that any dispute arising out of or related to these Terms or our Services is personal to you and Company and that any dispute will be resolved solely through individual action, and will not be brought as a class arbitration, class action or any other type of representative proceeding.'
+                                  'No Representative Actions. You and Corporation agree that any dispute arising out of or related to these Terms or our Services is personal to you and Corporation and that any dispute will be resolved solely through individual action, and will not be brought as a class arbitration, class action or any other type of representative proceeding.'
                               }
                             ]
                           }
@@ -2396,7 +2394,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                               {
                                 type: 'span',
                                 value:
-                                  'Arbitration of Disputes. Except for (i) small claims disputes in which you or Company seeks to bring an individual action in small claims court located in the county of your billing address or (ii) disputes in which you or Company seeks injunctive or other equitable relief (x) to enforce this dispute resolution clause or (y) for the alleged infringement or misappropriation of intellectual property, including copyrights, trademarks, trade names, logos, trade secrets or patents, you and Company waive your rights to a jury trial and to have any other dispute arising out of or related to these Terms or our Services, including claims related to privacy and data security, (collectively, “'
+                                  'Arbitration of Disputes. Except for (i) small claims disputes in which you or Corporation seeks to bring an individual action in small claims court located in the county of your billing address or (ii) disputes in which you or Corporation seeks injunctive or other equitable relief (x) to enforce this dispute resolution clause or (y) for the alleged infringement or misappropriation of intellectual property, including copyrights, trademarks, trade names, logos, trade secrets or patents, you and Corporation waive your rights to a jury trial and to have any other dispute arising out of or related to these Terms or our Services, including claims related to privacy and data security, (collectively, “'
                               },
                               {
                                 type: 'span',
@@ -2406,7 +2404,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                               {
                                 type: 'span',
                                 value:
-                                  '”) resolved in court. Instead, for any Dispute that you have against Company you agree to first contact Company and attempt to resolve the claim informally by sending a written notice of your claim (“'
+                                  '”) resolved in court. Instead, for any Dispute that you have against Corporation you agree to first contact Corporation and attempt to resolve the claim informally by sending a written notice of your claim (“'
                               },
                               {
                                 type: 'span',
@@ -2415,7 +2413,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                               },
                               {
                                 type: 'span',
-                                value: '”) to Company by email at '
+                                value: '”) to Corporation by email at '
                               },
                               {
                                 url: 'mailto:support@fynbos.app',
@@ -2430,7 +2428,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                               {
                                 type: 'span',
                                 value:
-                                  ' or by certified mail addressed to Fynbos Inc, 447 Broadway, 2nd Floor Suite #2233, New York, 10013. The Notice must (I) include your name, residence address, email address, and telephone number; (II) describe the nature and basis of the Dispute; and (III) set forth the specific relief sought. Our notice to you will be similar in form to that described above. If you and Company cannot reach an agreement to resolve the Dispute within thirty (30) days after such Notice is received, then either party may submit the Dispute to binding arbitration administered by JAMS or, under the limited circumstances set forth above, in court. All Disputes submitted to JAMS will be resolved through confidential, binding arbitration before one arbitrator. Arbitration proceedings will be held in, Delaware unless you are a consumer, in which case you may elect to hold the arbitration in your county of residence. For purposes of this Section 17, a “'
+                                  ' or by certified mail addressed to Interledger Inc, 447 Broadway, 2nd Floor Suite #2233, New York, 10013. The Notice must (I) include your name, residence address, email address, and telephone number; (II) describe the nature and basis of the Dispute; and (III) set forth the specific relief sought. Our notice to you will be similar in form to that described above. If you and Corporation cannot reach an agreement to resolve the Dispute within thirty (30) days after such Notice is received, then either party may submit the Dispute to binding arbitration administered by JAMS or, under the limited circumstances set forth above, in court. All Disputes submitted to JAMS will be resolved through confidential, binding arbitration before one arbitrator. Arbitration proceedings will be held in, Delaware unless you are a consumer, in which case you may elect to hold the arbitration in your county of residence. For purposes of this Section 17, a “'
                               },
                               {
                                 type: 'span',
@@ -2440,7 +2438,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                               {
                                 type: 'span',
                                 value:
-                                  '” means a person using the Services for personal, family or household purposes. You and Company agree that Disputes will be held in accordance with the JAMS Streamlined Arbitration Rules and Procedures (“'
+                                  '” means a person using the Services for personal, family or household purposes. You and Corporation agree that Disputes will be held in accordance with the JAMS Streamlined Arbitration Rules and Procedures (“'
                               },
                               {
                                 type: 'span',
@@ -2477,7 +2475,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                               {
                                 type: 'span',
                                 value:
-                                  'You and Company agree that these Terms affect interstate commerce and that the enforceability of this Section 17 will be substantively and procedurally governed by the Federal Arbitration Act, 9 U.S.C. § 1, '
+                                  'You and Corporation agree that these Terms affect interstate commerce and that the enforceability of this Section 17 will be substantively and procedurally governed by the Federal Arbitration Act, 9 U.S.C. § 1, '
                               },
                               {
                                 type: 'span',
@@ -2508,7 +2506,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                               {
                                 type: 'span',
                                 value:
-                                  'The arbitration will allow for the discovery or exchange of non-privileged information relevant to the Dispute.The arbitrator, Company, and you will maintain the confidentiality of any arbitration proceedings, judgments and awards, including information gathered, prepared and presented for purposes of the arbitration or related to the Dispute(s) therein. The arbitrator will have the authority to make appropriate rulings to safeguard confidentiality, unless the law provides to the contrary. The duty of confidentiality does not apply to the extent that disclosure is necessary to prepare for or conduct the arbitration hearing on the merits, in connection with a court application for a preliminary remedy or in connection with a judicial challenge to an arbitration award or its enforcement, or to the extent that disclosure is otherwise required by law or judicial decision.'
+                                  'The arbitration will allow for the discovery or exchange of non-privileged information relevant to the Dispute.The arbitrator, Corporation, and you will maintain the confidentiality of any arbitration proceedings, judgments and awards, including information gathered, prepared and presented for purposes of the arbitration or related to the Dispute(s) therein. The arbitrator will have the authority to make appropriate rulings to safeguard confidentiality, unless the law provides to the contrary. The duty of confidentiality does not apply to the extent that disclosure is necessary to prepare for or conduct the arbitration hearing on the merits, in connection with a court application for a preliminary remedy or in connection with a judicial challenge to an arbitration award or its enforcement, or to the extent that disclosure is otherwise required by law or judicial decision.'
                               }
                             ]
                           }
@@ -2523,7 +2521,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                               {
                                 type: 'span',
                                 value:
-                                  'You and Company agree that for any arbitration you initiate, you will pay the filing fee (up to a maximum of $250 if you are a consumer), and Company will pay the remaining JAMS fees and costs. For any arbitration initiated by Company, Company will pay all JAMS fees and costs. You and Company agree that the state or federal courts of the State of Delaware and the United States have exclusive jurisdiction over any appeals and the enforcement of an arbitration award.'
+                                  'You and Corporation agree that for any arbitration you initiate, you will pay the filing fee (up to a maximum of $250 if you are a consumer), and Corporation will pay the remaining JAMS fees and costs. For any arbitration initiated by Corporation, Corporation will pay all JAMS fees and costs. You and Corporation agree that the state or federal courts of the State of Delaware and the United States have exclusive jurisdiction over any appeals and the enforcement of an arbitration award.'
                               }
                             ]
                           }
@@ -2538,7 +2536,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                               {
                                 type: 'span',
                                 value:
-                                  'Any Dispute must be filed within one year after the relevant claim arose; otherwise, the Dispute is permanently barred, which means that you and Company will not have the right to assert the claim.'
+                                  'Any Dispute must be filed within one year after the relevant claim arose; otherwise, the Dispute is permanently barred, which means that you and Corporation will not have the right to assert the claim.'
                               }
                             ]
                           }
@@ -2553,7 +2551,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                               {
                                 type: 'span',
                                 value:
-                                  'You have the right to opt out of binding arbitration within 30 days of the date you first accepted the terms of this Section 17 by sending a written notice to the Company by email at '
+                                  'You have the right to opt out of binding arbitration within 30 days of the date you first accepted the terms of this Section 17 by sending a written notice to the Corporation by email at '
                               },
                               {
                                 url: 'mailto:support@interledger.app',
@@ -2568,7 +2566,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                               {
                                 type: 'span',
                                 value:
-                                  ' or by certified mail addressed to Fynbos Inc, 447 Broadway, 2nd Floor Suite #2233, New York, 10013. In order to be effective, the opt-out notice must include your full name and address and clearly indicate your intent to opt out of binding arbitration. By opting out of binding arbitration, you are agreeing to resolve Disputes in accordance with Section 17.'
+                                  ' or by certified mail addressed to Interledger Inc, 447 Broadway, 2nd Floor Suite #2233, New York, 10013. In order to be effective, the opt-out notice must include your full name and address and clearly indicate your intent to opt out of binding arbitration. By opting out of binding arbitration, you are agreeing to resolve Disputes in accordance with Section 17.'
                               }
                             ]
                           }
@@ -2730,7 +2728,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          'The failure of Company to exercise or enforce any right or provision of these Terms will not operate as a waiver of such right or provision. These Terms reflect the entire agreement between the parties relating to the subject matter hereof and supersede all prior agreements, representations, statements and understandings of the parties, whether express or implied. The section titles in these Terms are for convenience only and have no legal or contractual effect. Use of the word “including” will be interpreted to mean “including without limitation.” You may not assign your rights and obligations under these Terms without our express written consent. Our failure to exercise or enforce any right or provision of these Terms will not operate as a waiver of such right or provision. We will not be liable for any delay or failure to perform any obligation under these Terms where the delay or failure results from any cause beyond our reasonable control. Your access to or use of the Services does not create any form of partnership, joint venture or any other similar relationship between you and us. Except as otherwise provided herein, these Terms are intended solely for the benefit of the parties and are not intended to confer third-party beneficiary rights upon any other person or entity. You agree that communications and transactions between us may be conducted electronically.'
+                          'The failure of Corporation to exercise or enforce any right or provision of these Terms will not operate as a waiver of such right or provision. These Terms reflect the entire agreement between the parties relating to the subject matter hereof and supersede all prior agreements, representations, statements and understandings of the parties, whether express or implied. The section titles in these Terms are for convenience only and have no legal or contractual effect. Use of the word “including” will be interpreted to mean “including without limitation.” You may not assign your rights and obligations under these Terms without our express written consent. Our failure to exercise or enforce any right or provision of these Terms will not operate as a waiver of such right or provision. We will not be liable for any delay or failure to perform any obligation under these Terms where the delay or failure results from any cause beyond our reasonable control. Your access to or use of the Services does not create any form of partnership, joint venture or any other similar relationship between you and us. Except as otherwise provided herein, these Terms are intended solely for the benefit of the parties and are not intended to confer third-party beneficiary rights upon any other person or entity. You agree that communications and transactions between us may be conducted electronically.'
                       }
                     ]
                   }
@@ -2796,7 +2794,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
             },
             {
               tag: 'meta',
-              attributes: { property: 'og:site_name', content: 'Fynbos' },
+              attributes: { property: 'og:site_name', content: 'Interledger' },
               content: null,
               __typename: 'Tag'
             },
@@ -2888,7 +2886,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          '© 2024 Fynbos Inc and the Interledger Foundation.'
+                          '© 2024 Interledger Inc and the Interledger Foundation.'
                       }
                     ]
                   },
@@ -2910,7 +2908,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          '. The Interledger app is powered by Fynbos on behalf of the Interledger Foundation as a service to the Interledger community. Fynbos Inc is not a bank. Fynbos provides a technology platform and all payments and banking services are provided by our partners who are appropriately licensed.'
+                          '. The Interledger app is powered by Interledger on behalf of the Interledger Foundation as a service to the Interledger community. Interledger Inc is not a bank. Interledger provides a technology platform and all payments and banking services are provided by our partners who are appropriately licensed.'
                       }
                     ]
                   }
@@ -3000,7 +2998,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          'Fynbos ("we," "us," or "our") respects your privacy and is committed to protecting your personal data. This Privacy Policy ("Policy") will inform you about how we collect, use, share, and protect your personal data when you use our online digital wallet services (collectively, the "Services").'
+                          'Interledger ("we," "us," or "our") respects your privacy and is committed to protecting your personal data. This Privacy Policy ("Policy") will inform you about how we collect, use, share, and protect your personal data when you use our online digital wallet services (collectively, the "Services").'
                       }
                     ]
                   },
@@ -3316,7 +3314,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          'Fynbos will never sell your personal data or disclose it to a third-party unless required to do so to deliver the Services to you.'
+                          'Interledger will never sell your personal data or disclose it to a third-party unless required to do so to deliver the Services to you.'
                       }
                     ]
                   },
@@ -4134,7 +4132,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
             },
             {
               tag: 'meta',
-              attributes: { property: 'og:site_name', content: 'Fynbos' },
+              attributes: { property: 'og:site_name', content: 'Interledger' },
               content: null,
               __typename: 'Tag'
             },
@@ -4226,7 +4224,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          '© 2024 Fynbos Inc and the Interledger Foundation.'
+                          '© 2024 Interledger Inc and the Interledger Foundation.'
                       }
                     ]
                   },
@@ -4248,7 +4246,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          '. The Interledger app is powered by Fynbos on behalf of the Interledger Foundation as a service to the Interledger community. Fynbos Inc is not a bank. Fynbos provides a technology platform and all payments and banking services are provided by our partners who are appropriately licensed.'
+                          '. The Interledger app is powered by Interledger on behalf of the Interledger Foundation as a service to the Interledger community. Interledger Inc is not a bank. Interledger provides a technology platform and all payments and banking services are provided by our partners who are appropriately licensed.'
                       }
                     ]
                   }
@@ -4339,7 +4337,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          'If you have registered and activated an Interledger wallet (as defined herein), Fynbos Inc (”Fynbos”) grants you a license to use the wallet addresses associated with that wallet in accordance with the following terms (the “Terms”). Please note that your license solely applies to the wallet address URL as specified by you at the time the wallet address was activated and does not confer any rights to use any future wallet addresses Fynbos may activate nor any third party wallet addresses or URLs which are not owned by Fynbos.'
+                          'If you have registered and activated an Interledger wallet (as defined herein), Interledger Foundation ("Interledger") grants you a license to use the wallet addresses associated with that wallet in accordance with the following terms (the "Terms"). Please note that your license solely applies to the wallet address URL as specified by you at the time the wallet address was activated and does not confer any rights to use any future wallet addresses Interledger may activate nor any third party wallet addresses or URLs which are not owned by Interledger.'
                       }
                     ]
                   },
@@ -4555,7 +4553,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          'Fynbos hereby grants to each wallet address holder (”Holder”) a license to the wallet address activated by such Holder, upon the following terms and conditions and the other provisions of these Terms:'
+                          'Interledger hereby grants to each wallet address holder ("Holder") a license to the wallet address activated by such Holder, upon the following terms and conditions and the other provisions of these Terms:'
                       }
                     ]
                   },
@@ -4587,7 +4585,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                               {
                                 type: 'span',
                                 value:
-                                  'For any Holder, the license to use a wallet address or any derivative work from a wallet address commences when such Holder activates the wallet address and terminates automatically when such Holder violates any of these Terms or at the express discretion of Fynbos.'
+                                  'For any Holder, the license to use a wallet address or any derivative work from a wallet address commences when such Holder activates the wallet address and terminates automatically when such Holder violates any of these Terms or at the express discretion of Interledger.'
                               }
                             ]
                           }
@@ -4617,7 +4615,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                               {
                                 type: 'span',
                                 value:
-                                  'Each Holder may use his or her wallet or wallet address without attribution to Fynbos.'
+                                  'Each Holder may use his or her wallet or wallet address without attribution to Interledger.'
                               }
                             ]
                           }
@@ -4662,7 +4660,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                               {
                                 type: 'span',
                                 value:
-                                  'Except as otherwise provided herein, the Personal Use Right does not grant any rights to use the word “Fynbos” or the Fynbos corporate logo or any trademark of Fynbos Inc in connection with the use of any wallet.'
+                                  'Except as otherwise provided herein, the Personal Use Right does not grant any rights to use the word "Interledger" or the Interledger logo or any trademark of the Interledger Foundation in connection with the use of any wallet.'
                               }
                             ]
                           }
@@ -4676,7 +4674,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          'Fynbos retains exclusive interest in and ownership of its intellectual property, including without limitation all patents, copyrights, trademarks (together with the goodwill symbolized thereby), trade secrets, know-how, and other confidential or proprietary information, and other intellectual property rights (collectively “Intellectual Property Rights”). Each Holder acknowledges and agrees that Fynbos’s Intellectual Property Rights subsist in, and Fynbos retains all Intellectual Property Rights in, each and any wallet address, part thereof or combination thereof.'
+                          'Interledger retains exclusive interest in and ownership of its intellectual property, including without limitation all patents, copyrights, trademarks (together with the goodwill symbolized thereby), trade secrets, know-how, and other confidential or proprietary information, and other intellectual property rights (collectively "Intellectual Property Rights"). Each Holder acknowledges and agrees that Interledger\'s Intellectual Property Rights subsist in, and Interledger retains all Intellectual Property Rights in, each and any wallet address, part thereof or combination thereof.'
                       }
                     ]
                   },
@@ -4686,7 +4684,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          'Except for the grant of the Personal Use Right in accordance with these Terms, nothing in these Terms functions to assign or transfer, nor creates any right in favor of any person to use, any of Fynbos’s Intellectual Property Rights.'
+                          'Except for the grant of the Personal Use Right in accordance with these Terms, nothing in these Terms functions to assign or transfer, nor creates any right in favor of any person to use, any of Interledger\'s Intellectual Property Rights.'
                       }
                     ]
                   },
@@ -4773,7 +4771,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                               {
                                 type: 'span',
                                 value:
-                                  'remove, obscure or alter any proprietary notices associated with the wallet address, or give any express or implied misrepresentation that the Holder or another third party are Fynbos or the holder of the copyright or other applicable intellectual property rights in any wallet address;'
+                                  'remove, obscure or alter any proprietary notices associated with the wallet address, or give any express or implied misrepresentation that the Holder or another third party are Interledger or the holder of the copyright or other applicable intellectual property rights in any wallet address;'
                               }
                             ]
                           }
@@ -4832,7 +4830,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          'For the avoidance of doubt, in order to use wallet addresses for a purpose not authorized by these Terms, the Holder must first (1) obtain a license directly from Fynbos; and (2) secure additional permissions as necessary. Fynbos shall be under no obligation to grant or negotiate or offer such additional license and may either grant or withhold such license in its sole and absolute discretion.'
+                          'For the avoidance of doubt, in order to use wallet addresses for a purpose not authorized by these Terms, the Holder must first (1) obtain a license directly from Interledger; and (2) secure additional permissions as necessary. Interledger shall be under no obligation to grant or negotiate or offer such additional license and may either grant or withhold such license in its sole and absolute discretion.'
                       }
                     ]
                   },
@@ -4849,7 +4847,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                               {
                                 type: 'span',
                                 value:
-                                  'Indemnification Obligations. Without limiting the obligations in these Terms, each Holder agrees to indemnify, hold harmless, compensate and reimburse Fynbos and its respective subsidiaries, affiliates, officers, agents, employees, partners, and licensors from or for any claim, demand, loss, or damages, including reasonable attorneys’ fees, arising out of or related to Holder’s use of the wallet address or Holder’s violation of these Terms.'
+                                  'Indemnification Obligations. Without limiting the obligations in these Terms, each Holder agrees to indemnify, hold harmless, compensate and reimburse Interledger and its respective subsidiaries, affiliates, officers, agents, employees, partners, and licensors from or for any claim, demand, loss, or damages, including reasonable attorneys\' fees, arising out of or related to Holder\'s use of the wallet address or Holder\'s violation of these Terms.'
                               }
                             ]
                           }
@@ -4864,7 +4862,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                               {
                                 type: 'span',
                                 value:
-                                  'Injunctive Relief. Notwithstanding anything else in these Terms, Holder hereby agrees that, in the event of Holder’s or any third party’s unauthorized access to, or use of, the wallet address in violation of these Terms, Fynbos shall be entitled to apply for injunctive remedies (or an equivalent type of urgent legal relief) in any jurisdiction, without providing notice or opportunity to cure.'
+                                  'Injunctive Relief. Notwithstanding anything else in these Terms, Holder hereby agrees that, in the event of Holder\'s or any third partys unauthorized access to, or use of, the wallet address in violation of these Terms, Interledger shall be entitled to apply for injunctive remedies (or an equivalent type of urgent legal relief) in any jurisdiction, without providing notice or opportunity to cure.'
                               }
                             ]
                           }
@@ -4879,7 +4877,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                               {
                                 type: 'span',
                                 value:
-                                  'Amendments. Fynbos may make changes to these Terms from time to time. If Fynbos makes changes, we may provide you with notice of such changes, such as by sending an email, providing a notice through our Services or updating the date at the top of these Terms. Unless we state otherwise, the amended terms will be effective immediately, and your continued use of our Services after we provide such notice will confirm your acceptance of the changes.'
+                                  'Amendments. Interledger may make changes to these Terms from time to time. If Interledger makes changes, we may provide you with notice of such changes, such as by sending an email, providing a notice through our Services or updating the date at the top of these Terms. Unless we state otherwise, the amended terms will be effective immediately, and your continued use of our Services after we provide such notice will confirm your acceptance of the changes.'
                               }
                             ]
                           }
@@ -4976,7 +4974,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
             },
             {
               tag: 'meta',
-              attributes: { property: 'og:site_name', content: 'Fynbos' },
+              attributes: { property: 'og:site_name', content: 'Interledger' },
               content: null,
               __typename: 'Tag'
             },
@@ -5068,7 +5066,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          '© 2024 Fynbos Inc and the Interledger Foundation.'
+                          '© 2024 Interledger Inc and the Interledger Foundation.'
                       }
                     ]
                   },
@@ -5090,7 +5088,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          '. The Interledger app is powered by Fynbos on behalf of the Interledger Foundation as a service to the Interledger community. Fynbos Inc is not a bank. Fynbos provides a technology platform and all payments and banking services are provided by our partners who are appropriately licensed.'
+                          '. The Interledger app is powered by Interledger on behalf of the Interledger Foundation as a service to the Interledger community. Interledger Inc is not a bank. Interledger provides a technology platform and all payments and banking services are provided by our partners who are appropriately licensed.'
                       }
                     ]
                   }
@@ -5182,7 +5180,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          'Fynbos is dedicated to providing an accessible and inclusive experience for all of our services, for all users, including those who use assistive technologies such as screen reading software, screen enlargement software, and alternative keyboard input devices. We firmly believe that everyone should have equal access to our services and are committed to continuously improving the accessibility of our platform.'
+                          'Interledger Foundation is dedicated to providing an accessible and inclusive experience for all of our services, for all users, including those who use assistive technologies such as screen reading software, screen enlargement software, and alternative keyboard input devices. We firmly believe that everyone should have equal access to our services and are committed to continuously improving the accessibility of our platform.'
                       }
                     ]
                   },
@@ -5192,7 +5190,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          'In order to achieve this goal, Fynbos actively strives to implement the Web Content Accessibility Guidelines (WCAG) version 2.0/2.1 Level AA standard across all content and elements of our website. We regularly review and update our website to ensure it meets the evolving accessibility standards and best practices. Additionally, Fynbos works closely with an assistive technology vendor to carry out periodic testing of our website using various assistive technologies, which helps us ensure full compliance with WCAG 2.0/2.1 Level AA.'
+                          'In order to achieve this goal, Interledger Foundation actively strives to implement the Web Content Accessibility Guidelines (WCAG) version 2.0/2.1 Level AA standard across all content and elements of our website. We regularly review and update our website to ensure it meets the evolving accessibility standards and best practices. Additionally, Interledger Foundation works closely with an assistive technology vendor to carry out periodic testing of our website using various assistive technologies, which helps us ensure full compliance with WCAG 2.0/2.1 Level AA.'
                       }
                     ]
                   },
@@ -5283,7 +5281,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
             },
             {
               tag: 'meta',
-              attributes: { property: 'og:site_name', content: 'Fynbos' },
+              attributes: { property: 'og:site_name', content: 'Interledger' },
               content: null,
               __typename: 'Tag'
             },
@@ -5375,7 +5373,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          '© 2024 Fynbos Inc and the Interledger Foundation.'
+                          '© 2024 Interledger Inc and the Interledger Foundation.'
                       }
                     ]
                   },
@@ -5397,7 +5395,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          '. The Interledger app is powered by Fynbos on behalf of the Interledger Foundation as a service to the Interledger community. Fynbos Inc is not a bank. Fynbos provides a technology platform and all payments and banking services are provided by our partners who are appropriately licensed.'
+                          '. The Interledger app is powered by Interledger on behalf of the Interledger Foundation as a service to the Interledger community. Interledger Inc is not a bank. Interledger provides a technology platform and all payments and banking services are provided by our partners who are appropriately licensed.'
                       }
                     ]
                   }
@@ -5489,7 +5487,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          'This E-Sign Agreement ("Agreement") outlines the terms and conditions for receiving electronic Communications and using electronic signatures in your relationship with Fynbos Inc. and its affiliates and third-party service providers (collectively, "Fynbos"). By agreeing to this Agreement, you consent to the electronic delivery of Communications and the use of electronic signatures.'
+                          'This E-Sign Agreement ("Agreement") outlines the terms and conditions for receiving electronic Communications and using electronic signatures in your relationship with Interledger Foundation and its affiliates and third-party service providers (collectively, "Interledger"). By agreeing to this Agreement, you consent to the electronic delivery of Communications and the use of electronic signatures.'
                       }
                     ]
                   },
@@ -5513,7 +5511,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                               {
                                 type: 'span',
                                 value:
-                                  '"Services" refers to the products, software, and services offered by Fynbos Inc.'
+                                  '"Services" refers to the products, software, and services offered by Interledger Foundation.'
                               }
                             ]
                           }
@@ -5528,7 +5526,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                               {
                                 type: 'span',
                                 value:
-                                  '"Communications" include any communications, notices, agreements, billing statements, or disclosures provided by Fynbos in relation to our Services.'
+                                  '"Communications" include any communications, notices, agreements, billing statements, or disclosures provided by Interledger in relation to our Services.'
                               }
                             ]
                           }
@@ -5554,7 +5552,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          'Under this Agreement, Fynbos may provide all Communications electronically by email, by text message, or by making them accessible via Fynbos websites. We may also use electronic signatures and obtain them from you.'
+                          'Under this Agreement, Interledger may provide all Communications electronically by email, by text message, or by making them accessible via Interledger websites. We may also use electronic signatures and obtain them from you.'
                       }
                     ]
                   },
@@ -5735,7 +5733,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                               {
                                 type: 'span',
                                 value:
-                                  'Regularly check your email and Fynbos account for new Communications.'
+                                  'Regularly check your email and Interledger account for new Communications.'
                               }
                             ]
                           }
@@ -5798,7 +5796,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          '. However, withdrawal of your consent may result in termination of your access to Services. Any withdrawal of your consent will be effective after a reasonable period of time for processing your request, and Fynbos will confirm your withdrawal of consent and its effective date in writing.'
+                          '. However, withdrawal of your consent may result in termination of your access to Services. Any withdrawal of your consent will be effective after a reasonable period of time for processing your request, and Interledger will confirm your withdrawal of consent and its effective date in writing.'
                       }
                     ]
                   },
@@ -5819,7 +5817,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          'Fynbos may terminate this Agreement if you withdraw your consent to receive electronic Communications or if you violate the terms of the Agreement. Termination of the Agreement may result in the loss of access to Services and any associated data.'
+                          'Interledger may terminate this Agreement if you withdraw your consent to receive electronic Communications or if you violate the terms of the Agreement. Termination of the Agreement may result in the loss of access to Services and any associated data.'
                       }
                     ]
                   },
@@ -5861,7 +5859,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          'Fynbos reserves the right to update or modify this Agreement at any time. We will notify you of any changes to the Agreement via email or through the Services. Your continued use of the Services after receiving notice of any changes constitutes your acceptance of the revised Agreement.'
+                          'Interledger reserves the right to update or modify this Agreement at any time. We will notify you of any changes to the Agreement via email or through the Services. Your continued use of the Services after receiving notice of any changes constitutes your acceptance of the revised Agreement.'
                       }
                     ]
                   },
@@ -5996,7 +5994,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
             },
             {
               tag: 'meta',
-              attributes: { property: 'og:site_name', content: 'Fynbos' },
+              attributes: { property: 'og:site_name', content: 'Interledger' },
               content: null,
               __typename: 'Tag'
             },
@@ -6088,7 +6086,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          '© 2024 Fynbos Inc and the Interledger Foundation.'
+                          '© 2024 Interledger Inc and the Interledger Foundation.'
                       }
                     ]
                   },
@@ -6110,7 +6108,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          '. The Interledger app is powered by Fynbos on behalf of the Interledger Foundation as a service to the Interledger community. Fynbos Inc is not a bank. Fynbos provides a technology platform and all payments and banking services are provided by our partners who are appropriately licensed.'
+                          '. The Interledger app is powered by Interledger on behalf of the Interledger Foundation as a service to the Interledger community. Interledger Inc is not a bank. Interledger provides a technology platform and all payments and banking services are provided by our partners who are appropriately licensed.'
                       }
                     ]
                   }

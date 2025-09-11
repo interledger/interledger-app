@@ -966,6 +966,11 @@ table "transactions" {
     null = false
     type = bigint
   }
+  column "provider_fee" {
+    null = false
+    type = bigint
+    default = 0
+  }
   column "linked_account_title" {
     null = true
     type = text

@@ -16,6 +16,8 @@ The development environment will serve the various services under the following 
 | http://local.fynbos.me                   | Backend endpoint                            |
 | http://local.ilp.link                    | Wallet address                              |
 | http://traefik.test                      | Traefik dashboard                           |
+| http://rafiki.mgnt.interledger.test      | Rafiki                                      |
+| http://ngrok.test                        | Ngrok ui                                    |
 
 
 Prerequisites:
@@ -25,7 +27,7 @@ Start environment
 1. Add host entries
 Edit your `/etc/hosts` file with an appropriate text editor and add the following line
 ```
-127.0.0.1 interledger.test admin.mgnt.interledger.test temporal.mgnt.interledger.test local.fynbos.me local.ilp.link rafiki.mgnt.interledger.test auth.interledger.test traefik.test
+127.0.0.1 interledger.test admin.mgnt.interledger.test temporal.mgnt.interledger.test local.fynbos.me local.ilp.link rafiki.mgnt.interledger.test auth.interledger.test traefik.test ngrok.test
 ```
 
 All the domains used for local development will now point to your local host from where it will be served.
@@ -35,7 +37,18 @@ All the domains used for local development will now point to your local host fro
 # From repository folder
 
 cd ./local
+
+# start in backgroud
 docker compose up -d
+
+# start foreground
+docker compose up
+
+# foreground and live reload
+docker compose up --watch
+
+# start in bacground and live reload
+# not a supported feature in docker
 ```
 
 All services should start asyncronously and automatically rebuild sources whenever code changes have been made.

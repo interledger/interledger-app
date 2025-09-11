@@ -363,7 +363,10 @@ func RevokeGrant(ctx context.Context, b Backends, grantID string) error {
 	return nil
 }
 
-func UpdateWalletAddressStatus(ctx context.Context, b Backends, walletId string, status bool) error {
+func UpdateWalletAddressStatus(ctx context.Context, b Backends, walletId struct {
+	Id   string `db:"payment_pointer_id"`
+	Name string `db:"name"`
+}, status bool) error {
 	return b.External().UpdateWalletAddressStatus(ctx, walletId, status)
 
 }

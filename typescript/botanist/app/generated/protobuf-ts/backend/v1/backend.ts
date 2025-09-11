@@ -27,15 +27,6 @@ export interface PaginationRequest {
     pageToken?: string;
 }
 /**
- * @generated from protobuf enum backend.v1.PaginationRequest.A2
- */
-export enum PaginationRequest_A2 {
-    /**
-     * @generated from protobuf enum value: UNKNOWN = 0;
-     */
-    UNKNOWN = 0
-}
-/**
  * @generated from protobuf message backend.v1.Empty
  */
 export interface Empty {
@@ -888,6 +879,10 @@ export interface Transaction {
      * @generated from protobuf field: int32 refundState = 22;
      */
     refundState: number; // NA , PENDING , COMPLETE
+    /**
+     * @generated from protobuf field: string fundsReceived = 23;
+     */
+    fundsReceived: string;
 }
 /**
  * @generated from protobuf message backend.v1.ListTransactionsResponse
@@ -2636,15 +2631,6 @@ export interface SubmitFormRequest {
      * @generated from protobuf field: string data = 2;
      */
     data: string;
-}
-/**
- * @generated from protobuf enum backend.v1.A1
- */
-export enum A1 {
-    /**
-     * @generated from protobuf enum value: UNKNOWN = 0;
-     */
-    UNKNOWN = 0
 }
 /**
  * @generated from protobuf enum backend.v1.CustomerDeliveryAddressType
@@ -5777,11 +5763,12 @@ class Transaction$Type extends MessageType<Transaction> {
             { no: 19, name: "reference", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 20, name: "destinationIdentity", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 21, name: "destinationIdentityType", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 22, name: "refundState", kind: "scalar", T: 5 /*ScalarType.INT32*/ }
+            { no: 22, name: "refundState", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 23, name: "fundsReceived", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Transaction>): Transaction {
-        const message = { id: "", type: "", source: "", destination: "", state: "", foreignId: "", receiverAccountId: "", senderAccountId: "", title: "", formattedAmount: "", formattedTime: "", formattedDate: "", subtotal: "", fees: "", accountTitle: "", reference: "", destinationIdentity: "", destinationIdentityType: "", refundState: 0 };
+        const message = { id: "", type: "", source: "", destination: "", state: "", foreignId: "", receiverAccountId: "", senderAccountId: "", title: "", formattedAmount: "", formattedTime: "", formattedDate: "", subtotal: "", fees: "", accountTitle: "", reference: "", destinationIdentity: "", destinationIdentityType: "", refundState: 0, fundsReceived: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Transaction>(this, message, value);
@@ -5854,6 +5841,9 @@ class Transaction$Type extends MessageType<Transaction> {
                     break;
                 case /* int32 refundState */ 22:
                     message.refundState = reader.int32();
+                    break;
+                case /* string fundsReceived */ 23:
+                    message.fundsReceived = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -5930,6 +5920,9 @@ class Transaction$Type extends MessageType<Transaction> {
         /* int32 refundState = 22; */
         if (message.refundState !== 0)
             writer.tag(22, WireType.Varint).int32(message.refundState);
+        /* string fundsReceived = 23; */
+        if (message.fundsReceived !== "")
+            writer.tag(23, WireType.LengthDelimited).string(message.fundsReceived);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
