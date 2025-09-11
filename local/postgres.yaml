@@ -4,6 +4,10 @@ services:
     image: postgres:latest
     container_name: postgres
     restart: always
+    logging:
+      driver: "gelf"
+      options:
+        gelf-address: "tcp://localhost:12202"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
