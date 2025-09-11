@@ -838,6 +838,7 @@ func Confirm(ctx context.Context, b Backends, id string) (*payments.Payment, []p
 			title = "Deposit"
 			txType = transactions.TransactionTypeDeposit
 		}
+		fee := currency.FromFloat64(0, currency.USD)
 		txID, err := b.Transactions().CreateTransactionTx(ctx, tx, transactions.CreateTransactionArgs{
 			WalletID:                senderWallet.ID,
 			ForeignID:               dbp.ID,
@@ -848,6 +849,7 @@ func Confirm(ctx context.Context, b Backends, id string) (*payments.Payment, []p
 			Source:                  senderWallet.AddressString(),
 			Destination:             destination,
 			Amount:                  dbp.SenderAmount,
+			ProviderFee:             &fee,
 			LinkedAccountTitle:      la.Title(),
 			DestinationIdentity:     dbp.Receiver.Identifier,
 			DestinationIdentityType: dbp.Receiver.Type.String(),

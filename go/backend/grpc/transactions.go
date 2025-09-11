@@ -111,7 +111,25 @@ func transformTransaction(tx transactions.Transaction, transfers []transactions.
 		destinationIdentityType = "wallet"
 	}
 
-	fees := currency.FromFloat64(0, tx.Amount.Currency)
+	// This should always come from the module directly
+	feesPtr := currency.FromUInt64(0, currency.EUR)
+	fees := feesPtr.Format()
+
+	if tx.ProviderFee != nil {
+		fees = tx.ProviderFee.Format()
+	}
+
+	// add the fee to the display amount
+	fundsReceived := tx.Amount.Value
+
+	if tx.ProviderFee != nil {
+		if tx.Type == "deposit" {
+			fundsReceived -= tx.ProviderFee.Value
+		} else {
+			fundsReceived += tx.ProviderFee.Value
+		}
+	}
+	currencyAmt := currency.FromUInt64(fundsReceived, tx.Amount.Currency)
 
 	ret := &pb.Transaction{
 		Id:                      tx.ID,
@@ -127,7 +145,8 @@ func transformTransaction(tx transactions.Transaction, transfers []transactions.
 		FormattedTime:           tx.Timestamp.Format("15:04"),
 		FormattedDate:           tx.Timestamp.Format("02 Jan 2006"),
 		Subtotal:                subTotal,
-		Fees:                    fees.Format(),
+		FundsReceived:           currencyAmt.Format(),
+		Fees:                    fees,
 		AccountTitle:            tx.LinkedAccountTitle,
 		Reference:               tx.Reference,
 		DestinationIdentity:     tx.DestinationIdentity,

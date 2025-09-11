@@ -346,7 +346,13 @@ export function Scaffold() {
                     ) {
                       cardSetStep(AddCardStep.CARD_TYPE)
                     } else cardsStepBack()
-                  } else navigate(-1)
+                  } else {
+                    if (typeof scaffold.header.back === 'string') {
+                      navigate(scaffold.header.back)
+                    } else {
+                      navigate(-1)
+                    }
+                  }
                 }}
                 aria-label='Back'
               >
