@@ -16,6 +16,7 @@ import type { loader, passwordAction } from './route'
 
 export function Password() {
   const passwordFetcher = useFetcher<typeof passwordAction>()
+  const errors = passwordFetcher.data?.errors
   const { kratosFlowId, kratosCsrfToken, csrfToken } =
     useLoaderData<typeof loader>()
 
@@ -23,15 +24,24 @@ export function Password() {
   const [serviceAgreement, setServiceAgreement] = useState(false)
 
   useEffect(() => {
-    if (passwordFetcher.data?.errors?.form) {
+    if (errors?.form) {
       pushSnackbar({
-        id: passwordFetcher.data?.errors?.form,
-        message: passwordFetcher.data?.errors?.form,
+        id: errors?.form,
+        message: errors?.form,
         icon: 'close',
         canShow: true
       })
     }
-  }, [passwordFetcher.data?.errors?.form, pushSnackbar])
+
+    if (errors?.phone) {
+      pushSnackbar({
+        id: errors?.phone,
+        message: errors?.phone,
+        icon: 'close',
+        canShow: true
+      })
+    }
+  }, [errors, pushSnackbar])
 
   const [firstName, lastName, email, country, id, phone] = useSignupStore(
     (state) => [
