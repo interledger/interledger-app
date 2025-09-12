@@ -11,7 +11,6 @@ import {
   Chip,
   ChipColor,
   Dialog,
-  DiscordIcon,
   Icon,
   InterledgerIcon,
   LinkedInIcon,
@@ -41,9 +40,6 @@ export const PaymentDetailsCard = () => {
                   PaymentIdentityType.WalletID) && <InterledgerIcon />}
               {payment.receiverIdentityType === PaymentIdentityType.Twitter && (
                 <TwitterIcon />
-              )}
-              {payment.receiverIdentityType === PaymentIdentityType.Discord && (
-                <DiscordIcon />
               )}
               {payment.receiverIdentityType === PaymentIdentityType.Slack && (
                 <SlackIcon />
@@ -113,7 +109,6 @@ export const PaymentDetailsCard = () => {
                 <div className='flex space-x-2'>
                   {identity.platform == 'twitter' && <TwitterIcon />}
                   {identity.platform == 'linkedin' && <LinkedInIcon />}
-                  {identity.platform == 'discord' && <DiscordIcon />}
                   {identity.platform == 'slack' && <SlackIcon />}
                   {identity.platform == 'domain' && <Icon>captive_portal</Icon>}
                   <span>{identity.identifier}</span>

@@ -123,9 +123,8 @@ service BackendService {
   // Search
   rpc SearchWallets(SearchWalletsRequest) returns (SearchWalletsResponse);
 
-  // Discord
-  rpc DiscordCallback(DiscordCallbackRequest) returns (DiscordCallbackResponse);
-  rpc CreateDiscordAuthURL(Empty) returns (CreateDiscordAuthURLResponse);
+  // Dynamic Forms
+  rpc SubmitForm(SubmitFormRequest) returns (Empty);
 
   // Slack
   rpc CreateSlackAuthURL(Empty) returns (CreateSlackAuthURLResponse);
@@ -1153,20 +1152,8 @@ message TwitterCallbackResponse {
   string id = 1;
 }
 
-message DiscordCallbackRequest {
-  string state = 1;
-  string code = 2;
-}
-
-message DiscordCallbackResponse {
-  string id = 1;
-}
-
-message CreateDiscordAuthURLResponse {
-  string url = 1;
-}
-
 message GetIdentityRequest {
+
   string id = 1;
 }
 
@@ -1199,4 +1186,9 @@ message CreateDomainIdentityResponse {
 
 message VerifyIdentityRequest {
   string id = 1;
+}
+
+message SubmitFormRequest {
+  string form_id = 1;
+  string data = 2;
 }

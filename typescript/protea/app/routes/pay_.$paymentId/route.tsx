@@ -61,7 +61,6 @@ export enum PaymentIdentityType {
   WalletID,
   WalletURL,
   Slack,
-  Discord,
   Sentinel // End of range value must be last, no need to public
 }
 
@@ -100,10 +99,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         {
           id: payment.receiverWalletUrl,
           wallet: '',
-          platform:
-            payment.receiverIdentityType == PaymentIdentityType.Slack
-              ? 'slack'
-              : 'discord',
+          platform: payment.receiverIdentityType,
           identifier: payment.receiverIdentity,
           state: '',
           keyId: '',

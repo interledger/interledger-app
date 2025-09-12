@@ -7,7 +7,7 @@ import (
 	"gitlab.com/fynbos/backend/agreements"
 	"gitlab.com/fynbos/backend/analytics"
 	"gitlab.com/fynbos/backend/contacts"
-	"gitlab.com/fynbos/backend/discord"
+	"gitlab.com/fynbos/backend/dynamicforms"
 	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/features"
 	"gitlab.com/fynbos/backend/healthcheck"
@@ -57,7 +57,7 @@ type Backends interface {
 	Features() features.Client
 	Wallets() wallets.Client
 	Payments() payments.Client
-	Discord() discord.Client
+	DynamicForms() dynamicforms.Client
 	Slack() slack.Client
 	Rafiki() rafiki.Client
 	Xago() xago.Client
