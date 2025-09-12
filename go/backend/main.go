@@ -31,8 +31,6 @@ import (
 	"gitlab.com/fynbos/backend/authorisation"
 	authorisation_client "gitlab.com/fynbos/backend/authorisation/client"
 	auth_http "gitlab.com/fynbos/backend/authorisation/http"
-	"gitlab.com/fynbos/backend/aws"
-	aws_client "gitlab.com/fynbos/backend/aws/client"
 	"gitlab.com/fynbos/backend/cli"
 	"gitlab.com/fynbos/backend/contacts"
 	contacts_client "gitlab.com/fynbos/backend/contacts/client"
@@ -502,7 +500,6 @@ type backends struct {
 	dynamicforms   dynamicforms.Client
 	slack          slack.Client
 	rafiki         rafiki.Client
-	aws            aws.Client
 	xago           xago.Client
 	pac            pacioli.Client
 	pti            pti.Client
@@ -529,10 +526,6 @@ func (b backends) Pacioli() pacioli.Client {
 
 func (b backends) Xago() xago.Client {
 	return b.xago
-}
-
-func (b backends) AWS() aws.Client {
-	return b.aws
 }
 
 func (b backends) DynamicForms() dynamicforms.Client {
@@ -737,11 +730,6 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	b.auth = authorisation_client.New(b)
 
 	b.analytics = analytics_client.New(b, args.SegmentKey)
-
-	b.aws, err = aws_client.New(context.Background())
-	if err != nil {
-		log.Error("failed to start AWS client", zap.Error(err))
-	}
 
 	b.basistheory = bt_client.New(args.BasisTheoryApiKey, b)
 
