@@ -3,6 +3,9 @@ services:
     build:
       context: ../typescript/protea
       target: dev
+    profiles:
+      - application
+      - frontend
     restart: always
     develop:
       watch:
@@ -30,3 +33,6 @@ services:
       - BACKEND_GRPC_URL=http://backend:8443
       
       - REDIS_URL=redis://redis:6379/2
+
+    depends_on:
+      - backend

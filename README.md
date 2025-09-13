@@ -35,21 +35,61 @@ All the domains used for local development will now point to your local host fro
 2. Start all services using Docker Compose
 ```sh
 # From repository folder
-
 cd ./local
 
-# start in backgroud
-docker compose up -d
+# start all services backgroud
+docker compose --profile "*" up -d
 
-# start foreground
-docker compose up
+# start all services foreground
+docker compose --profile "*" up
 
-# foreground and live reload
-docker compose up --watch
+# start all services foreground and live reload
+docker compose --profile "*" up --watch
 
 # start in bacground and live reload
 # not a supported feature in docker
+
+# available profiles
+# - infrastructure (traefik, postgres, redis)
+# - services (kratos, temporal, rafiki) # note: requires infrastructure
+# - application (backend+frontend) # note: requires infrastrucure and services
+# - backend
+# - frontend
+
+# e.g infrastructure
+docker compose --profile infrastructure up
+
+# multiple profiles
+docker compose --profile infrastructure --profile services up
 ```
+
+> **Note:** Remember to start profiles in order.
+
+3. Use ```make``` (uses ```docker compose``` under the hood) - allows you to orchestrate the services
+```sh
+# print usage
+make help
+
+make <command>
+e.g. make infrastructure
+
+Commands:
+  infrastructure       Start infrastructure services - traefik, postgres, redis
+  services             Start application services - kratos, temporal, rafiki services, requires infrastructure services
+  application          Start wallet application - backend and frontend, requires services and infrastructure
+  backend              Start only the backend service
+  frontend             Start only the frontend service
+  all                  Start all services
+  down                 Stop all running services
+  delete-volumes       Stop all services and remove associated volumes
+  help                 Display this help message
+```
+```sh
+# e.g.
+make infrastructure # make infra - traefik, postgres, redis
+```
+> **Note:** It's important to remember that you orchestrate how everything is started, tailored for your own needs.
+
 
 All services should start asyncronously and automatically rebuild sources whenever code changes have been made.
 
@@ -66,6 +106,8 @@ Removes the whole environment to start fresh
 ```sh
 # Remove containers and volumes
 docker compose down -v
+# or
+make delete-volumes
 ```
 
 ## Legacy Development environment

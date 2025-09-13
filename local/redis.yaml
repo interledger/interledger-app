@@ -2,6 +2,8 @@ services:
   # 1. Redis server
   redis:
     image: redis:7-alpine
+    profiles:
+      - infrastructure
     ports:
       - "6379:6379"
     volumes:
