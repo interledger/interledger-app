@@ -916,7 +916,7 @@ table "transactions" {
   }
   column "reference_id" {
     null = true
-    type = text
+    type = uuid
   }
   column "wallet_id" {
     null = false
