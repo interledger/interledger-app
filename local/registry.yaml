@@ -9,6 +9,8 @@ services:
     # docker push --platform linux/arm64/v8 localhost:5000/ubuntu 
     # docker push --platform linux/amd64 localhost:5000/ubuntu
     image: registry:latest
+    profiles:
+      - infrastructure
     ports:
       - "5000:5000"
     restart: always
@@ -25,6 +27,8 @@ services:
   # 2. Docker Registry UI
   registry-ui:
     image: joxit/docker-registry-ui:latest
+    profiles:
+      - infrastructure
     ports:
       - "27015:80"
     environment:

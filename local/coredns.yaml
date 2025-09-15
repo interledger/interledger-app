@@ -1,7 +1,8 @@
 services:
   dns:
     image: coredns/coredns:latest
-    container_name: dns-server
+    profiles:
+      - infrastructure
     volumes:
       - ./config:/etc/coredns
     ports:
