@@ -3,6 +3,9 @@ services:
     build:
       context: ../typescript/botanist
       target: dev
+    profiles:
+      - application
+      - frontend
     restart: always
     develop:
       watch:
@@ -25,3 +28,6 @@ services:
 
       - CHOKIDAR_USEPOLLING=true
       - BACKEND_GRPC_URL=backend:8448
+
+    depends_on:
+      - backend

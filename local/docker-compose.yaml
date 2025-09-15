@@ -1,19 +1,18 @@
 include:
-  # tier 0 (infrastructure)
+  # profile: infrastructure
+  - traefik.yaml
   - postgres.yaml
   - redis.yaml
-  - traefik.yaml
   # - coredns.yaml
-
-  # tier 1 (operational)
   # - registry.yaml
 
-  # tier 2 (application services)
+  # profile: services
   - kratos.yaml
   - temporal.yaml
   - rafiki.yaml
-  
-  # tier 3 (application)
+  # - ngrok.yaml
+
+  # profile: application
   - wallet.yaml
   - protea.yaml
   - botanist.yaml
