@@ -229,28 +229,6 @@ const (
 	transferCols    = ` id, foreign_id, linked_acc_id, type, state, amount, asset_scale, asset_code, updated_at `
 )
 
-type dbTransaction struct {
-	ID                      string                       `db:"id"`
-	ForeignID               sql.NullString               `db:"foreign_id"`
-	Type                    transactions.TransactionType `db:"type"`
-	State                   transactions.State           `db:"state"`
-	Provider                transactions.Provider        `db:"provider"`
-	Note                    sql.NullString               `db:"note"`
-	Source                  sql.NullString               `db:"source"`
-	Destination             sql.NullString               `db:"destination"`
-	Title                   sql.NullString               `db:"title"`
-	Amount                  uint64                       `db:"amount"`
-	ProviderFee             uint64                       `db:"provider_fee"`
-	Scale                   int                          `db:"asset_scale"`
-	Asset                   string                       `db:"asset_code"`
-	Timestamp               time.Time                    `db:"updated_at"`
-	LinkedAccountTitle      sql.NullString               `db:"linked_account_title"`
-	DestinationIdentityType sql.NullString               `db:"destination_identity_type"`
-	DestinationIdentity     sql.NullString               `db:"destination_identity"`
-	Reference               sql.NullString               `db:"reference"`
-	RefundState             transactions.RefundState     `db:"refund_state"`
-}
-
 func List(ctx context.Context, b Backends, walletID string, page db.Pagination) ([]transactions.Transaction, error) {
 
 	sqlStmt := "SELECT %s FROM transactions WHERE wallet_id=$1 ORDER BY updated_at DESC,id  %s"
@@ -304,7 +282,7 @@ func ListAllTransactions(ctx context.Context, b Backends, page db.Pagination) ([
 }
 
 func listTransaction(ctx context.Context, b Backends, page db.Pagination, sqlStmt string, sqlArgs []interface{}) ([]transactions.Transaction, error) {
-	var txs []dbTransaction
+	var txs []transactions.DbTransaction
 	err := b.DB().SelectContext(ctx, &txs,
 		fmt.Sprintf(sqlStmt, transactionCols, page.SQL()),
 		sqlArgs...)
@@ -332,7 +310,7 @@ func ListTransactionsInRange(ctx context.Context, b Backends, walletID string, i
 	orderAndPaginate := "ORDER BY updated_at DESC"
 	query := strings.Join([]string{selectByWallet, andByState, andByDateRange, orderAndPaginate}, " ")
 
-	var txs []dbTransaction
+	var txs []transactions.DbTransaction
 	err := b.DB().SelectContext(ctx, &txs, query,
 		walletID, transactions.StateCompleted, transactions.StateFailed, transactions.StatePending, transactions.TransactionTypeOpenPaymentIncoming, inRange.StartTimestamp, inRange.EndTimestamp)
 	if err != nil {
@@ -353,7 +331,7 @@ func ListTransactionsInRange(ctx context.Context, b Backends, walletID string, i
 }
 
 func GetTransaction(ctx context.Context, b Backends, walletID string, trxID string) (*transactions.Transaction, error) {
-	var tx dbTransaction
+	var tx transactions.DbTransaction
 	err := b.DB().GetContext(ctx, &tx,
 		fmt.Sprintf("SELECT %s FROM transactions WHERE wallet_id=$1 and id=$2", transactionCols),
 		walletID, trxID)
@@ -376,7 +354,7 @@ func GetTransactionByForeignID(ctx context.Context, b Backends, walletID string,
 		id = foreignID[idxSlash+1:]
 	}
 
-	var tx dbTransaction
+	var tx transactions.DbTransaction
 	err := b.DB().GetContext(ctx, &tx,
 		fmt.Sprintf("SELECT %s FROM transactions WHERE wallet_id=$1 and foreign_id=$2", transactionCols),
 		walletID, id)
@@ -643,7 +621,7 @@ func ListTransfers(ctx context.Context, b Backends, txID string) ([]transactions
 	return getTransfers(ctx, b, txID)
 }
 
-func transformTransaction(tx dbTransaction) transactions.Transaction {
+func transformTransaction(tx transactions.DbTransaction) transactions.Transaction {
 	return transactions.Transaction{
 		ID:                      tx.ID,
 		ForeignID:               tx.ForeignID.String,

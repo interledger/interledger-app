@@ -1,6 +1,7 @@
 package transactions
 
 import (
+	"database/sql"
 	"time"
 
 	"gitlab.com/fynbos/backend/currency"
@@ -138,4 +139,28 @@ type Transfer struct {
 type TransactionRangeFilter struct {
 	StartTimestamp time.Time
 	EndTimestamp   time.Time
+}
+
+type DbTransaction struct {
+	ID                      string          `db:"id"`
+	ForeignID               sql.NullString  `db:"foreign_id"`
+	WalletID                sql.NullString  `db:"wallet_id"`
+	ReferenceID             sql.NullString  `db:"reference_id"`
+	Type                    TransactionType `db:"type"`
+	State                   State           `db:"state"`
+	Provider                Provider        `db:"provider"`
+	Note                    sql.NullString  `db:"note"`
+	Source                  sql.NullString  `db:"source"`
+	Destination             sql.NullString  `db:"destination"`
+	Title                   sql.NullString  `db:"title"`
+	Amount                  uint64          `db:"amount"`
+	ProviderFee             uint64          `db:"provider_fee"`
+	Scale                   int             `db:"asset_scale"`
+	Asset                   string          `db:"asset_code"`
+	Timestamp               time.Time       `db:"updated_at"`
+	LinkedAccountTitle      sql.NullString  `db:"linked_account_title"`
+	DestinationIdentityType sql.NullString  `db:"destination_identity_type"`
+	DestinationIdentity     sql.NullString  `db:"destination_identity"`
+	Reference               sql.NullString  `db:"reference"`
+	RefundState             RefundState     `db:"refund_state"`
 }
