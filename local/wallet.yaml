@@ -5,13 +5,15 @@ services:
       context: ../go
       dockerfile: backend/Dockerfile
       target: builder
+    profiles:
+      - application
+      - backend
     command: "migrate"
     develop:
       watch:
         - path: ../go
           action: rebuild
-    container_name: migration
-    restart: always
+    restart: on-failure
     environment:
       - FYNBOS_ENV=local
       - RAFIKI_DB_URL=postgres://postgres:postgres@postgres:5432/rafiki_backend?sslmode=disable
@@ -21,18 +23,15 @@ services:
       - KRATOS_URL=http://kratos:4434 # check it if is public or admin
       - LOG_LEVEL=info
     
-    depends_on:
-      - postgres
-      - kratos
-      - rafiki_backend
-
   # 2. Backend 
   backend:
     build:
       context: ../go
       dockerfile: backend/Dockerfile
       target: builder
-    container_name: backend
+    profiles:
+      - application
+      - backend
     command: "dev"
     develop:
       watch:
@@ -101,7 +100,4 @@ services:
       - GATEHUB_CARD_APP_ID=<fetch-me-from-vault>
 
     depends_on:
-      - postgres
-      - kratos
-      - temporal
-      - rafiki_backend
+      - migration

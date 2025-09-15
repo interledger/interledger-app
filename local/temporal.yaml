@@ -2,9 +2,8 @@ services:
   # 1. Temporal Server
   temporal:
     image: temporalio/auto-setup:latest
-    container_name: temporal
-    depends_on:
-      - postgres
+    profiles:
+      - services
     environment:
       - DB=postgres12
       - DB_PORT=5432
@@ -19,6 +18,8 @@ services:
   # 2. Temporal Web UI
   temporal-ui:
     image: temporalio/ui:latest
+    profiles:
+      - services
     ports:
       - "27016:8080"
     environment:
