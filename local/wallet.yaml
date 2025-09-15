@@ -85,6 +85,10 @@ services:
       - OTEL_EXPORTER_OTLP_HEADERS=x-honeycomb-team=7Qskhns7Dc7wgazrDe6yZD
       - OTEL_SERVICE_NAME=backend
 
+      - COVER_GH_PROVIDER_FEE=true
+      - COVER_GH_PROVIDER_FEE_USERID=
+      - COVER_GH_PROVIDER_FEE_ADDRESS=
+
       # todo later on!
       - PORT=8080
       - OPEN_PAYMENTS_PORT=8081

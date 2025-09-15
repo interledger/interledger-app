@@ -80,6 +80,10 @@ func (c Client) CreateTransfer(ctx context.Context, args gatehub.CreateTransferA
 	return ops.CreateTransfer(ctx, c.b, c.external, args)
 }
 
+func (c Client) RefundProviderFee(ctx context.Context, args gatehub.CoverFeeArgs) (*external.Transaction, error) {
+	return ops.RefundProviderFee(ctx, c.b, c.external, args)
+}
+
 func (c Client) GetTransaction(ctx context.Context, walletID, id string) (*external.Transaction, error) {
 	return ops.GetTransaction(ctx, c.b, c.external, walletID, id)
 }

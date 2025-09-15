@@ -25,4 +25,10 @@ type CreateTransferArgs struct {
 	ProviderFee              *currency.Amount
 }
 
+type CoverFeeArgs struct {
+	TransactionID string
+	ProviderID    string
+	Amount        currency.Amount
+}
+
 type User = external.User

@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -511,6 +512,54 @@ func CreateTransfer(ctx context.Context, b Backends, ec external.Client, args ga
 		ReceivingAddress: recvLA.ProviderID,
 		Amount:           args.Amount.Float64(),
 		Message:          fmt.Sprintf("Payment to %s", recvWallet.Name),
+		Type:             external.TransactionTypeHosted,
+		VaultID:          ec.GetVaultID(),
+	})
+	if errors.Is(err, external.ErrNotFound) {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrNotFound, err)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	return externalTx, nil
+}
+
+func RefundProviderFee(ctx context.Context, b Backends, ec external.Client, args gatehub.CoverFeeArgs) (*external.Transaction, error) {
+	coverFees := os.Getenv("COVER_GH_PROVIDER_FEE")
+	sendUserId := os.Getenv("COVER_GH_PROVIDER_FEE_USERID")
+	sendingAddress := os.Getenv("COVER_GH_PROVIDER_FEE_ADDRESS")
+
+	coverFeeEnabled, err := strconv.ParseBool(coverFees)
+	if coverFeeEnabled != true || err != nil || sendUserId == "" {
+		// when disabled, skip
+		return nil, fmt.Errorf("Cover fee not enabled", gatehub.ErrInternal)
+	}
+
+	// check available balance
+	ebal, err := ec.GetWalletBalances(ctx, sendUserId, sendingAddress)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+	var externalBalance uint64
+	if len(ebal) != 0 {
+		externalBalance, err = StringToScaledUInt(ebal[0].Available)
+		if err != nil {
+			return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+		}
+	}
+	// less than 100 eu
+	if externalBalance < 10000 {
+		// notify ops or someone to fund the account
+		return nil, fmt.Errorf("Not enough ops balance", gatehub.ErrInternal)
+	}
+
+	externalTx, err := ec.CreateTransaction(ctx, external.CreateTransactionRequest{
+		SendingUserID:    sendUserId,
+		SendingAddress:   sendingAddress,
+		ReceivingAddress: args.ProviderID,
+		Amount:           args.Amount.Float64(),
+		Message:          fmt.Sprintf("Covering fee for transaction #%s", args.TransactionID),
 		Type:             external.TransactionTypeHosted,
 		VaultID:          ec.GetVaultID(),
 	})
