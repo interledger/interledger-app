@@ -533,7 +533,7 @@ func RefundProviderFee(ctx context.Context, b Backends, ec external.Client, args
 	coverFeeEnabled, err := strconv.ParseBool(coverFees)
 	if coverFeeEnabled != true || err != nil || sendUserId == "" {
 		// when disabled, skip
-		return nil, fmt.Errorf("Cover fee not enabled", gatehub.ErrInternal)
+		return nil, fmt.Errorf("Cover fee not enabled: %v", gatehub.ErrInternal)
 	}
 
 	// check available balance
@@ -548,10 +548,10 @@ func RefundProviderFee(ctx context.Context, b Backends, ec external.Client, args
 			return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
 		}
 	}
-	// less than 100 eu
-	if externalBalance < 10000 {
+	// check if enough funds exist
+	if externalBalance < args.Amount.Value {
 		// notify ops or someone to fund the account
-		return nil, fmt.Errorf("Not enough ops balance", gatehub.ErrInternal)
+		return nil, fmt.Errorf("Not enough ops balance: %v", gatehub.ErrInternal)
 	}
 
 	externalTx, err := ec.CreateTransaction(ctx, external.CreateTransactionRequest{
