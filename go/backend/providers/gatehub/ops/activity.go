@@ -20,10 +20,12 @@ import (
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/wallets"
 	"gitlab.com/fynbos/env"
+	"gitlab.com/fynbos/log"
 	"gitlab.com/fynbos/pacioli"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/temporal"
+	"go.uber.org/zap"
 )
 
 type Activity struct {
@@ -239,6 +241,17 @@ func (a *Activity) CreateGatehubDepositTransaction(ctx context.Context, transact
 	})
 	if err != nil {
 		return "", err
+	}
+
+	// trigger fee cover
+	args := gatehub.CoverFeeArgs{
+		TransactionID: tx,
+		ProviderID:    eurBalance.ProviderID,
+		Amount:        currency.FromUInt64(providerFee.Value, amount.Currency),
+	}
+	_, err = RefundProviderFee(ctx, a.b, a.external, args)
+	if err != nil {
+		log.Error("Error creating refund", zap.Error(err))
 	}
 
 	return tx, nil
