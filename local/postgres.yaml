@@ -2,7 +2,8 @@ services:
   # 1. PostgreSQL Database
   postgres:
     image: postgres:latest
-    container_name: postgres
+    profiles:
+      - infrastructure
     restart: always
     environment:
       POSTGRES_USER: postgres

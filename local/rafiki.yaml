@@ -2,7 +2,8 @@ services:
   # 1. Rafiki Auth
   rafiki_auth:
     image: ghcr.io/interledger/rafiki-auth:v1.2.0-beta
-    container_name: rafiki_auth
+    profiles:
+      - services
     restart: always
     ports:
       - "3003:3003"  # Admin port         http://localhost:3003
@@ -52,13 +53,14 @@ services:
       - TRUST_PROXY="true"
 
     depends_on:
-      - postgres
+      - rafiki_backend
 
 
   # # 2. Rafiki Service
   rafiki_backend:
     image: ghcr.io/interledger/rafiki-backend:v1.2.0-beta
-    container_name: rafiki_backend
+    profiles:
+      - services
     restart: always
     ports:
       - "3880:80"     # HTTP port
@@ -137,13 +139,11 @@ services:
       - WEBHOOK_WORKER_IDLE="200"
       - WITHDRAWAL_THROTTLE_DELAY=""
 
-    depends_on:
-      - postgres
-
   # # 3. Rafiki Frontend
   rafiki_frontend:
     image: ghcr.io/interledger/rafiki-frontend:v1.2.0-beta
-    container_name: rafiki_frontend
+    profiles:
+      - services
     restart: always
     ports:
       - "3010:3010"

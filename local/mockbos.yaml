@@ -4,7 +4,8 @@ services:
       context: ../go
       dockerfile: mockbos/Dockerfile
       target: builder
-    container_name: mockbos
+    profiles:
+      - application
     restart: always
     develop:
       watch:
