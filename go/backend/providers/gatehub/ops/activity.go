@@ -431,3 +431,33 @@ func (a *Activity) CheckGatehubWithdrawalComplete(ctx context.Context, walletID,
 
 	return nil
 }
+
+func (a *Activity) CheckGatehubOpsBalance(ctx context.Context) error {
+	sendUserId := os.Getenv("COVER_GH_PROVIDER_FEE_USERID")
+	sendingAddress := os.Getenv("COVER_GH_PROVIDER_FEE_ADDRESS")
+
+	if sendingAddress == "" || sendUserId == "" {
+		// when disabled, skip
+		return nil
+	}
+
+	// check available balance
+	ebal, err := a.external.GetWalletBalances(ctx, sendUserId, sendingAddress)
+	if err != nil {
+		return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+	var externalBalance uint64
+	if len(ebal) != 0 {
+		externalBalance, err = StringToScaledUInt(ebal[0].Available)
+		if err != nil {
+			return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+		}
+	}
+	// check if below 100
+	if externalBalance < 10000 {
+		// notify ops or someone to fund the account
+		return fmt.Errorf("Not enough ops balance: %v", gatehub.ErrInternal)
+	}
+
+	return nil
+}

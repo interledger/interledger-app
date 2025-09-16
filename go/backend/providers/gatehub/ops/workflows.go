@@ -121,6 +121,25 @@ func CreateGatehubDeposit(ctx workflow.Context, wh DepositWebhook) (string, erro
 	return txID, nil
 }
 
+func CheckOpsBalance(ctx workflow.Context) error {
+	var a *Activity
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Second,
+	}
+
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	logger := workflow.GetLogger(ctx)
+	logger.Info("Checking available OPS balance.")
+
+	err := workflow.ExecuteActivity(ctx, a.CheckGatehubOpsBalance).Get(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func ProcessGatehubWithdrawal(ctx workflow.Context, walletID, transactionID string) error {
 	var a *Activity
 	ao := workflow.ActivityOptions{
