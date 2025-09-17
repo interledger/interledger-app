@@ -70,6 +70,19 @@ type (
 		DepositType string `json:"deposit_type"` // hosted or external
 		TrxID       string `json:"tx_uuid"`
 	}
+
+	CardWebhookData struct {
+		CardID           string  `json:"cardId"`
+		CardSourceID     string  `json:"cardSourceId"`
+		NameOnCard       string  `json:"nameOnCard"`
+		ProductCode      string  `json:"productCode"`
+		MaskedPan        *string `json:"maskedPan,omitempty"`
+		AccountID        string  `json:"accountId"`
+		AccountSourceID  string  `json:"accountSourceId"`
+		LockLevel        *string `json:"lockLevel,omitempty"`
+		CustomerID       string  `json:"customerId"`
+		CustomerSourceID string  `json:"customerSourceId"`
+	}
 )
 
 func NewWebhook(b Backends) http.HandlerFunc {
@@ -137,12 +150,34 @@ func NewWebhook(b Backends) http.HandlerFunc {
 			HandleUserDeposit(r.Context(), b, body, w)
 		case "id.document_notice.expired", "id.document_notice.warning", "id.verification.action_required":
 			HandleActionRequiredWebhook(r.Context(), b, body, w)
+		case "cards.card.created":
+			HandleCardCreatedWebhook(r.Context(), b, body, w)
 		default:
 			log.Warn("gatehub webhook. Unhandled webhook type", zap.String("event_type", wh.EventType), zap.String("payload", string(body)))
 		}
 
 		w.WriteHeader(http.StatusOK)
 	}
+}
+
+func HandleCardCreatedWebhook(context context.Context, b Backends, raw json.RawMessage, w http.ResponseWriter) {
+	slack.SendToChannel(context, slack.ChannelNotifyEvents, "wallet-info-bot", fmt.Sprintf("gatehub card created webhook: %s", string(raw)))
+	// Update Cards status in gatehub_cards to ActionRequired
+	var cardData CardWebhookData
+	err := json.Unmarshal(raw, &cardData)
+	if err != nil {
+		log.Error("gatehub webhook: Failed to unmarshal card created webhook", zap.String("card_id", cardData.CardID), zap.Error(err))
+		return
+	}
+	log.Info("THE WEBHOOK IS HERE --------------------------------------------------------", zap.String("card_id", string(raw)))
+	err = UpdateGateHubUserExternalIDs(context, b, cardData.CardID, cardData.CustomerID, cardData.AccountID)
+	if err != nil {
+		log.Error("Failed to update gatehub_cards with external_user_id", zap.String("card_id", cardData.CardID), zap.String("external_user_id", cardData.CustomerID), zap.Error(err))
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+	// TODO ORDER PLASTIC if needed
+	w.WriteHeader(http.StatusOK)
 }
 
 func HandleActionRequiredWebhook(ctx context.Context, b Backends, raw json.RawMessage, w http.ResponseWriter) {
@@ -166,11 +201,12 @@ func HandleUserVerificationWebhook(ctx context.Context, b Backends, raw json.Raw
 		return
 	}
 
-	if wh.Data.Verified.Short == verificationAccepted {
+	switch wh.Data.Verified.Short {
+	case verificationAccepted:
 		err = b.KYC().SetKYCStatus(ctx, walletID, kyc.StatusLevel1)
-	} else if wh.Data.Verified.Short == verificationRejected {
+	case verificationRejected:
 		err = b.KYC().SetKYCStatus(ctx, walletID, kyc.StatusDenied)
-	} else {
+	default:
 		log.Error("Unknown gatehub user verification status", zap.String("external_user_uuid", wh.UserID), zap.String("short", wh.Data.Verified.Short), zap.Int("status", wh.Data.Verified.Status))
 	}
 	if err != nil {

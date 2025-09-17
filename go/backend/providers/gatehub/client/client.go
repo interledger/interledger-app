@@ -102,5 +102,5 @@ func (c Client) GetCardApplicationProducts(ctx context.Context) ([]external.Card
 }
 
 func (c Client) OrderCard(ctx context.Context, args gatehub.OrderCardArgs) error {
-	return nil
+	return ops.OrderCard(ctx, c.b, c.external, args.WalletID)
 }

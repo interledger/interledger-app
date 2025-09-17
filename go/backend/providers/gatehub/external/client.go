@@ -723,6 +723,151 @@ func (c *client) GetCardApplicationProducts(ctx context.Context) ([]CardApplicat
 
 	return products, nil
 }
+func (c *client) CreateCustomerAndCard(ctx context.Context, gatehubUserId string, gatehubWalletAddress string) (*CreateCardDTO, error) {
+	type ghcard struct {
+		ProductCode string `json:"productCode"`
+	}
+	type account struct {
+		ProductCode string `json:"productCode"`
+		Card        ghcard `json:"card"`
+	}
+
+	type testStruct struct {
+		WalletAddress string  `json:"walletAddress"`
+		Account       account `json:"account"`
+	}
+
+	body, _ := json.Marshal(testStruct{
+		WalletAddress: gatehubWalletAddress,
+		Account: account{
+			ProductCode: "PWSR_DEBP_2404",
+			Card: ghcard{
+				ProductCode: "PMDSGWEEA",
+			},
+		},
+	})
+
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "POST"
+		meta.Provider = "gatehub"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "POST",
+			Provider: "gatehub",
+		})
+	}
+
+	endpoint, err := url.JoinPath(c.baseURL, "cards", "v1", "customers")
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewBuffer(body))
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+	fmt.Println("after-new-request")
+
+	req.Header.Set(cardAppIDHeader, c.cardAppID)
+	req.Header.Set(managedUserHeader, gatehubUserId) //"0242a34b-b071-460e-9179-f4040d9895e8"
+	req.Header.Set("Content-Type", "application/json")
+
+	err = c.Sign(ctx, req, time.Now(), body, endpoint)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+	err = TestCustomerCreation(ctx, gatehubUserId, c)
+
+	if err != nil {
+		log.Info("Error testing customer creation", zap.Error(err))
+	}
+	fmt.Println("after-sign")
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	fmt.Println(resp.StatusCode)
+
+	err = checkResponseStatusCode(resp)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	rbody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+	defer resp.Body.Close()
+
+	var cardResponse CustomerCreatedResponse
+	err = json.Unmarshal(body, &cardResponse)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	log.Info("response body--------------------------------------", zap.String("body", string(rbody)))
+	fmt.Println(string(rbody[:]))
+	var ret = CreateCardDTO{
+		SourceID:        cardResponse.Customer.SourceID,
+		AccountSourceID: cardResponse.Customer.Accounts[0].SourceID,
+		CardType:        "VIRTUAL",
+	}
+	return &ret, nil
+}
+
+// TODO REMOVE THIS - TESTING PURPOSES ONLY
+func TestCustomerCreation(ctx context.Context, gatehubUserId string, c *client) error {
+	log.Info("GET CUSTOMER--------------------------------------")
+	// endpoint, err := url.JoinPath(c.baseURL, "cards", "v2", "cards") //"a01ce706-32a4-4f1e-93c0-7345f884e6c9"
+	endpoint, err := url.JoinPath(c.baseURL, "cards", "v1", "customers", "a01ce706-32a4-4f1e-93c0-7345f884e6c9")
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	req.Header.Set(cardAppIDHeader, c.cardAppID)
+	req.Header.Set(managedUserHeader, gatehubUserId) //"0242a34b-b071-460e-9179-f4040d9895e8"
+	req.Header.Set("Content-Type", "application/json")
+	err = c.Sign(ctx, req, time.Now(), nil, endpoint)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	fmt.Println("GET CUSTOMER--------------------------------------after-sign")
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		fmt.Println("GET do error--------------------------------------")
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	fmt.Println(resp.StatusCode)
+
+	err = checkResponseStatusCode(resp)
+	if err != nil {
+		fmt.Println("GET checkResponseStatusCode error--------------------------------------")
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	rbody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("GET body error--------------------------------------")
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+	defer resp.Body.Close()
+
+	log.Info("response body--------------------------------------", zap.String("body", string(rbody)))
+	fmt.Println(string(rbody[:]))
+	return nil
+
+}
 
 func (c *client) OrderCard(ctx context.Context, userID string, gatehubWalletAddress string) error {
 	type ghcard struct {

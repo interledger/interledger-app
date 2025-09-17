@@ -156,7 +156,32 @@ func getWalletID(ctx context.Context, b Backends, externalUserID string) (string
 
 	return walletID, nil
 }
+func UpdateGateHubUserExternalIDs(ctx context.Context, b Backends, walletID, externalID string, accountID string) error {
+	_, err := b.DB().ExecContext(ctx, "UPDATE gatehub_users SET external_customer_id=$1, external_account_id=$2 ,card_status = 'HasCard' WHERE wallet_id=$3;", externalID, accountID, walletID)
+	if err != nil {
+		return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+	return nil
+}
 
+func SaveGatehubCardPending(ctx context.Context, b Backends, walletID string, cardData *external.CreateCardDTO) error {
+
+	// TODO should be transactional
+	var id string
+	err := b.DB().QueryRowContext(ctx,
+		"UPDATE gatehub_users SET card_status = 'Pending' WHERE wallet_id=$1 RETURNING id;",
+		walletID,
+	).Scan(&id)
+	if err != nil {
+		return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	_, err = b.DB().ExecContext(ctx, "INSERT INTO gatehub_user_card_source (gatehub_user_id, customer_source_id, account_source_id, card_type) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING;", id, cardData.SourceID, cardData.AccountSourceID, cardData.CardType)
+	if err != nil {
+		return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+	return nil
+}
 func GetBalance(ctx context.Context, b Backends, linkedAccountID string) (*gatehub.Balance, error) {
 	la, err := b.LinkedAccounts().Get(ctx, linkedAccountID)
 	if err != nil {
@@ -474,7 +499,7 @@ func AssignBalance(ctx context.Context, b Backends, linkedAccountID, txID string
 	}
 	if len(tx) != 0 {
 		if tx[0].Code == pacioli.TransferExceedsCredits || tx[0].Code == pacioli.TransferExceedsDebits || tx[0].Code == pacioli.TransferExceedsPendingTransferAmount {
-			return nil, fmt.Errorf("%w insufficiens balance cod (%s)", gatehub.ErrInsufficientBalance, tx[0].Code.String())
+			return nil, fmt.Errorf("%w insufficient balance cod (%s)", gatehub.ErrInsufficientBalance, tx[0].Code.String())
 		}
 		if tx[0].Code != 0 {
 			return nil, fmt.Errorf("%w non success code (%s)", gatehub.ErrInternal, tx[0].Code.String())
@@ -592,6 +617,20 @@ func OrderCard(ctx context.Context, b Backends, ec external.Client, walletID str
 	if err != nil {
 		return err
 	}
-
-	return ec.OrderCard(ctx, walletID, la[0].ProviderID)
+	if IsCustomer(ctx, b, walletID); err != nil {
+		return ec.OrderCard(ctx, walletID, la[0].ProviderID)
+	}
+	gatehubUser, err := getExternalUserID(ctx, b, walletID)
+	if err != nil {
+		return err
+	}
+	data, err := ec.CreateCustomerAndCard(ctx, gatehubUser, la[0].ProviderID)
+	if err != nil {
+		return err
+	}
+	err = SaveGatehubCardPending(ctx, b, walletID, data)
+	if err != nil {
+		return err
+	}
+	return nil
 }
