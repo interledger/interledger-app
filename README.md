@@ -37,6 +37,12 @@ All the domains used for local development will now point to your local host fro
 # From repository folder
 cd ./local
 
+# create the certificates if needed
+mkdir -p config/certs
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+-keyout config/certs/local.key -out config/certs/local.crt \
+-subj "/CN=*.docker.localhost"
+
 # start all services backgroud
 docker compose --profile "*" up -d
 
@@ -67,6 +73,9 @@ docker compose --profile infrastructure --profile services up
 
 3. Use ```make``` (uses ```docker compose``` under the hood) - allows you to orchestrate the services
 ```sh
+# make certificates if needed
+make cert
+
 # print usage
 make help
 
@@ -82,6 +91,7 @@ Commands:
   all                  Start all services
   down                 Stop all running services
   delete-volumes       Stop all services and remove associated volumes
+  certs                Generate self-signed TLS certificates for local development
   help                 Display this help message
 ```
 ```sh
