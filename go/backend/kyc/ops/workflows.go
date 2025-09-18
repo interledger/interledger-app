@@ -130,6 +130,7 @@ func (a *Activity) CreateKYCWallets(ctx context.Context, walletID string) error 
 		// check if its just a kyc update
 		subAccount, err := a.b.Xago().LookupSubAccount(ctx, walletID)
 		if err != nil {
+			log.Error("failed to lookup xago subaccount", zap.Error(err), zap.String("wallet_id", walletID))
 		}
 		if subAccount.AccountID != "" {
 			log.Info("ZA wallet already has xago account", zap.String("wallet_id", walletID))
