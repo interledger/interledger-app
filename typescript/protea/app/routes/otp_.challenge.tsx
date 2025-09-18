@@ -18,7 +18,13 @@ import {
 } from '~/components'
 import { Label } from '~/components/Label'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
-import { isConnectError } from '~/lib/error.server'
+import { ErrorDescriptions } from '~/lib/error.constants'
+import { TwillioError, TwillioErrorMapper } from '~/lib/error.mappers'
+import {
+  isConnectError,
+  isTwilioCodeError,
+  isTwilioError
+} from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { trimHeaders } from '~/lib/headers.server'
 import {
@@ -128,8 +134,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   await validateCSRFToken(request, form)
 
-  const errors = {
-    form: '',
+  const errors: Partial<TwillioError> = {
     otp: ''
   }
 
@@ -137,10 +142,44 @@ export async function action({ request }: ActionFunctionArgs) {
     to: session.identity.traits.phone,
     otp
   })
+  console.log('xxx response', response)
+
   if (isConnectError(response)) {
-    if (response.code == Code.InvalidArgument) {
-      return response.error({ errors })
-    } else return response.error({ errors }, {}, { action: 'Contact support' })
+    if (isTwilioError(response)) {
+      console.log('xxx isTwilioError')
+      const e = response.error(
+        { errors },
+        {
+          otp: TwillioErrorMapper.otp
+        },
+        { action: 'Contact support', message: ErrorDescriptions.INVALID_OTP }
+      )
+      console.log('xxx erros', errors)
+      return e
+    } else if (isTwilioCodeError(response)) {
+      console.log('xxx isTwilioCodeError')
+      const e = response.error(
+        { errors },
+        {
+          otp: TwillioErrorMapper.otp
+        },
+        { action: 'Contact support', message: ErrorDescriptions.INVALID_OTP }
+      )
+      console.log('xxx erros', errors)
+      return e
+    } else if (response.code == Code.InvalidArgument) {
+      const e = response.error({ errors })
+      console.log('xxx erros', errors)
+      return e
+    } else {
+      const e = response.error(
+        { errors },
+        {},
+        { action: 'Contact support', message: ErrorDescriptions.DEFAULT }
+      )
+      console.log('xxx erros', errors)
+      return e
+    }
   }
 
   if (returnTo) {
@@ -153,7 +192,10 @@ export async function action({ request }: ActionFunctionArgs) {
     headers: { cookie: cookie, Accept: 'application/json' }
   })
   flow = await flowRes.json()
-  if (flowRes.status >= 400) handleFlowError(flow, 'otp/challenge')
+
+  if (flowRes.status >= 400) {
+    handleFlowError(flow, 'otp/challenge')
+  }
 
   return redirect(`/settings/phone?flow=${flow.id}`, {
     headers: trimHeaders(flowRes.headers, ['set-cookie'])

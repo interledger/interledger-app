@@ -13,7 +13,9 @@ import (
 	"github.com/twilio/twilio-go/client"
 	verify "github.com/twilio/twilio-go/rest/verify/v2"
 	"gitlab.com/fynbos/env"
+	"gitlab.com/fynbos/log"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.uber.org/zap"
 )
 
 var (
@@ -131,13 +133,13 @@ type CheckVerificationCodeArgs struct {
 
 func (s *service) CheckVerificationCode(ctx context.Context, args *CheckVerificationCodeArgs) (*Verification, error) {
 	// Short circuit here for environments where there is not twilio integrations
-	if !env.IsProd() && !env.IsSandbox() {
-		return &Verification{
-			Sid:         "1234",
-			PhoneNumber: args.PhoneNumber,
-			Status:      statusApproved,
-		}, nil
-	}
+	// if !env.IsProd() && !env.IsSandbox() {
+	// 	return &Verification{
+	// 		Sid:         "1234",
+	// 		PhoneNumber: args.PhoneNumber,
+	// 		Status:      statusApproved,
+	// 	}, nil
+	// }
 
 	err := s.validator.Struct(args)
 	if err != nil {
@@ -155,8 +157,22 @@ func (s *service) CheckVerificationCode(ctx context.Context, args *CheckVerifica
 	if err != nil {
 		twilioError, ok := err.(*client.TwilioRestError)
 		if ok {
-			return nil, fmt.Errorf("%w: %s", ErrInternal, twilioError.Message)
+			switch twilioError.Code {
+			case 60202: 	
+				log.Error("Invalid verification code: ", zap.String("message", twilioError.Message))
+				return nil, fmt.Errorf("%w: %s", ErrInvalidOTP, "Invalid verification code")
+			case 60203:
+				log.Error("Maximum verification attempts reached: ", zap.String("message", twilioError.Message))
+				return nil, fmt.Errorf("%w: %s", ErrInvalidOTP, "Maximum verification attempts reached")
+			case 60200:
+				log.Error("Invalid phone number format: ", zap.String("message", twilioError.Message))
+				return nil, fmt.Errorf("%w: %s", ErrInvalidArgument, "Invalid phone number format")
+			default:
+				log.Error("Twilio verification error", zap.Int("code", twilioError.Code), zap.String("message", twilioError.Message))
+				return nil, fmt.Errorf("%w: %s", ErrInternal, twilioError.Message)
+			}
 		}
+		log.Error("Code verification error", zap.Error(err))
 		return nil, fmt.Errorf("%w: %s", ErrInternal, err)
 	}
 

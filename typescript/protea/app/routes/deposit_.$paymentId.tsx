@@ -12,7 +12,9 @@ import { Button, Card, CardContent, Icon, Layouts } from '~/components'
 import { Label } from '~/components/Label'
 import { getKycStatus } from '~/data/wallet.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
-import { isConnectError } from '~/lib/error.server'
+import { ErrorDescriptions } from '~/lib/error.constants'
+import { TwillioErrorMapper } from '~/lib/error.mappers'
+import { isConnectError, isTwilioCodeError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { getClientIP } from '~/lib/ip.server'
 import { mergeMeta } from '~/lib/meta'
@@ -146,7 +148,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
   await validateCSRFToken(request, form)
 
   const errors = {
-    form: ''
+    otp: ''
   }
 
   const clientIpAddress = getClientIP(request)
@@ -156,6 +158,15 @@ export async function action({ request, params }: ActionFunctionArgs) {
     ipAddress: clientIpAddress
   })
   if (isConnectError(response)) {
+    if (isTwilioCodeError(response)) {
+      return response.error(
+        { errors },
+        {
+          otp: TwillioErrorMapper.otp
+        },
+        { action: 'Contact support', message: ErrorDescriptions.INVALID_OTP }
+      )
+    }
     return response.error({ errors }, {}, { action: 'Contact support' })
   }
 

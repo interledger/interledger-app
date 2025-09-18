@@ -2,6 +2,8 @@ package grpc
 
 import (
 	"context"
+	"errors"
+
 	"gitlab.com/fynbos/backend/twilio"
 
 	pb "gitlab.com/fynbos/proto/backend/v1"
@@ -52,6 +54,12 @@ func (s *rpcService) CheckPhoneVerification(
 		Code:        req.GetOtp(),
 	})
 	if err != nil {
+		if errors.Is(err, twilio.ErrInvalidOTP) {
+			return nil, NewTwilioError("Code", "Invalid verification code")
+		}
+		if errors.Is(err, twilio.ErrInvalidArgument) {
+			return nil, NewTwilioError("To", "Invalid phone number format")
+		}
 		return nil, toGRPCError(err)
 	}
 	if !vc.IsValid() {
