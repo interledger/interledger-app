@@ -30,3 +30,5 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.temporal-ui.rule=Host(`temporal.mgnt.interledger.test`)"
       - "traefik.http.services.temporal-ui.loadbalancer.server.port=8080"
+      - "traefik.http.routers.temporal-ui.entrypoints=websecure"
+      - "traefik.http.routers.temporal-ui.tls=true"
