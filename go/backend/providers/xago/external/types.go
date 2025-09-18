@@ -168,3 +168,7 @@ type TestDepositReq struct {
 	BankTransactionID string `json:"bankTransactionId"`
 	CurrencyCode      string `json:"currencyCode"`
 }
+
+type UpdateInquiryLinkRequest struct {
+	ThirdPartyVerificationUrl string `json:"thirdPartyVerificationUrl"`
+}
