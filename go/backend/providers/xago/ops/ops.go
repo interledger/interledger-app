@@ -181,6 +181,45 @@ func LookupWithdrawal(ctx context.Context, b Backends, id string) (*xago.Withdra
 	}, nil
 }
 
+func UpdateInquiryLink(ctx context.Context, b Backends, args xago.InquiryLinkUpdate) error {
+	wo := client.StartWorkflowOptions{
+		ID:                       "xago_update_inquiry_link_" + args.WalletID + "_" + args.AccountID,
+		TaskQueue:                "backend",
+		WorkflowExecutionTimeout: 2 * time.Minute,
+		WorkflowIDReusePolicy:    enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+	}
+
+	var workflowStatus enums.WorkflowExecutionStatus
+	wflow, err := b.Temporal().DescribeWorkflowExecution(ctx, wo.ID, "")
+	switch err.(type) {
+	case *serviceerror.Internal,
+		*serviceerror.Unavailable,
+		*serviceerror.InvalidArgument:
+		return fmt.Errorf("%w %s", xago.ErrInternal, err)
+	case *serviceerror.NotFound:
+		// do nothing
+	default:
+		if wflow != nil {
+			workflowStatus = wflow.GetWorkflowExecutionInfo().Status
+		}
+	}
+
+	// return workflow if it's running
+	var await client.WorkflowRun
+	var executeErr error
+	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
+		await = b.Temporal().GetWorkflow(ctx, wo.ID, "")
+	} else {
+		await, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, UpdateInquiryLinkWorkflow, args)
+	}
+	if executeErr != nil {
+		return fmt.Errorf("%w %s", xago.ErrInternal, err)
+	}
+
+	return await.Get(ctx, nil)
+
+}
+
 func GetBalance(ctx context.Context, b Backends, linkedAccountID string) (*xago.Balance, error) {
 	la, err := b.LinkedAccounts().Get(ctx, linkedAccountID)
 	if err != nil {
