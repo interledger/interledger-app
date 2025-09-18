@@ -48,6 +48,8 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.backend.rule=Host(`interledger.test`) && PathPrefix(`/webhooks`)"
       - "traefik.http.services.backend.loadbalancer.server.port=8080"
+      - "traefik.http.routers.backend.entrypoints=websecure"
+      - "traefik.http.routers.backend.tls=true"
     environment:
       - LOG_LEVEL=debug
       - ENV_FILE=
