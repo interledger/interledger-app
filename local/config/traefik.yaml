@@ -10,17 +10,3 @@ api:
 providers:
   docker:
     exposedByDefault: false
-  file:
-    filename: /etc/traefik/traefik.yaml
-
-tls:
-  certificates:
-    - certFile: /certs/interledger.test.crt
-      keyFile: /certs/interledger.test.key
-      stores:
-        - default
-  stores:
-    default:
-      defaultCertificate:
-        certFile: /certs/interledger.test.crt
-        keyFile: /certs/interledger.test.key
