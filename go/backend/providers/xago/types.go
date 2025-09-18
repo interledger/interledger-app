@@ -94,3 +94,8 @@ type Withdrawal struct {
 	Amount currency.Amount
 	Status string
 }
+
+type InquiryLinkUpdate struct {
+	AccountID string
+	WalletID  string
+}
