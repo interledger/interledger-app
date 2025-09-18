@@ -551,6 +551,10 @@ func RefundProviderFee(ctx context.Context, b Backends, ec external.Client, args
 	// check if enough funds exist
 	if externalBalance < args.Amount.Value {
 		// notify ops or someone to fund the account
+		displayBalance := currency.FromUInt64(externalBalance, currency.EUR)
+		displayNeeded := currency.FromUInt64(args.Amount.Value, currency.EUR)
+		slack.SendToChannel(ctx, slack.ChannelNotifyOpsBalance, "Fynbot", fmt.Sprintf(":warning: Ops account low on funds\nNeeded: %s\nAvailable: %s\nProvider: %s\n", displayNeeded.Format(), displayBalance.Format(), gatehub.ProviderName))
+
 		return nil, fmt.Errorf("Not enough ops balance: %v", gatehub.ErrInternal)
 	}
 

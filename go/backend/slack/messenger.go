@@ -21,18 +21,18 @@ var initOnce sync.Once
 type Channel string
 
 const (
-	ChannelPersona      Channel = "C091T8JD0DS"
-	ChannelNotifyReview Channel = "C091T8JD0DS"
-	ChannelNotifyEvents Channel = "C091T8JD0DS"
-	ChannelNotifyForms  Channel = "C091T8JD0DS"
-	ChannelNotifyErrors Channel = "C091T8JD0DS"
+	ChannelPersona          Channel = "C091T8JD0DS"
+	ChannelNotifyReview     Channel = "C091T8JD0DS"
+	ChannelNotifyEvents     Channel = "C091T8JD0DS"
+	ChannelNotifyForms      Channel = "C091T8JD0DS"
+	ChannelNotifyErrors     Channel = "C091T8JD0DS"
+	ChannelNotifyOpsBalance Channel = "C09GNRD3V16"
 )
 
 func SendToChannel(ctx context.Context, channel Channel, fromUser, message string) {
 	if channel == ChannelNotifyEvents && env.IsLocal() {
 		return
 	}
-
 	initOnce.Do(func() {
 		api = ext_slack.New(os.Getenv("SLACK_TOKEN"), ext_slack.OptionHTTPClient(otelhttp.DefaultClient))
 	})
