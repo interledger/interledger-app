@@ -22,7 +22,13 @@ down:
 delete-volumes:
 	docker compose --profile "*" down -v
 
-.PHONY: infra services application down delete-volumes backend frontend all help
+certs:
+	mkdir -p config/certs
+	openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+    -keyout config/certs/local.key -out config/certs/local.crt \
+    -subj "/CN=*.docker.localhost"
+
+.PHONY: infra services application down delete-volumes backend frontend all help certs
 
 help:
 	@echo "make <command>"
@@ -37,4 +43,5 @@ help:
 	@echo "  all                  Start all services"
 	@echo "  down                 Stop all running services"
 	@echo "  delete-volumes       Stop all services and remove associated volumes"
+	@echo "  certs                Generate self-signed TLS certificates for local development"
 	@echo "  help                 Display this help message"

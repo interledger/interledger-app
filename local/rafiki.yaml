@@ -13,6 +13,9 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.rafiki_auth.rule=Host(`auth.local.ilp.link`)"
       - "traefik.http.services.rafiki_auth.loadbalancer.server.port=3006"
+      - "traefik.http.routers.rafiki_auth.entrypoints=websecure"
+      - "traefik.http.routers.rafiki_auth.tls=true"
+
     environment:
       - ENV_FILE=
       - LOG_LEVEL=info
@@ -151,6 +154,8 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.rafiki_frontend.rule=Host(`rafiki.mgnt.interledger.test`)"
       - "traefik.http.services.rafiki_frontend.loadbalancer.server.port=3010"
+      - "traefik.http.routers.rafiki_frontend.entrypoints=websecure"
+      - "traefik.http.routers.rafiki_frontend.tls=true"
     environment:
       - ENV_FILE=
       - LOG_LEVEL=debug
