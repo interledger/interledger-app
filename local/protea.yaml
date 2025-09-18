@@ -3,6 +3,9 @@ services:
     build:
       context: ../typescript/protea
       target: dev
+    profiles:
+      - application
+      - frontend
     restart: always
     develop:
       watch:
@@ -15,6 +18,9 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.protea.rule=Host(`interledger.test`)"
       - "traefik.http.services.protea.loadbalancer.server.port=3000"
+      - "traefik.http.routers.protea.entrypoints=websecure"
+      - "traefik.http.routers.protea.tls=true"
+
     environment:
       - FYNBOS_ENV=local
 
@@ -30,3 +36,6 @@ services:
       - BACKEND_GRPC_URL=http://backend:8443
       
       - REDIS_URL=redis://redis:6379/2
+
+    depends_on:
+      - backend

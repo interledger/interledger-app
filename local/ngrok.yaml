@@ -7,6 +7,8 @@ services:
   # 1.5 (optional) Test it with the nginx below
   ngrok:
     image: ngrok/ngrok:latest
+    profiles:
+      - services
     restart: always
     environment:
       - NGROK_AUTHTOKEN=<your-token>
@@ -16,12 +18,19 @@ services:
 
     # use this command to point to the backend
     # command: http --url=<your-domain> http://backend:8080
+
     ports:
       - "4040:4040" # for accessing the ngrok web interface (http://localhost:4040 or http://ngrok:4040)
+
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ngrok.rule=Host(`ngrok.test`)"
+      - "traefik.http.services.ngrok.loadbalancer.server.port=4040"
 
   # 2. Nginx, for testing
   # nginx:
   #   image: nginx:latest
-  #   container_name: nginx-server
   #   ports:
-  #     - "80:80"
+  #     - "40080:80"
+  #   depends_on:
+  #     - ngrok

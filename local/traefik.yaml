@@ -1,7 +1,8 @@
 services:
   traefik:
     image: traefik:v2.10
-    container_name: traefik
+    profiles:
+      - infrastructure
     restart: always
     command: --providers.docker
     ports:
@@ -12,9 +13,11 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./config/traefik.yaml:/etc/traefik/traefik.yaml
 
-      # - ./certs:/certs
+      - ./config/certs:/certs:ro
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.traefik.rule=Host(`traefik.test`)"
       - "traefik.http.routers.traefik.service=api@internal"
-      - "traefik.http.routers.traefik.entrypoints=web"
+      # - "traefik.http.routers.traefik.entrypoints=web"
+      - "traefik.http.routers.traefik.entrypoints=websecure"
+      - "traefik.http.routers.traefik.tls=true"

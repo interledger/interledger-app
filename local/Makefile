@@ -1,0 +1,47 @@
+infrastructure:
+	docker compose --profile infrastructure up
+
+services:
+	docker compose --profile services up
+
+application:
+	docker compose --profile application up --watch
+
+backend:
+	docker compose --profile backend up --watch
+
+frontend:
+	docker compose --profile frontend up --watch
+
+all:
+	docker compose --profile "*" up --watch
+
+down:
+	docker compose --profile "*" down
+
+delete-volumes:
+	docker compose --profile "*" down -v
+
+certs:
+	mkdir -p config/certs
+	openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+    -keyout config/certs/local.key -out config/certs/local.crt \
+    -subj "/CN=*.docker.localhost"
+
+.PHONY: infra services application down delete-volumes backend frontend all help certs
+
+help:
+	@echo "make <command>"
+	@echo "e.g. make infrastructure"
+	@echo ""
+	@echo "Commands:"
+	@echo "  infrastructure       Start infrastructure services - traefik, postgres, redis"
+	@echo "  services             Start application services - kratos, temporal, rafiki services, requires infrastructure services"
+	@echo "  application          Start wallet application - backend and frontend, requires services and infrastructure"
+	@echo "  backend              Start only the backend service"
+	@echo "  frontend             Start only the frontend service"
+	@echo "  all                  Start all services"
+	@echo "  down                 Stop all running services"
+	@echo "  delete-volumes       Stop all services and remove associated volumes"
+	@echo "  certs                Generate self-signed TLS certificates for local development"
+	@echo "  help                 Display this help message"
