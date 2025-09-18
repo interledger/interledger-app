@@ -646,26 +646,27 @@ export function Scaffold() {
           )}
         </NavDrawer>
       </NavDrawer.Modal>
-      {features && features.accountEnabled && (
-        <div
-          className={clsx(
-            'fixed bottom-4 left-0 z-50 mx-auto flex w-full flex-col items-end justify-center gap-y-4 overflow-y-visible px-4 text-center lg:bottom-auto lg:top-4 lg:items-center',
-            layout === Layouts.Wallet && 'lg:pl-64 lg:pr-0'
-          )}
-        >
-          <AnimatePresence mode='popLayout'>
-            {scaffold?.fab && layout !== Layouts.Marketing && (
+      <div
+        className={clsx(
+          'fixed bottom-4 left-0 z-50 mx-auto flex w-full flex-col items-end justify-center gap-y-4 overflow-y-visible px-4 text-center lg:bottom-auto lg:top-4 lg:items-center',
+          layout === Layouts.Wallet && 'lg:pl-64 lg:pr-0'
+        )}
+      >
+        <AnimatePresence mode='popLayout'>
+          {features &&
+            features.accountEnabled &&
+            scaffold?.fab &&
+            layout !== Layouts.Marketing && (
               <FAB key='fab' onTap={() => setCommandPaletteOpen(true)} />
             )}
-            <SnackbarStage />
-          </AnimatePresence>
-          {layout === Layouts.Wallet && (
-            <CommandPalette>
-              <CommandActions />
-            </CommandPalette>
-          )}
-        </div>
-      )}
+          <SnackbarStage />
+        </AnimatePresence>
+        {features && features.accountEnabled && layout === Layouts.Wallet && (
+          <CommandPalette>
+            <CommandActions />
+          </CommandPalette>
+        )}
+      </div>
     </div>
   )
 }

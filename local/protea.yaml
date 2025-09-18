@@ -3,6 +3,9 @@ services:
     build:
       context: ../typescript/protea
       target: dev
+    profiles:
+      - application
+      - frontend
     restart: always
     develop:
       watch:
@@ -13,31 +16,43 @@ services:
       - "8002:8002" # websocket port
     labels:
       - "traefik.enable=true"
-      # HTTP router for main app
-      - "traefik.http.routers.protea-http.rule=Host(`interledger.test`) && !PathPrefix(`/socket`)"
-      - "traefik.http.routers.protea-http.entrypoints=web"
-      - "traefik.http.routers.protea-http.service=protea"
-      # HTTPS router for main app
-      - "traefik.http.routers.protea-https.rule=Host(`interledger.test`) && !PathPrefix(`/socket`)"
-      - "traefik.http.routers.protea-https.entrypoints=websecure"
-      - "traefik.http.routers.protea-https.tls=true"
-      - "traefik.http.routers.protea-https.service=protea"
-        # HTTP WebSocket router
-      - "traefik.http.routers.protea-ws-http.rule=Host(`interledger.test`) && Path(`/socket`)"
-      - "traefik.http.routers.protea-ws-http.entrypoints=web"
-      - "traefik.http.routers.protea-ws-http.service=protea-ws"
-      - "traefik.http.routers.protea-ws-http.middlewares=protea-ws-strip"
-      # HTTPS WebSocket router
-      - "traefik.http.routers.protea-ws-https.rule=Host(`interledger.test`) && Path(`/socket`)"
-      - "traefik.http.routers.protea-ws-https.entrypoints=websecure"
-      - "traefik.http.routers.protea-ws-https.tls=true"
-      - "traefik.http.routers.protea-ws-https.service=protea-ws"
-      - "traefik.http.routers.protea-ws-https.middlewares=protea-ws-strip"
-      # WebSocket path stripping middleware
-      - "traefik.http.middlewares.protea-ws-strip.stripprefix.prefixes=/socket"
+      # # HTTP router for main app
+      # - "traefik.http.routers.protea-http.rule=Host(`interledger.test`) && !PathPrefix(`/socket`)"
+      # - "traefik.http.routers.protea-http.entrypoints=web"
+      # - "traefik.http.routers.protea-http.service=protea"
+      # # HTTPS router for main app
+      # - "traefik.http.routers.protea-https.rule=Host(`interledger.test`) && !PathPrefix(`/socket`)"
+      # - "traefik.http.routers.protea-https.entrypoints=websecure"
+      # - "traefik.http.routers.protea-https.tls=true"
+      # - "traefik.http.routers.protea-https.service=protea"
+      #   # HTTP WebSocket router
+      # - "traefik.http.routers.protea-ws-http.rule=Host(`interledger.test`) && Path(`/socket`)"
+      # - "traefik.http.routers.protea-ws-http.entrypoints=web"
+      # - "traefik.http.routers.protea-ws-http.service=protea-ws"
+      # - "traefik.http.routers.protea-ws-http.middlewares=protea-ws-strip"
+      # # HTTPS WebSocket router
+      # - "traefik.http.routers.protea-ws-https.rule=Host(`interledger.test`) && Path(`/socket`)"
+      # - "traefik.http.routers.protea-ws-https.entrypoints=websecure"
+      # - "traefik.http.routers.protea-ws-https.tls=true"
+      # - "traefik.http.routers.protea-ws-https.service=protea-ws"
+      # - "traefik.http.routers.protea-ws-https.middlewares=protea-ws-strip"
+      # # WebSocket path stripping middleware
+      # - "traefik.http.middlewares.protea-ws-strip.stripprefix.prefixes=/socket"
       # Services
+      - "traefik.http.routers.protea.service=protea"
+      - "traefik.http.routers.protea.rule=Host(`interledger.test`) && !PathPrefix(`/socket`)"
       - "traefik.http.services.protea.loadbalancer.server.port=3000"
-      - "traefik.http.services.protea-ws.loadbalancer.server.port=8002"
+      - "traefik.http.routers.protea.entrypoints=websecure"
+      - "traefik.http.routers.protea.tls=true"
+
+      - "traefik.http.routers.protea-ws.service=protea-ws"
+      - "traefik.http.routers.protea-ws.rule=Host(`interledger.test`) && PathPrefix(`/socket`)"
+      - "traefik.http.services.protea-ws.loadbalancer.server.port=3000"
+      - "traefik.http.routers.protea-ws.entrypoints=websecure"
+      - "traefik.http.routers.protea-ws.tls=true"
+
+      - "traefik.http.routers.protea-ws.middlewares=protea-ws-strip"
+      - "traefik.http.middlewares.protea-ws-strip.stripprefix.prefixes=/socket"
     environment:
       - FYNBOS_ENV=local
 
@@ -51,5 +66,8 @@ services:
       - PAYMENT_POINTER_BASE=local.ilp.link # todo find a way to figure the name
       - DATO_API_TOKEN=b96709bce873f5280722da965b0e9d
       - BACKEND_GRPC_URL=http://backend:8443
-
+      
       - REDIS_URL=redis://redis:6379/2
+
+    depends_on:
+      - backend

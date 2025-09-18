@@ -226,13 +226,23 @@ export async function otpAction({ request }: ActionFunctionArgs) {
 
   if (isConnectError(response)) {
     if (response.code == Code.InvalidArgument) {
+      data.errors.phone = 'Mobile phone number is invalid.'
       return response.error(data, mapping)
     } else if (response.code == Code.AlreadyExists) {
       data.errors.phone = 'Mobile phone number is already registered.'
       return response.error(data)
-    } else return response.error(data, mapping, { action: 'Contact support' })
+    } else {
+      return response.error(data, mapping, { action: 'Contact support' })
+    }
   }
   return json({ id, phone, errors: data.errors })
+}
+
+const KratosErrorTraits = {
+  PHONE: 'traits.phone'
+}
+const KratosErrorMessages = {
+  [KratosErrorTraits.PHONE]: 'Mobile phone number is invalid.'
 }
 
 export async function passwordAction({ request }: ActionFunctionArgs) {
@@ -253,7 +263,8 @@ export async function passwordAction({ request }: ActionFunctionArgs) {
   const errors = {
     form: '',
     serviceAgreement: '',
-    password: ''
+    password: '',
+    phone: ''
   }
 
   if (serviceAgreement == null) {
@@ -285,6 +296,10 @@ export async function passwordAction({ request }: ActionFunctionArgs) {
   )
   if (response.status >= 400) {
     const errs = await kratosErrorMapping(response, errors)
+    if ((errs as any)[KratosErrorTraits.PHONE]) {
+      errors.phone = KratosErrorMessages[KratosErrorTraits.PHONE]
+      return error(request, { errors })
+    }
     return error(request, { errors: errs })
   }
 
