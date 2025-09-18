@@ -127,6 +127,15 @@ func (a *Activity) CreateKYCWallets(ctx context.Context, walletID string) error 
 	} else if country.EUCountries[w.Country] {
 		// nothing to do. Gatehub user should already be created
 	} else if w.Country == country.ZA {
+		// check if its just a kyc update
+		subAccount, err := a.b.Xago().LookupSubAccount(ctx, walletID)
+		if err != nil {
+		}
+		if subAccount.AccountID != "" {
+			log.Info("ZA wallet already has xago account", zap.String("wallet_id", walletID))
+			return a.b.Xago().UpdateInquiryLink(ctx, subAccount.AccountID, walletID)
+		}
+
 		c := currency.ZAR
 		_, err = a.b.Xago().CreateBalanceAccount(ctx, xago.CreateBalanceAccArgs{
 			WalletID: w.ID,
@@ -138,7 +147,7 @@ func (a *Activity) CreateKYCWallets(ctx context.Context, walletID string) error 
 			return err
 		}
 	} else {
-		slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "fynbot", fmt.Sprintf("KYC approved for wallet. %s/wallet/%s/profile. Country=%s. Manual creation of balance account required.", env.AdminURL(), walletID, w.Country))
+		slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "wallet-info-bot", fmt.Sprintf("KYC approved for wallet. %s/wallet/%s/profile. Country=%s. Manual creation of balance account required.", env.AdminURL(), walletID, w.Country))
 		return nil
 	}
 
