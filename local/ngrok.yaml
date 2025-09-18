@@ -7,6 +7,8 @@ services:
   # 1.5 (optional) Test it with the nginx below
   ngrok:
     image: ngrok/ngrok:latest
+    profiles:
+      - services
     restart: always
     environment:
       - NGROK_AUTHTOKEN=<your-token>
@@ -28,6 +30,7 @@ services:
   # 2. Nginx, for testing
   # nginx:
   #   image: nginx:latest
-  #   container_name: nginx-server
   #   ports:
   #     - "40080:80"
+  #   depends_on:
+  #     - ngrok
