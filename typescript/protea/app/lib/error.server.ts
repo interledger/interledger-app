@@ -291,22 +291,11 @@ export function isConnectError(response: unknown): response is ConnectError {
   )
 }
 
-/**
- * Checks if the ConnectError contains a Twilio code validation error
- * @param error The ConnectError to check
- * @returns true if the error contains a Twilio code validation error
- */
 export function isTwilioCodeError(error: ConnectError): boolean {
   return error.fieldViolations.some((violation) => violation.field === 'Code')
 }
 
-/**
- * Checks if the ConnectError is a Twilio error based on metadata
- * @param error The ConnectError to check
- * @returns true if the error is a Twilio error
- */
 export function isTwilioError(error: ConnectError): boolean {
-  // Check if the error contains Twilio metadata
   const errorInfo = error._err.findDetails(ErrorInfo)
   return errorInfo.some((info) => info.reason === 'TwilioError')
 }

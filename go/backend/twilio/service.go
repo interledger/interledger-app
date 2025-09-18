@@ -133,13 +133,13 @@ type CheckVerificationCodeArgs struct {
 
 func (s *service) CheckVerificationCode(ctx context.Context, args *CheckVerificationCodeArgs) (*Verification, error) {
 	// Short circuit here for environments where there is not twilio integrations
-	// if !env.IsProd() && !env.IsSandbox() {
-	// 	return &Verification{
-	// 		Sid:         "1234",
-	// 		PhoneNumber: args.PhoneNumber,
-	// 		Status:      statusApproved,
-	// 	}, nil
-	// }
+	if !env.IsProd() && !env.IsSandbox() {
+		return &Verification{
+			Sid:         "1234",
+			PhoneNumber: args.PhoneNumber,
+			Status:      statusApproved,
+		}, nil
+	}
 
 	err := s.validator.Struct(args)
 	if err != nil {
