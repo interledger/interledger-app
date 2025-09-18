@@ -361,7 +361,11 @@ func (c *client) GetWalletBalances(ctx context.Context, userID, address string) 
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
-	req.Header.Set(managedUserHeader, userID)
+	// to be able to get non mnaged user balances also
+	if userID != "" {
+		req.Header.Set(managedUserHeader, userID)
+	}
+
 	err = c.Sign(ctx, req, time.Now(), nil, endpoint)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
