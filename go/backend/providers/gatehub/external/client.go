@@ -803,17 +803,15 @@ func (c *client) CreateCustomerAndCard(ctx context.Context, gatehubUserId string
 	defer resp.Body.Close()
 
 	var cardResponse CustomerCreatedResponse
-	err = json.Unmarshal(body, &cardResponse)
+	err = json.Unmarshal(rbody, &cardResponse)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
-	log.Info("response body--------------------------------------", zap.String("body", string(rbody)))
-	fmt.Println(string(rbody[:]))
 	var ret = CreateCardDTO{
 		SourceID:        cardResponse.Customer.SourceID,
 		AccountSourceID: cardResponse.Customer.Accounts[0].SourceID,
-		CardType:        "VIRTUAL",
+		CardType:        "VIRTUAL", // hardcode for now
 	}
 	return &ret, nil
 }

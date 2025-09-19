@@ -176,7 +176,7 @@ func SaveGatehubCardPending(ctx context.Context, b Backends, walletID string, ca
 		return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
 	}
 
-	_, err = b.DB().ExecContext(ctx, "INSERT INTO gatehub_user_card_source (gatehub_user_id, customer_source_id, account_source_id, card_type) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING;", id, cardData.SourceID, cardData.AccountSourceID, cardData.CardType)
+	_, err = b.DB().ExecContext(ctx, "INSERT INTO gatehub_user_card_source (gatehub_user_id, customer_source_id, account_source_id, card_type) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING;", id, cardData.SourceID, cardData.AccountSourceID, cardData.CardType)
 	if err != nil {
 		return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
 	}

@@ -1,3 +1,4 @@
+import { Form } from '@remix-run/react'
 import {
   Button,
   Card,
@@ -78,8 +79,14 @@ export const ConfirmCard = () => {
             alt={pickedProduct?.name}
           />
         </div>
-
-        <Button>Confirm</Button>
+        {/* TODO remove: added for tests */}
+         <Form
+                id='confirm-card'
+                action={`/cards/add`}
+                method='post'
+                className='hidden'
+              />
+        <Button form='confirm-card' type='submit'>Confirm</Button>
       </CardContent>
     </Card>
   )
