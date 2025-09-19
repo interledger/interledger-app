@@ -75,10 +75,14 @@ services:
       - "traefik.http.routers.rafiki_backend_connector.service=rafiki_backend_connector"
       - "traefik.http.routers.rafiki_backend_connector.rule=Host(`connector.local.ilp.link`)"
       - "traefik.http.services.rafiki_backend_connector.loadbalancer.server.port=3002"
+      - "traefik.http.routers.rafiki_backend_connector.entrypoints=websecure"
+      - "traefik.http.routers.rafiki_backend_connector.tls=true"
 
       - "traefik.http.routers.rafiki_backend_openpayments.service=rafiki_backend_openpayments"
       - "traefik.http.routers.rafiki_backend_openpayments.rule=Host(`local.ilp.link`)"
       - "traefik.http.services.rafiki_backend_openpayments.loadbalancer.server.port=80"
+      - "traefik.http.routers.rafiki_backend_openpayments.entrypoints=websecure"
+      - "traefik.http.routers.rafiki_backend_openpayments.tls=true"
     environment:
       - ENV_FILE=
       - LOG_LEVEL=debug
@@ -94,7 +98,7 @@ services:
       - REDIS_TLS_KEY_FILE_PATH=
 
       - SIGNATURE_SECRET=your_signature_secret
-      - STREAM_SECRET="BjPXtnd00G2mRQwP/8ZpwyZASOch5sUXT5o0iR5b5wU=" # Example secret, replace with your own
+      - STREAM_SECRET=BjPXtnd00G2mRQwP/8ZpwyZASOch5sUXT5o0iR5b5wU= # Example secret, replace with your own
 
       - ADMIN_PORT=3001
       - CONNECTOR_PORT=3002
@@ -102,45 +106,45 @@ services:
       - AUTH_SERVER_GRANT_URL=http://rafiki_auth:3006
       - AUTH_SERVER_INTROSPECTION_URL=http://rafiki_auth:3007
 
-      - EXCHANGE_RATES_LIFETIME="15000"
+      - EXCHANGE_RATES_LIFETIME=15000
 
-      - GRAPHQL_IDEMPOTENCY_KEY_TTL_MS="8.64e+07"
-      - GRAPHQL_IDEMPOTENCY_KEY_LOCK_MS="2000"
+      - GRAPHQL_IDEMPOTENCY_KEY_TTL_MS=8.64e+07
+      - GRAPHQL_IDEMPOTENCY_KEY_LOCK_MS=2000
 
-      - IDENTITY_SERVER_URL="https://interledger.test/consent"
+      - IDENTITY_SERVER_URL=https://interledger.test/consent
 
-      - ILP_ADDRESS="test.interledger-local"
-      - ILP_CONNECTOR_URL="https://connector.local.ilp.link"
+      - ILP_ADDRESS=local.ilp.link
+      - ILP_CONNECTOR_URL=https://connector.local.ilp.link
 
-      - INCOMING_PAYMENT_WORKERS="1"
-      - INCOMING_PAYMENT_WORKER_IDLE="200"
+      - INCOMING_PAYMENT_WORKERS=1
+      - INCOMING_PAYMENT_WORKER_IDLE=200
 
-      - INSTANCE_NAME="fynbosdev"
-      - KEY_ID="rafikidev"
-      
-      - OPEN_PAYMENTS_PORT="80"
-      - OPEN_PAYMENTS_URL="https://local.ilp.link"
-      - OUTGOING_PAYMENT_WORKERS="4"
-      - OUTGOING_PAYMENT_WORKER_IDLE="200"
-      - WALLET_ADDRESS_URL="https://local.ilp.link/.well-known/pay"
-      - WALLET_ADDRESS_REDIRECT_HTML_PAGE="https://interledger.test/me/%wp"
-      - PAYMENT_POINTER_WORKERS="1"
-      - PAYMENT_POINTER_WORKER_IDLE="200"
+      - INSTANCE_NAME=fynbosdev
+      - KEY_ID=rafikidev
+
+      - OPEN_PAYMENTS_PORT=80
+      - OPEN_PAYMENTS_URL=https://local.ilp.link
+      - OUTGOING_PAYMENT_WORKERS=4
+      - OUTGOING_PAYMENT_WORKER_IDLE=200
+      - WALLET_ADDRESS_URL=https://local.ilp.link/.well-known/pay
+      - WALLET_ADDRESS_REDIRECT_HTML_PAGE=https://interledger.test/me/%wp
+      - PAYMENT_POINTER_WORKERS=1
+      - PAYMENT_POINTER_WORKER_IDLE=200
       - PRIVATE_KEY_FILE=""
-      - PUBLIC_HOST="https://local.ilp.link"
-      - QUOTE_LIFESPAN="300000"
+      - PUBLIC_HOST=https://local.ilp.link
+      - QUOTE_LIFESPAN=300000
 
-      - SIGNATURE_VERSION="1"
-      - SLIPPAGE="0.01"
-      - TIGERBEETLE_CLUSTER_ID="none"
-      - TIGERBEETLE_REPLICA_ADDRESSES="none"
-      - TRUST_PROXY="true"
-      - USE_TIGERBEETLE="false"
-      - WEBHOOK_TIMEOUT="200"
-      - WEBHOOK_URL="http://127.0.0.1:8080/rafiki"
-      - WEBHOOK_WORKERS="1"
-      - WEBHOOK_WORKER_IDLE="200"
-      - WITHDRAWAL_THROTTLE_DELAY=""
+      - SIGNATURE_VERSION=1
+      - SLIPPAGE=0.01
+      - TIGERBEETLE_CLUSTER_ID=none
+      - TIGERBEETLE_REPLICA_ADDRESSES=none
+      - TRUST_PROXY=true
+      - USE_TIGERBEETLE=false
+      - WEBHOOK_TIMEOUT=200
+      - WEBHOOK_URL=http://127.0.0.1:8080/rafiki
+      - WEBHOOK_WORKERS=1
+      - WEBHOOK_WORKER_IDLE=200
+      - WITHDRAWAL_THROTTLE_DELAY=
 
   # # 3. Rafiki Frontend
   rafiki_frontend:
