@@ -159,20 +159,20 @@ func (s *service) CheckVerificationCode(ctx context.Context, args *CheckVerifica
 		if ok {
 			switch twilioError.Code {
 			case 60202: 	
-				log.Error("Invalid verification code: ", zap.String("message", twilioError.Message))
+				log.Warn("Invalid verification code: ", zap.String("message", twilioError.Message))
 				return nil, fmt.Errorf("%w: %s", ErrInvalidOTP, "Invalid verification code")
 			case 60203:
-				log.Error("Maximum verification attempts reached: ", zap.String("message", twilioError.Message))
+				log.Warn("Maximum verification attempts reached: ", zap.String("message", twilioError.Message))
 				return nil, fmt.Errorf("%w: %s", ErrInvalidOTP, "Maximum verification attempts reached")
 			case 60200:
-				log.Error("Invalid phone number format: ", zap.String("message", twilioError.Message))
+				log.Warn("Invalid phone number format: ", zap.String("message", twilioError.Message))
 				return nil, fmt.Errorf("%w: %s", ErrInvalidArgument, "Invalid phone number format")
 			default:
-				log.Error("Twilio verification error", zap.Int("code", twilioError.Code), zap.String("message", twilioError.Message))
+				log.Warn("Twilio verification error", zap.Int("code", twilioError.Code), zap.String("message", twilioError.Message))
 				return nil, fmt.Errorf("%w: %s", ErrInternal, twilioError.Message)
 			}
 		}
-		log.Error("Code verification error", zap.Error(err))
+		log.Warn("Code verification error", zap.Error(err))
 		return nil, fmt.Errorf("%w: %s", ErrInternal, err)
 	}
 
