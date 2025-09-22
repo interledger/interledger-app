@@ -72,14 +72,22 @@ type (
 	}
 
 	CardWebhookData struct {
+		UUID        string   `json:"uuid"`
+		Timestamp   string   `json:"timestamp"`
+		EventType   string   `json:"event_type"`
+		UserUUID    string   `json:"user_uuid"`
+		Environment string   `json:"environment"`
+		Data        CardData `json:"data"`
+	}
+	CardData struct {
 		CardID           string  `json:"cardId"`
 		CardSourceID     string  `json:"cardSourceId"`
 		NameOnCard       string  `json:"nameOnCard"`
 		ProductCode      string  `json:"productCode"`
-		MaskedPan        *string `json:"maskedPan,omitempty"`
+		MaskedPan        string  `json:"maskedPan"`
 		AccountID        string  `json:"accountId"`
 		AccountSourceID  string  `json:"accountSourceId"`
-		LockLevel        *string `json:"lockLevel,omitempty"`
+		LockLevel        *string `json:"lockLevel"` // pointer so it can be null
 		CustomerID       string  `json:"customerId"`
 		CustomerSourceID string  `json:"customerSourceId"`
 	}
@@ -166,13 +174,19 @@ func HandleCardCreatedWebhook(context context.Context, b Backends, raw json.RawM
 	var cardData CardWebhookData
 	err := json.Unmarshal(raw, &cardData)
 	if err != nil {
-		log.Error("gatehub webhook: Failed to unmarshal card created webhook", zap.String("card_id", cardData.CardID), zap.Error(err))
+		log.Error("gatehub webhook: Failed to unmarshal card created webhook", zap.String("customer source id", cardData.Data.CardSourceID), zap.Error(err))
 		return
 	}
-	log.Info("THE WEBHOOK IS HERE --------------------------------------------------------", zap.String("card_id", string(raw)))
-	err = UpdateGateHubUserExternalIDs(context, b, cardData.CardID, cardData.CustomerID, cardData.AccountID)
+	id, err := GetGatehubUsersId(context, b, cardData.Data.CustomerSourceID, cardData.Data.AccountSourceID)
 	if err != nil {
-		log.Error("Failed to update gatehub_cards with external_user_id", zap.String("card_id", cardData.CardID), zap.String("external_user_id", cardData.CustomerID), zap.Error(err))
+		log.Error("Failed to get gatehub_users id", zap.String("external_user_id", cardData.Data.CustomerID), zap.Error(err))
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+
+	}
+	err = UpdateGateHubUserExternalIDs(context, b, cardData.Data.CustomerID, cardData.Data.AccountID, id)
+	if err != nil {
+		log.Error("Failed to update gatehub_cards with external_user_id", zap.String("external_user_id", cardData.Data.CustomerID), zap.Error(err))
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}

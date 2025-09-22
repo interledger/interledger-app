@@ -37,13 +37,14 @@ type client struct {
 	cardAppID          string
 	apiSecret          string
 	baseURL            string
+	gatewayID          string
 	onboardingBaseURL  string
 	onOffRampBaseURL   string
 
 	api *http.Client
 }
 
-func NewClient(appID, cardAppID, secret string, transport *http.Client) Client {
+func NewClient(appID, cardAppID, secret, gatewayID string, transport *http.Client) Client {
 	onOffRampClientID := "f8119dfd-e563-44ee-9ae2-1e60a4fce74f"
 	onboardingClientID := "4df24d1b-5796-4eec-951b-21699d61b970"
 	exchangeClientID := "4e28d4df-22d7-414c-97a3-d71956df29ba"
@@ -72,6 +73,7 @@ func NewClient(appID, cardAppID, secret string, transport *http.Client) Client {
 		cardAppID:          cardAppID,
 		apiSecret:          secret,
 		baseURL:            baseURL,
+		gatewayID:          gatewayID,
 		onboardingBaseURL:  onboardingBaseURL,
 		onOffRampBaseURL:   onOffRampBaseURL,
 		api:                api,
@@ -83,7 +85,7 @@ func (c *client) GetVaultID() string {
 		return "546ac540-4362-49cb-b639-afc5d4280d03"
 	}
 
-	return "a09a0a2c-1a3a-44c5-a1b9-603a6eea9341" // sandbox EUR vault
+	return "67df5a03-587a-491f-8edb-37a9ef13daba" // new EURO VAULT  "a09a0a2c-1a3a-44c5-a1b9-603a6eea9341" // sandbox EUR vault
 }
 
 func (c *client) GetOnboardingWidget(ctx context.Context, userID string) (string, error) {
@@ -180,6 +182,52 @@ func (c *client) IssueToken(ctx context.Context, userID string, product Product)
 	}
 
 	return &tokenResp, nil
+}
+
+func (c *client) LinkUserToGateway(ctx context.Context, gatehubUserId string) error {
+	hubID := c.gatewayID
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "POST"
+		meta.Provider = "gatehub"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "POST",
+			Provider: "gatehub",
+		})
+	}
+	endpoint, err := url.JoinPath(c.baseURL, "id", "v1", "users", gatehubUserId, "hubs", hubID)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewBuffer(nil))
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set(managedUserHeader, gatehubUserId)
+	err = c.Sign(ctx, req, time.Now(), nil, endpoint)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	err = checkResponseStatusCode(resp)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+	defer resp.Body.Close()
+
+	return nil
 }
 
 func (c *client) CreateUser(ctx context.Context, email string) (*CreateUserResponse, error) {
@@ -605,14 +653,13 @@ func (c *client) ListCards(ctx context.Context, userID, customerID string) ([]Ca
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 	defer resp.Body.Close()
-
-	var cards ListCardsResponse
+	var cards []Card
 	err = json.Unmarshal(body, &cards)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
-	return cards.Data, nil
+	return cards, nil
 }
 
 func (c *client) GetDeliveryAddresses(ctx context.Context, userID, customerID string) ([]CustomerDeliveryAddress, error) {
@@ -777,12 +824,6 @@ func (c *client) CreateCustomerAndCard(ctx context.Context, gatehubUserId string
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
-	err = TestCustomerCreation(ctx, gatehubUserId, c)
-
-	if err != nil {
-		log.Info("Error testing customer creation", zap.Error(err))
-	}
-	fmt.Println("after-sign")
 
 	resp, err := c.api.Do(req)
 	if err != nil {
@@ -811,60 +852,9 @@ func (c *client) CreateCustomerAndCard(ctx context.Context, gatehubUserId string
 	var ret = CreateCardDTO{
 		SourceID:        cardResponse.Customer.SourceID,
 		AccountSourceID: cardResponse.Customer.Accounts[0].SourceID,
-		CardType:        "VIRTUAL", // hardcode for now
+		CardType:        Virtual,
 	}
 	return &ret, nil
-}
-
-// TODO REMOVE THIS - TESTING PURPOSES ONLY
-func TestCustomerCreation(ctx context.Context, gatehubUserId string, c *client) error {
-	log.Info("GET CUSTOMER--------------------------------------")
-	// endpoint, err := url.JoinPath(c.baseURL, "cards", "v2", "cards") //"a01ce706-32a4-4f1e-93c0-7345f884e6c9"
-	endpoint, err := url.JoinPath(c.baseURL, "cards", "v1", "customers", "a01ce706-32a4-4f1e-93c0-7345f884e6c9")
-	if err != nil {
-		return fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
-	if err != nil {
-		return fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	req.Header.Set(cardAppIDHeader, c.cardAppID)
-	req.Header.Set(managedUserHeader, gatehubUserId) //"0242a34b-b071-460e-9179-f4040d9895e8"
-	req.Header.Set("Content-Type", "application/json")
-	err = c.Sign(ctx, req, time.Now(), nil, endpoint)
-	if err != nil {
-		return fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	fmt.Println("GET CUSTOMER--------------------------------------after-sign")
-
-	resp, err := c.api.Do(req)
-	if err != nil {
-		fmt.Println("GET do error--------------------------------------")
-		return fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	fmt.Println(resp.StatusCode)
-
-	err = checkResponseStatusCode(resp)
-	if err != nil {
-		fmt.Println("GET checkResponseStatusCode error--------------------------------------")
-		return fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	rbody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("GET body error--------------------------------------")
-		return fmt.Errorf("%w %s", ErrInternal, err)
-	}
-	defer resp.Body.Close()
-
-	log.Info("response body--------------------------------------", zap.String("body", string(rbody)))
-	fmt.Println(string(rbody[:]))
-	return nil
-
 }
 
 func (c *client) OrderCard(ctx context.Context, userID string, gatehubWalletAddress string) error {

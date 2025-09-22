@@ -283,19 +283,22 @@ type (
 	}
 
 	Card struct {
-		ID               string  `json:"id"`
-		SourceID         string  `json:"sourceId"`
-		AccountID        string  `json:"accountId"`
-		AccountSourceID  string  `json:"accountSourceId"`
-		CustomerID       string  `json:"customerId"`
-		CustomerSourceID string  `json:"customerSourceId"`
-		NameOnCard       string  `json:"nameOnCard"`
-		ProductCode      string  `json:"productCode"`
-		MaskedPan        string  `json:"maskedPan"`
-		Status           string  `json:"status"`
-		StatusReasonCode *string `json:"statusReasonCode"`
-		LockLevel        *string `json:"lockLevel"`
-		ExpiryDate       string  `json:"expiryDate"`
+		ID                         string  `json:"id"`
+		SourceID                   string  `json:"sourceId"`
+		NameOnCard                 string  `json:"nameOnCard"`
+		AccountID                  string  `json:"accountId"`
+		AccountSourceID            string  `json:"accountSourceId"`
+		MaskedPan                  string  `json:"maskedPan"`
+		Status                     string  `json:"status"`
+		StatusReasonCode           *string `json:"statusReasonCode"`
+		LockLevel                  *string `json:"lockLevel"`
+		ExpiryDate                 string  `json:"expiryDate"`
+		CustomerID                 string  `json:"customerId"`
+		CustomerSourceID           string  `json:"customerSourceId"`
+		RelationType               string  `json:"relationType"`
+		EmbossingData              *string `json:"embossingData"`
+		MembershipFeeEffectiveDate *string `json:"membershipFeeEffectiveDate"`
+		ProductCode                string  `json:"productCode"`
 	}
 
 	ListCardsResponse struct {
@@ -319,7 +322,7 @@ type Customer struct {
 	SourceID  string    `json:"sourceId"`
 	TaxNumber string    `json:"taxNumber"`
 	Addresses []Address `json:"addresses"`
-	ID        *string   `json:"id"` // nullable
+	ID        *string   `json:"id"`
 	Type      string    `json:"type"`
 	Code      string    `json:"code"`
 	Accounts  []Account `json:"accounts"`
@@ -368,8 +371,15 @@ type CustomerCard struct {
 	PlasticCreated     bool    `json:"plasticCreated"`
 }
 
+type CardType string
+
+const (
+	Virtual  CardType = "Virtual"
+	Physical CardType = "Physical"
+)
+
 type CreateCardDTO struct {
 	SourceID        string
 	AccountSourceID string
-	CardType        string
+	CardType        CardType
 }

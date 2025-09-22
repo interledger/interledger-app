@@ -3442,7 +3442,7 @@ table "gatehub_users" {
   column "card_status" {
     null = false
     type = text
-    default = "NONE"
+    default = "None"
   }
   primary_key {
     columns = [column.id]

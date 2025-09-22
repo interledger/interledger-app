@@ -137,6 +137,34 @@ function PersonaPage() {
 function GatehubPage() {
   const { gatehubWidget } = useLoaderData<typeof loader>()
   const [dialogOpen, setDialogOpen] = useState(false)
+  const submit = useSubmit()
+  useEffect(() => {
+    const onKYCComplete = (e: MessageEvent) => {
+      if (!e.data || !e.data.type || e.data.value.applicantStatus) return
+
+      if (e.data.value) {
+        try {
+          e.data.value = JSON.parse(e.data.value)
+        }
+        catch {
+          //TODO add error handling here.
+          console.log('Gatehub event --- not json', e.data)
+        }
+      }
+      if (e.data.type && e.data.type === 'OnboardingCompleted' && e.data.value.applicantStatus === 'submitted') {
+        submit(null, {
+          action: '/personal-details',
+          method: 'post'
+        })
+      }
+    }
+
+    window.addEventListener('message', onKYCComplete)
+
+    return () => {
+      window.removeEventListener('message', onKYCComplete)
+    }
+  }, [submit])
 
   return (
     <>

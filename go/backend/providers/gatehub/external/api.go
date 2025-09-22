@@ -19,4 +19,5 @@ type Client interface {
 	OrderCard(ctx context.Context, userID string, gatehubWalletAddress string) error
 	CreateCustomerAndCard(ctx context.Context, gatehubUserId string, gatehubWalletAddress string) (*CreateCardDTO, error)
 	GetVaultID() string
+	LinkUserToGateway(ctx context.Context, gatehubUserId string) error
 }
