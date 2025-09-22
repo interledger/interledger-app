@@ -42,8 +42,6 @@ services:
       - "traefik.http.routers.protea.service=protea"
       - "traefik.http.routers.protea.rule=Host(`interledger.test`) && !PathPrefix(`/socket`)"
       - "traefik.http.services.protea.loadbalancer.server.port=3000"
-      - "traefik.http.routers.protea.entrypoints=websecure"
-      - "traefik.http.routers.protea.tls=true"
 
       - "traefik.http.routers.protea-ws.service=protea-ws"
       - "traefik.http.routers.protea-ws.rule=Host(`interledger.test`) && PathPrefix(`/socket`)"

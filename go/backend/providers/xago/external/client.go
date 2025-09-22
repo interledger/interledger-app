@@ -35,6 +35,7 @@ type Client interface {
 	ListDeposits(ctx context.Context, page int) ([]Deposit, error)
 	GetWithdrawal(ctx context.Context, id string) (*Withdrawal, error)
 	TestDeposit(ctx context.Context, reqStruct TestDepositReq) error
+	UpdateInquiryLink(ctx context.Context, accountID string, inquiryLink string) error
 }
 
 type client struct {
@@ -725,4 +726,70 @@ func (c *client) TestDeposit(ctx context.Context, reqStruct TestDepositReq) erro
 	}
 
 	return err
+}
+
+func (c *client) UpdateInquiryLink(ctx context.Context, accountID string, inquiryLink string) error {
+	reqUrl, err := url.JoinPath(c.identityBaseURL, "company", "accounts", accountID)
+	if err != nil {
+		return err
+	}
+
+	var reqStruct = UpdateInquiryLinkRequest{
+		ThirdPartyVerificationUrl: inquiryLink,
+	}
+
+	reqBody, err := json.Marshal(reqStruct)
+	if err != nil {
+		return err
+	}
+
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "PUT"
+		meta.Provider = "xago"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "PUT",
+			Provider: "xago",
+		})
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, reqUrl, bytes.NewReader(reqBody))
+	if err != nil {
+		return err
+	}
+	token, err := c.AccessToken(ctx, false)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token.Token)
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		token, err = c.AccessToken(ctx, true)
+		if err != nil {
+			return err
+		}
+		req.Header.Set("Authorization", "Bearer "+token.Token)
+
+		resp, err = c.api.Do(req)
+		if err != nil {
+			return err
+		}
+		if resp.StatusCode == http.StatusUnauthorized {
+			log.Info("refreshed xago token not authorized for add beneficiary")
+		}
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("failed to update xargo inquiry url for  (%s)", accountID)
+	}
+
+	return nil
 }

@@ -120,3 +120,9 @@ func (c *client) LookupWithdrawal(ctx context.Context, id string) (*xago.Withdra
 func (c *client) TestDeposit(ctx context.Context, sa xago.SubAccount) error {
 	return ops.TestDeposit(ctx, c.b, sa)
 }
+func (c *client) UpdateInquiryLink(ctx context.Context, accountID string, walletID string) error {
+	return ops.UpdateInquiryLink(ctx, c.b, xago.InquiryLinkUpdate{
+		WalletID:  walletID,
+		AccountID: accountID,
+	})
+}
