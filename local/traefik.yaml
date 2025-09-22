@@ -1,6 +1,6 @@
 services:
   traefik:
-    image: traefik:v2.10
+    image: traefik:v3.5.2
     profiles:
       - infrastructure
     restart: always
@@ -11,13 +11,11 @@ services:
       - "28080:8080"  # Traefik dashboard
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./config/traefik.yaml:/etc/traefik/traefik.yaml
+      - ./config/traefik/static.yaml:/etc/traefik/traefik.yaml              # static configuration
+      - ./config/traefik/dynamic.yaml:/etc/traefik/dynamic.traefik.yaml:ro  # dynamic configuration
 
       - ./config/certs:/certs:ro
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.traefik.rule=Host(`traefik.test`)"
       - "traefik.http.routers.traefik.service=api@internal"
-      # - "traefik.http.routers.traefik.entrypoints=web"
-      - "traefik.http.routers.traefik.entrypoints=websecure"
-      - "traefik.http.routers.traefik.tls=true"
