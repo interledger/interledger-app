@@ -7,7 +7,7 @@ services:
     volumes:
       - ./config:/etc/config/kratos
     command: -c /etc/config/kratos/kratos.yml migrate sql -e --yes
-    # restart: on-failure
+    restart: on-failure
 
   # 2. Kratos Service
   kratos:
