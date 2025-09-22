@@ -21,6 +21,11 @@ type MockClient struct {
 	recorder *MockClientMockRecorder
 }
 
+// UpdateInquiryLink implements external.Client.
+func (m *MockClient) UpdateInquiryLink(ctx context.Context, accountID string, inquiryLink string) error {
+	return nil
+}
+
 // MockClientMockRecorder is the mock recorder for MockClient.
 type MockClientMockRecorder struct {
 	mock *MockClient
