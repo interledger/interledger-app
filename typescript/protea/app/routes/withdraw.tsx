@@ -46,6 +46,7 @@ import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
+import type { IframeMessage } from '~/lib/types'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { PaySelect } from '~/routes/pay_.$paymentId/PaySelect'
 import styles from '~/styles/flags.css'
@@ -137,30 +138,33 @@ export default function Page() {
 function GatehubWithdrawalPage() {
   const submit = useSubmit()
   const { gatehubWidgetUrl } = useLoaderData<typeof gatehubWithdrawalLoader>()
-
   useEffect(() => {
-    if (window) {
-      console.log('registering message event handler')
-      let url = new URL(gatehubWidgetUrl)
-      window.addEventListener('message', (event) => {
-        console.log('received message')
-        console.log('origin', event.origin)
-        console.log('data', event.data)
-
-        if (
-          event.origin == url.origin &&
-          event.data.type == 'WithdrawalCompleted'
-        ) {
-          let formData = new FormData()
-          formData.append('provider', 'gatehub')
-          formData.append('withdrawalId', event.data.uuid)
-
-          submit(formData, {
-            action: '/withdraw',
-            method: 'post'
-          })
-        }
-      })
+    const url = new URL(gatehubWidgetUrl)
+    const handler = (event: MessageEvent<IframeMessage>) => {  
+      console.log('event.data.type: ',event.data.type)
+      if (
+        event.origin === url.origin &&
+        event.data.type === 'WithdrawalCompleted'
+      ) {
+        const formData = new FormData()
+        formData.append('provider', 'gatehub')
+        formData.append('withdrawalId', event.data.uuid)
+  
+        submit(formData, {
+          action: '/withdraw',
+          method: 'post'
+        })
+      }
+    }
+    if(window) {
+      window.addEventListener('message', handler)
+    }
+      
+    return () => {
+      if(window) {
+        window.removeEventListener('message', handler)
+      }
+      
     }
   })
 

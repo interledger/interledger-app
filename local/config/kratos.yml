@@ -97,6 +97,12 @@ selfservice:
       enabled: true
     password:
       enabled: true
+    totp:
+      enabled: true
+      config:
+        issuer: interledger.app
+    lookup_secret:
+      enabled: true
 serve:
   admin:
     port: 4434
@@ -115,4 +121,4 @@ session:
   earliest_possible_extend: 24h
   lifespan: 420h
   whoami:
-    required_aal: aal1
+    required_aal: highest_available

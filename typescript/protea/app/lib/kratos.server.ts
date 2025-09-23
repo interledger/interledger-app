@@ -246,6 +246,12 @@ export async function kratosErrorMapping<T extends object>(
     for (let node of data.ui.nodes) {
       // Field validation errors
       if (node.messages.length > 0) {
+        console.error(
+          'Kratos error on node attribute',
+          node.attributes.name,
+          ' with message',
+          node.messages[0].text
+        )
         Object.assign(fieldErrors, {
           [node.attributes.name]: kratosErrorMessage(node.messages[0])
         })

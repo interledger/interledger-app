@@ -3,6 +3,9 @@ services:
     build:
       context: ../typescript/botanist
       target: dev
+    profiles:
+      - application
+      - frontend
     restart: always
     develop:
       watch:
@@ -15,13 +18,12 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.botanist.rule=Host(`admin.mgnt.interledger.test`)"
       - "traefik.http.services.botanist.loadbalancer.server.port=3000"
-    # healthcheck:
-    #   test: ["CMD-SHELL", "curl -f http://localhost:3000/healthz || exit 1"]
-    #   interval: 5s
-    #   timeout: 2s
-    #   retries: 5
+
     environment:
       - FYNBOS_ENV=local
 
       - CHOKIDAR_USEPOLLING=true
       - BACKEND_GRPC_URL=backend:8448
+
+    depends_on:
+      - backend

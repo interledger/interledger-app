@@ -28,3 +28,4 @@ coverage.out
 
 **/.vagrant
 **/dev_bck
+.pnpm-store

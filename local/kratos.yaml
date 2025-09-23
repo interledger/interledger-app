@@ -2,16 +2,18 @@ services:
   # 1. Kratos migrations
   kratos-migrate:
     image: oryd/kratos:v0.11.0
+    profiles:
+      - services
     volumes:
       - ./config:/etc/config/kratos
     command: -c /etc/config/kratos/kratos.yml migrate sql -e --yes
-    # restart: on-failure
-    depends_on:
-      - postgres
+    restart: on-failure
 
   # 2. Kratos Service
   kratos:
     image: oryd/kratos:v0.11.0
+    profiles:
+      - services
     ports:
       - "4433:4433"  # Public
       - "4434:4434"  # Admin

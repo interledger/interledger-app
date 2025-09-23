@@ -1,0 +1,31 @@
+log:
+  level: ERROR # DEBUG, INFO, WARN, ERROR
+
+entryPoints:
+  web:
+    address: :80
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+          permanent: true
+    observability:
+      accessLogs: false
+      metrics: false
+      tracing: false
+
+  websecure:
+    asDefault: true
+    address: :443
+    http:
+      tls: {}
+
+api:
+  dashboard: true
+
+providers:
+  docker:
+    exposedByDefault: false
+  file:
+    filename: /etc/traefik/dynamic.traefik.yaml
