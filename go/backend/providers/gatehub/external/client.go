@@ -771,24 +771,11 @@ func (c *client) GetCardApplicationProducts(ctx context.Context) ([]CardApplicat
 	return products, nil
 }
 func (c *client) CreateCustomerAndCard(ctx context.Context, gatehubUserId string, gatehubWalletAddress string) (*CreateCardDTO, error) {
-	type ghcard struct {
-		ProductCode string `json:"productCode"`
-	}
-	type account struct {
-		ProductCode string `json:"productCode"`
-		Card        ghcard `json:"card"`
-	}
-
-	type testStruct struct {
-		WalletAddress string  `json:"walletAddress"`
-		Account       account `json:"account"`
-	}
-
-	body, _ := json.Marshal(testStruct{
+	body, _ := json.Marshal(CreateCard{
 		WalletAddress: gatehubWalletAddress,
-		Account: account{
+		Account: CardAccount{
 			ProductCode: "PWSR_DEBP_2404",
-			Card: ghcard{
+			Card: GateHubCard{
 				ProductCode: "PMDSGWEEA",
 			},
 		},
@@ -817,7 +804,7 @@ func (c *client) CreateCustomerAndCard(ctx context.Context, gatehubUserId string
 	fmt.Println("after-new-request")
 
 	req.Header.Set(cardAppIDHeader, c.cardAppID)
-	req.Header.Set(managedUserHeader, gatehubUserId) //"0242a34b-b071-460e-9179-f4040d9895e8"
+	req.Header.Set(managedUserHeader, gatehubUserId)
 	req.Header.Set("Content-Type", "application/json")
 
 	err = c.Sign(ctx, req, time.Now(), body, endpoint)
@@ -862,12 +849,12 @@ func (c *client) OrderCard(ctx context.Context, userID string, gatehubWalletAddr
 		ProductCode string `json:"productCode"`
 	}
 
-	type testStruct struct {
+	type OrderCARDS struct {
 		WalletAddress string `json:"walletAddress"`
 		Card          ghcard `json:"card"`
 	}
 
-	body, _ := json.Marshal(testStruct{
+	body, _ := json.Marshal(OrderCARDS{
 		WalletAddress: gatehubWalletAddress,
 		Card: ghcard{
 			ProductCode: "PMDSGWEEA",

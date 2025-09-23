@@ -383,3 +383,16 @@ type CreateCardDTO struct {
 	AccountSourceID string
 	CardType        CardType
 }
+
+type GateHubCard struct {
+	ProductCode string `json:"productCode"`
+}
+type CardAccount struct {
+	ProductCode string      `json:"productCode"`
+	Card        GateHubCard `json:"card"`
+}
+
+type CreateCard struct {
+	WalletAddress string      `json:"walletAddress"`
+	Account       CardAccount `json:"account"`
+}
