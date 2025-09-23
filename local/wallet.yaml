@@ -99,6 +99,8 @@ services:
       - GATEHUB_APP_ID=<fetch-me-from-vault>
       - GATEHUB_SECRET=<fetch-me-from-vault>
       - GATEHUB_CARD_APP_ID=<fetch-me-from-vault>
+      - GATEHUB_WEBHOOK_SECRET=<fetch-me-from-vault>
+      - GATEHUB_GATEWAY_ID=<fetch-me-from-vault>
 
     depends_on:
       - migration

@@ -10,7 +10,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func SetGatehubGatewayToPaywiser(ctx workflow.Context, params WalletActive) error {
+func SetGatehubGatewayToPaywiserJob(ctx workflow.Context, params WalletActive) error {
 	var a *Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 10 * time.Second,
@@ -19,7 +19,7 @@ func SetGatehubGatewayToPaywiser(ctx workflow.Context, params WalletActive) erro
 		},
 	}
 	ctx = workflow.WithActivityOptions(ctx, ao)
-	log.Info("starting SetGatehubGatewayToPaywiser", zap.Bool("is Active", params.IsActive), zap.String("region", params.Region), zap.Strings("wallet_ids", params.Wallets))
+	log.Info("starting SetGatehubGatewayToPaywiserJob", zap.Bool("is Active", params.IsActive), zap.String("region", params.Region), zap.Strings("wallet_ids", params.Wallets))
 	var externalUserIDs []string
 	err := workflow.ExecuteActivity(ctx, a.GetGatehubUsers).Get(ctx, &externalUserIDs)
 	if err != nil {
@@ -31,7 +31,7 @@ func SetGatehubGatewayToPaywiser(ctx workflow.Context, params WalletActive) erro
 		return err
 	}
 
-	log.Info("completed SetGatehubGatewayToPaywiser", zap.Bool("is Active", params.IsActive), zap.String("region", params.Region), zap.Strings("wallet_ids", params.Wallets), zap.Strings("not changed: ", listOfUnprocessed))
+	log.Info("completed SetGatehubGatewayToPaywiserJob", zap.Bool("is Active", params.IsActive), zap.String("region", params.Region), zap.Strings("wallet_ids", params.Wallets), zap.Strings("not changed: ", listOfUnprocessed))
 	return nil
 }
 
