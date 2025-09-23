@@ -339,28 +339,28 @@ export const getContactRoute = async () => {
               button: [],
               image: {
                 id: 'eQBZnAgpS5m8UyieKh_7dQ',
-                url: 'https://www.datocms-assets.com/160242/1710165703-contact-hero-light.svg',
+                url: '/contact/phone-icon-light.svg',
                 height: 680,
                 width: 680,
                 __typename: 'FileField'
               },
               imageDark: {
                 id: 'eQBZnAgpS5m8UyieKh_7dQ',
-                url: 'https://www.datocms-assets.com/160242/1710165703-contact-hero-light.svg',
-                height: 680,
-                width: 680,
+                url: '/contact/phone-icon-light.svg',
+                height: 300,
+                width: 300,
                 __typename: 'FileField'
               },
               imageMobile: {
                 id: '51207375',
-                url: 'https://www.datocms-assets.com/160242/1685717318-hero-5-contact-light-mobile.svg',
+                url: '/contact/phone-icon-light.svg',
                 height: 187,
                 width: 375,
                 __typename: 'FileField'
               },
               imageDarkMobile: {
                 id: '51207373',
-                url: 'https://www.datocms-assets.com/160242/1685717314-hero-5-contact-dark-mobile.svg',
+                url: '/contact/phone-icon-dark.svg',
                 height: 187,
                 width: 375,
                 __typename: 'FileField'
