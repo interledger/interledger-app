@@ -87,3 +87,7 @@ func (b Backends) KYC() kyc.Client {
 func (b Backends) Transactions() transactions.Client {
 	return nil
 }
+
+func (b Backends) LinkGatehubUserToGateway() transactions.Client {
+	return nil
+}
