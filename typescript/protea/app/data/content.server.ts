@@ -460,9 +460,9 @@ export const getContactRoute = async () => {
       id: '121270040',
       logo: {
         id: 'dffIomSsTfCkd-b3vjChtA',
-        url: 'https://www.datocms-assets.com/160242/1721916494-interledger_icon.svg',
-        height: 101,
-        width: 101,
+        url: '/interledger-logo.svg',
+        height: 150,
+        width: 150,
         __typename: 'FileField'
       },
       column1Title: 'Menu',
@@ -515,7 +515,8 @@ export const getContactRoute = async () => {
                 children: [
                   {
                     type: 'span',
-                    value: '© 2024 Interledger Inc and the Interledger Foundation.'
+                    value:
+                      '© 2024 Interledger Inc and the Interledger Foundation.'
                   }
                 ]
               },
@@ -4684,7 +4685,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          'Except for the grant of the Personal Use Right in accordance with these Terms, nothing in these Terms functions to assign or transfer, nor creates any right in favor of any person to use, any of Interledger\'s Intellectual Property Rights.'
+                          "Except for the grant of the Personal Use Right in accordance with these Terms, nothing in these Terms functions to assign or transfer, nor creates any right in favor of any person to use, any of Interledger's Intellectual Property Rights."
                       }
                     ]
                   },
@@ -4847,7 +4848,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                               {
                                 type: 'span',
                                 value:
-                                  'Indemnification Obligations. Without limiting the obligations in these Terms, each Holder agrees to indemnify, hold harmless, compensate and reimburse Interledger and its respective subsidiaries, affiliates, officers, agents, employees, partners, and licensors from or for any claim, demand, loss, or damages, including reasonable attorneys\' fees, arising out of or related to Holder\'s use of the wallet address or Holder\'s violation of these Terms.'
+                                  "Indemnification Obligations. Without limiting the obligations in these Terms, each Holder agrees to indemnify, hold harmless, compensate and reimburse Interledger and its respective subsidiaries, affiliates, officers, agents, employees, partners, and licensors from or for any claim, demand, loss, or damages, including reasonable attorneys' fees, arising out of or related to Holder's use of the wallet address or Holder's violation of these Terms."
                               }
                             ]
                           }
@@ -4862,7 +4863,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                               {
                                 type: 'span',
                                 value:
-                                  'Injunctive Relief. Notwithstanding anything else in these Terms, Holder hereby agrees that, in the event of Holder\'s or any third partys unauthorized access to, or use of, the wallet address in violation of these Terms, Interledger shall be entitled to apply for injunctive remedies (or an equivalent type of urgent legal relief) in any jurisdiction, without providing notice or opportunity to cure.'
+                                  "Injunctive Relief. Notwithstanding anything else in these Terms, Holder hereby agrees that, in the event of Holder's or any third partys unauthorized access to, or use of, the wallet address in violation of these Terms, Interledger shall be entitled to apply for injunctive remedies (or an equivalent type of urgent legal relief) in any jurisdiction, without providing notice or opportunity to cure."
                               }
                             ]
                           }

@@ -433,9 +433,11 @@ export function Scaffold() {
           <div className='relative mx-auto flex w-full flex-col px-4 pb-12 pt-52 lg:px-0 lg:pl-40 lg:pt-20 xl:max-w-[59rem]'>
             <img
               alt='Interledger logo'
-              className='absolute left-4 top-10 max-h-20 lg:left-3 lg:top-20'
+              className='absolute left-4 top-10 max-h-20 pr-4 lg:left-3 lg:top-20'
               loading='lazy'
               src={footer.logo?.url}
+              height={footer.logo?.height}
+              width={footer.logo?.width}
             />
             <div className='flex w-full flex-col gap-y-10 lg:flex-row lg:gap-x-40 lg:gap-y-0'>
               <div className='flex flex-col'>
