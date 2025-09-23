@@ -486,6 +486,8 @@ export function Scaffold() {
                       className='block'
                       loading='lazy'
                       src={icon.icon?.url}
+                      height={icon.icon?.height}
+                      width={icon.icon?.width}
                     />
                   </AnchorRouter>
                 )
