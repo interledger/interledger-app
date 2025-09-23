@@ -673,8 +673,8 @@ func (c *client) GetDeliveryAddresses(ctx context.Context, userID, customerID st
 			Provider: "gatehub",
 		})
 	}
-
-	endpoint, err := url.JoinPath(c.baseURL, "cards", "v1", customerID, "addresses")
+	// https://api.gatehub.net/cards/v2/addresses
+	endpoint, err := url.JoinPath(c.baseURL, "cards", "v2", "addresses")
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
