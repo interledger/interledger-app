@@ -532,3 +532,45 @@ func GetTransaction(ctx context.Context, b Backends, ec external.Client, walletI
 
 	return ec.GetTransaction(ctx, externalUser, id)
 }
+
+func LinkUserToGateHubGateway(ctx context.Context, b Backends, ec external.Client, walletID string) error {
+	wo := client.StartWorkflowOptions{
+		ID:                    "gatehub_link_user_to_gateway_" + walletID,
+		TaskQueue:             "backend",
+		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+	}
+
+	var workflowStatus enums.WorkflowExecutionStatus
+	wflow, err := b.Temporal().DescribeWorkflowExecution(ctx, wo.ID, "")
+	switch err.(type) {
+	case *serviceerror.Internal,
+		*serviceerror.Unavailable,
+		*serviceerror.InvalidArgument:
+		return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	case *serviceerror.NotFound:
+		// do nothing
+	default:
+		if wflow != nil {
+			workflowStatus = wflow.GetWorkflowExecutionInfo().Status
+		}
+	}
+
+	externalUserID, err := getExternalUserID(ctx, b, walletID)
+	// return workflow if it's running
+	var await client.WorkflowRun
+	var executeErr error
+	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
+		await = b.Temporal().GetWorkflow(ctx, wo.ID, "")
+	} else {
+		await, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, LinkGatehubUserToGatewayWorkflow, externalUserID)
+	}
+	if executeErr != nil {
+		return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	return await.Get(ctx, nil)
+}
+
+func LinkUserToGateHubGatewayByExternalID(ctx context.Context, ec external.Client, externalID string) error {
+	return ec.LinkUserToGateway(ctx, externalID)
+}

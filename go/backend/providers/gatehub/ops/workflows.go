@@ -55,6 +55,24 @@ func CreateGatehubUserWorkflow(ctx workflow.Context, walletID string) (string, e
 	return externalUserID, nil
 }
 
+func LinkGatehubUserToGatewayWorkflow(ctx workflow.Context, externalUserID string) error {
+	var a *Activity
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Second,
+	}
+
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	logger := workflow.GetLogger(ctx)
+	logger.Info("Link gatehub user to gateway.")
+	err := workflow.ExecuteActivity(ctx, a.LinkGatehubUserToGateway, externalUserID).Get(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func CreateGatehubDeposit(ctx workflow.Context, wh DepositWebhook) (string, error) {
 	var a *Activity
 
