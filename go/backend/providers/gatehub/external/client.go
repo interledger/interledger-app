@@ -76,8 +76,8 @@ func NewClient(appID, secret string, transport *http.Client) Client {
 
 func (c *client) GetVaultID() string {
 	vaultID := os.Getenv("GATEHUB_EURO_VAULT_ID")
-	if vaultID != "" {
-		log.Error("GATEHUB_EURO_VAULT_ID is set to " + vaultID)
+	if vaultID == "" {
+		log.Error("GATEHUB_EURO_VAULT_ID is set to is not set")
 
 	}
 	return vaultID
@@ -85,8 +85,8 @@ func (c *client) GetVaultID() string {
 
 func (c *client) GetGateWayID() string {
 	gatewayID := os.Getenv(" GATEHUB_GATEWAY_ID")
-	if gatewayID != "" {
-		log.Error(" GATEHUB_GATEWAY_ID is set to " + gatewayID)
+	if gatewayID == "" {
+		log.Error(" GATEHUB_GATEWAY_ID is not set")
 
 	}
 	return gatewayID
