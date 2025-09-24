@@ -1,0 +1,36 @@
+services:
+  # 1. Ngrok
+  # 1.1 go to https://ngrok.com/ login or create account if needed
+  # 1.2 go to https://dashboard.ngrok.com/domains to setup your domain (left menu > Domanis > New Domain)
+  # 1.3 a random domain will be assigned, save it and put it under <your-domain> below
+  # 1.4 get the AUTH token from https://dashboard.ngrok.com/get-started/your-authtoken and use it in <your-token>
+  # 1.5 (optional) Test it with the nginx below
+  ngrok:
+    image: ngrok/ngrok:latest
+    profiles:
+      - services
+    restart: always
+    environment:
+      - NGROK_AUTHTOKEN=<your-token>
+    
+    # if you want to debug, just start the nginx below and point to it
+    #command: http --url=<your-domain> http://nginx:80
+
+    # use this command to point to the backend
+    # command: http --url=<your-domain> http://backend:8080
+
+    ports:
+      - "4040:4040" # for accessing the ngrok web interface (http://localhost:4040 or http://ngrok:4040)
+
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ngrok.rule=Host(`ngrok.test`)"
+      - "traefik.http.services.ngrok.loadbalancer.server.port=4040"
+
+  # 2. Nginx, for testing
+  # nginx:
+  #   image: nginx:latest
+  #   ports:
+  #     - "40080:80"
+  #   depends_on:
+  #     - ngrok

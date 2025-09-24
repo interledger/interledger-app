@@ -23,6 +23,7 @@ declare module "routes-gen" {
     "/deposit/:paymentId": { "paymentId": string };
     "/healthz": Record<string, never>;
     "/legal/:jurisdiction?/:slug": { "jurisdiction"?: string, "slug": string };
+    "/live": Record<string, never>;
     "/login": Record<string, never>;
     "/login/challenge": Record<string, never>;
     "/logout": Record<string, never>;
@@ -85,6 +86,7 @@ declare module "routes-gen" {
       | ["/deposit/:paymentId", RouteParams["/deposit/:paymentId"]]
       | ["/healthz"]
       | ["/legal/:jurisdiction?/:slug", RouteParams["/legal/:jurisdiction?/:slug"]]
+      | ["/live"]
       | ["/login"]
       | ["/login/challenge"]
       | ["/logout"]

@@ -3,8 +3,6 @@ package ops
 import (
 	"errors"
 	"fmt"
-	"strconv"
-	"strings"
 	"time"
 
 	"gitlab.com/fynbos/backend/currency"
@@ -57,8 +55,28 @@ func CreateGatehubUserWorkflow(ctx workflow.Context, walletID string) (string, e
 	return externalUserID, nil
 }
 
+func LinkGatehubUserToGatewayWorkflow(ctx workflow.Context, externalUserID string) error {
+	var a *Activity
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Second,
+	}
+
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	logger := workflow.GetLogger(ctx)
+	logger.Info("Link gatehub user to gateway.")
+
+	err := workflow.ExecuteActivity(ctx, a.LinkGatehubUserToGateway, externalUserID).Get(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func CreateGatehubDeposit(ctx workflow.Context, wh DepositWebhook) (string, error) {
 	var a *Activity
+
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 10 * time.Second,
 	}
@@ -73,24 +91,32 @@ func CreateGatehubDeposit(ctx workflow.Context, wh DepositWebhook) (string, erro
 		return "", temporal.NewNonRetryableApplicationError("Invalid currency", "ErrInternal", fmt.Errorf("%w invalid currency", gatehub.ErrInternal))
 	}
 
-	// remove comas used as tousand separators
-	wh.Data.Amount = strings.ReplaceAll(wh.Data.Amount, ",", "")
-
-	parts := strings.Split(wh.Data.Amount, ".")
-	if len(parts) < 2 {
-		return "", temporal.NewNonRetryableApplicationError("Invalid amount", "ErrInternal", fmt.Errorf("%w invalid amount", gatehub.ErrInternal))
-	}
-
-	value, err := strconv.ParseUint(parts[0], 10, 64)
+	amountValue, err := StringToScaledUInt(wh.Data.Amount)
 	if err != nil {
 		return "", temporal.NewNonRetryableApplicationError("Invalid amount", "ErrInternal", fmt.Errorf("%w %s", gatehub.ErrInternal, err))
 	}
-	cents, err := strconv.ParseUint(parts[1], 10, 64)
+
+	//get transaction and fee from it
+	var providerFeeValue uint64
+	args := &FeeFromGhArgs{UserID: wh.UserID, TrxID: wh.Data.TrxID}
+	err = workflow.ExecuteActivity(ctx, a.GetFeeFromGatehubTrasaction, args).Get(ctx, &providerFeeValue)
 	if err != nil {
-		return "", temporal.NewNonRetryableApplicationError("Invalid amount", "ErrInternal", fmt.Errorf("%w %s", gatehub.ErrInternal, err))
+		return "", err
+	}
+
+	remainder := amountValue - providerFeeValue
+
+	// calculate fee and remaining amount
+	providerFee := currency.Amount{
+		Value:    providerFeeValue,
+		Currency: cc,
 	}
 	amt := currency.Amount{
-		Value:    (value * 100) + cents, // EUR scale = 2
+		Value:    remainder,
+		Currency: cc,
+	}
+	fullAMount := currency.Amount{
+		Value:    amountValue,
 		Currency: cc,
 	}
 
@@ -101,12 +127,12 @@ func CreateGatehubDeposit(ctx workflow.Context, wh DepositWebhook) (string, erro
 	}
 
 	var txID string
-	err = workflow.ExecuteActivity(ctx, a.CreateGatehubDepositTransaction, wh.ID, walletID, amt).Get(ctx, &txID)
+	err = workflow.ExecuteActivity(ctx, a.CreateGatehubDepositTransaction, wh.Data.TrxID, walletID, fullAMount, providerFee).Get(ctx, &txID)
 	if err != nil {
 		return "", err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.FinalizeGatehubDeposit, txID, walletID, amt).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.FinalizeGatehubDeposit, txID, walletID, amt, providerFee).Get(ctx, nil)
 	if err != nil {
 		return "", err
 	}

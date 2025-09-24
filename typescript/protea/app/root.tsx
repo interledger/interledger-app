@@ -24,7 +24,6 @@ import { AnchorRouter, Error, LiveReload } from '~/components'
 import { Scaffold } from '~/components/Scaffold'
 import { hasUserSession } from '~/lib/kratos.server'
 import { getSnackbar } from '~/lib/snackbar.server'
-import { useSegment } from '~/lib/useSegment'
 import styles from '~/styles/app.css'
 import { getFeatures } from './data/wallet.server'
 import { Features } from './generated/connect/backend/v1/backend_pb'
@@ -169,7 +168,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 function Page() {
   const location = useLocation()
   const { env } = useLoaderData<typeof loader>()
-  useSegment(env.segmentApiKey)
+  // useSegment(env.segmentApiKey)
 
   if (location.pathname == '/temp-cloudflare-error') return <CloudFlareError />
 

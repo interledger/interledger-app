@@ -93,6 +93,32 @@ func (a *Activity) SaveSubAccount(ctx context.Context, walletID, accountID strin
 	})
 }
 
+func UpdateInquiryLinkWorkflow(ctx workflow.Context, args xago.InquiryLinkUpdate) error {
+	var a *Activity
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Second,
+	}
+
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	logger := workflow.GetLogger(ctx)
+	logger.Info("Update xago inquiry link.")
+
+	err := workflow.ExecuteActivity(ctx, a.UpdateInquiryLinkActivity, args).Get(ctx, nil)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (a *Activity) UpdateInquiryLinkActivity(ctx context.Context, args xago.InquiryLinkUpdate) error {
+	personaInquiry, err := a.b.KYC().GetApprovedPersonaInquiryURL(ctx, args.WalletID)
+	if err != nil {
+		return fmt.Errorf("xago internal error: wallet does not have an approved persona inquiry")
+	}
+	return a.b.External().UpdateInquiryLink(ctx, args.AccountID, personaInquiry)
+}
+
 func (a *Activity) CreateSubAccount(ctx context.Context, walletID string) (*external.SubAccount, error) {
 	ul, err := a.b.Users().ListUsers(ctx, walletID)
 	if err != nil {

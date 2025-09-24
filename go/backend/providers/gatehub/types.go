@@ -24,6 +24,7 @@ type CreateTransferArgs struct {
 	SendingLinkedAccountID   string
 	ReceivingLinkedAccountID string
 	Amount                   currency.Amount
+	ProviderFee              *currency.Amount
 }
 
 type User = external.User

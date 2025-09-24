@@ -283,19 +283,22 @@ type (
 	}
 
 	Card struct {
-		ID               string  `json:"id"`
-		SourceID         string  `json:"sourceId"`
-		AccountID        string  `json:"accountId"`
-		AccountSourceID  string  `json:"accountSourceId"`
-		CustomerID       string  `json:"customerId"`
-		CustomerSourceID string  `json:"customerSourceId"`
-		NameOnCard       string  `json:"nameOnCard"`
-		ProductCode      string  `json:"productCode"`
-		MaskedPan        string  `json:"maskedPan"`
-		Status           string  `json:"status"`
-		StatusReasonCode *string `json:"statusReasonCode"`
-		LockLevel        *string `json:"lockLevel"`
-		ExpiryDate       string  `json:"expiryDate"`
+		ID                         string  `json:"id"`
+		SourceID                   string  `json:"sourceId"`
+		NameOnCard                 string  `json:"nameOnCard"`
+		AccountID                  string  `json:"accountId"`
+		AccountSourceID            string  `json:"accountSourceId"`
+		MaskedPan                  string  `json:"maskedPan"`
+		Status                     string  `json:"status"`
+		StatusReasonCode           *string `json:"statusReasonCode"`
+		LockLevel                  *string `json:"lockLevel"`
+		ExpiryDate                 string  `json:"expiryDate"`
+		CustomerID                 string  `json:"customerId"`
+		CustomerSourceID           string  `json:"customerSourceId"`
+		RelationType               string  `json:"relationType"`
+		EmbossingData              *string `json:"embossingData"`
+		MembershipFeeEffectiveDate *string `json:"membershipFeeEffectiveDate"`
+		ProductCode                string  `json:"productCode"`
 	}
 
 	ListCardsResponse struct {
@@ -308,3 +311,88 @@ type (
 		Name string `json:"name"`
 	}
 )
+
+// added from response
+type CustomerCreatedResponse struct {
+	WalletAddress string   `json:"walletAddress"`
+	Customer      Customer `json:"customers"`
+}
+
+type Customer struct {
+	SourceID  string    `json:"sourceId"`
+	TaxNumber string    `json:"taxNumber"`
+	Addresses []Address `json:"addresses"`
+	ID        *string   `json:"id"`
+	Type      string    `json:"type"`
+	Code      string    `json:"code"`
+	Accounts  []Account `json:"accounts"`
+	KYCStatus string    `json:"kycStatus"`
+}
+
+type Address struct {
+	SourceID    string  `json:"sourceId"`
+	Line2       *string `json:"line2"`
+	PostOffice  string  `json:"postOffice"`
+	ID          *string `json:"id"`
+	Type        string  `json:"type"`
+	CountryCode string  `json:"countryCode"`
+	Line1       string  `json:"line1"`
+	City        string  `json:"city"`
+	ZipCode     string  `json:"zipCode"`
+}
+
+type Account struct {
+	Type             string         `json:"type"`
+	ProductCode      string         `json:"productCode"`
+	Status           string         `json:"status"`
+	SourceID         string         `json:"sourceId"`
+	Currency         string         `json:"currency"`
+	CustomerID       *string        `json:"customerId"`
+	ID               *string        `json:"id"`
+	CustomerSourceID string         `json:"customerSourceId"`
+	Cards            []CustomerCard `json:"cards"`
+}
+
+type CustomerCard struct {
+	SourceID           string  `json:"sourceId"`
+	NameOnCard         string  `json:"nameOnCard"`
+	ID                 *string `json:"id"`
+	AccountID          *string `json:"accountId"`
+	AccountSourceID    string  `json:"accountSourceId"`
+	MaskedPan          *string `json:"maskedPan"`
+	Status             string  `json:"status"`
+	StatusReasonCode   *string `json:"statusReasonCode"`
+	LockLevel          *string `json:"lockLevel"`
+	CustomerID         *string `json:"customerId"`
+	CustomerSourceID   string  `json:"customerSourceId"`
+	OrderPlasticOnSync bool    `json:"orderPlasticOnSync"`
+	ProductCode        string  `json:"productCode"`
+	IsFirstTimeLock    bool    `json:"isFirstTimeLock"`
+	PlasticCreated     bool    `json:"plasticCreated"`
+}
+
+type CardType string
+
+const (
+	Virtual  CardType = "Virtual"
+	Physical CardType = "Physical"
+)
+
+type CreateCardDTO struct {
+	SourceID        string
+	AccountSourceID string
+	CardType        CardType
+}
+
+type GateHubCard struct {
+	ProductCode string `json:"productCode"`
+}
+type CardAccount struct {
+	ProductCode string      `json:"productCode"`
+	Card        GateHubCard `json:"card"`
+}
+
+type CreateCard struct {
+	WalletAddress string      `json:"walletAddress"`
+	Account       CardAccount `json:"account"`
+}

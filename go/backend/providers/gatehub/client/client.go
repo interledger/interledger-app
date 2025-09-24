@@ -28,6 +28,7 @@ func New(b ops.Backends) *Client {
 			os.Getenv("GATEHUB_APP_ID"),
 			os.Getenv("GATEHUB_CARD_APP_ID"),
 			os.Getenv("GATEHUB_SECRET"),
+			os.Getenv("GATEHUB_GATEWAY_ID"),
 			&http.Client{
 				Transport: otelhttp.NewTransport(
 					httplogger.NewTransport(http.DefaultTransport, b, nil),
@@ -102,5 +103,8 @@ func (c Client) GetCardApplicationProducts(ctx context.Context) ([]external.Card
 }
 
 func (c Client) OrderCard(ctx context.Context, args gatehub.OrderCardArgs) error {
-	return nil
+	return ops.OrderCard(ctx, c.b, c.external, args.WalletID)
+}
+func (c Client) LinkUserToGateHubGateway(ctx context.Context, walletID string) error {
+	return ops.LinkUserToGateHubGateway(ctx, c.b, c.external, walletID)
 }

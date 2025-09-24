@@ -5,13 +5,15 @@ services:
       context: ../go
       dockerfile: backend/Dockerfile
       target: builder
+    profiles:
+      - application
+      - backend
     command: "migrate"
     develop:
       watch:
         - path: ../go
           action: rebuild
-    container_name: migration
-    restart: always
+    restart: on-failure
     environment:
       - FYNBOS_ENV=local
       - RAFIKI_DB_URL=postgres://postgres:postgres@postgres:5432/rafiki_backend?sslmode=disable
@@ -20,19 +22,16 @@ services:
       - PACIOLI_DB_URL_WITH_CERTS=postgres://postgres:postgres@postgres:5432/pacioli?sslmode=disable
       - KRATOS_URL=http://kratos:4434 # check it if is public or admin
       - LOG_LEVEL=info
-
-    depends_on:
-      - postgres
-      - kratos
-      - rafiki_backend
-
-  # 2. Backend
+    
+  # 2. Backend 
   backend:
     build:
       context: ../go
       dockerfile: backend/Dockerfile
       target: builder
-    container_name: backend
+    profiles:
+      - application
+      - backend
     command: "dev"
     develop:
       watch:
@@ -49,8 +48,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.backend.rule=Host(`interledger.test`) && PathPrefix(`/webhooks`)"
       - "traefik.http.services.backend.loadbalancer.server.port=8080"
-    env_file:
-      - path: ../go/backend/.env
+
     environment:
       - LOG_LEVEL=debug
       - ENV_FILE=
@@ -95,8 +93,13 @@ services:
       - RAFIKI_BACKEND_GRAPHQL_URL=http://rafiki_backend:3001/graphql
       - RAFIKI_AUTH_GRAPHQL_URL=http://rafiki_auth:3006/graphql # check 3003 if it fails
 
+      - ALLOWED_WALLET_IDS=
+      - BLOCKED_REGIONS=
+
+      - GATEHUB_APP_ID=<fetch-me-from-vault>
+      - GATEHUB_SECRET=<fetch-me-from-vault>
+      - GATEHUB_CARD_APP_ID=<fetch-me-from-vault>
+      - GATEHUB_GATEWAY_ID=<fetch-me-from-vault>
+
     depends_on:
-      - postgres
-      - kratos
-      - temporal
-      - rafiki_backend
+      - migration

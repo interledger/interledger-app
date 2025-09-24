@@ -1,7 +1,8 @@
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
+import {
+  redirect,
+  type ActionFunctionArgs,
+  type LoaderFunctionArgs,
+  type MetaFunction
 } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import type { ApplicationProps } from '~/components'
@@ -23,11 +24,18 @@ import {
   xagoTestAccountDepositAction
 } from './fynbos'
 import { GatehubDepositPage, gatehubDepositLoader } from './gatehub'
+import { KRATOS_URL } from '~/lib/kratos.server'
 
 export async function loader(args: LoaderFunctionArgs) {
+  const session = await fetch(`${KRATOS_URL}/sessions/whoami`, {
+      headers: args.request.headers
+    })
+    if (session.status === 401) {
+      return redirect('/login')
+    }
+
   const providerResponse = await grpc.getOnOffRampProvider(args.request, {})
   if (isConnectError(providerResponse)) throw providerResponse.error
-
   if (providerResponse.provider == 'gatehub') {
     return gatehubDepositLoader(args)
   } else if (providerResponse.provider == 'chimoney') {

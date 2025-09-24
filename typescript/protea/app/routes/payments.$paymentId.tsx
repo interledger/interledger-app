@@ -375,7 +375,7 @@ function Withdrawal() {
             </div>
             <div className='mt-4 flex w-full justify-between font-medium'>
               <span className='text-medium'>Total amount withdrawn</span>
-              <span className='text-medium'>{transaction.formattedAmount}</span>
+              <span className='text-medium'>{transaction.fundsReceived}</span>
             </div>
           </CardContent>
         </Card>
@@ -521,6 +521,10 @@ function Deposit() {
             <div className='mt-4 flex w-full justify-between font-medium'>
               <span className='text-medium'>Total amount deposited</span>
               <span className='text-medium'>{transaction.formattedAmount}</span>
+            </div>
+            <div className='mt-4 flex w-full justify-between font-medium'>
+              <span className='text-medium'>Total amount received</span>
+              <span className='text-medium'>{transaction.fundsReceived}</span>
             </div>
           </CardContent>
         </Card>

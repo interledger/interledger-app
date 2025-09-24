@@ -58,6 +58,7 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(jobs.RemoveCustodialKeysJob)
 	w.RegisterWorkflow(jobs.TransformKeysToBase64URLJob)
 	w.RegisterWorkflow(jobs.MigrateWalletAddressesToLowercaseJob)
+	w.RegisterWorkflow(jobs.BalanceDiscrepanciesJob)
 	w.RegisterWorkflow(jobs.UpdateRafikiWalletEnabledJob)
 
 	// Payment Engine
@@ -79,6 +80,7 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(xago_workflows.CreateBeneficiaryWorkflow)
 	w.RegisterWorkflow(xago_workflows.CreateBalanceAccountWorkflow)
 	w.RegisterWorkflow(xago_workflows.XagoDepositPollWorkflow)
+	w.RegisterWorkflow(xago_workflows.UpdateInquiryLinkWorkflow)
 
 	xago_workflows.StartDepositsPolling(b)
 
@@ -114,6 +116,7 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(gatehub_workflows.CreateGatehubUserWorkflow)
 	w.RegisterWorkflow(gatehub_workflows.CreateGatehubDeposit)
 	w.RegisterWorkflow(gatehub_workflows.ProcessGatehubWithdrawal)
+	w.RegisterWorkflow(gatehub_workflows.LinkGatehubUserToGatewayWorkflow)
 
 	// Chimoney
 	w.RegisterActivity(chimoney_workflows.NewActivity(b))
