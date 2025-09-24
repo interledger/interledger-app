@@ -140,21 +140,19 @@ function GatehubPage() {
   const submit = useSubmit()
   useEffect(() => {
     const onKYCComplete = (e: MessageEvent) => {
-      if (!e.data || !e.data.type || e.data.value.applicantStatus) return
+      if (!e.data?.type || !e.data?.value) return
 
-      if (e.data.value) {
-        try {
-          e.data.value = JSON.parse(e.data.value)
-        }
-        catch {
-          //TODO add error handling here.
-          console.log('Gatehub event --- not json', e.data)
-        }
+      let parsedValue
+      try {
+        parsedValue = JSON.parse(e.data.value)
+      } catch {
+        throw new Error('KYC: unable to parse message data')
       }
-      if (e.data.type && e.data.type === 'OnboardingCompleted' && e.data.value.applicantStatus === 'submitted') {
+      
+      if (e.data.type === 'OnboardingCompleted' && parsedValue?.applicantStatus === 'submitted') {
         submit(null, {
           action: '/personal-details',
-          method: 'post'
+          method: 'post',
         })
       }
     }
