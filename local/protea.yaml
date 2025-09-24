@@ -18,6 +18,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.protea.rule=Host(`interledger.test`)"
       - "traefik.http.services.protea.loadbalancer.server.port=3000"
+
     environment:
       - FYNBOS_ENV=local
 
