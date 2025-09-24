@@ -46,7 +46,6 @@ func (a *Activity) BalanceDiscrepancies(ctx context.Context) error {
 	gatehubExternal := gatehub_external.NewClient(
 		os.Getenv("GATEHUB_APP_ID"),
 		os.Getenv("GATEHUB_SECRET"),
-		os.Getenv("GATEHUB_GATEWAY_ID"),
 		&http.Client{
 			Transport: otelhttp.NewTransport(
 				httplogger.NewTransport(http.DefaultTransport, a.b, nil),
