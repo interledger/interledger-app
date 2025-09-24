@@ -36,6 +36,7 @@ func NewActivity(b Backends) *Activity {
 		os.Getenv("GATEHUB_APP_ID"),
 		os.Getenv("GATEHUB_CARD_APP_ID"),
 		os.Getenv("GATEHUB_SECRET"),
+		os.Getenv("GATEHUB_API_URL"),
 		&http.Client{
 			Transport: otelhttp.NewTransport(
 				httplogger.NewTransport(http.DefaultTransport, b, nil),
@@ -428,6 +429,15 @@ func (a *Activity) CheckGatehubWithdrawalComplete(ctx context.Context, walletID,
 
 	if externalTrx.Status != external.TransactionStatusCompleted {
 		return fmt.Errorf("%w Gatehub transaction not completed", gatehub.ErrInternal)
+	}
+
+	return nil
+}
+
+func (a *Activity) LinkGatehubUserToGateway(ctx context.Context, externalUser string) error {
+	err := a.external.LinkUserToGateway(ctx, externalUser)
+	if err != nil {
+		return err
 	}
 
 	return nil

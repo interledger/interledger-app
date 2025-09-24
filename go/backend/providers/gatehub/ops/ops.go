@@ -22,6 +22,14 @@ import (
 	"go.temporal.io/sdk/client"
 )
 
+type CardStatus string
+
+const (
+	Pending CardStatus = "Pending"
+	Active  CardStatus = "Active"
+	None    CardStatus = "None"
+)
+
 func CreateUser(ctx context.Context, b Backends, walletID string) (gatehub.Await, error) {
 	wo := client.StartWorkflowOptions{
 		ID:                    "gatehub_create_user_" + walletID,
@@ -157,6 +165,44 @@ func getWalletID(ctx context.Context, b Backends, externalUserID string) (string
 	return walletID, nil
 }
 
+func GetGatehubUsersId(ctx context.Context, b Backends, customerSourceID, accountSourceID string) (string, error) {
+	var id string
+	err := b.DB().GetContext(ctx, &id, "SELECT gatehub_user_id FROM gatehub_user_card_source where customer_source_id = $1 and account_source_id = $2;", customerSourceID, accountSourceID)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	return id, nil
+}
+
+func UpdateGateHubUserExternalIDs(ctx context.Context, b Backends, customerID, accountID, id string) error {
+
+	_, err := b.DB().ExecContext(ctx, "UPDATE gatehub_users SET external_customer_id=$1, external_account_id=$2, card_status = $3 WHERE id=$4;", customerID, accountID, Active, id)
+	if err != nil {
+		return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+	return nil
+}
+
+func SaveGatehubCardPending(ctx context.Context, b Backends, walletID string, cardData *external.CreateCardDTO) error {
+
+	// TODO (@raul) should be transactional
+	var id string
+	err := b.DB().QueryRowContext(ctx,
+		"UPDATE gatehub_users SET card_status = $1 WHERE wallet_id=$2 RETURNING id;",
+		Pending,
+		walletID,
+	).Scan(&id)
+	if err != nil {
+		return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	_, err = b.DB().ExecContext(ctx, "INSERT INTO gatehub_user_card_source (gatehub_user_id, customer_source_id, account_source_id, card_type) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING;", id, cardData.SourceID, cardData.AccountSourceID, cardData.CardType)
+	if err != nil {
+		return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+	return nil
+}
 func GetBalance(ctx context.Context, b Backends, linkedAccountID string) (*gatehub.Balance, error) {
 	la, err := b.LinkedAccounts().Get(ctx, linkedAccountID)
 	if err != nil {
@@ -474,7 +520,7 @@ func AssignBalance(ctx context.Context, b Backends, linkedAccountID, txID string
 	}
 	if len(tx) != 0 {
 		if tx[0].Code == pacioli.TransferExceedsCredits || tx[0].Code == pacioli.TransferExceedsDebits || tx[0].Code == pacioli.TransferExceedsPendingTransferAmount {
-			return nil, fmt.Errorf("%w insufficiens balance cod (%s)", gatehub.ErrInsufficientBalance, tx[0].Code.String())
+			return nil, fmt.Errorf("%w insufficient balance cod (%s)", gatehub.ErrInsufficientBalance, tx[0].Code.String())
 		}
 		if tx[0].Code != 0 {
 			return nil, fmt.Errorf("%w non success code (%s)", gatehub.ErrInternal, tx[0].Code.String())
@@ -592,6 +638,58 @@ func OrderCard(ctx context.Context, b Backends, ec external.Client, walletID str
 	if err != nil {
 		return err
 	}
+	if IsCustomer(ctx, b, walletID); err != nil {
+		return ec.OrderCard(ctx, walletID, la[0].ProviderID)
+	}
+	gatehubUser, err := getExternalUserID(ctx, b, walletID)
+	if err != nil {
+		return err
+	}
+	data, err := ec.CreateCustomerAndCard(ctx, gatehubUser, la[0].ProviderID)
+	if err != nil {
+		return err
+	}
+	err = SaveGatehubCardPending(ctx, b, walletID, data)
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
-	return ec.OrderCard(ctx, walletID, la[0].ProviderID)
+func LinkUserToGateHubGateway(ctx context.Context, b Backends, ec external.Client, walletID string) error {
+	wo := client.StartWorkflowOptions{
+		ID:                    "gatehub_link_user_to_gateway_" + walletID,
+		TaskQueue:             "backend",
+		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+	}
+
+	var workflowStatus enums.WorkflowExecutionStatus
+	wflow, err := b.Temporal().DescribeWorkflowExecution(ctx, wo.ID, "")
+	switch err.(type) {
+	case *serviceerror.Internal,
+		*serviceerror.Unavailable,
+		*serviceerror.InvalidArgument:
+		return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	case *serviceerror.NotFound:
+		// do nothing
+	default:
+		if wflow != nil {
+			workflowStatus = wflow.GetWorkflowExecutionInfo().Status
+		}
+	}
+
+	externalUserID, err := getExternalUserID(ctx, b, walletID)
+	// return workflow if it's running
+	var await client.WorkflowRun
+	var executeErr error
+	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
+		await = b.Temporal().GetWorkflow(ctx, wo.ID, "")
+	} else {
+		await, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, LinkGatehubUserToGatewayWorkflow, externalUserID)
+	}
+	if executeErr != nil {
+		return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	return await.Get(ctx, nil)
 }
