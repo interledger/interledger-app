@@ -1,4 +1,4 @@
-import { json, redirect, type LoaderFunctionArgs } from '@remix-run/node'
+import { ActionFunctionArgs, json, redirect, type LoaderFunctionArgs } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { useEffect } from 'react'
 import { Layouts, type ApplicationProps } from '~/components'
@@ -7,7 +7,7 @@ import { CreateAddress } from '~/components/AddCardSteps/CreateAddress'
 import { DeliveryAddresses } from '~/components/AddCardSteps/DeliveryAddresses'
 import { ProductsSelect } from '~/components/AddCardSteps/ProductsSelect'
 import { getFeatures } from '~/data/wallet.server'
-import {
+import type {
   CardApplicationProduct,
   CustomerDeliveryAddress
 } from '~/generated/connect/backend/v1/backend_pb'
@@ -90,3 +90,17 @@ export default function Page() {
     </>
   )
 }
+
+export async function action({ request }: ActionFunctionArgs) {
+  console.log('Submitting card order...')
+  try {
+    grpc.orderCard(request, {})
+  } catch (error) {
+    console.error(error)
+    return { error: 'Failed to order card. Please try again later.' }
+  }
+  
+  
+  
+    return null
+  }
