@@ -84,9 +84,9 @@ func (c *client) GetVaultID() string {
 }
 
 func (c *client) GetGateWayID() string {
-	gatewayID := os.Getenv(" GATEHUB_GATEWAY_ID")
+	gatewayID := os.Getenv("GATEHUB_GATEWAY_ID")
 	if gatewayID == "" {
-		log.Error(" GATEHUB_GATEWAY_ID is not set")
+		log.Error("GATEHUB_GATEWAY_ID is not set")
 
 	}
 	return gatewayID
@@ -189,7 +189,7 @@ func (c *client) IssueToken(ctx context.Context, userID string, product Product)
 }
 
 func (c *client) LinkUserToGateway(ctx context.Context, gatehubUserId string) error {
-	hubID := c.GetVaultID()
+	gatewayID := c.GetGateWayID()
 	meta, ok := httplog.MetaForContext(ctx)
 	if ok {
 		meta.Method = "POST"
@@ -200,7 +200,7 @@ func (c *client) LinkUserToGateway(ctx context.Context, gatehubUserId string) er
 			Provider: "gatehub",
 		})
 	}
-	endpoint, err := url.JoinPath(c.baseURL, "id", "v1", "users", gatehubUserId, "hubs", hubID)
+	endpoint, err := url.JoinPath(c.baseURL, "id", "v1", "users", gatehubUserId, "hubs", gatewayID)
 	if err != nil {
 		return fmt.Errorf("%w %s", ErrInternal, err)
 	}
