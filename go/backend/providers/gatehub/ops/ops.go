@@ -529,11 +529,10 @@ func CreateTransfer(ctx context.Context, b Backends, ec external.Client, args ga
 
 func RefundProviderFee(ctx context.Context, b Backends, ec external.Client, args gatehub.CoverFeeArgs) (*external.Transaction, error) {
 	coverFees := os.Getenv("COVER_GH_PROVIDER_FEE")
-	sendUserId := os.Getenv("COVER_GH_PROVIDER_FEE_USERID")
 	sendingAddress := os.Getenv("COVER_GH_PROVIDER_FEE_ADDRESS")
 
 	coverFeeEnabled, err := strconv.ParseBool(coverFees)
-	if coverFeeEnabled != true || err != nil || sendUserId == "" {
+	if coverFeeEnabled != true || err != nil {
 		// when disabled, skip
 		return nil, fmt.Errorf("Cover fee not enabled: %v", gatehub.ErrInternal)
 	}
