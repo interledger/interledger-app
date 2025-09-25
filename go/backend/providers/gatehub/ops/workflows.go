@@ -8,6 +8,7 @@ import (
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/gatehub"
+	external "gitlab.com/fynbos/backend/providers/gatehub/external"
 	"gitlab.com/fynbos/backend/transactions"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
@@ -113,7 +114,69 @@ func CreateGatehubDeposit(ctx workflow.Context, wh DepositWebhook) (string, erro
 		return "", err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.FinalizeGatehubDeposit, txID, walletID, amt, providerFee).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.FinalizeGatehubDeposit, txID, walletID, amt).Get(ctx, nil)
+	if err != nil {
+		return "", err
+	}
+
+	return txID, nil
+}
+
+func CreateGatehubCoverFee(ctx workflow.Context, wh DepositWebhook, tr external.Transaction) (string, error) {
+	var a *Activity
+
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Second,
+	}
+
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	logger := workflow.GetLogger(ctx)
+	logger.Info("Creating gatehub cover fee.")
+
+	cc := currency.ParseCurrency(wh.Data.Currency)
+	if cc != currency.EUR {
+		return "", temporal.NewNonRetryableApplicationError("Invalid currency", "ErrInternal", fmt.Errorf("%w invalid currency", gatehub.ErrInternal))
+	}
+
+	amountValue, err := StringToScaledUInt(wh.Data.Amount)
+	if err != nil {
+		return "", temporal.NewNonRetryableApplicationError("Invalid amount", "ErrInternal", fmt.Errorf("%w %s", gatehub.ErrInternal, err))
+	}
+
+	feeValue, err := StringToScaledUInt(tr.Fee)
+	if err != nil {
+		return "", temporal.NewNonRetryableApplicationError("Invalid amount", "ErrInternal", fmt.Errorf("%w %s", gatehub.ErrInternal, err))
+	}
+
+	amt := currency.Amount{
+		Value:    amountValue,
+		Currency: cc,
+	}
+	fee := currency.Amount{
+		Value:    feeValue,
+		Currency: cc,
+	}
+
+	var walletID string
+	err = workflow.ExecuteActivity(ctx, a.GetWalletFromGatehubUser, wh.UserID).Get(ctx, &walletID)
+	if err != nil {
+		return "", err
+	}
+
+	var txID string
+	err = workflow.ExecuteActivity(ctx, a.CreateGatehubDepositTransaction, wh.Data.TrxID, walletID, amt, fee).Get(ctx, &txID)
+	if err != nil {
+		return "", err
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.FinalizeGatehubDeposit, txID, walletID, amt).Get(ctx, nil)
+	if err != nil {
+		return "", err
+	}
+
+	// process transaction, set corect title and reference id
+	err = workflow.ExecuteActivity(ctx, a.ProcessCoverFeeForDeposit, txID, tr).Get(ctx, nil)
 	if err != nil {
 		return "", err
 	}

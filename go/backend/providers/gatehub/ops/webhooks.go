@@ -15,6 +15,7 @@ import (
 
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/providers/gatehub"
+	"gitlab.com/fynbos/backend/providers/gatehub/external"
 	"gitlab.com/fynbos/backend/slack"
 	"gitlab.com/fynbos/log"
 	"go.temporal.io/api/enums/v1"
@@ -190,8 +191,24 @@ func HandleUserDeposit(ctx context.Context, b Backends, raw json.RawMessage, w h
 		return
 	}
 
+	var transaction *external.Transaction
 	// `hosted` deposit type is for wallet-to-wallet transfers. Here we signal the payments engine
+	// we also receive this on cover fees transaction, so we need to differentiate between the 2
 	if wh.Data.DepositType == "hosted" {
+		//detect if sender is covering fee wallet
+		c := external.NewClient(os.Getenv("GATEHUB_APP_ID"), os.Getenv("GATEHUB_SECRET"), nil)
+		transaction, err = c.GetTransaction(ctx, wh.UserID, wh.Data.TrxID)
+		if err != nil {
+			log.Error("Issue when getting transaction", zap.Error(err))
+		}
+		sendingAddress := os.Getenv("COVER_GH_PROVIDER_FEE_ADDRESS")
+
+		if transaction.SendingWallet.Address == sendingAddress {
+			HandleCoverFeeTransaction(ctx, b, w, wh, transaction)
+			return
+		}
+
+		// sender is not the cover fee account, presume it's a payment
 		err = b.Payments().SignalGatehubTransferComplete(ctx, wh.Data.TrxID)
 		if err != nil {
 			log.Error("gatehub webhook: Failed to signal payments workflow about wallet transfer", zap.String("external_user_uuid", wh.UserID), zap.String("external_transaction_id", wh.Data.TrxID), zap.Error(err))
@@ -200,6 +217,7 @@ func HandleUserDeposit(ctx context.Context, b Backends, raw json.RawMessage, w h
 		}
 
 		return
+
 	}
 
 	// `external` deposit type is for a deposit done through the ramp widget. We start a workflow
@@ -239,6 +257,45 @@ func HandleUserDeposit(ctx context.Context, b Backends, raw json.RawMessage, w h
 	}
 
 	w.WriteHeader(http.StatusOK)
+}
+
+func HandleCoverFeeTransaction(ctx context.Context, b Backends, w http.ResponseWriter, wh DepositWebhook, transaction *external.Transaction) error {
+	wo := client.StartWorkflowOptions{
+		ID:                    "gatehub_coverfee_webhook_" + wh.ID,
+		TaskQueue:             "backend",
+		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+	}
+
+	var workflowStatus enums.WorkflowExecutionStatus
+	wflow, err := b.Temporal().DescribeWorkflowExecution(ctx, wo.ID, "")
+	switch err.(type) {
+	case *serviceerror.Internal,
+		*serviceerror.Unavailable,
+		*serviceerror.InvalidArgument:
+
+		log.Error("Failed to handle gatehub deposit webhook", zap.Error(err))
+		w.WriteHeader(http.StatusInternalServerError)
+		return err
+	case *serviceerror.NotFound:
+		// do nothing
+	default:
+		if wflow != nil {
+			workflowStatus = wflow.GetWorkflowExecutionInfo().Status
+		}
+	}
+
+	// execute workflow if it's not running
+	if workflowStatus != enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
+		_, err = b.Temporal().ExecuteWorkflow(ctx, wo, CreateGatehubCoverFee, wh, *transaction)
+		if err != nil {
+			log.Error("Failed to handle gatehub cover fee webhook", zap.Error(err))
+			w.WriteHeader(http.StatusInternalServerError)
+			return err
+		}
+	}
+
+	w.WriteHeader(http.StatusOK)
+	return nil
 }
 
 func Verify(ctx context.Context, r *http.Request, key []byte) ([]byte, error) {

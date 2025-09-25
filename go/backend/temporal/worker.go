@@ -115,6 +115,7 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterActivity(gatehub_workflows.NewActivity(b))
 	w.RegisterWorkflow(gatehub_workflows.CreateGatehubUserWorkflow)
 	w.RegisterWorkflow(gatehub_workflows.CreateGatehubDeposit)
+	w.RegisterWorkflow(gatehub_workflows.CreateGatehubCoverFee)
 	w.RegisterWorkflow(gatehub_workflows.ProcessGatehubWithdrawal)
 	w.RegisterWorkflow(gatehub_workflows.CheckOpsBalance)
 

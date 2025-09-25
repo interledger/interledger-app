@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -244,14 +245,16 @@ func (a *Activity) CreateGatehubDepositTransaction(ctx context.Context, transact
 	}
 
 	// trigger fee cover
-	args := gatehub.CoverFeeArgs{
-		TransactionID: tx,
-		ProviderID:    eurBalance.ProviderID,
-		Amount:        currency.FromUInt64(providerFee.Value, amount.Currency),
-	}
-	_, err = RefundProviderFee(ctx, a.b, a.external, args)
-	if err != nil {
-		log.Error("Error creating refund", zap.Error(err))
+	if providerFee.Value > 0 {
+		args := gatehub.CoverFeeArgs{
+			TransactionID: tx,
+			ProviderID:    eurBalance.ProviderID,
+			Amount:        currency.FromUInt64(providerFee.Value, amount.Currency),
+		}
+		_, err = RefundProviderFee(ctx, a.b, a.external, args)
+		if err != nil {
+			log.Error("Error creating fee cover transaction", zap.Error(err))
+		}
 	}
 
 	return tx, nil
@@ -326,7 +329,7 @@ func (a *Activity) FinalizeGatehubBalance(ctx context.Context, id, walletID stri
 	return FinaliseReserve(ctx, a.b, tx.ID)
 }
 
-func (a *Activity) FinalizeGatehubDeposit(ctx context.Context, id, walletID string, amount, providerFee currency.Amount) error {
+func (a *Activity) FinalizeGatehubDeposit(ctx context.Context, id, walletID string, amount currency.Amount) error {
 	if amount.Currency != currency.EUR {
 		return temporal.NewNonRetryableApplicationError("Invalid currency", "ErrInternal", fmt.Errorf("%w invalid currency", gatehub.ErrInternal))
 	}
@@ -373,6 +376,58 @@ func (a *Activity) FinalizeGatehubDeposit(ctx context.Context, id, walletID stri
 		if tx[0].Code != 0 {
 			return fmt.Errorf("%w non success code (%s)", gatehub.ErrInternal, tx[0].Code.String())
 		}
+	}
+
+	return nil
+}
+
+func (a *Activity) ProcessCoverFeeForDeposit(ctx context.Context, txID string, tr external.Transaction) error {
+	var messageTxID *string
+
+	// check if ID from message exists
+	// Regex for UUID (with leading #)
+	re := regexp.MustCompile(`#([0-9a-fA-F-]{36})`)
+
+	match := re.FindStringSubmatch(tr.Message)
+	if len(match) > 1 {
+		messageTxID = &match[1]
+
+		var WalletID string
+		lal, err := a.b.LinkedAccounts().ListByProviderID(ctx, gatehub.ProviderName, tr.ReceivingWallet.Address)
+		if err != nil {
+			return err
+		}
+		for _, la := range lal {
+			if la.Provider == gatehub.ProviderName && la.Type == gatehub.AccTypeBalance && la.DeletedAt.Time.IsZero() {
+				WalletID = la.WalletID
+			}
+		}
+
+		_, err = a.b.Transactions().GetTransaction(ctx, WalletID, *messageTxID)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				// no rows found
+				messageTxID = nil
+			} else {
+				// real error
+				return err
+			}
+		}
+
+	}
+	if messageTxID == nil {
+		log.Warn("No appropriate transaction UUID found")
+		return nil
+	}
+
+	log.Debug("Reference ID set:", zap.String("reference", *messageTxID), zap.String("trID", txID))
+	_, err := a.b.DB().ExecContext(
+		ctx,
+		"UPDATE transactions SET title = $1, note = $2, reference_id = $3 where id = $4",
+		tr.Message, tr.Message, messageTxID, txID,
+	)
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -446,10 +501,9 @@ func (a *Activity) CheckGatehubWithdrawalComplete(ctx context.Context, walletID,
 }
 
 func (a *Activity) CheckGatehubOpsBalance(ctx context.Context) error {
-	sendUserId := os.Getenv("COVER_GH_PROVIDER_FEE_USERID")
 	sendingAddress := os.Getenv("COVER_GH_PROVIDER_FEE_ADDRESS")
 
-	if sendingAddress == "" || sendUserId == "" {
+	if sendingAddress == "" {
 		// when disabled, skip
 		return nil
 	}
