@@ -125,6 +125,7 @@ type (
 		Amount          string `json:"amount"`
 		Total           string `json:"total_amount"`
 		Fee             string `json:"fee"`
+		Message         string `json:"message"`
 		SendingWallet   Wallet `json:"sending_wallet"`
 		ReceivingWallet Wallet `json:"receiving_wallet"`
 		Vault           Vault  `json:"vault"`
