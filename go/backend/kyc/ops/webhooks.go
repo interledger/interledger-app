@@ -101,7 +101,7 @@ func notifyPersonaReview(ctx context.Context, js json.RawMessage) {
 		return
 	}
 
-	slack.SendToChannel(ctx, slack.ChannelPersona, "Fynbot", fmt.Sprintf("New Persona review in [%s] link [https://app.withpersona.com/dashboard/inquiries/%s]",
+	slack.SendToChannel(ctx, slack.ChannelPersona, "wallet-info-bot", fmt.Sprintf("New Persona review in [%s] link [https://app.withpersona.com/dashboard/inquiries/%s]",
 		env.GetEnv(), inq.Data.ID))
 }
 
@@ -147,7 +147,7 @@ func accountCreatedWebhook(ctx context.Context, b Backends, js json.RawMessage) 
 		return nil
 	}
 
-	_, err = b.DB().ExecContext(ctx, "INSERT INTO kyc_persona_accounts (external_id, wallet_id) VALUES ($1,$2) ON CONFLICT DO NOTHING;", whAcc.Data.ID, whAcc.Data.Attributes.ReferenceID)
+	_, err = b.DB().ExecContext(ctx, "INSERT INTO kyc_persona_accounts (external_id, wallet_id,updated_at) VALUES ($1,$2, now()) ON CONFLICT (wallet_id) DO UPDATE SET external_id = excluded.external_id, updated_at= excluded.updated_at;", whAcc.Data.ID, whAcc.Data.Attributes.ReferenceID)
 	if err != nil {
 		return err
 	}
@@ -161,7 +161,7 @@ func accountTagAddedWebhook(ctx context.Context, b Backends, pc persona.Client, 
 		return err
 	}
 
-	_, err = b.DB().ExecContext(ctx, "INSERT INTO kyc_persona_accounts (external_id, wallet_id) VALUES ($1,$2) ON CONFLICT DO NOTHING;", whAcc.Data.ID, whAcc.Data.Attributes.ReferenceID)
+	_, err = b.DB().ExecContext(ctx, "INSERT INTO kyc_persona_accounts (external_id, wallet_id,updated_at) VALUES ($1,$2, now()) ON CONFLICT (wallet_id) DO UPDATE SET external_id = excluded.external_id, updated_at= excluded.updated_at;", whAcc.Data.ID, whAcc.Data.Attributes.ReferenceID)
 	if err != nil {
 		log.Error(
 			"persona webhook: failed to map persona account to wallet.",
@@ -304,7 +304,7 @@ func accountTagAddedWebhook(ctx context.Context, b Backends, pc persona.Client, 
 
 	// Too many state tags.
 	if stateTags > 1 {
-		slack.SendToChannel(ctx, slack.ChannelPersona, "Fynbot", fmt.Sprintf("Persona account in [%s] is in unknown state. link [https://app.withpersona.com/dashboard/accounts/%s]",
+		slack.SendToChannel(ctx, slack.ChannelPersona, "wallet-info-bot", fmt.Sprintf("Persona account in [%s] is in unknown state. link [https://app.withpersona.com/dashboard/accounts/%s]",
 			env.GetEnv(), externalAcc.ID))
 	} else if kycState != 0 {
 		err = SetKYCStatus(ctx, b, externalAcc.Attributes.ReferenceID, kycState)
