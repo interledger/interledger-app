@@ -17,10 +17,12 @@ import (
 	"gitlab.com/fynbos/backend/providers/gatehub/external"
 	"gitlab.com/fynbos/backend/slack"
 	"gitlab.com/fynbos/backend/transactions"
+	"gitlab.com/fynbos/log"
 	"gitlab.com/fynbos/pacioli"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/serviceerror"
 	"go.temporal.io/sdk/client"
+	"go.uber.org/zap"
 )
 
 func CreateUser(ctx context.Context, b Backends, walletID string) (gatehub.Await, error) {
@@ -536,8 +538,8 @@ func RefundProviderFee(ctx context.Context, b Backends, ec external.Client, args
 		return nil, fmt.Errorf("Cover fee not enabled: %v", gatehub.ErrInternal)
 	}
 
-	// check available balance
-	ebal, err := ec.GetWalletBalances(ctx, sendUserId, sendingAddress)
+	// check available ops balance
+	ebal, err := ec.GetWalletBalances(ctx, "", sendingAddress)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
 	}
@@ -559,7 +561,7 @@ func RefundProviderFee(ctx context.Context, b Backends, ec external.Client, args
 	}
 
 	externalTx, err := ec.CreateTransaction(ctx, external.CreateTransactionRequest{
-		SendingUserID:    sendUserId,
+		SendingUserID:    "",
 		SendingAddress:   sendingAddress,
 		ReceivingAddress: args.ProviderID,
 		Amount:           args.Amount.Float64(),
@@ -567,6 +569,9 @@ func RefundProviderFee(ctx context.Context, b Backends, ec external.Client, args
 		Type:             external.TransactionTypeHosted,
 		VaultID:          ec.GetVaultID(),
 	})
+
+	log.Debug("Created transaction:", zap.Any("tx", externalTx))
+
 	if errors.Is(err, external.ErrNotFound) {
 		return nil, fmt.Errorf("%w %s", gatehub.ErrNotFound, err)
 	}
