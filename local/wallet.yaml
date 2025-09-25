@@ -22,8 +22,8 @@ services:
       - PACIOLI_DB_URL_WITH_CERTS=postgres://postgres:postgres@postgres:5432/pacioli?sslmode=disable
       - KRATOS_URL=http://kratos:4434 # check it if is public or admin
       - LOG_LEVEL=info
-    
-  # 2. Backend 
+
+  # 2. Backend
   backend:
     build:
       context: ../go
@@ -100,6 +100,7 @@ services:
       - GATEHUB_SECRET=<fetch-me-from-vault>
       - GATEHUB_CARD_APP_ID=<fetch-me-from-vault>
       - GATEHUB_GATEWAY_ID=<fetch-me-from-vault>
+      - GATEHUB_WEBHOOK_SECRET=<fetch-me-from-vault>
 
     depends_on:
       - migration
