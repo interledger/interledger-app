@@ -5,6 +5,7 @@ import type {
 } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { useLoaderData, useSubmit } from '@remix-run/react'
+import * as Sentry from '@sentry/remix'
 import { useEffect, useRef, useState } from 'react'
 import { route } from 'routes-gen'
 import { Button, Card, CardContent, Dialog, Layouts, Shape } from '~/components'
@@ -138,24 +139,30 @@ function GatehubPage() {
   const { gatehubWidget } = useLoaderData<typeof loader>()
   const [dialogOpen, setDialogOpen] = useState(false)
   const submit = useSubmit()
+
   useEffect(() => {
     const onKYCComplete = (e: MessageEvent) => {
-      if (!e.data || !e.data.type || e.data.value.applicantStatus) return
+      if (!e.data?.type || !e.data?.value) return
 
-      if (e.data.value) {
+      if (e.data.type === 'OnboardingCompleted') {
         try {
           e.data.value = JSON.parse(e.data.value)
+        } catch {
+          Sentry.captureException(
+            new Error(
+              'Received OnboardingCompleted event with non-json value: ',
+              e.data
+            )
+          )
+          return
         }
-        catch {
-          //TODO add error handling here.
-          console.log('Gatehub event --- not json', e.data)
+
+        if (e.data.value.applicantStatus === 'submitted') {
+          submit(null, {
+            action: '/personal-details',
+            method: 'post'
+          })
         }
-      }
-      if (e.data.type && e.data.type === 'OnboardingCompleted' && e.data.value.applicantStatus === 'submitted') {
-        submit(null, {
-          action: '/personal-details',
-          method: 'post'
-        })
       }
     }
 
