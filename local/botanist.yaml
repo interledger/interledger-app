@@ -18,14 +18,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.botanist.rule=Host(`admin.mgnt.interledger.test`)"
       - "traefik.http.services.botanist.loadbalancer.server.port=3000"
-      - "traefik.http.routers.botanist.entrypoints=websecure"
-      - "traefik.http.routers.botanist.tls=true"
 
-    # healthcheck:
-    #   test: ["CMD-SHELL", "curl -f http://localhost:3000/healthz || exit 1"]
-    #   interval: 5s
-    #   timeout: 2s
-    #   retries: 5
     environment:
       - FYNBOS_ENV=local
 

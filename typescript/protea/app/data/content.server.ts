@@ -339,28 +339,28 @@ export const getContactRoute = async () => {
               button: [],
               image: {
                 id: 'eQBZnAgpS5m8UyieKh_7dQ',
-                url: 'https://www.datocms-assets.com/160242/1710165703-contact-hero-light.svg',
+                url: '/contact/phone-icon-light.svg',
                 height: 680,
                 width: 680,
                 __typename: 'FileField'
               },
               imageDark: {
                 id: 'eQBZnAgpS5m8UyieKh_7dQ',
-                url: 'https://www.datocms-assets.com/160242/1710165703-contact-hero-light.svg',
-                height: 680,
-                width: 680,
+                url: '/contact/phone-icon-light.svg',
+                height: 300,
+                width: 300,
                 __typename: 'FileField'
               },
               imageMobile: {
                 id: '51207375',
-                url: 'https://www.datocms-assets.com/160242/1685717318-hero-5-contact-light-mobile.svg',
+                url: '/contact/phone-icon-light.svg',
                 height: 187,
                 width: 375,
                 __typename: 'FileField'
               },
               imageDarkMobile: {
                 id: '51207373',
-                url: 'https://www.datocms-assets.com/160242/1685717314-hero-5-contact-dark-mobile.svg',
+                url: '/contact/phone-icon-dark.svg',
                 height: 187,
                 width: 375,
                 __typename: 'FileField'
@@ -460,9 +460,9 @@ export const getContactRoute = async () => {
       id: '121270040',
       logo: {
         id: 'dffIomSsTfCkd-b3vjChtA',
-        url: 'https://www.datocms-assets.com/160242/1721916494-interledger_icon.svg',
-        height: 101,
-        width: 101,
+        url: '/interledger-logo.svg',
+        height: 150,
+        width: 150,
         __typename: 'FileField'
       },
       column1Title: 'Menu',
@@ -515,7 +515,8 @@ export const getContactRoute = async () => {
                 children: [
                   {
                     type: 'span',
-                    value: '© 2024 Interledger Inc and the Interledger Foundation.'
+                    value:
+                      '© 2024 Interledger Inc and the Interledger Foundation.'
                   }
                 ]
               },
@@ -552,7 +553,7 @@ export const getContactRoute = async () => {
           url: 'https://x.com/Interledger',
           icon: {
             id: 'If7vlze6QAeqjixiyS922g',
-            url: 'https://www.datocms-assets.com/160242/1710406464-x-white-icon.svg',
+            url: '/contact/social-x.svg',
             height: 24,
             width: 24,
             __typename: 'FileField'
@@ -564,9 +565,9 @@ export const getContactRoute = async () => {
           url: 'https://www.linkedin.com/company/interledger-foundation/',
           icon: {
             id: '52090585',
-            url: 'https://www.datocms-assets.com/160242/1685976901-icon-linkedin.svg',
-            height: 16,
-            width: 16,
+            url: '/contact/social-linkedin.svg',
+            height: 24,
+            width: 24,
             __typename: 'FileField'
           },
           __typename: 'SocialIconRecord'
@@ -576,9 +577,9 @@ export const getContactRoute = async () => {
           url: 'https://www.youtube.com/@InterledgerFoundation',
           icon: {
             id: '52090589',
-            url: 'https://www.datocms-assets.com/160242/1685977020-icon-youtube.svg',
-            height: 13,
-            width: 19,
+            url: '/contact/social-youtube.svg',
+            height: 24,
+            width: 24,
             __typename: 'FileField'
           },
           __typename: 'SocialIconRecord'
@@ -588,7 +589,7 @@ export const getContactRoute = async () => {
           url: 'https://www.instagram.com/interledgerfoundation/',
           icon: {
             id: 'dfWXhnzmQT68juUEGsvCkw',
-            url: 'https://www.datocms-assets.com/160242/1710227274-instagram-white-icon.svg',
+            url: '/contact/social-instagram.svg',
             height: 24,
             width: 24,
             __typename: 'FileField'
@@ -600,7 +601,7 @@ export const getContactRoute = async () => {
           url: 'https://www.facebook.com/interledger',
           icon: {
             id: 'YhE1LNyHRSWKFCxYuStcYg',
-            url: 'https://www.datocms-assets.com/160242/1710227315-facebook-white-icon.svg',
+            url: '/contact/social-facebook.svg',
             height: 24,
             width: 24,
             __typename: 'FileField'
@@ -1041,7 +1042,7 @@ export const getCurrentMarketingPage = async (
               url: 'https://x.com/Interledger',
               icon: {
                 id: 'If7vlze6QAeqjixiyS922g',
-                url: 'https://www.datocms-assets.com/160242/1710406464-x-white-icon.svg',
+                url: '/contact/social-x.svg',
                 height: 24,
                 width: 24,
                 __typename: 'FileField'
@@ -1053,7 +1054,7 @@ export const getCurrentMarketingPage = async (
               url: 'https://www.linkedin.com/company/interledger-foundation/',
               icon: {
                 id: '52090585',
-                url: 'https://www.datocms-assets.com/160242/1685976901-icon-linkedin.svg',
+                url: '/contact/social-linkedin.svg',
                 height: 16,
                 width: 16,
                 __typename: 'FileField'
@@ -1065,7 +1066,7 @@ export const getCurrentMarketingPage = async (
               url: 'https://www.youtube.com/@InterledgerFoundation',
               icon: {
                 id: '52090589',
-                url: 'https://www.datocms-assets.com/160242/1685977020-icon-youtube.svg',
+                url: '/contact/social-youtube.svg',
                 height: 13,
                 width: 19,
                 __typename: 'FileField'
@@ -1077,7 +1078,7 @@ export const getCurrentMarketingPage = async (
               url: 'https://www.instagram.com/interledgerfoundation/',
               icon: {
                 id: 'dfWXhnzmQT68juUEGsvCkw',
-                url: 'https://www.datocms-assets.com/160242/1710227274-instagram-white-icon.svg',
+                url: '/contact/social-instagram.svg',
                 height: 24,
                 width: 24,
                 __typename: 'FileField'
@@ -1089,7 +1090,7 @@ export const getCurrentMarketingPage = async (
               url: 'https://www.facebook.com/interledger',
               icon: {
                 id: 'YhE1LNyHRSWKFCxYuStcYg',
-                url: 'https://www.datocms-assets.com/160242/1710227315-facebook-white-icon.svg',
+                url: '/contact/social-facebook.svg',
                 height: 24,
                 width: 24,
                 __typename: 'FileField'
@@ -2923,7 +2924,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
               url: 'https://x.com/Interledger',
               icon: {
                 id: 'If7vlze6QAeqjixiyS922g',
-                url: 'https://www.datocms-assets.com/160242/1710406464-x-white-icon.svg',
+                url: '/contact/social-x.svg',
                 height: 24,
                 width: 24,
                 __typename: 'FileField'
@@ -2935,7 +2936,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
               url: 'https://www.linkedin.com/company/interledger-foundation/',
               icon: {
                 id: '52090585',
-                url: 'https://www.datocms-assets.com/160242/1685976901-icon-linkedin.svg',
+                url: '/contact/social-linkedin.svg',
                 height: 16,
                 width: 16,
                 __typename: 'FileField'
@@ -2947,7 +2948,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
               url: 'https://www.youtube.com/@InterledgerFoundation',
               icon: {
                 id: '52090589',
-                url: 'https://www.datocms-assets.com/160242/1685977020-icon-youtube.svg',
+                url: '/contact/social-youtube.svg',
                 height: 13,
                 width: 19,
                 __typename: 'FileField'
@@ -2959,7 +2960,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
               url: 'https://www.instagram.com/interledgerfoundation/',
               icon: {
                 id: 'dfWXhnzmQT68juUEGsvCkw',
-                url: 'https://www.datocms-assets.com/160242/1710227274-instagram-white-icon.svg',
+                url: '/contact/social-instagram.svg',
                 height: 24,
                 width: 24,
                 __typename: 'FileField'
@@ -2971,7 +2972,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
               url: 'https://www.facebook.com/interledger',
               icon: {
                 id: 'YhE1LNyHRSWKFCxYuStcYg',
-                url: 'https://www.datocms-assets.com/160242/1710227315-facebook-white-icon.svg',
+                url: '/contact/social-facebook.svg',
                 height: 24,
                 width: 24,
                 __typename: 'FileField'
@@ -4261,7 +4262,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
               url: 'https://x.com/Interledger',
               icon: {
                 id: 'If7vlze6QAeqjixiyS922g',
-                url: 'https://www.datocms-assets.com/160242/1710406464-x-white-icon.svg',
+                url: '/contact/social-x.svg',
                 height: 24,
                 width: 24,
                 __typename: 'FileField'
@@ -4273,7 +4274,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
               url: 'https://www.linkedin.com/company/interledger-foundation/',
               icon: {
                 id: '52090585',
-                url: 'https://www.datocms-assets.com/160242/1685976901-icon-linkedin.svg',
+                url: '/contact/social-linkedin.svg',
                 height: 16,
                 width: 16,
                 __typename: 'FileField'
@@ -4285,7 +4286,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
               url: 'https://www.youtube.com/@InterledgerFoundation',
               icon: {
                 id: '52090589',
-                url: 'https://www.datocms-assets.com/160242/1685977020-icon-youtube.svg',
+                url: '/contact/social-youtube.svg',
                 height: 13,
                 width: 19,
                 __typename: 'FileField'
@@ -4297,7 +4298,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
               url: 'https://www.instagram.com/interledgerfoundation/',
               icon: {
                 id: 'dfWXhnzmQT68juUEGsvCkw',
-                url: 'https://www.datocms-assets.com/160242/1710227274-instagram-white-icon.svg',
+                url: '/contact/social-instagram.svg',
                 height: 24,
                 width: 24,
                 __typename: 'FileField'
@@ -4309,7 +4310,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
               url: 'https://www.facebook.com/interledger',
               icon: {
                 id: 'YhE1LNyHRSWKFCxYuStcYg',
-                url: 'https://www.datocms-assets.com/160242/1710227315-facebook-white-icon.svg',
+                url: '/contact/social-facebook.svg',
                 height: 24,
                 width: 24,
                 __typename: 'FileField'
@@ -4684,7 +4685,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                       {
                         type: 'span',
                         value:
-                          'Except for the grant of the Personal Use Right in accordance with these Terms, nothing in these Terms functions to assign or transfer, nor creates any right in favor of any person to use, any of Interledger\'s Intellectual Property Rights.'
+                          "Except for the grant of the Personal Use Right in accordance with these Terms, nothing in these Terms functions to assign or transfer, nor creates any right in favor of any person to use, any of Interledger's Intellectual Property Rights."
                       }
                     ]
                   },
@@ -4847,7 +4848,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                               {
                                 type: 'span',
                                 value:
-                                  'Indemnification Obligations. Without limiting the obligations in these Terms, each Holder agrees to indemnify, hold harmless, compensate and reimburse Interledger and its respective subsidiaries, affiliates, officers, agents, employees, partners, and licensors from or for any claim, demand, loss, or damages, including reasonable attorneys\' fees, arising out of or related to Holder\'s use of the wallet address or Holder\'s violation of these Terms.'
+                                  "Indemnification Obligations. Without limiting the obligations in these Terms, each Holder agrees to indemnify, hold harmless, compensate and reimburse Interledger and its respective subsidiaries, affiliates, officers, agents, employees, partners, and licensors from or for any claim, demand, loss, or damages, including reasonable attorneys' fees, arising out of or related to Holder's use of the wallet address or Holder's violation of these Terms."
                               }
                             ]
                           }
@@ -4862,7 +4863,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                               {
                                 type: 'span',
                                 value:
-                                  'Injunctive Relief. Notwithstanding anything else in these Terms, Holder hereby agrees that, in the event of Holder\'s or any third partys unauthorized access to, or use of, the wallet address in violation of these Terms, Interledger shall be entitled to apply for injunctive remedies (or an equivalent type of urgent legal relief) in any jurisdiction, without providing notice or opportunity to cure.'
+                                  "Injunctive Relief. Notwithstanding anything else in these Terms, Holder hereby agrees that, in the event of Holder's or any third partys unauthorized access to, or use of, the wallet address in violation of these Terms, Interledger shall be entitled to apply for injunctive remedies (or an equivalent type of urgent legal relief) in any jurisdiction, without providing notice or opportunity to cure."
                               }
                             ]
                           }
@@ -5103,7 +5104,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
               url: 'https://x.com/Interledger',
               icon: {
                 id: 'If7vlze6QAeqjixiyS922g',
-                url: 'https://www.datocms-assets.com/160242/1710406464-x-white-icon.svg',
+                url: '/contact/social-x.svg',
                 height: 24,
                 width: 24,
                 __typename: 'FileField'
@@ -5115,7 +5116,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
               url: 'https://www.linkedin.com/company/interledger-foundation/',
               icon: {
                 id: '52090585',
-                url: 'https://www.datocms-assets.com/160242/1685976901-icon-linkedin.svg',
+                url: '/contact/social-linkedin.svg',
                 height: 16,
                 width: 16,
                 __typename: 'FileField'
@@ -5127,7 +5128,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
               url: 'https://www.youtube.com/@InterledgerFoundation',
               icon: {
                 id: '52090589',
-                url: 'https://www.datocms-assets.com/160242/1685977020-icon-youtube.svg',
+                url: '/contact/social-youtube.svg',
                 height: 13,
                 width: 19,
                 __typename: 'FileField'
@@ -5139,7 +5140,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
               url: 'https://www.instagram.com/interledgerfoundation/',
               icon: {
                 id: 'dfWXhnzmQT68juUEGsvCkw',
-                url: 'https://www.datocms-assets.com/160242/1710227274-instagram-white-icon.svg',
+                url: '/contact/social-instagram.svg',
                 height: 24,
                 width: 24,
                 __typename: 'FileField'
@@ -5151,7 +5152,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
               url: 'https://www.facebook.com/interledger',
               icon: {
                 id: 'YhE1LNyHRSWKFCxYuStcYg',
-                url: 'https://www.datocms-assets.com/160242/1710227315-facebook-white-icon.svg',
+                url: '/contact/social-facebook.svg',
                 height: 24,
                 width: 24,
                 __typename: 'FileField'
@@ -5410,7 +5411,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
               url: 'https://x.com/Interledger',
               icon: {
                 id: 'If7vlze6QAeqjixiyS922g',
-                url: 'https://www.datocms-assets.com/160242/1710406464-x-white-icon.svg',
+                url: '/contact/social-x.svg',
                 height: 24,
                 width: 24,
                 __typename: 'FileField'
@@ -5422,7 +5423,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
               url: 'https://www.linkedin.com/company/interledger-foundation/',
               icon: {
                 id: '52090585',
-                url: 'https://www.datocms-assets.com/160242/1685976901-icon-linkedin.svg',
+                url: '/contact/social-linkedin.svg',
                 height: 16,
                 width: 16,
                 __typename: 'FileField'
@@ -5434,7 +5435,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
               url: 'https://www.youtube.com/@InterledgerFoundation',
               icon: {
                 id: '52090589',
-                url: 'https://www.datocms-assets.com/160242/1685977020-icon-youtube.svg',
+                url: '/contact/social-youtube.svg',
                 height: 13,
                 width: 19,
                 __typename: 'FileField'
@@ -5446,7 +5447,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
               url: 'https://www.instagram.com/interledgerfoundation/',
               icon: {
                 id: 'dfWXhnzmQT68juUEGsvCkw',
-                url: 'https://www.datocms-assets.com/160242/1710227274-instagram-white-icon.svg',
+                url: '/contact/social-instagram.svg',
                 height: 24,
                 width: 24,
                 __typename: 'FileField'
@@ -5458,7 +5459,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
               url: 'https://www.facebook.com/interledger',
               icon: {
                 id: 'YhE1LNyHRSWKFCxYuStcYg',
-                url: 'https://www.datocms-assets.com/160242/1710227315-facebook-white-icon.svg',
+                url: '/contact/social-facebook.svg',
                 height: 24,
                 width: 24,
                 __typename: 'FileField'
@@ -6123,7 +6124,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
               url: 'https://x.com/Interledger',
               icon: {
                 id: 'If7vlze6QAeqjixiyS922g',
-                url: 'https://www.datocms-assets.com/160242/1710406464-x-white-icon.svg',
+                url: '/contact/social-x.svg',
                 height: 24,
                 width: 24,
                 __typename: 'FileField'
@@ -6135,7 +6136,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
               url: 'https://www.linkedin.com/company/interledger-foundation/',
               icon: {
                 id: '52090585',
-                url: 'https://www.datocms-assets.com/160242/1685976901-icon-linkedin.svg',
+                url: '/contact/social-linkedin.svg',
                 height: 16,
                 width: 16,
                 __typename: 'FileField'
@@ -6147,7 +6148,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
               url: 'https://www.youtube.com/@InterledgerFoundation',
               icon: {
                 id: '52090589',
-                url: 'https://www.datocms-assets.com/160242/1685977020-icon-youtube.svg',
+                url: '/contact/social-youtube.svg',
                 height: 13,
                 width: 19,
                 __typename: 'FileField'
@@ -6159,7 +6160,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
               url: 'https://www.instagram.com/interledgerfoundation/',
               icon: {
                 id: 'dfWXhnzmQT68juUEGsvCkw',
-                url: 'https://www.datocms-assets.com/160242/1710227274-instagram-white-icon.svg',
+                url: '/contact/social-instagram.svg',
                 height: 24,
                 width: 24,
                 __typename: 'FileField'
@@ -6171,7 +6172,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
               url: 'https://www.facebook.com/interledger',
               icon: {
                 id: 'YhE1LNyHRSWKFCxYuStcYg',
-                url: 'https://www.datocms-assets.com/160242/1710227315-facebook-white-icon.svg',
+                url: '/contact/social-facebook.svg',
                 height: 24,
                 width: 24,
                 __typename: 'FileField'
