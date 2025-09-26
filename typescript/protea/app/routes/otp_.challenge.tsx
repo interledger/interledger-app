@@ -18,7 +18,9 @@ import {
 } from '~/components'
 import { Label } from '~/components/Label'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
-import { isConnectError } from '~/lib/error.server'
+import { ErrorDescriptions } from '~/lib/error.constants'
+import { TwillioError, TwillioErrorMapper } from '~/lib/error.mappers'
+import { isConnectError, isTwilioError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { trimHeaders } from '~/lib/headers.server'
 import {
@@ -128,8 +130,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   await validateCSRFToken(request, form)
 
-  const errors = {
-    form: '',
+  const errors: Partial<TwillioError> = {
     otp: ''
   }
 
@@ -137,10 +138,28 @@ export async function action({ request }: ActionFunctionArgs) {
     to: session.identity.traits.phone,
     otp
   })
+
   if (isConnectError(response)) {
-    if (response.code == Code.InvalidArgument) {
-      return response.error({ errors })
-    } else return response.error({ errors }, {}, { action: 'Contact support' })
+    if (isTwilioError(response)) {
+      const e = response.error(
+        { errors },
+        {
+          otp: TwillioErrorMapper.otp
+        },
+        { action: 'Contact support', message: ErrorDescriptions.INVALID_OTP }
+      )
+      return e
+    } else if (response.code == Code.InvalidArgument) {
+      const e = response.error({ errors })
+      return e
+    } else {
+      const e = response.error(
+        { errors },
+        {},
+        { action: 'Contact support', message: ErrorDescriptions.DEFAULT }
+      )
+      return e
+    }
   }
 
   if (returnTo) {
@@ -153,7 +172,10 @@ export async function action({ request }: ActionFunctionArgs) {
     headers: { cookie: cookie, Accept: 'application/json' }
   })
   flow = await flowRes.json()
-  if (flowRes.status >= 400) handleFlowError(flow, 'otp/challenge')
+
+  if (flowRes.status >= 400) {
+    handleFlowError(flow, 'otp/challenge')
+  }
 
   return redirect(`/settings/phone?flow=${flow.id}`, {
     headers: trimHeaders(flowRes.headers, ['set-cookie'])
