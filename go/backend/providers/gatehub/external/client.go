@@ -225,10 +225,6 @@ func (c *client) LinkUserToGateway(ctx context.Context, gatehubUserId string) er
 	if err != nil {
 		return fmt.Errorf("%w %s", ErrInternal, err)
 	}
-
-	if err != nil {
-		return fmt.Errorf("%w %s", ErrInternal, err)
-	}
 	defer resp.Body.Close()
 
 	return nil
