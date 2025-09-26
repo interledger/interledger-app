@@ -17,7 +17,7 @@ type GatehubWallets struct {
 	WalletID   string `db:"wallet_id"`
 }
 
-func SetGatehubGatewayToPaywiserJob(ctx workflow.Context, params WalletActive) error {
+func SetGatehubGatewayToPaywiserJob(ctx workflow.Context) error {
 	var a *Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 10 * time.Second,
@@ -26,35 +26,35 @@ func SetGatehubGatewayToPaywiserJob(ctx workflow.Context, params WalletActive) e
 		},
 	}
 	ctx = workflow.WithActivityOptions(ctx, ao)
-	log.Info("starting SetGatehubGatewayToPaywiserJob", zap.Bool("is Active", params.IsActive), zap.String("region", params.Region), zap.Strings("wallet_ids", params.Wallets))
-	var externalUserIDs []GatehubWallets
-	err := workflow.ExecuteActivity(ctx, a.GetGatehubUsers).Get(ctx, &externalUserIDs)
+	log.Info("starting SetGatehubGatewayToPaywiserJob")
+	var gatehubWallets []GatehubWallets
+	err := workflow.ExecuteActivity(ctx, a.GetGatehubUsers).Get(ctx, &gatehubWallets)
 	if err != nil {
 		return err
 	}
-	var listOfUnprocessed []string
-	err = workflow.ExecuteActivity(ctx, a.LinkUserToGateHubGatewayByExternalID, externalUserIDs).Get(ctx, &listOfUnprocessed)
+	var unprocessedGatewayWallets []string
+	err = workflow.ExecuteActivity(ctx, a.LinkUserToGateHubGatewayByExternalID, gatehubWallets).Get(ctx, &unprocessedGatewayWallets)
+	if err != nil {
+		return err
+	}
+	var unprocessedKYCWallets []string
+	err = workflow.ExecuteActivity(ctx, a.UpdateGatehubKYCStatus, gatehubWallets, unprocessedGatewayWallets).Get(ctx, &unprocessedKYCWallets)
 	if err != nil {
 		return err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.UpdateGatehubKYCStatus, externalUserIDs, listOfUnprocessed).Get(ctx, &listOfUnprocessed)
-	if err != nil {
-		return err
-	}
-
-	log.Info("completed SetGatehubGatewayToPaywiserJob", zap.Bool("is Active", params.IsActive), zap.String("region", params.Region), zap.Strings("wallet_ids", params.Wallets), zap.Strings("not changed: ", listOfUnprocessed))
+	log.Info("completed SetGatehubGatewayToPaywiserJob", zap.Strings("wallets with unchanged Gateway ", unprocessedGatewayWallets), zap.Strings("wallets with unchanged KYC status ", unprocessedKYCWallets))
 	return nil
 }
 
 func (a *Activity) GetGatehubUsers(ctx context.Context, walletID string) ([]GatehubWallets, error) {
-	var externalUserIDs []GatehubWallets
-	err := a.b.DB().SelectContext(ctx, &externalUserIDs, "SELECT external_id,wallet_id FROM gatehub_users")
+	var gatehubWallets []GatehubWallets
+	err := a.b.DB().SelectContext(ctx, &gatehubWallets, "SELECT external_id, wallet_id FROM gatehub_users")
 	if err != nil {
 		return nil, err
 	}
 
-	return externalUserIDs, nil
+	return gatehubWallets, nil
 }
 
 func (a *Activity) LinkUserToGateHubGatewayByExternalID(ctx context.Context, wallets []GatehubWallets) ([]string, error) {
