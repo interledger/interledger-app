@@ -147,7 +147,7 @@ func accountCreatedWebhook(ctx context.Context, b Backends, js json.RawMessage) 
 		return nil
 	}
 
-	_, err = b.DB().ExecContext(ctx, "INSERT INTO kyc_persona_accounts (external_id, wallet_id) VALUES ($1,$2) ON CONFLICT DO NOTHING;", whAcc.Data.ID, whAcc.Data.Attributes.ReferenceID)
+	_, err = b.DB().ExecContext(ctx, "INSERT INTO kyc_persona_accounts (external_id, wallet_id,updated_at) VALUES ($1,$2, now()) ON CONFLICT (wallet_id) DO UPDATE SET external_id = excluded.external_id, updated_at= excluded.updated_at;", whAcc.Data.ID, whAcc.Data.Attributes.ReferenceID)
 	if err != nil {
 		return err
 	}
@@ -161,7 +161,7 @@ func accountTagAddedWebhook(ctx context.Context, b Backends, pc persona.Client, 
 		return err
 	}
 
-	_, err = b.DB().ExecContext(ctx, "INSERT INTO kyc_persona_accounts (external_id, wallet_id) VALUES ($1,$2) ON CONFLICT DO NOTHING;", whAcc.Data.ID, whAcc.Data.Attributes.ReferenceID)
+	_, err = b.DB().ExecContext(ctx, "INSERT INTO kyc_persona_accounts (external_id, wallet_id,updated_at) VALUES ($1,$2, now()) ON CONFLICT (wallet_id) DO UPDATE SET external_id = excluded.external_id, updated_at= excluded.updated_at;", whAcc.Data.ID, whAcc.Data.Attributes.ReferenceID)
 	if err != nil {
 		log.Error(
 			"persona webhook: failed to map persona account to wallet.",
