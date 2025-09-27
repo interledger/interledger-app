@@ -421,7 +421,7 @@ export function Scaffold() {
       <main
         className={clsx(
           'relative flex w-full grow flex-col',
-          layout === Layouts.Marketing && 'mx-auto xl:max-w-[80rem]',
+          layout === Layouts.Marketing && 'mx-auto xl:max-w-[80rem] justify-evenly',
           layout === Layouts.Focus &&
             'mx-auto w-full gap-y-4 px-4 sm:max-w-[29rem] sm:px-0',
           layout === Layouts.Wallet && 'mb-32 w-full px-4 lg:pl-[16.25rem]',
@@ -459,9 +459,11 @@ export function Scaffold() {
           <div className='relative mx-auto flex w-full flex-col px-4 pb-12 pt-52 lg:px-0 lg:pl-40 lg:pt-20 xl:max-w-[59rem]'>
             <img
               alt='Interledger logo'
-              className='absolute left-4 top-10 max-h-20 lg:left-3 lg:top-20'
+              className='absolute left-4 top-10 max-h-20 pr-4 lg:left-3 lg:top-20'
               loading='lazy'
               src={footer.logo?.url}
+              height={footer.logo?.height}
+              width={footer.logo?.width}
             />
             <div className='flex w-full flex-col gap-y-10 lg:flex-row lg:gap-x-40 lg:gap-y-0'>
               <div className='flex flex-col'>
@@ -510,6 +512,8 @@ export function Scaffold() {
                       className='block'
                       loading='lazy'
                       src={icon.icon?.url}
+                      height={icon.icon?.height}
+                      width={icon.icon?.width}
                     />
                   </AnchorRouter>
                 )
