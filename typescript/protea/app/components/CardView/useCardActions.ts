@@ -4,6 +4,8 @@ import {
   CardStatus
 } from '~/generated/connect/backend/v1/backend_pb'
 import { ActionStatus, useActionExecute } from './useActionExecute'
+import { useKeyGeneration } from '~/lib/useKeyGeneration'
+import { useGateHubApi } from '~/lib/gatehub/hooks/useGateHubApiClient'
 
 interface Card {
   id: string
@@ -16,7 +18,7 @@ interface Card {
 
 interface SensitiveData {
   cardNumber: string
-  expiryDate: string | null
+  expiryDate: string
   cvv: string | null
 }
 
@@ -35,7 +37,7 @@ interface UseCardActionsReturn {
 const getDefaultSensitiveData = (card: Card): SensitiveData => {
   return {
     cardNumber: card.maskedPan,
-    expiryDate: null,
+    expiryDate: card.expiryDate,
     cvv: null
   }
 }
@@ -56,10 +58,11 @@ export const useCardActions = (card: Card): UseCardActionsReturn => {
   const [isFrozenState, setIsFrozenState] = useState(isFrozen(card))
   const [isBlockedState, setIsBlockedState] = useState(isBlocked(card))
   const { actionStatus, executeAction, resetStatus } = useActionExecute()
-
   const [sensitiveData, setSensitiveData] = useState(
     getDefaultSensitiveData(card)
   )
+  const { keyPair } = useKeyGeneration()
+  const { gatehubClient} = useGateHubApi()
 
   // Reset when switching cards
   useEffect(() => {
@@ -85,7 +88,7 @@ export const useCardActions = (card: Card): UseCardActionsReturn => {
       }
     })
 
-  const toggleSensitiveDataOn = async (onSuccess?: () => void) => {
+  const toggleSensitiveDataOn2 = async (onSuccess?: () => void) => {
     executeAction({
       execute: async () => {
         // Mock fetching sensitive data for the given card
@@ -106,6 +109,31 @@ export const useCardActions = (card: Card): UseCardActionsReturn => {
       onSuccess,
       onError: (error) => {
         console.error('Failed to turn on sensitive data visibility:', error)
+      }
+    })
+  }
+
+  const toggleSensitiveDataOn = async (onSuccess?: () => void) => {
+    executeAction({
+      execute: async () => {
+        // 1 Get generated keys
+        console.log('🔑 Getting generated keys')
+        console.log(keyPair)
+
+        // 2 Request JWT token
+        const jwtToken = await gatehubClient.tokens.getCardDataToken(keyPair?.publicKey)
+        console.log('🔑 JWT token', jwtToken)
+
+        // 3 Request card data with JWT token
+        // 4 Decrypt card data using public key
+
+        setShowSensitiveData(true)
+      },
+      onSuccess: () => {
+        console.log('✅ toggleSensitiveDataOn success')
+      },
+      onError: (error) => {
+        console.error('❌ Failed to turn on sensitive data visibility:', error)
       }
     })
   }

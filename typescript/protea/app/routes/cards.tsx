@@ -1,3 +1,4 @@
+import { Code } from '@bufbuild/connect'
 import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Outlet, useLoaderData, useLocation } from '@remix-run/react'
@@ -16,8 +17,10 @@ import {
 } from '~/components'
 import { getFeatures } from '~/data/wallet.server'
 import { Card as CardProto } from '~/generated/connect/backend/v1/backend_pb'
+import { isConnectError } from '~/lib/error.server'
 import { useCardsStore } from '~/lib/gatehub/hooks/gatehub.stores'
 import type { StorableCard } from '~/lib/gatehub/types'
+import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
 import { mockCards } from '~/lib/mocks/cards'
 
@@ -29,9 +32,20 @@ export async function loader({ request }: LoaderFunctionArgs) {
     throw redirect('/')
   }
 
-  // Use mock cards instead of gRPC call until user has cards provisioned
+  const response = await grpc.listCards(request, {})
+
+  if (isConnectError(response)) {
+    // Temporary for non-EU wallets
+    // TODO: Maybe show a message to the user that cards are not available
+    // in their jurisdiction?
+    if (response.code === Code.FailedPrecondition) {
+      throw redirect('/')
+    }
+    throw response.errorResponse
+  }
+
   return json({
-    cards: mockCards
+    cards: [...response.cards, ...mockCards]
   })
 }
 
@@ -119,7 +133,7 @@ export default function Page() {
                       {card.maskedPan}
                     </span>
                     <span className='text-xs text-weak'>
-                      Expires at: {card.expiryDate}
+                      Expires at: {card.expiryDate.slice(0, 2)}/{card.expiryDate.slice(2)}
                     </span>
                   </div>
                 </div>

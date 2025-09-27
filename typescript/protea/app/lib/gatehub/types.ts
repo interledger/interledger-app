@@ -61,12 +61,18 @@ export type GateHubStore = GateHubState & {
 
 /* GateHub Client types */
 export type GateHubRequestOptions = {
+  /** Include x-gatehub-app-id header */
+  includeAppId?: boolean
   /** Include x-gatehub-card-app-id header */
   includeCardAppId?: boolean
   /** Include x-gatehub-managed-user-uuid header */
   includeManagedUserUuid?: boolean
   /** Include Authorization header with session token */
   includeSessionToken?: boolean
+  /** Include x-gatehub-timestamp header */
+  includeTimestamp?: boolean
+  /** Include x-gatehub-signature header */
+  includeSignature?: boolean
   /** Additional custom headers */
   customHeaders?: Record<string, string>
 }

@@ -10,7 +10,7 @@ export const useGateHubApi = (baseUrl?: string) => {
 
   const apiClient = useMemo(() => {
     const client = createGateHubApiClient({
-      baseUrl: baseUrl || '',
+      baseUrl,
       cardAppId: auth.cardAppId,
       managedUserUuid: user.managedUserUuid,
       sessionToken: token || undefined

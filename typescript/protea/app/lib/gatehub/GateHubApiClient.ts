@@ -33,6 +33,8 @@ export interface GateHubApiClientConfig {
   sessionToken?: string
 }
 
+const GATEHUB_HOST = 'https://api.sandbox.gatehub.net'
+
 /**
  * API Client used for operation with GateHub DIRECTLY.
  *
@@ -43,8 +45,8 @@ class GateHubApiClient {
 
   constructor(config: GateHubApiClientConfig = {}) {
     this.config = {
-      baseUrl: config.baseUrl || '',
-      ...config
+      ...config,
+      baseUrl: config.baseUrl ?? GATEHUB_HOST
     }
   }
 

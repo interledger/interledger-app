@@ -81,7 +81,7 @@ export const CardView = ({ card }: CardViewProps) => {
             <CardViewFront
               nameOnCard={card.nameOnCard}
               cardNumber={sensitiveData.cardNumber}
-              expiryDate={sensitiveData.expiryDate}
+              expiryDate={sensitiveData.expiryDate.slice(0, 2) + '/' + sensitiveData.expiryDate.slice(2)}
             />
           </div>
 
@@ -95,7 +95,7 @@ export const CardView = ({ card }: CardViewProps) => {
           >
             <CardViewBack
               fullCardNumber={sensitiveData.cardNumber}
-              expiryDate={sensitiveData.expiryDate}
+              expiryDate={sensitiveData.expiryDate.slice(0, 2) + '/' + sensitiveData.expiryDate.slice(2)}
               cvv={sensitiveData.cvv}
             />
           </div>
