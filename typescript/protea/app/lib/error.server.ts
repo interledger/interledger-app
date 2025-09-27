@@ -11,6 +11,7 @@ import type {
 } from '~/generated/connect/google/rpc/error_details_pb'
 import {
   BadRequest,
+  ErrorInfo,
   PreconditionFailure
 } from '~/generated/connect/google/rpc/error_details_pb'
 import { flashSnackbar } from '~/lib/snackbar.server'
@@ -293,4 +294,13 @@ export function isConnectError(response: unknown): response is ConnectError {
     (response as ConnectError)._err !== undefined &&
     (response as ConnectError)._request !== undefined
   )
+}
+
+export function isTwilioCodeError(error: ConnectError): boolean {
+  return error.fieldViolations.some((violation) => violation.field === 'Code')
+}
+
+export function isTwilioError(error: ConnectError): boolean {
+  const errorInfo = error._err.findDetails(ErrorInfo)
+  return errorInfo.some((info) => info.reason === 'TwilioError')
 }
