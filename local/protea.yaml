@@ -7,17 +7,20 @@ services:
       - application
       - frontend
     restart: always
-    develop:
-      watch:
-        - path: ../typescript/protea
-          action: rebuild
+    volumes:
+      - ../typescript/protea/:/app:rw
     ports:
       - "3000:3000" # http port
       - "8002:8002" # websocket port
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.protea.rule=Host(`interledger.test`)"
+      - "traefik.http.routers.protea.service=protea"
       - "traefik.http.services.protea.loadbalancer.server.port=3000"
+
+      - "traefik.http.routers.protea-ws.rule=Host(`interledger.test`) && PathPrefix(`/socket`)"
+      - "traefik.http.routers.protea-ws.service=protea-ws"
+      - "traefik.http.services.protea-ws.loadbalancer.server.port=8002"
 
     environment:
       - FYNBOS_ENV=local
