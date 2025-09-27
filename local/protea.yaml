@@ -7,17 +7,21 @@ services:
       - application
       - frontend
     restart: always
-    develop:
-      watch:
-        - path: ../typescript/protea
-          action: rebuild
+    volumes:
+      - ../typescript/protea/:/app:rw
     ports:
       - "3000:3000" # http port
       - "8002:8002" # websocket port
     labels:
       - "traefik.enable=true"
+
       - "traefik.http.routers.protea.rule=Host(`interledger.test`)"
+      - "traefik.http.routers.protea.service=protea"
       - "traefik.http.services.protea.loadbalancer.server.port=3000"
+
+      - "traefik.http.routers.protea-ws.rule=Host(`interledger.test`) && PathPrefix(`/socket`)"
+      - "traefik.http.routers.protea-ws.service=protea-ws"
+      - "traefik.http.services.protea-ws.loadbalancer.server.port=8002"
 
     environment:
       - FYNBOS_ENV=local
@@ -32,7 +36,7 @@ services:
       - PAYMENT_POINTER_BASE=local.ilp.link # todo find a way to figure the name
       - DATO_API_TOKEN=b96709bce873f5280722da965b0e9d
       - BACKEND_GRPC_URL=http://backend:8443
-      
+
       - REDIS_URL=redis://redis:6379/2
 
     depends_on:

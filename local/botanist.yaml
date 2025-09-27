@@ -7,17 +7,21 @@ services:
       - application
       - frontend
     restart: always
-    develop:
-      watch:
-        - path: ../typescript/botanist
-          action: rebuild
+    volumes:
+      - ../typescript/botanist/:/app:rw
     ports:
       - "13000:3000" # http port
       - "18002:8002" # websocket port
     labels:
       - "traefik.enable=true"
+
       - "traefik.http.routers.botanist.rule=Host(`admin.mgnt.interledger.test`)"
+      - "traefik.http.routers.botanist.service=botanist"
       - "traefik.http.services.botanist.loadbalancer.server.port=3000"
+
+      - "traefik.http.routers.botanist-ws.rule=Host(`admin.mgnt.interledger.test`) && PathPrefix(`/socket`)"
+      - "traefik.http.routers.botanist-ws.service=botanist-ws"
+      - "traefik.http.services.botanist-ws.loadbalancer.server.port=8002"
 
     environment:
       - FYNBOS_ENV=local
