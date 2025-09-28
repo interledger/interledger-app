@@ -70,6 +70,8 @@ services:
       - "3880:80"    # HTTP port
       - "3001:3001"  # Admin port
       - "3002:3002"  # Connector port
+    extra_hosts:
+    - "local.ilp.link:host-gateway"
     labels:
       - "traefik.enable=true"
 
