@@ -54,7 +54,7 @@ services:
       - INCOMING_PAYMENT_INTERACTION=false
       - QUOTE_INTERACTION=false
     
-      - WAIT_SECONDS=5
+      - WAIT_SECONDS=1
       - TRUST_PROXY=true
 
     depends_on:
