@@ -8,7 +8,8 @@ services:
       - frontend
     restart: always
     volumes:
-      - ../typescript/protea/:/app:rw
+      - ../typescript/protea/app:/app/app:rw
+      - ../typescript/protea/public:/app/public:rw
     ports:
       - "3000:3000" # http port
       - "8002:8002" # websocket port
