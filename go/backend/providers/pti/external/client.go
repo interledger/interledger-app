@@ -58,7 +58,7 @@ func New(args ClientArgs) Client {
 	if args.BaseURL != "" {
 		base = args.BaseURL
 	} else if env.IsLocal() {
-		base = "http://localhost:9080/pti"
+		base = "http://mockbos:8080/pti"
 	} else if env.IsProd() {
 		base = "https://api.platform.fiant.io/v1"
 	}

@@ -30,8 +30,10 @@ import type {
   PublicWalletInfo
 } from '~/generated/connect/backend/v1/backend_pb'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
+import { ErrorDescriptions } from '~/lib/error.constants'
+import { TwillioErrorMapper } from '~/lib/error.mappers'
 import type { ConnectError } from '~/lib/error.server'
-import { error, isConnectError } from '~/lib/error.server'
+import { error, isConnectError, isTwilioCodeError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { getClientIP } from '~/lib/ip.server'
 import { getUserSession } from '~/lib/kratos.server'
@@ -305,6 +307,15 @@ export async function confirmPaymentAction({
     ipAddress: clientIpAddress
   })
   if (isConnectError(response)) {
+    if (isTwilioCodeError(response)) {
+      return response.error(
+        { errors },
+        {
+          otp: TwillioErrorMapper.otp
+        },
+        { action: 'Contact support', message: ErrorDescriptions.INVALID_OTP }
+      )
+    }
     return response.error({ errors }, {}, { action: 'Contact support' })
   }
 
