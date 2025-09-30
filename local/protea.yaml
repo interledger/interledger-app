@@ -27,7 +27,8 @@ services:
       - FYNBOS_ENV=local
 
       - KRATOS_URL=http://kratos:4433
-      - RAFIKI_AUTH_ENDPOINT=http://rafiki_auth:3006
+      - RAFIKI_AUTH_ENDPOINT=http://rafiki_auth:3009
+      - RAFIKI_AUTH_SECRET=my-super-secret-identity-key
 
       - CHOKIDAR_USEPOLLING=true
       - COOKIE_SECRETS="[\"localsecret\"]"
