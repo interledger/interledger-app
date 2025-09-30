@@ -54,9 +54,7 @@ func RestartKYCstatusForXagoJob(ctx workflow.Context, params []string) error {
 
 func (a *Activity) UpdatePersonaInquiryXagoStatus(ctx context.Context, walletIds []string) error {
 	query := "UPDATE kyc_persona_inquiries SET state = 'expired' where wallet_id in ($1)"
-	var walletList []string
-
-	err := a.b.DB().ExecContext(ctx, &walletList, query, strings.Join(walletIds, ","))
+	_, err := a.b.DB().ExecContext(ctx, query, strings.Join(walletIds, ","))
 	if err != nil {
 		return err
 	}
@@ -66,9 +64,7 @@ func (a *Activity) UpdatePersonaInquiryXagoStatus(ctx context.Context, walletIds
 func (a *Activity) RestartXagoKYCForWallets(ctx context.Context, walletIds []string) error {
 
 	query := "UPDATE wallet_kyc_status SET status = $1 where wallet_id in ($2)"
-	var walletList []string
-
-	err := a.b.DB().ExecContext(ctx, &walletList, query, kyc.StatusUnknown, strings.Join(walletIds, ","))
+	_, err := a.b.DB().ExecContext(ctx, query, kyc.StatusUnknown, strings.Join(walletIds, ","))
 	if err != nil {
 		return err
 	}
