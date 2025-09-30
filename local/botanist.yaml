@@ -8,7 +8,8 @@ services:
       - frontend
     restart: always
     volumes:
-      - ../typescript/botanist/:/app:rw
+      - ../typescript/botanist/app:/app/app:rw
+      - ../typescript/botanist/public:/app/public:rw
     ports:
       - "13000:3000" # http port
       - "18002:8002" # websocket port

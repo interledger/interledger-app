@@ -9,8 +9,10 @@ export const useGateHubApi = (baseUrl?: string) => {
   const { card, user, auth, token } = useGateHubStore()
 
   const apiClient = useMemo(() => {
+    // todo: update config when dependencies change instead of recreating the client
     const client = createGateHubApiClient({
       baseUrl,
+      appId: auth.appId,
       cardAppId: auth.cardAppId,
       managedUserUuid: user.managedUserUuid,
       sessionToken: token || undefined

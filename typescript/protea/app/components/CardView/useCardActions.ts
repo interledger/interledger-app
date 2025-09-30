@@ -116,6 +116,8 @@ export const useCardActions = (card: Card): UseCardActionsReturn => {
   const toggleSensitiveDataOn = async (onSuccess?: () => void) => {
     executeAction({
       execute: async () => {
+        // 0. THE JWT RETRIEVAL SHOULD HAPPEN ON THE BACKEND
+
         // 1 Get generated keys
         console.log('🔑 Getting generated keys')
         console.log(keyPair)

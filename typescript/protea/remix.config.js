@@ -11,5 +11,5 @@ module.exports = {
   publicPath: `${process.env.REMIX_PUBLIC_PATH || ''}/build/`,
   ignoredRouteFiles: ['.*', '**/*.stories.tsx', '**/*.test.{ts,tsx}'],
   sourcemap: true,
-  browserNodeBuiltinsPolyfill: { modules: { os: true } }
+  browserNodeBuiltinsPolyfill: { modules: { os: true, crypto: true } }
 }

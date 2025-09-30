@@ -1,13 +1,5 @@
+import { createHmac } from 'crypto'
 import { GateHubApiClientConfig, GateHubApiRequest } from '../GateHubApiClient'
-import type { GateHubRequestOptions } from '../types'
-
-const GATEHUB_HEADERS = {
-  APP_ID: 'x-gatehub-app-id',
-  TIMESTAMP: 'x-gatehub-timestamp',
-  SIGNATURE: 'x-gatehub-signature',
-  MANAGED_USER_UUID: 'x-gatehub-managed-user-uuid',
-  CARD_APP_ID: 'x-gatehub-card-app-id'
-} as const
 
 export interface GateHubAuthData {
   appId?: string
@@ -16,64 +8,84 @@ export interface GateHubAuthData {
   sessionToken?: string
 }
 
-export function buildGateHubHeaders(
-  authData: GateHubAuthData,
-  options: GateHubRequestOptions = {},
-  body?: any
+export function buildHeaders(
+  request: GateHubApiRequest,
+  config: GateHubApiClientConfig,
+  url: string
 ): Record<string, string> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json'
   }
 
-  if (options.includeAppId) {
-    if (!authData.appId) {
+  const { requires, customHeaders } = request
+  console.log('requires', requires)
+
+  if (customHeaders) {
+    Object.assign(headers, customHeaders)
+  }
+
+  if (!requires) {
+    return headers
+  }
+
+  if (requires.appId) {
+    if (!config.appId) {
       throw new Error('App ID is required.')
     }
-    headers['x-gatehub-app-id'] = authData.appId
+    headers['x-gatehub-app-id'] = config.appId
   }
 
-  if (options.includeCardAppId) {
-    if (!authData.cardAppId) {
+  if (requires.cardAppId) {
+    if (!config.cardAppId) {
       throw new Error('Card app ID is required.')
     }
-    headers['x-gatehub-card-app-id'] = authData.cardAppId
+    headers['x-gatehub-card-app-id'] = config.cardAppId
   }
 
-  if (options.includeManagedUserUuid) {
-    if (!authData.managedUserUuid) {
+  if (requires.managedUser) {
+    if (!config.managedUserUuid) {
       throw new Error('Managed user UUID is required.')
     }
-    headers['x-gatehub-managed-user-uuid'] = authData.managedUserUuid
+    headers['x-gatehub-managed-user-uuid'] = config.managedUserUuid
   }
 
-  if (options.includeSessionToken && authData.sessionToken) {
-    if (!authData.sessionToken) {
+  if (requires.sessionToken) {
+    if (!config.sessionToken) {
       throw new Error('Session token is required.')
     }
-    headers['Authorization'] = `Bearer ${authData.sessionToken}`
+    headers['Authorization'] = `Bearer ${config.sessionToken}`
   }
-  
-  if (options.includeTimestamp) {
+
+  if (requires.timestamp) {
     headers['x-gatehub-timestamp'] = new Date().toISOString()
   }
 
-  if (options.includeSignature) {
-    headers['x-gatehub-signature'] = authData.signature
-  }
-
-  if (options.customHeaders) {
-    Object.assign(headers, options.customHeaders)
+  if (requires.signature) {
+    headers['x-gatehub-signature'] = getSignature(
+      headers['x-gatehub-timestamp'],
+      request.method,
+      url,
+      request.body
+    )
   }
 
   return headers
 }
 
-function getSignature(timestamp: string, method: string, url: string, body: any) {
-  const args = [timestamp, method, url];
+// TODO THIS SHOULD NOT BE ON THE CLIENT
+export function getSignature(
+  timestamp: string,
+  method: string,
+  url: string,
+  body?: string
+) {
+  const args = [timestamp, method, url]
   if (body) {
-    args.push(body);
+    args.push(body)
   }
 
-  const toSign = args.join("|");
-  return crypto.createHmac("sha256", SECRET).update(toSign).digest("hex");
+  const toSign = args.join('|')
+  return createHmac('sha256', 'SECRET_KEY')
+    .update(toSign)
+    .digest('hex')
 }

@@ -1,18 +1,17 @@
 import { GATEHUB_API_ENDPOINTS } from '~/lib/gatehub/config/endpoints'
-import type {
-  GateHubApiResponse,
-  GateHubRequestOptions,
-  HttpMethod
-} from '~/lib/gatehub/types'
-import {
-  buildGateHubHeaders,
-  type GateHubAuthData
-} from '~/lib/gatehub/utils/headers.builder'
+import type { GateHubApiResponse, HttpMethod } from '~/lib/gatehub/types'
+import { buildHeaders } from '~/lib/gatehub/utils/headers.builder'
 
+/**
+ * Flags to determine which headers to be used for the direct GateHub request
+ */
 export interface GateHubApiRequirements {
-  auth?: boolean
+  appId?: boolean
+  cardAppId?: boolean
   managedUser?: boolean
   sessionToken?: boolean
+  timestamp?: boolean
+  signature?: boolean
 }
 
 export interface GateHubApiRequest {
@@ -25,9 +24,14 @@ export interface GateHubApiRequest {
   baseUrl?: string
 }
 
+/**
+ * Internal state for the GateHub API client
+ */
 export interface GateHubApiClientConfig {
   baseUrl?: string
   defaultHeaders?: Record<string, string>
+
+  appId?: string
   cardAppId?: string
   managedUserUuid?: string
   sessionToken?: string
@@ -54,42 +58,6 @@ class GateHubApiClient {
     this.config = { ...this.config, ...config }
   }
 
-  setDefaultHeaders(headers: Record<string, string>) {
-    this.config.defaultHeaders = headers
-  }
-
-  setAuthData(
-    cardAppId?: string,
-    managedUserUuid?: string,
-    sessionToken?: string
-  ) {
-    this.config.cardAppId = cardAppId
-    this.config.managedUserUuid = managedUserUuid
-    this.config.sessionToken = sessionToken
-  }
-
-  /* HTTP related methods */
-  private buildHeaders(request: GateHubApiRequest): Record<string, string> {
-    const authData: GateHubAuthData = {
-      cardAppId: this.config.cardAppId,
-      managedUserUuid: this.config.managedUserUuid,
-      sessionToken: this.config.sessionToken
-    }
-
-    const requires = request.requires || {}
-    const options: GateHubRequestOptions = {
-      includeCardAppId: requires.auth !== false,
-      includeManagedUserUuid: requires.managedUser === true,
-      includeSessionToken: requires.sessionToken === true,
-      customHeaders: {
-        ...this.config.defaultHeaders,
-        ...request.customHeaders
-      }
-    }
-
-    return buildGateHubHeaders(authData, options)
-  }
-
   async makeRequest<T = any>(
     request: GateHubApiRequest
   ): Promise<GateHubApiResponse<T>> {
@@ -103,8 +71,7 @@ class GateHubApiClient {
         url += `?${params.toString()}`
       }
 
-      // Build headers using the dedicated header builder function
-      const headers = this.buildHeaders(request)
+      const headers = buildHeaders(request, this.config, url)
 
       const response = await fetch(url, {
         method: request.method,
@@ -119,6 +86,7 @@ class GateHubApiClient {
       }
 
       if (!response.ok) {
+        console.error('GateHub API request failed:', data)
         return {
           error: data ? JSON.stringify(data) : `HTTP ${response.status}`,
           status: response.status,
@@ -266,7 +234,13 @@ class GateHubApiClient {
       endpoint: GATEHUB_API_ENDPOINTS.tokens.cardData,
       method: 'POST',
       body: { cardId, publicKey },
-      requires: { managedUser: true }
+      requires: {
+        managedUser: true,
+        cardAppId: true,
+        appId: true,
+        timestamp: true,
+        signature: true
+      }
     })
   }
 

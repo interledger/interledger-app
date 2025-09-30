@@ -15,14 +15,11 @@ export function ab2str(buf: ArrayBuffer): string {
  * Check if Web Crypto API is available
  * @returns boolean indicating availability
  */
-export function isWebCryptoAvailable(): boolean {
-  return (
-    typeof window !== 'undefined' &&
-    'crypto' in window &&
-    'subtle' in window.crypto &&
-    typeof window.crypto.subtle.generateKey === 'function'
-  )
-}
+export const isWebCryptoAvailable =
+  typeof window !== 'undefined' &&
+  'crypto' in window &&
+  'subtle' in window.crypto &&
+  typeof window.crypto.subtle.generateKey === 'function'
 
 /**
  * RSA key generation parameters

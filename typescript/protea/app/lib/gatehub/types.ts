@@ -12,6 +12,8 @@ export type StorableCard = {
 interface GateHubAuthState {
   /** Application identifier for GateHub card integration */
   cardAppId: string
+  /** Application identifier for GateHub card integration */
+  appId: string
 }
 
 interface GateHubUserState {

@@ -48,7 +48,7 @@ export function useKeyGeneration(
     keys: null,
     isGenerating: false,
     error: null,
-    isSupported: isWebCryptoAvailable()
+    isSupported: isWebCryptoAvailable
   })
 
   const generateKeys = useCallback(async (): Promise<void> => {
