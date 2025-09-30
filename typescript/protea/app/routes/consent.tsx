@@ -205,11 +205,12 @@ export async function action({ request }: ActionFunctionArgs) {
     action == 'approve' ? 'accept' : 'reject'
   await consent(interactId, nonce, userDecision)
 
+  // TODO: Move to environment variables
   let publicOpenPaymentsAuthHost = 'auth.ilp.link'
   if (process.env.FYNBOS_ENV == 'dev') {
     publicOpenPaymentsAuthHost = 'auth.sandbox.ilp.link'
   } else if (process.env.FYNBOS_ENV == 'local') {
-    publicOpenPaymentsAuthHost = 'local.ilp.link'
+    publicOpenPaymentsAuthHost = 'auth.local.ilp.link'
   }
 
   return redirect(
