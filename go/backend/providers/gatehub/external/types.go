@@ -250,4 +250,23 @@ type (
 		Documents             []Document     `json:"documents,omitempty"`
 		Href                  string         `json:"href,omitempty"`
 	}
+
+	ExchangeAmount struct {
+		Amount          string `json:"amount,omitempty"`
+		SendingWallet   string `json:"sending_wallet,omitempty"`
+		ReceivingWallet string `json:"receiving_wallet,omitempty"`
+		RateID          string `json:"rate,omitempty"`
+	}
+
+	ExchangeRate struct {
+		ReceivingVault string
+		SendingVault   string
+		Amount         string
+	}
+
+	ExchangeRateResponse struct {
+		Amount   string `json:"amount"`
+		Rate     string `json:"rate"`
+		RateUUID string `json:"rate_uuid"`
+	}
 )

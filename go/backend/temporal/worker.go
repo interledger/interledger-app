@@ -118,6 +118,7 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(gatehub_workflows.CreateGatehubDeposit)
 	w.RegisterWorkflow(gatehub_workflows.ProcessGatehubWithdrawal)
 	w.RegisterWorkflow(gatehub_workflows.LinkGatehubUserToGatewayWorkflow)
+	w.RegisterWorkflow(gatehub_workflows.ExchangeGatehubToPaywiserWorkflow)
 
 	// Chimoney
 	w.RegisterActivity(chimoney_workflows.NewActivity(b))

@@ -15,4 +15,6 @@ type Client interface {
 	GetTransaction(ctx context.Context, userID, id string) (*Transaction, error)
 	GetVaultID() string
 	LinkUserToGateway(ctx context.Context, gatehubUserId string) error
+	GetExchangeRate(ctx context.Context, exchange ExchangeRate) (string, error)
+	ExecuteExchange(ctx context.Context, userID string, exchange ExchangeAmount) error
 }

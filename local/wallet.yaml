@@ -101,7 +101,8 @@ services:
       - GATEHUB_CARD_APP_ID=<fetch-me-from-vault>
       - GATEHUB_WEBHOOK_SECRET=<fetch-me-from-vault>
       - GATEHUB_GATEWAY_ID=b18965b5-8bb0-486e-88b2-7be47b974ac1
-      - GATEHUB_EURO_VAULT_ID=67df5a03-587a-491f-8edb-37a9ef13daba
+      - GATEHUB_PAYWISER_EURO_VAULT_ID=67df5a03-587a-491f-8edb-37a9ef13daba
+      - GATEHUB_GATEHUB_EURO_VAULT_ID=a09a0a2c-1a3a-44c5-a1b9-603a6eea9341
 
     depends_on:
       - migration

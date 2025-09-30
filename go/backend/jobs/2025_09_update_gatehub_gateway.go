@@ -33,7 +33,7 @@ func SetGatehubGatewayToPaywiserJob(ctx workflow.Context) error {
 		return err
 	}
 	var unprocessedGatewayWallets []string
-	err = workflow.ExecuteActivity(ctx, a.LinkUserToGateHubGatewayByExternalID, gatehubWallets).Get(ctx, &unprocessedGatewayWallets)
+	err = workflow.ExecuteActivity(ctx, a.LinkUserToGatewayByExternalID, gatehubWallets).Get(ctx, &unprocessedGatewayWallets)
 	if err != nil {
 		return err
 	}
@@ -57,17 +57,16 @@ func (a *Activity) GetGatehubUsers(ctx context.Context, walletID string) ([]Gate
 	return gatehubWallets, nil
 }
 
-func (a *Activity) LinkUserToGateHubGatewayByExternalID(ctx context.Context, wallets []GatehubWallets) ([]string, error) {
+func (a *Activity) LinkUserToGatewayByExternalID(ctx context.Context, wallets []GatehubWallets) ([]string, error) {
 	var listOfUnprocessed []string
 	for _, externalUser := range wallets {
 		if wallets == nil || externalUser.ExternalID == "" {
 			continue
 		}
-		err := a.b.Gatehub().LinkUserToGateHubGatewayByExternalID(ctx, externalUser.ExternalID)
+
+		err := a.b.Gatehub().LinkUserToGatewayByExternalID(ctx, externalUser.ExternalID)
 		if err != nil {
 			listOfUnprocessed = append(listOfUnprocessed, externalUser.WalletID)
-			log.Error("LinkUserToGateHubGatewayByExternalID failed", zap.Any("err", err), zap.String("wallet_id", externalUser.WalletID), zap.Error(err))
-
 		}
 	}
 	return listOfUnprocessed, nil
@@ -84,8 +83,6 @@ func (a *Activity) UpdateGatehubKYCStatus(ctx context.Context, wallets []Gatehub
 		err := a.b.KYC().SetKYCStatus(ctx, externalUser.WalletID, kyc.StatusPending)
 		if err != nil {
 			listOfUnprocessed = append(listOfUnprocessed, externalUser.WalletID)
-			log.Error("UpdateKYCStatus failed", zap.Any("err", err), zap.String("wallet_id", externalUser.WalletID), zap.Error(err))
-
 		}
 	}
 	return listOfUnprocessed, nil

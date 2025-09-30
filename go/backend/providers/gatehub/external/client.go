@@ -75,9 +75,9 @@ func NewClient(appID, secret string, transport *http.Client) Client {
 }
 
 func (c *client) GetVaultID() string {
-	vaultID := os.Getenv("GATEHUB_EURO_VAULT_ID")
+	vaultID := os.Getenv("GATEHUB_PAYWISER_EURO_VAULT_ID")
 	if vaultID == "" {
-		log.Error("GATEHUB_EURO_VAULT_ID is set to is not set")
+		log.Error("GATEHUB_PAYWISER_EURO_VAULT_ID is set to is not set")
 
 	}
 	return vaultID
@@ -605,6 +605,122 @@ func (c *client) GetTransaction(ctx context.Context, userID, id string) (*Transa
 	}
 
 	return &ret, nil
+}
+
+func (c *client) GetExchangeRate(ctx context.Context, exchange ExchangeRate) (string, error) {
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "GET"
+		meta.Provider = "gatehub"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "GET",
+			Provider: "gatehub",
+		})
+	}
+
+	endpoint, err := url.JoinPath(c.baseURL, "currencyconverter", "api", "best", "base")
+	if err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	u, err := url.Parse(endpoint)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	params := url.Values{}
+	params.Add("amount", exchange.Amount)
+	params.Add("sending_vault", exchange.SendingVault)
+	params.Add("receiving_vault", exchange.ReceivingVault)
+	u.RawQuery = params.Encode()
+	endpoint = u.String()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+	err = c.Sign(ctx, req, time.Now(), nil, endpoint)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	err = checkResponseStatusCode(resp)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+	defer resp.Body.Close()
+
+	var ret ExchangeRateResponse
+	err = json.Unmarshal(body, &ret)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	return ret.RateUUID, nil
+}
+
+func (c *client) ExecuteExchange(ctx context.Context, userID string, exchange ExchangeAmount) error {
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "POST"
+		meta.Provider = "gatehub"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "POST",
+			Provider: "gatehub",
+		})
+	}
+
+	endpoint, err := url.JoinPath(c.baseURL, "currencyconverter", "api", "convert", "base")
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	body, err := json.Marshal(exchange)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewBuffer(body))
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+	req.Header.Set(managedUserHeader, userID)
+	req.Header.Set("Content-Type", "application/json")
+	err = c.Sign(ctx, req, time.Now(), body, endpoint)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	err = checkResponseStatusCode(resp)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	body, err = io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+	defer resp.Body.Close()
+
+	// TODO if there is a amount difference handle the case
+
+	return nil
 }
 
 func (c *client) Sign(ctx context.Context, req *http.Request, date time.Time, payload []byte, targetURL string) error {

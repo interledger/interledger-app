@@ -22,8 +22,8 @@ type Client interface {
 	FinaliseReserve(ctx context.Context, txID string) error
 	RollbackReserve(ctx context.Context, txID string) error
 	AssignBalance(ctx context.Context, linkedAccountID, trxID string, amount currency.Amount) (*Balance, error)
-	LinkUserToGateHubGateway(ctx context.Context, walletID string) error
-	LinkUserToGateHubGatewayByExternalID(ctx context.Context, ExternalID string) error
+	LinkUserToGatewayByWalletID(ctx context.Context, walletID string) error
+	LinkUserToGatewayByExternalID(ctx context.Context, ExternalID string) error
 }
 
 type Await func(ctx context.Context, result interface{}) error

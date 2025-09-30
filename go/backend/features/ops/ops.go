@@ -203,7 +203,6 @@ func canAddInterac(lal []linkedaccounts.LinkedAccount) (bool, error) {
 }
 
 func isAccountDisabled(walletID string, walletCountry country.Country) bool {
-	log.Debug("check if wallet is disabled", zap.String("country", walletCountry.String()), zap.String("walletID", walletID))
 	if slices.Contains(env.GetAllowedWalletIds(), walletID) {
 		return false
 	}

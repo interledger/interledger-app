@@ -16,6 +16,14 @@ import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { useScript } from '~/lib/useScript'
 
+const KYCErrors: KYCErrorsType = {
+  UnableToPars: 'KYC: unable to parse message data'
+}
+
+type KYCErrorsType = {
+  UnableToPars: 'KYC: unable to parse message data'
+}
+
 export async function loader({ request }: LoaderFunctionArgs) {
   const flow = await requireFlow(request, flowType.PersonalDetails)
   const response = await grpc.getKYCProviderWidget(request, {
@@ -146,7 +154,7 @@ function GatehubPage() {
       try {
         parsedValue = JSON.parse(e.data.value)
       } catch {
-        throw new Error('KYC: unable to parse message data')
+        throw new Error(KYCErrors.UnableToPars)
       }
       
       if (e.data.type === 'OnboardingCompleted' && parsedValue?.applicantStatus === 'submitted') {

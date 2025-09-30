@@ -533,7 +533,7 @@ func GetTransaction(ctx context.Context, b Backends, ec external.Client, walletI
 	return ec.GetTransaction(ctx, externalUser, id)
 }
 
-func LinkUserToGateHubGateway(ctx context.Context, b Backends, ec external.Client, walletID string) error {
+func LinkUserToGatewayByWalletID(ctx context.Context, b Backends, ec external.Client, walletID string) error {
 	wo := client.StartWorkflowOptions{
 		ID:                    "gatehub_link_user_to_gateway_" + walletID,
 		TaskQueue:             "backend",
@@ -571,6 +571,6 @@ func LinkUserToGateHubGateway(ctx context.Context, b Backends, ec external.Clien
 	return await.Get(ctx, nil)
 }
 
-func LinkUserToGateHubGatewayByExternalID(ctx context.Context, ec external.Client, externalID string) error {
+func LinkUserToGatewayByExternalID(ctx context.Context, ec external.Client, externalID string) error {
 	return ec.LinkUserToGateway(ctx, externalID)
 }

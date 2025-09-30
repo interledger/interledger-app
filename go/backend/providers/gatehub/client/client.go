@@ -84,10 +84,10 @@ func (c Client) GetTransaction(ctx context.Context, walletID, id string) (*exter
 	return ops.GetTransaction(ctx, c.b, c.external, walletID, id)
 }
 
-func (c Client) LinkUserToGateHubGateway(ctx context.Context, walletID string) error {
-	return ops.LinkUserToGateHubGateway(ctx, c.b, c.external, walletID)
+func (c Client) LinkUserToGatewayByWalletID(ctx context.Context, walletID string) error {
+	return ops.LinkUserToGatewayByWalletID(ctx, c.b, c.external, walletID)
 }
 
-func (c Client) LinkUserToGateHubGatewayByExternalID(ctx context.Context, externalID string) error {
-	return ops.LinkUserToGateHubGatewayByExternalID(ctx, c.external, externalID)
+func (c Client) LinkUserToGatewayByExternalID(ctx context.Context, externalID string) error {
+	return ops.LinkUserToGatewayByExternalID(ctx, c.external, externalID)
 }

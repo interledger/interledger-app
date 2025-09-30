@@ -433,7 +433,55 @@ func (a *Activity) CheckGatehubWithdrawalComplete(ctx context.Context, walletID,
 }
 
 func (a *Activity) LinkGatehubUserToGateway(ctx context.Context, externalUser string) error {
-	err := a.external.LinkUserToGateway(ctx, externalUser)
+	return a.external.LinkUserToGateway(ctx, externalUser)
+}
+
+func (a *Activity) GetLinkedAccount(ctx context.Context, walletID string) (linkedaccounts.LinkedAccount, error) {
+	var linkedAccount linkedaccounts.LinkedAccount
+	la, err := a.b.LinkedAccounts().ListByWalletId(ctx, walletID)
+	if err != nil {
+		return linkedAccount, err
+	}
+
+	for _, l := range la {
+		if l.Provider == gatehub.ProviderName && l.Type == gatehub.AccTypeBalance {
+			linkedAccount = l
+			break
+		}
+	}
+
+	return linkedAccount, nil
+}
+
+func (a *Activity) GetExternalGatehubBalance(ctx context.Context, externalID, linkedAccountID, gatehubEuroVaultID string) (string, error) {
+	balances, err := a.external.GetWalletBalances(ctx, externalID, linkedAccountID)
+	if err != nil {
+		return "", err
+	}
+	for _, b := range balances {
+		if b.Vault.UUID == gatehubEuroVaultID {
+			return b.Available, nil
+		}
+	}
+	return "", nil
+}
+
+func (a *Activity) GetExchangeRate(ctx context.Context, params external.ExchangeRate) (string, error) {
+	id, err := a.external.GetExchangeRate(ctx, params)
+	if err != nil {
+		return "", err
+	}
+
+	return id, nil
+}
+
+func (a *Activity) ExchangeFunds(ctx context.Context, externalID, providerID, rateID string, amount string) error {
+	err := a.external.ExecuteExchange(ctx, externalID, external.ExchangeAmount{
+		SendingWallet:   providerID,
+		ReceivingWallet: providerID,
+		RateID:          rateID,
+		Amount:          amount,
+	})
 	if err != nil {
 		return err
 	}
