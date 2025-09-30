@@ -56,7 +56,7 @@ func (a *Activity) UpdatePersonaInquiryXagoStatus(ctx context.Context, walletIds
 	query := "UPDATE kyc_persona_inquiries SET state = 'expired' where wallet_id in ($1)"
 	var walletList []string
 
-	err := a.b.DB().SelectContext(ctx, &walletList, query, strings.Join(walletIds, ","))
+	err := a.b.DB().ExecContext(ctx, &walletList, query, strings.Join(walletIds, ","))
 	if err != nil {
 		return err
 	}
