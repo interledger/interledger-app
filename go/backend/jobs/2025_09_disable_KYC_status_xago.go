@@ -5,6 +5,8 @@ import (
 	"strings"
 	"time"
 
+	"gitlab.com/fynbos/backend/country"
+	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/log"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
@@ -62,10 +64,11 @@ func (a *Activity) UpdatePersonaInquiryXagoStatus(ctx context.Context, walletIds
 	return nil
 }
 func (a *Activity) RestartXagoKYCForWallets(ctx context.Context, walletIds []string) error {
-	query := "UPDATE wallet_kyc_status SET status = 0 where wallet_id in ($1)"
+
+	query := "UPDATE wallet_kyc_status SET status = $1 where wallet_id in ($2)"
 	var walletList []string
 
-	err := a.b.DB().SelectContext(ctx, &walletList, query, strings.Join(walletIds, ","))
+	err := a.b.DB().SelectContext(ctx, &walletList, query, kyc.StatusUnknown, strings.Join(walletIds, ","))
 	if err != nil {
 		return err
 	}
@@ -74,10 +77,10 @@ func (a *Activity) RestartXagoKYCForWallets(ctx context.Context, walletIds []str
 }
 
 func (a *Activity) FetchXagoWalletIds(ctx context.Context) ([]string, error) {
-	query := "SELECT id FROM wallets where country='ZA'"
+	query := "SELECT id FROM wallets where country=$1"
 	var walletList []string
 
-	err := a.b.DB().SelectContext(ctx, &walletList, query)
+	err := a.b.DB().SelectContext(ctx, &walletList, query, country.ZA)
 	if err != nil {
 		return nil, err
 	}
