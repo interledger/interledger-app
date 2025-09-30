@@ -143,13 +143,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
     }
   }
 
-  if (isUser) {
-    const totpAvailable = await isTotpAvailable(request)
-    if (totpAvailable && !NON_TOTP_ROUTES.includes(pathname)) {
-      console.log('💕 redirecting to 2fa flow in root.tsx')
-      return redirect('/totp/two-factor-authentication')
-    }
-  }
+  // if (isUser) {
+  //   const totpAvailable = await isTotpAvailable(request)
+  //   if (totpAvailable && !NON_TOTP_ROUTES.includes(pathname)) {
+  //     console.log('💕 redirecting to 2fa flow in root.tsx')
+  //     return redirect('/totp/two-factor-authentication')
+  //   }
+  // }
 
   return json({
     isUser,

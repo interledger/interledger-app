@@ -1,4 +1,4 @@
-import { KRATOS_URL } from './kratos.server'
+import { getUserSession, KRATOS_URL } from './kratos.server'
 
 /**
  * Routes that do not require TOTP enabled check when user is logged in
@@ -39,6 +39,18 @@ export async function isTotpAvailable(request: Request): Promise<boolean> {
     return hasTotpNodes
   } catch (error) {
     console.error('Error checking TOTP availability:', error)
+    return false
+  }
+}
+
+// create a server function that will return true if the user has a totp enabled
+export async function hasTotpOnboarded(request: Request): Promise<boolean> {
+  try {
+    const session = await getUserSession(request)
+    console.log('🐳 hasTotpOnboarded session', session)
+    return session?.authenticator_assurance_level === 'aal2'
+  } catch (error) {
+    console.error('Error checking if TOTP is enabled:', error)
     return false
   }
 }
