@@ -26,6 +26,7 @@ import { hasUserSession } from '~/lib/kratos.server'
 import { getSnackbar } from '~/lib/snackbar.server'
 import styles from '~/styles/app.css'
 import { getFeatures } from './data/wallet.server'
+import { NON_TOTP_ROUTES, isTotpAvailable } from './lib/totp.server'
 
 const metaContent = {
   title: 'Interledger Wallet',
@@ -116,11 +117,10 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({
 }) => {
   /**
    * NOTE: We always revalidate when routing to validatePathsList.
-   * To ensure the layout is in sync on client side navigation and to validate if account is disabled. 
+   * To ensure the layout is in sync on client side navigation and to validate if account is disabled.
    * This needs to be done for any route that returns a function in its layout handle.
    */
-  if (validatePathsList.includes(nextUrl.pathname))
-    return true
+  if (validatePathsList.includes(nextUrl.pathname)) return true
   // TODO: possible also revalidate if an action has been submitted so that we can show global snackbars even on error
   // Could also just return json instead throwing an error
   return defaultShouldRevalidate
@@ -139,7 +139,15 @@ export async function loader({ request }: LoaderFunctionArgs) {
     features = await getFeatures(request)
 
     if (features && !features.accountEnabled) {
-      return redirect("/unavailable")
+      return redirect('/unavailable')
+    }
+  }
+
+  if (isUser) {
+    const totpAvailable = await isTotpAvailable(request)
+    if (totpAvailable && !NON_TOTP_ROUTES.includes(pathname)) {
+      console.log('💕 redirecting to 2fa flow in root.tsx')
+      return redirect('/totp/two-factor-authentication')
     }
   }
 
