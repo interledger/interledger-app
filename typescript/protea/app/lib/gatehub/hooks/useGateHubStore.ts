@@ -1,12 +1,18 @@
 import { create } from 'zustand'
 import { GateHubState, GateHubStore, StorableCard } from '../types'
+import { GATEHUB_APP_ID, GATEHUB_CARD_APP_ID, GATEHUB_MANAGED_USER_UUID } from '../do-not-commit'
 
 // Initial state
 const initialState: GateHubState = {
+  // todo: find a way to load those dinamically
+  // ???? security issue?
   auth: {
-    cardAppId: ''
+    cardAppId: GATEHUB_CARD_APP_ID,
+    appId: GATEHUB_APP_ID,
   },
-  user: {},
+  user: {
+    managedUserUuid: GATEHUB_MANAGED_USER_UUID
+  },
   card: {},
   token: null
 }

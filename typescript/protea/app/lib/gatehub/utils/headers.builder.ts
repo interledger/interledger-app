@@ -1,5 +1,6 @@
 import { createHmac } from 'crypto'
 import { GateHubApiClientConfig, GateHubApiRequest } from '../GateHubApiClient'
+import { GATEHUB_SECRET } from '../do-not-commit'
 
 export interface GateHubAuthData {
   appId?: string
@@ -57,7 +58,8 @@ export function buildHeaders(
   }
 
   if (requires.timestamp) {
-    headers['x-gatehub-timestamp'] = new Date().toISOString()
+    const timestamp = Math.floor(Date.now() / 1000)
+    headers['x-gatehub-timestamp'] = timestamp.toString()
   }
 
   if (requires.signature) {
@@ -85,7 +87,7 @@ export function getSignature(
   }
 
   const toSign = args.join('|')
-  return createHmac('sha256', 'SECRET_KEY')
+  return createHmac('sha256', GATEHUB_SECRET)
     .update(toSign)
     .digest('hex')
 }
