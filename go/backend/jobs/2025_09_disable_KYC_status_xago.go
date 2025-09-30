@@ -68,7 +68,7 @@ func (a *Activity) RestartXagoKYCForWallets(ctx context.Context, walletIds []str
 	query := "UPDATE wallet_kyc_status SET status = $1 where wallet_id in ($2)"
 	var walletList []string
 
-	err := a.b.DB().SelectContext(ctx, &walletList, query, kyc.StatusUnknown, strings.Join(walletIds, ","))
+	err := a.b.DB().ExecContext(ctx, &walletList, query, kyc.StatusUnknown, strings.Join(walletIds, ","))
 	if err != nil {
 		return err
 	}
