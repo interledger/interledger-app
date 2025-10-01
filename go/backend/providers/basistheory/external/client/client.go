@@ -23,7 +23,7 @@ func New(apiKey string) *Client {
 	if env.IsLocal() {
 		configuration.Servers = basistheory.ServerConfigurations{
 			{
-				URL:         "http://localhost:9080/basistheory",
+				URL:         "http://mockbos:8080/basistheory",
 				Description: "No description provided",
 			},
 		}

@@ -57,8 +57,8 @@ func New(transport *http.Client, dbc *sqlx.DB) Client {
 		identityBaseURL = "https://identity-api.xago.io/v1"
 	}
 	if env.IsLocal() {
-		baseURL = "http://localhost:9080/xago/v1"
-		identityBaseURL = "http://localhost:9080/xago/v1"
+		baseURL = "http://mockbos:8080/xago/v1"
+		identityBaseURL = "http://mockbos:8080/xago/v1"
 	}
 	if transport == nil {
 		transport = otelhttp.DefaultClient

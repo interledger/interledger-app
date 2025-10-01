@@ -185,7 +185,7 @@ export function HeroContentRecordComponent({
       key={content.id}
       className='flex w-full flex-col lg:-my-20 lg:flex-row lg:gap-x-12'
     >
-      <AnimatePresence mode='wait'>
+      {/* <AnimatePresence mode='wait'>
         <motion.img
           alt='Hero image'
           key={content.imageMobile?.url + 'imageMobile'}
@@ -208,7 +208,7 @@ export function HeroContentRecordComponent({
           exit={{ opacity: 0 }}
           className='-mt-20 hidden dark:block lg:hidden'
         />
-      </AnimatePresence>
+      </AnimatePresence> */}
       <div className='flex w-full flex-col justify-center space-y-8 px-4 text-center lg:px-0 lg:text-start'>
         <h1 className='mt-10 font-display text-5xl font-medium lg:mt-0 lg:text-6xl'>
           {content.title}
@@ -218,7 +218,7 @@ export function HeroContentRecordComponent({
           <ContentRouter shrink to={content.button[0]} />
         )}
       </div>
-      <AnimatePresence mode='wait'>
+      {/* <AnimatePresence mode='wait'>
         <motion.img
           alt='Hero image'
           key={content.image?.url + 'image'}
@@ -241,7 +241,7 @@ export function HeroContentRecordComponent({
           exit={{ opacity: 0 }}
           className='-mr-[10.5rem] hidden lg:dark:block'
         />
-      </AnimatePresence>
+      </AnimatePresence> */}
     </div>
   )
 }

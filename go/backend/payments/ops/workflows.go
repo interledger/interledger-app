@@ -469,7 +469,7 @@ func ptiPayIn(ctx workflow.Context, a *Activity, ptiA *pti_ops.Activity, payment
 		return txID, true, nil
 
 		// Webmonetization is assumed to be Interledger to Interledger
-	} else if pt == payments.TypePeer2Peer || pt == payments.TypeWebMonetization {
+	} else if pt == payments.TypePeer2Peer || pt == payments.TypeWebMonetization || pt == payments.TypeRafikiPeer2Peer {
 		var txID string
 		err = workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
 			return uuid.NewString()

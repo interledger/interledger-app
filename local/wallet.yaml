@@ -91,7 +91,7 @@ services:
       - AUTHORISATION_PORT=8082
       
       - RAFIKI_BACKEND_GRAPHQL_URL=http://rafiki_backend:3001/graphql
-      - RAFIKI_AUTH_GRAPHQL_URL=http://rafiki_auth:3006/graphql # check 3003 if it fails
+      - RAFIKI_AUTH_GRAPHQL_URL=http://rafiki_auth:3003/graphql
 
       - ALLOWED_WALLET_IDS=
       - BLOCKED_REGIONS=
