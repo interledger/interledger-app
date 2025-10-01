@@ -75,7 +75,9 @@ jobs:
         run: |
           cd ${{ matrix.package.context }}
           pwd
-          echo "${{ secrets.GCP_CDN_UPLOADER_KEY_JSON }}" > ./gsa-key.json
+          echo ${{ secrets.GCP_CDN_UPLOADER_KEY_JSON_B64 }} > ./gsa-key.json.b64
+          sha256sum ./gsa-key.json.b64
+          base64 --decode ./gsa-key.json.b64 > ./gsa-key.json
           sha256sum ./gsa-key.json
       - name: Build Go Docker image
         if: matrix.package.type == 'go'
