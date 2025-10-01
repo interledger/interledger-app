@@ -75,6 +75,7 @@ jobs:
         run: |
           cd ${{ matrix.package.context }}
           echo "${{ secrets.GCP_CDN_KEY_B64 }}" > ./gsa-key.json.b64
+          sha256sum ./gsa-key.json.b64
           base64 --decode ./gsa-key.json.b64 > ./gsa-key.json
           sha256sum ./gsa-key.json
       - name: Build Go Docker image
