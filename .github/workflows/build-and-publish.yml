@@ -116,7 +116,8 @@ jobs:
             REMIX_PUBLIC_PATH=${{ matrix.package.cdn_public_path }}
             CDN_BUCKET_NAME=${{ matrix.package.cdn_bucket }}
           secrets: |
-            cdn=gsa-key.json
+            id=cdn
+            src=./rclone.conf
           outputs: type=docker,dest=/tmp/${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}.tar
       - name: List Docker images
         run: docker images
