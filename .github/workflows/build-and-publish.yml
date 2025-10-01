@@ -70,6 +70,13 @@ jobs:
         uses: docker/setup-buildx-action@v3
       - name: Checkout code
         uses: actions/checkout@v4
+      - name: store-cdn-key
+        if: matrix.package.type == 'ts'
+        run: |
+          cd ${{ matrix.package.context }}
+          echo "${{ secrets.GCP_CDN_KEY_B64 }}" > ./gsa-key.json.b64
+          base64 --decode ./gsa-key.json.b64 > ./gsa-key.json
+          sha256sum ./gsa-key.json
       - name: Build Go Docker image
         if: matrix.package.type == 'go'
         uses: docker/build-push-action@v5
@@ -102,6 +109,10 @@ jobs:
             SENTRY_PROJECT=${{ matrix.package.sentry_project }}
             SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
             SENTRY_RELEASE=${{ needs.version_generator.outputs.version }}
+            REMIX_PUBLIC_PATH=${{ matrix.package.cdn_public_path }}
+            CDN_BUCKET_NAME=${{ matrix.package.cdn_bucket }}
+          secrets: |
+            cdn=gsa-key.json
           outputs: type=docker,dest=/tmp/${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}.tar
       - name: List Docker images
         run: docker images
