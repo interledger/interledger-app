@@ -269,4 +269,11 @@ type (
 		Rate     string `json:"rate"`
 		RateUUID string `json:"rate_uuid"`
 	}
+
+	ExchangeResponse struct {
+		ChainUUID        string `json:"chainUUID,omitempty"`
+		BaseAmount       string `json:"baseAmount,omitempty"`
+		CounterAmount    string `json:"counterAmount,omitempty"`
+		ConversionAmount string `json:"conversionAmount,omitempty"`
+	}
 )

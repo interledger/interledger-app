@@ -670,7 +670,7 @@ func (c *client) GetExchangeRate(ctx context.Context, exchange ExchangeRate) (st
 	return ret.RateUUID, nil
 }
 
-func (c *client) ExecuteExchange(ctx context.Context, userID string, exchange ExchangeAmount) error {
+func (c *client) ExecuteExchange(ctx context.Context, userID string, exchange ExchangeAmount) (*ExchangeResponse, error) {
 	meta, ok := httplog.MetaForContext(ctx)
 	if ok {
 		meta.Method = "POST"
@@ -684,43 +684,46 @@ func (c *client) ExecuteExchange(ctx context.Context, userID string, exchange Ex
 
 	endpoint, err := url.JoinPath(c.baseURL, "currencyconverter", "api", "convert", "base")
 	if err != nil {
-		return fmt.Errorf("%w %s", ErrInternal, err)
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
 	body, err := json.Marshal(exchange)
 	if err != nil {
-		return fmt.Errorf("%w %s", ErrInternal, err)
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewBuffer(body))
 	if err != nil {
-		return fmt.Errorf("%w %s", ErrInternal, err)
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 	req.Header.Set(managedUserHeader, userID)
 	req.Header.Set("Content-Type", "application/json")
 	err = c.Sign(ctx, req, time.Now(), body, endpoint)
 	if err != nil {
-		return fmt.Errorf("%w %s", ErrInternal, err)
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
 	resp, err := c.api.Do(req)
 	if err != nil {
-		return fmt.Errorf("%w %s", ErrInternal, err)
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
 	err = checkResponseStatusCode(resp)
 	if err != nil {
-		return fmt.Errorf("%w %s", ErrInternal, err)
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
 	body, err = io.ReadAll(resp.Body)
 	if err != nil {
-		return fmt.Errorf("%w %s", ErrInternal, err)
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 	defer resp.Body.Close()
+	var res *ExchangeResponse
+	err = json.Unmarshal(body, &res)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
 
-	// TODO if there is a amount difference handle the case
-
-	return nil
+	return res, nil
 }
 
 func (c *client) Sign(ctx context.Context, req *http.Request, date time.Time, payload []byte, targetURL string) error {

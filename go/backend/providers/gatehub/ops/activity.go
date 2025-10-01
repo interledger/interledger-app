@@ -476,7 +476,11 @@ func (a *Activity) GetExchangeRate(ctx context.Context, params external.Exchange
 }
 
 func (a *Activity) ExchangeFunds(ctx context.Context, externalID, providerID, rateID string, amount string) error {
-	err := a.external.ExecuteExchange(ctx, externalID, external.ExchangeAmount{
+	if externalID == "" || providerID == "" || rateID == "" || amount == "" {
+		return fmt.Errorf("invalid input: externalID, providerID, rateID, and amount must not be empty")
+	}
+
+	exchange, err := a.external.ExecuteExchange(ctx, externalID, external.ExchangeAmount{
 		SendingWallet:   providerID,
 		ReceivingWallet: providerID,
 		RateID:          rateID,
@@ -485,6 +489,6 @@ func (a *Activity) ExchangeFunds(ctx context.Context, externalID, providerID, ra
 	if err != nil {
 		return err
 	}
-
+	slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "wallet-info-bot", fmt.Sprintf("Gatehub Exchange Completed /External ID/%s/Conversion/%s - %s", externalID, exchange.BaseAmount, exchange.CounterAmount))
 	return nil
 }

@@ -16,5 +16,5 @@ type Client interface {
 	GetVaultID() string
 	LinkUserToGateway(ctx context.Context, gatehubUserId string) error
 	GetExchangeRate(ctx context.Context, exchange ExchangeRate) (string, error)
-	ExecuteExchange(ctx context.Context, userID string, exchange ExchangeAmount) error
+	ExecuteExchange(ctx context.Context, userID string, exchange ExchangeAmount) (*ExchangeResponse, error)
 }

@@ -228,12 +228,11 @@ func ExchangeGatehubToPaywiserWorkflow(ctx workflow.Context, walletID string) (s
 	if err != nil {
 		return "", err
 	}
-	err = workflow.ExecuteActivity(ctx, a.ExchangeFunds, externalUserID, la.ProviderID, rateID, stringBalance).Get(ctx, &la)
+	err = workflow.ExecuteActivity(ctx, a.ExchangeFunds, externalUserID, la.ProviderID, rateID, stringBalance).Get(ctx, nil)
 	if err != nil {
 		return "", err
 	}
-
-	return "Exchange", nil
+	return "Exchange done", nil
 }
 
 func handleFailedWithdrawal(ctx workflow.Context, a *Activity, walletID, transactionID string) {
