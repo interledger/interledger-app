@@ -70,17 +70,6 @@ jobs:
         uses: docker/setup-buildx-action@v3
       - name: Checkout code
         uses: actions/checkout@v4
-      - name: store-cdn-key
-        if: matrix.package.type == 'ts'
-        run: |
-          cd ${{ matrix.package.context }}
-          pwd
-          echo "${{ secrets.GCP_CDN_UPLOADER_KEY_JSON_B64 }}" > ./gsa-key.json.b64
-          wc --bytes ./gsa-key.json.b64
-          sha256sum ./gsa-key.json.b64
-          base64 --decode ./gsa-key.json.b64 > ./gsa-key.json
-          wc --bytes ./gsa-key.json
-          sha256sum ./gsa-key.json
       - name: Build Go Docker image
         if: matrix.package.type == 'go'
         uses: docker/build-push-action@v5
@@ -95,6 +84,15 @@ jobs:
             BUILDARCH=${{ matrix.platform.arch }}
             BUILDOS=${{ matrix.platform.os }}
           outputs: type=docker,dest=/tmp/${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}.tar
+      - name: store-cdn-key
+        if: matrix.package.type == 'ts'
+        run: |
+          cd ${{ matrix.package.context }}
+          echo "${{ secrets.GCP_CDN_UPLOADER_KEY_JSON_B64 }}" > ./gsa-key.json.b64
+          base64 --decode ./gsa-key.json.b64 > ./gsa-key.json
+          sha256sum ./gsa-key.json
+          pwd
+          ls
       - name: Build TypeScript Docker image
         if: matrix.package.type == 'ts'
         uses: docker/build-push-action@v5
@@ -115,8 +113,6 @@ jobs:
             SENTRY_RELEASE=${{ needs.version_generator.outputs.version }}
             REMIX_PUBLIC_PATH=${{ matrix.package.cdn_public_path }}
             CDN_BUCKET_NAME=${{ matrix.package.cdn_bucket }}
-          secrets: |
-            id=cdn,src=./rclone.conf
           outputs: type=docker,dest=/tmp/${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}.tar
       - name: List Docker images
         run: docker images
