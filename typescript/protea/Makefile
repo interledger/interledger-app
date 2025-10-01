@@ -19,5 +19,5 @@ build:
 # the correct permissions to upload to the specified bucket.
 build-and-upload:
 	@echo "Building image and uploading to CDN if REMIX_PUBLIC_PATH is set"
-	DOCKER_BUILDKIT=1 docker build -t "protea" -f ./Dockerfile --build-arg REMIX_PUBLIC_PATH=https://cdn.interledger.app/protea --build-arg CDN_BUCKET_NAME=common-interledger-cdn-assets --secret id=cdn,src=./rclone.conf  .
+	DOCKER_BUILDKIT=1 docker build -t "protea" -f ./Dockerfile --build-arg REMIX_PUBLIC_PATH=https://cdn.interledger.app/protea --build-arg CDN_BUCKET_NAME=common-interledger-cdn-assets .
 	@echo "Image built and assets uploaded"
