@@ -368,7 +368,6 @@ func (s *rpcService) SetKYCStatusPending(ctx context.Context, req *pb.Empty) (*p
 		err := s.b.Gatehub().LinkUserToGatewayByWalletID(ctx, wallet.ID)
 		if err != nil {
 			return nil, toGRPCError(err)
-
 		}
 	}
 
