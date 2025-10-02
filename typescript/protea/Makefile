@@ -1,7 +1,4 @@
 
-IMAGE_REPO := 823058932981.dkr.ecr.eu-west-1.amazonaws.com/protea
-IMAGE_HASH := latest
-
 test:
 	@echo "No tests to run"
 
@@ -12,14 +9,15 @@ lint:
 	@echo "No Linting"
 
 build:
-	@echo "Building image"
-	DOCKER_BUILDKIT=1 docker build -t "$(IMAGE_REPO):$(IMAGE_HASH)" -f ./Dockerfile .
+	@echo "Building image without uploading to CDN"
+	# Timstamp in UTC format YYYYMMDD-HHMMSS
+	DOCKER_BUILDKIT=1 docker build -t "protea" -f ./Dockerfile .
 	@echo "Image built"
 
-push:
-	@echo "Pushing image"
-	docker push "$(IMAGE_REPO):$(IMAGE_HASH)"
-	@echo "Image pushed"
-
-devdeploy:
-	(cd ../../dev/vagrant && vagrant ssh -c 'nomad job run /home/vagrant/fynbos/dev/nomad/protea.hcl')
+# Use this to build the image locally and upload the public assets to the CDN
+# Make sure you have the `gsa-key.conf` file in the current directory with
+# the correct permissions to upload to the specified bucket.
+build-and-upload:
+	@echo "Building image and uploading to CDN if REMIX_PUBLIC_PATH is set"
+	DOCKER_BUILDKIT=1 docker build -t "protea" -f ./Dockerfile --build-arg REMIX_PUBLIC_PATH=https://cdn.interledger.app/protea --build-arg CDN_BUCKET_NAME=common-interledger-cdn-assets .
+	@echo "Image built and assets uploaded"
