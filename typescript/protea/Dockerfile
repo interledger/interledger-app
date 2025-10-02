@@ -1,7 +1,7 @@
 ARG NODE_IMAGE_PREFIX=""
 
 # Install dependencies only when needed
-FROM ${NODE_IMAGE_PREFIX}node:24-alpine AS deps
+FROM ${NODE_IMAGE_PREFIX}node:18.20 AS deps
 RUN apk add --no-cache python3 make g++ curl py3-setuptools
 RUN corepack enable && corepack prepare pnpm@8.5.0 --activate
 WORKDIR /app
@@ -10,7 +10,7 @@ COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 
 # Rebuild the source code only when needed
-FROM ${NODE_IMAGE_PREFIX}node:24-alpine AS dev 
+FROM ${NODE_IMAGE_PREFIX}node:18.20 AS dev 
 WORKDIR /app
 COPY . .
 COPY --from=deps /app/node_modules ./node_modules
@@ -18,7 +18,7 @@ RUN corepack enable && corepack prepare pnpm@8.5.0 --activate
 CMD ["pnpm", "dev"]
 
 # Rebuild the source code only when needed
-FROM ${NODE_IMAGE_PREFIX}node:24-alpine AS builder
+FROM ${NODE_IMAGE_PREFIX}node:18.20 AS builder
 
 ARG IMAGE_HASH
 ARG BUILDARCH
@@ -53,7 +53,7 @@ RUN if [ -n "${REMIX_PUBLIC_PATH}" ]; then \
     fi
 
 # Production image, copy all the files and run remix
-FROM ${NODE_IMAGE_PREFIX}node:24-alpine AS runner
+FROM ${NODE_IMAGE_PREFIX}node:18.20 AS runner
 
 ARG SENTRY_RELEASE
 ENV SENTRY_RELEASE=${SENTRY_RELEASE}
