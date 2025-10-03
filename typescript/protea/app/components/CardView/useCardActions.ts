@@ -3,9 +3,12 @@ import {
   CardLockLevel,
   CardStatus
 } from '~/generated/connect/backend/v1/backend_pb'
-import { ActionStatus, useActionExecute } from './useActionExecute'
+import { decryptWithPrivateKey } from '~/lib/crypto'
+import { GATEHUB_API_ENDPOINTS } from '~/lib/gatehub/config/endpoints'
+import { useCardProcessorApi } from '~/lib/gatehub/hooks/useCardProcessorApiClient'
+import { CardProcessorSensitiveDataResponse } from '~/lib/gatehub/types'
 import { useKeyGeneration } from '~/lib/useKeyGeneration'
-import { useGateHubApi } from '~/lib/gatehub/hooks/useGateHubApiClient'
+import { ActionStatus, useActionExecute } from './useActionExecute'
 
 interface Card {
   id: string
@@ -16,17 +19,11 @@ interface Card {
   lockLevel: number
 }
 
-interface SensitiveData {
-  cardNumber: string
-  expiryDate: string
-  cvv: string | null
-}
-
 interface UseCardActionsReturn {
   showSensitiveData: boolean
   isFrozen: boolean
   isBlocked: boolean
-  sensitiveData: SensitiveData
+  sensitiveData: CardProcessorSensitiveDataResponse
   actionStatus: ActionStatus
   toggleSensitiveDataOff: (onSuccess?: () => void) => void
   toggleSensitiveDataOn: (onSuccess?: () => void) => void
@@ -34,11 +31,11 @@ interface UseCardActionsReturn {
   toggleUnfreeze: (onSuccess?: () => void) => void
 }
 
-const getDefaultSensitiveData = (card: Card): SensitiveData => {
+const getDefaultSensitiveData = (card: Card): CardProcessorSensitiveDataResponse => {
   return {
-    cardNumber: card.maskedPan,
-    expiryDate: card.expiryDate,
-    cvv: null
+    Pan: card.maskedPan,
+    ExpiryDate: card.expiryDate,
+    Cvc2: '***'
   }
 }
 
@@ -62,7 +59,7 @@ export const useCardActions = (card: Card): UseCardActionsReturn => {
     getDefaultSensitiveData(card)
   )
   const { keyPair } = useKeyGeneration()
-  const { gatehubClient} = useGateHubApi()
+  const { gatehubClient } = useCardProcessorApi()
 
   // Reset when switching cards
   useEffect(() => {
@@ -123,12 +120,40 @@ export const useCardActions = (card: Card): UseCardActionsReturn => {
         console.log(keyPair)
 
         // 2 Request JWT token
-        const jwtToken = await gatehubClient.tokens.getCardDataToken(keyPair?.publicKey)
+        const jwtTokenResponse = await gatehubClient.tokens.getCardDataToken(
+          keyPair?.publicKey
+        )
+        const jwtToken = jwtTokenResponse.data.token
+        const hrefs = jwtTokenResponse.data.links[0].href
+        const method = jwtTokenResponse.data.links[0].method
         console.log('🔑 JWT token', jwtToken)
+        console.log('🔑 Method', method)
+        console.log('🔑 Href', hrefs)
 
         // 3 Request card data with JWT token
-        // 4 Decrypt card data using public key
+        const encryptedCardData = await gatehubClient.cards.getSensitiveData({
+          jwtToken,
+          cardProcessorUrl: GATEHUB_API_ENDPOINTS.cards.sensitiveData(),
+          // cardProcessorUrl: hrefs,
+          httpMethod: method
+        })
+        console.log('🔑 Encrypted card data', encryptedCardData)
 
+        // 4 Decrypt card data using public key
+        console.log(
+          '🔑 Decrypting card data using private key',
+          keyPair?.privateKey
+        )
+        const decryptedCardData =
+          await decryptWithPrivateKey<CardProcessorSensitiveDataResponse>(
+            keyPair!.privateKey,
+            encryptedCardData.data.cypher
+          )
+        console.log('🔑 Decrypted card data', decryptedCardData)
+
+        setSensitiveData(decryptedCardData)
+
+        onSuccess?.()
         setShowSensitiveData(true)
       },
       onSuccess: () => {

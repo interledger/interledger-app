@@ -72,9 +72,11 @@ function convertCardToStorableCard(card: CardProto): StorableCard {
     id: card.id,
     nameOnCard: card.nameOnCard,
     maskedPan: card.maskedPan,
+    unmaskedPan: null,
     expiryDate: card.expiryDate,
     status: card.status,
-    lockLevel: card.lockLevel ?? 0
+    lockLevel: card.lockLevel ?? 0,
+    cvc2: null
   }
 }
 

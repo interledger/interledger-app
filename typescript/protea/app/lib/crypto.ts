@@ -1,7 +1,5 @@
-/**
- * Crypto utility functions for RSA key generation and management
- * Based on testnet implementation with improvements
- */
+import NodeRSA from 'node-rsa'
+// import * as crypto from 'crypto'
 
 /**
  * Convert ArrayBuffer to string
@@ -73,4 +71,47 @@ export async function exportPublicKeyToBase64(
 ): Promise<string> {
   const exported = await crypto.subtle.exportKey('spki', publicKey)
   return btoa(ab2str(exported))
+}
+
+/**
+ * Decrypt data using private key with RSA/ECB/PKCS1Padding
+ * Note: Web Crypto API doesn't support PKCS1 padding directly, so we use NodeRSA library
+ * @param privateKeyString PEM formatted private key
+ * @param encryptedData Base64 encoded encrypted data
+ * @returns Promise<T> Decrypted data
+ */
+export async function decryptWithPrivateKey<T>(
+  privateKeyString: string,
+  encryptedData: string
+): Promise<T> {
+  console.log('🔐 Starting decryption with dynamic import...')
+
+  try {
+    console.log('🔑 Creating NodeRSA instance...')
+    const privateKey = new NodeRSA(privateKeyString)
+
+    console.log('🔑 Setting PKCS1 encryption scheme...')
+    privateKey.setOptions({
+      encryptionScheme: 'pkcs1',
+      environment: 'browser'
+    })
+
+    console.log('🔓 Attempting decryption with PKCS1...')
+    const decryptedRequestData = privateKey
+      .decrypt(encryptedData)
+      .toString('utf8')
+
+    console.log('✅ Decryption successful!')
+    const cardData = JSON.parse(decryptedRequestData)
+    console.log('🔑 Decrypted card data', cardData)
+    return cardData as T
+  } catch (error: any) {
+    console.error('❌ Decryption failed:', error)
+    console.error('❌ Error details:', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack
+    })
+    throw error
+  }
 }

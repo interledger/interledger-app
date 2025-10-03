@@ -78,10 +78,11 @@ export const CardView = ({ card }: CardViewProps) => {
             className='absolute inset-0 h-full w-full'
             style={{ backfaceVisibility: 'hidden' }}
           >
-            <CardViewFront
+            <CardViewFront 
+            // todo: remove card number and expiry
               nameOnCard={card.nameOnCard}
-              cardNumber={sensitiveData.cardNumber}
-              expiryDate={sensitiveData.expiryDate.slice(0, 2) + '/' + sensitiveData.expiryDate.slice(2)}
+              cardNumber={sensitiveData.Pan}
+              expiryDate={sensitiveData.ExpiryDate.slice(0, 2) + '/' + sensitiveData.ExpiryDate.slice(2)}
             />
           </div>
 
@@ -94,9 +95,9 @@ export const CardView = ({ card }: CardViewProps) => {
             }}
           >
             <CardViewBack
-              fullCardNumber={sensitiveData.cardNumber}
-              expiryDate={sensitiveData.expiryDate.slice(0, 2) + '/' + sensitiveData.expiryDate.slice(2)}
-              cvv={sensitiveData.cvv}
+              fullCardNumber={sensitiveData.Pan.replace(/\s+/g, '').replace(/(.{4})(?=.{4})/g, '$1 ')}
+              expiryDate={sensitiveData.ExpiryDate.slice(0, 2) + '/' + sensitiveData.ExpiryDate.slice(2)}
+              cvv={sensitiveData.Cvc2}
             />
           </div>
         </div>

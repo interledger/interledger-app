@@ -41,7 +41,7 @@ export default function PageCardID() {
   }
 
   const card = useMemo(
-    () => cards?.find((c) => c.id === cardId),
+    () => cards?.[cardId],
     [cards, cardId]
   )
 

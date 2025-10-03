@@ -1,5 +1,8 @@
 import { createHmac } from 'crypto'
-import { GateHubApiClientConfig, GateHubApiRequest } from '../GateHubApiClient'
+import {
+  CardProcessorApiClientConfig,
+  CardProcessorApiRequest
+} from '../CardProcessorApiClient'
 import { GATEHUB_SECRET } from '../do-not-commit'
 
 export interface GateHubAuthData {
@@ -10,16 +13,17 @@ export interface GateHubAuthData {
 }
 
 export function buildHeaders(
-  request: GateHubApiRequest,
-  config: GateHubApiClientConfig,
+  request: CardProcessorApiRequest,
+  config: CardProcessorApiClientConfig,
   url: string
 ): Record<string, string> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json'
   }
 
+  console.log('request', request)
+
   const { requires, customHeaders } = request
-  console.log('requires', requires)
 
   if (customHeaders) {
     Object.assign(headers, customHeaders)
@@ -51,14 +55,12 @@ export function buildHeaders(
   }
 
   if (requires.sessionToken) {
-    if (!config.sessionToken) {
-      throw new Error('Session token is required.')
-    }
-    headers['Authorization'] = `Bearer ${config.sessionToken}`
+    console.log('sessionToken', requires.sessionToken)
+    headers['Authorization'] = `Bearer ${requires.sessionToken}`
   }
 
   if (requires.timestamp) {
-    const timestamp = Math.floor(Date.now() / 1000)
+    const timestamp = Date.now()
     headers['x-gatehub-timestamp'] = timestamp.toString()
   }
 
@@ -83,11 +85,17 @@ export function getSignature(
 ) {
   const args = [timestamp, method, url]
   if (body) {
-    args.push(body)
+    args.push(JSON.stringify(body))
   }
 
+  console.log('timestamp', timestamp)
+  console.log('method', method)
+  console.log('url', url)
+  console.log('body', body)
+  console.log('args', args)
+
   const toSign = args.join('|')
-  return createHmac('sha256', GATEHUB_SECRET)
-    .update(toSign)
-    .digest('hex')
+  console.log('toSign', toSign)
+  console.log('secret', GATEHUB_SECRET)
+  return createHmac('sha256', GATEHUB_SECRET).update(toSign).digest('hex')
 }

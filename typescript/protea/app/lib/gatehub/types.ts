@@ -3,58 +3,52 @@ export type StorableCard = {
   id: string
   nameOnCard: string
   maskedPan: string
+  unmaskedPan: string | null
   expiryDate: string
   status: number
   lockLevel: number
+  cvc2: string | null
 }
 
-/* Store state types */
-interface GateHubAuthState {
-  /** Application identifier for GateHub card integration */
-  cardAppId: string
-  /** Application identifier for GateHub card integration */
-  appId: string
-}
-
-interface GateHubUserState {
-  /** Unique identifier for the customer in Dinit system */
-  customerId?: string
-  /** User identifier for accessing user-specific data */
-  userUuid?: string
-  /** Managed user UUID for GateHub operations */
-  managedUserUuid?: string
-}
-
-type GateHubCardState = {
-  /** Currently active card identifier */
-  activeCardId?: string
-  /** List of user's cards for quick access */
-  cards?: StorableCard[]
+/* Unmasked card data response from the card processor */
+export type CardProcessorSensitiveDataResponse = {
+  /** Unmasked PAN, ex: 1234111122223333 */
+  Pan: string
+  /** Expiry date, ex: 12/2025 */
+  ExpiryDate: string
+  /** CVC2, ex: 123 */
+  Cvc2: string
 }
 
 export type GateHubState = {
-  auth: GateHubAuthState
-  user: GateHubUserState
-  card: GateHubCardState
-  token: string | null
+  auth: {
+    /** Application identifier for GateHub card integration */
+    cardAppId: string
+    /** Application identifier for GateHub card integration */
+    appId: string
+  }
+  user: {
+    /** Unique identifier for the customer in Dinit system */
+    customerId?: string
+    /** User identifier for accessing user-specific data */
+    userUuid?: string
+    /** Managed user UUID for GateHub operations */
+    managedUserUuid?: string
+  }
+  card: {
+    /** Currently active card identifier */
+    activeCardId?: string
+    /** List of user's cards for quick access */
+    cards?: Record<string, StorableCard>
+  }
 }
 
 type GateHubActions = {
   // Card actions
   card: {
     setActiveCardId: (cardId: string) => void
-    addCard: (card: StorableCard) => void
-    removeCard: (cardId: string) => void
     setCards: (cards: StorableCard[]) => void
   }
-
-  // Token actions
-  token: {
-    setToken: (token: string) => void
-  }
-
-  // Reset actions
-  reset: () => void
 }
 
 export type GateHubStore = GateHubState & {
