@@ -75,6 +75,7 @@ func (a *Activity) SaveSubAccount(ctx context.Context, walletID, accountID strin
 	if err != nil && !db.IsErrorCode(err, db.UniqueViolationError) {
 		return err
 	}
+	return nil
 }
 
 func UpdateInquiryLinkWorkflow(ctx workflow.Context, args xago.InquiryLinkUpdate) error {
