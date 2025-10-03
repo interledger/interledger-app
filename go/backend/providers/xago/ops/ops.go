@@ -27,7 +27,6 @@ func LookupSubAccount(ctx context.Context, b Backends, walletID string) (*xago.S
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", xago.ErrInternal, err)
 	}
-	entry.Details, err = getDepositDetails(ctx, b, entry.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -44,22 +43,11 @@ func LookupByAccountID(ctx context.Context, b Backends, accountID string) (*xago
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", xago.ErrInternal, err)
 	}
-	entry.Details, err = getDepositDetails(ctx, b, accountID)
 	if err != nil {
 		return nil, err
 	}
 
 	return &entry, nil
-}
-
-func getDepositDetails(ctx context.Context, b Backends, accountID string) ([]xago.DepositDetails, error) {
-	var entries []xago.DepositDetails
-	err := b.DB().SelectContext(ctx, &entries, "SELECT id, wallet_id, sub_account_id, currency, bank_name, account_name, account_number, branch_code FROM xago_deposit_details WHERE sub_account_id=$1", accountID)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", xago.ErrInternal, err)
-	}
-
-	return entries, nil
 }
 
 func CreateBeneficiary(ctx context.Context, b Backends, bankAcc xago.CreateBankAccountArgs) (xago.Await, error) {

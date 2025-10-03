@@ -9,9 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/google/uuid"
-	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
@@ -72,25 +70,11 @@ func (a *Activity) SaveSubAccount(ctx context.Context, walletID, accountID strin
 	if depositRef == "" {
 		return fmt.Errorf("%w no deposit reference provided for xago sub account", xago.ErrInternal)
 	}
-
-	return crdbsqlx.ExecuteTx(ctx, a.b.DB(), nil, func(tx *sqlx.Tx) error {
-		_, err := tx.ExecContext(ctx, "INSERT INTO xago_sub_accounts (id, wallet_id, account_id, deposit_address, deposit_tag, deposit_reference) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT DO NOTHING ",
-			accountID, walletID, sa.AccountID, sa.DepositAddress, strconv.Itoa(sa.DepositTag), depositRef)
-		if err != nil && !db.IsErrorCode(err, db.UniqueViolationError) {
-			return err
-		}
-
-		for cc, bdl := range sa.DepositDetails {
-			for _, dd := range bdl {
-				_, err = tx.ExecContext(ctx, "INSERT INTO xago_deposit_details (wallet_id, sub_account_id, currency, bank_name, account_name, account_number, branch_code) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT DO NOTHING",
-					walletID, accountID, cc, dd.BankName, dd.AccountName, dd.AccountNumber, dd.BranchCode)
-				if err != nil && !db.IsErrorCode(err, db.UniqueViolationError) {
-					return err
-				}
-			}
-		}
+	_, err := a.b.DB().ExecContext(ctx, "INSERT INTO xago_sub_accounts (id, wallet_id, account_id, deposit_address, deposit_tag, deposit_reference) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT DO NOTHING ",
+		accountID, walletID, sa.AccountID, sa.DepositAddress, strconv.Itoa(sa.DepositTag), depositRef)
+	if err != nil && !db.IsErrorCode(err, db.UniqueViolationError) {
 		return err
-	})
+	}
 }
 
 func UpdateInquiryLinkWorkflow(ctx workflow.Context, args xago.InquiryLinkUpdate) error {
