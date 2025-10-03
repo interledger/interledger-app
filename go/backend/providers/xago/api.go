@@ -22,4 +22,5 @@ type Client interface {
 	AssignBalance(ctx context.Context, linkedAccountID, txID string, amt currency.Amount) (*Balance, error)
 	TestDeposit(ctx context.Context, sa SubAccount) error
 	UpdateInquiryLink(ctx context.Context, accountID string, walletID string) error
+	GetBankAccount(ctx context.Context) (*DepositDetails, error)
 }

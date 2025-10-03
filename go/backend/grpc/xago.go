@@ -224,18 +224,17 @@ func (s *rpcService) GetXagoDepositDetails(ctx context.Context, req *pb.GetXagoD
 	}
 
 	var resp []*pb.XagoDepositDetails
-	for _, dd := range sa.Details {
-		if la.ReceiveCurrency != dd.CurrencyCode {
-			continue
-		}
-		resp = append(resp, &pb.XagoDepositDetails{
-			Currency:         dd.CurrencyCode.String(),
-			AccountNumber:    dd.AccountNumber,
-			BranchCode:       dd.BranchCode,
-			BankName:         dd.BankName,
-			DepositReference: sa.DepositReference,
-		})
+	account, err := s.b.Xago().GetBankAccount(ctx)
+	if err != nil {
+		return nil, toGRPCError(err)
 	}
+	resp = append(resp, &pb.XagoDepositDetails{
+		Currency:         account.CurrencyCode.String(),
+		AccountNumber:    account.AccountNumber,
+		BranchCode:       account.BranchCode,
+		BankName:         account.BankName,
+		DepositReference: sa.DepositReference,
+	})
 
 	return &pb.GetXagoDepositDetailsResponse{Details: resp}, nil
 }

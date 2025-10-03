@@ -36,6 +36,7 @@ type Client interface {
 	GetWithdrawal(ctx context.Context, id string) (*Withdrawal, error)
 	TestDeposit(ctx context.Context, reqStruct TestDepositReq) error
 	UpdateInquiryLink(ctx context.Context, accountID string, inquiryLink string) error
+	BankAccounts(ctx context.Context) (*[]Currency, error)
 }
 
 type client struct {
@@ -200,6 +201,54 @@ func (c *client) AccessToken(ctx context.Context, forceRefresh bool) (*AccessTok
 	}
 
 	return &c.accessToken, nil
+}
+
+func (c *client) BankAccounts(ctx context.Context) (*[]Currency, error) {
+	reqUrl, err := url.JoinPath(c.baseURL, "currencies")
+	if err != nil {
+		return nil, err
+	}
+
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "GET"
+		meta.Provider = "xago"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "GET",
+			Provider: "xago",
+		})
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqUrl, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to create xargo sub account (%d - %s)", resp.StatusCode, resp.Status)
+	}
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var respData []Currency
+	err = json.Unmarshal(respBody, &respData)
+	if err != nil {
+		return nil, err
+	}
+
+	return &respData, nil
 }
 
 func (c *client) CreateSubAccount(ctx context.Context, user user.User, details kyc.IndividualDetails, idNumber, personaInquiryURL string) (*SubAccount, error) {
