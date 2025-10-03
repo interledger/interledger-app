@@ -204,7 +204,7 @@ func (c *client) AccessToken(ctx context.Context, forceRefresh bool) (*AccessTok
 }
 
 func (c *client) BankAccounts(ctx context.Context) (*[]Currency, error) {
-	reqUrl, err := url.JoinPath(c.baseURL, "currencies")
+	reqUrl, err := url.JoinPath("https://test-api.xago.io:8085/v1", "currencies")
 	if err != nil {
 		return nil, err
 	}
@@ -234,7 +234,7 @@ func (c *client) BankAccounts(ctx context.Context) (*[]Currency, error) {
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to create xargo sub account (%d - %s)", resp.StatusCode, resp.Status)
+		return nil, fmt.Errorf("failed to retrieve xargo bank account (%d - %s)", resp.StatusCode, resp.Status)
 	}
 
 	respBody, err := io.ReadAll(resp.Body)

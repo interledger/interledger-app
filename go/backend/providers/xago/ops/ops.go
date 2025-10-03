@@ -400,8 +400,12 @@ func GetBankAccount(ctx context.Context, b Backends) (*xago.DepositDetails, erro
 	var found *external.BankProvider
 	for _, a := range *accounts {
 		if a.CurrencyCode == currency.ZAR.String() && a.DepositEnabled {
-			found = &a.BankingProviders[0]
-			break
+			for _, b := range a.BankingProviders {
+				if b.DepositAvailable {
+					found = &b
+					break
+				}
+			}
 		}
 	}
 	if found == nil {
