@@ -51,7 +51,7 @@ func main() {
 	})
 	router.Post("/xago/v1/company/accounts", xs.CreateSubAccount())
 	router.Post("/xago/v1/company/accounts/testdeposit", xs.CreateDeposit())
-	router.Post("/xago/v1/currencies", xs.GetBankAccounts())
+	router.Get("/xago/v1/currencies", xs.GetBankAccounts())
 	router.Post("/xago/v1/beneficiaries", xs.AddBeneficiary())
 	router.Post("/xago/v1/transfers", xs.CreateTransaction())
 	router.Get("/xago/v1/transactions", xs.GetTransaction())
