@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	kratosTimeout    = 500 * time.Millisecond
+	kratosTimeout    = 1500 * time.Millisecond
 	kratosCookieName = "ory_kratos_session"
 )
 
