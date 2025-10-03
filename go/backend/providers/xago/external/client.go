@@ -204,7 +204,7 @@ func (c *client) AccessToken(ctx context.Context, forceRefresh bool) (*AccessTok
 }
 
 func (c *client) BankAccounts(ctx context.Context) (*[]Currency, error) {
-	reqUrl, err := url.JoinPath("https://test-api.xago.io:8085/v1", "currencies")
+	reqUrl, err := url.JoinPath(c.baseURL, "currencies")
 	if err != nil {
 		return nil, err
 	}
