@@ -101,6 +101,8 @@ export function Scaffold() {
     'root'
   ) as SerializeFrom<typeof rootLoader>
 
+  const currentPath = matches[matches.length - 1]?.pathname
+
   const [payStep, payStepBack] = usePayStore((state) => [
     state.step,
     state.stepBack
@@ -395,7 +397,10 @@ export function Scaffold() {
       <main
         className={clsx(
           'relative flex w-full grow flex-col',
-          layout === Layouts.Marketing && 'mx-auto xl:max-w-[80rem] justify-evenly',
+          layout === Layouts.Marketing &&
+            `mx-auto justify-evenly xl:max-w-[80rem] ${
+              currentPath === '/legal' ? 'mb-10' : ''
+            }`,
           layout === Layouts.Focus &&
             'mx-auto w-full gap-y-4 px-4 sm:max-w-[29rem] sm:px-0',
           layout === Layouts.Wallet && 'mb-32 w-full px-4 lg:pl-[16.25rem]',
