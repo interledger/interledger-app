@@ -888,7 +888,7 @@ export function TextContentRecordComponent({
       key={content.id}
       className={clsx(
         content.textCentered && 'text-center',
-        'flex w-full flex-col items-center space-y-6 px-4 py-20 lg:px-0'
+        'flex w-full flex-col items-center space-y-6 px-4 lg:px-0'
       )}
     >
       {content.image && (
@@ -906,7 +906,7 @@ export function TextContentRecordComponent({
         </AnimatePresence>
       )}
       {content.title && (
-        <h2 className='font-display text-4xl font-medium'>{content.title}</h2>
+        <h2 className='font-display text-4xl font-medium pt-4'>{content.title}</h2>
       )}
       {content.bodyText && (
         <Prose
