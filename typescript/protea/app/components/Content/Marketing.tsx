@@ -35,7 +35,11 @@ export function MarketingPageWithSections({
         <Shape radius='rounded-full' color='bg-transparent' width='w-20' />
         <Shape radius='rounded-full' color='bg-mk-section' width='w-20' />
       </div>
-      <div className='relative mx-auto flex w-full max-w-[59rem] flex-col items-center py-20'>
+      <div
+        className={`relative mx-auto flex w-full max-w-[59rem] flex-col items-center py-20 ${
+          !children ? 'pb-32 pt-32' : ''
+        }`}
+      >
         {section.content.map((content, index) => {
           switch (content.__typename) {
             case 'CtaContentRecord':
