@@ -66,6 +66,7 @@ func (a *Activity) LinkUserToGatewayByExternalID(ctx context.Context, wallets []
 
 		err := a.b.Gatehub().LinkUserToGatewayByExternalID(ctx, externalUser.ExternalID)
 		if err != nil {
+			log.Error("error linking user to gateway by external ID", zap.String("external_id", externalUser.ExternalID), zap.String("wallet_id", externalUser.WalletID), zap.Error(err))
 			listOfUnprocessed = append(listOfUnprocessed, externalUser.WalletID)
 		}
 	}
