@@ -19,7 +19,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func BackfillPaywiserAccountsJob(ctx workflow.Context) (string, error) {
+func BackfillPaywiserAccountsJob(ctx workflow.Context, walletID string) (string, error) {
 	var a *Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 30 * time.Second,
@@ -27,13 +27,17 @@ func BackfillPaywiserAccountsJob(ctx workflow.Context) (string, error) {
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
 	var gatehubWallets []string
-	err := workflow.ExecuteActivity(ctx, a.GetGatehubUsersWalletIDs).Get(ctx, &gatehubWallets)
-	if err != nil {
-		return "", err
+	if walletID != "" {
+		err := workflow.ExecuteActivity(ctx, a.GetGatehubUsersWalletIDs).Get(ctx, &gatehubWallets)
+		if err != nil {
+			return "", err
+		}
+	} else {
+		gatehubWallets = append(gatehubWallets, walletID)
 	}
 
 	var la linkedaccounts.LinkedAccount
-	err = workflow.ExecuteActivity(ctx, a.BackfillPaywiserBalance, gatehubWallets).Get(ctx, &la)
+	err := workflow.ExecuteActivity(ctx, a.BackfillPaywiserBalance, gatehubWallets).Get(ctx, &la)
 	if err != nil {
 		return "", err
 	}
@@ -80,7 +84,6 @@ func (a *Activity) BackfillPaywiserBalance(ctx context.Context, gatehubWallets [
 					return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
 				}
 				log.Info("created external transaction", zap.String("transaction_id", externalTx.ID), zap.Float64("amount", transfer))
-				/// transfer
 				break
 			}
 		}
