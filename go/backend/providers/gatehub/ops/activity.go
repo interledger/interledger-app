@@ -35,6 +35,7 @@ func NewActivity(b Backends) *Activity {
 	ec := external.NewClient(
 		os.Getenv("GATEHUB_APP_ID"),
 		os.Getenv("GATEHUB_SECRET"),
+		os.Getenv("GATEHUB_GATEWAY_ID"),
 		&http.Client{
 			Transport: otelhttp.NewTransport(
 				httplogger.NewTransport(http.DefaultTransport, b, nil),

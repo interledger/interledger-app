@@ -37,10 +37,11 @@ type client struct {
 	baseURL            string
 	onboardingBaseURL  string
 	onOffRampBaseURL   string
+	gatewayID          string
 	api                *http.Client
 }
 
-func NewClient(appID, secret string, transport *http.Client) Client {
+func NewClient(appID, secret, gatewayID string, transport *http.Client) Client {
 	onOffRampClientID := "f8119dfd-e563-44ee-9ae2-1e60a4fce74f"
 	onboardingClientID := "4df24d1b-5796-4eec-951b-21699d61b970"
 	exchangeClientID := "4e28d4df-22d7-414c-97a3-d71956df29ba"
@@ -61,6 +62,10 @@ func NewClient(appID, secret string, transport *http.Client) Client {
 		api = transport
 	}
 
+	if gatewayID != "" {
+		log.Error("GATEHUB_GATEWAY_ID is not set")
+
+	}
 	return &client{
 		onOffRampClientID:  onOffRampClientID,
 		onboardingClientID: onboardingClientID,
@@ -70,6 +75,7 @@ func NewClient(appID, secret string, transport *http.Client) Client {
 		baseURL:            baseURL,
 		onboardingBaseURL:  onboardingBaseURL,
 		onOffRampBaseURL:   onOffRampBaseURL,
+		gatewayID:          gatewayID,
 		api:                api,
 	}
 }
@@ -81,15 +87,6 @@ func (c *client) GetVaultID() string {
 
 	}
 	return vaultID
-}
-
-func (c *client) GetGateWayID() string {
-	gatewayID := os.Getenv("GATEHUB_GATEWAY_ID")
-	if gatewayID == "" {
-		log.Error("GATEHUB_GATEWAY_ID is not set")
-
-	}
-	return gatewayID
 }
 
 func (c *client) GetOnboardingWidget(ctx context.Context, userID string) (string, error) {
@@ -189,7 +186,7 @@ func (c *client) IssueToken(ctx context.Context, userID string, product Product)
 }
 
 func (c *client) LinkUserToGateway(ctx context.Context, gatehubUserId string) error {
-	gatewayID := c.GetGateWayID()
+	gatewayID := c.gatewayID
 	meta, ok := httplog.MetaForContext(ctx)
 	if ok {
 		meta.Method = "POST"
