@@ -3,13 +3,11 @@ package ops
 import (
 	"errors"
 	"fmt"
-	"os"
 	"time"
 
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/gatehub"
-	"gitlab.com/fynbos/backend/providers/gatehub/external"
 	"gitlab.com/fynbos/backend/transactions"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
@@ -176,63 +174,6 @@ func ProcessGatehubWithdrawal(ctx workflow.Context, walletID, transactionID stri
 	}
 
 	return nil
-}
-
-func ExchangeGatehubToPaywiserWorkflow(ctx workflow.Context, walletID string) (string, error) {
-	var a *Activity
-	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: 30 * time.Second,
-	}
-
-	ctx = workflow.WithActivityOptions(ctx, ao)
-
-	logger := workflow.GetLogger(ctx)
-	logger.Info("Exchange.")
-	gatehubEuroVaultID := os.Getenv("GATEHUB_GATEHUB_EURO_VAULT_ID")
-	if gatehubEuroVaultID == "" {
-		return "", fmt.Errorf("%w missing GATEHUB_GATEHUB_EURO_VAULT_ID env var", gatehub.ErrInternal)
-	}
-	paywiserEuroVaultID := os.Getenv("GATEHUB_PAYWISER_EURO_VAULT_ID")
-	if paywiserEuroVaultID == "" {
-		return "", fmt.Errorf("%w missing GATEHUB__EURO_VAULT_ID env var", gatehub.ErrInternal)
-	}
-
-	var la linkedaccounts.LinkedAccount
-	err := workflow.ExecuteActivity(ctx, a.GetLinkedAccount, walletID).Get(ctx, &la)
-	if err != nil {
-		return "", err
-	}
-
-	var externalUserID string
-	err = workflow.ExecuteActivity(ctx, a.GetGatehubUser, walletID).Get(ctx, &externalUserID)
-	if err != nil {
-		return "", err
-	}
-
-	var stringBalance string
-	err = workflow.ExecuteActivity(ctx, a.GetExternalGatehubBalance, externalUserID, la.ProviderID, gatehubEuroVaultID).Get(ctx, &stringBalance)
-	if err != nil {
-		return "", err
-	}
-
-	if stringBalance == "0.00" || stringBalance == "0" || stringBalance == "" {
-		return fmt.Sprintf("No balance to move: %s", stringBalance), nil
-	}
-
-	var rateID string
-	err = workflow.ExecuteActivity(ctx, a.GetExchangeRate, external.ExchangeRate{
-		Amount:         stringBalance,
-		SendingVault:   gatehubEuroVaultID,
-		ReceivingVault: paywiserEuroVaultID,
-	}).Get(ctx, &rateID)
-	if err != nil {
-		return "", err
-	}
-	err = workflow.ExecuteActivity(ctx, a.ExchangeFunds, externalUserID, la.ProviderID, rateID, stringBalance).Get(ctx, nil)
-	if err != nil {
-		return "", err
-	}
-	return "Exchange done", nil
 }
 
 func handleFailedWithdrawal(ctx workflow.Context, a *Activity, walletID, transactionID string) {

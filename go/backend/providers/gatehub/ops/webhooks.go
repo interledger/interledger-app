@@ -168,12 +168,6 @@ func HandleUserVerificationWebhook(ctx context.Context, b Backends, raw json.Raw
 
 	if wh.Data.Verified.Short == verificationAccepted {
 		err = b.KYC().SetKYCStatus(ctx, walletID, kyc.StatusLevel1)
-		if err != nil {
-			moveErr := MoveFundsToPaywiserEuro(ctx, b, walletID)
-			if moveErr != nil {
-				log.Error("Failed to move funds to Paywiser after KYC approval", zap.String("wallet_id", walletID), zap.Error(moveErr))
-			}
-		}
 	} else if wh.Data.Verified.Short == verificationRejected {
 		err = b.KYC().SetKYCStatus(ctx, walletID, kyc.StatusDenied)
 	} else {
@@ -185,41 +179,6 @@ func HandleUserVerificationWebhook(ctx context.Context, b Backends, raw json.Raw
 	}
 
 	w.WriteHeader(http.StatusOK)
-}
-
-func MoveFundsToPaywiserEuro(ctx context.Context, b Backends, walletID string) error {
-	wo := client.StartWorkflowOptions{
-		ID:                    "gatehub_exchange_for_" + walletID,
-		TaskQueue:             "backend",
-		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
-	}
-
-	var workflowStatus enums.WorkflowExecutionStatus
-	wflow, err := b.Temporal().DescribeWorkflowExecution(ctx, wo.ID, "")
-	switch err.(type) {
-	case *serviceerror.Internal,
-		*serviceerror.Unavailable,
-		*serviceerror.InvalidArgument:
-
-		log.Error("Failed to handle gatehub deposit webhook", zap.Error(err))
-		return nil
-	case *serviceerror.NotFound:
-		// do nothing
-	default:
-		if wflow != nil {
-			workflowStatus = wflow.GetWorkflowExecutionInfo().Status
-		}
-	}
-
-	// execute workflow if it's not running
-	if workflowStatus != enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
-
-		_, err = b.Temporal().ExecuteWorkflow(ctx, wo, ExchangeGatehubToPaywiserWorkflow, walletID)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 func HandleUserDeposit(ctx context.Context, b Backends, raw json.RawMessage, w http.ResponseWriter) {

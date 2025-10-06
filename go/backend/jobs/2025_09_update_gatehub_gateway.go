@@ -47,7 +47,7 @@ func SetGatehubGatewayToPaywiserJob(ctx workflow.Context) error {
 	return nil
 }
 
-func (a *Activity) GetGatehubUsers(ctx context.Context, walletID string) ([]GatehubWallets, error) {
+func (a *Activity) GetGatehubUsers(ctx context.Context) ([]GatehubWallets, error) {
 	var gatehubWallets []GatehubWallets
 	err := a.b.DB().SelectContext(ctx, &gatehubWallets, "SELECT external_id, wallet_id FROM gatehub_users")
 	if err != nil {

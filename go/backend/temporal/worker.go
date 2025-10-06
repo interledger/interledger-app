@@ -62,6 +62,7 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(jobs.UpdateRafikiWalletEnabledJob)
 	w.RegisterWorkflow(jobs.SetGatehubGatewayToPaywiserJob)
 	w.RegisterWorkflow(jobs.RestartKYCstatusForXagoJob)
+	w.RegisterWorkflow(jobs.BackfillPaywiserAccountsJob)
 
 	// Payment Engine
 	w.RegisterActivity(payments_workflows.NewActivity(b))
@@ -119,7 +120,6 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(gatehub_workflows.CreateGatehubDeposit)
 	w.RegisterWorkflow(gatehub_workflows.ProcessGatehubWithdrawal)
 	w.RegisterWorkflow(gatehub_workflows.LinkGatehubUserToGatewayWorkflow)
-	w.RegisterWorkflow(gatehub_workflows.ExchangeGatehubToPaywiserWorkflow)
 
 	// Chimoney
 	w.RegisterActivity(chimoney_workflows.NewActivity(b))
