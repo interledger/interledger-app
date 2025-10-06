@@ -57,6 +57,18 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 			AccountEnabled: false,
 		}, nil
 	}
+
+	kycStatus, err := b.KYC().GetKYCStatus(ctx, walletID)
+	if err != nil {
+		return nil, err
+	}
+	// If you are not KYC approved you can do nothing
+	if kycStatus != kyc.StatusLevel1 && kycStatus != kyc.StatusLevel2 {
+		return &features.WalletFeatures{
+			AccountEnabled: true,
+		}, nil
+	}
+
 	var res features.WalletFeatures
 	// Check DB for feature overrides
 	err = b.DB().GetContext(ctx, &res,
@@ -68,17 +80,6 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 	}
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, fmt.Errorf("%w %s", features.ErrInternal, err)
-	}
-
-	kycStatus, err := b.KYC().GetKYCStatus(ctx, walletID)
-	if err != nil {
-		return nil, err
-	}
-	// If you are not KYC approved you can do nothing
-	if kycStatus != kyc.StatusLevel1 && kycStatus != kyc.StatusLevel2 {
-		return &features.WalletFeatures{
-			AccountEnabled: true,
-		}, nil
 	}
 
 	// Identities are enabled default everywhere
