@@ -37,7 +37,6 @@ import { PayStep, usePayStore } from '~/lib/usePayStore'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { SignupStep, useSignupStore } from '~/lib/useSignupStore'
 import type { loader as rootLoader } from '~/root'
-import { WarningBanner } from '../WarningBanner'
 import { NavDrawer } from './NavDrawer'
 
 export type ApplicationProps = {
@@ -277,11 +276,6 @@ export function Scaffold() {
           </div>
         )}
 
-        {layout === Layouts.Wallet && isUser && (
-          <div className='mx-auto my-6 flex w-full max-w-[59rem] items-center rounded-[1.25rem] bg-container-strong p-2 sm:max-w-lg lg:max-w-3xl'>
-            <WarningBanner text='The app is under maintainance and depending on your location it might not work as expected. But do not worry we are working tirelessly to solve the issues asap!' />
-          </div>
-        )}
         {layout !== Layouts.Marketing && (
           <div
             className={clsx(

@@ -36,6 +36,32 @@ function isUiNodeInputAttributes(n: any): n is UiNodeInputAttributes {
 }
 
 /**
+ * Redirects to /totp/challenge if the session is too old (more than 30 seconds since authentication)
+ * @param request 
+ * @returns void
+ * @throws redirect to /totp/challenge if the session is too old
+ */ 
+export async function requestTOTP(request: Request): Promise<void> {
+  const response = await fetch(`${KRATOS_URL}/sessions/whoami`, {
+    headers: request.headers
+  });
+  if (!response.ok) {
+    throw new Error('Failed to fetch session information');
+  }
+  const url = new URL(request.url);
+  const redirectTo = url.pathname + url.search;
+  const session = await response.json();
+  const tooOld =
+    Date.now() - new Date(session.authenticated_at).getTime() > 30*1000;
+  if (tooOld) {
+      throw redirect(`/totp/challenge?refresh=true&redirectTo=${encodeURIComponent(redirectTo)}`, {
+        headers: request.headers
+      });
+  
+    }
+  }
+  
+/**
  * getUserSession allows fetching a user's kratos session.
  * @param request Request received in a loader function.
  * @returns boolean - if the user has a session.
@@ -241,7 +267,6 @@ export async function kratosErrorMapping<T extends object>(
   fieldErrors: T
 ): Promise<T> {
   const data = await response.json()
-  console.log('Kratos error log', data)
   if (data.ui) {
     for (let node of data.ui.nodes) {
       // Field validation errors

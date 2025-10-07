@@ -1,3 +1,4 @@
+import { SelfServiceLoginFlow } from '@ory/kratos-client'
 import type {
   ActionFunctionArgs,
   LoaderFunctionArgs,
@@ -17,7 +18,7 @@ import {
 } from '~/components'
 import { Label } from '~/components/Label'
 import { validateCSRFToken } from '~/lib/csrf.server'
-import { KRATOS_URL } from '~/lib/kratos.server'
+import { getCsrfTokenFromFlow, KRATOS_URL } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -25,10 +26,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const flowId = url.searchParams.get('flow')
   const returnTo = url.searchParams.get('redirectTo')
   const cookie = String(request.headers.get('cookie'))
-
+  const refresh = url.searchParams.get('refresh')
   if (!flowId) {
     const initRes = await fetch(
-      `${KRATOS_URL}/self-service/login/browser?aal=aal2`,
+      `${KRATOS_URL}/self-service/login/browser?aal=aal2${refresh ? '&refresh=true' : ''}`,
       {
         headers: {
           cookie
@@ -55,8 +56,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       `/totp/challenge?flow=${flowFromRedirect}&returnTo=${returnTo ?? ''}`
     )
   }
-
-  const flowRes = await fetch(
+  const kratosFlow = await fetch(
     `${KRATOS_URL}/self-service/login/flows?id=${flowId}`,
     {
       headers: {
@@ -65,19 +65,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
       }
     }
   )
-
-  if (!flowRes.ok) {
+  if (!kratosFlow.ok) {
     return redirect('/error')
   }
 
-  const flow = await flowRes.json()
-
-  const csrfNode = flow.ui.nodes.find(
-    (n: any) => n.attributes?.name === 'csrf_token'
-  )
-  const csrfToken = csrfNode?.attributes?.value
-
-  return json({ flowId, csrfToken })
+  const flow: SelfServiceLoginFlow = await kratosFlow.json()
+  return json({ flowId, csrfToken: getCsrfTokenFromFlow(flow) })
 }
 
 export const handle: ApplicationProps = {
