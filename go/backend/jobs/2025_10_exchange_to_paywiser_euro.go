@@ -2,8 +2,6 @@ package jobs
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"net/http"
 	"os"
 
@@ -67,7 +65,7 @@ func (a *Activity) BackfillPaywiserBalance(ctx context.Context, gatehubWallets [
 
 				balance, err := a.b.Gatehub().GetBalance(ctx, l.ID)
 				if err != nil {
-					log.Error("error getting balance from gatehub", zap.String("wallet_id", gw), zap.String("linked_account_id", l.ID))
+					log.Error("error getting balance for backfill transaction", zap.String("wallet_id", gw), zap.String("linked_account_id", l.ID))
 				}
 				transfer := balance.Total.Float64()
 
@@ -76,15 +74,13 @@ func (a *Activity) BackfillPaywiserBalance(ctx context.Context, gatehubWallets [
 					SendingAddress:   "520010820",
 					ReceivingAddress: l.ProviderID,
 					Amount:           transfer,
-					Message:          "exchange for sandbox",
+					Message:          "backfill transfer for sandbox",
 					Type:             external.TransactionTypeHosted,
 					VaultID:          ec.GetVaultID(),
 				})
-				if errors.Is(err, external.ErrNotFound) {
-					return fmt.Errorf("%w %s", gatehub.ErrNotFound, err)
-				}
+
 				if err != nil {
-					return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+					log.Warn("error creating backfill transaction", zap.String("wallet_id", gw), zap.String("linked_account_id", l.ID), zap.Error(err))
 				}
 				log.Info("created external transaction", zap.String("transaction_id", externalTx.ID), zap.Float64("amount", transfer))
 				break
