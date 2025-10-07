@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"os"
+	"time"
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/gatehub"
@@ -20,6 +21,7 @@ import (
 func BackfillPaywiserAccountsJob(ctx workflow.Context, walletID string) (string, error) {
 	var a *Activity
 	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 5 * time.Minute,
 		RetryPolicy: &temporal.RetryPolicy{
 			MaximumAttempts: 1,
 		},
