@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"time"
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/gatehub"
@@ -15,6 +14,7 @@ import (
 	httplogger "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/log"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 	"go.uber.org/zap"
 )
@@ -22,7 +22,9 @@ import (
 func BackfillPaywiserAccountsJob(ctx workflow.Context, walletID string) (string, error) {
 	var a *Activity
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: 30 * time.Second,
+		RetryPolicy: &temporal.RetryPolicy{
+			MaximumAttempts: 1,
+		},
 	}
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
