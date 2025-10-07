@@ -63,7 +63,7 @@ func NewClient(appID, secret, gatewayID string, transport *http.Client) Client {
 	}
 
 	if gatewayID == "" {
-		log.Error("GATEHUB_GATEWAY_ID is not set")
+		log.Warn("GATEHUB_GATEWAY_ID is not set")
 	}
 
 	return &client{
