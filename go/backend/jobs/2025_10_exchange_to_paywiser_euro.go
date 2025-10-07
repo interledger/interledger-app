@@ -6,7 +6,6 @@ import (
 	"os"
 	"time"
 
-	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/gatehub"
 
 	"gitlab.com/fynbos/backend/providers/gatehub/external"
@@ -18,7 +17,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func BackfillPaywiserAccountsJob(ctx workflow.Context, walletID string) (string, error) {
+func BackfillPaywiserAccountsJob(ctx workflow.Context) (string, error) {
 	var a *Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 5 * time.Minute,
@@ -29,17 +28,13 @@ func BackfillPaywiserAccountsJob(ctx workflow.Context, walletID string) (string,
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
 	var gatehubWallets []string
-	if walletID != "" {
-		err := workflow.ExecuteActivity(ctx, a.GetGatehubUsersWalletIDs).Get(ctx, &gatehubWallets)
-		if err != nil {
-			return "", err
-		}
-	} else {
-		gatehubWallets = append(gatehubWallets, walletID)
+
+	err := workflow.ExecuteActivity(ctx, a.GetGatehubUsersWalletIDs).Get(ctx, &gatehubWallets)
+	if err != nil {
+		return "", err
 	}
 
-	var la linkedaccounts.LinkedAccount
-	err := workflow.ExecuteActivity(ctx, a.BackfillPaywiserBalance, gatehubWallets).Get(ctx, &la)
+	err = workflow.ExecuteActivity(ctx, a.BackfillPaywiserBalance, gatehubWallets).Get(ctx, nil)
 	if err != nil {
 		return "", err
 	}
@@ -58,6 +53,9 @@ func (a *Activity) BackfillPaywiserBalance(ctx context.Context, gatehubWallets [
 			),
 		})
 	for _, gw := range gatehubWallets {
+		if gw == "" {
+			continue
+		}
 		la, err := a.b.LinkedAccounts().ListByWalletId(ctx, gw)
 		if err != nil {
 			log.Error("linked account not found", zap.String("wallet_id", gw))
@@ -70,7 +68,10 @@ func (a *Activity) BackfillPaywiserBalance(ctx context.Context, gatehubWallets [
 					log.Error("error getting balance for backfill transaction", zap.String("wallet_id", gw), zap.String("linked_account_id", l.ID))
 				}
 				transfer := balance.Total.Float64()
-
+				if transfer <= 0 {
+					log.Info("no balance to transfer", zap.String("wallet_id", gw), zap.String("linked_account_id", l.ID))
+					continue
+				}
 				externalTx, err := ec.CreateTransaction(ctx, external.CreateTransactionRequest{
 					SendingUserID:    "febc35fc-b48b-4db0-9066-2c3198aa9a0f",
 					SendingAddress:   "520010820",
@@ -84,7 +85,7 @@ func (a *Activity) BackfillPaywiserBalance(ctx context.Context, gatehubWallets [
 				if err != nil {
 					log.Warn("error creating backfill transaction", zap.String("wallet_id", gw), zap.String("linked_account_id", l.ID), zap.Error(err))
 				}
-				log.Info("created external transaction", zap.String("transaction_id", externalTx.ID), zap.Float64("amount", transfer))
+				log.Info("created external transaction", zap.Any("externalTx", externalTx), zap.Float64("amount", transfer))
 				break
 			}
 		}
@@ -99,6 +100,5 @@ func (a *Activity) GetGatehubUsersWalletIDs(ctx context.Context) ([]string, erro
 	if err != nil {
 		return nil, err
 	}
-
 	return gatehubWallets, nil
 }
