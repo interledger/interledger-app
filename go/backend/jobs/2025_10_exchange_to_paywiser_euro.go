@@ -17,7 +17,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func BackfillPaywiserAccountsJob(ctx workflow.Context, walletID string) (string, error) {
+func BackfillPaywiserAccountsJob(ctx workflow.Context) (string, error) {
 	var a *Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 5 * time.Minute,
@@ -28,16 +28,12 @@ func BackfillPaywiserAccountsJob(ctx workflow.Context, walletID string) (string,
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
 	var gatehubWallets []string
-	if walletID != "" {
-		err := workflow.ExecuteActivity(ctx, a.GetGatehubUsersWalletIDs).Get(ctx, &gatehubWallets)
-		if err != nil {
-			return "", err
-		}
-	} else {
-		gatehubWallets = append(gatehubWallets, walletID)
+	err := workflow.ExecuteActivity(ctx, a.GetGatehubUsersWalletIDs).Get(ctx, &gatehubWallets)
+	if err != nil {
+		return "", err
 	}
 
-	err := workflow.ExecuteActivity(ctx, a.BackfillPaywiserBalance, gatehubWallets).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.BackfillPaywiserBalance, gatehubWallets).Get(ctx, nil)
 	if err != nil {
 		return "", err
 	}
@@ -47,8 +43,8 @@ func BackfillPaywiserAccountsJob(ctx workflow.Context, walletID string) (string,
 
 func (a *Activity) BackfillPaywiserBalance(ctx context.Context, gatehubWallets []string) error {
 	ec := external.NewClient(
-		os.Getenv("GATEHUB_APP_ID"),
-		os.Getenv("GATEHUB_SECRET"),
+		os.Getenv("TEMP_GATEHUB_APP_ID"),
+		os.Getenv("TEMP_GATEHUB_SECRET"),
 		os.Getenv("GATEHUB_GATEWAY_ID"),
 		&http.Client{
 			Transport: otelhttp.NewTransport(
