@@ -3,7 +3,6 @@ package jobs
 import (
 	"context"
 	"slices"
-	"time"
 
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/log"
@@ -20,7 +19,6 @@ type GatehubWallets struct {
 func SetGatehubGatewayToPaywiserJob(ctx workflow.Context) error {
 	var a *Activity
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: 10 * time.Second,
 		RetryPolicy: &temporal.RetryPolicy{
 			MaximumAttempts: 1,
 		},
