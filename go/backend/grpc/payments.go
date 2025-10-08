@@ -214,6 +214,10 @@ func (s *rpcService) UpdatePayment(ctx context.Context, req *pb.UpdatePaymentReq
 		return nil, NotFoundError("payment not found")
 	}
 
+	if err := s.checkKYCApproval(ctx, p.Receiver.WalletID, "Receiver"); err != nil {
+		return nil, err
+	}
+
 	// check that does not exceed kyc limits.
 	if req.SenderAmount != nil {
 		exceedsLimits, limitType, err := s.b.Limits().ExceedsKYCLimits(ctx, w.ID, currency.FromPB(req.GetSenderAmount()))
@@ -443,4 +447,15 @@ func (s *rpcService) GetLinkedAccountsForPayment(ctx context.Context, req *pb.Ge
 	return &pb.GetLinkedAccountsForPaymentResponse{
 		LinkedAccounts: las,
 	}, nil
+}
+
+func (s *rpcService) checkKYCApproval(ctx context.Context, walletID string, role string) error {
+	approved, err := s.b.KYC().IsKYCApproved(ctx, walletID)
+	if err != nil {
+		return toGRPCError(err)
+	}
+	if !approved {
+		return NewValidationError("amount", fmt.Sprintf("%s KYC not approved", role))
+	}
+	return nil
 }
