@@ -72,7 +72,6 @@ export async function appLoader({ request }: LoaderFunctionArgs) {
   const isUser = hasUserSession(request)
   if (isUser) {
     const session = await getUserSession(request)
-    console.log('Session ------------------', session)
     if (
       isUser &&
       session.authenticator_assurance_level === AuthenticatorAssuranceLevel.Aal1
