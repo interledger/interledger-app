@@ -14,13 +14,12 @@ export const useCardProcessorApi = (baseUrl?: string) => {
       baseUrl,
       appId: auth.appId,
       cardAppId: auth.cardAppId,
-      managedUserUuid: user.managedUserUuid,
+      managedUserUuid: user.managedUserUuid
     })
     return client
   }, [baseUrl, auth.cardAppId, user.managedUserUuid])
 
   const api = {
-    // Card operations
     cards: {
       getSensitiveData: ({
         jwtToken,
@@ -32,11 +31,24 @@ export const useCardProcessorApi = (baseUrl?: string) => {
         httpMethod: HttpMethod
       }) => {
         if (!jwtToken) throw new Error('JWT token required')
-        return apiClient.getCardSensitiveData({ jwtToken, cardProcessorUrl, httpMethod })
+        return apiClient.getCardSensitiveData({
+          jwtToken,
+          cardProcessorUrl,
+          httpMethod
+        })
+      },
+
+      lockCard: (cardId: string) => {
+        if (!cardId) throw new Error('Card ID required')
+        return apiClient.lockCard(cardId)
+      },
+
+      unlockCard: (cardId: string) => {
+        if (!cardId) throw new Error('Card ID required')
+        return apiClient.unlockCard(cardId)
       }
     },
 
-    // Token operations (for secure operations)
     tokens: {
       getCardDataToken: (publicKey?: string) => {
         const { activeCardId } = card
@@ -49,6 +61,6 @@ export const useCardProcessorApi = (baseUrl?: string) => {
   }
 
   return {
-    gatehubClient: api
+    cardProcessorClient: api
   }
 }

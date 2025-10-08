@@ -4,22 +4,13 @@ import { MasterCardLogo } from './MasterCardLogo'
 
 interface CardViewFrontProps extends ComponentProps<'div'> {
   nameOnCard: string
-  cardNumber: string
-  expiryDate: string | null
 }
 
 export const CardViewFront = ({
   nameOnCard,
-  cardNumber,
-  expiryDate,
   className,
   ...props
 }: CardViewFrontProps) => {
-  // Format card number with spaces
-  const displayCardNumber = cardNumber.replace(/(\d{4})(?=\d)/g, '$1 ')
-  // Render censored expiry if null
-  const displayExpiryDate = expiryDate || '••/••'
-
   return (
     <CardViewContainer className={className} {...props}>
       <div className='flex h-full flex-col'>

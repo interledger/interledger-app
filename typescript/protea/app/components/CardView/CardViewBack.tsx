@@ -20,8 +20,8 @@ export const CardViewBack = ({
   // Format card number with spaces
   const formattedCardNumber = fullCardNumber.replace(/(\d{4})(?=\d)/g, '$1 ')
   // Render censored versions if props are null
-  const displayExpiryDate = expiryDate || '••/••'
-  const displayCvv = cvv || '•••'
+  const displayExpiryDate = expiryDate || '**/**'
+  const displayCvv = cvv || '***'
 
   return (
     <CardViewContainer className={className} {...props}>

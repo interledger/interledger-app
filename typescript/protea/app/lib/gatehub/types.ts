@@ -6,7 +6,7 @@ export type StorableCard = {
   unmaskedPan: string | null
   expiryDate: string
   status: number
-  lockLevel: number
+  lockLevel: string
   cvc2: string | null
 }
 

@@ -60,50 +60,44 @@ class CardProcessorApiClient {
   async makeRequest<T = any>(
     request: CardProcessorApiRequest
   ): Promise<GateHubApiResponse<T>> {
-    try {
-      let url = `${request.baseUrl || this.config.baseUrl}${request.endpoint}`
-      if (request.queryParams) {
-        const params = new URLSearchParams()
-        Object.entries(request.queryParams).forEach(([key, value]) => {
-          params.append(key, String(value))
-        })
-        url += `?${params.toString()}`
-      }
-
-      const headers = buildHeaders(request, this.config, url)
-
-      const response = await fetch(url, {
-        method: request.method,
-        headers,
-        ...(request.body && { body: JSON.stringify(request.body) })
+    let url = `${request.baseUrl || this.config.baseUrl}${request.endpoint}`
+    if (request.queryParams) {
+      const params = new URLSearchParams()
+      Object.entries(request.queryParams).forEach(([key, value]) => {
+        params.append(key, String(value))
       })
+      url += `?${params.toString()}`
+    }
 
-      let data: T | undefined
-      const contentType = response.headers.get('content-type')
-      if (contentType?.includes('application/json')) {
-        data = await response.json()
-      }
+    const headers = buildHeaders(request, this.config, url)
 
-      if (!response.ok) {
-        console.error('GateHub API request failed:', data)
-        return {
-          error: data ? JSON.stringify(data) : `HTTP ${response.status}`,
+    const response = await fetch(url, {
+      method: request.method,
+      headers,
+      ...(request.body && { body: JSON.stringify(request.body) })
+    })
+
+    let data: T | undefined
+    const contentType = response.headers.get('content-type')
+    if (contentType?.includes('application/json')) {
+      data = await response.json()
+    }
+
+    if (!response.ok) {
+      console.error('GateHub API request failed:', data)
+      throw new Error(
+        JSON.stringify({
+          error: data ? JSON.stringify(data) : '',
           status: response.status,
           headers: response.headers
-        }
-      }
+        })
+      )
+    }
 
-      return {
-        data,
-        status: response.status,
-        headers: response.headers
-      }
-    } catch (error) {
-      return {
-        error: error instanceof Error ? error.message : 'Unknown error',
-        status: 0,
-        headers: new Headers()
-      }
+    return {
+      data,
+      status: response.status,
+      headers: response.headers
     }
   }
 
@@ -119,9 +113,39 @@ class CardProcessorApiClient {
     if (!jwtToken) throw new Error('JWT token required')
 
     return this.makeRequest({
-      endpoint: cardProcessorUrl,
+      baseUrl: cardProcessorUrl,
       method: httpMethod,
-      requires: { sessionToken: jwtToken }
+      requires: { sessionToken: jwtToken },
+      endpoint: ''
+    })
+  }
+
+  async lockCard(cardId: string) {
+    return this.makeRequest({
+      endpoint: GATEHUB_API_ENDPOINTS.cards.lockCard(cardId),
+      method: 'PUT',
+      queryParams: { reasonCode: 'ClientRequestedLock' },
+      requires: {
+        cardAppId: true,
+        managedUser: true,
+        timestamp: true,
+        signature: true,
+        appId: true
+      }
+    })
+  }
+
+  async unlockCard(cardId: string) {
+    return this.makeRequest({
+      endpoint: GATEHUB_API_ENDPOINTS.cards.unlockCard(cardId),
+      method: 'PUT',
+      requires: {
+        cardAppId: true,
+        managedUser: true,
+        timestamp: true,
+        signature: true,
+        appId: true
+      }
     })
   }
 

@@ -5,31 +5,21 @@ import { CardViewBack } from './CardViewBack'
 import { CardViewFront } from './CardViewFront'
 import { StatusPopup } from './StatusPopup'
 import { useCardActions } from './useCardActions'
+import { StorableCard } from '~/lib/gatehub/types'
 
-interface CardViewProps {
-  card: {
-    id: string
-    nameOnCard: string
-    maskedPan: string
-    expiryDate: string
-    status: number
-    lockLevel: number
-  }
-}
-
-export const CardView = ({ card }: CardViewProps) => {
+export const CardView = ({ card }: { card: StorableCard }) => {
   const [showBack, setShowBack] = useState(false)
 
   const {
     showSensitiveData,
-    isFrozen,
-    isBlocked,
+    isLocked,
     sensitiveData,
     actionStatus,
     toggleSensitiveDataOff,
     toggleSensitiveDataOn,
-    toggleFreeze,
-    toggleUnfreeze
+    toggleLock,
+    toggleUnlock,
+    toggleViewPin
   } = useCardActions(card)
 
   const handleToggleSensitiveData = () => {
@@ -40,12 +30,16 @@ export const CardView = ({ card }: CardViewProps) => {
     }
   }
 
-  const handleToggleFreeze = () => {
-    toggleFreeze()
+  const handleLock = () => {
+    toggleLock()
   }
 
-  const handleToggleUnfreeze = () => {
-    toggleUnfreeze()
+  const handleUnlock = () => {
+    toggleUnlock()
+  }
+
+  const handleViewPinCode = () => {
+    toggleViewPin()
   }
 
   return (
@@ -58,7 +52,7 @@ export const CardView = ({ card }: CardViewProps) => {
             showBack
               ? '[transform:rotateY(180deg)]'
               : '[transform:rotateY(0deg)]',
-            isBlocked && 'blur-sm'
+            isLocked && 'blur-sm'
           )}
           style={{ transformStyle: 'preserve-3d' }}
         >
@@ -78,11 +72,8 @@ export const CardView = ({ card }: CardViewProps) => {
             className='absolute inset-0 h-full w-full'
             style={{ backfaceVisibility: 'hidden' }}
           >
-            <CardViewFront 
-            // todo: remove card number and expiry
+            <CardViewFront
               nameOnCard={card.nameOnCard}
-              cardNumber={sensitiveData.Pan}
-              expiryDate={sensitiveData.ExpiryDate.slice(0, 2) + '/' + sensitiveData.ExpiryDate.slice(2)}
             />
           </div>
 
@@ -95,18 +86,25 @@ export const CardView = ({ card }: CardViewProps) => {
             }}
           >
             <CardViewBack
-              fullCardNumber={sensitiveData.Pan.replace(/\s+/g, '').replace(/(.{4})(?=.{4})/g, '$1 ')}
-              expiryDate={sensitiveData.ExpiryDate.slice(0, 2) + '/' + sensitiveData.ExpiryDate.slice(2)}
+              fullCardNumber={sensitiveData.Pan.replace(/\s+/g, '').replace(
+                /(.{4})(?=.{4})/g,
+                '$1 '
+              )}
+              expiryDate={
+                sensitiveData.ExpiryDate.slice(0, 2) +
+                '/' +
+                sensitiveData.ExpiryDate.slice(2)
+              }
               cvv={sensitiveData.Cvc2}
             />
           </div>
         </div>
 
-        {/* Blocked overlay - outside flip container so text doesn't flip */}
-        {isBlocked && (
+        {/* Locked overlay - outside flip container so text doesn't flip */}
+        {isLocked && (
           <div className='absolute inset-0 z-40 flex items-center justify-center rounded-xl bg-black/30'>
             <div className='rounded-lg bg-red-500 px-4 py-2 font-semibold text-white'>
-              CARD BLOCKED
+              CARD LOCKED
             </div>
           </div>
         )}
@@ -133,10 +131,19 @@ export const CardView = ({ card }: CardViewProps) => {
         {/* Toggle freeze */}
         <button
           className='flex w-32 items-center justify-center space-x-2 rounded-lg bg-red-500 px-4 py-2 text-white transition-colors hover:bg-red-600'
-          onClick={isFrozen ? handleToggleUnfreeze : handleToggleFreeze}
+          onClick={isLocked ? handleUnlock : handleLock}
         >
-          <Icon>ac_unit</Icon>
-          <span>{isFrozen ? 'Unfreeze' : 'Freeze'}</span>
+          <Icon>lock</Icon>
+          <span>{isLocked ? 'Unlock' : 'Lock'}</span>
+        </button>
+
+        {/* Toggle view pin code */}
+        <button
+          className='flex w-32 items-center justify-center space-x-2 rounded-lg bg-red-500 px-4 py-2 text-white transition-colors hover:bg-red-600'
+          onClick={handleViewPinCode}
+        >
+          <Icon>visibility</Icon>
+          <span>View PIN</span>
         </button>
       </div>
 

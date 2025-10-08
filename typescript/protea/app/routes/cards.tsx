@@ -75,7 +75,9 @@ function convertCardToStorableCard(card: CardProto): StorableCard {
     unmaskedPan: null,
     expiryDate: card.expiryDate,
     status: card.status,
-    lockLevel: card.lockLevel ?? 0,
+    lockLevel:
+      // Wrong protobuf type will return lockLevels as strings
+      (card.lockLevel as unknown as string) ?? 'CARD_LOCK_LEVEL_UNKNOWN',
     cvc2: null
   }
 }
@@ -135,7 +137,8 @@ export default function Page() {
                       {card.maskedPan}
                     </span>
                     <span className='text-xs text-weak'>
-                      Expires at: {card.expiryDate.slice(0, 2)}/{card.expiryDate.slice(2)}
+                      Expires at: {card.expiryDate.slice(0, 2)}/
+                      {card.expiryDate.slice(2)}
                     </span>
                   </div>
                 </div>
