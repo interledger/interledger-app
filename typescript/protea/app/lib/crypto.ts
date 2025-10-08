@@ -1,9 +1,6 @@
 import NodeRSA from 'node-rsa'
-// import * as crypto from 'crypto'
 
-/**
- * Convert ArrayBuffer to string
- */
+
 export function ab2str(buf: ArrayBuffer): string {
   // @ts-expect-error: We know this works with Uint8Array
   return String.fromCharCode.apply(null, new Uint8Array(buf))
@@ -19,9 +16,6 @@ export const isWebCryptoAvailable =
   'subtle' in window.crypto &&
   typeof window.crypto.subtle.generateKey === 'function'
 
-/**
- * RSA key generation parameters
- */
 export const RSA_KEY_PARAMS: RsaHashedKeyGenParams = {
   name: 'RSA-OAEP',
   modulusLength: 2048,
@@ -29,9 +23,6 @@ export const RSA_KEY_PARAMS: RsaHashedKeyGenParams = {
   hash: { name: 'SHA-256' }
 }
 
-/**
- * Key usage permissions
- */
 export const KEY_USAGES: KeyUsage[] = ['encrypt', 'decrypt']
 
 /**

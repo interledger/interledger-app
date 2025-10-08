@@ -166,6 +166,45 @@ class CardProcessorApiClient {
       }
     })
   }
+
+  async getPinShowToken(cardId: string, publicKey: string) {
+    if (!cardId || !publicKey)
+      throw new Error('Card ID and public key required')
+
+    return this.makeRequest({
+      endpoint: GATEHUB_API_ENDPOINTS.tokens.pinShow,
+      method: 'POST',
+      body: { cardId, publicKey },
+      requires: {
+        cardAppId: true,
+        managedUser: true,
+        appId: true,
+        timestamp: true,
+        signature: true
+      }
+    })
+  }
+
+  async getPin({
+    jwtToken,
+    cardProcessorUrl,
+    httpMethod
+  }: {
+    jwtToken: string
+    cardProcessorUrl: string
+    httpMethod: HttpMethod
+  }) {
+    if (!jwtToken) throw new Error('JWT token required')
+
+    return this.makeRequest({
+      baseUrl: cardProcessorUrl,
+      method: httpMethod,
+      requires: {
+        sessionToken: jwtToken
+      },
+      endpoint: ''
+    })
+  }
 }
 
 export type { CardProcessorApiClient }

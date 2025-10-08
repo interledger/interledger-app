@@ -38,6 +38,23 @@ export const useCardProcessorApi = (baseUrl?: string) => {
         })
       },
 
+      getPin: ({
+        jwtToken,
+        cardProcessorUrl,
+        httpMethod
+      }: {
+        jwtToken: string
+        cardProcessorUrl: string
+        httpMethod: HttpMethod
+      }) => {
+        if (!jwtToken) throw new Error('JWT token required')
+        return apiClient.getPin({
+          jwtToken,
+          cardProcessorUrl,
+          httpMethod
+        })
+      },
+
       lockCard: (cardId: string) => {
         if (!cardId) throw new Error('Card ID required')
         return apiClient.lockCard(cardId)
@@ -56,6 +73,14 @@ export const useCardProcessorApi = (baseUrl?: string) => {
         if (!activeCardId || !keyToUse)
           throw new Error('Card ID and public key required')
         return apiClient.getCardDataToken(activeCardId, keyToUse)
+      },
+
+      getPinShowToken: (publicKey?: string) => {
+        const { activeCardId } = card
+        const keyToUse = publicKey || keyPair?.publicKey
+        if (!activeCardId || !keyToUse)
+          throw new Error('Card ID and public key required')
+        return apiClient.getPinShowToken(activeCardId, keyToUse)
       }
     }
   }

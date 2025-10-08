@@ -1,19 +1,21 @@
 import clsx from 'clsx'
 import { useState } from 'react'
 import { Icon } from '~/components/Icon'
+import { StorableCard } from '~/lib/gatehub/types'
 import { CardViewBack } from './CardViewBack'
 import { CardViewFront } from './CardViewFront'
 import { StatusPopup } from './StatusPopup'
 import { useCardActions } from './useCardActions'
-import { StorableCard } from '~/lib/gatehub/types'
 
 export const CardView = ({ card }: { card: StorableCard }) => {
   const [showBack, setShowBack] = useState(false)
 
   const {
     showSensitiveData,
+    showPin,
     isLocked,
     sensitiveData,
+    pin,
     actionStatus,
     toggleSensitiveDataOff,
     toggleSensitiveDataOn,
@@ -72,9 +74,7 @@ export const CardView = ({ card }: { card: StorableCard }) => {
             className='absolute inset-0 h-full w-full'
             style={{ backfaceVisibility: 'hidden' }}
           >
-            <CardViewFront
-              nameOnCard={card.nameOnCard}
-            />
+            <CardViewFront nameOnCard={card.nameOnCard} />
           </div>
 
           {/* Back of card */}
@@ -139,13 +139,27 @@ export const CardView = ({ card }: { card: StorableCard }) => {
 
         {/* Toggle view pin code */}
         <button
-          className='flex w-32 items-center justify-center space-x-2 rounded-lg bg-red-500 px-4 py-2 text-white transition-colors hover:bg-red-600'
+          className='flex w-32 items-center justify-center space-x-2 rounded-lg bg-purple-500 px-4 py-2 text-white transition-colors hover:bg-purple-600'
           onClick={handleViewPinCode}
         >
-          <Icon>visibility</Icon>
-          <span>View PIN</span>
+          <Icon>{showPin ? 'visibility_off' : 'visibility'}</Icon>
+          <span>{showPin ? 'Hide' : 'View'} PIN</span>
         </button>
       </div>
+
+      {/* PIN Display */}
+      {showPin && (
+        <div className='rounded-lg border-2 border-purple-500 bg-purple-50 px-8 py-4'>
+          <div className='text-center'>
+            <div className='mb-2 text-sm font-semibold uppercase tracking-wide text-purple-700'>
+              Card PIN
+            </div>
+            <div className='text-3xl font-bold tracking-widest text-purple-900'>
+              {pin}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Status popup */}
       {(actionStatus === 'success' || actionStatus === 'error') && (

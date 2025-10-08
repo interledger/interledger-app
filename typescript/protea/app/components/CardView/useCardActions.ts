@@ -3,26 +3,20 @@ import { CardStatus } from '~/generated/connect/backend/v1/backend_pb'
 import { decryptWithPrivateKey } from '~/lib/crypto'
 import { useCardProcessorApi } from '~/lib/gatehub/hooks/useCardProcessorApiClient'
 import {
-  StorableCard as Card,
-  CardProcessorSensitiveDataResponse
+  CardProcessorPinResponse,
+  CardProcessorSensitiveDataResponse,
+  StorableCard
 } from '~/lib/gatehub/types'
 import { useKeyGeneration } from '~/lib/useKeyGeneration'
 import { ActionStatus, useActionExecute } from './useActionExecute'
 
-// export interface Card {
-//   id: string
-//   nameOnCard: string
-//   maskedPan: string
-//   expiryDate: string
-//   status: number
-//   lockLevel: number
-// }
-
 interface UseCardActionsReturn {
   showSensitiveData: boolean
+  showPin: boolean
   isLocked: boolean
   isBlocked: boolean
   sensitiveData: CardProcessorSensitiveDataResponse
+  pin: string
   actionStatus: ActionStatus
   toggleSensitiveDataOff: (onSuccess?: () => void) => void
   toggleSensitiveDataOn: (onSuccess?: () => void) => void
@@ -32,7 +26,7 @@ interface UseCardActionsReturn {
 }
 
 const getDefaultSensitiveData = (
-  card: Card
+  card: StorableCard
 ): CardProcessorSensitiveDataResponse => {
   return {
     Pan: card.maskedPan,
@@ -41,34 +35,38 @@ const getDefaultSensitiveData = (
   }
 }
 
-const isLocked = (card: Card): boolean => {
+const isLocked = (card: StorableCard): boolean => {
   return card.lockLevel !== 'CARD_LOCK_LEVEL_UNKNOWN'
 }
 
-const isBlocked = (card: Card): boolean => {
+const isBlocked = (card: StorableCard): boolean => {
   return (
     card.status === CardStatus.BLOCKED ||
     card.status === CardStatus.TEMPORARY_BLOCKED
   )
 }
 
-export const useCardActions = (card: Card): UseCardActionsReturn => {
+export const useCardActions = (card: StorableCard): UseCardActionsReturn => {
   const [showSensitiveData, setShowSensitiveData] = useState(false)
+  const [showPin, setShowPin] = useState(false)
   const [isFrozenState, setIsFrozenState] = useState(isLocked(card))
   const [isBlockedState, setIsBlockedState] = useState(isBlocked(card))
   const { actionStatus, executeAction, resetStatus } = useActionExecute()
   const [sensitiveData, setSensitiveData] = useState(
     getDefaultSensitiveData(card)
   )
+  const [pin, setPin] = useState('****')
   const { keyPair } = useKeyGeneration()
   const { cardProcessorClient } = useCardProcessorApi()
 
   // Reset when switching cards
   useEffect(() => {
     setShowSensitiveData(false)
+    setShowPin(false)
     setIsFrozenState(isLocked(card))
     setIsBlockedState(isBlocked(card))
     setSensitiveData(getDefaultSensitiveData(card))
+    setPin('****')
     resetStatus()
   }, [card])
 
@@ -172,18 +170,85 @@ export const useCardActions = (card: Card): UseCardActionsReturn => {
     })
   }
 
+  const toggleViewPin = async () => {
+    if (showPin) {
+      // Hide PIN
+      executeAction({
+        execute: async () => {
+          await new Promise((resolve) => setTimeout(resolve, 500))
+        },
+        onSuccess: () => {
+          setShowPin(false)
+          setPin('****')
+        },
+        onError: (error) => {
+          console.error('Failed to hide PIN:', error)
+        }
+      })
+    } else {
+      // Show PIN
+      executeAction({
+        execute: async () => {
+          console.log('🔑 Getting PIN change token')
+
+          // 1. Request JWT token for PIN change
+          const jwtTokenResponse =
+            await cardProcessorClient.tokens.getPinShowToken()
+          const jwtToken = jwtTokenResponse.data.token
+          const href = jwtTokenResponse.data.links[0].href
+          const method = jwtTokenResponse.data.links[0].method
+          console.log('🔑 PIN JWT token', jwtToken)
+          console.log('🔑 Method', method)
+          console.log('🔑 Rel', jwtTokenResponse.data.links[0].rel)
+          console.log('🔑 Href', href)
+
+          // 2. Request encrypted PIN with JWT token
+          const encryptedPinData = await cardProcessorClient.cards.getPin({
+            jwtToken,
+            cardProcessorUrl: href,
+            httpMethod: method
+          })
+          console.log('🔑 Encrypted PIN data', encryptedPinData)
+
+          // 3. Decrypt PIN using private key
+          console.log(
+            '🔑 Decrypting PIN using private key',
+            keyPair?.privateKey
+          )
+          const decryptedPinData =
+            await decryptWithPrivateKey<CardProcessorPinResponse>(
+              keyPair!.privateKey,
+              encryptedPinData.data.cypher
+            )
+          console.log('🔑 Decrypted PIN data', decryptedPinData)
+
+          setPin(decryptedPinData.pin)
+        },
+        onSuccess: () => {
+          setShowPin(true)
+          console.log('✅ toggleViewPin success')
+        },
+        onError: (error) => {
+          console.error('❌ Failed to view PIN:', error)
+          setShowPin(true)
+          setPin('****')
+        }
+      })
+    }
+  }
+
   return {
     showSensitiveData,
+    showPin,
     isLocked: isFrozenState,
     isBlocked: isBlockedState,
     sensitiveData,
+    pin,
     actionStatus,
     toggleSensitiveDataOff,
     toggleSensitiveDataOn,
     toggleLock,
     toggleUnlock,
-    toggleViewPin: () => {
-      console.log('🔑 Viewing PIN')
-    }
+    toggleViewPin
   }
 }
