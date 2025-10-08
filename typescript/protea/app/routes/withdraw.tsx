@@ -58,7 +58,7 @@ export async function loader(args: LoaderFunctionArgs) {
   if (isConnectError(providerResponse)) throw providerResponse.error
   
   const { kycStatus } = await getKycStatus(args.request)
-  if (kycStatus != KycStatus.Approved || kycStatus != KycStatus.Level1 || kycStatus != KycStatus.Level2)
+  if (kycStatus != KycStatus.Approved)
     return redirect(route('/personal-details'))
   
   if (providerResponse.provider == 'gatehub') {

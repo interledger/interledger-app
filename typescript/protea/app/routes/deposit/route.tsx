@@ -37,7 +37,7 @@ export async function loader(args: LoaderFunctionArgs) {
       return redirect('/login')
     }
     const { kycStatus } = await getKycStatus(args.request)
-    if (kycStatus != KycStatus.Approved || KycStatus.Level1 || KycStatus.Level2)
+    if (kycStatus != KycStatus.Approved)
       return redirect(route('/personal-details'))
   
   const providerResponse = await grpc.getOnOffRampProvider(args.request, {})
