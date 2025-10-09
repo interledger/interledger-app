@@ -57,7 +57,7 @@ export async function hasTotpOnboarded(session: Session): Promise<boolean> {
 
 
 // create a server function that will return true if the user has a totp enabled
-export async function isTotpSet(session:Session , headers: Headers): Promise<boolean> {
+export async function isTotpSet(session:Session, headers: Headers): Promise<boolean> {
   
   try {
     const response = await fetch(`${KRATOS_URL}/admin/identities/${session.identity.id}`, {
@@ -91,13 +91,7 @@ export async function requestTOTP(request: Request): Promise<void> {
   const url = new URL(request.url);
   const redirectTo = url.pathname + url.search;
   const session = await response.json();
-  const hasTotp = await isTotpSet(session, request.headers)
-  if (!hasTotp) {
-    throw redirect(`/totp/two-factor-authentication?refresh=true&redirectTo=${encodeURIComponent(redirectTo)}`, {
-      headers: request.headers
-    });
-
-  }
+  await ensureTOTP(session, request.headers, redirectTo)
   const tooOld =
     Date.now() - new Date(session.authenticated_at).getTime() > 30*1000;
   if (tooOld) {
@@ -108,3 +102,11 @@ export async function requestTOTP(request: Request): Promise<void> {
     }
   }
 
+export async function ensureTOTP(session: Session ,headers: Headers, redirectTo: string): Promise<void> {
+  const hasTotp = await isTotpSet(session, headers)
+  if (!hasTotp) {
+    throw redirect(`/totp/two-factor-authentication?refresh=true&redirectTo=${encodeURIComponent(redirectTo)}`, {
+      headers: headers
+    });
+  }
+}
