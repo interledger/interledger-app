@@ -1,6 +1,6 @@
-import { redirect} from '@remix-run/node'
-import { KRATOS_URL } from './kratos.server'
 import type { Session } from '@ory/kratos-client'
+import { redirect } from '@remix-run/node'
+import { KRATOS_URL } from './kratos.server'
 
 /**
  * Routes that do not require TOTP enabled check when user is logged in
@@ -8,7 +8,12 @@ import type { Session } from '@ory/kratos-client'
 export const NON_TOTP_ROUTES = [
   '/totp/two-factor-authentication',
   '/totp/challenge',
-  '/settings'
+  '/settings',
+  '/login',
+  '/login/challenge',
+  '/signup',
+  '/recovery',
+  '/verification'
 ]
 
 /**
@@ -46,28 +51,22 @@ export async function isTotpAvailable(request: Request): Promise<boolean> {
 }
 
 // create a server function that will return true if the user has a totp enabled
-export async function hasTotpOnboarded(session: Session): Promise<boolean> {
+export async function isTotpSet(
+  session: Session,
+  headers: Headers
+): Promise<boolean> {
   try {
-    return session?.authenticator_assurance_level === 'aal2'
-  } catch (error) {
-    console.error('Error checking if TOTP is enabled:', error)
-    return false
-  }
-}
-
-
-// create a server function that will return true if the user has a totp enabled
-export async function isTotpSet(session:Session, headers: Headers): Promise<boolean> {
-  
-  try {
-    const response = await fetch(`${KRATOS_URL}/admin/identities/${session.identity.id}`, {
-      headers: headers
-    });
+    const response = await fetch(
+      `${KRATOS_URL}/admin/identities/${session.identity.id}`,
+      {
+        headers: headers
+      }
+    )
     if (!response.ok) {
-      throw new Error(`Failed to fetch identity`);
+      throw new Error(`Failed to fetch identity`)
     }
-    const identity = await response.json();
-    return !!identity.credentials?.totp;
+    const identity = await response.json()
+    return !!identity.credentials?.totp
   } catch (error) {
     console.error('Error checking if TOTP is enabled:', error)
     return false
@@ -76,37 +75,50 @@ export async function isTotpSet(session:Session, headers: Headers): Promise<bool
 
 /**
  * Redirects to /totp/challenge if the session is too old (more than 30 seconds since authentication)
- * @param request 
+ * @param request
  * @returns void
  * @throws redirect to /totp/challenge if the session is too old
- */ 
+ */
 export async function requestTOTP(request: Request): Promise<void> {
   const response = await fetch(`${KRATOS_URL}/sessions/whoami`, {
     headers: request.headers
-  });
+  })
   if (!response.ok) {
-    throw new Error('Failed to fetch session information');
+    throw new Error('Failed to fetch session information')
   }
 
-  const url = new URL(request.url);
-  const redirectTo = url.pathname + url.search;
-  const session = await response.json();
+  const url = new URL(request.url)
+  const redirectTo = url.pathname + url.search
+  const session = await response.json()
   await ensureTOTP(session, request.headers, redirectTo)
   const tooOld =
-    Date.now() - new Date(session.authenticated_at).getTime() > 30*1000;
+    Date.now() - new Date(session.authenticated_at).getTime() > 30 * 1000
   if (tooOld) {
-      throw redirect(`/totp/challenge?refresh=true&redirectTo=${encodeURIComponent(redirectTo)}`, {
+    throw redirect(
+      `/totp/challenge?refresh=true&redirectTo=${encodeURIComponent(
+        redirectTo
+      )}`,
+      {
         headers: request.headers
-      });
-  
-    }
+      }
+    )
   }
+}
 
-export async function ensureTOTP(session: Session ,headers: Headers, redirectTo: string): Promise<void> {
+export async function ensureTOTP(
+  session: Session,
+  headers: Headers,
+  redirectTo: string
+): Promise<void> {
   const hasTotp = await isTotpSet(session, headers)
   if (!hasTotp) {
-    throw redirect(`/totp/two-factor-authentication?refresh=true&redirectTo=${encodeURIComponent(redirectTo)}`, {
-      headers: headers
-    });
+    throw redirect(
+      `/totp/two-factor-authentication?refresh=true&redirectTo=${encodeURIComponent(
+        redirectTo
+      )}`,
+      {
+        headers: headers
+      }
+    )
   }
 }

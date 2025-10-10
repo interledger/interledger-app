@@ -22,11 +22,11 @@ import clsx from 'clsx'
 import type { ReactNode } from 'react'
 import { AnchorRouter, Error, LiveReload } from '~/components'
 import { Scaffold } from '~/components/Scaffold'
-import { hasUserSession } from '~/lib/kratos.server'
+import { getUserSession, hasUserSession } from '~/lib/kratos.server'
 import { getSnackbar } from '~/lib/snackbar.server'
 import styles from '~/styles/app.css'
 import { getFeatures } from './data/wallet.server'
-import { NON_TOTP_ROUTES, isTotpAvailable } from './lib/totp.server'
+import { NON_TOTP_ROUTES, isTotpSet } from './lib/totp.server'
 
 const metaContent = {
   title: 'Interledger Wallet',
@@ -143,13 +143,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
     }
   }
 
-  // if (isUser) {
-  //   const totpAvailable = await isTotpAvailable(request)
-  //   if (totpAvailable && !NON_TOTP_ROUTES.includes(pathname)) {
-  //     console.log('💕 redirecting to 2fa flow in root.tsx')
-  //     return redirect('/totp/two-factor-authentication')
-  //   }
-  // }
+  if (isUser && !NON_TOTP_ROUTES.includes(pathname)) {
+    const session = await getUserSession(request)
+    const totpAvailable = await isTotpSet(session, request.headers)
+    if (!totpAvailable) {
+      return redirect('/totp/two-factor-authentication')
+    }
+  }
 
   return json({
     isUser,
