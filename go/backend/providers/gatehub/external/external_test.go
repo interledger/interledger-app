@@ -14,10 +14,10 @@ import (
 
 func TestClient(t *testing.T) {
 	env.SetEnv(t, "local")
-	if os.Getenv("GATEHUB_APP_ID") == "" || os.Getenv("GATEHUB_SECRET") == "" {
+	if os.Getenv("GATEHUB_APP_ID") == "" || os.Getenv("GATEHUB_SECRET") == "" || os.Getenv("GATEHUB_APP_ID") == "" {
 		t.SkipNow()
 	}
-	c := external.NewClient(os.Getenv("GATEHUB_APP_ID"), os.Getenv("GATEHUB_CARD_APP_ID"), os.Getenv("GATEHUB_SECRET"), os.Getenv("GATEHUB_GATEWAY_ID"), nil)
+	c := external.NewClient(os.Getenv("GATEHUB_APP_ID"), os.Getenv("GATEHUB_SECRET"), os.Getenv("GATEHUB_CARD_APP_ID"), os.Getenv("GATEHUB_GATEWAY_ID"), nil)
 
 	ctx := context.Background()
 	sendingExternalUserID := "66f1427e-43e4-48a0-9692-190c24d75058"
@@ -45,7 +45,7 @@ func TestUser(t *testing.T) {
 	if os.Getenv("GATEHUB_APP_ID") == "" || os.Getenv("GATEHUB_SECRET") == "" {
 		t.SkipNow()
 	}
-	c := external.NewClient(os.Getenv("GATEHUB_APP_ID"), os.Getenv("GATEHUB_CARD_APP_ID"), os.Getenv("GATEHUB_SECRET"), os.Getenv("GATEHUB_GATEWAY_ID"), nil)
+	c := external.NewClient(os.Getenv("GATEHUB_APP_ID"), os.Getenv("GATEHUB_SECRET"), os.Getenv("GATEHUB_CARD_APP_ID"), os.Getenv("GATEHUB_GATEWAY_ID"), nil)
 	ctx := context.Background()
 
 	userID := "66f1427e-43e4-48a0-9692-190c24d75058"

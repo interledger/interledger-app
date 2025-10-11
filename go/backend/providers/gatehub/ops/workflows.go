@@ -59,14 +59,13 @@ func CreateGatehubUserWorkflow(ctx workflow.Context, walletID string) (string, e
 func LinkGatehubUserToGatewayWorkflow(ctx workflow.Context, externalUserID string) error {
 	var a *Activity
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: 10 * time.Second,
+		StartToCloseTimeout: 30 * time.Second,
 	}
 
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
 	logger := workflow.GetLogger(ctx)
 	logger.Info("Link gatehub user to gateway.")
-
 	err := workflow.ExecuteActivity(ctx, a.LinkGatehubUserToGateway, externalUserID).Get(ctx, nil)
 	if err != nil {
 		return err

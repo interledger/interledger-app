@@ -34,8 +34,8 @@ type Activity struct {
 func NewActivity(b Backends) *Activity {
 	ec := external.NewClient(
 		os.Getenv("GATEHUB_APP_ID"),
-		os.Getenv("GATEHUB_CARD_APP_ID"),
 		os.Getenv("GATEHUB_SECRET"),
+		os.Getenv("GATEHUB_CARD_APP_ID"),
 		os.Getenv("GATEHUB_GATEWAY_ID"),
 		&http.Client{
 			Transport: otelhttp.NewTransport(
@@ -434,15 +434,6 @@ func (a *Activity) CheckGatehubWithdrawalComplete(ctx context.Context, walletID,
 	return nil
 }
 
-func (a *Activity) LinkGatehubUserToGateway(ctx context.Context, externalUser string) error {
-	err := a.external.LinkUserToGateway(ctx, externalUser)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (a *Activity) CreateNewDeliveryAddress(ctx context.Context, userID, customerID string, args external.CreateCustomerDeliveryAddressArgs) (string, error) {
 	id, err := a.external.CreateCustomerDeliveryAddress(ctx, userID, customerID, args)
 	if err != nil {
@@ -499,4 +490,25 @@ func (a *Activity) IsCustomerCreated(ctx context.Context, userID string) (bool, 
 func (a *Activity) SendCardCreatedEmail(ctx context.Context, walletID, cardID string) error {
 	a.b.Email().SendCardCreatedEmail(ctx, walletID, cardID)
 	return nil
+}
+
+func (a *Activity) LinkGatehubUserToGateway(ctx context.Context, externalUser string) error {
+	return a.external.LinkUserToGateway(ctx, externalUser)
+}
+
+func (a *Activity) GetLinkedAccount(ctx context.Context, walletID string) (linkedaccounts.LinkedAccount, error) {
+	var linkedAccount linkedaccounts.LinkedAccount
+	la, err := a.b.LinkedAccounts().ListByWalletId(ctx, walletID)
+	if err != nil {
+		return linkedAccount, err
+	}
+
+	for _, l := range la {
+		if l.Provider == gatehub.ProviderName && l.Type == gatehub.AccTypeBalance {
+			linkedAccount = l
+			break
+		}
+	}
+
+	return linkedAccount, nil
 }
