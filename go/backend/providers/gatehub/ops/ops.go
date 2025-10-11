@@ -749,3 +749,28 @@ func GetCardToken(ctx context.Context, b Backends, ec external.Client, args gate
 		PublicKey: args.PublicKey,
 	})
 }
+
+func FreezeCard(ctx context.Context, b Backends, ec external.Client, args gatehub.FreezeCardArgs) error {
+	return ec.FreezeCard(ctx, args.UserID, args.CardID, external.FreezeCardArgs{
+		ReasonCode: args.ReasonCode,
+		Note:       args.Note,
+	})
+}
+
+func UnfreezeCard(ctx context.Context, b Backends, ec external.Client, args gatehub.UnfreezeCardArgs) error {
+	return ec.UnfreezeCard(ctx, args.UserID, args.CardID, external.UnfreezeCardArgs{
+		Note: args.Note,
+	})
+}
+
+func BlockCard(ctx context.Context, b Backends, ec external.Client, args gatehub.BlockCardArgs) error {
+	return ec.BlockCard(ctx, args.UserID, args.CardID, external.BlockCardArgs{
+		ReasonCode: args.ReasonCode,
+	})
+}
+
+func CloseCard(ctx context.Context, b Backends, ec external.Client, args gatehub.CloseCardArgs) error {
+	return ec.CloseCard(ctx, args.UserID, args.CardID, external.CloseCardArgs{
+		ReasonCode: args.ReasonCode,
+	})
+}

@@ -21,6 +21,10 @@ type Client interface {
 	CreateCustomerAndCard(ctx context.Context, userID string, args CreateCustomerAndCardArgs) (*Customer, error)
 	CreatePlasticForCard(ctx context.Context, userID, cardID string) error
 	GetCardToken(ctx context.Context, userID, tokenPath string, args GetCardTokenArgs) (*TokenResponse, error)
+	FreezeCard(ctx context.Context, userID, cardID string, args FreezeCardArgs) error
+	UnfreezeCard(ctx context.Context, userID, cardID string, args UnfreezeCardArgs) error
+	BlockCard(ctx context.Context, userID, cardID string, args BlockCardArgs) error
+	CloseCard(ctx context.Context, userID, cardID string, args CloseCardArgs) error
 	GetVaultID() string
 	LinkUserToGateway(ctx context.Context, gatehubUserID string) error
 }

@@ -181,6 +181,26 @@ service BackendService {
   rpc GetCardOrderOptions(Empty) returns (GetCardOrderOptionsResponse);
   rpc OrderCard(OrderCardRequest) returns (Empty);
   rpc GetCardToken(GetCardTokenRequest) returns (GetCardTokenResponse);
+  rpc FreezeCard(FreezeCardRequest) returns (Empty);
+  rpc UnfreezeCard(UnfreezeCardRequest) returns (Empty);
+  rpc BlockCard(BlockCardRequest) returns (Empty);
+  rpc CloseCard(CloseCardRequest) returns (Empty);
+}
+
+message FreezeCardRequest {
+  string cardId = 1;
+}
+
+message UnfreezeCardRequest {
+  string cardId = 1;
+}
+
+message BlockCardRequest {
+  string cardId = 1;
+}
+
+message CloseCardRequest {
+  string cardId = 1;
 }
 
 enum CardTokenType {

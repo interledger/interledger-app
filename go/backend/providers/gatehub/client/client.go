@@ -117,3 +117,19 @@ func (c Client) LinkUserToGatewayByExternalID(ctx context.Context, externalID st
 func (c Client) GetCardToken(ctx context.Context, args gatehub.GetCardTokenArgs) (*external.TokenResponse, error) {
 	return ops.GetCardToken(ctx, c.b, c.external, args)
 }
+
+func (c Client) FreezeCard(ctx context.Context, args gatehub.FreezeCardArgs) error {
+	return ops.FreezeCard(ctx, c.b, c.external, args)
+}
+
+func (c Client) UnfreezeCard(ctx context.Context, args gatehub.UnfreezeCardArgs) error {
+	return ops.UnfreezeCard(ctx, c.b, c.external, args)
+}
+
+func (c Client) BlockCard(ctx context.Context, args gatehub.BlockCardArgs) error {
+	return ops.BlockCard(ctx, c.b, c.external, args)
+}
+
+func (c Client) CloseCard(ctx context.Context, args gatehub.CloseCardArgs) error {
+	return ops.CloseCard(ctx, c.b, c.external, args)
+}

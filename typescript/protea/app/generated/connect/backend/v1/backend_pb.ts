@@ -369,6 +369,154 @@ export class Empty extends Message<Empty> {
 }
 
 /**
+ * @generated from message backend.v1.FreezeCardRequest
+ */
+export class FreezeCardRequest extends Message<FreezeCardRequest> {
+  /**
+   * @generated from field: string cardId = 1;
+   */
+  cardId = "";
+
+  constructor(data?: PartialMessage<FreezeCardRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.FreezeCardRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "cardId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): FreezeCardRequest {
+    return new FreezeCardRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): FreezeCardRequest {
+    return new FreezeCardRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): FreezeCardRequest {
+    return new FreezeCardRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: FreezeCardRequest | PlainMessage<FreezeCardRequest> | undefined, b: FreezeCardRequest | PlainMessage<FreezeCardRequest> | undefined): boolean {
+    return proto3.util.equals(FreezeCardRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.UnfreezeCardRequest
+ */
+export class UnfreezeCardRequest extends Message<UnfreezeCardRequest> {
+  /**
+   * @generated from field: string cardId = 1;
+   */
+  cardId = "";
+
+  constructor(data?: PartialMessage<UnfreezeCardRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.UnfreezeCardRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "cardId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UnfreezeCardRequest {
+    return new UnfreezeCardRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): UnfreezeCardRequest {
+    return new UnfreezeCardRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): UnfreezeCardRequest {
+    return new UnfreezeCardRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: UnfreezeCardRequest | PlainMessage<UnfreezeCardRequest> | undefined, b: UnfreezeCardRequest | PlainMessage<UnfreezeCardRequest> | undefined): boolean {
+    return proto3.util.equals(UnfreezeCardRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.BlockCardRequest
+ */
+export class BlockCardRequest extends Message<BlockCardRequest> {
+  /**
+   * @generated from field: string cardId = 1;
+   */
+  cardId = "";
+
+  constructor(data?: PartialMessage<BlockCardRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.BlockCardRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "cardId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): BlockCardRequest {
+    return new BlockCardRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): BlockCardRequest {
+    return new BlockCardRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): BlockCardRequest {
+    return new BlockCardRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: BlockCardRequest | PlainMessage<BlockCardRequest> | undefined, b: BlockCardRequest | PlainMessage<BlockCardRequest> | undefined): boolean {
+    return proto3.util.equals(BlockCardRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.CloseCardRequest
+ */
+export class CloseCardRequest extends Message<CloseCardRequest> {
+  /**
+   * @generated from field: string cardId = 1;
+   */
+  cardId = "";
+
+  constructor(data?: PartialMessage<CloseCardRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.CloseCardRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "cardId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CloseCardRequest {
+    return new CloseCardRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CloseCardRequest {
+    return new CloseCardRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CloseCardRequest {
+    return new CloseCardRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CloseCardRequest | PlainMessage<CloseCardRequest> | undefined, b: CloseCardRequest | PlainMessage<CloseCardRequest> | undefined): boolean {
+    return proto3.util.equals(CloseCardRequest, a, b);
+  }
+}
+
+/**
  * @generated from message backend.v1.TokenLink
  */
 export class TokenLink extends Message<TokenLink> {

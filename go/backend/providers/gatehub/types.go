@@ -28,7 +28,7 @@ const (
 	CardStatusAccountBlocked   = "AccountBlocked"
 	CardStatusInCreation       = "InCreation"
 
-	CardStatusReasonCodeClientRequestLock             = "ClientRequestLock"
+	CardStatusReasonCodeClientRequestedLock           = "ClientRequestedLock"
 	CardStatusReasonCodeLostCard                      = "LostCard"
 	CardStatusReasonCodeStolenCard                    = "StolenCard"
 	CardStatusReasonCodeIssuerRequestGeneral          = "IssuerRequestGeneral"
@@ -138,4 +138,29 @@ type GetCardTokenArgs struct {
 	CardID    string
 	TokenType string
 	PublicKey *string
+}
+
+type FreezeCardArgs struct {
+	UserID     string
+	CardID     string
+	ReasonCode string
+	Note       *string
+}
+
+type UnfreezeCardArgs struct {
+	UserID string
+	CardID string
+	Note   *string
+}
+
+type BlockCardArgs struct {
+	UserID     string
+	CardID     string
+	ReasonCode string
+}
+
+type CloseCardArgs struct {
+	UserID     string
+	CardID     string
+	ReasonCode string
 }
