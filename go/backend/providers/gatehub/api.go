@@ -18,10 +18,10 @@ type Client interface {
 	CreateTransfer(ctx context.Context, args CreateTransferArgs) (*external.Transaction, error)
 	GetTransaction(ctx context.Context, walletID, id string) (*external.Transaction, error)
 	ListDeliveryAddresses(ctx context.Context, walletID string) ([]external.CustomerDeliveryAddress, error)
-	IsCustomer(ctx context.Context, walletID string) (bool, error)
-	ListCards(ctx context.Context, walletID string) ([]external.Card, error)
+	ListCards(ctx context.Context, externalIDs ExternalIDs) ([]external.Card, error)
 	GetCardApplicationProducts(ctx context.Context) ([]external.CardApplicationProduct, error)
 	OrderCard(ctx context.Context, args OrderCardArgs) error
+	GetExternalIDs(ctx context.Context, walletID string) (*ExternalIDs, error)
 
 	ReserveBalance(ctx context.Context, linkedAccountID, txID string, amt currency.Amount, timeout time.Duration) (*Balance, error)
 	FinaliseReserve(ctx context.Context, txID string) error

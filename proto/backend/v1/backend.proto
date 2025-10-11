@@ -178,9 +178,15 @@ service BackendService {
 
   // Cards
   rpc ListCards(Empty) returns (ListCardsResponse);
-  rpc GetCustomerDeliveryAddresses(Empty) returns (GetCustomerDeliveryAddressesResponse);
-  rpc GetCardApplicationProducts(Empty) returns (GetCardApplicationProductsResponse);
+  rpc GetCardOrderOptions(Empty) returns (GetCardOrderOptionsResponse);
   rpc OrderCard(OrderCardRequest) returns (Empty);
+}
+
+message GetCardOrderOptionsResponse {
+  bool waitingForCreation = 1;
+  repeated CardApplicationProduct products = 2;;
+  repeated CustomerDeliveryAddress addresses = 3;;
+  repeated Country countries = 4;
 }
 
 message OrderCardRequest {
@@ -188,8 +194,8 @@ message OrderCardRequest {
   string cardProductCode = 2;
 
   oneof deliveryAddress {
-    string id = 3;
-    NewCustomerDeliveryAddress newAddress = 4;
+    string deliveryAddressId = 3;
+    NewCustomerDeliveryAddress newDeliveryAddress = 4;
   }
 }
 
@@ -198,12 +204,8 @@ message CardApplicationProduct {
   string name = 2;
 }
 
-message GetCardApplicationProductsResponse {
-  repeated CardApplicationProduct products = 1;
-}
-
 enum CustomerDeliveryAddressType {
-  CUSTOMER_DELIVERY_ADDRESS_TYPE_OTHER = 0;
+  CUSTOMER_DELIVERY_ADDRESS_OTHER = 0;
   CUSTOMER_DELIVERY_ADDRESS_PERMANENT_RESIDENCE = 1;
   CUSTOMER_DELIVERY_ADDRESS_TEMPORARY_RESIDENCE = 2;
   CUSTOMER_DELIVERY_ADDRESS_WORK = 3;
@@ -218,6 +220,7 @@ message CustomerDeliveryAddressBase {
   optional string postOffice = 6;
   string city = 7;
   string zipCode = 8;
+  string reason = 9;
 }
 
 message CustomerDeliveryAddress {
@@ -228,10 +231,6 @@ message CustomerDeliveryAddress {
 message NewCustomerDeliveryAddress {
   CustomerDeliveryAddressBase details = 1;
   string reason = 2;
-}
-
-message GetCustomerDeliveryAddressesResponse {
-  repeated CustomerDeliveryAddress deliveryAddresses = 1;
 }
 
 enum CardType {
@@ -253,25 +252,27 @@ enum CardStatus {
 
 enum CardStatusReasonCode {
   CARD_STATUS_REASON_CODE_UNKNOWN = 0;
-  CARD_STATUS_REASON_CODE_CLIENT_REQUESTED_LOCK = 1;
-  CARD_STATUS_REASON_CODE_LOST_CARD = 2;
-  CARD_STATUS_REASON_CODE_STOLEN_CARD = 3;
-  CARD_STATUS_REASON_CODE_ISSUER_REQUEST_GENERAL = 4;
-  CARD_STATUS_REASON_CODE_ISSUER_REQUEST_FRAUD = 5;
-  CARD_STATUS_REASON_CODE_ISSUER_REQUEST_LEGAL = 6;
-  CARD_STATUS_REASON_CODE_ISSUER_REQUEST_INCORRECT_OPENING = 7;
-  CARD_STATUS_REASON_CODE_CARD_DAMAGED_OR_NOT_WORKING = 8;
-  CARD_STATUS_REASON_CODE_USER_REQUEST = 9;
-  CARD_STATUS_REASON_CODE_ISSUER_REQUEST_CUSTOMER_DECEASED = 10;
-  CARD_STATUS_REASON_CODE_PRODUCT_DOES_NOT_RENEW = 11;
-  CARD_STATUS_REASON_CODE_PRODUCT_CHANGE = 12;
-  CARD_STATUS_REASON_CODE_RENEWED = 13;
+  CARD_STATUS_REASON_CODE_NONE = 1;
+  CARD_STATUS_REASON_CODE_CLIENT_REQUESTED_LOCK = 2;
+  CARD_STATUS_REASON_CODE_LOST_CARD = 3;
+  CARD_STATUS_REASON_CODE_STOLEN_CARD = 4;
+  CARD_STATUS_REASON_CODE_ISSUER_REQUEST_GENERAL = 5;
+  CARD_STATUS_REASON_CODE_ISSUER_REQUEST_FRAUD = 6;
+  CARD_STATUS_REASON_CODE_ISSUER_REQUEST_LEGAL = 7;
+  CARD_STATUS_REASON_CODE_ISSUER_REQUEST_INCORRECT_OPENING = 8;
+  CARD_STATUS_REASON_CODE_CARD_DAMAGED_OR_NOT_WORKING = 9;
+  CARD_STATUS_REASON_CODE_USER_REQUEST = 10;
+  CARD_STATUS_REASON_CODE_ISSUER_REQUEST_CUSTOMER_DECEASED = 11;
+  CARD_STATUS_REASON_CODE_PRODUCT_DOES_NOT_RENEW = 12;
+  CARD_STATUS_REASON_CODE_PRODUCT_CHANGE = 13;
+  CARD_STATUS_REASON_CODE_RENEWED = 14;
 }
 
 enum CardLockLevel {
   CARD_LOCK_LEVEL_UNKNOWN = 0;
-  CARD_LOCK_LEVEL_CLIENT = 1;
-  CARD_LOCK_LEVEL_ADMIN = 2;
+  CARD_LOCK_LEVEL_NONE = 1;
+  CARD_LOCK_LEVEL_CLIENT = 2;
+  CARD_LOCK_LEVEL_ADMIN = 3;
 }
 
 message Card {
@@ -279,13 +280,15 @@ message Card {
   string nameOnCard = 2;
   string maskedPan = 3;
   CardStatus status = 4;
-  optional CardStatusReasonCode statusReasonCode = 5;
-  optional CardLockLevel lockLevel = 6;
+  CardStatusReasonCode statusReasonCode = 5;
+  CardLockLevel lockLevel = 6;
   string expiryDate = 7;
+  CardType type = 8;
 }
 
 message ListCardsResponse {
-  repeated Card cards = 1;
+  bool waitingForCreation = 1;
+  repeated Card cards = 2;
 }
 
 message CreateChimoneyDepositRequest {

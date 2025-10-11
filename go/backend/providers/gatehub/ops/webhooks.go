@@ -71,15 +71,16 @@ type (
 		TrxID       string `json:"tx_uuid"`
 	}
 
-	CardWebhookData struct {
-		UUID        string   `json:"uuid"`
-		Timestamp   string   `json:"timestamp"`
-		EventType   string   `json:"event_type"`
-		UserUUID    string   `json:"user_uuid"`
-		Environment string   `json:"environment"`
-		Data        CardData `json:"data"`
+	CardCreatedWebhook struct {
+		UUID        string                 `json:"uuid"`
+		Timestamp   string                 `json:"timestamp"`
+		EventType   string                 `json:"event_type"`
+		UserUUID    string                 `json:"user_uuid"`
+		Environment string                 `json:"environment"`
+		Data        CardCreatedWebhookData `json:"data"`
 	}
-	CardData struct {
+
+	CardCreatedWebhookData struct {
 		CardID           string  `json:"cardId"`
 		CardSourceID     string  `json:"cardSourceId"`
 		NameOnCard       string  `json:"nameOnCard"`
@@ -168,29 +169,49 @@ func NewWebhook(b Backends) http.HandlerFunc {
 	}
 }
 
-func HandleCardCreatedWebhook(context context.Context, b Backends, raw json.RawMessage, w http.ResponseWriter) {
-	slack.SendToChannel(context, slack.ChannelNotifyEvents, "wallet-info-bot", fmt.Sprintf("gatehub card created webhook: %s", string(raw)))
-	// Update Cards status in gatehub_cards to ActionRequired
-	var cardData CardWebhookData
-	err := json.Unmarshal(raw, &cardData)
-	if err != nil {
-		log.Error("gatehub webhook: Failed to unmarshal card created webhook", zap.String("customer source id", cardData.Data.CardSourceID), zap.Error(err))
-		return
-	}
-	id, err := GetGatehubUsersId(context, b, cardData.Data.CustomerSourceID, cardData.Data.AccountSourceID)
-	if err != nil {
-		log.Error("Failed to get gatehub_users id", zap.String("external_user_id", cardData.Data.CustomerID), zap.Error(err))
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
+func HandleCardCreatedWebhook(ctx context.Context, b Backends, raw json.RawMessage, w http.ResponseWriter) {
+	var wh CardCreatedWebhook
 
-	}
-	err = UpdateGateHubUserExternalIDs(context, b, cardData.Data.CustomerID, cardData.Data.AccountID, id)
+	err := json.Unmarshal(raw, &wh)
 	if err != nil {
-		log.Error("Failed to update gatehub_cards with external_user_id", zap.String("external_user_id", cardData.Data.CustomerID), zap.Error(err))
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		log.Error("gatehub webhook: Failed to unmarshal card created webhook", zap.String("customer source id", wh.Data.CardSourceID), zap.Error(err))
 		return
 	}
-	// TODO ORDER PLASTIC if needed
+
+	wo := client.StartWorkflowOptions{
+		ID:                    "gatehub_card_created_webhook_" + wh.UUID,
+		TaskQueue:             "backend",
+		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
+	}
+
+	var workflowStatus enums.WorkflowExecutionStatus
+
+	wflow, err := b.Temporal().DescribeWorkflowExecution(ctx, wo.ID, "")
+	switch err.(type) {
+	case *serviceerror.Internal,
+		*serviceerror.Unavailable,
+		*serviceerror.InvalidArgument:
+
+		log.Warn("failed to handle gatehub card created webhook", zap.Error(err))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	case *serviceerror.NotFound:
+		// do nothing
+	default:
+		if wflow != nil {
+			workflowStatus = wflow.GetWorkflowExecutionInfo().Status
+		}
+	}
+
+	if workflowStatus != enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
+		_, err = b.Temporal().ExecuteWorkflow(ctx, wo, ProcessCardCreationWorkflow, wh)
+		if err != nil {
+			log.Warn("failed to handle gatehub card created webhook", zap.Error(err))
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	}
+
 	w.WriteHeader(http.StatusOK)
 }
 

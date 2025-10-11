@@ -265,134 +265,128 @@ type (
 		TotalPages uint `json:"totalPages"`
 	}
 
+	CardApplicationProduct struct {
+		Code string `json:"code"`
+		Name string `json:"name"`
+	}
+
+	Card struct {
+		ID                         string  `json:"id"`
+		SourceID                   string  `json:"sourceId"`
+		AccountID                  string  `json:"accountId"`
+		AccountSourceID            string  `json:"accountSourceId"`
+		CustomerID                 string  `json:"customerId"`
+		CustomerSourceID           string  `json:"customerSourceId"`
+		NameOnCard                 string  `json:"nameOnCard"`
+		ProductCode                string  `json:"productCode"`
+		PanToken                   string  `json:"panToken"`
+		MaskedPan                  string  `json:"maskedPan"`
+		Status                     string  `json:"status"`
+		StatusReasonCode           *string `json:"statusReasonCode"`
+		LockLevel                  *string `json:"lockLevel"`
+		ExpiryDate                 string  `json:"expiryDate"`
+		RelationType               string  `json:"relationType"`
+		MembershipFeeEffectiveDate *string `json:"membershipFeeEffectiveDate"`
+		IsFirstTimeLock            bool    `json:"isFirstTimeLock"`
+		PlasticCreated             bool    `json:"plasticCreated"`
+		OrderPlasticOnSync         bool    `json:"OrderPlasticOnSync"`
+	}
+
+	Account struct {
+		ID               *string `json:"id"`
+		SourceID         string  `json:"sourceId"`
+		CustomerID       *string `json:"customerId"`
+		CustomerSourceID string  `json:"customerSourceId"`
+		ProductCode      string  `json:"productCode"`
+		Currency         string  `json:"currency"`
+		AccountNumber    string  `json:"accountNumber"`
+		Type             string  `json:"type"`
+		Status           string  `json:"status"`
+		StatusReasonCode string  `json:"statusReasonCode"` // TODO: Enum?
+		Cards            []Card  `json:"cards"`
+	}
+
+	Customer struct {
+		ID        *string                   `json:"id"`
+		SourceID  string                    `json:"sourceId"`
+		Type      string                    `json:"type"`
+		Code      string                    `json:"code"`
+		TaxNumber string                    `json:"taxNumber"`
+		KYCStatus string                    `json:"kycStatus"` // TODO: IS THIS NEEDED?
+		Addresses []CustomerDeliveryAddress `json:"addresses"`
+		Accounts  []Account                 `json:"accounts"`
+	}
+
+	CustomerResponse struct {
+		WalletAddress string   `json:"walletAddress"`
+		Customer      Customer `json:"customers"`
+	}
+
+	CreateCustomerDeliveryAddressArgs struct {
+		Type        string  `json:"type"`
+		CountryCode string  `json:"countryCode"`
+		Line1       string  `json:"line1"`
+		Line2       *string `json:"line2"`
+		Line3       *string `json:"line3"`
+		City        string  `json:"city"`
+		PostOffice  *string `json:"postOffice"`
+		ZipCode     string  `json:"zipCode"`
+		Reason      string  `json:"reason"`
+	}
+
 	CustomerDeliveryAddress struct {
 		ID               string  `json:"id"`
 		SourceID         string  `json:"sourceId"`
 		CustomerID       string  `json:"customerId"`
 		CustomerSourceID string  `json:"customerSourceId"`
 		Type             string  `json:"type"`
-		Status           string  `json:"status"`
 		Line1            string  `json:"line1"`
 		Line2            *string `json:"line2"`
 		Line3            *string `json:"line3"`
-		PostOffice       *string `json:"postOffice"`
 		City             string  `json:"city"`
-		CountryCode      string  `json:"countryCode"`
+		PostOffice       *string `json:"postOffice"`
 		ZipCode          string  `json:"zipCode"`
-		ManagedAddress   bool    `json:"managedAddress"`
-	}
-
-	Card struct {
-		ID                         string  `json:"id"`
-		SourceID                   string  `json:"sourceId"`
-		NameOnCard                 string  `json:"nameOnCard"`
-		AccountID                  string  `json:"accountId"`
-		AccountSourceID            string  `json:"accountSourceId"`
-		MaskedPan                  string  `json:"maskedPan"`
-		Status                     string  `json:"status"`
-		StatusReasonCode           *string `json:"statusReasonCode"`
-		LockLevel                  *string `json:"lockLevel"`
-		ExpiryDate                 string  `json:"expiryDate"`
-		CustomerID                 string  `json:"customerId"`
-		CustomerSourceID           string  `json:"customerSourceId"`
-		RelationType               string  `json:"relationType"`
-		EmbossingData              *string `json:"embossingData"`
-		MembershipFeeEffectiveDate *string `json:"membershipFeeEffectiveDate"`
-		ProductCode                string  `json:"productCode"`
+		CountryCode      string  `json:"countryCode"`
+		Status           string  `json:"status"`
 	}
 
 	ListCardsResponse struct {
 		Data       []Card     `json:"data"`
 		Pagination Pagination `json:"pagination"`
 	}
+	NewCardArgs struct {
+		ProductCode string `json:"productCode"`
 
-	CardApplicationProduct struct {
-		Code string `json:"code"`
-		Name string `json:"name"`
+		addons any // TODO
+		limits any // TODO
+	}
+	CardAccount struct {
+		ProductCode string      `json:"productCode"`
+		Currency    string      `json:"currency"`
+		Card        NewCardArgs `json:"card"`
+	}
+
+	CreateCustomerAndCardArgs struct {
+		WalletAddress string      `json:"walletAddress"`
+		Account       CardAccount `json:"account"`
+		Delivery      string      `json:"delivery,omitempty"`
+		NameOnCard    string      `json:"nameOnCard"`
+	}
+
+	OrderCardArgs struct {
+		Currency          string      `json:"currency"`
+		ProductCode       string      `json:"productCode"`
+		NameOnCard        string      `json:"nameOnCard"`
+		DeliveryAddressID *string     `json:"deliveryAddressId,omitempty"`
+		WalletAddress     string      `json:"walletAddress"`
+		Card              NewCardArgs `json:"card"`
 	}
 )
 
-// added from response
-type CustomerCreatedResponse struct {
-	WalletAddress string   `json:"walletAddress"`
-	Customer      Customer `json:"customers"`
+func (ca *CardAccount) WithAccountProductCode(productCode string) {
+	ca.ProductCode = productCode
 }
 
-type Customer struct {
-	SourceID  string    `json:"sourceId"`
-	TaxNumber string    `json:"taxNumber"`
-	Addresses []Address `json:"addresses"`
-	ID        *string   `json:"id"`
-	Type      string    `json:"type"`
-	Code      string    `json:"code"`
-	Accounts  []Account `json:"accounts"`
-	KYCStatus string    `json:"kycStatus"`
-}
-
-type Address struct {
-	SourceID    string  `json:"sourceId"`
-	Line2       *string `json:"line2"`
-	PostOffice  string  `json:"postOffice"`
-	ID          *string `json:"id"`
-	Type        string  `json:"type"`
-	CountryCode string  `json:"countryCode"`
-	Line1       string  `json:"line1"`
-	City        string  `json:"city"`
-	ZipCode     string  `json:"zipCode"`
-}
-
-type Account struct {
-	Type             string         `json:"type"`
-	ProductCode      string         `json:"productCode"`
-	Status           string         `json:"status"`
-	SourceID         string         `json:"sourceId"`
-	Currency         string         `json:"currency"`
-	CustomerID       *string        `json:"customerId"`
-	ID               *string        `json:"id"`
-	CustomerSourceID string         `json:"customerSourceId"`
-	Cards            []CustomerCard `json:"cards"`
-}
-
-type CustomerCard struct {
-	SourceID           string  `json:"sourceId"`
-	NameOnCard         string  `json:"nameOnCard"`
-	ID                 *string `json:"id"`
-	AccountID          *string `json:"accountId"`
-	AccountSourceID    string  `json:"accountSourceId"`
-	MaskedPan          *string `json:"maskedPan"`
-	Status             string  `json:"status"`
-	StatusReasonCode   *string `json:"statusReasonCode"`
-	LockLevel          *string `json:"lockLevel"`
-	CustomerID         *string `json:"customerId"`
-	CustomerSourceID   string  `json:"customerSourceId"`
-	OrderPlasticOnSync bool    `json:"orderPlasticOnSync"`
-	ProductCode        string  `json:"productCode"`
-	IsFirstTimeLock    bool    `json:"isFirstTimeLock"`
-	PlasticCreated     bool    `json:"plasticCreated"`
-}
-
-type CardType string
-
-const (
-	Virtual  CardType = "Virtual"
-	Physical CardType = "Physical"
-)
-
-type CreateCardDTO struct {
-	SourceID        string
-	AccountSourceID string
-	CardType        CardType
-}
-
-type GateHubCard struct {
-	ProductCode string `json:"productCode"`
-}
-type CardAccount struct {
-	ProductCode string      `json:"productCode"`
-	Card        GateHubCard `json:"card"`
-}
-
-type CreateCard struct {
-	WalletAddress string      `json:"walletAddress"`
-	Account       CardAccount `json:"account"`
+func (a *OrderCardArgs) WithAccountProductCode(productCode string) {
+	a.ProductCode = productCode
 }

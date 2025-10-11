@@ -2,20 +2,20 @@ package grpc
 
 import (
 	"context"
+	"errors"
+	"slices"
+	"strings"
+	"sync"
 
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/providers/gatehub"
-	"gitlab.com/fynbos/env"
+	"gitlab.com/fynbos/backend/providers/gatehub/external"
 	"gitlab.com/fynbos/log"
 	pb "gitlab.com/fynbos/proto/backend/v1"
 	"go.uber.org/zap"
 )
 
-func (s *rpcService) GetCustomerDeliveryAddresses(ctx context.Context, req *pb.Empty) (*pb.GetCustomerDeliveryAddressesResponse, error) {
-	if !env.IsLocal() {
-		return nil, ForbiddenError("Unauthorized.")
-	}
-
+func (s *rpcService) GetCardOrderOptions(ctx context.Context, req *pb.Empty) (*pb.GetCardOrderOptionsResponse, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, UnauthenticatedError("Unauthenticated.")
@@ -39,72 +39,120 @@ func (s *rpcService) GetCustomerDeliveryAddresses(ctx context.Context, req *pb.E
 		return nil, ForbiddenError("Wallet cards not enabled")
 	}
 
-	isCustomer, err := s.b.Gatehub().IsCustomer(ctx, wallet.ID)
+	user, err := s.b.Gatehub().GetExternalIDs(ctx, wallet.ID)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
 
-	if !isCustomer {
-		user, err := s.b.Gatehub().GetUser(ctx, wallet.ID)
-		if err != nil {
-			return nil, toGRPCError(err)
-		}
-
-		// TODO(@radu): How should we handle temporary residence?
-		return &pb.GetCustomerDeliveryAddressesResponse{
-			DeliveryAddresses: []*pb.CustomerDeliveryAddress{
-				{
-					Id: "kyc-address",
-					Details: &pb.CustomerDeliveryAddressBase{
-						Type:        pb.CustomerDeliveryAddressType_CUSTOMER_DELIVERY_ADDRESS_PERMANENT_RESIDENCE,
-						CountryCode: user.Profile.AddressCountryCode,
-						Line1:       user.Profile.AddressStreet1,
-						Line2:       &user.Profile.AddressStreet2,
-						Line3:       nil,
-						PostOffice:  nil,
-						City:        user.Profile.AddressCity,
-						ZipCode:     user.Profile.AddressPostalCode,
-					},
-				},
-			},
+	if user.IsPendingExternalCreation() {
+		return &pb.GetCardOrderOptionsResponse{
+			WaitingForCreation: true,
+			Products:           []*pb.CardApplicationProduct{},
+			Addresses:          []*pb.CustomerDeliveryAddress{},
+			Countries:          []*pb.Country{},
 		}, nil
 	}
 
-	addrs, err := s.b.Gatehub().ListDeliveryAddresses(ctx, wallet.ID)
-	if err != nil {
+	ret := &pb.GetCardOrderOptionsResponse{
+		Countries: country.GetGRPCCountries(),
+	}
+
+	var (
+		ghUser   *gatehub.User
+		products []external.CardApplicationProduct
+		addrs    []external.CustomerDeliveryAddress
+	)
+
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	var (
+		wg       sync.WaitGroup
+		once     sync.Once
+		firstErr error
+	)
+
+	fail := func(e error) {
+		if e == nil {
+			return
+		}
+		once.Do(func() {
+			firstErr = e
+			cancel() // cancel other goroutines immediately
+		})
+	}
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		p, e := s.b.Gatehub().GetCardApplicationProducts(ctx)
+		if e != nil {
+			fail(e)
+			return
+		}
+		products = p
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		if !user.IsCustomerCreated() {
+			u, e := s.b.Gatehub().GetUser(ctx, wallet.ID)
+			if e != nil {
+				fail(e)
+				return
+			}
+			ghUser = u
+		} else {
+			addrsList, e := s.b.Gatehub().ListDeliveryAddresses(ctx, wallet.ID)
+			if e != nil {
+				fail(e)
+				return
+			}
+			addrs = addrsList
+		}
+	}()
+
+	wg.Wait()
+
+	if firstErr != nil {
 		return nil, toGRPCError(err)
 	}
 
-	var res = []*pb.CustomerDeliveryAddress{}
-	for _, a := range addrs {
-		addr := newDeliveryAddress(a)
-		res = append(res, &addr)
+	if !user.IsCustomerCreated() && ghUser != nil {
+		ret.Addresses = []*pb.CustomerDeliveryAddress{
+			{
+				Id: "kyc-address",
+				Details: &pb.CustomerDeliveryAddressBase{
+					Type:        pb.CustomerDeliveryAddressType_CUSTOMER_DELIVERY_ADDRESS_PERMANENT_RESIDENCE,
+					CountryCode: ghUser.Profile.AddressCountryCode,
+					Line1:       ghUser.Profile.AddressStreet1,
+					Line2:       &ghUser.Profile.AddressStreet2,
+					Line3:       nil,
+					PostOffice:  nil,
+					City:        ghUser.Profile.AddressCity,
+					ZipCode:     ghUser.Profile.AddressPostalCode,
+				},
+			},
+		}
+	} else {
+		for _, a := range addrs {
+			addr := newDeliveryAddress(a)
+			ret.Addresses = append(ret.Addresses, &addr)
+		}
 	}
 
-	return &pb.GetCustomerDeliveryAddressesResponse{DeliveryAddresses: res}, nil
-}
-
-func (s *rpcService) GetCardApplicationProducts(ctx context.Context, req *pb.Empty) (*pb.GetCardApplicationProductsResponse, error) {
-	products, err := s.b.Gatehub().GetCardApplicationProducts(ctx)
-	if err != nil {
-		return nil, toGRPCError(err)
-	}
-
-	var res = []*pb.CardApplicationProduct{}
 	for _, p := range products {
-		res = append(res, &pb.CardApplicationProduct{Name: p.Name, Code: p.Code})
+		ret.Products = append(ret.Products, &pb.CardApplicationProduct{
+			Name: p.Name,
+			Code: p.Code,
+		})
 	}
 
-	return &pb.GetCardApplicationProductsResponse{
-		Products: res,
-	}, nil
+	return ret, nil
 }
 
 func (s *rpcService) ListCards(ctx context.Context, req *pb.Empty) (*pb.ListCardsResponse, error) {
-	if !env.IsLocal() {
-		return nil, ForbiddenError("Unauthorized.")
-	}
-
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, UnauthenticatedError("Unauthenticated.")
@@ -128,13 +176,28 @@ func (s *rpcService) ListCards(ctx context.Context, req *pb.Empty) (*pb.ListCard
 		return nil, ForbiddenError("Wallet cards not enabled")
 	}
 
-	cards, err := s.b.Gatehub().ListCards(ctx, wallet.ID)
+	externalIDs, err := s.b.Gatehub().GetExternalIDs(ctx, wallet.ID)
+	if err != nil {
+		return nil, FailedPreconditionError("Could not retrieve external IDs")
+	}
+
+	if externalIDs.IsPendingExternalCreation() {
+		return &pb.ListCardsResponse{
+			WaitingForCreation: true,
+			Cards:              []*pb.Card{},
+		}, nil
+	}
+
+	cards, err := s.b.Gatehub().ListCards(ctx, *externalIDs)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
 
 	var res = []*pb.Card{}
-	for _, c := range cards {
+
+	// By default, the cards are ordered by the created time in ASC order.
+	// Here we reverse, to have the oldest cards first in the list.
+	for _, c := range slices.Backward(cards) {
 		card := newCard(c)
 		res = append(res, &card)
 	}
@@ -160,32 +223,82 @@ func (s *rpcService) OrderCard(ctx context.Context, req *pb.OrderCardRequest) (*
 		return nil, FailedPreconditionError("Wallet not in the EU region")
 	}
 
-	args := gatehub.OrderCardArgs{
-		WalletID: wallet.ID,
+	externalIDs, err := s.b.Gatehub().GetExternalIDs(ctx, wallet.ID)
+	if err != nil {
+		return nil, FailedPreconditionError("Could not retrieve external IDs")
 	}
-	//
-	// if req.GetDeliveryAddressId() != "" && req.GetNewDeliveryAddress() != nil {
-	// 	return nil, toGRPCError(errors.New("please only provide the delivery address or a new delivery address"))
-	// }
-	//
-	// if req.GetNewDeliveryAddress() != nil {
-	// 	args.NewDeliveryAddress = &gatehub.NewCustomerDeliveryAddressArgs{
-	// 		Type:        req.NewDeliveryAddress.Type.String(),
-	// 		CountryCode: req.NewDeliveryAddress.CountryCode,
-	// 		Line1:       req.NewDeliveryAddress.Line1,
-	// 		Line2:       req.NewDeliveryAddress.Line2,
-	// 		Line3:       req.NewDeliveryAddress.Line3,
-	// 		City:        req.NewDeliveryAddress.City,
-	// 		PostOffice:  req.NewDeliveryAddress.PostOffice,
-	// 		ZipCode:     req.NewDeliveryAddress.ZipCode,
-	// 		Reason:      req.NewDeliveryAddress.Reason,
-	// 	}
-	// }
-	//
-	// err = s.b.Gatehub().OrderCard(ctx, args)
-	// if err != nil {
-	// 	return nil, toGRPCError(err)
-	// }
+
+	if externalIDs.IsPendingExternalCreation() {
+		return nil, FailedPreconditionError("Attempted to order a new card for a pending customer")
+	}
+
+	args := gatehub.OrderCardArgs{
+		Wallet:          *wallet,
+		ExternalIDs:     *externalIDs,
+		CardProductCode: req.CardProductCode,
+	}
+
+	switch req.Type {
+	case pb.CardType_CARD_TYPE_PHYSICAL:
+		args.ShouldOrderPlastic = true
+	case pb.CardType_CARD_TYPE_VIRTUAL:
+		args.ShouldOrderPlastic = false
+	default:
+		return nil, toGRPCError(errors.New("received unknown card type"))
+	}
+
+	// We only need to process the delivery address if the user wants a physical card
+	if args.ShouldOrderPlastic {
+		addrID := req.GetDeliveryAddressId()
+		newAddr := req.GetNewDeliveryAddress()
+
+		if !externalIDs.IsCustomerCreated() && addrID != "" {
+			return nil, toGRPCError(errors.New("attempted to order card for non-customer with a delivery address id"))
+		}
+
+		if addrID != "" && newAddr != nil {
+			return nil, toGRPCError(errors.New("received delivery address id and new delivery address. only one should be present"))
+		}
+
+		if newAddr != nil {
+			if newAddr.Details.Type != pb.CustomerDeliveryAddressType_CUSTOMER_DELIVERY_ADDRESS_OTHER && newAddr.Details.Type != pb.CustomerDeliveryAddressType_CUSTOMER_DELIVERY_ADDRESS_WORK {
+				return nil, toGRPCError(errors.New("invalid delivery address type. expected other or work"))
+			}
+
+			countryCode := country.ToAlpha3(newAddr.Details.CountryCode)
+
+			if countryCode == "" {
+				return nil, toGRPCError(errors.New("could not find ISO3166 alpha-3 country code"))
+			}
+
+			args.NewDeliveryAddress = &gatehub.NewCustomerDeliveryAddressArgs{
+				CountryCode: countryCode,
+				Line1:       newAddr.Details.Line1,
+				Line2:       newAddr.Details.Line2,
+				Line3:       newAddr.Details.Line3,
+				City:        newAddr.Details.City,
+				PostOffice:  newAddr.Details.PostOffice,
+				ZipCode:     newAddr.Details.ZipCode,
+				Reason:      newAddr.Reason,
+			}
+
+			switch newAddr.Details.Type {
+			case pb.CustomerDeliveryAddressType_CUSTOMER_DELIVERY_ADDRESS_WORK:
+				args.NewDeliveryAddress.Type = gatehub.DeliveryAddressWork
+			case pb.CustomerDeliveryAddressType_CUSTOMER_DELIVERY_ADDRESS_OTHER:
+				args.NewDeliveryAddress.Type = gatehub.DeliveryAddressOther
+			}
+
+			err := s.b.Validator().StructCtx(ctx, args.NewDeliveryAddress)
+
+			if err != nil {
+				return nil, toGRPCError(err)
+			}
+		} else {
+			args.DeliveryAddressID = &addrID
+		}
+
+	}
 
 	err = s.b.Gatehub().OrderCard(ctx, args)
 	if err != nil {
@@ -197,23 +310,24 @@ func (s *rpcService) OrderCard(ctx context.Context, req *pb.OrderCardRequest) (*
 
 func newCard(c gatehub.Card) pb.Card {
 	var status pb.CardStatus
-	statusReasonCode := pb.CardStatusReasonCode_CARD_STATUS_REASON_CODE_UNKNOWN
-	lockLevel := pb.CardLockLevel_CARD_LOCK_LEVEL_UNKNOWN
+	cardType := pb.CardType_CARD_TYPE_UNKNOWN
+	statusReasonCode := pb.CardStatusReasonCode_CARD_STATUS_REASON_CODE_NONE
+	lockLevel := pb.CardLockLevel_CARD_LOCK_LEVEL_NONE
 
 	switch c.Status {
-	case "Active":
+	case gatehub.CardStatusActive:
 		status = pb.CardStatus_CARD_STATUS_ACTIVE
-	case "Blocked":
+	case gatehub.CardStatusBlocked:
 		status = pb.CardStatus_CARD_STATUS_BLOCKED
-	case "TemporaryBlocked":
+	case gatehub.CardStatusTemporaryBlocked:
 		status = pb.CardStatus_CARD_STATUS_TEMPORARY_BLOCKED
-	case "Replaced":
+	case gatehub.CardStatusReplaced:
 		status = pb.CardStatus_CARD_STATUS_REPLACED
-	case "SoftDelete":
+	case gatehub.CardStatusSoftDelete:
 		status = pb.CardStatus_CARD_STATUS_SOFT_DELETE
-	case "AccountBlocked":
+	case gatehub.CardStatusAccountBlocked:
 		status = pb.CardStatus_CARD_STATUS_ACCOUNT_BLOCKED
-	case "InCreation":
+	case gatehub.CardStatusInCreation:
 		status = pb.CardStatus_CARD_STATUS_IN_CREATION
 	default:
 		status = pb.CardStatus_CARD_STATUS_UNKNOWN
@@ -221,31 +335,31 @@ func newCard(c gatehub.Card) pb.Card {
 
 	if c.StatusReasonCode != nil {
 		switch *c.StatusReasonCode {
-		case "ClientRequestLock":
+		case gatehub.CardStatusReasonCodeClientRequestLock:
 			statusReasonCode = pb.CardStatusReasonCode_CARD_STATUS_REASON_CODE_CLIENT_REQUESTED_LOCK
-		case "LostCard":
+		case gatehub.CardStatusReasonCodeLostCard:
 			statusReasonCode = pb.CardStatusReasonCode_CARD_STATUS_REASON_CODE_LOST_CARD
-		case "StolenCard":
+		case gatehub.CardStatusReasonCodeStolenCard:
 			statusReasonCode = pb.CardStatusReasonCode_CARD_STATUS_REASON_CODE_STOLEN_CARD
-		case "IssuerRequestGeneral":
+		case gatehub.CardStatusReasonCodeIssuerRequestGeneral:
 			statusReasonCode = pb.CardStatusReasonCode_CARD_STATUS_REASON_CODE_ISSUER_REQUEST_GENERAL
-		case "IssuerRequestFraud":
+		case gatehub.CardStatusReasonCodeIssuerRequestFraud:
 			statusReasonCode = pb.CardStatusReasonCode_CARD_STATUS_REASON_CODE_ISSUER_REQUEST_FRAUD
-		case "IssuerRequestLegal":
+		case gatehub.CardStatusReasonCodeIssuerRequestLegal:
 			statusReasonCode = pb.CardStatusReasonCode_CARD_STATUS_REASON_CODE_ISSUER_REQUEST_LEGAL
-		case "IssuerRequestIncorrectOpening":
+		case gatehub.CardStatusReasonCodeIssuerRequestIncorrectOpening:
 			statusReasonCode = pb.CardStatusReasonCode_CARD_STATUS_REASON_CODE_ISSUER_REQUEST_INCORRECT_OPENING
-		case "CardDamagedOrNotWorking":
+		case gatehub.CardStatusReasonCodeCardDamagedOrNotWorking:
 			statusReasonCode = pb.CardStatusReasonCode_CARD_STATUS_REASON_CODE_CARD_DAMAGED_OR_NOT_WORKING
-		case "UserRequest":
+		case gatehub.CardStatusReasonCodeUserRequest:
 			statusReasonCode = pb.CardStatusReasonCode_CARD_STATUS_REASON_CODE_USER_REQUEST
-		case "IssuerRequestCustomerDeceased":
+		case gatehub.CardStatusReasonCodeIssuerRequestCustomerDeceased:
 			statusReasonCode = pb.CardStatusReasonCode_CARD_STATUS_REASON_CODE_ISSUER_REQUEST_CUSTOMER_DECEASED
-		case "ProductDoesNotRenew":
+		case gatehub.CardStatusReasonCodeProductDoesNotRenew:
 			statusReasonCode = pb.CardStatusReasonCode_CARD_STATUS_REASON_CODE_PRODUCT_DOES_NOT_RENEW
-		case "ProductChange":
+		case gatehub.CardStatusReasonCodeProductChange:
 			statusReasonCode = pb.CardStatusReasonCode_CARD_STATUS_REASON_CODE_PRODUCT_CHANGE
-		case "Renewed":
+		case gatehub.CardStatusReasonCodeRenewed:
 			statusReasonCode = pb.CardStatusReasonCode_CARD_STATUS_REASON_CODE_RENEWED
 		default:
 			log.Warn("received unknown card status reason code", zap.String("statusReasonCode", *c.StatusReasonCode))
@@ -254,18 +368,25 @@ func newCard(c gatehub.Card) pb.Card {
 
 	if c.LockLevel != nil {
 		switch *c.LockLevel {
-		case "Client":
+		case gatehub.CardLockLevelClient:
 			lockLevel = pb.CardLockLevel_CARD_LOCK_LEVEL_CLIENT
-		case "Admin":
+		case gatehub.CardLockLevelAdmin:
 			lockLevel = pb.CardLockLevel_CARD_LOCK_LEVEL_ADMIN
 		default:
 			log.Warn("received unknown card lock level", zap.String("lockLevel", *c.LockLevel))
 		}
 	}
 
+	if c.PlasticCreated {
+		cardType = pb.CardType_CARD_TYPE_PHYSICAL
+	} else {
+		cardType = pb.CardType_CARD_TYPE_VIRTUAL
+	}
+
 	return pb.Card{
 		Id:               c.ID,
-		NameOnCard:       c.NameOnCard,
+		NameOnCard:       strings.Replace(c.NameOnCard, gatehub.DollarSignPlaceholder, gatehub.DollarSign, 1),
+		Type:             cardType,
 		MaskedPan:        c.MaskedPan,
 		Status:           status,
 		ExpiryDate:       c.ExpiryDate,
@@ -278,22 +399,14 @@ func newDeliveryAddress(da gatehub.CustomerDeliveryAddress) pb.CustomerDeliveryA
 	var daType pb.CustomerDeliveryAddressType
 
 	switch da.Type {
-	case "PermanentResidence":
-		{
-			daType = pb.CustomerDeliveryAddressType_CUSTOMER_DELIVERY_ADDRESS_PERMANENT_RESIDENCE
-		}
-	case "TemporaryResidence":
-		{
-			daType = pb.CustomerDeliveryAddressType_CUSTOMER_DELIVERY_ADDRESS_TEMPORARY_RESIDENCE
-		}
-	case "Work":
-		{
-			daType = pb.CustomerDeliveryAddressType_CUSTOMER_DELIVERY_ADDRESS_WORK
-		}
-	case "Other":
-		{
-			daType = pb.CustomerDeliveryAddressType_CUSTOMER_DELIVERY_ADDRESS_TYPE_OTHER
-		}
+	case gatehub.DeliveryAddressPermanentResidence:
+		daType = pb.CustomerDeliveryAddressType_CUSTOMER_DELIVERY_ADDRESS_PERMANENT_RESIDENCE
+	case gatehub.DeliveryAddressTemporaryResidence:
+		daType = pb.CustomerDeliveryAddressType_CUSTOMER_DELIVERY_ADDRESS_TEMPORARY_RESIDENCE
+	case gatehub.DeliveryAddressWork:
+		daType = pb.CustomerDeliveryAddressType_CUSTOMER_DELIVERY_ADDRESS_WORK
+	case gatehub.DeliveryAddressOther:
+		daType = pb.CustomerDeliveryAddressType_CUSTOMER_DELIVERY_ADDRESS_OTHER
 	}
 
 	return pb.CustomerDeliveryAddress{
