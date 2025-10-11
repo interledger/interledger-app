@@ -125,6 +125,7 @@ const (
 	BackendService_ListCards_FullMethodName                      = "/backend.v1.BackendService/ListCards"
 	BackendService_GetCardOrderOptions_FullMethodName            = "/backend.v1.BackendService/GetCardOrderOptions"
 	BackendService_OrderCard_FullMethodName                      = "/backend.v1.BackendService/OrderCard"
+	BackendService_GetCardToken_FullMethodName                   = "/backend.v1.BackendService/GetCardToken"
 )
 
 // BackendServiceClient is the client API for BackendService service.
@@ -267,6 +268,7 @@ type BackendServiceClient interface {
 	ListCards(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListCardsResponse, error)
 	GetCardOrderOptions(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetCardOrderOptionsResponse, error)
 	OrderCard(ctx context.Context, in *OrderCardRequest, opts ...grpc.CallOption) (*Empty, error)
+	GetCardToken(ctx context.Context, in *GetCardTokenRequest, opts ...grpc.CallOption) (*GetCardTokenResponse, error)
 }
 
 type backendServiceClient struct {
@@ -1231,6 +1233,15 @@ func (c *backendServiceClient) OrderCard(ctx context.Context, in *OrderCardReque
 	return out, nil
 }
 
+func (c *backendServiceClient) GetCardToken(ctx context.Context, in *GetCardTokenRequest, opts ...grpc.CallOption) (*GetCardTokenResponse, error) {
+	out := new(GetCardTokenResponse)
+	err := c.cc.Invoke(ctx, BackendService_GetCardToken_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServiceServer is the server API for BackendService service.
 // All implementations should embed UnimplementedBackendServiceServer
 // for forward compatibility
@@ -1371,6 +1382,7 @@ type BackendServiceServer interface {
 	ListCards(context.Context, *Empty) (*ListCardsResponse, error)
 	GetCardOrderOptions(context.Context, *Empty) (*GetCardOrderOptionsResponse, error)
 	OrderCard(context.Context, *OrderCardRequest) (*Empty, error)
+	GetCardToken(context.Context, *GetCardTokenRequest) (*GetCardTokenResponse, error)
 }
 
 // UnimplementedBackendServiceServer should be embedded to have forward compatible implementations.
@@ -1694,6 +1706,9 @@ func (UnimplementedBackendServiceServer) GetCardOrderOptions(context.Context, *E
 }
 func (UnimplementedBackendServiceServer) OrderCard(context.Context, *OrderCardRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method OrderCard not implemented")
+}
+func (UnimplementedBackendServiceServer) GetCardToken(context.Context, *GetCardTokenRequest) (*GetCardTokenResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCardToken not implemented")
 }
 
 // UnsafeBackendServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -3615,6 +3630,24 @@ func _BackendService_OrderCard_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_GetCardToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCardTokenRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).GetCardToken(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_GetCardToken_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).GetCardToken(ctx, req.(*GetCardTokenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BackendService_ServiceDesc is the grpc.ServiceDesc for BackendService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -4045,6 +4078,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "OrderCard",
 			Handler:    _BackendService_OrderCard_Handler,
+		},
+		{
+			MethodName: "GetCardToken",
+			Handler:    _BackendService_GetCardToken_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

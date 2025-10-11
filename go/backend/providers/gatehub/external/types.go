@@ -381,6 +381,22 @@ type (
 		WalletAddress     string      `json:"walletAddress"`
 		Card              NewCardArgs `json:"card"`
 	}
+
+	GetCardTokenArgs struct {
+		CardID    string  `json:"cardId"`
+		PublicKey *string `json:"publicKey,omitempty"`
+	}
+
+	TokenLink struct {
+		Href   string `json:"href"`
+		Rel    string `json:"rel"`
+		Method string `json:"method"`
+	}
+
+	TokenResponse struct {
+		Token string      `json:"token"`
+		Links []TokenLink `json:"links"`
+	}
 )
 
 func (ca *CardAccount) WithAccountProductCode(productCode string) {

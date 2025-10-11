@@ -4,6 +4,8 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { BackendService } from "./backend";
+import type { GetCardTokenResponse } from "./backend";
+import type { GetCardTokenRequest } from "./backend";
 import type { OrderCardRequest } from "./backend";
 import type { GetCardOrderOptionsResponse } from "./backend";
 import type { ListCardsResponse } from "./backend";
@@ -626,6 +628,10 @@ export interface IBackendServiceClient {
      * @generated from protobuf rpc: OrderCard(backend.v1.OrderCardRequest) returns (backend.v1.Empty);
      */
     orderCard(input: OrderCardRequest, options?: RpcOptions): UnaryCall<OrderCardRequest, Empty>;
+    /**
+     * @generated from protobuf rpc: GetCardToken(backend.v1.GetCardTokenRequest) returns (backend.v1.GetCardTokenResponse);
+     */
+    getCardToken(input: GetCardTokenRequest, options?: RpcOptions): UnaryCall<GetCardTokenRequest, GetCardTokenResponse>;
 }
 /**
  * @generated from protobuf service backend.v1.BackendService
@@ -1437,5 +1443,12 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
     orderCard(input: OrderCardRequest, options?: RpcOptions): UnaryCall<OrderCardRequest, Empty> {
         const method = this.methods[105], opt = this._transport.mergeOptions(options);
         return stackIntercept<OrderCardRequest, Empty>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: GetCardToken(backend.v1.GetCardTokenRequest) returns (backend.v1.GetCardTokenResponse);
+     */
+    getCardToken(input: GetCardTokenRequest, options?: RpcOptions): UnaryCall<GetCardTokenRequest, GetCardTokenResponse> {
+        const method = this.methods[106], opt = this._transport.mergeOptions(options);
+        return stackIntercept<GetCardTokenRequest, GetCardTokenResponse>("unary", this._transport, method, opt, input);
     }
 }

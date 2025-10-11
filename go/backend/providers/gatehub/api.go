@@ -22,6 +22,7 @@ type Client interface {
 	GetCardApplicationProducts(ctx context.Context) ([]external.CardApplicationProduct, error)
 	OrderCard(ctx context.Context, args OrderCardArgs) error
 	GetExternalIDs(ctx context.Context, walletID string) (*ExternalIDs, error)
+	GetCardToken(ctx context.Context, args GetCardTokenArgs) (*external.TokenResponse, error)
 
 	ReserveBalance(ctx context.Context, linkedAccountID, txID string, amt currency.Amount, timeout time.Duration) (*Balance, error)
 	FinaliseReserve(ctx context.Context, txID string) error

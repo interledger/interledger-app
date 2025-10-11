@@ -180,6 +180,33 @@ service BackendService {
   rpc ListCards(Empty) returns (ListCardsResponse);
   rpc GetCardOrderOptions(Empty) returns (GetCardOrderOptionsResponse);
   rpc OrderCard(OrderCardRequest) returns (Empty);
+  rpc GetCardToken(GetCardTokenRequest) returns (GetCardTokenResponse);
+}
+
+enum CardTokenType {
+  CARD_TOKEN_TYPE_PIN = 0;
+  CARD_TOKEN_TYPE_PIN_CHANGE = 1;
+  CARD_TOKEN_TYPE_CARD_DATA = 2;
+  CARD_TOKEN_TYPE_APPLE_PROVISIONING = 3;
+  CARD_TOKEN_TYPE_GOOGLE_PROVISIONING = 4;
+  CARD_TOKEN_TYPE_DIGITALIZATION_PAI = 5;
+}
+
+message TokenLink {
+  string href = 1;
+  string rel = 2;
+  string method = 3;
+}
+
+message GetCardTokenRequest {
+  CardTokenType tokenType = 1;
+  string cardId = 2;
+  optional string publicKey = 3;
+}
+
+message GetCardTokenResponse {
+  string token = 1;
+  repeated TokenLink links = 2;
 }
 
 message GetCardOrderOptionsResponse {

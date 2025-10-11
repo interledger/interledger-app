@@ -7,6 +7,50 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
 
 /**
+ * @generated from enum backend.v1.CardTokenType
+ */
+export enum CardTokenType {
+  /**
+   * @generated from enum value: CARD_TOKEN_TYPE_PIN = 0;
+   */
+  PIN = 0,
+
+  /**
+   * @generated from enum value: CARD_TOKEN_TYPE_PIN_CHANGE = 1;
+   */
+  PIN_CHANGE = 1,
+
+  /**
+   * @generated from enum value: CARD_TOKEN_TYPE_CARD_DATA = 2;
+   */
+  CARD_DATA = 2,
+
+  /**
+   * @generated from enum value: CARD_TOKEN_TYPE_APPLE_PROVISIONING = 3;
+   */
+  APPLE_PROVISIONING = 3,
+
+  /**
+   * @generated from enum value: CARD_TOKEN_TYPE_GOOGLE_PROVISIONING = 4;
+   */
+  GOOGLE_PROVISIONING = 4,
+
+  /**
+   * @generated from enum value: CARD_TOKEN_TYPE_DIGITALIZATION_PAI = 5;
+   */
+  DIGITALIZATION_PAI = 5,
+}
+// Retrieve enum metadata with: proto3.getEnumType(CardTokenType)
+proto3.util.setEnumType(CardTokenType, "backend.v1.CardTokenType", [
+  { no: 0, name: "CARD_TOKEN_TYPE_PIN" },
+  { no: 1, name: "CARD_TOKEN_TYPE_PIN_CHANGE" },
+  { no: 2, name: "CARD_TOKEN_TYPE_CARD_DATA" },
+  { no: 3, name: "CARD_TOKEN_TYPE_APPLE_PROVISIONING" },
+  { no: 4, name: "CARD_TOKEN_TYPE_GOOGLE_PROVISIONING" },
+  { no: 5, name: "CARD_TOKEN_TYPE_DIGITALIZATION_PAI" },
+]);
+
+/**
  * @generated from enum backend.v1.CustomerDeliveryAddressType
  */
 export enum CustomerDeliveryAddressType {
@@ -321,6 +365,147 @@ export class Empty extends Message<Empty> {
 
   static equals(a: Empty | PlainMessage<Empty> | undefined, b: Empty | PlainMessage<Empty> | undefined): boolean {
     return proto3.util.equals(Empty, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.TokenLink
+ */
+export class TokenLink extends Message<TokenLink> {
+  /**
+   * @generated from field: string href = 1;
+   */
+  href = "";
+
+  /**
+   * @generated from field: string rel = 2;
+   */
+  rel = "";
+
+  /**
+   * @generated from field: string method = 3;
+   */
+  method = "";
+
+  constructor(data?: PartialMessage<TokenLink>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.TokenLink";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "href", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "rel", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "method", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TokenLink {
+    return new TokenLink().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): TokenLink {
+    return new TokenLink().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): TokenLink {
+    return new TokenLink().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: TokenLink | PlainMessage<TokenLink> | undefined, b: TokenLink | PlainMessage<TokenLink> | undefined): boolean {
+    return proto3.util.equals(TokenLink, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.GetCardTokenRequest
+ */
+export class GetCardTokenRequest extends Message<GetCardTokenRequest> {
+  /**
+   * @generated from field: backend.v1.CardTokenType tokenType = 1;
+   */
+  tokenType = CardTokenType.PIN;
+
+  /**
+   * @generated from field: string cardId = 2;
+   */
+  cardId = "";
+
+  /**
+   * @generated from field: optional string publicKey = 3;
+   */
+  publicKey?: string;
+
+  constructor(data?: PartialMessage<GetCardTokenRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.GetCardTokenRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "tokenType", kind: "enum", T: proto3.getEnumType(CardTokenType) },
+    { no: 2, name: "cardId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "publicKey", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetCardTokenRequest {
+    return new GetCardTokenRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetCardTokenRequest {
+    return new GetCardTokenRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetCardTokenRequest {
+    return new GetCardTokenRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetCardTokenRequest | PlainMessage<GetCardTokenRequest> | undefined, b: GetCardTokenRequest | PlainMessage<GetCardTokenRequest> | undefined): boolean {
+    return proto3.util.equals(GetCardTokenRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.GetCardTokenResponse
+ */
+export class GetCardTokenResponse extends Message<GetCardTokenResponse> {
+  /**
+   * @generated from field: string token = 1;
+   */
+  token = "";
+
+  /**
+   * @generated from field: repeated backend.v1.TokenLink links = 2;
+   */
+  links: TokenLink[] = [];
+
+  constructor(data?: PartialMessage<GetCardTokenResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.GetCardTokenResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "token", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "links", kind: "message", T: TokenLink, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetCardTokenResponse {
+    return new GetCardTokenResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetCardTokenResponse {
+    return new GetCardTokenResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetCardTokenResponse {
+    return new GetCardTokenResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetCardTokenResponse | PlainMessage<GetCardTokenResponse> | undefined, b: GetCardTokenResponse | PlainMessage<GetCardTokenResponse> | undefined): boolean {
+    return proto3.util.equals(GetCardTokenResponse, a, b);
   }
 }
 
@@ -680,14 +865,14 @@ export class Card extends Message<Card> {
   status = CardStatus.UNKNOWN;
 
   /**
-   * @generated from field: optional backend.v1.CardStatusReasonCode statusReasonCode = 5;
+   * @generated from field: backend.v1.CardStatusReasonCode statusReasonCode = 5;
    */
-  statusReasonCode?: CardStatusReasonCode;
+  statusReasonCode = CardStatusReasonCode.UNKNOWN;
 
   /**
-   * @generated from field: optional backend.v1.CardLockLevel lockLevel = 6;
+   * @generated from field: backend.v1.CardLockLevel lockLevel = 6;
    */
-  lockLevel?: CardLockLevel;
+  lockLevel = CardLockLevel.UNKNOWN;
 
   /**
    * @generated from field: string expiryDate = 7;
@@ -711,8 +896,8 @@ export class Card extends Message<Card> {
     { no: 2, name: "nameOnCard", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "maskedPan", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "status", kind: "enum", T: proto3.getEnumType(CardStatus) },
-    { no: 5, name: "statusReasonCode", kind: "enum", T: proto3.getEnumType(CardStatusReasonCode), opt: true },
-    { no: 6, name: "lockLevel", kind: "enum", T: proto3.getEnumType(CardLockLevel), opt: true },
+    { no: 5, name: "statusReasonCode", kind: "enum", T: proto3.getEnumType(CardStatusReasonCode) },
+    { no: 6, name: "lockLevel", kind: "enum", T: proto3.getEnumType(CardLockLevel) },
     { no: 7, name: "expiryDate", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 8, name: "type", kind: "enum", T: proto3.getEnumType(CardType) },
   ]);
