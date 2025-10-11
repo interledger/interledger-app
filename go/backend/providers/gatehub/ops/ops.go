@@ -674,7 +674,34 @@ func OrderCard(ctx context.Context, b Backends, ec external.Client, args gatehub
 	return nil
 }
 
-func LinkUserToGateHubGateway(ctx context.Context, b Backends, ec external.Client, walletID string) error {
+func updateCustomerSourceIDs(ctx context.Context, b Backends, userID, customerSourceID, accountSourceID string, shouldOrderPlastic bool) error {
+	_, err := b.DB().ExecContext(ctx, "UPDATE gatehub_users SET external_customer_source_id = $1, external_account_source_id = $2, is_first_card_plastic = $3 WHERE external_id = $4;", customerSourceID, accountSourceID, shouldOrderPlastic, userID)
+	if err != nil {
+		return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+	return nil
+}
+
+func updateCustomerIDsReturningPlasticFlag(ctx context.Context, b Backends, userID, customerID, accountID string) (sql.NullBool, error) {
+	var flag sql.NullBool
+	err := b.DB().GetContext(ctx, &flag, "UPDATE gatehub_users SET external_customer_id = $1, external_account_id = $2 WHERE external_id = $3 RETURNING is_first_card_plastic;", customerID, accountID, userID)
+	if err != nil {
+		return sql.NullBool{}, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	return flag, nil
+}
+
+func updateFirstCardProcessTime(ctx context.Context, b Backends, userID string) error {
+	_, err := b.DB().ExecContext(ctx, "UPDATE gatehub_users SET first_card_processed_at = NOW(), updated_at = NOW() WHERE external_id = $1", userID)
+	if err != nil {
+		return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	return nil
+}
+
+func LinkUserToGatewayByWalletID(ctx context.Context, b Backends, ec external.Client, walletID string) error {
 	wo := client.StartWorkflowOptions{
 		ID:                    "gatehub_link_user_to_gateway_" + walletID,
 		TaskQueue:             "backend",
@@ -712,29 +739,6 @@ func LinkUserToGateHubGateway(ctx context.Context, b Backends, ec external.Clien
 	return await.Get(ctx, nil)
 }
 
-func updateCustomerSourceIDs(ctx context.Context, b Backends, userID, customerSourceID, accountSourceID string, shouldOrderPlastic bool) error {
-	_, err := b.DB().ExecContext(ctx, "UPDATE gatehub_users SET external_customer_source_id = $1, external_account_source_id = $2, is_first_card_plastic = $3 WHERE external_id = $4;", customerSourceID, accountSourceID, shouldOrderPlastic, userID)
-	if err != nil {
-		return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
-	}
-	return nil
-}
-
-func updateCustomerIDsReturningPlasticFlag(ctx context.Context, b Backends, userID, customerID, accountID string) (sql.NullBool, error) {
-	var flag sql.NullBool
-	err := b.DB().GetContext(ctx, &flag, "UPDATE gatehub_users SET external_customer_id = $1, external_account_id = $2 WHERE external_id = $3 RETURNING is_first_card_plastic;", customerID, accountID, userID)
-	if err != nil {
-		return sql.NullBool{}, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
-	}
-
-	return flag, nil
-}
-
-func updateFirstCardProcessTime(ctx context.Context, b Backends, userID string) error {
-	_, err := b.DB().ExecContext(ctx, "UPDATE gatehub_users SET first_card_processed_at = NOW(), updated_at = NOW() WHERE external_id = $1", userID)
-	if err != nil {
-		return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
-	}
-
-	return nil
+func LinkUserToGatewayByExternalID(ctx context.Context, ec external.Client, externalID string) error {
+	return ec.LinkUserToGateway(ctx, externalID)
 }

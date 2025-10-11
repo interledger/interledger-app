@@ -144,5 +144,19 @@ func (m *MockClient) TestDeposit(ctx context.Context, reqStruct external.TestDep
 // TestDeposit indicates an expected call of TestDeposit.
 func (mr *MockClientMockRecorder) TestDeposit(ctx, reqStruct interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TestDeposit", reflect.TypeOf((*MockClient)(nil).TestDeposit), ctx, reqStruct)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TestDeposit", reflect.TypeOf((*MockClient)(nil).BankAccounts), ctx, reqStruct)
+}
+
+// BankAccounts mocks base method.
+func (m *MockClient) BankAccounts(ctx context.Context) (*[]external.Currency, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BankAccounts", ctx)
+	ret0, _ := ret[0].(error)
+	return nil, ret0
+}
+
+// BankAccounts indicates an expected call of TestDeposit.
+func (mr *MockClientMockRecorder) BankAccounts(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BankAccounts", reflect.TypeOf((*MockClient)(nil).BankAccounts), ctx)
 }

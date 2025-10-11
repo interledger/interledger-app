@@ -26,8 +26,8 @@ func New(b ops.Backends) *Client {
 		b: b,
 		external: external.NewClient(
 			os.Getenv("GATEHUB_APP_ID"),
-			os.Getenv("GATEHUB_CARD_APP_ID"),
 			os.Getenv("GATEHUB_SECRET"),
+			os.Getenv("GATEHUB_CARD_APP_ID"),
 			os.Getenv("GATEHUB_GATEWAY_ID"),
 			&http.Client{
 				Transport: otelhttp.NewTransport(
@@ -106,6 +106,10 @@ func (c Client) GetExternalIDs(ctx context.Context, walletID string) (*gatehub.E
 	return ops.GetExternalIDs(ctx, c.b, walletID)
 }
 
-func (c Client) LinkUserToGateHubGateway(ctx context.Context, walletID string) error {
-	return ops.LinkUserToGateHubGateway(ctx, c.b, c.external, walletID)
+func (c Client) LinkUserToGatewayByWalletID(ctx context.Context, walletID string) error {
+	return ops.LinkUserToGatewayByWalletID(ctx, c.b, c.external, walletID)
+}
+
+func (c Client) LinkUserToGatewayByExternalID(ctx context.Context, externalID string) error {
+	return ops.LinkUserToGatewayByExternalID(ctx, c.external, externalID)
 }

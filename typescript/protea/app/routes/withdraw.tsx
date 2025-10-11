@@ -38,6 +38,7 @@ import {
   getLinkedAccountsForWithdraw,
   type FormattedLinkedAccount
 } from '~/data/accounts.server'
+import { getKycStatus } from '~/data/wallet.server'
 import type {
   Balance,
   Amount as RpcAmount
@@ -50,11 +51,16 @@ import type { IframeMessage } from '~/lib/types'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { PaySelect } from '~/routes/pay_.$paymentId/PaySelect'
 import styles from '~/styles/flags.css'
+import { KycStatus } from './_index/route'
 
 export async function loader(args: LoaderFunctionArgs) {
   const providerResponse = await grpc.getOnOffRampProvider(args.request, {})
   if (isConnectError(providerResponse)) throw providerResponse.error
-
+  
+  const { kycStatus } = await getKycStatus(args.request)
+  if (kycStatus != KycStatus.Approved)
+    return redirect(route('/personal-details'))
+  
   if (providerResponse.provider == 'gatehub') {
     return gatehubWithdrawalLoader(args)
   } else return fynbosWithdrawalLoader(args)

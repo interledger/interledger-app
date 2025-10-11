@@ -46,6 +46,21 @@ func TestSaveUser(t *testing.T) {
 	assert.Equal(t, externalID, result)
 }
 
+func TestLinkGatehubUserToGateway(t *testing.T) {
+	b := Backends{
+		db:    db.MigrateTestDB(t, context.Background()),
+		users: user_mock.NewMock(),
+	}
+	a := ops.NewActivity(b)
+
+	walletID := uuid.NewString()
+	externalID := uuid.NewString()
+	err := a.SaveGatehubUser(context.Background(), walletID, externalID)
+	require.NoError(t, err)
+
+	return
+}
+
 type Backends struct {
 	db    *sqlx.DB
 	users *user_mock.MockClient
@@ -90,5 +105,9 @@ func (b Backends) Transactions() transactions.Client {
 }
 
 func (b Backends) Email() email.Client {
+	return nil
+}
+
+func (b Backends) LinkGatehubUserToGateway() transactions.Client {
 	return nil
 }
