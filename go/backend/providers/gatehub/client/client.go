@@ -113,3 +113,7 @@ func (c Client) LinkUserToGatewayByWalletID(ctx context.Context, walletID string
 func (c Client) LinkUserToGatewayByExternalID(ctx context.Context, externalID string) error {
 	return ops.LinkUserToGatewayByExternalID(ctx, c.external, externalID)
 }
+
+func (c Client) GetCardToken(ctx context.Context, args gatehub.GetCardTokenArgs) (*external.TokenResponse, error) {
+	return ops.GetCardToken(ctx, c.b, c.external, args)
+}

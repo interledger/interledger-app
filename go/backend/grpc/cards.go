@@ -308,6 +308,75 @@ func (s *rpcService) OrderCard(ctx context.Context, req *pb.OrderCardRequest) (*
 	return &pb.Empty{}, nil
 }
 
+func (s *rpcService) GetCardToken(ctx context.Context, req *pb.GetCardTokenRequest) (*pb.GetCardTokenResponse, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	wallet, err := s.b.Wallets().ForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	_, isEU := country.EUCountries[wallet.Country]
+	if !isEU {
+		return nil, FailedPreconditionError("Wallet not in the EU region")
+	}
+
+	externalIDs, err := s.b.Gatehub().GetExternalIDs(ctx, wallet.ID)
+	if err != nil {
+		return nil, FailedPreconditionError("Could not retrieve external IDs")
+	}
+
+	args := gatehub.GetCardTokenArgs{
+		UserID: externalIDs.UserID,
+		CardID: req.GetCardId(),
+	}
+
+	switch req.GetTokenType() {
+	case pb.CardTokenType_CARD_TOKEN_TYPE_CARD_DATA:
+		args.TokenType = gatehub.CardTokenTypeCardData
+	case pb.CardTokenType_CARD_TOKEN_TYPE_PIN:
+		args.TokenType = gatehub.CardTokenTypePin
+	case pb.CardTokenType_CARD_TOKEN_TYPE_APPLE_PROVISIONING:
+		args.TokenType = gatehub.CardTokenTypeAppleProvisioning
+	case pb.CardTokenType_CARD_TOKEN_TYPE_GOOGLE_PROVISIONING:
+		args.TokenType = gatehub.CardTokenTypeGoogleProvisioning
+	case pb.CardTokenType_CARD_TOKEN_TYPE_DIGITALIZATION_PAI:
+		args.TokenType = gatehub.CardTokenTypeDigitalizationPAI
+	case pb.CardTokenType_CARD_TOKEN_TYPE_PIN_CHANGE:
+		args.TokenType = gatehub.CardTokenTypePinChange
+	}
+
+	if args.TokenType == gatehub.CardTokenTypePinChange {
+		// Public Key is not needed for PIN change
+		args.PublicKey = nil
+	} else {
+		publicKey := req.GetPublicKey()
+		if publicKey == "" {
+			return nil, errors.New("publicKey is required for this token type")
+		}
+		args.PublicKey = &publicKey
+	}
+
+	res, err := s.b.Gatehub().GetCardToken(ctx, args)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	var links = []*pb.TokenLink{}
+	for _, l := range res.Links {
+		link := newLink(l)
+		links = append(links, &link)
+	}
+
+	return &pb.GetCardTokenResponse{
+		Token: res.Token,
+		Links: links,
+	}, nil
+}
+
 func newCard(c gatehub.Card) pb.Card {
 	var status pb.CardStatus
 	cardType := pb.CardType_CARD_TYPE_UNKNOWN
@@ -421,5 +490,13 @@ func newDeliveryAddress(da gatehub.CustomerDeliveryAddress) pb.CustomerDeliveryA
 			City:        da.City,
 			ZipCode:     da.ZipCode,
 		},
+	}
+}
+
+func newLink(l external.TokenLink) pb.TokenLink {
+	return pb.TokenLink{
+		Href:   l.Href,
+		Rel:    l.Rel,
+		Method: l.Method,
 	}
 }

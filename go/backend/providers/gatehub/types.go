@@ -42,6 +42,13 @@ const (
 	CardStatusReasonCodeProductChange                 = "ProductChange"
 	CardStatusReasonCodeRenewed                       = "Renewed"
 
+	CardTokenTypePin                string = "pin"
+	CardTokenTypePinChange          string = "pin-change"
+	CardTokenTypeCardData           string = "card-data"
+	CardTokenTypeAppleProvisioning  string = "apple-provisioning"
+	CardTokenTypeGoogleProvisioning string = "google-provisioning"
+	CardTokenTypeDigitalizationPAI  string = "pai"
+
 	CardLockLevelClient = "Client"
 	CardLockLevelAdmin  = "Admin"
 
@@ -124,4 +131,11 @@ type OrderCardArgs struct {
 	CardProductCode    string
 	DeliveryAddressID  *string
 	NewDeliveryAddress *NewCustomerDeliveryAddressArgs
+}
+
+type GetCardTokenArgs struct {
+	UserID    string
+	CardID    string
+	TokenType string
+	PublicKey *string
 }

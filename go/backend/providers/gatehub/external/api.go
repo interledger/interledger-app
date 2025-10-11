@@ -20,6 +20,7 @@ type Client interface {
 	OrderCard(ctx context.Context, userID, accountID string, args OrderCardArgs) (*Card, error)
 	CreateCustomerAndCard(ctx context.Context, userID string, args CreateCustomerAndCardArgs) (*Customer, error)
 	CreatePlasticForCard(ctx context.Context, userID, cardID string) error
+	GetCardToken(ctx context.Context, userID, tokenPath string, args GetCardTokenArgs) (*TokenResponse, error)
 	GetVaultID() string
-	LinkUserToGateway(ctx context.Context, gatehubUserId string) error
+	LinkUserToGateway(ctx context.Context, gatehubUserID string) error
 }

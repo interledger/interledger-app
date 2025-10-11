@@ -742,3 +742,10 @@ func LinkUserToGatewayByWalletID(ctx context.Context, b Backends, ec external.Cl
 func LinkUserToGatewayByExternalID(ctx context.Context, ec external.Client, externalID string) error {
 	return ec.LinkUserToGateway(ctx, externalID)
 }
+
+func GetCardToken(ctx context.Context, b Backends, ec external.Client, args gatehub.GetCardTokenArgs) (*external.TokenResponse, error) {
+	return ec.GetCardToken(ctx, args.UserID, args.TokenType, external.GetCardTokenArgs{
+		CardID:    args.CardID,
+		PublicKey: args.PublicKey,
+	})
+}
