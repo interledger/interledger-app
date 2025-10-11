@@ -393,7 +393,7 @@ func (a *Activity) GetFeeFromGatehubTrasaction(ctx context.Context, args FeeFrom
 func (a *Activity) GetWalletFromGatehubUser(ctx context.Context, externalUserID string) (string, error) {
 	walletID, err := getWalletID(ctx, a.b, externalUserID)
 	if errors.Is(err, gatehub.ErrNotFound) {
-		return "", temporal.NewNonRetryableApplicationError("Invalid currency", "ErrNotFound", fmt.Errorf("%w No wallet found for gatehub user", gatehub.ErrNotFound))
+		return "", temporal.NewNonRetryableApplicationError("Could not find wallet", "ErrNotFound", fmt.Errorf("%w No wallet found for gatehub user", gatehub.ErrNotFound))
 	}
 	if err != nil {
 		return "", err
@@ -440,5 +440,63 @@ func (a *Activity) LinkGatehubUserToGateway(ctx context.Context, externalUser st
 		return err
 	}
 
+	return nil
+}
+
+func (a *Activity) CreateNewDeliveryAddress(ctx context.Context, userID, customerID string, args external.CreateCustomerDeliveryAddressArgs) (string, error) {
+	id, err := a.external.CreateCustomerDeliveryAddress(ctx, userID, customerID, args)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	return id, nil
+}
+
+func (a *Activity) CreateCard(ctx context.Context, userID, accountID string, args external.OrderCardArgs) (*external.Card, error) {
+	card, err := a.external.OrderCard(ctx, userID, accountID, args)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	return card, nil
+}
+
+func (a *Activity) StoreCustomerIDs(ctx context.Context, userID, customerID, accountID string) (bool, error) {
+	shouldOrderPlastic, err := updateCustomerIDsReturningPlasticFlag(ctx, a.b, userID, customerID, accountID)
+	if err != nil {
+		return false, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	if !shouldOrderPlastic.Valid {
+		return false, fmt.Errorf("%w unknown card type - flag was not set when creating customer", gatehub.ErrInternal)
+	}
+
+	return shouldOrderPlastic.Bool, nil
+}
+
+func (a *Activity) CreatePlasticForCard(ctx context.Context, userID, cardID string) error {
+	return a.external.CreatePlasticForCard(ctx, userID, cardID)
+}
+
+func (a *Activity) MarkFirstCardAsProcessed(ctx context.Context, userID string) error {
+	err := updateFirstCardProcessTime(ctx, a.b, userID)
+	if err != nil {
+		return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	return nil
+}
+
+func (a *Activity) IsCustomerCreated(ctx context.Context, userID string) (bool, error) {
+	externalIDs, err := getExternalIDsByUserID(ctx, a.b, userID)
+	if err != nil {
+		return false, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	return externalIDs.IsCustomerCreated(), nil
+}
+
+func (a *Activity) SendCardCreatedEmail(ctx context.Context, walletID, cardID string) error {
+	a.b.Email().SendCardCreatedEmail(ctx, walletID, cardID)
 	return nil
 }

@@ -22,14 +22,6 @@ import (
 	"go.temporal.io/sdk/client"
 )
 
-type CardStatus string
-
-const (
-	Pending CardStatus = "Pending"
-	Active  CardStatus = "Active"
-	None    CardStatus = "None"
-)
-
 func CreateUser(ctx context.Context, b Backends, walletID string) (gatehub.Await, error) {
 	wo := client.StartWorkflowOptions{
 		ID:                    "gatehub_create_user_" + walletID,
@@ -141,9 +133,21 @@ func getExternalUserID(ctx context.Context, b Backends, walletID string) (string
 	return externalID, err
 }
 
-func getExternalUserIDAndCustomerID(ctx context.Context, b Backends, walletID string) (*gatehub.ExternalIDs, error) {
+func GetExternalIDs(ctx context.Context, b Backends, walletID string) (*gatehub.ExternalIDs, error) {
 	var externalIDs gatehub.ExternalIDs
-	err := b.DB().GetContext(ctx, &externalIDs, "SELECT external_id, external_customer_id FROM gatehub_users WHERE wallet_id=$1;", walletID)
+	err := b.DB().GetContext(ctx, &externalIDs, "SELECT external_id, external_customer_id, external_customer_source_id, external_account_id, external_account_source_id FROM gatehub_users WHERE wallet_id = $1;", walletID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrNotFound, err)
+	} else if err != nil {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	return &externalIDs, nil
+}
+
+func getExternalIDsByUserID(ctx context.Context, b Backends, userID string) (*gatehub.ExternalIDs, error) {
+	var externalIDs gatehub.ExternalIDs
+	err := b.DB().GetContext(ctx, &externalIDs, "SELECT external_id, external_customer_id, external_customer_source_id, external_account_id, external_account_source_id FROM gatehub_users WHERE external_id = $1;", userID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, fmt.Errorf("%w %s", gatehub.ErrNotFound, err)
 	} else if err != nil {
@@ -165,44 +169,6 @@ func getWalletID(ctx context.Context, b Backends, externalUserID string) (string
 	return walletID, nil
 }
 
-func GetGatehubUsersId(ctx context.Context, b Backends, customerSourceID, accountSourceID string) (string, error) {
-	var id string
-	err := b.DB().GetContext(ctx, &id, "SELECT gatehub_user_id FROM gatehub_user_card_source where customer_source_id = $1 and account_source_id = $2;", customerSourceID, accountSourceID)
-	if err != nil {
-		return "", fmt.Errorf("%w %s", gatehub.ErrInternal, err)
-	}
-
-	return id, nil
-}
-
-func UpdateGateHubUserExternalIDs(ctx context.Context, b Backends, customerID, accountID, id string) error {
-
-	_, err := b.DB().ExecContext(ctx, "UPDATE gatehub_users SET external_customer_id=$1, external_account_id=$2, card_status = $3 WHERE id=$4;", customerID, accountID, Active, id)
-	if err != nil {
-		return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
-	}
-	return nil
-}
-
-func SaveGatehubCardPending(ctx context.Context, b Backends, walletID string, cardData *external.CreateCardDTO) error {
-
-	// TODO (@raul) should be transactional
-	var id string
-	err := b.DB().QueryRowContext(ctx,
-		"UPDATE gatehub_users SET card_status = $1 WHERE wallet_id=$2 RETURNING id;",
-		Pending,
-		walletID,
-	).Scan(&id)
-	if err != nil {
-		return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
-	}
-
-	_, err = b.DB().ExecContext(ctx, "INSERT INTO gatehub_user_card_source (gatehub_user_id, customer_source_id, account_source_id, card_type) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING;", id, cardData.SourceID, cardData.AccountSourceID, cardData.CardType)
-	if err != nil {
-		return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
-	}
-	return nil
-}
 func GetBalance(ctx context.Context, b Backends, linkedAccountID string) (*gatehub.Balance, error) {
 	la, err := b.LinkedAccounts().Get(ctx, linkedAccountID)
 	if err != nil {
@@ -591,20 +557,8 @@ func GetTransaction(ctx context.Context, b Backends, ec external.Client, walletI
 	return ec.GetTransaction(ctx, externalUser, id)
 }
 
-func IsCustomer(ctx context.Context, b Backends, walletID string) (bool, error) {
-	var externalCustomerID sql.NullString
-	err := b.DB().GetContext(ctx, &externalCustomerID, "SELECT external_customer_id FROM gatehub_users WHERE wallet_id = $1;", walletID)
-	if errors.Is(err, sql.ErrNoRows) {
-		return false, fmt.Errorf("%w %s", gatehub.ErrNotFound, err)
-	} else if err != nil {
-		return false, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
-	}
-
-	return externalCustomerID.Valid, nil
-}
-
 func ListDeliveryAddresses(ctx context.Context, b Backends, ec external.Client, walletID string) ([]external.CustomerDeliveryAddress, error) {
-	externalIDs, err := getExternalUserIDAndCustomerID(ctx, b, walletID)
+	externalIDs, err := GetExternalIDs(ctx, b, walletID)
 	if err != nil {
 		return nil, err
 	}
@@ -613,46 +567,110 @@ func ListDeliveryAddresses(ctx context.Context, b Backends, ec external.Client, 
 		return nil, fmt.Errorf("%w attempted to list delivery addresses for non-existing customer", gatehub.ErrInternal)
 	}
 
-	return ec.GetDeliveryAddresses(ctx, externalIDs.ExternalID, externalIDs.CustomerID.String)
+	return ec.GetDeliveryAddresses(ctx, externalIDs.UserID, externalIDs.CustomerID.String)
 }
 
-func ListCards(ctx context.Context, b Backends, ec external.Client, walletID string) ([]external.Card, error) {
-	externalIDs, err := getExternalUserIDAndCustomerID(ctx, b, walletID)
-	if err != nil {
-		return nil, err
-	}
-
+func ListCards(ctx context.Context, b Backends, ec external.Client, externalIDs gatehub.ExternalIDs) ([]external.Card, error) {
 	if !externalIDs.CustomerID.Valid {
 		return []external.Card{}, nil
 	}
 
-	return ec.ListCards(ctx, externalIDs.ExternalID, externalIDs.CustomerID.String)
+	cardsRes, err := ec.ListCards(ctx, externalIDs.UserID, externalIDs.CustomerID.String)
+	if err != nil {
+		return []external.Card{}, nil
+	}
+
+	return cardsRes.Data, nil
 }
 
 func GetCardApplicationProducts(ctx context.Context, b Backends, ec external.Client) ([]external.CardApplicationProduct, error) {
 	return ec.GetCardApplicationProducts(ctx)
 }
 
-func OrderCard(ctx context.Context, b Backends, ec external.Client, walletID string) error {
-	la, err := b.LinkedAccounts().ListByWalletId(ctx, walletID)
+func OrderCard(ctx context.Context, b Backends, ec external.Client, args gatehub.OrderCardArgs) error {
+	las, err := b.LinkedAccounts().ListByWalletId(ctx, args.Wallet.ID)
 	if err != nil {
 		return err
 	}
-	if IsCustomer(ctx, b, walletID); err != nil {
-		return ec.OrderCard(ctx, walletID, la[0].ProviderID)
+
+	var la linkedaccounts.LinkedAccount
+	for _, acc := range las {
+		if acc.Provider == gatehub.ProviderName && acc.Type == gatehub.AccTypeBalance {
+			la = acc
+			break
+		}
 	}
-	gatehubUser, err := getExternalUserID(ctx, b, walletID)
+
+	nameOnCard := gatehub.DollarSignPlaceholder + args.Wallet.Addresses[0].ShortString()
+	if len(nameOnCard) > gatehub.NameOnCardMaxLength {
+		return fmt.Errorf("%w attempted to order card with a name that is longer than %d", gatehub.ErrInternal, gatehub.NameOnCardMaxLength)
+	}
+
+	if args.ExternalIDs.IsCustomerCreated() {
+		wo := client.StartWorkflowOptions{
+			ID:                    "gatehub_create_card_" + args.ExternalIDs.UserID + "_" + time.Now().UTC().Format(gatehub.TimeLayout),
+			TaskQueue:             "backend",
+			WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_ALLOW_DUPLICATE_FAILED_ONLY,
+		}
+
+		var workflowStatus enums.WorkflowExecutionStatus
+
+		wflow, err := b.Temporal().DescribeWorkflowExecution(ctx, wo.ID, "")
+		switch err.(type) {
+		case *serviceerror.Internal,
+			*serviceerror.Unavailable,
+			*serviceerror.InvalidArgument:
+
+			return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+		case *serviceerror.NotFound:
+			// do nothing
+		default:
+			if wflow != nil {
+				workflowStatus = wflow.GetWorkflowExecutionInfo().Status
+			}
+		}
+
+		if workflowStatus != enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
+			_, err = b.Temporal().ExecuteWorkflow(ctx, wo, CreateCardWorkflow, CreateCardWorkflowArgs{
+				WalletID:           args.Wallet.ID,
+				ExternalIDs:        args.ExternalIDs,
+				Currency:           currency.EUR.String(),
+				NameOnCard:         nameOnCard,
+				WalletAddress:      la.ProviderID,
+				CardProductCode:    args.CardProductCode,
+				DeliveryAddressID:  args.DeliveryAddressID,
+				NewDeliveryAddress: args.NewDeliveryAddress,
+				ShouldOrderPlastic: args.ShouldOrderPlastic,
+			})
+
+			if err != nil {
+				return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+			}
+		}
+
+		return nil
+	}
+
+	customer, err := ec.CreateCustomerAndCard(ctx, args.ExternalIDs.UserID, external.CreateCustomerAndCardArgs{
+		WalletAddress: la.ProviderID,
+		NameOnCard:    nameOnCard,
+		Account: external.CardAccount{
+			Currency: currency.EUR.String(),
+			Card: external.NewCardArgs{
+				ProductCode: args.CardProductCode,
+			},
+		},
+	})
+
 	if err != nil {
 		return err
 	}
-	data, err := ec.CreateCustomerAndCard(ctx, gatehubUser, la[0].ProviderID)
+
+	err = updateCustomerSourceIDs(ctx, b, args.ExternalIDs.UserID, customer.SourceID, customer.Accounts[0].SourceID, args.ShouldOrderPlastic)
 	if err != nil {
 		return err
 	}
-	err = SaveGatehubCardPending(ctx, b, walletID, data)
-	if err != nil {
-		return err
-	}
+
 	return nil
 }
 
@@ -692,4 +710,31 @@ func LinkUserToGateHubGateway(ctx context.Context, b Backends, ec external.Clien
 	}
 
 	return await.Get(ctx, nil)
+}
+
+func updateCustomerSourceIDs(ctx context.Context, b Backends, userID, customerSourceID, accountSourceID string, shouldOrderPlastic bool) error {
+	_, err := b.DB().ExecContext(ctx, "UPDATE gatehub_users SET external_customer_source_id = $1, external_account_source_id = $2, is_first_card_plastic = $3 WHERE external_id = $4;", customerSourceID, accountSourceID, shouldOrderPlastic, userID)
+	if err != nil {
+		return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+	return nil
+}
+
+func updateCustomerIDsReturningPlasticFlag(ctx context.Context, b Backends, userID, customerID, accountID string) (sql.NullBool, error) {
+	var flag sql.NullBool
+	err := b.DB().GetContext(ctx, &flag, "UPDATE gatehub_users SET external_customer_id = $1, external_account_id = $2 WHERE external_id = $3 RETURNING is_first_card_plastic;", customerID, accountID, userID)
+	if err != nil {
+		return sql.NullBool{}, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	return flag, nil
+}
+
+func updateFirstCardProcessTime(ctx context.Context, b Backends, userID string) error {
+	_, err := b.DB().ExecContext(ctx, "UPDATE gatehub_users SET first_card_processed_at = NOW(), updated_at = NOW() WHERE external_id = $1", userID)
+	if err != nil {
+		return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	return nil
 }

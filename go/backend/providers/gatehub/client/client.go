@@ -86,16 +86,12 @@ func (c Client) GetTransaction(ctx context.Context, walletID, id string) (*exter
 	return ops.GetTransaction(ctx, c.b, c.external, walletID, id)
 }
 
-func (c Client) IsCustomer(ctx context.Context, walletID string) (bool, error) {
-	return ops.IsCustomer(ctx, c.b, walletID)
-}
-
 func (c Client) ListDeliveryAddresses(ctx context.Context, walletID string) ([]external.CustomerDeliveryAddress, error) {
 	return ops.ListDeliveryAddresses(ctx, c.b, c.external, walletID)
 }
 
-func (c Client) ListCards(ctx context.Context, walletID string) ([]external.Card, error) {
-	return ops.ListCards(ctx, c.b, c.external, walletID)
+func (c Client) ListCards(ctx context.Context, externalIDs gatehub.ExternalIDs) ([]external.Card, error) {
+	return ops.ListCards(ctx, c.b, c.external, externalIDs)
 }
 
 func (c Client) GetCardApplicationProducts(ctx context.Context) ([]external.CardApplicationProduct, error) {
@@ -103,8 +99,13 @@ func (c Client) GetCardApplicationProducts(ctx context.Context) ([]external.Card
 }
 
 func (c Client) OrderCard(ctx context.Context, args gatehub.OrderCardArgs) error {
-	return ops.OrderCard(ctx, c.b, c.external, args.WalletID)
+	return ops.OrderCard(ctx, c.b, c.external, args)
 }
+
+func (c Client) GetExternalIDs(ctx context.Context, walletID string) (*gatehub.ExternalIDs, error) {
+	return ops.GetExternalIDs(ctx, c.b, walletID)
+}
+
 func (c Client) LinkUserToGateHubGateway(ctx context.Context, walletID string) error {
 	return ops.LinkUserToGateHubGateway(ctx, c.b, c.external, walletID)
 }

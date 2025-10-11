@@ -5,6 +5,7 @@ import (
 
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/providers/gatehub/external"
+	"gitlab.com/fynbos/backend/wallets"
 )
 
 const (
@@ -13,6 +14,43 @@ const (
 
 	LedgerIDEUR   uint32 = 4482387 // Spells ghubeur on a Nokia 3320 keyboard
 	EUROpsAccount        = "1854f171-eafa-4e30-bf66-7dbfe167ccfa"
+
+	DeliveryAddressPermanentResidence = "PermanentResidence"
+	DeliveryAddressTemporaryResidence = "TemporaryResidence"
+	DeliveryAddressWork               = "Work"
+	DeliveryAddressOther              = "Other"
+
+	CardStatusActive           = "Active"
+	CardStatusBlocked          = "Blocked"
+	CardStatusTemporaryBlocked = "TemporaryBlocked"
+	CardStatusReplaced         = "Replaced"
+	CardStatusSoftDelete       = "SoftDelete"
+	CardStatusAccountBlocked   = "AccountBlocked"
+	CardStatusInCreation       = "InCreation"
+
+	CardStatusReasonCodeClientRequestLock             = "ClientRequestLock"
+	CardStatusReasonCodeLostCard                      = "LostCard"
+	CardStatusReasonCodeStolenCard                    = "StolenCard"
+	CardStatusReasonCodeIssuerRequestGeneral          = "IssuerRequestGeneral"
+	CardStatusReasonCodeIssuerRequestFraud            = "IssuerRequestFraud"
+	CardStatusReasonCodeIssuerRequestLegal            = "IssuerRequestLegal"
+	CardStatusReasonCodeIssuerRequestIncorrectOpening = "IssuerRequestIncorrectOpening"
+	CardStatusReasonCodeIssuerRequestCustomerDeceased = "IssuerRequestCustomerDeceased"
+	CardStatusReasonCodeCardDamagedOrNotWorking       = "CardDamagedOrNotWorking"
+	CardStatusReasonCodeUserRequest                   = "UserRequest"
+	CardStatusReasonCodeProductDoesNotRenew           = "ProductDoesNotRenew"
+	CardStatusReasonCodeProductChange                 = "ProductChange"
+	CardStatusReasonCodeRenewed                       = "Renewed"
+
+	CardLockLevelClient = "Client"
+	CardLockLevelAdmin  = "Admin"
+
+	DollarSign            = "$"
+	DollarSignPlaceholder = "#" // "#" is used as a placeholder for $
+
+	NameOnCardMaxLength int = 25
+
+	TimeLayout = "20060102_150405" // chronological + Temporal-safe
 )
 
 type Balance struct {
@@ -34,25 +72,56 @@ type Card = external.Card
 type CustomerDeliveryAddress = external.CustomerDeliveryAddress
 
 type ExternalIDs struct {
-	ExternalID string         `db:"external_id"`
-	CustomerID sql.NullString `db:"external_customer_id"`
+	UserID           string         `db:"external_id"`
+	CustomerID       sql.NullString `db:"external_customer_id"`
+	CustomerSourceID sql.NullString `db:"external_customer_source_id"`
+	AccountID        sql.NullString `db:"external_account_id"`
+	AccountSourceID  sql.NullString `db:"external_account_source_id"`
+}
+
+func (eid ExternalIDs) IsPendingExternalCreation() bool {
+	hasCustomerID := eid.CustomerID.Valid && eid.CustomerID.String != ""
+	hasCustomerSourceID := eid.CustomerSourceID.Valid && eid.CustomerSourceID.String != ""
+	hasAccountID := eid.AccountID.Valid && eid.AccountID.String != ""
+	hasAccountSourceID := eid.AccountSourceID.Valid && eid.AccountSourceID.String != ""
+
+	if hasCustomerSourceID && hasAccountSourceID && !hasCustomerID && !hasAccountID {
+		return true
+	}
+
+	return false
+}
+
+func (eid ExternalIDs) IsCustomerCreated() bool {
+	hasCustomerID := eid.CustomerID.Valid && eid.CustomerID.String != ""
+	hasCustomerSourceID := eid.CustomerSourceID.Valid && eid.CustomerSourceID.String != ""
+	hasAccountID := eid.AccountID.Valid && eid.AccountID.String != ""
+	hasAccountSourceID := eid.AccountSourceID.Valid && eid.AccountSourceID.String != ""
+
+	if hasCustomerID && hasCustomerSourceID && hasAccountID && hasAccountSourceID {
+		return true
+	}
+
+	return false
 }
 
 type NewCustomerDeliveryAddressArgs struct {
-	Type        string
-	Status      string
-	Line1       string
-	Line2       *string
-	Line3       *string
-	PostOffice  *string
-	City        string
-	CountryCode string
-	ZipCode     string
-	Reason      string
+	Type        string  `validate:"required"`
+	CountryCode string  `validate:"required,iso3166_1_alpha3"`
+	Line1       string  `validate:"required,min=1,max=128"`
+	Line2       *string `validate:"omitempty,min=1,max=128"`
+	Line3       *string `validate:"omitempty,min=1,max=128"`
+	PostOffice  *string `validate:"omitempty,max=32"`
+	City        string  `validate:"required,min=1,max=32"`
+	ZipCode     string  `validate:"required,min=1,max=8"`
+	Reason      string  `validate:"required,min=1,max=254"`
 }
 
 type OrderCardArgs struct {
-	WalletID           string
-	DeliveryAddressId  *string
+	Wallet             wallets.Wallet
+	ExternalIDs        ExternalIDs
+	ShouldOrderPlastic bool
+	CardProductCode    string
+	DeliveryAddressID  *string
 	NewDeliveryAddress *NewCustomerDeliveryAddressArgs
 }

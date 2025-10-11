@@ -1,4 +1,9 @@
-import { ActionFunctionArgs, json, redirect, type LoaderFunctionArgs } from '@remix-run/node'
+import {
+  json,
+  redirect,
+  type ActionFunctionArgs,
+  type LoaderFunctionArgs
+} from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { useEffect } from 'react'
 import { Layouts, type ApplicationProps } from '~/components'
@@ -7,9 +12,10 @@ import { CreateAddress } from '~/components/AddCardSteps/CreateAddress'
 import { DeliveryAddresses } from '~/components/AddCardSteps/DeliveryAddresses'
 import { ProductsSelect } from '~/components/AddCardSteps/ProductsSelect'
 import { getFeatures } from '~/data/wallet.server'
-import type {
-  CardApplicationProduct,
-  CustomerDeliveryAddress
+import {
+  CardType,
+  type CardApplicationProduct,
+  type CustomerDeliveryAddress
 } from '~/generated/connect/backend/v1/backend_pb'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
@@ -28,30 +34,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
     throw redirect('/')
   }
 
-  const [deliveryAddresses, products, countries] = await Promise.all([
-    grpc.getCustomerDeliveryAddresses(request, {}),
-    grpc.getCardApplicationProducts(request, {}),
-    grpc.getCountries(request, {})
-  ])
-
-  if (isConnectError(deliveryAddresses)) {
-    console.error('Error getting delivery addresses: ', deliveryAddresses)
-    throw deliveryAddresses.errorResponse
-  }
-  if (isConnectError(products)) {
-    console.error('Error getting products: ', products)
-    throw products.errorResponse
-  }
-  if (isConnectError(countries)) {
-    console.error('Error getting countries: ', countries)
-    throw countries.errorResponse
+  const res = await grpc.getCardOrderOptions(request, {})
+  if (isConnectError(res)) {
+    throw res.errorResponse
   }
 
-  return json({
-    products: products.products,
-    addresses: deliveryAddresses.deliveryAddresses,
-    countries: countries.countries
-  })
+  return json(res)
 }
 
 export default function Page() {
@@ -92,15 +80,10 @@ export default function Page() {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  console.log('Submitting card order...')
-  try {
-    grpc.orderCard(request, {})
-  } catch (error) {
-    console.error(error)
-    return { error: 'Failed to order card. Please try again later.' }
-  }
-  
-  
-  
-    return null
-  }
+  await grpc.orderCard(request, {
+    cardProductCode: 'PMDSGWEEA',
+    type: CardType.VIRTUAL
+  })
+
+  return null
+}

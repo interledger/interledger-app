@@ -8,6 +8,7 @@ import (
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/gatehub"
+	"gitlab.com/fynbos/backend/providers/gatehub/external"
 	"gitlab.com/fynbos/backend/transactions"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
@@ -170,6 +171,136 @@ func ProcessGatehubWithdrawal(ctx workflow.Context, walletID, transactionID stri
 	}
 
 	err = workflow.ExecuteActivity(ctx, a.UpdateGatehubWithdrawalState, walletID, transactionID, transactions.StateCompleted).Get(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ProcessCardCreationWorkflow(ctx workflow.Context, wh CardCreatedWebhook) error {
+	var a *Activity
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Second,
+	}
+	ctx = workflow.WithActivityOptions(ctx, ao)
+	logger := workflow.GetLogger(ctx)
+
+	var isCustomerCreated bool
+	err := workflow.ExecuteActivity(ctx, a.IsCustomerCreated, wh.UserUUID).Get(ctx, &isCustomerCreated)
+	if err != nil {
+		logger.Warn("failed to check if gatehub customer is created", "gatehub_user_id", wh.UserUUID)
+		return err
+	}
+
+	if isCustomerCreated {
+		return nil
+	}
+
+	logger.Info("Storing GateHub customer and account IDs.")
+
+	var shouldOrderPlastic bool
+	err = workflow.ExecuteActivity(ctx, a.StoreCustomerIDs, wh.UserUUID, wh.Data.CustomerID, wh.Data.AccountID).Get(ctx, &shouldOrderPlastic)
+	if err != nil {
+		logger.Warn("failed to store gatehub user customer and account id", "gatehub_user_id", wh.UserUUID, "customer_id", wh.Data.CustomerID, "account_id", wh.Data.AccountID)
+		return err
+	}
+
+	if shouldOrderPlastic {
+		err = workflow.ExecuteActivity(ctx, a.CreatePlasticForCard, wh.UserUUID, wh.Data.CardID).Get(ctx, nil)
+		if err != nil {
+			logger.Warn("failed to order plastic for card", "gatehub_user_id", wh.UserUUID, "customer_id", wh.Data.CustomerID, "account_id", wh.Data.AccountID, "card_id", wh.Data.CardID)
+			return err
+		}
+	}
+
+	// Mark that the first card was processed
+	err = workflow.ExecuteActivity(ctx, a.MarkFirstCardAsProcessed, wh.UserUUID).Get(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	var walletID string
+	err = workflow.ExecuteActivity(ctx, a.GetWalletFromGatehubUser, wh.UserUUID).Get(ctx, &walletID)
+	if err != nil {
+		return err
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.SendCardCreatedEmail, walletID, wh.Data.CardID).Get(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+type CreateCardWorkflowArgs struct {
+	WalletID           string
+	ExternalIDs        gatehub.ExternalIDs
+	Currency           string
+	NameOnCard         string
+	WalletAddress      string
+	CardProductCode    string
+	DeliveryAddressID  *string
+	NewDeliveryAddress *gatehub.NewCustomerDeliveryAddressArgs
+	ShouldOrderPlastic bool
+}
+
+func CreateCardWorkflow(ctx workflow.Context, args CreateCardWorkflowArgs) error {
+	var a *Activity
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Second,
+	}
+	ctx = workflow.WithActivityOptions(ctx, ao)
+	logger := workflow.GetLogger(ctx)
+
+	var deliveryAddressID string
+	if args.ShouldOrderPlastic {
+		if args.NewDeliveryAddress != nil {
+			err := workflow.ExecuteActivity(ctx, a.CreateNewDeliveryAddress, args.ExternalIDs.UserID, args.ExternalIDs.CustomerID.String, external.CreateCustomerDeliveryAddressArgs{
+				Type:        args.NewDeliveryAddress.Type,
+				Line1:       args.NewDeliveryAddress.Line1,
+				Line2:       args.NewDeliveryAddress.Line2,
+				Line3:       args.NewDeliveryAddress.Line3,
+				City:        args.NewDeliveryAddress.City,
+				CountryCode: args.NewDeliveryAddress.CountryCode,
+				ZipCode:     args.NewDeliveryAddress.ZipCode,
+				PostOffice:  args.NewDeliveryAddress.PostOffice,
+				Reason:      args.NewDeliveryAddress.Reason,
+			}).Get(ctx, &deliveryAddressID)
+
+			if err != nil {
+				logger.Warn("failed to create new delivery address for user", "gatehub_user_id", args.ExternalIDs.UserID)
+				return err
+			}
+		} else {
+			deliveryAddressID = *args.DeliveryAddressID
+		}
+	}
+
+	var card external.Card
+	err := workflow.ExecuteActivity(ctx, a.CreateCard, args.ExternalIDs.UserID, args.ExternalIDs.AccountID.String, external.OrderCardArgs{
+		Currency:          args.Currency,
+		DeliveryAddressID: &deliveryAddressID,
+		NameOnCard:        args.NameOnCard,
+		WalletAddress:     args.WalletAddress,
+		Card: external.NewCardArgs{
+			ProductCode: args.CardProductCode,
+		},
+	}).Get(ctx, &card)
+
+	if err != nil {
+		return err
+	}
+
+	if args.ShouldOrderPlastic {
+		err := workflow.ExecuteActivity(ctx, a.CreatePlasticForCard, args.ExternalIDs.UserID, card.ID).Get(ctx, nil)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.SendCardCreatedEmail, args.WalletID, card.ID).Get(ctx, nil)
 	if err != nil {
 		return err
 	}

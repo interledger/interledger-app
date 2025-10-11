@@ -123,8 +123,7 @@ const (
 	BackendService_GetChimoneyDepositLink_FullMethodName         = "/backend.v1.BackendService/GetChimoneyDepositLink"
 	BackendService_CreateChimoneyDeposit_FullMethodName          = "/backend.v1.BackendService/CreateChimoneyDeposit"
 	BackendService_ListCards_FullMethodName                      = "/backend.v1.BackendService/ListCards"
-	BackendService_GetCustomerDeliveryAddresses_FullMethodName   = "/backend.v1.BackendService/GetCustomerDeliveryAddresses"
-	BackendService_GetCardApplicationProducts_FullMethodName     = "/backend.v1.BackendService/GetCardApplicationProducts"
+	BackendService_GetCardOrderOptions_FullMethodName            = "/backend.v1.BackendService/GetCardOrderOptions"
 	BackendService_OrderCard_FullMethodName                      = "/backend.v1.BackendService/OrderCard"
 )
 
@@ -266,8 +265,7 @@ type BackendServiceClient interface {
 	CreateChimoneyDeposit(ctx context.Context, in *CreateChimoneyDepositRequest, opts ...grpc.CallOption) (*Empty, error)
 	// Cards
 	ListCards(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListCardsResponse, error)
-	GetCustomerDeliveryAddresses(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetCustomerDeliveryAddressesResponse, error)
-	GetCardApplicationProducts(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetCardApplicationProductsResponse, error)
+	GetCardOrderOptions(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetCardOrderOptionsResponse, error)
 	OrderCard(ctx context.Context, in *OrderCardRequest, opts ...grpc.CallOption) (*Empty, error)
 }
 
@@ -1215,18 +1213,9 @@ func (c *backendServiceClient) ListCards(ctx context.Context, in *Empty, opts ..
 	return out, nil
 }
 
-func (c *backendServiceClient) GetCustomerDeliveryAddresses(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetCustomerDeliveryAddressesResponse, error) {
-	out := new(GetCustomerDeliveryAddressesResponse)
-	err := c.cc.Invoke(ctx, BackendService_GetCustomerDeliveryAddresses_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *backendServiceClient) GetCardApplicationProducts(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetCardApplicationProductsResponse, error) {
-	out := new(GetCardApplicationProductsResponse)
-	err := c.cc.Invoke(ctx, BackendService_GetCardApplicationProducts_FullMethodName, in, out, opts...)
+func (c *backendServiceClient) GetCardOrderOptions(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetCardOrderOptionsResponse, error) {
+	out := new(GetCardOrderOptionsResponse)
+	err := c.cc.Invoke(ctx, BackendService_GetCardOrderOptions_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1380,8 +1369,7 @@ type BackendServiceServer interface {
 	CreateChimoneyDeposit(context.Context, *CreateChimoneyDepositRequest) (*Empty, error)
 	// Cards
 	ListCards(context.Context, *Empty) (*ListCardsResponse, error)
-	GetCustomerDeliveryAddresses(context.Context, *Empty) (*GetCustomerDeliveryAddressesResponse, error)
-	GetCardApplicationProducts(context.Context, *Empty) (*GetCardApplicationProductsResponse, error)
+	GetCardOrderOptions(context.Context, *Empty) (*GetCardOrderOptionsResponse, error)
 	OrderCard(context.Context, *OrderCardRequest) (*Empty, error)
 }
 
@@ -1701,11 +1689,8 @@ func (UnimplementedBackendServiceServer) CreateChimoneyDeposit(context.Context, 
 func (UnimplementedBackendServiceServer) ListCards(context.Context, *Empty) (*ListCardsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListCards not implemented")
 }
-func (UnimplementedBackendServiceServer) GetCustomerDeliveryAddresses(context.Context, *Empty) (*GetCustomerDeliveryAddressesResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetCustomerDeliveryAddresses not implemented")
-}
-func (UnimplementedBackendServiceServer) GetCardApplicationProducts(context.Context, *Empty) (*GetCardApplicationProductsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetCardApplicationProducts not implemented")
+func (UnimplementedBackendServiceServer) GetCardOrderOptions(context.Context, *Empty) (*GetCardOrderOptionsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCardOrderOptions not implemented")
 }
 func (UnimplementedBackendServiceServer) OrderCard(context.Context, *OrderCardRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method OrderCard not implemented")
@@ -3594,38 +3579,20 @@ func _BackendService_ListCards_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BackendService_GetCustomerDeliveryAddresses_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _BackendService_GetCardOrderOptions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(BackendServiceServer).GetCustomerDeliveryAddresses(ctx, in)
+		return srv.(BackendServiceServer).GetCardOrderOptions(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: BackendService_GetCustomerDeliveryAddresses_FullMethodName,
+		FullMethod: BackendService_GetCardOrderOptions_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).GetCustomerDeliveryAddresses(ctx, req.(*Empty))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _BackendService_GetCardApplicationProducts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Empty)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).GetCardApplicationProducts(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: BackendService_GetCardApplicationProducts_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).GetCardApplicationProducts(ctx, req.(*Empty))
+		return srv.(BackendServiceServer).GetCardOrderOptions(ctx, req.(*Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -4072,12 +4039,8 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _BackendService_ListCards_Handler,
 		},
 		{
-			MethodName: "GetCustomerDeliveryAddresses",
-			Handler:    _BackendService_GetCustomerDeliveryAddresses_Handler,
-		},
-		{
-			MethodName: "GetCardApplicationProducts",
-			Handler:    _BackendService_GetCardApplicationProducts_Handler,
+			MethodName: "GetCardOrderOptions",
+			Handler:    _BackendService_GetCardOrderOptions_Handler,
 		},
 		{
 			MethodName: "OrderCard",

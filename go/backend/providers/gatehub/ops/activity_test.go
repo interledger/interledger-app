@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/db"
+	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	la_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
@@ -85,5 +86,9 @@ func (b Backends) KYC() kyc.Client {
 }
 
 func (b Backends) Transactions() transactions.Client {
+	return nil
+}
+
+func (b Backends) Email() email.Client {
 	return nil
 }
