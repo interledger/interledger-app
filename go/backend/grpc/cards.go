@@ -390,8 +390,8 @@ func newCard(c gatehub.Card) pb.Card {
 		MaskedPan:        c.MaskedPan,
 		Status:           status,
 		ExpiryDate:       c.ExpiryDate,
-		StatusReasonCode: &statusReasonCode,
-		LockLevel:        &lockLevel,
+		StatusReasonCode: statusReasonCode,
+		LockLevel:        lockLevel,
 	}
 }
 
