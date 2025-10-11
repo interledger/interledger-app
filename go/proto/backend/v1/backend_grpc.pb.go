@@ -126,6 +126,10 @@ const (
 	BackendService_GetCardOrderOptions_FullMethodName            = "/backend.v1.BackendService/GetCardOrderOptions"
 	BackendService_OrderCard_FullMethodName                      = "/backend.v1.BackendService/OrderCard"
 	BackendService_GetCardToken_FullMethodName                   = "/backend.v1.BackendService/GetCardToken"
+	BackendService_FreezeCard_FullMethodName                     = "/backend.v1.BackendService/FreezeCard"
+	BackendService_UnfreezeCard_FullMethodName                   = "/backend.v1.BackendService/UnfreezeCard"
+	BackendService_BlockCard_FullMethodName                      = "/backend.v1.BackendService/BlockCard"
+	BackendService_CloseCard_FullMethodName                      = "/backend.v1.BackendService/CloseCard"
 )
 
 // BackendServiceClient is the client API for BackendService service.
@@ -269,6 +273,10 @@ type BackendServiceClient interface {
 	GetCardOrderOptions(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetCardOrderOptionsResponse, error)
 	OrderCard(ctx context.Context, in *OrderCardRequest, opts ...grpc.CallOption) (*Empty, error)
 	GetCardToken(ctx context.Context, in *GetCardTokenRequest, opts ...grpc.CallOption) (*GetCardTokenResponse, error)
+	FreezeCard(ctx context.Context, in *FreezeCardRequest, opts ...grpc.CallOption) (*Empty, error)
+	UnfreezeCard(ctx context.Context, in *UnfreezeCardRequest, opts ...grpc.CallOption) (*Empty, error)
+	BlockCard(ctx context.Context, in *BlockCardRequest, opts ...grpc.CallOption) (*Empty, error)
+	CloseCard(ctx context.Context, in *CloseCardRequest, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type backendServiceClient struct {
@@ -1242,6 +1250,42 @@ func (c *backendServiceClient) GetCardToken(ctx context.Context, in *GetCardToke
 	return out, nil
 }
 
+func (c *backendServiceClient) FreezeCard(ctx context.Context, in *FreezeCardRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, BackendService_FreezeCard_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) UnfreezeCard(ctx context.Context, in *UnfreezeCardRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, BackendService_UnfreezeCard_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) BlockCard(ctx context.Context, in *BlockCardRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, BackendService_BlockCard_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) CloseCard(ctx context.Context, in *CloseCardRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, BackendService_CloseCard_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServiceServer is the server API for BackendService service.
 // All implementations should embed UnimplementedBackendServiceServer
 // for forward compatibility
@@ -1383,6 +1427,10 @@ type BackendServiceServer interface {
 	GetCardOrderOptions(context.Context, *Empty) (*GetCardOrderOptionsResponse, error)
 	OrderCard(context.Context, *OrderCardRequest) (*Empty, error)
 	GetCardToken(context.Context, *GetCardTokenRequest) (*GetCardTokenResponse, error)
+	FreezeCard(context.Context, *FreezeCardRequest) (*Empty, error)
+	UnfreezeCard(context.Context, *UnfreezeCardRequest) (*Empty, error)
+	BlockCard(context.Context, *BlockCardRequest) (*Empty, error)
+	CloseCard(context.Context, *CloseCardRequest) (*Empty, error)
 }
 
 // UnimplementedBackendServiceServer should be embedded to have forward compatible implementations.
@@ -1709,6 +1757,18 @@ func (UnimplementedBackendServiceServer) OrderCard(context.Context, *OrderCardRe
 }
 func (UnimplementedBackendServiceServer) GetCardToken(context.Context, *GetCardTokenRequest) (*GetCardTokenResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCardToken not implemented")
+}
+func (UnimplementedBackendServiceServer) FreezeCard(context.Context, *FreezeCardRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FreezeCard not implemented")
+}
+func (UnimplementedBackendServiceServer) UnfreezeCard(context.Context, *UnfreezeCardRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UnfreezeCard not implemented")
+}
+func (UnimplementedBackendServiceServer) BlockCard(context.Context, *BlockCardRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BlockCard not implemented")
+}
+func (UnimplementedBackendServiceServer) CloseCard(context.Context, *CloseCardRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CloseCard not implemented")
 }
 
 // UnsafeBackendServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -3648,6 +3708,78 @@ func _BackendService_GetCardToken_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_FreezeCard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FreezeCardRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).FreezeCard(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_FreezeCard_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).FreezeCard(ctx, req.(*FreezeCardRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_UnfreezeCard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnfreezeCardRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).UnfreezeCard(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_UnfreezeCard_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).UnfreezeCard(ctx, req.(*UnfreezeCardRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_BlockCard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BlockCardRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).BlockCard(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_BlockCard_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).BlockCard(ctx, req.(*BlockCardRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_CloseCard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CloseCardRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).CloseCard(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_CloseCard_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).CloseCard(ctx, req.(*CloseCardRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BackendService_ServiceDesc is the grpc.ServiceDesc for BackendService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -4082,6 +4214,22 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetCardToken",
 			Handler:    _BackendService_GetCardToken_Handler,
+		},
+		{
+			MethodName: "FreezeCard",
+			Handler:    _BackendService_FreezeCard_Handler,
+		},
+		{
+			MethodName: "UnfreezeCard",
+			Handler:    _BackendService_UnfreezeCard_Handler,
+		},
+		{
+			MethodName: "BlockCard",
+			Handler:    _BackendService_BlockCard_Handler,
+		},
+		{
+			MethodName: "CloseCard",
+			Handler:    _BackendService_CloseCard_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -4,6 +4,10 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { BackendService } from "./backend";
+import type { CloseCardRequest } from "./backend";
+import type { BlockCardRequest } from "./backend";
+import type { UnfreezeCardRequest } from "./backend";
+import type { FreezeCardRequest } from "./backend";
 import type { GetCardTokenResponse } from "./backend";
 import type { GetCardTokenRequest } from "./backend";
 import type { OrderCardRequest } from "./backend";
@@ -632,6 +636,22 @@ export interface IBackendServiceClient {
      * @generated from protobuf rpc: GetCardToken(backend.v1.GetCardTokenRequest) returns (backend.v1.GetCardTokenResponse);
      */
     getCardToken(input: GetCardTokenRequest, options?: RpcOptions): UnaryCall<GetCardTokenRequest, GetCardTokenResponse>;
+    /**
+     * @generated from protobuf rpc: FreezeCard(backend.v1.FreezeCardRequest) returns (backend.v1.Empty);
+     */
+    freezeCard(input: FreezeCardRequest, options?: RpcOptions): UnaryCall<FreezeCardRequest, Empty>;
+    /**
+     * @generated from protobuf rpc: UnfreezeCard(backend.v1.UnfreezeCardRequest) returns (backend.v1.Empty);
+     */
+    unfreezeCard(input: UnfreezeCardRequest, options?: RpcOptions): UnaryCall<UnfreezeCardRequest, Empty>;
+    /**
+     * @generated from protobuf rpc: BlockCard(backend.v1.BlockCardRequest) returns (backend.v1.Empty);
+     */
+    blockCard(input: BlockCardRequest, options?: RpcOptions): UnaryCall<BlockCardRequest, Empty>;
+    /**
+     * @generated from protobuf rpc: CloseCard(backend.v1.CloseCardRequest) returns (backend.v1.Empty);
+     */
+    closeCard(input: CloseCardRequest, options?: RpcOptions): UnaryCall<CloseCardRequest, Empty>;
 }
 /**
  * @generated from protobuf service backend.v1.BackendService
@@ -1450,5 +1470,33 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
     getCardToken(input: GetCardTokenRequest, options?: RpcOptions): UnaryCall<GetCardTokenRequest, GetCardTokenResponse> {
         const method = this.methods[106], opt = this._transport.mergeOptions(options);
         return stackIntercept<GetCardTokenRequest, GetCardTokenResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: FreezeCard(backend.v1.FreezeCardRequest) returns (backend.v1.Empty);
+     */
+    freezeCard(input: FreezeCardRequest, options?: RpcOptions): UnaryCall<FreezeCardRequest, Empty> {
+        const method = this.methods[107], opt = this._transport.mergeOptions(options);
+        return stackIntercept<FreezeCardRequest, Empty>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: UnfreezeCard(backend.v1.UnfreezeCardRequest) returns (backend.v1.Empty);
+     */
+    unfreezeCard(input: UnfreezeCardRequest, options?: RpcOptions): UnaryCall<UnfreezeCardRequest, Empty> {
+        const method = this.methods[108], opt = this._transport.mergeOptions(options);
+        return stackIntercept<UnfreezeCardRequest, Empty>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: BlockCard(backend.v1.BlockCardRequest) returns (backend.v1.Empty);
+     */
+    blockCard(input: BlockCardRequest, options?: RpcOptions): UnaryCall<BlockCardRequest, Empty> {
+        const method = this.methods[109], opt = this._transport.mergeOptions(options);
+        return stackIntercept<BlockCardRequest, Empty>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: CloseCard(backend.v1.CloseCardRequest) returns (backend.v1.Empty);
+     */
+    closeCard(input: CloseCardRequest, options?: RpcOptions): UnaryCall<CloseCardRequest, Empty> {
+        const method = this.methods[110], opt = this._transport.mergeOptions(options);
+        return stackIntercept<CloseCardRequest, Empty>("unary", this._transport, method, opt, input);
     }
 }

@@ -32,6 +32,42 @@ export interface PaginationRequest {
 export interface Empty {
 }
 /**
+ * @generated from protobuf message backend.v1.FreezeCardRequest
+ */
+export interface FreezeCardRequest {
+    /**
+     * @generated from protobuf field: string cardId = 1;
+     */
+    cardId: string;
+}
+/**
+ * @generated from protobuf message backend.v1.UnfreezeCardRequest
+ */
+export interface UnfreezeCardRequest {
+    /**
+     * @generated from protobuf field: string cardId = 1;
+     */
+    cardId: string;
+}
+/**
+ * @generated from protobuf message backend.v1.BlockCardRequest
+ */
+export interface BlockCardRequest {
+    /**
+     * @generated from protobuf field: string cardId = 1;
+     */
+    cardId: string;
+}
+/**
+ * @generated from protobuf message backend.v1.CloseCardRequest
+ */
+export interface CloseCardRequest {
+    /**
+     * @generated from protobuf field: string cardId = 1;
+     */
+    cardId: string;
+}
+/**
  * @generated from protobuf message backend.v1.TokenLink
  */
 export interface TokenLink {
@@ -2964,6 +3000,194 @@ class Empty$Type extends MessageType<Empty> {
  * @generated MessageType for protobuf message backend.v1.Empty
  */
 export const Empty = new Empty$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class FreezeCardRequest$Type extends MessageType<FreezeCardRequest> {
+    constructor() {
+        super("backend.v1.FreezeCardRequest", [
+            { no: 1, name: "cardId", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<FreezeCardRequest>): FreezeCardRequest {
+        const message = { cardId: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<FreezeCardRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: FreezeCardRequest): FreezeCardRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string cardId */ 1:
+                    message.cardId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: FreezeCardRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string cardId = 1; */
+        if (message.cardId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.cardId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.FreezeCardRequest
+ */
+export const FreezeCardRequest = new FreezeCardRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class UnfreezeCardRequest$Type extends MessageType<UnfreezeCardRequest> {
+    constructor() {
+        super("backend.v1.UnfreezeCardRequest", [
+            { no: 1, name: "cardId", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<UnfreezeCardRequest>): UnfreezeCardRequest {
+        const message = { cardId: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<UnfreezeCardRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: UnfreezeCardRequest): UnfreezeCardRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string cardId */ 1:
+                    message.cardId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: UnfreezeCardRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string cardId = 1; */
+        if (message.cardId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.cardId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.UnfreezeCardRequest
+ */
+export const UnfreezeCardRequest = new UnfreezeCardRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class BlockCardRequest$Type extends MessageType<BlockCardRequest> {
+    constructor() {
+        super("backend.v1.BlockCardRequest", [
+            { no: 1, name: "cardId", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<BlockCardRequest>): BlockCardRequest {
+        const message = { cardId: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<BlockCardRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: BlockCardRequest): BlockCardRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string cardId */ 1:
+                    message.cardId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: BlockCardRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string cardId = 1; */
+        if (message.cardId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.cardId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.BlockCardRequest
+ */
+export const BlockCardRequest = new BlockCardRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CloseCardRequest$Type extends MessageType<CloseCardRequest> {
+    constructor() {
+        super("backend.v1.CloseCardRequest", [
+            { no: 1, name: "cardId", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<CloseCardRequest>): CloseCardRequest {
+        const message = { cardId: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CloseCardRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CloseCardRequest): CloseCardRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string cardId */ 1:
+                    message.cardId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CloseCardRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string cardId = 1; */
+        if (message.cardId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.cardId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.CloseCardRequest
+ */
+export const CloseCardRequest = new CloseCardRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class TokenLink$Type extends MessageType<TokenLink> {
     constructor() {
@@ -12595,5 +12819,9 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "ListCards", options: {}, I: Empty, O: ListCardsResponse },
     { name: "GetCardOrderOptions", options: {}, I: Empty, O: GetCardOrderOptionsResponse },
     { name: "OrderCard", options: {}, I: OrderCardRequest, O: Empty },
-    { name: "GetCardToken", options: {}, I: GetCardTokenRequest, O: GetCardTokenResponse }
+    { name: "GetCardToken", options: {}, I: GetCardTokenRequest, O: GetCardTokenResponse },
+    { name: "FreezeCard", options: {}, I: FreezeCardRequest, O: Empty },
+    { name: "UnfreezeCard", options: {}, I: UnfreezeCardRequest, O: Empty },
+    { name: "BlockCard", options: {}, I: BlockCardRequest, O: Empty },
+    { name: "CloseCard", options: {}, I: CloseCardRequest, O: Empty }
 ]);

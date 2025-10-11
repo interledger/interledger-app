@@ -868,6 +868,7 @@ func (c *client) CreateCustomerDeliveryAddress(ctx context.Context, userID, cust
 	if err != nil {
 		return "", fmt.Errorf("%w %s", ErrInternal, err)
 	}
+
 	body, err := json.Marshal(args)
 	if err != nil {
 		return "", fmt.Errorf("%w %s", ErrInternal, err)
@@ -925,6 +926,7 @@ func (c *client) OrderCard(ctx context.Context, userID, accountID string, args O
 			Provider: "gatehub",
 		})
 	}
+
 	endpoint, err := url.JoinPath(c.baseURL, "cards", "v1", "cards", accountID, "card")
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
@@ -985,6 +987,7 @@ func (c *client) CreatePlasticForCard(ctx context.Context, userID, cardID string
 			Provider: "gatehub",
 		})
 	}
+
 	endpoint, err := url.JoinPath(c.baseURL, "cards", "v1", "cards", cardID, "plastic")
 	if err != nil {
 		return fmt.Errorf("%w %s", ErrInternal, err)
@@ -1027,6 +1030,7 @@ func (c *client) GetCardToken(ctx context.Context, userID string, tokenType stri
 			Provider: "gatehub",
 		})
 	}
+
 	endpoint, err := url.JoinPath(c.baseURL, "cards", "v1", "token", tokenType)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
@@ -1073,6 +1077,200 @@ func (c *client) GetCardToken(ctx context.Context, userID string, tokenType stri
 	}
 
 	return &tr, nil
+}
+
+func (c *client) FreezeCard(ctx context.Context, userID, cardID string, args FreezeCardArgs) error {
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "PUT"
+		meta.Provider = "gatehub"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "PUT",
+			Provider: "gatehub",
+		})
+	}
+
+	endpoint, err := url.Parse(fmt.Sprintf("%s/cards/v1/cards/%s/lock", c.baseURL, cardID))
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	q := endpoint.Query()
+	q.Set("reasonCode", args.ReasonCode)
+	endpoint.RawQuery = q.Encode()
+
+	body, err := json.Marshal(args)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, endpoint.String(), bytes.NewBuffer(body))
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set(managedUserHeader, userID)
+	req.Header.Set(cardAppIDHeader, c.cardAppID)
+	err = c.Sign(ctx, req, time.Now(), body, endpoint.String())
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	err = checkResponseStatusCode(resp)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	return nil
+}
+
+func (c *client) UnfreezeCard(ctx context.Context, userID, cardID string, args UnfreezeCardArgs) error {
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "PUT"
+		meta.Provider = "gatehub"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "PUT",
+			Provider: "gatehub",
+		})
+	}
+
+	endpoint, err := url.JoinPath(c.baseURL, "cards", "v1", "cards", cardID, "unlock")
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	body, err := json.Marshal(args)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, endpoint, bytes.NewBuffer(body))
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set(managedUserHeader, userID)
+	req.Header.Set(cardAppIDHeader, c.cardAppID)
+	err = c.Sign(ctx, req, time.Now(), body, endpoint)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	err = checkResponseStatusCode(resp)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	return nil
+}
+
+func (c *client) BlockCard(ctx context.Context, userID, cardID string, args BlockCardArgs) error {
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "PUT"
+		meta.Provider = "gatehub"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "PUT",
+			Provider: "gatehub",
+		})
+	}
+
+	endpoint, err := url.Parse(fmt.Sprintf("%s/cards/v1/cards/%s/block", c.baseURL, cardID))
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	q := endpoint.Query()
+	q.Set("reasonCode", args.ReasonCode)
+	endpoint.RawQuery = q.Encode()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, endpoint.String(), bytes.NewBuffer(nil))
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set(managedUserHeader, userID)
+	req.Header.Set(cardAppIDHeader, c.cardAppID)
+	err = c.Sign(ctx, req, time.Now(), nil, endpoint.String())
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	err = checkResponseStatusCode(resp)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	return nil
+}
+
+func (c *client) CloseCard(ctx context.Context, userID, cardID string, args CloseCardArgs) error {
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "DELETE"
+		meta.Provider = "gatehub"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "DELETE",
+			Provider: "gatehub",
+		})
+	}
+
+	endpoint, err := url.Parse(fmt.Sprintf("%s/cards/v1/cards/%s/card", c.baseURL, cardID))
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	q := endpoint.Query()
+	q.Set("reasonCode", args.ReasonCode)
+	endpoint.RawQuery = q.Encode()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, endpoint.String(), bytes.NewBuffer(nil))
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set(managedUserHeader, userID)
+	req.Header.Set(cardAppIDHeader, c.cardAppID)
+	err = c.Sign(ctx, req, time.Now(), nil, endpoint.String())
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	err = checkResponseStatusCode(resp)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	return nil
 }
 
 func (c *client) Sign(ctx context.Context, req *http.Request, date time.Time, payload []byte, targetURL string) error {

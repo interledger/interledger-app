@@ -377,6 +377,139 @@ func (s *rpcService) GetCardToken(ctx context.Context, req *pb.GetCardTokenReque
 	}, nil
 }
 
+func (s *rpcService) FreezeCard(ctx context.Context, req *pb.FreezeCardRequest) (*pb.Empty, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	wallet, err := s.b.Wallets().ForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	_, isEU := country.EUCountries[wallet.Country]
+	if !isEU {
+		return nil, FailedPreconditionError("Wallet not in the EU region")
+	}
+
+	externalIDs, err := s.b.Gatehub().GetExternalIDs(ctx, wallet.ID)
+	if err != nil {
+		return nil, FailedPreconditionError("Could not retrieve external IDs")
+	}
+
+	err = s.b.Gatehub().FreezeCard(ctx, gatehub.FreezeCardArgs{
+		UserID:     externalIDs.UserID,
+		CardID:     req.CardId,
+		ReasonCode: gatehub.CardStatusReasonCodeClientRequestedLock,
+		Note:       nil,
+	})
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &pb.Empty{}, nil
+}
+
+func (s *rpcService) UnfreezeCard(ctx context.Context, req *pb.UnfreezeCardRequest) (*pb.Empty, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	wallet, err := s.b.Wallets().ForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	_, isEU := country.EUCountries[wallet.Country]
+	if !isEU {
+		return nil, FailedPreconditionError("Wallet not in the EU region")
+	}
+
+	externalIDs, err := s.b.Gatehub().GetExternalIDs(ctx, wallet.ID)
+	if err != nil {
+		return nil, FailedPreconditionError("Could not retrieve external IDs")
+	}
+
+	err = s.b.Gatehub().UnfreezeCard(ctx, gatehub.UnfreezeCardArgs{
+		UserID: externalIDs.UserID,
+		CardID: req.CardId,
+		Note:   nil,
+	})
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &pb.Empty{}, nil
+}
+
+func (s *rpcService) BlockCard(ctx context.Context, req *pb.BlockCardRequest) (*pb.Empty, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	wallet, err := s.b.Wallets().ForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	_, isEU := country.EUCountries[wallet.Country]
+	if !isEU {
+		return nil, FailedPreconditionError("Wallet not in the EU region")
+	}
+
+	externalIDs, err := s.b.Gatehub().GetExternalIDs(ctx, wallet.ID)
+	if err != nil {
+		return nil, FailedPreconditionError("Could not retrieve external IDs")
+	}
+
+	err = s.b.Gatehub().BlockCard(ctx, gatehub.BlockCardArgs{
+		UserID:     externalIDs.UserID,
+		CardID:     req.CardId,
+		ReasonCode: gatehub.CardStatusReasonCodeUserRequest,
+	})
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &pb.Empty{}, nil
+}
+
+func (s *rpcService) CloseCard(ctx context.Context, req *pb.CloseCardRequest) (*pb.Empty, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	wallet, err := s.b.Wallets().ForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	_, isEU := country.EUCountries[wallet.Country]
+	if !isEU {
+		return nil, FailedPreconditionError("Wallet not in the EU region")
+	}
+
+	externalIDs, err := s.b.Gatehub().GetExternalIDs(ctx, wallet.ID)
+	if err != nil {
+		return nil, FailedPreconditionError("Could not retrieve external IDs")
+	}
+
+	err = s.b.Gatehub().CloseCard(ctx, gatehub.CloseCardArgs{
+		UserID:     externalIDs.UserID,
+		CardID:     req.CardId,
+		ReasonCode: gatehub.CardStatusReasonCodeUserRequest,
+	})
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &pb.Empty{}, nil
+}
+
 func newCard(c gatehub.Card) pb.Card {
 	var status pb.CardStatus
 	cardType := pb.CardType_CARD_TYPE_UNKNOWN
@@ -404,7 +537,7 @@ func newCard(c gatehub.Card) pb.Card {
 
 	if c.StatusReasonCode != nil {
 		switch *c.StatusReasonCode {
-		case gatehub.CardStatusReasonCodeClientRequestLock:
+		case gatehub.CardStatusReasonCodeClientRequestedLock:
 			statusReasonCode = pb.CardStatusReasonCode_CARD_STATUS_REASON_CODE_CLIENT_REQUESTED_LOCK
 		case gatehub.CardStatusReasonCodeLostCard:
 			statusReasonCode = pb.CardStatusReasonCode_CARD_STATUS_REASON_CODE_LOST_CARD

@@ -397,6 +397,23 @@ type (
 		Token string      `json:"token"`
 		Links []TokenLink `json:"links"`
 	}
+
+	FreezeCardArgs struct {
+		ReasonCode string  `json:"-"`
+		Note       *string `json:"note,omitempty"`
+	}
+
+	UnfreezeCardArgs struct {
+		Note *string `json:"note,omitempty"`
+	}
+
+	BlockCardArgs struct {
+		ReasonCode string
+	}
+
+	CloseCardArgs struct {
+		ReasonCode string
+	}
 )
 
 func (ca *CardAccount) WithAccountProductCode(productCode string) {
