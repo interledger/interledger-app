@@ -246,6 +246,11 @@ func (s *rpcService) OrderCard(ctx context.Context, req *pb.OrderCardRequest) (*
 		CardProductCode: req.CardProductCode,
 	}
 
+	err = s.b.Gatehub().ValidateCardProductCode(ctx, req.CardProductCode)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
 	switch req.Type {
 	case pb.CardType_CARD_TYPE_PHYSICAL:
 		args.ShouldOrderPlastic = true

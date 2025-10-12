@@ -133,3 +133,7 @@ func (c Client) BlockCard(ctx context.Context, args gatehub.BlockCardArgs) error
 func (c Client) CloseCard(ctx context.Context, args gatehub.CloseCardArgs) error {
 	return ops.CloseCard(ctx, c.b, c.external, args)
 }
+
+func (c Client) ValidateCardProductCode(ctx context.Context, cardProductCode string) error {
+	return ops.ValidateCardProductCode(ctx, c.external, cardProductCode)
+}

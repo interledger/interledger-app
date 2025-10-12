@@ -82,11 +82,7 @@ export default function Page() {
 export async function action({ request }: ActionFunctionArgs) {
   await grpc.orderCard(request, {
     cardProductCode: 'PMDSGWEEA',
-    type: CardType.PHYSICAL,
-    deliveryAddress: {
-      case: 'deliveryAddressId',
-      value: '91E82854C73745759BA07B5269A379BC'
-    }
+    type: CardType.VIRTUAL
   })
 
   return null
