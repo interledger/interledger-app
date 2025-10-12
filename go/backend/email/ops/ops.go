@@ -456,11 +456,12 @@ func SendCardCreatedEmail(ctx context.Context, b Backends, walletID, cardID stri
 		log.Error("Failed to send card created email.", zap.Error(err), zap.String("walletID", walletID))
 		return
 	}
-	err = b.External().SendTemplate(ctx, "Your card has been created", sendTo, oneTemplateID, map[string]interface{}{
-		"subject": "Your card has been created",
+	err = b.External().SendTemplate(ctx, "💳 Your new card is ready for use!", sendTo, oneTemplateID, map[string]interface{}{
+		"subject": "💳 Your new card is ready for use!",
 		"data": []map[string]interface{}{
 			{"paragraph": greeting},
-			{"heading": "Your recent request to create a card was successful."},
+			{"paragraph": "We are pleased to let you know that your card is now ready."},
+			{"paragraph": "You can view and manage it securely from your account."},
 		},
 		"cta": map[string]interface{}{
 			"text": "View card",
