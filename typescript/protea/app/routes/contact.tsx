@@ -1,4 +1,4 @@
-import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
+import type { LoaderFunctionArgs } from '@remix-run/node'
 import type { UIMatch } from '@remix-run/react'
 import { useLoaderData } from '@remix-run/react'
 import type { ApplicationProps } from '~/components'
@@ -7,7 +7,6 @@ import { MarketingPageWithSections } from '~/components/Content'
 import { getContactRoute } from '~/data/content.server'
 import type { SectionRecord } from '~/generated/dato-cms-graphql'
 import { jsonWithCSRF } from '~/lib/csrf.server'
-import { datoMeta, mergeMeta } from '~/lib/meta'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const { contactRoute, footer } = await getContactRoute()
@@ -22,10 +21,6 @@ export const handle: ApplicationProps = {
     footer: (match: UIMatch<typeof loader>) => match.data.footer
   }
 }
-
-export const meta: MetaFunction<typeof loader> = mergeMeta(
-  ({ data, location }) => datoMeta(data?.contactRoute?._seoMetaTags, location)
-)
 
 export default function Page() {
   const { contactRoute } = useLoaderData<typeof loader>()
