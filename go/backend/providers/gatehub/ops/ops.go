@@ -674,6 +674,22 @@ func OrderCard(ctx context.Context, b Backends, ec external.Client, args gatehub
 	return nil
 }
 
+func ValidateCardProductCode(ctx context.Context, ec external.Client, cardProductCode string) error {
+	var err error
+	products, err := ec.GetCardApplicationProducts(ctx)
+	if err != nil {
+		return err
+	}
+
+	for _, p := range products {
+		if p.Code == cardProductCode {
+			return nil
+		}
+	}
+
+	return fmt.Errorf("%w invalid card product code: %s", gatehub.ErrInternal, cardProductCode)
+}
+
 func updateCustomerSourceIDs(ctx context.Context, b Backends, userID, customerSourceID, accountSourceID string, shouldOrderPlastic bool) error {
 	_, err := b.DB().ExecContext(ctx, "UPDATE gatehub_users SET external_customer_source_id = $1, external_account_source_id = $2, is_first_card_plastic = $3 WHERE external_id = $4;", customerSourceID, accountSourceID, shouldOrderPlastic, userID)
 	if err != nil {
