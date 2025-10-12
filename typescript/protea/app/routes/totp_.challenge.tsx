@@ -5,20 +5,13 @@ import type {
   MetaFunction
 } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { Form, useActionData, useLoaderData } from '@remix-run/react'
+import { useActionData, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import {
-  Button,
-  Card,
-  CardContent,
-  Icon,
-  Layouts,
-  TextField
-} from '~/components'
-import { Label } from '~/components/Label'
+import { Layouts } from '~/components'
+import { TotpChallenge } from '~/components/TotpChallenge'
 import { validateCSRFToken } from '~/lib/csrf.server'
-import { getCsrfTokenFromFlow, KRATOS_URL } from '~/lib/kratos.server'
+import { KRATOS_URL, getCsrfTokenFromFlow } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -29,7 +22,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const refresh = url.searchParams.get('refresh')
   if (!flowId) {
     const initRes = await fetch(
-      `${KRATOS_URL}/self-service/login/browser?aal=aal2${refresh ? '&refresh=true' : ''}`,
+      `${KRATOS_URL}/self-service/login/browser?aal=aal2${
+        refresh ? '&refresh=true' : ''
+      }`,
       {
         headers: {
           cookie
@@ -94,40 +89,11 @@ export default function Page() {
   const actionData = useActionData<typeof action>()
 
   return (
-    <>
-      <Form method='post'>
-        <input type='hidden' name='csrf_token' value={csrfToken} />
-        <input type='hidden' name='flow' value={flowId} />
-        <Card>
-          <CardContent>
-            <p>
-              Enter the 6-digit code from your authenticator app to continue.
-            </p>
-          </CardContent>
-          <Label className='mt-2'>Authenticator App</Label>
-          <div className='mt-1 flex space-x-2 rounded-xl bg-nav p-3 text-medium'>
-            <Icon>shield</Icon>
-            <span>Time-based One-Time Password (TOTP)</span>
-          </div>
-          <TextField
-            id='totp'
-            label='Authenticator Code'
-            name='totp_code'
-            type='text'
-            className='mt-4'
-            aria-invalid={Boolean(actionData?.errors?.totp_code) || undefined}
-            aria-describedby={
-              actionData?.errors?.totp_code ? 'totp-error' : undefined
-            }
-            required
-            errorMessage={actionData?.errors?.totp_code}
-          />
-        </Card>
-        <Button type='submit' className='mt-4'>
-          Verify
-        </Button>
-      </Form>
-    </>
+    <TotpChallenge
+      flowId={flowId}
+      csrfToken={csrfToken}
+      actionData={actionData}
+    />
   )
 }
 
