@@ -8,27 +8,35 @@ interface TotpChallengeData {
   error?: string
 }
 
+interface TotpCheckData {
+  enabled: boolean
+  error?: string
+}
+
 interface UseTotpChallengeOptions {
   onSuccess?: () => void
   onError?: (error: string) => void
 }
 
 /**
- * Hook for inline TOTP challenge popup (no redirects)
+ * Hook for retrieving TOTP challenge popup
  * Returns:
  * - popTotp: function to trigger the TOTP challenge popup
  * - TotpPopup: component to render the popup
+ * - isLoading: boolean indicating if challenge is being initialized
+ * - isOpen: boolean indicating if popup is currently open
+ * - isTotpEnabled: boolean indicating if user has TOTP configured
  */
 export function useTotpChallenge(options?: UseTotpChallengeOptions) {
   const [isOpen, setIsOpen] = useState(false)
-  const initFetcher = useFetcher<TotpChallengeData>()
+  const isTotpEnabledFetcher = useFetcher<TotpCheckData>()
+  const initChallengeFetcher = useFetcher<TotpChallengeData>()
 
   // Trigger TOTP challenge popup
   const popTotp = () => {
-    // Initialize the flow
-    console.log('🍀 (useTotpChallenge) Triggering TOTP challenge popup')
-    initFetcher.load('/api/totp-challenge-init')
-    setIsOpen(true)
+    console.log('🍀 (useTotpChallenge) Checking if TOTP is enabled...')
+    // First, check if user has TOTP enabled
+    isTotpEnabledFetcher.load('/api/check-totp-enabled')
   }
 
   // Close popup
@@ -49,29 +57,45 @@ export function useTotpChallenge(options?: UseTotpChallengeOptions) {
     options?.onError?.(error)
   }
 
-  // Handle init errors (e.g., TOTP not configured)
+  // Handle TOTP enabled check result
   useEffect(() => {
-    if (initFetcher.data?.error) {
+    if (isTotpEnabledFetcher.data?.enabled) {
+      console.log('🍀 (useTotpChallenge) TOTP is enabled, initializing flow...')
+      // User has TOTP enabled, proceed with flow initialization
+      initChallengeFetcher.load('/api/totp-challenge-init')
+      setIsOpen(true)
+    } else {
+      console.log(
+        '🍀 (useTotpChallenge) TOTP is not enabled, aborting challenge'
+      )
+      // User doesn't have TOTP set up yet, do nothing (silently abort)
+      // This is expected behavior, not an error
+    }
+  }, [isTotpEnabledFetcher.data])
+
+  // Handle init errors (e.g., flow expired, network issues)
+  useEffect(() => {
+    if (initChallengeFetcher.data?.error) {
       console.error(
         'Failed to initialize TOTP challenge:',
-        initFetcher.data.error
+        initChallengeFetcher.data.error
       )
       setIsOpen(false)
-      options?.onError?.(initFetcher.data.error)
+      options?.onError?.(initChallengeFetcher.data.error)
     }
-  }, [initFetcher.data, options])
+  }, [initChallengeFetcher.data, options])
 
   // Popup component
   const TotpPopup = () => {
     // Don't render until we have flow data
-    if (!initFetcher.data || initFetcher.data.error) {
+    if (!initChallengeFetcher.data || initChallengeFetcher.data.error) {
       return null
     }
 
     return (
       <TotpChallengePopup
-        flowId={initFetcher.data.flowId}
-        csrfToken={initFetcher.data.csrfToken}
+        flowId={initChallengeFetcher.data.flowId}
+        csrfToken={initChallengeFetcher.data.csrfToken}
         isOpen={isOpen}
         onClose={closePopup}
         onSuccess={handleSuccess}
@@ -79,11 +103,13 @@ export function useTotpChallenge(options?: UseTotpChallengeOptions) {
       />
     )
   }
+  
 
   return {
     popTotp,
     TotpPopup,
-    isLoading: initFetcher.state === 'loading',
-    isOpen
+    isLoading: initChallengeFetcher.state === 'loading',
+    isOpen,
+    isTotpEnabled: isTotpEnabledFetcher.data?.enabled ?? false
   }
 }
