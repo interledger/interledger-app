@@ -662,9 +662,9 @@ export class GetCardTokenResponse extends Message<GetCardTokenResponse> {
  */
 export class GetCardOrderOptionsResponse extends Message<GetCardOrderOptionsResponse> {
   /**
-   * @generated from field: bool waitingForCreation = 1;
+   * @generated from field: bool isWaitingForCreation = 1;
    */
-  waitingForCreation = false;
+  isWaitingForCreation = false;
 
   /**
    * @generated from field: repeated backend.v1.CardApplicationProduct products = 2;
@@ -689,7 +689,7 @@ export class GetCardOrderOptionsResponse extends Message<GetCardOrderOptionsResp
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "backend.v1.GetCardOrderOptionsResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "waitingForCreation", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 1, name: "isWaitingForCreation", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 2, name: "products", kind: "message", T: CardApplicationProduct, repeated: true },
     { no: 3, name: "addresses", kind: "message", T: CustomerDeliveryAddress, repeated: true },
     { no: 4, name: "countries", kind: "message", T: Country, repeated: true },
@@ -1072,9 +1072,9 @@ export class Card extends Message<Card> {
  */
 export class ListCardsResponse extends Message<ListCardsResponse> {
   /**
-   * @generated from field: bool waitingForCreation = 1;
+   * @generated from field: bool isWaitingForCreation = 1;
    */
-  waitingForCreation = false;
+  isWaitingForCreation = false;
 
   /**
    * @generated from field: repeated backend.v1.Card cards = 2;
@@ -1089,7 +1089,7 @@ export class ListCardsResponse extends Message<ListCardsResponse> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "backend.v1.ListCardsResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "waitingForCreation", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 1, name: "isWaitingForCreation", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 2, name: "cards", kind: "message", T: Card, repeated: true },
   ]);
 

@@ -46,10 +46,10 @@ func (s *rpcService) GetCardOrderOptions(ctx context.Context, req *pb.Empty) (*p
 
 	if user.IsPendingExternalCreation() {
 		return &pb.GetCardOrderOptionsResponse{
-			WaitingForCreation: true,
-			Products:           []*pb.CardApplicationProduct{},
-			Addresses:          []*pb.CustomerDeliveryAddress{},
-			Countries:          []*pb.Country{},
+			IsWaitingForCreation: true,
+			Products:             []*pb.CardApplicationProduct{},
+			Addresses:            []*pb.CustomerDeliveryAddress{},
+			Countries:            []*pb.Country{},
 		}, nil
 	}
 
@@ -183,8 +183,8 @@ func (s *rpcService) ListCards(ctx context.Context, req *pb.Empty) (*pb.ListCard
 
 	if externalIDs.IsPendingExternalCreation() {
 		return &pb.ListCardsResponse{
-			WaitingForCreation: true,
-			Cards:              []*pb.Card{},
+			IsWaitingForCreation: true,
+			Cards:                []*pb.Card{},
 		}, nil
 	}
 

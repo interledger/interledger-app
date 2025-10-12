@@ -119,9 +119,9 @@ export interface GetCardTokenResponse {
  */
 export interface GetCardOrderOptionsResponse {
     /**
-     * @generated from protobuf field: bool waitingForCreation = 1;
+     * @generated from protobuf field: bool isWaitingForCreation = 1;
      */
-    waitingForCreation: boolean;
+    isWaitingForCreation: boolean;
     /**
      * @generated from protobuf field: repeated backend.v1.CardApplicationProduct products = 2;
      */
@@ -288,9 +288,9 @@ export interface Card {
  */
 export interface ListCardsResponse {
     /**
-     * @generated from protobuf field: bool waitingForCreation = 1;
+     * @generated from protobuf field: bool isWaitingForCreation = 1;
      */
-    waitingForCreation: boolean;
+    isWaitingForCreation: boolean;
     /**
      * @generated from protobuf field: repeated backend.v1.Card cards = 2;
      */
@@ -3368,14 +3368,14 @@ export const GetCardTokenResponse = new GetCardTokenResponse$Type();
 class GetCardOrderOptionsResponse$Type extends MessageType<GetCardOrderOptionsResponse> {
     constructor() {
         super("backend.v1.GetCardOrderOptionsResponse", [
-            { no: 1, name: "waitingForCreation", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 1, name: "isWaitingForCreation", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 2, name: "products", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => CardApplicationProduct },
             { no: 3, name: "addresses", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => CustomerDeliveryAddress },
             { no: 4, name: "countries", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Country }
         ]);
     }
     create(value?: PartialMessage<GetCardOrderOptionsResponse>): GetCardOrderOptionsResponse {
-        const message = { waitingForCreation: false, products: [], addresses: [], countries: [] };
+        const message = { isWaitingForCreation: false, products: [], addresses: [], countries: [] };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<GetCardOrderOptionsResponse>(this, message, value);
@@ -3386,8 +3386,8 @@ class GetCardOrderOptionsResponse$Type extends MessageType<GetCardOrderOptionsRe
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* bool waitingForCreation */ 1:
-                    message.waitingForCreation = reader.bool();
+                case /* bool isWaitingForCreation */ 1:
+                    message.isWaitingForCreation = reader.bool();
                     break;
                 case /* repeated backend.v1.CardApplicationProduct products */ 2:
                     message.products.push(CardApplicationProduct.internalBinaryRead(reader, reader.uint32(), options));
@@ -3410,9 +3410,9 @@ class GetCardOrderOptionsResponse$Type extends MessageType<GetCardOrderOptionsRe
         return message;
     }
     internalBinaryWrite(message: GetCardOrderOptionsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* bool waitingForCreation = 1; */
-        if (message.waitingForCreation !== false)
-            writer.tag(1, WireType.Varint).bool(message.waitingForCreation);
+        /* bool isWaitingForCreation = 1; */
+        if (message.isWaitingForCreation !== false)
+            writer.tag(1, WireType.Varint).bool(message.isWaitingForCreation);
         /* repeated backend.v1.CardApplicationProduct products = 2; */
         for (let i = 0; i < message.products.length; i++)
             CardApplicationProduct.internalBinaryWrite(message.products[i], writer.tag(2, WireType.LengthDelimited).fork(), options).join();
@@ -3871,12 +3871,12 @@ export const Card = new Card$Type();
 class ListCardsResponse$Type extends MessageType<ListCardsResponse> {
     constructor() {
         super("backend.v1.ListCardsResponse", [
-            { no: 1, name: "waitingForCreation", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 1, name: "isWaitingForCreation", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 2, name: "cards", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Card }
         ]);
     }
     create(value?: PartialMessage<ListCardsResponse>): ListCardsResponse {
-        const message = { waitingForCreation: false, cards: [] };
+        const message = { isWaitingForCreation: false, cards: [] };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<ListCardsResponse>(this, message, value);
@@ -3887,8 +3887,8 @@ class ListCardsResponse$Type extends MessageType<ListCardsResponse> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* bool waitingForCreation */ 1:
-                    message.waitingForCreation = reader.bool();
+                case /* bool isWaitingForCreation */ 1:
+                    message.isWaitingForCreation = reader.bool();
                     break;
                 case /* repeated backend.v1.Card cards */ 2:
                     message.cards.push(Card.internalBinaryRead(reader, reader.uint32(), options));
@@ -3905,9 +3905,9 @@ class ListCardsResponse$Type extends MessageType<ListCardsResponse> {
         return message;
     }
     internalBinaryWrite(message: ListCardsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* bool waitingForCreation = 1; */
-        if (message.waitingForCreation !== false)
-            writer.tag(1, WireType.Varint).bool(message.waitingForCreation);
+        /* bool isWaitingForCreation = 1; */
+        if (message.isWaitingForCreation !== false)
+            writer.tag(1, WireType.Varint).bool(message.isWaitingForCreation);
         /* repeated backend.v1.Card cards = 2; */
         for (let i = 0; i < message.cards.length; i++)
             Card.internalBinaryWrite(message.cards[i], writer.tag(2, WireType.LengthDelimited).fork(), options).join();

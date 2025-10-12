@@ -230,7 +230,7 @@ message GetCardTokenResponse {
 }
 
 message GetCardOrderOptionsResponse {
-  bool waitingForCreation = 1;
+  bool isWaitingForCreation = 1;
   repeated CardApplicationProduct products = 2;;
   repeated CustomerDeliveryAddress addresses = 3;;
   repeated Country countries = 4;
@@ -334,7 +334,7 @@ message Card {
 }
 
 message ListCardsResponse {
-  bool waitingForCreation = 1;
+  bool isWaitingForCreation = 1;
   repeated Card cards = 2;
 }
 
