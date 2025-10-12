@@ -7,7 +7,7 @@ import type {
 } from '~/generated/connect/backend/v1/backend_pb'
 import { CardType } from '~/generated/connect/backend/v1/backend_pb'
 
-export enum AddCardStep {
+export enum OrderCardStep {
   CARD_TYPE,
   DELIVERY,
   CREATE_ADDRESS,
@@ -21,8 +21,8 @@ export type StorableNewAddress = NewCustomerDeliveryAddress & {
 export type DeliveryAddress = CustomerDeliveryAddress | StorableNewAddress
 export type Country = { id: string; name: string }
 
-interface AddCardState {
-  step: AddCardStep
+interface OrderCardState {
+  step: OrderCardStep
   type: CardType
   productCode: string | null
   products: CardApplicationProduct[]
@@ -33,7 +33,7 @@ interface AddCardState {
 }
 
 const initialState = {
-  step: AddCardStep.CARD_TYPE,
+  step: OrderCardStep.CARD_TYPE,
   type: CardType.PHYSICAL,
   productCode: null,
   products: [],
@@ -41,9 +41,9 @@ const initialState = {
   newAddress: null,
   selectedAddress: null,
   countries: []
-} satisfies AddCardState
+} satisfies OrderCardState
 
-interface AddCardActions {
+interface OrderCardActions {
   setAddresses: (addresses: CustomerDeliveryAddress[]) => void
   setNewAddress: (address: NewCustomerDeliveryAddress) => void
   setSelectedAddress: (address: DeliveryAddress) => void
@@ -51,11 +51,11 @@ interface AddCardActions {
 
   setProducts: (products: CardApplicationProduct[]) => void
   setProductCode: (productCode: string) => void
-  setCardType: (type: AddCardState['type']) => void
+  setCardType: (type: OrderCardState['type']) => void
 
   setCountries: (countries: Country[]) => void
 
-  setStep: (step: AddCardStep) => void
+  setStep: (step: OrderCardStep) => void
   stepBack: () => void
   reset: () => void
 }
@@ -71,7 +71,7 @@ export const cardTypes: SelectOptions[] = [
   }
 ]
 
-export const useAddCardStore = create<AddCardState & AddCardActions>(
+export const useOrderCardStore = create<OrderCardState & OrderCardActions>(
   (set, get) => ({
     ...initialState,
 
@@ -103,12 +103,12 @@ export const useAddCardStore = create<AddCardState & AddCardActions>(
     stepBack: () =>
       set((state) => {
         switch (state.step) {
-          case AddCardStep.DELIVERY:
-            return { step: AddCardStep.CARD_TYPE }
-          case AddCardStep.CONFIRMATION:
-            return { step: AddCardStep.DELIVERY }
-          case AddCardStep.CREATE_ADDRESS:
-            return { step: AddCardStep.DELIVERY }
+          case OrderCardStep.DELIVERY:
+            return { step: OrderCardStep.CARD_TYPE }
+          case OrderCardStep.CONFIRMATION:
+            return { step: OrderCardStep.DELIVERY }
+          case OrderCardStep.CREATE_ADDRESS:
+            return { step: OrderCardStep.DELIVERY }
           default:
             return { ...initialState }
         }

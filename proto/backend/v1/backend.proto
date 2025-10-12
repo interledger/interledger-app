@@ -184,7 +184,7 @@ service BackendService {
   rpc FreezeCard(FreezeCardRequest) returns (Empty);
   rpc UnfreezeCard(UnfreezeCardRequest) returns (Empty);
   rpc BlockCard(BlockCardRequest) returns (Empty);
-  rpc CloseCard(CloseCardRequest) returns (Empty);
+  rpc TerminateCard(TerminateCardRequest) returns (Empty);
 }
 
 message FreezeCardRequest {
@@ -199,7 +199,7 @@ message BlockCardRequest {
   string cardId = 1;
 }
 
-message CloseCardRequest {
+message TerminateCardRequest {
   string cardId = 1;
 }
 

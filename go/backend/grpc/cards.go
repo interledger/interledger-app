@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 	"errors"
+	"fmt"
 	"slices"
 	"strings"
 	"sync"
@@ -13,6 +14,10 @@ import (
 	"gitlab.com/fynbos/log"
 	pb "gitlab.com/fynbos/proto/backend/v1"
 	"go.uber.org/zap"
+)
+
+const (
+	KycAddressID = "kyc-address"
 )
 
 func (s *rpcService) GetCardOrderOptions(ctx context.Context, req *pb.Empty) (*pb.GetCardOrderOptionsResponse, error) {
@@ -39,12 +44,14 @@ func (s *rpcService) GetCardOrderOptions(ctx context.Context, req *pb.Empty) (*p
 		return nil, ForbiddenError("Wallet cards not enabled")
 	}
 
-	user, err := s.b.Gatehub().GetExternalIDs(ctx, wallet.ID)
+	externalIDs, err := s.b.Gatehub().GetExternalIDs(ctx, wallet.ID)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
 
-	if user.IsPendingExternalCreation() {
+	fmt.Println(externalIDs)
+
+	if externalIDs.IsPendingExternalCreation() {
 		return &pb.GetCardOrderOptionsResponse{
 			IsWaitingForCreation: true,
 			Products:             []*pb.CardApplicationProduct{},
@@ -96,7 +103,7 @@ func (s *rpcService) GetCardOrderOptions(ctx context.Context, req *pb.Empty) (*p
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		if !user.IsCustomerCreated() {
+		if !externalIDs.IsCustomerCreated() {
 			u, e := s.b.Gatehub().GetUser(ctx, wallet.ID)
 			if e != nil {
 				fail(e)
@@ -119,10 +126,11 @@ func (s *rpcService) GetCardOrderOptions(ctx context.Context, req *pb.Empty) (*p
 		return nil, toGRPCError(err)
 	}
 
-	if !user.IsCustomerCreated() && ghUser != nil {
+	if !externalIDs.IsCustomerCreated() && ghUser != nil {
+		fmt.Println("here")
 		ret.Addresses = []*pb.CustomerDeliveryAddress{
 			{
-				Id: "kyc-address",
+				Id: KycAddressID,
 				Details: &pb.CustomerDeliveryAddressBase{
 					Type:        pb.CustomerDeliveryAddressType_CUSTOMER_DELIVERY_ADDRESS_PERMANENT_RESIDENCE,
 					CountryCode: ghUser.Profile.AddressCountryCode,
@@ -252,8 +260,8 @@ func (s *rpcService) OrderCard(ctx context.Context, req *pb.OrderCardRequest) (*
 		addrID := req.GetDeliveryAddressId()
 		newAddr := req.GetNewDeliveryAddress()
 
-		if !externalIDs.IsCustomerCreated() && addrID != "" {
-			return nil, toGRPCError(errors.New("attempted to order card for non-customer with a delivery address id"))
+		if !externalIDs.IsCustomerCreated() && addrID != KycAddressID {
+			return nil, toGRPCError(errors.New("attempted to order card for non-customer with a delivery address"))
 		}
 
 		if addrID != "" && newAddr != nil {
@@ -294,7 +302,7 @@ func (s *rpcService) OrderCard(ctx context.Context, req *pb.OrderCardRequest) (*
 			if err != nil {
 				return nil, toGRPCError(err)
 			}
-		} else {
+		} else if addrID != KycAddressID {
 			args.DeliveryAddressID = &addrID
 		}
 
@@ -477,7 +485,7 @@ func (s *rpcService) BlockCard(ctx context.Context, req *pb.BlockCardRequest) (*
 	return &pb.Empty{}, nil
 }
 
-func (s *rpcService) CloseCard(ctx context.Context, req *pb.CloseCardRequest) (*pb.Empty, error) {
+func (s *rpcService) TerminateCard(ctx context.Context, req *pb.TerminateCardRequest) (*pb.Empty, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, UnauthenticatedError("Unauthenticated.")

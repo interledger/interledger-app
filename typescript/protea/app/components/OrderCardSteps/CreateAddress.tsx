@@ -16,7 +16,7 @@ import {
   CustomerDeliveryAddressType,
   NewCustomerDeliveryAddress
 } from '~/generated/connect/backend/v1/backend_pb'
-import { AddCardStep, useAddCardStore } from '~/lib/useAddCardStore'
+import { OrderCardStep, useOrderCardStore } from '~/lib/useOrderCardStore'
 import {
   createNewAddress,
   getAddressTypeValue,
@@ -113,7 +113,7 @@ const getInitialValues = (
 }
 
 export const CreateAddress = () => {
-  const { newAddress, setNewAddress, setStep, countries } = useAddCardStore()
+  const { newAddress, setNewAddress, setStep, countries } = useOrderCardStore()
 
   const {
     control,
@@ -146,7 +146,7 @@ export const CreateAddress = () => {
   const onSubmit = (data: AddressFormData) => {
     const newAddress = createNewAddress(data)
     setNewAddress(newAddress)
-    setStep(AddCardStep.DELIVERY)
+    setStep(OrderCardStep.DELIVERY)
   }
 
   return (
@@ -319,7 +319,7 @@ export const CreateAddress = () => {
           <div className='mt-8 flex gap-4'>
             <OutlineButton
               type='button'
-              onClick={() => setStep(AddCardStep.DELIVERY)}
+              onClick={() => setStep(OrderCardStep.DELIVERY)}
               shrink
             >
               Back

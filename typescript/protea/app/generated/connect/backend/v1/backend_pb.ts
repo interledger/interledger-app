@@ -480,39 +480,39 @@ export class BlockCardRequest extends Message<BlockCardRequest> {
 }
 
 /**
- * @generated from message backend.v1.CloseCardRequest
+ * @generated from message backend.v1.TerminateCardRequest
  */
-export class CloseCardRequest extends Message<CloseCardRequest> {
+export class TerminateCardRequest extends Message<TerminateCardRequest> {
   /**
    * @generated from field: string cardId = 1;
    */
   cardId = "";
 
-  constructor(data?: PartialMessage<CloseCardRequest>) {
+  constructor(data?: PartialMessage<TerminateCardRequest>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "backend.v1.CloseCardRequest";
+  static readonly typeName = "backend.v1.TerminateCardRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "cardId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CloseCardRequest {
-    return new CloseCardRequest().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TerminateCardRequest {
+    return new TerminateCardRequest().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CloseCardRequest {
-    return new CloseCardRequest().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): TerminateCardRequest {
+    return new TerminateCardRequest().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CloseCardRequest {
-    return new CloseCardRequest().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): TerminateCardRequest {
+    return new TerminateCardRequest().fromJsonString(jsonString, options);
   }
 
-  static equals(a: CloseCardRequest | PlainMessage<CloseCardRequest> | undefined, b: CloseCardRequest | PlainMessage<CloseCardRequest> | undefined): boolean {
-    return proto3.util.equals(CloseCardRequest, a, b);
+  static equals(a: TerminateCardRequest | PlainMessage<TerminateCardRequest> | undefined, b: TerminateCardRequest | PlainMessage<TerminateCardRequest> | undefined): boolean {
+    return proto3.util.equals(TerminateCardRequest, a, b);
   }
 }
 

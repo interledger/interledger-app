@@ -2,7 +2,7 @@ import {
   CustomerDeliveryAddressType,
   NewCustomerDeliveryAddress
 } from '~/generated/connect/backend/v1/backend_pb'
-import { Country, DeliveryAddress } from '~/lib/useAddCardStore'
+import { Country, DeliveryAddress } from '~/lib/useOrderCardStore'
 import { SelectOptions } from '../Select'
 import { AddressFormData, addressTypeOptions } from './CreateAddress'
 
@@ -13,7 +13,9 @@ export type SelectableAddress = {
   label?: string
 }
 
-export function toSelectableAddresses(address: DeliveryAddress): SelectableAddress {
+export function toSelectableAddresses(
+  address: DeliveryAddress
+): SelectableAddress {
   return {
     id: address.id,
     name: `${address.details?.line1} ${address.details?.city} (${address.details?.countryCode})`,

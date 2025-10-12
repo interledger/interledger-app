@@ -59,9 +59,9 @@ export interface BlockCardRequest {
     cardId: string;
 }
 /**
- * @generated from protobuf message backend.v1.CloseCardRequest
+ * @generated from protobuf message backend.v1.TerminateCardRequest
  */
-export interface CloseCardRequest {
+export interface TerminateCardRequest {
     /**
      * @generated from protobuf field: string cardId = 1;
      */
@@ -3142,20 +3142,20 @@ class BlockCardRequest$Type extends MessageType<BlockCardRequest> {
  */
 export const BlockCardRequest = new BlockCardRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class CloseCardRequest$Type extends MessageType<CloseCardRequest> {
+class TerminateCardRequest$Type extends MessageType<TerminateCardRequest> {
     constructor() {
-        super("backend.v1.CloseCardRequest", [
+        super("backend.v1.TerminateCardRequest", [
             { no: 1, name: "cardId", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
-    create(value?: PartialMessage<CloseCardRequest>): CloseCardRequest {
+    create(value?: PartialMessage<TerminateCardRequest>): TerminateCardRequest {
         const message = { cardId: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<CloseCardRequest>(this, message, value);
+            reflectionMergePartial<TerminateCardRequest>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CloseCardRequest): CloseCardRequest {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: TerminateCardRequest): TerminateCardRequest {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
@@ -3174,7 +3174,7 @@ class CloseCardRequest$Type extends MessageType<CloseCardRequest> {
         }
         return message;
     }
-    internalBinaryWrite(message: CloseCardRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+    internalBinaryWrite(message: TerminateCardRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
         /* string cardId = 1; */
         if (message.cardId !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.cardId);
@@ -3185,9 +3185,9 @@ class CloseCardRequest$Type extends MessageType<CloseCardRequest> {
     }
 }
 /**
- * @generated MessageType for protobuf message backend.v1.CloseCardRequest
+ * @generated MessageType for protobuf message backend.v1.TerminateCardRequest
  */
-export const CloseCardRequest = new CloseCardRequest$Type();
+export const TerminateCardRequest = new TerminateCardRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class TokenLink$Type extends MessageType<TokenLink> {
     constructor() {
@@ -12823,5 +12823,5 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "FreezeCard", options: {}, I: FreezeCardRequest, O: Empty },
     { name: "UnfreezeCard", options: {}, I: UnfreezeCardRequest, O: Empty },
     { name: "BlockCard", options: {}, I: BlockCardRequest, O: Empty },
-    { name: "CloseCard", options: {}, I: CloseCardRequest, O: Empty }
+    { name: "TerminateCard", options: {}, I: TerminateCardRequest, O: Empty }
 ]);

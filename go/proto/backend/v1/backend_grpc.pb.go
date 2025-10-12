@@ -129,7 +129,7 @@ const (
 	BackendService_FreezeCard_FullMethodName                     = "/backend.v1.BackendService/FreezeCard"
 	BackendService_UnfreezeCard_FullMethodName                   = "/backend.v1.BackendService/UnfreezeCard"
 	BackendService_BlockCard_FullMethodName                      = "/backend.v1.BackendService/BlockCard"
-	BackendService_CloseCard_FullMethodName                      = "/backend.v1.BackendService/CloseCard"
+	BackendService_TerminateCard_FullMethodName                  = "/backend.v1.BackendService/TerminateCard"
 )
 
 // BackendServiceClient is the client API for BackendService service.
@@ -276,7 +276,7 @@ type BackendServiceClient interface {
 	FreezeCard(ctx context.Context, in *FreezeCardRequest, opts ...grpc.CallOption) (*Empty, error)
 	UnfreezeCard(ctx context.Context, in *UnfreezeCardRequest, opts ...grpc.CallOption) (*Empty, error)
 	BlockCard(ctx context.Context, in *BlockCardRequest, opts ...grpc.CallOption) (*Empty, error)
-	CloseCard(ctx context.Context, in *CloseCardRequest, opts ...grpc.CallOption) (*Empty, error)
+	TerminateCard(ctx context.Context, in *TerminateCardRequest, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type backendServiceClient struct {
@@ -1277,9 +1277,9 @@ func (c *backendServiceClient) BlockCard(ctx context.Context, in *BlockCardReque
 	return out, nil
 }
 
-func (c *backendServiceClient) CloseCard(ctx context.Context, in *CloseCardRequest, opts ...grpc.CallOption) (*Empty, error) {
+func (c *backendServiceClient) TerminateCard(ctx context.Context, in *TerminateCardRequest, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
-	err := c.cc.Invoke(ctx, BackendService_CloseCard_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, BackendService_TerminateCard_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1430,7 +1430,7 @@ type BackendServiceServer interface {
 	FreezeCard(context.Context, *FreezeCardRequest) (*Empty, error)
 	UnfreezeCard(context.Context, *UnfreezeCardRequest) (*Empty, error)
 	BlockCard(context.Context, *BlockCardRequest) (*Empty, error)
-	CloseCard(context.Context, *CloseCardRequest) (*Empty, error)
+	TerminateCard(context.Context, *TerminateCardRequest) (*Empty, error)
 }
 
 // UnimplementedBackendServiceServer should be embedded to have forward compatible implementations.
@@ -1767,8 +1767,8 @@ func (UnimplementedBackendServiceServer) UnfreezeCard(context.Context, *Unfreeze
 func (UnimplementedBackendServiceServer) BlockCard(context.Context, *BlockCardRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method BlockCard not implemented")
 }
-func (UnimplementedBackendServiceServer) CloseCard(context.Context, *CloseCardRequest) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CloseCard not implemented")
+func (UnimplementedBackendServiceServer) TerminateCard(context.Context, *TerminateCardRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TerminateCard not implemented")
 }
 
 // UnsafeBackendServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -3762,20 +3762,20 @@ func _BackendService_BlockCard_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BackendService_CloseCard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CloseCardRequest)
+func _BackendService_TerminateCard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TerminateCardRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(BackendServiceServer).CloseCard(ctx, in)
+		return srv.(BackendServiceServer).TerminateCard(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: BackendService_CloseCard_FullMethodName,
+		FullMethod: BackendService_TerminateCard_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).CloseCard(ctx, req.(*CloseCardRequest))
+		return srv.(BackendServiceServer).TerminateCard(ctx, req.(*TerminateCardRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -4228,8 +4228,8 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _BackendService_BlockCard_Handler,
 		},
 		{
-			MethodName: "CloseCard",
-			Handler:    _BackendService_CloseCard_Handler,
+			MethodName: "TerminateCard",
+			Handler:    _BackendService_TerminateCard_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
