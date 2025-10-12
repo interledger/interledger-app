@@ -7,10 +7,10 @@ import {
 import { useLoaderData } from '@remix-run/react'
 import { useEffect } from 'react'
 import { Layouts, type ApplicationProps } from '~/components'
-import { ConfirmCard } from '~/components/AddCardSteps/ConfirmCard'
-import { CreateAddress } from '~/components/AddCardSteps/CreateAddress'
-import { DeliveryAddresses } from '~/components/AddCardSteps/DeliveryAddresses'
-import { ProductsSelect } from '~/components/AddCardSteps/ProductsSelect'
+import { ConfirmCard } from '~/components/OrderCardSteps/ConfirmCard'
+import { CreateAddress } from '~/components/OrderCardSteps/CreateAddress'
+import { DeliveryAddresses } from '~/components/OrderCardSteps/DeliveryAddresses'
+import { ProductsSelect } from '~/components/OrderCardSteps/ProductsSelect'
 import { getFeatures } from '~/data/wallet.server'
 import {
   CardType,
@@ -19,12 +19,12 @@ import {
 } from '~/generated/connect/backend/v1/backend_pb'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
-import { AddCardStep, useAddCardStore } from '~/lib/useAddCardStore'
+import { OrderCardStep, useOrderCardStore } from '~/lib/useOrderCardStore'
 
 export const handle: ApplicationProps = {
   layout: Layouts.Focus,
   scaffold: {
-    header: { title: 'Add card', back: 'cards' }
+    header: { title: 'Order card', back: 'cards' }
   }
 }
 
@@ -45,7 +45,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 export default function Page() {
   const { products, addresses, countries } = useLoaderData<typeof loader>()
   const [step, setProducts, setAddresses, reset, setCountries] =
-    useAddCardStore((state) => [
+    useOrderCardStore((state) => [
       state.step,
       state.setProducts,
       state.setAddresses,
@@ -71,10 +71,10 @@ export default function Page() {
 
   return (
     <>
-      {step === AddCardStep.CARD_TYPE && <ProductsSelect />}
-      {step === AddCardStep.DELIVERY && <DeliveryAddresses />}
-      {step === AddCardStep.CREATE_ADDRESS && <CreateAddress />}
-      {step === AddCardStep.CONFIRMATION && <ConfirmCard />}
+      {step === OrderCardStep.CARD_TYPE && <ProductsSelect />}
+      {step === OrderCardStep.DELIVERY && <DeliveryAddresses />}
+      {step === OrderCardStep.CREATE_ADDRESS && <CreateAddress />}
+      {step === OrderCardStep.CONFIRMATION && <ConfirmCard />}
     </>
   )
 }
@@ -82,7 +82,11 @@ export default function Page() {
 export async function action({ request }: ActionFunctionArgs) {
   await grpc.orderCard(request, {
     cardProductCode: 'PMDSGWEEA',
-    type: CardType.VIRTUAL
+    type: CardType.PHYSICAL,
+    deliveryAddress: {
+      case: 'deliveryAddressId',
+      value: '91E82854C73745759BA07B5269A379BC'
+    }
   })
 
   return null

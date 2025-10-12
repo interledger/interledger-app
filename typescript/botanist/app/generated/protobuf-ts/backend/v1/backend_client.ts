@@ -4,7 +4,7 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { BackendService } from "./backend";
-import type { CloseCardRequest } from "./backend";
+import type { TerminateCardRequest } from "./backend";
 import type { BlockCardRequest } from "./backend";
 import type { UnfreezeCardRequest } from "./backend";
 import type { FreezeCardRequest } from "./backend";
@@ -649,9 +649,9 @@ export interface IBackendServiceClient {
      */
     blockCard(input: BlockCardRequest, options?: RpcOptions): UnaryCall<BlockCardRequest, Empty>;
     /**
-     * @generated from protobuf rpc: CloseCard(backend.v1.CloseCardRequest) returns (backend.v1.Empty);
+     * @generated from protobuf rpc: TerminateCard(backend.v1.TerminateCardRequest) returns (backend.v1.Empty);
      */
-    closeCard(input: CloseCardRequest, options?: RpcOptions): UnaryCall<CloseCardRequest, Empty>;
+    terminateCard(input: TerminateCardRequest, options?: RpcOptions): UnaryCall<TerminateCardRequest, Empty>;
 }
 /**
  * @generated from protobuf service backend.v1.BackendService
@@ -1493,10 +1493,10 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
         return stackIntercept<BlockCardRequest, Empty>("unary", this._transport, method, opt, input);
     }
     /**
-     * @generated from protobuf rpc: CloseCard(backend.v1.CloseCardRequest) returns (backend.v1.Empty);
+     * @generated from protobuf rpc: TerminateCard(backend.v1.TerminateCardRequest) returns (backend.v1.Empty);
      */
-    closeCard(input: CloseCardRequest, options?: RpcOptions): UnaryCall<CloseCardRequest, Empty> {
+    terminateCard(input: TerminateCardRequest, options?: RpcOptions): UnaryCall<TerminateCardRequest, Empty> {
         const method = this.methods[110], opt = this._transport.mergeOptions(options);
-        return stackIntercept<CloseCardRequest, Empty>("unary", this._transport, method, opt, input);
+        return stackIntercept<TerminateCardRequest, Empty>("unary", this._transport, method, opt, input);
     }
 }

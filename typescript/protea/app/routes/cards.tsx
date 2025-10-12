@@ -1,4 +1,3 @@
-import { Code } from '@bufbuild/connect'
 import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Outlet, useLoaderData, useLocation } from '@remix-run/react'
@@ -19,8 +18,6 @@ import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
 
-// TODO: How to differentiate between physical and virtual cards based on the
-// response from GateHub?
 export async function loader({ request }: LoaderFunctionArgs) {
   const features = await getFeatures(request)
   if (!features.manageWalletCardsEnabled) {
@@ -30,12 +27,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const response = await grpc.listCards(request, {})
 
   if (isConnectError(response)) {
-    // Temporary for non-EU wallets
-    // TODO: Maybe show a message to the user that cards are not available
-    // in their jurisdiction?
-    if (response.code === Code.FailedPrecondition) {
-      throw redirect('/')
-    }
     throw response.errorResponse
   }
 
@@ -116,7 +107,7 @@ export default function Page() {
               </CardLink>
             </Card>
           ))}
-        <ButtonRouter to={route('/cards/add')}>Add card</ButtonRouter>
+        <ButtonRouter to={route('/cards/order')}>Order card</ButtonRouter>
       </GridColumn>
       <GridColumn sticky className='col-span-full lg:col-span-6 lg:col-start-7'>
         <Outlet context={cards} />
