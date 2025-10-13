@@ -3,7 +3,6 @@ package grpc
 import (
 	"context"
 	"errors"
-	"fmt"
 	"slices"
 	"strings"
 	"sync"
@@ -48,8 +47,6 @@ func (s *rpcService) GetCardOrderOptions(ctx context.Context, req *pb.Empty) (*p
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
-
-	fmt.Println(externalIDs)
 
 	if externalIDs.IsPendingExternalCreation() {
 		return &pb.GetCardOrderOptionsResponse{
@@ -127,7 +124,6 @@ func (s *rpcService) GetCardOrderOptions(ctx context.Context, req *pb.Empty) (*p
 	}
 
 	if !externalIDs.IsCustomerCreated() && ghUser != nil {
-		fmt.Println("here")
 		ret.Addresses = []*pb.CustomerDeliveryAddress{
 			{
 				Id: KycAddressID,
@@ -525,7 +521,7 @@ func (s *rpcService) TerminateCard(ctx context.Context, req *pb.TerminateCardReq
 
 func newCard(c gatehub.Card) pb.Card {
 	var status pb.CardStatus
-	cardType := pb.CardType_CARD_TYPE_UNKNOWN
+	var cardType pb.CardType
 	statusReasonCode := pb.CardStatusReasonCode_CARD_STATUS_REASON_CODE_NONE
 	lockLevel := pb.CardLockLevel_CARD_LOCK_LEVEL_NONE
 

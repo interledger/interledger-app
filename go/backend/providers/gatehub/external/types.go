@@ -357,8 +357,9 @@ type (
 	NewCardArgs struct {
 		ProductCode string `json:"productCode"`
 
-		addons any // TODO
-		limits any // TODO
+		// TODO
+		// limits any
+		// addons any
 	}
 	CardAccount struct {
 		ProductCode string      `json:"productCode"`
