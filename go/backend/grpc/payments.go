@@ -46,6 +46,14 @@ func (s *rpcService) GetPaymentAddress(ctx context.Context, req *pb.GetPaymentAd
 			return nil, toGRPCError(err)
 		}
 
+		approved, err := s.b.KYC().IsKYCApproved(ctx, wallet.ID)
+		if err != nil {
+			return nil, toGRPCError(err)
+		}
+		if !approved {
+			canSendToAddress = false
+		}
+
 		return &pb.GetPaymentAddressResponse{
 			WalletUrl:        wallet.AddressString(),
 			Type:             "wallet",
@@ -144,6 +152,18 @@ func (s *rpcService) CreatePayment(ctx context.Context, req *pb.CreatePaymentReq
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
+	// check receiver KYC.
+	receiverWallet, err := s.b.Wallets().GetFromAddress(ctx, req.ReceiverIdentity)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+	approved, err := s.b.KYC().IsKYCApproved(ctx, receiverWallet.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+	if !approved {
+		return nil, NewValidationError("amount", fmt.Sprintf(" You can't send payments to %s", req.ReceiverIdentity))
+	}
 
 	// check that does not exceed kyc limits.
 	exceedsLimits, limitType, err := s.b.Limits().ExceedsKYCLimits(ctx, w.ID, currency.FromPB(req.SenderAmount))
@@ -212,14 +232,6 @@ func (s *rpcService) UpdatePayment(ctx context.Context, req *pb.UpdatePaymentReq
 	}
 	if p.Sender.WalletID != w.ID {
 		return nil, NotFoundError("payment not found")
-	}
-
-	approved, err := s.b.KYC().IsKYCApproved(ctx, p.Receiver.WalletID)
-	if err != nil {
-		return nil, toGRPCError(err)
-	}
-	if !approved {
-		return nil, NewValidationError("amount", fmt.Sprintf("%s KYC not approved", "Receiver"))
 	}
 
 	// check that does not exceed kyc limits.
