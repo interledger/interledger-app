@@ -1,14 +1,9 @@
-import type {
-  LinksFunction,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
+import type { LinksFunction, LoaderFunctionArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import type { UIMatch } from '@remix-run/react'
 import { useLoaderData } from '@remix-run/react'
 import type { ApplicationProps } from '~/components'
 import { Fab, Layouts } from '~/components'
-import { getHomeRoute } from '~/data/content.server'
 import {
   getFeatures,
   getKycStatus,
@@ -18,7 +13,6 @@ import {
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { hasUserSession } from '~/lib/kratos.server'
-import { datoMeta, mergeMeta } from '~/lib/meta'
 import { getPusherArgs } from '~/lib/pusher.server'
 import flagStyles from '~/styles/flags.css'
 import { AppPage } from './app'
@@ -81,12 +75,8 @@ export async function appLoader({ request }: LoaderFunctionArgs) {
 }
 
 export async function marketingLoader() {
-  const { homeRoute, footer } = await getHomeRoute()
-
   return json({
-    isUser: false,
-    homeRoute,
-    footer
+    isUser: false
   })
 }
 
@@ -100,10 +90,6 @@ export const handle: ApplicationProps = {
     fab: Fab.Pay
   }
 }
-
-export const meta: MetaFunction<typeof marketingLoader> = mergeMeta(
-  ({ data, location }) => datoMeta(data?.homeRoute?._seoMetaTags, location)
-)
 
 export default function Page() {
   const { isUser } = useLoaderData<typeof loader>()
