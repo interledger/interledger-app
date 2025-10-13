@@ -225,8 +225,9 @@ func TestSearch(t *testing.T) {
 
 	b.DB().MustExecContext(ctx, "INSERT INTO wallet_addresses (wallet_id, url) VALUES ($1, $2)",
 		walletID, env.OpenPaymentsURL()+"/notking")
+
 	// add approved KYC
-	b.DB().MustExecContext(ctx, "INSERT INTO  wallet_kyc_status ( wallet_id, status, created_at, updated_at)) VALUES ($1, $2, NOW(), NOW())",
+	b.DB().MustExecContext(ctx, "INSERT INTO  wallet_kyc_status (wallet_id, status, created_at, updated_at) VALUES ($1, $2, NOW(), NOW())",
 		walletID, kyc.StatusLevel2)
 	// Publicly visible
 	id, err := ops.Add(ctx, b, identities.AddArgs{
