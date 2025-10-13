@@ -172,7 +172,7 @@ func (mr *MockClientMockRecorder) UpdateIndividualDetails(ctx, args interface{})
 // IsKYCApproved mocks base method.
 func (m *MockClient) IsKYCApproved(ctx context.Context, walletID string) (bool, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetKYCStatus", ctx, walletID)
+	ret := m.ctrl.Call(m, "IsKYCApproved", ctx, walletID)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
