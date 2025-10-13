@@ -276,7 +276,6 @@ func TestSearch(t *testing.T) {
 	assert.Equal(t, env.OpenPaymentsURL()+"/notking", res[0].SubResults[0].WalletUrl)
 
 	// Search payment pointer
-	require.NoError(t, err)
 	res, err = ops.Search(ctx, b, uuid.NewString(), "notking")
 	require.NoError(t, err)
 	assert.Len(t, res, 1)
