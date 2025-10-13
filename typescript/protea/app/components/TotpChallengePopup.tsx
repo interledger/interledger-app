@@ -31,13 +31,11 @@ export const TotpChallengePopup = ({
     [fetcher.state]
   )
 
-  // Handle verification result
   useEffect(() => {
     if (fetcher.data?.success) {
       onSuccess?.()
       onClose()
     } else if (fetcher.data?.error) {
-      // console.error('❌ TOTP verification failed:', fetcher.data.error)
       onError?.(fetcher.data.error)
     }
   }, [fetcher.data, onSuccess, onError, onClose])

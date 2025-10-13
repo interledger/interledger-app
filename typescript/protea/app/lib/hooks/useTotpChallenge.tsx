@@ -56,6 +56,25 @@ export function useTotpChallenge(options?: UseTotpChallengeOptions) {
 
   const TotpPopup = useMemo(() => {
     return () => {
+      if (isOpen && initChallengeFetcher.state === 'loading') {
+        return (
+          <div className='fixed inset-0 z-50 flex items-center justify-center'>
+            <div
+              className='absolute inset-0 bg-black/50 backdrop-blur-sm'
+              aria-hidden='true'
+            />
+            <div className='relative z-10 rounded-lg bg-white p-8 shadow-xl dark:bg-gray-800'>
+              <div className='flex flex-col items-center space-y-4'>
+                <div className='h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600' />
+                <p className='text-sm text-gray-600 dark:text-gray-300'>
+                  Initializing ...
+                </p>
+              </div>
+            </div>
+          </div>
+        )
+      }
+
       if (!initChallengeFetcher.data || initChallengeFetcher.data.error) {
         return null
       }
@@ -73,6 +92,7 @@ export function useTotpChallenge(options?: UseTotpChallengeOptions) {
     }
   }, [
     initChallengeFetcher.data,
+    initChallengeFetcher.state,
     isOpen,
     closePopup,
     handleSuccess,
