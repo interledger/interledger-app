@@ -12,6 +12,7 @@ import (
 
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/backend/notify"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	"gitlab.com/fynbos/backend/providers/gatehub/external"
@@ -487,8 +488,9 @@ func (a *Activity) IsCustomerCreated(ctx context.Context, userID string) (bool, 
 	return externalIDs.IsCustomerCreated(), nil
 }
 
-func (a *Activity) SendCardCreatedEmail(ctx context.Context, walletID, cardID string) error {
+func (a *Activity) NotifyUser(ctx context.Context, walletID, cardID string) error {
 	a.b.Email().SendCardCreatedEmail(ctx, walletID, cardID)
+	a.b.Notify().NotifyWallet(ctx, walletID, notify.NotificationTypeCardReady)
 	return nil
 }
 

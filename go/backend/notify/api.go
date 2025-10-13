@@ -5,5 +5,5 @@ import (
 )
 
 type Client interface {
-	NotifyWallet(ctx context.Context, walletId string, event NotificationType) error
+	NotifyWallet(ctx context.Context, walletID string, event NotificationType) error
 }

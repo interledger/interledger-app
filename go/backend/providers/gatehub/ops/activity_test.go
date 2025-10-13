@@ -13,6 +13,7 @@ import (
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	la_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
+	"gitlab.com/fynbos/backend/notify"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/gatehub/ops"
 	"gitlab.com/fynbos/backend/transactions"
@@ -109,5 +110,9 @@ func (b Backends) Email() email.Client {
 }
 
 func (b Backends) LinkGatehubUserToGateway() transactions.Client {
+	return nil
+}
+
+func (b Backends) Notify() notify.Client {
 	return nil
 }
