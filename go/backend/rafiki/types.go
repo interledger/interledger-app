@@ -37,3 +37,7 @@ type WalletAddress struct {
 	AssetScale uint8
 	URL        string
 }
+type UpdateAddressStatus struct {
+	ID   string `db:"payment_pointer_id"`
+	Name string `db:"name"`
+}

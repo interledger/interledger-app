@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"gitlab.com/fynbos/backend/rafiki"
 	"gitlab.com/fynbos/log"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
@@ -39,11 +40,11 @@ func UpdateRafikiWalletEnabledJob(ctx workflow.Context, params WalletActive) err
 }
 
 func (a *Activity) UpdateRafikiWalletActiveStatus(ctx context.Context, params WalletActive) error {
-	rafikiWalletIds, err := a.FetchRafikiWalletIds(ctx, params)
+	rafikiWallets, err := a.FetchRafikiWalletIds(ctx, params)
 	if err != nil {
 		return fmt.Errorf("failed to fetch wallets: %w", err)
 	}
-	err = a.MutateRafikiWallets(ctx, rafikiWalletIds, params.IsActive)
+	err = a.MutateRafikiWallets(ctx, rafikiWallets, params.IsActive)
 	if err != nil {
 		return fmt.Errorf("failed to update wallet addresses: %w", err)
 	}
@@ -51,12 +52,9 @@ func (a *Activity) UpdateRafikiWalletActiveStatus(ctx context.Context, params Wa
 	return nil
 }
 
-func (a *Activity) MutateRafikiWallets(ctx context.Context, rafikiWalletIds []struct {
-	Id   string `db:"payment_pointer_id"`
-	Name string `db:"name"`
-}, isActive bool) error {
+func (a *Activity) MutateRafikiWallets(ctx context.Context, rafikiWallet []rafiki.UpdateAddressStatus, isActive bool) error {
 	client := a.b.Rafiki()
-	for _, walletId := range rafikiWalletIds {
+	for _, walletId := range rafikiWallet {
 		err := client.UpdateWalletAddressStatus(ctx, walletId, isActive)
 		if err != nil {
 			return fmt.Errorf("failed to update wallet address status for %s: %w", walletId, err)
@@ -65,19 +63,12 @@ func (a *Activity) MutateRafikiWallets(ctx context.Context, rafikiWalletIds []st
 	return nil
 }
 
-func (a *Activity) FetchRafikiWalletIds(ctx context.Context, params WalletActive) ([]struct {
-	Id   string `db:"payment_pointer_id"`
-	Name string `db:"name"`
-}, error) {
+func (a *Activity) FetchRafikiWalletIds(ctx context.Context, params WalletActive) ([]rafiki.UpdateAddressStatus, error) {
 	whereClause, args := BuildWhereClause(params)
 
 	query := "SELECT rafiki.payment_pointer_id, wallets.name FROM public.rafiki_payment_pointers as rafiki INNER JOIN wallets as wallets ON rafiki.wallet_id = wallets.id " + whereClause
 
-	var walletList []struct {
-		Id   string `db:"payment_pointer_id"`
-		Name string `db:"name"`
-	}
-
+	var walletList []rafiki.UpdateAddressStatus
 	err := a.b.DB().SelectContext(ctx, &walletList, query, args...)
 	if err != nil {
 

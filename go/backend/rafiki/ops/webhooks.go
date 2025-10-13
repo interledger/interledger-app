@@ -177,6 +177,15 @@ func immediatePayment(ctx context.Context, b Backends, op outgoingPaymentData) e
 		return err
 	}
 
+	// validate receiver KYC
+	kycStatus, err := b.KYC().IsKYCApproved(ctx, receiverAcc.WalletID)
+	if err != nil {
+		log.Error("failed to check KYC status for receiver", zap.Error(err))
+		return err
+	}
+	if !kycStatus {
+		return fmt.Errorf("%w receiver has not completed KYC", rafiki.ErrNotFound)
+	}
 	p, err := b.Payments().Lookup(ctx, op.ID)
 	if errors.Is(err, payments.ErrNotFound) {
 		p, err = b.Payments().Create(ctx, payments.CreateArgs{

@@ -101,6 +101,17 @@ func (a *Activity) CreateWebMonetizationPayment(ctx context.Context, payment Pay
 		log.Error("failed to lookup balance accounts for receiver", zap.Error(err))
 		return "", err
 	}
+	// validate reciver KYC
+	kycStatus, err := a.b.KYC().IsKYCApproved(ctx, payment.ToWalletID)
+	if err != nil {
+		log.Error("failed to check KYC status for receiver", zap.Error(err))
+		return "", err
+	}
+	if !kycStatus {
+		err = fmt.Errorf("%w receiver has not completed KYC", rafiki.ErrNotFound)
+		return "", temporal.NewNonRetryableApplicationError("web monetization payment cron: receiver has not completed KYC", "ErrInternal", err)
+	}
+
 	var receiverAcc *linkedaccounts.LinkedAccount
 	for _, la := range receiverAccs {
 		if currency.Currency(payment.Asset) == la.ReceiveCurrency {
