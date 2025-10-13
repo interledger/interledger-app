@@ -46,11 +46,11 @@ func (s *rpcService) GetPaymentAddress(ctx context.Context, req *pb.GetPaymentAd
 			return nil, toGRPCError(err)
 		}
 
-		approved, err := s.b.KYC().IsKYCApproved(ctx, wallet.ID)
+		isKYCApproved, err := s.b.KYC().IsKYCApproved(ctx, wallet.ID)
 		if err != nil {
 			return nil, toGRPCError(err)
 		}
-		if !approved {
+		if !isKYCApproved {
 			canSendToAddress = false
 		}
 
