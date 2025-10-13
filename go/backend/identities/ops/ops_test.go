@@ -225,7 +225,9 @@ func TestSearch(t *testing.T) {
 
 	b.DB().MustExecContext(ctx, "INSERT INTO wallet_addresses (wallet_id, url) VALUES ($1, $2)",
 		walletID, env.OpenPaymentsURL()+"/notking")
-
+	// add approved KYC
+	b.DB().MustExecContext(ctx, "INSERT INTO  wallet_kyc_status ( wallet_id, status, created_at, updated_at)) VALUES ($1, $2, NOW(), NOW())",
+		walletID, kyc.StatusLevel2)
 	// Publicly visible
 	id, err := ops.Add(ctx, b, identities.AddArgs{
 		WalletID:   walletID,
@@ -273,7 +275,6 @@ func TestSearch(t *testing.T) {
 	assert.Equal(t, env.OpenPaymentsURL()+"/notking", res[0].SubResults[0].WalletUrl)
 
 	// Search payment pointer
-	_, err = b.DB().ExecContext(ctx, "UPDATE wallet_kyc_status SET status=$1 WHERE id = $2", kyc.StatusLevel2, walletID)
 	require.NoError(t, err)
 	res, err = ops.Search(ctx, b, uuid.NewString(), "notking")
 	require.NoError(t, err)
