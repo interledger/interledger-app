@@ -33,7 +33,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
     // Submit the TOTP code to Kratos
     console.log('🍀 (totp-challenge-verify) Submitting to Kratos...')
-    const verifyResponse = await fetch(
+    const verifyTotpCodeResponse = await fetch(
       `${KRATOS_URL}/self-service/login?flow=${flowId}`,
       {
         method: 'POST',
@@ -52,33 +52,34 @@ export async function action({ request }: ActionFunctionArgs) {
 
     console.log(
       '🍀 (totp-challenge-verify) Kratos response status:',
-      verifyResponse.status
+      verifyTotpCodeResponse.status
     )
 
     // Extract the new session cookie from Kratos response
-    const setCookieHeader = verifyResponse.headers.get('set-cookie')
+    const setCookieHeader = verifyTotpCodeResponse.headers.get('set-cookie')
     console.log(
       '🍀 (totp-challenge-verify) Set-Cookie header present:',
       !!setCookieHeader
     )
 
     // Check if verification was successful
-    if (verifyResponse.ok || verifyResponse.status === 200) {
+    if (verifyTotpCodeResponse.ok || verifyTotpCodeResponse.status === 200) {
       console.log('🍀 (totp-challenge-verify) ✅ TOTP verified successfully')
       // ✅ TOTP verified successfully
       // Forward the Set-Cookie header to update the browser's session
-      const responseHeaders = setCookieHeader
-        ? { 'Set-Cookie': setCookieHeader }
-        : {}
-
-      return json({ success: true }, { headers: responseHeaders })
+      return json(
+        { success: true },
+        setCookieHeader
+          ? { headers: { 'Set-Cookie': setCookieHeader } }
+          : undefined
+      )
     }
 
     // Handle error responses
     console.log(
       '🍀 (totp-challenge-verify) Verification failed, parsing error...'
     )
-    const errorData = await verifyResponse.json()
+    const errorData = await verifyTotpCodeResponse.json()
     console.log(
       '🍀 (totp-challenge-verify) Error data:',
       JSON.stringify(errorData, null, 2)
@@ -102,19 +103,18 @@ export async function action({ request }: ActionFunctionArgs) {
       '🍀 (totp-challenge-verify) Returning error response:',
       errorMessage
     )
-    return json(
-      {
-        success: false,
-        error: errorMessage,
-        flowId: errorData.id // Return new flow ID in case of error
-      },
-      { status: 400 }
-    )
+    // Return 200 status with success: false so fetcher.data populates correctly
+    return json({
+      success: false,
+      error: errorMessage,
+      flowId: errorData.id // Return new flow ID in case of error
+    })
   } catch (error) {
     console.error('🍀 (totp-challenge-verify) ❌ Unexpected error:', error)
-    return json(
-      { success: false, error: 'An unexpected error occurred' },
-      { status: 500 }
-    )
+    // Return 200 status with success: false so fetcher.data populates correctly
+    return json({
+      success: false,
+      error: 'An unexpected error occurred'
+    })
   }
 }

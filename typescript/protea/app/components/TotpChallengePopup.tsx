@@ -1,5 +1,5 @@
 import { useFetcher } from '@remix-run/react'
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { Button, Card, CardContent, Icon, TextField } from '~/components'
 import { Label } from '~/components/Label'
 
@@ -26,28 +26,19 @@ export const TotpChallengePopup = ({
     flowId?: string
   }>()
 
-  const isSubmitting = fetcher.state === 'submitting'
-
-  console.log('🍀 (TotpChallengePopup) props:', {
-    flowId,
-    csrfToken,
-    isOpen,
-    onClose,
-    onSuccess,
-    onError
-  })
+  const isSubmitting = useMemo(
+    () => fetcher.state === 'submitting',
+    [fetcher.state]
+  )
 
   // Handle verification result
   useEffect(() => {
-    if (fetcher.data) {
-      if (fetcher.data.success) {
-        console.log('✅ TOTP verified successfully')
-        onSuccess?.()
-        onClose()
-      } else if (fetcher.data.error) {
-        console.error('❌ TOTP verification failed:', fetcher.data.error)
-        onError?.(fetcher.data.error)
-      }
+    if (fetcher.data?.success) {
+      onSuccess?.()
+      onClose()
+    } else if (fetcher.data?.error) {
+      // console.error('❌ TOTP verification failed:', fetcher.data.error)
+      onError?.(fetcher.data.error)
     }
   }, [fetcher.data, onSuccess, onError, onClose])
 

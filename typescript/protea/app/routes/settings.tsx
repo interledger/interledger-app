@@ -58,14 +58,13 @@ export default function Page() {
       onSuccess: () => {
         console.log('✅ TOTP Challenge completed successfully')
       },
-      onError: (error) => {
+      onError: (error: any) => {
         console.error('❌ TOTP Challenge error:', error)
       }
     }),
     []
   )
 
-  // TOTP Challenge hook for inline verification (no redirects)
   const { popTotp, TotpPopup } = useTotpChallenge(callbacks)
 
   return (

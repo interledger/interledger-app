@@ -18,10 +18,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
     if (!sessionResponse.ok) {
       console.log('🍀 (check-totp-enabled) No valid session')
-      return json(
-        { enabled: false, error: 'No valid session' },
-        { status: 401 }
-      )
+      // Return 200 with enabled: false so fetcher.data populates correctly
+      return json({ enabled: false, error: 'No valid session' })
     }
 
     const session = await sessionResponse.json()
@@ -40,9 +38,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     return json({ enabled: hasTotpEnabled })
   } catch (error) {
     console.error('🍀 (check-totp-enabled) Error:', error)
-    return json(
-      { enabled: false, error: 'Failed to check TOTP status' },
-      { status: 500 }
-    )
+    // Return 200 with enabled: false so fetcher.data populates correctly
+    return json({ enabled: false, error: 'Failed to check TOTP status' })
   }
 }

@@ -43,10 +43,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
       if (!location) {
         console.error('🍀 (totp-challenge-init) No location header in redirect')
-        return json(
-          { error: 'Failed to initialize TOTP challenge' },
-          { status: 500 }
-        )
+        return json({ error: 'Failed to initialize TOTP challenge' })
       }
 
       // Extract flow ID from the redirect URL
@@ -55,7 +52,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
       if (!flowId) {
         console.error('🍀 (totp-challenge-init) No flow ID in redirect URL')
-        return json({ error: 'Failed to extract flow ID' }, { status: 500 })
+        return json({ error: 'Failed to extract flow ID' })
       }
 
       // Step 3: Fetch the full flow details using the flow ID
@@ -102,10 +99,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
         console.error(
           'TOTP node not found in flow. User may not have TOTP set up.'
         )
-        return json(
-          { error: 'TOTP is not configured for this account' },
-          { status: 400 }
-        )
+        return json({ error: 'TOTP is not configured for this account' })
       }
 
       console.log(
@@ -147,10 +141,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
             console.log(
               '🍀 (totp-challenge-init) TOTP node not found in flow. User may not have TOTP set up.'
             )
-            return json(
-              { error: 'TOTP is not configured for this account' },
-              { status: 400 }
-            )
+            return json({ error: 'TOTP is not configured for this account' })
           }
 
           console.log(
@@ -178,12 +169,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
     )
     const error = await initResponse.text()
     console.error('🍀 (totp-challenge-init) Response body:', error)
-    return json(
-      { error: 'Unexpected response from Kratos' },
-      { status: initResponse.status }
-    )
+    return json({ error: 'Unexpected response from Kratos' })
   } catch (error) {
     console.error('Error initializing TOTP challenge:', error)
-    return json({ error: 'An unexpected error occurred' }, { status: 500 })
+    return json({ error: 'An unexpected error occurred' })
   }
 }
