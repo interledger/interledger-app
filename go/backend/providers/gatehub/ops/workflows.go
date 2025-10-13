@@ -225,7 +225,7 @@ func ProcessCardCreationWorkflow(ctx workflow.Context, wh CardCreatedWebhook) er
 		return err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.SendCardCreatedEmail, walletID, wh.Data.CardID).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.NotifyUser, walletID, wh.Data.CardID).Get(ctx, nil)
 	if err != nil {
 		return err
 	}
@@ -299,7 +299,7 @@ func CreateCardWorkflow(ctx workflow.Context, args CreateCardWorkflowArgs) error
 		}
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.SendCardCreatedEmail, args.WalletID, card.ID).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.NotifyUser, args.WalletID, card.ID).Get(ctx, nil)
 	if err != nil {
 		return err
 	}

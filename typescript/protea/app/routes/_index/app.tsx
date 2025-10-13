@@ -81,18 +81,18 @@ export function AppPage() {
         )}
         {(kycStatus == KycStatus.Pending ||
           kycStatus == KycStatus.InReview) && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Activation</CardTitle>
-                <Chip color={ChipColor.orange}>Pending</Chip>
-              </CardHeader>
-              <CardContent>
-                <p className='text-sm text-medium'>
-                  Just a moment, we are verifying your details.
-                </p>
-              </CardContent>
-            </Card>
-          )}
+          <Card>
+            <CardHeader>
+              <CardTitle>Activation</CardTitle>
+              <Chip color={ChipColor.orange}>Pending</Chip>
+            </CardHeader>
+            <CardContent>
+              <p className='text-sm text-medium'>
+                Just a moment, we are verifying your details.
+              </p>
+            </CardContent>
+          </Card>
+        )}
         {kycStatus == KycStatus.Denied && (
           <Card>
             <CardHeader>
@@ -154,7 +154,9 @@ export function AppPage() {
             {features.manageWalletCardsEnabled && (
               <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
                 <CardHeader className='mb-2'>
-                  <CardTitle className='flex'><MasterCardLogo className='flex w-6 mr-2 -mt-1' /> Cards</CardTitle>
+                  <CardTitle className='flex'>
+                    <MasterCardLogo className='-mt-1 mr-2 flex w-6' /> Cards
+                  </CardTitle>
                   <Router className='flex max-h-fit' to={route('/cards')}>
                     <Icon className='text-medium'>read_more</Icon>
                   </Router>

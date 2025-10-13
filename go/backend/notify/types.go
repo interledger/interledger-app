@@ -7,4 +7,5 @@ const (
 	NotificationTypeTransaction   = "transaction"
 	NotificationTypeKyc           = "kyc"
 	NotificationTypeIdentity      = "identity"
+	NotificationTypeCardReady     = "cardReady"
 )

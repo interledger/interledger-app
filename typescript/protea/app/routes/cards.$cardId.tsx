@@ -1,11 +1,16 @@
 // Placeholder page
 
 import { type SerializeFrom } from '@remix-run/node'
-import { useNavigate, useOutletContext, useParams, useRouteLoaderData } from '@remix-run/react'
+import {
+  useNavigate,
+  useOutletContext,
+  useParams,
+  useRouteLoaderData
+} from '@remix-run/react'
 import { type RouteParams } from 'routes-gen'
 import { Layouts, type ApplicationProps } from '~/components'
-import type { loader } from './cards'
 import type { loader as rootLoader } from '~/root'
+import type { loader } from './cards'
 
 export const handle: ApplicationProps = {
   layout: Layouts.Wallet,
@@ -28,7 +33,7 @@ export default function PageCardID() {
 
   // goto root in case cards are not enabled
   if (!features.manageWalletCardsEnabled) {
-    navigate("/")
+    navigate('/')
   }
 
   if (!cardId) {

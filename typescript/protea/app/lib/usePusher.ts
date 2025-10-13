@@ -2,6 +2,7 @@ import { useRevalidator } from '@remix-run/react'
 import type { Channel, PresenceChannel } from 'pusher-js'
 import Pusher from 'pusher-js'
 import { useEffect, useState } from 'react'
+import { useScaffoldStore } from './useScaffoldStore'
 
 let pusherClient: Pusher
 
@@ -9,7 +10,7 @@ declare global {
   var __pusherClient: Pusher | undefined
 }
 
-type Events = 'linkedAccount' | 'transaction' | 'kyc' | 'identity'
+type Events = 'linkedAccount' | 'transaction' | 'kyc' | 'identity' | 'cardReady'
 
 export type PusherArgs = {
   appKey: string
@@ -19,6 +20,7 @@ export type PusherArgs = {
 
 export function usePusher(args: PusherArgs, events: Events[]) {
   const { revalidate, state } = useRevalidator()
+  const [pushSnackbar] = useScaffoldStore((state) => [state.pushSnackbar])
 
   if (!global.__pusherClient) {
     global.__pusherClient = new Pusher(args.appKey, {
@@ -41,6 +43,14 @@ export function usePusher(args: PusherArgs, events: Events[]) {
   usePusherEvent(channel, 'linkedAccount', () => {
     if (state == 'idle' && events.find((e) => e == 'linkedAccount'))
       revalidate()
+  })
+  usePusherEvent(channel, 'cardReady', () => {
+    if (state == 'idle' && events.find((e) => e == 'cardReady'))
+      pushSnackbar({
+        message: 'Your card is now ready!',
+        id: crypto.randomUUID(),
+        action: 'View cards'
+      })
   })
   // TODO: Maybe return connection state?
 }
