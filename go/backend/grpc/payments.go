@@ -157,11 +157,11 @@ func (s *rpcService) CreatePayment(ctx context.Context, req *pb.CreatePaymentReq
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
-	approved, err := s.b.KYC().IsKYCApproved(ctx, receiverWallet.ID)
+	isKYCApproved, err := s.b.KYC().IsKYCApproved(ctx, receiverWallet.ID)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
-	if !approved {
+	if !isKYCApproved {
 		return nil, NewValidationError("amount", fmt.Sprintf(" You can't send payments to %s", req.ReceiverIdentity))
 	}
 
