@@ -12,4 +12,5 @@ type Client interface {
 	GetPersonaIDNumbers(ctx context.Context, walletID string) (*PersonaIDNumbers, error)
 	GetPersonaZAIDNumber(ctx context.Context, walletID string) (string, error)
 	GetApprovedPersonaInquiryURL(ctx context.Context, walletID string) (string, error)
+	IsKYCApproved(ctx context.Context, walletID string) (bool, error)
 }
