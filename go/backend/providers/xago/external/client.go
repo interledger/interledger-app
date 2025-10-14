@@ -37,6 +37,7 @@ type Client interface {
 	TestDeposit(ctx context.Context, reqStruct TestDepositReq) error
 	UpdateInquiryLink(ctx context.Context, accountID string, inquiryLink string) error
 	BankAccounts(ctx context.Context) (*[]Currency, error)
+	GetDeposit(ctx context.Context, id string) (*Deposit, error)
 }
 
 type client struct {
@@ -241,6 +242,7 @@ func (c *client) BankAccounts(ctx context.Context) (*[]Currency, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 
 	var respData []Currency
 	err = json.Unmarshal(respBody, &respData)
@@ -327,7 +329,7 @@ func (c *client) CreateSubAccount(ctx context.Context, user user.User, details k
 	if err != nil {
 		return nil, err
 	}
-
+	defer resp.Body.Close()
 	var respData SubAccount
 	err = json.Unmarshal(respBody, &respData)
 	if err != nil {
@@ -400,7 +402,7 @@ func (c *client) AddBeneficiary(ctx context.Context, reqStruct CreateBeneficiary
 	if err != nil {
 		return nil, err
 	}
-
+	defer resp.Body.Close()
 	var beneficiary AccountBeneficiaries
 	err = json.Unmarshal(respBody, &beneficiary)
 	if err != nil {
@@ -473,7 +475,7 @@ func (c *client) ListBeneficiaries(ctx context.Context, limit, page uint) (*List
 	if err != nil {
 		return nil, err
 	}
-
+	defer resp.Body.Close()
 	var respData *ListBeneficiariesResponse
 	err = json.Unmarshal(respBody, &respData)
 	if err != nil {
@@ -638,6 +640,75 @@ func (c *client) ListDeposits(ctx context.Context, page int) ([]Deposit, error) 
 	}
 
 	return list.Deposits, nil
+}
+
+func (c *client) GetDeposit(ctx context.Context, id string) (*Deposit, error) {
+	reqUrl, err := url.JoinPath(c.baseURL, "company", "transactions", id)
+	if err != nil {
+		return nil, err
+	}
+
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "GET"
+		meta.Provider = "xago"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "GET",
+			Provider: "xago",
+		})
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqUrl, nil)
+	if err != nil {
+		return nil, err
+	}
+	token, err := c.AccessToken(ctx, false)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token.Token)
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		token, err = c.AccessToken(ctx, true)
+		if err != nil {
+			return nil, err
+		}
+		req.Header.Set("Authorization", "Bearer "+token.Token)
+
+		resp, err = c.api.Do(req)
+		if err != nil {
+			return nil, err
+		}
+		if resp.StatusCode == http.StatusUnauthorized {
+			log.Info("refreshed xago token not authorized for list deposits")
+		}
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to list xargo deposits (%d - %s)", resp.StatusCode, resp.Status)
+	}
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var deposit *Deposit
+	err = json.Unmarshal(respBody, &deposit)
+	if err != nil {
+		return nil, err
+	}
+
+	return deposit, nil
 }
 
 func (c *client) GetWithdrawal(ctx context.Context, id string) (*Withdrawal, error) {
