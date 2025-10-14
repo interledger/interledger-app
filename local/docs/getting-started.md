@@ -1,8 +1,8 @@
 # Local development environment
 
 ## Prerequisites
-*  [Docker](https://www.docker.com/) installed and running
-    
+* [Docker](https://www.docker.com/) installed and running
+
 ## Creating the environment
 
 We provide a `docker compose` managed environment that will attempt to automatically rebuild the sources upon any change.
@@ -143,6 +143,7 @@ docker compose down -v
 | https://traefik.test                      | Traefik dashboard                           |
 | https://rafiki.mgnt.interledger.test      | Rafiki                                      |
 | https://ngrok.test                        | Ngrok ui                                    |
+
 
 ### TODO
 - [ ] Add instructions for Linux users regarding trusting the self-signed certificates.
