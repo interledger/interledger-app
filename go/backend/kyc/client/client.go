@@ -69,3 +69,7 @@ func (c client) GetPersonaZAIDNumber(ctx context.Context, walletID string) (stri
 func (c client) GetApprovedPersonaInquiryURL(ctx context.Context, walletID string) (string, error) {
 	return ops.GetApprovedPersonaInquiryURL(ctx, c.b, walletID)
 }
+
+func (c client) IsKYCApproved(ctx context.Context, walletID string) (bool, error) {
+	return ops.IsKYCApproved(ctx, c.b, walletID)
+}
