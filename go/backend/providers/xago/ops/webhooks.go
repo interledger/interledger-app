@@ -196,5 +196,4 @@ func EventWebhook(b Backends) http.HandlerFunc {
 		}
 
 	}
-
 }
