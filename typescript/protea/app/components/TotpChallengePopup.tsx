@@ -6,7 +6,6 @@ import { Label } from '~/components/Label'
 interface TotpChallengePopupProps {
   flowId: string
   csrfToken: string
-  isOpen: boolean
   onClose: () => void
   onSuccess?: () => void
   onError?: (error: string) => void
@@ -15,7 +14,6 @@ interface TotpChallengePopupProps {
 export const TotpChallengePopup = ({
   flowId,
   csrfToken,
-  isOpen,
   onClose,
   onSuccess,
   onError
@@ -34,13 +32,10 @@ export const TotpChallengePopup = ({
   useEffect(() => {
     if (fetcher.data?.success) {
       onSuccess?.()
-      onClose()
     } else if (fetcher.data?.error) {
       onError?.(fetcher.data.error)
     }
-  }, [fetcher.data, onSuccess, onError, onClose])
-
-  if (!isOpen) return null
+  }, [fetcher.data, onSuccess, onError])
 
   return (
     <div className='fixed inset-0 z-50 flex items-center justify-center'>

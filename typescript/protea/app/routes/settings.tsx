@@ -65,7 +65,7 @@ export default function Page() {
     []
   )
 
-  const { popTotp, TotpPopup } = useTotpChallenge(callbacks)
+  const { popTotp, TotpPopup, isOpen } = useTotpChallenge(callbacks)
 
   return (
     <WalletGrid>
@@ -193,7 +193,7 @@ export default function Page() {
       </GridColumn>
 
       {/* TOTP Challenge Popup (rendered inline, no redirect) */}
-      <TotpPopup />
+      {isOpen && <TotpPopup />}
     </WalletGrid>
   )
 }
