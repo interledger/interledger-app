@@ -192,7 +192,6 @@ export default function Page() {
         <Outlet />
       </GridColumn>
 
-      {/* TOTP Challenge Popup (rendered inline, no redirect) */}
       {isOpen && <TotpPopup />}
     </WalletGrid>
   )
