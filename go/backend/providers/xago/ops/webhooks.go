@@ -81,7 +81,6 @@ func EventWebhook(b Backends) http.HandlerFunc {
 			return
 		}
 
-		log.Info("xago webhook received", zap.Any("webhook", hook), zap.Any("xagoTransaction", xagoTransaction))
 		if hook.Code != 104 {
 			log.Error("unsupported xago webhook received", zap.String("webhook", string(raw)))
 			w.WriteHeader(http.StatusNotImplemented)
