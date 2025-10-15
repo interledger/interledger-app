@@ -1830,6 +1830,74 @@ func (x *PtiBalance) GetFormattedAvailableBalance() string {
 	return ""
 }
 
+type PTICreateDepositRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	LinkedAccount string                 `protobuf:"bytes,1,opt,name=linkedAccount,proto3" json:"linkedAccount,omitempty"`
+	Amount        string                 `protobuf:"bytes,2,opt,name=amount,proto3" json:"amount,omitempty"`
+	Note          *string                `protobuf:"bytes,3,opt,name=note,proto3,oneof" json:"note,omitempty"`
+	IpAddress     *string                `protobuf:"bytes,4,opt,name=ipAddress,proto3,oneof" json:"ipAddress,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PTICreateDepositRequest) Reset() {
+	*x = PTICreateDepositRequest{}
+	mi := &file_backend_v1_backend_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PTICreateDepositRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PTICreateDepositRequest) ProtoMessage() {}
+
+func (x *PTICreateDepositRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_backend_v1_backend_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PTICreateDepositRequest.ProtoReflect.Descriptor instead.
+func (*PTICreateDepositRequest) Descriptor() ([]byte, []int) {
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *PTICreateDepositRequest) GetLinkedAccount() string {
+	if x != nil {
+		return x.LinkedAccount
+	}
+	return ""
+}
+
+func (x *PTICreateDepositRequest) GetAmount() string {
+	if x != nil {
+		return x.Amount
+	}
+	return ""
+}
+
+func (x *PTICreateDepositRequest) GetNote() string {
+	if x != nil && x.Note != nil {
+		return *x.Note
+	}
+	return ""
+}
+
+func (x *PTICreateDepositRequest) GetIpAddress() string {
+	if x != nil && x.IpAddress != nil {
+		return *x.IpAddress
+	}
+	return ""
+}
+
 type GetXagoBalanceResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Balances      []*XagoBalance         `protobuf:"bytes,2,rep,name=balances,proto3" json:"balances,omitempty"`
@@ -1839,7 +1907,7 @@ type GetXagoBalanceResponse struct {
 
 func (x *GetXagoBalanceResponse) Reset() {
 	*x = GetXagoBalanceResponse{}
-	mi := &file_backend_v1_backend_proto_msgTypes[33]
+	mi := &file_backend_v1_backend_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1851,7 +1919,7 @@ func (x *GetXagoBalanceResponse) String() string {
 func (*GetXagoBalanceResponse) ProtoMessage() {}
 
 func (x *GetXagoBalanceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[33]
+	mi := &file_backend_v1_backend_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1864,7 +1932,7 @@ func (x *GetXagoBalanceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetXagoBalanceResponse.ProtoReflect.Descriptor instead.
 func (*GetXagoBalanceResponse) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{33}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *GetXagoBalanceResponse) GetBalances() []*XagoBalance {
@@ -1888,7 +1956,7 @@ type XagoBalance struct {
 
 func (x *XagoBalance) Reset() {
 	*x = XagoBalance{}
-	mi := &file_backend_v1_backend_proto_msgTypes[34]
+	mi := &file_backend_v1_backend_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1900,7 +1968,7 @@ func (x *XagoBalance) String() string {
 func (*XagoBalance) ProtoMessage() {}
 
 func (x *XagoBalance) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[34]
+	mi := &file_backend_v1_backend_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1913,7 +1981,7 @@ func (x *XagoBalance) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use XagoBalance.ProtoReflect.Descriptor instead.
 func (*XagoBalance) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{34}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *XagoBalance) GetBalance() *Amount {
@@ -1970,7 +2038,7 @@ type WithdrawXagoBalanceRequest struct {
 
 func (x *WithdrawXagoBalanceRequest) Reset() {
 	*x = WithdrawXagoBalanceRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[35]
+	mi := &file_backend_v1_backend_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1982,7 +2050,7 @@ func (x *WithdrawXagoBalanceRequest) String() string {
 func (*WithdrawXagoBalanceRequest) ProtoMessage() {}
 
 func (x *WithdrawXagoBalanceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[35]
+	mi := &file_backend_v1_backend_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1995,7 +2063,7 @@ func (x *WithdrawXagoBalanceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WithdrawXagoBalanceRequest.ProtoReflect.Descriptor instead.
 func (*WithdrawXagoBalanceRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{35}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *WithdrawXagoBalanceRequest) GetFromLinkedAccount() string {
@@ -2037,7 +2105,7 @@ type AddXagoBalanceAccountRequest struct {
 
 func (x *AddXagoBalanceAccountRequest) Reset() {
 	*x = AddXagoBalanceAccountRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[36]
+	mi := &file_backend_v1_backend_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2049,7 +2117,7 @@ func (x *AddXagoBalanceAccountRequest) String() string {
 func (*AddXagoBalanceAccountRequest) ProtoMessage() {}
 
 func (x *AddXagoBalanceAccountRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[36]
+	mi := &file_backend_v1_backend_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2062,7 +2130,7 @@ func (x *AddXagoBalanceAccountRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddXagoBalanceAccountRequest.ProtoReflect.Descriptor instead.
 func (*AddXagoBalanceAccountRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{36}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *AddXagoBalanceAccountRequest) GetCurrencyCode() string {
@@ -2099,7 +2167,7 @@ type AddXagoBankAccountRequest struct {
 
 func (x *AddXagoBankAccountRequest) Reset() {
 	*x = AddXagoBankAccountRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[37]
+	mi := &file_backend_v1_backend_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2111,7 +2179,7 @@ func (x *AddXagoBankAccountRequest) String() string {
 func (*AddXagoBankAccountRequest) ProtoMessage() {}
 
 func (x *AddXagoBankAccountRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[37]
+	mi := &file_backend_v1_backend_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2124,7 +2192,7 @@ func (x *AddXagoBankAccountRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddXagoBankAccountRequest.ProtoReflect.Descriptor instead.
 func (*AddXagoBankAccountRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{37}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *AddXagoBankAccountRequest) GetAccountNumber() string {
@@ -2171,7 +2239,7 @@ type SetDefaultSendLinkedAccountRequest struct {
 
 func (x *SetDefaultSendLinkedAccountRequest) Reset() {
 	*x = SetDefaultSendLinkedAccountRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[38]
+	mi := &file_backend_v1_backend_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2183,7 +2251,7 @@ func (x *SetDefaultSendLinkedAccountRequest) String() string {
 func (*SetDefaultSendLinkedAccountRequest) ProtoMessage() {}
 
 func (x *SetDefaultSendLinkedAccountRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[38]
+	mi := &file_backend_v1_backend_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2196,7 +2264,7 @@ func (x *SetDefaultSendLinkedAccountRequest) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use SetDefaultSendLinkedAccountRequest.ProtoReflect.Descriptor instead.
 func (*SetDefaultSendLinkedAccountRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{38}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *SetDefaultSendLinkedAccountRequest) GetId() string {
@@ -2215,7 +2283,7 @@ type SetDefaultReceiveLinkedAccountRequest struct {
 
 func (x *SetDefaultReceiveLinkedAccountRequest) Reset() {
 	*x = SetDefaultReceiveLinkedAccountRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[39]
+	mi := &file_backend_v1_backend_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2227,7 +2295,7 @@ func (x *SetDefaultReceiveLinkedAccountRequest) String() string {
 func (*SetDefaultReceiveLinkedAccountRequest) ProtoMessage() {}
 
 func (x *SetDefaultReceiveLinkedAccountRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[39]
+	mi := &file_backend_v1_backend_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2240,7 +2308,7 @@ func (x *SetDefaultReceiveLinkedAccountRequest) ProtoReflect() protoreflect.Mess
 
 // Deprecated: Use SetDefaultReceiveLinkedAccountRequest.ProtoReflect.Descriptor instead.
 func (*SetDefaultReceiveLinkedAccountRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{39}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *SetDefaultReceiveLinkedAccountRequest) GetId() string {
@@ -2260,7 +2328,7 @@ type SlackCallbackRequest struct {
 
 func (x *SlackCallbackRequest) Reset() {
 	*x = SlackCallbackRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[40]
+	mi := &file_backend_v1_backend_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2272,7 +2340,7 @@ func (x *SlackCallbackRequest) String() string {
 func (*SlackCallbackRequest) ProtoMessage() {}
 
 func (x *SlackCallbackRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[40]
+	mi := &file_backend_v1_backend_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2285,7 +2353,7 @@ func (x *SlackCallbackRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SlackCallbackRequest.ProtoReflect.Descriptor instead.
 func (*SlackCallbackRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{40}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *SlackCallbackRequest) GetState() string {
@@ -2311,7 +2379,7 @@ type SlackCallbackResponse struct {
 
 func (x *SlackCallbackResponse) Reset() {
 	*x = SlackCallbackResponse{}
-	mi := &file_backend_v1_backend_proto_msgTypes[41]
+	mi := &file_backend_v1_backend_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2323,7 +2391,7 @@ func (x *SlackCallbackResponse) String() string {
 func (*SlackCallbackResponse) ProtoMessage() {}
 
 func (x *SlackCallbackResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[41]
+	mi := &file_backend_v1_backend_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2336,7 +2404,7 @@ func (x *SlackCallbackResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SlackCallbackResponse.ProtoReflect.Descriptor instead.
 func (*SlackCallbackResponse) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{41}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *SlackCallbackResponse) GetId() string {
@@ -2355,7 +2423,7 @@ type CreateSlackAuthURLResponse struct {
 
 func (x *CreateSlackAuthURLResponse) Reset() {
 	*x = CreateSlackAuthURLResponse{}
-	mi := &file_backend_v1_backend_proto_msgTypes[42]
+	mi := &file_backend_v1_backend_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2367,7 +2435,7 @@ func (x *CreateSlackAuthURLResponse) String() string {
 func (*CreateSlackAuthURLResponse) ProtoMessage() {}
 
 func (x *CreateSlackAuthURLResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[42]
+	mi := &file_backend_v1_backend_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2380,7 +2448,7 @@ func (x *CreateSlackAuthURLResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateSlackAuthURLResponse.ProtoReflect.Descriptor instead.
 func (*CreateSlackAuthURLResponse) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{42}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *CreateSlackAuthURLResponse) GetUrl() string {
@@ -2402,7 +2470,7 @@ type Amount struct {
 
 func (x *Amount) Reset() {
 	*x = Amount{}
-	mi := &file_backend_v1_backend_proto_msgTypes[43]
+	mi := &file_backend_v1_backend_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2414,7 +2482,7 @@ func (x *Amount) String() string {
 func (*Amount) ProtoMessage() {}
 
 func (x *Amount) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[43]
+	mi := &file_backend_v1_backend_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2427,7 +2495,7 @@ func (x *Amount) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Amount.ProtoReflect.Descriptor instead.
 func (*Amount) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{43}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *Amount) GetAmount() uint64 {
@@ -2489,7 +2557,7 @@ type Transaction struct {
 
 func (x *Transaction) Reset() {
 	*x = Transaction{}
-	mi := &file_backend_v1_backend_proto_msgTypes[44]
+	mi := &file_backend_v1_backend_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2501,7 +2569,7 @@ func (x *Transaction) String() string {
 func (*Transaction) ProtoMessage() {}
 
 func (x *Transaction) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[44]
+	mi := &file_backend_v1_backend_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2514,7 +2582,7 @@ func (x *Transaction) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Transaction.ProtoReflect.Descriptor instead.
 func (*Transaction) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{44}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *Transaction) GetId() string {
@@ -2681,7 +2749,7 @@ type ListTransactionsResponse struct {
 
 func (x *ListTransactionsResponse) Reset() {
 	*x = ListTransactionsResponse{}
-	mi := &file_backend_v1_backend_proto_msgTypes[45]
+	mi := &file_backend_v1_backend_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2693,7 +2761,7 @@ func (x *ListTransactionsResponse) String() string {
 func (*ListTransactionsResponse) ProtoMessage() {}
 
 func (x *ListTransactionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[45]
+	mi := &file_backend_v1_backend_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2706,7 +2774,7 @@ func (x *ListTransactionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListTransactionsResponse.ProtoReflect.Descriptor instead.
 func (*ListTransactionsResponse) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{45}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *ListTransactionsResponse) GetTransactions() []*Transaction {
@@ -2732,7 +2800,7 @@ type ConfirmPaymentRequest struct {
 
 func (x *ConfirmPaymentRequest) Reset() {
 	*x = ConfirmPaymentRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[46]
+	mi := &file_backend_v1_backend_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2744,7 +2812,7 @@ func (x *ConfirmPaymentRequest) String() string {
 func (*ConfirmPaymentRequest) ProtoMessage() {}
 
 func (x *ConfirmPaymentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[46]
+	mi := &file_backend_v1_backend_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2757,7 +2825,7 @@ func (x *ConfirmPaymentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfirmPaymentRequest.ProtoReflect.Descriptor instead.
 func (*ConfirmPaymentRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{46}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *ConfirmPaymentRequest) GetId() string {
@@ -2776,7 +2844,7 @@ type GetPaymentRequest struct {
 
 func (x *GetPaymentRequest) Reset() {
 	*x = GetPaymentRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[47]
+	mi := &file_backend_v1_backend_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2788,7 +2856,7 @@ func (x *GetPaymentRequest) String() string {
 func (*GetPaymentRequest) ProtoMessage() {}
 
 func (x *GetPaymentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[47]
+	mi := &file_backend_v1_backend_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2801,7 +2869,7 @@ func (x *GetPaymentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPaymentRequest.ProtoReflect.Descriptor instead.
 func (*GetPaymentRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{47}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *GetPaymentRequest) GetId() string {
@@ -2830,7 +2898,7 @@ type UpdatePaymentRequest struct {
 
 func (x *UpdatePaymentRequest) Reset() {
 	*x = UpdatePaymentRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[48]
+	mi := &file_backend_v1_backend_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2842,7 +2910,7 @@ func (x *UpdatePaymentRequest) String() string {
 func (*UpdatePaymentRequest) ProtoMessage() {}
 
 func (x *UpdatePaymentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[48]
+	mi := &file_backend_v1_backend_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2855,7 +2923,7 @@ func (x *UpdatePaymentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdatePaymentRequest.ProtoReflect.Descriptor instead.
 func (*UpdatePaymentRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{48}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *UpdatePaymentRequest) GetId() string {
@@ -2959,7 +3027,7 @@ type Payment struct {
 
 func (x *Payment) Reset() {
 	*x = Payment{}
-	mi := &file_backend_v1_backend_proto_msgTypes[49]
+	mi := &file_backend_v1_backend_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2971,7 +3039,7 @@ func (x *Payment) String() string {
 func (*Payment) ProtoMessage() {}
 
 func (x *Payment) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[49]
+	mi := &file_backend_v1_backend_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2984,7 +3052,7 @@ func (x *Payment) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Payment.ProtoReflect.Descriptor instead.
 func (*Payment) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{49}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *Payment) GetId() string {
@@ -3115,7 +3183,7 @@ type CreatePaymentRequest struct {
 
 func (x *CreatePaymentRequest) Reset() {
 	*x = CreatePaymentRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[50]
+	mi := &file_backend_v1_backend_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3127,7 +3195,7 @@ func (x *CreatePaymentRequest) String() string {
 func (*CreatePaymentRequest) ProtoMessage() {}
 
 func (x *CreatePaymentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[50]
+	mi := &file_backend_v1_backend_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3140,7 +3208,7 @@ func (x *CreatePaymentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreatePaymentRequest.ProtoReflect.Descriptor instead.
 func (*CreatePaymentRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{50}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *CreatePaymentRequest) GetSenderAmount() *Amount {
@@ -3211,7 +3279,7 @@ type TransferBalanceRequest struct {
 
 func (x *TransferBalanceRequest) Reset() {
 	*x = TransferBalanceRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[51]
+	mi := &file_backend_v1_backend_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3223,7 +3291,7 @@ func (x *TransferBalanceRequest) String() string {
 func (*TransferBalanceRequest) ProtoMessage() {}
 
 func (x *TransferBalanceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[51]
+	mi := &file_backend_v1_backend_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3236,7 +3304,7 @@ func (x *TransferBalanceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TransferBalanceRequest.ProtoReflect.Descriptor instead.
 func (*TransferBalanceRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{51}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *TransferBalanceRequest) GetFromLinkedAccount() string {
@@ -3276,7 +3344,7 @@ type GetCardDetailsRequest struct {
 
 func (x *GetCardDetailsRequest) Reset() {
 	*x = GetCardDetailsRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[52]
+	mi := &file_backend_v1_backend_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3288,7 +3356,7 @@ func (x *GetCardDetailsRequest) String() string {
 func (*GetCardDetailsRequest) ProtoMessage() {}
 
 func (x *GetCardDetailsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[52]
+	mi := &file_backend_v1_backend_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3301,7 +3369,7 @@ func (x *GetCardDetailsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCardDetailsRequest.ProtoReflect.Descriptor instead.
 func (*GetCardDetailsRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{52}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *GetCardDetailsRequest) GetId() string {
@@ -3329,7 +3397,7 @@ type CardDetails struct {
 
 func (x *CardDetails) Reset() {
 	*x = CardDetails{}
-	mi := &file_backend_v1_backend_proto_msgTypes[53]
+	mi := &file_backend_v1_backend_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3341,7 +3409,7 @@ func (x *CardDetails) String() string {
 func (*CardDetails) ProtoMessage() {}
 
 func (x *CardDetails) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[53]
+	mi := &file_backend_v1_backend_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3354,7 +3422,7 @@ func (x *CardDetails) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CardDetails.ProtoReflect.Descriptor instead.
 func (*CardDetails) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{53}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *CardDetails) GetId() string {
@@ -3436,7 +3504,7 @@ type SearchWalletsRequest struct {
 
 func (x *SearchWalletsRequest) Reset() {
 	*x = SearchWalletsRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[54]
+	mi := &file_backend_v1_backend_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3448,7 +3516,7 @@ func (x *SearchWalletsRequest) String() string {
 func (*SearchWalletsRequest) ProtoMessage() {}
 
 func (x *SearchWalletsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[54]
+	mi := &file_backend_v1_backend_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3461,7 +3529,7 @@ func (x *SearchWalletsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchWalletsRequest.ProtoReflect.Descriptor instead.
 func (*SearchWalletsRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{54}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *SearchWalletsRequest) GetTerm() string {
@@ -3480,7 +3548,7 @@ type SearchWalletsResponse struct {
 
 func (x *SearchWalletsResponse) Reset() {
 	*x = SearchWalletsResponse{}
-	mi := &file_backend_v1_backend_proto_msgTypes[55]
+	mi := &file_backend_v1_backend_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3492,7 +3560,7 @@ func (x *SearchWalletsResponse) String() string {
 func (*SearchWalletsResponse) ProtoMessage() {}
 
 func (x *SearchWalletsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[55]
+	mi := &file_backend_v1_backend_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3505,7 +3573,7 @@ func (x *SearchWalletsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchWalletsResponse.ProtoReflect.Descriptor instead.
 func (*SearchWalletsResponse) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{55}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *SearchWalletsResponse) GetResults() []*SearchResult {
@@ -3530,7 +3598,7 @@ type SearchResult struct {
 
 func (x *SearchResult) Reset() {
 	*x = SearchResult{}
-	mi := &file_backend_v1_backend_proto_msgTypes[56]
+	mi := &file_backend_v1_backend_proto_msgTypes[57]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3542,7 +3610,7 @@ func (x *SearchResult) String() string {
 func (*SearchResult) ProtoMessage() {}
 
 func (x *SearchResult) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[56]
+	mi := &file_backend_v1_backend_proto_msgTypes[57]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3555,7 +3623,7 @@ func (x *SearchResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchResult.ProtoReflect.Descriptor instead.
 func (*SearchResult) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{56}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *SearchResult) GetWalletID() string {
@@ -3610,7 +3678,7 @@ type GetPublicWalletInfoRequest struct {
 
 func (x *GetPublicWalletInfoRequest) Reset() {
 	*x = GetPublicWalletInfoRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[57]
+	mi := &file_backend_v1_backend_proto_msgTypes[58]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3622,7 +3690,7 @@ func (x *GetPublicWalletInfoRequest) String() string {
 func (*GetPublicWalletInfoRequest) ProtoMessage() {}
 
 func (x *GetPublicWalletInfoRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[57]
+	mi := &file_backend_v1_backend_proto_msgTypes[58]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3635,7 +3703,7 @@ func (x *GetPublicWalletInfoRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPublicWalletInfoRequest.ProtoReflect.Descriptor instead.
 func (*GetPublicWalletInfoRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{57}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *GetPublicWalletInfoRequest) GetWalletAddress() string {
@@ -3659,7 +3727,7 @@ type PublicWalletInfo struct {
 
 func (x *PublicWalletInfo) Reset() {
 	*x = PublicWalletInfo{}
-	mi := &file_backend_v1_backend_proto_msgTypes[58]
+	mi := &file_backend_v1_backend_proto_msgTypes[59]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3671,7 +3739,7 @@ func (x *PublicWalletInfo) String() string {
 func (*PublicWalletInfo) ProtoMessage() {}
 
 func (x *PublicWalletInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[58]
+	mi := &file_backend_v1_backend_proto_msgTypes[59]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3684,7 +3752,7 @@ func (x *PublicWalletInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PublicWalletInfo.ProtoReflect.Descriptor instead.
 func (*PublicWalletInfo) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{58}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *PublicWalletInfo) GetWalletID() string {
@@ -3748,7 +3816,7 @@ type WalletInfo struct {
 
 func (x *WalletInfo) Reset() {
 	*x = WalletInfo{}
-	mi := &file_backend_v1_backend_proto_msgTypes[59]
+	mi := &file_backend_v1_backend_proto_msgTypes[60]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3760,7 +3828,7 @@ func (x *WalletInfo) String() string {
 func (*WalletInfo) ProtoMessage() {}
 
 func (x *WalletInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[59]
+	mi := &file_backend_v1_backend_proto_msgTypes[60]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3773,7 +3841,7 @@ func (x *WalletInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WalletInfo.ProtoReflect.Descriptor instead.
 func (*WalletInfo) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{59}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *WalletInfo) GetWalletID() string {
@@ -3873,7 +3941,7 @@ type Features struct {
 
 func (x *Features) Reset() {
 	*x = Features{}
-	mi := &file_backend_v1_backend_proto_msgTypes[60]
+	mi := &file_backend_v1_backend_proto_msgTypes[61]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3885,7 +3953,7 @@ func (x *Features) String() string {
 func (*Features) ProtoMessage() {}
 
 func (x *Features) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[60]
+	mi := &file_backend_v1_backend_proto_msgTypes[61]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3898,7 +3966,7 @@ func (x *Features) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Features.ProtoReflect.Descriptor instead.
 func (*Features) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{60}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *Features) GetSendEnabled() bool {
@@ -3994,7 +4062,7 @@ type CreateCardRequest struct {
 
 func (x *CreateCardRequest) Reset() {
 	*x = CreateCardRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[61]
+	mi := &file_backend_v1_backend_proto_msgTypes[62]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4006,7 +4074,7 @@ func (x *CreateCardRequest) String() string {
 func (*CreateCardRequest) ProtoMessage() {}
 
 func (x *CreateCardRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[61]
+	mi := &file_backend_v1_backend_proto_msgTypes[62]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4019,7 +4087,7 @@ func (x *CreateCardRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateCardRequest.ProtoReflect.Descriptor instead.
 func (*CreateCardRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{61}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *CreateCardRequest) GetTokenID() string {
@@ -4038,7 +4106,7 @@ type InitQuote3DSRequest struct {
 
 func (x *InitQuote3DSRequest) Reset() {
 	*x = InitQuote3DSRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[62]
+	mi := &file_backend_v1_backend_proto_msgTypes[63]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4050,7 +4118,7 @@ func (x *InitQuote3DSRequest) String() string {
 func (*InitQuote3DSRequest) ProtoMessage() {}
 
 func (x *InitQuote3DSRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[62]
+	mi := &file_backend_v1_backend_proto_msgTypes[63]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4063,7 +4131,7 @@ func (x *InitQuote3DSRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InitQuote3DSRequest.ProtoReflect.Descriptor instead.
 func (*InitQuote3DSRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{62}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *InitQuote3DSRequest) GetQuoteID() string {
@@ -4084,7 +4152,7 @@ type ConnectionLimits struct {
 
 func (x *ConnectionLimits) Reset() {
 	*x = ConnectionLimits{}
-	mi := &file_backend_v1_backend_proto_msgTypes[63]
+	mi := &file_backend_v1_backend_proto_msgTypes[64]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4096,7 +4164,7 @@ func (x *ConnectionLimits) String() string {
 func (*ConnectionLimits) ProtoMessage() {}
 
 func (x *ConnectionLimits) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[63]
+	mi := &file_backend_v1_backend_proto_msgTypes[64]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4109,7 +4177,7 @@ func (x *ConnectionLimits) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConnectionLimits.ProtoReflect.Descriptor instead.
 func (*ConnectionLimits) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{63}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{64}
 }
 
 func (x *ConnectionLimits) GetDaily() *Amount {
@@ -4146,7 +4214,7 @@ type Connection struct {
 
 func (x *Connection) Reset() {
 	*x = Connection{}
-	mi := &file_backend_v1_backend_proto_msgTypes[64]
+	mi := &file_backend_v1_backend_proto_msgTypes[65]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4158,7 +4226,7 @@ func (x *Connection) String() string {
 func (*Connection) ProtoMessage() {}
 
 func (x *Connection) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[64]
+	mi := &file_backend_v1_backend_proto_msgTypes[65]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4171,7 +4239,7 @@ func (x *Connection) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Connection.ProtoReflect.Descriptor instead.
 func (*Connection) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{64}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{65}
 }
 
 func (x *Connection) GetId() string {
@@ -4222,7 +4290,7 @@ type CreateConnectionRequest struct {
 
 func (x *CreateConnectionRequest) Reset() {
 	*x = CreateConnectionRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[65]
+	mi := &file_backend_v1_backend_proto_msgTypes[66]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4234,7 +4302,7 @@ func (x *CreateConnectionRequest) String() string {
 func (*CreateConnectionRequest) ProtoMessage() {}
 
 func (x *CreateConnectionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[65]
+	mi := &file_backend_v1_backend_proto_msgTypes[66]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4247,7 +4315,7 @@ func (x *CreateConnectionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateConnectionRequest.ProtoReflect.Descriptor instead.
 func (*CreateConnectionRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{65}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{66}
 }
 
 func (x *CreateConnectionRequest) GetApplicationName() string {
@@ -4294,7 +4362,7 @@ type GetConnectionRequest struct {
 
 func (x *GetConnectionRequest) Reset() {
 	*x = GetConnectionRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[66]
+	mi := &file_backend_v1_backend_proto_msgTypes[67]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4306,7 +4374,7 @@ func (x *GetConnectionRequest) String() string {
 func (*GetConnectionRequest) ProtoMessage() {}
 
 func (x *GetConnectionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[66]
+	mi := &file_backend_v1_backend_proto_msgTypes[67]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4319,7 +4387,7 @@ func (x *GetConnectionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetConnectionRequest.ProtoReflect.Descriptor instead.
 func (*GetConnectionRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{66}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{67}
 }
 
 func (x *GetConnectionRequest) GetId() string {
@@ -4338,7 +4406,7 @@ type GetConnectionLimitsRequest struct {
 
 func (x *GetConnectionLimitsRequest) Reset() {
 	*x = GetConnectionLimitsRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[67]
+	mi := &file_backend_v1_backend_proto_msgTypes[68]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4350,7 +4418,7 @@ func (x *GetConnectionLimitsRequest) String() string {
 func (*GetConnectionLimitsRequest) ProtoMessage() {}
 
 func (x *GetConnectionLimitsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[67]
+	mi := &file_backend_v1_backend_proto_msgTypes[68]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4363,7 +4431,7 @@ func (x *GetConnectionLimitsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetConnectionLimitsRequest.ProtoReflect.Descriptor instead.
 func (*GetConnectionLimitsRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{67}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{68}
 }
 
 func (x *GetConnectionLimitsRequest) GetId() string {
@@ -4382,7 +4450,7 @@ type DeleteConnectionRequest struct {
 
 func (x *DeleteConnectionRequest) Reset() {
 	*x = DeleteConnectionRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[68]
+	mi := &file_backend_v1_backend_proto_msgTypes[69]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4394,7 +4462,7 @@ func (x *DeleteConnectionRequest) String() string {
 func (*DeleteConnectionRequest) ProtoMessage() {}
 
 func (x *DeleteConnectionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[68]
+	mi := &file_backend_v1_backend_proto_msgTypes[69]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4407,7 +4475,7 @@ func (x *DeleteConnectionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteConnectionRequest.ProtoReflect.Descriptor instead.
 func (*DeleteConnectionRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{68}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{69}
 }
 
 func (x *DeleteConnectionRequest) GetId() string {
@@ -4426,7 +4494,7 @@ type ListConnectionsResponse struct {
 
 func (x *ListConnectionsResponse) Reset() {
 	*x = ListConnectionsResponse{}
-	mi := &file_backend_v1_backend_proto_msgTypes[69]
+	mi := &file_backend_v1_backend_proto_msgTypes[70]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4438,7 +4506,7 @@ func (x *ListConnectionsResponse) String() string {
 func (*ListConnectionsResponse) ProtoMessage() {}
 
 func (x *ListConnectionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[69]
+	mi := &file_backend_v1_backend_proto_msgTypes[70]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4451,7 +4519,7 @@ func (x *ListConnectionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListConnectionsResponse.ProtoReflect.Descriptor instead.
 func (*ListConnectionsResponse) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{69}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{70}
 }
 
 func (x *ListConnectionsResponse) GetKeys() []*Connection {
@@ -4473,7 +4541,7 @@ type UpdateConnectionLimitsRequest struct {
 
 func (x *UpdateConnectionLimitsRequest) Reset() {
 	*x = UpdateConnectionLimitsRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[70]
+	mi := &file_backend_v1_backend_proto_msgTypes[71]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4485,7 +4553,7 @@ func (x *UpdateConnectionLimitsRequest) String() string {
 func (*UpdateConnectionLimitsRequest) ProtoMessage() {}
 
 func (x *UpdateConnectionLimitsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[70]
+	mi := &file_backend_v1_backend_proto_msgTypes[71]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4498,7 +4566,7 @@ func (x *UpdateConnectionLimitsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateConnectionLimitsRequest.ProtoReflect.Descriptor instead.
 func (*UpdateConnectionLimitsRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{70}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{71}
 }
 
 func (x *UpdateConnectionLimitsRequest) GetId() string {
@@ -4543,7 +4611,7 @@ type Transfer struct {
 
 func (x *Transfer) Reset() {
 	*x = Transfer{}
-	mi := &file_backend_v1_backend_proto_msgTypes[71]
+	mi := &file_backend_v1_backend_proto_msgTypes[72]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4555,7 +4623,7 @@ func (x *Transfer) String() string {
 func (*Transfer) ProtoMessage() {}
 
 func (x *Transfer) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[71]
+	mi := &file_backend_v1_backend_proto_msgTypes[72]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4568,7 +4636,7 @@ func (x *Transfer) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Transfer.ProtoReflect.Descriptor instead.
 func (*Transfer) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{71}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{72}
 }
 
 func (x *Transfer) GetType() string {
@@ -4623,7 +4691,7 @@ type ListStatementsResponse struct {
 
 func (x *ListStatementsResponse) Reset() {
 	*x = ListStatementsResponse{}
-	mi := &file_backend_v1_backend_proto_msgTypes[72]
+	mi := &file_backend_v1_backend_proto_msgTypes[73]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4635,7 +4703,7 @@ func (x *ListStatementsResponse) String() string {
 func (*ListStatementsResponse) ProtoMessage() {}
 
 func (x *ListStatementsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[72]
+	mi := &file_backend_v1_backend_proto_msgTypes[73]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4648,7 +4716,7 @@ func (x *ListStatementsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListStatementsResponse.ProtoReflect.Descriptor instead.
 func (*ListStatementsResponse) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{72}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{73}
 }
 
 func (x *ListStatementsResponse) GetPeriods() []string {
@@ -4681,7 +4749,7 @@ type IndividualKYCResponse struct {
 
 func (x *IndividualKYCResponse) Reset() {
 	*x = IndividualKYCResponse{}
-	mi := &file_backend_v1_backend_proto_msgTypes[73]
+	mi := &file_backend_v1_backend_proto_msgTypes[74]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4693,7 +4761,7 @@ func (x *IndividualKYCResponse) String() string {
 func (*IndividualKYCResponse) ProtoMessage() {}
 
 func (x *IndividualKYCResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[73]
+	mi := &file_backend_v1_backend_proto_msgTypes[74]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4706,7 +4774,7 @@ func (x *IndividualKYCResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IndividualKYCResponse.ProtoReflect.Descriptor instead.
 func (*IndividualKYCResponse) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{73}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{74}
 }
 
 func (x *IndividualKYCResponse) GetFirstName() string {
@@ -4782,7 +4850,7 @@ type UpdateIndividualKYCRequest struct {
 
 func (x *UpdateIndividualKYCRequest) Reset() {
 	*x = UpdateIndividualKYCRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[74]
+	mi := &file_backend_v1_backend_proto_msgTypes[75]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4794,7 +4862,7 @@ func (x *UpdateIndividualKYCRequest) String() string {
 func (*UpdateIndividualKYCRequest) ProtoMessage() {}
 
 func (x *UpdateIndividualKYCRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[74]
+	mi := &file_backend_v1_backend_proto_msgTypes[75]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4807,7 +4875,7 @@ func (x *UpdateIndividualKYCRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateIndividualKYCRequest.ProtoReflect.Descriptor instead.
 func (*UpdateIndividualKYCRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{74}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{75}
 }
 
 func (x *UpdateIndividualKYCRequest) GetFirstName() string {
@@ -4891,7 +4959,7 @@ type Address struct {
 
 func (x *Address) Reset() {
 	*x = Address{}
-	mi := &file_backend_v1_backend_proto_msgTypes[75]
+	mi := &file_backend_v1_backend_proto_msgTypes[76]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4903,7 +4971,7 @@ func (x *Address) String() string {
 func (*Address) ProtoMessage() {}
 
 func (x *Address) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[75]
+	mi := &file_backend_v1_backend_proto_msgTypes[76]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4916,7 +4984,7 @@ func (x *Address) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Address.ProtoReflect.Descriptor instead.
 func (*Address) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{75}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{76}
 }
 
 func (x *Address) GetLine1() string {
@@ -4998,7 +5066,7 @@ type IsUSPSAddressResponse struct {
 
 func (x *IsUSPSAddressResponse) Reset() {
 	*x = IsUSPSAddressResponse{}
-	mi := &file_backend_v1_backend_proto_msgTypes[76]
+	mi := &file_backend_v1_backend_proto_msgTypes[77]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5010,7 +5078,7 @@ func (x *IsUSPSAddressResponse) String() string {
 func (*IsUSPSAddressResponse) ProtoMessage() {}
 
 func (x *IsUSPSAddressResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[76]
+	mi := &file_backend_v1_backend_proto_msgTypes[77]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5023,7 +5091,7 @@ func (x *IsUSPSAddressResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IsUSPSAddressResponse.ProtoReflect.Descriptor instead.
 func (*IsUSPSAddressResponse) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{76}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{77}
 }
 
 func (x *IsUSPSAddressResponse) GetValid() bool {
@@ -5041,7 +5109,7 @@ type GetBankAccountWidgetRequest struct {
 
 func (x *GetBankAccountWidgetRequest) Reset() {
 	*x = GetBankAccountWidgetRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[77]
+	mi := &file_backend_v1_backend_proto_msgTypes[78]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5053,7 +5121,7 @@ func (x *GetBankAccountWidgetRequest) String() string {
 func (*GetBankAccountWidgetRequest) ProtoMessage() {}
 
 func (x *GetBankAccountWidgetRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[77]
+	mi := &file_backend_v1_backend_proto_msgTypes[78]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5066,7 +5134,7 @@ func (x *GetBankAccountWidgetRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBankAccountWidgetRequest.ProtoReflect.Descriptor instead.
 func (*GetBankAccountWidgetRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{77}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{78}
 }
 
 type GetBankAccountWidgetResponse struct {
@@ -5078,7 +5146,7 @@ type GetBankAccountWidgetResponse struct {
 
 func (x *GetBankAccountWidgetResponse) Reset() {
 	*x = GetBankAccountWidgetResponse{}
-	mi := &file_backend_v1_backend_proto_msgTypes[78]
+	mi := &file_backend_v1_backend_proto_msgTypes[79]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5090,7 +5158,7 @@ func (x *GetBankAccountWidgetResponse) String() string {
 func (*GetBankAccountWidgetResponse) ProtoMessage() {}
 
 func (x *GetBankAccountWidgetResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[78]
+	mi := &file_backend_v1_backend_proto_msgTypes[79]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5103,7 +5171,7 @@ func (x *GetBankAccountWidgetResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBankAccountWidgetResponse.ProtoReflect.Descriptor instead.
 func (*GetBankAccountWidgetResponse) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{78}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{79}
 }
 
 func (x *GetBankAccountWidgetResponse) GetUrl() string {
@@ -5123,7 +5191,7 @@ type AddBankAccountRequest struct {
 
 func (x *AddBankAccountRequest) Reset() {
 	*x = AddBankAccountRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[79]
+	mi := &file_backend_v1_backend_proto_msgTypes[80]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5135,7 +5203,7 @@ func (x *AddBankAccountRequest) String() string {
 func (*AddBankAccountRequest) ProtoMessage() {}
 
 func (x *AddBankAccountRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[79]
+	mi := &file_backend_v1_backend_proto_msgTypes[80]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5148,7 +5216,7 @@ func (x *AddBankAccountRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddBankAccountRequest.ProtoReflect.Descriptor instead.
 func (*AddBankAccountRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{79}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{80}
 }
 
 func (x *AddBankAccountRequest) GetUserGuid() string {
@@ -5174,7 +5242,7 @@ type AddBankAccountResponse struct {
 
 func (x *AddBankAccountResponse) Reset() {
 	*x = AddBankAccountResponse{}
-	mi := &file_backend_v1_backend_proto_msgTypes[80]
+	mi := &file_backend_v1_backend_proto_msgTypes[81]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5186,7 +5254,7 @@ func (x *AddBankAccountResponse) String() string {
 func (*AddBankAccountResponse) ProtoMessage() {}
 
 func (x *AddBankAccountResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[80]
+	mi := &file_backend_v1_backend_proto_msgTypes[81]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5199,7 +5267,7 @@ func (x *AddBankAccountResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddBankAccountResponse.ProtoReflect.Descriptor instead.
 func (*AddBankAccountResponse) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{80}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{81}
 }
 
 func (x *AddBankAccountResponse) GetFundingsourceId() string {
@@ -5233,7 +5301,7 @@ type LinkedAccount struct {
 
 func (x *LinkedAccount) Reset() {
 	*x = LinkedAccount{}
-	mi := &file_backend_v1_backend_proto_msgTypes[81]
+	mi := &file_backend_v1_backend_proto_msgTypes[82]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5245,7 +5313,7 @@ func (x *LinkedAccount) String() string {
 func (*LinkedAccount) ProtoMessage() {}
 
 func (x *LinkedAccount) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[81]
+	mi := &file_backend_v1_backend_proto_msgTypes[82]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5258,7 +5326,7 @@ func (x *LinkedAccount) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LinkedAccount.ProtoReflect.Descriptor instead.
 func (*LinkedAccount) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{81}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{82}
 }
 
 func (x *LinkedAccount) GetId() string {
@@ -5375,7 +5443,7 @@ type GetSignupRequest struct {
 
 func (x *GetSignupRequest) Reset() {
 	*x = GetSignupRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[82]
+	mi := &file_backend_v1_backend_proto_msgTypes[83]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5387,7 +5455,7 @@ func (x *GetSignupRequest) String() string {
 func (*GetSignupRequest) ProtoMessage() {}
 
 func (x *GetSignupRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[82]
+	mi := &file_backend_v1_backend_proto_msgTypes[83]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5400,7 +5468,7 @@ func (x *GetSignupRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSignupRequest.ProtoReflect.Descriptor instead.
 func (*GetSignupRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{82}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{83}
 }
 
 func (x *GetSignupRequest) GetId() string {
@@ -5423,7 +5491,7 @@ type SetSignupUserDataRequest struct {
 
 func (x *SetSignupUserDataRequest) Reset() {
 	*x = SetSignupUserDataRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[83]
+	mi := &file_backend_v1_backend_proto_msgTypes[84]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5435,7 +5503,7 @@ func (x *SetSignupUserDataRequest) String() string {
 func (*SetSignupUserDataRequest) ProtoMessage() {}
 
 func (x *SetSignupUserDataRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[83]
+	mi := &file_backend_v1_backend_proto_msgTypes[84]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5448,7 +5516,7 @@ func (x *SetSignupUserDataRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetSignupUserDataRequest.ProtoReflect.Descriptor instead.
 func (*SetSignupUserDataRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{83}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{84}
 }
 
 func (x *SetSignupUserDataRequest) GetId() string {
@@ -5495,7 +5563,7 @@ type SetSignupUserDataResponse struct {
 
 func (x *SetSignupUserDataResponse) Reset() {
 	*x = SetSignupUserDataResponse{}
-	mi := &file_backend_v1_backend_proto_msgTypes[84]
+	mi := &file_backend_v1_backend_proto_msgTypes[85]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5507,7 +5575,7 @@ func (x *SetSignupUserDataResponse) String() string {
 func (*SetSignupUserDataResponse) ProtoMessage() {}
 
 func (x *SetSignupUserDataResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[84]
+	mi := &file_backend_v1_backend_proto_msgTypes[85]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5520,7 +5588,7 @@ func (x *SetSignupUserDataResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetSignupUserDataResponse.ProtoReflect.Descriptor instead.
 func (*SetSignupUserDataResponse) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{84}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{85}
 }
 
 func (x *SetSignupUserDataResponse) GetId() string {
@@ -5541,7 +5609,7 @@ type SetSignupMobileNumberRequest struct {
 
 func (x *SetSignupMobileNumberRequest) Reset() {
 	*x = SetSignupMobileNumberRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[85]
+	mi := &file_backend_v1_backend_proto_msgTypes[86]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5553,7 +5621,7 @@ func (x *SetSignupMobileNumberRequest) String() string {
 func (*SetSignupMobileNumberRequest) ProtoMessage() {}
 
 func (x *SetSignupMobileNumberRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[85]
+	mi := &file_backend_v1_backend_proto_msgTypes[86]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5566,7 +5634,7 @@ func (x *SetSignupMobileNumberRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetSignupMobileNumberRequest.ProtoReflect.Descriptor instead.
 func (*SetSignupMobileNumberRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{85}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{86}
 }
 
 func (x *SetSignupMobileNumberRequest) GetId() string {
@@ -5606,7 +5674,7 @@ type Signup struct {
 
 func (x *Signup) Reset() {
 	*x = Signup{}
-	mi := &file_backend_v1_backend_proto_msgTypes[86]
+	mi := &file_backend_v1_backend_proto_msgTypes[87]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5618,7 +5686,7 @@ func (x *Signup) String() string {
 func (*Signup) ProtoMessage() {}
 
 func (x *Signup) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[86]
+	mi := &file_backend_v1_backend_proto_msgTypes[87]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5631,7 +5699,7 @@ func (x *Signup) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Signup.ProtoReflect.Descriptor instead.
 func (*Signup) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{86}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{87}
 }
 
 func (x *Signup) GetId() string {
@@ -5700,7 +5768,7 @@ type CompleteSignupRequest struct {
 
 func (x *CompleteSignupRequest) Reset() {
 	*x = CompleteSignupRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[87]
+	mi := &file_backend_v1_backend_proto_msgTypes[88]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5712,7 +5780,7 @@ func (x *CompleteSignupRequest) String() string {
 func (*CompleteSignupRequest) ProtoMessage() {}
 
 func (x *CompleteSignupRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[87]
+	mi := &file_backend_v1_backend_proto_msgTypes[88]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5725,7 +5793,7 @@ func (x *CompleteSignupRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CompleteSignupRequest.ProtoReflect.Descriptor instead.
 func (*CompleteSignupRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{87}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{88}
 }
 
 func (x *CompleteSignupRequest) GetId() string {
@@ -5751,7 +5819,7 @@ type CreateUserDefaultWalletRequest struct {
 
 func (x *CreateUserDefaultWalletRequest) Reset() {
 	*x = CreateUserDefaultWalletRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[88]
+	mi := &file_backend_v1_backend_proto_msgTypes[89]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5763,7 +5831,7 @@ func (x *CreateUserDefaultWalletRequest) String() string {
 func (*CreateUserDefaultWalletRequest) ProtoMessage() {}
 
 func (x *CreateUserDefaultWalletRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[88]
+	mi := &file_backend_v1_backend_proto_msgTypes[89]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5776,7 +5844,7 @@ func (x *CreateUserDefaultWalletRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateUserDefaultWalletRequest.ProtoReflect.Descriptor instead.
 func (*CreateUserDefaultWalletRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{88}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{89}
 }
 
 func (x *CreateUserDefaultWalletRequest) GetUserID() string {
@@ -5795,7 +5863,7 @@ type SendPhoneVerificationRequest struct {
 
 func (x *SendPhoneVerificationRequest) Reset() {
 	*x = SendPhoneVerificationRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[89]
+	mi := &file_backend_v1_backend_proto_msgTypes[90]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5807,7 +5875,7 @@ func (x *SendPhoneVerificationRequest) String() string {
 func (*SendPhoneVerificationRequest) ProtoMessage() {}
 
 func (x *SendPhoneVerificationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[89]
+	mi := &file_backend_v1_backend_proto_msgTypes[90]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5820,7 +5888,7 @@ func (x *SendPhoneVerificationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SendPhoneVerificationRequest.ProtoReflect.Descriptor instead.
 func (*SendPhoneVerificationRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{89}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{90}
 }
 
 func (x *SendPhoneVerificationRequest) GetTo() string {
@@ -5840,7 +5908,7 @@ type CheckPhoneVerificationRequest struct {
 
 func (x *CheckPhoneVerificationRequest) Reset() {
 	*x = CheckPhoneVerificationRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[90]
+	mi := &file_backend_v1_backend_proto_msgTypes[91]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5852,7 +5920,7 @@ func (x *CheckPhoneVerificationRequest) String() string {
 func (*CheckPhoneVerificationRequest) ProtoMessage() {}
 
 func (x *CheckPhoneVerificationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[90]
+	mi := &file_backend_v1_backend_proto_msgTypes[91]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5865,7 +5933,7 @@ func (x *CheckPhoneVerificationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckPhoneVerificationRequest.ProtoReflect.Descriptor instead.
 func (*CheckPhoneVerificationRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{90}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{91}
 }
 
 func (x *CheckPhoneVerificationRequest) GetTo() string {
@@ -5891,7 +5959,7 @@ type GetAgreementRequest struct {
 
 func (x *GetAgreementRequest) Reset() {
 	*x = GetAgreementRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[91]
+	mi := &file_backend_v1_backend_proto_msgTypes[92]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5903,7 +5971,7 @@ func (x *GetAgreementRequest) String() string {
 func (*GetAgreementRequest) ProtoMessage() {}
 
 func (x *GetAgreementRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[91]
+	mi := &file_backend_v1_backend_proto_msgTypes[92]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5916,7 +5984,7 @@ func (x *GetAgreementRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAgreementRequest.ProtoReflect.Descriptor instead.
 func (*GetAgreementRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{91}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{92}
 }
 
 func (x *GetAgreementRequest) GetId() string {
@@ -5935,7 +6003,7 @@ type Agreement struct {
 
 func (x *Agreement) Reset() {
 	*x = Agreement{}
-	mi := &file_backend_v1_backend_proto_msgTypes[92]
+	mi := &file_backend_v1_backend_proto_msgTypes[93]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5947,7 +6015,7 @@ func (x *Agreement) String() string {
 func (*Agreement) ProtoMessage() {}
 
 func (x *Agreement) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[92]
+	mi := &file_backend_v1_backend_proto_msgTypes[93]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5960,7 +6028,7 @@ func (x *Agreement) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Agreement.ProtoReflect.Descriptor instead.
 func (*Agreement) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{92}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{93}
 }
 
 func (x *Agreement) GetContent() string {
@@ -5981,7 +6049,7 @@ type SignAgreementsRequest struct {
 
 func (x *SignAgreementsRequest) Reset() {
 	*x = SignAgreementsRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[93]
+	mi := &file_backend_v1_backend_proto_msgTypes[94]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5993,7 +6061,7 @@ func (x *SignAgreementsRequest) String() string {
 func (*SignAgreementsRequest) ProtoMessage() {}
 
 func (x *SignAgreementsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[93]
+	mi := &file_backend_v1_backend_proto_msgTypes[94]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6006,7 +6074,7 @@ func (x *SignAgreementsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SignAgreementsRequest.ProtoReflect.Descriptor instead.
 func (*SignAgreementsRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{93}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{94}
 }
 
 func (x *SignAgreementsRequest) GetAgreementIds() []string {
@@ -6039,7 +6107,7 @@ type SignAgreementsResponse struct {
 
 func (x *SignAgreementsResponse) Reset() {
 	*x = SignAgreementsResponse{}
-	mi := &file_backend_v1_backend_proto_msgTypes[94]
+	mi := &file_backend_v1_backend_proto_msgTypes[95]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6051,7 +6119,7 @@ func (x *SignAgreementsResponse) String() string {
 func (*SignAgreementsResponse) ProtoMessage() {}
 
 func (x *SignAgreementsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[94]
+	mi := &file_backend_v1_backend_proto_msgTypes[95]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6064,7 +6132,7 @@ func (x *SignAgreementsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SignAgreementsResponse.ProtoReflect.Descriptor instead.
 func (*SignAgreementsResponse) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{94}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{95}
 }
 
 func (x *SignAgreementsResponse) GetSigned() bool {
@@ -6087,7 +6155,7 @@ type JoinWaitlistRequest struct {
 
 func (x *JoinWaitlistRequest) Reset() {
 	*x = JoinWaitlistRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[95]
+	mi := &file_backend_v1_backend_proto_msgTypes[96]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6099,7 +6167,7 @@ func (x *JoinWaitlistRequest) String() string {
 func (*JoinWaitlistRequest) ProtoMessage() {}
 
 func (x *JoinWaitlistRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[95]
+	mi := &file_backend_v1_backend_proto_msgTypes[96]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6112,7 +6180,7 @@ func (x *JoinWaitlistRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use JoinWaitlistRequest.ProtoReflect.Descriptor instead.
 func (*JoinWaitlistRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{95}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{96}
 }
 
 func (x *JoinWaitlistRequest) GetEmail() string {
@@ -6158,7 +6226,7 @@ type JoinWaitlistResponse struct {
 
 func (x *JoinWaitlistResponse) Reset() {
 	*x = JoinWaitlistResponse{}
-	mi := &file_backend_v1_backend_proto_msgTypes[96]
+	mi := &file_backend_v1_backend_proto_msgTypes[97]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6170,7 +6238,7 @@ func (x *JoinWaitlistResponse) String() string {
 func (*JoinWaitlistResponse) ProtoMessage() {}
 
 func (x *JoinWaitlistResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[96]
+	mi := &file_backend_v1_backend_proto_msgTypes[97]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6183,7 +6251,7 @@ func (x *JoinWaitlistResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use JoinWaitlistResponse.ProtoReflect.Descriptor instead.
 func (*JoinWaitlistResponse) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{96}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{97}
 }
 
 type IsMugAvailableRequest struct {
@@ -6195,7 +6263,7 @@ type IsMugAvailableRequest struct {
 
 func (x *IsMugAvailableRequest) Reset() {
 	*x = IsMugAvailableRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[97]
+	mi := &file_backend_v1_backend_proto_msgTypes[98]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6207,7 +6275,7 @@ func (x *IsMugAvailableRequest) String() string {
 func (*IsMugAvailableRequest) ProtoMessage() {}
 
 func (x *IsMugAvailableRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[97]
+	mi := &file_backend_v1_backend_proto_msgTypes[98]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6220,7 +6288,7 @@ func (x *IsMugAvailableRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IsMugAvailableRequest.ProtoReflect.Descriptor instead.
 func (*IsMugAvailableRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{97}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{98}
 }
 
 func (x *IsMugAvailableRequest) GetMugId() string {
@@ -6239,7 +6307,7 @@ type IsMugAvailableResponse struct {
 
 func (x *IsMugAvailableResponse) Reset() {
 	*x = IsMugAvailableResponse{}
-	mi := &file_backend_v1_backend_proto_msgTypes[98]
+	mi := &file_backend_v1_backend_proto_msgTypes[99]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6251,7 +6319,7 @@ func (x *IsMugAvailableResponse) String() string {
 func (*IsMugAvailableResponse) ProtoMessage() {}
 
 func (x *IsMugAvailableResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[98]
+	mi := &file_backend_v1_backend_proto_msgTypes[99]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6264,7 +6332,7 @@ func (x *IsMugAvailableResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IsMugAvailableResponse.ProtoReflect.Descriptor instead.
 func (*IsMugAvailableResponse) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{98}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{99}
 }
 
 func (x *IsMugAvailableResponse) GetAvailable() bool {
@@ -6283,7 +6351,7 @@ type GetLinkedAccountsResponse struct {
 
 func (x *GetLinkedAccountsResponse) Reset() {
 	*x = GetLinkedAccountsResponse{}
-	mi := &file_backend_v1_backend_proto_msgTypes[99]
+	mi := &file_backend_v1_backend_proto_msgTypes[100]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6295,7 +6363,7 @@ func (x *GetLinkedAccountsResponse) String() string {
 func (*GetLinkedAccountsResponse) ProtoMessage() {}
 
 func (x *GetLinkedAccountsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[99]
+	mi := &file_backend_v1_backend_proto_msgTypes[100]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6308,7 +6376,7 @@ func (x *GetLinkedAccountsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetLinkedAccountsResponse.ProtoReflect.Descriptor instead.
 func (*GetLinkedAccountsResponse) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{99}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{100}
 }
 
 func (x *GetLinkedAccountsResponse) GetLinkedAccounts() []*LinkedAccount {
@@ -6327,7 +6395,7 @@ type GetLinkedAccountRequest struct {
 
 func (x *GetLinkedAccountRequest) Reset() {
 	*x = GetLinkedAccountRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[100]
+	mi := &file_backend_v1_backend_proto_msgTypes[101]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6339,7 +6407,7 @@ func (x *GetLinkedAccountRequest) String() string {
 func (*GetLinkedAccountRequest) ProtoMessage() {}
 
 func (x *GetLinkedAccountRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[100]
+	mi := &file_backend_v1_backend_proto_msgTypes[101]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6352,7 +6420,7 @@ func (x *GetLinkedAccountRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetLinkedAccountRequest.ProtoReflect.Descriptor instead.
 func (*GetLinkedAccountRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{100}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{101}
 }
 
 func (x *GetLinkedAccountRequest) GetId() string {
@@ -6372,7 +6440,7 @@ type SetNicknameLinkedAccountRequest struct {
 
 func (x *SetNicknameLinkedAccountRequest) Reset() {
 	*x = SetNicknameLinkedAccountRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[101]
+	mi := &file_backend_v1_backend_proto_msgTypes[102]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6384,7 +6452,7 @@ func (x *SetNicknameLinkedAccountRequest) String() string {
 func (*SetNicknameLinkedAccountRequest) ProtoMessage() {}
 
 func (x *SetNicknameLinkedAccountRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[101]
+	mi := &file_backend_v1_backend_proto_msgTypes[102]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6397,7 +6465,7 @@ func (x *SetNicknameLinkedAccountRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetNicknameLinkedAccountRequest.ProtoReflect.Descriptor instead.
 func (*SetNicknameLinkedAccountRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{101}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{102}
 }
 
 func (x *SetNicknameLinkedAccountRequest) GetId() string {
@@ -6423,7 +6491,7 @@ type DeleteLinkedAccountRequest struct {
 
 func (x *DeleteLinkedAccountRequest) Reset() {
 	*x = DeleteLinkedAccountRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[102]
+	mi := &file_backend_v1_backend_proto_msgTypes[103]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6435,7 +6503,7 @@ func (x *DeleteLinkedAccountRequest) String() string {
 func (*DeleteLinkedAccountRequest) ProtoMessage() {}
 
 func (x *DeleteLinkedAccountRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[102]
+	mi := &file_backend_v1_backend_proto_msgTypes[103]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6448,7 +6516,7 @@ func (x *DeleteLinkedAccountRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteLinkedAccountRequest.ProtoReflect.Descriptor instead.
 func (*DeleteLinkedAccountRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{102}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{103}
 }
 
 func (x *DeleteLinkedAccountRequest) GetId() string {
@@ -6468,7 +6536,7 @@ type Country struct {
 
 func (x *Country) Reset() {
 	*x = Country{}
-	mi := &file_backend_v1_backend_proto_msgTypes[103]
+	mi := &file_backend_v1_backend_proto_msgTypes[104]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6480,7 +6548,7 @@ func (x *Country) String() string {
 func (*Country) ProtoMessage() {}
 
 func (x *Country) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[103]
+	mi := &file_backend_v1_backend_proto_msgTypes[104]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6493,7 +6561,7 @@ func (x *Country) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Country.ProtoReflect.Descriptor instead.
 func (*Country) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{103}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{104}
 }
 
 func (x *Country) GetId() string {
@@ -6519,7 +6587,7 @@ type GetCountriesResponse struct {
 
 func (x *GetCountriesResponse) Reset() {
 	*x = GetCountriesResponse{}
-	mi := &file_backend_v1_backend_proto_msgTypes[104]
+	mi := &file_backend_v1_backend_proto_msgTypes[105]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6531,7 +6599,7 @@ func (x *GetCountriesResponse) String() string {
 func (*GetCountriesResponse) ProtoMessage() {}
 
 func (x *GetCountriesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[104]
+	mi := &file_backend_v1_backend_proto_msgTypes[105]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6544,7 +6612,7 @@ func (x *GetCountriesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCountriesResponse.ProtoReflect.Descriptor instead.
 func (*GetCountriesResponse) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{104}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{105}
 }
 
 func (x *GetCountriesResponse) GetCountries() []*Country {
@@ -6563,7 +6631,7 @@ type CanSignupRequest struct {
 
 func (x *CanSignupRequest) Reset() {
 	*x = CanSignupRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[105]
+	mi := &file_backend_v1_backend_proto_msgTypes[106]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6575,7 +6643,7 @@ func (x *CanSignupRequest) String() string {
 func (*CanSignupRequest) ProtoMessage() {}
 
 func (x *CanSignupRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[105]
+	mi := &file_backend_v1_backend_proto_msgTypes[106]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6588,7 +6656,7 @@ func (x *CanSignupRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CanSignupRequest.ProtoReflect.Descriptor instead.
 func (*CanSignupRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{105}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{106}
 }
 
 func (x *CanSignupRequest) GetId() string {
@@ -6607,7 +6675,7 @@ type CanSignupResponse struct {
 
 func (x *CanSignupResponse) Reset() {
 	*x = CanSignupResponse{}
-	mi := &file_backend_v1_backend_proto_msgTypes[106]
+	mi := &file_backend_v1_backend_proto_msgTypes[107]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6619,7 +6687,7 @@ func (x *CanSignupResponse) String() string {
 func (*CanSignupResponse) ProtoMessage() {}
 
 func (x *CanSignupResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[106]
+	mi := &file_backend_v1_backend_proto_msgTypes[107]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6632,7 +6700,7 @@ func (x *CanSignupResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CanSignupResponse.ProtoReflect.Descriptor instead.
 func (*CanSignupResponse) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{106}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{107}
 }
 
 func (x *CanSignupResponse) GetCanSignup() bool {
@@ -6652,7 +6720,7 @@ type SetSignupCompleteRequest struct {
 
 func (x *SetSignupCompleteRequest) Reset() {
 	*x = SetSignupCompleteRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[107]
+	mi := &file_backend_v1_backend_proto_msgTypes[108]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6664,7 +6732,7 @@ func (x *SetSignupCompleteRequest) String() string {
 func (*SetSignupCompleteRequest) ProtoMessage() {}
 
 func (x *SetSignupCompleteRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[107]
+	mi := &file_backend_v1_backend_proto_msgTypes[108]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6677,7 +6745,7 @@ func (x *SetSignupCompleteRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetSignupCompleteRequest.ProtoReflect.Descriptor instead.
 func (*SetSignupCompleteRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{107}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{108}
 }
 
 func (x *SetSignupCompleteRequest) GetId() string {
@@ -6703,7 +6771,7 @@ type LookupTransactionRequest struct {
 
 func (x *LookupTransactionRequest) Reset() {
 	*x = LookupTransactionRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[108]
+	mi := &file_backend_v1_backend_proto_msgTypes[109]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6715,7 +6783,7 @@ func (x *LookupTransactionRequest) String() string {
 func (*LookupTransactionRequest) ProtoMessage() {}
 
 func (x *LookupTransactionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[108]
+	mi := &file_backend_v1_backend_proto_msgTypes[109]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6728,7 +6796,7 @@ func (x *LookupTransactionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LookupTransactionRequest.ProtoReflect.Descriptor instead.
 func (*LookupTransactionRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{108}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{109}
 }
 
 func (x *LookupTransactionRequest) GetId() string {
@@ -6748,7 +6816,7 @@ type GetCurrentWalletResponse struct {
 
 func (x *GetCurrentWalletResponse) Reset() {
 	*x = GetCurrentWalletResponse{}
-	mi := &file_backend_v1_backend_proto_msgTypes[109]
+	mi := &file_backend_v1_backend_proto_msgTypes[110]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6760,7 +6828,7 @@ func (x *GetCurrentWalletResponse) String() string {
 func (*GetCurrentWalletResponse) ProtoMessage() {}
 
 func (x *GetCurrentWalletResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[109]
+	mi := &file_backend_v1_backend_proto_msgTypes[110]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6773,7 +6841,7 @@ func (x *GetCurrentWalletResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCurrentWalletResponse.ProtoReflect.Descriptor instead.
 func (*GetCurrentWalletResponse) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{109}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{110}
 }
 
 func (x *GetCurrentWalletResponse) GetId() string {
@@ -6802,7 +6870,7 @@ type Limit struct {
 
 func (x *Limit) Reset() {
 	*x = Limit{}
-	mi := &file_backend_v1_backend_proto_msgTypes[110]
+	mi := &file_backend_v1_backend_proto_msgTypes[111]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6814,7 +6882,7 @@ func (x *Limit) String() string {
 func (*Limit) ProtoMessage() {}
 
 func (x *Limit) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[110]
+	mi := &file_backend_v1_backend_proto_msgTypes[111]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6827,7 +6895,7 @@ func (x *Limit) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Limit.ProtoReflect.Descriptor instead.
 func (*Limit) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{110}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{111}
 }
 
 func (x *Limit) GetAnnual() *LimitAmount {
@@ -6869,7 +6937,7 @@ type LimitAmount struct {
 
 func (x *LimitAmount) Reset() {
 	*x = LimitAmount{}
-	mi := &file_backend_v1_backend_proto_msgTypes[111]
+	mi := &file_backend_v1_backend_proto_msgTypes[112]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6881,7 +6949,7 @@ func (x *LimitAmount) String() string {
 func (*LimitAmount) ProtoMessage() {}
 
 func (x *LimitAmount) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[111]
+	mi := &file_backend_v1_backend_proto_msgTypes[112]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6894,7 +6962,7 @@ func (x *LimitAmount) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LimitAmount.ProtoReflect.Descriptor instead.
 func (*LimitAmount) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{111}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{112}
 }
 
 func (x *LimitAmount) GetRemaining() string {
@@ -6927,7 +6995,7 @@ type WalletAddressValidRequest struct {
 
 func (x *WalletAddressValidRequest) Reset() {
 	*x = WalletAddressValidRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[112]
+	mi := &file_backend_v1_backend_proto_msgTypes[113]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6939,7 +7007,7 @@ func (x *WalletAddressValidRequest) String() string {
 func (*WalletAddressValidRequest) ProtoMessage() {}
 
 func (x *WalletAddressValidRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[112]
+	mi := &file_backend_v1_backend_proto_msgTypes[113]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6952,7 +7020,7 @@ func (x *WalletAddressValidRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WalletAddressValidRequest.ProtoReflect.Descriptor instead.
 func (*WalletAddressValidRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{112}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{113}
 }
 
 func (x *WalletAddressValidRequest) GetUrl() string {
@@ -6971,7 +7039,7 @@ type WalletAddressValidResponse struct {
 
 func (x *WalletAddressValidResponse) Reset() {
 	*x = WalletAddressValidResponse{}
-	mi := &file_backend_v1_backend_proto_msgTypes[113]
+	mi := &file_backend_v1_backend_proto_msgTypes[114]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6983,7 +7051,7 @@ func (x *WalletAddressValidResponse) String() string {
 func (*WalletAddressValidResponse) ProtoMessage() {}
 
 func (x *WalletAddressValidResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[113]
+	mi := &file_backend_v1_backend_proto_msgTypes[114]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6996,7 +7064,7 @@ func (x *WalletAddressValidResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WalletAddressValidResponse.ProtoReflect.Descriptor instead.
 func (*WalletAddressValidResponse) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{113}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{114}
 }
 
 func (x *WalletAddressValidResponse) GetExists() bool {
@@ -7018,7 +7086,7 @@ type CreateWalletAddressRequest struct {
 
 func (x *CreateWalletAddressRequest) Reset() {
 	*x = CreateWalletAddressRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[114]
+	mi := &file_backend_v1_backend_proto_msgTypes[115]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7030,7 +7098,7 @@ func (x *CreateWalletAddressRequest) String() string {
 func (*CreateWalletAddressRequest) ProtoMessage() {}
 
 func (x *CreateWalletAddressRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[114]
+	mi := &file_backend_v1_backend_proto_msgTypes[115]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7043,7 +7111,7 @@ func (x *CreateWalletAddressRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateWalletAddressRequest.ProtoReflect.Descriptor instead.
 func (*CreateWalletAddressRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{114}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{115}
 }
 
 func (x *CreateWalletAddressRequest) GetUrl() string {
@@ -7083,7 +7151,7 @@ type SetWalletNameRequest struct {
 
 func (x *SetWalletNameRequest) Reset() {
 	*x = SetWalletNameRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[115]
+	mi := &file_backend_v1_backend_proto_msgTypes[116]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7095,7 +7163,7 @@ func (x *SetWalletNameRequest) String() string {
 func (*SetWalletNameRequest) ProtoMessage() {}
 
 func (x *SetWalletNameRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[115]
+	mi := &file_backend_v1_backend_proto_msgTypes[116]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7108,7 +7176,7 @@ func (x *SetWalletNameRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetWalletNameRequest.ProtoReflect.Descriptor instead.
 func (*SetWalletNameRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{115}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{116}
 }
 
 func (x *SetWalletNameRequest) GetName() string {
@@ -7127,7 +7195,7 @@ type GetPublicWalletDetailsRequest struct {
 
 func (x *GetPublicWalletDetailsRequest) Reset() {
 	*x = GetPublicWalletDetailsRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[116]
+	mi := &file_backend_v1_backend_proto_msgTypes[117]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7139,7 +7207,7 @@ func (x *GetPublicWalletDetailsRequest) String() string {
 func (*GetPublicWalletDetailsRequest) ProtoMessage() {}
 
 func (x *GetPublicWalletDetailsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[116]
+	mi := &file_backend_v1_backend_proto_msgTypes[117]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7152,7 +7220,7 @@ func (x *GetPublicWalletDetailsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPublicWalletDetailsRequest.ProtoReflect.Descriptor instead.
 func (*GetPublicWalletDetailsRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{116}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{117}
 }
 
 func (x *GetPublicWalletDetailsRequest) GetId() string {
@@ -7172,7 +7240,7 @@ type GetPublicWalletDetailsResponse struct {
 
 func (x *GetPublicWalletDetailsResponse) Reset() {
 	*x = GetPublicWalletDetailsResponse{}
-	mi := &file_backend_v1_backend_proto_msgTypes[117]
+	mi := &file_backend_v1_backend_proto_msgTypes[118]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7184,7 +7252,7 @@ func (x *GetPublicWalletDetailsResponse) String() string {
 func (*GetPublicWalletDetailsResponse) ProtoMessage() {}
 
 func (x *GetPublicWalletDetailsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[117]
+	mi := &file_backend_v1_backend_proto_msgTypes[118]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7197,7 +7265,7 @@ func (x *GetPublicWalletDetailsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPublicWalletDetailsResponse.ProtoReflect.Descriptor instead.
 func (*GetPublicWalletDetailsResponse) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{117}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{118}
 }
 
 func (x *GetPublicWalletDetailsResponse) GetId() string {
@@ -7223,7 +7291,7 @@ type ListLimitsResponse struct {
 
 func (x *ListLimitsResponse) Reset() {
 	*x = ListLimitsResponse{}
-	mi := &file_backend_v1_backend_proto_msgTypes[118]
+	mi := &file_backend_v1_backend_proto_msgTypes[119]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7235,7 +7303,7 @@ func (x *ListLimitsResponse) String() string {
 func (*ListLimitsResponse) ProtoMessage() {}
 
 func (x *ListLimitsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[118]
+	mi := &file_backend_v1_backend_proto_msgTypes[119]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7248,7 +7316,7 @@ func (x *ListLimitsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListLimitsResponse.ProtoReflect.Descriptor instead.
 func (*ListLimitsResponse) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{118}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{119}
 }
 
 func (x *ListLimitsResponse) GetLimits() []*ConfiguredLimit {
@@ -7272,7 +7340,7 @@ type ConfiguredLimit struct {
 
 func (x *ConfiguredLimit) Reset() {
 	*x = ConfiguredLimit{}
-	mi := &file_backend_v1_backend_proto_msgTypes[119]
+	mi := &file_backend_v1_backend_proto_msgTypes[120]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7284,7 +7352,7 @@ func (x *ConfiguredLimit) String() string {
 func (*ConfiguredLimit) ProtoMessage() {}
 
 func (x *ConfiguredLimit) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[119]
+	mi := &file_backend_v1_backend_proto_msgTypes[120]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7297,7 +7365,7 @@ func (x *ConfiguredLimit) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfiguredLimit.ProtoReflect.Descriptor instead.
 func (*ConfiguredLimit) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{119}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{120}
 }
 
 func (x *ConfiguredLimit) GetForeignId() string {
@@ -7354,7 +7422,7 @@ type UpdateClientLimitsRequest struct {
 
 func (x *UpdateClientLimitsRequest) Reset() {
 	*x = UpdateClientLimitsRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[120]
+	mi := &file_backend_v1_backend_proto_msgTypes[121]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7366,7 +7434,7 @@ func (x *UpdateClientLimitsRequest) String() string {
 func (*UpdateClientLimitsRequest) ProtoMessage() {}
 
 func (x *UpdateClientLimitsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[120]
+	mi := &file_backend_v1_backend_proto_msgTypes[121]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7379,7 +7447,7 @@ func (x *UpdateClientLimitsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateClientLimitsRequest.ProtoReflect.Descriptor instead.
 func (*UpdateClientLimitsRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{120}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{121}
 }
 
 func (x *UpdateClientLimitsRequest) GetClientUrl() string {
@@ -7422,7 +7490,7 @@ type Contact struct {
 
 func (x *Contact) Reset() {
 	*x = Contact{}
-	mi := &file_backend_v1_backend_proto_msgTypes[121]
+	mi := &file_backend_v1_backend_proto_msgTypes[122]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7434,7 +7502,7 @@ func (x *Contact) String() string {
 func (*Contact) ProtoMessage() {}
 
 func (x *Contact) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[121]
+	mi := &file_backend_v1_backend_proto_msgTypes[122]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7447,7 +7515,7 @@ func (x *Contact) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Contact.ProtoReflect.Descriptor instead.
 func (*Contact) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{121}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{122}
 }
 
 func (x *Contact) GetId() string {
@@ -7489,7 +7557,7 @@ type ListContactsRequest struct {
 
 func (x *ListContactsRequest) Reset() {
 	*x = ListContactsRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[122]
+	mi := &file_backend_v1_backend_proto_msgTypes[123]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7501,7 +7569,7 @@ func (x *ListContactsRequest) String() string {
 func (*ListContactsRequest) ProtoMessage() {}
 
 func (x *ListContactsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[122]
+	mi := &file_backend_v1_backend_proto_msgTypes[123]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7514,7 +7582,7 @@ func (x *ListContactsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListContactsRequest.ProtoReflect.Descriptor instead.
 func (*ListContactsRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{122}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{123}
 }
 
 func (x *ListContactsRequest) GetPageSize() int32 {
@@ -7548,7 +7616,7 @@ type ListContactsResponse struct {
 
 func (x *ListContactsResponse) Reset() {
 	*x = ListContactsResponse{}
-	mi := &file_backend_v1_backend_proto_msgTypes[123]
+	mi := &file_backend_v1_backend_proto_msgTypes[124]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7560,7 +7628,7 @@ func (x *ListContactsResponse) String() string {
 func (*ListContactsResponse) ProtoMessage() {}
 
 func (x *ListContactsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[123]
+	mi := &file_backend_v1_backend_proto_msgTypes[124]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7573,7 +7641,7 @@ func (x *ListContactsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListContactsResponse.ProtoReflect.Descriptor instead.
 func (*ListContactsResponse) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{123}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{124}
 }
 
 func (x *ListContactsResponse) GetContacts() []*Contact {
@@ -7599,7 +7667,7 @@ type CreateContactRequest struct {
 
 func (x *CreateContactRequest) Reset() {
 	*x = CreateContactRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[124]
+	mi := &file_backend_v1_backend_proto_msgTypes[125]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7611,7 +7679,7 @@ func (x *CreateContactRequest) String() string {
 func (*CreateContactRequest) ProtoMessage() {}
 
 func (x *CreateContactRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[124]
+	mi := &file_backend_v1_backend_proto_msgTypes[125]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7624,7 +7692,7 @@ func (x *CreateContactRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateContactRequest.ProtoReflect.Descriptor instead.
 func (*CreateContactRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{124}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{125}
 }
 
 func (x *CreateContactRequest) GetPaymentPointer() string {
@@ -7643,7 +7711,7 @@ type ListIdentitiesResponse struct {
 
 func (x *ListIdentitiesResponse) Reset() {
 	*x = ListIdentitiesResponse{}
-	mi := &file_backend_v1_backend_proto_msgTypes[125]
+	mi := &file_backend_v1_backend_proto_msgTypes[126]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7655,7 +7723,7 @@ func (x *ListIdentitiesResponse) String() string {
 func (*ListIdentitiesResponse) ProtoMessage() {}
 
 func (x *ListIdentitiesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[125]
+	mi := &file_backend_v1_backend_proto_msgTypes[126]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7668,7 +7736,7 @@ func (x *ListIdentitiesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListIdentitiesResponse.ProtoReflect.Descriptor instead.
 func (*ListIdentitiesResponse) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{125}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{126}
 }
 
 func (x *ListIdentitiesResponse) GetIdentities() []*Identity {
@@ -7700,7 +7768,7 @@ type Identity struct {
 
 func (x *Identity) Reset() {
 	*x = Identity{}
-	mi := &file_backend_v1_backend_proto_msgTypes[126]
+	mi := &file_backend_v1_backend_proto_msgTypes[127]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7712,7 +7780,7 @@ func (x *Identity) String() string {
 func (*Identity) ProtoMessage() {}
 
 func (x *Identity) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[126]
+	mi := &file_backend_v1_backend_proto_msgTypes[127]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7725,7 +7793,7 @@ func (x *Identity) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Identity.ProtoReflect.Descriptor instead.
 func (*Identity) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{126}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{127}
 }
 
 func (x *Identity) GetId() string {
@@ -7837,7 +7905,7 @@ type IdentityVerificationInstructions struct {
 
 func (x *IdentityVerificationInstructions) Reset() {
 	*x = IdentityVerificationInstructions{}
-	mi := &file_backend_v1_backend_proto_msgTypes[127]
+	mi := &file_backend_v1_backend_proto_msgTypes[128]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7849,7 +7917,7 @@ func (x *IdentityVerificationInstructions) String() string {
 func (*IdentityVerificationInstructions) ProtoMessage() {}
 
 func (x *IdentityVerificationInstructions) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[127]
+	mi := &file_backend_v1_backend_proto_msgTypes[128]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7862,7 +7930,7 @@ func (x *IdentityVerificationInstructions) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IdentityVerificationInstructions.ProtoReflect.Descriptor instead.
 func (*IdentityVerificationInstructions) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{127}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{128}
 }
 
 func (x *IdentityVerificationInstructions) GetIdentityId() string {
@@ -7895,7 +7963,7 @@ type DeleteIdentityRequest struct {
 
 func (x *DeleteIdentityRequest) Reset() {
 	*x = DeleteIdentityRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[128]
+	mi := &file_backend_v1_backend_proto_msgTypes[129]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7907,7 +7975,7 @@ func (x *DeleteIdentityRequest) String() string {
 func (*DeleteIdentityRequest) ProtoMessage() {}
 
 func (x *DeleteIdentityRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[128]
+	mi := &file_backend_v1_backend_proto_msgTypes[129]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7920,7 +7988,7 @@ func (x *DeleteIdentityRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteIdentityRequest.ProtoReflect.Descriptor instead.
 func (*DeleteIdentityRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{128}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{129}
 }
 
 func (x *DeleteIdentityRequest) GetId() string {
@@ -7940,7 +8008,7 @@ type SetIdentityPublicRequest struct {
 
 func (x *SetIdentityPublicRequest) Reset() {
 	*x = SetIdentityPublicRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[129]
+	mi := &file_backend_v1_backend_proto_msgTypes[130]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7952,7 +8020,7 @@ func (x *SetIdentityPublicRequest) String() string {
 func (*SetIdentityPublicRequest) ProtoMessage() {}
 
 func (x *SetIdentityPublicRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[129]
+	mi := &file_backend_v1_backend_proto_msgTypes[130]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7965,7 +8033,7 @@ func (x *SetIdentityPublicRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetIdentityPublicRequest.ProtoReflect.Descriptor instead.
 func (*SetIdentityPublicRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{129}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{130}
 }
 
 func (x *SetIdentityPublicRequest) GetId() string {
@@ -7991,7 +8059,7 @@ type ListPublicIdentitiesRequest struct {
 
 func (x *ListPublicIdentitiesRequest) Reset() {
 	*x = ListPublicIdentitiesRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[130]
+	mi := &file_backend_v1_backend_proto_msgTypes[131]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8003,7 +8071,7 @@ func (x *ListPublicIdentitiesRequest) String() string {
 func (*ListPublicIdentitiesRequest) ProtoMessage() {}
 
 func (x *ListPublicIdentitiesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[130]
+	mi := &file_backend_v1_backend_proto_msgTypes[131]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8016,7 +8084,7 @@ func (x *ListPublicIdentitiesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPublicIdentitiesRequest.ProtoReflect.Descriptor instead.
 func (*ListPublicIdentitiesRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{130}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{131}
 }
 
 func (x *ListPublicIdentitiesRequest) GetWalletId() string {
@@ -8035,7 +8103,7 @@ type KYCStatusResponse struct {
 
 func (x *KYCStatusResponse) Reset() {
 	*x = KYCStatusResponse{}
-	mi := &file_backend_v1_backend_proto_msgTypes[131]
+	mi := &file_backend_v1_backend_proto_msgTypes[132]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8047,7 +8115,7 @@ func (x *KYCStatusResponse) String() string {
 func (*KYCStatusResponse) ProtoMessage() {}
 
 func (x *KYCStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[131]
+	mi := &file_backend_v1_backend_proto_msgTypes[132]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8060,7 +8128,7 @@ func (x *KYCStatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KYCStatusResponse.ProtoReflect.Descriptor instead.
 func (*KYCStatusResponse) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{131}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{132}
 }
 
 func (x *KYCStatusResponse) GetKycStatus() int32 {
@@ -8079,7 +8147,7 @@ type KYCPersonaInquiryRequest struct {
 
 func (x *KYCPersonaInquiryRequest) Reset() {
 	*x = KYCPersonaInquiryRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[132]
+	mi := &file_backend_v1_backend_proto_msgTypes[133]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8091,7 +8159,7 @@ func (x *KYCPersonaInquiryRequest) String() string {
 func (*KYCPersonaInquiryRequest) ProtoMessage() {}
 
 func (x *KYCPersonaInquiryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[132]
+	mi := &file_backend_v1_backend_proto_msgTypes[133]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8104,7 +8172,7 @@ func (x *KYCPersonaInquiryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KYCPersonaInquiryRequest.ProtoReflect.Descriptor instead.
 func (*KYCPersonaInquiryRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{132}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{133}
 }
 
 func (x *KYCPersonaInquiryRequest) GetIdempotencyKey() string {
@@ -8125,7 +8193,7 @@ type KYCPersonaInquiryResponse struct {
 
 func (x *KYCPersonaInquiryResponse) Reset() {
 	*x = KYCPersonaInquiryResponse{}
-	mi := &file_backend_v1_backend_proto_msgTypes[133]
+	mi := &file_backend_v1_backend_proto_msgTypes[134]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8137,7 +8205,7 @@ func (x *KYCPersonaInquiryResponse) String() string {
 func (*KYCPersonaInquiryResponse) ProtoMessage() {}
 
 func (x *KYCPersonaInquiryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[133]
+	mi := &file_backend_v1_backend_proto_msgTypes[134]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8150,7 +8218,7 @@ func (x *KYCPersonaInquiryResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KYCPersonaInquiryResponse.ProtoReflect.Descriptor instead.
 func (*KYCPersonaInquiryResponse) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{133}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{134}
 }
 
 func (x *KYCPersonaInquiryResponse) GetId() string {
@@ -8177,7 +8245,7 @@ type CreateTwitterAuthURLResponse struct {
 
 func (x *CreateTwitterAuthURLResponse) Reset() {
 	*x = CreateTwitterAuthURLResponse{}
-	mi := &file_backend_v1_backend_proto_msgTypes[134]
+	mi := &file_backend_v1_backend_proto_msgTypes[135]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8189,7 +8257,7 @@ func (x *CreateTwitterAuthURLResponse) String() string {
 func (*CreateTwitterAuthURLResponse) ProtoMessage() {}
 
 func (x *CreateTwitterAuthURLResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[134]
+	mi := &file_backend_v1_backend_proto_msgTypes[135]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8202,7 +8270,7 @@ func (x *CreateTwitterAuthURLResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateTwitterAuthURLResponse.ProtoReflect.Descriptor instead.
 func (*CreateTwitterAuthURLResponse) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{134}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{135}
 }
 
 func (x *CreateTwitterAuthURLResponse) GetUrl() string {
@@ -8222,7 +8290,7 @@ type TwitterCallbackRequest struct {
 
 func (x *TwitterCallbackRequest) Reset() {
 	*x = TwitterCallbackRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[135]
+	mi := &file_backend_v1_backend_proto_msgTypes[136]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8234,7 +8302,7 @@ func (x *TwitterCallbackRequest) String() string {
 func (*TwitterCallbackRequest) ProtoMessage() {}
 
 func (x *TwitterCallbackRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[135]
+	mi := &file_backend_v1_backend_proto_msgTypes[136]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8247,7 +8315,7 @@ func (x *TwitterCallbackRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TwitterCallbackRequest.ProtoReflect.Descriptor instead.
 func (*TwitterCallbackRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{135}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{136}
 }
 
 func (x *TwitterCallbackRequest) GetState() string {
@@ -8273,7 +8341,7 @@ type TwitterCallbackResponse struct {
 
 func (x *TwitterCallbackResponse) Reset() {
 	*x = TwitterCallbackResponse{}
-	mi := &file_backend_v1_backend_proto_msgTypes[136]
+	mi := &file_backend_v1_backend_proto_msgTypes[137]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8285,7 +8353,7 @@ func (x *TwitterCallbackResponse) String() string {
 func (*TwitterCallbackResponse) ProtoMessage() {}
 
 func (x *TwitterCallbackResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[136]
+	mi := &file_backend_v1_backend_proto_msgTypes[137]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8298,7 +8366,7 @@ func (x *TwitterCallbackResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TwitterCallbackResponse.ProtoReflect.Descriptor instead.
 func (*TwitterCallbackResponse) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{136}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{137}
 }
 
 func (x *TwitterCallbackResponse) GetId() string {
@@ -8318,7 +8386,7 @@ type DiscordCallbackRequest struct {
 
 func (x *DiscordCallbackRequest) Reset() {
 	*x = DiscordCallbackRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[137]
+	mi := &file_backend_v1_backend_proto_msgTypes[138]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8330,7 +8398,7 @@ func (x *DiscordCallbackRequest) String() string {
 func (*DiscordCallbackRequest) ProtoMessage() {}
 
 func (x *DiscordCallbackRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[137]
+	mi := &file_backend_v1_backend_proto_msgTypes[138]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8343,7 +8411,7 @@ func (x *DiscordCallbackRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DiscordCallbackRequest.ProtoReflect.Descriptor instead.
 func (*DiscordCallbackRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{137}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{138}
 }
 
 func (x *DiscordCallbackRequest) GetState() string {
@@ -8369,7 +8437,7 @@ type DiscordCallbackResponse struct {
 
 func (x *DiscordCallbackResponse) Reset() {
 	*x = DiscordCallbackResponse{}
-	mi := &file_backend_v1_backend_proto_msgTypes[138]
+	mi := &file_backend_v1_backend_proto_msgTypes[139]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8381,7 +8449,7 @@ func (x *DiscordCallbackResponse) String() string {
 func (*DiscordCallbackResponse) ProtoMessage() {}
 
 func (x *DiscordCallbackResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[138]
+	mi := &file_backend_v1_backend_proto_msgTypes[139]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8394,7 +8462,7 @@ func (x *DiscordCallbackResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DiscordCallbackResponse.ProtoReflect.Descriptor instead.
 func (*DiscordCallbackResponse) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{138}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{139}
 }
 
 func (x *DiscordCallbackResponse) GetId() string {
@@ -8413,7 +8481,7 @@ type CreateDiscordAuthURLResponse struct {
 
 func (x *CreateDiscordAuthURLResponse) Reset() {
 	*x = CreateDiscordAuthURLResponse{}
-	mi := &file_backend_v1_backend_proto_msgTypes[139]
+	mi := &file_backend_v1_backend_proto_msgTypes[140]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8425,7 +8493,7 @@ func (x *CreateDiscordAuthURLResponse) String() string {
 func (*CreateDiscordAuthURLResponse) ProtoMessage() {}
 
 func (x *CreateDiscordAuthURLResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[139]
+	mi := &file_backend_v1_backend_proto_msgTypes[140]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8438,7 +8506,7 @@ func (x *CreateDiscordAuthURLResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateDiscordAuthURLResponse.ProtoReflect.Descriptor instead.
 func (*CreateDiscordAuthURLResponse) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{139}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{140}
 }
 
 func (x *CreateDiscordAuthURLResponse) GetUrl() string {
@@ -8457,7 +8525,7 @@ type GetIdentityRequest struct {
 
 func (x *GetIdentityRequest) Reset() {
 	*x = GetIdentityRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[140]
+	mi := &file_backend_v1_backend_proto_msgTypes[141]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8469,7 +8537,7 @@ func (x *GetIdentityRequest) String() string {
 func (*GetIdentityRequest) ProtoMessage() {}
 
 func (x *GetIdentityRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[140]
+	mi := &file_backend_v1_backend_proto_msgTypes[141]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8482,7 +8550,7 @@ func (x *GetIdentityRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetIdentityRequest.ProtoReflect.Descriptor instead.
 func (*GetIdentityRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{140}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{141}
 }
 
 func (x *GetIdentityRequest) GetId() string {
@@ -8501,7 +8569,7 @@ type GetIdentityResponse struct {
 
 func (x *GetIdentityResponse) Reset() {
 	*x = GetIdentityResponse{}
-	mi := &file_backend_v1_backend_proto_msgTypes[141]
+	mi := &file_backend_v1_backend_proto_msgTypes[142]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8513,7 +8581,7 @@ func (x *GetIdentityResponse) String() string {
 func (*GetIdentityResponse) ProtoMessage() {}
 
 func (x *GetIdentityResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[141]
+	mi := &file_backend_v1_backend_proto_msgTypes[142]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8526,7 +8594,7 @@ func (x *GetIdentityResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetIdentityResponse.ProtoReflect.Descriptor instead.
 func (*GetIdentityResponse) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{141}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{142}
 }
 
 func (x *GetIdentityResponse) GetIdentity() *Identity {
@@ -8545,7 +8613,7 @@ type GetIdentityBySignatureHashRequest struct {
 
 func (x *GetIdentityBySignatureHashRequest) Reset() {
 	*x = GetIdentityBySignatureHashRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[142]
+	mi := &file_backend_v1_backend_proto_msgTypes[143]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8557,7 +8625,7 @@ func (x *GetIdentityBySignatureHashRequest) String() string {
 func (*GetIdentityBySignatureHashRequest) ProtoMessage() {}
 
 func (x *GetIdentityBySignatureHashRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[142]
+	mi := &file_backend_v1_backend_proto_msgTypes[143]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8570,7 +8638,7 @@ func (x *GetIdentityBySignatureHashRequest) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use GetIdentityBySignatureHashRequest.ProtoReflect.Descriptor instead.
 func (*GetIdentityBySignatureHashRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{142}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{143}
 }
 
 func (x *GetIdentityBySignatureHashRequest) GetSignatureHash() string {
@@ -8589,7 +8657,7 @@ type GetPaymentAddressRequest struct {
 
 func (x *GetPaymentAddressRequest) Reset() {
 	*x = GetPaymentAddressRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[143]
+	mi := &file_backend_v1_backend_proto_msgTypes[144]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8601,7 +8669,7 @@ func (x *GetPaymentAddressRequest) String() string {
 func (*GetPaymentAddressRequest) ProtoMessage() {}
 
 func (x *GetPaymentAddressRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[143]
+	mi := &file_backend_v1_backend_proto_msgTypes[144]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8614,7 +8682,7 @@ func (x *GetPaymentAddressRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPaymentAddressRequest.ProtoReflect.Descriptor instead.
 func (*GetPaymentAddressRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{143}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{144}
 }
 
 func (x *GetPaymentAddressRequest) GetAddress() string {
@@ -8636,7 +8704,7 @@ type GetPaymentAddressResponse struct {
 
 func (x *GetPaymentAddressResponse) Reset() {
 	*x = GetPaymentAddressResponse{}
-	mi := &file_backend_v1_backend_proto_msgTypes[144]
+	mi := &file_backend_v1_backend_proto_msgTypes[145]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8648,7 +8716,7 @@ func (x *GetPaymentAddressResponse) String() string {
 func (*GetPaymentAddressResponse) ProtoMessage() {}
 
 func (x *GetPaymentAddressResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[144]
+	mi := &file_backend_v1_backend_proto_msgTypes[145]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8661,7 +8729,7 @@ func (x *GetPaymentAddressResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPaymentAddressResponse.ProtoReflect.Descriptor instead.
 func (*GetPaymentAddressResponse) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{144}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{145}
 }
 
 func (x *GetPaymentAddressResponse) GetWalletUrl() string {
@@ -8701,7 +8769,7 @@ type CreateDomainIdentityRequest struct {
 
 func (x *CreateDomainIdentityRequest) Reset() {
 	*x = CreateDomainIdentityRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[145]
+	mi := &file_backend_v1_backend_proto_msgTypes[146]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8713,7 +8781,7 @@ func (x *CreateDomainIdentityRequest) String() string {
 func (*CreateDomainIdentityRequest) ProtoMessage() {}
 
 func (x *CreateDomainIdentityRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[145]
+	mi := &file_backend_v1_backend_proto_msgTypes[146]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8726,7 +8794,7 @@ func (x *CreateDomainIdentityRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateDomainIdentityRequest.ProtoReflect.Descriptor instead.
 func (*CreateDomainIdentityRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{145}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{146}
 }
 
 func (x *CreateDomainIdentityRequest) GetUrl() string {
@@ -8745,7 +8813,7 @@ type CreateDomainIdentityResponse struct {
 
 func (x *CreateDomainIdentityResponse) Reset() {
 	*x = CreateDomainIdentityResponse{}
-	mi := &file_backend_v1_backend_proto_msgTypes[146]
+	mi := &file_backend_v1_backend_proto_msgTypes[147]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8757,7 +8825,7 @@ func (x *CreateDomainIdentityResponse) String() string {
 func (*CreateDomainIdentityResponse) ProtoMessage() {}
 
 func (x *CreateDomainIdentityResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[146]
+	mi := &file_backend_v1_backend_proto_msgTypes[147]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8770,7 +8838,7 @@ func (x *CreateDomainIdentityResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateDomainIdentityResponse.ProtoReflect.Descriptor instead.
 func (*CreateDomainIdentityResponse) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{146}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{147}
 }
 
 func (x *CreateDomainIdentityResponse) GetId() string {
@@ -8789,7 +8857,7 @@ type VerifyIdentityRequest struct {
 
 func (x *VerifyIdentityRequest) Reset() {
 	*x = VerifyIdentityRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[147]
+	mi := &file_backend_v1_backend_proto_msgTypes[148]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8801,7 +8869,7 @@ func (x *VerifyIdentityRequest) String() string {
 func (*VerifyIdentityRequest) ProtoMessage() {}
 
 func (x *VerifyIdentityRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[147]
+	mi := &file_backend_v1_backend_proto_msgTypes[148]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8814,7 +8882,7 @@ func (x *VerifyIdentityRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use VerifyIdentityRequest.ProtoReflect.Descriptor instead.
 func (*VerifyIdentityRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{147}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{148}
 }
 
 func (x *VerifyIdentityRequest) GetId() string {
@@ -8834,7 +8902,7 @@ type SubmitFormRequest struct {
 
 func (x *SubmitFormRequest) Reset() {
 	*x = SubmitFormRequest{}
-	mi := &file_backend_v1_backend_proto_msgTypes[148]
+	mi := &file_backend_v1_backend_proto_msgTypes[149]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8846,7 +8914,7 @@ func (x *SubmitFormRequest) String() string {
 func (*SubmitFormRequest) ProtoMessage() {}
 
 func (x *SubmitFormRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_backend_v1_backend_proto_msgTypes[148]
+	mi := &file_backend_v1_backend_proto_msgTypes[149]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8859,7 +8927,7 @@ func (x *SubmitFormRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubmitFormRequest.ProtoReflect.Descriptor instead.
 func (*SubmitFormRequest) Descriptor() ([]byte, []int) {
-	return file_backend_v1_backend_proto_rawDescGZIP(), []int{148}
+	return file_backend_v1_backend_proto_rawDescGZIP(), []int{149}
 }
 
 func (x *SubmitFormRequest) GetFormId() string {
@@ -9000,7 +9068,15 @@ const file_backend_v1_backend_proto_rawDesc = "" +
 	"\bcurrency\x18\x03 \x01(\tR\bcurrency\x12$\n" +
 	"\rlinkedAccount\x18\x04 \x01(\tR\rlinkedAccount\x12*\n" +
 	"\x10formattedBalance\x18\x05 \x01(\tR\x10formattedBalance\x12<\n" +
-	"\x19formattedAvailableBalance\x18\x06 \x01(\tR\x19formattedAvailableBalance\"M\n" +
+	"\x19formattedAvailableBalance\x18\x06 \x01(\tR\x19formattedAvailableBalance\"\xaa\x01\n" +
+	"\x17PTICreateDepositRequest\x12$\n" +
+	"\rlinkedAccount\x18\x01 \x01(\tR\rlinkedAccount\x12\x16\n" +
+	"\x06amount\x18\x02 \x01(\tR\x06amount\x12\x17\n" +
+	"\x04note\x18\x03 \x01(\tH\x00R\x04note\x88\x01\x01\x12!\n" +
+	"\tipAddress\x18\x04 \x01(\tH\x01R\tipAddress\x88\x01\x01B\a\n" +
+	"\x05_noteB\f\n" +
+	"\n" +
+	"_ipAddress\"M\n" +
 	"\x16GetXagoBalanceResponse\x123\n" +
 	"\bbalances\x18\x02 \x03(\v2\x17.backend.v1.XagoBalanceR\bbalances\"\x99\x02\n" +
 	"\vXagoBalance\x12,\n" +
@@ -9576,7 +9652,7 @@ const file_backend_v1_backend_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"@\n" +
 	"\x11SubmitFormRequest\x12\x17\n" +
 	"\aform_id\x18\x01 \x01(\tR\x06formId\x12\x12\n" +
-	"\x04data\x18\x02 \x01(\tR\x04data2\xe3B\n" +
+	"\x04data\x18\x02 \x01(\tR\x04data2\xafC\n" +
 	"\x0eBackendService\x12P\n" +
 	"\x13UpdateIndividualKYC\x12&.backend.v1.UpdateIndividualKYCRequest\x1a\x11.backend.v1.Empty\x12H\n" +
 	"\x10GetIndividualKYC\x12\x11.backend.v1.Empty\x1a!.backend.v1.IndividualKYCResponse\x12G\n" +
@@ -9670,7 +9746,8 @@ const file_backend_v1_backend_proto_rawDesc = "" +
 	"\x0eCreatePtiToken\x12\x1b.backend.v1.PtiTokenRequest\x1a\x1c.backend.v1.PtiTokenResponse\x12F\n" +
 	"\n" +
 	"CreateCard\x12\x1d.backend.v1.CreateCardRequest\x1a\x19.backend.v1.LinkedAccount\x12Z\n" +
-	"\x14CreatePtiBankAccount\x12'.backend.v1.CreatePtiBankAccountRequest\x1a\x19.backend.v1.LinkedAccount\x12K\n" +
+	"\x14CreatePtiBankAccount\x12'.backend.v1.CreatePtiBankAccountRequest\x1a\x19.backend.v1.LinkedAccount\x12J\n" +
+	"\x10PTICreateDeposit\x12#.backend.v1.PTICreateDepositRequest\x1a\x11.backend.v1.Empty\x12K\n" +
 	"\x10ListRafikiGrants\x12\x11.backend.v1.Empty\x1a$.backend.v1.ListRafikiGrantsResponse\x12L\n" +
 	"\x0eGetRafikiGrant\x12!.backend.v1.GetRafikiGrantRequest\x1a\x17.backend.v1.RafikiGrant\x12L\n" +
 	"\x11RevokeRafikiGrant\x12$.backend.v1.RevokeRafikiGrantRequest\x1a\x11.backend.v1.Empty\x12J\n" +
@@ -9697,7 +9774,7 @@ func file_backend_v1_backend_proto_rawDescGZIP() []byte {
 	return file_backend_v1_backend_proto_rawDescData
 }
 
-var file_backend_v1_backend_proto_msgTypes = make([]protoimpl.MessageInfo, 149)
+var file_backend_v1_backend_proto_msgTypes = make([]protoimpl.MessageInfo, 150)
 var file_backend_v1_backend_proto_goTypes = []any{
 	(*PaginationRequest)(nil),                     // 0: backend.v1.PaginationRequest
 	(*Empty)(nil),                                 // 1: backend.v1.Empty
@@ -9732,397 +9809,400 @@ var file_backend_v1_backend_proto_goTypes = []any{
 	(*Balance)(nil),                               // 30: backend.v1.Balance
 	(*GetPtiBalancesResponse)(nil),                // 31: backend.v1.GetPtiBalancesResponse
 	(*PtiBalance)(nil),                            // 32: backend.v1.PtiBalance
-	(*GetXagoBalanceResponse)(nil),                // 33: backend.v1.GetXagoBalanceResponse
-	(*XagoBalance)(nil),                           // 34: backend.v1.XagoBalance
-	(*WithdrawXagoBalanceRequest)(nil),            // 35: backend.v1.WithdrawXagoBalanceRequest
-	(*AddXagoBalanceAccountRequest)(nil),          // 36: backend.v1.AddXagoBalanceAccountRequest
-	(*AddXagoBankAccountRequest)(nil),             // 37: backend.v1.AddXagoBankAccountRequest
-	(*SetDefaultSendLinkedAccountRequest)(nil),    // 38: backend.v1.SetDefaultSendLinkedAccountRequest
-	(*SetDefaultReceiveLinkedAccountRequest)(nil), // 39: backend.v1.SetDefaultReceiveLinkedAccountRequest
-	(*SlackCallbackRequest)(nil),                  // 40: backend.v1.SlackCallbackRequest
-	(*SlackCallbackResponse)(nil),                 // 41: backend.v1.SlackCallbackResponse
-	(*CreateSlackAuthURLResponse)(nil),            // 42: backend.v1.CreateSlackAuthURLResponse
-	(*Amount)(nil),                                // 43: backend.v1.Amount
-	(*Transaction)(nil),                           // 44: backend.v1.Transaction
-	(*ListTransactionsResponse)(nil),              // 45: backend.v1.ListTransactionsResponse
-	(*ConfirmPaymentRequest)(nil),                 // 46: backend.v1.ConfirmPaymentRequest
-	(*GetPaymentRequest)(nil),                     // 47: backend.v1.GetPaymentRequest
-	(*UpdatePaymentRequest)(nil),                  // 48: backend.v1.UpdatePaymentRequest
-	(*Payment)(nil),                               // 49: backend.v1.Payment
-	(*CreatePaymentRequest)(nil),                  // 50: backend.v1.CreatePaymentRequest
-	(*TransferBalanceRequest)(nil),                // 51: backend.v1.TransferBalanceRequest
-	(*GetCardDetailsRequest)(nil),                 // 52: backend.v1.GetCardDetailsRequest
-	(*CardDetails)(nil),                           // 53: backend.v1.CardDetails
-	(*SearchWalletsRequest)(nil),                  // 54: backend.v1.SearchWalletsRequest
-	(*SearchWalletsResponse)(nil),                 // 55: backend.v1.SearchWalletsResponse
-	(*SearchResult)(nil),                          // 56: backend.v1.SearchResult
-	(*GetPublicWalletInfoRequest)(nil),            // 57: backend.v1.GetPublicWalletInfoRequest
-	(*PublicWalletInfo)(nil),                      // 58: backend.v1.PublicWalletInfo
-	(*WalletInfo)(nil),                            // 59: backend.v1.WalletInfo
-	(*Features)(nil),                              // 60: backend.v1.Features
-	(*CreateCardRequest)(nil),                     // 61: backend.v1.CreateCardRequest
-	(*InitQuote3DSRequest)(nil),                   // 62: backend.v1.InitQuote3DSRequest
-	(*ConnectionLimits)(nil),                      // 63: backend.v1.ConnectionLimits
-	(*Connection)(nil),                            // 64: backend.v1.Connection
-	(*CreateConnectionRequest)(nil),               // 65: backend.v1.CreateConnectionRequest
-	(*GetConnectionRequest)(nil),                  // 66: backend.v1.GetConnectionRequest
-	(*GetConnectionLimitsRequest)(nil),            // 67: backend.v1.GetConnectionLimitsRequest
-	(*DeleteConnectionRequest)(nil),               // 68: backend.v1.DeleteConnectionRequest
-	(*ListConnectionsResponse)(nil),               // 69: backend.v1.ListConnectionsResponse
-	(*UpdateConnectionLimitsRequest)(nil),         // 70: backend.v1.UpdateConnectionLimitsRequest
-	(*Transfer)(nil),                              // 71: backend.v1.Transfer
-	(*ListStatementsResponse)(nil),                // 72: backend.v1.ListStatementsResponse
-	(*IndividualKYCResponse)(nil),                 // 73: backend.v1.IndividualKYCResponse
-	(*UpdateIndividualKYCRequest)(nil),            // 74: backend.v1.UpdateIndividualKYCRequest
-	(*Address)(nil),                               // 75: backend.v1.Address
-	(*IsUSPSAddressResponse)(nil),                 // 76: backend.v1.IsUSPSAddressResponse
-	(*GetBankAccountWidgetRequest)(nil),           // 77: backend.v1.GetBankAccountWidgetRequest
-	(*GetBankAccountWidgetResponse)(nil),          // 78: backend.v1.GetBankAccountWidgetResponse
-	(*AddBankAccountRequest)(nil),                 // 79: backend.v1.AddBankAccountRequest
-	(*AddBankAccountResponse)(nil),                // 80: backend.v1.AddBankAccountResponse
-	(*LinkedAccount)(nil),                         // 81: backend.v1.LinkedAccount
-	(*GetSignupRequest)(nil),                      // 82: backend.v1.GetSignupRequest
-	(*SetSignupUserDataRequest)(nil),              // 83: backend.v1.SetSignupUserDataRequest
-	(*SetSignupUserDataResponse)(nil),             // 84: backend.v1.SetSignupUserDataResponse
-	(*SetSignupMobileNumberRequest)(nil),          // 85: backend.v1.SetSignupMobileNumberRequest
-	(*Signup)(nil),                                // 86: backend.v1.Signup
-	(*CompleteSignupRequest)(nil),                 // 87: backend.v1.CompleteSignupRequest
-	(*CreateUserDefaultWalletRequest)(nil),        // 88: backend.v1.CreateUserDefaultWalletRequest
-	(*SendPhoneVerificationRequest)(nil),          // 89: backend.v1.SendPhoneVerificationRequest
-	(*CheckPhoneVerificationRequest)(nil),         // 90: backend.v1.CheckPhoneVerificationRequest
-	(*GetAgreementRequest)(nil),                   // 91: backend.v1.GetAgreementRequest
-	(*Agreement)(nil),                             // 92: backend.v1.Agreement
-	(*SignAgreementsRequest)(nil),                 // 93: backend.v1.SignAgreementsRequest
-	(*SignAgreementsResponse)(nil),                // 94: backend.v1.SignAgreementsResponse
-	(*JoinWaitlistRequest)(nil),                   // 95: backend.v1.JoinWaitlistRequest
-	(*JoinWaitlistResponse)(nil),                  // 96: backend.v1.JoinWaitlistResponse
-	(*IsMugAvailableRequest)(nil),                 // 97: backend.v1.IsMugAvailableRequest
-	(*IsMugAvailableResponse)(nil),                // 98: backend.v1.IsMugAvailableResponse
-	(*GetLinkedAccountsResponse)(nil),             // 99: backend.v1.GetLinkedAccountsResponse
-	(*GetLinkedAccountRequest)(nil),               // 100: backend.v1.GetLinkedAccountRequest
-	(*SetNicknameLinkedAccountRequest)(nil),       // 101: backend.v1.SetNicknameLinkedAccountRequest
-	(*DeleteLinkedAccountRequest)(nil),            // 102: backend.v1.DeleteLinkedAccountRequest
-	(*Country)(nil),                               // 103: backend.v1.Country
-	(*GetCountriesResponse)(nil),                  // 104: backend.v1.GetCountriesResponse
-	(*CanSignupRequest)(nil),                      // 105: backend.v1.CanSignupRequest
-	(*CanSignupResponse)(nil),                     // 106: backend.v1.CanSignupResponse
-	(*SetSignupCompleteRequest)(nil),              // 107: backend.v1.SetSignupCompleteRequest
-	(*LookupTransactionRequest)(nil),              // 108: backend.v1.LookupTransactionRequest
-	(*GetCurrentWalletResponse)(nil),              // 109: backend.v1.GetCurrentWalletResponse
-	(*Limit)(nil),                                 // 110: backend.v1.Limit
-	(*LimitAmount)(nil),                           // 111: backend.v1.LimitAmount
-	(*WalletAddressValidRequest)(nil),             // 112: backend.v1.WalletAddressValidRequest
-	(*WalletAddressValidResponse)(nil),            // 113: backend.v1.WalletAddressValidResponse
-	(*CreateWalletAddressRequest)(nil),            // 114: backend.v1.CreateWalletAddressRequest
-	(*SetWalletNameRequest)(nil),                  // 115: backend.v1.SetWalletNameRequest
-	(*GetPublicWalletDetailsRequest)(nil),         // 116: backend.v1.GetPublicWalletDetailsRequest
-	(*GetPublicWalletDetailsResponse)(nil),        // 117: backend.v1.GetPublicWalletDetailsResponse
-	(*ListLimitsResponse)(nil),                    // 118: backend.v1.ListLimitsResponse
-	(*ConfiguredLimit)(nil),                       // 119: backend.v1.ConfiguredLimit
-	(*UpdateClientLimitsRequest)(nil),             // 120: backend.v1.UpdateClientLimitsRequest
-	(*Contact)(nil),                               // 121: backend.v1.Contact
-	(*ListContactsRequest)(nil),                   // 122: backend.v1.ListContactsRequest
-	(*ListContactsResponse)(nil),                  // 123: backend.v1.ListContactsResponse
-	(*CreateContactRequest)(nil),                  // 124: backend.v1.CreateContactRequest
-	(*ListIdentitiesResponse)(nil),                // 125: backend.v1.ListIdentitiesResponse
-	(*Identity)(nil),                              // 126: backend.v1.Identity
-	(*IdentityVerificationInstructions)(nil),      // 127: backend.v1.IdentityVerificationInstructions
-	(*DeleteIdentityRequest)(nil),                 // 128: backend.v1.DeleteIdentityRequest
-	(*SetIdentityPublicRequest)(nil),              // 129: backend.v1.SetIdentityPublicRequest
-	(*ListPublicIdentitiesRequest)(nil),           // 130: backend.v1.ListPublicIdentitiesRequest
-	(*KYCStatusResponse)(nil),                     // 131: backend.v1.KYCStatusResponse
-	(*KYCPersonaInquiryRequest)(nil),              // 132: backend.v1.KYCPersonaInquiryRequest
-	(*KYCPersonaInquiryResponse)(nil),             // 133: backend.v1.KYCPersonaInquiryResponse
-	(*CreateTwitterAuthURLResponse)(nil),          // 134: backend.v1.CreateTwitterAuthURLResponse
-	(*TwitterCallbackRequest)(nil),                // 135: backend.v1.TwitterCallbackRequest
-	(*TwitterCallbackResponse)(nil),               // 136: backend.v1.TwitterCallbackResponse
-	(*DiscordCallbackRequest)(nil),                // 137: backend.v1.DiscordCallbackRequest
-	(*DiscordCallbackResponse)(nil),               // 138: backend.v1.DiscordCallbackResponse
-	(*CreateDiscordAuthURLResponse)(nil),          // 139: backend.v1.CreateDiscordAuthURLResponse
-	(*GetIdentityRequest)(nil),                    // 140: backend.v1.GetIdentityRequest
-	(*GetIdentityResponse)(nil),                   // 141: backend.v1.GetIdentityResponse
-	(*GetIdentityBySignatureHashRequest)(nil),     // 142: backend.v1.GetIdentityBySignatureHashRequest
-	(*GetPaymentAddressRequest)(nil),              // 143: backend.v1.GetPaymentAddressRequest
-	(*GetPaymentAddressResponse)(nil),             // 144: backend.v1.GetPaymentAddressResponse
-	(*CreateDomainIdentityRequest)(nil),           // 145: backend.v1.CreateDomainIdentityRequest
-	(*CreateDomainIdentityResponse)(nil),          // 146: backend.v1.CreateDomainIdentityResponse
-	(*VerifyIdentityRequest)(nil),                 // 147: backend.v1.VerifyIdentityRequest
-	(*SubmitFormRequest)(nil),                     // 148: backend.v1.SubmitFormRequest
-	(*timestamppb.Timestamp)(nil),                 // 149: google.protobuf.Timestamp
+	(*PTICreateDepositRequest)(nil),               // 33: backend.v1.PTICreateDepositRequest
+	(*GetXagoBalanceResponse)(nil),                // 34: backend.v1.GetXagoBalanceResponse
+	(*XagoBalance)(nil),                           // 35: backend.v1.XagoBalance
+	(*WithdrawXagoBalanceRequest)(nil),            // 36: backend.v1.WithdrawXagoBalanceRequest
+	(*AddXagoBalanceAccountRequest)(nil),          // 37: backend.v1.AddXagoBalanceAccountRequest
+	(*AddXagoBankAccountRequest)(nil),             // 38: backend.v1.AddXagoBankAccountRequest
+	(*SetDefaultSendLinkedAccountRequest)(nil),    // 39: backend.v1.SetDefaultSendLinkedAccountRequest
+	(*SetDefaultReceiveLinkedAccountRequest)(nil), // 40: backend.v1.SetDefaultReceiveLinkedAccountRequest
+	(*SlackCallbackRequest)(nil),                  // 41: backend.v1.SlackCallbackRequest
+	(*SlackCallbackResponse)(nil),                 // 42: backend.v1.SlackCallbackResponse
+	(*CreateSlackAuthURLResponse)(nil),            // 43: backend.v1.CreateSlackAuthURLResponse
+	(*Amount)(nil),                                // 44: backend.v1.Amount
+	(*Transaction)(nil),                           // 45: backend.v1.Transaction
+	(*ListTransactionsResponse)(nil),              // 46: backend.v1.ListTransactionsResponse
+	(*ConfirmPaymentRequest)(nil),                 // 47: backend.v1.ConfirmPaymentRequest
+	(*GetPaymentRequest)(nil),                     // 48: backend.v1.GetPaymentRequest
+	(*UpdatePaymentRequest)(nil),                  // 49: backend.v1.UpdatePaymentRequest
+	(*Payment)(nil),                               // 50: backend.v1.Payment
+	(*CreatePaymentRequest)(nil),                  // 51: backend.v1.CreatePaymentRequest
+	(*TransferBalanceRequest)(nil),                // 52: backend.v1.TransferBalanceRequest
+	(*GetCardDetailsRequest)(nil),                 // 53: backend.v1.GetCardDetailsRequest
+	(*CardDetails)(nil),                           // 54: backend.v1.CardDetails
+	(*SearchWalletsRequest)(nil),                  // 55: backend.v1.SearchWalletsRequest
+	(*SearchWalletsResponse)(nil),                 // 56: backend.v1.SearchWalletsResponse
+	(*SearchResult)(nil),                          // 57: backend.v1.SearchResult
+	(*GetPublicWalletInfoRequest)(nil),            // 58: backend.v1.GetPublicWalletInfoRequest
+	(*PublicWalletInfo)(nil),                      // 59: backend.v1.PublicWalletInfo
+	(*WalletInfo)(nil),                            // 60: backend.v1.WalletInfo
+	(*Features)(nil),                              // 61: backend.v1.Features
+	(*CreateCardRequest)(nil),                     // 62: backend.v1.CreateCardRequest
+	(*InitQuote3DSRequest)(nil),                   // 63: backend.v1.InitQuote3DSRequest
+	(*ConnectionLimits)(nil),                      // 64: backend.v1.ConnectionLimits
+	(*Connection)(nil),                            // 65: backend.v1.Connection
+	(*CreateConnectionRequest)(nil),               // 66: backend.v1.CreateConnectionRequest
+	(*GetConnectionRequest)(nil),                  // 67: backend.v1.GetConnectionRequest
+	(*GetConnectionLimitsRequest)(nil),            // 68: backend.v1.GetConnectionLimitsRequest
+	(*DeleteConnectionRequest)(nil),               // 69: backend.v1.DeleteConnectionRequest
+	(*ListConnectionsResponse)(nil),               // 70: backend.v1.ListConnectionsResponse
+	(*UpdateConnectionLimitsRequest)(nil),         // 71: backend.v1.UpdateConnectionLimitsRequest
+	(*Transfer)(nil),                              // 72: backend.v1.Transfer
+	(*ListStatementsResponse)(nil),                // 73: backend.v1.ListStatementsResponse
+	(*IndividualKYCResponse)(nil),                 // 74: backend.v1.IndividualKYCResponse
+	(*UpdateIndividualKYCRequest)(nil),            // 75: backend.v1.UpdateIndividualKYCRequest
+	(*Address)(nil),                               // 76: backend.v1.Address
+	(*IsUSPSAddressResponse)(nil),                 // 77: backend.v1.IsUSPSAddressResponse
+	(*GetBankAccountWidgetRequest)(nil),           // 78: backend.v1.GetBankAccountWidgetRequest
+	(*GetBankAccountWidgetResponse)(nil),          // 79: backend.v1.GetBankAccountWidgetResponse
+	(*AddBankAccountRequest)(nil),                 // 80: backend.v1.AddBankAccountRequest
+	(*AddBankAccountResponse)(nil),                // 81: backend.v1.AddBankAccountResponse
+	(*LinkedAccount)(nil),                         // 82: backend.v1.LinkedAccount
+	(*GetSignupRequest)(nil),                      // 83: backend.v1.GetSignupRequest
+	(*SetSignupUserDataRequest)(nil),              // 84: backend.v1.SetSignupUserDataRequest
+	(*SetSignupUserDataResponse)(nil),             // 85: backend.v1.SetSignupUserDataResponse
+	(*SetSignupMobileNumberRequest)(nil),          // 86: backend.v1.SetSignupMobileNumberRequest
+	(*Signup)(nil),                                // 87: backend.v1.Signup
+	(*CompleteSignupRequest)(nil),                 // 88: backend.v1.CompleteSignupRequest
+	(*CreateUserDefaultWalletRequest)(nil),        // 89: backend.v1.CreateUserDefaultWalletRequest
+	(*SendPhoneVerificationRequest)(nil),          // 90: backend.v1.SendPhoneVerificationRequest
+	(*CheckPhoneVerificationRequest)(nil),         // 91: backend.v1.CheckPhoneVerificationRequest
+	(*GetAgreementRequest)(nil),                   // 92: backend.v1.GetAgreementRequest
+	(*Agreement)(nil),                             // 93: backend.v1.Agreement
+	(*SignAgreementsRequest)(nil),                 // 94: backend.v1.SignAgreementsRequest
+	(*SignAgreementsResponse)(nil),                // 95: backend.v1.SignAgreementsResponse
+	(*JoinWaitlistRequest)(nil),                   // 96: backend.v1.JoinWaitlistRequest
+	(*JoinWaitlistResponse)(nil),                  // 97: backend.v1.JoinWaitlistResponse
+	(*IsMugAvailableRequest)(nil),                 // 98: backend.v1.IsMugAvailableRequest
+	(*IsMugAvailableResponse)(nil),                // 99: backend.v1.IsMugAvailableResponse
+	(*GetLinkedAccountsResponse)(nil),             // 100: backend.v1.GetLinkedAccountsResponse
+	(*GetLinkedAccountRequest)(nil),               // 101: backend.v1.GetLinkedAccountRequest
+	(*SetNicknameLinkedAccountRequest)(nil),       // 102: backend.v1.SetNicknameLinkedAccountRequest
+	(*DeleteLinkedAccountRequest)(nil),            // 103: backend.v1.DeleteLinkedAccountRequest
+	(*Country)(nil),                               // 104: backend.v1.Country
+	(*GetCountriesResponse)(nil),                  // 105: backend.v1.GetCountriesResponse
+	(*CanSignupRequest)(nil),                      // 106: backend.v1.CanSignupRequest
+	(*CanSignupResponse)(nil),                     // 107: backend.v1.CanSignupResponse
+	(*SetSignupCompleteRequest)(nil),              // 108: backend.v1.SetSignupCompleteRequest
+	(*LookupTransactionRequest)(nil),              // 109: backend.v1.LookupTransactionRequest
+	(*GetCurrentWalletResponse)(nil),              // 110: backend.v1.GetCurrentWalletResponse
+	(*Limit)(nil),                                 // 111: backend.v1.Limit
+	(*LimitAmount)(nil),                           // 112: backend.v1.LimitAmount
+	(*WalletAddressValidRequest)(nil),             // 113: backend.v1.WalletAddressValidRequest
+	(*WalletAddressValidResponse)(nil),            // 114: backend.v1.WalletAddressValidResponse
+	(*CreateWalletAddressRequest)(nil),            // 115: backend.v1.CreateWalletAddressRequest
+	(*SetWalletNameRequest)(nil),                  // 116: backend.v1.SetWalletNameRequest
+	(*GetPublicWalletDetailsRequest)(nil),         // 117: backend.v1.GetPublicWalletDetailsRequest
+	(*GetPublicWalletDetailsResponse)(nil),        // 118: backend.v1.GetPublicWalletDetailsResponse
+	(*ListLimitsResponse)(nil),                    // 119: backend.v1.ListLimitsResponse
+	(*ConfiguredLimit)(nil),                       // 120: backend.v1.ConfiguredLimit
+	(*UpdateClientLimitsRequest)(nil),             // 121: backend.v1.UpdateClientLimitsRequest
+	(*Contact)(nil),                               // 122: backend.v1.Contact
+	(*ListContactsRequest)(nil),                   // 123: backend.v1.ListContactsRequest
+	(*ListContactsResponse)(nil),                  // 124: backend.v1.ListContactsResponse
+	(*CreateContactRequest)(nil),                  // 125: backend.v1.CreateContactRequest
+	(*ListIdentitiesResponse)(nil),                // 126: backend.v1.ListIdentitiesResponse
+	(*Identity)(nil),                              // 127: backend.v1.Identity
+	(*IdentityVerificationInstructions)(nil),      // 128: backend.v1.IdentityVerificationInstructions
+	(*DeleteIdentityRequest)(nil),                 // 129: backend.v1.DeleteIdentityRequest
+	(*SetIdentityPublicRequest)(nil),              // 130: backend.v1.SetIdentityPublicRequest
+	(*ListPublicIdentitiesRequest)(nil),           // 131: backend.v1.ListPublicIdentitiesRequest
+	(*KYCStatusResponse)(nil),                     // 132: backend.v1.KYCStatusResponse
+	(*KYCPersonaInquiryRequest)(nil),              // 133: backend.v1.KYCPersonaInquiryRequest
+	(*KYCPersonaInquiryResponse)(nil),             // 134: backend.v1.KYCPersonaInquiryResponse
+	(*CreateTwitterAuthURLResponse)(nil),          // 135: backend.v1.CreateTwitterAuthURLResponse
+	(*TwitterCallbackRequest)(nil),                // 136: backend.v1.TwitterCallbackRequest
+	(*TwitterCallbackResponse)(nil),               // 137: backend.v1.TwitterCallbackResponse
+	(*DiscordCallbackRequest)(nil),                // 138: backend.v1.DiscordCallbackRequest
+	(*DiscordCallbackResponse)(nil),               // 139: backend.v1.DiscordCallbackResponse
+	(*CreateDiscordAuthURLResponse)(nil),          // 140: backend.v1.CreateDiscordAuthURLResponse
+	(*GetIdentityRequest)(nil),                    // 141: backend.v1.GetIdentityRequest
+	(*GetIdentityResponse)(nil),                   // 142: backend.v1.GetIdentityResponse
+	(*GetIdentityBySignatureHashRequest)(nil),     // 143: backend.v1.GetIdentityBySignatureHashRequest
+	(*GetPaymentAddressRequest)(nil),              // 144: backend.v1.GetPaymentAddressRequest
+	(*GetPaymentAddressResponse)(nil),             // 145: backend.v1.GetPaymentAddressResponse
+	(*CreateDomainIdentityRequest)(nil),           // 146: backend.v1.CreateDomainIdentityRequest
+	(*CreateDomainIdentityResponse)(nil),          // 147: backend.v1.CreateDomainIdentityResponse
+	(*VerifyIdentityRequest)(nil),                 // 148: backend.v1.VerifyIdentityRequest
+	(*SubmitFormRequest)(nil),                     // 149: backend.v1.SubmitFormRequest
+	(*timestamppb.Timestamp)(nil),                 // 150: google.protobuf.Timestamp
 }
 var file_backend_v1_backend_proto_depIdxs = []int32{
 	15,  // 0: backend.v1.KYCProviderWidget.gatehubWidget:type_name -> backend.v1.GatehubWidget
-	133, // 1: backend.v1.KYCProviderWidget.personaInquiry:type_name -> backend.v1.KYCPersonaInquiryResponse
+	134, // 1: backend.v1.KYCProviderWidget.personaInquiry:type_name -> backend.v1.KYCPersonaInquiryResponse
 	14,  // 2: backend.v1.KYCProviderWidget.ptiWidget:type_name -> backend.v1.PtiWidget
 	19,  // 3: backend.v1.ListRafikiGrantsResponse.grants:type_name -> backend.v1.RafikiGrant
 	20,  // 4: backend.v1.RafikiGrant.access:type_name -> backend.v1.RafikiAccess
 	21,  // 5: backend.v1.RafikiAccess.limits:type_name -> backend.v1.RafikiLimits
-	43,  // 6: backend.v1.RafikiLimits.debitAmount:type_name -> backend.v1.Amount
-	43,  // 7: backend.v1.RafikiLimits.receiveAmount:type_name -> backend.v1.Amount
+	44,  // 6: backend.v1.RafikiLimits.debitAmount:type_name -> backend.v1.Amount
+	44,  // 7: backend.v1.RafikiLimits.receiveAmount:type_name -> backend.v1.Amount
 	25,  // 8: backend.v1.GetLinkedAccountsForPaymentResponse.linkedAccounts:type_name -> backend.v1.LinkedAccountForPayment
-	81,  // 9: backend.v1.LinkedAccountForPayment.details:type_name -> backend.v1.LinkedAccount
+	82,  // 9: backend.v1.LinkedAccountForPayment.details:type_name -> backend.v1.LinkedAccount
 	28,  // 10: backend.v1.GetXagoDepositDetailsResponse.details:type_name -> backend.v1.XagoDepositDetails
 	30,  // 11: backend.v1.GetBalancesResponse.balances:type_name -> backend.v1.Balance
-	43,  // 12: backend.v1.Balance.balance:type_name -> backend.v1.Amount
+	44,  // 12: backend.v1.Balance.balance:type_name -> backend.v1.Amount
 	32,  // 13: backend.v1.GetPtiBalancesResponse.balances:type_name -> backend.v1.PtiBalance
-	43,  // 14: backend.v1.PtiBalance.balance:type_name -> backend.v1.Amount
-	43,  // 15: backend.v1.PtiBalance.available:type_name -> backend.v1.Amount
-	34,  // 16: backend.v1.GetXagoBalanceResponse.balances:type_name -> backend.v1.XagoBalance
-	43,  // 17: backend.v1.XagoBalance.balance:type_name -> backend.v1.Amount
-	43,  // 18: backend.v1.XagoBalance.available:type_name -> backend.v1.Amount
-	43,  // 19: backend.v1.WithdrawXagoBalanceRequest.amount:type_name -> backend.v1.Amount
-	43,  // 20: backend.v1.Transaction.amount:type_name -> backend.v1.Amount
-	149, // 21: backend.v1.Transaction.timestamp:type_name -> google.protobuf.Timestamp
-	44,  // 22: backend.v1.ListTransactionsResponse.transactions:type_name -> backend.v1.Transaction
-	43,  // 23: backend.v1.UpdatePaymentRequest.senderAmount:type_name -> backend.v1.Amount
-	43,  // 24: backend.v1.UpdatePaymentRequest.receiverAmount:type_name -> backend.v1.Amount
-	43,  // 25: backend.v1.Payment.senderAmount:type_name -> backend.v1.Amount
-	43,  // 26: backend.v1.Payment.receiverAmount:type_name -> backend.v1.Amount
-	43,  // 27: backend.v1.CreatePaymentRequest.senderAmount:type_name -> backend.v1.Amount
-	43,  // 28: backend.v1.CreatePaymentRequest.receiverAmount:type_name -> backend.v1.Amount
-	43,  // 29: backend.v1.TransferBalanceRequest.amount:type_name -> backend.v1.Amount
-	56,  // 30: backend.v1.SearchWalletsResponse.results:type_name -> backend.v1.SearchResult
-	56,  // 31: backend.v1.SearchResult.subResults:type_name -> backend.v1.SearchResult
-	126, // 32: backend.v1.PublicWalletInfo.identities:type_name -> backend.v1.Identity
-	43,  // 33: backend.v1.ConnectionLimits.daily:type_name -> backend.v1.Amount
-	43,  // 34: backend.v1.ConnectionLimits.monthly:type_name -> backend.v1.Amount
-	43,  // 35: backend.v1.ConnectionLimits.overall:type_name -> backend.v1.Amount
-	43,  // 36: backend.v1.CreateConnectionRequest.dailyLimit:type_name -> backend.v1.Amount
-	43,  // 37: backend.v1.CreateConnectionRequest.monthlyLimit:type_name -> backend.v1.Amount
-	43,  // 38: backend.v1.CreateConnectionRequest.overallLimit:type_name -> backend.v1.Amount
-	64,  // 39: backend.v1.ListConnectionsResponse.keys:type_name -> backend.v1.Connection
-	43,  // 40: backend.v1.UpdateConnectionLimitsRequest.daily:type_name -> backend.v1.Amount
-	43,  // 41: backend.v1.UpdateConnectionLimitsRequest.monthly:type_name -> backend.v1.Amount
-	43,  // 42: backend.v1.UpdateConnectionLimitsRequest.overall:type_name -> backend.v1.Amount
-	149, // 43: backend.v1.Transfer.timestamp:type_name -> google.protobuf.Timestamp
-	43,  // 44: backend.v1.Transfer.amount:type_name -> backend.v1.Amount
-	149, // 45: backend.v1.IndividualKYCResponse.dateOfBirth:type_name -> google.protobuf.Timestamp
-	75,  // 46: backend.v1.IndividualKYCResponse.address:type_name -> backend.v1.Address
-	149, // 47: backend.v1.UpdateIndividualKYCRequest.dateOfBirth:type_name -> google.protobuf.Timestamp
-	75,  // 48: backend.v1.UpdateIndividualKYCRequest.address:type_name -> backend.v1.Address
-	81,  // 49: backend.v1.GetLinkedAccountsResponse.linkedAccounts:type_name -> backend.v1.LinkedAccount
-	103, // 50: backend.v1.GetCountriesResponse.countries:type_name -> backend.v1.Country
-	111, // 51: backend.v1.Limit.Annual:type_name -> backend.v1.LimitAmount
-	111, // 52: backend.v1.Limit.Daily:type_name -> backend.v1.LimitAmount
-	111, // 53: backend.v1.Limit.Monthly:type_name -> backend.v1.LimitAmount
-	111, // 54: backend.v1.Limit.WalletHold:type_name -> backend.v1.LimitAmount
-	119, // 55: backend.v1.ListLimitsResponse.limits:type_name -> backend.v1.ConfiguredLimit
-	43,  // 56: backend.v1.ConfiguredLimit.daily:type_name -> backend.v1.Amount
-	43,  // 57: backend.v1.ConfiguredLimit.monthly:type_name -> backend.v1.Amount
-	43,  // 58: backend.v1.ConfiguredLimit.overall:type_name -> backend.v1.Amount
-	43,  // 59: backend.v1.UpdateClientLimitsRequest.daily:type_name -> backend.v1.Amount
-	43,  // 60: backend.v1.UpdateClientLimitsRequest.monthly:type_name -> backend.v1.Amount
-	43,  // 61: backend.v1.UpdateClientLimitsRequest.overall:type_name -> backend.v1.Amount
-	121, // 62: backend.v1.ListContactsResponse.contacts:type_name -> backend.v1.Contact
-	126, // 63: backend.v1.ListIdentitiesResponse.identities:type_name -> backend.v1.Identity
-	149, // 64: backend.v1.Identity.verified_at:type_name -> google.protobuf.Timestamp
-	126, // 65: backend.v1.GetIdentityResponse.identity:type_name -> backend.v1.Identity
-	74,  // 66: backend.v1.BackendService.UpdateIndividualKYC:input_type -> backend.v1.UpdateIndividualKYCRequest
+	44,  // 14: backend.v1.PtiBalance.balance:type_name -> backend.v1.Amount
+	44,  // 15: backend.v1.PtiBalance.available:type_name -> backend.v1.Amount
+	35,  // 16: backend.v1.GetXagoBalanceResponse.balances:type_name -> backend.v1.XagoBalance
+	44,  // 17: backend.v1.XagoBalance.balance:type_name -> backend.v1.Amount
+	44,  // 18: backend.v1.XagoBalance.available:type_name -> backend.v1.Amount
+	44,  // 19: backend.v1.WithdrawXagoBalanceRequest.amount:type_name -> backend.v1.Amount
+	44,  // 20: backend.v1.Transaction.amount:type_name -> backend.v1.Amount
+	150, // 21: backend.v1.Transaction.timestamp:type_name -> google.protobuf.Timestamp
+	45,  // 22: backend.v1.ListTransactionsResponse.transactions:type_name -> backend.v1.Transaction
+	44,  // 23: backend.v1.UpdatePaymentRequest.senderAmount:type_name -> backend.v1.Amount
+	44,  // 24: backend.v1.UpdatePaymentRequest.receiverAmount:type_name -> backend.v1.Amount
+	44,  // 25: backend.v1.Payment.senderAmount:type_name -> backend.v1.Amount
+	44,  // 26: backend.v1.Payment.receiverAmount:type_name -> backend.v1.Amount
+	44,  // 27: backend.v1.CreatePaymentRequest.senderAmount:type_name -> backend.v1.Amount
+	44,  // 28: backend.v1.CreatePaymentRequest.receiverAmount:type_name -> backend.v1.Amount
+	44,  // 29: backend.v1.TransferBalanceRequest.amount:type_name -> backend.v1.Amount
+	57,  // 30: backend.v1.SearchWalletsResponse.results:type_name -> backend.v1.SearchResult
+	57,  // 31: backend.v1.SearchResult.subResults:type_name -> backend.v1.SearchResult
+	127, // 32: backend.v1.PublicWalletInfo.identities:type_name -> backend.v1.Identity
+	44,  // 33: backend.v1.ConnectionLimits.daily:type_name -> backend.v1.Amount
+	44,  // 34: backend.v1.ConnectionLimits.monthly:type_name -> backend.v1.Amount
+	44,  // 35: backend.v1.ConnectionLimits.overall:type_name -> backend.v1.Amount
+	44,  // 36: backend.v1.CreateConnectionRequest.dailyLimit:type_name -> backend.v1.Amount
+	44,  // 37: backend.v1.CreateConnectionRequest.monthlyLimit:type_name -> backend.v1.Amount
+	44,  // 38: backend.v1.CreateConnectionRequest.overallLimit:type_name -> backend.v1.Amount
+	65,  // 39: backend.v1.ListConnectionsResponse.keys:type_name -> backend.v1.Connection
+	44,  // 40: backend.v1.UpdateConnectionLimitsRequest.daily:type_name -> backend.v1.Amount
+	44,  // 41: backend.v1.UpdateConnectionLimitsRequest.monthly:type_name -> backend.v1.Amount
+	44,  // 42: backend.v1.UpdateConnectionLimitsRequest.overall:type_name -> backend.v1.Amount
+	150, // 43: backend.v1.Transfer.timestamp:type_name -> google.protobuf.Timestamp
+	44,  // 44: backend.v1.Transfer.amount:type_name -> backend.v1.Amount
+	150, // 45: backend.v1.IndividualKYCResponse.dateOfBirth:type_name -> google.protobuf.Timestamp
+	76,  // 46: backend.v1.IndividualKYCResponse.address:type_name -> backend.v1.Address
+	150, // 47: backend.v1.UpdateIndividualKYCRequest.dateOfBirth:type_name -> google.protobuf.Timestamp
+	76,  // 48: backend.v1.UpdateIndividualKYCRequest.address:type_name -> backend.v1.Address
+	82,  // 49: backend.v1.GetLinkedAccountsResponse.linkedAccounts:type_name -> backend.v1.LinkedAccount
+	104, // 50: backend.v1.GetCountriesResponse.countries:type_name -> backend.v1.Country
+	112, // 51: backend.v1.Limit.Annual:type_name -> backend.v1.LimitAmount
+	112, // 52: backend.v1.Limit.Daily:type_name -> backend.v1.LimitAmount
+	112, // 53: backend.v1.Limit.Monthly:type_name -> backend.v1.LimitAmount
+	112, // 54: backend.v1.Limit.WalletHold:type_name -> backend.v1.LimitAmount
+	120, // 55: backend.v1.ListLimitsResponse.limits:type_name -> backend.v1.ConfiguredLimit
+	44,  // 56: backend.v1.ConfiguredLimit.daily:type_name -> backend.v1.Amount
+	44,  // 57: backend.v1.ConfiguredLimit.monthly:type_name -> backend.v1.Amount
+	44,  // 58: backend.v1.ConfiguredLimit.overall:type_name -> backend.v1.Amount
+	44,  // 59: backend.v1.UpdateClientLimitsRequest.daily:type_name -> backend.v1.Amount
+	44,  // 60: backend.v1.UpdateClientLimitsRequest.monthly:type_name -> backend.v1.Amount
+	44,  // 61: backend.v1.UpdateClientLimitsRequest.overall:type_name -> backend.v1.Amount
+	122, // 62: backend.v1.ListContactsResponse.contacts:type_name -> backend.v1.Contact
+	127, // 63: backend.v1.ListIdentitiesResponse.identities:type_name -> backend.v1.Identity
+	150, // 64: backend.v1.Identity.verified_at:type_name -> google.protobuf.Timestamp
+	127, // 65: backend.v1.GetIdentityResponse.identity:type_name -> backend.v1.Identity
+	75,  // 66: backend.v1.BackendService.UpdateIndividualKYC:input_type -> backend.v1.UpdateIndividualKYCRequest
 	1,   // 67: backend.v1.BackendService.GetIndividualKYC:input_type -> backend.v1.Empty
-	75,  // 68: backend.v1.BackendService.IsUSPSAddress:input_type -> backend.v1.Address
-	83,  // 69: backend.v1.BackendService.SetSignupUserData:input_type -> backend.v1.SetSignupUserDataRequest
-	85,  // 70: backend.v1.BackendService.SetSignupMobileNumber:input_type -> backend.v1.SetSignupMobileNumberRequest
-	82,  // 71: backend.v1.BackendService.GetSignup:input_type -> backend.v1.GetSignupRequest
-	87,  // 72: backend.v1.BackendService.CompleteSignup:input_type -> backend.v1.CompleteSignupRequest
-	88,  // 73: backend.v1.BackendService.CreateUserDefaultWallet:input_type -> backend.v1.CreateUserDefaultWalletRequest
-	114, // 74: backend.v1.BackendService.CreateWalletAddress:input_type -> backend.v1.CreateWalletAddressRequest
-	112, // 75: backend.v1.BackendService.WalletAddressValid:input_type -> backend.v1.WalletAddressValidRequest
-	115, // 76: backend.v1.BackendService.SetWalletName:input_type -> backend.v1.SetWalletNameRequest
+	76,  // 68: backend.v1.BackendService.IsUSPSAddress:input_type -> backend.v1.Address
+	84,  // 69: backend.v1.BackendService.SetSignupUserData:input_type -> backend.v1.SetSignupUserDataRequest
+	86,  // 70: backend.v1.BackendService.SetSignupMobileNumber:input_type -> backend.v1.SetSignupMobileNumberRequest
+	83,  // 71: backend.v1.BackendService.GetSignup:input_type -> backend.v1.GetSignupRequest
+	88,  // 72: backend.v1.BackendService.CompleteSignup:input_type -> backend.v1.CompleteSignupRequest
+	89,  // 73: backend.v1.BackendService.CreateUserDefaultWallet:input_type -> backend.v1.CreateUserDefaultWalletRequest
+	115, // 74: backend.v1.BackendService.CreateWalletAddress:input_type -> backend.v1.CreateWalletAddressRequest
+	113, // 75: backend.v1.BackendService.WalletAddressValid:input_type -> backend.v1.WalletAddressValidRequest
+	116, // 76: backend.v1.BackendService.SetWalletName:input_type -> backend.v1.SetWalletNameRequest
 	1,   // 77: backend.v1.BackendService.GetWalletInfo:input_type -> backend.v1.Empty
-	57,  // 78: backend.v1.BackendService.GetPublicWalletInfo:input_type -> backend.v1.GetPublicWalletInfoRequest
-	89,  // 79: backend.v1.BackendService.SendPhoneVerification:input_type -> backend.v1.SendPhoneVerificationRequest
-	90,  // 80: backend.v1.BackendService.CheckPhoneVerification:input_type -> backend.v1.CheckPhoneVerificationRequest
+	58,  // 78: backend.v1.BackendService.GetPublicWalletInfo:input_type -> backend.v1.GetPublicWalletInfoRequest
+	90,  // 79: backend.v1.BackendService.SendPhoneVerification:input_type -> backend.v1.SendPhoneVerificationRequest
+	91,  // 80: backend.v1.BackendService.CheckPhoneVerification:input_type -> backend.v1.CheckPhoneVerificationRequest
 	1,   // 81: backend.v1.BackendService.SendOTP:input_type -> backend.v1.Empty
-	91,  // 82: backend.v1.BackendService.GetAgreement:input_type -> backend.v1.GetAgreementRequest
-	93,  // 83: backend.v1.BackendService.SignAgreements:input_type -> backend.v1.SignAgreementsRequest
+	92,  // 82: backend.v1.BackendService.GetAgreement:input_type -> backend.v1.GetAgreementRequest
+	94,  // 83: backend.v1.BackendService.SignAgreements:input_type -> backend.v1.SignAgreementsRequest
 	1,   // 84: backend.v1.BackendService.GetLinkedAccounts:input_type -> backend.v1.Empty
-	100, // 85: backend.v1.BackendService.GetLinkedAccount:input_type -> backend.v1.GetLinkedAccountRequest
-	39,  // 86: backend.v1.BackendService.SetDefaultReceiveLinkedAccount:input_type -> backend.v1.SetDefaultReceiveLinkedAccountRequest
-	38,  // 87: backend.v1.BackendService.SetDefaultSendLinkedAccount:input_type -> backend.v1.SetDefaultSendLinkedAccountRequest
-	101, // 88: backend.v1.BackendService.SetNicknameLinkedAccount:input_type -> backend.v1.SetNicknameLinkedAccountRequest
-	102, // 89: backend.v1.BackendService.DeleteLinkedAccount:input_type -> backend.v1.DeleteLinkedAccountRequest
+	101, // 85: backend.v1.BackendService.GetLinkedAccount:input_type -> backend.v1.GetLinkedAccountRequest
+	40,  // 86: backend.v1.BackendService.SetDefaultReceiveLinkedAccount:input_type -> backend.v1.SetDefaultReceiveLinkedAccountRequest
+	39,  // 87: backend.v1.BackendService.SetDefaultSendLinkedAccount:input_type -> backend.v1.SetDefaultSendLinkedAccountRequest
+	102, // 88: backend.v1.BackendService.SetNicknameLinkedAccount:input_type -> backend.v1.SetNicknameLinkedAccountRequest
+	103, // 89: backend.v1.BackendService.DeleteLinkedAccount:input_type -> backend.v1.DeleteLinkedAccountRequest
 	1,   // 90: backend.v1.BackendService.GetCountries:input_type -> backend.v1.Empty
 	1,   // 91: backend.v1.BackendService.GetCurrentWallet:input_type -> backend.v1.Empty
-	95,  // 92: backend.v1.BackendService.JoinWaitlist:input_type -> backend.v1.JoinWaitlistRequest
-	105, // 93: backend.v1.BackendService.CanSignup:input_type -> backend.v1.CanSignupRequest
-	107, // 94: backend.v1.BackendService.SetSignupComplete:input_type -> backend.v1.SetSignupCompleteRequest
-	97,  // 95: backend.v1.BackendService.IsMugAvailable:input_type -> backend.v1.IsMugAvailableRequest
+	96,  // 92: backend.v1.BackendService.JoinWaitlist:input_type -> backend.v1.JoinWaitlistRequest
+	106, // 93: backend.v1.BackendService.CanSignup:input_type -> backend.v1.CanSignupRequest
+	108, // 94: backend.v1.BackendService.SetSignupComplete:input_type -> backend.v1.SetSignupCompleteRequest
+	98,  // 95: backend.v1.BackendService.IsMugAvailable:input_type -> backend.v1.IsMugAvailableRequest
 	0,   // 96: backend.v1.BackendService.ListTransactions:input_type -> backend.v1.PaginationRequest
 	0,   // 97: backend.v1.BackendService.ListTransactionsCompleted:input_type -> backend.v1.PaginationRequest
 	0,   // 98: backend.v1.BackendService.ListTransactionsWithPending:input_type -> backend.v1.PaginationRequest
-	108, // 99: backend.v1.BackendService.LookupTransaction:input_type -> backend.v1.LookupTransactionRequest
+	109, // 99: backend.v1.BackendService.LookupTransaction:input_type -> backend.v1.LookupTransactionRequest
 	1,   // 100: backend.v1.BackendService.ListPendingWebMonetization:input_type -> backend.v1.Empty
 	1,   // 101: backend.v1.BackendService.ListLimits:input_type -> backend.v1.Empty
-	120, // 102: backend.v1.BackendService.UpdateClientLimits:input_type -> backend.v1.UpdateClientLimitsRequest
-	65,  // 103: backend.v1.BackendService.CreateConnection:input_type -> backend.v1.CreateConnectionRequest
+	121, // 102: backend.v1.BackendService.UpdateClientLimits:input_type -> backend.v1.UpdateClientLimitsRequest
+	66,  // 103: backend.v1.BackendService.CreateConnection:input_type -> backend.v1.CreateConnectionRequest
 	1,   // 104: backend.v1.BackendService.ListConnections:input_type -> backend.v1.Empty
-	66,  // 105: backend.v1.BackendService.GetConnection:input_type -> backend.v1.GetConnectionRequest
-	67,  // 106: backend.v1.BackendService.GetConnectionLimits:input_type -> backend.v1.GetConnectionLimitsRequest
-	70,  // 107: backend.v1.BackendService.UpdateConnectionLimits:input_type -> backend.v1.UpdateConnectionLimitsRequest
-	68,  // 108: backend.v1.BackendService.DeleteConnection:input_type -> backend.v1.DeleteConnectionRequest
-	116, // 109: backend.v1.BackendService.GetPublicWalletDetails:input_type -> backend.v1.GetPublicWalletDetailsRequest
-	124, // 110: backend.v1.BackendService.CreateContact:input_type -> backend.v1.CreateContactRequest
-	122, // 111: backend.v1.BackendService.ListContacts:input_type -> backend.v1.ListContactsRequest
+	67,  // 105: backend.v1.BackendService.GetConnection:input_type -> backend.v1.GetConnectionRequest
+	68,  // 106: backend.v1.BackendService.GetConnectionLimits:input_type -> backend.v1.GetConnectionLimitsRequest
+	71,  // 107: backend.v1.BackendService.UpdateConnectionLimits:input_type -> backend.v1.UpdateConnectionLimitsRequest
+	69,  // 108: backend.v1.BackendService.DeleteConnection:input_type -> backend.v1.DeleteConnectionRequest
+	117, // 109: backend.v1.BackendService.GetPublicWalletDetails:input_type -> backend.v1.GetPublicWalletDetailsRequest
+	125, // 110: backend.v1.BackendService.CreateContact:input_type -> backend.v1.CreateContactRequest
+	123, // 111: backend.v1.BackendService.ListContacts:input_type -> backend.v1.ListContactsRequest
 	1,   // 112: backend.v1.BackendService.ListIdentities:input_type -> backend.v1.Empty
-	130, // 113: backend.v1.BackendService.ListPublicIdentities:input_type -> backend.v1.ListPublicIdentitiesRequest
-	128, // 114: backend.v1.BackendService.DeleteIdentity:input_type -> backend.v1.DeleteIdentityRequest
-	129, // 115: backend.v1.BackendService.SetIdentityPublic:input_type -> backend.v1.SetIdentityPublicRequest
-	140, // 116: backend.v1.BackendService.GetIdentity:input_type -> backend.v1.GetIdentityRequest
-	142, // 117: backend.v1.BackendService.GetIdentityBySignatureHash:input_type -> backend.v1.GetIdentityBySignatureHashRequest
-	147, // 118: backend.v1.BackendService.VerifyIdentity:input_type -> backend.v1.VerifyIdentityRequest
+	131, // 113: backend.v1.BackendService.ListPublicIdentities:input_type -> backend.v1.ListPublicIdentitiesRequest
+	129, // 114: backend.v1.BackendService.DeleteIdentity:input_type -> backend.v1.DeleteIdentityRequest
+	130, // 115: backend.v1.BackendService.SetIdentityPublic:input_type -> backend.v1.SetIdentityPublicRequest
+	141, // 116: backend.v1.BackendService.GetIdentity:input_type -> backend.v1.GetIdentityRequest
+	143, // 117: backend.v1.BackendService.GetIdentityBySignatureHash:input_type -> backend.v1.GetIdentityBySignatureHashRequest
+	148, // 118: backend.v1.BackendService.VerifyIdentity:input_type -> backend.v1.VerifyIdentityRequest
 	1,   // 119: backend.v1.BackendService.KYCStatus:input_type -> backend.v1.Empty
 	1,   // 120: backend.v1.BackendService.SetKYCStatusPending:input_type -> backend.v1.Empty
-	132, // 121: backend.v1.BackendService.GetPersonaInquiry:input_type -> backend.v1.KYCPersonaInquiryRequest
+	133, // 121: backend.v1.BackendService.GetPersonaInquiry:input_type -> backend.v1.KYCPersonaInquiryRequest
 	12,  // 122: backend.v1.BackendService.GetKYCProviderWidget:input_type -> backend.v1.GetKYCProviderWidgetRequest
-	52,  // 123: backend.v1.BackendService.GetCardDetails:input_type -> backend.v1.GetCardDetailsRequest
+	53,  // 123: backend.v1.BackendService.GetCardDetails:input_type -> backend.v1.GetCardDetailsRequest
 	1,   // 124: backend.v1.BackendService.ListFeatures:input_type -> backend.v1.Empty
 	1,   // 125: backend.v1.BackendService.CreateTwitterAuthURL:input_type -> backend.v1.Empty
-	135, // 126: backend.v1.BackendService.TwitterCallback:input_type -> backend.v1.TwitterCallbackRequest
-	145, // 127: backend.v1.BackendService.CreateDomainIdentity:input_type -> backend.v1.CreateDomainIdentityRequest
-	143, // 128: backend.v1.BackendService.GetPaymentAddress:input_type -> backend.v1.GetPaymentAddressRequest
-	50,  // 129: backend.v1.BackendService.CreatePayment:input_type -> backend.v1.CreatePaymentRequest
-	48,  // 130: backend.v1.BackendService.UpdatePayment:input_type -> backend.v1.UpdatePaymentRequest
-	47,  // 131: backend.v1.BackendService.GetPayment:input_type -> backend.v1.GetPaymentRequest
-	46,  // 132: backend.v1.BackendService.ConfirmPayment:input_type -> backend.v1.ConfirmPaymentRequest
+	136, // 126: backend.v1.BackendService.TwitterCallback:input_type -> backend.v1.TwitterCallbackRequest
+	146, // 127: backend.v1.BackendService.CreateDomainIdentity:input_type -> backend.v1.CreateDomainIdentityRequest
+	144, // 128: backend.v1.BackendService.GetPaymentAddress:input_type -> backend.v1.GetPaymentAddressRequest
+	51,  // 129: backend.v1.BackendService.CreatePayment:input_type -> backend.v1.CreatePaymentRequest
+	49,  // 130: backend.v1.BackendService.UpdatePayment:input_type -> backend.v1.UpdatePaymentRequest
+	48,  // 131: backend.v1.BackendService.GetPayment:input_type -> backend.v1.GetPaymentRequest
+	47,  // 132: backend.v1.BackendService.ConfirmPayment:input_type -> backend.v1.ConfirmPaymentRequest
 	23,  // 133: backend.v1.BackendService.GetLinkedAccountsForPayment:input_type -> backend.v1.GetLinkedAccountsForPaymentRequest
 	1,   // 134: backend.v1.BackendService.GetBalances:input_type -> backend.v1.Empty
 	22,  // 135: backend.v1.BackendService.GetLinkedAccountsForWithdraw:input_type -> backend.v1.GetLinkedAccountsForTransferRequest
-	51,  // 136: backend.v1.BackendService.WithdrawBalance:input_type -> backend.v1.TransferBalanceRequest
+	52,  // 136: backend.v1.BackendService.WithdrawBalance:input_type -> backend.v1.TransferBalanceRequest
 	22,  // 137: backend.v1.BackendService.GetLinkedAccountsForDeposit:input_type -> backend.v1.GetLinkedAccountsForTransferRequest
-	51,  // 138: backend.v1.BackendService.DepositBalance:input_type -> backend.v1.TransferBalanceRequest
-	54,  // 139: backend.v1.BackendService.SearchWallets:input_type -> backend.v1.SearchWalletsRequest
-	137, // 140: backend.v1.BackendService.DiscordCallback:input_type -> backend.v1.DiscordCallbackRequest
+	52,  // 138: backend.v1.BackendService.DepositBalance:input_type -> backend.v1.TransferBalanceRequest
+	55,  // 139: backend.v1.BackendService.SearchWallets:input_type -> backend.v1.SearchWalletsRequest
+	138, // 140: backend.v1.BackendService.DiscordCallback:input_type -> backend.v1.DiscordCallbackRequest
 	1,   // 141: backend.v1.BackendService.CreateDiscordAuthURL:input_type -> backend.v1.Empty
-	148, // 142: backend.v1.BackendService.SubmitForm:input_type -> backend.v1.SubmitFormRequest
+	149, // 142: backend.v1.BackendService.SubmitForm:input_type -> backend.v1.SubmitFormRequest
 	1,   // 143: backend.v1.BackendService.CreateSlackAuthURL:input_type -> backend.v1.Empty
-	40,  // 144: backend.v1.BackendService.SlackCallback:input_type -> backend.v1.SlackCallbackRequest
-	37,  // 145: backend.v1.BackendService.AddXagoBankAccount:input_type -> backend.v1.AddXagoBankAccountRequest
-	36,  // 146: backend.v1.BackendService.AddXagoBalanceAccount:input_type -> backend.v1.AddXagoBalanceAccountRequest
-	35,  // 147: backend.v1.BackendService.WithdrawXagoBalance:input_type -> backend.v1.WithdrawXagoBalanceRequest
+	41,  // 144: backend.v1.BackendService.SlackCallback:input_type -> backend.v1.SlackCallbackRequest
+	38,  // 145: backend.v1.BackendService.AddXagoBankAccount:input_type -> backend.v1.AddXagoBankAccountRequest
+	37,  // 146: backend.v1.BackendService.AddXagoBalanceAccount:input_type -> backend.v1.AddXagoBalanceAccountRequest
+	36,  // 147: backend.v1.BackendService.WithdrawXagoBalance:input_type -> backend.v1.WithdrawXagoBalanceRequest
 	1,   // 148: backend.v1.BackendService.GetXagoBalances:input_type -> backend.v1.Empty
 	26,  // 149: backend.v1.BackendService.GetXagoDepositDetails:input_type -> backend.v1.GetXagoDepositDetailsRequest
 	1,   // 150: backend.v1.BackendService.DepositTestXago:input_type -> backend.v1.Empty
 	1,   // 151: backend.v1.BackendService.GetPtiBalances:input_type -> backend.v1.Empty
 	3,   // 152: backend.v1.BackendService.CreatePtiToken:input_type -> backend.v1.PtiTokenRequest
-	61,  // 153: backend.v1.BackendService.CreateCard:input_type -> backend.v1.CreateCardRequest
+	62,  // 153: backend.v1.BackendService.CreateCard:input_type -> backend.v1.CreateCardRequest
 	2,   // 154: backend.v1.BackendService.CreatePtiBankAccount:input_type -> backend.v1.CreatePtiBankAccountRequest
-	1,   // 155: backend.v1.BackendService.ListRafikiGrants:input_type -> backend.v1.Empty
-	17,  // 156: backend.v1.BackendService.GetRafikiGrant:input_type -> backend.v1.GetRafikiGrantRequest
-	16,  // 157: backend.v1.BackendService.RevokeRafikiGrant:input_type -> backend.v1.RevokeRafikiGrantRequest
-	1,   // 158: backend.v1.BackendService.GetGatehubOnboardingWidget:input_type -> backend.v1.Empty
-	1,   // 159: backend.v1.BackendService.GetOnOffRampProvider:input_type -> backend.v1.Empty
-	1,   // 160: backend.v1.BackendService.GetGatehubDepositWidget:input_type -> backend.v1.Empty
-	1,   // 161: backend.v1.BackendService.GetGatehubWithdrawalWidget:input_type -> backend.v1.Empty
-	9,   // 162: backend.v1.BackendService.CreateGatehubWithdrawal:input_type -> backend.v1.CreateGatehubWithdrawalRequest
-	8,   // 163: backend.v1.BackendService.SetChimoneyInterlocEmail:input_type -> backend.v1.SetChimoneyInterlocEmailRequest
-	1,   // 164: backend.v1.BackendService.GetChimoneyInterlocEmail:input_type -> backend.v1.Empty
-	1,   // 165: backend.v1.BackendService.CreateChimoneyWallet:input_type -> backend.v1.Empty
-	43,  // 166: backend.v1.BackendService.GetChimoneyDepositLink:input_type -> backend.v1.Amount
-	5,   // 167: backend.v1.BackendService.CreateChimoneyDeposit:input_type -> backend.v1.CreateChimoneyDepositRequest
-	1,   // 168: backend.v1.BackendService.UpdateIndividualKYC:output_type -> backend.v1.Empty
-	73,  // 169: backend.v1.BackendService.GetIndividualKYC:output_type -> backend.v1.IndividualKYCResponse
-	76,  // 170: backend.v1.BackendService.IsUSPSAddress:output_type -> backend.v1.IsUSPSAddressResponse
-	84,  // 171: backend.v1.BackendService.SetSignupUserData:output_type -> backend.v1.SetSignupUserDataResponse
-	1,   // 172: backend.v1.BackendService.SetSignupMobileNumber:output_type -> backend.v1.Empty
-	86,  // 173: backend.v1.BackendService.GetSignup:output_type -> backend.v1.Signup
-	1,   // 174: backend.v1.BackendService.CompleteSignup:output_type -> backend.v1.Empty
-	1,   // 175: backend.v1.BackendService.CreateUserDefaultWallet:output_type -> backend.v1.Empty
-	1,   // 176: backend.v1.BackendService.CreateWalletAddress:output_type -> backend.v1.Empty
-	113, // 177: backend.v1.BackendService.WalletAddressValid:output_type -> backend.v1.WalletAddressValidResponse
-	1,   // 178: backend.v1.BackendService.SetWalletName:output_type -> backend.v1.Empty
-	59,  // 179: backend.v1.BackendService.GetWalletInfo:output_type -> backend.v1.WalletInfo
-	58,  // 180: backend.v1.BackendService.GetPublicWalletInfo:output_type -> backend.v1.PublicWalletInfo
-	1,   // 181: backend.v1.BackendService.SendPhoneVerification:output_type -> backend.v1.Empty
-	1,   // 182: backend.v1.BackendService.CheckPhoneVerification:output_type -> backend.v1.Empty
-	1,   // 183: backend.v1.BackendService.SendOTP:output_type -> backend.v1.Empty
-	92,  // 184: backend.v1.BackendService.GetAgreement:output_type -> backend.v1.Agreement
-	94,  // 185: backend.v1.BackendService.SignAgreements:output_type -> backend.v1.SignAgreementsResponse
-	99,  // 186: backend.v1.BackendService.GetLinkedAccounts:output_type -> backend.v1.GetLinkedAccountsResponse
-	81,  // 187: backend.v1.BackendService.GetLinkedAccount:output_type -> backend.v1.LinkedAccount
-	81,  // 188: backend.v1.BackendService.SetDefaultReceiveLinkedAccount:output_type -> backend.v1.LinkedAccount
-	81,  // 189: backend.v1.BackendService.SetDefaultSendLinkedAccount:output_type -> backend.v1.LinkedAccount
-	81,  // 190: backend.v1.BackendService.SetNicknameLinkedAccount:output_type -> backend.v1.LinkedAccount
-	1,   // 191: backend.v1.BackendService.DeleteLinkedAccount:output_type -> backend.v1.Empty
-	104, // 192: backend.v1.BackendService.GetCountries:output_type -> backend.v1.GetCountriesResponse
-	109, // 193: backend.v1.BackendService.GetCurrentWallet:output_type -> backend.v1.GetCurrentWalletResponse
-	96,  // 194: backend.v1.BackendService.JoinWaitlist:output_type -> backend.v1.JoinWaitlistResponse
-	106, // 195: backend.v1.BackendService.CanSignup:output_type -> backend.v1.CanSignupResponse
-	1,   // 196: backend.v1.BackendService.SetSignupComplete:output_type -> backend.v1.Empty
-	98,  // 197: backend.v1.BackendService.IsMugAvailable:output_type -> backend.v1.IsMugAvailableResponse
-	45,  // 198: backend.v1.BackendService.ListTransactions:output_type -> backend.v1.ListTransactionsResponse
-	45,  // 199: backend.v1.BackendService.ListTransactionsCompleted:output_type -> backend.v1.ListTransactionsResponse
-	45,  // 200: backend.v1.BackendService.ListTransactionsWithPending:output_type -> backend.v1.ListTransactionsResponse
-	44,  // 201: backend.v1.BackendService.LookupTransaction:output_type -> backend.v1.Transaction
-	45,  // 202: backend.v1.BackendService.ListPendingWebMonetization:output_type -> backend.v1.ListTransactionsResponse
-	118, // 203: backend.v1.BackendService.ListLimits:output_type -> backend.v1.ListLimitsResponse
-	1,   // 204: backend.v1.BackendService.UpdateClientLimits:output_type -> backend.v1.Empty
-	1,   // 205: backend.v1.BackendService.CreateConnection:output_type -> backend.v1.Empty
-	69,  // 206: backend.v1.BackendService.ListConnections:output_type -> backend.v1.ListConnectionsResponse
-	64,  // 207: backend.v1.BackendService.GetConnection:output_type -> backend.v1.Connection
-	63,  // 208: backend.v1.BackendService.GetConnectionLimits:output_type -> backend.v1.ConnectionLimits
-	1,   // 209: backend.v1.BackendService.UpdateConnectionLimits:output_type -> backend.v1.Empty
-	1,   // 210: backend.v1.BackendService.DeleteConnection:output_type -> backend.v1.Empty
-	117, // 211: backend.v1.BackendService.GetPublicWalletDetails:output_type -> backend.v1.GetPublicWalletDetailsResponse
-	121, // 212: backend.v1.BackendService.CreateContact:output_type -> backend.v1.Contact
-	123, // 213: backend.v1.BackendService.ListContacts:output_type -> backend.v1.ListContactsResponse
-	125, // 214: backend.v1.BackendService.ListIdentities:output_type -> backend.v1.ListIdentitiesResponse
-	125, // 215: backend.v1.BackendService.ListPublicIdentities:output_type -> backend.v1.ListIdentitiesResponse
-	1,   // 216: backend.v1.BackendService.DeleteIdentity:output_type -> backend.v1.Empty
-	126, // 217: backend.v1.BackendService.SetIdentityPublic:output_type -> backend.v1.Identity
-	141, // 218: backend.v1.BackendService.GetIdentity:output_type -> backend.v1.GetIdentityResponse
-	141, // 219: backend.v1.BackendService.GetIdentityBySignatureHash:output_type -> backend.v1.GetIdentityResponse
-	1,   // 220: backend.v1.BackendService.VerifyIdentity:output_type -> backend.v1.Empty
-	131, // 221: backend.v1.BackendService.KYCStatus:output_type -> backend.v1.KYCStatusResponse
-	1,   // 222: backend.v1.BackendService.SetKYCStatusPending:output_type -> backend.v1.Empty
-	133, // 223: backend.v1.BackendService.GetPersonaInquiry:output_type -> backend.v1.KYCPersonaInquiryResponse
-	13,  // 224: backend.v1.BackendService.GetKYCProviderWidget:output_type -> backend.v1.KYCProviderWidget
-	53,  // 225: backend.v1.BackendService.GetCardDetails:output_type -> backend.v1.CardDetails
-	60,  // 226: backend.v1.BackendService.ListFeatures:output_type -> backend.v1.Features
-	134, // 227: backend.v1.BackendService.CreateTwitterAuthURL:output_type -> backend.v1.CreateTwitterAuthURLResponse
-	136, // 228: backend.v1.BackendService.TwitterCallback:output_type -> backend.v1.TwitterCallbackResponse
-	146, // 229: backend.v1.BackendService.CreateDomainIdentity:output_type -> backend.v1.CreateDomainIdentityResponse
-	144, // 230: backend.v1.BackendService.GetPaymentAddress:output_type -> backend.v1.GetPaymentAddressResponse
-	49,  // 231: backend.v1.BackendService.CreatePayment:output_type -> backend.v1.Payment
-	49,  // 232: backend.v1.BackendService.UpdatePayment:output_type -> backend.v1.Payment
-	49,  // 233: backend.v1.BackendService.GetPayment:output_type -> backend.v1.Payment
-	49,  // 234: backend.v1.BackendService.ConfirmPayment:output_type -> backend.v1.Payment
-	24,  // 235: backend.v1.BackendService.GetLinkedAccountsForPayment:output_type -> backend.v1.GetLinkedAccountsForPaymentResponse
-	29,  // 236: backend.v1.BackendService.GetBalances:output_type -> backend.v1.GetBalancesResponse
-	24,  // 237: backend.v1.BackendService.GetLinkedAccountsForWithdraw:output_type -> backend.v1.GetLinkedAccountsForPaymentResponse
-	49,  // 238: backend.v1.BackendService.WithdrawBalance:output_type -> backend.v1.Payment
-	24,  // 239: backend.v1.BackendService.GetLinkedAccountsForDeposit:output_type -> backend.v1.GetLinkedAccountsForPaymentResponse
-	49,  // 240: backend.v1.BackendService.DepositBalance:output_type -> backend.v1.Payment
-	55,  // 241: backend.v1.BackendService.SearchWallets:output_type -> backend.v1.SearchWalletsResponse
-	138, // 242: backend.v1.BackendService.DiscordCallback:output_type -> backend.v1.DiscordCallbackResponse
-	139, // 243: backend.v1.BackendService.CreateDiscordAuthURL:output_type -> backend.v1.CreateDiscordAuthURLResponse
-	1,   // 244: backend.v1.BackendService.SubmitForm:output_type -> backend.v1.Empty
-	42,  // 245: backend.v1.BackendService.CreateSlackAuthURL:output_type -> backend.v1.CreateSlackAuthURLResponse
-	41,  // 246: backend.v1.BackendService.SlackCallback:output_type -> backend.v1.SlackCallbackResponse
-	81,  // 247: backend.v1.BackendService.AddXagoBankAccount:output_type -> backend.v1.LinkedAccount
-	81,  // 248: backend.v1.BackendService.AddXagoBalanceAccount:output_type -> backend.v1.LinkedAccount
-	49,  // 249: backend.v1.BackendService.WithdrawXagoBalance:output_type -> backend.v1.Payment
-	33,  // 250: backend.v1.BackendService.GetXagoBalances:output_type -> backend.v1.GetXagoBalanceResponse
-	27,  // 251: backend.v1.BackendService.GetXagoDepositDetails:output_type -> backend.v1.GetXagoDepositDetailsResponse
-	1,   // 252: backend.v1.BackendService.DepositTestXago:output_type -> backend.v1.Empty
-	31,  // 253: backend.v1.BackendService.GetPtiBalances:output_type -> backend.v1.GetPtiBalancesResponse
-	4,   // 254: backend.v1.BackendService.CreatePtiToken:output_type -> backend.v1.PtiTokenResponse
-	81,  // 255: backend.v1.BackendService.CreateCard:output_type -> backend.v1.LinkedAccount
-	81,  // 256: backend.v1.BackendService.CreatePtiBankAccount:output_type -> backend.v1.LinkedAccount
-	18,  // 257: backend.v1.BackendService.ListRafikiGrants:output_type -> backend.v1.ListRafikiGrantsResponse
-	19,  // 258: backend.v1.BackendService.GetRafikiGrant:output_type -> backend.v1.RafikiGrant
-	1,   // 259: backend.v1.BackendService.RevokeRafikiGrant:output_type -> backend.v1.Empty
-	15,  // 260: backend.v1.BackendService.GetGatehubOnboardingWidget:output_type -> backend.v1.GatehubWidget
-	11,  // 261: backend.v1.BackendService.GetOnOffRampProvider:output_type -> backend.v1.GetOnOffRampProviderResponse
-	15,  // 262: backend.v1.BackendService.GetGatehubDepositWidget:output_type -> backend.v1.GatehubWidget
-	15,  // 263: backend.v1.BackendService.GetGatehubWithdrawalWidget:output_type -> backend.v1.GatehubWidget
-	10,  // 264: backend.v1.BackendService.CreateGatehubWithdrawal:output_type -> backend.v1.CreateGatehubWithdrawalResponse
-	7,   // 265: backend.v1.BackendService.SetChimoneyInterlocEmail:output_type -> backend.v1.ChimoneyInterlocEmail
-	7,   // 266: backend.v1.BackendService.GetChimoneyInterlocEmail:output_type -> backend.v1.ChimoneyInterlocEmail
-	1,   // 267: backend.v1.BackendService.CreateChimoneyWallet:output_type -> backend.v1.Empty
-	6,   // 268: backend.v1.BackendService.GetChimoneyDepositLink:output_type -> backend.v1.GetChimoneyDepositLinkResponse
-	1,   // 269: backend.v1.BackendService.CreateChimoneyDeposit:output_type -> backend.v1.Empty
-	168, // [168:270] is the sub-list for method output_type
-	66,  // [66:168] is the sub-list for method input_type
+	33,  // 155: backend.v1.BackendService.PTICreateDeposit:input_type -> backend.v1.PTICreateDepositRequest
+	1,   // 156: backend.v1.BackendService.ListRafikiGrants:input_type -> backend.v1.Empty
+	17,  // 157: backend.v1.BackendService.GetRafikiGrant:input_type -> backend.v1.GetRafikiGrantRequest
+	16,  // 158: backend.v1.BackendService.RevokeRafikiGrant:input_type -> backend.v1.RevokeRafikiGrantRequest
+	1,   // 159: backend.v1.BackendService.GetGatehubOnboardingWidget:input_type -> backend.v1.Empty
+	1,   // 160: backend.v1.BackendService.GetOnOffRampProvider:input_type -> backend.v1.Empty
+	1,   // 161: backend.v1.BackendService.GetGatehubDepositWidget:input_type -> backend.v1.Empty
+	1,   // 162: backend.v1.BackendService.GetGatehubWithdrawalWidget:input_type -> backend.v1.Empty
+	9,   // 163: backend.v1.BackendService.CreateGatehubWithdrawal:input_type -> backend.v1.CreateGatehubWithdrawalRequest
+	8,   // 164: backend.v1.BackendService.SetChimoneyInterlocEmail:input_type -> backend.v1.SetChimoneyInterlocEmailRequest
+	1,   // 165: backend.v1.BackendService.GetChimoneyInterlocEmail:input_type -> backend.v1.Empty
+	1,   // 166: backend.v1.BackendService.CreateChimoneyWallet:input_type -> backend.v1.Empty
+	44,  // 167: backend.v1.BackendService.GetChimoneyDepositLink:input_type -> backend.v1.Amount
+	5,   // 168: backend.v1.BackendService.CreateChimoneyDeposit:input_type -> backend.v1.CreateChimoneyDepositRequest
+	1,   // 169: backend.v1.BackendService.UpdateIndividualKYC:output_type -> backend.v1.Empty
+	74,  // 170: backend.v1.BackendService.GetIndividualKYC:output_type -> backend.v1.IndividualKYCResponse
+	77,  // 171: backend.v1.BackendService.IsUSPSAddress:output_type -> backend.v1.IsUSPSAddressResponse
+	85,  // 172: backend.v1.BackendService.SetSignupUserData:output_type -> backend.v1.SetSignupUserDataResponse
+	1,   // 173: backend.v1.BackendService.SetSignupMobileNumber:output_type -> backend.v1.Empty
+	87,  // 174: backend.v1.BackendService.GetSignup:output_type -> backend.v1.Signup
+	1,   // 175: backend.v1.BackendService.CompleteSignup:output_type -> backend.v1.Empty
+	1,   // 176: backend.v1.BackendService.CreateUserDefaultWallet:output_type -> backend.v1.Empty
+	1,   // 177: backend.v1.BackendService.CreateWalletAddress:output_type -> backend.v1.Empty
+	114, // 178: backend.v1.BackendService.WalletAddressValid:output_type -> backend.v1.WalletAddressValidResponse
+	1,   // 179: backend.v1.BackendService.SetWalletName:output_type -> backend.v1.Empty
+	60,  // 180: backend.v1.BackendService.GetWalletInfo:output_type -> backend.v1.WalletInfo
+	59,  // 181: backend.v1.BackendService.GetPublicWalletInfo:output_type -> backend.v1.PublicWalletInfo
+	1,   // 182: backend.v1.BackendService.SendPhoneVerification:output_type -> backend.v1.Empty
+	1,   // 183: backend.v1.BackendService.CheckPhoneVerification:output_type -> backend.v1.Empty
+	1,   // 184: backend.v1.BackendService.SendOTP:output_type -> backend.v1.Empty
+	93,  // 185: backend.v1.BackendService.GetAgreement:output_type -> backend.v1.Agreement
+	95,  // 186: backend.v1.BackendService.SignAgreements:output_type -> backend.v1.SignAgreementsResponse
+	100, // 187: backend.v1.BackendService.GetLinkedAccounts:output_type -> backend.v1.GetLinkedAccountsResponse
+	82,  // 188: backend.v1.BackendService.GetLinkedAccount:output_type -> backend.v1.LinkedAccount
+	82,  // 189: backend.v1.BackendService.SetDefaultReceiveLinkedAccount:output_type -> backend.v1.LinkedAccount
+	82,  // 190: backend.v1.BackendService.SetDefaultSendLinkedAccount:output_type -> backend.v1.LinkedAccount
+	82,  // 191: backend.v1.BackendService.SetNicknameLinkedAccount:output_type -> backend.v1.LinkedAccount
+	1,   // 192: backend.v1.BackendService.DeleteLinkedAccount:output_type -> backend.v1.Empty
+	105, // 193: backend.v1.BackendService.GetCountries:output_type -> backend.v1.GetCountriesResponse
+	110, // 194: backend.v1.BackendService.GetCurrentWallet:output_type -> backend.v1.GetCurrentWalletResponse
+	97,  // 195: backend.v1.BackendService.JoinWaitlist:output_type -> backend.v1.JoinWaitlistResponse
+	107, // 196: backend.v1.BackendService.CanSignup:output_type -> backend.v1.CanSignupResponse
+	1,   // 197: backend.v1.BackendService.SetSignupComplete:output_type -> backend.v1.Empty
+	99,  // 198: backend.v1.BackendService.IsMugAvailable:output_type -> backend.v1.IsMugAvailableResponse
+	46,  // 199: backend.v1.BackendService.ListTransactions:output_type -> backend.v1.ListTransactionsResponse
+	46,  // 200: backend.v1.BackendService.ListTransactionsCompleted:output_type -> backend.v1.ListTransactionsResponse
+	46,  // 201: backend.v1.BackendService.ListTransactionsWithPending:output_type -> backend.v1.ListTransactionsResponse
+	45,  // 202: backend.v1.BackendService.LookupTransaction:output_type -> backend.v1.Transaction
+	46,  // 203: backend.v1.BackendService.ListPendingWebMonetization:output_type -> backend.v1.ListTransactionsResponse
+	119, // 204: backend.v1.BackendService.ListLimits:output_type -> backend.v1.ListLimitsResponse
+	1,   // 205: backend.v1.BackendService.UpdateClientLimits:output_type -> backend.v1.Empty
+	1,   // 206: backend.v1.BackendService.CreateConnection:output_type -> backend.v1.Empty
+	70,  // 207: backend.v1.BackendService.ListConnections:output_type -> backend.v1.ListConnectionsResponse
+	65,  // 208: backend.v1.BackendService.GetConnection:output_type -> backend.v1.Connection
+	64,  // 209: backend.v1.BackendService.GetConnectionLimits:output_type -> backend.v1.ConnectionLimits
+	1,   // 210: backend.v1.BackendService.UpdateConnectionLimits:output_type -> backend.v1.Empty
+	1,   // 211: backend.v1.BackendService.DeleteConnection:output_type -> backend.v1.Empty
+	118, // 212: backend.v1.BackendService.GetPublicWalletDetails:output_type -> backend.v1.GetPublicWalletDetailsResponse
+	122, // 213: backend.v1.BackendService.CreateContact:output_type -> backend.v1.Contact
+	124, // 214: backend.v1.BackendService.ListContacts:output_type -> backend.v1.ListContactsResponse
+	126, // 215: backend.v1.BackendService.ListIdentities:output_type -> backend.v1.ListIdentitiesResponse
+	126, // 216: backend.v1.BackendService.ListPublicIdentities:output_type -> backend.v1.ListIdentitiesResponse
+	1,   // 217: backend.v1.BackendService.DeleteIdentity:output_type -> backend.v1.Empty
+	127, // 218: backend.v1.BackendService.SetIdentityPublic:output_type -> backend.v1.Identity
+	142, // 219: backend.v1.BackendService.GetIdentity:output_type -> backend.v1.GetIdentityResponse
+	142, // 220: backend.v1.BackendService.GetIdentityBySignatureHash:output_type -> backend.v1.GetIdentityResponse
+	1,   // 221: backend.v1.BackendService.VerifyIdentity:output_type -> backend.v1.Empty
+	132, // 222: backend.v1.BackendService.KYCStatus:output_type -> backend.v1.KYCStatusResponse
+	1,   // 223: backend.v1.BackendService.SetKYCStatusPending:output_type -> backend.v1.Empty
+	134, // 224: backend.v1.BackendService.GetPersonaInquiry:output_type -> backend.v1.KYCPersonaInquiryResponse
+	13,  // 225: backend.v1.BackendService.GetKYCProviderWidget:output_type -> backend.v1.KYCProviderWidget
+	54,  // 226: backend.v1.BackendService.GetCardDetails:output_type -> backend.v1.CardDetails
+	61,  // 227: backend.v1.BackendService.ListFeatures:output_type -> backend.v1.Features
+	135, // 228: backend.v1.BackendService.CreateTwitterAuthURL:output_type -> backend.v1.CreateTwitterAuthURLResponse
+	137, // 229: backend.v1.BackendService.TwitterCallback:output_type -> backend.v1.TwitterCallbackResponse
+	147, // 230: backend.v1.BackendService.CreateDomainIdentity:output_type -> backend.v1.CreateDomainIdentityResponse
+	145, // 231: backend.v1.BackendService.GetPaymentAddress:output_type -> backend.v1.GetPaymentAddressResponse
+	50,  // 232: backend.v1.BackendService.CreatePayment:output_type -> backend.v1.Payment
+	50,  // 233: backend.v1.BackendService.UpdatePayment:output_type -> backend.v1.Payment
+	50,  // 234: backend.v1.BackendService.GetPayment:output_type -> backend.v1.Payment
+	50,  // 235: backend.v1.BackendService.ConfirmPayment:output_type -> backend.v1.Payment
+	24,  // 236: backend.v1.BackendService.GetLinkedAccountsForPayment:output_type -> backend.v1.GetLinkedAccountsForPaymentResponse
+	29,  // 237: backend.v1.BackendService.GetBalances:output_type -> backend.v1.GetBalancesResponse
+	24,  // 238: backend.v1.BackendService.GetLinkedAccountsForWithdraw:output_type -> backend.v1.GetLinkedAccountsForPaymentResponse
+	50,  // 239: backend.v1.BackendService.WithdrawBalance:output_type -> backend.v1.Payment
+	24,  // 240: backend.v1.BackendService.GetLinkedAccountsForDeposit:output_type -> backend.v1.GetLinkedAccountsForPaymentResponse
+	50,  // 241: backend.v1.BackendService.DepositBalance:output_type -> backend.v1.Payment
+	56,  // 242: backend.v1.BackendService.SearchWallets:output_type -> backend.v1.SearchWalletsResponse
+	139, // 243: backend.v1.BackendService.DiscordCallback:output_type -> backend.v1.DiscordCallbackResponse
+	140, // 244: backend.v1.BackendService.CreateDiscordAuthURL:output_type -> backend.v1.CreateDiscordAuthURLResponse
+	1,   // 245: backend.v1.BackendService.SubmitForm:output_type -> backend.v1.Empty
+	43,  // 246: backend.v1.BackendService.CreateSlackAuthURL:output_type -> backend.v1.CreateSlackAuthURLResponse
+	42,  // 247: backend.v1.BackendService.SlackCallback:output_type -> backend.v1.SlackCallbackResponse
+	82,  // 248: backend.v1.BackendService.AddXagoBankAccount:output_type -> backend.v1.LinkedAccount
+	82,  // 249: backend.v1.BackendService.AddXagoBalanceAccount:output_type -> backend.v1.LinkedAccount
+	50,  // 250: backend.v1.BackendService.WithdrawXagoBalance:output_type -> backend.v1.Payment
+	34,  // 251: backend.v1.BackendService.GetXagoBalances:output_type -> backend.v1.GetXagoBalanceResponse
+	27,  // 252: backend.v1.BackendService.GetXagoDepositDetails:output_type -> backend.v1.GetXagoDepositDetailsResponse
+	1,   // 253: backend.v1.BackendService.DepositTestXago:output_type -> backend.v1.Empty
+	31,  // 254: backend.v1.BackendService.GetPtiBalances:output_type -> backend.v1.GetPtiBalancesResponse
+	4,   // 255: backend.v1.BackendService.CreatePtiToken:output_type -> backend.v1.PtiTokenResponse
+	82,  // 256: backend.v1.BackendService.CreateCard:output_type -> backend.v1.LinkedAccount
+	82,  // 257: backend.v1.BackendService.CreatePtiBankAccount:output_type -> backend.v1.LinkedAccount
+	1,   // 258: backend.v1.BackendService.PTICreateDeposit:output_type -> backend.v1.Empty
+	18,  // 259: backend.v1.BackendService.ListRafikiGrants:output_type -> backend.v1.ListRafikiGrantsResponse
+	19,  // 260: backend.v1.BackendService.GetRafikiGrant:output_type -> backend.v1.RafikiGrant
+	1,   // 261: backend.v1.BackendService.RevokeRafikiGrant:output_type -> backend.v1.Empty
+	15,  // 262: backend.v1.BackendService.GetGatehubOnboardingWidget:output_type -> backend.v1.GatehubWidget
+	11,  // 263: backend.v1.BackendService.GetOnOffRampProvider:output_type -> backend.v1.GetOnOffRampProviderResponse
+	15,  // 264: backend.v1.BackendService.GetGatehubDepositWidget:output_type -> backend.v1.GatehubWidget
+	15,  // 265: backend.v1.BackendService.GetGatehubWithdrawalWidget:output_type -> backend.v1.GatehubWidget
+	10,  // 266: backend.v1.BackendService.CreateGatehubWithdrawal:output_type -> backend.v1.CreateGatehubWithdrawalResponse
+	7,   // 267: backend.v1.BackendService.SetChimoneyInterlocEmail:output_type -> backend.v1.ChimoneyInterlocEmail
+	7,   // 268: backend.v1.BackendService.GetChimoneyInterlocEmail:output_type -> backend.v1.ChimoneyInterlocEmail
+	1,   // 269: backend.v1.BackendService.CreateChimoneyWallet:output_type -> backend.v1.Empty
+	6,   // 270: backend.v1.BackendService.GetChimoneyDepositLink:output_type -> backend.v1.GetChimoneyDepositLinkResponse
+	1,   // 271: backend.v1.BackendService.CreateChimoneyDeposit:output_type -> backend.v1.Empty
+	169, // [169:272] is the sub-list for method output_type
+	66,  // [66:169] is the sub-list for method input_type
 	66,  // [66:66] is the sub-list for extension type_name
 	66,  // [66:66] is the sub-list for extension extendee
 	0,   // [0:66] is the sub-list for field type_name
@@ -10134,23 +10214,24 @@ func file_backend_v1_backend_proto_init() {
 		return
 	}
 	file_backend_v1_backend_proto_msgTypes[0].OneofWrappers = []any{}
-	file_backend_v1_backend_proto_msgTypes[48].OneofWrappers = []any{}
-	file_backend_v1_backend_proto_msgTypes[50].OneofWrappers = []any{}
-	file_backend_v1_backend_proto_msgTypes[74].OneofWrappers = []any{}
+	file_backend_v1_backend_proto_msgTypes[33].OneofWrappers = []any{}
+	file_backend_v1_backend_proto_msgTypes[49].OneofWrappers = []any{}
+	file_backend_v1_backend_proto_msgTypes[51].OneofWrappers = []any{}
 	file_backend_v1_backend_proto_msgTypes[75].OneofWrappers = []any{}
-	file_backend_v1_backend_proto_msgTypes[83].OneofWrappers = []any{}
-	file_backend_v1_backend_proto_msgTypes[95].OneofWrappers = []any{}
-	file_backend_v1_backend_proto_msgTypes[122].OneofWrappers = []any{}
-	file_backend_v1_backend_proto_msgTypes[126].OneofWrappers = []any{}
-	file_backend_v1_backend_proto_msgTypes[132].OneofWrappers = []any{}
+	file_backend_v1_backend_proto_msgTypes[76].OneofWrappers = []any{}
+	file_backend_v1_backend_proto_msgTypes[84].OneofWrappers = []any{}
+	file_backend_v1_backend_proto_msgTypes[96].OneofWrappers = []any{}
+	file_backend_v1_backend_proto_msgTypes[123].OneofWrappers = []any{}
+	file_backend_v1_backend_proto_msgTypes[127].OneofWrappers = []any{}
 	file_backend_v1_backend_proto_msgTypes[133].OneofWrappers = []any{}
+	file_backend_v1_backend_proto_msgTypes[134].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_backend_v1_backend_proto_rawDesc), len(file_backend_v1_backend_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   149,
+			NumMessages:   150,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

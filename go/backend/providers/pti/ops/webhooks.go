@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwe"
@@ -16,6 +17,9 @@ import (
 	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/slack"
 	"gitlab.com/fynbos/log"
+	"go.temporal.io/api/enums/v1"
+	"go.temporal.io/api/serviceerror"
+	"go.temporal.io/sdk/client"
 	"go.uber.org/zap"
 )
 
@@ -61,7 +65,7 @@ func Webhook(b Backends) (http.HandlerFunc, error) {
 		}
 
 		// hack: add header field if it's missing - otherwise jwe library will fail to parse the message
-		var result map[string]interface{}
+		var result map[string]any
 		err = json.Unmarshal(body, &result)
 		if err != nil {
 			log.Error("pti webhook: Failed to unmarshal payload", zap.Error(err))
@@ -118,9 +122,9 @@ func Webhook(b Backends) (http.HandlerFunc, error) {
 		case "USER_ASSESSMENT", "KYC":
 			err = HandleAssessmentUpdate(r.Context(), b, v)
 		case "TRANSACTION_STATUS":
-			log.Error("Unhandled pti transaction status webhook", zap.String("externalUserId", data.UserId), zap.String("requestId", data.RequestID))
+			HandlePtiDeposit(r.Context(), b, v, w)
 		case "TRANSACTION_ASSESSMENT":
-			log.Error("Unhandled pti transaction assessment webhook", zap.String("externalUserId", data.UserId), zap.String("requestId", data.RequestID))
+			err = HandleTransactionAssessmentUpdate(r.Context(), b, v)
 		default:
 			log.Error("Unknown pti webhook type", zap.String("externalUserId", data.UserId), zap.String("resourceType", data.ResourceType), zap.String("requestId", data.RequestID))
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -175,20 +179,174 @@ func HandleAssessmentUpdate(ctx context.Context, b Backends, data []byte) error 
 		return fmt.Errorf("%w %s", pti.ErrInternal, err)
 	}
 
-	if "ACCEPTED" == assessmentData.Assessment {
-		err = b.KYC().SetKYCStatus(ctx, ptiUser.WalletID, kyc.StatusLevel2)
-		if err != nil {
+	const (
+		pendingState           string = "PENDING"
+		acceptedState          string = "ACCEPTED"
+		refusedState           string = "REFUSED"
+		reviewState            string = "UNDER_REVIEW"
+		errorState             string = "ERROR"
+		requestedMoreInfoState string = "REQUESTED_MORE_INFORMATION"
+	)
+
+	switch assessmentData.Assessment {
+	case pendingState:
+		log.Info("got user in pending state")
+	case acceptedState:
+		if err := b.KYC().SetKYCStatus(ctx, ptiUser.WalletID, kyc.StatusLevel2); err != nil {
 			return fmt.Errorf("%w %s", pti.ErrInternal, err)
 		}
-	} else if "REFUSED" == assessmentData.Assessment {
-		err = b.KYC().SetKYCStatus(ctx, ptiUser.WalletID, kyc.StatusDenied)
-		if err != nil {
+	case refusedState:
+		if err := b.KYC().SetKYCStatus(ctx, ptiUser.WalletID, kyc.StatusDenied); err != nil {
 			return fmt.Errorf("%w %s", pti.ErrInternal, err)
 		}
-	} else {
+	case reviewState:
+		if err := b.KYC().SetKYCStatus(ctx, ptiUser.WalletID, kyc.StatusInReview); err != nil {
+			return fmt.Errorf("%w %s", pti.ErrInternal, err)
+		}
+	case errorState:
+		if err := b.KYC().SetKYCStatus(ctx, ptiUser.WalletID, kyc.StatusUnknown); err != nil {
+			return fmt.Errorf("%w %s", pti.ErrInternal, err)
+		}
+	case requestedMoreInfoState:
+		if err := b.KYC().SetKYCStatus(ctx, ptiUser.WalletID, kyc.StatusDocumentsRequired); err != nil {
+			return fmt.Errorf("%w %s", pti.ErrInternal, err)
+		}
+	default:
 		log.Error("failed to handle pti user assessment webhook", zap.String("externalUserId", assessmentData.UserId), zap.String("assessment_status", assessmentData.Assessment))
 		slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "Fynbot", fmt.Sprintf("fiant webhook: kyc assessment status=%s walletID=%s", assessmentData.Assessment, ptiUser.WalletID))
 	}
+
+	return nil
+}
+
+func HandlePtiDeposit(ctx context.Context, b Backends, raw json.RawMessage, w http.ResponseWriter) {
+	var payload pti.TransactionStatusPayload
+	err := json.Unmarshal(raw, &payload)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	const (
+		authorizedState  string = "AUTHORIZED"
+		refusedState     string = "REFUSED"
+		errorState       string = "ERROR"
+		pendingState     string = "PENDING"
+		processingState  string = "PROCESSING"
+		chargedBackState string = "CHARGED_BACK"
+		canceledState    string = "CANCELED"
+		refundedState    string = "REFUNDED"
+		capturedState    string = "CAPTURED"
+		settledState     string = "SETTLED"
+	)
+
+	switch payload.Status {
+	case authorizedState:
+		fmt.Println("got authorized transaction status")
+	case refusedState:
+		fmt.Println("got refused transaction status") // mark as transactions.StateOnHold
+	case errorState:
+		fmt.Println("got error transaction status") // mark as transactions.StateFailed
+	case pendingState, processingState:
+		fmt.Println("got pending/processing transaction status") // mark as transactions.StatePending
+		wo := client.StartWorkflowOptions{
+			ID:                    "pti_deposit_webhook_mark_transaction_pending" + payload.RequestID,
+			TaskQueue:             "backend",
+			WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+		}
+
+		var workflowStatus enums.WorkflowExecutionStatus
+		wflow, err := b.Temporal().DescribeWorkflowExecution(ctx, wo.ID, "")
+		switch err.(type) {
+		case *serviceerror.Internal,
+			*serviceerror.Unavailable,
+			*serviceerror.InvalidArgument:
+
+			log.Error("Failed to handle pti deposit webhook", zap.Error(err))
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		case *serviceerror.NotFound:
+			// do nothing
+		default:
+			if wflow != nil {
+				workflowStatus = wflow.GetWorkflowExecutionInfo().Status
+			}
+		}
+
+		// execute workflow if it's not running
+		if workflowStatus != enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
+			_, err = b.Temporal().ExecuteWorkflow(ctx, wo, PendingDepositWrokflow, payload)
+			if err != nil {
+				log.Error("Failed to handle pti deposit webhook", zap.Error(err))
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+		}
+
+		w.WriteHeader(http.StatusOK)
+
+	case chargedBackState:
+		fmt.Println("got charged back transaction status") // ask this for later
+	case canceledState:
+		fmt.Println("got canceled transaction status") // mark as transactions.
+	case refundedState:
+		fmt.Println("got refunded transaction status") // after chargeback assumed
+	case capturedState:
+		fmt.Println("got captured transaction status") // ask this for later
+	case settledState:
+		fmt.Println("got settled transaction status")
+
+		wo := client.StartWorkflowOptions{
+			ID:                    "pti_deposit_webhook_" + payload.RequestID,
+			TaskQueue:             "backend",
+			WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+		}
+
+		var workflowStatus enums.WorkflowExecutionStatus
+		wflow, err := b.Temporal().DescribeWorkflowExecution(ctx, wo.ID, "")
+		switch err.(type) {
+		case *serviceerror.Internal,
+			*serviceerror.Unavailable,
+			*serviceerror.InvalidArgument:
+
+			log.Error("Failed to handle pti deposit webhook", zap.Error(err))
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		case *serviceerror.NotFound:
+			// do nothing
+		default:
+			if wflow != nil {
+				workflowStatus = wflow.GetWorkflowExecutionInfo().Status
+			}
+		}
+
+		// execute workflow if it's not running
+		if workflowStatus != enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
+			_, err = b.Temporal().ExecuteWorkflow(ctx, wo, SettleDepositWrokflow, payload)
+			if err != nil {
+				log.Error("Failed to handle pti deposit webhook", zap.Error(err))
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+		}
+
+		w.WriteHeader(http.StatusOK)
+
+	default:
+		log.Error("failed to handle pti transaction status webhook", zap.String("externalUserId", payload.UserID), zap.String("status", payload.Status), zap.String("requestId", payload.RequestID))
+		slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "Fynbot", fmt.Sprintf("fiant webhook: transaction status=%s walletID=%s", payload.Status, payload.UserID))
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func HandleTransactionAssessmentUpdate(ctx context.Context, b Backends, data []byte) error {
+	var payload TransactionAssessmentPayload
+	if err := json.Unmarshal(data, &payload); err != nil {
+		return err
+	}
+
+	fmt.Printf("transaction assessment status: %s\n", payload.Assessment)
 
 	return nil
 }
@@ -215,5 +373,17 @@ type AssessmentWebhook struct {
 	RequestID    string `json:"requestId"`
 	UserId       string `json:"userId"`
 	Assessment   string `json:"assessment"`
-	Tier         string `json:"tier"`
+	Tier         *int   `json:"tier"`
+}
+
+type TransactionAssessmentPayload struct {
+	ResourceType    string    `json:"resourceType"`
+	RequestID       string    `json:"requestId"`
+	ClientID        string    `json:"clientId"`
+	Amount          int       `json:"amount"`
+	Risk            string    `json:"risk"`
+	TransactionType string    `json:"transactionType"`
+	Assessment      string    `json:"assessment"`
+	UserID          string    `json:"userId"`
+	Date            time.Time `json:"date"`
 }

@@ -2,6 +2,7 @@ package ops
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"gitlab.com/fynbos/backend/country"
@@ -9,7 +10,9 @@ import (
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/providers/pti/external"
+	"gitlab.com/fynbos/backend/transactions"
 
+	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
 
@@ -154,4 +157,108 @@ func CreatePtiBankAccountWorkflow(ctx workflow.Context, args pti.CreateBankAccou
 	}
 
 	return &linkedAccount, nil
+}
+
+func SettleDepositWrokflow(ctx workflow.Context, wh pti.TransactionStatusPayload) (string, error) {
+	var a *Activity
+
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Second,
+	}
+
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	logger := workflow.GetLogger(ctx)
+	logger.Info("Creating pti deposit.")
+
+	cc := currency.ParseCurrency(wh.Currency)
+	if cc != currency.USD {
+		return "", temporal.NewNonRetryableApplicationError("Invalid currency", "ErrInternal", fmt.Errorf("%w invalid currency", pti.ErrInternal))
+	}
+
+	strAmount := strconv.Itoa(wh.Amount)
+	value, err := currency.StringToScaledUInt(strAmount)
+	if err != nil {
+		return "", temporal.NewNonRetryableApplicationError("Invalid amount", "ErrInternal", fmt.Errorf("%w invalid amount", pti.ErrInternal))
+	}
+
+	amt := currency.Amount{
+		Value:    value,
+		Currency: cc,
+		Scale:    2,
+	}
+
+	var walletID string
+	err = workflow.ExecuteActivity(ctx, a.GetWalletFromPTIUser, wh.UserID).Get(ctx, &walletID)
+	if err != nil {
+		return "", err
+	}
+
+	var txID string
+	err = workflow.ExecuteActivity(ctx, a.SettleTransaction, wh.RequestID, walletID, amt).Get(ctx, &txID)
+	if err != nil {
+		return "", err
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.FinalizePTIDeposit, txID, walletID, amt).Get(ctx, nil)
+	if err != nil {
+		return "", err
+	}
+
+	return txID, nil
+}
+
+func PendingDepositWrokflow(ctx workflow.Context, wh pti.TransactionStatusPayload) error {
+	var a *Activity
+
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Second,
+	}
+
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	var walletID string
+	if err := workflow.ExecuteActivity(ctx, a.GetWalletFromPTIUser, wh.UserID).Get(ctx, &walletID); err != nil {
+		return err
+	}
+
+	if err := workflow.ExecuteActivity(ctx, a.MarkTransactionPending, wh.RequestID, walletID).Get(ctx, nil); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func DepositWorkflow(ctx workflow.Context, la *linkedaccounts.LinkedAccount, amount currency.Amount, note string) error {
+	var a *Activity
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Second,
+	}
+
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	var transaction transactions.Transaction
+	err := workflow.ExecuteActivity(ctx, a.CreateTransaction, la, amount, note).Get(ctx, &transaction)
+	if err != nil {
+		return err
+	}
+
+	pitArgs := pti.TransactionArgs{
+		PaymentID:       transaction.ID,
+		WalletID:        la.WalletID,
+		Amount:          amount,
+		LinkedAccountID: la.ID,
+	}
+	var externalTxID string
+	err = workflow.ExecuteActivity(ctx, a.PTIDeposit, la, transaction.ID, pitArgs).Get(ctx, &externalTxID)
+	if err != nil {
+		return err
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.UpdateTransaction, transaction, externalTxID).Get(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

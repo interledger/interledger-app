@@ -728,36 +728,7 @@ func ptiPayOut(ctx, accountsCtx workflow.Context, a *Activity, ptiA *pti_ops.Act
 	}
 
 	var externalTxID string
-	if pt == payments.TypeDeposit {
-		err = workflow.ExecuteActivity(ctx, a.PTIDeposit, paymentID).Get(ctx, &externalTxID)
-		var applicationError *temporal.ApplicationError
-		// PTI lets us know they need more user info through 422 errors
-		if errors.As(err, &applicationError) && applicationError.Type() == "ErrUnprocessableEntity" {
-			innerErr := workflow.ExecuteActivity(ctx, ptiA.StartUserAssessment, walletID, pti.ScenarioDeposit).Get(ctx, nil)
-			if innerErr != nil {
-				return "", false, innerErr
-			}
-
-			innerErr = workflow.ExecuteActivity(ctx, ptiA.CheckUserAssessmentAccepted, walletID).Get(ctx, nil)
-			if innerErr != nil {
-				return "", false, innerErr
-			}
-
-			// now retry transfer
-			innerErr = workflow.ExecuteActivity(ctx, a.PTIDeposit, paymentID).Get(ctx, &externalTxID)
-			if innerErr != nil {
-				return "", false, err
-			}
-		} else if err != nil {
-			return "", false, err
-		}
-
-		// Mark deposit as completed, pay in was successful
-		err = workflow.ExecuteActivity(ctx, a.PTIDepositComplete, paymentID, externalTxID, true).Get(ctx, nil)
-		if err != nil {
-			return "", false, err
-		}
-	} else if pt == payments.TypePeer2Peer || pt == payments.TypeWebMonetization {
+	if pt == payments.TypePeer2Peer || pt == payments.TypeWebMonetization {
 		var ptiTrx external.TransactionStatus
 		err = workflow.ExecuteActivity(accountsCtx, ptiA.GetPTITransactionByPaymentID, paymentID).Get(ctx, &ptiTrx)
 		if err != nil {

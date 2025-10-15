@@ -30,6 +30,8 @@ func (s *rpcService) GetOnOffRampProvider(ctx context.Context, req *pb.Empty) (*
 		provider = "gatehub"
 	} else if country.CA == w.Country {
 		provider = "chimoney"
+	} else if country.US == w.Country {
+		provider = pti.ProviderName
 	}
 
 	return &pb.GetOnOffRampProviderResponse{
@@ -136,4 +138,55 @@ func (s *rpcService) GetLinkedAccountsForDeposit(ctx context.Context, req *pb.Ge
 	return &pb.GetLinkedAccountsForPaymentResponse{
 		LinkedAccounts: las,
 	}, nil
+}
+
+func (s *rpcService) PTICreateDeposit(ctx context.Context, req *pb.PTICreateDepositRequest) (*pb.Empty, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil && !errors.Is(err, user.ErrNoUserFound) {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	w, err := s.b.Wallets().ForContext(ctx)
+	if err != nil && !errors.Is(err, user.ErrNoUserFound) {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	toLA, err := s.b.LinkedAccounts().Get(ctx, req.LinkedAccount)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+	if toLA.WalletID != w.ID {
+		return nil, NotFoundError("to linked account not found")
+	}
+
+	intValue, err := currency.StringToScaledUInt(req.Amount)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	amount := currency.Amount{
+		Value:    intValue,
+		Currency: currency.USD,
+		Scale:    2,
+	}
+
+	// check that does not exceed kyc limits.
+	exceedsLimits, limitType, err := s.b.Limits().ExceedsKYCLimits(ctx, w.ID, currency.FromUInt64(0, amount.Currency))
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+	if exceedsLimits {
+		var description string
+		switch limitType {
+		case limits.LimitTypeYearly:
+			description = "Exceeds yearly limit."
+		default:
+			description = "Exceeds account limit."
+		}
+		return nil, NewValidationError("amount", description)
+	}
+
+	s.b.PTI().CreateDeposit(ctx, toLA, amount, *req.Note)
+
+	return &pb.Empty{}, nil
 }

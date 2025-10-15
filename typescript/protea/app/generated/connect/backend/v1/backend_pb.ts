@@ -1494,6 +1494,61 @@ export class PtiBalance extends Message<PtiBalance> {
 }
 
 /**
+ * @generated from message backend.v1.PTICreateDepositRequest
+ */
+export class PTICreateDepositRequest extends Message<PTICreateDepositRequest> {
+  /**
+   * @generated from field: string linkedAccount = 1;
+   */
+  linkedAccount = "";
+
+  /**
+   * @generated from field: string amount = 2;
+   */
+  amount = "";
+
+  /**
+   * @generated from field: optional string note = 3;
+   */
+  note?: string;
+
+  /**
+   * @generated from field: optional string ipAddress = 4;
+   */
+  ipAddress?: string;
+
+  constructor(data?: PartialMessage<PTICreateDepositRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.PTICreateDepositRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "linkedAccount", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "amount", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "note", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 4, name: "ipAddress", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PTICreateDepositRequest {
+    return new PTICreateDepositRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PTICreateDepositRequest {
+    return new PTICreateDepositRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PTICreateDepositRequest {
+    return new PTICreateDepositRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PTICreateDepositRequest | PlainMessage<PTICreateDepositRequest> | undefined, b: PTICreateDepositRequest | PlainMessage<PTICreateDepositRequest> | undefined): boolean {
+    return proto3.util.equals(PTICreateDepositRequest, a, b);
+  }
+}
+
+/**
  * @generated from message backend.v1.GetXagoBalanceResponse
  */
 export class GetXagoBalanceResponse extends Message<GetXagoBalanceResponse> {

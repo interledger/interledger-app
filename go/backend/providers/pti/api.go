@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"gitlab.com/fynbos/backend/currency"
+	"gitlab.com/fynbos/backend/linkedaccounts"
 )
 
 type Client interface {
@@ -27,4 +28,5 @@ type Client interface {
 	CreateCard(ctx context.Context, walletID, tokenID string) (Await, error)
 	GetLinkedAccountCardDetails(ctx context.Context, id string) (*EncryptedCreditCardPaymentInformation, error)
 	CreateBankAccount(ctx context.Context, args CreateBankAccountArgs) (Await, error)
+	CreateDeposit(ctx context.Context, la *linkedaccounts.LinkedAccount, amount currency.Amount, note string) error
 }

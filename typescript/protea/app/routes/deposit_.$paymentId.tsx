@@ -153,31 +153,45 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
   const clientIpAddress = getClientIP(request)
 
-  let response = await grpc.updatePayment(request, {
-    id: params.paymentId,
-    ipAddress: clientIpAddress
-  })
-  if (isConnectError(response)) {
-    if (isTwilioCodeError(response)) {
-      return response.error(
-        { errors },
-        {
-          otp: TwillioErrorMapper.otp
-        },
-        { action: 'Contact support', message: ErrorDescriptions.INVALID_OTP }
-      )
+  if (params.paymentId === 'confirm') {
+    const amount = String(form.get('depositAmount') || '')
+    const linkedAccount = form.get('toLinkedAccount') as string
+    const note = form.get('note') as string
+
+    let response = await grpc.pTICreateDeposit(request, {
+      linkedAccount,
+      amount,
+      note,
+      ipAddress: clientIpAddress
+    })
+
+  } else {
+    let response = await grpc.updatePayment(request, {
+      id: params.paymentId,
+      ipAddress: clientIpAddress
+    })
+    if (isConnectError(response)) {
+      if (isTwilioCodeError(response)) {
+        return response.error(
+          { errors },
+          {
+            otp: TwillioErrorMapper.otp
+          },
+          { action: 'Contact support', message: ErrorDescriptions.INVALID_OTP }
+        )
+      }
+      return response.error({ errors }, {}, { action: 'Contact support' })
     }
-    return response.error({ errors }, {}, { action: 'Contact support' })
+
+    response = await grpc.confirmPayment(request, {
+      id: params.paymentId
+    })
+    if (isConnectError(response)) {
+      return response.error({ errors }, {}, { action: 'Contact support' })
+    }
   }
 
-  response = await grpc.confirmPayment(request, {
-    id: params.paymentId
-  })
-  if (isConnectError(response)) {
-    return response.error({ errors }, {}, { action: 'Contact support' })
-  }
-
-  return redirectWithSnackbar(request, route('/'), {
+    return redirectWithSnackbar(request, route('/'), {
     message: 'Deposit created successfully.',
     icon: 'close'
   })

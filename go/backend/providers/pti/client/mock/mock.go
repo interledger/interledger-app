@@ -11,6 +11,7 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 	currency "gitlab.com/fynbos/backend/currency"
+	"gitlab.com/fynbos/backend/linkedaccounts"
 	pti "gitlab.com/fynbos/backend/providers/pti"
 )
 
@@ -271,4 +272,17 @@ func (m *MockClient) WithdrawalFromWallet(ctx context.Context, args pti.Transact
 func (mr *MockClientMockRecorder) WithdrawalFromWallet(ctx, args interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithdrawalFromWallet", reflect.TypeOf((*MockClient)(nil).WithdrawalFromWallet), ctx, args)
+}
+
+func (m *MockClient) CreateDeposit(ctx context.Context, la *linkedaccounts.LinkedAccount, amount currency.Amount, note string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateDeposit", ctx, la, amount, note)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// WithdrawalFromWallet indicates an expected call of WithdrawalFromWallet.
+func (mr *MockClientMockRecorder) CreateDeposit(ctx, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateDeposit", reflect.TypeOf((*MockClient)(nil).WithdrawalFromWallet), ctx, args)
 }

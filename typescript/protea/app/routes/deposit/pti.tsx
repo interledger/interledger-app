@@ -1,0 +1,378 @@
+import { Code } from '@bufbuild/connect'
+import type {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  SerializeFrom
+} from '@remix-run/node'
+import { json, redirect } from '@remix-run/node'
+import {
+  Form,
+  useActionData,
+  useLoaderData,
+  useRouteLoaderData,
+  useSearchParams
+} from '@remix-run/react'
+import type { ChangeEventHandler } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { route } from 'routes-gen'
+import {
+  Alert,
+  AlertBody,
+  AlertContent,
+  AlertTitle,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardIcon,
+  CardTitle,
+  Icon,
+  Router,
+  Select,
+  TextField
+} from '~/components'
+import type { FormattedLinkedAccount } from '~/data/accounts.server'
+import {
+  getBalancesForTransfer,
+  getLinkedAccountsForDeposit
+} from '~/data/accounts.server'
+import type {
+  Balance,
+  XagoDepositDetails
+} from '~/generated/connect/backend/v1/backend_pb'
+import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
+import { isConnectError } from '~/lib/error.server'
+import { grpc } from '~/lib/grpc.server'
+// import { redirectWithSnackbar } from '~/lib/snackbar.server'
+import { useScaffoldStore } from '~/lib/useScaffoldStore'
+import type { loader as rootLoader } from '~/root'
+import { PaySelect } from '../pay_.$paymentId/PaySelect'
+import { getClientIP } from '~/lib/ip.server'
+import { redirectWithSnackbar } from '~/lib/snackbar.server'
+
+export async function ptiDepositLoader({ request }: LoaderFunctionArgs) {
+  const url = new URL(request.url)
+  let balanceAccount: Balance | undefined
+  let balance: FormattedLinkedAccount | undefined
+  let depositDetails: XagoDepositDetails | undefined
+
+  const balanceResponse = await grpc.getBalances(request, {})
+  if (isConnectError(balanceResponse)) throw balanceResponse.error
+
+  const balances = await getBalancesForTransfer(request)
+
+  const linkedAccount = url.searchParams.get('linkedAccount')
+
+  if (linkedAccount) {
+    balanceAccount = balanceResponse.balances.find(
+      (acc) => acc.linkedAccount == linkedAccount
+    )
+  } else {
+    balanceAccount = balanceResponse.balances[0]
+  }
+  balance = balances.find((acc) => acc.id == balanceAccount?.linkedAccount)
+  if (
+    !balanceAccount ||
+    typeof balanceAccount == 'undefined' ||
+    !balance ||
+    typeof balance == 'undefined'
+  )
+    throw json({}, { status: 404 })
+
+  const linkedAccounts = await getLinkedAccountsForDeposit(
+    request,
+    balanceAccount.linkedAccount
+  )
+
+  return jsonWithCSRF(request, {
+    provider: 'pti',
+    balanceAccount,
+    balance,
+    balances,
+    linkedAccounts,
+    depositDetails
+  })
+}
+
+export function PTIDepositPage() {
+  const { depositDetails } = useLoaderData<typeof ptiDepositLoader>()
+
+  const [setLoading] = useScaffoldStore((state) => [state.setLoading])
+
+  useEffect(() => {
+    // This ensures that loading is false when this route is unmounted.
+    return () => {
+      setLoading(false)
+    }
+  }, [setLoading])
+
+  if (depositDetails) return <DepositDetails />
+
+  return <Amount />
+}
+
+const Amount = () => {
+  const { balance, balances, balanceAccount, linkedAccounts, csrfToken } =
+    useLoaderData<typeof ptiDepositLoader>()
+  const [, setSearchParams] = useSearchParams()
+  const actionData = useActionData<typeof PTIDepositAction>()
+
+  const [amount, setAmount] = useState<string>('')
+
+  const [linkedAccount, setLinkedAccount] = useState<FormattedLinkedAccount>(
+    linkedAccounts[0]
+  )
+
+  const _onChangeDepositAmount = useCallback<
+    ChangeEventHandler<HTMLInputElement>
+  >((event) => {
+    setAmount(event.target.value)
+  }, [])
+
+  const _onChangeLinkedAccount = useCallback(
+    (linkedAccount: FormattedLinkedAccount) => {
+      setSearchParams(
+        (prev) => {
+          prev.set('linkedAccount', linkedAccount.id)
+          return prev
+        },
+        { replace: true }
+      )
+    },
+    [setSearchParams]
+  )
+
+  // TODO Need to make this dynamic based on jurisdiction capabilities
+  if (linkedAccounts.length === 0)
+    return (
+      <Card>
+        <CardContent>
+          <div className='flex items-start space-x-4'>
+            <CardIcon>
+              <Icon>account_balance</Icon>
+            </CardIcon>
+            <div className='flex flex-col space-y-4'>
+              <p className='text-sm text-medium'>
+                To deposit from your balance, first connect a bank account.
+              </p>
+              <Router
+                prefetch='render'
+                className='text-sm font-medium text-primary'
+                to={route('/accounts')}
+              >
+                Go to accounts page
+              </Router>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    )
+
+  return (
+    <>
+      <Form
+        id='account-deposit'
+        action={route('/deposit')}
+        method='post'
+        className='hidden'
+      />
+      <input
+        form='account-deposit'
+        value={csrfToken}
+        name='csrfToken'
+        type='hidden'
+      />
+      <input
+        form='account-deposit'
+        value={linkedAccount.id}
+        name='fromLinkedAccount'
+        type='hidden'
+      />
+      <input
+        form='account-deposit'
+        value={balanceAccount.linkedAccount}
+        name='toLinkedAccount'
+        type='hidden'
+      />
+      <input
+        name='formName'
+        value='pti-deposit'
+        type='hidden'
+        form='account-deposit'
+      />
+      <Card>
+        <Select
+          id='bank'
+          label='Deposit to'
+          value={balance}
+          options={balances}
+          onChange={_onChangeLinkedAccount}
+        />
+      </Card>
+      <Card>
+        <PaySelect
+          id='depositAmount'
+          label='Deposit amount'
+          name='depositAmount'
+          form='account-deposit'
+          value={amount}
+          onChange={_onChangeDepositAmount}
+          linkedAccount={linkedAccount}
+          linkedAccountOptions={linkedAccounts || []}
+          onChangeLinkedAccount={setLinkedAccount}
+          placeholder='0.00'
+          prefixIcon={
+            <div
+              className={`flag:${linkedAccount.receiveCurrencyCountryCode}`}
+            />
+          }
+          type='number'
+          min='0'
+          step='0.01'
+        />
+        <CardContent className='mt-2 flex flex-col gap-y-4'>
+          <div className='flex flex-col gap-y-1'>
+            <div className='flex w-full justify-between'>
+              <span className='text-weak'>Fees</span>
+              <span className='text-medium'>0.00</span>
+            </div>
+            <span className='text-xs text-weak'>
+              For a limited time, the Interledger Wallet will absorb all fees.
+            </span>
+          </div>
+        </CardContent>
+      </Card>
+      <Card>
+        <TextField
+          id='note'
+          label='Deposit note'
+          name='note'
+          form='account-deposit'
+          type='text'
+        />
+      </Card>
+      <Button type='submit' form='account-deposit'>
+        Continue
+      </Button>
+    </>
+  )
+}
+
+export function DepositDetails() {
+  const { depositDetails, csrfToken } =
+    useLoaderData<typeof ptiDepositLoader>()
+  const { env } = useRouteLoaderData('root') as SerializeFrom<typeof rootLoader>
+
+  return (
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>EFT details</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <span className='mt-4'>Arrives 1-2 business days.</span>
+          <div className='mt-4 flex w-full flex-col justify-between space-y-1'>
+            <span className='text-weak'>Bank</span>
+            <span className='text-medium'>{depositDetails?.bankName}</span>
+          </div>
+          <div className='mt-4 flex w-full flex-col space-y-1'>
+            <span className='text-weak'>Branch code</span>
+            <span className='text-medium'>{depositDetails?.branchCode}</span>
+          </div>
+          <div className='mt-4 flex w-full flex-col space-y-1'>
+            <span className='text-weak'>Account number</span>
+            <span className='text-medium'>{depositDetails?.accountNumber}</span>
+          </div>
+          <div className='mt-4 flex w-full flex-col space-y-1'>
+            <span className='text-weak'>Reference</span>
+            <span className='text-medium'>
+              {depositDetails?.depositReference}
+            </span>
+          </div>
+        </CardContent>
+      </Card>
+      <Alert>
+        <Icon>error</Icon>
+        <AlertContent className='items-start'>
+          <AlertTitle>Important</AlertTitle>
+          <AlertBody>
+            Use the reference above when depositing for secure and faster
+            processing.
+          </AlertBody>
+        </AlertContent>
+      </Alert>
+    </>
+  )
+}
+
+export function stringToBigInt(amount: string) {
+  if (amount == '') return BigInt(0)
+  const dotIndex = amount.lastIndexOf('.')
+  if (dotIndex > -1) {
+    const amounts = amount.split('.')
+    return BigInt(amounts[0] + amounts[1].slice(0, 2).padEnd(2, '0'))
+  }
+  return BigInt(parseFloat(amount) * 100)
+}
+
+export async function PTIDepositAction({ request }: ActionFunctionArgs) {
+  const form = await request.formData()
+  const amount = String(form.get('depositAmount') || '')
+  // const linkedAccount = form.get('toLinkedAccount') as string
+  const linkedAccount = form.get('fromLinkedAccount') as string
+  const note = form.get('note') as string
+  const clientIpAddress = getClientIP(request)
+
+  await validateCSRFToken(request, form)
+
+  // TODO This needs a mapping
+  const errors = {
+    form: '',
+    depositAmount: '',
+    toLinkedAccount: '',
+    note: ''
+  }
+
+  let response = await grpc.pTICreateDeposit(request, {
+    linkedAccount,
+    amount,
+    note,
+    ipAddress: clientIpAddress
+  })
+  
+
+
+  if (isConnectError(response)) {
+    if (response.code == Code.InvalidArgument) {
+      return response.error({ errors })
+    }
+    if (
+      response.code == Code.FailedPrecondition &&
+      response.violations.findIndex(
+        (violation) =>
+          violation.type === 'Payment' &&
+          violation.subject === 'insufficientFunds'
+      ) > -1
+    ) {
+      return response.error({
+        errors: {
+          ...errors,
+          depositAmount: 'You have insufficient funds available.'
+        }
+      })
+    }
+    errors.form = 'Failed to create deposital.'
+    return response.error(
+      { errors },
+      {},
+      {
+        action: 'Contact support'
+      }
+    )
+  }
+
+  return redirectWithSnackbar(request, route('/'), {
+    message: 'Deposit created successfully.',
+    icon: 'close'
+  })
+}

@@ -2,23 +2,18 @@ package client
 
 import (
 	"context"
-	"crypto/rand"
-	"crypto/rsa"
+	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
-	"github.com/lestrrat-go/jwx/v2/jwk"
+	"github.com/lestrrat-go/jwx/v3/jwk"
 
 	"gitlab.com/fynbos/backend/currency"
-	httplogger "gitlab.com/fynbos/backend/providers/http"
+	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/providers/pti/external"
-	external_mock "gitlab.com/fynbos/backend/providers/pti/external/mock"
 	"gitlab.com/fynbos/backend/providers/pti/ops"
-	"gitlab.com/fynbos/env"
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 var _ pti.Client = &Client{}
@@ -29,44 +24,18 @@ type Client struct {
 }
 
 func New(b ops.Backends) *Client {
-	var ptiPrivateKey jwk.Key
-	var err error
-	var ptiExternal external.Client
-	if env.IsTest() {
-		ptiExternal = external_mock.SetupDevMock(nil)
-	} else if env.IsLocal() {
-		privateKey, err := rsa.GenerateKey(rand.Reader, 4096)
-		if err != nil {
-			log.Fatalln(err)
-		}
-
-		ptiPrivateKey, err = jwk.FromRaw(privateKey)
-		if err != nil {
-			log.Fatalln(err)
-		}
-		ptiExternal = external.New(external.ClientArgs{
-			Transport: &http.Client{
-				Transport: otelhttp.NewTransport(
-					httplogger.NewTransport(http.DefaultTransport, b, nil),
-				),
-			},
-			ClientID:   "LOCAL",
-			PrivateKey: ptiPrivateKey,
-		})
-	} else {
-		ptiPrivateKey, err = jwk.ParseKey([]byte(os.Getenv("PTI_JWK")))
-		if err != nil {
-			log.Fatalln(err)
-		}
-		ptiExternal = external.New(external.ClientArgs{
-			Transport: &http.Client{
-				Transport: otelhttp.NewTransport(
-					httplogger.NewTransport(http.DefaultTransport, b, nil),
-				),
-			},
-			ClientID:   os.Getenv("PTI_CLIENT_ID"),
-			PrivateKey: ptiPrivateKey,
-		})
+	ptiPrivateKey, err := jwk.ParseKey([]byte(os.Getenv("PTI_JWK")))
+	if err != nil {
+		log.Fatalln(err)
+	}
+	ptiExternal, err := external.NewWithOptions(
+		external.WithBaseURL(os.Getenv("PTI_BASE_URL")),
+		external.WithOTELLHTTPClient(),
+		external.WithClientID(os.Getenv("PTI_CLIENT_ID")),
+		external.WithDerivedKeys(ptiPrivateKey),
+	)
+	if err != nil {
+		log.Fatalln(fmt.Errorf("%w Failed to create PTI external client: %s", pti.ErrInternal, err))
 	}
 
 	return &Client{b: b, external: ptiExternal}
@@ -139,4 +108,8 @@ func (c Client) GetLinkedAccountCardDetails(ctx context.Context, id string) (*pt
 
 func (c Client) CreateBankAccount(ctx context.Context, args pti.CreateBankAccountArgs) (pti.Await, error) {
 	return ops.CreateBankAccount(ctx, c.b, args)
+}
+
+func (c Client) CreateDeposit(ctx context.Context, la *linkedaccounts.LinkedAccount, amount currency.Amount, note string) error {
+	return ops.CreateDeposit(ctx, c.b, la, amount, note)
 }

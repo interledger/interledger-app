@@ -489,6 +489,27 @@ export interface PtiBalance {
     formattedAvailableBalance: string;
 }
 /**
+ * @generated from protobuf message backend.v1.PTICreateDepositRequest
+ */
+export interface PTICreateDepositRequest {
+    /**
+     * @generated from protobuf field: string linkedAccount = 1;
+     */
+    linkedAccount: string;
+    /**
+     * @generated from protobuf field: string amount = 2;
+     */
+    amount: string;
+    /**
+     * @generated from protobuf field: optional string note = 3;
+     */
+    note?: string;
+    /**
+     * @generated from protobuf field: optional string ipAddress = 4;
+     */
+    ipAddress?: string;
+}
+/**
  * @generated from protobuf message backend.v1.GetXagoBalanceResponse
  */
 export interface GetXagoBalanceResponse {
@@ -4351,6 +4372,74 @@ class PtiBalance$Type extends MessageType<PtiBalance> {
  * @generated MessageType for protobuf message backend.v1.PtiBalance
  */
 export const PtiBalance = new PtiBalance$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class PTICreateDepositRequest$Type extends MessageType<PTICreateDepositRequest> {
+    constructor() {
+        super("backend.v1.PTICreateDepositRequest", [
+            { no: 1, name: "linkedAccount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "amount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "note", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "ipAddress", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<PTICreateDepositRequest>): PTICreateDepositRequest {
+        const message = { linkedAccount: "", amount: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<PTICreateDepositRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: PTICreateDepositRequest): PTICreateDepositRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string linkedAccount */ 1:
+                    message.linkedAccount = reader.string();
+                    break;
+                case /* string amount */ 2:
+                    message.amount = reader.string();
+                    break;
+                case /* optional string note */ 3:
+                    message.note = reader.string();
+                    break;
+                case /* optional string ipAddress */ 4:
+                    message.ipAddress = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: PTICreateDepositRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string linkedAccount = 1; */
+        if (message.linkedAccount !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.linkedAccount);
+        /* string amount = 2; */
+        if (message.amount !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.amount);
+        /* optional string note = 3; */
+        if (message.note !== undefined)
+            writer.tag(3, WireType.LengthDelimited).string(message.note);
+        /* optional string ipAddress = 4; */
+        if (message.ipAddress !== undefined)
+            writer.tag(4, WireType.LengthDelimited).string(message.ipAddress);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.PTICreateDepositRequest
+ */
+export const PTICreateDepositRequest = new PTICreateDepositRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class GetXagoBalanceResponse$Type extends MessageType<GetXagoBalanceResponse> {
     constructor() {
@@ -11570,6 +11659,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "CreatePtiToken", options: {}, I: PtiTokenRequest, O: PtiTokenResponse },
     { name: "CreateCard", options: {}, I: CreateCardRequest, O: LinkedAccount },
     { name: "CreatePtiBankAccount", options: {}, I: CreatePtiBankAccountRequest, O: LinkedAccount },
+    { name: "PTICreateDeposit", options: {}, I: PTICreateDepositRequest, O: Empty },
     { name: "ListRafikiGrants", options: {}, I: Empty, O: ListRafikiGrantsResponse },
     { name: "GetRafikiGrant", options: {}, I: GetRafikiGrantRequest, O: RafikiGrant },
     { name: "RevokeRafikiGrant", options: {}, I: RevokeRafikiGrantRequest, O: Empty },

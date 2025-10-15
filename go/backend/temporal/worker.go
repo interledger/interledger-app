@@ -1,12 +1,9 @@
 package temporal
 
 import (
-	"crypto/rand"
-	"crypto/rsa"
 	"os"
 
-	"github.com/lestrrat-go/jwx/v2/jwk"
-	"gitlab.com/fynbos/env"
+	"github.com/lestrrat-go/jwx/v3/jwk"
 	"gitlab.com/fynbos/log"
 
 	"gitlab.com/fynbos/backend/identities/platforms"
@@ -81,23 +78,29 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 
 	xago_workflows.StartDepositsPolling(b)
 
+	// PTI
+	w.RegisterWorkflow(pti_workflows.DepositWorkflow)
+	w.RegisterWorkflow(pti_workflows.SettleDepositWrokflow)
+	w.RegisterWorkflow(pti_workflows.PendingDepositWrokflow)
+
 	var ptiPrivateKey jwk.Key
-	if env.IsLocal() {
-		privateKey, err := rsa.GenerateKey(rand.Reader, 4096)
-		if err != nil {
-			log.Fatalln(err)
-		}
-		ptiPrivateKey, err = jwk.FromRaw(privateKey)
-		if err != nil {
-			log.Fatalln(err)
-		}
-	} else {
-		var err error
-		ptiPrivateKey, err = jwk.ParseKey([]byte(os.Getenv("PTI_JWK")))
-		if err != nil {
-			log.Fatalln(err)
-		}
+	// if env.IsLocal() {
+	// 	privateKey, err := rsa.GenerateKey(rand.Reader, 4096)
+	// 	if err != nil {
+	// 		log.Fatalln(err)
+	// 	}
+	// 	// ptiPrivateKey, err = jwk.FromRaw(privateKey)
+	// 	ptiPrivateKey, err = jwk.Import(privateKey)
+	// 	if err != nil {
+	// 		log.Fatalln(err)
+	// 	}
+	// } else {
+	var err error
+	ptiPrivateKey, err = jwk.ParseKey([]byte(os.Getenv("PTI_JWK")))
+	if err != nil {
+		log.Fatalln(err)
 	}
+
 	w.RegisterActivity(pti_workflows.NewActivity(b, ptiPrivateKey))
 	w.RegisterWorkflow(pti_workflows.CreateWalletWorkflow)
 

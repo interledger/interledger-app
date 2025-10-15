@@ -110,8 +110,8 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		res.SendEnabled = true
 		res.LinkedAccEnabled = true
 
-		res.BanksEnabled = false
-		res.CardsEnabled = true
+		res.BanksEnabled = true
+		res.CardsEnabled = false // todo(bradu): talk with pti for cards
 		res.AddCardsEnabled = false
 		res.ManageWalletCardsEnabled = false
 		// it enables the feature by default for sandbox / dev

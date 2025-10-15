@@ -10,6 +10,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	"gitlab.com/fynbos/backend/payments"
 	external "gitlab.com/fynbos/backend/providers/pti/external"
 )
 
@@ -319,4 +320,17 @@ func (m *MockClient) WalletWithdrawal(ctx context.Context, args external.Withdra
 func (mr *MockClientMockRecorder) WalletWithdrawal(ctx, args interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WalletWithdrawal", reflect.TypeOf((*MockClient)(nil).WalletWithdrawal), ctx, args)
+}
+
+func (m *MockClient) PTIDeposit(ctx context.Context, id string) (*payments.Payment, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PTIDeposit", ctx, id)
+	ret0, _ := ret[0].(*payments.Payment)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (mr *MockClientMockRecorder) PTIDeposit(ctx, id, identity interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PTIDeposit", reflect.TypeOf((*MockClient)(nil).PTIDeposit), ctx, id, identity)
 }

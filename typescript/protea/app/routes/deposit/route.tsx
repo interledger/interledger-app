@@ -25,6 +25,7 @@ import {
 } from './fynbos'
 import { GatehubDepositPage, gatehubDepositLoader } from './gatehub'
 import { KRATOS_URL } from '~/lib/kratos.server'
+import { PTIDepositAction, ptiDepositLoader, PTIDepositPage } from './pti'
 
 export async function loader(args: LoaderFunctionArgs) {
   const session = await fetch(`${KRATOS_URL}/sessions/whoami`, {
@@ -40,6 +41,8 @@ export async function loader(args: LoaderFunctionArgs) {
     return gatehubDepositLoader(args)
   } else if (providerResponse.provider == 'chimoney') {
     return chimoneyDepositLoader(args)
+  } else if (providerResponse.provider == 'pti') {
+    return ptiDepositLoader(args)
   } else return fynbosDepositLoader(args)
 }
 
@@ -70,6 +73,8 @@ export default function Page() {
     return <GatehubDepositPage />
   } else if (provider == 'chimoney') {
     return <ChimoneyDepositPage />
+  } else if  (provider == 'pti') {
+    return <PTIDepositPage />
   } else return <FynbosDepositPage />
 }
 
@@ -84,6 +89,8 @@ export async function action(args: ActionFunctionArgs) {
     return chimoneySuccessfullDepositAction(args)
   } else if (formName === 'xago-test-account-deposit') {
     return xagoTestAccountDepositAction(args)
+  } else if (formName === 'pti-deposit') {
+    return PTIDepositAction(args)
   }
 
   return fynbosDepositAction(args)

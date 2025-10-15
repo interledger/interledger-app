@@ -224,6 +224,11 @@ func DepositToWallet(ctx context.Context, b Backends, ec external.Client, args p
 		return "", fmt.Errorf("%w source account not found", pti.ErrNotFound)
 	}
 
+	kycDetails, err := b.KYC().GetIndividualDetails(ctx, args.WalletID)
+	if err != nil {
+		return "", err
+	}
+
 	txID, err := ec.WalletDeposit(ctx, external.DepositArgs{
 		RequestID:                 args.PaymentID,
 		ScenarioID:                pti.ScenarioDeposit,
@@ -233,6 +238,7 @@ func DepositToWallet(ctx context.Context, b Backends, ec external.Client, args p
 		ExternalPaymentMethodID:   source.ProviderID,
 		ExternalPaymentMethodType: sourceType,
 		Amount:                    args.Amount,
+		AccountHolderName:         kycDetails.FirstName + " " + kycDetails.LastName,
 	})
 	if errors.Is(err, external.ErrUnprocessableEntity) {
 		return "", err
@@ -543,7 +549,7 @@ func GetKYCWidget(ctx context.Context, b Backends, walletID string) (*pti.Widget
 		return nil, err
 	}
 
-	sdkUrl := "https://sdk.staging.fiant.io/0.0.23/index.js"
+	sdkUrl := "https://sdk.staging.fiant.io/latest/index.js"
 	formsUrl := "https://forms.staging.fiant.io"
 	if env.IsProd() {
 		sdkUrl = "https://sdk.platform.fiant.io/0.0.23/index.js"
@@ -558,6 +564,7 @@ func GetKYCWidget(ctx context.Context, b Backends, walletID string) (*pti.Widget
 		GenerateTokenPath: fmt.Sprintf("%s/api/pti/token", env.GetUrl()),
 		SdkUrl:            sdkUrl,
 		FormsUrl:          formsUrl,
+		SessionID:         walletID,
 	}, nil
 }
 
@@ -667,4 +674,19 @@ func CreateBankAccount(ctx context.Context, b Backends, args pti.CreateBankAccou
 	}
 
 	return await.Get, nil
+}
+
+func CreateDeposit(ctx context.Context, b Backends, la *linkedaccounts.LinkedAccount, amount currency.Amount, note string) error {
+	workflowOptions := client.StartWorkflowOptions{
+		ID:                       "pti_create_deposit_" + la.WalletID,
+		TaskQueue:                "backend",
+		WorkflowExecutionTimeout: time.Hour,
+	}
+
+	_, err := b.Temporal().ExecuteWorkflow(ctx, workflowOptions, DepositWorkflow, la, amount, note)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

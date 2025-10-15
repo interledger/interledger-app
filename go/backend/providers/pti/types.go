@@ -16,9 +16,9 @@ const (
 	TypeBank       = "bank_account"
 
 	// TODO: Ask?
-	ScenarioTransfer   = "fynbos_transfer"
-	ScenarioDeposit    = "fynbos_deposit"
-	ScenarioWithdrawal = "fynbos_withdrawal"
+	ScenarioTransfer   = "ilf_transfer"
+	ScenarioDeposit    = "ilf_deposit"
+	ScenarioWithdrawal = "ilf_withdrawal"
 
 	LedgerIDUSD   uint32 = 784873 // Spells ptiusd on a Nokia 3320 keyboard
 	USDOpsAccount        = "fb4713ba-94c5-4a56-a5bf-82b551e9bd40"
@@ -99,6 +99,7 @@ type WidgetDetails = struct {
 	ClientID          string
 	SdkUrl            string
 	FormsUrl          string
+	SessionID         string
 }
 
 type CreateBankAccountArgs struct {
@@ -108,4 +109,41 @@ type CreateBankAccountArgs struct {
 	RoutingNumber           string
 	RoutingNumberCheckDigit string
 	Bank                    string
+}
+
+type TransactionStatusPayload struct {
+	ResourceType       string `json:"resourceType"`
+	RequestID          string `json:"requestId"`
+	ClientID           string `json:"clientId"`
+	UserID             string `json:"userId"`
+	Status             string `json:"status"`
+	Date               string `json:"date"`
+	Amount             int    `json:"amount"`
+	Fees               string `json:"fees"`
+	Currency           string `json:"currency"`
+	TransactionType    string `json:"transactionType"`
+	PaymentMethod      string `json:"paymentMethod"`
+	TransactionGroupID string `json:"transactionGroupId"`
+	// AdditionalInfos    struct {
+	// 	CreditCardLast4Digits        string `json:"CreditCardLast4Digits"`
+	// 	PaymentProviderTransactionID string `json:"PaymentProviderTransactionId"`
+	// } `json:"additionalInfos"`
+	// PaymentStatusDetail struct {
+	// 	ProviderResponseCode     string `json:"providerResponseCode"`
+	// 	ProviderResponseCategory string `json:"providerResponseCategory"`
+	// } `json:"paymentStatusDetail"`
+	Total struct {
+		SubTotal struct {
+			Amount   int    `json:"amount"`
+			Currency string `json:"currency"`
+		} `json:"subTotal"`
+		Fee struct {
+			Amount   int    `json:"amount"`
+			Currency string `json:"currency"`
+		} `json:"fee"`
+		Total struct {
+			Amount   int    `json:"amount"`
+			Currency string `json:"currency"`
+		} `json:"total"`
+	} `json:"total"`
 }

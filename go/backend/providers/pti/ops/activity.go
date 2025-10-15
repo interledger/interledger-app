@@ -2,32 +2,26 @@ package ops
 
 import (
 	"context"
-	"crypto/rand"
-	"crypto/rsa"
 	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/http"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/lestrrat-go/jwx/v2/jwk"
+	"github.com/lestrrat-go/jwx/v3/jwk"
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
-	httplogger "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/providers/pti/external"
-	external_mock "gitlab.com/fynbos/backend/providers/pti/external/mock"
-	"gitlab.com/fynbos/env"
+	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/log"
 	"gitlab.com/fynbos/pacioli"
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.temporal.io/sdk/temporal"
 	"go.uber.org/zap"
 )
@@ -38,43 +32,19 @@ type Activity struct {
 }
 
 func NewActivity(b Backends, privateKey jwk.Key) *Activity {
-	var ex external.Client
-	if env.IsTest() {
-		ex = external_mock.SetupDevMock(nil)
-	} else if env.IsLocal() {
-		privateKey, err := rsa.GenerateKey(rand.Reader, 4096)
-		if err != nil {
-			log.Fatalln(err)
-		}
-
-		ptiPrivateKey, err := jwk.FromRaw(privateKey)
-		if err != nil {
-			log.Fatalln(err)
-		}
-		ex = external.New(external.ClientArgs{
-			Transport: &http.Client{
-				Transport: otelhttp.NewTransport(
-					httplogger.NewTransport(http.DefaultTransport, b, nil),
-				),
-			},
-			ClientID:   "LOCAL",
-			PrivateKey: ptiPrivateKey,
-		})
-	} else {
-		ex = external.New(external.ClientArgs{
-			Transport: &http.Client{
-				Transport: otelhttp.NewTransport(
-					httplogger.NewTransport(http.DefaultTransport, b, nil),
-				),
-			},
-			ClientID:   os.Getenv("PTI_CLIENT_ID"),
-			PrivateKey: privateKey,
-		})
+	ptiExternalClient, err := external.NewWithOptions(
+		external.WithBaseURL(os.Getenv("PTI_BASE_URL")),
+		external.WithOTELLHTTPClient(),
+		external.WithClientID(os.Getenv("PTI_CLIENT_ID")),
+		external.WithDerivedKeys(privateKey),
+	)
+	if err != nil {
+		log.Fatalln(fmt.Errorf("%w Failed to create PTI external client: %s", pti.ErrInternal, err))
 	}
 
 	return &Activity{
 		b:        b,
-		external: ex,
+		external: ptiExternalClient,
 	}
 }
 
@@ -192,7 +162,8 @@ func (a *Activity) CheckUserAssessmentAccepted(ctx context.Context, walletID str
 	}
 	if len(externalUser.Addresses) > 0 {
 		args.Address = &kyc.Address{
-			State:   externalUser.Addresses[0].StateCode.Code,
+			// State:   externalUser.Addresses[0].StateCode.Code,
+			State:   externalUser.Addresses[0].StateCode,
 			Line1:   externalUser.Addresses[0].Street,
 			City:    externalUser.Addresses[0].City,
 			ZipCode: externalUser.Addresses[0].PostalCode,
@@ -491,12 +462,12 @@ func (a *Activity) CreatePtiBankAccount(ctx context.Context, args pti.CreateBank
 	}
 
 	bank, err := a.external.CreateBankAccount(ctx, ptiUser.ExternalID, external.BankAccountPaymentInformation{
-		Type:                  "BANK_ACCOUNT",
-		BankAccountNumner:     args.AccountNumber,
-		BankAccountType:       args.AccountType,
-		BankRoutingNumber:     args.RoutingNumber,
-		BankRoutingCheckDigit: args.RoutingNumberCheckDigit,
-		AccountBankName:       args.Bank,
+		Type:              "BANK_ACCOUNT",
+		BankAccountNumner: args.AccountNumber,
+		BankAccountType:   args.AccountType,
+		BankRoutingNumber: args.RoutingNumber,
+		// BankRoutingCheckDigit: args.RoutingNumberCheckDigit,
+		AccountBankName: args.Bank,
 	})
 	if err != nil {
 		return nil, err
@@ -555,4 +526,238 @@ func (a *Activity) SavePtiBankAccount(ctx context.Context, walletID, externalPay
 	}
 
 	return la, nil
+}
+
+func getWalletID(ctx context.Context, b Backends, externalUserID string) (string, error) {
+	var walletID string
+	err := b.DB().GetContext(ctx, &walletID, "SELECT wallet_id FROM pti_users WHERE external_id=$1;", externalUserID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", fmt.Errorf("%w %s", pti.ErrNotFound, err)
+	} else if err != nil {
+		return "", fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+
+	return walletID, nil
+}
+
+func (a *Activity) GetWalletFromPTIUser(ctx context.Context, externalUserID string) (string, error) {
+
+	walletID, err := getWalletID(ctx, a.b, externalUserID)
+	if errors.Is(err, pti.ErrNotFound) {
+		return "", temporal.NewNonRetryableApplicationError("Invalid currency", "ErrNotFound", fmt.Errorf("%w No wallet found for pti user", pti.ErrNotFound))
+	}
+	if err != nil {
+		return "", err
+	}
+
+	return walletID, nil
+}
+
+func (a *Activity) CreateTransaction(ctx context.Context, la *linkedaccounts.LinkedAccount, amount currency.Amount, note string) (*transactions.Transaction, error) {
+	if amount.Currency != currency.USD {
+		return nil, temporal.NewNonRetryableApplicationError("Invalid currency", "ErrInternal", fmt.Errorf("%w invalid currency", pti.ErrInternal))
+	}
+
+	wallet, err := a.b.Wallets().Get(ctx, la.WalletID)
+	if errors.Is(err, pti.ErrNotFound) {
+		return nil, temporal.NewNonRetryableApplicationError("Wallet not found", "ErrNotFound", fmt.Errorf("%w No wallet found for gatehub user", pti.ErrNotFound))
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	transactionID, err := a.b.Transactions().CreateTransaction(ctx, transactions.CreateTransactionArgs{
+		WalletID:                wallet.ID,
+		ForeignType:             transactions.TransactionTypeDeposit,
+		Provider:                pti.ProviderName,
+		State:                   transactions.StatePending,
+		Source:                  wallet.AddressString(),
+		Destination:             wallet.AddressString(),
+		Title:                   "Deposit",
+		DestinationIdentity:     wallet.ID,
+		DestinationIdentityType: payments.IdentityTypeWalletID.String(),
+		Amount:                  amount,
+		ProviderFee:             nil,
+		LinkedAccountTitle:      "US Balance",
+		Transfers: []transactions.TransferArgs{
+			{
+				LinkedAccountID: la.ID,
+				Amount:          amount,
+				Type:            transactions.TransferTypeCreditBalance,
+				State:           transactions.StatePending,
+			},
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	transaction, err := a.b.Transactions().GetTransaction(ctx, wallet.ID, transactionID)
+	if err != nil {
+		return nil, err
+	}
+
+	return transaction, nil
+}
+
+func (a *Activity) UpdateTransaction(ctx context.Context, transaction *transactions.Transaction, externalTxID string) error {
+	transfers, err := a.b.Transactions().ListTransfers(ctx, transaction.ID)
+	if err != nil || len(transfers) != 1 { // deposit only
+		return errors.New("not a deposit transaction")
+	}
+	transferID := transfers[0].ID
+
+	err = a.b.Transactions().SetTransferForeignID(ctx, transferID, externalTxID)
+	if err != nil {
+		return err
+	}
+
+	return a.b.Transactions().SetTransactionForeignID(ctx, transaction.ID, externalTxID)
+}
+
+func (a *Activity) SettleTransaction(ctx context.Context, transactionID, walletID string, amount currency.Amount) (string, error) {
+	existingTransaction, err := a.b.Transactions().GetTransaction(ctx, walletID, transactionID)
+	if err != nil && !errors.Is(err, transactions.ErrNotFound) {
+		return "", err
+	}
+	if existingTransaction != nil {
+		if err := a.b.Transactions().SetTransferState(ctx, existingTransaction.ID, transactions.StateCompleted); err != nil {
+			return "", temporal.NewNonRetryableApplicationError("can not update transaction state", "ErrInternal", fmt.Errorf("%w invalid currency", pti.ErrInternal))
+		}
+
+		return existingTransaction.ID, nil
+	}
+
+	if amount.Currency != currency.USD {
+		return "", temporal.NewNonRetryableApplicationError("Invalid currency", "ErrInternal", fmt.Errorf("%w invalid currency", pti.ErrInternal))
+	}
+
+	wallet, err := a.b.Wallets().Get(ctx, walletID)
+	if errors.Is(err, pti.ErrNotFound) {
+		return "", temporal.NewNonRetryableApplicationError("Wallet not found", "ErrNotFound", fmt.Errorf("%w No wallet found for gatehub user", pti.ErrNotFound))
+	}
+	if err != nil {
+		return "", err
+	}
+
+	las, err := a.b.LinkedAccounts().ListBalances(ctx, walletID)
+	if err != nil {
+		return "", err
+	}
+
+	var eurBalance *linkedaccounts.LinkedAccount
+	for _, la := range las {
+		if la.Provider == pti.ProviderName && la.Type == pti.AccTypeBalance {
+			eurBalance = &la
+			break
+		}
+	}
+	if eurBalance == nil {
+		return "", temporal.NewNonRetryableApplicationError("PTI USD balance account not found", "ErrInternal", fmt.Errorf("%w Gatehub EUR balance account not found", pti.ErrInternal))
+	}
+
+	tx, err := a.b.Transactions().CreateTransaction(ctx, transactions.CreateTransactionArgs{
+		ID:                      transactionID,
+		WalletID:                walletID,
+		ForeignID:               transactionID,
+		ForeignType:             transactions.TransactionTypeDeposit,
+		Provider:                pti.ProviderName,
+		State:                   transactions.StateCompleted,
+		Source:                  wallet.AddressString(),
+		Destination:             wallet.AddressString(),
+		Title:                   "Deposit",
+		DestinationIdentity:     walletID,
+		DestinationIdentityType: payments.IdentityTypeWalletID.String(),
+		Amount:                  amount,
+		ProviderFee:             nil,
+		LinkedAccountTitle:      "US Balance",
+		Transfers: []transactions.TransferArgs{
+			{
+				LinkedAccountID: eurBalance.ID,
+				ForeignID:       transactionID,
+				Amount:          amount,
+				Type:            transactions.TransferTypeCreditBalance,
+				State:           transactions.StateCompleted,
+			},
+		},
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return tx, nil
+}
+
+func (a *Activity) MarkTransactionPending(ctx context.Context, transactionID, walletID string) error {
+	existingTransaction, err := a.b.Transactions().GetTransaction(ctx, walletID, transactionID)
+	if err != nil && !errors.Is(err, transactions.ErrNotFound) {
+		return err
+	}
+
+	if err := a.b.Transactions().SetTransferState(ctx, existingTransaction.ID, transactions.StatePending); err != nil {
+		return err
+	}
+
+	if err := a.b.Transactions().SetTransactionState(ctx, existingTransaction.ID, transactions.StatePending); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (a *Activity) FinalizePTIDeposit(ctx context.Context, id, walletID string, amount currency.Amount) error {
+	if amount.Currency != currency.USD {
+		return temporal.NewNonRetryableApplicationError("Invalid currency", "ErrInternal", fmt.Errorf("%w invalid currency", pti.ErrInternal))
+	}
+
+	las, err := a.b.LinkedAccounts().ListBalances(ctx, walletID)
+	if err != nil {
+		return err
+	}
+
+	var USDBalance *linkedaccounts.LinkedAccount
+	for _, la := range las {
+		if la.Provider == pti.ProviderName && la.Type == pti.AccTypeBalance {
+			USDBalance = &la
+			break
+		}
+	}
+	if USDBalance == nil {
+		return temporal.NewNonRetryableApplicationError("PTI USD balance account not found", "ErrInternal", fmt.Errorf("%w PTI USD balance account not found", pti.ErrInternal))
+	}
+
+	opsAcc := pti.USDOpsAccount
+	ledger := pti.LedgerIDUSD
+	tx, err := a.b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
+		{
+			ID:              id,
+			Amount:          amount.Value,
+			CreditAccountID: USDBalance.ID,
+			DebitAccountID:  opsAcc,
+			Pending:         false,
+			Code:            1,
+			Ledger:          ledger,
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+	if len(tx) > 0 {
+		if tx[0].Code == pacioli.TransferExists {
+			return nil
+		}
+		if tx[0].Code == pacioli.TransferExceedsCredits || tx[0].Code == pacioli.TransferExceedsDebits || tx[0].Code == pacioli.TransferExceedsPendingTransferAmount {
+			return fmt.Errorf("%w insufficient balance code (%s)", pti.ErrInsufficientBalance, tx[0].Code.String())
+		}
+		if tx[0].Code != 0 {
+			return fmt.Errorf("%w non success code (%s)", pti.ErrInternal, tx[0].Code.String())
+		}
+	}
+
+	return nil
+}
+
+func (a *Activity) PTIDeposit(ctx context.Context, la linkedaccounts.LinkedAccount, transactionID string, ptiArgs pti.TransactionArgs) (string, error) {
+	return DepositToWallet(ctx, a.b, a.external, ptiArgs)
+
 }
