@@ -168,6 +168,7 @@ func (c *client) refreshAccessToken(ctx context.Context) error {
 			return err
 		}
 
+		defer resp.Body.Close()
 		var respData tokenResp
 		err = json.Unmarshal(respBody, &respData)
 		if err != nil {
@@ -304,7 +305,7 @@ func (c *client) CreateSubAccount(ctx context.Context, user user.User, details k
 	if err != nil {
 		return nil, err
 	}
-
+	defer resp.Body.Close()
 	if resp.StatusCode == http.StatusUnauthorized {
 		token, err = c.AccessToken(ctx, true)
 		if err != nil {
@@ -329,7 +330,7 @@ func (c *client) CreateSubAccount(ctx context.Context, user user.User, details k
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+
 	var respData SubAccount
 	err = json.Unmarshal(respBody, &respData)
 	if err != nil {
@@ -377,6 +378,7 @@ func (c *client) AddBeneficiary(ctx context.Context, reqStruct CreateBeneficiary
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		token, err = c.AccessToken(ctx, true)
@@ -402,7 +404,7 @@ func (c *client) AddBeneficiary(ctx context.Context, reqStruct CreateBeneficiary
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+
 	var beneficiary AccountBeneficiaries
 	err = json.Unmarshal(respBody, &beneficiary)
 	if err != nil {
@@ -450,6 +452,7 @@ func (c *client) ListBeneficiaries(ctx context.Context, limit, page uint) (*List
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		token, err = c.AccessToken(ctx, true)
@@ -475,7 +478,7 @@ func (c *client) ListBeneficiaries(ctx context.Context, limit, page uint) (*List
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+
 	var respData *ListBeneficiariesResponse
 	err = json.Unmarshal(respBody, &respData)
 	if err != nil {
@@ -533,6 +536,7 @@ func (c *client) CreateTransaction(ctx context.Context, amt currency.Amount, ide
 	if err != nil {
 		return "", err
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		token, err = c.AccessToken(ctx, true)
@@ -607,7 +611,7 @@ func (c *client) ListDeposits(ctx context.Context, page int) ([]Deposit, error) 
 	if err != nil {
 		return nil, err
 	}
-
+	defer resp.Body.Close()
 	if resp.StatusCode == http.StatusUnauthorized {
 		token, err = c.AccessToken(ctx, true)
 		if err != nil {
@@ -675,6 +679,7 @@ func (c *client) GetDeposit(ctx context.Context, id string) (*Deposit, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		token, err = c.AccessToken(ctx, true)
@@ -700,7 +705,6 @@ func (c *client) GetDeposit(ctx context.Context, id string) (*Deposit, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
 
 	var deposit *Deposit
 	err = json.Unmarshal(respBody, &deposit)
@@ -748,7 +752,7 @@ func (c *client) GetWithdrawal(ctx context.Context, id string) (*Withdrawal, err
 	if err != nil {
 		return nil, err
 	}
-
+	defer resp.Body.Close()
 	if resp.StatusCode == http.StatusUnauthorized {
 		token, err = c.AccessToken(ctx, true)
 		if err != nil {
@@ -824,6 +828,7 @@ func (c *client) TestDeposit(ctx context.Context, reqStruct TestDepositReq) erro
 	if err != nil {
 		return err
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		token, err = c.AccessToken(ctx, true)
@@ -890,7 +895,7 @@ func (c *client) UpdateInquiryLink(ctx context.Context, accountID string, inquir
 	if err != nil {
 		return err
 	}
-
+	defer resp.Body.Close()
 	if resp.StatusCode == http.StatusUnauthorized {
 		token, err = c.AccessToken(ctx, true)
 		if err != nil {
