@@ -55,7 +55,7 @@ const (
 	DollarSign            = "$"
 	DollarSignPlaceholder = "#" // "#" is used as a placeholder for $
 
-	NameOnCardMaxLength int = 25
+	NameOnCardMaxLength int = 26
 
 	TimeLayout = "20060102_150405" // chronological + Temporal-safe
 )
@@ -112,25 +112,13 @@ func (eid ExternalIDs) IsCustomerCreated() bool {
 	return false
 }
 
-type NewCustomerDeliveryAddressArgs struct {
-	Type        string  `validate:"required"`
-	CountryCode string  `validate:"required,iso3166_1_alpha3"`
-	Line1       string  `validate:"required,min=1,max=128"`
-	Line2       *string `validate:"omitempty,min=1,max=128"`
-	Line3       *string `validate:"omitempty,min=1,max=128"`
-	PostOffice  *string `validate:"omitempty,max=32"`
-	City        string  `validate:"required,min=1,max=32"`
-	ZipCode     string  `validate:"required,min=1,max=8"`
-	Reason      string  `validate:"required,min=1,max=254"`
-}
-
 type OrderCardArgs struct {
 	Wallet             wallets.Wallet
 	ExternalIDs        ExternalIDs
 	ShouldOrderPlastic bool
 	CardProductCode    string
 	DeliveryAddressID  *string
-	NewDeliveryAddress *NewCustomerDeliveryAddressArgs
+	NewDeliveryAddress *external.CreateCustomerDeliveryAddressArgs
 }
 
 type GetCardTokenArgs struct {

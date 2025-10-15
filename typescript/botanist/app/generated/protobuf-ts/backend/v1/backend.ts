@@ -215,10 +215,6 @@ export interface CustomerDeliveryAddressBase {
      * @generated from protobuf field: string zipCode = 8;
      */
     zipCode: string;
-    /**
-     * @generated from protobuf field: string reason = 9;
-     */
-    reason: string;
 }
 /**
  * @generated from protobuf message backend.v1.CustomerDeliveryAddress
@@ -3571,12 +3567,11 @@ class CustomerDeliveryAddressBase$Type extends MessageType<CustomerDeliveryAddre
             { no: 5, name: "line3", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
             { no: 6, name: "postOffice", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
             { no: 7, name: "city", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 8, name: "zipCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 9, name: "reason", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 8, name: "zipCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<CustomerDeliveryAddressBase>): CustomerDeliveryAddressBase {
-        const message = { type: 0, countryCode: "", line1: "", city: "", zipCode: "", reason: "" };
+        const message = { type: 0, countryCode: "", line1: "", city: "", zipCode: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<CustomerDeliveryAddressBase>(this, message, value);
@@ -3610,9 +3605,6 @@ class CustomerDeliveryAddressBase$Type extends MessageType<CustomerDeliveryAddre
                     break;
                 case /* string zipCode */ 8:
                     message.zipCode = reader.string();
-                    break;
-                case /* string reason */ 9:
-                    message.reason = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -3650,9 +3642,6 @@ class CustomerDeliveryAddressBase$Type extends MessageType<CustomerDeliveryAddre
         /* string zipCode = 8; */
         if (message.zipCode !== "")
             writer.tag(8, WireType.LengthDelimited).string(message.zipCode);
-        /* string reason = 9; */
-        if (message.reason !== "")
-            writer.tag(9, WireType.LengthDelimited).string(message.reason);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
