@@ -1,7 +1,7 @@
 services:
   # 1. Kratos migrations
   kratos-migrate:
-    image: oryd/kratos:v0.11.0
+    image: oryd/kratos:v1.3.1
     profiles:
       - services
     volumes:
@@ -11,7 +11,7 @@ services:
 
   # 2. Kratos Service
   kratos:
-    image: oryd/kratos:v0.11.0
+    image: oryd/kratos:v1.3.1
     profiles:
       - services
     ports:
