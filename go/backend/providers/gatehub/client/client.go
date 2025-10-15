@@ -27,6 +27,7 @@ func New(b ops.Backends) *Client {
 		external: external.NewClient(
 			os.Getenv("GATEHUB_APP_ID"),
 			os.Getenv("GATEHUB_SECRET"),
+			os.Getenv("GATEHUB_GATEWAY_ID"),
 			&http.Client{
 				Transport: otelhttp.NewTransport(
 					httplogger.NewTransport(http.DefaultTransport, b, nil),
@@ -82,4 +83,12 @@ func (c Client) CreateTransfer(ctx context.Context, args gatehub.CreateTransferA
 
 func (c Client) GetTransaction(ctx context.Context, walletID, id string) (*external.Transaction, error) {
 	return ops.GetTransaction(ctx, c.b, c.external, walletID, id)
+}
+
+func (c Client) LinkUserToGatewayByWalletID(ctx context.Context, walletID string) error {
+	return ops.LinkUserToGatewayByWalletID(ctx, c.b, c.external, walletID)
+}
+
+func (c Client) LinkUserToGatewayByExternalID(ctx context.Context, externalID string) error {
+	return ops.LinkUserToGatewayByExternalID(ctx, c.external, externalID)
 }

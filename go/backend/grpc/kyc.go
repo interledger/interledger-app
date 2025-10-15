@@ -384,6 +384,13 @@ func (s *rpcService) SetKYCStatusPending(ctx context.Context, req *pb.Empty) (*p
 		return nil, err
 	}
 
+	if country.EUCountries[wallet.Country] {
+		err := s.b.Gatehub().LinkUserToGatewayByWalletID(ctx, wallet.ID)
+		if err != nil {
+			return nil, toGRPCError(err)
+		}
+	}
+
 	return &pb.Empty{}, nil
 }
 

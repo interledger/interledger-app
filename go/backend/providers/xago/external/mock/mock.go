@@ -21,11 +21,6 @@ type MockClient struct {
 	recorder *MockClientMockRecorder
 }
 
-// UpdateInquiryLink implements external.Client.
-func (m *MockClient) UpdateInquiryLink(ctx context.Context, accountID string, inquiryLink string) error {
-	return nil
-}
-
 // MockClientMockRecorder is the mock recorder for MockClient.
 type MockClientMockRecorder struct {
 	mock *MockClient
@@ -58,6 +53,21 @@ func (mr *MockClientMockRecorder) AddBeneficiary(ctx, reqStruct interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddBeneficiary", reflect.TypeOf((*MockClient)(nil).AddBeneficiary), ctx, reqStruct)
 }
 
+// BankAccounts mocks base method.
+func (m *MockClient) BankAccounts(ctx context.Context) (*[]external.Currency, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BankAccounts", ctx)
+	ret0, _ := ret[0].(*[]external.Currency)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// BankAccounts indicates an expected call of BankAccounts.
+func (mr *MockClientMockRecorder) BankAccounts(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BankAccounts", reflect.TypeOf((*MockClient)(nil).BankAccounts), ctx)
+}
+
 // CreateSubAccount mocks base method.
 func (m *MockClient) CreateSubAccount(ctx context.Context, user user.User, details kyc.IndividualDetails, idNumber, personaInquiryURL string) (*external.SubAccount, error) {
 	m.ctrl.T.Helper()
@@ -86,6 +96,21 @@ func (m *MockClient) CreateTransaction(ctx context.Context, amt currency.Amount,
 func (mr *MockClientMockRecorder) CreateTransaction(ctx, amt, idempotencyKey, beneficiaryID, reference interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTransaction", reflect.TypeOf((*MockClient)(nil).CreateTransaction), ctx, amt, idempotencyKey, beneficiaryID, reference)
+}
+
+// GetDeposit mocks base method.
+func (m *MockClient) GetDeposit(ctx context.Context, id string) (*external.Deposit, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetDeposit", ctx, id)
+	ret0, _ := ret[0].(*external.Deposit)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetDeposit indicates an expected call of GetDeposit.
+func (mr *MockClientMockRecorder) GetDeposit(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDeposit", reflect.TypeOf((*MockClient)(nil).GetDeposit), ctx, id)
 }
 
 // GetWithdrawal mocks base method.
@@ -145,4 +170,18 @@ func (m *MockClient) TestDeposit(ctx context.Context, reqStruct external.TestDep
 func (mr *MockClientMockRecorder) TestDeposit(ctx, reqStruct interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TestDeposit", reflect.TypeOf((*MockClient)(nil).TestDeposit), ctx, reqStruct)
+}
+
+// UpdateInquiryLink mocks base method.
+func (m *MockClient) UpdateInquiryLink(ctx context.Context, accountID, inquiryLink string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateInquiryLink", ctx, accountID, inquiryLink)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateInquiryLink indicates an expected call of UpdateInquiryLink.
+func (mr *MockClientMockRecorder) UpdateInquiryLink(ctx, accountID, inquiryLink interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateInquiryLink", reflect.TypeOf((*MockClient)(nil).UpdateInquiryLink), ctx, accountID, inquiryLink)
 }

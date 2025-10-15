@@ -270,3 +270,11 @@ func GenerateKycData(ctx context.Context, b Backends, walletID string) error {
 
 	return err
 }
+
+func IsKYCApproved(ctx context.Context, b Backends, walletID string) (bool, error) {
+	status, err := GetKYCStatus(ctx, b, walletID)
+	if err != nil {
+		return false, err
+	}
+	return status == kyc.StatusApproved || status == kyc.StatusLevel1 || status == kyc.StatusLevel2, nil
+}

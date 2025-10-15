@@ -2854,63 +2854,6 @@ table "xago_sub_accounts" {
   }
 }
 
-table "xago_deposit_details" {
-  schema = schema.public
-  column "id" {
-    null = false
-    type = uuid
-    default = sql("gen_random_uuid()")
-  }
-  column "wallet_id" {
-    null = false
-    type = uuid
-  }
-  column "sub_account_id" {
-    null    = false
-    type    = uuid
-  }
-  column "currency" {
-    null    = false
-    type    = text
-  }
-  column "bank_name" {
-    null = false
-    type = text
-  }
-  column "account_name" {
-    null = false
-    type = text
-  }
-  column "account_number" {
-    null = false
-    type = text
-  }
-  column "branch_code" {
-    null = false
-    type = text
-  }
-  column "created_at" {
-    null    = false
-    type    = timestamp
-    default = sql("now()::TIMESTAMP")
-  }
-  column "updated_at" {
-    null    = false
-    type    = timestamp
-    default = sql("now()::TIMESTAMP")
-  }
-  primary_key {
-    columns = [column.id]
-  }
-  index "xago_deposit_details_wallet_id_idx" {
-    columns = [column.wallet_id]
-  }
-  index "xago_deposit_details_uniq_idx" {
-    unique = true
-    columns = [column.sub_account_id, column.currency, column.bank_name]
-  }
-}
-
 table "xago_beneficiaries" {
   schema = schema.public
   column "id" {
