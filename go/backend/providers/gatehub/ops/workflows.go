@@ -241,7 +241,7 @@ type CreateCardWorkflowArgs struct {
 	WalletAddress      string
 	CardProductCode    string
 	DeliveryAddressID  *string
-	NewDeliveryAddress *gatehub.NewCustomerDeliveryAddressArgs
+	NewDeliveryAddress *external.CreateCustomerDeliveryAddressArgs
 	ShouldOrderPlastic bool
 }
 
@@ -256,6 +256,7 @@ func CreateCardWorkflow(ctx workflow.Context, args CreateCardWorkflowArgs) error
 	var deliveryAddressID string
 	if args.ShouldOrderPlastic {
 		if args.NewDeliveryAddress != nil {
+			// TODO: Ask for idempotency
 			err := workflow.ExecuteActivity(ctx, a.CreateNewDeliveryAddress, args.ExternalIDs.UserID, args.ExternalIDs.CustomerID.String, external.CreateCustomerDeliveryAddressArgs{
 				Type:        args.NewDeliveryAddress.Type,
 				Line1:       args.NewDeliveryAddress.Line1,

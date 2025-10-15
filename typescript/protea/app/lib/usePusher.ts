@@ -15,7 +15,7 @@ type Events = 'linkedAccount' | 'transaction' | 'kyc' | 'identity' | 'cardReady'
 export type PusherArgs = {
   appKey: string
   cluster: string
-  walletId: string
+  walletId?: string
 }
 
 export function usePusher(args: PusherArgs, events: Events[]) {
@@ -29,7 +29,11 @@ export function usePusher(args: PusherArgs, events: Events[]) {
   }
   pusherClient = global.__pusherClient
 
-  const channel = useChannel(`wallet-${args.walletId}`)
+  let channelName: string | undefined
+  if (args.walletId) {
+    channelName = `wallet-${args.walletId}`
+  }
+  const channel = useChannel(channelName)
 
   usePusherEvent(channel, 'transaction', () => {
     if (state == 'idle' && events.find((e) => e == 'transaction')) revalidate()
@@ -72,9 +76,10 @@ function usePusherEvent<D>(
   }, [channel, eventName, callback])
 }
 
-function useChannel(channelName: string) {
+function useChannel(channelName?: string) {
   const [channel, setChannel] = useState<Channel>()
   useEffect(() => {
+    if (!channelName) return
     const _channel = pusherClient.subscribe(channelName)
     setChannel(_channel)
     return () => pusherClient.unsubscribe(channelName)

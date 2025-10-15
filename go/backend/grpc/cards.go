@@ -39,6 +39,7 @@ func (s *rpcService) GetCardOrderOptions(ctx context.Context, req *pb.Empty) (*p
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
+
 	if !feats.ManageWalletCardsEnabled {
 		return nil, ForbiddenError("Wallet cards not enabled")
 	}
@@ -176,6 +177,7 @@ func (s *rpcService) ListCards(ctx context.Context, req *pb.Empty) (*pb.ListCard
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
+
 	if !feats.ManageWalletCardsEnabled {
 		return nil, ForbiddenError("Wallet cards not enabled")
 	}
@@ -261,12 +263,16 @@ func (s *rpcService) OrderCard(ctx context.Context, req *pb.OrderCardRequest) (*
 		addrID := req.GetDeliveryAddressId()
 		newAddr := req.GetNewDeliveryAddress()
 
-		if !externalIDs.IsCustomerCreated() && addrID != KycAddressID {
-			return nil, toGRPCError(errors.New("attempted to order card for non-customer with a delivery address"))
+		if addrID == "" && newAddr == nil {
+			return nil, toGRPCError(errors.New("no delivery address specified for physical card"))
 		}
 
 		if addrID != "" && newAddr != nil {
 			return nil, toGRPCError(errors.New("received delivery address id and new delivery address. only one should be present"))
+		}
+
+		if !externalIDs.IsCustomerCreated() && addrID != "" && addrID != KycAddressID {
+			return nil, toGRPCError(errors.New("attempted to order card for non-customer with a delivery address id"))
 		}
 
 		if newAddr != nil {
@@ -280,7 +286,7 @@ func (s *rpcService) OrderCard(ctx context.Context, req *pb.OrderCardRequest) (*
 				return nil, toGRPCError(errors.New("could not find ISO3166 alpha-3 country code"))
 			}
 
-			args.NewDeliveryAddress = &gatehub.NewCustomerDeliveryAddressArgs{
+			args.NewDeliveryAddress = &external.CreateCustomerDeliveryAddressArgs{
 				CountryCode: countryCode,
 				Line1:       newAddr.Details.Line1,
 				Line2:       newAddr.Details.Line2,
@@ -331,6 +337,15 @@ func (s *rpcService) GetCardToken(ctx context.Context, req *pb.GetCardTokenReque
 	_, isEU := country.EUCountries[wallet.Country]
 	if !isEU {
 		return nil, FailedPreconditionError("Wallet not in the EU region")
+	}
+
+	feats, err := s.b.Features().Features(ctx, wallet.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	if !feats.ManageWalletCardsEnabled {
+		return nil, ForbiddenError("Wallet cards not enabled")
 	}
 
 	externalIDs, err := s.b.Gatehub().GetExternalIDs(ctx, wallet.ID)
@@ -402,6 +417,15 @@ func (s *rpcService) FreezeCard(ctx context.Context, req *pb.FreezeCardRequest) 
 		return nil, FailedPreconditionError("Wallet not in the EU region")
 	}
 
+	feats, err := s.b.Features().Features(ctx, wallet.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	if !feats.ManageWalletCardsEnabled {
+		return nil, ForbiddenError("Wallet cards not enabled")
+	}
+
 	externalIDs, err := s.b.Gatehub().GetExternalIDs(ctx, wallet.ID)
 	if err != nil {
 		return nil, FailedPreconditionError("Could not retrieve external IDs")
@@ -434,6 +458,15 @@ func (s *rpcService) UnfreezeCard(ctx context.Context, req *pb.UnfreezeCardReque
 	_, isEU := country.EUCountries[wallet.Country]
 	if !isEU {
 		return nil, FailedPreconditionError("Wallet not in the EU region")
+	}
+
+	feats, err := s.b.Features().Features(ctx, wallet.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	if !feats.ManageWalletCardsEnabled {
+		return nil, ForbiddenError("Wallet cards not enabled")
 	}
 
 	externalIDs, err := s.b.Gatehub().GetExternalIDs(ctx, wallet.ID)
@@ -469,6 +502,15 @@ func (s *rpcService) BlockCard(ctx context.Context, req *pb.BlockCardRequest) (*
 		return nil, FailedPreconditionError("Wallet not in the EU region")
 	}
 
+	feats, err := s.b.Features().Features(ctx, wallet.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	if !feats.ManageWalletCardsEnabled {
+		return nil, ForbiddenError("Wallet cards not enabled")
+	}
+
 	externalIDs, err := s.b.Gatehub().GetExternalIDs(ctx, wallet.ID)
 	if err != nil {
 		return nil, FailedPreconditionError("Could not retrieve external IDs")
@@ -500,6 +542,15 @@ func (s *rpcService) TerminateCard(ctx context.Context, req *pb.TerminateCardReq
 	_, isEU := country.EUCountries[wallet.Country]
 	if !isEU {
 		return nil, FailedPreconditionError("Wallet not in the EU region")
+	}
+
+	feats, err := s.b.Features().Features(ctx, wallet.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	if !feats.ManageWalletCardsEnabled {
+		return nil, ForbiddenError("Wallet cards not enabled")
 	}
 
 	externalIDs, err := s.b.Gatehub().GetExternalIDs(ctx, wallet.ID)

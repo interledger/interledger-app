@@ -861,11 +861,6 @@ export class CustomerDeliveryAddressBase extends Message<CustomerDeliveryAddress
    */
   zipCode = "";
 
-  /**
-   * @generated from field: string reason = 9;
-   */
-  reason = "";
-
   constructor(data?: PartialMessage<CustomerDeliveryAddressBase>) {
     super();
     proto3.util.initPartial(data, this);
@@ -882,7 +877,6 @@ export class CustomerDeliveryAddressBase extends Message<CustomerDeliveryAddress
     { no: 6, name: "postOffice", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
     { no: 7, name: "city", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 8, name: "zipCode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 9, name: "reason", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CustomerDeliveryAddressBase {

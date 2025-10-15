@@ -323,15 +323,15 @@ type (
 	}
 
 	CreateCustomerDeliveryAddressArgs struct {
-		Type        string  `json:"type"`
-		CountryCode string  `json:"countryCode"`
-		Line1       string  `json:"line1"`
-		Line2       *string `json:"line2"`
-		Line3       *string `json:"line3"`
-		City        string  `json:"city"`
-		PostOffice  *string `json:"postOffice"`
-		ZipCode     string  `json:"zipCode"`
-		Reason      string  `json:"reason"`
+		Type        string  `json:"type" validate:"required"`
+		CountryCode string  `json:"countryCode" validate:"required,iso3166_1_alpha3"`
+		Line1       string  `json:"line1" validate:"required,min=1,max=128"`
+		Line2       *string `json:"line2,omitempty" validate:"omitempty,min=1,max=128"`
+		Line3       *string `json:"line3,omitempty" validate:"omitempty,min=1,max=128"`
+		City        string  `json:"city" validate:"required,min=1,max=32"`
+		PostOffice  *string `json:"postOffice,omitempty" validate:"omitempty,max=32"`
+		ZipCode     string  `json:"zipCode" validate:"required,min=1,max=8"`
+		Reason      string  `json:"reason" validate:"required,min=1,max=254"`
 	}
 
 	CustomerDeliveryAddress struct {
@@ -368,10 +368,10 @@ type (
 	}
 
 	CreateCustomerAndCardArgs struct {
-		WalletAddress string      `json:"walletAddress"`
-		Account       CardAccount `json:"account"`
-		Delivery      string      `json:"delivery,omitempty"`
-		NameOnCard    string      `json:"nameOnCard"`
+		WalletAddress string                             `json:"walletAddress"`
+		Account       CardAccount                        `json:"account"`
+		Delivery      *CreateCustomerDeliveryAddressArgs `json:"delivery,omitempty"`
+		NameOnCard    string                             `json:"nameOnCard"`
 	}
 
 	OrderCardArgs struct {

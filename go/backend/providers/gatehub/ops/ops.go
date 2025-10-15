@@ -2,7 +2,9 @@ package ops
 
 import (
 	"context"
+	"crypto/rand"
 	"database/sql"
+	"encoding/base32"
 	"errors"
 	"fmt"
 	"strconv"
@@ -16,6 +18,7 @@ import (
 	"gitlab.com/fynbos/backend/providers/gatehub/external"
 	"gitlab.com/fynbos/backend/slack"
 	"gitlab.com/fynbos/backend/transactions"
+	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/pacioli"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/serviceerror"
@@ -601,9 +604,9 @@ func OrderCard(ctx context.Context, b Backends, ec external.Client, args gatehub
 		}
 	}
 
-	nameOnCard := gatehub.DollarSignPlaceholder + args.Wallet.Addresses[0].ShortString()
-	if len(nameOnCard) > gatehub.NameOnCardMaxLength {
-		return fmt.Errorf("%w attempted to order card with a name that is longer than %d", gatehub.ErrInternal, gatehub.NameOnCardMaxLength)
+	nameOnCard, err := getNameOnCard(args.Wallet.AddressShortString())
+	if err != nil {
+		return err
 	}
 
 	if args.ExternalIDs.IsCustomerCreated() {
@@ -654,6 +657,7 @@ func OrderCard(ctx context.Context, b Backends, ec external.Client, args gatehub
 	customer, err := ec.CreateCustomerAndCard(ctx, args.ExternalIDs.UserID, external.CreateCustomerAndCardArgs{
 		WalletAddress: la.ProviderID,
 		NameOnCard:    nameOnCard,
+		Delivery:      args.NewDeliveryAddress,
 		Account: external.CardAccount{
 			Currency: currency.EUR.String(),
 			Card: external.NewCardArgs{
@@ -789,4 +793,50 @@ func CloseCard(ctx context.Context, b Backends, ec external.Client, args gatehub
 	return ec.CloseCard(ctx, args.UserID, args.CardID, external.CloseCardArgs{
 		ReasonCode: args.ReasonCode,
 	})
+}
+
+func getNameOnCard(walletAddress string) (string, error) {
+	// For non production environments we generate a random card name.
+	// This might be counter intuitive but we have the limitation of 26 chars
+	// for the name on the card.
+	//
+	// For production we already now the exact length of the wallet address:
+	//	* $ilp.link/ - 10 charactes
+	//  * walletAddressPath - 16 characters
+	//
+	// For the other environments (sandbox.ilp.link, local.ilp.link, etc...), this
+	// is going to be hard to manage. Therefore we generate a unique name
+	// that fulfills the requirements.
+	if !env.IsProd() {
+		url := env.OpenPaymentsURL()
+		url = strings.Replace(url, "https://", "", 1)
+		url = gatehub.DollarSignPlaceholder + url + "/"
+
+		if gatehub.NameOnCardMaxLength <= len(url) {
+			return url[:gatehub.NameOnCardMaxLength], nil
+		}
+
+		b := make([]byte, 32)
+		_, err := rand.Read(b)
+		if err != nil {
+			return "", fmt.Errorf("%w could not generate random string for name on card: %s", gatehub.ErrInternal, err)
+		}
+
+		randomStr := base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(b)
+		randomStr = strings.ToLower(randomStr)
+
+		nameOnCard := url + randomStr
+		if len(nameOnCard) > gatehub.NameOnCardMaxLength {
+			nameOnCard = nameOnCard[:gatehub.NameOnCardMaxLength]
+		}
+
+		return nameOnCard, nil
+	}
+
+	nameOnCard := gatehub.DollarSignPlaceholder + walletAddress
+	if len(nameOnCard) > gatehub.NameOnCardMaxLength {
+		return "", fmt.Errorf("%w attempted to order card with a name that is longer than %d", gatehub.ErrInternal, gatehub.NameOnCardMaxLength)
+	}
+
+	return nameOnCard, nil
 }

@@ -267,7 +267,6 @@ message CustomerDeliveryAddressBase {
   optional string postOffice = 6;
   string city = 7;
   string zipCode = 8;
-  string reason = 9;
 }
 
 message CustomerDeliveryAddress {
