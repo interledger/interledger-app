@@ -6,7 +6,8 @@ import type {
   TypedResponse
 } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { Form, useLoaderData } from '@remix-run/react'
+import { Form, useLoaderData, useSubmit } from '@remix-run/react'
+import { useMemo, useRef } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import {
@@ -18,6 +19,7 @@ import {
   OutlineButtonRouter,
   TextField
 } from '~/components'
+import { useTotpChallenge } from '~/lib/hooks/useTotpChallenge'
 import { KRATOS_URL, getCsrfTokenFromFlow } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
 
@@ -107,12 +109,37 @@ export const meta: MetaFunction = mergeMeta(() => [
 export default function Page() {
   const { flowId, qrNode, secretKey, totpUnlink, csrfToken } =
     useLoaderData<typeof loader>()
+  const formRef = useRef<HTMLFormElement>(null)
+  const submit = useSubmit()
+
+  const callbacks = useMemo(
+    () => ({
+      onSuccess: () => {
+        console.log('✅ TOTP Challenge completed successfully')
+        if (formRef.current) {
+          submit(formRef.current)
+        }
+      },
+      onError: (error: any) => {
+        console.error('❌ TOTP Challenge error:', error)
+      }
+    }),
+    []
+  )
+
+  const { popTotp, TotpPopup, isOpen } = useTotpChallenge(callbacks)
 
   if (!flowId && !totpUnlink) return <p>Failed to load flow data.</p>
+
+  const handleUnlinkClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault()
+    popTotp()
+  }
 
   return (
     <>
       <Form
+        ref={formRef}
         id='2fa-form'
         action={`/totp/two-factor-authentication?flow=${flowId}${
           totpUnlink ? '&totpUnlink=true' : ''
@@ -144,14 +171,19 @@ export default function Page() {
             <input type='hidden' name='csrf_token' value={csrfToken} />
           </Card>
 
-          <Button form='2fa-form' type='submit'>
-            {totpUnlink ? 'Unlink TOTP' : 'Verify TOTP'}
-          </Button>
+          {totpUnlink ? (
+            <Button onClick={handleUnlinkClick}>Unlink TOTP</Button>
+          ) : (
+            <Button form='2fa-form' type='submit'>
+              Verify TOTP
+            </Button>
+          )}
           <OutlineButtonRouter to={route('/logout')} className='mt-4'>
             Log out
           </OutlineButtonRouter>
         </GridColumn>
       </Form>
+      {isOpen && <TotpPopup />}
     </>
   )
 }
