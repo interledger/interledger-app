@@ -69,16 +69,6 @@ export async function appLoader({ request }: LoaderFunctionArgs) {
     grpc.getBalances(request, {})
   ])
   if (isConnectError(balanceResponse)) throw balanceResponse.error
-  const isUser = hasUserSession(request)
-  if (isUser) {
-    const session = await getUserSession(request)
-    if (
-      isUser &&
-      session.authenticator_assurance_level === AuthenticatorAssuranceLevel.Aal1
-    ) {
-      return redirect('/totp/two-factor-authentication?returnTo=/')
-    }
-  }
 
   return json({
     isUser: true,
