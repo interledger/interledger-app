@@ -42,7 +42,8 @@ func MakeUnaryInterceptor(client user.Client) grpc.ServerOption {
 
 			u, err := client.UserForToken(ctx, token)
 			if err != nil {
-				if !errors.Is(err, user.ErrNoUserFound) {
+				if !errors.Is(err, user.ErrNoUserFound) && 
+				   !errors.Is(err, user.ErrAAL2Required) {
 					return nil, status.Error(codes.Internal, "Error verifying bearer token.")
 				}
 			}
@@ -71,7 +72,8 @@ func MakeUnaryInterceptor(client user.Client) grpc.ServerOption {
 
 		u, err := client.UserForCookie(ctx, kratosCookie)
 		if err != nil {
-			if !errors.Is(err, user.ErrNoUserFound) {
+			if !errors.Is(err, user.ErrNoUserFound) && 
+			   !errors.Is(err, user.ErrAAL2Required) {
 				return nil, status.Error(codes.Internal, "Error parsing session.")
 			}
 		}

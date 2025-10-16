@@ -34,7 +34,7 @@ export const getCsrfTokenFromFlow = (
 function isUiNodeInputAttributes(n: any): n is UiNodeInputAttributes {
   return 'name' in n
 }
-  
+
 /**
  * getUserSession allows fetching a user's kratos session.
  * @param request Request received in a loader function.
@@ -87,7 +87,7 @@ export async function requireNoUserSession(request: Request): Promise<void> {
     // User shouldn't have session/cookies so don't catch unauthorised - 401.
     case 403:
     case 422: // Need to complete 2FA.
-      throw redirect(route('/login') + '?aal=aal2')
+      throw redirect(route('/totp/challenge'))
   }
 
   const userSession = await session.json()

@@ -28,6 +28,7 @@ import (
 
 var errorStatus = map[error]error{
 	user.ErrNoUserFound:           status.Error(codes.Unauthenticated, "Unauthenticated"),
+	user.ErrAAL2Required:          UnauthenticatedErrorWithReason("AAL2 required"),
 	twilio.ErrInvalidOTP:          NewValidationError("OTP", "Could not validate OTP"),
 	wallets.ErrDuplicateWallet:    status.Error(codes.AlreadyExists, "Wallet already exists"),
 	linkedaccounts.ErrNotFound:    NotFoundError("linked account not found"),
@@ -284,6 +285,22 @@ func ForbiddenError(message string) error {
 
 func UnauthenticatedError(message string) error {
 	return status.Error(codes.Unauthenticated, "Unauthenticated: "+message)
+}
+
+func UnauthenticatedErrorWithReason(reason string) error {
+	log.Info("Unauthenticated error with reason", zap.String("reason", reason))
+    st := status.New(codes.Unauthenticated, "Unauthenticated")
+    
+    metadata := &errdetails.ErrorInfo{
+        Reason: reason,
+        Domain: "authentication",
+    }
+    
+    st, err := st.WithDetails(metadata)
+    if err != nil {
+        panic(fmt.Sprintf("Unexpected error attaching metadata: %v", err))
+    }
+    return st.Err()
 }
 
 // Not found error will build an immutable error representing the status of the response.
