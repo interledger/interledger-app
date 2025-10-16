@@ -1,6 +1,7 @@
 import type { CallOptions, Transport } from '@bufbuild/connect'
 import {
   ConnectError as BufConnectError,
+  Code,
   makeAnyClient
 } from '@bufbuild/connect'
 import { createGrpcTransport } from '@bufbuild/connect-node'
@@ -12,7 +13,10 @@ import type {
   ServiceType
 } from '@bufbuild/protobuf'
 import { MethodKind } from '@bufbuild/protobuf'
+import { redirect } from '@remix-run/node'
+import { route } from 'routes-gen'
 import { BackendService } from '~/generated/connect/backend/v1/backend_connect'
+import { ErrorInfo } from '~/generated/connect/google/rpc/error_details_pb'
 import { ConnectError } from '~/lib/error.server'
 
 const BACKEND_GRPC_URL = process.env.BACKEND_GRPC_URL || 'http://0.0.0.0:8443'
@@ -129,6 +133,22 @@ function createUnaryFn<I extends Message<I>, O extends Message<O>>(
         return response.message
       })
       .catch((err) => {
+        console.log('Error in grpc:', err)
+        if (err.code === Code.Unauthenticated) {
+          // Extract error metadata to determine auth level required
+          const errorDetails = err.findDetails(ErrorInfo)
+          const reason = errorDetails?.[0]?.reason
+
+          console.log('Auth error reason:', reason)
+
+          if (reason === 'aal2_required') {
+            // User needs to complete 2FA/TOTP challenge
+            throw redirect(route('/totp/challenge'))
+          }
+
+          // Default to login for aal1_required or no reason
+          throw redirect(route('/login'))
+        }
         return new ConnectError(request, BufConnectError.from(err))
       })
   }

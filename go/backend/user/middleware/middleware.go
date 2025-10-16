@@ -7,6 +7,7 @@ import (
 
 	"gitlab.com/fynbos/backend/user"
 
+	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -16,6 +17,29 @@ import (
 const (
 	cookieMetadataKey = "cookies"
 )
+
+func aalErrorToStatus(err error) error {
+	var reason string
+	if errors.Is(err, user.ErrAAL1Required) {
+		reason = "aal1_required"
+	} else if errors.Is(err, user.ErrAAL2Required) {
+		reason = "aal2_required"
+	} else {
+		return nil
+	}
+
+	st := status.New(codes.Unauthenticated, "Unauthenticated")
+	metadata := &errdetails.ErrorInfo{
+		Reason: reason,
+		Domain: "authentication",
+	}
+	
+	st, detailErr := st.WithDetails(metadata)
+	if detailErr != nil {
+		return status.Error(codes.Unauthenticated, "Unauthenticated")
+	}
+	return st.Err()
+}
 
 // Our front-end will forward the raw http cookies in the metadata.
 func MakeUnaryInterceptor(client user.Client) grpc.ServerOption {
@@ -42,8 +66,11 @@ func MakeUnaryInterceptor(client user.Client) grpc.ServerOption {
 
 			u, err := client.UserForToken(ctx, token)
 			if err != nil {
-				if !errors.Is(err, user.ErrNoUserFound) && 
-				   !errors.Is(err, user.ErrAAL2Required) {
+				// Return AAL errors immediately with metadata
+				if errors.Is(err, user.ErrAAL1Required) || errors.Is(err, user.ErrAAL2Required) {
+					return nil, aalErrorToStatus(err)
+				}
+				if !errors.Is(err, user.ErrNoUserFound) {
 					return nil, status.Error(codes.Internal, "Error verifying bearer token.")
 				}
 			}
@@ -72,8 +99,11 @@ func MakeUnaryInterceptor(client user.Client) grpc.ServerOption {
 
 		u, err := client.UserForCookie(ctx, kratosCookie)
 		if err != nil {
-			if !errors.Is(err, user.ErrNoUserFound) && 
-			   !errors.Is(err, user.ErrAAL2Required) {
+			// Return AAL errors immediately with metadata
+			if errors.Is(err, user.ErrAAL1Required) || errors.Is(err, user.ErrAAL2Required) {
+				return nil, aalErrorToStatus(err)
+			}
+			if !errors.Is(err, user.ErrNoUserFound) {
 				return nil, status.Error(codes.Internal, "Error parsing session.")
 			}
 		}

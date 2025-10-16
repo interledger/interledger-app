@@ -46,7 +46,7 @@ func getSessionRetrievalError(resp *http.Response, err error) (error) {
 	}
 
 	if resp != nil && resp.StatusCode == http.StatusUnauthorized {
-		return nil
+		return user.ErrAAL1Required
 	}
 
 	return err
