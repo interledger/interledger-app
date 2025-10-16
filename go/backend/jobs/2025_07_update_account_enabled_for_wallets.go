@@ -52,9 +52,9 @@ func (a *Activity) UpdateRafikiWalletActiveStatus(ctx context.Context, params Wa
 	return nil
 }
 
-func (a *Activity) MutateRafikiWallets(ctx context.Context, rafikiWallet []rafiki.UpdateAddressStatus, isActive bool) error {
+func (a *Activity) MutateRafikiWallets(ctx context.Context, rafikiWallets []rafiki.UpdateAddressStatus, isActive bool) error {
 	client := a.b.Rafiki()
-	for _, walletId := range rafikiWallet {
+	for _, walletId := range rafikiWallets {
 		err := client.UpdateWalletAddressStatus(ctx, walletId, isActive)
 		if err != nil {
 			return fmt.Errorf("failed to update wallet address status for %s: %w", walletId, err)
