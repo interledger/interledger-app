@@ -133,20 +133,13 @@ function createUnaryFn<I extends Message<I>, O extends Message<O>>(
         return response.message
       })
       .catch((err) => {
-        console.log('Error in grpc:', err)
         if (err.code === Code.Unauthenticated) {
-          // Extract error metadata to determine auth level required
           const errorDetails = err.findDetails(ErrorInfo)
           const reason = errorDetails?.[0]?.reason
-
-          console.log('Auth error reason:', reason)
-
           if (reason === 'aal2_required') {
-            // User needs to complete 2FA/TOTP challenge
             throw redirect(route('/totp/challenge'))
           }
 
-          // Default to login for aal1_required or no reason
           throw redirect(route('/login'))
         }
         return new ConnectError(request, BufConnectError.from(err))
