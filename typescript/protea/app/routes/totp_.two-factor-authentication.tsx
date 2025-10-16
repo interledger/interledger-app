@@ -15,6 +15,7 @@ import {
   CardContent,
   GridColumn,
   Layouts,
+  OutlineButtonRouter,
   TextField
 } from '~/components'
 import { KRATOS_URL, getCsrfTokenFromFlow } from '~/lib/kratos.server'
@@ -146,6 +147,9 @@ export default function Page() {
           <Button form='2fa-form' type='submit'>
             {totpUnlink ? 'Unlink TOTP' : 'Verify TOTP'}
           </Button>
+          <OutlineButtonRouter to={route('/logout')} className='mt-4'>
+            Log out
+          </OutlineButtonRouter>
         </GridColumn>
       </Form>
     </>
@@ -229,7 +233,6 @@ export async function action({ request }: ActionFunctionArgs) {
       console.log('Refresh response:', refresh.status)
       return redirect(route('/totp/two-factor-authentication'), {
         headers: res.headers
-        
       })
     }
 

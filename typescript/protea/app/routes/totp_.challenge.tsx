@@ -8,7 +8,7 @@ import { json, redirect } from '@remix-run/node'
 import { useActionData, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import { Layouts } from '~/components'
+import { Layouts, OutlineButtonRouter } from '~/components'
 import { TotpChallenge } from '~/components/TotpChallenge'
 import { validateCSRFToken } from '~/lib/csrf.server'
 import { KRATOS_URL, getCsrfTokenFromFlow } from '~/lib/kratos.server'
@@ -89,11 +89,16 @@ export default function Page() {
   const actionData = useActionData<typeof action>()
 
   return (
-    <TotpChallenge
-      flowId={flowId}
-      csrfToken={csrfToken}
-      actionData={actionData}
-    />
+    <>
+      <TotpChallenge
+        flowId={flowId}
+        csrfToken={csrfToken}
+        actionData={actionData}
+      />
+      <OutlineButtonRouter to={route('/logout')} className='mt-4'>
+        Log out
+      </OutlineButtonRouter>
+    </>
   )
 }
 

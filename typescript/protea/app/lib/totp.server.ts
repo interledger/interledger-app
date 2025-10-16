@@ -8,12 +8,9 @@ import { KRATOS_URL } from './kratos.server'
 export const NON_TOTP_ROUTES = [
   '/totp/two-factor-authentication',
   '/totp/challenge',
-  '/settings',
   '/login',
-  '/login/challenge',
+  '/logout',
   '/signup',
-  '/recovery',
-  '/verification'
 ]
 
 /**
