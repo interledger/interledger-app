@@ -27,7 +27,6 @@ type SubAccount struct {
 	DepositTag       int    `db:"deposit_tag"`
 	WalletID         string `db:"wallet_id"`
 	DepositReference string `db:"deposit_reference"`
-	Details          []DepositDetails
 }
 
 type DepositDetails struct {

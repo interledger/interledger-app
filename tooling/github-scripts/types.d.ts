@@ -21,6 +21,8 @@ declare global {
      * If a TS package does not have a sentry project, use an empty string.
      */
     sentry_project: string;
+    cdn_bucket: string;
+    cdn_public_path: string;
   };
 
   type Builds = {

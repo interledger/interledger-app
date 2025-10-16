@@ -2,7 +2,7 @@ import { json } from '@remix-run/node'
 import type { ApplicationProps } from '~/components'
 import { Layouts } from '~/components'
 
-import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
+import type { LoaderFunctionArgs } from '@remix-run/node'
 import type { UIMatch } from '@remix-run/react'
 import { useLoaderData } from '@remix-run/react'
 import { DateTime } from 'luxon'
@@ -10,13 +10,8 @@ import { StructuredText } from 'react-datocms'
 import { Prose } from '~/components/Content'
 import { getCurrentLegalPage } from '~/data/content.server'
 import { fetchAndSanitizeHTML } from '~/lib/fetchAndSanitizeHTML.server'
-import { datoMeta, mergeMeta } from '~/lib/meta'
 
-export const meta: MetaFunction<typeof loader> = mergeMeta(
-  ({ data, location }) => datoMeta(data?.page?._seoMetaTags, location)
-)
-
-export async function loader({ request, params, context }: LoaderFunctionArgs) {
+export async function loader({ params }: LoaderFunctionArgs) {
   const { legalPage, footer } = await getCurrentLegalPage({
     filter: {
       slug: { eq: params.slug },

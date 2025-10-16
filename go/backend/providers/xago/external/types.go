@@ -172,3 +172,28 @@ type TestDepositReq struct {
 type UpdateInquiryLinkRequest struct {
 	ThirdPartyVerificationUrl string `json:"thirdPartyVerificationUrl"`
 }
+
+type Currency struct {
+	CurrencyCode     string         `json:"currencyCode"`
+	Name             string         `json:"name"`
+	Symbol           string         `json:"symbol"`
+	DepositEnabled   bool           `json:"depositEnabled"`
+	WithdrawEnabled  bool           `json:"withdrawEnabled"`
+	MarketEnabled    bool           `json:"marketEnabled"`
+	BankingProviders []BankProvider `json:"bankingProviders"`
+}
+
+type BankProvider struct {
+	Name             string        `json:"name"`
+	DepositAvailable bool          `json:"depositAvailable"`
+	DepositFields    DepositFields `json:"depositFields"`
+}
+
+type DepositFields struct {
+	BankName       string `json:"bankName"`
+	AccountName    string `json:"accountName"`
+	AccountNumber  string `json:"accountNumber"`
+	BankAddress    string `json:"bankAddress"`
+	AccountAddress string `json:"accountAddress"`
+	BranchCode     string `json:"branchCode"`
+}

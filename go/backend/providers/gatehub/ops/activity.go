@@ -35,6 +35,7 @@ func NewActivity(b Backends) *Activity {
 	ec := external.NewClient(
 		os.Getenv("GATEHUB_APP_ID"),
 		os.Getenv("GATEHUB_SECRET"),
+		os.Getenv("GATEHUB_GATEWAY_ID"),
 		&http.Client{
 			Transport: otelhttp.NewTransport(
 				httplogger.NewTransport(http.DefaultTransport, b, nil),
@@ -430,4 +431,25 @@ func (a *Activity) CheckGatehubWithdrawalComplete(ctx context.Context, walletID,
 	}
 
 	return nil
+}
+
+func (a *Activity) LinkGatehubUserToGateway(ctx context.Context, externalUser string) error {
+	return a.external.LinkUserToGateway(ctx, externalUser)
+}
+
+func (a *Activity) GetLinkedAccount(ctx context.Context, walletID string) (linkedaccounts.LinkedAccount, error) {
+	var linkedAccount linkedaccounts.LinkedAccount
+	la, err := a.b.LinkedAccounts().ListByWalletId(ctx, walletID)
+	if err != nil {
+		return linkedAccount, err
+	}
+
+	for _, l := range la {
+		if l.Provider == gatehub.ProviderName && l.Type == gatehub.AccTypeBalance {
+			linkedAccount = l
+			break
+		}
+	}
+
+	return linkedAccount, nil
 }

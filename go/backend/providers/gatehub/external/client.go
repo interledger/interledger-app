@@ -11,11 +11,13 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 
 	httplog "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/env"
+	"gitlab.com/fynbos/log"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
@@ -35,11 +37,11 @@ type client struct {
 	baseURL            string
 	onboardingBaseURL  string
 	onOffRampBaseURL   string
-
-	api *http.Client
+	gatewayID          string
+	api                *http.Client
 }
 
-func NewClient(appID, secret string, transport *http.Client) Client {
+func NewClient(appID, secret, gatewayID string, transport *http.Client) Client {
 	onOffRampClientID := "f8119dfd-e563-44ee-9ae2-1e60a4fce74f"
 	onboardingClientID := "4df24d1b-5796-4eec-951b-21699d61b970"
 	exchangeClientID := "4e28d4df-22d7-414c-97a3-d71956df29ba"
@@ -60,6 +62,10 @@ func NewClient(appID, secret string, transport *http.Client) Client {
 		api = transport
 	}
 
+	if gatewayID == "" {
+		log.Warn("GATEHUB_GATEWAY_ID is not set")
+	}
+
 	return &client{
 		onOffRampClientID:  onOffRampClientID,
 		onboardingClientID: onboardingClientID,
@@ -69,16 +75,18 @@ func NewClient(appID, secret string, transport *http.Client) Client {
 		baseURL:            baseURL,
 		onboardingBaseURL:  onboardingBaseURL,
 		onOffRampBaseURL:   onOffRampBaseURL,
+		gatewayID:          gatewayID,
 		api:                api,
 	}
 }
 
 func (c *client) GetVaultID() string {
-	if env.IsProd() {
-		return "546ac540-4362-49cb-b639-afc5d4280d03"
-	}
+	vaultID := os.Getenv("GATEHUB_PAYWISER_EURO_VAULT_ID")
+	if vaultID == "" {
+		log.Error("GATEHUB_PAYWISER_EURO_VAULT_ID is set to is not set")
 
-	return "a09a0a2c-1a3a-44c5-a1b9-603a6eea9341" // sandbox EUR vault
+	}
+	return vaultID
 }
 
 func (c *client) GetOnboardingWidget(ctx context.Context, userID string) (string, error) {
@@ -175,6 +183,48 @@ func (c *client) IssueToken(ctx context.Context, userID string, product Product)
 	}
 
 	return &tokenResp, nil
+}
+
+func (c *client) LinkUserToGateway(ctx context.Context, gatehubUserId string) error {
+	gatewayID := c.gatewayID
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "POST"
+		meta.Provider = "gatehub"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "POST",
+			Provider: "gatehub",
+		})
+	}
+	endpoint, err := url.JoinPath(c.baseURL, "id", "v1", "users", gatehubUserId, "hubs", gatewayID)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewBuffer(nil))
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set(managedUserHeader, gatehubUserId)
+	err = c.Sign(ctx, req, time.Now(), nil, endpoint)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	err = checkResponseStatusCode(resp)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+	defer resp.Body.Close()
+
+	return nil
 }
 
 func (c *client) CreateUser(ctx context.Context, email string) (*CreateUserResponse, error) {

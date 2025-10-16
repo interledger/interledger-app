@@ -126,3 +126,7 @@ func (c *client) UpdateInquiryLink(ctx context.Context, accountID string, wallet
 		AccountID: accountID,
 	})
 }
+
+func (c *client) GetBankAccount(ctx context.Context) (*xago.DepositDetails, error) {
+	return ops.GetBankAccount(ctx, c.b)
+}

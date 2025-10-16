@@ -548,3 +548,60 @@ func generateDepositReference() string {
 
 	return fmt.Sprintf("test%s", string(code))
 }
+
+func (s *Server) GetBankAccounts() http.HandlerFunc {
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		resp := []external.Currency{
+			{
+				CurrencyCode:    "ZAR",
+				Name:            "Rands",
+				Symbol:          "R",
+				DepositEnabled:  true,
+				WithdrawEnabled: true,
+				MarketEnabled:   true,
+				BankingProviders: []external.BankProvider{
+					{
+						Name:             "MockBOS Business",
+						DepositAvailable: true,
+						DepositFields: external.DepositFields{
+							BankName:       "Capitec Business",
+							AccountName:    "Xago Technologies PTY LTD",
+							AccountNumber:  "1050835450",
+							BankAddress:    "142 West Street, Sandown, 2196",
+							AccountAddress: "The Matrix, Bridgeway, Century City, 7441, South Africa",
+							BranchCode:     "450105",
+						},
+					},
+					{
+
+						Name:             "MockBOS Bidvest",
+						DepositAvailable: false,
+						DepositFields: external.DepositFields{
+							BankName:       "Bidvest Bank",
+							AccountName:    "Xago Technologies PTY LTD",
+							AccountNumber:  "13874093401",
+							BankAddress:    "142 West Street, Sandown, 2196",
+							AccountAddress: "The Matrix, Bridgeway, Century City, 7441, South Africa",
+							BranchCode:     "462005",
+						},
+					},
+				},
+			},
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(resp); err != nil {
+			// At this point, since the header and possibly part of the body are already written,
+			// you cannot send a new status code or additional headers.
+			// Log the error for server-side diagnostics.
+			log.Warn("Failed to encode JSON response: %v", zap.Error(err))
+			// Consider how you want to handle this knowing you can't change the response sent to the client.
+		}
+		w.WriteHeader(http.StatusOK)
+	}
+}

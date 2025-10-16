@@ -168,3 +168,18 @@ func (mr *MockClientMockRecorder) UpdateIndividualDetails(ctx, args interface{})
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateIndividualDetails", reflect.TypeOf((*MockClient)(nil).UpdateIndividualDetails), ctx, args)
 }
+
+// IsKYCApproved mocks base method.
+func (m *MockClient) IsKYCApproved(ctx context.Context, walletID string) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsKYCApproved", ctx, walletID)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// IsKYCApproved indicates an expected call of GetKYCStatus.
+func (mr *MockClientMockRecorder) IsKYCApproved(ctx, walletID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsKYCApproved", reflect.TypeOf((*MockClient)(nil).IsKYCApproved), ctx, walletID)
+}

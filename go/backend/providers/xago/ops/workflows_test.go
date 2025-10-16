@@ -2,7 +2,6 @@ package ops_test
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/google/uuid"
@@ -74,26 +73,6 @@ func TestActivity_SaveSubAccount(t *testing.T) {
 				BeneficiaryType:  "rollup",
 			},
 		},
-		DepositDetails: map[string][]external.DepositDetails{
-			"ZAR": {
-				{
-					BankName:       "Capitec Business",
-					AccountName:    "Xago Technologies PTY LTD",
-					AccountNumber:  "1050835450",
-					BankAddress:    "142 West Street, Sandown, 2196",
-					AccountAddress: "The Matrix, Bridgeway, Century City, 7441, South Africa",
-					BranchCode:     "450105",
-				},
-				{
-					BankName:       "Bidvest Bank",
-					AccountName:    "Xago Technologies PTY LTD",
-					AccountNumber:  "13874093401",
-					BankAddress:    "142 West Street, Sandown, 2196",
-					AccountAddress: "The Matrix, Bridgeway, Century City, 7441, South Africa",
-					BranchCode:     "462005",
-				},
-			},
-		},
 	})
 	require.NoError(t, err)
 
@@ -106,9 +85,6 @@ func TestActivity_SaveSubAccount(t *testing.T) {
 	assert.Equal(t, "Fluffy", entry.DepositAddress)
 	assert.Equal(t, 1945, entry.DepositTag)
 	assert.Equal(t, "fluffels", entry.DepositReference)
-	require.Len(t, entry.Details, 2)
-	fmt.Println(entry.Details[0])
-	fmt.Println(entry.Details[1])
 
 	entry, err = ops.LookupSubAccount(ctx, b, walletID)
 	require.NoError(t, err)
@@ -119,7 +95,5 @@ func TestActivity_SaveSubAccount(t *testing.T) {
 	assert.Equal(t, "Fluffy", entry.DepositAddress)
 	assert.Equal(t, 1945, entry.DepositTag)
 	assert.Equal(t, "fluffels", entry.DepositReference)
-	require.Len(t, entry.Details, 2)
-	fmt.Println(entry.Details[0])
-	fmt.Println(entry.Details[1])
+
 }

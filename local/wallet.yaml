@@ -99,6 +99,15 @@ services:
       - GATEHUB_APP_ID=<fetch-me-from-vault>
       - GATEHUB_SECRET=<fetch-me-from-vault>
       - GATEHUB_CARD_APP_ID=<fetch-me-from-vault>
+      - GATEHUB_WEBHOOK_SECRET=<fetch-me-from-vault>
+      - GATEHUB_GATEWAY_ID=b18965b5-8bb0-486e-88b2-7be47b974ac1
+      - GATEHUB_PAYWISER_EURO_VAULT_ID=67df5a03-587a-491f-8edb-37a9ef13daba
+
+
+      - PTI_BASE_URL=<fetch-me-from-vault>
+      - PTI_CLIENT_ID=<fetch-me-from-vault>
+      - PTI_JWK=<fetch-me-from-vault>
+      - PTI_PUBLIC_KEY_JWK={"e":"AQAB","kid":"84d1a616-db99-47dd-b690-70742b87aa4e","kty":"RSA","n":"1EWed921xDloYd1SbAkUsHbPqeKtGIOAmZhT4aYrT3F1-rugltXSSugO7SlLuUlH1k1a2tJyK3TtCbuSHE11Y8SGQeRcUFvLISz6XqBgAA59NOj_6gIMuE1L4MM5nEfbFHxq6YqDMDO5hZ5_P-2BMS-dtxx9VoPgUJC_OuglDvckpG3xxqITIbhfGsDe2_KolEHRkW8ozGNfR2kAKpuJFTqJTUg7jFDmNq_zgUA6_13d9F_tWN6uyW5X0gN9UjpEE86uFh49ScjwVthcRamiqk-PmrGmgoFrrplszf6bD7QScytecrag92Ls1kmX00BHnV0MBsh-Bk8vE8u88MNT0dfj5OLMIhqS014najHSMnXdTZg2iav9-r-iAQ5vHnfMGupR3jBttGlFWp72cKZUqA_Tu0m4efxiTzWJk10rDOdLOBsQBkDmMC72X-FmfxYXscr4vrDRvbGAfEFoceanYg8fQbr0A4mQtLZlAAsmLBBuLHvw3MPpW2eD1H8wicm2i0J8_EHdhwp3u-83rtkVhowmjE9hav9lpjiFmSNGFYjR8ddxmRNM-vDc4o165frPnGpAhqTnnDelZcNT_CFkgwQ4H38J4ciuB50pM8meoCbapKunK9DqH0gs2iwpMUcq3B0pWJ27nvtnvujiVXTWCP9A8Dk4J-LQUU-TquQy8k0"}
 
     depends_on:
       - migration
