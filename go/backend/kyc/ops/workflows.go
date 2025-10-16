@@ -55,11 +55,6 @@ func SetKYCStatusWorkflow(ctx workflow.Context, args SetKYCStatusWorkflowArgs) e
 		logger.Error("failed to set KYC status", "err", err)
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.UpdateKYCStatus, walletID, status).Get(ctx, nil)
-	if err != nil {
-		logger.Error("failed to set KYC status", "err", err)
-	}
-
 	if oldStatus != kyc.StatusDenied && status == kyc.StatusDenied {
 		_ = workflow.ExecuteActivity(ctx, a.SendDeniedEmail, walletID).Get(ctx, nil)
 	} else if oldStatus != kyc.StatusInReview && status == kyc.StatusInReview {
