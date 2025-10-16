@@ -284,6 +284,11 @@ func WithdrawFromWallet(ctx context.Context, b Backends, ec external.Client, arg
 		return "", fmt.Errorf("%w source account not found or is not a bank account", pti.ErrNotFound)
 	}
 
+	kycDetails, err := b.KYC().GetIndividualDetails(ctx, args.WalletID)
+	if err != nil {
+		return "", err
+	}
+
 	txID, err := ec.WalletWithdrawal(ctx, external.WithdrawalArgs{
 		RequestID:             args.PaymentID,
 		SessionID:             args.PaymentID,
@@ -292,6 +297,7 @@ func WithdrawFromWallet(ctx context.Context, b Backends, ec external.Client, arg
 		ExternalWalletID:      balance.ProviderID,
 		ExternalBankAccountID: bank.ProviderID,
 		Amount:                args.Amount,
+		AccountHolderName:     kycDetails.FirstName + " " + kycDetails.LastName,
 	})
 	if errors.Is(err, external.ErrUnprocessableEntity) {
 		return "", err
@@ -557,7 +563,8 @@ func GetKYCWidget(ctx context.Context, b Backends, walletID string) (*pti.Widget
 	}
 
 	return &pti.WidgetDetails{
-		ScenarioID:        pti.ScenarioDeposit,
+		// ScenarioID:        pti.ScenarioDeposit,
+		ScenarioID:        pti.ScenarioWithdrawal,
 		RequestID:         uuid.NewString(),
 		UserID:            externalUser.ExternalID,
 		ClientID:          os.Getenv("PTI_CLIENT_ID"),

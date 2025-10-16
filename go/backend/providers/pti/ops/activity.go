@@ -621,8 +621,19 @@ func (a *Activity) SettleTransaction(ctx context.Context, transactionID, walletI
 		return "", err
 	}
 	if existingTransaction != nil {
-		if err := a.b.Transactions().SetTransferState(ctx, existingTransaction.ID, transactions.StateCompleted); err != nil {
-			return "", temporal.NewNonRetryableApplicationError("can not update transaction state", "ErrInternal", fmt.Errorf("%w invalid currency", pti.ErrInternal))
+		if err := a.b.Transactions().SetTransactionState(ctx, existingTransaction.ID, transactions.StateCompleted); err != nil {
+			return "", err
+		}
+
+		transfers, err := a.b.Transactions().ListTransfers(ctx, existingTransaction.ID)
+		if err != nil || len(transfers) != 1 { // deposit only
+			return "", errors.New("not a deposit transaction")
+		}
+		transferID := transfers[0].ID
+
+		err = a.b.Transactions().SetTransferState(ctx, transferID, transactions.StateCompleted)
+		if err != nil {
+			return "", err
 		}
 
 		return existingTransaction.ID, nil
@@ -688,7 +699,7 @@ func (a *Activity) SettleTransaction(ctx context.Context, transactionID, walletI
 	return tx, nil
 }
 
-func (a *Activity) MarkTransactionPending(ctx context.Context, transactionID, walletID string) error {
+func (a *Activity) MarkTransactionState(ctx context.Context, transactionID, walletID string, state transactions.State) error {
 	existingTransaction, err := a.b.Transactions().GetTransaction(ctx, walletID, transactionID)
 	if err != nil && !errors.Is(err, transactions.ErrNotFound) {
 		return err

@@ -218,6 +218,7 @@ type (
 		ExternalWalletID      string
 		ExternalBankAccountID string
 		Amount                currency.Amount
+		AccountHolderName     string
 	}
 
 	CreateTxResponse struct {
@@ -327,7 +328,7 @@ type (
 		TransactionType     string              `json:"transactionType"`
 		PaymentMethod       string              `json:"paymentMethod"`
 		PaymentStatusDetail PaymentStatusDetail `json:"paymentStatusDetail"`
-		Amount              string              `json:"amount"`
+		Amount              int                 `json:"amount"`
 		BillingEmail        string              `json:"billingEmail"`
 		Total               Total               `json:"total"`
 		Currency            string              `json:"currency"`

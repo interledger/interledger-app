@@ -81,7 +81,7 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	// PTI
 	w.RegisterWorkflow(pti_workflows.DepositWorkflow)
 	w.RegisterWorkflow(pti_workflows.SettleDepositWrokflow)
-	w.RegisterWorkflow(pti_workflows.PendingDepositWrokflow)
+	w.RegisterWorkflow(pti_workflows.MarkTransactionStateWrokflow)
 
 	var ptiPrivateKey jwk.Key
 	// if env.IsLocal() {

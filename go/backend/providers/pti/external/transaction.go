@@ -389,8 +389,8 @@ func (c client) WalletWithdrawal(ctx context.Context, args WithdrawalArgs) (stri
 		},
 		SourceMethod: SourceMethod{
 			PaymentInformation: PaymentInformation{
-				Type:     "WALLET",
-				WalletID: args.ExternalWalletID,
+				Type: "WALLET",
+				ID:   args.ExternalWalletID,
 			},
 			PaymentMethodType: "WALLET",
 		},
@@ -398,8 +398,9 @@ func (c client) WalletWithdrawal(ctx context.Context, args WithdrawalArgs) (stri
 			Currency:          args.Amount.Currency.String(),
 			PaymentMethodType: "ACH",
 			PaymentInformation: PaymentInformation{
-				Type: "BANK_ACCOUNT",
-				ID:   args.ExternalBankAccountID,
+				Type:              "BANK_ACCOUNT",
+				ID:                args.ExternalBankAccountID,
+				AccountHolderName: args.AccountHolderName,
 			},
 		},
 		Amount:    args.Amount.Float64(),

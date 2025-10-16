@@ -16,6 +16,7 @@ import (
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/slack"
+	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/log"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/serviceerror"
@@ -122,7 +123,11 @@ func Webhook(b Backends) (http.HandlerFunc, error) {
 		case "USER_ASSESSMENT", "KYC":
 			err = HandleAssessmentUpdate(r.Context(), b, v)
 		case "TRANSACTION_STATUS":
-			HandlePtiDeposit(r.Context(), b, v, w)
+			if data.TransactionType == "DEPOSIT" {
+				HandlePtiDeposit(r.Context(), b, v, w)
+			} else {
+				log.Warn("not a deposit, got: ", zap.String("transaction type", data.TransactionType))
+			}
 		case "TRANSACTION_ASSESSMENT":
 			err = HandleTransactionAssessmentUpdate(r.Context(), b, v)
 		default:
@@ -243,10 +248,45 @@ func HandlePtiDeposit(ctx context.Context, b Backends, raw json.RawMessage, w ht
 	switch payload.Status {
 	case authorizedState:
 		fmt.Println("got authorized transaction status")
-	case refusedState:
+	case refusedState, errorState, canceledState:
 		fmt.Println("got refused transaction status") // mark as transactions.StateOnHold
-	case errorState:
-		fmt.Println("got error transaction status") // mark as transactions.StateFailed
+
+		wo := client.StartWorkflowOptions{
+			ID:                    "pti_deposit_webhook_mark_transaction_failed" + payload.RequestID,
+			TaskQueue:             "backend",
+			WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+		}
+
+		var workflowStatus enums.WorkflowExecutionStatus
+		wflow, err := b.Temporal().DescribeWorkflowExecution(ctx, wo.ID, "")
+		switch err.(type) {
+		case *serviceerror.Internal,
+			*serviceerror.Unavailable,
+			*serviceerror.InvalidArgument:
+
+			log.Error("Failed to handle pti deposit webhook", zap.Error(err))
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		case *serviceerror.NotFound:
+			// do nothing
+		default:
+			if wflow != nil {
+				workflowStatus = wflow.GetWorkflowExecutionInfo().Status
+			}
+		}
+
+		// execute workflow if it's not running
+		if workflowStatus != enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
+			_, err = b.Temporal().ExecuteWorkflow(ctx, wo, MarkTransactionStateWrokflow, payload, transactions.StateFailed)
+			if err != nil {
+				log.Error("Failed to handle pti deposit webhook", zap.Error(err))
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+		}
+
+		w.WriteHeader(http.StatusOK)
+
 	case pendingState, processingState:
 		fmt.Println("got pending/processing transaction status") // mark as transactions.StatePending
 		wo := client.StartWorkflowOptions{
@@ -275,7 +315,7 @@ func HandlePtiDeposit(ctx context.Context, b Backends, raw json.RawMessage, w ht
 
 		// execute workflow if it's not running
 		if workflowStatus != enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
-			_, err = b.Temporal().ExecuteWorkflow(ctx, wo, PendingDepositWrokflow, payload)
+			_, err = b.Temporal().ExecuteWorkflow(ctx, wo, MarkTransactionStateWrokflow, payload, transactions.StatePending)
 			if err != nil {
 				log.Error("Failed to handle pti deposit webhook", zap.Error(err))
 				w.WriteHeader(http.StatusInternalServerError)
@@ -287,8 +327,6 @@ func HandlePtiDeposit(ctx context.Context, b Backends, raw json.RawMessage, w ht
 
 	case chargedBackState:
 		fmt.Println("got charged back transaction status") // ask this for later
-	case canceledState:
-		fmt.Println("got canceled transaction status") // mark as transactions.
 	case refundedState:
 		fmt.Println("got refunded transaction status") // after chargeback assumed
 	case capturedState:
@@ -352,10 +390,11 @@ func HandleTransactionAssessmentUpdate(ctx context.Context, b Backends, data []b
 }
 
 type WebhookData struct {
-	ResourceType string `json:"resourceType"`
-	ClientID     string `json:"clientId"`
-	RequestID    string `json:"requestId"`
-	UserId       string `json:"userId"`
+	ResourceType    string `json:"resourceType"`
+	ClientID        string `json:"clientId"`
+	RequestID       string `json:"requestId"`
+	UserId          string `json:"userId"`
+	TransactionType string `json:"transactionType"`
 }
 
 type UserWebhook struct {

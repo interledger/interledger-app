@@ -208,7 +208,7 @@ func SettleDepositWrokflow(ctx workflow.Context, wh pti.TransactionStatusPayload
 	return txID, nil
 }
 
-func PendingDepositWrokflow(ctx workflow.Context, wh pti.TransactionStatusPayload) error {
+func MarkTransactionStateWrokflow(ctx workflow.Context, wh pti.TransactionStatusPayload, state transactions.State) error {
 	var a *Activity
 
 	ao := workflow.ActivityOptions{
@@ -222,7 +222,7 @@ func PendingDepositWrokflow(ctx workflow.Context, wh pti.TransactionStatusPayloa
 		return err
 	}
 
-	if err := workflow.ExecuteActivity(ctx, a.MarkTransactionPending, wh.RequestID, walletID).Get(ctx, nil); err != nil {
+	if err := workflow.ExecuteActivity(ctx, a.MarkTransactionState, wh.RequestID, walletID, state).Get(ctx, nil); err != nil {
 		return err
 	}
 
