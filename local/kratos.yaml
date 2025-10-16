@@ -22,5 +22,9 @@ services:
     command: serve -c /etc/config/kratos/kratos.yml --dev
     volumes:
       - ./config:/etc/config/kratos
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.kratos.rule=Host(`identity.interledger.test`)"
+      - "traefik.http.services.kratos.loadbalancer.server.port=4433"
     depends_on:
       - kratos-migrate
