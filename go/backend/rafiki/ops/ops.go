@@ -31,7 +31,7 @@ func CreatePaymentPointer(ctx context.Context, b Backends, w wallets.Wallet) (st
 		return "", fmt.Errorf("%w %s", rafiki.ErrInternal, err)
 	}
 	if ppID != "" {
-		return "", nil
+		return ppID, nil
 	}
 
 	ppID, err = b.External().CreatePaymentPointer(ctx, w)
