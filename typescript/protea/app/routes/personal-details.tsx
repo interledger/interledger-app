@@ -156,11 +156,14 @@ function GatehubPage() {
       } catch {
         throw new Error(KYCErrors.UnableToPars)
       }
-      
-      if (e.data.type === 'OnboardingCompleted' && parsedValue?.applicantStatus === 'submitted') {
+
+      if (
+        e.data.type === 'OnboardingCompleted' &&
+        parsedValue?.applicantStatus === 'submitted'
+      ) {
         submit(null, {
           action: '/personal-details',
-          method: 'post',
+          method: 'post'
         })
       }
     }

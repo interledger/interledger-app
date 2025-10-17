@@ -27,12 +27,14 @@ import {
 import { ContentRouter, Prose } from '~/components/Content'
 import { CommandActions } from '~/components/Scaffold/CommandActions'
 import { CommandPalette } from '~/components/Scaffold/CommandPalette'
+import { CardType } from '~/generated/connect/backend/v1/backend_pb'
 import type { FooterRecord } from '~/generated/dato-cms-graphql'
 import {
   ConnectDomainStep,
   useConnectDomainStore
 } from '~/lib/useConnectDomainStore'
 import { useFormStore } from '~/lib/useFormStore'
+import { OrderCardStep, useOrderCardStore } from '~/lib/useOrderCardStore'
 import { PayStep, usePayStore } from '~/lib/usePayStore'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { SignupStep, useSignupStore } from '~/lib/useSignupStore'
@@ -118,6 +120,9 @@ export function Scaffold() {
   ])
   const [connectDomainStep, connectDomainStepBack] = useConnectDomainStore(
     (state) => [state.step, state.stepBack]
+  )
+  const [addCardStep, cardsStepBack, cardType, cardSetStep] = useOrderCardStore(
+    (state) => [state.step, state.stepBack, state.type, state.setStep]
   )
 
   // TODO should use second last match for scaffold if current match is nested (Only on desktop)
@@ -206,6 +211,11 @@ export function Scaffold() {
             <NavDrawer.ListItem to={route('/accounts')}>
               Accounts
             </NavDrawer.ListItem>
+            {features.manageWalletCardsEnabled && (
+              <NavDrawer.ListItem to={route('/cards')}>
+                Cards
+              </NavDrawer.ListItem>
+            )}
             <NavDrawer.ListItem to={route('/payments')}>
               Payments
             </NavDrawer.ListItem>
@@ -322,6 +332,21 @@ export function Scaffold() {
                       connectDomainStepBack()
                       navigate(-1)
                     } else connectDomainStepBack()
+                  } else if (scaffold.header.back === 'cards') {
+                    if (addCardStep === OrderCardStep.CARD_TYPE) {
+                      navigate(route('/cards'))
+                    } else if (
+                      addCardStep === OrderCardStep.CONFIRMATION &&
+                      cardType &&
+                      cardType === CardType.VIRTUAL
+                    ) {
+                      cardSetStep(OrderCardStep.CARD_TYPE)
+                    } else if (
+                      addCardStep === OrderCardStep.DELIVERY &&
+                      cardType === CardType.PHYSICAL
+                    ) {
+                      cardSetStep(OrderCardStep.CARD_TYPE)
+                    } else cardsStepBack()
                   } else {
                     if (typeof scaffold.header.back === 'string') {
                       navigate(scaffold.header.back)

@@ -122,6 +122,14 @@ const (
 	BackendService_CreateChimoneyWallet_FullMethodName           = "/backend.v1.BackendService/CreateChimoneyWallet"
 	BackendService_GetChimoneyDepositLink_FullMethodName         = "/backend.v1.BackendService/GetChimoneyDepositLink"
 	BackendService_CreateChimoneyDeposit_FullMethodName          = "/backend.v1.BackendService/CreateChimoneyDeposit"
+	BackendService_ListCards_FullMethodName                      = "/backend.v1.BackendService/ListCards"
+	BackendService_GetCardOrderOptions_FullMethodName            = "/backend.v1.BackendService/GetCardOrderOptions"
+	BackendService_OrderCard_FullMethodName                      = "/backend.v1.BackendService/OrderCard"
+	BackendService_GetCardToken_FullMethodName                   = "/backend.v1.BackendService/GetCardToken"
+	BackendService_FreezeCard_FullMethodName                     = "/backend.v1.BackendService/FreezeCard"
+	BackendService_UnfreezeCard_FullMethodName                   = "/backend.v1.BackendService/UnfreezeCard"
+	BackendService_BlockCard_FullMethodName                      = "/backend.v1.BackendService/BlockCard"
+	BackendService_TerminateCard_FullMethodName                  = "/backend.v1.BackendService/TerminateCard"
 )
 
 // BackendServiceClient is the client API for BackendService service.
@@ -260,6 +268,15 @@ type BackendServiceClient interface {
 	CreateChimoneyWallet(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
 	GetChimoneyDepositLink(ctx context.Context, in *Amount, opts ...grpc.CallOption) (*GetChimoneyDepositLinkResponse, error)
 	CreateChimoneyDeposit(ctx context.Context, in *CreateChimoneyDepositRequest, opts ...grpc.CallOption) (*Empty, error)
+	// Cards
+	ListCards(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListCardsResponse, error)
+	GetCardOrderOptions(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetCardOrderOptionsResponse, error)
+	OrderCard(ctx context.Context, in *OrderCardRequest, opts ...grpc.CallOption) (*Empty, error)
+	GetCardToken(ctx context.Context, in *GetCardTokenRequest, opts ...grpc.CallOption) (*GetCardTokenResponse, error)
+	FreezeCard(ctx context.Context, in *FreezeCardRequest, opts ...grpc.CallOption) (*Empty, error)
+	UnfreezeCard(ctx context.Context, in *UnfreezeCardRequest, opts ...grpc.CallOption) (*Empty, error)
+	BlockCard(ctx context.Context, in *BlockCardRequest, opts ...grpc.CallOption) (*Empty, error)
+	TerminateCard(ctx context.Context, in *TerminateCardRequest, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type backendServiceClient struct {
@@ -1197,6 +1214,78 @@ func (c *backendServiceClient) CreateChimoneyDeposit(ctx context.Context, in *Cr
 	return out, nil
 }
 
+func (c *backendServiceClient) ListCards(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListCardsResponse, error) {
+	out := new(ListCardsResponse)
+	err := c.cc.Invoke(ctx, BackendService_ListCards_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) GetCardOrderOptions(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetCardOrderOptionsResponse, error) {
+	out := new(GetCardOrderOptionsResponse)
+	err := c.cc.Invoke(ctx, BackendService_GetCardOrderOptions_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) OrderCard(ctx context.Context, in *OrderCardRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, BackendService_OrderCard_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) GetCardToken(ctx context.Context, in *GetCardTokenRequest, opts ...grpc.CallOption) (*GetCardTokenResponse, error) {
+	out := new(GetCardTokenResponse)
+	err := c.cc.Invoke(ctx, BackendService_GetCardToken_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) FreezeCard(ctx context.Context, in *FreezeCardRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, BackendService_FreezeCard_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) UnfreezeCard(ctx context.Context, in *UnfreezeCardRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, BackendService_UnfreezeCard_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) BlockCard(ctx context.Context, in *BlockCardRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, BackendService_BlockCard_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) TerminateCard(ctx context.Context, in *TerminateCardRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, BackendService_TerminateCard_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServiceServer is the server API for BackendService service.
 // All implementations should embed UnimplementedBackendServiceServer
 // for forward compatibility
@@ -1333,6 +1422,15 @@ type BackendServiceServer interface {
 	CreateChimoneyWallet(context.Context, *Empty) (*Empty, error)
 	GetChimoneyDepositLink(context.Context, *Amount) (*GetChimoneyDepositLinkResponse, error)
 	CreateChimoneyDeposit(context.Context, *CreateChimoneyDepositRequest) (*Empty, error)
+	// Cards
+	ListCards(context.Context, *Empty) (*ListCardsResponse, error)
+	GetCardOrderOptions(context.Context, *Empty) (*GetCardOrderOptionsResponse, error)
+	OrderCard(context.Context, *OrderCardRequest) (*Empty, error)
+	GetCardToken(context.Context, *GetCardTokenRequest) (*GetCardTokenResponse, error)
+	FreezeCard(context.Context, *FreezeCardRequest) (*Empty, error)
+	UnfreezeCard(context.Context, *UnfreezeCardRequest) (*Empty, error)
+	BlockCard(context.Context, *BlockCardRequest) (*Empty, error)
+	TerminateCard(context.Context, *TerminateCardRequest) (*Empty, error)
 }
 
 // UnimplementedBackendServiceServer should be embedded to have forward compatible implementations.
@@ -1647,6 +1745,30 @@ func (UnimplementedBackendServiceServer) GetChimoneyDepositLink(context.Context,
 }
 func (UnimplementedBackendServiceServer) CreateChimoneyDeposit(context.Context, *CreateChimoneyDepositRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateChimoneyDeposit not implemented")
+}
+func (UnimplementedBackendServiceServer) ListCards(context.Context, *Empty) (*ListCardsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListCards not implemented")
+}
+func (UnimplementedBackendServiceServer) GetCardOrderOptions(context.Context, *Empty) (*GetCardOrderOptionsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCardOrderOptions not implemented")
+}
+func (UnimplementedBackendServiceServer) OrderCard(context.Context, *OrderCardRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method OrderCard not implemented")
+}
+func (UnimplementedBackendServiceServer) GetCardToken(context.Context, *GetCardTokenRequest) (*GetCardTokenResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCardToken not implemented")
+}
+func (UnimplementedBackendServiceServer) FreezeCard(context.Context, *FreezeCardRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FreezeCard not implemented")
+}
+func (UnimplementedBackendServiceServer) UnfreezeCard(context.Context, *UnfreezeCardRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UnfreezeCard not implemented")
+}
+func (UnimplementedBackendServiceServer) BlockCard(context.Context, *BlockCardRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BlockCard not implemented")
+}
+func (UnimplementedBackendServiceServer) TerminateCard(context.Context, *TerminateCardRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TerminateCard not implemented")
 }
 
 // UnsafeBackendServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -3514,6 +3636,150 @@ func _BackendService_CreateChimoneyDeposit_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_ListCards_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).ListCards(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_ListCards_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).ListCards(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_GetCardOrderOptions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).GetCardOrderOptions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_GetCardOrderOptions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).GetCardOrderOptions(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_OrderCard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(OrderCardRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).OrderCard(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_OrderCard_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).OrderCard(ctx, req.(*OrderCardRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_GetCardToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCardTokenRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).GetCardToken(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_GetCardToken_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).GetCardToken(ctx, req.(*GetCardTokenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_FreezeCard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FreezeCardRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).FreezeCard(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_FreezeCard_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).FreezeCard(ctx, req.(*FreezeCardRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_UnfreezeCard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnfreezeCardRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).UnfreezeCard(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_UnfreezeCard_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).UnfreezeCard(ctx, req.(*UnfreezeCardRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_BlockCard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BlockCardRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).BlockCard(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_BlockCard_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).BlockCard(ctx, req.(*BlockCardRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_TerminateCard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TerminateCardRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).TerminateCard(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_TerminateCard_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).TerminateCard(ctx, req.(*TerminateCardRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BackendService_ServiceDesc is the grpc.ServiceDesc for BackendService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -3932,6 +4198,38 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateChimoneyDeposit",
 			Handler:    _BackendService_CreateChimoneyDeposit_Handler,
+		},
+		{
+			MethodName: "ListCards",
+			Handler:    _BackendService_ListCards_Handler,
+		},
+		{
+			MethodName: "GetCardOrderOptions",
+			Handler:    _BackendService_GetCardOrderOptions_Handler,
+		},
+		{
+			MethodName: "OrderCard",
+			Handler:    _BackendService_OrderCard_Handler,
+		},
+		{
+			MethodName: "GetCardToken",
+			Handler:    _BackendService_GetCardToken_Handler,
+		},
+		{
+			MethodName: "FreezeCard",
+			Handler:    _BackendService_FreezeCard_Handler,
+		},
+		{
+			MethodName: "UnfreezeCard",
+			Handler:    _BackendService_UnfreezeCard_Handler,
+		},
+		{
+			MethodName: "BlockCard",
+			Handler:    _BackendService_BlockCard_Handler,
+		},
+		{
+			MethodName: "TerminateCard",
+			Handler:    _BackendService_TerminateCard_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

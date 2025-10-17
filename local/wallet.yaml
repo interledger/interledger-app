@@ -22,8 +22,8 @@ services:
       - PACIOLI_DB_URL_WITH_CERTS=postgres://postgres:postgres@postgres:5432/pacioli?sslmode=disable
       - KRATOS_URL=http://kratos:4434 # check it if is public or admin
       - LOG_LEVEL=info
-    
-  # 2. Backend 
+
+  # 2. Backend
   backend:
     build:
       context: ../go
@@ -73,7 +73,7 @@ services:
       - RAFIKI_GRAPHQL_URL=http://rafiki_backend:3001/graphql
 
       - TEMPORAL_URL=temporal:7233
-      
+
       - TWILIO_ACCOUNT_SID=SK021f793191208ba69c3bea87dd426085
       - TWILIO_SERVICE_SID=VA8af4e130da63b9fac4c042acbc33a267
       - TWILIO_ACCOUNT_TOKEN=test
@@ -89,17 +89,18 @@ services:
       - PORT=8080
       - OPEN_PAYMENTS_PORT=8081
       - AUTHORISATION_PORT=8082
-      
+
       - RAFIKI_BACKEND_GRAPHQL_URL=http://rafiki_backend:3001/graphql
       - RAFIKI_AUTH_GRAPHQL_URL=http://rafiki_auth:3003/graphql
 
       - ALLOWED_WALLET_IDS=
       - BLOCKED_REGIONS=
 
-      - GATEHUB_APP_ID=<fetch-me-from-vault>
-      - GATEHUB_SECRET=<fetch-me-from-vault>
-      - GATEHUB_CARD_APP_ID=<fetch-me-from-vault>
-      - GATEHUB_WEBHOOK_SECRET=<fetch-me-from-vault>
+      - GATEHUB_APP_ID=
+      - GATEHUB_SECRET=
+      - GATEHUB_CARD_APP_ID=
+      - GATEHUB_CARD_ACCOUNT_PRODUCT_CODE=PWSR_DEBP_2404
+      - GATEHUB_WEBHOOK_SECRET=
       - GATEHUB_GATEWAY_ID=b18965b5-8bb0-486e-88b2-7be47b974ac1
       - GATEHUB_PAYWISER_EURO_VAULT_ID=67df5a03-587a-491f-8edb-37a9ef13daba
 

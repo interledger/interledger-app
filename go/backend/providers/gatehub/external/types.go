@@ -25,6 +25,14 @@ var (
 	TransactionStatusFailed         int = 101
 	TransactionStatusUserCancelled  int = 102
 	TransactionStatusAdminCancelled int = 103
+
+	CardStatusActive           string = "Active"
+	CardStatusBlocked          string = "Blocked"
+	CardStatusTemporaryBlocked string = "TemporaryBlocked"
+	CardStatusReplaced         string = "Replaced"
+	CardStatusSoftDelete       string = "SoftDelete"
+	CardStatusAccountBlocked   string = "AccountBlocked"
+	CardStatusInCreation       string = "InCreation"
 )
 
 type (
@@ -250,4 +258,169 @@ type (
 		Documents             []Document     `json:"documents,omitempty"`
 		Href                  string         `json:"href,omitempty"`
 	}
+
+	Pagination struct {
+		PageNumber uint `json:"pageNumber"`
+		PageSize   uint `json:"pageSize"`
+		TotalPages uint `json:"totalPages"`
+	}
+
+	CardApplicationProduct struct {
+		Code string `json:"code"`
+		Name string `json:"name"`
+	}
+
+	Card struct {
+		ID                         string  `json:"id"`
+		SourceID                   string  `json:"sourceId"`
+		AccountID                  string  `json:"accountId"`
+		AccountSourceID            string  `json:"accountSourceId"`
+		CustomerID                 string  `json:"customerId"`
+		CustomerSourceID           string  `json:"customerSourceId"`
+		NameOnCard                 string  `json:"nameOnCard"`
+		ProductCode                string  `json:"productCode"`
+		PanToken                   string  `json:"panToken"`
+		MaskedPan                  string  `json:"maskedPan"`
+		Status                     string  `json:"status"`
+		StatusReasonCode           *string `json:"statusReasonCode"`
+		LockLevel                  *string `json:"lockLevel"`
+		ExpiryDate                 string  `json:"expiryDate"`
+		RelationType               string  `json:"relationType"`
+		MembershipFeeEffectiveDate *string `json:"membershipFeeEffectiveDate"`
+		IsFirstTimeLock            bool    `json:"isFirstTimeLock"`
+		PlasticCreated             bool    `json:"plasticCreated"`
+		OrderPlasticOnSync         bool    `json:"OrderPlasticOnSync"`
+	}
+
+	Account struct {
+		ID               *string `json:"id"`
+		SourceID         string  `json:"sourceId"`
+		CustomerID       *string `json:"customerId"`
+		CustomerSourceID string  `json:"customerSourceId"`
+		ProductCode      string  `json:"productCode"`
+		Currency         string  `json:"currency"`
+		AccountNumber    string  `json:"accountNumber"`
+		Type             string  `json:"type"`
+		Status           string  `json:"status"`
+		StatusReasonCode string  `json:"statusReasonCode"` // TODO: Enum?
+		Cards            []Card  `json:"cards"`
+	}
+
+	Customer struct {
+		ID        *string                   `json:"id"`
+		SourceID  string                    `json:"sourceId"`
+		Type      string                    `json:"type"`
+		Code      string                    `json:"code"`
+		TaxNumber string                    `json:"taxNumber"`
+		KYCStatus string                    `json:"kycStatus"` // TODO: IS THIS NEEDED?
+		Addresses []CustomerDeliveryAddress `json:"addresses"`
+		Accounts  []Account                 `json:"accounts"`
+	}
+
+	CustomerResponse struct {
+		WalletAddress string   `json:"walletAddress"`
+		Customer      Customer `json:"customers"`
+	}
+
+	CreateCustomerDeliveryAddressArgs struct {
+		Type        string  `json:"type" validate:"required"`
+		CountryCode string  `json:"countryCode" validate:"required,iso3166_1_alpha3"`
+		Line1       string  `json:"line1" validate:"required,min=1,max=128"`
+		Line2       *string `json:"line2,omitempty" validate:"omitempty,min=1,max=128"`
+		Line3       *string `json:"line3,omitempty" validate:"omitempty,min=1,max=128"`
+		City        string  `json:"city" validate:"required,min=1,max=32"`
+		PostOffice  *string `json:"postOffice,omitempty" validate:"omitempty,max=32"`
+		ZipCode     string  `json:"zipCode" validate:"required,min=1,max=8"`
+		Reason      string  `json:"reason" validate:"required,min=1,max=254"`
+	}
+
+	CustomerDeliveryAddress struct {
+		ID               string  `json:"id"`
+		SourceID         string  `json:"sourceId"`
+		CustomerID       string  `json:"customerId"`
+		CustomerSourceID string  `json:"customerSourceId"`
+		Type             string  `json:"type"`
+		Line1            string  `json:"line1"`
+		Line2            *string `json:"line2"`
+		Line3            *string `json:"line3"`
+		City             string  `json:"city"`
+		PostOffice       *string `json:"postOffice"`
+		ZipCode          string  `json:"zipCode"`
+		CountryCode      string  `json:"countryCode"`
+		Status           string  `json:"status"`
+	}
+
+	ListCardsResponse struct {
+		Data       []Card     `json:"data"`
+		Pagination Pagination `json:"pagination"`
+	}
+	NewCardArgs struct {
+		ProductCode string `json:"productCode"`
+
+		// TODO
+		// limits any
+		// addons any
+	}
+	CardAccount struct {
+		ProductCode string      `json:"productCode"`
+		Currency    string      `json:"currency"`
+		Card        NewCardArgs `json:"card"`
+	}
+
+	CreateCustomerAndCardArgs struct {
+		WalletAddress string                             `json:"walletAddress"`
+		Account       CardAccount                        `json:"account"`
+		Delivery      *CreateCustomerDeliveryAddressArgs `json:"delivery,omitempty"`
+		NameOnCard    string                             `json:"nameOnCard"`
+	}
+
+	OrderCardArgs struct {
+		Currency          string      `json:"currency"`
+		ProductCode       string      `json:"productCode"`
+		NameOnCard        string      `json:"nameOnCard"`
+		DeliveryAddressID *string     `json:"deliveryAddressId,omitempty"`
+		WalletAddress     string      `json:"walletAddress"`
+		Card              NewCardArgs `json:"card"`
+	}
+
+	GetCardTokenArgs struct {
+		CardID    string  `json:"cardId"`
+		PublicKey *string `json:"publicKey,omitempty"`
+	}
+
+	TokenLink struct {
+		Href   string `json:"href"`
+		Rel    string `json:"rel"`
+		Method string `json:"method"`
+	}
+
+	TokenResponse struct {
+		Token string      `json:"token"`
+		Links []TokenLink `json:"links"`
+	}
+
+	FreezeCardArgs struct {
+		ReasonCode string  `json:"-"`
+		Note       *string `json:"note,omitempty"`
+	}
+
+	UnfreezeCardArgs struct {
+		Note *string `json:"note,omitempty"`
+	}
+
+	BlockCardArgs struct {
+		ReasonCode string
+	}
+
+	CloseCardArgs struct {
+		ReasonCode string
+	}
 )
+
+func (ca *CardAccount) WithAccountProductCode(productCode string) {
+	ca.ProductCode = productCode
+}
+
+func (a *OrderCardArgs) WithAccountProductCode(productCode string) {
+	a.ProductCode = productCode
+}

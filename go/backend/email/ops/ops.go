@@ -443,3 +443,32 @@ func SendLimitsExceededEmail(ctx context.Context, b Backends, walletID string) {
 		log.Error("Failed to send deposit received email.", zap.Error(err), zap.String("walletID", walletID))
 	}
 }
+
+func SendCardCreatedEmail(ctx context.Context, b Backends, walletID, cardID string) {
+	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
+	if err != nil {
+		log.Error("Failed to send card created email.", zap.Error(err), zap.String("walletID", walletID))
+		return
+	}
+
+	cardURL, err := url.JoinPath(env.GetUrl(), "cards", cardID)
+	if err != nil {
+		log.Error("Failed to send card created email.", zap.Error(err), zap.String("walletID", walletID))
+		return
+	}
+	err = b.External().SendTemplate(ctx, "💳 Your new card is ready for use!", sendTo, oneTemplateID, map[string]interface{}{
+		"subject": "💳 Your new card is ready for use!",
+		"data": []map[string]interface{}{
+			{"paragraph": greeting},
+			{"paragraph": "We are pleased to let you know that your card is now ready."},
+			{"paragraph": "You can view and manage it securely from your account."},
+		},
+		"cta": map[string]interface{}{
+			"text": "View card",
+			"url":  cardURL,
+		},
+	}, nil)
+	if err != nil {
+		log.Error("Failed to send card created email.", zap.Error(err), zap.String("walletID", walletID))
+	}
+}

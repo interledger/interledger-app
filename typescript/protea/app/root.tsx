@@ -27,6 +27,9 @@ import { getSnackbar } from '~/lib/snackbar.server'
 import styles from '~/styles/app.css'
 import { getFeatures } from './data/wallet.server'
 import { NON_TOTP_ROUTES, isTotpSet } from './lib/totp.server'
+import { Features } from './generated/connect/backend/v1/backend_pb'
+import { getPusherArgs } from './lib/pusher.server'
+import { usePusher } from './lib/usePusher'
 
 const metaContent = {
   title: 'Interledger Wallet',
@@ -130,9 +133,18 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const isUser = hasUserSession(request)
   const snackbar = await getSnackbar(request)
 
+  let features = new Features()
+
+  // TODO: Retrieve features only when using the app but not the marketing page.
+  // If the cookie value gets tempered, the user will enter an infinite redirect,
+  // since the `hasUserSession` function only verifies if the cookie EXISTS and
+  // does not validate it.
+  if (isUser) {
+    features = await getFeatures(request)
+  }
+
   const url = new URL(request.url)
   const pathname = url.pathname
-  let features = undefined
 
   // if wallet is in a region that is not enabled redirect
   if (isUser && validatePathsList.includes(pathname)) {
@@ -151,10 +163,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
     }
   }
 
+  const pusherArgs = await getPusherArgs(request)
+
   return json({
     isUser,
     features,
     snackbar,
+    pusherArgs,
     env: {
       fynbosEnv: process.env.FYNBOS_ENV,
       sentryDsn: process.env.SENTRY_DSN,
@@ -166,8 +181,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 function Page() {
   const location = useLocation()
-  const { env } = useLoaderData<typeof loader>()
+  const { pusherArgs, env } = useLoaderData<typeof loader>()
   // useSegment(env.segmentApiKey)
+  usePusher(pusherArgs, ['cardReady'])
 
   if (location.pathname == '/temp-cloudflare-error') return <CloudFlareError />
 

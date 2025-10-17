@@ -5,11 +5,17 @@ declare module "routes-gen" {
     "/accounts": Record<string, never>;
     "/accounts/:accountId": { "accountId": string };
     "/accounts/:accountId/name": { "accountId": string };
+    "/api/check-totp-enabled": Record<string, never>;
     "/api/fern": Record<string, never>;
     "/api/maps/geocode": Record<string, never>;
     "/api/maps/placesAutocomplete": Record<string, never>;
     "/api/sendOtp": Record<string, never>;
+    "/api/totp-challenge-init": Record<string, never>;
+    "/api/totp-challenge-verify": Record<string, never>;
     "/callbacks/chimoney": Record<string, never>;
+    "/cards": Record<string, never>;
+    "/cards/:cardId": { "cardId": string };
+    "/cards/order": Record<string, never>;
     "/connect/bank/za": Record<string, never>;
     "/connect/card": Record<string, never>;
     "/connect/interac": Record<string, never>;
@@ -67,11 +73,17 @@ declare module "routes-gen" {
       | ["/accounts"]
       | ["/accounts/:accountId", RouteParams["/accounts/:accountId"]]
       | ["/accounts/:accountId/name", RouteParams["/accounts/:accountId/name"]]
+      | ["/api/check-totp-enabled"]
       | ["/api/fern"]
       | ["/api/maps/geocode"]
       | ["/api/maps/placesAutocomplete"]
       | ["/api/sendOtp"]
+      | ["/api/totp-challenge-init"]
+      | ["/api/totp-challenge-verify"]
       | ["/callbacks/chimoney"]
+      | ["/cards"]
+      | ["/cards/:cardId", RouteParams["/cards/:cardId"]]
+      | ["/cards/order"]
       | ["/connect/bank/za"]
       | ["/connect/card"]
       | ["/connect/interac"]

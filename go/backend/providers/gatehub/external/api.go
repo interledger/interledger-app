@@ -13,6 +13,18 @@ type Client interface {
 	CreateTransaction(ctx context.Context, args CreateTransactionRequest) (*Transaction, error)
 	GetUserTransactions(ctx context.Context, userID string) ([]Transaction, error)
 	GetTransaction(ctx context.Context, userID, id string) (*Transaction, error)
+	ListCards(ctx context.Context, userID, customerID string) (*ListCardsResponse, error)
+	GetDeliveryAddresses(ctx context.Context, userID, customerID string) ([]CustomerDeliveryAddress, error)
+	CreateCustomerDeliveryAddress(ctx context.Context, userID, customerID string, args CreateCustomerDeliveryAddressArgs) (string, error)
+	GetCardApplicationProducts(ctx context.Context) ([]CardApplicationProduct, error)
+	OrderCard(ctx context.Context, userID, accountID string, args OrderCardArgs) (*Card, error)
+	CreateCustomerAndCard(ctx context.Context, userID string, args CreateCustomerAndCardArgs) (*Customer, error)
+	CreatePlasticForCard(ctx context.Context, userID, cardID string) error
+	GetCardToken(ctx context.Context, userID, tokenPath string, args GetCardTokenArgs) (*TokenResponse, error)
+	FreezeCard(ctx context.Context, userID, cardID string, args FreezeCardArgs) error
+	UnfreezeCard(ctx context.Context, userID, cardID string, args UnfreezeCardArgs) error
+	BlockCard(ctx context.Context, userID, cardID string, args BlockCardArgs) error
+	CloseCard(ctx context.Context, userID, cardID string, args CloseCardArgs) error
 	GetVaultID() string
-	LinkUserToGateway(ctx context.Context, gatehubUserId string) error
+	LinkUserToGateway(ctx context.Context, gatehubUserID string) error
 }

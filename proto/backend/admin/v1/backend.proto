@@ -23,7 +23,7 @@ service Backend {
   rpc SetWalletFeatures(Features) returns (Features);
   rpc ListIncompleteLinkedAccountReviews(PaginationRequest) returns (LinkedAccountReviews);
   rpc GetLinkedAccountReview(GetLinkedAccountReviewRequest) returns (LinkedAccountReview);
-  rpc CompleteLinkedAccountReview(CompleteLinkedAccountReviewRequest) returns(LinkedAccountReview);
+  rpc CompleteLinkedAccountReview(CompleteLinkedAccountReviewRequest) returns (LinkedAccountReview);
   rpc GetLinkedAccount(GetLinkedAccountRequest) returns (LinkedAccount);
   rpc ListFormSubmissionCounts(PaginationRequest) returns (ListFormSubmissionCountsResponse);
   rpc ExportFormSubmissions(ExportFormSubmissionsRequest) returns (stream ExportFormSubmissionsResponse);
@@ -34,7 +34,6 @@ service Backend {
   rpc SetWalletXagoBalanceEnabled(SetWalletXagoBalanceEnabledRequest) returns (Empty);
   rpc GetWalletXagoBalance(GetWalletXagoBalanceRequest) returns (GetWalletXagoBalanceResponse);
 
-  
   rpc SetWalletCountry(SetWalletCountryRequest) returns (Empty);
   rpc ListCountries(Empty) returns (ListCountriesResponse);
 
@@ -59,46 +58,46 @@ message GatehubUser {
 }
 
 message GatehubVerification {
-    string uuid = 1;
-    int32 state = 2;
-    int32 status = 3;
-    string provider_type = 4;
+  string uuid = 1;
+  int32 state = 2;
+  int32 status = 3;
+  string provider_type = 4;
 }
 
 message GatehubDocument {
-    int32 id = 1;
-    string createdAt = 2;
-    string uuid = 3;
-    string updatedAt = 4;
-    string type = 5;
-    string subtype = 6;
-    string value = 7;
-    int32 profileId = 8;
-    int32 userId = 9;
-    string expiryDate = 10;
+  int32 id = 1;
+  string createdAt = 2;
+  string uuid = 3;
+  string updatedAt = 4;
+  string type = 5;
+  string subtype = 6;
+  string value = 7;
+  int32 profileId = 8;
+  int32 userId = 9;
+  string expiryDate = 10;
 }
 
 message GatehubProfile {
-    string uuid = 1;
-    google.protobuf.Timestamp createdAt = 2;
-    int32 birthDay = 3;
-    int32 birthMonth = 4;
-    int32 birthYear = 5;
-    string gender = 6;
-    string firstName = 7;
-    string middleName = 8;
-    string lastName = 9;
-    string citizenship = 10;
-    string addressPostalCode = 11;
-    string addressSubdivision = 12;
-    string addressCountryCode = 13;
-    string addressCity = 14;
-    string addressStreet1 = 15;
-    string addressStreet2 = 16;
-    string birthCity = 19;
-    string birthCountryCode = 20;
-    string taxResidency = 21;
-    string expectedVolume = 22;
+  string uuid = 1;
+  google.protobuf.Timestamp createdAt = 2;
+  int32 birthDay = 3;
+  int32 birthMonth = 4;
+  int32 birthYear = 5;
+  string gender = 6;
+  string firstName = 7;
+  string middleName = 8;
+  string lastName = 9;
+  string citizenship = 10;
+  string addressPostalCode = 11;
+  string addressSubdivision = 12;
+  string addressCountryCode = 13;
+  string addressCity = 14;
+  string addressStreet1 = 15;
+  string addressStreet2 = 16;
+  string birthCity = 19;
+  string birthCountryCode = 20;
+  string taxResidency = 21;
+  string expectedVolume = 22;
 }
 
 message GetGatehubUserRequest {
@@ -197,7 +196,7 @@ message LinkedAccountReview {
   string walletID = 9;
   string walletName = 10;
   string mask = 11;
-  google.protobuf.Timestamp createdAt = 7; 
+  google.protobuf.Timestamp createdAt = 7;
   google.protobuf.Timestamp completedAt = 8;
 }
 

@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-export type SnackbarAction = 'Contact support'
+export type SnackbarAction = 'Contact support' | 'View cards'
 
 export type SnackbarType = {
   id: string
