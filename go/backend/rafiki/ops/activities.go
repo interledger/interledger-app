@@ -84,6 +84,7 @@ func (a *Activity) CreateWebMonetizationPayment(ctx context.Context, payment Raf
 		log.Error("failed to lookup balance accounts for receiver", zap.Error(err))
 		return "", err
 	}
+
 	var receiverAcc *linkedaccounts.LinkedAccount
 	for _, la := range receiverAccs {
 		if currency.Currency(payment.Asset) == la.ReceiveCurrency {

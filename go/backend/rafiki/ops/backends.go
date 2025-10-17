@@ -3,6 +3,7 @@ package ops
 import (
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/keys"
+	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/chimoney"
@@ -26,6 +27,7 @@ type Backends interface {
 	Gatehub() gatehub.Client
 	Xago() xago.Client
 	Chimoney() chimoney.Client
+	KYC() kyc.Client
 }
 
 type ActivityBackends interface {
@@ -33,4 +35,5 @@ type ActivityBackends interface {
 	Payments() payments.Client
 	Temporal() temporal.Client
 	LinkedAccounts() linkedaccounts.Client
+	KYC() kyc.Client
 }
