@@ -1,12 +1,10 @@
 import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Outlet, useLoaderData, useLocation } from '@remix-run/react'
-import { useMemo } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import {
   Card,
-  CardButton,
   CardHeader,
   CardLink,
   CardTitle,
@@ -16,7 +14,6 @@ import {
   WalletGrid
 } from '~/components'
 import { getKycStatus } from '~/data/wallet.server'
-import { useTotpChallenge } from '~/lib/hooks/useTotpChallenge'
 import { mergeMeta } from '~/lib/meta'
 import { KycStatus } from '~/routes/_index/route'
 
@@ -52,20 +49,6 @@ export default function Page() {
   const { kycStatus } = useLoaderData<typeof loader>()
   const location = useLocation()
   const pathSegments = location.pathname.split('/').filter(Boolean)
-
-  const callbacks = useMemo(
-    () => ({
-      onSuccess: () => {
-        console.log('✅ TOTP Challenge completed successfully')
-      },
-      onError: (error: any) => {
-        console.error('❌ TOTP Challenge error:', error)
-      }
-    }),
-    []
-  )
-
-  const { popTotp, TotpPopup, isOpen } = useTotpChallenge(callbacks)
 
   return (
     <WalletGrid>
@@ -161,7 +144,6 @@ export default function Page() {
             </div>
             <Icon>navigate_next</Icon>
           </CardLink>
-          <CardButton onClick={popTotp}>Test TOTP Challenge</CardButton>
           <CardLink
             end
             preventScrollReset
@@ -191,8 +173,6 @@ export default function Page() {
       <GridColumn className='col-span-full lg:col-span-6 lg:col-start-7'>
         <Outlet />
       </GridColumn>
-
-      {isOpen && <TotpPopup />}
     </WalletGrid>
   )
 }
