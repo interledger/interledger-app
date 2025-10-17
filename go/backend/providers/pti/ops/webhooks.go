@@ -123,7 +123,7 @@ func Webhook(b Backends) (http.HandlerFunc, error) {
 		case "USER_ASSESSMENT", "KYC":
 			err = HandleAssessmentUpdate(r.Context(), b, v)
 		case "TRANSACTION_STATUS":
-			if data.TransactionType == "DEPOSIT" {
+			if data.TransactionType == "DEPOSIT" || data.TransactionType == "FUNDING" {
 				HandlePtiDeposit(r.Context(), b, v, w)
 			} else {
 				log.Warn("not a deposit, got: ", zap.String("transaction type", data.TransactionType))
@@ -249,82 +249,17 @@ func HandlePtiDeposit(ctx context.Context, b Backends, raw json.RawMessage, w ht
 	case authorizedState:
 		fmt.Println("got authorized transaction status")
 	case refusedState, errorState, canceledState:
-		fmt.Println("got refused transaction status") // mark as transactions.StateOnHold
-
-		wo := client.StartWorkflowOptions{
-			ID:                    "pti_deposit_webhook_mark_transaction_failed" + payload.RequestID,
-			TaskQueue:             "backend",
-			WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
-		}
-
-		var workflowStatus enums.WorkflowExecutionStatus
-		wflow, err := b.Temporal().DescribeWorkflowExecution(ctx, wo.ID, "")
-		switch err.(type) {
-		case *serviceerror.Internal,
-			*serviceerror.Unavailable,
-			*serviceerror.InvalidArgument:
-
-			log.Error("Failed to handle pti deposit webhook", zap.Error(err))
+		err := HandleError(ctx, payload, b)
+		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
-		case *serviceerror.NotFound:
-			// do nothing
-		default:
-			if wflow != nil {
-				workflowStatus = wflow.GetWorkflowExecutionInfo().Status
-			}
 		}
-
-		// execute workflow if it's not running
-		if workflowStatus != enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
-			_, err = b.Temporal().ExecuteWorkflow(ctx, wo, MarkTransactionStateWrokflow, payload, transactions.StateFailed)
-			if err != nil {
-				log.Error("Failed to handle pti deposit webhook", zap.Error(err))
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			}
-		}
-
-		w.WriteHeader(http.StatusOK)
-
 	case pendingState, processingState:
-		fmt.Println("got pending/processing transaction status") // mark as transactions.StatePending
-		wo := client.StartWorkflowOptions{
-			ID:                    "pti_deposit_webhook_mark_transaction_pending" + payload.RequestID,
-			TaskQueue:             "backend",
-			WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
-		}
-
-		var workflowStatus enums.WorkflowExecutionStatus
-		wflow, err := b.Temporal().DescribeWorkflowExecution(ctx, wo.ID, "")
-		switch err.(type) {
-		case *serviceerror.Internal,
-			*serviceerror.Unavailable,
-			*serviceerror.InvalidArgument:
-
-			log.Error("Failed to handle pti deposit webhook", zap.Error(err))
+		err := HandlePending(ctx, payload, b)
+		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
-		case *serviceerror.NotFound:
-			// do nothing
-		default:
-			if wflow != nil {
-				workflowStatus = wflow.GetWorkflowExecutionInfo().Status
-			}
 		}
-
-		// execute workflow if it's not running
-		if workflowStatus != enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
-			_, err = b.Temporal().ExecuteWorkflow(ctx, wo, MarkTransactionStateWrokflow, payload, transactions.StatePending)
-			if err != nil {
-				log.Error("Failed to handle pti deposit webhook", zap.Error(err))
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			}
-		}
-
-		w.WriteHeader(http.StatusOK)
-
 	case chargedBackState:
 		fmt.Println("got charged back transaction status") // ask this for later
 	case refundedState:
@@ -332,44 +267,11 @@ func HandlePtiDeposit(ctx context.Context, b Backends, raw json.RawMessage, w ht
 	case capturedState:
 		fmt.Println("got captured transaction status") // ask this for later
 	case settledState:
-		fmt.Println("got settled transaction status")
-
-		wo := client.StartWorkflowOptions{
-			ID:                    "pti_deposit_webhook_" + payload.RequestID,
-			TaskQueue:             "backend",
-			WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
-		}
-
-		var workflowStatus enums.WorkflowExecutionStatus
-		wflow, err := b.Temporal().DescribeWorkflowExecution(ctx, wo.ID, "")
-		switch err.(type) {
-		case *serviceerror.Internal,
-			*serviceerror.Unavailable,
-			*serviceerror.InvalidArgument:
-
-			log.Error("Failed to handle pti deposit webhook", zap.Error(err))
+		err := HandleSettle(ctx, payload, b)
+		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
-		case *serviceerror.NotFound:
-			// do nothing
-		default:
-			if wflow != nil {
-				workflowStatus = wflow.GetWorkflowExecutionInfo().Status
-			}
 		}
-
-		// execute workflow if it's not running
-		if workflowStatus != enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
-			_, err = b.Temporal().ExecuteWorkflow(ctx, wo, SettleDepositWrokflow, payload)
-			if err != nil {
-				log.Error("Failed to handle pti deposit webhook", zap.Error(err))
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			}
-		}
-
-		w.WriteHeader(http.StatusOK)
-
 	default:
 		log.Error("failed to handle pti transaction status webhook", zap.String("externalUserId", payload.UserID), zap.String("status", payload.Status), zap.String("requestId", payload.RequestID))
 		slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "Fynbot", fmt.Sprintf("fiant webhook: transaction status=%s walletID=%s", payload.Status, payload.UserID))
@@ -378,14 +280,119 @@ func HandlePtiDeposit(ctx context.Context, b Backends, raw json.RawMessage, w ht
 	w.WriteHeader(http.StatusOK)
 }
 
+func HandleSettle(ctx context.Context, payload pti.TransactionStatusPayload, b Backends) error {
+	fmt.Println("got settled transaction status")
+
+	wo := client.StartWorkflowOptions{
+		ID:                    "pti_deposit_webhook_" + payload.RequestID,
+		TaskQueue:             "backend",
+		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+	}
+
+	var workflowStatus enums.WorkflowExecutionStatus
+	wflow, err := b.Temporal().DescribeWorkflowExecution(ctx, wo.ID, "")
+	switch err.(type) {
+	case *serviceerror.Internal,
+		*serviceerror.Unavailable,
+		*serviceerror.InvalidArgument:
+		log.Error("Failed to handle pti deposit webhook", zap.Error(err))
+		return err
+	case *serviceerror.NotFound:
+		// do nothing
+	default:
+		if wflow != nil {
+			workflowStatus = wflow.GetWorkflowExecutionInfo().Status
+		}
+	}
+
+	// execute workflow if it's not running
+	if workflowStatus != enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
+		_, err = b.Temporal().ExecuteWorkflow(ctx, wo, SettleDepositWrokflow, payload)
+		if err != nil {
+			log.Error("Failed to handle pti deposit webhook", zap.Error(err))
+			return err
+		}
+	}
+	return nil
+}
+
+func HandleError(ctx context.Context, payload pti.TransactionStatusPayload, b Backends) error {
+	fmt.Println("got refused transaction status") // mark as transactions.StateOnHold
+
+	wo := client.StartWorkflowOptions{
+		ID:                    "pti_deposit_webhook_mark_transaction_failed" + payload.RequestID,
+		TaskQueue:             "backend",
+		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+	}
+
+	var workflowStatus enums.WorkflowExecutionStatus
+	wflow, err := b.Temporal().DescribeWorkflowExecution(ctx, wo.ID, "")
+	switch err.(type) {
+	case *serviceerror.Internal,
+		*serviceerror.Unavailable,
+		*serviceerror.InvalidArgument:
+
+		log.Error("Failed to handle pti deposit webhook", zap.Error(err))
+		return err
+	case *serviceerror.NotFound:
+		// do nothing
+	default:
+		if wflow != nil {
+			workflowStatus = wflow.GetWorkflowExecutionInfo().Status
+		}
+	}
+
+	// execute workflow if it's not running
+	if workflowStatus != enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
+		_, err = b.Temporal().ExecuteWorkflow(ctx, wo, MarkTransactionStateWrokflow, payload, transactions.StateFailed)
+		if err != nil {
+			log.Error("Failed to handle pti deposit webhook", zap.Error(err))
+			return err
+		}
+	}
+	return nil
+}
+
+func HandlePending(ctx context.Context, payload pti.TransactionStatusPayload, b Backends) error {
+	fmt.Println("got pending/processing transaction status") // mark as transactions.StatePending
+	wo := client.StartWorkflowOptions{
+		ID:                    "pti_deposit_webhook_mark_transaction_pending" + payload.RequestID,
+		TaskQueue:             "backend",
+		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+	}
+
+	var workflowStatus enums.WorkflowExecutionStatus
+	wflow, err := b.Temporal().DescribeWorkflowExecution(ctx, wo.ID, "")
+	switch err.(type) {
+	case *serviceerror.Internal,
+		*serviceerror.Unavailable,
+		*serviceerror.InvalidArgument:
+		log.Error("Failed to handle pti deposit webhook", zap.Error(err))
+		return err
+	case *serviceerror.NotFound:
+		// do nothing
+	default:
+		if wflow != nil {
+			workflowStatus = wflow.GetWorkflowExecutionInfo().Status
+		}
+	}
+
+	// execute workflow if it's not running
+	if workflowStatus != enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
+		_, err = b.Temporal().ExecuteWorkflow(ctx, wo, MarkTransactionStateWrokflow, payload, transactions.StatePending)
+		if err != nil {
+			log.Error("Failed to handle pti deposit webhook", zap.Error(err))
+			return err
+		}
+	}
+	return nil
+}
+
 func HandleTransactionAssessmentUpdate(ctx context.Context, b Backends, data []byte) error {
 	var payload TransactionAssessmentPayload
 	if err := json.Unmarshal(data, &payload); err != nil {
 		return err
 	}
-
-	fmt.Printf("transaction assessment status: %s\n", payload.Assessment)
-
 	return nil
 }
 
