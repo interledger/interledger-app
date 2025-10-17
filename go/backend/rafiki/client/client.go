@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/providers/chimoney"
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	"gitlab.com/fynbos/backend/providers/pti"
@@ -32,6 +33,7 @@ type Backends interface {
 	Gatehub() gatehub.Client
 	Xago() xago.Client
 	Chimoney() chimoney.Client
+	KYC() kyc.Client
 }
 
 var _ ops.Backends = opsBackends{}
@@ -61,7 +63,7 @@ func (c *client) GetWalletAddress(ctx context.Context, walletID string) (*rafiki
 	return ops.GetWalletAddress(ctx, c.b, walletID)
 }
 
-func (c *client) CreatePaymentPointer(ctx context.Context, w wallets.Wallet) error {
+func (c *client) CreatePaymentPointer(ctx context.Context, w wallets.Wallet) (string, error) {
 	return ops.CreatePaymentPointer(ctx, c.b, w)
 }
 
@@ -105,9 +107,6 @@ func (c *client) ListPendingTransactions(ctx context.Context, walletID string) (
 	return ops.ListPendingWebMonetization(ctx, c.b, walletID)
 }
 
-func (c *client) UpdateWalletAddressStatus(ctx context.Context, walletID struct {
-	Id   string `db:"payment_pointer_id"`
-	Name string `db:"name"`
-}, status bool) error {
+func (c *client) UpdateWalletAddressStatus(ctx context.Context, walletID rafiki.UpdateAddressStatus, status bool) error {
 	return ops.UpdateWalletAddressStatus(ctx, c.b, walletID, status)
 }
