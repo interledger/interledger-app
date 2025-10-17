@@ -172,16 +172,16 @@ func (mr *MockClientMockRecorder) TestDeposit(ctx, reqStruct interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TestDeposit", reflect.TypeOf((*MockClient)(nil).TestDeposit), ctx, reqStruct)
 }
 
-// UpdateInquiryLink mocks base method.
-func (m *MockClient) UpdateInquiryLink(ctx context.Context, accountID, inquiryLink string) error {
+// UpdateSubAccount mocks base method.
+func (m *MockClient) UpdateSubAccount(ctx context.Context, accountID string, reqStruct external.UpdateSubAccountRequest) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateInquiryLink", ctx, accountID, inquiryLink)
+	ret := m.ctrl.Call(m, "UpdateSubAccount", ctx, accountID, reqStruct)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// UpdateInquiryLink indicates an expected call of UpdateInquiryLink.
-func (mr *MockClientMockRecorder) UpdateInquiryLink(ctx, accountID, inquiryLink interface{}) *gomock.Call {
+// UpdateSubAccount indicates an expected call of UpdateSubAccount.
+func (mr *MockClientMockRecorder) UpdateSubAccount(ctx, accountID, reqStruct interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateInquiryLink", reflect.TypeOf((*MockClient)(nil).UpdateInquiryLink), ctx, accountID, inquiryLink)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateSubAccount", reflect.TypeOf((*MockClient)(nil).UpdateSubAccount), ctx, accountID, reqStruct)
 }
