@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 	"go.temporal.io/sdk/temporal"
 
 	"gitlab.com/fynbos/log"
@@ -36,15 +37,16 @@ type dbPayment struct {
 }
 
 type RafikiPayment struct {
-	FromWalletID string `db:"from_wallet"`
-	ToWalletID   string `db:"to_wallet"`
-	Amount       uint64 `db:"amount"`
-	Asset        string `db:"amount_asset"`
+	IDs          pq.StringArray `db:"ids"`
+	FromWalletID string         `db:"from_wallet"`
+	ToWalletID   string         `db:"to_wallet"`
+	Amount       uint64         `db:"amount"`
+	Asset        string         `db:"amount_asset"`
 }
 
 func (a *Activity) ListPaymentsToMake(ctx context.Context) ([]RafikiPayment, error) {
 	var dbPayments []RafikiPayment
-	err := a.b.DB().SelectContext(ctx, &dbPayments, `SELECT  from_wallet, to_wallet, amount_asset, SUM(amount) AS amount
+	err := a.b.DB().SelectContext(ctx, &dbPayments, `SELECT ARRAY_AGG(id::text) AS ids, from_wallet, to_wallet, amount_asset, SUM(amount) AS amount
 																FROM 
 																	rafiki_outgoing_payments
 																WHERE 
@@ -127,7 +129,7 @@ func (a *Activity) ConfirmPayment(ctx context.Context, id string) error {
 }
 
 func (a *Activity) AddWebMonetizationPayment(ctx context.Context, payout RafikiPayment, paymentID string) error {
-	query, args, err := sqlx.In("UPDATE rafiki_outgoing_payments SET payment_id=? WHERE  from_wallet=? AND to_wallet=?", paymentID, payout.FromWalletID, payout.ToWalletID)
+	query, args, err := sqlx.In("UPDATE rafiki_outgoing_payments SET payment_id=?,completed=? WHERE id in (?)", paymentID, true, []string(payout.IDs))
 	if err != nil {
 		return err
 	}
