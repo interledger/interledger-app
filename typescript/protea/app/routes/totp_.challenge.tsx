@@ -36,7 +36,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     if (initRes.status !== 303 && initRes.status !== 302) {
       throw new Error('Expected redirect response from Kratos')
     }
-
+    
     const redirectTo = initRes.headers.get('location')
     if (!redirectTo) {
       throw new Error('Expected redirect with flow ID, but got none.')

@@ -115,7 +115,6 @@ export default function Page() {
   const callbacks = useMemo(
     () => ({
       onSuccess: () => {
-        console.log('✅ TOTP Challenge completed successfully')
         if (formRef.current) {
           submit(formRef.current)
         }

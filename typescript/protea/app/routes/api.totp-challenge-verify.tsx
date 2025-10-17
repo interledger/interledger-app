@@ -41,7 +41,6 @@ export async function action({ request }: ActionFunctionArgs) {
 
     const setCookieHeader = verifyTotpCodeResponse.headers.get('set-cookie')
     if (verifyTotpCodeResponse.ok || verifyTotpCodeResponse.status === 200) {
-      console.log('(totp-challenge-verify) ✅ TOTP verified successfully')
       return json(
         { success: true },
         setCookieHeader
@@ -63,11 +62,6 @@ export async function action({ request }: ActionFunctionArgs) {
         errorMessage = totpNode.messages[0].text
       }
     }
-
-    console.log(
-      '(totp-challenge-verify) 🔴 Returning error response:',
-      errorMessage
-    )
 
     return json({
       success: false,

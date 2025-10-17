@@ -3,14 +3,14 @@ import { redirect } from '@remix-run/node'
 import { KRATOS_URL } from './kratos.server'
 
 /**
- * Routes that do not require TOTP enabled check when user is logged in
+  * Routes that can be accessed without a session with highest AAL
  */
-export const NON_TOTP_ROUTES = [
+export const NON_FULL_SESSION_ROUTES = [
   '/totp/two-factor-authentication',
   '/totp/challenge',
   '/login',
   '/logout',
-  '/signup',
+  '/signup'
 ]
 
 /**
