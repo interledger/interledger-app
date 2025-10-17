@@ -2,7 +2,6 @@ package jobs
 
 import (
 	"context"
-	"slices"
 	"time"
 
 	"gitlab.com/fynbos/backend/kyc"
@@ -37,13 +36,13 @@ func SetGatehubGatewayToPaywiserJob(ctx workflow.Context) error {
 	if err != nil {
 		return err
 	}
-	var unprocessedKYCWallets []string
-	err = workflow.ExecuteActivity(ctx, a.UpdateGatehubKYCStatus, gatehubWallets, unprocessedGatewayWallets).Get(ctx, &unprocessedKYCWallets)
+
+	err = workflow.ExecuteActivity(ctx, a.UpdateGatehubKYCStatus, gatehubWallets).Get(ctx, nil)
 	if err != nil {
 		return err
 	}
 
-	log.Info("completed SetGatehubGatewayToPaywiserJob", zap.Strings("wallets with unchanged Gateway ", unprocessedGatewayWallets), zap.Strings("wallets with unchanged KYC status ", unprocessedKYCWallets))
+	log.Info("completed SetGatehubGatewayToPaywiserJob", zap.Strings("wallets with unchanged Gateway ", unprocessedGatewayWallets))
 	return nil
 }
 
@@ -73,18 +72,15 @@ func (a *Activity) LinkUserToGatewayByExternalID(ctx context.Context, wallets []
 	return listOfUnprocessed, nil
 }
 
-func (a *Activity) UpdateGatehubKYCStatus(ctx context.Context, wallets []GatehubWallets, listOfUnprocessed []string) ([]string, error) {
+func (a *Activity) UpdateGatehubKYCStatus(ctx context.Context, wallets []GatehubWallets) error {
 	for _, externalUser := range wallets {
 		if wallets == nil || externalUser.ExternalID == "" {
 			continue
 		}
-		if slices.Contains(listOfUnprocessed, externalUser.WalletID) {
-			continue
-		}
 		err := a.b.KYC().SetKYCStatus(ctx, externalUser.WalletID, kyc.StatusPending)
 		if err != nil {
-			listOfUnprocessed = append(listOfUnprocessed, externalUser.WalletID)
+			log.Warn("error updating KYC status to pending", zap.String("wallet_id", externalUser.WalletID), zap.Error(err))
 		}
 	}
-	return listOfUnprocessed, nil
+	return nil
 }

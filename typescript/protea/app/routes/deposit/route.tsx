@@ -10,6 +10,7 @@ import { Layouts } from '~/components'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
+import { route } from 'routes-gen'
 import styles from '~/styles/flags.css'
 import {
   ChimoneyDepositPage,
@@ -25,6 +26,8 @@ import {
 } from './fynbos'
 import { GatehubDepositPage, gatehubDepositLoader } from './gatehub'
 import { KRATOS_URL } from '~/lib/kratos.server'
+import { getKycStatus } from '~/data/wallet.server'
+import { KycStatus } from '../_index/route'
 
 export async function loader(args: LoaderFunctionArgs) {
   const session = await fetch(`${KRATOS_URL}/sessions/whoami`, {
@@ -33,7 +36,10 @@ export async function loader(args: LoaderFunctionArgs) {
     if (session.status === 401) {
       return redirect('/login')
     }
-
+    const { kycStatus } = await getKycStatus(args.request)
+    if (kycStatus != KycStatus.Approved)
+      return redirect(route('/personal-details'))
+  
   const providerResponse = await grpc.getOnOffRampProvider(args.request, {})
   if (isConnectError(providerResponse)) throw providerResponse.error
   if (providerResponse.provider == 'gatehub') {

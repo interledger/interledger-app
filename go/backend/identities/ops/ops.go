@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/slack"
 
 	"gitlab.com/fynbos/backend/notify"
@@ -307,9 +308,9 @@ func Search(ctx context.Context, b Backends, walletID, term string) ([]identitie
 
 	// Lookup Wallet addresses.
 	dbRes = nil
-	err = b.DB().SelectContext(ctx, &dbRes, `SELECT wallet_id, url as identifier, 'wallet_url' as identifier_type, coalesce(similarity(substring(url, $4), $1), 0) as rank
-               FROM wallet_addresses
-               WHERE wallet_id<>$3 AND url ILIKE $2 ORDER BY rank,wallet_id DESC LIMIT 100`, term, "%"+term+"%", walletID, len(env.OpenPaymentsURL())+1)
+	err = b.DB().SelectContext(ctx, &dbRes, `SELECT wallet_addresses.wallet_id, wallet_addresses.url as identifier, 'wallet_url' as identifier_type, coalesce(similarity(substring(wallet_addresses.url, $4), $1), 0) as rank
+               FROM wallet_addresses  INNER JOIN wallet_kyc_status on  wallet_addresses.wallet_id=wallet_kyc_status.wallet_id
+               WHERE wallet_addresses.wallet_id<>$3 AND wallet_addresses.url ILIKE $2 AND wallet_kyc_status.status in ($5,$6,$7) ORDER BY rank, wallet_addresses.wallet_id DESC LIMIT 100`, term, "%"+term+"%", walletID, len(env.OpenPaymentsURL())+1, kyc.StatusApproved, kyc.StatusLevel1, kyc.StatusLevel2)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
@@ -317,9 +318,9 @@ func Search(ctx context.Context, b Backends, walletID, term string) ([]identitie
 
 	// Lookup Wallet names.
 	dbRes = nil
-	err = b.DB().SelectContext(ctx, &dbRes, `SELECT id as wallet_id, name as identifier, 'wallet' as identifier_type, similarity(name, $1) as rank
-               FROM wallets
-               WHERE  id<>$3 AND name ILIKE $2  ORDER BY rank, id DESC LIMIT 100`, term, "%"+term+"%", walletID)
+	err = b.DB().SelectContext(ctx, &dbRes, `SELECT wallets.id as wallet_id,  wallets.name as identifier, 'wallet' as identifier_type, similarity(wallets.name, $1) as rank
+               FROM wallets INNER JOIN wallet_kyc_status on wallets.id=wallet_kyc_status.wallet_id
+               WHERE wallets.id<>$3 AND wallets.name ILIKE $2 AND wallet_kyc_status.status in ($4,$5,$6) ORDER BY rank,  wallets.id DESC LIMIT 100`, term, "%"+term+"%", walletID, kyc.StatusApproved, kyc.StatusLevel1, kyc.StatusLevel2)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
