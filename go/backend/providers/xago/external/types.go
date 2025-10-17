@@ -169,8 +169,10 @@ type TestDepositReq struct {
 	CurrencyCode      string `json:"currencyCode"`
 }
 
-type UpdateInquiryLinkRequest struct {
-	ThirdPartyVerificationUrl string `json:"thirdPartyVerificationUrl"`
+type UpdateSubAccountRequest struct {
+	ThirdPartyVerificationURL string `json:"thirdPartyVerificationUrl"`
+	IDNumber                  string `json:"idNumber"`
+	PhysicalAddress           string `json:"physicalAddress"`
 }
 
 type Currency struct {
