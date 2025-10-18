@@ -52,11 +52,31 @@ func EventWebhook(b Backends) http.HandlerFunc {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
+		defer r.Body.Close()
 
 		var hook Webhook
 		err = json.Unmarshal(raw, &hook)
 		if err != nil {
 			log.Error("failed to unmarshal xago webhook", zap.Error(err))
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		// check Xago transaction exists
+		xagoTransaction, err := b.External().GetDeposit(r.Context(), hook.TransactionID)
+		if err != nil {
+			log.Error("failed to get xago transaction for webhook", zap.Error(err))
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+
+		}
+		if xagoTransaction == nil {
+			log.Error("failed to get xago transaction for xago webhook")
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		if xagoTransaction.Amount != hook.Amount {
+			log.Error("failed verify amount on xago webhook")
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}

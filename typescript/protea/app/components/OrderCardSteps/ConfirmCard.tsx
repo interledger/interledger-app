@@ -9,10 +9,10 @@ import {
 } from '~/components'
 import { Label } from '~/components/Label'
 import { CardType } from '~/generated/connect/backend/v1/backend_pb'
-import { useAddCardStore } from '~/lib/useAddCardStore'
+import { useOrderCardStore } from '~/lib/useOrderCardStore'
 
 export const ConfirmCard = () => {
-  const [address, productCode, products, type] = useAddCardStore((state) => [
+  const [address, productCode, products, type] = useOrderCardStore((state) => [
     state.selectedAddress,
     state.productCode,
     state.products,
@@ -80,13 +80,15 @@ export const ConfirmCard = () => {
           />
         </div>
         {/* TODO remove: added for tests */}
-         <Form
-                id='confirm-card'
-                action={`/cards/add`}
-                method='post'
-                className='hidden'
-              />
-        <Button form='confirm-card' type='submit'>Confirm</Button>
+        <Form
+          id='confirm-card'
+          action={`/cards/order`}
+          method='post'
+          className='hidden'
+        />
+        <Button form='confirm-card' type='submit'>
+          Confirm
+        </Button>
       </CardContent>
     </Card>
   )

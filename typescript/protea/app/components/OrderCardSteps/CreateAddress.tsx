@@ -9,14 +9,14 @@ import {
   CardHeader,
   OutlineButton,
   Select,
-  SelectOptions,
-  TextField
+  TextField,
+  type SelectOptions
 } from '~/components'
 import {
   CustomerDeliveryAddressType,
-  NewCustomerDeliveryAddress
+  type NewCustomerDeliveryAddress
 } from '~/generated/connect/backend/v1/backend_pb'
-import { AddCardStep, useAddCardStore } from '~/lib/useAddCardStore'
+import { OrderCardStep, useOrderCardStore } from '~/lib/useOrderCardStore'
 import {
   createNewAddress,
   getAddressTypeValue,
@@ -77,7 +77,7 @@ export type AddressFormData = z.infer<typeof addressFormSchema>
 
 const defaultValues: AddressFormData = {
   details: {
-    type: CustomerDeliveryAddressType.CUSTOMER_DELIVERY_ADDRESS_TYPE_OTHER,
+    type: CustomerDeliveryAddressType.CUSTOMER_DELIVERY_ADDRESS_OTHER,
     country: '',
     line1: '',
     line2: '',
@@ -97,7 +97,7 @@ const getInitialValues = (
       details: {
         type:
           newAddress.details?.type ||
-          CustomerDeliveryAddressType.CUSTOMER_DELIVERY_ADDRESS_TYPE_OTHER,
+          CustomerDeliveryAddressType.CUSTOMER_DELIVERY_ADDRESS_OTHER,
         country: newAddress.details?.countryCode || '',
         line1: newAddress.details?.line1 || '',
         line2: newAddress.details?.line2 || '',
@@ -113,7 +113,7 @@ const getInitialValues = (
 }
 
 export const CreateAddress = () => {
-  const { newAddress, setNewAddress, setStep, countries } = useAddCardStore()
+  const { newAddress, setNewAddress, setStep, countries } = useOrderCardStore()
 
   const {
     control,
@@ -134,7 +134,7 @@ export const CreateAddress = () => {
         type = CustomerDeliveryAddressType.CUSTOMER_DELIVERY_ADDRESS_WORK
         break
       default:
-        type = CustomerDeliveryAddressType.CUSTOMER_DELIVERY_ADDRESS_TYPE_OTHER
+        type = CustomerDeliveryAddressType.CUSTOMER_DELIVERY_ADDRESS_OTHER
     }
     setValue('details.type', type)
   }
@@ -146,7 +146,7 @@ export const CreateAddress = () => {
   const onSubmit = (data: AddressFormData) => {
     const newAddress = createNewAddress(data)
     setNewAddress(newAddress)
-    setStep(AddCardStep.DELIVERY)
+    setStep(OrderCardStep.DELIVERY)
   }
 
   return (
@@ -319,7 +319,7 @@ export const CreateAddress = () => {
           <div className='mt-8 flex gap-4'>
             <OutlineButton
               type='button'
-              onClick={() => setStep(AddCardStep.DELIVERY)}
+              onClick={() => setStep(OrderCardStep.DELIVERY)}
               shrink
             >
               Back

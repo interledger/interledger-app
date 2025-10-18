@@ -2,11 +2,11 @@ import clsx from 'clsx'
 import { useEffect } from 'react'
 import { Button, Card, CardContent, CardHeader, CardTitle } from '~/components'
 import { CardType } from '~/generated/connect/backend/v1/backend_pb'
-import { AddCardStep, useAddCardStore } from '~/lib/useAddCardStore'
+import { OrderCardStep, useOrderCardStore } from '~/lib/useOrderCardStore'
 
 export const ProductsSelect = () => {
   const [productCode, setProductCode, setType, products, setStep] =
-    useAddCardStore((state) => [
+    useOrderCardStore((state) => [
       state.productCode,
       state.setProductCode,
       state.setCardType,
@@ -45,7 +45,7 @@ export const ProductsSelect = () => {
             <Button
               onClick={() => {
                 setType(CardType.PHYSICAL)
-                setStep(AddCardStep.DELIVERY)
+                setStep(OrderCardStep.DELIVERY)
               }}
             >
               Physical
@@ -53,7 +53,7 @@ export const ProductsSelect = () => {
             <Button
               onClick={() => {
                 setType(CardType.VIRTUAL)
-                setStep(AddCardStep.CONFIRMATION)
+                setStep(OrderCardStep.CONFIRMATION)
               }}
             >
               Virtual

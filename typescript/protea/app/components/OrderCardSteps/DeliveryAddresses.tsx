@@ -8,12 +8,12 @@ import {
   OutlineButton,
   RadioGroup
 } from '~/components'
-import { AddCardStep, useAddCardStore } from '~/lib/useAddCardStore'
+import { OrderCardStep, useOrderCardStore } from '~/lib/useOrderCardStore'
 import { SelectableAddress, toSelectableAddresses } from './utils'
 
 export const DeliveryAddresses = () => {
   const [setStep, newAddress, existingAddresses, setSelectedAddress] =
-    useAddCardStore((state) => [
+    useOrderCardStore((state) => [
       state.setStep,
       state.newAddress,
       state.addresses,
@@ -42,11 +42,11 @@ export const DeliveryAddresses = () => {
         />
 
         {!newAddress ? (
-          <Button onClick={() => setStep(AddCardStep.CREATE_ADDRESS)}>
+          <Button onClick={() => setStep(OrderCardStep.CREATE_ADDRESS)}>
             Create new address
           </Button>
         ) : (
-          <OutlineButton onClick={() => setStep(AddCardStep.CREATE_ADDRESS)}>
+          <OutlineButton onClick={() => setStep(OrderCardStep.CREATE_ADDRESS)}>
             Edit new address
           </OutlineButton>
         )}
@@ -55,7 +55,7 @@ export const DeliveryAddresses = () => {
             setSelectedAddress(
               existingAddresses.find((a) => a.id === currentAddress.id)!
             )
-            setStep(AddCardStep.CONFIRMATION)
+            setStep(OrderCardStep.CONFIRMATION)
           }}
         >
           Confirm

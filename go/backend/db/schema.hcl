@@ -2965,63 +2965,6 @@ table "xago_sub_accounts" {
   }
 }
 
-table "xago_deposit_details" {
-  schema = schema.public
-  column "id" {
-    null = false
-    type = uuid
-    default = sql("gen_random_uuid()")
-  }
-  column "wallet_id" {
-    null = false
-    type = uuid
-  }
-  column "sub_account_id" {
-    null    = false
-    type    = uuid
-  }
-  column "currency" {
-    null    = false
-    type    = text
-  }
-  column "bank_name" {
-    null = false
-    type = text
-  }
-  column "account_name" {
-    null = false
-    type = text
-  }
-  column "account_number" {
-    null = false
-    type = text
-  }
-  column "branch_code" {
-    null = false
-    type = text
-  }
-  column "created_at" {
-    null    = false
-    type    = timestamp
-    default = sql("now()::TIMESTAMP")
-  }
-  column "updated_at" {
-    null    = false
-    type    = timestamp
-    default = sql("now()::TIMESTAMP")
-  }
-  primary_key {
-    columns = [column.id]
-  }
-  index "xago_deposit_details_wallet_id_idx" {
-    columns = [column.wallet_id]
-  }
-  index "xago_deposit_details_uniq_idx" {
-    unique = true
-    columns = [column.sub_account_id, column.currency, column.bank_name]
-  }
-}
-
 table "xago_beneficiaries" {
   schema = schema.public
   column "id" {
@@ -3424,10 +3367,31 @@ table "gatehub_users" {
   column "external_customer_id" {
     null = true
     type = text
+    comment = "Dinit Customer ID" 
+  }
+  column "external_customer_source_id" {
+    null = true 
+    type = text
+    comment = "GateHub internal Customer ID"
   }
   column "external_account_id" {
     null = true
     type = text
+    comment = "Dinit Account ID"
+  }
+  column "external_account_source_id" {
+    null = true
+    type = text
+    comment = "GateHub internal Account ID"
+  }
+  column "is_first_card_plastic" {
+    null = true
+    type = boolean
+    comment = "Using this column we would know if we need to create the plastic for the first customer card when we receive the webhook event."
+  }
+  column "first_card_processed_at" {
+    null    = true
+    type    = timestamp
   }
   column "created_at" {
     null    = false
@@ -3438,11 +3402,6 @@ table "gatehub_users" {
     null    = false
     type    = timestamp
     default = sql("now()::TIMESTAMP")
-  }
-  column "card_status" {
-    null = false
-    type = text
-    default = "None"
   }
   primary_key {
     columns = [column.id]
@@ -3450,55 +3409,6 @@ table "gatehub_users" {
   index "gatehub_users_wallet_id_idx" {
     unique = true
     columns = [column.wallet_id, column.external_id]
-  }
-}
-
-table "gatehub_user_card_source" {
-  schema = schema.public
-  column "id" {
-    type = uuid
-    default = sql("gen_random_uuid()")
-  }
-
-  column "gatehub_user_id" {
-    type = uuid
-    null = false
-  }
-
-  column "customer_source_id" {
-    type = text
-    null = false
-  }
-  column "account_source_id" {
-    type = text
-    null = false
-  }
-
-  column "card_type" {
-    type = text
-    null = false
-    default = "VIRTUAL"
-  }
-
-  column "created_at" {
-    null    = false
-    type    = timestamp
-    default = sql("now()::TIMESTAMP")
-  }
-
-  column "updated_at" {
-    null    = false
-    type    = timestamp
-    default = sql("now()::TIMESTAMP")
-  }
-
-  primary_key {
-    columns = [column.id]
-  }
-
-  foreign_key "gatehub_user_fk" {
-    columns     = [column.gatehub_user_id]
-    ref_columns = [table.gatehub_users.column.id]
   }
 }
 

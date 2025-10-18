@@ -9,9 +9,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/db"
+	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	la_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
+	"gitlab.com/fynbos/backend/notify"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/gatehub/ops"
 	"gitlab.com/fynbos/backend/transactions"
@@ -43,6 +45,21 @@ func TestSaveUser(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, externalID, result)
+}
+
+func TestLinkGatehubUserToGateway(t *testing.T) {
+	b := Backends{
+		db:    db.MigrateTestDB(t, context.Background()),
+		users: user_mock.NewMock(),
+	}
+	a := ops.NewActivity(b)
+
+	walletID := uuid.NewString()
+	externalID := uuid.NewString()
+	err := a.SaveGatehubUser(context.Background(), walletID, externalID)
+	require.NoError(t, err)
+
+	return
 }
 
 type Backends struct {
@@ -85,5 +102,17 @@ func (b Backends) KYC() kyc.Client {
 }
 
 func (b Backends) Transactions() transactions.Client {
+	return nil
+}
+
+func (b Backends) Email() email.Client {
+	return nil
+}
+
+func (b Backends) LinkGatehubUserToGateway() transactions.Client {
+	return nil
+}
+
+func (b Backends) Notify() notify.Client {
 	return nil
 }

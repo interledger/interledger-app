@@ -29,12 +29,12 @@ import { CommandActions } from '~/components/Scaffold/CommandActions'
 import { CommandPalette } from '~/components/Scaffold/CommandPalette'
 import { CardType } from '~/generated/connect/backend/v1/backend_pb'
 import type { FooterRecord } from '~/generated/dato-cms-graphql'
-import { AddCardStep, useAddCardStore } from '~/lib/useAddCardStore'
 import {
   ConnectDomainStep,
   useConnectDomainStore
 } from '~/lib/useConnectDomainStore'
 import { useFormStore } from '~/lib/useFormStore'
+import { OrderCardStep, useOrderCardStore } from '~/lib/useOrderCardStore'
 import { PayStep, usePayStore } from '~/lib/usePayStore'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { SignupStep, useSignupStore } from '~/lib/useSignupStore'
@@ -103,6 +103,8 @@ export function Scaffold() {
     'root'
   ) as SerializeFrom<typeof rootLoader>
 
+  const currentPath = matches[matches.length - 1]?.pathname
+
   const [payStep, payStepBack] = usePayStore((state) => [
     state.step,
     state.stepBack
@@ -119,7 +121,7 @@ export function Scaffold() {
   const [connectDomainStep, connectDomainStepBack] = useConnectDomainStore(
     (state) => [state.step, state.stepBack]
   )
-  const [addCardStep, cardsStepBack, cardType, cardSetStep] = useAddCardStore(
+  const [addCardStep, cardsStepBack, cardType, cardSetStep] = useOrderCardStore(
     (state) => [state.step, state.stepBack, state.type, state.setStep]
   )
 
@@ -331,20 +333,19 @@ export function Scaffold() {
                       navigate(-1)
                     } else connectDomainStepBack()
                   } else if (scaffold.header.back === 'cards') {
-                    if (addCardStep === AddCardStep.CARD_TYPE) {
-                      cardsStepBack()
-                      navigate(-1)
+                    if (addCardStep === OrderCardStep.CARD_TYPE) {
+                      navigate(route('/cards'))
                     } else if (
-                      addCardStep === AddCardStep.CONFIRMATION &&
+                      addCardStep === OrderCardStep.CONFIRMATION &&
                       cardType &&
                       cardType === CardType.VIRTUAL
                     ) {
-                      cardSetStep(AddCardStep.CARD_TYPE)
+                      cardSetStep(OrderCardStep.CARD_TYPE)
                     } else if (
-                      addCardStep === AddCardStep.DELIVERY &&
+                      addCardStep === OrderCardStep.DELIVERY &&
                       cardType === CardType.PHYSICAL
                     ) {
-                      cardSetStep(AddCardStep.CARD_TYPE)
+                      cardSetStep(OrderCardStep.CARD_TYPE)
                     } else cardsStepBack()
                   } else {
                     if (typeof scaffold.header.back === 'string') {
@@ -421,7 +422,10 @@ export function Scaffold() {
       <main
         className={clsx(
           'relative flex w-full grow flex-col',
-          layout === Layouts.Marketing && 'mx-auto xl:max-w-[80rem] justify-evenly',
+          layout === Layouts.Marketing &&
+            `mx-auto justify-evenly xl:max-w-[80rem] ${
+              currentPath === '/legal' ? 'mb-10' : ''
+            }`,
           layout === Layouts.Focus &&
             'mx-auto w-full gap-y-4 px-4 sm:max-w-[29rem] sm:px-0',
           layout === Layouts.Wallet && 'mb-32 w-full px-4 lg:pl-[16.25rem]',

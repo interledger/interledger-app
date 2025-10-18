@@ -27,6 +27,8 @@ import { getSnackbar } from '~/lib/snackbar.server'
 import styles from '~/styles/app.css'
 import { getFeatures } from './data/wallet.server'
 import { Features } from './generated/connect/backend/v1/backend_pb'
+import { getPusherArgs } from './lib/pusher.server'
+import { usePusher } from './lib/usePusher'
 
 const metaContent = {
   title: 'Interledger Wallet',
@@ -95,7 +97,7 @@ function Document({ children, theme = 'theme-system' }: DocumentProps) {
         {children}
         <ScrollRestoration />
         <Scripts />
-        {/* <LiveReload port={443} /> */}
+        <LiveReload port={443} />
       </body>
     </html>
   )
@@ -152,10 +154,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
     }
   }
 
+  const pusherArgs = await getPusherArgs(request)
+
   return json({
     isUser,
     features,
     snackbar,
+    pusherArgs,
     env: {
       fynbosEnv: process.env.FYNBOS_ENV,
       sentryDsn: process.env.SENTRY_DSN,
@@ -167,8 +172,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 function Page() {
   const location = useLocation()
-  const { env } = useLoaderData<typeof loader>()
+  const { pusherArgs, env } = useLoaderData<typeof loader>()
   // useSegment(env.segmentApiKey)
+  usePusher(pusherArgs, ['cardReady'])
 
   if (location.pathname == '/temp-cloudflare-error') return <CloudFlareError />
 

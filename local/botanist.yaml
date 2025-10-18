@@ -8,8 +8,9 @@ services:
       - frontend
     restart: always
     volumes:
-      - ../typescript/botanist/app:/app/app:rw
-      - ../typescript/botanist/public:/app/public:rw
+      - ../typescript/botanist:/app:rw
+      # Exclude node_modules from sync - use container's version
+      - /app/node_modules
     ports:
       - "13000:3000" # http port
       - "18002:8002" # websocket port

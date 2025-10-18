@@ -27,7 +27,6 @@ func LookupSubAccount(ctx context.Context, b Backends, walletID string) (*xago.S
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", xago.ErrInternal, err)
 	}
-	entry.Details, err = getDepositDetails(ctx, b, entry.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -44,22 +43,11 @@ func LookupByAccountID(ctx context.Context, b Backends, accountID string) (*xago
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", xago.ErrInternal, err)
 	}
-	entry.Details, err = getDepositDetails(ctx, b, accountID)
 	if err != nil {
 		return nil, err
 	}
 
 	return &entry, nil
-}
-
-func getDepositDetails(ctx context.Context, b Backends, accountID string) ([]xago.DepositDetails, error) {
-	var entries []xago.DepositDetails
-	err := b.DB().SelectContext(ctx, &entries, "SELECT id, wallet_id, sub_account_id, currency, bank_name, account_name, account_number, branch_code  FROM xago_deposit_details WHERE sub_account_id=$1", accountID)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", xago.ErrInternal, err)
-	}
-
-	return entries, nil
 }
 
 func CreateBeneficiary(ctx context.Context, b Backends, bankAcc xago.CreateBankAccountArgs) (xago.Await, error) {
@@ -401,6 +389,34 @@ func AssignBalance(ctx context.Context, b Backends, linkedAccountID, txID string
 	return &xago.Balance{
 		Total:     currency.FromUInt64(accs[0].CreditsPosted-accs[0].DebitsPosted, la.SendCurrency),
 		Available: currency.FromUInt64(accs[0].CreditsPosted-accs[0].DebitsPosted-accs[0].DebitsPending, la.SendCurrency),
+	}, nil
+}
+
+func GetBankAccount(ctx context.Context, b Backends) (*xago.DepositDetails, error) {
+	accounts, err := b.External().BankAccounts(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", xago.ErrInternal, err)
+	}
+	var found *external.BankProvider
+	for _, a := range *accounts {
+		if a.CurrencyCode == currency.ZAR.String() && a.DepositEnabled {
+			for _, b := range a.BankingProviders {
+				if b.DepositAvailable {
+					found = &b
+					break
+				}
+			}
+		}
+	}
+	if found == nil {
+		return nil, fmt.Errorf("%w no bank account found", xago.ErrNotFound)
+	}
+	return &xago.DepositDetails{
+		BankName:      found.DepositFields.BankName,
+		AccountName:   found.DepositFields.AccountName,
+		AccountNumber: found.DepositFields.AccountNumber,
+		BranchCode:    found.DepositFields.BranchCode,
+		CurrencyCode:  currency.ZAR,
 	}, nil
 }
 

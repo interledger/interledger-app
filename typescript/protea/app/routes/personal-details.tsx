@@ -5,7 +5,6 @@ import type {
 } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { useLoaderData, useSubmit } from '@remix-run/react'
-import * as Sentry from '@sentry/remix'
 import { useEffect, useRef, useState } from 'react'
 import { route } from 'routes-gen'
 import { Button, Card, CardContent, Dialog, Layouts, Shape } from '~/components'
@@ -16,6 +15,14 @@ import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { useScript } from '~/lib/useScript'
+
+const KYCErrors: KYCErrorsType = {
+  UnableToPars: 'KYC: unable to parse message data'
+}
+
+type KYCErrorsType = {
+  UnableToPars: 'KYC: unable to parse message data'
+}
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const flow = await requireFlow(request, flowType.PersonalDetails)
@@ -139,30 +146,25 @@ function GatehubPage() {
   const { gatehubWidget } = useLoaderData<typeof loader>()
   const [dialogOpen, setDialogOpen] = useState(false)
   const submit = useSubmit()
-
   useEffect(() => {
     const onKYCComplete = (e: MessageEvent) => {
       if (!e.data?.type || !e.data?.value) return
 
-      if (e.data.type === 'OnboardingCompleted') {
-        try {
-          e.data.value = JSON.parse(e.data.value)
-        } catch {
-          Sentry.captureException(
-            new Error(
-              'Received OnboardingCompleted event with non-json value: ',
-              e.data
-            )
-          )
-          return
-        }
+      let parsedValue
+      try {
+        parsedValue = JSON.parse(e.data.value)
+      } catch {
+        throw new Error(KYCErrors.UnableToPars)
+      }
 
-        if (e.data.value.applicantStatus === 'submitted') {
-          submit(null, {
-            action: '/personal-details',
-            method: 'post'
-          })
-        }
+      if (
+        e.data.type === 'OnboardingCompleted' &&
+        parsedValue?.applicantStatus === 'submitted'
+      ) {
+        submit(null, {
+          action: '/personal-details',
+          method: 'post'
+        })
       }
     }
 

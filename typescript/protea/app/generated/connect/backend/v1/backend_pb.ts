@@ -7,13 +7,57 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
 
 /**
+ * @generated from enum backend.v1.CardTokenType
+ */
+export enum CardTokenType {
+  /**
+   * @generated from enum value: CARD_TOKEN_TYPE_PIN = 0;
+   */
+  PIN = 0,
+
+  /**
+   * @generated from enum value: CARD_TOKEN_TYPE_PIN_CHANGE = 1;
+   */
+  PIN_CHANGE = 1,
+
+  /**
+   * @generated from enum value: CARD_TOKEN_TYPE_CARD_DATA = 2;
+   */
+  CARD_DATA = 2,
+
+  /**
+   * @generated from enum value: CARD_TOKEN_TYPE_APPLE_PROVISIONING = 3;
+   */
+  APPLE_PROVISIONING = 3,
+
+  /**
+   * @generated from enum value: CARD_TOKEN_TYPE_GOOGLE_PROVISIONING = 4;
+   */
+  GOOGLE_PROVISIONING = 4,
+
+  /**
+   * @generated from enum value: CARD_TOKEN_TYPE_DIGITALIZATION_PAI = 5;
+   */
+  DIGITALIZATION_PAI = 5,
+}
+// Retrieve enum metadata with: proto3.getEnumType(CardTokenType)
+proto3.util.setEnumType(CardTokenType, "backend.v1.CardTokenType", [
+  { no: 0, name: "CARD_TOKEN_TYPE_PIN" },
+  { no: 1, name: "CARD_TOKEN_TYPE_PIN_CHANGE" },
+  { no: 2, name: "CARD_TOKEN_TYPE_CARD_DATA" },
+  { no: 3, name: "CARD_TOKEN_TYPE_APPLE_PROVISIONING" },
+  { no: 4, name: "CARD_TOKEN_TYPE_GOOGLE_PROVISIONING" },
+  { no: 5, name: "CARD_TOKEN_TYPE_DIGITALIZATION_PAI" },
+]);
+
+/**
  * @generated from enum backend.v1.CustomerDeliveryAddressType
  */
 export enum CustomerDeliveryAddressType {
   /**
-   * @generated from enum value: CUSTOMER_DELIVERY_ADDRESS_TYPE_OTHER = 0;
+   * @generated from enum value: CUSTOMER_DELIVERY_ADDRESS_OTHER = 0;
    */
-  CUSTOMER_DELIVERY_ADDRESS_TYPE_OTHER = 0,
+  CUSTOMER_DELIVERY_ADDRESS_OTHER = 0,
 
   /**
    * @generated from enum value: CUSTOMER_DELIVERY_ADDRESS_PERMANENT_RESIDENCE = 1;
@@ -32,7 +76,7 @@ export enum CustomerDeliveryAddressType {
 }
 // Retrieve enum metadata with: proto3.getEnumType(CustomerDeliveryAddressType)
 proto3.util.setEnumType(CustomerDeliveryAddressType, "backend.v1.CustomerDeliveryAddressType", [
-  { no: 0, name: "CUSTOMER_DELIVERY_ADDRESS_TYPE_OTHER" },
+  { no: 0, name: "CUSTOMER_DELIVERY_ADDRESS_OTHER" },
   { no: 1, name: "CUSTOMER_DELIVERY_ADDRESS_PERMANENT_RESIDENCE" },
   { no: 2, name: "CUSTOMER_DELIVERY_ADDRESS_TEMPORARY_RESIDENCE" },
   { no: 3, name: "CUSTOMER_DELIVERY_ADDRESS_WORK" },
@@ -130,86 +174,92 @@ export enum CardStatusReasonCode {
   UNKNOWN = 0,
 
   /**
-   * @generated from enum value: CARD_STATUS_REASON_CODE_CLIENT_REQUESTED_LOCK = 1;
+   * @generated from enum value: CARD_STATUS_REASON_CODE_NONE = 1;
    */
-  CLIENT_REQUESTED_LOCK = 1,
+  NONE = 1,
 
   /**
-   * @generated from enum value: CARD_STATUS_REASON_CODE_LOST_CARD = 2;
+   * @generated from enum value: CARD_STATUS_REASON_CODE_CLIENT_REQUESTED_LOCK = 2;
    */
-  LOST_CARD = 2,
+  CLIENT_REQUESTED_LOCK = 2,
 
   /**
-   * @generated from enum value: CARD_STATUS_REASON_CODE_STOLEN_CARD = 3;
+   * @generated from enum value: CARD_STATUS_REASON_CODE_LOST_CARD = 3;
    */
-  STOLEN_CARD = 3,
+  LOST_CARD = 3,
 
   /**
-   * @generated from enum value: CARD_STATUS_REASON_CODE_ISSUER_REQUEST_GENERAL = 4;
+   * @generated from enum value: CARD_STATUS_REASON_CODE_STOLEN_CARD = 4;
    */
-  ISSUER_REQUEST_GENERAL = 4,
+  STOLEN_CARD = 4,
 
   /**
-   * @generated from enum value: CARD_STATUS_REASON_CODE_ISSUER_REQUEST_FRAUD = 5;
+   * @generated from enum value: CARD_STATUS_REASON_CODE_ISSUER_REQUEST_GENERAL = 5;
    */
-  ISSUER_REQUEST_FRAUD = 5,
+  ISSUER_REQUEST_GENERAL = 5,
 
   /**
-   * @generated from enum value: CARD_STATUS_REASON_CODE_ISSUER_REQUEST_LEGAL = 6;
+   * @generated from enum value: CARD_STATUS_REASON_CODE_ISSUER_REQUEST_FRAUD = 6;
    */
-  ISSUER_REQUEST_LEGAL = 6,
+  ISSUER_REQUEST_FRAUD = 6,
 
   /**
-   * @generated from enum value: CARD_STATUS_REASON_CODE_ISSUER_REQUEST_INCORRECT_OPENING = 7;
+   * @generated from enum value: CARD_STATUS_REASON_CODE_ISSUER_REQUEST_LEGAL = 7;
    */
-  ISSUER_REQUEST_INCORRECT_OPENING = 7,
+  ISSUER_REQUEST_LEGAL = 7,
 
   /**
-   * @generated from enum value: CARD_STATUS_REASON_CODE_CARD_DAMAGED_OR_NOT_WORKING = 8;
+   * @generated from enum value: CARD_STATUS_REASON_CODE_ISSUER_REQUEST_INCORRECT_OPENING = 8;
    */
-  CARD_DAMAGED_OR_NOT_WORKING = 8,
+  ISSUER_REQUEST_INCORRECT_OPENING = 8,
 
   /**
-   * @generated from enum value: CARD_STATUS_REASON_CODE_USER_REQUEST = 9;
+   * @generated from enum value: CARD_STATUS_REASON_CODE_CARD_DAMAGED_OR_NOT_WORKING = 9;
    */
-  USER_REQUEST = 9,
+  CARD_DAMAGED_OR_NOT_WORKING = 9,
 
   /**
-   * @generated from enum value: CARD_STATUS_REASON_CODE_ISSUER_REQUEST_CUSTOMER_DECEASED = 10;
+   * @generated from enum value: CARD_STATUS_REASON_CODE_USER_REQUEST = 10;
    */
-  ISSUER_REQUEST_CUSTOMER_DECEASED = 10,
+  USER_REQUEST = 10,
 
   /**
-   * @generated from enum value: CARD_STATUS_REASON_CODE_PRODUCT_DOES_NOT_RENEW = 11;
+   * @generated from enum value: CARD_STATUS_REASON_CODE_ISSUER_REQUEST_CUSTOMER_DECEASED = 11;
    */
-  PRODUCT_DOES_NOT_RENEW = 11,
+  ISSUER_REQUEST_CUSTOMER_DECEASED = 11,
 
   /**
-   * @generated from enum value: CARD_STATUS_REASON_CODE_PRODUCT_CHANGE = 12;
+   * @generated from enum value: CARD_STATUS_REASON_CODE_PRODUCT_DOES_NOT_RENEW = 12;
    */
-  PRODUCT_CHANGE = 12,
+  PRODUCT_DOES_NOT_RENEW = 12,
 
   /**
-   * @generated from enum value: CARD_STATUS_REASON_CODE_RENEWED = 13;
+   * @generated from enum value: CARD_STATUS_REASON_CODE_PRODUCT_CHANGE = 13;
    */
-  RENEWED = 13,
+  PRODUCT_CHANGE = 13,
+
+  /**
+   * @generated from enum value: CARD_STATUS_REASON_CODE_RENEWED = 14;
+   */
+  RENEWED = 14,
 }
 // Retrieve enum metadata with: proto3.getEnumType(CardStatusReasonCode)
 proto3.util.setEnumType(CardStatusReasonCode, "backend.v1.CardStatusReasonCode", [
   { no: 0, name: "CARD_STATUS_REASON_CODE_UNKNOWN" },
-  { no: 1, name: "CARD_STATUS_REASON_CODE_CLIENT_REQUESTED_LOCK" },
-  { no: 2, name: "CARD_STATUS_REASON_CODE_LOST_CARD" },
-  { no: 3, name: "CARD_STATUS_REASON_CODE_STOLEN_CARD" },
-  { no: 4, name: "CARD_STATUS_REASON_CODE_ISSUER_REQUEST_GENERAL" },
-  { no: 5, name: "CARD_STATUS_REASON_CODE_ISSUER_REQUEST_FRAUD" },
-  { no: 6, name: "CARD_STATUS_REASON_CODE_ISSUER_REQUEST_LEGAL" },
-  { no: 7, name: "CARD_STATUS_REASON_CODE_ISSUER_REQUEST_INCORRECT_OPENING" },
-  { no: 8, name: "CARD_STATUS_REASON_CODE_CARD_DAMAGED_OR_NOT_WORKING" },
-  { no: 9, name: "CARD_STATUS_REASON_CODE_USER_REQUEST" },
-  { no: 10, name: "CARD_STATUS_REASON_CODE_ISSUER_REQUEST_CUSTOMER_DECEASED" },
-  { no: 11, name: "CARD_STATUS_REASON_CODE_PRODUCT_DOES_NOT_RENEW" },
-  { no: 12, name: "CARD_STATUS_REASON_CODE_PRODUCT_CHANGE" },
-  { no: 13, name: "CARD_STATUS_REASON_CODE_RENEWED" },
+  { no: 1, name: "CARD_STATUS_REASON_CODE_NONE" },
+  { no: 2, name: "CARD_STATUS_REASON_CODE_CLIENT_REQUESTED_LOCK" },
+  { no: 3, name: "CARD_STATUS_REASON_CODE_LOST_CARD" },
+  { no: 4, name: "CARD_STATUS_REASON_CODE_STOLEN_CARD" },
+  { no: 5, name: "CARD_STATUS_REASON_CODE_ISSUER_REQUEST_GENERAL" },
+  { no: 6, name: "CARD_STATUS_REASON_CODE_ISSUER_REQUEST_FRAUD" },
+  { no: 7, name: "CARD_STATUS_REASON_CODE_ISSUER_REQUEST_LEGAL" },
+  { no: 8, name: "CARD_STATUS_REASON_CODE_ISSUER_REQUEST_INCORRECT_OPENING" },
+  { no: 9, name: "CARD_STATUS_REASON_CODE_CARD_DAMAGED_OR_NOT_WORKING" },
+  { no: 10, name: "CARD_STATUS_REASON_CODE_USER_REQUEST" },
+  { no: 11, name: "CARD_STATUS_REASON_CODE_ISSUER_REQUEST_CUSTOMER_DECEASED" },
+  { no: 12, name: "CARD_STATUS_REASON_CODE_PRODUCT_DOES_NOT_RENEW" },
+  { no: 13, name: "CARD_STATUS_REASON_CODE_PRODUCT_CHANGE" },
+  { no: 14, name: "CARD_STATUS_REASON_CODE_RENEWED" },
 ]);
 
 /**
@@ -222,20 +272,26 @@ export enum CardLockLevel {
   UNKNOWN = 0,
 
   /**
-   * @generated from enum value: CARD_LOCK_LEVEL_CLIENT = 1;
+   * @generated from enum value: CARD_LOCK_LEVEL_NONE = 1;
    */
-  CLIENT = 1,
+  NONE = 1,
 
   /**
-   * @generated from enum value: CARD_LOCK_LEVEL_ADMIN = 2;
+   * @generated from enum value: CARD_LOCK_LEVEL_CLIENT = 2;
    */
-  ADMIN = 2,
+  CLIENT = 2,
+
+  /**
+   * @generated from enum value: CARD_LOCK_LEVEL_ADMIN = 3;
+   */
+  ADMIN = 3,
 }
 // Retrieve enum metadata with: proto3.getEnumType(CardLockLevel)
 proto3.util.setEnumType(CardLockLevel, "backend.v1.CardLockLevel", [
   { no: 0, name: "CARD_LOCK_LEVEL_UNKNOWN" },
-  { no: 1, name: "CARD_LOCK_LEVEL_CLIENT" },
-  { no: 2, name: "CARD_LOCK_LEVEL_ADMIN" },
+  { no: 1, name: "CARD_LOCK_LEVEL_NONE" },
+  { no: 2, name: "CARD_LOCK_LEVEL_CLIENT" },
+  { no: 3, name: "CARD_LOCK_LEVEL_ADMIN" },
 ]);
 
 /**
@@ -313,6 +369,350 @@ export class Empty extends Message<Empty> {
 }
 
 /**
+ * @generated from message backend.v1.FreezeCardRequest
+ */
+export class FreezeCardRequest extends Message<FreezeCardRequest> {
+  /**
+   * @generated from field: string cardId = 1;
+   */
+  cardId = "";
+
+  constructor(data?: PartialMessage<FreezeCardRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.FreezeCardRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "cardId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): FreezeCardRequest {
+    return new FreezeCardRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): FreezeCardRequest {
+    return new FreezeCardRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): FreezeCardRequest {
+    return new FreezeCardRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: FreezeCardRequest | PlainMessage<FreezeCardRequest> | undefined, b: FreezeCardRequest | PlainMessage<FreezeCardRequest> | undefined): boolean {
+    return proto3.util.equals(FreezeCardRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.UnfreezeCardRequest
+ */
+export class UnfreezeCardRequest extends Message<UnfreezeCardRequest> {
+  /**
+   * @generated from field: string cardId = 1;
+   */
+  cardId = "";
+
+  constructor(data?: PartialMessage<UnfreezeCardRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.UnfreezeCardRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "cardId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UnfreezeCardRequest {
+    return new UnfreezeCardRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): UnfreezeCardRequest {
+    return new UnfreezeCardRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): UnfreezeCardRequest {
+    return new UnfreezeCardRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: UnfreezeCardRequest | PlainMessage<UnfreezeCardRequest> | undefined, b: UnfreezeCardRequest | PlainMessage<UnfreezeCardRequest> | undefined): boolean {
+    return proto3.util.equals(UnfreezeCardRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.BlockCardRequest
+ */
+export class BlockCardRequest extends Message<BlockCardRequest> {
+  /**
+   * @generated from field: string cardId = 1;
+   */
+  cardId = "";
+
+  constructor(data?: PartialMessage<BlockCardRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.BlockCardRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "cardId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): BlockCardRequest {
+    return new BlockCardRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): BlockCardRequest {
+    return new BlockCardRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): BlockCardRequest {
+    return new BlockCardRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: BlockCardRequest | PlainMessage<BlockCardRequest> | undefined, b: BlockCardRequest | PlainMessage<BlockCardRequest> | undefined): boolean {
+    return proto3.util.equals(BlockCardRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.TerminateCardRequest
+ */
+export class TerminateCardRequest extends Message<TerminateCardRequest> {
+  /**
+   * @generated from field: string cardId = 1;
+   */
+  cardId = "";
+
+  constructor(data?: PartialMessage<TerminateCardRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.TerminateCardRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "cardId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TerminateCardRequest {
+    return new TerminateCardRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): TerminateCardRequest {
+    return new TerminateCardRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): TerminateCardRequest {
+    return new TerminateCardRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: TerminateCardRequest | PlainMessage<TerminateCardRequest> | undefined, b: TerminateCardRequest | PlainMessage<TerminateCardRequest> | undefined): boolean {
+    return proto3.util.equals(TerminateCardRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.TokenLink
+ */
+export class TokenLink extends Message<TokenLink> {
+  /**
+   * @generated from field: string href = 1;
+   */
+  href = "";
+
+  /**
+   * @generated from field: string rel = 2;
+   */
+  rel = "";
+
+  /**
+   * @generated from field: string method = 3;
+   */
+  method = "";
+
+  constructor(data?: PartialMessage<TokenLink>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.TokenLink";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "href", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "rel", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "method", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TokenLink {
+    return new TokenLink().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): TokenLink {
+    return new TokenLink().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): TokenLink {
+    return new TokenLink().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: TokenLink | PlainMessage<TokenLink> | undefined, b: TokenLink | PlainMessage<TokenLink> | undefined): boolean {
+    return proto3.util.equals(TokenLink, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.GetCardTokenRequest
+ */
+export class GetCardTokenRequest extends Message<GetCardTokenRequest> {
+  /**
+   * @generated from field: backend.v1.CardTokenType tokenType = 1;
+   */
+  tokenType = CardTokenType.PIN;
+
+  /**
+   * @generated from field: string cardId = 2;
+   */
+  cardId = "";
+
+  /**
+   * @generated from field: optional string publicKey = 3;
+   */
+  publicKey?: string;
+
+  constructor(data?: PartialMessage<GetCardTokenRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.GetCardTokenRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "tokenType", kind: "enum", T: proto3.getEnumType(CardTokenType) },
+    { no: 2, name: "cardId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "publicKey", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetCardTokenRequest {
+    return new GetCardTokenRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetCardTokenRequest {
+    return new GetCardTokenRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetCardTokenRequest {
+    return new GetCardTokenRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetCardTokenRequest | PlainMessage<GetCardTokenRequest> | undefined, b: GetCardTokenRequest | PlainMessage<GetCardTokenRequest> | undefined): boolean {
+    return proto3.util.equals(GetCardTokenRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.GetCardTokenResponse
+ */
+export class GetCardTokenResponse extends Message<GetCardTokenResponse> {
+  /**
+   * @generated from field: string token = 1;
+   */
+  token = "";
+
+  /**
+   * @generated from field: repeated backend.v1.TokenLink links = 2;
+   */
+  links: TokenLink[] = [];
+
+  constructor(data?: PartialMessage<GetCardTokenResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.GetCardTokenResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "token", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "links", kind: "message", T: TokenLink, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetCardTokenResponse {
+    return new GetCardTokenResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetCardTokenResponse {
+    return new GetCardTokenResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetCardTokenResponse {
+    return new GetCardTokenResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetCardTokenResponse | PlainMessage<GetCardTokenResponse> | undefined, b: GetCardTokenResponse | PlainMessage<GetCardTokenResponse> | undefined): boolean {
+    return proto3.util.equals(GetCardTokenResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.GetCardOrderOptionsResponse
+ */
+export class GetCardOrderOptionsResponse extends Message<GetCardOrderOptionsResponse> {
+  /**
+   * @generated from field: bool isWaitingForCreation = 1;
+   */
+  isWaitingForCreation = false;
+
+  /**
+   * @generated from field: repeated backend.v1.CardApplicationProduct products = 2;
+   */
+  products: CardApplicationProduct[] = [];
+
+  /**
+   * @generated from field: repeated backend.v1.CustomerDeliveryAddress addresses = 3;
+   */
+  addresses: CustomerDeliveryAddress[] = [];
+
+  /**
+   * @generated from field: repeated backend.v1.Country countries = 4;
+   */
+  countries: Country[] = [];
+
+  constructor(data?: PartialMessage<GetCardOrderOptionsResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.GetCardOrderOptionsResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "isWaitingForCreation", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 2, name: "products", kind: "message", T: CardApplicationProduct, repeated: true },
+    { no: 3, name: "addresses", kind: "message", T: CustomerDeliveryAddress, repeated: true },
+    { no: 4, name: "countries", kind: "message", T: Country, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetCardOrderOptionsResponse {
+    return new GetCardOrderOptionsResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetCardOrderOptionsResponse {
+    return new GetCardOrderOptionsResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetCardOrderOptionsResponse {
+    return new GetCardOrderOptionsResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetCardOrderOptionsResponse | PlainMessage<GetCardOrderOptionsResponse> | undefined, b: GetCardOrderOptionsResponse | PlainMessage<GetCardOrderOptionsResponse> | undefined): boolean {
+    return proto3.util.equals(GetCardOrderOptionsResponse, a, b);
+  }
+}
+
+/**
  * @generated from message backend.v1.OrderCardRequest
  */
 export class OrderCardRequest extends Message<OrderCardRequest> {
@@ -331,16 +731,16 @@ export class OrderCardRequest extends Message<OrderCardRequest> {
    */
   deliveryAddress: {
     /**
-     * @generated from field: string id = 3;
+     * @generated from field: string deliveryAddressId = 3;
      */
     value: string;
-    case: "id";
+    case: "deliveryAddressId";
   } | {
     /**
-     * @generated from field: backend.v1.NewCustomerDeliveryAddress newAddress = 4;
+     * @generated from field: backend.v1.NewCustomerDeliveryAddress newDeliveryAddress = 4;
      */
     value: NewCustomerDeliveryAddress;
-    case: "newAddress";
+    case: "newDeliveryAddress";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<OrderCardRequest>) {
@@ -353,8 +753,8 @@ export class OrderCardRequest extends Message<OrderCardRequest> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "type", kind: "enum", T: proto3.getEnumType(CardType) },
     { no: 2, name: "cardProductCode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "deliveryAddress" },
-    { no: 4, name: "newAddress", kind: "message", T: NewCustomerDeliveryAddress, oneof: "deliveryAddress" },
+    { no: 3, name: "deliveryAddressId", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "deliveryAddress" },
+    { no: 4, name: "newDeliveryAddress", kind: "message", T: NewCustomerDeliveryAddress, oneof: "deliveryAddress" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): OrderCardRequest {
@@ -418,50 +818,13 @@ export class CardApplicationProduct extends Message<CardApplicationProduct> {
 }
 
 /**
- * @generated from message backend.v1.GetCardApplicationProductsResponse
- */
-export class GetCardApplicationProductsResponse extends Message<GetCardApplicationProductsResponse> {
-  /**
-   * @generated from field: repeated backend.v1.CardApplicationProduct products = 1;
-   */
-  products: CardApplicationProduct[] = [];
-
-  constructor(data?: PartialMessage<GetCardApplicationProductsResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "backend.v1.GetCardApplicationProductsResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "products", kind: "message", T: CardApplicationProduct, repeated: true },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetCardApplicationProductsResponse {
-    return new GetCardApplicationProductsResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetCardApplicationProductsResponse {
-    return new GetCardApplicationProductsResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetCardApplicationProductsResponse {
-    return new GetCardApplicationProductsResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: GetCardApplicationProductsResponse | PlainMessage<GetCardApplicationProductsResponse> | undefined, b: GetCardApplicationProductsResponse | PlainMessage<GetCardApplicationProductsResponse> | undefined): boolean {
-    return proto3.util.equals(GetCardApplicationProductsResponse, a, b);
-  }
-}
-
-/**
  * @generated from message backend.v1.CustomerDeliveryAddressBase
  */
 export class CustomerDeliveryAddressBase extends Message<CustomerDeliveryAddressBase> {
   /**
    * @generated from field: backend.v1.CustomerDeliveryAddressType type = 1;
    */
-  type = CustomerDeliveryAddressType.CUSTOMER_DELIVERY_ADDRESS_TYPE_OTHER;
+  type = CustomerDeliveryAddressType.CUSTOMER_DELIVERY_ADDRESS_OTHER;
 
   /**
    * @generated from field: string countryCode = 2;
@@ -620,43 +983,6 @@ export class NewCustomerDeliveryAddress extends Message<NewCustomerDeliveryAddre
 }
 
 /**
- * @generated from message backend.v1.GetCustomerDeliveryAddressesResponse
- */
-export class GetCustomerDeliveryAddressesResponse extends Message<GetCustomerDeliveryAddressesResponse> {
-  /**
-   * @generated from field: repeated backend.v1.CustomerDeliveryAddress deliveryAddresses = 1;
-   */
-  deliveryAddresses: CustomerDeliveryAddress[] = [];
-
-  constructor(data?: PartialMessage<GetCustomerDeliveryAddressesResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "backend.v1.GetCustomerDeliveryAddressesResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "deliveryAddresses", kind: "message", T: CustomerDeliveryAddress, repeated: true },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetCustomerDeliveryAddressesResponse {
-    return new GetCustomerDeliveryAddressesResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetCustomerDeliveryAddressesResponse {
-    return new GetCustomerDeliveryAddressesResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetCustomerDeliveryAddressesResponse {
-    return new GetCustomerDeliveryAddressesResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: GetCustomerDeliveryAddressesResponse | PlainMessage<GetCustomerDeliveryAddressesResponse> | undefined, b: GetCustomerDeliveryAddressesResponse | PlainMessage<GetCustomerDeliveryAddressesResponse> | undefined): boolean {
-    return proto3.util.equals(GetCustomerDeliveryAddressesResponse, a, b);
-  }
-}
-
-/**
  * @generated from message backend.v1.Card
  */
 export class Card extends Message<Card> {
@@ -681,19 +1007,24 @@ export class Card extends Message<Card> {
   status = CardStatus.UNKNOWN;
 
   /**
-   * @generated from field: optional backend.v1.CardStatusReasonCode statusReasonCode = 5;
+   * @generated from field: backend.v1.CardStatusReasonCode statusReasonCode = 5;
    */
-  statusReasonCode?: CardStatusReasonCode;
+  statusReasonCode = CardStatusReasonCode.UNKNOWN;
 
   /**
-   * @generated from field: optional backend.v1.CardLockLevel lockLevel = 6;
+   * @generated from field: backend.v1.CardLockLevel lockLevel = 6;
    */
-  lockLevel?: CardLockLevel;
+  lockLevel = CardLockLevel.UNKNOWN;
 
   /**
    * @generated from field: string expiryDate = 7;
    */
   expiryDate = "";
+
+  /**
+   * @generated from field: backend.v1.CardType type = 8;
+   */
+  type = CardType.UNKNOWN;
 
   constructor(data?: PartialMessage<Card>) {
     super();
@@ -707,9 +1038,10 @@ export class Card extends Message<Card> {
     { no: 2, name: "nameOnCard", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "maskedPan", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "status", kind: "enum", T: proto3.getEnumType(CardStatus) },
-    { no: 5, name: "statusReasonCode", kind: "enum", T: proto3.getEnumType(CardStatusReasonCode), opt: true },
-    { no: 6, name: "lockLevel", kind: "enum", T: proto3.getEnumType(CardLockLevel), opt: true },
+    { no: 5, name: "statusReasonCode", kind: "enum", T: proto3.getEnumType(CardStatusReasonCode) },
+    { no: 6, name: "lockLevel", kind: "enum", T: proto3.getEnumType(CardLockLevel) },
     { no: 7, name: "expiryDate", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 8, name: "type", kind: "enum", T: proto3.getEnumType(CardType) },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Card {
@@ -734,7 +1066,12 @@ export class Card extends Message<Card> {
  */
 export class ListCardsResponse extends Message<ListCardsResponse> {
   /**
-   * @generated from field: repeated backend.v1.Card cards = 1;
+   * @generated from field: bool isWaitingForCreation = 1;
+   */
+  isWaitingForCreation = false;
+
+  /**
+   * @generated from field: repeated backend.v1.Card cards = 2;
    */
   cards: Card[] = [];
 
@@ -746,7 +1083,8 @@ export class ListCardsResponse extends Message<ListCardsResponse> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "backend.v1.ListCardsResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "cards", kind: "message", T: Card, repeated: true },
+    { no: 1, name: "isWaitingForCreation", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 2, name: "cards", kind: "message", T: Card, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListCardsResponse {

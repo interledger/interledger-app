@@ -1,10 +1,4 @@
-import type {
-  LoaderFunction,
-  MetaDescriptor,
-  MetaFunction
-} from '@remix-run/node'
-import type { Location } from '@remix-run/react'
-import type { Tag } from '~/generated/dato-cms-graphql'
+import type { LoaderFunction, MetaFunction } from '@remix-run/node'
 
 export const mergeMeta = <
   Loader extends LoaderFunction | unknown = unknown,
@@ -38,20 +32,4 @@ export const mergeMeta = <
       return acc
     }, leafMeta)
   }
-}
-
-export function datoMeta(
-  metaTags?: Array<Tag>,
-  location?: Location
-): MetaDescriptor[] {
-  return [
-    {
-      name: 'og:url',
-      content: `https://interledger.app${location?.pathname}`
-    },
-    {
-      name: 'twitter:url',
-      content: `https://interledger.app${location?.pathname}`
-    }
-  ]
 }

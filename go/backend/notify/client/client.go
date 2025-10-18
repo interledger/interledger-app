@@ -16,8 +16,8 @@ type client struct {
 	b ops.Backends
 }
 
-func New(b Backends, pusherClientUrl string) notify.Client {
-	if pusherClientUrl == "" {
+func New(b Backends, pusherClientURL string) notify.Client {
+	if pusherClientURL == "" {
 		log.Info("no pusherClientURL specified.")
 		return &client{
 			b: &opsBackends{
@@ -26,7 +26,7 @@ func New(b Backends, pusherClientUrl string) notify.Client {
 		}
 	}
 
-	pc, err := pusher.ClientFromURL(pusherClientUrl)
+	pc, err := pusher.ClientFromURL(pusherClientURL)
 	if err != nil {
 		log.Error("error creating pusher client", zap.Error(err))
 	}
