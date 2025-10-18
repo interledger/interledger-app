@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/lestrrat-go/jwx/v2/jwk"
+	"github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/currency"
@@ -76,14 +76,16 @@ func TestPutUser(t *testing.T) {
 	if os.Getenv("PTI_JWK") == "" || os.Getenv("PTI_CLIENT_ID") == "" {
 		t.Skip("no credentials")
 	}
-	key, err := jwk.ParseKey([]byte(os.Getenv("PTI_JWK")))
+
+	ptiPrivateKey, err := jwk.ParseKey([]byte(os.Getenv("PTI_JWK")))
 	require.NoError(t, err)
-
-	client := New(ClientArgs{
-		PrivateKey: key,
-		ClientID:   os.Getenv("PTI_CLIENT_ID"),
-	})
-
+	client, err := NewWithOptions(
+		WithBaseURL(os.Getenv("PTI_BASE_URL")),
+		WithOTELLHTTPClient(),
+		WithClientID(os.Getenv("PTI_CLIENT_ID")),
+		WithDerivedKeys(ptiPrivateKey),
+	)
+	require.NoError(t, err)
 	u, err := client.PutUser(context.Background(), PutUserArgs{
 		ID:   "031823ff-3db5-40b5-9c4a-7bede87edfc0",
 		Type: "PERSON",
@@ -108,13 +110,9 @@ func TestPutUser(t *testing.T) {
 				Street:     "785 Market Street",
 				City:       "San Francisco",
 				PostalCode: "94103",
-				StateCode: StateCode{
-					Code: "US-CA",
-				},
-				Country: CountryCode{
-					Code: "US",
-				},
-				Default: true,
+				StateCode:  "CA",
+				Country:    "US",
+				Default:    true,
 			},
 		},
 	})
@@ -129,18 +127,20 @@ func TestStartAssessment(t *testing.T) {
 	if os.Getenv("PTI_JWK") == "" || os.Getenv("PTI_CLIENT_ID") == "" {
 		t.Skip("no credentials")
 	}
-	key, err := jwk.ParseKey([]byte(os.Getenv("PTI_JWK")))
+	ptiPrivateKey, err := jwk.ParseKey([]byte(os.Getenv("PTI_JWK")))
 	require.NoError(t, err)
-
-	client := New(ClientArgs{
-		PrivateKey: key,
-		ClientID:   os.Getenv("PTI_CLIENT_ID"),
-	})
+	client, err := NewWithOptions(
+		WithBaseURL(os.Getenv("PTI_BASE_URL")),
+		WithOTELLHTTPClient(),
+		WithClientID(os.Getenv("PTI_CLIENT_ID")),
+		WithDerivedKeys(ptiPrivateKey),
+	)
+	require.NoError(t, err)
 
 	a, err := client.StartUserAssessment(context.Background(), StartUserAssessmentArgs{
 		ID:         "a3034411-11bd-4379-89ed-867eb476ef8a",
 		Type:       "PERSON",
-		ScenarioID: "fynbos_deposit",
+		ScenarioID: "interledger_deposit",
 	})
 	require.NoError(t, err)
 
@@ -151,14 +151,15 @@ func TestGetAssessment(t *testing.T) {
 	if os.Getenv("PTI_JWK") == "" || os.Getenv("PTI_CLIENT_ID") == "" {
 		t.Skip("no credentials")
 	}
-	key, err := jwk.ParseKey([]byte(os.Getenv("PTI_JWK")))
+	ptiPrivateKey, err := jwk.ParseKey([]byte(os.Getenv("PTI_JWK")))
 	require.NoError(t, err)
-
-	client := New(ClientArgs{
-		PrivateKey: key,
-		ClientID:   os.Getenv("PTI_CLIENT_ID"),
-	})
-
+	client, err := NewWithOptions(
+		WithBaseURL(os.Getenv("PTI_BASE_URL")),
+		WithOTELLHTTPClient(),
+		WithClientID(os.Getenv("PTI_CLIENT_ID")),
+		WithDerivedKeys(ptiPrivateKey),
+	)
+	require.NoError(t, err)
 	a, err := client.GetUserAssessment(context.Background(), "baeced4f-c4b3-475d-bd03-b4454b0343a7")
 	require.NoError(t, err)
 
@@ -170,13 +171,15 @@ func TestCreateUserAndWallet(t *testing.T) {
 		t.Skip("no credentials")
 	}
 
-	key, err := jwk.ParseKey([]byte(os.Getenv("PTI_JWK")))
+	ptiPrivateKey, err := jwk.ParseKey([]byte(os.Getenv("PTI_JWK")))
 	require.NoError(t, err)
-
-	client := New(ClientArgs{
-		PrivateKey: key,
-		ClientID:   os.Getenv("PTI_CLIENT_ID"),
-	})
+	client, err := NewWithOptions(
+		WithBaseURL(os.Getenv("PTI_BASE_URL")),
+		WithOTELLHTTPClient(),
+		WithClientID(os.Getenv("PTI_CLIENT_ID")),
+		WithDerivedKeys(ptiPrivateKey),
+	)
+	require.NoError(t, err)
 
 	ctx := context.Background()
 	userID := "a3034411-11bd-4379-89ed-867eb476ef8a"
@@ -199,13 +202,9 @@ func TestCreateUserAndWallet(t *testing.T) {
 				Street:     "785 Market Street",
 				City:       "San Francisco",
 				PostalCode: "94103",
-				StateCode: StateCode{
-					Code: "CA",
-				},
-				Country: CountryCode{
-					Code: "US",
-				},
-				Default: true,
+				StateCode:  "CA",
+				Country:    "US",
+				Default:    true,
 			},
 		},
 		Phones: []Phone{
@@ -235,13 +234,15 @@ func TestDeposit(t *testing.T) {
 	ptiUserID := "baeced4f-c4b3-475d-bd03-b4454b0343a7"
 	ptiWalletID := "USD_baeced4f-c4b3-475d-bd03-b4454b0343a7"
 
-	key, err := jwk.ParseKey([]byte(os.Getenv("PTI_JWK")))
+	ptiPrivateKey, err := jwk.ParseKey([]byte(os.Getenv("PTI_JWK")))
 	require.NoError(t, err)
-
-	client := New(ClientArgs{
-		PrivateKey: key,
-		ClientID:   os.Getenv("PTI_CLIENT_ID"),
-	})
+	client, err := NewWithOptions(
+		WithBaseURL(os.Getenv("PTI_BASE_URL")),
+		WithOTELLHTTPClient(),
+		WithClientID(os.Getenv("PTI_CLIENT_ID")),
+		WithDerivedKeys(ptiPrivateKey),
+	)
+	require.NoError(t, err)
 
 	ctx := context.Background()
 	requestID := "9c18c969-dca9-4a94-8c13-f5ca1c247521"
@@ -281,13 +282,15 @@ func TestWalletTransfer(t *testing.T) {
 	ptiSendingWalletID := "USD_baeced4f-c4b3-475d-bd03-b4454b0343a7"
 	ptiReceivingWalletID := "USD_a3034411-11bd-4379-89ed-867eb476ef8a"
 
-	key, err := jwk.ParseKey([]byte(os.Getenv("PTI_JWK")))
+	ptiPrivateKey, err := jwk.ParseKey([]byte(os.Getenv("PTI_JWK")))
 	require.NoError(t, err)
-
-	client := New(ClientArgs{
-		PrivateKey: key,
-		ClientID:   os.Getenv("PTI_CLIENT_ID"),
-	})
+	client, err := NewWithOptions(
+		WithBaseURL(os.Getenv("PTI_BASE_URL")),
+		WithOTELLHTTPClient(),
+		WithClientID(os.Getenv("PTI_CLIENT_ID")),
+		WithDerivedKeys(ptiPrivateKey),
+	)
+	require.NoError(t, err)
 
 	requestID := "92984a38-e4f1-4e9e-a106-12ff1e3937ec"
 	transferArgs := TransferArgs{
