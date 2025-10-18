@@ -853,3 +853,15 @@ func (a *Activity) UpdatePTIWithdrawalState(ctx context.Context, walletID, trans
 
 	return a.b.Transactions().SetTransactionState(ctx, transactionID, state)
 }
+
+func (a *Activity) RollbackPTIBalance(ctx context.Context, id, walletID string) error {
+	tx, err := a.b.Transactions().GetTransaction(ctx, walletID, id)
+	if errors.Is(err, transactions.ErrNotFound) {
+		return temporal.NewNonRetryableApplicationError("Transaction not found", "ErrInternal", fmt.Errorf("%w transaction not found", pti.ErrInternal))
+	}
+	if tx.Amount.Currency != currency.USD {
+		return temporal.NewNonRetryableApplicationError("Invalid currency", "ErrInternal", fmt.Errorf("%w invalid currency", pti.ErrInternal))
+	}
+
+	return RollbackReserve(ctx, a.b, tx.ID)
+}

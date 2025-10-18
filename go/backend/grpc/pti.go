@@ -113,7 +113,7 @@ func (s *rpcService) CreateCard(
 		return nil, toGRPCError(err)
 	}
 	if la.ID == "" {
-		return nil, toGRPCError(errors.New("Linked account not returned from create card workflow."))
+		return nil, toGRPCError(errors.New("linked account not returned from create card workflow"))
 	}
 
 	return transformLinkedAccount(la), nil
@@ -164,7 +164,7 @@ func (s *rpcService) CreatePtiBankAccount(
 		return nil, toGRPCError(err)
 	}
 	if la.ID == "" {
-		return nil, toGRPCError(errors.New("Linked account not returned from create pti bank account workflow."))
+		return nil, toGRPCError(errors.New("linked account not returned from create pti bank account workflow"))
 	}
 
 	return transformLinkedAccount(la), nil
@@ -184,10 +184,12 @@ func (r *rpcService) CreatePTIWithdrawal(ctx context.Context, req *pb.CreatePTIW
 	if wallet.Country != country.US {
 		return nil, toGRPCError(FailedPreconditionError("Wallet not in the US region"))
 	}
+
 	p, err := r.b.Payments().Lookup(ctx, req.GetPaymentId())
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
+
 	if p.Sender.WalletID != wallet.ID {
 		return nil, NotFoundError("payment not found")
 	}

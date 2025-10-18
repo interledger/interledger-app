@@ -87,6 +87,7 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(pti_workflows.MarkTransactionStateWrokflow)
 	w.RegisterWorkflow(pti_workflows.ProcessPTIWithdrawal)
 	w.RegisterWorkflow(pti_workflows.SettleWithdrawWorkflow)
+	w.RegisterWorkflow(pti_workflows.RevertWithdrawWorkflow)
 	var ptiPrivateKey jwk.Key
 	// if env.IsLocal() {
 	// 	privateKey, err := rsa.GenerateKey(rand.Reader, 4096)

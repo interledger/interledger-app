@@ -39,9 +39,11 @@ import {
   type FormattedLinkedAccount
 } from '~/data/accounts.server'
 import { getKycStatus } from '~/data/wallet.server'
-import {
-  Balance,
+import type {
   Amount as RpcAmount
+} from '~/generated/connect/backend/v1/backend_pb';
+import {
+  Balance
 } from '~/generated/connect/backend/v1/backend_pb'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
@@ -53,6 +55,15 @@ import { PaySelect } from '~/routes/pay_.$paymentId/PaySelect'
 import styles from '~/styles/flags.css'
 import { KycStatus } from './_index/route'
 import type { JsonValue } from '@bufbuild/protobuf'
+
+type WithdrawalLoaderData = {
+  balances: FormattedLinkedAccount[];
+  provider: string;
+  balanceAccount: JsonValue;
+  linkedAccounts: FormattedLinkedAccount[];
+  csrfToken: string;
+  balance?: FormattedLinkedAccount | undefined;
+}
 
 export async function loader(args: LoaderFunctionArgs) {
   const providerResponse = await grpc.getOnOffRampProvider(args.request, {})
@@ -66,16 +77,6 @@ export async function loader(args: LoaderFunctionArgs) {
     return gatehubWithdrawalLoader(args)
   } else return fynbosWithdrawalLoader(args)
 }
-
-type WithdrawalLoaderData = {
-  balances: FormattedLinkedAccount[];
-  provider: string;
-  balanceAccount: JsonValue;
-  linkedAccounts: FormattedLinkedAccount[];
-  csrfToken: string;
-  balance?: FormattedLinkedAccount | undefined;
-}
-
 
 async function gatehubWithdrawalLoader({ request }: LoaderFunctionArgs) {
   const widgetResponse = await grpc.getGatehubWithdrawalWidget(request, {})
@@ -312,11 +313,11 @@ const Amount = ({data}: {data: WithdrawalLoaderData}) => {
         name='fromLinkedAccount'
         type='hidden'
       />
-         <input
-        form='account-withdraw'
-        value={provider}
-        name='provider'
-        type='hidden'
+      <input
+      form='account-withdraw'
+      value={provider}
+      name='provider'
+      type='hidden'
       />
       <Card>
         <PaySelect

@@ -52,6 +52,14 @@ func (s *rpcService) WithdrawBalance(ctx context.Context, req *pb.TransferBalanc
 	if exceedsLimits {
 		var description string
 		switch limitType {
+		case limits.LimitTypeTransaction:
+			description = "Exceeds per transaction limit."
+		case limits.LimitTypeDaily:
+			description = "Exceeds daily limit."
+		case limits.LimitTypeMonthly:
+			description = "Exceeds monthly limit."
+		case limits.LimitType6Monthly:
+			description = "Exceeds 6 monthly limit."
 		case limits.LimitTypeYearly:
 			description = "Exceeds yearly limit."
 		default:
