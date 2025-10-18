@@ -129,8 +129,8 @@ func (s *Server) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 			UserID:     u.ID,
 			Street:     pgtype.Text{String: address.Street, Valid: true},
 			PostalCode: pgtype.Text{String: address.PostalCode, Valid: true},
-			StateCode:  pgtype.Text{String: address.StateCode.Code, Valid: true},
-			Country:    pgtype.Text{String: address.Country.Code, Valid: true},
+			StateCode:  pgtype.Text{String: address.StateCode, Valid: true},
+			Country:    pgtype.Text{String: address.Country, Valid: true},
 			IsDefault:  pgtype.Bool{Bool: address.Default, Valid: true},
 		})
 	}
@@ -318,13 +318,9 @@ func (s *Server) GetUser(w http.ResponseWriter, r *http.Request) {
 		resp.Addresses = append(resp.Addresses, external.Address{
 			Street:     a.Street.String,
 			PostalCode: a.PostalCode.String,
-			StateCode: external.StateCode{
-				Code: a.StateCode.String,
-			},
-			Country: external.CountryCode{
-				Code: a.Country.String,
-			},
-			Default: a.IsDefault.Bool,
+			StateCode:  a.StateCode.String,
+			Country:    a.Country.String,
+			Default:    a.IsDefault.Bool,
 		})
 	}
 	for _, p := range phones {
@@ -461,7 +457,7 @@ func (s *Server) CreateDeposit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	destinationWallet, err := s.q.GetPTIWallet(ctx, payload.DestinationMethod.PaymentInformation.WalletID)
+	destinationWallet, err := s.q.GetPTIWallet(ctx, payload.DestinationMethod.PaymentInformation.ID)
 	if err != nil {
 		log.Error("destination wallet not found", zap.Error(err))
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -653,7 +649,7 @@ func (s *Server) GetTransaction(w http.ResponseWriter, r *http.Request) {
 			ProviderResponseCode:     trx.PaymentStatusProviderResponseCode.String,
 			ProviderResponseCategory: trx.PaymentStatusProviderResponseCategory.String,
 		},
-		Amount:   amt.FormatAmount(),
+		Amount:   int(amt.Value),
 		Currency: cc.String(),
 		Total: external.Total{
 			Fee: external.Cost{
