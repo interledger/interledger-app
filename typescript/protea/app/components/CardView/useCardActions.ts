@@ -58,8 +58,6 @@ export const useCardActions = (card: StorableCard): UseCardActionsReturn => {
 
   const [showSensitiveData, setShowSensitiveData] = useState(false)
   const [showPin, setShowPin] = useState(false)
-  const [isLockedState, setIsLockedState] = useState(isLocked(card))
-  const [isBlockedState, setIsBlockedState] = useState(isBlocked(card))
   const [sensitiveData, setSensitiveData] = useState(
     getDefaultSensitiveData(card)
   )
@@ -69,8 +67,6 @@ export const useCardActions = (card: StorableCard): UseCardActionsReturn => {
   useEffect(() => {
     setShowSensitiveData(false)
     setShowPin(false)
-    setIsLockedState(isLocked(card))
-    setIsBlockedState(isBlocked(card))
     setSensitiveData(getDefaultSensitiveData(card))
     setPin('****')
     resetStatus()
@@ -153,7 +149,6 @@ export const useCardActions = (card: StorableCard): UseCardActionsReturn => {
       },
       onSuccess: () => {
         onSuccess?.()
-        setIsLockedState(true)
         updateActiveCard({ ...card, lockLevel: 'CARD_LOCK_LEVEL_CLIENT' })
       },
       onError: (error) => {
@@ -169,7 +164,6 @@ export const useCardActions = (card: StorableCard): UseCardActionsReturn => {
       },
       onSuccess: () => {
         onSuccess?.()
-        setIsLockedState(false)
         updateActiveCard({ ...card, lockLevel: 'CARD_LOCK_LEVEL_NONE' })
       },
       onError: (error) => {
@@ -248,8 +242,8 @@ export const useCardActions = (card: StorableCard): UseCardActionsReturn => {
   return {
     showSensitiveData,
     showPin,
-    isLocked: isLockedState,
-    isBlocked: isBlockedState,
+    isLocked: isLocked(card),
+    isBlocked: isBlocked(card),
     sensitiveData,
     pin,
     actionStatus,
