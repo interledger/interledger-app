@@ -360,7 +360,7 @@ func (c client) WalletDeposit(ctx context.Context, args DepositArgs) (string, er
 	return txResp.ID, nil
 }
 
-func (c client) WalletWithdrawal(ctx context.Context, args WithdrawalArgs) (string, error) {
+func (c client) WalletWithdrawal(ctx context.Context, args WithdrawalArgs) (*WithdrawDetails, error) {
 	meta, ok := httplog.MetaForContext(ctx)
 	if ok {
 		meta.Method = "POST"
@@ -379,7 +379,7 @@ func (c client) WalletWithdrawal(ctx context.Context, args WithdrawalArgs) (stri
 
 	url, err := url.JoinPath(c.baseURL, "transactions", "withdrawals")
 	if err != nil {
-		return "", fmt.Errorf("%w %s", ErrInternal, err)
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
 	reqArgs := InternalCreateWithdrawalArgs{
@@ -411,12 +411,12 @@ func (c client) WalletWithdrawal(ctx context.Context, args WithdrawalArgs) (stri
 
 	payload, err := json.Marshal(reqArgs)
 	if err != nil {
-		return "", fmt.Errorf("%w %s", ErrInternal, err)
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
 	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(payload))
 	if err != nil {
-		return "", fmt.Errorf("%w %s", ErrInternal, err)
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 	req.Header.Add(ptiScenarioIDHeader, args.ScenarioID)
 	req.Header.Add(ptiRequestIDHeader, args.RequestID)
@@ -426,32 +426,37 @@ func (c client) WalletWithdrawal(ctx context.Context, args WithdrawalArgs) (stri
 	date := time.Now()
 	req.Header.Add("Date", date.Format(http.TimeFormat))
 	if err := sign(req, date, payload, c.privateKey, c.publicKeyThumbprint); err != nil {
-		return "", fmt.Errorf("%w %s", ErrInternal, err)
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
 	resp, err := c.http.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("%w %s", ErrInternal, err)
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
 	err = checkResponseStatusCode(resp)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", fmt.Errorf("%w %s", ErrInternal, err)
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 	defer resp.Body.Close()
 
 	var txResp CreateTxResponse
 	err = json.Unmarshal(body, &txResp)
 	if err != nil {
-		return "", fmt.Errorf("%w %s", ErrInternal, err)
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
-	return txResp.ID, nil
+	return &WithdrawDetails{
+		ID:               txResp.ID,
+		UserID:           args.UserID,
+		Amount:           args.Amount,
+		ExternalWalletID: args.ExternalWalletID,
+	}, nil
 }
 
 func (c client) UpdateTransactionStatus(ctx context.Context, args UpdateTxStatusArgs) (string, error) {

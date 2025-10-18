@@ -11,7 +11,8 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 	currency "gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/linkedaccounts"
+	linkedaccounts "gitlab.com/fynbos/backend/linkedaccounts"
+	payments "gitlab.com/fynbos/backend/payments"
 	pti "gitlab.com/fynbos/backend/providers/pti"
 )
 
@@ -53,6 +54,21 @@ func (mr *MockClientMockRecorder) AssignBalance(ctx, linkedAccountID, txID, amt 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AssignBalance", reflect.TypeOf((*MockClient)(nil).AssignBalance), ctx, linkedAccountID, txID, amt)
 }
 
+// ConfirmWithdrawal mocks base method.
+func (m *MockClient) ConfirmWithdrawal(ctx context.Context, walletID string, payment *payments.Payment) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ConfirmWithdrawal", ctx, walletID, payment)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ConfirmWithdrawal indicates an expected call of ConfirmWithdrawal.
+func (mr *MockClientMockRecorder) ConfirmWithdrawal(ctx, walletID, payment interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConfirmWithdrawal", reflect.TypeOf((*MockClient)(nil).ConfirmWithdrawal), ctx, walletID, payment)
+}
+
 // CreateBankAccount mocks base method.
 func (m *MockClient) CreateBankAccount(ctx context.Context, args pti.CreateBankAccountArgs) (pti.Await, error) {
 	m.ctrl.T.Helper()
@@ -81,6 +97,20 @@ func (m *MockClient) CreateCard(ctx context.Context, walletID, tokenID string) (
 func (mr *MockClientMockRecorder) CreateCard(ctx, walletID, tokenID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCard", reflect.TypeOf((*MockClient)(nil).CreateCard), ctx, walletID, tokenID)
+}
+
+// CreateDeposit mocks base method.
+func (m *MockClient) CreateDeposit(ctx context.Context, la *linkedaccounts.LinkedAccount, amount currency.Amount, note string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateDeposit", ctx, la, amount, note)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateDeposit indicates an expected call of CreateDeposit.
+func (mr *MockClientMockRecorder) CreateDeposit(ctx, la, amount, note interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateDeposit", reflect.TypeOf((*MockClient)(nil).CreateDeposit), ctx, la, amount, note)
 }
 
 // CreateJWT mocks base method.
@@ -272,17 +302,4 @@ func (m *MockClient) WithdrawalFromWallet(ctx context.Context, args pti.Transact
 func (mr *MockClientMockRecorder) WithdrawalFromWallet(ctx, args interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithdrawalFromWallet", reflect.TypeOf((*MockClient)(nil).WithdrawalFromWallet), ctx, args)
-}
-
-func (m *MockClient) CreateDeposit(ctx context.Context, la *linkedaccounts.LinkedAccount, amount currency.Amount, note string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateDeposit", ctx, la, amount, note)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// WithdrawalFromWallet indicates an expected call of WithdrawalFromWallet.
-func (mr *MockClientMockRecorder) CreateDeposit(ctx, args interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateDeposit", reflect.TypeOf((*MockClient)(nil).WithdrawalFromWallet), ctx, args)
 }

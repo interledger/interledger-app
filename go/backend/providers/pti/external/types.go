@@ -28,13 +28,11 @@ type (
 	}
 
 	CreateWalletArgs struct {
-		WalletID string `json:"id,omitempty"` // todo(bradu) renaname walletid -> id
-		Currency string `json:"currency,omitempty"`
-		UserID   string `json:"-"`
-		Type     string `json:"type,omitempty"`
-
-		// Reference string `json:"reference,omitempty"
-
+		WalletID  string `json:"id,omitempty"` // todo(bradu) renaname walletid -> id
+		Currency  string `json:"currency,omitempty"`
+		UserID    string `json:"-"`
+		Type      string `json:"type,omitempty"`
+		Reference string `json:"reference,omitempty"`
 	}
 
 	StartUserAssessmentArgs struct {
@@ -224,6 +222,13 @@ type (
 	CreateTxResponse struct {
 		ID   string `json:"id,omitempty"`
 		Link string `json:"link,omitempty"`
+	}
+
+	WithdrawDetails struct {
+		ID               string
+		UserID           string
+		Amount           currency.Amount
+		ExternalWalletID string
 	}
 
 	InternalCreateWithdrawalArgs struct {

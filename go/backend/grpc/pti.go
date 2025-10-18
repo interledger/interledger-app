@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/user"
@@ -167,4 +168,35 @@ func (s *rpcService) CreatePtiBankAccount(
 	}
 
 	return transformLinkedAccount(la), nil
+}
+
+func (r *rpcService) CreatePTIWithdrawal(ctx context.Context, req *pb.CreatePTIWithdrawalRequest) (*pb.CreatePTIWithdrawalResponse, error) {
+	_, err := r.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	wallet, err := r.b.Wallets().ForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	if wallet.Country != country.US {
+		return nil, toGRPCError(FailedPreconditionError("Wallet not in the US region"))
+	}
+	p, err := r.b.Payments().Lookup(ctx, req.GetPaymentId())
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+	if p.Sender.WalletID != wallet.ID {
+		return nil, NotFoundError("payment not found")
+	}
+	txID, err := r.b.PTI().ConfirmWithdrawal(ctx, wallet.ID, p)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &pb.CreatePTIWithdrawalResponse{
+		PaymentId: txID,
+	}, nil
 }

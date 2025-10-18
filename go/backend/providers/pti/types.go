@@ -2,6 +2,7 @@ package pti
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"gitlab.com/fynbos/backend/currency"
@@ -74,6 +75,7 @@ type TransactionArgs struct {
 	WalletID        string
 	Amount          currency.Amount
 	LinkedAccountID string
+	Note            string
 }
 
 type TransactionStatusArgs struct {
@@ -112,18 +114,18 @@ type CreateBankAccountArgs struct {
 }
 
 type TransactionStatusPayload struct {
-	ResourceType       string `json:"resourceType"`
-	RequestID          string `json:"requestId"`
-	ClientID           string `json:"clientId"`
-	UserID             string `json:"userId"`
-	Status             string `json:"status"`
-	Date               string `json:"date"`
-	Amount             int    `json:"amount"`
-	Fees               string `json:"fees"`
-	Currency           string `json:"currency"`
-	TransactionType    string `json:"transactionType"`
-	PaymentMethod      string `json:"paymentMethod"`
-	TransactionGroupID string `json:"transactionGroupId"`
+	ResourceType       string       `json:"resourceType"`
+	RequestID          string       `json:"requestId"`
+	ClientID           string       `json:"clientId"`
+	UserID             string       `json:"userId"`
+	Status             string       `json:"status"`
+	Date               FlexibleTime `json:"date"`
+	Amount             int          `json:"amount"`
+	Fees               string       `json:"fees"`
+	Currency           string       `json:"currency"`
+	TransactionType    string       `json:"transactionType"`
+	PaymentMethod      string       `json:"paymentMethod"`
+	TransactionGroupID string       `json:"transactionGroupId"`
 	// AdditionalInfos    struct {
 	// 	CreditCardLast4Digits        string `json:"CreditCardLast4Digits"`
 	// 	PaymentProviderTransactionID string `json:"PaymentProviderTransactionId"`
@@ -146,4 +148,27 @@ type TransactionStatusPayload struct {
 			Currency string `json:"currency"`
 		} `json:"total"`
 	} `json:"total"`
+}
+
+type FlexibleTime struct {
+	time.Time
+}
+
+func (ft *FlexibleTime) UnmarshalJSON(b []byte) error {
+	s := strings.Trim(string(b), `"`)
+	var t time.Time
+	var err error
+
+	// Try full RFC3339 first
+	t, err = time.Parse(time.RFC3339, s)
+	if err != nil {
+		// Fallback for "2025-10-18T19:07Z"
+		t, err = time.Parse("2006-01-02T15:04Z07:00", s)
+	}
+	if err != nil {
+		return err
+	}
+
+	ft.Time = t
+	return nil
 }

@@ -109,6 +109,7 @@ const (
 	BackendService_CreateCard_FullMethodName                     = "/backend.v1.BackendService/CreateCard"
 	BackendService_CreatePtiBankAccount_FullMethodName           = "/backend.v1.BackendService/CreatePtiBankAccount"
 	BackendService_PTICreateDeposit_FullMethodName               = "/backend.v1.BackendService/PTICreateDeposit"
+	BackendService_CreatePTIWithdrawal_FullMethodName            = "/backend.v1.BackendService/CreatePTIWithdrawal"
 	BackendService_ListRafikiGrants_FullMethodName               = "/backend.v1.BackendService/ListRafikiGrants"
 	BackendService_GetRafikiGrant_FullMethodName                 = "/backend.v1.BackendService/GetRafikiGrant"
 	BackendService_RevokeRafikiGrant_FullMethodName              = "/backend.v1.BackendService/RevokeRafikiGrant"
@@ -243,6 +244,7 @@ type BackendServiceClient interface {
 	CreateCard(ctx context.Context, in *CreateCardRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
 	CreatePtiBankAccount(ctx context.Context, in *CreatePtiBankAccountRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
 	PTICreateDeposit(ctx context.Context, in *PTICreateDepositRequest, opts ...grpc.CallOption) (*Empty, error)
+	CreatePTIWithdrawal(ctx context.Context, in *CreatePTIWithdrawalRequest, opts ...grpc.CallOption) (*CreatePTIWithdrawalResponse, error)
 	// Rafiki
 	ListRafikiGrants(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListRafikiGrantsResponse, error)
 	GetRafikiGrant(ctx context.Context, in *GetRafikiGrantRequest, opts ...grpc.CallOption) (*RafikiGrant, error)
@@ -1169,6 +1171,16 @@ func (c *backendServiceClient) PTICreateDeposit(ctx context.Context, in *PTICrea
 	return out, nil
 }
 
+func (c *backendServiceClient) CreatePTIWithdrawal(ctx context.Context, in *CreatePTIWithdrawalRequest, opts ...grpc.CallOption) (*CreatePTIWithdrawalResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreatePTIWithdrawalResponse)
+	err := c.cc.Invoke(ctx, BackendService_CreatePTIWithdrawal_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *backendServiceClient) ListRafikiGrants(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListRafikiGrantsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListRafikiGrantsResponse)
@@ -1418,6 +1430,7 @@ type BackendServiceServer interface {
 	CreateCard(context.Context, *CreateCardRequest) (*LinkedAccount, error)
 	CreatePtiBankAccount(context.Context, *CreatePtiBankAccountRequest) (*LinkedAccount, error)
 	PTICreateDeposit(context.Context, *PTICreateDepositRequest) (*Empty, error)
+	CreatePTIWithdrawal(context.Context, *CreatePTIWithdrawalRequest) (*CreatePTIWithdrawalResponse, error)
 	// Rafiki
 	ListRafikiGrants(context.Context, *Empty) (*ListRafikiGrantsResponse, error)
 	GetRafikiGrant(context.Context, *GetRafikiGrantRequest) (*RafikiGrant, error)
@@ -1712,6 +1725,9 @@ func (UnimplementedBackendServiceServer) CreatePtiBankAccount(context.Context, *
 }
 func (UnimplementedBackendServiceServer) PTICreateDeposit(context.Context, *PTICreateDepositRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PTICreateDeposit not implemented")
+}
+func (UnimplementedBackendServiceServer) CreatePTIWithdrawal(context.Context, *CreatePTIWithdrawalRequest) (*CreatePTIWithdrawalResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreatePTIWithdrawal not implemented")
 }
 func (UnimplementedBackendServiceServer) ListRafikiGrants(context.Context, *Empty) (*ListRafikiGrantsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListRafikiGrants not implemented")
@@ -3392,6 +3408,24 @@ func _BackendService_PTICreateDeposit_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_CreatePTIWithdrawal_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreatePTIWithdrawalRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).CreatePTIWithdrawal(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_CreatePTIWithdrawal_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).CreatePTIWithdrawal(ctx, req.(*CreatePTIWithdrawalRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _BackendService_ListRafikiGrants_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Empty)
 	if err := dec(in); err != nil {
@@ -3992,6 +4026,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "PTICreateDeposit",
 			Handler:    _BackendService_PTICreateDeposit_Handler,
+		},
+		{
+			MethodName: "CreatePTIWithdrawal",
+			Handler:    _BackendService_CreatePTIWithdrawal_Handler,
 		},
 		{
 			MethodName: "ListRafikiGrants",

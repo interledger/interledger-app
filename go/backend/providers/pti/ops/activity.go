@@ -19,9 +19,12 @@ import (
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/providers/pti/external"
+	"gitlab.com/fynbos/backend/slack"
 	"gitlab.com/fynbos/backend/transactions"
+	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/log"
 	"gitlab.com/fynbos/pacioli"
+	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/temporal"
 	"go.uber.org/zap"
 )
@@ -560,7 +563,7 @@ func (a *Activity) CreateTransaction(ctx context.Context, la *linkedaccounts.Lin
 
 	wallet, err := a.b.Wallets().Get(ctx, la.WalletID)
 	if errors.Is(err, pti.ErrNotFound) {
-		return nil, temporal.NewNonRetryableApplicationError("Wallet not found", "ErrNotFound", fmt.Errorf("%w No wallet found for gatehub user", pti.ErrNotFound))
+		return nil, temporal.NewNonRetryableApplicationError("Wallet not found", "ErrNotFound", fmt.Errorf("%w No wallet found for pti user", pti.ErrNotFound))
 	}
 	if err != nil {
 		return nil, err
@@ -615,6 +618,10 @@ func (a *Activity) UpdateTransaction(ctx context.Context, transaction *transacti
 	return a.b.Transactions().SetTransactionForeignID(ctx, transaction.ID, externalTxID)
 }
 
+func (a *Activity) GetTransactionByForeignID(ctx context.Context, walletID string, foreignID string) (*transactions.Transaction, error) {
+	return a.b.Transactions().GetTransactionByForeignID(ctx, walletID, foreignID)
+}
+
 func (a *Activity) SettleTransaction(ctx context.Context, transactionID, walletID string, amount currency.Amount) (string, error) {
 	existingTransaction, err := a.b.Transactions().GetTransaction(ctx, walletID, transactionID)
 	if err != nil && !errors.Is(err, transactions.ErrNotFound) {
@@ -645,7 +652,7 @@ func (a *Activity) SettleTransaction(ctx context.Context, transactionID, walletI
 
 	wallet, err := a.b.Wallets().Get(ctx, walletID)
 	if errors.Is(err, pti.ErrNotFound) {
-		return "", temporal.NewNonRetryableApplicationError("Wallet not found", "ErrNotFound", fmt.Errorf("%w No wallet found for gatehub user", pti.ErrNotFound))
+		return "", temporal.NewNonRetryableApplicationError("Wallet not found", "ErrNotFound", fmt.Errorf("%w No wallet found for pti user", pti.ErrNotFound))
 	}
 	if err != nil {
 		return "", err
@@ -664,7 +671,7 @@ func (a *Activity) SettleTransaction(ctx context.Context, transactionID, walletI
 		}
 	}
 	if eurBalance == nil {
-		return "", temporal.NewNonRetryableApplicationError("PTI USD balance account not found", "ErrInternal", fmt.Errorf("%w Gatehub EUR balance account not found", pti.ErrInternal))
+		return "", temporal.NewNonRetryableApplicationError("PTI USD balance account not found", "ErrInternal", fmt.Errorf("%w Fiant USD balance account not found", pti.ErrInternal))
 	}
 
 	tx, err := a.b.Transactions().CreateTransaction(ctx, transactions.CreateTransactionArgs{
@@ -771,4 +778,78 @@ func (a *Activity) FinalizePTIDeposit(ctx context.Context, id, walletID string, 
 func (a *Activity) PTIDeposit(ctx context.Context, la linkedaccounts.LinkedAccount, transactionID string, ptiArgs pti.TransactionArgs) (string, error) {
 	return DepositToWallet(ctx, a.b, a.external, ptiArgs)
 
+}
+
+func (a *Activity) ReservePTIBalance(ctx context.Context, walletID, id string) error {
+	tx, err := a.b.Transactions().GetTransaction(ctx, walletID, id)
+	if errors.Is(err, transactions.ErrNotFound) {
+		return temporal.NewNonRetryableApplicationError("Transaction not found", "ErrInternal", fmt.Errorf("%w transaction not found", pti.ErrInternal))
+	}
+	if tx.Amount.Currency != currency.USD {
+		return temporal.NewNonRetryableApplicationError("Invalid currency", "ErrInternal", fmt.Errorf("%w invalid currency", pti.ErrInternal))
+	}
+
+	transfers, err := a.b.Transactions().ListTransfers(ctx, tx.ID)
+	if err != nil {
+		return fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+
+	if len(transfers) < 1 {
+		return fmt.Errorf("%w Unable to reserve balance. No linked account specified.", pti.ErrInternal)
+	}
+
+	timeout := time.Hour * 24 * 365 // Pending transfers must have a timeout.
+	var fee uint64 = 0
+	if tx.ProviderFee != nil {
+		fee = tx.ProviderFee.Value
+	}
+
+	amountWithFee := currency.Amount{
+		Value:    tx.Amount.Value + fee,
+		Currency: tx.Amount.Currency,
+		Scale:    tx.Amount.Scale,
+	}
+
+	_, err = ReserveBalance(ctx, a.b, transfers[0].LinkedAccountID, tx.ID, amountWithFee, timeout)
+	return err
+}
+
+func (a *Activity) FinalizePTIBalance(ctx context.Context, id, walletID string) error {
+	tx, err := a.b.Transactions().GetTransaction(ctx, walletID, id)
+	if errors.Is(err, transactions.ErrNotFound) {
+		return temporal.NewNonRetryableApplicationError("Transaction not found", "ErrInternal", fmt.Errorf("%w transaction not found", pti.ErrInternal))
+	}
+	if tx.Amount.Currency != currency.USD {
+		return temporal.NewNonRetryableApplicationError("Invalid currency", "ErrInternal", fmt.Errorf("%w invalid currency", pti.ErrInternal))
+	}
+
+	return FinaliseReserve(ctx, a.b, tx.ID)
+}
+
+func (a *Activity) UpdatePaymentState(ctx context.Context, paymentID string, state payments.State) error {
+	_, err := a.b.DB().ExecContext(ctx, "UPDATE payments SET state=$1 where id=$2", payments.StateCompleted, paymentID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (a *Activity) UpdatePTIWithdrawalState(ctx context.Context, walletID, transactionID string, state transactions.State) error {
+	info := activity.GetInfo(ctx)
+	if info.Attempt == 1 && state == transactions.StateFailed {
+		slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "wallet-info-bot", fmt.Sprintf("Pti withdrawal failed. %s/wallet/%s/transactions/%s", env.AdminURL(), walletID, transactionID))
+	}
+
+	transfers, err := a.b.Transactions().ListTransfers(ctx, transactionID)
+	if err != nil {
+		return fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+	for _, t := range transfers {
+		err = a.b.Transactions().SetTransferState(ctx, t.ID, state)
+		if err != nil {
+			return fmt.Errorf("%w %s", pti.ErrInternal, err)
+		}
+	}
+
+	return a.b.Transactions().SetTransactionState(ctx, transactionID, state)
 }

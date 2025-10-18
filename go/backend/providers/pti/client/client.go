@@ -11,6 +11,7 @@ import (
 
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/providers/pti/external"
 	"gitlab.com/fynbos/backend/providers/pti/ops"
@@ -112,4 +113,8 @@ func (c Client) CreateBankAccount(ctx context.Context, args pti.CreateBankAccoun
 
 func (c Client) CreateDeposit(ctx context.Context, la *linkedaccounts.LinkedAccount, amount currency.Amount, note string) error {
 	return ops.CreateDeposit(ctx, c.b, la, amount, note)
+}
+
+func (c *Client) ConfirmWithdrawal(ctx context.Context, walletID string, payment *payments.Payment) (string, error) {
+	return ops.ConfirmWithdrawal(ctx, c.b, c.external, walletID, payment)
 }

@@ -13,8 +13,10 @@ import (
 	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/providers/pti/external"
+	"gitlab.com/fynbos/backend/transactions"
 
 	"gitlab.com/fynbos/env"
 
@@ -305,8 +307,7 @@ func WithdrawFromWallet(ctx context.Context, b Backends, ec external.Client, arg
 	if err != nil {
 		return "", fmt.Errorf("%w %s", pti.ErrInternal, err)
 	}
-
-	return txID, nil
+	return txID.ID, nil
 }
 
 func UpdateTransactionStatus(ctx context.Context, b Backends, ex external.Client, args pti.TransactionStatusArgs) error {
@@ -696,4 +697,160 @@ func CreateDeposit(ctx context.Context, b Backends, la *linkedaccounts.LinkedAcc
 	}
 
 	return nil
+}
+
+func ConfirmWithdrawal(ctx context.Context, b Backends, ec external.Client, walletID string, payment *payments.Payment) (string, error) {
+	externalUser, err := GetUser(ctx, b, walletID)
+	if err != nil {
+		return "", err
+	}
+	las, err := b.LinkedAccounts().ListByWalletId(ctx, walletID)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+
+	var balance *linkedaccounts.LinkedAccount
+	for _, la := range las {
+		if la.Provider == pti.ProviderName && la.Type == pti.AccTypeBalance {
+			balance = &la
+			break
+		}
+	}
+	// only allow withdrawing from bank
+	var bank *linkedaccounts.LinkedAccount
+	for _, la := range las {
+		if la.Provider == pti.ProviderName && la.Type == pti.TypeBank {
+			bank = &la
+			break
+		}
+	}
+	if balance == nil {
+		return "", fmt.Errorf("%w balance account not found", pti.ErrNotFound)
+	}
+	if bank == nil {
+		return "", fmt.Errorf("%w source account not found or is not a bank account", pti.ErrNotFound)
+	}
+
+	kycDetails, err := b.KYC().GetIndividualDetails(ctx, walletID)
+	if err != nil {
+		return "", err
+	}
+
+	withdrawTx, err := ec.WalletWithdrawal(ctx, external.WithdrawalArgs{
+		RequestID:             payment.ID,
+		ScenarioID:            pti.ScenarioWithdrawal,
+		UserID:                externalUser.ExternalID,
+		ExternalWalletID:      balance.ProviderID,
+		ExternalBankAccountID: bank.ProviderID,
+		Amount:                payment.ReceiverAmount,
+		AccountHolderName:     kycDetails.FirstName + " " + kycDetails.LastName,
+	})
+	if errors.Is(err, external.ErrUnprocessableEntity) {
+		return "", err
+	}
+	if err != nil {
+		return "", fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+
+	_, err = RegisterWithdrawal(ctx, b, walletID, withdrawTx, balance.ID, payment.Note)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+	return withdrawTx.ID, nil
+}
+
+func RegisterWithdrawal(ctx context.Context, b Backends, walletID string, withdrawalDetails *external.WithdrawDetails, linkedAccountID, note string) (string, error) {
+
+	existingWithdrawal, err := b.Transactions().GetTransactionByForeignID(ctx, walletID, withdrawalDetails.ID)
+	if err != nil && !errors.Is(err, transactions.ErrNotFound) {
+		return "", fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+	if existingWithdrawal != nil {
+		_, err = processWithdrawal(ctx, b, walletID, existingWithdrawal.ID)
+		if err != nil {
+			return "", fmt.Errorf("%w %s", pti.ErrInternal, err)
+		}
+		return existingWithdrawal.ID, nil
+	}
+
+	wallet, err := b.Wallets().Get(ctx, walletID)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+
+	trxID, err := b.Transactions().CreateTransaction(ctx, transactions.CreateTransactionArgs{
+		WalletID:                walletID,
+		ForeignID:               withdrawalDetails.ID,
+		Provider:                pti.ProviderName,
+		State:                   transactions.StatePending,
+		ForeignType:             transactions.TransactionTypeWithdrawal,
+		Source:                  wallet.AddressString(),
+		Destination:             wallet.AddressString(),
+		Title:                   "Withdrawal",
+		DestinationIdentity:     walletID,
+		ProviderFee:             nil,
+		DestinationIdentityType: payments.IdentityTypeWalletID.String(),
+		Amount:                  withdrawalDetails.Amount,
+		Note:                    note,
+		LinkedAccountTitle:      "USD Balance",
+		Transfers: []transactions.TransferArgs{
+			{
+				LinkedAccountID: linkedAccountID,
+				ForeignID:       withdrawalDetails.ID,
+				Amount:          withdrawalDetails.Amount,
+				Type:            transactions.TransferTypeDebitBalance,
+				State:           transactions.StatePending,
+			},
+		},
+	})
+	if err != nil {
+
+		return "", fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+
+	_, err = processWithdrawal(ctx, b, walletID, trxID)
+	if err != nil {
+
+		return "", fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+
+	return trxID, err
+}
+
+func processWithdrawal(ctx context.Context, b Backends, walletID, transactionID string) (pti.Await, error) {
+
+	wo := client.StartWorkflowOptions{
+		ID:                    fmt.Sprintf("fiant_reserve balance_withdrawal_%s", transactionID),
+		TaskQueue:             "backend",
+		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+	}
+
+	var workflowStatus enums.WorkflowExecutionStatus
+	wflow, err := b.Temporal().DescribeWorkflowExecution(ctx, wo.ID, "")
+	switch err.(type) {
+	case *serviceerror.Internal,
+		*serviceerror.Unavailable,
+		*serviceerror.InvalidArgument:
+		return nil, fmt.Errorf("%w %s", pti.ErrInternal, err)
+	case *serviceerror.NotFound:
+		// do nothing
+	default:
+		if wflow != nil {
+			workflowStatus = wflow.GetWorkflowExecutionInfo().Status
+		}
+	}
+
+	// return workflow if it's running
+	var await client.WorkflowRun
+	var executeErr error
+	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
+		await = b.Temporal().GetWorkflow(ctx, wo.ID, "")
+	} else {
+		await, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, ProcessPTIWithdrawal, walletID, transactionID)
+	}
+	if executeErr != nil {
+		return nil, fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+
+	return await.Get, nil
 }

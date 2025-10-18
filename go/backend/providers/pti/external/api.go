@@ -16,7 +16,7 @@ type Client interface {
 	StartUserAssessment(ctx context.Context, args StartUserAssessmentArgs) (string, error)
 	GetUserAssessment(ctx context.Context, userID string) (*Assessment, error)
 	WalletDeposit(ctx context.Context, args DepositArgs) (string, error)
-	WalletWithdrawal(ctx context.Context, args WithdrawalArgs) (string, error)
+	WalletWithdrawal(ctx context.Context, args WithdrawalArgs) (*WithdrawDetails, error)
 	UpdateTransactionStatus(ctx context.Context, args UpdateTxStatusArgs) (string, error)
 	StartTransferAssessment(ctx context.Context, args TransferArgs) (*IDResponse, error)
 	GetTransactionAssessment(ctx context.Context, requestID string) (*TransactionAssessment, error)

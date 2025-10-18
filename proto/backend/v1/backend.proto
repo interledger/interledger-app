@@ -154,7 +154,8 @@ service BackendService {
   rpc CreateCard(CreateCardRequest) returns (LinkedAccount);
   rpc CreatePtiBankAccount(CreatePtiBankAccountRequest) returns (LinkedAccount);
   rpc PTICreateDeposit(PTICreateDepositRequest) returns (Empty);
-
+  rpc CreatePTIWithdrawal(CreatePTIWithdrawalRequest) returns (CreatePTIWithdrawalResponse);
+  
   // Rafiki
   rpc ListRafikiGrants(Empty) returns (ListRafikiGrantsResponse);
   rpc GetRafikiGrant(GetRafikiGrantRequest) returns (RafikiGrant);
@@ -217,6 +218,13 @@ message CreateGatehubWithdrawalResponse {
   string transactionId = 1;
 }
 
+message CreatePTIWithdrawalRequest {
+  string paymentId = 1;
+}
+
+message CreatePTIWithdrawalResponse {
+  string paymentId = 1;
+}
 
 message GetOnOffRampProviderResponse {
   string provider = 1;
