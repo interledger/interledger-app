@@ -10,11 +10,11 @@ import (
 	"github.com/lestrrat-go/jwx/v3/jwk"
 
 	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/providers/pti/external"
 	"gitlab.com/fynbos/backend/providers/pti/ops"
+	"gitlab.com/fynbos/backend/wallets"
 )
 
 var _ pti.Client = &Client{}
@@ -111,8 +111,8 @@ func (c Client) CreateBankAccount(ctx context.Context, args pti.CreateBankAccoun
 	return ops.CreateBankAccount(ctx, c.b, args)
 }
 
-func (c Client) CreateDeposit(ctx context.Context, la *linkedaccounts.LinkedAccount, amount currency.Amount, note string) error {
-	return ops.CreateDeposit(ctx, c.b, la, amount, note)
+func (c Client) CreateDeposit(ctx context.Context, payment *payments.Payment, wallet *wallets.Wallet) error {
+	return ops.CreateDeposit(ctx, c.b, payment, wallet)
 }
 
 func (c *Client) ConfirmWithdrawal(ctx context.Context, walletID string, payment *payments.Payment) (string, error) {

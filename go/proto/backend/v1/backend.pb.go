@@ -1918,30 +1918,28 @@ func (x *PtiBalance) GetFormattedAvailableBalance() string {
 	return ""
 }
 
-type PTICreateDepositRequest struct {
+type PtiCreateDepositRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	LinkedAccount string                 `protobuf:"bytes,1,opt,name=linkedAccount,proto3" json:"linkedAccount,omitempty"`
-	Amount        string                 `protobuf:"bytes,2,opt,name=amount,proto3" json:"amount,omitempty"`
-	Note          *string                `protobuf:"bytes,3,opt,name=note,proto3,oneof" json:"note,omitempty"`
-	IpAddress     *string                `protobuf:"bytes,4,opt,name=ipAddress,proto3,oneof" json:"ipAddress,omitempty"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	IpAddress     *string                `protobuf:"bytes,2,opt,name=ipAddress,proto3,oneof" json:"ipAddress,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *PTICreateDepositRequest) Reset() {
-	*x = PTICreateDepositRequest{}
+func (x *PtiCreateDepositRequest) Reset() {
+	*x = PtiCreateDepositRequest{}
 	mi := &file_backend_v1_backend_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *PTICreateDepositRequest) String() string {
+func (x *PtiCreateDepositRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*PTICreateDepositRequest) ProtoMessage() {}
+func (*PtiCreateDepositRequest) ProtoMessage() {}
 
-func (x *PTICreateDepositRequest) ProtoReflect() protoreflect.Message {
+func (x *PtiCreateDepositRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_backend_v1_backend_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1953,33 +1951,19 @@ func (x *PTICreateDepositRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use PTICreateDepositRequest.ProtoReflect.Descriptor instead.
-func (*PTICreateDepositRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use PtiCreateDepositRequest.ProtoReflect.Descriptor instead.
+func (*PtiCreateDepositRequest) Descriptor() ([]byte, []int) {
 	return file_backend_v1_backend_proto_rawDescGZIP(), []int{35}
 }
 
-func (x *PTICreateDepositRequest) GetLinkedAccount() string {
+func (x *PtiCreateDepositRequest) GetId() string {
 	if x != nil {
-		return x.LinkedAccount
+		return x.Id
 	}
 	return ""
 }
 
-func (x *PTICreateDepositRequest) GetAmount() string {
-	if x != nil {
-		return x.Amount
-	}
-	return ""
-}
-
-func (x *PTICreateDepositRequest) GetNote() string {
-	if x != nil && x.Note != nil {
-		return *x.Note
-	}
-	return ""
-}
-
-func (x *PTICreateDepositRequest) GetIpAddress() string {
+func (x *PtiCreateDepositRequest) GetIpAddress() string {
 	if x != nil && x.IpAddress != nil {
 		return *x.IpAddress
 	}
@@ -9160,13 +9144,10 @@ const file_backend_v1_backend_proto_rawDesc = "" +
 	"\bcurrency\x18\x03 \x01(\tR\bcurrency\x12$\n" +
 	"\rlinkedAccount\x18\x04 \x01(\tR\rlinkedAccount\x12*\n" +
 	"\x10formattedBalance\x18\x05 \x01(\tR\x10formattedBalance\x12<\n" +
-	"\x19formattedAvailableBalance\x18\x06 \x01(\tR\x19formattedAvailableBalance\"\xaa\x01\n" +
-	"\x17PTICreateDepositRequest\x12$\n" +
-	"\rlinkedAccount\x18\x01 \x01(\tR\rlinkedAccount\x12\x16\n" +
-	"\x06amount\x18\x02 \x01(\tR\x06amount\x12\x17\n" +
-	"\x04note\x18\x03 \x01(\tH\x00R\x04note\x88\x01\x01\x12!\n" +
-	"\tipAddress\x18\x04 \x01(\tH\x01R\tipAddress\x88\x01\x01B\a\n" +
-	"\x05_noteB\f\n" +
+	"\x19formattedAvailableBalance\x18\x06 \x01(\tR\x19formattedAvailableBalance\"Z\n" +
+	"\x17PtiCreateDepositRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12!\n" +
+	"\tipAddress\x18\x02 \x01(\tH\x00R\tipAddress\x88\x01\x01B\f\n" +
 	"\n" +
 	"_ipAddress\"M\n" +
 	"\x16GetXagoBalanceResponse\x123\n" +
@@ -9839,7 +9820,7 @@ const file_backend_v1_backend_proto_rawDesc = "" +
 	"\n" +
 	"CreateCard\x12\x1d.backend.v1.CreateCardRequest\x1a\x19.backend.v1.LinkedAccount\x12Z\n" +
 	"\x14CreatePtiBankAccount\x12'.backend.v1.CreatePtiBankAccountRequest\x1a\x19.backend.v1.LinkedAccount\x12J\n" +
-	"\x10PTICreateDeposit\x12#.backend.v1.PTICreateDepositRequest\x1a\x11.backend.v1.Empty\x12f\n" +
+	"\x10PtiCreateDeposit\x12#.backend.v1.PtiCreateDepositRequest\x1a\x11.backend.v1.Empty\x12f\n" +
 	"\x13CreatePTIWithdrawal\x12&.backend.v1.CreatePTIWithdrawalRequest\x1a'.backend.v1.CreatePTIWithdrawalResponse\x12K\n" +
 	"\x10ListRafikiGrants\x12\x11.backend.v1.Empty\x1a$.backend.v1.ListRafikiGrantsResponse\x12L\n" +
 	"\x0eGetRafikiGrant\x12!.backend.v1.GetRafikiGrantRequest\x1a\x17.backend.v1.RafikiGrant\x12L\n" +
@@ -9904,7 +9885,7 @@ var file_backend_v1_backend_proto_goTypes = []any{
 	(*Balance)(nil),                               // 32: backend.v1.Balance
 	(*GetPtiBalancesResponse)(nil),                // 33: backend.v1.GetPtiBalancesResponse
 	(*PtiBalance)(nil),                            // 34: backend.v1.PtiBalance
-	(*PTICreateDepositRequest)(nil),               // 35: backend.v1.PTICreateDepositRequest
+	(*PtiCreateDepositRequest)(nil),               // 35: backend.v1.PtiCreateDepositRequest
 	(*GetXagoBalanceResponse)(nil),                // 36: backend.v1.GetXagoBalanceResponse
 	(*XagoBalance)(nil),                           // 37: backend.v1.XagoBalance
 	(*WithdrawXagoBalanceRequest)(nil),            // 38: backend.v1.WithdrawXagoBalanceRequest
@@ -10179,7 +10160,7 @@ var file_backend_v1_backend_proto_depIdxs = []int32{
 	3,   // 152: backend.v1.BackendService.CreatePtiToken:input_type -> backend.v1.PtiTokenRequest
 	64,  // 153: backend.v1.BackendService.CreateCard:input_type -> backend.v1.CreateCardRequest
 	2,   // 154: backend.v1.BackendService.CreatePtiBankAccount:input_type -> backend.v1.CreatePtiBankAccountRequest
-	35,  // 155: backend.v1.BackendService.PTICreateDeposit:input_type -> backend.v1.PTICreateDepositRequest
+	35,  // 155: backend.v1.BackendService.PtiCreateDeposit:input_type -> backend.v1.PtiCreateDepositRequest
 	11,  // 156: backend.v1.BackendService.CreatePTIWithdrawal:input_type -> backend.v1.CreatePTIWithdrawalRequest
 	1,   // 157: backend.v1.BackendService.ListRafikiGrants:input_type -> backend.v1.Empty
 	19,  // 158: backend.v1.BackendService.GetRafikiGrant:input_type -> backend.v1.GetRafikiGrantRequest
@@ -10283,7 +10264,7 @@ var file_backend_v1_backend_proto_depIdxs = []int32{
 	4,   // 256: backend.v1.BackendService.CreatePtiToken:output_type -> backend.v1.PtiTokenResponse
 	84,  // 257: backend.v1.BackendService.CreateCard:output_type -> backend.v1.LinkedAccount
 	84,  // 258: backend.v1.BackendService.CreatePtiBankAccount:output_type -> backend.v1.LinkedAccount
-	1,   // 259: backend.v1.BackendService.PTICreateDeposit:output_type -> backend.v1.Empty
+	1,   // 259: backend.v1.BackendService.PtiCreateDeposit:output_type -> backend.v1.Empty
 	12,  // 260: backend.v1.BackendService.CreatePTIWithdrawal:output_type -> backend.v1.CreatePTIWithdrawalResponse
 	20,  // 261: backend.v1.BackendService.ListRafikiGrants:output_type -> backend.v1.ListRafikiGrantsResponse
 	21,  // 262: backend.v1.BackendService.GetRafikiGrant:output_type -> backend.v1.RafikiGrant

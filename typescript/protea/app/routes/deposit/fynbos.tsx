@@ -49,6 +49,8 @@ import type { loader as rootLoader } from '~/root'
 import { PaySelect } from '../pay_.$paymentId/PaySelect'
 
 export async function fynbosDepositLoader({ request }: LoaderFunctionArgs) {
+  const providerResponse = await grpc.getOnOffRampProvider(request, {})
+  if (isConnectError(providerResponse)) throw providerResponse.error
   const url = new URL(request.url)
   let balanceAccount: Balance | undefined
   let balance: FormattedLinkedAccount | undefined
@@ -95,7 +97,7 @@ export async function fynbosDepositLoader({ request }: LoaderFunctionArgs) {
   }
 
   return jsonWithCSRF(request, {
-    provider: 'interledger',
+    provider: providerResponse.provider,
     balanceAccount,
     balance,
     balances,
@@ -122,7 +124,7 @@ export function FynbosDepositPage() {
 }
 
 const Amount = () => {
-  const { balance, balances, balanceAccount, linkedAccounts, csrfToken } =
+  const { balance, balances, balanceAccount, linkedAccounts, csrfToken, provider } =
     useLoaderData<typeof fynbosDepositLoader>()
   const [, setSearchParams] = useSearchParams()
   const actionData = useActionData<typeof fynbosDepositAction>()
@@ -202,6 +204,12 @@ const Amount = () => {
         form='account-deposit'
         value={balanceAccount.linkedAccount}
         name='toLinkedAccount'
+        type='hidden'
+      />
+      <input
+        form='account-deposit'
+        value={provider}
+        name='provider'
         type='hidden'
       />
       <Card>
@@ -349,6 +357,7 @@ export async function fynbosDepositAction({ request }: ActionFunctionArgs) {
   const depositAmount = String(form.get('depositAmount') || '')
   const toLinkedAccount = form.get('toLinkedAccount') as string
   const fromLinkedAccount = form.get('fromLinkedAccount') as string
+  const provider = form.get('provider') as string
   const note = form.get('note') as string
 
   await validateCSRFToken(request, form)
@@ -361,12 +370,13 @@ export async function fynbosDepositAction({ request }: ActionFunctionArgs) {
     note: ''
   }
 
+  const cc = provider === 'pit' ? 'USD' : 'ZAR'
   const depositResponse = await grpc.depositBalance(request, {
     fromLinkedAccount: fromLinkedAccount,
     toLinkedAccount: toLinkedAccount,
     amount: {
       amount: stringToBigInt(depositAmount),
-      asset: 'ZAR',
+      asset: cc,
       assetScale: 2
     },
     note

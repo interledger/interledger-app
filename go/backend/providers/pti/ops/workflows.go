@@ -160,7 +160,7 @@ func CreatePtiBankAccountWorkflow(ctx workflow.Context, args pti.CreateBankAccou
 	return &linkedAccount, nil
 }
 
-func SettleDepositWrokflow(ctx workflow.Context, wh pti.TransactionStatusPayload) (string, error) {
+func SettleDepositWorkflow(ctx workflow.Context, wh pti.TransactionStatusPayload) (string, error) {
 	var a *Activity
 
 	ao := workflow.ActivityOptions{
@@ -206,6 +206,11 @@ func SettleDepositWrokflow(ctx workflow.Context, wh pti.TransactionStatusPayload
 		return "", err
 	}
 
+	err = workflow.ExecuteActivity(ctx, a.UpdatePaymentState, wh.RequestID, payments.StateCompleted).Get(ctx, nil)
+	if err != nil {
+		return "", err
+	}
+
 	return txID, nil
 }
 
@@ -223,14 +228,26 @@ func MarkTransactionStateWrokflow(ctx workflow.Context, wh pti.TransactionStatus
 		return err
 	}
 
-	if err := workflow.ExecuteActivity(ctx, a.MarkTransactionState, wh.RequestID, walletID, state).Get(ctx, nil); err != nil {
+	var tx *transactions.Transaction
+	err := workflow.ExecuteActivity(ctx, a.GetTransactionByForeignID, walletID, wh.RequestID).Get(ctx, &tx)
+	if err != nil {
+		return err
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.UpdateTransactionState, walletID, tx.ID, transactions.StateFailed).Get(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.UpdatePaymentState, wh.RequestID, payments.StateFailed).Get(ctx, nil)
+	if err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func DepositWorkflow(ctx workflow.Context, la *linkedaccounts.LinkedAccount, amount currency.Amount, note string) error {
+func DepositWorkflow(ctx workflow.Context, payment *payments.Payment, la *linkedaccounts.LinkedAccount) error {
 	var a *Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 10 * time.Second,
@@ -238,25 +255,19 @@ func DepositWorkflow(ctx workflow.Context, la *linkedaccounts.LinkedAccount, amo
 
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
-	var transaction transactions.Transaction
-	err := workflow.ExecuteActivity(ctx, a.CreateTransaction, la, amount, note).Get(ctx, &transaction)
-	if err != nil {
-		return err
-	}
-
 	pitArgs := pti.TransactionArgs{
-		PaymentID:       transaction.ID,
+		PaymentID:       payment.ID,
 		WalletID:        la.WalletID,
-		Amount:          amount,
+		Amount:          payment.ReceiverAmount,
 		LinkedAccountID: la.ID,
 	}
 	var externalTxID string
-	err = workflow.ExecuteActivity(ctx, a.PTIDeposit, la, transaction.ID, pitArgs).Get(ctx, &externalTxID)
+	err := workflow.ExecuteActivity(ctx, a.PTIDeposit, pitArgs).Get(ctx, &externalTxID)
 	if err != nil {
 		return err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.UpdateTransaction, transaction, externalTxID).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.CreateTransaction, la, payment.ReceiverAmount, externalTxID, payment.Note).Get(ctx, nil)
 	if err != nil {
 		return err
 	}
@@ -330,7 +341,7 @@ func RevertWithdrawWorkflow(ctx workflow.Context, wh pti.TransactionStatusPayloa
 		return err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.UpdatePTIWithdrawalState, walletID, tx.ID, transactions.StateFailed).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.UpdateTransactionState, walletID, tx.ID, transactions.StateFailed).Get(ctx, nil)
 	if err != nil {
 		return err
 	}
@@ -390,7 +401,7 @@ func SettleWithdrawWorkflow(ctx workflow.Context, wh pti.TransactionStatusPayloa
 		return "", err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.UpdatePTIWithdrawalState, walletID, tx.ID, transactions.StateCompleted).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.UpdateTransactionState, walletID, tx.ID, transactions.StateCompleted).Get(ctx, nil)
 	if err != nil {
 		return "", err
 	}
@@ -406,7 +417,7 @@ func SettleWithdrawWorkflow(ctx workflow.Context, wh pti.TransactionStatusPayloa
 func handlePtiFailedWithdrawal(ctx workflow.Context, a *Activity, walletID, transactionID string) {
 	logger := workflow.GetLogger(ctx)
 
-	err := workflow.ExecuteActivity(ctx, a.UpdatePTIWithdrawalState, walletID, transactionID, transactions.StateFailed).Get(ctx, nil)
+	err := workflow.ExecuteActivity(ctx, a.UpdateTransactionState, walletID, transactionID, transactions.StateFailed).Get(ctx, nil)
 	if err != nil {
 		logger.Error("Unable to update transaction state to failed", transactionID)
 	}

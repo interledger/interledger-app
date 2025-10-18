@@ -108,7 +108,7 @@ const (
 	BackendService_CreatePtiToken_FullMethodName                 = "/backend.v1.BackendService/CreatePtiToken"
 	BackendService_CreateCard_FullMethodName                     = "/backend.v1.BackendService/CreateCard"
 	BackendService_CreatePtiBankAccount_FullMethodName           = "/backend.v1.BackendService/CreatePtiBankAccount"
-	BackendService_PTICreateDeposit_FullMethodName               = "/backend.v1.BackendService/PTICreateDeposit"
+	BackendService_PtiCreateDeposit_FullMethodName               = "/backend.v1.BackendService/PtiCreateDeposit"
 	BackendService_CreatePTIWithdrawal_FullMethodName            = "/backend.v1.BackendService/CreatePTIWithdrawal"
 	BackendService_ListRafikiGrants_FullMethodName               = "/backend.v1.BackendService/ListRafikiGrants"
 	BackendService_GetRafikiGrant_FullMethodName                 = "/backend.v1.BackendService/GetRafikiGrant"
@@ -243,7 +243,7 @@ type BackendServiceClient interface {
 	CreatePtiToken(ctx context.Context, in *PtiTokenRequest, opts ...grpc.CallOption) (*PtiTokenResponse, error)
 	CreateCard(ctx context.Context, in *CreateCardRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
 	CreatePtiBankAccount(ctx context.Context, in *CreatePtiBankAccountRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
-	PTICreateDeposit(ctx context.Context, in *PTICreateDepositRequest, opts ...grpc.CallOption) (*Empty, error)
+	PtiCreateDeposit(ctx context.Context, in *PtiCreateDepositRequest, opts ...grpc.CallOption) (*Empty, error)
 	CreatePTIWithdrawal(ctx context.Context, in *CreatePTIWithdrawalRequest, opts ...grpc.CallOption) (*CreatePTIWithdrawalResponse, error)
 	// Rafiki
 	ListRafikiGrants(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListRafikiGrantsResponse, error)
@@ -1161,10 +1161,10 @@ func (c *backendServiceClient) CreatePtiBankAccount(ctx context.Context, in *Cre
 	return out, nil
 }
 
-func (c *backendServiceClient) PTICreateDeposit(ctx context.Context, in *PTICreateDepositRequest, opts ...grpc.CallOption) (*Empty, error) {
+func (c *backendServiceClient) PtiCreateDeposit(ctx context.Context, in *PtiCreateDepositRequest, opts ...grpc.CallOption) (*Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Empty)
-	err := c.cc.Invoke(ctx, BackendService_PTICreateDeposit_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, BackendService_PtiCreateDeposit_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1429,7 +1429,7 @@ type BackendServiceServer interface {
 	CreatePtiToken(context.Context, *PtiTokenRequest) (*PtiTokenResponse, error)
 	CreateCard(context.Context, *CreateCardRequest) (*LinkedAccount, error)
 	CreatePtiBankAccount(context.Context, *CreatePtiBankAccountRequest) (*LinkedAccount, error)
-	PTICreateDeposit(context.Context, *PTICreateDepositRequest) (*Empty, error)
+	PtiCreateDeposit(context.Context, *PtiCreateDepositRequest) (*Empty, error)
 	CreatePTIWithdrawal(context.Context, *CreatePTIWithdrawalRequest) (*CreatePTIWithdrawalResponse, error)
 	// Rafiki
 	ListRafikiGrants(context.Context, *Empty) (*ListRafikiGrantsResponse, error)
@@ -1723,8 +1723,8 @@ func (UnimplementedBackendServiceServer) CreateCard(context.Context, *CreateCard
 func (UnimplementedBackendServiceServer) CreatePtiBankAccount(context.Context, *CreatePtiBankAccountRequest) (*LinkedAccount, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreatePtiBankAccount not implemented")
 }
-func (UnimplementedBackendServiceServer) PTICreateDeposit(context.Context, *PTICreateDepositRequest) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method PTICreateDeposit not implemented")
+func (UnimplementedBackendServiceServer) PtiCreateDeposit(context.Context, *PtiCreateDepositRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PtiCreateDeposit not implemented")
 }
 func (UnimplementedBackendServiceServer) CreatePTIWithdrawal(context.Context, *CreatePTIWithdrawalRequest) (*CreatePTIWithdrawalResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreatePTIWithdrawal not implemented")
@@ -3390,20 +3390,20 @@ func _BackendService_CreatePtiBankAccount_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BackendService_PTICreateDeposit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PTICreateDepositRequest)
+func _BackendService_PtiCreateDeposit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PtiCreateDepositRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(BackendServiceServer).PTICreateDeposit(ctx, in)
+		return srv.(BackendServiceServer).PtiCreateDeposit(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: BackendService_PTICreateDeposit_FullMethodName,
+		FullMethod: BackendService_PtiCreateDeposit_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).PTICreateDeposit(ctx, req.(*PTICreateDepositRequest))
+		return srv.(BackendServiceServer).PtiCreateDeposit(ctx, req.(*PtiCreateDepositRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -4024,8 +4024,8 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _BackendService_CreatePtiBankAccount_Handler,
 		},
 		{
-			MethodName: "PTICreateDeposit",
-			Handler:    _BackendService_PTICreateDeposit_Handler,
+			MethodName: "PtiCreateDeposit",
+			Handler:    _BackendService_PtiCreateDeposit_Handler,
 		},
 		{
 			MethodName: "CreatePTIWithdrawal",

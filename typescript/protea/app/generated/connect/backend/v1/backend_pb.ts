@@ -1568,57 +1568,45 @@ export class PtiBalance extends Message<PtiBalance> {
 }
 
 /**
- * @generated from message backend.v1.PTICreateDepositRequest
+ * @generated from message backend.v1.PtiCreateDepositRequest
  */
-export class PTICreateDepositRequest extends Message<PTICreateDepositRequest> {
+export class PtiCreateDepositRequest extends Message<PtiCreateDepositRequest> {
   /**
-   * @generated from field: string linkedAccount = 1;
+   * @generated from field: string id = 1;
    */
-  linkedAccount = "";
+  id = "";
 
   /**
-   * @generated from field: string amount = 2;
-   */
-  amount = "";
-
-  /**
-   * @generated from field: optional string note = 3;
-   */
-  note?: string;
-
-  /**
-   * @generated from field: optional string ipAddress = 4;
+   * @generated from field: optional string ipAddress = 2;
    */
   ipAddress?: string;
 
-  constructor(data?: PartialMessage<PTICreateDepositRequest>) {
+  constructor(data?: PartialMessage<PtiCreateDepositRequest>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "backend.v1.PTICreateDepositRequest";
+  static readonly typeName = "backend.v1.PtiCreateDepositRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "linkedAccount", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "amount", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "note", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
-    { no: 4, name: "ipAddress", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "ipAddress", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PTICreateDepositRequest {
-    return new PTICreateDepositRequest().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PtiCreateDepositRequest {
+    return new PtiCreateDepositRequest().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PTICreateDepositRequest {
-    return new PTICreateDepositRequest().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PtiCreateDepositRequest {
+    return new PtiCreateDepositRequest().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PTICreateDepositRequest {
-    return new PTICreateDepositRequest().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PtiCreateDepositRequest {
+    return new PtiCreateDepositRequest().fromJsonString(jsonString, options);
   }
 
-  static equals(a: PTICreateDepositRequest | PlainMessage<PTICreateDepositRequest> | undefined, b: PTICreateDepositRequest | PlainMessage<PTICreateDepositRequest> | undefined): boolean {
-    return proto3.util.equals(PTICreateDepositRequest, a, b);
+  static equals(a: PtiCreateDepositRequest | PlainMessage<PtiCreateDepositRequest> | undefined, b: PtiCreateDepositRequest | PlainMessage<PtiCreateDepositRequest> | undefined): boolean {
+    return proto3.util.equals(PtiCreateDepositRequest, a, b);
   }
 }
 

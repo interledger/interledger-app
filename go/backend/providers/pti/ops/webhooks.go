@@ -312,7 +312,7 @@ func HandleSettleDeposit(ctx context.Context, payload pti.TransactionStatusPaylo
 
 	// execute workflow if it's not running
 	if workflowStatus != enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
-		_, err = b.Temporal().ExecuteWorkflow(ctx, wo, SettleDepositWrokflow, payload)
+		_, err = b.Temporal().ExecuteWorkflow(ctx, wo, SettleDepositWorkflow, payload)
 		if err != nil {
 			log.Error("Failed to handle pti deposit webhook", zap.Error(err))
 			return err
@@ -461,6 +461,7 @@ func HandleDepositError(ctx context.Context, payload pti.TransactionStatusPayloa
 // }
 
 func HandleTransactionAssessmentUpdate(ctx context.Context, b Backends, data []byte) error {
+	// TODO
 	var payload TransactionAssessmentPayload
 	if err := json.Unmarshal(data, &payload); err != nil {
 		return err

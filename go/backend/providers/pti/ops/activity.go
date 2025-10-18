@@ -556,21 +556,22 @@ func (a *Activity) GetWalletFromPTIUser(ctx context.Context, externalUserID stri
 	return walletID, nil
 }
 
-func (a *Activity) CreateTransaction(ctx context.Context, la *linkedaccounts.LinkedAccount, amount currency.Amount, note string) (*transactions.Transaction, error) {
+func (a *Activity) CreateTransaction(ctx context.Context, la *linkedaccounts.LinkedAccount, amount currency.Amount, externalID, note string) error {
 	if amount.Currency != currency.USD {
-		return nil, temporal.NewNonRetryableApplicationError("Invalid currency", "ErrInternal", fmt.Errorf("%w invalid currency", pti.ErrInternal))
+		return temporal.NewNonRetryableApplicationError("Invalid currency", "ErrInternal", fmt.Errorf("%w invalid currency", pti.ErrInternal))
 	}
 
 	wallet, err := a.b.Wallets().Get(ctx, la.WalletID)
 	if errors.Is(err, pti.ErrNotFound) {
-		return nil, temporal.NewNonRetryableApplicationError("Wallet not found", "ErrNotFound", fmt.Errorf("%w No wallet found for pti user", pti.ErrNotFound))
+		return temporal.NewNonRetryableApplicationError("Wallet not found", "ErrNotFound", fmt.Errorf("%w No wallet found for pti user", pti.ErrNotFound))
 	}
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	transactionID, err := a.b.Transactions().CreateTransaction(ctx, transactions.CreateTransactionArgs{
+	_, err = a.b.Transactions().CreateTransaction(ctx, transactions.CreateTransactionArgs{
 		WalletID:                wallet.ID,
+		ForeignID:               externalID,
 		ForeignType:             transactions.TransactionTypeDeposit,
 		Provider:                pti.ProviderName,
 		State:                   transactions.StatePending,
@@ -585,6 +586,7 @@ func (a *Activity) CreateTransaction(ctx context.Context, la *linkedaccounts.Lin
 		Transfers: []transactions.TransferArgs{
 			{
 				LinkedAccountID: la.ID,
+				ForeignID:       externalID,
 				Amount:          amount,
 				Type:            transactions.TransferTypeCreditBalance,
 				State:           transactions.StatePending,
@@ -592,15 +594,10 @@ func (a *Activity) CreateTransaction(ctx context.Context, la *linkedaccounts.Lin
 		},
 	})
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	transaction, err := a.b.Transactions().GetTransaction(ctx, wallet.ID, transactionID)
-	if err != nil {
-		return nil, err
-	}
-
-	return transaction, nil
+	return nil
 }
 
 func (a *Activity) UpdateTransaction(ctx context.Context, transaction *transactions.Transaction, externalTxID string) error {
@@ -623,7 +620,7 @@ func (a *Activity) GetTransactionByForeignID(ctx context.Context, walletID strin
 }
 
 func (a *Activity) SettleTransaction(ctx context.Context, transactionID, walletID string, amount currency.Amount) (string, error) {
-	existingTransaction, err := a.b.Transactions().GetTransaction(ctx, walletID, transactionID)
+	existingTransaction, err := a.b.Transactions().GetTransactionByForeignID(ctx, walletID, transactionID)
 	if err != nil && !errors.Is(err, transactions.ErrNotFound) {
 		return "", err
 	}
@@ -706,23 +703,6 @@ func (a *Activity) SettleTransaction(ctx context.Context, transactionID, walletI
 	return tx, nil
 }
 
-func (a *Activity) MarkTransactionState(ctx context.Context, transactionID, walletID string, state transactions.State) error {
-	existingTransaction, err := a.b.Transactions().GetTransaction(ctx, walletID, transactionID)
-	if err != nil && !errors.Is(err, transactions.ErrNotFound) {
-		return err
-	}
-
-	if err := a.b.Transactions().SetTransferState(ctx, existingTransaction.ID, transactions.StatePending); err != nil {
-		return err
-	}
-
-	if err := a.b.Transactions().SetTransactionState(ctx, existingTransaction.ID, transactions.StatePending); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (a *Activity) FinalizePTIDeposit(ctx context.Context, id, walletID string, amount currency.Amount) error {
 	if amount.Currency != currency.USD {
 		return temporal.NewNonRetryableApplicationError("Invalid currency", "ErrInternal", fmt.Errorf("%w invalid currency", pti.ErrInternal))
@@ -775,7 +755,7 @@ func (a *Activity) FinalizePTIDeposit(ctx context.Context, id, walletID string, 
 	return nil
 }
 
-func (a *Activity) PTIDeposit(ctx context.Context, la linkedaccounts.LinkedAccount, transactionID string, ptiArgs pti.TransactionArgs) (string, error) {
+func (a *Activity) PTIDeposit(ctx context.Context, ptiArgs pti.TransactionArgs) (string, error) {
 	return DepositToWallet(ctx, a.b, a.external, ptiArgs)
 
 }
@@ -834,7 +814,7 @@ func (a *Activity) UpdatePaymentState(ctx context.Context, paymentID string, sta
 	return nil
 }
 
-func (a *Activity) UpdatePTIWithdrawalState(ctx context.Context, walletID, transactionID string, state transactions.State) error {
+func (a *Activity) UpdateTransactionState(ctx context.Context, walletID, transactionID string, state transactions.State) error {
 	info := activity.GetInfo(ctx)
 	if info.Attempt == 1 && state == transactions.StateFailed {
 		slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "wallet-info-bot", fmt.Sprintf("Pti withdrawal failed. %s/wallet/%s/transactions/%s", env.AdminURL(), walletID, transactionID))

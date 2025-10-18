@@ -17,6 +17,7 @@ import (
 	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/providers/pti/external"
 	"gitlab.com/fynbos/backend/transactions"
+	"gitlab.com/fynbos/backend/wallets"
 
 	"gitlab.com/fynbos/env"
 
@@ -684,14 +685,41 @@ func CreateBankAccount(ctx context.Context, b Backends, args pti.CreateBankAccou
 	return await.Get, nil
 }
 
-func CreateDeposit(ctx context.Context, b Backends, la *linkedaccounts.LinkedAccount, amount currency.Amount, note string) error {
+func CreateDeposit(ctx context.Context, b Backends, payment *payments.Payment, wallet *wallets.Wallet) error {
+	las, err := b.LinkedAccounts().ListByWalletId(ctx, wallet.ID)
+	if err != nil {
+		return fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+
+	var balance *linkedaccounts.LinkedAccount
+	for _, la := range las {
+		if la.Provider == pti.ProviderName && la.Type == pti.AccTypeBalance {
+			balance = &la
+			break
+		}
+	}
+	// only allow withdrawing from bank
+	var bank *linkedaccounts.LinkedAccount
+	for _, la := range las {
+		if la.Provider == pti.ProviderName && la.Type == pti.TypeBank {
+			bank = &la
+			break
+		}
+	}
+	if balance == nil {
+		return fmt.Errorf("%w balance account not found", pti.ErrNotFound)
+	}
+	if bank == nil {
+		return fmt.Errorf("%w source account not found or is not a bank account", pti.ErrNotFound)
+	}
+
 	workflowOptions := client.StartWorkflowOptions{
-		ID:                       "pti_create_deposit_" + la.WalletID,
+		ID:                       "pti_create_deposit_" + payment.Receiver.WalletID,
 		TaskQueue:                "backend",
 		WorkflowExecutionTimeout: time.Hour,
 	}
 
-	_, err := b.Temporal().ExecuteWorkflow(ctx, workflowOptions, DepositWorkflow, la, amount, note)
+	_, err = b.Temporal().ExecuteWorkflow(ctx, workflowOptions, DepositWorkflow, payment, bank)
 	if err != nil {
 		return err
 	}

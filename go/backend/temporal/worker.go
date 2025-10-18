@@ -83,7 +83,7 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 
 	// PTI
 	w.RegisterWorkflow(pti_workflows.DepositWorkflow)
-	w.RegisterWorkflow(pti_workflows.SettleDepositWrokflow)
+	w.RegisterWorkflow(pti_workflows.SettleDepositWorkflow)
 	w.RegisterWorkflow(pti_workflows.MarkTransactionStateWrokflow)
 	w.RegisterWorkflow(pti_workflows.ProcessPTIWithdrawal)
 	w.RegisterWorkflow(pti_workflows.SettleWithdrawWorkflow)

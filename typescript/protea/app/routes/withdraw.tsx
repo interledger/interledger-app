@@ -75,7 +75,9 @@ export async function loader(args: LoaderFunctionArgs) {
   
   if (providerResponse.provider == 'gatehub') {
     return gatehubWithdrawalLoader(args)
-  } else return fynbosWithdrawalLoader(args)
+  } else if(providerResponse.provider == 'pti')
+    return ptiWithdrawalLoader(args)
+  else return fynbosWithdrawalLoader(args)
 }
 
 async function gatehubWithdrawalLoader({ request }: LoaderFunctionArgs) {
@@ -89,8 +91,31 @@ async function gatehubWithdrawalLoader({ request }: LoaderFunctionArgs) {
 }
 
 async function fynbosWithdrawalLoader({ request }: LoaderFunctionArgs) {
-  const url = new URL(request.url)
+  return await addProviderToLoader(request,'interledger')
+}
 
+async function ptiWithdrawalLoader({ request }: LoaderFunctionArgs) {
+  return await addProviderToLoader(request,'pti')
+}
+
+export const handle: ApplicationProps = {
+  layout: Layouts.Focus,
+  scaffold: {
+    header: {
+      title: 'Withdraw',
+      back: '/'
+    }
+  }
+}
+
+export const meta: MetaFunction = mergeMeta(() => [
+  {
+    title: 'Withdraw'
+  }
+])
+
+async function addProviderToLoader(request: Request, provider: 'interledger' | 'pti') {
+  const url = new URL(request.url)
   const balanceResponse = await grpc.getBalances(request, {})
   if (isConnectError(balanceResponse)) throw balanceResponse.error
 
@@ -117,29 +142,13 @@ async function fynbosWithdrawalLoader({ request }: LoaderFunctionArgs) {
 
   // TODO: check if provider is the same as in backend
   return jsonWithCSRF(request, {
-    provider: 'interledger',
+    provider: provider,
     balanceAccount,
     balance,
     balances,
     linkedAccounts
   })
 }
-
-export const handle: ApplicationProps = {
-  layout: Layouts.Focus,
-  scaffold: {
-    header: {
-      title: 'Withdraw',
-      back: '/'
-    }
-  }
-}
-
-export const meta: MetaFunction = mergeMeta(() => [
-  {
-    title: 'Withdraw'
-  }
-])
 
 export function links() {
   return [{ rel: 'stylesheet', href: styles }]
@@ -408,10 +417,10 @@ export async function action({ request }: ActionFunctionArgs) {
   const toLinkedAccount = form.get('toLinkedAccount') as string
   const fromLinkedAccount = form.get('fromLinkedAccount') as string
   const note = form.get('note') as string
-
+ const provider = form.get('provider') as string
   await validateCSRFToken(request, form)
 
-  if ((form.get('provider') as string) == 'gatehub') {
+  if (provider == 'gatehub') {
     return createGatehubWithdrawal(request, form)
   }
 
@@ -422,7 +431,7 @@ export async function action({ request }: ActionFunctionArgs) {
     toLinkedAccount: '',
     note: ''
   }
-  const cc = (form.get('provider') as string) === 'pti' ? 'USD' : 'ZAR';
+  const cc = provider === 'pti' ? 'USD' : 'ZAR';
   const withdrawResponse = await grpc.withdrawBalance(request, {
     fromLinkedAccount: fromLinkedAccount,
     toLinkedAccount: toLinkedAccount,

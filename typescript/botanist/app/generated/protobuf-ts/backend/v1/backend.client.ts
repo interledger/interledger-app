@@ -19,7 +19,7 @@ import type { GetRafikiGrantRequest } from "./backend";
 import type { ListRafikiGrantsResponse } from "./backend";
 import type { CreatePTIWithdrawalResponse } from "./backend";
 import type { CreatePTIWithdrawalRequest } from "./backend";
-import type { PTICreateDepositRequest } from "./backend";
+import type { PtiCreateDepositRequest } from "./backend";
 import type { CreatePtiBankAccountRequest } from "./backend";
 import type { CreateCardRequest } from "./backend";
 import type { PtiTokenResponse } from "./backend";
@@ -549,9 +549,9 @@ export interface IBackendServiceClient {
      */
     createPtiBankAccount(input: CreatePtiBankAccountRequest, options?: RpcOptions): UnaryCall<CreatePtiBankAccountRequest, LinkedAccount>;
     /**
-     * @generated from protobuf rpc: PTICreateDeposit(backend.v1.PTICreateDepositRequest) returns (backend.v1.Empty);
+     * @generated from protobuf rpc: PtiCreateDeposit(backend.v1.PtiCreateDepositRequest) returns (backend.v1.Empty);
      */
-    pTICreateDeposit(input: PTICreateDepositRequest, options?: RpcOptions): UnaryCall<PTICreateDepositRequest, Empty>;
+    ptiCreateDeposit(input: PtiCreateDepositRequest, options?: RpcOptions): UnaryCall<PtiCreateDepositRequest, Empty>;
     /**
      * @generated from protobuf rpc: CreatePTIWithdrawal(backend.v1.CreatePTIWithdrawalRequest) returns (backend.v1.CreatePTIWithdrawalResponse);
      */
@@ -1298,11 +1298,11 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
         return stackIntercept<CreatePtiBankAccountRequest, LinkedAccount>("unary", this._transport, method, opt, input);
     }
     /**
-     * @generated from protobuf rpc: PTICreateDeposit(backend.v1.PTICreateDepositRequest) returns (backend.v1.Empty);
+     * @generated from protobuf rpc: PtiCreateDeposit(backend.v1.PtiCreateDepositRequest) returns (backend.v1.Empty);
      */
-    pTICreateDeposit(input: PTICreateDepositRequest, options?: RpcOptions): UnaryCall<PTICreateDepositRequest, Empty> {
+    ptiCreateDeposit(input: PtiCreateDepositRequest, options?: RpcOptions): UnaryCall<PtiCreateDepositRequest, Empty> {
         const method = this.methods[89], opt = this._transport.mergeOptions(options);
-        return stackIntercept<PTICreateDepositRequest, Empty>("unary", this._transport, method, opt, input);
+        return stackIntercept<PtiCreateDepositRequest, Empty>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: CreatePTIWithdrawal(backend.v1.CreatePTIWithdrawalRequest) returns (backend.v1.CreatePTIWithdrawalResponse);

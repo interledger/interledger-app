@@ -153,7 +153,7 @@ service BackendService {
   rpc CreatePtiToken(PtiTokenRequest) returns (PtiTokenResponse);
   rpc CreateCard(CreateCardRequest) returns (LinkedAccount);
   rpc CreatePtiBankAccount(CreatePtiBankAccountRequest) returns (LinkedAccount);
-  rpc PTICreateDeposit(PTICreateDepositRequest) returns (Empty);
+  rpc PtiCreateDeposit(PtiCreateDepositRequest) returns (Empty);
   rpc CreatePTIWithdrawal(CreatePTIWithdrawalRequest) returns (CreatePTIWithdrawalResponse);
   
   // Rafiki
@@ -353,11 +353,9 @@ message PtiBalance {
   string formattedAvailableBalance = 6;
 }
 
-message PTICreateDepositRequest {
-  string linkedAccount = 1;
-  string amount = 2;
-  optional string note = 3;
-  optional string ipAddress = 4;
+message PtiCreateDepositRequest {
+  string id = 1;
+  optional string ipAddress = 2;
 }
 
 message GetXagoBalanceResponse {
