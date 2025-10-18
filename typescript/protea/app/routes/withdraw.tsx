@@ -39,7 +39,7 @@ import {
   type FormattedLinkedAccount
 } from '~/data/accounts.server'
 import { getKycStatus } from '~/data/wallet.server'
-import type {
+import {
   Balance,
   Amount as RpcAmount
 } from '~/generated/connect/backend/v1/backend_pb'
@@ -52,6 +52,7 @@ import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { PaySelect } from '~/routes/pay_.$paymentId/PaySelect'
 import styles from '~/styles/flags.css'
 import { KycStatus } from './_index/route'
+import type { JsonValue } from '@bufbuild/protobuf'
 
 export async function loader(args: LoaderFunctionArgs) {
   const providerResponse = await grpc.getOnOffRampProvider(args.request, {})
@@ -65,6 +66,16 @@ export async function loader(args: LoaderFunctionArgs) {
     return gatehubWithdrawalLoader(args)
   } else return fynbosWithdrawalLoader(args)
 }
+
+type WithdrawalLoaderData = {
+  balances: FormattedLinkedAccount[];
+  provider: string;
+  balanceAccount: JsonValue;
+  linkedAccounts: FormattedLinkedAccount[];
+  csrfToken: string;
+  balance?: FormattedLinkedAccount | undefined;
+}
+
 
 async function gatehubWithdrawalLoader({ request }: LoaderFunctionArgs) {
   const widgetResponse = await grpc.getGatehubWithdrawalWidget(request, {})
@@ -147,7 +158,6 @@ function GatehubWithdrawalPage() {
   useEffect(() => {
     const url = new URL(gatehubWidgetUrl)
     const handler = (event: MessageEvent<IframeMessage>) => {  
-      console.log('event.data.type: ',event.data.type)
       if (
         event.origin === url.origin &&
         event.data.type === 'WithdrawalCompleted'
@@ -187,8 +197,15 @@ function GatehubWithdrawalPage() {
 }
 
 function FynbosWithdrawalPage() {
-  const { linkedAccounts } = useLoaderData<typeof fynbosWithdrawalLoader>()
-
+  const data = useLoaderData<typeof fynbosWithdrawalLoader>()
+  const amountData: WithdrawalLoaderData = {
+    balances: data.balances,
+    provider: data.provider,
+    balanceAccount:  data.balanceAccount,
+    linkedAccounts: data.linkedAccounts,
+    csrfToken: data.csrfToken,
+    balance: data.balance
+  }
   const [setLoading] = useScaffoldStore((state) => [state.setLoading])
 
   useEffect(() => {
@@ -198,7 +215,7 @@ function FynbosWithdrawalPage() {
     }
   }, [setLoading])
 
-  if (linkedAccounts.length === 0)
+  if (data.linkedAccounts.length === 0)
     return (
       <Card>
         <CardContent>
@@ -223,7 +240,7 @@ function FynbosWithdrawalPage() {
       </Card>
     )
 
-  return <Amount />
+  return <Amount data={amountData} />
 }
 
 const formatAmount = (amount?: PlainMessage<RpcAmount>): string => {
@@ -235,9 +252,10 @@ const formatAmount = (amount?: PlainMessage<RpcAmount>): string => {
   return formattedAmount.replace('.00', '')
 }
 
-const Amount = () => {
-  const { balance, balances, balanceAccount, linkedAccounts, csrfToken } =
-    useLoaderData<typeof fynbosWithdrawalLoader>()
+
+const Amount = ({data}: {data: WithdrawalLoaderData}) => {
+  const { balance, balances, balanceAccount, linkedAccounts, csrfToken, provider } = data
+  const balanceAcc = Balance.fromJson(balanceAccount);
   const [, setSearchParams] = useSearchParams()
   const actionData = useActionData<typeof action>()
 
@@ -252,8 +270,8 @@ const Amount = () => {
   }, [])
 
   const _maxWithdrawAmount = useCallback(() => {
-    setAmount(formatAmount(balanceAccount.balance))
-  }, [balanceAccount.balance])
+    setAmount(formatAmount(balanceAcc.balance))
+  }, [balanceAcc.balance])
 
   const _onChangeLinkedAccount = useCallback(
     (linkedAccount: FormattedLinkedAccount) => {
@@ -290,8 +308,14 @@ const Amount = () => {
       />
       <input
         form='account-withdraw'
-        value={balanceAccount.linkedAccount}
+        value={balanceAcc.linkedAccount}
         name='fromLinkedAccount'
+        type='hidden'
+      />
+         <input
+        form='account-withdraw'
+        value={provider}
+        name='provider'
         type='hidden'
       />
       <Card>
@@ -306,7 +330,7 @@ const Amount = () => {
           linkedAccountOptions={balances || []}
           onChangeLinkedAccount={_onChangeLinkedAccount}
           placeholder='0.00'
-          prefixIcon={<div className={`flag:${balanceAccount.countryCode}`} />}
+          prefixIcon={<div className={`flag:${balanceAcc.countryCode}`} />}
           type='number'
           min='0'
           step='0.01'
@@ -322,7 +346,7 @@ const Amount = () => {
           <span>
             You have{' '}
             <TextButton onClick={_maxWithdrawAmount}>
-              {balanceAccount.formattedBalance}
+              {balanceAcc.formattedBalance}
             </TextButton>{' '}
             available in your balance.
           </span>
@@ -397,13 +421,13 @@ export async function action({ request }: ActionFunctionArgs) {
     toLinkedAccount: '',
     note: ''
   }
-
+  const cc = (form.get('provider') as string) === 'pti' ? 'USD' : 'ZAR';
   const withdrawResponse = await grpc.withdrawBalance(request, {
     fromLinkedAccount: fromLinkedAccount,
     toLinkedAccount: toLinkedAccount,
     amount: {
       amount: stringToBigInt(withdrawAmount),
-      asset: 'ZAR',
+      asset: cc,
       assetScale: 2
     },
     note

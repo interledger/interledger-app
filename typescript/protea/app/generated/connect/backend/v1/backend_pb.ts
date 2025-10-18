@@ -450,6 +450,80 @@ export class CreateGatehubWithdrawalResponse extends Message<CreateGatehubWithdr
 }
 
 /**
+ * @generated from message backend.v1.CreatePTIWithdrawalRequest
+ */
+export class CreatePTIWithdrawalRequest extends Message<CreatePTIWithdrawalRequest> {
+  /**
+   * @generated from field: string paymentId = 1;
+   */
+  paymentId = "";
+
+  constructor(data?: PartialMessage<CreatePTIWithdrawalRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.CreatePTIWithdrawalRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "paymentId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreatePTIWithdrawalRequest {
+    return new CreatePTIWithdrawalRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CreatePTIWithdrawalRequest {
+    return new CreatePTIWithdrawalRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CreatePTIWithdrawalRequest {
+    return new CreatePTIWithdrawalRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CreatePTIWithdrawalRequest | PlainMessage<CreatePTIWithdrawalRequest> | undefined, b: CreatePTIWithdrawalRequest | PlainMessage<CreatePTIWithdrawalRequest> | undefined): boolean {
+    return proto3.util.equals(CreatePTIWithdrawalRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.CreatePTIWithdrawalResponse
+ */
+export class CreatePTIWithdrawalResponse extends Message<CreatePTIWithdrawalResponse> {
+  /**
+   * @generated from field: string paymentId = 1;
+   */
+  paymentId = "";
+
+  constructor(data?: PartialMessage<CreatePTIWithdrawalResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.CreatePTIWithdrawalResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "paymentId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreatePTIWithdrawalResponse {
+    return new CreatePTIWithdrawalResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CreatePTIWithdrawalResponse {
+    return new CreatePTIWithdrawalResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CreatePTIWithdrawalResponse {
+    return new CreatePTIWithdrawalResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CreatePTIWithdrawalResponse | PlainMessage<CreatePTIWithdrawalResponse> | undefined, b: CreatePTIWithdrawalResponse | PlainMessage<CreatePTIWithdrawalResponse> | undefined): boolean {
+    return proto3.util.equals(CreatePTIWithdrawalResponse, a, b);
+  }
+}
+
+/**
  * @generated from message backend.v1.GetOnOffRampProviderResponse
  */
 export class GetOnOffRampProviderResponse extends Message<GetOnOffRampProviderResponse> {
