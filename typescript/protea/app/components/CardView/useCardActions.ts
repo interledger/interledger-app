@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { CardStatus } from '~/generated/connect/backend/v1/backend_pb'
 import { decryptWithPrivateKey } from '~/lib/crypto'
+import { useCardsStore } from '~/lib/gatehub/hooks/gatehub.stores'
 import { useCardProcessorApi } from '~/lib/gatehub/hooks/useCardProcessorApiClient'
 import {
   CardProcessorPinResponse,
@@ -36,7 +37,10 @@ const getDefaultSensitiveData = (
 }
 
 const isLocked = (card: StorableCard): boolean => {
-  return card.lockLevel !== 'CARD_LOCK_LEVEL_UNKNOWN'
+  return (
+    card.lockLevel !== 'CARD_LOCK_LEVEL_NONE' &&
+    card.lockLevel !== 'CARD_LOCK_LEVEL_UNKNOWN'
+  )
 }
 
 const isBlocked = (card: StorableCard): boolean => {
@@ -47,23 +51,25 @@ const isBlocked = (card: StorableCard): boolean => {
 }
 
 export const useCardActions = (card: StorableCard): UseCardActionsReturn => {
+  const { updateActiveCard } = useCardsStore()
+  const { actionStatus, executeAction, resetStatus } = useActionExecute()
+  const { keyPair } = useKeyGeneration()
+  const { cardProcessorClient } = useCardProcessorApi()
+
   const [showSensitiveData, setShowSensitiveData] = useState(false)
   const [showPin, setShowPin] = useState(false)
-  const [isFrozenState, setIsFrozenState] = useState(isLocked(card))
+  const [isLockedState, setIsLockedState] = useState(isLocked(card))
   const [isBlockedState, setIsBlockedState] = useState(isBlocked(card))
-  const { actionStatus, executeAction, resetStatus } = useActionExecute()
   const [sensitiveData, setSensitiveData] = useState(
     getDefaultSensitiveData(card)
   )
   const [pin, setPin] = useState('****')
-  const { keyPair } = useKeyGeneration()
-  const { cardProcessorClient } = useCardProcessorApi()
 
   // Reset when switching cards
   useEffect(() => {
     setShowSensitiveData(false)
     setShowPin(false)
-    setIsFrozenState(isLocked(card))
+    setIsLockedState(isLocked(card))
     setIsBlockedState(isBlocked(card))
     setSensitiveData(getDefaultSensitiveData(card))
     setPin('****')
@@ -147,7 +153,8 @@ export const useCardActions = (card: StorableCard): UseCardActionsReturn => {
       },
       onSuccess: () => {
         onSuccess?.()
-        setIsFrozenState(true)
+        setIsLockedState(true)
+        updateActiveCard({ ...card, lockLevel: 'CARD_LOCK_LEVEL_CLIENT' })
       },
       onError: (error) => {
         console.error('Failed to freeze card:', error)
@@ -162,7 +169,8 @@ export const useCardActions = (card: StorableCard): UseCardActionsReturn => {
       },
       onSuccess: () => {
         onSuccess?.()
-        setIsFrozenState(false)
+        setIsLockedState(false)
+        updateActiveCard({ ...card, lockLevel: 'CARD_LOCK_LEVEL_NONE' })
       },
       onError: (error) => {
         console.error('Failed to unfreeze card:', error)
@@ -240,7 +248,7 @@ export const useCardActions = (card: StorableCard): UseCardActionsReturn => {
   return {
     showSensitiveData,
     showPin,
-    isLocked: isFrozenState,
+    isLocked: isLockedState,
     isBlocked: isBlockedState,
     sensitiveData,
     pin,

@@ -5,7 +5,6 @@ import { type RouteParams } from 'routes-gen'
 import { CardView, Layouts, type ApplicationProps } from '~/components'
 import { useCardsStore } from '~/lib/gatehub/hooks/gatehub.stores'
 import type { loader as rootLoader } from '~/root'
-import type { loader } from './cards'
 
 export const handle: ApplicationProps = {
   layout: Layouts.Wallet,

@@ -54,6 +54,7 @@ type GateHubActions = {
   card: {
     setActiveCardId: (cardId: string) => void
     setCards: (cards: StorableCard[]) => void
+    updateActiveCard: (card: StorableCard) => void
   }
 }
 
