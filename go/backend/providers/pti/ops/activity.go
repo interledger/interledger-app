@@ -625,7 +625,7 @@ func (a *Activity) CheckPaymentState(ctx context.Context, externalTxID string) e
 		return temporal.NewNonRetryableApplicationError("PTI USD Payment Not found", "ErrInternal", fmt.Errorf("%w Fiant payment not found %s", pti.ErrNotFound, externalTxID))
 	}
 	if p.State == payments.StateCompleted {
-		return temporal.NewNonRetryableApplicationError("PTI USD payment completed ", "ErrInternal", fmt.Errorf("%w Fiant payment payment completed %s", pti.ErrAssessmentFailed, externalTxID))
+		return temporal.NewNonRetryableApplicationError("PTI USD payment completed ", "ErrInternal", fmt.Errorf("%w Fiant payment previously completed %s", pti.ErrAssessmentFailed, externalTxID))
 	}
 	return nil
 }
@@ -637,7 +637,7 @@ func (a *Activity) SettleTransaction(ctx context.Context, transactionID, walletI
 	}
 	if existingTransaction != nil {
 		if existingTransaction.State == transactions.StateCompleted {
-			return "", fmt.Errorf("%w transaction was previously completed (%s)", pti.ErrAssessmentFailed, existingTransaction.ID)
+			return "", temporal.NewNonRetryableApplicationError("PTI USD payment deposit", "ErrInternal", fmt.Errorf("%w Fiant payment previously completed %s", pti.ErrAssessmentFailed, transactionID))
 		}
 		if err := a.b.Transactions().SetTransactionState(ctx, existingTransaction.ID, transactions.StateCompleted); err != nil {
 			return "", err

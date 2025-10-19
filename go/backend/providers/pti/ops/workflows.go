@@ -389,7 +389,7 @@ func SettleWithdrawWorkflow(ctx workflow.Context, wh pti.TransactionStatusPayloa
 		return "", err
 	}
 	// if payment is complied returns error
-	err = workflow.ExecuteActivity(ctx, a.CheckPaymentState, wh.UserID).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.CheckPaymentState, wh.RequestID).Get(ctx, nil)
 	if err != nil {
 		return "", err
 	}
