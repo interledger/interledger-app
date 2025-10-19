@@ -214,7 +214,7 @@ func SettleDepositWorkflow(ctx workflow.Context, wh pti.TransactionStatusPayload
 	return txID, nil
 }
 
-func MarkTransactionStateWrokflow(ctx workflow.Context, wh pti.TransactionStatusPayload, state transactions.State) error {
+func MarkTransactionStateWorkflow(ctx workflow.Context, wh pti.TransactionStatusPayload, state transactions.State) error {
 	var a *Activity
 
 	ao := workflow.ActivityOptions{
@@ -275,7 +275,7 @@ func DepositWorkflow(ctx workflow.Context, payment *payments.Payment, la *linked
 	return nil
 }
 
-func ProcessPTIWithdrawal(ctx workflow.Context, walletID, transactionID string) error {
+func ReservePtiBalance(ctx workflow.Context, walletID, transactionID string) error {
 	var a *Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 10 * time.Second,
@@ -385,6 +385,11 @@ func SettleWithdrawWorkflow(ctx workflow.Context, wh pti.TransactionStatusPayloa
 
 	var walletID string
 	err = workflow.ExecuteActivity(ctx, a.GetWalletFromPTIUser, wh.UserID).Get(ctx, &walletID)
+	if err != nil {
+		return "", err
+	}
+	// if payment is complied returns error
+	err = workflow.ExecuteActivity(ctx, a.CheckPaymentState, wh.UserID).Get(ctx, nil)
 	if err != nil {
 		return "", err
 	}

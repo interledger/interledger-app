@@ -84,8 +84,8 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	// PTI
 	w.RegisterWorkflow(pti_workflows.DepositWorkflow)
 	w.RegisterWorkflow(pti_workflows.SettleDepositWorkflow)
-	w.RegisterWorkflow(pti_workflows.MarkTransactionStateWrokflow)
-	w.RegisterWorkflow(pti_workflows.ProcessPTIWithdrawal)
+	w.RegisterWorkflow(pti_workflows.MarkTransactionStateWorkflow)
+	w.RegisterWorkflow(pti_workflows.ReservePtiBalance)
 	w.RegisterWorkflow(pti_workflows.SettleWithdrawWorkflow)
 	w.RegisterWorkflow(pti_workflows.RevertWithdrawWorkflow)
 	var ptiPrivateKey jwk.Key

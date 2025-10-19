@@ -848,7 +848,7 @@ func RegisterWithdrawal(ctx context.Context, b Backends, walletID string, withdr
 func processWithdrawal(ctx context.Context, b Backends, walletID, transactionID string) (pti.Await, error) {
 
 	wo := client.StartWorkflowOptions{
-		ID:                    fmt.Sprintf("fiant_reserve balance_withdrawal_%s", transactionID),
+		ID:                    fmt.Sprintf("pti_reserve balance_withdrawal_%s", transactionID),
 		TaskQueue:             "backend",
 		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
 	}
@@ -874,7 +874,7 @@ func processWithdrawal(ctx context.Context, b Backends, walletID, transactionID 
 	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
 		await = b.Temporal().GetWorkflow(ctx, wo.ID, "")
 	} else {
-		await, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, ProcessPTIWithdrawal, walletID, transactionID)
+		await, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, ReservePtiBalance, walletID, transactionID)
 	}
 	if executeErr != nil {
 		return nil, fmt.Errorf("%w %s", pti.ErrInternal, err)

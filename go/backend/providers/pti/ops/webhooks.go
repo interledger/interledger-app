@@ -215,7 +215,7 @@ func HandleAssessmentUpdate(ctx context.Context, b Backends, data []byte) error 
 		}
 	default:
 		log.Error("failed to handle pti user assessment webhook", zap.String("externalUserId", assessmentData.UserId), zap.String("assessment_status", assessmentData.Assessment))
-		slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "Fynbot", fmt.Sprintf("fiant webhook: kyc assessment status=%s walletID=%s", assessmentData.Assessment, ptiUser.WalletID))
+		slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "wallet-info-bot", fmt.Sprintf("fiant webhook: kyc assessment status=%s walletID=%s", assessmentData.Assessment, ptiUser.WalletID))
 	}
 
 	return nil
@@ -269,9 +269,9 @@ func HandleTransactionStatus(ctx context.Context, b Backends, raw json.RawMessag
 		var err error
 		switch payload.TransactionType {
 		case "DEPOSIT", "FUNDING":
-			err = HandleSettleDeposit(ctx, payload, b)
+			err = HandleSettleDeposit(ctx, b, payload)
 		case "WITHDRAWAL":
-			err = HandleSettleWithdraw(ctx, payload, b)
+			err = HandleSettleWithdraw(ctx, b, payload)
 		}
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -279,15 +279,13 @@ func HandleTransactionStatus(ctx context.Context, b Backends, raw json.RawMessag
 		}
 	default:
 		log.Error("failed to handle pti transaction status webhook", zap.String("externalUserId", payload.UserID), zap.String("status", payload.Status), zap.String("requestId", payload.RequestID))
-		slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "Fynbot", fmt.Sprintf("fiant webhook: transaction status=%s walletID=%s", payload.Status, payload.UserID))
+		slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "wallet-info-bot", fmt.Sprintf("fiant webhook: transaction status=%s walletID=%s", payload.Status, payload.UserID))
 	}
 
 	w.WriteHeader(http.StatusOK)
 }
 
-func HandleSettleDeposit(ctx context.Context, payload pti.TransactionStatusPayload, b Backends) error {
-	fmt.Println("got settled transaction status")
-
+func HandleSettleDeposit(ctx context.Context, b Backends, payload pti.TransactionStatusPayload) error {
 	wo := client.StartWorkflowOptions{
 		ID:                    "pti_settle_deposit_webhook_" + payload.RequestID,
 		TaskQueue:             "backend",
@@ -321,7 +319,7 @@ func HandleSettleDeposit(ctx context.Context, payload pti.TransactionStatusPaylo
 	return nil
 }
 
-func HandleSettleWithdraw(ctx context.Context, payload pti.TransactionStatusPayload, b Backends) error {
+func HandleSettleWithdraw(ctx context.Context, b Backends, payload pti.TransactionStatusPayload) error {
 	wo := client.StartWorkflowOptions{
 		ID:                    "pti_settle_withdraw_webhook_" + payload.RequestID,
 		TaskQueue:             "backend",
@@ -415,7 +413,7 @@ func HandleDepositError(ctx context.Context, payload pti.TransactionStatusPayloa
 
 	// execute workflow if it's not running
 	if workflowStatus != enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
-		_, err = b.Temporal().ExecuteWorkflow(ctx, wo, MarkTransactionStateWrokflow, payload, transactions.StateFailed)
+		_, err = b.Temporal().ExecuteWorkflow(ctx, wo, MarkTransactionStateWorkflow, payload, transactions.StateFailed)
 		if err != nil {
 			log.Error("Failed to handle pti deposit webhook", zap.Error(err))
 			return err

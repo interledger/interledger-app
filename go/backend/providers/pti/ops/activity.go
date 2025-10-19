@@ -619,12 +619,26 @@ func (a *Activity) GetTransactionByForeignID(ctx context.Context, walletID strin
 	return a.b.Transactions().GetTransactionByForeignID(ctx, walletID, foreignID)
 }
 
+func (a *Activity) CheckPaymentState(ctx context.Context, externalTxID string) error {
+	p, err := a.b.Payments().Lookup(ctx, externalTxID)
+	if err != nil {
+		return temporal.NewNonRetryableApplicationError("PTI USD Payment Not found", "ErrInternal", fmt.Errorf("%w Fiant payment not found %s", pti.ErrNotFound, externalTxID))
+	}
+	if p.State == payments.StateCompleted {
+		return temporal.NewNonRetryableApplicationError("PTI USD payment completed ", "ErrInternal", fmt.Errorf("%w Fiant payment payment completed %s", pti.ErrAssessmentFailed, externalTxID))
+	}
+	return nil
+}
+
 func (a *Activity) SettleTransaction(ctx context.Context, transactionID, walletID string, amount currency.Amount) (string, error) {
 	existingTransaction, err := a.b.Transactions().GetTransactionByForeignID(ctx, walletID, transactionID)
 	if err != nil && !errors.Is(err, transactions.ErrNotFound) {
 		return "", err
 	}
 	if existingTransaction != nil {
+		if existingTransaction.State == transactions.StateCompleted {
+			return "", fmt.Errorf("%w transaction was previously completed (%s)", pti.ErrAssessmentFailed, existingTransaction.ID)
+		}
 		if err := a.b.Transactions().SetTransactionState(ctx, existingTransaction.ID, transactions.StateCompleted); err != nil {
 			return "", err
 		}
@@ -775,7 +789,7 @@ func (a *Activity) ReservePTIBalance(ctx context.Context, walletID, id string) e
 	}
 
 	if len(transfers) < 1 {
-		return fmt.Errorf("%w Unable to reserve balance. No linked account specified.", pti.ErrInternal)
+		return fmt.Errorf("%w unable to reserve balance. No linked account specified", pti.ErrInternal)
 	}
 
 	timeout := time.Hour * 24 * 365 // Pending transfers must have a timeout.
@@ -807,7 +821,7 @@ func (a *Activity) FinalizePTIBalance(ctx context.Context, id, walletID string) 
 }
 
 func (a *Activity) UpdatePaymentState(ctx context.Context, paymentID string, state payments.State) error {
-	_, err := a.b.DB().ExecContext(ctx, "UPDATE payments SET state=$1 where id=$2", payments.StateCompleted, paymentID)
+	_, err := a.b.DB().ExecContext(ctx, "UPDATE payments SET state=$1, updated_at=now() where id=$2", payments.StateCompleted, paymentID)
 	if err != nil {
 		return err
 	}
