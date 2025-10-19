@@ -160,7 +160,7 @@ func (s *rpcService) PtiCreateDeposit(ctx context.Context, req *pb.PtiCreateDepo
 		return nil, NotFoundError("payment not found")
 	}
 
-	err = s.b.PTI().CreateDeposit(ctx, p, w)
+	err = s.b.PTI().CreateDeposit(ctx, w, p)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}

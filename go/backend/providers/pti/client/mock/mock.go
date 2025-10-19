@@ -54,21 +54,6 @@ func (mr *MockClientMockRecorder) AssignBalance(ctx, linkedAccountID, txID, amt 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AssignBalance", reflect.TypeOf((*MockClient)(nil).AssignBalance), ctx, linkedAccountID, txID, amt)
 }
 
-// ConfirmWithdrawal mocks base method.
-func (m *MockClient) ConfirmWithdrawal(ctx context.Context, walletID string, payment *payments.Payment) (string, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ConfirmWithdrawal", ctx, walletID, payment)
-	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ConfirmWithdrawal indicates an expected call of ConfirmWithdrawal.
-func (mr *MockClientMockRecorder) ConfirmWithdrawal(ctx, walletID, payment interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConfirmWithdrawal", reflect.TypeOf((*MockClient)(nil).ConfirmWithdrawal), ctx, walletID, payment)
-}
-
 // CreateBankAccount mocks base method.
 func (m *MockClient) CreateBankAccount(ctx context.Context, args pti.CreateBankAccountArgs) (pti.Await, error) {
 	m.ctrl.T.Helper()
@@ -100,17 +85,17 @@ func (mr *MockClientMockRecorder) CreateCard(ctx, walletID, tokenID interface{})
 }
 
 // CreateDeposit mocks base method.
-func (m *MockClient) CreateDeposit(ctx context.Context, payment *payments.Payment, wallet *wallets.Wallet) error {
+func (m *MockClient) CreateDeposit(ctx context.Context, wallet *wallets.Wallet, payment *payments.Payment) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateDeposit", ctx, payment, wallet)
+	ret := m.ctrl.Call(m, "CreateDeposit", ctx, wallet, payment)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // CreateDeposit indicates an expected call of CreateDeposit.
-func (mr *MockClientMockRecorder) CreateDeposit(ctx, payment, wallet interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) CreateDeposit(ctx, wallet, payment interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateDeposit", reflect.TypeOf((*MockClient)(nil).CreateDeposit), ctx, payment, wallet)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateDeposit", reflect.TypeOf((*MockClient)(nil).CreateDeposit), ctx, wallet, payment)
 }
 
 // CreateJWT mocks base method.
@@ -141,6 +126,21 @@ func (m *MockClient) CreateWallet(ctx context.Context, walletID string, currency
 func (mr *MockClientMockRecorder) CreateWallet(ctx, walletID, currency interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateWallet", reflect.TypeOf((*MockClient)(nil).CreateWallet), ctx, walletID, currency)
+}
+
+// CreateWithdrawal mocks base method.
+func (m *MockClient) CreateWithdrawal(ctx context.Context, walletID string, payment *payments.Payment) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateWithdrawal", ctx, walletID, payment)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateWithdrawal indicates an expected call of CreateWithdrawal.
+func (mr *MockClientMockRecorder) CreateWithdrawal(ctx, walletID, payment interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateWithdrawal", reflect.TypeOf((*MockClient)(nil).CreateWithdrawal), ctx, walletID, payment)
 }
 
 // DepositToWallet mocks base method.
@@ -230,6 +230,34 @@ func (m *MockClient) GetWidget(ctx context.Context, walletID string) (*pti.Widge
 func (mr *MockClientMockRecorder) GetWidget(ctx, walletID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWidget", reflect.TypeOf((*MockClient)(nil).GetWidget), ctx, walletID)
+}
+
+// HandleSettleDeposit mocks base method.
+func (m *MockClient) HandleSettleDeposit(ctx context.Context, payload pti.TransactionStatusPayload) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "HandleSettleDeposit", ctx, payload)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// HandleSettleDeposit indicates an expected call of HandleSettleDeposit.
+func (mr *MockClientMockRecorder) HandleSettleDeposit(ctx, payload interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HandleSettleDeposit", reflect.TypeOf((*MockClient)(nil).HandleSettleDeposit), ctx, payload)
+}
+
+// HandleSettleWithdraw mocks base method.
+func (m *MockClient) HandleSettleWithdraw(ctx context.Context, payload pti.TransactionStatusPayload) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "HandleSettleWithdraw", ctx, payload)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// HandleSettleWithdraw indicates an expected call of HandleSettleWithdraw.
+func (mr *MockClientMockRecorder) HandleSettleWithdraw(ctx, payload interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HandleSettleWithdraw", reflect.TypeOf((*MockClient)(nil).HandleSettleWithdraw), ctx, payload)
 }
 
 // ReserveBalance mocks base method.

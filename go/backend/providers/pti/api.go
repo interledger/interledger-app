@@ -29,6 +29,8 @@ type Client interface {
 	CreateCard(ctx context.Context, walletID, tokenID string) (Await, error)
 	GetLinkedAccountCardDetails(ctx context.Context, id string) (*EncryptedCreditCardPaymentInformation, error)
 	CreateBankAccount(ctx context.Context, args CreateBankAccountArgs) (Await, error)
-	CreateDeposit(ctx context.Context, payment *payments.Payment, wallet *wallets.Wallet) error
-	ConfirmWithdrawal(ctx context.Context, walletID string, payment *payments.Payment) (string, error)
+	CreateDeposit(ctx context.Context, wallet *wallets.Wallet, payment *payments.Payment) error
+	CreateWithdrawal(ctx context.Context, walletID string, payment *payments.Payment) (string, error)
+	HandleSettleWithdraw(ctx context.Context, payload TransactionStatusPayload) error
+	HandleSettleDeposit(ctx context.Context, payload TransactionStatusPayload) error
 }

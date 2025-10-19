@@ -111,10 +111,17 @@ func (c Client) CreateBankAccount(ctx context.Context, args pti.CreateBankAccoun
 	return ops.CreateBankAccount(ctx, c.b, args)
 }
 
-func (c Client) CreateDeposit(ctx context.Context, payment *payments.Payment, wallet *wallets.Wallet) error {
-	return ops.CreateDeposit(ctx, c.b, payment, wallet)
+func (c Client) CreateDeposit(ctx context.Context, wallet *wallets.Wallet, payment *payments.Payment) error {
+	return ops.CreateDeposit(ctx, c.b, wallet, payment)
 }
 
-func (c *Client) ConfirmWithdrawal(ctx context.Context, walletID string, payment *payments.Payment) (string, error) {
+func (c *Client) CreateWithdrawal(ctx context.Context, walletID string, payment *payments.Payment) (string, error) {
 	return ops.ConfirmWithdrawal(ctx, c.b, c.external, walletID, payment)
+}
+
+func (c *Client) HandleSettleWithdraw(ctx context.Context, payload pti.TransactionStatusPayload) error {
+	return ops.HandleSettleWithdraw(ctx, c.b, payload)
+}
+func (c *Client) HandleSettleDeposit(ctx context.Context, payload pti.TransactionStatusPayload) error {
+	return ops.HandleSettleDeposit(ctx, c.b, payload)
 }

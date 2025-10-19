@@ -8,6 +8,7 @@ import (
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/gatehub"
+	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/rafiki"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/user"
@@ -28,6 +29,7 @@ type Backends interface {
 	Payments() payments.Client
 	LinkedAccounts() linkedaccounts.Client
 	Pacioli() pacioli.Client
+	PTI() pti.Client
 }
 
 type Activity struct {

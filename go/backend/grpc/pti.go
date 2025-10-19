@@ -193,7 +193,7 @@ func (r *rpcService) CreatePTIWithdrawal(ctx context.Context, req *pb.CreatePTIW
 	if p.Sender.WalletID != wallet.ID {
 		return nil, NotFoundError("payment not found")
 	}
-	txID, err := r.b.PTI().ConfirmWithdrawal(ctx, wallet.ID, p)
+	txID, err := r.b.PTI().CreateWithdrawal(ctx, wallet.ID, p)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}

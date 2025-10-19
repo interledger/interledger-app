@@ -685,7 +685,7 @@ func CreateBankAccount(ctx context.Context, b Backends, args pti.CreateBankAccou
 	return await.Get, nil
 }
 
-func CreateDeposit(ctx context.Context, b Backends, payment *payments.Payment, wallet *wallets.Wallet) error {
+func CreateDeposit(ctx context.Context, b Backends, wallet *wallets.Wallet, payment *payments.Payment) error {
 	las, err := b.LinkedAccounts().ListByWalletId(ctx, wallet.ID)
 	if err != nil {
 		return fmt.Errorf("%w %s", pti.ErrInternal, err)

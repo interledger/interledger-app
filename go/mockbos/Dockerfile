@@ -1,4 +1,4 @@
-ARG GOLANG_VERSIO=1.25.1
+ARG GOLANG_VERSION=1.25.1
 
 FROM public.ecr.aws/docker/library/golang:${GOLANG_VERSION} AS base
 
