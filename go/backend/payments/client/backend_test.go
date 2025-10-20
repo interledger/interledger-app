@@ -3,7 +3,6 @@ package client_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 	"time"
 
@@ -12,9 +11,6 @@ import (
 	rafiki_mock "gitlab.com/fynbos/backend/rafiki/client/mock"
 
 	"gitlab.com/fynbos/backend/providers/gatehub"
-	pti_ops "gitlab.com/fynbos/backend/providers/pti/ops"
-
-	pti_client "gitlab.com/fynbos/backend/providers/pti/client"
 
 	"gitlab.com/fynbos/backend/providers/pti"
 
@@ -239,7 +235,7 @@ func (b *TestBackends) RestoreTemporalEnv() {
 	env.RegisterWorkflow(ops.PayoutWorkflow)
 	env.RegisterWorkflow(ops.RollbackPayInWorkflow)
 	env.RegisterWorkflow(ops.AwaitReceiverWorkflow)
-	env.RegisterActivity(pti_ops.NewActivity(b, nil))
+	// env.RegisterActivity(pti_ops.NewActivity(b, nil))
 
 	b.env = env
 }
@@ -345,8 +341,6 @@ func (b *TestBackends) Payments() payments.Client {
 }
 
 func (b *TestBackends) PTI() pti.Client {
-	_ = os.Setenv("PTI_BASE_URL", "http://mockbos:8080/pti/")
-	_ = os.Setenv("PTI_CLIENT_ID", "test")
-
-	return pti_client.New(b)
+	// return pti_client.New(b)
+	return nil
 }
