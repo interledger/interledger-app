@@ -93,7 +93,7 @@ func (a *Activity) GetAndPtiSettleTransactions(ctx context.Context, transactions
 				log.Warn("Can't convert date")
 			}
 
-			dst.Fees = fmt.Sprintf("%d %s", data.Total.Fee.Amount, data.Total.Fee.Currency)
+			dst.Fees = fmt.Sprintf("%f %s", data.Total.Fee.Amount, data.Total.Fee.Currency)
 
 			if v, ok := data.AdditionalInfos["transactionGroupId"].(string); ok {
 				dst.TransactionGroupID = v
