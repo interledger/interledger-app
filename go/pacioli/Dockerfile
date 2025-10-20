@@ -1,4 +1,4 @@
-ARG GOLANG_VERSION=1.25.1
+ARG GOLANG_VERSION=1.25
 
 # cant use alpine as we need glibc for CGO
 FROM public.ecr.aws/docker/library/golang:${GOLANG_VERSION} AS base
