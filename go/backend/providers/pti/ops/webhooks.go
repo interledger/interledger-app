@@ -125,7 +125,6 @@ func Webhook(b Backends) (http.HandlerFunc, error) {
 		case "TRANSACTION_STATUS":
 			HandleTransactionStatus(r.Context(), b, v, w)
 		case "TRANSACTION_ASSESSMENT":
-
 			err = HandleTransactionAssessmentUpdate(r.Context(), b, v)
 		default:
 			log.Error("Unknown pti webhook type", zap.String("externalUserId", data.UserId), zap.String("resourceType", data.ResourceType), zap.String("requestId", data.RequestID))
@@ -148,6 +147,10 @@ func HandleUserUpdate(ctx context.Context, b Backends, data []byte) error {
 	if err := json.Unmarshal(data, &userData); err != nil {
 		return err
 	}
+	walletID, err := getWalletID(ctx, b, userData.UserId)
+	if err != nil || walletID == "" {
+		return fmt.Errorf(" missing user %w %s", pti.ErrInternal, err)
+	}
 
 	result, err := b.DB().ExecContext(ctx, "UPDATE pti_users SET status=$1, updated_at=now() WHERE external_id=$2;", userData.Status, userData.UserId)
 	if err != nil {
@@ -165,6 +168,10 @@ func HandleAssessmentUpdate(ctx context.Context, b Backends, data []byte) error 
 	var assessmentData AssessmentWebhook
 	if err := json.Unmarshal(data, &assessmentData); err != nil {
 		return err
+	}
+	walletID, err := getWalletID(ctx, b, assessmentData.UserId)
+	if err != nil || walletID == "" {
+		return fmt.Errorf(" missing user %w %s", pti.ErrInternal, err)
 	}
 
 	result, err := b.DB().ExecContext(ctx, "UPDATE pti_users SET assessment_status=$1, updated_at=now() WHERE external_id=$2;", assessmentData.Assessment, assessmentData.UserId)
@@ -241,6 +248,12 @@ func HandleTransactionStatus(ctx context.Context, b Backends, raw json.RawMessag
 		capturedState    string = "CAPTURED"
 		settledState     string = "SETTLED"
 	)
+
+	walletID, err := getWalletID(ctx, b, payload.UserID)
+	if err != nil || walletID == "" {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
 	switch payload.Status {
 	case authorizedState:
