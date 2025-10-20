@@ -383,7 +383,12 @@ export async function fynbosDepositAction({ request }: ActionFunctionArgs) {
   })
   if (isConnectError(depositResponse)) {
     if (depositResponse.code == Code.InvalidArgument) {
-      return depositResponse.error({ errors })
+      return depositResponse.error({
+        errors: {
+          ...errors,
+          depositAmount: depositResponse?.fieldViolations?.find((v: { field: string }) => v.field === 'amount')?.description ?? ''
+        }
+      })
     }
     if (
       depositResponse.code == Code.FailedPrecondition &&

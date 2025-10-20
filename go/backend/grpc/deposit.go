@@ -69,13 +69,21 @@ func (s *rpcService) DepositBalance(ctx context.Context, req *pb.TransferBalance
 	amt := currency.FromUInt64(req.Amount.Amount, fromLA.SendCurrency)
 
 	// check that does not exceed kyc limits.
-	exceedsLimits, limitType, err := s.b.Limits().ExceedsKYCLimits(ctx, w.ID, currency.FromUInt64(0, amt.Currency))
+	exceedsLimits, limitType, err := s.b.Limits().ExceedsKYCLimits(ctx, w.ID, amt)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
 	if exceedsLimits {
 		var description string
 		switch limitType {
+		case limits.LimitTypeTransaction:
+			description = "Exceeds per transaction limit."
+		case limits.LimitTypeDaily:
+			description = "Exceeds daily limit."
+		case limits.LimitTypeMonthly:
+			description = "Exceeds monthly limit."
+		case limits.LimitType6Monthly:
+			description = "Exceeds 6 monthly limit."
 		case limits.LimitTypeYearly:
 			description = "Exceeds yearly limit."
 		default:
