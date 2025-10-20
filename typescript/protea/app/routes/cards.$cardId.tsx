@@ -3,7 +3,7 @@ import { useNavigate, useParams, useRouteLoaderData } from '@remix-run/react'
 import { useEffect, useMemo } from 'react'
 import { type RouteParams } from 'routes-gen'
 import { CardView, Layouts, type ApplicationProps } from '~/components'
-import { useCardsStore } from '~/lib/gatehub/hooks/gatehub.stores'
+import { useCardsStore } from '~/lib/cards/hooks/useCardsStore'
 import type { loader as rootLoader } from '~/root'
 
 export const handle: ApplicationProps = {
@@ -40,10 +40,7 @@ export default function PageCardID() {
     return <>Card not found</>
   }
 
-  const card = useMemo(
-    () => cards?.[cardId],
-    [cards, cardId]
-  )
+  const card = useMemo(() => cards?.[cardId], [cards, cardId])
 
   if (!card) {
     return <>Card not found</>

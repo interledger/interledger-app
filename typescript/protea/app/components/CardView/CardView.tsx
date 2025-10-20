@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import { useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { StorableCard } from '~/lib/gatehub/types'
+import { StorableCard } from '~/lib/cards/types'
 import { CardViewBack } from './CardViewBack'
 import { CardViewFront } from './CardViewFront'
 import { StatusPopup } from './StatusPopup'
@@ -106,14 +106,15 @@ export const CardView = ({ card }: { card: StorableCard }) => {
           className='flex w-24 items-center justify-center space-x-2 rounded-lg bg-green-500 px-4 py-2 text-white transition-colors hover:bg-green-600'
           onClick={toggleSensitiveData}
         >
-          <Icon>{isSensitiveDataVisible ? 'visibility_off' : 'visibility'}</Icon>
+          <Icon>
+            {isSensitiveDataVisible ? 'visibility_off' : 'visibility'}
+          </Icon>
           <span>{isSensitiveDataVisible ? 'Hide' : 'View'}</span>
         </button>
         {/* Toggle freeze */}
         <button
           className='flex w-32 items-center justify-center space-x-2 rounded-lg bg-red-500 px-4 py-2 text-white transition-colors hover:bg-red-600'
-          onClick={isLocked ? toggleUnlock : toggleLock
-          }
+          onClick={isLocked ? toggleUnlock : toggleLock}
         >
           <Icon>lock</Icon>
           <span>{isLocked ? 'Unlock' : 'Lock'}</span>

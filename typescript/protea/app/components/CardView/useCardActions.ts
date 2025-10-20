@@ -5,14 +5,13 @@ import {
   CardStatus,
   CardTokenType
 } from '~/generated/connect/backend/v1/backend_pb'
-import { decryptWithPrivateKey } from '~/lib/crypto'
-import { useCardsStore } from '~/lib/gatehub/hooks/gatehub.stores'
-import { useCardProcessorApi } from '~/lib/gatehub/hooks/useCardProcessorApiClient'
+import { useCardProcessorApi } from '~/lib/cards/hooks/useCardProcessorApiClient'
 import {
   CardProcessorSensitiveDataResponse,
   HttpMethod,
   StorableCard
-} from '~/lib/gatehub/types'
+} from '~/lib/cards/types'
+import { decryptWithPrivateKey } from '~/lib/crypto'
 import { useKeyGeneration } from '~/lib/useKeyGeneration'
 import { Operation, OperationResponse } from '~/routes/api_.cardOperation'
 import { GetGatehubTokenResponse } from '~/routes/api_.getGatehubToken'
@@ -44,7 +43,6 @@ const isCardBlocked = (card: StorableCard): boolean => {
 
 export const useCardActions = (card: StorableCard) => {
   const fetcher = useFetcher<GetGatehubTokenResponse & OperationResponse>()
-  const { updateActiveCard } = useCardsStore()
   const { actionStatus, executeAction, resetStatus, setActionStatus } =
     useActionExecute()
   const { keyPair } = useKeyGeneration()
@@ -109,7 +107,7 @@ export const useCardActions = (card: StorableCard) => {
         const decryptedCardData =
           await decryptWithPrivateKey<CardProcessorSensitiveDataResponse>(
             keyPair!.privateKey,
-            encryptedCardData.data.cypher
+            encryptedCardData.cypher
           )
 
         setSensitiveData(decryptedCardData)
@@ -133,7 +131,7 @@ export const useCardActions = (card: StorableCard) => {
         })
         const decryptedPinData = await decryptWithPrivateKey<string>(
           keyPair!.privateKey,
-          encryptedPinData.data.cypher
+          encryptedPinData.cypher
         )
 
         setPin(decryptedPinData)
