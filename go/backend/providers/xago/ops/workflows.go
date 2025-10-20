@@ -89,19 +89,34 @@ func UpdateInquiryLinkWorkflow(ctx workflow.Context, args xago.InquiryLinkUpdate
 	logger := workflow.GetLogger(ctx)
 	logger.Info("Update xago inquiry link.")
 
-	err := workflow.ExecuteActivity(ctx, a.UpdateInquiryLinkActivity, args).Get(ctx, nil)
+	err := workflow.ExecuteActivity(ctx, a.UpdateSubAccountActivity, args).Get(ctx, nil)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (a *Activity) UpdateInquiryLinkActivity(ctx context.Context, args xago.InquiryLinkUpdate) error {
+func (a *Activity) UpdateSubAccountActivity(ctx context.Context, args xago.InquiryLinkUpdate) error {
 	personaInquiry, err := a.b.KYC().GetApprovedPersonaInquiryURL(ctx, args.WalletID)
 	if err != nil {
 		return fmt.Errorf("xago internal error: wallet does not have an approved persona inquiry")
 	}
-	return a.b.External().UpdateInquiryLink(ctx, args.AccountID, personaInquiry)
+
+	kycDetails, err := a.b.KYC().GetIndividualDetails(ctx, args.WalletID)
+	if err != nil {
+		return err
+	}
+
+	idNumber, err := a.b.KYC().GetPersonaZAIDNumber(ctx, args.WalletID)
+	if err != nil {
+		return err
+	}
+
+	return a.b.External().UpdateSubAccount(ctx, args.AccountID, external.UpdateSubAccountRequest{
+		ThirdPartyVerificationURL: personaInquiry,
+		IDNumber:                  idNumber,
+		PhysicalAddress:           kycDetails.Address.String(),
+	})
 }
 
 func (a *Activity) CreateSubAccount(ctx context.Context, walletID string) (*external.SubAccount, error) {

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"strings"
 
+	"gitlab.com/fynbos/backend/rafiki"
 	"gitlab.com/fynbos/backend/wallets"
 	pb "gitlab.com/fynbos/proto/backend/v1"
 )
@@ -38,7 +39,15 @@ func (g *rpcService) CreateWalletAddress(ctx context.Context, req *pb.CreateWall
 		return nil, toGRPCError(err)
 	}
 
-	err = g.b.Rafiki().CreatePaymentPointer(ctx, *wallet)
+	rafikiID, err := g.b.Rafiki().CreatePaymentPointer(ctx, *wallet)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	err = g.b.Rafiki().UpdateWalletAddressStatus(ctx, rafiki.UpdateAddressStatus{
+		ID:   rafikiID,
+		Name: wallet.Name,
+	}, false)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
