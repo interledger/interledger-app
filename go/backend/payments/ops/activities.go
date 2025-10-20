@@ -530,29 +530,6 @@ func (a *Activity) GetPaymentType(ctx context.Context, paymentID string) (paymen
 	return p.Type, nil
 }
 
-// func (a *Activity) PTIDeposit(ctx context.Context, paymentID string) (string, error) {
-// 	p, err := Lookup(ctx, a.b, paymentID)
-// 	if err != nil {
-// 		return "", err
-// 	}
-
-// 	txID, err := a.b.PTI().DepositToWallet(ctx, pti.TransactionArgs{
-// 		PaymentID: paymentID,
-// 		WalletID:  p.Receiver.WalletID,
-// 		Amount:    p.ReceiverAmount,
-// 		// flag(bradu): should be p.ReceiverAccount but for deposits the sender is the credit card
-// 		LinkedAccountID: p.SenderAccount, // sending from the credit card
-// 	})
-// 	if errors.Is(err, pti_external.ErrUnprocessableEntity) {
-// 		return "", temporal.NewNonRetryableApplicationError("PTI unable to process deposit", "ErrUnprocessableEntity", err)
-// 	}
-// 	if err != nil {
-// 		return "", err
-// 	}
-
-// 	return txID, err
-// }
-
 func (a *Activity) PTIWithdrawal(ctx context.Context, paymentID string) (string, error) {
 	p, err := Lookup(ctx, a.b, paymentID)
 	if err != nil {

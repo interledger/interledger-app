@@ -3,6 +3,7 @@ package client_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
@@ -344,5 +345,8 @@ func (b *TestBackends) Payments() payments.Client {
 }
 
 func (b *TestBackends) PTI() pti.Client {
+	_ = os.Setenv("PTI_BASE_URL", "http://mockbos:8080/pti/")
+	_ = os.Setenv("PTI_CLIENT_ID", "test")
+
 	return pti_client.New(b)
 }
