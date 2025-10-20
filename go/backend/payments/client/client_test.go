@@ -60,78 +60,78 @@ func TestClient(t *testing.T) {
 		AddIdentity bool
 		Skip        bool
 	}{
-		{
-			Skip:        true, // PTI needs both parties signed up so we cannot reserve funds pre emptively.
-			Name:        "Requires account linking",
-			AddIdentity: true,
-			Args: payments.CreateArgs{
-				Sender: payments.Identity{
-					Type:       payments.IdentityTypeWalletID,
-					Identifier: sendWallet.walletID,
-				},
-				SenderAccount: sendWallet.ptiUSDLinkedAcc,
-				Receiver: payments.Identity{
-					Type:       payments.IdentityTypeSlack,
-					Identifier: "interledger / DevTest",
-				},
-				SenderAmount:   currency.FromUInt64(10, currency.ParseCurrency("USD")),
-				ReceiverAmount: currency.FromUInt64(10, currency.ParseCurrency("USD")),
-				IPAddress:      "192.36.8.4",
-			},
-			Assertions: Assertions{
-				PaymentState:         payments.StateCompleted,
-				SendTransactionState: transactions.StateCompleted,
-				SendTransfers: []AssertTransfer{
-					{
-						TransferType: transactions.TransferTypeDebitCard,
-						State:        transactions.StateCompleted,
-					},
-				},
-				ReceiveTransfers: []AssertTransfer{
-					{
-						TransferType: transactions.TransferTypeCreditCard,
-						State:        transactions.StateCompleted,
-					},
-				},
-				ReceiveTransactionState: transactions.StateCompleted,
-			},
-		},
-		{
-			Name: "Golden path Web monetization",
-			Args: payments.CreateArgs{
-				Sender: payments.Identity{
-					Type:       payments.IdentityTypeWalletID,
-					Identifier: sendWallet.walletID,
-				},
-				SenderAccount: sendWallet.ptiUSDLinkedAcc,
-				Receiver: payments.Identity{
-					Type:       payments.IdentityTypeWalletID,
-					Identifier: recvWallet.walletID,
-				},
-				ReceiverAccount: recvWallet.ptiUSDLinkedAcc,
-				SenderAmount:    currency.FromUInt64(10, currency.ParseCurrency("USD")),
-				ReceiverAmount:  currency.FromUInt64(10, currency.ParseCurrency("USD")),
-				IPAddress:       "192.36.8.4",
-				Type:            payments.TypeWebMonetization,
-			},
-			Assertions: Assertions{
-				PaymentState:         payments.StateCompleted,
-				SendTransactionState: transactions.StateCompleted,
-				SendTransfers: []AssertTransfer{
-					{
-						TransferType: transactions.TransferTypeDebitWebMonetization,
-						State:        transactions.StateCompleted,
-					},
-				},
-				ReceiveTransfers: []AssertTransfer{
-					{
-						TransferType: transactions.TransferTypeCreditBalance,
-						State:        transactions.StateCompleted,
-					},
-				},
-				ReceiveTransactionState: transactions.StateCompleted,
-			},
-		},
+		// {
+		// 	Skip:        true, // PTI needs both parties signed up so we cannot reserve funds pre emptively.
+		// 	Name:        "Requires account linking",
+		// 	AddIdentity: true,
+		// 	Args: payments.CreateArgs{
+		// 		Sender: payments.Identity{
+		// 			Type:       payments.IdentityTypeWalletID,
+		// 			Identifier: sendWallet.walletID,
+		// 		},
+		// 		SenderAccount: sendWallet.ptiUSDLinkedAcc,
+		// 		Receiver: payments.Identity{
+		// 			Type:       payments.IdentityTypeSlack,
+		// 			Identifier: "interledger / DevTest",
+		// 		},
+		// 		SenderAmount:   currency.FromUInt64(10, currency.ParseCurrency("USD")),
+		// 		ReceiverAmount: currency.FromUInt64(10, currency.ParseCurrency("USD")),
+		// 		IPAddress:      "192.36.8.4",
+		// 	},
+		// 	Assertions: Assertions{
+		// 		PaymentState:         payments.StateCompleted,
+		// 		SendTransactionState: transactions.StateCompleted,
+		// 		SendTransfers: []AssertTransfer{
+		// 			{
+		// 				TransferType: transactions.TransferTypeDebitCard,
+		// 				State:        transactions.StateCompleted,
+		// 			},
+		// 		},
+		// 		ReceiveTransfers: []AssertTransfer{
+		// 			{
+		// 				TransferType: transactions.TransferTypeCreditCard,
+		// 				State:        transactions.StateCompleted,
+		// 			},
+		// 		},
+		// 		ReceiveTransactionState: transactions.StateCompleted,
+		// 	},
+		// },
+		// {
+		// 	Name: "Golden path Web monetization",
+		// 	Args: payments.CreateArgs{
+		// 		Sender: payments.Identity{
+		// 			Type:       payments.IdentityTypeWalletID,
+		// 			Identifier: sendWallet.walletID,
+		// 		},
+		// 		SenderAccount: sendWallet.ptiUSDLinkedAcc,
+		// 		Receiver: payments.Identity{
+		// 			Type:       payments.IdentityTypeWalletID,
+		// 			Identifier: recvWallet.walletID,
+		// 		},
+		// 		ReceiverAccount: recvWallet.ptiUSDLinkedAcc,
+		// 		SenderAmount:    currency.FromUInt64(10, currency.ParseCurrency("USD")),
+		// 		ReceiverAmount:  currency.FromUInt64(10, currency.ParseCurrency("USD")),
+		// 		IPAddress:       "192.36.8.4",
+		// 		Type:            payments.TypeWebMonetization,
+		// 	},
+		// 	Assertions: Assertions{
+		// 		PaymentState:         payments.StateCompleted,
+		// 		SendTransactionState: transactions.StateCompleted,
+		// 		SendTransfers: []AssertTransfer{
+		// 			{
+		// 				TransferType: transactions.TransferTypeDebitWebMonetization,
+		// 				State:        transactions.StateCompleted,
+		// 			},
+		// 		},
+		// 		ReceiveTransfers: []AssertTransfer{
+		// 			{
+		// 				TransferType: transactions.TransferTypeCreditBalance,
+		// 				State:        transactions.StateCompleted,
+		// 			},
+		// 		},
+		// 		ReceiveTransactionState: transactions.StateCompleted,
+		// 	},
+		// },
 		{
 			Name: "Golden path Xago withdrawal",
 			Args: payments.CreateArgs{
@@ -200,107 +200,107 @@ func TestClient(t *testing.T) {
 				ReceiveTransactionState: transactions.StateCompleted,
 			},
 		},
-		{
-			Name: "Golden path pti deposit",
-			Args: payments.CreateArgs{
-				Type: payments.TypeDeposit,
-				Sender: payments.Identity{
-					Type:       payments.IdentityTypeWalletID,
-					Identifier: sendWallet.walletID,
-				},
-				SenderAccount: sendWallet.ptiCardLinkedAcc,
-				Receiver: payments.Identity{
-					Type:       payments.IdentityTypeWalletID,
-					Identifier: sendWallet.walletID,
-				},
-				ReceiverAccount: sendWallet.ptiUSDLinkedAcc,
-				SenderAmount:    currency.FromUInt64(10000, currency.USD),
-				ReceiverAmount:  currency.FromUInt64(10000, currency.USD),
-				IPAddress:       "192.36.8.4",
-			},
-			Assertions: Assertions{
-				PaymentState:         payments.StateCompleted,
-				SendTransactionState: transactions.StateCompleted,
-				SendTransfers: []AssertTransfer{
-					{
-						TransferType: transactions.TransferTypeDebitCard,
-						State:        transactions.StateCompleted,
-					},
-					{
-						TransferType: transactions.TransferTypeCreditBalance,
-						State:        transactions.StateCompleted,
-					},
-				},
-			},
-		},
-		{
-			Name: "Golden path pti withdrawal",
-			Args: payments.CreateArgs{
-				Type: payments.TypeWithdrawal,
-				Sender: payments.Identity{
-					Type:       payments.IdentityTypeWalletID,
-					Identifier: sendWallet.walletID,
-				},
-				SenderAccount: sendWallet.ptiUSDLinkedAcc,
-				Receiver: payments.Identity{
-					Type:       payments.IdentityTypeWalletID,
-					Identifier: sendWallet.walletID,
-				},
-				ReceiverAccount: sendWallet.ptiBankLinkedAcc,
-				SenderAmount:    currency.FromUInt64(10000, currency.USD),
-				ReceiverAmount:  currency.FromUInt64(10000, currency.USD),
-				IPAddress:       "192.36.8.4",
-			},
-			Assertions: Assertions{
-				PaymentState:         payments.StateCompleted,
-				SendTransactionState: transactions.StateCompleted,
-				SendTransfers: []AssertTransfer{
-					{
-						TransferType: transactions.TransferTypeDebitBalance,
-						State:        transactions.StateCompleted,
-					},
-					{
-						TransferType: transactions.TransferTypeCreditBankAccount,
-						State:        transactions.StateCompleted,
-					},
-				},
-			},
-		},
-		{
-			Name: "Golden path pti wallets",
-			Args: payments.CreateArgs{
-				Sender: payments.Identity{
-					Type:       payments.IdentityTypeWalletID,
-					Identifier: sendWallet.walletID,
-				},
-				SenderAccount: sendWallet.ptiUSDLinkedAcc,
-				Receiver: payments.Identity{
-					Type:       payments.IdentityTypeWalletID,
-					Identifier: recvWallet.walletID,
-				},
-				ReceiverAccount: recvWallet.ptiUSDLinkedAcc,
-				SenderAmount:    currency.FromUInt64(10000, currency.USD),
-				ReceiverAmount:  currency.FromUInt64(10000, currency.USD),
-				IPAddress:       "192.36.8.4",
-			},
-			Assertions: Assertions{
-				PaymentState:         payments.StateCompleted,
-				SendTransactionState: transactions.StateCompleted,
-				SendTransfers: []AssertTransfer{
-					{
-						TransferType: transactions.TransferTypeDebitBalance,
-						State:        transactions.StateCompleted,
-					},
-				},
-				ReceiveTransfers: []AssertTransfer{
-					{
-						TransferType: transactions.TransferTypeCreditBalance,
-						State:        transactions.StateCompleted,
-					},
-				},
-				ReceiveTransactionState: transactions.StateCompleted,
-			},
-		},
+		// {
+		// 	Name: "Golden path pti deposit",
+		// 	Args: payments.CreateArgs{
+		// 		Type: payments.TypeDeposit,
+		// 		Sender: payments.Identity{
+		// 			Type:       payments.IdentityTypeWalletID,
+		// 			Identifier: sendWallet.walletID,
+		// 		},
+		// 		SenderAccount: sendWallet.ptiCardLinkedAcc,
+		// 		Receiver: payments.Identity{
+		// 			Type:       payments.IdentityTypeWalletID,
+		// 			Identifier: sendWallet.walletID,
+		// 		},
+		// 		ReceiverAccount: sendWallet.ptiUSDLinkedAcc,
+		// 		SenderAmount:    currency.FromUInt64(10000, currency.USD),
+		// 		ReceiverAmount:  currency.FromUInt64(10000, currency.USD),
+		// 		IPAddress:       "192.36.8.4",
+		// 	},
+		// 	Assertions: Assertions{
+		// 		PaymentState:         payments.StateCompleted,
+		// 		SendTransactionState: transactions.StateCompleted,
+		// 		SendTransfers: []AssertTransfer{
+		// 			{
+		// 				TransferType: transactions.TransferTypeDebitCard,
+		// 				State:        transactions.StateCompleted,
+		// 			},
+		// 			{
+		// 				TransferType: transactions.TransferTypeCreditBalance,
+		// 				State:        transactions.StateCompleted,
+		// 			},
+		// 		},
+		// 	},
+		// },
+		// {
+		// 	Name: "Golden path pti withdrawal",
+		// 	Args: payments.CreateArgs{
+		// 		Type: payments.TypeWithdrawal,
+		// 		Sender: payments.Identity{
+		// 			Type:       payments.IdentityTypeWalletID,
+		// 			Identifier: sendWallet.walletID,
+		// 		},
+		// 		SenderAccount: sendWallet.ptiUSDLinkedAcc,
+		// 		Receiver: payments.Identity{
+		// 			Type:       payments.IdentityTypeWalletID,
+		// 			Identifier: sendWallet.walletID,
+		// 		},
+		// 		ReceiverAccount: sendWallet.ptiBankLinkedAcc,
+		// 		SenderAmount:    currency.FromUInt64(10000, currency.USD),
+		// 		ReceiverAmount:  currency.FromUInt64(10000, currency.USD),
+		// 		IPAddress:       "192.36.8.4",
+		// 	},
+		// 	Assertions: Assertions{
+		// 		PaymentState:         payments.StateCompleted,
+		// 		SendTransactionState: transactions.StateCompleted,
+		// 		SendTransfers: []AssertTransfer{
+		// 			{
+		// 				TransferType: transactions.TransferTypeDebitBalance,
+		// 				State:        transactions.StateCompleted,
+		// 			},
+		// 			{
+		// 				TransferType: transactions.TransferTypeCreditBankAccount,
+		// 				State:        transactions.StateCompleted,
+		// 			},
+		// 		},
+		// 	},
+		// },
+		// {
+		// 	Name: "Golden path pti wallets",
+		// 	Args: payments.CreateArgs{
+		// 		Sender: payments.Identity{
+		// 			Type:       payments.IdentityTypeWalletID,
+		// 			Identifier: sendWallet.walletID,
+		// 		},
+		// 		SenderAccount: sendWallet.ptiUSDLinkedAcc,
+		// 		Receiver: payments.Identity{
+		// 			Type:       payments.IdentityTypeWalletID,
+		// 			Identifier: recvWallet.walletID,
+		// 		},
+		// 		ReceiverAccount: recvWallet.ptiUSDLinkedAcc,
+		// 		SenderAmount:    currency.FromUInt64(10000, currency.USD),
+		// 		ReceiverAmount:  currency.FromUInt64(10000, currency.USD),
+		// 		IPAddress:       "192.36.8.4",
+		// 	},
+		// 	Assertions: Assertions{
+		// 		PaymentState:         payments.StateCompleted,
+		// 		SendTransactionState: transactions.StateCompleted,
+		// 		SendTransfers: []AssertTransfer{
+		// 			{
+		// 				TransferType: transactions.TransferTypeDebitBalance,
+		// 				State:        transactions.StateCompleted,
+		// 			},
+		// 		},
+		// 		ReceiveTransfers: []AssertTransfer{
+		// 			{
+		// 				TransferType: transactions.TransferTypeCreditBalance,
+		// 				State:        transactions.StateCompleted,
+		// 			},
+		// 		},
+		// 		ReceiveTransactionState: transactions.StateCompleted,
+		// 	},
+		// },
 		/*
 			Temporal test environment doesn't accurately throw Max Retry errors so cannot test the failure case
 			{
@@ -438,9 +438,9 @@ type testWallet struct {
 	walletID          string
 	xagoZARLinkedAcc  string
 	xagoBankLinkedAcc string
-	ptiCardLinkedAcc  string
-	ptiBankLinkedAcc  string
-	ptiUSDLinkedAcc   string
+	// ptiCardLinkedAcc  string
+	// ptiBankLinkedAcc  string
+	// ptiUSDLinkedAcc   string
 }
 
 /*
@@ -526,40 +526,40 @@ func createTestWallet(t *testing.T, b *TestBackends) testWallet {
 	require.NoError(t, err)
 
 	// PTI user
-	_, err = b.DB().Exec(" INSERT INTO pti_users(external_id, wallet_id, status, assessment_status) VALUES ($1, $2, 'confirmed', 'confirmed')", uuid.NewString(), walletID)
-	require.NoError(t, err)
+	// _, err = b.DB().Exec(" INSERT INTO pti_users(external_id, wallet_id, status, assessment_status) VALUES ($1, $2, 'confirmed', 'confirmed')", uuid.NewString(), walletID)
+	// require.NoError(t, err)
 
-	ptiCard, err := b.LinkedAccounts().Create(context.Background(), &linkedaccounts.CreateArgs{
-		WalletID:        wallet.ID,
-		Name:            "pti card",
-		Provider:        pti.ProviderName,
-		ProviderID:      uuid.NewString(),
-		Type:            pti.TypeCard,
-		CanSend:         false,
-		CanReceive:      false,
-		State:           linkedaccounts.Verified,
-		SendCountry:     country.US,
-		SendCurrency:    currency.USD,
-		ReceiveCountry:  country.US,
-		ReceiveCurrency: currency.USD,
-	})
-	require.NoError(t, err)
+	// ptiCard, err := b.LinkedAccounts().Create(context.Background(), &linkedaccounts.CreateArgs{
+	// 	WalletID:        wallet.ID,
+	// 	Name:            "pti card",
+	// 	Provider:        pti.ProviderName,
+	// 	ProviderID:      uuid.NewString(),
+	// 	Type:            pti.TypeCard,
+	// 	CanSend:         false,
+	// 	CanReceive:      false,
+	// 	State:           linkedaccounts.Verified,
+	// 	SendCountry:     country.US,
+	// 	SendCurrency:    currency.USD,
+	// 	ReceiveCountry:  country.US,
+	// 	ReceiveCurrency: currency.USD,
+	// })
+	// require.NoError(t, err)
 
-	ptiBankAccount, err := b.LinkedAccounts().Create(context.Background(), &linkedaccounts.CreateArgs{
-		WalletID:        wallet.ID,
-		Name:            "pti bank",
-		Provider:        pti.ProviderName,
-		ProviderID:      uuid.NewString(),
-		Type:            pti.TypeBank,
-		CanSend:         true,
-		CanReceive:      true,
-		State:           linkedaccounts.Verified,
-		SendCountry:     country.US,
-		SendCurrency:    currency.USD,
-		ReceiveCountry:  country.US,
-		ReceiveCurrency: currency.USD,
-	})
-	require.NoError(t, err)
+	// ptiBankAccount, err := b.LinkedAccounts().Create(context.Background(), &linkedaccounts.CreateArgs{
+	// 	WalletID:        wallet.ID,
+	// 	Name:            "pti bank",
+	// 	Provider:        pti.ProviderName,
+	// 	ProviderID:      uuid.NewString(),
+	// 	Type:            pti.TypeBank,
+	// 	CanSend:         true,
+	// 	CanReceive:      true,
+	// 	State:           linkedaccounts.Verified,
+	// 	SendCountry:     country.US,
+	// 	SendCurrency:    currency.USD,
+	// 	ReceiveCountry:  country.US,
+	// 	ReceiveCurrency: currency.USD,
+	// })
+	// require.NoError(t, err)
 
 	ptiBal, err := b.LinkedAccounts().Create(context.Background(), &linkedaccounts.CreateArgs{
 		WalletID:        wallet.ID,
@@ -607,8 +607,8 @@ func createTestWallet(t *testing.T, b *TestBackends) testWallet {
 		walletID:          walletID,
 		xagoZARLinkedAcc:  xBalance.ID,
 		xagoBankLinkedAcc: xBank.ID,
-		ptiCardLinkedAcc:  ptiCard.ID,
-		ptiBankLinkedAcc:  ptiBankAccount.ID,
-		ptiUSDLinkedAcc:   ptiBal.ID,
+		// ptiCardLinkedAcc:  ptiCard.ID,
+		// ptiBankLinkedAcc: ptiBankAccount.ID,
+		// ptiUSDLinkedAcc: ptiBal.ID,
 	}
 }

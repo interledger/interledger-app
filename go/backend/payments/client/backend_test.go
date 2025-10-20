@@ -3,9 +3,10 @@ package client_test
 import (
 	"context"
 	"fmt"
-	"gitlab.com/fynbos/backend/providers/chimoney"
 	"testing"
 	"time"
+
+	"gitlab.com/fynbos/backend/providers/chimoney"
 
 	rafiki_mock "gitlab.com/fynbos/backend/rafiki/client/mock"
 

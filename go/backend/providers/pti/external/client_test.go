@@ -129,6 +129,7 @@ func TestStartAssessment(t *testing.T) {
 	}
 	ptiPrivateKey, err := jwk.ParseKey([]byte(os.Getenv("PTI_JWK")))
 	require.NoError(t, err)
+
 	client, err := NewWithOptions(
 		WithBaseURL(os.Getenv("PTI_BASE_URL")),
 		WithOTELLHTTPClient(),
