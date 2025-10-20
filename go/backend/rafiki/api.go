@@ -11,7 +11,7 @@ import (
 
 type Client interface {
 	WebhookHandler() http.HandlerFunc
-	CreatePaymentPointer(ctx context.Context, address wallets.Wallet) error
+	CreatePaymentPointer(ctx context.Context, address wallets.Wallet) (string, error)
 	GetWalletAddress(ctx context.Context, walletID string) (*WalletAddress, error)
 	CreatePaymentPointerKey(ctx context.Context, keyID string, walletID string) error
 	RevokePaymentPointerKey(ctx context.Context, keyID string) error
@@ -22,8 +22,5 @@ type Client interface {
 	GetGrant(ctx context.Context, grantID string) (*Grant, error)
 	RevokeGrant(ctx context.Context, grantID string) error
 	ListPendingTransactions(ctx context.Context, walletID string) ([]transactions.Transaction, error)
-	UpdateWalletAddressStatus(ctx context.Context, walletId struct {
-		Id   string `db:"payment_pointer_id"`
-		Name string `db:"name"`
-	}, isActive bool) error
+	UpdateWalletAddressStatus(ctx context.Context, walletId UpdateAddressStatus, isActive bool) error
 }

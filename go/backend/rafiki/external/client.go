@@ -27,10 +27,7 @@ type Client interface {
 	GetGrant(ctx context.Context, grantID string) (*GetGrantGrant, error)
 	RevokeGrant(ctx context.Context, grantID string) error
 	GetIncomingPayment(ctx context.Context, id string) (*GetIncomingPaymentIncomingPayment, error)
-	UpdateWalletAddressStatus(ctx context.Context, walletID struct {
-		Id   string `db:"payment_pointer_id"`
-		Name string `db:"name"`
-	}, status bool) error
+	UpdateWalletAddressStatus(ctx context.Context, walletID rafiki.UpdateAddressStatus, status bool) error
 }
 
 type assets struct {
@@ -230,16 +227,13 @@ func (a *assets) Get(ctx context.Context, backendClient graphql.Client, assetCod
 	return "", fmt.Errorf("asset %s not found after fetching from Rafiki", assetCode)
 }
 
-func (c client) UpdateWalletAddressStatus(ctx context.Context, wallet struct {
-	Id   string `db:"payment_pointer_id"`
-	Name string `db:"name"`
-}, status bool) error {
+func (c client) UpdateWalletAddressStatus(ctx context.Context, wallet rafiki.UpdateAddressStatus, status bool) error {
 	statusVal := WalletAddressStatusInactive
 	if status {
 		statusVal = WalletAddressStatusActive
 	}
 	_, err := UpdateWalletAddress(ctx, c.backendClient, UpdateWalletAddressInput{
-		Id:         wallet.Id,
+		Id:         wallet.ID,
 		Status:     statusVal,
 		PublicName: wallet.Name,
 	})
