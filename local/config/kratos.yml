@@ -55,6 +55,7 @@ log:
 selfservice:
   allowed_return_urls:
     - http://interledger.test
+    - https://interledger.test/*
   default_browser_return_url: http://interledger.test
   flows:
     error:
@@ -97,6 +98,22 @@ selfservice:
       enabled: true
     password:
       enabled: true
+    totp:
+      enabled: true
+      config:
+        issuer: interledger.app
+    webauthn:
+      enabled: true
+      config:
+        passwordless: false
+        rp:
+          display_name: "Interledger"
+          id: interledger.test
+          origins:
+            - https://identity.interledger.test
+            - https://interledger.test
+    lookup_secret:
+      enabled: true
 serve:
   admin:
     port: 4434
@@ -115,4 +132,4 @@ session:
   earliest_possible_extend: 24h
   lifespan: 420h
   whoami:
-    required_aal: aal1
+    required_aal: highest_available

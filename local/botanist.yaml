@@ -30,6 +30,7 @@ services:
 
       - CHOKIDAR_USEPOLLING=true
       - BACKEND_GRPC_URL=backend:8448
+      - KRATOS_ADMIN_URL=http://kratos:4434
 
     depends_on:
       - backend

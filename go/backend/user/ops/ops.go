@@ -3,6 +3,7 @@ package ops
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -11,6 +12,8 @@ import (
 
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/wallets"
+	"gitlab.com/fynbos/log"
+	"go.uber.org/zap"
 
 	client "github.com/ory/kratos-client-go"
 	"gitlab.com/fynbos/backend/user"
@@ -19,7 +22,35 @@ import (
 const (
 	kratosTimeout    = 1500 * time.Millisecond
 	kratosCookieName = "ory_kratos_session"
+	aal2RequiredErrorID = "session_aal2_required"
 )
+
+type sessionRetrievalErrorResponse struct {
+	Error *struct {
+		ID      string `json:"id"`
+	} `json:"error,omitempty"`
+}
+
+func getSessionRetrievalError(resp *http.Response, err error) (error) {
+	if resp != nil && resp.StatusCode == http.StatusForbidden {
+		var sessionErrResp sessionRetrievalErrorResponse
+		err = json.NewDecoder(resp.Body).Decode(&sessionErrResp)
+		if err != nil {
+			log.Error("Error decoding error body of kratos to session response.", zap.Error(err))
+		}
+		
+		if sessionErrResp.Error.ID == aal2RequiredErrorID {
+			log.Info("User must complete 2FA, as AAL2 is required.")
+			return user.ErrAAL2Required
+		}
+	}
+
+	if resp != nil && resp.StatusCode == http.StatusUnauthorized {
+		return user.ErrAAL1Required
+	}
+
+	return err
+}
 
 func UserForCookie(ctx context.Context, b Backends, cookie string) (*user.User, error) {
 	if cookie == "" {
@@ -31,10 +62,7 @@ func UserForCookie(ctx context.Context, b Backends, cookie string) (*user.User, 
 
 	session, resp, err := b.Kratos().FrontendApi.ToSession(ctx).Cookie(kratosCookieName + "=" + cookie).Execute()
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusUnauthorized {
-			return nil, nil
-		}
-		return nil, err
+		return nil, getSessionRetrievalError(resp, err)
 	}
 
 	u := convertTraits(session.Identity.Id, session.Identity.Traits)
@@ -51,10 +79,7 @@ func UserForToken(ctx context.Context, b Backends, token string) (*user.User, er
 
 	session, resp, err := b.Kratos().FrontendApi.ToSession(ctx).XSessionToken(token).Execute()
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusUnauthorized {
-			return nil, nil
-		}
-		return nil, err
+		return nil, getSessionRetrievalError(resp, err)
 	}
 
 	u := convertTraits(session.Identity.Id, session.Identity.Traits)
