@@ -1,5 +1,5 @@
 import { useFetcher } from '@remix-run/react'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { route } from 'routes-gen'
 import {
   CardStatus,
@@ -28,14 +28,14 @@ const getDefaultSensitiveData = (
   }
 }
 
-const isLocked = (card: StorableCard): boolean => {
+const isCardLocked = (card: StorableCard): boolean => {
   return (
     card.lockLevel !== 'CARD_LOCK_LEVEL_NONE' &&
     card.lockLevel !== 'CARD_LOCK_LEVEL_UNKNOWN'
   )
 }
 
-const isBlocked = (card: StorableCard): boolean => {
+const isCardBlocked = (card: StorableCard): boolean => {
   return (
     card.status === CardStatus.BLOCKED ||
     card.status === CardStatus.TEMPORARY_BLOCKED
@@ -88,7 +88,7 @@ export const useCardActions = (card: StorableCard) => {
           break
       }
     }
-  }, [fetcher.data])
+  }, [fetcher.data, setActionStatus])
 
   /**
    * Action listeners
@@ -151,27 +151,30 @@ export const useCardActions = (card: StorableCard) => {
   /**
    * Toggles
    */
-  const triggerTokenOperation = async (tokenType: CardTokenType) => {
-    setActionStatus('loading')
+  const triggerTokenOperation = useCallback(
+    async (tokenType: CardTokenType) => {
+      setActionStatus('loading')
 
-    if (!keyPair?.publicKey) {
-      setActionStatus('error')
-      return
-    }
+      if (!keyPair?.publicKey) {
+        setActionStatus('error')
+        return
+      }
 
-    // trigger the server action to retrieve the JWT token
-    const formData = new FormData()
-    formData.append('cardId', card.id)
-    formData.append('tokenType', tokenType.toString())
-    formData.append('publicKey', keyPair?.publicKey)
-    fetcher.submit(formData, {
-      method: 'post',
-      action: route('/api/getGatehubToken')
-    })
-  }
+      // trigger the server action to retrieve the JWT token
+      const formData = new FormData()
+      formData.append('cardId', card.id)
+      formData.append('tokenType', tokenType.toString())
+      formData.append('publicKey', keyPair?.publicKey)
+      fetcher.submit(formData, {
+        method: 'post',
+        action: route('/api/getGatehubToken')
+      })
+    },
+    [card.id, keyPair?.publicKey]
+  )
 
-  const toggleSensitiveData = async () => {
-    if (isSensitiveDataVisible) {
+  const toggleSensitiveData = useCallback(() => {
+    if (!isSensitiveDataVisible) {
       triggerTokenOperation(CardTokenType.CARD_DATA)
     } else {
       executeAction({
@@ -182,9 +185,9 @@ export const useCardActions = (card: StorableCard) => {
         }
       })
     }
-  }
+  }, [isSensitiveDataVisible, triggerTokenOperation, executeAction])
 
-  const toggleViewPin = async () => {
+  const toggleViewPin = useCallback(() => {
     if (!isPinVisible) {
       triggerTokenOperation(CardTokenType.PIN)
     } else {
@@ -196,34 +199,56 @@ export const useCardActions = (card: StorableCard) => {
         }
       })
     }
-  }
+  }, [isPinVisible, triggerTokenOperation, executeAction])
 
-  const triggerOperation = async (operation: Operation) => {
-    setActionStatus('loading')
+  const triggerOperation = useCallback(
+    async (operation: Operation) => {
+      setActionStatus('loading')
 
-    // trigger the server action to retrieve the JWT token
-    const formData = new FormData()
-    formData.append('cardId', card.id)
-    formData.append('operation', operation)
-    fetcher.submit(formData, {
-      method: 'post',
-      action: route('/api/cardOperation')
-    })
-  }
+      // trigger the server action to retrieve the JWT token
+      const formData = new FormData()
+      formData.append('cardId', card.id)
+      formData.append('operation', operation)
+      fetcher.submit(formData, {
+        method: 'post',
+        action: route('/api/cardOperation')
+      })
+    },
+    [card.id, setActionStatus, fetcher]
+  )
+
+  const toggleLock = useCallback(
+    () => triggerOperation('freeze'),
+    [triggerOperation]
+  )
+  const toggleUnlock = useCallback(
+    () => triggerOperation('unfreeze'),
+    [triggerOperation]
+  )
+  const toggleBlock = useCallback(
+    () => triggerOperation('block'),
+    [triggerOperation]
+  )
+  const toggleTerminate = useCallback(
+    () => triggerOperation('terminate'),
+    [triggerOperation]
+  )
+  const isLocked = useMemo(() => isCardLocked(card), [card])
+  const isBlocked = useMemo(() => isCardBlocked(card), [card])
 
   return {
     isSensitiveDataVisible,
     isPinVisible,
-    isLocked: isLocked(card),
-    isBlocked: isBlocked(card),
+    isLocked,
+    isBlocked,
     sensitiveData,
     pin,
     actionStatus,
     toggleSensitiveData,
-    toggleLock: () => triggerOperation('freeze'),
-    toggleUnlock: () => triggerOperation('unfreeze'),
-    toggleBlock: () => triggerOperation('block'),
-    toggleTerminate: () => triggerOperation('terminate'),
+    toggleLock,
+    toggleUnlock,
+    toggleBlock,
+    toggleTerminate,
     toggleViewPin
   }
 }

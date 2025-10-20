@@ -81,7 +81,7 @@ export const CardView = ({ card }: { card: StorableCard }) => {
           </div>
         </div>
 
-        {/* Locked overlay - outside flip container so text doesn't flip */}
+        {/* Locked overlay */}
         {isLocked && (
           <div className='absolute inset-0 z-40 flex items-center justify-center rounded-xl bg-black/30'>
             <div className='rounded-lg bg-red-500 px-4 py-2 font-semibold text-white'>
