@@ -37,7 +37,7 @@ func WebMonetizationPaymentsWorkflow(ctx workflow.Context) error {
 
 	logger := workflow.GetLogger(ctx)
 
-	var payouts []Payment
+	var payouts []RafikiPayment
 	err := workflow.ExecuteActivity(ctx, a.ListPaymentsToMake).Get(ctx, &payouts)
 	if err != nil {
 		logger.Error("failed to list outgoing payments set for payout", "err", err)

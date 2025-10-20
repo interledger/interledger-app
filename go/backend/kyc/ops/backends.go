@@ -5,6 +5,7 @@ import (
 
 	"gitlab.com/fynbos/backend/providers/chimoney"
 	"gitlab.com/fynbos/backend/providers/pti"
+	"gitlab.com/fynbos/backend/rafiki"
 
 	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/notify"
@@ -32,6 +33,7 @@ type Backends interface {
 	Xago() xago.Client
 	PTI() pti.Client
 	Chimoney() chimoney.Client
+	Rafiki() rafiki.Client
 }
 
 type testBackends struct {
@@ -44,6 +46,7 @@ type testBackends struct {
 	em  email.Client
 	wc  wallets.Client
 	xg  xago.Client
+	rf  rafiki.Client
 }
 
 func (b testBackends) Chimoney() chimoney.Client {
@@ -88,6 +91,9 @@ func (t testBackends) Wallets() wallets.Client {
 
 func (t testBackends) Xago() xago.Client {
 	return t.xg
+}
+func (t testBackends) Rafiki() rafiki.Client {
+	return t.rf
 }
 
 func NewTestBackends(_ *testing.T, db *sqlx.DB, tp temporal.Client, uc user.Client, sc signup.Client, nc notify.Client, em email.Client, wc wallets.Client) Backends {

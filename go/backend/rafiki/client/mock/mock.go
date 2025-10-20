@@ -22,10 +22,7 @@ type MockClient struct {
 }
 
 // UpdateWalletAddressStatus mocks base method.
-func (m *MockClient) UpdateWalletAddressStatus(ctx context.Context, wallet struct {
-	Id   string `db:"payment_pointer_id"`
-	Name string `db:"name"`
-}, status bool) error {
+func (m *MockClient) UpdateWalletAddressStatus(ctx context.Context, wallet rafiki.UpdateAddressStatus, status bool) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateWalletAddressStatus", ctx, wallet, status)
 	ret0, _ := ret[0].(error)
@@ -33,10 +30,7 @@ func (m *MockClient) UpdateWalletAddressStatus(ctx context.Context, wallet struc
 }
 
 // UpdateWalletAddressStatus indicates an expected call of UpdateWalletAddressStatus.
-func (mr *MockClientMockRecorder) UpdateWalletAddressStatus(ctx, wallet struct {
-	Id   string `db:"payment_pointer_id"`
-	Name string `db:"name"`
-}, status bool) *gomock.Call {
+func (mr *MockClientMockRecorder) UpdateWalletAddressStatus(ctx, wallet rafiki.UpdateAddressStatus, status bool) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateWalletAddressStatus", reflect.TypeOf((*MockClient)(nil).UpdateWalletAddressStatus), ctx, wallet, status)
 }
@@ -59,11 +53,12 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 }
 
 // CreatePaymentPointer mocks base method.
-func (m *MockClient) CreatePaymentPointer(ctx context.Context, address wallets.Wallet) error {
+func (m *MockClient) CreatePaymentPointer(ctx context.Context, address wallets.Wallet) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreatePaymentPointer", ctx, address)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // CreatePaymentPointer indicates an expected call of CreatePaymentPointer.
