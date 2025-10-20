@@ -20,12 +20,6 @@ export type CardProcessorSensitiveDataResponse = {
   Cvc2: string
 }
 
-/* Card PIN response from the card processor */
-export type CardProcessorPinResponse = {
-  /** Card PIN, ex: 1234 */
-  pin: string
-}
-
 export type GateHubState = {
   auth: {
     /** Application identifier for GateHub card integration */

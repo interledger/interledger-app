@@ -5,7 +5,9 @@ declare module "routes-gen" {
     "/accounts": Record<string, never>;
     "/accounts/:accountId": { "accountId": string };
     "/accounts/:accountId/name": { "accountId": string };
+    "/api/cardOperation": Record<string, never>;
     "/api/fern": Record<string, never>;
+    "/api/getGatehubToken": Record<string, never>;
     "/api/maps/geocode": Record<string, never>;
     "/api/maps/placesAutocomplete": Record<string, never>;
     "/api/sendOtp": Record<string, never>;
@@ -68,7 +70,9 @@ declare module "routes-gen" {
       | ["/accounts"]
       | ["/accounts/:accountId", RouteParams["/accounts/:accountId"]]
       | ["/accounts/:accountId/name", RouteParams["/accounts/:accountId/name"]]
+      | ["/api/cardOperation"]
       | ["/api/fern"]
+      | ["/api/getGatehubToken"]
       | ["/api/maps/geocode"]
       | ["/api/maps/placesAutocomplete"]
       | ["/api/sendOtp"]

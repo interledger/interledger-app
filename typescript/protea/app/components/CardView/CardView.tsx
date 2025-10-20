@@ -11,38 +11,19 @@ export const CardView = ({ card }: { card: StorableCard }) => {
   const [showBack, setShowBack] = useState(false)
 
   const {
-    showSensitiveData,
-    showPin,
+    isSensitiveDataVisible,
+    isPinVisible,
     isLocked,
     sensitiveData,
     pin,
     actionStatus,
-    toggleSensitiveDataOff,
-    toggleSensitiveDataOn,
+    toggleSensitiveData,
     toggleLock,
+    toggleBlock,
+    toggleTerminate,
     toggleUnlock,
     toggleViewPin
   } = useCardActions(card)
-
-  const handleToggleSensitiveData = () => {
-    if (showSensitiveData) {
-      toggleSensitiveDataOff()
-    } else {
-      toggleSensitiveDataOn()
-    }
-  }
-
-  const handleLock = () => {
-    toggleLock()
-  }
-
-  const handleUnlock = () => {
-    toggleUnlock()
-  }
-
-  const handleViewPinCode = () => {
-    toggleViewPin()
-  }
 
   return (
     <div className='flex flex-col items-center space-y-6 p-6'>
@@ -123,15 +104,16 @@ export const CardView = ({ card }: { card: StorableCard }) => {
         {/* Toggle sensitive data */}
         <button
           className='flex w-24 items-center justify-center space-x-2 rounded-lg bg-green-500 px-4 py-2 text-white transition-colors hover:bg-green-600'
-          onClick={handleToggleSensitiveData}
+          onClick={toggleSensitiveData}
         >
-          <Icon>{showSensitiveData ? 'visibility_off' : 'visibility'}</Icon>
-          <span>{showSensitiveData ? 'Hide' : 'View'}</span>
+          <Icon>{isSensitiveDataVisible ? 'visibility_off' : 'visibility'}</Icon>
+          <span>{isSensitiveDataVisible ? 'Hide' : 'View'}</span>
         </button>
         {/* Toggle freeze */}
         <button
           className='flex w-32 items-center justify-center space-x-2 rounded-lg bg-red-500 px-4 py-2 text-white transition-colors hover:bg-red-600'
-          onClick={isLocked ? handleUnlock : handleLock}
+          onClick={isLocked ? toggleUnlock : toggleLock
+          }
         >
           <Icon>lock</Icon>
           <span>{isLocked ? 'Unlock' : 'Lock'}</span>
@@ -140,15 +122,33 @@ export const CardView = ({ card }: { card: StorableCard }) => {
         {/* Toggle view pin code */}
         <button
           className='flex w-32 items-center justify-center space-x-2 rounded-lg bg-purple-500 px-4 py-2 text-white transition-colors hover:bg-purple-600'
-          onClick={handleViewPinCode}
+          onClick={toggleViewPin}
         >
-          <Icon>{showPin ? 'visibility_off' : 'visibility'}</Icon>
-          <span>{showPin ? 'Hide' : 'View'} PIN</span>
+          <Icon>{isPinVisible ? 'visibility_off' : 'visibility'}</Icon>
+          <span>{isPinVisible ? 'Hide' : 'View'} PIN</span>
+        </button>
+
+        {/* Toggle block card */}
+        <button
+          className='flex w-32 items-center justify-center space-x-2 rounded-lg bg-purple-500 px-4 py-2 text-white transition-colors hover:bg-purple-600'
+          onClick={toggleBlock}
+        >
+          <Icon>block</Icon>
+          <span>Block</span>
+        </button>
+
+        {/* Toggle block card */}
+        <button
+          className='flex w-32 items-center justify-center space-x-2 rounded-lg bg-purple-500 px-4 py-2 text-white transition-colors hover:bg-purple-600'
+          onClick={toggleTerminate}
+        >
+          <Icon>delete</Icon>
+          <span>Terminate</span>
         </button>
       </div>
 
-      {/* PIN Display */}
-      {showPin && (
+      {/* PIN Display - Testing only */}
+      {isPinVisible && (
         <div className='rounded-lg border-2 border-purple-500 bg-purple-50 px-8 py-4'>
           <div className='text-center'>
             <div className='mb-2 text-sm font-semibold uppercase tracking-wide text-purple-700'>

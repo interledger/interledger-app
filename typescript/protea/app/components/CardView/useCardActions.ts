@@ -1,30 +1,22 @@
+import { useFetcher } from '@remix-run/react'
 import { useEffect, useState } from 'react'
-import { CardStatus } from '~/generated/connect/backend/v1/backend_pb'
+import { route } from 'routes-gen'
+import {
+  CardStatus,
+  CardTokenType
+} from '~/generated/connect/backend/v1/backend_pb'
 import { decryptWithPrivateKey } from '~/lib/crypto'
 import { useCardsStore } from '~/lib/gatehub/hooks/gatehub.stores'
 import { useCardProcessorApi } from '~/lib/gatehub/hooks/useCardProcessorApiClient'
 import {
-  CardProcessorPinResponse,
   CardProcessorSensitiveDataResponse,
+  HttpMethod,
   StorableCard
 } from '~/lib/gatehub/types'
 import { useKeyGeneration } from '~/lib/useKeyGeneration'
-import { ActionStatus, useActionExecute } from './useActionExecute'
-
-interface UseCardActionsReturn {
-  showSensitiveData: boolean
-  showPin: boolean
-  isLocked: boolean
-  isBlocked: boolean
-  sensitiveData: CardProcessorSensitiveDataResponse
-  pin: string
-  actionStatus: ActionStatus
-  toggleSensitiveDataOff: (onSuccess?: () => void) => void
-  toggleSensitiveDataOn: (onSuccess?: () => void) => void
-  toggleLock: (onSuccess?: () => void) => void
-  toggleUnlock: (onSuccess?: () => void) => void
-  toggleViewPin: () => void
-}
+import { Operation, OperationResponse } from '~/routes/api_.cardOperation'
+import { GetGatehubTokenResponse } from '~/routes/api_.getGatehubToken'
+import { useActionExecute } from './useActionExecute'
 
 const getDefaultSensitiveData = (
   card: StorableCard
@@ -50,14 +42,16 @@ const isBlocked = (card: StorableCard): boolean => {
   )
 }
 
-export const useCardActions = (card: StorableCard): UseCardActionsReturn => {
+export const useCardActions = (card: StorableCard) => {
+  const fetcher = useFetcher<GetGatehubTokenResponse & OperationResponse>()
   const { updateActiveCard } = useCardsStore()
-  const { actionStatus, executeAction, resetStatus } = useActionExecute()
+  const { actionStatus, executeAction, resetStatus, setActionStatus } =
+    useActionExecute()
   const { keyPair } = useKeyGeneration()
   const { cardProcessorClient } = useCardProcessorApi()
 
-  const [showSensitiveData, setShowSensitiveData] = useState(false)
-  const [showPin, setShowPin] = useState(false)
+  const [isSensitiveDataVisible, setIsSensitiveDataVisible] = useState(false)
+  const [isPinVisible, setIsPinVisible] = useState(false)
   const [sensitiveData, setSensitiveData] = useState(
     getDefaultSensitiveData(card)
   )
@@ -65,192 +59,171 @@ export const useCardActions = (card: StorableCard): UseCardActionsReturn => {
 
   // Reset when switching cards
   useEffect(() => {
-    setShowSensitiveData(false)
-    setShowPin(false)
+    setIsSensitiveDataVisible(false)
     setSensitiveData(getDefaultSensitiveData(card))
+    setIsPinVisible(false)
     setPin('****')
     resetStatus()
   }, [card])
 
-  const toggleSensitiveDataOff = async (onSuccess?: () => void) =>
-    executeAction({
-      execute: async () => {
-        // Simulate API call delay
-        await new Promise((resolve) => setTimeout(resolve, 500))
-      },
-      onSuccess: () => {
-        onSuccess?.()
-        setShowSensitiveData(false)
-        setSensitiveData(getDefaultSensitiveData(card))
-      },
-      onError: (error) => {
-        console.error('Failed to turn off sensitive data visibility:', error)
+  // Server Action listener
+  useEffect(() => {
+    if (fetcher.data?.errors || fetcher.data?.success == false) {
+      setActionStatus('error')
+      return
+    }
+
+    if (fetcher.data?.tokenType !== undefined) {
+      const { tokenType, token, links } = fetcher.data
+
+      switch (tokenType) {
+        case CardTokenType.CARD_DATA:
+          onSensitiveDataToken({ token, links })
+          break
+        case CardTokenType.PIN:
+          onGetPinToken({ token, links })
+          break
+        default:
+          setActionStatus('error')
+          break
       }
-    })
+    }
+  }, [fetcher.data])
 
-  const toggleSensitiveDataOn = async (onSuccess?: () => void) => {
+  /**
+   * Action listeners
+   */
+  const onSensitiveDataToken = async ({ token: jwtToken, links }: any) => {
     executeAction({
       execute: async () => {
-        // 0. THE JWT RETRIEVAL SHOULD HAPPEN ON THE BACKEND
+        const hrefs = links[0].href
+        const method = links[0].method
 
-        // 1 Get generated keys
-        console.log('🔑 Getting generated keys')
-        console.log(keyPair)
-
-        // 2 Request JWT token
-        const jwtTokenResponse =
-          await cardProcessorClient.tokens.getCardDataToken(keyPair?.publicKey)
-        const jwtToken = jwtTokenResponse.data.token
-        const hrefs = jwtTokenResponse.data.links[0].href
-        const method = jwtTokenResponse.data.links[0].method
-        console.log('🔑 JWT token', jwtToken)
-        console.log('🔑 Method', method)
-        console.log('🔑 Href', hrefs)
-
-        // 3 Request card data with JWT token
         const encryptedCardData =
           await cardProcessorClient.cards.getSensitiveData({
             jwtToken,
-            // cardProcessorUrl: GATEHUB_API_ENDPOINTS.cards.sensitiveData(),
             cardProcessorUrl: hrefs,
             httpMethod: method
           })
-        console.log('🔑 Encrypted card data', encryptedCardData)
 
-        // 4 Decrypt card data using public key
-        console.log(
-          '🔑 Decrypting card data using private key',
-          keyPair?.privateKey
-        )
         const decryptedCardData =
           await decryptWithPrivateKey<CardProcessorSensitiveDataResponse>(
             keyPair!.privateKey,
             encryptedCardData.data.cypher
           )
-        console.log('🔑 Decrypted card data', decryptedCardData)
 
         setSensitiveData(decryptedCardData)
       },
       onSuccess: () => {
-        onSuccess?.()
-        setShowSensitiveData(true)
-        console.log('✅ toggleSensitiveDataOn success')
-      },
-      onError: (error) => {
-        console.error('❌ Failed to turn on sensitive data visibility:', error)
+        setIsSensitiveDataVisible(true)
       }
     })
   }
 
-  const toggleLock = async (onSuccess?: () => void) => {
+  const onGetPinToken = async ({ token: jwtToken, links }: any) => {
     executeAction({
       execute: async () => {
-        await cardProcessorClient.cards.lockCard(card.id)
+        const href = links[0].href
+        const method = links[0].method
+
+        const encryptedPinData = await cardProcessorClient.cards.getPin({
+          jwtToken,
+          cardProcessorUrl: href,
+          httpMethod: method as unknown as HttpMethod
+        })
+        const decryptedPinData = await decryptWithPrivateKey<string>(
+          keyPair!.privateKey,
+          encryptedPinData.data.cypher
+        )
+
+        setPin(decryptedPinData)
       },
       onSuccess: () => {
-        onSuccess?.()
-        updateActiveCard({ ...card, lockLevel: 'CARD_LOCK_LEVEL_CLIENT' })
+        setIsPinVisible(true)
       },
       onError: (error) => {
-        console.error('Failed to freeze card:', error)
+        setIsPinVisible(true)
+        setPin('****')
       }
     })
   }
 
-  const toggleUnlock = async (onSuccess?: () => void) => {
-    executeAction({
-      execute: async () => {
-        await cardProcessorClient.cards.unlockCard(card.id)
-      },
-      onSuccess: () => {
-        onSuccess?.()
-        updateActiveCard({ ...card, lockLevel: 'CARD_LOCK_LEVEL_NONE' })
-      },
-      onError: (error) => {
-        console.error('Failed to unfreeze card:', error)
-      }
+  /**
+   * Toggles
+   */
+  const triggerTokenOperation = async (tokenType: CardTokenType) => {
+    setActionStatus('loading')
+
+    if (!keyPair?.publicKey) {
+      setActionStatus('error')
+      return
+    }
+
+    // trigger the server action to retrieve the JWT token
+    const formData = new FormData()
+    formData.append('cardId', card.id)
+    formData.append('tokenType', tokenType.toString())
+    formData.append('publicKey', keyPair?.publicKey)
+    fetcher.submit(formData, {
+      method: 'post',
+      action: route('/api/getGatehubToken')
     })
+  }
+
+  const toggleSensitiveData = async () => {
+    if (isSensitiveDataVisible) {
+      triggerTokenOperation(CardTokenType.CARD_DATA)
+    } else {
+      executeAction({
+        execute: async () => {},
+        onSuccess: () => {
+          setIsSensitiveDataVisible(false)
+          setSensitiveData(getDefaultSensitiveData(card))
+        }
+      })
+    }
   }
 
   const toggleViewPin = async () => {
-    if (showPin) {
-      // Hide PIN
-      executeAction({
-        execute: async () => {
-          await new Promise((resolve) => setTimeout(resolve, 500))
-        },
-        onSuccess: () => {
-          setShowPin(false)
-          setPin('****')
-        },
-        onError: (error) => {
-          console.error('Failed to hide PIN:', error)
-        }
-      })
+    if (!isPinVisible) {
+      triggerTokenOperation(CardTokenType.PIN)
     } else {
-      // Show PIN
       executeAction({
-        execute: async () => {
-          console.log('🔑 Getting PIN change token')
-
-          // 1. Request JWT token for PIN change
-          const jwtTokenResponse =
-            await cardProcessorClient.tokens.getPinShowToken()
-          const jwtToken = jwtTokenResponse.data.token
-          const href = jwtTokenResponse.data.links[0].href
-          const method = jwtTokenResponse.data.links[0].method
-          console.log('🔑 PIN JWT token', jwtToken)
-          console.log('🔑 Method', method)
-          console.log('🔑 Rel', jwtTokenResponse.data.links[0].rel)
-          console.log('🔑 Href', href)
-
-          // 2. Request encrypted PIN with JWT token
-          const encryptedPinData = await cardProcessorClient.cards.getPin({
-            jwtToken,
-            cardProcessorUrl: href,
-            httpMethod: method
-          })
-          console.log('🔑 Encrypted PIN data', encryptedPinData)
-
-          // 3. Decrypt PIN using private key
-          console.log(
-            '🔑 Decrypting PIN using private key',
-            keyPair?.privateKey
-          )
-          const decryptedPinData =
-            await decryptWithPrivateKey<CardProcessorPinResponse>(
-              keyPair!.privateKey,
-              encryptedPinData.data.cypher
-            )
-          console.log('🔑 Decrypted PIN data', decryptedPinData)
-
-          setPin(decryptedPinData.pin)
-        },
+        execute: async () => {},
         onSuccess: () => {
-          setShowPin(true)
-          console.log('✅ toggleViewPin success')
-        },
-        onError: (error) => {
-          console.error('❌ Failed to view PIN:', error)
-          setShowPin(true)
+          setIsPinVisible(false)
           setPin('****')
         }
       })
     }
   }
 
+  const triggerOperation = async (operation: Operation) => {
+    setActionStatus('loading')
+
+    // trigger the server action to retrieve the JWT token
+    const formData = new FormData()
+    formData.append('cardId', card.id)
+    formData.append('operation', operation)
+    fetcher.submit(formData, {
+      method: 'post',
+      action: route('/api/cardOperation')
+    })
+  }
+
   return {
-    showSensitiveData,
-    showPin,
+    isSensitiveDataVisible,
+    isPinVisible,
     isLocked: isLocked(card),
     isBlocked: isBlocked(card),
     sensitiveData,
     pin,
     actionStatus,
-    toggleSensitiveDataOff,
-    toggleSensitiveDataOn,
-    toggleLock,
-    toggleUnlock,
+    toggleSensitiveData,
+    toggleLock: () => triggerOperation('freeze'),
+    toggleUnlock: () => triggerOperation('unfreeze'),
+    toggleBlock: () => triggerOperation('block'),
+    toggleTerminate: () => triggerOperation('terminate'),
     toggleViewPin
   }
 }

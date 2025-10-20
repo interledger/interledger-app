@@ -65,24 +65,6 @@ export const useCardProcessorApi = (baseUrl?: string) => {
         return apiClient.unlockCard(cardId)
       }
     },
-
-    tokens: {
-      getCardDataToken: (publicKey?: string) => {
-        const { activeCardId } = card
-        const keyToUse = publicKey || keyPair?.publicKey
-        if (!activeCardId || !keyToUse)
-          throw new Error('Card ID and public key required')
-        return apiClient.getCardDataToken(activeCardId, keyToUse)
-      },
-
-      getPinShowToken: (publicKey?: string) => {
-        const { activeCardId } = card
-        const keyToUse = publicKey || keyPair?.publicKey
-        if (!activeCardId || !keyToUse)
-          throw new Error('Card ID and public key required')
-        return apiClient.getPinShowToken(activeCardId, keyToUse)
-      }
-    }
   }
 
   return {

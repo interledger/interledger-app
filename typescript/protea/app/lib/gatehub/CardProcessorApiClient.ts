@@ -149,42 +149,6 @@ class CardProcessorApiClient {
     })
   }
 
-  async getCardDataToken(cardId: string, publicKey: string) {
-    if (!cardId || !publicKey)
-      throw new Error('Card ID and public key required')
-
-    return this.makeRequest({
-      endpoint: GATEHUB_API_ENDPOINTS.tokens.cardData,
-      method: 'POST',
-      body: { cardId, publicKey },
-      requires: {
-        managedUser: true,
-        cardAppId: true,
-        appId: true,
-        timestamp: true,
-        signature: true
-      }
-    })
-  }
-
-  async getPinShowToken(cardId: string, publicKey: string) {
-    if (!cardId || !publicKey)
-      throw new Error('Card ID and public key required')
-
-    return this.makeRequest({
-      endpoint: GATEHUB_API_ENDPOINTS.tokens.pinShow,
-      method: 'POST',
-      body: { cardId, publicKey },
-      requires: {
-        cardAppId: true,
-        managedUser: true,
-        appId: true,
-        timestamp: true,
-        signature: true
-      }
-    })
-  }
-
   async getPin({
     jwtToken,
     cardProcessorUrl,

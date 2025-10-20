@@ -96,11 +96,13 @@ services:
       - ALLOWED_WALLET_IDS=
       - BLOCKED_REGIONS=
 
-      - GATEHUB_APP_ID=<fetch-me-from-vault>
-      - GATEHUB_SECRET=<fetch-me-from-vault>
-      - GATEHUB_CARD_APP_ID=<fetch-me-from-vault>
-      - GATEHUB_GATEWAY_ID=<fetch-me-from-vault>
-      - GATEHUB_WEBHOOK_SECRET=<fetch-me-from-vault>
+      - GATEHUB_SECRET=6e3f914cf7e4d001e8bb13583a01deb7e7bcc623
+      - GATEHUB_CARD_APP_ID=a50ff7db-56e3-49c6-9211-ad9f01edbb90
+      - GATEHUB_APP_ID=8cda6484-004b-4fdf-aa50-5d22801593f2
+      - GATEHUB_MANAGED_USER_UUID=94347bac-637c-4fa7-b924-ff910d7746d0
+      - GATEHUB_WEBHOOK_SECRET=dcb68469740f1cb134b6877b5e32147569d85d27a6e51927d5546b32fcb6ad82
+      - GATEHUB_CARD_ACCOUNT_PRODUCT_CODE=PWSR_DEBP_2404
+      - GATEHUB_GATEWAY_ID=b18965b5-8bb0-486e-88b2-7be47b974ac1
 
     depends_on:
       - migration

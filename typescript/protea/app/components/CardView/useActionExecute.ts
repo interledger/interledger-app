@@ -42,6 +42,7 @@ export const useActionExecute = () => {
   return {
     actionStatus,
     executeAction,
-    resetStatus
+    resetStatus,
+    setActionStatus
   }
 }

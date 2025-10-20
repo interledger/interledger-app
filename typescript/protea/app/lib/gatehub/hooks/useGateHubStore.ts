@@ -5,7 +5,6 @@ import {
   GATEHUB_MANAGED_USER_UUID
 } from '../do-not-commit'
 import {
-  CardProcessorSensitiveDataResponse,
   GateHubState,
   GateHubStore,
   StorableCard
@@ -28,10 +27,12 @@ export const useGateHubStore = create<GateHubStore>((set, get) => ({
 
   actions: {
     card: {
-      setActiveCardId: (cardId: string) =>
+      setActiveCardId: (cardId: string) => {
+        console.log('🔑 Setting active card id', cardId)
         set((state) => ({
           card: { ...state.card, activeCardId: cardId }
-        })),
+        }))
+      },
       setCards: (cards: StorableCard[]) =>
         set((state) => ({
           card: {

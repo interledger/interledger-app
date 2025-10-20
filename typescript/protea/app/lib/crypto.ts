@@ -1,6 +1,5 @@
 import NodeRSA from 'node-rsa'
 
-
 export function ab2str(buf: ArrayBuffer): string {
   // @ts-expect-error: We know this works with Uint8Array
   return String.fromCharCode.apply(null, new Uint8Array(buf))
@@ -75,34 +74,16 @@ export async function decryptWithPrivateKey<T>(
   privateKeyString: string,
   encryptedData: string
 ): Promise<T> {
-  console.log('🔐 Starting decryption with dynamic import...')
+  const privateKey = new NodeRSA(privateKeyString)
+  privateKey.setOptions({
+    encryptionScheme: 'pkcs1',
+    environment: 'browser'
+  })
 
-  try {
-    console.log('🔑 Creating NodeRSA instance...')
-    const privateKey = new NodeRSA(privateKeyString)
+  const decryptedRequestData = privateKey
+    .decrypt(encryptedData)
+    .toString('utf8')
 
-    console.log('🔑 Setting PKCS1 encryption scheme...')
-    privateKey.setOptions({
-      encryptionScheme: 'pkcs1',
-      environment: 'browser'
-    })
-
-    console.log('🔓 Attempting decryption with PKCS1...')
-    const decryptedRequestData = privateKey
-      .decrypt(encryptedData)
-      .toString('utf8')
-
-    console.log('✅ Decryption successful!')
-    const cardData = JSON.parse(decryptedRequestData)
-    console.log('🔑 Decrypted card data', cardData)
-    return cardData as T
-  } catch (error: any) {
-    console.error('❌ Decryption failed:', error)
-    console.error('❌ Error details:', {
-      name: error.name,
-      message: error.message,
-      stack: error.stack
-    })
-    throw error
-  }
+  const cardData = JSON.parse(decryptedRequestData)
+  return cardData as T
 }
