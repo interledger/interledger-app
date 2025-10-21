@@ -9,11 +9,13 @@ import (
 
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/backend/wallets"
+
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
 
-	"gitlab.com/fynbos/backend/providers/astra"
 	"gitlab.com/fynbos/backend/providers/chimoney"
+	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/providers/xago"
 
 	"gitlab.com/fynbos/backend/kyc"
@@ -93,12 +95,8 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		return nil, err
 	}
 
-	canAddCard, err := canAddCards(lal)
-	if err != nil {
-		return nil, err
-	}
+	canAddBank, err := canAddBanks(wallet, lal)
 
-	canAddBank, err := canAddBanks(lal)
 	if err != nil {
 		return nil, err
 	}
@@ -112,13 +110,15 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		res.ReceiveEnabled = true
 		res.SendEnabled = true
 		res.LinkedAccEnabled = true
-		res.BanksEnabled = false
-		res.CardsEnabled = true
-		res.AddCardsEnabled = canAddCard
+
+		res.BanksEnabled = true
+		res.CardsEnabled = false // todo(bradu): talk with pti for cards
+		res.AddCardsEnabled = false
 		res.ManageWalletCardsEnabled = false
 		// it enables the feature by default for sandbox / dev
 		res.AccountEnabled = true
 	}
+
 	if wallet.Country == country.ZA {
 		res.ReceiveEnabled = true
 		res.SendEnabled = true
@@ -156,31 +156,37 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 	return &res, nil
 }
 
-func canAddCards(lal []linkedaccounts.LinkedAccount) (bool, error) {
-	var cnt int
+// flag(bradu): this might not be needed anymore
+//
+// func canAddCards(lal []linkedaccounts.LinkedAccount) (bool, error) {
+// 	var cnt int
+// 	for _, la := range lal {
+// 		if la.DeletedAt.Valid {
+// 			continue
+// 		}
+
+// 		if la.Provider == pti.ProviderName &&
+// 			la.Type == pti.TypeCard {
+// 			cnt++
+// 		}
+// 	}
+
+// 	return cnt <= 3, nil
+// }
+
+// This assumes that the wallet is in US/ZA. The wallet can only add at most 1 bank
+func canAddBanks(w *wallets.Wallet, lal []linkedaccounts.LinkedAccount) (bool, error) {
 	for _, la := range lal {
 		if la.DeletedAt.Valid {
 			continue
 		}
 
-		if la.Provider == astra.ProviderName &&
-			la.Type == astra.TypeCard {
-			cnt++
-		}
-	}
-
-	return cnt <= 3, nil
-}
-
-// This assumes that the wallet is in ZA. The wallet can only add at most 1 bank
-func canAddBanks(lal []linkedaccounts.LinkedAccount) (bool, error) {
-	for _, la := range lal {
-		if la.DeletedAt.Valid {
-			continue
-		}
-
-		if la.Provider == xago.ProviderName &&
+		if w.Country == country.ZA && la.Provider == xago.ProviderName &&
 			la.Type == xago.AccTypeBank {
+			return false, nil
+		}
+
+		if w.Country == country.US && la.Provider == pti.ProviderName && la.Type == pti.TypeBank {
 			return false, nil
 		}
 	}

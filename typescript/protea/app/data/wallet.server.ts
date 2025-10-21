@@ -96,10 +96,3 @@ export async function getTransactionsWithPending(
   if (isConnectError(response)) throw response.errorResponse
   return response
 }
-
-export async function astraRequiresOtp(request: Request): Promise<boolean> {
-  const response = await grpc.astraRequiresOTP(request, {})
-
-  if (isConnectError(response)) throw response.errorResponse
-  return response.isRequired
-}

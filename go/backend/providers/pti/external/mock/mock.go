@@ -6,9 +6,11 @@ package mock
 
 import (
 	context "context"
+	json "encoding/json"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	"gitlab.com/fynbos/backend/payments"
 	external "gitlab.com/fynbos/backend/providers/pti/external"
 )
 
@@ -33,6 +35,36 @@ func NewMockClient(ctrl *gomock.Controller) *MockClient {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
+}
+
+// CreateBankAccount mocks base method.
+func (m *MockClient) CreateBankAccount(ctx context.Context, userID string, args external.BankAccountPaymentInformation) (*external.BankAccountPaymentInformation, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateBankAccount", ctx, userID, args)
+	ret0, _ := ret[0].(*external.BankAccountPaymentInformation)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateBankAccount indicates an expected call of CreateBankAccount.
+func (mr *MockClientMockRecorder) CreateBankAccount(ctx, userID, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateBankAccount", reflect.TypeOf((*MockClient)(nil).CreateBankAccount), ctx, userID, args)
+}
+
+// CreateJWT mocks base method.
+func (m *MockClient) CreateJWT(ctx context.Context, args external.TokenArgs) (*external.TokenResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateJWT", ctx, args)
+	ret0, _ := ret[0].(*external.TokenResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateJWT indicates an expected call of CreateJWT.
+func (mr *MockClientMockRecorder) CreateJWT(ctx, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateJWT", reflect.TypeOf((*MockClient)(nil).CreateJWT), ctx, args)
 }
 
 // CreateTransfer mocks base method.
@@ -138,6 +170,21 @@ func (m *MockClient) GetUserAssessment(ctx context.Context, userID string) (*ext
 func (mr *MockClientMockRecorder) GetUserAssessment(ctx, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserAssessment", reflect.TypeOf((*MockClient)(nil).GetUserAssessment), ctx, userID)
+}
+
+// GetUsersPaymentInformation mocks base method.
+func (m *MockClient) GetUsersPaymentInformation(ctx context.Context, userID, id string) (json.RawMessage, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUsersPaymentInformation", ctx, userID, id)
+	ret0, _ := ret[0].(json.RawMessage)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUsersPaymentInformation indicates an expected call of GetUsersPaymentInformation.
+func (mr *MockClientMockRecorder) GetUsersPaymentInformation(ctx, userID, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUsersPaymentInformation", reflect.TypeOf((*MockClient)(nil).GetUsersPaymentInformation), ctx, userID, id)
 }
 
 // GetWallet mocks base method.
@@ -273,4 +320,17 @@ func (m *MockClient) WalletWithdrawal(ctx context.Context, args external.Withdra
 func (mr *MockClientMockRecorder) WalletWithdrawal(ctx, args interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WalletWithdrawal", reflect.TypeOf((*MockClient)(nil).WalletWithdrawal), ctx, args)
+}
+
+func (m *MockClient) PTIDeposit(ctx context.Context, id string) (*payments.Payment, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PTIDeposit", ctx, id)
+	ret0, _ := ret[0].(*payments.Payment)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (mr *MockClientMockRecorder) PTIDeposit(ctx, id, identity interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PTIDeposit", reflect.TypeOf((*MockClient)(nil).PTIDeposit), ctx, id, identity)
 }

@@ -40,8 +40,10 @@ import {
 } from '~/data/accounts.server'
 import { getKycStatus } from '~/data/wallet.server'
 import type {
-  Balance,
   Amount as RpcAmount
+} from '~/generated/connect/backend/v1/backend_pb';
+import {
+  Balance
 } from '~/generated/connect/backend/v1/backend_pb'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
@@ -52,6 +54,16 @@ import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { PaySelect } from '~/routes/pay_.$paymentId/PaySelect'
 import styles from '~/styles/flags.css'
 import { KycStatus } from './_index/route'
+import type { JsonValue } from '@bufbuild/protobuf'
+
+type WithdrawalLoaderData = {
+  balances: FormattedLinkedAccount[];
+  provider: string;
+  balanceAccount: JsonValue;
+  linkedAccounts: FormattedLinkedAccount[];
+  csrfToken: string;
+  balance?: FormattedLinkedAccount | undefined;
+}
 
 export async function loader(args: LoaderFunctionArgs) {
   const providerResponse = await grpc.getOnOffRampProvider(args.request, {})
@@ -63,7 +75,9 @@ export async function loader(args: LoaderFunctionArgs) {
   
   if (providerResponse.provider == 'gatehub') {
     return gatehubWithdrawalLoader(args)
-  } else return fynbosWithdrawalLoader(args)
+  } else if(providerResponse.provider == 'pti')
+    return ptiWithdrawalLoader(args)
+  else return fynbosWithdrawalLoader(args)
 }
 
 async function gatehubWithdrawalLoader({ request }: LoaderFunctionArgs) {
@@ -77,8 +91,31 @@ async function gatehubWithdrawalLoader({ request }: LoaderFunctionArgs) {
 }
 
 async function fynbosWithdrawalLoader({ request }: LoaderFunctionArgs) {
-  const url = new URL(request.url)
+  return await addProviderToLoader(request,'interledger')
+}
 
+async function ptiWithdrawalLoader({ request }: LoaderFunctionArgs) {
+  return await addProviderToLoader(request,'pti')
+}
+
+export const handle: ApplicationProps = {
+  layout: Layouts.Focus,
+  scaffold: {
+    header: {
+      title: 'Withdraw',
+      back: '/'
+    }
+  }
+}
+
+export const meta: MetaFunction = mergeMeta(() => [
+  {
+    title: 'Withdraw'
+  }
+])
+
+async function addProviderToLoader(request: Request, provider: 'interledger' | 'pti') {
+  const url = new URL(request.url)
   const balanceResponse = await grpc.getBalances(request, {})
   if (isConnectError(balanceResponse)) throw balanceResponse.error
 
@@ -105,29 +142,13 @@ async function fynbosWithdrawalLoader({ request }: LoaderFunctionArgs) {
 
   // TODO: check if provider is the same as in backend
   return jsonWithCSRF(request, {
-    provider: 'interledger',
+    provider: provider,
     balanceAccount,
     balance,
     balances,
     linkedAccounts
   })
 }
-
-export const handle: ApplicationProps = {
-  layout: Layouts.Focus,
-  scaffold: {
-    header: {
-      title: 'Withdraw',
-      back: '/'
-    }
-  }
-}
-
-export const meta: MetaFunction = mergeMeta(() => [
-  {
-    title: 'Withdraw'
-  }
-])
 
 export function links() {
   return [{ rel: 'stylesheet', href: styles }]
@@ -147,7 +168,6 @@ function GatehubWithdrawalPage() {
   useEffect(() => {
     const url = new URL(gatehubWidgetUrl)
     const handler = (event: MessageEvent<IframeMessage>) => {  
-      console.log('event.data.type: ',event.data.type)
       if (
         event.origin === url.origin &&
         event.data.type === 'WithdrawalCompleted'
@@ -187,8 +207,15 @@ function GatehubWithdrawalPage() {
 }
 
 function FynbosWithdrawalPage() {
-  const { linkedAccounts } = useLoaderData<typeof fynbosWithdrawalLoader>()
-
+  const data = useLoaderData<typeof fynbosWithdrawalLoader>()
+  const amountData: WithdrawalLoaderData = {
+    balances: data.balances,
+    provider: data.provider,
+    balanceAccount:  data.balanceAccount,
+    linkedAccounts: data.linkedAccounts,
+    csrfToken: data.csrfToken,
+    balance: data.balance
+  }
   const [setLoading] = useScaffoldStore((state) => [state.setLoading])
 
   useEffect(() => {
@@ -198,7 +225,7 @@ function FynbosWithdrawalPage() {
     }
   }, [setLoading])
 
-  if (linkedAccounts.length === 0)
+  if (data.linkedAccounts.length === 0)
     return (
       <Card>
         <CardContent>
@@ -223,7 +250,7 @@ function FynbosWithdrawalPage() {
       </Card>
     )
 
-  return <Amount />
+  return <Amount data={amountData} />
 }
 
 const formatAmount = (amount?: PlainMessage<RpcAmount>): string => {
@@ -235,9 +262,10 @@ const formatAmount = (amount?: PlainMessage<RpcAmount>): string => {
   return formattedAmount.replace('.00', '')
 }
 
-const Amount = () => {
-  const { balance, balances, balanceAccount, linkedAccounts, csrfToken } =
-    useLoaderData<typeof fynbosWithdrawalLoader>()
+
+const Amount = ({data}: {data: WithdrawalLoaderData}) => {
+  const { balance, balances, balanceAccount, linkedAccounts, csrfToken, provider } = data
+  const balanceAcc = Balance.fromJson(balanceAccount);
   const [, setSearchParams] = useSearchParams()
   const actionData = useActionData<typeof action>()
 
@@ -252,8 +280,8 @@ const Amount = () => {
   }, [])
 
   const _maxWithdrawAmount = useCallback(() => {
-    setAmount(formatAmount(balanceAccount.balance))
-  }, [balanceAccount.balance])
+    setAmount(formatAmount(balanceAcc.balance))
+  }, [balanceAcc.balance])
 
   const _onChangeLinkedAccount = useCallback(
     (linkedAccount: FormattedLinkedAccount) => {
@@ -290,9 +318,15 @@ const Amount = () => {
       />
       <input
         form='account-withdraw'
-        value={balanceAccount.linkedAccount}
+        value={balanceAcc.linkedAccount}
         name='fromLinkedAccount'
         type='hidden'
+      />
+      <input
+      form='account-withdraw'
+      value={provider}
+      name='provider'
+      type='hidden'
       />
       <Card>
         <PaySelect
@@ -306,7 +340,7 @@ const Amount = () => {
           linkedAccountOptions={balances || []}
           onChangeLinkedAccount={_onChangeLinkedAccount}
           placeholder='0.00'
-          prefixIcon={<div className={`flag:${balanceAccount.countryCode}`} />}
+          prefixIcon={<div className={`flag:${balanceAcc.countryCode}`} />}
           type='number'
           min='0'
           step='0.01'
@@ -322,7 +356,7 @@ const Amount = () => {
           <span>
             You have{' '}
             <TextButton onClick={_maxWithdrawAmount}>
-              {balanceAccount.formattedBalance}
+              {balanceAcc.formattedBalance}
             </TextButton>{' '}
             available in your balance.
           </span>
@@ -383,10 +417,10 @@ export async function action({ request }: ActionFunctionArgs) {
   const toLinkedAccount = form.get('toLinkedAccount') as string
   const fromLinkedAccount = form.get('fromLinkedAccount') as string
   const note = form.get('note') as string
-
+ const provider = form.get('provider') as string
   await validateCSRFToken(request, form)
 
-  if ((form.get('provider') as string) == 'gatehub') {
+  if (provider == 'gatehub') {
     return createGatehubWithdrawal(request, form)
   }
 
@@ -397,13 +431,13 @@ export async function action({ request }: ActionFunctionArgs) {
     toLinkedAccount: '',
     note: ''
   }
-
+  const cc = provider === 'pti' ? 'USD' : 'ZAR';
   const withdrawResponse = await grpc.withdrawBalance(request, {
     fromLinkedAccount: fromLinkedAccount,
     toLinkedAccount: toLinkedAccount,
     amount: {
       amount: stringToBigInt(withdrawAmount),
-      asset: 'ZAR',
+      asset: cc,
       assetScale: 2
     },
     note

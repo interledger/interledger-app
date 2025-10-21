@@ -65,10 +65,6 @@ import (
 	notify_client "gitlab.com/fynbos/backend/notify/client"
 	"gitlab.com/fynbos/backend/payments"
 	payments_client "gitlab.com/fynbos/backend/payments/client"
-	"gitlab.com/fynbos/backend/providers/astra"
-	astra_client "gitlab.com/fynbos/backend/providers/astra/client"
-	"gitlab.com/fynbos/backend/providers/basistheory"
-	bt_client "gitlab.com/fynbos/backend/providers/basistheory/client"
 	"gitlab.com/fynbos/backend/providers/chimoney"
 	chimoney_client "gitlab.com/fynbos/backend/providers/chimoney/client"
 	chimoney_ops "gitlab.com/fynbos/backend/providers/chimoney/ops"
@@ -206,8 +202,6 @@ func start(args *cli.StartArgs) {
 	}
 	router.Handle("/webhooks/pti", ptiWebhook)
 	router.Handle("/webhooks/gatehub", gatehub_ops.NewWebhook(b))
-	router.Handle("/webhooks/astra/updates", b.Astra().WebhookHandler())
-	router.Handle("/webhooks/astra/wallet/{id}", b.Astra().TrustedAuthInfoWebhook())
 	router.Handle("/{wallet_id}/identities/{identity_sig_hash}", wallet_handler.GetIdentityHandler(b))
 	router.NotFound(wallet_handler.WalletRedirectHandler(b))
 
@@ -493,7 +487,6 @@ type backends struct {
 	limits         limits.Client
 	ident          identities.Client
 	vault          vault.Client
-	basistheory    basistheory.Client
 	feat           features.Client
 	img            images.Client
 	wallet         wallets.Client
@@ -506,7 +499,6 @@ type backends struct {
 	xago           xago.Client
 	pac            pacioli.Client
 	pti            pti.Client
-	astr           astra.Client
 	gatehub        gatehub.Client
 	chimoney       chimoney.Client
 }
@@ -517,10 +509,6 @@ func (b backends) Chimoney() chimoney.Client {
 
 func (b backends) Gatehub() gatehub.Client {
 	return b.gatehub
-}
-
-func (b backends) Astra() astra.Client {
-	return b.astr
 }
 
 func (b backends) Pacioli() pacioli.Client {
@@ -561,10 +549,6 @@ func (b backends) Wallets() wallets.Client {
 
 func (b backends) Features() features.Client {
 	return b.feat
-}
-
-func (b backends) BasisTheory() basistheory.Client {
-	return b.basistheory
 }
 
 func (b backends) Authorisation() authorisation.InternalClient {
@@ -743,8 +727,6 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 		log.Error("failed to start AWS client", zap.Error(err))
 	}
 
-	b.basistheory = bt_client.New(args.BasisTheoryApiKey, b)
-
 	b.feat = features_client.New(b)
 
 	twilioService, err := _twilio.NewService(&_twilio.ServiceArgs{
@@ -827,9 +809,6 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 
 	logger.Debug("initialising xago")
 	b.xago = xago_client.New(b)
-
-	logger.Debug("initialising Astra")
-	b.astr = astra_client.New(b)
 
 	logger.Debug("initialising FIANT")
 	b.pti = pti_client.New(b)

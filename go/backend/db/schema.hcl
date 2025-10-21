@@ -314,110 +314,7 @@ table "linked_account_reviews" {
     columns = [column.id]
   }
 }
-table "basistheory_cards" {
-  schema = schema.public
-  column "id" {
-    null    = false
-    type    = uuid
-    default = sql("gen_random_uuid()")
-  }
-  column "token_id" {
-    null = false
-    type = text
-  }
-  column "expiration_month" {
-    null = false
-    type = text
-  }
-  column "expiration_year" {
-    null = false
-    type = text
-  }
-  column "tokenized_number" {
-    null = false
-    type = text
-  }
-  column "wallet_id" {
-    null = false
-    type = uuid
-  }
-  column "fingerprint" {
-    null = false
-    type = text
-    default = ""
-  }
-  column "bin" {
-    default = ""
-    null = false
-    type = text
-  }
-  column "pull_network" {
-    default = ""
-    null = false
-    type = text
-  }
-  column "pull_enabled" {
-    default = false
-    null = false
-    type = bool
-  }
-  column "pull_type" {
-    default = ""
-    null = false
-    type = text
-  }
-  column "pull_country" {
-    default = ""
-    null = false
-    type = text
-  }
-  column "push_network" {
-    default = ""
-    null = false
-    type = text
-  }
-  column "push_enabled" {
-    default = false
-    null = false
-    type = bool
-  }
-  column "push_type" {
-    default = ""
-    null = false
-    type = text
-  }
-  column "push_availability" {
-    default = ""
-    null = false
-    type = text
-  }
-  column "push_country" {
-    default = ""
-    null = false
-    type = text
-  }  
-  column "created_at" {
-    null    = false
-    type    = timestamp
-    default = sql("now()::TIMESTAMP")
-  }
-  column "updated_at" {
-    null    = false
-    type    = timestamp
-    default = sql("now()::TIMESTAMP")
-  }
-  column "deleted_at" {
-    null = true
-    type = timestamp
-  }
-  primary_key {
-    columns = [column.id]
-  }
-  index "token_id_wallet_id_uniq" {
-    unique  = true
-    columns = [column.token_id, column.wallet_id]
-  }
-}
+
 table "openpayments_incoming_payment" {
   schema = schema.public
   column "id" {
@@ -2267,19 +2164,11 @@ table "payments" {
     type    = int
     default = 1
   }
-  column "astra_correlation_id" {
-    null    = true
-    type    = text
-  }
   primary_key {
     columns = [column.id]
   }
   index "payments_public_id_ind" {
     columns = [column.public_id]
-    unique  = true
-  }
-  index "payments_astra_correlation_id_ind" {
-    columns = [column.astra_correlation_id]
     unique  = true
   }
 }
@@ -3167,122 +3056,6 @@ table "pti_users" {
     columns = [column.wallet_id]
   }
 }
-table "astra_user_intents" {
-  schema = schema.public
-  column "id" {
-    null = false
-    type = uuid
-    default = sql("gen_random_uuid()")
-  }
-  column "wallet_id" {
-    null = false
-    type = uuid
-  }
-  column "intent_id" {
-    null = false
-    type = text
-  }
-  column "status" {
-    null = false
-    type = text
-  }
-  column "user_id" {
-    null = false
-    type = text
-  }
-  column "created_at" {
-    null    = false
-    type    = timestamp
-    default = sql("now()::TIMESTAMP")
-  }
-  column "updated_at" {
-    null    = false
-    type    = timestamp
-    default = sql("now()::TIMESTAMP")
-  }
-  primary_key {
-    columns = [column.id]
-  }
-  index "astra_user_intents_wallet_id_idx" {
-    unique = true
-    columns = [column.wallet_id]
-  }
-}
-
-table "astra_access_tokens" {
-  schema = schema.public
-  column "id" {
-    null = false
-    type = uuid
-    default = sql("gen_random_uuid()")
-  }
-  column "wallet_id" {
-    null = false
-    type = uuid
-  }
-  column "token" {
-    null = false
-    type = text
-  }
-  column "expires_at" {
-    null    = false
-    type    = timestamp
-  }
-  column "refresh_token" {
-    null = false
-    type = text
-  }
-  column "refresh_expires_at" {
-    null    = false
-    type    = timestamp
-  }
-
-  primary_key {
-    columns = [column.id]
-  }
-  index "astra_access_tokens_wallet_id_idx" {
-    unique = true
-    columns = [column.wallet_id]
-  }
-  index "astra_access_tokens_refresh_idx" {
-    columns = [column.refresh_expires_at]
-  }
-}
-
-table "astra_accounts" {
-  schema = schema.public
-  column "id" {
-    null = false
-    type = uuid
-    default = sql("gen_random_uuid()")
-  }
-  column "wallet_id" {
-    null = false
-    type = uuid
-  }
-  column "account_id" {
-    null = false
-    type = text
-  }
-  column "created_at" {
-    null    = false
-    type    = timestamp
-    default = sql("now()::TIMESTAMP")
-  }
-  column "updated_at" {
-    null    = false
-    type    = timestamp
-    default = sql("now()::TIMESTAMP")
-  }
-
-  primary_key {
-    columns = [column.id]
-  }
-  index "astra_accounts_wallet_id_idx" {
-    unique = true
-    columns = [column.wallet_id]
-  }
-}
 
 table "pti_transactions" {
   schema = schema.public
@@ -3308,41 +3081,6 @@ table "pti_transactions" {
     null    = false
     type    = timestamp
     default = sql("now()::TIMESTAMP")
-  }
-  primary_key {
-    columns = [column.id]
-  }
-}
-
-table "basis_theory_linked_accounts" {
-  schema = schema.public
-  column "id" {
-    null = false
-    type = uuid
-    default = sql("gen_random_uuid()")
-  }
-  column "basis_theory_card_id" {
-    null = false
-    type = uuid
-  }
-  column "linked_account_id" {
-    null = false
-    type = uuid
-  }
-  column "created_at" {
-    null    = false
-    type    = timestamp
-    default = sql("now()::TIMESTAMP")
-  }
-  column "updated_at" {
-    null    = false
-    type    = timestamp
-    default = sql("now()::TIMESTAMP")
-  }
-
-  index "basis_theory_linked_account_id_idx" {
-    unique = true
-    columns = [column.basis_theory_card_id, column.linked_account_id]
   }
   primary_key {
     columns = [column.id]

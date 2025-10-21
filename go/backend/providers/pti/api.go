@@ -5,6 +5,8 @@ import (
 	"time"
 
 	"gitlab.com/fynbos/backend/currency"
+	"gitlab.com/fynbos/backend/payments"
+	"gitlab.com/fynbos/backend/wallets"
 )
 
 type Client interface {
@@ -21,4 +23,14 @@ type Client interface {
 	AssignBalance(ctx context.Context, linkedAccountID, txID string, amt currency.Amount) (*Balance, error)
 
 	ReserveTransfer(ctx context.Context, fromAccount, toAccount, txID string, amt currency.Amount, timeout time.Duration) error
+
+	CreateJWT(ctx context.Context, args TokenArgs) (*TokenResponse, error)
+	GetWidget(ctx context.Context, walletID string) (*WidgetDetails, error)
+	CreateCard(ctx context.Context, walletID, tokenID string) (Await, error)
+	GetLinkedAccountCardDetails(ctx context.Context, id string) (*EncryptedCreditCardPaymentInformation, error)
+	CreateBankAccount(ctx context.Context, args CreateBankAccountArgs) (Await, error)
+	CreateDeposit(ctx context.Context, wallet *wallets.Wallet, payment *payments.Payment) error
+	CreateWithdrawal(ctx context.Context, walletID string, payment *payments.Payment) (string, error)
+	HandleSettleWithdraw(ctx context.Context, payload TransactionStatusPayload) error
+	HandleSettleDeposit(ctx context.Context, payload TransactionStatusPayload) error
 }

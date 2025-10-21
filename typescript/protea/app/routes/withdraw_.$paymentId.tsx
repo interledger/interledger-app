@@ -91,6 +91,12 @@ export default function Page() {
         name='csrfToken'
         type='hidden'
       />
+         <input
+        form='withdraw-confirm'
+        value={payment.senderAmount?.country}
+        name='country'
+        type='hidden'
+      />
       <Card>
         <Label className='mt-2'>Withdraw to</Label>
         <div className='my-1 flex space-x-2 rounded-xl bg-nav p-3'>
@@ -149,7 +155,7 @@ export default function Page() {
 
 export async function action({ request, params }: ActionFunctionArgs) {
   const form = await request.formData()
-
+  const country = form.get('country') as string
   await validateCSRFToken(request, form)
 
   const errors = {
@@ -160,6 +166,18 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
   const clientIpAddress = getClientIP(request)
 
+  if (country.toLowerCase() === 'us') {
+    const ptiResponse = await grpc.createPTIWithdrawal (request, {
+      paymentId: params.paymentId || ''
+    })
+    if (isConnectError(ptiResponse)) {
+      return ptiResponse.error({ errors }, {}, { action: 'Contact support' })
+    }
+    return redirectWithSnackbar(request, route('/'), {
+      message: 'Withdraw created successfully.',
+      icon: 'close'
+    })
+  }
   let response = await grpc.updatePayment(request, {
     id: params.paymentId,
     ipAddress: clientIpAddress

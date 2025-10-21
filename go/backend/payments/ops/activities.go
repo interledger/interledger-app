@@ -14,14 +14,12 @@ import (
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
-	"gitlab.com/fynbos/backend/providers/astra"
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	gatehub_external "gitlab.com/fynbos/backend/providers/gatehub/external"
 	"gitlab.com/fynbos/backend/providers/pti"
 	pti_external "gitlab.com/fynbos/backend/providers/pti/external"
 	"gitlab.com/fynbos/backend/providers/xago"
 	"gitlab.com/fynbos/backend/transactions"
-	"gitlab.com/fynbos/backend/wallets"
 	"go.temporal.io/sdk/temporal"
 )
 
@@ -57,7 +55,8 @@ func (a *Activity) SetPaymentStateComplete(ctx context.Context, id string) error
 			return nil
 		}
 		sourceAccountName := la.Name
-		if la.Provider == astra.ProviderName {
+		// flag(bradu): check pti.TypeCard
+		if la.Provider == pti.ProviderName && la.Type == pti.TypeCard {
 			sourceAccountName = "Card ending " + strings.Replace(la.Mask, "*", "", -1)
 		}
 		if la.Provider == xago.ProviderName && la.Type == xago.AccTypeBank {
@@ -76,7 +75,7 @@ func (a *Activity) SetPaymentStateComplete(ctx context.Context, id string) error
 		}
 
 		destAccountName := la.Name
-		if la.Provider == astra.ProviderName {
+		if la.Provider == pti.ProviderName && la.Type == pti.TypeCard {
 			destAccountName = "Card ending " + strings.Replace(la.Mask, "*", "", -1)
 		}
 		if la.Provider == xago.ProviderName && la.Type == xago.AccTypeBank {
@@ -270,7 +269,6 @@ func (a *Activity) ShouldPullFromAccount(ctx context.Context, paymentID string) 
 		p.Type == payments.TypeRafikiPeer2Peer ||
 		p.Type == payments.TypeRafiki2External ||
 		p.Type == payments.TypeWithdrawal ||
-		p.Type == payments.TypeDeposit ||
 		p.Type == payments.TypeWebMonetization, nil
 }
 
@@ -532,121 +530,6 @@ func (a *Activity) GetPaymentType(ctx context.Context, paymentID string) (paymen
 	return p.Type, nil
 }
 
-func (a *Activity) AddAstraCorrelation(ctx context.Context, paymentID string) error {
-	p, err := Lookup(ctx, a.b, paymentID)
-	if err != nil {
-		return err
-	}
-
-	if p.AstraCorrelationID != "" {
-		return nil
-	}
-
-	_, err = update(ctx, a.b, payments.UpdateArgs{AddAstraCorrelationID: true, ID: paymentID}, nil)
-	return err
-}
-
-func (a *Activity) AstraDeposit(ctx context.Context, paymentID string) (string, error) {
-	p, err := Lookup(ctx, a.b, paymentID)
-	if err != nil {
-		return "", err
-	}
-
-	la, err := a.b.LinkedAccounts().Get(ctx, p.SenderAccount)
-	if err != nil {
-		return "", err
-	}
-
-	return a.b.Astra().DebitCard(ctx, astra.CardToAccountArgs{
-		WalletID:            la.WalletID,
-		IdempotencyKey:      p.ID,
-		Name:                "Interledger Deposit",
-		Amount:              p.SenderAmount,
-		ClientCorrelationID: p.AstraCorrelationID,
-		DebitFeePercent:     0,
-		CardID:              la.ProviderID,
-	})
-}
-
-func (a *Activity) AstraWithdrawal(ctx context.Context, paymentID string) (string, error) {
-	p, err := Lookup(ctx, a.b, paymentID)
-	if err != nil {
-		return "", err
-	}
-
-	la, err := a.b.LinkedAccounts().Get(ctx, p.ReceiverAccount)
-	if err != nil {
-		return "", err
-	}
-
-	return a.b.Astra().CreditCard(ctx, astra.AccountToCardsArgs{
-		WalletID:        la.WalletID,
-		IdempotencyKey:  p.ID,
-		Name:            "Interledger Withdrawal",
-		Amount:          p.SenderAmount,
-		DebitFeePercent: 0,
-		CardID:          la.ProviderID,
-	})
-}
-
-func (a *Activity) CheckAstraTransferStatus(ctx context.Context, paymentID, txID string) (string, error) {
-	p, err := Lookup(ctx, a.b, paymentID)
-	if err != nil {
-		return "", err
-	}
-
-	tx, err := a.b.Astra().LookupTransfer(ctx, p.Sender.WalletID, txID)
-	if err != nil {
-		return "", err
-	}
-
-	return tx.Status, nil
-}
-
-func (a *Activity) CheckAstraRoutineStatus(ctx context.Context, paymentID, routineID string) (string, error) {
-	p, err := Lookup(ctx, a.b, paymentID)
-	if err != nil {
-		return "", err
-	}
-
-	var routine *astra.Routine
-	if p.Type == payments.TypeWithdrawal {
-		routine, err = a.b.Astra().LookupRoutine(ctx, wallets.AstraBusinessWalletID, routineID)
-		if err != nil {
-			return "", err
-		}
-	} else {
-		routine, err = a.b.Astra().LookupRoutine(ctx, p.Sender.WalletID, routineID)
-		if err != nil {
-			return "", err
-		}
-	}
-
-	return routine.Status, nil
-}
-
-func (a *Activity) PTIDeposit(ctx context.Context, paymentID string) (string, error) {
-	p, err := Lookup(ctx, a.b, paymentID)
-	if err != nil {
-		return "", err
-	}
-
-	txID, err := a.b.PTI().DepositToWallet(ctx, pti.TransactionArgs{
-		PaymentID:       paymentID,
-		WalletID:        p.Receiver.WalletID,
-		Amount:          p.ReceiverAmount,
-		LinkedAccountID: p.ReceiverAccount,
-	})
-	if errors.Is(err, pti_external.ErrUnprocessableEntity) {
-		return "", temporal.NewNonRetryableApplicationError("PTI unable to process deposit", "ErrUnprocessableEntity", err)
-	}
-	if err != nil {
-		return "", err
-	}
-
-	return txID, err
-}
-
 func (a *Activity) PTIWithdrawal(ctx context.Context, paymentID string) (string, error) {
 	p, err := Lookup(ctx, a.b, paymentID)
 	if err != nil {
@@ -657,7 +540,7 @@ func (a *Activity) PTIWithdrawal(ctx context.Context, paymentID string) (string,
 		PaymentID:       paymentID,
 		WalletID:        p.Sender.WalletID,
 		Amount:          p.SenderAmount,
-		LinkedAccountID: p.SenderAccount,
+		LinkedAccountID: p.ReceiverAccount, // credit card should receive amount
 	})
 	if errors.Is(err, pti_external.ErrUnprocessableEntity) {
 		return "", temporal.NewNonRetryableApplicationError("PTI unable to process withdrawal", "ErrUnprocessableEntity", err)
