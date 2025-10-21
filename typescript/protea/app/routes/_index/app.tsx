@@ -333,11 +333,16 @@ function CTACards() {
                 </div>
                 <div className='flex flex-col space-y-4'>
                   <p className='text-sm text-medium'>
-                    Connect bank accounts to easily withdraw from your balance.
+                    Connect bank accounts to easily add or withdraw from your
+                    balance.
                   </p>
                   <Router
                     className='text-sm font-medium text-primary'
-                    to={route('/connect/bank/za')}
+                    to={route(
+                      walletInfo.country === 'US'
+                        ? '/connect/bank/us'
+                        : '/connect/bank/za'
+                    )}
                   >
                     Connect a bank account
                   </Router>

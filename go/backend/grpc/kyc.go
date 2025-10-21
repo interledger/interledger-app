@@ -11,6 +11,7 @@ import (
 	"gitlab.com/fynbos/backend/kyc/persona"
 	"gitlab.com/fynbos/backend/providers/chimoney"
 	"gitlab.com/fynbos/backend/providers/gatehub"
+	"gitlab.com/fynbos/backend/providers/pti"
 
 	"gitlab.com/fynbos/env"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -62,6 +63,25 @@ func (s *rpcService) GetKYCProviderWidget(ctx context.Context, req *pb.GetKYCPro
 		return &pb.KYCProviderWidget{
 			Provider:       chimoney.ProviderName,
 			ChimoneyWidget: widget,
+		}, nil
+	}
+	if country.US == wallet.Country {
+		widget, err := s.b.PTI().GetWidget(ctx, wallet.ID)
+		if err != nil {
+			return nil, toGRPCError(err)
+		}
+
+		return &pb.KYCProviderWidget{
+			Provider: pti.ProviderName,
+			PtiWidget: &pb.PtiWidget{
+				ScenarioId:        widget.ScenarioID,
+				UserId:            widget.UserID,
+				RequestId:         widget.RequestID,
+				ClientId:          widget.ClientID,
+				GenerateTokenPath: widget.GenerateTokenPath,
+				SdkUrl:            widget.SdkUrl,
+				FormsUrl:          widget.FormsUrl,
+			},
 		}, nil
 	}
 

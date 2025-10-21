@@ -6,7 +6,7 @@ import (
 
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/providers/astra"
+	"gitlab.com/fynbos/backend/providers/pti"
 
 	pb "gitlab.com/fynbos/proto/backend/v1"
 )
@@ -169,32 +169,20 @@ func (s *rpcService) GetCardDetails(ctx context.Context, req *pb.GetCardDetailsR
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
-	if la.WalletID != wallet.ID || la.Type != astra.TypeCard || la.DeletedAt.Valid {
+	if la.WalletID != wallet.ID || la.Type != pti.TypeCard || la.DeletedAt.Valid {
 		return nil, NotFoundError("ErrNotFound")
 	}
 
-	card, err := s.b.BasisTheory().GetCardByLinkedAccountID(ctx, req.GetId())
+	card, err := s.b.PTI().GetLinkedAccountCardDetails(ctx, la.ID)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
-	if card.WalletID != wallet.ID {
-		return nil, NotFoundError("ErrNotFound")
-	}
 
-	network := card.PullNetwork
-	if network == "" {
-		network = card.PushNetwork
-	}
-	cardType := card.PullType
-	if cardType == "" {
-		cardType = card.PushType
-	}
-
+	// flag(bradu): card details needs to be discussed with Fiant
 	return &pb.CardDetails{
 		Id:         card.ID,
-		Network:    network,
-		Bin:        card.Bin,
-		Type:       cardType,
+		Network:    card.CreditCardType,
+		Bin:        card.CreditCardBin,
 		Expiration: fmt.Sprintf("%s/%s", card.ExpirationMonth, card.ExpirationYear),
 		Last4:      la.Mask,
 		Nickname:   la.Nickname,

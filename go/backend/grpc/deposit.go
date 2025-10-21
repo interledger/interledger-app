@@ -10,7 +10,6 @@ import (
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/limits"
 	"gitlab.com/fynbos/backend/payments"
-	"gitlab.com/fynbos/backend/providers/astra"
 	"gitlab.com/fynbos/backend/user"
 	pb "gitlab.com/fynbos/proto/backend/v1"
 )
@@ -31,6 +30,8 @@ func (s *rpcService) GetOnOffRampProvider(ctx context.Context, req *pb.Empty) (*
 		provider = "gatehub"
 	} else if country.CA == w.Country {
 		provider = "chimoney"
+	} else if country.US == w.Country {
+		provider = pti.ProviderName
 	}
 
 	return &pb.GetOnOffRampProviderResponse{
@@ -68,13 +69,21 @@ func (s *rpcService) DepositBalance(ctx context.Context, req *pb.TransferBalance
 	amt := currency.FromUInt64(req.Amount.Amount, fromLA.SendCurrency)
 
 	// check that does not exceed kyc limits.
-	exceedsLimits, limitType, err := s.b.Limits().ExceedsKYCLimits(ctx, w.ID, currency.FromUInt64(0, amt.Currency))
+	exceedsLimits, limitType, err := s.b.Limits().ExceedsKYCLimits(ctx, w.ID, amt)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
 	if exceedsLimits {
 		var description string
 		switch limitType {
+		case limits.LimitTypeTransaction:
+			description = "Exceeds per transaction limit."
+		case limits.LimitTypeDaily:
+			description = "Exceeds daily limit."
+		case limits.LimitTypeMonthly:
+			description = "Exceeds monthly limit."
+		case limits.LimitType6Monthly:
+			description = "Exceeds 6 monthly limit."
 		case limits.LimitTypeYearly:
 			description = "Exceeds yearly limit."
 		default:
@@ -123,7 +132,7 @@ func (s *rpcService) GetLinkedAccountsForDeposit(ctx context.Context, req *pb.Ge
 
 	var las []*pb.LinkedAccountForPayment
 	for _, la := range lal {
-		if balance.Provider == pti.ProviderName && la.Provider == astra.ProviderName && la.Type == astra.TypeCard {
+		if balance.Provider == pti.ProviderName && la.Provider == pti.ProviderName && la.Type == pti.TypeBank {
 			acc := &pb.LinkedAccountForPayment{
 				Details: transformLinkedAccount(la),
 				Enabled: la.CanPay(*balance),
@@ -137,4 +146,31 @@ func (s *rpcService) GetLinkedAccountsForDeposit(ctx context.Context, req *pb.Ge
 	return &pb.GetLinkedAccountsForPaymentResponse{
 		LinkedAccounts: las,
 	}, nil
+}
+
+func (s *rpcService) PtiCreateDeposit(ctx context.Context, req *pb.PtiCreateDepositRequest) (*pb.Empty, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil && !errors.Is(err, user.ErrNoUserFound) {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	w, err := s.b.Wallets().ForContext(ctx)
+	if err != nil && !errors.Is(err, user.ErrNoUserFound) {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	p, err := s.b.Payments().Lookup(ctx, req.GetId())
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	if p.Sender.WalletID != w.ID {
+		return nil, NotFoundError("payment not found")
+	}
+
+	err = s.b.PTI().CreateDeposit(ctx, w, p)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+	return &pb.Empty{}, nil
 }
