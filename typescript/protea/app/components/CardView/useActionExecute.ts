@@ -22,6 +22,11 @@ export const useActionExecute = () => {
     resetStatusDelayed(DELAY_AFTER_ACTION)
   }, [resetStatusDelayed, setActionStatus])
 
+  const successStatus = useCallback(() => {
+    setActionStatus('success')
+    resetStatusDelayed(DELAY_AFTER_ACTION)
+  }, [resetStatusDelayed, setActionStatus])
+
   const executeAction = useCallback(
     async ({
       execute,
@@ -38,16 +43,14 @@ export const useActionExecute = () => {
         await execute()
         onSuccess?.()
 
-        setActionStatus('success')
-        resetStatusDelayed(DELAY_AFTER_ACTION)
+        successStatus()
       } catch (error) {
         onError?.(error)
 
-        setActionStatus('error')
-        resetStatusDelayed(DELAY_AFTER_ACTION)
+        errorStatus()
       }
     },
-    [resetStatusDelayed, setActionStatus]
+    [setActionStatus, successStatus, errorStatus]
   )
 
   return {
@@ -55,6 +58,7 @@ export const useActionExecute = () => {
     executeAction,
     setActionStatus,
     resetStatus,
-    errorStatus
+    errorStatus,
+    successStatus
   }
 }

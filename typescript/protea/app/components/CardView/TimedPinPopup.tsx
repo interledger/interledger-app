@@ -6,7 +6,7 @@ import { Icon } from '~/components/Icon'
 interface TimedPinPopupProps {
   pin: string
   isVisible: boolean
-  onClose: () => void
+  onClose?: () => void
   duration?: number // in seconds
   className?: string
 }
@@ -32,7 +32,7 @@ export const TimedPinPopup = ({
       setTimeRemaining((prev) => {
         if (prev <= 1) {
           clearInterval(interval)
-          onClose()
+          onClose?.()
           return 0
         }
         return prev - 1

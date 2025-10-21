@@ -48,7 +48,8 @@ export const useCardActions = (card: StorableCard) => {
     executeAction,
     resetStatus,
     setActionStatus,
-    errorStatus
+    errorStatus,
+    successStatus
   } = useActionExecute()
   const { keyPair } = useKeyGeneration()
   const { cardProcessorClient } = useCardProcessorApi()
@@ -89,7 +90,8 @@ export const useCardActions = (card: StorableCard) => {
     }
 
     if (fetcher.data?.success) {
-      resetStatus()
+      successStatus()
+      return
     }
 
     // Make direct calls to the card processor after token retrieval
@@ -194,8 +196,7 @@ export const useCardActions = (card: StorableCard) => {
       triggerTokenOperation(CardTokenType.CARD_DATA)
     } else {
       executeAction({
-        execute: async () => {},
-        onSuccess: () => {
+        execute: async () => {
           setIsSensitiveDataVisible(false)
           setSensitiveData(getDefaultSensitiveData(card))
         }
@@ -207,8 +208,7 @@ export const useCardActions = (card: StorableCard) => {
       triggerTokenOperation(CardTokenType.PIN)
     } else {
       executeAction({
-        execute: async () => {},
-        onSuccess: () => {
+        execute: async () => {
           setIsPinVisible(false)
           setPin('****')
         }
