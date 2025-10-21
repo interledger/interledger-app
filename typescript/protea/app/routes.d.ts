@@ -9,6 +9,7 @@ declare module "routes-gen" {
     "/api/fern": Record<string, never>;
     "/api/maps/geocode": Record<string, never>;
     "/api/maps/placesAutocomplete": Record<string, never>;
+    "/api/pti/token": Record<string, never>;
     "/api/sendOtp": Record<string, never>;
     "/api/totp-challenge-init": Record<string, never>;
     "/api/totp-challenge-verify": Record<string, never>;
@@ -16,6 +17,7 @@ declare module "routes-gen" {
     "/cards": Record<string, never>;
     "/cards/:cardId": { "cardId": string };
     "/cards/order": Record<string, never>;
+    "/connect/bank/us": Record<string, never>;
     "/connect/bank/za": Record<string, never>;
     "/connect/card": Record<string, never>;
     "/connect/interac": Record<string, never>;
@@ -77,6 +79,7 @@ declare module "routes-gen" {
       | ["/api/fern"]
       | ["/api/maps/geocode"]
       | ["/api/maps/placesAutocomplete"]
+      | ["/api/pti/token"]
       | ["/api/sendOtp"]
       | ["/api/totp-challenge-init"]
       | ["/api/totp-challenge-verify"]
@@ -84,6 +87,7 @@ declare module "routes-gen" {
       | ["/cards"]
       | ["/cards/:cardId", RouteParams["/cards/:cardId"]]
       | ["/cards/order"]
+      | ["/connect/bank/us"]
       | ["/connect/bank/za"]
       | ["/connect/card"]
       | ["/connect/interac"]

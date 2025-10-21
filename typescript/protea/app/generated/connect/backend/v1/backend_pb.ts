@@ -1105,6 +1105,153 @@ export class ListCardsResponse extends Message<ListCardsResponse> {
 }
 
 /**
+ * @generated from message backend.v1.CreatePtiBankAccountRequest
+ */
+export class CreatePtiBankAccountRequest extends Message<CreatePtiBankAccountRequest> {
+  /**
+   * @generated from field: string bankName = 1;
+   */
+  bankName = "";
+
+  /**
+   * @generated from field: string accountNumber = 2;
+   */
+  accountNumber = "";
+
+  /**
+   * @generated from field: string routingNumber = 3;
+   */
+  routingNumber = "";
+
+  /**
+   * @generated from field: string accountType = 4;
+   */
+  accountType = "";
+
+  constructor(data?: PartialMessage<CreatePtiBankAccountRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.CreatePtiBankAccountRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "bankName", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "accountNumber", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "routingNumber", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "accountType", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreatePtiBankAccountRequest {
+    return new CreatePtiBankAccountRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CreatePtiBankAccountRequest {
+    return new CreatePtiBankAccountRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CreatePtiBankAccountRequest {
+    return new CreatePtiBankAccountRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CreatePtiBankAccountRequest | PlainMessage<CreatePtiBankAccountRequest> | undefined, b: CreatePtiBankAccountRequest | PlainMessage<CreatePtiBankAccountRequest> | undefined): boolean {
+    return proto3.util.equals(CreatePtiBankAccountRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.PtiTokenRequest
+ */
+export class PtiTokenRequest extends Message<PtiTokenRequest> {
+  /**
+   * @generated from field: string url = 1;
+   */
+  url = "";
+
+  /**
+   * @generated from field: string method = 2;
+   */
+  method = "";
+
+  constructor(data?: PartialMessage<PtiTokenRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.PtiTokenRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "method", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PtiTokenRequest {
+    return new PtiTokenRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PtiTokenRequest {
+    return new PtiTokenRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PtiTokenRequest {
+    return new PtiTokenRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PtiTokenRequest | PlainMessage<PtiTokenRequest> | undefined, b: PtiTokenRequest | PlainMessage<PtiTokenRequest> | undefined): boolean {
+    return proto3.util.equals(PtiTokenRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.PtiTokenResponse
+ */
+export class PtiTokenResponse extends Message<PtiTokenResponse> {
+  /**
+   * @generated from field: string accessToken = 1;
+   */
+  accessToken = "";
+
+  /**
+   * @generated from field: double expiresAt = 2;
+   */
+  expiresAt = 0;
+
+  /**
+   * @generated from field: string tokenType = 3;
+   */
+  tokenType = "";
+
+  constructor(data?: PartialMessage<PtiTokenResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.PtiTokenResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "accessToken", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "expiresAt", kind: "scalar", T: 1 /* ScalarType.DOUBLE */ },
+    { no: 3, name: "tokenType", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PtiTokenResponse {
+    return new PtiTokenResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PtiTokenResponse {
+    return new PtiTokenResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PtiTokenResponse {
+    return new PtiTokenResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PtiTokenResponse | PlainMessage<PtiTokenResponse> | undefined, b: PtiTokenResponse | PlainMessage<PtiTokenResponse> | undefined): boolean {
+    return proto3.util.equals(PtiTokenResponse, a, b);
+  }
+}
+
+/**
  * @generated from message backend.v1.CreateChimoneyDepositRequest
  */
 export class CreateChimoneyDepositRequest extends Message<CreateChimoneyDepositRequest> {
@@ -1253,43 +1400,6 @@ export class SetChimoneyInterlocEmailRequest extends Message<SetChimoneyInterloc
 }
 
 /**
- * @generated from message backend.v1.AstraRequiresOTPResponse
- */
-export class AstraRequiresOTPResponse extends Message<AstraRequiresOTPResponse> {
-  /**
-   * @generated from field: bool isRequired = 1;
-   */
-  isRequired = false;
-
-  constructor(data?: PartialMessage<AstraRequiresOTPResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "backend.v1.AstraRequiresOTPResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "isRequired", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AstraRequiresOTPResponse {
-    return new AstraRequiresOTPResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): AstraRequiresOTPResponse {
-    return new AstraRequiresOTPResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): AstraRequiresOTPResponse {
-    return new AstraRequiresOTPResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: AstraRequiresOTPResponse | PlainMessage<AstraRequiresOTPResponse> | undefined, b: AstraRequiresOTPResponse | PlainMessage<AstraRequiresOTPResponse> | undefined): boolean {
-    return proto3.util.equals(AstraRequiresOTPResponse, a, b);
-  }
-}
-
-/**
  * @generated from message backend.v1.CreateGatehubWithdrawalRequest
  */
 export class CreateGatehubWithdrawalRequest extends Message<CreateGatehubWithdrawalRequest> {
@@ -1360,6 +1470,80 @@ export class CreateGatehubWithdrawalResponse extends Message<CreateGatehubWithdr
 
   static equals(a: CreateGatehubWithdrawalResponse | PlainMessage<CreateGatehubWithdrawalResponse> | undefined, b: CreateGatehubWithdrawalResponse | PlainMessage<CreateGatehubWithdrawalResponse> | undefined): boolean {
     return proto3.util.equals(CreateGatehubWithdrawalResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.CreatePTIWithdrawalRequest
+ */
+export class CreatePTIWithdrawalRequest extends Message<CreatePTIWithdrawalRequest> {
+  /**
+   * @generated from field: string paymentId = 1;
+   */
+  paymentId = "";
+
+  constructor(data?: PartialMessage<CreatePTIWithdrawalRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.CreatePTIWithdrawalRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "paymentId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreatePTIWithdrawalRequest {
+    return new CreatePTIWithdrawalRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CreatePTIWithdrawalRequest {
+    return new CreatePTIWithdrawalRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CreatePTIWithdrawalRequest {
+    return new CreatePTIWithdrawalRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CreatePTIWithdrawalRequest | PlainMessage<CreatePTIWithdrawalRequest> | undefined, b: CreatePTIWithdrawalRequest | PlainMessage<CreatePTIWithdrawalRequest> | undefined): boolean {
+    return proto3.util.equals(CreatePTIWithdrawalRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.CreatePTIWithdrawalResponse
+ */
+export class CreatePTIWithdrawalResponse extends Message<CreatePTIWithdrawalResponse> {
+  /**
+   * @generated from field: string paymentId = 1;
+   */
+  paymentId = "";
+
+  constructor(data?: PartialMessage<CreatePTIWithdrawalResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.CreatePTIWithdrawalResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "paymentId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreatePTIWithdrawalResponse {
+    return new CreatePTIWithdrawalResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CreatePTIWithdrawalResponse {
+    return new CreatePTIWithdrawalResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CreatePTIWithdrawalResponse {
+    return new CreatePTIWithdrawalResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CreatePTIWithdrawalResponse | PlainMessage<CreatePTIWithdrawalResponse> | undefined, b: CreatePTIWithdrawalResponse | PlainMessage<CreatePTIWithdrawalResponse> | undefined): boolean {
+    return proto3.util.equals(CreatePTIWithdrawalResponse, a, b);
   }
 }
 
@@ -1461,6 +1645,11 @@ export class KYCProviderWidget extends Message<KYCProviderWidget> {
    */
   chimoneyWidget = "";
 
+  /**
+   * @generated from field: backend.v1.PtiWidget ptiWidget = 5;
+   */
+  ptiWidget?: PtiWidget;
+
   constructor(data?: PartialMessage<KYCProviderWidget>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1473,6 +1662,7 @@ export class KYCProviderWidget extends Message<KYCProviderWidget> {
     { no: 2, name: "gatehubWidget", kind: "message", T: GatehubWidget },
     { no: 3, name: "personaInquiry", kind: "message", T: KYCPersonaInquiryResponse },
     { no: 4, name: "chimoneyWidget", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "ptiWidget", kind: "message", T: PtiWidget },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): KYCProviderWidget {
@@ -1489,6 +1679,79 @@ export class KYCProviderWidget extends Message<KYCProviderWidget> {
 
   static equals(a: KYCProviderWidget | PlainMessage<KYCProviderWidget> | undefined, b: KYCProviderWidget | PlainMessage<KYCProviderWidget> | undefined): boolean {
     return proto3.util.equals(KYCProviderWidget, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.PtiWidget
+ */
+export class PtiWidget extends Message<PtiWidget> {
+  /**
+   * @generated from field: string scenarioId = 1;
+   */
+  scenarioId = "";
+
+  /**
+   * @generated from field: string userId = 2;
+   */
+  userId = "";
+
+  /**
+   * @generated from field: string requestId = 3;
+   */
+  requestId = "";
+
+  /**
+   * @generated from field: string clientId = 4;
+   */
+  clientId = "";
+
+  /**
+   * @generated from field: string generateTokenPath = 5;
+   */
+  generateTokenPath = "";
+
+  /**
+   * @generated from field: string sdkUrl = 6;
+   */
+  sdkUrl = "";
+
+  /**
+   * @generated from field: string formsUrl = 7;
+   */
+  formsUrl = "";
+
+  constructor(data?: PartialMessage<PtiWidget>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.PtiWidget";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "scenarioId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "userId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "requestId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "clientId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "generateTokenPath", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "sdkUrl", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 7, name: "formsUrl", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PtiWidget {
+    return new PtiWidget().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PtiWidget {
+    return new PtiWidget().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PtiWidget {
+    return new PtiWidget().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PtiWidget | PlainMessage<PtiWidget> | undefined, b: PtiWidget | PlainMessage<PtiWidget> | undefined): boolean {
+    return proto3.util.equals(PtiWidget, a, b);
   }
 }
 
@@ -1832,124 +2095,6 @@ export class RafikiLimits extends Message<RafikiLimits> {
 
   static equals(a: RafikiLimits | PlainMessage<RafikiLimits> | undefined, b: RafikiLimits | PlainMessage<RafikiLimits> | undefined): boolean {
     return proto3.util.equals(RafikiLimits, a, b);
-  }
-}
-
-/**
- * @generated from message backend.v1.AstraDepositFromCardRequest
- */
-export class AstraDepositFromCardRequest extends Message<AstraDepositFromCardRequest> {
-  /**
-   * Astra Card
-   *
-   * @generated from field: string fromLinkedAccount = 1;
-   */
-  fromLinkedAccount = "";
-
-  /**
-   * PTI Balance
-   *
-   * @generated from field: string toLinkedAccount = 2;
-   */
-  toLinkedAccount = "";
-
-  /**
-   * @generated from field: backend.v1.Amount amount = 3;
-   */
-  amount?: Amount;
-
-  /**
-   * @generated from field: string note = 4;
-   */
-  note = "";
-
-  constructor(data?: PartialMessage<AstraDepositFromCardRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "backend.v1.AstraDepositFromCardRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "fromLinkedAccount", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "toLinkedAccount", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "amount", kind: "message", T: Amount },
-    { no: 4, name: "note", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AstraDepositFromCardRequest {
-    return new AstraDepositFromCardRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): AstraDepositFromCardRequest {
-    return new AstraDepositFromCardRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): AstraDepositFromCardRequest {
-    return new AstraDepositFromCardRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: AstraDepositFromCardRequest | PlainMessage<AstraDepositFromCardRequest> | undefined, b: AstraDepositFromCardRequest | PlainMessage<AstraDepositFromCardRequest> | undefined): boolean {
-    return proto3.util.equals(AstraDepositFromCardRequest, a, b);
-  }
-}
-
-/**
- * @generated from message backend.v1.AstraWithdrawToCardRequest
- */
-export class AstraWithdrawToCardRequest extends Message<AstraWithdrawToCardRequest> {
-  /**
-   * PTI Balance
-   *
-   * @generated from field: string fromLinkedAccount = 1;
-   */
-  fromLinkedAccount = "";
-
-  /**
-   * Astra Card
-   *
-   * @generated from field: string toLinkedAccount = 2;
-   */
-  toLinkedAccount = "";
-
-  /**
-   * @generated from field: backend.v1.Amount amount = 3;
-   */
-  amount?: Amount;
-
-  /**
-   * @generated from field: string note = 4;
-   */
-  note = "";
-
-  constructor(data?: PartialMessage<AstraWithdrawToCardRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "backend.v1.AstraWithdrawToCardRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "fromLinkedAccount", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "toLinkedAccount", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "amount", kind: "message", T: Amount },
-    { no: 4, name: "note", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AstraWithdrawToCardRequest {
-    return new AstraWithdrawToCardRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): AstraWithdrawToCardRequest {
-    return new AstraWithdrawToCardRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): AstraWithdrawToCardRequest {
-    return new AstraWithdrawToCardRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: AstraWithdrawToCardRequest | PlainMessage<AstraWithdrawToCardRequest> | undefined, b: AstraWithdrawToCardRequest | PlainMessage<AstraWithdrawToCardRequest> | undefined): boolean {
-    return proto3.util.equals(AstraWithdrawToCardRequest, a, b);
   }
 }
 
@@ -2443,6 +2588,49 @@ export class PtiBalance extends Message<PtiBalance> {
 
   static equals(a: PtiBalance | PlainMessage<PtiBalance> | undefined, b: PtiBalance | PlainMessage<PtiBalance> | undefined): boolean {
     return proto3.util.equals(PtiBalance, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.PtiCreateDepositRequest
+ */
+export class PtiCreateDepositRequest extends Message<PtiCreateDepositRequest> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  /**
+   * @generated from field: optional string ipAddress = 2;
+   */
+  ipAddress?: string;
+
+  constructor(data?: PartialMessage<PtiCreateDepositRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.PtiCreateDepositRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "ipAddress", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PtiCreateDepositRequest {
+    return new PtiCreateDepositRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PtiCreateDepositRequest {
+    return new PtiCreateDepositRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PtiCreateDepositRequest {
+    return new PtiCreateDepositRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PtiCreateDepositRequest | PlainMessage<PtiCreateDepositRequest> | undefined, b: PtiCreateDepositRequest | PlainMessage<PtiCreateDepositRequest> | undefined): boolean {
+    return proto3.util.equals(PtiCreateDepositRequest, a, b);
   }
 }
 
@@ -4063,6 +4251,11 @@ export class WalletInfo extends Message<WalletInfo> {
    */
   exceededLimits = false;
 
+  /**
+   * @generated from field: string country = 11;
+   */
+  country = "";
+
   constructor(data?: PartialMessage<WalletInfo>) {
     super();
     proto3.util.initPartial(data, this);
@@ -4081,6 +4274,7 @@ export class WalletInfo extends Message<WalletInfo> {
     { no: 8, name: "hasWalletAddress", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 9, name: "hasBalances", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 10, name: "exceededLimits", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 11, name: "country", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): WalletInfo {

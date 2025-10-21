@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from 'react'
 import { route } from 'routes-gen'
 import { Button, Card, CardContent, Dialog, Layouts, Shape } from '~/components'
 import { isConnectError } from '~/lib/error.server'
+import type { FiantSdkMessage } from '~/lib/fiant'
 import { exitFlow, flowType, requireFlow } from '~/lib/flows.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
@@ -32,17 +33,18 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   if (isConnectError(response)) throw response.errorResponse
 
-  if (response.provider === 'local') {
-    // wait 1s on local for the async processes to finish
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    throw redirect('/')
-  }
+  // if (response.provider === 'local') {
+  //   // wait 1s on local for the async processes to finish
+  //   await new Promise((resolve) => setTimeout(resolve, 1000))
+  //   throw redirect('/')
+  // }
 
   return json({
     provider: response.provider,
     gatehubWidget: response.gatehubWidget,
     personaWidget: response.personaInquiry,
-    chimoneyWidget: response.chimoneyWidget
+    chimoneyWidget: response.chimoneyWidget,
+    ptiWidget: response.ptiWidget
   })
 }
 
@@ -197,6 +199,61 @@ function GatehubPage() {
   )
 }
 
+function PtiPage() {
+  const { ptiWidget } = useLoaderData<typeof loader>()
+  const submit = useSubmit()
+  const scriptStatus = useScript(
+    ptiWidget?.sdkUrl || 'https://sdk.platform.fiant.io/0.0.23/index.js'
+  )
+  const [setLoading] = useScaffoldStore((state) => [state.setLoading])
+
+  // Unmount make sure the loading state is set to false
+  useEffect(() => {
+    return () => {
+      setLoading(false)
+    }
+  }, [setLoading])
+
+  useEffect(() => {
+    if (scriptStatus == 'ready' && typeof (window as any).PTI !== 'undefined') {
+      ;(window as any).PTI.init({
+        clientId: ptiWidget?.clientId,
+        generateTokenPath: ptiWidget?.generateTokenPath,
+        ptiFormsUrl: ptiWidget?.formsUrl || 'https://forms.platform.fiant.io'
+      })
+      ;(window as any).PTI.form({
+        type: 'KYC',
+        requestId: ptiWidget?.requestId,
+        userId: ptiWidget?.userId,
+        scenarioId: ptiWidget?.scenarioId,
+        parentElement: document.getElementById('kyc_form'),
+        lang: 'en'
+      })
+    }
+
+    const handleMessage = (message: MessageEvent<FiantSdkMessage>) => {
+      if (message.data.name === 'UserAssessmentCompleted') {
+        setLoading(true)
+        submit(null, {
+          action: '/personal-details',
+          method: 'post'
+        })
+      }
+    }
+    window.addEventListener('message', handleMessage)
+
+    return () => {
+      window.removeEventListener('message', handleMessage)
+    }
+  }, [scriptStatus, ptiWidget, setLoading, submit])
+
+  return (
+    <>
+      <div id='kyc_form' className='h-[750px]' />
+    </>
+  )
+}
+
 type KycIntroProps = {
   onClick: () => void
   ready: Boolean
@@ -247,6 +304,8 @@ export default function Page() {
     return <PersonaPage />
   } else if (provider == 'chimoney') {
     return <ChimoneyPage />
+  } else if (provider == 'pti') {
+    return <PtiPage />
   } else return <GatehubPage />
 }
 

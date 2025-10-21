@@ -2,23 +2,19 @@ package client
 
 import (
 	"context"
-	"crypto/rand"
-	"crypto/rsa"
+	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
-	"github.com/lestrrat-go/jwx/v2/jwk"
+	"github.com/lestrrat-go/jwx/v3/jwk"
 
 	"gitlab.com/fynbos/backend/currency"
-	httplogger "gitlab.com/fynbos/backend/providers/http"
+	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/providers/pti/external"
-	external_mock "gitlab.com/fynbos/backend/providers/pti/external/mock"
 	"gitlab.com/fynbos/backend/providers/pti/ops"
-	"gitlab.com/fynbos/env"
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"gitlab.com/fynbos/backend/wallets"
 )
 
 var _ pti.Client = &Client{}
@@ -29,44 +25,18 @@ type Client struct {
 }
 
 func New(b ops.Backends) *Client {
-	var ptiPrivateKey jwk.Key
-	var err error
-	var ptiExternal external.Client
-	if env.IsTest() {
-		ptiExternal = external_mock.SetupDevMock(nil)
-	} else if env.IsLocal() {
-		privateKey, err := rsa.GenerateKey(rand.Reader, 4096)
-		if err != nil {
-			log.Fatalln(err)
-		}
-
-		ptiPrivateKey, err = jwk.FromRaw(privateKey)
-		if err != nil {
-			log.Fatalln(err)
-		}
-		ptiExternal = external.New(external.ClientArgs{
-			Transport: &http.Client{
-				Transport: otelhttp.NewTransport(
-					httplogger.NewTransport(http.DefaultTransport, b, nil),
-				),
-			},
-			ClientID:   "LOCAL",
-			PrivateKey: ptiPrivateKey,
-		})
-	} else {
-		ptiPrivateKey, err = jwk.ParseKey([]byte(os.Getenv("PTI_JWK")))
-		if err != nil {
-			log.Fatalln(err)
-		}
-		ptiExternal = external.New(external.ClientArgs{
-			Transport: &http.Client{
-				Transport: otelhttp.NewTransport(
-					httplogger.NewTransport(http.DefaultTransport, b, nil),
-				),
-			},
-			ClientID:   os.Getenv("PTI_CLIENT_ID"),
-			PrivateKey: ptiPrivateKey,
-		})
+	ptiPrivateKey, err := jwk.ParseKey([]byte(os.Getenv("PTI_JWK")))
+	if err != nil {
+		log.Fatalln(err)
+	}
+	ptiExternal, err := external.NewWithOptions(
+		external.WithBaseURL(os.Getenv("PTI_BASE_URL")),
+		external.WithOTELLHTTPClient(),
+		external.WithClientID(os.Getenv("PTI_CLIENT_ID")),
+		external.WithDerivedKeys(ptiPrivateKey),
+	)
+	if err != nil {
+		log.Fatalln(fmt.Errorf("%w Failed to create PTI external client: %s", pti.ErrInternal, err))
 	}
 
 	return &Client{b: b, external: ptiExternal}
@@ -119,4 +89,39 @@ func (c Client) RollbackReserve(ctx context.Context, trxID string) error {
 
 func (c Client) ReserveTransfer(ctx context.Context, fromAccount, toAccount, txID string, amt currency.Amount, timeout time.Duration) error {
 	return ops.ReserveTransfer(ctx, c.b, fromAccount, toAccount, txID, amt, timeout)
+}
+
+func (c Client) CreateJWT(ctx context.Context, args pti.TokenArgs) (*pti.TokenResponse, error) {
+	return c.external.CreateJWT(ctx, args)
+}
+
+func (c Client) GetWidget(ctx context.Context, walletID string) (*pti.WidgetDetails, error) {
+	return ops.GetKYCWidget(ctx, c.b, walletID)
+}
+
+func (c Client) CreateCard(ctx context.Context, walletID, tokenID string) (pti.Await, error) {
+	return ops.CreateCard(ctx, c.b, walletID, tokenID)
+}
+
+func (c Client) GetLinkedAccountCardDetails(ctx context.Context, id string) (*pti.EncryptedCreditCardPaymentInformation, error) {
+	return ops.GetLinkedAccountCardDetails(ctx, c.b, c.external, id)
+}
+
+func (c Client) CreateBankAccount(ctx context.Context, args pti.CreateBankAccountArgs) (pti.Await, error) {
+	return ops.CreateBankAccount(ctx, c.b, args)
+}
+
+func (c Client) CreateDeposit(ctx context.Context, wallet *wallets.Wallet, payment *payments.Payment) error {
+	return ops.CreateDeposit(ctx, c.b, wallet, payment)
+}
+
+func (c *Client) CreateWithdrawal(ctx context.Context, walletID string, payment *payments.Payment) (string, error) {
+	return ops.ConfirmWithdrawal(ctx, c.b, c.external, walletID, payment)
+}
+
+func (c *Client) HandleSettleWithdraw(ctx context.Context, payload pti.TransactionStatusPayload) error {
+	return ops.HandleSettleWithdraw(ctx, c.b, payload)
+}
+func (c *Client) HandleSettleDeposit(ctx context.Context, payload pti.TransactionStatusPayload) error {
+	return ops.HandleSettleDeposit(ctx, c.b, payload)
 }

@@ -405,6 +405,7 @@ func transformPayment(ctx context.Context, b Backends, p *payments.Payment) (*pb
 		FxRate:               fmt.Sprintf("%6f", p.FXRate),
 		ReceiverAmount:       p.ReceiverAmount.ToPB(),
 		FormattedFees:        fees.Format(),
+		ReceiverAccount:      p.ReceiverAccount,
 	}
 
 	if p.Type == payments.TypeWithdrawal {

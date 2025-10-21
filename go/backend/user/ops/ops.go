@@ -129,15 +129,7 @@ func ListUsers(ctx context.Context, b Backends, walletID string) ([]user.User, e
 			},
 		}, nil
 	}
-	if walletID == wallets.AstraBusinessWalletID {
-		return []user.User{
-			{
-				ID:          "a734d15a-b4d5-4a78-a434-1b03f39ecc44",
-				Email:       "astra@fynbos.dev",
-				PhoneNumber: "",
-			},
-		}, nil
-	}
+
 	ctx, cancel := context.WithTimeout(ctx, kratosTimeout)
 	defer cancel()
 

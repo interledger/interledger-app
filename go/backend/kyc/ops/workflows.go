@@ -91,6 +91,12 @@ func SetKYCStatusWorkflow(ctx workflow.Context, args SetKYCStatusWorkflowArgs) e
 			return err
 		}
 	}
+	if status == kyc.StatusPending && wallet.Country == country.US {
+		err = workflow.ExecuteActivity(ctx, a.KYCCreatePTIWallet, walletID).Get(ctx, nil)
+		if err != nil {
+			return err
+		}
+	}
 
 	return nil
 }
@@ -108,22 +114,22 @@ func (a *Activity) ResetExceededLimits(ctx context.Context, walletID string) err
 	return err
 }
 
+func (a *Activity) KYCCreatePTIWallet(ctx context.Context, walletID string) error {
+	_, err := a.b.PTI().CreateWallet(ctx, walletID, currency.USD)
+	return err
+}
+
 func (a *Activity) CreateKYCWallets(ctx context.Context, walletID string) error {
 	w, err := a.b.Wallets().Get(ctx, walletID)
 	if err != nil {
 		return err
 	}
 
-	if w.Country == country.US {
-		err = a.b.Astra().StartKYC(ctx, walletID)
-		if err != nil {
-			return err
-		}
-
-		_, err = a.b.PTI().CreateWallet(ctx, walletID, currency.USD)
-		if err != nil {
-			return err
-		}
+	// flag(bradu): this business logic might need to be revisited
+	if w.Country == country.CA {
+		// nothing to do. wallet already created
+	} else if w.Country == country.US {
+		// nothing to do. wallet already created when state was pending
 	} else if country.EUCountries[w.Country] {
 		// nothing to do. Gatehub user should already be created
 	} else if w.Country == country.ZA {
