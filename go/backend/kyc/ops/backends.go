@@ -3,7 +3,6 @@ package ops
 import (
 	"testing"
 
-	"gitlab.com/fynbos/backend/providers/astra"
 	"gitlab.com/fynbos/backend/providers/chimoney"
 	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/rafiki"
@@ -32,7 +31,6 @@ type Backends interface {
 	Email() email.Client
 	Wallets() wallets.Client
 	Xago() xago.Client
-	Astra() astra.Client
 	PTI() pti.Client
 	Chimoney() chimoney.Client
 	Rafiki() rafiki.Client
@@ -56,10 +54,6 @@ func (b testBackends) Chimoney() chimoney.Client {
 }
 
 func (t testBackends) PTI() pti.Client {
-	return nil
-}
-
-func (t testBackends) Astra() astra.Client {
 	return nil
 }
 

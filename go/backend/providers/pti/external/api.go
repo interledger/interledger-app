@@ -1,6 +1,9 @@
 package external
 
-import "context"
+import (
+	"context"
+	"encoding/json"
+)
 
 type Client interface {
 	CreateUser(ctx context.Context, args CreateUserArgs) (string, error)
@@ -13,10 +16,13 @@ type Client interface {
 	StartUserAssessment(ctx context.Context, args StartUserAssessmentArgs) (string, error)
 	GetUserAssessment(ctx context.Context, userID string) (*Assessment, error)
 	WalletDeposit(ctx context.Context, args DepositArgs) (string, error)
-	WalletWithdrawal(ctx context.Context, args WithdrawalArgs) (string, error)
+	WalletWithdrawal(ctx context.Context, args WithdrawalArgs) (*WithdrawDetails, error)
 	UpdateTransactionStatus(ctx context.Context, args UpdateTxStatusArgs) (string, error)
 	StartTransferAssessment(ctx context.Context, args TransferArgs) (*IDResponse, error)
 	GetTransactionAssessment(ctx context.Context, requestID string) (*TransactionAssessment, error)
 	CreateTransfer(ctx context.Context, args TransferArgs) (*IDResponse, error)
 	GetTransaction(ctx context.Context, requestID string) (*TransactionStatus, error)
+	CreateJWT(ctx context.Context, args TokenArgs) (*TokenResponse, error)
+	GetUsersPaymentInformation(ctx context.Context, userID, id string) (json.RawMessage, error)
+	CreateBankAccount(ctx context.Context, userID string, args BankAccountPaymentInformation) (*BankAccountPaymentInformation, error)
 }

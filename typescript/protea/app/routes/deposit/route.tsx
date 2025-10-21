@@ -26,8 +26,10 @@ import {
 } from './fynbos'
 import { GatehubDepositPage, gatehubDepositLoader } from './gatehub'
 import { KRATOS_URL } from '~/lib/kratos.server'
+
 import { getKycStatus } from '~/data/wallet.server'
 import { KycStatus } from '../_index/route'
+
 
 export async function loader(args: LoaderFunctionArgs) {
   const session = await fetch(`${KRATOS_URL}/sessions/whoami`, {
@@ -90,7 +92,6 @@ export async function action(args: ActionFunctionArgs) {
     return chimoneySuccessfullDepositAction(args)
   } else if (formName === 'xago-test-account-deposit') {
     return xagoTestAccountDepositAction(args)
-  }
-
+  } 
   return fynbosDepositAction(args)
 }

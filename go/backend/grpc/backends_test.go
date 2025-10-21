@@ -7,7 +7,6 @@ import (
 
 	"gitlab.com/fynbos/backend/providers/chimoney"
 
-	"gitlab.com/fynbos/backend/providers/astra"
 	"gitlab.com/fynbos/backend/providers/gatehub"
 
 	pti "gitlab.com/fynbos/backend/providers/pti"
@@ -30,8 +29,6 @@ import (
 	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/keys"
 	keys_mock "gitlab.com/fynbos/backend/keys/client/mock"
-	"gitlab.com/fynbos/backend/providers/basistheory"
-	bt_mock "gitlab.com/fynbos/backend/providers/basistheory/client/mock"
 
 	"gitlab.com/fynbos/backend/limits"
 	limit_mock "gitlab.com/fynbos/backend/limits/client/mock"
@@ -97,15 +94,10 @@ type TestContainer struct {
 	authorisation      *auth_mock.MockInternalClient
 	limits             *limit_mock.MockClient
 	keys               *keys_mock.MockClient
-	basistheory        *bt_mock.MockClient
 	TwitterClient      *twitter_mock.MockClient
 	walletImpl         *wallets_mock.MockClient
 	dynamicforms       *dynamicforms_mock.MockClient
 	rafiki             *rafiki_mock.MockClient
-}
-
-func (t TestContainer) Astra() astra.Client {
-	return nil
 }
 
 func (t TestContainer) Xago() xago.Client {
@@ -138,10 +130,6 @@ func (t TestContainer) Wallets() wallets.Client {
 
 func (t TestContainer) Features() features.Client {
 	return nil
-}
-
-func (t TestContainer) BasisTheory() basistheory.Client {
-	return t.basistheory
 }
 
 func (t TestContainer) Keys() keys.Client {

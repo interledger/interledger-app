@@ -64,10 +64,6 @@ func (c client) SignalExternalPayoutComplete(ctx context.Context, id string, suc
 	return ops.SignalExternalPayoutComplete(ctx, c.b, id, success)
 }
 
-func (c client) SignalAstraTransferUpdate(ctx context.Context, correlation string) error {
-	return ops.SignalAstraTransferUpdate(ctx, c.b, correlation)
-}
-
 func (c client) SignalGatehubTransferComplete(ctx context.Context, externalTransactionID string) error {
 	return ops.SignalGatehubTransferComplete(ctx, c.b, externalTransactionID)
 }

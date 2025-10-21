@@ -73,7 +73,6 @@ type StartArgs struct {
 	SmartyAuthToken     string
 	PusherAddr          string
 	SegmentKey          string
-	BasisTheoryApiKey   string
 	TwitterClientID     string
 	TwitterClientSecret string
 	TwitterRedirectURL  string
@@ -216,7 +215,6 @@ func ParseStartArgs() (*StartArgs, error) {
 		SmartyAuthToken:     os.Getenv("SMARTY_AUTH_TOKEN"),
 		PusherAddr:          os.Getenv("PUSHER_ADDR"),
 		SegmentKey:          os.Getenv("SEGMENT_KEY"),
-		BasisTheoryApiKey:   os.Getenv("BASISTHEORY_API_KEY"),
 		DiscordClientID:     os.Getenv("DISCORD_CLIENT_ID"),
 		DiscordClientSecret: os.Getenv("DISCORD_CLIENT_SECRET"),
 		DiscordRedirectURL:  os.Getenv("DISCORD_REDIRECT_URL"),

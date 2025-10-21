@@ -1,19 +1,15 @@
 package temporal
 
 import (
-	"crypto/rand"
-	"crypto/rsa"
 	"os"
 
-	"github.com/lestrrat-go/jwx/v2/jwk"
-	"gitlab.com/fynbos/env"
+	"github.com/lestrrat-go/jwx/v3/jwk"
 	"gitlab.com/fynbos/log"
 
 	"gitlab.com/fynbos/backend/identities/platforms"
 	"gitlab.com/fynbos/backend/jobs"
 	kyc_workflows "gitlab.com/fynbos/backend/kyc/ops"
 	payments_workflows "gitlab.com/fynbos/backend/payments/ops"
-	asta_workflows "gitlab.com/fynbos/backend/providers/astra/ops"
 	chimoney_workflows "gitlab.com/fynbos/backend/providers/chimoney/ops"
 	gatehub_workflows "gitlab.com/fynbos/backend/providers/gatehub/ops"
 	pti_workflows "gitlab.com/fynbos/backend/providers/pti/ops"
@@ -50,8 +46,6 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(jobs.UpdateTransactionTypes)
 	w.RegisterWorkflow(jobs.GenerateWalletPaymentPointersJob)
 	w.RegisterWorkflow(jobs.MigrateUSWalletsToPTIJob)
-	w.RegisterWorkflow(jobs.CreateAstraBusinessProfile)
-	w.RegisterWorkflow(jobs.ExchangeAstraBusinessProfileCode)
 	w.RegisterWorkflow(jobs.ResendOnOffRampEmailJob)
 	w.RegisterWorkflow(jobs.CreateRafikiPaymentPointersJob)
 	w.RegisterWorkflow(jobs.MigrateWalletAddressesToIlpLinkJob)
@@ -63,6 +57,7 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(jobs.SetGatehubGatewayToPaywiserJob)
 	w.RegisterWorkflow(jobs.RestartKYCstatusForXagoJob)
 	w.RegisterWorkflow(jobs.BackfillPaywiserAccountsJob)
+	w.RegisterWorkflow(jobs.PtiSettleDepositAndWithdrawsForWallet)
 
 	// Payment Engine
 	w.RegisterActivity(payments_workflows.NewActivity(b))
@@ -87,32 +82,37 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 
 	xago_workflows.StartDepositsPolling(b)
 
+	// PTI
+	w.RegisterWorkflow(pti_workflows.DepositWorkflow)
+	w.RegisterWorkflow(pti_workflows.SettleDepositWorkflow)
+	w.RegisterWorkflow(pti_workflows.MarkTransactionStateWorkflow)
+	w.RegisterWorkflow(pti_workflows.ReservePtiBalance)
+	w.RegisterWorkflow(pti_workflows.SettleWithdrawWorkflow)
+	w.RegisterWorkflow(pti_workflows.RevertWithdrawWorkflow)
 	var ptiPrivateKey jwk.Key
-	if env.IsLocal() {
-		privateKey, err := rsa.GenerateKey(rand.Reader, 4096)
-		if err != nil {
-			log.Fatalln(err)
-		}
-		ptiPrivateKey, err = jwk.FromRaw(privateKey)
-		if err != nil {
-			log.Fatalln(err)
-		}
-	} else {
-		var err error
-		ptiPrivateKey, err = jwk.ParseKey([]byte(os.Getenv("PTI_JWK")))
-		if err != nil {
-			log.Fatalln(err)
-		}
+	// if env.IsLocal() {
+	// 	privateKey, err := rsa.GenerateKey(rand.Reader, 4096)
+	// 	if err != nil {
+	// 		log.Fatalln(err)
+	// 	}
+	// 	// ptiPrivateKey, err = jwk.FromRaw(privateKey)
+	// 	ptiPrivateKey, err = jwk.Import(privateKey)
+	// 	if err != nil {
+	// 		log.Fatalln(err)
+	// 	}
+	// } else {
+	var err error
+	ptiPrivateKey, err = jwk.ParseKey([]byte(os.Getenv("PTI_JWK")))
+	if err != nil {
+		log.Fatalln(err)
 	}
+
 	w.RegisterActivity(pti_workflows.NewActivity(b, ptiPrivateKey))
 	w.RegisterWorkflow(pti_workflows.CreateWalletWorkflow)
 
-	// Astra
-	w.RegisterActivity(asta_workflows.NewActivity(b))
-	w.RegisterWorkflow(asta_workflows.AstraRenewTokensWorkflow)
-	w.RegisterWorkflow(asta_workflows.CreateAstraCardWorkflow)
-
-	// asta_workflows.StartTokenRefreshing(b)
+	w.RegisterWorkflow(pti_workflows.CreateUserWorkflow)
+	w.RegisterWorkflow(pti_workflows.CreateCardWorkflow)
+	w.RegisterWorkflow(pti_workflows.CreatePtiBankAccountWorkflow)
 
 	// Gatehub
 	w.RegisterActivity(gatehub_workflows.NewActivity(b))

@@ -3,23 +3,16 @@ package client_test
 import (
 	"context"
 	"fmt"
-	"gitlab.com/fynbos/backend/providers/chimoney"
 	"testing"
 	"time"
+
+	"gitlab.com/fynbos/backend/providers/chimoney"
 
 	rafiki_mock "gitlab.com/fynbos/backend/rafiki/client/mock"
 
 	"gitlab.com/fynbos/backend/providers/gatehub"
-	pti_ops "gitlab.com/fynbos/backend/providers/pti/ops"
-
-	"gitlab.com/fynbos/backend/providers/basistheory"
-	pti_client "gitlab.com/fynbos/backend/providers/pti/client"
-
-	astra_client "gitlab.com/fynbos/backend/providers/astra/client"
 
 	"gitlab.com/fynbos/backend/providers/pti"
-
-	"gitlab.com/fynbos/backend/providers/astra"
 
 	"gitlab.com/fynbos/backend/currency"
 
@@ -242,7 +235,7 @@ func (b *TestBackends) RestoreTemporalEnv() {
 	env.RegisterWorkflow(ops.PayoutWorkflow)
 	env.RegisterWorkflow(ops.RollbackPayInWorkflow)
 	env.RegisterWorkflow(ops.AwaitReceiverWorkflow)
-	env.RegisterActivity(pti_ops.NewActivity(b, nil))
+	// env.RegisterActivity(pti_ops.NewActivity(b, nil))
 
 	b.env = env
 }
@@ -252,14 +245,6 @@ func (b *TestBackends) Chimoney() chimoney.Client {
 }
 
 func (b *TestBackends) Gatehub() gatehub.Client {
-	return nil
-}
-
-func (b *TestBackends) Astra() astra.Client {
-	return astra_client.New(b)
-}
-
-func (b *TestBackends) BasisTheory() basistheory.Client {
 	return nil
 }
 
@@ -356,5 +341,6 @@ func (b *TestBackends) Payments() payments.Client {
 }
 
 func (b *TestBackends) PTI() pti.Client {
-	return pti_client.New(b)
+	// return pti_client.New(b)
+	return nil
 }

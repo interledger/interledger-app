@@ -6,6 +6,8 @@ import (
 	"gitlab.com/fynbos/backend/currency"
 )
 
+const CardPaymentInformationType = "ENCRYPTED_CREDIT_CARD"
+
 type (
 	CreateUserArgs struct {
 		ID                   string    `json:"id,omitempty"`
@@ -26,11 +28,11 @@ type (
 	}
 
 	CreateWalletArgs struct {
-		UserID    string `json:"-"`
-		WalletID  string `json:"walletId,omitempty"`
+		WalletID  string `json:"id,omitempty"` // todo(bradu) renaname walletid -> id
 		Currency  string `json:"currency,omitempty"`
-		Reference string `json:"reference,omitempty"`
+		UserID    string `json:"-"`
 		Type      string `json:"type,omitempty"`
+		Reference string `json:"reference,omitempty"`
 	}
 
 	StartUserAssessmentArgs struct {
@@ -57,23 +59,34 @@ type (
 	}
 
 	TransferArgs struct {
-		RequestID                 string                 `json:"-"`
-		ScenarioID                string                 `json:"-"`
-		SessionID                 string                 `json:"-"`
-		TransactionGroup          string                 `json:"transactionGroupId,omitempty"`
-		TransactionTotal          Total                  `json:"transactionTotal"`
-		SubClientID               string                 `json:"subClientId,omitempty"`
-		USDValue                  float64                `json:"usdValue,omitempty"`
-		Amount                    float64                `json:"amount,omitempty"`
-		Date                      string                 `json:"date,omitempty"`
-		Initiator                 User                   `json:"initiator"`
-		PTIMeta                   map[string]interface{} `json:"ptiMeta,omitempty"`
-		ClientMeta                map[string]interface{} `json:"clientMeta,omitempty"`
-		Type                      string                 `json:"type,omitempty"`
-		SourceTransferMethod      WalletPaymentMethod    `json:"sourceTransferMethod,omitempty"`
-		DestinationTransferMethod WalletPaymentMethod    `json:"destinationTransferMethod,omitempty"`
-		Destination               User                   `json:"destination,omitempty"`
-		DisableWebhook            bool                   `json:"-"`
+		RequestID                 string              `json:"-"`
+		ScenarioID                string              `json:"-"`
+		SessionID                 string              `json:"-"`
+		TransactionGroup          string              `json:"transactionGroupId,omitempty"`
+		TransactionTotal          Total               `json:"transactionTotal"`
+		SubClientID               string              `json:"subClientId,omitempty"`
+		USDValue                  float64             `json:"usdValue,omitempty"`
+		Amount                    float64             `json:"amount,omitempty"`
+		Date                      string              `json:"date,omitempty"`
+		Initiator                 User                `json:"initiator"`
+		PTIMeta                   map[string]any      `json:"ptiMeta,omitempty"`
+		ClientMeta                map[string]any      `json:"clientMeta,omitempty"`
+		Type                      string              `json:"type,omitempty"`
+		SourceTransferMethod      WalletPaymentMethod `json:"sourceTransferMethod,omitempty"`
+		DestinationTransferMethod WalletPaymentMethod `json:"destinationTransferMethod,omitempty"`
+		Destination               User                `json:"destination,omitempty"`
+		DisableWebhook            bool                `json:"-"`
+	}
+
+	TokenArgs struct {
+		URL    string `json:"url"`
+		Method string `json:"method"`
+	}
+
+	TokenResponse struct {
+		AccessToken string  `json:"accessToken"`
+		ExpiresAt   float64 `json:"expiresAt"`
+		TokenType   string  `json:"tokenType"`
 	}
 )
 
@@ -96,12 +109,14 @@ type (
 	}
 
 	Address struct {
-		Street     string      `json:"streetAddress,omitempty"`
-		City       string      `json:"city,omitempty"`
-		PostalCode string      `json:"postalCode,omitempty"`
-		StateCode  StateCode   `json:"stateCode,omitempty"`
-		Country    CountryCode `json:"country,omitempty"`
-		Default    bool        `json:"default,omitempty"`
+		Street     string `json:"streetAddress,omitempty"`
+		City       string `json:"city,omitempty"`
+		PostalCode string `json:"postalCode,omitempty"`
+		// StateCode  StateCode   `json:"stateCode,omitempty"`
+		StateCode string `json:"stateCode,omitempty"`
+		// Country   CountryCode `json:"country,omitempty"`
+		Country string `json:"country,omitempty"`
+		Default bool   `json:"default,omitempty"`
 	}
 
 	StateCode struct {
@@ -132,28 +147,30 @@ type (
 	}
 
 	User struct {
-		ID                 string                 `json:"id,omitempty"`
-		Type               string                 `json:"type,omitempty"`
-		Status             string                 `json:"status,omitempty"`
-		StatusReason       string                 `json:"statusReason,omitempty"`
-		Tags               []string               `json:"tags,omitempty"`
-		SourceOfFunds      string                 `json:"sourceOfFunds,omitempty"`
-		UserCreationDate   string                 `json:"userCreateionDate,omitempty"`
-		Addresses          []Address              `json:"addresses,omitempty"`
-		UserPTIMetaData    map[string]interface{} `json:"userPtiMeta,omitempty"`
-		UserClientMetaData map[string]interface{} `json:"userClientMeta,omitempty"`
-		Emails             []Email                `json:"emails,omitempty"`
-		Phones             []Phone                `json:"phones,omitempty"`
-		Name               *Name                  `json:"name,omitempty"`
-		DateOfBirth        string                 `json:"dateOfBirth,omitempty"`
+		ID                 string         `json:"id,omitempty"`
+		Type               string         `json:"type,omitempty"`
+		Status             string         `json:"status,omitempty"`
+		StatusReason       string         `json:"statusReason,omitempty"`
+		Tags               []string       `json:"tags,omitempty"`
+		SourceOfFunds      string         `json:"sourceOfFunds,omitempty"`
+		UserCreationDate   string         `json:"userCreateionDate,omitempty"`
+		Addresses          []Address      `json:"addresses,omitempty"`
+		UserPTIMetaData    map[string]any `json:"userPtiMeta,omitempty"`
+		UserClientMetaData map[string]any `json:"userClientMeta,omitempty"`
+		Emails             []Email        `json:"emails,omitempty"`
+		Phones             []Phone        `json:"phones,omitempty"`
+		Name               *Name          `json:"name,omitempty"`
+		DateOfBirth        string         `json:"dateOfBirth,omitempty"`
 	}
 
 	PaymentInformation struct {
+		ID                string `json:"id,omitempty"`
 		Type              string `json:"type"` // BANK_ACCOUNT, ENCRYPTED_CREDIT_CARD, TOKEN, WALLET
 		Currency          string `json:"currency,omitempty"`
 		BillingEmail      string `json:"billingEmail,omitempty"`
 		BankAccountNumber string `json:"bankAccountNumber,omitempty"`
 		BankRoutingNumber string `json:"bankRoutingNumber,omitempty"`
+		AccountHolderName string `json:"accountHolderName,omitempty"`
 		WalletID          string `json:"walletId,omitempty"`
 	}
 
@@ -181,25 +198,37 @@ type (
 	}
 
 	DepositArgs struct {
-		RequestID        string `json:"-"`
-		ScenarioID       string `json:"-"`
-		UserID           string `json:"-"`
-		SessionID        string `json:"-"`
-		ExternalWalletID string
-		Amount           currency.Amount
+		RequestID                 string `json:"-"`
+		ScenarioID                string `json:"-"`
+		UserID                    string `json:"-"`
+		SessionID                 string `json:"-"`
+		ExternalWalletID          string
+		ExternalPaymentMethodID   string
+		ExternalPaymentMethodType string // card or bank
+		Amount                    currency.Amount
+		AccountHolderName         string
 	}
 	WithdrawalArgs struct {
-		RequestID        string `json:"-"`
-		ScenarioID       string `json:"-"`
-		UserID           string `json:"-"`
-		SessionID        string `json:"-"`
-		ExternalWalletID string
-		Amount           currency.Amount
+		RequestID             string `json:"-"`
+		ScenarioID            string `json:"-"`
+		UserID                string `json:"-"`
+		SessionID             string `json:"-"`
+		ExternalWalletID      string
+		ExternalBankAccountID string
+		Amount                currency.Amount
+		AccountHolderName     string
 	}
 
 	CreateTxResponse struct {
 		ID   string `json:"id,omitempty"`
 		Link string `json:"link,omitempty"`
+	}
+
+	WithdrawDetails struct {
+		ID               string
+		UserID           string
+		Amount           currency.Amount
+		ExternalWalletID string
 	}
 
 	InternalCreateWithdrawalArgs struct {
@@ -237,8 +266,8 @@ type (
 		PaymentMethodType  string             `json:"paymentMethodType,omitempty"`
 	}
 	DestinationInformation struct {
-		Type     string `json:"type,omitempty"`
-		WalletID string `json:"walletId,omitempty"`
+		Type string `json:"type,omitempty"`
+		ID   string `json:"id,omitempty"`
 	}
 	DestinationMethod struct {
 		PaymentMethodType  string                 `json:"paymentMethodType,omitempty"`
@@ -251,7 +280,7 @@ type (
 	}
 
 	WalletType struct {
-		ID   string `json:"walletId,omitempty"`
+		ID   string `json:"id,omitempty"`
 		Type string `json:"type,omitempty"`
 	}
 
@@ -265,7 +294,7 @@ type (
 		Risk                              string                            `json:"risk"`
 		Amount                            float64                           `json:"amount"`
 		TransactionType                   string                            `json:"transactionType"`
-		Meta                              map[string]interface{}            `json:"meta"`
+		Meta                              map[string]any                    `json:"meta"`
 		TransactionMonitoringResultDetail TransactionMonitoringResultDetail `json:"transactionMonitoringResultDetail"`
 	}
 
@@ -295,20 +324,59 @@ type (
 	}
 
 	TransactionStatus struct {
-		ResourceType        string                 `json:"resourceType"`
-		RequestID           string                 `json:"requestId"`
-		ClientID            string                 `json:"clientId"`
-		UserID              string                 `json:"userId"`
-		Date                string                 `json:"date"`
-		Status              string                 `json:"status"`
-		TransactionType     string                 `json:"transactionType"`
-		PaymentMethod       string                 `json:"paymentMethod"`
-		PaymentStatusDetail PaymentStatusDetail    `json:"paymentStatusDetail"`
-		Amount              string                 `json:"amount"`
-		BillingEmail        string                 `json:"billingEmail"`
-		Total               Total                  `json:"total"`
-		Currency            string                 `json:"currency"`
-		AdditionalInfos     map[string]interface{} `json:"additionalInfos"`
+		ResourceType        string              `json:"resourceType"`
+		RequestID           string              `json:"requestId"`
+		ClientID            string              `json:"clientId"`
+		UserID              string              `json:"userId"`
+		Date                string              `json:"date"`
+		Status              string              `json:"status"`
+		TransactionType     string              `json:"transactionType"`
+		PaymentMethod       string              `json:"paymentMethod"`
+		PaymentStatusDetail PaymentStatusDetail `json:"paymentStatusDetail"`
+		Amount              int                 `json:"amount"`
+		BillingEmail        string              `json:"billingEmail"`
+		Total               Total               `json:"total"`
+		Currency            string              `json:"currency"`
+		AdditionalInfos     map[string]any      `json:"additionalInfos"`
+	}
+
+	ExternalPaymentInformation struct {
+		ID   string `json:"id,omitempty"`
+		Type string `json:"type,omitempty"`
+	}
+
+	EncryptedCreditCardPaymentInformation struct {
+		ID                  string   `json:"id,omitempty"`
+		Type                string   `json:"type,omitempty"`
+		CreditCardLast4     string   `json:"creditCardLast4,omitempty"`
+		CreditCardType      string   `json:"creditCardType,omitempty"`
+		CreditCardBin       string   `json:"creditCardBin,omitempty"`
+		CreditCardReference string   `json:"creditCardReference,omitempty"`
+		CreditCardAddress   *Address `json:"creditCardAddress,omitempty"`
+		ExpirationYear      string   `json:"expirationYear,omitempty"`
+		ExpirationMonth     string   `json:"expirationMonth,omitempty"`
+		CardHolderFirstName string   `json:"cardHolderFirstName,omitempty"`
+		CardHolderLastName  string   `json:"cardHolderLastName,omitempty"`
+	}
+
+	BankAccountPaymentInformation struct {
+		ID                    string `json:"id,omitempty"`
+		Type                  string `json:"type,omitempty"`
+		BankAccountNumner     string `json:"bankAccountNumber,omitempty"`
+		BankAccountType       string `json:"bankAccountType,omitempty"`
+		BankSwiftCode         string `json:"bankSwiftCode,omitempty"`
+		BankRoutingNumber     string `json:"bankRoutingNumber,omitempty"`
+		BankRoutingCheckDigit string `json:"bankRoutingCheckDigit,omitempty"`
+		AccountBankName       string `json:"accountBankName,omitempty"`
+	}
+
+	TokenPaymentInformation struct {
+		ID                string `json:"id,omitempty"`
+		Type              string `json:"type,omitempty"`
+		TokenAddress      string `json:"tokenAddress,omitempty"`
+		TokenType         string `json:"tokenType,omitempty"`
+		Blockchain        string `json:"blockchain,omitempty"`
+		PrivateBlockchain bool   `json:"privateBlockchain,omitempty"`
 	}
 )
 

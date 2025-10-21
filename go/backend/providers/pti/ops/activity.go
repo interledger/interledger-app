@@ -2,29 +2,31 @@ package ops
 
 import (
 	"context"
-	"crypto/rand"
-	"crypto/rsa"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
-	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/lestrrat-go/jwx/v2/jwk"
+	"github.com/lestrrat-go/jwx/v3/jwk"
+	"gitlab.com/fynbos/backend/country"
+	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
-	httplogger "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/providers/pti/external"
-	external_mock "gitlab.com/fynbos/backend/providers/pti/external/mock"
+	"gitlab.com/fynbos/backend/slack"
+	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/env"
+	"gitlab.com/fynbos/log"
 	"gitlab.com/fynbos/pacioli"
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/temporal"
+	"go.uber.org/zap"
 )
 
 type Activity struct {
@@ -33,43 +35,19 @@ type Activity struct {
 }
 
 func NewActivity(b Backends, privateKey jwk.Key) *Activity {
-	var ex external.Client
-	if env.IsTest() {
-		ex = external_mock.SetupDevMock(nil)
-	} else if env.IsLocal() {
-		privateKey, err := rsa.GenerateKey(rand.Reader, 4096)
-		if err != nil {
-			log.Fatalln(err)
-		}
-
-		ptiPrivateKey, err := jwk.FromRaw(privateKey)
-		if err != nil {
-			log.Fatalln(err)
-		}
-		ex = external.New(external.ClientArgs{
-			Transport: &http.Client{
-				Transport: otelhttp.NewTransport(
-					httplogger.NewTransport(http.DefaultTransport, b, nil),
-				),
-			},
-			ClientID:   "LOCAL",
-			PrivateKey: ptiPrivateKey,
-		})
-	} else {
-		ex = external.New(external.ClientArgs{
-			Transport: &http.Client{
-				Transport: otelhttp.NewTransport(
-					httplogger.NewTransport(http.DefaultTransport, b, nil),
-				),
-			},
-			ClientID:   os.Getenv("PTI_CLIENT_ID"),
-			PrivateKey: privateKey,
-		})
+	ptiExternalClient, err := external.NewWithOptions(
+		external.WithBaseURL(os.Getenv("PTI_BASE_URL")),
+		external.WithOTELLHTTPClient(),
+		external.WithClientID(os.Getenv("PTI_CLIENT_ID")),
+		external.WithDerivedKeys(privateKey),
+	)
+	if err != nil {
+		log.Fatalln(fmt.Errorf("%w Failed to create PTI external client: %s", pti.ErrInternal, err))
 	}
 
 	return &Activity{
 		b:        b,
-		external: ex,
+		external: ptiExternalClient,
 	}
 }
 
@@ -85,33 +63,14 @@ func (a *Activity) GetPtiUser(ctx context.Context, walletID string) (*pti.User, 
 }
 
 func (a *Activity) CreatePtiUser(ctx context.Context, walletID string) (string, error) {
-	kycData, err := a.b.KYC().GetIndividualDetails(ctx, walletID)
-	if errors.Is(err, kyc.ErrNoKYCInfo) {
-		return "", temporal.NewNonRetryableApplicationError("No KYC data for wallet.", "ErrNotFound", err)
-	}
-
-	var addresses []external.Address
-	if kycData.Address != nil {
-		addresses = append(addresses, external.Address{
-			Street: kycData.Address.Line1,
-			City:   kycData.Address.City,
-			StateCode: external.StateCode{
-				Code: kycData.Address.State,
-			},
-			Country: external.CountryCode{
-				Code: kycData.Address.CountryCode,
-			},
-			PostalCode: kycData.Address.ZipCode,
-			Default:    true,
-		})
-	}
-
 	var emails []external.Email
 	var phones []external.Phone
 	usrs, err := a.b.Users().ListUsers(ctx, walletID)
 	if err != nil {
 		return "", err
 	}
+
+	var firstName, lastName string
 
 	for i, usr := range usrs {
 		emails = append(emails, external.Email{
@@ -124,20 +83,25 @@ func (a *Activity) CreatePtiUser(ctx context.Context, walletID string) (string, 
 			Type:    "MOBILE",
 			Default: i == 0,
 		})
+
+		if firstName == "" {
+			firstName = usr.FirstName
+		}
+
+		if lastName == "" {
+			lastName = usr.LastName
+		}
 	}
 
 	return a.external.CreateUser(ctx, external.CreateUserArgs{
-		ID:          uuid.NewString(),
-		Type:        "PERSON",
-		DateOfBirth: kycData.DateOfBirth.Format("2006-01-02"),
+		ID:   uuid.NewString(),
+		Type: "PERSON",
 		Name: external.Name{
-			First: kycData.FirstName,
-			Last:  kycData.LastName,
+			First: firstName,
+			Last:  lastName,
 		},
-		Emails:               emails,
-		Phones:               phones,
-		Addresses:            addresses,
-		CountryOfCitizenship: kycData.CountryCode,
+		Emails: emails,
+		Phones: phones,
 	})
 }
 
@@ -177,6 +141,48 @@ func (a *Activity) CheckUserAssessmentAccepted(ctx context.Context, walletID str
 
 	if assessment.Assessment != "ACCEPTED" {
 		return fmt.Errorf("%w", pti.ErrAssessmentFailed)
+	}
+
+	// now update the personal details needed for front-end
+	externalUser, err := a.external.GetUser(ctx, usr.ExternalID)
+	if err != nil {
+		log.Error("pti activity (checkUserAssessmentAccepted): failed to fetch external user", zap.Error(err))
+		return nil
+	}
+
+	dob, err := time.Parse(time.DateOnly, externalUser.DateOfBirth)
+	if err != nil {
+		log.Error("pti activity (checkUserAssessmentAccepted): failed to parse date of birth", zap.Error(err))
+		return nil
+	}
+
+	args := kyc.IndividualDetails{
+		WalletID:    walletID,
+		FirstName:   externalUser.Name.First,
+		LastName:    externalUser.Name.Last,
+		DateOfBirth: dob,
+		IPAddress:   "10.0.0.1",
+	}
+	if len(externalUser.Addresses) > 0 {
+		args.Address = &kyc.Address{
+			// State:   externalUser.Addresses[0].StateCode.Code,
+			State:   externalUser.Addresses[0].StateCode,
+			Line1:   externalUser.Addresses[0].Street,
+			City:    externalUser.Addresses[0].City,
+			ZipCode: externalUser.Addresses[0].PostalCode,
+		}
+	}
+
+	_, err = a.b.KYC().UpdateIndividualDetails(ctx, args)
+	if err != nil {
+		log.Error("pti activity (checkUserAssessmentAccepted): failed to update individual details", zap.Error(err))
+		return nil
+	}
+
+	err = a.b.KYC().SetKYCStatus(ctx, walletID, kyc.StatusLevel2)
+	if err != nil {
+		log.Error("pti activity (checkUserAssessmentAccepted): failed to set kyc status to level2", zap.Error(err))
+		return nil
 	}
 
 	return nil
@@ -385,4 +391,471 @@ func (a *Activity) CreatePTIBalanceAccount(ctx context.Context, id string) error
 	}
 
 	return nil
+}
+
+func (a *Activity) CreatePTICard(ctx context.Context, walletID, tokenID string) (*linkedaccounts.LinkedAccount, error) {
+	ptiUser, err := GetUser(ctx, a.b, walletID)
+	if errors.Is(err, pti.ErrNotFound) {
+		return nil, temporal.NewNonRetryableApplicationError("pti create card: no external user found", "ErrNotFound", err)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	externalCardRawJson, err := a.external.GetUsersPaymentInformation(ctx, ptiUser.ExternalID, tokenID)
+	if err != nil {
+		return nil, err
+	}
+
+	var d external.PaymentInformation
+	err = json.Unmarshal(externalCardRawJson, &d)
+	if err != nil {
+		return nil, err
+	}
+
+	if d.Type != external.CardPaymentInformationType {
+		return nil, temporal.NewNonRetryableApplicationError("pti create card: payment method is not a card", "ErrInternal", fmt.Errorf("%w payment method is not a card", pti.ErrInternal))
+	}
+
+	var cardInfo external.EncryptedCreditCardPaymentInformation
+	err = json.Unmarshal(externalCardRawJson, &cardInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	network := ""
+	if cardInfo.CreditCardType != "" {
+		network = cardInfo.CreditCardType
+	}
+
+	la, err := a.b.LinkedAccounts().Create(ctx, &linkedaccounts.CreateArgs{
+		WalletID:            walletID,
+		Name:                strings.TrimSpace(fmt.Sprintf("%s %s", network, cardInfo.CreditCardLast4)),
+		Nickname:            strings.TrimSpace(fmt.Sprintf("%s %s", network, cardInfo.CreditCardLast4)),
+		Provider:            pti.ProviderName,
+		ProviderID:          tokenID,
+		Mask:                cardInfo.CreditCardLast4,
+		State:               linkedaccounts.Verified,
+		Type:                pti.TypeCard,
+		CanSend:             true,
+		CanReceive:          true,
+		SendCountry:         country.US,
+		SendCurrency:        currency.USD,
+		SendNetwork:         network,
+		SendAvailability:    linkedaccounts.Immediate,
+		ReceiveCountry:      country.US,
+		ReceiveCurrency:     currency.USD,
+		ReceiveNetwork:      network,
+		ReceiveAvailability: linkedaccounts.Immediate,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return la, nil
+}
+
+func (a *Activity) CreatePtiBankAccount(ctx context.Context, args pti.CreateBankAccountArgs) (*external.BankAccountPaymentInformation, error) {
+	ptiUser, err := GetUser(ctx, a.b, args.WalletID)
+	if errors.Is(err, pti.ErrNotFound) {
+		return nil, temporal.NewNonRetryableApplicationError("save pti bank account: pti user not found", "ErrNotFound", err)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	bank, err := a.external.CreateBankAccount(ctx, ptiUser.ExternalID, external.BankAccountPaymentInformation{
+		Type:              "BANK_ACCOUNT",
+		BankAccountNumner: args.AccountNumber,
+		BankAccountType:   args.AccountType,
+		BankRoutingNumber: args.RoutingNumber,
+		// BankRoutingCheckDigit: args.RoutingNumberCheckDigit,
+		AccountBankName: args.Bank,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return bank, nil
+}
+
+func (a *Activity) SavePtiBankAccount(ctx context.Context, walletID, externalPaymentMethodID string) (*linkedaccounts.LinkedAccount, error) {
+	ptiUser, err := GetUser(ctx, a.b, walletID)
+	if errors.Is(err, pti.ErrNotFound) {
+		return nil, temporal.NewNonRetryableApplicationError("save pti bank account: pti user not found", "ErrNotFound", err)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := a.external.GetUsersPaymentInformation(ctx, ptiUser.ExternalID, externalPaymentMethodID)
+	if err != nil {
+		return nil, err
+	}
+
+	var bank external.BankAccountPaymentInformation
+	err = json.Unmarshal(data, &bank)
+	if err != nil {
+		return nil, err
+	}
+
+	mask := bank.BankAccountNumner
+	if len(mask) > 4 {
+		mask = bank.BankAccountNumner[len(mask)-4:]
+	}
+
+	la, err := a.b.LinkedAccounts().Create(ctx, &linkedaccounts.CreateArgs{
+		WalletID:            walletID,
+		Name:                strings.TrimSpace(fmt.Sprintf("%s %s", bank.AccountBankName, mask)),
+		Nickname:            strings.TrimSpace(fmt.Sprintf("%s %s", bank.AccountBankName, mask)),
+		Provider:            pti.ProviderName,
+		ProviderID:          externalPaymentMethodID,
+		Mask:                mask,
+		State:               linkedaccounts.Verified,
+		Type:                pti.TypeBank,
+		CanSend:             true,
+		CanReceive:          true,
+		SendCountry:         country.US,
+		SendCurrency:        currency.USD,
+		SendNetwork:         "ACH",
+		SendAvailability:    linkedaccounts.Few,
+		ReceiveCountry:      country.US,
+		ReceiveCurrency:     currency.USD,
+		ReceiveNetwork:      "ACH",
+		ReceiveAvailability: linkedaccounts.Few,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return la, nil
+}
+
+func getWalletID(ctx context.Context, b Backends, externalUserID string) (string, error) {
+	var walletID string
+	err := b.DB().GetContext(ctx, &walletID, "SELECT wallet_id FROM pti_users WHERE external_id=$1;", externalUserID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", fmt.Errorf("%w %s", pti.ErrNotFound, err)
+	} else if err != nil {
+		return "", fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+
+	return walletID, nil
+}
+
+func (a *Activity) GetWalletFromPTIUser(ctx context.Context, externalUserID string) (string, error) {
+
+	walletID, err := getWalletID(ctx, a.b, externalUserID)
+	if errors.Is(err, pti.ErrNotFound) {
+		return "", temporal.NewNonRetryableApplicationError("Invalid currency", "ErrNotFound", fmt.Errorf("%w No wallet found for pti user", pti.ErrNotFound))
+	}
+	if err != nil {
+		return "", err
+	}
+
+	return walletID, nil
+}
+
+func (a *Activity) CreateTransaction(ctx context.Context, la *linkedaccounts.LinkedAccount, amount currency.Amount, externalID, note string) error {
+	if amount.Currency != currency.USD {
+		return temporal.NewNonRetryableApplicationError("Invalid currency", "ErrInternal", fmt.Errorf("%w invalid currency", pti.ErrInternal))
+	}
+
+	wallet, err := a.b.Wallets().Get(ctx, la.WalletID)
+	if errors.Is(err, pti.ErrNotFound) {
+		return temporal.NewNonRetryableApplicationError("Wallet not found", "ErrNotFound", fmt.Errorf("%w No wallet found for pti user", pti.ErrNotFound))
+	}
+	if err != nil {
+		return err
+	}
+
+	_, err = a.b.Transactions().CreateTransaction(ctx, transactions.CreateTransactionArgs{
+		WalletID:                wallet.ID,
+		ForeignID:               externalID,
+		ForeignType:             transactions.TransactionTypeDeposit,
+		Provider:                pti.ProviderName,
+		State:                   transactions.StatePending,
+		Source:                  wallet.AddressString(),
+		Destination:             wallet.AddressString(),
+		Title:                   "Deposit",
+		DestinationIdentity:     wallet.ID,
+		DestinationIdentityType: payments.IdentityTypeWalletID.String(),
+		Amount:                  amount,
+		ProviderFee:             nil,
+		LinkedAccountTitle:      "US Balance",
+		Transfers: []transactions.TransferArgs{
+			{
+				LinkedAccountID: la.ID,
+				ForeignID:       externalID,
+				Amount:          amount,
+				Type:            transactions.TransferTypeCreditBalance,
+				State:           transactions.StatePending,
+			},
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (a *Activity) UpdateTransaction(ctx context.Context, transaction *transactions.Transaction, externalTxID string) error {
+	transfers, err := a.b.Transactions().ListTransfers(ctx, transaction.ID)
+	if err != nil || len(transfers) != 1 { // deposit only
+		return errors.New("not a deposit transaction")
+	}
+	transferID := transfers[0].ID
+
+	err = a.b.Transactions().SetTransferForeignID(ctx, transferID, externalTxID)
+	if err != nil {
+		return err
+	}
+
+	return a.b.Transactions().SetTransactionForeignID(ctx, transaction.ID, externalTxID)
+}
+
+func (a *Activity) GetTransactionByForeignID(ctx context.Context, walletID string, foreignID string) (*transactions.Transaction, error) {
+	return a.b.Transactions().GetTransactionByForeignID(ctx, walletID, foreignID)
+}
+
+func (a *Activity) CheckPaymentState(ctx context.Context, externalTxID string) error {
+	p, err := a.b.Payments().Lookup(ctx, externalTxID)
+	if err != nil {
+		return temporal.NewNonRetryableApplicationError("PTI USD Payment Not found", "ErrInternal", fmt.Errorf("%w Fiant payment not found %s", pti.ErrNotFound, externalTxID))
+	}
+	if p.State == payments.StateCompleted {
+		return temporal.NewNonRetryableApplicationError("PTI USD payment completed ", "ErrInternal", fmt.Errorf("%w Fiant payment previously completed %s", pti.ErrAssessmentFailed, externalTxID))
+	}
+	return nil
+}
+
+func (a *Activity) SettleTransaction(ctx context.Context, transactionID, walletID string, amount currency.Amount) (string, error) {
+	existingTransaction, err := a.b.Transactions().GetTransactionByForeignID(ctx, walletID, transactionID)
+	if err != nil && !errors.Is(err, transactions.ErrNotFound) {
+		return "", err
+	}
+	if existingTransaction != nil {
+		if existingTransaction.State == transactions.StateCompleted {
+			return "", temporal.NewNonRetryableApplicationError("PTI USD payment deposit", "ErrInternal", fmt.Errorf("%w Fiant payment previously completed %s", pti.ErrAssessmentFailed, transactionID))
+		}
+		if err := a.b.Transactions().SetTransactionState(ctx, existingTransaction.ID, transactions.StateCompleted); err != nil {
+			return "", err
+		}
+
+		transfers, err := a.b.Transactions().ListTransfers(ctx, existingTransaction.ID)
+		if err != nil || len(transfers) != 1 { // deposit only
+			return "", errors.New("not a deposit transaction")
+		}
+		transferID := transfers[0].ID
+
+		err = a.b.Transactions().SetTransferState(ctx, transferID, transactions.StateCompleted)
+		if err != nil {
+			return "", err
+		}
+
+		return existingTransaction.ID, nil
+	}
+
+	if amount.Currency != currency.USD {
+		return "", temporal.NewNonRetryableApplicationError("Invalid currency", "ErrInternal", fmt.Errorf("%w invalid currency", pti.ErrInternal))
+	}
+
+	wallet, err := a.b.Wallets().Get(ctx, walletID)
+	if errors.Is(err, pti.ErrNotFound) {
+		return "", temporal.NewNonRetryableApplicationError("Wallet not found", "ErrNotFound", fmt.Errorf("%w No wallet found for pti user", pti.ErrNotFound))
+	}
+	if err != nil {
+		return "", err
+	}
+
+	las, err := a.b.LinkedAccounts().ListBalances(ctx, walletID)
+	if err != nil {
+		return "", err
+	}
+
+	var eurBalance *linkedaccounts.LinkedAccount
+	for _, la := range las {
+		if la.Provider == pti.ProviderName && la.Type == pti.AccTypeBalance {
+			eurBalance = &la
+			break
+		}
+	}
+	if eurBalance == nil {
+		return "", temporal.NewNonRetryableApplicationError("PTI USD balance account not found", "ErrInternal", fmt.Errorf("%w Fiant USD balance account not found", pti.ErrInternal))
+	}
+
+	tx, err := a.b.Transactions().CreateTransaction(ctx, transactions.CreateTransactionArgs{
+		ID:                      transactionID,
+		WalletID:                walletID,
+		ForeignID:               transactionID,
+		ForeignType:             transactions.TransactionTypeDeposit,
+		Provider:                pti.ProviderName,
+		State:                   transactions.StateCompleted,
+		Source:                  wallet.AddressString(),
+		Destination:             wallet.AddressString(),
+		Title:                   "Deposit",
+		DestinationIdentity:     walletID,
+		DestinationIdentityType: payments.IdentityTypeWalletID.String(),
+		Amount:                  amount,
+		ProviderFee:             nil,
+		LinkedAccountTitle:      "US Balance",
+		Transfers: []transactions.TransferArgs{
+			{
+				LinkedAccountID: eurBalance.ID,
+				ForeignID:       transactionID,
+				Amount:          amount,
+				Type:            transactions.TransferTypeCreditBalance,
+				State:           transactions.StateCompleted,
+			},
+		},
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return tx, nil
+}
+
+func (a *Activity) FinalizePTIDeposit(ctx context.Context, id, walletID string, amount currency.Amount) error {
+	if amount.Currency != currency.USD {
+		return temporal.NewNonRetryableApplicationError("Invalid currency", "ErrInternal", fmt.Errorf("%w invalid currency", pti.ErrInternal))
+	}
+
+	las, err := a.b.LinkedAccounts().ListBalances(ctx, walletID)
+	if err != nil {
+		return err
+	}
+
+	var USDBalance *linkedaccounts.LinkedAccount
+	for _, la := range las {
+		if la.Provider == pti.ProviderName && la.Type == pti.AccTypeBalance {
+			USDBalance = &la
+			break
+		}
+	}
+	if USDBalance == nil {
+		return temporal.NewNonRetryableApplicationError("PTI USD balance account not found", "ErrInternal", fmt.Errorf("%w PTI USD balance account not found", pti.ErrInternal))
+	}
+
+	opsAcc := pti.USDOpsAccount
+	ledger := pti.LedgerIDUSD
+	tx, err := a.b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
+		{
+			ID:              id,
+			Amount:          amount.Value,
+			CreditAccountID: USDBalance.ID,
+			DebitAccountID:  opsAcc,
+			Pending:         false,
+			Code:            1,
+			Ledger:          ledger,
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+	if len(tx) > 0 {
+		if tx[0].Code == pacioli.TransferExists {
+			return nil
+		}
+		if tx[0].Code == pacioli.TransferExceedsCredits || tx[0].Code == pacioli.TransferExceedsDebits || tx[0].Code == pacioli.TransferExceedsPendingTransferAmount {
+			return fmt.Errorf("%w insufficient balance code (%s)", pti.ErrInsufficientBalance, tx[0].Code.String())
+		}
+		if tx[0].Code != 0 {
+			return fmt.Errorf("%w non success code (%s)", pti.ErrInternal, tx[0].Code.String())
+		}
+	}
+
+	return nil
+}
+
+func (a *Activity) PTIDeposit(ctx context.Context, ptiArgs pti.TransactionArgs) (string, error) {
+	return DepositToWallet(ctx, a.b, a.external, ptiArgs)
+
+}
+
+func (a *Activity) ReservePTIBalance(ctx context.Context, walletID, id string) error {
+	tx, err := a.b.Transactions().GetTransaction(ctx, walletID, id)
+	if errors.Is(err, transactions.ErrNotFound) {
+		return temporal.NewNonRetryableApplicationError("Transaction not found", "ErrInternal", fmt.Errorf("%w transaction not found", pti.ErrInternal))
+	}
+	if tx.Amount.Currency != currency.USD {
+		return temporal.NewNonRetryableApplicationError("Invalid currency", "ErrInternal", fmt.Errorf("%w invalid currency", pti.ErrInternal))
+	}
+
+	transfers, err := a.b.Transactions().ListTransfers(ctx, tx.ID)
+	if err != nil {
+		return fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+
+	if len(transfers) < 1 {
+		return fmt.Errorf("%w unable to reserve balance. No linked account specified", pti.ErrInternal)
+	}
+
+	timeout := time.Hour * 24 * 365 // Pending transfers must have a timeout.
+	var fee uint64 = 0
+	if tx.ProviderFee != nil {
+		fee = tx.ProviderFee.Value
+	}
+
+	amountWithFee := currency.Amount{
+		Value:    tx.Amount.Value + fee,
+		Currency: tx.Amount.Currency,
+		Scale:    tx.Amount.Scale,
+	}
+
+	_, err = ReserveBalance(ctx, a.b, transfers[0].LinkedAccountID, tx.ID, amountWithFee, timeout)
+	return err
+}
+
+func (a *Activity) FinalizePTIBalance(ctx context.Context, id, walletID string) error {
+	tx, err := a.b.Transactions().GetTransaction(ctx, walletID, id)
+	if errors.Is(err, transactions.ErrNotFound) {
+		return temporal.NewNonRetryableApplicationError("Transaction not found", "ErrInternal", fmt.Errorf("%w transaction not found", pti.ErrInternal))
+	}
+	if tx.Amount.Currency != currency.USD {
+		return temporal.NewNonRetryableApplicationError("Invalid currency", "ErrInternal", fmt.Errorf("%w invalid currency", pti.ErrInternal))
+	}
+
+	return FinaliseReserve(ctx, a.b, tx.ID)
+}
+
+func (a *Activity) UpdatePaymentState(ctx context.Context, paymentID string, state payments.State) error {
+	_, err := a.b.DB().ExecContext(ctx, "UPDATE payments SET state=$1, updated_at=now() where id=$2", payments.StateCompleted, paymentID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (a *Activity) UpdateTransactionState(ctx context.Context, walletID, transactionID string, state transactions.State) error {
+	info := activity.GetInfo(ctx)
+	if info.Attempt == 1 && state == transactions.StateFailed {
+		slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "wallet-info-bot", fmt.Sprintf("Pti withdrawal failed. %s/wallet/%s/transactions/%s", env.AdminURL(), walletID, transactionID))
+	}
+
+	transfers, err := a.b.Transactions().ListTransfers(ctx, transactionID)
+	if err != nil {
+		return fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+	for _, t := range transfers {
+		err = a.b.Transactions().SetTransferState(ctx, t.ID, state)
+		if err != nil {
+			return fmt.Errorf("%w %s", pti.ErrInternal, err)
+		}
+	}
+
+	return a.b.Transactions().SetTransactionState(ctx, transactionID, state)
+}
+
+func (a *Activity) RollbackPTIBalance(ctx context.Context, id, walletID string) error {
+	tx, err := a.b.Transactions().GetTransaction(ctx, walletID, id)
+	if errors.Is(err, transactions.ErrNotFound) {
+		return temporal.NewNonRetryableApplicationError("Transaction not found", "ErrInternal", fmt.Errorf("%w transaction not found", pti.ErrInternal))
+	}
+	if tx.Amount.Currency != currency.USD {
+		return temporal.NewNonRetryableApplicationError("Invalid currency", "ErrInternal", fmt.Errorf("%w invalid currency", pti.ErrInternal))
+	}
+
+	return RollbackReserve(ctx, a.b, tx.ID)
 }

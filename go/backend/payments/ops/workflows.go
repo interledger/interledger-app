@@ -8,11 +8,9 @@ import (
 	"gitlab.com/fynbos/backend/providers/chimoney"
 
 	"github.com/google/uuid"
-	"go.uber.org/zap"
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
-	"gitlab.com/fynbos/backend/providers/astra"
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	gatehub_external "gitlab.com/fynbos/backend/providers/gatehub/external"
 	httplog "gitlab.com/fynbos/backend/providers/http"
@@ -22,7 +20,6 @@ import (
 	"gitlab.com/fynbos/backend/providers/xago"
 	temporal_utils "gitlab.com/fynbos/backend/temporal/utils"
 	"gitlab.com/fynbos/backend/transactions"
-	"gitlab.com/fynbos/log"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
@@ -160,8 +157,6 @@ func PayinWorkflow(ctx workflow.Context, paymentID string) error {
 		switch la.Provider {
 		case xago.ProviderName:
 			txID, success, err = xagoPayIn(ctx, a, paymentID)
-		case astra.ProviderName:
-			txID, success, err = astraPayIn(ctx, a, paymentID)
 		case pti.ProviderName:
 			txID, success, err = ptiPayIn(ctx, a, ptiActivity, paymentID, la.WalletID)
 		case gatehub.ProviderName:
@@ -553,64 +548,6 @@ func xagoPayIn(ctx workflow.Context, a *Activity, paymentID string) (string, boo
 	return txID, true, nil
 }
 
-func astraPayIn(ctx workflow.Context, a *Activity, paymentID string) (string, bool, error) {
-	// Check for deposit type
-	var pt payments.Type
-	err := workflow.ExecuteActivity(ctx, a.GetPaymentType, paymentID).Get(ctx, &pt)
-	if err != nil {
-		return "", false, err
-	}
-
-	if pt != payments.TypeDeposit {
-		return "", false, temporal.NewNonRetryableApplicationError("incorrect payment type for astra pay in flow", "InvalidArgument", astra.ErrInternal, "paymentID", paymentID, "type", pt)
-	}
-
-	err = workflow.ExecuteActivity(ctx, a.AddAstraCorrelation, paymentID).Get(ctx, nil)
-	if err != nil {
-		return "", false, err
-	}
-
-	var txID string
-	err = workflow.ExecuteActivity(ctx, a.AstraDeposit, paymentID).Get(ctx, &txID)
-	if err != nil {
-		return "", false, err
-	}
-
-	// Wait for astra completion, webhook or poll
-	for {
-		selector := workflow.NewSelector(ctx)
-
-		// Wait for an hour to check the status or for the signal from the webhook
-		selector.AddFuture(workflow.NewTimer(ctx, time.Hour), func(f workflow.Future) {})
-		selector.AddReceive(workflow.GetSignalChannel(ctx, astraNotifyChanName), func(c workflow.ReceiveChannel, more bool) {
-			c.Receive(ctx, nil)
-		})
-
-		selector.Select(ctx)
-
-		var status string
-		err = workflow.ExecuteActivity(ctx, a.CheckAstraRoutineStatus, paymentID, txID).Get(ctx, &status)
-		if err != nil {
-			return "", false, err
-		}
-
-		if status == astra.RoutineStatusCompleted {
-			return txID, true, nil
-		}
-
-		if status == astra.RoutineStatusRequiresUserVerification || status == astra.RoutineStatusPendingAccountAuth || status == astra.RoutineStatusInactive {
-			log.Warn("astra routine requires manual correction", zap.String("paymentID", paymentID), zap.String("routine_status", status))
-			continue
-		}
-
-		if status == astra.RoutineStatusActive {
-			continue
-		}
-
-		return txID, false, nil
-	}
-}
-
 type PaySignal struct {
 	PaymentID     string
 	PayInSuccess  bool
@@ -622,7 +559,6 @@ const (
 	identityChanName      = "payment_identity_account_signals"
 	payinWorkflowFmt      = "payment_pay_in_%s"
 	payoutWorkflowFmt     = "payment_pay_out_%s"
-	astraNotifyChanName   = "payment_astra_signals"
 	gatehubNotifyChanName = "payment_gatehub_signals"
 )
 
@@ -723,8 +659,6 @@ func PayoutWorkflow(ctx workflow.Context, paymentID string) error {
 		externalTXID, success, err = xagoPayOut(ctx, accountsCtx, a, paymentID, txID)
 	case pti.ProviderName:
 		externalTXID, success, err = ptiPayOut(ctx, accountsCtx, a, ptiActivity, paymentID, txID, la.WalletID)
-	case astra.ProviderName:
-		externalTXID, success, err = astraPayOut(ctx, a, paymentID)
 	case gatehub.ProviderName:
 		externalTXID, success, err = gatehubPayOut(ctx, a, paymentID, txID, la.WalletID)
 	case chimoney.ProviderName:
@@ -794,36 +728,7 @@ func ptiPayOut(ctx, accountsCtx workflow.Context, a *Activity, ptiA *pti_ops.Act
 	}
 
 	var externalTxID string
-	if pt == payments.TypeDeposit {
-		err = workflow.ExecuteActivity(ctx, a.PTIDeposit, paymentID).Get(ctx, &externalTxID)
-		var applicationError *temporal.ApplicationError
-		// PTI lets us know they need more user info through 422 errors
-		if errors.As(err, &applicationError) && applicationError.Type() == "ErrUnprocessableEntity" {
-			innerErr := workflow.ExecuteActivity(ctx, ptiA.StartUserAssessment, walletID, pti.ScenarioDeposit).Get(ctx, nil)
-			if innerErr != nil {
-				return "", false, innerErr
-			}
-
-			innerErr = workflow.ExecuteActivity(ctx, ptiA.CheckUserAssessmentAccepted, walletID).Get(ctx, nil)
-			if innerErr != nil {
-				return "", false, innerErr
-			}
-
-			// now retry transfer
-			innerErr = workflow.ExecuteActivity(ctx, a.PTIDeposit, paymentID).Get(ctx, &externalTxID)
-			if innerErr != nil {
-				return "", false, err
-			}
-		} else if err != nil {
-			return "", false, err
-		}
-
-		// Mark deposit as completed, pay in was successful
-		err = workflow.ExecuteActivity(ctx, a.PTIDepositComplete, paymentID, externalTxID, true).Get(ctx, nil)
-		if err != nil {
-			return "", false, err
-		}
-	} else if pt == payments.TypePeer2Peer || pt == payments.TypeWebMonetization {
+	if pt == payments.TypePeer2Peer || pt == payments.TypeWebMonetization {
 		var ptiTrx external.TransactionStatus
 		err = workflow.ExecuteActivity(accountsCtx, ptiA.GetPTITransactionByPaymentID, paymentID).Get(ctx, &ptiTrx)
 		if err != nil {
@@ -891,64 +796,6 @@ func xagoPayOut(ctx, accountsCtx workflow.Context, a *Activity, paymentID, txID 
 	}
 
 	return externalTX, true, nil
-}
-
-func astraPayOut(ctx workflow.Context, a *Activity, paymentID string) (string, bool, error) {
-	// Check for withdrawal type
-	var pt payments.Type
-	err := workflow.ExecuteActivity(ctx, a.GetPaymentType, paymentID).Get(ctx, &pt)
-	if err != nil {
-		return "", false, err
-	}
-
-	if pt != payments.TypeWithdrawal {
-		return "", false, temporal.NewNonRetryableApplicationError("incorrect payment type for astra pay out flow", "InvalidArgument", astra.ErrInternal, "paymentID", paymentID, "type", pt)
-	}
-
-	err = workflow.ExecuteActivity(ctx, a.AddAstraCorrelation, paymentID).Get(ctx, nil)
-	if err != nil {
-		return "", false, err
-	}
-
-	var txID string
-	err = workflow.ExecuteActivity(ctx, a.AstraWithdrawal, paymentID).Get(ctx, &txID)
-	if err != nil {
-		return "", false, err
-	}
-
-	// Wait for astra completion, webhook or poll
-	for {
-		selector := workflow.NewSelector(ctx)
-
-		// Wait for an hour to check the status or for the signal from the webhook
-		selector.AddFuture(workflow.NewTimer(ctx, time.Hour), func(f workflow.Future) {})
-		selector.AddReceive(workflow.GetSignalChannel(ctx, astraNotifyChanName), func(c workflow.ReceiveChannel, more bool) {
-			c.Receive(ctx, nil)
-		})
-
-		selector.Select(ctx)
-
-		var status string
-		err = workflow.ExecuteActivity(ctx, a.CheckAstraRoutineStatus, paymentID, txID).Get(ctx, &status)
-		if err != nil {
-			return "", false, err
-		}
-
-		if status == astra.RoutineStatusCompleted {
-			return txID, true, nil
-		}
-
-		if status == astra.RoutineStatusRequiresUserVerification || status == astra.RoutineStatusPendingAccountAuth || status == astra.RoutineStatusInactive {
-			log.Warn("astra routine requires manual correction", zap.String("paymentID", paymentID), zap.String("routine_status", status))
-			continue
-		}
-
-		if status == astra.RoutineStatusActive {
-			continue
-		}
-
-		return txID, false, nil
-	}
 }
 
 func maybeAwaitRafikiPayout(ctx workflow.Context, a *Activity, paymentID string) (success bool, doPayout bool, err error) {
