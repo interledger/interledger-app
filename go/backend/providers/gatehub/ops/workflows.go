@@ -245,7 +245,7 @@ type CreateCardWorkflowArgs struct {
 	ShouldOrderPlastic bool
 }
 
-func CreateCardWorkflow(ctx workflow.Context, args CreateCardWorkflowArgs) error {
+func CreateGateHubCardWorkflow(ctx workflow.Context, args CreateCardWorkflowArgs) error {
 	var a *Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 10 * time.Second,

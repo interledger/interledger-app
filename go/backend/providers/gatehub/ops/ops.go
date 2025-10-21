@@ -634,7 +634,7 @@ func OrderCard(ctx context.Context, b Backends, ec external.Client, args gatehub
 		}
 
 		if workflowStatus != enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
-			_, err = b.Temporal().ExecuteWorkflow(ctx, wo, CreateCardWorkflow, CreateCardWorkflowArgs{
+			_, err = b.Temporal().ExecuteWorkflow(ctx, wo, CreateGateHubCardWorkflow, CreateCardWorkflowArgs{
 				WalletID:           args.Wallet.ID,
 				ExternalIDs:        args.ExternalIDs,
 				Currency:           currency.EUR.String(),
