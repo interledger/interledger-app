@@ -2,7 +2,6 @@ import { useFetcher, useLoaderData } from '@remix-run/react'
 import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
 import {
-  AnchorRouter,
   Button,
   Card,
   CardContent,
@@ -161,18 +160,10 @@ export function Password() {
             <Router className='text-primary' to='/legal/terms-of-service'>
               Terms of Use
             </Router>
-            , &nbsp;
+            and &nbsp;
             <Router className='text-primary' to='/legal/us/e-sign-agreement'>
               E-sign Agreement
             </Router>
-            , &nbsp;
-            <AnchorRouter to='https://astrafi.com/terms'>
-              Astra terms
-            </AnchorRouter>
-            , and &nbsp;
-            <AnchorRouter to='https://astrafi.com/privacy'>
-              Astra privacy policy
-            </AnchorRouter>
             .
           </Checkbox>
         </CardContent>

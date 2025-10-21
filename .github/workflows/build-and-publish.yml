@@ -80,7 +80,7 @@ jobs:
           file: ${{ matrix.package.file }}
           tags: interledger-app-${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}:${{ needs.version_generator.outputs.version }}
           build-args: |
-            GOLANG_VERSION=1.24.3
+            GOLANG_VERSION=1.25.1
             BUILDARCH=${{ matrix.platform.arch }}
             BUILDOS=${{ matrix.platform.os }}
           outputs: type=docker,dest=/tmp/${{ matrix.package.name }}-${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ github.sha }}.tar

@@ -24,27 +24,27 @@ import (
 	"gitlab.com/fynbos/backend/wallets"
 )
 
-func CreatePaymentPointer(ctx context.Context, b Backends, w wallets.Wallet) error {
+func CreatePaymentPointer(ctx context.Context, b Backends, w wallets.Wallet) (string, error) {
 	var ppID string
 	err := b.DB().GetContext(ctx, &ppID, "SELECT payment_pointer_id FROM rafiki_payment_pointers WHERE wallet_id=$1", w.ID)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+		return "", fmt.Errorf("%w %s", rafiki.ErrInternal, err)
 	}
 	if ppID != "" {
-		return nil
+		return ppID, nil
 	}
 
 	ppID, err = b.External().CreatePaymentPointer(ctx, w)
 	if err != nil {
-		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+		return "", fmt.Errorf("%w %s", rafiki.ErrInternal, err)
 	}
 
 	_, err = b.DB().ExecContext(ctx, "INSERT INTO rafiki_payment_pointers (wallet_id, payment_pointer_id) VALUES ($1, $2)", w.ID, ppID)
 	if db.IsErrorCode(err, db.UniqueViolationError) {
-		return nil
+		return ppID, nil
 	}
 	if err != nil {
-		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+		return "", fmt.Errorf("%w %s", rafiki.ErrInternal, err)
 	}
 
 	// This shouldn't really happen from now on since we are not provisioning a
@@ -62,7 +62,7 @@ func CreatePaymentPointer(ctx context.Context, b Backends, w wallets.Wallet) err
 	// 	}
 	// }
 
-	return nil
+	return ppID, nil
 }
 
 func GetWalletAddress(ctx context.Context, b Backends, walletID string) (*rafiki.WalletAddress, error) {
@@ -363,10 +363,7 @@ func RevokeGrant(ctx context.Context, b Backends, grantID string) error {
 	return nil
 }
 
-func UpdateWalletAddressStatus(ctx context.Context, b Backends, walletId struct {
-	Id   string `db:"payment_pointer_id"`
-	Name string `db:"name"`
-}, status bool) error {
+func UpdateWalletAddressStatus(ctx context.Context, b Backends, walletId rafiki.UpdateAddressStatus, status bool) error {
 	return b.External().UpdateWalletAddressStatus(ctx, walletId, status)
 
 }

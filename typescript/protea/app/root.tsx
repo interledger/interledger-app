@@ -4,7 +4,6 @@ import type {
   MetaFunction
 } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import type { ShouldRevalidateFunction } from '@remix-run/react'
 import {
   Link,
   Links,
@@ -22,12 +21,13 @@ import clsx from 'clsx'
 import type { ReactNode } from 'react'
 import { AnchorRouter, Error, LiveReload } from '~/components'
 import { Scaffold } from '~/components/Scaffold'
-import { hasUserSession } from '~/lib/kratos.server'
+import { getUserSession, hasUserSession } from '~/lib/kratos.server'
 import { getSnackbar } from '~/lib/snackbar.server'
 import styles from '~/styles/app.css'
 import { getFeatures } from './data/wallet.server'
 import { Features } from './generated/connect/backend/v1/backend_pb'
 import { getPusherArgs } from './lib/pusher.server'
+import { NON_FULL_SESSION_ROUTES, isTotpSet } from './lib/totp.server'
 import { usePusher } from './lib/usePusher'
 
 const metaContent = {
@@ -103,52 +103,22 @@ function Document({ children, theme = 'theme-system' }: DocumentProps) {
   )
 }
 
-const validatePathsList = [
-  '/',
-  '/pay',
-  '/deposit',
-  '/withdraw',
-  '/accounts',
-  '/payments',
-  '/personal-details'
-]
-
-export const shouldRevalidate: ShouldRevalidateFunction = ({
-  defaultShouldRevalidate,
-  nextUrl
-}) => {
-  /**
-   * NOTE: We always revalidate when routing to validatePathsList.
-   * To ensure the layout is in sync on client side navigation and to validate if account is disabled.
-   * This needs to be done for any route that returns a function in its layout handle.
-   */
-  if (validatePathsList.includes(nextUrl.pathname)) return true
-  // TODO: possible also revalidate if an action has been submitted so that we can show global snackbars even on error
-  // Could also just return json instead throwing an error
-  return defaultShouldRevalidate
-}
-
 export async function loader({ request }: LoaderFunctionArgs) {
   const isUser = hasUserSession(request)
   const snackbar = await getSnackbar(request)
 
   let features = new Features()
-
-  // TODO: Retrieve features only when using the app but not the marketing page.
-  // If the cookie value gets tempered, the user will enter an infinite redirect,
-  // since the `hasUserSession` function only verifies if the cookie EXISTS and
-  // does not validate it.
-  if (isUser) {
-    features = await getFeatures(request)
-  }
-
   const url = new URL(request.url)
   const pathname = url.pathname
 
-  // if wallet is in a region that is not enabled redirect
-  if (isUser && validatePathsList.includes(pathname)) {
-    features = await getFeatures(request)
+  if (isUser && !NON_FULL_SESSION_ROUTES.includes(pathname)) {
+    const session = await getUserSession(request)
+    const totpAvailable = await isTotpSet(session, request.headers)
+    if (!totpAvailable) {
+      return redirect('/totp/two-factor-authentication')
+    }
 
+    features = await getFeatures(request)
     if (features && !features.accountEnabled) {
       return redirect('/unavailable')
     }

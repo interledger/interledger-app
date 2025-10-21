@@ -35,7 +35,7 @@ type Client interface {
 	ListDeposits(ctx context.Context, page int) ([]Deposit, error)
 	GetWithdrawal(ctx context.Context, id string) (*Withdrawal, error)
 	TestDeposit(ctx context.Context, reqStruct TestDepositReq) error
-	UpdateInquiryLink(ctx context.Context, accountID string, inquiryLink string) error
+	UpdateSubAccount(ctx context.Context, accountID string, reqStruct UpdateSubAccountRequest) error
 	BankAccounts(ctx context.Context) (*[]Currency, error)
 	GetDeposit(ctx context.Context, id string) (*Deposit, error)
 }
@@ -856,14 +856,10 @@ func (c *client) TestDeposit(ctx context.Context, reqStruct TestDepositReq) erro
 	return err
 }
 
-func (c *client) UpdateInquiryLink(ctx context.Context, accountID string, inquiryLink string) error {
-	reqUrl, err := url.JoinPath(c.identityBaseURL, "company", "accounts", accountID)
+func (c *client) UpdateSubAccount(ctx context.Context, accountID string, reqStruct UpdateSubAccountRequest) error {
+	reqURL, err := url.JoinPath(c.identityBaseURL, "company", "accounts", accountID)
 	if err != nil {
 		return err
-	}
-
-	var reqStruct = UpdateInquiryLinkRequest{
-		ThirdPartyVerificationUrl: inquiryLink,
 	}
 
 	reqBody, err := json.Marshal(reqStruct)
@@ -882,7 +878,7 @@ func (c *client) UpdateInquiryLink(ctx context.Context, accountID string, inquir
 		})
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPut, reqUrl, bytes.NewReader(reqBody))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, reqURL, bytes.NewReader(reqBody))
 	if err != nil {
 		return err
 	}

@@ -10,6 +10,7 @@ import (
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/notify"
 	"gitlab.com/fynbos/backend/providers/xago"
+	"gitlab.com/fynbos/backend/rafiki"
 	"gitlab.com/fynbos/backend/slack"
 	"gitlab.com/fynbos/backend/wallets"
 	"gitlab.com/fynbos/env"
@@ -67,6 +68,10 @@ func SetKYCStatusWorkflow(ctx workflow.Context, args SetKYCStatusWorkflowArgs) e
 		}
 	}
 
+	err = workflow.ExecuteActivity(ctx, a.UpdateRafikiStatus, walletID, status).Get(ctx, nil)
+	if err != nil {
+		logger.Error("failed to update rafiki status", "err", err)
+	}
 	// Reset the KYC over the limit notifications for going to L2
 	if status == kyc.StatusLevel2 {
 		err = workflow.ExecuteActivity(ctx, a.ResetExceededLimits, walletID).Get(ctx, nil)
@@ -82,6 +87,12 @@ func SetKYCStatusWorkflow(ctx workflow.Context, args SetKYCStatusWorkflowArgs) e
 	}
 	if status == kyc.StatusPending && wallet.Country == country.CA {
 		err = workflow.ExecuteActivity(ctx, a.KYCWatchForChimoneySuccessfulKYC, walletID).Get(ctx, nil)
+		if err != nil {
+			return err
+		}
+	}
+	if status == kyc.StatusPending && wallet.Country == country.US {
+		err = workflow.ExecuteActivity(ctx, a.KYCCreatePTIWallet, walletID).Get(ctx, nil)
 		if err != nil {
 			return err
 		}
@@ -103,22 +114,22 @@ func (a *Activity) ResetExceededLimits(ctx context.Context, walletID string) err
 	return err
 }
 
+func (a *Activity) KYCCreatePTIWallet(ctx context.Context, walletID string) error {
+	_, err := a.b.PTI().CreateWallet(ctx, walletID, currency.USD)
+	return err
+}
+
 func (a *Activity) CreateKYCWallets(ctx context.Context, walletID string) error {
 	w, err := a.b.Wallets().Get(ctx, walletID)
 	if err != nil {
 		return err
 	}
 
-	if w.Country == country.US {
-		err = a.b.Astra().StartKYC(ctx, walletID)
-		if err != nil {
-			return err
-		}
-
-		_, err = a.b.PTI().CreateWallet(ctx, walletID, currency.USD)
-		if err != nil {
-			return err
-		}
+	// flag(bradu): this business logic might need to be revisited
+	if w.Country == country.CA {
+		// nothing to do. wallet already created
+	} else if w.Country == country.US {
+		// nothing to do. wallet already created when state was pending
 	} else if country.EUCountries[w.Country] {
 		// nothing to do. Gatehub user should already be created
 	} else if w.Country == country.ZA {
@@ -185,4 +196,26 @@ func (a *Activity) UpdateKYCStatus(ctx context.Context, walletID string, status 
 	}
 
 	return nil
+}
+
+func (a *Activity) UpdateRafikiStatus(ctx context.Context, walletID string, status kyc.Status) error {
+	rafikiStatus := false
+	if status == kyc.StatusLevel1 || status == kyc.StatusLevel2 || status == kyc.StatusApproved {
+		rafikiStatus = true
+	}
+	var wallet []rafiki.UpdateAddressStatus
+	err := a.b.DB().SelectContext(ctx, &wallet, "SELECT rafiki.payment_pointer_id, wallets.name FROM public.rafiki_payment_pointers as rafiki INNER JOIN wallets as wallets ON rafiki.wallet_id = wallets.id where wallets.id =$1", walletID)
+	if err != nil {
+		return err
+	}
+	if len(wallet) == 0 {
+		log.Info("No rafiki payment pointer found for wallet", zap.String("walletID", walletID))
+		return nil
+	}
+	err = a.b.Rafiki().UpdateWalletAddressStatus(ctx, wallet[0], rafikiStatus)
+	if err != nil {
+		return err
+	}
+	return nil
+
 }

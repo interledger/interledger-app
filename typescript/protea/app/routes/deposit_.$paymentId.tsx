@@ -91,6 +91,12 @@ export default function Page() {
         name='csrfToken'
         type='hidden'
       />
+      <input
+        form='deposit-confirm'
+        value={payment.receiverAmount?.country}
+        name='country'
+        type='hidden'
+      />
       <Card>
         <Label className='mt-2'>Deposit to</Label>
         <div className='my-1 flex space-x-2 rounded-xl bg-nav p-3'>
@@ -152,32 +158,46 @@ export async function action({ request, params }: ActionFunctionArgs) {
   }
 
   const clientIpAddress = getClientIP(request)
-
-  let response = await grpc.updatePayment(request, {
-    id: params.paymentId,
-    ipAddress: clientIpAddress
-  })
-  if (isConnectError(response)) {
-    if (isTwilioCodeError(response)) {
-      return response.error(
-        { errors },
-        {
-          otp: TwillioErrorMapper.otp
-        },
-        { action: 'Contact support', message: ErrorDescriptions.INVALID_OTP }
-      )
+  const country = form.get('country') as string
+  if (country === 'US') {
+    const response = await grpc.ptiCreateDeposit(request, {
+      id: params.paymentId,
+      ipAddress: clientIpAddress
+    })
+    if (isConnectError(response)) {
+      return response.error({ errors }, {}, { action: 'Contact support' })
     }
-    return response.error({ errors }, {}, { action: 'Contact support' })
+    return redirectWithSnackbar(request, route('/'), {
+      message: 'Deposit created successfully.',
+      icon: 'close'
+    })
+  } else {
+    let response = await grpc.updatePayment(request, {
+      id: params.paymentId,
+      ipAddress: clientIpAddress
+    })
+    if (isConnectError(response)) {
+      if (isTwilioCodeError(response)) {
+        return response.error(
+          { errors },
+          {
+            otp: TwillioErrorMapper.otp
+          },
+          { action: 'Contact support', message: ErrorDescriptions.INVALID_OTP }
+        )
+      }
+      return response.error({ errors }, {}, { action: 'Contact support' })
+    }
+
+    response = await grpc.confirmPayment(request, {
+      id: params.paymentId
+    })
+    if (isConnectError(response)) {
+      return response.error({ errors }, {}, { action: 'Contact support' })
+    }
   }
 
-  response = await grpc.confirmPayment(request, {
-    id: params.paymentId
-  })
-  if (isConnectError(response)) {
-    return response.error({ errors }, {}, { action: 'Contact support' })
-  }
-
-  return redirectWithSnackbar(request, route('/'), {
+    return redirectWithSnackbar(request, route('/'), {
     message: 'Deposit created successfully.',
     icon: 'close'
   })

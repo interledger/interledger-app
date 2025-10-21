@@ -97,7 +97,6 @@ service BackendService {
   rpc GetKYCProviderWidget(GetKYCProviderWidgetRequest) returns (KYCProviderWidget);
 
   // Basistheory
-  rpc CreateCard(CreateCardRequest) returns (LinkedAccount);
   rpc GetCardDetails(GetCardDetailsRequest) returns (CardDetails);
 
   // Features
@@ -151,12 +150,12 @@ service BackendService {
 
   // Pti
   rpc GetPtiBalances(Empty) returns (GetPtiBalancesResponse);
-
-  // Astra
-  rpc AstraDepositFromCard(AstraDepositFromCardRequest) returns (Payment);
-  rpc AstraWithdrawToCard(AstraWithdrawToCardRequest) returns (Payment);
-  rpc AstraRequiresOTP(Empty) returns (AstraRequiresOTPResponse);
-
+  rpc CreatePtiToken(PtiTokenRequest) returns (PtiTokenResponse);
+  rpc CreateCard(CreateCardRequest) returns (LinkedAccount);
+  rpc CreatePtiBankAccount(CreatePtiBankAccountRequest) returns (LinkedAccount);
+  rpc PtiCreateDeposit(PtiCreateDepositRequest) returns (Empty);
+  rpc CreatePTIWithdrawal(CreatePTIWithdrawalRequest) returns (CreatePTIWithdrawalResponse);
+  
   // Rafiki
   rpc ListRafikiGrants(Empty) returns (ListRafikiGrantsResponse);
   rpc GetRafikiGrant(GetRafikiGrantRequest) returns (RafikiGrant);
@@ -337,6 +336,24 @@ message ListCardsResponse {
   repeated Card cards = 2;
 }
 
+message CreatePtiBankAccountRequest {
+  string bankName = 1;
+  string accountNumber = 2;
+  string routingNumber = 3;
+  string accountType = 4;
+}
+
+message PtiTokenRequest{
+  string url = 1;
+  string method = 2;
+}
+
+message PtiTokenResponse {
+  string accessToken = 1;
+  double expiresAt = 2;
+  string tokenType = 3;
+}
+
 message CreateChimoneyDepositRequest {
   string issueId = 1;
 }
@@ -353,16 +370,20 @@ message SetChimoneyInterlocEmailRequest {
   string email = 1;
 }
 
-message AstraRequiresOTPResponse {
-  bool isRequired = 1;
-}
-
 message CreateGatehubWithdrawalRequest {
   string externalTransactionId = 1;
 }
 
 message CreateGatehubWithdrawalResponse {
   string transactionId = 1;
+}
+
+message CreatePTIWithdrawalRequest {
+  string paymentId = 1;
+}
+
+message CreatePTIWithdrawalResponse {
+  string paymentId = 1;
 }
 
 message GetOnOffRampProviderResponse {
@@ -378,6 +399,17 @@ message KYCProviderWidget {
   GatehubWidget gatehubWidget = 2;
   KYCPersonaInquiryResponse personaInquiry = 3;
   string chimoneyWidget = 4;
+  PtiWidget ptiWidget = 5;
+}
+
+message PtiWidget {
+  string scenarioId = 1;
+  string userId = 2;
+  string requestId = 3;
+  string clientId = 4;
+  string generateTokenPath = 5;
+  string sdkUrl = 6;
+  string formsUrl = 7;
 }
 
 message GatehubWidget {
@@ -420,20 +452,6 @@ message RafikiLimits {
   Amount receiveAmount = 4;
   string formattedDebitAmount = 5;
   string formattdReceiveAmount = 6;
-}
-
-message AstraDepositFromCardRequest {
-  string fromLinkedAccount = 1; // Astra Card
-  string toLinkedAccount = 2; // PTI Balance
-  Amount amount = 3;
-  string note = 4;
-}
-
-message AstraWithdrawToCardRequest {
-  string fromLinkedAccount = 1; // PTI Balance
-  string toLinkedAccount = 2; // Astra Card
-  Amount amount = 3;
-  string note = 4;
 }
 
 message GetLinkedAccountsForTransferRequest {
@@ -493,6 +511,11 @@ message PtiBalance {
   string linkedAccount = 4;
   string formattedBalance = 5;
   string formattedAvailableBalance = 6;
+}
+
+message PtiCreateDepositRequest {
+  string id = 1;
+  optional string ipAddress = 2;
 }
 
 message GetXagoBalanceResponse {
@@ -707,6 +730,7 @@ message WalletInfo {
   bool hasWalletAddress = 8;
   bool hasBalances = 9;
   bool exceededLimits = 10;
+  string country = 11;
 }
 
 message Features {

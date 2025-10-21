@@ -50,6 +50,10 @@ func (a *Activity) AddWalletToRafiki(ctx context.Context, walletID string) error
 	if err != nil {
 		return err
 	}
+	_, err = a.b.Rafiki().CreatePaymentPointer(ctx, *w)
+	if err != nil {
+		return err
+	}
 
-	return a.b.Rafiki().CreatePaymentPointer(ctx, *w)
+	return nil
 }

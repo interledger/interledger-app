@@ -9,7 +9,7 @@ import (
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
-	"gitlab.com/fynbos/backend/providers/astra"
+	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/providers/xago"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
@@ -60,7 +60,7 @@ func (a *Activity) JobSendDepositEmail(ctx context.Context, paymentID string) er
 	}
 
 	sourceAccountName := la.Name
-	if la.Provider == astra.ProviderName {
+	if la.Provider == pti.ProviderName && la.Type == pti.TypeCard {
 		sourceAccountName = "Card ending " + strings.Replace(la.Mask, "*", "", -1)
 	}
 	if la.Provider == xago.ProviderName && la.Type == xago.AccTypeBank {
@@ -96,7 +96,7 @@ func (a *Activity) JobSendWithdrawalEmail(ctx context.Context, paymentID string)
 	}
 
 	destinationAccountName := la.Name
-	if la.Provider == astra.ProviderName {
+	if la.Provider == pti.ProviderName && la.Type == pti.TypeCard {
 		destinationAccountName = "Card ending " + strings.Replace(la.Mask, "*", "", -1)
 	}
 	if la.Provider == xago.ProviderName && la.Type == xago.AccTypeBank {

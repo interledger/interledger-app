@@ -85,7 +85,6 @@ func (t testBackends) Email() email.Client {
 }
 
 func NewTestBackends(t *testing.T, db *sqlx.DB) Backends {
-	
 	ctrl := gomock.NewController(t)
 	nc := notify_client.NewMockClient(ctrl)
 	nc.EXPECT().NotifyWallet(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
