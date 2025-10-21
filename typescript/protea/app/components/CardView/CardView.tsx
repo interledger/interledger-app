@@ -5,6 +5,7 @@ import { CardActions } from './CardActions'
 import { CardViewBack } from './CardViewBack'
 import { CardViewFront } from './CardViewFront'
 import { StatusPopup } from './StatusPopup'
+import { TimedPinPopup } from './TimedPinPopup'
 import { useCardActions } from './useCardActions'
 
 export const CardView = ({ card }: { card: StorableCard }) => {
@@ -67,10 +68,7 @@ export const CardView = ({ card }: { card: StorableCard }) => {
             }}
           >
             <CardViewBack
-              fullCardNumber={sensitiveData.Pan.replace(/\s+/g, '').replace(
-                /(.{4})(?=.{4})/g,
-                '$1 '
-              )}
+              fullCardNumber={sensitiveData.Pan}
               expiryDate={
                 sensitiveData.ExpiryDate.slice(0, 2) +
                 '/' +
@@ -106,19 +104,13 @@ export const CardView = ({ card }: { card: StorableCard }) => {
         toggleTerminate={toggleTerminate}
       />
 
-      {/* PIN Display - Testing only */}
-      {isPinVisible && (
-        <div className='rounded-lg border-2 border-purple-500 bg-purple-50 px-8 py-4'>
-          <div className='text-center'>
-            <div className='mb-2 text-sm font-semibold uppercase tracking-wide text-purple-700'>
-              Card PIN
-            </div>
-            <div className='text-3xl font-bold tracking-widest text-purple-900'>
-              {pin}
-            </div>
-          </div>
-        </div>
-      )}
+      {/* PIN Display Popup */}
+      <TimedPinPopup
+        pin={pin}
+        isVisible={isPinVisible}
+        onClose={toggleViewPin}
+        duration={7}
+      />
 
       {/* Status popup */}
       {(actionStatus === 'success' || actionStatus === 'error') && (

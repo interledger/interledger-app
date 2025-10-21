@@ -1,5 +1,6 @@
 import type { ComponentProps } from 'react'
 import { Icon } from '~/components/Icon'
+import { formatCardNumber } from '~/routes/cards'
 import { CardViewContainer } from './CardViewContainer'
 import { MasterCardLogo } from './MasterCardLogo'
 
@@ -17,9 +18,6 @@ export const CardViewBack = ({
   className,
   ...props
 }: CardViewBackProps) => {
-  // Format card number with spaces
-  const formattedCardNumber = fullCardNumber.replace(/(\d{4})(?=\d)/g, '$1 ')
-  // Render censored versions if props are null
   const displayExpiryDate = expiryDate || '**/**'
   const displayCvv = cvv || '***'
 
@@ -44,9 +42,12 @@ export const CardViewBack = ({
               </p> */}
             <div className='flex items-center gap-x-3'>
               <p className='font-mono text-lg text-black'>
-                {formattedCardNumber}
+                {formatCardNumber(fullCardNumber)}
               </p>
-              <button className='h-4 w-4 p-0 text-black/50 hover:text-black'>
+              <button
+                className='h-4 w-4 p-0 text-black/50 hover:text-black'
+                onClick={() => navigator.clipboard.writeText(fullCardNumber)}
+              >
                 <Icon>content_copy</Icon>
               </button>
             </div>
@@ -64,7 +65,10 @@ export const CardViewBack = ({
               <p className='text-xs font-medium leading-3 text-black/70'>CVV</p>
               <p className='font-mono text-sm text-black'>{displayCvv}</p>
             </div>
-            <button className='-ml-3 mt-2.5 h-4 w-4 p-0 text-black/50 hover:text-black'>
+            <button
+              className='-ml-3 mt-2.5 h-4 w-4 p-0 text-black/50 hover:text-black'
+              onClick={() => cvv && navigator.clipboard.writeText(cvv)}
+            >
               <Icon>content_copy</Icon>
             </button>
             {/* Mastercard logo */}

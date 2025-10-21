@@ -73,6 +73,10 @@ function convertCardToStorableCard(card: CardProto): StorableCard {
   }
 }
 
+export const formatCardNumber = (cardNumber: string) => {
+  return cardNumber.replace(/(.{4})/g, '$1 ').trim()
+}
+
 // TODO: How to show card type when we can differentiate between phyiscal and
 // virtual?
 //
@@ -125,7 +129,7 @@ export default function Page() {
                   <Icon>credit_card</Icon>
                   <div className='flex w-full flex-col space-y-1'>
                     <span className='truncate text-medium'>
-                      {card.maskedPan}
+                      {formatCardNumber(card.maskedPan)}
                     </span>
                     <span className='text-xs text-weak'>
                       Expires at: {card.expiryDate.slice(0, 2)}/

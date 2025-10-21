@@ -66,9 +66,16 @@ export const useCardActions = (card: StorableCard) => {
     setSensitiveData(getDefaultSensitiveData(card))
     setIsPinVisible(false)
     setPin('****')
-  }, [card])
+  }, [
+    card,
+    setPin,
+    setIsSensitiveDataVisible,
+    setIsPinVisible,
+    setSensitiveData
+  ])
 
   useEffect(() => {
+    // Reset only on id change, because operations will trigger a loader reset
     resetStatus()
   }, [card.id, resetStatus])
 
@@ -81,15 +88,22 @@ export const useCardActions = (card: StorableCard) => {
       return
     }
 
+    if (fetcher.data?.success) {
+      resetStatus()
+    }
+
+    // Make direct calls to the card processor after token retrieval
     if (fetcher.data?.tokenType !== undefined) {
       const { tokenType, token, links } = fetcher.data
 
       switch (tokenType) {
         case CardTokenType.CARD_DATA:
           onSensitiveDataToken({ token, links })
+          resetStatus()
           break
         case CardTokenType.PIN:
           onGetPinToken({ token, links })
+          resetStatus()
           break
         default:
           errorStatus()
@@ -99,7 +113,7 @@ export const useCardActions = (card: StorableCard) => {
   }, [fetcher.data, setActionStatus])
 
   /**
-   * Action listeners
+   * Token listeners
    */
   const onSensitiveDataToken = async ({ token: jwtToken, links }: any) => {
     executeAction({
@@ -175,7 +189,6 @@ export const useCardActions = (card: StorableCard) => {
     },
     [card.id, keyPair?.publicKey]
   )
-
   const toggleSensitiveData = useCallback(() => {
     if (!isSensitiveDataVisible) {
       triggerTokenOperation(CardTokenType.CARD_DATA)
@@ -189,7 +202,6 @@ export const useCardActions = (card: StorableCard) => {
       })
     }
   }, [isSensitiveDataVisible, triggerTokenOperation, executeAction])
-
   const toggleViewPin = useCallback(() => {
     if (!isPinVisible) {
       triggerTokenOperation(CardTokenType.PIN)
@@ -218,7 +230,6 @@ export const useCardActions = (card: StorableCard) => {
     },
     [card.id, setActionStatus, fetcher]
   )
-
   const toggleLock = useCallback(
     () => triggerOperation('freeze'),
     [triggerOperation]
@@ -235,6 +246,7 @@ export const useCardActions = (card: StorableCard) => {
     () => triggerOperation('terminate'),
     [triggerOperation]
   )
+
   const isLocked = useMemo(() => isCardLocked(card), [card])
   const isBlocked = useMemo(() => isCardBlocked(card), [card])
 
