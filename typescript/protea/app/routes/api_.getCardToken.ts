@@ -6,7 +6,7 @@ import {
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 
-export type GetGatehubTokenResponse = {
+export type GetCardTokenResponse = {
   tokenType: CardTokenType
   token: string
   links: TokenLink[]
@@ -26,7 +26,7 @@ export async function action({ request }: ActionFunctionArgs) {
   })
 
   if (isConnectError(tokenResponse)) {
-    return tokenResponse.error({ errors: { form: 'Failed to get card token' } })
+    return tokenResponse.error({ errors: { operation: 'card-token' } })
   }
 
   return json({

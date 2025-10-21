@@ -14,7 +14,7 @@ import {
 import { decryptWithPrivateKey } from '~/lib/crypto'
 import { useKeyGeneration } from '~/lib/useKeyGeneration'
 import { Operation, OperationResponse } from '~/routes/api_.cardOperation'
-import { GetGatehubTokenResponse } from '~/routes/api_.getGatehubToken'
+import { GetCardTokenResponse } from '~/routes/api_.getCardToken'
 import { useActionExecute } from './useActionExecute'
 
 const getDefaultSensitiveData = (
@@ -42,9 +42,14 @@ const isCardBlocked = (card: StorableCard): boolean => {
 }
 
 export const useCardActions = (card: StorableCard) => {
-  const fetcher = useFetcher<GetGatehubTokenResponse & OperationResponse>()
-  const { actionStatus, executeAction, resetStatus, setActionStatus } =
-    useActionExecute()
+  const fetcher = useFetcher<GetCardTokenResponse & OperationResponse>()
+  const {
+    actionStatus,
+    executeAction,
+    resetStatus,
+    setActionStatus,
+    errorStatus
+  } = useActionExecute()
   const { keyPair } = useKeyGeneration()
   const { cardProcessorClient } = useCardProcessorApi()
 
@@ -61,13 +66,18 @@ export const useCardActions = (card: StorableCard) => {
     setSensitiveData(getDefaultSensitiveData(card))
     setIsPinVisible(false)
     setPin('****')
-    resetStatus()
   }, [card])
 
-  // Server Action listener
+  useEffect(() => {
+    resetStatus()
+  }, [card.id, resetStatus])
+
+  /**
+   * Server Action listener
+   */
   useEffect(() => {
     if (fetcher.data?.errors || fetcher.data?.success == false) {
-      setActionStatus('error')
+      errorStatus()
       return
     }
 
@@ -82,7 +92,7 @@ export const useCardActions = (card: StorableCard) => {
           onGetPinToken({ token, links })
           break
         default:
-          setActionStatus('error')
+          errorStatus()
           break
       }
     }
@@ -138,10 +148,6 @@ export const useCardActions = (card: StorableCard) => {
       },
       onSuccess: () => {
         setIsPinVisible(true)
-      },
-      onError: (error) => {
-        setIsPinVisible(true)
-        setPin('****')
       }
     })
   }
@@ -154,18 +160,17 @@ export const useCardActions = (card: StorableCard) => {
       setActionStatus('loading')
 
       if (!keyPair?.publicKey) {
-        setActionStatus('error')
+        errorStatus()
         return
       }
 
-      // trigger the server action to retrieve the JWT token
       const formData = new FormData()
       formData.append('cardId', card.id)
       formData.append('tokenType', tokenType.toString())
       formData.append('publicKey', keyPair?.publicKey)
       fetcher.submit(formData, {
         method: 'post',
-        action: route('/api/getGatehubToken')
+        action: route('/api/getCardToken')
       })
     },
     [card.id, keyPair?.publicKey]
@@ -203,7 +208,6 @@ export const useCardActions = (card: StorableCard) => {
     async (operation: Operation) => {
       setActionStatus('loading')
 
-      // trigger the server action to retrieve the JWT token
       const formData = new FormData()
       formData.append('cardId', card.id)
       formData.append('operation', operation)

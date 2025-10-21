@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 
 export const DELAY_AFTER_ACTION = 3000
 export type ActionStatus = 'idle' | 'loading' | 'success' | 'error'
@@ -6,43 +6,55 @@ export type ActionStatus = 'idle' | 'loading' | 'success' | 'error'
 export const useActionExecute = () => {
   const [actionStatus, setActionStatus] = useState<ActionStatus>('idle')
 
-  const resetStatusDelayed = (delay: number) => {
-    setTimeout(() => setActionStatus('idle'), delay)
-  }
+  const resetStatusDelayed = useCallback(
+    (delay: number) => {
+      setTimeout(() => setActionStatus('idle'), delay)
+    },
+    [setActionStatus]
+  )
 
-  const resetStatus = () => {
+  const resetStatus = useCallback(() => {
     setActionStatus('idle')
-  }
+  }, [])
 
-  const executeAction = async ({
-    execute,
-    onSuccess,
-    onError
-  }: {
-    execute: () => Promise<void>
-    onSuccess?: () => void
-    onError?: (error: any) => void
-  }) => {
-    try {
-      setActionStatus('loading')
+  const errorStatus = useCallback(() => {
+    setActionStatus('error')
+    resetStatusDelayed(DELAY_AFTER_ACTION)
+  }, [resetStatusDelayed, setActionStatus])
 
-      await execute()
-      onSuccess?.()
+  const executeAction = useCallback(
+    async ({
+      execute,
+      onSuccess,
+      onError
+    }: {
+      execute: () => Promise<void>
+      onSuccess?: () => void
+      onError?: (error: any) => void
+    }) => {
+      try {
+        setActionStatus('loading')
 
-      setActionStatus('success')
-      resetStatusDelayed(DELAY_AFTER_ACTION)
-    } catch (error) {
-      onError?.(error)
+        await execute()
+        onSuccess?.()
 
-      setActionStatus('error')
-      resetStatusDelayed(DELAY_AFTER_ACTION)
-    }
-  }
+        setActionStatus('success')
+        resetStatusDelayed(DELAY_AFTER_ACTION)
+      } catch (error) {
+        onError?.(error)
+
+        setActionStatus('error')
+        resetStatusDelayed(DELAY_AFTER_ACTION)
+      }
+    },
+    [resetStatusDelayed, setActionStatus]
+  )
 
   return {
     actionStatus,
     executeAction,
+    setActionStatus,
     resetStatus,
-    setActionStatus
+    errorStatus
   }
 }

@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import { useState } from 'react'
-import { Icon } from '~/components/Icon'
 import { StorableCard } from '~/lib/cards/types'
+import { CardActions } from './CardActions'
 import { CardViewBack } from './CardViewBack'
 import { CardViewFront } from './CardViewFront'
 import { StatusPopup } from './StatusPopup'
@@ -92,61 +92,19 @@ export const CardView = ({ card }: { card: StorableCard }) => {
       </div>
 
       {/* Card actions */}
-      <div className='flex space-x-4'>
-        {/* Flip card */}
-        <button
-          className='flex w-24 items-center justify-center space-x-2 rounded-lg bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600'
-          onClick={() => setShowBack(!showBack)}
-        >
-          <Icon>{showBack ? 'flip_to_front' : 'flip_to_back'}</Icon>
-          <span>Flip</span>
-        </button>
-        {/* Toggle sensitive data */}
-        <button
-          className='flex w-24 items-center justify-center space-x-2 rounded-lg bg-green-500 px-4 py-2 text-white transition-colors hover:bg-green-600'
-          onClick={toggleSensitiveData}
-        >
-          <Icon>
-            {isSensitiveDataVisible ? 'visibility_off' : 'visibility'}
-          </Icon>
-          <span>{isSensitiveDataVisible ? 'Hide' : 'View'}</span>
-        </button>
-        {/* Toggle freeze */}
-        <button
-          className='flex w-32 items-center justify-center space-x-2 rounded-lg bg-red-500 px-4 py-2 text-white transition-colors hover:bg-red-600'
-          onClick={isLocked ? toggleUnlock : toggleLock}
-        >
-          <Icon>lock</Icon>
-          <span>{isLocked ? 'Unlock' : 'Lock'}</span>
-        </button>
-
-        {/* Toggle view pin code */}
-        <button
-          className='flex w-32 items-center justify-center space-x-2 rounded-lg bg-purple-500 px-4 py-2 text-white transition-colors hover:bg-purple-600'
-          onClick={toggleViewPin}
-        >
-          <Icon>{isPinVisible ? 'visibility_off' : 'visibility'}</Icon>
-          <span>{isPinVisible ? 'Hide' : 'View'} PIN</span>
-        </button>
-
-        {/* Toggle block card */}
-        <button
-          className='flex w-32 items-center justify-center space-x-2 rounded-lg bg-purple-500 px-4 py-2 text-white transition-colors hover:bg-purple-600'
-          onClick={toggleBlock}
-        >
-          <Icon>block</Icon>
-          <span>Block</span>
-        </button>
-
-        {/* Toggle block card */}
-        <button
-          className='flex w-32 items-center justify-center space-x-2 rounded-lg bg-purple-500 px-4 py-2 text-white transition-colors hover:bg-purple-600'
-          onClick={toggleTerminate}
-        >
-          <Icon>delete</Icon>
-          <span>Terminate</span>
-        </button>
-      </div>
+      <CardActions
+        showBack={showBack}
+        setShowBack={setShowBack}
+        isSensitiveDataVisible={isSensitiveDataVisible}
+        isPinVisible={isPinVisible}
+        isLocked={isLocked}
+        toggleSensitiveData={toggleSensitiveData}
+        toggleLock={toggleLock}
+        toggleUnlock={toggleUnlock}
+        toggleViewPin={toggleViewPin}
+        toggleBlock={toggleBlock}
+        toggleTerminate={toggleTerminate}
+      />
 
       {/* PIN Display - Testing only */}
       {isPinVisible && (
