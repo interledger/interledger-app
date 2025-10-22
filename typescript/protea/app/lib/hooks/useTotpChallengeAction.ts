@@ -37,7 +37,7 @@ export function useTotpChallengeAction() {
   const withTotpChallenge = useCallback(
     (callback: () => void) => {
       pendingCallbackRef.current = callback
-      initChallengeFetcher.load('/api/totp-challenge-init')
+      initChallengeFetcher.submit({}, { method: 'post', action: '/api/totp-challenge-init' })
     },
     [initChallengeFetcher]
   )

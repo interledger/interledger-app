@@ -1,11 +1,11 @@
-import { json, type LoaderFunctionArgs } from '@remix-run/node'
+import { ActionFunctionArgs, json } from '@remix-run/node'
 import { KRATOS_URL } from '~/lib/kratos.server'
 
 /**
  * Initialize a TOTP challenge flow (AAL2) via Kratos API endpoint
  * This is used for inline TOTP verification without page redirects
  */
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function action({ request }: ActionFunctionArgs) {
   try {
     const cookie = request.headers.get('cookie') ?? ''
 
@@ -111,9 +111,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
       } catch (e) {}
     }
 
-    // If we didn't get a redirect or valid flow, something went wrong
-    const error = await initResponse.text()
-    return json({ error: 'Unexpected response from Kratos' })
+    const errorText = await initResponse.text()
+    return json({ error: `Unexpected response from Kratos ${errorText}` })
   } catch (error) {
     console.error('Error initializing TOTP challenge:', error)
     return json({ error: 'An unexpected error occurred' })
