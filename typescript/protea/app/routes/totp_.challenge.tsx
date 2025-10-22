@@ -72,7 +72,6 @@ export const handle: ApplicationProps = {
   layout: Layouts.Focus,
   scaffold: {
     header: {
-      back: route('/'),
       title: 'Enter Authenticator Code'
     }
   }

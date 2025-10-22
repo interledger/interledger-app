@@ -52,6 +52,9 @@ export async function isTotpSet(
   session: Session,
   headers: Headers
 ): Promise<boolean> {
+
+  if(session?.authenticator_assurance_level === 'aal2')
+    return Promise.resolve(true)
   try {
     const response = await fetch(
       `${KRATOS_URL}/admin/identities/${session.identity.id}`,
