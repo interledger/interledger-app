@@ -196,6 +196,7 @@ func BackfillAccountWorkflow(ctx workflow.Context, walletID string) error {
 
 	logger := workflow.GetLogger(ctx)
 	logger.Info("Creating gatehub withdrawal.")
+	// do backfill only if this is set!
 	sendingUserID := os.Getenv("GATEHUB_SENDING_USER_ID")
 	if sendingUserID != "" {
 		var externalID string
@@ -213,7 +214,7 @@ func BackfillAccountWorkflow(ctx workflow.Context, walletID string) error {
 
 			err = workflow.ExecuteActivity(ctx, a.MarkBackfillUser, walletID, externalID, balance).Get(ctx, nil)
 			if err != nil {
-				// if this  we need to go in manually and update the table will
+				// if this errors we need to go in manually and update the table will
 				return err
 			}
 

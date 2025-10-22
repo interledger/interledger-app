@@ -525,7 +525,7 @@ func (a *Activity) CheckIfBackfillWasDone(ctx context.Context, walletID, externa
 	if err != nil {
 		return "", err
 	}
-	// if wallet id has there is no external_ID to update we return empty
+	// if wallet id is not there there is no external_ID to update we return empty
 	if wallerID != "" {
 		return "", nil
 	}
