@@ -574,3 +574,19 @@ func LinkUserToGatewayByWalletID(ctx context.Context, b Backends, ec external.Cl
 func LinkUserToGatewayByExternalID(ctx context.Context, ec external.Client, externalID string) error {
 	return ec.LinkUserToGateway(ctx, externalID)
 }
+
+func BackfillAccountAndSetKYC(ctx context.Context, b Backends, walletID, webhookID string) error {
+
+	wo := client.StartWorkflowOptions{
+		ID:                    "gatehub_backfill_account_" + webhookID,
+		TaskQueue:             "backend",
+		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_ALLOW_DUPLICATE_FAILED_ONLY,
+	}
+
+	_, err := b.Temporal().ExecuteWorkflow(ctx, wo, BackfillAccountWorkflow, walletID)
+	if err != nil {
+		return nil
+	}
+
+	return nil
+}
