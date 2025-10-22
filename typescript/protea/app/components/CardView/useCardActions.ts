@@ -12,6 +12,7 @@ import {
   StorableCard
 } from '~/lib/cards/types'
 import { decryptWithPrivateKey } from '~/lib/crypto'
+import { useTotpChallengeAction } from '~/lib/hooks/useTotpChallengeAction'
 import { useKeyGeneration } from '~/lib/useKeyGeneration'
 import { Operation, OperationResponse } from '~/routes/api_.cardOperation'
 import { GetCardTokenResponse } from '~/routes/api_.getCardToken'
@@ -53,6 +54,7 @@ export const useCardActions = (card: StorableCard) => {
   } = useActionExecute()
   const { keyPair } = useKeyGeneration()
   const { cardProcessorClient } = useCardProcessorApi()
+  const { withTotpChallenge } = useTotpChallengeAction()
 
   const [isSensitiveDataVisible, setIsSensitiveDataVisible] = useState(false)
   const [isPinVisible, setIsPinVisible] = useState(false)
@@ -230,10 +232,9 @@ export const useCardActions = (card: StorableCard) => {
     },
     [card.id, setActionStatus, fetcher]
   )
-  const toggleLock = useCallback(
-    () => triggerOperation('freeze'),
-    [triggerOperation]
-  )
+  const toggleLock = useCallback(() => {
+    withTotpChallenge(() => triggerOperation('freeze'))
+  }, [triggerOperation, withTotpChallenge])
   const toggleUnlock = useCallback(
     () => triggerOperation('unfreeze'),
     [triggerOperation]

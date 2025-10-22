@@ -41,12 +41,11 @@ export const useActionExecute = () => {
         setActionStatus('loading')
 
         await execute()
-        onSuccess?.()
 
+        onSuccess?.()
         successStatus()
       } catch (error) {
         onError?.(error)
-
         errorStatus()
       }
     },

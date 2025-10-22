@@ -24,6 +24,9 @@ interface UseTotpChallengeOptions {
 export function useTotpChallenge(options?: UseTotpChallengeOptions) {
   const [isOpen, setIsOpen] = useState(false)
   const initChallengeFetcher = useFetcher<TotpChallengeData>()
+  const [pendingCallback, setPendingCallback] = useState<null | (() => void)>(
+    null
+  )
 
   const popTotp = useCallback(() => {
     initChallengeFetcher.load('/api/totp-challenge-init')
@@ -35,7 +38,13 @@ export function useTotpChallenge(options?: UseTotpChallengeOptions) {
   }, [])
 
   const handleSuccess = useCallback(() => {
+    console.log("handling success")
     options?.onSuccess?.()
+    if (pendingCallback) {
+      console.log("calling pending callback")
+      pendingCallback()
+      setPendingCallback(null)
+    }
     setIsOpen(false)
   }, [options])
 
@@ -46,9 +55,18 @@ export function useTotpChallenge(options?: UseTotpChallengeOptions) {
     [options]
   )
 
+  const withTotpChallenge = useCallback(
+    (callback: () => void) => {
+      setPendingCallback(callback)
+      console.log("withTotpChallenge setting pending callback", callback)
+      popTotp()
+      console.log("withTotpChallenge popped totp popup")
+    },
+    [popTotp, setPendingCallback]
+  )
+
   useEffect(() => {
     if (initChallengeFetcher.data?.error) {
-      // TODO: log challenge init error
       setIsOpen(false)
       handleError(initChallengeFetcher.data.error)
     }
@@ -60,6 +78,7 @@ export function useTotpChallenge(options?: UseTotpChallengeOptions) {
         return null
       }
 
+      console.log("popping totp popup")
       return (
         <TotpChallengePopup
           flowId={initChallengeFetcher.data.flowId}
@@ -70,17 +89,13 @@ export function useTotpChallenge(options?: UseTotpChallengeOptions) {
         />
       )
     }
-  }, [
-    initChallengeFetcher.data,
-    closePopup,
-    handleSuccess,
-    handleError
-  ])
+  }, [initChallengeFetcher.data, closePopup, handleSuccess, handleError])
 
   return {
     popTotp,
     TotpPopup,
     isLoading: initChallengeFetcher.state === 'loading',
-    isOpen
+    isOpen,
+    withTotpChallenge
   }
 }

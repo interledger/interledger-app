@@ -21,6 +21,7 @@ import clsx from 'clsx'
 import type { ReactNode } from 'react'
 import { AnchorRouter, Error, LiveReload } from '~/components'
 import { Scaffold } from '~/components/Scaffold'
+import { TotpChallengeGlobal } from '~/components/TotpChallengeGlobal'
 import { getUserSession, hasUserSession } from '~/lib/kratos.server'
 import { getSnackbar } from '~/lib/snackbar.server'
 import styles from '~/styles/app.css'
@@ -151,6 +152,7 @@ function Page() {
   return (
     <Document>
       <Scaffold />
+      <TotpChallengeGlobal />
       <script
         dangerouslySetInnerHTML={{
           __html: `window.ENV = ${JSON.stringify(env)}`

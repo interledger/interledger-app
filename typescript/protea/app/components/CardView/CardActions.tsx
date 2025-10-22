@@ -19,8 +19,6 @@ interface CardActionsProps {
 export const CardActions = ({
   showBack,
   setShowBack,
-  isSensitiveDataVisible,
-  isPinVisible,
   isLocked,
   toggleSensitiveData,
   toggleLock,
