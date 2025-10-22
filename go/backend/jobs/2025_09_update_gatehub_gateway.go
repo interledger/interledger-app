@@ -73,7 +73,7 @@ func (a *Activity) LinkUserToGatewayByExternalID(ctx context.Context, wallets []
 }
 
 func (a *Activity) UpdateGatehubKYCStatus(ctx context.Context) error {
-	_, err := a.b.DB().ExecContext(ctx, "UPDATE wallet_kyc_status SET status=$1 where wallet_id in (SELECT wallet_id FROM gatehub_users)", kyc.StatusPending)
+	_, err := a.b.DB().ExecContext(ctx, "UPDATE wallet_kyc_status SET status=$1 WHERE wallet_id in (SELECT wallet_id FROM gatehub_users) AND status IN (1,3,6,7)", kyc.StatusPending)
 	if err != nil {
 		return err
 	}
