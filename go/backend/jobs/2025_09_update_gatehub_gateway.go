@@ -37,7 +37,7 @@ func SetGatehubGatewayToPaywiserJob(ctx workflow.Context) error {
 		return err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.UpdateGatehubKYCStatus, gatehubWallets).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.UpdateGatehubKYCStatus).Get(ctx, nil)
 	if err != nil {
 		return err
 	}
@@ -72,15 +72,10 @@ func (a *Activity) LinkUserToGatewayByExternalID(ctx context.Context, wallets []
 	return listOfUnprocessed, nil
 }
 
-func (a *Activity) UpdateGatehubKYCStatus(ctx context.Context, wallets []GatehubWallets) error {
-	for _, externalUser := range wallets {
-		if wallets == nil || externalUser.ExternalID == "" {
-			continue
-		}
-		err := a.b.KYC().SetKYCStatus(ctx, externalUser.WalletID, kyc.StatusPending)
-		if err != nil {
-			log.Warn("error updating KYC status to pending", zap.String("wallet_id", externalUser.WalletID), zap.Error(err))
-		}
+func (a *Activity) UpdateGatehubKYCStatus(ctx context.Context) error {
+	_, err := a.b.DB().ExecContext(ctx, "UPDATE wallet_kyc_status SET status=$1 WHERE wallet_id in (SELECT wallet_id FROM gatehub_users) AND status IN (1,3,6,7)", kyc.StatusPending)
+	if err != nil {
+		return err
 	}
 	return nil
 }
