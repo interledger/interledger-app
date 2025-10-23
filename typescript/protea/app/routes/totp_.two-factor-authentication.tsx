@@ -19,9 +19,9 @@ import {
   OutlineButtonRouter,
   TextField
 } from '~/components'
-import { useTotpChallengeAction } from '~/lib/hooks/useTotpChallengeAction'
 import { KRATOS_URL, getCsrfTokenFromFlow } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
+import { useTotpChallenge } from '~/lib/useTotpChallenge'
 
 type TotpForm = {
   flowId?: string
@@ -111,7 +111,7 @@ export default function Page() {
     useLoaderData<typeof loader>()
   const formRef = useRef<HTMLFormElement>(null)
   const submit = useSubmit()
-  const { withTotpChallenge } = useTotpChallengeAction()
+  const { withTotpChallenge } = useTotpChallenge()
 
   if (!flowId && !totpUnlink) return <p>Failed to load flow data.</p>
 

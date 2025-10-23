@@ -51,9 +51,6 @@ export const useTotpChallengeStore = create<
       pendingCallback: null
     }))
   },
-  handleError: (error) => {
-    console.error('TOTP challenge error:', error)
-    // Keep popup open for retry
-  },
+  handleError: (_error) => {},
   reset: () => set(() => ({ ...totpChallengeInitialState }))
 }))

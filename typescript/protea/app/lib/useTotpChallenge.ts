@@ -1,6 +1,6 @@
 import { useFetcher } from '@remix-run/react'
 import { useCallback, useEffect, useRef } from 'react'
-import { useTotpChallengeStore } from '../useTotpChallengeStore'
+import { useTotpChallengeStore } from './useTotpChallengeStore'
 
 interface TotpChallengeData {
   flowId: string
@@ -11,15 +11,14 @@ interface TotpChallengeData {
 /**
  * Hook to trigger TOTP challenge
  * Usage:
- *   const { withTotpChallenge } = useTotpChallengeAction()
+ *   const { withTotpChallenge } = useTotpChallenge()
  *   withTotpChallenge(() => doSomething())
  */
-export function useTotpChallengeAction() {
+export function useTotpChallenge() {
   const initChallengeFetcher = useFetcher<TotpChallengeData>()
   const { openChallenge, handleError } = useTotpChallengeStore()
   const pendingCallbackRef = useRef<(() => void) | null>(null)
 
-  // When challenge data arrives, open the popup
   useEffect(() => {
     if (initChallengeFetcher.data) {
       if (initChallengeFetcher.data?.error) {
@@ -37,7 +36,10 @@ export function useTotpChallengeAction() {
   const withTotpChallenge = useCallback(
     (callback: () => void) => {
       pendingCallbackRef.current = callback
-      initChallengeFetcher.submit({}, { method: 'post', action: '/api/totp-challenge-init' })
+      initChallengeFetcher.submit(
+        {},
+        { method: 'post', action: '/api/totp-challenge-init' }
+      )
     },
     [initChallengeFetcher]
   )
