@@ -21,16 +21,12 @@ export type CardProcessorSensitiveDataResponse = {
 }
 
 export type CardsState = {
-  /** Currently active card identifier */
-  activeCardId?: string
   /** List of user's cards for quick access */
   cards?: Record<string, StorableCard>
 }
 
 type CardsActions = {
-  setActiveCardId: (cardId: string) => void
   setCards: (cards: StorableCard[]) => void
-  updateActiveCard: (card: StorableCard) => void
 }
 
 export type CardsStore = CardsState & CardsActions
