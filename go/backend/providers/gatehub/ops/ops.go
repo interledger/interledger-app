@@ -840,3 +840,37 @@ func getNameOnCard(walletAddress string) (string, error) {
 
 	return nameOnCard, nil
 }
+
+func BackfillAccountAndSetKYC(ctx context.Context, b Backends, walletID, webhookID string) error {
+	wo := client.StartWorkflowOptions{
+		ID:                    "gatehub_backfill_account_" + webhookID,
+		TaskQueue:             "backend",
+		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_ALLOW_DUPLICATE_FAILED_ONLY,
+	}
+
+	var workflowStatus enums.WorkflowExecutionStatus
+
+	wflow, err := b.Temporal().DescribeWorkflowExecution(ctx, wo.ID, "")
+	switch err.(type) {
+	case *serviceerror.Internal,
+		*serviceerror.Unavailable,
+		*serviceerror.InvalidArgument:
+
+		return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	case *serviceerror.NotFound:
+		// do nothing
+	default:
+		if wflow != nil {
+			workflowStatus = wflow.GetWorkflowExecutionInfo().Status
+		}
+	}
+
+	if workflowStatus != enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
+		_, err := b.Temporal().ExecuteWorkflow(ctx, wo, BackfillAccountWorkflow, walletID)
+		if err != nil {
+			return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+		}
+	}
+
+	return nil
+}
