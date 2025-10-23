@@ -524,7 +524,7 @@ func (a *Activity) CheckIfBackfillWasDone(ctx context.Context, walletID string) 
 	err = a.b.DB().GetContext(ctx, &retrievedWalletID, "SELECT wallet_id FROM gatehub_backfill_users WHERE wallet_id=$1 AND external_id=$2", walletID, externalID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return "", nil
+			return externalID, nil
 		}
 		return "", err
 	}
