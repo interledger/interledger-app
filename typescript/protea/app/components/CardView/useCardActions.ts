@@ -174,24 +174,26 @@ export const useCardActions = (card: StorableCard) => {
    * Toggles
    */
   const triggerTokenOperation = useCallback(
-    async (tokenType: CardTokenType) => {
-      setActionStatus('loading')
+    (tokenType: CardTokenType) => {
+      withTotpChallenge(() => {
+        setActionStatus('loading')
 
-      if (!keyPair?.publicKey) {
-        errorStatus()
-        return
-      }
+        if (!keyPair?.publicKey) {
+          errorStatus()
+          return
+        }
 
-      const formData = new FormData()
-      formData.append('cardId', card.id)
-      formData.append('tokenType', tokenType.toString())
-      formData.append('publicKey', keyPair?.publicKey)
-      fetcher.submit(formData, {
-        method: 'post',
-        action: route('/api/getCardToken')
+        const formData = new FormData()
+        formData.append('cardId', card.id)
+        formData.append('tokenType', tokenType.toString())
+        formData.append('publicKey', keyPair?.publicKey)
+        fetcher.submit(formData, {
+          method: 'post',
+          action: route('/api/getCardToken')
+        })
       })
     },
-    [card.id, keyPair?.publicKey]
+    [card.id, keyPair?.publicKey, withTotpChallenge]
   )
   const toggleSensitiveData = useCallback(() => {
     if (!isSensitiveDataVisible) {
@@ -219,22 +221,25 @@ export const useCardActions = (card: StorableCard) => {
   }, [isPinVisible, triggerTokenOperation, executeAction])
 
   const triggerOperation = useCallback(
-    async (operation: Operation) => {
-      setActionStatus('loading')
+    (operation: Operation) => {
+      withTotpChallenge(() => {
+        setActionStatus('loading')
 
-      const formData = new FormData()
-      formData.append('cardId', card.id)
-      formData.append('operation', operation)
-      fetcher.submit(formData, {
-        method: 'post',
-        action: route('/api/cardOperation')
+        const formData = new FormData()
+        formData.append('cardId', card.id)
+        formData.append('operation', operation)
+        fetcher.submit(formData, {
+          method: 'post',
+          action: route('/api/cardOperation')
+        })
       })
     },
-    [card.id, setActionStatus, fetcher]
+    [card.id, setActionStatus, fetcher, withTotpChallenge]
   )
-  const toggleLock = useCallback(() => {
-    withTotpChallenge(() => triggerOperation('freeze'))
-  }, [triggerOperation, withTotpChallenge])
+  const toggleLock = useCallback(
+    () => triggerOperation('freeze'),
+    [triggerOperation]
+  )
   const toggleUnlock = useCallback(
     () => triggerOperation('unfreeze'),
     [triggerOperation]
