@@ -7,6 +7,7 @@ export type Operation = 'freeze' | 'unfreeze' | 'block' | 'terminate'
 export type OperationResponse = {
   success: boolean
   operation: Operation
+  shouldRevalidate?: boolean
   errors?: any
 }
 
@@ -45,7 +46,8 @@ const freezeCard = async (request: Request, cardId: string) => {
 
   return json({
     success: true,
-    operation: 'freeze'
+    operation: 'freeze',
+    shouldRevalidate: true
   })
 }
 
@@ -60,7 +62,8 @@ const unfreezeCard = async (request: Request, cardId: string) => {
 
   return json({
     success: true,
-    operation: 'unfreeze'
+    operation: 'unfreeze',
+    shouldRevalidate: true
   })
 }
 
@@ -75,7 +78,8 @@ const blockCard = async (request: Request, cardId: string) => {
 
   return json({
     success: true,
-    operation: 'block'
+    operation: 'block',
+    shouldRevalidate: true
   })
 }
 
@@ -90,6 +94,7 @@ const terminateCard = async (request: Request, cardId: string) => {
 
   return json({
     success: true,
-    operation: 'terminate'
+    operation: 'terminate',
+    shouldRevalidate: true
   })
 }

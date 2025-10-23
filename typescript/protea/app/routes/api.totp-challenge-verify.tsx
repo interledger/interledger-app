@@ -42,7 +42,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const setCookieHeader = verifyTotpCodeResponse.headers.get('set-cookie')
     if (verifyTotpCodeResponse.ok || verifyTotpCodeResponse.status === 200) {
       return json(
-        { success: true },
+        { success: true, shouldRevalidate: false },
         setCookieHeader
           ? { headers: { 'Set-Cookie': setCookieHeader } }
           : undefined
@@ -66,7 +66,7 @@ export async function action({ request }: ActionFunctionArgs) {
     return json({
       success: false,
       error: errorMessage,
-      flowId: errorData.id
+      flowId: errorData.id,
     })
   } catch (error) {
     console.error('(totp-challenge-verify) ❌ Unexpected error:', error)
