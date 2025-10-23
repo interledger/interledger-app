@@ -10,6 +10,7 @@ export type GetCardTokenResponse = {
   tokenType: CardTokenType
   token: string
   links: TokenLink[]
+  shouldRevalidate?: boolean
   errors?: any
 }
 
@@ -32,6 +33,7 @@ export async function action({ request }: ActionFunctionArgs) {
   return json({
     tokenType,
     token: tokenResponse.token,
-    links: tokenResponse.links
+    links: tokenResponse.links,
+    shouldRevalidate: false // Viewing sensitive data doesn't change card state
   })
 }

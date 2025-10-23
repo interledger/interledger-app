@@ -1,5 +1,6 @@
 import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
+import type { ShouldRevalidateFunction } from '@remix-run/react'
 import { Outlet, useLoaderData, useLocation } from '@remix-run/react'
 import { useEffect } from 'react'
 import { route } from 'routes-gen'
@@ -21,6 +22,20 @@ import type { StorableCard } from '~/lib/cards/types'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
+
+/**
+ * Let actions declare if they need revalidation via shouldRevalidate field.
+ */
+export const shouldRevalidate: ShouldRevalidateFunction = ({
+  actionResult,
+  defaultShouldRevalidate
+}) => {
+  // Actions explicitly declare if they need revalidation
+  if (actionResult && 'shouldRevalidate' in actionResult) {
+    return actionResult.shouldRevalidate === true
+  }
+  return defaultShouldRevalidate
+}
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const features = await getFeatures(request)

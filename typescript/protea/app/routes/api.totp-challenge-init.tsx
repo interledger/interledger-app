@@ -77,7 +77,8 @@ export async function action({ request }: ActionFunctionArgs) {
         flowId,
         csrfToken,
         method: flow.ui?.method ?? 'POST',
-        action: flow.ui?.action ?? ''
+        action: flow.ui?.action ?? '',
+        shouldRevalidate: false
       })
     }
 
@@ -105,7 +106,8 @@ export async function action({ request }: ActionFunctionArgs) {
             flowId: flow.id,
             csrfToken,
             method: flow.ui?.method ?? 'POST',
-            action: flow.ui?.action ?? ''
+            action: flow.ui?.action ?? '',
+            shouldRevalidate: false
           })
         }
       } catch (e) {}
