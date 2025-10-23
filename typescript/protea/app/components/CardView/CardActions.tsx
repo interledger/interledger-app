@@ -14,6 +14,7 @@ interface CardActionsProps {
   toggleViewPin: () => void
   toggleBlock: () => void
   toggleTerminate: () => void
+  toggleChangePin: () => void
 }
 
 export const CardActions = ({
@@ -25,7 +26,8 @@ export const CardActions = ({
   toggleUnlock,
   toggleViewPin,
   toggleBlock,
-  toggleTerminate
+  toggleTerminate,
+  toggleChangePin
 }: CardActionsProps) => {
   return (
     <div className='flex items-center space-x-4'>
@@ -89,6 +91,23 @@ export const CardActions = ({
                       >
                         <Icon className='text-purple-600'>password</Icon>
                         <span>PIN</span>
+                      </button>
+                    )}
+                  
+                  </Menu.Item>
+                  {/* Change PIN */}
+                  <Menu.Item>
+                    {({ active }) => (
+                      <button
+                        onClick={toggleChangePin}
+                        className={`flex w-full items-center space-x-3 px-4 py-2 text-left text-sm ${
+                          active
+                            ? 'bg-purple-50 text-purple-900'
+                            : 'text-gray-700'
+                        }`}
+                      >
+                        <Icon className='text-purple-600'>password</Icon>
+                        <span>Change PIN</span>
                       </button>
                     )}
                   </Menu.Item>

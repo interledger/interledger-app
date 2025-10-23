@@ -1,6 +1,7 @@
 import clsx from 'clsx'
 import { useState } from 'react'
 import { StorableCard } from '~/lib/cards/types'
+import { usePinChangePopup } from '~/lib/usePinChangePopup'
 import { CardActions } from './CardActions'
 import { CardViewBack } from './CardViewBack'
 import { CardViewFront } from './CardViewFront'
@@ -23,8 +24,11 @@ export const CardView = ({ card }: { card: StorableCard }) => {
     toggleBlock,
     toggleTerminate,
     toggleUnlock,
-    toggleViewPin
+    toggleViewPin,
+    toggleChangePin
   } = useCardActions(card)
+
+  const { PinChangePopup } = usePinChangePopup()
 
   return (
     <div className='flex flex-col items-center space-y-6 p-6'>
@@ -102,6 +106,7 @@ export const CardView = ({ card }: { card: StorableCard }) => {
         toggleViewPin={toggleViewPin}
         toggleBlock={toggleBlock}
         toggleTerminate={toggleTerminate}
+        toggleChangePin={toggleChangePin}
       />
 
       {/* PIN Display Popup */}
@@ -111,6 +116,9 @@ export const CardView = ({ card }: { card: StorableCard }) => {
         onClose={toggleViewPin}
         duration={7}
       />
+
+      {/* PIN Change Popup */}
+      <PinChangePopup />
 
       {/* Status popup */}
       {(actionStatus === 'success' || actionStatus === 'error') && (
