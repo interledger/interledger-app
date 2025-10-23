@@ -1,6 +1,6 @@
 import { type SerializeFrom } from '@remix-run/node'
 import { useNavigate, useParams, useRouteLoaderData } from '@remix-run/react'
-import { useEffect, useMemo } from 'react'
+import { useMemo } from 'react'
 import { type RouteParams } from 'routes-gen'
 import { CardView, Layouts, type ApplicationProps } from '~/components'
 import { useCardsStore } from '~/lib/cards/hooks/useCardsStore'
@@ -15,23 +15,18 @@ export const handle: ApplicationProps = {
   }
 }
 
-// This is our current solution to avoid refetching the card details again. We
-// can move away from this in the future and use a loader for this route as well.
 export default function PageCardID() {
   const navigate = useNavigate()
   const { features } = useRouteLoaderData('root') as SerializeFrom<
     typeof rootLoader
   >
-  const { cards, setActiveCardId } = useCardsStore()
+  const { cards } = useCardsStore()
   const { cardId } = useParams<RouteParams['/cards/:cardId']>()
+  const card = useMemo(
+    () => (cardId ? cards?.[cardId] : undefined),
+    [cards, cardId]
+  )
 
-  useEffect(() => {
-    if (cardId) {
-      setActiveCardId(cardId)
-    }
-  }, [cardId, setActiveCardId])
-
-  // goto root in case cards are not enabled
   if (!features.manageWalletCardsEnabled) {
     navigate('/')
   }
@@ -39,8 +34,6 @@ export default function PageCardID() {
   if (!cardId) {
     return <>Card not found</>
   }
-
-  const card = useMemo(() => cards?.[cardId], [cards, cardId])
 
   if (!card) {
     return <>Card not found</>
