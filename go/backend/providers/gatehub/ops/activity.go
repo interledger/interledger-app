@@ -521,7 +521,7 @@ func (a *Activity) CheckIfBackfillWasDone(ctx context.Context, walletID string) 
 		return "", nil
 	}
 	var wallerID string
-	err = a.b.DB().GetContext(ctx, &wallerID, "SELECT wallet_id FROM gatehub_backfilled_users WHERE wallet_id=$1 AND external_id=$2", walletID, externalID)
+	err = a.b.DB().GetContext(ctx, &wallerID, "SELECT wallet_id FROM gatehub_backfill_users WHERE wallet_id=$1 AND external_id=$2", walletID, externalID)
 	if err != nil {
 		return "", err
 	}
@@ -535,7 +535,7 @@ func (a *Activity) CheckIfBackfillWasDone(ctx context.Context, walletID string) 
 }
 
 func (a *Activity) MarkBackfillUser(ctx context.Context, walletID, externalUserID string, balance *gatehub.Balance) error {
-	_, err := a.b.DB().ExecContext(ctx, `INSERT INTO public.gatehub_backfill_users(wallet_id, external_id, unscaled_value)
+	_, err := a.b.DB().ExecContext(ctx, `INSERT INTO gatehub_backfill_users(wallet_id, external_id, unscaled_value)
 													VALUES ( $1, $2, $3);`, walletID, externalUserID, balance.Total.Value)
 	if err != nil {
 		return err
