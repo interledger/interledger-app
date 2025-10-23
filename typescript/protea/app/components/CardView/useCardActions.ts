@@ -5,14 +5,15 @@ import {
   CardStatus,
   CardTokenType
 } from '~/generated/connect/backend/v1/backend_pb'
-import { useCardProcessorApi } from '~/lib/cards/hooks/useCardProcessorApiClient'
+import { cardProcessorClient } from '~/lib/CardProcessorApiClient'
 import {
   CardProcessorSensitiveDataResponse,
   HttpMethod,
   StorableCard
 } from '~/lib/cards/types'
-import { decryptWithPrivateKey } from '~/lib/crypto'
+import { decryptWithPrivateKey, encryptWithToken } from '~/lib/crypto'
 import { useKeyGeneration } from '~/lib/useKeyGeneration'
+import { usePinChangePopup } from '~/lib/usePinChangePopup'
 import { useTotpChallenge } from '~/lib/useTotpChallenge'
 import { Operation, OperationResponse } from '~/routes/api_.cardOperation'
 import { GetCardTokenResponse } from '~/routes/api_.getCardToken'
@@ -53,25 +54,27 @@ export const useCardActions = (card: StorableCard) => {
     successStatus
   } = useActionExecute()
   const { keyPair } = useKeyGeneration()
-  const { cardProcessorClient } = useCardProcessorApi()
   const { withTotpChallenge } = useTotpChallenge()
+  const { withPinChangePopup, PinChangePopup } = usePinChangePopup()
 
   const [isSensitiveDataVisible, setIsSensitiveDataVisible] = useState(false)
-  const [isPinVisible, setIsPinVisible] = useState(false)
   const [sensitiveData, setSensitiveData] = useState(
     getDefaultSensitiveData(card)
   )
-  const [pin, setPin] = useState('****')
+  const [isPinVisible, setIsPinVisible] = useState(false)
+  const [pinDisplayed, setPinDisplayed] = useState('****')
+
+  const [newPin, setNewPin] = useState<string | null>(null)
 
   // Reset when switching cards
   useEffect(() => {
     setIsSensitiveDataVisible(false)
     setSensitiveData(getDefaultSensitiveData(card))
     setIsPinVisible(false)
-    setPin('****')
+    setPinDisplayed('****')
   }, [
     card,
-    setPin,
+    setPinDisplayed,
     setIsSensitiveDataVisible,
     setIsPinVisible,
     setSensitiveData
@@ -103,11 +106,12 @@ export const useCardActions = (card: StorableCard) => {
       switch (tokenType) {
         case CardTokenType.CARD_DATA:
           onSensitiveDataToken({ token, links })
-          resetStatus()
           break
         case CardTokenType.PIN:
           onGetPinToken({ token, links })
-          resetStatus()
+          break
+        case CardTokenType.PIN_CHANGE:
+          onChangePinToken({ newPin, token, links })
           break
         default:
           errorStatus()
@@ -126,7 +130,7 @@ export const useCardActions = (card: StorableCard) => {
         const method = links[0].method
 
         const encryptedCardData =
-          await cardProcessorClient.cards.getSensitiveData({
+          await cardProcessorClient.card.getSensitiveData({
             jwtToken,
             cardProcessorUrl: hrefs,
             httpMethod: method
@@ -152,7 +156,7 @@ export const useCardActions = (card: StorableCard) => {
         const href = links[0].href
         const method = links[0].method
 
-        const encryptedPinData = await cardProcessorClient.cards.getPin({
+        const encryptedPinData = await cardProcessorClient.card.getPin({
           jwtToken,
           cardProcessorUrl: href,
           httpMethod: method as unknown as HttpMethod
@@ -162,10 +166,36 @@ export const useCardActions = (card: StorableCard) => {
           encryptedPinData.cypher
         )
 
-        setPin(decryptedPinData)
+        setPinDisplayed(decryptedPinData)
       },
       onSuccess: () => {
         setIsPinVisible(true)
+      }
+    })
+  }
+
+  const onChangePinToken = async ({ newPin, token: jwtToken, links }: any) => {
+    executeAction({
+      execute: async () => {
+        if (!newPin) {
+          throw new Error('New PIN is required')
+        }
+
+        const href = links[0].href
+        const method = links[0].method
+
+        const newPinCypher = await encryptWithToken(jwtToken, newPin)
+
+        const response = await cardProcessorClient.card.changePin({
+          newPinCypher,
+          jwtToken,
+          cardProcessorUrl: href,
+          httpMethod: method as unknown as HttpMethod
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to change PIN')
+        }
       }
     })
   }
@@ -195,6 +225,7 @@ export const useCardActions = (card: StorableCard) => {
     },
     [card.id, keyPair?.publicKey, withTotpChallenge]
   )
+
   const toggleSensitiveData = useCallback(() => {
     if (!isSensitiveDataVisible) {
       triggerTokenOperation(CardTokenType.CARD_DATA)
@@ -207,6 +238,7 @@ export const useCardActions = (card: StorableCard) => {
       })
     }
   }, [isSensitiveDataVisible, triggerTokenOperation, executeAction])
+
   const toggleViewPin = useCallback(() => {
     if (!isPinVisible) {
       triggerTokenOperation(CardTokenType.PIN)
@@ -214,11 +246,18 @@ export const useCardActions = (card: StorableCard) => {
       executeAction({
         execute: async () => {
           setIsPinVisible(false)
-          setPin('****')
+          setPinDisplayed('****')
         }
       })
     }
   }, [isPinVisible, triggerTokenOperation, executeAction])
+
+  const toggleChangePin = useCallback(() => {
+    withPinChangePopup((newPin: string) => {
+      triggerTokenOperation(CardTokenType.PIN_CHANGE)
+      setNewPin(newPin)
+    })
+  }, [withPinChangePopup, triggerTokenOperation])
 
   const triggerOperation = useCallback(
     (operation: Operation) => {
@@ -262,13 +301,15 @@ export const useCardActions = (card: StorableCard) => {
     isLocked,
     isBlocked,
     sensitiveData,
-    pin,
+    pin: pinDisplayed,
     actionStatus,
     toggleSensitiveData,
     toggleLock,
     toggleUnlock,
     toggleBlock,
     toggleTerminate,
-    toggleViewPin
+    toggleViewPin,
+    toggleChangePin,
+    PinChangePopup
   }
 }

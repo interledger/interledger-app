@@ -87,3 +87,43 @@ export async function decryptWithPrivateKey<T>(
   const cardData = JSON.parse(decryptedRequestData)
   return cardData as T
 }
+
+export async function encryptWithPublicKey(
+  publicKey: string,
+  data: string
+): Promise<string> {
+  const pemPublicKey = `-----BEGIN PUBLIC KEY-----\n${publicKey}\n-----END PUBLIC KEY-----`
+  
+  const key = new NodeRSA(pemPublicKey)
+  key.setOptions({
+    encryptionScheme: 'pkcs1',
+    environment: 'browser'
+  })
+  return key.encrypt(data, 'base64')
+}
+
+export function parseJwt(token: string) {
+  const base64Url = token.split('.')[1]
+  const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+  const jsonPayload = decodeURIComponent(
+    atob(base64)
+      .split('')
+      .map(function (c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+      })
+      .join('')
+  )
+
+  return JSON.parse(jsonPayload)
+}
+
+export async function encryptWithToken(
+  token: string,
+  data: string
+): Promise<string> {
+  const { publicKey } = parseJwt(token) as {
+    publicKey: string
+  }
+  
+  return await encryptWithPublicKey(publicKey, data)
+}
