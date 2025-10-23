@@ -3,6 +3,7 @@ package ops
 import (
 	"errors"
 	"fmt"
+	"os"
 	"time"
 
 	"gitlab.com/fynbos/backend/currency"
@@ -183,4 +184,48 @@ func handleFailedWithdrawal(ctx workflow.Context, a *Activity, walletID, transac
 	if err != nil {
 		logger.Error("Unable to update transaction state to failed", transactionID)
 	}
+}
+
+func BackfillAccountWorkflow(ctx workflow.Context, walletID string) error {
+	var a *Activity
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 20 * time.Second,
+	}
+
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	logger := workflow.GetLogger(ctx)
+	logger.Info("Backfill gatehub account.")
+	// do backfill only if this is set!
+	sendingUserID := os.Getenv("GATEHUB_SENDING_USER_ID")
+	if sendingUserID != "" {
+		var externalID string
+		err := workflow.ExecuteActivity(ctx, a.CheckIfBackfillWasDone, walletID).Get(ctx, &externalID)
+		if err != nil {
+			return err
+		}
+
+		if externalID != "" {
+			var balance gatehub.Balance
+			err = workflow.ExecuteActivity(ctx, a.BackfillPaywiserBalanceAfterKYC, walletID).Get(ctx, &balance)
+			if err != nil {
+				return err
+			}
+
+			err = workflow.ExecuteActivity(ctx, a.MarkBackfillUser, walletID, externalID, balance).Get(ctx, nil)
+			if err != nil {
+				// if this errors we need to go in manually and update the table will
+				return err
+			}
+
+		}
+
+	}
+
+	err := workflow.ExecuteActivity(ctx, a.SetKYCApprovedForGatehub, walletID).Get(ctx, nil)
+	if err != nil {
+		// if this  we need to go in manually and update the table will
+		return err
+	}
+	return nil
 }
