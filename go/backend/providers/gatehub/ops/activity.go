@@ -489,7 +489,7 @@ func (a *Activity) BackfillPaywiserBalanceAfterKYC(ctx context.Context, walletID
 		log.Info("no balance to transfer", zap.String("wallet_id", walletID))
 		return balance, nil
 	}
-	if sendingUserID == linkedAccount.ProviderID {
+	if sendingAddress == linkedAccount.ProviderID {
 		return balance, nil
 	}
 	externalTx, err := a.external.CreateTransaction(ctx, external.CreateTransactionRequest{
