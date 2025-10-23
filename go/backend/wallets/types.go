@@ -83,12 +83,12 @@ type ValidIdentityLength struct {
 	Max int
 }
 
-var IdentityLength = ValidIdentityLength{Min: 3, Max: 17}
-var pattern = fmt.Sprintf(`^[A-Za-z]{%d}[a-zA-Z0-9_]{0,%d}$`, IdentityLength.Min, IdentityLength.Max)
-var prefixPattern = fmt.Sprintf(`^[A-Za-z]{%d}$`, IdentityLength.Min)
+var identityLength = ValidIdentityLength{Min: 3, Max: 16}
+var pattern = fmt.Sprintf(`^[A-Za-z]{%d}[a-zA-Z0-9_]{0,%d}$`, identityLength.Min, identityLength.Max)
+var prefixPattern = fmt.Sprintf(`^[A-Za-z]{%d}$`, identityLength.Min)
 var addressRegex = regexp.MustCompile(pattern)
 var addressPrefixRegex = regexp.MustCompile(prefixPattern)
-var ReservedURLParts = []string{"outgoing", "incoming", "quotes", "jwks.json", "identities"}
+var ReservedURLParts = []string{"outgoing", "incoming", "quotes", "jwks.json", "identities", "outgoing-payments", "incoming-payments"}
 
 // TestAddress creates a Address without any of the validation, only a valid URL is required.
 // To be used only for testing.
@@ -124,11 +124,11 @@ func ParseAddress(rawAddress string) (Address, error) {
 
 	waPath := strings.TrimPrefix(waURL.Path, "/")
 
-	if len(waPath) < IdentityLength.Min {
-		return Address{}, fmt.Errorf("%w Your wallet address name must be longer than %d characters", ErrInvalidAddress, IdentityLength.Min)
+	if len(waPath) < identityLength.Min {
+		return Address{}, fmt.Errorf("%w Your wallet address name must be longer than %d characters", ErrInvalidAddress, identityLength.Min)
 	}
-	if len(waPath) > IdentityLength.Max {
-		return Address{}, fmt.Errorf("%w Your wallet address name must be shorter than %d characters", ErrInvalidAddress, IdentityLength.Max)
+	if len(waPath) > identityLength.Max {
+		return Address{}, fmt.Errorf("%w Your wallet address name must be shorter than %d characters", ErrInvalidAddress, identityLength.Max)
 	}
 
 	if strings.HasSuffix(waPath, "_") {
