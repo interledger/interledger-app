@@ -12,6 +12,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strings"
 
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/providers/gatehub"
@@ -156,6 +157,12 @@ func HandleUserVerificationWebhook(ctx context.Context, b Backends, raw json.Raw
 	if err != nil {
 		log.Error("gatehub webhook: Failed to unmarshal user verification webhook", zap.String("external_user_uuid", wh.UserID), zap.Error(err))
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	if !strings.Contains(strings.ToLower(wh.Data.Gateway), "paywiser") {
+		log.Warn("received user verification webhook for another gateway", zap.String("webhook-id", wh.ID), zap.String("user_uuid", wh.UserID), zap.String("gateway", wh.Data.Gateway))
+		w.WriteHeader(http.StatusOK)
 		return
 	}
 
