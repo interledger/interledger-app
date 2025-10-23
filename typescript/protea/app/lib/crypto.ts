@@ -84,8 +84,13 @@ export async function decryptWithPrivateKey<T>(
     .decrypt(encryptedData)
     .toString('utf8')
 
-  const cardData = JSON.parse(decryptedRequestData)
-  return cardData as T
+  try {
+    const cardData = JSON.parse(decryptedRequestData)
+    return cardData as T
+  } catch (error) {
+    // Only "0000" PIN throws on JSON parse, return the string directly
+    return decryptedRequestData as T
+  }
 }
 
 export async function encryptWithPublicKey(
@@ -93,7 +98,7 @@ export async function encryptWithPublicKey(
   data: string
 ): Promise<string> {
   const pemPublicKey = `-----BEGIN PUBLIC KEY-----\n${publicKey}\n-----END PUBLIC KEY-----`
-  
+
   const key = new NodeRSA(pemPublicKey)
   key.setOptions({
     encryptionScheme: 'pkcs1',
@@ -124,6 +129,6 @@ export async function encryptWithToken(
   const { publicKey } = parseJwt(token) as {
     publicKey: string
   }
-  
+
   return await encryptWithPublicKey(publicKey, data)
 }
