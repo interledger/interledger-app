@@ -83,12 +83,12 @@ type ValidIdentityLength struct {
 	Max int
 }
 
-var identityLength = ValidIdentityLength{Min: 3, Max: 17}
+var identityLength = ValidIdentityLength{Min: 3, Max: 16}
 var pattern = fmt.Sprintf(`^[A-Za-z]{%d}[a-zA-Z0-9_]{0,%d}$`, identityLength.Min, identityLength.Max)
 var prefixPattern = fmt.Sprintf(`^[A-Za-z]{%d}$`, identityLength.Min)
 var addressRegex = regexp.MustCompile(pattern)
 var addressPrefixRegex = regexp.MustCompile(prefixPattern)
-var ReservedURLParts = []string{"outgoing", "incoming", "quotes", "jwks.json", "identities"}
+var ReservedURLParts = []string{"outgoing", "incoming", "quotes", "jwks.json", "identities", "outgoing-payments", "incoming-payments"}
 
 // TestAddress creates a Address without any of the validation, only a valid URL is required.
 // To be used only for testing.
