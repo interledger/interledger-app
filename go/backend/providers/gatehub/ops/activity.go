@@ -529,6 +529,10 @@ func (a *Activity) CheckIfBackfillWasDone(ctx context.Context, walletID string) 
 		return "", err
 	}
 
+	if retrievedWalletID != "" {
+		return "", nil
+	}
+
 	return externalID, nil
 
 }
