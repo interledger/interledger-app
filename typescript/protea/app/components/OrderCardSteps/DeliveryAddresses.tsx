@@ -34,7 +34,6 @@ export const DeliveryAddresses = () => {
         <CardHeader>
           <CardTitle>Pick a Delivery Address</CardTitle>
         </CardHeader>
-
         <RadioGroup
           id='address'
           value={currentAddress}
@@ -51,7 +50,6 @@ export const DeliveryAddresses = () => {
             Edit new address
           </OutlineButton>
         )}
-
         <Button
           onClick={() => {
             setSelectedAddress(
