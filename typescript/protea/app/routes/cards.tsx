@@ -21,7 +21,6 @@ import type { StorableCard } from '~/lib/cards/types'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
-import { mockCards } from '~/lib/mocks/cards'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const features = await getFeatures(request)
@@ -36,7 +35,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
 
   return json({
-    cards: [...response.cards, ...mockCards]
+    cards: response.cards
   })
 }
 
