@@ -510,9 +510,9 @@ func (a *Activity) BackfillPaywiserBalanceAfterKYC(ctx context.Context, walletID
 	return balance, nil
 }
 
-func (a *Activity) CheckIfBackfillWasDone(ctx context.Context, walletID, externalUserID string) (string, error) {
+func (a *Activity) CheckIfBackfillWasDone(ctx context.Context, walletID string) (string, error) {
 	var externalID string
-	err := a.b.DB().GetContext(ctx, &externalID, "SELECT external_id FROM gatehub_users WHERE wallet_id=$1 AND created_at < '2025-10-22'", walletID)
+	err := a.b.DB().GetContext(ctx, &externalID, "SELECT external_id FROM gatehub_users WHERE wallet_id=$1", walletID)
 	if err != nil {
 		return "", err
 	}
