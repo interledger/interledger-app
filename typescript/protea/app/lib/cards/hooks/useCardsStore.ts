@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { CardsStore, StorableCard } from '../types'
+import type { CardsStore, StorableCard } from '../types'
 
 export const useCardsStore = create<CardsStore>((set, get) => ({
   activeCardId: undefined,

@@ -6,7 +6,7 @@ import {
   CardTokenType
 } from '~/generated/connect/backend/v1/backend_pb'
 import { cardProcessorClient } from '~/lib/CardProcessorApiClient'
-import {
+import type {
   CardProcessorSensitiveDataResponse,
   HttpMethod,
   StorableCard
@@ -15,8 +15,8 @@ import { decryptWithPrivateKey, encryptWithToken } from '~/lib/crypto'
 import { useKeyGeneration } from '~/lib/useKeyGeneration'
 import { usePinChangePopup } from '~/lib/usePinChangePopup'
 import { useTotpChallenge } from '~/lib/useTotpChallenge'
-import { Operation, OperationResponse } from '~/routes/api_.cardOperation'
-import { GetCardTokenResponse } from '~/routes/api_.getCardToken'
+import type { Operation, OperationResponse } from '~/routes/api_.cardOperation'
+import type { GetCardTokenResponse } from '~/routes/api_.getCardToken'
 import { useActionExecute } from './useActionExecute'
 
 const getDefaultSensitiveData = (
@@ -86,6 +86,95 @@ export const useCardActions = (card: StorableCard) => {
   }, [card.id, resetStatus])
 
   /**
+   * Token listeners
+   */
+  const onSensitiveDataToken = useCallback(
+    async ({ token: jwtToken, links }: any) => {
+      executeAction({
+        execute: async () => {
+          const hrefs = links[0].href
+          const method = links[0].method
+
+          const encryptedCardData =
+            await cardProcessorClient.card.getSensitiveData({
+              jwtToken,
+              cardProcessorUrl: hrefs,
+              httpMethod: method
+            })
+
+          const decryptedCardData =
+            await decryptWithPrivateKey<CardProcessorSensitiveDataResponse>(
+              keyPair!.privateKey,
+              encryptedCardData.cypher
+            )
+
+          setSensitiveData(decryptedCardData)
+        },
+        onSuccess: () => {
+          setIsSensitiveDataVisible(true)
+        }
+      })
+    },
+    [executeAction, keyPair]
+  )
+
+  const onGetPinToken = useCallback(
+    async ({ token: jwtToken, links }: any) => {
+      executeAction({
+        execute: async () => {
+          const href = links[0].href
+          const method = links[0].method
+
+          const encryptedPinData = await cardProcessorClient.card.getPin({
+            jwtToken,
+            cardProcessorUrl: href,
+            httpMethod: method as unknown as HttpMethod
+          })
+          const decryptedPinData = await decryptWithPrivateKey<string>(
+            keyPair!.privateKey,
+            encryptedPinData.cypher
+          )
+
+          setPinDisplayed(decryptedPinData)
+        },
+        onSuccess: () => {
+          setIsPinVisible(true)
+        }
+      })
+    },
+    [executeAction, keyPair]
+  )
+
+  const onChangePinToken = useCallback(
+    async ({ newPin, token: jwtToken, links }: any) => {
+      executeAction({
+        execute: async () => {
+          if (!newPin) {
+            throw new Error('New PIN is required')
+          }
+
+          const href = links[0].href
+          const method = links[0].method
+
+          const newPinCypher = await encryptWithToken(jwtToken, newPin)
+
+          const response = await cardProcessorClient.card.changePin({
+            newPinCypher,
+            jwtToken,
+            cardProcessorUrl: href,
+            httpMethod: method as unknown as HttpMethod
+          })
+
+          if (!response.ok) {
+            throw new Error('Failed to change PIN')
+          }
+        }
+      })
+    },
+    [executeAction]
+  )
+
+  /**
    * Server Action listener
    */
   useEffect(() => {
@@ -118,87 +207,16 @@ export const useCardActions = (card: StorableCard) => {
           break
       }
     }
-  }, [fetcher.data, setActionStatus])
-
-  /**
-   * Token listeners
-   */
-  const onSensitiveDataToken = async ({ token: jwtToken, links }: any) => {
-    executeAction({
-      execute: async () => {
-        const hrefs = links[0].href
-        const method = links[0].method
-
-        const encryptedCardData =
-          await cardProcessorClient.card.getSensitiveData({
-            jwtToken,
-            cardProcessorUrl: hrefs,
-            httpMethod: method
-          })
-
-        const decryptedCardData =
-          await decryptWithPrivateKey<CardProcessorSensitiveDataResponse>(
-            keyPair!.privateKey,
-            encryptedCardData.cypher
-          )
-
-        setSensitiveData(decryptedCardData)
-      },
-      onSuccess: () => {
-        setIsSensitiveDataVisible(true)
-      }
-    })
-  }
-
-  const onGetPinToken = async ({ token: jwtToken, links }: any) => {
-    executeAction({
-      execute: async () => {
-        const href = links[0].href
-        const method = links[0].method
-
-        const encryptedPinData = await cardProcessorClient.card.getPin({
-          jwtToken,
-          cardProcessorUrl: href,
-          httpMethod: method as unknown as HttpMethod
-        })
-        const decryptedPinData = await decryptWithPrivateKey<string>(
-          keyPair!.privateKey,
-          encryptedPinData.cypher
-        )
-
-        setPinDisplayed(decryptedPinData)
-      },
-      onSuccess: () => {
-        setIsPinVisible(true)
-      }
-    })
-  }
-
-  const onChangePinToken = async ({ newPin, token: jwtToken, links }: any) => {
-    executeAction({
-      execute: async () => {
-        if (!newPin) {
-          throw new Error('New PIN is required')
-        }
-
-        const href = links[0].href
-        const method = links[0].method
-
-        const newPinCypher = await encryptWithToken(jwtToken, newPin)
-
-        const response = await cardProcessorClient.card.changePin({
-          newPinCypher,
-          jwtToken,
-          cardProcessorUrl: href,
-          httpMethod: method as unknown as HttpMethod
-        })
-
-        if (!response.ok) {
-          throw new Error('Failed to change PIN')
-        }
-      }
-    })
-  }
+  }, [
+    errorStatus,
+    fetcher.data,
+    newPin,
+    onChangePinToken,
+    onGetPinToken,
+    onSensitiveDataToken,
+    setActionStatus,
+    successStatus
+  ])
 
   /**
    * Toggles
@@ -223,7 +241,14 @@ export const useCardActions = (card: StorableCard) => {
         })
       })
     },
-    [card.id, keyPair?.publicKey, withTotpChallenge]
+    [
+      card.id,
+      errorStatus,
+      fetcher,
+      keyPair?.publicKey,
+      setActionStatus,
+      withTotpChallenge
+    ]
   )
 
   const toggleSensitiveData = useCallback(() => {
@@ -237,7 +262,7 @@ export const useCardActions = (card: StorableCard) => {
         }
       })
     }
-  }, [isSensitiveDataVisible, triggerTokenOperation, executeAction])
+  }, [isSensitiveDataVisible, triggerTokenOperation, executeAction, card])
 
   const toggleViewPin = useCallback(() => {
     if (!isPinVisible) {

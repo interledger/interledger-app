@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { useState } from 'react'
-import { StorableCard } from '~/lib/cards/types'
+import type { StorableCard } from '~/lib/cards/types'
 import { usePinChangePopup } from '~/lib/usePinChangePopup'
 import { CardActions } from './CardActions'
 import { CardViewBack } from './CardViewBack'
