@@ -520,14 +520,13 @@ func (a *Activity) CheckIfBackfillWasDone(ctx context.Context, walletID string) 
 	if externalID == "" {
 		return "", nil
 	}
-	var wallerID string
-	err = a.b.DB().GetContext(ctx, &wallerID, "SELECT wallet_id FROM gatehub_backfill_users WHERE wallet_id=$1 AND external_id=$2", walletID, externalID)
+	var retrievedWalletID string
+	err = a.b.DB().GetContext(ctx, &retrievedWalletID, "SELECT wallet_id FROM gatehub_backfill_users WHERE wallet_id=$1 AND external_id=$2", walletID, externalID)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", nil
+		}
 		return "", err
-	}
-	// if wallet id is not there there is no external_ID to update we return empty
-	if wallerID != "" {
-		return "", nil
 	}
 
 	return externalID, nil
