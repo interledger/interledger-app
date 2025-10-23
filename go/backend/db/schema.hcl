@@ -3087,6 +3087,28 @@ table "pti_transactions" {
   }
 }
 
+table "gatehub_backfill_users" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+
+  column "wallet_id" {
+    null = false
+    type = uuid
+  }
+  column "external_id" {
+    null = true
+    type = text
+  }
+    column "unscaled_value" {
+    null = true
+     type = int
+  }
+}
+
 table "gatehub_users" {
   schema = schema.public
   column "id" {

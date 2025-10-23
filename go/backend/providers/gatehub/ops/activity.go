@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"gitlab.com/fynbos/backend/currency"
+	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/notify"
 	"gitlab.com/fynbos/backend/payments"
@@ -21,10 +22,12 @@ import (
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/wallets"
 	"gitlab.com/fynbos/env"
+	"gitlab.com/fynbos/log"
 	"gitlab.com/fynbos/pacioli"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/temporal"
+	"go.uber.org/zap"
 )
 
 type Activity struct {
@@ -513,4 +516,97 @@ func (a *Activity) GetLinkedAccount(ctx context.Context, walletID string) (linke
 	}
 
 	return linkedAccount, nil
+}
+
+func (a *Activity) BackfillPaywiserBalanceAfterKYC(ctx context.Context, walletID string) (*gatehub.Balance, error) {
+	sendingUserID := os.Getenv("GATEHUB_SENDING_USER_ID")
+	if sendingUserID == "" {
+		return nil, fmt.Errorf("missing GATEHUB_SENDING_USER_ID")
+	}
+	sendingAddress := os.Getenv("GATEHUB_SENDING_USER_ADDRESS")
+	if sendingAddress == "" {
+		return nil, fmt.Errorf("missing GATEHUB_SENDING_USER_ADDRESS")
+	}
+
+	la, err := a.b.LinkedAccounts().ListByWalletId(ctx, walletID)
+	if err != nil {
+		return nil, fmt.Errorf("missing linked account")
+	}
+	var linkedAccount linkedaccounts.LinkedAccount
+	for _, l := range la {
+		if l.Provider == gatehub.ProviderName && l.Type == gatehub.AccTypeBalance {
+			linkedAccount = l
+		}
+	}
+	if linkedAccount.ID == "" {
+		return nil, fmt.Errorf("%w missing linked account for %s", gatehub.ErrInternal, walletID)
+	}
+	balance, err := GetBalance(ctx, a.b, linkedAccount.ID)
+	if err != nil {
+		return nil, err
+	}
+	transfer := balance.Total.Float64()
+	if transfer <= 0 {
+		log.Info("no balance to transfer", zap.String("wallet_id", walletID))
+		return balance, nil
+	}
+	if sendingAddress == linkedAccount.ProviderID {
+		return balance, nil
+	}
+	externalTx, err := a.external.CreateTransaction(ctx, external.CreateTransactionRequest{
+		SendingUserID:    sendingUserID,
+		SendingAddress:   sendingAddress,
+		ReceivingAddress: linkedAccount.ProviderID,
+		Amount:           transfer,
+		Message:          "backfill transfer",
+		Type:             external.TransactionTypeHosted,
+		VaultID:          a.external.GetVaultID(),
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	log.Info("created external transaction", zap.Any("externalTx", externalTx), zap.Float64("amount", transfer))
+
+	return balance, nil
+}
+
+func (a *Activity) CheckIfBackfillWasDone(ctx context.Context, walletID string) (string, error) {
+	var externalID string
+	err := a.b.DB().GetContext(ctx, &externalID, "SELECT external_id FROM gatehub_users WHERE wallet_id=$1", walletID)
+	if err != nil {
+		return "", err
+	}
+
+	if externalID == "" {
+		return "", nil
+	}
+	var retrievedWalletID string
+	err = a.b.DB().GetContext(ctx, &retrievedWalletID, "SELECT wallet_id FROM gatehub_backfill_users WHERE wallet_id=$1 AND external_id=$2", walletID, externalID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return externalID, nil
+		}
+		return "", err
+	}
+
+	if retrievedWalletID != "" {
+		return "", nil
+	}
+
+	return externalID, nil
+
+}
+
+func (a *Activity) MarkBackfillUser(ctx context.Context, walletID, externalUserID string, balance *gatehub.Balance) error {
+	_, err := a.b.DB().ExecContext(ctx, `INSERT INTO gatehub_backfill_users(wallet_id, external_id, unscaled_value)
+													VALUES ( $1, $2, $3);`, walletID, externalUserID, balance.Total.Value)
+	if err != nil {
+		return err
+	}
+	return nil
+
+}
+func (a *Activity) SetKYCApprovedForGatehub(ctx context.Context, walletID string) error {
+	return a.b.KYC().SetKYCStatus(ctx, walletID, kyc.StatusLevel1)
 }
