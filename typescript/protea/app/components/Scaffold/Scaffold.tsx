@@ -554,6 +554,11 @@ export function Scaffold() {
                 <NavDrawer.ListItem to={route('/accounts')}>
                   Accounts
                 </NavDrawer.ListItem>
+                {features.manageWalletCardsEnabled && (
+                  <NavDrawer.ListItem to={route('/cards')}>
+                    Cards
+                  </NavDrawer.ListItem>
+                )}
                 <NavDrawer.ListItem to={route('/payments')}>
                   Payments
                 </NavDrawer.ListItem>

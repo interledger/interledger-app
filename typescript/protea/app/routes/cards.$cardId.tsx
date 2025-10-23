@@ -1,16 +1,10 @@
-// Placeholder page
-
 import { type SerializeFrom } from '@remix-run/node'
-import {
-  useNavigate,
-  useOutletContext,
-  useParams,
-  useRouteLoaderData
-} from '@remix-run/react'
+import { useNavigate, useParams, useRouteLoaderData } from '@remix-run/react'
+import { useEffect, useMemo } from 'react'
 import { type RouteParams } from 'routes-gen'
-import { Layouts, type ApplicationProps } from '~/components'
+import { CardView, Layouts, type ApplicationProps } from '~/components'
+import { useCardsStore } from '~/lib/cards/hooks/useCardsStore'
 import type { loader as rootLoader } from '~/root'
-import type { loader } from './cards'
 
 export const handle: ApplicationProps = {
   layout: Layouts.Wallet,
@@ -28,8 +22,14 @@ export default function PageCardID() {
   const { features } = useRouteLoaderData('root') as SerializeFrom<
     typeof rootLoader
   >
-  const cards = useOutletContext<SerializeFrom<typeof loader>['cards']>()
+  const { cards, setActiveCardId } = useCardsStore()
   const { cardId } = useParams<RouteParams['/cards/:cardId']>()
+
+  useEffect(() => {
+    if (cardId) {
+      setActiveCardId(cardId)
+    }
+  }, [cardId, setActiveCardId])
 
   // goto root in case cards are not enabled
   if (!features.manageWalletCardsEnabled) {
@@ -37,14 +37,14 @@ export default function PageCardID() {
   }
 
   if (!cardId) {
-    return <>TODO: NotFound</>
+    return <>Card not found</>
   }
 
-  const card = cards.find((c) => c.id === cardId)
+  const card = useMemo(() => cards?.[cardId], [cards, cardId])
 
   if (!card) {
-    return <>TODO: NotFound</>
+    return <>Card not found</>
   }
 
-  return <div>Placeholder</div>
+  return <CardView card={card} />
 }
