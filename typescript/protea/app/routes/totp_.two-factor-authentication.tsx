@@ -5,9 +5,9 @@ import type {
   MetaFunction,
   TypedResponse
 } from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
+import { json, redirect, redirectDocument } from '@remix-run/node'
 import { Form, useLoaderData, useSubmit } from '@remix-run/react'
-import { useMemo, useRef } from 'react'
+import { useRef } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import {
@@ -19,7 +19,7 @@ import {
   OutlineButtonRouter,
   TextField
 } from '~/components'
-import { useTotpChallenge } from '~/lib/hooks/useTotpChallenge'
+import { useTotpChallengeAction } from '~/lib/hooks/useTotpChallengeAction'
 import { KRATOS_URL, getCsrfTokenFromFlow } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
 
@@ -111,28 +111,17 @@ export default function Page() {
     useLoaderData<typeof loader>()
   const formRef = useRef<HTMLFormElement>(null)
   const submit = useSubmit()
-
-  const callbacks = useMemo(
-    () => ({
-      onSuccess: () => {
-        if (formRef.current) {
-          submit(formRef.current)
-        }
-      },
-      onError: (error: any) => {
-        console.error('❌ TOTP Challenge error:', error)
-      }
-    }),
-    []
-  )
-
-  const { popTotp, TotpPopup, isOpen } = useTotpChallenge(callbacks)
+  const { withTotpChallenge } = useTotpChallengeAction()
 
   if (!flowId && !totpUnlink) return <p>Failed to load flow data.</p>
 
   const handleUnlinkClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
-    popTotp()
+    withTotpChallenge(() => {
+      if (formRef.current) {
+        submit(formRef.current)
+      }
+    })
   }
 
   return (
@@ -182,7 +171,6 @@ export default function Page() {
           </OutlineButtonRouter>
         </GridColumn>
       </Form>
-      {isOpen && <TotpPopup />}
     </>
   )
 }
@@ -260,15 +248,15 @@ export async function action({ request }: ActionFunctionArgs) {
           }
         }
       )
-      // const flow = await refresh.json()
-      console.log('Refresh response:', refresh.status)
+
       return redirect(route('/totp/two-factor-authentication'), {
         headers: res.headers
       })
     }
 
     if (res.ok) {
-      return redirect(route('/'))
+      // Hard reload so the root loader is also run
+      return redirectDocument(route('/'))
     }
 
     const data = await res.json()
