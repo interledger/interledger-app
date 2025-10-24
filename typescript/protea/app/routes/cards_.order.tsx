@@ -7,7 +7,7 @@ import {
 import { useLoaderData } from '@remix-run/react'
 import { useEffect } from 'react'
 import { route } from 'routes-gen'
-import { Layouts, type ApplicationProps } from '~/components'
+import { CardProcessingPlaceholder, Layouts, type ApplicationProps } from '~/components'
 import { ConfirmCard } from '~/components/OrderCardSteps/ConfirmCard'
 import { CreateAddress } from '~/components/OrderCardSteps/CreateAddress'
 import { DeliveryAddresses } from '~/components/OrderCardSteps/DeliveryAddresses'
@@ -45,7 +45,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export default function Page() {
-  const { products, addresses, countries } = useLoaderData<typeof loader>()
+  const { products, addresses, countries, isWaitingForCreation } = useLoaderData<typeof loader>()
   const [step, setProducts, setAddresses, reset, setCountries] =
     useOrderCardStore((state) => [
       state.step,
@@ -70,6 +70,10 @@ export default function Page() {
   useEffect(() => {
     setCountries(countries)
   }, [countries, setCountries])
+
+  if (isWaitingForCreation) {
+    return <CardProcessingPlaceholder />
+  }
 
   return (
     <>

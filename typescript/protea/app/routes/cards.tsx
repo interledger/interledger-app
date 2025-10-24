@@ -15,8 +15,15 @@ import {
   Layouts,
   WalletGrid
 } from '~/components'
+import {
+  CardProcessingPlaceholder,
+  VirtualCardRibbon
+} from '~/components/CardView'
 import { getFeatures } from '~/data/wallet.server'
-import { Card as CardProto } from '~/generated/connect/backend/v1/backend_pb'
+import type {
+  Card as CardProto,
+  CardType
+} from '~/generated/connect/backend/v1/backend_pb'
 import { useCardsStore } from '~/lib/cards/hooks/useCardsStore'
 import type { StorableCard } from '~/lib/cards/types'
 import { isConnectError } from '~/lib/error.server'
@@ -50,6 +57,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
 
   return json({
+    isWaitingForCreation: response.isWaitingForCreation,
     cards: response.cards
   })
 }
@@ -68,6 +76,10 @@ export const meta: MetaFunction = mergeMeta(() => [
     title: 'Cards'
   }
 ])
+
+const isVirtualCard = (card: CardProto): boolean => {
+  return card.type === ('CARD_TYPE_VIRTUAL' as unknown as CardType)
+}
 
 /**
  * Convert Card object to StorableCard format for the store
@@ -91,15 +103,8 @@ export const formatCardNumber = (cardNumber: string) => {
   return cardNumber.replace(/(.{4})/g, '$1 ').trim()
 }
 
-// TODO: How to show card type when we can differentiate between phyiscal and
-// virtual?
-//
-// Options:
-//  * Chip component positioned on the right inside the CardLink
-// component with Virtual or Physical
-//  * Separate sections for Physical and Virtual cards
 export default function Page() {
-  const { cards } = useLoaderData<typeof loader>()
+  const { cards, isWaitingForCreation } = useLoaderData<typeof loader>()
   const location = useLocation()
   const { setCards } = useCardsStore()
 
@@ -119,45 +124,52 @@ export default function Page() {
         hideOnMobile={pathSegments[pathSegments.length - 1] !== 'cards'}
         className='col-span-full lg:col-span-6'
       >
-        {cards.length === 0 && (
-          <Card>
-            <CardContent>
-              It looks like you don't have any cards associated with your
-              account.
-            </CardContent>
-          </Card>
+        {isWaitingForCreation ? (
+          <CardProcessingPlaceholder />
+        ) : (
+          <>
+            {cards.length === 0 && (
+              <Card>
+                <CardContent>
+                  It looks like you don't have any cards associated with your
+                  account.
+                </CardContent>
+              </Card>
+            )}
+            {cards.length > 0 &&
+              cards.map((card) => (
+                <Card key={card.id} className='relative'>
+                  {isVirtualCard(card as CardProto) && <VirtualCardRibbon />}
+                  <CardLink
+                    preventScrollReset={!isMobile}
+                    prefetch='none'
+                    to={route('/cards/:cardId', {
+                      cardId: card.id
+                    })}
+                    className='justify-between space-x-4'
+                  >
+                    <div className='flex w-7/12 items-center space-x-4'>
+                      {/* TODO: Maybe show card itself instead of the icon */}
+                      <Icon>credit_card</Icon>
+                      <div className='flex w-full flex-col space-y-1'>
+                        <span className='truncate text-medium'>
+                          {formatCardNumber(card.maskedPan)}
+                        </span>
+                        <span className='text-xs text-weak'>
+                          Expires at: {card.expiryDate.slice(0, 2)}/
+                          {card.expiryDate.slice(2)}
+                        </span>
+                      </div>
+                    </div>
+                    <div className='flex min-w-max flex-initial items-center space-x-2'>
+                      <Icon>navigate_next</Icon>
+                    </div>
+                  </CardLink>
+                </Card>
+              ))}
+            <ButtonRouter to={route('/cards/order')}>Order card</ButtonRouter>
+          </>
         )}
-        {cards.length > 0 &&
-          cards.map((card) => (
-            <Card key={card.id}>
-              <CardLink
-                preventScrollReset={!isMobile}
-                prefetch='none'
-                to={route('/cards/:cardId', {
-                  cardId: card.id
-                })}
-                className='justify-between space-x-4'
-              >
-                <div className='flex w-7/12 items-center space-x-4'>
-                  {/* TODO: Maybe show card itself instead of the icon */}
-                  <Icon>credit_card</Icon>
-                  <div className='flex w-full flex-col space-y-1'>
-                    <span className='truncate text-medium'>
-                      {formatCardNumber(card.maskedPan)}
-                    </span>
-                    <span className='text-xs text-weak'>
-                      Expires at: {card.expiryDate.slice(0, 2)}/
-                      {card.expiryDate.slice(2)}
-                    </span>
-                  </div>
-                </div>
-                <div className='flex min-w-max flex-initial items-center space-x-2'>
-                  <Icon>navigate_next</Icon>
-                </div>
-              </CardLink>
-            </Card>
-          ))}
-        <ButtonRouter to={route('/cards/order')}>Order card</ButtonRouter>
       </GridColumn>
       <GridColumn sticky className='col-span-full lg:col-span-6 lg:col-start-7'>
         <Outlet context={cards} />
