@@ -93,23 +93,6 @@ export const CardActions = ({
                         <span>PIN</span>
                       </button>
                     )}
-                  
-                  </Menu.Item>
-                  {/* Change PIN */}
-                  <Menu.Item>
-                    {({ active }) => (
-                      <button
-                        onClick={toggleChangePin}
-                        className={`flex w-full items-center space-x-3 px-4 py-2 text-left text-sm ${
-                          active
-                            ? 'bg-purple-50 text-purple-900'
-                            : 'text-gray-700'
-                        }`}
-                      >
-                        <Icon className='text-purple-600'>password</Icon>
-                        <span>Change PIN</span>
-                      </button>
-                    )}
                   </Menu.Item>
                 </div>
               </Menu.Items>
@@ -141,6 +124,23 @@ export const CardActions = ({
             >
               <Menu.Items className='absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-lg border border-gray-200 bg-white shadow-lg focus:outline-none'>
                 <div className='py-1'>
+                  {/* Change PIN */}
+                  <Menu.Item>
+                    {({ active }) => (
+                      <button
+                        onClick={toggleChangePin}
+                        className={`flex w-full items-center space-x-3 px-4 py-2 text-left text-sm ${
+                          active
+                            ? 'bg-purple-50 text-purple-900'
+                            : 'text-gray-700'
+                        }`}
+                      >
+                        <Icon className='text-purple-600'>password</Icon>
+                        <span>Change PIN</span>
+                      </button>
+                    )}
+                  </Menu.Item>
+
                   {/* Freeze/Unfreeze */}
                   <Menu.Item>
                     {({ active }) => (
@@ -150,7 +150,7 @@ export const CardActions = ({
                           active ? 'bg-red-50 text-red-900' : 'text-gray-700'
                         }`}
                       >
-                        <Icon className='text-red-600'>lock</Icon>
+                        <Icon className='text-red-600'>{isFrozen ? 'mode_cool_off' : 'mode_cool'}</Icon>
                         <span>{isFrozen ? 'Unfreeze' : 'Freeze'}</span>
                       </button>
                     )}
