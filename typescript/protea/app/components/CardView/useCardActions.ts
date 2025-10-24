@@ -77,6 +77,7 @@ export const useCardActions = (card: StorableCard) => {
     resetSensitiveData()
     setIsPinVisible(false)
     setPinDisplayed('****')
+    setShowBack(false)
   }, [
     card,
     setPinDisplayed,
