@@ -25,8 +25,6 @@ import {
 import type { LinkedAccountReviewState } from '~/lib/types'
 
 export const PAYMENT_POINTER_BASE = process.env.PAYMENT_POINTER_BASE
-export const KRATOS_ADMIN_URL =
-  process.env.KRATOS_ADMIN_URL || 'http://kratos:4434'
 
 export const formatAmount = (amount: number, asset: string): string => {
   if (typeof amount == 'undefined') return '$ 0.00'
