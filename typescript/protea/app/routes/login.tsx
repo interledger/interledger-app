@@ -194,6 +194,11 @@ export async function action({ request }: ActionFunctionArgs) {
     }
   })
 
+  if (res.status === 422) {
+    return redirect('/totp/challenge', {
+      headers: res.headers
+    })
+  }
   try {
     const checkTOTP = await res.json()
     if (checkTOTP?.session?.authenticator_assurance_level === 'aal1') {
@@ -205,11 +210,6 @@ export async function action({ request }: ActionFunctionArgs) {
     // If the response is not JSON, we can ignore it
   }
 
-  if (res.status === 422) {
-    return redirect('/totp/challenge', {
-      headers: res.headers
-    })
-  }
   if (res.status >= 400) {
     const errs = await kratosErrorMapping(res, fieldErrors)
     return error(request, { errors: errs }, { action: 'Contact support' })
