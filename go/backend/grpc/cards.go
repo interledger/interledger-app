@@ -654,6 +654,7 @@ func newCard(c gatehub.Card) pb.Card {
 		ExpiryDate:       c.ExpiryDate,
 		StatusReasonCode: statusReasonCode,
 		LockLevel:        lockLevel,
+		ProductCode:      c.ProductCode,
 	}
 }
 

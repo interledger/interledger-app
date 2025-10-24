@@ -278,6 +278,10 @@ export interface Card {
      * @generated from protobuf field: backend.v1.CardType type = 8;
      */
     type: CardType;
+    /**
+     * @generated from protobuf field: string productCode = 9;
+     */
+    productCode: string;
 }
 /**
  * @generated from protobuf message backend.v1.ListCardsResponse
@@ -3843,11 +3847,12 @@ class Card$Type extends MessageType<Card> {
             { no: 5, name: "statusReasonCode", kind: "enum", T: () => ["backend.v1.CardStatusReasonCode", CardStatusReasonCode, "CARD_STATUS_REASON_CODE_"] },
             { no: 6, name: "lockLevel", kind: "enum", T: () => ["backend.v1.CardLockLevel", CardLockLevel, "CARD_LOCK_LEVEL_"] },
             { no: 7, name: "expiryDate", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 8, name: "type", kind: "enum", T: () => ["backend.v1.CardType", CardType, "CARD_TYPE_"] }
+            { no: 8, name: "type", kind: "enum", T: () => ["backend.v1.CardType", CardType, "CARD_TYPE_"] },
+            { no: 9, name: "productCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Card>): Card {
-        const message = { id: "", nameOnCard: "", maskedPan: "", status: 0, statusReasonCode: 0, lockLevel: 0, expiryDate: "", type: 0 };
+        const message = { id: "", nameOnCard: "", maskedPan: "", status: 0, statusReasonCode: 0, lockLevel: 0, expiryDate: "", type: 0, productCode: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Card>(this, message, value);
@@ -3881,6 +3886,9 @@ class Card$Type extends MessageType<Card> {
                     break;
                 case /* backend.v1.CardType type */ 8:
                     message.type = reader.int32();
+                    break;
+                case /* string productCode */ 9:
+                    message.productCode = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -3918,6 +3926,9 @@ class Card$Type extends MessageType<Card> {
         /* backend.v1.CardType type = 8; */
         if (message.type !== 0)
             writer.tag(8, WireType.Varint).int32(message.type);
+        /* string productCode = 9; */
+        if (message.productCode !== "")
+            writer.tag(9, WireType.LengthDelimited).string(message.productCode);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
