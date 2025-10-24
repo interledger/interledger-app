@@ -102,16 +102,6 @@ selfservice:
       enabled: true
       config:
         issuer: interledger.app
-    webauthn:
-      enabled: true
-      config:
-        passwordless: false
-        rp:
-          display_name: "Interledger"
-          id: interledger.test
-          origins:
-            - https://identity.interledger.test
-            - https://interledger.test
     lookup_secret:
       enabled: true
 serve:

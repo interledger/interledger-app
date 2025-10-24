@@ -15,8 +15,7 @@
             "credentials": {
               "password": {
                 "identifier": true
-              },
-               "webauthn": { "identifier": true }
+              }
             },
             "verification": {
               "via": "email"
@@ -48,9 +47,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "email", "phone", "firstName", "lastName", "countryCode"
-      ],
+      "required": ["email", "phone", "firstName", "lastName", "countryCode"],
       "additionalProperties": false
     }
   }
