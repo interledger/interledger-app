@@ -4,11 +4,11 @@ import { Icon } from '~/components/Icon'
 
 interface CardActionsProps {
   showBack: boolean
-  setShowBack: (show: boolean) => void
+  flip: () => void
   isSensitiveDataVisible: boolean
   isPinVisible: boolean
   isLocked: boolean
-  toggleSensitiveData: () => void
+  toggleSensitiveDataOn: () => void
   toggleLock: () => void
   toggleUnlock: () => void
   toggleViewPin: () => void
@@ -19,9 +19,9 @@ interface CardActionsProps {
 
 export const CardActions = ({
   showBack,
-  setShowBack,
+  flip,
   isLocked,
-  toggleSensitiveData,
+  toggleSensitiveDataOn,
   toggleLock,
   toggleUnlock,
   toggleViewPin,
@@ -34,7 +34,7 @@ export const CardActions = ({
       {/* Flip card */}
       <button
         className='flex items-center justify-center space-x-2 rounded-lg bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600'
-        onClick={() => setShowBack(!showBack)}
+        onClick={flip}
       >
         <Icon>{showBack ? 'flip_to_front' : 'flip_to_back'}</Icon>
         <span>Flip</span>
@@ -67,7 +67,7 @@ export const CardActions = ({
                   <Menu.Item>
                     {({ active }) => (
                       <button
-                        onClick={toggleSensitiveData}
+                        onClick={toggleSensitiveDataOn}
                         className={`flex w-full items-center space-x-3 px-4 py-2 text-left text-sm ${
                           active ? 'bg-teal-50 text-teal-900' : 'text-gray-700'
                         }`}

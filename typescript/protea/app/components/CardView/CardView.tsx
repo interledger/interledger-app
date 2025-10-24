@@ -1,5 +1,4 @@
 import clsx from 'clsx'
-import { useState } from 'react'
 import type { StorableCard } from '~/lib/cards/types'
 import { usePinChangePopup } from '~/lib/usePinChangePopup'
 import { CardActions } from './CardActions'
@@ -10,16 +9,16 @@ import { TimedPinPopup } from './TimedPinPopup'
 import { useCardActions } from './useCardActions'
 
 export const CardView = ({ card }: { card: StorableCard }) => {
-  const [showBack, setShowBack] = useState(false)
-
   const {
+    flip,
+    showBack,
     isSensitiveDataVisible,
     isPinVisible,
     isLocked,
     sensitiveData,
     pin,
     actionStatus,
-    toggleSensitiveData,
+    toggleSensitiveDataOn,
     toggleLock,
     toggleBlock,
     toggleTerminate,
@@ -96,11 +95,11 @@ export const CardView = ({ card }: { card: StorableCard }) => {
       {/* Card actions */}
       <CardActions
         showBack={showBack}
-        setShowBack={setShowBack}
+        flip={flip}
         isSensitiveDataVisible={isSensitiveDataVisible}
         isPinVisible={isPinVisible}
         isLocked={isLocked}
-        toggleSensitiveData={toggleSensitiveData}
+        toggleSensitiveDataOn={toggleSensitiveDataOn}
         toggleLock={toggleLock}
         toggleUnlock={toggleUnlock}
         toggleViewPin={toggleViewPin}

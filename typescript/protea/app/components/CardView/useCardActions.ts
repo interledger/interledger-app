@@ -65,11 +65,16 @@ export const useCardActions = (card: StorableCard) => {
   const [pinDisplayed, setPinDisplayed] = useState('****')
 
   const [newPin, setNewPin] = useState<string | null>(null)
+  const [showBack, setShowBack] = useState<boolean>(false)
+
+  const resetSensitiveData = useCallback(() => {
+    setIsSensitiveDataVisible(false)
+    setSensitiveData(getDefaultSensitiveData(card))
+  }, [card, setSensitiveData, setIsSensitiveDataVisible])
 
   // Reset when switching cards
   useEffect(() => {
-    setIsSensitiveDataVisible(false)
-    setSensitiveData(getDefaultSensitiveData(card))
+    resetSensitiveData()
     setIsPinVisible(false)
     setPinDisplayed('****')
   }, [
@@ -77,7 +82,8 @@ export const useCardActions = (card: StorableCard) => {
     setPinDisplayed,
     setIsSensitiveDataVisible,
     setIsPinVisible,
-    setSensitiveData
+    setSensitiveData,
+    resetSensitiveData
   ])
 
   useEffect(() => {
@@ -112,6 +118,7 @@ export const useCardActions = (card: StorableCard) => {
         },
         onSuccess: () => {
           setIsSensitiveDataVisible(true)
+          setShowBack(true)
         }
       })
     },
@@ -251,18 +258,9 @@ export const useCardActions = (card: StorableCard) => {
     ]
   )
 
-  const toggleSensitiveData = useCallback(() => {
-    if (!isSensitiveDataVisible) {
-      triggerTokenOperation(CardTokenType.CARD_DATA)
-    } else {
-      executeAction({
-        execute: async () => {
-          setIsSensitiveDataVisible(false)
-          setSensitiveData(getDefaultSensitiveData(card))
-        }
-      })
-    }
-  }, [isSensitiveDataVisible, triggerTokenOperation, executeAction, card])
+  const toggleSensitiveDataOn = useCallback(() => {
+    triggerTokenOperation(CardTokenType.CARD_DATA)
+  }, [triggerTokenOperation])
 
   const toggleViewPin = useCallback(() => {
     if (!isPinVisible) {
@@ -317,10 +315,21 @@ export const useCardActions = (card: StorableCard) => {
     [triggerOperation]
   )
 
+  const flip = () => {
+    if (showBack && isSensitiveDataVisible) {
+      // turning to the front resets sensitive data
+      resetSensitiveData()
+    }
+    setShowBack(!showBack)
+  }
+
   const isLocked = useMemo(() => isCardLocked(card), [card])
   const isBlocked = useMemo(() => isCardBlocked(card), [card])
 
   return {
+    flip,
+    showBack,
+    setShowBack,
     isSensitiveDataVisible,
     isPinVisible,
     isLocked,
@@ -328,7 +337,7 @@ export const useCardActions = (card: StorableCard) => {
     sensitiveData,
     pin: pinDisplayed,
     actionStatus,
-    toggleSensitiveData,
+    toggleSensitiveDataOn,
     toggleLock,
     toggleUnlock,
     toggleBlock,
