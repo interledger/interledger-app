@@ -52,6 +52,8 @@ const (
 	CardLockLevelClient = "Client"
 	CardLockLevelAdmin  = "Admin"
 
+	KycAddressID = "kyc-address"
+
 	DollarSign            = "$"
 	DollarSignPlaceholder = "#" // "#" is used as a placeholder for $
 
