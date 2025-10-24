@@ -49,6 +49,8 @@ const (
 	Backend_CreateGatehubUser_FullMethodName                  = "/backend.admin.v1.Backend/CreateGatehubUser"
 	Backend_GetGatehubBalance_FullMethodName                  = "/backend.admin.v1.Backend/GetGatehubBalance"
 	Backend_GetGatehubUser_FullMethodName                     = "/backend.admin.v1.Backend/GetGatehubUser"
+	Backend_CheckUserTotpEnabled_FullMethodName               = "/backend.admin.v1.Backend/CheckUserTotpEnabled"
+	Backend_Delete2FATotpEnrollment_FullMethodName            = "/backend.admin.v1.Backend/Delete2FATotpEnrollment"
 )
 
 // BackendClient is the client API for Backend service.
@@ -86,6 +88,9 @@ type BackendClient interface {
 	CreateGatehubUser(ctx context.Context, in *CreateGatehubUserRequest, opts ...grpc.CallOption) (*Empty, error)
 	GetGatehubBalance(ctx context.Context, in *GetGatehubBalanceRequest, opts ...grpc.CallOption) (*GetGatehubBalanceResponse, error)
 	GetGatehubUser(ctx context.Context, in *GetGatehubUserRequest, opts ...grpc.CallOption) (*GatehubUser, error)
+	// Kratos
+	CheckUserTotpEnabled(ctx context.Context, in *CheckUserTotpEnabledRequest, opts ...grpc.CallOption) (*CheckUserTotpEnabledResponse, error)
+	Delete2FATotpEnrollment(ctx context.Context, in *Delete2FATotpEnrollmentRequest, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type backendClient struct {
@@ -380,6 +385,24 @@ func (c *backendClient) GetGatehubUser(ctx context.Context, in *GetGatehubUserRe
 	return out, nil
 }
 
+func (c *backendClient) CheckUserTotpEnabled(ctx context.Context, in *CheckUserTotpEnabledRequest, opts ...grpc.CallOption) (*CheckUserTotpEnabledResponse, error) {
+	out := new(CheckUserTotpEnabledResponse)
+	err := c.cc.Invoke(ctx, Backend_CheckUserTotpEnabled_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendClient) Delete2FATotpEnrollment(ctx context.Context, in *Delete2FATotpEnrollmentRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, Backend_Delete2FATotpEnrollment_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServer is the server API for Backend service.
 // All implementations should embed UnimplementedBackendServer
 // for forward compatibility
@@ -415,6 +438,9 @@ type BackendServer interface {
 	CreateGatehubUser(context.Context, *CreateGatehubUserRequest) (*Empty, error)
 	GetGatehubBalance(context.Context, *GetGatehubBalanceRequest) (*GetGatehubBalanceResponse, error)
 	GetGatehubUser(context.Context, *GetGatehubUserRequest) (*GatehubUser, error)
+	// Kratos
+	CheckUserTotpEnabled(context.Context, *CheckUserTotpEnabledRequest) (*CheckUserTotpEnabledResponse, error)
+	Delete2FATotpEnrollment(context.Context, *Delete2FATotpEnrollmentRequest) (*Empty, error)
 }
 
 // UnimplementedBackendServer should be embedded to have forward compatible implementations.
@@ -507,6 +533,12 @@ func (UnimplementedBackendServer) GetGatehubBalance(context.Context, *GetGatehub
 }
 func (UnimplementedBackendServer) GetGatehubUser(context.Context, *GetGatehubUserRequest) (*GatehubUser, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetGatehubUser not implemented")
+}
+func (UnimplementedBackendServer) CheckUserTotpEnabled(context.Context, *CheckUserTotpEnabledRequest) (*CheckUserTotpEnabledResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckUserTotpEnabled not implemented")
+}
+func (UnimplementedBackendServer) Delete2FATotpEnrollment(context.Context, *Delete2FATotpEnrollmentRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Delete2FATotpEnrollment not implemented")
 }
 
 // UnsafeBackendServer may be embedded to opt out of forward compatibility for this service.
@@ -1045,6 +1077,42 @@ func _Backend_GetGatehubUser_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Backend_CheckUserTotpEnabled_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CheckUserTotpEnabledRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServer).CheckUserTotpEnabled(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Backend_CheckUserTotpEnabled_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServer).CheckUserTotpEnabled(ctx, req.(*CheckUserTotpEnabledRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Backend_Delete2FATotpEnrollment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Delete2FATotpEnrollmentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServer).Delete2FATotpEnrollment(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Backend_Delete2FATotpEnrollment_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServer).Delete2FATotpEnrollment(ctx, req.(*Delete2FATotpEnrollmentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Backend_ServiceDesc is the grpc.ServiceDesc for Backend service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1163,6 +1231,14 @@ var Backend_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetGatehubUser",
 			Handler:    _Backend_GetGatehubUser_Handler,
+		},
+		{
+			MethodName: "CheckUserTotpEnabled",
+			Handler:    _Backend_CheckUserTotpEnabled_Handler,
+		},
+		{
+			MethodName: "Delete2FATotpEnrollment",
+			Handler:    _Backend_Delete2FATotpEnrollment_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

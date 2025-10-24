@@ -79,3 +79,11 @@ func (c *client) GetUser(ctx context.Context, userID string) (*user.User, error)
 func (c *client) ListUsers(ctx context.Context, walletID string) ([]user.User, error) {
 	return ops.ListUsers(ctx, c.b, walletID)
 }
+
+func (c *client) CheckUserTotpEnabled(ctx context.Context, identityID string) (bool, error) {
+	return ops.CheckUserTotpEnabled(ctx, c.b, identityID)
+}
+
+func (c *client) Delete2FATotpEnrollment(ctx context.Context, identityID string) error {
+	return ops.Delete2FATotpEnrollment(ctx, c.b, identityID)
+}

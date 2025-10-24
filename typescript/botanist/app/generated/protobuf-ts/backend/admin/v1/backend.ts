@@ -15,6 +15,41 @@ import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
 import { Timestamp } from "../../../google/protobuf/timestamp";
 /**
+ * @generated from protobuf message backend.admin.v1.CheckUserTotpEnabledRequest
+ */
+export interface CheckUserTotpEnabledRequest {
+    /**
+     * @generated from protobuf field: string identityId = 1;
+     */
+    identityId: string;
+    /**
+     * @generated from protobuf field: string walletID = 2;
+     */
+    walletID: string;
+}
+/**
+ * @generated from protobuf message backend.admin.v1.CheckUserTotpEnabledResponse
+ */
+export interface CheckUserTotpEnabledResponse {
+    /**
+     * @generated from protobuf field: bool isEnabled = 1;
+     */
+    isEnabled: boolean;
+}
+/**
+ * @generated from protobuf message backend.admin.v1.Delete2FATotpEnrollmentRequest
+ */
+export interface Delete2FATotpEnrollmentRequest {
+    /**
+     * @generated from protobuf field: string identityId = 1;
+     */
+    identityId: string;
+    /**
+     * @generated from protobuf field: string walletID = 2;
+     */
+    walletID: string;
+}
+/**
  * @generated from protobuf message backend.admin.v1.GatehubUser
  */
 export interface GatehubUser {
@@ -1208,6 +1243,161 @@ export interface Amount {
      */
     country: string;
 }
+// @generated message type with reflection information, may provide speed optimized methods
+class CheckUserTotpEnabledRequest$Type extends MessageType<CheckUserTotpEnabledRequest> {
+    constructor() {
+        super("backend.admin.v1.CheckUserTotpEnabledRequest", [
+            { no: 1, name: "identityId", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "walletID", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<CheckUserTotpEnabledRequest>): CheckUserTotpEnabledRequest {
+        const message = { identityId: "", walletID: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CheckUserTotpEnabledRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CheckUserTotpEnabledRequest): CheckUserTotpEnabledRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string identityId */ 1:
+                    message.identityId = reader.string();
+                    break;
+                case /* string walletID */ 2:
+                    message.walletID = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CheckUserTotpEnabledRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string identityId = 1; */
+        if (message.identityId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.identityId);
+        /* string walletID = 2; */
+        if (message.walletID !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.walletID);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.CheckUserTotpEnabledRequest
+ */
+export const CheckUserTotpEnabledRequest = new CheckUserTotpEnabledRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CheckUserTotpEnabledResponse$Type extends MessageType<CheckUserTotpEnabledResponse> {
+    constructor() {
+        super("backend.admin.v1.CheckUserTotpEnabledResponse", [
+            { no: 1, name: "isEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+        ]);
+    }
+    create(value?: PartialMessage<CheckUserTotpEnabledResponse>): CheckUserTotpEnabledResponse {
+        const message = { isEnabled: false };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CheckUserTotpEnabledResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CheckUserTotpEnabledResponse): CheckUserTotpEnabledResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* bool isEnabled */ 1:
+                    message.isEnabled = reader.bool();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CheckUserTotpEnabledResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* bool isEnabled = 1; */
+        if (message.isEnabled !== false)
+            writer.tag(1, WireType.Varint).bool(message.isEnabled);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.CheckUserTotpEnabledResponse
+ */
+export const CheckUserTotpEnabledResponse = new CheckUserTotpEnabledResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class Delete2FATotpEnrollmentRequest$Type extends MessageType<Delete2FATotpEnrollmentRequest> {
+    constructor() {
+        super("backend.admin.v1.Delete2FATotpEnrollmentRequest", [
+            { no: 1, name: "identityId", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "walletID", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<Delete2FATotpEnrollmentRequest>): Delete2FATotpEnrollmentRequest {
+        const message = { identityId: "", walletID: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<Delete2FATotpEnrollmentRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Delete2FATotpEnrollmentRequest): Delete2FATotpEnrollmentRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string identityId */ 1:
+                    message.identityId = reader.string();
+                    break;
+                case /* string walletID */ 2:
+                    message.walletID = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: Delete2FATotpEnrollmentRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string identityId = 1; */
+        if (message.identityId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.identityId);
+        /* string walletID = 2; */
+        if (message.walletID !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.walletID);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.Delete2FATotpEnrollmentRequest
+ */
+export const Delete2FATotpEnrollmentRequest = new Delete2FATotpEnrollmentRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class GatehubUser$Type extends MessageType<GatehubUser> {
     constructor() {
@@ -5253,5 +5443,7 @@ export const Backend = new ServiceType("backend.admin.v1.Backend", [
     { name: "GetPTIBalance", options: {}, I: GetPTIBalanceRequest, O: GetPTIBalanceResponse },
     { name: "CreateGatehubUser", options: {}, I: CreateGatehubUserRequest, O: Empty },
     { name: "GetGatehubBalance", options: {}, I: GetGatehubBalanceRequest, O: GetGatehubBalanceResponse },
-    { name: "GetGatehubUser", options: {}, I: GetGatehubUserRequest, O: GatehubUser }
+    { name: "GetGatehubUser", options: {}, I: GetGatehubUserRequest, O: GatehubUser },
+    { name: "CheckUserTotpEnabled", options: {}, I: CheckUserTotpEnabledRequest, O: CheckUserTotpEnabledResponse },
+    { name: "Delete2FATotpEnrollment", options: {}, I: Delete2FATotpEnrollmentRequest, O: Empty }
 ]);

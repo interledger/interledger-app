@@ -175,3 +175,31 @@ func (s *AdminRpcService) ListCountries(ctx context.Context, req *adminv1.Empty)
 		Countries: countries,
 	}, nil
 }
+
+func (s *AdminRpcService) CheckUserTotpEnabled(ctx context.Context, req *adminv1.CheckUserTotpEnabledRequest) (*adminv1.CheckUserTotpEnabledResponse, error) {
+	identityID := req.GetIdentityId()
+	if identityID == "" {
+		return nil, status.Error(codes.FailedPrecondition, "identityID not provided in request")
+	}
+
+	isEnabled, err := s.b.Users().CheckUserTotpEnabled(ctx, identityID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &adminv1.CheckUserTotpEnabledResponse{IsEnabled: isEnabled}, nil
+}
+
+func (s *AdminRpcService) Delete2FATotpEnrollment(ctx context.Context, req *adminv1.Delete2FATotpEnrollmentRequest) (*adminv1.Empty, error) {
+	identityID := req.GetIdentityId()
+	if identityID == "" {
+		return nil, status.Error(codes.FailedPrecondition, "identityID not provided in request")
+	}
+
+	err := s.b.Users().Delete2FATotpEnrollment(ctx, identityID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &adminv1.Empty{}, nil
+}

@@ -57,6 +57,7 @@ func MakeAuditInterceptor(db *sqlx.DB) grpc.ServerOption {
 		_, err = db.ExecContext(ctx, "INSERT INTO admin_audit_log(admin_user, wallet_id, operation, parameters) VALUES ($1, $2, $3, $4)",
 			adminUser.Email, walletID, info.FullMethod, string(reqJson))
 		if err != nil {
+			fmt.Println("error")
 			return nil, fmt.Errorf("%w %s", ErrInternal, err)
 		}
 
