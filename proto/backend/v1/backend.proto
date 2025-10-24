@@ -329,6 +329,7 @@ message Card {
   CardLockLevel lockLevel = 6;
   string expiryDate = 7;
   CardType type = 8;
+  string productCode = 9;
 }
 
 message ListCardsResponse {

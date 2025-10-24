@@ -6,6 +6,7 @@ import {
 } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { useEffect } from 'react'
+import { route } from 'routes-gen'
 import { Layouts, type ApplicationProps } from '~/components'
 import { ConfirmCard } from '~/components/OrderCardSteps/ConfirmCard'
 import { CreateAddress } from '~/components/OrderCardSteps/CreateAddress'
@@ -19,6 +20,7 @@ import {
 } from '~/generated/connect/backend/v1/backend_pb'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
+import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { OrderCardStep, useOrderCardStore } from '~/lib/useOrderCardStore'
 
 export const handle: ApplicationProps = {
@@ -80,10 +82,19 @@ export default function Page() {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  // Request data should be set based on the user selection - this is temporary.
   await grpc.orderCard(request, {
-    cardProductCode: 'PMDSGWEEA',
-    type: CardType.VIRTUAL
+    cardProductCode: 'PMDSSTNAA',
+    type: CardType.PHYSICAL,
+    deliveryAddress: {
+      case: 'deliveryAddressId',
+      value: 'kyc-address'
+    }
   })
 
-  return null
+  return redirectWithSnackbar(request, route('/cards'), {
+    message:
+      'Your card in the making! We’ll notify you as soon as it’s ready to go.',
+    icon: 'close'
+  })
 }
