@@ -15,10 +15,6 @@ import (
 	"go.uber.org/zap"
 )
 
-const (
-	KycAddressID = "kyc-address"
-)
-
 func (s *rpcService) GetCardOrderOptions(ctx context.Context, req *pb.Empty) (*pb.GetCardOrderOptionsResponse, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
@@ -127,7 +123,7 @@ func (s *rpcService) GetCardOrderOptions(ctx context.Context, req *pb.Empty) (*p
 	if !externalIDs.IsCustomerCreated() && ghUser != nil {
 		ret.Addresses = []*pb.CustomerDeliveryAddress{
 			{
-				Id: KycAddressID,
+				Id: gatehub.KycAddressID,
 				Details: &pb.CustomerDeliveryAddressBase{
 					Type:        pb.CustomerDeliveryAddressType_CUSTOMER_DELIVERY_ADDRESS_PERMANENT_RESIDENCE,
 					CountryCode: ghUser.Profile.AddressCountryCode,
@@ -271,7 +267,7 @@ func (s *rpcService) OrderCard(ctx context.Context, req *pb.OrderCardRequest) (*
 			return nil, toGRPCError(errors.New("received delivery address id and new delivery address. only one should be present"))
 		}
 
-		if !externalIDs.IsCustomerCreated() && addrID != "" && addrID != KycAddressID {
+		if !externalIDs.IsCustomerCreated() && addrID != "" && addrID != gatehub.KycAddressID {
 			return nil, toGRPCError(errors.New("attempted to order card for non-customer with a delivery address id"))
 		}
 
@@ -309,7 +305,7 @@ func (s *rpcService) OrderCard(ctx context.Context, req *pb.OrderCardRequest) (*
 			if err != nil {
 				return nil, toGRPCError(err)
 			}
-		} else if addrID != KycAddressID {
+		} else if addrID != gatehub.KycAddressID {
 			args.DeliveryAddressID = &addrID
 		}
 

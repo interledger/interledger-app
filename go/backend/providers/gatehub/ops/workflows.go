@@ -274,7 +274,7 @@ func CreateGateHubCardWorkflow(ctx workflow.Context, args CreateCardWorkflowArgs
 				logger.Warn("failed to create new delivery address for user", "gatehub_user_id", args.ExternalIDs.UserID)
 				return err
 			}
-		} else {
+		} else if args.DeliveryAddressID != nil && *args.DeliveryAddressID != gatehub.KycAddressID {
 			deliveryAddressID = *args.DeliveryAddressID
 		}
 	}
