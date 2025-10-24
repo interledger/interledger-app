@@ -1026,6 +1026,11 @@ export class Card extends Message<Card> {
    */
   type = CardType.UNKNOWN;
 
+  /**
+   * @generated from field: string productCode = 9;
+   */
+  productCode = "";
+
   constructor(data?: PartialMessage<Card>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1042,6 +1047,7 @@ export class Card extends Message<Card> {
     { no: 6, name: "lockLevel", kind: "enum", T: proto3.getEnumType(CardLockLevel) },
     { no: 7, name: "expiryDate", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 8, name: "type", kind: "enum", T: proto3.getEnumType(CardType) },
+    { no: 9, name: "productCode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Card {
