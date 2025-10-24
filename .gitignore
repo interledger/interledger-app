@@ -27,5 +27,6 @@ coverage.out
 *.env
 
 **/.vagrant
+**/.pnpm-store
 **/dev_bck
 .pnpm-store

@@ -193,6 +193,23 @@ export async function action({ request }: ActionFunctionArgs) {
       cookie: String(request.headers.get('cookie'))
     }
   })
+
+  try {
+    const checkTOTP = await res.json()
+    if (checkTOTP?.session?.authenticator_assurance_level === 'aal1') {
+      return redirect('/totp/two-factor-authentication', {
+        headers: res.headers
+      })
+    }
+  } catch (error) {
+    // If the response is not JSON, we can ignore it
+  }
+
+  if (res.status === 422) {
+    return redirect('/totp/challenge', {
+      headers: res.headers
+    })
+  }
   if (res.status >= 400) {
     const errs = await kratosErrorMapping(res, fieldErrors)
     return error(request, { errors: errs }, { action: 'Contact support' })

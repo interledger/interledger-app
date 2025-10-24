@@ -42,10 +42,10 @@ func BalanceDiscrepanciesJob(ctx workflow.Context) error {
 }
 
 func (a *Activity) BalanceDiscrepancies(ctx context.Context) error {
-
 	gatehubExternal := gatehub_external.NewClient(
 		os.Getenv("GATEHUB_APP_ID"),
 		os.Getenv("GATEHUB_SECRET"),
+		os.Getenv("GATEHUB_CARD_APP_ID"),
 		os.Getenv("GATEHUB_GATEWAY_ID"),
 		&http.Client{
 			Transport: otelhttp.NewTransport(

@@ -7,6 +7,129 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
 
 /**
+ * @generated from message backend.admin.v1.CheckUserTotpEnabledRequest
+ */
+export class CheckUserTotpEnabledRequest extends Message<CheckUserTotpEnabledRequest> {
+  /**
+   * @generated from field: string identityId = 1;
+   */
+  identityId = "";
+
+  /**
+   * @generated from field: string walletID = 2;
+   */
+  walletID = "";
+
+  constructor(data?: PartialMessage<CheckUserTotpEnabledRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.CheckUserTotpEnabledRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "identityId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "walletID", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CheckUserTotpEnabledRequest {
+    return new CheckUserTotpEnabledRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CheckUserTotpEnabledRequest {
+    return new CheckUserTotpEnabledRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CheckUserTotpEnabledRequest {
+    return new CheckUserTotpEnabledRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CheckUserTotpEnabledRequest | PlainMessage<CheckUserTotpEnabledRequest> | undefined, b: CheckUserTotpEnabledRequest | PlainMessage<CheckUserTotpEnabledRequest> | undefined): boolean {
+    return proto3.util.equals(CheckUserTotpEnabledRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.admin.v1.CheckUserTotpEnabledResponse
+ */
+export class CheckUserTotpEnabledResponse extends Message<CheckUserTotpEnabledResponse> {
+  /**
+   * @generated from field: bool isEnabled = 1;
+   */
+  isEnabled = false;
+
+  constructor(data?: PartialMessage<CheckUserTotpEnabledResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.CheckUserTotpEnabledResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "isEnabled", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CheckUserTotpEnabledResponse {
+    return new CheckUserTotpEnabledResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CheckUserTotpEnabledResponse {
+    return new CheckUserTotpEnabledResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CheckUserTotpEnabledResponse {
+    return new CheckUserTotpEnabledResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CheckUserTotpEnabledResponse | PlainMessage<CheckUserTotpEnabledResponse> | undefined, b: CheckUserTotpEnabledResponse | PlainMessage<CheckUserTotpEnabledResponse> | undefined): boolean {
+    return proto3.util.equals(CheckUserTotpEnabledResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.admin.v1.Delete2FATotpEnrollmentRequest
+ */
+export class Delete2FATotpEnrollmentRequest extends Message<Delete2FATotpEnrollmentRequest> {
+  /**
+   * @generated from field: string identityId = 1;
+   */
+  identityId = "";
+
+  /**
+   * @generated from field: string walletID = 2;
+   */
+  walletID = "";
+
+  constructor(data?: PartialMessage<Delete2FATotpEnrollmentRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.Delete2FATotpEnrollmentRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "identityId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "walletID", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Delete2FATotpEnrollmentRequest {
+    return new Delete2FATotpEnrollmentRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Delete2FATotpEnrollmentRequest {
+    return new Delete2FATotpEnrollmentRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Delete2FATotpEnrollmentRequest {
+    return new Delete2FATotpEnrollmentRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Delete2FATotpEnrollmentRequest | PlainMessage<Delete2FATotpEnrollmentRequest> | undefined, b: Delete2FATotpEnrollmentRequest | PlainMessage<Delete2FATotpEnrollmentRequest> | undefined): boolean {
+    return proto3.util.equals(Delete2FATotpEnrollmentRequest, a, b);
+  }
+}
+
+/**
  * @generated from message backend.admin.v1.GatehubUser
  */
 export class GatehubUser extends Message<GatehubUser> {

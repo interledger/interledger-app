@@ -10,26 +10,35 @@ import {
   GetWalletFeatures,
   SetWalletFeatures,
   setWalletCountry,
-  ListCountries
+  ListCountries,
+  DeleteUserTotp,
+  CheckUserTotpEnabled
 } from '~/lib/wallet.server'
 
 export async function loader({ request, params }: LoaderArgs) {
   const wallet = await GetWalletDetails(request, params.id as string)
   const features = await GetWalletFeatures(request, params.id as string)
   const countries = await ListCountries(request)
+  const hasTotpEnabled = wallet.users?.[0]?.id
+    ? await CheckUserTotpEnabled(request, wallet.users[0].id, wallet.walletID)
+    : false
+  const identityId = wallet.users?.[0]?.id
 
   return json({
     wallet,
     features,
+    hasTotpEnabled,
     countries: countries.countries.map((value) => ({
       id: value.code,
       name: value.name
-    }))
+    })),
+    identityId
   })
 }
 
 export default function Page() {
-  const { wallet, features, countries } = useLoaderData<typeof loader>()
+  const { wallet, features, countries, hasTotpEnabled, identityId } =
+    useLoaderData<typeof loader>()
   const [country, setCountry] = useState<{ id: string; name: string }>()
   const [query, setQuery] = useState<string>('')
   const [filteredCountries, setFilteredCountries] = useState<
@@ -54,6 +63,25 @@ export default function Page() {
     setCountry(value)
     fetcher.submit(
       { country: value.id, formName: 'country' },
+      { method: 'post' }
+    )
+  }
+
+  const _onDeleteTotp = () => {
+    if (!identityId) return
+    if (
+      !confirm(
+        'Are you sure you want to delete TOTP enrollment for the selected user? He will have to re-enable TOTP.'
+      )
+    )
+      return
+
+    fetcher.submit(
+      {
+        identityId: identityId,
+        walletId: wallet.walletID,
+        formName: 'deleteTotp'
+      },
       { method: 'post' }
     )
   }
@@ -132,6 +160,31 @@ export default function Page() {
           errorMessage={fetcher.data?.errors?.country}
         />
       </div>
+      {hasTotpEnabled && (
+        <div className='col-span-full flex h-max max-h-max w-full flex-col space-y-4 rounded-2xl bg-page p-4 lg:col-span-4'>
+          <h2 className='font-display text-lg font-medium'>Security</h2>
+
+          <div className='flex w-full items-center justify-between'>
+            <dt className='text-xs font-medium text-weak'>TOTP Enrollment</dt>
+            <button
+              type='button'
+              onClick={_onDeleteTotp}
+              disabled={fetcher.state !== 'idle' || !wallet.users?.[0]?.id}
+              className='rounded bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed'
+            >
+              {fetcher.state !== 'idle' ? 'Loading...' : 'Delete TOTP'}
+            </button>
+          </div>
+          {fetcher.data?.success && (
+            <p className='text-xs text-green-600'>
+              TOTP enrollment deleted successfully
+            </p>
+          )}
+          {fetcher.data?.error && (
+            <p className='text-xs text-red-600'>{fetcher.data.error}</p>
+          )}
+        </div>
+      )}
     </>
   )
 }
@@ -143,6 +196,10 @@ export async function action(args: ActionArgs) {
 
   if (formName == 'features') {
     return setWalletFeatureAction(args)
+  }
+
+  if (formName == 'deleteTotp') {
+    return deleteTotpAction(args)
   }
 
   return setWalletCountryAction(args)
@@ -171,4 +228,18 @@ async function setWalletCountryAction({ request, params }: ActionArgs) {
   await setWalletCountry(request, walletId, country)
 
   return null
+}
+
+async function deleteTotpAction({ request }: ActionArgs) {
+  const form = await request.formData()
+  const walletId = form.get('walletId') as string
+  const identityId = form.get('identityId') as string
+
+  if (!identityId) {
+    return json({ error: 'Identity ID is required' }, { status: 400 })
+  }
+
+  const deleteResponse = await DeleteUserTotp(request, identityId, walletId)
+
+  return json(deleteResponse)
 }

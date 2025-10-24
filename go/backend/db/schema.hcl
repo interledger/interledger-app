@@ -3127,10 +3127,31 @@ table "gatehub_users" {
   column "external_customer_id" {
     null = true
     type = text
+    comment = "Dinit Customer ID" 
+  }
+  column "external_customer_source_id" {
+    null = true 
+    type = text
+    comment = "GateHub internal Customer ID"
   }
   column "external_account_id" {
     null = true
     type = text
+    comment = "Dinit Account ID"
+  }
+  column "external_account_source_id" {
+    null = true
+    type = text
+    comment = "GateHub internal Account ID"
+  }
+  column "is_first_card_plastic" {
+    null = true
+    type = boolean
+    comment = "Using this column we would know if we need to create the plastic for the first customer card when we receive the webhook event."
+  }
+  column "first_card_processed_at" {
+    null    = true
+    type    = timestamp
   }
   column "created_at" {
     null    = false

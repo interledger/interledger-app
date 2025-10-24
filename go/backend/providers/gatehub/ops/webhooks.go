@@ -71,6 +71,28 @@ type (
 		DepositType string `json:"deposit_type"` // hosted or external
 		TrxID       string `json:"tx_uuid"`
 	}
+
+	CardCreatedWebhook struct {
+		UUID        string                 `json:"uuid"`
+		Timestamp   string                 `json:"timestamp"`
+		EventType   string                 `json:"event_type"`
+		UserUUID    string                 `json:"user_uuid"`
+		Environment string                 `json:"environment"`
+		Data        CardCreatedWebhookData `json:"data"`
+	}
+
+	CardCreatedWebhookData struct {
+		CardID           string  `json:"cardId"`
+		CardSourceID     string  `json:"cardSourceId"`
+		NameOnCard       string  `json:"nameOnCard"`
+		ProductCode      string  `json:"productCode"`
+		MaskedPan        string  `json:"maskedPan"`
+		AccountID        string  `json:"accountId"`
+		AccountSourceID  string  `json:"accountSourceId"`
+		LockLevel        *string `json:"lockLevel"` // pointer so it can be null
+		CustomerID       string  `json:"customerId"`
+		CustomerSourceID string  `json:"customerSourceId"`
+	}
 )
 
 func NewWebhook(b Backends) http.HandlerFunc {
@@ -138,12 +160,60 @@ func NewWebhook(b Backends) http.HandlerFunc {
 			HandleUserDeposit(r.Context(), b, body, w)
 		case "id.document_notice.expired", "id.document_notice.warning", "id.verification.action_required":
 			HandleActionRequiredWebhook(r.Context(), b, body, w)
+		case "cards.card.created":
+			HandleCardCreatedWebhook(r.Context(), b, body, w)
 		default:
 			log.Warn("gatehub webhook. Unhandled webhook type", zap.String("event_type", wh.EventType), zap.String("payload", string(body)))
 		}
 
 		w.WriteHeader(http.StatusOK)
 	}
+}
+
+func HandleCardCreatedWebhook(ctx context.Context, b Backends, raw json.RawMessage, w http.ResponseWriter) {
+	var wh CardCreatedWebhook
+
+	err := json.Unmarshal(raw, &wh)
+	if err != nil {
+		log.Error("gatehub webhook: Failed to unmarshal card created webhook", zap.String("customer source id", wh.Data.CardSourceID), zap.Error(err))
+		return
+	}
+
+	wo := client.StartWorkflowOptions{
+		ID:                    "gatehub_card_created_webhook_" + wh.UUID,
+		TaskQueue:             "backend",
+		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
+	}
+
+	var workflowStatus enums.WorkflowExecutionStatus
+
+	wflow, err := b.Temporal().DescribeWorkflowExecution(ctx, wo.ID, "")
+	switch err.(type) {
+	case *serviceerror.Internal,
+		*serviceerror.Unavailable,
+		*serviceerror.InvalidArgument:
+
+		log.Warn("failed to handle gatehub card created webhook", zap.Error(err))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	case *serviceerror.NotFound:
+		// do nothing
+	default:
+		if wflow != nil {
+			workflowStatus = wflow.GetWorkflowExecutionInfo().Status
+		}
+	}
+
+	if workflowStatus != enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
+		_, err = b.Temporal().ExecuteWorkflow(ctx, wo, ProcessCardCreationWorkflow, wh)
+		if err != nil {
+			log.Warn("failed to handle gatehub card created webhook", zap.Error(err))
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 func HandleActionRequiredWebhook(ctx context.Context, b Backends, raw json.RawMessage, w http.ResponseWriter) {
@@ -176,7 +246,6 @@ func HandleUserVerificationWebhook(ctx context.Context, b Backends, raw json.Raw
 	if wh.Data.Verified.Short == verificationAccepted {
 		err = BackfillAccountAndSetKYC(ctx, b, walletID, wh.ID)
 		// err = b.KYC().SetKYCStatus(ctx, walletID, kyc.StatusLevel1)
-
 	} else if wh.Data.Verified.Short == verificationRejected {
 		err = b.KYC().SetKYCStatus(ctx, walletID, kyc.StatusDenied)
 	} else {

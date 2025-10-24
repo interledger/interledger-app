@@ -2,6 +2,7 @@ import { useRevalidator } from '@remix-run/react'
 import type { Channel, PresenceChannel } from 'pusher-js'
 import Pusher from 'pusher-js'
 import { useEffect, useState } from 'react'
+import { useScaffoldStore } from './useScaffoldStore'
 
 let pusherClient: Pusher
 
@@ -9,16 +10,17 @@ declare global {
   var __pusherClient: Pusher | undefined
 }
 
-type Events = 'linkedAccount' | 'transaction' | 'kyc' | 'identity'
+type Events = 'linkedAccount' | 'transaction' | 'kyc' | 'identity' | 'cardReady'
 
 export type PusherArgs = {
   appKey: string
   cluster: string
-  walletId: string
+  walletId?: string
 }
 
 export function usePusher(args: PusherArgs, events: Events[]) {
   const { revalidate, state } = useRevalidator()
+  const [pushSnackbar] = useScaffoldStore((state) => [state.pushSnackbar])
 
   if (!global.__pusherClient) {
     global.__pusherClient = new Pusher(args.appKey, {
@@ -27,7 +29,11 @@ export function usePusher(args: PusherArgs, events: Events[]) {
   }
   pusherClient = global.__pusherClient
 
-  const channel = useChannel(`wallet-${args.walletId}`)
+  let channelName: string | undefined
+  if (args.walletId) {
+    channelName = `wallet-${args.walletId}`
+  }
+  const channel = useChannel(channelName)
 
   usePusherEvent(channel, 'transaction', () => {
     if (state == 'idle' && events.find((e) => e == 'transaction')) revalidate()
@@ -41,6 +47,14 @@ export function usePusher(args: PusherArgs, events: Events[]) {
   usePusherEvent(channel, 'linkedAccount', () => {
     if (state == 'idle' && events.find((e) => e == 'linkedAccount'))
       revalidate()
+  })
+  usePusherEvent(channel, 'cardReady', () => {
+    if (state == 'idle' && events.find((e) => e == 'cardReady'))
+      pushSnackbar({
+        message: 'Your card is now ready!',
+        id: crypto.randomUUID(),
+        action: 'View cards'
+      })
   })
   // TODO: Maybe return connection state?
 }
@@ -62,9 +76,10 @@ function usePusherEvent<D>(
   }, [channel, eventName, callback])
 }
 
-function useChannel(channelName: string) {
+function useChannel(channelName?: string) {
   const [channel, setChannel] = useState<Channel>()
   useEffect(() => {
+    if (!channelName) return
     const _channel = pusherClient.subscribe(channelName)
     setChannel(_channel)
     return () => pusherClient.unsubscribe(channelName)
