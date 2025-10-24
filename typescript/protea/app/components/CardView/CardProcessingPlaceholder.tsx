@@ -5,7 +5,9 @@ export const CardProcessingPlaceholder = () => {
     <Card>
       <CardContent className='flex flex-col items-center space-y-4 py-8'>
         <div className='flex h-16 w-16 items-center justify-center rounded-full bg-nav'>
-          <Icon className='text-3xl text-medium'>hourglass_empty</Icon>
+          <Icon className='-translate-x-0.5 -translate-y-px text-3xl text-medium'>
+            hourglass_empty
+          </Icon>
         </div>
         <div className='flex flex-col items-center space-y-2 text-center'>
           <h3 className='text-lg font-medium text-strong'>
