@@ -20,25 +20,25 @@ import (
 )
 
 const (
-	kratosTimeout    = 1500 * time.Millisecond
-	kratosCookieName = "ory_kratos_session"
+	kratosTimeout       = 1500 * time.Millisecond
+	kratosCookieName    = "ory_kratos_session"
 	aal2RequiredErrorID = "session_aal2_required"
 )
 
 type sessionRetrievalErrorResponse struct {
 	Error *struct {
-		ID      string `json:"id"`
+		ID string `json:"id"`
 	} `json:"error,omitempty"`
 }
 
-func getSessionRetrievalError(resp *http.Response, err error) (error) {
+func getSessionRetrievalError(resp *http.Response, err error) error {
 	if resp != nil && resp.StatusCode == http.StatusForbidden {
 		var sessionErrResp sessionRetrievalErrorResponse
 		err = json.NewDecoder(resp.Body).Decode(&sessionErrResp)
 		if err != nil {
 			log.Error("Error decoding error body of kratos to session response.", zap.Error(err))
 		}
-		
+
 		if sessionErrResp.Error.ID == aal2RequiredErrorID {
 			log.Info("User must complete 2FA, as AAL2 is required.")
 			return user.ErrAAL2Required
@@ -177,4 +177,35 @@ func ListUsers(ctx context.Context, b Backends, walletID string) ([]user.User, e
 	}
 
 	return resp, nil
+}
+
+func CheckUserTotpEnabled(ctx context.Context, b Backends, identityID string) (bool, error) {
+	identity, _, err := b.Kratos().IdentityApi.GetIdentity(ctx, identityID).Execute()
+	if err != nil {
+		return false, fmt.Errorf("%w %s", user.ErrInternal, err)
+	}
+
+	creds := *identity.Credentials
+
+	totp, ok := creds["totp"]
+	if !ok {
+		return false, nil
+	}
+
+	return len(totp.Identifiers) > 0, nil
+}
+
+func Delete2FATotpEnrollment(ctx context.Context, b Backends, identityID string) error {
+	identity, _, err := b.Kratos().IdentityApi.GetIdentity(ctx, identityID).Execute()
+	if err != nil {
+		return fmt.Errorf("%w %s", user.ErrInternal, err)
+	}
+
+	req := b.Kratos().IdentityApi.DeleteIdentityCredentials(ctx, identity.Id, "totp")
+	_, _, err = req.Execute()
+	if err != nil {
+		return fmt.Errorf("%w %s", user.ErrInternal, err)
+	}
+
+	return nil
 }

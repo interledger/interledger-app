@@ -25,8 +25,6 @@ import {
 import type { LinkedAccountReviewState } from '~/lib/types'
 
 export const PAYMENT_POINTER_BASE = process.env.PAYMENT_POINTER_BASE
-export const KRATOS_ADMIN_URL =
-  process.env.KRATOS_ADMIN_URL || 'http://kratos:4434'
 
 export const formatAmount = (amount: number, asset: string): string => {
   if (typeof amount == 'undefined') return '$ 0.00'
@@ -809,49 +807,50 @@ export async function GetGatehubUser(
 
 export async function CheckUserTotpEnabled(
   request: Request,
-  identityId: string
+  identityId: string,
+  walletId: string
 ): Promise<boolean> {
   const cookie = String(request.headers.get('cookie'))
-  const response = await fetch(
-    `${KRATOS_ADMIN_URL}/admin/identities/${identityId}`,
-    {
-      headers: {
-        cookie
+  const response = await grpcClient
+    .checkUserTotpEnabled(
+      { identityId, walletID: walletId },
+      {
+        meta: {
+          cookies: cookie || ''
+        }
       }
-    }
-  )
+    )
+    .then((v) => v)
+    .catch(StatusError)
 
-  if (!response.ok) {
-    return false
+  if (isGrpcError(response)) {
+    throw json({}, httpMapping(response.code))
   }
 
-  const identity = await response.json()
-  return !!identity.credentials?.totp
+  return response.response.isEnabled
 }
 
 export async function DeleteUserTotp(
   request: Request,
-  identityId: string
+  identityId: string,
+  walletId: string
 ): Promise<any> {
   console.log('Deleting TOTP enrollment for identity:', identityId)
   const cookie = String(request.headers.get('cookie'))
-  const response = await fetch(
-    `${KRATOS_ADMIN_URL}/admin/identities/${identityId}/credentials/totp`,
-    {
-      method: 'DELETE',
-      headers: {
-        cookie
+  let response = await grpcClient
+    .delete2FATotpEnrollment(
+      { identityId, walletID: walletId },
+      {
+        meta: {
+          cookies: cookie || ''
+        }
       }
-    }
-  )
-
-  if (!response.ok) {
-    console.log('Failed to delete TOTP enrollment for identity:', identityId)
-    return {
-      error: 'Failed to delete TOTP enrollment'
-    }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(response)) {
+    throw json({}, httpMapping(response.code))
   }
 
-  console.log('Successfully deleted TOTP enrollment for identity:', identityId)
-  return { success: true }
+  return response.response
 }

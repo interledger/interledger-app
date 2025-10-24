@@ -45,6 +45,24 @@ service Backend {
   rpc CreateGatehubUser(CreateGatehubUserRequest) returns (Empty);
   rpc GetGatehubBalance(GetGatehubBalanceRequest) returns (GetGatehubBalanceResponse);
   rpc GetGatehubUser(GetGatehubUserRequest) returns (GatehubUser);
+
+  // Kratos
+  rpc CheckUserTotpEnabled(CheckUserTotpEnabledRequest) returns (CheckUserTotpEnabledResponse);
+  rpc Delete2FATotpEnrollment(Delete2FATotpEnrollmentRequest) returns (Empty);
+}
+
+message CheckUserTotpEnabledRequest {
+  string identityId = 1;
+  string walletID = 2;
+}
+
+message CheckUserTotpEnabledResponse {
+  bool isEnabled = 1;
+}
+
+message Delete2FATotpEnrollmentRequest {
+  string identityId = 1;
+  string walletID = 2;
 }
 
 message GatehubUser {

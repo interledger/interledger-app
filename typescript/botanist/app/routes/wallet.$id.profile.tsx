@@ -1,7 +1,7 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 
 import { json } from '@remix-run/node'
-import { Form, useFetcher, useLoaderData, useParams } from '@remix-run/react'
+import { Form, useFetcher, useLoaderData } from '@remix-run/react'
 import { useCallback, useEffect, useState } from 'react'
 import { route } from 'routes-gen'
 import { Autocomplete, GridCard, Switch } from '~/components'
@@ -20,7 +20,7 @@ export async function loader({ request, params }: LoaderArgs) {
   const features = await GetWalletFeatures(request, params.id as string)
   const countries = await ListCountries(request)
   const hasTotpEnabled = wallet.users?.[0]?.id
-    ? await CheckUserTotpEnabled(request, wallet.users[0].id)
+    ? await CheckUserTotpEnabled(request, wallet.users[0].id, wallet.walletID)
     : false
   const identityId = wallet.users?.[0]?.id
 
@@ -44,7 +44,6 @@ export default function Page() {
   const [filteredCountries, setFilteredCountries] = useState<
     { id: string; name: string }[]
   >([])
-  const params = useParams()
 
   const fetcher = useFetcher()
 
@@ -71,12 +70,18 @@ export default function Page() {
   const _onDeleteTotp = () => {
     if (!identityId) return
     if (
-      !confirm('Are you sure you want to delete TOTP enrollment for the selected user? He will have to re-enable TOTP.')
+      !confirm(
+        'Are you sure you want to delete TOTP enrollment for the selected user? He will have to re-enable TOTP.'
+      )
     )
       return
 
     fetcher.submit(
-      { identityId: identityId, formName: 'deleteTotp' },
+      {
+        identityId: identityId,
+        walletId: wallet.walletID,
+        formName: 'deleteTotp'
+      },
       { method: 'post' }
     )
   }
@@ -225,15 +230,16 @@ async function setWalletCountryAction({ request, params }: ActionArgs) {
   return null
 }
 
-async function deleteTotpAction({ request, params }: ActionArgs) {
+async function deleteTotpAction({ request }: ActionArgs) {
   const form = await request.formData()
+  const walletId = form.get('walletId') as string
   const identityId = form.get('identityId') as string
 
   if (!identityId) {
     return json({ error: 'Identity ID is required' }, { status: 400 })
   }
 
-  const deleteResponse = await DeleteUserTotp(request, identityId)
+  const deleteResponse = await DeleteUserTotp(request, identityId, walletId)
 
   return json(deleteResponse)
 }
