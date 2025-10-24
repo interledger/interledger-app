@@ -45,6 +45,7 @@ func (a *Activity) BackfillPaywiserBalance(ctx context.Context, gatehubWallets [
 	ec := external.NewClient(
 		os.Getenv("TEMP_GATEHUB_APP_ID"),
 		os.Getenv("TEMP_GATEHUB_SECRET"),
+		os.Getenv("GATEHUB_CARD_APP_ID"),
 		os.Getenv("GATEHUB_GATEWAY_ID"),
 		&http.Client{
 			Transport: otelhttp.NewTransport(

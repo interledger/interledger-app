@@ -5,12 +5,20 @@ declare module "routes-gen" {
     "/accounts": Record<string, never>;
     "/accounts/:accountId": { "accountId": string };
     "/accounts/:accountId/name": { "accountId": string };
+    "/api/cardOperation": Record<string, never>;
+    "/api/check-totp-enabled": Record<string, never>;
     "/api/fern": Record<string, never>;
+    "/api/getCardToken": Record<string, never>;
     "/api/maps/geocode": Record<string, never>;
     "/api/maps/placesAutocomplete": Record<string, never>;
     "/api/pti/token": Record<string, never>;
     "/api/sendOtp": Record<string, never>;
+    "/api/totp-challenge-init": Record<string, never>;
+    "/api/totp-challenge-verify": Record<string, never>;
     "/callbacks/chimoney": Record<string, never>;
+    "/cards": Record<string, never>;
+    "/cards/:cardId": { "cardId": string };
+    "/cards/order": Record<string, never>;
     "/connect/bank/us": Record<string, never>;
     "/connect/bank/za": Record<string, never>;
     "/connect/card": Record<string, never>;
@@ -49,6 +57,8 @@ declare module "routes-gen" {
     "/signup": Record<string, never>;
     "/support": Record<string, never>;
     "/temp-cloudflare-error": Record<string, never>;
+    "/totp/challenge": Record<string, never>;
+    "/totp/two-factor-authentication": Record<string, never>;
     "/transactions": Record<string, never>;
     "/transactions/:transactionId": { "transactionId": string };
     "/unavailable": Record<string, never>;
@@ -67,12 +77,20 @@ declare module "routes-gen" {
       | ["/accounts"]
       | ["/accounts/:accountId", RouteParams["/accounts/:accountId"]]
       | ["/accounts/:accountId/name", RouteParams["/accounts/:accountId/name"]]
+      | ["/api/cardOperation"]
+      | ["/api/check-totp-enabled"]
       | ["/api/fern"]
+      | ["/api/getCardToken"]
       | ["/api/maps/geocode"]
       | ["/api/maps/placesAutocomplete"]
       | ["/api/pti/token"]
       | ["/api/sendOtp"]
+      | ["/api/totp-challenge-init"]
+      | ["/api/totp-challenge-verify"]
       | ["/callbacks/chimoney"]
+      | ["/cards"]
+      | ["/cards/:cardId", RouteParams["/cards/:cardId"]]
+      | ["/cards/order"]
       | ["/connect/bank/us"]
       | ["/connect/bank/za"]
       | ["/connect/card"]
@@ -111,6 +129,8 @@ declare module "routes-gen" {
       | ["/signup"]
       | ["/support"]
       | ["/temp-cloudflare-error"]
+      | ["/totp/challenge"]
+      | ["/totp/two-factor-authentication"]
       | ["/transactions"]
       | ["/transactions/:transactionId", RouteParams["/transactions/:transactionId"]]
       | ["/unavailable"]

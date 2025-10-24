@@ -23,10 +23,16 @@ export const getCsrfTokenFromFlow = (
     | undefined
 ): string => {
   const node = flow?.ui.nodes.find(
-    (node) => (node.attributes as UiNodeInputAttributes).name === 'csrf_token'
+    (node) =>
+      isUiNodeInputAttributes(node?.attributes) &&
+      node.attributes.name === 'csrf_token'
   )
 
   return node ? (node.attributes as UiNodeInputAttributes).value : ''
+}
+
+function isUiNodeInputAttributes(n: any): n is UiNodeInputAttributes {
+  return 'name' in n
 }
 
 /**
@@ -81,7 +87,7 @@ export async function requireNoUserSession(request: Request): Promise<void> {
     // User shouldn't have session/cookies so don't catch unauthorised - 401.
     case 403:
     case 422: // Need to complete 2FA.
-      throw redirect(route('/login') + '?aal=aal2')
+      throw redirect(route('/totp/challenge'))
   }
 
   const userSession = await session.json()
@@ -102,7 +108,9 @@ export function handleFlowError(
     | 'recovery'
     | 'recovery/password'
     | 'verify'
-    | 'logout',
+    | 'logout'
+    | 'totp'
+    | 'totp/challenge',
   // This is the fynbos flow, for redirect purposes
   flowId?: string
 ): void {
@@ -118,6 +126,10 @@ export function handleFlowError(
       })
     case 'session_aal2_required':
       // 2FA is enabled and enforced, but user did not perform 2fa yet!
+      if (flowType === 'totp') {
+        // If the user is logging in, redirect to the 2FA challenge.
+        throw redirect(route('/login/challenge') + `?aal=aal2&flow=${flowId}`)
+      }
       throw redirect(flow.error.redirect_browser_to)
     case 'session_already_available':
       // User is already signed in, let's redirect them home!
@@ -229,7 +241,6 @@ export async function kratosErrorMapping<T extends object>(
   fieldErrors: T
 ): Promise<T> {
   const data = await response.json()
-  console.log('Kratos error log', data)
   if (data.ui) {
     for (let node of data.ui.nodes) {
       // Field validation errors

@@ -27,6 +27,7 @@ func New(b ops.Backends) *Client {
 		external: external.NewClient(
 			os.Getenv("GATEHUB_APP_ID"),
 			os.Getenv("GATEHUB_SECRET"),
+			os.Getenv("GATEHUB_CARD_APP_ID"),
 			os.Getenv("GATEHUB_GATEWAY_ID"),
 			&http.Client{
 				Transport: otelhttp.NewTransport(
@@ -85,10 +86,54 @@ func (c Client) GetTransaction(ctx context.Context, walletID, id string) (*exter
 	return ops.GetTransaction(ctx, c.b, c.external, walletID, id)
 }
 
+func (c Client) ListDeliveryAddresses(ctx context.Context, walletID string) ([]external.CustomerDeliveryAddress, error) {
+	return ops.ListDeliveryAddresses(ctx, c.b, c.external, walletID)
+}
+
+func (c Client) ListCards(ctx context.Context, externalIDs gatehub.ExternalIDs) ([]external.Card, error) {
+	return ops.ListCards(ctx, c.b, c.external, externalIDs)
+}
+
+func (c Client) GetCardApplicationProducts(ctx context.Context) ([]external.CardApplicationProduct, error) {
+	return ops.GetCardApplicationProducts(ctx, c.b, c.external)
+}
+
+func (c Client) OrderCard(ctx context.Context, args gatehub.OrderCardArgs) error {
+	return ops.OrderCard(ctx, c.b, c.external, args)
+}
+
+func (c Client) GetExternalIDs(ctx context.Context, walletID string) (*gatehub.ExternalIDs, error) {
+	return ops.GetExternalIDs(ctx, c.b, walletID)
+}
+
 func (c Client) LinkUserToGatewayByWalletID(ctx context.Context, walletID string) error {
 	return ops.LinkUserToGatewayByWalletID(ctx, c.b, c.external, walletID)
 }
 
 func (c Client) LinkUserToGatewayByExternalID(ctx context.Context, externalID string) error {
 	return ops.LinkUserToGatewayByExternalID(ctx, c.external, externalID)
+}
+
+func (c Client) GetCardToken(ctx context.Context, args gatehub.GetCardTokenArgs) (*external.TokenResponse, error) {
+	return ops.GetCardToken(ctx, c.b, c.external, args)
+}
+
+func (c Client) FreezeCard(ctx context.Context, args gatehub.FreezeCardArgs) error {
+	return ops.FreezeCard(ctx, c.b, c.external, args)
+}
+
+func (c Client) UnfreezeCard(ctx context.Context, args gatehub.UnfreezeCardArgs) error {
+	return ops.UnfreezeCard(ctx, c.b, c.external, args)
+}
+
+func (c Client) BlockCard(ctx context.Context, args gatehub.BlockCardArgs) error {
+	return ops.BlockCard(ctx, c.b, c.external, args)
+}
+
+func (c Client) CloseCard(ctx context.Context, args gatehub.CloseCardArgs) error {
+	return ops.CloseCard(ctx, c.b, c.external, args)
+}
+
+func (c Client) ValidateCardProductCode(ctx context.Context, cardProductCode string) error {
+	return ops.ValidateCardProductCode(ctx, c.external, cardProductCode)
 }
