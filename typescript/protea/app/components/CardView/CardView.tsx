@@ -15,6 +15,7 @@ export const CardView = ({ card }: { card: StorableCard }) => {
     isSensitiveDataVisible,
     isPinVisible,
     isFrozen,
+    isBlockedByAdmin,
     sensitiveData,
     pin,
     actionStatus,
@@ -28,6 +29,28 @@ export const CardView = ({ card }: { card: StorableCard }) => {
   } = useCardActions(card)
 
   const { PinChangePopup } = usePinChangePopup()
+
+  if (isBlockedByAdmin) {
+    return (
+      <div className='flex flex-col items-center space-y-6 p-6'>
+        <div className='relative h-52 w-80' style={{ perspective: '1000px' }}>
+          <div className='relative h-full w-full'>
+            {/* Grey card skeleton */}
+            <div className='absolute inset-0 h-full w-full'>
+              <CardViewFront className='opacity-50 grayscale' />
+            </div>
+          </div>
+
+          {/* Blocked overlay */}
+          <div className='absolute inset-0 z-40 flex items-center justify-center rounded-xl bg-black/30'>
+            <div className='rounded-lg bg-red-500 px-4 py-2 font-semibold text-white'>
+              Card is blocked by admin. <br /> Please contact support.
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className='flex flex-col items-center space-y-6 p-6'>

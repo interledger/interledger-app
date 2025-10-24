@@ -31,11 +31,7 @@ export default function PageCardID() {
     navigate('/')
   }
 
-  if (!cardId) {
-    return <>Card not found</>
-  }
-
-  if (!card) {
+  if (!card || !cardId) {
     return <>Card not found</>
   }
 

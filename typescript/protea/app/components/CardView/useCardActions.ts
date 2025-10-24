@@ -29,6 +29,10 @@ const getDefaultSensitiveData = (
   }
 }
 
+const isBlockedByAdmin = (card: StorableCard): boolean => {
+  return card.lockLevel === 'CARD_LOCK_LEVEL_ADMIN'
+}
+
 const isCardFrozen = (card: StorableCard): boolean => {
   return card.lockLevel === 'CARD_LOCK_LEVEL_CLIENT'
 }
@@ -323,6 +327,7 @@ export const useCardActions = (card: StorableCard) => {
 
   const isFrozen = useMemo(() => isCardFrozen(card), [card])
   const isBlocked = useMemo(() => isCardBlocked(card), [card])
+  const isAdminBlocked = useMemo(() => isBlockedByAdmin(card), [card])
 
   return {
     flip,
@@ -332,6 +337,7 @@ export const useCardActions = (card: StorableCard) => {
     isPinVisible,
     isFrozen,
     isBlocked,
+    isBlockedByAdmin: isAdminBlocked,
     sensitiveData,
     pin: pinDisplayed,
     actionStatus,
