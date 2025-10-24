@@ -7,10 +7,10 @@ interface CardActionsProps {
   flip: () => void
   isSensitiveDataVisible: boolean
   isPinVisible: boolean
-  isLocked: boolean
+  isFrozen: boolean
   toggleSensitiveDataOn: () => void
-  toggleLock: () => void
-  toggleUnlock: () => void
+  toggleFreeze: () => void
+  toggleUnfreeze: () => void
   toggleViewPin: () => void
   toggleBlock: () => void
   toggleTerminate: () => void
@@ -20,10 +20,10 @@ interface CardActionsProps {
 export const CardActions = ({
   showBack,
   flip,
-  isLocked,
+  isFrozen,
   toggleSensitiveDataOn,
-  toggleLock,
-  toggleUnlock,
+  toggleFreeze,
+  toggleUnfreeze,
   toggleViewPin,
   toggleBlock,
   toggleTerminate,
@@ -141,17 +141,17 @@ export const CardActions = ({
             >
               <Menu.Items className='absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-lg border border-gray-200 bg-white shadow-lg focus:outline-none'>
                 <div className='py-1'>
-                  {/* Lock/Unlock */}
+                  {/* Freeze/Unfreeze */}
                   <Menu.Item>
                     {({ active }) => (
                       <button
-                        onClick={isLocked ? toggleUnlock : toggleLock}
+                        onClick={isFrozen ? toggleUnfreeze : toggleFreeze}
                         className={`flex w-full items-center space-x-3 px-4 py-2 text-left text-sm ${
                           active ? 'bg-red-50 text-red-900' : 'text-gray-700'
                         }`}
                       >
                         <Icon className='text-red-600'>lock</Icon>
-                        <span>{isLocked ? 'Unlock' : 'Lock'}</span>
+                        <span>{isFrozen ? 'Unfreeze' : 'Freeze'}</span>
                       </button>
                     )}
                   </Menu.Item>

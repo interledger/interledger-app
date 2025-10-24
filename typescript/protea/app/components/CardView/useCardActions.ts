@@ -29,11 +29,8 @@ const getDefaultSensitiveData = (
   }
 }
 
-const isCardLocked = (card: StorableCard): boolean => {
-  return (
-    card.lockLevel !== 'CARD_LOCK_LEVEL_NONE' &&
-    card.lockLevel !== 'CARD_LOCK_LEVEL_UNKNOWN'
-  )
+const isCardFrozen = (card: StorableCard): boolean => {
+  return card.lockLevel === 'CARD_LOCK_LEVEL_CLIENT'
 }
 
 const isCardBlocked = (card: StorableCard): boolean => {
@@ -299,11 +296,11 @@ export const useCardActions = (card: StorableCard) => {
     },
     [card.id, setActionStatus, fetcher, withTotpChallenge]
   )
-  const toggleLock = useCallback(
+  const toggleFreeze = useCallback(
     () => triggerOperation('freeze'),
     [triggerOperation]
   )
-  const toggleUnlock = useCallback(
+  const toggleUnfreeze = useCallback(
     () => triggerOperation('unfreeze'),
     [triggerOperation]
   )
@@ -324,7 +321,7 @@ export const useCardActions = (card: StorableCard) => {
     setShowBack(!showBack)
   }
 
-  const isLocked = useMemo(() => isCardLocked(card), [card])
+  const isFrozen = useMemo(() => isCardFrozen(card), [card])
   const isBlocked = useMemo(() => isCardBlocked(card), [card])
 
   return {
@@ -333,14 +330,14 @@ export const useCardActions = (card: StorableCard) => {
     setShowBack,
     isSensitiveDataVisible,
     isPinVisible,
-    isLocked,
+    isFrozen,
     isBlocked,
     sensitiveData,
     pin: pinDisplayed,
     actionStatus,
     toggleSensitiveDataOn,
-    toggleLock,
-    toggleUnlock,
+    toggleFreeze,
+    toggleUnfreeze,
     toggleBlock,
     toggleTerminate,
     toggleViewPin,

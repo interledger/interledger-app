@@ -14,15 +14,15 @@ export const CardView = ({ card }: { card: StorableCard }) => {
     showBack,
     isSensitiveDataVisible,
     isPinVisible,
-    isLocked,
+    isFrozen,
     sensitiveData,
     pin,
     actionStatus,
     toggleSensitiveDataOn,
-    toggleLock,
+    toggleFreeze,
+    toggleUnfreeze,
     toggleBlock,
     toggleTerminate,
-    toggleUnlock,
     toggleViewPin,
     toggleChangePin
   } = useCardActions(card)
@@ -39,7 +39,7 @@ export const CardView = ({ card }: { card: StorableCard }) => {
             showBack
               ? '[transform:rotateY(180deg)]'
               : '[transform:rotateY(0deg)]',
-            isLocked && 'blur-sm'
+            isFrozen && 'blur-sm'
           )}
           style={{ transformStyle: 'preserve-3d' }}
         >
@@ -54,6 +54,7 @@ export const CardView = ({ card }: { card: StorableCard }) => {
               </div>
             </div>
           )}
+
           {/* Front of card */}
           <div
             className='absolute inset-0 h-full w-full'
@@ -82,11 +83,11 @@ export const CardView = ({ card }: { card: StorableCard }) => {
           </div>
         </div>
 
-        {/* Locked overlay */}
-        {isLocked && (
+        {/* Frozen overlay */}
+        {isFrozen && (
           <div className='absolute inset-0 z-40 flex items-center justify-center rounded-xl bg-black/30'>
             <div className='rounded-lg bg-red-500 px-4 py-2 font-semibold text-white'>
-              CARD LOCKED
+              Card was frozen
             </div>
           </div>
         )}
@@ -98,10 +99,10 @@ export const CardView = ({ card }: { card: StorableCard }) => {
         flip={flip}
         isSensitiveDataVisible={isSensitiveDataVisible}
         isPinVisible={isPinVisible}
-        isLocked={isLocked}
+        isFrozen={isFrozen}
         toggleSensitiveDataOn={toggleSensitiveDataOn}
-        toggleLock={toggleLock}
-        toggleUnlock={toggleUnlock}
+        toggleFreeze={toggleFreeze}
+        toggleUnfreeze={toggleUnfreeze}
         toggleViewPin={toggleViewPin}
         toggleBlock={toggleBlock}
         toggleTerminate={toggleTerminate}
