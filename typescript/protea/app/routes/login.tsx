@@ -203,12 +203,6 @@ export async function action({ request }: ActionFunctionArgs) {
   try {
     const checkTOTP = await res.json()
     if (checkTOTP?.session?.authenticator_assurance_level === 'aal1') {
-      const hasTotp = await isTotpSet(checkTOTP.session, checkTOTP.headers)
-      if (hasTotp) {
-        return redirect('/totp/challenge', {
-          headers: res.headers
-        })
-      }
       return redirect('/totp/two-factor-authentication', {
         headers: res.headers
       })
