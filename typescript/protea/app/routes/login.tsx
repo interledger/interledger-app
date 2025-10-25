@@ -202,7 +202,6 @@ export async function action({ request }: ActionFunctionArgs) {
   }
   try {
     const checkTOTP = await res.json()
-    console.log("checkTOTP result:", checkTOTP)
     if (checkTOTP?.session?.authenticator_assurance_level === 'aal1') {
       const hasTotp = await isTotpSet(checkTOTP.session, checkTOTP.headers)
       if (hasTotp) {
