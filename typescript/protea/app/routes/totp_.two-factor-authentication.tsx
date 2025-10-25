@@ -46,16 +46,6 @@ export async function loader({
       }
     )
 
-    if (response.status === 403) {
-      return redirect(
-        route('/totp/challenge') +
-          '?redirectTo=/totp/two-factor-authentication',
-        {
-          headers: response.headers
-        }
-      )
-    }
-
     if (!response.ok) throw new Error('Failed to initiate Kratos settings flow')
     const flow = await response.json()
 
@@ -239,8 +229,8 @@ export async function action({ request }: ActionFunctionArgs) {
     )
 
     if (res.status === 403) {
-      const refresh = await fetch(
-        `${KRATOS_URL}/self-service/login/browser?refresh=true&return_to=/'`,
+       await fetch(
+        `${KRATOS_URL}/self-service/login/browser?refresh=true&return_to=/`,
         {
           headers: {
             Accept: 'application/json',
