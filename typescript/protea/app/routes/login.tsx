@@ -31,7 +31,6 @@ import {
   requireNoUserSession
 } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
-import { isTotpSet } from '~/lib/totp.server'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   await requireNoUserSession(request)
@@ -202,14 +201,7 @@ export async function action({ request }: ActionFunctionArgs) {
   }
   try {
     const checkTOTP = await res.json()
-    console.log("checkTOTP result:", checkTOTP)
     if (checkTOTP?.session?.authenticator_assurance_level === 'aal1') {
-      const hasTotp = await isTotpSet(checkTOTP.session, checkTOTP.headers)
-      if (hasTotp) {
-        return redirect('/totp/challenge', {
-          headers: res.headers
-        })
-      }
       return redirect('/totp/two-factor-authentication', {
         headers: res.headers
       })

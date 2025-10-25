@@ -108,7 +108,7 @@ export default function Page() {
         <OutlineButtonRouter to={route('/logout')} className='mt-4'>
         Log out
       </OutlineButtonRouter>
-</>
+    </>
 
   const handleUnlinkClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
@@ -196,16 +196,6 @@ export async function action({ request }: ActionFunctionArgs) {
   const flowId = form.get('flow')
   const csrfToken = form.get('csrf_token')
   const totpCode = form.get('totp_code')
-  console.log(
-    'TOTP Code:',
-    totpCode,
-    'Flow ID:',
-    flowId,
-    'CSRF Token:',
-    csrfToken,
-    'Unlink:',
-    totpUnlink
-  )
   try {
     const res = await fetch(
       `${KRATOS_URL}/self-service/settings?flow=${flowId}`,
