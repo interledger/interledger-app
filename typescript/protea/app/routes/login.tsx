@@ -31,7 +31,6 @@ import {
   requireNoUserSession
 } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
-import { isTotpSet } from '~/lib/totp.server'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   await requireNoUserSession(request)

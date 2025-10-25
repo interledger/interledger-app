@@ -103,13 +103,12 @@ export default function Page() {
   const submit = useSubmit()
   const { withTotpChallenge } = useTotpChallenge()
 
-  if (!flowId && !totpUnlink) return 
-  <>
-      <p>Failed to load flow data.</p>
-      <OutlineButtonRouter to={route('/logout')} className='mt-4'>
-            Log out
+  if (!flowId && !totpUnlink) return <>
+        <p>Failed to load flow data.</p>
+        <OutlineButtonRouter to={route('/logout')} className='mt-4'>
+        Log out
       </OutlineButtonRouter>
-  </>
+    </>
 
   const handleUnlinkClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
