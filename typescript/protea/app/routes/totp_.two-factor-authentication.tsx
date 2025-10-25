@@ -230,7 +230,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
     if (res.status === 403) {
        await fetch(
-        `${KRATOS_URL}/self-service/login/browser?refresh=true&return_to=/'`,
+        `${KRATOS_URL}/self-service/login/browser?refresh=true&return_to=/`,
         {
           headers: {
             Accept: 'application/json',
