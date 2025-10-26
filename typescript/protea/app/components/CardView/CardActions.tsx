@@ -13,7 +13,6 @@ interface CardActionsProps {
   toggleUnfreeze: () => void
   toggleViewPin: () => void
   toggleBlock: () => void
-  toggleTerminate: () => void
   toggleChangePin: () => void
 }
 
@@ -26,7 +25,6 @@ export const CardActions = ({
   toggleUnfreeze,
   toggleViewPin,
   toggleBlock,
-  toggleTerminate,
   toggleChangePin
 }: CardActionsProps) => {
   return (
@@ -150,7 +148,9 @@ export const CardActions = ({
                           active ? 'bg-red-50 text-red-900' : 'text-gray-700'
                         }`}
                       >
-                        <Icon className='text-red-600'>{isFrozen ? 'mode_cool_off' : 'mode_cool'}</Icon>
+                        <Icon className='text-red-600'>
+                          {isFrozen ? 'mode_cool_off' : 'mode_cool'}
+                        </Icon>
                         <span>{isFrozen ? 'Unfreeze' : 'Freeze'}</span>
                       </button>
                     )}
@@ -172,21 +172,6 @@ export const CardActions = ({
                       >
                         <Icon className='text-orange-600'>block</Icon>
                         <span>Block</span>
-                      </button>
-                    )}
-                  </Menu.Item>
-
-                  {/* Terminate */}
-                  <Menu.Item>
-                    {({ active }) => (
-                      <button
-                        onClick={toggleTerminate}
-                        className={`flex w-full items-center space-x-3 px-4 py-2 text-left text-sm ${
-                          active ? 'bg-red-50 text-red-900' : 'text-red-700'
-                        }`}
-                      >
-                        <Icon className='text-red-600'>delete</Icon>
-                        <span>Terminate</span>
                       </button>
                     )}
                   </Menu.Item>

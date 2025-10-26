@@ -2,7 +2,7 @@ import { ActionFunctionArgs, json } from '@remix-run/node'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 
-export type Operation = 'freeze' | 'unfreeze' | 'block' | 'terminate'
+export type Operation = 'freeze' | 'unfreeze' | 'block'
 
 export type OperationResponse = {
   success: boolean
@@ -24,9 +24,6 @@ export async function action({ request }: ActionFunctionArgs) {
   }
   if (operation === 'block') {
     return blockCard(request, cardId)
-  }
-  if (operation === 'terminate') {
-    return terminateCard(request, cardId)
   }
 
   return json({
@@ -79,22 +76,6 @@ const blockCard = async (request: Request, cardId: string) => {
   return json({
     success: true,
     operation: 'block',
-    shouldRevalidate: true
-  })
-}
-
-const terminateCard = async (request: Request, cardId: string) => {
-  const terminateResponse = await grpc.terminateCard(request, {
-    cardId
-  })
-
-  if (isConnectError(terminateResponse)) {
-    return terminateResponse.error({ errors: { operation: 'terminate' } })
-  }
-
-  return json({
-    success: true,
-    operation: 'terminate',
     shouldRevalidate: true
   })
 }

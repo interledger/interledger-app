@@ -23,7 +23,6 @@ export const CardView = ({ card }: { card: StorableCard }) => {
     toggleFreeze,
     toggleUnfreeze,
     toggleBlock,
-    toggleTerminate,
     toggleViewPin,
     toggleChangePin
   } = useCardActions(card)
@@ -128,7 +127,6 @@ export const CardView = ({ card }: { card: StorableCard }) => {
         toggleUnfreeze={toggleUnfreeze}
         toggleViewPin={toggleViewPin}
         toggleBlock={toggleBlock}
-        toggleTerminate={toggleTerminate}
         toggleChangePin={toggleChangePin}
       />
 

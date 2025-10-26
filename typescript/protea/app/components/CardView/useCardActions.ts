@@ -312,10 +312,6 @@ export const useCardActions = (card: StorableCard) => {
     () => triggerOperation('block'),
     [triggerOperation]
   )
-  const toggleTerminate = useCallback(
-    () => triggerOperation('terminate'),
-    [triggerOperation]
-  )
 
   const flip = () => {
     if (showBack && isSensitiveDataVisible) {
@@ -345,7 +341,6 @@ export const useCardActions = (card: StorableCard) => {
     toggleFreeze,
     toggleUnfreeze,
     toggleBlock,
-    toggleTerminate,
     toggleViewPin,
     toggleChangePin,
     PinChangePopup
