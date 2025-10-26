@@ -145,10 +145,10 @@ export const CardActions = ({
                       <button
                         onClick={isFrozen ? toggleUnfreeze : toggleFreeze}
                         className={`flex w-full items-center space-x-3 px-4 py-2 text-left text-sm ${
-                          active ? 'bg-red-50 text-red-900' : 'text-gray-700'
+                          active ? 'bg-blue-50 text-blue-900' : 'text-gray-700'
                         }`}
                       >
-                        <Icon className='text-red-600'>
+                        <Icon className='text-blue-600'>
                           {isFrozen ? 'mode_cool_off' : 'mode_cool'}
                         </Icon>
                         <span>{isFrozen ? 'Unfreeze' : 'Freeze'}</span>
@@ -159,19 +159,17 @@ export const CardActions = ({
                   {/* Divider */}
                   <div className='my-1 h-px bg-gray-200' />
 
-                  {/* Block */}
+                  {/* Terminate */}
                   <Menu.Item>
                     {({ active }) => (
                       <button
                         onClick={toggleBlock}
                         className={`flex w-full items-center space-x-3 px-4 py-2 text-left text-sm ${
-                          active
-                            ? 'bg-orange-50 text-orange-900'
-                            : 'text-gray-700'
+                          active ? 'bg-red-50 text-red-900' : 'text-red-700'
                         }`}
                       >
-                        <Icon className='text-orange-600'>block</Icon>
-                        <span>Block</span>
+                        <Icon className='text-red-600'>delete</Icon>
+                        <span>Terminate</span>
                       </button>
                     )}
                   </Menu.Item>
