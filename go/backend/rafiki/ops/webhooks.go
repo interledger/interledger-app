@@ -228,15 +228,20 @@ func outgoingPayment(ctx context.Context, b Backends, hook webhook) error {
 	if amt == 0 {
 		return nil
 	}
-
-	// More than 1 USD execute immediately
-	if amt >= 100 {
-		return immediatePayment(ctx, b, op)
-	}
-
 	senderAcc, receiverAcc, err := getAccounts(ctx, b, op)
 	if err != nil {
 		return err
+	}
+
+	if senderAcc.WalletID == receiverAcc.WalletID {
+		err := b.External().CancelOutGoingPayment(ctx, op.ID, "sending wallet cannot be the same as receiving wallet ")
+		if err != nil {
+			return err
+		}
+	}
+	// More than 1 USD execute immediately
+	if amt >= 100 {
+		return immediatePayment(ctx, b, op)
 	}
 
 	// Reserve the funds for 26 hours, Cron runs every 24.
@@ -250,7 +255,7 @@ func outgoingPayment(ctx context.Context, b Backends, hook webhook) error {
 		log.Error("failed to add outgoing payment from rafiki outoing payment hook", zap.Error(err))
 		return err
 	}
-
+	// we don't check if funds exits, we should
 	// Tell rafiki the payment is successful, we'll actually action it later but the fund are reserved
 	err = b.External().FundOutgoingPayment(ctx, op.ID)
 	if err != nil {

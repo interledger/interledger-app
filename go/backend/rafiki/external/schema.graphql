@@ -314,9 +314,6 @@ type Mutation {
     input: CancelIncomingPaymentInput!
   ): CancelIncomingPaymentResponse!
 
-"Update the wallet address status"
-  updateWalletAddress(input: UpdateWalletAddressInput!): UpdateWalletAddressMutationResponse!
-  # mutation:auth
   "Revoke Grant"
   revokeGrant(input: RevokeGrantInput!): RevokeGrantMutationResponse!
 }
