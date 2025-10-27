@@ -203,7 +203,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const headers = trimHeaders(res.headers, ['set-cookie'])
 
   if (res.status === 422) {
-    return redirect('/totp/challenge', {
+    return redirect('/totp/challenge?returnTo=' + returnTo , {
       headers
     })
   }

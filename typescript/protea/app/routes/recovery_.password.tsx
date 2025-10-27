@@ -65,18 +65,21 @@ export async function loader({ request }: LoaderFunctionArgs) {
     )
     flow = await flowRes.json()
 
+    if(flow.error?.id === 'session_aal2_required') {
+      return redirect('/totp/challenge?returnTo=/recovery/password')
+    }
     if (flowRes.status >= 400) handleFlowError(flow, 'recovery/password')
   } else {
     // Otherwise we initialize it
-    const flowRes = await fetch(
-      `${KRATOS_URL}/self-service/recovery/browser?${url.searchParams}`,
-      { headers: { cookie: cookie, Accept: 'application/json' } }
-    )
-
     // const flowRes = await fetch(
-    //   `${KRATOS_URL}/self-service/settings/browser?${url.searchParams}`,
+    //   `${KRATOS_URL}/self-service/recovery/browser?${url.searchParams}`,
     //   { headers: { cookie: cookie, Accept: 'application/json' } }
     // )
+
+    const flowRes = await fetch(
+      `${KRATOS_URL}/self-service/settings/browser?${url.searchParams}`,
+      { headers: { cookie: cookie, Accept: 'application/json' } }
+    )
     flow = await flowRes.json()
     console.log('flow ',flow)
     if (flowRes.status >= 400 ) handleFlowError(flow, 'recovery/password')

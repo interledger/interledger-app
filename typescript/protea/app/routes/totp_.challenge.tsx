@@ -17,7 +17,7 @@ import { mergeMeta } from '~/lib/meta'
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
-  const returnTo = url.searchParams.get('redirectTo')
+  const returnTo = url.searchParams.get('returnTo')
   const cookie = String(request.headers.get('cookie'))
   const refresh = url.searchParams.get('refresh')
   if (!flowId) {
@@ -37,18 +37,18 @@ export async function loader({ request }: LoaderFunctionArgs) {
       throw new Error('Expected redirect response from Kratos')
     }
     
-    const redirectTo = initRes.headers.get('location')
-    if (!redirectTo) {
+    const location = initRes.headers.get('location')
+    if (!location) {
       throw new Error('Expected redirect with flow ID, but got none.')
     }
 
-    const flowFromRedirect = new URL(redirectTo).searchParams.get('flow')
+    const flowFromRedirect = new URL(location).searchParams.get('flow')
     if (!flowFromRedirect) {
       throw new Error('Redirect did not include flow parameter')
     }
 
     return redirect(
-      `/totp/challenge?flow=${flowFromRedirect}&returnTo=${returnTo ?? ''}`
+      `/totp/challenge?flow=${flowFromRedirect}&returnTo=${returnTo ?? '/'}`
     )
   }
   const kratosFlow = await fetch(
@@ -138,8 +138,8 @@ export async function action({ request }: ActionFunctionArgs) {
     throw new Response('Unexpected error', { status: res.status })
   }
 
-  const redirectTo = new URL(request.url).searchParams.get('returnTo') || '/'
-  const response = redirect(redirectTo)
+  const returnTo = new URL(request.url).searchParams.get('returnTo') || '/'
+  const response = redirect(returnTo ?? '/')
   const setCookie = res.headers.get('set-cookie')
 
   if (setCookie) {
