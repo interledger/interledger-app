@@ -2,7 +2,6 @@ package ops
 
 import (
 	"fmt"
-	"strconv"
 	"time"
 
 	"gitlab.com/fynbos/backend/country"
@@ -177,20 +176,10 @@ func SettleDepositWorkflow(ctx workflow.Context, wh pti.TransactionStatusPayload
 		return "", temporal.NewNonRetryableApplicationError("Invalid currency", "ErrInternal", fmt.Errorf("%w invalid currency", pti.ErrInternal))
 	}
 
-	strAmount := strconv.Itoa(wh.Amount)
-	value, err := currency.StringToScaledUInt(strAmount)
-	if err != nil {
-		return "", temporal.NewNonRetryableApplicationError("Invalid amount", "ErrInternal", fmt.Errorf("%w invalid amount", pti.ErrInternal))
-	}
-
-	amt := currency.Amount{
-		Value:    value,
-		Currency: cc,
-		Scale:    2,
-	}
+	amt := currency.FromFloat64(wh.Amount, currency.USD)
 
 	var walletID string
-	err = workflow.ExecuteActivity(ctx, a.GetWalletFromPTIUser, wh.UserID).Get(ctx, &walletID)
+	err := workflow.ExecuteActivity(ctx, a.GetWalletFromPTIUser, wh.UserID).Get(ctx, &walletID)
 	if err != nil {
 		return "", err
 	}
@@ -311,20 +300,10 @@ func RevertWithdrawWorkflow(ctx workflow.Context, wh pti.TransactionStatusPayloa
 		return temporal.NewNonRetryableApplicationError("Invalid currency", "ErrInternal", fmt.Errorf("%w invalid currency", pti.ErrInternal))
 	}
 
-	strAmount := strconv.Itoa(wh.Amount)
-	value, err := currency.StringToScaledUInt(strAmount)
-	if err != nil {
-		return temporal.NewNonRetryableApplicationError("Invalid amount", "ErrInternal", fmt.Errorf("%w invalid amount", pti.ErrInternal))
-	}
-
-	amt := currency.Amount{
-		Value:    value,
-		Currency: cc,
-		Scale:    2,
-	}
+	amt := currency.FromFloat64(wh.Amount, currency.USD)
 
 	var walletID string
-	err = workflow.ExecuteActivity(ctx, a.GetWalletFromPTIUser, wh.UserID).Get(ctx, &walletID)
+	err := workflow.ExecuteActivity(ctx, a.GetWalletFromPTIUser, wh.UserID).Get(ctx, &walletID)
 	if err != nil {
 		return err
 	}
@@ -371,20 +350,10 @@ func SettleWithdrawWorkflow(ctx workflow.Context, wh pti.TransactionStatusPayloa
 		return "", temporal.NewNonRetryableApplicationError("Invalid currency", "ErrInternal", fmt.Errorf("%w invalid currency", pti.ErrInternal))
 	}
 
-	strAmount := strconv.Itoa(wh.Amount)
-	value, err := currency.StringToScaledUInt(strAmount)
-	if err != nil {
-		return "", temporal.NewNonRetryableApplicationError("Invalid amount", "ErrInternal", fmt.Errorf("%w invalid amount", pti.ErrInternal))
-	}
-
-	amt := currency.Amount{
-		Value:    value,
-		Currency: cc,
-		Scale:    2,
-	}
+	amt := currency.FromFloat64(wh.Amount, currency.USD)
 
 	var walletID string
-	err = workflow.ExecuteActivity(ctx, a.GetWalletFromPTIUser, wh.UserID).Get(ctx, &walletID)
+	err := workflow.ExecuteActivity(ctx, a.GetWalletFromPTIUser, wh.UserID).Get(ctx, &walletID)
 	if err != nil {
 		return "", err
 	}
