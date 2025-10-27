@@ -234,7 +234,7 @@ func outgoingPayment(ctx context.Context, b Backends, hook webhook) error {
 	}
 
 	if senderAcc.WalletID == receiverAcc.WalletID {
-		err := b.External().CancelOutGoingPayment(ctx, op.ID, "sending wallet cannot be the same as receiving wallet")
+		err := b.External().CancelOutgoingPayment(ctx, op.ID, "sending wallet cannot be the same as receiving wallet")
 		if err != nil {
 			log.Error("cannot cancel payment outgoing payment", zap.Error(err))
 			return err

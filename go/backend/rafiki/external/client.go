@@ -28,7 +28,7 @@ type Client interface {
 	RevokeGrant(ctx context.Context, grantID string) error
 	GetIncomingPayment(ctx context.Context, id string) (*GetIncomingPaymentIncomingPayment, error)
 	UpdateWalletAddressStatus(ctx context.Context, walletID rafiki.UpdateAddressStatus, status bool) error
-	CancelOutGoingPayment(ctx context.Context, paymentPointerID, reason string) error
+	CancelOutgoingPayment(ctx context.Context, paymentPointerID, reason string) error
 }
 
 type assets struct {
@@ -116,7 +116,7 @@ func (c client) FundOutgoingPayment(ctx context.Context, outgoingPaymentID strin
 	return nil
 }
 
-func (c client) CancelOutGoingPayment(ctx context.Context, outgoingPaymentID, reason string) error {
+func (c client) CancelOutgoingPayment(ctx context.Context, outgoingPaymentID, reason string) error {
 	_, err := CancelOutgoingPayment(ctx, c.backendClient, CancelOutgoingPaymentInput{
 		Id:     outgoingPaymentID,
 		Reason: reason,
