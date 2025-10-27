@@ -103,12 +103,15 @@ export default function Page() {
   const submit = useSubmit()
   const { withTotpChallenge } = useTotpChallenge()
 
-  if (!flowId && !totpUnlink) return <>
+  if (!flowId && !totpUnlink)
+    return (
+      <>
         <p>Failed to load flow data.</p>
         <OutlineButtonRouter to={route('/logout')} className='mt-4'>
-        Log out
-      </OutlineButtonRouter>
-    </>
+          Log out
+        </OutlineButtonRouter>
+      </>
+    )
 
   const handleUnlinkClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
@@ -224,7 +227,7 @@ export async function action({ request }: ActionFunctionArgs) {
     )
 
     if (res.status === 403) {
-       await fetch(
+      await fetch(
         `${KRATOS_URL}/self-service/login/browser?refresh=true&return_to=/`,
         {
           headers: {

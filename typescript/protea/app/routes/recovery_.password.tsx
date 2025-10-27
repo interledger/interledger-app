@@ -64,10 +64,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
       }
     )
     flow = await flowRes.json()
-
-    if(flow.error?.id === 'session_aal2_required') {
-      return redirect('/totp/challenge?returnTo=/recovery/password')
-    }
     if (flowRes.status >= 400) handleFlowError(flow, 'recovery/password')
   } else {
     // Otherwise we initialize it
@@ -76,8 +72,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
       { headers: { cookie: cookie, Accept: 'application/json' } }
     )
     flow = await flowRes.json()
-    console.log('flow ',flow)
-    if (flowRes.status >= 400 ) handleFlowError(flow, 'recovery/password')
+
+    if (flow.error?.id === 'session_aal2_required') {
+      return redirect('/totp/challenge?returnTo=/recovery/password')
+    }
+
+    if (flowRes.status >= 400) handleFlowError(flow, 'recovery/password')
     return redirect(`/recovery/password?flow=${flow.id}`, {
       headers: trimHeaders(flowRes.headers, ['set-cookie'])
     })
