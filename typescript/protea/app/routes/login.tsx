@@ -198,7 +198,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const headers = trimHeaders(res.headers, ['set-cookie'])
 
   if (res.status === 422) {
-    return redirect(`/totp/challenge?redirectTo=${returnTo || '/'}`, {
+    return redirect('/totp/challenge', {
       headers
     })
   }
