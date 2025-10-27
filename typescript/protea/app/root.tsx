@@ -4,7 +4,6 @@ import type {
   MetaFunction
 } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import type { ShouldRevalidateFunction } from '@remix-run/react'
 import {
   Link,
   Links,
@@ -22,10 +21,15 @@ import clsx from 'clsx'
 import type { ReactNode } from 'react'
 import { AnchorRouter, Error, LiveReload } from '~/components'
 import { Scaffold } from '~/components/Scaffold'
-import { hasUserSession } from '~/lib/kratos.server'
+import { TotpChallengeGlobal } from '~/components/TotpChallengeGlobal'
+import { getUserSession, hasUserSession } from '~/lib/kratos.server'
 import { getSnackbar } from '~/lib/snackbar.server'
 import styles from '~/styles/app.css'
 import { getFeatures } from './data/wallet.server'
+import { Features } from './generated/connect/backend/v1/backend_pb'
+import { getPusherArgs } from './lib/pusher.server'
+import { NON_FULL_SESSION_ROUTES, isTotpSet } from './lib/totp.server'
+import { usePusher } from './lib/usePusher'
 
 const metaContent = {
   title: 'Interledger Wallet',
@@ -100,53 +104,34 @@ function Document({ children, theme = 'theme-system' }: DocumentProps) {
   )
 }
 
-const validatePathsList = [
-  '/',
-  '/pay',
-  '/deposit',
-  '/withdraw',
-  '/accounts',
-  '/payments',
-  '/personal-details'
-]
-
-export const shouldRevalidate: ShouldRevalidateFunction = ({
-  defaultShouldRevalidate,
-  nextUrl
-}) => {
-  /**
-   * NOTE: We always revalidate when routing to validatePathsList.
-   * To ensure the layout is in sync on client side navigation and to validate if account is disabled. 
-   * This needs to be done for any route that returns a function in its layout handle.
-   */
-  if (validatePathsList.includes(nextUrl.pathname))
-    return true
-  // TODO: possible also revalidate if an action has been submitted so that we can show global snackbars even on error
-  // Could also just return json instead throwing an error
-  return defaultShouldRevalidate
-}
-
 export async function loader({ request }: LoaderFunctionArgs) {
   const isUser = hasUserSession(request)
   const snackbar = await getSnackbar(request)
 
+  let features = new Features()
   const url = new URL(request.url)
   const pathname = url.pathname
-  let features = undefined
 
-  // if wallet is in a region that is not enabled redirect
-  if (isUser && validatePathsList.includes(pathname)) {
+  if (isUser && !NON_FULL_SESSION_ROUTES.includes(pathname)) {
+    const session = await getUserSession(request)
+    const totpAvailable = await isTotpSet(session, request.headers)
+    if (!totpAvailable) {
+      return redirect('/totp/two-factor-authentication')
+    }
+
     features = await getFeatures(request)
-
     if (features && !features.accountEnabled) {
-      return redirect("/unavailable")
+      return redirect('/unavailable')
     }
   }
+
+  const pusherArgs = await getPusherArgs(request)
 
   return json({
     isUser,
     features,
     snackbar,
+    pusherArgs,
     env: {
       fynbosEnv: process.env.FYNBOS_ENV,
       sentryDsn: process.env.SENTRY_DSN,
@@ -158,14 +143,16 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 function Page() {
   const location = useLocation()
-  const { env } = useLoaderData<typeof loader>()
+  const { pusherArgs, env } = useLoaderData<typeof loader>()
   // useSegment(env.segmentApiKey)
+  usePusher(pusherArgs, ['cardReady'])
 
   if (location.pathname == '/temp-cloudflare-error') return <CloudFlareError />
 
   return (
     <Document>
       <Scaffold />
+      <TotpChallengeGlobal />
       <script
         dangerouslySetInnerHTML={{
           __html: `window.ENV = ${JSON.stringify(env)}`

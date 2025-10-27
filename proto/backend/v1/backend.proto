@@ -32,7 +32,7 @@ service BackendService {
   rpc WalletAddressValid(WalletAddressValidRequest) returns (WalletAddressValidResponse);
   rpc SetWalletName(SetWalletNameRequest) returns (Empty);
   rpc GetWalletInfo(Empty) returns (WalletInfo);
-  rpc GetPublicWalletInfo(GetPublicWalletInfoRequest) returns(PublicWalletInfo);
+  rpc GetPublicWalletInfo(GetPublicWalletInfoRequest) returns (PublicWalletInfo);
   // Allows sending and checking an sms verification.
   rpc SendPhoneVerification(SendPhoneVerificationRequest) returns (Empty);
   rpc CheckPhoneVerification(CheckPhoneVerificationRequest) returns (Empty);
@@ -174,6 +174,167 @@ service BackendService {
   rpc CreateChimoneyWallet(Empty) returns (Empty);
   rpc GetChimoneyDepositLink(Amount) returns (GetChimoneyDepositLinkResponse);
   rpc CreateChimoneyDeposit(CreateChimoneyDepositRequest) returns (Empty);
+
+  // Cards
+  rpc ListCards(Empty) returns (ListCardsResponse);
+  rpc GetCardOrderOptions(Empty) returns (GetCardOrderOptionsResponse);
+  rpc OrderCard(OrderCardRequest) returns (Empty);
+  rpc GetCardToken(GetCardTokenRequest) returns (GetCardTokenResponse);
+  rpc FreezeCard(FreezeCardRequest) returns (Empty);
+  rpc UnfreezeCard(UnfreezeCardRequest) returns (Empty);
+  rpc BlockCard(BlockCardRequest) returns (Empty);
+  rpc TerminateCard(TerminateCardRequest) returns (Empty);
+}
+
+message FreezeCardRequest {
+  string cardId = 1;
+}
+
+message UnfreezeCardRequest {
+  string cardId = 1;
+}
+
+message BlockCardRequest {
+  string cardId = 1;
+}
+
+message TerminateCardRequest {
+  string cardId = 1;
+}
+
+enum CardTokenType {
+  CARD_TOKEN_TYPE_PIN = 0;
+  CARD_TOKEN_TYPE_PIN_CHANGE = 1;
+  CARD_TOKEN_TYPE_CARD_DATA = 2;
+  CARD_TOKEN_TYPE_APPLE_PROVISIONING = 3;
+  CARD_TOKEN_TYPE_GOOGLE_PROVISIONING = 4;
+  CARD_TOKEN_TYPE_DIGITALIZATION_PAI = 5;
+}
+
+message TokenLink {
+  string href = 1;
+  string rel = 2;
+  string method = 3;
+}
+
+message GetCardTokenRequest {
+  CardTokenType tokenType = 1;
+  string cardId = 2;
+  optional string publicKey = 3;
+}
+
+message GetCardTokenResponse {
+  string token = 1;
+  repeated TokenLink links = 2;
+}
+
+message GetCardOrderOptionsResponse {
+  bool isWaitingForCreation = 1;
+  repeated CardApplicationProduct products = 2;;
+  repeated CustomerDeliveryAddress addresses = 3;;
+  repeated Country countries = 4;
+}
+
+message OrderCardRequest {
+  CardType type = 1;
+  string cardProductCode = 2;
+
+  oneof deliveryAddress {
+    string deliveryAddressId = 3;
+    NewCustomerDeliveryAddress newDeliveryAddress = 4;
+  }
+}
+
+message CardApplicationProduct {
+  string code = 1;
+  string name = 2;
+}
+
+enum CustomerDeliveryAddressType {
+  CUSTOMER_DELIVERY_ADDRESS_OTHER = 0;
+  CUSTOMER_DELIVERY_ADDRESS_PERMANENT_RESIDENCE = 1;
+  CUSTOMER_DELIVERY_ADDRESS_TEMPORARY_RESIDENCE = 2;
+  CUSTOMER_DELIVERY_ADDRESS_WORK = 3;
+}
+
+message CustomerDeliveryAddressBase {
+  CustomerDeliveryAddressType type = 1;
+  string countryCode = 2;
+  string line1 = 3;
+  optional string line2 = 4;
+  optional string line3 = 5;
+  optional string postOffice = 6;
+  string city = 7;
+  string zipCode = 8;
+}
+
+message CustomerDeliveryAddress {
+  CustomerDeliveryAddressBase details = 1;
+  string id = 2;
+}
+
+message NewCustomerDeliveryAddress {
+  CustomerDeliveryAddressBase details = 1;
+  string reason = 2;
+}
+
+enum CardType {
+  CARD_TYPE_UNKNOWN = 0;
+  CARD_TYPE_PHYSICAL = 1;
+  CARD_TYPE_VIRTUAL = 2;
+}
+
+enum CardStatus {
+  CARD_STATUS_UNKNOWN = 0;
+  CARD_STATUS_ACTIVE = 1;
+  CARD_STATUS_BLOCKED = 2;
+  CARD_STATUS_TEMPORARY_BLOCKED = 3;
+  CARD_STATUS_REPLACED = 4;
+  CARD_STATUS_SOFT_DELETE = 5;
+  CARD_STATUS_ACCOUNT_BLOCKED = 6;
+  CARD_STATUS_IN_CREATION = 7;
+}
+
+enum CardStatusReasonCode {
+  CARD_STATUS_REASON_CODE_UNKNOWN = 0;
+  CARD_STATUS_REASON_CODE_NONE = 1;
+  CARD_STATUS_REASON_CODE_CLIENT_REQUESTED_LOCK = 2;
+  CARD_STATUS_REASON_CODE_LOST_CARD = 3;
+  CARD_STATUS_REASON_CODE_STOLEN_CARD = 4;
+  CARD_STATUS_REASON_CODE_ISSUER_REQUEST_GENERAL = 5;
+  CARD_STATUS_REASON_CODE_ISSUER_REQUEST_FRAUD = 6;
+  CARD_STATUS_REASON_CODE_ISSUER_REQUEST_LEGAL = 7;
+  CARD_STATUS_REASON_CODE_ISSUER_REQUEST_INCORRECT_OPENING = 8;
+  CARD_STATUS_REASON_CODE_CARD_DAMAGED_OR_NOT_WORKING = 9;
+  CARD_STATUS_REASON_CODE_USER_REQUEST = 10;
+  CARD_STATUS_REASON_CODE_ISSUER_REQUEST_CUSTOMER_DECEASED = 11;
+  CARD_STATUS_REASON_CODE_PRODUCT_DOES_NOT_RENEW = 12;
+  CARD_STATUS_REASON_CODE_PRODUCT_CHANGE = 13;
+  CARD_STATUS_REASON_CODE_RENEWED = 14;
+}
+
+enum CardLockLevel {
+  CARD_LOCK_LEVEL_UNKNOWN = 0;
+  CARD_LOCK_LEVEL_NONE = 1;
+  CARD_LOCK_LEVEL_CLIENT = 2;
+  CARD_LOCK_LEVEL_ADMIN = 3;
+}
+
+message Card {
+  string id = 1;
+  string nameOnCard = 2;
+  string maskedPan = 3;
+  CardStatus status = 4;
+  CardStatusReasonCode statusReasonCode = 5;
+  CardLockLevel lockLevel = 6;
+  string expiryDate = 7;
+  CardType type = 8;
+  string productCode = 9;
+}
+
+message ListCardsResponse {
+  bool isWaitingForCreation = 1;
+  repeated Card cards = 2;
 }
 
 message CreatePtiBankAccountRequest {
@@ -260,7 +421,7 @@ message RevokeRafikiGrantRequest {
   string id = 1;
 }
 
-message GetRafikiGrantRequest{
+message GetRafikiGrantRequest {
   string id = 1;
 }
 
@@ -540,7 +701,7 @@ message SearchWalletsResponse {
 message SearchResult {
   string walletID = 1;
   string walletUrl = 5;
-  bool canSend = 4 [deprecated=true];
+  bool canSend = 4 [deprecated = true];
   string identifier = 2;
   string identifierType = 3;
   repeated SearchResult subResults = 6;
@@ -999,7 +1160,7 @@ message KYCPersonaInquiryRequest {
 
 message KYCPersonaInquiryResponse {
   string id = 1;
-  optional string session_token = 2 [deprecated=true];
+  optional string session_token = 2 [deprecated = true];
 }
 
 message CreateTwitterAuthURLResponse {
@@ -1028,15 +1189,15 @@ message CreateDiscordAuthURLResponse {
   string url = 1;
 }
 
-message GetIdentityRequest{
+message GetIdentityRequest {
   string id = 1;
 }
 
-message GetIdentityResponse{
-   Identity identity = 1;
+message GetIdentityResponse {
+  Identity identity = 1;
 }
 
-message GetIdentityBySignatureHashRequest{
+message GetIdentityBySignatureHashRequest {
   string signature_hash = 1;
 }
 

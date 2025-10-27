@@ -228,15 +228,22 @@ func outgoingPayment(ctx context.Context, b Backends, hook webhook) error {
 	if amt == 0 {
 		return nil
 	}
-
-	// More than 1 USD execute immediately
-	if amt >= 100 {
-		return immediatePayment(ctx, b, op)
-	}
-
 	senderAcc, receiverAcc, err := getAccounts(ctx, b, op)
 	if err != nil {
 		return err
+	}
+
+	if senderAcc.WalletID == receiverAcc.WalletID {
+		err := b.External().CancelOutgoingPayment(ctx, op.ID, "sending wallet cannot be the same as receiving wallet")
+		if err != nil {
+			log.Error("cannot cancel payment outgoing payment", zap.Error(err))
+			return err
+		}
+		return nil
+	}
+	// More than 1 USD execute immediately
+	if amt >= 100 {
+		return immediatePayment(ctx, b, op)
 	}
 
 	// Reserve the funds for 26 hours, Cron runs every 24.
@@ -269,7 +276,7 @@ func reserveTransfer(
 	timeout time.Duration,
 ) error {
 	if senderAcc == nil || receiverAcc == nil {
-		return fmt.Errorf("%w send and receive accounts not specified when reserving balances.", rafiki.ErrInternal)
+		return fmt.Errorf("%w send and receive accounts not specified when reserving balances", rafiki.ErrInternal)
 	}
 	if senderAcc.SendCurrency != receiverAcc.ReceiveCurrency {
 		return fmt.Errorf("%w send: %s, receive: %s", rafiki.ErrCurrencyNotSupported, senderAcc.SendCurrency, receiverAcc.ReceiveCurrency)

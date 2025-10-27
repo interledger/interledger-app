@@ -4,7 +4,7 @@
 // @ts-nocheck
 
 import { Empty, MethodKind } from "@bufbuild/protobuf";
-import { AllowWaitlistSignupRequest, CompleteLinkedAccountReviewRequest, CreateGatehubUserRequest, Empty as Empty$1, EnablePTIBalanceRequest, ExportFormSubmissionsRequest, ExportFormSubmissionsResponse, Features, FormSubmissionDetails, GatehubUser, GetFormSubmissionDetailsRequest, GetGatehubBalanceRequest, GetGatehubBalanceResponse, GetGatehubUserRequest, GetLinkedAccountRequest, GetLinkedAccountReviewRequest, GetPTIBalanceRequest, GetPTIBalanceResponse, GetTransactionDetailsRequest, GetTransactionDetailsResponse, GetWalletDetailsRequest, GetWalletFeaturesRequest, GetWalletXagoBalanceRequest, GetWalletXagoBalanceResponse, LinkedAccount, LinkedAccountReview, LinkedAccountReviews, ListAuditRequest, ListAuditResponse, ListCountriesResponse, ListExternalApiCallsRequest, ListExternalApiCallsResponse, ListFormSubmissionCountsResponse, ListFormSubmissionsRequest, ListFormSubmissionsResponse, ListLinkedAccountsRequest, ListLinkedAccountsResponse, ListPaymentsAwaitingSignalResponse, ListTransactionsRequest, ListTransactionsResponse, ListWaitlistSignupsResponse, ListWalletsResponse, PaginationRequest, SetWalletCountryRequest, SetWalletXagoBalanceEnabledRequest, WalletDetails } from "./backend_pb.js";
+import { AllowWaitlistSignupRequest, CheckUserTotpEnabledRequest, CheckUserTotpEnabledResponse, CompleteLinkedAccountReviewRequest, CreateGatehubUserRequest, Delete2FATotpEnrollmentRequest, Empty as Empty$1, EnablePTIBalanceRequest, ExportFormSubmissionsRequest, ExportFormSubmissionsResponse, Features, FormSubmissionDetails, GatehubUser, GetFormSubmissionDetailsRequest, GetGatehubBalanceRequest, GetGatehubBalanceResponse, GetGatehubUserRequest, GetLinkedAccountRequest, GetLinkedAccountReviewRequest, GetPTIBalanceRequest, GetPTIBalanceResponse, GetTransactionDetailsRequest, GetTransactionDetailsResponse, GetWalletDetailsRequest, GetWalletFeaturesRequest, GetWalletXagoBalanceRequest, GetWalletXagoBalanceResponse, LinkedAccount, LinkedAccountReview, LinkedAccountReviews, ListAuditRequest, ListAuditResponse, ListCountriesResponse, ListExternalApiCallsRequest, ListExternalApiCallsResponse, ListFormSubmissionCountsResponse, ListFormSubmissionsRequest, ListFormSubmissionsResponse, ListLinkedAccountsRequest, ListLinkedAccountsResponse, ListPaymentsAwaitingSignalResponse, ListTransactionsRequest, ListTransactionsResponse, ListWaitlistSignupsResponse, ListWalletsResponse, PaginationRequest, SetWalletCountryRequest, SetWalletXagoBalanceEnabledRequest, WalletDetails } from "./backend_pb.js";
 
 /**
  * @generated from service backend.admin.v1.Backend
@@ -275,6 +275,26 @@ export const Backend = {
       name: "GetGatehubUser",
       I: GetGatehubUserRequest,
       O: GatehubUser,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * Kratos
+     *
+     * @generated from rpc backend.admin.v1.Backend.CheckUserTotpEnabled
+     */
+    checkUserTotpEnabled: {
+      name: "CheckUserTotpEnabled",
+      I: CheckUserTotpEnabledRequest,
+      O: CheckUserTotpEnabledResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc backend.admin.v1.Backend.Delete2FATotpEnrollment
+     */
+    delete2FATotpEnrollment: {
+      name: "Delete2FATotpEnrollment",
+      I: Delete2FATotpEnrollmentRequest,
+      O: Empty$1,
       kind: MethodKind.Unary,
     },
   }

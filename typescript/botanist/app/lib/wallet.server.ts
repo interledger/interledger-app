@@ -804,3 +804,53 @@ export async function GetGatehubUser(
 
   return response.response
 }
+
+export async function CheckUserTotpEnabled(
+  request: Request,
+  identityId: string,
+  walletId: string
+): Promise<boolean> {
+  const cookie = String(request.headers.get('cookie'))
+  const response = await grpcClient
+    .checkUserTotpEnabled(
+      { identityId, walletID: walletId },
+      {
+        meta: {
+          cookies: cookie || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+
+  if (isGrpcError(response)) {
+    throw json({}, httpMapping(response.code))
+  }
+
+  return response.response.isEnabled
+}
+
+export async function DeleteUserTotp(
+  request: Request,
+  identityId: string,
+  walletId: string
+): Promise<any> {
+  console.log('Deleting TOTP enrollment for identity:', identityId)
+  const cookie = String(request.headers.get('cookie'))
+  let response = await grpcClient
+    .delete2FATotpEnrollment(
+      { identityId, walletID: walletId },
+      {
+        meta: {
+          cookies: cookie || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(response)) {
+    throw json({}, httpMapping(response.code))
+  }
+
+  return response.response
+}

@@ -333,7 +333,7 @@ type (
 		TransactionType     string              `json:"transactionType"`
 		PaymentMethod       string              `json:"paymentMethod"`
 		PaymentStatusDetail PaymentStatusDetail `json:"paymentStatusDetail"`
-		Amount              int                 `json:"amount"`
+		Amount              float64             `json:"amount"`
 		BillingEmail        string              `json:"billingEmail"`
 		Total               Total               `json:"total"`
 		Currency            string              `json:"currency"`

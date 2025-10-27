@@ -10,4 +10,6 @@ type Client interface {
 	UserForContext(ctx context.Context) (*User, error)
 	GetUser(ctx context.Context, userID string) (*User, error)
 	ListUsers(ctx context.Context, walletID string) ([]User, error)
+	CheckUserTotpEnabled(ctx context.Context, identityID string) (bool, error)
+	Delete2FATotpEnrollment(ctx context.Context, identityID string) error
 }

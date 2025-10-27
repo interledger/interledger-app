@@ -82,6 +82,14 @@ func (mc MockClient) UserForToken(ctx context.Context, token string) (*user.User
 	return &usr, nil
 }
 
+func (mc MockClient) CheckUserTotpEnabled(ctx context.Context, token string) (bool, error) {
+	return false, nil
+}
+
+func (mc MockClient) Delete2FATotpEnrollment(ctx context.Context, token string) error {
+	return nil
+}
+
 func (mc MockClient) UserForContext(ctx context.Context) (*user.User, error) {
 	raw, ok := ctx.Value(user.CtxKey).(*user.User)
 	if !ok {

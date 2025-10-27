@@ -29,6 +29,51 @@ const (
 	AlgEddsa Alg = "EdDSA"
 )
 
+// CancelOutgoingPaymentCancelOutgoingPaymentOutgoingPaymentResponse includes the requested fields of the GraphQL type OutgoingPaymentResponse.
+type CancelOutgoingPaymentCancelOutgoingPaymentOutgoingPaymentResponse struct {
+	Payment CancelOutgoingPaymentCancelOutgoingPaymentOutgoingPaymentResponsePaymentOutgoingPayment `json:"payment"`
+}
+
+// GetPayment returns CancelOutgoingPaymentCancelOutgoingPaymentOutgoingPaymentResponse.Payment, and is useful for accessing the field via an interface.
+func (v *CancelOutgoingPaymentCancelOutgoingPaymentOutgoingPaymentResponse) GetPayment() CancelOutgoingPaymentCancelOutgoingPaymentOutgoingPaymentResponsePaymentOutgoingPayment {
+	return v.Payment
+}
+
+// CancelOutgoingPaymentCancelOutgoingPaymentOutgoingPaymentResponsePaymentOutgoingPayment includes the requested fields of the GraphQL type OutgoingPayment.
+type CancelOutgoingPaymentCancelOutgoingPaymentOutgoingPaymentResponsePaymentOutgoingPayment struct {
+	// Outgoing payment id
+	Id string `json:"id"`
+}
+
+// GetId returns CancelOutgoingPaymentCancelOutgoingPaymentOutgoingPaymentResponsePaymentOutgoingPayment.Id, and is useful for accessing the field via an interface.
+func (v *CancelOutgoingPaymentCancelOutgoingPaymentOutgoingPaymentResponsePaymentOutgoingPayment) GetId() string {
+	return v.Id
+}
+
+type CancelOutgoingPaymentInput struct {
+	// Outgoing payment id
+	Id string `json:"id"`
+	// Reason why this Outgoing Payment has been cancelled. This value will be publicly visible in the metadata field if this outgoing payment is requested through Open Payments.
+	Reason string `json:"reason"`
+}
+
+// GetId returns CancelOutgoingPaymentInput.Id, and is useful for accessing the field via an interface.
+func (v *CancelOutgoingPaymentInput) GetId() string { return v.Id }
+
+// GetReason returns CancelOutgoingPaymentInput.Reason, and is useful for accessing the field via an interface.
+func (v *CancelOutgoingPaymentInput) GetReason() string { return v.Reason }
+
+// CancelOutgoingPaymentResponse is returned by CancelOutgoingPayment on success.
+type CancelOutgoingPaymentResponse struct {
+	// Cancel Outgoing Payment
+	CancelOutgoingPayment CancelOutgoingPaymentCancelOutgoingPaymentOutgoingPaymentResponse `json:"cancelOutgoingPayment"`
+}
+
+// GetCancelOutgoingPayment returns CancelOutgoingPaymentResponse.CancelOutgoingPayment, and is useful for accessing the field via an interface.
+func (v *CancelOutgoingPaymentResponse) GetCancelOutgoingPayment() CancelOutgoingPaymentCancelOutgoingPaymentOutgoingPaymentResponse {
+	return v.CancelOutgoingPayment
+}
+
 // CreateWalletAddressCreateWalletAddressCreateWalletAddressMutationResponse includes the requested fields of the GraphQL type CreateWalletAddressMutationResponse.
 type CreateWalletAddressCreateWalletAddressCreateWalletAddressMutationResponse struct {
 	WalletAddress CreateWalletAddressCreateWalletAddressCreateWalletAddressMutationResponseWalletAddress `json:"walletAddress"`
@@ -1006,6 +1051,14 @@ const (
 	WalletAddressStatusActive WalletAddressStatus = "ACTIVE"
 )
 
+// __CancelOutgoingPaymentInput is used internally by genqlient
+type __CancelOutgoingPaymentInput struct {
+	Input CancelOutgoingPaymentInput `json:"input"`
+}
+
+// GetInput returns __CancelOutgoingPaymentInput.Input, and is useful for accessing the field via an interface.
+func (v *__CancelOutgoingPaymentInput) GetInput() CancelOutgoingPaymentInput { return v.Input }
+
 // __CreateWalletAddressInput is used internally by genqlient
 type __CreateWalletAddressInput struct {
 	Input CreateWalletAddressInput `json:"input"`
@@ -1087,6 +1140,43 @@ type __UpdateWalletAddressInput struct {
 
 // GetInput returns __UpdateWalletAddressInput.Input, and is useful for accessing the field via an interface.
 func (v *__UpdateWalletAddressInput) GetInput() UpdateWalletAddressInput { return v.Input }
+
+// The query or mutation executed by CancelOutgoingPayment.
+const CancelOutgoingPayment_Operation = `
+mutation CancelOutgoingPayment ($input: CancelOutgoingPaymentInput!) {
+	cancelOutgoingPayment(input: $input) {
+		payment {
+			id
+		}
+	}
+}
+`
+
+func CancelOutgoingPayment(
+	ctx context.Context,
+	client graphql.Client,
+	input CancelOutgoingPaymentInput,
+) (*CancelOutgoingPaymentResponse, error) {
+	req := &graphql.Request{
+		OpName: "CancelOutgoingPayment",
+		Query:  CancelOutgoingPayment_Operation,
+		Variables: &__CancelOutgoingPaymentInput{
+			Input: input,
+		},
+	}
+	var err error
+
+	var data CancelOutgoingPaymentResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
 
 // The query or mutation executed by CreateWalletAddress.
 const CreateWalletAddress_Operation = `

@@ -83,3 +83,7 @@ func (c *client) SendDepositFailedEmail(ctx context.Context, walletID string) {
 func (c *client) SendWithdrawalFailedEmail(ctx context.Context, walletID string) {
 	ops.SendWithdrawalFailedEmail(ctx, c.b, walletID)
 }
+
+func (c *client) SendCardCreatedEmail(ctx context.Context, walletID, cardID string) {
+	ops.SendCardCreatedEmail(ctx, c.b, walletID, cardID)
+}

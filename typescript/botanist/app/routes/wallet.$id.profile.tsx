@@ -17,14 +17,17 @@ export async function loader({ request, params }: LoaderArgs) {
   const wallet = await GetWalletDetails(request, params.id as string)
   const features = await GetWalletFeatures(request, params.id as string)
   const countries = await ListCountries(request)
+  const identityId = wallet.users?.[0]?.id
 
   return json({
     wallet,
     features,
+    hasTotpEnabled: false,
     countries: countries.countries.map((value) => ({
       id: value.code,
       name: value.name
-    }))
+    })),
+    identityId
   })
 }
 
@@ -57,6 +60,25 @@ export default function Page() {
       { method: 'post' }
     )
   }
+
+  // const _onDeleteTotp = () => {
+  //   if (!identityId) return
+  //   if (
+  //     !confirm(
+  //       'Are you sure you want to delete TOTP enrollment for the selected user? He will have to re-enable TOTP.'
+  //     )
+  //   )
+  //     return
+  //
+  //   fetcher.submit(
+  //     {
+  //       identityId: identityId,
+  //       walletId: wallet.walletID,
+  //       formName: 'deleteTotp'
+  //     },
+  //     { method: 'post' }
+  //   )
+  // }
 
   useEffect(() => {
     if (query === '') setFilteredCountries(countries)
@@ -145,6 +167,10 @@ export async function action(args: ActionArgs) {
     return setWalletFeatureAction(args)
   }
 
+  // if (formName == 'deleteTotp') {
+  //   return deleteTotpAction(args)
+  // }
+
   return setWalletCountryAction(args)
 }
 
@@ -172,3 +198,17 @@ async function setWalletCountryAction({ request, params }: ActionArgs) {
 
   return null
 }
+//
+// async function deleteTotpAction({ request }: ActionArgs) {
+//   const form = await request.formData()
+//   const walletId = form.get('walletId') as string
+//   const identityId = form.get('identityId') as string
+//
+//   if (!identityId) {
+//     return json({ error: 'Identity ID is required' }, { status: 400 })
+//   }
+//
+//   const deleteResponse = await DeleteUserTotp(request, identityId, walletId)
+//
+//   return json(deleteResponse)
+// }
