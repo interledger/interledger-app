@@ -12,8 +12,9 @@ import { CardType } from '~/generated/connect/backend/v1/backend_pb'
 import { useOrderCardStore } from '~/lib/useOrderCardStore'
 
 export const ConfirmCard = () => {
-  const [address, productCode, products, type] = useOrderCardStore((state) => [
+  const [address, isNewAddressSelected, productCode, products, type] = useOrderCardStore((state) => [
     state.selectedAddress,
+    state.isNewAddressSelected,
     state.productCode,
     state.products,
     state.type
@@ -86,6 +87,19 @@ export const ConfirmCard = () => {
           method='post'
           className='hidden'
         />
+        <input
+          type='hidden'
+          name='cardProductCode'
+          form='confirm-card'
+          value={pickedProduct?.code}
+        />
+        <input type='hidden' name='type' form='confirm-card' value={type} />
+        {isNewAddressSelected() ? (
+          <input type='hidden' name='newDeliveryAddress' form='confirm-card' value={JSON.stringify(address)} />
+        ) : (
+          <input type='hidden' name='deliveryAddressId' form='confirm-card' value={address?.id} />
+        )}
+
         <Button form='confirm-card' type='submit'>
           Confirm
         </Button>
