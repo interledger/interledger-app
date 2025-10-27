@@ -120,7 +120,7 @@ type TransactionStatusPayload struct {
 	UserID             string       `json:"userId"`
 	Status             string       `json:"status"`
 	Date               FlexibleTime `json:"date"`
-	Amount             int          `json:"amount"`
+	Amount             float64      `json:"amount"`
 	Fees               string       `json:"fees"`
 	Currency           string       `json:"currency"`
 	TransactionType    string       `json:"transactionType"`
