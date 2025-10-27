@@ -123,12 +123,12 @@ func Webhook(b Backends) (http.HandlerFunc, error) {
 		case "USER_ASSESSMENT", "KYC":
 			err = HandleAssessmentUpdate(r.Context(), b, v)
 		case "TRANSACTION_STATUS":
-			HandleTransactionStatus(r.Context(), b, v, w)
+			err = HandleTransactionStatus(r.Context(), b, v, w)
 		case "TRANSACTION_ASSESSMENT":
 			err = HandleTransactionAssessmentUpdate(r.Context(), b, v)
 		default:
 			log.Error("Unknown pti webhook type", zap.String("externalUserId", data.UserId), zap.String("resourceType", data.ResourceType), zap.String("requestId", data.RequestID))
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			w.WriteHeader(http.StatusOK)
 			return
 		}
 		if err != nil {
@@ -228,12 +228,12 @@ func HandleAssessmentUpdate(ctx context.Context, b Backends, data []byte) error 
 	return nil
 }
 
-func HandleTransactionStatus(ctx context.Context, b Backends, raw json.RawMessage, w http.ResponseWriter) {
+func HandleTransactionStatus(ctx context.Context, b Backends, raw json.RawMessage, w http.ResponseWriter) error {
 	var payload pti.TransactionStatusPayload
 	err := json.Unmarshal(raw, &payload)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
+		return err
 	}
 
 	const (
@@ -247,12 +247,13 @@ func HandleTransactionStatus(ctx context.Context, b Backends, raw json.RawMessag
 		refundedState    string = "REFUNDED"
 		capturedState    string = "CAPTURED"
 		settledState     string = "SETTLED"
+		clearingFunds    string = "CLEARING_FUNDS"
 	)
 
 	walletID, err := getWalletID(ctx, b, payload.UserID)
 	if err != nil || walletID == "" {
 		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return err
 	}
 
 	switch payload.Status {
@@ -268,9 +269,9 @@ func HandleTransactionStatus(ctx context.Context, b Backends, raw json.RawMessag
 		}
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			return
+			return err
 		}
-	case pendingState, processingState:
+	case pendingState, processingState, clearingFunds:
 		// not needed
 	case chargedBackState:
 		// only for cards
@@ -288,7 +289,7 @@ func HandleTransactionStatus(ctx context.Context, b Backends, raw json.RawMessag
 		}
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			return
+			return err
 		}
 	default:
 		log.Error("failed to handle pti transaction status webhook", zap.String("externalUserId", payload.UserID), zap.String("status", payload.Status), zap.String("requestId", payload.RequestID))
@@ -296,6 +297,7 @@ func HandleTransactionStatus(ctx context.Context, b Backends, raw json.RawMessag
 	}
 
 	w.WriteHeader(http.StatusOK)
+	return nil
 }
 
 func HandleSettleDeposit(ctx context.Context, b Backends, payload pti.TransactionStatusPayload) error {

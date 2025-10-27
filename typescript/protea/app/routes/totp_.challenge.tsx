@@ -139,7 +139,12 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   const redirectTo = new URL(request.url).searchParams.get('returnTo') || '/'
-  return redirect(redirectTo, {
-    headers: request.headers
-  })
+  const response = redirect(redirectTo)
+  const setCookie = res.headers.get('set-cookie')
+
+  if (setCookie) {
+    response.headers.set('cookie', setCookie)
+  }
+  
+  return response
 }

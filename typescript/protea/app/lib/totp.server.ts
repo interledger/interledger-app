@@ -10,7 +10,8 @@ export const NON_FULL_SESSION_ROUTES = [
   '/totp/challenge',
   '/login',
   '/logout',
-  '/signup'
+  '/signup',
+  '/recovery/password'
 ]
 
 /**
@@ -70,38 +71,6 @@ export async function isTotpSet(
   } catch (error) {
     console.error('Error checking if TOTP is enabled:', error)
     return false
-  }
-}
-
-/**
- * Redirects to /totp/challenge if the session is too old (more than 30 seconds since authentication)
- * @param request
- * @returns void
- * @throws redirect to /totp/challenge if the session is too old
- */
-export async function requestTOTP(request: Request): Promise<void> {
-  const response = await fetch(`${KRATOS_URL}/sessions/whoami`, {
-    headers: request.headers
-  })
-  if (!response.ok) {
-    throw new Error('Failed to fetch session information')
-  }
-
-  const url = new URL(request.url)
-  const redirectTo = url.pathname + url.search
-  const session = await response.json()
-  await ensureTOTP(session, request.headers, redirectTo)
-  const tooOld =
-    Date.now() - new Date(session.authenticated_at).getTime() > 30 * 1000
-  if (tooOld) {
-    throw redirect(
-      `/totp/challenge?refresh=true&redirectTo=${encodeURIComponent(
-        redirectTo
-      )}`,
-      {
-        headers: request.headers
-      }
-    )
   }
 }
 
