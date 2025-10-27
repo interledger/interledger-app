@@ -11,8 +11,7 @@ export const NON_FULL_SESSION_ROUTES = [
   '/login',
   '/logout',
   '/signup',
-  '/recovery/password',
-  '/settings'
+  '/recovery/password'
 ]
 
 /**
