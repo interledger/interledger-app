@@ -116,6 +116,7 @@ export function handleFlowError(
 ): void {
   let redirectRoute = `/${flowType}`
 
+  console.log(JSON.stringify(flow, null, 2))
   switch (flow.error.id) {
     case 'session_inactive':
       // The user doesn't have a session
