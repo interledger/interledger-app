@@ -10,7 +10,8 @@ export const NON_FULL_SESSION_ROUTES = [
   '/totp/challenge',
   '/login',
   '/logout',
-  '/signup'
+  '/signup',
+  '/recovery/password'
 ]
 
 /**
