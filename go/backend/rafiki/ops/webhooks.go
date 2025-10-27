@@ -234,10 +234,12 @@ func outgoingPayment(ctx context.Context, b Backends, hook webhook) error {
 	}
 
 	if senderAcc.WalletID == receiverAcc.WalletID {
-		err := b.External().CancelOutGoingPayment(ctx, op.ID, "sending wallet cannot be the same as receiving wallet ")
+		err := b.External().CancelOutGoingPayment(ctx, op.ID, "sending wallet cannot be the same as receiving wallet")
 		if err != nil {
+			log.Error("cannot cancel payment outgoing payment", zap.Error(err))
 			return err
 		}
+		return nil
 	}
 	// More than 1 USD execute immediately
 	if amt >= 100 {
@@ -255,7 +257,7 @@ func outgoingPayment(ctx context.Context, b Backends, hook webhook) error {
 		log.Error("failed to add outgoing payment from rafiki outoing payment hook", zap.Error(err))
 		return err
 	}
-	// we don't check if funds exits, we should
+
 	// Tell rafiki the payment is successful, we'll actually action it later but the fund are reserved
 	err = b.External().FundOutgoingPayment(ctx, op.ID)
 	if err != nil {
@@ -274,7 +276,7 @@ func reserveTransfer(
 	timeout time.Duration,
 ) error {
 	if senderAcc == nil || receiverAcc == nil {
-		return fmt.Errorf("%w send and receive accounts not specified when reserving balances.", rafiki.ErrInternal)
+		return fmt.Errorf("%w send and receive accounts not specified when reserving balances", rafiki.ErrInternal)
 	}
 	if senderAcc.SendCurrency != receiverAcc.ReceiveCurrency {
 		return fmt.Errorf("%w send: %s, receive: %s", rafiki.ErrCurrencyNotSupported, senderAcc.SendCurrency, receiverAcc.ReceiveCurrency)
