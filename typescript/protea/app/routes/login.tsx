@@ -193,6 +193,11 @@ export async function action({ request }: ActionFunctionArgs) {
       cookie: String(request.headers.get('cookie'))
     }
   })
+ 
+  if (res.status >= 400 && res.status !== 422) {
+    const errors = await kratosErrorMapping(res, fieldErrors)
+    return error(request, { errors }, { action: 'Contact support' })
+  }
 
   // Remove all headers besides set-cookie
   const headers = trimHeaders(res.headers, ['set-cookie'])
@@ -203,10 +208,7 @@ export async function action({ request }: ActionFunctionArgs) {
     })
   }
 
-  if (res.status >= 400) {
-    const errors = await kratosErrorMapping(res, fieldErrors)
-    return error(request, { errors }, { action: 'Contact support' })
-  }
+
 
   try {
     const responseCopy = res.clone()
