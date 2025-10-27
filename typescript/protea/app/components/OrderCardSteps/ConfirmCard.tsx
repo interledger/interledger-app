@@ -1,4 +1,4 @@
-import { Form } from '@remix-run/react'
+import { useFetcher } from '@remix-run/react'
 import {
   Button,
   Card,
@@ -12,14 +12,18 @@ import { CardType } from '~/generated/connect/backend/v1/backend_pb'
 import { useOrderCardStore } from '~/lib/useOrderCardStore'
 
 export const ConfirmCard = () => {
-  const [address, isNewAddressSelected, productCode, products, type] = useOrderCardStore((state) => [
-    state.selectedAddress,
-    state.isNewAddressSelected,
-    state.productCode,
-    state.products,
-    state.type
-  ])
+  const fetcher = useFetcher()
+  const [address, isNewAddressSelected, productCode, products, type] =
+    useOrderCardStore((state) => [
+      state.selectedAddress,
+      state.isNewAddressSelected,
+      state.productCode,
+      state.products,
+      state.type
+    ])
   const pickedProduct = products.find((p) => p.code === productCode)
+  const isSubmitting =
+    fetcher.state === 'submitting' || fetcher.state === 'loading'
 
   return (
     <Card>
@@ -80,8 +84,7 @@ export const ConfirmCard = () => {
             alt={pickedProduct?.name}
           />
         </div>
-        {/* TODO remove: added for tests */}
-        <Form
+        <fetcher.Form
           id='confirm-card'
           action={`/cards/order`}
           method='post'
@@ -100,8 +103,8 @@ export const ConfirmCard = () => {
           <input type='hidden' name='deliveryAddressId' form='confirm-card' value={address?.id} />
         )}
 
-        <Button form='confirm-card' type='submit'>
-          Confirm
+        <Button form='confirm-card' type='submit' disabled={isSubmitting}>
+          {isSubmitting ? 'Confirming...' : 'Confirm'}
         </Button>
       </CardContent>
     </Card>

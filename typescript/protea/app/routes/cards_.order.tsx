@@ -20,20 +20,17 @@ import { ProductsSelect } from '~/components/OrderCardSteps/ProductsSelect'
 import { createNewAddress } from '~/components/OrderCardSteps/utils'
 import { getFeatures } from '~/data/wallet.server'
 import {
+  CardType,
   CustomerDeliveryAddressType,
   type CardApplicationProduct,
-  type CardType,
   type CustomerDeliveryAddress,
   type OrderCardRequest
 } from '~/generated/connect/backend/v1/backend_pb'
 import { error, isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
-import {
-  OrderCardStep,
-  StorableNewAddress,
-  useOrderCardStore
-} from '~/lib/useOrderCardStore'
+import type { StorableNewAddress } from '~/lib/useOrderCardStore'
+import { OrderCardStep, useOrderCardStore } from '~/lib/useOrderCardStore'
 
 export const handle: ApplicationProps = {
   layout: Layouts.Focus,
@@ -105,20 +102,15 @@ export async function action({ request }: ActionFunctionArgs) {
   const deliveryAddressId = form.get('deliveryAddressId') as string
   const newDeliveryAddressJson = form.get('newDeliveryAddress') as string | null
 
-  if (!deliveryAddressId && !newDeliveryAddressJson) {
-    return error(request, {
-      errors: { form: 'No delivery address specified.' }
-    })
-  }
-
   const deliveryAddress = createDeliveryAddress(
+    type,
     deliveryAddressId,
     newDeliveryAddressJson
   )
 
-  if (!deliveryAddress) {
+  if ('error' in deliveryAddress) {
     return error(request, {
-      errors: { form: 'Invalid delivery address.' }
+      errors: { form: deliveryAddress.error }
     })
   }
 
@@ -142,24 +134,34 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 const createDeliveryAddress = (
+  type: CardType,
   deliveryAddressId: string,
   newDeliveryAddressJson: string | null
-): OrderCardRequest['deliveryAddress'] | null => {
-  let deliveryAddress: OrderCardRequest['deliveryAddress'] | null = null
+): OrderCardRequest['deliveryAddress'] | { error: string } => {
+  if (type === CardType.VIRTUAL) {
+    return {
+      case: undefined,
+      value: undefined
+    }
+  }
+
+  if (!deliveryAddressId && !newDeliveryAddressJson) {
+    return { error: 'No delivery address specified.' }
+  }
+
   if (deliveryAddressId) {
-    deliveryAddress = {
+    return {
       case: 'deliveryAddressId',
       value: deliveryAddressId
     }
-
-    return deliveryAddress
   }
+
   if (newDeliveryAddressJson) {
     const newDeliveryAddress = JSON.parse(
       newDeliveryAddressJson
     ) as StorableNewAddress
 
-    deliveryAddress = {
+    return {
       case: 'newDeliveryAddress',
       value: createNewAddress({
         details: {
@@ -177,9 +179,7 @@ const createDeliveryAddress = (
         reason: newDeliveryAddress.reason
       })
     }
-
-    return deliveryAddress
   }
 
-  return null
+  return { error: 'Invalid delivery address.' }
 }
