@@ -71,11 +71,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
     if (flowRes.status >= 400) handleFlowError(flow, 'recovery/password')
   } else {
     // Otherwise we initialize it
-    // const flowRes = await fetch(
-    //   `${KRATOS_URL}/self-service/recovery/browser?${url.searchParams}`,
-    //   { headers: { cookie: cookie, Accept: 'application/json' } }
-    // )
-
     const flowRes = await fetch(
       `${KRATOS_URL}/self-service/settings/browser?${url.searchParams}`,
       { headers: { cookie: cookie, Accept: 'application/json' } }
