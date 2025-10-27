@@ -130,7 +130,6 @@ const (
 	BackendService_FreezeCard_FullMethodName                     = "/backend.v1.BackendService/FreezeCard"
 	BackendService_UnfreezeCard_FullMethodName                   = "/backend.v1.BackendService/UnfreezeCard"
 	BackendService_BlockCard_FullMethodName                      = "/backend.v1.BackendService/BlockCard"
-	BackendService_TerminateCard_FullMethodName                  = "/backend.v1.BackendService/TerminateCard"
 )
 
 // BackendServiceClient is the client API for BackendService service.
@@ -277,7 +276,6 @@ type BackendServiceClient interface {
 	FreezeCard(ctx context.Context, in *FreezeCardRequest, opts ...grpc.CallOption) (*Empty, error)
 	UnfreezeCard(ctx context.Context, in *UnfreezeCardRequest, opts ...grpc.CallOption) (*Empty, error)
 	BlockCard(ctx context.Context, in *BlockCardRequest, opts ...grpc.CallOption) (*Empty, error)
-	TerminateCard(ctx context.Context, in *TerminateCardRequest, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type backendServiceClient struct {
@@ -1287,15 +1285,6 @@ func (c *backendServiceClient) BlockCard(ctx context.Context, in *BlockCardReque
 	return out, nil
 }
 
-func (c *backendServiceClient) TerminateCard(ctx context.Context, in *TerminateCardRequest, opts ...grpc.CallOption) (*Empty, error) {
-	out := new(Empty)
-	err := c.cc.Invoke(ctx, BackendService_TerminateCard_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // BackendServiceServer is the server API for BackendService service.
 // All implementations should embed UnimplementedBackendServiceServer
 // for forward compatibility
@@ -1440,7 +1429,6 @@ type BackendServiceServer interface {
 	FreezeCard(context.Context, *FreezeCardRequest) (*Empty, error)
 	UnfreezeCard(context.Context, *UnfreezeCardRequest) (*Empty, error)
 	BlockCard(context.Context, *BlockCardRequest) (*Empty, error)
-	TerminateCard(context.Context, *TerminateCardRequest) (*Empty, error)
 }
 
 // UnimplementedBackendServiceServer should be embedded to have forward compatible implementations.
@@ -1779,9 +1767,6 @@ func (UnimplementedBackendServiceServer) UnfreezeCard(context.Context, *Unfreeze
 }
 func (UnimplementedBackendServiceServer) BlockCard(context.Context, *BlockCardRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method BlockCard not implemented")
-}
-func (UnimplementedBackendServiceServer) TerminateCard(context.Context, *TerminateCardRequest) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method TerminateCard not implemented")
 }
 
 // UnsafeBackendServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -3793,24 +3778,6 @@ func _BackendService_BlockCard_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BackendService_TerminateCard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(TerminateCardRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).TerminateCard(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: BackendService_TerminateCard_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).TerminateCard(ctx, req.(*TerminateCardRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // BackendService_ServiceDesc is the grpc.ServiceDesc for BackendService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -4261,10 +4228,6 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "BlockCard",
 			Handler:    _BackendService_BlockCard_Handler,
-		},
-		{
-			MethodName: "TerminateCard",
-			Handler:    _BackendService_TerminateCard_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
