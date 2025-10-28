@@ -157,27 +157,31 @@ const createDeliveryAddress = (
   }
 
   if (newDeliveryAddressJson) {
-    const newDeliveryAddress = JSON.parse(
-      newDeliveryAddressJson
-    ) as StorableNewAddress
+    try {
+      const newDeliveryAddress = JSON.parse(
+        newDeliveryAddressJson
+      ) as StorableNewAddress
 
-    return {
-      case: 'newDeliveryAddress',
-      value: createNewAddress({
-        details: {
-          type: proto3.getEnumType(CustomerDeliveryAddressType).values[
-            newDeliveryAddress.details!.type
-          ] as unknown as CustomerDeliveryAddressType,
-          country: newDeliveryAddress.details!.countryCode,
-          line1: newDeliveryAddress.details!.line1,
-          line2: newDeliveryAddress.details!.line2,
-          line3: newDeliveryAddress.details!.line3,
-          postOffice: newDeliveryAddress.details!.postOffice,
-          city: newDeliveryAddress.details!.city,
-          zipCode: newDeliveryAddress.details!.zipCode
-        },
-        reason: newDeliveryAddress.reason
-      })
+      return {
+        case: 'newDeliveryAddress',
+        value: createNewAddress({
+          details: {
+            type: proto3.getEnumType(CustomerDeliveryAddressType).values[
+              newDeliveryAddress.details!.type
+            ] as unknown as CustomerDeliveryAddressType,
+            country: newDeliveryAddress.details!.countryCode,
+            line1: newDeliveryAddress.details!.line1,
+            line2: newDeliveryAddress.details!.line2,
+            line3: newDeliveryAddress.details!.line3,
+            postOffice: newDeliveryAddress.details!.postOffice,
+            city: newDeliveryAddress.details!.city,
+            zipCode: newDeliveryAddress.details!.zipCode
+          },
+          reason: newDeliveryAddress.reason
+        })
+      }
+    } catch (error) {
+      return { error: 'Invalid delivery address. Please redo your new address.' }
     }
   }
 
