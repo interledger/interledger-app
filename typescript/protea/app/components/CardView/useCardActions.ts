@@ -1,5 +1,5 @@
 import { useFetcher } from '@remix-run/react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { route } from 'routes-gen'
 import {
   CardStatus,
@@ -65,8 +65,8 @@ export const useCardActions = (card: StorableCard) => {
   const [isPinVisible, setIsPinVisible] = useState(false)
   const [pinDisplayed, setPinDisplayed] = useState('****')
 
-  const [newPin, setNewPin] = useState<string | null>(null)
   const [showBack, setShowBack] = useState<boolean>(false)
+  const newPinRef = useRef<string | null>(null)
 
   const resetSensitiveData = useCallback(() => {
     setIsSensitiveDataVisible(false)
@@ -155,9 +155,10 @@ export const useCardActions = (card: StorableCard) => {
   )
 
   const onChangePinToken = useCallback(
-    async ({ newPin, token: jwtToken, links }: any) => {
+    async ({ token: jwtToken, links }: any) => {
       executeAction({
         execute: async () => {
+          const newPin = newPinRef.current
           if (!newPin) {
             throw new Error('New PIN is required')
           }
@@ -209,7 +210,7 @@ export const useCardActions = (card: StorableCard) => {
           onGetPinToken({ token, links })
           break
         case CardTokenType.PIN_CHANGE:
-          onChangePinToken({ newPin, token, links })
+          onChangePinToken({ token, links })
           break
         default:
           errorStatus()
@@ -219,7 +220,6 @@ export const useCardActions = (card: StorableCard) => {
   }, [
     errorStatus,
     fetcher.data,
-    newPin,
     onChangePinToken,
     onGetPinToken,
     onSensitiveDataToken,
@@ -279,8 +279,8 @@ export const useCardActions = (card: StorableCard) => {
 
   const toggleChangePin = useCallback(() => {
     withPinChangePopup((newPin: string) => {
+      newPinRef.current = newPin
       triggerTokenOperation(CardTokenType.PIN_CHANGE)
-      setNewPin(newPin)
     })
   }, [withPinChangePopup, triggerTokenOperation])
 
