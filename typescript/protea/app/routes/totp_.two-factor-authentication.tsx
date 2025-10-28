@@ -5,8 +5,8 @@ import type {
   MetaFunction,
   TypedResponse
 } from '@remix-run/node'
-import { json, redirect, redirectDocument } from '@remix-run/node'
-import { Form, useLoaderData, useSubmit } from '@remix-run/react'
+import { json, redirectDocument } from '@remix-run/node'
+import { Form, useActionData, useLoaderData, useSubmit } from '@remix-run/react'
 import { useRef } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
@@ -99,16 +99,20 @@ export const meta: MetaFunction = mergeMeta(() => [
 export default function Page() {
   const { flowId, qrNode, secretKey, totpUnlink, csrfToken } =
     useLoaderData<typeof loader>()
+  const actionData = useActionData<typeof action>()
   const formRef = useRef<HTMLFormElement>(null)
   const submit = useSubmit()
   const { withTotpChallenge } = useTotpChallenge()
 
-  if (!flowId && !totpUnlink) return <>
+  if (!flowId && !totpUnlink)
+    return (
+      <>
         <p>Failed to load flow data.</p>
         <OutlineButtonRouter to={route('/logout')} className='mt-4'>
-        Log out
-      </OutlineButtonRouter>
-    </>
+          Log out
+        </OutlineButtonRouter>
+      </>
+    )
 
   const handleUnlinkClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
@@ -147,6 +151,7 @@ export default function Page() {
                 form='2fa-form'
                 className='mt-6'
                 placeholder='Enter code'
+                errorMessage={actionData?.errors.totpCode}
               />
             )}
 
@@ -196,6 +201,10 @@ export async function action({ request }: ActionFunctionArgs) {
   const flowId = form.get('flow')
   const csrfToken = form.get('csrf_token')
   const totpCode = form.get('totp_code')
+  const errors = {
+    totpCode: ''
+  }
+
   try {
     const res = await fetch(
       `${KRATOS_URL}/self-service/settings?flow=${flowId}`,
@@ -223,29 +232,23 @@ export async function action({ request }: ActionFunctionArgs) {
       }
     )
 
-    if (res.status === 403) {
-       await fetch(
-        `${KRATOS_URL}/self-service/login/browser?refresh=true&return_to=/`,
-        {
-          headers: {
-            Accept: 'application/json',
-            cookie: String(request.headers.get('cookie'))
-          }
-        }
-      )
-
-      return redirect(route('/totp/two-factor-authentication'), {
-        headers: res.headers
-      })
-    }
+    // if (res.ok && totpUnlink) {
+    //   return redirect(route('/logout'))
+    // }
 
     if (res.ok) {
+      const returnTo = new URL(request.url).searchParams.get('returnTo') || '/'
+      const response = redirectDocument(returnTo ?? '/')
       // Hard reload so the root loader is also run
-      return redirectDocument(route('/'))
+      return response
     }
 
-    const data = await res.json()
-    return json({ flow: data }, { status: res.status })
+    if (res.status === 400) {
+      errors.totpCode =
+        'Invalid code. Please scan the QR code again or add the new code to your authenticator application.'
+    }
+
+    return json({ errors }, { status: res.status })
   } catch (error) {
     throw new Error('Failed to set up TOTP authentication')
   }

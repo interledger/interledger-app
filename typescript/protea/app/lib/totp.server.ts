@@ -77,13 +77,13 @@ export async function isTotpSet(
 export async function ensureTOTP(
   session: Session,
   headers: Headers,
-  redirectTo: string
+  returnTo: string
 ): Promise<void> {
   const hasTotp = await isTotpSet(session, headers)
   if (!hasTotp) {
     throw redirect(
-      `/totp/two-factor-authentication?refresh=true&redirectTo=${encodeURIComponent(
-        redirectTo
+      `/totp/two-factor-authentication?refresh=true&returnTo=${encodeURIComponent(
+        returnTo
       )}`,
       {
         headers: headers
