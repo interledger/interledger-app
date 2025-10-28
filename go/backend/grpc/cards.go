@@ -199,9 +199,12 @@ func (s *rpcService) ListCards(ctx context.Context, req *pb.Empty) (*pb.ListCard
 
 	// By default, the cards are ordered by the created time in ASC order.
 	// Here we reverse, to have the oldest cards first in the list.
+	// Also, we hide the cards that are blocked or that are being deleted.
 	for _, c := range slices.Backward(cards) {
-		card := newCard(c)
-		res = append(res, &card)
+		if c.Status != gatehub.CardStatusBlocked && c.Status != gatehub.CardStatusSoftDelete {
+			card := newCard(c)
+			res = append(res, &card)
+		}
 	}
 
 	return &pb.ListCardsResponse{
@@ -524,48 +527,6 @@ func (s *rpcService) BlockCard(ctx context.Context, req *pb.BlockCardRequest) (*
 	return &pb.Empty{}, nil
 }
 
-func (s *rpcService) TerminateCard(ctx context.Context, req *pb.TerminateCardRequest) (*pb.Empty, error) {
-	_, err := s.b.Users().UserForContext(ctx)
-	if err != nil {
-		return nil, UnauthenticatedError("Unauthenticated.")
-	}
-
-	wallet, err := s.b.Wallets().ForContext(ctx)
-	if err != nil {
-		return nil, UnauthenticatedError("Unauthenticated.")
-	}
-
-	_, isEU := country.EUCountries[wallet.Country]
-	if !isEU {
-		return nil, FailedPreconditionError("Wallet not in the EU region")
-	}
-
-	feats, err := s.b.Features().Features(ctx, wallet.ID)
-	if err != nil {
-		return nil, toGRPCError(err)
-	}
-
-	if !feats.ManageWalletCardsEnabled {
-		return nil, ForbiddenError("Wallet cards not enabled")
-	}
-
-	externalIDs, err := s.b.Gatehub().GetExternalIDs(ctx, wallet.ID)
-	if err != nil {
-		return nil, FailedPreconditionError("Could not retrieve external IDs")
-	}
-
-	err = s.b.Gatehub().CloseCard(ctx, gatehub.CloseCardArgs{
-		UserID:     externalIDs.UserID,
-		CardID:     req.CardId,
-		ReasonCode: gatehub.CardStatusReasonCodeUserRequest,
-	})
-	if err != nil {
-		return nil, toGRPCError(err)
-	}
-
-	return &pb.Empty{}, nil
-}
-
 func newCard(c gatehub.Card) pb.Card {
 	var status pb.CardStatus
 	var cardType pb.CardType
@@ -575,14 +536,10 @@ func newCard(c gatehub.Card) pb.Card {
 	switch c.Status {
 	case gatehub.CardStatusActive:
 		status = pb.CardStatus_CARD_STATUS_ACTIVE
-	case gatehub.CardStatusBlocked:
-		status = pb.CardStatus_CARD_STATUS_BLOCKED
 	case gatehub.CardStatusTemporaryBlocked:
 		status = pb.CardStatus_CARD_STATUS_TEMPORARY_BLOCKED
 	case gatehub.CardStatusReplaced:
 		status = pb.CardStatus_CARD_STATUS_REPLACED
-	case gatehub.CardStatusSoftDelete:
-		status = pb.CardStatus_CARD_STATUS_SOFT_DELETE
 	case gatehub.CardStatusAccountBlocked:
 		status = pb.CardStatus_CARD_STATUS_ACCOUNT_BLOCKED
 	case gatehub.CardStatusInCreation:

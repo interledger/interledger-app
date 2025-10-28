@@ -1,5 +1,6 @@
-import { ActionFunctionArgs, json } from '@remix-run/node'
-import {
+import type { ActionFunctionArgs} from '@remix-run/node';
+import { json } from '@remix-run/node'
+import type {
   CardTokenType,
   TokenLink
 } from '~/generated/connect/backend/v1/backend_pb'

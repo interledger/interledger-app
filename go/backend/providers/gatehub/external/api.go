@@ -24,7 +24,6 @@ type Client interface {
 	FreezeCard(ctx context.Context, userID, cardID string, args FreezeCardArgs) error
 	UnfreezeCard(ctx context.Context, userID, cardID string, args UnfreezeCardArgs) error
 	BlockCard(ctx context.Context, userID, cardID string, args BlockCardArgs) error
-	CloseCard(ctx context.Context, userID, cardID string, args CloseCardArgs) error
 	GetVaultID() string
 	LinkUserToGateway(ctx context.Context, gatehubUserID string) error
 }

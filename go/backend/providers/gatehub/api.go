@@ -26,7 +26,6 @@ type Client interface {
 	FreezeCard(ctx context.Context, args FreezeCardArgs) error
 	UnfreezeCard(ctx context.Context, args UnfreezeCardArgs) error
 	BlockCard(ctx context.Context, args BlockCardArgs) error
-	CloseCard(ctx context.Context, args CloseCardArgs) error
 	ValidateCardProductCode(ctx context.Context, cardProductCode string) error
 
 	ReserveBalance(ctx context.Context, linkedAccountID, txID string, amt currency.Amount, timeout time.Duration) (*Balance, error)
