@@ -1,21 +1,22 @@
 import { useFetcher } from '@remix-run/react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { route } from 'routes-gen'
 import {
   CardStatus,
   CardTokenType
 } from '~/generated/connect/backend/v1/backend_pb'
-import { useCardProcessorApi } from '~/lib/cards/hooks/useCardProcessorApiClient'
-import {
+import { cardProcessorClient } from '~/lib/CardProcessorApiClient'
+import type {
   CardProcessorSensitiveDataResponse,
   HttpMethod,
   StorableCard
 } from '~/lib/cards/types'
-import { decryptWithPrivateKey } from '~/lib/crypto'
+import { decryptWithPrivateKey, encryptWithToken } from '~/lib/crypto'
 import { useKeyGeneration } from '~/lib/useKeyGeneration'
+import { usePinChangePopup } from '~/lib/usePinChangePopup'
 import { useTotpChallenge } from '~/lib/useTotpChallenge'
-import { Operation, OperationResponse } from '~/routes/api_.cardOperation'
-import { GetCardTokenResponse } from '~/routes/api_.getCardToken'
+import type { Operation, OperationResponse } from '~/routes/api_.cardOperation'
+import type { GetCardTokenResponse } from '~/routes/api_.getCardToken'
 import { useActionExecute } from './useActionExecute'
 
 const getDefaultSensitiveData = (
@@ -28,11 +29,12 @@ const getDefaultSensitiveData = (
   }
 }
 
-const isCardLocked = (card: StorableCard): boolean => {
-  return (
-    card.lockLevel !== 'CARD_LOCK_LEVEL_NONE' &&
-    card.lockLevel !== 'CARD_LOCK_LEVEL_UNKNOWN'
-  )
+const isBlockedByAdmin = (card: StorableCard): boolean => {
+  return card.lockLevel === 'CARD_LOCK_LEVEL_ADMIN'
+}
+
+const isCardFrozen = (card: StorableCard): boolean => {
+  return card.lockLevel === 'CARD_LOCK_LEVEL_CLIENT'
 }
 
 const isCardBlocked = (card: StorableCard): boolean => {
@@ -53,34 +55,134 @@ export const useCardActions = (card: StorableCard) => {
     successStatus
   } = useActionExecute()
   const { keyPair } = useKeyGeneration()
-  const { cardProcessorClient } = useCardProcessorApi()
   const { withTotpChallenge } = useTotpChallenge()
+  const { withPinChangePopup, PinChangePopup } = usePinChangePopup()
 
   const [isSensitiveDataVisible, setIsSensitiveDataVisible] = useState(false)
-  const [isPinVisible, setIsPinVisible] = useState(false)
   const [sensitiveData, setSensitiveData] = useState(
     getDefaultSensitiveData(card)
   )
-  const [pin, setPin] = useState('****')
+  const [isPinVisible, setIsPinVisible] = useState(false)
+  const [pinDisplayed, setPinDisplayed] = useState('****')
+
+  const [showBack, setShowBack] = useState<boolean>(false)
+  const newPinRef = useRef<string | null>(null)
+
+  const resetSensitiveData = useCallback(() => {
+    setIsSensitiveDataVisible(false)
+    setSensitiveData(getDefaultSensitiveData(card))
+  }, [card, setSensitiveData, setIsSensitiveDataVisible])
 
   // Reset when switching cards
   useEffect(() => {
-    setIsSensitiveDataVisible(false)
-    setSensitiveData(getDefaultSensitiveData(card))
+    resetSensitiveData()
     setIsPinVisible(false)
-    setPin('****')
+    setPinDisplayed('****')
+    setShowBack(false)
   }, [
     card,
-    setPin,
+    setPinDisplayed,
     setIsSensitiveDataVisible,
     setIsPinVisible,
-    setSensitiveData
+    setSensitiveData,
+    resetSensitiveData
   ])
 
   useEffect(() => {
     // Reset only on id change, because operations will trigger a loader reset
     resetStatus()
   }, [card.id, resetStatus])
+
+  /**
+   * Token listeners
+   */
+  const onSensitiveDataToken = useCallback(
+    async ({ token: jwtToken, links }: any) => {
+      executeAction({
+        execute: async () => {
+          const hrefs = links[0].href
+          const method = links[0].method
+
+          const encryptedCardData =
+            await cardProcessorClient.card.getSensitiveData({
+              jwtToken,
+              cardProcessorUrl: hrefs,
+              httpMethod: method
+            })
+
+          const decryptedCardData =
+            await decryptWithPrivateKey<CardProcessorSensitiveDataResponse>(
+              keyPair!.privateKey,
+              encryptedCardData.cypher
+            )
+
+          setSensitiveData(decryptedCardData)
+        },
+        onSuccess: () => {
+          setIsSensitiveDataVisible(true)
+          setShowBack(true)
+        }
+      })
+    },
+    [executeAction, keyPair]
+  )
+
+  const onGetPinToken = useCallback(
+    async ({ token: jwtToken, links }: any) => {
+      executeAction({
+        execute: async () => {
+          const href = links[0].href
+          const method = links[0].method
+
+          const encryptedPinData = await cardProcessorClient.card.getPin({
+            jwtToken,
+            cardProcessorUrl: href,
+            httpMethod: method as unknown as HttpMethod
+          })
+          const decryptedPinData = await decryptWithPrivateKey<string>(
+            keyPair!.privateKey,
+            encryptedPinData.cypher
+          )
+
+          setPinDisplayed(decryptedPinData)
+        },
+        onSuccess: () => {
+          setIsPinVisible(true)
+        }
+      })
+    },
+    [executeAction, keyPair]
+  )
+
+  const onChangePinToken = useCallback(
+    async ({ token: jwtToken, links }: any) => {
+      executeAction({
+        execute: async () => {
+          const newPin = newPinRef.current
+          if (!newPin) {
+            throw new Error('New PIN is required')
+          }
+
+          const href = links[0].href
+          const method = links[0].method
+
+          const newPinCypher = await encryptWithToken(jwtToken, newPin)
+
+          const response = await cardProcessorClient.card.changePin({
+            newPinCypher,
+            jwtToken,
+            cardProcessorUrl: href,
+            httpMethod: method as unknown as HttpMethod
+          })
+
+          if (!response.ok) {
+            throw new Error('Failed to change PIN')
+          }
+        }
+      })
+    },
+    [executeAction]
+  )
 
   /**
    * Server Action listener
@@ -103,72 +205,27 @@ export const useCardActions = (card: StorableCard) => {
       switch (tokenType) {
         case CardTokenType.CARD_DATA:
           onSensitiveDataToken({ token, links })
-          resetStatus()
           break
         case CardTokenType.PIN:
           onGetPinToken({ token, links })
-          resetStatus()
+          break
+        case CardTokenType.PIN_CHANGE:
+          onChangePinToken({ token, links })
           break
         default:
           errorStatus()
           break
       }
     }
-  }, [fetcher.data, setActionStatus])
-
-  /**
-   * Token listeners
-   */
-  const onSensitiveDataToken = async ({ token: jwtToken, links }: any) => {
-    executeAction({
-      execute: async () => {
-        const hrefs = links[0].href
-        const method = links[0].method
-
-        const encryptedCardData =
-          await cardProcessorClient.cards.getSensitiveData({
-            jwtToken,
-            cardProcessorUrl: hrefs,
-            httpMethod: method
-          })
-
-        const decryptedCardData =
-          await decryptWithPrivateKey<CardProcessorSensitiveDataResponse>(
-            keyPair!.privateKey,
-            encryptedCardData.cypher
-          )
-
-        setSensitiveData(decryptedCardData)
-      },
-      onSuccess: () => {
-        setIsSensitiveDataVisible(true)
-      }
-    })
-  }
-
-  const onGetPinToken = async ({ token: jwtToken, links }: any) => {
-    executeAction({
-      execute: async () => {
-        const href = links[0].href
-        const method = links[0].method
-
-        const encryptedPinData = await cardProcessorClient.cards.getPin({
-          jwtToken,
-          cardProcessorUrl: href,
-          httpMethod: method as unknown as HttpMethod
-        })
-        const decryptedPinData = await decryptWithPrivateKey<string>(
-          keyPair!.privateKey,
-          encryptedPinData.cypher
-        )
-
-        setPin(decryptedPinData)
-      },
-      onSuccess: () => {
-        setIsPinVisible(true)
-      }
-    })
-  }
+  }, [
+    errorStatus,
+    fetcher.data,
+    onChangePinToken,
+    onGetPinToken,
+    onSensitiveDataToken,
+    setActionStatus,
+    successStatus
+  ])
 
   /**
    * Toggles
@@ -193,20 +250,20 @@ export const useCardActions = (card: StorableCard) => {
         })
       })
     },
-    [card.id, keyPair?.publicKey, withTotpChallenge]
+    [
+      card.id,
+      errorStatus,
+      fetcher,
+      keyPair?.publicKey,
+      setActionStatus,
+      withTotpChallenge
+    ]
   )
-  const toggleSensitiveData = useCallback(() => {
-    if (!isSensitiveDataVisible) {
-      triggerTokenOperation(CardTokenType.CARD_DATA)
-    } else {
-      executeAction({
-        execute: async () => {
-          setIsSensitiveDataVisible(false)
-          setSensitiveData(getDefaultSensitiveData(card))
-        }
-      })
-    }
-  }, [isSensitiveDataVisible, triggerTokenOperation, executeAction])
+
+  const toggleSensitiveDataOn = useCallback(() => {
+    triggerTokenOperation(CardTokenType.CARD_DATA)
+  }, [triggerTokenOperation])
+
   const toggleViewPin = useCallback(() => {
     if (!isPinVisible) {
       triggerTokenOperation(CardTokenType.PIN)
@@ -214,11 +271,18 @@ export const useCardActions = (card: StorableCard) => {
       executeAction({
         execute: async () => {
           setIsPinVisible(false)
-          setPin('****')
+          setPinDisplayed('****')
         }
       })
     }
   }, [isPinVisible, triggerTokenOperation, executeAction])
+
+  const toggleChangePin = useCallback(() => {
+    withPinChangePopup((newPin: string) => {
+      newPinRef.current = newPin
+      triggerTokenOperation(CardTokenType.PIN_CHANGE)
+    })
+  }, [withPinChangePopup, triggerTokenOperation])
 
   const triggerOperation = useCallback(
     (operation: Operation) => {
@@ -236,11 +300,11 @@ export const useCardActions = (card: StorableCard) => {
     },
     [card.id, setActionStatus, fetcher, withTotpChallenge]
   )
-  const toggleLock = useCallback(
+  const toggleFreeze = useCallback(
     () => triggerOperation('freeze'),
     [triggerOperation]
   )
-  const toggleUnlock = useCallback(
+  const toggleUnfreeze = useCallback(
     () => triggerOperation('unfreeze'),
     [triggerOperation]
   )
@@ -248,27 +312,37 @@ export const useCardActions = (card: StorableCard) => {
     () => triggerOperation('block'),
     [triggerOperation]
   )
-  const toggleTerminate = useCallback(
-    () => triggerOperation('terminate'),
-    [triggerOperation]
-  )
 
-  const isLocked = useMemo(() => isCardLocked(card), [card])
+  const flip = () => {
+    if (showBack && isSensitiveDataVisible) {
+      // turning to the front resets sensitive data
+      resetSensitiveData()
+    }
+    setShowBack(!showBack)
+  }
+
+  const isFrozen = useMemo(() => isCardFrozen(card), [card])
   const isBlocked = useMemo(() => isCardBlocked(card), [card])
+  const isAdminBlocked = useMemo(() => isBlockedByAdmin(card), [card])
 
   return {
+    flip,
+    showBack,
+    setShowBack,
     isSensitiveDataVisible,
     isPinVisible,
-    isLocked,
+    isFrozen,
     isBlocked,
+    isBlockedByAdmin: isAdminBlocked,
     sensitiveData,
-    pin,
+    pin: pinDisplayed,
     actionStatus,
-    toggleSensitiveData,
-    toggleLock,
-    toggleUnlock,
+    toggleSensitiveDataOn,
+    toggleFreeze,
+    toggleUnfreeze,
     toggleBlock,
-    toggleTerminate,
-    toggleViewPin
+    toggleViewPin,
+    toggleChangePin,
+    PinChangePopup
   }
 }
