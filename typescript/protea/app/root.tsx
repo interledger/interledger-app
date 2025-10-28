@@ -30,6 +30,7 @@ import { Features } from './generated/connect/backend/v1/backend_pb'
 import { getPusherArgs } from './lib/pusher.server'
 import { NON_FULL_SESSION_ROUTES, isTotpSet } from './lib/totp.server'
 import { usePusher } from './lib/usePusher'
+import PendingConfirmationsLoader from './components/PendingConfirmationsLoader'
 
 const metaContent = {
   title: 'Interledger Wallet',
@@ -142,16 +143,17 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 function Page() {
-  const location = useLocation()
+  // const location = useLocation()
   const { pusherArgs, env } = useLoaderData<typeof loader>()
   // useSegment(env.segmentApiKey)
   usePusher(pusherArgs, ['cardReady'])
 
-  if (location.pathname == '/temp-cloudflare-error') return <CloudFlareError />
+  // if (location.pathname == '/temp-cloudflare-error') return <CloudFlareError />
 
   return (
     <Document>
       <Scaffold />
+      <PendingConfirmationsLoader walletId={pusherArgs.walletId} />
       <TotpChallengeGlobal />
       <script
         dangerouslySetInnerHTML={{

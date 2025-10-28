@@ -18,6 +18,7 @@ import {
 } from '~/components'
 import { mergeMeta } from '~/lib/meta'
 import { mockPendingConfirmations } from '~/lib/mocks/confirmations'
+import { usePendingConfirmations } from '~/lib/usePendingConfirmations'
 
 export const shouldRevalidate: ShouldRevalidateFunction = ({
   currentUrl,
@@ -81,7 +82,8 @@ export const meta: MetaFunction = mergeMeta(() => [
 ])
 
 export default function Page() {
-  const { confirmations } = useLoaderData<typeof loader>()
+  // const { confirmations } = useLoaderData<typeof loader>()
+  const { pendingConfirmations: confirmations } = usePendingConfirmations()
   const location = useLocation()
   const pathSegments = location.pathname.split('/').filter(Boolean)
 
