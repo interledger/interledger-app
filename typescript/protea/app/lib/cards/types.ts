@@ -21,8 +21,8 @@ export type CardProcessorSensitiveDataResponse = {
 }
 
 export type CardsState = {
-  /** List of user's cards for quick access */
   cards?: Record<string, StorableCard>
+  areCardsFetched: boolean
 }
 
 type CardsActions = {

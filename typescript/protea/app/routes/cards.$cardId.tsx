@@ -20,7 +20,7 @@ export default function PageCardID() {
   const { features } = useRouteLoaderData('root') as SerializeFrom<
     typeof rootLoader
   >
-  const { cards } = useCardsStore()
+  const { cards, areCardsFetched } = useCardsStore()
   const { cardId } = useParams<RouteParams['/cards/:cardId']>()
   const card = useMemo(
     () => (cardId ? cards?.[cardId] : undefined),
@@ -28,14 +28,16 @@ export default function PageCardID() {
   )
 
   useEffect(() => {
-    if (!card || !cardId) {
+    if (areCardsFetched && (!card || !cardId)) {
       navigate('/cards')
     }
-  }, [card, cardId, navigate])
+  }, [areCardsFetched, card, cardId, navigate])
 
-  if (!features.manageWalletCardsEnabled) {
-    navigate('/')
-  }
+  useEffect(() => {
+    if (!features.manageWalletCardsEnabled) {
+      navigate('/')
+    }
+  }, [features.manageWalletCardsEnabled, navigate])
 
   if (!card) return null
 
