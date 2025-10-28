@@ -19,6 +19,8 @@ declare module "routes-gen" {
     "/cards": Record<string, never>;
     "/cards/:cardId": { "cardId": string };
     "/cards/order": Record<string, never>;
+    "/confirmations": Record<string, never>;
+    "/confirmations/:confirmationId": { "confirmationId": string };
     "/connect/bank/us": Record<string, never>;
     "/connect/bank/za": Record<string, never>;
     "/connect/card": Record<string, never>;
@@ -91,6 +93,8 @@ declare module "routes-gen" {
       | ["/cards"]
       | ["/cards/:cardId", RouteParams["/cards/:cardId"]]
       | ["/cards/order"]
+      | ["/confirmations"]
+      | ["/confirmations/:confirmationId", RouteParams["/confirmations/:confirmationId"]]
       | ["/connect/bank/us"]
       | ["/connect/bank/za"]
       | ["/connect/card"]
