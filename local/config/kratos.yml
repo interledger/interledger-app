@@ -84,7 +84,7 @@ selfservice:
       ui_url: http://interledger.test/signup
     settings:
       privileged_session_max_age: 15m
-      ui_url: http://interledger.test/settings
+      ui_url: http://interledger.test/recovery/password
     verification:
       after:
         default_browser_return_url: http://interledger.test
