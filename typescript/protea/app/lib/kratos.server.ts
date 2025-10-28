@@ -126,7 +126,7 @@ export function handleFlowError(
       })
     case 'session_aal2_required':
       // 2FA is enabled and enforced, but user did not perform 2fa yet!
-      throw redirect(route('/totp/challenge'))
+      throw redirect(`/totp/challenge?returnTo=${redirectRoute}`)
     case 'session_already_available':
       // User is already signed in, let's redirect them home!
       throw redirect(route('/'))
