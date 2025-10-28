@@ -527,48 +527,6 @@ func (s *rpcService) BlockCard(ctx context.Context, req *pb.BlockCardRequest) (*
 	return &pb.Empty{}, nil
 }
 
-func (s *rpcService) TerminateCard(ctx context.Context, req *pb.TerminateCardRequest) (*pb.Empty, error) {
-	_, err := s.b.Users().UserForContext(ctx)
-	if err != nil {
-		return nil, UnauthenticatedError("Unauthenticated.")
-	}
-
-	wallet, err := s.b.Wallets().ForContext(ctx)
-	if err != nil {
-		return nil, UnauthenticatedError("Unauthenticated.")
-	}
-
-	_, isEU := country.EUCountries[wallet.Country]
-	if !isEU {
-		return nil, FailedPreconditionError("Wallet not in the EU region")
-	}
-
-	feats, err := s.b.Features().Features(ctx, wallet.ID)
-	if err != nil {
-		return nil, toGRPCError(err)
-	}
-
-	if !feats.ManageWalletCardsEnabled {
-		return nil, ForbiddenError("Wallet cards not enabled")
-	}
-
-	externalIDs, err := s.b.Gatehub().GetExternalIDs(ctx, wallet.ID)
-	if err != nil {
-		return nil, FailedPreconditionError("Could not retrieve external IDs")
-	}
-
-	err = s.b.Gatehub().CloseCard(ctx, gatehub.CloseCardArgs{
-		UserID:     externalIDs.UserID,
-		CardID:     req.CardId,
-		ReasonCode: gatehub.CardStatusReasonCodeUserRequest,
-	})
-	if err != nil {
-		return nil, toGRPCError(err)
-	}
-
-	return &pb.Empty{}, nil
-}
-
 func newCard(c gatehub.Card) pb.Card {
 	var status pb.CardStatus
 	var cardType pb.CardType
