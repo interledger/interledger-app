@@ -1,6 +1,6 @@
 import { type SerializeFrom } from '@remix-run/node'
 import { useNavigate, useParams, useRouteLoaderData } from '@remix-run/react'
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { type RouteParams } from 'routes-gen'
 import { CardView, Layouts, type ApplicationProps } from '~/components'
 import { useCardsStore } from '~/lib/cards/hooks/useCardsStore'
@@ -27,13 +27,17 @@ export default function PageCardID() {
     [cards, cardId]
   )
 
+  useEffect(() => {
+    if (!card || !cardId) {
+      navigate('/cards')
+    }
+  }, [card, cardId, navigate])
+
   if (!features.manageWalletCardsEnabled) {
     navigate('/')
   }
 
-  if (!card || !cardId) {
-    return <>Card not found</>
-  }
+  if (!card) return null
 
   return <CardView card={card} />
 }
