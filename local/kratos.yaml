@@ -25,6 +25,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.kratos.rule=Host(`identity.interledger.test`)"
+      - "traefik.http.routers.kratos.rule=(Host(`interledger.test`) && (PathPrefix(`/self-service`) || PathPrefix(`/sessions`)))"
       - "traefik.http.services.kratos.loadbalancer.server.port=4433"
     depends_on:
       - kratos-migrate
