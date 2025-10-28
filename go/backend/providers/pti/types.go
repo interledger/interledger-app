@@ -134,6 +134,20 @@ type TransactionStatusPayload struct {
 	// 	ProviderResponseCode     string `json:"providerResponseCode"`
 	// 	ProviderResponseCategory string `json:"providerResponseCategory"`
 	// } `json:"paymentStatusDetail"`
+	TransactionTotal struct {
+		Total struct {
+			Amount   int    `json:"amount"`
+			Currency string `json:"currency"`
+		} `json:"total"`
+		Fee struct {
+			Amount   int    `json:"amount"`
+			Currency string `json:"currency"`
+		} `json:"fee"`
+		Subtotal struct {
+			Amount   int    `json:"amount"`
+			Currency string `json:"currency"`
+		} `json:"subtotal"`
+	} `json:"transactionTotal,omitempty"`
 	Total struct {
 		SubTotal struct {
 			Amount   int    `json:"amount"`
@@ -147,7 +161,7 @@ type TransactionStatusPayload struct {
 			Amount   int    `json:"amount"`
 			Currency string `json:"currency"`
 		} `json:"total"`
-	} `json:"total"`
+	} `json:"total,omitempty"`
 }
 
 type FlexibleTime struct {
