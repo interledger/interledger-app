@@ -153,6 +153,12 @@ export class ConnectError {
     if (err.code === Code.Unauthenticated) {
       url.searchParams.set('returnTo', url.pathname + url.search)
 
+      const errorDetails = err.findDetails(ErrorInfo)
+      const reason = errorDetails?.[0]?.reason
+      if (reason === 'aal2_required') {
+        throw redirect(route('/totp/challenge') + url.search)
+      }
+
       throw redirect(route('/login') + url.search, {
         headers: {
           'Set-Cookie':

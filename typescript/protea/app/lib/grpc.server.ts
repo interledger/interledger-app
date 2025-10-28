@@ -1,7 +1,6 @@
 import type { CallOptions, Transport } from '@bufbuild/connect'
 import {
   ConnectError as BufConnectError,
-  Code,
   makeAnyClient
 } from '@bufbuild/connect'
 import { createGrpcTransport } from '@bufbuild/connect-node'
@@ -13,10 +12,7 @@ import type {
   ServiceType
 } from '@bufbuild/protobuf'
 import { MethodKind } from '@bufbuild/protobuf'
-import { redirect } from '@remix-run/node'
-import { route } from 'routes-gen'
 import { BackendService } from '~/generated/connect/backend/v1/backend_connect'
-import { ErrorInfo } from '~/generated/connect/google/rpc/error_details_pb'
 import { ConnectError } from '~/lib/error.server'
 
 const BACKEND_GRPC_URL = process.env.BACKEND_GRPC_URL || 'http://0.0.0.0:8443'
@@ -132,18 +128,7 @@ function createUnaryFn<I extends Message<I>, O extends Message<O>>(
 
         return response.message
       })
-      .catch((err) => {
-        if (err.code === Code.Unauthenticated) {
-          const errorDetails = err.findDetails(ErrorInfo)
-          const reason = errorDetails?.[0]?.reason
-          if (reason === 'aal2_required') {
-            throw redirect(route('/totp/challenge'))
-          }
-
-          throw redirect(route('/login'))
-        }
-        return new ConnectError(request, BufConnectError.from(err))
-      })
+      .catch((err) => new ConnectError(request, BufConnectError.from(err)))
   }
 }
 
