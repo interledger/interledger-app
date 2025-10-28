@@ -193,7 +193,7 @@ export async function action({ request }: ActionFunctionArgs) {
       cookie: String(request.headers.get('cookie'))
     }
   })
- 
+
   if (res.status >= 400 && res.status !== 422) {
     const errors = await kratosErrorMapping(res, fieldErrors)
     return error(request, { errors }, { action: 'Contact support' })
@@ -203,20 +203,21 @@ export async function action({ request }: ActionFunctionArgs) {
   const headers = trimHeaders(res.headers, ['set-cookie'])
 
   if (res.status === 422) {
-    return redirect('/totp/challenge?returnTo=' + returnTo , {
+    return redirect('/totp/challenge?returnTo=' + returnTo || '/', {
       headers
     })
   }
-
-
 
   try {
     const responseCopy = res.clone()
     const checkTOTP = await responseCopy.json()
     if (checkTOTP?.session?.authenticator_assurance_level === 'aal1') {
-      return redirect('/totp/two-factor-authentication', {
-        headers
-      })
+      return redirect(
+        '/totp/two-factor-authentication?returnTo=' + returnTo || '/',
+        {
+          headers
+        }
+      )
     }
   } catch (error) {
     // If the response is not JSON, we can ignore it
