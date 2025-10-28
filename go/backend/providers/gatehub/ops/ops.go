@@ -637,7 +637,7 @@ func OrderCard(ctx context.Context, b Backends, ec external.Client, args gatehub
 			_, err = b.Temporal().ExecuteWorkflow(ctx, wo, CreateGateHubCardWorkflow, CreateCardWorkflowArgs{
 				WalletID:           args.Wallet.ID,
 				ExternalIDs:        args.ExternalIDs,
-				Currency:           currency.EUR.String(),
+				Currency:           "PW_" + currency.EUR.String(),
 				NameOnCard:         nameOnCard,
 				WalletAddress:      la.ProviderID,
 				CardProductCode:    args.CardProductCode,
@@ -659,7 +659,7 @@ func OrderCard(ctx context.Context, b Backends, ec external.Client, args gatehub
 		NameOnCard:    nameOnCard,
 		Delivery:      args.NewDeliveryAddress,
 		Account: external.CardAccount{
-			Currency: currency.EUR.String(),
+			Currency: "PW_" + currency.EUR.String(),
 			Card: external.NewCardArgs{
 				ProductCode: args.CardProductCode,
 			},
