@@ -24,9 +24,7 @@ export const mockPendingConfirmations: PendingConfirmation[] = [
     merchantName: 'Shop One',
     purchaseAmount: '99.98',
     purchaseCurrency: 'EUR',
-    purchaseDate: `${new Date(
-      new Date().setDate(new Date().getDate() - 1)
-    ).setHours(17, 0, 0, 0)}`,
+    purchaseDate: `${Date.now() - 60000}`, // 1 minute ago
     timeout: '300'
   },
   {
@@ -34,9 +32,7 @@ export const mockPendingConfirmations: PendingConfirmation[] = [
     merchantName: 'Shop Two',
     purchaseAmount: '229.98',
     purchaseCurrency: 'EUR',
-    purchaseDate: `${new Date(
-      new Date().setDate(new Date().getDate() - 2)
-    ).setHours(22, 12, 0, 0)}`,
+    purchaseDate: `${Date.now() - 120000}`, // 2 minutes ago
     timeout: '300'
   },
   {
@@ -44,9 +40,7 @@ export const mockPendingConfirmations: PendingConfirmation[] = [
     merchantName: 'Shop Three',
     purchaseAmount: '30000',
     purchaseCurrency: 'EUR',
-    purchaseDate: `${new Date(
-      new Date().setDate(new Date().getDate() - 3)
-    ).setHours(10, 30, 0, 0)}`,
-    timeout: '300'
+    purchaseDate: `${Date.now() - 180000}`, // 3 minutes ago
+    timeout: '3000'
   }
 ]

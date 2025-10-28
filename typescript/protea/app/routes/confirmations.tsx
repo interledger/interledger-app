@@ -13,6 +13,7 @@ import {
   GridColumn,
   Icon,
   Layouts,
+  TimeoutDisplay,
   WalletGrid
 } from '~/components'
 import { mergeMeta } from '~/lib/meta'
@@ -35,7 +36,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   // Format dates and group confirmations by date
   const formattedConfirmations = confirmations.map((confirmation) => ({
-    ...confirmation,
+    transactionId: confirmation.transactionId,
+    merchantName: confirmation.merchantName,
+    purchaseDate: confirmation.purchaseDate,
+    timeout: confirmation.timeout,
     formattedDate: new Date(
       Number(confirmation.purchaseDate)
     ).toLocaleDateString('en-US', {
@@ -113,7 +117,13 @@ export default function Page() {
                 className='justify-between space-x-4'
               >
                 <div className='flex w-7/12 items-center space-x-2'>
-                  <Icon className='text-orange-500'>schedule</Icon>
+                  <div className='flex flex-col items-center'>
+                    <Icon className='text-orange-500'>schedule</Icon>
+                    <TimeoutDisplay
+                      purchaseDate={confirmation.purchaseDate}
+                      timeout={confirmation.timeout}
+                    />
+                  </div>
                   <div className='flex w-full flex-col space-y-1'>
                     <span className='truncate text-medium'>
                       {confirmation.merchantName}
