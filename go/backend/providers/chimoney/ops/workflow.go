@@ -12,6 +12,7 @@ import (
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/chimoney"
 	"gitlab.com/fynbos/backend/providers/chimoney/external"
 	httplogger "gitlab.com/fynbos/backend/providers/http"
@@ -390,13 +391,15 @@ func (a *Activity) CreateChimoneyDepositTransaction(ctx context.Context, walletI
 	}
 
 	trx, err := a.b.Transactions().CreateTransaction(ctx, transactions.CreateTransactionArgs{
-		WalletID:    walletID,
-		State:       transactions.StatePending,
-		Provider:    chimoney.ProviderName,
-		Amount:      amount,
-		Title:       "Deposit",
-		ForeignType: transactions.TransactionTypeDeposit,
-		ForeignID:   issueID,
+		WalletID:                walletID,
+		State:                   transactions.StatePending,
+		Provider:                chimoney.ProviderName,
+		Amount:                  amount,
+		Title:                   "Deposit",
+		DestinationIdentity:     walletID,
+		DestinationIdentityType: payments.IdentityTypeWalletID.String(),
+		ForeignType:             transactions.TransactionTypeDeposit,
+		ForeignID:               issueID,
 		Transfers: []transactions.TransferArgs{
 			{
 				LinkedAccountID: chimoneyBalance.ID,
