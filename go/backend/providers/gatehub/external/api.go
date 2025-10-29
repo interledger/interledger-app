@@ -27,4 +27,6 @@ type Client interface {
 	CloseCard(ctx context.Context, userID, cardID string, args CloseCardArgs) error
 	GetVaultID() string
 	LinkUserToGateway(ctx context.Context, gatehubUserID string) error
+	GetCardDetails(ctx context.Context, userID, cardID string) (*Card, error)
+	GetCardTransaction(ctx context.Context, userID, txID string) (*CardTransaction, error)
 }

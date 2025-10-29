@@ -175,6 +175,15 @@ func transformTransaction(tx transactions.Transaction, transfers []transactions.
 		}
 	}
 
+	if tx.Type == transactions.TransactionTypeCardTransaction {
+		details := pb.CardTransactionDetails{
+			CardId:        tx.CardTransactionDetails.CardID,
+			CardMaskedPan: tx.CardTransactionDetails.CardMaskedPan,
+			Type:          int64(tx.CardTransactionDetails.Type),
+		}
+		ret.CardTransactionDetails = &details
+	}
+
 	return ret
 }
 
