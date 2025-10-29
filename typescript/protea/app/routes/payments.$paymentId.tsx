@@ -835,6 +835,10 @@ function CardTransaction() {
             </div>
           </div>
         </CardContent>
+        <Label>
+          {transaction.cardTransactionDetails?.type === '0' && 'Recipient'}
+          {transaction.cardTransactionDetails?.type === '1' && 'Cash at'}
+        </Label>
         <div className='my-1 flex space-x-2 rounded-xl bg-nav p-3'>
           <div className='flex w-full items-center justify-between text-medium'>
             <div className='flex space-x-2'>
@@ -848,75 +852,51 @@ function CardTransaction() {
           </div>
         </div>
       </Card>
-      {transaction.state == 'Failed' && (
-        <Card>
-          <CardContent>
-            <div className='mt-2 flex w-full justify-between'>
-              <span className=''>Payment from</span>
-              <span className='text-medium'>{transaction.accountTitle}</span>
-            </div>
-            <div className='mt-2 flex w-full justify-between'>
-              <span className='text-weak'>Card</span>
-              <span className='text-medium'>
-                <Link
-                  className='text-primary'
-                  to={route('/cards/:cardId', {
-                    cardId: transaction.cardTransactionDetails!.cardId // cardId will always be set for a card_transaction
-                  })}
-                >
-                  {transaction.cardTransactionDetails?.cardMaskedPan}{' '}
-                  {/* Ditto for cardMaskedPan */}
-                </Link>
-              </span>
-            </div>
-            <div className='mt-4 flex w-full justify-between font-medium'>
-              <span className='text-medium'>Amount</span>
-              <span className='text-medium'>{transaction.fundsReceived}</span>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-      {transaction.state != 'Failed' && (
-        <Card>
-          <Label>Payment ID</Label>
-          <CardCopy
-            copyContent={transaction.id}
-            shareData={{
-              title: 'Payment ID',
-              text: transaction.id
-            }}
-            success='Payment ID copied to clipboard.'
-            copyError="Couldn't copy to clipboard."
-            shareError="Couldn't share Payment ID."
-          >
-            {transaction.id}
-          </CardCopy>
-          <CardContent>
-            <div className='mt-2 flex w-full justify-between'>
-              <span className='text-weak'>Payment from</span>
-              <span className='text-medium'>{transaction.accountTitle}</span>
-            </div>
-            <div className='mt-2 flex w-full justify-between'>
-              <span className='text-weak'>Card</span>
-              <span className='text-medium'>
-                <Link
-                  className='text-primary'
-                  to={route('/cards/:cardId', {
-                    cardId: transaction.cardTransactionDetails!.cardId // cardId will always be set for a card_transaction
-                  })}
-                >
-                  {transaction.cardTransactionDetails?.cardMaskedPan}{' '}
-                  {/* Ditto for cardMaskedPan */}
-                </Link>
-              </span>
-            </div>
-            <div className='mt-4 flex w-full justify-between font-medium'>
-              <span className='text-medium'>Amount</span>
-              <span className='text-medium'>{transaction.fundsReceived}</span>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      <Card>
+        {transaction.state != 'Failed' && (
+          <>
+            <Label>Payment ID</Label>
+            <CardCopy
+              copyContent={transaction.id}
+              shareData={{
+                title: 'Payment ID',
+                text: transaction.id
+              }}
+              success='Payment ID copied to clipboard.'
+              copyError="Couldn't copy to clipboard."
+              shareError="Couldn't share Payment ID."
+            >
+              {transaction.id}
+            </CardCopy>
+          </>
+        )}
+        <CardContent>
+          <div className='mt-2 flex w-full justify-between'>
+            <span className='text-weak'>Payment from</span>
+            <span className='text-medium'>{transaction.accountTitle}</span>
+          </div>
+          <div className='mt-2 flex w-full justify-between'>
+            <span className='text-weak'>Card</span>
+            <span className='text-medium'>
+              <Link
+                className='text-primary'
+                to={route('/cards/:cardId', {
+                  cardId: transaction.cardTransactionDetails!.cardId // cardId will always be set for a card_transaction
+                })}
+              >
+                {
+                  transaction.cardTransactionDetails
+                    ?.cardMaskedPan /* Ditto for cardMaskedPan */
+                }
+              </Link>
+            </span>
+          </div>
+          <div className='mt-4 flex w-full justify-between font-medium'>
+            <span className='text-medium'>Amount</span>
+            <span className='text-medium'>{transaction.fundsReceived}</span>
+          </div>
+        </CardContent>
+      </Card>
     </>
   )
 }
