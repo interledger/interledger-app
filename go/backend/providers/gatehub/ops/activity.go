@@ -738,7 +738,6 @@ func (a *Activity) CreateGatehubCardTransaction(ctx context.Context, userID, txI
 }
 
 func (a *Activity) FinalizeGatehubCardTransaction(ctx context.Context, cardTxID, internalTxID string) error {
-	// Idempotent
 	err := FinaliseReserve(ctx, a.b, internalTxID)
 	if err != nil {
 		return err
@@ -769,7 +768,6 @@ func (a *Activity) FinalizeGatehubCardTransaction(ctx context.Context, cardTxID,
 }
 
 func (a *Activity) RollbackGatehubCardTransaction(ctx context.Context, cardTxID, internalTxID string) error {
-	// Idempotent
 	err := RollbackReserve(ctx, a.b, internalTxID)
 	if err != nil {
 		return err

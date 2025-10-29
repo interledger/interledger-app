@@ -609,7 +609,7 @@ message Transaction {
   int32 refundState = 22; // NA , PENDING , COMPLETE
   string fundsReceived = 23;
 
-  optional CardTransactionDetails cardTransactionDetails= 24;
+  optional CardTransactionDetails cardTransactionDetails = 24;
 }
 
 message ListTransactionsResponse {

@@ -16,7 +16,7 @@ import (
 )
 
 func StartCardTransactionsPooling(b Backends) {
-	// Everyday at 4PM UTC
+	// Every day at 4PM UTC
 	schedule := "0 16 * * *"
 	workflowID := "gatehub_card_transactions_poll"
 	workflowOptions := client.StartWorkflowOptions{
