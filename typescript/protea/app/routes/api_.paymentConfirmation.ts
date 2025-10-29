@@ -1,4 +1,6 @@
 import { json, type ActionFunctionArgs } from '@remix-run/node'
+import { isConnectError } from '~/lib/error.server'
+import { grpc } from '~/lib/grpc.server'
 
 export type PaymentConfirmationResponse = {
   success: boolean
@@ -36,22 +38,22 @@ export async function action({ request }: ActionFunctionArgs) {
     )
   }
 
-  // const response = await grpc.threeDSPaymentConfirmation(request, {
-  //   transactionId: transactionId,
-  //   confirmed: confirmed === 'true' ? true : false
-  // })
-  //
-  // if (isConnectError(response)) {
-  //   return json<PaymentConfirmationResponse>(
-  //     {
-  //       success: false,
-  //       errors: {
-  //         message: 'payment confirmation call failed'
-  //       }
-  //     },
-  //     { status: 400 }
-  //   )
-  // }
+  const response = await grpc.threeDSPaymentConfirmation(request, {
+    transactionId: transactionId,
+    confirmed: confirmed === 'true' ? true : false
+  })
+
+  if (isConnectError(response)) {
+    return json<PaymentConfirmationResponse>(
+      {
+        success: false,
+        errors: {
+          message: 'payment confirmation call failed'
+        }
+      },
+      { status: 400 }
+    )
+  }
 
   return json<PaymentConfirmationResponse>({
     success: true,
