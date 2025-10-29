@@ -343,7 +343,7 @@ func SettleWithdrawWorkflow(ctx workflow.Context, wh pti.TransactionStatusPayloa
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
 	logger := workflow.GetLogger(ctx)
-	logger.Info("Creating pti deposit.")
+	logger.Info("Creating pti withdraw.")
 	curr := wh.Currency
 	if curr == "" {
 		curr = wh.TransactionTotal.Total.Currency

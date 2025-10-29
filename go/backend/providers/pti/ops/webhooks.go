@@ -437,42 +437,6 @@ func HandleDepositError(ctx context.Context, payload pti.TransactionStatusPayloa
 	return nil
 }
 
-// NOT NEEDED
-// func HandlePending(ctx context.Context, payload pti.TransactionStatusPayload, b Backends) error {
-// 	fmt.Println("got pending/processing transaction status") // mark as transactions.StatePending
-// 	wo := client.StartWorkflowOptions{
-// 		ID:                    "pti_deposit_webhook_mark_transaction_pending" + payload.RequestID,
-// 		TaskQueue:             "backend",
-// 		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
-// 	}
-
-// 	var workflowStatus enums.WorkflowExecutionStatus
-// 	wflow, err := b.Temporal().DescribeWorkflowExecution(ctx, wo.ID, "")
-// 	switch err.(type) {
-// 	case *serviceerror.Internal,
-// 		*serviceerror.Unavailable,
-// 		*serviceerror.InvalidArgument:
-// 		log.Error("Failed to handle pti deposit webhook", zap.Error(err))
-// 		return err
-// 	case *serviceerror.NotFound:
-// 		// do nothing
-// 	default:
-// 		if wflow != nil {
-// 			workflowStatus = wflow.GetWorkflowExecutionInfo().Status
-// 		}
-// 	}
-
-// 	// execute workflow if it's not running
-// 	if workflowStatus != enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
-// 		_, err = b.Temporal().ExecuteWorkflow(ctx, wo, MarkTransactionStateWrokflow, payload, transactions.StatePending)
-// 		if err != nil {
-// 			log.Error("Failed to handle pti deposit webhook", zap.Error(err))
-// 			return err
-// 		}
-// 	}
-// 	return nil
-// }
-
 func HandleTransactionAssessmentUpdate(ctx context.Context, b Backends, data []byte) error {
 	// TODO
 	var payload TransactionAssessmentPayload
