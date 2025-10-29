@@ -789,12 +789,6 @@ func BlockCard(ctx context.Context, b Backends, ec external.Client, args gatehub
 	})
 }
 
-func CloseCard(ctx context.Context, b Backends, ec external.Client, args gatehub.CloseCardArgs) error {
-	return ec.CloseCard(ctx, args.UserID, args.CardID, external.CloseCardArgs{
-		ReasonCode: args.ReasonCode,
-	})
-}
-
 func getNameOnCard(walletAddress string) (string, error) {
 	// For non production environments we generate a random card name.
 	// This might be counter intuitive but we have the limitation of 26 chars

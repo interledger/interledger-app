@@ -3,7 +3,7 @@ import { CardViewContainer } from './CardViewContainer'
 import { MasterCardLogo } from './MasterCardLogo'
 
 interface CardViewFrontProps extends ComponentProps<'div'> {
-  nameOnCard: string
+  nameOnCard?: string
 }
 
 export const CardViewFront = ({
@@ -55,9 +55,11 @@ export const CardViewFront = ({
             {/* <div className='text-xs uppercase tracking-wide text-black/50'>
               CARDHOLDER NAME
             </div> */}
-            <span className='text-sm font-medium uppercase text-black'>
-              {nameOnCard}
-            </span>
+            {nameOnCard && (
+              <span className='text-sm font-medium uppercase text-black'>
+                {nameOnCard}
+              </span>
+            )}
           </div>
           <MasterCardLogo />
         </div>

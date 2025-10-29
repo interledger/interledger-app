@@ -37,5 +37,15 @@ export const mockCards: Card[] = [
     expiryDate: '0327',
     statusReasonCode: CardStatusReasonCode.UNKNOWN,
     lockLevel: CardLockLevel.UNKNOWN
+  }),
+
+  new Card({
+    id: 'card-4',
+    nameOnCard: 'Admin Blocked Card',
+    maskedPan: '************9012',
+    status: CardStatus.IN_CREATION,
+    expiryDate: '0327',
+    statusReasonCode: CardStatusReasonCode.UNKNOWN,
+    lockLevel: CardLockLevel.ADMIN
   })
 ]

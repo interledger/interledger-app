@@ -480,43 +480,6 @@ export class BlockCardRequest extends Message<BlockCardRequest> {
 }
 
 /**
- * @generated from message backend.v1.TerminateCardRequest
- */
-export class TerminateCardRequest extends Message<TerminateCardRequest> {
-  /**
-   * @generated from field: string cardId = 1;
-   */
-  cardId = "";
-
-  constructor(data?: PartialMessage<TerminateCardRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "backend.v1.TerminateCardRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "cardId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TerminateCardRequest {
-    return new TerminateCardRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): TerminateCardRequest {
-    return new TerminateCardRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): TerminateCardRequest {
-    return new TerminateCardRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: TerminateCardRequest | PlainMessage<TerminateCardRequest> | undefined, b: TerminateCardRequest | PlainMessage<TerminateCardRequest> | undefined): boolean {
-    return proto3.util.equals(TerminateCardRequest, a, b);
-  }
-}
-
-/**
  * @generated from message backend.v1.TokenLink
  */
 export class TokenLink extends Message<TokenLink> {

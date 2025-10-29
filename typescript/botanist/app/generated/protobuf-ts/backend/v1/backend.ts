@@ -59,15 +59,6 @@ export interface BlockCardRequest {
     cardId: string;
 }
 /**
- * @generated from protobuf message backend.v1.TerminateCardRequest
- */
-export interface TerminateCardRequest {
-    /**
-     * @generated from protobuf field: string cardId = 1;
-     */
-    cardId: string;
-}
-/**
  * @generated from protobuf message backend.v1.TokenLink
  */
 export interface TokenLink {
@@ -3234,53 +3225,6 @@ class BlockCardRequest$Type extends MessageType<BlockCardRequest> {
  * @generated MessageType for protobuf message backend.v1.BlockCardRequest
  */
 export const BlockCardRequest = new BlockCardRequest$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class TerminateCardRequest$Type extends MessageType<TerminateCardRequest> {
-    constructor() {
-        super("backend.v1.TerminateCardRequest", [
-            { no: 1, name: "cardId", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
-        ]);
-    }
-    create(value?: PartialMessage<TerminateCardRequest>): TerminateCardRequest {
-        const message = { cardId: "" };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<TerminateCardRequest>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: TerminateCardRequest): TerminateCardRequest {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string cardId */ 1:
-                    message.cardId = reader.string();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: TerminateCardRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string cardId = 1; */
-        if (message.cardId !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.cardId);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message backend.v1.TerminateCardRequest
- */
-export const TerminateCardRequest = new TerminateCardRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class TokenLink$Type extends MessageType<TokenLink> {
     constructor() {
@@ -13235,6 +13179,5 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "GetCardToken", options: {}, I: GetCardTokenRequest, O: GetCardTokenResponse },
     { name: "FreezeCard", options: {}, I: FreezeCardRequest, O: Empty },
     { name: "UnfreezeCard", options: {}, I: UnfreezeCardRequest, O: Empty },
-    { name: "BlockCard", options: {}, I: BlockCardRequest, O: Empty },
-    { name: "TerminateCard", options: {}, I: TerminateCardRequest, O: Empty }
+    { name: "BlockCard", options: {}, I: BlockCardRequest, O: Empty }
 ]);

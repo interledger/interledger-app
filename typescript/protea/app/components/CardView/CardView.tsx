@@ -1,6 +1,6 @@
 import clsx from 'clsx'
-import { useState } from 'react'
-import { StorableCard } from '~/lib/cards/types'
+import type { StorableCard } from '~/lib/cards/types'
+import { usePinChangePopup } from '~/lib/usePinChangePopup'
 import { CardActions } from './CardActions'
 import { CardViewBack } from './CardViewBack'
 import { CardViewFront } from './CardViewFront'
@@ -9,22 +9,47 @@ import { TimedPinPopup } from './TimedPinPopup'
 import { useCardActions } from './useCardActions'
 
 export const CardView = ({ card }: { card: StorableCard }) => {
-  const [showBack, setShowBack] = useState(false)
-
   const {
+    flip,
+    showBack,
     isSensitiveDataVisible,
     isPinVisible,
-    isLocked,
+    isFrozen,
+    isBlockedByAdmin,
     sensitiveData,
     pin,
     actionStatus,
-    toggleSensitiveData,
-    toggleLock,
+    toggleSensitiveDataOn,
+    toggleFreeze,
+    toggleUnfreeze,
     toggleBlock,
-    toggleTerminate,
-    toggleUnlock,
-    toggleViewPin
+    toggleViewPin,
+    toggleChangePin
   } = useCardActions(card)
+
+  const { PinChangePopup } = usePinChangePopup()
+
+  if (isBlockedByAdmin) {
+    return (
+      <div className='flex flex-col items-center space-y-6 p-6'>
+        <div className='relative h-52 w-80' style={{ perspective: '1000px' }}>
+          <div className='relative h-full w-full'>
+            {/* Grey card skeleton */}
+            <div className='absolute inset-0 h-full w-full'>
+              <CardViewFront className='opacity-50 grayscale' />
+            </div>
+          </div>
+
+          {/* Blocked overlay */}
+          <div className='absolute inset-0 z-40 flex items-center justify-center rounded-xl bg-black/30'>
+            <div className='rounded-lg bg-red-500 px-4 py-2 font-semibold text-white'>
+              Card is blocked by admin. <br /> Please contact support.
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className='flex flex-col items-center space-y-6 p-6'>
@@ -36,7 +61,7 @@ export const CardView = ({ card }: { card: StorableCard }) => {
             showBack
               ? '[transform:rotateY(180deg)]'
               : '[transform:rotateY(0deg)]',
-            isLocked && 'blur-sm'
+            isFrozen && 'blur-sm'
           )}
           style={{ transformStyle: 'preserve-3d' }}
         >
@@ -51,6 +76,7 @@ export const CardView = ({ card }: { card: StorableCard }) => {
               </div>
             </div>
           )}
+
           {/* Front of card */}
           <div
             className='absolute inset-0 h-full w-full'
@@ -79,11 +105,11 @@ export const CardView = ({ card }: { card: StorableCard }) => {
           </div>
         </div>
 
-        {/* Locked overlay */}
-        {isLocked && (
+        {/* Frozen overlay */}
+        {isFrozen && (
           <div className='absolute inset-0 z-40 flex items-center justify-center rounded-xl bg-black/30'>
             <div className='rounded-lg bg-red-500 px-4 py-2 font-semibold text-white'>
-              CARD LOCKED
+              Card was frozen
             </div>
           </div>
         )}
@@ -92,16 +118,16 @@ export const CardView = ({ card }: { card: StorableCard }) => {
       {/* Card actions */}
       <CardActions
         showBack={showBack}
-        setShowBack={setShowBack}
+        flip={flip}
         isSensitiveDataVisible={isSensitiveDataVisible}
         isPinVisible={isPinVisible}
-        isLocked={isLocked}
-        toggleSensitiveData={toggleSensitiveData}
-        toggleLock={toggleLock}
-        toggleUnlock={toggleUnlock}
+        isFrozen={isFrozen}
+        toggleSensitiveDataOn={toggleSensitiveDataOn}
+        toggleFreeze={toggleFreeze}
+        toggleUnfreeze={toggleUnfreeze}
         toggleViewPin={toggleViewPin}
         toggleBlock={toggleBlock}
-        toggleTerminate={toggleTerminate}
+        toggleChangePin={toggleChangePin}
       />
 
       {/* PIN Display Popup */}
@@ -111,6 +137,9 @@ export const CardView = ({ card }: { card: StorableCard }) => {
         onClose={toggleViewPin}
         duration={7}
       />
+
+      {/* PIN Change Popup */}
+      <PinChangePopup />
 
       {/* Status popup */}
       {(actionStatus === 'success' || actionStatus === 'error') && (
