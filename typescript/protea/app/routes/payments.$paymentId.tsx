@@ -35,17 +35,15 @@ import type { PublicWalletInfo } from '~/generated/connect/backend/v1/backend_pb
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
-import { mockTransactions } from '~/lib/mocks/payments'
 import { getPusherArgs } from '~/lib/pusher.server'
 import { usePusher } from '~/lib/usePusher'
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   let senderAccountTitle, receiverAccountTitle
 
-  // const transaction = await grpc.lookupTransaction(request, {
-  //   id: params.paymentId as string
-  // })
-  const transaction = mockTransactions.find((transaction) => transaction.id == params.paymentId)!
+  const transaction = await grpc.lookupTransaction(request, {
+    id: params.paymentId as string
+  })
 
   if (isConnectError(transaction)) throw transaction.errorResponse
 

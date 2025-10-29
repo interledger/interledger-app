@@ -1,14 +1,11 @@
-import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
-import { json } from '@remix-run/node'
+import type { MetaFunction } from '@remix-run/node'
 import type { ShouldRevalidateFunction } from '@remix-run/react'
-import { Outlet, useLoaderData, useLocation } from '@remix-run/react'
+import { Outlet, useLocation } from '@remix-run/react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import {
   Card,
   CardLink,
-  Chip,
-  ChipColor,
   Fab,
   GridColumn,
   Icon,
@@ -17,7 +14,6 @@ import {
   WalletGrid
 } from '~/components'
 import { mergeMeta } from '~/lib/meta'
-import { mockPendingConfirmations } from '~/lib/mocks/confirmations'
 import { usePendingConfirmations } from '~/lib/usePendingConfirmations'
 
 export const shouldRevalidate: ShouldRevalidateFunction = ({
@@ -27,42 +23,6 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({
 }) => {
   if (currentUrl.search !== nextUrl.search) return false
   return defaultShouldRevalidate
-}
-
-export async function loader({ request }: LoaderFunctionArgs) {
-  // For now, using mock data
-  // TODO: Replace with actual API call: await grpc.getPending3DSConfirmations(request, {})
-
-  const confirmations = mockPendingConfirmations
-
-  // Format dates and group confirmations by date
-  const formattedConfirmations = confirmations.map((confirmation) => ({
-    transactionId: confirmation.transactionId,
-    merchantName: confirmation.merchantName,
-    purchaseDate: confirmation.purchaseDate,
-    timeout: confirmation.timeout,
-    formattedDate: new Date(
-      Number(confirmation.purchaseDate)
-    ).toLocaleDateString('en-US', {
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric'
-    }),
-    formattedTime: new Date(
-      Number(confirmation.purchaseDate)
-    ).toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    }),
-    formattedAmount: `${parseFloat(confirmation.purchaseAmount).toFixed(2)} ${
-      confirmation.purchaseCurrency
-    }`
-  }))
-
-  return json({
-    confirmations: formattedConfirmations
-  })
 }
 
 export const handle: ApplicationProps = {
@@ -82,7 +42,6 @@ export const meta: MetaFunction = mergeMeta(() => [
 ])
 
 export default function Page() {
-  // const { confirmations } = useLoaderData<typeof loader>()
   const { pendingConfirmations: confirmations } = usePendingConfirmations()
   const location = useLocation()
   const pathSegments = location.pathname.split('/').filter(Boolean)
@@ -106,7 +65,7 @@ export default function Page() {
           </Card>
         )}
 
-        {confirmations && (
+        {confirmations.length > 0 && (
           <Card key={`confirmations`}>
             {confirmations.map((confirmation) => (
               <CardLink
@@ -118,8 +77,8 @@ export default function Page() {
                 })}
                 className='justify-between space-x-4'
               >
-                <div className='flex w-7/12 items-center space-x-2'>
-                  <div className='flex flex-col items-center'>
+                <div className='flex w-7/12 items-center space-x-6'>
+                  <div className='flex w-8 flex-col items-center space-y-1'>
                     <Icon className='text-orange-500'>schedule</Icon>
                     <TimeoutDisplay
                       purchaseDate={confirmation.purchaseDate}
@@ -138,9 +97,9 @@ export default function Page() {
                 <div className='flex min-w-max flex-initial items-center space-x-2'>
                   <div className='flex flex-col items-end space-y-1'>
                     <span className='min-w-max font-medium text-medium'>
-                      {confirmation.formattedAmount}
+                      {confirmation.purchaseAmount}{' '}
+                      {confirmation.purchaseCurrency}
                     </span>
-                    <Chip color={ChipColor.orange}>Pending</Chip>
                   </div>
                   <Icon>navigate_next</Icon>
                 </div>
@@ -149,6 +108,7 @@ export default function Page() {
           </Card>
         )}
       </GridColumn>
+
       <GridColumn sticky className='col-span-full lg:col-span-6 lg:col-start-7'>
         <Outlet />
       </GridColumn>

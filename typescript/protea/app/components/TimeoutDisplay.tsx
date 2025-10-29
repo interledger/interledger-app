@@ -10,7 +10,7 @@ export function TimeoutDisplay({ purchaseDate, timeout }: TimeoutDisplayProps) {
 
   useEffect(() => {
     const calculateTimeLeft = () => {
-      const purchaseDateTimestamp = Number(purchaseDate)
+      const purchaseDateTimestamp = new Date(purchaseDate).valueOf()
       const timeoutSeconds = Number(timeout)
       const now = Date.now()
 

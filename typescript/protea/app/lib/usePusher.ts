@@ -2,6 +2,8 @@ import { useRevalidator } from '@remix-run/react'
 import type { Channel, PresenceChannel } from 'pusher-js'
 import Pusher from 'pusher-js'
 import { useEffect, useState } from 'react'
+import { PendingThreeDSConfirmation } from '~/generated/connect/backend/v1/backend_pb'
+import { usePendingConfirmations } from './usePendingConfirmations'
 import { useScaffoldStore } from './useScaffoldStore'
 
 let pusherClient: Pusher
@@ -10,7 +12,13 @@ declare global {
   var __pusherClient: Pusher | undefined
 }
 
-type Events = 'linkedAccount' | 'transaction' | 'kyc' | 'identity' | 'cardReady'
+type Events =
+  | 'linkedAccount'
+  | 'transaction'
+  | 'kyc'
+  | 'identity'
+  | 'cardReady'
+  | 'pending3DSConfirmation'
 
 export type PusherArgs = {
   appKey: string
@@ -21,6 +29,7 @@ export type PusherArgs = {
 export function usePusher(args: PusherArgs, events: Events[]) {
   const { revalidate, state } = useRevalidator()
   const [pushSnackbar] = useScaffoldStore((state) => [state.pushSnackbar])
+  const { addPendingConfirmation } = usePendingConfirmations()
 
   if (!global.__pusherClient) {
     global.__pusherClient = new Pusher(args.appKey, {
@@ -56,6 +65,22 @@ export function usePusher(args: PusherArgs, events: Events[]) {
         action: 'View cards'
       })
   })
+  usePusherEvent<PendingThreeDSConfirmation>(
+    channel,
+    'pending3DSConfirmation',
+    (data) => {
+      if (data) {
+        if (!data.timeout) {
+          data.timeout = '300'
+        }
+        addPendingConfirmation(data)
+      }
+      pushSnackbar({
+        message: 'You have a new pending 3DS confirmation.',
+        id: crypto.randomUUID()
+      })
+    }
+  )
   // TODO: Maybe return connection state?
 }
 

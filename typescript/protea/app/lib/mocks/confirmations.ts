@@ -3,17 +3,11 @@
  * Based on GateHub Cards API: https://api.gatehub.net/cards/openapi#tag/3ds
  */
 
+import type { PendingConfirmation } from '../usePendingConfirmations'
+
 /**
  * 3DS Pending Confirmation structure from GateHub
  */
-export interface PendingConfirmation {
-  transactionId: string
-  merchantName: string
-  purchaseAmount: string
-  purchaseCurrency: string
-  purchaseDate: string
-  timeout: string
-}
 
 /**
  * Mock pending 3DS confirmations for testing and development

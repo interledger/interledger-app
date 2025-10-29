@@ -41,6 +41,10 @@ func New(b Backends, pusherClientURL string) notify.Client {
 	}
 }
 
-func (c client) NotifyWallet(ctx context.Context, walletId string, event notify.NotificationType) error {
-	return ops.NotifyWallet(ctx, c.b, walletId, event)
+func (c client) NotifyWallet(ctx context.Context, walletID string, event notify.NotificationType) error {
+	return ops.NotifyWallet(ctx, c.b, walletID, event)
+}
+
+func (c client) NotifyPending3DSConfirmation(ctx context.Context, walletID string, data any) error {
+	return ops.NotifyPending3DSConfirmation(ctx, c.b, walletID, data)
 }

@@ -32,6 +32,57 @@ export interface PaginationRequest {
 export interface Empty {
 }
 /**
+ * @generated from protobuf message backend.v1.ThreeDSPaymentConfirmationRequest
+ */
+export interface ThreeDSPaymentConfirmationRequest {
+    /**
+     * @generated from protobuf field: string transactionId = 1;
+     */
+    transactionId: string;
+    /**
+     * @generated from protobuf field: bool confirmed = 2;
+     */
+    confirmed: boolean;
+}
+/**
+ * @generated from protobuf message backend.v1.PendingThreeDSConfirmation
+ */
+export interface PendingThreeDSConfirmation {
+    /**
+     * @generated from protobuf field: string transactionId = 1;
+     */
+    transactionId: string;
+    /**
+     * @generated from protobuf field: string merchantName = 2;
+     */
+    merchantName: string;
+    /**
+     * @generated from protobuf field: string purchaseAmount = 3;
+     */
+    purchaseAmount: string;
+    /**
+     * @generated from protobuf field: string purchaseCurrency = 4;
+     */
+    purchaseCurrency: string;
+    /**
+     * @generated from protobuf field: string purchaseDate = 5;
+     */
+    purchaseDate: string;
+    /**
+     * @generated from protobuf field: string timeout = 6;
+     */
+    timeout: string;
+}
+/**
+ * @generated from protobuf message backend.v1.GetPendingThreeDSConfirmationsResponse
+ */
+export interface GetPendingThreeDSConfirmationsResponse {
+    /**
+     * @generated from protobuf field: repeated backend.v1.PendingThreeDSConfirmation confirmations = 1;
+     */
+    confirmations: PendingThreeDSConfirmation[];
+}
+/**
  * @generated from protobuf message backend.v1.FreezeCardRequest
  */
 export interface FreezeCardRequest {
@@ -3063,6 +3114,189 @@ class Empty$Type extends MessageType<Empty> {
  * @generated MessageType for protobuf message backend.v1.Empty
  */
 export const Empty = new Empty$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ThreeDSPaymentConfirmationRequest$Type extends MessageType<ThreeDSPaymentConfirmationRequest> {
+    constructor() {
+        super("backend.v1.ThreeDSPaymentConfirmationRequest", [
+            { no: 1, name: "transactionId", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "confirmed", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+        ]);
+    }
+    create(value?: PartialMessage<ThreeDSPaymentConfirmationRequest>): ThreeDSPaymentConfirmationRequest {
+        const message = { transactionId: "", confirmed: false };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ThreeDSPaymentConfirmationRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ThreeDSPaymentConfirmationRequest): ThreeDSPaymentConfirmationRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string transactionId */ 1:
+                    message.transactionId = reader.string();
+                    break;
+                case /* bool confirmed */ 2:
+                    message.confirmed = reader.bool();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ThreeDSPaymentConfirmationRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string transactionId = 1; */
+        if (message.transactionId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.transactionId);
+        /* bool confirmed = 2; */
+        if (message.confirmed !== false)
+            writer.tag(2, WireType.Varint).bool(message.confirmed);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.ThreeDSPaymentConfirmationRequest
+ */
+export const ThreeDSPaymentConfirmationRequest = new ThreeDSPaymentConfirmationRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class PendingThreeDSConfirmation$Type extends MessageType<PendingThreeDSConfirmation> {
+    constructor() {
+        super("backend.v1.PendingThreeDSConfirmation", [
+            { no: 1, name: "transactionId", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "merchantName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "purchaseAmount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "purchaseCurrency", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "purchaseDate", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "timeout", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<PendingThreeDSConfirmation>): PendingThreeDSConfirmation {
+        const message = { transactionId: "", merchantName: "", purchaseAmount: "", purchaseCurrency: "", purchaseDate: "", timeout: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<PendingThreeDSConfirmation>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: PendingThreeDSConfirmation): PendingThreeDSConfirmation {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string transactionId */ 1:
+                    message.transactionId = reader.string();
+                    break;
+                case /* string merchantName */ 2:
+                    message.merchantName = reader.string();
+                    break;
+                case /* string purchaseAmount */ 3:
+                    message.purchaseAmount = reader.string();
+                    break;
+                case /* string purchaseCurrency */ 4:
+                    message.purchaseCurrency = reader.string();
+                    break;
+                case /* string purchaseDate */ 5:
+                    message.purchaseDate = reader.string();
+                    break;
+                case /* string timeout */ 6:
+                    message.timeout = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: PendingThreeDSConfirmation, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string transactionId = 1; */
+        if (message.transactionId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.transactionId);
+        /* string merchantName = 2; */
+        if (message.merchantName !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.merchantName);
+        /* string purchaseAmount = 3; */
+        if (message.purchaseAmount !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.purchaseAmount);
+        /* string purchaseCurrency = 4; */
+        if (message.purchaseCurrency !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.purchaseCurrency);
+        /* string purchaseDate = 5; */
+        if (message.purchaseDate !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.purchaseDate);
+        /* string timeout = 6; */
+        if (message.timeout !== "")
+            writer.tag(6, WireType.LengthDelimited).string(message.timeout);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.PendingThreeDSConfirmation
+ */
+export const PendingThreeDSConfirmation = new PendingThreeDSConfirmation$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GetPendingThreeDSConfirmationsResponse$Type extends MessageType<GetPendingThreeDSConfirmationsResponse> {
+    constructor() {
+        super("backend.v1.GetPendingThreeDSConfirmationsResponse", [
+            { no: 1, name: "confirmations", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => PendingThreeDSConfirmation }
+        ]);
+    }
+    create(value?: PartialMessage<GetPendingThreeDSConfirmationsResponse>): GetPendingThreeDSConfirmationsResponse {
+        const message = { confirmations: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GetPendingThreeDSConfirmationsResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetPendingThreeDSConfirmationsResponse): GetPendingThreeDSConfirmationsResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated backend.v1.PendingThreeDSConfirmation confirmations */ 1:
+                    message.confirmations.push(PendingThreeDSConfirmation.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GetPendingThreeDSConfirmationsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated backend.v1.PendingThreeDSConfirmation confirmations = 1; */
+        for (let i = 0; i < message.confirmations.length; i++)
+            PendingThreeDSConfirmation.internalBinaryWrite(message.confirmations[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.GetPendingThreeDSConfirmationsResponse
+ */
+export const GetPendingThreeDSConfirmationsResponse = new GetPendingThreeDSConfirmationsResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class FreezeCardRequest$Type extends MessageType<FreezeCardRequest> {
     constructor() {
@@ -13090,5 +13324,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "GetCardToken", options: {}, I: GetCardTokenRequest, O: GetCardTokenResponse },
     { name: "FreezeCard", options: {}, I: FreezeCardRequest, O: Empty },
     { name: "UnfreezeCard", options: {}, I: UnfreezeCardRequest, O: Empty },
-    { name: "BlockCard", options: {}, I: BlockCardRequest, O: Empty }
+    { name: "BlockCard", options: {}, I: BlockCardRequest, O: Empty },
+    { name: "GetPendingThreeDSConfirmations", options: {}, I: Empty, O: GetPendingThreeDSConfirmationsResponse },
+    { name: "ThreeDSPaymentConfirmation", options: {}, I: ThreeDSPaymentConfirmationRequest, O: Empty }
 ]);

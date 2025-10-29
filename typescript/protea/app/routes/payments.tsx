@@ -40,7 +40,6 @@ import { grpc } from '~/lib/grpc.server'
 import { isConnectError } from '~/lib/error.server'
 import { mergeMeta } from '~/lib/meta'
 import { KycStatus } from '~/routes/_index/route'
-import { mockDateGroupedTransactions } from '~/lib/mocks/payments'
 
 /**
  * Allows us to change the searchParams without revalidating the pages data
@@ -99,8 +98,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   return json({
     kycStatus: kycStatus.kycStatus,
-    // transactions: dateGroupedTransactions,
-    transactions: mockDateGroupedTransactions,
+    transactions: dateGroupedTransactions,
     nextPageToken: pageInfo.pageToken
   })
 }

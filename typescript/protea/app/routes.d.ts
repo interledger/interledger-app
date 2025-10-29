@@ -7,10 +7,13 @@ declare module "routes-gen" {
     "/accounts/:accountId/name": { "accountId": string };
     "/api/cardOperation": Record<string, never>;
     "/api/check-totp-enabled": Record<string, never>;
+    "/api/confirmPendingConfirmation": Record<string, never>;
     "/api/fern": Record<string, never>;
     "/api/getCardToken": Record<string, never>;
+    "/api/getPendingConfirmations": Record<string, never>;
     "/api/maps/geocode": Record<string, never>;
     "/api/maps/placesAutocomplete": Record<string, never>;
+    "/api/paymentConfirmation": Record<string, never>;
     "/api/pti/token": Record<string, never>;
     "/api/sendOtp": Record<string, never>;
     "/api/totp-challenge-init": Record<string, never>;
@@ -81,10 +84,13 @@ declare module "routes-gen" {
       | ["/accounts/:accountId/name", RouteParams["/accounts/:accountId/name"]]
       | ["/api/cardOperation"]
       | ["/api/check-totp-enabled"]
+      | ["/api/confirmPendingConfirmation"]
       | ["/api/fern"]
       | ["/api/getCardToken"]
+      | ["/api/getPendingConfirmations"]
       | ["/api/maps/geocode"]
       | ["/api/maps/placesAutocomplete"]
+      | ["/api/paymentConfirmation"]
       | ["/api/pti/token"]
       | ["/api/sendOtp"]
       | ["/api/totp-challenge-init"]

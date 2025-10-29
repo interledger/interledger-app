@@ -16,6 +16,7 @@ import (
 
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/providers/gatehub"
+	"gitlab.com/fynbos/backend/providers/gatehub/external"
 	"gitlab.com/fynbos/backend/slack"
 	"gitlab.com/fynbos/log"
 	"go.temporal.io/api/enums/v1"
@@ -93,6 +94,20 @@ type (
 		CustomerID       string  `json:"customerId"`
 		CustomerSourceID string  `json:"customerSourceId"`
 	}
+
+	Card3DSConfirmationWebhookData struct {
+		Type    string                              `json:"type"`
+		Payload external.PendingThreeDSConfirmation `json:"payload"`
+	}
+
+	Card3DSConfirmationWebhook struct {
+		UUID        string                         `json:"uuid"`
+		Timestamp   string                         `json:"timestamp"`
+		EventType   string                         `json:"event_type"`
+		UserUUID    string                         `json:"user_uuid"`
+		Environment string                         `json:"environment"`
+		Data        Card3DSConfirmationWebhookData `json:"data"`
+	}
 )
 
 func NewWebhook(b Backends) http.HandlerFunc {
@@ -162,6 +177,8 @@ func NewWebhook(b Backends) http.HandlerFunc {
 			HandleActionRequiredWebhook(r.Context(), b, body, w)
 		case "cards.card.created":
 			HandleCardCreatedWebhook(r.Context(), b, body, w)
+		case "cards.3ds.auth_3ds_confirmation":
+			HandleCardThreeDSConfirmation(r.Context(), b, body, w)
 		default:
 			log.Warn("gatehub webhook. Unhandled webhook type", zap.String("event_type", wh.EventType), zap.String("payload", string(body)))
 		}
@@ -338,6 +355,28 @@ func Verify(ctx context.Context, r *http.Request, key []byte) ([]byte, error) {
 	}
 
 	return payload, nil
+}
+
+func HandleCardThreeDSConfirmation(ctx context.Context, b Backends, raw json.RawMessage, w http.ResponseWriter) {
+	var wh Card3DSConfirmationWebhook
+	err := json.Unmarshal(raw, &wh)
+	if err != nil {
+		log.Error("gatehub webhook: Failed to unmarshal card 3DS confirmation webhook", zap.String("wh", string(raw)), zap.Error(err))
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	walletID, err := getWalletID(ctx, b, wh.UserUUID)
+	if err != nil {
+		log.Error("Failed to find wallet for gatehub user", zap.String("external_user_uuid", wh.UserUUID), zap.Error(err))
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	b.Notify().NotifyPending3DSConfirmation(ctx, walletID, wh.Data.Payload)
+	b.Email().SendPending3DSConfirmation(ctx, walletID, wh.Data.Payload.TransactionID)
+
+	w.WriteHeader(http.StatusOK)
 }
 
 func forwardWebhookToFallback(ctx context.Context, body []byte, headers http.Header) error {

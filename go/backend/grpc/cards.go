@@ -527,6 +527,97 @@ func (s *rpcService) BlockCard(ctx context.Context, req *pb.BlockCardRequest) (*
 	return &pb.Empty{}, nil
 }
 
+func (s *rpcService) GetPendingThreeDSConfirmations(ctx context.Context, req *pb.Empty) (*pb.GetPendingThreeDSConfirmationsResponse, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	wallet, err := s.b.Wallets().ForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	_, isEU := country.EUCountries[wallet.Country]
+	if !isEU {
+		return nil, FailedPreconditionError("Wallet not in the EU region")
+	}
+
+	feats, err := s.b.Features().Features(ctx, wallet.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	if !feats.ManageWalletCardsEnabled {
+		return nil, ForbiddenError("Wallet cards not enabled")
+	}
+
+	externalIDs, err := s.b.Gatehub().GetExternalIDs(ctx, wallet.ID)
+	if err != nil {
+		return nil, FailedPreconditionError("Could not retrieve external IDs")
+	}
+
+	confirmations, err := s.b.Gatehub().GetPendingThreeDSConfirmations(ctx, externalIDs.UserID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	var res pb.GetPendingThreeDSConfirmationsResponse
+
+	for _, c := range confirmations {
+		cPB := pb.PendingThreeDSConfirmation{
+			TransactionId:    c.TransactionID,
+			MerchantName:     c.MerchantName,
+			PurchaseAmount:   c.PurchaseAmount,
+			PurchaseCurrency: c.PurchaseCurrency,
+			PurchaseDate:     c.PurchaseDate,
+			Timeout:          c.Timeout,
+		}
+
+		res.Confirmations = append(res.Confirmations, &cPB)
+	}
+
+	return &res, nil
+}
+
+func (s *rpcService) ThreeDSPaymentConfirmation(ctx context.Context, req *pb.ThreeDSPaymentConfirmationRequest) (*pb.Empty, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	wallet, err := s.b.Wallets().ForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	_, isEU := country.EUCountries[wallet.Country]
+	if !isEU {
+		return nil, FailedPreconditionError("Wallet not in the EU region")
+	}
+
+	feats, err := s.b.Features().Features(ctx, wallet.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	if !feats.ManageWalletCardsEnabled {
+		return nil, ForbiddenError("Wallet cards not enabled")
+	}
+
+	externalIDs, err := s.b.Gatehub().GetExternalIDs(ctx, wallet.ID)
+	if err != nil {
+		return nil, FailedPreconditionError("Could not retrieve external IDs")
+	}
+
+	err = s.b.Gatehub().ThreeDSPaymentConfirmation(ctx, externalIDs.UserID, req.TransactionId, req.Confirmed)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &pb.Empty{}, nil
+}
+
 func newCard(c gatehub.Card) pb.Card {
 	var status pb.CardStatus
 	var cardType pb.CardType

@@ -133,3 +133,11 @@ func (c Client) BlockCard(ctx context.Context, args gatehub.BlockCardArgs) error
 func (c Client) ValidateCardProductCode(ctx context.Context, cardProductCode string) error {
 	return ops.ValidateCardProductCode(ctx, c.external, cardProductCode)
 }
+
+func (c Client) GetPendingThreeDSConfirmations(ctx context.Context, userID string) ([]external.PendingThreeDSConfirmation, error) {
+	return ops.GetPendingThreeDSConfirmations(ctx, c.external, userID)
+}
+
+func (c Client) ThreeDSPaymentConfirmation(ctx context.Context, userID, txID string, confirmed bool) error {
+	return ops.ThreeDSPaymentConfirmation(ctx, c.external, userID, txID, confirmed)
+}

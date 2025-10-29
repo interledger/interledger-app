@@ -1,23 +1,37 @@
 import { create } from 'zustand'
-import type { PendingConfirmation } from './mocks/confirmations'
+import type { PendingThreeDSConfirmation } from '~/generated/connect/backend/v1/backend_pb'
+
+export interface StorablePendingConfirmation {
+  transactionId: string
+  merchantName: string
+  purchaseAmount: string
+  purchaseCurrency: string
+  formattedDate: string
+  formattedTime: string
+  purchaseDate: string
+  timeout: string
+}
 
 interface PendingConfirmationsStore {
-  // State
-  pendingConfirmations: any[]
+  pendingConfirmations: StorablePendingConfirmation[]
   hasFetched: boolean
   timeoutIds: Map<string, NodeJS.Timeout>
   // Actions
   setHasFetched: (hasFetched: boolean) => void
-  setPendingConfirmations: (pendingConfirmations: PendingConfirmation[]) => void
-  addPendingConfirmation: (pendingConfirmation: PendingConfirmation) => void
+  setPendingConfirmations: (
+    pendingConfirmations: PendingThreeDSConfirmation[]
+  ) => void
+  addPendingConfirmation: (
+    pendingConfirmation: PendingThreeDSConfirmation
+  ) => void
   removeConfirmation: (transactionId: string) => void
   clearTimeouts: () => void
 }
 
 const createPendingConfirmationTimeout = (
-  pendingConfirmation: PendingConfirmation
+  pendingConfirmation: PendingThreeDSConfirmation
 ): number => {
-  const purchaseTime = Number(pendingConfirmation.purchaseDate)
+  const purchaseTime = new Date(pendingConfirmation.purchaseDate).valueOf()
   const timeoutMs = Number(pendingConfirmation.timeout) * 1000
   const expiryTime = purchaseTime + timeoutMs
   const remainingMs = expiryTime - Date.now()
@@ -25,12 +39,16 @@ const createPendingConfirmationTimeout = (
   return remainingMs
 }
 
-const formatPendingConfirmations = (confirmation: PendingConfirmation) => ({
+const formatPendingConfirmations = (
+  confirmation: PendingThreeDSConfirmation
+): StorablePendingConfirmation => ({
   transactionId: confirmation.transactionId,
   merchantName: confirmation.merchantName,
+  purchaseAmount: confirmation.purchaseAmount,
+  purchaseCurrency: confirmation.purchaseCurrency,
   purchaseDate: confirmation.purchaseDate,
   timeout: confirmation.timeout,
-  formattedDate: new Date(Number(confirmation.purchaseDate)).toLocaleDateString(
+  formattedDate: new Date(confirmation.purchaseDate).toLocaleDateString(
     'en-US',
     {
       month: 'long',
@@ -38,17 +56,14 @@ const formatPendingConfirmations = (confirmation: PendingConfirmation) => ({
       year: 'numeric'
     }
   ),
-  formattedTime: new Date(Number(confirmation.purchaseDate)).toLocaleTimeString(
+  formattedTime: new Date(confirmation.purchaseDate).toLocaleTimeString(
     'en-US',
     {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true
     }
-  ),
-  formattedAmount: `${parseFloat(confirmation.purchaseAmount).toFixed(2)} ${
-    confirmation.purchaseCurrency
-  }`
+  )
 })
 
 const usePendingConfirmationsStore = create<PendingConfirmationsStore>(
@@ -58,7 +73,9 @@ const usePendingConfirmationsStore = create<PendingConfirmationsStore>(
     setHasFetched: (hasFetched: boolean) => set({ hasFetched }),
     timeoutIds: new Map(),
 
-    setPendingConfirmations: (pendingConfirmations: PendingConfirmation[]) => {
+    setPendingConfirmations: (
+      pendingConfirmations: PendingThreeDSConfirmation[]
+    ) => {
       const { clearTimeouts, removeConfirmation } = get()
 
       clearTimeouts()
@@ -83,9 +100,6 @@ const usePendingConfirmationsStore = create<PendingConfirmationsStore>(
         formatPendingConfirmations
       )
 
-      console.log(
-        '[usePendingConfirmationsStore] 🐳 setPendingConfirmations called'
-      )
       set({
         pendingConfirmations: formattedPendingConfirmations,
         timeoutIds: newTimeoutIds,
@@ -93,19 +107,10 @@ const usePendingConfirmationsStore = create<PendingConfirmationsStore>(
       })
     },
 
-    addPendingConfirmation: (pendingConfirmation: PendingConfirmation) => {
+    addPendingConfirmation: (
+      pendingConfirmation: PendingThreeDSConfirmation
+    ) => {
       const { timeoutIds, removeConfirmation } = get()
-
-      console.log(
-        '[usePendingConfirmationsStore] 🐳 addPendingConfirmation called',
-        pendingConfirmation
-      )
-      set((state) => ({
-        pendingConfirmations: [
-          ...state.pendingConfirmations,
-          pendingConfirmation
-        ]
-      }))
 
       const remainingMs = createPendingConfirmationTimeout(pendingConfirmation)
 
@@ -116,6 +121,13 @@ const usePendingConfirmationsStore = create<PendingConfirmationsStore>(
         timeoutIds.set(pendingConfirmation.transactionId, timeoutId)
         set({ timeoutIds: new Map(timeoutIds) })
       }
+
+      set((state) => ({
+        pendingConfirmations: [
+          ...state.pendingConfirmations,
+          formatPendingConfirmations(pendingConfirmation)
+        ]
+      }))
     },
 
     removeConfirmation: (transactionId: string) => {
@@ -159,7 +171,9 @@ export const usePendingConfirmations = () => {
     (state) => state.removeConfirmation
   )
   const hasFetched = usePendingConfirmationsStore((state) => state.hasFetched)
-  const clearTimeouts = usePendingConfirmationsStore((state) => state.clearTimeouts)
+  const clearTimeouts = usePendingConfirmationsStore(
+    (state) => state.clearTimeouts
+  )
 
   return {
     hasFetched,

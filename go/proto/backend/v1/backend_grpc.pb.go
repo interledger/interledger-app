@@ -130,6 +130,8 @@ const (
 	BackendService_FreezeCard_FullMethodName                     = "/backend.v1.BackendService/FreezeCard"
 	BackendService_UnfreezeCard_FullMethodName                   = "/backend.v1.BackendService/UnfreezeCard"
 	BackendService_BlockCard_FullMethodName                      = "/backend.v1.BackendService/BlockCard"
+	BackendService_GetPendingThreeDSConfirmations_FullMethodName = "/backend.v1.BackendService/GetPendingThreeDSConfirmations"
+	BackendService_ThreeDSPaymentConfirmation_FullMethodName     = "/backend.v1.BackendService/ThreeDSPaymentConfirmation"
 )
 
 // BackendServiceClient is the client API for BackendService service.
@@ -276,6 +278,8 @@ type BackendServiceClient interface {
 	FreezeCard(ctx context.Context, in *FreezeCardRequest, opts ...grpc.CallOption) (*Empty, error)
 	UnfreezeCard(ctx context.Context, in *UnfreezeCardRequest, opts ...grpc.CallOption) (*Empty, error)
 	BlockCard(ctx context.Context, in *BlockCardRequest, opts ...grpc.CallOption) (*Empty, error)
+	GetPendingThreeDSConfirmations(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetPendingThreeDSConfirmationsResponse, error)
+	ThreeDSPaymentConfirmation(ctx context.Context, in *ThreeDSPaymentConfirmationRequest, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type backendServiceClient struct {
@@ -1285,6 +1289,24 @@ func (c *backendServiceClient) BlockCard(ctx context.Context, in *BlockCardReque
 	return out, nil
 }
 
+func (c *backendServiceClient) GetPendingThreeDSConfirmations(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetPendingThreeDSConfirmationsResponse, error) {
+	out := new(GetPendingThreeDSConfirmationsResponse)
+	err := c.cc.Invoke(ctx, BackendService_GetPendingThreeDSConfirmations_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) ThreeDSPaymentConfirmation(ctx context.Context, in *ThreeDSPaymentConfirmationRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, BackendService_ThreeDSPaymentConfirmation_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServiceServer is the server API for BackendService service.
 // All implementations should embed UnimplementedBackendServiceServer
 // for forward compatibility
@@ -1429,6 +1451,8 @@ type BackendServiceServer interface {
 	FreezeCard(context.Context, *FreezeCardRequest) (*Empty, error)
 	UnfreezeCard(context.Context, *UnfreezeCardRequest) (*Empty, error)
 	BlockCard(context.Context, *BlockCardRequest) (*Empty, error)
+	GetPendingThreeDSConfirmations(context.Context, *Empty) (*GetPendingThreeDSConfirmationsResponse, error)
+	ThreeDSPaymentConfirmation(context.Context, *ThreeDSPaymentConfirmationRequest) (*Empty, error)
 }
 
 // UnimplementedBackendServiceServer should be embedded to have forward compatible implementations.
@@ -1767,6 +1791,12 @@ func (UnimplementedBackendServiceServer) UnfreezeCard(context.Context, *Unfreeze
 }
 func (UnimplementedBackendServiceServer) BlockCard(context.Context, *BlockCardRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method BlockCard not implemented")
+}
+func (UnimplementedBackendServiceServer) GetPendingThreeDSConfirmations(context.Context, *Empty) (*GetPendingThreeDSConfirmationsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPendingThreeDSConfirmations not implemented")
+}
+func (UnimplementedBackendServiceServer) ThreeDSPaymentConfirmation(context.Context, *ThreeDSPaymentConfirmationRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ThreeDSPaymentConfirmation not implemented")
 }
 
 // UnsafeBackendServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -3778,6 +3808,42 @@ func _BackendService_BlockCard_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_GetPendingThreeDSConfirmations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).GetPendingThreeDSConfirmations(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_GetPendingThreeDSConfirmations_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).GetPendingThreeDSConfirmations(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_ThreeDSPaymentConfirmation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ThreeDSPaymentConfirmationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).ThreeDSPaymentConfirmation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_ThreeDSPaymentConfirmation_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).ThreeDSPaymentConfirmation(ctx, req.(*ThreeDSPaymentConfirmationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BackendService_ServiceDesc is the grpc.ServiceDesc for BackendService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -4228,6 +4294,14 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "BlockCard",
 			Handler:    _BackendService_BlockCard_Handler,
+		},
+		{
+			MethodName: "GetPendingThreeDSConfirmations",
+			Handler:    _BackendService_GetPendingThreeDSConfirmations_Handler,
+		},
+		{
+			MethodName: "ThreeDSPaymentConfirmation",
+			Handler:    _BackendService_ThreeDSPaymentConfirmation_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

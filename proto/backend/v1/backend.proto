@@ -183,6 +183,26 @@ service BackendService {
   rpc FreezeCard(FreezeCardRequest) returns (Empty);
   rpc UnfreezeCard(UnfreezeCardRequest) returns (Empty);
   rpc BlockCard(BlockCardRequest) returns (Empty);
+  rpc GetPendingThreeDSConfirmations(Empty) returns (GetPendingThreeDSConfirmationsResponse);
+  rpc ThreeDSPaymentConfirmation(ThreeDSPaymentConfirmationRequest) returns (Empty); 
+}
+
+message ThreeDSPaymentConfirmationRequest {
+  string transactionId = 1;
+  bool confirmed = 2;
+}
+
+message PendingThreeDSConfirmation {
+  string transactionId = 1;
+  string merchantName = 2;
+  string purchaseAmount = 3;
+  string purchaseCurrency = 4;
+  string purchaseDate = 5;
+  string timeout = 6;
+}
+
+message GetPendingThreeDSConfirmationsResponse {
+  repeated PendingThreeDSConfirmation confirmations = 1;
 }
 
 message FreezeCardRequest {

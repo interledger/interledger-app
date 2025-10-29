@@ -5,32 +5,30 @@ import type {
 } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import {
-  Link,
   Links,
   Meta,
   Scripts,
   ScrollRestoration,
   isRouteErrorResponse,
   useLoaderData,
-  useLocation,
   useNavigation,
   useRouteError
 } from '@remix-run/react'
 import { captureRemixErrorBoundaryError, withSentry } from '@sentry/remix'
 import clsx from 'clsx'
-import type { ReactNode } from 'react'
-import { AnchorRouter, Error, LiveReload } from '~/components'
+import { useMemo, type ReactNode } from 'react'
+import { Error, LiveReload } from '~/components'
 import { Scaffold } from '~/components/Scaffold'
 import { TotpChallengeGlobal } from '~/components/TotpChallengeGlobal'
 import { getUserSession, hasUserSession } from '~/lib/kratos.server'
 import { getSnackbar } from '~/lib/snackbar.server'
 import styles from '~/styles/app.css'
+import { PendingConfirmationsLoader } from './components/PendingConfirmationsLoader'
 import { getFeatures } from './data/wallet.server'
 import { Features } from './generated/connect/backend/v1/backend_pb'
 import { getPusherArgs } from './lib/pusher.server'
 import { NON_FULL_SESSION_ROUTES, isTotpSet } from './lib/totp.server'
 import { usePusher } from './lib/usePusher'
-import PendingConfirmationsLoader from './components/PendingConfirmationsLoader'
 
 const metaContent = {
   title: 'Interledger Wallet',
@@ -143,17 +141,16 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 function Page() {
-  // const location = useLocation()
   const { pusherArgs, env } = useLoaderData<typeof loader>()
-  // useSegment(env.segmentApiKey)
-  usePusher(pusherArgs, ['cardReady'])
 
-  // if (location.pathname == '/temp-cloudflare-error') return <CloudFlareError />
+  const walletId = useMemo(() => pusherArgs.walletId, [pusherArgs.walletId])
+
+  usePusher(pusherArgs, ['cardReady'])
 
   return (
     <Document>
       <Scaffold />
-      <PendingConfirmationsLoader walletId={pusherArgs.walletId} />
+      <PendingConfirmationsLoader walletId={walletId} />
       <TotpChallengeGlobal />
       <script
         dangerouslySetInnerHTML={{
@@ -184,73 +181,6 @@ export function ErrorBoundary() {
   return (
     <Document>
       <Error data={{ title: (error as Error).message }} />
-    </Document>
-  )
-}
-
-function CloudFlareError() {
-  return (
-    <Document>
-      <main className='w-full overflow-hidden'>
-        <section className='relative mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-x-visible px-8 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-[59rem]'>
-          <div className='relative col-span-full -mx-8 h-44 sm:col-span-6 sm:col-start-2 lg:col-start-4 lg:mx-0'>
-            <div className='absolute right-[10.5rem] top-0 h-14 w-14 rounded-bl-full bg-slate-700' />
-            <div className='absolute right-28 top-0 h-14 w-14 rounded-tr-full bg-slate-400' />
-            <div className='absolute right-14 top-0 h-14 w-14 rounded-full bg-slate-300' />
-            <div className='absolute right-0 top-0 h-14 w-14 bg-slate-100' />
-            <div className='absolute right-56 top-14 h-14 w-14 rounded-full bg-slate-300' />
-            <div className='absolute right-28 top-14 h-14 w-14 rounded-b-full bg-slate-100' />
-            <div className='absolute right-14 top-14 h-14 w-14 rounded-full bg-rose-500' />
-            <div className='absolute right-0 top-14 h-14 w-14 rounded-tl-full bg-slate-500' />
-            <div className='absolute right-0 top-28 h-14 w-14 rounded-full bg-slate-300' />
-            <div className='absolute right-14 top-[10.5rem] h-14 w-14 rounded-full bg-slate-600' />
-            <div className='absolute right-0 top-[10.5rem] h-14 w-14 rounded-b-full bg-slate-100' />
-            {/* Desktop only */}
-            <div className='absolute -right-14 top-0 hidden h-14 w-14 rounded-full bg-slate-600 lg:block' />
-            <div className='absolute -right-28 top-0 hidden h-14 w-14 rounded-t-full bg-slate-100 lg:block' />
-            <div className='absolute -right-14 top-14 hidden h-14 w-14 rounded-full bg-slate-300 lg:block' />
-            <div className='absolute -right-14 top-28 hidden h-14 w-14 rounded-full bg-slate-200 lg:block' />
-            <div className='absolute -right-28 top-28 hidden h-14 w-14 rounded-br-full bg-slate-300 lg:block' />
-            <div className='absolute -right-14 top-[10.5rem] hidden h-14 w-14 rounded-full bg-slate-300 lg:block' />
-            <div className='absolute -right-28 top-[10.5rem] hidden h-14 w-14 bg-slate-100 lg:block' />
-          </div>
-          <div className='col-span-full flex flex-grow flex-col items-start justify-center sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-            <div className='h-32' />
-            <div className='sm:mt-12'>
-              <div>
-                <h1 className='font-display text-4xl font-medium text-medium'>
-                  Unexpected error
-                </h1>
-                <p className='mt-3 text-weak'>
-                  An unexpected error has occurred and our engineers are tending
-                  to the issue.
-                </p>
-                <p className='mt-3 text-weak'>Please refresh your browser.</p>
-                <p className='mt-3 text-weak'>
-                  If the problem persists, send an email to{' '}
-                  <AnchorRouter
-                    className='text-primary'
-                    to='mailto:support@interledger.app'
-                  >
-                    support@interledger.app
-                  </AnchorRouter>{' '}
-                  outlining what you were trying to do.
-                </p>
-              </div>
-              <div className='mt-10'>
-                <Link to={'/'}>
-                  <span className='text-primary'>Go back home</span>
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
-      </main>
-      <footer className='fixed bottom-0 flex w-full justify-center p-4'>
-        <div className='flex text-xs text-weak'>
-          <p>::CLOUDFLARE_ERROR_500S_BOX::</p>
-        </div>
-      </footer>
     </Document>
   )
 }

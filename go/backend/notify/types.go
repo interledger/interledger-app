@@ -3,9 +3,10 @@ package notify
 type NotificationType string
 
 const (
-	NotificationTypeLinkedAccount = "linkedAccount"
-	NotificationTypeTransaction   = "transaction"
-	NotificationTypeKyc           = "kyc"
-	NotificationTypeIdentity      = "identity"
-	NotificationTypeCardReady     = "cardReady"
+	NotificationTypeLinkedAccount              = "linkedAccount"
+	NotificationTypeTransaction                = "transaction"
+	NotificationTypeKyc                        = "kyc"
+	NotificationTypeIdentity                   = "identity"
+	NotificationTypeCardReady                  = "cardReady"
+	NotificationTypePendingThreeDSConfirmation = "pending3DSConfirmation"
 )

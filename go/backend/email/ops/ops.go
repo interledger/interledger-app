@@ -471,3 +471,28 @@ func SendCardCreatedEmail(ctx context.Context, b Backends, walletID, cardID stri
 		log.Error("Failed to send card created email.", zap.Error(err), zap.String("walletID", walletID))
 	}
 }
+
+func SendPending3DSConfirmation(ctx context.Context, b Backends, walletID, confirmationID string) {
+	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
+	if err != nil {
+		log.Error("Failed to send pending 3ds ocnfirmation email.", zap.Error(err), zap.String("walletID", walletID))
+		return
+	}
+
+	if err != nil {
+		log.Error("Failed to send pending 3ds ocnfirmation email.", zap.Error(err), zap.String("walletID", walletID))
+		return
+	}
+	err = b.External().SendTemplate(ctx, "⚠️ Action Required: Pending 3D Secure Transaction", sendTo, oneTemplateID, map[string]interface{}{
+		"subject": "⚠️ Action Required: Pending 3D Secure Transaction",
+		"data": []map[string]interface{}{
+			{"paragraph": greeting},
+			{"paragraph": "We noticed that a recent transaction requires 3D Secure (3DS) authentication to complete."},
+			{"paragraph": "Please verify the transaction as soon as possible to ensure it’s processed successfully."},
+			{"paragraph": "If you didn’t initiate this transaction, you can safely ignore it or contact our support team."},
+		},
+	}, nil)
+	if err != nil {
+		log.Error("Failed to send card created email.", zap.Error(err), zap.String("walletID", walletID))
+	}
+}

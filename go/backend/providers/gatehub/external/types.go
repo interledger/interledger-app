@@ -415,6 +415,25 @@ type (
 	CloseCardArgs struct {
 		ReasonCode string
 	}
+
+	PendingThreeDSConfirmation struct {
+		TransactionID    string `json:"transactionId"`
+		MerchantName     string `json:"merchantName"`
+		PurchaseAmount   string `json:"purchaseAmount"`
+		PurchaseCurrency string `json:"purchaseCurrency"`
+		PurchaseDate     string `json:"purchaseDate"`
+		Timeout          string `json:"timeout"`
+	}
+
+	PendingThreeDSConfirmationResponse struct {
+		PendingConfirmations []PendingThreeDSConfirmation `json:"pendingConfirmations"`
+	}
+
+	ThreeDSPaymentConfirmationArgs struct {
+		TransactionID string `json:"-"`
+		Confirmed     bool   `json:"confirmed"`
+		AuthMethod    string `json:"authMethod"`
+	}
 )
 
 func (ca *CardAccount) WithAccountProductCode(productCode string) {
