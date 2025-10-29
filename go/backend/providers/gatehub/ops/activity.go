@@ -653,33 +653,33 @@ func (a *Activity) SaveGatehubCardTransaction(ctx context.Context, userID, cardI
 	return nil
 }
 
-func (a *Activity) CreateGatehubCardTransaction(ctx context.Context, userID string, tx external.CardTransaction) (string, error) {
+func (a *Activity) CreateGatehubCardTransaction(ctx context.Context, userID, txID string, tx external.CardTransaction) error {
 	if tx.BillingCurrency == nil || tx.BillingAmount == nil {
-		return "", temporal.NewNonRetryableApplicationError("Invalid billing currency or amount", "ErrInternal", fmt.Errorf("%w invalid currency or amount", gatehub.ErrInternal))
+		return temporal.NewNonRetryableApplicationError("Invalid billing currency or amount", "ErrInternal", fmt.Errorf("%w invalid currency or amount", gatehub.ErrInternal))
 	}
 
 	if *tx.BillingCurrency != currency.EUR.String() {
-		return "", temporal.NewNonRetryableApplicationError("Invalid currency", "ErrInternal", fmt.Errorf("%w invalid currency", gatehub.ErrInternal))
+		return temporal.NewNonRetryableApplicationError("Invalid currency", "ErrInternal", fmt.Errorf("%w invalid currency", gatehub.ErrInternal))
 	}
 
 	merchantName := getMerchantName(tx)
 
 	walletID, err := getWalletID(ctx, a.b, userID)
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	wallet, err := a.b.Wallets().Get(ctx, walletID)
 	if errors.Is(err, gatehub.ErrNotFound) {
-		return "", temporal.NewNonRetryableApplicationError("Wallet not found", "ErrNotFound", fmt.Errorf("%w No wallet found for gatehub user", gatehub.ErrNotFound))
+		return temporal.NewNonRetryableApplicationError("Wallet not found", "ErrNotFound", fmt.Errorf("%w No wallet found for gatehub user", gatehub.ErrNotFound))
 	}
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	las, err := a.b.LinkedAccounts().ListBalances(ctx, walletID)
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	var eurBalance *linkedaccounts.LinkedAccount
@@ -691,11 +691,11 @@ func (a *Activity) CreateGatehubCardTransaction(ctx context.Context, userID stri
 	}
 
 	if eurBalance == nil {
-		return "", temporal.NewNonRetryableApplicationError("Gatehub EUR balance account not found", "ErrInternal", fmt.Errorf("%w Gatehub EUR balance account not found", gatehub.ErrInternal))
+		return temporal.NewNonRetryableApplicationError("Gatehub EUR balance account not found", "ErrInternal", fmt.Errorf("%w Gatehub EUR balance account not found", gatehub.ErrInternal))
 	}
 
 	transactionArgs := transactions.CreateTransactionArgs{
-		ID:                 tx.TransactionID,
+		ID:                 txID,
 		WalletID:           walletID,
 		Provider:           gatehub.ProviderName,
 		State:              transactions.StatePending,
@@ -704,11 +704,12 @@ func (a *Activity) CreateGatehubCardTransaction(ctx context.Context, userID stri
 		Source:             wallet.AddressString(),
 		LinkedAccountTitle: "EUR Balance",
 		Title:              merchantName,
+		Destination:        merchantName,
 	}
 
 	val, err := StringToScaledUInt(*tx.BillingAmount)
 	if err != nil {
-		return "", temporal.NewNonRetryableApplicationError("Invalid billing amount", "ErrInternal", fmt.Errorf("%w invalid billing amount: %s", gatehub.ErrInternal, *tx.BillingAmount))
+		return temporal.NewNonRetryableApplicationError("Invalid billing amount", "ErrInternal", fmt.Errorf("%w invalid billing amount: %s", gatehub.ErrInternal, *tx.BillingAmount))
 	}
 
 	amount := currency.Amount{
@@ -728,12 +729,12 @@ func (a *Activity) CreateGatehubCardTransaction(ctx context.Context, userID stri
 		},
 	}
 
-	tID, err := a.b.Transactions().CreateTransaction(ctx, transactionArgs)
+	_, err = a.b.Transactions().CreateTransaction(ctx, transactionArgs)
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	return tID, nil
+	return nil
 }
 
 func (a *Activity) FinalizeGatehubCardTransaction(ctx context.Context, cardTxID, internalTxID string) error {

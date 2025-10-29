@@ -2,9 +2,11 @@ package ops
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"gitlab.com/fynbos/backend/providers/gatehub/external"
+	"gitlab.com/fynbos/backend/slack"
 	"gitlab.com/fynbos/log"
 
 	"go.temporal.io/api/enums/v1"
@@ -48,7 +50,7 @@ func GatehubCardTransactionsPollWorkflow(ctx workflow.Context) error {
 		return err
 	}
 
-	// No new transactiosn, so nothing to do
+	// No new transactions, so nothing to do
 	if len(txs) == 0 {
 		return nil
 	}
@@ -57,8 +59,11 @@ func GatehubCardTransactionsPollWorkflow(ctx workflow.Context) error {
 		err := workflow.ExecuteActivity(ctx, a.ProcessCardTransaction, tx).Get(ctx, nil)
 		if err != nil {
 			logger.Error("Failed processing transaction", "txID", tx, "error", err)
+			slack.SendToChannel(context.Background(), slack.ChannelNotifyEvents, "wallet-info-bot", fmt.Sprintf(":warning: Failed to process card transaction\nGateHub TX ID: %s\nGateHub User ID: %s", tx.ID, tx.UserID))
 			continue
 		}
+
+		time.Sleep(time.Millisecond * 300)
 	}
 
 	return nil

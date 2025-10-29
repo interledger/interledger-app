@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/notify"
@@ -411,13 +412,21 @@ func CreateCardTransaction(ctx workflow.Context, wh CardTransactionEventWebhook)
 		return nil
 	}
 
+	// TODO: Is this needed?
 	if ct.TxStatus == nil {
 		slack.SendToChannel(context.Background(), slack.ChannelNotifyEvents, "wallet-info-bot", fmt.Sprintf("!!! Received card transaction with no tx status:\nCard TX ID: %s\nCard ID: %s\nGateHub User ID: %s", ct.TransactionID, card.ID, wh.UserID))
 		return nil
 	}
 
 	var txID string
-	err = workflow.ExecuteActivity(ctx, a.CreateGatehubCardTransaction, wh.UserID, ct).Get(ctx, &txID)
+	err = workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
+		return uuid.NewString()
+	}).Get(&txID)
+	if err != nil {
+		return nil
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.CreateGatehubCardTransaction, wh.UserID, txID, ct).Get(ctx, &txID)
 	if err != nil {
 		return err
 	}
