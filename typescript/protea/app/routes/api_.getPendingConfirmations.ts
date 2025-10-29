@@ -1,4 +1,4 @@
-import type { LoaderFunctionArgs } from '@remix-run/node'
+import type { ActionFunctionArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import type { PendingThreeDSConfirmation } from '~/generated/connect/backend/v1/backend_pb'
 import { isConnectError } from '~/lib/error.server'
@@ -11,7 +11,7 @@ export type GetPendingConfirmationsResponse = {
   }
 }
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function action({ request }: ActionFunctionArgs) {
   const response = await grpc.getPendingThreeDSConfirmations(request, {})
   if (isConnectError(response)) {
     return json<GetPendingConfirmationsResponse>(

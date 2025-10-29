@@ -1,11 +1,16 @@
-import type { MetaFunction } from '@remix-run/node'
 import { useNavigate, useParams } from '@remix-run/react'
 import { useEffect, useMemo } from 'react'
 import { route, type RouteParams } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import { Card, CardButton, CardContent, Icon, Layouts } from '~/components'
+import {
+  Button,
+  Card,
+  CardContent,
+  Icon,
+  Layouts,
+  OutlineButton
+} from '~/components'
 import { Label } from '~/components/Label'
-import { mergeMeta } from '~/lib/meta'
 import { usePendingConfirmationActions } from '~/lib/usePendingConfirmationActions'
 import {
   usePendingConfirmations,
@@ -22,12 +27,6 @@ export const handle: ApplicationProps = {
     isNested: true
   }
 }
-
-export const meta: MetaFunction = mergeMeta(() => [
-  {
-    title: 'Pending 3DS Confirmation'
-  }
-])
 
 export default function Page() {
   const navigate = useNavigate()
@@ -103,25 +102,18 @@ function ConfirmationView({
           </div>
         </div>
       </Card>
-
-      <Card>
-        <div className='flex w-full flex-col space-y-4'>
-          <CardButton
-            disabled={actionStatus === 'loading'}
-            onClick={() => decide('true')}
-            className='mt-0 flex-1 border-2 border-white text-center text-white'
-          >
-            <span className='mx-auto font-medium'>Approve</span>
-          </CardButton>
-          <CardButton
-            disabled={actionStatus === 'loading'}
-            onClick={() => decide('false')}
-            className='flex-1 border-2 border-error text-center font-medium text-white'
-          >
-            <span className='mx-auto font-medium'>Decline</span>
-          </CardButton>
-        </div>
-      </Card>
+      <Button
+        disabled={actionStatus === 'loading'}
+        onClick={() => decide('true')}
+      >
+        <span className='mx-auto font-medium'>Approve</span>
+      </Button>
+      <OutlineButton
+        disabled={actionStatus === 'loading'}
+        onClick={() => decide('false')}
+      >
+        <span className='mx-auto font-medium'>Decline</span>
+      </OutlineButton>
     </>
   )
 }

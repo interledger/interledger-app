@@ -16,7 +16,7 @@ import {
 } from '@remix-run/react'
 import { captureRemixErrorBoundaryError, withSentry } from '@sentry/remix'
 import clsx from 'clsx'
-import { useMemo, type ReactNode } from 'react'
+import { type ReactNode } from 'react'
 import { Error, LiveReload } from '~/components'
 import { Scaffold } from '~/components/Scaffold'
 import { TotpChallengeGlobal } from '~/components/TotpChallengeGlobal'
@@ -143,14 +143,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
 function Page() {
   const { pusherArgs, env } = useLoaderData<typeof loader>()
 
-  const walletId = useMemo(() => pusherArgs.walletId, [pusherArgs.walletId])
-
   usePusher(pusherArgs, ['cardReady'])
 
   return (
     <Document>
       <Scaffold />
-      <PendingConfirmationsLoader walletId={walletId} />
+      <PendingConfirmationsLoader walletId={pusherArgs.walletId} />
       <TotpChallengeGlobal />
       <script
         dangerouslySetInnerHTML={{

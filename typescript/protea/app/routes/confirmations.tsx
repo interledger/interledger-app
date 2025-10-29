@@ -13,7 +13,6 @@ import {
   TimeoutDisplay,
   WalletGrid
 } from '~/components'
-import { mergeMeta } from '~/lib/meta'
 import { usePendingConfirmations } from '~/lib/usePendingConfirmations'
 
 export const shouldRevalidate: ShouldRevalidateFunction = ({
@@ -29,17 +28,17 @@ export const handle: ApplicationProps = {
   layout: Layouts.Wallet,
   scaffold: {
     header: {
-      title: 'Pending Confirmations'
+      title: 'Pending 3DS Confirmations'
     },
     fab: Fab.Pay
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta: MetaFunction = () => [
   {
-    title: 'Pending Confirmations'
+    title: 'Pending 3DS Confirmations'
   }
-])
+]
 
 export default function Page() {
   const { pendingConfirmations: confirmations } = usePendingConfirmations()
