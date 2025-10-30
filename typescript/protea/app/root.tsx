@@ -17,7 +17,17 @@ import {
 import { captureRemixErrorBoundaryError, withSentry } from '@sentry/remix'
 import clsx from 'clsx'
 import { type ReactNode } from 'react'
-import { Error, LiveReload } from '~/components'
+import {
+  Card,
+  CardContent,
+  CardIcon,
+  Error,
+  GridColumn,
+  Icon,
+  InterledgerLogo,
+  LiveReload,
+  WalletGrid
+} from '~/components'
 import { Scaffold } from '~/components/Scaffold'
 import { TotpChallengeGlobal } from '~/components/TotpChallengeGlobal'
 import { getUserSession, hasUserSession } from '~/lib/kratos.server'
@@ -108,6 +118,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const snackbar = await getSnackbar(request)
 
   let features = new Features()
+  let isDisabled = false
   const url = new URL(request.url)
   const pathname = url.pathname
 
@@ -119,14 +130,19 @@ export async function loader({ request }: LoaderFunctionArgs) {
     }
 
     features = await getFeatures(request)
-    if (features && !features.accountEnabled) {
-      return redirect('/unavailable')
+    if (
+      features &&
+      !features.accountEnabled &&
+      url.pathname !== '/wallet-address'
+    ) {
+      isDisabled = true
     }
   }
 
   const pusherArgs = await getPusherArgs(request)
 
   return json({
+    isDisabled,
     isUser,
     features,
     snackbar,
@@ -141,20 +157,26 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 function Page() {
-  const { pusherArgs, env } = useLoaderData<typeof loader>()
+  const { pusherArgs, env, isDisabled } = useLoaderData<typeof loader>()
 
   usePusher(pusherArgs, ['cardReady'])
 
   return (
     <Document>
-      <Scaffold />
-      <PendingConfirmationsLoader walletId={pusherArgs.walletId} />
-      <TotpChallengeGlobal />
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `window.ENV = ${JSON.stringify(env)}`
-        }}
-      />
+      {isDisabled ? (
+        <Unavailable />
+      ) : (
+        <>
+          <Scaffold />
+          <PendingConfirmationsLoader walletId={pusherArgs.walletId} />
+          <TotpChallengeGlobal />
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `window.ENV = ${JSON.stringify(env)}`
+            }}
+          />
+        </>
+      )}
     </Document>
   )
 }
@@ -180,5 +202,29 @@ export function ErrorBoundary() {
     <Document>
       <Error data={{ title: (error as Error).message }} />
     </Document>
+  )
+}
+
+function Unavailable() {
+  return (
+    <main className='mb-32 mt-32 w-full px-4'>
+      <WalletGrid>
+        <GridColumn className='col-span-full space-y-8'>
+          <InterledgerLogo className='w-96 self-center' />
+          <Card className='flex !flex-row'>
+            <CardIcon className='my-auto h-16'>
+              <Icon className='text-red-600'>warning</Icon>
+            </CardIcon>
+            <CardContent className='ml-2 text-lg'>
+              The application is not yet available in your location, but do not
+              worry we are working tirelessly to solve it as fast as possible!{' '}
+              <br />
+              We will notify you by email once the application becomes fully
+              functional in your region.
+            </CardContent>
+          </Card>
+        </GridColumn>
+      </WalletGrid>
+    </main>
   )
 }
