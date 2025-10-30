@@ -1,4 +1,4 @@
-import { Form } from '@remix-run/react'
+import { Form, useNavigation } from '@remix-run/react'
 import { Button, Card, CardContent, Icon, TextField } from '~/components'
 import { Label } from '~/components/Label'
 
@@ -11,6 +11,9 @@ export const TotpChallenge = ({
   csrfToken: string
   actionData: any
 }) => {
+  const navigation = useNavigation()
+  const isSubmitting = navigation.state === 'submitting'
+  const disabled = isSubmitting
   return (
     <>
       <Form method='post'>
@@ -41,8 +44,8 @@ export const TotpChallenge = ({
             errorMessage={actionData?.errors?.totp_code}
           />
         </Card>
-        <Button type='submit' className='mt-4'>
-          Verify
+        <Button type='submit' disabled={disabled} className='mt-4'>
+        {isSubmitting ? 'Verifying…' : 'Verify'}
         </Button>
       </Form>
     </>

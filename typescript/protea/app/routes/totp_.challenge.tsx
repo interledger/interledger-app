@@ -1,4 +1,4 @@
-import { SelfServiceLoginFlow } from '@ory/kratos-client'
+import type { SelfServiceLoginFlow } from '@ory/kratos-client'
 import type {
   ActionFunctionArgs,
   LoaderFunctionArgs,
@@ -13,6 +13,12 @@ import { TotpChallenge } from '~/components/TotpChallenge'
 import { validateCSRFToken } from '~/lib/csrf.server'
 import { KRATOS_URL, getCsrfTokenFromFlow } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
+export  type TotpAction = {
+  disabled: boolean
+  errors: {
+    totp_code?: string
+  }
+} | undefined
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
@@ -85,7 +91,7 @@ export const meta: MetaFunction = mergeMeta(() => [
 
 export default function Page() {
   const { flowId, csrfToken } = useLoaderData<typeof loader>()
-  const actionData = useActionData<typeof action>()
+  const actionData: TotpAction = useActionData<typeof action>()
 
   return (
     <>
@@ -126,6 +132,7 @@ export async function action({ request }: ActionFunctionArgs) {
   if (res.status === 400) {
     const data = await res.json()
     return json({
+      disabled: false,
       errors: {
         totp_code:
           data.ui?.messages?.find((m: any) => m.type === 'error')?.text ||
