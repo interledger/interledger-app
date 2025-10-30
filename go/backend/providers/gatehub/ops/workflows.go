@@ -379,7 +379,6 @@ func BackfillAccountWorkflow(ctx workflow.Context, walletID string) error {
 // CreateCardTransaction - TODO: This should be revisited as soon as possible. Card transactions can have
 // different types: purchase, ATM withdrawals, etc... We are trying to only handle
 // purchases and ATM withdrawals for now.
-
 func CreateCardTransaction(ctx workflow.Context, wh CardTransactionEventWebhook) error {
 	var a *Activity
 	ao := workflow.ActivityOptions{
@@ -393,6 +392,9 @@ func CreateCardTransaction(ctx workflow.Context, wh CardTransactionEventWebhook)
 		return err
 	}
 
+	// ONLY FAILED TX
+	var isCompletedTx bool
+
 	var card external.Card
 	err = workflow.ExecuteActivity(ctx, a.GetCardDetails, wh.UserID, wh.Data.CardID).Get(ctx, &card)
 	if err != nil {
@@ -404,18 +406,21 @@ func CreateCardTransaction(ctx workflow.Context, wh CardTransactionEventWebhook)
 		return err
 	}
 
-	// TODO: What about failed transactions with insufficient balances - TX STATUS MISSING
-
 	// radu: I do not like this..., but... such is life. We need to handle all TX types in the future
 	if ct.Type != external.CardTransactionTypePurchase && ct.Type != external.CardTransactionTypeATMWithdrawal {
 		slack.SendToChannel(context.Background(), slack.ChannelNotifyEvents, "wallet-info-bot", fmt.Sprintf("!!! Received card transaction with unsupported type (only handling 0 and 1 at the moment)  :\nCard TX ID: %s\nCard ID: %s\nCard TX Type: %d\nGateHub User ID: %s", ct.TransactionID, card.ID, ct.Type, wh.UserID))
 		return nil
 	}
 
-	// TODO: Is this needed?
+	if ct.GHResponseCode == "CRGUI" || ct.GHResponseCode == "SYSEX" || ct.GHResponseCode == "TRXNS" {
+		s := "FAILED"
+		isCompletedTx = true
+		ct.TxStatus = &s
+	}
+
 	if ct.TxStatus == nil {
+		// Notify GateHub as well if this happens.
 		slack.SendToChannel(context.Background(), slack.ChannelNotifyEvents, "wallet-info-bot", fmt.Sprintf("!!! Received card transaction with no tx status:\nCard TX ID: %s\nCard ID: %s\nGateHub User ID: %s", ct.TransactionID, card.ID, wh.UserID))
-		return nil
 	}
 
 	var txID string
@@ -437,9 +442,17 @@ func CreateCardTransaction(ctx workflow.Context, wh CardTransactionEventWebhook)
 		return err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.ReserveGatehubBalance, txID, walletID).Get(ctx, nil)
-	if err != nil {
-		return err
+	// This is a hack for now - only for instant failed card transactions
+	if isCompletedTx {
+		err = workflow.ExecuteActivity(ctx, a.RollbackGatehubCardTransaction, ct.TransactionID, txID).Get(ctx, nil)
+		if err != nil {
+			return err
+		}
+	} else {
+		err = workflow.ExecuteActivity(ctx, a.ReserveGatehubBalance, txID, walletID).Get(ctx, nil)
+		if err != nil {
+			return err
+		}
 	}
 
 	err = workflow.ExecuteActivity(ctx, a.Notify, walletID, notify.NotificationTypeTransaction).Get(ctx, nil)
