@@ -27,6 +27,7 @@ import {
   KRATOS_URL,
   getCsrfTokenFromFlow,
   handleFlowError,
+  isSessionAlreadyExitsMessage,
   kratosErrorMapping,
   requireNoUserSession
 } from '~/lib/kratos.server'
@@ -203,8 +204,7 @@ export async function action({ request }: ActionFunctionArgs) {
     // and if by any chance they already have a valid session, Kratos will throw
     // an error (no error ID but ...) similar to the one for the TOTP challenge
     // when someone double submits.
-    if (errors.form.includes('refresh=true')) {
-      console.log(request.headers)
+    if (isSessionAlreadyExitsMessage(errors.form)) {
       return redirect(returnTo || '/')
     }
     return error(request, { errors }, { action: 'Contact support' })
