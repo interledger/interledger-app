@@ -7,10 +7,13 @@ declare module "routes-gen" {
     "/accounts/:accountId/name": { "accountId": string };
     "/api/cardOperation": Record<string, never>;
     "/api/check-totp-enabled": Record<string, never>;
+    "/api/confirmPendingConfirmation": Record<string, never>;
     "/api/fern": Record<string, never>;
     "/api/getCardToken": Record<string, never>;
+    "/api/getPendingConfirmations": Record<string, never>;
     "/api/maps/geocode": Record<string, never>;
     "/api/maps/placesAutocomplete": Record<string, never>;
+    "/api/paymentConfirmation": Record<string, never>;
     "/api/pti/token": Record<string, never>;
     "/api/sendOtp": Record<string, never>;
     "/api/totp-challenge-init": Record<string, never>;
@@ -19,6 +22,8 @@ declare module "routes-gen" {
     "/cards": Record<string, never>;
     "/cards/:cardId": { "cardId": string };
     "/cards/order": Record<string, never>;
+    "/confirmations": Record<string, never>;
+    "/confirmations/:confirmationId": { "confirmationId": string };
     "/connect/bank/us": Record<string, never>;
     "/connect/bank/za": Record<string, never>;
     "/connect/card": Record<string, never>;
@@ -79,10 +84,13 @@ declare module "routes-gen" {
       | ["/accounts/:accountId/name", RouteParams["/accounts/:accountId/name"]]
       | ["/api/cardOperation"]
       | ["/api/check-totp-enabled"]
+      | ["/api/confirmPendingConfirmation"]
       | ["/api/fern"]
       | ["/api/getCardToken"]
+      | ["/api/getPendingConfirmations"]
       | ["/api/maps/geocode"]
       | ["/api/maps/placesAutocomplete"]
+      | ["/api/paymentConfirmation"]
       | ["/api/pti/token"]
       | ["/api/sendOtp"]
       | ["/api/totp-challenge-init"]
@@ -91,6 +99,8 @@ declare module "routes-gen" {
       | ["/cards"]
       | ["/cards/:cardId", RouteParams["/cards/:cardId"]]
       | ["/cards/order"]
+      | ["/confirmations"]
+      | ["/confirmations/:confirmationId", RouteParams["/confirmations/:confirmationId"]]
       | ["/connect/bank/us"]
       | ["/connect/bank/za"]
       | ["/connect/card"]

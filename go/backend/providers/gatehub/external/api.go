@@ -25,5 +25,9 @@ type Client interface {
 	UnfreezeCard(ctx context.Context, userID, cardID string, args UnfreezeCardArgs) error
 	BlockCard(ctx context.Context, userID, cardID string, args BlockCardArgs) error
 	GetVaultID() string
+	GetPendingThreeDSConfirmations(ctx context.Context, userID string) ([]PendingThreeDSConfirmation, error)
+	ThreeDSPaymentConfirmation(ctx context.Context, userID string, args ThreeDSPaymentConfirmationArgs) error
 	LinkUserToGateway(ctx context.Context, gatehubUserID string) error
+	GetCardDetails(ctx context.Context, userID, cardID string) (*Card, error)
+	GetCardTransaction(ctx context.Context, userID, txID string) (*CardTransaction, error)
 }

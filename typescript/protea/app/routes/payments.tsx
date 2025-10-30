@@ -355,6 +355,9 @@ export default function Page() {
                             {transaction.destinationIdentityType == 'Slack' && (
                               <SlackIcon />
                             )}
+                            {transaction.type === 'card_transaction' && (
+                              <Icon>credit_card</Icon>
+                            )}
                           </>
                         )}
                       <div className='flex w-full flex-col space-y-1'>
@@ -371,7 +374,9 @@ export default function Page() {
                         className={clsx(
                           'min-w-max font-medium',
                           transaction.type == 'sent' ||
-                            transaction.type == 'web_monetization_outgoing'
+                            transaction.type == 'web_monetization_outgoing' ||
+                            (transaction.type == 'card_transaction' &&
+                              transaction.state === 'Completed')
                             ? 'text-error'
                             : 'text-medium'
                         )}

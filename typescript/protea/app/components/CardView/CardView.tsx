@@ -36,7 +36,10 @@ export const CardView = ({ card }: { card: StorableCard }) => {
           <div className='relative h-full w-full'>
             {/* Grey card skeleton */}
             <div className='absolute inset-0 h-full w-full'>
-              <CardViewFront className='opacity-50 grayscale' />
+              <CardViewFront
+                nameOnCard={card.nameOnCard}
+                className='opacity-50 grayscale'
+              />
             </div>
           </div>
 

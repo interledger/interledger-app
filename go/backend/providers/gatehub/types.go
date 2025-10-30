@@ -2,6 +2,7 @@ package gatehub
 
 import (
 	"database/sql"
+	"time"
 
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/providers/gatehub/external"
@@ -153,4 +154,17 @@ type CloseCardArgs struct {
 	UserID     string
 	CardID     string
 	ReasonCode string
+}
+
+type CardTransaction struct {
+	ID                  string         `db:"id"`
+	CardID              string         `db:"card_id"`
+	CardMaskedPan       string         `db:"card_masked_pan"`
+	Type                string         `db:"type"`
+	Status              *string        `db:"status"`
+	Mcc                 sql.NullString `db:"mcc"`
+	TransactionAmount   sql.NullString `db:"transaction_amount"`
+	TransactionCurrency sql.NullString `db:"transaction_currency"`
+	RawTransaction      []byte         `db:"raw_transaction"`
+	CreatedAt           time.Time      `db:"created_at"`
 }
