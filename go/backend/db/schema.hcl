@@ -3306,6 +3306,9 @@ table "gatehub_card_transactions" {
     type    = timestamp
     default = sql("now()::TIMESTAMP")
   }
+  primary_key {
+    columns = [column.id]
+  }
 }
 
 table "chi_money_interac_emails" {
