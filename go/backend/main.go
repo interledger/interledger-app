@@ -131,6 +131,16 @@ func main() {
 		defer sentry.Flush(2 * time.Second)
 	}
 
+	if os.Getenv("WAIT_BEFORE_START_SEC") != "" {
+		waitDuration, err := time.ParseDuration(os.Getenv("WAIT_BEFORE_START_SEC") + "s")
+		if err != nil {
+			log.Warn("invalid WAIT_BEFORE_START_SEC value", zap.Error(err))
+		} else {
+			log.Info("waiting before start", zap.Duration("wait_duration", waitDuration))
+			time.Sleep(waitDuration)
+		}
+	}
+
 	command := os.Args[1]
 	switch command {
 	case "migrate":
