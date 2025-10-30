@@ -252,6 +252,9 @@ export function AppPage() {
                           {transaction.destinationIdentityType == 'Slack' && (
                             <SlackIcon />
                           )}
+                          {transaction.type == 'card_transaction' && (
+                            <Icon>credit_card</Icon>
+                          )}
                         </>
                       )}
                     {transaction.state != 'Pending' &&
@@ -271,12 +274,17 @@ export function AppPage() {
                     <span
                       className={clsx(
                         'font-medium',
-                        transaction.type == 'sent'
+                        transaction.type == 'sent' ||
+                          (transaction.type == 'card_transaction' &&
+                            transaction.state === 'Completed')
                           ? 'text-error'
                           : 'text-medium'
                       )}
                     >
                       {transaction.type == 'sent' && '- '}
+                      {transaction.type == 'card_transaction' &&
+                        transaction.state == 'Completed' &&
+                        '- '}
                       {transaction.formattedAmount}
                     </span>
                     <Icon>navigate_next</Icon>

@@ -18,6 +18,7 @@ const (
 	TransactionTypeDeposit                 TransactionType = "deposit"
 	TransactionTypeWebMonetizationIncoming TransactionType = "web_monetization_incoming"
 	TransactionTypeWebMonetizationOutgoing TransactionType = "web_monetization_outgoing"
+	TransactionTypeCardTransaction         TransactionType = "card_transaction"
 )
 
 type State string
@@ -100,10 +101,17 @@ type TransferArgs struct {
 	State           State `validate:"required"`
 }
 
+type CardTransactionDetails struct {
+	CardID        string `db:"card_id"`
+	CardMaskedPan string `db:"card_masked_pan"`
+	Type          int    `db:"type"`
+}
+
 // Transaction is abstract information representing either an incoming or outgoing payment, wallet top up or withdrawal.
 // This is used for listing transactions for the frontend
 type Transaction struct {
 	ID                      string
+	WalletID                string
 	ForeignID               string
 	Source                  string
 	Destination             string
@@ -120,6 +128,7 @@ type Transaction struct {
 	DestinationIdentityType string
 	Reference               string
 	RefundState             RefundState
+	CardTransactionDetails  CardTransactionDetails
 }
 
 // Transfer is the underlying transfers that make up a single Transactions

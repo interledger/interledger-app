@@ -3268,6 +3268,55 @@ export class Amount extends Message<Amount> {
 }
 
 /**
+ * @generated from message backend.v1.CardTransactionDetails
+ */
+export class CardTransactionDetails extends Message<CardTransactionDetails> {
+  /**
+   * @generated from field: string card_id = 1;
+   */
+  cardId = "";
+
+  /**
+   * @generated from field: string card_masked_pan = 2;
+   */
+  cardMaskedPan = "";
+
+  /**
+   * @generated from field: int64 type = 3;
+   */
+  type = protoInt64.zero;
+
+  constructor(data?: PartialMessage<CardTransactionDetails>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.CardTransactionDetails";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "card_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "card_masked_pan", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "type", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CardTransactionDetails {
+    return new CardTransactionDetails().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CardTransactionDetails {
+    return new CardTransactionDetails().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CardTransactionDetails {
+    return new CardTransactionDetails().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CardTransactionDetails | PlainMessage<CardTransactionDetails> | undefined, b: CardTransactionDetails | PlainMessage<CardTransactionDetails> | undefined): boolean {
+    return proto3.util.equals(CardTransactionDetails, a, b);
+  }
+}
+
+/**
  * @generated from message backend.v1.Transaction
  */
 export class Transaction extends Message<Transaction> {
@@ -3385,6 +3434,11 @@ export class Transaction extends Message<Transaction> {
    */
   fundsReceived = "";
 
+  /**
+   * @generated from field: optional backend.v1.CardTransactionDetails cardTransactionDetails = 24;
+   */
+  cardTransactionDetails?: CardTransactionDetails;
+
   constructor(data?: PartialMessage<Transaction>) {
     super();
     proto3.util.initPartial(data, this);
@@ -3415,6 +3469,7 @@ export class Transaction extends Message<Transaction> {
     { no: 21, name: "destinationIdentityType", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 22, name: "refundState", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
     { no: 23, name: "fundsReceived", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 24, name: "cardTransactionDetails", kind: "message", T: CardTransactionDetails, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Transaction {

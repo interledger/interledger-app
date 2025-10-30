@@ -596,6 +596,12 @@ message Amount {
   string country = 4;
 }
 
+message CardTransactionDetails {
+  string card_id = 1;
+  string card_masked_pan = 2;
+  int64 type = 3;
+}
+
 message Transaction {
   reserved 8;
   string id = 1;
@@ -622,6 +628,8 @@ message Transaction {
   string destinationIdentityType = 21;
   int32 refundState = 22; // NA , PENDING , COMPLETE
   string fundsReceived = 23;
+
+  optional CardTransactionDetails cardTransactionDetails = 24;
 }
 
 message ListTransactionsResponse {

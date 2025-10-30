@@ -998,6 +998,23 @@ export interface Amount {
     country: string;
 }
 /**
+ * @generated from protobuf message backend.v1.CardTransactionDetails
+ */
+export interface CardTransactionDetails {
+    /**
+     * @generated from protobuf field: string card_id = 1;
+     */
+    cardId: string;
+    /**
+     * @generated from protobuf field: string card_masked_pan = 2;
+     */
+    cardMaskedPan: string;
+    /**
+     * @generated from protobuf field: int64 type = 3;
+     */
+    type: string;
+}
+/**
  * @generated from protobuf message backend.v1.Transaction
  */
 export interface Transaction {
@@ -1091,6 +1108,10 @@ export interface Transaction {
      * @generated from protobuf field: string fundsReceived = 23;
      */
     fundsReceived: string;
+    /**
+     * @generated from protobuf field: optional backend.v1.CardTransactionDetails cardTransactionDetails = 24;
+     */
+    cardTransactionDetails?: CardTransactionDetails;
 }
 /**
  * @generated from protobuf message backend.v1.ListTransactionsResponse
@@ -6728,6 +6749,67 @@ class Amount$Type extends MessageType<Amount> {
  */
 export const Amount = new Amount$Type();
 // @generated message type with reflection information, may provide speed optimized methods
+class CardTransactionDetails$Type extends MessageType<CardTransactionDetails> {
+    constructor() {
+        super("backend.v1.CardTransactionDetails", [
+            { no: 1, name: "card_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "card_masked_pan", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "type", kind: "scalar", T: 3 /*ScalarType.INT64*/ }
+        ]);
+    }
+    create(value?: PartialMessage<CardTransactionDetails>): CardTransactionDetails {
+        const message = { cardId: "", cardMaskedPan: "", type: "0" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CardTransactionDetails>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CardTransactionDetails): CardTransactionDetails {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string card_id */ 1:
+                    message.cardId = reader.string();
+                    break;
+                case /* string card_masked_pan */ 2:
+                    message.cardMaskedPan = reader.string();
+                    break;
+                case /* int64 type */ 3:
+                    message.type = reader.int64().toString();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CardTransactionDetails, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string card_id = 1; */
+        if (message.cardId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.cardId);
+        /* string card_masked_pan = 2; */
+        if (message.cardMaskedPan !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.cardMaskedPan);
+        /* int64 type = 3; */
+        if (message.type !== "0")
+            writer.tag(3, WireType.Varint).int64(message.type);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.CardTransactionDetails
+ */
+export const CardTransactionDetails = new CardTransactionDetails$Type();
+// @generated message type with reflection information, may provide speed optimized methods
 class Transaction$Type extends MessageType<Transaction> {
     constructor() {
         super("backend.v1.Transaction", [
@@ -6752,7 +6834,8 @@ class Transaction$Type extends MessageType<Transaction> {
             { no: 20, name: "destinationIdentity", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 21, name: "destinationIdentityType", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 22, name: "refundState", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
-            { no: 23, name: "fundsReceived", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 23, name: "fundsReceived", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 24, name: "cardTransactionDetails", kind: "message", T: () => CardTransactionDetails }
         ]);
     }
     create(value?: PartialMessage<Transaction>): Transaction {
@@ -6833,6 +6916,9 @@ class Transaction$Type extends MessageType<Transaction> {
                 case /* string fundsReceived */ 23:
                     message.fundsReceived = reader.string();
                     break;
+                case /* optional backend.v1.CardTransactionDetails cardTransactionDetails */ 24:
+                    message.cardTransactionDetails = CardTransactionDetails.internalBinaryRead(reader, reader.uint32(), options, message.cardTransactionDetails);
+                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -6911,6 +6997,9 @@ class Transaction$Type extends MessageType<Transaction> {
         /* string fundsReceived = 23; */
         if (message.fundsReceived !== "")
             writer.tag(23, WireType.LengthDelimited).string(message.fundsReceived);
+        /* optional backend.v1.CardTransactionDetails cardTransactionDetails = 24; */
+        if (message.cardTransactionDetails)
+            CardTransactionDetails.internalBinaryWrite(message.cardTransactionDetails, writer.tag(24, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

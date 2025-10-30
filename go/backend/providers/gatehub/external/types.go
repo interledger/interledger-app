@@ -33,6 +33,26 @@ var (
 	CardStatusSoftDelete       string = "SoftDelete"
 	CardStatusAccountBlocked   string = "AccountBlocked"
 	CardStatusInCreation       string = "InCreation"
+
+	CardTractionStatusInitial    string = "INITIAL"
+	CardTractionStatusProcessing string = "PROCESSING"
+	CardTractionStatusAcquired   string = "ACQUIRED"
+	CardTractionStatusCompleted  string = "COMPLETED"
+	CardTractionStatusFailed     string = "FAILED"
+
+	CardTransactionTypePurchase                    int = 0
+	CardTransactionTypeATMWithdrawal               int = 1
+	CardTransactionTypeCardVerificationInquiry     int = 6
+	CardTransactionTypeCashAdvance                 int = 17
+	CardTransactionTypeRefundCreditPayment         int = 20
+	CardTransactionTypeBalanceInquiryOnATM         int = 30
+	CardTransactionTypePINUnblock                  int = 91
+	CardTransactionTypePINChange                   int = 92
+	CardTransactionTypePreauthorization            int = 101
+	CardTransactionTypePreauthorizationIncremental int = 102
+	CardTransactionTypePreauthorizationCompletion  int = 103
+	CardTransactionTypeTransferToAccount           int = 107
+	CardTransactionTypeTransferFromAccount         int = 108
 )
 
 type (
@@ -433,6 +453,53 @@ type (
 		TransactionID string `json:"-"`
 		Confirmed     bool   `json:"confirmed"`
 		AuthMethod    string `json:"authMethod"`
+	}
+
+	MastercardConversion struct {
+		ConvRate        *string `json:"convRate"`
+		RefConfRate     *string `json:"refConRate"`
+		RefConfRateDiff *string `json:"refConfRateDiff"`
+	}
+
+	CardTransaction struct {
+		VaultID                   *int                  `json:"vaultId"`
+		CardID                    *int                  `json:"cardId"`
+		TransactionID             string                `json:"transactionId"`
+		RefTransactionID          *string               `json:"refTransactionId"`
+		ResponseCode              *string               `json:"responseCode"`
+		GHResponseCode            string                `json:"ghResponseCode"`
+		GHResponseDescription     string                `json:"ghResponseDescription"`
+		TransactionAmount         *string               `json:"transactionAmount"`
+		TransactionCurrency       *string               `json:"transactionCurrency"`
+		BillingAmount             *string               `json:"billingAmount"`
+		BillingCurrency           *string               `json:"billingCurrency"`
+		IsTrxAmountConverted      bool                  `json:"isTrxAmountConverted"`
+		TerminalID                string                `json:"terminalId"`
+		CardScheme                int                   `json:"cardScheme"`
+		Type                      int                   `json:"type"`
+		Source                    *string               `json:"source"`
+		EntryMode                 *int                  `json:"entryMode"`
+		AuthorizationCode         *string               `json:"authorizationCode"`
+		SplitIntoMultiple         *bool                 `json:"splitIntoMultiple"`
+		Authentication            *int                  `json:"authentication"`
+		AuthenticationProtocol    *int                  `json:"authenticationProtocol"`
+		Wallet                    *int                  `json:"wallet"`
+		TransactionDateTime       *string               `json:"transactionDateTime"`
+		ProcessDateTime           *string               `json:"processDateTime"`
+		CreatedAt                 string                `json:"createdAt"`
+		TxStatus                  *string               `json:"txStatus"`
+		Operation                 int                   `json:"operation"`
+		MastercardConversion      *MastercardConversion `json:"MastercardConversion"`
+		Mcc                       *string               `json:"mcc"`
+		MerchantStreet            *string               `json:"merchantStreet"`
+		MerchantCity              *string               `json:"merchantCity"`
+		MerchantZip               *string               `json:"merchantZip"`
+		MerchantCountry           *string               `json:"merchantCountry"`
+		MerchantName              *string               `json:"merchantName"`
+		MerchantID                *string               `json:"merchantId"`
+		TransactionClassification *string               `json:"transactionClassification"`
+		SpendExchangeRate         *string               `json:"spendExchangeRate"`
+		SpendCurrency             *string               `json:"spendCurrency"`
 	}
 )
 

@@ -108,6 +108,22 @@ type (
 		Environment string                         `json:"environment"`
 		Data        Card3DSConfirmationWebhookData `json:"data"`
 	}
+
+	CardTransactionEventWebhook struct {
+		ID          string                          `json:"uuid"`
+		EventType   string                          `json:"event_type"`
+		Timestamp   string                          `json:"timestamp"`
+		UserID      string                          `json:"user_uuid"`
+		Environment string                          `json:"environment"`
+		Data        CardTransactionEventWebhookData `json:"data"`
+	}
+
+	CardTransactionEventWebhookData struct {
+		Title         string `json:"title"`
+		Body          string `json:"body"`
+		TransactionID string `json:"transactionId"`
+		CardID        string `json:"cardId"`
+	}
 )
 
 func NewWebhook(b Backends) http.HandlerFunc {
@@ -179,6 +195,8 @@ func NewWebhook(b Backends) http.HandlerFunc {
 			HandleCardCreatedWebhook(r.Context(), b, body, w)
 		case "cards.3ds.auth_3ds_confirmation":
 			HandleCardThreeDSConfirmation(r.Context(), b, body, w)
+		case "cards.transaction.event":
+			HandleCardTransactionEvent(r.Context(), b, body, w)
 		default:
 			log.Warn("gatehub webhook. Unhandled webhook type", zap.String("event_type", wh.EventType), zap.String("payload", string(body)))
 		}
@@ -336,25 +354,50 @@ func HandleUserDeposit(ctx context.Context, b Backends, raw json.RawMessage, w h
 	w.WriteHeader(http.StatusOK)
 }
 
-func Verify(ctx context.Context, r *http.Request, key []byte) ([]byte, error) {
-	payload, err := io.ReadAll(r.Body)
+func HandleCardTransactionEvent(ctx context.Context, b Backends, raw json.RawMessage, w http.ResponseWriter) {
+	var wh CardTransactionEventWebhook
+	err := json.Unmarshal(raw, &wh)
 	if err != nil {
-		log.Error("gatehub webhook: Failed to get request body.", zap.Error(err))
-		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
-	}
-	log.Info("Gatehub webhook: ", zap.String("body", string(payload)))
-	hmac := hmac.New(sha256.New, key)
-	_, err = hmac.Write(payload)
-	if err != nil {
-		log.Error("gatehub webhook: Failed to compute webhook signature hash.", zap.Error(err))
-		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+		log.Error("gatehub webhook: Failed to unmarshal card transaction event webhook", zap.String("webhook", string(raw)), zap.Error(err))
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
 	}
 
-	if hex.EncodeToString(hmac.Sum(nil)) != r.Header.Get("x-gh-webhook-signature") {
-		return nil, gatehub.ErrInvalidWebhook
+	wo := client.StartWorkflowOptions{
+		ID:                    "gatehub_card_transaction_event_" + wh.ID,
+		TaskQueue:             "backend",
+		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
 	}
 
-	return payload, nil
+	var workflowStatus enums.WorkflowExecutionStatus
+	wflow, err := b.Temporal().DescribeWorkflowExecution(ctx, wo.ID, "")
+	switch err.(type) {
+	case *serviceerror.Internal,
+		*serviceerror.Unavailable,
+		*serviceerror.InvalidArgument:
+
+		log.Error("Failed to handle gatehub card transaction event webhook", zap.Error(err))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	case *serviceerror.NotFound:
+		// do nothing
+	default:
+		if wflow != nil {
+			workflowStatus = wflow.GetWorkflowExecutionInfo().Status
+		}
+	}
+
+	// execute workflow if it's not running
+	if workflowStatus != enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
+		_, err = b.Temporal().ExecuteWorkflow(ctx, wo, CreateCardTransaction, wh)
+		if err != nil {
+			log.Error("Failed to handle gatehub card transaction event webhook", zap.Error(err))
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 func HandleCardThreeDSConfirmation(ctx context.Context, b Backends, raw json.RawMessage, w http.ResponseWriter) {
@@ -377,6 +420,27 @@ func HandleCardThreeDSConfirmation(ctx context.Context, b Backends, raw json.Raw
 	b.Email().SendPending3DSConfirmation(ctx, walletID, wh.Data.Payload.TransactionID)
 
 	w.WriteHeader(http.StatusOK)
+}
+
+func Verify(ctx context.Context, r *http.Request, key []byte) ([]byte, error) {
+	payload, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.Error("gatehub webhook: Failed to get request body.", zap.Error(err))
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+	log.Info("Gatehub webhook: ", zap.String("body", string(payload)))
+	hmac := hmac.New(sha256.New, key)
+	_, err = hmac.Write(payload)
+	if err != nil {
+		log.Error("gatehub webhook: Failed to compute webhook signature hash.", zap.Error(err))
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	if hex.EncodeToString(hmac.Sum(nil)) != r.Header.Get("x-gh-webhook-signature") {
+		return nil, gatehub.ErrInvalidWebhook
+	}
+
+	return payload, nil
 }
 
 func forwardWebhookToFallback(ctx context.Context, body []byte, headers http.Header) error {

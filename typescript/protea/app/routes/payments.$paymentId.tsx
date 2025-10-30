@@ -2,7 +2,7 @@ import type { PlainMessage } from '@bufbuild/protobuf/dist/types/message'
 import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import type { UIMatch } from '@remix-run/react'
-import { useLoaderData } from '@remix-run/react'
+import { Link, useLoaderData } from '@remix-run/react'
 import { useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
@@ -171,6 +171,7 @@ export default function Page() {
         transaction.type == 'web_monetization_incoming') && (
         <Received openDialog={() => setShowDialog(true)} />
       )}
+      {transaction.type == 'card_transaction' && <CardTransaction />}
       {transaction.type == 'withdrawal' && <Withdrawal />}
       {transaction.type == 'deposit' && <Deposit />}
       <Dialog open={showDialog} setOpen={setShowDialog}>
@@ -809,6 +810,93 @@ function Received({ openDialog }: { openDialog: () => void }) {
           </CardContent>
         </Card>
       )}
+    </>
+  )
+}
+
+function CardTransaction() {
+  const { transaction } = useLoaderData<typeof loader>()
+
+  return (
+    <>
+      <Card>
+        <CardContent>
+          <div className='flex items-center justify-between'>
+            <h2 className='text-4xl font-medium text-error'>
+              {transaction.subtotal}
+            </h2>
+            <div className='flex flex-col items-end space-y-1'>
+              <span className='text-sm font-medium text-medium'>
+                {transaction.formattedDate}
+              </span>
+              <span className='text-xs text-weak'>
+                {transaction.formattedTime}
+              </span>
+            </div>
+          </div>
+        </CardContent>
+        <Label>
+          {transaction.cardTransactionDetails?.type === '0' && 'Recipient'}
+          {transaction.cardTransactionDetails?.type === '1' && 'Cash at'}
+        </Label>
+        <div className='my-1 flex space-x-2 rounded-xl bg-nav p-3'>
+          <div className='flex w-full items-center justify-between text-medium'>
+            <div className='flex space-x-2'>
+              <Icon>
+                {transaction.cardTransactionDetails?.type === '0' &&
+                  'local_mall'}
+                {transaction.cardTransactionDetails?.type === '1' && 'atm'}
+              </Icon>
+              <span>{transaction.title}</span>
+            </div>
+          </div>
+        </div>
+      </Card>
+      <Card>
+        {transaction.state != 'Failed' && (
+          <>
+            <Label>Payment ID</Label>
+            <CardCopy
+              copyContent={transaction.id}
+              shareData={{
+                title: 'Payment ID',
+                text: transaction.id
+              }}
+              success='Payment ID copied to clipboard.'
+              copyError="Couldn't copy to clipboard."
+              shareError="Couldn't share Payment ID."
+            >
+              {transaction.id}
+            </CardCopy>
+          </>
+        )}
+        <CardContent>
+          <div className='mt-2 flex w-full justify-between'>
+            <span className='text-weak'>Payment from</span>
+            <span className='text-medium'>{transaction.accountTitle}</span>
+          </div>
+          <div className='mt-2 flex w-full justify-between'>
+            <span className='text-weak'>Card</span>
+            <span className='text-medium'>
+              <Link
+                className='text-primary'
+                to={route('/cards/:cardId', {
+                  cardId: transaction.cardTransactionDetails!.cardId // cardId will always be set for a card_transaction
+                })}
+              >
+                {
+                  transaction.cardTransactionDetails
+                    ?.cardMaskedPan /* Ditto for cardMaskedPan */
+                }
+              </Link>
+            </span>
+          </div>
+          <div className='mt-4 flex w-full justify-between font-medium'>
+            <span className='text-medium'>Amount</span>
+            <span className='text-medium'>{transaction.fundsReceived}</span>
+          </div>
+        </CardContent>
+      </Card>
     </>
   )
 }
