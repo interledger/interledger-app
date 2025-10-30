@@ -69,12 +69,10 @@ export function usePusher(args: PusherArgs, events: Events[]) {
     channel,
     'pending3DSConfirmation',
     (data) => {
-      if (data) {
-        if (!data.timeout) {
-          data.timeout = '300'
-        }
-        addPendingConfirmation(data)
+      if (data && !data?.timeout) {
+        data.timeout = '300'
       }
+      addPendingConfirmation(data!) // We will always send the data.
       pushSnackbar({
         message: 'You have a new pending 3DS confirmation.',
         id: crypto.randomUUID()
