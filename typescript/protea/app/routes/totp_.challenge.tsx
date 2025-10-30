@@ -14,7 +14,6 @@ import { validateCSRFToken } from '~/lib/csrf.server'
 import { KRATOS_URL, getCsrfTokenFromFlow } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
 export  type TotpAction = {
-  disabled: boolean
   errors: {
     totp_code?: string
   }
@@ -129,14 +128,19 @@ export async function action({ request }: ActionFunctionArgs) {
     })
   })
 
+  const returnTo = new URL(request.url).searchParams.get('returnTo') || '/'
+  const response = redirect(returnTo ?? '/')
+
   if (res.status === 400) {
     const data = await res.json()
+    // if the form is submitted twice the user already has a valid session
+    const message: string = data.ui?.messages?.find((m: any) => m.type === 'error')?.text ?? '';
+    if(message.includes('?refresh=true')) {
+      return response
+    }
     return json({
-      disabled: false,
       errors: {
-        totp_code:
-          data.ui?.messages?.find((m: any) => m.type === 'error')?.text ||
-          'Invalid code'
+        totp_code: message || 'Invalid code'
       }
     })
   }
@@ -145,10 +149,7 @@ export async function action({ request }: ActionFunctionArgs) {
     throw new Response('Unexpected error', { status: res.status })
   }
 
-  const returnTo = new URL(request.url).searchParams.get('returnTo') || '/'
-  const response = redirect(returnTo ?? '/')
   const setCookie = res.headers.get('set-cookie')
-
   if (setCookie) {
     response.headers.set('cookie', setCookie)
   }

@@ -13,7 +13,6 @@ export const TotpChallenge = ({
 }) => {
   const navigation = useNavigation()
   const isSubmitting = navigation.state === 'submitting'
-  const disabled = isSubmitting
   return (
     <>
       <Form method='post'>
@@ -44,7 +43,7 @@ export const TotpChallenge = ({
             errorMessage={actionData?.errors?.totp_code}
           />
         </Card>
-        <Button type='submit' disabled={disabled} className='mt-4'>
+        <Button type='submit' className='mt-4' disabled={isSubmitting}>
         {isSubmitting ? 'Verifying…' : 'Verify'}
         </Button>
       </Form>
