@@ -3244,7 +3244,7 @@ table "gatehub_card_transactions" {
   schema = schema.public
   column "id" {
     null = false
-    type = uuid
+    type = varchar(255)
     comment = "GateHub transaction ID"
   }
   column "type" {
