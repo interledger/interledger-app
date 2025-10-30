@@ -84,9 +84,10 @@ export const links: LinksFunction = () => {
 type DocumentProps = {
   children: ReactNode
   theme?: 'theme-dark' | 'theme-light' | 'theme-system'
+  env?: Record<string, unknown>
 }
 
-function Document({ children, theme = 'theme-system' }: DocumentProps) {
+function Document({ children, theme = 'theme-system', env }: DocumentProps) {
   const navigation = useNavigation()
   return (
     <html lang='en'>
@@ -101,13 +102,18 @@ function Document({ children, theme = 'theme-system' }: DocumentProps) {
         className={clsx(
           theme,
           'bg-page font-sans text-base font-normal text-strong antialiased selection:bg-brand/50',
-          navigation.state == 'submitting' && 'cursor-progress'
+          navigation.state === 'submitting' && 'cursor-progress'
         )}
       >
         {children}
         <ScrollRestoration />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.ENV = ${JSON.stringify(env || {})}`
+          }}
+        />
         <Scripts />
-        <LiveReload port={443} />
+        {process.env.NODE_ENV === 'development' && <LiveReload port={443} />}
       </body>
     </html>
   )
@@ -162,7 +168,7 @@ function Page() {
   usePusher(pusherArgs, ['cardReady'])
 
   return (
-    <Document>
+    <Document env={env}>
       {isDisabled ? (
         <Unavailable />
       ) : (
@@ -170,11 +176,6 @@ function Page() {
           <Scaffold />
           <PendingConfirmationsLoader walletId={pusherArgs.walletId} />
           <TotpChallengeGlobal />
-          <script
-            dangerouslySetInnerHTML={{
-              __html: `window.ENV = ${JSON.stringify(env)}`
-            }}
-          />
         </>
       )}
     </Document>
