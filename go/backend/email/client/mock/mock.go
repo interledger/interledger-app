@@ -74,15 +74,15 @@ func (mr *MockClientMockRecorder) SendApplicationPendingEmail(ctx, walletID inte
 }
 
 // SendCardCreatedEmail mocks base method.
-func (m *MockClient) SendCardCreatedEmail(ctx context.Context, walletID, userID string) {
+func (m *MockClient) SendCardCreatedEmail(ctx context.Context, walletID, cardID string) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "SendCardCreatedEmail", ctx, walletID, userID)
+	m.ctrl.Call(m, "SendCardCreatedEmail", ctx, walletID, cardID)
 }
 
 // SendCardCreatedEmail indicates an expected call of SendCardCreatedEmail.
-func (mr *MockClientMockRecorder) SendCardCreatedEmail(ctx, walletID, userID interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) SendCardCreatedEmail(ctx, walletID, cardID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendCardCreatedEmail", reflect.TypeOf((*MockClient)(nil).SendCardCreatedEmail), ctx, walletID, userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendCardCreatedEmail", reflect.TypeOf((*MockClient)(nil).SendCardCreatedEmail), ctx, walletID, cardID)
 }
 
 // SendConnectedAccountDocumentsNeededEmail mocks base method.
@@ -179,6 +179,18 @@ func (m *MockClient) SendPaymentSentEmailV2(ctx context.Context, walletID string
 func (mr *MockClientMockRecorder) SendPaymentSentEmailV2(ctx, walletID, payment interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendPaymentSentEmailV2", reflect.TypeOf((*MockClient)(nil).SendPaymentSentEmailV2), ctx, walletID, payment)
+}
+
+// SendPending3DSConfirmation mocks base method.
+func (m *MockClient) SendPending3DSConfirmation(ctx context.Context, walletID, confirmationID string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SendPending3DSConfirmation", ctx, walletID, confirmationID)
+}
+
+// SendPending3DSConfirmation indicates an expected call of SendPending3DSConfirmation.
+func (mr *MockClientMockRecorder) SendPending3DSConfirmation(ctx, walletID, confirmationID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendPending3DSConfirmation", reflect.TypeOf((*MockClient)(nil).SendPending3DSConfirmation), ctx, walletID, confirmationID)
 }
 
 // SendWithdrawalEmail mocks base method.

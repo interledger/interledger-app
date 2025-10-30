@@ -436,6 +436,25 @@ type (
 		ReasonCode string
 	}
 
+	PendingThreeDSConfirmation struct {
+		TransactionID    string `json:"transactionId"`
+		MerchantName     string `json:"merchantName"`
+		PurchaseAmount   string `json:"purchaseAmount"`
+		PurchaseCurrency string `json:"purchaseCurrency"`
+		PurchaseDate     string `json:"purchaseDate"`
+		Timeout          string `json:"timeout"`
+	}
+
+	PendingThreeDSConfirmationResponse struct {
+		PendingConfirmations []PendingThreeDSConfirmation `json:"pendingConfirmations"`
+	}
+
+	ThreeDSPaymentConfirmationArgs struct {
+		TransactionID string `json:"-"`
+		Confirmed     bool   `json:"confirmed"`
+		AuthMethod    string `json:"authMethod"`
+	}
+
 	MastercardConversion struct {
 		ConvRate        *string `json:"convRate"`
 		RefConfRate     *string `json:"refConRate"`

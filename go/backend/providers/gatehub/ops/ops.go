@@ -789,6 +789,18 @@ func BlockCard(ctx context.Context, b Backends, ec external.Client, args gatehub
 	})
 }
 
+func GetPendingThreeDSConfirmations(ctx context.Context, ec external.Client, userID string) ([]external.PendingThreeDSConfirmation, error) {
+	return ec.GetPendingThreeDSConfirmations(ctx, userID)
+}
+
+func ThreeDSPaymentConfirmation(ctx context.Context, ec external.Client, userID, txID string, confirmed bool) error {
+	return ec.ThreeDSPaymentConfirmation(ctx, userID, external.ThreeDSPaymentConfirmationArgs{
+		TransactionID: txID,
+		Confirmed:     confirmed,
+		AuthMethod:    "08", // 08 - login ; 07 - biometric
+	})
+}
+
 func getNameOnCard(walletAddress string) (string, error) {
 	// For non production environments we generate a random card name.
 	// This might be counter intuitive but we have the limitation of 26 chars

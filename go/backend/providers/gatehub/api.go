@@ -27,6 +27,8 @@ type Client interface {
 	UnfreezeCard(ctx context.Context, args UnfreezeCardArgs) error
 	BlockCard(ctx context.Context, args BlockCardArgs) error
 	ValidateCardProductCode(ctx context.Context, cardProductCode string) error
+	GetPendingThreeDSConfirmations(ctx context.Context, userID string) ([]external.PendingThreeDSConfirmation, error)
+	ThreeDSPaymentConfirmation(ctx context.Context, userID, txID string, confirmed bool) error
 
 	ReserveBalance(ctx context.Context, linkedAccountID, txID string, amt currency.Amount, timeout time.Duration) (*Balance, error)
 	FinaliseReserve(ctx context.Context, txID string) error
