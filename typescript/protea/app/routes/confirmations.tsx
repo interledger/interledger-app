@@ -1,4 +1,9 @@
-import type { MetaFunction } from '@remix-run/node'
+import {
+  json,
+  redirect,
+  type LoaderFunctionArgs,
+  type MetaFunction
+} from '@remix-run/node'
 import type { ShouldRevalidateFunction } from '@remix-run/react'
 import { Outlet, useLocation } from '@remix-run/react'
 import { route } from 'routes-gen'
@@ -13,7 +18,21 @@ import {
   TimeoutDisplay,
   WalletGrid
 } from '~/components'
+import { hasUserSession } from '~/lib/kratos.server'
 import { usePendingConfirmations } from '~/lib/usePendingConfirmations'
+
+export async function loader({ request }: LoaderFunctionArgs) {
+  const session = hasUserSession(request)
+  const returnTo = new URL(request.url).pathname
+
+  if (!session) {
+    throw redirect(
+      `${route('/login')}?returnTo=${encodeURIComponent(returnTo)}`
+    )
+  }
+
+  return json({})
+}
 
 export const shouldRevalidate: ShouldRevalidateFunction = ({
   currentUrl,

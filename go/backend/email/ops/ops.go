@@ -479,8 +479,9 @@ func SendPending3DSConfirmation(ctx context.Context, b Backends, walletID, confi
 		return
 	}
 
+	confirmationURL, err := url.JoinPath(env.GetUrl(), "confirmations", confirmationID)
 	if err != nil {
-		log.Error("Failed to send pending 3ds ocnfirmation email.", zap.Error(err), zap.String("walletID", walletID))
+		log.Error("Failed to send card created email.", zap.Error(err), zap.String("walletID", walletID))
 		return
 	}
 	err = b.External().SendTemplate(ctx, "⚠️ Action Required: Pending 3D Secure Transaction", sendTo, oneTemplateID, map[string]interface{}{
@@ -490,6 +491,10 @@ func SendPending3DSConfirmation(ctx context.Context, b Backends, walletID, confi
 			{"paragraph": "We noticed that a recent transaction requires 3D Secure (3DS) authentication to complete."},
 			{"paragraph": "Please verify the transaction as soon as possible to ensure it’s processed successfully."},
 			{"paragraph": "If you didn’t initiate this transaction, you can safely ignore it or contact our support team."},
+		},
+		"cta": map[string]interface{}{
+			"text": "View confirmation",
+			"url":  confirmationURL,
 		},
 	}, nil)
 	if err != nil {

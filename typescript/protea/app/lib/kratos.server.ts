@@ -237,6 +237,7 @@ export async function kratosErrorMapping<T extends object>(
   fieldErrors: T
 ): Promise<T> {
   const data = await response.json()
+
   if (data.ui) {
     for (let node of data.ui.nodes) {
       // Field validation errors

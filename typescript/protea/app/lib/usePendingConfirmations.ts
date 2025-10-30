@@ -28,6 +28,18 @@ interface PendingConfirmationsStore {
   clearTimeouts: () => void
 }
 
+function dedupe(
+  arr: StorablePendingConfirmation[]
+): StorablePendingConfirmation[] {
+  const seen = new Set()
+
+  return arr.filter((item) => {
+    if (seen.has(item.transactionId)) return false
+    seen.add(item.transactionId)
+    return true
+  })
+}
+
 const createPendingConfirmationTimeout = (
   pendingConfirmation: PendingThreeDSConfirmation
 ): number => {
@@ -122,12 +134,16 @@ const usePendingConfirmationsStore = create<PendingConfirmationsStore>(
         set({ timeoutIds: new Map(timeoutIds) })
       }
 
-      set((state) => ({
-        pendingConfirmations: [
+      set((state) => {
+        const pendingConfirmations = [
           ...state.pendingConfirmations,
           formatPendingConfirmations(pendingConfirmation)
         ]
-      }))
+
+        return {
+          pendingConfirmations: dedupe(pendingConfirmations)
+        }
+      })
     },
 
     removeConfirmation: (transactionId: string) => {
