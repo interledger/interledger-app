@@ -3255,6 +3255,14 @@ table "gatehub_card_transactions" {
     null = true
     type = varchar(255)
   }
+  column "gatehub_response_code" {
+    null = false
+    type = varchar(255)
+  }
+  column "gatehub_response_description" {
+    null = false
+    type = text
+  }
   column "user_id" {
     null = false
     type = uuid

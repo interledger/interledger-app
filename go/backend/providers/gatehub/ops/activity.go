@@ -634,11 +634,13 @@ func (a *Activity) SaveGatehubCardTransaction(ctx context.Context, userID, cardI
 	maskedPan := formatMaskedPan(cardMaskedPan)
 
 	_, err = a.b.DB().ExecContext(ctx,
-		"INSERT INTO gatehub_card_transactions (id, user_id, card_id, card_masked_pan, type, status, mcc, transaction_amount, transaction_currency, raw_transaction) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) ON CONFLICT DO NOTHING;",
+		"INSERT INTO gatehub_card_transactions (id, user_id, card_id, card_masked_pan, gatehub_response_code, gatehub_response_description, type, status, mcc, transaction_amount, transaction_currency, raw_transaction) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) ON CONFLICT DO NOTHING;",
 		tx.TransactionID,
 		userID,
 		cardID,
 		maskedPan,
+		tx.GHResponseCode,
+		tx.GHResponseDescription,
 		tx.Type,
 		tx.TxStatus,
 		tx.Mcc,
