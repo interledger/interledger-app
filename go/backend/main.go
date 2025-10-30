@@ -136,7 +136,7 @@ func main() {
 		if err != nil {
 			log.Warn("invalid WAIT_BEFORE_START_SEC value", zap.Error(err))
 		} else {
-			log.Info("waiting before start", zap.Duration("wait_duration", waitDuration))
+			log.Info("waiting before start", zap.Duration("WAIT_BEFORE_START_SEC", waitDuration))
 			time.Sleep(waitDuration)
 		}
 	}
