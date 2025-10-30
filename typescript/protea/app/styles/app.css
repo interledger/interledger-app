@@ -98,6 +98,12 @@
     --text-chip-lime: theme('colors.lime.950');
     --text-chip-rose: theme('colors.rose.950');
     --text-chip-slate: theme('colors.slate.950');
+
+    /* Interledger Cards */
+    --mint-light: 183 227 222;
+    --mint-dark: 57 161 160;
+    --charcoal: 11 12 12;
+    --teal-deep: 31 93 91;
   }
 
   .theme-dark {
@@ -193,6 +199,12 @@
     --text-chip-lime: theme('colors.lime.950');
     --text-chip-rose: theme('colors.rose.950');
     --text-chip-slate: theme('colors.slate.950');
+
+    /* Interledger Cards */
+    --mint-light: 183 227 222;
+    --mint-dark: 57 161 160;
+    --charcoal: 11 12 12;
+    --teal-deep: 31 93 91;
   }
 
   @media (prefers-color-scheme: dark) {
@@ -289,6 +301,12 @@
       --text-chip-lime: theme('colors.lime.950');
       --text-chip-rose: theme('colors.rose.950');
       --text-chip-slate: theme('colors.slate.950');
+
+      /* Interledger Cards */
+      --mint-light: 183 227 222;
+      --mint-dark: 57 161 160;
+      --charcoal: 11 12 12;
+      --teal-deep: 31 93 91;
     }
   }
 }
