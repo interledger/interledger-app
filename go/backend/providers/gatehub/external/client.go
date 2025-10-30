@@ -1226,53 +1226,6 @@ func (c *client) BlockCard(ctx context.Context, userID, cardID string, args Bloc
 	return nil
 }
 
-func (c *client) CloseCard(ctx context.Context, userID, cardID string, args CloseCardArgs) error {
-	meta, ok := httplog.MetaForContext(ctx)
-	if ok {
-		meta.Method = "DELETE"
-		meta.Provider = "gatehub"
-	} else {
-		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
-			Method:   "DELETE",
-			Provider: "gatehub",
-		})
-	}
-
-	endpoint, err := url.Parse(fmt.Sprintf("%s/cards/v1/cards/%s/card", c.baseURL, cardID))
-	if err != nil {
-		return fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	q := endpoint.Query()
-	q.Set("reasonCode", args.ReasonCode)
-	endpoint.RawQuery = q.Encode()
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, endpoint.String(), bytes.NewBuffer(nil))
-	if err != nil {
-		return fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set(managedUserHeader, userID)
-	req.Header.Set(cardAppIDHeader, c.cardAppID)
-	err = c.Sign(ctx, req, time.Now(), nil, endpoint.String())
-	if err != nil {
-		return fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	resp, err := c.api.Do(req)
-	if err != nil {
-		return fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	err = checkResponseStatusCode(resp)
-	if err != nil {
-		return fmt.Errorf("%w %s", ErrInternal, err)
-	}
-
-	return nil
-}
-
 func (c *client) Sign(ctx context.Context, req *http.Request, date time.Time, payload []byte, targetURL string) error {
 	base := fmt.Sprintf("%d|%s|%s|%s", date.UnixMilli(), req.Method, targetURL, string(payload))
 	base = strings.Trim(base, "|")

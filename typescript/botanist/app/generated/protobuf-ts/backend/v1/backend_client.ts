@@ -4,7 +4,6 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { BackendService } from "./backend";
-import type { TerminateCardRequest } from "./backend";
 import type { BlockCardRequest } from "./backend";
 import type { UnfreezeCardRequest } from "./backend";
 import type { FreezeCardRequest } from "./backend";
@@ -653,10 +652,6 @@ export interface IBackendServiceClient {
      * @generated from protobuf rpc: BlockCard(backend.v1.BlockCardRequest) returns (backend.v1.Empty);
      */
     blockCard(input: BlockCardRequest, options?: RpcOptions): UnaryCall<BlockCardRequest, Empty>;
-    /**
-     * @generated from protobuf rpc: TerminateCard(backend.v1.TerminateCardRequest) returns (backend.v1.Empty);
-     */
-    terminateCard(input: TerminateCardRequest, options?: RpcOptions): UnaryCall<TerminateCardRequest, Empty>;
 }
 /**
  * @generated from protobuf service backend.v1.BackendService
@@ -1501,12 +1496,5 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
     blockCard(input: BlockCardRequest, options?: RpcOptions): UnaryCall<BlockCardRequest, Empty> {
         const method = this.methods[110], opt = this._transport.mergeOptions(options);
         return stackIntercept<BlockCardRequest, Empty>("unary", this._transport, method, opt, input);
-    }
-    /**
-     * @generated from protobuf rpc: TerminateCard(backend.v1.TerminateCardRequest) returns (backend.v1.Empty);
-     */
-    terminateCard(input: TerminateCardRequest, options?: RpcOptions): UnaryCall<TerminateCardRequest, Empty> {
-        const method = this.methods[111], opt = this._transport.mergeOptions(options);
-        return stackIntercept<TerminateCardRequest, Empty>("unary", this._transport, method, opt, input);
     }
 }

@@ -15,36 +15,31 @@ export const handle: ApplicationProps = {
   }
 }
 
-// This is our current solution to avoid refetching the card details again. We
-// can move away from this in the future and use a loader for this route as well.
 export default function PageCardID() {
   const navigate = useNavigate()
   const { features } = useRouteLoaderData('root') as SerializeFrom<
     typeof rootLoader
   >
-  const { cards, setActiveCardId } = useCardsStore()
+  const { cards, areCardsFetched } = useCardsStore()
   const { cardId } = useParams<RouteParams['/cards/:cardId']>()
+  const card = useMemo(
+    () => (cardId ? cards?.[cardId] : undefined),
+    [cards, cardId]
+  )
 
   useEffect(() => {
-    if (cardId) {
-      setActiveCardId(cardId)
+    if (areCardsFetched && (!card || !cardId)) {
+      navigate('/cards')
     }
-  }, [cardId, setActiveCardId])
+  }, [areCardsFetched, card, cardId, navigate])
 
-  // goto root in case cards are not enabled
-  if (!features.manageWalletCardsEnabled) {
-    navigate('/')
-  }
+  useEffect(() => {
+    if (!features.manageWalletCardsEnabled) {
+      navigate('/')
+    }
+  }, [features.manageWalletCardsEnabled, navigate])
 
-  if (!cardId) {
-    return <>Card not found</>
-  }
-
-  const card = useMemo(() => cards?.[cardId], [cards, cardId])
-
-  if (!card) {
-    return <>Card not found</>
-  }
+  if (!card) return null
 
   return <CardView card={card} />
 }

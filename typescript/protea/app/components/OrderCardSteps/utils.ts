@@ -2,9 +2,10 @@ import {
   CustomerDeliveryAddressType,
   NewCustomerDeliveryAddress
 } from '~/generated/connect/backend/v1/backend_pb'
-import { Country, DeliveryAddress } from '~/lib/useOrderCardStore'
-import { SelectOptions } from '../Select'
-import { AddressFormData, addressTypeOptions } from './CreateAddress'
+import type { Country, DeliveryAddress } from '~/lib/useOrderCardStore'
+import type { SelectOptions } from '../Select'
+import type { AddressFormData} from './CreateAddress';
+import { addressTypeOptions } from './CreateAddress'
 
 export type SelectableAddress = {
   id: string
@@ -19,7 +20,7 @@ export function toSelectableAddresses(
   return {
     id: address.id,
     name: `${address.details?.line1} ${address.details?.city} (${address.details?.countryCode})`,
-    icon: getAddressIcon(address.details?.type!),
+    icon: getAddressIcon(address.details?.type || CustomerDeliveryAddressType.CUSTOMER_DELIVERY_ADDRESS_OTHER),
     label: address.id === 'new' ? 'New' : undefined
   }
 }
@@ -32,6 +33,7 @@ export function getAddressIcon(type: CustomerDeliveryAddressType) {
       return 'location_on'
   }
 }
+
 export const getAddressTypeValue = (
   currentType: CustomerDeliveryAddressType
 ) => {
@@ -42,16 +44,19 @@ export const getAddressTypeValue = (
       return addressTypeOptions[0]
   }
 }
+
 export const getCountryOptions = (countries: Country[]): SelectOptions[] => {
   return countries.map((country) => ({
     id: country.id,
     name: country.name
   }))
 }
+
 export const getCountryValue = (countryCode: string, countries: Country[]) => {
   const country = countries.find((c) => c.id === countryCode)
   return country
 }
+
 export const createNewAddress = (
   data: AddressFormData
 ): NewCustomerDeliveryAddress => {
