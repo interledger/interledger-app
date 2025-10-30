@@ -37,3 +37,8 @@ func StringToScaledUInt(input string) (uint64, error) {
 
 	return fee, nil
 }
+
+func formatMaskedPan(pan string) string {
+	last4 := pan[len(pan)-4:]
+	return "**** " + last4
+}

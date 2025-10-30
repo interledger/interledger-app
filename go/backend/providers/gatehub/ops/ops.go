@@ -789,6 +789,18 @@ func BlockCard(ctx context.Context, b Backends, ec external.Client, args gatehub
 	})
 }
 
+func GetPendingThreeDSConfirmations(ctx context.Context, ec external.Client, userID string) ([]external.PendingThreeDSConfirmation, error) {
+	return ec.GetPendingThreeDSConfirmations(ctx, userID)
+}
+
+func ThreeDSPaymentConfirmation(ctx context.Context, ec external.Client, userID, txID string, confirmed bool) error {
+	return ec.ThreeDSPaymentConfirmation(ctx, userID, external.ThreeDSPaymentConfirmationArgs{
+		TransactionID: txID,
+		Confirmed:     confirmed,
+		AuthMethod:    "08", // 08 - login ; 07 - biometric
+	})
+}
+
 func getNameOnCard(walletAddress string) (string, error) {
 	// For non production environments we generate a random card name.
 	// This might be counter intuitive but we have the limitation of 26 chars
@@ -866,5 +878,37 @@ func BackfillAccountAndSetKYC(ctx context.Context, b Backends, walletID, webhook
 		}
 	}
 
+	return nil
+}
+
+type pendingTransaction struct {
+	ID     string `db:"id"`
+	UserID string `db:"user_id"`
+}
+
+func GetPendingCardTransactions(ctx context.Context, b Backends) ([]pendingTransaction, error) {
+	sqlStmt := "SELECT id, user_id FROM gatehub_card_transactions WHERE status IN ($1, $2, $3)  AND type IN ($4, $5) AND created_at::date < CURRENT_DATE ORDER BY created_at ASC, id"
+	var txs []pendingTransaction
+
+	err := b.DB().SelectContext(ctx, &txs,
+		sqlStmt,
+		external.CardTractionStatusInitial,
+		external.CardTractionStatusProcessing,
+		external.CardTractionStatusAcquired,
+		external.CardTransactionTypePurchase,
+		external.CardTransactionTypeATMWithdrawal,
+	)
+	if err != nil {
+		return []pendingTransaction{}, fmt.Errorf("%w %s", transactions.ErrInternal, err)
+	}
+
+	return txs, nil
+}
+
+func updateCardTransactionStatus(ctx context.Context, b Backends, txID, status string) error {
+	_, err := b.DB().ExecContext(ctx, "UPDATE gatehub_card_transactions SET status = $1, updated_at = NOW() WHERE id = $2", status, txID)
+	if err != nil {
+		return fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
 	return nil
 }

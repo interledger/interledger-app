@@ -35,16 +35,30 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
 }
 
-// NotifyWallet mocks base method.
-func (m *MockClient) NotifyWallet(ctx context.Context, walletId string, event notify.NotificationType) error {
+// NotifyPending3DSConfirmation mocks base method.
+func (m *MockClient) NotifyPending3DSConfirmation(ctx context.Context, walletID string, data any) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "NotifyWallet", ctx, walletId, event)
+	ret := m.ctrl.Call(m, "NotifyPending3DSConfirmation", ctx, walletID, data)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// NotifyPending3DSConfirmation indicates an expected call of NotifyPending3DSConfirmation.
+func (mr *MockClientMockRecorder) NotifyPending3DSConfirmation(ctx, walletID, data interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyPending3DSConfirmation", reflect.TypeOf((*MockClient)(nil).NotifyPending3DSConfirmation), ctx, walletID, data)
+}
+
+// NotifyWallet mocks base method.
+func (m *MockClient) NotifyWallet(ctx context.Context, walletID string, event notify.NotificationType) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NotifyWallet", ctx, walletID, event)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // NotifyWallet indicates an expected call of NotifyWallet.
-func (mr *MockClientMockRecorder) NotifyWallet(ctx, walletId, event interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) NotifyWallet(ctx, walletID, event interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyWallet", reflect.TypeOf((*MockClient)(nil).NotifyWallet), ctx, walletId, event)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyWallet", reflect.TypeOf((*MockClient)(nil).NotifyWallet), ctx, walletID, event)
 }

@@ -87,3 +87,7 @@ func (c *client) SendWithdrawalFailedEmail(ctx context.Context, walletID string)
 func (c *client) SendCardCreatedEmail(ctx context.Context, walletID, cardID string) {
 	ops.SendCardCreatedEmail(ctx, c.b, walletID, cardID)
 }
+
+func (c *client) SendPending3DSConfirmation(ctx context.Context, walletID, confirmationID string) {
+	ops.SendPending3DSConfirmation(ctx, c.b, walletID, confirmationID)
+}

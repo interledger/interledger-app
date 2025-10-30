@@ -11,13 +11,19 @@ import type { ApplicationProps } from '~/components'
 import { Layouts, OutlineButtonRouter } from '~/components'
 import { TotpChallenge } from '~/components/TotpChallenge'
 import { validateCSRFToken } from '~/lib/csrf.server'
-import { KRATOS_URL, getCsrfTokenFromFlow } from '~/lib/kratos.server'
+import {
+  KRATOS_URL,
+  getCsrfTokenFromFlow,
+  isSessionAlreadyExitsMessage
+} from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
-export  type TotpAction = {
-  errors: {
-    totp_code?: string
-  }
-} | undefined
+export type TotpAction =
+  | {
+      errors: {
+        totp_code?: string
+      }
+    }
+  | undefined
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
@@ -41,7 +47,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     if (initRes.status !== 303 && initRes.status !== 302) {
       throw new Error('Expected redirect response from Kratos')
     }
-    
+
     const location = initRes.headers.get('location')
     if (!location) {
       throw new Error('Expected redirect with flow ID, but got none.')
@@ -134,8 +140,9 @@ export async function action({ request }: ActionFunctionArgs) {
   if (res.status === 400) {
     const data = await res.json()
     // if the form is submitted twice the user already has a valid session
-    const message: string = data.ui?.messages?.find((m: any) => m.type === 'error')?.text ?? '';
-    if(message.includes('?refresh=true')) {
+    const message: string =
+      data.ui?.messages?.find((m: any) => m.type === 'error')?.text ?? ''
+    if (isSessionAlreadyExitsMessage(message)) {
       return response
     }
     return json({
@@ -153,6 +160,6 @@ export async function action({ request }: ActionFunctionArgs) {
   if (setCookie) {
     response.headers.set('cookie', setCookie)
   }
-  
+
   return response
 }

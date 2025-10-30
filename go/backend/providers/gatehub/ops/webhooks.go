@@ -16,6 +16,7 @@ import (
 
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/providers/gatehub"
+	"gitlab.com/fynbos/backend/providers/gatehub/external"
 	"gitlab.com/fynbos/backend/slack"
 	"gitlab.com/fynbos/log"
 	"go.temporal.io/api/enums/v1"
@@ -93,6 +94,36 @@ type (
 		CustomerID       string  `json:"customerId"`
 		CustomerSourceID string  `json:"customerSourceId"`
 	}
+
+	Card3DSConfirmationWebhookData struct {
+		Type    string                              `json:"type"`
+		Payload external.PendingThreeDSConfirmation `json:"payload"`
+	}
+
+	Card3DSConfirmationWebhook struct {
+		UUID        string                         `json:"uuid"`
+		Timestamp   string                         `json:"timestamp"`
+		EventType   string                         `json:"event_type"`
+		UserUUID    string                         `json:"user_uuid"`
+		Environment string                         `json:"environment"`
+		Data        Card3DSConfirmationWebhookData `json:"data"`
+	}
+
+	CardTransactionEventWebhook struct {
+		ID          string                          `json:"uuid"`
+		EventType   string                          `json:"event_type"`
+		Timestamp   string                          `json:"timestamp"`
+		UserID      string                          `json:"user_uuid"`
+		Environment string                          `json:"environment"`
+		Data        CardTransactionEventWebhookData `json:"data"`
+	}
+
+	CardTransactionEventWebhookData struct {
+		Title         string `json:"title"`
+		Body          string `json:"body"`
+		TransactionID string `json:"transactionId"`
+		CardID        string `json:"cardId"`
+	}
 )
 
 func NewWebhook(b Backends) http.HandlerFunc {
@@ -162,6 +193,10 @@ func NewWebhook(b Backends) http.HandlerFunc {
 			HandleActionRequiredWebhook(r.Context(), b, body, w)
 		case "cards.card.created":
 			HandleCardCreatedWebhook(r.Context(), b, body, w)
+		case "cards.3ds.auth_3ds_confirmation":
+			HandleCardThreeDSConfirmation(r.Context(), b, body, w)
+		case "cards.transaction.event":
+			HandleCardTransactionEvent(r.Context(), b, body, w)
 		default:
 			log.Warn("gatehub webhook. Unhandled webhook type", zap.String("event_type", wh.EventType), zap.String("payload", string(body)))
 		}
@@ -315,6 +350,74 @@ func HandleUserDeposit(ctx context.Context, b Backends, raw json.RawMessage, w h
 			return
 		}
 	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func HandleCardTransactionEvent(ctx context.Context, b Backends, raw json.RawMessage, w http.ResponseWriter) {
+	var wh CardTransactionEventWebhook
+	err := json.Unmarshal(raw, &wh)
+	if err != nil {
+		log.Error("gatehub webhook: Failed to unmarshal card transaction event webhook", zap.String("webhook", string(raw)), zap.Error(err))
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	wo := client.StartWorkflowOptions{
+		ID:                    "gatehub_card_transaction_event_" + wh.ID,
+		TaskQueue:             "backend",
+		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+	}
+
+	var workflowStatus enums.WorkflowExecutionStatus
+	wflow, err := b.Temporal().DescribeWorkflowExecution(ctx, wo.ID, "")
+	switch err.(type) {
+	case *serviceerror.Internal,
+		*serviceerror.Unavailable,
+		*serviceerror.InvalidArgument:
+
+		log.Error("Failed to handle gatehub card transaction event webhook", zap.Error(err))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	case *serviceerror.NotFound:
+		// do nothing
+	default:
+		if wflow != nil {
+			workflowStatus = wflow.GetWorkflowExecutionInfo().Status
+		}
+	}
+
+	// execute workflow if it's not running
+	if workflowStatus != enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
+		_, err = b.Temporal().ExecuteWorkflow(ctx, wo, CreateCardTransaction, wh)
+		if err != nil {
+			log.Error("Failed to handle gatehub card transaction event webhook", zap.Error(err))
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func HandleCardThreeDSConfirmation(ctx context.Context, b Backends, raw json.RawMessage, w http.ResponseWriter) {
+	var wh Card3DSConfirmationWebhook
+	err := json.Unmarshal(raw, &wh)
+	if err != nil {
+		log.Error("gatehub webhook: Failed to unmarshal card 3DS confirmation webhook", zap.String("wh", string(raw)), zap.Error(err))
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	walletID, err := getWalletID(ctx, b, wh.UserUUID)
+	if err != nil {
+		log.Error("Failed to find wallet for gatehub user", zap.String("external_user_uuid", wh.UserUUID), zap.Error(err))
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	b.Notify().NotifyPending3DSConfirmation(ctx, walletID, wh.Data.Payload)
+	b.Email().SendPending3DSConfirmation(ctx, walletID, wh.Data.Payload.TransactionID)
 
 	w.WriteHeader(http.StatusOK)
 }

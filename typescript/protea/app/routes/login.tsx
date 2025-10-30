@@ -27,6 +27,7 @@ import {
   KRATOS_URL,
   getCsrfTokenFromFlow,
   handleFlowError,
+  isSessionAlreadyExitsMessage,
   kratosErrorMapping,
   requireNoUserSession
 } from '~/lib/kratos.server'
@@ -196,6 +197,16 @@ export async function action({ request }: ActionFunctionArgs) {
 
   if (res.status >= 400 && res.status !== 422) {
     const errors = await kratosErrorMapping(res, fieldErrors)
+
+    // In case the user clicks a link from the email or from another website,
+    // our cookie will not be sent (we have SameSite=Strict). Therefore, the
+    // user will be redirected to the login page. Once the users logs in,
+    // and if by any chance they already have a valid session, Kratos will throw
+    // an error (no error ID but ...) similar to the one for the TOTP challenge
+    // when someone double submits.
+    if (isSessionAlreadyExitsMessage(errors.form)) {
+      return redirect(returnTo || '/')
+    }
     return error(request, { errors }, { action: 'Contact support' })
   }
 
@@ -228,6 +239,7 @@ export async function action({ request }: ActionFunctionArgs) {
       headers: headers
     })
   }
+
   return redirect(route('/'), {
     headers: headers
   })
