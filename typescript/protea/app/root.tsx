@@ -220,7 +220,7 @@ function Unavailable({ walletAddress }: { walletAddress: string }) {
   return (
     <main className='mb-32 mt-32 w-full px-4'>
       <WalletGrid>
-        <GridColumn className='col-span-8 space-y-12'>
+        <GridColumn className='col-span-8 col-start-1 space-y-12 xl:col-start-3'>
           <InterledgerLogo className='max-w-sm self-center' />
           <Card className='flex !flex-row'>
             <CardContent className='ml-2 text-lg'>
