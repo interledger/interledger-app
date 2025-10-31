@@ -20,10 +20,11 @@ import { type ReactNode } from 'react'
 import {
   Card,
   CardContent,
-  CardIcon,
+  CardCopy,
+  CardHeader,
+  CardTitle,
   Error,
   GridColumn,
-  Icon,
   InterledgerLogo,
   LiveReload,
   WalletGrid
@@ -36,6 +37,8 @@ import styles from '~/styles/app.css'
 import { PendingConfirmationsLoader } from './components/PendingConfirmationsLoader'
 import { getFeatures } from './data/wallet.server'
 import { Features } from './generated/connect/backend/v1/backend_pb'
+import { isConnectError } from './lib/error.server'
+import { grpc } from './lib/grpc.server'
 import { getPusherArgs } from './lib/pusher.server'
 import { NON_FULL_SESSION_ROUTES, isTotpSet } from './lib/totp.server'
 import { usePusher } from './lib/usePusher'
@@ -125,6 +128,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   let features = new Features()
   let isDisabled = false
+  let walletAddress = ''
   const url = new URL(request.url)
   const pathname = url.pathname
 
@@ -141,6 +145,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
       !features.accountEnabled &&
       url.pathname !== '/wallet-address'
     ) {
+      const wallet = await grpc.getWalletInfo(request, {})
+      if (!isConnectError(wallet)) {
+        walletAddress = wallet.url
+      }
       isDisabled = true
     }
   }
@@ -149,6 +157,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   return json({
     isDisabled,
+    walletAddress,
     isUser,
     features,
     snackbar,
@@ -163,14 +172,15 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 function Page() {
-  const { pusherArgs, env, isDisabled } = useLoaderData<typeof loader>()
+  const { pusherArgs, env, isDisabled, walletAddress } =
+    useLoaderData<typeof loader>()
 
   usePusher(pusherArgs, ['cardReady'])
 
   return (
-    <Document env={env}>
+    <Document env={env || {}}>
       {isDisabled ? (
-        <Unavailable />
+        <Unavailable walletAddress={walletAddress} />
       ) : (
         <>
           <Scaffold />
@@ -206,16 +216,13 @@ export function ErrorBoundary() {
   )
 }
 
-function Unavailable() {
+function Unavailable({ walletAddress }: { walletAddress: string }) {
   return (
     <main className='mb-32 mt-32 w-full px-4'>
       <WalletGrid>
-        <GridColumn className='col-span-full space-y-8'>
-          <InterledgerLogo className='w-96 self-center' />
+        <GridColumn className='col-span-8 space-y-12'>
+          <InterledgerLogo className='max-w-sm self-center' />
           <Card className='flex !flex-row'>
-            <CardIcon className='my-auto h-16'>
-              <Icon className='text-red-600'>warning</Icon>
-            </CardIcon>
             <CardContent className='ml-2 text-lg'>
               The application is not yet available in your location, but do not
               worry we are working tirelessly to solve it as fast as possible!{' '}
@@ -224,6 +231,26 @@ function Unavailable() {
               functional in your region.
             </CardContent>
           </Card>
+          {walletAddress && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Your wallet address has been reserved!</CardTitle>
+              </CardHeader>
+              <CardCopy
+                copyContent={walletAddress}
+                shareData={{
+                  title: 'Wallet address',
+                  text: 'You can pay me using my wallet address.',
+                  url: walletAddress
+                }}
+                success='Wallet address copied to clipboard.'
+                copyError="Couldn't copy to clipboard."
+                shareError="Couldn't share wallet address."
+              >
+                {walletAddress}
+              </CardCopy>
+            </Card>
+          )}
         </GridColumn>
       </WalletGrid>
     </main>
