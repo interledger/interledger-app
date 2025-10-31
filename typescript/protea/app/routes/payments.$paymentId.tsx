@@ -68,6 +68,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     walletAddress: walletUrl
   })
 
+  console.log(publicWalletInfoResponse)
+
   if (isConnectError(publicWalletInfoResponse)) {
     publicWalletInfo = {
       walletID: 'not-found',
@@ -80,6 +82,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   } else publicWalletInfo = publicWalletInfoResponse
 
   const pusherArgs = await getPusherArgs(request)
+  console.log(publicWalletInfoResponse)
 
   return json({
     senderAccountTitle,

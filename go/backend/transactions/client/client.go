@@ -119,3 +119,7 @@ func (c *client) CountSendTransactions(ctx context.Context, walletID string) (in
 func (c *client) ListAll(ctx context.Context, page db.Pagination) ([]transactions.Transaction, error) {
 	return ops.ListAllTransactions(ctx, c.b, page)
 }
+
+func (c *client) ListTransactionsForCard(ctx context.Context, page db.Pagination, walletID, cardID string) ([]transactions.Transaction, error) {
+	return ops.ListTransactionsForCard(ctx, c.b, page, walletID, cardID)
+}

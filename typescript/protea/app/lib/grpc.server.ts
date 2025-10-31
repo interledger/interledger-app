@@ -5,13 +5,12 @@ import {
 } from '@bufbuild/connect'
 import { createGrpcTransport } from '@bufbuild/connect-node'
 import type {
-  Message,
   MethodInfo,
   MethodInfoUnary,
   PartialMessage,
   ServiceType
 } from '@bufbuild/protobuf'
-import { MethodKind } from '@bufbuild/protobuf'
+import { Message, MethodKind } from '@bufbuild/protobuf'
 import { BackendService } from '~/generated/connect/backend/v1/backend_connect'
 import { ConnectError } from '~/lib/error.server'
 
@@ -132,4 +131,14 @@ function createUnaryFn<I extends Message<I>, O extends Message<O>>(
   }
 }
 
+// Keep a reference to the original protected method
+const originalToJson = Message.prototype.toJson
+
+// Monkeypatch to emit enums as integers when stringified.
+;(Message.prototype as any).toJSON = function () {
+  return originalToJson.call(this, {
+    enumAsInteger: true,
+    emitDefaultValues: true
+  })
+}
 export { grpc }

@@ -13,8 +13,8 @@ export const CardViewFront = ({
   ...props
 }: CardViewFrontProps) => {
   return (
-    <CardViewContainer className={clsx(className, 'px-5 pt-4')} {...props}>
-      <div className='flex h-full flex-col'>
+    <CardViewContainer className={clsx(className)} {...props}>
+      <div className='flex h-full flex-col px-5 pt-4'>
         {/* Header with logos */}
         <div className='flex items-center justify-between text-sm'>
           <div className='flex items-center'>

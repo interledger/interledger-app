@@ -18,11 +18,11 @@ module.exports = {
       constants: true,
       buffer: true,
       assert: true,
-      process: true,
+      process: true
     },
     globals: {
       Buffer: true,
       process: true
-    },
+    }
   }
 }

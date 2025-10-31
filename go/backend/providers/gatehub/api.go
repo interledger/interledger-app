@@ -29,6 +29,7 @@ type Client interface {
 	ValidateCardProductCode(ctx context.Context, cardProductCode string) error
 	GetPendingThreeDSConfirmations(ctx context.Context, userID string) ([]external.PendingThreeDSConfirmation, error)
 	ThreeDSPaymentConfirmation(ctx context.Context, userID, txID string, confirmed bool) error
+	GetCardDetails(ctx context.Context, userID, cardID string) (*external.Card, error)
 
 	ReserveBalance(ctx context.Context, linkedAccountID, txID string, amt currency.Amount, timeout time.Duration) (*Balance, error)
 	FinaliseReserve(ctx context.Context, txID string) error

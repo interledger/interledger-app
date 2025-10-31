@@ -1,9 +1,12 @@
 import { Menu, Transition } from '@headlessui/react'
-import { Fragment } from 'react'
+import clsx from 'clsx'
+import { Fragment, forwardRef } from 'react'
 import { Icon } from '~/components/Icon'
+import { CardButton } from '../Card'
 
 interface CardActionsProps {
   showBack: boolean
+  isPhysical: boolean
   flip: () => void
   isSensitiveDataVisible: boolean
   isPinVisible: boolean
@@ -17,6 +20,7 @@ interface CardActionsProps {
 }
 
 export const CardActions = ({
+  isPhysical,
   showBack,
   flip,
   isFrozen,
@@ -28,94 +32,40 @@ export const CardActions = ({
   toggleChangePin
 }: CardActionsProps) => {
   return (
-    <div className='flex items-center space-x-4'>
-      {/* Flip card */}
+    <div className='mx-auto flex items-center justify-center space-x-2'>
       {!isFrozen && (
-        <button
-          className='flex items-center justify-center space-x-2 rounded-lg bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600'
-          onClick={flip}
-        >
-          <Icon>{showBack ? 'flip_to_front' : 'flip_to_back'}</Icon>
-          <span>Flip</span>
-        </button>
-      )}
-
-      {/* View Dropdown */}
-      {!isFrozen && (
-        <Menu as='div' className='relative'>
-          {({ open }) => (
-            <>
-              <Menu.Button className='flex items-center justify-center space-x-2 rounded-lg bg-teal-600 px-4 py-2 text-white transition-colors hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2'>
-                <Icon>visibility</Icon>
-                <Icon className='text-lg'>
-                  {open ? 'expand_less' : 'expand_more'}
-                </Icon>
-              </Menu.Button>
-
-              <Transition
-                as={Fragment}
-                show={open}
-                enter='transition ease-out duration-100'
-                enterFrom='transform opacity-0 scale-95'
-                enterTo='transform opacity-100 scale-100'
-                leave='transition ease-in duration-75'
-                leaveFrom='transform opacity-100 scale-100'
-                leaveTo='transform opacity-0 scale-95'
-              >
-                <Menu.Items className='absolute left-0 z-10 mt-2 w-48 origin-top-left rounded-lg border border-gray-200 bg-white shadow-lg focus:outline-none'>
-                  <div className='py-1'>
-                    {/* Details */}
-                    <Menu.Item>
-                      {({ active }) => (
-                        <button
-                          onClick={toggleSensitiveDataOn}
-                          className={`flex w-full items-center space-x-3 px-4 py-2 text-left text-sm ${
-                            active
-                              ? 'bg-teal-50 text-teal-900'
-                              : 'text-gray-700'
-                          }`}
-                        >
-                          <Icon className='text-teal-600'>numbers</Icon>
-                          <span>Details</span>
-                        </button>
-                      )}
-                    </Menu.Item>
-
-                    {/* PIN */}
-                    <Menu.Item>
-                      {({ active }) => (
-                        <button
-                          onClick={toggleViewPin}
-                          className={`flex w-full items-center space-x-3 px-4 py-2 text-left text-sm ${
-                            active
-                              ? 'bg-purple-50 text-purple-900'
-                              : 'text-gray-700'
-                          }`}
-                        >
-                          <Icon className='text-purple-600'>password</Icon>
-                          <span>PIN</span>
-                        </button>
-                      )}
-                    </Menu.Item>
-                  </div>
-                </Menu.Items>
-              </Transition>
-            </>
+        <>
+          <ActionButton
+            onClick={() => {
+              if (showBack) {
+                flip()
+              } else {
+                toggleSensitiveDataOn()
+              }
+            }}
+            icon={showBack ? 'visibility_off' : 'visibility'}
+            text={showBack ? 'Hide details' : 'View details'}
+          />
+          {isPhysical && (
+            <ActionButton
+              onClick={toggleViewPin}
+              icon='password'
+              text='View PIN'
+            />
           )}
-        </Menu>
+        </>
       )}
 
-      {/* More Actions Dropdown */}
       <Menu as='div' className='relative'>
         {({ open }) => (
           <>
-            <Menu.Button className='flex items-center justify-center space-x-2 rounded-lg bg-gray-700 px-4 py-2 text-white transition-colors hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2'>
-              <Icon>lock</Icon>
-              <Icon className='text-lg'>
-                {open ? 'expand_less' : 'expand_more'}
-              </Icon>
-            </Menu.Button>
-
+            <Menu.Button
+              text='Settings'
+              icon='settings'
+              onClick={() => {}}
+              open={open}
+              as={ActionButton}
+            />
             <Transition
               as={Fragment}
               show={open}
@@ -126,69 +76,96 @@ export const CardActions = ({
               leaveFrom='transform opacity-100 scale-100'
               leaveTo='transform opacity-0 scale-95'
             >
-              <Menu.Items className='absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-lg border border-gray-200 bg-white shadow-lg focus:outline-none'>
-                <div className='py-1'>
-                  {!isFrozen && (
-                    <>
-                      {/* Change PIN */}
-                      <Menu.Item>
-                        {({ active }) => (
-                          <button
-                            onClick={toggleChangePin}
-                            className={`flex w-full items-center space-x-3 px-4 py-2 text-left text-sm ${
-                              active
-                                ? 'bg-purple-50 text-purple-900'
-                                : 'text-gray-700'
-                            }`}
-                          >
-                            <Icon className='text-purple-600'>password</Icon>
-                            <span>Change PIN</span>
-                          </button>
-                        )}
-                      </Menu.Item>
-                    </>
-                  )}
-
-                  {/* Freeze/Unfreeze */}
-                  <Menu.Item>
-                    {({ active }) => (
-                      <button
-                        onClick={isFrozen ? toggleUnfreeze : toggleFreeze}
-                        className={`flex w-full items-center space-x-3 px-4 py-2 text-left text-sm ${
-                          active ? 'bg-blue-50 text-blue-900' : 'text-gray-700'
-                        }`}
-                      >
-                        <Icon className='text-blue-600'>
-                          {isFrozen ? 'mode_cool_off' : 'mode_cool'}
-                        </Icon>
-                        <span>{isFrozen ? 'Unfreeze' : 'Freeze'}</span>
-                      </button>
-                    )}
-                  </Menu.Item>
-
-                  {/* Divider */}
-                  <div className='my-1 h-px bg-gray-200' />
-
-                  {/* Terminate */}
-                  <Menu.Item>
-                    {({ active }) => (
-                      <button
-                        onClick={toggleBlock}
-                        className={`flex w-full items-center space-x-3 px-4 py-2 text-left text-sm ${
-                          active ? 'bg-red-50 text-red-900' : 'text-red-700'
-                        }`}
-                      >
-                        <Icon className='text-red-600'>delete</Icon>
-                        <span>Terminate</span>
-                      </button>
-                    )}
-                  </Menu.Item>
-                </div>
+              <Menu.Items className='absolute right-0 top-full z-10 mt-2 w-56 origin-bottom-right overflow-hidden rounded-lg border border-base bg-nav shadow-lg focus:outline-none'>
+                {isPhysical && (
+                  <MenuButton
+                    onClick={toggleChangePin}
+                    icon='lock'
+                    text='Change PIN'
+                  />
+                )}
+                <div className='bg-border-base h-px' />
+                <MenuButton
+                  onClick={isFrozen ? toggleUnfreeze : toggleFreeze}
+                  icon={isFrozen ? 'mode_cool_off' : 'mode_cool'}
+                  text={isFrozen ? 'Unfreeze' : 'Freeze'}
+                />
+                <MenuButton
+                  onClick={toggleBlock}
+                  icon='delete'
+                  text='Terminate'
+                  dangerousAction
+                />
               </Menu.Items>
             </Transition>
           </>
         )}
       </Menu>
     </div>
+  )
+}
+
+interface ActionButtonProps {
+  className?: string
+  open?: boolean
+  onClick?: () => void
+  icon: string
+  text: string
+}
+
+const ActionButton = forwardRef<any, ActionButtonProps>(function ActionButton(
+  { open = false, onClick, icon, text, className },
+  ref
+) {
+  return (
+    <CardButton
+      ref={ref}
+      className={clsx(
+        open ? 'bg-nav/40 hover:bg-nav/40' : 'hover:bg-transparent',
+        'group mb-0 mt-0 w-28 flex-col items-center space-y-2 px-2 active:bg-nav/40',
+        className
+      )}
+      onClick={onClick}
+    >
+      <span
+        className={clsx(
+          open ? 'bg-container-hover' : 'bg-nav',
+          'flex h-auto w-auto rounded-full p-2 leading-6 group-hover:bg-container-hover'
+        )}
+      >
+        <Icon>{icon}</Icon>
+      </span>
+      <span className='inline-block text-sm'>{text}</span>
+    </CardButton>
+  )
+})
+
+interface MenuButtonProps {
+  onClick: () => void
+  icon: string
+  text: string
+  dangerousAction?: boolean
+}
+
+const MenuButton = ({
+  onClick,
+  icon,
+  text,
+  dangerousAction = false
+}: MenuButtonProps) => {
+  return (
+    <Menu.Item>
+      {({ active }) => (
+        <button
+          onClick={onClick}
+          className={`flex w-full items-center space-x-3 px-4 py-2 text-left text-sm ${
+            active ? 'bg-nav-hover' : ''
+          }`}
+        >
+          <Icon className={dangerousAction ? 'text-error' : ''}>{icon}</Icon>
+          <span>{text}</span>
+        </button>
+      )}
+    </Menu.Item>
   )
 }
