@@ -172,20 +172,17 @@ export function AppPage() {
             {/* PENDING CONFIRMATIONS */}
             {pendingConfirmations.length > 0 && (
               <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-                <CardHeader className='mb-2'>
-                  <CardTitle className='flex'>
-                    <Icon className='mr-2 mt-1 flex w-6 text-orange-500'>
-                      priority_high
-                    </Icon>{' '}
-                    You have pending 3DS confirmations
-                  </CardTitle>
-                  <Router
-                    className='flex max-h-fit'
-                    to={route('/confirmations')}
-                  >
+                <Router className='flex max-h-fit' to={route('/confirmations')}>
+                  <CardHeader className='mb-2'>
+                    <CardTitle className='flex'>
+                      <Icon className='mr-2 mt-1 flex w-6 text-orange-500'>
+                        priority_high
+                      </Icon>{' '}
+                      You have pending 3DS confirmations
+                    </CardTitle>
                     <Icon className='text-medium'>read_more</Icon>
-                  </Router>
-                </CardHeader>
+                  </CardHeader>
+                </Router>
               </Card>
             )}
 

@@ -39,4 +39,5 @@ type Client interface {
 	GetTransaction(ctx context.Context, walletID string, trxID string) (*Transaction, error)
 	GetTransactionByForeignID(ctx context.Context, walletID string, foreignID string) (*Transaction, error)
 	ListTransfers(ctx context.Context, trxID string) ([]Transfer, error)
+	ListTransactionsForCard(ctx context.Context, page db.Pagination, walletID, cardID string) ([]Transaction, error)
 }

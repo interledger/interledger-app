@@ -32,6 +32,28 @@ export interface PaginationRequest {
 export interface Empty {
 }
 /**
+ * @generated from protobuf message backend.v1.GetCardDetailsWithTxRequest
+ */
+export interface GetCardDetailsWithTxRequest {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+}
+/**
+ * @generated from protobuf message backend.v1.GetCardDetailsWithTxResponse
+ */
+export interface GetCardDetailsWithTxResponse {
+    /**
+     * @generated from protobuf field: backend.v1.Card card = 1;
+     */
+    card?: Card;
+    /**
+     * @generated from protobuf field: repeated backend.v1.Transaction transactions = 10;
+     */
+    transactions: Transaction[];
+}
+/**
  * @generated from protobuf message backend.v1.ThreeDSPaymentConfirmationRequest
  */
 export interface ThreeDSPaymentConfirmationRequest {
@@ -3135,6 +3157,107 @@ class Empty$Type extends MessageType<Empty> {
  * @generated MessageType for protobuf message backend.v1.Empty
  */
 export const Empty = new Empty$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GetCardDetailsWithTxRequest$Type extends MessageType<GetCardDetailsWithTxRequest> {
+    constructor() {
+        super("backend.v1.GetCardDetailsWithTxRequest", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<GetCardDetailsWithTxRequest>): GetCardDetailsWithTxRequest {
+        const message = { id: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GetCardDetailsWithTxRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetCardDetailsWithTxRequest): GetCardDetailsWithTxRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GetCardDetailsWithTxRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.GetCardDetailsWithTxRequest
+ */
+export const GetCardDetailsWithTxRequest = new GetCardDetailsWithTxRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GetCardDetailsWithTxResponse$Type extends MessageType<GetCardDetailsWithTxResponse> {
+    constructor() {
+        super("backend.v1.GetCardDetailsWithTxResponse", [
+            { no: 1, name: "card", kind: "message", T: () => Card },
+            { no: 10, name: "transactions", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Transaction }
+        ]);
+    }
+    create(value?: PartialMessage<GetCardDetailsWithTxResponse>): GetCardDetailsWithTxResponse {
+        const message = { transactions: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GetCardDetailsWithTxResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetCardDetailsWithTxResponse): GetCardDetailsWithTxResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* backend.v1.Card card */ 1:
+                    message.card = Card.internalBinaryRead(reader, reader.uint32(), options, message.card);
+                    break;
+                case /* repeated backend.v1.Transaction transactions */ 10:
+                    message.transactions.push(Transaction.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GetCardDetailsWithTxResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* backend.v1.Card card = 1; */
+        if (message.card)
+            Card.internalBinaryWrite(message.card, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* repeated backend.v1.Transaction transactions = 10; */
+        for (let i = 0; i < message.transactions.length; i++)
+            Transaction.internalBinaryWrite(message.transactions[i], writer.tag(10, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.GetCardDetailsWithTxResponse
+ */
+export const GetCardDetailsWithTxResponse = new GetCardDetailsWithTxResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class ThreeDSPaymentConfirmationRequest$Type extends MessageType<ThreeDSPaymentConfirmationRequest> {
     constructor() {
@@ -13415,5 +13538,6 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "UnfreezeCard", options: {}, I: UnfreezeCardRequest, O: Empty },
     { name: "BlockCard", options: {}, I: BlockCardRequest, O: Empty },
     { name: "GetPendingThreeDSConfirmations", options: {}, I: Empty, O: GetPendingThreeDSConfirmationsResponse },
-    { name: "ThreeDSPaymentConfirmation", options: {}, I: ThreeDSPaymentConfirmationRequest, O: Empty }
+    { name: "ThreeDSPaymentConfirmation", options: {}, I: ThreeDSPaymentConfirmationRequest, O: Empty },
+    { name: "GetCardDetailsWithTx", options: {}, I: GetCardDetailsWithTxRequest, O: GetCardDetailsWithTxResponse }
 ]);
