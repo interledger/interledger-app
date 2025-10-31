@@ -369,6 +369,153 @@ export class Empty extends Message<Empty> {
 }
 
 /**
+ * @generated from message backend.v1.ThreeDSPaymentConfirmationRequest
+ */
+export class ThreeDSPaymentConfirmationRequest extends Message<ThreeDSPaymentConfirmationRequest> {
+  /**
+   * @generated from field: string transactionId = 1;
+   */
+  transactionId = "";
+
+  /**
+   * @generated from field: bool confirmed = 2;
+   */
+  confirmed = false;
+
+  constructor(data?: PartialMessage<ThreeDSPaymentConfirmationRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.ThreeDSPaymentConfirmationRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "transactionId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "confirmed", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ThreeDSPaymentConfirmationRequest {
+    return new ThreeDSPaymentConfirmationRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ThreeDSPaymentConfirmationRequest {
+    return new ThreeDSPaymentConfirmationRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ThreeDSPaymentConfirmationRequest {
+    return new ThreeDSPaymentConfirmationRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ThreeDSPaymentConfirmationRequest | PlainMessage<ThreeDSPaymentConfirmationRequest> | undefined, b: ThreeDSPaymentConfirmationRequest | PlainMessage<ThreeDSPaymentConfirmationRequest> | undefined): boolean {
+    return proto3.util.equals(ThreeDSPaymentConfirmationRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.PendingThreeDSConfirmation
+ */
+export class PendingThreeDSConfirmation extends Message<PendingThreeDSConfirmation> {
+  /**
+   * @generated from field: string transactionId = 1;
+   */
+  transactionId = "";
+
+  /**
+   * @generated from field: string merchantName = 2;
+   */
+  merchantName = "";
+
+  /**
+   * @generated from field: string purchaseAmount = 3;
+   */
+  purchaseAmount = "";
+
+  /**
+   * @generated from field: string purchaseCurrency = 4;
+   */
+  purchaseCurrency = "";
+
+  /**
+   * @generated from field: string purchaseDate = 5;
+   */
+  purchaseDate = "";
+
+  /**
+   * @generated from field: string timeout = 6;
+   */
+  timeout = "";
+
+  constructor(data?: PartialMessage<PendingThreeDSConfirmation>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.PendingThreeDSConfirmation";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "transactionId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "merchantName", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "purchaseAmount", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "purchaseCurrency", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "purchaseDate", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "timeout", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PendingThreeDSConfirmation {
+    return new PendingThreeDSConfirmation().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PendingThreeDSConfirmation {
+    return new PendingThreeDSConfirmation().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PendingThreeDSConfirmation {
+    return new PendingThreeDSConfirmation().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PendingThreeDSConfirmation | PlainMessage<PendingThreeDSConfirmation> | undefined, b: PendingThreeDSConfirmation | PlainMessage<PendingThreeDSConfirmation> | undefined): boolean {
+    return proto3.util.equals(PendingThreeDSConfirmation, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.GetPendingThreeDSConfirmationsResponse
+ */
+export class GetPendingThreeDSConfirmationsResponse extends Message<GetPendingThreeDSConfirmationsResponse> {
+  /**
+   * @generated from field: repeated backend.v1.PendingThreeDSConfirmation confirmations = 1;
+   */
+  confirmations: PendingThreeDSConfirmation[] = [];
+
+  constructor(data?: PartialMessage<GetPendingThreeDSConfirmationsResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.GetPendingThreeDSConfirmationsResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "confirmations", kind: "message", T: PendingThreeDSConfirmation, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetPendingThreeDSConfirmationsResponse {
+    return new GetPendingThreeDSConfirmationsResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetPendingThreeDSConfirmationsResponse {
+    return new GetPendingThreeDSConfirmationsResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetPendingThreeDSConfirmationsResponse {
+    return new GetPendingThreeDSConfirmationsResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetPendingThreeDSConfirmationsResponse | PlainMessage<GetPendingThreeDSConfirmationsResponse> | undefined, b: GetPendingThreeDSConfirmationsResponse | PlainMessage<GetPendingThreeDSConfirmationsResponse> | undefined): boolean {
+    return proto3.util.equals(GetPendingThreeDSConfirmationsResponse, a, b);
+  }
+}
+
+/**
  * @generated from message backend.v1.FreezeCardRequest
  */
 export class FreezeCardRequest extends Message<FreezeCardRequest> {
@@ -3121,6 +3268,55 @@ export class Amount extends Message<Amount> {
 }
 
 /**
+ * @generated from message backend.v1.CardTransactionDetails
+ */
+export class CardTransactionDetails extends Message<CardTransactionDetails> {
+  /**
+   * @generated from field: string card_id = 1;
+   */
+  cardId = "";
+
+  /**
+   * @generated from field: string card_masked_pan = 2;
+   */
+  cardMaskedPan = "";
+
+  /**
+   * @generated from field: int64 type = 3;
+   */
+  type = protoInt64.zero;
+
+  constructor(data?: PartialMessage<CardTransactionDetails>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.CardTransactionDetails";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "card_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "card_masked_pan", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "type", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CardTransactionDetails {
+    return new CardTransactionDetails().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CardTransactionDetails {
+    return new CardTransactionDetails().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CardTransactionDetails {
+    return new CardTransactionDetails().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CardTransactionDetails | PlainMessage<CardTransactionDetails> | undefined, b: CardTransactionDetails | PlainMessage<CardTransactionDetails> | undefined): boolean {
+    return proto3.util.equals(CardTransactionDetails, a, b);
+  }
+}
+
+/**
  * @generated from message backend.v1.Transaction
  */
 export class Transaction extends Message<Transaction> {
@@ -3238,6 +3434,11 @@ export class Transaction extends Message<Transaction> {
    */
   fundsReceived = "";
 
+  /**
+   * @generated from field: optional backend.v1.CardTransactionDetails cardTransactionDetails = 24;
+   */
+  cardTransactionDetails?: CardTransactionDetails;
+
   constructor(data?: PartialMessage<Transaction>) {
     super();
     proto3.util.initPartial(data, this);
@@ -3268,6 +3469,7 @@ export class Transaction extends Message<Transaction> {
     { no: 21, name: "destinationIdentityType", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 22, name: "refundState", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
     { no: 23, name: "fundsReceived", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 24, name: "cardTransactionDetails", kind: "message", T: CardTransactionDetails, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Transaction {

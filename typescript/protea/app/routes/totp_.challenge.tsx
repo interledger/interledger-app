@@ -1,4 +1,4 @@
-import { SelfServiceLoginFlow } from '@ory/kratos-client'
+import type { SelfServiceLoginFlow } from '@ory/kratos-client'
 import type {
   ActionFunctionArgs,
   LoaderFunctionArgs,
@@ -11,8 +11,19 @@ import type { ApplicationProps } from '~/components'
 import { Layouts, OutlineButtonRouter } from '~/components'
 import { TotpChallenge } from '~/components/TotpChallenge'
 import { validateCSRFToken } from '~/lib/csrf.server'
-import { KRATOS_URL, getCsrfTokenFromFlow } from '~/lib/kratos.server'
+import {
+  KRATOS_URL,
+  getCsrfTokenFromFlow,
+  isSessionAlreadyExitsMessage
+} from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
+export type TotpAction =
+  | {
+      errors: {
+        totp_code?: string
+      }
+    }
+  | undefined
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
@@ -36,7 +47,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     if (initRes.status !== 303 && initRes.status !== 302) {
       throw new Error('Expected redirect response from Kratos')
     }
-    
+
     const location = initRes.headers.get('location')
     if (!location) {
       throw new Error('Expected redirect with flow ID, but got none.')
@@ -85,7 +96,7 @@ export const meta: MetaFunction = mergeMeta(() => [
 
 export default function Page() {
   const { flowId, csrfToken } = useLoaderData<typeof loader>()
-  const actionData = useActionData<typeof action>()
+  const actionData: TotpAction = useActionData<typeof action>()
 
   return (
     <>
@@ -123,13 +134,20 @@ export async function action({ request }: ActionFunctionArgs) {
     })
   })
 
+  const returnTo = new URL(request.url).searchParams.get('returnTo') || '/'
+  const response = redirect(returnTo ?? '/')
+
   if (res.status === 400) {
     const data = await res.json()
+    // if the form is submitted twice the user already has a valid session
+    const message: string =
+      data.ui?.messages?.find((m: any) => m.type === 'error')?.text ?? ''
+    if (isSessionAlreadyExitsMessage(message)) {
+      return response
+    }
     return json({
       errors: {
-        totp_code:
-          data.ui?.messages?.find((m: any) => m.type === 'error')?.text ||
-          'Invalid code'
+        totp_code: message || 'Invalid code'
       }
     })
   }
@@ -138,13 +156,10 @@ export async function action({ request }: ActionFunctionArgs) {
     throw new Response('Unexpected error', { status: res.status })
   }
 
-  const returnTo = new URL(request.url).searchParams.get('returnTo') || '/'
-  const response = redirect(returnTo ?? '/')
   const setCookie = res.headers.get('set-cookie')
-
   if (setCookie) {
     response.headers.set('cookie', setCookie)
   }
-  
+
   return response
 }

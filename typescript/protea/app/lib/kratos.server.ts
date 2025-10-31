@@ -237,6 +237,7 @@ export async function kratosErrorMapping<T extends object>(
   fieldErrors: T
 ): Promise<T> {
   const data = await response.json()
+
   if (data.ui) {
     for (let node of data.ui.nodes) {
       // Field validation errors
@@ -265,4 +266,10 @@ export async function kratosErrorMapping<T extends object>(
     })
   }
   return fieldErrors
+}
+
+export function isSessionAlreadyExitsMessage(msg: string) {
+  return (
+    msg.includes('refresh=true') && msg.includes('valid session was detected')
+  )
 }

@@ -3240,6 +3240,77 @@ table "chi_money_wallets" {
   }
 }
 
+table "gatehub_card_transactions" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = varchar(255)
+    comment = "GateHub transaction ID"
+  }
+  column "type" {
+    null = false
+    type = integer
+  }
+  column "status" {
+    null = true
+    type = varchar(255)
+  }
+  column "gatehub_response_code" {
+    null = false
+    type = varchar(255)
+  }
+  column "gatehub_response_description" {
+    null = false
+    type = text
+  }
+  column "user_id" {
+    null = false
+    type = uuid
+  }
+  column "card_id" {
+    null = false
+    type = text
+    comment = "Dinit card ID"
+  }
+  column "card_masked_pan" {
+    null = false
+    type = varchar(9)
+    comment = "Card masked PAN for user display (i.e.: '**** 3444')"
+  }
+  column "mcc" {
+    null = true
+    type = varchar(10)
+  }
+  column "transaction_amount" {
+    null = true
+    type = text
+    comment = "The transaction amount represents the amount that the user paid. Do not use this for user display - the `billing_amount` represents the amount that the user paid after conversion."
+  }
+  column "transaction_currency" {
+    null = true
+    type = varchar(10)
+    comment = "Card transaction currency - if the user paid at the POS in MXN, the transaction_currency would be MXN"
+  }
+  column "raw_transaction" {
+    null = false
+    type = jsonb
+    comment = "JSON transaction data"
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now()::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now()::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+}
+
 table "chi_money_interac_emails" {
   schema = schema.public
   column "id" {

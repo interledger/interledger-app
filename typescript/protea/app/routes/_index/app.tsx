@@ -24,6 +24,7 @@ import {
   WalletGrid
 } from '~/components'
 import { Label } from '~/components/Label'
+import { usePendingConfirmations } from '~/lib/usePendingConfirmations'
 import { usePusher } from '~/lib/usePusher'
 import type { appLoader } from './route'
 import { KycStatus } from './route'
@@ -37,6 +38,8 @@ export function AppPage() {
     pusherArgs,
     balances
   } = useLoaderData<typeof appLoader>()
+
+  const { pendingConfirmations } = usePendingConfirmations()
 
   usePusher(pusherArgs, ['transaction', 'kyc'])
 
@@ -151,6 +154,8 @@ export function AppPage() {
                 </CardContent>
               </Card>
             ))}
+
+            {/* CARDS */}
             {features.manageWalletCardsEnabled && (
               <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
                 <CardHeader className='mb-2'>
@@ -163,6 +168,28 @@ export function AppPage() {
                 </CardHeader>
               </Card>
             )}
+
+            {/* PENDING CONFIRMATIONS */}
+            {pendingConfirmations.length > 0 && (
+              <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+                <CardHeader className='mb-2'>
+                  <CardTitle className='flex'>
+                    <Icon className='mr-2 mt-1 flex w-6 text-orange-500'>
+                      priority_high
+                    </Icon>{' '}
+                    You have pending 3DS confirmations
+                  </CardTitle>
+                  <Router
+                    className='flex max-h-fit'
+                    to={route('/confirmations')}
+                  >
+                    <Icon className='text-medium'>read_more</Icon>
+                  </Router>
+                </CardHeader>
+              </Card>
+            )}
+
+            {/* LATEST PAYMENTS */}
             <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
               <CardHeader>
                 <CardTitle>Latest payments</CardTitle>
@@ -225,6 +252,9 @@ export function AppPage() {
                           {transaction.destinationIdentityType == 'Slack' && (
                             <SlackIcon />
                           )}
+                          {transaction.type == 'card_transaction' && (
+                            <Icon>credit_card</Icon>
+                          )}
                         </>
                       )}
                     {transaction.state != 'Pending' &&
@@ -244,12 +274,17 @@ export function AppPage() {
                     <span
                       className={clsx(
                         'font-medium',
-                        transaction.type == 'sent'
+                        transaction.type == 'sent' ||
+                          (transaction.type == 'card_transaction' &&
+                            transaction.state === 'Completed')
                           ? 'text-error'
                           : 'text-medium'
                       )}
                     >
                       {transaction.type == 'sent' && '- '}
+                      {transaction.type == 'card_transaction' &&
+                        transaction.state == 'Completed' &&
+                        '- '}
                       {transaction.formattedAmount}
                     </span>
                     <Icon>navigate_next</Icon>

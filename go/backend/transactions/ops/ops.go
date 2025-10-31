@@ -225,12 +225,13 @@ func AddTransfers(ctx context.Context, b Backends, trxID string, transferArgs []
 }
 
 const (
-	transactionCols = ` id, foreign_id, type, state, title, provider, note, source, destination, amount, asset_scale, asset_code, linked_account_title, destination_identity_type, destination_identity, reference, updated_at, refund_state, provider_fee `
+	transactionCols = ` id, wallet_id, foreign_id, type, state, title, provider, note, source, destination, amount, asset_scale, asset_code, linked_account_title, destination_identity_type, destination_identity, reference, updated_at, refund_state, provider_fee `
 	transferCols    = ` id, foreign_id, linked_acc_id, type, state, amount, asset_scale, asset_code, updated_at `
 )
 
 type dbTransaction struct {
 	ID                      string                       `db:"id"`
+	WalletID                string                       `db:"wallet_id"`
 	ForeignID               sql.NullString               `db:"foreign_id"`
 	Type                    transactions.TransactionType `db:"type"`
 	State                   transactions.State           `db:"state"`
@@ -364,7 +365,15 @@ func GetTransaction(ctx context.Context, b Backends, walletID string, trxID stri
 		return nil, fmt.Errorf("%w %s", transactions.ErrInternal, err)
 	}
 
-	resp := transformTransaction(tx)
+	var resp transactions.Transaction
+	if tx.Type == "card_transaction" {
+		resp, err = transformCardTransaction(ctx, b, tx)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		resp = transformTransaction(tx)
+	}
 
 	return &resp, nil
 }
@@ -646,6 +655,7 @@ func ListTransfers(ctx context.Context, b Backends, txID string) ([]transactions
 func transformTransaction(tx dbTransaction) transactions.Transaction {
 	return transactions.Transaction{
 		ID:                      tx.ID,
+		WalletID:                tx.WalletID,
 		ForeignID:               tx.ForeignID.String,
 		Source:                  tx.Source.String,
 		Destination:             tx.Destination.String,
@@ -671,6 +681,50 @@ func transformTransaction(tx dbTransaction) transactions.Transaction {
 			Scale:    tx.Scale,
 		},
 	}
+}
+
+func transformCardTransaction(ctx context.Context, b Backends, tx dbTransaction) (transactions.Transaction, error) {
+	t := transactions.Transaction{
+		ID:                      tx.ID,
+		WalletID:                tx.WalletID,
+		ForeignID:               tx.ForeignID.String,
+		Source:                  tx.Source.String,
+		Destination:             tx.Destination.String,
+		Title:                   tx.Title.String,
+		Type:                    tx.Type,
+		Timestamp:               tx.Timestamp,
+		Note:                    tx.Note.String,
+		State:                   tx.State,
+		Provider:                tx.Provider,
+		LinkedAccountTitle:      tx.LinkedAccountTitle.String,
+		DestinationIdentity:     tx.DestinationIdentity.String,
+		DestinationIdentityType: tx.DestinationIdentityType.String,
+		Reference:               tx.Reference.String,
+		Amount: currency.Amount{
+			Value:    tx.Amount,
+			Currency: currency.ParseCurrency(tx.Asset),
+			Scale:    tx.Scale,
+		},
+		RefundState: tx.RefundState,
+		ProviderFee: &currency.Amount{
+			Value:    tx.ProviderFee,
+			Currency: currency.ParseCurrency(tx.Asset),
+			Scale:    tx.Scale,
+		},
+	}
+
+	var details transactions.CardTransactionDetails
+	err := b.DB().GetContext(ctx, &details, "SELECT card_id, card_masked_pan, type FROM gatehub_card_transactions WHERE id = $1", tx.ForeignID.String)
+	if errors.Is(err, sql.ErrNoRows) {
+		return transactions.Transaction{}, fmt.Errorf("%w gatehub card transaction details details not found ID (%s)", transactions.ErrNotFound, t.ID)
+	}
+	if err != nil {
+		return transactions.Transaction{}, fmt.Errorf("%w %s", transactions.ErrInternal, err)
+	}
+
+	t.CardTransactionDetails = details
+
+	return t, nil
 }
 
 type GenerateTransactionTitleArgs struct {

@@ -54,7 +54,8 @@ module.exports = {
         'chip-yellow': 'var(--text-chip-yellow)',
         'chip-lime': 'var(--text-chip-lime)',
         'chip-rose': 'var(--text-chip-rose)',
-        'chip-slate': 'var(--text-chip-slate)'
+        'chip-slate': 'var(--text-chip-slate)',
+        charcoal: 'rgb(var(--charcoal) / <alpha-value>)'
       },
       ringOffsetColor: {
         'container-strong': 'rgb(var(--bg-container-strong) / <alpha-value>)'
@@ -99,7 +100,10 @@ module.exports = {
         'chip-rose': 'var(--bg-chip-rose)',
         'chip-slate': 'var(--bg-chip-slate)',
         'alert-slate': 'var(--bg-alert-slate)',
-        'alert-success': 'var(--bg-alert-success)'
+        'alert-success': 'var(--bg-alert-success)',
+        'mint-light': 'rgb(var(--mint-light) / <alpha-value>)',
+        'mint-dark': 'rgb(var(--mint-dark) / <alpha-value>)',
+        'teal-deep': 'rgb(var(--teal-deep) / <alpha-value>)'
       },
       borderColor: {
         base: 'rgb(var(--border) / <alpha-value>)',
@@ -128,6 +132,10 @@ module.exports = {
         hover: 'rgb(var(--border-hover) / <alpha-value>)',
         active: 'rgb(var(--border-active) / <alpha-value>)',
         error: 'rgb(var(--border-error) / <alpha-value>)'
+      },
+      gradientColorStops: {
+        'mint-light': 'rgb(var(--mint-light) / <alpha-value>)',
+        'mint-dark': 'rgb(var(--mint-dark) / <alpha-value>)'
       }
       // End token colours
     }

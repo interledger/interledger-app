@@ -124,6 +124,10 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(gatehub_workflows.ProcessCardCreationWorkflow)
 	w.RegisterWorkflow(gatehub_workflows.CreateGateHubCardWorkflow)
 	w.RegisterWorkflow(gatehub_workflows.BackfillAccountWorkflow)
+	w.RegisterWorkflow(gatehub_workflows.CreateCardTransaction)
+	w.RegisterWorkflow(gatehub_workflows.GatehubCardTransactionsPollWorkflow)
+
+	gatehub_workflows.StartCardTransactionsPooling(b)
 
 	// Chimoney
 	w.RegisterActivity(chimoney_workflows.NewActivity(b))

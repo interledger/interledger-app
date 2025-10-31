@@ -71,7 +71,6 @@ module.exports = {
         active: 'rgba(var(--border-active), <alpha-value>)',
         error: 'rgba(var(--border-error), <alpha-value>)'
       }
-      // End token colours
     }
   },
   plugins: [require('@tailwindcss/forms'), require('@tailwindcss/typography')]
