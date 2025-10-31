@@ -11,7 +11,7 @@ export const CardViewContainer = ({
   return (
     <div
       className={clsx(
-        'relative h-52 w-[21rem] overflow-hidden rounded-xl bg-gradient-to-r from-mint-light to-mint-dark font-sans text-white shadow-lg',
+        'relative h-52 w-80 overflow-hidden rounded-xl bg-gradient-to-r from-mint-light to-mint-dark font-sans text-white shadow-lg',
         className
       )}
       {...props}

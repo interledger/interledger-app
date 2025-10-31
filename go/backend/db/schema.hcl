@@ -3309,9 +3309,6 @@ table "gatehub_card_transactions" {
   primary_key {
     columns = [column.id]
   }
-  index "card_id_ind" {
-    columns = [column.card_id]
-  }
 }
 
 table "chi_money_interac_emails" {

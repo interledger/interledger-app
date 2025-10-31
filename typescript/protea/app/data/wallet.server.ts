@@ -3,7 +3,6 @@ import { redirect } from '@remix-run/node'
 import { route } from 'routes-gen'
 import type {
   Features,
-  GetCardDetailsWithTxRequest,
   GetPublicWalletDetailsResponse,
   KYCStatusResponse,
   ListTransactionsResponse,
@@ -95,18 +94,5 @@ export async function getTransactionsWithPending(
   const response = await grpc.listTransactionsWithPending(request, input)
 
   if (isConnectError(response)) throw response.errorResponse
-  return response
-}
-
-export async function getCardDetailsWithTx(
-  request: Request,
-  input: PartialMessage<GetCardDetailsWithTxRequest>
-) {
-  const response = await grpc.getCardDetailsWithTx(request, input)
-
-  if (isConnectError(response)) {
-    throw response.errorResponse
-  }
-
   return response
 }

@@ -185,16 +185,6 @@ service BackendService {
   rpc BlockCard(BlockCardRequest) returns (Empty);
   rpc GetPendingThreeDSConfirmations(Empty) returns (GetPendingThreeDSConfirmationsResponse);
   rpc ThreeDSPaymentConfirmation(ThreeDSPaymentConfirmationRequest) returns (Empty); 
-  rpc GetCardDetailsWithTx(GetCardDetailsWithTxRequest) returns (GetCardDetailsWithTxResponse);
-}
-
-message GetCardDetailsWithTxRequest {
-  string id = 1;
-}
-
-message GetCardDetailsWithTxResponse {
-  Card card = 1; 
-  repeated Transaction transactions = 10;
 }
 
 message ThreeDSPaymentConfirmationRequest {

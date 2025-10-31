@@ -8,7 +8,6 @@ import (
 	"sync"
 
 	"gitlab.com/fynbos/backend/country"
-	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	"gitlab.com/fynbos/backend/providers/gatehub/external"
 	"gitlab.com/fynbos/log"
@@ -619,61 +618,6 @@ func (s *rpcService) ThreeDSPaymentConfirmation(ctx context.Context, req *pb.Thr
 	return &pb.Empty{}, nil
 }
 
-func (s *rpcService) GetCardDetailsWithTx(ctx context.Context, req *pb.GetCardDetailsWithTxRequest) (*pb.GetCardDetailsWithTxResponse, error) {
-	_, err := s.b.Users().UserForContext(ctx)
-	if err != nil {
-		return nil, UnauthenticatedError("Unauthenticated.")
-	}
-
-	wallet, err := s.b.Wallets().ForContext(ctx)
-	if err != nil {
-		return nil, UnauthenticatedError("Unauthenticated.")
-	}
-
-	_, isEU := country.EUCountries[wallet.Country]
-	if !isEU {
-		return nil, FailedPreconditionError("Wallet not in the EU region")
-	}
-
-	feats, err := s.b.Features().Features(ctx, wallet.ID)
-	if err != nil {
-		return nil, toGRPCError(err)
-	}
-
-	if !feats.ManageWalletCardsEnabled {
-		return nil, ForbiddenError("Wallet cards not enabled")
-	}
-
-	externalIDs, err := s.b.Gatehub().GetExternalIDs(ctx, wallet.ID)
-	if err != nil {
-		return nil, FailedPreconditionError("Could not retrieve external IDs")
-	}
-
-	cardID := req.GetId()
-	c, err := s.b.Gatehub().GetCardDetails(ctx, externalIDs.UserID, cardID)
-	if err != nil {
-		return nil, toGRPCError(err)
-	}
-
-	card := newCard(*c)
-
-	transactions, err := s.b.Transactions().ListTransactionsForCard(ctx, db.Pagination{PageSize: 2}, wallet.ID, cardID)
-	if err != nil {
-		return nil, toGRPCError(err)
-	}
-
-	txs := make([]*pb.Transaction, len(transactions))
-	res := &pb.GetCardDetailsWithTxResponse{
-		Card: &card,
-	}
-	for i, tx := range transactions {
-		txs[i] = transformTransaction(tx, nil)
-	}
-	res.Transactions = txs
-
-	return res, nil
-}
-
 func newCard(c gatehub.Card) pb.Card {
 	var status pb.CardStatus
 	var cardType pb.CardType
@@ -749,7 +693,7 @@ func newCard(c gatehub.Card) pb.Card {
 		Id:               c.ID,
 		NameOnCard:       strings.Replace(c.NameOnCard, gatehub.DollarSignPlaceholder, gatehub.DollarSign, 1),
 		Type:             cardType,
-		MaskedPan:        "**** " + c.MaskedPan[len(c.MaskedPan)-4:],
+		MaskedPan:        c.MaskedPan,
 		Status:           status,
 		ExpiryDate:       c.ExpiryDate,
 		StatusReasonCode: statusReasonCode,
