@@ -28,6 +28,7 @@ export async function loader({ request }: LoaderArgs) {
       signups: signups.response.signups
     })
   } catch (e) {
+    console.log('Failed to retrieve wallets: ', e)
     return json({
       error: 'there was an error retrieving wallets',
       wallets: { wallets: [] },
