@@ -3306,6 +3306,9 @@ table "gatehub_card_transactions" {
     type    = timestamp
     default = sql("now()::TIMESTAMP")
   }
+  primary_key {
+    columns = [column.id]
+  }
   index "card_id_ind" {
     columns = [column.card_id]
   }

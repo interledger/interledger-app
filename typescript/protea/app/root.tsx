@@ -17,7 +17,18 @@ import {
 import { captureRemixErrorBoundaryError, withSentry } from '@sentry/remix'
 import clsx from 'clsx'
 import { type ReactNode } from 'react'
-import { Error, LiveReload } from '~/components'
+import {
+  Card,
+  CardContent,
+  CardCopy,
+  CardHeader,
+  CardTitle,
+  Error,
+  GridColumn,
+  InterledgerLogo,
+  LiveReload,
+  WalletGrid
+} from '~/components'
 import { Scaffold } from '~/components/Scaffold'
 import { TotpChallengeGlobal } from '~/components/TotpChallengeGlobal'
 import { getUserSession, hasUserSession } from '~/lib/kratos.server'
@@ -26,6 +37,8 @@ import styles from '~/styles/app.css'
 import { PendingConfirmationsLoader } from './components/PendingConfirmationsLoader'
 import { getFeatures } from './data/wallet.server'
 import { Features } from './generated/connect/backend/v1/backend_pb'
+import { isConnectError } from './lib/error.server'
+import { grpc } from './lib/grpc.server'
 import { getPusherArgs } from './lib/pusher.server'
 import { NON_FULL_SESSION_ROUTES, isTotpSet } from './lib/totp.server'
 import { usePusher } from './lib/usePusher'
@@ -74,6 +87,7 @@ export const links: LinksFunction = () => {
 type DocumentProps = {
   children: ReactNode
   theme?: 'theme-dark' | 'theme-light' | 'theme-system'
+  env?: Record<string, unknown>
 }
 
 function Document({ children, theme = 'theme-system' }: DocumentProps) {
@@ -91,7 +105,7 @@ function Document({ children, theme = 'theme-system' }: DocumentProps) {
         className={clsx(
           theme,
           'bg-page font-sans text-base font-normal text-strong antialiased selection:bg-brand/50',
-          navigation.state == 'submitting' && 'cursor-progress'
+          navigation.state === 'submitting' && 'cursor-progress'
         )}
       >
         {children}
@@ -108,6 +122,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const snackbar = await getSnackbar(request)
 
   let features = new Features()
+  let isDisabled = false
+  let walletAddress = ''
   const url = new URL(request.url)
   const pathname = url.pathname
 
@@ -119,14 +135,24 @@ export async function loader({ request }: LoaderFunctionArgs) {
     }
 
     features = await getFeatures(request)
-    if (features && !features.accountEnabled) {
-      return redirect('/unavailable')
+    if (
+      features &&
+      !features.accountEnabled &&
+      url.pathname !== '/wallet-address'
+    ) {
+      const wallet = await grpc.getWalletInfo(request, {})
+      if (!isConnectError(wallet)) {
+        walletAddress = wallet.url
+      }
+      isDisabled = true
     }
   }
 
   const pusherArgs = await getPusherArgs(request)
 
   return json({
+    isDisabled,
+    walletAddress,
     isUser,
     features,
     snackbar,
@@ -141,15 +167,22 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 function Page() {
-  const { pusherArgs, env } = useLoaderData<typeof loader>()
-
+  const { pusherArgs, env, isDisabled, walletAddress } =
+    useLoaderData<typeof loader>()
+  console.log('env', env)
   usePusher(pusherArgs, ['cardReady'])
 
   return (
     <Document>
-      <Scaffold />
-      <PendingConfirmationsLoader walletId={pusherArgs.walletId} />
-      <TotpChallengeGlobal />
+      {isDisabled ? (
+        <Unavailable walletAddress={walletAddress} />
+      ) : (
+        <>
+          <Scaffold />
+          <PendingConfirmationsLoader walletId={pusherArgs.walletId} />
+          <TotpChallengeGlobal />
+        </>
+      )}
       <script
         dangerouslySetInnerHTML={{
           __html: `window.ENV = ${JSON.stringify(env)}`
@@ -180,5 +213,46 @@ export function ErrorBoundary() {
     <Document>
       <Error data={{ title: (error as Error).message }} />
     </Document>
+  )
+}
+
+function Unavailable({ walletAddress }: { walletAddress: string }) {
+  return (
+    <main className='mb-32 mt-32 w-full px-4'>
+      <WalletGrid>
+        <GridColumn className='col-span-8 col-start-1 space-y-12 xl:col-start-3'>
+          <InterledgerLogo className='max-w-sm self-center' />
+          <Card className='flex !flex-row'>
+            <CardContent className='ml-2 text-lg'>
+              The application is not yet available in your location, but do not
+              worry we are working tirelessly to solve it as fast as possible!{' '}
+              <br />
+              We will notify you by email once the application becomes fully
+              functional in your region.
+            </CardContent>
+          </Card>
+          {walletAddress && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Your wallet address has been reserved!</CardTitle>
+              </CardHeader>
+              <CardCopy
+                copyContent={walletAddress}
+                shareData={{
+                  title: 'Wallet address',
+                  text: 'You can pay me using my wallet address.',
+                  url: walletAddress
+                }}
+                success='Wallet address copied to clipboard.'
+                copyError="Couldn't copy to clipboard."
+                shareError="Couldn't share wallet address."
+              >
+                {walletAddress}
+              </CardCopy>
+            </Card>
+          )}
+        </GridColumn>
+      </WalletGrid>
+    </main>
   )
 }
