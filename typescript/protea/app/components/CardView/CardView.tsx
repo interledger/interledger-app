@@ -1,14 +1,23 @@
 import clsx from 'clsx'
-import type { StorableCard } from '~/lib/cards/types'
+import { CardType } from '~/generated/connect/backend/v1/backend_pb'
+import type { SerializedCard } from '~/lib/cards/types'
 import { usePinChangePopup } from '~/lib/usePinChangePopup'
+import { GridColumn } from '../Grid'
 import { CardActions } from './CardActions'
+import type { SerializedTransaction } from './CardTransactions'
+import { CardTransactions } from './CardTransactions'
 import { CardViewBack } from './CardViewBack'
 import { CardViewFront } from './CardViewFront'
 import { StatusPopup } from './StatusPopup'
 import { TimedPinPopup } from './TimedPinPopup'
 import { useCardActions } from './useCardActions'
 
-export const CardView = ({ card }: { card: StorableCard }) => {
+interface CardViewProps {
+  card: SerializedCard
+  transactions: SerializedTransaction[]
+}
+
+export const CardView = ({ card, transactions }: CardViewProps) => {
   const {
     flip,
     showBack,
@@ -55,9 +64,12 @@ export const CardView = ({ card }: { card: StorableCard }) => {
   }
 
   return (
-    <div className='flex flex-col items-center space-y-6 p-6'>
+    <GridColumn>
       {/* Card flip container */}
-      <div className='relative h-52 w-80' style={{ perspective: '1000px' }}>
+      <div
+        className='relative mx-auto h-52 w-[21rem]'
+        style={{ perspective: '1000px' }}
+      >
         <div
           className={clsx(
             'relative h-full w-full transition-transform duration-700 ease-in-out',
@@ -117,9 +129,9 @@ export const CardView = ({ card }: { card: StorableCard }) => {
           </div>
         )}
       </div>
-
       {/* Card actions */}
       <CardActions
+        isPhysical={card.type === CardType.PHYSICAL}
         showBack={showBack}
         flip={flip}
         isSensitiveDataVisible={isSensitiveDataVisible}
@@ -155,6 +167,7 @@ export const CardView = ({ card }: { card: StorableCard }) => {
           }
         />
       )}
-    </div>
+      <CardTransactions transactions={transactions} />
+    </GridColumn>
   )
 }
