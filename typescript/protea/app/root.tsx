@@ -90,7 +90,7 @@ type DocumentProps = {
   env?: Record<string, unknown>
 }
 
-function Document({ children, theme = 'theme-system', env }: DocumentProps) {
+function Document({ children, theme = 'theme-system' }: DocumentProps) {
   const navigation = useNavigation()
   return (
     <html lang='en'>
@@ -110,11 +110,6 @@ function Document({ children, theme = 'theme-system', env }: DocumentProps) {
       >
         {children}
         <ScrollRestoration />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `window.ENV = ${JSON.stringify(env || {})}`
-          }}
-        />
         <Scripts />
         <LiveReload port={443} />
       </body>
@@ -174,11 +169,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
 function Page() {
   const { pusherArgs, env, isDisabled, walletAddress } =
     useLoaderData<typeof loader>()
-
+  console.log('env', env)
   usePusher(pusherArgs, ['cardReady'])
 
   return (
-    <Document env={env || {}}>
+    <Document>
       {isDisabled ? (
         <Unavailable walletAddress={walletAddress} />
       ) : (
@@ -188,6 +183,11 @@ function Page() {
           <TotpChallengeGlobal />
         </>
       )}
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `window.ENV = ${JSON.stringify(env)}`
+        }}
+      />
     </Document>
   )
 }
