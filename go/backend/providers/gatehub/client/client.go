@@ -141,7 +141,3 @@ func (c Client) GetPendingThreeDSConfirmations(ctx context.Context, userID strin
 func (c Client) ThreeDSPaymentConfirmation(ctx context.Context, userID, txID string, confirmed bool) error {
 	return ops.ThreeDSPaymentConfirmation(ctx, c.external, userID, txID, confirmed)
 }
-
-func (c Client) GetCardDetails(ctx context.Context, userID, cardID string) (*external.Card, error) {
-	return ops.GetCardDetails(ctx, c.b, c.external, userID, cardID)
-}

@@ -225,7 +225,7 @@ func AddTransfers(ctx context.Context, b Backends, trxID string, transferArgs []
 }
 
 const (
-	transactionCols = ` transactions.id, transactions.wallet_id, transactions.foreign_id, transactions.type, transactions.state, transactions.title, transactions.provider, transactions.note, transactions.source, transactions.destination, transactions.amount, transactions.asset_scale, transactions.asset_code, transactions.linked_account_title, transactions.destination_identity_type, transactions.destination_identity, transactions.reference, transactions.updated_at, transactions.refund_state, transactions.provider_fee `
+	transactionCols = ` id, wallet_id, foreign_id, type, state, title, provider, note, source, destination, amount, asset_scale, asset_code, linked_account_title, destination_identity_type, destination_identity, reference, updated_at, refund_state, provider_fee `
 	transferCols    = ` id, foreign_id, linked_acc_id, type, state, amount, asset_scale, asset_code, updated_at `
 )
 
@@ -306,7 +306,6 @@ func ListAllTransactions(ctx context.Context, b Backends, page db.Pagination) ([
 
 func listTransaction(ctx context.Context, b Backends, page db.Pagination, sqlStmt string, sqlArgs []interface{}) ([]transactions.Transaction, error) {
 	var txs []dbTransaction
-
 	err := b.DB().SelectContext(ctx, &txs,
 		fmt.Sprintf(sqlStmt, transactionCols, page.SQL()),
 		sqlArgs...)
@@ -759,11 +758,4 @@ func GenerateTransactionTitle(ctx context.Context, wc wallets.Client, args Gener
 	title = strings.TrimPrefix(title, "https://")
 
 	return title
-}
-
-func ListTransactionsForCard(ctx context.Context, b Backends, page db.Pagination, walletID, cardID string) ([]transactions.Transaction, error) {
-	sqlStmt := "SELECT %s FROM gatehub_card_transactions JOIN transactions ON transactions.foreign_id = gatehub_card_transactions.id WHERE gatehub_card_transactions.card_id = $1 AND transactions.wallet_id = $2 ORDER BY transactions.created_at DESC, transactions.id %s"
-	sqlArgs := []interface{}{cardID, walletID}
-
-	return listTransaction(ctx, b, page, sqlStmt, sqlArgs)
 }

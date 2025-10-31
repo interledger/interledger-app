@@ -1,15 +1,7 @@
-const SIZES = {
-  xs: 'h-4 w-4',
-  sm: 'h-10 w-10',
-  lg: 'h-20 w-20'
-} as const
-
-type Size = keyof typeof SIZES
-
-export const MasterCardLogo = ({ size = 'lg' }: { size?: Size }) => {
+export const MasterCardLogo = () => {
   return (
     <svg
-      className={SIZES[size]}
+      className='h-20 w-20'
       version='1.1'
       id='Layer_1'
       xmlns='http://www.w3.org/2000/svg'
