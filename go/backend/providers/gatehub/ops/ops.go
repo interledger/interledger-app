@@ -912,7 +912,3 @@ func updateCardTransactionStatus(ctx context.Context, b Backends, txID, status s
 	}
 	return nil
 }
-
-func GetCardDetails(ctx context.Context, b Backends, ec external.Client, userID, cardID string) (*external.Card, error) {
-	return ec.GetCardDetails(ctx, userID, cardID)
-}

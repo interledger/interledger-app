@@ -1,18 +1,15 @@
-import type { SerializeFrom } from '@remix-run/node'
 import { useFetcher } from '@remix-run/react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { route } from 'routes-gen'
 import {
-  CardLockLevel,
   CardStatus,
-  CardTokenType,
-  type Card
+  CardTokenType
 } from '~/generated/connect/backend/v1/backend_pb'
 import { cardProcessorClient } from '~/lib/CardProcessorApiClient'
 import type {
   CardProcessorSensitiveDataResponse,
   HttpMethod,
-  SerializedCard
+  StorableCard
 } from '~/lib/cards/types'
 import { decryptWithPrivateKey, encryptWithToken } from '~/lib/crypto'
 import { useKeyGeneration } from '~/lib/useKeyGeneration'
@@ -23,31 +20,31 @@ import type { GetCardTokenResponse } from '~/routes/api_.getCardToken'
 import { useActionExecute } from './useActionExecute'
 
 const getDefaultSensitiveData = (
-  card: SerializedCard
+  card: StorableCard
 ): CardProcessorSensitiveDataResponse => {
   return {
-    Pan: '**** **** **** ****',
-    ExpiryDate: '**/**',
+    Pan: card.maskedPan,
+    ExpiryDate: card.expiryDate,
     Cvc2: '***'
   }
 }
 
-const isBlockedByAdmin = (card: SerializedCard): boolean => {
-  return card.lockLevel === CardLockLevel.ADMIN
+const isBlockedByAdmin = (card: StorableCard): boolean => {
+  return card.lockLevel === 'CARD_LOCK_LEVEL_ADMIN'
 }
 
-const isCardFrozen = (card: SerializedCard): boolean => {
-  return card.lockLevel === CardLockLevel.CLIENT
+const isCardFrozen = (card: StorableCard): boolean => {
+  return card.lockLevel === 'CARD_LOCK_LEVEL_CLIENT'
 }
 
-const isCardBlocked = (card: SerializedCard): boolean => {
+const isCardBlocked = (card: StorableCard): boolean => {
   return (
     card.status === CardStatus.BLOCKED ||
     card.status === CardStatus.TEMPORARY_BLOCKED
   )
 }
 
-export const useCardActions = (card: SerializeFrom<Card>) => {
+export const useCardActions = (card: StorableCard) => {
   const fetcher = useFetcher<GetCardTokenResponse & OperationResponse>()
   const {
     actionStatus,
@@ -60,7 +57,6 @@ export const useCardActions = (card: SerializeFrom<Card>) => {
   const { keyPair } = useKeyGeneration()
   const { withTotpChallenge } = useTotpChallenge()
   const { withPinChangePopup, PinChangePopup } = usePinChangePopup()
-  const timeoutRef = useRef<number | null>(null)
 
   const [isSensitiveDataVisible, setIsSensitiveDataVisible] = useState(false)
   const [sensitiveData, setSensitiveData] = useState(
@@ -319,27 +315,11 @@ export const useCardActions = (card: SerializeFrom<Card>) => {
 
   const flip = () => {
     if (showBack && isSensitiveDataVisible) {
-      // clear previous timeout
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current)
-      }
-
-      timeoutRef.current = window.setTimeout(() => {
-        resetSensitiveData()
-        timeoutRef.current = null
-      }, 350)
+      // turning to the front resets sensitive data
+      resetSensitiveData()
     }
     setShowBack(!showBack)
   }
-
-  useEffect(() => {
-    // cleanup on unmount
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current)
-      }
-    }
-  }, [])
 
   const isFrozen = useMemo(() => isCardFrozen(card), [card])
   const isBlocked = useMemo(() => isCardBlocked(card), [card])

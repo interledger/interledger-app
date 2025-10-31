@@ -1,6 +1,7 @@
 import clsx from 'clsx'
 import type { ComponentProps } from 'react'
 import { Icon } from '~/components/Icon'
+import { formatCardNumber } from '~/routes/cards'
 import { CardViewContainer } from './CardViewContainer'
 
 interface CardViewBackProps extends ComponentProps<'div'> {
@@ -8,10 +9,6 @@ interface CardViewBackProps extends ComponentProps<'div'> {
   expiryDate: string | null
   cvv: string | null
   className?: string
-}
-
-const formatCardNumber = (cardNumber: string) => {
-  return cardNumber.replace(/(.{4})/g, '$1 ').trim()
 }
 
 export const CardViewBack = ({
@@ -36,6 +33,9 @@ export const CardViewBack = ({
         {/* Card details */}
         <div className='ml-2 mt-6 space-y-4'>
           <div>
+            {/* <p className='text-xs font-medium leading-3 text-black/70'>
+                Card Number
+              </p> */}
             <div className='flex items-center gap-x-3'>
               <p className='font-mono text-sm text-black'>
                 {formatCardNumber(fullCardNumber)}
