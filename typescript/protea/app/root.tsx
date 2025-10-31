@@ -116,7 +116,7 @@ function Document({ children, theme = 'theme-system', env }: DocumentProps) {
           }}
         />
         <Scripts />
-        {process.env.NODE_ENV === 'development' && <LiveReload port={443} />}
+        <LiveReload port={443} />
       </body>
     </html>
   )
