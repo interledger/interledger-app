@@ -29,16 +29,17 @@ import { CommandActions } from '~/components/Scaffold/CommandActions'
 import { CommandPalette } from '~/components/Scaffold/CommandPalette'
 import { CardType } from '~/generated/connect/backend/v1/backend_pb'
 import type { FooterRecord } from '~/generated/dato-cms-graphql'
+import { OrderCardStep, useOrderCardStore } from '~/lib/cards/useOrderCardStore'
 import {
   ConnectDomainStep,
   useConnectDomainStore
 } from '~/lib/useConnectDomainStore'
 import { useFormStore } from '~/lib/useFormStore'
-import { OrderCardStep, useOrderCardStore } from '~/lib/useOrderCardStore'
 import { PayStep, usePayStore } from '~/lib/usePayStore'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { SignupStep, useSignupStore } from '~/lib/useSignupStore'
 import type { loader as rootLoader } from '~/root'
+import { Fade } from '../Animations/Fade'
 import { NavDrawer } from './NavDrawer'
 
 export type ApplicationProps = {
@@ -382,22 +383,8 @@ export function Scaffold() {
               <AnimatePresence mode='wait'>
                 {actions == null && ''}
                 {actions != null && (
-                  <motion.div
-                    key={'header-action' + actions.key}
-                    animate={{ opacity: 1, scale: 1 }}
-                    initial={{ opacity: 0, scale: 0.5 }}
-                    exit={{
-                      opacity: 0,
-                      scale: 0.5,
-                      transition: {
-                        duration: 0.2
-                      }
-                    }}
-                    transition={{
-                      type: 'spring',
-                      stiffness: 400,
-                      damping: 20
-                    }}
+                  <Fade
+                    nonce={'header-action' + actions.key}
                     className='flex items-center space-x-2'
                   >
                     {Array.isArray(actions.nodes) &&
@@ -412,7 +399,7 @@ export function Scaffold() {
                         )
                       })}
                     {!Array.isArray(actions.nodes) && actions.nodes}
-                  </motion.div>
+                  </Fade>
                 )}
               </AnimatePresence>
             </div>

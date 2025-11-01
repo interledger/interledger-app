@@ -1,7 +1,9 @@
 import clsx from 'clsx'
+import { AnimatePresence } from 'framer-motion'
 import type { ComponentProps } from 'react'
+import { Fade } from '../Animations/Fade'
+import { MasterCardLogo } from '../Logos'
 import { CardViewContainer } from './CardViewContainer'
-import { MasterCardLogo } from './MasterCardLogo'
 
 interface CardViewFrontProps extends ComponentProps<'div'> {
   nameOnCard: string
@@ -48,11 +50,14 @@ export const CardViewFront = ({
           </div>
         </div>
 
-        {/* Footer with name and mastercard logo */}
         <div className='-mr-4 mt-auto flex items-center justify-between'>
-          <span className='mt-2 text-xs font-medium uppercase text-black'>
-            {nameOnCard}
-          </span>
+          <AnimatePresence mode='wait'>
+            <Fade className='mt-2' nonce={nameOnCard}>
+              <span className='text-xs font-medium uppercase text-black'>
+                {nameOnCard}
+              </span>
+            </Fade>
+          </AnimatePresence>
           <MasterCardLogo />
         </div>
       </div>

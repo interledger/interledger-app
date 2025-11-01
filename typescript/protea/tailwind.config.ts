@@ -29,6 +29,15 @@ module.exports = {
       '9xl': ['8rem', { lineHeight: '9.5625rem' }]
     },
     extend: {
+      margin: {
+        18: '4.5rem'
+      },
+      width: {
+        'card-width': '21rem'
+      },
+      height: {
+        'card-height': '14rem'
+      },
       colors: {
         brand: colors.rose[500]
       },

@@ -1,17 +1,20 @@
 import { type SerializeFrom } from '@remix-run/node'
 import { useNavigate, useParams, useRouteLoaderData } from '@remix-run/react'
 import { useEffect, useMemo } from 'react'
-import { type RouteParams } from 'routes-gen'
-import { CardView, Layouts, type ApplicationProps } from '~/components'
-import { useCardsStore } from '~/lib/cards/hooks/useCardsStore'
+import { route, type RouteParams } from 'routes-gen'
+import { Layouts, type ApplicationProps } from '~/components'
+import { CardView } from '~/components/Cards'
+import { useCardsStore } from '~/lib/cards/useCardsStore'
 import type { loader as rootLoader } from '~/root'
 
 export const handle: ApplicationProps = {
   layout: Layouts.Wallet,
   scaffold: {
     header: {
-      title: 'Cards'
-    }
+      title: 'Cards',
+      back: route('/cards')
+    },
+    isNested: true
   }
 }
 

@@ -12,7 +12,8 @@ import {
   isRouteErrorResponse,
   useLoaderData,
   useNavigation,
-  useRouteError
+  useRouteError,
+  type ShouldRevalidateFunction
 } from '@remix-run/react'
 import { captureRemixErrorBoundaryError, withSentry } from '@sentry/remix'
 import clsx from 'clsx'
@@ -42,6 +43,16 @@ import { grpc } from './lib/grpc.server'
 import { getPusherArgs } from './lib/pusher.server'
 import { NON_FULL_SESSION_ROUTES, isTotpSet } from './lib/totp.server'
 import { usePusher } from './lib/usePusher'
+
+export const shouldRevalidate: ShouldRevalidateFunction = ({
+  actionResult,
+  defaultShouldRevalidate
+}) => {
+  if (actionResult && 'shouldRevalidate' in actionResult) {
+    return actionResult.shouldRevalidate === true
+  }
+  return defaultShouldRevalidate
+}
 
 const metaContent = {
   title: 'Interledger Wallet',
@@ -169,7 +180,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 function Page() {
   const { pusherArgs, env, isDisabled, walletAddress } =
     useLoaderData<typeof loader>()
-  console.log('env', env)
   usePusher(pusherArgs, ['cardReady'])
 
   return (

@@ -18,8 +18,8 @@ import {
   TimeoutDisplay,
   WalletGrid
 } from '~/components'
+import { usePendingConfirmations } from '~/lib/cards/usePendingConfirmations'
 import { hasUserSession } from '~/lib/kratos.server'
-import { usePendingConfirmations } from '~/lib/usePendingConfirmations'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const session = hasUserSession(request)

@@ -24,7 +24,7 @@ import {
   WalletGrid
 } from '~/components'
 import { Label } from '~/components/Label'
-import { usePendingConfirmations } from '~/lib/usePendingConfirmations'
+import { usePendingConfirmations } from '~/lib/cards/usePendingConfirmations'
 import { usePusher } from '~/lib/usePusher'
 import type { appLoader } from './route'
 import { KycStatus } from './route'
@@ -158,34 +158,34 @@ export function AppPage() {
             {/* CARDS */}
             {features.manageWalletCardsEnabled && (
               <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-                <CardHeader className='mb-2'>
-                  <CardTitle className='flex'>
-                    <MasterCardLogo className='-mt-1 mr-2 flex w-6' /> Cards
-                  </CardTitle>
+                <CardContent className='flex items-center justify-between'>
+                  <div className='flex items-center space-x-3'>
+                    <MasterCardLogo size='sm' />
+                    <span className='text-lg font-medium capitalize text-strong'>
+                      Cards
+                    </span>
+                  </div>
                   <Router className='flex max-h-fit' to={route('/cards')}>
                     <Icon className='text-medium'>read_more</Icon>
                   </Router>
-                </CardHeader>
+                </CardContent>
               </Card>
             )}
 
             {/* PENDING CONFIRMATIONS */}
             {pendingConfirmations.length > 0 && (
               <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-                <CardHeader className='mb-2'>
-                  <CardTitle className='flex'>
-                    <Icon className='mr-2 mt-1 flex w-6 text-orange-500'>
-                      priority_high
-                    </Icon>{' '}
-                    You have pending 3DS confirmations
-                  </CardTitle>
-                  <Router
-                    className='flex max-h-fit'
-                    to={route('/confirmations')}
-                  >
+                <Router className='flex max-h-fit' to={route('/confirmations')}>
+                  <CardHeader className='mb-2'>
+                    <CardTitle className='flex'>
+                      <Icon className='mr-2 mt-1 flex w-6 text-orange-500'>
+                        priority_high
+                      </Icon>{' '}
+                      You have pending 3DS confirmations
+                    </CardTitle>
                     <Icon className='text-medium'>read_more</Icon>
-                  </Router>
-                </CardHeader>
+                  </CardHeader>
+                </Router>
               </Card>
             )}
 
