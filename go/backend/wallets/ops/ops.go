@@ -182,9 +182,22 @@ func List(ctx context.Context, b Backends, userID string) ([]wallets.Wallet, err
 	return wl, nil
 }
 
-func ListAll(ctx context.Context, b Backends, _ db.Pagination) ([]wallets.Wallet, error) {
+func ListAll(ctx context.Context, b Backends, page db.Pagination) ([]wallets.Wallet, error) {
+	args := map[string]interface{}{}
+	query := "select id, name, country, exceeded_limits from wallets "
+	if page.PageToken != "" {
+		query = query + " where (created_at, id) < ( select created_at, id from wallets where id = :id ) "
+		args["id"] = page.PageToken
+	}
+	query = query + " order by created_at DESC, id DESC %s"
+
+	nstmt, err := b.DB().PrepareNamed(fmt.Sprintf(query, page.SQL()))
+	if err != nil {
+		return nil, err
+	}
+
 	var wl []wallets.Wallet
-	err := b.DB().SelectContext(ctx, &wl, "SELECT id, name, country, exceeded_limits FROM wallets ")
+	err = nstmt.SelectContext(ctx, &wl, args)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
