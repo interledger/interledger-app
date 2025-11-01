@@ -1,5 +1,5 @@
 import { useCallback } from 'react'
-import { PinChangePopup } from '~/components/CardView/PinChangePopup'
+import { PinChangePopup } from '~/components/Cards/PinChangePopup'
 import { usePinChangePopupStore } from './usePinChangePopupStore'
 
 /**

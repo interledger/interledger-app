@@ -26,11 +26,11 @@ import {
   type CustomerDeliveryAddress,
   type OrderCardRequest
 } from '~/generated/connect/backend/v1/backend_pb'
+import type { StorableNewAddress } from '~/lib/cards/useOrderCardStore'
+import { OrderCardStep, useOrderCardStore } from '~/lib/cards/useOrderCardStore'
 import { error, isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
-import type { StorableNewAddress } from '~/lib/useOrderCardStore'
-import { OrderCardStep, useOrderCardStore } from '~/lib/useOrderCardStore'
 
 export const handle: ApplicationProps = {
   layout: Layouts.Focus,
@@ -181,7 +181,9 @@ const createDeliveryAddress = (
         })
       }
     } catch (error) {
-      return { error: 'Invalid delivery address. Please redo your new address.' }
+      return {
+        error: 'Invalid delivery address. Please redo your new address.'
+      }
     }
   }
 

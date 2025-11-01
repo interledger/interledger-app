@@ -6,7 +6,7 @@ import {
   exportPublicKeyToBase64,
   isWebCryptoAvailable,
   validateKeyPair
-} from './crypto'
+} from '../crypto'
 
 export interface KeyPair {
   publicKey: string

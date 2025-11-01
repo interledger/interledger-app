@@ -2,18 +2,19 @@ import { useFetcher } from '@remix-run/react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { route } from 'routes-gen'
 import {
+  CardLockLevel,
   CardStatus,
   CardTokenType
 } from '~/generated/connect/backend/v1/backend_pb'
-import { cardProcessorClient } from '~/lib/CardProcessorApiClient'
+import { cardProcessorClient } from '~/lib/cards/CardProcessorApiClient'
 import type {
   CardProcessorSensitiveDataResponse,
   HttpMethod,
   StorableCard
 } from '~/lib/cards/types'
+import { useKeyGeneration } from '~/lib/cards/useKeyGeneration'
+import { usePinChangePopup } from '~/lib/cards/usePinChangePopup'
 import { decryptWithPrivateKey, encryptWithToken } from '~/lib/crypto'
-import { useKeyGeneration } from '~/lib/useKeyGeneration'
-import { usePinChangePopup } from '~/lib/usePinChangePopup'
 import { useTotpChallenge } from '~/lib/useTotpChallenge'
 import type { Operation, OperationResponse } from '~/routes/api_.cardOperation'
 import type { GetCardTokenResponse } from '~/routes/api_.getCardToken'
@@ -30,11 +31,11 @@ const getDefaultSensitiveData = (
 }
 
 const isBlockedByAdmin = (card: StorableCard): boolean => {
-  return card.lockLevel === 'CARD_LOCK_LEVEL_ADMIN'
+  return card.lockLevel === CardLockLevel.ADMIN
 }
 
 const isCardFrozen = (card: StorableCard): boolean => {
-  return card.lockLevel === 'CARD_LOCK_LEVEL_CLIENT'
+  return card.lockLevel === CardLockLevel.CLIENT
 }
 
 const isCardBlocked = (card: StorableCard): boolean => {

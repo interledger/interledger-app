@@ -2,8 +2,8 @@ import { useRevalidator } from '@remix-run/react'
 import type { Channel, PresenceChannel } from 'pusher-js'
 import Pusher from 'pusher-js'
 import { useEffect, useState } from 'react'
-import { PendingThreeDSConfirmation } from '~/generated/connect/backend/v1/backend_pb'
-import { usePendingConfirmations } from './usePendingConfirmations'
+import type { PendingThreeDSConfirmation } from '~/generated/connect/backend/v1/backend_pb'
+import { usePendingConfirmations } from './cards/usePendingConfirmations'
 import { useScaffoldStore } from './useScaffoldStore'
 
 let pusherClient: Pusher

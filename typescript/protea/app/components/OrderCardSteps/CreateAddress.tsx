@@ -16,7 +16,7 @@ import {
   CustomerDeliveryAddressType,
   type NewCustomerDeliveryAddress
 } from '~/generated/connect/backend/v1/backend_pb'
-import { OrderCardStep, useOrderCardStore } from '~/lib/useOrderCardStore'
+import { OrderCardStep, useOrderCardStore } from '~/lib/cards/useOrderCardStore'
 import {
   createNewAddress,
   getAddressTypeValue,
