@@ -8,7 +8,7 @@ import {
   OutlineButton,
   RadioGroup
 } from '~/components'
-import { OrderCardStep, useOrderCardStore } from '~/lib/useOrderCardStore'
+import { OrderCardStep, useOrderCardStore } from '~/lib/cards/useOrderCardStore'
 import { SelectableAddress, toSelectableAddresses } from './utils'
 
 export const DeliveryAddresses = () => {

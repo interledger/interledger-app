@@ -15,17 +15,19 @@ import {
   Layouts,
   WalletGrid
 } from '~/components'
-import {
-  CardProcessingPlaceholder,
-  VirtualCardRibbon
-} from '~/components/CardView'
+import { CardProcessingPlaceholder } from '~/components/Cards'
+import { PhysicalCardChip, VirtualCardChip } from '~/components/Cards/CardChips'
 import { getFeatures } from '~/data/wallet.server'
-import type {
-  Card as CardProto,
+import {
+  CardLockLevel,
+  CardStatusReasonCode,
   CardType
 } from '~/generated/connect/backend/v1/backend_pb'
-import { useCardsStore } from '~/lib/cards/hooks/useCardsStore'
-import type { StorableCard } from '~/lib/cards/types'
+import {
+  formatPan,
+  toStorableCard,
+  useCardsStore
+} from '~/lib/cards/useCardsStore'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
@@ -56,9 +58,21 @@ export async function loader({ request }: LoaderFunctionArgs) {
     throw response.errorResponse
   }
 
+  const cards = response.cards.map((c, i) => {
+    if (i === 0) {
+      return {
+        ...c,
+        lockLevel: CardLockLevel.ADMIN,
+        statusReasonCode: CardStatusReasonCode.ISSUER_REQUEST_LEGAL
+      }
+    } else {
+      return c
+    }
+  })
+
   return json({
     isWaitingForCreation: response.isWaitingForCreation,
-    cards: response.cards
+    cards: cards
   })
 }
 
@@ -77,41 +91,13 @@ export const meta: MetaFunction = mergeMeta(() => [
   }
 ])
 
-const isVirtualCard = (card: CardProto): boolean => {
-  return card.type === ('CARD_TYPE_VIRTUAL' as unknown as CardType)
-}
-
-/**
- * Convert Card object to StorableCard format for the store
- */
-function convertCardToStorableCard(card: CardProto): StorableCard {
-  return {
-    id: card.id,
-    nameOnCard: card.nameOnCard,
-    maskedPan: card.maskedPan,
-    unmaskedPan: null,
-    expiryDate: card.expiryDate,
-    status: card.status,
-    lockLevel:
-      // Wrong protobuf type will return lockLevels as strings
-      (card.lockLevel as unknown as string) ?? 'CARD_LOCK_LEVEL_UNKNOWN',
-    cvc2: null
-  }
-}
-
-export const formatCardNumber = (cardNumber: string) => {
-  return cardNumber.replace(/(.{4})/g, '$1 ').trim()
-}
-
 export default function Page() {
   const { cards, isWaitingForCreation } = useLoaderData<typeof loader>()
   const location = useLocation()
   const { setCards } = useCardsStore()
 
   useEffect(() => {
-    const storableCards = cards.map((c) =>
-      convertCardToStorableCard(c as CardProto)
-    )
+    const storableCards = cards.map((c) => toStorableCard(c))
     setCards(storableCards)
   }, [cards, setCards])
 
@@ -139,10 +125,9 @@ export default function Page() {
             {cards.length > 0 &&
               cards.map((card) => (
                 <Card key={card.id} className='relative'>
-                  {isVirtualCard(card as CardProto) && <VirtualCardRibbon />}
                   <CardLink
                     preventScrollReset={!isMobile}
-                    prefetch='none'
+                    prefetch='intent'
                     to={route('/cards/:cardId', {
                       cardId: card.id
                     })}
@@ -153,7 +138,7 @@ export default function Page() {
                       <Icon>credit_card</Icon>
                       <div className='flex w-full flex-col space-y-1'>
                         <span className='truncate text-medium'>
-                          {formatCardNumber(card.maskedPan)}
+                          {formatPan(card.maskedPan)}
                         </span>
                         <span className='text-xs text-weak'>
                           Expires at: {card.expiryDate.slice(0, 2)}/
@@ -162,6 +147,11 @@ export default function Page() {
                       </div>
                     </div>
                     <div className='flex min-w-max flex-initial items-center space-x-2'>
+                      {card.type === CardType.VIRTUAL ? (
+                        <VirtualCardChip />
+                      ) : (
+                        <PhysicalCardChip />
+                      )}
                       <Icon>navigate_next</Icon>
                     </div>
                   </CardLink>

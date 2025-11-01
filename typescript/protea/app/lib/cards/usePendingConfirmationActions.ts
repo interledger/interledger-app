@@ -1,11 +1,11 @@
 import { useFetcher } from '@remix-run/react'
 import { useCallback, useEffect } from 'react'
 import { route } from 'routes-gen'
-import { useActionExecute } from '~/components/CardView/useActionExecute'
+import { useActionExecute } from '~/lib/cards/useActionExecute'
 import type { PaymentConfirmationResponse } from '~/routes/api_.paymentConfirmation'
+import { useScaffoldStore } from '../useScaffoldStore'
+import { useTotpChallenge } from '../useTotpChallenge'
 import { type StorablePendingConfirmation } from './usePendingConfirmations'
-import { useScaffoldStore } from './useScaffoldStore'
-import { useTotpChallenge } from './useTotpChallenge'
 
 export const usePendingConfirmationActions = (
   confirmation: StorablePendingConfirmation

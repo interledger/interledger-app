@@ -1,4 +1,4 @@
-import { ActionFunctionArgs, json } from '@remix-run/node'
+import { json, type ActionFunctionArgs } from '@remix-run/node'
 import { KRATOS_URL } from '~/lib/kratos.server'
 
 /**

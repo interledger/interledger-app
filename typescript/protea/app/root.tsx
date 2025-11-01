@@ -12,7 +12,8 @@ import {
   isRouteErrorResponse,
   useLoaderData,
   useNavigation,
-  useRouteError
+  useRouteError,
+  type ShouldRevalidateFunction
 } from '@remix-run/react'
 import { captureRemixErrorBoundaryError, withSentry } from '@sentry/remix'
 import clsx from 'clsx'
@@ -42,6 +43,16 @@ import { grpc } from './lib/grpc.server'
 import { getPusherArgs } from './lib/pusher.server'
 import { NON_FULL_SESSION_ROUTES, isTotpSet } from './lib/totp.server'
 import { usePusher } from './lib/usePusher'
+
+export const shouldRevalidate: ShouldRevalidateFunction = ({
+  actionResult,
+  defaultShouldRevalidate
+}) => {
+  if (actionResult && 'shouldRevalidate' in actionResult) {
+    return actionResult.shouldRevalidate === true
+  }
+  return defaultShouldRevalidate
+}
 
 const metaContent = {
   title: 'Interledger Wallet',
@@ -169,7 +180,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 function Page() {
   const { pusherArgs, env, isDisabled, walletAddress } =
     useLoaderData<typeof loader>()
-  console.log('env', env)
   usePusher(pusherArgs, ['cardReady'])
 
   return (
@@ -188,6 +198,7 @@ function Page() {
           __html: `window.ENV = ${JSON.stringify(env)}`
         }}
       />
+      <TailwindIndicator />
     </Document>
   )
 }
@@ -254,5 +265,20 @@ function Unavailable({ walletAddress }: { walletAddress: string }) {
         </GridColumn>
       </WalletGrid>
     </main>
+  )
+}
+
+function TailwindIndicator() {
+  if (process.env.NODE_ENV === 'production') return null
+
+  return (
+    <div className='fixed bottom-1 left-1 z-50 flex h-6 w-6 items-center justify-center rounded-full bg-gray-800 p-3 font-mono text-xs text-white'>
+      <div className='block sm:hidden'>xs</div>
+      <div className='hidden sm:block md:hidden'>sm</div>
+      <div className='hidden md:block lg:hidden'>md</div>
+      <div className='hidden lg:block xl:hidden'>lg</div>
+      <div className='hidden xl:block 2xl:hidden'>xl</div>
+      <div className='hidden 2xl:block'>2xl</div>
+    </div>
   )
 }

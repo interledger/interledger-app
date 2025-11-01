@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useState } from 'react'
 import { Button, Card, CardContent, Icon, TextField } from '~/components'
 import { Label } from '~/components/Label'
-import { usePinChangePopupStore } from '~/lib/usePinChangePopupStore'
+import { usePinChangePopupStore } from '~/lib/cards/usePinChangePopupStore'
 
 interface PinChangePopupProps {
   className?: string

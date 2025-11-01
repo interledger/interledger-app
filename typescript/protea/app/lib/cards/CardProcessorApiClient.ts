@@ -1,4 +1,4 @@
-import { HttpMethod } from './cards/types'
+import { HttpMethod } from './types'
 
 export const cardProcessorClient = {
   card: {

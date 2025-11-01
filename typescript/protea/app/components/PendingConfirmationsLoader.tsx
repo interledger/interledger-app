@@ -2,7 +2,7 @@ import { useFetcher } from '@remix-run/react'
 import { memo, useEffect } from 'react'
 import { route } from 'routes-gen'
 import type { PendingThreeDSConfirmation } from '~/generated/connect/backend/v1/backend_pb'
-import { usePendingConfirmations } from '~/lib/usePendingConfirmations'
+import { usePendingConfirmations } from '~/lib/cards/usePendingConfirmations'
 
 export const PendingConfirmationsLoader = memo(
   ({ walletId }: { walletId?: string }) => {

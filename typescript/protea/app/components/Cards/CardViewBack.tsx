@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import type { ComponentProps } from 'react'
 import { Icon } from '~/components/Icon'
-import { formatCardNumber } from '~/routes/cards'
+import { formatPan } from '~/lib/cards/useCardsStore'
 import { CardViewContainer } from './CardViewContainer'
 
 interface CardViewBackProps extends ComponentProps<'div'> {
@@ -18,7 +18,9 @@ export const CardViewBack = ({
   className,
   ...props
 }: CardViewBackProps) => {
-  const displayExpiryDate = expiryDate || '**/**'
+  const displayExpiryDate = expiryDate
+    ? expiryDate.slice(0, 2) + '/' + expiryDate.slice(2)
+    : '**/**'
   const displayCvv = cvv || '***'
 
   return (
@@ -27,18 +29,16 @@ export const CardViewBack = ({
         <p className='text-[6px] uppercase leading-none text-black'>
           interledger.org
         </p>
+
         {/* Dark teal stripe */}
         <div className='-mx-5 mt-1 h-12 bg-teal-deep' />
 
         {/* Card details */}
         <div className='ml-2 mt-6 space-y-4'>
           <div>
-            {/* <p className='text-xs font-medium leading-3 text-black/70'>
-                Card Number
-              </p> */}
             <div className='flex items-center gap-x-3'>
               <p className='font-mono text-sm text-black'>
-                {formatCardNumber(fullCardNumber)}
+                {formatPan(fullCardNumber)}
               </p>
               <button
                 className='h-6 w-6 p-0 text-black/50 hover:text-black'

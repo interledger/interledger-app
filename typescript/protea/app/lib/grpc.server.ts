@@ -4,14 +4,14 @@ import {
   makeAnyClient
 } from '@bufbuild/connect'
 import { createGrpcTransport } from '@bufbuild/connect-node'
-import type {
+import {
   Message,
-  MethodInfo,
-  MethodInfoUnary,
-  PartialMessage,
-  ServiceType
+  MethodKind,
+  type MethodInfo,
+  type MethodInfoUnary,
+  type PartialMessage,
+  type ServiceType
 } from '@bufbuild/protobuf'
-import { MethodKind } from '@bufbuild/protobuf'
 import { BackendService } from '~/generated/connect/backend/v1/backend_connect'
 import { ConnectError } from '~/lib/error.server'
 
@@ -130,6 +130,20 @@ function createUnaryFn<I extends Message<I>, O extends Message<O>>(
       })
       .catch((err) => new ConnectError(request, BufConnectError.from(err)))
   }
+}
+
+// Keep a reference to the original protected method
+const originalToJson = Message.prototype.toJson
+
+// Monkeypatch to emit enums as integers. We need this so we can actually use
+// the generated protobuf enums. Initially, when returning data structures
+// from a loader or action that reference a protobuf generate typed, they were
+// getting stringified with the enum key.
+;(Message.prototype as any).toJSON = function () {
+  return originalToJson.call(this, {
+    enumAsInteger: true,
+    emitDefaultValues: true
+  })
 }
 
 export { grpc }

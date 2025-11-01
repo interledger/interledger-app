@@ -2,7 +2,7 @@ import clsx from 'clsx'
 import { useEffect } from 'react'
 import { Button, Card, CardContent, CardHeader, CardTitle } from '~/components'
 import { CardType } from '~/generated/connect/backend/v1/backend_pb'
-import { OrderCardStep, useOrderCardStore } from '~/lib/useOrderCardStore'
+import { OrderCardStep, useOrderCardStore } from '~/lib/cards/useOrderCardStore'
 
 export const ProductsSelect = () => {
   const [productCode, setProductCode, setType, products, setStep] =

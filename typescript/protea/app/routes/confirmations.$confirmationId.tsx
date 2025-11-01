@@ -2,20 +2,13 @@ import { useNavigate, useParams } from '@remix-run/react'
 import { useEffect, useMemo } from 'react'
 import { route, type RouteParams } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import {
-  Button,
-  Card,
-  CardContent,
-  Icon,
-  Layouts,
-  OutlineButton
-} from '~/components'
+import { Button, Card, CardContent, Icon, Layouts } from '~/components'
 import { Label } from '~/components/Label'
-import { usePendingConfirmationActions } from '~/lib/usePendingConfirmationActions'
+import { usePendingConfirmationActions } from '~/lib/cards/usePendingConfirmationActions'
 import {
   usePendingConfirmations,
   type StorablePendingConfirmation
-} from '~/lib/usePendingConfirmations'
+} from '~/lib/cards/usePendingConfirmations'
 
 export const handle: ApplicationProps = {
   layout: Layouts.Wallet,
@@ -108,12 +101,13 @@ function ConfirmationView({
       >
         <span className='mx-auto font-medium'>Approve</span>
       </Button>
-      <OutlineButton
+      <Button
+        error
         disabled={actionStatus === 'loading'}
         onClick={() => decide('false')}
       >
         <span className='mx-auto font-medium'>Decline</span>
-      </OutlineButton>
+      </Button>
     </>
   )
 }
