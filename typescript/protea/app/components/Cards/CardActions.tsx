@@ -120,8 +120,6 @@ const ActionButton = forwardRef<any, ActionButtonProps>(function ActionButton(
   { open = false, onClick, icon, text, className },
   ref
 ) {
-  // noHover && 'bg-nav',
-  // 'my-1 flex rounded-xl p-3 first:mt-0 last-of-type:mb-0 hover:bg-nav focus-visible:outline-2 focus-visible:outline-focus active:bg-nav-hover',
   return (
     <button
       ref={ref}

@@ -18,11 +18,7 @@ import {
 import { CardProcessingPlaceholder } from '~/components/Cards'
 import { PhysicalCardChip, VirtualCardChip } from '~/components/Cards/CardChips'
 import { getFeatures } from '~/data/wallet.server'
-import {
-  CardLockLevel,
-  CardStatusReasonCode,
-  CardType
-} from '~/generated/connect/backend/v1/backend_pb'
+import { CardType } from '~/generated/connect/backend/v1/backend_pb'
 import {
   formatPan,
   toStorableCard,
@@ -58,21 +54,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
     throw response.errorResponse
   }
 
-  const cards = response.cards.map((c, i) => {
-    if (i === 0) {
-      return {
-        ...c,
-        lockLevel: CardLockLevel.ADMIN,
-        statusReasonCode: CardStatusReasonCode.ISSUER_REQUEST_LEGAL
-      }
-    } else {
-      return c
-    }
-  })
-
   return json({
     isWaitingForCreation: response.isWaitingForCreation,
-    cards: cards
+    cards: response.cards
   })
 }
 
