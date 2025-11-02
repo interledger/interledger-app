@@ -2098,7 +2098,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
                                 value: '”) to Corporation by email at '
                               },
                               {
-                                url: 'mailto:support@fynbos.app',
+                                url: 'mailto:support@interledger.app',
                                 type: 'link',
                                 children: [
                                   {
