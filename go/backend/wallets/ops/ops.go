@@ -235,14 +235,12 @@ func ListAll(ctx context.Context, b Backends, page db.Pagination) ([]wallets.Wal
     for _, addr := range wa {
 		parsedURL, err := url.Parse(addr.URL)
 		if err != nil {
-			// Log the error and skip invalid URLs
 			log.Warn("Invalid URL in wallet_addresses", zap.String("wallet_id", addr.WalletID), zap.String("url", addr.URL), zap.Error(err))
 			continue
 		}
 		addressMap[addr.WalletID] = append(addressMap[addr.WalletID], wallets.NewAddress(parsedURL)) 
 	}
 	
-	// Attach addresses to wallets
 	for i, w := range wl {
 		wl[i].Addresses = addressMap[w.ID]
 	}
