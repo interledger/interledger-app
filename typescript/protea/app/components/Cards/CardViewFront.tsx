@@ -35,7 +35,7 @@ export const CardViewFront = ({
           </div>
 
           <div className='mt-1 flex items-center justify-end'>
-            <span className='text-xs tracking-wider text-charcoal'>debit</span>
+            <span className='text-sm tracking-widest text-charcoal'>debit</span>
           </div>
         </div>
 
@@ -50,10 +50,10 @@ export const CardViewFront = ({
           </div>
         </div>
 
-        <div className='-mr-4 mt-auto flex items-center justify-between'>
+        <div className='-mr-2 mt-8 flex items-center justify-between xs:-mr-4 xs:mt-auto'>
           <AnimatePresence mode='wait'>
             <Fade className='mt-2' nonce={nameOnCard}>
-              <span className='text-xs font-medium uppercase text-black'>
+              <span className='text-xs font-medium uppercase text-charcoal xs:text-sm'>
                 {nameOnCard}
               </span>
             </Fade>

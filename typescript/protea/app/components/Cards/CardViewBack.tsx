@@ -26,7 +26,7 @@ export const CardViewBack = ({
   return (
     <CardViewContainer className={clsx(className, 'px-5 pt-2')} {...props}>
       <div className='flex h-full flex-col'>
-        <p className='text-[6px] uppercase leading-none text-black'>
+        <p className='text-[6px] font-semibold uppercase leading-none text-black'>
           interledger.org
         </p>
 
@@ -37,7 +37,7 @@ export const CardViewBack = ({
         <div className='ml-2 mt-6 space-y-4'>
           <div>
             <div className='flex items-center gap-x-3'>
-              <p className='font-mono text-sm text-black'>
+              <p className='tracking-wide text-charcoal'>
                 {formatPan(fullCardNumber)}
               </p>
               <button
@@ -48,31 +48,21 @@ export const CardViewBack = ({
               </button>
             </div>
           </div>
-          <div className='flex gap-x-6 text-charcoal'>
-            <div className='flex space-x-1'>
-              <p className='self-end text-[7px] font-light uppercase leading-5'>
-                Exp
-              </p>
-              <p className='self-center font-mono text-sm leading-none'>
-                {displayExpiryDate}
-              </p>
+          <div className='flex items-center text-charcoal'>
+            <div className='flex items-baseline space-x-1'>
+              <p className='text-xs uppercase'>Exp</p>
+              <p className='leading-none'>{displayExpiryDate}</p>
             </div>
-            <div className='flex space-x-3'>
-              <div>
-                <p className='mr-1 inline-block self-end text-[7px] font-light uppercase leading-5'>
-                  Cvv
-                </p>
-                <p className='inline-block self-center font-mono text-sm leading-none'>
-                  {displayCvv}
-                </p>
-              </div>
-              <button
-                className='ml-3 h-4 w-4 p-0 text-charcoal/50 hover:text-charcoal'
-                onClick={() => cvv && navigator.clipboard.writeText(cvv)}
-              >
-                <Icon>content_copy</Icon>
-              </button>
+            <div className='ml-6 flex items-baseline space-x-1'>
+              <p className='text-xs uppercase'>Cvv</p>
+              <p className='leading-none'>{displayCvv}</p>
             </div>
+            <button
+              className='ml-3 self-center p-0 text-charcoal/50 hover:text-charcoal'
+              onClick={() => cvv && navigator.clipboard.writeText(cvv)}
+            >
+              <Icon>content_copy</Icon>
+            </button>
           </div>
         </div>
       </div>

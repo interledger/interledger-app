@@ -46,7 +46,7 @@ export const CardView = ({ card }: { card: StorableCard }) => {
       <Card>
         <CardContent className='space-y-4'>
           <div
-            className='relative mx-auto h-card-height w-card-width'
+            className='relative mx-auto h-card-height-small w-card-width-small xs:h-card-height xs:w-card-width'
             style={{ perspective: '1000px' }}
           >
             <div
@@ -56,7 +56,7 @@ export const CardView = ({ card }: { card: StorableCard }) => {
                   ? '[transform:rotateY(180deg)]'
                   : '[transform:rotateY(0deg)]',
                 isFrozen &&
-                  'isolate aspect-video w-card-width rounded-xl bg-white/20 shadow-lg ring-1 ring-black/5'
+                  'isolate aspect-video w-card-width-small rounded-xl bg-white/20 shadow-lg ring-1 ring-black/5 xs:w-card-width'
               )}
               style={{ transformStyle: 'preserve-3d' }}
             >
@@ -101,7 +101,7 @@ export const CardView = ({ card }: { card: StorableCard }) => {
               <div className='absolute inset-0 h-full w-full rounded-xl bg-gray-700 bg-opacity-10 bg-clip-padding backdrop-blur-sm backdrop-filter'></div>
             )}
           </div>
-          <div className='mx-auto flex w-card-width items-center justify-between'>
+          <div className='mx-auto flex w-card-width-small items-center justify-between xs:w-card-width'>
             <AnimatePresence mode='wait'>
               <Fade nonce={card.id}>
                 <Chip color={ChipColor.blue}>

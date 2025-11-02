@@ -68,6 +68,7 @@ export const useCardActions = (card: StorableCard) => {
 
   const [showBack, setShowBack] = useState<boolean>(false)
   const newPinRef = useRef<string | null>(null)
+  const timeoutRef = useRef<number | null>(null)
 
   const resetSensitiveData = useCallback(() => {
     setIsSensitiveDataVisible(false)
@@ -316,11 +317,27 @@ export const useCardActions = (card: StorableCard) => {
 
   const flip = () => {
     if (showBack && isSensitiveDataVisible) {
-      // turning to the front resets sensitive data
-      resetSensitiveData()
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+      }
+
+      // Using window just for the types it collides with the NodeJS ones.
+      timeoutRef.current = window.setTimeout(() => {
+        // Turning to the front resets sensitive data
+        resetSensitiveData()
+        timeoutRef.current = null
+      }, 350)
     }
     setShowBack(!showBack)
   }
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+      }
+    }
+  }, [])
 
   const isFrozen = useMemo(() => isCardFrozen(card), [card])
   const isBlocked = useMemo(() => isCardBlocked(card), [card])

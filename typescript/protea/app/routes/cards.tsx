@@ -20,7 +20,7 @@ import { PhysicalCardChip, VirtualCardChip } from '~/components/Cards/CardChips'
 import { getFeatures } from '~/data/wallet.server'
 import { CardType } from '~/generated/connect/backend/v1/backend_pb'
 import {
-  formatPan,
+  panLastFour,
   toStorableCard,
   useCardsStore
 } from '~/lib/cards/useCardsStore'
@@ -122,7 +122,7 @@ export default function Page() {
                       <Icon>credit_card</Icon>
                       <div className='flex w-full flex-col space-y-1'>
                         <span className='truncate text-medium'>
-                          {formatPan(card.maskedPan)}
+                          &bull;&bull;&bull;&bull; {panLastFour(card.maskedPan)}
                         </span>
                         <span className='text-xs text-weak'>
                           Expires at: {card.expiryDate.slice(0, 2)}/

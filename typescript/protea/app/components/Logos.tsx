@@ -1029,7 +1029,7 @@ export const XagoLogo: FC<LogoProps> = ({ className, height }) => {
 const MASTERCARD_LOGO_SIZES = {
   xs: 'h-4 w-4',
   sm: 'h-6 w-6',
-  lg: 'h-20 w-20'
+  lg: 'h-10 w-10 xs:h-20 xs:w-20'
 } as const
 
 type MasterCardLogoSize = keyof typeof MASTERCARD_LOGO_SIZES
