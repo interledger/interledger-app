@@ -11,7 +11,7 @@ export const CardViewContainer = ({
   return (
     <div
       className={clsx(
-        'relative h-card-height w-card-width overflow-hidden rounded-xl bg-gradient-to-r from-mint-light to-mint-dark font-sans text-white shadow-lg',
+        'relative h-card-height-small w-card-width-small overflow-hidden rounded-xl bg-gradient-to-r from-mint-light to-mint-dark font-sans font-titillium text-white shadow-lg xs:h-card-height xs:w-card-width',
         className
       )}
       {...props}

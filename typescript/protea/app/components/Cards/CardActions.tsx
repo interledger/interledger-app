@@ -34,7 +34,7 @@ export const CardActions = ({
   return (
     <Card>
       <CardContent>
-        <div className='mx-auto flex items-center justify-center space-x-2'>
+        <div className='flex items-center justify-center space-x-2'>
           {!isFrozen && (
             <>
               <ActionButton
@@ -46,7 +46,7 @@ export const CardActions = ({
                   }
                 }}
                 icon={showBack ? 'visibility_off' : 'visibility'}
-                text={showBack ? 'Hide details' : 'View details'}
+                text='Details'
               />
             </>
           )}
@@ -56,7 +56,7 @@ export const CardActions = ({
             text={isFrozen ? 'Unfreeze' : 'Freeze'}
           />
 
-          <Menu as='div' className='relative'>
+          <Menu>
             {({ open }) => (
               <>
                 <Menu.Button
@@ -138,7 +138,7 @@ const ActionButton = forwardRef<any, ActionButtonProps>(function ActionButton(
       >
         <Icon>{icon}</Icon>
       </span>
-      <span className='inline-block text-sm'>{text}</span>
+      <span className='inline-block text-xs xs:text-sm'>{text}</span>
     </button>
   )
 })
