@@ -5,16 +5,20 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"net/url"
 	"strings"
 
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/db"
+	"gitlab.com/fynbos/log"
+	"go.uber.org/zap"
 
 	"gitlab.com/fynbos/backend/user"
 
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 
 	"gitlab.com/fynbos/backend/wallets"
 )
@@ -182,6 +186,11 @@ func List(ctx context.Context, b Backends, userID string) ([]wallets.Wallet, err
 	return wl, nil
 }
 
+type tempAddress struct {
+    WalletID string `db:"wallet_id"`
+    URL      string `db:"url"`
+}
+
 func ListAll(ctx context.Context, b Backends, page db.Pagination) ([]wallets.Wallet, error) {
 	args := map[string]interface{}{}
 	query := "select id, name, country, exceeded_limits from wallets "
@@ -205,14 +214,37 @@ func ListAll(ctx context.Context, b Backends, page db.Pagination) ([]wallets.Wal
 		return nil, err
 	}
 
-	for i, w := range wl {
-		var wa []wallets.Address
-		err = b.DB().SelectContext(ctx, &wa, "SELECT url FROM wallet_addresses WHERE wallet_id=$1", w.ID)
-		if err != nil {
-			return nil, err
-		}
+	if len(wl) == 0 {
+        return nil, nil
+    }
 
-		wl[i].Addresses = wa
+    walletIDs := make([]string, len(wl))
+    for i, w := range wl {
+        walletIDs[i] = w.ID
+    }
+
+
+    var wa []tempAddress
+    query = "SELECT wallet_id, url FROM wallet_addresses WHERE wallet_id = ANY($1)"
+    err = b.DB().SelectContext(ctx, &wa, query, pq.Array(walletIDs))
+    if err != nil {
+        return nil, err
+    }
+
+    addressMap := make(map[string][]wallets.Address)
+    for _, addr := range wa {
+		parsedURL, err := url.Parse(addr.URL)
+		if err != nil {
+			// Log the error and skip invalid URLs
+			log.Warn("Invalid URL in wallet_addresses", zap.String("wallet_id", addr.WalletID), zap.String("url", addr.URL), zap.Error(err))
+			continue
+		}
+		addressMap[addr.WalletID] = append(addressMap[addr.WalletID], wallets.NewAddress(parsedURL)) 
+	}
+	
+	// Attach addresses to wallets
+	for i, w := range wl {
+		wl[i].Addresses = addressMap[w.ID]
 	}
 
 	return wl, nil

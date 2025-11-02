@@ -70,6 +70,10 @@ func (p *Address) String() string {
 	return p.url.String()
 }
 
+func NewAddress(parsedURL *url.URL) Address {
+    return Address{url: parsedURL}
+}
+
 func (p *Address) ShortString() string {
 	if p == nil || p.url == nil {
 		return ""
