@@ -76,6 +76,7 @@ var EUCountries = map[Country]bool{
 	SI: true, // Slovenia
 	ES: true, // Spain
 	SE: true, // Sweden
+	MX: true, // Mexico (for the summit)
 }
 
 const (
