@@ -22,6 +22,17 @@ export function MarketingPage() {
         <ChimoneyLogo className='w-28' />
         <XagoLogo className='w-28' />
       </div>
+      <div className='flex flex-col items-center justify-center space-y-2'>
+        <p className='font-bold'>iOS Beta Version</p>
+        <p>Install via TestFlight</p>
+        <a href='https://testflight.apple.com/join/waKmVQQf'>
+          <img
+            className='w-16'
+            src='https://cdn.interledger.app/images/testflight.webp'
+            alt='TestFlight'
+          />
+        </a>
+      </div>
     </div>
   )
 }
