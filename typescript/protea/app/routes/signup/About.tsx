@@ -41,8 +41,7 @@ export function isEUCountry(countryCode: string) {
     'SK',
     'SI',
     'ES',
-    'SE',
-    'MX'
+    'SE'
   ]
 
   return euCountryCodes.includes(countryCode.toUpperCase())
