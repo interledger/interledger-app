@@ -13,11 +13,9 @@ import {
   CardHeader,
   Checkbox,
   Dialog,
-  Icon,
   TextButton,
   TextField
 } from '~/components'
-import { Label } from '~/components/Label'
 import type { action as otpAction } from '~/routes/api_.sendOtp'
 
 import { DateTime } from 'luxon'
@@ -26,7 +24,7 @@ import { PaymentDetailsCard } from './PaymentDetailsCard'
 import type { confirmPaymentAction, loader } from './route'
 
 export function Confirm() {
-  const { payment, account, phoneMask, requiresOTP, csrfToken, PTIClientId } =
+  const { payment, account, requiresOTP, csrfToken, PTIClientId } =
     useLoaderData<typeof loader>()
   const actionData = useActionData<typeof confirmPaymentAction>()
   const otpFetcher = useFetcher<typeof otpAction>()
@@ -155,23 +153,23 @@ export function Confirm() {
       )}
       <Dialog open={showOTPDialog} setOpen={setShowOTPDialog}>
         <CardHeader>
-          <h1 className='text-xl font-medium'>Two-step verification</h1>
+          <h1 className='text-xl font-medium'>Verification</h1>
         </CardHeader>
         <CardContent>
           <span className='text-medium'>
-            Enter the six digit code sent to your mobile number.
+            Enter the the sum again to confirm.
           </span>
         </CardContent>
-        <Label className='mt-2'>Your mobile phone number</Label>
+        {/* <Label className='mt-2'>Your mobile phone number</Label>
         <div className='mt-1 flex space-x-2 rounded-xl bg-nav p-3 text-medium'>
           <Icon>phone_android</Icon>
           <span>{phoneMask}</span>
-        </div>
+        </div> */}
 
         <TextField
           id='otp'
           form='pay-confirm'
-          label='Verification code'
+          label='Verify Sum'
           name='otp'
           type='number'
           className='mt-4'
@@ -181,9 +179,9 @@ export function Confirm() {
           errorMessage={actionData?.errors.otp}
         />
         <CardContent className='mt-2 flex w-full justify-end space-x-6'>
-          <TextButton type='submit' form='pay-phone-otp'>
+          {/* <TextButton type='submit' form='pay-phone-otp'>
             Resend code
-          </TextButton>
+          </TextButton> */}
           <TextButton
             form='pay-confirm'
             name='formName'
