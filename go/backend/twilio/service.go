@@ -227,18 +227,18 @@ func (s *service) ListSuccessfulVerificationAttempts(ctx context.Context, args L
 	// return ret, nil
 }
 
-func getString(arg *string) string {
-	if arg != nil {
-		return *arg
-	}
+// func getString(arg *string) string {
+// 	if arg != nil {
+// 		return *arg
+// 	}
 
-	return ""
-}
+// 	return ""
+// }
 
-func getTime(arg *time.Time) time.Time {
-	if arg != nil {
-		return *arg
-	}
+// func getTime(arg *time.Time) time.Time {
+// 	if arg != nil {
+// 		return *arg
+// 	}
 
-	return time.Time{}
-}
+// 	return time.Time{}
+// }
