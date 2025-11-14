@@ -655,8 +655,7 @@ message UpdatePaymentRequest {
   optional string receiverIdentity = 7;
   optional int32 receiverIdentityType = 8; // 1 - Twitter, 2 - WalletID, 3 - WalletURL
   optional string threeDSID = 9;
-  optional string otp = 10;
-  optional string ipAddress = 11;
+  optional string ipAddress = 10;
 }
 
 message Payment {

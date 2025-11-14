@@ -3668,12 +3668,7 @@ export class UpdatePaymentRequest extends Message<UpdatePaymentRequest> {
   threeDSID?: string;
 
   /**
-   * @generated from field: optional string otp = 10;
-   */
-  otp?: string;
-
-  /**
-   * @generated from field: optional string ipAddress = 11;
+   * @generated from field: optional string ipAddress = 10;
    */
   ipAddress?: string;
 
@@ -3694,8 +3689,7 @@ export class UpdatePaymentRequest extends Message<UpdatePaymentRequest> {
     { no: 7, name: "receiverIdentity", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
     { no: 8, name: "receiverIdentityType", kind: "scalar", T: 5 /* ScalarType.INT32 */, opt: true },
     { no: 9, name: "threeDSID", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
-    { no: 10, name: "otp", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
-    { no: 11, name: "ipAddress", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 10, name: "ipAddress", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UpdatePaymentRequest {
