@@ -10,8 +10,6 @@ import (
 	"gitlab.com/fynbos/backend/limits"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 
-	"gitlab.com/fynbos/backend/twilio"
-
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/payments"
 
@@ -217,7 +215,7 @@ func (s *rpcService) CreatePayment(ctx context.Context, req *pb.CreatePaymentReq
 }
 
 func (s *rpcService) UpdatePayment(ctx context.Context, req *pb.UpdatePaymentRequest) (*pb.Payment, error) {
-	u, err := s.b.Users().UserForContext(ctx)
+	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
@@ -260,19 +258,6 @@ func (s *rpcService) UpdatePayment(ctx context.Context, req *pb.UpdatePaymentReq
 		}
 	}
 
-	if req.GetOtp() != "" {
-		vc, err := s.b.Twilio().CheckVerificationCode(ctx, &twilio.CheckVerificationCodeArgs{
-			PhoneNumber: u.PhoneNumber,
-			Code:        req.GetOtp(),
-		})
-		if err != nil {
-			return nil, toGRPCError(err)
-		}
-		if !vc.IsValid() {
-			return nil, NewValidationError("otp", "Invalid OTP")
-		}
-	}
-
 	args := payments.UpdateArgs{
 		ID:             req.Id,
 		SenderAmount:   currency.FromPB(req.GetSenderAmount()),
@@ -285,7 +270,6 @@ func (s *rpcService) UpdatePayment(ctx context.Context, req *pb.UpdatePaymentReq
 		ReceiverAccount: req.GetReceiverAccount(),
 		Note:            req.GetNote(),
 		ThreeDSID:       req.GetThreeDSID(),
-		OTP:             req.GetOtp(),
 		IPAddress:       req.GetIpAddress(),
 	}
 

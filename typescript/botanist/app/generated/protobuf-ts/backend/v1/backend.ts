@@ -1185,11 +1185,7 @@ export interface UpdatePaymentRequest {
      */
     threeDSID?: string;
     /**
-     * @generated from protobuf field: optional string otp = 10;
-     */
-    otp?: string;
-    /**
-     * @generated from protobuf field: optional string ipAddress = 11;
+     * @generated from protobuf field: optional string ipAddress = 10;
      */
     ipAddress?: string;
 }
@@ -7171,8 +7167,7 @@ class UpdatePaymentRequest$Type extends MessageType<UpdatePaymentRequest> {
             { no: 7, name: "receiverIdentity", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
             { no: 8, name: "receiverIdentityType", kind: "scalar", opt: true, T: 5 /*ScalarType.INT32*/ },
             { no: 9, name: "threeDSID", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
-            { no: 10, name: "otp", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
-            { no: 11, name: "ipAddress", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ }
+            { no: 10, name: "ipAddress", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<UpdatePaymentRequest>): UpdatePaymentRequest {
@@ -7214,10 +7209,7 @@ class UpdatePaymentRequest$Type extends MessageType<UpdatePaymentRequest> {
                 case /* optional string threeDSID */ 9:
                     message.threeDSID = reader.string();
                     break;
-                case /* optional string otp */ 10:
-                    message.otp = reader.string();
-                    break;
-                case /* optional string ipAddress */ 11:
+                case /* optional string ipAddress */ 10:
                     message.ipAddress = reader.string();
                     break;
                 default:
@@ -7259,12 +7251,9 @@ class UpdatePaymentRequest$Type extends MessageType<UpdatePaymentRequest> {
         /* optional string threeDSID = 9; */
         if (message.threeDSID !== undefined)
             writer.tag(9, WireType.LengthDelimited).string(message.threeDSID);
-        /* optional string otp = 10; */
-        if (message.otp !== undefined)
-            writer.tag(10, WireType.LengthDelimited).string(message.otp);
-        /* optional string ipAddress = 11; */
+        /* optional string ipAddress = 10; */
         if (message.ipAddress !== undefined)
-            writer.tag(11, WireType.LengthDelimited).string(message.ipAddress);
+            writer.tag(10, WireType.LengthDelimited).string(message.ipAddress);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

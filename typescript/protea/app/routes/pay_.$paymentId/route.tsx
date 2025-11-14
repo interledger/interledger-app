@@ -30,10 +30,8 @@ import type {
   PublicWalletInfo
 } from '~/generated/connect/backend/v1/backend_pb'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
-import { ErrorDescriptions } from '~/lib/error.constants'
-import { TwillioErrorMapper } from '~/lib/error.mappers'
 import type { ConnectError } from '~/lib/error.server'
-import { error, isConnectError, isTwilioCodeError } from '~/lib/error.server'
+import { error, isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { getClientIP } from '~/lib/ip.server'
 import { getUserSession } from '~/lib/kratos.server'
@@ -284,7 +282,7 @@ export async function confirmPaymentAction({
 }: ActionFunctionArgs) {
   const form = await request.formData()
   const serviceAgreement = form.get('serviceAgreement') as string
-  const otp = String(form.get('otp') || '')
+  // const otp = String(form.get('otp') || '')
 
   await validateCSRFToken(request, form)
 
@@ -303,25 +301,17 @@ export async function confirmPaymentAction({
 
   let response = await grpc.updatePayment(request, {
     id: params.paymentId,
-    otp: otp,
     ipAddress: clientIpAddress
   })
   if (isConnectError(response)) {
-    if (isTwilioCodeError(response)) {
-      return response.error(
-        { errors },
-        {
-          otp: TwillioErrorMapper.otp
-        },
-        { action: 'Contact support', message: ErrorDescriptions.INVALID_OTP }
-      )
-    }
+    console.log('error updating payment before confirm', response)
     return response.error({ errors }, {}, { action: 'Contact support' })
   }
 
   response = await grpc.confirmPayment(request, {
     id: params.paymentId
   })
+  console.log('error updating payment before confirm', response)
   if (isConnectError(response)) {
     return response.error({ errors }, {}, { action: 'Contact support' })
   }

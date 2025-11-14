@@ -748,9 +748,9 @@ func getRequiredActions(payment *dbPayment) []payments.RequiredActionType {
 		requiredActions = append(requiredActions, payments.RequiredActionTypeReceiverAmount)
 	}
 
-	if payment.OTPRequired && payment.OTP.String == "" {
-		requiredActions = append(requiredActions, payments.RequiredActionTypeOTP)
-	}
+	// if payment.OTPRequired && payment.OTP.String == "" {
+	// 	requiredActions = append(requiredActions, payments.RequiredActionTypeOTP)
+	// }
 
 	if payment.ThreeDSRequired && payment.ThreeDSID.String == "" {
 		requiredActions = append(requiredActions, payments.RequiredActionTypeThreeDS)

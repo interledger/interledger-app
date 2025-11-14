@@ -90,7 +90,7 @@ func TestCreate(t *testing.T) {
 				Note:            "This is a NOTE!!!",
 				IPAddress:       "193.9.4.6",
 			},
-			actions: []payments.RequiredActionType{payments.RequiredActionTypeOTP},
+			// actions: []payments.RequiredActionType{payments.RequiredActionTypeOTP},
 			err:     nil,
 		},
 		{
@@ -107,7 +107,7 @@ func TestCreate(t *testing.T) {
 				SenderAmount:   currency.FromFloat64(51, currency.USD),
 				ReceiverAmount: currency.FromFloat64(51, currency.USD),
 			},
-			actions: []payments.RequiredActionType{payments.RequiredActionTypeSenderAccount, payments.RequiredActionTypeIPAddress, payments.RequiredActionTypeOTP},
+			actions: []payments.RequiredActionType{payments.RequiredActionTypeSenderAccount, payments.RequiredActionTypeIPAddress},
 			err:     nil,
 		},
 	}
@@ -204,7 +204,7 @@ func TestGetRequiredActions(t *testing.T) {
 	assert.Contains(t, requiredActions, payments.RequiredActionTypeReceiverIdentifier)
 	assert.Contains(t, requiredActions, payments.RequiredActionTypeSenderAmount)
 	assert.Contains(t, requiredActions, payments.RequiredActionTypeSenderAccount)
-	assert.Contains(t, requiredActions, payments.RequiredActionTypeOTP)
+	// assert.Contains(t, requiredActions, payments.RequiredActionTypeOTP)
 	assert.Contains(t, requiredActions, payments.RequiredActionTypeIPAddress)
 }
 
@@ -246,7 +246,6 @@ func TestConfirm(t *testing.T) {
 	assert.Contains(t, requiredActions, payments.RequiredActionTypeReceiverIdentifier)
 	assert.Contains(t, requiredActions, payments.RequiredActionTypeSenderAmount)
 	assert.Contains(t, requiredActions, payments.RequiredActionTypeSenderAccount)
-	assert.Contains(t, requiredActions, payments.RequiredActionTypeOTP)
 
 	p, err = ops.Update(ctx, b, payments.UpdateArgs{
 		ID: paymentID,
