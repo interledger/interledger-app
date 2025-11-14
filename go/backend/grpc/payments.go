@@ -270,7 +270,6 @@ func (s *rpcService) UpdatePayment(ctx context.Context, req *pb.UpdatePaymentReq
 		ReceiverAccount: req.GetReceiverAccount(),
 		Note:            req.GetNote(),
 		ThreeDSID:       req.GetThreeDSID(),
-		OTP:           	 "",
 		IPAddress:       req.GetIpAddress(),
 	}
 
