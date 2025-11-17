@@ -3,7 +3,7 @@ import { redirect } from '@remix-run/node'
 import { KRATOS_URL } from './kratos.server'
 
 /**
-  * Routes that can be accessed without a session with highest AAL
+ * Routes that can be accessed without a session with highest AAL
  */
 export const NON_FULL_SESSION_ROUTES = [
   '/totp/two-factor-authentication',
@@ -12,7 +12,13 @@ export const NON_FULL_SESSION_ROUTES = [
   '/logout',
   '/signup',
   '/recovery/password',
-  '/unavailable'
+  '/unavailable',
+  '/verify'
+]
+
+export const NON_VERIFIED_EMAIL_ROUTES = [
+  '/logout',
+  '/verify',
 ]
 
 /**
@@ -54,8 +60,7 @@ export async function isTotpSet(
   session: Session,
   headers: Headers
 ): Promise<boolean> {
-
-  if(session?.authenticator_assurance_level === 'aal2')
+  if (session?.authenticator_assurance_level === 'aal2')
     return Promise.resolve(true)
   try {
     const response = await fetch(
@@ -91,4 +96,16 @@ export async function ensureTOTP(
       }
     )
   }
+}
+
+/**
+ * Check if user's email is verified
+ * Returns true if the user has verified their email address
+ */
+export function isEmailVerified(session: Session): boolean {
+  return !!(
+    session.identity.verifiable_addresses &&
+    session.identity.verifiable_addresses.length > 0 &&
+    session.identity.verifiable_addresses[0].verified
+  )
 }

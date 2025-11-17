@@ -41,7 +41,12 @@ import { Features } from './generated/connect/backend/v1/backend_pb'
 import { isConnectError } from './lib/error.server'
 import { grpc } from './lib/grpc.server'
 import { getPusherArgs } from './lib/pusher.server'
-import { NON_FULL_SESSION_ROUTES, isTotpSet } from './lib/totp.server'
+import {
+  NON_FULL_SESSION_ROUTES,
+  NON_VERIFIED_EMAIL_ROUTES,
+  isEmailVerified,
+  isTotpSet
+} from './lib/totp.server'
 import { usePusher } from './lib/usePusher'
 
 export const shouldRevalidate: ShouldRevalidateFunction = ({
@@ -138,24 +143,31 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
   const pathname = url.pathname
 
-  if (isUser && !NON_FULL_SESSION_ROUTES.includes(pathname)) {
+  if (isUser) {
     const session = await getUserSession(request)
-    const totpAvailable = await isTotpSet(session, request.headers)
-    if (!totpAvailable) {
-      return redirect('/totp/two-factor-authentication')
+
+    if (!NON_VERIFIED_EMAIL_ROUTES.includes(pathname) && !isEmailVerified(session)) {
+      return redirect('/verify')
     }
 
-    features = await getFeatures(request)
-    if (
-      features &&
-      !features.accountEnabled &&
-      url.pathname !== '/wallet-address'
-    ) {
-      const wallet = await grpc.getWalletInfo(request, {})
-      if (!isConnectError(wallet)) {
-        walletAddress = wallet.url
+    if (!NON_FULL_SESSION_ROUTES.includes(pathname)) {
+      const totpAvailable = await isTotpSet(session, request.headers)
+      if (!totpAvailable) {
+        return redirect('/totp/two-factor-authentication')
       }
-      isDisabled = true
+
+      features = await getFeatures(request)
+      if (
+        features &&
+        !features.accountEnabled &&
+        url.pathname !== '/wallet-address'
+      ) {
+        const wallet = await grpc.getWalletInfo(request, {})
+        if (!isConnectError(wallet)) {
+          walletAddress = wallet.url
+        }
+        isDisabled = true
+      }
     }
   }
 
