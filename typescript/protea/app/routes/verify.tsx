@@ -1,9 +1,5 @@
 import type { Session } from '@ory/kratos-client'
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { useFetcher, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
@@ -32,7 +28,6 @@ type ActionData = {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  console.log('(verify)✅ loader, req url: ', request.url)
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
   const cookie = String(request.headers.get('cookie'))
@@ -41,28 +36,31 @@ export async function loader({ request }: LoaderFunctionArgs) {
     headers: request.headers
   })
 
-  switch (session.status) {
-    case 401:
-    case 500:
-      throw redirect(route('/login'))
-    case 403:
-    case 422: // Need to complete 2FA.
-      console.log('(verify)✅ redirecting to login with aal2 for route', request.url)
-      throw redirect(route('/login') + '?aal=aal2')
-  }
+  // we dont care, if we reached here the root loader took care of the session
+  // and redirects adn stuff
+  // switch (session.status) {
+  //   case 401:
+  //   case 500:
+  //     throw redirect(route('/login'))
+  //   case 403:
+  //   case 422: // Need to complete 2FA.
+  //     console.log('(verify)✅ redirecting to login with aal2 for route', request.url)
+  //     throw redirect(route('/login') + '?aal=aal2')
+  // }
 
   const userSession: Session = await session.json()
-  if (session.status >= 400) handleFlowError(session, 'verify')
+  console.log('(verify)✅ session', userSession)
+  // if (session.status >= 400) handleFlowError(session, 'verify')
 
   // Check the user has at least one verifiable address.
-  if (!userSession.identity.verifiable_addresses) {
+  if (!userSession.identity?.verifiable_addresses) {
     console.log('✅ user has no verifiable addresses')
     console.log('✅ userSession', userSession.identity)
     // user
+    // return redirect(route('/signup'))
   }
-  // return redirect(route('/signup'))
   // We currently only allow one email per user.
-  if (userSession.identity.verifiable_addresses[0].verified) {
+  if (userSession.identity?.verifiable_addresses?.[0]?.verified) {
     return redirect(route('/'))
   }
 
@@ -97,7 +95,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
   return json({
     flow,
-    email: userSession.identity.verifiable_addresses[0].value,
+    email: userSession.identity?.verifiable_addresses?.[0]?.value,
     csrfToken: getCsrfTokenFromFlow(flow)
   })
 }

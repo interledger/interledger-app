@@ -162,13 +162,21 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
   const pathname = url.pathname
 
+  // this will correctly force the user to enter email confirmation
+  // before doing anything
+  // BUT kratos requests AAL2 for old users
+  // if (
+  //   !NON_VERIFIED_EMAIL_ROUTES.includes(pathname)
+  // ) {
+  //   const session = await getUserSession(request, true)
+  //   console.log('(root) ✅ EMAIL CHECK - session', session)
+  //   if (!isEmailVerified(session)) {
+  //     return redirect('/verify')
+  //   }
+  // }
+  
   if (!NON_FULL_SESSION_ROUTES.includes(pathname)) {
-    console.log(
-      '(root)✅ NON_FULL_SESSION_ROUTES.includes(pathname)',
-      NON_FULL_SESSION_ROUTES.includes(pathname)
-    )
     const session = await getUserSession(request)
-    console.log('(root)✅ session', session)
 
     if (
       !NON_VERIFIED_EMAIL_ROUTES.includes(pathname) &&

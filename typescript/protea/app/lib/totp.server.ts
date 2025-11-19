@@ -106,8 +106,8 @@ export function isEmailVerified(session: Session): boolean {
   console.log('✅ identities', session)
 
   return !!(
-    session.identity.verifiable_addresses &&
+    session.identity?.verifiable_addresses &&
     session.identity.verifiable_addresses.length > 0 &&
-    session.identity.verifiable_addresses[0].verified
+    session.identity.verifiable_addresses[0]?.verified
   )
 }
