@@ -1,7 +1,7 @@
 services:
   # 1. PostgreSQL Database
   postgres:
-    image: postgres:latest
+    image: postgres:17-alpine
     profiles:
       - infrastructure
     restart: always
