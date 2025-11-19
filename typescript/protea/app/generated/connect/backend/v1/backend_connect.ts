@@ -89,6 +89,15 @@ export const BackendService = {
       kind: MethodKind.Unary,
     },
     /**
+     * @generated from rpc backend.v1.BackendService.SendAccountVerificationEmail
+     */
+    sendAccountVerificationEmail: {
+      name: "SendAccountVerificationEmail",
+      I: Empty,
+      O: Empty,
+      kind: MethodKind.Unary,
+    },
+    /**
      * Wallet
      *
      * @generated from rpc backend.v1.BackendService.CreateWalletAddress

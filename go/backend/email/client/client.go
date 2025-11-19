@@ -3,13 +3,16 @@ package client
 import (
 	"context"
 
+	kratos "github.com/ory/kratos-client-go"
 	"gitlab.com/fynbos/backend/currency"
-
 	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/email/ops"
 	"gitlab.com/fynbos/backend/email/sendgrid"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
+	"gitlab.com/fynbos/log"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.uber.org/zap"
 )
 
 var _ email.Client = &client{}
@@ -18,13 +21,27 @@ type client struct {
 	b ops.Backends
 }
 
-func New(b Backends, sendgridAPIKey string) email.Client {
+func New(b Backends, sendgridAPIKey, kratosURL,kratosAdminURL string) email.Client {
 
 	externalClient := sendgrid.NewClient(sendgridAPIKey)
+	configuration := kratos.NewConfiguration()
+	configuration.HTTPClient = otelhttp.DefaultClient
+	configuration.Servers = kratos.ServerConfigurations{
+		{
+			URL:         kratosURL,
+			Description: "Public Kratos",
+		},
+		{
+			URL:         kratosAdminURL,
+			Description: "Admin Kratos",
+		},
+	}
 
+	kratosClient := kratos.NewAPIClient(configuration)
 	ob := &opsBackends{
 		Backends: b,
 		external: externalClient,
+		kratos:   kratosClient,
 	}
 
 	return &client{
@@ -91,3 +108,8 @@ func (c *client) SendCardCreatedEmail(ctx context.Context, walletID, cardID stri
 func (c *client) SendPending3DSConfirmation(ctx context.Context, walletID, confirmationID string) {
 	ops.SendPending3DSConfirmation(ctx, c.b, walletID, confirmationID)
 }
+
+func (c *client) SendAccountVerificationEmail(ctx context.Context, email string) error {
+	return ops.SendAccountVerificationEmail(ctx, c.b, email)
+}
+

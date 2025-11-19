@@ -13300,6 +13300,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "GetSignup", options: {}, I: GetSignupRequest, O: Signup },
     { name: "CompleteSignup", options: {}, I: CompleteSignupRequest, O: Empty },
     { name: "CreateUserDefaultWallet", options: {}, I: CreateUserDefaultWalletRequest, O: Empty },
+    { name: "SendAccountVerificationEmail", options: {}, I: Empty, O: Empty },
     { name: "CreateWalletAddress", options: {}, I: CreateWalletAddressRequest, O: Empty },
     { name: "WalletAddressValid", options: {}, I: WalletAddressValidRequest, O: WalletAddressValidResponse },
     { name: "SetWalletName", options: {}, I: SetWalletNameRequest, O: Empty },

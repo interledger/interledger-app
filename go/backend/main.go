@@ -761,7 +761,7 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	}
 
 	logger.Debug("initialising SendGrid")
-	b.email = email_client.New(b, args.SendgridAPIKey)
+	b.email = email_client.New(b, args.SendgridAPIKey, args.KratosUrl, args.KratosAdminUrl)
 
 	logger.Debug("initialising transactions")
 	b.transactions = transactions_client.New(b)

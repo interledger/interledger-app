@@ -26,3 +26,15 @@ func (s *rpcService) CreateUserDefaultWallet(ctx context.Context, req *pb.Create
 
 	return &pb.Empty{}, toGRPCError(err)
 }
+
+func (s *rpcService) SendAccountVerificationEmail(ctx context.Context, req *pb.Empty) (*pb.Empty, error) {
+	u, err := s.b.Users().UserForContext(ctx)
+	if err != nil && !errors.Is(err, user.ErrNoUserFound) {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	err = s.b.Email().SendAccountVerificationEmail(ctx, u.Email)
+
+	return &pb.Empty{}, toGRPCError(err)
+}
+

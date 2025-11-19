@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"strings"
 
+	kratos "github.com/ory/kratos-client-go"
 	"gitlab.com/fynbos/backend/currency"
 
 	"gitlab.com/fynbos/backend/email"
@@ -501,3 +502,56 @@ func SendPending3DSConfirmation(ctx context.Context, b Backends, walletID, confi
 		log.Error("Failed to send card created email.", zap.Error(err), zap.String("walletID", walletID))
 	}
 }
+
+func SendAccountVerificationEmail(ctx context.Context, b Backends, email string) error {
+
+    flow, _, err := b.Kratos().FrontendApi.CreateNativeVerificationFlow(ctx).
+        Execute()
+    if err != nil {
+        return err
+    }
+
+    body := kratos.UpdateVerificationFlowBody{
+        UpdateVerificationFlowWithLinkMethod: &kratos.UpdateVerificationFlowWithLinkMethod{
+            Method: "link",
+            Email:  email,
+        },
+    }
+
+    _, _, err = b.Kratos().FrontendApi.
+        UpdateVerificationFlow(ctx).
+        Flow(flow.Id).
+        UpdateVerificationFlowBody(body).
+        Execute()
+	if err != nil {
+
+    return err
+	}
+
+	return nil
+}
+
+func SendAccountRecoveryEmail(ctx context.Context, b Backends, email string) error {
+    ctx = context.WithValue(ctx, kratos.ContextServerIndex, 1)
+    flow, _, err := b.Kratos().FrontendApi.
+        CreateBrowserRecoveryFlow(ctx).
+        Execute()
+    if err != nil {
+        return err
+    }
+
+    body := kratos.UpdateRecoveryFlowBody{
+        UpdateRecoveryFlowWithLinkMethod: &kratos.UpdateRecoveryFlowWithLinkMethod{
+            Method: "link",
+            Email:  email,
+        },
+    }
+    _, _, err = b.Kratos().FrontendApi.
+        UpdateRecoveryFlow(ctx).
+        Flow(flow.Id).
+        UpdateRecoveryFlowBody(body).
+        Execute()
+
+    return err
+}
+

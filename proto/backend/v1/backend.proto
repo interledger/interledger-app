@@ -27,6 +27,7 @@ service BackendService {
   // Called after the user is created on Kratos with the new userID.
   rpc CompleteSignup(CompleteSignupRequest) returns (Empty);
   rpc CreateUserDefaultWallet(CreateUserDefaultWalletRequest) returns (Empty);
+  rpc SendAccountVerificationEmail(Empty) returns (Empty);
   // Wallet
   rpc CreateWalletAddress(CreateWalletAddressRequest) returns (Empty);
   rpc WalletAddressValid(WalletAddressValidRequest) returns (WalletAddressValidResponse);

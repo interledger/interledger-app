@@ -27,6 +27,7 @@ const (
 	BackendService_GetSignup_FullMethodName                      = "/backend.v1.BackendService/GetSignup"
 	BackendService_CompleteSignup_FullMethodName                 = "/backend.v1.BackendService/CompleteSignup"
 	BackendService_CreateUserDefaultWallet_FullMethodName        = "/backend.v1.BackendService/CreateUserDefaultWallet"
+	BackendService_SendAccountVerificationEmail_FullMethodName   = "/backend.v1.BackendService/SendAccountVerificationEmail"
 	BackendService_CreateWalletAddress_FullMethodName            = "/backend.v1.BackendService/CreateWalletAddress"
 	BackendService_WalletAddressValid_FullMethodName             = "/backend.v1.BackendService/WalletAddressValid"
 	BackendService_SetWalletName_FullMethodName                  = "/backend.v1.BackendService/SetWalletName"
@@ -148,6 +149,7 @@ type BackendServiceClient interface {
 	// Called after the user is created on Kratos with the new userID.
 	CompleteSignup(ctx context.Context, in *CompleteSignupRequest, opts ...grpc.CallOption) (*Empty, error)
 	CreateUserDefaultWallet(ctx context.Context, in *CreateUserDefaultWalletRequest, opts ...grpc.CallOption) (*Empty, error)
+	SendAccountVerificationEmail(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
 	// Wallet
 	CreateWalletAddress(ctx context.Context, in *CreateWalletAddressRequest, opts ...grpc.CallOption) (*Empty, error)
 	WalletAddressValid(ctx context.Context, in *WalletAddressValidRequest, opts ...grpc.CallOption) (*WalletAddressValidResponse, error)
@@ -364,6 +366,16 @@ func (c *backendServiceClient) CreateUserDefaultWallet(ctx context.Context, in *
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Empty)
 	err := c.cc.Invoke(ctx, BackendService_CreateUserDefaultWallet_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) SendAccountVerificationEmail(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, BackendService_SendAccountVerificationEmail_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1434,6 +1446,7 @@ type BackendServiceServer interface {
 	// Called after the user is created on Kratos with the new userID.
 	CompleteSignup(context.Context, *CompleteSignupRequest) (*Empty, error)
 	CreateUserDefaultWallet(context.Context, *CreateUserDefaultWalletRequest) (*Empty, error)
+	SendAccountVerificationEmail(context.Context, *Empty) (*Empty, error)
 	// Wallet
 	CreateWalletAddress(context.Context, *CreateWalletAddressRequest) (*Empty, error)
 	WalletAddressValid(context.Context, *WalletAddressValidRequest) (*WalletAddressValidResponse, error)
@@ -1598,6 +1611,9 @@ func (UnimplementedBackendServiceServer) CompleteSignup(context.Context, *Comple
 }
 func (UnimplementedBackendServiceServer) CreateUserDefaultWallet(context.Context, *CreateUserDefaultWalletRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateUserDefaultWallet not implemented")
+}
+func (UnimplementedBackendServiceServer) SendAccountVerificationEmail(context.Context, *Empty) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SendAccountVerificationEmail not implemented")
 }
 func (UnimplementedBackendServiceServer) CreateWalletAddress(context.Context, *CreateWalletAddressRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateWalletAddress not implemented")
@@ -2074,6 +2090,24 @@ func _BackendService_CreateUserDefaultWallet_Handler(srv interface{}, ctx contex
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BackendServiceServer).CreateUserDefaultWallet(ctx, req.(*CreateUserDefaultWalletRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_SendAccountVerificationEmail_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).SendAccountVerificationEmail(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_SendAccountVerificationEmail_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).SendAccountVerificationEmail(ctx, req.(*Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -4006,6 +4040,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateUserDefaultWallet",
 			Handler:    _BackendService_CreateUserDefaultWallet_Handler,
+		},
+		{
+			MethodName: "SendAccountVerificationEmail",
+			Handler:    _BackendService_SendAccountVerificationEmail_Handler,
 		},
 		{
 			MethodName: "CreateWalletAddress",
