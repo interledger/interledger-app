@@ -42,12 +42,17 @@ import { hasUserSession } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  let walletAddressParam = params['*'] as string
+  const unsanitizedWalletAddressParam = params['*'] as string
   let profilePicture: { person: Query['person'] } | { person: null } = {
     person: null
   }
 
-  walletAddressParam = sanitizeWalletAddress(walletAddressParam)
+  const walletAddressParam = sanitizeWalletAddress(
+    unsanitizedWalletAddressParam
+  )
+  if (walletAddressParam !== unsanitizedWalletAddressParam) {
+    return redirect(`/me/${walletAddressParam}`)
+  }
 
   const response = await grpc.getPublicWalletInfo(request, {
     walletAddress: walletAddressParam
