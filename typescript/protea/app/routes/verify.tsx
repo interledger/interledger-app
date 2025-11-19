@@ -19,6 +19,8 @@ import { mergeMeta } from '~/lib/meta'
 import { useCountdown } from '~/lib/useCountdown'
 import { useDebounceAction } from '~/lib/useDebounceAction'
 
+const RESEND_DELAY = 4000
+
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
@@ -103,7 +105,7 @@ export default function Page() {
   const { flow, email, csrfToken } = useLoaderData<typeof loader>()
   const fetcher = useFetcher()
 
-  const withDebounce = useDebounceAction(60000)
+  const withDebounce = useDebounceAction(RESEND_DELAY)
   const { start, isActive, remainingSeconds } = useCountdown()
 
   const handleResend = () => {
@@ -117,11 +119,17 @@ export default function Page() {
         action: `/verify?flow=${flow.id}`
       })
 
-      start(60000)
+      start(RESEND_DELAY)
     })
   }
 
   const isDisabled = isActive || fetcher.state !== 'idle'
+
+  const hasError = isActive &&
+    fetcher.data &&
+    typeof fetcher.data === 'object' &&
+    'success' in fetcher.data &&
+    fetcher.data.success === false
 
   return (
     <>
@@ -139,6 +147,15 @@ export default function Page() {
           ? 'Sending...'
           : 'Resend verification'}
       </Button>
+      {hasError && (
+        <p className='mt-2 text-sm text-error'>
+          {typeof fetcher.data === 'object' &&
+          fetcher.data &&
+          'error' in fetcher.data
+            ? String(fetcher.data.error)
+            : 'Failed to send verification email'}
+        </p>
+      )}
     </>
   )
 }
@@ -179,6 +196,10 @@ export async function action({ request }: ActionFunctionArgs) {
     }
   } catch (error) {
     console.error('❌ Error sending email verification', error)
+    return json(
+      { success: false, error: 'Could not send email verification' },
+      { status: 500, statusText: 'Internal server error' }
+    )
     // throw json(
     //   { title: "Could't send email verification" },
     //   { status: 500, statusText: 'Internal server error' }
