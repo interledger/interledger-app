@@ -86,7 +86,7 @@ export const handle: ApplicationProps = {
   layout: Layouts.Focus,
   scaffold: {
     header: {
-      back: route('/'),
+      back: route('/'), // THIS IS AN ISSUE, SHOULD BE A REDIRECT
       title: 'Two-factor authentication'
     }
   }

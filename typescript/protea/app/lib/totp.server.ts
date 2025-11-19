@@ -16,10 +16,10 @@ export const NON_FULL_SESSION_ROUTES = [
   '/verify'
 ]
 
-export const NON_VERIFIED_EMAIL_ROUTES = [
-  '/logout',
-  '/verify',
-]
+/**
+ * Routes that can be accessed without verified email
+ */
+export const NON_VERIFIED_EMAIL_ROUTES = ['/logout', '/verify']
 
 /**
  * Check if TOTP is available in Kratos settings flow
@@ -103,6 +103,8 @@ export async function ensureTOTP(
  * Returns true if the user has verified their email address
  */
 export function isEmailVerified(session: Session): boolean {
+  console.log('✅ identities', session)
+
   return !!(
     session.identity.verifiable_addresses &&
     session.identity.verifiable_addresses.length > 0 &&

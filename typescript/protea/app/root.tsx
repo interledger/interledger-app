@@ -156,21 +156,27 @@ export async function loader({ request }: LoaderFunctionArgs) {
     })
   }
 
-  const session = await getUserSession(request)
   let features = new Features()
   let isDisabled = false
   let walletAddress = ''
   const url = new URL(request.url)
   const pathname = url.pathname
 
-  if (
-    !NON_VERIFIED_EMAIL_ROUTES.includes(pathname) &&
-    !isEmailVerified(session)
-  ) {
-    return redirect('/verify')
-  }
-
   if (!NON_FULL_SESSION_ROUTES.includes(pathname)) {
+    console.log(
+      '(root)✅ NON_FULL_SESSION_ROUTES.includes(pathname)',
+      NON_FULL_SESSION_ROUTES.includes(pathname)
+    )
+    const session = await getUserSession(request)
+    console.log('(root)✅ session', session)
+
+    if (
+      !NON_VERIFIED_EMAIL_ROUTES.includes(pathname) &&
+      !isEmailVerified(session)
+    ) {
+      return redirect('/verify')
+    }
+
     const totpAvailable = await isTotpSet(session, request.headers)
     if (!totpAvailable) {
       return redirect('/totp/two-factor-authentication')
