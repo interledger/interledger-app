@@ -5,7 +5,7 @@ import type {
   MetaFunction
 } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { Form, useLoaderData } from '@remix-run/react'
+import { useFetcher, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts } from '~/components'
@@ -16,6 +16,8 @@ import {
   handleFlowError
 } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
+import { useCountdown } from '~/lib/useCountdown'
+import { useDebounceAction } from '~/lib/useDebounceAction'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
@@ -99,31 +101,43 @@ export const meta: MetaFunction = mergeMeta(() => [
 
 export default function Page() {
   const { flow, email, csrfToken } = useLoaderData<typeof loader>()
+  const fetcher = useFetcher()
+
+  const withDebounce = useDebounceAction(60000)
+  const { start, isActive, remainingSeconds } = useCountdown()
+
+  const handleResend = () => {
+    withDebounce(() => {
+      const formData = new FormData()
+      formData.append('csrf_token', csrfToken)
+      formData.append('email', email)
+
+      fetcher.submit(formData, {
+        method: 'post',
+        action: `/verify?flow=${flow.id}`
+      })
+
+      start(60000)
+    })
+  }
+
+  const isDisabled = isActive || fetcher.state !== 'idle'
 
   return (
     <>
-      <Form
-        id='verify'
-        action={`/verify?flow=${flow.id}`}
-        method='post'
-        className='hidden'
-      />
       <Card>
         <CardContent>
           <span>
             We've sent a verification link to your email: <br /> {email}
           </span>
-          <input
-            form='verify'
-            defaultValue={csrfToken}
-            name='csrf_token'
-            type='hidden'
-          />
         </CardContent>
-        <input form='verify' defaultValue={email} name='email' type='hidden' />
       </Card>
-      <Button form='verify' type='submit'>
-        Resend verification
+      <Button onClick={handleResend} disabled={isDisabled}>
+        {isActive
+          ? `Resend in ${remainingSeconds}s`
+          : fetcher.state !== 'idle'
+          ? 'Sending...'
+          : 'Resend verification'}
       </Button>
     </>
   )
@@ -137,29 +151,53 @@ export async function action({ request }: ActionFunctionArgs) {
   const csrfToken = form.get('csrf_token') as string
   const email = form.get('email') as string
 
-  const res = await fetch(
-    `${KRATOS_URL}/self-service/verification?flow=${flowId}`,
-    {
-      method: 'POST',
-      body: JSON.stringify({
-        method: 'link',
-        email,
-        csrf_token: csrfToken
-      }),
-      headers: {
-        'Content-type': 'application/json',
-        cookie: String(request.headers.get('cookie'))
+  let verificationResponse: Response
+  try {
+    verificationResponse = await fetch(
+      `${KRATOS_URL}/self-service/verification?flow=${flowId}`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          method: 'link',
+          email,
+          csrf_token: csrfToken
+        }),
+        headers: {
+          'Content-type': 'application/json',
+          cookie: String(request.headers.get('cookie'))
+        }
       }
-    }
-  )
-
-  if (res.status >= 400) {
-    throw json(
-      { title: "Could't send email verification" },
-      { status: res.status, statusText: res.statusText }
     )
+    if (verificationResponse.status >= 400) {
+      throw json(
+        { title: "Could't send email verification" },
+        {
+          status: verificationResponse.status,
+          statusText: verificationResponse.statusText
+        }
+      )
+    }
+  } catch (error) {
+    console.error('❌ Error sending email verification', error)
+    // throw json(
+    //   { title: "Could't send email verification" },
+    //   { status: 500, statusText: 'Internal server error' }
+    // )
   }
-  return redirect(route('/verify'), {
-    headers: trimHeaders(res.headers, ['set-cookie'])
-  })
+
+  // if (verificationResponse.status >= 400) {
+  //   throw json(
+  //     { title: "Could't send email verification" },
+  //     {
+  //       status: verificationResponse.status,
+  //       statusText: verificationResponse.statusText
+  //     }
+  //   )
+  // }
+
+  console.log('✅ Sending email verification success')
+  return json(
+    { success: true }
+    // { headers: trimHeaders(verificationResponse.headers, ['set-cookie']) }
+  )
 }
