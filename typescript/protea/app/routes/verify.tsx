@@ -27,6 +27,10 @@ import { useDebounceAction } from '~/lib/useDebounceAction'
 
 const RESEND_DELAY = 60 * 1000 // 1 minute
 
+type ActionData = {
+  success: boolean
+}
+
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
@@ -109,7 +113,7 @@ export const meta: MetaFunction = mergeMeta(() => [
 
 export default function Page() {
   const { flow, email, csrfToken } = useLoaderData<typeof loader>()
-  const fetcher = useFetcher()
+  const fetcher = useFetcher<ActionData>()
 
   const withDebounce = useDebounceAction(RESEND_DELAY)
   const { start, isActive, remainingSeconds } = useCountdown()
@@ -131,19 +135,9 @@ export default function Page() {
 
   const isDisabled = isActive || fetcher.state !== 'idle'
 
-  const hasError =
-    isActive &&
-    fetcher.data &&
-    typeof fetcher.data === 'object' &&
-    'success' in fetcher.data &&
-    fetcher.data.success === false
+  const hasError = isActive && fetcher.data?.success === false
 
-  const hasSuccess =
-    isActive &&
-    fetcher.data &&
-    typeof fetcher.data === 'object' &&
-    'success' in fetcher.data &&
-    fetcher.data.success === true
+  const hasSuccess = isActive && fetcher.data?.success === true
 
   return (
     <>
@@ -182,17 +176,16 @@ export default function Page() {
 
       {hasSuccess && (
         <p className='mt-2 text-sm text-success'>
-          {typeof fetcher.data === 'object' &&
-            fetcher.data &&
-            'success' in fetcher.data &&
-            'Verification email sent successfully.'}
+          Verification email sent successfully.
         </p>
       )}
     </>
   )
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({
+  request
+}: ActionFunctionArgs): Promise<ReturnType<typeof json<ActionData>>> {
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
 
@@ -220,16 +213,22 @@ export async function action({ request }: ActionFunctionArgs) {
     )
   } catch (error) {
     console.error('❌ Error sending email verification', error)
-    return json({
-      success: false
-    })
+    return json<ActionData>(
+      {
+        success: false
+      },
+      { status: 500 }
+    )
   }
 
   if (verificationResponse.status >= 400) {
-    return json({
-      success: false
-    })
+    return json<ActionData>(
+      {
+        success: false
+      },
+      { status: 500 }
+    )
   }
 
-  return json({ success: true }, { status: 200 })
+  return json<ActionData>({ success: true }, { status: 200 })
 }
