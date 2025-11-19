@@ -5,10 +5,16 @@ import type {
   MetaFunction
 } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { Form, useLoaderData } from '@remix-run/react'
+import { useFetcher, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import { Button, Card, CardContent, Layouts } from '~/components'
+import {
+  Button,
+  Card,
+  CardContent,
+  Layouts,
+  OutlineButtonRouter
+} from '~/components'
 import { trimHeaders } from '~/lib/headers.server'
 import {
   KRATOS_URL,
@@ -16,6 +22,14 @@ import {
   handleFlowError
 } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
+import { useCountdown } from '~/lib/useCountdown'
+import { useDebounceAction } from '~/lib/useDebounceAction'
+
+const RESEND_DELAY = 60 * 1000 // 1 minute
+
+type ActionData = {
+  success: boolean
+}
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
@@ -99,37 +113,79 @@ export const meta: MetaFunction = mergeMeta(() => [
 
 export default function Page() {
   const { flow, email, csrfToken } = useLoaderData<typeof loader>()
+  const fetcher = useFetcher<ActionData>()
+
+  const withDebounce = useDebounceAction(RESEND_DELAY)
+  const { start, isActive, remainingSeconds } = useCountdown()
+
+  const handleResend = () => {
+    withDebounce(() => {
+      const formData = new FormData()
+      formData.append('csrf_token', csrfToken)
+      formData.append('email', email)
+
+      fetcher.submit(formData, {
+        method: 'post',
+        action: `/verify?flow=${flow.id}`
+      })
+
+      start(RESEND_DELAY)
+    })
+  }
+
+  const isDisabled = isActive || fetcher.state !== 'idle'
+
+  const hasError = isActive && fetcher.data?.success === false
+
+  const hasSuccess = isActive && fetcher.data?.success === true
 
   return (
     <>
-      <Form
-        id='verify'
-        action={`/verify?flow=${flow.id}`}
-        method='post'
-        className='hidden'
-      />
       <Card>
         <CardContent>
           <span>
-            We've sent a verification link to your email: <br /> {email}
+            We've sent a verification link to your email: <br /> <b>{email}</b>
+            <br />
+            <br />
+            If you couldn't find it, check your spam folder or try resending.
           </span>
-          <input
-            form='verify'
-            defaultValue={csrfToken}
-            name='csrf_token'
-            type='hidden'
-          />
         </CardContent>
-        <input form='verify' defaultValue={email} name='email' type='hidden' />
       </Card>
-      <Button form='verify' type='submit'>
-        Resend verification
+      <Button onClick={handleResend} disabled={isDisabled}>
+        {isActive
+          ? `Resend in ${remainingSeconds}s`
+          : fetcher.state !== 'idle'
+          ? 'Sending...'
+          : 'Resend verification'}
       </Button>
+
+      <OutlineButtonRouter to={route('/logout')} className='mt-4'>
+        Log out
+      </OutlineButtonRouter>
+
+      {hasError && (
+        <p className='mt-2 text-sm text-error'>
+          Could not send email verification. Please try again or contact support
+          at{' '}
+          <a href='mailto:support@interledger.app'>
+            <b>support@interledger.app</b>
+          </a>
+          .
+        </p>
+      )}
+
+      {hasSuccess && (
+        <p className='mt-2 text-sm text-success'>
+          Verification email sent successfully.
+        </p>
+      )}
     </>
   )
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({
+  request
+}: ActionFunctionArgs): Promise<ReturnType<typeof json<ActionData>>> {
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
 
@@ -137,29 +193,42 @@ export async function action({ request }: ActionFunctionArgs) {
   const csrfToken = form.get('csrf_token') as string
   const email = form.get('email') as string
 
-  const res = await fetch(
-    `${KRATOS_URL}/self-service/verification?flow=${flowId}`,
-    {
-      method: 'POST',
-      body: JSON.stringify({
-        method: 'link',
-        email,
-        csrf_token: csrfToken
-      }),
-      headers: {
-        'Content-type': 'application/json',
-        cookie: String(request.headers.get('cookie'))
+  let verificationResponse: Response
+  try {
+    verificationResponse = await fetch(
+      `${KRATOS_URL}/self-service/verification?flow=${flowId}`,
+      {
+        method: 'POST',
+        redirect: 'manual',
+        body: JSON.stringify({
+          method: 'link',
+          email,
+          csrf_token: csrfToken
+        }),
+        headers: {
+          'Content-type': 'application/json',
+          cookie: String(request.headers.get('cookie'))
+        }
       }
-    }
-  )
-
-  if (res.status >= 400) {
-    throw json(
-      { title: "Could't send email verification" },
-      { status: res.status, statusText: res.statusText }
+    )
+  } catch (error) {
+    console.error('❌ Error sending email verification', error)
+    return json<ActionData>(
+      {
+        success: false
+      },
+      { status: 500 }
     )
   }
-  return redirect(route('/verify'), {
-    headers: trimHeaders(res.headers, ['set-cookie'])
-  })
+
+  if (verificationResponse.status >= 400) {
+    return json<ActionData>(
+      {
+        success: false
+      },
+      { status: 500 }
+    )
+  }
+
+  return json<ActionData>({ success: true }, { status: 200 })
 }
