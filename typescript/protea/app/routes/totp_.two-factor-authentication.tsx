@@ -86,7 +86,6 @@ export const handle: ApplicationProps = {
   layout: Layouts.Focus,
   scaffold: {
     header: {
-      back: route('/'), // THIS IS AN ISSUE, SHOULD BE A REDIRECT
       title: 'Two-factor authentication'
     }
   }
@@ -160,7 +159,12 @@ export default function Page() {
           </Card>
 
           {totpUnlink ? (
-            <Button onClick={handleUnlinkClick}>Unlink TOTP</Button>
+            <>
+              <Button onClick={handleUnlinkClick}>Unlink TOTP</Button>
+              <OutlineButtonRouter to={route('/settings')} className='mt-4' >
+                Back
+              </OutlineButtonRouter>
+            </>
           ) : (
             <Button form='2fa-form' type='submit'>
               Verify TOTP

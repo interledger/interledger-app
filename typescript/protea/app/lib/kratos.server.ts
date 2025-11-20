@@ -54,7 +54,6 @@ export async function getUserSession(request: Request, allowAal1 = false): Promi
       throw redirect(route('/login') + url.search)
     case 403:
     case 422: // Need to complete 2FA.
-      console.log('(getUserSession)✅ redirecting to login with aal2 for route', request.url)
       if (!allowAal1) {
         url.searchParams.set('aal', 'aal2')
         throw redirect(route('/login') + url.search)

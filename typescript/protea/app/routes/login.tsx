@@ -34,9 +34,7 @@ import {
 import { mergeMeta } from '~/lib/meta'
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  console.log('(login) ✅ loader, req url: ', request.url)
   await requireNoUserSession(request)
-  console.log('(login)✅ requireNoUserSession DONE')
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
   const cookie = String(request.headers.get('cookie'))
@@ -216,7 +214,6 @@ export async function action({ request }: ActionFunctionArgs) {
   const headers = trimHeaders(res.headers, ['set-cookie'])
 
   if (res.status === 422) {
-    console.log('(login)✅ redirecting to totp challenge')
     return redirect('/totp/challenge?returnTo=' + returnTo || '/', {
       headers
     })

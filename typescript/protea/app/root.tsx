@@ -3,7 +3,7 @@ import type {
   LoaderFunctionArgs,
   MetaFunction
 } from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
+import { json } from '@remix-run/node'
 import {
   Links,
   Meta,
@@ -32,21 +32,13 @@ import {
 } from '~/components'
 import { Scaffold } from '~/components/Scaffold'
 import { TotpChallengeGlobal } from '~/components/TotpChallengeGlobal'
-import { getUserSession, hasUserSession } from '~/lib/kratos.server'
+import { hasUserSession } from '~/lib/kratos.server'
 import { getSnackbar } from '~/lib/snackbar.server'
 import styles from '~/styles/app.css'
 import { PendingConfirmationsLoader } from './components/PendingConfirmationsLoader'
-import { getFeatures } from './data/wallet.server'
 import { Features } from './generated/connect/backend/v1/backend_pb'
-import { isConnectError } from './lib/error.server'
-import { grpc } from './lib/grpc.server'
 import { getPusherArgs } from './lib/pusher.server'
-import {
-  NON_FULL_SESSION_ROUTES,
-  NON_VERIFIED_EMAIL_ROUTES,
-  isEmailVerified,
-  isTotpSet
-} from './lib/totp.server'
+import { AAL2Guard, emailVerificationGuard } from './lib/totp.server'
 import { usePusher } from './lib/usePusher'
 
 export const shouldRevalidate: ShouldRevalidateFunction = ({
@@ -162,47 +154,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
   const pathname = url.pathname
 
-  // this will correctly force the user to enter email confirmation
-  // before doing anything
-  // BUT kratos requests AAL2 for old users
-  // if (
-  //   !NON_VERIFIED_EMAIL_ROUTES.includes(pathname)
-  // ) {
-  //   const session = await getUserSession(request, true)
-  //   console.log('(root) ✅ EMAIL CHECK - session', session)
-  //   if (!isEmailVerified(session)) {
-  //     return redirect('/verify')
-  //   }
-  // }
-  
-  if (!NON_FULL_SESSION_ROUTES.includes(pathname)) {
-    const session = await getUserSession(request)
-
-    if (
-      !NON_VERIFIED_EMAIL_ROUTES.includes(pathname) &&
-      !isEmailVerified(session)
-    ) {
-      return redirect('/verify')
-    }
-
-    const totpAvailable = await isTotpSet(session, request.headers)
-    if (!totpAvailable) {
-      return redirect('/totp/two-factor-authentication')
-    }
-
-    features = await getFeatures(request)
-    if (
-      features &&
-      !features.accountEnabled &&
-      url.pathname !== '/wallet-address'
-    ) {
-      const wallet = await grpc.getWalletInfo(request, {})
-      if (!isConnectError(wallet)) {
-        walletAddress = wallet.url
-      }
-      isDisabled = true
-    }
-  }
+  await emailVerificationGuard(pathname, request)
+  await AAL2Guard(pathname, request, {
+    features,
+    url,
+    walletAddress,
+    isDisabled
+  })
 
   return json({
     isDisabled,

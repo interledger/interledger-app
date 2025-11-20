@@ -63,9 +63,6 @@ selfservice:
     login:
       after:
         default_browser_return_url: http://interledger.test
-        # password:
-        #   hooks:
-        #     - hook: require_verified_address
       lifespan: 10m
       ui_url: http://interledger.test/login
     logout:

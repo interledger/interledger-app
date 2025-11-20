@@ -35,30 +35,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const session = await fetch(`${KRATOS_URL}/sessions/whoami`, {
     headers: request.headers
   })
-
-  // we dont care, if we reached here the root loader took care of the session
-  // and redirects adn stuff
-  // switch (session.status) {
-  //   case 401:
-  //   case 500:
-  //     throw redirect(route('/login'))
-  //   case 403:
-  //   case 422: // Need to complete 2FA.
-  //     console.log('(verify)✅ redirecting to login with aal2 for route', request.url)
-  //     throw redirect(route('/login') + '?aal=aal2')
-  // }
-
   const userSession: Session = await session.json()
-  console.log('(verify)✅ session', userSession)
-  // if (session.status >= 400) handleFlowError(session, 'verify')
+  if (session.status >= 400) handleFlowError(session, 'verify')
 
-  // Check the user has at least one verifiable address.
-  if (!userSession.identity?.verifiable_addresses) {
-    console.log('✅ user has no verifiable addresses')
-    console.log('✅ userSession', userSession.identity)
-    // user
-    // return redirect(route('/signup'))
-  }
   // We currently only allow one email per user.
   if (userSession.identity?.verifiable_addresses?.[0]?.verified) {
     return redirect(route('/'))
