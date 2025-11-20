@@ -138,7 +138,7 @@ export async function emailVerificationGuard(
   }
 }
 
-export async function AAL2Guard(pathname: string, request: Request) {
+export async function withAAL2Guard(pathname: string, request: Request, fn: () => Promise<void>) {
   if (NON_FULL_SESSION_ROUTES.includes(pathname)) {
     return
   }
@@ -148,4 +148,6 @@ export async function AAL2Guard(pathname: string, request: Request) {
   if (!totpAvailable) {
     throw redirect('/totp/two-factor-authentication')
   }
+
+  await fn();
 }
