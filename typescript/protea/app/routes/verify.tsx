@@ -12,6 +12,7 @@ import {
   OutlineButtonRouter
 } from '~/components'
 import { trimHeaders } from '~/lib/headers.server'
+import { EnumIlpHeaders } from '~/lib/headers.types'
 import {
   KRATOS_URL,
   getCsrfTokenFromFlow,
@@ -174,7 +175,7 @@ export async function action({
 
   const form = await request.formData()
   const csrfToken = form.get('csrf_token') as string
-  const email = form.get('email') as string
+  const email = (form.get('email') as string) ?? ''
 
   let verificationResponse: Response
   try {
@@ -189,6 +190,7 @@ export async function action({
           csrf_token: csrfToken
         }),
         headers: {
+          [EnumIlpHeaders.email]: email,
           'Content-type': 'application/json',
           cookie: String(request.headers.get('cookie'))
         }
