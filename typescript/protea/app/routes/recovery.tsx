@@ -8,6 +8,7 @@ import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts, TextField } from '~/components'
 import { error } from '~/lib/error.server'
+import { EnumIlpHeaders } from '~/lib/headers.types'
 import {
   KRATOS_URL,
   getCsrfTokenFromFlow,
@@ -139,6 +140,7 @@ export async function action({ request }: ActionFunctionArgs) {
         csrf_token: csrfToken
       }),
       headers: {
+        [EnumIlpHeaders.email]: email?.toString() ?? '',
         'Content-type': 'application/json',
         cookie: String(request.headers.get('cookie'))
       }
