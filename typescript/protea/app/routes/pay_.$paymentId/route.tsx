@@ -304,14 +304,12 @@ export async function confirmPaymentAction({
     ipAddress: clientIpAddress
   })
   if (isConnectError(response)) {
-    console.log('error updating payment before confirm', response)
     return response.error({ errors }, {}, { action: 'Contact support' })
   }
 
   response = await grpc.confirmPayment(request, {
     id: params.paymentId
   })
-  console.log('error updating payment before confirm', response)
   if (isConnectError(response)) {
     return response.error({ errors }, {}, { action: 'Contact support' })
   }
