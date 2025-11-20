@@ -31,7 +31,7 @@ func SendVerificationEmailToUnverifiedUserJob(ctx workflow.Context, email string
 
 	ctx = workflow.WithActivityOptions(ctx, ao)
 	unverified := []string{}
-	err := workflow.ExecuteActivity(ctx, a.GetUnverifiedEmails, email).Get(ctx, &unverified)
+	err := workflow.ExecuteActivity(ctx, a.SendVerificationEmails, email).Get(ctx, &unverified)
 		if err != nil {
 		return nil, err
 	}
@@ -39,7 +39,7 @@ func SendVerificationEmailToUnverifiedUserJob(ctx workflow.Context, email string
 	return unverified, nil
 }
 
-func (a *Activity) GetUnverifiedEmails(ctx context.Context, email string) ([]string, error) {
+func (a *Activity) SendVerificationEmails(ctx context.Context, email string) ([]string, error) {
 	kratosURL := os.Getenv("KRATOS_URL")
 	kratosAdminURL := os.Getenv("KRATOS_ADMIN_URL")
 	if kratosURL == "" || kratosAdminURL == "" {
