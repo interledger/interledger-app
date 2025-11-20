@@ -1,9 +1,5 @@
 import type { Session } from '@ory/kratos-client'
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { useFetcher, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
@@ -39,24 +35,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const session = await fetch(`${KRATOS_URL}/sessions/whoami`, {
     headers: request.headers
   })
-
-  switch (session.status) {
-    case 401:
-    case 500:
-      throw redirect(route('/login'))
-    case 403:
-    case 422: // Need to complete 2FA.
-      throw redirect(route('/login') + '?aal=aal2')
-  }
-
   const userSession: Session = await session.json()
   if (session.status >= 400) handleFlowError(session, 'verify')
 
-  // Check the user has at least one verifiable address.
-  if (!userSession.identity.verifiable_addresses)
-    return redirect(route('/signup'))
   // We currently only allow one email per user.
-  if (userSession.identity.verifiable_addresses[0].verified) {
+  if (userSession.identity?.verifiable_addresses?.[0]?.verified) {
     return redirect(route('/'))
   }
 
@@ -91,7 +74,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
   return json({
     flow,
-    email: userSession.identity.verifiable_addresses[0].value,
+    email: userSession.identity?.verifiable_addresses?.[0]?.value,
     csrfToken: getCsrfTokenFromFlow(flow)
   })
 }

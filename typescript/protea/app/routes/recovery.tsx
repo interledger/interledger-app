@@ -4,7 +4,7 @@ import type {
   MetaFunction
 } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { Form, useActionData, useLoaderData } from '@remix-run/react'
+import { useFetcher, useLoaderData } from '@remix-run/react'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts, TextField } from '~/components'
 import { error } from '~/lib/error.server'
@@ -16,7 +16,10 @@ import {
   requireNoUserSession
 } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
-import { redirectWithSnackbar } from '~/lib/snackbar.server'
+
+type ActionResponse =
+  | { success: true }
+  | { errors: { form: string; email: string } }
 
 export async function loader({ request }: LoaderFunctionArgs) {
   await requireNoUserSession(request)
@@ -70,12 +73,18 @@ export const meta: MetaFunction = mergeMeta(() => [
 ])
 
 export default function Page() {
-  const actionData = useActionData<typeof action>()
   const { flow, csrfToken } = useLoaderData<typeof loader>()
+  const fetcher = useFetcher<ActionResponse>()
+
+  const isSubmitting = fetcher.state !== 'idle'
+  const isSuccess =
+    fetcher.data && 'success' in fetcher.data && fetcher.data.success
+  const errors =
+    fetcher.data && 'errors' in fetcher.data ? fetcher.data.errors : undefined
 
   return (
     <>
-      <Form
+      <fetcher.Form
         id='recovery'
         action={`/recovery?flow=${flow.id}`}
         method='post'
@@ -101,17 +110,25 @@ export default function Page() {
           name='email'
           type='email'
           className='mt-2'
-          aria-invalid={Boolean(actionData?.errors?.email) || undefined}
-          aria-describedby={
-            actionData?.errors?.email ? 'email-error' : undefined
-          }
+          aria-invalid={Boolean(errors?.email) || undefined}
+          aria-describedby={errors?.email ? 'email-error' : undefined}
           required
-          errorMessage={actionData?.errors?.email}
+          errorMessage={errors?.email}
         />
       </Card>
-      <Button form='recovery' type='submit'>
-        Recover account
+      <Button
+        form='recovery'
+        type='submit'
+        disabled={isSubmitting || isSuccess}
+      >
+        {isSubmitting ? 'Sending...' : 'Recover account'}
       </Button>
+      {isSuccess && (
+        <p className='mt-2 text-sm text-success'>
+          Recovery email sent successfully.
+        </p>
+      )}
+      {errors?.form && <p className='mt-2 text-sm text-error'>{errors.form}</p>}
     </>
   )
 }
@@ -149,8 +166,5 @@ export async function action({ request }: ActionFunctionArgs) {
     return error(request, { errors: errs })
   }
 
-  return redirectWithSnackbar(request, `/recovery?flow=${flowId}`, {
-    message: 'Recovery email successfully sent.',
-    icon: 'close'
-  })
+  return json({ success: true })
 }

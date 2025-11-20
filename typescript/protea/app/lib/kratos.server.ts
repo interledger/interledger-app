@@ -40,7 +40,7 @@ function isUiNodeInputAttributes(n: any): n is UiNodeInputAttributes {
  * @param request Request received in a loader function.
  * @returns boolean - if the user has a session.
  */
-export async function getUserSession(request: Request): Promise<Session> {
+export async function getUserSession(request: Request, allowAal1 = false): Promise<Session> {
   const session = await fetch(`${KRATOS_URL}/sessions/whoami`, {
     headers: request.headers
   })
@@ -54,8 +54,10 @@ export async function getUserSession(request: Request): Promise<Session> {
       throw redirect(route('/login') + url.search)
     case 403:
     case 422: // Need to complete 2FA.
-      url.searchParams.set('aal', 'aal2')
-      throw redirect(route('/login') + url.search)
+      if (!allowAal1) {
+        url.searchParams.set('aal', 'aal2')
+        throw redirect(route('/login') + url.search)
+      }
   }
 
   return session.json()
