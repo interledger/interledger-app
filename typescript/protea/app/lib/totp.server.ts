@@ -1,6 +1,9 @@
-import type { Session } from '@ory/kratos-client'
+import type { Identity, Session } from '@ory/kratos-client'
 import { redirect } from '@remix-run/node'
-import { KRATOS_URL } from './kratos.server'
+import { getFeatures } from '~/data/wallet.server'
+import { isConnectError } from './error.server'
+import { grpc } from './grpc.server'
+import { KRATOS_URL, getUserSession } from './kratos.server'
 
 /**
  * Routes that can be accessed without a session with highest AAL
@@ -16,10 +19,10 @@ export const NON_FULL_SESSION_ROUTES = [
   '/verify'
 ]
 
-export const NON_VERIFIED_EMAIL_ROUTES = [
-  '/logout',
-  '/verify',
-]
+/**
+ * Routes that can be accessed without verified email
+ */
+export const NON_VERIFIED_EMAIL_ROUTES = ['/logout', '/verify']
 
 /**
  * Check if TOTP is available in Kratos settings flow
@@ -104,8 +107,65 @@ export async function ensureTOTP(
  */
 export function isEmailVerified(session: Session): boolean {
   return !!(
-    session.identity.verifiable_addresses &&
+    session.identity?.verifiable_addresses &&
     session.identity.verifiable_addresses.length > 0 &&
-    session.identity.verifiable_addresses[0].verified
+    session.identity.verifiable_addresses[0]?.verified
   )
+}
+
+export function sessionRequiresAAL2(session: Session): boolean {
+  return (session as any).error.id === 'session_aal2_required'
+}
+
+export function getSessionIdentity(session: Session): Identity {
+  return session.identity
+}
+
+export async function emailVerificationGuard(
+  pathname: string,
+  request: Request
+) {
+  if (NON_VERIFIED_EMAIL_ROUTES.includes(pathname)) return
+
+  // Request a session WITHOUT AAL2 redirect, so we dont get redirected
+  const session = await getUserSession(request, true)
+  const identity = getSessionIdentity(session)
+
+  if (!identity) {
+    // Kratos requires AAL2 session, so skip email verification guard
+    return
+  }
+
+  if (identity && !isEmailVerified(session)) {
+    throw redirect('/verify')
+  }
+}
+
+export async function AAL2Guard(
+  pathname: string,
+  request: Request,
+  { features, url, walletAddress, isDisabled }: any
+) {
+  if (NON_FULL_SESSION_ROUTES.includes(pathname)) {
+    return
+  }
+
+  const session = await getUserSession(request)
+  const totpAvailable = await isTotpSet(session, request.headers)
+  if (!totpAvailable) {
+    throw redirect('/totp/two-factor-authentication')
+  }
+
+  features = await getFeatures(request)
+  if (
+    features &&
+    !features.accountEnabled &&
+    url.pathname !== '/wallet-address'
+  ) {
+    const wallet = await grpc.getWalletInfo(request, {})
+    if (!isConnectError(wallet)) {
+      walletAddress = wallet.url
+    }
+    isDisabled = true
+  }
 }
