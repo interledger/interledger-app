@@ -62,7 +62,7 @@ func (a *Activity) EnableSendVerificationEmails(ctx context.Context, email strin
 	}
 
 	for _, id := range identities {
-		traits, ok := id.Traits.(map[string]interface{})
+		traits, ok := id.Traits.(map[string]any)
 		if !ok {
 			continue
 		}
@@ -84,7 +84,7 @@ func (a *Activity) EnableSendVerificationEmails(ctx context.Context, email strin
 	//update identities without verifiable addresses we need to update traits to add an verifiable_addresses
 	emails:= []string{}
 	for _, id := range noVerificationAddresses {
-		traits, ok := id.Traits.(map[string]interface{})
+		traits, ok := id.Traits.(map[string]any)
 		if !ok {
 			log.Warn("Invalid traits format", zap.String("identity_id", id.Id))
 			continue
