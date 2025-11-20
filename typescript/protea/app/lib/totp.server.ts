@@ -1,8 +1,5 @@
 import type { Identity, Session } from '@ory/kratos-client'
 import { redirect } from '@remix-run/node'
-import { getFeatures } from '~/data/wallet.server'
-import { isConnectError } from './error.server'
-import { grpc } from './grpc.server'
 import { KRATOS_URL, getUserSession } from './kratos.server'
 
 /**
@@ -141,11 +138,7 @@ export async function emailVerificationGuard(
   }
 }
 
-export async function AAL2Guard(
-  pathname: string,
-  request: Request,
-  { features, url, walletAddress, isDisabled }: any
-) {
+export async function AAL2Guard(pathname: string, request: Request) {
   if (NON_FULL_SESSION_ROUTES.includes(pathname)) {
     return
   }
@@ -154,18 +147,5 @@ export async function AAL2Guard(
   const totpAvailable = await isTotpSet(session, request.headers)
   if (!totpAvailable) {
     throw redirect('/totp/two-factor-authentication')
-  }
-
-  features = await getFeatures(request)
-  if (
-    features &&
-    !features.accountEnabled &&
-    url.pathname !== '/wallet-address'
-  ) {
-    const wallet = await grpc.getWalletInfo(request, {})
-    if (!isConnectError(wallet)) {
-      walletAddress = wallet.url
-    }
-    isDisabled = true
   }
 }

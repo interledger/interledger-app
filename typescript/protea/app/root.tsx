@@ -36,7 +36,10 @@ import { hasUserSession } from '~/lib/kratos.server'
 import { getSnackbar } from '~/lib/snackbar.server'
 import styles from '~/styles/app.css'
 import { PendingConfirmationsLoader } from './components/PendingConfirmationsLoader'
+import { getFeatures } from './data/wallet.server'
 import { Features } from './generated/connect/backend/v1/backend_pb'
+import { isConnectError } from './lib/error.server'
+import { grpc } from './lib/grpc.server'
 import { getPusherArgs } from './lib/pusher.server'
 import { AAL2Guard, emailVerificationGuard } from './lib/totp.server'
 import { usePusher } from './lib/usePusher'
@@ -129,6 +132,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const isUser = hasUserSession(request)
   const snackbar = await getSnackbar(request)
   const pusherArgs = await getPusherArgs(request)
+
+  const url = new URL(request.url)
+  const pathname = url.pathname
+  let features = new Features()
+  let isDisabled = false
+  let walletAddress = ''
   const env = {
     fynbosEnv: process.env.FYNBOS_ENV || '',
     sentryDsn: process.env.SENTRY_DSN || '',
@@ -138,29 +147,31 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   if (!isUser) {
     return json({
-      isDisabled: false,
-      walletAddress: '',
+      isDisabled,
+      walletAddress,
       isUser: false,
-      features: new Features(),
+      features,
       snackbar,
       pusherArgs,
       env
     })
   }
 
-  let features = new Features()
-  let isDisabled = false
-  let walletAddress = ''
-  const url = new URL(request.url)
-  const pathname = url.pathname
-
   await emailVerificationGuard(pathname, request)
-  await AAL2Guard(pathname, request, {
-    features,
-    url,
-    walletAddress,
-    isDisabled
-  })
+  await AAL2Guard(pathname, request)
+
+  features = await getFeatures(request)
+  if (
+    features &&
+    !features.accountEnabled &&
+    url.pathname !== '/wallet-address'
+  ) {
+    const wallet = await grpc.getWalletInfo(request, {})
+    if (!isConnectError(wallet)) {
+      walletAddress = wallet.url
+    }
+    isDisabled = true
+  }
 
   return json({
     isDisabled,
