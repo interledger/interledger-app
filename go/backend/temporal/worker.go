@@ -58,7 +58,7 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(jobs.RestartKYCstatusForXagoJob)
 	w.RegisterWorkflow(jobs.BackfillPaywiserAccountsJob)
 	w.RegisterWorkflow(jobs.PtiSettleDepositAndWithdrawsForWallet)
-	w.RegisterWorkflow(jobs.SendVerificationEmailToUnverifiedUserJob)
+	w.RegisterWorkflow(jobs.EnableSendVerificationEmailToUnverifiedUserJob)
 
 	// Payment Engine
 	w.RegisterActivity(payments_workflows.NewActivity(b))
