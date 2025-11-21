@@ -8,7 +8,6 @@ import { useFetcher, useLoaderData } from '@remix-run/react'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts, TextField } from '~/components'
 import { error } from '~/lib/error.server'
-import { EnumIlpHeaders } from '~/lib/headers.types'
 import {
   KRATOS_URL,
   getCsrfTokenFromFlow,
@@ -17,6 +16,7 @@ import {
   requireNoUserSession
 } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
+import { rateLimit } from '~/lib/rateLimit.server'
 
 type ActionResponse =
   | { success: true }
@@ -142,31 +142,35 @@ export async function action({ request }: ActionFunctionArgs) {
   const csrfToken = form.get('csrf_token')
   const email = form.get('email')
 
-  const fieldErrors = {
-    form: '',
-    email: ''
-  }
-
-  const res = await fetch(
-    `${KRATOS_URL}/self-service/recovery?flow=${flowId}`,
-    {
-      method: 'POST',
-      body: JSON.stringify({
-        method: 'link',
-        email: email,
-        csrf_token: csrfToken
-      }),
-      headers: {
-        [EnumIlpHeaders.email]: email?.toString() ?? '',
-        'Content-type': 'application/json',
-        cookie: String(request.headers.get('cookie'))
+  const key = `recovery.email_${email?.toString()}`
+  const { result, error: rateError } = await rateLimit(key, async () => {
+    const res = await fetch(
+      `${KRATOS_URL}/self-service/recovery?flow=${flowId}`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          method: 'link',
+          email: email,
+          csrf_token: csrfToken
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+          cookie: String(request.headers.get('cookie'))
+        }
       }
+    )
+
+    if (res.status >= 400) {
+      const errs = await kratosErrorMapping(res, { form: '', email: '' })
+      throw error(request, { errors: errs })
     }
-  )
-  if (res.status >= 400) {
-    const errs = await kratosErrorMapping(res, fieldErrors)
-    return error(request, { errors: errs })
+
+    return json({ success: true })
+  })
+
+  if (rateError) {
+    return error(request, { errors: { form: rateError, email: '' } })
   }
 
-  return json({ success: true })
+  return result
 }

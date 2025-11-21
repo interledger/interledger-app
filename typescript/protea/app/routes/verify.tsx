@@ -16,13 +16,13 @@ import {
   OutlineButtonRouter
 } from '~/components'
 import { trimHeaders } from '~/lib/headers.server'
-import { EnumIlpHeaders } from '~/lib/headers.types'
 import {
   KRATOS_URL,
   getCsrfTokenFromFlow,
   handleFlowError
 } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
+import { rateLimit } from '~/lib/rateLimit.server'
 import { useCountdown } from '~/lib/useCountdown'
 import { useDebounceAction } from '~/lib/useDebounceAction'
 
@@ -185,26 +185,34 @@ export async function action({
   const email = (form.get('email') as string) ?? ''
 
   let verificationResponse: Response
-  try {
-    verificationResponse = await fetch(
-      `${KRATOS_URL}/self-service/verification?flow=${flowId}`,
-      {
-        method: 'POST',
-        redirect: 'manual',
-        body: JSON.stringify({
-          method: 'link',
-          email,
-          csrf_token: csrfToken
-        }),
-        headers: {
-          [EnumIlpHeaders.email]: email,
-          'Content-type': 'application/json',
-          cookie: String(request.headers.get('cookie'))
+  const { error: rateError } = await rateLimit(
+    `verify.email_${email?.toString()}`,
+    async () => {
+      verificationResponse = await fetch(
+        `${KRATOS_URL}/self-service/verification?flow=${flowId}`,
+        {
+          method: 'POST',
+          redirect: 'manual',
+          body: JSON.stringify({
+            method: 'link',
+            email,
+            csrf_token: csrfToken
+          }),
+          headers: {
+            'Content-type': 'application/json',
+            cookie: String(request.headers.get('cookie'))
+          }
         }
+      )
+
+      if (verificationResponse.status >= 400) {
+        throw new Error('Could not send verification email')
       }
-    )
-  } catch (error) {
-    console.error('❌ Error sending email verification', error)
+    }
+  )
+
+  if (rateError) {
+    // please use errors in the future
     return json<ActionData>(
       {
         success: false
@@ -212,15 +220,5 @@ export async function action({
       { status: 500 }
     )
   }
-
-  if (verificationResponse.status >= 400) {
-    return json<ActionData>(
-      {
-        success: false
-      },
-      { status: 500 }
-    )
-  }
-
   return json<ActionData>({ success: true }, { status: 200 })
 }
