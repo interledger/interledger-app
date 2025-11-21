@@ -3,7 +3,7 @@ import type {
   LoaderFunctionArgs,
   MetaFunction
 } from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
+import { json } from '@remix-run/node'
 import {
   Links,
   Meta,
@@ -32,7 +32,7 @@ import {
 } from '~/components'
 import { Scaffold } from '~/components/Scaffold'
 import { TotpChallengeGlobal } from '~/components/TotpChallengeGlobal'
-import { getUserSession, hasUserSession } from '~/lib/kratos.server'
+import { hasUserSession } from '~/lib/kratos.server'
 import { getSnackbar } from '~/lib/snackbar.server'
 import styles from '~/styles/app.css'
 import { PendingConfirmationsLoader } from './components/PendingConfirmationsLoader'
@@ -41,7 +41,7 @@ import { Features } from './generated/connect/backend/v1/backend_pb'
 import { isConnectError } from './lib/error.server'
 import { grpc } from './lib/grpc.server'
 import { getPusherArgs } from './lib/pusher.server'
-import { NON_FULL_SESSION_ROUTES, isTotpSet } from './lib/totp.server'
+import { emailVerificationGuard, withAAL2Guard } from './lib/totp.server'
 import { usePusher } from './lib/usePusher'
 
 export const shouldRevalidate: ShouldRevalidateFunction = ({
@@ -131,20 +131,34 @@ function Document({ children, theme = 'theme-system' }: DocumentProps) {
 export async function loader({ request }: LoaderFunctionArgs) {
   const isUser = hasUserSession(request)
   const snackbar = await getSnackbar(request)
+  const pusherArgs = await getPusherArgs(request)
 
+  const url = new URL(request.url)
+  const pathname = url.pathname
   let features = new Features()
   let isDisabled = false
   let walletAddress = ''
-  const url = new URL(request.url)
-  const pathname = url.pathname
+  const env = {
+    fynbosEnv: process.env.FYNBOS_ENV || '',
+    sentryDsn: process.env.SENTRY_DSN || '',
+    sentryRelease: process.env.SENTRY_RELEASE || '',
+    segmentApiKey: process.env.SEGMENT_API_KEY || ''
+  }
 
-  if (isUser && !NON_FULL_SESSION_ROUTES.includes(pathname)) {
-    const session = await getUserSession(request)
-    const totpAvailable = await isTotpSet(session, request.headers)
-    if (!totpAvailable) {
-      return redirect('/totp/two-factor-authentication')
-    }
+  if (!isUser) {
+    return json({
+      isDisabled,
+      walletAddress,
+      isUser: false,
+      features,
+      snackbar,
+      pusherArgs,
+      env
+    })
+  }
 
+  await emailVerificationGuard(pathname, request)
+  await withAAL2Guard(pathname, request, async () => {
     features = await getFeatures(request)
     if (
       features &&
@@ -157,9 +171,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       }
       isDisabled = true
     }
-  }
-
-  const pusherArgs = await getPusherArgs(request)
+  })
 
   return json({
     isDisabled,
@@ -168,12 +180,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     features,
     snackbar,
     pusherArgs,
-    env: {
-      fynbosEnv: process.env.FYNBOS_ENV,
-      sentryDsn: process.env.SENTRY_DSN,
-      sentryRelease: process.env.SENTRY_RELEASE,
-      segmentApiKey: process.env.SEGMENT_API_KEY || ''
-    }
+    env
   })
 }
 
