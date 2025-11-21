@@ -1,5 +1,9 @@
 import type { Session } from '@ory/kratos-client'
-import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
+import type {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  MetaFunction
+} from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { useFetcher, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
@@ -37,6 +41,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
     headers: request.headers
   })
   const userSession: Session = await session.json()
+  if (session.status === 401) {
+    return redirect(route('/login'))
+  }
   if (session.status >= 400) handleFlowError(session, 'verify')
 
   // We currently only allow one email per user.
