@@ -4,6 +4,14 @@ interface RateLimitOptions {
   limit: number
   ttlSeconds: number
 }
+function getRateLimitDefaults(): RateLimitOptions {
+  const limit = Number(process.env.DEFAULT_RATE_LIMIT_REQUESTS) || 4
+  const ttlSeconds = Number(process.env.DEFAULT_RATE_LIMIT_TIME) || 3600
+
+  return { limit, ttlSeconds }
+}
+
+const DEFAULT_RATE_LIMIT = getRateLimitDefaults()
 
 /**
  * Generic Redis-based rate limiter.
@@ -17,7 +25,7 @@ interface RateLimitOptions {
 export async function rateLimit<T>(
   key: string,
   callback: () => Promise<T>,
-  options: RateLimitOptions = { limit: 4, ttlSeconds: 60 * 60 }
+  options: RateLimitOptions = DEFAULT_RATE_LIMIT
 ): Promise<{ result?: T; error?: string }> {
   const { limit, ttlSeconds } = options
 
