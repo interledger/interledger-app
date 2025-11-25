@@ -75,7 +75,8 @@ func (a *Activity) EnableSendVerificationEmails(ctx context.Context, email strin
 			continue
 		}
 
-		if id.VerifiableAddresses == nil {
+		log.Warn("Invalid traits format", zap.String("email", idEmail), zap.Any("verifiable_addresses", id.VerifiableAddresses))
+		if len(id.VerifiableAddresses) == 0 {
 			noVerificationAddresses = append(noVerificationAddresses, id)
 			
 		}
