@@ -16,13 +16,13 @@ import {
   OutlineButtonRouter
 } from '~/components'
 import { trimHeaders } from '~/lib/headers.server'
-import { EnumIlpHeaders } from '~/lib/headers.types'
 import {
   KRATOS_URL,
   getCsrfTokenFromFlow,
   handleFlowError
 } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
+import { RateLimitKeys, getKey, rateLimit } from '~/lib/rateLimit.server'
 import { useCountdown } from '~/lib/useCountdown'
 import { useDebounceAction } from '~/lib/useDebounceAction'
 
@@ -184,27 +184,9 @@ export async function action({
   const csrfToken = form.get('csrf_token') as string
   const email = (form.get('email') as string) ?? ''
 
-  let verificationResponse: Response
-  try {
-    verificationResponse = await fetch(
-      `${KRATOS_URL}/self-service/verification?flow=${flowId}`,
-      {
-        method: 'POST',
-        redirect: 'manual',
-        body: JSON.stringify({
-          method: 'link',
-          email,
-          csrf_token: csrfToken
-        }),
-        headers: {
-          [EnumIlpHeaders.email]: email,
-          'Content-type': 'application/json',
-          cookie: String(request.headers.get('cookie'))
-        }
-      }
-    )
-  } catch (error) {
-    console.error('❌ Error sending email verification', error)
+  const key = getKey(RateLimitKeys.VerifyEmail, email)
+  const rateError = await rateLimit(key)
+  if (rateError) {
     return json<ActionData>(
       {
         success: false
@@ -213,13 +195,25 @@ export async function action({
     )
   }
 
+  const verificationResponse = await fetch(
+    `${KRATOS_URL}/self-service/verification?flow=${flowId}`,
+    {
+      method: 'POST',
+      redirect: 'manual',
+      body: JSON.stringify({
+        method: 'link',
+        email,
+        csrf_token: csrfToken
+      }),
+      headers: {
+        'Content-type': 'application/json',
+        cookie: String(request.headers.get('cookie'))
+      }
+    }
+  )
+
   if (verificationResponse.status >= 400) {
-    return json<ActionData>(
-      {
-        success: false
-      },
-      { status: 500 }
-    )
+    throw new Error('Could not send verification email')
   }
 
   return json<ActionData>({ success: true }, { status: 200 })
