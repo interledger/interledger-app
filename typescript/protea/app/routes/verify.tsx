@@ -184,8 +184,6 @@ export async function action({
   const csrfToken = form.get('csrf_token') as string
   const email = (form.get('email') as string) ?? ''
 
-  let verificationResponse: Response
-
   const key = getKey(RateLimitKeys.VerifyEmail, email)
   const rateError = await rateLimit(key)
   if (rateError) {
@@ -197,7 +195,7 @@ export async function action({
     )
   }
 
-  verificationResponse = await fetch(
+  const verificationResponse = await fetch(
     `${KRATOS_URL}/self-service/verification?flow=${flowId}`,
     {
       method: 'POST',

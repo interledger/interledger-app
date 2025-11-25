@@ -141,7 +141,10 @@ export async function action({ request }: ActionFunctionArgs) {
   const form = await request.formData()
   const csrfToken = form.get('csrf_token')
   const email = form.get('email') ?? ''
-
+  const fieldErrors = {
+    form: '',
+    email: ''
+  }
   const key = getKey(RateLimitKeys.RecoveryEmail, email.toString())
   const rateError = await rateLimit(key)
   if (rateError) {
@@ -166,7 +169,7 @@ export async function action({ request }: ActionFunctionArgs) {
   )
 
   if (res.status >= 400) {
-    const errs = await kratosErrorMapping(res, { form: '', email: '' })
+    const errs = await kratosErrorMapping(res, fieldErrors)
     throw error(request, { errors: errs })
   }
 
