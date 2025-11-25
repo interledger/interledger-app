@@ -8,7 +8,6 @@ import { useFetcher, useLoaderData } from '@remix-run/react'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts, TextField } from '~/components'
 import { error } from '~/lib/error.server'
-import { EnumIlpHeaders } from '~/lib/headers.types'
 import {
   KRATOS_URL,
   getCsrfTokenFromFlow,
@@ -17,6 +16,7 @@ import {
   requireNoUserSession
 } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
+import { RateLimitKeys, getKey, rateLimit } from '~/lib/rateLimit.server'
 
 type ActionResponse =
   | { success: true }
@@ -140,11 +140,16 @@ export async function action({ request }: ActionFunctionArgs) {
 
   const form = await request.formData()
   const csrfToken = form.get('csrf_token')
-  const email = form.get('email')
-
+  const email = form.get('email') ?? ''
   const fieldErrors = {
     form: '',
     email: ''
+  }
+  const key = getKey(RateLimitKeys.RecoveryEmail, email.toString())
+  const rateError = await rateLimit(key)
+  if (rateError) {
+    fieldErrors.form = rateError
+    return error(request, { errors: fieldErrors })
   }
 
   const res = await fetch(
@@ -157,12 +162,12 @@ export async function action({ request }: ActionFunctionArgs) {
         csrf_token: csrfToken
       }),
       headers: {
-        [EnumIlpHeaders.email]: email?.toString() ?? '',
-        'Content-type': 'application/json',
+        'Content-Type': 'application/json',
         cookie: String(request.headers.get('cookie'))
       }
     }
   )
+
   if (res.status >= 400) {
     const errs = await kratosErrorMapping(res, fieldErrors)
     return error(request, { errors: errs })

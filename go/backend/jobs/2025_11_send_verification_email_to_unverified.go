@@ -56,7 +56,7 @@ func (a *Activity) EnableSendVerificationEmails(ctx context.Context, email strin
 	client := kratos.NewAPIClient(config)
 	noVerificationAddresses := []kratos.Identity{}
 
-	identities, _, err := client.IdentityApi.ListIdentities(ctx).Execute()
+	identities, _, err := client.IdentityApi.ListIdentities(ctx).PerPage(500).Execute()
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +75,8 @@ func (a *Activity) EnableSendVerificationEmails(ctx context.Context, email strin
 			continue
 		}
 
-		if id.VerifiableAddresses == nil {
+		log.Warn("log info about verification: ", zap.String("email", idEmail), zap.Any("verifiable_addresses", id.VerifiableAddresses))
+		if len(id.VerifiableAddresses) == 0 {
 			noVerificationAddresses = append(noVerificationAddresses, id)
 			
 		}
@@ -94,14 +95,17 @@ func (a *Activity) EnableSendVerificationEmails(ctx context.Context, email strin
 			log.Warn("Email not found in traits", zap.String("identity_id", id.Id))
 			continue
 		}
-		emails = append(emails, email)
+		
 		update := kratos.UpdateIdentityBody{Traits: traits}
 		_, _, err = kratos.IdentityApi.UpdateIdentity(client.IdentityApi, ctx, id.Id).
 			UpdateIdentityBody(update).
 			Execute()
 		if err != nil {
 			log.Warn("Failed to update identity", zap.Error(err), zap.String("identity_id", id.Id))
+		} else {
+			emails = append(emails, email)
 		}
+	
 	}
 
 	return emails, nil
