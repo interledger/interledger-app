@@ -186,10 +186,9 @@ export async function action({
 
   let verificationResponse: Response
 
-  const key = getKey(RateLimitKeys.VerifyPhone, email.toString())
+  const key = getKey(RateLimitKeys.VerifyEmail, email)
   const rateError = await rateLimit(key)
   if (rateError) {
-    // please use errors in the future
     return json<ActionData>(
       {
         success: false
