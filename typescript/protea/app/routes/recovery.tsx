@@ -145,7 +145,8 @@ export async function action({ request }: ActionFunctionArgs) {
   const key = getKey(RateLimitKeys.RecoveryEmail, email.toString())
   const rateError = await rateLimit(key)
   if (rateError) {
-    return error(request, { errors: { form: rateError, email: '' } })
+    fieldErrors.form = rateError
+    return error(request, { errors: fieldErrors })
   }
 
   const res = await fetch(
