@@ -36,7 +36,7 @@ export async function rateLimit(
 
   try {
     const current = await redisClient.get(key)
-    const count = current ? Number(current) : 0
+    const count = Number(current) || 0
     if (count >= limit) {
       return 'Too many attempts. Please try again later.'
     }
