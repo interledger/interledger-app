@@ -25,7 +25,7 @@ type RateLimitKeyType = `${RateLimitKeys}_${string}`
  *
  * @param key Unique key per action/user
  * @param options { limit, ttlSeconds }
- * @returns { result, error }
+ * @returns string | undefined - error message if rate limit exceeded, otherwise undefined
  */
 export async function rateLimit(
   key: RateLimitKeyType,
