@@ -106,7 +106,6 @@ function Document({ children, theme = 'theme-system' }: DocumentProps) {
   return (
     <html lang='en'>
       <head>
-        <script src='https://www.google.com/recaptcha/enterprise.js?render=6Le6_BMsAAAAAGtCUOZfrtqmycI81h-Jez9EH0P1'></script>
         <meta charSet='utf-8' />
         <meta name='viewport' content='width=device-width,initial-scale=1' />
         <meta name='theme-color' content='#FFE4E6' />
@@ -143,7 +142,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
     fynbosEnv: process.env.FYNBOS_ENV || '',
     sentryDsn: process.env.SENTRY_DSN || '',
     sentryRelease: process.env.SENTRY_RELEASE || '',
-    segmentApiKey: process.env.SEGMENT_API_KEY || ''
+    segmentApiKey: process.env.SEGMENT_API_KEY || '',
+    recaptchaSiteKey: process.env.RECAPTCHA_SITE_KEY || ''
   }
 
   if (!isUser) {

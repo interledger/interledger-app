@@ -41,6 +41,7 @@ services:
       - BACKEND_GRPC_URL=http://backend:8443
 
       - REDIS_URL=redis://redis:6379/2
+      - RECAPTCHA_SITE_KEY=6Lc40xYsAAAAAHdS_Es7j40PLRWpUd7PUWs7vcaJ
 
     depends_on:
       - backend

@@ -10,6 +10,7 @@ import {
   useLoaderData,
   useSearchParams
 } from '@remix-run/react'
+import { useMemo } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import {
@@ -32,6 +33,7 @@ import {
   requireNoUserSession
 } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
+import { useRecaptchaV2 } from '~/lib/useRecaptchaV2'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   await requireNoUserSession(request)
@@ -96,6 +98,15 @@ export default function Page() {
   const actionData = useActionData<typeof action>()
   const { csrfToken, flowId, returnTo } = useLoaderData<typeof loader>()
   const searchParams = useSearchParams()
+  const recaptchaSiteKey = useMemo(() => {
+    return (
+      (typeof window !== 'undefined' &&
+        (window as any).ENV?.recaptchaSiteKey) ||
+      ''
+    )
+  }, [])
+
+  const { RecaptchaWidget: widget, token } = useRecaptchaV2(recaptchaSiteKey)
 
   return (
     <>
@@ -118,6 +129,7 @@ export default function Page() {
         name='returnTo'
         type='hidden'
       />
+      <input form='login' value={token} name='recaptcha_token' type='hidden' />
       <Card>
         <CardHeader>
           <CardTitle>Log in</CardTitle>
@@ -153,32 +165,13 @@ export default function Page() {
           errorMessage={actionData?.errors?.password}
         />
       </Card>
-      <Button form='login' type='submit'>
+
+      <div className='mb-4 mt-4 w-full'>{widget}</div>
+
+      <Button form='login' type='submit' disabled={!token}>
         Log in
       </Button>
-      <Button onClick={() => {
-        const grecaptcha = (window as any).grecaptcha;
-        console.log("Grecaptcha:", grecaptcha)
-        grecaptcha.enterprise.ready(async () => {
-          console.log("Grecaptcha ready 🍀")
-          const token = await grecaptcha.enterprise.execute('6Le6_BMsAAAAAGtCUOZfrtqmycI81h-Jez9EH0P1', {action: 'LOGIN'});
-          console.log("Recaptcha token after submit:", token)
 
-          const res = await fetch('http://localhost:4444/recaptcha', {
-            method: 'POST',
-            body: JSON.stringify({
-              token: token,
-              action: 'LOGIN'
-            }),
-            headers: {
-              'Content-Type': 'application/json'
-            }
-          })
-          console.log("Recaptcha verify response:", res)
-        });
-      }}>
-        Recaptcha
-      </Button>
       <p className='text-center text-sm font-medium text-medium'>
         New to the Interledger Wallet?{' '}
         <Router className='text-primary' to={route('/signup')}>
