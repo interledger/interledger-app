@@ -143,34 +143,31 @@ export async function action({ request }: ActionFunctionArgs) {
   const email = form.get('email') ?? ''
 
   const key = getKey(RateLimitKeys.RecoveryEmail, email.toString())
-  const { result, error: rateError } = await rateLimit(key, async () => {
-    const res = await fetch(
-      `${KRATOS_URL}/self-service/recovery?flow=${flowId}`,
-      {
-        method: 'POST',
-        body: JSON.stringify({
-          method: 'link',
-          email: email,
-          csrf_token: csrfToken
-        }),
-        headers: {
-          'Content-Type': 'application/json',
-          cookie: String(request.headers.get('cookie'))
-        }
-      }
-    )
-
-    if (res.status >= 400) {
-      const errs = await kratosErrorMapping(res, { form: '', email: '' })
-      throw error(request, { errors: errs })
-    }
-
-    return json({ success: true })
-  })
-
+  const rateError = await rateLimit(key)
   if (rateError) {
     return error(request, { errors: { form: rateError, email: '' } })
   }
 
-  return result
+  const res = await fetch(
+    `${KRATOS_URL}/self-service/recovery?flow=${flowId}`,
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        method: 'link',
+        email: email,
+        csrf_token: csrfToken
+      }),
+      headers: {
+        'Content-Type': 'application/json',
+        cookie: String(request.headers.get('cookie'))
+      }
+    }
+  )
+
+  if (res.status >= 400) {
+    const errs = await kratosErrorMapping(res, { form: '', email: '' })
+    throw error(request, { errors: errs })
+  }
+
+  return json({ success: true })
 }

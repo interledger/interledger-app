@@ -187,29 +187,7 @@ export async function action({
   let verificationResponse: Response
 
   const key = getKey(RateLimitKeys.VerifyPhone, email.toString())
-  const { error: rateError } = await rateLimit(key, async () => {
-    verificationResponse = await fetch(
-      `${KRATOS_URL}/self-service/verification?flow=${flowId}`,
-      {
-        method: 'POST',
-        redirect: 'manual',
-        body: JSON.stringify({
-          method: 'link',
-          email,
-          csrf_token: csrfToken
-        }),
-        headers: {
-          'Content-type': 'application/json',
-          cookie: String(request.headers.get('cookie'))
-        }
-      }
-    )
-
-    if (verificationResponse.status >= 400) {
-      throw new Error('Could not send verification email')
-    }
-  })
-
+  const rateError = await rateLimit(key)
   if (rateError) {
     // please use errors in the future
     return json<ActionData>(
@@ -219,5 +197,27 @@ export async function action({
       { status: 500 }
     )
   }
+
+  verificationResponse = await fetch(
+    `${KRATOS_URL}/self-service/verification?flow=${flowId}`,
+    {
+      method: 'POST',
+      redirect: 'manual',
+      body: JSON.stringify({
+        method: 'link',
+        email,
+        csrf_token: csrfToken
+      }),
+      headers: {
+        'Content-type': 'application/json',
+        cookie: String(request.headers.get('cookie'))
+      }
+    }
+  )
+
+  if (verificationResponse.status >= 400) {
+    throw new Error('Could not send verification email')
+  }
+
   return json<ActionData>({ success: true }, { status: 200 })
 }

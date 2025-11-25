@@ -17,6 +17,8 @@ export enum RateLimitKeys {
   VerifyPhone = 'verify.phone'
 }
 
+type RateLimitKeyType = `${RateLimitKeys}_${string}`
+
 /**
  * Generic Redis-based rate limiter.
  * Only increments the counter if the callback succeeds.
@@ -26,41 +28,28 @@ export enum RateLimitKeys {
  * @param options { limit, ttlSeconds }
  * @returns { result, error }
  */
-export async function rateLimit<T>(
-  key: string,
-  callback: () => Promise<T>,
+export async function rateLimit(
+  key: RateLimitKeyType,
   options: RateLimitOptions = DEFAULT_RATE_LIMIT
-): Promise<{ result?: T; error?: string }> {
+): Promise<string | undefined> {
   const { limit, ttlSeconds } = options
 
   let count = 0
   try {
     const current = await redisClient.get(key)
+    if (count >= limit) {
+      return 'Too many attempts. Please try again later.'
+    }
+    await redisClient.set(key, count + 1, { EX: ttlSeconds })
     count = current ? Number(current) : 0
   } catch (err) {
     console.error('Rate limit read failed:', err)
   }
-
-  if (count >= limit) {
-    return { error: 'Too many attempts. Please try again later.' }
-  }
-
-  let result: T
-  try {
-    result = await callback()
-  } catch (err) {
-    throw err
-  }
-
-  try {
-    await redisClient.set(key, count + 1, { EX: ttlSeconds })
-  } catch (err) {
-    console.error('Rate limit increment failed:', err)
-  }
-
-  return { result }
 }
 
-export function getKey(rateLimitKeys: RateLimitKeys, id: string) {
+export function getKey(
+  rateLimitKeys: RateLimitKeys,
+  id: string
+): RateLimitKeyType {
   return `${rateLimitKeys}_${id}`
 }
