@@ -34,14 +34,13 @@ export async function rateLimit(
 ): Promise<string | undefined> {
   const { limit, ttlSeconds } = options
 
-  let count = 0
   try {
     const current = await redisClient.get(key)
+    const count = current ? Number(current) : 0
     if (count >= limit) {
       return 'Too many attempts. Please try again later.'
     }
     await redisClient.set(key, count + 1, { EX: ttlSeconds })
-    count = current ? Number(current) : 0
   } catch (err) {
     console.error('Rate limit read failed:', err)
   }
