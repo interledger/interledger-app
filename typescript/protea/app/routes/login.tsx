@@ -156,6 +156,29 @@ export default function Page() {
       <Button form='login' type='submit'>
         Log in
       </Button>
+      <Button onClick={() => {
+        const grecaptcha = (window as any).grecaptcha;
+        console.log("Grecaptcha:", grecaptcha)
+        grecaptcha.enterprise.ready(async () => {
+          console.log("Grecaptcha ready 🍀")
+          const token = await grecaptcha.enterprise.execute('6Le6_BMsAAAAAGtCUOZfrtqmycI81h-Jez9EH0P1', {action: 'LOGIN'});
+          console.log("Recaptcha token after submit:", token)
+
+          const res = await fetch('http://localhost:4444/recaptcha', {
+            method: 'POST',
+            body: JSON.stringify({
+              token: token,
+              action: 'LOGIN'
+            }),
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          })
+          console.log("Recaptcha verify response:", res)
+        });
+      }}>
+        Recaptcha
+      </Button>
       <p className='text-center text-sm font-medium text-medium'>
         New to the Interledger Wallet?{' '}
         <Router className='text-primary' to={route('/signup')}>

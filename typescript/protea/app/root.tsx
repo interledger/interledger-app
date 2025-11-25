@@ -106,6 +106,7 @@ function Document({ children, theme = 'theme-system' }: DocumentProps) {
   return (
     <html lang='en'>
       <head>
+        <script src='https://www.google.com/recaptcha/enterprise.js?render=6Le6_BMsAAAAAGtCUOZfrtqmycI81h-Jez9EH0P1'></script>
         <meta charSet='utf-8' />
         <meta name='viewport' content='width=device-width,initial-scale=1' />
         <meta name='theme-color' content='#FFE4E6' />
