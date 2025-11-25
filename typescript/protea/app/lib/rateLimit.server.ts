@@ -20,11 +20,10 @@ export enum RateLimitKeys {
 type RateLimitKeyType = `${RateLimitKeys}_${string}`
 
 /**
- * Generic Redis-based rate limiter.
+ * Redis-based rate limiter.
  * Only increments the counter if the callback succeeds.
  *
  * @param key Unique key per action/user
- * @param callback Async function to execute
  * @param options { limit, ttlSeconds }
  * @returns { result, error }
  */
