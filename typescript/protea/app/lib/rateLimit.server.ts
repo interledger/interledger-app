@@ -12,6 +12,10 @@ function getRateLimitDefaults(): RateLimitOptions {
 }
 
 const DEFAULT_RATE_LIMIT = getRateLimitDefaults()
+export enum RateLimitKeys {
+  RecoveryEmail = 'recovery.email',
+  VerifyPhone = 'verify.phone'
+}
 
 /**
  * Generic Redis-based rate limiter.
@@ -29,20 +33,34 @@ export async function rateLimit<T>(
 ): Promise<{ result?: T; error?: string }> {
   const { limit, ttlSeconds } = options
 
-  // Read current count
-  const current = await redisClient.get(key)
-  const count = current ? parseInt(current) : 0
-
-  if (count >= limit) {
-    return { error: `Too many attempts. Please try again later.` }
+  let count = 0
+  try {
+    const current = await redisClient.get(key)
+    count = current ? Number(current) : 0
+  } catch (err) {
+    console.error('Rate limit read failed:', err)
   }
 
-  try {
-    const result = await callback()
-    await redisClient.set(key, count + 1, { EX: ttlSeconds })
+  if (count >= limit) {
+    return { error: 'Too many attempts. Please try again later.' }
+  }
 
-    return { result }
+  let result: T
+  try {
+    result = await callback()
   } catch (err) {
     throw err
   }
+
+  try {
+    await redisClient.set(key, count + 1, { EX: ttlSeconds })
+  } catch (err) {
+    console.error('Rate limit increment failed:', err)
+  }
+
+  return { result }
+}
+
+export function getKey(rateLimitKeys: RateLimitKeys, id: string) {
+  return `${rateLimitKeys}_${id}`
 }

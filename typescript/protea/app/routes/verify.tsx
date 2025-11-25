@@ -22,7 +22,7 @@ import {
   handleFlowError
 } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
-import { rateLimit } from '~/lib/rateLimit.server'
+import { RateLimitKeys, getKey, rateLimit } from '~/lib/rateLimit.server'
 import { useCountdown } from '~/lib/useCountdown'
 import { useDebounceAction } from '~/lib/useDebounceAction'
 
@@ -185,31 +185,30 @@ export async function action({
   const email = (form.get('email') as string) ?? ''
 
   let verificationResponse: Response
-  const { error: rateError } = await rateLimit(
-    `verify.email_${email?.toString()}`,
-    async () => {
-      verificationResponse = await fetch(
-        `${KRATOS_URL}/self-service/verification?flow=${flowId}`,
-        {
-          method: 'POST',
-          redirect: 'manual',
-          body: JSON.stringify({
-            method: 'link',
-            email,
-            csrf_token: csrfToken
-          }),
-          headers: {
-            'Content-type': 'application/json',
-            cookie: String(request.headers.get('cookie'))
-          }
-        }
-      )
 
-      if (verificationResponse.status >= 400) {
-        throw new Error('Could not send verification email')
+  const key = getKey(RateLimitKeys.VerifyPhone, email.toString())
+  const { error: rateError } = await rateLimit(key, async () => {
+    verificationResponse = await fetch(
+      `${KRATOS_URL}/self-service/verification?flow=${flowId}`,
+      {
+        method: 'POST',
+        redirect: 'manual',
+        body: JSON.stringify({
+          method: 'link',
+          email,
+          csrf_token: csrfToken
+        }),
+        headers: {
+          'Content-type': 'application/json',
+          cookie: String(request.headers.get('cookie'))
+        }
       }
+    )
+
+    if (verificationResponse.status >= 400) {
+      throw new Error('Could not send verification email')
     }
-  )
+  })
 
   if (rateError) {
     // please use errors in the future

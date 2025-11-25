@@ -16,7 +16,7 @@ import {
   requireNoUserSession
 } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
-import { rateLimit } from '~/lib/rateLimit.server'
+import { RateLimitKeys, getKey, rateLimit } from '~/lib/rateLimit.server'
 
 type ActionResponse =
   | { success: true }
@@ -140,9 +140,9 @@ export async function action({ request }: ActionFunctionArgs) {
 
   const form = await request.formData()
   const csrfToken = form.get('csrf_token')
-  const email = form.get('email')
+  const email = form.get('email') ?? ''
 
-  const key = `recovery.email_${email?.toString()}`
+  const key = getKey(RateLimitKeys.RecoveryEmail, email.toString())
   const { result, error: rateError } = await rateLimit(key, async () => {
     const res = await fetch(
       `${KRATOS_URL}/self-service/recovery?flow=${flowId}`,
