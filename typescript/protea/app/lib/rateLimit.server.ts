@@ -14,7 +14,7 @@ function getRateLimitDefaults(): RateLimitOptions {
 const DEFAULT_RATE_LIMIT = getRateLimitDefaults()
 export enum RateLimitKeys {
   RecoveryEmail = 'recovery.email',
-  VerifyPhone = 'verify.phone'
+  VerifyEmail = 'verify.email'
 }
 
 type RateLimitKeyType = `${RateLimitKeys}_${string}`
