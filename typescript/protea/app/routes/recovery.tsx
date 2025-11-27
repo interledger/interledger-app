@@ -17,6 +17,7 @@ import {
 } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
 import { RateLimitKeys, getKey, rateLimit } from '~/lib/rateLimit.server'
+import { useRecaptchaV2 } from '~/lib/useRecaptchaV2'
 
 type ActionResponse =
   | { success: true }
@@ -76,6 +77,7 @@ export const meta: MetaFunction = mergeMeta(() => [
 export default function Page() {
   const { flow, csrfToken } = useLoaderData<typeof loader>()
   const fetcher = useFetcher<ActionResponse>()
+  const { RecaptchaWidget, token } = useRecaptchaV2()
 
   const isSubmitting = fetcher.state !== 'idle'
   const isSuccess =
@@ -97,6 +99,7 @@ export default function Page() {
         name='csrf_token'
         type='hidden'
       />
+      <input form='recovery' value={token} name='recaptcha_token' type='hidden' />
       <Card>
         <CardContent>
           <span>
@@ -117,10 +120,11 @@ export default function Page() {
           errorMessage={errors?.email}
         />
       </Card>
+      <div className='mb-4 mt-4 w-full'>{RecaptchaWidget}</div>
       <Button
         form='recovery'
         type='submit'
-        disabled={isSubmitting || isSuccess}
+        disabled={isSubmitting || isSuccess || !token}
       >
         {isSubmitting ? 'Sending...' : 'Recover account'}
       </Button>
