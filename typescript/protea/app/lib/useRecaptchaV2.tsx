@@ -105,7 +105,7 @@ export const useRecaptchaV2 = () => {
   }, [siteKey, isScriptLoaded])
 
   const RecaptchaWidget = siteKey ? (
-    <div className='flex min-h-[100px] w-full flex-col items-center justify-center rounded border border-slate-100 bg-slate-50 p-4'>
+    <div className='flex w-full flex-col items-center justify-center'>
       {error && (
         <div className='mb-2 text-center text-xs text-red-500'>{error}</div>
       )}
