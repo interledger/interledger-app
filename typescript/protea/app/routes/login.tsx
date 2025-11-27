@@ -10,7 +10,7 @@ import {
   useLoaderData,
   useSearchParams
 } from '@remix-run/react'
-import { useMemo } from 'react'
+
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import {
@@ -98,15 +98,9 @@ export default function Page() {
   const actionData = useActionData<typeof action>()
   const { csrfToken, flowId, returnTo } = useLoaderData<typeof loader>()
   const searchParams = useSearchParams()
-  const recaptchaSiteKey = useMemo(() => {
-    return (
-      (typeof window !== 'undefined' &&
-        (window as any).ENV?.recaptchaSiteKey) ||
-      ''
-    )
-  }, [])
 
-  const { RecaptchaWidget: widget, token } = useRecaptchaV2(recaptchaSiteKey)
+
+  const { RecaptchaWidget: widget, token } = useRecaptchaV2()
 
   return (
     <>

@@ -8,11 +8,13 @@ const G_RECAPTCHA_PRESENT_IN_THE_WINDOW_POLLING_INTERVAL = 100
 
 /**
  * Custom hook to render the Google Recaptcha V2 widget
- * @param siteKey - The site key for the Google Recaptcha V2 widget
  * @returns An object with the token (generated after the user solves the captcha) 
  *  and the recaptcha widget to be rendered in the UI
  */
-export const useRecaptchaV2 = (siteKey: string) => {
+export const useRecaptchaV2 = () => {
+  const siteKey =
+    (typeof window !== 'undefined' && (window as any).ENV?.recaptchaSiteKey) ||
+    ''
   const [token, setToken] = useState('')
   const [isScriptLoaded, setIsScriptLoaded] = useState(false)
   const [error, setError] = useState('')
