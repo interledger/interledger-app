@@ -98,9 +98,7 @@ export default function Page() {
   const actionData = useActionData<typeof action>()
   const { csrfToken, flowId, returnTo } = useLoaderData<typeof loader>()
   const searchParams = useSearchParams()
-
-
-  const { RecaptchaWidget: widget, token } = useRecaptchaV2()
+  const { RecaptchaWidget, token } = useRecaptchaV2()
 
   return (
     <>
@@ -160,7 +158,7 @@ export default function Page() {
         />
       </Card>
 
-      <div className='mb-4 mt-4 w-full'>{widget}</div>
+      <div className='mb-4 mt-4 w-full'>{RecaptchaWidget}</div>
 
       <Button form='login' type='submit' disabled={!token}>
         Log in

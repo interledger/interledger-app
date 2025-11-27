@@ -12,6 +12,7 @@ import {
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { useSignupStore } from '~/lib/useSignupStore'
 import type { loader, passwordAction } from './route'
+import { useRecaptchaV2 } from '~/lib/useRecaptchaV2'
 
 export function Password() {
   const passwordFetcher = useFetcher<typeof passwordAction>()
@@ -21,6 +22,7 @@ export function Password() {
 
   const [pushSnackbar] = useScaffoldStore((state) => [state.pushSnackbar])
   const [serviceAgreement, setServiceAgreement] = useState(false)
+  const { RecaptchaWidget, token } = useRecaptchaV2()
 
   useEffect(() => {
     if (errors?.form) {
@@ -110,6 +112,7 @@ export function Password() {
         form='signup-password'
         type='hidden'
       />
+      <input form='login' value={token} name='recaptcha_token' type='hidden' />
       <Card>
         <CardContent>
           <p>Create a password to log in to your account securely.</p>
@@ -168,8 +171,9 @@ export function Password() {
           </Checkbox>
         </CardContent>
       </Card>
+      <div className='mb-4 mt-4 w-full'>{RecaptchaWidget}</div>
       <Button
-        disabled={!serviceAgreement}
+        disabled={!serviceAgreement || !token}
         form='signup-password'
         name='formName'
         value='password'
