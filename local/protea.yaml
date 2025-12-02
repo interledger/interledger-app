@@ -42,6 +42,8 @@ services:
 
       - REDIS_URL=redis://redis:6379/2
       - RECAPTCHA_SITE_KEY=6LeuthksAAAAAAPWBhtKujNpTJ6MrgK_BSHwtPqT
+      - RECAPTCHA_API_KEY=<api_key>
+      - RECAPTCHA_PROJECT_ID=<project_id>
 
     depends_on:
       - backend

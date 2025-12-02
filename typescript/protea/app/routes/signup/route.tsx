@@ -24,6 +24,7 @@ import {
   requireNoUserSession
 } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
+import { verifyRecaptcha } from '~/lib/recaptcha.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { SignupStep, useSignupStore } from '~/lib/useSignupStore'
 import { About, isEUCountry } from '~/routes/signup/About'
@@ -31,6 +32,7 @@ import { Landing } from '~/routes/signup/Landing'
 import { Password } from '~/routes/signup/Password'
 import { Phone } from '~/routes/signup/Phone'
 import styles from '~/styles/flags.css'
+import { ErrorDescriptions } from '~/lib/error.constants'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
@@ -269,6 +271,18 @@ export async function passwordAction({ request }: ActionFunctionArgs) {
 
   if (serviceAgreement == null) {
     errors.serviceAgreement = 'You are required to agree to continue.'
+    return error(request, { errors })
+  }
+
+  const recaptchaToken = form.get('recaptcha_token')
+  if (!recaptchaToken) {
+    errors.form = ErrorDescriptions.RECAPTCHA_VERIFICATION_FAILED
+    return error(request, { errors })
+  }
+
+  const isValid = await verifyRecaptcha(recaptchaToken.toString())
+  if (!isValid) {
+    errors.form = ErrorDescriptions.RECAPTCHA_VERIFICATION_FAILED
     return error(request, { errors })
   }
 

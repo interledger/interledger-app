@@ -22,6 +22,7 @@ import {
   Router,
   TextField
 } from '~/components'
+import { ErrorDescriptions } from '~/lib/error.constants'
 import { error } from '~/lib/error.server'
 import { trimHeaders } from '~/lib/headers.server'
 import {
@@ -33,6 +34,7 @@ import {
   requireNoUserSession
 } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
+import { verifyRecaptcha } from '~/lib/recaptcha.server'
 import { useRecaptchaV2 } from '~/lib/useRecaptchaV2'
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -186,6 +188,18 @@ export async function action({ request }: ActionFunctionArgs) {
     form: '',
     email: '',
     password: ''
+  }
+
+  const recaptchaToken = form.get('recaptcha_token')
+  if (!recaptchaToken) {
+    fieldErrors.form = ErrorDescriptions.RECAPTCHA_VERIFICATION_FAILED
+    return error(request, { errors: fieldErrors })
+  }
+
+  const isValid = await verifyRecaptcha(recaptchaToken.toString())
+  if (!isValid) {
+    fieldErrors.form = ErrorDescriptions.RECAPTCHA_VERIFICATION_FAILED
+    return error(request, { errors: fieldErrors })
   }
 
   const res = await fetch(`${KRATOS_URL}/self-service/login?flow=${flowId}`, {

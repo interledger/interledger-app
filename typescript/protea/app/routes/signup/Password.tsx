@@ -112,7 +112,12 @@ export function Password() {
         form='signup-password'
         type='hidden'
       />
-      <input form='login' value={token} name='recaptcha_token' type='hidden' />
+      <input
+        form='signup-password'
+        value={token}
+        name='recaptcha_token'
+        type='hidden'
+      />
       <Card>
         <CardContent>
           <p>Create a password to log in to your account securely.</p>

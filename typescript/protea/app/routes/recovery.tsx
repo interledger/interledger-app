@@ -7,6 +7,7 @@ import { json, redirect } from '@remix-run/node'
 import { useFetcher, useLoaderData } from '@remix-run/react'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts, TextField } from '~/components'
+import { ErrorDescriptions } from '~/lib/error.constants'
 import { error } from '~/lib/error.server'
 import {
   KRATOS_URL,
@@ -17,6 +18,7 @@ import {
 } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
 import { RateLimitKeys, getKey, rateLimit } from '~/lib/rateLimit.server'
+import { verifyRecaptcha } from '~/lib/recaptcha.server'
 import { useRecaptchaV2 } from '~/lib/useRecaptchaV2'
 
 type ActionResponse =
@@ -153,6 +155,18 @@ export async function action({ request }: ActionFunctionArgs) {
   const rateError = await rateLimit(key)
   if (rateError) {
     fieldErrors.form = rateError
+    return error(request, { errors: fieldErrors })
+  }
+
+  const recaptchaToken = form.get('recaptcha_token')
+  if (!recaptchaToken) {
+    fieldErrors.form = ErrorDescriptions.RECAPTCHA_VERIFICATION_FAILED
+    return error(request, { errors: fieldErrors })
+  }
+
+  const isValid = await verifyRecaptcha(recaptchaToken.toString())
+  if (!isValid) {
+    fieldErrors.form = ErrorDescriptions.RECAPTCHA_VERIFICATION_FAILED
     return error(request, { errors: fieldErrors })
   }
 
