@@ -46,7 +46,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       (account) => account.id == payment.senderAccount
     )?.title,
     payment,
-    requiresOTP: payment.requiredActions.includes(PaymentRequiredAction.OTP),
+    requiresTOTP: payment.requiredActions.includes(PaymentRequiredAction.TOTP),
     PTIClientId: process.env.PTI_CLIENT_ID || ''
   })
 }
@@ -159,9 +159,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
   await validateCSRFToken(request, form)
 
   const errors = {
-    form: '',
-    otp: '',
-    phone: ''
+    form: ''
   }
 
   const clientIpAddress = getClientIP(request)
@@ -183,16 +181,6 @@ export async function action({ request, params }: ActionFunctionArgs) {
     ipAddress: clientIpAddress
   })
   if (isConnectError(response)) {
-    if (isTwilioCodeError(response)) {
-      return response.error(
-        { errors },
-        {
-          otp: TwillioErrorMapper.otp,
-          phone: TwillioErrorMapper.phone
-        },
-        { action: 'Contact support', message: ErrorDescriptions.INVALID_OTP }
-      )
-    }
     return response.error({ errors }, {}, { action: 'Contact support' })
   }
 

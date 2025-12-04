@@ -52,7 +52,7 @@ export enum PaymentRequiredAction {
   ReceiverIdentifier,
   SenderAmount,
   ReceiverAmount,
-  OTP,
+  TOTP,
   IPAddress
 }
 export enum PaymentIdentityType {
@@ -71,7 +71,6 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   let publicWalletInfo: PlainMessage<PublicWalletInfo>
   let features: Features | null = null
   let payment: PlainMessage<Payment> | ConnectError
-  let phoneMask: string = ''
 
   const { kycStatus } = await getKycStatus(request)
   if (kycStatus != KycStatus.Approved)
@@ -131,23 +130,14 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     account = sendAccounts[0]
   }
 
-  // Only load the phone mask if we require otp
-  if (payment.requiredActions.includes(7)) {
-    phoneMask = await getUserSession(request).then((v) => {
-      const len = v.identity.traits.phone.length
-      return v.identity.traits.phone.substring(len - 4, len).padStart(len, '*')
-    })
-  }
-
   return jsonWithCSRF(request, {
     features,
     account,
     sendAccounts,
-    phoneMask,
     publicWalletInfo,
     fynbosEnv: process.env.FYNBOS_ENV,
     payment,
-    requiresOTP: payment.requiredActions.includes(PaymentRequiredAction.OTP),
+    requiresTOTP: payment.requiredActions.includes(PaymentRequiredAction.TOTP), // todo: make sure backend ads TOTP as required action
     PTIClientId: process.env.PTI_CLIENT_ID || ''
   })
 }
@@ -288,7 +278,6 @@ export async function confirmPaymentAction({
 
   const errors = {
     form: '',
-    otp: '',
     serviceAgreement: ''
   }
 
