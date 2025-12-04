@@ -3,7 +3,7 @@ import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import { Card, CardLink, Icon, Layouts } from '~/components'
+import { Card, Icon, Layouts } from '~/components'
 import { Label } from '~/components/Label'
 import { getUserSession } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
@@ -50,16 +50,12 @@ export default function Page() {
         </div>
       </div>
       <Label className='mt-4'>Mobile phone number</Label>
-      <CardLink
-        className='items-center justify-between'
-        to={route('/otp/challenge')}
-      >
+      <div className='mt-1 flex w-full justify-between p-3'>
         <div className='flex space-x-3'>
           <Icon>call</Icon>
           <span>{phoneMask}</span>
         </div>
-        <Icon>navigate_next</Icon>
-      </CardLink>
+      </div>
     </Card>
   )
 }
