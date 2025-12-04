@@ -102,7 +102,7 @@ export function About() {
         details.data?.lastName.replace(/\s+/g, ' ').trim(),
         details.data?.email
       )
-      setStep(SignupStep.PHONE)
+      setStep(SignupStep.PASSWORD)
     }
   }, [details.data, setDetails, setStep])
 

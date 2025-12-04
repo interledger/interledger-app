@@ -29,7 +29,6 @@ import { SignupStep, useSignupStore } from '~/lib/useSignupStore'
 import { About, isEUCountry } from '~/routes/signup/About'
 import { Landing } from '~/routes/signup/Landing'
 import { Password } from '~/routes/signup/Password'
-import { Phone } from '~/routes/signup/Phone'
 import styles from '~/styles/flags.css'
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -105,7 +104,6 @@ export default function Page() {
     <>
       {step === SignupStep.LANDING && <Landing />}
       {step === SignupStep.ABOUT && <About />}
-      {step === SignupStep.PHONE && <Phone />}
       {step === SignupStep.PASSWORD && <Password />}
     </>
   )
@@ -118,10 +116,6 @@ export async function action(args: ActionFunctionArgs) {
 
   if (formName === 'details') {
     return detailsAction(args)
-  }
-
-  if (formName === 'otp') {
-    return otpAction(args)
   }
 
   if (formName === 'password') {
@@ -196,54 +190,7 @@ export async function detailsAction({ request }: ActionFunctionArgs) {
   })
 }
 
-export async function otpAction({ request }: ActionFunctionArgs) {
-  const form = await request.formData()
 
-  await validateCSRFToken(request, form)
-
-  const data = {
-    id: '',
-    phone: '',
-    errors: {
-      form: '',
-      otp: '',
-      phone: ''
-    }
-  }
-  const mapping = {
-    phone: 'MobileNumber'
-  }
-
-  const id = form.get('id') as string
-  const otp = form.get('otp') as string
-  const phone = form.get('phone') as string
-
-  const response = await grpc.setSignupMobileNumber(request, {
-    id,
-    mobile: phone,
-    otp: otp
-  })
-
-  if (isConnectError(response)) {
-    if (response.code == Code.InvalidArgument) {
-      data.errors.phone = 'Mobile phone number is invalid.'
-      return response.error(data, mapping)
-    } else if (response.code == Code.AlreadyExists) {
-      data.errors.phone = 'Mobile phone number is already registered.'
-      return response.error(data)
-    } else {
-      return response.error(data, mapping, { action: 'Contact support' })
-    }
-  }
-  return json({ id, phone, errors: data.errors })
-}
-
-const KratosErrorTraits = {
-  PHONE: 'traits.phone'
-}
-const KratosErrorMessages = {
-  [KratosErrorTraits.PHONE]: 'Mobile phone number is invalid.'
-}
 
 export async function passwordAction({ request }: ActionFunctionArgs) {
   const form = await request.formData()
@@ -256,15 +203,13 @@ export async function passwordAction({ request }: ActionFunctionArgs) {
   const lastName = form.get('lastName') as string
   const country = form.get('country') as string
   const email = form.get('email') as string
-  const phone = form.get('phone') as string
 
   await validateCSRFToken(request, form)
 
   const errors = {
     form: '',
     serviceAgreement: '',
-    password: '',
-    phone: ''
+    password: ''
   }
 
   if (serviceAgreement == null) {
@@ -280,7 +225,6 @@ export async function passwordAction({ request }: ActionFunctionArgs) {
         method: 'password',
         traits: {
           email: email,
-          phone: phone,
           firstName: firstName,
           lastName: lastName,
           countryCode: country
@@ -296,10 +240,6 @@ export async function passwordAction({ request }: ActionFunctionArgs) {
   )
   if (response.status >= 400) {
     const errs = await kratosErrorMapping(response, errors)
-    if ((errs as any)[KratosErrorTraits.PHONE]) {
-      errors.phone = KratosErrorMessages[KratosErrorTraits.PHONE]
-      return error(request, { errors })
-    }
     return error(request, { errors: errs })
   }
 

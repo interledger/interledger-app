@@ -31,25 +31,15 @@ export function Password() {
         canShow: true
       })
     }
-
-    if (errors?.phone) {
-      pushSnackbar({
-        id: errors?.phone,
-        message: errors?.phone,
-        icon: 'close',
-        canShow: true
-      })
-    }
   }, [errors, pushSnackbar])
 
-  const [firstName, lastName, email, country, id, phone] = useSignupStore(
+  const [firstName, lastName, email, country, id] = useSignupStore(
     (state) => [
       state.firstName,
       state.lastName,
       state.email,
       state.country,
-      state.id,
-      state.phone
+      state.id
     ]
   )
 
@@ -101,12 +91,6 @@ export function Password() {
       <input
         defaultValue={email}
         name='email'
-        form='signup-password'
-        type='hidden'
-      />
-      <input
-        defaultValue={phone}
-        name='phone'
         form='signup-password'
         type='hidden'
       />

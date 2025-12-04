@@ -5,7 +5,6 @@ import type { Country } from '~/generated/connect/backend/v1/backend_pb'
 export enum SignupStep {
   LANDING,
   ABOUT,
-  PHONE,
   PASSWORD
 }
 
@@ -17,7 +16,6 @@ interface SignupState {
   email: string
   country: PlainMessage<Country> | null
   countries: PlainMessage<Country>[]
-  phone: string
 }
 
 interface SignupActions {
@@ -31,7 +29,6 @@ interface SignupActions {
     lastName: string,
     email: string
   ) => void
-  setPhone: (phone: string) => void
   reset: () => void
 }
 
@@ -42,8 +39,7 @@ const signupInitialState = {
   lastName: '',
   email: '',
   country: null,
-  countries: [],
-  phone: ''
+  countries: []
 }
 
 export const useSignupStore = create<SignupState & SignupActions>((set) => ({
@@ -53,8 +49,6 @@ export const useSignupStore = create<SignupState & SignupActions>((set) => ({
     set((state) => {
       switch (state.step) {
         case SignupStep.PASSWORD:
-          return { step: SignupStep.PHONE }
-        case SignupStep.PHONE:
           return { step: SignupStep.ABOUT }
         case SignupStep.ABOUT:
           return { step: SignupStep.LANDING }
@@ -66,6 +60,5 @@ export const useSignupStore = create<SignupState & SignupActions>((set) => ({
   setCountries: (countries) => set((state) => ({ countries })),
   setDetails: (id, firstName, lastName, email) =>
     set((state) => ({ id, firstName, lastName, email })),
-  setPhone: (phone) => set((state) => ({ phone })),
   reset: () => set((state) => ({ ...signupInitialState }))
 }))
