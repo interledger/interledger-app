@@ -133,6 +133,15 @@ export default function Page() {
           required
           errorMessage={actionData?.errors?.password}
         />
+        <TextField
+          id='confirm-new-password'
+          form='recovery-password'
+          label='Confifm password'
+          name='confirm-new-password'
+          type='password'
+          className='mt-2'
+          required
+        />
         <input
           form='recovery-password'
           defaultValue={csrfToken}
@@ -155,11 +164,18 @@ export async function action({ request }: ActionFunctionArgs) {
   const form = await request.formData()
   const csrfToken = form.get('csrf_token') as string
   const password = form.get('new-password') as string
+  const confirmPassword = form.get('confirm-new-password') as string
 
   const fieldErrors = {
     form: '',
     password: ''
   }
+
+  if (password !== confirmPassword) {
+    fieldErrors.password = 'Passwords do not match'
+    return error(request, { errors: fieldErrors })
+  }
+
   const res = await fetch(
     `${KRATOS_URL}/self-service/settings?flow=${flowId}`,
     {
