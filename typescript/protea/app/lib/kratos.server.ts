@@ -41,9 +41,13 @@ function isUiNodeInputAttributes(n: any): n is UiNodeInputAttributes {
  * @returns boolean - if the user has a session.
  */
 export async function getUserSession(request: Request, allowAal1 = false): Promise<Session> {
+  console.log("🪲[getUserSession] returning forbidden 403")
   const session = await fetch(`${KRATOS_URL}/sessions/whoami`, {
     headers: request.headers
   })
+  // const session = new Response(JSON.stringify({ error: 'forbidden' }), { 
+  //   status: 403 
+  // })
 
   const url = new URL(request.url)
   url.searchParams.set('returnTo', url.pathname)
@@ -51,15 +55,20 @@ export async function getUserSession(request: Request, allowAal1 = false): Promi
   switch (session.status) {
     case 401:
     case 500:
+      console.log("🪲[getUserSession] redirecting to login")
       throw redirect(route('/login') + url.search)
     case 403:
+      console.log("🪲[getUserSession] 403")
     case 422: // Need to complete 2FA.
+      console.log("🪲[getUserSession] 422")
       if (!allowAal1) {
+        console.log("🪲[getUserSession] allowAal1 is false")
         url.searchParams.set('aal', 'aal2')
         throw redirect(route('/login') + url.search)
       }
   }
 
+  console.log("🪲 [getUserSession] returning session")
   return session.json()
 }
 

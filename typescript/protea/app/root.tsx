@@ -157,7 +157,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
     })
   }
 
+  console.log(`🪲 [root ${pathname}] emailVerificationGuard`)
   await emailVerificationGuard(pathname, request)
+  console.log(`🪲 [root ${pathname}] withAAL2Guard`)
   await withAAL2Guard(pathname, request, async () => {
     features = await getFeatures(request)
     if (
@@ -171,6 +173,16 @@ export async function loader({ request }: LoaderFunctionArgs) {
       }
       isDisabled = true
     }
+  })
+
+  console.log("🪲 [root] returning", {
+    isDisabled,
+    walletAddress,
+    isUser,
+    features,
+    snackbar,
+    pusherArgs,
+    env
   })
 
   return json({
