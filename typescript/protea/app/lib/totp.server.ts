@@ -129,17 +129,13 @@ export async function emailVerificationGuard(
   const identity = getSessionIdentity(session)
 
   if (!identity) {
-    console.log(' 🪲[emailVerificationGuard] No identity found')
     // Kratos requires AAL2 session, so skip email verification guard
     return
   }
 
-  console.log(' 🪲[emailVerificationGuard] Identity found', identity)
   if (identity && !isEmailVerified(session)) {
-    console.log(' 🪲[emailVerificationGuard] Email not verified')
     throw redirect('/verify')
   }
-  console.log(' 🪲[emailVerificationGuard] Email verified')
 }
 
 export async function withAAL2Guard(pathname: string, request: Request, fn: () => Promise<void>) {
