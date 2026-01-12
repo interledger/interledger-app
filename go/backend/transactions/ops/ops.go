@@ -107,7 +107,7 @@ func createTransaction(ctx context.Context, dbc sqlx.ExecerContext, b Backends, 
 
 	err = b.Notify().NotifyWallet(ctx, args.WalletID, notify.NotificationTypeTransaction)
 	if err != nil {
-		log.Error("notify error", zap.Error(err))
+		log.Warn("notify error", zap.Error(err))
 	}
 
 	fee := args.ProviderFee
@@ -492,7 +492,7 @@ func SetTransactionForeignID(ctx context.Context, b Backends, ID string, foreign
 
 	err = b.Notify().NotifyWallet(ctx, walletID, notify.NotificationTypeTransaction)
 	if err != nil {
-		log.Error("error sending notification", zap.Error(err))
+		log.Warn("error sending notification", zap.Error(err))
 	}
 
 	return nil
@@ -535,7 +535,7 @@ func SetTransactionState(ctx context.Context, b Backends, ID string, state trans
 
 	err = b.Notify().NotifyWallet(ctx, trxDetails.WalletID, notify.NotificationTypeTransaction)
 	if err != nil {
-		log.Error("error sending notification", zap.Error(err))
+		log.Warn("error sending notification", zap.Error(err))
 	}
 
 	userID := getWalletUserID(ctx, b, trxDetails.WalletID)
@@ -572,7 +572,7 @@ func SetTransactionStateTx(ctx context.Context, b Backends, tx *sqlx.Tx, ID stri
 
 	err = b.Notify().NotifyWallet(ctx, trxDetails.WalletID, notify.NotificationTypeTransaction)
 	if err != nil {
-		log.Error("error sending notification", zap.Error(err))
+		log.Warn("error sending notification", zap.Error(err))
 	}
 
 	userID := getWalletUserID(ctx, b, trxDetails.WalletID)
@@ -613,7 +613,7 @@ func SetTransactionAmountTx(ctx context.Context, b Backends, tx *sqlx.Tx, ID str
 
 	err = b.Notify().NotifyWallet(ctx, walletID, notify.NotificationTypeTransaction)
 	if err != nil {
-		log.Error("error sending notification", zap.Error(err))
+		log.Warn("error sending notification", zap.Error(err))
 	}
 
 	return nil
