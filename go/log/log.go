@@ -1,25 +1,45 @@
 package log
 
 import (
-	"log"
+	"os"
 
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 var logger *zap.Logger
 
 func init() {
-	cfg := zap.NewDevelopmentConfig()
-	cfg.Level.SetLevel(zap.DebugLevel)
+	// Create encoder config for JSON logging
+	encoderConfig := zap.NewProductionEncoderConfig()
+	encoder := zapcore.NewJSONEncoder(encoderConfig)
 
-	var err error
+	// Create stdout sink for info/debug/warn
+	stdoutSink := zapcore.Lock(zapcore.AddSync(os.Stdout))
+	stdoutCore := zapcore.NewCore(
+		encoder,
+		stdoutSink,
+		zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
+			return lvl < zapcore.ErrorLevel
+		}),
+	)
+
+	// Create stderr sink for error/fatal
+	stderrSink := zapcore.Lock(zapcore.AddSync(os.Stderr))
+	stderrCore := zapcore.NewCore(
+		encoder,
+		stderrSink,
+		zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
+			return lvl >= zapcore.ErrorLevel
+		}),
+	)
+
+	// Combine cores with tee
 	// AddCallerSkip(1) moves the stack 1 higher than the actual call to logger.*.
 	// This means the file and line number will be displayed the called the global lib i.e.
 	// WARN	ledger/service.go:121 instead of WARN	log/log.go:37
-	logger, err = cfg.Build(zap.AddCallerSkip(1))
-	if err != nil {
-		log.Fatalln(err)
-	}
+	core := zapcore.NewTee(stdoutCore, stderrCore)
+	logger = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1))
 }
 
 func Setup(newLogger *zap.Logger) {

@@ -107,6 +107,7 @@ import (
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc"
 )
 
@@ -664,16 +665,40 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	}
 	b.db = db
 
-	cfg := zap.NewProductionConfig()
-	err = cfg.Level.UnmarshalText([]byte(args.LogLevel))
+	// Parse log level
+	var level zapcore.Level
+	err = level.UnmarshalText([]byte(args.LogLevel))
 	if err != nil {
 		log.Fatalln(err)
 	}
-	cfg.OutputPaths = []string{args.LogOutputPath}
-	logger, err := cfg.Build(zap.AddCallerSkip(1))
-	if err != nil {
-		log.Fatalln(err)
-	}
+
+	// Create encoder config for JSON logging
+	encoderConfig := zap.NewProductionEncoderConfig()
+	encoder := zapcore.NewJSONEncoder(encoderConfig)
+
+	// Create stdout sink for info/debug/warn
+	stdoutSink := zapcore.Lock(zapcore.AddSync(os.Stdout))
+	stdoutCore := zapcore.NewCore(
+		encoder,
+		stdoutSink,
+		zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
+			return lvl >= level && lvl < zapcore.ErrorLevel
+		}),
+	)
+
+	// Create stderr sink for error/fatal
+	stderrSink := zapcore.Lock(zapcore.AddSync(os.Stderr))
+	stderrCore := zapcore.NewCore(
+		encoder,
+		stderrSink,
+		zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
+			return lvl >= zapcore.ErrorLevel
+		}),
+	)
+
+	// Combine cores with tee
+	core := zapcore.NewTee(stdoutCore, stderrCore)
+	logger := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1))
 	log.Setup(logger)
 
 	tp, err := temporal.NewTemporalClient(args.TemporalUrl)
