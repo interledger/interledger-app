@@ -107,7 +107,6 @@ import (
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc"
 )
 
@@ -665,41 +664,11 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	}
 	b.db = db
 
-	// Parse log level
-	var level zapcore.Level
-	err = level.UnmarshalText([]byte(args.LogLevel))
+	// Initialises the logger we will use throughout
+	err = log.Initialize(args.LogLevel)
 	if err != nil {
 		log.Fatalln(err)
 	}
-
-	// Create encoder config for JSON logging
-	encoderConfig := zap.NewProductionEncoderConfig()
-	encoder := zapcore.NewJSONEncoder(encoderConfig)
-
-	// Create stdout sink for info/debug/warn
-	stdoutSink := zapcore.Lock(zapcore.AddSync(os.Stdout))
-	stdoutCore := zapcore.NewCore(
-		encoder,
-		stdoutSink,
-		zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
-			return lvl >= level && lvl < zapcore.ErrorLevel
-		}),
-	)
-
-	// Create stderr sink for error/fatal
-	stderrSink := zapcore.Lock(zapcore.AddSync(os.Stderr))
-	stderrCore := zapcore.NewCore(
-		encoder,
-		stderrSink,
-		zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
-			return lvl >= zapcore.ErrorLevel
-		}),
-	)
-
-	// Combine cores with tee
-	core := zapcore.NewTee(stdoutCore, stderrCore)
-	logger := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1))
-	log.Setup(logger)
 
 	tp, err := temporal.NewTemporalClient(args.TemporalUrl)
 	if err != nil {
@@ -717,7 +686,7 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 
 	b.signup = signup_client.New(b)
 
-	b.waitlist = waitlist_client.New(b, logger)
+	b.waitlist = waitlist_client.New(b, log.Logger())
 
 	b.twitter = twitter_client.New(b, &twitter_client.NewClientArgs{
 		ClientID:      args.TwitterClientID,
@@ -775,7 +744,7 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		b.adminAuth = auth.NewLoggingService(adminUsers, logger)
+		b.adminAuth = auth.NewLoggingService(adminUsers, log.Logger())
 	}
 
 	b.agreements = agreements_client.New(b)
@@ -785,63 +754,63 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 		log.Fatalln(err)
 	}
 
-	logger.Debug("initialising SendGrid")
+	log.Debug("initialising SendGrid")
 	b.email = email_client.New(b, args.SendgridAPIKey)
 
-	logger.Debug("initialising transactions")
+	log.Debug("initialising transactions")
 	b.transactions = transactions_client.New(b)
 
-	logger.Debug("initialising notify")
+	log.Debug("initialising notify")
 	b.notify = notify_client.New(b, args.PusherAddr)
 
-	logger.Debug("initialising statements")
+	log.Debug("initialising statements")
 	b.statements = statements_client.New()
 
-	logger.Debug("initialising limits")
+	log.Debug("initialising limits")
 	b.limits = limits_client.New(b)
 
-	logger.Debug("initialising identities")
+	log.Debug("initialising identities")
 	b.ident = identities_client.New(b)
 
-	logger.Debug("initialising contacts")
+	log.Debug("initialising contacts")
 	b.contacts = contacts_client.New(b)
 
-	logger.Debug("initialising images")
+	log.Debug("initialising images")
 	b.img = img_client.New(b)
 
-	logger.Debug("initialising vault")
+	log.Debug("initialising vault")
 	vc, err := vault.NewClient()
 	if err != nil {
 		log.Error("error vault", zap.Error(err))
 	}
 	b.vault = vc
 
-	logger.Debug("initialising keys")
+	log.Debug("initialising keys")
 	b.keys = keys_client.New(b)
 
-	logger.Debug("initialising validator")
+	log.Debug("initialising validator")
 	b.val = validator.New()
 
-	logger.Debug("initialising rafiki")
+	log.Debug("initialising rafiki")
 	b.rafiki = rafiki_client.New(b)
 
-	logger.Debug("initialising pacioli")
+	log.Debug("initialising pacioli")
 	pacDB, err := otelsqlx.Connect("postgres", args.PacioliDBConString, otelsql.WithAttributes(semconv.DBSystemCockroachdb), otelsql.WithDBName("cockroachdb"))
 	if err != nil {
 		log.Fatalln(err)
 	}
 	b.pac = pacioli_client.NewLocal(pacDB)
 
-	logger.Debug("initialising xago")
+	log.Debug("initialising xago")
 	b.xago = xago_client.New(b)
 
-	logger.Debug("initialising FIANT")
+	log.Debug("initialising FIANT")
 	b.pti = pti_client.New(b)
 
-	logger.Debug("initialising Gatehub")
+	log.Debug("initialising Gatehub")
 	b.gatehub = gatehub_client.New(b)
 
-	logger.Debug("initialising Chimoney")
+	log.Debug("initialising Chimoney")
 	b.chimoney = chimoney_client.New(b)
 
 	return b

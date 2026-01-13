@@ -1,6 +1,7 @@
 package log
 
 import (
+	"fmt"
 	"os"
 
 	"go.uber.org/zap"
@@ -42,11 +43,56 @@ func init() {
 	logger = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1))
 }
 
+// Initialize reconfigures the global logger with the specified log level.
+// This should be called during application startup with the configured log level.
+func Initialize(logLevel string) error {
+	var level zapcore.Level
+	err := level.UnmarshalText([]byte(logLevel))
+	if err != nil {
+		return fmt.Errorf("invalid log level: %w", err)
+	}
+
+	// Create encoder config for JSON logging
+	encoderConfig := zap.NewProductionEncoderConfig()
+	encoder := zapcore.NewJSONEncoder(encoderConfig)
+
+	// Create stdout sink for info/debug/warn
+	stdoutSink := zapcore.Lock(zapcore.AddSync(os.Stdout))
+	stdoutCore := zapcore.NewCore(
+		encoder,
+		stdoutSink,
+		zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
+			return lvl >= level && lvl < zapcore.ErrorLevel
+		}),
+	)
+
+	// Create stderr sink for error/fatal
+	stderrSink := zapcore.Lock(zapcore.AddSync(os.Stderr))
+	stderrCore := zapcore.NewCore(
+		encoder,
+		stderrSink,
+		zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
+			return lvl >= zapcore.ErrorLevel
+		}),
+	)
+
+	// Combine cores with tee
+	core := zapcore.NewTee(stdoutCore, stderrCore)
+	logger = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1))
+	return nil
+}
+
+// Setup overwrites the global logger. Deprecated: use Initialize() instead.
 func Setup(newLogger *zap.Logger) {
 	if newLogger == nil {
 		return
 	}
 	logger = newLogger
+}
+
+// Logger returns the global logger instance.
+func Logger() *zap.Logger {
+	return logger
 }
 
 func Info(msg string, fields ...zap.Field) {

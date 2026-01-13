@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 
 	"github.com/uptrace/opentelemetry-go-extra/otelsql"
 	"github.com/uptrace/opentelemetry-go-extra/otelsqlx"
@@ -87,41 +86,10 @@ func runInit(args *cli.InitArgs) {
 }
 
 func start(args *cli.StartArgs) {
-	// Setup the logger
-	var level zapcore.Level
-	err := level.UnmarshalText([]byte(args.LogLevel))
+	err := log.Initialize(args.LogLevel)
 	if err != nil {
 		log.Fatalln(err)
 	}
-
-	// Create encoder config for JSON logging
-	encoderConfig := zap.NewProductionEncoderConfig()
-	encoder := zapcore.NewJSONEncoder(encoderConfig)
-
-	// Create stdout sink for info/debug/warn
-	stdoutSink := zapcore.Lock(zapcore.AddSync(os.Stdout))
-	stdoutCore := zapcore.NewCore(
-		encoder,
-		stdoutSink,
-		zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
-			return lvl >= level && lvl < zapcore.ErrorLevel
-		}),
-	)
-
-	// Create stderr sink for error/fatal
-	stderrSink := zapcore.Lock(zapcore.AddSync(os.Stderr))
-	stderrCore := zapcore.NewCore(
-		encoder,
-		stderrSink,
-		zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
-			return lvl >= zapcore.ErrorLevel
-		}),
-	)
-
-	// Combine cores with tee
-	core := zapcore.NewTee(stdoutCore, stderrCore)
-	logger := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1))
-	log.Setup(logger)
 
 	traceShutdown, err := tracing.InitTraceProvider("pacioli")
 	if err != nil {
