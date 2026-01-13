@@ -251,6 +251,7 @@ export async function passwordAction({ request }: ActionFunctionArgs) {
   const kratosFlowId = form.get('kratosFlowId') as string
   const kratosCsrfToken = form.get('csrf_token') as string
   const password = form.get('password') as string
+  const confirmPassword = form.get('confirm-password') as string
   const serviceAgreement = form.get('service-agreement') as string
   const firstName = form.get('firstName') as string
   const lastName = form.get('lastName') as string
@@ -269,6 +270,11 @@ export async function passwordAction({ request }: ActionFunctionArgs) {
 
   if (serviceAgreement == null) {
     errors.serviceAgreement = 'You are required to agree to continue.'
+    return error(request, { errors })
+  }
+
+  if (password !== confirmPassword) {
+    errors.password = 'Passwords do not match.'
     return error(request, { errors })
   }
 
