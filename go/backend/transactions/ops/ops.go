@@ -107,7 +107,7 @@ func createTransaction(ctx context.Context, dbc sqlx.ExecerContext, b Backends, 
 
 	err = b.Notify().NotifyWallet(ctx, args.WalletID, notify.NotificationTypeTransaction)
 	if err != nil {
-		log.Warn("notify error", zap.Error(err))
+		log.Warn("error sending notification", zap.Error(err))
 	}
 
 	fee := args.ProviderFee
