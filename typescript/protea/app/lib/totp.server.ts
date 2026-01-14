@@ -170,10 +170,15 @@ export async function recoveryLinkSessionInvalidationGuard(pathname: string, req
   const session = await getUserSession(request)
   console.log(`[recoveryLinkSessionInvalidationGuard] path: ${pathname} session`, session)
 
-  const isLinkRecoverySession = !!session.authentication_methods?.find((method) => method.method === 'link_recovery')
+  const isLinkRecoverySession = !!session.authentication_methods?.some((method: any) => method.method === 'link_recovery')
   console.log(`[recoveryLinkSessionInvalidationGuard] path: ${pathname} isLinkRecoverySession`, isLinkRecoverySession)
+  
   if (isLinkRecoverySession) {
-    console.log(`[recoveryLinkSessionInvalidationGuard] path: ${pathname} redirecting to login`)
-    throw redirect('/login')
+    console.log(`[recoveryLinkSessionInvalidationGuard] path: ${pathname} redirecting to login and clearing session`)
+    throw redirect('/login', {
+      headers: {
+        'Set-Cookie': 'ory_kratos_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax'
+      }
+    })
   }
 }

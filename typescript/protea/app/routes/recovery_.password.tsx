@@ -187,8 +187,19 @@ export async function action({ request }: ActionFunctionArgs) {
     return error(request, { errors: errs })
   }
 
-  return redirectWithSnackbar(request, route('/settings'), {
-    message: 'New password successfully saved.',
-    icon: 'close'
-  })
+  return redirectWithSnackbar(
+    request,
+    route('/login'),
+    {
+      message:
+        'New password successfully saved. Please log in with your new password.',
+      icon: 'close'
+    },
+    {
+      headers: {
+        'Set-Cookie':
+          'ory_kratos_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax'
+      }
+    }
+  )
 }
