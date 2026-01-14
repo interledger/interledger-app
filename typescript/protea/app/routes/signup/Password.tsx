@@ -134,8 +134,8 @@ export function Password() {
         />
         <TextField
           id='confirm-password'
-          label='Password'
-          name='confirmPpassword'
+          label='Confirm Password'
+          name='confirm-password'
           form='signup-password'
           type='password'
           className='mt-2'
