@@ -136,7 +136,7 @@ export default function Page() {
         <TextField
           id='confirm-new-password'
           form='recovery-password'
-          label='Confifm password'
+          label='Confifm New Password'
           name='confirm-new-password'
           type='password'
           className='mt-2'
