@@ -5,7 +5,7 @@ import { SignupStep, useSignupStore } from '~/lib/useSignupStore'
 
 export function Phone() {
   // const otpFetcher = useFetcher<typeof sendOtpAction>()
-  const [phonNumber, setPhoneNumber] = useState<string>('')
+  const [phoneNumber, setPhoneNumber] = useState<string>('')
   const [country, countries, phone, setPhone, setStep] = useSignupStore(
     (state) => [
       state.country,
@@ -38,7 +38,7 @@ export function Phone() {
             options={countries as PhoneAutocompleteOptions[]}
             label='Mobile number'
             className='mt-2'
-            onKeyUp={(event) => {
+            onInput={(event) => {
               setPhoneNumber(event.currentTarget.value)
             }}
             required
@@ -53,7 +53,7 @@ export function Phone() {
       {!phone && (
         <Button
           onClick={() => {
-            setPhone(phonNumber)
+            setPhone(phoneNumber)
             setStep(SignupStep.PASSWORD)
           }}
         >
