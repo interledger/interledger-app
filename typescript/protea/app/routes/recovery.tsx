@@ -145,12 +145,12 @@ export async function action({ request }: ActionFunctionArgs) {
     form: '',
     email: ''
   }
-  const key = getKey(RateLimitKeys.RecoveryEmail, email.toString())
-  const rateError = await rateLimit(key)
-  if (rateError) {
-    fieldErrors.form = rateError
-    return error(request, { errors: fieldErrors })
-  }
+  // const key = getKey(RateLimitKeys.RecoveryEmail, email.toString())
+  // const rateError = await rateLimit(key)
+  // if (rateError) {
+  //   fieldErrors.form = rateError
+  //   return error(request, { errors: fieldErrors })
+  // }
 
   const res = await fetch(
     `${KRATOS_URL}/self-service/recovery?flow=${flowId}`,

@@ -176,9 +176,13 @@ export async function action({ request }: ActionFunctionArgs) {
       }
     }
   )
-  const data = await res.json()
-  if (res.status > 400) handleFlowError(data, 'recovery/password')
+  if (res.status > 400) {
+    const data = await res.json()
+    console.log("[recovery pass]: more than 400 data:", data)
+    handleFlowError(data, 'recovery/password')
+  }
   else if (res.status == 400) {
+    console.log("[recovery pass]: 400")
     const errs = await kratosErrorMapping(res, fieldErrors)
     return error(request, { errors: errs })
   }

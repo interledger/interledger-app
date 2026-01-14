@@ -16,6 +16,13 @@ export const NON_FULL_SESSION_ROUTES = [
   '/verify'
 ]
 
+const PASSWORD_RECOVERY_ALLOWED_ROUTES = [
+  '/login',
+  '/totp/challenge',
+  '/recovery',
+  '/recovery/password'
+]
+
 /**
  * Routes that can be accessed without verified email
  */
@@ -126,6 +133,7 @@ export async function emailVerificationGuard(
 
   // Request a session WITHOUT AAL2 redirect, so we dont get redirected
   const session = await getUserSession(request, true)
+  console.log("user session:", session)
   const identity = getSessionIdentity(session)
 
   if (!identity) {
@@ -150,4 +158,22 @@ export async function withAAL2Guard(pathname: string, request: Request, fn: () =
   }
 
   await fn();
+}
+
+export async function recoveryLinkSessionInvalidationGuard(pathname: string, request: Request) {
+  console.log(`[recoveryLinkSessionInvalidationGuard] path: ${pathname} : started`)
+  if (PASSWORD_RECOVERY_ALLOWED_ROUTES.includes(pathname)) {
+    console.log(`[recoveryLinkSessionInvalidationGuard] path: ${pathname}: passw recovery`)
+    return
+  }
+
+  const session = await getUserSession(request)
+  console.log(`[recoveryLinkSessionInvalidationGuard] path: ${pathname} session`, session)
+
+  const isLinkRecoverySession = !!session.authentication_methods?.find((method) => method.method === 'link_recovery')
+  console.log(`[recoveryLinkSessionInvalidationGuard] path: ${pathname} isLinkRecoverySession`, isLinkRecoverySession)
+  if (isLinkRecoverySession) {
+    console.log(`[recoveryLinkSessionInvalidationGuard] path: ${pathname} redirecting to login`)
+    throw redirect('/login')
+  }
 }
