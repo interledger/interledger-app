@@ -28,7 +28,7 @@ export type TotpAction =
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
-  const returnTo = url.searchParams.get('returnTo')
+  const returnTo = url.searchParams.get('returnTo') ?? encodeURIComponent('/')
   const cookie = String(request.headers.get('cookie'))
   const refresh = url.searchParams.get('refresh')
   if (!flowId) {
@@ -59,7 +59,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     }
 
     return redirect(
-      `/totp/challenge?flow=${flowFromRedirect}&returnTo=${returnTo ?? '/'}`
+      `/totp/challenge?flow=${flowFromRedirect}&returnTo=${returnTo}`
     )
   }
   const kratosFlow = await fetch(

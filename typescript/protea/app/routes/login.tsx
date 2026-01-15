@@ -172,7 +172,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const email = form.get('email')
   const password = form.get('password')
   const flowId = form.get('flow_id')
-  const returnTo = form.get('returnTo')?.toString()
+  const returnTo = form.get('returnTo')?.toString() ?? '/'
 
   const fieldErrors = {
     form: '',
@@ -214,9 +214,12 @@ export async function action({ request }: ActionFunctionArgs) {
   const headers = trimHeaders(res.headers, ['set-cookie'])
 
   if (res.status === 422) {
-    return redirect('/totp/challenge?returnTo=' + returnTo || '/', {
-      headers
-    })
+    return redirect(
+      '/totp/challenge?returnTo=' + encodeURIComponent(returnTo),
+      {
+        headers
+      }
+    )
   }
 
   try {
@@ -224,7 +227,8 @@ export async function action({ request }: ActionFunctionArgs) {
     const checkTOTP = await responseCopy.json()
     if (checkTOTP?.session?.authenticator_assurance_level === 'aal1') {
       return redirect(
-        '/totp/two-factor-authentication?returnTo=' + returnTo || '/',
+        '/totp/two-factor-authentication?returnTo=' +
+          encodeURIComponent(returnTo),
         {
           headers
         }
