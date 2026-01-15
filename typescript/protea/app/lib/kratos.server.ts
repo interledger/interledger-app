@@ -117,7 +117,6 @@ export function handleFlowError(
   flowId?: string
 ): void {
   let redirectRoute = `/${flowType}`
-  console.log("[kratos server ts] flow.error.id: ", flow.error.id)
 
   switch (flow.error.id) {
     case 'session_inactive':
