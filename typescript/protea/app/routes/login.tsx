@@ -32,6 +32,7 @@ import {
   requireNoUserSession
 } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
+import { safeReturnTo } from '~/lib/url.server'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   await requireNoUserSession(request)
@@ -65,11 +66,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
     headers = trimHeaders(flowRes.headers, ['set-cookie'])
   }
 
-  const returnTo = url.searchParams.get('returnTo')
-
   return json(
     {
-      returnTo: returnTo ?? flow.ui.returnTo,
       flowId: flow.id,
       csrfToken: getCsrfTokenFromFlow(flow)
     },
@@ -94,7 +92,7 @@ export const meta: MetaFunction = mergeMeta(() => [
 
 export default function Page() {
   const actionData = useActionData<typeof action>()
-  const { csrfToken, flowId, returnTo } = useLoaderData<typeof loader>()
+  const { csrfToken, flowId } = useLoaderData<typeof loader>()
   const searchParams = useSearchParams()
 
   return (
@@ -112,12 +110,6 @@ export default function Page() {
         type='hidden'
       />
       <input form='login' defaultValue={flowId} name='flow_id' type='hidden' />
-      <input
-        form='login'
-        defaultValue={returnTo}
-        name='returnTo'
-        type='hidden'
-      />
       <Card>
         <CardHeader>
           <CardTitle>Log in</CardTitle>
@@ -172,7 +164,13 @@ export async function action({ request }: ActionFunctionArgs) {
   const email = form.get('email')
   const password = form.get('password')
   const flowId = form.get('flow_id')
-  const returnTo = form.get('returnTo')?.toString() ?? '/'
+
+  // Theoretically, this should 100% safe, since in Remix `request.url` should
+  // always be a valid URL.
+  const requestUrl = new URL(request.url)
+  const returnTo = safeReturnTo(requestUrl.searchParams.get('returnTo'))
+  const searchParams = new URLSearchParams()
+  searchParams.set('returnTo', returnTo)
 
   const fieldErrors = {
     form: '',
@@ -214,12 +212,9 @@ export async function action({ request }: ActionFunctionArgs) {
   const headers = trimHeaders(res.headers, ['set-cookie'])
 
   if (res.status === 422) {
-    return redirect(
-      '/totp/challenge?returnTo=' + encodeURIComponent(returnTo),
-      {
-        headers
-      }
-    )
+    return redirect(`${route('/totp/challenge')}?${searchParams.toString()}`, {
+      headers
+    })
   }
 
   try {
@@ -227,8 +222,9 @@ export async function action({ request }: ActionFunctionArgs) {
     const checkTOTP = await responseCopy.json()
     if (checkTOTP?.session?.authenticator_assurance_level === 'aal1') {
       return redirect(
-        '/totp/two-factor-authentication?returnTo=' +
-          encodeURIComponent(returnTo),
+        `${route(
+          '/totp/two-factor-authentication'
+        )}?${searchParams.toString()}`,
         {
           headers
         }

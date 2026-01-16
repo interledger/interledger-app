@@ -9,6 +9,7 @@ import type {
 } from '@ory/kratos-client'
 import { redirect } from '@remix-run/node'
 import { route } from 'routes-gen'
+import { safeReturnTo } from './url.server'
 
 // Export to ensure this is always evaluated server side.
 export const KRATOS_URL = process.env.KRATOS_URL
@@ -49,19 +50,19 @@ export async function getUserSession(
   })
 
   const requestUrl = new URL(request.url)
-  const returnTo = encodeURIComponent(requestUrl.pathname + requestUrl.search)
-  const loginUrl = new URL(route('/login'), requestUrl.origin)
-  loginUrl.searchParams.set('returnTo', returnTo)
+  const returnTo = safeReturnTo(requestUrl.pathname + requestUrl.search)
+  const searchParams = new URLSearchParams()
+  searchParams.set('returnTo', returnTo)
 
   switch (session.status) {
     case 401:
     case 500:
-      throw redirect(route('/login') + loginUrl.search)
+      throw redirect(`${route('/login')}?${searchParams.toString()}`)
     case 403:
     case 422: // Need to complete 2FA.
       if (!allowAal1) {
         requestUrl.searchParams.set('aal', 'aal2')
-        throw redirect(route('/login') + loginUrl.search)
+        throw redirect(`${route('/login')}?${searchParams.toString()}`)
       }
   }
 
