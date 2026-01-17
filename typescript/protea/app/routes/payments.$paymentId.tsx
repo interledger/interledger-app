@@ -42,40 +42,16 @@ import { usePusher } from '~/lib/usePusher'
 export async function loader({ request, params }: LoaderFunctionArgs) {
   let senderAccountTitle, receiverAccountTitle
 
-  console.log(`[payments.$paymentId] 🔍 Loading paymentId: ${params.paymentId}`)
-
   let userWalletAddress = ''
   const walletInfo = await grpc.getWalletInfo(request, {})
   if (!isConnectError(walletInfo)) {
     userWalletAddress = walletInfo.url
   }
 
-  let transaction: Transaction
-  if (params.paymentId === 'mock-wm-123') {
-    console.log(`[payments.$paymentId] 🎯 Intercepting mock-wm-123`)
-    transaction = new Transaction({
-      id: 'mock-wm-123',
-      type: 'web_monetization_outgoing',
-      title: 'Reproduction: Mock WM',
-      subtotal: '-$0.01',
-      formattedAmount: '$0.01',
-      formattedDate: 'Jan 16, 2026',
-      formattedTime: '10:00 AM',
-      state: 'Completed',
-      destination: 'https://wallet.interledger.foundation/mock-recipient',
-      source: userWalletAddress,
-      timestamp: Timestamp.fromDate(new Date())
-    })
-  } else {
-    const lookupResult = await grpc.lookupTransaction(request, {
-      id: params.paymentId as string
-    })
-    if (isConnectError(lookupResult)) {
-      console.error(`[payments.$paymentId] ❌ Transaction lookup failed:`, lookupResult)
-      throw lookupResult.errorResponse
-    }
-    transaction = lookupResult
-  }
+  const transaction = await grpc.lookupTransaction(request, {
+    id: params.paymentId as string
+  })
+  if (isConnectError(transaction)) throw transaction.errorResponse
 
   if (transaction.type == 'withdrawal' || transaction.type == 'deposit') {
     const linkedAccountsResponse = await grpc.getLinkedAccounts(request, {})
@@ -93,30 +69,11 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     transaction.type == 'sent' || transaction.type == 'web_monetization_outgoing'
       ? transaction.destination
       : transaction.source
+  const publicWalletInfoResponse = await grpc.getPublicWalletInfo(request, {
+    walletAddress: walletUrl
+  })
 
   let publicWalletInfo: PlainMessage<PublicWalletInfo>
-
-  const publicWalletInfoResponse =
-    walletUrl === 'https://wallet.interledger.foundation/mock-recipient'
-      ? await Promise.resolve({
-          walletID: 'mock-bob-id',
-          address: 'https://x.wallet',
-          shortAddress: 'mock-recipient',
-          publicName: 'Mock Bob Recipient',
-          identities: [
-            {
-              id: '1',
-              platform: 'twitter',
-              identifier: '@mockbob',
-              state: 'verified'
-            }
-          ],
-          canReceive: true
-        } as PlainMessage<PublicWalletInfo>)
-      : await grpc.getPublicWalletInfo(request, {
-          walletAddress: walletUrl
-        })
-
   if (isConnectError(publicWalletInfoResponse)) {
     publicWalletInfo = {
       walletID: 'not-found',
