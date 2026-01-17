@@ -15,11 +15,14 @@ import {
   TextButton
 } from '~/components'
 import { getWalletInfo } from '~/data/wallet.server'
+import { getUserSession } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
 import type { Amount } from '~/lib/rafikiauth'
 import { consent, getInteraction } from '~/lib/rafikiauth'
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  await getUserSession(request)
+
   const url = new URL(request.url)
   let interactId = url.searchParams.get('interactId') || ''
   let nonce = url.searchParams.get('nonce') || ''
