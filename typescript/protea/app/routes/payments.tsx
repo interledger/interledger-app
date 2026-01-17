@@ -34,7 +34,8 @@ import {
 } from '~/components'
 import { Label } from '~/components/Label'
 import { getKycStatus, getTransactionsWithPending } from '~/data/wallet.server'
-import type { Transaction } from '~/generated/connect/backend/v1/backend_pb'
+import { Amount, Transaction } from '~/generated/connect/backend/v1/backend_pb'
+import { Timestamp } from '@bufbuild/protobuf'
 import { grpc } from '~/lib/grpc.server'
 
 import { isConnectError } from '~/lib/error.server'
@@ -85,6 +86,22 @@ export async function loader({ request }: LoaderFunctionArgs) {
     allTransactions = [...allTransactions, ...transactions]
     if (nextPageToken == '') break
   }
+
+  const mockWebMon = new Transaction({
+    id: 'mock-wm-123',
+    type: 'web_monetization_outgoing',
+    title: 'Reproduction: Mock WM',
+    subtotal: '-$0.01',
+    formattedAmount: '$0.01',
+    formattedDate: 'Jan 16, 2026',
+    formattedTime: '10:00 AM',
+    state: 'Completed',
+    destination: 'https://wallet.interledger.foundation/mock-recipient',
+    source: 'https://wallet.interledger.foundation/antoniu', // This can be anything now that the fix is in
+    timestamp: Timestamp.fromDate(new Date())
+  })
+
+  allTransactions = [mockWebMon, ...allTransactions]
 
   const dateGroupedTransactions = Object.values(
     [...allTransactions].reduce<{

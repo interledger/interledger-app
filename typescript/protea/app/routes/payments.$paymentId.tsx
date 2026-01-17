@@ -4,6 +4,7 @@ import { json } from '@remix-run/node'
 import type { UIMatch } from '@remix-run/react'
 import { Link, useLoaderData } from '@remix-run/react'
 import { useState } from 'react'
+import { Timestamp } from '@bufbuild/protobuf'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import {
@@ -31,7 +32,7 @@ import {
   WebMoLogo
 } from '~/components'
 import { Label } from '~/components/Label'
-import type { PublicWalletInfo } from '~/generated/connect/backend/v1/backend_pb'
+import { Transaction, type PublicWalletInfo } from '~/generated/connect/backend/v1/backend_pb'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
@@ -41,11 +42,40 @@ import { usePusher } from '~/lib/usePusher'
 export async function loader({ request, params }: LoaderFunctionArgs) {
   let senderAccountTitle, receiverAccountTitle
 
-  const transaction = await grpc.lookupTransaction(request, {
-    id: params.paymentId as string
-  })
+  console.log(`[payments.$paymentId] 🔍 Loading paymentId: ${params.paymentId}`)
 
-  if (isConnectError(transaction)) throw transaction.errorResponse
+  let userWalletAddress = ''
+  const walletInfo = await grpc.getWalletInfo(request, {})
+  if (!isConnectError(walletInfo)) {
+    userWalletAddress = walletInfo.url
+  }
+
+  let transaction: Transaction
+  if (params.paymentId === 'mock-wm-123') {
+    console.log(`[payments.$paymentId] 🎯 Intercepting mock-wm-123`)
+    transaction = new Transaction({
+      id: 'mock-wm-123',
+      type: 'web_monetization_outgoing',
+      title: 'Reproduction: Mock WM',
+      subtotal: '-$0.01',
+      formattedAmount: '$0.01',
+      formattedDate: 'Jan 16, 2026',
+      formattedTime: '10:00 AM',
+      state: 'Completed',
+      destination: 'https://wallet.interledger.foundation/mock-recipient',
+      source: userWalletAddress,
+      timestamp: Timestamp.fromDate(new Date())
+    })
+  } else {
+    const lookupResult = await grpc.lookupTransaction(request, {
+      id: params.paymentId as string
+    })
+    if (isConnectError(lookupResult)) {
+      console.error(`[payments.$paymentId] ❌ Transaction lookup failed:`, lookupResult)
+      throw lookupResult.errorResponse
+    }
+    transaction = lookupResult
+  }
 
   if (transaction.type == 'withdrawal' || transaction.type == 'deposit') {
     const linkedAccountsResponse = await grpc.getLinkedAccounts(request, {})
@@ -60,13 +90,32 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   }
 
   const walletUrl =
-    transaction.type == 'sent' ? transaction.destination : transaction.source
+    transaction.type == 'sent' || transaction.type == 'web_monetization_outgoing'
+      ? transaction.destination
+      : transaction.source
 
   let publicWalletInfo: PlainMessage<PublicWalletInfo>
 
-  const publicWalletInfoResponse = await grpc.getPublicWalletInfo(request, {
-    walletAddress: walletUrl
-  })
+  const publicWalletInfoResponse =
+    walletUrl === 'https://wallet.interledger.foundation/mock-recipient'
+      ? await Promise.resolve({
+          walletID: 'mock-bob-id',
+          address: 'https://x.wallet',
+          shortAddress: 'mock-recipient',
+          publicName: 'Mock Bob Recipient',
+          identities: [
+            {
+              id: '1',
+              platform: 'twitter',
+              identifier: '@mockbob',
+              state: 'verified'
+            }
+          ],
+          canReceive: true
+        } as PlainMessage<PublicWalletInfo>)
+      : await grpc.getPublicWalletInfo(request, {
+          walletAddress: walletUrl
+        })
 
   if (isConnectError(publicWalletInfoResponse)) {
     publicWalletInfo = {
@@ -149,7 +198,7 @@ export const meta: MetaFunction<typeof loader> = mergeMeta(({ data }) => [
       typeof data == 'undefined'
         ? 'Payment'
         : // TODO Fix this for withdrawal
-        data.transaction.type == 'sent'
+        data.transaction.type == 'sent' || data.transaction.type == 'web_monetization_outgoing'
         ? `${data.transaction.subtotal} to ${data.transaction.title}`
         : `${data.transaction.formattedAmount} from ${data.transaction.title}`
   }
@@ -216,10 +265,16 @@ export default function Page() {
             <CardLink className='flex w-full' to={publicWalletInfo.address}>
               <div className='flex w-full items-center justify-between text-medium'>
                 <div className='flex space-x-2'>
-                  {identity.platform == 'twitter' && <TwitterIcon />}
-                  {identity.platform == 'linkedin' && <LinkedInIcon />}
-                  {identity.platform == 'discord' && <DiscordIcon />}
-                  {identity.platform == 'slack' && <SlackIcon />}
+                  {identity.platform.toLowerCase() == 'twitter' && (
+                    <TwitterIcon />
+                  )}
+                  {identity.platform.toLowerCase() == 'linkedin' && (
+                    <LinkedInIcon />
+                  )}
+                  {identity.platform.toLowerCase() == 'discord' && (
+                    <DiscordIcon />
+                  )}
+                  {identity.platform.toLowerCase() == 'slack' && <SlackIcon />}
                   <span>{identity.identifier}</span>
                 </div>
                 {identity.state == 'verified' && (
@@ -570,19 +625,16 @@ function Sent({ openDialog }: { openDialog: () => void }) {
         <CardButton noHover onClick={openDialog}>
           <div className='flex w-full items-center justify-between text-medium'>
             <div className='flex space-x-2'>
-              {transaction.destinationIdentityType === 'wallet' && (
-                <InterledgerIcon />
-              )}
-              {transaction.destinationIdentityType === 'linkedin' && (
-                <TwitterIcon />
-              )}
-              {transaction.destinationIdentityType === 'twitter' && (
-                <LinkedInIcon />
-              )}
-              {transaction.destinationIdentityType === 'discord' && (
-                <DiscordIcon />
-              )}
-              {transaction.destinationIdentityType === 'slack' && <SlackIcon />}
+              {transaction.destinationIdentityType.toLowerCase() ===
+                'wallet' && <InterledgerIcon />}
+              {transaction.destinationIdentityType.toLowerCase() ===
+                'twitter' && <TwitterIcon />}
+              {transaction.destinationIdentityType.toLowerCase() ===
+                'linkedin' && <LinkedInIcon />}
+              {transaction.destinationIdentityType.toLowerCase() ===
+                'discord' && <DiscordIcon />}
+              {transaction.destinationIdentityType.toLowerCase() ===
+                'slack' && <SlackIcon />}
               <span>{transaction.title}</span>
             </div>
             <Icon>navigate_next</Icon>
@@ -748,19 +800,16 @@ function Received({ openDialog }: { openDialog: () => void }) {
         <CardButton noHover onClick={openDialog}>
           <div className='flex w-full items-center justify-between text-medium'>
             <div className='flex space-x-2'>
-              {transaction.destinationIdentityType === 'wallet' && (
-                <InterledgerIcon />
-              )}
-              {transaction.destinationIdentityType === 'linkedin' && (
-                <TwitterIcon />
-              )}
-              {transaction.destinationIdentityType === 'twitter' && (
-                <LinkedInIcon />
-              )}
-              {transaction.destinationIdentityType === 'discord' && (
-                <DiscordIcon />
-              )}
-              {transaction.destinationIdentityType === 'slack' && <SlackIcon />}
+              {transaction.destinationIdentityType.toLowerCase() ===
+                'wallet' && <InterledgerIcon />}
+              {transaction.destinationIdentityType.toLowerCase() ===
+                'twitter' && <TwitterIcon />}
+              {transaction.destinationIdentityType.toLowerCase() ===
+                'linkedin' && <LinkedInIcon />}
+              {transaction.destinationIdentityType.toLowerCase() ===
+                'discord' && <DiscordIcon />}
+              {transaction.destinationIdentityType.toLowerCase() ===
+                'slack' && <SlackIcon />}
               <span>{transaction.title}</span>
             </div>
             <Icon>navigate_next</Icon>
