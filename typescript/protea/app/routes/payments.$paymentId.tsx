@@ -4,7 +4,6 @@ import { json } from '@remix-run/node'
 import type { UIMatch } from '@remix-run/react'
 import { Link, useLoaderData } from '@remix-run/react'
 import { useState } from 'react'
-import { Timestamp } from '@bufbuild/protobuf'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import {
@@ -32,7 +31,7 @@ import {
   WebMoLogo
 } from '~/components'
 import { Label } from '~/components/Label'
-import { Transaction, type PublicWalletInfo } from '~/generated/connect/backend/v1/backend_pb'
+import { type PublicWalletInfo } from '~/generated/connect/backend/v1/backend_pb'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
@@ -41,12 +40,6 @@ import { usePusher } from '~/lib/usePusher'
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   let senderAccountTitle, receiverAccountTitle
-
-  let userWalletAddress = ''
-  const walletInfo = await grpc.getWalletInfo(request, {})
-  if (!isConnectError(walletInfo)) {
-    userWalletAddress = walletInfo.url
-  }
 
   const transaction = await grpc.lookupTransaction(request, {
     id: params.paymentId as string

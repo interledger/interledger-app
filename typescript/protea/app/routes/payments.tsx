@@ -34,7 +34,7 @@ import {
 } from '~/components'
 import { Label } from '~/components/Label'
 import { getKycStatus, getTransactionsWithPending } from '~/data/wallet.server'
-import { Transaction } from '~/generated/connect/backend/v1/backend_pb'
+import type { Transaction } from '~/generated/connect/backend/v1/backend_pb'
 import { grpc } from '~/lib/grpc.server'
 
 import { isConnectError } from '~/lib/error.server'
