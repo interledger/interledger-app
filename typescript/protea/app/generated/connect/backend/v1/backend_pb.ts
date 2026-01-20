@@ -4637,55 +4637,6 @@ export class InitQuote3DSRequest extends Message<InitQuote3DSRequest> {
 }
 
 /**
- * @generated from message backend.v1.ConnectionLimits
- */
-export class ConnectionLimits extends Message<ConnectionLimits> {
-  /**
-   * @generated from field: backend.v1.Amount daily = 1;
-   */
-  daily?: Amount;
-
-  /**
-   * @generated from field: backend.v1.Amount monthly = 2;
-   */
-  monthly?: Amount;
-
-  /**
-   * @generated from field: backend.v1.Amount overall = 3;
-   */
-  overall?: Amount;
-
-  constructor(data?: PartialMessage<ConnectionLimits>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "backend.v1.ConnectionLimits";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "daily", kind: "message", T: Amount },
-    { no: 2, name: "monthly", kind: "message", T: Amount },
-    { no: 3, name: "overall", kind: "message", T: Amount },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConnectionLimits {
-    return new ConnectionLimits().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ConnectionLimits {
-    return new ConnectionLimits().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ConnectionLimits {
-    return new ConnectionLimits().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ConnectionLimits | PlainMessage<ConnectionLimits> | undefined, b: ConnectionLimits | PlainMessage<ConnectionLimits> | undefined): boolean {
-    return proto3.util.equals(ConnectionLimits, a, b);
-  }
-}
-
-/**
  * @generated from message backend.v1.Connection
  */
 export class Connection extends Message<Connection> {
@@ -4762,21 +4713,6 @@ export class CreateConnectionRequest extends Message<CreateConnectionRequest> {
    */
   publicKey = "";
 
-  /**
-   * @generated from field: backend.v1.Amount dailyLimit = 3;
-   */
-  dailyLimit?: Amount;
-
-  /**
-   * @generated from field: backend.v1.Amount monthlyLimit = 4;
-   */
-  monthlyLimit?: Amount;
-
-  /**
-   * @generated from field: backend.v1.Amount overallLimit = 5;
-   */
-  overallLimit?: Amount;
-
   constructor(data?: PartialMessage<CreateConnectionRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -4787,9 +4723,6 @@ export class CreateConnectionRequest extends Message<CreateConnectionRequest> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "applicationName", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "publicKey", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "dailyLimit", kind: "message", T: Amount },
-    { no: 4, name: "monthlyLimit", kind: "message", T: Amount },
-    { no: 5, name: "overallLimit", kind: "message", T: Amount },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateConnectionRequest {
@@ -4843,43 +4776,6 @@ export class GetConnectionRequest extends Message<GetConnectionRequest> {
 
   static equals(a: GetConnectionRequest | PlainMessage<GetConnectionRequest> | undefined, b: GetConnectionRequest | PlainMessage<GetConnectionRequest> | undefined): boolean {
     return proto3.util.equals(GetConnectionRequest, a, b);
-  }
-}
-
-/**
- * @generated from message backend.v1.GetConnectionLimitsRequest
- */
-export class GetConnectionLimitsRequest extends Message<GetConnectionLimitsRequest> {
-  /**
-   * @generated from field: string id = 1;
-   */
-  id = "";
-
-  constructor(data?: PartialMessage<GetConnectionLimitsRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "backend.v1.GetConnectionLimitsRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetConnectionLimitsRequest {
-    return new GetConnectionLimitsRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetConnectionLimitsRequest {
-    return new GetConnectionLimitsRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetConnectionLimitsRequest {
-    return new GetConnectionLimitsRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: GetConnectionLimitsRequest | PlainMessage<GetConnectionLimitsRequest> | undefined, b: GetConnectionLimitsRequest | PlainMessage<GetConnectionLimitsRequest> | undefined): boolean {
-    return proto3.util.equals(GetConnectionLimitsRequest, a, b);
   }
 }
 
@@ -4954,61 +4850,6 @@ export class ListConnectionsResponse extends Message<ListConnectionsResponse> {
 
   static equals(a: ListConnectionsResponse | PlainMessage<ListConnectionsResponse> | undefined, b: ListConnectionsResponse | PlainMessage<ListConnectionsResponse> | undefined): boolean {
     return proto3.util.equals(ListConnectionsResponse, a, b);
-  }
-}
-
-/**
- * @generated from message backend.v1.UpdateConnectionLimitsRequest
- */
-export class UpdateConnectionLimitsRequest extends Message<UpdateConnectionLimitsRequest> {
-  /**
-   * @generated from field: string id = 1;
-   */
-  id = "";
-
-  /**
-   * @generated from field: backend.v1.Amount daily = 2;
-   */
-  daily?: Amount;
-
-  /**
-   * @generated from field: backend.v1.Amount monthly = 3;
-   */
-  monthly?: Amount;
-
-  /**
-   * @generated from field: backend.v1.Amount overall = 4;
-   */
-  overall?: Amount;
-
-  constructor(data?: PartialMessage<UpdateConnectionLimitsRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "backend.v1.UpdateConnectionLimitsRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "daily", kind: "message", T: Amount },
-    { no: 3, name: "monthly", kind: "message", T: Amount },
-    { no: 4, name: "overall", kind: "message", T: Amount },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UpdateConnectionLimitsRequest {
-    return new UpdateConnectionLimitsRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): UpdateConnectionLimitsRequest {
-    return new UpdateConnectionLimitsRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): UpdateConnectionLimitsRequest {
-    return new UpdateConnectionLimitsRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: UpdateConnectionLimitsRequest | PlainMessage<UpdateConnectionLimitsRequest> | undefined, b: UpdateConnectionLimitsRequest | PlainMessage<UpdateConnectionLimitsRequest> | undefined): boolean {
-    return proto3.util.equals(UpdateConnectionLimitsRequest, a, b);
   }
 }
 
@@ -7224,43 +7065,6 @@ export class GetPublicWalletDetailsResponse extends Message<GetPublicWalletDetai
 }
 
 /**
- * @generated from message backend.v1.ListLimitsResponse
- */
-export class ListLimitsResponse extends Message<ListLimitsResponse> {
-  /**
-   * @generated from field: repeated backend.v1.ConfiguredLimit limits = 1;
-   */
-  limits: ConfiguredLimit[] = [];
-
-  constructor(data?: PartialMessage<ListLimitsResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "backend.v1.ListLimitsResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "limits", kind: "message", T: ConfiguredLimit, repeated: true },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListLimitsResponse {
-    return new ListLimitsResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListLimitsResponse {
-    return new ListLimitsResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListLimitsResponse {
-    return new ListLimitsResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ListLimitsResponse | PlainMessage<ListLimitsResponse> | undefined, b: ListLimitsResponse | PlainMessage<ListLimitsResponse> | undefined): boolean {
-    return proto3.util.equals(ListLimitsResponse, a, b);
-  }
-}
-
-/**
  * @generated from message backend.v1.ConfiguredLimit
  */
 export class ConfiguredLimit extends Message<ConfiguredLimit> {
@@ -7324,61 +7128,6 @@ export class ConfiguredLimit extends Message<ConfiguredLimit> {
 
   static equals(a: ConfiguredLimit | PlainMessage<ConfiguredLimit> | undefined, b: ConfiguredLimit | PlainMessage<ConfiguredLimit> | undefined): boolean {
     return proto3.util.equals(ConfiguredLimit, a, b);
-  }
-}
-
-/**
- * @generated from message backend.v1.UpdateClientLimitsRequest
- */
-export class UpdateClientLimitsRequest extends Message<UpdateClientLimitsRequest> {
-  /**
-   * @generated from field: string clientUrl = 1;
-   */
-  clientUrl = "";
-
-  /**
-   * @generated from field: backend.v1.Amount daily = 2;
-   */
-  daily?: Amount;
-
-  /**
-   * @generated from field: backend.v1.Amount monthly = 3;
-   */
-  monthly?: Amount;
-
-  /**
-   * @generated from field: backend.v1.Amount overall = 4;
-   */
-  overall?: Amount;
-
-  constructor(data?: PartialMessage<UpdateClientLimitsRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "backend.v1.UpdateClientLimitsRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "clientUrl", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "daily", kind: "message", T: Amount },
-    { no: 3, name: "monthly", kind: "message", T: Amount },
-    { no: 4, name: "overall", kind: "message", T: Amount },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UpdateClientLimitsRequest {
-    return new UpdateClientLimitsRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): UpdateClientLimitsRequest {
-    return new UpdateClientLimitsRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): UpdateClientLimitsRequest {
-    return new UpdateClientLimitsRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: UpdateClientLimitsRequest | PlainMessage<UpdateClientLimitsRequest> | undefined, b: UpdateClientLimitsRequest | PlainMessage<UpdateClientLimitsRequest> | undefined): boolean {
-    return proto3.util.equals(UpdateClientLimitsRequest, a, b);
   }
 }
 

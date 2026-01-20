@@ -8,18 +8,13 @@ import (
 	"strings"
 
 	"github.com/lestrrat-go/jwx/v2/jwk"
-	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/keys"
-	"gitlab.com/fynbos/backend/limits"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 )
 
 type validateCreateConnectionArgs struct {
 	ApplicationName string `validate:"required"`
 	PublicKey       string `validate:"required"`
-	DailyLimit      currency.Amount
-	MonthlyLimit    currency.Amount
-	OverallLimit    currency.Amount
 }
 
 func (s *rpcService) CreateConnection(
@@ -38,9 +33,6 @@ func (s *rpcService) CreateConnection(
 	err = s.b.Validator().StructCtx(ctx, validateCreateConnectionArgs{
 		ApplicationName: req.GetApplicationName(),
 		PublicKey:       req.GetPublicKey(),
-		DailyLimit:      currency.FromPB(req.GetDailyLimit()),
-		MonthlyLimit:    currency.FromPB(req.GetMonthlyLimit()),
-		OverallLimit:    currency.FromPB(req.GetOverallLimit()),
 	})
 	if err != nil {
 		return nil, toGRPCError(err)
@@ -75,15 +67,6 @@ func (s *rpcService) CreateConnection(
 		return nil, NewValidationError("kid", "kid is required for JWK")
 	}
 	key, err := s.b.Keys().AddPublicKey(ctx, wallet.ID, base64.RawURLEncoding.EncodeToString(nn), req.GetApplicationName(), keyID)
-	if err != nil {
-		return nil, toGRPCError(err)
-	}
-
-	err = s.b.Limits().UpdatePublicKeyLimits(ctx, wallet.ID, key.ID, limits.Limit{
-		Daily:   currency.FromPB(req.GetDailyLimit()),
-		Monthly: currency.FromPB(req.GetMonthlyLimit()),
-		Overall: currency.FromPB(req.GetOverallLimit()),
-	})
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
@@ -172,69 +155,6 @@ func (s *rpcService) GetConnection(ctx context.Context, req *backendv1.GetConnec
 		CreatedAt:            key.CreatedAt.Format("Jan 02, 2006"),
 		LastUsedAt:           "",
 	}, nil
-}
-
-func (s *rpcService) GetConnectionLimits(ctx context.Context, req *backendv1.GetConnectionLimitsRequest) (*backendv1.ConnectionLimits, error) {
-	_, err := s.b.Users().UserForContext(ctx)
-	if err != nil {
-		return nil, UnauthenticatedError("Unauthenticated.")
-	}
-
-	wallet, err := s.b.Wallets().ForContext(ctx)
-	if err != nil {
-		return nil, ForbiddenError("Unauthenticated.")
-	}
-
-	keyLimit, err := s.b.Limits().GetPublicKeyLimit(ctx, wallet.ID, req.GetId())
-	if err != nil {
-		return nil, toGRPCError(err)
-	}
-
-	return &backendv1.ConnectionLimits{
-		Daily:   keyLimit.Daily.ToPB(),
-		Monthly: keyLimit.Monthly.ToPB(),
-		Overall: keyLimit.Overall.ToPB(),
-	}, nil
-}
-
-type validateUpdateConnectionLimitArgs struct {
-	ID           string
-	DailyLimit   currency.Amount
-	MonthlyLimit currency.Amount
-	OverallLimit currency.Amount
-}
-
-func (s *rpcService) UpdateConnectionLimits(ctx context.Context, req *backendv1.UpdateConnectionLimitsRequest) (*backendv1.Empty, error) {
-	_, err := s.b.Users().UserForContext(ctx)
-	if err != nil {
-		return nil, UnauthenticatedError("Unauthenticated.")
-	}
-
-	wallet, err := s.b.Wallets().ForContext(ctx)
-	if err != nil {
-		return nil, ForbiddenError("Unauthenticated.")
-	}
-
-	err = s.b.Validator().StructCtx(ctx, validateUpdateConnectionLimitArgs{
-		ID:           req.GetId(),
-		DailyLimit:   currency.FromPB(req.GetDaily()),
-		MonthlyLimit: currency.FromPB(req.GetMonthly()),
-		OverallLimit: currency.FromPB(req.GetOverall()),
-	})
-	if err != nil {
-		return nil, toGRPCError(err)
-	}
-
-	err = s.b.Limits().UpdatePublicKeyLimits(ctx, wallet.ID, req.GetId(), limits.Limit{
-		Daily:   currency.FromPB(req.GetDaily()),
-		Monthly: currency.FromPB(req.GetMonthly()),
-		Overall: currency.FromPB(req.GetOverall()),
-	})
-	if err != nil {
-		return nil, toGRPCError(err)
-	}
-
-	return &backendv1.Empty{}, nil
 }
 
 func (s *rpcService) DeleteConnection(ctx context.Context, req *backendv1.DeleteConnectionRequest) (*backendv1.Empty, error) {

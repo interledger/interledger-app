@@ -1577,23 +1577,6 @@ export interface InitQuote3DSRequest {
     quoteID: string;
 }
 /**
- * @generated from protobuf message backend.v1.ConnectionLimits
- */
-export interface ConnectionLimits {
-    /**
-     * @generated from protobuf field: backend.v1.Amount daily = 1;
-     */
-    daily?: Amount;
-    /**
-     * @generated from protobuf field: backend.v1.Amount monthly = 2;
-     */
-    monthly?: Amount;
-    /**
-     * @generated from protobuf field: backend.v1.Amount overall = 3;
-     */
-    overall?: Amount;
-}
-/**
  * @generated from protobuf message backend.v1.Connection
  */
 export interface Connection {
@@ -1630,32 +1613,11 @@ export interface CreateConnectionRequest {
      * @generated from protobuf field: string publicKey = 2;
      */
     publicKey: string; // pem encoded ed25519 public key
-    /**
-     * @generated from protobuf field: backend.v1.Amount dailyLimit = 3;
-     */
-    dailyLimit?: Amount;
-    /**
-     * @generated from protobuf field: backend.v1.Amount monthlyLimit = 4;
-     */
-    monthlyLimit?: Amount;
-    /**
-     * @generated from protobuf field: backend.v1.Amount overallLimit = 5;
-     */
-    overallLimit?: Amount;
 }
 /**
  * @generated from protobuf message backend.v1.GetConnectionRequest
  */
 export interface GetConnectionRequest {
-    /**
-     * @generated from protobuf field: string id = 1;
-     */
-    id: string;
-}
-/**
- * @generated from protobuf message backend.v1.GetConnectionLimitsRequest
- */
-export interface GetConnectionLimitsRequest {
     /**
      * @generated from protobuf field: string id = 1;
      */
@@ -1678,27 +1640,6 @@ export interface ListConnectionsResponse {
      * @generated from protobuf field: repeated backend.v1.Connection keys = 1;
      */
     keys: Connection[];
-}
-/**
- * @generated from protobuf message backend.v1.UpdateConnectionLimitsRequest
- */
-export interface UpdateConnectionLimitsRequest {
-    /**
-     * @generated from protobuf field: string id = 1;
-     */
-    id: string;
-    /**
-     * @generated from protobuf field: backend.v1.Amount daily = 2;
-     */
-    daily?: Amount;
-    /**
-     * @generated from protobuf field: backend.v1.Amount monthly = 3;
-     */
-    monthly?: Amount;
-    /**
-     * @generated from protobuf field: backend.v1.Amount overall = 4;
-     */
-    overall?: Amount;
 }
 /**
  * @generated from protobuf message backend.v1.Transfer
@@ -2434,15 +2375,6 @@ export interface GetPublicWalletDetailsResponse {
     publicName: string;
 }
 /**
- * @generated from protobuf message backend.v1.ListLimitsResponse
- */
-export interface ListLimitsResponse {
-    /**
-     * @generated from protobuf field: repeated backend.v1.ConfiguredLimit limits = 1;
-     */
-    limits: ConfiguredLimit[];
-}
-/**
  * @generated from protobuf message backend.v1.ConfiguredLimit
  */
 export interface ConfiguredLimit {
@@ -2468,27 +2400,6 @@ export interface ConfiguredLimit {
     monthly?: Amount;
     /**
      * @generated from protobuf field: backend.v1.Amount overall = 6;
-     */
-    overall?: Amount;
-}
-/**
- * @generated from protobuf message backend.v1.UpdateClientLimitsRequest
- */
-export interface UpdateClientLimitsRequest {
-    /**
-     * @generated from protobuf field: string clientUrl = 1;
-     */
-    clientUrl: string;
-    /**
-     * @generated from protobuf field: backend.v1.Amount daily = 2;
-     */
-    daily?: Amount;
-    /**
-     * @generated from protobuf field: backend.v1.Amount monthly = 3;
-     */
-    monthly?: Amount;
-    /**
-     * @generated from protobuf field: backend.v1.Amount overall = 4;
      */
     overall?: Amount;
 }
@@ -8386,67 +8297,6 @@ class InitQuote3DSRequest$Type extends MessageType<InitQuote3DSRequest> {
  */
 export const InitQuote3DSRequest = new InitQuote3DSRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class ConnectionLimits$Type extends MessageType<ConnectionLimits> {
-    constructor() {
-        super("backend.v1.ConnectionLimits", [
-            { no: 1, name: "daily", kind: "message", T: () => Amount },
-            { no: 2, name: "monthly", kind: "message", T: () => Amount },
-            { no: 3, name: "overall", kind: "message", T: () => Amount }
-        ]);
-    }
-    create(value?: PartialMessage<ConnectionLimits>): ConnectionLimits {
-        const message = {};
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<ConnectionLimits>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ConnectionLimits): ConnectionLimits {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* backend.v1.Amount daily */ 1:
-                    message.daily = Amount.internalBinaryRead(reader, reader.uint32(), options, message.daily);
-                    break;
-                case /* backend.v1.Amount monthly */ 2:
-                    message.monthly = Amount.internalBinaryRead(reader, reader.uint32(), options, message.monthly);
-                    break;
-                case /* backend.v1.Amount overall */ 3:
-                    message.overall = Amount.internalBinaryRead(reader, reader.uint32(), options, message.overall);
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: ConnectionLimits, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* backend.v1.Amount daily = 1; */
-        if (message.daily)
-            Amount.internalBinaryWrite(message.daily, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
-        /* backend.v1.Amount monthly = 2; */
-        if (message.monthly)
-            Amount.internalBinaryWrite(message.monthly, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
-        /* backend.v1.Amount overall = 3; */
-        if (message.overall)
-            Amount.internalBinaryWrite(message.overall, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message backend.v1.ConnectionLimits
- */
-export const ConnectionLimits = new ConnectionLimits$Type();
-// @generated message type with reflection information, may provide speed optimized methods
 class Connection$Type extends MessageType<Connection> {
     constructor() {
         super("backend.v1.Connection", [
@@ -8526,10 +8376,7 @@ class CreateConnectionRequest$Type extends MessageType<CreateConnectionRequest> 
     constructor() {
         super("backend.v1.CreateConnectionRequest", [
             { no: 1, name: "applicationName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "publicKey", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "dailyLimit", kind: "message", T: () => Amount },
-            { no: 4, name: "monthlyLimit", kind: "message", T: () => Amount },
-            { no: 5, name: "overallLimit", kind: "message", T: () => Amount }
+            { no: 2, name: "publicKey", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<CreateConnectionRequest>): CreateConnectionRequest {
@@ -8550,15 +8397,6 @@ class CreateConnectionRequest$Type extends MessageType<CreateConnectionRequest> 
                 case /* string publicKey */ 2:
                     message.publicKey = reader.string();
                     break;
-                case /* backend.v1.Amount dailyLimit */ 3:
-                    message.dailyLimit = Amount.internalBinaryRead(reader, reader.uint32(), options, message.dailyLimit);
-                    break;
-                case /* backend.v1.Amount monthlyLimit */ 4:
-                    message.monthlyLimit = Amount.internalBinaryRead(reader, reader.uint32(), options, message.monthlyLimit);
-                    break;
-                case /* backend.v1.Amount overallLimit */ 5:
-                    message.overallLimit = Amount.internalBinaryRead(reader, reader.uint32(), options, message.overallLimit);
-                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -8577,15 +8415,6 @@ class CreateConnectionRequest$Type extends MessageType<CreateConnectionRequest> 
         /* string publicKey = 2; */
         if (message.publicKey !== "")
             writer.tag(2, WireType.LengthDelimited).string(message.publicKey);
-        /* backend.v1.Amount dailyLimit = 3; */
-        if (message.dailyLimit)
-            Amount.internalBinaryWrite(message.dailyLimit, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
-        /* backend.v1.Amount monthlyLimit = 4; */
-        if (message.monthlyLimit)
-            Amount.internalBinaryWrite(message.monthlyLimit, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
-        /* backend.v1.Amount overallLimit = 5; */
-        if (message.overallLimit)
-            Amount.internalBinaryWrite(message.overallLimit, writer.tag(5, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -8643,53 +8472,6 @@ class GetConnectionRequest$Type extends MessageType<GetConnectionRequest> {
  * @generated MessageType for protobuf message backend.v1.GetConnectionRequest
  */
 export const GetConnectionRequest = new GetConnectionRequest$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class GetConnectionLimitsRequest$Type extends MessageType<GetConnectionLimitsRequest> {
-    constructor() {
-        super("backend.v1.GetConnectionLimitsRequest", [
-            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
-        ]);
-    }
-    create(value?: PartialMessage<GetConnectionLimitsRequest>): GetConnectionLimitsRequest {
-        const message = { id: "" };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<GetConnectionLimitsRequest>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetConnectionLimitsRequest): GetConnectionLimitsRequest {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string id */ 1:
-                    message.id = reader.string();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: GetConnectionLimitsRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string id = 1; */
-        if (message.id !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.id);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message backend.v1.GetConnectionLimitsRequest
- */
-export const GetConnectionLimitsRequest = new GetConnectionLimitsRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class DeleteConnectionRequest$Type extends MessageType<DeleteConnectionRequest> {
     constructor() {
@@ -8784,74 +8566,6 @@ class ListConnectionsResponse$Type extends MessageType<ListConnectionsResponse> 
  * @generated MessageType for protobuf message backend.v1.ListConnectionsResponse
  */
 export const ListConnectionsResponse = new ListConnectionsResponse$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class UpdateConnectionLimitsRequest$Type extends MessageType<UpdateConnectionLimitsRequest> {
-    constructor() {
-        super("backend.v1.UpdateConnectionLimitsRequest", [
-            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "daily", kind: "message", T: () => Amount },
-            { no: 3, name: "monthly", kind: "message", T: () => Amount },
-            { no: 4, name: "overall", kind: "message", T: () => Amount }
-        ]);
-    }
-    create(value?: PartialMessage<UpdateConnectionLimitsRequest>): UpdateConnectionLimitsRequest {
-        const message = { id: "" };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<UpdateConnectionLimitsRequest>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: UpdateConnectionLimitsRequest): UpdateConnectionLimitsRequest {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string id */ 1:
-                    message.id = reader.string();
-                    break;
-                case /* backend.v1.Amount daily */ 2:
-                    message.daily = Amount.internalBinaryRead(reader, reader.uint32(), options, message.daily);
-                    break;
-                case /* backend.v1.Amount monthly */ 3:
-                    message.monthly = Amount.internalBinaryRead(reader, reader.uint32(), options, message.monthly);
-                    break;
-                case /* backend.v1.Amount overall */ 4:
-                    message.overall = Amount.internalBinaryRead(reader, reader.uint32(), options, message.overall);
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: UpdateConnectionLimitsRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string id = 1; */
-        if (message.id !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.id);
-        /* backend.v1.Amount daily = 2; */
-        if (message.daily)
-            Amount.internalBinaryWrite(message.daily, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
-        /* backend.v1.Amount monthly = 3; */
-        if (message.monthly)
-            Amount.internalBinaryWrite(message.monthly, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
-        /* backend.v1.Amount overall = 4; */
-        if (message.overall)
-            Amount.internalBinaryWrite(message.overall, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message backend.v1.UpdateConnectionLimitsRequest
- */
-export const UpdateConnectionLimitsRequest = new UpdateConnectionLimitsRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class Transfer$Type extends MessageType<Transfer> {
     constructor() {
@@ -11573,53 +11287,6 @@ class GetPublicWalletDetailsResponse$Type extends MessageType<GetPublicWalletDet
  */
 export const GetPublicWalletDetailsResponse = new GetPublicWalletDetailsResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class ListLimitsResponse$Type extends MessageType<ListLimitsResponse> {
-    constructor() {
-        super("backend.v1.ListLimitsResponse", [
-            { no: 1, name: "limits", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => ConfiguredLimit }
-        ]);
-    }
-    create(value?: PartialMessage<ListLimitsResponse>): ListLimitsResponse {
-        const message = { limits: [] };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<ListLimitsResponse>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ListLimitsResponse): ListLimitsResponse {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* repeated backend.v1.ConfiguredLimit limits */ 1:
-                    message.limits.push(ConfiguredLimit.internalBinaryRead(reader, reader.uint32(), options));
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: ListLimitsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* repeated backend.v1.ConfiguredLimit limits = 1; */
-        for (let i = 0; i < message.limits.length; i++)
-            ConfiguredLimit.internalBinaryWrite(message.limits[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message backend.v1.ListLimitsResponse
- */
-export const ListLimitsResponse = new ListLimitsResponse$Type();
-// @generated message type with reflection information, may provide speed optimized methods
 class ConfiguredLimit$Type extends MessageType<ConfiguredLimit> {
     constructor() {
         super("backend.v1.ConfiguredLimit", [
@@ -11701,74 +11368,6 @@ class ConfiguredLimit$Type extends MessageType<ConfiguredLimit> {
  * @generated MessageType for protobuf message backend.v1.ConfiguredLimit
  */
 export const ConfiguredLimit = new ConfiguredLimit$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class UpdateClientLimitsRequest$Type extends MessageType<UpdateClientLimitsRequest> {
-    constructor() {
-        super("backend.v1.UpdateClientLimitsRequest", [
-            { no: 1, name: "clientUrl", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "daily", kind: "message", T: () => Amount },
-            { no: 3, name: "monthly", kind: "message", T: () => Amount },
-            { no: 4, name: "overall", kind: "message", T: () => Amount }
-        ]);
-    }
-    create(value?: PartialMessage<UpdateClientLimitsRequest>): UpdateClientLimitsRequest {
-        const message = { clientUrl: "" };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<UpdateClientLimitsRequest>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: UpdateClientLimitsRequest): UpdateClientLimitsRequest {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string clientUrl */ 1:
-                    message.clientUrl = reader.string();
-                    break;
-                case /* backend.v1.Amount daily */ 2:
-                    message.daily = Amount.internalBinaryRead(reader, reader.uint32(), options, message.daily);
-                    break;
-                case /* backend.v1.Amount monthly */ 3:
-                    message.monthly = Amount.internalBinaryRead(reader, reader.uint32(), options, message.monthly);
-                    break;
-                case /* backend.v1.Amount overall */ 4:
-                    message.overall = Amount.internalBinaryRead(reader, reader.uint32(), options, message.overall);
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: UpdateClientLimitsRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string clientUrl = 1; */
-        if (message.clientUrl !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.clientUrl);
-        /* backend.v1.Amount daily = 2; */
-        if (message.daily)
-            Amount.internalBinaryWrite(message.daily, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
-        /* backend.v1.Amount monthly = 3; */
-        if (message.monthly)
-            Amount.internalBinaryWrite(message.monthly, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
-        /* backend.v1.Amount overall = 4; */
-        if (message.overall)
-            Amount.internalBinaryWrite(message.overall, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message backend.v1.UpdateClientLimitsRequest
- */
-export const UpdateClientLimitsRequest = new UpdateClientLimitsRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class Contact$Type extends MessageType<Contact> {
     constructor() {
@@ -13327,13 +12926,9 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "ListTransactionsWithPending", options: {}, I: PaginationRequest, O: ListTransactionsResponse },
     { name: "LookupTransaction", options: {}, I: LookupTransactionRequest, O: Transaction },
     { name: "ListPendingWebMonetization", options: {}, I: Empty, O: ListTransactionsResponse },
-    { name: "ListLimits", options: {}, I: Empty, O: ListLimitsResponse },
-    { name: "UpdateClientLimits", options: {}, I: UpdateClientLimitsRequest, O: Empty },
     { name: "CreateConnection", options: {}, I: CreateConnectionRequest, O: Empty },
     { name: "ListConnections", options: {}, I: Empty, O: ListConnectionsResponse },
     { name: "GetConnection", options: {}, I: GetConnectionRequest, O: Connection },
-    { name: "GetConnectionLimits", options: {}, I: GetConnectionLimitsRequest, O: ConnectionLimits },
-    { name: "UpdateConnectionLimits", options: {}, I: UpdateConnectionLimitsRequest, O: Empty },
     { name: "DeleteConnection", options: {}, I: DeleteConnectionRequest, O: Empty },
     { name: "GetPublicWalletDetails", options: {}, I: GetPublicWalletDetailsRequest, O: GetPublicWalletDetailsResponse },
     { name: "CreateContact", options: {}, I: CreateContactRequest, O: Contact },
