@@ -6,7 +6,6 @@ import (
 	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/agreements"
 	"gitlab.com/fynbos/backend/analytics"
-	"gitlab.com/fynbos/backend/authorisation"
 	"gitlab.com/fynbos/backend/contacts"
 	"gitlab.com/fynbos/backend/discord"
 	"gitlab.com/fynbos/backend/dynamicforms"
@@ -51,7 +50,6 @@ type Backends interface {
 	KYC() kyc.Client
 	Email() email.Client
 	Transactions() transactions.Client
-	Authorisation() authorisation.InternalClient
 	Analytics() analytics.Client
 	Limits() limits.Client
 	Contacts() contacts.Client
