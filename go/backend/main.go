@@ -82,8 +82,6 @@ import (
 	signup_client "gitlab.com/fynbos/backend/signup/client"
 	"gitlab.com/fynbos/backend/slack"
 	slack_client "gitlab.com/fynbos/backend/slack/client"
-	"gitlab.com/fynbos/backend/statements"
-	statements_client "gitlab.com/fynbos/backend/statements/client"
 	"gitlab.com/fynbos/backend/temporal"
 	"gitlab.com/fynbos/backend/transactions"
 	transactions_client "gitlab.com/fynbos/backend/transactions/client"
@@ -480,7 +478,6 @@ type backends struct {
 	email          email.Client
 	transactions   transactions.Client
 	notify         notify.Client
-	statements     statements.Client
 	auth           authorisation.InternalClient
 	analytics      analytics.Client
 	contacts       contacts.Client
@@ -617,10 +614,6 @@ func (b backends) Email() email.Client {
 
 func (b backends) Notify() notify.Client {
 	return b.notify
-}
-
-func (b backends) Statements() statements.Client {
-	return b.statements
 }
 
 func (b backends) Analytics() analytics.Client {
@@ -762,9 +755,6 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 
 	log.Debug("initialising notify")
 	b.notify = notify_client.New(b, args.PusherAddr)
-
-	log.Debug("initialising statements")
-	b.statements = statements_client.New()
 
 	log.Debug("initialising limits")
 	b.limits = limits_client.New(b)

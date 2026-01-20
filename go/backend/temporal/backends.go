@@ -22,7 +22,6 @@ import (
 	"gitlab.com/fynbos/backend/providers/xago"
 	"gitlab.com/fynbos/backend/rafiki"
 	"gitlab.com/fynbos/backend/signup"
-	"gitlab.com/fynbos/backend/statements"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/backend/twitter"
@@ -43,7 +42,6 @@ type Backends interface {
 	Email() email.Client
 	Transactions() transactions.Client
 	Notify() notify.Client
-	Statements() statements.Client
 	Analytics() analytics.Client
 	Contacts() contacts.Client
 	Keys() keys.Client
