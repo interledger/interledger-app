@@ -1,7 +1,7 @@
 #!/bin/bash
 
 PASSW_RECOVERY_PATH="/recovery"
-EMAIL_CONF_PATH="/verify"
+EMAIL_CONF_PATH="/verification"
 
 if [[ -z "$1" ]]; then
   echo "Usage: sh email_link_generation.sh <passowrd or recovery> <email>" >&2
