@@ -274,6 +274,7 @@ func (c *client) CreateUser(ctx context.Context, email string) (*CreateUserRespo
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
+	log.Info(fmt.Sprintf("Gatehub CreateUser endpoint=%s email=%s", endpoint, email))
 
 	body, err := json.Marshal(CreateUserRequest{
 		Email: email,
@@ -636,6 +637,7 @@ func (c *client) GetTransaction(ctx context.Context, userID, id string) (*Transa
 }
 
 func (c *client) Sign(ctx context.Context, req *http.Request, date time.Time, payload []byte, targetURL string) error {
+	log.Info(fmt.Sprintf("Gatehub signing request target=%s method=%s payload_len=%d", targetURL, req.Method, len(payload)))
 	base := fmt.Sprintf("%d|%s|%s|%s", date.UnixMilli(), req.Method, targetURL, string(payload))
 	base = strings.Trim(base, "|")
 	hmac := hmac.New(sha256.New, []byte(c.apiSecret))
