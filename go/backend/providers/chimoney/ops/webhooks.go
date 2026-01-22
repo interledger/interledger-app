@@ -17,7 +17,6 @@ import (
 	"gitlab.com/fynbos/backend/providers/chimoney/external"
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	httplogger "gitlab.com/fynbos/backend/providers/http"
-	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/log"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.uber.org/zap"
@@ -35,9 +34,6 @@ type (
 )
 
 func ParseWebhookSecret(input string) []byte {
-	if env.IsLocal() {
-		return []byte{}
-	}
 	secretParts := strings.Split(input, "_")
 	var secret []byte
 	var err error
