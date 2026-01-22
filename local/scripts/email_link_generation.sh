@@ -4,10 +4,10 @@ PASSW_RECOVERY_PATH="/recovery"
 EMAIL_CONF_PATH="/verify"
 
 if [[ -z "$1" ]]; then
-  echo "Usage: sh recovery <passowrd or recovery> <email>" >&2
+  echo "Usage: sh email_link_generation.sh <passowrd or recovery> <email>" >&2
   exit 1
 elif [[ -z "$2" ]]; then
-  echo "Usage: sh recovery <passowrd or recovery> <email>" >&2
+  echo "Usage: sh email_link_generation.sh <passowrd or recovery> <email>" >&2
   exit 1
 fi
 
@@ -23,7 +23,7 @@ if [[ "$1" == "recovery" ]]; then
 elif [[ "$1" == "password" ]]; then
   PATH=$EMAIL_CONF_PATH
 else
-  echo "Error: invalid argument. Use 'recovery' or 'password'. Usage: sh recovery <passowrd or recovery> <email>" >&2
+  echo "Error: invalid first argument. Usage: sh email_link_generation.sh <passowrd or recovery> <email>" >&2
   exit 1
 fi
 
