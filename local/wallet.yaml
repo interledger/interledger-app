@@ -97,6 +97,7 @@ services:
       - BLOCKED_REGIONS=
 
       - GATEHUB_API_BASE_URL=http://mockgatehub:8080
+      - GATEHUB_WIDGET_BASE_URL=https://mockgatehub.interledger.test
       - GATEHUB_APP_ID=local-test-app-id
       - GATEHUB_SECRET=local-test-app-secret
       - GATEHUB_CARD_APP_ID=local-test-card-app-id

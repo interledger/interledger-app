@@ -5,6 +5,7 @@
 - If a Gatehub user does not exist for the wallet, the backend **starts a Temporal workflow** to create one on-demand before returning the onboarding widget URL.
   - The workflow ID is deterministic: `gatehub_create_user_{walletID}`. Each wallet has one logical workflow, reused across multiple Activate clicks.
   - The workflow runs activities with exponential backoff retries; if activities fail, the workflow automatically retries before surfacing errors to the caller.
+- GateHub docs note that **connecting a managed user to a gateway should only happen after onboarding/KYC completes** (Users → “Connecting to Gateway”). This matches the backend flow, which waits for KYC verification webhooks before activating the wallet.
 
 ## Gatehub user creation workflow
 - `CreateGatehubUserWorkflow` runs the following steps ([go/backend/providers/gatehub/ops/workflows.go](go/backend/providers/gatehub/ops/workflows.go#L22-L62)):
@@ -17,9 +18,11 @@
 ## What the user sees
 - After the workflow completes, the backend returns the Gatehub onboarding widget URL. The frontend embeds it so the user can submit KYC directly to Gatehub.
 - Deposit/withdraw widgets follow the same prerequisite lookup/creation, but use the on/off-ramp widget API instead ([go/backend/grpc/gatehub.go](go/backend/grpc/gatehub.go#L37-L91)).
+- The GateHub onboarding iframe sends postMessage events. The public docs define `OnboardingCompleted` with a **string** payload of `'submitted' | 'resubmitted'` (Appendix → Message events). This differs from some internal mocks that wrap the payload as JSON.
 
 ## Activation signal (post-KYC)
 - Gatehub sends `id.verification.*` webhooks. `HandleUserVerificationWebhook` maps the webhook `user_uuid` back to the wallet; if it cannot, the handler returns 500 and no activation occurs ([go/backend/providers/gatehub/ops/webhooks.go](go/backend/providers/gatehub/ops/webhooks.go#L259-L295)).
+- The backend expects the verification payload to include `data.gateway` (containing “paywiser”) and `data.verified.short` with `accepted`/`rejected`. This structure is enforced in `HandleUserVerificationWebhook` and is **not** currently documented in the public GateHub docs.
 - On `accepted`, the backend starts `BackfillAccountAndSetKYC` ([go/backend/providers/gatehub/ops/webhooks.go](go/backend/providers/gatehub/ops/webhooks.go#L281-L294)), which triggers `BackfillAccountWorkflow` to:
   - Optionally move funds from a configured Gatehub sender into the user’s EUR balance (only when `GATEHUB_SENDING_USER_ID` is set) and mark the backfill ([go/backend/providers/gatehub/ops/workflows.go](go/backend/providers/gatehub/ops/workflows.go#L335-L376)).
   - Set the wallet’s KYC status to `Level1`, which is the application’s indicator that the Gatehub-backed account is activated ([go/backend/providers/gatehub/ops/activity.go](go/backend/providers/gatehub/ops/activity.go#L611-L618)).
@@ -28,6 +31,8 @@
 ## Failure modes and whether activation proceeds
 - Gatehub user creation failure (API errors, missing wallet users, etc.) surfaces as an error from `GetGatehubOnboardingWidget`, so the widget URL is not returned and activation cannot start. No `gatehub_users` row is written, so later webhooks will also fail to map and will 500.
 - If the webhook arrives but mapping to a wallet fails (no `gatehub_users` entry or mismatched UUID), the handler logs and returns 500 before setting KYC, so activation does not occur ([go/backend/providers/gatehub/ops/webhooks.go](go/backend/providers/gatehub/ops/webhooks.go#L268-L279)).
+- If the GateHub “get wallets for user” response does not include a wallet marked `primary`, `CreateGatehubWalletLinkedAccount` fails with “Could not find a primary wallet for gatehub user”, and the create-user workflow retries indefinitely ([go/backend/providers/gatehub/ops/activity.go](go/backend/providers/gatehub/ops/activity.go#L110-L136)).
+- If the onboarding iframe posts an unexpected event payload shape (e.g., not the `'submitted' | 'resubmitted'` string documented by GateHub), the frontend may not call `/personal-details` to advance the flow, leaving KYC in `Pending`.
 - Temporal workflows are idempotent by workflow ID; a subsequent activation attempt reuses the same IDs and resumes or retries the steps rather than duplicating accounts.
 
 ## Temporal workflow management and debugging
@@ -91,6 +96,11 @@ If debugging against mockgatehub, check whether requests reach the service:
 docker compose logs mockgatehub --since 5m | grep -v health
 ```
 If no POST requests appear, the backend isn't calling mockgatehub (likely pointing to production or a misconfigured URL).
+
+**Step 3b: Verify mockgatehub response shape**
+If you are using mockgatehub locally, ensure:
+- `GET /core/v1/users/:userUuid` returns a wallet with `primary: true` (required by `CreateGatehubWalletLinkedAccount`).
+- `id.verification.accepted` webhook payload includes `data.gateway` and `data.verified.short` so the backend can map and accept the verification.
 
 **Step 4: Verify the `gatehub_users` database table**
 After a workflow completes (successfully or after termination), check whether the mapping was created:
