@@ -132,6 +132,15 @@ export function Password() {
           required
           errorMessage={passwordFetcher.data?.errors?.password}
         />
+        <TextField
+          id='confirm-password'
+          label='Confirm Password'
+          name='confirm-password'
+          form='signup-password'
+          type='password'
+          className='mt-2'
+          required
+        />
       </Card>
       <Card>
         <CardContent>

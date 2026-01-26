@@ -16,6 +16,13 @@ export const NON_FULL_SESSION_ROUTES = [
   '/verify'
 ]
 
+const PASSWORD_RECOVERY_ALLOWED_ROUTES = [
+  '/login',
+  '/totp/challenge',
+  '/recovery',
+  '/recovery/password'
+]
+
 /**
  * Routes that can be accessed without verified email
  */
@@ -50,7 +57,6 @@ export async function isTotpAvailable(request: Request): Promise<boolean> {
 
     return hasTotpNodes
   } catch (error) {
-    console.error('Error checking TOTP availability:', error)
     return false
   }
 }
@@ -75,7 +81,6 @@ export async function isTotpSet(
     const identity = await response.json()
     return !!identity.credentials?.totp
   } catch (error) {
-    console.error('Error checking if TOTP is enabled:', error)
     return false
   }
 }
@@ -150,4 +155,21 @@ export async function withAAL2Guard(pathname: string, request: Request, fn: () =
   }
 
   await fn();
+}
+
+export async function recoveryLinkSessionInvalidationGuard(pathname: string, request: Request) {
+  if (PASSWORD_RECOVERY_ALLOWED_ROUTES.includes(pathname)) {
+    return
+  }
+
+  const session = await getUserSession(request)
+
+  const isLinkRecoverySession = !!session.authentication_methods?.some((method: any) => method.method === 'link_recovery')
+  if (isLinkRecoverySession) {
+    throw redirect('/login', {
+      headers: {
+        'Set-Cookie': 'ory_kratos_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax'
+      }
+    })
+  }
 }

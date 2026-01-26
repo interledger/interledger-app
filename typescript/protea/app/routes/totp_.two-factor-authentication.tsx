@@ -161,7 +161,7 @@ export default function Page() {
           {totpUnlink ? (
             <>
               <Button onClick={handleUnlinkClick}>Unlink TOTP</Button>
-              <OutlineButtonRouter to={route('/settings')} className='mt-4' >
+              <OutlineButtonRouter to={route('/settings')} className='mt-4'>
                 Back
               </OutlineButtonRouter>
             </>
