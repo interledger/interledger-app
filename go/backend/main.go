@@ -108,6 +108,10 @@ import (
 	"go.temporal.io/sdk/worker"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+
+	// bradu
+	"github.com/lestrrat-go/jwx/v3/jwk"
+	fiant "gitlab.com/fynbos/backend/providers/fiant/v1"
 )
 
 func main() {
@@ -204,6 +208,44 @@ func start(args *cli.StartArgs) {
 	router.Handle("/webhooks/gatehub", gatehub_ops.NewWebhook(b))
 	router.Handle("/{wallet_id}/identities/{identity_sig_hash}", wallet_handler.GetIdentityHandler(b))
 	router.NotFound(wallet_handler.WalletRedirectHandler(b))
+
+	// bradu fiant
+
+	ptiPrivateKey, err := jwk.ParseKey([]byte(os.Getenv("PTI_JWK")))
+	if err != nil {
+		log.Fatalln(err)
+	}
+	clientID := os.Getenv("PTI_CLIENT_ID")
+
+	ctrl, err := fiant.NewController(
+		fiant.WithBaseURL(os.Getenv("PTI_BASE_URL")),
+		fiant.WithClientID(clientID),
+		fiant.WithDerivedKeys(ptiPrivateKey),
+	)
+
+	// TODO(bradu): testing fiant api without going through pti ops
+	// to be removed before going into main
+	// resp, err := ctrl.Users.ListAll(context.Background())
+	// if err != nil {
+	// 	log.Fatalln(err)
+	// }
+
+	// body, err := io.ReadAll(resp.Body)
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	// fmt.Println(string(body))
+
+	// fmt.Println("status: ")
+	// fmt.Println(resp.Status)
+	// fmt.Println("body: ")
+	// fmt.Println(string(body))
+
+	router.Handle("/settle/{transaction_id}", ctrl.SettleTransactionHook())
+	router.Handle("/return/{transaction_id}", ctrl.ReturnTransactionHook())
+
+	// ~bradu fiant
 
 	var wg sync.WaitGroup
 	serveHTTP(&http.Server{Addr: ":" + args.AuthorisationPort, Handler: auth_http.AuthorisationHTTPHandler(b)}, &wg)

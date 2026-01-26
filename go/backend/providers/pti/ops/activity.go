@@ -373,7 +373,7 @@ func (a *Activity) CreatePTIBalanceAccount(ctx context.Context, id string) error
 			ID:                         id,
 			LedgerID:                   pti.LedgerIDUSD,
 			Code:                       1,
-			DebitsMustNotExceedCredits: true,
+			DebitsMustNotExceedCredits: false,
 			CreditsMustNotExceedDebits: false,
 		},
 	})
@@ -858,4 +858,64 @@ func (a *Activity) RollbackPTIBalance(ctx context.Context, id, walletID string) 
 	}
 
 	return RollbackReserve(ctx, a.b, tx.ID)
+}
+
+func (a *Activity) ReturnTransaction(ctx context.Context, originalTransactionID, walletID string, amount currency.Amount) (string, error) {
+	originalTransaction, err := a.b.Transactions().GetTransactionByForeignID(ctx, walletID, originalTransactionID)
+	if err != nil && !errors.Is(err, transactions.ErrNotFound) {
+		return "", err
+	}
+
+	wallet, err := a.b.Wallets().Get(ctx, walletID)
+	if errors.Is(err, pti.ErrNotFound) {
+		return "", temporal.NewNonRetryableApplicationError("Wallet not found", "ErrNotFound", fmt.Errorf("%w No wallet found for pti user", pti.ErrNotFound))
+	}
+	if err != nil {
+		return "", err
+	}
+
+	las, err := a.b.LinkedAccounts().ListBalances(ctx, walletID)
+	if err != nil {
+		return "", err
+	}
+	var balance *linkedaccounts.LinkedAccount
+	for _, la := range las {
+		if la.Provider == pti.ProviderName && la.Type == pti.AccTypeBalance {
+			balance = &la
+			break
+		}
+	}
+	if balance == nil {
+		return "", temporal.NewNonRetryableApplicationError("PTI USD balance account not found", "ErrInternal", fmt.Errorf("%w Fiant USD balance account not found", pti.ErrInternal))
+	}
+
+	returnTransactionID, err := a.b.Transactions().CreateTransaction(ctx, transactions.CreateTransactionArgs{
+		WalletID:                walletID,
+		ForeignID:               originalTransaction.ID,
+		ForeignType:             transactions.TransactionTypeWithdrawal,
+		Provider:                pti.ProviderName,
+		State:                   transactions.StateCompleted,
+		Source:                  wallet.AddressString(),
+		Destination:             wallet.AddressString(),
+		Title:                   "Withdrawal return",
+		DestinationIdentity:     walletID,
+		DestinationIdentityType: payments.IdentityTypeWalletID.String(),
+		Amount:                  amount,
+		ProviderFee:             nil,
+		LinkedAccountTitle:      "US Balance",
+		Transfers: []transactions.TransferArgs{
+			{
+				LinkedAccountID: balance.ID,
+				ForeignID:       originalTransactionID,
+				Amount:          amount,
+				Type:            transactions.TransferTypeDebitBalance,
+				State:           transactions.StateCompleted,
+			},
+		},
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return returnTransactionID, nil
 }

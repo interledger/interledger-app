@@ -203,6 +203,55 @@ func SettleDepositWorkflow(ctx workflow.Context, wh pti.TransactionStatusPayload
 	return txID, nil
 }
 
+func ReturnedWorkflow(ctx workflow.Context, wh pti.TransactionStatusPayload) (string, error) {
+	var a *Activity
+
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Second,
+	}
+
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	logger := workflow.GetLogger(ctx)
+	logger.Info("Creating pti deposit.")
+
+	cc := currency.ParseCurrency(wh.Currency)
+	if cc != currency.USD {
+		return "", temporal.NewNonRetryableApplicationError("Invalid currency", "ErrInternal", fmt.Errorf("%w invalid currency", pti.ErrInternal))
+	}
+
+	amt := currency.FromFloat64(wh.Amount, currency.USD)
+
+	var walletID string
+	err := workflow.ExecuteActivity(ctx, a.GetWalletFromPTIUser, wh.UserID).Get(ctx, &walletID)
+	if err != nil {
+		return "", err
+	}
+
+	var txID string
+	err = workflow.ExecuteActivity(ctx, a.ReturnTransaction, wh.RequestID, walletID, amt).Get(ctx, &txID)
+	if err != nil {
+		return "", err
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.ReservePTIBalance, walletID, txID).Get(ctx, nil)
+	if err != nil {
+		return "", err
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.FinalizePTIBalance, txID, walletID, amt).Get(ctx, &txID)
+	if err != nil {
+		return "", err
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.UpdatePaymentState, wh.RequestID, payments.StateFailed).Get(ctx, nil)
+	if err != nil {
+		return "", err
+	}
+
+	return txID, nil
+}
+
 func MarkTransactionStateWorkflow(ctx workflow.Context, wh pti.TransactionStatusPayload, state transactions.State) error {
 	var a *Activity
 

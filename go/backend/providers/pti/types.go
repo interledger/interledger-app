@@ -17,9 +17,14 @@ const (
 	TypeBank       = "bank_account"
 
 	// TODO: Ask?
-	ScenarioTransfer   = "ilf_transfer"
-	ScenarioDeposit    = "ilf_deposit"
-	ScenarioWithdrawal = "ilf_withdrawal"
+	// ScenarioTransfer   = "ilf_transfer"
+	// ScenarioDeposit    = "ilf_deposit"
+	// ScenarioWithdrawal = "ilf_withdrawal"
+
+	// development scenarios provided by PTI
+	ScenarioTransfer   = "ilf_dev_transfer"
+	ScenarioDeposit    = "ilf_dev_deposit"
+	ScenarioWithdrawal = "ilf_dev_withdrawal"
 
 	LedgerIDUSD   uint32 = 784873 // Spells ptiusd on a Nokia 3320 keyboard
 	USDOpsAccount        = "fb4713ba-94c5-4a56-a5bf-82b551e9bd40"
