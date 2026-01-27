@@ -941,36 +941,454 @@ xago-mock/
 
 ---
 
-## Implementation Priorities
+## Implementation Phases
 
-### Phase 1: Core Endpoints (MVP)
+Implementation is divided into 8 phases, each delivering a working feature set. Each phase includes passing feature tests from the corresponding feature file in `/go/mockxago/features/`.
 
-1. **POST `/xago/v1/login`** - Token generation
-2. **POST `/xago/v1/company/accounts`** - Create sub-account
-3. **GET `/xago/v1/currencies`** - List currencies
-4. **Storage**: In-memory implementation
-5. **Tests**: Unit tests for handlers
+### Phase 1: Authentication & Foundation
+**Duration**: 1-2 days  
+**Features**: `authentication.feature`
 
-### Phase 2: Beneficiaries & Transactions
+**Deliverables**:
+- HTTP server setup with chi router
+- In-memory storage implementation
+- Token generation and validation
+- Basic error handling and logging
 
-6. **POST `/xago/v1/beneficiaries`** - Add beneficiary
-7. **GET `/xago/v1/beneficiaries`** - List beneficiaries
-8. **POST `/xago/v1/transfers`** - Create transfer
-9. **GET `/xago/v1/transactions`** - List transactions
+**Endpoints**:
+1. `POST /xago/v1/login` - Token authentication
+   - Validate API credentials
+   - Generate 55-minute expiring tokens
+   - Return bearer token
 
-### Phase 3: Deposits & Webhooks
+**Data Models**:
+- `AccessToken` - Token storage
+- Request/response structures
 
-10. **POST `/xago/v1/company/accounts/testdeposit`** - Simulate deposit
-11. **Webhook Manager** - Async webhook delivery
-12. **GET `/xago/v1/company/transactions`** - List deposits
-13. **Integration Tests**: Full workflow testing
+**Tests**:
+- Unit tests for login endpoint
+- Token expiration logic
+- Invalid credential handling
+- Missing field validation
 
-### Phase 4: Polish & Documentation
+**Passing Tests**: 10 tests from `authentication.feature`
 
-14. **Redis Storage** - Production-like setup
-15. **Docker Build** - Multi-stage Dockerfile
-16. **Documentation** - API docs, setup guide
-17. **Edge Cases** - Idempotency, rate limiting, error handling
+---
+
+### Phase 2: Sub-Account Management
+**Duration**: 2-3 days  
+**Features**: `subaccount_management.feature`
+
+**Deliverables**:
+- Sub-account creation and storage
+- Sub-account updates
+- Database schema and queries
+- Field validation
+
+**Endpoints**:
+1. `POST /xago/v1/company/accounts` - Create sub-account
+   - Generate unique accountId and deposit references
+   - Store in database
+   - Return full sub-account details
+2. `PUT /xago/v1/company/accounts/{accountId}` - Update sub-account
+   - Update verification URL and user details
+   - Return confirmation
+
+**Data Models**:
+- `SubAccount` - Sub-account entity
+- `SubAccountReq` / `SubAccountResp` - API contracts
+- Database schema for `xago_sub_accounts`
+
+**Tests**:
+- Create sub-account with full details
+- Create with minimal fields
+- Validation of required fields
+- Unique deposit references per wallet
+- Update operations
+- Wallet isolation
+
+**Passing Tests**: 10 tests from `subaccount_management.feature`
+
+---
+
+### Phase 3: Currencies & Deposit Details
+**Duration**: 1 day  
+**Features**: `currencies_and_deposits.feature`
+
+**Deliverables**:
+- Hardcoded bank account details
+- Currency/bank details mapping
+- Integration with sub-account creation
+
+**Endpoints**:
+1. `GET /xago/v1/currencies` - List available currencies and bank details
+   - Return ZAR and USD with bank account details
+   - No authentication required
+
+**Data Models**:
+- `Currency` - Currency with bank details
+- Constants for bank information
+
+**Implementation Notes**:
+- Hardcode bank details (FNB for ZAR, Citibank for USD)
+- Ensure consistency across all responses
+- Include in sub-account creation response
+
+**Tests**:
+- Retrieve currency list
+- Bank details match sub-account creation
+- Consistency across multiple calls
+- Deposit reference format validation
+
+**Passing Tests**: 7 tests from `currencies_and_deposits.feature`
+
+---
+
+### Phase 4: Balance Management
+**Duration**: 2 days  
+**Features**: `balance_management.feature`
+
+**Deliverables**:
+- Balance tracking and storage
+- Atomic balance operations
+- Multi-currency balance separation
+
+**Endpoints**:
+1. `GET /xago/v1/accounts/{accountId}/balance` - Get account balance
+   - Return available, reserved, and total for each currency
+   - Support both ZAR and USD
+
+**Data Models**:
+- Balance storage (in-memory: `map[string]map[string]float64`)
+- `BalanceResponse` - API response structure
+
+**Implementation Notes**:
+- Initialize balances at zero for new accounts
+- Support both available and reserved tracking
+- Maintain wallet-specific balance isolation
+
+**Tests**:
+- Initial balance for new accounts
+- Balance updates after deposits
+- Balance updates after transfers
+- Multi-currency separation
+- Wallet isolation
+
+**Passing Tests**: 9 tests from `balance_management.feature`
+
+---
+
+### Phase 5: Beneficiary Management
+**Duration**: 2-3 days  
+**Features**: `beneficiary_management.feature`
+
+**Deliverables**:
+- Beneficiary creation and storage
+- Beneficiary listing with pagination
+- Automatic status transitions
+- Wallet association
+
+**Endpoints**:
+1. `POST /xago/v1/beneficiaries` - Add beneficiary
+   - Generate unique UUID
+   - Store with pending status
+   - Auto-approve after 2-3 seconds (via async job)
+2. `GET /xago/v1/beneficiaries?limit={limit}&page={page}` - List beneficiaries
+   - Paginated results
+   - Filter by wallet
+
+**Data Models**:
+- `Beneficiary` - Beneficiary entity
+- `CreateBeneficiaryReq` / `CreateBeneficiaryResp` - API contracts
+- Database schema for `xago_beneficiaries`
+
+**Implementation Notes**:
+- Use goroutine or job scheduler for auto-approval
+- Ensure unique UUIDs per beneficiary
+- Support pagination
+
+**Tests**:
+- Add beneficiary successfully
+- Field validation
+- Pagination
+- Status transitions
+- Wallet isolation
+- Auto-approval behavior
+
+**Passing Tests**: 12 tests from `beneficiary_management.feature`
+
+---
+
+### Phase 6: Transactions & Transfers
+**Duration**: 3 days  
+**Features**: `transactions.feature`
+
+**Deliverables**:
+- Transaction creation and execution
+- Balance deduction logic
+- Idempotent transaction handling
+- Transaction listing and retrieval
+
+**Endpoints**:
+1. `POST /xago/v1/transfers` - Create transfer
+   - Validate beneficiary exists
+   - Deduct balance
+   - Create transaction with pending status
+   - Auto-complete after 2-3 seconds
+   - Support idempotency key
+2. `GET /xago/v1/transactions?limit={limit}&page={page}` - List transactions
+   - Paginated results
+   - Return transaction history
+3. `GET /xago/v1/transactions/{transactionId}` - Get transaction details
+
+**Data Models**:
+- `Transaction` - Transaction entity
+- `CreateTransferReq` / `CreateTransferResp` - API contracts
+- Database schema for `xago_transactions`
+
+**Implementation Notes**:
+- Implement idempotency table for duplicate detection
+- Use timestamps for created/settled times
+- Support concurrent operations without double-spending
+- Validate sufficient balance before deduction
+
+**Tests**:
+- Create transfer successfully
+- Balance deduction
+- Insufficient balance rejection
+- Idempotent transfers
+- Transaction listing with pagination
+- Timestamp tracking
+- Multi-currency transfers
+
+**Passing Tests**: 14 tests from `transactions.feature`
+
+---
+
+### Phase 7: Deposits & Webhooks
+**Duration**: 3 days  
+**Features**: `deposits_and_webhooks.feature`
+
+**Deliverables**:
+- Deposit simulation endpoint
+- Webhook event generation
+- Async webhook delivery with retries
+- HMAC-SHA256 signature generation
+- Deposit listing
+
+**Endpoints**:
+1. `POST /xago/v1/company/accounts/testdeposit` - Simulate deposit
+   - Create deposit transaction
+   - Schedule webhook delivery after delay
+   - Return transaction ID
+2. `GET /xago/v1/company/transactions` - List deposits
+   - Return paginated list of deposits
+   - Include status and amounts
+
+**Components**:
+- `WebhookManager` - Async webhook delivery
+  - Send to configured WEBHOOK_URL
+  - Sign with HMAC-SHA256
+  - Retry logic (3 attempts with exponential backoff: 1s, 2s, 4s)
+  - Include proper headers (x-gatehub-app-id, x-gatehub-timestamp, x-gatehub-signature)
+
+**Data Models**:
+- `Deposit` - Deposit transaction entity
+- `WebhookEvent` - Webhook payload structure
+- Database schema for `xago_deposits`
+
+**Implementation Notes**:
+- Generate deposit webhook asynchronously
+- Credit balance when deposit completes
+- Include all required webhook fields
+- Support webhook retry logic
+- Use goroutines for async delivery
+
+**Tests**:
+- Simulate test deposit
+- Webhook signature validation
+- Webhook delivery and retries
+- Balance credit on deposit
+- Deposit listing
+- Multiple deposits accumulation
+- Webhook payload format
+
+**Passing Tests**: 15 tests from `deposits_and_webhooks.feature`
+
+---
+
+### Phase 8: Integration Testing & Complete Workflows
+**Duration**: 2-3 days  
+**Features**: `integration_workflows.feature`
+
+**Deliverables**:
+- End-to-end workflow testing
+- Complete user journeys
+- State consistency validation
+- Error recovery
+- Multi-phase operation sequencing
+
+**Testing Coverage**:
+- User onboarding workflow
+- Deposit → Transfer workflow
+- Multi-beneficiary management
+- Multi-currency management
+- Token lifecycle
+- Concurrent operations
+- Audit trail verification
+
+**Infrastructure**:
+- Integration test suite
+- Docker compose for test environment
+- Redis storage implementation (optional for this phase)
+- Test fixtures and seeding
+
+**Tests**:
+- Complete onboarding to withdrawal
+- Deposit routing and isolation
+- Concurrent transfer safety
+- Token refresh scenarios
+- Failed operation recovery
+- Transaction history accuracy
+
+**Passing Tests**: 12 tests from `integration_workflows.feature`
+
+---
+
+### Phase 9: Redis Storage & Production-Like Setup
+**Duration**: 2 days  
+**Features**: All features with Redis backend
+
+**Deliverables**:
+- Redis storage implementation
+- Connection pooling
+- JSON serialization
+- Key design and patterns
+
+**Implementation**:
+- `redis.go` - Redis Storage implementation
+- Update storage interface tests
+- Support for Redis in docker-compose
+- Configuration for Redis URL and DB selection
+
+**Key Patterns**:
+- `subaccount:{wallet_id}` → JSON
+- `beneficiaries:{wallet_id}` → JSON array
+- `transaction:{id}` → JSON
+- `balance:{wallet_id}:{currency}` → float64 with atomic operations
+- `xago:token` → JSON with expiration
+
+**Tests**:
+- All phase tests run against Redis
+- Connection pooling verification
+- Atomic balance operations
+- Data persistence
+
+---
+
+### Phase 10: Docker & Deployment
+**Duration**: 1 day  
+**Features**: All features in containerized environment
+
+**Deliverables**:
+- Multi-stage Dockerfile
+- Docker compose for local development
+- Health check endpoint
+- Proper logging and observability
+
+**Implementation**:
+- Build stage: golang:1.24-alpine
+- Runtime stage: alpine:latest
+- Non-root user: mockxago
+- Environment variable injection
+- Port exposure
+
+**Tests**:
+- Docker build succeeds
+- Container starts and serves requests
+- Health check endpoint
+- Docker compose with Redis
+
+---
+
+### Phase 11: Documentation & Polish
+**Duration**: 1-2 days  
+**Features**: All features documented
+
+**Deliverables**:
+- API documentation
+- Setup and usage guide
+- Architecture documentation
+- AI agent development guide (AGENTS.md)
+- Example requests/responses
+- Troubleshooting guide
+
+**Documentation Files**:
+- `README.md` - User guide, quick start
+- `AGENTS.md` - Developer guide for AI agents
+- Code comments and function documentation
+- Example test cases
+
+**Polish Items**:
+- Code style consistency
+- Error message clarity
+- Logging improvements
+- Performance optimization
+- Edge case handling
+
+---
+
+## Implementation Dependencies
+
+```
+Phase 1: Authentication
+    ↓
+Phase 2: Sub-Account Management
+    ↓
+Phase 3: Currencies & Deposits (parallel with Phase 2)
+    ↓
+Phase 4: Balance Management
+    ├─→ Phase 5: Beneficiary Management (parallel)
+    │
+    └─→ Phase 6: Transactions & Transfers (depends on Phase 5)
+            ↓
+        Phase 7: Deposits & Webhooks
+            ↓
+        Phase 8: Integration Testing
+            ↓
+        Phase 9: Redis Storage
+            ↓
+        Phase 10: Docker & Deployment
+            ↓
+        Phase 11: Documentation & Polish
+```
+
+---
+
+## Phase Completion Criteria
+
+Each phase is complete when:
+1. ✅ All feature tests pass for that phase
+2. ✅ Unit test coverage ≥ 80% for new code
+3. ✅ No breaking changes to previous phases
+4. ✅ Code review completed
+5. ✅ Integration tests pass (where applicable)
+6. ✅ Documentation updated
+
+---
+
+## Estimated Timeline
+
+- **Phase 1**: 1-2 days
+- **Phase 2-3**: 3-4 days (parallel)
+- **Phase 4-5**: 4-5 days (Phase 4 then Phase 5 in parallel)
+- **Phase 6-7**: 6 days (sequential dependency)
+- **Phase 8**: 2-3 days
+- **Phase 9**: 2 days
+- **Phase 10**: 1 day
+- **Phase 11**: 1-2 days
+
+**Total Estimated**: 2-3 weeks for complete implementation
 
 ---
 
