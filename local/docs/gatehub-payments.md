@@ -1,18 +1,30 @@
-# Gatehub Payments Workflow
+# GateHub Payments Workflow
 
 ## Overview
 
-This document describes the payment workflow in the Interledger App Wallet, specifically focusing on peer-to-peer (P2P) payments using Gatehub as a provider. It covers the complete journey of a payment from sender to receiver, including database interactions and how to verify payment status.
+This document describes the payment workflow in the Interledger App Wallet, specifically focusing on peer-to-peer (P2P) payments using GateHub as a provider. It covers the complete journey of a payment from sender to receiver, including database interactions, Temporal workflow orchestration, webhook handling, and troubleshooting guidance.
 
-### Recent Fix (Jan 2026)
+## Key Architectural Components
 
-**Issue**: Payments with external wallet receivers (Rafiki) were not creating receive transactions, leaving money on sender's side without reaching receiver.
+### Transaction Status Codes
 
-**Root Cause**: `CreatePayoutTransaction` tried to look up external wallet URLs as local wallets, causing failures.
+GateHub API uses specific integer status codes for transaction states:
 
-**Solution**: Skip transaction creation for external wallet URLs. Receive transactions are created by Rafiki webhook handlers instead.
+| Status Code | Constant Name | Meaning | Next Action |
+|------------|---------------|---------|-------------|
+| `1` | `TransactionStatusPending` | Transaction created, processing | Wait for completion |
+| `100` | `TransactionStatusCompleted` | Transaction successfully completed | Mark payment complete |
+| `3` | `TransactionStatusFailed` | Transaction failed | Mark payment failed |
 
-**Code Change**: [transactionactivities.go#L214-L216](transactionactivities.go) - Added check to skip transaction creation for `IdentityTypeExternalWalletURL`.
+**Critical**: The PayOut workflow polls or receives signals about transaction completion, but only exits the polling loop when `status == 100`. Using incorrect status codes (e.g., `2` instead of `100`) will cause workflows to poll indefinitely.
+
+### Webhook and Signal Integration
+
+Payments use a hybrid completion detection mechanism:
+- **Primary**: Webhook notifications from GateHub/MockGatehub trigger Temporal signals
+- **Fallback**: 20-minute polling timer checks transaction status if webhooks fail
+
+This ensures reliable payment completion even with intermittent webhook delivery.
 
 ## Payment Types
 
@@ -105,10 +117,12 @@ Sender App      Wallet Backend      Temporal Workflow     Database        Receiv
    │                │─ Signal PayOut ──────→    │           │                │
    │                │                      │     │           │                │
    │ 7. Wait for GateHub Transaction       │     │           │                │
-   │    ⚠️  Waits for webhook OR polls every 20 min          │                │
-   │    - Webhook: core.deposit.completed                    │                │
-   │    - Poll: GetGatehubTransfer activity                  │                │
-   │    - Loop until status = 'completed'                    │                │
+   │    ⚠️  HYBRID COMPLETION DETECTION:                    │                │
+   │    - Webhook: Receives signal on 'payment_gatehub_signals' channel    │
+   │    - Polling: Checks status every 20 minutes via GetGatehubTransfer   │
+   │    - Selector: Waits for EITHER signal OR timer                       │
+   │    - Status Check: Queries transaction.status after wake-up           │
+   │    - Loop Exit: Breaks when status == 100 (completed)                 │
    │                │                      │     │           │                │
    └────────────────┴──────────────────────┴─────┘           │                │
    │                │                      │                 │                │
@@ -580,25 +594,28 @@ Receiver doesn't have linked account for the payment currency
 **Solution:**
 Ensure receiver has completed KYC and has linked GateHub account for USD/EUR/etc
 
-### Issue 4: PayIn Workflow Stuck Waiting for GateHub Webhook
+### Issue 4: Payment Workflow Not Completing After External Transaction
 
 **Symptoms:**
-- Payment shows state=3 (COMPLETED) but workflows still RUNNING
-- PayIn and PayOut workflows have no pending activities but don't close
-- Temporal shows a 20-minute timer active in PayIn workflow
-- GateHub transaction exists in mockgatehub with status=1 (pending)
+- PayOut workflow enters selector loop waiting for transaction completion
+- Workflow remains RUNNING with 20-minute timer active
+- GateHub transaction exists in mockgatehub but workflow doesn't detect completion
+- Webhook is sent and received successfully, but workflow continues polling
 
 **Root Cause:**
-After creating a hosted transfer (type=2) in mockgatehub, the PayIn workflow waits for:
-1. A webhook notification (`core.deposit.completed`) from mockgatehub, OR
-2. 20-minute polling interval to check transaction status via `GetGatehubTransfer` activity
+The PayOut workflow uses a selector pattern that waits for either:
+1. A signal from the webhook handler (`payment_gatehub_signals` channel), OR
+2. A 20-minute polling timer to check transaction status manually
 
-Mockgatehub currently:
-- Creates the transaction successfully with status=1 (pending/processing)
-- Does NOT automatically update hosted transfers to status=2 (completed)
-- Does NOT send the `core.deposit.completed` webhook
+After the selector receives either event, it queries the transaction status via `GetGatehubTransfer` activity and checks if `status == 100` (completed). If the status doesn't match, it loops back to waiting.
 
-This leaves the workflow in an infinite wait state, polling every 20 minutes indefinitely.
+**Critical Transaction Status Codes:**
+GateHub API uses specific status codes for transactions:
+- `1` = Pending (transaction created, processing)
+- `100` = Completed (transaction successfully completed)
+- `3` = Failed (transaction failed)
+
+The backend expects `status=100` to mark a transaction as complete. If mockgatehub or the external provider returns a different value (e.g., `status=2`), the workflow will continue polling indefinitely.
 
 **How to Check:**
 ```sql
@@ -606,37 +623,302 @@ This leaves the workflow in an infinite wait state, polling every 20 minutes ind
 SELECT * FROM gatehub_transactions WHERE payment_id = 'payment-uuid';
 
 -- Check transaction status in mockgatehub Redis (DB 2)
-docker exec local-redis-1 redis-cli -n 2 GET "tx:<external_id>"
--- Look for "status":1 (pending) instead of "status":2 (completed)
+docker exec local-redis-1 redis-cli -n 2 GET "tx:<external_id>" | jq '.status'
+-- Should return 100 for completed transactions
 ```
 
-**Temporal Evidence:**
+**Verify Webhook and Signal Delivery:**
 ```bash
-# Check PayIn workflow - will show active timer
+# Check backend logs for webhook receipt and signal delivery
+docker compose logs backend | grep -E "(Webhook received|SignalGatehubTransferComplete|SIGNAL RECEIVED)"
+
+# Should show sequence:
+# 1. Webhook received: event_type=core.deposit.completed
+# 2. SignalGatehubTransferComplete called: external_transaction_id=<uuid>
+# 3. Found payment for signal: payment_id=<uuid>
+# 4. Successfully signaled workflow
+# 5. ***SIGNAL RECEIVED*** on gatehub notify channel
+
+# Check if workflow breaks from loop
+docker compose logs backend | grep "Transaction completed - breaking polling loop"
+```
+
+**Troubleshooting Steps:**
+
+1. **Verify transaction status in mockgatehub:**
+   ```bash
+   docker exec local-redis-1 redis-cli -n 2 GET "tx:<external_id>" | jq '.status'
+   ```
+   Expected: `100` (not `1`, `2`, or other values)
+
+2. **Check webhook configuration:**
+   ```bash
+   # Ensure webhook URL and secret are configured
+   docker compose exec mockgatehub env | grep WEBHOOK
+   ```
+   Expected: `WEBHOOK_URL=http://backend:8080/webhooks/gatehub`
+
+3. **Verify webhook delivery:**
+   ```bash
+   # Check mockgatehub logs for webhook sending
+   docker compose logs mockgatehub | grep -i webhook
+   ```
+   Expected: Status 200 responses from backend
+
+4. **Trace workflow execution:**
+   ```bash
+   # Check if signal was received but status check failed
+   docker compose logs backend | grep -A5 "SIGNAL RECEIVED"
+   ```
+   Look for "Transaction status check" log showing the actual status value
+
+**Common Fixes:**
+
+1. **Status code mismatch:** Ensure mockgatehub uses `TransactionStatusCompleted = 100`
+2. **Webhook not sent:** Check mockgatehub webhook manager is running and configured
+3. **Signal not delivered:** Verify payment_id mapping in gatehub_transactions table is correct
+4. **Workflow ID mismatch:** Signal delivery uses `payment_pay_out_{payment_id}` format
+
+### Debugging Workflow Issues
+
+**1. Check if workflow is stuck waiting:**
+```bash
+# Get workflow status
 docker exec local-temporal-1 temporal workflow describe \
-  --workflow-id "payment_pay_in_<payment_id>" \
-  --namespace default --address temporal:7233
+  --workflow-id "payment_pay_out_<payment_id>" \
+  --namespace default
 
-# Check workflow history - last event will be TimerStarted
-docker exec local-temporal-1 temporal workflow show \
-  --workflow-id "payment_pay_in_<payment_id>" \
-  --namespace default --address temporal:7233 | tail -5
+# Look for:
+# - Status: RUNNING (should be COMPLETED after payment)
+# - PendingActivities: Empty or GetGatehubTransfer
+# - PendingTimers: 20-minute timer indicates polling mode
 ```
 
-**Workaround:**
-Manually update the transaction status in mockgatehub Redis:
+**2. Trace webhook delivery path:**
 ```bash
-# Get current transaction
-docker exec local-redis-1 redis-cli -n 2 GET "tx:<external_id>"
+# Step 1: Check if mockgatehub sent webhook
+docker compose logs mockgatehub | grep "core.deposit.completed"
 
-# Update status from 1 to 2 (completed)
-# Then trigger webhook manually or wait for next 20-minute poll
+# Step 2: Check if backend received webhook
+docker compose logs backend | grep "Webhook received"
+
+# Step 3: Check if signal was sent
+docker compose logs backend | grep "SignalGatehubTransferComplete"
+
+# Step 4: Check if workflow received signal
+docker compose logs backend | grep "SIGNAL RECEIVED"
+
+# Step 5: Check what status was returned
+docker compose logs backend | grep "Transaction status check"
 ```
 
-**Permanent Fix Needed in MockGatehub:**
-1. Automatically set hosted transfers (type=2) to status=2 (completed) on creation
-2. Send `core.deposit.completed` webhook immediately after transaction creation
-3. Or implement an async worker that completes pending transactions after a short delay
+**3. Verify gatehub_transactions mapping:**
+```sql
+-- Ensure external transaction ID maps to correct payment
+SELECT payment_id, external_id 
+FROM gatehub_transactions 
+WHERE payment_id = '<payment_uuid>';
+
+-- If mapping is missing, signal won't find the workflow
+```
+
+**4. Manual signal testing:**
+```bash
+# Send test signal to workflow (requires temporal CLI)
+docker exec local-temporal-1 temporal workflow signal \
+  --workflow-id "payment_pay_out_<payment_id>" \
+  --name "payment_gatehub_signals" \
+  --namespace default
+  
+# Check if workflow wakes up and queries transaction status
+docker compose logs backend | tail -20
+```
+
+**5. Check transaction status directly:**
+```bash
+# Query mockgatehub transaction
+curl http://localhost:8080/core/v1/transactions/<tx_uuid>
+
+# Or via Redis
+docker exec local-redis-1 redis-cli -n 2 GET "tx:<tx_uuid>" | jq '.'
+
+# Verify status field is 100, not 1, 2, or other values
+```
+
+## GateHub Webhook and Signal Flow
+
+### Overview
+
+The payment workflow uses a hybrid approach to detect when external GateHub transactions complete:
+
+1. **Webhook Notification (Preferred)**: GateHub/MockGatehub sends a webhook when transaction status changes
+2. **Polling Fallback**: If webhook fails or is delayed, workflow polls every 20 minutes
+
+This ensures payments complete reliably even if webhooks are missed or delayed.
+
+### Webhook Flow
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                  GATEHUB WEBHOOK → TEMPORAL SIGNAL FLOW                 │
+└─────────────────────────────────────────────────────────────────────────┘
+
+GateHub/Mock          Backend Webhook Handler         Temporal Workflow
+    │                          │                              │
+    │  1. Transaction          │                              │
+    │     completes            │                              │
+    │     (status=100)         │                              │
+    │                          │                              │
+    │─ POST /webhooks/gatehub ─→                              │
+    │   {                      │                              │
+    │     event_type:          │                              │
+    │       "core.deposit.     │                              │
+    │        completed",       │                              │
+    │     tx_uuid: "...",      │                              │
+    │     deposit_type:        │                              │
+    │       "hosted"           │                              │
+    │   }                      │                              │
+    │                          │                              │
+    │                          │ 2. Route to handler          │
+    │                          │    HandleUserDeposit()       │
+    │                          │                              │
+    │                          │ 3. Lookup payment_id         │
+    │                          │    via gatehub_transactions  │
+    │                          │    WHERE external_id=tx_uuid │
+    │                          │                              │
+    │                          │ 4. Construct workflow_id     │
+    │                          │    = "payment_pay_out_       │
+    │                          │       {payment_id}"          │
+    │                          │                              │
+    │                          │ 5. Send Temporal signal      │
+    │                          │─ SignalWorkflow() ──────────→│
+    │                          │    channel: payment_         │
+    │                          │    gatehub_signals           │
+    │                          │                              │
+    │← HTTP 200 OK ─ ─ ─ ─ ─ ─│                              │
+    │                          │                              │ 6. Selector wakes
+    │                          │                              │    (signal received)
+    │                          │                              │
+    │                          │                              │ 7. Call activity:
+    │                          │                              │    GetGatehubTransfer
+    │                          │                              │
+    │                          │← GetTransaction(tx_uuid) ── ─│
+    │                          │                              │
+    │─ GET /transactions/... ──→                              │
+    │                          │                              │
+    │← {status: 100, ...} ─ ─ ─│                              │
+    │                          │                              │
+    │                          │─ Return status=100 ─────────→│
+    │                          │                              │
+    │                          │                              │ 8. Check status
+    │                          │                              │    if (status==100)
+    │                          │                              │      break loop
+    │                          │                              │
+    │                          │                              │ 9. Continue workflow
+    │                          │                              │    FinalizeBalance
+    │                          │                              │    AssignBalance
+    │                          │                              │    CreatePayoutTx
+```
+
+### Signal Channel Details
+
+**Channel Name**: `payment_gatehub_signals`
+
+**Signal Delivery**:
+```go
+// In backend/payments/ops/ops.go
+func SignalGatehubTransferComplete(externalTransactionID string) error {
+    // 1. Find payment_id from external_transaction_id
+    row := db.QueryRow(
+        "SELECT payment_id FROM gatehub_transactions WHERE external_id=$1",
+        externalTransactionID,
+    )
+    
+    // 2. Construct workflow ID
+    workflowID := fmt.Sprintf("payment_pay_out_%s", paymentID)
+    
+    // 3. Send signal to Temporal
+    client.SignalWorkflow(
+        ctx,
+        workflowID,
+        "",  // empty runID means current run
+        "payment_gatehub_signals",  // channel name
+        nil,  // no payload needed
+    )
+}
+```
+
+**Signal Reception**:
+```go
+// In backend/payments/ops/workflows.go (PayoutWorkflow)
+func PayoutWorkflow(ctx workflow.Context, req PaymentRequest) error {
+    signalChannel := workflow.GetSignalChannel(ctx, "payment_gatehub_signals")
+    
+    for {
+        selector := workflow.NewSelector(ctx)
+        
+        // Listen for signal OR timer
+        selector.AddReceive(signalChannel, func(c workflow.ReceiveChannel, more bool) {
+            c.Receive(ctx, nil)  // Signal received - wake up
+        })
+        
+        timer := workflow.NewTimer(ctx, 20*time.Minute)
+        selector.AddFuture(timer, func(f workflow.Future) {
+            // Timer fired - wake up
+        })
+        
+        selector.Select(ctx)  // Block until signal OR timer
+        
+        // Check transaction status
+        var tx GatehubTransaction
+        workflow.ExecuteActivity(ctx, GetGatehubTransfer, externalTxID).Get(ctx, &tx)
+        
+        if tx.Status == 100 {  // Completed
+            break  // Exit polling loop
+        }
+        
+        // Status != 100, loop back to wait again
+    }
+    
+    // Continue with finalize, assign, create transaction...
+}
+```
+
+### Transaction Status Codes
+
+**Critical**: The workflow completion depends on receiving the correct status code.
+
+| Status Code | Meaning | GateHub API | Workflow Action |
+|------------|---------|-------------|-----------------|
+| `1` | Pending/Processing | Standard | Continue polling |
+| `100` | Completed | Standard | Break loop, complete payment |
+| `3` | Failed | Standard | Mark payment failed |
+
+**Common Issue**: If mockgatehub uses a non-standard status code (e.g., `2` instead of `100`), the workflow will receive the signal, check the status, see it's not `100`, and continue polling indefinitely.
+
+**Validation**:
+```bash
+# Check transaction status in mockgatehub
+docker exec local-redis-1 redis-cli -n 2 GET "tx:<uuid>" | jq '.status'
+
+# Expected: 100 (not 1, 2, or other values)
+```
+
+### Polling Fallback Mechanism
+
+If webhooks fail or are delayed, the workflow uses a 20-minute polling timer:
+
+1. Timer expires after 20 minutes
+2. Workflow calls `GetGatehubTransfer` activity
+3. Checks transaction status
+4. If status == 100, breaks loop
+5. Otherwise, sets new 20-minute timer and waits again
+
+This ensures eventual consistency even without webhooks.
+
+**Trade-offs**:
+- **Webhooks**: Fast (sub-second completion), but requires reliable network
+- **Polling**: Slow (20-minute intervals), but guaranteed to work
 
 ## Temporal Workflow Monitoring
 
@@ -729,4 +1011,5 @@ After payment completes:
 
 ---
 
-*Last updated: January 2026*
+*Last updated: January 27, 2026*
+*Updated with webhook/signal flow and transaction status code documentation*
