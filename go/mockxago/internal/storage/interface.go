@@ -8,12 +8,12 @@ import (
 )
 
 var (
-	ErrTokenNotFound      = errors.New("token not found")
-	ErrInvalidToken       = errors.New("invalid token")
-	ErrTokenExpired       = errors.New("token expired")
-	ErrSubAccountNotFound = errors.New("sub-account not found")
-	ErrBeneficiaryNotFound = errors.New("beneficiary not found")
-	ErrInsufficientBalance = errors.New("insufficient balance")
+	ErrTokenNotFound        = errors.New("token not found")
+	ErrInvalidToken         = errors.New("invalid token")
+	ErrTokenExpired         = errors.New("token expired")
+	ErrSubAccountNotFound   = errors.New("sub-account not found")
+	ErrBeneficiaryNotFound  = errors.New("beneficiary not found")
+	ErrInsufficientBalance  = errors.New("insufficient balance")
 	ErrDuplicateTransaction = errors.New("duplicate transaction")
 )
 

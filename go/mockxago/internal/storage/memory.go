@@ -10,32 +10,32 @@ import (
 
 // MemoryStorage is an in-memory implementation of the Storage interface
 type MemoryStorage struct {
-	mu                sync.RWMutex
-	tokens            map[string]*models.AccessToken
-	subAccounts       map[string]*models.SubAccount
-	subAccountsByWallet map[string]*models.SubAccount
-	beneficiaries     map[string]*models.Beneficiary
+	mu                    sync.RWMutex
+	tokens                map[string]*models.AccessToken
+	subAccounts           map[string]*models.SubAccount
+	subAccountsByWallet   map[string]*models.SubAccount
+	beneficiaries         map[string]*models.Beneficiary
 	beneficiariesByWallet map[string][]*models.Beneficiary
-	transactions      map[string]*models.Transaction
-	idempotencyKeys   map[string]string
-	balances          map[string]map[string]float64 // [walletID][currency] -> amount
-	deposits          map[string]*models.Deposit
-	depositsByReference map[string]*models.Deposit
+	transactions          map[string]*models.Transaction
+	idempotencyKeys       map[string]string
+	balances              map[string]map[string]float64 // [walletID][currency] -> amount
+	deposits              map[string]*models.Deposit
+	depositsByReference   map[string]*models.Deposit
 }
 
 // NewMemoryStorage creates a new in-memory storage
 func NewMemoryStorage() Storage {
 	return &MemoryStorage{
-		tokens:              make(map[string]*models.AccessToken),
-		subAccounts:         make(map[string]*models.SubAccount),
-		subAccountsByWallet: make(map[string]*models.SubAccount),
-		beneficiaries:       make(map[string]*models.Beneficiary),
+		tokens:                make(map[string]*models.AccessToken),
+		subAccounts:           make(map[string]*models.SubAccount),
+		subAccountsByWallet:   make(map[string]*models.SubAccount),
+		beneficiaries:         make(map[string]*models.Beneficiary),
 		beneficiariesByWallet: make(map[string][]*models.Beneficiary),
-		transactions:        make(map[string]*models.Transaction),
-		idempotencyKeys:     make(map[string]string),
-		balances:            make(map[string]map[string]float64),
-		deposits:            make(map[string]*models.Deposit),
-		depositsByReference: make(map[string]*models.Deposit),
+		transactions:          make(map[string]*models.Transaction),
+		idempotencyKeys:       make(map[string]string),
+		balances:              make(map[string]map[string]float64),
+		deposits:              make(map[string]*models.Deposit),
+		depositsByReference:   make(map[string]*models.Deposit),
 	}
 }
 

@@ -14,10 +14,10 @@ import (
 
 // Handler handles HTTP requests
 type Handler struct {
-	store      storage.Storage
-	validator  *auth.Validator
-	publicKey  string
-	secret     string
+	store     storage.Storage
+	validator *auth.Validator
+	publicKey string
+	secret    string
 }
 
 // NewHandler creates a new handler
@@ -28,6 +28,34 @@ func NewHandler(store storage.Storage) *Handler {
 		publicKey: os.Getenv("XAGO_API_PUBLIC_KEY"),
 		secret:    os.Getenv("XAGO_API_SECRET"),
 	}
+}
+
+// AuthMiddleware validates bearer tokens for protected routes
+func (h *Handler) AuthMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, err := h.validator.ValidateToken(r.Context(), r.Header.Get("Authorization"))
+		if err != nil {
+			switch err {
+			case auth.ErrMissingToken:
+				h.sendError(w, http.StatusUnauthorized, "unauthorized", "authorization token required")
+				return
+			case auth.ErrInvalidFormat:
+				h.sendError(w, http.StatusUnauthorized, "unauthorized", "invalid authorization format")
+				return
+			case auth.ErrTokenExpired:
+				h.sendError(w, http.StatusUnauthorized, "unauthorized", "token expired")
+				return
+			case auth.ErrInvalidToken:
+				h.sendError(w, http.StatusUnauthorized, "unauthorized", "invalid token")
+				return
+			default:
+				h.sendError(w, http.StatusUnauthorized, "unauthorized", "authentication failed")
+				return
+			}
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }
 
 // Login handles POST /xago/v1/login
