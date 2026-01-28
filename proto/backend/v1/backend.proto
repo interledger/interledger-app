@@ -833,11 +833,6 @@ message Transfer {
   string linkedAccountId = 6;
 }
 
-message ListStatementsResponse {
-  repeated string periods = 1;
-  string nextPageToken = 2;
-}
-
 message IndividualKYCResponse {
   string firstName = 1;
   string lastName = 2;
