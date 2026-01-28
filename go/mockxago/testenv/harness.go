@@ -65,7 +65,7 @@ func (h *harness) updateSubAccount(accountID string) error {
 		"idNumber":                  "B7654321",
 		"physicalAddress":           "456 Updated Ave",
 	}
-	return h.postJSON(fmt.Sprintf("/xago/v1/company/accounts/%s", accountID), payload, true, &struct{}{})
+	return h.putJSON(fmt.Sprintf("/xago/v1/company/accounts/%s", accountID), payload, true, &struct{}{})
 }
 
 func (h *harness) getBalance(accountID string) (*balanceResponse, error) {
