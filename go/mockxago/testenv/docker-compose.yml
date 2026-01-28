@@ -1,0 +1,18 @@
+services:
+  mockxago:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: mockxago-test
+    ports:
+      - "28080:8080"
+    environment:
+      - XAGO_MOCK_PORT=8080
+      - XAGO_API_PUBLIC_KEY=test-public-key
+      - XAGO_API_SECRET=test-secret
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 5s

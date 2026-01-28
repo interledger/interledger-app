@@ -45,8 +45,8 @@ type Storage interface {
 	UpdateTransactionStatus(ctx context.Context, transactionID string, status string) error
 
 	// Balance operations
-	GetBalance(ctx context.Context, walletID string, currency string) (float64, error)
-	SetBalance(ctx context.Context, walletID string, currency string, amount float64) error
+	GetBalance(ctx context.Context, walletID string, currency string) (available float64, reserved float64, err error)
+	SetBalance(ctx context.Context, walletID string, currency string, available float64, reserved float64) error
 	AddBalance(ctx context.Context, walletID string, currency string, amount float64) error
 	SubtractBalance(ctx context.Context, walletID string, currency string, amount float64) error
 

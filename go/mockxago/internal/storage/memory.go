@@ -18,9 +18,14 @@ type MemoryStorage struct {
 	beneficiariesByWallet map[string][]*models.Beneficiary
 	transactions          map[string]*models.Transaction
 	idempotencyKeys       map[string]string
-	balances              map[string]map[string]float64 // [walletID][currency] -> amount
+	balances              map[string]map[string]balanceEntry // [walletID][currency] -> entry
 	deposits              map[string]*models.Deposit
 	depositsByReference   map[string]*models.Deposit
+}
+
+type balanceEntry struct {
+	Available float64
+	Reserved  float64
 }
 
 // NewMemoryStorage creates a new in-memory storage
@@ -33,7 +38,7 @@ func NewMemoryStorage() Storage {
 		beneficiariesByWallet: make(map[string][]*models.Beneficiary),
 		transactions:          make(map[string]*models.Transaction),
 		idempotencyKeys:       make(map[string]string),
-		balances:              make(map[string]map[string]float64),
+		balances:              make(map[string]map[string]balanceEntry),
 		deposits:              make(map[string]*models.Deposit),
 		depositsByReference:   make(map[string]*models.Deposit),
 	}
@@ -290,26 +295,27 @@ func (m *MemoryStorage) UpdateTransactionStatus(ctx context.Context, transaction
 
 // Balance operations
 
-func (m *MemoryStorage) GetBalance(ctx context.Context, walletID string, currency string) (float64, error) {
+func (m *MemoryStorage) GetBalance(ctx context.Context, walletID string, currency string) (float64, float64, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
 	if walletBalances, ok := m.balances[walletID]; ok {
-		return walletBalances[currency], nil
+		entry := walletBalances[currency]
+		return entry.Available, entry.Reserved, nil
 	}
 
-	return 0.0, nil
+	return 0.0, 0.0, nil
 }
 
-func (m *MemoryStorage) SetBalance(ctx context.Context, walletID string, currency string, amount float64) error {
+func (m *MemoryStorage) SetBalance(ctx context.Context, walletID string, currency string, available float64, reserved float64) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
 	if _, ok := m.balances[walletID]; !ok {
-		m.balances[walletID] = make(map[string]float64)
+		m.balances[walletID] = make(map[string]balanceEntry)
 	}
 
-	m.balances[walletID][currency] = amount
+	m.balances[walletID][currency] = balanceEntry{Available: available, Reserved: reserved}
 	return nil
 }
 
@@ -318,10 +324,12 @@ func (m *MemoryStorage) AddBalance(ctx context.Context, walletID string, currenc
 	defer m.mu.Unlock()
 
 	if _, ok := m.balances[walletID]; !ok {
-		m.balances[walletID] = make(map[string]float64)
+		m.balances[walletID] = make(map[string]balanceEntry)
 	}
 
-	m.balances[walletID][currency] += amount
+	entry := m.balances[walletID][currency]
+	entry.Available += amount
+	m.balances[walletID][currency] = entry
 	return nil
 }
 
@@ -330,14 +338,16 @@ func (m *MemoryStorage) SubtractBalance(ctx context.Context, walletID string, cu
 	defer m.mu.Unlock()
 
 	if _, ok := m.balances[walletID]; !ok {
-		m.balances[walletID] = make(map[string]float64)
+		m.balances[walletID] = make(map[string]balanceEntry)
 	}
 
-	if m.balances[walletID][currency] < amount {
+	entry := m.balances[walletID][currency]
+	if entry.Available < amount {
 		return ErrInsufficientBalance
 	}
 
-	m.balances[walletID][currency] -= amount
+	entry.Available -= amount
+	m.balances[walletID][currency] = entry
 	return nil
 }
 

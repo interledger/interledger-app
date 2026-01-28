@@ -69,47 +69,50 @@ func TestMemoryStorage_InvalidateAccessToken(t *testing.T) {
 func TestMemoryStorage_GetBalance_NoBalance(t *testing.T) {
 	store := NewMemoryStorage()
 
-	balance, err := store.GetBalance(context.Background(), "wallet1", "USD")
+	available, reserved, err := store.GetBalance(context.Background(), "wallet1", "USD")
 	assert.NoError(t, err)
-	assert.Equal(t, 0.0, balance)
+	assert.Equal(t, 0.0, available)
+	assert.Equal(t, 0.0, reserved)
 }
 
 func TestMemoryStorage_SetBalance(t *testing.T) {
 	store := NewMemoryStorage()
 
-	err := store.SetBalance(context.Background(), "wallet1", "USD", 100.0)
+	err := store.SetBalance(context.Background(), "wallet1", "USD", 100.0, 10.0)
 	assert.NoError(t, err)
 
-	balance, _ := store.GetBalance(context.Background(), "wallet1", "USD")
-	assert.Equal(t, 100.0, balance)
+	available, reserved, _ := store.GetBalance(context.Background(), "wallet1", "USD")
+	assert.Equal(t, 100.0, available)
+	assert.Equal(t, 10.0, reserved)
 }
 
 func TestMemoryStorage_AddBalance(t *testing.T) {
 	store := NewMemoryStorage()
 
-	store.SetBalance(context.Background(), "wallet1", "USD", 100.0)
+	store.SetBalance(context.Background(), "wallet1", "USD", 100.0, 5.0)
 	err := store.AddBalance(context.Background(), "wallet1", "USD", 50.0)
 	assert.NoError(t, err)
 
-	balance, _ := store.GetBalance(context.Background(), "wallet1", "USD")
-	assert.Equal(t, 150.0, balance)
+	available, reserved, _ := store.GetBalance(context.Background(), "wallet1", "USD")
+	assert.Equal(t, 150.0, available)
+	assert.Equal(t, 5.0, reserved)
 }
 
 func TestMemoryStorage_SubtractBalance(t *testing.T) {
 	store := NewMemoryStorage()
 
-	store.SetBalance(context.Background(), "wallet1", "USD", 100.0)
+	store.SetBalance(context.Background(), "wallet1", "USD", 100.0, 0)
 	err := store.SubtractBalance(context.Background(), "wallet1", "USD", 30.0)
 	assert.NoError(t, err)
 
-	balance, _ := store.GetBalance(context.Background(), "wallet1", "USD")
-	assert.Equal(t, 70.0, balance)
+	available, _, _ := store.GetBalance(context.Background(), "wallet1", "USD")
+	assert.Equal(t, 70.0, available)
 }
 
 func TestMemoryStorage_SubtractBalance_InsufficientFunds(t *testing.T) {
 	store := NewMemoryStorage()
 
-	store.SetBalance(context.Background(), "wallet1", "USD", 50.0)
+	store.SetBalance(context.Background(), "wallet1", "USD", 50.0, 0)
 	err := store.SubtractBalance(context.Background(), "wallet1", "USD", 100.0)
 	assert.Error(t, err)
 	assert.Equal(t, ErrInsufficientBalance, err)

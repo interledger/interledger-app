@@ -73,6 +73,20 @@ type UpdateSubAccountResponse struct {
 	Status    string `json:"status"`
 }
 
+// BalanceItem represents balance per currency
+type BalanceItem struct {
+	CurrencyCode string  `json:"currencyCode"`
+	Available    float64 `json:"available"`
+	Reserved     float64 `json:"reserved"`
+	Total        float64 `json:"total"`
+}
+
+// BalanceResponse represents balance response for an account
+type BalanceResponse struct {
+	AccountID string        `json:"accountId"`
+	Balances  []BalanceItem `json:"balances"`
+}
+
 // CurrencyResponse represents available currency and bank details
 type CurrencyResponse struct {
 	CurrencyID    string `json:"currencyId"`
