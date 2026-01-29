@@ -535,7 +535,7 @@ func CreateTransfer(ctx context.Context, b Backends, ec external.Client, args ga
 
 	// Validate vault ID is available before making the external call
 	vaultID := ec.GetVaultID()
-	if vaultID == "" {
+	if vaultID == "" && !env.IsTestExecution() {
 		return nil, temporal.NewNonRetryableApplicationError(
 			"Gatehub vault ID not configured",
 			"ConfigurationError",

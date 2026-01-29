@@ -39,7 +39,7 @@ type Activity struct {
 func NewActivity(b Backends) *Activity {
 	// Validate vault ID is available for activities
 	vaultID := os.Getenv("GATEHUB_PAYWISER_EURO_VAULT_ID")
-	if vaultID == "" && !env.IsTest() {
+	if vaultID == "" && !env.IsTestExecution() {
 		log.Fatal("GATEHUB_PAYWISER_EURO_VAULT_ID is required but not set. Please set this environment variable to enable EUR PayIn transactions via Gatehub.")
 	}
 
