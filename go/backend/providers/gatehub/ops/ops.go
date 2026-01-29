@@ -23,6 +23,7 @@ import (
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/serviceerror"
 	"go.temporal.io/sdk/client"
+	"go.temporal.io/sdk/temporal"
 )
 
 func CreateUser(ctx context.Context, b Backends, walletID string) (gatehub.Await, error) {
