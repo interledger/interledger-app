@@ -54,9 +54,11 @@ export function getCorrelationId(): string | undefined {
 }
 
 /**
- * Extract requestId from request headers or generate new UUIDv4
+ * Extract requestId from request headers or generate new one
  */
 export function extractOrGenerateRequestId(request: Request): string {
   const headerRequestId = request.headers.get('x-request-id')
-  return headerRequestId || uuidv4()
+  const headerCorrelationId = request.headers.get('x-correlation-id')
+
+  return headerRequestId || `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 }

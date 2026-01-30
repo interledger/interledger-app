@@ -8,8 +8,7 @@ import type {
 import { json, redirectDocument } from '@remix-run/node'
 import { Form, useActionData, useLoaderData, useSubmit } from '@remix-run/react'
 import { useRef } from 'react'
-import logger, { addRequestId } from '~/lib/logger.server'
-import { extractOrGenerateRequestId } from '~/lib/requestContext.server'
+import { getLogger, addRequestId } from '~/lib/logger.server'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import {
@@ -79,9 +78,10 @@ export async function loader({
 
     return json({ ...totpSchema, csrfToken: getCsrfTokenFromFlow(flow) })
   } catch (error) {
-    const requestId = extractOrGenerateRequestId(request)
+    const logger = getLogger()
+    const requestId = 'unknown'
     logger.error(
-      { ...addRequestId(requestId), error },
+      { ...addRequestId(requestId), error: error instanceof Error ? error.message : String(error) },
       'Error loading TOTP settings flow'
     )
     return json({ csrfToken: undefined })

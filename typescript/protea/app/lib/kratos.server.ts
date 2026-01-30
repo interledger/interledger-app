@@ -10,7 +10,7 @@ import type {
 import { redirect } from '@remix-run/node'
 import { route } from 'routes-gen'
 import { safeReturnTo } from './url.server'
-import logger from './logger.server'
+import { getLogger } from './logger.server'
 
 // Export to ensure this is always evaluated server side.
 export const KRATOS_URL = process.env.KRATOS_URL
@@ -246,6 +246,7 @@ export async function kratosErrorMapping<T extends object>(
   fieldErrors: T
 ): Promise<T> {
   const data = await response.json()
+  const logger = getLogger()
 
   if (data.ui) {
     for (let node of data.ui.nodes) {

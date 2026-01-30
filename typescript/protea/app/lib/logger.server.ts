@@ -1,23 +1,16 @@
-import type { Logger as PinoLogger, LoggerOptions } from 'pino';
-import pino from 'pino'
-import { createRequire } from 'node:module'
+import pino, { Logger as PinoLogger, LoggerOptions } from 'pino'
 import { getRequestId, getCorrelationId } from './requestContext.server'
 
-let logger: PinoLogger
-
 declare global {
-  var __logger: PinoLogger | undefined
+  var logger: PinoLogger
 }
 
 // Valid log levels that match the logging policy
 const VALID_LOG_LEVELS = ['fatal', 'error', 'warn', 'info', 'debug', 'trace']
 
-// Get LOG_LEVEL from environment, default to 'warn'
-// This runs once at module load time
-function getLogLevel(): { level: string; wasDefaulted: boolean } {
-  const envLogLevel = process.env.LOG_LEVEL
-  const logLevel = envLogLevel || 'warn'
-  const wasDefaulted = !envLogLevel
+// Get LOG_LEVEL from environment, default to 'info'
+function getLogLevel(): string {
+  const logLevel = process.env.LOG_LEVEL || 'info'
 
   // Validate LOG_LEVEL - exit if invalid
   if (!VALID_LOG_LEVELS.includes(logLevel)) {
@@ -26,7 +19,7 @@ function getLogLevel(): { level: string; wasDefaulted: boolean } {
       JSON.stringify({
         level: 'fatal',
         ts: Date.now() / 1000,
-        caller: 'logger.server.ts',
+        caller: 'logger.server.ts:24',
         msg: 'Invalid LOG_LEVEL configuration',
         error: `LOG_LEVEL must be one of: ${VALID_LOG_LEVELS.join(', ')}`,
         providedValue: logLevel,
@@ -35,24 +28,22 @@ function getLogLevel(): { level: string; wasDefaulted: boolean } {
     process.exit(1)
   }
 
-  return { level: logLevel, wasDefaulted }
+  return logLevel
 }
 
 // Pino configuration following the logging policy
-function getPinoConfig(): { config: LoggerOptions; wasDefaulted: boolean } {
-  const { level: logLevel, wasDefaulted } = getLogLevel()
+function getPinoConfig(): LoggerOptions {
+  const logLevel = getLogLevel()
   const isDevelopment = process.env.NODE_ENV === 'development'
-
-  const pinoPrettyTarget = resolvePinoPrettyTarget()
 
   const config: LoggerOptions = {
     level: logLevel,
     timestamp: pino.stdTimeFunctions.isoTime, // ISO format timestamp
     // Use different transports for different log levels as per policy
     transport:
-      isDevelopment && process.env.LOG_PRETTY !== 'false' && pinoPrettyTarget
+      isDevelopment && process.env.LOG_PRETTY !== 'false'
         ? {
-            target: pinoPrettyTarget,
+            target: 'pino-pretty',
             options: {
               colorize: true,
               singleLine: false,
@@ -66,6 +57,18 @@ function getPinoConfig(): { config: LoggerOptions; wasDefaulted: boolean } {
         return { level: label }
       },
     },
+    hooks: {
+      logMethod: (args, method, level) => {
+        // Route different levels to appropriate streams
+        // fatal and error -> stderr
+        // warning, info, debug -> stdout
+        if (level <= 40) {
+          // 40 is 'error' level in pino (50 is 'fatal')
+          return method.apply(process.stderr, args)
+        }
+        return method.apply(process.stdout, args)
+      },
+    },
     base: {
       // Remove the default pid and hostname for cleaner logs
       pid: undefined,
@@ -73,42 +76,22 @@ function getPinoConfig(): { config: LoggerOptions; wasDefaulted: boolean } {
     },
   }
 
-  return { config, wasDefaulted }
+  return config
 }
 
-function resolvePinoPrettyTarget(): string | undefined {
-  try {
-    const requireForResolve =
-      typeof __filename !== 'undefined'
-        ? createRequire(__filename)
-        : createRequire(import.meta.url)
-    return requireForResolve.resolve('pino-pretty')
-  } catch {
-    return undefined
+// Create or retrieve the global logger instance
+export function getLogger(): PinoLogger {
+  if (global.logger) {
+    return global.logger
   }
-}
 
-// Initialize logger once at module load time
-// This is needed because in development we don't want to restart
-// the server with every change, but we want to make sure we don't
-// create a new logger instance with every change either.
-const { config: pinoConfig, wasDefaulted } = getPinoConfig()
+  const config = getPinoConfig()
+  const logger = pino(config)
 
-if (process.env.NODE_ENV === 'production') {
-  logger = pino(pinoConfig)
-} else {
-  if (!global.__logger) {
-    global.__logger = pino(pinoConfig)
-  }
-  logger = global.__logger
-}
+  // Store in global for reuse
+  global.logger = logger
 
-// Emit warning if LOG_LEVEL was not configured
-if (wasDefaulted) {
-  logger.warn(
-    {},
-    'LOG_LEVEL environment variable not set, defaulting to "warn"'
-  )
+  return logger
 }
 
 // Create a child logger with additional context (useful for request-scoped logging)
@@ -120,7 +103,7 @@ export function createChildLogger(
 }
 
 // Default export for convenience
-export default logger
+export default getLogger()
 
 /**
  * Helper to add requestId to log context
@@ -138,18 +121,4 @@ export function addRequestId(requestId?: string) {
 export function addCorrelationId(correlationId?: string) {
   const id = correlationId || getCorrelationId()
   return id ? { correlationId: id } : {}
-}
-
-/**
- * Helper to destructure and format error information for logging
- * Handles both Error objects and unknown error types
- * Usage: logger.error({ ...withErrorLog(err) }, 'Failed to process request')
- */
-export function withErrorLog(error: unknown) {
-  return {
-    error:
-      error instanceof Error
-        ? { message: error.message, name: error.name, stack: error.stack }
-        : String(error)
-  }
 }

@@ -2,7 +2,7 @@ import type { AddressComponent } from '@googlemaps/google-maps-services-js'
 import type { LoaderFunctionArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { mapsClient } from '~/lib/maps.server'
-import logger from '~/lib/logger.server'
+import { getLogger } from '~/lib/logger.server'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
@@ -20,6 +20,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       return r.data.results[0]
     })
     .catch((e) => {
+      const logger = getLogger()
       logger.error(
         { error: e instanceof Error ? e.message : String(e) },
         'Google Maps geocode API error'
