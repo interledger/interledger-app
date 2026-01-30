@@ -488,6 +488,9 @@ func AssignBalance(ctx context.Context, b Backends, linkedAccountID, txID string
 		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
 	}
 	if len(tx) != 0 {
+		if tx[0].Code == pacioli.TransferExists {
+			return nil, nil
+		}
 		if tx[0].Code == pacioli.TransferExceedsCredits || tx[0].Code == pacioli.TransferExceedsDebits || tx[0].Code == pacioli.TransferExceedsPendingTransferAmount {
 			return nil, fmt.Errorf("%w insufficient balance cod (%s)", gatehub.ErrInsufficientBalance, tx[0].Code.String())
 		}

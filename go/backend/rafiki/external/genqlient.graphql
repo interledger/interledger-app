@@ -162,3 +162,15 @@ query GetAssets () {
         }
     }
 }
+
+mutation CreateOutgoingPaymentWithdrawal($input: CreateOutgoingPaymentWithdrawalInput!) {
+    createOutgoingPaymentWithdrawal(input: $input) {
+        success
+    }
+}
+
+mutation CreateIncomingPaymentWithdrawal($input: CreateIncomingPaymentWithdrawalInput!) {
+    createIncomingPaymentWithdrawal(input: $input) {
+        success
+    }
+}

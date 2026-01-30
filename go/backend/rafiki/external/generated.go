@@ -74,6 +74,88 @@ func (v *CancelOutgoingPaymentResponse) GetCancelOutgoingPayment() CancelOutgoin
 	return v.CancelOutgoingPayment
 }
 
+// CreateIncomingPaymentWithdrawalCreateIncomingPaymentWithdrawalLiquidityMutationResponse includes the requested fields of the GraphQL type LiquidityMutationResponse.
+type CreateIncomingPaymentWithdrawalCreateIncomingPaymentWithdrawalLiquidityMutationResponse struct {
+	Success bool `json:"success"`
+}
+
+// GetSuccess returns CreateIncomingPaymentWithdrawalCreateIncomingPaymentWithdrawalLiquidityMutationResponse.Success, and is useful for accessing the field via an interface.
+func (v *CreateIncomingPaymentWithdrawalCreateIncomingPaymentWithdrawalLiquidityMutationResponse) GetSuccess() bool {
+	return v.Success
+}
+
+type CreateIncomingPaymentWithdrawalInput struct {
+	// The id of the incoming payment to withdraw from.
+	IncomingPaymentId string `json:"incomingPaymentId"`
+	// Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)
+	IdempotencyKey string `json:"idempotencyKey"`
+	// This is the interval in seconds after a pending transfer's created at which it may be posted or voided. Zero denotes a no timeout single-phase posted transfer.
+	TimeoutSeconds string `json:"timeoutSeconds"`
+}
+
+// GetIncomingPaymentId returns CreateIncomingPaymentWithdrawalInput.IncomingPaymentId, and is useful for accessing the field via an interface.
+func (v *CreateIncomingPaymentWithdrawalInput) GetIncomingPaymentId() string {
+	return v.IncomingPaymentId
+}
+
+// GetIdempotencyKey returns CreateIncomingPaymentWithdrawalInput.IdempotencyKey, and is useful for accessing the field via an interface.
+func (v *CreateIncomingPaymentWithdrawalInput) GetIdempotencyKey() string { return v.IdempotencyKey }
+
+// GetTimeoutSeconds returns CreateIncomingPaymentWithdrawalInput.TimeoutSeconds, and is useful for accessing the field via an interface.
+func (v *CreateIncomingPaymentWithdrawalInput) GetTimeoutSeconds() string { return v.TimeoutSeconds }
+
+// CreateIncomingPaymentWithdrawalResponse is returned by CreateIncomingPaymentWithdrawal on success.
+type CreateIncomingPaymentWithdrawalResponse struct {
+	// Withdraw incoming payment liquidity
+	CreateIncomingPaymentWithdrawal CreateIncomingPaymentWithdrawalCreateIncomingPaymentWithdrawalLiquidityMutationResponse `json:"createIncomingPaymentWithdrawal"`
+}
+
+// GetCreateIncomingPaymentWithdrawal returns CreateIncomingPaymentWithdrawalResponse.CreateIncomingPaymentWithdrawal, and is useful for accessing the field via an interface.
+func (v *CreateIncomingPaymentWithdrawalResponse) GetCreateIncomingPaymentWithdrawal() CreateIncomingPaymentWithdrawalCreateIncomingPaymentWithdrawalLiquidityMutationResponse {
+	return v.CreateIncomingPaymentWithdrawal
+}
+
+// CreateOutgoingPaymentWithdrawalCreateOutgoingPaymentWithdrawalLiquidityMutationResponse includes the requested fields of the GraphQL type LiquidityMutationResponse.
+type CreateOutgoingPaymentWithdrawalCreateOutgoingPaymentWithdrawalLiquidityMutationResponse struct {
+	Success bool `json:"success"`
+}
+
+// GetSuccess returns CreateOutgoingPaymentWithdrawalCreateOutgoingPaymentWithdrawalLiquidityMutationResponse.Success, and is useful for accessing the field via an interface.
+func (v *CreateOutgoingPaymentWithdrawalCreateOutgoingPaymentWithdrawalLiquidityMutationResponse) GetSuccess() bool {
+	return v.Success
+}
+
+type CreateOutgoingPaymentWithdrawalInput struct {
+	// The id of the outgoing payment to withdraw from.
+	OutgoingPaymentId string `json:"outgoingPaymentId"`
+	// Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)
+	IdempotencyKey string `json:"idempotencyKey"`
+	// This is the interval in seconds after a pending transfer's created at which it may be posted or voided. Zero denotes a no timeout single-phase posted transfer.
+	TimeoutSeconds string `json:"timeoutSeconds"`
+}
+
+// GetOutgoingPaymentId returns CreateOutgoingPaymentWithdrawalInput.OutgoingPaymentId, and is useful for accessing the field via an interface.
+func (v *CreateOutgoingPaymentWithdrawalInput) GetOutgoingPaymentId() string {
+	return v.OutgoingPaymentId
+}
+
+// GetIdempotencyKey returns CreateOutgoingPaymentWithdrawalInput.IdempotencyKey, and is useful for accessing the field via an interface.
+func (v *CreateOutgoingPaymentWithdrawalInput) GetIdempotencyKey() string { return v.IdempotencyKey }
+
+// GetTimeoutSeconds returns CreateOutgoingPaymentWithdrawalInput.TimeoutSeconds, and is useful for accessing the field via an interface.
+func (v *CreateOutgoingPaymentWithdrawalInput) GetTimeoutSeconds() string { return v.TimeoutSeconds }
+
+// CreateOutgoingPaymentWithdrawalResponse is returned by CreateOutgoingPaymentWithdrawal on success.
+type CreateOutgoingPaymentWithdrawalResponse struct {
+	// Withdraw outgoing payment liquidity
+	CreateOutgoingPaymentWithdrawal CreateOutgoingPaymentWithdrawalCreateOutgoingPaymentWithdrawalLiquidityMutationResponse `json:"createOutgoingPaymentWithdrawal"`
+}
+
+// GetCreateOutgoingPaymentWithdrawal returns CreateOutgoingPaymentWithdrawalResponse.CreateOutgoingPaymentWithdrawal, and is useful for accessing the field via an interface.
+func (v *CreateOutgoingPaymentWithdrawalResponse) GetCreateOutgoingPaymentWithdrawal() CreateOutgoingPaymentWithdrawalCreateOutgoingPaymentWithdrawalLiquidityMutationResponse {
+	return v.CreateOutgoingPaymentWithdrawal
+}
+
 // CreateWalletAddressCreateWalletAddressCreateWalletAddressMutationResponse includes the requested fields of the GraphQL type CreateWalletAddressMutationResponse.
 type CreateWalletAddressCreateWalletAddressCreateWalletAddressMutationResponse struct {
 	WalletAddress CreateWalletAddressCreateWalletAddressCreateWalletAddressMutationResponseWalletAddress `json:"walletAddress"`
@@ -1059,6 +1141,26 @@ type __CancelOutgoingPaymentInput struct {
 // GetInput returns __CancelOutgoingPaymentInput.Input, and is useful for accessing the field via an interface.
 func (v *__CancelOutgoingPaymentInput) GetInput() CancelOutgoingPaymentInput { return v.Input }
 
+// __CreateIncomingPaymentWithdrawalInput is used internally by genqlient
+type __CreateIncomingPaymentWithdrawalInput struct {
+	Input CreateIncomingPaymentWithdrawalInput `json:"input"`
+}
+
+// GetInput returns __CreateIncomingPaymentWithdrawalInput.Input, and is useful for accessing the field via an interface.
+func (v *__CreateIncomingPaymentWithdrawalInput) GetInput() CreateIncomingPaymentWithdrawalInput {
+	return v.Input
+}
+
+// __CreateOutgoingPaymentWithdrawalInput is used internally by genqlient
+type __CreateOutgoingPaymentWithdrawalInput struct {
+	Input CreateOutgoingPaymentWithdrawalInput `json:"input"`
+}
+
+// GetInput returns __CreateOutgoingPaymentWithdrawalInput.Input, and is useful for accessing the field via an interface.
+func (v *__CreateOutgoingPaymentWithdrawalInput) GetInput() CreateOutgoingPaymentWithdrawalInput {
+	return v.Input
+}
+
 // __CreateWalletAddressInput is used internally by genqlient
 type __CreateWalletAddressInput struct {
 	Input CreateWalletAddressInput `json:"input"`
@@ -1167,6 +1269,76 @@ func CancelOutgoingPayment(
 	var err error
 
 	var data CancelOutgoingPaymentResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by CreateIncomingPaymentWithdrawal.
+const CreateIncomingPaymentWithdrawal_Operation = `
+mutation CreateIncomingPaymentWithdrawal ($input: CreateIncomingPaymentWithdrawalInput!) {
+	createIncomingPaymentWithdrawal(input: $input) {
+		success
+	}
+}
+`
+
+func CreateIncomingPaymentWithdrawal(
+	ctx context.Context,
+	client graphql.Client,
+	input CreateIncomingPaymentWithdrawalInput,
+) (*CreateIncomingPaymentWithdrawalResponse, error) {
+	req := &graphql.Request{
+		OpName: "CreateIncomingPaymentWithdrawal",
+		Query:  CreateIncomingPaymentWithdrawal_Operation,
+		Variables: &__CreateIncomingPaymentWithdrawalInput{
+			Input: input,
+		},
+	}
+	var err error
+
+	var data CreateIncomingPaymentWithdrawalResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by CreateOutgoingPaymentWithdrawal.
+const CreateOutgoingPaymentWithdrawal_Operation = `
+mutation CreateOutgoingPaymentWithdrawal ($input: CreateOutgoingPaymentWithdrawalInput!) {
+	createOutgoingPaymentWithdrawal(input: $input) {
+		success
+	}
+}
+`
+
+func CreateOutgoingPaymentWithdrawal(
+	ctx context.Context,
+	client graphql.Client,
+	input CreateOutgoingPaymentWithdrawalInput,
+) (*CreateOutgoingPaymentWithdrawalResponse, error) {
+	req := &graphql.Request{
+		OpName: "CreateOutgoingPaymentWithdrawal",
+		Query:  CreateOutgoingPaymentWithdrawal_Operation,
+		Variables: &__CreateOutgoingPaymentWithdrawalInput{
+			Input: input,
+		},
+	}
+	var err error
+
+	var data CreateOutgoingPaymentWithdrawalResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(

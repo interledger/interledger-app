@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/hmac"
 	"crypto/sha256"
+	"database/sql"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -305,14 +306,26 @@ func HandleUserDeposit(ctx context.Context, b Backends, raw json.RawMessage, w h
 
 	// `hosted` deposit type is for wallet-to-wallet transfers. Here we signal the payments engine
 	if wh.Data.DepositType == "hosted" {
-		err = b.Payments().SignalGatehubTransferComplete(ctx, wh.Data.TrxID)
-		if err != nil {
-			log.Error("gatehub webhook: Failed to signal payments workflow about wallet transfer", zap.String("external_user_uuid", wh.UserID), zap.String("external_transaction_id", wh.Data.TrxID), zap.Error(err))
+		// Workaround to see updated balance in wallet UI when depositing from Gatehub UI
+		//TODO Will delete it after review
+		var paymentID string
+		err = b.DB().GetContext(ctx, &paymentID, "SELECT payment_id FROM gatehub_transactions WHERE external_id=$1;", wh.Data.TrxID)
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return
 		}
 
-		return
+		if err == nil && paymentID != "" {
+			err = b.Payments().SignalGatehubTransferComplete(ctx, wh.Data.TrxID)
+			if err != nil {
+				log.Error("gatehub webhook: Failed to signal payments workflow about wallet transfer", zap.String("external_user_uuid", wh.UserID), zap.String("external_transaction_id", wh.Data.TrxID), zap.Error(err))
+				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+				return
+			}
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
 	}
 
 	// `external` deposit type is for a deposit done through the ramp widget. We start a workflow
