@@ -1,0 +1,50 @@
+sequenceDiagram
+    title Rafiki integration with Wallet - Gatehub provider
+    autonumber
+    participant Ra as Rafiki
+    participant Wb as Wallet Backend
+    participant Ga as GateHub
+    participant Db as Wallet Backend DB
+
+    Note over Ra,Wb: Sender and receiver are on the same Rafiki instance
+
+    %% Incoming: created
+    Ra->>Wb: incoming_payment.created webhook
+    Wb->>Db: INSERT rafiki_incoming_payments
+
+    %% Outgoing: created
+    Ra->>Wb: outgoing_payment.created webhook
+    Wb->>Wb: Parse and validate payload
+    Wb->>Wb: getAccounts lookup sender receiver linked accounts
+
+    alt Payment invalid
+        Wb->>Ra: CancelOutgoingPayment
+        Note right of Wb: account not found, same wallet, insufficient balance, or reserve failed
+    else Payment valid
+        alt Immediate payment amt >= 100
+            Wb->>Ga: GetBalance sender
+            Wb->>Wb: Create payment and Confirm
+            Wb->>Ra: FundOutgoingPayment
+        else Batched payment amt less than 100
+            Wb->>Wb: reserveTransfer reserve 26h
+            Wb->>Db: INSERT rafiki_outgoing_payments
+            Wb->>Ra: FundOutgoingPayment
+        end
+    end
+
+    Ra->>Ra: Process payment ILP quote transfer
+    Ra->>Wb: outgoing_payment.completed webhook
+
+    Wb->>Wb: Parse and validate lookup sender
+    Wb->>Db: EXISTS rafiki_outgoing_payments
+    alt Batched payment row exists
+        Wb->>Ga: FinaliseReserve debit sender to intermediary
+    end
+    Wb->>Ra: WithdrawOutgoingPaymentLiquidity
+
+    %% Incoming: completed or expired or partial
+    Ra->>Wb: incoming_payment.completed or expired or partial_payment_received
+    Wb->>Wb: Parse and validate lookup receiver
+    Wb->>Ga: AssignBalance credit receiver from intermediary
+    Wb->>Ra: WithdrawIncomingPaymentLiquidity
+    Wb->>Db: UPDATE rafiki_incoming_payments

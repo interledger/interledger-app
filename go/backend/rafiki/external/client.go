@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strconv"
 	"sync"
 
 	"github.com/Khan/genqlient/graphql"
@@ -29,6 +30,8 @@ type Client interface {
 	GetIncomingPayment(ctx context.Context, id string) (*GetIncomingPaymentIncomingPayment, error)
 	UpdateWalletAddressStatus(ctx context.Context, walletID rafiki.UpdateAddressStatus, status bool) error
 	CancelOutgoingPayment(ctx context.Context, paymentPointerID, reason string) error
+	WithdrawOutgoingPaymentLiquidity(ctx context.Context, outgoingPaymentID string, timeoutSeconds uint64) error
+	WithdrawIncomingPaymentLiquidity(ctx context.Context, incomingPaymentID string, timeoutSeconds uint64) error
 }
 
 type assets struct {
@@ -249,6 +252,32 @@ func (c client) UpdateWalletAddressStatus(ctx context.Context, wallet rafiki.Upd
 		Id:         wallet.ID,
 		Status:     statusVal,
 		PublicName: wallet.Name,
+	})
+	if err != nil {
+		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+	}
+
+	return nil
+}
+
+func (c client) WithdrawOutgoingPaymentLiquidity(ctx context.Context, outgoingPaymentID string, timeoutSeconds uint64) error {
+	_, err := CreateOutgoingPaymentWithdrawal(ctx, c.backendClient, CreateOutgoingPaymentWithdrawalInput{
+		OutgoingPaymentId: outgoingPaymentID,
+		IdempotencyKey:    outgoingPaymentID + "_withdrawal",
+		TimeoutSeconds:    strconv.FormatUint(timeoutSeconds, 10),
+	})
+	if err != nil {
+		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+	}
+
+	return nil
+}
+
+func (c client) WithdrawIncomingPaymentLiquidity(ctx context.Context, incomingPaymentID string, timeoutSeconds uint64) error {
+	_, err := CreateIncomingPaymentWithdrawal(ctx, c.backendClient, CreateIncomingPaymentWithdrawalInput{
+		IncomingPaymentId: incomingPaymentID,
+		IdempotencyKey:    incomingPaymentID + "_withdrawal",
+		TimeoutSeconds:    strconv.FormatUint(timeoutSeconds, 10),
 	})
 	if err != nil {
 		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
