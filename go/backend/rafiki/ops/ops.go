@@ -118,13 +118,13 @@ func LookupPaymentPointerID(ctx context.Context, b Backends, walletID string) (s
 }
 
 func FundOutgoingPayment(ctx context.Context, b Backends, paymentID string) error {
-	var eventIDs []string
-	err := b.DB().SelectContext(ctx, &eventIDs, "SELECT event_id FROM rafiki_outgoing_payments WHERE payment_id=$1", paymentID)
+	var outgoingPaymentIDs []string
+	err := b.DB().SelectContext(ctx, &outgoingPaymentIDs, "SELECT id FROM rafiki_outgoing_payments WHERE payment_id=$1", paymentID)
 	if err != nil {
 		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
 	}
 
-	for _, id := range eventIDs {
+	for _, id := range outgoingPaymentIDs {
 		err = b.External().FundOutgoingPayment(ctx, id)
 		if err != nil {
 			return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
