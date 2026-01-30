@@ -31,8 +31,6 @@ import (
 	"gitlab.com/fynbos/backend/authorisation"
 	authorisation_client "gitlab.com/fynbos/backend/authorisation/client"
 	auth_http "gitlab.com/fynbos/backend/authorisation/http"
-	"gitlab.com/fynbos/backend/aws"
-	aws_client "gitlab.com/fynbos/backend/aws/client"
 	"gitlab.com/fynbos/backend/cli"
 	"gitlab.com/fynbos/backend/contacts"
 	contacts_client "gitlab.com/fynbos/backend/contacts/client"
@@ -80,8 +78,6 @@ import (
 	signup_client "gitlab.com/fynbos/backend/signup/client"
 	"gitlab.com/fynbos/backend/slack"
 	slack_client "gitlab.com/fynbos/backend/slack/client"
-	"gitlab.com/fynbos/backend/statements"
-	statements_client "gitlab.com/fynbos/backend/statements/client"
 	"gitlab.com/fynbos/backend/temporal"
 	"gitlab.com/fynbos/backend/transactions"
 	transactions_client "gitlab.com/fynbos/backend/transactions/client"
@@ -478,7 +474,6 @@ type backends struct {
 	email          email.Client
 	transactions   transactions.Client
 	notify         notify.Client
-	statements     statements.Client
 	auth           authorisation.InternalClient
 	analytics      analytics.Client
 	contacts       contacts.Client
@@ -492,7 +487,6 @@ type backends struct {
 	discord        discord.Client
 	slack          slack.Client
 	rafiki         rafiki.Client
-	aws            aws.Client
 	xago           xago.Client
 	pac            pacioli.Client
 	pti            pti.Client
@@ -514,10 +508,6 @@ func (b backends) Pacioli() pacioli.Client {
 
 func (b backends) Xago() xago.Client {
 	return b.xago
-}
-
-func (b backends) AWS() aws.Client {
-	return b.aws
 }
 
 func (b backends) Slack() slack.Client {
@@ -612,10 +602,6 @@ func (b backends) Notify() notify.Client {
 	return b.notify
 }
 
-func (b backends) Statements() statements.Client {
-	return b.statements
-}
-
 func (b backends) Analytics() analytics.Client {
 	return b.analytics
 }
@@ -707,11 +693,6 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 
 	b.analytics = analytics_client.New(b, args.SegmentKey)
 
-	b.aws, err = aws_client.New(context.Background())
-	if err != nil {
-		log.Error("failed to start AWS client", zap.Error(err))
-	}
-
 	b.feat = features_client.New(b)
 
 	twilioService, err := _twilio.NewService(&_twilio.ServiceArgs{
@@ -753,9 +734,6 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 
 	log.Debug("initialising notify")
 	b.notify = notify_client.New(b, args.PusherAddr)
-
-	log.Debug("initialising statements")
-	b.statements = statements_client.New()
 
 	log.Debug("initialising limits")
 	b.limits = limits_client.New(b)

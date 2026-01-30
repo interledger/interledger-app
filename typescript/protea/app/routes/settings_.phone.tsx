@@ -161,7 +161,7 @@ export default function Page() {
       />
       <Card>
         <CardContent>
-          <p>Set a new password to continue.</p>
+          <p>Set a new phone number to continue.</p>
         </CardContent>
         <PhoneTextField
           id='phone'
