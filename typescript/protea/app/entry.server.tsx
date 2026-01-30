@@ -5,6 +5,7 @@ import * as Sentry from '@sentry/remix'
 import isbot from 'isbot'
 import { renderToPipeableStream } from 'react-dom/server'
 import { PassThrough } from 'stream'
+import { getLogger, addRequestId } from './lib/logger.server'
 
 const ABORT_DELAY = 5_000
 
@@ -28,10 +29,16 @@ export function handleError(
   error: unknown,
   { request }: DataFunctionArgs
 ): void {
+  const logger = getLogger()
+  const requestId = request.headers.get('x-request-id') || 'unknown'
+  
   if (error instanceof Error) {
     Sentry.captureRemixServerException(error, 'remix.server', request).catch(
       (e) => {
-        console.error('Error capturing error', e)
+        logger.error(
+          { ...addRequestId(requestId), error: e instanceof Error ? e.message : String(e) },
+          'Failed to capture error in Sentry'
+        )
       }
     )
   } else {
@@ -41,7 +48,11 @@ export function handleError(
     }
     Sentry.captureException(error)
   }
-  console.error(error)
+  
+  logger.error(
+    { ...addRequestId(requestId), error: error instanceof Error ? error.message : String(error) },
+    'Unhandled error in server'
+  )
 }
 
 export default function handleRequest(
@@ -97,8 +108,12 @@ function handleBotRequest(
           reject(error)
         },
         onError(error: unknown) {
+          const logger = getLogger()
           responseStatusCode = 500
-          console.error(error)
+          logger.error(
+            { error: error instanceof Error ? error.message : String(error) },
+            'Error rendering to bot'
+          )
         }
       }
     )
@@ -139,7 +154,11 @@ function handleBrowserRequest(
           reject(error)
         },
         onError(error: unknown) {
-          console.error(error)
+          const logger = getLogger()
+          logger.error(
+            { error: error instanceof Error ? error.message : String(error) },
+            'Error rendering to browser'
+          )
           responseStatusCode = 500
         }
       }

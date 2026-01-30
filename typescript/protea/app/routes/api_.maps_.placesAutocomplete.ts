@@ -2,6 +2,7 @@ import { PlaceAutocompleteType } from '@googlemaps/google-maps-services-js'
 import type { LoaderFunctionArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { mapsClient } from '~/lib/maps.server'
+import { getLogger } from '~/lib/logger.server'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
@@ -25,7 +26,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
       }))
     })
     .catch((e) => {
-      console.error(e)
+      const logger = getLogger()
+      logger.error(
+        { error: e instanceof Error ? e.message : String(e) },
+        'Google Maps places autocomplete API error'
+      )
       return e
     })
 

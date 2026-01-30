@@ -1,5 +1,6 @@
 import type { RedisClientType } from '@redis/client'
 import { createClient } from '@redis/client'
+import { getLogger } from './logger.server'
 
 let redisClient: RedisClientType
 
@@ -16,7 +17,7 @@ if (process.env.NODE_ENV === 'production') {
   redisClient = createClient({ url })
   redisClient.connect()
   redisClient.on('error', (err) => {
-    console.error('Redis error:', err)
+    getLogger().error({ error: err.message }, 'Redis error')
   })
 } else {
   if (!global.__redisClient) {
@@ -28,7 +29,7 @@ if (process.env.NODE_ENV === 'production') {
     })
     global.__redisClient.connect()
     global.__redisClient.on('error', (err) => {
-      console.error('Redis error:', err)
+      getLogger().error({ error: err.message }, 'Redis error')
     })
   }
   redisClient = global.__redisClient

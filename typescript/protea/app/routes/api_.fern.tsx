@@ -1,4 +1,5 @@
 import type { ActionFunctionArgs } from '@remix-run/node'
+import { getLogger, addRequestId } from '~/lib/logger.server'
 
 export async function action({ request }: ActionFunctionArgs) {
   try {
@@ -25,7 +26,12 @@ export async function action({ request }: ActionFunctionArgs) {
 
     return new Response(null, { status: 200 })
   } catch (error) {
-    console.error('sentry error: ', error)
+    const logger = getLogger()
+    const requestId = 'unknown'
+    logger.error(
+      { ...addRequestId(requestId), error: error instanceof Error ? error.message : String(error) },
+      'Sentry envelope processing error'
+    )
     return new Response(null, { status: 404 })
   }
 }
