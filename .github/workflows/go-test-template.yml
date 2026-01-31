@@ -38,6 +38,7 @@ jobs:
           --health-retries 5
     env:
       PGSSLMODE: disable
+      DB_URL: ${{ inputs.db_name == 'backend' && 'postgres://postgres:password@127.0.0.1:5432/%s?sslmode=disable' || '' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
