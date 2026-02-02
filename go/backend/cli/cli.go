@@ -77,9 +77,19 @@ type StartArgs struct {
 	TwitterClientSecret string
 	TwitterRedirectURL  string
 	TwitterBearerToken  string
-	DiscordClientID     string
-	DiscordClientSecret string
-	DiscordRedirectURL  string
+	DiscordClientID              string
+	DiscordClientSecret          string
+	DiscordRedirectURL           string
+	GatehubAppID                 string
+	GatehubSecret                string
+	GatehubCardAppID             string
+	GatehubGatewayID             string
+	GatehubCardAccountProductCode string
+	GatehubPaywiserEuroVaultID   string
+	GatehubSendingUserID         string
+	GatehubSendingUserAddress    string
+	GatehubWebhookSecret         string
+	GatehubFallbackWebhookURL    string
 }
 
 func ParseStartArgs() (*StartArgs, error) {
@@ -189,6 +199,50 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, errors.New("TWITTER_REDIRECT_URL is required")
 	}
 
+	gatehubAppID := os.Getenv("GATEHUB_APP_ID")
+	if gatehubAppID == "" && env.IsProd() {
+		return nil, errors.New("GATEHUB_APP_ID is required in production")
+	}
+
+	gatehubSecret := os.Getenv("GATEHUB_SECRET")
+	if gatehubSecret == "" && env.IsProd() {
+		return nil, errors.New("GATEHUB_SECRET is required in production")
+	}
+
+	gatehubCardAppID := os.Getenv("GATEHUB_CARD_APP_ID")
+	if gatehubCardAppID == "" && env.IsProd() {
+		return nil, errors.New("GATEHUB_CARD_APP_ID is required in production")
+	}
+
+	gatehubGatewayID := os.Getenv("GATEHUB_GATEWAY_ID")
+	if gatehubGatewayID == "" && env.IsProd() {
+		return nil, errors.New("GATEHUB_GATEWAY_ID is required in production")
+	}
+
+	gatehubCardAccountProductCode := os.Getenv("GATEHUB_CARD_ACCOUNT_PRODUCT_CODE")
+	// This one is optional, no error if missing
+
+	gatehubPaywiserEuroVaultID := os.Getenv("GATEHUB_PAYWISER_EURO_VAULT_ID")
+	if gatehubPaywiserEuroVaultID == "" && env.IsProd() {
+		return nil, errors.New("GATEHUB_PAYWISER_EURO_VAULT_ID is required in production")
+	}
+
+	gatehubSendingUserID := os.Getenv("GATEHUB_SENDING_USER_ID")
+	if gatehubSendingUserID == "" && env.IsProd() {
+		return nil, errors.New("GATEHUB_SENDING_USER_ID is required in production")
+	}
+
+	gatehubSendingUserAddress := os.Getenv("GATEHUB_SENDING_USER_ADDRESS")
+	if gatehubSendingUserAddress == "" && env.IsProd() {
+		return nil, errors.New("GATEHUB_SENDING_USER_ADDRESS is required in production")
+	}
+
+	gatehubWebhookSecret := os.Getenv("GATEHUB_WEBHOOK_SECRET")
+	// Webhook secret is optional but log if missing
+	
+	gatehubFallbackWebhookURL := os.Getenv("GATEHUB_FALLBACK_WEBHOOK_URL")
+	// Fallback webhook URL is optional
+
 	return &StartArgs{
 		Port:                port,
 		AuthorisationPort:   authorisationPort,
@@ -214,9 +268,19 @@ func ParseStartArgs() (*StartArgs, error) {
 		SmartyAuthID:        os.Getenv("SMARTY_AUTH_ID"),
 		SmartyAuthToken:     os.Getenv("SMARTY_AUTH_TOKEN"),
 		PusherAddr:          os.Getenv("PUSHER_ADDR"),
-		SegmentKey:          os.Getenv("SEGMENT_KEY"),
-		DiscordClientID:     os.Getenv("DISCORD_CLIENT_ID"),
-		DiscordClientSecret: os.Getenv("DISCORD_CLIENT_SECRET"),
-		DiscordRedirectURL:  os.Getenv("DISCORD_REDIRECT_URL"),
+		SegmentKey:                   os.Getenv("SEGMENT_KEY"),
+		DiscordClientID:              os.Getenv("DISCORD_CLIENT_ID"),
+		DiscordClientSecret:          os.Getenv("DISCORD_CLIENT_SECRET"),
+		DiscordRedirectURL:           os.Getenv("DISCORD_REDIRECT_URL"),
+		GatehubAppID:                 gatehubAppID,
+		GatehubSecret:                gatehubSecret,
+		GatehubCardAppID:             gatehubCardAppID,
+		GatehubGatewayID:             gatehubGatewayID,
+		GatehubCardAccountProductCode: gatehubCardAccountProductCode,
+		GatehubPaywiserEuroVaultID:   gatehubPaywiserEuroVaultID,
+		GatehubSendingUserID:         gatehubSendingUserID,
+		GatehubSendingUserAddress:    gatehubSendingUserAddress,
+		GatehubWebhookSecret:         gatehubWebhookSecret,
+		GatehubFallbackWebhookURL:    gatehubFallbackWebhookURL,
 	}, nil
 }

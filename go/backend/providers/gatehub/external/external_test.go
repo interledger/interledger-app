@@ -14,10 +14,17 @@ import (
 
 func TestClient(t *testing.T) {
 	env.SetEnv(t, "local")
-	if os.Getenv("GATEHUB_APP_ID") == "" || os.Getenv("GATEHUB_SECRET") == "" || os.Getenv("GATEHUB_APP_ID") == "" {
+	appID := os.Getenv("GATEHUB_APP_ID")
+	secret := os.Getenv("GATEHUB_SECRET")
+	cardAppID := os.Getenv("GATEHUB_CARD_APP_ID")
+	gatewayID := os.Getenv("GATEHUB_GATEWAY_ID")
+	cardAccountProductCode := os.Getenv("GATEHUB_CARD_ACCOUNT_PRODUCT_CODE")
+	vaultID := os.Getenv("GATEHUB_PAYWISER_EURO_VAULT_ID")
+	
+	if appID == "" || secret == "" || cardAppID == "" {
 		t.SkipNow()
 	}
-	c := external.NewClient(os.Getenv("GATEHUB_APP_ID"), os.Getenv("GATEHUB_SECRET"), os.Getenv("GATEHUB_CARD_APP_ID"), os.Getenv("GATEHUB_GATEWAY_ID"), nil)
+	c := external.NewClient(appID, secret, cardAppID, gatewayID, cardAccountProductCode, vaultID, nil)
 
 	ctx := context.Background()
 	sendingExternalUserID := "66f1427e-43e4-48a0-9692-190c24d75058"
@@ -42,10 +49,17 @@ func TestClient(t *testing.T) {
 
 func TestUser(t *testing.T) {
 	env.SetEnv(t, "local")
-	if os.Getenv("GATEHUB_APP_ID") == "" || os.Getenv("GATEHUB_SECRET") == "" {
+	appID := os.Getenv("GATEHUB_APP_ID")
+	secret := os.Getenv("GATEHUB_SECRET")
+	cardAppID := os.Getenv("GATEHUB_CARD_APP_ID")
+	gatewayID := os.Getenv("GATEHUB_GATEWAY_ID")
+	cardAccountProductCode := os.Getenv("GATEHUB_CARD_ACCOUNT_PRODUCT_CODE")
+	vaultID := os.Getenv("GATEHUB_PAYWISER_EURO_VAULT_ID")
+	
+	if appID == "" || secret == "" {
 		t.SkipNow()
 	}
-	c := external.NewClient(os.Getenv("GATEHUB_APP_ID"), os.Getenv("GATEHUB_SECRET"), os.Getenv("GATEHUB_CARD_APP_ID"), os.Getenv("GATEHUB_GATEWAY_ID"), nil)
+	c := external.NewClient(appID, secret, cardAppID, gatewayID, cardAccountProductCode, vaultID, nil)
 	ctx := context.Background()
 
 	userID := "66f1427e-43e4-48a0-9692-190c24d75058"

@@ -195,7 +195,7 @@ func start(args *cli.StartArgs) {
 		log.Fatalln(err)
 	}
 	router.Handle("/webhooks/pti", ptiWebhook)
-	router.Handle("/webhooks/gatehub", gatehub_ops.NewWebhook(b))
+	router.Handle("/webhooks/gatehub", gatehub_ops.NewWebhook(b, b.gatehubConfig))
 	router.Handle("/{wallet_id}/identities/{identity_sig_hash}", wallet_handler.GetIdentityHandler(b))
 	router.NotFound(wallet_handler.WalletRedirectHandler(b))
 
@@ -444,7 +444,7 @@ func startWorker(args *cli.StartArgs) {
 	serveHTTP(&http.Server{Addr: ":8081", Handler: router}, &wg)
 
 	log.Info("Worker creating")
-	w, err := temporal.NewTemporalWorker(b)
+	w, err := temporal.NewTemporalWorker(b, b.gatehubConfig)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -491,6 +491,7 @@ type backends struct {
 	pac            pacioli.Client
 	pti            pti.Client
 	gatehub        gatehub.Client
+	gatehubConfig  gatehub.Config
 	chimoney       chimoney.Client
 }
 
@@ -777,7 +778,19 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	b.pti = pti_client.New(b)
 
 	log.Debug("initialising Gatehub")
-	b.gatehub = gatehub_client.New(b)
+	b.gatehubConfig = gatehub.Config{
+		AppID:                   args.GatehubAppID,
+		Secret:                  args.GatehubSecret,
+		CardAppID:               args.GatehubCardAppID,
+		GatewayID:               args.GatehubGatewayID,
+		CardAccountProductCode:  args.GatehubCardAccountProductCode,
+		PaywiserEuroVaultID:     args.GatehubPaywiserEuroVaultID,
+		SendingUserID:           args.GatehubSendingUserID,
+		SendingUserAddress:      args.GatehubSendingUserAddress,
+		WebhookSecret:           args.GatehubWebhookSecret,
+		FallbackWebhookURL:      args.GatehubFallbackWebhookURL,
+	}
+	b.gatehub = gatehub_client.New(b, b.gatehubConfig)
 
 	log.Debug("initialising Chimoney")
 	b.chimoney = chimoney_client.New(b)

@@ -11,7 +11,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 	"time"
 
@@ -42,11 +41,15 @@ type client struct {
 	onboardingBaseURL       string
 	onOffRampBaseURL        string
 	cardApplicationProducts []CardApplicationProduct
+	vaultID                 string
 
 	api *http.Client
 }
 
-func NewClient(appID, secret, cardAppID, gatewayID string, transport *http.Client) Client {
+func NewClient(appID, secret, cardAppID, gatewayID, cardAccountProductCode, vaultID string, transport *http.Client) Client {
+	//
+	// WARNING In an upcoming PR all of this hardcoded stuff will be removed
+	//
 	onOffRampClientID := "f8119dfd-e563-44ee-9ae2-1e60a4fce74f"
 	onboardingClientID := "4df24d1b-5796-4eec-951b-21699d61b970"
 	exchangeClientID := "4e28d4df-22d7-414c-97a3-d71956df29ba"
@@ -67,13 +70,21 @@ func NewClient(appID, secret, cardAppID, gatewayID string, transport *http.Clien
 		api = transport
 	}
 
-	cardAccountProductCode := os.Getenv("GATEHUB_CARD_ACCOUNT_PRODUCT_CODE")
+	// Some additional sanity checks
+
 	if cardAccountProductCode == "" {
-		log.Warn("GATEHUB_CARD_ACCOUNT_PRODUCT_CODE variable is not set")
+		log.Error("cardAccountProductCode is not set")
+		return nil
 	}
 
 	if gatewayID == "" {
-		log.Warn("GATEHUB_GATEWAY_ID is not set")
+		log.Error("gatewayID is not set")
+		return nil
+	}
+
+	if vaultID == "" {
+		log.Error("vaultID is not set")
+		return nil
 	}
 
 	return &client{
@@ -89,16 +100,13 @@ func NewClient(appID, secret, cardAppID, gatewayID string, transport *http.Clien
 		onboardingBaseURL:       onboardingBaseURL,
 		onOffRampBaseURL:        onOffRampBaseURL,
 		cardApplicationProducts: []CardApplicationProduct{},
+		vaultID:                 vaultID,
 		api:                     api,
 	}
 }
 
 func (c *client) GetVaultID() string {
-	vaultID := os.Getenv("GATEHUB_PAYWISER_EURO_VAULT_ID")
-	if vaultID == "" {
-		log.Warn("GATEHUB_PAYWISER_EURO_VAULT_ID environment variable is not set")
-	}
-	return vaultID
+	return c.vaultID
 }
 
 func (c *client) GetOnboardingWidget(ctx context.Context, userID string) (string, error) {

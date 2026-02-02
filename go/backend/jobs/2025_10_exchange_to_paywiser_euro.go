@@ -42,11 +42,26 @@ func BackfillPaywiserAccountsJob(ctx workflow.Context) (string, error) {
 }
 
 func (a *Activity) BackfillPaywiserBalance(ctx context.Context, gatehubWallets []string) error {
+	// Check for temporary override env vars for this migration job
+	tempAppID := os.Getenv("TEMP_GATEHUB_APP_ID")
+	tempSecret := os.Getenv("TEMP_GATEHUB_SECRET")
+	
+	appID := a.gatehubConfig.AppID
+	secret := a.gatehubConfig.Secret
+	if tempAppID != "" {
+		appID = tempAppID
+	}
+	if tempSecret != "" {
+		secret = tempSecret
+	}
+	
 	ec := external.NewClient(
-		os.Getenv("TEMP_GATEHUB_APP_ID"),
-		os.Getenv("TEMP_GATEHUB_SECRET"),
-		os.Getenv("GATEHUB_CARD_APP_ID"),
-		os.Getenv("GATEHUB_GATEWAY_ID"),
+		appID,
+		secret,
+		a.gatehubConfig.CardAppID,
+		a.gatehubConfig.GatewayID,
+		a.gatehubConfig.CardAccountProductCode,
+		a.gatehubConfig.PaywiserEuroVaultID,
 		&http.Client{
 			Transport: otelhttp.NewTransport(
 				httplogger.NewTransport(http.DefaultTransport, a.b, nil),
