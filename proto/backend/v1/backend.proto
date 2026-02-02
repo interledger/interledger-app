@@ -127,9 +127,6 @@ service BackendService {
   rpc DiscordCallback(DiscordCallbackRequest) returns (DiscordCallbackResponse);
   rpc CreateDiscordAuthURL(Empty) returns (CreateDiscordAuthURLResponse);
 
-  // Dynamic Forms
-  rpc SubmitForm(SubmitFormRequest) returns (Empty);
-
   // Slack
   rpc CreateSlackAuthURL(Empty) returns (CreateSlackAuthURLResponse);
   rpc SlackCallback(SlackCallbackRequest) returns (SlackCallbackResponse);
@@ -807,11 +804,6 @@ message Transfer {
   string linkedAccountId = 6;
 }
 
-message ListStatementsResponse {
-  repeated string periods = 1;
-  string nextPageToken = 2;
-}
-
 message IndividualKYCResponse {
   string firstName = 1;
   string lastName = 2;
@@ -1207,9 +1199,4 @@ message CreateDomainIdentityResponse {
 
 message VerifyIdentityRequest {
   string id = 1;
-}
-
-message SubmitFormRequest {
-  string form_id = 1;
-  string data = 2;
 }

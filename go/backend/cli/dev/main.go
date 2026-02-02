@@ -40,8 +40,6 @@ import (
 	"gitlab.com/fynbos/backend/notify"
 	notify_client "gitlab.com/fynbos/backend/notify/client"
 
-	"gitlab.com/fynbos/backend/statements"
-	statements_client "gitlab.com/fynbos/backend/statements/client"
 	transactions_client "gitlab.com/fynbos/backend/transactions/client"
 
 	"gitlab.com/fynbos/backend/transactions"
@@ -133,7 +131,6 @@ type backends struct {
 	notify         notify.Client
 	val            *validator.Validate
 	transactions   transactions.Client
-	statements     statements.Client
 	email          email.Client
 	analytics      analytics.Client
 	keys           keys.Client
@@ -339,13 +336,6 @@ func (b *backends) Temporal() temporal.Client {
 		b.temporal = tm
 	}
 	return b.temporal
-}
-
-func (b *backends) Statements() statements.Client {
-	if b.statements == nil {
-		return statements_client.New()
-	}
-	return b.statements
 }
 
 func (b *backends) Email() email.Client {

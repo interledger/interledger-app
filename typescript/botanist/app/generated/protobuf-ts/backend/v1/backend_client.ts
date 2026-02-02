@@ -44,7 +44,6 @@ import type { AddXagoBankAccountRequest } from "./backend";
 import type { SlackCallbackResponse } from "./backend";
 import type { SlackCallbackRequest } from "./backend";
 import type { CreateSlackAuthURLResponse } from "./backend";
-import type { SubmitFormRequest } from "./backend";
 import type { CreateDiscordAuthURLResponse } from "./backend";
 import type { DiscordCallbackResponse } from "./backend";
 import type { DiscordCallbackRequest } from "./backend";
@@ -475,12 +474,6 @@ export interface IBackendServiceClient {
      * @generated from protobuf rpc: CreateDiscordAuthURL(backend.v1.Empty) returns (backend.v1.CreateDiscordAuthURLResponse);
      */
     createDiscordAuthURL(input: Empty, options?: RpcOptions): UnaryCall<Empty, CreateDiscordAuthURLResponse>;
-    /**
-     * Dynamic Forms
-     *
-     * @generated from protobuf rpc: SubmitForm(backend.v1.SubmitFormRequest) returns (backend.v1.Empty);
-     */
-    submitForm(input: SubmitFormRequest, options?: RpcOptions): UnaryCall<SubmitFormRequest, Empty>;
     /**
      * Slack
      *
@@ -1194,28 +1187,19 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
         return stackIntercept<Empty, CreateDiscordAuthURLResponse>("unary", this._transport, method, opt, input);
     }
     /**
-     * Dynamic Forms
-     *
-     * @generated from protobuf rpc: SubmitForm(backend.v1.SubmitFormRequest) returns (backend.v1.Empty);
-     */
-    submitForm(input: SubmitFormRequest, options?: RpcOptions): UnaryCall<SubmitFormRequest, Empty> {
-        const method = this.methods[72], opt = this._transport.mergeOptions(options);
-        return stackIntercept<SubmitFormRequest, Empty>("unary", this._transport, method, opt, input);
-    }
-    /**
      * Slack
      *
      * @generated from protobuf rpc: CreateSlackAuthURL(backend.v1.Empty) returns (backend.v1.CreateSlackAuthURLResponse);
      */
     createSlackAuthURL(input: Empty, options?: RpcOptions): UnaryCall<Empty, CreateSlackAuthURLResponse> {
-        const method = this.methods[73], opt = this._transport.mergeOptions(options);
+        const method = this.methods[72], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, CreateSlackAuthURLResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: SlackCallback(backend.v1.SlackCallbackRequest) returns (backend.v1.SlackCallbackResponse);
      */
     slackCallback(input: SlackCallbackRequest, options?: RpcOptions): UnaryCall<SlackCallbackRequest, SlackCallbackResponse> {
-        const method = this.methods[74], opt = this._transport.mergeOptions(options);
+        const method = this.methods[73], opt = this._transport.mergeOptions(options);
         return stackIntercept<SlackCallbackRequest, SlackCallbackResponse>("unary", this._transport, method, opt, input);
     }
     /**
@@ -1224,42 +1208,42 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
      * @generated from protobuf rpc: AddXagoBankAccount(backend.v1.AddXagoBankAccountRequest) returns (backend.v1.LinkedAccount);
      */
     addXagoBankAccount(input: AddXagoBankAccountRequest, options?: RpcOptions): UnaryCall<AddXagoBankAccountRequest, LinkedAccount> {
-        const method = this.methods[75], opt = this._transport.mergeOptions(options);
+        const method = this.methods[74], opt = this._transport.mergeOptions(options);
         return stackIntercept<AddXagoBankAccountRequest, LinkedAccount>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: AddXagoBalanceAccount(backend.v1.AddXagoBalanceAccountRequest) returns (backend.v1.LinkedAccount);
      */
     addXagoBalanceAccount(input: AddXagoBalanceAccountRequest, options?: RpcOptions): UnaryCall<AddXagoBalanceAccountRequest, LinkedAccount> {
-        const method = this.methods[76], opt = this._transport.mergeOptions(options);
+        const method = this.methods[75], opt = this._transport.mergeOptions(options);
         return stackIntercept<AddXagoBalanceAccountRequest, LinkedAccount>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: WithdrawXagoBalance(backend.v1.WithdrawXagoBalanceRequest) returns (backend.v1.Payment);
      */
     withdrawXagoBalance(input: WithdrawXagoBalanceRequest, options?: RpcOptions): UnaryCall<WithdrawXagoBalanceRequest, Payment> {
-        const method = this.methods[77], opt = this._transport.mergeOptions(options);
+        const method = this.methods[76], opt = this._transport.mergeOptions(options);
         return stackIntercept<WithdrawXagoBalanceRequest, Payment>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: GetXagoBalances(backend.v1.Empty) returns (backend.v1.GetXagoBalanceResponse);
      */
     getXagoBalances(input: Empty, options?: RpcOptions): UnaryCall<Empty, GetXagoBalanceResponse> {
-        const method = this.methods[78], opt = this._transport.mergeOptions(options);
+        const method = this.methods[77], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, GetXagoBalanceResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: GetXagoDepositDetails(backend.v1.GetXagoDepositDetailsRequest) returns (backend.v1.GetXagoDepositDetailsResponse);
      */
     getXagoDepositDetails(input: GetXagoDepositDetailsRequest, options?: RpcOptions): UnaryCall<GetXagoDepositDetailsRequest, GetXagoDepositDetailsResponse> {
-        const method = this.methods[79], opt = this._transport.mergeOptions(options);
+        const method = this.methods[78], opt = this._transport.mergeOptions(options);
         return stackIntercept<GetXagoDepositDetailsRequest, GetXagoDepositDetailsResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: DepositTestXago(backend.v1.Empty) returns (backend.v1.Empty);
      */
     depositTestXago(input: Empty, options?: RpcOptions): UnaryCall<Empty, Empty> {
-        const method = this.methods[80], opt = this._transport.mergeOptions(options);
+        const method = this.methods[79], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, Empty>("unary", this._transport, method, opt, input);
     }
     /**
@@ -1268,42 +1252,42 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
      * @generated from protobuf rpc: GetPtiBalances(backend.v1.Empty) returns (backend.v1.GetPtiBalancesResponse);
      */
     getPtiBalances(input: Empty, options?: RpcOptions): UnaryCall<Empty, GetPtiBalancesResponse> {
-        const method = this.methods[81], opt = this._transport.mergeOptions(options);
+        const method = this.methods[80], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, GetPtiBalancesResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: CreatePtiToken(backend.v1.PtiTokenRequest) returns (backend.v1.PtiTokenResponse);
      */
     createPtiToken(input: PtiTokenRequest, options?: RpcOptions): UnaryCall<PtiTokenRequest, PtiTokenResponse> {
-        const method = this.methods[82], opt = this._transport.mergeOptions(options);
+        const method = this.methods[81], opt = this._transport.mergeOptions(options);
         return stackIntercept<PtiTokenRequest, PtiTokenResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: CreateCard(backend.v1.CreateCardRequest) returns (backend.v1.LinkedAccount);
      */
     createCard(input: CreateCardRequest, options?: RpcOptions): UnaryCall<CreateCardRequest, LinkedAccount> {
-        const method = this.methods[83], opt = this._transport.mergeOptions(options);
+        const method = this.methods[82], opt = this._transport.mergeOptions(options);
         return stackIntercept<CreateCardRequest, LinkedAccount>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: CreatePtiBankAccount(backend.v1.CreatePtiBankAccountRequest) returns (backend.v1.LinkedAccount);
      */
     createPtiBankAccount(input: CreatePtiBankAccountRequest, options?: RpcOptions): UnaryCall<CreatePtiBankAccountRequest, LinkedAccount> {
-        const method = this.methods[84], opt = this._transport.mergeOptions(options);
+        const method = this.methods[83], opt = this._transport.mergeOptions(options);
         return stackIntercept<CreatePtiBankAccountRequest, LinkedAccount>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: PtiCreateDeposit(backend.v1.PtiCreateDepositRequest) returns (backend.v1.Empty);
      */
     ptiCreateDeposit(input: PtiCreateDepositRequest, options?: RpcOptions): UnaryCall<PtiCreateDepositRequest, Empty> {
-        const method = this.methods[85], opt = this._transport.mergeOptions(options);
+        const method = this.methods[84], opt = this._transport.mergeOptions(options);
         return stackIntercept<PtiCreateDepositRequest, Empty>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: CreatePTIWithdrawal(backend.v1.CreatePTIWithdrawalRequest) returns (backend.v1.CreatePTIWithdrawalResponse);
      */
     createPTIWithdrawal(input: CreatePTIWithdrawalRequest, options?: RpcOptions): UnaryCall<CreatePTIWithdrawalRequest, CreatePTIWithdrawalResponse> {
-        const method = this.methods[86], opt = this._transport.mergeOptions(options);
+        const method = this.methods[85], opt = this._transport.mergeOptions(options);
         return stackIntercept<CreatePTIWithdrawalRequest, CreatePTIWithdrawalResponse>("unary", this._transport, method, opt, input);
     }
     /**
@@ -1312,21 +1296,21 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
      * @generated from protobuf rpc: ListRafikiGrants(backend.v1.Empty) returns (backend.v1.ListRafikiGrantsResponse);
      */
     listRafikiGrants(input: Empty, options?: RpcOptions): UnaryCall<Empty, ListRafikiGrantsResponse> {
-        const method = this.methods[87], opt = this._transport.mergeOptions(options);
+        const method = this.methods[86], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, ListRafikiGrantsResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: GetRafikiGrant(backend.v1.GetRafikiGrantRequest) returns (backend.v1.RafikiGrant);
      */
     getRafikiGrant(input: GetRafikiGrantRequest, options?: RpcOptions): UnaryCall<GetRafikiGrantRequest, RafikiGrant> {
-        const method = this.methods[88], opt = this._transport.mergeOptions(options);
+        const method = this.methods[87], opt = this._transport.mergeOptions(options);
         return stackIntercept<GetRafikiGrantRequest, RafikiGrant>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: RevokeRafikiGrant(backend.v1.RevokeRafikiGrantRequest) returns (backend.v1.Empty);
      */
     revokeRafikiGrant(input: RevokeRafikiGrantRequest, options?: RpcOptions): UnaryCall<RevokeRafikiGrantRequest, Empty> {
-        const method = this.methods[89], opt = this._transport.mergeOptions(options);
+        const method = this.methods[88], opt = this._transport.mergeOptions(options);
         return stackIntercept<RevokeRafikiGrantRequest, Empty>("unary", this._transport, method, opt, input);
     }
     /**
@@ -1335,35 +1319,35 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
      * @generated from protobuf rpc: GetGatehubOnboardingWidget(backend.v1.Empty) returns (backend.v1.GatehubWidget);
      */
     getGatehubOnboardingWidget(input: Empty, options?: RpcOptions): UnaryCall<Empty, GatehubWidget> {
-        const method = this.methods[90], opt = this._transport.mergeOptions(options);
+        const method = this.methods[89], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, GatehubWidget>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: GetOnOffRampProvider(backend.v1.Empty) returns (backend.v1.GetOnOffRampProviderResponse);
      */
     getOnOffRampProvider(input: Empty, options?: RpcOptions): UnaryCall<Empty, GetOnOffRampProviderResponse> {
-        const method = this.methods[91], opt = this._transport.mergeOptions(options);
+        const method = this.methods[90], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, GetOnOffRampProviderResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: GetGatehubDepositWidget(backend.v1.Empty) returns (backend.v1.GatehubWidget);
      */
     getGatehubDepositWidget(input: Empty, options?: RpcOptions): UnaryCall<Empty, GatehubWidget> {
-        const method = this.methods[92], opt = this._transport.mergeOptions(options);
+        const method = this.methods[91], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, GatehubWidget>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: GetGatehubWithdrawalWidget(backend.v1.Empty) returns (backend.v1.GatehubWidget);
      */
     getGatehubWithdrawalWidget(input: Empty, options?: RpcOptions): UnaryCall<Empty, GatehubWidget> {
-        const method = this.methods[93], opt = this._transport.mergeOptions(options);
+        const method = this.methods[92], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, GatehubWidget>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: CreateGatehubWithdrawal(backend.v1.CreateGatehubWithdrawalRequest) returns (backend.v1.CreateGatehubWithdrawalResponse);
      */
     createGatehubWithdrawal(input: CreateGatehubWithdrawalRequest, options?: RpcOptions): UnaryCall<CreateGatehubWithdrawalRequest, CreateGatehubWithdrawalResponse> {
-        const method = this.methods[94], opt = this._transport.mergeOptions(options);
+        const method = this.methods[93], opt = this._transport.mergeOptions(options);
         return stackIntercept<CreateGatehubWithdrawalRequest, CreateGatehubWithdrawalResponse>("unary", this._transport, method, opt, input);
     }
     /**
@@ -1372,35 +1356,35 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
      * @generated from protobuf rpc: SetChimoneyInterlocEmail(backend.v1.SetChimoneyInterlocEmailRequest) returns (backend.v1.ChimoneyInterlocEmail);
      */
     setChimoneyInterlocEmail(input: SetChimoneyInterlocEmailRequest, options?: RpcOptions): UnaryCall<SetChimoneyInterlocEmailRequest, ChimoneyInterlocEmail> {
-        const method = this.methods[95], opt = this._transport.mergeOptions(options);
+        const method = this.methods[94], opt = this._transport.mergeOptions(options);
         return stackIntercept<SetChimoneyInterlocEmailRequest, ChimoneyInterlocEmail>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: GetChimoneyInterlocEmail(backend.v1.Empty) returns (backend.v1.ChimoneyInterlocEmail);
      */
     getChimoneyInterlocEmail(input: Empty, options?: RpcOptions): UnaryCall<Empty, ChimoneyInterlocEmail> {
-        const method = this.methods[96], opt = this._transport.mergeOptions(options);
+        const method = this.methods[95], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, ChimoneyInterlocEmail>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: CreateChimoneyWallet(backend.v1.Empty) returns (backend.v1.Empty);
      */
     createChimoneyWallet(input: Empty, options?: RpcOptions): UnaryCall<Empty, Empty> {
-        const method = this.methods[97], opt = this._transport.mergeOptions(options);
+        const method = this.methods[96], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, Empty>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: GetChimoneyDepositLink(backend.v1.Amount) returns (backend.v1.GetChimoneyDepositLinkResponse);
      */
     getChimoneyDepositLink(input: Amount, options?: RpcOptions): UnaryCall<Amount, GetChimoneyDepositLinkResponse> {
-        const method = this.methods[98], opt = this._transport.mergeOptions(options);
+        const method = this.methods[97], opt = this._transport.mergeOptions(options);
         return stackIntercept<Amount, GetChimoneyDepositLinkResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: CreateChimoneyDeposit(backend.v1.CreateChimoneyDepositRequest) returns (backend.v1.Empty);
      */
     createChimoneyDeposit(input: CreateChimoneyDepositRequest, options?: RpcOptions): UnaryCall<CreateChimoneyDepositRequest, Empty> {
-        const method = this.methods[99], opt = this._transport.mergeOptions(options);
+        const method = this.methods[98], opt = this._transport.mergeOptions(options);
         return stackIntercept<CreateChimoneyDepositRequest, Empty>("unary", this._transport, method, opt, input);
     }
     /**
@@ -1409,63 +1393,63 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
      * @generated from protobuf rpc: ListCards(backend.v1.Empty) returns (backend.v1.ListCardsResponse);
      */
     listCards(input: Empty, options?: RpcOptions): UnaryCall<Empty, ListCardsResponse> {
-        const method = this.methods[100], opt = this._transport.mergeOptions(options);
+        const method = this.methods[99], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, ListCardsResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: GetCardOrderOptions(backend.v1.Empty) returns (backend.v1.GetCardOrderOptionsResponse);
      */
     getCardOrderOptions(input: Empty, options?: RpcOptions): UnaryCall<Empty, GetCardOrderOptionsResponse> {
-        const method = this.methods[101], opt = this._transport.mergeOptions(options);
+        const method = this.methods[100], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, GetCardOrderOptionsResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: OrderCard(backend.v1.OrderCardRequest) returns (backend.v1.Empty);
      */
     orderCard(input: OrderCardRequest, options?: RpcOptions): UnaryCall<OrderCardRequest, Empty> {
-        const method = this.methods[102], opt = this._transport.mergeOptions(options);
+        const method = this.methods[101], opt = this._transport.mergeOptions(options);
         return stackIntercept<OrderCardRequest, Empty>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: GetCardToken(backend.v1.GetCardTokenRequest) returns (backend.v1.GetCardTokenResponse);
      */
     getCardToken(input: GetCardTokenRequest, options?: RpcOptions): UnaryCall<GetCardTokenRequest, GetCardTokenResponse> {
-        const method = this.methods[103], opt = this._transport.mergeOptions(options);
+        const method = this.methods[102], opt = this._transport.mergeOptions(options);
         return stackIntercept<GetCardTokenRequest, GetCardTokenResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: FreezeCard(backend.v1.FreezeCardRequest) returns (backend.v1.Empty);
      */
     freezeCard(input: FreezeCardRequest, options?: RpcOptions): UnaryCall<FreezeCardRequest, Empty> {
-        const method = this.methods[104], opt = this._transport.mergeOptions(options);
+        const method = this.methods[103], opt = this._transport.mergeOptions(options);
         return stackIntercept<FreezeCardRequest, Empty>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: UnfreezeCard(backend.v1.UnfreezeCardRequest) returns (backend.v1.Empty);
      */
     unfreezeCard(input: UnfreezeCardRequest, options?: RpcOptions): UnaryCall<UnfreezeCardRequest, Empty> {
-        const method = this.methods[105], opt = this._transport.mergeOptions(options);
+        const method = this.methods[104], opt = this._transport.mergeOptions(options);
         return stackIntercept<UnfreezeCardRequest, Empty>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: BlockCard(backend.v1.BlockCardRequest) returns (backend.v1.Empty);
      */
     blockCard(input: BlockCardRequest, options?: RpcOptions): UnaryCall<BlockCardRequest, Empty> {
-        const method = this.methods[106], opt = this._transport.mergeOptions(options);
+        const method = this.methods[105], opt = this._transport.mergeOptions(options);
         return stackIntercept<BlockCardRequest, Empty>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: GetPendingThreeDSConfirmations(backend.v1.Empty) returns (backend.v1.GetPendingThreeDSConfirmationsResponse);
      */
     getPendingThreeDSConfirmations(input: Empty, options?: RpcOptions): UnaryCall<Empty, GetPendingThreeDSConfirmationsResponse> {
-        const method = this.methods[107], opt = this._transport.mergeOptions(options);
+        const method = this.methods[106], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, GetPendingThreeDSConfirmationsResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: ThreeDSPaymentConfirmation(backend.v1.ThreeDSPaymentConfirmationRequest) returns (backend.v1.Empty);
      */
     threeDSPaymentConfirmation(input: ThreeDSPaymentConfirmationRequest, options?: RpcOptions): UnaryCall<ThreeDSPaymentConfirmationRequest, Empty> {
-        const method = this.methods[108], opt = this._transport.mergeOptions(options);
+        const method = this.methods[107], opt = this._transport.mergeOptions(options);
         return stackIntercept<ThreeDSPaymentConfirmationRequest, Empty>("unary", this._transport, method, opt, input);
     }
 }

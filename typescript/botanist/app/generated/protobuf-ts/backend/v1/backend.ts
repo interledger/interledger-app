@@ -1671,19 +1671,6 @@ export interface Transfer {
     linkedAccountId: string;
 }
 /**
- * @generated from protobuf message backend.v1.ListStatementsResponse
- */
-export interface ListStatementsResponse {
-    /**
-     * @generated from protobuf field: repeated string periods = 1;
-     */
-    periods: string[];
-    /**
-     * @generated from protobuf field: string nextPageToken = 2;
-     */
-    nextPageToken: string;
-}
-/**
  * @generated from protobuf message backend.v1.IndividualKYCResponse
  */
 export interface IndividualKYCResponse {
@@ -2758,19 +2745,6 @@ export interface VerifyIdentityRequest {
      * @generated from protobuf field: string id = 1;
      */
     id: string;
-}
-/**
- * @generated from protobuf message backend.v1.SubmitFormRequest
- */
-export interface SubmitFormRequest {
-    /**
-     * @generated from protobuf field: string form_id = 1;
-     */
-    formId: string;
-    /**
-     * @generated from protobuf field: string data = 2;
-     */
-    data: string;
 }
 /**
  * @generated from protobuf enum backend.v1.CardTokenType
@@ -8649,60 +8623,6 @@ class Transfer$Type extends MessageType<Transfer> {
  */
 export const Transfer = new Transfer$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class ListStatementsResponse$Type extends MessageType<ListStatementsResponse> {
-    constructor() {
-        super("backend.v1.ListStatementsResponse", [
-            { no: 1, name: "periods", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "nextPageToken", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
-        ]);
-    }
-    create(value?: PartialMessage<ListStatementsResponse>): ListStatementsResponse {
-        const message = { periods: [], nextPageToken: "" };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<ListStatementsResponse>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ListStatementsResponse): ListStatementsResponse {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* repeated string periods */ 1:
-                    message.periods.push(reader.string());
-                    break;
-                case /* string nextPageToken */ 2:
-                    message.nextPageToken = reader.string();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: ListStatementsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* repeated string periods = 1; */
-        for (let i = 0; i < message.periods.length; i++)
-            writer.tag(1, WireType.LengthDelimited).string(message.periods[i]);
-        /* string nextPageToken = 2; */
-        if (message.nextPageToken !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.nextPageToken);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message backend.v1.ListStatementsResponse
- */
-export const ListStatementsResponse = new ListStatementsResponse$Type();
-// @generated message type with reflection information, may provide speed optimized methods
 class IndividualKYCResponse$Type extends MessageType<IndividualKYCResponse> {
     constructor() {
         super("backend.v1.IndividualKYCResponse", [
@@ -12833,60 +12753,6 @@ class VerifyIdentityRequest$Type extends MessageType<VerifyIdentityRequest> {
  * @generated MessageType for protobuf message backend.v1.VerifyIdentityRequest
  */
 export const VerifyIdentityRequest = new VerifyIdentityRequest$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class SubmitFormRequest$Type extends MessageType<SubmitFormRequest> {
-    constructor() {
-        super("backend.v1.SubmitFormRequest", [
-            { no: 1, name: "form_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "data", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
-        ]);
-    }
-    create(value?: PartialMessage<SubmitFormRequest>): SubmitFormRequest {
-        const message = { formId: "", data: "" };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<SubmitFormRequest>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: SubmitFormRequest): SubmitFormRequest {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string form_id */ 1:
-                    message.formId = reader.string();
-                    break;
-                case /* string data */ 2:
-                    message.data = reader.string();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: SubmitFormRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string form_id = 1; */
-        if (message.formId !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.formId);
-        /* string data = 2; */
-        if (message.data !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.data);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message backend.v1.SubmitFormRequest
- */
-export const SubmitFormRequest = new SubmitFormRequest$Type();
 /**
  * @generated ServiceType for protobuf service backend.v1.BackendService
  */
@@ -12963,7 +12829,6 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "SearchWallets", options: {}, I: SearchWalletsRequest, O: SearchWalletsResponse },
     { name: "DiscordCallback", options: {}, I: DiscordCallbackRequest, O: DiscordCallbackResponse },
     { name: "CreateDiscordAuthURL", options: {}, I: Empty, O: CreateDiscordAuthURLResponse },
-    { name: "SubmitForm", options: {}, I: SubmitFormRequest, O: Empty },
     { name: "CreateSlackAuthURL", options: {}, I: Empty, O: CreateSlackAuthURLResponse },
     { name: "SlackCallback", options: {}, I: SlackCallbackRequest, O: SlackCallbackResponse },
     { name: "AddXagoBankAccount", options: {}, I: AddXagoBankAccountRequest, O: LinkedAccount },

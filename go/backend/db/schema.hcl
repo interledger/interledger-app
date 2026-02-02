@@ -2168,40 +2168,6 @@ table "discord_connections" {
   }
 }
 
-table "dynamic_forms" {
-  schema = schema.public
-  column "id" {
-    null = false
-    type = uuid
-    default = sql("gen_random_uuid()")
-  }
-  column "wallet_id" {
-    null = true
-    type = uuid
-  }
-  column "form_id" {
-    null = false
-    type = text
-  }
-  column "data" {
-    null = false
-    type = jsonb
-  }
-  column "created_at" {
-    null    = false
-    type    = timestamp
-    default = sql("now()::TIMESTAMP")
-  }
-  column "updated_at" {
-    null    = false
-    type    = timestamp
-    default = sql("now()::TIMESTAMP")
-  }
-  primary_key {
-    columns = [column.id]
-  }
-}
-
 table "slack_bot_installs" {
   schema = schema.public
   column "id" {
