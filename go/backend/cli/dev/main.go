@@ -150,7 +150,20 @@ func (b *backends) Chimoney() chimoney.Client {
 
 func (b *backends) Gatehub() gatehub.Client {
 	if b.gh == nil {
-		b.gh = gh_client.New(b)
+		// Create a minimal config for dev CLI
+		cfg := gatehub.Config{
+			AppID:                  os.Getenv("GATEHUB_APP_ID"),
+			Secret:                 os.Getenv("GATEHUB_SECRET"),
+			CardAppID:              os.Getenv("GATEHUB_CARD_APP_ID"),
+			GatewayID:              os.Getenv("GATEHUB_GATEWAY_ID"),
+			CardAccountProductCode: os.Getenv("GATEHUB_CARD_ACCOUNT_PRODUCT_CODE"),
+			PaywiserEuroVaultID:    os.Getenv("GATEHUB_PAYWISER_EURO_VAULT_ID"),
+			SendingUserID:          os.Getenv("GATEHUB_SENDING_USER_ID"),
+			SendingUserAddress:     os.Getenv("GATEHUB_SENDING_USER_ADDRESS"),
+			WebhookSecret:          os.Getenv("GATEHUB_WEBHOOK_SECRET"),
+			FallbackWebhookURL:     os.Getenv("GATEHUB_FALLBACK_WEBHOOK_URL"),
+		}
+		b.gh = gh_client.New(b, cfg)
 	}
 	return b.gh
 }
