@@ -140,7 +140,7 @@ func NewTwilioError(field string, description string) error {
 	br.FieldViolations = append(br.FieldViolations, v)
 
 	metadata := &errdetails.ErrorInfo{
-		Reason:   "TwilioError",
+		Reason: "TwilioError",
 	}
 
 	st, err := st.WithDetails(br, metadata)
