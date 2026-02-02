@@ -211,6 +211,9 @@ func immediatePayment(ctx context.Context, b Backends, op outgoingPaymentData) e
 }
 
 func outgoingPayment(ctx context.Context, b Backends, hook webhook) error {
+	if b.DB() == nil {
+		return fmt.Errorf("%w db not configured", rafiki.ErrInternal)
+	}
 	var op outgoingPaymentData
 	err := json.Unmarshal(hook.Data, &op)
 	if err != nil {
