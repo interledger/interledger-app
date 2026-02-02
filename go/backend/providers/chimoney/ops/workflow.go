@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"time"
+	"regexp"
 
 	"gitlab.com/fynbos/pacioli"
 
@@ -206,6 +207,13 @@ func (a *Activity) SaveChimoneyWallet(ctx context.Context, walletID, exID string
 	return nil
 }
 
+
+func convertPhoneToE164(phoneNumber string) string {
+	var digitsOnlyRegex = regexp.MustCompile(`\D`)
+	digits := digitsOnlyRegex.ReplaceAllString(phoneNumber, "")
+	return "+" + digits
+}
+
 func (a *Activity) CreateChimoneyWallet(ctx context.Context, walletID string) (string, error) {
 	ul, err := a.b.Users().ListUsers(ctx, walletID)
 	if err != nil {
@@ -220,7 +228,7 @@ func (a *Activity) CreateChimoneyWallet(ctx context.Context, walletID string) (s
 		Email:       ul[0].Email,
 		FirstName:   ul[0].FirstName,
 		LastName:    ul[0].LastName,
-		PhoneNumber: ul[0].PhoneNumber,
+		PhoneNumber: convertPhoneToE164(ul[0].PhoneNumber),
 	})
 	if err != nil {
 		return "", fmt.Errorf("%w %s", chimoney.ErrInternal, err)

@@ -95,7 +95,6 @@ const (
 	BackendService_SearchWallets_FullMethodName                  = "/backend.v1.BackendService/SearchWallets"
 	BackendService_DiscordCallback_FullMethodName                = "/backend.v1.BackendService/DiscordCallback"
 	BackendService_CreateDiscordAuthURL_FullMethodName           = "/backend.v1.BackendService/CreateDiscordAuthURL"
-	BackendService_SubmitForm_FullMethodName                     = "/backend.v1.BackendService/SubmitForm"
 	BackendService_CreateSlackAuthURL_FullMethodName             = "/backend.v1.BackendService/CreateSlackAuthURL"
 	BackendService_SlackCallback_FullMethodName                  = "/backend.v1.BackendService/SlackCallback"
 	BackendService_AddXagoBankAccount_FullMethodName             = "/backend.v1.BackendService/AddXagoBankAccount"
@@ -235,8 +234,6 @@ type BackendServiceClient interface {
 	// Discord
 	DiscordCallback(ctx context.Context, in *DiscordCallbackRequest, opts ...grpc.CallOption) (*DiscordCallbackResponse, error)
 	CreateDiscordAuthURL(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*CreateDiscordAuthURLResponse, error)
-	// Dynamic Forms
-	SubmitForm(ctx context.Context, in *SubmitFormRequest, opts ...grpc.CallOption) (*Empty, error)
 	// Slack
 	CreateSlackAuthURL(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*CreateSlackAuthURLResponse, error)
 	SlackCallback(ctx context.Context, in *SlackCallbackRequest, opts ...grpc.CallOption) (*SlackCallbackResponse, error)
@@ -1050,16 +1047,6 @@ func (c *backendServiceClient) CreateDiscordAuthURL(ctx context.Context, in *Emp
 	return out, nil
 }
 
-func (c *backendServiceClient) SubmitForm(ctx context.Context, in *SubmitFormRequest, opts ...grpc.CallOption) (*Empty, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Empty)
-	err := c.cc.Invoke(ctx, BackendService_SubmitForm_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *backendServiceClient) CreateSlackAuthURL(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*CreateSlackAuthURLResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CreateSlackAuthURLResponse)
@@ -1521,8 +1508,6 @@ type BackendServiceServer interface {
 	// Discord
 	DiscordCallback(context.Context, *DiscordCallbackRequest) (*DiscordCallbackResponse, error)
 	CreateDiscordAuthURL(context.Context, *Empty) (*CreateDiscordAuthURLResponse, error)
-	// Dynamic Forms
-	SubmitForm(context.Context, *SubmitFormRequest) (*Empty, error)
 	// Slack
 	CreateSlackAuthURL(context.Context, *Empty) (*CreateSlackAuthURLResponse, error)
 	SlackCallback(context.Context, *SlackCallbackRequest) (*SlackCallbackResponse, error)
@@ -1802,9 +1787,6 @@ func (UnimplementedBackendServiceServer) DiscordCallback(context.Context, *Disco
 }
 func (UnimplementedBackendServiceServer) CreateDiscordAuthURL(context.Context, *Empty) (*CreateDiscordAuthURLResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateDiscordAuthURL not implemented")
-}
-func (UnimplementedBackendServiceServer) SubmitForm(context.Context, *SubmitFormRequest) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SubmitForm not implemented")
 }
 func (UnimplementedBackendServiceServer) CreateSlackAuthURL(context.Context, *Empty) (*CreateSlackAuthURLResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateSlackAuthURL not implemented")
@@ -3302,24 +3284,6 @@ func _BackendService_CreateDiscordAuthURL_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BackendService_SubmitForm_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SubmitFormRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).SubmitForm(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: BackendService_SubmitForm_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).SubmitForm(ctx, req.(*SubmitFormRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _BackendService_CreateSlackAuthURL_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Empty)
 	if err := dec(in); err != nil {
@@ -4278,10 +4242,6 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateDiscordAuthURL",
 			Handler:    _BackendService_CreateDiscordAuthURL_Handler,
-		},
-		{
-			MethodName: "SubmitForm",
-			Handler:    _BackendService_SubmitForm_Handler,
 		},
 		{
 			MethodName: "CreateSlackAuthURL",

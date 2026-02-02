@@ -5080,49 +5080,6 @@ export class Transfer extends Message<Transfer> {
 }
 
 /**
- * @generated from message backend.v1.ListStatementsResponse
- */
-export class ListStatementsResponse extends Message<ListStatementsResponse> {
-  /**
-   * @generated from field: repeated string periods = 1;
-   */
-  periods: string[] = [];
-
-  /**
-   * @generated from field: string nextPageToken = 2;
-   */
-  nextPageToken = "";
-
-  constructor(data?: PartialMessage<ListStatementsResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "backend.v1.ListStatementsResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "periods", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
-    { no: 2, name: "nextPageToken", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListStatementsResponse {
-    return new ListStatementsResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListStatementsResponse {
-    return new ListStatementsResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListStatementsResponse {
-    return new ListStatementsResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ListStatementsResponse | PlainMessage<ListStatementsResponse> | undefined, b: ListStatementsResponse | PlainMessage<ListStatementsResponse> | undefined): boolean {
-    return proto3.util.equals(ListStatementsResponse, a, b);
-  }
-}
-
-/**
  * @generated from message backend.v1.IndividualKYCResponse
  */
 export class IndividualKYCResponse extends Message<IndividualKYCResponse> {
@@ -8551,49 +8508,6 @@ export class VerifyIdentityRequest extends Message<VerifyIdentityRequest> {
 
   static equals(a: VerifyIdentityRequest | PlainMessage<VerifyIdentityRequest> | undefined, b: VerifyIdentityRequest | PlainMessage<VerifyIdentityRequest> | undefined): boolean {
     return proto3.util.equals(VerifyIdentityRequest, a, b);
-  }
-}
-
-/**
- * @generated from message backend.v1.SubmitFormRequest
- */
-export class SubmitFormRequest extends Message<SubmitFormRequest> {
-  /**
-   * @generated from field: string form_id = 1;
-   */
-  formId = "";
-
-  /**
-   * @generated from field: string data = 2;
-   */
-  data = "";
-
-  constructor(data?: PartialMessage<SubmitFormRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "backend.v1.SubmitFormRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "form_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "data", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SubmitFormRequest {
-    return new SubmitFormRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SubmitFormRequest {
-    return new SubmitFormRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SubmitFormRequest {
-    return new SubmitFormRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: SubmitFormRequest | PlainMessage<SubmitFormRequest> | undefined, b: SubmitFormRequest | PlainMessage<SubmitFormRequest> | undefined): boolean {
-    return proto3.util.equals(SubmitFormRequest, a, b);
   }
 }
 
