@@ -1,6 +1,7 @@
 package env
 
 import (
+	"flag"
 	"os"
 	"strings"
 	"sync"
@@ -105,6 +106,14 @@ func IsProd() bool {
 
 func IsTest() bool {
 	return GetEnv() == "test"
+}
+
+// IsTestExecution returns true when running under `go test` or when env is explicitly set to test.
+func IsTestExecution() bool {
+	if IsTest() {
+		return true
+	}
+	return flag.Lookup("test.v") != nil
 }
 
 func GetUrl() string {
