@@ -1,16 +1,21 @@
 import pino, { Logger as PinoLogger, LoggerOptions } from 'pino'
 import { getRequestId, getCorrelationId } from './requestContext.server'
 
+let logger: PinoLogger
+
 declare global {
-  var logger: PinoLogger
+  var __logger: PinoLogger | undefined
 }
 
 // Valid log levels that match the logging policy
 const VALID_LOG_LEVELS = ['fatal', 'error', 'warn', 'info', 'debug', 'trace']
 
-// Get LOG_LEVEL from environment, default to 'info'
-function getLogLevel(): string {
-  const logLevel = process.env.LOG_LEVEL || 'info'
+// Get LOG_LEVEL from environment, default to 'warn'
+// This runs once at module load time
+function getLogLevel(): { level: string; wasDefaulted: boolean } {
+  const envLogLevel = process.env.LOG_LEVEL
+  const logLevel = envLogLevel || 'warn'
+  const wasDefaulted = !envLogLevel
 
   // Validate LOG_LEVEL - exit if invalid
   if (!VALID_LOG_LEVELS.includes(logLevel)) {
@@ -19,7 +24,7 @@ function getLogLevel(): string {
       JSON.stringify({
         level: 'fatal',
         ts: Date.now() / 1000,
-        caller: 'logger.server.ts:24',
+        caller: 'logger.server.ts',
         msg: 'Invalid LOG_LEVEL configuration',
         error: `LOG_LEVEL must be one of: ${VALID_LOG_LEVELS.join(', ')}`,
         providedValue: logLevel,
@@ -28,12 +33,12 @@ function getLogLevel(): string {
     process.exit(1)
   }
 
-  return logLevel
+  return { level: logLevel, wasDefaulted }
 }
 
 // Pino configuration following the logging policy
-function getPinoConfig(): LoggerOptions {
-  const logLevel = getLogLevel()
+function getPinoConfig(): { config: LoggerOptions; wasDefaulted: boolean } {
+  const { level: logLevel, wasDefaulted } = getLogLevel()
   const isDevelopment = process.env.NODE_ENV === 'development'
 
   const config: LoggerOptions = {
@@ -76,21 +81,34 @@ function getPinoConfig(): LoggerOptions {
     },
   }
 
-  return config
+  return { config, wasDefaulted }
 }
 
-// Create or retrieve the global logger instance
-export function getLogger(): PinoLogger {
-  if (global.logger) {
-    return global.logger
+// Initialize logger once at module load time
+// This is needed because in development we don't want to restart
+// the server with every change, but we want to make sure we don't
+// create a new logger instance with every change either.
+const { config: pinoConfig, wasDefaulted } = getPinoConfig()
+
+if (process.env.NODE_ENV === 'production') {
+  logger = pino(pinoConfig)
+} else {
+  if (!global.__logger) {
+    global.__logger = pino(pinoConfig)
   }
+  logger = global.__logger
+}
 
-  const config = getPinoConfig()
-  const logger = pino(config)
+// Emit warning if LOG_LEVEL was not configured
+if (wasDefaulted) {
+  logger.warn(
+    {},
+    'LOG_LEVEL environment variable not set, defaulting to "warn"'
+  )
+}
 
-  // Store in global for reuse
-  global.logger = logger
-
+// Export the initialized logger instance
+export function getLogger(): PinoLogger {
   return logger
 }
 
@@ -103,7 +121,7 @@ export function createChildLogger(
 }
 
 // Default export for convenience
-export default getLogger()
+export default logger
 
 /**
  * Helper to add requestId to log context
