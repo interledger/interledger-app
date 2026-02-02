@@ -12,7 +12,6 @@ import (
 	pti "gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/providers/xago"
 
-	"gitlab.com/fynbos/backend/dynamicforms"
 	"gitlab.com/fynbos/backend/rafiki"
 
 	"gitlab.com/fynbos/backend/discord"
@@ -51,7 +50,6 @@ import (
 	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/agreements"
 	agreements_mock "gitlab.com/fynbos/backend/agreements/client/mock"
-	dynamicforms_mock "gitlab.com/fynbos/backend/dynamicforms/client/mock"
 	email_mock "gitlab.com/fynbos/backend/email/client/mock"
 	"gitlab.com/fynbos/backend/healthcheck"
 	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
@@ -96,7 +94,6 @@ type TestContainer struct {
 	keys               *keys_mock.MockClient
 	TwitterClient      *twitter_mock.MockClient
 	walletImpl         *wallets_mock.MockClient
-	dynamicforms       *dynamicforms_mock.MockClient
 	rafiki             *rafiki_mock.MockClient
 }
 
@@ -114,10 +111,6 @@ func (t TestContainer) Slack() slack.Client {
 
 func (t TestContainer) Discord() discord.Client {
 	return nil
-}
-
-func (t TestContainer) DynamicForms() dynamicforms.Client {
-	return t.dynamicforms
 }
 
 func (t TestContainer) Payments() payments.Client {
@@ -234,7 +227,7 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 	t.Cleanup(func() {
 		ctrl.Finish()
 	})
-	
+
 	hs, err := healthcheck.NewService()
 	if err != nil {
 		t.Fatal(err)
@@ -258,7 +251,6 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 		keys:               keys_mock.NewMockClient(ctrl),
 		TwitterClient:      twitter_mock.NewMockClient(ctrl),
 		walletImpl:         wallets_mock.NewMockClient(ctrl),
-		dynamicforms:       dynamicforms_mock.NewMockClient(ctrl),
 		rafiki:             rafiki_mock.NewMockClient(ctrl),
 	}
 

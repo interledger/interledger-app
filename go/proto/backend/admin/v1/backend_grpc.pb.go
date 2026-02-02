@@ -34,10 +34,6 @@ const (
 	Backend_GetLinkedAccountReview_FullMethodName             = "/backend.admin.v1.Backend/GetLinkedAccountReview"
 	Backend_CompleteLinkedAccountReview_FullMethodName        = "/backend.admin.v1.Backend/CompleteLinkedAccountReview"
 	Backend_GetLinkedAccount_FullMethodName                   = "/backend.admin.v1.Backend/GetLinkedAccount"
-	Backend_ListFormSubmissionCounts_FullMethodName           = "/backend.admin.v1.Backend/ListFormSubmissionCounts"
-	Backend_ExportFormSubmissions_FullMethodName              = "/backend.admin.v1.Backend/ExportFormSubmissions"
-	Backend_ListFormSubmissions_FullMethodName                = "/backend.admin.v1.Backend/ListFormSubmissions"
-	Backend_GetFormSubmissionDetails_FullMethodName           = "/backend.admin.v1.Backend/GetFormSubmissionDetails"
 	Backend_ListExternalApiCalls_FullMethodName               = "/backend.admin.v1.Backend/ListExternalApiCalls"
 	Backend_ListPaymentsAwaitingSignal_FullMethodName         = "/backend.admin.v1.Backend/ListPaymentsAwaitingSignal"
 	Backend_SetWalletXagoBalanceEnabled_FullMethodName        = "/backend.admin.v1.Backend/SetWalletXagoBalanceEnabled"
@@ -71,10 +67,6 @@ type BackendClient interface {
 	GetLinkedAccountReview(ctx context.Context, in *GetLinkedAccountReviewRequest, opts ...grpc.CallOption) (*LinkedAccountReview, error)
 	CompleteLinkedAccountReview(ctx context.Context, in *CompleteLinkedAccountReviewRequest, opts ...grpc.CallOption) (*LinkedAccountReview, error)
 	GetLinkedAccount(ctx context.Context, in *GetLinkedAccountRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
-	ListFormSubmissionCounts(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListFormSubmissionCountsResponse, error)
-	ExportFormSubmissions(ctx context.Context, in *ExportFormSubmissionsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ExportFormSubmissionsResponse], error)
-	ListFormSubmissions(ctx context.Context, in *ListFormSubmissionsRequest, opts ...grpc.CallOption) (*ListFormSubmissionsResponse, error)
-	GetFormSubmissionDetails(ctx context.Context, in *GetFormSubmissionDetailsRequest, opts ...grpc.CallOption) (*FormSubmissionDetails, error)
 	ListExternalApiCalls(ctx context.Context, in *ListExternalApiCallsRequest, opts ...grpc.CallOption) (*ListExternalApiCallsResponse, error)
 	ListPaymentsAwaitingSignal(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListPaymentsAwaitingSignalResponse, error)
 	SetWalletXagoBalanceEnabled(ctx context.Context, in *SetWalletXagoBalanceEnabledRequest, opts ...grpc.CallOption) (*Empty, error)
@@ -241,55 +233,6 @@ func (c *backendClient) GetLinkedAccount(ctx context.Context, in *GetLinkedAccou
 	return out, nil
 }
 
-func (c *backendClient) ListFormSubmissionCounts(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListFormSubmissionCountsResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListFormSubmissionCountsResponse)
-	err := c.cc.Invoke(ctx, Backend_ListFormSubmissionCounts_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *backendClient) ExportFormSubmissions(ctx context.Context, in *ExportFormSubmissionsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ExportFormSubmissionsResponse], error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &Backend_ServiceDesc.Streams[0], Backend_ExportFormSubmissions_FullMethodName, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &grpc.GenericClientStream[ExportFormSubmissionsRequest, ExportFormSubmissionsResponse]{ClientStream: stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type Backend_ExportFormSubmissionsClient = grpc.ServerStreamingClient[ExportFormSubmissionsResponse]
-
-func (c *backendClient) ListFormSubmissions(ctx context.Context, in *ListFormSubmissionsRequest, opts ...grpc.CallOption) (*ListFormSubmissionsResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListFormSubmissionsResponse)
-	err := c.cc.Invoke(ctx, Backend_ListFormSubmissions_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *backendClient) GetFormSubmissionDetails(ctx context.Context, in *GetFormSubmissionDetailsRequest, opts ...grpc.CallOption) (*FormSubmissionDetails, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(FormSubmissionDetails)
-	err := c.cc.Invoke(ctx, Backend_GetFormSubmissionDetails_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *backendClient) ListExternalApiCalls(ctx context.Context, in *ListExternalApiCallsRequest, opts ...grpc.CallOption) (*ListExternalApiCallsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListExternalApiCallsResponse)
@@ -438,10 +381,6 @@ type BackendServer interface {
 	GetLinkedAccountReview(context.Context, *GetLinkedAccountReviewRequest) (*LinkedAccountReview, error)
 	CompleteLinkedAccountReview(context.Context, *CompleteLinkedAccountReviewRequest) (*LinkedAccountReview, error)
 	GetLinkedAccount(context.Context, *GetLinkedAccountRequest) (*LinkedAccount, error)
-	ListFormSubmissionCounts(context.Context, *PaginationRequest) (*ListFormSubmissionCountsResponse, error)
-	ExportFormSubmissions(*ExportFormSubmissionsRequest, grpc.ServerStreamingServer[ExportFormSubmissionsResponse]) error
-	ListFormSubmissions(context.Context, *ListFormSubmissionsRequest) (*ListFormSubmissionsResponse, error)
-	GetFormSubmissionDetails(context.Context, *GetFormSubmissionDetailsRequest) (*FormSubmissionDetails, error)
 	ListExternalApiCalls(context.Context, *ListExternalApiCallsRequest) (*ListExternalApiCallsResponse, error)
 	ListPaymentsAwaitingSignal(context.Context, *emptypb.Empty) (*ListPaymentsAwaitingSignalResponse, error)
 	SetWalletXagoBalanceEnabled(context.Context, *SetWalletXagoBalanceEnabledRequest) (*Empty, error)
@@ -508,18 +447,6 @@ func (UnimplementedBackendServer) CompleteLinkedAccountReview(context.Context, *
 }
 func (UnimplementedBackendServer) GetLinkedAccount(context.Context, *GetLinkedAccountRequest) (*LinkedAccount, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetLinkedAccount not implemented")
-}
-func (UnimplementedBackendServer) ListFormSubmissionCounts(context.Context, *PaginationRequest) (*ListFormSubmissionCountsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListFormSubmissionCounts not implemented")
-}
-func (UnimplementedBackendServer) ExportFormSubmissions(*ExportFormSubmissionsRequest, grpc.ServerStreamingServer[ExportFormSubmissionsResponse]) error {
-	return status.Errorf(codes.Unimplemented, "method ExportFormSubmissions not implemented")
-}
-func (UnimplementedBackendServer) ListFormSubmissions(context.Context, *ListFormSubmissionsRequest) (*ListFormSubmissionsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListFormSubmissions not implemented")
-}
-func (UnimplementedBackendServer) GetFormSubmissionDetails(context.Context, *GetFormSubmissionDetailsRequest) (*FormSubmissionDetails, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetFormSubmissionDetails not implemented")
 }
 func (UnimplementedBackendServer) ListExternalApiCalls(context.Context, *ListExternalApiCallsRequest) (*ListExternalApiCallsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListExternalApiCalls not implemented")
@@ -832,71 +759,6 @@ func _Backend_GetLinkedAccount_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Backend_ListFormSubmissionCounts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PaginationRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServer).ListFormSubmissionCounts(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Backend_ListFormSubmissionCounts_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServer).ListFormSubmissionCounts(ctx, req.(*PaginationRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Backend_ExportFormSubmissions_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(ExportFormSubmissionsRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(BackendServer).ExportFormSubmissions(m, &grpc.GenericServerStream[ExportFormSubmissionsRequest, ExportFormSubmissionsResponse]{ServerStream: stream})
-}
-
-// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type Backend_ExportFormSubmissionsServer = grpc.ServerStreamingServer[ExportFormSubmissionsResponse]
-
-func _Backend_ListFormSubmissions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListFormSubmissionsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServer).ListFormSubmissions(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Backend_ListFormSubmissions_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServer).ListFormSubmissions(ctx, req.(*ListFormSubmissionsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Backend_GetFormSubmissionDetails_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetFormSubmissionDetailsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServer).GetFormSubmissionDetails(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Backend_GetFormSubmissionDetails_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServer).GetFormSubmissionDetails(ctx, req.(*GetFormSubmissionDetailsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _Backend_ListExternalApiCalls_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListExternalApiCallsRequest)
 	if err := dec(in); err != nil {
@@ -1195,18 +1057,6 @@ var Backend_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Backend_GetLinkedAccount_Handler,
 		},
 		{
-			MethodName: "ListFormSubmissionCounts",
-			Handler:    _Backend_ListFormSubmissionCounts_Handler,
-		},
-		{
-			MethodName: "ListFormSubmissions",
-			Handler:    _Backend_ListFormSubmissions_Handler,
-		},
-		{
-			MethodName: "GetFormSubmissionDetails",
-			Handler:    _Backend_GetFormSubmissionDetails_Handler,
-		},
-		{
 			MethodName: "ListExternalApiCalls",
 			Handler:    _Backend_ListExternalApiCalls_Handler,
 		},
@@ -1259,12 +1109,6 @@ var Backend_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Backend_Delete2FATotpEnrollment_Handler,
 		},
 	},
-	Streams: []grpc.StreamDesc{
-		{
-			StreamName:    "ExportFormSubmissions",
-			Handler:       _Backend_ExportFormSubmissions_Handler,
-			ServerStreams: true,
-		},
-	},
+	Streams:  []grpc.StreamDesc{},
 	Metadata: "backend/admin/v1/backend.proto",
 }
