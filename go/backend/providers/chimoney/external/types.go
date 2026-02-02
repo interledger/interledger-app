@@ -35,9 +35,10 @@ type Verification struct {
 }
 
 type TransferReq struct {
-	SenderSubAccount   string          `json:"subAccount"`
-	ReceiverSubAccount string          `json:"receiver"`
-	Amount             currency.Amount `json:"amountToSend"`
+	SenderSubAccount    string          `json:"subAccount"`
+	ReceiverSubAccount  string          `json:"receiver"`
+	Amount              currency.Amount `json:"amountToSend"`
+	TurnOffNotification bool            `json:"turnOffNotification,omitempty"`
 }
 
 type WithdrawalReq struct {
@@ -48,6 +49,8 @@ type WithdrawalReq struct {
 }
 
 type WithdrawResponse struct {
+	ChiRef      string         `json:"chiRef,omitempty"`
+	IssueID     string         `json:"issueID,omitempty"`
 	Data        []WithdrawData `json:"data"`
 	Error       string         `json:"error"`
 	PaymentLink string         `json:"paymentLink"`

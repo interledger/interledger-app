@@ -280,40 +280,9 @@ func ExecuteChimoneyWithdrawalWorkflow(
 		return rollBackWithdrawal(ctx, a, externalWithdrawal, walletID, trxID)
 	}
 
-	// wait until it is succesfull i.e. in redeemed state
-	for {
-		selector := workflow.NewSelector(ctx)
-
-		// Wait for 5 minutes to check the status
-		selector.AddFuture(workflow.NewTimer(ctx, 5*time.Minute), func(f workflow.Future) {})
-		selector.Select(ctx)
-
-		var externalStatus external.PayoutStatusResponse
-		err = workflow.ExecuteActivity(ctx, a.ChimoneyPayoutStatus, walletID, externalTrx.Data[0].ChiRef).Get(ctx, &externalStatus)
-		if err != nil {
-			return err
-		}
-
-		// 'redeemed' corresponds to payment finality
-		if externalStatus.Status == "redeemed" {
-			break
-		}
-
-		if externalStatus.Status == "failed" || externalStatus.Status == "expired" {
-			return rollBackWithdrawal(ctx, a, externalWithdrawal, walletID, trxID)
-		}
-	}
-
-	// finalize balance
-	err = workflow.ExecuteActivity(ctx, a.FinalizeChimoneyBalance, trxID).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.SetChimoneyTransactionForeignID, trxID, externalTrx.Data[0].IssueID).Get(ctx, nil)
 	if err != nil {
-		return rollBackWithdrawal(ctx, a, finalizeReserve, walletID, trxID)
-	}
-
-	// TODO: update transaction foreignID
-	err = workflow.ExecuteActivity(ctx, a.CompleteChimoneyTransaction, walletID, trxID).Get(ctx, nil)
-	if err != nil {
-		return rollBackWithdrawal(ctx, a, updateTransaction, walletID, trxID)
+		return err
 	}
 
 	return nil
@@ -333,22 +302,6 @@ func (a *Activity) ChimoneyPayoutStatus(ctx context.Context, walletID string, ch
 		TurnOffNotification: true,
 		Reference:           chiRef,
 	})
-}
-
-func (a *Activity) CreateChimoneyWithdrawalTransaction(ctx context.Context, walletID string, amount currency.Amount) (string, error) {
-	trx, err := a.b.Transactions().CreateTransaction(ctx, transactions.CreateTransactionArgs{
-		WalletID:    walletID,
-		State:       transactions.StatePending,
-		Provider:    chimoney.ProviderName,
-		Amount:      amount,
-		Title:       "Withdrawal",
-		ForeignType: transactions.TransactionTypeWithdrawal,
-	})
-	if err != nil {
-		return "", err
-	}
-
-	return trx, nil
 }
 
 func (a *Activity) CreateChimoneyDepositTransaction(ctx context.Context, walletID, issueID string) (string, error) {
@@ -480,10 +433,6 @@ func (a *Activity) ReserveChimoneyBalance(ctx context.Context, walletID, trxID s
 	_, err = ReserveBalance(ctx, a.b, chimoneyAcc.ID, trxID, trx.Amount, time.Hour*24*365)
 
 	return err
-}
-
-func (a *Activity) FinalizeChimoneyBalance(ctx context.Context, trxID string) error {
-	return FinaliseReserve(ctx, a.b, trxID)
 }
 
 func (a *Activity) RollbackChimoneyBalance(ctx context.Context, trxID string) error {

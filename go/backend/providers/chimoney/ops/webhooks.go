@@ -17,6 +17,7 @@ import (
 	"gitlab.com/fynbos/backend/providers/chimoney/external"
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	httplogger "gitlab.com/fynbos/backend/providers/http"
+	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/log"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.uber.org/zap"
@@ -30,6 +31,7 @@ type (
 	PaymentEvent struct {
 		EventType string `json:"eventType"`
 		IssueID   string `json:"issueID"`
+		Status    string `json:"status,omitempty"`
 	}
 )
 
@@ -93,6 +95,8 @@ func NewWebhook(b Backends) http.HandlerFunc {
 		}
 
 		switch wh.EventType {
+		case "payout.interac.completed":
+			err = handleWithdrawalCompleted(r.Context(), b, body)
 		case "chimoney.redeem.completed", "chimoney.redeem.failed":
 			err = handleRedeemWebhook(r.Context(), b, body)
 		case "charge.card.completed",
@@ -159,6 +163,62 @@ func handleRedeemWebhook(ctx context.Context, b Backends, raw json.RawMessage) e
 		Success: true,
 	}
 	return b.Temporal().SignalWorkflow(ctx, fmt.Sprintf("chimoney_deposit_%s", wh.IssueID), "", depositChannel, signal)
+}
+
+func handleWithdrawalCompleted(ctx context.Context, b Backends, raw json.RawMessage) error {
+	var wh PaymentEvent
+	err := json.Unmarshal(raw, &wh)
+	if err != nil {
+		return err
+	}
+	if wh.Status == "" || wh.IssueID == "" {
+		log.Info("Webhook data not complete", zap.String("issueID", wh.IssueID), zap.String("status", wh.Status))
+		return nil
+	}
+
+	chiWalletID, err := ExtractChiWalletIDFromIssueID(wh.IssueID)
+	if err != nil {
+		return err
+	}
+
+	walletID, err := GetWalletID(ctx, b, chiWalletID)
+	if err != nil {
+		return fmt.Errorf("failed to get walletID for chiWalletID %s: %w", chiWalletID, err)
+	}
+
+	if walletID == "" {
+		return fmt.Errorf("walletID not found for chiWalletID %s", chiWalletID)
+	}
+
+	var Trx *transactions.Transaction
+	Trx, err = b.Transactions().GetTransactionByForeignID(ctx, walletID, wh.IssueID)
+
+	if err != nil {
+		return fmt.Errorf("failed to get transaction for ForeignID %s: %w", wh.IssueID, err)
+	}
+
+	if wh.Status == "failed" || wh.Status == "expired" {
+		return RollbackReserve(ctx, b, Trx.ID)
+	}
+	if wh.Status != "completed" {
+		log.Info("Withdrawal not yet completed", zap.String("issueID", wh.IssueID))
+		return nil
+	} else {
+		log.Info("Withdrawal completed for issueID", zap.String("issueID", wh.IssueID))
+	}
+
+	err = FinaliseReserve(ctx, b, Trx.ID)
+
+	if err != nil {
+		return RollbackReserve(ctx, b, Trx.ID)
+	}
+
+	err = b.Transactions().SetTransactionState(ctx, Trx.ID, transactions.StateCompleted)
+	if err != nil {
+		return err
+	}
+
+	return err
 }
 
 func handleConfirmedOrCompletedCharge(ctx context.Context, b Backends, ec external.Client, raw json.RawMessage) error {

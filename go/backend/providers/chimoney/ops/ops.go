@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"gitlab.com/fynbos/env"
@@ -267,6 +268,14 @@ func GetChiWallet(ctx context.Context, b Backends, walletID string) (string, err
 	return chiWallet, err
 }
 
+func ExtractChiWalletIDFromIssueID(issueID string) (string, error) {
+	parts := strings.Split(issueID, "_")
+	if len(parts) < 3 {
+		return "", fmt.Errorf("invalid issueID format: %s", issueID)
+	}
+	return parts[0], nil
+}
+
 func GetWalletID(ctx context.Context, b Backends, chiWalletID string) (string, error) {
 	var walletID string
 	err := b.DB().GetContext(ctx, &walletID, "SELECT wallet_ID FROM chi_money_wallets WHERE external_id=$1;", chiWalletID)
@@ -292,9 +301,10 @@ func Transfer(ctx context.Context, b Backends, ex external.Client, args chimoney
 	}
 
 	err = ex.Transfer(ctx, external.TransferReq{
-		SenderSubAccount:   sender,
-		ReceiverSubAccount: receiver,
-		Amount:             args.Amount,
+		SenderSubAccount:    sender,
+		ReceiverSubAccount:  receiver,
+		Amount:              args.Amount,
+		TurnOffNotification: true,
 	})
 	if err != nil {
 		return fmt.Errorf("%w %s", chimoney.ErrInternal, err)
