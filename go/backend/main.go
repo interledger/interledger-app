@@ -28,9 +28,6 @@ import (
 	"gitlab.com/fynbos/backend/analytics"
 	analytics_client "gitlab.com/fynbos/backend/analytics/client"
 	analytics_webhook "gitlab.com/fynbos/backend/analytics/webhook"
-	"gitlab.com/fynbos/backend/authorisation"
-	authorisation_client "gitlab.com/fynbos/backend/authorisation/client"
-	auth_http "gitlab.com/fynbos/backend/authorisation/http"
 	"gitlab.com/fynbos/backend/cli"
 	"gitlab.com/fynbos/backend/contacts"
 	contacts_client "gitlab.com/fynbos/backend/contacts/client"
@@ -200,7 +197,6 @@ func start(args *cli.StartArgs) {
 	router.NotFound(wallet_handler.WalletRedirectHandler(b))
 
 	var wg sync.WaitGroup
-	serveHTTP(&http.Server{Addr: ":" + args.AuthorisationPort, Handler: auth_http.AuthorisationHTTPHandler(b)}, &wg)
 
 	log.Info("backend running at http://localhost:%s", zap.String("port", args.Port))
 	serveHTTP(&http.Server{Addr: ":" + args.Port, Handler: router}, &wg)
@@ -474,7 +470,6 @@ type backends struct {
 	email          email.Client
 	transactions   transactions.Client
 	notify         notify.Client
-	auth           authorisation.InternalClient
 	analytics      analytics.Client
 	contacts       contacts.Client
 	limits         limits.Client
@@ -533,10 +528,6 @@ func (b backends) Wallets() wallets.Client {
 
 func (b backends) Features() features.Client {
 	return b.feat
-}
-
-func (b backends) Authorisation() authorisation.InternalClient {
-	return b.auth
 }
 
 func (b backends) Transactions() transactions.Client {
@@ -689,8 +680,6 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	if err != nil {
 		log.Fatalln(err)
 	}
-
-	b.auth = authorisation_client.New(b)
 
 	b.analytics = analytics_client.New(b, args.SegmentKey)
 
