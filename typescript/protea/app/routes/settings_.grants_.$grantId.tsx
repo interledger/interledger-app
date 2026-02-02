@@ -26,7 +26,7 @@ export const handle: ApplicationProps = {
   layout: Layouts.Focus,
   scaffold: {
     header: {
-      back: '/settings/keys',
+      back: '/settings/grants',
       title: (match: UIMatch<typeof loader>) => match.data.grant.client,
       actions: (match: UIMatch<typeof loader>) => {
         switch (match.data.grant.state) {
@@ -81,12 +81,7 @@ export default function Page() {
 
   return (
     <>
-      <Form
-        id='key-id'
-        action={`/settings/keys/${grant.id}`}
-        method='post'
-        className='hidden'
-      />
+      <Form id='key-id' method='post' className='hidden' />
       <input form='key-id' value={csrfToken} name='csrfToken' type='hidden' />
       <Card>
         <CardContent className='mt-2 flex flex-col gap-y-4'>
@@ -153,7 +148,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     return response.error({ errors })
   }
 
-  return redirectWithSnackbar(request, route('/settings/keys'), {
+  return redirectWithSnackbar(request, route('/settings/grants'), {
     message: 'Grant was revoked.',
     icon: 'close'
   })

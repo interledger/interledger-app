@@ -31,8 +31,6 @@ import (
 	"gitlab.com/fynbos/backend/authorisation"
 	authorisation_client "gitlab.com/fynbos/backend/authorisation/client"
 	auth_http "gitlab.com/fynbos/backend/authorisation/http"
-	"gitlab.com/fynbos/backend/aws"
-	aws_client "gitlab.com/fynbos/backend/aws/client"
 	"gitlab.com/fynbos/backend/cli"
 	"gitlab.com/fynbos/backend/contacts"
 	contacts_client "gitlab.com/fynbos/backend/contacts/client"
@@ -40,8 +38,6 @@ import (
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/discord"
 	discord_client "gitlab.com/fynbos/backend/discord/client"
-	"gitlab.com/fynbos/backend/dynamicforms"
-	dynamicforms_client "gitlab.com/fynbos/backend/dynamicforms/client"
 	"gitlab.com/fynbos/backend/email"
 	email_client "gitlab.com/fynbos/backend/email/client"
 	"gitlab.com/fynbos/backend/features"
@@ -82,8 +78,6 @@ import (
 	signup_client "gitlab.com/fynbos/backend/signup/client"
 	"gitlab.com/fynbos/backend/slack"
 	slack_client "gitlab.com/fynbos/backend/slack/client"
-	"gitlab.com/fynbos/backend/statements"
-	statements_client "gitlab.com/fynbos/backend/statements/client"
 	"gitlab.com/fynbos/backend/temporal"
 	"gitlab.com/fynbos/backend/transactions"
 	transactions_client "gitlab.com/fynbos/backend/transactions/client"
@@ -480,7 +474,6 @@ type backends struct {
 	email          email.Client
 	transactions   transactions.Client
 	notify         notify.Client
-	statements     statements.Client
 	auth           authorisation.InternalClient
 	analytics      analytics.Client
 	contacts       contacts.Client
@@ -492,10 +485,8 @@ type backends struct {
 	wallet         wallets.Client
 	payment        payments.Client
 	discord        discord.Client
-	dynamicforms   dynamicforms.Client
 	slack          slack.Client
 	rafiki         rafiki.Client
-	aws            aws.Client
 	xago           xago.Client
 	pac            pacioli.Client
 	pti            pti.Client
@@ -517,14 +508,6 @@ func (b backends) Pacioli() pacioli.Client {
 
 func (b backends) Xago() xago.Client {
 	return b.xago
-}
-
-func (b backends) AWS() aws.Client {
-	return b.aws
-}
-
-func (b backends) DynamicForms() dynamicforms.Client {
-	return b.dynamicforms
 }
 
 func (b backends) Slack() slack.Client {
@@ -619,10 +602,6 @@ func (b backends) Notify() notify.Client {
 	return b.notify
 }
 
-func (b backends) Statements() statements.Client {
-	return b.statements
-}
-
 func (b backends) Analytics() analytics.Client {
 	return b.analytics
 }
@@ -664,17 +643,11 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	}
 	b.db = db
 
-	cfg := zap.NewProductionConfig()
-	err = cfg.Level.UnmarshalText([]byte(args.LogLevel))
+	// Initialises the logger we will use throughout
+	err = log.Initialize(args.LogLevel)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	cfg.OutputPaths = []string{args.LogOutputPath}
-	logger, err := cfg.Build(zap.AddCallerSkip(1))
-	if err != nil {
-		log.Fatalln(err)
-	}
-	log.Setup(logger)
 
 	tp, err := temporal.NewTemporalClient(args.TemporalUrl)
 	if err != nil {
@@ -692,7 +665,7 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 
 	b.signup = signup_client.New(b)
 
-	b.waitlist = waitlist_client.New(b, logger)
+	b.waitlist = waitlist_client.New(b, log.Logger())
 
 	b.twitter = twitter_client.New(b, &twitter_client.NewClientArgs{
 		ClientID:      args.TwitterClientID,
@@ -711,8 +684,6 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 		RedirectURL:   args.DiscordRedirectURL,
 	})
 
-	b.dynamicforms = dynamicforms_client.New(b)
-
 	b.slack, err = slack_client.New(b)
 	if err != nil {
 		log.Fatalln(err)
@@ -721,11 +692,6 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	b.auth = authorisation_client.New(b)
 
 	b.analytics = analytics_client.New(b, args.SegmentKey)
-
-	b.aws, err = aws_client.New(context.Background())
-	if err != nil {
-		log.Error("failed to start AWS client", zap.Error(err))
-	}
 
 	b.feat = features_client.New(b)
 
@@ -750,7 +716,7 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		b.adminAuth = auth.NewLoggingService(adminUsers, logger)
+		b.adminAuth = auth.NewLoggingService(adminUsers, log.Logger())
 	}
 
 	b.agreements = agreements_client.New(b)
@@ -760,63 +726,60 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 		log.Fatalln(err)
 	}
 
-	logger.Debug("initialising SendGrid")
+	log.Debug("initialising SendGrid")
 	b.email = email_client.New(b, args.SendgridAPIKey)
 
-	logger.Debug("initialising transactions")
+	log.Debug("initialising transactions")
 	b.transactions = transactions_client.New(b)
 
-	logger.Debug("initialising notify")
+	log.Debug("initialising notify")
 	b.notify = notify_client.New(b, args.PusherAddr)
 
-	logger.Debug("initialising statements")
-	b.statements = statements_client.New()
-
-	logger.Debug("initialising limits")
+	log.Debug("initialising limits")
 	b.limits = limits_client.New(b)
 
-	logger.Debug("initialising identities")
+	log.Debug("initialising identities")
 	b.ident = identities_client.New(b)
 
-	logger.Debug("initialising contacts")
+	log.Debug("initialising contacts")
 	b.contacts = contacts_client.New(b)
 
-	logger.Debug("initialising images")
+	log.Debug("initialising images")
 	b.img = img_client.New(b)
 
-	logger.Debug("initialising vault")
+	log.Debug("initialising vault")
 	vc, err := vault.NewClient()
 	if err != nil {
 		log.Error("error vault", zap.Error(err))
 	}
 	b.vault = vc
 
-	logger.Debug("initialising keys")
+	log.Debug("initialising keys")
 	b.keys = keys_client.New(b)
 
-	logger.Debug("initialising validator")
+	log.Debug("initialising validator")
 	b.val = validator.New()
 
-	logger.Debug("initialising rafiki")
+	log.Debug("initialising rafiki")
 	b.rafiki = rafiki_client.New(b)
 
-	logger.Debug("initialising pacioli")
+	log.Debug("initialising pacioli")
 	pacDB, err := otelsqlx.Connect("postgres", args.PacioliDBConString, otelsql.WithAttributes(semconv.DBSystemCockroachdb), otelsql.WithDBName("cockroachdb"))
 	if err != nil {
 		log.Fatalln(err)
 	}
 	b.pac = pacioli_client.NewLocal(pacDB)
 
-	logger.Debug("initialising xago")
+	log.Debug("initialising xago")
 	b.xago = xago_client.New(b)
 
-	logger.Debug("initialising FIANT")
+	log.Debug("initialising FIANT")
 	b.pti = pti_client.New(b)
 
-	logger.Debug("initialising Gatehub")
+	log.Debug("initialising Gatehub")
 	b.gatehub = gatehub_client.New(b)
 
-	logger.Debug("initialising Chimoney")
+	log.Debug("initialising Chimoney")
 	b.chimoney = chimoney_client.New(b)
 
 	return b

@@ -17,6 +17,7 @@ import {
   isSessionAlreadyExitsMessage
 } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
+import { safeReturnTo } from '~/lib/url.server'
 export type TotpAction =
   | {
       errors: {
@@ -28,9 +29,10 @@ export type TotpAction =
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
-  const returnTo = url.searchParams.get('returnTo')
+  const returnTo = safeReturnTo(url.searchParams.get('returnTo'))
   const cookie = String(request.headers.get('cookie'))
   const refresh = url.searchParams.get('refresh')
+
   if (!flowId) {
     const initRes = await fetch(
       `${KRATOS_URL}/self-service/login/browser?aal=aal2${
@@ -58,9 +60,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
       throw new Error('Redirect did not include flow parameter')
     }
 
-    return redirect(
-      `/totp/challenge?flow=${flowFromRedirect}&returnTo=${returnTo ?? '/'}`
-    )
+    const searchParams = new URLSearchParams()
+    searchParams.set('returnTo', returnTo)
+    searchParams.set('flow', flowFromRedirect)
+
+    return redirect(`${route('/totp/challenge')}?${searchParams.toString()}`)
   }
   const kratosFlow = await fetch(
     `${KRATOS_URL}/self-service/login/flows?id=${flowId}`,
