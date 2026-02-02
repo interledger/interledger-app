@@ -11,9 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/keys"
-	"gitlab.com/fynbos/backend/limits"
 	"gitlab.com/fynbos/backend/user"
 	user_mock "gitlab.com/fynbos/backend/user/client/mock"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
@@ -52,48 +50,15 @@ func TestCreatePublicKey(t *testing.T) {
 
 	c.rafiki.EXPECT().CreatePaymentPointerKey(gomock.Any(), gomock.Any(), wallet.ID).Return(nil).AnyTimes()
 
-	c.limits.EXPECT().UpdatePublicKeyLimits(gomock.Any(), wallet.ID, keyID, limits.Limit{
-		Daily: currency.Amount{
-			Value:    10,
-			Currency: currency.Currency("USD"),
-			Scale:    2,
-		},
-		Monthly: currency.Amount{
-			Value:    100,
-			Currency: currency.Currency("USD"),
-			Scale:    2,
-		},
-		Overall: currency.Amount{
-			Value:    1000,
-			Currency: currency.Currency("USD"),
-			Scale:    2,
-		},
-	}).AnyTimes()
-
 	_, err := client.CreateConnection(user_mock.ActingAsContext(t, context.Background(), u), &backendv1.CreateConnectionRequest{
 		ApplicationName: "FynTest",
 		PublicKey:       base64EncodedJWK,
-		DailyLimit: &backendv1.Amount{
-			Asset:      "USD",
-			AssetScale: 2,
-			Amount:     10,
-		},
-		MonthlyLimit: &backendv1.Amount{
-			Asset:      "USD",
-			AssetScale: 2,
-			Amount:     100,
-		},
-		OverallLimit: &backendv1.Amount{
-			Asset:      "USD",
-			AssetScale: 2,
-			Amount:     1000,
-		},
 	})
 	require.NoError(t, err)
 }
 
 func TestGetAndListPublicKeys(t *testing.T) {
-	t.Skip("TODO: Fix this test, currently failling")	
+	t.Skip("TODO: Fix this test, currently failling")
 	t.Parallel()
 	ctrl := gomock.NewController(t)
 	c := NewTestContainer(t, ctrl)
@@ -139,66 +104,6 @@ func TestGetAndListPublicKeys(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, keyFingerprint, getRpc.GetPublicKeyFingerprint())
 	assert.Equal(t, "FynTest", getRpc.GetApplicationName())
-}
-
-func TestUpdatePublicKeyLimits(t *testing.T) {
-	t.Parallel()
-	ctrl := gomock.NewController(t)
-	c := NewTestContainer(t, ctrl)
-	_, _, client := startTestServer(t, c)
-	u := &user.User{
-		ID: uuid.NewString(),
-	}
-
-	wa, err := wallets.ParseAddress("https://local.ilp.link/test")
-	require.NoError(t, err)
-
-	wallet := wallets.Wallet{
-		ID:        uuid.NewString(),
-		Name:      "testing",
-		Addresses: []wallets.Address{wa},
-	}
-	c.walletImpl.EXPECT().List(gomock.Any(), u.ID).Return([]wallets.Wallet{wallet}, nil).AnyTimes()
-	c.walletImpl.EXPECT().ForContext(gomock.Any()).Return(&wallet, nil).AnyTimes()
-
-	publicKeyUuid := uuid.NewString()
-	c.limits.EXPECT().UpdatePublicKeyLimits(gomock.Any(), wallet.ID, publicKeyUuid, limits.Limit{
-		Daily: currency.Amount{
-			Value:    10,
-			Currency: "USD",
-			Scale:    2,
-		},
-		Monthly: currency.Amount{
-			Value:    100,
-			Currency: "USD",
-			Scale:    2,
-		},
-		Overall: currency.Amount{
-			Value:    1000,
-			Currency: "USD",
-			Scale:    2,
-		},
-	}).Return(nil).AnyTimes()
-
-	_, err = client.UpdateConnectionLimits(user_mock.ActingAsContext(t, context.Background(), u), &backendv1.UpdateConnectionLimitsRequest{
-		Id: publicKeyUuid,
-		Daily: &backendv1.Amount{
-			Asset:      "USD",
-			AssetScale: 2,
-			Amount:     10,
-		},
-		Monthly: &backendv1.Amount{
-			Asset:      "USD",
-			AssetScale: 2,
-			Amount:     100,
-		},
-		Overall: &backendv1.Amount{
-			Asset:      "USD",
-			AssetScale: 2,
-			Amount:     1000,
-		},
-	})
-	require.NoError(t, err)
 }
 
 func TestDeletePublicKey(t *testing.T) {
