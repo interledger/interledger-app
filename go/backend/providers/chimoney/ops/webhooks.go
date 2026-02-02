@@ -39,13 +39,15 @@ func ParseWebhookSecret(input string) []byte {
 	secretParts := strings.Split(input, "_")
 	var secret []byte
 	var err error
-	if len(secretParts) < 1 {
+	if len(secretParts) < 2 {
 		log.Error("chimoney webhook: CHIMONEY_WEBHOOK_SECRET has incorrect format.")
-	} else {
-		secret, err = base64.StdEncoding.DecodeString(secretParts[1])
+		return nil
 	}
+
+	secret, err = base64.StdEncoding.DecodeString(secretParts[1])
 	if err != nil {
 		log.Error("chimoney webhook: error parsing CHIMONEY_WEBHOOK_SECRET", zap.Error(err))
+		return nil
 	}
 
 	return secret
