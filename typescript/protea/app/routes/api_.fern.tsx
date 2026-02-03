@@ -1,5 +1,5 @@
 import type { ActionFunctionArgs } from '@remix-run/node'
-import { getLogger, addRequestId } from '~/lib/logger.server'
+import logger, { addRequestId } from '~/lib/logger.server'
 
 export async function action({ request }: ActionFunctionArgs) {
   try {
@@ -26,7 +26,6 @@ export async function action({ request }: ActionFunctionArgs) {
 
     return new Response(null, { status: 200 })
   } catch (error) {
-    const logger = getLogger()
     const requestId = 'unknown'
     logger.error(
       { ...addRequestId(requestId), error: error instanceof Error ? error.message : String(error) },

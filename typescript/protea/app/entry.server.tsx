@@ -5,7 +5,7 @@ import * as Sentry from '@sentry/remix'
 import isbot from 'isbot'
 import { renderToPipeableStream } from 'react-dom/server'
 import { PassThrough } from 'stream'
-import { getLogger, addRequestId } from './lib/logger.server'
+import logger, { addRequestId } from './lib/logger.server'
 
 const ABORT_DELAY = 5_000
 
@@ -29,7 +29,6 @@ export function handleError(
   error: unknown,
   { request }: DataFunctionArgs
 ): void {
-  const logger = getLogger()
   const requestId = request.headers.get('x-request-id') || 'unknown'
   
   if (error instanceof Error) {
@@ -108,7 +107,6 @@ function handleBotRequest(
           reject(error)
         },
         onError(error: unknown) {
-          const logger = getLogger()
           responseStatusCode = 500
           logger.error(
             { error: error instanceof Error ? error.message : String(error) },
@@ -154,7 +152,6 @@ function handleBrowserRequest(
           reject(error)
         },
         onError(error: unknown) {
-          const logger = getLogger()
           logger.error(
             { error: error instanceof Error ? error.message : String(error) },
             'Error rendering to browser'

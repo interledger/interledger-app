@@ -1,5 +1,5 @@
 import { redisClient } from './redis.server'
-import { getLogger } from './logger.server'
+import logger from './logger.server'
 
 interface RateLimitOptions {
   limit: number
@@ -33,7 +33,6 @@ export async function rateLimit(
   options: RateLimitOptions = DEFAULT_RATE_LIMIT
 ): Promise<string | undefined> {
   const { limit, ttlSeconds } = options
-  const logger = getLogger()
 
   try {
     const current = await redisClient.get(key)
