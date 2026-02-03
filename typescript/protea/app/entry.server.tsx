@@ -10,6 +10,11 @@ import { extractOrGenerateRequestId } from './lib/requestContext.server'
 
 const ABORT_DELAY = 5_000
 
+// Track request timing for logging
+function getResponseTime(startTime: number): number {
+  return Date.now() - startTime
+}
+
 if (process.env.SENTRY_DSN) {
   Sentry.init({
     dsn: process.env.SENTRY_DSN,
@@ -61,28 +66,77 @@ export default function handleRequest(
   responseHeaders: Headers,
   remixContext: EntryContext
 ) {
-  return isbot(request.headers.get('user-agent'))
+  const startTime = Date.now()
+  const requestId = extractOrGenerateRequestId(request)
+  const url = new URL(request.url)
+  
+  // Log incoming request
+  logger.info(
+    {
+      ...addRequestId(requestId),
+      method: request.method,
+      url: url.pathname + url.search,
+      userAgent: request.headers.get('user-agent'),
+    },
+    `${request.method} ${url.pathname}${url.search}`
+  )
+
+  const handler = isbot(request.headers.get('user-agent'))
     ? handleBotRequest(
         request,
         responseStatusCode,
         responseHeaders,
-        remixContext
+        remixContext,
+        requestId,
+        startTime
       )
     : handleBrowserRequest(
         request,
         responseStatusCode,
         responseHeaders,
-        remixContext
+        remixContext,
+        requestId,
+        startTime
       )
+
+  return handler.then((response) => {
+    // Log response
+    logger.info(
+      {
+        ...addRequestId(requestId),
+        method: request.method,
+        url: url.pathname + url.search,
+        statusCode: response.status,
+        responseTime: getResponseTime(startTime),
+      },
+      `${request.method} ${url.pathname}${url.search} ${response.status} - ${getResponseTime(startTime)}ms`
+    )
+    return response
+  }).catch((error) => {
+    // Log error
+    logger.error(
+      {
+        ...addRequestId(requestId),
+        method: request.method,
+        url: url.pathname + url.search,
+        error: error instanceof Error ? error.message : String(error),
+        responseTime: getResponseTime(startTime),
+      },
+      `${request.method} ${url.pathname}${url.search} failed`
+    )
+    throw error
+  })
 }
 
 function handleBotRequest(
   request: Request,
   responseStatusCode: number,
   responseHeaders: Headers,
-  remixContext: EntryContext
+  remixContext: EntryContext,
+  requestId: string,
+  startTime: number
 ) {
-  return new Promise((resolve, reject) => {
+  return new Promise<Response>((resolve, reject) => {
     const { pipe, abort } = renderToPipeableStream(
       <RemixServer
         context={remixContext}
@@ -110,7 +164,11 @@ function handleBotRequest(
         onError(error: unknown) {
           responseStatusCode = 500
           logger.error(
-            { error: error instanceof Error ? error.message : String(error) },
+            { 
+              ...addRequestId(requestId),
+              error: error instanceof Error ? error.message : String(error),
+              responseTime: getResponseTime(startTime),
+            },
             'Error rendering to bot'
           )
         }
@@ -125,9 +183,11 @@ function handleBrowserRequest(
   request: Request,
   responseStatusCode: number,
   responseHeaders: Headers,
-  remixContext: EntryContext
+  remixContext: EntryContext,
+  requestId: string,
+  startTime: number
 ) {
-  return new Promise((resolve, reject) => {
+  return new Promise<Response>((resolve, reject) => {
     const { pipe, abort } = renderToPipeableStream(
       <RemixServer
         context={remixContext}
@@ -154,7 +214,11 @@ function handleBrowserRequest(
         },
         onError(error: unknown) {
           logger.error(
-            { error: error instanceof Error ? error.message : String(error) },
+            { 
+              ...addRequestId(requestId),
+              error: error instanceof Error ? error.message : String(error),
+              responseTime: getResponseTime(startTime),
+            },
             'Error rendering to browser'
           )
           responseStatusCode = 500

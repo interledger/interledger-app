@@ -106,6 +106,7 @@
     "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-storybook": "^0.6.12",
     "jsdom": "^22.0.0",
+    "pino-pretty": "^10.3.1",
     "postcss": "^8.4.23",
     "prettier": "^2.8.8",
     "prettier-plugin-organize-imports": "^3.2.2",
