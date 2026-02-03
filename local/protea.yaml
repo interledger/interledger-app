@@ -44,7 +44,7 @@ services:
       - BACKEND_GRPC_URL=http://backend:8443
 
       - REDIS_URL=redis://redis:6379/2
-      - LOG_LEVEL=debug
+
 
 
     depends_on:
