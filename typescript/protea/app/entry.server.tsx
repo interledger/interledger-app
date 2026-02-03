@@ -71,7 +71,7 @@ export default function handleRequest(
   const url = new URL(request.url)
   
   // Log incoming request
-  logger.info(
+  logger.debug(
     {
       ...addRequestId(requestId),
       method: request.method,
