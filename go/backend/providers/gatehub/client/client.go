@@ -28,26 +28,40 @@ func New(b ops.Backends, cfg gatehub.Config) *Client {
 	if cfg.PaywiserEuroVaultID == "" {
 		log.Error("PaywiserEuroVaultID is not set in Gatehub configuration")
 		return nil
-	} else {
-		log.Info(fmt.Sprintf("Initialized Gatehub with EUR vault ID: %.8s...", cfg.PaywiserEuroVaultID))
+	}
+	if cfg.GatewayID == "" {
+		log.Error("GatewayID is not set in Gatehub configuration")
+		return nil
+	}
+	if cfg.CardAccountProductCode == "" {
+		log.Error("CardAccountProductCode is not set in Gatehub configuration")
+		return nil
+	}
+
+	log.Info(fmt.Sprintf("Initialized Gatehub with EUR vault ID: %.8s...", cfg.PaywiserEuroVaultID))
+
+	extClient := external.NewClient(
+		cfg.AppID,
+		cfg.Secret,
+		cfg.CardAppID,
+		cfg.GatewayID,
+		cfg.CardAccountProductCode,
+		cfg.PaywiserEuroVaultID,
+		&http.Client{
+			Transport: otelhttp.NewTransport(
+				httplogger.NewTransport(http.DefaultTransport, b, nil),
+			),
+		},
+	)
+	if extClient == nil {
+		log.Error("failed to initialize Gatehub external client")
+		return nil
 	}
 
 	return &Client{
-		b: b,
-		external: external.NewClient(
-			cfg.AppID,
-			cfg.Secret,
-			cfg.CardAppID,
-			cfg.GatewayID,
-			cfg.CardAccountProductCode,
-			cfg.PaywiserEuroVaultID,
-			&http.Client{
-				Transport: otelhttp.NewTransport(
-					httplogger.NewTransport(http.DefaultTransport, b, nil),
-				),
-			},
-		),
-		config: cfg,
+		b:        b,
+		external: extClient,
+		config:   cfg,
 	}
 }
 

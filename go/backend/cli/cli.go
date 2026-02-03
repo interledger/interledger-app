@@ -220,7 +220,9 @@ func ParseStartArgs() (*StartArgs, error) {
 	}
 
 	gatehubCardAccountProductCode := os.Getenv("GATEHUB_CARD_ACCOUNT_PRODUCT_CODE")
-	// This one is optional, no error if missing
+	if gatehubCardAccountProductCode == "" && env.IsProd() {
+		return nil, errors.New("GATEHUB_CARD_ACCOUNT_PRODUCT_CODE is required in production")
+	}
 
 	gatehubPaywiserEuroVaultID := os.Getenv("GATEHUB_PAYWISER_EURO_VAULT_ID")
 	if gatehubPaywiserEuroVaultID == "" && env.IsProd() {

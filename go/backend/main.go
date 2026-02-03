@@ -780,6 +780,9 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 		FallbackWebhookURL:      args.GatehubFallbackWebhookURL,
 	}
 	b.gatehub = gatehub_client.New(b, b.gatehubConfig)
+	if b.gatehub == nil {
+		log.Fatalln("failed to initialize Gatehub client; check Gatehub configuration")
+	}
 
 	log.Debug("initialising Chimoney")
 	b.chimoney = chimoney_client.New(b)
