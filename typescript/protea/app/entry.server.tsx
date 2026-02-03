@@ -6,6 +6,7 @@ import isbot from 'isbot'
 import { renderToPipeableStream } from 'react-dom/server'
 import { PassThrough } from 'stream'
 import logger, { addRequestId } from './lib/logger.server'
+import { extractOrGenerateRequestId } from './lib/requestContext.server'
 
 const ABORT_DELAY = 5_000
 
@@ -29,7 +30,7 @@ export function handleError(
   error: unknown,
   { request }: DataFunctionArgs
 ): void {
-  const requestId = request.headers.get('x-request-id') || 'unknown'
+  const requestId = extractOrGenerateRequestId(request)
   
   if (error instanceof Error) {
     Sentry.captureRemixServerException(error, 'remix.server', request).catch(

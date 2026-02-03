@@ -1,6 +1,7 @@
 import { json, type ActionFunctionArgs } from '@remix-run/node'
 import { KRATOS_URL } from '~/lib/kratos.server'
 import logger, { addRequestId } from '~/lib/logger.server'
+import { extractOrGenerateRequestId } from '~/lib/requestContext.server'
 
 /**
  * Verify TOTP code for AAL2 challenge
@@ -70,7 +71,7 @@ export async function action({ request }: ActionFunctionArgs) {
       flowId: errorData.id,
     })
   } catch (error) {
-    const requestId = 'unknown' // In Remix we can get this from request headers if added
+    const requestId = extractOrGenerateRequestId(request)
     logger.error(
       { ...addRequestId(requestId), error: error instanceof Error ? error.message : String(error) },
       'Unexpected error verifying TOTP challenge'
