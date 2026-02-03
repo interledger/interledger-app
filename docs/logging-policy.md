@@ -9,7 +9,7 @@ For the InterledgerApp Wallet application we want to have a consistent logging s
 - Do not render big objects since there can be a performance cost to serialisation
 - Do not embed conditionals inside the logging statement since this has a tendency to make code flaky
 - Take great care when de-referencing objects inside a logging statement since this can make code flaky
-- Should the LOG_LEVEL configured not be one of the valid options then the application should exit immediately and describe the problem using `fatal`
+- Should the LOG_LEVEL configured not be one of the valid options, then the application should default to WARNING and also log a warn level message indicating that this is the case.
 ## Log level:
 - `fatal`
     - Where to?

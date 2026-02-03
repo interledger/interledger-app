@@ -1,4 +1,5 @@
 import pino, { Logger as PinoLogger, LoggerOptions } from 'pino'
+import { createRequire } from 'node:module'
 import { getRequestId, getCorrelationId } from './requestContext.server'
 
 let logger: PinoLogger
@@ -41,14 +42,16 @@ function getPinoConfig(): { config: LoggerOptions; wasDefaulted: boolean } {
   const { level: logLevel, wasDefaulted } = getLogLevel()
   const isDevelopment = process.env.NODE_ENV === 'development'
 
+  const pinoPrettyTarget = resolvePinoPrettyTarget()
+
   const config: LoggerOptions = {
     level: logLevel,
     timestamp: pino.stdTimeFunctions.isoTime, // ISO format timestamp
     // Use different transports for different log levels as per policy
     transport:
-      isDevelopment && process.env.LOG_PRETTY !== 'false'
+      isDevelopment && process.env.LOG_PRETTY !== 'false' && pinoPrettyTarget
         ? {
-            target: 'pino-pretty',
+            target: pinoPrettyTarget,
             options: {
               colorize: true,
               singleLine: false,
@@ -62,18 +65,6 @@ function getPinoConfig(): { config: LoggerOptions; wasDefaulted: boolean } {
         return { level: label }
       },
     },
-    hooks: {
-      logMethod: (args, method, level) => {
-        // Route different levels to appropriate streams
-        // fatal and error -> stderr
-        // warning, info, debug -> stdout
-        if (level <= 40) {
-          // 40 is 'error' level in pino (50 is 'fatal')
-          return method.apply(process.stderr, args)
-        }
-        return method.apply(process.stdout, args)
-      },
-    },
     base: {
       // Remove the default pid and hostname for cleaner logs
       pid: undefined,
@@ -82,6 +73,18 @@ function getPinoConfig(): { config: LoggerOptions; wasDefaulted: boolean } {
   }
 
   return { config, wasDefaulted }
+}
+
+function resolvePinoPrettyTarget(): string | undefined {
+  try {
+    const requireForResolve =
+      typeof __filename !== 'undefined'
+        ? createRequire(__filename)
+        : createRequire(import.meta.url)
+    return requireForResolve.resolve('pino-pretty')
+  } catch {
+    return undefined
+  }
 }
 
 // Initialize logger once at module load time
