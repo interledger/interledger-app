@@ -27,7 +27,7 @@ services:
 
     environment:
       - FYNBOS_ENV=local
-      - LOG_PRETTY=false
+      - LOG_PRETTY=true
 
       - KRATOS_URL=http://kratos:4433
       - RAFIKI_AUTH_ENDPOINT=http://rafiki_auth:3009
