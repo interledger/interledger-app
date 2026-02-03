@@ -13,10 +13,5 @@ import (
 )
 
 type Client interface {
-	Exceeds(ctx context.Context, walletID, clientID string, amount currency.Amount) (bool, error)
 	ExceedsKYCLimits(ctx context.Context, walletID string, amount currency.Amount) (bool, LimitType, error)
-	UpdateClientLimits(ctx context.Context, walletID, clientURL string, limit Limit) error
-	UpdatePublicKeyLimits(ctx context.Context, walletID, publicKeyUuid string, limit Limit) error
-	List(ctx context.Context, walletID string) ([]LimitConfigured, error)
-	GetPublicKeyLimit(ctx context.Context, walletID, publicKeyUuid string) (*Limit, error)
 }
