@@ -27,6 +27,8 @@ services:
 
     environment:
       - FYNBOS_ENV=local
+      - LOG_LEVEL=debug
+      # Setting log_pretty to false will result in json logs
       - LOG_PRETTY=true
 
       - KRATOS_URL=http://kratos:4433
@@ -42,7 +44,7 @@ services:
       - BACKEND_GRPC_URL=http://backend:8443
 
       - REDIS_URL=redis://redis:6379/2
-      - LOG_LEVEL=debug
+
 
     depends_on:
       - backend
