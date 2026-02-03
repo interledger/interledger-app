@@ -1,6 +1,6 @@
 import { json } from '@remix-run/node'
 import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
-import { getLogger, addRequestId, addCorrelationId } from './logger.server'
+import logger, { addRequestId, addCorrelationId } from './logger.server'
 import {
   initializeRequestContext,
   extractOrGenerateRequestId
@@ -12,7 +12,6 @@ import {
  *
  * Usage:
  * export const loader = withRequestLogging(async ({ request, params, context }) => {
- *   const logger = getLogger()
  *   logger.info({}, 'Processing user request')
  *   // ... rest of loader
  * })
@@ -38,7 +37,6 @@ export function withRequestLogging<T extends any[] | Record<string, any>>(
  *
  * Usage:
  * export const action = withRequestLogging(async ({ request, params, context }) => {
- *   const logger = getLogger()
  *   logger.info({}, 'Processing form submission')
  *   // ... rest of action
  * })
@@ -67,7 +65,6 @@ export function logWithContext(
   fields: Record<string, any> = {},
   message: string
 ): void {
-  const logger = getLogger()
   const context = {
     ...addRequestId(),
     ...addCorrelationId(),

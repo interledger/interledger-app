@@ -107,11 +107,6 @@ if (wasDefaulted) {
   )
 }
 
-// Export the initialized logger instance
-export function getLogger(): PinoLogger {
-  return logger
-}
-
 // Create a child logger with additional context (useful for request-scoped logging)
 export function createChildLogger(
   parentLogger: PinoLogger,
