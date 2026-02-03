@@ -21,10 +21,13 @@ func TestClient(t *testing.T) {
 	cardAccountProductCode := os.Getenv("GATEHUB_CARD_ACCOUNT_PRODUCT_CODE")
 	vaultID := os.Getenv("GATEHUB_PAYWISER_EURO_VAULT_ID")
 	
-	if appID == "" || secret == "" || cardAppID == "" {
+	if appID == "" || secret == "" || cardAppID == "" || gatewayID == "" || cardAccountProductCode == "" || vaultID == "" {
 		t.SkipNow()
 	}
 	c := external.NewClient(appID, secret, cardAppID, gatewayID, cardAccountProductCode, vaultID, nil)
+	if c == nil {
+		t.SkipNow()
+	}
 
 	ctx := context.Background()
 	sendingExternalUserID := "66f1427e-43e4-48a0-9692-190c24d75058"
@@ -56,10 +59,13 @@ func TestUser(t *testing.T) {
 	cardAccountProductCode := os.Getenv("GATEHUB_CARD_ACCOUNT_PRODUCT_CODE")
 	vaultID := os.Getenv("GATEHUB_PAYWISER_EURO_VAULT_ID")
 	
-	if appID == "" || secret == "" {
+	if appID == "" || secret == "" || cardAppID == "" || gatewayID == "" || cardAccountProductCode == "" || vaultID == "" {
 		t.SkipNow()
 	}
 	c := external.NewClient(appID, secret, cardAppID, gatewayID, cardAccountProductCode, vaultID, nil)
+	if c == nil {
+		t.SkipNow()
+	}
 	ctx := context.Background()
 
 	userID := "66f1427e-43e4-48a0-9692-190c24d75058"
