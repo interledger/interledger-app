@@ -1,40 +1,48 @@
 import type {
-  SelfServiceLoginFlow,
-  SelfServiceRecoveryFlow,
-  SelfServiceRegistrationFlow,
-  SelfServiceSettingsFlow,
-  SelfServiceVerificationFlow,
+  LoginFlow,
+  RecoveryFlow,
+  RegistrationFlow,
+  SettingsFlow,
+  VerificationFlow,
   Session,
-  UiNodeInputAttributes
+  UiNodeInputAttributes,
+  SuccessfulNativeRegistration
 } from '@ory/kratos-client'
 import { redirect } from '@remix-run/node'
 import { route } from 'routes-gen'
 import { safeReturnTo } from './url.server'
+import {
+  getCsrfTokenFromFlow as getCsrfToken,
+  isUiNodeInputAttributes
+} from './kratos-client.server'
 
 // Export to ensure this is always evaluated server side.
 export const KRATOS_URL = process.env.KRATOS_URL
 
-export const getCsrfTokenFromFlow = (
-  flow:
-    | SelfServiceRegistrationFlow
-    | SelfServiceLoginFlow
-    | SelfServiceVerificationFlow
-    | SelfServiceSettingsFlow
-    | SelfServiceRecoveryFlow
-    | undefined
-): string => {
-  const node = flow?.ui.nodes.find(
-    (node) =>
-      isUiNodeInputAttributes(node?.attributes) &&
-      node.attributes.name === 'csrf_token'
-  )
-
-  return node ? (node.attributes as UiNodeInputAttributes).value : ''
+// Re-export types for backward compatibility
+export type {
+  LoginFlow,
+  RecoveryFlow,
+  RegistrationFlow,
+  SettingsFlow,
+  VerificationFlow,
+  Session,
+  UiNodeInputAttributes,
+  SuccessfulNativeRegistration
 }
 
-function isUiNodeInputAttributes(n: any): n is UiNodeInputAttributes {
-  return 'name' in n
-}
+// Type aliases for backward compatibility with existing code
+export type SelfServiceLoginFlow = LoginFlow
+export type SelfServiceRecoveryFlow = RecoveryFlow
+export type SelfServiceRegistrationFlow = RegistrationFlow
+export type SelfServiceSettingsFlow = SettingsFlow
+export type SelfServiceVerificationFlow = VerificationFlow
+export type SuccessfulSelfServiceRegistrationWithoutBrowser = SuccessfulNativeRegistration
+
+/**
+ * Extract CSRF token from flow - re-exported from kratos-client.server.ts
+ */
+export const getCsrfTokenFromFlow = getCsrfToken
 
 /**
  * getUserSession allows fetching a user's kratos session.

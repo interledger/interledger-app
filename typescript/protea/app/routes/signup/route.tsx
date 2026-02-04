@@ -6,7 +6,7 @@ import type {
 import { json, redirect } from '@remix-run/node'
 
 import { Code } from '@bufbuild/connect'
-import type { SuccessfulSelfServiceRegistrationWithoutBrowser } from '@ory/kratos-client'
+import type { SuccessfulSelfServiceRegistrationWithoutBrowser } from '~/lib/kratos.server'
 import { useLoaderData } from '@remix-run/react'
 import { useEffect } from 'react'
 import { route } from 'routes-gen'

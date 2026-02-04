@@ -1,4 +1,4 @@
-import type { SelfServiceLoginFlow } from '@ory/kratos-client'
+import type { SelfServiceLoginFlow } from '~/lib/kratos.server'
 import type {
   ActionFunctionArgs,
   LoaderFunctionArgs,

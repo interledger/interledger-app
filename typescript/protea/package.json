@@ -29,7 +29,7 @@
     "@headlessui/react": "^1.7.14",
     "@hookform/resolvers": "^5.2.1",
     "@mxenabled/web-widget-sdk": "^0.0.10",
-    "@ory/kratos-client": "0.10.1",
+    "@ory/client": "^1.22.22",
     "@protobuf-ts/grpc-transport": "^2.9.0",
     "@protobuf-ts/runtime": "^2.9.0",
     "@protobuf-ts/runtime-rpc": "^2.9.0",
