@@ -21,7 +21,7 @@ Migrate from direct HTTP `fetch()` calls to the official Ory Kratos TypeScript S
 - [x] Update type imports to use latest SDK types
 
 ### Phase 3: Route Migrations
-- [ ] Migrate `login.tsx` (login flow)
+- [x] Migrate `login.tsx` (login flow)
 - [ ] Migrate `signup/route.tsx` (registration flow)
 - [ ] Migrate `logout.tsx` (logout flow)
 - [ ] Migrate `recovery.tsx` (recovery flow)
@@ -31,7 +31,7 @@ Migrate from direct HTTP `fetch()` calls to the official Ory Kratos TypeScript S
 - [ ] Migrate `settings_.phone.tsx` (phone settings)
 - [ ] Migrate `login_.challenge.tsx` (session refresh)
 - [ ] Migrate `totp_.challenge.tsx` (TOTP AAL2 login)
-- [ ] Migrate `totp_.two-factor-authentication.tsx` (TOTP setup)
+- [x] Migrate `totp_.two-factor-authentication.tsx` (TOTP setup)
 - [ ] Migrate `otp_.challenge.tsx` (OTP challenge + settings init)
 - [ ] Migrate API routes (`api.totp-challenge-init.tsx`, `api.totp-challenge-verify.tsx`, `api.check-totp-enabled.tsx`)
 - [ ] Migrate `deposit/route.tsx` (session check)

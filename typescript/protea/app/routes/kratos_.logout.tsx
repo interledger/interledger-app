@@ -18,7 +18,7 @@ import { mergeMeta } from '~/lib/meta'
 import {
   kratosPublic,
   withCookie,
-  getCookieHeader,
+  getCookie,
   buildHeadersWithCookies
 } from '~/lib/kratos-client.server'
 
@@ -36,7 +36,7 @@ export const meta: MetaFunction = mergeMeta(() => [
 ])
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const cookie = getCookieHeader(request)
+  const cookie = getCookie(request)
 
   try {
     // Create logout flow using SDK
@@ -148,7 +148,7 @@ export default function KratosLogoutTest() {
 export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData()
   const logoutToken = formData.get('logout_token')
-  const cookie = getCookieHeader(request)
+  const cookie = getCookie(request)
 
   if (!logoutToken) {
     return json({

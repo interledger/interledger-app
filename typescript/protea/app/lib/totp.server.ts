@@ -1,4 +1,4 @@
-import type { Identity, Session } from '@ory/kratos-client'
+import type { Identity, Session } from '@ory/client'
 import { redirect } from '@remix-run/node'
 import { KRATOS_URL, getUserSession } from './kratos.server'
 
@@ -70,7 +70,7 @@ export async function isTotpSet(
     return Promise.resolve(true)
   try {
     const response = await fetch(
-      `${KRATOS_URL}/admin/identities/${session.identity.id}`,
+      `${KRATOS_URL}/admin/identities/${session.identity?.id}`,
       {
         headers: headers
       }
@@ -119,7 +119,7 @@ export function sessionRequiresAAL2(session: Session): boolean {
   return (session as any).error.id === 'session_aal2_required'
 }
 
-export function getSessionIdentity(session: Session): Identity {
+export function getSessionIdentity(session: Session): Identity | undefined {
   return session.identity
 }
 

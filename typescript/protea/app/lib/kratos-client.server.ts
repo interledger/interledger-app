@@ -29,9 +29,7 @@ import {
 } from '@ory/client'
 import { redirect } from '@remix-run/node'
 import { route } from 'routes-gen'
-import { safeReturnTo } from './url.server'
 
-// Validate environment
 const KRATOS_PUBLIC_URL = process.env.KRATOS_URL
 const KRATOS_ADMIN_URL = process.env.KRATOS_ADMIN_URL
 
@@ -39,14 +37,12 @@ if (!KRATOS_PUBLIC_URL) {
   throw new Error('KRATOS_URL environment variable is not set')
 }
 
-// Create SDK configuration
 const publicConfig = new Configuration({
   basePath: KRATOS_PUBLIC_URL,
   baseOptions: {
     withCredentials: true
   }
 })
-
 const adminConfig = KRATOS_ADMIN_URL
   ? new Configuration({
       basePath: KRATOS_ADMIN_URL,
@@ -56,7 +52,6 @@ const adminConfig = KRATOS_ADMIN_URL
     })
   : null
 
-// Create API clients using factory pattern (SDK uses this approach)
 export const kratosPublic = new FrontendApi(publicConfig)
 export const kratosAdmin = adminConfig ? new IdentityApi(adminConfig) : null
 
@@ -81,7 +76,6 @@ export type {
   UpdateVerificationFlowWithLinkMethod
 }
 
-// Flow type union for CSRF token extraction (flows with UI containing nodes)
 export type KratosFlowWithUi =
   | LoginFlow
   | RecoveryFlow
@@ -89,23 +83,31 @@ export type KratosFlowWithUi =
   | SettingsFlow
   | VerificationFlow
 
+export type KratosError = {
+  response: {
+    status: number
+    data: any
+    headers: Record<string, unknown>
+  }
+}
+
 /**
  * Helper to extract cookie header from Request for SDK calls
  */
-export function getCookieHeader(request: Request): string {
+export function getCookie(request: Request): string {
   return request.headers.get('cookie') ?? ''
 }
 
 /**
- * Helper to extract set-cookie header from Axios response
+ * Helper to extract set-cookie headers from Axios response as an array
  */
-export function extractSetCookieHeader(
+export function extractSetCookieHeaders(
   response: { headers?: Record<string, unknown> }
-): string | undefined {
+): string[] {
   const setCookie = response.headers?.['set-cookie']
-  if (!setCookie) return undefined
-  if (Array.isArray(setCookie)) return setCookie.join(', ')
-  return typeof setCookie === 'string' ? setCookie : undefined
+  if (!setCookie) return []
+  if (Array.isArray(setCookie)) return setCookie as string[]
+  return typeof setCookie === 'string' ? [setCookie] : []
 }
 
 /**
@@ -113,12 +115,14 @@ export function extractSetCookieHeader(
  */
 export function buildHeadersWithCookies(
   response: { headers?: Record<string, unknown> }
-): Headers | undefined {
-  const setCookie = extractSetCookieHeader(response)
-  if (!setCookie) return undefined
-
+): Headers {
   const headers = new Headers()
-  headers.set('Set-Cookie', setCookie)
+  const cookies = extractSetCookieHeaders(response)
+
+  for (const cookie of cookies) {
+    headers.append('Set-Cookie', cookie)
+  }
+
   return headers
 }
 

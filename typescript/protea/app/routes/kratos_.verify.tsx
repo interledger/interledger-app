@@ -20,7 +20,7 @@ import {
   kratosPublic,
   getCsrfTokenFromFlow,
   withCookie,
-  getCookieHeader,
+  getCookie,
   buildHeadersWithCookies
 } from '~/lib/kratos-client.server'
 
@@ -40,7 +40,7 @@ export const meta: MetaFunction = mergeMeta(() => [
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
-  const cookie = getCookieHeader(request)
+  const cookie = getCookie(request)
 
   let flow
   let headers: Headers | undefined = undefined
@@ -166,7 +166,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const email = formData.get('email')
   const csrfToken = formData.get('csrf_token')
   const flowId = formData.get('flow_id')
-  const cookie = getCookieHeader(request)
+  const cookie = getCookie(request)
 
   const fieldErrors = {
     form: '',

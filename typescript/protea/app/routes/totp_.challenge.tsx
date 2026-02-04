@@ -18,6 +18,8 @@ import {
 } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
 import { safeReturnTo } from '~/lib/url.server'
+import { buildHeadersWithCookies, kratosPublic } from '~/lib/kratos-client.server'
+
 export type TotpAction =
   | {
       errors: {
@@ -27,35 +29,45 @@ export type TotpAction =
   | undefined
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  console.log("🪲 [totp/challenge] Loader headers", request.headers)
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
   const returnTo = safeReturnTo(url.searchParams.get('returnTo'))
   const cookie = String(request.headers.get('cookie'))
+  console.log("🪲 [totp/challenge] Cookie", cookie)
   const refresh = url.searchParams.get('refresh')
 
   if (!flowId) {
-    const initRes = await fetch(
-      `${KRATOS_URL}/self-service/login/browser?aal=aal2${
-        refresh ? '&refresh=true' : ''
-      }`,
-      {
-        headers: {
-          cookie
-        },
-        redirect: 'manual'
+    let initRes: any;
+    try {
+      initRes = await kratosPublic.createBrowserLoginFlow({
+      aal: 'aal2',
+      cookie
+    })
+    } catch(err) {
+      throw new Error('Error initializing flow')
+    }
+
+    console.info("🪲 [totp/challenge] Init response")
+    
+    let flowFromRedirect: string | null | undefined
+
+    if (initRes.status === 200 && initRes.data?.id) {
+       console.log("🪲 [totp/challenge] Received 200 OK with flow data", initRes.data.id)
+       flowFromRedirect = initRes.data.id
+    } else if (initRes.status === 303 || initRes.status === 302) {
+      const location = initRes.headers.get('location')
+      console.log("🪲 [totp/challenge] Location", location)
+      if (!location) {
+        throw new Error('Expected redirect with flow ID, but got none.')
       }
-    )
-
-    if (initRes.status !== 303 && initRes.status !== 302) {
-      throw new Error('Expected redirect response from Kratos')
+      flowFromRedirect = new URL(location).searchParams.get('flow')
+    } else {
+      console.error("🪲 [totp/challenge] Unexpected response from Kratos", initRes)
+      throw new Error('Expected redirect or 200 OK with flow data from Kratos')
     }
 
-    const location = initRes.headers.get('location')
-    if (!location) {
-      throw new Error('Expected redirect with flow ID, but got none.')
-    }
-
-    const flowFromRedirect = new URL(location).searchParams.get('flow')
+    console.log("🪲 [totp/challenge] Flow from redirect", flowFromRedirect)
     if (!flowFromRedirect) {
       throw new Error('Redirect did not include flow parameter')
     }
@@ -63,9 +75,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const searchParams = new URLSearchParams()
     searchParams.set('returnTo', returnTo)
     searchParams.set('flow', flowFromRedirect)
+    const headers = buildHeadersWithCookies(initRes)
 
-    return redirect(`${route('/totp/challenge')}?${searchParams.toString()}`)
+    console.log("🪲 [totp/challenge] Redirecting to", `${route('/totp/challenge')}?${searchParams.toString()}`)
+    return redirect(`${route('/totp/challenge')}?${searchParams.toString()}`, { headers })
   }
+
+  console.log("🪲 [totp/challenge] Fetching flow", flowId)
   const kratosFlow = await fetch(
     `${KRATOS_URL}/self-service/login/flows?id=${flowId}`,
     {
@@ -76,6 +92,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     }
   )
   if (!kratosFlow.ok) {
+    console.error("🪲 [totp/challenge] Expected redirect response from Kratos", kratosFlow)
     return redirect('/error')
   }
 
