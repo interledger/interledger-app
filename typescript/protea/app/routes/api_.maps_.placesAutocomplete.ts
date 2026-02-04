@@ -27,7 +27,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     })
     .catch((e) => {
       logger.error(
-        { error: e instanceof Error ? e.message : String(e) },
+        e instanceof Error ? e : { error: String(e) },
         'Google Maps places autocomplete API error'
       )
       return e

@@ -73,7 +73,13 @@ export async function action({ request }: ActionFunctionArgs) {
   } catch (error) {
     const requestId = extractOrGenerateRequestId(request)
     logger.error(
-      { ...addRequestId(requestId), error: error instanceof Error ? error.message : String(error) },
+      {
+        ...addRequestId(requestId),
+        error:
+          error instanceof Error
+            ? { message: error.message, name: error.name, stack: error.stack }
+            : error
+      },
       'Unexpected error verifying TOTP challenge'
     )
     return json({

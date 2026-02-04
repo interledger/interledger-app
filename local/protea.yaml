@@ -28,7 +28,7 @@ services:
     environment:
       - FYNBOS_ENV=local
       - LOG_LEVEL=debug
-      # Setting log_pretty to false will result in json logs
+      # Setting LOG_PRETTY to false will result in json logs
       - LOG_PRETTY=true
 
       - KRATOS_URL=http://kratos:4433
