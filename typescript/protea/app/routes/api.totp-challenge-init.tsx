@@ -119,8 +119,12 @@ export async function action({ request }: ActionFunctionArgs) {
     return json({ error: `Unexpected response from Kratos ${errorText}` })
   } catch (error) {
     const requestId = extractOrGenerateRequestId(request)
+    const errorDetails =
+      error instanceof Error
+        ? { error }
+        : { error: String(error) }
     logger.error(
-      { ...addRequestId(requestId), error: error instanceof Error ? error.message : String(error) },
+      { ...addRequestId(requestId), ...errorDetails },
       'Error initializing TOTP challenge'
     )
     return json({ error: 'An unexpected error occurred' })

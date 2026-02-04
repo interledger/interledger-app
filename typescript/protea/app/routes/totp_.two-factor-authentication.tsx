@@ -81,7 +81,7 @@ export async function loader({
   } catch (error) {
     const requestId = extractOrGenerateRequestId(request)
     logger.error(
-      { ...addRequestId(requestId), error: error instanceof Error ? error.message : String(error) },
+      { ...addRequestId(requestId), error },
       'Error loading TOTP settings flow'
     )
     return json({ csrfToken: undefined })

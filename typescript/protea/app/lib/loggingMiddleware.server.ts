@@ -61,7 +61,7 @@ export function withActionLogging<T extends any[] | Record<string, any>>(
  * Usage: logWithContext('info', { userId: '123' }, 'User logged in')
  */
 export function logWithContext(
-  level: 'debug' | 'info' | 'warn' | 'error' | 'fatal',
+  level: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal',
   fields: Record<string, any> = {},
   message: string
 ): void {
