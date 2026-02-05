@@ -1,6 +1,6 @@
 import { json, type ActionFunctionArgs } from '@remix-run/node'
 import { KRATOS_URL } from '~/lib/kratos.server'
-import logger, { addRequestId } from '~/lib/logger.server'
+import logger, { addRequestId, withErrorLog } from '~/lib/logger.server'
 import { extractOrGenerateRequestId } from '~/lib/requestContext.server'
 
 /**
@@ -75,10 +75,7 @@ export async function action({ request }: ActionFunctionArgs) {
     logger.error(
       {
         ...addRequestId(requestId),
-        error:
-          error instanceof Error
-            ? { message: error.message, name: error.name, stack: error.stack }
-            : error
+        ...withErrorLog(error)
       },
       'Unexpected error verifying TOTP challenge'
     )

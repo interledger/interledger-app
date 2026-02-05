@@ -1,4 +1,5 @@
-import pino, { Logger as PinoLogger, LoggerOptions } from 'pino'
+import type { Logger as PinoLogger, LoggerOptions } from 'pino';
+import pino from 'pino'
 import { createRequire } from 'node:module'
 import { getRequestId, getCorrelationId } from './requestContext.server'
 
@@ -137,4 +138,18 @@ export function addRequestId(requestId?: string) {
 export function addCorrelationId(correlationId?: string) {
   const id = correlationId || getCorrelationId()
   return id ? { correlationId: id } : {}
+}
+
+/**
+ * Helper to destructure and format error information for logging
+ * Handles both Error objects and unknown error types
+ * Usage: logger.error({ ...withErrorLog(err) }, 'Failed to process request')
+ */
+export function withErrorLog(error: unknown) {
+  return {
+    error:
+      error instanceof Error
+        ? { message: error.message, name: error.name, stack: error.stack }
+        : String(error)
+  }
 }
