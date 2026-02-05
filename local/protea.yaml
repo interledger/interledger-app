@@ -27,6 +27,9 @@ services:
 
     environment:
       - FYNBOS_ENV=local
+      - LOG_LEVEL=debug
+      # Setting LOG_PRETTY to false will result in json logs
+      - LOG_PRETTY=true
 
       - KRATOS_URL=http://kratos:4433
       - RAFIKI_AUTH_ENDPOINT=http://rafiki_auth:3009
@@ -41,6 +44,7 @@ services:
       - BACKEND_GRPC_URL=http://backend:8443
 
       - REDIS_URL=redis://redis:6379/2
+
 
     depends_on:
       - backend
