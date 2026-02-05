@@ -78,6 +78,9 @@ front: frontend
 all:
 	docker compose --profile "*" up --watch
 
+all-nowatch:
+	docker compose --profile "*" up -d
+
 down:
 	docker compose --profile "*" down
 
