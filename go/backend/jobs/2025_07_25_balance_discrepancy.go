@@ -48,6 +48,12 @@ func (a *Activity) BalanceDiscrepancies(ctx context.Context) error {
 		a.gatehubConfig.GatewayID,
 		a.gatehubConfig.CardAccountProductCode,
 		a.gatehubConfig.PaywiserEuroVaultID,
+		a.gatehubConfig.OnOffRampClientID,
+		a.gatehubConfig.OnboardingClientID,
+		a.gatehubConfig.ExchangeClientID,
+		a.gatehubConfig.APIBaseURL,
+		a.gatehubConfig.OnboardingBaseURL,
+		a.gatehubConfig.OnOffRampBaseURL,
 		&http.Client{
 			Transport: otelhttp.NewTransport(
 				httplogger.NewTransport(http.DefaultTransport, a.b, nil),

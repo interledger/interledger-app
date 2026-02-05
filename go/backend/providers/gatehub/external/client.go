@@ -15,7 +15,6 @@ import (
 	"time"
 
 	httplog "gitlab.com/fynbos/backend/providers/http"
-	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/log"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
@@ -46,25 +45,7 @@ type client struct {
 	api *http.Client
 }
 
-func NewClient(appID, secret, cardAppID, gatewayID, cardAccountProductCode, vaultID string, transport *http.Client) Client {
-	//
-	// WARNING In an upcoming PR all of this hardcoded stuff will be removed
-	//
-	onOffRampClientID := "f8119dfd-e563-44ee-9ae2-1e60a4fce74f"
-	onboardingClientID := "4df24d1b-5796-4eec-951b-21699d61b970"
-	exchangeClientID := "4e28d4df-22d7-414c-97a3-d71956df29ba"
-	baseURL := "https://api.sandbox.gatehub.net"
-	onboardingBaseURL := "https://onboarding.sandbox.gatehub.net"
-	onOffRampBaseURL := "https://managed-ramp.sandbox.gatehub.net"
-	if env.IsProd() {
-		onOffRampClientID = "f4c8f30f-7fc3-4aa1-8573-520cb67565e3"
-		onboardingClientID = "40a22fc5-9091-4c6f-aff6-a3fddf475b33"
-		exchangeClientID = "50e7c590-f6f9-4fa9-9498-260bd978c5d6"
-		baseURL = "https://api.gatehub.net"
-		onboardingBaseURL = "https://onboarding.gatehub.net"
-		onOffRampBaseURL = "https://managed-ramp.gatehub.net"
-	}
-
+func NewClient(appID, secret, cardAppID, gatewayID, cardAccountProductCode, vaultID, onOffRampClientID, onboardingClientID, exchangeClientID, baseURL, onboardingBaseURL, onOffRampBaseURL string, transport *http.Client) Client {
 	api := otelhttp.DefaultClient
 	if transport != nil {
 		api = transport
@@ -84,6 +65,36 @@ func NewClient(appID, secret, cardAppID, gatewayID, cardAccountProductCode, vaul
 
 	if vaultID == "" {
 		log.Error("vaultID is not set")
+		return nil
+	}
+
+	if onOffRampClientID == "" {
+		log.Error("onOffRampClientID is not set")
+		return nil
+	}
+
+	if onboardingClientID == "" {
+		log.Error("onboardingClientID is not set")
+		return nil
+	}
+
+	if exchangeClientID == "" {
+		log.Error("exchangeClientID is not set")
+		return nil
+	}
+
+	if baseURL == "" {
+		log.Error("baseURL is not set")
+		return nil
+	}
+
+	if onboardingBaseURL == "" {
+		log.Error("onboardingBaseURL is not set")
+		return nil
+	}
+
+	if onOffRampBaseURL == "" {
+		log.Error("onOffRampBaseURL is not set")
 		return nil
 	}
 

@@ -49,6 +49,12 @@ func NewActivity(b Backends, cfg gatehub.Config) *Activity {
 		cfg.GatewayID,
 		cfg.CardAccountProductCode,
 		cfg.PaywiserEuroVaultID,
+		cfg.OnOffRampClientID,
+		cfg.OnboardingClientID,
+		cfg.ExchangeClientID,
+		cfg.APIBaseURL,
+		cfg.OnboardingBaseURL,
+		cfg.OnOffRampBaseURL,
 		&http.Client{
 			Transport: otelhttp.NewTransport(
 				httplogger.NewTransport(http.DefaultTransport, b, nil),

@@ -20,11 +20,17 @@ func TestClient(t *testing.T) {
 	gatewayID := os.Getenv("GATEHUB_GATEWAY_ID")
 	cardAccountProductCode := os.Getenv("GATEHUB_CARD_ACCOUNT_PRODUCT_CODE")
 	vaultID := os.Getenv("GATEHUB_PAYWISER_EURO_VAULT_ID")
-	
-	if appID == "" || secret == "" || cardAppID == "" || gatewayID == "" || cardAccountProductCode == "" || vaultID == "" {
+	onOffRampClientID := os.Getenv("GATEHUB_ON_OFF_RAMP_CLIENT_ID")
+	onboardingClientID := os.Getenv("GATEHUB_ONBOARDING_CLIENT_ID")
+	exchangeClientID := os.Getenv("GATEHUB_EXCHANGE_CLIENT_ID")
+	apiBaseURL := os.Getenv("GATEHUB_API_BASE_URL")
+	onboardingBaseURL := os.Getenv("GATEHUB_ONBOARDING_BASE_URL")
+	onOffRampBaseURL := os.Getenv("GATEHUB_ON_OFF_RAMP_BASE_URL")
+
+	if appID == "" || secret == "" || cardAppID == "" || gatewayID == "" || cardAccountProductCode == "" || vaultID == "" || onOffRampClientID == "" || onboardingClientID == "" || exchangeClientID == "" || apiBaseURL == "" || onboardingBaseURL == "" || onOffRampBaseURL == "" {
 		t.SkipNow()
 	}
-	c := external.NewClient(appID, secret, cardAppID, gatewayID, cardAccountProductCode, vaultID, nil)
+	c := external.NewClient(appID, secret, cardAppID, gatewayID, cardAccountProductCode, vaultID, onOffRampClientID, onboardingClientID, exchangeClientID, apiBaseURL, onboardingBaseURL, onOffRampBaseURL, nil)
 	if c == nil {
 		t.SkipNow()
 	}
@@ -58,11 +64,17 @@ func TestUser(t *testing.T) {
 	gatewayID := os.Getenv("GATEHUB_GATEWAY_ID")
 	cardAccountProductCode := os.Getenv("GATEHUB_CARD_ACCOUNT_PRODUCT_CODE")
 	vaultID := os.Getenv("GATEHUB_PAYWISER_EURO_VAULT_ID")
-	
-	if appID == "" || secret == "" || cardAppID == "" || gatewayID == "" || cardAccountProductCode == "" || vaultID == "" {
+	onOffRampClientID := os.Getenv("GATEHUB_ON_OFF_RAMP_CLIENT_ID")
+	onboardingClientID := os.Getenv("GATEHUB_ONBOARDING_CLIENT_ID")
+	exchangeClientID := os.Getenv("GATEHUB_EXCHANGE_CLIENT_ID")
+	apiBaseURL := os.Getenv("GATEHUB_API_BASE_URL")
+	onboardingBaseURL := os.Getenv("GATEHUB_ONBOARDING_BASE_URL")
+	onOffRampBaseURL := os.Getenv("GATEHUB_ON_OFF_RAMP_BASE_URL")
+
+	if appID == "" || secret == "" || cardAppID == "" || gatewayID == "" || cardAccountProductCode == "" || vaultID == "" || onOffRampClientID == "" || onboardingClientID == "" || exchangeClientID == "" || apiBaseURL == "" || onboardingBaseURL == "" || onOffRampBaseURL == "" {
 		t.SkipNow()
 	}
-	c := external.NewClient(appID, secret, cardAppID, gatewayID, cardAccountProductCode, vaultID, nil)
+	c := external.NewClient(appID, secret, cardAppID, gatewayID, cardAccountProductCode, vaultID, onOffRampClientID, onboardingClientID, exchangeClientID, apiBaseURL, onboardingBaseURL, onOffRampBaseURL, nil)
 	if c == nil {
 		t.SkipNow()
 	}

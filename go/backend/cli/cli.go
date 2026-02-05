@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 	"os"
+	"strconv"
 
 	"gitlab.com/fynbos/env"
 
@@ -52,44 +53,52 @@ func ParseMigrationArgs() (*MigrationArgs, error) {
 }
 
 type StartArgs struct {
-	Port                string
-	AuthorisationPort   string
-	DbConnectionString  string
-	PacioliDBConString  string
-	KratosUrl           string
-	KratosAdminUrl      string
-	LogLevel            string
-	LogOutputPath       string
-	TemporalUrl         string
-	TwilioSid           string
-	TwilioSecret        string
-	TwilioServiceSid    string
-	ZendeskUser         string
-	ZendeskToken        string
-	AdminPolicyAud      string
-	AdminTeamDomain     string
-	SendgridAPIKey      string
-	SmartyAuthID        string
-	SmartyAuthToken     string
-	PusherAddr          string
-	SegmentKey          string
-	TwitterClientID     string
-	TwitterClientSecret string
-	TwitterRedirectURL  string
-	TwitterBearerToken  string
-	DiscordClientID              string
-	DiscordClientSecret          string
-	DiscordRedirectURL           string
-	GatehubAppID                 string
-	GatehubSecret                string
-	GatehubCardAppID             string
-	GatehubGatewayID             string
+	Port                          string
+	AuthorisationPort             string
+	DbConnectionString            string
+	PacioliDBConString            string
+	KratosUrl                     string
+	KratosAdminUrl                string
+	LogLevel                      string
+	LogOutputPath                 string
+	TemporalUrl                   string
+	TwilioSid                     string
+	TwilioSecret                  string
+	TwilioServiceSid              string
+	ZendeskUser                   string
+	ZendeskToken                  string
+	AdminPolicyAud                string
+	AdminTeamDomain               string
+	SendgridAPIKey                string
+	SmartyAuthID                  string
+	SmartyAuthToken               string
+	PusherAddr                    string
+	SegmentKey                    string
+	TwitterClientID               string
+	TwitterClientSecret           string
+	TwitterRedirectURL            string
+	TwitterBearerToken            string
+	DiscordClientID               string
+	DiscordClientSecret           string
+	DiscordRedirectURL            string
+	GatehubAppID                  string
+	GatehubSecret                 string
+	GatehubCardAppID              string
+	GatehubGatewayID              string
 	GatehubCardAccountProductCode string
-	GatehubPaywiserEuroVaultID   string
-	GatehubSendingUserID         string
-	GatehubSendingUserAddress    string
-	GatehubWebhookSecret         string
-	GatehubFallbackWebhookURL    string
+	GatehubPaywiserEuroVaultID    string
+	GatehubSendingUserID          string
+	GatehubSendingUserAddress     string
+	GatehubWebhookSecret          string
+	GatehubFallbackWebhookURL     string
+	GatehubOnOffRampClientID      string
+	GatehubOnboardingClientID     string
+	GatehubExchangeClientID       string
+	GatehubAPIBaseURL             string
+	GatehubOnboardingBaseURL      string
+	GatehubOnOffRampBaseURL       string
+	GatehubEUROpsAccount          string
+	GatehubEUROpsLedgerID         uint32
 }
 
 func ParseStartArgs() (*StartArgs, error) {
@@ -241,48 +250,103 @@ func ParseStartArgs() (*StartArgs, error) {
 
 	gatehubWebhookSecret := os.Getenv("GATEHUB_WEBHOOK_SECRET")
 	// Webhook secret is optional but log if missing
-	
+
 	gatehubFallbackWebhookURL := os.Getenv("GATEHUB_FALLBACK_WEBHOOK_URL")
 	// Fallback webhook URL is optional
+	gatehubOnOffRampClientID := os.Getenv("GATEHUB_ON_OFF_RAMP_CLIENT_ID")
+	if gatehubOnOffRampClientID == "" && env.IsProd() {
+		return nil, errors.New("GATEHUB_ON_OFF_RAMP_CLIENT_ID is required in production")
+	}
+
+	gatehubOnboardingClientID := os.Getenv("GATEHUB_ONBOARDING_CLIENT_ID")
+	if gatehubOnboardingClientID == "" && env.IsProd() {
+		return nil, errors.New("GATEHUB_ONBOARDING_CLIENT_ID is required in production")
+	}
+
+	gatehubExchangeClientID := os.Getenv("GATEHUB_EXCHANGE_CLIENT_ID")
+	if gatehubExchangeClientID == "" && env.IsProd() {
+		return nil, errors.New("GATEHUB_EXCHANGE_CLIENT_ID is required in production")
+	}
+
+	gatehubAPIBaseURL := os.Getenv("GATEHUB_API_BASE_URL")
+	if gatehubAPIBaseURL == "" && env.IsProd() {
+		return nil, errors.New("GATEHUB_API_BASE_URL is required in production")
+	}
+
+	gatehubOnboardingBaseURL := os.Getenv("GATEHUB_ONBOARDING_BASE_URL")
+	if gatehubOnboardingBaseURL == "" && env.IsProd() {
+		return nil, errors.New("GATEHUB_ONBOARDING_BASE_URL is required in production")
+	}
+
+	gatehubOnOffRampBaseURL := os.Getenv("GATEHUB_ON_OFF_RAMP_BASE_URL")
+	if gatehubOnOffRampBaseURL == "" && env.IsProd() {
+		return nil, errors.New("GATEHUB_ON_OFF_RAMP_BASE_URL is required in production")
+	}
+
+	gatehubEUROpsAccount := os.Getenv("GATEHUB_EUR_OPS_ACCOUNT")
+	if gatehubEUROpsAccount == "" && env.IsProd() {
+		return nil, errors.New("GATEHUB_EUR_OPS_ACCOUNT is required in production")
+	}
+
+	var gatehubEUROpsLedgerID uint32 = 0
+	gatehubEUROpsLedgerIDStr := os.Getenv("GATEHUB_EUR_OPS_LEDGER_ID")
+	if gatehubEUROpsLedgerIDStr != "" {
+		id64, err := strconv.ParseUint(gatehubEUROpsLedgerIDStr, 10, 32)
+		if err != nil {
+			return nil, errors.New("GATEHUB_EUR_OPS_LEDGER_ID must be a valid uint32")
+		}
+		gatehubEUROpsLedgerID = uint32(id64)
+	}
+	if gatehubEUROpsLedgerID == 0 && env.IsProd() {
+		return nil, errors.New("GATEHUB_EUR_OPS_LEDGER_ID is required in production")
+	}
 
 	return &StartArgs{
-		Port:                port,
-		AuthorisationPort:   authorisationPort,
-		DbConnectionString:  dbUrl,
-		PacioliDBConString:  pacDB,
-		KratosUrl:           kratosUrl,
-		KratosAdminUrl:      kratosAdminUrl,
-		LogLevel:            logLevel,
-		LogOutputPath:       logOutputPath,
-		TemporalUrl:         temporalUrl,
-		TwilioSid:           TwilioSid,
-		TwilioSecret:        TwilioSecret,
-		TwilioServiceSid:    twilioServiceSid,
-		ZendeskUser:         zendeskUser,
-		ZendeskToken:        zendeskToken,
-		TwitterClientID:     twitterClientId,
-		TwitterClientSecret: twitterClientSecret,
-		TwitterRedirectURL:  twitterRedirectURL,
-		TwitterBearerToken:  twitterBearerToken,
-		AdminPolicyAud:      os.Getenv("ADMIN_POLICY_AUD"),
-		AdminTeamDomain:     os.Getenv("ADMIN_TEAM_DOMAIN"),
-		SendgridAPIKey:      os.Getenv("SENDGRID_API_KEY"),
-		SmartyAuthID:        os.Getenv("SMARTY_AUTH_ID"),
-		SmartyAuthToken:     os.Getenv("SMARTY_AUTH_TOKEN"),
-		PusherAddr:          os.Getenv("PUSHER_ADDR"),
-		SegmentKey:                   os.Getenv("SEGMENT_KEY"),
-		DiscordClientID:              os.Getenv("DISCORD_CLIENT_ID"),
-		DiscordClientSecret:          os.Getenv("DISCORD_CLIENT_SECRET"),
-		DiscordRedirectURL:           os.Getenv("DISCORD_REDIRECT_URL"),
-		GatehubAppID:                 gatehubAppID,
-		GatehubSecret:                gatehubSecret,
-		GatehubCardAppID:             gatehubCardAppID,
-		GatehubGatewayID:             gatehubGatewayID,
+		Port:                          port,
+		AuthorisationPort:             authorisationPort,
+		DbConnectionString:            dbUrl,
+		PacioliDBConString:            pacDB,
+		KratosUrl:                     kratosUrl,
+		KratosAdminUrl:                kratosAdminUrl,
+		LogLevel:                      logLevel,
+		LogOutputPath:                 logOutputPath,
+		TemporalUrl:                   temporalUrl,
+		TwilioSid:                     TwilioSid,
+		TwilioSecret:                  TwilioSecret,
+		TwilioServiceSid:              twilioServiceSid,
+		ZendeskUser:                   zendeskUser,
+		ZendeskToken:                  zendeskToken,
+		TwitterClientID:               twitterClientId,
+		TwitterClientSecret:           twitterClientSecret,
+		TwitterRedirectURL:            twitterRedirectURL,
+		TwitterBearerToken:            twitterBearerToken,
+		AdminPolicyAud:                os.Getenv("ADMIN_POLICY_AUD"),
+		AdminTeamDomain:               os.Getenv("ADMIN_TEAM_DOMAIN"),
+		SendgridAPIKey:                os.Getenv("SENDGRID_API_KEY"),
+		SmartyAuthID:                  os.Getenv("SMARTY_AUTH_ID"),
+		SmartyAuthToken:               os.Getenv("SMARTY_AUTH_TOKEN"),
+		PusherAddr:                    os.Getenv("PUSHER_ADDR"),
+		SegmentKey:                    os.Getenv("SEGMENT_KEY"),
+		DiscordClientID:               os.Getenv("DISCORD_CLIENT_ID"),
+		DiscordClientSecret:           os.Getenv("DISCORD_CLIENT_SECRET"),
+		DiscordRedirectURL:            os.Getenv("DISCORD_REDIRECT_URL"),
+		GatehubAppID:                  gatehubAppID,
+		GatehubSecret:                 gatehubSecret,
+		GatehubCardAppID:              gatehubCardAppID,
+		GatehubGatewayID:              gatehubGatewayID,
 		GatehubCardAccountProductCode: gatehubCardAccountProductCode,
-		GatehubPaywiserEuroVaultID:   gatehubPaywiserEuroVaultID,
-		GatehubSendingUserID:         gatehubSendingUserID,
-		GatehubSendingUserAddress:    gatehubSendingUserAddress,
-		GatehubWebhookSecret:         gatehubWebhookSecret,
-		GatehubFallbackWebhookURL:    gatehubFallbackWebhookURL,
+		GatehubPaywiserEuroVaultID:    gatehubPaywiserEuroVaultID,
+		GatehubSendingUserID:          gatehubSendingUserID,
+		GatehubSendingUserAddress:     gatehubSendingUserAddress,
+		GatehubWebhookSecret:          gatehubWebhookSecret,
+		GatehubFallbackWebhookURL:     gatehubFallbackWebhookURL,
+		GatehubOnOffRampClientID:      gatehubOnOffRampClientID,
+		GatehubOnboardingClientID:     gatehubOnboardingClientID,
+		GatehubExchangeClientID:       gatehubExchangeClientID,
+		GatehubAPIBaseURL:             gatehubAPIBaseURL,
+		GatehubOnboardingBaseURL:      gatehubOnboardingBaseURL,
+		GatehubOnOffRampBaseURL:       gatehubOnOffRampBaseURL,
+		GatehubEUROpsAccount:          gatehubEUROpsAccount,
+		GatehubEUROpsLedgerID:         gatehubEUROpsLedgerID,
 	}, nil
 }

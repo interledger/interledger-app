@@ -45,7 +45,7 @@ func (a *Activity) BackfillPaywiserBalance(ctx context.Context, gatehubWallets [
 	// Check for temporary override env vars for this migration job
 	tempAppID := os.Getenv("TEMP_GATEHUB_APP_ID")
 	tempSecret := os.Getenv("TEMP_GATEHUB_SECRET")
-	
+
 	appID := a.gatehubConfig.AppID
 	secret := a.gatehubConfig.Secret
 	if tempAppID != "" {
@@ -54,7 +54,7 @@ func (a *Activity) BackfillPaywiserBalance(ctx context.Context, gatehubWallets [
 	if tempSecret != "" {
 		secret = tempSecret
 	}
-	
+
 	ec := external.NewClient(
 		appID,
 		secret,
@@ -62,6 +62,12 @@ func (a *Activity) BackfillPaywiserBalance(ctx context.Context, gatehubWallets [
 		a.gatehubConfig.GatewayID,
 		a.gatehubConfig.CardAccountProductCode,
 		a.gatehubConfig.PaywiserEuroVaultID,
+		a.gatehubConfig.OnOffRampClientID,
+		a.gatehubConfig.OnboardingClientID,
+		a.gatehubConfig.ExchangeClientID,
+		a.gatehubConfig.APIBaseURL,
+		a.gatehubConfig.OnboardingBaseURL,
+		a.gatehubConfig.OnOffRampBaseURL,
 		&http.Client{
 			Transport: otelhttp.NewTransport(
 				httplogger.NewTransport(http.DefaultTransport, a.b, nil),

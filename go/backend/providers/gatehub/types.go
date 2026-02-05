@@ -21,6 +21,14 @@ type Config struct {
 	SendingUserAddress      string
 	WebhookSecret           string
 	FallbackWebhookURL      string
+	OnOffRampClientID       string
+	OnboardingClientID      string
+	ExchangeClientID        string
+	APIBaseURL              string
+	OnboardingBaseURL       string
+	OnOffRampBaseURL        string
+	EUROpsAccount           string
+	EUROpsLedgerID          uint32
 }
 
 const (

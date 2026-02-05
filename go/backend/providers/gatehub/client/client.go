@@ -37,6 +37,30 @@ func New(b ops.Backends, cfg gatehub.Config) *Client {
 		log.Error("CardAccountProductCode is not set in Gatehub configuration")
 		return nil
 	}
+	if cfg.OnOffRampClientID == "" {
+		log.Error("OnOffRampClientID is not set in Gatehub configuration")
+		return nil
+	}
+	if cfg.OnboardingClientID == "" {
+		log.Error("OnboardingClientID is not set in Gatehub configuration")
+		return nil
+	}
+	if cfg.ExchangeClientID == "" {
+		log.Error("ExchangeClientID is not set in Gatehub configuration")
+		return nil
+	}
+	if cfg.APIBaseURL == "" {
+		log.Error("APIBaseURL is not set in Gatehub configuration")
+		return nil
+	}
+	if cfg.OnboardingBaseURL == "" {
+		log.Error("OnboardingBaseURL is not set in Gatehub configuration")
+		return nil
+	}
+	if cfg.OnOffRampBaseURL == "" {
+		log.Error("OnOffRampBaseURL is not set in Gatehub configuration")
+		return nil
+	}
 
 	log.Info(fmt.Sprintf("Initialized Gatehub with EUR vault ID: %.8s...", cfg.PaywiserEuroVaultID))
 
@@ -47,6 +71,12 @@ func New(b ops.Backends, cfg gatehub.Config) *Client {
 		cfg.GatewayID,
 		cfg.CardAccountProductCode,
 		cfg.PaywiserEuroVaultID,
+		cfg.OnOffRampClientID,
+		cfg.OnboardingClientID,
+		cfg.ExchangeClientID,
+		cfg.APIBaseURL,
+		cfg.OnboardingBaseURL,
+		cfg.OnOffRampBaseURL,
 		&http.Client{
 			Transport: otelhttp.NewTransport(
 				httplogger.NewTransport(http.DefaultTransport, b, nil),
