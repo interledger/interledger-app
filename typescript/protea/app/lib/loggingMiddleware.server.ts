@@ -1,4 +1,3 @@
-import { json } from '@remix-run/node'
 import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
 import logger, { addRequestId, addCorrelationId } from './logger.server'
 import {
@@ -7,19 +6,25 @@ import {
 } from './requestContext.server'
 
 /**
- * Wrapper for loader functions that initializes request context and logging
+ * Wrapper for loader/action functions that initializes request context and logging
  * Automatically captures requestId from x-request-id header or generates one
+ * Also handles correlation ID and initializes the request context for structured logging
  *
  * Usage:
- * export const loader = withRequestLogging(async ({ request, params, context }) => {
+ * export const loader = withLoggingContext(async ({ request, params, context }) => {
  *   logger.info({}, 'Processing user request')
  *   // ... rest of loader
  * })
+ *
+ * export const action = withLoggingContext(async ({ request, params, context }) => {
+ *   logger.info({}, 'Processing form submission')
+ *   // ... rest of action
+ * })
  */
-export function withRequestLogging<T extends any[] | Record<string, any>>(
-  handler: (args: LoaderFunctionArgs) => Promise<T | Response>
+export function withLoggingContext<T extends any[] | Record<string, any>>(
+  handler: (args: LoaderFunctionArgs | ActionFunctionArgs) => Promise<T | Response>
 ) {
-  return async (args: LoaderFunctionArgs) => {
+  return async (args: LoaderFunctionArgs | ActionFunctionArgs) => {
     const requestId = extractOrGenerateRequestId(args.request)
     const correlationId = args.request.headers.get('x-correlation-id') || undefined
 
@@ -32,29 +37,10 @@ export function withRequestLogging<T extends any[] | Record<string, any>>(
 }
 
 /**
- * Wrapper for action functions that initializes request context and logging
- * Automatically captures requestId from x-request-id header or generates one
- *
- * Usage:
- * export const action = withRequestLogging(async ({ request, params, context }) => {
- *   logger.info({}, 'Processing form submission')
- *   // ... rest of action
- * })
+ * Alias for withLoggingContext - kept for backward compatibility
+ * Both loaders and actions work with the unified withLoggingContext wrapper
  */
-export function withActionLogging<T extends any[] | Record<string, any>>(
-  handler: (args: ActionFunctionArgs) => Promise<T | Response>
-) {
-  return async (args: ActionFunctionArgs) => {
-    const requestId = extractOrGenerateRequestId(args.request)
-    const correlationId = args.request.headers.get('x-correlation-id') || undefined
-
-    return initializeRequestContext(
-      () => handler(args),
-      requestId,
-      correlationId
-    )
-  }
-}
+export const withActionLogging = withLoggingContext
 
 /**
  * Helper to log with request context automatically attached
