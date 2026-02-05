@@ -218,6 +218,12 @@ export async function otpAction({ request }: ActionFunctionArgs) {
   const otp = form.get('otp') as string
   const phone = form.get('phone') as string
 
+  console.log('[SIGNUP] Setting mobile number for signup:', {
+    id,
+    phone,
+    hasOtp: !!otp
+  })
+
   const response = await grpc.setSignupMobileNumber(request, {
     id,
     mobile: phone,
@@ -225,6 +231,11 @@ export async function otpAction({ request }: ActionFunctionArgs) {
   })
 
   if (isConnectError(response)) {
+    console.error('[SIGNUP] Failed to set mobile number:', {
+      code: response.code,
+      phone
+    })
+    
     if (response.code == Code.InvalidArgument) {
       data.errors.phone = 'Mobile phone number is invalid.'
       return response.error(data, mapping)
@@ -235,6 +246,9 @@ export async function otpAction({ request }: ActionFunctionArgs) {
       return response.error(data, mapping, { action: 'Contact support' })
     }
   }
+  
+  console.log('[SIGNUP] Mobile number set successfully for signup:', id)
+  
   return json({ id, phone, errors: data.errors })
 }
 
@@ -278,29 +292,66 @@ export async function passwordAction({ request }: ActionFunctionArgs) {
     return error(request, { errors })
   }
 
+  const kratosRequestPayload = {
+    method: 'password',
+    traits: {
+      email: email,
+      phone: phone,
+      firstName: firstName,
+      lastName: lastName,
+      countryCode: country
+    },
+    password: password,
+    csrf_token: kratosCsrfToken
+  }
+
+  console.log('[SIGNUP] Sending registration request to Kratos:', {
+    url: `${KRATOS_URL}/self-service/registration?flow=${kratosFlowId}`,
+    flowId: kratosFlowId,
+    traits: kratosRequestPayload.traits,
+    hasPassword: !!password,
+    hasCsrfToken: !!kratosCsrfToken
+  })
+
   const response = await fetch(
     `${KRATOS_URL}/self-service/registration?flow=${kratosFlowId}`,
     {
       method: 'POST',
-      body: JSON.stringify({
-        method: 'password',
-        traits: {
-          email: email,
-          phone: phone,
-          firstName: firstName,
-          lastName: lastName,
-          countryCode: country
-        },
-        password: password,
-        csrf_token: kratosCsrfToken
-      }),
+      body: JSON.stringify(kratosRequestPayload),
       headers: {
         'Content-type': 'application/json',
         cookie: String(request.headers.get('cookie'))
       }
     }
   )
+  
+  console.log('[SIGNUP] Kratos registration response:', {
+    status: response.status,
+    statusText: response.statusText,
+    headers: Object.fromEntries(response.headers.entries())
+  })
+  
   if (response.status >= 400) {
+    const responseText = await response.clone().text()
+    console.error('[SIGNUP] Kratos registration failed:', {
+      status: response.status,
+      statusText: response.statusText,
+      flowId: kratosFlowId,
+      responseBody: responseText,
+      requestTraits: kratosRequestPayload.traits
+    })
+    
+    try {
+      const responseJson = JSON.parse(responseText)
+      console.error('[SIGNUP] Kratos error details:', {
+        ui: responseJson.ui,
+        messages: responseJson.ui?.messages,
+        nodes: responseJson.ui?.nodes
+      })
+    } catch (e) {
+      console.error('[SIGNUP] Could not parse Kratos error response as JSON')
+    }
+    
     const errs = await kratosErrorMapping(response, errors)
     if ((errs as any)[KratosErrorTraits.PHONE]) {
       errors.phone = KratosErrorMessages[KratosErrorTraits.PHONE]
@@ -314,8 +365,15 @@ export async function passwordAction({ request }: ActionFunctionArgs) {
   // has some weird naming for types....
   const successData = data as SuccessfulSelfServiceRegistrationWithoutBrowser
 
+  console.log('[SIGNUP] Kratos registration successful:', {
+    identityId: successData.identity.id,
+    signupId: id,
+    email: email
+  })
+
   // Mark signup complete
   // TODO: also handle via kratos webhook, add retry here and error handling
+  console.log('[SIGNUP] Completing signup in backend:', { id, userId: successData.identity.id })
   await grpc.completeSignup(request, {
     id,
     userId: successData.identity.id
