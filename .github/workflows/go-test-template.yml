@@ -57,6 +57,11 @@ jobs:
         run: |
           curl -sSf https://atlasgo.sh | sh
 
+      - name: Install bc
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y bc
+
       - name: Wait for Postgres to be ready
         run: |
           until pg_isready -h localhost -p 5432; do
