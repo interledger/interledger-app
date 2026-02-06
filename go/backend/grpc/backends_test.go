@@ -5,6 +5,7 @@ import (
 	"net"
 	"testing"
 
+	"gitlab.com/fynbos/backend/dynamicforms"
 	"gitlab.com/fynbos/backend/providers/chimoney"
 
 	"gitlab.com/fynbos/backend/providers/gatehub"
