@@ -64,6 +64,20 @@ export enum PaymentIdentityType {
   Sentinel // End of range value must be last, no need to public
 }
 
+function receiverIdentityTypeToPlatform(receiverIdentityType?: number): string {
+  switch (receiverIdentityType) {
+    case PaymentIdentityType.Twitter:
+      return 'twitter'
+    case PaymentIdentityType.Slack:
+      return 'slack'
+    case PaymentIdentityType.WalletID:
+    case PaymentIdentityType.WalletURL:
+      return 'wallet'
+    default:
+      return 'wallet'
+  }
+}
+
 export async function loader({ request, params }: LoaderFunctionArgs) {
   let account: FormattedLinkedAccount
   let sendAccounts: FormattedLinkedAccount[] = []
@@ -99,7 +113,9 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         {
           id: payment.receiverWalletUrl,
           wallet: '',
-          platform: payment.receiverIdentityType,
+          platform: receiverIdentityTypeToPlatform(
+            payment.receiverIdentityType
+          ),
           identifier: payment.receiverIdentity,
           state: '',
           keyId: '',
