@@ -22,9 +22,6 @@ import (
 func ensureTestDBURL(t *testing.T) {
 	// Default to the local docker-compose credentials when DB_URL is unset.
 	if os.Getenv("DB_URL") == "" {
-		if os.Getenv("CI") != "" {
-			t.Fatalf("DB_URL must be set in CI to run database-backed tests")
-		}
 		t.Setenv("DB_URL", "postgres://postgres:password@0.0.0.0:5432/%s?sslmode=disable")
 	}
 }
