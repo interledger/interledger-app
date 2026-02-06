@@ -35,9 +35,9 @@ type client struct {
 }
 
 func New(transport *http.Client) Client {
-	baseURL := "https://api.chimoney.io/v0.2"
+	baseURL := "https://api.chimoney.io/v0.2.4"
 	if !env.IsProd() {
-		baseURL = "https://api-v2-sandbox.chimoney.io/v0.2"
+		baseURL = "https://api-v2-sandbox.chimoney.io/v0.2.4"
 	}
 
 	api := otelhttp.DefaultClient
@@ -49,6 +49,20 @@ func New(transport *http.Client) Client {
 		api:     api,
 		baseURL: baseURL,
 		apiKey:  os.Getenv("CHIMONEY_TOKEN"),
+	}
+}
+
+// NewWithBaseURL creates a client with a custom baseURL for testing purposes
+func NewWithBaseURL(baseURL string, apiKey string, transport *http.Client) Client {
+	api := otelhttp.DefaultClient
+	if transport != nil {
+		api = transport
+	}
+
+	return &client{
+		api:     api,
+		baseURL: baseURL,
+		apiKey:  apiKey,
 	}
 }
 
@@ -179,6 +193,7 @@ func (c client) Transfer(ctx context.Context, req TransferReq) error {
 		Amount              string `json:"amountToSend"`
 		SourceCurrency      string `json:"originCurrency"`
 		DestinationCurrency string `json:"destinationCurrency"`
+		TurnOffNotification bool   `json:"turnOffNotification,omitempty"`
 	}
 
 	body, err := json.Marshal(transferReq{
@@ -187,6 +202,7 @@ func (c client) Transfer(ctx context.Context, req TransferReq) error {
 		Amount:              req.Amount.FormatAmount(),
 		SourceCurrency:      req.Amount.Currency.String(),
 		DestinationCurrency: req.Amount.Currency.String(),
+		TurnOffNotification: req.TurnOffNotification,
 	})
 	if err != nil {
 		return err
