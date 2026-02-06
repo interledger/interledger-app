@@ -350,7 +350,6 @@ export async function action({ request }: ActionFunctionArgs) {
   await exitFlow(request, flowType.PersonalDetails)
 
   const setKycResponse = await grpc.setKYCStatusPending(request, {})
-  
   if (isConnectError(setKycResponse)) {
     logger.error({ error: setKycResponse }, '[KYC] Failed to set KYC status as pending')
     throw setKycResponse.errorResponse
