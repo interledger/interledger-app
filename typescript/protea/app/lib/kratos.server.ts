@@ -9,6 +9,8 @@ import type {
 } from '@ory/kratos-client'
 import { redirect } from '@remix-run/node'
 import { route } from 'routes-gen'
+import { safeReturnTo } from './url.server'
+import logger from './logger.server'
 
 // Export to ensure this is always evaluated server side.
 export const KRATOS_URL = process.env.KRATOS_URL
@@ -40,23 +42,28 @@ function isUiNodeInputAttributes(n: any): n is UiNodeInputAttributes {
  * @param request Request received in a loader function.
  * @returns boolean - if the user has a session.
  */
-export async function getUserSession(request: Request, allowAal1 = false): Promise<Session> {
+export async function getUserSession(
+  request: Request,
+  allowAal1 = false
+): Promise<Session> {
   const session = await fetch(`${KRATOS_URL}/sessions/whoami`, {
     headers: request.headers
   })
 
-  const url = new URL(request.url)
-  url.searchParams.set('returnTo', url.pathname)
+  const requestUrl = new URL(request.url)
+  const returnTo = safeReturnTo(requestUrl.pathname + requestUrl.search)
+  const searchParams = new URLSearchParams()
+  searchParams.set('returnTo', returnTo)
 
   switch (session.status) {
     case 401:
     case 500:
-      throw redirect(route('/login') + url.search)
+      throw redirect(`${route('/login')}?${searchParams.toString()}`)
     case 403:
     case 422: // Need to complete 2FA.
       if (!allowAal1) {
-        url.searchParams.set('aal', 'aal2')
-        throw redirect(route('/login') + url.search)
+        requestUrl.searchParams.set('aal', 'aal2')
+        throw redirect(`${route('/login')}?${searchParams.toString()}`)
       }
   }
 
@@ -244,11 +251,9 @@ export async function kratosErrorMapping<T extends object>(
     for (let node of data.ui.nodes) {
       // Field validation errors
       if (node.messages.length > 0) {
-        console.error(
-          'Kratos error on node attribute',
-          node.attributes.name,
-          ' with message',
-          node.messages[0].text
+        logger.warn(
+          { node: node.attributes.name, message: node.messages[0].text },
+          'Kratos validation error on node'
         )
         Object.assign(fieldErrors, {
           [node.attributes.name]: kratosErrorMessage(node.messages[0])

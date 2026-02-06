@@ -96,8 +96,7 @@ func NewClient(appID, secret, cardAppID, gatewayID string, transport *http.Clien
 func (c *client) GetVaultID() string {
 	vaultID := os.Getenv("GATEHUB_PAYWISER_EURO_VAULT_ID")
 	if vaultID == "" {
-		log.Error("GATEHUB_PAYWISER_EURO_VAULT_ID is set to is not set")
-
+		log.Warn("GATEHUB_PAYWISER_EURO_VAULT_ID environment variable is not set")
 	}
 	return vaultID
 }

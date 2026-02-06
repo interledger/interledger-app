@@ -18,12 +18,6 @@ jobs:
       test_path: './go/pacioli'
       coverage_key: 'pacioli'
       db_name: 'pacioli'
-  cli-tests:
-    uses: ./.github/workflows/go-test-template.yml
-    with:
-      test_path: './go/cli'
-      coverage_key: 'cli'
-      db_name: 'cli'
   httpmessagesignatures-tests:
     uses: ./.github/workflows/go-test-template.yml
     with:

@@ -133,6 +133,15 @@ export default function Page() {
           required
           errorMessage={actionData?.errors?.password}
         />
+        <TextField
+          id='confirm-new-password'
+          form='recovery-password'
+          label='Confifm New Password'
+          name='confirm-new-password'
+          type='password'
+          className='mt-2'
+          required
+        />
         <input
           form='recovery-password'
           defaultValue={csrfToken}
@@ -155,11 +164,18 @@ export async function action({ request }: ActionFunctionArgs) {
   const form = await request.formData()
   const csrfToken = form.get('csrf_token') as string
   const password = form.get('new-password') as string
+  const confirmPassword = form.get('confirm-new-password') as string
 
   const fieldErrors = {
     form: '',
     password: ''
   }
+
+  if (password !== confirmPassword) {
+    fieldErrors.password = 'Passwords do not match'
+    return error(request, { errors: fieldErrors })
+  }
+
   const res = await fetch(
     `${KRATOS_URL}/self-service/settings?flow=${flowId}`,
     {
@@ -176,15 +192,28 @@ export async function action({ request }: ActionFunctionArgs) {
       }
     }
   )
-  const data = await res.json()
-  if (res.status > 400) handleFlowError(data, 'recovery/password')
+  if (res.status > 400) {
+    const data = await res.json()
+    handleFlowError(data, 'recovery/password')
+  }
   else if (res.status == 400) {
     const errs = await kratosErrorMapping(res, fieldErrors)
     return error(request, { errors: errs })
   }
 
-  return redirectWithSnackbar(request, route('/settings'), {
-    message: 'New password successfully saved.',
-    icon: 'close'
-  })
+  return redirectWithSnackbar(
+    request,
+    route('/login'),
+    {
+      message:
+        'New password successfully saved. Please log in with your new password.',
+      icon: 'close'
+    },
+    {
+      headers: {
+        'Set-Cookie':
+          'ory_kratos_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax'
+      }
+    }
+  )
 }

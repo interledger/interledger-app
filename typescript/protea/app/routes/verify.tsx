@@ -1,4 +1,3 @@
-import type { Session } from '@ory/kratos-client'
 import type {
   ActionFunctionArgs,
   LoaderFunctionArgs,
@@ -19,6 +18,7 @@ import { trimHeaders } from '~/lib/headers.server'
 import {
   KRATOS_URL,
   getCsrfTokenFromFlow,
+  getUserSession,
   handleFlowError
 } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
@@ -37,22 +37,16 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const flowId = url.searchParams.get('flow')
   const cookie = String(request.headers.get('cookie'))
 
-  const session = await fetch(`${KRATOS_URL}/sessions/whoami`, {
-    headers: request.headers
-  })
-  const userSession: Session = await session.json()
-  if (session.status === 401) {
-    return redirect(route('/login'))
-  }
-  if (session.status >= 400) handleFlowError(session, 'verify')
-
+    // getUserSession handles all error cases (401, 403, 422, 500) with appropriate redirects
+  const userSession = await getUserSession(request, true)
+  
   // We currently only allow one email per user.
   if (userSession.identity?.verifiable_addresses?.[0]?.verified) {
     return redirect(route('/'))
   }
 
   // Ensure any redirects are thrown
-  if (userSession instanceof Response) return session
+  if (userSession instanceof Response) return userSession
 
   let flow
   if (flowId) {

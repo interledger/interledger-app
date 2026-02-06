@@ -54,13 +54,9 @@ const (
 	BackendService_ListTransactionsWithPending_FullMethodName    = "/backend.v1.BackendService/ListTransactionsWithPending"
 	BackendService_LookupTransaction_FullMethodName              = "/backend.v1.BackendService/LookupTransaction"
 	BackendService_ListPendingWebMonetization_FullMethodName     = "/backend.v1.BackendService/ListPendingWebMonetization"
-	BackendService_ListLimits_FullMethodName                     = "/backend.v1.BackendService/ListLimits"
-	BackendService_UpdateClientLimits_FullMethodName             = "/backend.v1.BackendService/UpdateClientLimits"
 	BackendService_CreateConnection_FullMethodName               = "/backend.v1.BackendService/CreateConnection"
 	BackendService_ListConnections_FullMethodName                = "/backend.v1.BackendService/ListConnections"
 	BackendService_GetConnection_FullMethodName                  = "/backend.v1.BackendService/GetConnection"
-	BackendService_GetConnectionLimits_FullMethodName            = "/backend.v1.BackendService/GetConnectionLimits"
-	BackendService_UpdateConnectionLimits_FullMethodName         = "/backend.v1.BackendService/UpdateConnectionLimits"
 	BackendService_DeleteConnection_FullMethodName               = "/backend.v1.BackendService/DeleteConnection"
 	BackendService_GetPublicWalletDetails_FullMethodName         = "/backend.v1.BackendService/GetPublicWalletDetails"
 	BackendService_CreateContact_FullMethodName                  = "/backend.v1.BackendService/CreateContact"
@@ -95,7 +91,6 @@ const (
 	BackendService_SearchWallets_FullMethodName                  = "/backend.v1.BackendService/SearchWallets"
 	BackendService_DiscordCallback_FullMethodName                = "/backend.v1.BackendService/DiscordCallback"
 	BackendService_CreateDiscordAuthURL_FullMethodName           = "/backend.v1.BackendService/CreateDiscordAuthURL"
-	BackendService_SubmitForm_FullMethodName                     = "/backend.v1.BackendService/SubmitForm"
 	BackendService_CreateSlackAuthURL_FullMethodName             = "/backend.v1.BackendService/CreateSlackAuthURL"
 	BackendService_SlackCallback_FullMethodName                  = "/backend.v1.BackendService/SlackCallback"
 	BackendService_AddXagoBankAccount_FullMethodName             = "/backend.v1.BackendService/AddXagoBankAccount"
@@ -180,15 +175,10 @@ type BackendServiceClient interface {
 	ListTransactionsWithPending(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListTransactionsResponse, error)
 	LookupTransaction(ctx context.Context, in *LookupTransactionRequest, opts ...grpc.CallOption) (*Transaction, error)
 	ListPendingWebMonetization(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListTransactionsResponse, error)
-	// Limits GNAP
-	ListLimits(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListLimitsResponse, error)
-	UpdateClientLimits(ctx context.Context, in *UpdateClientLimitsRequest, opts ...grpc.CallOption) (*Empty, error)
 	// Connections
 	CreateConnection(ctx context.Context, in *CreateConnectionRequest, opts ...grpc.CallOption) (*Empty, error)
 	ListConnections(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListConnectionsResponse, error)
 	GetConnection(ctx context.Context, in *GetConnectionRequest, opts ...grpc.CallOption) (*Connection, error)
-	GetConnectionLimits(ctx context.Context, in *GetConnectionLimitsRequest, opts ...grpc.CallOption) (*ConnectionLimits, error)
-	UpdateConnectionLimits(ctx context.Context, in *UpdateConnectionLimitsRequest, opts ...grpc.CallOption) (*Empty, error)
 	DeleteConnection(ctx context.Context, in *DeleteConnectionRequest, opts ...grpc.CallOption) (*Empty, error)
 	// Public Wallet Data
 	GetPublicWalletDetails(ctx context.Context, in *GetPublicWalletDetailsRequest, opts ...grpc.CallOption) (*GetPublicWalletDetailsResponse, error)
@@ -235,8 +225,6 @@ type BackendServiceClient interface {
 	// Discord
 	DiscordCallback(ctx context.Context, in *DiscordCallbackRequest, opts ...grpc.CallOption) (*DiscordCallbackResponse, error)
 	CreateDiscordAuthURL(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*CreateDiscordAuthURLResponse, error)
-	// Dynamic Forms
-	SubmitForm(ctx context.Context, in *SubmitFormRequest, opts ...grpc.CallOption) (*Empty, error)
 	// Slack
 	CreateSlackAuthURL(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*CreateSlackAuthURLResponse, error)
 	SlackCallback(ctx context.Context, in *SlackCallbackRequest, opts ...grpc.CallOption) (*SlackCallbackResponse, error)
@@ -640,26 +628,6 @@ func (c *backendServiceClient) ListPendingWebMonetization(ctx context.Context, i
 	return out, nil
 }
 
-func (c *backendServiceClient) ListLimits(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListLimitsResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListLimitsResponse)
-	err := c.cc.Invoke(ctx, BackendService_ListLimits_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *backendServiceClient) UpdateClientLimits(ctx context.Context, in *UpdateClientLimitsRequest, opts ...grpc.CallOption) (*Empty, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Empty)
-	err := c.cc.Invoke(ctx, BackendService_UpdateClientLimits_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *backendServiceClient) CreateConnection(ctx context.Context, in *CreateConnectionRequest, opts ...grpc.CallOption) (*Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Empty)
@@ -684,26 +652,6 @@ func (c *backendServiceClient) GetConnection(ctx context.Context, in *GetConnect
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Connection)
 	err := c.cc.Invoke(ctx, BackendService_GetConnection_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *backendServiceClient) GetConnectionLimits(ctx context.Context, in *GetConnectionLimitsRequest, opts ...grpc.CallOption) (*ConnectionLimits, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ConnectionLimits)
-	err := c.cc.Invoke(ctx, BackendService_GetConnectionLimits_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *backendServiceClient) UpdateConnectionLimits(ctx context.Context, in *UpdateConnectionLimitsRequest, opts ...grpc.CallOption) (*Empty, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Empty)
-	err := c.cc.Invoke(ctx, BackendService_UpdateConnectionLimits_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1044,16 +992,6 @@ func (c *backendServiceClient) CreateDiscordAuthURL(ctx context.Context, in *Emp
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CreateDiscordAuthURLResponse)
 	err := c.cc.Invoke(ctx, BackendService_CreateDiscordAuthURL_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *backendServiceClient) SubmitForm(ctx context.Context, in *SubmitFormRequest, opts ...grpc.CallOption) (*Empty, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Empty)
-	err := c.cc.Invoke(ctx, BackendService_SubmitForm_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1466,15 +1404,10 @@ type BackendServiceServer interface {
 	ListTransactionsWithPending(context.Context, *PaginationRequest) (*ListTransactionsResponse, error)
 	LookupTransaction(context.Context, *LookupTransactionRequest) (*Transaction, error)
 	ListPendingWebMonetization(context.Context, *Empty) (*ListTransactionsResponse, error)
-	// Limits GNAP
-	ListLimits(context.Context, *Empty) (*ListLimitsResponse, error)
-	UpdateClientLimits(context.Context, *UpdateClientLimitsRequest) (*Empty, error)
 	// Connections
 	CreateConnection(context.Context, *CreateConnectionRequest) (*Empty, error)
 	ListConnections(context.Context, *Empty) (*ListConnectionsResponse, error)
 	GetConnection(context.Context, *GetConnectionRequest) (*Connection, error)
-	GetConnectionLimits(context.Context, *GetConnectionLimitsRequest) (*ConnectionLimits, error)
-	UpdateConnectionLimits(context.Context, *UpdateConnectionLimitsRequest) (*Empty, error)
 	DeleteConnection(context.Context, *DeleteConnectionRequest) (*Empty, error)
 	// Public Wallet Data
 	GetPublicWalletDetails(context.Context, *GetPublicWalletDetailsRequest) (*GetPublicWalletDetailsResponse, error)
@@ -1521,8 +1454,6 @@ type BackendServiceServer interface {
 	// Discord
 	DiscordCallback(context.Context, *DiscordCallbackRequest) (*DiscordCallbackResponse, error)
 	CreateDiscordAuthURL(context.Context, *Empty) (*CreateDiscordAuthURLResponse, error)
-	// Dynamic Forms
-	SubmitForm(context.Context, *SubmitFormRequest) (*Empty, error)
 	// Slack
 	CreateSlackAuthURL(context.Context, *Empty) (*CreateSlackAuthURLResponse, error)
 	SlackCallback(context.Context, *SlackCallbackRequest) (*SlackCallbackResponse, error)
@@ -1680,12 +1611,6 @@ func (UnimplementedBackendServiceServer) LookupTransaction(context.Context, *Loo
 func (UnimplementedBackendServiceServer) ListPendingWebMonetization(context.Context, *Empty) (*ListTransactionsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListPendingWebMonetization not implemented")
 }
-func (UnimplementedBackendServiceServer) ListLimits(context.Context, *Empty) (*ListLimitsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListLimits not implemented")
-}
-func (UnimplementedBackendServiceServer) UpdateClientLimits(context.Context, *UpdateClientLimitsRequest) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateClientLimits not implemented")
-}
 func (UnimplementedBackendServiceServer) CreateConnection(context.Context, *CreateConnectionRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateConnection not implemented")
 }
@@ -1694,12 +1619,6 @@ func (UnimplementedBackendServiceServer) ListConnections(context.Context, *Empty
 }
 func (UnimplementedBackendServiceServer) GetConnection(context.Context, *GetConnectionRequest) (*Connection, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetConnection not implemented")
-}
-func (UnimplementedBackendServiceServer) GetConnectionLimits(context.Context, *GetConnectionLimitsRequest) (*ConnectionLimits, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetConnectionLimits not implemented")
-}
-func (UnimplementedBackendServiceServer) UpdateConnectionLimits(context.Context, *UpdateConnectionLimitsRequest) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateConnectionLimits not implemented")
 }
 func (UnimplementedBackendServiceServer) DeleteConnection(context.Context, *DeleteConnectionRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteConnection not implemented")
@@ -1802,9 +1721,6 @@ func (UnimplementedBackendServiceServer) DiscordCallback(context.Context, *Disco
 }
 func (UnimplementedBackendServiceServer) CreateDiscordAuthURL(context.Context, *Empty) (*CreateDiscordAuthURLResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateDiscordAuthURL not implemented")
-}
-func (UnimplementedBackendServiceServer) SubmitForm(context.Context, *SubmitFormRequest) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SubmitForm not implemented")
 }
 func (UnimplementedBackendServiceServer) CreateSlackAuthURL(context.Context, *Empty) (*CreateSlackAuthURLResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateSlackAuthURL not implemented")
@@ -2564,42 +2480,6 @@ func _BackendService_ListPendingWebMonetization_Handler(srv interface{}, ctx con
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BackendService_ListLimits_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Empty)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).ListLimits(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: BackendService_ListLimits_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).ListLimits(ctx, req.(*Empty))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _BackendService_UpdateClientLimits_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateClientLimitsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).UpdateClientLimits(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: BackendService_UpdateClientLimits_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).UpdateClientLimits(ctx, req.(*UpdateClientLimitsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _BackendService_CreateConnection_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateConnectionRequest)
 	if err := dec(in); err != nil {
@@ -2650,42 +2530,6 @@ func _BackendService_GetConnection_Handler(srv interface{}, ctx context.Context,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BackendServiceServer).GetConnection(ctx, req.(*GetConnectionRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _BackendService_GetConnectionLimits_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetConnectionLimitsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).GetConnectionLimits(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: BackendService_GetConnectionLimits_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).GetConnectionLimits(ctx, req.(*GetConnectionLimitsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _BackendService_UpdateConnectionLimits_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateConnectionLimitsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).UpdateConnectionLimits(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: BackendService_UpdateConnectionLimits_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).UpdateConnectionLimits(ctx, req.(*UpdateConnectionLimitsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -3298,24 +3142,6 @@ func _BackendService_CreateDiscordAuthURL_Handler(srv interface{}, ctx context.C
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BackendServiceServer).CreateDiscordAuthURL(ctx, req.(*Empty))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _BackendService_SubmitForm_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SubmitFormRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).SubmitForm(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: BackendService_SubmitForm_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).SubmitForm(ctx, req.(*SubmitFormRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -4116,14 +3942,6 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _BackendService_ListPendingWebMonetization_Handler,
 		},
 		{
-			MethodName: "ListLimits",
-			Handler:    _BackendService_ListLimits_Handler,
-		},
-		{
-			MethodName: "UpdateClientLimits",
-			Handler:    _BackendService_UpdateClientLimits_Handler,
-		},
-		{
 			MethodName: "CreateConnection",
 			Handler:    _BackendService_CreateConnection_Handler,
 		},
@@ -4134,14 +3952,6 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetConnection",
 			Handler:    _BackendService_GetConnection_Handler,
-		},
-		{
-			MethodName: "GetConnectionLimits",
-			Handler:    _BackendService_GetConnectionLimits_Handler,
-		},
-		{
-			MethodName: "UpdateConnectionLimits",
-			Handler:    _BackendService_UpdateConnectionLimits_Handler,
 		},
 		{
 			MethodName: "DeleteConnection",
@@ -4278,10 +4088,6 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateDiscordAuthURL",
 			Handler:    _BackendService_CreateDiscordAuthURL_Handler,
-		},
-		{
-			MethodName: "SubmitForm",
-			Handler:    _BackendService_SubmitForm_Handler,
 		},
 		{
 			MethodName: "CreateSlackAuthURL",
