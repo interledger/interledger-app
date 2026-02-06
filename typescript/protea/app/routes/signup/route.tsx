@@ -234,7 +234,7 @@ export async function otpAction({ request }: ActionFunctionArgs) {
   if (isConnectError(response)) {
     logger.error({
       code: response.code,
-      phone
+      hasPhone: !!phone
     }, '[SIGNUP] Failed to set mobile number')
     
     if (response.code == Code.InvalidArgument) {
