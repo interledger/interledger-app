@@ -353,7 +353,6 @@ export async function passwordAction({ request }: ActionFunctionArgs) {
     } catch (e) {
       logger.error({}, '[SIGNUP] Could not parse Kratos error response as JSON')
     }
-    
     const errs = await kratosErrorMapping(response, errors)
     if ((errs as any)[KratosErrorTraits.PHONE]) {
       errors.phone = KratosErrorMessages[KratosErrorTraits.PHONE]
