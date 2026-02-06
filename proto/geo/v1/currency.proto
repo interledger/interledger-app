@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package geo.v1;
+
+option go_package = "./geo.v1;geo";
+
+import "geo/v1/asset.proto";
+// Currency represents a specific amount of a financial asset. It combines an 'amount' with an 'asset' to fully describe a monetary value.
+message Currency {
+  // The amount in the smallest unit (e.g., cents for USD).
+  // Stored as a string to support arbitrary precision (big.Int).
+  string amount = 1;
+  // The asset this currency represents.
+  Asset asset = 2;
+}
