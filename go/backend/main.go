@@ -768,16 +768,24 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 
 	log.Debug("initialising Gatehub")
 	b.gatehubConfig = gatehub.Config{
-		AppID:                   args.GatehubAppID,
-		Secret:                  args.GatehubSecret,
-		CardAppID:               args.GatehubCardAppID,
-		GatewayID:               args.GatehubGatewayID,
-		CardAccountProductCode:  args.GatehubCardAccountProductCode,
-		PaywiserEuroVaultID:     args.GatehubPaywiserEuroVaultID,
-		SendingUserID:           args.GatehubSendingUserID,
-		SendingUserAddress:      args.GatehubSendingUserAddress,
-		WebhookSecret:           args.GatehubWebhookSecret,
-		FallbackWebhookURL:      args.GatehubFallbackWebhookURL,
+		AppID:                  args.GatehubAppID,
+		Secret:                 args.GatehubSecret,
+		CardAppID:              args.GatehubCardAppID,
+		GatewayID:              args.GatehubGatewayID,
+		CardAccountProductCode: args.GatehubCardAccountProductCode,
+		PaywiserEuroVaultID:    args.GatehubPaywiserEuroVaultID,
+		SendingUserID:          args.GatehubSendingUserID,
+		SendingUserAddress:     args.GatehubSendingUserAddress,
+		WebhookSecret:          args.GatehubWebhookSecret,
+		FallbackWebhookURL:     args.GatehubFallbackWebhookURL,
+		OnOffRampClientID:      args.GatehubOnOffRampClientID,
+		OnboardingClientID:     args.GatehubOnboardingClientID,
+		ExchangeClientID:       args.GatehubExchangeClientID,
+		APIBaseURL:             args.GatehubAPIBaseURL,
+		OnboardingBaseURL:      args.GatehubOnboardingBaseURL,
+		OnOffRampBaseURL:       args.GatehubOnOffRampBaseURL,
+		EUROpsAccount:          args.GatehubEUROpsAccount,
+		EUROpsLedgerID:         args.GatehubEUROpsLedgerID,
 	}
 	b.gatehub = gatehub_client.New(b, b.gatehubConfig)
 	if b.gatehub == nil {
