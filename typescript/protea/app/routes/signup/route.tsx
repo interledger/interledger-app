@@ -369,8 +369,7 @@ export async function passwordAction({ request }: ActionFunctionArgs) {
 
   logger.info({
     identityId: successData.identity.id,
-    signupId: id,
-    email: email
+    signupId: id
   }, '[SIGNUP] Kratos registration successful')
 
   // Mark signup complete
