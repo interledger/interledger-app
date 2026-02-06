@@ -211,7 +211,9 @@ function GatehubPage() {
     <>
       <KycIntro
         onClick={() => {
-          console.log('[KYC] Opening gatehub KYC dialog with widget URL:', gatehubWidget?.widgetUrl)
+          console.log('[KYC] Opening gatehub KYC dialog', {
+            hasWidgetUrl: !!gatehubWidget?.widgetUrl
+          })
           setDialogOpen(true)
         }}
         ready
