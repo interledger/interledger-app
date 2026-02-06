@@ -62,9 +62,23 @@ func Create(ctx context.Context, b Backends, args wallets.CreateArgs) (*wallets.
 
 		existingCount := len(existingWalletIDs)
 
-		// If user already has wallets (from concurrent request), skip creation
-		// This makes Create() idempotent for the middleware use case
+		// If user already has wallets (from concurrent request), potentially skip creation.
+		// This makes Create() idempotent for the middleware use case, but we must ensure
+		// that the existing wallet is compatible with the requested parameters.
 		if existingCount > 0 && name == "default" {
+			// Validate existing wallet has compatible parameters before treating this as
+			// an idempotent no-op.
+			var existingWallet wallets.Wallet
+			err = tx.GetContext(ctx, &existingWallet, "SELECT country FROM wallets WHERE id = $1", existingWalletIDs[0])
+			if err != nil {
+				return fmt.Errorf("%w %s", wallets.ErrInternal, err)
+			}
+			if existingWallet.Country != ctry {
+				return fmt.Errorf("%w existing wallet country (%s) does not match requested country (%s)", wallets.ErrWalletConflict, existingWallet.Country, ctry)
+			}
+			if len(args.Addresses) > 0 {
+				return fmt.Errorf("%w addresses provided for existing wallet", wallets.ErrWalletConflict)
+			}
 			walletCreated = false
 			return nil
 		}
