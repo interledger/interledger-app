@@ -309,7 +309,8 @@ export async function passwordAction({ request }: ActionFunctionArgs) {
   logger.info({
     url: `${KRATOS_URL}/self-service/registration?flow=${kratosFlowId}`,
     flowId: kratosFlowId,
-    traits: kratosRequestPayload.traits,
+    countryCode: kratosRequestPayload.traits.countryCode,
+    hasTraits: !!kratosRequestPayload.traits,
     hasPassword: !!password,
     hasCsrfToken: !!kratosCsrfToken
   }, '[SIGNUP] Sending registration request to Kratos')
