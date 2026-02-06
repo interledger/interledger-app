@@ -166,7 +166,6 @@ function GatehubPage() {
         hasType: !!e.data?.type,
         hasValue: !!e.data?.value
       })
-      
       if (!e.data?.type || !e.data?.value) {
         console.warn('[KYC] Message missing type or value, ignoring')
         return
