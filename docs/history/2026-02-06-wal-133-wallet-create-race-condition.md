@@ -22,7 +22,7 @@
 
 **Status:**  
 ✓ Transaction lock implemented in ops.Create()  
-✓ Middleware updated to use transaction-safe Create()  
+✓ Middleware continues to use Create(), which is now transaction-safe  
 ✓ No interface changes required (backward compatible)  
 ⏳ **Pending**: Rebuild backend and run tests to validate fix
 

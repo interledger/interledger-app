@@ -140,12 +140,29 @@ func TestCreateDefaultWalletIsIdempotent(t *testing.T) {
 	defaultWallet, err := ops.Create(ctx, b, wallets.CreateArgs{
 		UserID:  userID,
 		Name:    "",
-		Country: country.ZA,
+		Country: country.US,
 	})
 	require.NoError(t, err)
 	assert.Equal(t, usWallet.ID, defaultWallet.ID)
 	assert.Equal(t, usWallet.Name, defaultWallet.Name)
 	assert.Equal(t, usWallet.Country, defaultWallet.Country)
+
+	_, err = ops.Create(ctx, b, wallets.CreateArgs{
+		UserID:  userID,
+		Name:    "",
+		Country: country.ZA,
+	})
+	require.ErrorIs(t, err, wallets.ErrWalletConflict)
+
+	wa, err := wallets.ParseAddress("https://ilp.link/ladidaplah")
+	require.NoError(t, err)
+	_, err = ops.Create(ctx, b, wallets.CreateArgs{
+		UserID:    userID,
+		Name:      "",
+		Country:   country.US,
+		Addresses: []wallets.Address{wa},
+	})
+	require.ErrorIs(t, err, wallets.ErrWalletConflict)
 }
 
 func TestListWalletsMultiple(t *testing.T) {
