@@ -29,6 +29,25 @@ var (
 	cardAppIDHeader   = "x-gatehub-card-app-id"
 )
 
+// maskSecret returns the first n characters of a secret followed by ***, useful for logging
+func maskSecret(secret string, visibleChars int) string {
+	if secret == "" {
+		return "[EMPTY]"
+	}
+	if len(secret) <= visibleChars {
+		return secret[:len(secret)] + "***"
+	}
+	return secret[:visibleChars] + "***"
+}
+
+// truncateString returns a string truncated to maxLen characters with ellipsis if needed
+func truncateString(s string, maxLen int) string {
+	if len(s) <= maxLen {
+		return s
+	}
+	return s[:maxLen] + "..."
+}
+
 type client struct {
 	onOffRampClientID       string
 	onboardingClientID      string
@@ -62,6 +81,31 @@ func NewClient(appID, secret, cardAppID, gatewayID string, transport *http.Clien
 		onOffRampBaseURL = "https://managed-ramp.gatehub.net"
 	}
 
+	// Log initial Gatehub configuration (INFO level for debugging)
+	log.Info(fmt.Sprintf("[GATEHUB CONFIG] Initializing Gatehub client - AppID: %s (len=%d), CardAppID: %s (len=%d), Secret: %s*** (len=%d), GatewayID: %s",
+		appID, len(appID),
+		cardAppID, len(cardAppID),
+		maskSecret(secret, 3), len(secret),
+		gatewayID))
+
+	// Allow overriding baseURL via environment variable (for local development with MockGatehub)
+	if envBaseURL := os.Getenv("GATEHUB_API_BASE_URL"); envBaseURL != "" {
+		log.Info(fmt.Sprintf("[GATEHUB CONFIG] Using GATEHUB_API_BASE_URL override: %s", envBaseURL))
+		baseURL = envBaseURL
+		// Also override onboarding and onOffRamp URLs to point to the same base
+		onboardingBaseURL = envBaseURL
+		onOffRampBaseURL = envBaseURL
+	} else {
+		log.Info(fmt.Sprintf("[GATEHUB CONFIG] GATEHUB_API_BASE_URL not set, defaulting to: %s", baseURL))
+	}
+
+	// Allow overriding widget URLs separately (so browser iframes can use HTTPS while the API stays on HTTP internally)
+	if envWidgetBaseURL := os.Getenv("GATEHUB_WIDGET_BASE_URL"); envWidgetBaseURL != "" {
+		log.Info(fmt.Sprintf("[GATEHUB CONFIG] Using GATEHUB_WIDGET_BASE_URL override: %s", envWidgetBaseURL))
+		onboardingBaseURL = envWidgetBaseURL
+		onOffRampBaseURL = envWidgetBaseURL
+	}
+
 	api := otelhttp.DefaultClient
 	if transport != nil {
 		api = transport
@@ -69,11 +113,15 @@ func NewClient(appID, secret, cardAppID, gatewayID string, transport *http.Clien
 
 	cardAccountProductCode := os.Getenv("GATEHUB_CARD_ACCOUNT_PRODUCT_CODE")
 	if cardAccountProductCode == "" {
-		log.Warn("GATEHUB_CARD_ACCOUNT_PRODUCT_CODE variable is not set")
+		log.Info("[GATEHUB CONFIG] GATEHUB_CARD_ACCOUNT_PRODUCT_CODE variable is not set")
+	} else {
+		log.Info(fmt.Sprintf("[GATEHUB CONFIG] GATEHUB_CARD_ACCOUNT_PRODUCT_CODE: %s", cardAccountProductCode))
 	}
 
 	if gatewayID == "" {
-		log.Warn("GATEHUB_GATEWAY_ID is not set")
+		log.Info("[GATEHUB CONFIG] GATEHUB_GATEWAY_ID is not set")
+	} else {
+		log.Info(fmt.Sprintf("[GATEHUB CONFIG] GATEHUB_GATEWAY_ID: %s", gatewayID))
 	}
 
 	return &client{
@@ -255,6 +303,7 @@ func (c *client) CreateUser(ctx context.Context, email string) (*CreateUserRespo
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
+	log.Info(fmt.Sprintf("Gatehub CreateUser endpoint=%s email=%s", endpoint, email))
 
 	body, err := json.Marshal(CreateUserRequest{
 		Email: email,
@@ -617,7 +666,8 @@ func (c *client) GetTransaction(ctx context.Context, userID, id string) (*Transa
 }
 
 func (c *client) Sign(ctx context.Context, req *http.Request, date time.Time, payload []byte, targetURL string) error {
-	base := fmt.Sprintf("%d|%s|%s|%s", date.UnixMilli(), req.Method, targetURL, string(payload))
+	timestamp := date.UnixMilli()
+	base := fmt.Sprintf("%d|%s|%s|%s", timestamp, req.Method, targetURL, string(payload))
 	base = strings.Trim(base, "|")
 	hmac := hmac.New(sha256.New, []byte(c.apiSecret))
 	_, err := hmac.Write([]byte(base))
@@ -625,9 +675,23 @@ func (c *client) Sign(ctx context.Context, req *http.Request, date time.Time, pa
 		return err
 	}
 
-	req.Header.Set(appIDHeader, c.appID)
-	req.Header.Set(timestampHeader, fmt.Sprintf("%d", date.UnixMilli()))
-	req.Header.Set(signatureHeader, hex.EncodeToString(hmac.Sum(nil)))
+	signature := hex.EncodeToString(hmac.Sum(nil))
+	appIDValue := c.appID
+
+	// Log detailed signing information at INFO level
+	log.Info(fmt.Sprintf("[GATEHUB SIGN] URL: %s | Method: %s | Timestamp: %d", targetURL, req.Method, timestamp))
+	log.Info(fmt.Sprintf("[GATEHUB SIGN] AppID: %s (len=%d)", appIDValue, len(appIDValue)))
+	log.Info(fmt.Sprintf("[GATEHUB SIGN] Secret length: %d", len(c.apiSecret)))
+	log.Info(fmt.Sprintf("[GATEHUB SIGN] Payload length: %d", len(payload)))
+	log.Info(fmt.Sprintf("[GATEHUB SIGN] Base string for signing (first 100 chars): %s", truncateString(base, 100)))
+	log.Info(fmt.Sprintf("[GATEHUB SIGN] Signature: %s", signature))
+
+	req.Header.Set(appIDHeader, appIDValue)
+	req.Header.Set(timestampHeader, fmt.Sprintf("%d", timestamp))
+	req.Header.Set(signatureHeader, signature)
+
+	// Log the actual headers being sent
+	log.Info(fmt.Sprintf("[GATEHUB SIGN] Headers set - AppID header: %s, Timestamp header: %s, Signature header: %s", appIDHeader, timestampHeader, signatureHeader))
 
 	return nil
 }

@@ -1228,16 +1228,30 @@ func SignalExternalPayoutComplete(ctx context.Context, b Backends, id string, su
 }
 
 func SignalGatehubTransferComplete(ctx context.Context, b Backends, externalTransactionID string) error {
+	log.Info("SignalGatehubTransferComplete called", zap.String("external_transaction_id", externalTransactionID))
+
 	var paymentID string
 	err := b.DB().GetContext(ctx, &paymentID, "SELECT payment_id FROM gatehub_transactions WHERE external_id=$1;", externalTransactionID)
 	if errors.Is(err, sql.ErrNoRows) {
-		log.Error("%w No payment found for gatehub transfer complete signal", zap.String("external_transaction_id", externalTransactionID))
+		log.Error("No payment found for gatehub transfer complete signal", zap.String("external_transaction_id", externalTransactionID))
 		return nil
 	} else if err != nil {
+		log.Error("Database error looking up payment", zap.String("external_transaction_id", externalTransactionID), zap.Error(err))
 		return err
 	}
 
-	return b.Temporal().SignalWorkflow(ctx, fmt.Sprintf(payoutWorkflowFmt, paymentID), "", gatehubNotifyChanName, nil)
+	log.Info("Found payment for signal", zap.String("external_transaction_id", externalTransactionID), zap.String("payment_id", paymentID))
+	workflowID := fmt.Sprintf(payoutWorkflowFmt, paymentID)
+	log.Info("Attempting to signal workflow", zap.String("workflow_id", workflowID), zap.String("signal_name", gatehubNotifyChanName))
+
+	err = b.Temporal().SignalWorkflow(ctx, workflowID, "", gatehubNotifyChanName, nil)
+	if err != nil {
+		log.Error("Failed to signal workflow", zap.String("workflow_id", workflowID), zap.Error(err))
+		return err
+	}
+
+	log.Info("Successfully signaled workflow", zap.String("workflow_id", workflowID))
+	return nil
 }
 
 func ListAwaitingSignal(ctx context.Context, b Backends) ([]payments.Payment, error) {

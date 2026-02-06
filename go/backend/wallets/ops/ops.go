@@ -41,8 +41,36 @@ func Create(ctx context.Context, b Backends, args wallets.CreateArgs) (*wallets.
 		ctry = country.US
 	}
 
+	var walletCreated bool
+
 	err = crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
-		_, err := tx.ExecContext(ctx, "INSERT INTO wallets (id, name, country) VALUES ($1, $2, $3)", walletID, name, ctry)
+		// Use advisory lock to prevent concurrent wallet creation for the same user
+		// This locks on the user ID itself, not on rows (which don't exist yet for new users)
+		// pg_advisory_xact_lock uses a transaction-level lock that auto-releases on commit/rollback
+		_, err := tx.ExecContext(ctx, "SELECT pg_advisory_xact_lock(hashtext($1))", userID)
+		if err != nil {
+			return fmt.Errorf("%w %s", wallets.ErrInternal, err)
+		}
+
+		// Now check wallet count while holding the advisory lock
+		var existingWalletIDs []string
+		err = tx.SelectContext(ctx, &existingWalletIDs, "SELECT wallet_id FROM user_wallets WHERE user_id = $1", userID)
+		if err != nil {
+			return fmt.Errorf("%w %s", wallets.ErrInternal, err)
+		}
+
+		existingCount := len(existingWalletIDs)
+
+		// If user already has wallets (from concurrent request), skip creation
+		// This makes Create() idempotent for the middleware use case
+		if existingCount > 0 && name == "default" {
+			walletCreated = false
+			return nil
+		}
+
+		walletCreated = true
+
+		_, err = tx.ExecContext(ctx, "INSERT INTO wallets (id, name, country) VALUES ($1, $2, $3)", walletID, name, ctry)
 		if err != nil {
 			return fmt.Errorf("%w %s", wallets.ErrInternal, err)
 		}
@@ -72,14 +100,24 @@ func Create(ctx context.Context, b Backends, args wallets.CreateArgs) (*wallets.
 		return nil
 	})
 
+	if err != nil {
+		return nil, err
+	}
+
+	// If wallet wasn't created (concurrent creation), return the existing one
+	if !walletCreated {
+		existingWallets, err := List(ctx, b, userID)
+		if err != nil || len(existingWallets) == 0 {
+			return nil, fmt.Errorf("%w: wallet not created and none found", wallets.ErrInternal)
+		}
+		return &existingWallets[0], nil
+	}
+
 	b.Analytics().TrackWalletCreated(walletID, userID)
 	for range args.Addresses {
 		b.Analytics().TrackWalletPaymentPointerCreated(walletID)
 	}
 
-	if err != nil {
-		return nil, err
-	}
 	// Do not provision custodial private key
 	// err = b.Keys().ProvisionPrivateKey(ctx, walletID)
 	// if err != nil {
@@ -88,6 +126,93 @@ func Create(ctx context.Context, b Backends, args wallets.CreateArgs) (*wallets.
 	// }
 
 	return Get(ctx, b, walletID)
+}
+
+// CreateIfEmpty atomically checks if a user has any wallets and creates one if they don't.
+// This prevents race conditions where multiple concurrent requests both create wallets.
+// Returns (wallet, true) if a wallet was created, or (nil, false) if wallets already exist.
+func CreateIfEmpty(ctx context.Context, b Backends, args wallets.CreateArgs) (*wallets.Wallet, bool, error) {
+	err := b.Validator().StructCtx(ctx, args)
+	if err != nil {
+		return nil, false, err
+	}
+
+	userID := args.UserID
+	name := args.Name
+	if name == "" {
+		name = "default"
+	}
+
+	walletID := args.ID
+	if walletID == "" {
+		walletID = uuid.NewString()
+	}
+
+	ctry := args.Country
+	if ctry.String() == "" {
+		ctry = country.US
+	}
+
+	var created bool
+
+	err = crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
+		// Lock the user_wallets rows for this user to prevent concurrent creation
+		// This is the critical fix for the race condition
+		var count int
+		err := tx.GetContext(ctx, &count, "SELECT COUNT(*) FROM user_wallets WHERE user_id = $1 FOR UPDATE", userID)
+		if err != nil {
+			return fmt.Errorf("%w %s", wallets.ErrInternal, err)
+		}
+
+		// If user already has wallets, don't create another
+		if count > 0 {
+			created = false
+			return nil
+		}
+
+		// No wallets exist - safe to create
+		created = true
+
+		_, err = tx.ExecContext(ctx, "INSERT INTO wallets (id, name, country) VALUES ($1, $2, $3)", walletID, name, ctry)
+		if err != nil {
+			return fmt.Errorf("%w %s", wallets.ErrInternal, err)
+		}
+
+		_, err = tx.ExecContext(ctx, "INSERT INTO user_wallets (user_id, wallet_id) VALUES ($1, $2)", userID, walletID)
+		if err != nil {
+			return fmt.Errorf("%w %s", wallets.ErrInternal, err)
+		}
+
+		for _, wa := range args.Addresses {
+			_, err = tx.ExecContext(ctx, "INSERT INTO wallet_addresses(wallet_id, url) VALUES ($1, $2)", walletID, wa)
+			if err != nil {
+				return fmt.Errorf("%w %s", wallets.ErrInternal, err)
+			}
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, false, err
+	}
+
+	if !created {
+		// Wallet already existed, return nil to indicate no creation happened
+		return nil, false, nil
+	}
+
+	b.Analytics().TrackWalletCreated(walletID, userID)
+	for range args.Addresses {
+		b.Analytics().TrackWalletPaymentPointerCreated(walletID)
+	}
+
+	wallet, err := Get(ctx, b, walletID)
+	if err != nil {
+		return nil, true, err
+	}
+
+	return wallet, true, nil
 }
 
 func AddAddress(ctx context.Context, b Backends, id, url string) (*wallets.Wallet, error) {

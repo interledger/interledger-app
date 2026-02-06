@@ -96,14 +96,15 @@ services:
       - ALLOWED_WALLET_IDS=
       - BLOCKED_REGIONS=
 
-      - GATEHUB_APP_ID=
-      - GATEHUB_SECRET=
-      - GATEHUB_CARD_APP_ID=
+      - GATEHUB_API_BASE_URL=http://mockgatehub:8080
+      - GATEHUB_WIDGET_BASE_URL=https://mockgatehub.interledger.test
+      - GATEHUB_APP_ID=local-test-app-id
+      - GATEHUB_SECRET=local-test-app-secret
+      - GATEHUB_CARD_APP_ID=local-test-card-app-id
       - GATEHUB_GATEWAY_ID=b18965b5-8bb0-486e-88b2-7be47b974ac1
       - GATEHUB_CARD_ACCOUNT_PRODUCT_CODE=PWSR_DEBP_2404
-      - GATEHUB_WEBHOOK_SECRET=
-      - GATEHUB_PAYWISER_EURO_VAULT_ID=
-      - GATEHUB_FALLBACK_WEBHOOK_URL=
+      - GATEHUB_WEBHOOK_SECRET=${GATEHUB_WEBHOOK_SECRET:-6d6f636b5f776562686f6f6b5f736563726574}
+      - GATEHUB_PAYWISER_EURO_VAULT_ID=a09a0a2c-1a3a-44c5-a1b9-603a6eea9341
 
       # Random generated data for FIANT 
       - PTI_BASE_URL=https://pti-base-url.com
@@ -113,3 +114,4 @@ services:
 
     depends_on:
       - migration
+      - mockgatehub
