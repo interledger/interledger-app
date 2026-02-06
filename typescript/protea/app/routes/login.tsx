@@ -22,16 +22,18 @@ import {
   TextField
 } from '~/components'
 import {
-  kratosPublic,
+  kratosPublic
+} from '~/lib/kratos/kratos-client.server'
+import {
   getCookie,
-  getCsrfTokenFromFlow,
-  handleFlowError,
   isSessionAlreadyExistsMessage,
-  mapFlowToFieldErrors,
   buildHeadersWithCookies,
-  withCookie,
-  type KratosError
-} from '~/lib/kratos-client.server'
+  withCookie
+} from '~/lib/kratos/cookie.util'
+import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.util'
+import { mapFlowToFieldErrors } from '~/lib/kratos/error'
+import { handleFlowError } from '~/lib/kratos/error'
+import { type KratosError } from '~/lib/kratos/types'
 import { requireNoUserSession } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
 import { safeReturnTo } from '~/lib/url.server'

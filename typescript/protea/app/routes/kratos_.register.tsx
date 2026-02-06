@@ -17,12 +17,14 @@ import {
 } from '~/components'
 import { mergeMeta } from '~/lib/meta'
 import {
-  kratosPublic,
-  getCsrfTokenFromFlow,
+  kratosPublic
+} from '~/lib/kratos/kratos-client.server'
+import {
   withCookie,
   getCookie,
   buildHeadersWithCookies
-} from '~/lib/kratos-client.server'
+} from '~/lib/kratos/cookie.util'
+import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.util'
 
 export const handle: ApplicationProps = {
   layout: Layouts.Focus,

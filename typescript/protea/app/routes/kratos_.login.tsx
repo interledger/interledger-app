@@ -17,12 +17,14 @@ import {
 } from '~/components'
 import { mergeMeta } from '~/lib/meta'
 import {
-  kratosPublic,
-  getCsrfTokenFromFlow,
+  kratosPublic
+} from '~/lib/kratos/kratos-client.server'
+import {
   withCookie,
   getCookie,
   buildHeadersWithCookies
-} from '~/lib/kratos-client.server'
+} from '~/lib/kratos/cookie.util'
+import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.util'
 
 export const handle: ApplicationProps = {
   layout: Layouts.Focus,
@@ -224,7 +226,7 @@ export async function action({ request }: ActionFunctionArgs) {
     // Handle Kratos validation errors
     if (err.response?.data?.ui) {
       const kratosData = err.response.data
-      
+
       // Extract field errors from UI nodes
       for (const node of kratosData.ui.nodes || []) {
         if (node.messages && node.messages.length > 0) {

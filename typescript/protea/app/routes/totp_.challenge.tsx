@@ -14,7 +14,10 @@ import { validateCSRFToken } from '~/lib/csrf.server'
 import { getCsrfTokenFromFlow } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
 import { safeReturnTo } from '~/lib/url.server'
-import { buildHeadersWithCookies, getCookie, KratosError, kratosPublic, mapFlowToFieldErrors, withCookie } from '~/lib/kratos-client.server'
+import { kratosPublic } from '~/lib/kratos/kratos-client.server'
+import { buildHeadersWithCookies, getCookie, withCookie } from '~/lib/kratos/cookie.util'
+import { mapFlowToFieldErrors } from '~/lib/kratos/error'
+import { CreateBrowserLoginFlowResponse, KratosError } from '~/lib/kratos/types'
 
 export type TotpAction =
   | {
@@ -23,8 +26,6 @@ export type TotpAction =
     }
   }
   | undefined
-
-type CreateBrowserLoginFlowResponse = Awaited<ReturnType<typeof kratosPublic.createBrowserLoginFlow>>
 
 const getFlowFromRedirect = (flowResponse: CreateBrowserLoginFlowResponse) => {
   if (flowResponse.status === 200 && flowResponse.data?.id) {
@@ -72,9 +73,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
       }, withCookie(cookie))
     } catch (err) {
       const kratosError = err as KratosError
-      const errorId = kratosError.response?.data?.error?.id
+      const errorIdData = kratosError.response?.data?.error?.id
+      const errorId = kratosError.id
       const status = kratosError.response?.status
-      throw new Error(`Error initializing flow, errorId ${errorId} and status ${status}`)
+      throw new Error(`Error initializing flow, errorIdData ${errorIdData} and status ${status} and errorId ${errorId}`)
     }
 
     const flowFromRedirect = getFlowFromRedirect(aal2Flow)

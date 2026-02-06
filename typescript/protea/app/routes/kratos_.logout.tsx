@@ -16,11 +16,13 @@ import {
 } from '~/components'
 import { mergeMeta } from '~/lib/meta'
 import {
-  kratosPublic,
+  kratosPublic
+} from '~/lib/kratos/kratos-client.server'
+import {
   withCookie,
   getCookie,
   buildHeadersWithCookies
-} from '~/lib/kratos-client.server'
+} from '~/lib/kratos/cookie.util'
 
 export const handle: ApplicationProps = {
   layout: Layouts.Focus,

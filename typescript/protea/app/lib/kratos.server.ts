@@ -14,7 +14,7 @@ import { safeReturnTo } from './url.server'
 import {
   getCsrfTokenFromFlow as getCsrfToken,
   isUiNodeInputAttributes
-} from './kratos-client.server'
+} from './kratos/flow.util'
 
 // Export to ensure this is always evaluated server side.
 export const KRATOS_URL = process.env.KRATOS_URL

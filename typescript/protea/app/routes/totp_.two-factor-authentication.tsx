@@ -35,7 +35,7 @@ export async function loader({
   request
 }: LoaderFunctionArgs): Promise<TypedResponse<TotpForm>> {
   const cookie = String(request.headers.get('cookie') ?? '')
-  console.log('🪲 [totp] loader cookie', cookie)
+  // console.log('🪲 [totp] loader cookie', cookie)
   try {
     const response = await fetch(
       `${KRATOS_URL}/self-service/settings/browser`,
@@ -46,11 +46,11 @@ export async function loader({
         }
       }
     )
-    console.log('🪲 [totp] loader response', response)
+    // console.log('🪲 [totp] loader response', response)
 
     if (!response.ok) throw new Error('Failed to initiate Kratos settings flow')
     const flow = await response.json()
-    console.log('🪲 [totp] loader flow', flow)
+    // console.log('🪲 [totp] loader flow', flow)
 
     const nodes = flow?.ui?.nodes ?? []
     const totpSchema: TotpForm = nodes.reduce(
