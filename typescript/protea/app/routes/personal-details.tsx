@@ -16,6 +16,7 @@ import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { useScript } from '~/lib/useScript'
+import logger from '~/lib/logger.server'
 
 const KYCErrors: KYCErrorsType = {
   UnableToPars: 'KYC: unable to parse message data'
@@ -33,14 +34,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   if (isConnectError(response)) throw response.errorResponse
 
-  console.log('[KYC] Personal details page loaded:', {
+  logger.info({
     provider: response.provider,
     hasGatehubWidget: !!response.gatehubWidget,
     gatehubWidgetUrl: response.gatehubWidget?.widgetUrl,
     hasPersonaWidget: !!response.personaInquiry,
     hasChimoneyWidget: !!response.chimoneyWidget,
     hasPtiWidget: !!response.ptiWidget
-  })
+  }, '[KYC] Personal details page loaded')
 
   // if (response.provider === 'local') {
   //   // wait 1s on local for the async processes to finish
