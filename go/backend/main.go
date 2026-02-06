@@ -33,9 +33,6 @@ import (
 	contacts_client "gitlab.com/fynbos/backend/contacts/client"
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
-
-	"gitlab.com/fynbos/backend/dynamicforms"
-	dynamicforms_client "gitlab.com/fynbos/backend/dynamicforms/client"
 	"gitlab.com/fynbos/backend/email"
 	email_client "gitlab.com/fynbos/backend/email/client"
 	"gitlab.com/fynbos/backend/features"
@@ -480,7 +477,6 @@ type backends struct {
 	img            images.Client
 	wallet         wallets.Client
 	payment        payments.Client
-	dynamicforms   dynamicforms.Client
 	slack          slack.Client
 	rafiki         rafiki.Client
 	xago           xago.Client
@@ -664,8 +660,6 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 		RedirectURL:   args.TwitterRedirectURL,
 		BearerToken:   args.TwitterBearerToken,
 	})
-
-	b.dynamicforms = dynamicforms_client.New(b)
 
 	b.slack, err = slack_client.New(b)
 	if err != nil {

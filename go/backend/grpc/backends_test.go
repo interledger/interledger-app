@@ -5,7 +5,6 @@ import (
 	"net"
 	"testing"
 
-	"gitlab.com/fynbos/backend/dynamicforms"
 	"gitlab.com/fynbos/backend/providers/chimoney"
 
 	"gitlab.com/fynbos/backend/providers/gatehub"
@@ -103,10 +102,6 @@ func (t TestContainer) Rafiki() rafiki.Client {
 
 func (t TestContainer) Slack() slack.Client {
 	return nil
-}
-
-func (t TestContainer) DynamicForms() dynamicforms.Client {
-	return t.dynamicforms
 }
 
 func (t TestContainer) Payments() payments.Client {

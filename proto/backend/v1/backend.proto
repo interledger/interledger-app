@@ -123,9 +123,6 @@ service BackendService {
   // Search
   rpc SearchWallets(SearchWalletsRequest) returns (SearchWalletsResponse);
 
-  // Dynamic Forms
-  rpc SubmitForm(SubmitFormRequest) returns (Empty);
-
   // Slack
   rpc CreateSlackAuthURL(Empty) returns (CreateSlackAuthURLResponse);
   rpc SlackCallback(SlackCallbackRequest) returns (SlackCallbackResponse);
@@ -1188,7 +1185,3 @@ message VerifyIdentityRequest {
   string id = 1;
 }
 
-message SubmitFormRequest {
-  string form_id = 1;
-  string data = 2;
-}
