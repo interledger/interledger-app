@@ -37,12 +37,6 @@ export function withLoggingContext<T extends any[] | Record<string, any>>(
 }
 
 /**
- * Alias for withLoggingContext - kept for backward compatibility
- * Both loaders and actions work with the unified withLoggingContext wrapper
- */
-export const withActionLogging = withLoggingContext
-
-/**
  * Helper to log with request context automatically attached
  * Usage: logWithContext('info', { userId: '123' }, 'User logged in')
  */
