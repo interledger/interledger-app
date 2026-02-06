@@ -325,7 +325,6 @@ export async function passwordAction({ request }: ActionFunctionArgs) {
       }
     }
   )
-  
   logger.info({
     status: response.status,
     statusText: response.statusText,
