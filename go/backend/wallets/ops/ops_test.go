@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -20,9 +21,11 @@ import (
 
 func ensureTestDBURL(t *testing.T) {
 	// Default to the local docker-compose credentials when DB_URL is unset.
-	// Skip in CI to avoid overriding pipeline-provided DB configuration.
-	if os.Getenv("DB_URL") == "" && os.Getenv("CI") == "" {
-		t.Setenv("DB_URL", "postgres://postgres:postgres@0.0.0.0:5432/%s?sslmode=disable")
+	if os.Getenv("DB_URL") == "" {
+		if os.Getenv("CI") != "" {
+			t.Fatalf("DB_URL must be set in CI to run database-backed tests")
+		}
+		t.Setenv("DB_URL", "postgres://postgres:password@0.0.0.0:5432/%s?sslmode=disable")
 	}
 }
 
@@ -163,6 +166,59 @@ func TestCreateDefaultWalletIsIdempotent(t *testing.T) {
 		Addresses: []wallets.Address{wa},
 	})
 	require.ErrorIs(t, err, wallets.ErrWalletConflict)
+}
+
+func TestCreateDefaultWalletConcurrent(t *testing.T) {
+	ctx := context.Background()
+
+	ensureTestDBURL(t)
+	dbc := db.MigrateTestDB(t, ctx)
+
+	ctrl := gomock.NewController(t)
+	km := keys_mock.NewMockClient(ctrl)
+	km.EXPECT().ProvisionPrivateKey(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+	b := ops.NewTestBackends(t, dbc, km, users_mock.NewMock())
+
+	userID := uuid.NewString()
+
+	const workers = 10
+	start := make(chan struct{})
+	ids := make([]string, workers)
+	errs := make([]error, workers)
+	var wg sync.WaitGroup
+	for i := 0; i < workers; i++ {
+		wg.Add(1)
+		go func(idx int) {
+			defer wg.Done()
+			<-start
+			wallet, err := ops.Create(ctx, b, wallets.CreateArgs{
+				UserID: userID,
+				Name:   "",
+			})
+			errs[idx] = err
+			if wallet != nil {
+				ids[idx] = wallet.ID
+			}
+		}(i)
+	}
+
+	close(start)
+	wg.Wait()
+
+	for _, err := range errs {
+		require.NoError(t, err)
+	}
+
+	firstID := ids[0]
+	require.NotEmpty(t, firstID)
+	for _, id := range ids {
+		assert.Equal(t, firstID, id)
+	}
+
+	createdWallets, err := ops.List(ctx, b, userID)
+	require.NoError(t, err)
+	require.Len(t, createdWallets, 1)
+	assert.Equal(t, firstID, createdWallets[0].ID)
 }
 
 func TestListWalletsMultiple(t *testing.T) {

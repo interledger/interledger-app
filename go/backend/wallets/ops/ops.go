@@ -133,7 +133,6 @@ func Create(ctx context.Context, b Backends, args wallets.CreateArgs) (*wallets.
 		if existingWallets[0].Country != ctry {
 			return nil, fmt.Errorf("%w existing wallet country (%s) does not match requested country (%s)", wallets.ErrWalletConflict, existingWallets[0].Country, ctry)
 		}
-
 		return &existingWallets[0], nil
 	}
 
