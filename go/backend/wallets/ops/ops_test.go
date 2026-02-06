@@ -2,6 +2,7 @@ package ops_test
 
 import (
 	"context"
+	"os"
 	"strings"
 	"testing"
 
@@ -17,9 +18,17 @@ import (
 	"gitlab.com/fynbos/backend/wallets/ops"
 )
 
+func ensureTestDBURL(t *testing.T) {
+	// Default to the local docker-compose credentials when DB_URL is unset.
+	if os.Getenv("DB_URL") == "" {
+		t.Setenv("DB_URL", "postgres://postgres:postgres@0.0.0.0:5432/%s?sslmode=disable")
+	}
+}
+
 func TestCreateWallet(t *testing.T) {
 	ctx := context.Background()
 
+	ensureTestDBURL(t)
 	dbc := db.MigrateTestDB(t, ctx)
 
 	userID := "c6874020-9d33-4678-a9ac-f623dc363cfb"
@@ -78,9 +87,11 @@ func TestWalletForContext(t *testing.T) {
 	assert.Equal(t, country.US, w.Country)
 }
 
-func TestListWallets(t *testing.T) {
+func TestListWalletsSingle(t *testing.T) {
+	// Split from TestListWallets to validate listing with a single wallet only.
 	ctx := context.Background()
 
+	ensureTestDBURL(t)
 	dbc := db.MigrateTestDB(t, ctx)
 
 	ctrl := gomock.NewController(t)
@@ -98,13 +109,73 @@ func TestListWallets(t *testing.T) {
 	assert.Equal(t, "test1", usWallet.Name)
 	assert.Equal(t, country.US, usWallet.Country)
 
-	zaWallet, err := ops.Create(ctx, b, wallets.CreateArgs{
+	wallets, err := ops.List(ctx, b, userID)
+	require.NoError(t, err)
+	require.Len(t, wallets, 1)
+	assert.Equal(t, usWallet.ID, wallets[0].ID)
+	assert.Equal(t, country.US, wallets[0].Country)
+}
+
+func TestCreateDefaultWalletIsIdempotent(t *testing.T) {
+	// Split from TestListWallets to validate default wallet creation is idempotent.
+	ctx := context.Background()
+
+	ensureTestDBURL(t)
+	dbc := db.MigrateTestDB(t, ctx)
+
+	ctrl := gomock.NewController(t)
+	km := keys_mock.NewMockClient(ctrl)
+	km.EXPECT().ProvisionPrivateKey(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+	b := ops.NewTestBackends(t, dbc, km, users_mock.NewMock())
+
+	userID := "9fb3f58b-b0d6-4c5d-81b4-620c0d45f6b4"
+
+	usWallet, err := ops.Create(ctx, b, wallets.CreateArgs{
+		UserID: userID,
+		Name:   "test1",
+	})
+	require.NoError(t, err)
+
+	defaultWallet, err := ops.Create(ctx, b, wallets.CreateArgs{
 		UserID:  userID,
 		Name:    "",
 		Country: country.ZA,
 	})
 	require.NoError(t, err)
-	assert.Equal(t, "default", zaWallet.Name)
+	assert.Equal(t, usWallet.ID, defaultWallet.ID)
+	assert.Equal(t, usWallet.Name, defaultWallet.Name)
+	assert.Equal(t, usWallet.Country, defaultWallet.Country)
+}
+
+func TestListWalletsMultiple(t *testing.T) {
+	// Split from TestListWallets to validate listing when multiple wallets exist.
+	ctx := context.Background()
+
+	ensureTestDBURL(t)
+	dbc := db.MigrateTestDB(t, ctx)
+
+	ctrl := gomock.NewController(t)
+	km := keys_mock.NewMockClient(ctrl)
+	km.EXPECT().ProvisionPrivateKey(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+	b := ops.NewTestBackends(t, dbc, km, users_mock.NewMock())
+
+	userID := "74a84e5f-f95d-4bb8-9f56-f1e4a8a32d07"
+
+	usWallet, err := ops.Create(ctx, b, wallets.CreateArgs{
+		UserID: userID,
+		Name:   "test1",
+	})
+	require.NoError(t, err)
+	assert.Equal(t, "test1", usWallet.Name)
+	assert.Equal(t, country.US, usWallet.Country)
+
+	zaWallet, err := ops.Create(ctx, b, wallets.CreateArgs{
+		UserID:  userID,
+		Name:    "za-wallet",
+		Country: country.ZA,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, "za-wallet", zaWallet.Name)
 	assert.Equal(t, country.ZA, zaWallet.Country)
 
 	wallets, err := ops.List(ctx, b, userID)
@@ -121,6 +192,7 @@ func TestListWallets(t *testing.T) {
 
 func TestGetWallet(t *testing.T) {
 	ctx := context.Background()
+	ensureTestDBURL(t)
 	dbc := db.MigrateTestDB(t, ctx)
 
 	ctrl := gomock.NewController(t)
