@@ -339,7 +339,9 @@ export async function passwordAction({ request }: ActionFunctionArgs) {
       statusText: response.statusText,
       flowId: kratosFlowId,
       responseBody: responseText,
-      requestTraits: kratosRequestPayload.traits
+      requestTraits: kratosRequestPayload?.traits
+        ? Object.keys(kratosRequestPayload.traits)
+        : undefined
     }, '[SIGNUP] Kratos registration failed')
     
     try {
