@@ -244,6 +244,92 @@ Long-term (code):
 
 ---
 
+## Final Resolution (Implemented)
+
+The race was fixed by making wallet creation transactionally safe in the backend. Instead of relying on row locks (which do not lock anything when no rows exist), the implementation uses a PostgreSQL advisory lock keyed by the `user_id` to serialize wallet creation for a single user. While holding that lock, the code re-checks wallet existence and makes default creation idempotent.
+
+### Key code changes (ops.Create)
+
+```go
+// Use advisory lock to prevent concurrent wallet creation for the same user
+_, err := tx.ExecContext(ctx, "SELECT pg_advisory_xact_lock(hashtext($1))", userID)
+if err != nil {
+  return fmt.Errorf("%w %s", wallets.ErrInternal, err)
+}
+
+// Check wallet count while holding the advisory lock
+var existingWalletIDs []string
+err = tx.SelectContext(ctx, &existingWalletIDs, "SELECT wallet_id FROM user_wallets WHERE user_id = $1", userID)
+if err != nil {
+  return fmt.Errorf("%w %s", wallets.ErrInternal, err)
+}
+
+// Idempotent default creation: skip if a wallet already exists
+if len(existingWalletIDs) > 0 && name == "default" {
+  walletCreated = false
+  return nil
+}
+```
+
+```go
+// If wallet wasn't created (concurrent request won), return the existing one
+if !walletCreated {
+  existingWallets, err := List(ctx, b, userID)
+  if err != nil || len(existingWallets) == 0 {
+    return nil, fmt.Errorf("%w: wallet not created and none found", wallets.ErrInternal)
+  }
+  return &existingWallets[0], nil
+}
+```
+
+### Middleware usage stays the same
+
+The middleware still calls `wc.Create()` when `List()` returns no wallets. The safety now lives inside `Create()` so concurrent gRPC requests no longer produce duplicate default wallets.
+
+```go
+if len(walletList) == 0 {
+  _, err = wc.Create(ctx, wallets.CreateArgs{
+    UserID:  u.ID,
+    Country: u.Country,
+  })
+  // ...
+}
+```
+
+### Final flow after the fix
+
+```mermaid
+sequenceDiagram
+  participant A as gRPC Req A
+  participant B as gRPC Req B
+  participant MW as Middleware
+  participant Ops as wallets.Create
+  participant DB as Database
+
+  A->>MW: List wallets (empty)
+  B->>MW: List wallets (empty)
+
+  A->>Ops: Create(default)
+  Ops->>DB: BEGIN
+  Ops->>DB: SELECT pg_advisory_xact_lock(hashtext(user_id))
+  Ops->>DB: SELECT wallet_id WHERE user_id = ?
+  Ops->>DB: INSERT wallet + user_wallets
+  Ops->>DB: COMMIT (lock released)
+
+  B->>Ops: Create(default)
+  Ops->>DB: BEGIN
+  Ops->>DB: SELECT pg_advisory_xact_lock(hashtext(user_id)) (waits)
+  Ops->>DB: SELECT wallet_id WHERE user_id = ? (now 1)
+  Ops-->>B: Skip create, return existing wallet
+  Ops->>DB: COMMIT
+
+  Note over MW: Only one default wallet exists
+```
+
+**Outcome:** concurrent default-wallet creation collapses to a single wallet; the frontend no longer gets stuck in the wallet-address redirect loop caused by duplicate wallets.
+
+---
+
 ## Practical debugging steps
 
 ✓ **Diagnostics successfully implemented** (Feb 3, 2026):
