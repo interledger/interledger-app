@@ -41,8 +41,36 @@ func Create(ctx context.Context, b Backends, args wallets.CreateArgs) (*wallets.
 		ctry = country.US
 	}
 
+	var walletCreated bool
+
 	err = crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
-		_, err := tx.ExecContext(ctx, "INSERT INTO wallets (id, name, country) VALUES ($1, $2, $3)", walletID, name, ctry)
+		// Use advisory lock to prevent concurrent wallet creation for the same user
+		// This locks on the user ID itself, not on rows (which don't exist yet for new users)
+		// pg_advisory_xact_lock uses a transaction-level lock that auto-releases on commit/rollback
+		_, err := tx.ExecContext(ctx, "SELECT pg_advisory_xact_lock(hashtext($1))", userID)
+		if err != nil {
+			return fmt.Errorf("%w %s", wallets.ErrInternal, err)
+		}
+
+		// Now check wallet count while holding the advisory lock
+		var existingWalletIDs []string
+		err = tx.SelectContext(ctx, &existingWalletIDs, "SELECT wallet_id FROM user_wallets WHERE user_id = $1", userID)
+		if err != nil {
+			return fmt.Errorf("%w %s", wallets.ErrInternal, err)
+		}
+
+		existingCount := len(existingWalletIDs)
+
+		// If user already has wallets (from concurrent request), skip creation
+		// This makes Create() idempotent for the middleware use case
+		if existingCount > 0 && name == "default" {
+			walletCreated = false
+			return nil
+		}
+
+		walletCreated = true
+
+		_, err = tx.ExecContext(ctx, "INSERT INTO wallets (id, name, country) VALUES ($1, $2, $3)", walletID, name, ctry)
 		if err != nil {
 			return fmt.Errorf("%w %s", wallets.ErrInternal, err)
 		}
@@ -72,13 +100,22 @@ func Create(ctx context.Context, b Backends, args wallets.CreateArgs) (*wallets.
 		return nil
 	})
 
+	if err != nil {
+		return nil, err
+	}
+
+	// If wallet wasn't created (concurrent creation), return the existing one
+	if !walletCreated {
+		existingWallets, err := List(ctx, b, userID)
+		if err != nil || len(existingWallets) == 0 {
+			return nil, fmt.Errorf("%w: wallet not created and none found", wallets.ErrInternal)
+		}
+		return &existingWallets[0], nil
+	}
+
 	b.Analytics().TrackWalletCreated(walletID, userID)
 	for range args.Addresses {
 		b.Analytics().TrackWalletPaymentPointerCreated(walletID)
-	}
-
-	if err != nil {
-		return nil, err
 	}
 	// Do not provision custodial private key
 	// err = b.Keys().ProvisionPrivateKey(ctx, walletID)
