@@ -344,18 +344,18 @@ export default function Page() {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  console.log('[KYC] Personal details action called - marking KYC status as pending')
+  logger.info({}, '[KYC] Personal details action called - marking KYC status as pending')
   
   await exitFlow(request, flowType.PersonalDetails)
 
   const setKycResponse = await grpc.setKYCStatusPending(request, {})
   
   if (isConnectError(setKycResponse)) {
-    console.error('[KYC] Failed to set KYC status as pending:', setKycResponse)
+    logger.error({ error: setKycResponse }, '[KYC] Failed to set KYC status as pending')
     throw setKycResponse.errorResponse
   }
   
-  console.log('[KYC] KYC status set to pending successfully')
+  logger.info({}, '[KYC] KYC status set to pending successfully')
 
   return redirectWithSnackbar(request, route('/'), {
     message: 'Personal details captured.',

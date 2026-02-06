@@ -35,7 +35,7 @@ export function withLoggingContext<T extends any[] | Record<string, any>>(
     )
   }
 }
-
+typescript/protea/app/routes/personal-details.tsx
 /**
  * Helper to log with request context automatically attached
  * Usage: logWithContext('info', { userId: '123' }, 'User logged in')
