@@ -26,6 +26,11 @@
 ✓ No interface changes required (backward compatible)  
 ⏳ **Pending**: Rebuild backend and run tests to validate fix
 
+**Test updates (Feb 6, 2026):**
+- Split `TestListWallets` into focused tests to match the new idempotent default-wallet behavior.
+- Added `TestCreateDefaultWalletIsIdempotent` to assert that creating a default wallet after any existing wallet returns the existing one.
+- Added `TestListWalletsMultiple` to cover listing two distinct wallets created with explicit names.
+
 The intermittent "multiple wallets" warning observed in `@kyc` tests stems from a **confirmed race condition** between concurrent gRPC requests during login that both trigger the middleware wallet auto-provisioning logic.
 
 **Root Cause Confirmed (Feb 3, 2026)**: 
