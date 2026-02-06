@@ -256,7 +256,7 @@ export async function kratosErrorMapping<T extends object>(
           'Kratos validation error on node'
         )
         Object.assign(fieldErrors, {
-          [node.attributes?.name]: kratosErrorMessage(messages[0])
+          [node.attributes?.name]: kratosErrorMessage(node.messages[0])
         })
       }
     }
