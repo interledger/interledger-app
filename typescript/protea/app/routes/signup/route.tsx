@@ -328,7 +328,7 @@ export async function passwordAction({ request }: ActionFunctionArgs) {
   logger.info({
     status: response.status,
     statusText: response.statusText,
-    headers: Object.fromEntries(response.headers.entries())
+    headers: Object.fromEntries(trimHeaders(response.headers, ['set-cookie']).entries())
   }, '[SIGNUP] Kratos registration response')
   
   if (response.status >= 400) {
