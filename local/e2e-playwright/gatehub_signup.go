@@ -5,7 +5,7 @@ import (
 )
 
 // iCompleteSignupFlow runs the full signup flow with provided user details.
-func (sc *SignupContext) iCompleteSignupFlow(firstName, lastName, email, country, phone, password string) error {
+func (sc *E2EContext) iCompleteSignupFlow(firstName, lastName, email, country, phone, password string) error {
 	// Store password (email prefixing is handled by iFillInWith)
 	sc.password = password
 	sc.firstName = firstName

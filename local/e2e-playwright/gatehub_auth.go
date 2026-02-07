@@ -15,7 +15,7 @@ import (
 )
 
 // iFillInLoginCredentials fills in email and password on the login page
-func (sc *SignupContext) iFillInLoginCredentials(email, password string) error {
+func (sc *E2EContext) iFillInLoginCredentials(email, password string) error {
 	// Check if email is already prefixed (starts with testEmailPrefix)
 	// If not, prefix it
 	prefixedEmail := email
@@ -99,7 +99,7 @@ func (sc *SignupContext) iFillInLoginCredentials(email, password string) error {
 }
 
 // iSubmitTheLogin clicks the login submit button
-func (sc *SignupContext) iSubmitTheLogin() error {
+func (sc *E2EContext) iSubmitTheLogin() error {
 	// Take a screenshot before submitting to see what's on the page
 	_ = sc.iTakeAScreenshot("before-login-submit")
 
@@ -164,7 +164,7 @@ func (sc *SignupContext) iSubmitTheLogin() error {
 }
 
 // iShouldBeNavigatedToTheTOTPPage verifies we're on the TOTP setup/registration page
-func (sc *SignupContext) iShouldBeNavigatedToTheTOTPPage() error {
+func (sc *E2EContext) iShouldBeNavigatedToTheTOTPPage() error {
 	// Retry up to 20 times (10 seconds total) to give navigation time to complete
 	for i := 0; i < 20; i++ {
 		currentURL := sc.page.URL()
@@ -189,7 +189,7 @@ func (sc *SignupContext) iShouldBeNavigatedToTheTOTPPage() error {
 }
 
 // iTypeInMyGeneratedTotpForMyNewUser generates and enters a TOTP code
-func (sc *SignupContext) iTypeInMyGeneratedTotpForMyNewUser() error {
+func (sc *E2EContext) iTypeInMyGeneratedTotpForMyNewUser() error {
 	// The TOTP secret should be visible on the page for first-time setup
 	// We need to extract it from the page and generate a code
 
@@ -244,7 +244,7 @@ func (sc *SignupContext) iTypeInMyGeneratedTotpForMyNewUser() error {
 }
 
 // iShouldBeNavigatedToTheApplicationDashboard verifies navigation to dashboard after TOTP
-func (sc *SignupContext) iShouldBeNavigatedToTheApplicationDashboard() error {
+func (sc *E2EContext) iShouldBeNavigatedToTheApplicationDashboard() error {
 	// Wait for page load
 	time.Sleep(1 * time.Second)
 
@@ -276,7 +276,7 @@ func (sc *SignupContext) iShouldBeNavigatedToTheApplicationDashboard() error {
 }
 
 // extractTOTPSecretFromPage extracts the TOTP secret from the page HTML
-func (sc *SignupContext) extractTOTPSecretFromPage(htmlContent string) (string, error) {
+func (sc *E2EContext) extractTOTPSecretFromPage(htmlContent string) (string, error) {
 	// The TOTP secret is displayed as plain text in the HTML (e.g., "WMU5UNIH7K5Q2U7JWYLYLUIIJX7UYKWK")
 	// Look for a base32 string (uppercase letters A-Z and digits 2-7) that's typically 32 characters
 	secretRegex := regexp.MustCompile(`\b([A-Z2-7]{32})\b`)
@@ -323,7 +323,7 @@ func (sc *SignupContext) extractTOTPSecretFromPage(htmlContent string) (string, 
 }
 
 // iSubmitTheTotpRegistration clicks the TOTP registration submit button
-func (sc *SignupContext) iSubmitTheTotpRegistration() error {
+func (sc *E2EContext) iSubmitTheTotpRegistration() error {
 	// Find submit button
 	submitButton := sc.page.Locator("button[type='submit'], button:has-text('Verify'), button:has-text('Submit'), button:has-text('Enable'), button:has-text('Continue')")
 	submitCount, _ := submitButton.Count()

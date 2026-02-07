@@ -10,7 +10,7 @@ import (
 // associated with the current test user. It returns when the observed
 // count is >= expectedMin for `stableFor` consecutive checks or when
 // the timeout is reached.
-func (sc *SignupContext) waitForStableWalletCount(expectedMin int, stableFor int, timeout time.Duration) error {
+func (sc *E2EContext) waitForStableWalletCount(expectedMin int, stableFor int, timeout time.Duration) error {
 	if sc.db == nil {
 		connStr := "host=localhost port=5432 user=postgres password=postgres dbname=backend sslmode=disable"
 		db, err := sql.Open("postgres", connStr)

@@ -12,7 +12,7 @@ import (
 // Navigation step implementations
 
 // iClearTheBrowserSession clears cookies and storage to reset the session
-func (sc *SignupContext) iClearTheBrowserSession() error {
+func (sc *E2EContext) iClearTheBrowserSession() error {
 	debugPrintln("\n🔄 Clearing browser session (cookies and storage)...")
 
 	if sc.context == nil {
@@ -37,7 +37,7 @@ func (sc *SignupContext) iClearTheBrowserSession() error {
 }
 
 // iNavigateToURL navigates to a specific URL
-func (sc *SignupContext) iNavigateToURL(url string) error {
+func (sc *E2EContext) iNavigateToURL(url string) error {
 	debugPrintf("\n🌐 Navigating to: %s\n", url)
 
 	if sc.page == nil {
@@ -61,7 +61,7 @@ func (sc *SignupContext) iNavigateToURL(url string) error {
 	return nil
 }
 
-func (sc *SignupContext) iNavigateToTheSignupPage() error {
+func (sc *E2EContext) iNavigateToTheSignupPage() error {
 	// Setup browser if not already done
 	if sc.browser == nil {
 		pw, err := playwright.Run()
@@ -117,7 +117,7 @@ func (sc *SignupContext) iNavigateToTheSignupPage() error {
 	return nil
 }
 
-func (sc *SignupContext) iClickTheButton(buttonText string) error {
+func (sc *E2EContext) iClickTheButton(buttonText string) error {
 	// Debug: Take screenshot before clicking to see what's on the page
 	_ = sc.iTakeAScreenshot(fmt.Sprintf("before-%s", strings.ReplaceAll(strings.ToLower(buttonText), " ", "-")))
 
@@ -158,7 +158,7 @@ func (sc *SignupContext) iClickTheButton(buttonText string) error {
 	return nil
 }
 
-func (sc *SignupContext) iShouldSeeTheSignupForm() error {
+func (sc *E2EContext) iShouldSeeTheSignupForm() error {
 	// Check if we're on the signup page
 	currentURL := sc.page.URL()
 	if !strings.Contains(currentURL, "/signup") {
@@ -188,13 +188,13 @@ func (sc *SignupContext) iShouldSeeTheSignupForm() error {
 	return fmt.Errorf("signup form not found: first name input not visible")
 }
 
-func (sc *SignupContext) iShouldBeOnStep(step int) error {
+func (sc *E2EContext) iShouldBeOnStep(step int) error {
 	sc.currentStep = step
 	time.Sleep(500 * time.Millisecond)
 	return nil
 }
 
-func (sc *SignupContext) iTakeAScreenshot(name string) error {
+func (sc *E2EContext) iTakeAScreenshot(name string) error {
 	os.MkdirAll("./debug", 0755)
 	sc.screenshotCount++
 	path := fmt.Sprintf("./debug/%s-%02d-%s.png", sc.testEmailPrefix, sc.screenshotCount, name)
@@ -204,7 +204,7 @@ func (sc *SignupContext) iTakeAScreenshot(name string) error {
 	return err
 }
 
-func (sc *SignupContext) iNavigateToTheLoginPage() error {
+func (sc *E2EContext) iNavigateToTheLoginPage() error {
 	loginURL := sc.baseURL + "/login"
 	_, err := sc.page.Goto(loginURL, playwright.PageGotoOptions{
 		Timeout:   playwright.Float(30000),

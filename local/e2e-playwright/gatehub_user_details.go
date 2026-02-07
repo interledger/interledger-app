@@ -22,7 +22,7 @@ type UserDetails struct {
 //	| field           | value                        |
 //	| emailSuffix     | alice@example.com            |
 //	| password        | InterlEdger2025!TestPassword |
-func (sc *SignupContext) theDetailsOfAre(userName string, table *godog.Table) error {
+func (sc *E2EContext) theDetailsOfAre(userName string, table *godog.Table) error {
 	// Initialize the map if it doesn't exist
 	if sc.userDetails == nil {
 		sc.userDetails = make(map[string]*UserDetails)
@@ -49,7 +49,7 @@ func (sc *SignupContext) theDetailsOfAre(userName string, table *godog.Table) er
 
 // iImpersonate sets up the current user context
 // Usage: And I impersonate 'kyc-user'
-func (sc *SignupContext) iImpersonate(userName string) error {
+func (sc *E2EContext) iImpersonate(userName string) error {
 	details, exists := sc.userDetails[userName]
 	if !exists {
 		return fmt.Errorf("no details defined for user '%s'", userName)
@@ -102,7 +102,7 @@ func (sc *SignupContext) iImpersonate(userName string) error {
 }
 
 // getFieldValue retrieves a field value from the current impersonated user
-func (sc *SignupContext) getFieldValue(fieldKey string) (string, error) {
+func (sc *E2EContext) getFieldValue(fieldKey string) (string, error) {
 	if sc.currentUser == "" {
 		return "", fmt.Errorf("no user currently impersonated")
 	}
@@ -131,7 +131,7 @@ func getMapKeys(m map[string]string) []string {
 
 // iFillInWithMy fills a form field with a value from the current user's details
 // Usage: I fill in "first name" with my "firstName"
-func (sc *SignupContext) iFillInWithMy(fieldName, fieldKey string) error {
+func (sc *E2EContext) iFillInWithMy(fieldName, fieldKey string) error {
 	value, err := sc.getFieldValue(fieldKey)
 	if err != nil {
 		return err
@@ -143,7 +143,7 @@ func (sc *SignupContext) iFillInWithMy(fieldName, fieldKey string) error {
 
 // iFillInWithPrefixed fills a form field with a value prefixed with the random test identifier
 // Usage: I fill in "email" with "emailSuffix" prefixed with the random identifier
-func (sc *SignupContext) iFillInWithPrefixed(fieldName, fieldKey string) error {
+func (sc *E2EContext) iFillInWithPrefixed(fieldName, fieldKey string) error {
 	value, err := sc.getFieldValue(fieldKey)
 	if err != nil {
 		return err
@@ -164,7 +164,7 @@ func (sc *SignupContext) iFillInWithPrefixed(fieldName, fieldKey string) error {
 // iTryToFillInWithMy tries to fill a form field with a value from the current user's details
 // Doesn't fail if element doesn't exist
 // Usage: I try to fill in "password" with my "password"
-func (sc *SignupContext) iTryToFillInWithMy(fieldName, fieldKey string) error {
+func (sc *E2EContext) iTryToFillInWithMy(fieldName, fieldKey string) error {
 	value, err := sc.getFieldValue(fieldKey)
 	if err != nil {
 		return err
@@ -176,7 +176,7 @@ func (sc *SignupContext) iTryToFillInWithMy(fieldName, fieldKey string) error {
 
 // getCurrentUserEmail retrieves the email for the current user
 // Fails fast if user not set or email not stored
-func (sc *SignupContext) getCurrentUserEmail() (string, error) {
+func (sc *E2EContext) getCurrentUserEmail() (string, error) {
 	if sc.currentUser == "" {
 		return "", fmt.Errorf("no current user set - cannot retrieve email")
 	}
@@ -193,7 +193,7 @@ func (sc *SignupContext) getCurrentUserEmail() (string, error) {
 
 // getCurrentUserPhone retrieves the phone for the current user
 // Fails fast if user not set or phone not stored
-func (sc *SignupContext) getCurrentUserPhone() (string, error) {
+func (sc *E2EContext) getCurrentUserPhone() (string, error) {
 	if sc.currentUser == "" {
 		return "", fmt.Errorf("no current user set - cannot retrieve phone")
 	}
@@ -210,7 +210,7 @@ func (sc *SignupContext) getCurrentUserPhone() (string, error) {
 
 // getCurrentUserTOTPSecret retrieves the TOTP secret for the current user
 // Fails fast if user not set or TOTP secret not stored
-func (sc *SignupContext) getCurrentUserTOTPSecret() (string, error) {
+func (sc *E2EContext) getCurrentUserTOTPSecret() (string, error) {
 	if sc.currentUser == "" {
 		return "", fmt.Errorf("no current user set - cannot retrieve TOTP secret")
 	}

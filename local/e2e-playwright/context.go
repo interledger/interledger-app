@@ -16,8 +16,8 @@ import (
 	"github.com/playwright-community/playwright-go"
 )
 
-// SignupContext holds the test context for signup scenarios
-type SignupContext struct {
+// E2EContext holds the test context for signup scenarios
+type E2EContext struct {
 	browser     playwright.Browser
 	context     playwright.BrowserContext
 	page        playwright.Page
@@ -50,13 +50,13 @@ type SignupContext struct {
 
 // InitializeScenario sets up the scenario context
 func InitializeScenario(ctx *godog.ScenarioContext) {
-	var sc *SignupContext
+	var sc *E2EContext
 
 	// Background steps
 	ctx.Before(func(goCtx context.Context, scenario *godog.Scenario) (context.Context, error) {
 		// Create a fresh SignupContext for each scenario
 		// This ensures complete isolation between scenarios
-		sc = &SignupContext{}
+		sc = &E2EContext{}
 		debugPrintf("\n🔧 Initialized new context for scenario: %s\n", scenario.Name)
 		return goCtx, nil
 	})
@@ -209,7 +209,7 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 
 // Background step implementations
 
-func (sc *SignupContext) aRandomTestIdentifierIsGenerated() error {
+func (sc *E2EContext) aRandomTestIdentifierIsGenerated() error {
 	// Generate a random test identifier based on current timestamp
 	// This ensures uniqueness across test runs
 	sc.testEmailPrefix = fmt.Sprintf("%d", time.Now().UnixNano()%1000000)
@@ -217,7 +217,7 @@ func (sc *SignupContext) aRandomTestIdentifierIsGenerated() error {
 	return nil
 }
 
-func (sc *SignupContext) theFrontendIsRunningAt(url string) error {
+func (sc *E2EContext) theFrontendIsRunningAt(url string) error {
 	sc.baseURL = url
 	return sc.ensureHostsResolve([]string{
 		"interledger.test",
@@ -225,7 +225,7 @@ func (sc *SignupContext) theFrontendIsRunningAt(url string) error {
 	})
 }
 
-func (sc *SignupContext) ensureHostsResolve(hosts []string) error {
+func (sc *E2EContext) ensureHostsResolve(hosts []string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
@@ -245,7 +245,7 @@ type kratosIdentity struct {
 	Credentials map[string]interface{} `json:"credentials"`
 }
 
-func (sc *SignupContext) getKratosUserIDByEmail(email string) string {
+func (sc *E2EContext) getKratosUserIDByEmail(email string) string {
 	kratosAdminURL := os.Getenv("KRATOS_ADMIN_URL")
 	if kratosAdminURL == "" {
 		kratosAdminURL = "http://localhost:4434"
@@ -294,7 +294,7 @@ func (sc *SignupContext) getKratosUserIDByEmail(email string) string {
 	return ""
 }
 
-func (sc *SignupContext) deleteKratosIdentityByEmail(email string) error {
+func (sc *E2EContext) deleteKratosIdentityByEmail(email string) error {
 	kratosAdminURL := os.Getenv("KRATOS_ADMIN_URL")
 	if kratosAdminURL == "" {
 		kratosAdminURL = "http://localhost:4434"

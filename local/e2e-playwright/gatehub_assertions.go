@@ -16,7 +16,7 @@ import (
 
 // Assertion step implementations
 
-func (sc *SignupContext) theSignupShouldBeSubmitted() error {
+func (sc *E2EContext) theSignupShouldBeSubmitted() error {
 	// Verify password was filled during the flow
 	if !sc.passwordFilled {
 		return fmt.Errorf("password was never filled during signup flow")
@@ -28,7 +28,7 @@ func (sc *SignupContext) theSignupShouldBeSubmitted() error {
 	return nil
 }
 
-func (sc *SignupContext) iShouldSeeValidationErrors() error {
+func (sc *E2EContext) iShouldSeeValidationErrors() error {
 	content, _ := sc.page.Content()
 	hasError := strings.Contains(strings.ToLower(content), "required") ||
 		strings.Contains(strings.ToLower(content), "please") ||
@@ -43,7 +43,7 @@ func (sc *SignupContext) iShouldSeeValidationErrors() error {
 	return nil
 }
 
-func (sc *SignupContext) aSignupRecordShouldExistInTheDatabase(email string) error {
+func (sc *E2EContext) aSignupRecordShouldExistInTheDatabase(email string) error {
 	// Initialize database connection if not already done
 	if sc.db == nil {
 		connStr := "host=localhost port=5432 user=postgres password=postgres dbname=backend sslmode=disable"
@@ -90,7 +90,7 @@ func (sc *SignupContext) aSignupRecordShouldExistInTheDatabase(email string) err
 	return nil
 }
 
-func (sc *SignupContext) theSignupShouldHaveFirstName(expectedFirstName string) error {
+func (sc *E2EContext) theSignupShouldHaveFirstName(expectedFirstName string) error {
 	email, err := sc.getCurrentUserEmail()
 	if err != nil {
 		return err
@@ -110,7 +110,7 @@ func (sc *SignupContext) theSignupShouldHaveFirstName(expectedFirstName string) 
 	return nil
 }
 
-func (sc *SignupContext) theSignupShouldHaveLastName(expectedLastName string) error {
+func (sc *E2EContext) theSignupShouldHaveLastName(expectedLastName string) error {
 	email, err := sc.getCurrentUserEmail()
 	if err != nil {
 		return err
@@ -129,7 +129,7 @@ func (sc *SignupContext) theSignupShouldHaveLastName(expectedLastName string) er
 	return nil
 }
 
-func (sc *SignupContext) theSignupShouldHaveCountryCode(expectedCode string) error {
+func (sc *E2EContext) theSignupShouldHaveCountryCode(expectedCode string) error {
 	email, err := sc.getCurrentUserEmail()
 	if err != nil {
 		return err
@@ -149,7 +149,7 @@ func (sc *SignupContext) theSignupShouldHaveCountryCode(expectedCode string) err
 }
 
 // iShouldBeAbleToVerifyTheFullUserStatus checks the complete state of the user after signup
-func (sc *SignupContext) iShouldBeAbleToVerifyTheFullUserStatus() error {
+func (sc *E2EContext) iShouldBeAbleToVerifyTheFullUserStatus() error {
 	email, err := sc.getCurrentUserEmail()
 	if err != nil {
 		return err
@@ -188,7 +188,7 @@ func (sc *SignupContext) iShouldBeAbleToVerifyTheFullUserStatus() error {
 }
 
 // iTriggerUserVerificationFor ensures Kratos identity exists and marks user as verified
-func (sc *SignupContext) iTriggerUserVerificationFor(email string) error {
+func (sc *E2EContext) iTriggerUserVerificationFor(email string) error {
 	// Check if email is already prefixed (starts with testEmailPrefix)
 	// If not, prefix it
 	prefixedEmail := email
@@ -328,7 +328,7 @@ func (sc *SignupContext) iTriggerUserVerificationFor(email string) error {
 }
 
 // getKratosIdentities retrieves all Kratos identities
-func (sc *SignupContext) getKratosIdentities() ([]kratosIdentity, error) {
+func (sc *E2EContext) getKratosIdentities() ([]kratosIdentity, error) {
 	kratosAdminURL := os.Getenv("KRATOS_ADMIN_URL")
 	if kratosAdminURL == "" {
 		kratosAdminURL = "http://localhost:4434"
@@ -396,7 +396,7 @@ func (sc *SignupContext) getKratosIdentities() ([]kratosIdentity, error) {
 }
 
 // rafikiAssetsExist checks if required Rafiki assets are seeded
-func (sc *SignupContext) rafikiAssetsExist() error {
+func (sc *E2EContext) rafikiAssetsExist() error {
 	debugPrintln("\n🔍 Checking if Rafiki assets are seeded...")
 
 	// Required assets for the tests

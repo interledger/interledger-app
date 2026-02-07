@@ -16,7 +16,7 @@ func init() {
 // Form filling step implementations
 
 // iFillInPhoneWithRandomNumber generates a random phone number with provided prefix and fills it
-func (sc *SignupContext) iFillInPhoneWithRandomNumber(prefix string) error {
+func (sc *E2EContext) iFillInPhoneWithRandomNumber(prefix string) error {
 	// Get the current user's details to extract the email suffix
 	if sc.currentUser == "" {
 		return fmt.Errorf("no current user set for phone generation")
@@ -129,7 +129,7 @@ func (sc *SignupContext) iFillInPhoneWithRandomNumber(prefix string) error {
 	return nil
 }
 
-func (sc *SignupContext) iFillInWith(fieldName, value string) error {
+func (sc *E2EContext) iFillInWith(fieldName, value string) error {
 	var input playwright.Locator
 
 	switch strings.ToLower(fieldName) {
@@ -256,7 +256,7 @@ func (sc *SignupContext) iFillInWith(fieldName, value string) error {
 }
 
 // iTryToFillInWith attempts to fill a field but doesn't fail if the field isn't found
-func (sc *SignupContext) iTryToFillInWith(fieldName, value string) error {
+func (sc *E2EContext) iTryToFillInWith(fieldName, value string) error {
 	err := sc.iFillInWith(fieldName, value)
 	if err != nil {
 		// Field not found or couldn't be filled - OK for optional fields
@@ -266,7 +266,7 @@ func (sc *SignupContext) iTryToFillInWith(fieldName, value string) error {
 	return nil
 }
 
-func (sc *SignupContext) iSelectFromTheCountryDropdown(country string) error {
+func (sc *E2EContext) iSelectFromTheCountryDropdown(country string) error {
 	// Find country input - be very specific to avoid selecting wrong field
 	var countryInput playwright.Locator
 
@@ -437,7 +437,7 @@ func (sc *SignupContext) iSelectFromTheCountryDropdown(country string) error {
 	return nil
 }
 
-func (sc *SignupContext) iCheckTheTermsAndConditionsCheckbox() error {
+func (sc *E2EContext) iCheckTheTermsAndConditionsCheckbox() error {
 	time.Sleep(500 * time.Millisecond)
 
 	// Look for checkbox - try various selectors
@@ -483,7 +483,7 @@ func (sc *SignupContext) iCheckTheTermsAndConditionsCheckbox() error {
 	return nil
 }
 
-func (sc *SignupContext) iTryToSubmitWithoutFillingRequiredFields() error {
+func (sc *E2EContext) iTryToSubmitWithoutFillingRequiredFields() error {
 	submitButton := sc.page.Locator("button:has-text('Continue'), button:has-text('Submit'), button[type='submit']")
 	count, _ := submitButton.Count()
 	if count > 0 {

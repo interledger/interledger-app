@@ -10,7 +10,7 @@ import (
 )
 
 // iShouldBeOnTheWalletAddressCreationPage verifies we're on the wallet address form
-func (sc *SignupContext) iShouldBeOnTheWalletAddressCreationPage() error {
+func (sc *E2EContext) iShouldBeOnTheWalletAddressCreationPage() error {
 	debugPrintln("\n🏷️  Verifying we're on the wallet address creation page...")
 
 	// Wait for middleware to finish auto-provisioning (if it's going to)
@@ -38,7 +38,7 @@ func (sc *SignupContext) iShouldBeOnTheWalletAddressCreationPage() error {
 }
 
 // iShouldBeRedirectedToTheWalletAddressCreationPage waits for redirect to the wallet address page.
-func (sc *SignupContext) iShouldBeRedirectedToTheWalletAddressCreationPage() error {
+func (sc *E2EContext) iShouldBeRedirectedToTheWalletAddressCreationPage() error {
 	debugPrintln("\n🔁 Waiting to be redirected to the wallet address creation page...")
 
 	for i := 0; i < 15; i++ {
@@ -54,7 +54,7 @@ func (sc *SignupContext) iShouldBeRedirectedToTheWalletAddressCreationPage() err
 }
 
 // iFillInAndSubmitTheWalletAddressFormWithAUniqueAddress fills the wallet address form (without clicking submit)
-func (sc *SignupContext) iFillInAndSubmitTheWalletAddressFormWithAUniqueAddress() error {
+func (sc *E2EContext) iFillInAndSubmitTheWalletAddressFormWithAUniqueAddress() error {
 	debugPrintln("\n📝 Filling in wallet address form...")
 
 	time.Sleep(1 * time.Second)
@@ -151,7 +151,7 @@ func (sc *SignupContext) iFillInAndSubmitTheWalletAddressFormWithAUniqueAddress(
 }
 
 // iClickTheButtonOnTheWalletAddressForm clicks a specific button on the wallet-address form
-func (sc *SignupContext) iClickTheButtonOnTheWalletAddressForm(buttonText string) error {
+func (sc *E2EContext) iClickTheButtonOnTheWalletAddressForm(buttonText string) error {
 	debugPrintf("\n🖱️  Clicking '%s' button on wallet-address form...\n", buttonText)
 
 	time.Sleep(500 * time.Millisecond)
@@ -271,7 +271,7 @@ func (sc *SignupContext) iClickTheButtonOnTheWalletAddressForm(buttonText string
 }
 
 // iShouldBeNavigatedBackToTheDashboardWithReservedWalletStatus verifies redirect and reserved status
-func (sc *SignupContext) iShouldBeNavigatedBackToTheDashboardWithReservedWalletStatus() error {
+func (sc *E2EContext) iShouldBeNavigatedBackToTheDashboardWithReservedWalletStatus() error {
 	debugPrintln("\n🏠 Verifying dashboard with reserved wallet status...")
 
 	// Wait longer for form submission and navigation to complete

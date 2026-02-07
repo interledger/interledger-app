@@ -17,7 +17,7 @@ func truncateString(s string, maxLen int) string {
 }
 
 // iNavigateToTheDashboard navigates to the main dashboard
-func (sc *SignupContext) iNavigateToTheDashboard() error {
+func (sc *E2EContext) iNavigateToTheDashboard() error {
 	debugPrintln("\n📊 Navigating to dashboard...")
 
 	url := sc.baseURL + "/"
@@ -37,7 +37,7 @@ func (sc *SignupContext) iNavigateToTheDashboard() error {
 }
 
 // iShouldSeeMyAccountBalanceWith verifies the account balance is displayed
-func (sc *SignupContext) iShouldSeeMyAccountBalanceWith(amount, currency string) error {
+func (sc *E2EContext) iShouldSeeMyAccountBalanceWith(amount, currency string) error {
 	debugPrintf("\n💰 Verifying balance: %s %s\n", amount, currency)
 
 	// Log which user we expect to be logged in as
@@ -159,7 +159,7 @@ func (sc *SignupContext) iShouldSeeMyAccountBalanceWith(amount, currency string)
 }
 
 // iNavigateToTheSendPaymentPage navigates to the send payment page
-func (sc *SignupContext) iNavigateToTheSendPaymentPage() error {
+func (sc *E2EContext) iNavigateToTheSendPaymentPage() error {
 	debugPrintln("\n💸 Navigating to send payment page...")
 
 	// Try common payment page paths
@@ -191,7 +191,7 @@ func (sc *SignupContext) iNavigateToTheSendPaymentPage() error {
 }
 
 // iShouldSeeThePaymentsPage verifies the payments page is displayed
-func (sc *SignupContext) iShouldSeeThePaymentsPage() error {
+func (sc *E2EContext) iShouldSeeThePaymentsPage() error {
 	debugPrintln("\n📋 Verifying payments page...")
 
 	// Check if we're on a payments-related URL
@@ -214,7 +214,7 @@ func (sc *SignupContext) iShouldSeeThePaymentsPage() error {
 }
 
 // iFillInTheReceiverEmailWith fills in the receiver email from stored user details
-func (sc *SignupContext) iFillInTheReceiverEmailWith(userName string) error {
+func (sc *E2EContext) iFillInTheReceiverEmailWith(userName string) error {
 	debugPrintf("\n📧 Filling receiver email for user '%s'\n", userName)
 
 	// Get the user's email from stored details
@@ -254,7 +254,7 @@ func (sc *SignupContext) iFillInTheReceiverEmailWith(userName string) error {
 }
 
 // iFillInThePaymentAmount fills in the payment amount
-func (sc *SignupContext) iFillInThePaymentAmount(amount string) error {
+func (sc *E2EContext) iFillInThePaymentAmount(amount string) error {
 	debugPrintf("\n💵 Filling payment amount: %s\n", amount)
 
 	// Prefer stable test selector
@@ -292,7 +292,7 @@ func (sc *SignupContext) iFillInThePaymentAmount(amount string) error {
 }
 
 // iSelectThePaymentCurrency selects the payment currency
-func (sc *SignupContext) iSelectThePaymentCurrency(currency string) error {
+func (sc *E2EContext) iSelectThePaymentCurrency(currency string) error {
 	debugPrintf("\n💱 Selecting currency: %s\n", currency)
 
 	// Prefer headless-ui listbox test selectors
@@ -335,7 +335,7 @@ func (sc *SignupContext) iSelectThePaymentCurrency(currency string) error {
 }
 
 // iSubmitThePayment submits the payment form
-func (sc *SignupContext) iSubmitThePayment() error {
+func (sc *E2EContext) iSubmitThePayment() error {
 	debugPrintln("\n📤 Submitting payment...")
 
 	confirmButton := sc.page.Locator("[data-testid='pay-confirm-submit']")
@@ -401,7 +401,7 @@ func (sc *SignupContext) iSubmitThePayment() error {
 }
 
 // iShouldSeeAPaymentConfirmation waits for payment confirmation
-func (sc *SignupContext) iShouldSeeAPaymentConfirmation() error {
+func (sc *E2EContext) iShouldSeeAPaymentConfirmation() error {
 	debugPrintln("\n✅ Waiting for payment confirmation...")
 
 	// Look for confirmation message or success state
@@ -437,7 +437,7 @@ func (sc *SignupContext) iShouldSeeAPaymentConfirmation() error {
 }
 
 // iWaitForThePaymentToComplete waits for the payment to be processed
-func (sc *SignupContext) iWaitForThePaymentToComplete() error {
+func (sc *E2EContext) iWaitForThePaymentToComplete() error {
 	debugPrintln("\n⏳ Waiting for payment to complete...")
 
 	// Wait for Temporal workflow to process the payment
@@ -463,7 +463,7 @@ func (sc *SignupContext) iWaitForThePaymentToComplete() error {
 }
 
 // iDepositViATheDepositIframeAsUser completes the deposit flow for a specific user
-func (sc *SignupContext) iDepositViATheDepositIframeAsUser(amount, currency, userName string) error {
+func (sc *E2EContext) iDepositViATheDepositIframeAsUser(amount, currency, userName string) error {
 	debugPrintf("\n💶 Depositing %s %s as '%s' via iframe...\n", amount, currency, userName)
 
 	// Impersonate the user first
@@ -480,7 +480,7 @@ func (sc *SignupContext) iDepositViATheDepositIframeAsUser(amount, currency, use
 }
 
 // thePaymentFormShouldBeAccessible verifies the payment form is accessible
-func (sc *SignupContext) thePaymentFormShouldBeAccessible() error {
+func (sc *E2EContext) thePaymentFormShouldBeAccessible() error {
 	debugPrintln("\n✅ Verifying payment form is accessible...")
 
 	// Check if we can find the payment form elements that we just filled
@@ -496,7 +496,7 @@ func (sc *SignupContext) thePaymentFormShouldBeAccessible() error {
 }
 
 // iGetTheReceiverWalletAddressFor retrieves the wallet address for a user
-func (sc *SignupContext) iNavigateToThePaymentsHistoryPage() error {
+func (sc *E2EContext) iNavigateToThePaymentsHistoryPage() error {
 	debugPrintln("\n📋 Navigating to payments history page...")
 
 	url := sc.baseURL + "/payments"
@@ -520,7 +520,7 @@ func (sc *SignupContext) iNavigateToThePaymentsHistoryPage() error {
 }
 
 // iGetTheReceiverWalletAddressFor retrieves the wallet address for a user
-func (sc *SignupContext) iGetTheReceiverWalletAddressFor(userName string) error {
+func (sc *E2EContext) iGetTheReceiverWalletAddressFor(userName string) error {
 	debugPrintf("\n🔍 Getting wallet address for '%s'...\n", userName)
 
 	// Get the user's email from stored details
@@ -553,7 +553,7 @@ func (sc *SignupContext) iGetTheReceiverWalletAddressFor(userName string) error 
 }
 
 // iFillInTheReceiverWalletAddress fills in the receiver wallet address field
-func (sc *SignupContext) iFillInTheReceiverWalletAddress() error {
+func (sc *E2EContext) iFillInTheReceiverWalletAddress() error {
 	debugPrintf("\n💳 Filling receiver wallet address: %s\n", sc.receiverWalletAddress)
 
 	if sc.receiverWalletAddress == "" {
@@ -635,7 +635,7 @@ func (sc *SignupContext) iFillInTheReceiverWalletAddress() error {
 }
 
 // iWaitSecondsForThePaymentToComplete waits for specified seconds for payment to complete
-func (sc *SignupContext) iWaitSecondsForThePaymentToComplete(seconds string) error {
+func (sc *E2EContext) iWaitSecondsForThePaymentToComplete(seconds string) error {
 	secondsInt := parseSeconds(seconds)
 	debugPrintf("\n⏳ Waiting %d seconds for payment to complete...\n", secondsInt)
 
@@ -651,7 +651,7 @@ func (sc *SignupContext) iWaitSecondsForThePaymentToComplete(seconds string) err
 }
 
 // iWaitSecondsForTheDepositToProcess waits for specified seconds for deposit to process
-func (sc *SignupContext) iWaitSecondsForTheDepositToProcess(seconds string) error {
+func (sc *E2EContext) iWaitSecondsForTheDepositToProcess(seconds string) error {
 	secondsInt := parseSeconds(seconds)
 	debugPrintf("\n⏳ Waiting %d seconds for deposit to process...\n", secondsInt)
 
@@ -667,7 +667,7 @@ func (sc *SignupContext) iWaitSecondsForTheDepositToProcess(seconds string) erro
 }
 
 // iShouldSeeThePaymentInMyTransactionHistory verifies payment appears in history
-func (sc *SignupContext) iShouldSeeThePaymentInMyTransactionHistory() error {
+func (sc *E2EContext) iShouldSeeThePaymentInMyTransactionHistory() error {
 	debugPrintln("\n📜 Verifying payment appears in transaction history...")
 
 	allText, _ := sc.page.TextContent("body")
@@ -693,7 +693,7 @@ func parseSeconds(seconds string) int {
 }
 
 // iWaitSeconds waits for specified seconds
-func (sc *SignupContext) iWaitSeconds(seconds string) error {
+func (sc *E2EContext) iWaitSeconds(seconds string) error {
 	secondsInt := parseSeconds(seconds)
 	debugPrintln(fmt.Sprintf("Waiting %d seconds...", secondsInt))
 	time.Sleep(time.Duration(secondsInt) * time.Second)

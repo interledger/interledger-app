@@ -14,7 +14,7 @@ import (
 
 // iFillInWithUniqueGermanPhoneNumber fills in phone field with a unique German number
 // Usage: I fill in "phone" with a unique valid German number
-func (sc *SignupContext) iFillInWithUniqueGermanPhoneNumber(fieldName string) error {
+func (sc *E2EContext) iFillInWithUniqueGermanPhoneNumber(fieldName string) error {
 	// Get the current user's details to extract the email suffix for uniqueness
 	if sc.currentUser == "" {
 		return fmt.Errorf("no current user set for phone generation")
@@ -100,7 +100,7 @@ func (sc *SignupContext) iFillInWithUniqueGermanPhoneNumber(fieldName string) er
 
 // aSignupRecordShouldExistForMyself checks that a signup record exists for the current user
 // Usage: a signup record should exist in the database for myself
-func (sc *SignupContext) aSignupRecordShouldExistForMyself() error {
+func (sc *E2EContext) aSignupRecordShouldExistForMyself() error {
 	email, err := sc.getCurrentUserEmail()
 	if err != nil {
 		return err
@@ -110,7 +110,7 @@ func (sc *SignupContext) aSignupRecordShouldExistForMyself() error {
 
 // theSignupShouldHaveFirstNameMatching checks the signup first name matches a field value
 // Usage: the signup should have first name matching my "firstName"
-func (sc *SignupContext) theSignupShouldHaveFirstNameMatching(fieldKey string) error {
+func (sc *E2EContext) theSignupShouldHaveFirstNameMatching(fieldKey string) error {
 	value, err := sc.getFieldValue(fieldKey)
 	if err != nil {
 		return err
@@ -120,7 +120,7 @@ func (sc *SignupContext) theSignupShouldHaveFirstNameMatching(fieldKey string) e
 
 // theSignupShouldHaveLastNameMatching checks the signup last name matches a field value
 // Usage: the signup should have last name matching my "lastName"
-func (sc *SignupContext) theSignupShouldHaveLastNameMatching(fieldKey string) error {
+func (sc *E2EContext) theSignupShouldHaveLastNameMatching(fieldKey string) error {
 	value, err := sc.getFieldValue(fieldKey)
 	if err != nil {
 		return err
@@ -130,7 +130,7 @@ func (sc *SignupContext) theSignupShouldHaveLastNameMatching(fieldKey string) er
 
 // theSignupShouldHaveCountryCodeMatching checks the signup country code matches a field value
 // Usage: the signup should have country code matching my "countryCode"
-func (sc *SignupContext) theSignupShouldHaveCountryCodeMatching(fieldKey string) error {
+func (sc *E2EContext) theSignupShouldHaveCountryCodeMatching(fieldKey string) error {
 	value, err := sc.getFieldValue(fieldKey)
 	if err != nil {
 		return err
@@ -140,7 +140,7 @@ func (sc *SignupContext) theSignupShouldHaveCountryCodeMatching(fieldKey string)
 
 // iTriggerUserVerificationForMyself triggers user verification for the current user
 // Usage: I trigger user verification for myself
-func (sc *SignupContext) iTriggerUserVerificationForMyself() error {
+func (sc *E2EContext) iTriggerUserVerificationForMyself() error {
 	email, err := sc.getCurrentUserEmail()
 	if err != nil {
 		return err
@@ -150,7 +150,7 @@ func (sc *SignupContext) iTriggerUserVerificationForMyself() error {
 
 // iCompletedTheSignupWorkflow runs the signup flow using the current impersonated user's details.
 // Usage: I completed the signup workflow
-func (sc *SignupContext) iCompletedTheSignupWorkflow() error {
+func (sc *E2EContext) iCompletedTheSignupWorkflow() error {
 	if sc.currentUser == "" {
 		return fmt.Errorf("no user currently impersonated")
 	}
@@ -192,7 +192,7 @@ func (sc *SignupContext) iCompletedTheSignupWorkflow() error {
 
 // iFillInTheLoginFormWithMyDetails fills login form using current user context.
 // Usage: I fill in the login form with my details
-func (sc *SignupContext) iFillInTheLoginFormWithMyDetails() error {
+func (sc *E2EContext) iFillInTheLoginFormWithMyDetails() error {
 	if sc.email == "" {
 		if value, err := sc.getFieldValue("emailSuffix"); err == nil && value != "" {
 			sc.email = fmt.Sprintf("%s-%s", sc.testEmailPrefix, value)
@@ -218,7 +218,7 @@ func (sc *SignupContext) iFillInTheLoginFormWithMyDetails() error {
 
 // iFillInMyLoginCredentials fills in email and password for the current user
 // Usage: I fill in my login credentials
-func (sc *SignupContext) iFillInMyLoginCredentials() error {
+func (sc *E2EContext) iFillInMyLoginCredentials() error {
 	email, err := sc.getCurrentUserEmail()
 	if err != nil {
 		return err
@@ -233,7 +233,7 @@ func (sc *SignupContext) iFillInMyLoginCredentials() error {
 
 // iTypeInMyGeneratedTotpForMyself generates and types TOTP for the current user
 // Usage: I type in my generated totp for myself
-func (sc *SignupContext) iTypeInMyGeneratedTotpForMyself() error {
+func (sc *E2EContext) iTypeInMyGeneratedTotpForMyself() error {
 	email, err := sc.getCurrentUserEmail()
 	if err != nil {
 		return err
@@ -332,7 +332,7 @@ func extractTOTPSecretFromPageHTML(htmlContent string) (string, error) {
 }
 
 // getTOTPSecretForEmail retrieves the TOTP secret from Kratos for a given email
-func (sc *SignupContext) getTOTPSecretForEmail(email string) (string, error) {
+func (sc *E2EContext) getTOTPSecretForEmail(email string) (string, error) {
 	kratosAdminURL := os.Getenv("KRATOS_ADMIN_URL")
 	if kratosAdminURL == "" {
 		kratosAdminURL = "http://localhost:4434"
@@ -389,7 +389,7 @@ func (sc *SignupContext) getTOTPSecretForEmail(email string) (string, error) {
 
 // iLogInAsMyself logs in as the current impersonated user
 // Usage: I log in as myself
-func (sc *SignupContext) iLogInAsMyself() error {
+func (sc *E2EContext) iLogInAsMyself() error {
 	if sc.currentUser == "" {
 		return fmt.Errorf("no user currently impersonated")
 	}

@@ -9,7 +9,7 @@ import (
 )
 
 // iNavigateToTheDepositPage navigates to the deposit page
-func (sc *SignupContext) iNavigateToTheDepositPage() error {
+func (sc *E2EContext) iNavigateToTheDepositPage() error {
 	debugPrintln("\n💰 Navigating to deposit page...")
 
 	url := sc.baseURL + "/deposit"
@@ -30,7 +30,7 @@ func (sc *SignupContext) iNavigateToTheDepositPage() error {
 }
 
 // iDepositViATheDepositIframe completes the entire deposit flow
-func (sc *SignupContext) iDepositViATheDepositIframe(amount, currency string) error {
+func (sc *E2EContext) iDepositViATheDepositIframe(amount, currency string) error {
 	debugPrintf("\n💶 Depositing %s %s via iframe...\n", amount, currency)
 
 	// Wait for deposit iframe to load
@@ -131,7 +131,7 @@ func (sc *SignupContext) iDepositViATheDepositIframe(amount, currency string) er
 }
 
 // iShouldSeeMyBalanceUpdatedWithAmount verifies the balance was updated
-func (sc *SignupContext) iShouldSeeMyBalanceUpdatedWithAmount(amount, currency string) error {
+func (sc *E2EContext) iShouldSeeMyBalanceUpdatedWithAmount(amount, currency string) error {
 	debugPrintf("\n💰 Verifying balance updated with %s %s...\n", amount, currency)
 
 	// Navigate to dashboard to check updated balance UI

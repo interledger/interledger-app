@@ -9,7 +9,7 @@ import (
 )
 
 // initializeBrowser sets up the Playwright browser if not already initialized
-func (sc *SignupContext) initializeBrowser() error {
+func (sc *E2EContext) initializeBrowser() error {
 	if sc.browser != nil {
 		return nil // Already initialized
 	}
@@ -43,7 +43,7 @@ func (sc *SignupContext) initializeBrowser() error {
 }
 
 // iNavigateToThePersonalDetailsPageToActivateWallet navigates to the wallet activation page
-func (sc *SignupContext) iNavigateToThePersonalDetailsPageToActivateWallet() error {
+func (sc *E2EContext) iNavigateToThePersonalDetailsPageToActivateWallet() error {
 	debugPrintln("\n🔐 Navigating to personal details / wallet activation page...")
 
 	// Initialize browser if needed
@@ -84,7 +84,7 @@ func (sc *SignupContext) iNavigateToThePersonalDetailsPageToActivateWallet() err
 }
 
 // iShouldSeeTheActivateWalletButton verifies the activate wallet button is visible
-func (sc *SignupContext) iShouldSeeTheActivateWalletButton() error {
+func (sc *E2EContext) iShouldSeeTheActivateWalletButton() error {
 	debugPrintln("\n👁️  Checking for activate wallet button...")
 
 	time.Sleep(1 * time.Second)
@@ -111,7 +111,7 @@ func (sc *SignupContext) iShouldSeeTheActivateWalletButton() error {
 }
 
 // iWaitForTheKYCIframeToLoad waits for the KYC iframe to appear and load
-func (sc *SignupContext) iWaitForTheKYCIframeToLoad() error {
+func (sc *E2EContext) iWaitForTheKYCIframeToLoad() error {
 	debugPrintln("\n🕐 Waiting for KYC iframe to load...")
 
 	// Wait for iframe to appear
@@ -132,7 +132,7 @@ func (sc *SignupContext) iWaitForTheKYCIframeToLoad() error {
 }
 
 // iFillAndSubmitTheMockgatehubiframe fills and submits the mockgatehub KYC iframe
-func (sc *SignupContext) iFillAndSubmitTheMockgatehubiframe() error {
+func (sc *E2EContext) iFillAndSubmitTheMockgatehubiframe() error {
 	debugPrintln("\n📝 Filling and submitting mockgatehub KYC iframe...")
 
 	time.Sleep(500 * time.Millisecond)
@@ -243,7 +243,7 @@ func (sc *SignupContext) iFillAndSubmitTheMockgatehubiframe() error {
 }
 
 // iWaitForTheKYCCompletion waits for KYC to complete and return to dashboard
-func (sc *SignupContext) iWaitForTheKYCCompletion() error {
+func (sc *E2EContext) iWaitForTheKYCCompletion() error {
 	debugPrintln("\n⏳ Waiting for KYC completion...")
 
 	// First, wait for the form submission to complete by checking mockgatehub logs
@@ -284,7 +284,7 @@ func (sc *SignupContext) iWaitForTheKYCCompletion() error {
 }
 
 // iShouldBeNavigatedBackToTheDashboardWithApprovedKYCStatus verifies KYC approved and shows balance
-func (sc *SignupContext) iShouldBeNavigatedBackToTheDashboardWithApprovedKYCStatus() error {
+func (sc *E2EContext) iShouldBeNavigatedBackToTheDashboardWithApprovedKYCStatus() error {
 	debugPrintln("\n🏠 Verifying dashboard with approved KYC status...")
 
 	// Wait for backend to process the webhook and update KYC status
@@ -342,7 +342,7 @@ func (sc *SignupContext) iShouldBeNavigatedBackToTheDashboardWithApprovedKYCStat
 }
 
 // iShouldSeeMyAccountBalanceWithKYCApproved verifies balance visibility with KYC approved
-func (sc *SignupContext) iShouldSeeMyAccountBalanceWithKYCApproved() error {
+func (sc *E2EContext) iShouldSeeMyAccountBalanceWithKYCApproved() error {
 	debugPrintln("\n💰 Verifying account balance with KYC approved...")
 
 	time.Sleep(500 * time.Millisecond)
@@ -405,7 +405,7 @@ func (sc *SignupContext) iShouldSeeMyAccountBalanceWithKYCApproved() error {
 
 // iCompletedTheKYCFlowFor is a composite step that performs the entire KYC flow from kyc-minimal.feature
 // This executes all steps after signup is complete: login, TOTP, wallet creation, and KYC completion
-func (sc *SignupContext) iCompletedTheKYCFlowFor(email string) error {
+func (sc *E2EContext) iCompletedTheKYCFlowFor(email string) error {
 	debugPrintf("\n🔄 Executing complete KYC flow for: %s\n", email)
 
 	// Note: We expect signup to already be complete before this step
@@ -530,7 +530,7 @@ func (sc *SignupContext) iCompletedTheKYCFlowFor(email string) error {
 
 // iCompleteMinimalKYCFlowWithDetails runs the exact kyc-minimal.feature flow including signup.
 // This wraps signup + iCompletedTheKYCFlowFor for reuse in deposit tests.
-func (sc *SignupContext) iCompleteMinimalKYCFlowWithDetails(firstName, lastName, email, country, phone, password string) error {
+func (sc *E2EContext) iCompleteMinimalKYCFlowWithDetails(firstName, lastName, email, country, phone, password string) error {
 	debugPrintf("\n🧭 Running minimal KYC flow for: %s\n", email)
 
 	if err := sc.iCompleteSignupFlow(firstName, lastName, email, country, phone, password); err != nil {
@@ -551,7 +551,7 @@ func (sc *SignupContext) iCompleteMinimalKYCFlowWithDetails(firstName, lastName,
 //	  | field       | value        |
 //	  | emailSuffix | alice@...    |
 //	And I complete the minimal KYC flow `kyc-user`
-func (sc *SignupContext) iCompleteMinimalKYCFlow(userName string) error {
+func (sc *E2EContext) iCompleteMinimalKYCFlow(userName string) error {
 	debugPrintf("\n🧭 Running minimal KYC flow for user: %s\n", userName)
 
 	// Set the current user context first
