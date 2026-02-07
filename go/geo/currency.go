@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"math/big"
 	"strings"
+
+	geopbv1 "gitlab.com/fynbos/proto/geo/v1"
 )
 
 // Currency represents a monetary unit with a specific Asset and amount.
@@ -256,4 +258,33 @@ func (c *Currency) parseString(s string, factor *big.Int) (*big.Int, error) {
 // String returns the string representation of the currency amount with formatting.
 func (c Currency) String() string {
 	return c.asset.Format(fmt.Sprintf("%s", c.Amount()))
+}
+
+// ToProtoGeoV1 converts the Currency to its protobuf representation.
+// The countryCode parameter is optional - pass an empty string if not applicable.
+func (c *Currency) ToProtoGeoV1(countryCode string) *geopbv1.Currency {
+	return &geopbv1.Currency{
+		Amount:      c.amount.String(),
+		Asset:       c.asset.ToProtoGeoV1(),
+		CountryCode: countryCode,
+	}
+}
+
+// CurrencyFromProtoGeoV1 creates a Currency from its protobuf representation.
+// Returns the Currency and an error if the asset is not supported or amount is invalid.
+func CurrencyFromProtoGeoV1(pb *geopbv1.Currency) (*Currency, error) {
+	if pb == nil {
+		return nil, fmt.Errorf("nil proto currency")
+	}
+	asset, ok := AssetFromProtoGeoV1(pb.Asset)
+	if !ok {
+		return nil, fmt.Errorf("%w: %s", ErrUnsupportedAsset, pb.Asset.GetCode())
+	}
+	currency := NewCurrency(asset)
+	amount, ok := new(big.Int).SetString(pb.Amount, 10)
+	if !ok {
+		return nil, fmt.Errorf("%w: %s", ErrInvalidFormat, pb.Amount)
+	}
+	currency.SetRawAmount(amount)
+	return currency, nil
 }

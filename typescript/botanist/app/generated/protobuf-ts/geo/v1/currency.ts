@@ -13,7 +13,7 @@ import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
 import { Asset } from "./asset";
 /**
- * Currency represents a specific amount of a financial asset. It combines an 'amount' with an 'asset' to fully describe a monetary value.
+ * Currency represents a monetary amount in a specific asset and country context.
  *
  * @generated from protobuf message geo.v1.Currency
  */
@@ -31,17 +31,24 @@ export interface Currency {
      * @generated from protobuf field: geo.Asset asset = 2;
      */
     asset?: Asset;
+    /**
+     * ISO 3166-1 alpha-2 country code (e.g., "US" for United States)
+     *
+     * @generated from protobuf field: string country_code = 3;
+     */
+    countryCode: string;
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class Currency$Type extends MessageType<Currency> {
     constructor() {
         super("geo.v1.Currency", [
             { no: 1, name: "amount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "asset", kind: "message", T: () => Asset }
+            { no: 2, name: "asset", kind: "message", T: () => Asset },
+            { no: 3, name: "country_code", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Currency>): Currency {
-        const message = { amount: "" };
+        const message = { amount: "", countryCode: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Currency>(this, message, value);
@@ -57,6 +64,9 @@ class Currency$Type extends MessageType<Currency> {
                     break;
                 case /* geo.Asset asset */ 2:
                     message.asset = Asset.internalBinaryRead(reader, reader.uint32(), options, message.asset);
+                    break;
+                case /* string country_code */ 3:
+                    message.countryCode = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -76,6 +86,9 @@ class Currency$Type extends MessageType<Currency> {
         /* geo.Asset asset = 2; */
         if (message.asset)
             Asset.internalBinaryWrite(message.asset, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        /* string country_code = 3; */
+        if (message.countryCode !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.countryCode);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

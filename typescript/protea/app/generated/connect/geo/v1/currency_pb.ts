@@ -8,7 +8,7 @@ import { Message, proto3 } from "@bufbuild/protobuf";
 import { Asset } from "./asset_pb.js";
 
 /**
- * Currency represents a specific amount of a financial asset. It combines an 'amount' with an 'asset' to fully describe a monetary value.
+ * Currency represents a monetary amount in a specific asset and country context.
  *
  * @generated from message geo.v1.Currency
  */
@@ -28,6 +28,13 @@ export class Currency extends Message<Currency> {
    */
   asset?: Asset;
 
+  /**
+   * ISO 3166-1 alpha-2 country code (e.g., "US" for United States)
+   *
+   * @generated from field: string country_code = 3;
+   */
+  countryCode = "";
+
   constructor(data?: PartialMessage<Currency>) {
     super();
     proto3.util.initPartial(data, this);
@@ -38,6 +45,7 @@ export class Currency extends Message<Currency> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "amount", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "asset", kind: "message", T: Asset },
+    { no: 3, name: "country_code", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Currency {

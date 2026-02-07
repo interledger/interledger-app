@@ -3,6 +3,8 @@ package geo
 import (
 	"fmt"
 	"math/big"
+
+	geopbv1 "gitlab.com/fynbos/proto/geo/v1"
 )
 
 /*
@@ -27,7 +29,7 @@ func NewAsset(code string, numeric string, scale uint8, formatFunc func(string) 
 		formatFunc = func(value string) string { return value }
 	}
 
-	// Pre-compute factor to avoid race conditions
+	// Pre-compute factor
 	tenPow := big.NewInt(10)
 	scaleBig := big.NewInt(int64(scale))
 	factor := new(big.Int).Exp(tenPow, scaleBig, nil)
@@ -74,6 +76,24 @@ func (a Asset) Equal(other Asset) bool {
 // String returns a string representation of the asset for debugging.
 func (a Asset) String() string {
 	return fmt.Sprintf("Asset{code=%s, numeric=%s, scale=%d}", a.code, a.numeric, a.scale)
+}
+
+// ToProtoGeoV1 converts the Asset to its protobuf representation.
+func (a Asset) ToProtoGeoV1() *geopbv1.Asset {
+	return &geopbv1.Asset{
+		Code:    a.code,
+		Numeric: a.numeric,
+		Scale:   uint32(a.scale),
+	}
+}
+
+// AssetFromProtoGeoV1 creates an Asset from its protobuf representation.
+// Returns the Asset and a boolean indicating if the asset code is supported.
+func AssetFromProtoGeoV1(pb *geopbv1.Asset) (Asset, bool) {
+	if pb == nil {
+		return Asset{}, false
+	}
+	return GetAsset(pb.Code)
 }
 
 // assets is the internal registry of known currency assets.

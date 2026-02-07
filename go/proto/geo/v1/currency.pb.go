@@ -21,14 +21,16 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Currency represents a specific amount of a financial asset. It combines an 'amount' with an 'asset' to fully describe a monetary value.
+// Currency represents a monetary amount in a specific asset and country context.
 type Currency struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The amount in the smallest unit (e.g., cents for USD).
 	// Stored as a string to support arbitrary precision (big.Int).
 	Amount string `protobuf:"bytes,1,opt,name=amount,proto3" json:"amount,omitempty"`
 	// The asset this currency represents.
-	Asset         *Asset `protobuf:"bytes,2,opt,name=asset,proto3" json:"asset,omitempty"`
+	Asset *Asset `protobuf:"bytes,2,opt,name=asset,proto3" json:"asset,omitempty"`
+	// ISO 3166-1 alpha-2 country code (e.g., "US" for United States)
+	CountryCode   string `protobuf:"bytes,3,opt,name=country_code,json=countryCode,proto3" json:"country_code,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -77,15 +79,23 @@ func (x *Currency) GetAsset() *Asset {
 	return nil
 }
 
+func (x *Currency) GetCountryCode() string {
+	if x != nil {
+		return x.CountryCode
+	}
+	return ""
+}
+
 var File_geo_v1_currency_proto protoreflect.FileDescriptor
 
 const file_geo_v1_currency_proto_rawDesc = "" +
 	"\n" +
-	"\x15geo/v1/currency.proto\x12\x06geo.v1\x1a\x12geo/v1/asset.proto\"D\n" +
+	"\x15geo/v1/currency.proto\x12\x06geo.v1\x1a\x12geo/v1/asset.proto\"g\n" +
 	"\bCurrency\x12\x16\n" +
 	"\x06amount\x18\x01 \x01(\tR\x06amount\x12 \n" +
 	"\x05asset\x18\x02 \x01(\v2\n" +
-	".geo.AssetR\x05assetB\x0eZ\f./geo.v1;geob\x06proto3"
+	".geo.AssetR\x05asset\x12!\n" +
+	"\fcountry_code\x18\x03 \x01(\tR\vcountryCodeB\x0eZ\f./geo.v1;geob\x06proto3"
 
 var (
 	file_geo_v1_currency_proto_rawDescOnce sync.Once
