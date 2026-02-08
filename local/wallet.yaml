@@ -102,6 +102,8 @@ services:
       - GATEHUB_GATEWAY_ID=b18965b5-8bb0-486e-88b2-7be47b974ac1
       - GATEHUB_CARD_ACCOUNT_PRODUCT_CODE=PWSR_DEBP_2404
       - GATEHUB_WEBHOOK_SECRET=
+      - GATEHUB_PAYWISER_EURO_VAULT_ID=
+      - GATEHUB_FALLBACK_WEBHOOK_URL=
 
       # Random generated data for FIANT 
       - PTI_BASE_URL=https://pti-base-url.com

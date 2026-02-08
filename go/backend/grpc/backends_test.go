@@ -12,7 +12,6 @@ import (
 	pti "gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/providers/xago"
 
-	"gitlab.com/fynbos/backend/dynamicforms"
 	"gitlab.com/fynbos/backend/rafiki"
 
 	"gitlab.com/fynbos/backend/discord"
@@ -36,9 +35,6 @@ import (
 	"gitlab.com/fynbos/backend/analytics"
 	analytics_client "gitlab.com/fynbos/backend/analytics/client"
 
-	"gitlab.com/fynbos/backend/authorisation"
-	auth_mock "gitlab.com/fynbos/backend/authorisation/client/mock"
-
 	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/transactions"
 
@@ -51,7 +47,6 @@ import (
 	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/agreements"
 	agreements_mock "gitlab.com/fynbos/backend/agreements/client/mock"
-	dynamicforms_mock "gitlab.com/fynbos/backend/dynamicforms/client/mock"
 	email_mock "gitlab.com/fynbos/backend/email/client/mock"
 	"gitlab.com/fynbos/backend/healthcheck"
 	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
@@ -91,12 +86,10 @@ type TestContainer struct {
 	TransactionsClient *transactions_mock.MockClient
 	AnalyticsClient    analytics.Client
 	ContactsClient     *contacts_mock.MockClient
-	authorisation      *auth_mock.MockInternalClient
 	limits             *limit_mock.MockClient
 	keys               *keys_mock.MockClient
 	TwitterClient      *twitter_mock.MockClient
 	walletImpl         *wallets_mock.MockClient
-	dynamicforms       *dynamicforms_mock.MockClient
 	rafiki             *rafiki_mock.MockClient
 }
 
@@ -114,10 +107,6 @@ func (t TestContainer) Slack() slack.Client {
 
 func (t TestContainer) Discord() discord.Client {
 	return nil
-}
-
-func (t TestContainer) DynamicForms() dynamicforms.Client {
-	return t.dynamicforms
 }
 
 func (t TestContainer) Payments() payments.Client {
@@ -142,10 +131,6 @@ func (t TestContainer) Identities() identities.Client {
 
 func (t TestContainer) Limits() limits.Client {
 	return t.limits
-}
-
-func (t TestContainer) Authorisation() authorisation.InternalClient {
-	return t.authorisation
 }
 
 func (t TestContainer) Email() email.Client {
@@ -234,7 +219,7 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 	t.Cleanup(func() {
 		ctrl.Finish()
 	})
-	
+
 	hs, err := healthcheck.NewService()
 	if err != nil {
 		t.Fatal(err)
@@ -253,12 +238,10 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 		TransactionsClient: transactions_mock.NewMockClient(ctrl),
 		AnalyticsClient:    analytics_client.New(nil, ""),
 		ContactsClient:     contacts_mock.NewMockClient(ctrl),
-		authorisation:      auth_mock.NewMockInternalClient(ctrl),
 		limits:             limit_mock.NewMockClient(ctrl),
 		keys:               keys_mock.NewMockClient(ctrl),
 		TwitterClient:      twitter_mock.NewMockClient(ctrl),
 		walletImpl:         wallets_mock.NewMockClient(ctrl),
-		dynamicforms:       dynamicforms_mock.NewMockClient(ctrl),
 		rafiki:             rafiki_mock.NewMockClient(ctrl),
 	}
 
