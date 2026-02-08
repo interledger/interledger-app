@@ -4,6 +4,8 @@ import (
 	"math"
 	"math/big"
 	"testing"
+
+	geopbv1 "gitlab.com/fynbos/proto/geo/v1"
 )
 
 const (
@@ -657,5 +659,178 @@ func BenchmarkSetAmount(b *testing.B) {
 		if err != nil {
 			b.Errorf("SetAmount failed: %v", err)
 		}
+	}
+}
+
+func TestCurrencyToProtoGeoV1(t *testing.T) {
+	tests := []struct {
+		name        string
+		amount      string
+		asset       Asset
+		countryCode string
+	}{
+		{
+			name:        "USD with country code",
+			amount:      "100.00",
+			asset:       USD(),
+			countryCode: "US",
+		},
+		{
+			name:        "EUR without country code",
+			amount:      "50.50",
+			asset:       EUR(),
+			countryCode: "",
+		},
+		{
+			name:        "JPY with zero scale",
+			amount:      "1000",
+			asset:       JPY(),
+			countryCode: "JP",
+		},
+		{
+			name:        "negative amount",
+			amount:      "-25.99",
+			asset:       USD(),
+			countryCode: "US",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			currency := NewCurrency(tt.asset)
+			currency.SetAmount(tt.amount)
+
+			pb := currency.ToProtoGeoV1(tt.countryCode)
+
+			if pb == nil {
+				t.Fatal("ToProtoGeoV1() returned nil")
+			}
+			if pb.CountryCode != tt.countryCode {
+				t.Errorf("ToProtoGeoV1().CountryCode = %v, want %v", pb.CountryCode, tt.countryCode)
+			}
+			if pb.Asset == nil {
+				t.Fatal("ToProtoGeoV1().Asset is nil")
+			}
+			if pb.Asset.Code != tt.asset.Code() {
+				t.Errorf("ToProtoGeoV1().Asset.Code = %v, want %v", pb.Asset.Code, tt.asset.Code())
+			}
+			// Verify amount is the raw amount string
+			expectedRaw := currency.RawAmount().String()
+			if pb.Amount != expectedRaw {
+				t.Errorf("ToProtoGeoV1().Amount = %v, want %v", pb.Amount, expectedRaw)
+			}
+		})
+	}
+}
+
+func TestCurrencyFromProtoGeoV1(t *testing.T) {
+	tests := []struct {
+		name       string
+		pb         *geopbv1.Currency
+		wantAmount string
+		wantAsset  string
+		wantErr    bool
+	}{
+		{
+			name: "valid USD currency",
+			pb: &geopbv1.Currency{
+				Amount: "10000",
+				Asset: &geopbv1.Asset{
+					Code:    "USD",
+					Numeric: "840",
+					Scale:   2,
+				},
+				CountryCode: "US",
+			},
+			wantAmount: "100.00",
+			wantAsset:  "USD",
+			wantErr:    false,
+		},
+		{
+			name: "valid JPY currency",
+			pb: &geopbv1.Currency{
+				Amount: "1000",
+				Asset: &geopbv1.Asset{
+					Code:    "JPY",
+					Numeric: "392",
+					Scale:   0,
+				},
+				CountryCode: "JP",
+			},
+			wantAmount: "1000",
+			wantAsset:  "JPY",
+			wantErr:    false,
+		},
+		{
+			name: "negative amount",
+			pb: &geopbv1.Currency{
+				Amount: "-2599",
+				Asset: &geopbv1.Asset{
+					Code:    "USD",
+					Numeric: "840",
+					Scale:   2,
+				},
+				CountryCode: "US",
+			},
+			wantAmount: "-25.99",
+			wantAsset:  "USD",
+			wantErr:    false,
+		},
+		{
+			name:       "nil proto returns error",
+			pb:         nil,
+			wantAmount: "",
+			wantAsset:  "",
+			wantErr:    true,
+		},
+		{
+			name: "unsupported asset returns error",
+			pb: &geopbv1.Currency{
+				Amount: "100",
+				Asset: &geopbv1.Asset{
+					Code:    "XXX",
+					Numeric: "999",
+					Scale:   2,
+				},
+				CountryCode: "XX",
+			},
+			wantAmount: "",
+			wantAsset:  "",
+			wantErr:    true,
+		},
+		{
+			name: "invalid amount returns error",
+			pb: &geopbv1.Currency{
+				Amount: "not-a-number",
+				Asset: &geopbv1.Asset{
+					Code:    "USD",
+					Numeric: "840",
+					Scale:   2,
+				},
+				CountryCode: "US",
+			},
+			wantAmount: "",
+			wantAsset:  "",
+			wantErr:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			currency, err := CurrencyFromProtoGeoV1(tt.pb)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("CurrencyFromProtoGeoV1() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if err != nil {
+				return
+			}
+			if currency.Amount() != tt.wantAmount {
+				t.Errorf("CurrencyFromProtoGeoV1().Amount() = %v, want %v", currency.Amount(), tt.wantAmount)
+			}
+			if currency.Code() != tt.wantAsset {
+				t.Errorf("CurrencyFromProtoGeoV1().Code() = %v, want %v", currency.Code(), tt.wantAsset)
+			}
+		})
 	}
 }

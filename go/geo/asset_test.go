@@ -3,6 +3,8 @@ package geo
 import (
 	"math/big"
 	"testing"
+
+	geopbv1 "gitlab.com/fynbos/proto/geo/v1"
 )
 
 func TestNewAsset(t *testing.T) {
@@ -181,5 +183,117 @@ func TestAllAssets(t *testing.T) {
 		if !codes[code] {
 			t.Errorf("AllAssets missing %s", code)
 		}
+	}
+}
+
+func TestAssetToProtoGeoV1(t *testing.T) {
+	tests := []struct {
+		name  string
+		asset Asset
+	}{
+		{
+			name:  "USD to proto",
+			asset: USD(),
+		},
+		{
+			name:  "EUR to proto",
+			asset: EUR(),
+		},
+		{
+			name:  "JPY to proto",
+			asset: JPY(),
+		},
+		{
+			name:  "custom asset to proto",
+			asset: NewAsset("TST", "999", 3, nil),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			pb := tt.asset.ToProtoGeoV1()
+
+			if pb == nil {
+				t.Fatal("ToProtoGeoV1() returned nil")
+			}
+			if pb.Code != tt.asset.Code() {
+				t.Errorf("ToProtoGeoV1().Code = %v, want %v", pb.Code, tt.asset.Code())
+			}
+			if pb.Numeric != tt.asset.NumericCode() {
+				t.Errorf("ToProtoGeoV1().Numeric = %v, want %v", pb.Numeric, tt.asset.NumericCode())
+			}
+			if pb.Scale != uint32(tt.asset.Scale()) {
+				t.Errorf("ToProtoGeoV1().Scale = %v, want %v", pb.Scale, tt.asset.Scale())
+			}
+		})
+	}
+}
+
+func TestAssetFromProtoGeoV1(t *testing.T) {
+	tests := []struct {
+		name     string
+		pb       *geopbv1.Asset
+		wantCode string
+		wantOk   bool
+	}{
+		{
+			name: "USD from proto",
+			pb: &geopbv1.Asset{
+				Code:    "USD",
+				Numeric: "840",
+				Scale:   2,
+			},
+			wantCode: "USD",
+			wantOk:   true,
+		},
+		{
+			name: "EUR from proto",
+			pb: &geopbv1.Asset{
+				Code:    "EUR",
+				Numeric: "978",
+				Scale:   2,
+			},
+			wantCode: "EUR",
+			wantOk:   true,
+		},
+		{
+			name: "JPY from proto",
+			pb: &geopbv1.Asset{
+				Code:    "JPY",
+				Numeric: "392",
+				Scale:   0,
+			},
+			wantCode: "JPY",
+			wantOk:   true,
+		},
+		{
+			name:     "nil proto returns false",
+			pb:       nil,
+			wantCode: "",
+			wantOk:   false,
+		},
+		{
+			name: "unsupported asset returns false",
+			pb: &geopbv1.Asset{
+				Code:    "XXX",
+				Numeric: "999",
+				Scale:   2,
+			},
+			wantCode: "",
+			wantOk:   false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			asset, ok := AssetFromProtoGeoV1(tt.pb)
+			if ok != tt.wantOk {
+				t.Errorf("AssetFromProtoGeoV1() ok = %v, want %v", ok, tt.wantOk)
+				return
+			}
+			if ok && asset.Code() != tt.wantCode {
+				t.Errorf("AssetFromProtoGeoV1().Code() = %v, want %v", asset.Code(), tt.wantCode)
+			}
+		})
 	}
 }
