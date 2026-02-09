@@ -110,7 +110,7 @@ func NewWebhook(b Backends) http.HandlerFunc {
 		case "payout.interac.expired":
 		case "payout.interac.cancelled":
 		case "payout.interac.completed":
-			err = handleWithdrawalCompleted(r.Context(), b, ec, body)
+			err = handleWithdrawal(r.Context(), b, ec, body)
 		case "chimoney.redeem.completed", "chimoney.redeem.failed":
 			err = handleRedeemWebhook(r.Context(), b, body)
 		case "charge.card.completed",
@@ -179,7 +179,7 @@ func handleRedeemWebhook(ctx context.Context, b Backends, raw json.RawMessage) e
 	return b.Temporal().SignalWorkflow(ctx, fmt.Sprintf("chimoney_deposit_%s", wh.IssueID), "", depositChannel, signal)
 }
 
-func handleWithdrawalCompleted(ctx context.Context, b Backends, ec external.Client, raw json.RawMessage) error {
+func handleWithdrawal(ctx context.Context, b Backends, ec external.Client, raw json.RawMessage) error {
 	var wh WithdrawEvent
 	err := json.Unmarshal(raw, &wh)
 	if err != nil {
