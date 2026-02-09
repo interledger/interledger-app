@@ -1,6 +1,6 @@
 services:
   mockgatehub:
-    image: ghcr.io/interledger/mockgatehub:1.5
+    image: ghcr.io/interledger/mockgatehub:1.6.2
     # build:
     #   context: ../../mockgatehub
     profiles:
@@ -22,8 +22,7 @@ services:
       WEBHOOK_URL: http://backend:8080/webhooks/gatehub
       WEBHOOK_SECRET: ${GATEHUB_WEBHOOK_SECRET:-6d6f636b5f776562686f6f6b5f736563726574}
 
-      # Auth configuration - disable signature checks for local unblock (backend signs differently)
-      MOCKGATEHUB_ENFORCE_AUTHENTICATION: "false"
+      # Auth configuration
       MOCKGATEHUB_VALID_CREDENTIALS: local-test-app-id:local-test-app-secret
     
     healthcheck:

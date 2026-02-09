@@ -48,7 +48,7 @@ func (sc *E2EContext) iDepositViATheDepositIframe(amount, currency string) error
 	}
 
 	// Set up a listener to capture the deposit completion postMessage
-	_, err := sc.page.Evaluate("() => { window.depositCompleted = false; window.depositError = null; window.addEventListener('message', function(e){ var data = (e && e.data) ? e.data : {}; if (data.type === 'deposit-complete' && data.status === 'success') { window.depositCompleted = true; } if (data.type === 'deposit-complete' && data.status === 'error') { window.depositError = data.message || \"deposit error\"; } }); }")
+	_, err := sc.page.Evaluate("() => { window.depositCompleted = false; window.depositError = null; window.addEventListener('message', function(e){ var data = (e && e.data) ? e.data : {}; if ((data.type === 'deposit-complete' && data.status === 'success') || data.type === 'StripeDepositCompleted') { window.depositCompleted = true; } if (data.type === 'deposit-complete' && data.status === 'error') { window.depositError = data.message || \"deposit error\"; } }); }")
 	if err != nil {
 		debugPrintf("   ⚠️  Failed to set up deposit message listener: %v\n", err)
 	}
@@ -117,6 +117,11 @@ func (sc *E2EContext) iDepositViATheDepositIframe(amount, currency string) error
 	maxAttempts := 60
 	for i := 0; i < maxAttempts; i++ {
 		time.Sleep(500 * time.Millisecond)
+		if errVal, _ := sc.page.Evaluate(`() => window.depositError`); errVal != nil {
+			if errStr, ok := errVal.(string); ok && errStr != "" {
+				return fmt.Errorf("deposit completion error: %s", errStr)
+			}
+		}
 		completed, _ := sc.page.Evaluate(`() => window.depositCompleted === true`)
 		if completed == true {
 			debugPrintf("   ✓ Deposit completion message received (attempt %d/%d)\n", i+1, maxAttempts)
