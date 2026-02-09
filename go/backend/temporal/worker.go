@@ -135,6 +135,7 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(chimoney_workflows.ChimomeyWatchForSuccessfulKYC)
 	w.RegisterWorkflow(chimoney_workflows.CreateChimoneyDepositWorkflow)
 	w.RegisterWorkflow(chimoney_workflows.ExecuteChimoneyWithdrawalWorkflow)
+	w.RegisterWorkflow(chimoney_workflows.ExecuteChimoneyFinishWithdrawalWorkflow)
 
 	return w, nil
 }

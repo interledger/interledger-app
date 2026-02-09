@@ -181,9 +181,45 @@ func CreateDepositLink(ctx context.Context, b Backends, ex external.Client, wall
 	return resp.PaymentLink, nil
 }
 
+func ExecuteFinishWithdraw(ctx context.Context, b Backends, ec external.Client, IssueID string, status string, chiWalletID string) error {
+	wo := client.StartWorkflowOptions{
+		ID:                    "finish_chimoney_withdrawal_" + status + "_" + IssueID,
+		TaskQueue:             "backend",
+		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+	}
+
+	var workflowStatus enums.WorkflowExecutionStatus
+	wflow, err := b.Temporal().DescribeWorkflowExecution(ctx, wo.ID, "")
+	switch err.(type) {
+	case *serviceerror.Internal,
+		*serviceerror.Unavailable,
+		*serviceerror.InvalidArgument:
+		return fmt.Errorf("%w %s", chimoney.ErrInternal, err)
+	case *serviceerror.NotFound:
+		// do nothing
+	default:
+		if wflow != nil {
+			workflowStatus = wflow.GetWorkflowExecutionInfo().Status
+		}
+	}
+
+	// return workflow if it's running
+	var executeErr error
+	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
+		_ = b.Temporal().GetWorkflow(ctx, wo.ID, "")
+	} else {
+		_, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, ExecuteChimoneyFinishWithdrawalWorkflow, IssueID, chiWalletID, status)
+	}
+	if executeErr != nil {
+		return fmt.Errorf("%w %s", chimoney.ErrInternal, err)
+	}
+
+	return nil
+}
+
 func ExecuteWithdraw(ctx context.Context, b Backends, walletID, transactionID string) error {
 	wo := client.StartWorkflowOptions{
-		ID:                    "chimoney_withdrawal_" + walletID + "_" + transactionID,
+		ID:                    "initiate_chimoney_withdrawal_" + walletID + "_" + transactionID,
 		TaskQueue:             "backend",
 		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
 	}
