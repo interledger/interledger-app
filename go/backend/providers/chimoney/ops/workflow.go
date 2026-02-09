@@ -27,7 +27,6 @@ import (
 )
 
 const depositChannel = "chimoney_deposits"
-const withdrawalChannel = "chimoney_withdrawals"
 
 type Activity struct {
 	b        Backends
