@@ -62,16 +62,10 @@ service BackendService {
   rpc LookupTransaction(LookupTransactionRequest) returns (Transaction);
   rpc ListPendingWebMonetization(Empty) returns (ListTransactionsResponse);
 
-  // Limits GNAP
-  rpc ListLimits(Empty) returns (ListLimitsResponse);
-  rpc UpdateClientLimits(UpdateClientLimitsRequest) returns (Empty);
-
-  //Connections
+  // Connections
   rpc CreateConnection(CreateConnectionRequest) returns (Empty);
   rpc ListConnections(Empty) returns (ListConnectionsResponse);
   rpc GetConnection(GetConnectionRequest) returns (Connection);
-  rpc GetConnectionLimits(GetConnectionLimitsRequest) returns (ConnectionLimits);
-  rpc UpdateConnectionLimits(UpdateConnectionLimitsRequest) returns (Empty);
   rpc DeleteConnection(DeleteConnectionRequest) returns (Empty);
 
   // Public Wallet Data
@@ -132,9 +126,6 @@ service BackendService {
   // Discord
   rpc DiscordCallback(DiscordCallbackRequest) returns (DiscordCallbackResponse);
   rpc CreateDiscordAuthURL(Empty) returns (CreateDiscordAuthURLResponse);
-
-  // Dynamic Forms
-  rpc SubmitForm(SubmitFormRequest) returns (Empty);
 
   // Slack
   rpc CreateSlackAuthURL(Empty) returns (CreateSlackAuthURLResponse);
@@ -779,12 +770,6 @@ message InitQuote3DSRequest {
   string quoteID = 1;
 }
 
-message ConnectionLimits {
-  Amount daily = 1;
-  Amount monthly = 2;
-  Amount overall = 3;
-}
-
 message Connection {
   string id = 1;
   string applicationName = 2;
@@ -796,16 +781,9 @@ message Connection {
 message CreateConnectionRequest {
   string applicationName = 1;
   string publicKey = 2; // pem encoded ed25519 public key
-  Amount dailyLimit = 3;
-  Amount monthlyLimit = 4;
-  Amount overallLimit = 5;
 }
 
 message GetConnectionRequest {
-  string id = 1;
-}
-
-message GetConnectionLimitsRequest {
   string id = 1;
 }
 
@@ -817,13 +795,6 @@ message ListConnectionsResponse {
   repeated Connection keys = 1;
 }
 
-message UpdateConnectionLimitsRequest {
-  string id = 1;
-  Amount daily = 2;
-  Amount monthly = 3;
-  Amount overall = 4;
-}
-
 message Transfer {
   string type = 1;
   string state = 2;
@@ -831,11 +802,6 @@ message Transfer {
   Amount amount = 4;
   string foreignId = 5;
   string linkedAccountId = 6;
-}
-
-message ListStatementsResponse {
-  repeated string periods = 1;
-  string nextPageToken = 2;
 }
 
 message IndividualKYCResponse {
@@ -1090,10 +1056,6 @@ message GetPublicWalletDetailsResponse {
   string publicName = 2;
 }
 
-message ListLimitsResponse {
-  repeated ConfiguredLimit limits = 1;
-}
-
 message ConfiguredLimit {
   string foreignId = 1;
   string foreignDisplay = 2;
@@ -1101,13 +1063,6 @@ message ConfiguredLimit {
   Amount daily = 4;
   Amount monthly = 5;
   Amount overall = 6;
-}
-
-message UpdateClientLimitsRequest {
-  string clientUrl = 1;
-  Amount daily = 2;
-  Amount monthly = 3;
-  Amount overall = 4;
 }
 
 message Contact {
@@ -1244,9 +1199,4 @@ message CreateDomainIdentityResponse {
 
 message VerifyIdentityRequest {
   string id = 1;
-}
-
-message SubmitFormRequest {
-  string form_id = 1;
-  string data = 2;
 }

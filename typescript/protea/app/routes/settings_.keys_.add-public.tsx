@@ -119,22 +119,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   const response = await grpc.createConnection(request, {
     applicationName: form.get('applicationName') as string,
-    publicKey: form.get('publicKey') as string,
-    dailyLimit: {
-      amount: 10000n,
-      asset: 'USD',
-      assetScale: 2
-    },
-    monthlyLimit: {
-      amount: 10000n,
-      asset: 'USD',
-      assetScale: 2
-    },
-    overallLimit: {
-      amount: 10000n,
-      asset: 'USD',
-      assetScale: 2
-    }
+    publicKey: form.get('publicKey') as string
   })
 
   if (isConnectError(response)) {

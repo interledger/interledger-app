@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"strconv"
 
 	"gitlab.com/fynbos/backend/providers/chimoney"
 	"gitlab.com/fynbos/backend/providers/gatehub"
@@ -40,8 +41,6 @@ import (
 	"gitlab.com/fynbos/backend/notify"
 	notify_client "gitlab.com/fynbos/backend/notify/client"
 
-	"gitlab.com/fynbos/backend/statements"
-	statements_client "gitlab.com/fynbos/backend/statements/client"
 	transactions_client "gitlab.com/fynbos/backend/transactions/client"
 
 	"gitlab.com/fynbos/backend/transactions"
@@ -133,7 +132,6 @@ type backends struct {
 	notify         notify.Client
 	val            *validator.Validate
 	transactions   transactions.Client
-	statements     statements.Client
 	email          email.Client
 	analytics      analytics.Client
 	keys           keys.Client
@@ -153,7 +151,34 @@ func (b *backends) Chimoney() chimoney.Client {
 
 func (b *backends) Gatehub() gatehub.Client {
 	if b.gh == nil {
-		b.gh = gh_client.New(b)
+		// Create a minimal config for dev CLI
+		cfg := gatehub.Config{
+			AppID:                  os.Getenv("GATEHUB_APP_ID"),
+			Secret:                 os.Getenv("GATEHUB_SECRET"),
+			CardAppID:              os.Getenv("GATEHUB_CARD_APP_ID"),
+			GatewayID:              os.Getenv("GATEHUB_GATEWAY_ID"),
+			CardAccountProductCode: os.Getenv("GATEHUB_CARD_ACCOUNT_PRODUCT_CODE"),
+			PaywiserEuroVaultID:    os.Getenv("GATEHUB_PAYWISER_EURO_VAULT_ID"),
+			SendingUserID:          os.Getenv("GATEHUB_SENDING_USER_ID"),
+			SendingUserAddress:     os.Getenv("GATEHUB_SENDING_USER_ADDRESS"),
+			WebhookSecret:          os.Getenv("GATEHUB_WEBHOOK_SECRET"),
+			FallbackWebhookURL:     os.Getenv("GATEHUB_FALLBACK_WEBHOOK_URL"),
+			OnOffRampClientID:      os.Getenv("GATEHUB_ON_OFF_RAMP_CLIENT_ID"),
+			OnboardingClientID:     os.Getenv("GATEHUB_ONBOARDING_CLIENT_ID"),
+			ExchangeClientID:       os.Getenv("GATEHUB_EXCHANGE_CLIENT_ID"),
+			APIBaseURL:             os.Getenv("GATEHUB_API_BASE_URL"),
+			OnboardingBaseURL:      os.Getenv("GATEHUB_ONBOARDING_BASE_URL"),
+			OnOffRampBaseURL:       os.Getenv("GATEHUB_ON_OFF_RAMP_BASE_URL"),
+			EUROpsAccount:          os.Getenv("GATEHUB_EUR_OPS_ACCOUNT"),
+		}
+		// Parse EUROpsLedgerID if provided
+		if eurOpsLedgerIDStr := os.Getenv("GATEHUB_EUR_OPS_LEDGER_ID"); eurOpsLedgerIDStr != "" {
+			if id64, err := strconv.ParseUint(eurOpsLedgerIDStr, 10, 32); err == nil {
+				cfg.EUROpsLedgerID = uint32(id64)
+			}
+		}
+
+		b.gh = gh_client.New(b, cfg)
 	}
 	return b.gh
 }
@@ -339,13 +364,6 @@ func (b *backends) Temporal() temporal.Client {
 		b.temporal = tm
 	}
 	return b.temporal
-}
-
-func (b *backends) Statements() statements.Client {
-	if b.statements == nil {
-		return statements_client.New()
-	}
-	return b.statements
 }
 
 func (b *backends) Email() email.Client {

@@ -11,6 +11,7 @@ import (
 	kyc_workflows "gitlab.com/fynbos/backend/kyc/ops"
 	payments_workflows "gitlab.com/fynbos/backend/payments/ops"
 	chimoney_workflows "gitlab.com/fynbos/backend/providers/chimoney/ops"
+	"gitlab.com/fynbos/backend/providers/gatehub"
 	gatehub_workflows "gitlab.com/fynbos/backend/providers/gatehub/ops"
 	pti_workflows "gitlab.com/fynbos/backend/providers/pti/ops"
 	xago_workflows "gitlab.com/fynbos/backend/providers/xago/ops"
@@ -19,7 +20,7 @@ import (
 	"go.temporal.io/sdk/worker"
 )
 
-func NewTemporalWorker(b Backends) (worker.Worker, error) {
+func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config) (worker.Worker, error) {
 	w := worker.New(b.Temporal(), "backend", worker.Options{})
 
 	w.RegisterActivity(kyc_workflows.NewActivity(b))
@@ -36,7 +37,7 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(twitter_workflows.PublishTwitterProofWorkflow)
 
 	// Jobs
-	w.RegisterActivity(jobs.NewActivity(b))
+	w.RegisterActivity(jobs.NewActivity(b, gatehubConfig))
 	w.RegisterWorkflow(jobs.AddWalletPrivateKeysWorkflow)
 	w.RegisterWorkflow(jobs.FixWalletPublicKeysWorkflow)
 	w.RegisterWorkflow(jobs.MigratePaymentPointers)
@@ -117,7 +118,7 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(pti_workflows.CreatePtiBankAccountWorkflow)
 
 	// Gatehub
-	w.RegisterActivity(gatehub_workflows.NewActivity(b))
+	w.RegisterActivity(gatehub_workflows.NewActivity(b, gatehubConfig))
 	w.RegisterWorkflow(gatehub_workflows.CreateGatehubUserWorkflow)
 	w.RegisterWorkflow(gatehub_workflows.CreateGatehubDeposit)
 	w.RegisterWorkflow(gatehub_workflows.ProcessGatehubWithdrawal)

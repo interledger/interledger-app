@@ -1,4 +1,5 @@
 import { redisClient } from './redis.server'
+import logger from './logger.server'
 
 interface RateLimitOptions {
   limit: number
@@ -41,7 +42,7 @@ export async function rateLimit(
     }
     await redisClient.set(key, count + 1, { EX: ttlSeconds })
   } catch (err) {
-    console.error('Rate limit read failed:', err)
+    logger.error({ error: err instanceof Error ? err.message : String(err) }, 'Rate limit check failed')
   }
 }
 
