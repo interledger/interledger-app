@@ -18,6 +18,7 @@ export const NON_FULL_SESSION_ROUTES = [
 
 const PASSWORD_RECOVERY_ALLOWED_ROUTES = [
   '/login',
+  '/logout', // temporary fix for logging out when on challenge page
   '/totp/challenge',
   '/recovery',
   '/recovery/password'
