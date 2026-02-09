@@ -33,9 +33,13 @@ type Backends interface {
 }
 
 type Activity struct {
-	b Backends
+	b             Backends
+	gatehubConfig gatehub.Config
 }
 
-func NewActivity(b Backends) *Activity {
-	return &Activity{b: b}
+func NewActivity(b Backends, gatehubConfig gatehub.Config) *Activity {
+	return &Activity{
+		b:             b,
+		gatehubConfig: gatehubConfig,
+	}
 }

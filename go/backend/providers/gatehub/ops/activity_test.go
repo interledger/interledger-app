@@ -15,6 +15,7 @@ import (
 	la_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
 	"gitlab.com/fynbos/backend/notify"
 	"gitlab.com/fynbos/backend/payments"
+	"gitlab.com/fynbos/backend/providers/gatehub"
 	"gitlab.com/fynbos/backend/providers/gatehub/ops"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/user"
@@ -30,7 +31,27 @@ func TestSaveUser(t *testing.T) {
 		db:    db.MigrateTestDB(t, context.Background()),
 		users: user_mock.NewMock(),
 	}
-	a := ops.NewActivity(b)
+	cfg := gatehub.Config{
+		AppID:                  gatehub.TestAppID,
+		Secret:                 gatehub.TestSecret,
+		CardAppID:              gatehub.TestCardAppID,
+		GatewayID:              gatehub.TestGatewayID,
+		CardAccountProductCode: gatehub.TestCardAccountProductCode,
+		PaywiserEuroVaultID:    gatehub.TestPaywiserEuroVaultID,
+		SendingUserID:          gatehub.TestSendingUserID,
+		SendingUserAddress:     gatehub.TestSendingUserAddress,
+		WebhookSecret:          gatehub.TestWebhookSecret,
+		FallbackWebhookURL:     gatehub.TestFallbackWebhookURL,
+		OnOffRampClientID:      gatehub.TestOnOffRampClientID,
+		OnboardingClientID:     gatehub.TestOnboardingClientID,
+		ExchangeClientID:       gatehub.TestExchangeClientID,
+		APIBaseURL:             gatehub.TestAPIBaseURL,
+		OnboardingBaseURL:      gatehub.TestOnboardingBaseURL,
+		OnOffRampBaseURL:       gatehub.TestOnOffRampBaseURL,
+		EUROpsAccount:          gatehub.TestEUROpsAccount,
+		EUROpsLedgerID:         gatehub.TestEUROpsLedgerID,
+	}
+	a := ops.NewActivity(b, cfg)
 
 	walletID := uuid.NewString()
 	externalID := uuid.NewString()
@@ -52,7 +73,27 @@ func TestLinkGatehubUserToGateway(t *testing.T) {
 		db:    db.MigrateTestDB(t, context.Background()),
 		users: user_mock.NewMock(),
 	}
-	a := ops.NewActivity(b)
+	cfg := gatehub.Config{
+		AppID:                  gatehub.TestAppID,
+		Secret:                 gatehub.TestSecret,
+		CardAppID:              gatehub.TestCardAppID,
+		GatewayID:              gatehub.TestGatewayID,
+		CardAccountProductCode: gatehub.TestCardAccountProductCode,
+		PaywiserEuroVaultID:    gatehub.TestPaywiserEuroVaultID,
+		SendingUserID:          gatehub.TestSendingUserID,
+		SendingUserAddress:     gatehub.TestSendingUserAddress,
+		WebhookSecret:          gatehub.TestWebhookSecret,
+		FallbackWebhookURL:     gatehub.TestFallbackWebhookURL,
+		OnOffRampClientID:      gatehub.TestOnOffRampClientID,
+		OnboardingClientID:     gatehub.TestOnboardingClientID,
+		ExchangeClientID:       gatehub.TestExchangeClientID,
+		APIBaseURL:             gatehub.TestAPIBaseURL,
+		OnboardingBaseURL:      gatehub.TestOnboardingBaseURL,
+		OnOffRampBaseURL:       gatehub.TestOnOffRampBaseURL,
+		EUROpsAccount:          gatehub.TestEUROpsAccount,
+		EUROpsLedgerID:         gatehub.TestEUROpsLedgerID,
+	}
+	a := ops.NewActivity(b, cfg)
 
 	walletID := uuid.NewString()
 	externalID := uuid.NewString()

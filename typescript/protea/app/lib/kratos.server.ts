@@ -10,6 +10,7 @@ import type {
 import { redirect } from '@remix-run/node'
 import { route } from 'routes-gen'
 import { safeReturnTo } from './url.server'
+import logger from './logger.server'
 
 // Export to ensure this is always evaluated server side.
 export const KRATOS_URL = process.env.KRATOS_URL
@@ -250,11 +251,9 @@ export async function kratosErrorMapping<T extends object>(
     for (let node of data.ui.nodes) {
       // Field validation errors
       if (node.messages.length > 0) {
-        console.error(
-          'Kratos error on node attribute',
-          node.attributes.name,
-          ' with message',
-          node.messages[0].text
+        logger.warn(
+          { node: node.attributes.name, message: node.messages[0].text },
+          'Kratos validation error on node'
         )
         Object.assign(fieldErrors, {
           [node.attributes.name]: kratosErrorMessage(node.messages[0])
