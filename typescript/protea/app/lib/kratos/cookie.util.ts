@@ -4,14 +4,14 @@ import { RequestConfig } from "./types";
 /**
  * Helper to extract cookie header from Request for SDK calls
  */
-
 export function getCookie(request: Request): string {
     return request.headers.get('cookie') ?? ''
 }
+
+
 /**
  * Helper to extract set-cookie headers from Axios response as an array
  */
-
 export function extractSetCookieHeaders(
     response: { headers?: Record<string, unknown> }
 ): string[] {
@@ -20,10 +20,11 @@ export function extractSetCookieHeaders(
     if (Array.isArray(setCookie)) return setCookie as string[]
     return typeof setCookie === 'string' ? [setCookie] : []
 }
+
+
 /**
  * Helper to build response headers with set-cookie from Kratos response
  */
-
 export function buildHeadersWithCookies(
     response: { headers?: Record<string, unknown> }
 ): Headers {
@@ -36,6 +37,8 @@ export function buildHeadersWithCookies(
 
     return headers
 }
+
+
 /**
  * Creates axios request config with cookie header for authenticated requests
  */
@@ -48,10 +51,11 @@ export function withCookie(cookie: string): RequestConfig {
         withCredentials: true
     }
 }
+
+
 /**
  * Check if a message indicates a session already exists
  */
-
 export function isSessionAlreadyExistsMessage(msg: string): boolean {
     return (
         msg.includes('refresh=true') && msg.includes('valid session was detected')

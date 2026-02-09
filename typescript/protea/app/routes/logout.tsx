@@ -9,23 +9,21 @@ import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts } from '~/components'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
-import { trimHeaders } from '~/lib/headers.server'
-import { KRATOS_URL, handleFlowError } from '~/lib/kratos.server'
+import { kratosPublic } from '~/lib/kratos/kratos-client.server'
+import { getCookie, buildHeadersWithCookies } from '~/lib/kratos/cookie.util'
+import { handleFlowError } from '~/lib/kratos/error'
 import { mergeMeta } from '~/lib/meta'
-import { destroySession, getSession } from '~/session.server'
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const cookie = String(request.headers.get('cookie'))
-  let flow
-  const flowRes = await fetch(`${KRATOS_URL}/self-service/logout/browser`, {
-    headers: {
-      cookie: cookie,
-      Accept: 'application/json'
-    }
-  })
-  flow = await flowRes.json()
-  if (flowRes.status >= 400) handleFlowError(flow, 'logout')
-  return jsonWithCSRF(request, { logoutToken: flow.logout_token })
+  const cookie = getCookie(request)
+
+  try {
+    const logoutFlow = await kratosPublic.createBrowserLogoutFlow({ cookie })
+    return jsonWithCSRF(request, { logoutToken: logoutFlow.data.logout_token })
+  } catch (err) {
+    handleFlowError(err, 'logout')
+    throw redirect('/')
+  }
 }
 
 export const handle: ApplicationProps = {
@@ -69,35 +67,21 @@ export default function Page() {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const cookie = request.headers.get('cookie') as string
+  const cookie = getCookie(request)
   const form = await request.formData()
-  const token = form.get('logoutToken')
+  const token = form.get('logoutToken') as string
 
   await validateCSRFToken(request, form)
 
-  const res = await fetch(`${KRATOS_URL}/self-service/logout?token=${token}`, {
-    method: 'GET',
-    headers: {
-      Accept: 'application/json',
-      cookie
-    }
-  })
+  try {
+    const logoutResponse = await kratosPublic.updateLogoutFlow({ token, cookie })
+    const headers = buildHeadersWithCookies(logoutResponse)
 
-  if (res.status >= 400) {
+    return redirect(route('/'), { headers })
+  } catch (error) {
     return json(
       { errors: { form: 'Something went wrong trying to logout.' } },
       { status: 400 }
     )
   }
-
-  const session = await getSession(cookie)
-  const sessionHeaders = await destroySession(session)
-
-  // Remove all headers besides set-cookie
-  const headers = trimHeaders(res.headers, ['set-cookie'])
-  headers.append('Set-Cookie', sessionHeaders)
-
-  return redirect(route('/'), {
-    headers: headers
-  })
 }
