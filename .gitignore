@@ -30,3 +30,8 @@ coverage.out
 **/.pnpm-store
 **/dev_bck
 .pnpm-store
+
+# AI coding assistants
+.agent
+.claude
+openspec
