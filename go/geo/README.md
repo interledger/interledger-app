@@ -148,7 +148,7 @@ The package defines the following errors:
 | `ErrAssetMismatch` | Arithmetic operation on mismatched assets |
 | `ErrUnsupportedType` | Unsupported type passed to SetAmount |
 | `ErrUnsupportedAsset` | Asset code not in registry |
-| `ErrNotFound` | Country not found |
+| `ErrCountryNotFound` | Country not found |
 
 ## Testing
 
