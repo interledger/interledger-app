@@ -40,7 +40,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
     gatehubWidgetUrl: response.gatehubWidget?.widgetUrl,
     hasPersonaWidget: !!response.personaInquiry,
     hasChimoneyWidget: !!response.chimoneyWidget,
-    hasPtiWidget: !!response.ptiWidget
+    hasPtiWidget: !!response.ptiWidget,
+    flow: 'kyc'
   }, '[KYC] Personal details page loaded')
 
   // if (response.provider === 'local') {
@@ -345,17 +346,17 @@ export default function Page() {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  logger.info({}, '[KYC] Personal details action called - marking KYC status as pending')
+  logger.info({ flow: 'kyc' }, '[KYC] Personal details action called - marking KYC status as pending')
   
   await exitFlow(request, flowType.PersonalDetails)
 
   const setKycResponse = await grpc.setKYCStatusPending(request, {})
   if (isConnectError(setKycResponse)) {
-    logger.error({ error: setKycResponse }, '[KYC] Failed to set KYC status as pending')
+    logger.error({ error: setKycResponse, flow: 'kyc' }, '[KYC] Failed to set KYC status as pending')
     throw setKycResponse.errorResponse
   }
   
-  logger.info({}, '[KYC] KYC status set to pending successfully')
+  logger.info({ flow: 'kyc' }, '[KYC] KYC status set to pending successfully')
 
   return redirectWithSnackbar(request, route('/'), {
     message: 'Personal details captured.',
