@@ -9,6 +9,28 @@ import (
 	"gitlab.com/fynbos/backend/wallets"
 )
 
+// Config holds the configuration for the Gatehub provider
+type Config struct {
+	AppID                  string
+	Secret                 string
+	CardAppID              string
+	GatewayID              string
+	CardAccountProductCode string
+	PaywiserEuroVaultID    string
+	SendingUserID          string
+	SendingUserAddress     string
+	WebhookSecret          string
+	FallbackWebhookURL     string
+	OnOffRampClientID      string
+	OnboardingClientID     string
+	ExchangeClientID       string
+	APIBaseURL             string
+	OnboardingBaseURL      string
+	OnOffRampBaseURL       string
+	EUROpsAccount          string
+	EUROpsLedgerID         uint32
+}
+
 const (
 	ProviderName   = "gatehub"
 	AccTypeBalance = "balance"
