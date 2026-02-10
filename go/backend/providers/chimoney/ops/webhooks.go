@@ -199,8 +199,7 @@ func handleWithdrawal(ctx context.Context, b Backends, ec external.Client, raw j
 		}
 	}
 
-	err = ExecuteFinishWithdraw(ctx, b, ec, wh.IssueID, wh.Status, wh.ChiWalletID)
-	return err
+	return ExecuteFinishWithdraw(ctx, b, ec, wh.IssueID, wh.Status, wh.ChiWalletID)
 }
 
 func handleConfirmedOrCompletedCharge(ctx context.Context, b Backends, ec external.Client, raw json.RawMessage) error {
