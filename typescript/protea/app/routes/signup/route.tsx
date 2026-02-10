@@ -222,8 +222,9 @@ export async function otpAction({ request }: ActionFunctionArgs) {
   logger.info({
     id,
     phone,
-    hasOtp: !!otp
-  }, '[SIGNUP] Setting mobile number for signup')
+    hasOtp: !!otp,
+    flow: 'signup'
+  }, 'Setting mobile number for signup')
 
   const response = await grpc.setSignupMobileNumber(request, {
     id,
