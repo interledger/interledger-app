@@ -44,27 +44,28 @@ func NewAsset(code string, numeric string, scale uint8, formatFunc func(string) 
 }
 
 // Code returns the ISO 4217 alphabetic code (e.g., "USD", "EUR").
-func (a *Asset) Code() string {
+func (a Asset) Code() string {
 	return a.code
 }
 
 // NumericCode returns the ISO 4217 numeric code (e.g., "840" for USD).
-func (a *Asset) NumericCode() string {
+func (a Asset) NumericCode() string {
 	return a.numeric
 }
 
 // Scale returns the number of decimal places for this asset.
-func (a *Asset) Scale() uint8 {
+func (a Asset) Scale() uint8 {
 	return a.scale
 }
 
-// Factor returns the scaling factor (10^scale) for this asset.
-func (a *Asset) Factor() *big.Int {
-	return a.factor
+// Factor returns a copy of the scaling factor (10^scale) for this asset.
+// Returns a copy to preserve immutability.
+func (a Asset) Factor() *big.Int {
+	return new(big.Int).Set(a.factor)
 }
 
 // Format applies the asset's formatting function to the given value string.
-func (a *Asset) Format(value string) string {
+func (a Asset) Format(value string) string {
 	return a.formatFunc(value)
 }
 

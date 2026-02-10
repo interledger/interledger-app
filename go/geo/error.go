@@ -8,5 +8,5 @@ var (
 	ErrUnsupportedType  = errors.New("unsupported type for SetAmount")
 	ErrUnsupportedAsset = errors.New("unsupported asset")
 
-	ErrNotFound = errors.New("country: not found.")
+	ErrCountryNotFound = errors.New("country not found")
 )

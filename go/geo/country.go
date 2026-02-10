@@ -24,7 +24,7 @@ func ParseCountry(c string) Country {
 func (c Country) Numeric() (string, error) {
 	d, ok := details[c]
 	if !ok {
-		return "", ErrNotFound
+		return "", ErrCountryNotFound
 	}
 
 	return d.Numeric, nil
@@ -839,7 +839,7 @@ var states = map[Country]map[string]string{
 		"VGL": "Vale of Glamorgan",
 		"WRX": "Wrexham",
 		"ENG": "England",
-		"NIR": "Norhtern Ireland",
+		"NIR": "Northern Ireland",
 		"SCT": "Scotland",
 		"WLS": "Wales",
 		"EAW": "England and Wales",
