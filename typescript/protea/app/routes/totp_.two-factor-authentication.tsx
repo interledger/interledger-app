@@ -19,7 +19,9 @@ import {
   OutlineButtonRouter,
   TextField
 } from '~/components'
-import { KRATOS_URL, getCsrfTokenFromFlow } from '~/lib/kratos.server'
+import { kratosPublic } from '~/lib/kratos/kratos-client.server'
+import { getCookie, withCookie } from '~/lib/kratos/cookie.util'
+import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.util'
 import { mergeMeta } from '~/lib/meta'
 import { useTotpChallenge } from '~/lib/useTotpChallenge'
 
@@ -34,23 +36,12 @@ type TotpForm = {
 export async function loader({
   request
 }: LoaderFunctionArgs): Promise<TypedResponse<TotpForm>> {
-  const cookie = String(request.headers.get('cookie') ?? '')
-  // console.log('🪲 [totp] loader cookie', cookie)
+  const cookie = getCookie(request)
   try {
-    const response = await fetch(
-      `${KRATOS_URL}/self-service/settings/browser`,
-      {
-        headers: {
-          Accept: 'application/json',
-          cookie
-        }
-      }
+    const { data: flow } = await kratosPublic.createBrowserSettingsFlow(
+      {},
+      withCookie(cookie)
     )
-    // console.log('🪲 [totp] loader response', response)
-
-    if (!response.ok) throw new Error('Failed to initiate Kratos settings flow')
-    const flow = await response.json()
-    // console.log('🪲 [totp] loader flow', flow)
 
     const nodes = flow?.ui?.nodes ?? []
     const totpSchema: TotpForm = nodes.reduce(
@@ -205,58 +196,35 @@ export async function action({ request }: ActionFunctionArgs) {
   const totpUnlink =
     new URL(request.url).searchParams.get('totpUnlink') === 'true'
   const form = await request.formData()
-  const flowId = form.get('flow')
-  const csrfToken = form.get('csrf_token')
-  const totpCode = form.get('totp_code')
+  const flowId = form.get('flow') as string
+  const csrfToken = form.get('csrf_token') as string
+  const totpCode = form.get('totp_code') as string
   const errors = {
     totpCode: ''
   }
 
-  try {
-    const res = await fetch(
-      `${KRATOS_URL}/self-service/settings?flow=${flowId}`,
-      {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-type': 'application/json',
-          cookie: String(request.headers.get('cookie'))
-        },
+  const cookie = getCookie(request)
+  const updateBody = totpUnlink
+    ? { method: 'totp' as const, totp_unlink: true, csrf_token: csrfToken }
+    : { method: 'totp' as const, totp_code: totpCode, csrf_token: csrfToken }
 
-        body: JSON.stringify(
-          !totpUnlink
-            ? {
-                method: 'totp',
-                totp_code: totpCode,
-                csrf_token: csrfToken
-              }
-            : {
-                method: 'totp',
-                totp_unlink: true,
-                csrf_token: csrfToken
-              }
-        )
-      }
+  try {
+    await kratosPublic.updateSettingsFlow(
+      {
+        flow: flowId,
+        updateSettingsFlowBody: updateBody
+      },
+      withCookie(cookie)
     )
 
-    // if (res.ok && totpUnlink) {
-    //   return redirect(route('/logout'))
-    // }
-
-    if (res.ok) {
-      const returnTo = new URL(request.url).searchParams.get('returnTo') || '/'
-      const response = redirectDocument(returnTo ?? '/')
-      // Hard reload so the root loader is also run
-      return response
-    }
-
-    if (res.status === 400) {
+    const returnTo = new URL(request.url).searchParams.get('returnTo') || '/'
+    return redirectDocument(returnTo) // Hard reload so the root loader is also run
+  } catch (err: any) {
+    const status = err.response?.status
+    if (status === 400) {
       errors.totpCode =
         'Invalid code. Please scan the QR code again or add the new code to your authenticator application.'
     }
-
-    return json({ errors }, { status: res.status })
-  } catch (error) {
-    throw new Error('Failed to set up TOTP authentication')
+    return json({ errors }, { status: status ?? 500 })
   }
 }
