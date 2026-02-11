@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package geo;
+
+option go_package = "./geo.v1;geo";
+
+// Asset represents a financial asset, such as a currency or commodity.
+// The 'code' field is the primary identifier for the asset, while 'numeric' and 'scale' provide additional information.
+message Asset {
+  // ISO 4217 alphabetic code (e.g., "USD", "EUR").
+  string code = 1;
+  // ISO 4217 numeric code (e.g., "840" for USD).
+  string numeric = 2;
+  // Number of decimal places for this asset (e.g., 2 for USD, 0 for JPY).
+  uint32 scale = 3;
+}

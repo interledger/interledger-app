@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"os"
 	"time"
 
 	"gitlab.com/fynbos/backend/currency"
@@ -12,7 +11,6 @@ import (
 	"gitlab.com/fynbos/backend/providers/gatehub/external"
 	ops "gitlab.com/fynbos/backend/providers/gatehub/ops"
 	httplogger "gitlab.com/fynbos/backend/providers/http"
-	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/log"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
@@ -22,34 +20,78 @@ var _ gatehub.Client = Client{}
 type Client struct {
 	b        ops.Backends
 	external external.Client
+	config   gatehub.Config
 }
 
-func New(b ops.Backends) *Client {
-	// Validate required Gatehub environment variables
-	vaultID := os.Getenv("GATEHUB_PAYWISER_EURO_VAULT_ID")
-	if vaultID == "" && !env.IsTestExecution() {
-		log.Fatal("GATEHUB_PAYWISER_EURO_VAULT_ID is required but not set. Please set this environment variable to enable EUR PayIn transactions via Gatehub.")
+func New(b ops.Backends, cfg gatehub.Config) *Client {
+	// Validate required Gatehub configuration
+	if cfg.PaywiserEuroVaultID == "" {
+		log.Error("PaywiserEuroVaultID is not set in Gatehub configuration")
+		return nil
+	}
+	if cfg.GatewayID == "" {
+		log.Error("GatewayID is not set in Gatehub configuration")
+		return nil
+	}
+	if cfg.CardAccountProductCode == "" {
+		log.Error("CardAccountProductCode is not set in Gatehub configuration")
+		return nil
+	}
+	if cfg.OnOffRampClientID == "" {
+		log.Error("OnOffRampClientID is not set in Gatehub configuration")
+		return nil
+	}
+	if cfg.OnboardingClientID == "" {
+		log.Error("OnboardingClientID is not set in Gatehub configuration")
+		return nil
+	}
+	if cfg.ExchangeClientID == "" {
+		log.Error("ExchangeClientID is not set in Gatehub configuration")
+		return nil
+	}
+	if cfg.APIBaseURL == "" {
+		log.Error("APIBaseURL is not set in Gatehub configuration")
+		return nil
+	}
+	if cfg.OnboardingBaseURL == "" {
+		log.Error("OnboardingBaseURL is not set in Gatehub configuration")
+		return nil
+	}
+	if cfg.OnOffRampBaseURL == "" {
+		log.Error("OnOffRampBaseURL is not set in Gatehub configuration")
+		return nil
 	}
 
-	if vaultID != "" {
-		log.Info(fmt.Sprintf("Initialized Gatehub with EUR vault ID: %.8s...", vaultID))
-	} else {
-		log.Warn("Initialized Gatehub in test mode without vault ID")
+	log.Info(fmt.Sprintf("Initialized Gatehub with EUR vault ID: %.8s...", cfg.PaywiserEuroVaultID))
+
+	extClient := external.NewClient(
+		cfg.AppID,
+		cfg.Secret,
+		cfg.CardAppID,
+		cfg.GatewayID,
+		cfg.CardAccountProductCode,
+		cfg.PaywiserEuroVaultID,
+		cfg.OnOffRampClientID,
+		cfg.OnboardingClientID,
+		cfg.ExchangeClientID,
+		cfg.APIBaseURL,
+		cfg.OnboardingBaseURL,
+		cfg.OnOffRampBaseURL,
+		&http.Client{
+			Transport: otelhttp.NewTransport(
+				httplogger.NewTransport(http.DefaultTransport, b, nil),
+			),
+		},
+	)
+	if extClient == nil {
+		log.Error("failed to initialize Gatehub external client")
+		return nil
 	}
 
 	return &Client{
-		b: b,
-		external: external.NewClient(
-			os.Getenv("GATEHUB_APP_ID"),
-			os.Getenv("GATEHUB_SECRET"),
-			os.Getenv("GATEHUB_CARD_APP_ID"),
-			os.Getenv("GATEHUB_GATEWAY_ID"),
-			&http.Client{
-				Transport: otelhttp.NewTransport(
-					httplogger.NewTransport(http.DefaultTransport, b, nil),
-				),
-			},
-		),
+		b:        b,
+		external: extClient,
+		config:   cfg,
 	}
 }
 
