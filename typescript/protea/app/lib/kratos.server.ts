@@ -10,11 +10,13 @@ import type {
 } from '@ory/client'
 import { redirect } from '@remix-run/node'
 import { route } from 'routes-gen'
-import { safeReturnTo } from './url.server'
 import {
   getCsrfTokenFromFlow as getCsrfToken,
   isUiNodeInputAttributes
 } from './kratos/flow.util'
+
+// Re-export session utilities from new location
+export { getUserSession, hasUserSession, requireNoUserSession } from './kratos/session.util'
 
 // Export to ensure this is always evaluated server side.
 export const KRATOS_URL = process.env.KRATOS_URL
@@ -43,72 +45,6 @@ export type SuccessfulSelfServiceRegistrationWithoutBrowser = SuccessfulNativeRe
  * Extract CSRF token from flow - re-exported from kratos-client.server.ts
  */
 export const getCsrfTokenFromFlow = getCsrfToken
-
-/**
- * getUserSession allows fetching a user's kratos session.
- * @param request Request received in a loader function.
- * @returns boolean - if the user has a session.
- */
-export async function getUserSession(
-  request: Request,
-  allowAal1 = false
-): Promise<Session> {
-  const session = await fetch(`${KRATOS_URL}/sessions/whoami`, {
-    headers: request.headers
-  })
-
-  const requestUrl = new URL(request.url)
-  const returnTo = safeReturnTo(requestUrl.pathname + requestUrl.search)
-  const searchParams = new URLSearchParams()
-  searchParams.set('returnTo', returnTo)
-
-  switch (session.status) {
-    case 401:
-    case 500:
-      throw redirect(`${route('/login')}?${searchParams.toString()}`)
-    case 403:
-    case 422: // Need to complete 2FA.
-      if (!allowAal1) {
-        requestUrl.searchParams.set('aal', 'aal2')
-        throw redirect(`${route('/login')}?${searchParams.toString()}`)
-      }
-  }
-
-  return session.json()
-}
-
-/**
- * hasUserSession allows determining whether the user has a valid kratos session cookie.
- * @param request Request received in a loader function.
- * @returns boolean - if the user has a session cookie.
- */
-export function hasUserSession(request: Request): boolean {
-  return String(request.headers.get('cookie')).includes('ory_kratos_session')
-}
-
-/**
- * requireNoUserSession  will ensure the user doesn't already have a session.
- * @param request Request received in a loader function.
- * @returns void
- */
-export async function requireNoUserSession(request: Request): Promise<void> {
-  // Can immediately assume no session if there's no cookie
-  if (!hasUserSession(request)) return
-
-  const session = await fetch(`${KRATOS_URL}/sessions/whoami`, {
-    headers: request.headers
-  })
-
-  switch (session.status) {
-    // User shouldn't have session/cookies so don't catch unauthorised - 401.
-    case 403:
-    case 422: // Need to complete 2FA.
-      throw redirect(route('/totp/challenge'))
-  }
-
-  const userSession = await session.json()
-  if (typeof userSession.error == 'undefined') throw redirect(route('/'))
-}
 
 // This will only run on the server so don't need a router.
 export function handleFlowError(
