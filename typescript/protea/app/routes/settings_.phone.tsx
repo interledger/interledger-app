@@ -31,13 +31,11 @@ import { Label } from '~/components/Label'
 import { jsonWithCSRF } from '~/lib/csrf.server'
 import { error, isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
-import {
-  KRATOS_URL,
-  getCsrfTokenFromFlow,
-  getUserSession,
-  handleFlowError,
-  kratosErrorMapping
-} from '~/lib/kratos.server'
+import { kratosPublic } from '~/lib/kratos/kratos-client.server'
+import { getCookie, withCookie } from '~/lib/kratos/cookie.util'
+import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.util'
+import { handleFlowError, mapFlowToFieldErrors } from '~/lib/kratos/error'
+import { getUserSession } from '~/lib/kratos/session.util'
 import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import type { action as sendOtpAction } from '~/routes/api_.sendOtp'
@@ -60,26 +58,24 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
-  const cookie = String(request.headers.get('cookie'))
+  const cookie = getCookie(request)
   const session = await getUserSession(request)
 
-  let flow
-  if (flowId) {
-    // If ?flow=.. was in the URL, we fetch it
-    const flowRes = await fetch(
-      `${KRATOS_URL}/self-service/settings/flows?id=${flowId}`,
-      {
-        headers: {
-          cookie: cookie,
-          Accept: 'application/json'
-        }
-      }
-    )
-    flow = await flowRes.json()
-    if (flowRes.status >= 400) handleFlowError(flow, 'settings/password')
-  } else {
+  if (!flowId) {
     // If we don't have a flow, the user hasn't confirmed their old phone yet
     throw redirect(route('/otp/challenge'))
+  }
+
+  let flow
+  try {
+    const { data } = await kratosPublic.getSettingsFlow(
+      { id: flowId },
+      withCookie(cookie)
+    )
+    flow = data
+  } catch (err: any) {
+    handleFlowError(err, 'settings/password')
+    throw err
   }
 
   let response = await grpc.getCountries(request, {})
@@ -90,7 +86,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   return jsonWithCSRF(request, {
     flow,
-    countryCode: session.identity.traits.countryCode,
+    countryCode: session.identity?.traits.countryCode,
     countries,
     csrf_token: getCsrfTokenFromFlow(flow)
   })
@@ -229,7 +225,6 @@ export default function Page() {
 
 export async function action({ request }: ActionFunctionArgs) {
   const session = await getUserSession(request)
-  const cookie = request.headers.get('Cookie') as string
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
 
@@ -259,35 +254,35 @@ export async function action({ request }: ActionFunctionArgs) {
       return response.error({ errors }, mapping, { action: 'Contact support' })
   }
 
-  const res = await fetch(
-    `${KRATOS_URL}/self-service/settings?flow=${flowId}`,
-    {
-      method: 'POST',
-      body: JSON.stringify({
-        method: 'profile',
-        traits: {
-          ...session.identity.traits,
-          phone
-        },
-        csrf_token: csrfToken
-      }),
-      headers: {
-        'Content-type': 'application/json',
-        Accept: 'application/json',
-        cookie
-      }
+  const cookie = getCookie(request)
+
+  try {
+    await kratosPublic.updateSettingsFlow(
+      {
+        flow: flowId!,
+        updateSettingsFlowBody: {
+          method: 'profile',
+          traits: {
+            ...session.identity?.traits,
+            phone
+          },
+          csrf_token: csrfToken
+        }
+      },
+      withCookie(cookie)
+    )
+    return redirectWithSnackbar(request, route('/settings/profile-contact'), {
+      message: 'New mobile number successfully saved.',
+      icon: 'close'
+    })
+  } catch (err: any) {
+    const status = err.response?.status
+    const flowData = err.response?.data
+    if (status === 400) {
+      const errs = mapFlowToFieldErrors(flowData, errors)
+      return error(request, { errors: errs })
     }
-  )
-  const data = await res.json()
-
-  if (res.status > 400) handleFlowError(data, 'settings/phone')
-  if (res.status == 400) {
-    const errs = await kratosErrorMapping(res, errors)
-    return error(request, { errors: errs })
+    handleFlowError(err, 'settings/phone')
+    throw err
   }
-
-  return redirectWithSnackbar(request, route('/settings/profile-contact'), {
-    message: 'New mobile number successfully saved.',
-    icon: 'close'
-  })
 }
