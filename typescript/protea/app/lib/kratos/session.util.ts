@@ -23,6 +23,7 @@ export async function getUserSession(
 
   try {
     const { data } = await kratosPublic.toSession({ cookie })
+    console.log("🐳 [getUserSession] we have a session: ", data)
     return data
   } catch (err: any) {
     const status = err.response?.status
@@ -39,6 +40,7 @@ export async function getUserSession(
         // allowAal1 === true: return a partial object so callers can safely check .identity
         // The 403 error response is not a Session — it's an error body.
         // Callers (emailVerificationGuard, verify.tsx) already handle missing identity gracefully.
+        console.log("🐳 [getUserSession] 403 or 422 with session ", err.response?.data)
         return (err.response?.data ?? {}) as Session
       default:
         throw redirect(`${route('/login')}?${searchParams.toString()}`)

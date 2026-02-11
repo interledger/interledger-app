@@ -1,6 +1,8 @@
 import type { Identity, Session } from '@ory/client'
 import { redirect } from '@remix-run/node'
-import { KRATOS_URL, getUserSession } from './kratos.server'
+import { getUserSession } from './kratos/session.util'
+import { kratosPublic } from './kratos/kratos-client.server'
+import { getCookie, withCookie } from './kratos/cookie.util'
 
 /**
  * Routes that can be accessed without a session with highest AAL
@@ -30,58 +32,34 @@ const PASSWORD_RECOVERY_ALLOWED_ROUTES = [
 export const NON_VERIFIED_EMAIL_ROUTES = ['/logout', '/verify']
 
 /**
- * Check if TOTP is available in Kratos settings flow
- * This determines if 2FA is configured and available for the current user
+ * Check if the user has TOTP enabled
  */
-export async function isTotpAvailable(request: Request): Promise<boolean> {
-  try {
-    const cookie = String(request.headers.get('cookie') ?? '')
-    const response = await fetch(
-      `${KRATOS_URL}/self-service/settings/browser`,
-      {
-        headers: {
-          Accept: 'application/json',
-          cookie
-        }
-      }
-    )
-
-    if (!response.ok) {
-      return false
-    }
-
-    const flow = await response.json()
-    const nodes = flow?.ui?.nodes ?? []
-
-    // Check if there are any TOTP-related nodes in the flow
-    const hasTotpNodes = nodes.some((node: any) => node.group === 'totp')
-
-    return hasTotpNodes
-  } catch (error) {
-    return false
-  }
-}
-
-// create a server function that will return true if the user has a totp enabled
 export async function isTotpSet(
   session: Session,
   headers: Headers
 ): Promise<boolean> {
-  if (session?.authenticator_assurance_level === 'aal2')
-    return Promise.resolve(true)
+  if (session?.authenticator_assurance_level === 'aal2') {
+    console.log("🐳isTotpSet assurance lvl AAL2")
+    return true
+  }
+
   try {
-    const response = await fetch(
-      `${KRATOS_URL}/admin/identities/${session.identity?.id}`,
-      {
-        headers: headers
-      }
+    const cookie = headers.get('cookie') ?? ''
+    const { data: flow } = await kratosPublic.createBrowserSettingsFlow(
+      undefined,
+      withCookie(cookie)
     )
-    if (!response.ok) {
-      throw new Error(`Failed to fetch identity`)
-    }
-    const identity = await response.json()
-    return !!identity.credentials?.totp
+
+    const nodes = flow.ui.nodes ?? []
+    // If TOTP is configured, the settings flow contains totp group nodes
+    // with an "unlink" action. If not configured, the nodes offer "enable".
+    const isSet = nodes.some(
+      (node: any) => node.group === 'totp' && node.attributes?.name === 'totp_unlink'
+    )
+    console.log("🐳isTotpSet", isSet)
+    return isSet
   } catch (error) {
+    console.log("🐳isTotpSet ERROR", error)
     return false
   }
 }
@@ -146,6 +124,7 @@ export async function emailVerificationGuard(
 
 export async function withAAL2Guard(pathname: string, request: Request, fn: () => Promise<void>) {
   if (NON_FULL_SESSION_ROUTES.includes(pathname)) {
+    console.log("🐳 [withAAL2Guard] pathname skipping ", pathname)
     return
   }
 
