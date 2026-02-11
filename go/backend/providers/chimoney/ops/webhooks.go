@@ -107,9 +107,9 @@ func NewWebhook(b Backends) http.HandlerFunc {
 		}
 
 		switch wh.EventType {
-		case "payout.interac.expired":
-		case "payout.interac.cancelled":
-		case "payout.interac.completed":
+		case "payout.interac.expired",
+			"payout.interac.cancelled",
+			"payout.interac.completed":
 			err = handleWithdrawal(r.Context(), b, ec, body)
 		case "chimoney.redeem.completed", "chimoney.redeem.failed":
 			err = handleRedeemWebhook(r.Context(), b, body)
