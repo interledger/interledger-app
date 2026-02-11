@@ -25,19 +25,14 @@ import {
   xagoTestAccountDepositAction
 } from './fynbos'
 import { GatehubDepositPage, gatehubDepositLoader } from './gatehub'
-import { KRATOS_URL } from '~/lib/kratos.server'
+import { getUserSession } from '~/lib/kratos/session.util'
 
 import { getKycStatus } from '~/data/wallet.server'
 import { KycStatus } from '../_index/route'
 
 
 export async function loader(args: LoaderFunctionArgs) {
-  const session = await fetch(`${KRATOS_URL}/sessions/whoami`, {
-      headers: args.request.headers
-    })
-    if (session.status === 401) {
-      return redirect('/login')
-    }
+  await getUserSession(args.request)
     const { kycStatus } = await getKycStatus(args.request)
     if (kycStatus != KycStatus.Approved)
       return redirect(route('/personal-details'))

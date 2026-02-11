@@ -6,7 +6,7 @@ import type {
 import { json, redirect } from '@remix-run/node'
 
 import { Code } from '@bufbuild/connect'
-import type { SuccessfulSelfServiceRegistrationWithoutBrowser } from '~/lib/kratos.server'
+import type { SuccessfulNativeRegistration } from '@ory/client'
 import { useLoaderData } from '@remix-run/react'
 import { useEffect } from 'react'
 import { route } from 'routes-gen'
@@ -15,14 +15,11 @@ import { Layouts } from '~/components'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { error, isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
-import { trimHeaders } from '~/lib/headers.server'
-import {
-  KRATOS_URL,
-  getCsrfTokenFromFlow,
-  handleFlowError,
-  kratosErrorMapping,
-  requireNoUserSession
-} from '~/lib/kratos.server'
+import { kratosPublic } from '~/lib/kratos/kratos-client.server'
+import { getCookie, withCookie, buildHeadersWithCookies } from '~/lib/kratos/cookie.util'
+import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.util'
+import { handleFlowError, mapFlowToFieldErrors } from '~/lib/kratos/error'
+import { requireNoUserSession } from '~/lib/kratos/session.util'
 import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { SignupStep, useSignupStore } from '~/lib/useSignupStore'
@@ -44,23 +41,28 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const countries = response.countries
 
   // Init kratos flow once per signup flow
-  const flowRes = await fetch(
-    `${KRATOS_URL}/self-service/registration/browser?${url.searchParams}`,
-    { headers: { Accept: 'application/json' } }
-  )
-  const kratosFlow = await flowRes.json()
-  if (flowRes.status >= 400) handleFlowError(kratosFlow, 'signup')
+  const cookie = getCookie(request)
+  let flowResponse
+  try {
+    flowResponse = await kratosPublic.createBrowserRegistrationFlow(
+      { returnTo: url.searchParams.get('returnTo') ?? undefined },
+      withCookie(cookie)
+    )
+  } catch (err: any) {
+    handleFlowError(err, 'signup')
+    throw err
+  }
 
   return jsonWithCSRF(
     request,
     {
       countries,
-      kratosFlowId: kratosFlow.id,
-      kratosCsrfToken: getCsrfTokenFromFlow(kratosFlow),
+      kratosFlowId: flowResponse.data.id,
+      kratosCsrfToken: getCsrfTokenFromFlow(flowResponse.data),
       fynbosEnv: process.env.FYNBOS_ENV
     },
     {
-      headers: trimHeaders(flowRes.headers, ['set-cookie'])
+      headers: buildHeadersWithCookies(flowResponse)
     }
   )
 }
@@ -278,30 +280,31 @@ export async function passwordAction({ request }: ActionFunctionArgs) {
     return error(request, { errors })
   }
 
-  const response = await fetch(
-    `${KRATOS_URL}/self-service/registration?flow=${kratosFlowId}`,
-    {
-      method: 'POST',
-      body: JSON.stringify({
-        method: 'password',
-        traits: {
-          email: email,
-          phone: phone,
-          firstName: firstName,
-          lastName: lastName,
-          countryCode: country
-        },
-        password: password,
-        csrf_token: kratosCsrfToken
-      }),
-      headers: {
-        'Content-type': 'application/json',
-        cookie: String(request.headers.get('cookie'))
-      }
-    }
-  )
-  if (response.status >= 400) {
-    const errs = await kratosErrorMapping(response, errors)
+  const cookie = getCookie(request)
+
+  let response
+  try {
+    response = await kratosPublic.updateRegistrationFlow(
+      {
+        flow: kratosFlowId,
+        updateRegistrationFlowBody: {
+          method: 'password',
+          traits: {
+            email,
+            phone,
+            firstName,
+            lastName,
+            countryCode: country
+          },
+          password,
+          csrf_token: kratosCsrfToken
+        }
+      },
+      withCookie(cookie)
+    )
+  } catch (err: any) {
+    const flowData = err.response?.data
+    const errs = mapFlowToFieldErrors(flowData, errors)
     if ((errs as any)[KratosErrorTraits.PHONE]) {
       errors.phone = KratosErrorMessages[KratosErrorTraits.PHONE]
       return error(request, { errors })
@@ -309,10 +312,7 @@ export async function passwordAction({ request }: ActionFunctionArgs) {
     return error(request, { errors: errs })
   }
 
-  const data = await response.json()
-  // The SuccessfulSelfServiceRegistrationWithoutBrowser is correct here. The OpenAPI spec for kratos
-  // has some weird naming for types....
-  const successData = data as SuccessfulSelfServiceRegistrationWithoutBrowser
+  const successData = response.data as SuccessfulNativeRegistration
 
   // Mark signup complete
   // TODO: also handle via kratos webhook, add retry here and error handling
@@ -329,7 +329,7 @@ export async function passwordAction({ request }: ActionFunctionArgs) {
       icon: 'close'
     },
     {
-      headers: trimHeaders(response.headers, ['set-cookie'])
+      headers: buildHeadersWithCookies(response)
     }
   )
 }

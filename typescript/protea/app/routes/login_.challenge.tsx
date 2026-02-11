@@ -9,54 +9,49 @@ import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts, TextField } from '~/components'
 import { error } from '~/lib/error.server'
-import { trimHeaders } from '~/lib/headers.server'
-import {
-  KRATOS_URL,
-  getCsrfTokenFromFlow,
-  getUserSession,
-  handleFlowError,
-  kratosErrorMapping
-} from '~/lib/kratos.server'
+import { kratosPublic } from '~/lib/kratos/kratos-client.server'
+import { getCookie, withCookie, buildHeadersWithCookies } from '~/lib/kratos/cookie.util'
+import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.util'
+import { handleFlowError, mapFlowToFieldErrors } from '~/lib/kratos/error'
+import { getUserSession } from '~/lib/kratos/session.util'
 import { mergeMeta } from '~/lib/meta'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const session = await getUserSession(request)
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
+  const cookie = getCookie(request)
 
-  const cookie = String(request.headers.get('cookie'))
-
-  let kratosFlow
   if (flowId) {
-    // If ?flow=.. was in the URL, we fetch it
-    const flowRes = await fetch(
-      `${KRATOS_URL}/self-service/login/flows?id=${flowId}`,
-      {
-        headers: {
-          cookie: cookie,
-          Accept: 'application/json'
-        }
-      }
-    )
-    kratosFlow = await flowRes.json()
-    if (flowRes.status >= 400) handleFlowError(kratosFlow, 'login/challenge')
-  } else {
-    // Otherwise we initialize it
-    const flowRes = await fetch(
-      `${KRATOS_URL}/self-service/login/browser?refresh=true`,
-      { headers: { Accept: 'application/json' } }
-    )
-    if (flowRes.status >= 400) handleFlowError(kratosFlow, 'login/challenge')
-    kratosFlow = await flowRes.json()
-    return redirect(`/login/challenge?flow=${kratosFlow.id}`, {
-      headers: trimHeaders(flowRes.headers, ['set-cookie'])
-    })
+    try {
+      const { data: kratosFlow } = await kratosPublic.getLoginFlow(
+        { id: flowId },
+        withCookie(cookie)
+      )
+      return json({
+        flow: kratosFlow,
+        csrfToken: getCsrfTokenFromFlow(kratosFlow),
+        email: session.identity?.traits.email
+      })
+    } catch (err: any) {
+      handleFlowError(err, 'login/challenge')
+      throw err
+    }
   }
-  return json({
-    flow: kratosFlow,
-    csrfToken: getCsrfTokenFromFlow(kratosFlow),
-    email: session.identity.traits.email
-  })
+
+  // No flow ID — initialize a new login flow with refresh
+  try {
+    const response = await kratosPublic.createBrowserLoginFlow(
+      { refresh: true },
+      withCookie(cookie)
+    )
+    return redirect(`/login/challenge?flow=${response.data.id}`, {
+      headers: buildHeadersWithCookies(response)
+    })
+  } catch (err: any) {
+    handleFlowError(err, 'login/challenge')
+    throw err
+  }
 }
 
 export const handle: ApplicationProps = {
@@ -127,7 +122,8 @@ export default function Page() {
 
 export async function action({ request }: ActionFunctionArgs) {
   const url = new URL(request.url)
-  const flowId = url.searchParams.get('flow')
+  const flowId = url.searchParams.get('flow')!
+  const cookie = getCookie(request)
 
   const form = await request.formData()
   const csrfToken = form.get('csrf_token') as string
@@ -140,31 +136,31 @@ export async function action({ request }: ActionFunctionArgs) {
     password: ''
   }
 
-  const res = await fetch(`${KRATOS_URL}/self-service/login?flow=${flowId}`, {
-    method: 'POST',
-    body: JSON.stringify({
-      method: 'password',
-      identifier: email,
-      password: password,
-      csrf_token: csrfToken
-    }),
-    headers: {
-      'Content-type': 'application/json',
-      Accept: 'application/json',
-      Cookie: String(request.headers.get('cookie'))
+  try {
+    const response = await kratosPublic.updateLoginFlow(
+      {
+        flow: flowId,
+        updateLoginFlowBody: {
+          method: 'password',
+          identifier: email,
+          password,
+          csrf_token: csrfToken
+        }
+      },
+      withCookie(cookie)
+    )
+    return redirect(route('/settings/password'), {
+      headers: buildHeadersWithCookies(response)
+    })
+  } catch (err: any) {
+    const flowData = err.response?.data
+    // 4000001 = user already has a privileged session — not an error
+    if (flowData?.ui?.messages?.[0]?.id === 4000001) {
+      return redirect(route('/settings/password'), {
+        headers: buildHeadersWithCookies(err.response)
+      })
     }
-  })
-  if (res.status >= 400) {
-    const data = await res.json()
-    // 4000001 is an error if the user already has a privileged session.
-    if (data.ui.messages[0].id !== 4000001) {
-      const errs = await kratosErrorMapping(res, fieldErrors)
-      return error(request, { errors: errs })
-    }
+    const errs = mapFlowToFieldErrors(flowData, fieldErrors)
+    return error(request, { errors: errs })
   }
-
-  const headers = trimHeaders(res.headers, ['set-cookie'])
-  return redirect(route('/settings/password'), {
-    headers: headers
-  })
 }
