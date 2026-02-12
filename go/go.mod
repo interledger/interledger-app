@@ -10,7 +10,7 @@ require (
 	github.com/bxcodec/faker/v3 v3.6.0
 	github.com/cockroachdb/cockroach-go v2.0.1+incompatible
 	github.com/coreos/go-oidc/v3 v3.1.0
-	github.com/dgryski/trifles v0.0.0-20200323201526-dd97f9abfb48
+	github.com/dgryski/trifles v0.0.0-20240922021506-5ecb8eeff266
 	github.com/dunglas/httpsfv v1.0.1
 	github.com/fogleman/gg v1.3.0
 	github.com/getsentry/sentry-go v0.22.0
