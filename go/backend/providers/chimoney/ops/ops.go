@@ -12,6 +12,7 @@ import (
 
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/currency"
+	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/chimoney"
 	"gitlab.com/fynbos/backend/providers/chimoney/external"
@@ -58,7 +59,7 @@ func CreateWallet(ctx context.Context, b Backends, walletID string) (chimoney.Aw
 	return await.Get, nil
 }
 
-func ExecuteCompleteKYCWorkflow(ctx context.Context, b Backends, externalID string, status string) error {
+func ExecuteCompleteKYCWorkflow(ctx context.Context, b Backends, externalID string, kycStatus kyc.Status) error {
 
 	walletID, err := GetWalletID(ctx, b, externalID)
 	if err != nil {
@@ -66,7 +67,7 @@ func ExecuteCompleteKYCWorkflow(ctx context.Context, b Backends, externalID stri
 	}
 
 	wo := client.StartWorkflowOptions{
-		ID:                    "chimoney_kyc_" + walletID + "_" + status,
+		ID:                    "chimoney_kyc_" + walletID + "_" + kycStatus.String(),
 		TaskQueue:             "backend",
 		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
 	}
@@ -91,7 +92,7 @@ func ExecuteCompleteKYCWorkflow(ctx context.Context, b Backends, externalID stri
 	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
 		// Do nothing
 	} else {
-		_, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, ChimomeyCompleteKYC, walletID, status)
+		_, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, ChimomeyCompleteKYC, walletID, kycStatus)
 	}
 
 	if executeErr != nil {

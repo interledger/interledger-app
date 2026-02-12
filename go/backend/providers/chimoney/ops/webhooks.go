@@ -14,6 +14,7 @@ import (
 	"regexp"
 	"strings"
 
+	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/providers/chimoney"
 	"gitlab.com/fynbos/backend/providers/chimoney/external"
 	httplogger "gitlab.com/fynbos/backend/providers/http"
@@ -230,9 +231,16 @@ func handleKYC(ctx context.Context, b Backends, raw json.RawMessage) error {
 		log.Info("Webhook data not complete", zap.String("userID", wh.UserID))
 		return nil
 	}
-	status := "declined"
-	if wh.EventType == "user.kyc.completed" {
-		status = "completed"
+
+	var kycStatus kyc.Status
+	switch wh.EventType {
+	case "user.kyc.completed":
+		kycStatus = kyc.StatusLevel1
+	case "user.kyc.declined":
+		kycStatus = kyc.StatusDenied
+	default:
+		return fmt.Errorf("unknown KYC status: %s", wh.EventType)
 	}
-	return ExecuteCompleteKYCWorkflow(ctx, b, wh.UserID, status)
+
+	return ExecuteCompleteKYCWorkflow(ctx, b, wh.UserID, kycStatus)
 }

@@ -48,7 +48,7 @@ func NewActivity(b Backends) *Activity {
 	}
 }
 
-func ChimomeyCompleteKYC(ctx workflow.Context, walletID string, status string) error {
+func ChimomeyCompleteKYC(ctx workflow.Context, walletID string, kycStatus kyc.Status) error {
 	var a *Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 10 * time.Second,
@@ -56,22 +56,7 @@ func ChimomeyCompleteKYC(ctx workflow.Context, walletID string, status string) e
 
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
-	switch status {
-	case "completed":
-		err := workflow.ExecuteActivity(ctx, a.SetChimoneyKYCStatus, walletID, kyc.StatusLevel1).Get(ctx, nil)
-		if err != nil {
-			return err
-		}
-
-	case "declined":
-		err := workflow.ExecuteActivity(ctx, a.SetChimoneyKYCStatus, walletID, kyc.StatusDenied).Get(ctx, nil)
-		if err != nil {
-			return err
-		}
-
-	}
-
-	return nil
+	return workflow.ExecuteActivity(ctx, a.SetChimoneyKYCStatus, walletID, kycStatus).Get(ctx, nil)
 }
 
 func CreateChimoneyUserWorkflow(ctx workflow.Context, walletID string) (string, error) {
