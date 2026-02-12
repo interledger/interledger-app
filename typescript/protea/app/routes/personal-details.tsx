@@ -16,6 +16,7 @@ import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { useScript } from '~/lib/useScript'
+import logger from '~/lib/logger.server'
 
 const KYCErrors: KYCErrorsType = {
   UnableToPars: 'KYC: unable to parse message data'
@@ -32,6 +33,16 @@ export async function loader({ request }: LoaderFunctionArgs) {
   })
 
   if (isConnectError(response)) throw response.errorResponse
+
+  logger.info({
+    provider: response.provider,
+    hasGatehubWidget: !!response.gatehubWidget,
+    gatehubWidgetUrl: response.gatehubWidget?.widgetUrl,
+    hasPersonaWidget: !!response.personaInquiry,
+    hasChimoneyWidget: !!response.chimoneyWidget,
+    hasPtiWidget: !!response.ptiWidget,
+    flow: 'kyc'
+  }, '[KYC] Personal details page loaded')
 
   // if (response.provider === 'local') {
   //   // wait 1s on local for the async processes to finish
@@ -150,12 +161,26 @@ function GatehubPage() {
   const submit = useSubmit()
   useEffect(() => {
     const onKYCComplete = (e: MessageEvent) => {
-      if (!e.data?.type || !e.data?.value) return
+      console.log('[KYC] Received message from iframe:', {
+        origin: e.origin,
+        data: e.data,
+        hasType: !!e.data?.type,
+        hasValue: !!e.data?.value
+      })
+      if (!e.data?.type || !e.data?.value) {
+        console.warn('[KYC] Message missing type or value, ignoring')
+        return
+      }
 
       let parsedValue
       try {
         parsedValue = JSON.parse(e.data.value)
-      } catch {
+        console.log('[KYC] Parsed message value:', parsedValue)
+      } catch (parseError) {
+        console.error('[KYC] Failed to parse message value:', {
+          error: parseError,
+          rawValue: e.data.value
+        })
         throw new Error(KYCErrors.UnableToPars)
       }
 
@@ -163,9 +188,15 @@ function GatehubPage() {
         e.data.type === 'OnboardingCompleted' &&
         parsedValue?.applicantStatus === 'submitted'
       ) {
+        console.log('[KYC] Onboarding completed, submitting form to backend')
         submit(null, {
           action: '/personal-details',
           method: 'post'
+        })
+      } else {
+        console.log('[KYC] Message received but not OnboardingCompleted or wrong status:', {
+          type: e.data.type,
+          applicantStatus: parsedValue?.applicantStatus
         })
       }
     }
@@ -181,6 +212,9 @@ function GatehubPage() {
     <>
       <KycIntro
         onClick={() => {
+          console.log('[KYC] Opening gatehub KYC dialog', {
+            hasWidgetUrl: !!gatehubWidget?.widgetUrl
+          })
           setDialogOpen(true)
         }}
         ready
@@ -193,6 +227,8 @@ function GatehubPage() {
           scrolling='yes'
           allow='camera;microphone'
           className='h-[750px] sm:min-w-[400px] md:min-w-[400px]'
+          onLoad={() => console.log('[KYC] Gatehub iframe loaded successfully')}
+          onError={(e) => console.error('[KYC] Gatehub iframe load error:', e)}
         />
       </Dialog>
     </>
@@ -310,9 +346,17 @@ export default function Page() {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  logger.info({ flow: 'kyc' }, '[KYC] Personal details action called - marking KYC status as pending')
+  
   await exitFlow(request, flowType.PersonalDetails)
 
-  await grpc.setKYCStatusPending(request, {})
+  const setKycResponse = await grpc.setKYCStatusPending(request, {})
+  if (isConnectError(setKycResponse)) {
+    logger.error({ error: setKycResponse, flow: 'kyc' }, '[KYC] Failed to set KYC status as pending')
+    throw setKycResponse.errorResponse
+  }
+  
+  logger.info({ flow: 'kyc' }, '[KYC] KYC status set to pending successfully')
 
   return redirectWithSnackbar(request, route('/'), {
     message: 'Personal details captured.',

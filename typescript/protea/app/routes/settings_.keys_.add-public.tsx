@@ -7,6 +7,7 @@ import type {
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
+import logger from '~/lib/logger.server'
 import {
   Button,
   Card,
@@ -123,7 +124,7 @@ export async function action({ request }: ActionFunctionArgs) {
   })
 
   if (isConnectError(response)) {
-    console.log(response)
+    logger.error({ response }, 'Failed to create connection')
     if (response.code == Code.InvalidArgument) {
       return response.error({ errors })
     } else return response.error({ errors }, {}, { action: 'Contact support' })
