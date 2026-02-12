@@ -14,7 +14,7 @@ require (
 	github.com/dunglas/httpsfv v1.0.1
 	github.com/fogleman/gg v1.3.0
 	github.com/getsentry/sentry-go v0.22.0
-	github.com/go-chi/chi/v5 v5.0.7
+	github.com/go-chi/chi/v5 v5.2.2
 	github.com/go-playground/validator/v10 v10.11.1
 	github.com/golang-migrate/migrate/v4 v4.18.3
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
