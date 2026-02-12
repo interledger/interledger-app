@@ -39,7 +39,6 @@ export async function isTotpSet(
   headers: Headers
 ): Promise<boolean> {
   if (session?.authenticator_assurance_level === 'aal2') {
-    console.log("🐳isTotpSet assurance lvl AAL2")
     return true
   }
 
@@ -56,10 +55,8 @@ export async function isTotpSet(
     const isSet = nodes.some(
       (node: any) => node.group === 'totp' && node.attributes?.name === 'totp_unlink'
     )
-    console.log("🐳isTotpSet", isSet)
     return isSet
   } catch (error) {
-    console.log("🐳isTotpSet ERROR", error)
     return false
   }
 }
@@ -124,7 +121,6 @@ export async function emailVerificationGuard(
 
 export async function withAAL2Guard(pathname: string, request: Request, fn: () => Promise<void>) {
   if (NON_FULL_SESSION_ROUTES.includes(pathname)) {
-    console.log("🐳 [withAAL2Guard] pathname skipping ", pathname)
     return
   }
 

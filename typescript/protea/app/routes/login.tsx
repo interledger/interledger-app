@@ -235,7 +235,6 @@ export async function action({ request }: ActionFunctionArgs) {
     // Handle AAL2 required
     if (errResponse.status === 422) {
       const headers = buildHeadersWithCookies(errResponse)
-      console.log("🐳 [login action] 422")
       return redirect(
         `${route('/totp/challenge')}?${searchParams.toString()}`,
         { headers }
