@@ -15,13 +15,11 @@ import {
   Layouts,
   OutlineButtonRouter
 } from '~/components'
-import { trimHeaders } from '~/lib/headers.server'
-import {
-  KRATOS_URL,
-  getCsrfTokenFromFlow,
-  getUserSession,
-  handleFlowError
-} from '~/lib/kratos.server'
+import { kratosPublic } from '~/lib/kratos/kratos-client.server'
+import { getCookie, withCookie, buildHeadersWithCookies } from '~/lib/kratos/cookie.util'
+import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.util'
+import { handleFlowError } from '~/lib/kratos/error'
+import { getUserSession } from '~/lib/kratos/session.util'
 import { mergeMeta } from '~/lib/meta'
 import { RateLimitKeys, getKey, rateLimit } from '~/lib/rateLimit.server'
 import { useCountdown } from '~/lib/useCountdown'
@@ -36,11 +34,11 @@ type ActionData = {
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
-  const cookie = String(request.headers.get('cookie'))
+  const cookie = getCookie(request)
 
-    // getUserSession handles all error cases (401, 403, 422, 500) with appropriate redirects
+  // getUserSession handles all error cases (401, 403, 422, 500) with appropriate redirects
   const userSession = await getUserSession(request, true)
-  
+
   // We currently only allow one email per user.
   if (userSession.identity?.verifiable_addresses?.[0]?.verified) {
     return redirect(route('/'))
@@ -49,37 +47,36 @@ export async function loader({ request }: LoaderFunctionArgs) {
   // Ensure any redirects are thrown
   if (userSession instanceof Response) return userSession
 
-  let flow
   if (flowId) {
-    // If ?flow=.. was in the URL, we fetch it
-    const flowRes = await fetch(
-      `${KRATOS_URL}/self-service/verification/flows?id=${flowId}`,
-      {
-        headers: {
-          cookie: cookie,
-          Accept: 'application/json'
-        }
-      }
-    )
-    flow = await flowRes.json()
-    if (flowRes.status >= 400) handleFlowError(flow, 'verify')
-  } else {
-    // Otherwise we initialize it
-    const flowRes = await fetch(
-      `${KRATOS_URL}/self-service/verification/browser?${url.searchParams}`,
-      { headers: { cookie: cookie, Accept: 'application/json' } }
-    )
-    flow = await flowRes.json()
-    if (flowRes.status >= 400) handleFlowError(flow, 'verify')
-    return redirect(`/verify?flow=${flow.id}`, {
-      headers: trimHeaders(flowRes.headers, ['set-cookie'])
-    })
+    try {
+      const { data: flow } = await kratosPublic.getVerificationFlow(
+        { id: flowId },
+        withCookie(cookie)
+      )
+      return json({
+        flow,
+        email: userSession.identity?.verifiable_addresses?.[0]?.value,
+        csrfToken: getCsrfTokenFromFlow(flow)
+      })
+    } catch (err: any) {
+      handleFlowError(err, 'verify')
+      throw err
+    }
   }
-  return json({
-    flow,
-    email: userSession.identity?.verifiable_addresses?.[0]?.value,
-    csrfToken: getCsrfTokenFromFlow(flow)
-  })
+
+  // Initialize new verification flow
+  try {
+    const response = await kratosPublic.createBrowserVerificationFlow(
+      { returnTo: url.searchParams.get('returnTo') ?? undefined },
+      withCookie(cookie)
+    )
+    return redirect(`/verify?flow=${response.data.id}`, {
+      headers: buildHeadersWithCookies(response)
+    })
+  } catch (err: any) {
+    handleFlowError(err, 'verify')
+    throw err
+  }
 }
 
 export const handle: ApplicationProps = {
@@ -190,26 +187,22 @@ export async function action({
     )
   }
 
-  const verificationResponse = await fetch(
-    `${KRATOS_URL}/self-service/verification?flow=${flowId}`,
-    {
-      method: 'POST',
-      redirect: 'manual',
-      body: JSON.stringify({
-        method: 'link',
-        email,
-        csrf_token: csrfToken
-      }),
-      headers: {
-        'Content-type': 'application/json',
-        cookie: String(request.headers.get('cookie'))
-      }
-    }
-  )
+  const cookie = getCookie(request)
 
-  if (verificationResponse.status >= 400) {
-    throw new Error('Could not send verification email')
+  try {
+    await kratosPublic.updateVerificationFlow(
+      {
+        flow: flowId!,
+        updateVerificationFlowBody: {
+          method: 'link',
+          email,
+          csrf_token: csrfToken
+        }
+      },
+      withCookie(cookie)
+    )
+    return json<ActionData>({ success: true }, { status: 200 })
+  } catch (_: any) {
+    return json<ActionData>({ success: false }, { status: 400 })
   }
-
-  return json<ActionData>({ success: true }, { status: 200 })
 }

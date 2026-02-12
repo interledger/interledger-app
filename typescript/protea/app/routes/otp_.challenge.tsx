@@ -22,12 +22,10 @@ import { ErrorDescriptions } from '~/lib/error.constants'
 import { TwillioError, TwillioErrorMapper } from '~/lib/error.mappers'
 import { isConnectError, isTwilioError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
-import { trimHeaders } from '~/lib/headers.server'
-import {
-  KRATOS_URL,
-  getUserSession,
-  handleFlowError
-} from '~/lib/kratos.server'
+import { kratosPublic } from '~/lib/kratos/kratos-client.server'
+import { getCookie, withCookie, buildHeadersWithCookies } from '~/lib/kratos/cookie.util'
+import { handleFlowError } from '~/lib/kratos/error'
+import { getUserSession } from '~/lib/kratos/session.util'
 import { mergeMeta } from '~/lib/meta'
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -166,18 +164,17 @@ export async function action({ request }: ActionFunctionArgs) {
     return redirect(returnTo)
   }
 
-  const cookie = String(request.headers.get('cookie'))
-  let flow
-  const flowRes = await fetch(`${KRATOS_URL}/self-service/settings/browser`, {
-    headers: { cookie: cookie, Accept: 'application/json' }
-  })
-  flow = await flowRes.json()
-
-  if (flowRes.status >= 400) {
-    handleFlowError(flow, 'otp/challenge')
+  const cookie = getCookie(request)
+  try {
+    const response = await kratosPublic.createBrowserSettingsFlow(
+      {},
+      withCookie(cookie)
+    )
+    return redirect(`/settings/phone?flow=${response.data.id}`, {
+      headers: buildHeadersWithCookies(response)
+    })
+  } catch (err: any) {
+    handleFlowError(err, 'otp/challenge')
+    throw err
   }
-
-  return redirect(`/settings/phone?flow=${flow.id}`, {
-    headers: trimHeaders(flowRes.headers, ['set-cookie'])
-  })
 }
