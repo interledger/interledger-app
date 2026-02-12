@@ -54,9 +54,9 @@ require (
 	go.temporal.io/sdk v1.34.0
 	go.temporal.io/sdk/contrib/opentelemetry v0.6.0
 	go.uber.org/zap v1.19.1
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250428153025-10db94c68c34
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260209200024-4cfbd4190f57
 	google.golang.org/grpc v1.72.0
-	google.golang.org/protobuf v1.36.6
+	google.golang.org/protobuf v1.36.11
 	gopkg.in/stretchr/testify.v1 v1.2.2
 	gopkg.in/yaml.v2 v2.4.0
 	gotest.tools v2.2.0+incompatible
