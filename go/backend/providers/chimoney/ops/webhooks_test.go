@@ -402,3 +402,46 @@ func TestWithdrawEventChiWalletIDPopulation(t *testing.T) {
 	require.Equal(t, "8bb8011d-4319-4116-89be-9abcd2df0ee5", event.ChiWalletID)
 	require.Equal(t, "8bb8011d-4319-4116-89be-9abcd2df0ee5", event.Meta.Issuer)
 }
+
+func TestKYCEventUnmarshal(t *testing.T) {
+	tests := []struct {
+		name    string
+		payload string
+		want    ops.KYCEvent
+	}{
+		{
+			name:    "kyc completed event",
+			payload: `{"eventType":"user.kyc.completed","userID":"86f02240-5350-4bb3-9cac-05b5a82b7eb2"}`,
+			want: ops.KYCEvent{
+				EventType: "user.kyc.completed",
+				UserID:    "86f02240-5350-4bb3-9cac-05b5a82b7eb2",
+			},
+		},
+		{
+			name:    "kyc declined event",
+			payload: `{"eventType":"user.kyc.declined","userID":"abc123-def456-ghi789"}`,
+			want: ops.KYCEvent{
+				EventType: "user.kyc.declined",
+				UserID:    "abc123-def456-ghi789",
+			},
+		},
+		{
+			name:    "kyc event with empty userID",
+			payload: `{"eventType":"user.kyc.completed","userID":""}`,
+			want: ops.KYCEvent{
+				EventType: "user.kyc.completed",
+				UserID:    "",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var got ops.KYCEvent
+			err := json.Unmarshal([]byte(tt.payload), &got)
+			require.NoError(t, err)
+			require.Equal(t, tt.want.EventType, got.EventType)
+			require.Equal(t, tt.want.UserID, got.UserID)
+		})
+	}
+}
