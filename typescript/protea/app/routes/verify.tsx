@@ -1,4 +1,3 @@
-import type { Session } from '@ory/client'
 import type {
   ActionFunctionArgs,
   LoaderFunctionArgs,

@@ -5,7 +5,7 @@ import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import { Card, CardLink, Icon, Layouts } from '~/components'
 import { Label } from '~/components/Label'
-import { getUserSession } from '~/lib/kratos.server'
+import { getUserSession } from '~/lib/kratos/session.util'
 import { mergeMeta } from '~/lib/meta'
 
 export async function loader({ request }: LoaderFunctionArgs) {

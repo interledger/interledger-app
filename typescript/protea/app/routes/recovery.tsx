@@ -37,7 +37,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
     } catch (err: any) {
       const errResponse = (err as KratosError).response
       if (errResponse.status != 410) {
-        console.log("[recovery loader] err", err.data)
         handleFlowError(err, 'recovery')
         throw err
       }

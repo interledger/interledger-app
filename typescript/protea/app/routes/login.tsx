@@ -34,7 +34,7 @@ import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.util'
 import { mapFlowToFieldErrors } from '~/lib/kratos/error'
 import { handleFlowError } from '~/lib/kratos/error'
 import { type KratosError } from '~/lib/kratos/types'
-import { requireNoUserSession } from '~/lib/kratos.server'
+import { requireNoUserSession } from '~/lib/kratos/session.util'
 import { mergeMeta } from '~/lib/meta'
 import { safeReturnTo } from '~/lib/url.server'
 

@@ -12,7 +12,7 @@ import {
 } from '~/data/wallet.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
-import { hasUserSession } from '~/lib/kratos.server'
+import { hasUserSession } from '~/lib/kratos/session.util'
 import { getPusherArgs } from '~/lib/pusher.server'
 import flagStyles from '~/styles/flags.css'
 import { AppPage } from './app'

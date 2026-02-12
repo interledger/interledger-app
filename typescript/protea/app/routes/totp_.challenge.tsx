@@ -1,4 +1,4 @@
-import type { SelfServiceLoginFlow } from '~/lib/kratos.server'
+import type { LoginFlow } from '@ory/client'
 import type {
   ActionFunctionArgs,
   LoaderFunctionArgs,
@@ -11,7 +11,7 @@ import type { ApplicationProps } from '~/components'
 import { Layouts, OutlineButtonRouter } from '~/components'
 import { TotpChallenge } from '~/components/TotpChallenge'
 import { validateCSRFToken } from '~/lib/csrf.server'
-import { getCsrfTokenFromFlow } from '~/lib/kratos.server'
+import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.util'
 import { mergeMeta } from '~/lib/meta'
 import { safeReturnTo } from '~/lib/url.server'
 import { kratosPublic } from '~/lib/kratos/kratos-client.server'
@@ -106,7 +106,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     }
   }
 
-  const flow: SelfServiceLoginFlow = loginFlow.data
+  const flow: LoginFlow = loginFlow.data
   return json({ flowId, csrfToken: getCsrfTokenFromFlow(flow) })
 }
 
