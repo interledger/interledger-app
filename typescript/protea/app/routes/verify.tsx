@@ -38,13 +38,15 @@ export async function loader({ request }: LoaderFunctionArgs) {
   // getUserSession handles all error cases (401, 403, 422, 500) with appropriate redirects
   const userSession = await getUserSession(request, true)
 
+  if (!userSession) {
+    // Session requires AAL2 upgrade — redirect to TOTP challenge
+    throw redirect(route('/totp/challenge'))
+  }
+
   // We currently only allow one email per user.
   if (userSession.identity?.verifiable_addresses?.[0]?.verified) {
     return redirect(route('/'))
   }
-
-  // Ensure any redirects are thrown
-  if (userSession instanceof Response) return userSession
 
   if (flowId) {
     try {

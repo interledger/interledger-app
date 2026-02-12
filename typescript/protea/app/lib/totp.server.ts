@@ -1,8 +1,8 @@
-import type { Identity, Session } from '@ory/client'
+import type { Session } from '@ory/client'
 import { redirect } from '@remix-run/node'
 import { getUserSession } from './kratos/session.util'
 import { kratosPublic } from './kratos/kratos-client.server'
-import { getCookie, withCookie } from './kratos/cookie.util'
+import { withCookie } from './kratos/cookie.util'
 
 /**
  * Routes that can be accessed without a session with highest AAL
@@ -91,30 +91,20 @@ export function isEmailVerified(session: Session): boolean {
   )
 }
 
-export function sessionRequiresAAL2(session: Session): boolean {
-  return (session as any).error.id === 'session_aal2_required'
-}
-
-export function getSessionIdentity(session: Session): Identity | undefined {
-  return session.identity
-}
-
 export async function emailVerificationGuard(
   pathname: string,
   request: Request
 ) {
   if (NON_VERIFIED_EMAIL_ROUTES.includes(pathname)) return
 
-  // Request a session WITHOUT AAL2 redirect, so we dont get redirected
   const session = await getUserSession(request, true)
-  const identity = getSessionIdentity(session)
 
-  if (!identity) {
-    // Kratos requires AAL2 session, so skip email verification guard
+  if (!session) {
+    // Session requires AAL2 upgrade — skip email verification guard
     return
   }
 
-  if (identity && !isEmailVerified(session)) {
+  if (!isEmailVerified(session)) {
     throw redirect('/verify')
   }
 }
@@ -125,6 +115,7 @@ export async function withAAL2Guard(pathname: string, request: Request, fn: () =
   }
 
   const session = await getUserSession(request)
+  if (!session) throw redirect('/login')
   const totpAvailable = await isTotpSet(session, request.headers)
   if (!totpAvailable) {
     throw redirect('/totp/two-factor-authentication')
@@ -139,6 +130,7 @@ export async function recoveryLinkSessionInvalidationGuard(pathname: string, req
   }
 
   const session = await getUserSession(request)
+  if (!session) throw redirect('/login')
 
   const isLinkRecoverySession = !!session.authentication_methods?.some((method: any) => method.method === 'link_recovery')
   if (isLinkRecoverySession) {

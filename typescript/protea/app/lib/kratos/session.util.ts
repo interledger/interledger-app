@@ -14,7 +14,7 @@ import { getCookie } from './cookie.util'
 export async function getUserSession(
   request: Request,
   allowAal1 = false
-): Promise<Session> {
+): Promise<Session | null> {
   const cookie = getCookie(request)
   const requestUrl = new URL(request.url)
   const returnTo = safeReturnTo(requestUrl.pathname + requestUrl.search)
@@ -36,9 +36,7 @@ export async function getUserSession(
         if (!allowAal1) {
           throw redirect(`${route('/login')}?${searchParams.toString()}`)
         }
-        // allowAal1 === true: return a partial object so callers can safely check .identity
-        // The 403 error response is not a Session — it's an error body.
-        return (err.response?.data ?? {}) as Session
+        return null
       default:
         throw redirect(`${route('/login')}?${searchParams.toString()}`)
     }
