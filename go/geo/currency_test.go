@@ -543,6 +543,29 @@ func TestSetAmountInt(t *testing.T) {
 	}
 }
 
+func TestSetAmountUint64(t *testing.T) {
+	factor := NewCurrency(USD()).Factor()
+
+	cases := []struct {
+		input    uint64
+		expected big.Int
+	}{
+		{0, *big.NewInt(0)},
+		{10, *big.NewInt(1000)},
+		{15, *big.NewInt(1500)},
+		{20, *big.NewInt(2000)},
+		{math.MaxUint64, *new(big.Int).Mul(new(big.Int).SetUint64(math.MaxUint64), factor)},
+	}
+
+	for _, test := range cases {
+		currency := NewCurrency(USD())
+		currency.SetAmountUint64(test.input)
+		if currency.amount.Cmp(&test.expected) != 0 {
+			t.Errorf("SetAmountUint64(%d): expected %s, got %s", test.input, test.expected.String(), currency.amount.String())
+		}
+	}
+}
+
 func TestSetAmountBigInt(t *testing.T) {
 	factor := NewCurrency(USD()).Factor()
 
