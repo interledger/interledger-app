@@ -11,22 +11,21 @@ import (
 // Currency represents a monetary unit with a specific Asset and amount.
 // The amount is stored as a scaled integer (e.g., cents for USD).
 type Currency struct {
-	amount *big.Int
+	amount big.Int
 	asset  Asset
 }
 
 // NewCurrency creates a new Currency instance for the given Asset with an initial amount of zero.
 func NewCurrency(a Asset) *Currency {
 	return &Currency{
-		amount: big.NewInt(0),
-		asset:  a,
+		asset: a,
 	}
 }
 
 // Clone returns a deep copy of the Currency.
 func (c *Currency) Clone() *Currency {
 	return &Currency{
-		amount: new(big.Int).Set(c.amount),
+		amount: *new(big.Int).Set(&c.amount),
 		asset:  c.asset,
 	}
 }
@@ -54,14 +53,13 @@ func (c *Currency) Factor() *big.Int {
 // RawAmount returns the internal scaled amount as a new big.Int.
 // For USD with scale 2, amount "123.45" returns 12345.
 func (c *Currency) RawAmount() *big.Int {
-	return new(big.Int).Set(c.amount)
+	return new(big.Int).Set(&c.amount)
 }
 
 // SetRawAmount sets the internal scaled amount directly.
 // For USD with scale 2, value 12345 represents "123.45".
-func (c *Currency) SetRawAmount(value *big.Int) *Currency {
-	c.amount = new(big.Int).Set(value)
-	return c
+func (c *Currency) SetRawAmount(value *big.Int) {
+	c.amount.Set(value)
 }
 
 // IsZero returns true if the amount is zero.
@@ -85,57 +83,50 @@ func (c *Currency) Cmp(other *Currency) (int, error) {
 	if !c.asset.Equal(other.asset) {
 		return 0, ErrAssetMismatch
 	}
-	return c.amount.Cmp(other.amount), nil
+	return c.amount.Cmp(&other.amount), nil
 }
 
 // Equal returns true if two Currency values are equal (same asset and amount).
 func (c *Currency) Equal(other *Currency) bool {
-	return c.asset.Equal(other.asset) && c.amount.Cmp(other.amount) == 0
+	return c.asset.Equal(other.asset) && c.amount.Cmp(&other.amount) == 0
 }
 
-// Add returns a new Currency with the sum of c and other.
+// Add adds other's amount to c in place.
 // Returns an error if the assets don't match.
-func (c *Currency) Add(other *Currency) (*Currency, error) {
+func (c *Currency) Add(other *Currency) error {
 	if !c.asset.Equal(other.asset) {
-		return nil, ErrAssetMismatch
+		return ErrAssetMismatch
 	}
-	result := c.Clone()
-	result.amount.Add(c.amount, other.amount)
-	return result, nil
+	c.amount.Add(&c.amount, &other.amount)
+	return nil
 }
 
-// Sub returns a new Currency with the difference of c and other.
+// Sub subtracts other's amount from c in place.
 // Returns an error if the assets don't match.
-func (c *Currency) Sub(other *Currency) (*Currency, error) {
+func (c *Currency) Sub(other *Currency) error {
 	if !c.asset.Equal(other.asset) {
-		return nil, ErrAssetMismatch
+		return ErrAssetMismatch
 	}
-	result := c.Clone()
-	result.amount.Sub(c.amount, other.amount)
-	return result, nil
+	c.amount.Sub(&c.amount, &other.amount)
+	return nil
 }
 
-// Neg returns a new Currency with the negated amount.
-func (c *Currency) Neg() *Currency {
-	result := c.Clone()
-	result.amount.Neg(c.amount)
-	return result
+// Neg negates the amount in place.
+func (c *Currency) Neg() {
+	c.amount.Neg(&c.amount)
 }
 
-// Abs returns a new Currency with the absolute value of the amount.
-func (c *Currency) Abs() *Currency {
-	result := c.Clone()
-	result.amount.Abs(c.amount)
-	return result
+// Abs sets the amount to its absolute value in place.
+func (c *Currency) Abs() {
+	c.amount.Abs(&c.amount)
 }
 
 // Amount returns the amount as a human-readable string representation.
 // For example, for USD with scale 2 and amount 12345, returns "123.45"
 // For JPY with scale 0 and amount 500, returns "500"
 func (c *Currency) Amount() string {
-	factor := c.Factor()
-	abs := new(big.Int).Abs(c.amount)
-	whole := new(big.Int).Div(abs, factor)
+	factor := &c.asset.factor
+	abs := new(big.Int).Abs(&c.amount)
 
 	sign := ""
 	if c.amount.Sign() < 0 {
@@ -144,53 +135,45 @@ func (c *Currency) Amount() string {
 
 	// For scale 0 currencies (like JPY), return without decimal point
 	if c.Scale() == 0 {
-		return fmt.Sprintf("%s%s", sign, whole.String())
+		return sign + abs.String()
 	}
 
-	fractional := new(big.Int).Mod(abs, factor)
+	fractional := new(big.Int)
+	abs.DivMod(abs, factor, fractional)
+	// abs now holds the whole part
+
 	fractionalStr := fractional.String()
 	// Pad fractional part with leading zeros if necessary
 	if padding := int(c.Scale()) - len(fractionalStr); padding > 0 {
 		fractionalStr = strings.Repeat("0", padding) + fractionalStr
 	}
-	return fmt.Sprintf("%s%s.%s", sign, whole.String(), fractionalStr)
+	return sign + abs.String() + "." + fractionalStr
 }
 
-// SetAmount sets the amount of the monetary unit from various types.
-// The value is scaled according to the unit's scale.
-// The input is human readable, e.g. for USD with scale 2, input 12.34 sets amount to 1234.
-// Supported types: int, int64, big.Int, *big.Int, string.
-// Returns nil and an error if parsing fails.
-func (c *Currency) SetAmount(value any) (*Currency, error) {
-	factor := c.Factor()
-	amount := new(big.Int)
-
-	switch v := value.(type) {
-	case int:
-		amount.Mul(big.NewInt(int64(v)), factor)
-
-	case int64:
-		amount.Mul(big.NewInt(v), factor)
-
-	case big.Int:
-		amount.Mul(new(big.Int).Set(&v), factor)
-
-	case *big.Int:
-		amount.Mul(new(big.Int).Set(v), factor)
-
-	case string:
-		parsed, err := c.parseString(v, factor)
-		if err != nil {
-			return nil, err
-		}
-		amount = parsed
-
-	default:
-		return nil, fmt.Errorf("%w: %T", ErrUnsupportedType, value)
+// SetAmount sets the amount from a human-readable string representation.
+// The value is scaled according to the asset's scale.
+// For USD with scale 2, input "12.34" sets the internal amount to 1234.
+func (c *Currency) SetAmount(s string) error {
+	parsed, err := c.parseString(s, &c.asset.factor)
+	if err != nil {
+		return err
 	}
+	c.amount = *parsed
+	return nil
+}
 
-	c.amount = amount
-	return c, nil
+// SetAmountInt sets the amount from an integer value representing whole units.
+// The value is scaled according to the asset's scale.
+// For USD with scale 2, input 12 sets the internal amount to 1200.
+func (c *Currency) SetAmountInt(v int64) {
+	c.amount.Mul(big.NewInt(v), &c.asset.factor)
+}
+
+// SetAmountBigInt sets the amount from a *big.Int value representing whole units.
+// The value is scaled according to the asset's scale.
+// For USD with scale 2, input 12 sets the internal amount to 1200.
+func (c *Currency) SetAmountBigInt(v *big.Int) {
+	c.amount.Mul(v, &c.asset.factor)
 }
 
 // parseString parses a string amount and returns the scaled big.Int value.
@@ -200,7 +183,12 @@ func (c *Currency) parseString(s string, factor *big.Int) (*big.Int, error) {
 		return nil, fmt.Errorf("%w: contains whitespace: %s", ErrInvalidFormat, s)
 	}
 
-	s = strings.ReplaceAll(s, ",", "") // remove thousand separators
+	if strings.ContainsRune(s, ',') {
+		if err := validateCommas(s); err != nil {
+			return nil, err
+		}
+		s = strings.ReplaceAll(s, ",", "")
+	}
 
 	// Try integer-like string first
 	if !strings.Contains(s, ".") {
@@ -255,9 +243,40 @@ func (c *Currency) parseString(s string, factor *big.Int) (*big.Int, error) {
 	return result, nil
 }
 
+// validateCommas checks that commas are correctly placed as thousand separators.
+// Valid: "1,234", "12,345", "1,234,567", "-1,234.56"
+// Invalid: ",123", "1,,234", "1,23", "1234,567", "1.234,56"
+func validateCommas(s string) error {
+	// Commas must only appear in the whole part
+	whole := s
+	if dotIdx := strings.IndexByte(s, '.'); dotIdx != -1 {
+		whole = s[:dotIdx]
+		if strings.ContainsRune(s[dotIdx:], ',') {
+			return fmt.Errorf("%w: commas in fractional part: %s", ErrInvalidFormat, s)
+		}
+	}
+
+	groups := strings.Split(whole, ",")
+
+	// Strip optional sign from first group
+	first := groups[0]
+	if len(first) > 0 && (first[0] == '+' || first[0] == '-') {
+		first = first[1:]
+	}
+	if len(first) == 0 || len(first) > 3 {
+		return fmt.Errorf("%w: invalid comma placement: %s", ErrInvalidFormat, s)
+	}
+	for _, g := range groups[1:] {
+		if len(g) != 3 {
+			return fmt.Errorf("%w: invalid comma placement: %s", ErrInvalidFormat, s)
+		}
+	}
+	return nil
+}
+
 // String returns the string representation of the currency amount with formatting.
-func (c Currency) String() string {
-	return c.asset.Format(fmt.Sprintf("%s", c.Amount()))
+func (c *Currency) String() string {
+	return c.asset.Format(c.Amount())
 }
 
 // ToProtoGeoV1 converts the Currency to its protobuf representation.
