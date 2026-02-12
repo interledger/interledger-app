@@ -14,6 +14,7 @@ import (
 	"regexp"
 	"strings"
 
+	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/providers/chimoney"
 	"gitlab.com/fynbos/backend/providers/chimoney/external"
 	httplogger "gitlab.com/fynbos/backend/providers/http"
@@ -41,6 +42,10 @@ type (
 	}
 	WithdrawEventMeta struct {
 		Issuer string `json:"issuer"`
+	}
+	KYCEvent struct {
+		EventType string `json:"eventType"`
+		UserID    string `json:"userID"`
 	}
 )
 
@@ -119,6 +124,9 @@ func NewWebhook(b Backends) http.HandlerFunc {
 			"charge.crypto.xrpl.confirmed",
 			"charge.crypto.celo.confirmed":
 			err = handleConfirmedOrCompletedCharge(r.Context(), b, ec, body)
+		case "user.kyc.declined",
+			"user.kyc.completed":
+			err = handleKYC(r.Context(), b, body)
 		default:
 			log.Warn("chimoney webhook. Unhandled webhook type", zap.String("event_type", wh.EventType), zap.String("payload", string(body)))
 		}
@@ -211,4 +219,28 @@ func handleConfirmedOrCompletedCharge(ctx context.Context, b Backends, ec extern
 
 	_, err = CreateDeposit(ctx, b, ec, wh.IssueID)
 	return err
+}
+
+func handleKYC(ctx context.Context, b Backends, raw json.RawMessage) error {
+	var wh KYCEvent
+	err := json.Unmarshal(raw, &wh)
+	if err != nil {
+		return err
+	}
+	if wh.UserID == "" {
+		log.Info("Webhook data not complete", zap.String("userID", wh.UserID))
+		return nil
+	}
+
+	var kycStatus kyc.Status
+	switch wh.EventType {
+	case "user.kyc.completed":
+		kycStatus = kyc.StatusLevel1
+	case "user.kyc.declined":
+		kycStatus = kyc.StatusDenied
+	default:
+		return fmt.Errorf("unknown KYC status: %s", wh.EventType)
+	}
+
+	return ExecuteCompleteKYCWorkflow(ctx, b, wh.UserID, kycStatus)
 }

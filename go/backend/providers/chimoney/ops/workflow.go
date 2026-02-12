@@ -48,7 +48,7 @@ func NewActivity(b Backends) *Activity {
 	}
 }
 
-func ChimomeyWatchForSuccessfulKYC(ctx workflow.Context, walletID string) error {
+func ChimomeyCompleteKYC(ctx workflow.Context, walletID string, kycStatus kyc.Status) error {
 	var a *Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 10 * time.Second,
@@ -56,29 +56,7 @@ func ChimomeyWatchForSuccessfulKYC(ctx workflow.Context, walletID string) error 
 
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
-	logger := workflow.GetLogger(ctx)
-	logger.Info("Polling chimoney for sub account kyc status.")
-
-	for {
-		var wallet external.WalletResp
-		err := workflow.ExecuteActivity(ctx, a.GetChimoneyWallet, walletID).Get(ctx, nil)
-		if err != nil {
-			return err
-		}
-
-		if wallet.Verification.Status != "completed" {
-			err := workflow.ExecuteActivity(ctx, a.SetChimoneyKYCStatus, walletID, kyc.StatusLevel1).Get(ctx, nil)
-			if err != nil {
-				return err
-			}
-
-			break
-		}
-
-		_ = workflow.Sleep(ctx, 30*time.Second)
-	}
-
-	return nil
+	return workflow.ExecuteActivity(ctx, a.SetChimoneyKYCStatus, walletID, kycStatus).Get(ctx, nil)
 }
 
 func CreateChimoneyUserWorkflow(ctx workflow.Context, walletID string) (string, error) {
@@ -623,7 +601,7 @@ func rollBackWithdrawal(ctx workflow.Context, a *Activity, stage withdrawalStage
 		slack.SendToChannel(
 			context.Background(),
 			slack.ChannelNotifyEvents,
-			"Fynbot",
+			"wallet-info-bot",
 			fmt.Sprintf("Chimoney withdrawal failed after external api call. walletID=%s, transactionID=%s", walletID, trxID),
 		)
 	case externalWithdrawal:
