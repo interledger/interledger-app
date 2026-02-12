@@ -139,6 +139,7 @@ export function About() {
           aria-describedby={
             details.data?.errors?.firstName ? 'firstName-error' : undefined
           }
+          data-testid='signup-first-name'
           required
           errorMessage={details.data?.errors?.firstName}
         />
@@ -156,6 +157,7 @@ export function About() {
           aria-describedby={
             details.data?.errors?.lastName ? 'lastName-error' : undefined
           }
+          data-testid='signup-last-name'
           required
           errorMessage={details.data?.errors?.lastName}
         />
@@ -172,6 +174,7 @@ export function About() {
           aria-describedby={
             details.data?.errors?.email ? 'email-error' : undefined
           }
+          data-testid='signup-email'
           required
           errorMessage={details.data?.errors?.email}
         />
@@ -188,6 +191,7 @@ export function About() {
           aria-describedby={
             details.data?.errors?.country ? 'country-error' : undefined
           }
+          data-testid='signup-country'
           errorMessage={details.data?.errors?.country}
         />
         <input
@@ -222,6 +226,7 @@ export function About() {
         form='signup-about-details'
         name='formName'
         value='details'
+        data-testid='signup-about-continue'
         type='submit'
       >
         Continue

@@ -46,5 +46,6 @@ services:
       - REDIS_URL=redis://redis:6379/2
 
 
+
     depends_on:
       - backend
