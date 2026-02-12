@@ -58,9 +58,15 @@ func CreateWallet(ctx context.Context, b Backends, walletID string) (chimoney.Aw
 	return await.Get, nil
 }
 
-func WatchForSuccessfulKYC(ctx context.Context, b Backends, walletID string) error {
+func ExecuteCompleteKYCWorkflow(ctx context.Context, b Backends, externalID string, status string) error {
+
+	walletID, err := GetWalletID(ctx, b, externalID)
+	if err != nil {
+		return fmt.Errorf("%w %s", chimoney.ErrInternal, err)
+	}
+
 	wo := client.StartWorkflowOptions{
-		ID:                    "chimoney_poll_wallet_kyc" + walletID,
+		ID:                    "chimoney_kyc_" + walletID + "_" + status,
 		TaskQueue:             "backend",
 		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
 	}
@@ -85,10 +91,14 @@ func WatchForSuccessfulKYC(ctx context.Context, b Backends, walletID string) err
 	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
 		// Do nothing
 	} else {
-		_, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, ChimomeyWatchForSuccessfulKYC, walletID)
+		_, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, ChimomeyCompleteKYC, walletID, status)
 	}
 
-	return executeErr
+	if executeErr != nil {
+		return fmt.Errorf("%w %s", chimoney.ErrInternal, executeErr)
+	}
+
+	return nil
 }
 
 func SetInteracEmail(ctx context.Context, b Backends, walletID, email string) (*linkedaccounts.LinkedAccount, error) {
