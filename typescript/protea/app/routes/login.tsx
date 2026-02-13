@@ -229,7 +229,7 @@ export async function action({ request }: ActionFunctionArgs) {
       if (isSessionAlreadyExistsMessage(errors.form)) {
         return redirect(returnTo || '/')
       }
-      return json({ errors }, { status: 400, headers: errResponse.headers as HeadersInit })
+      return json({ errors }, { status: 400, headers: buildHeadersWithCookies(errResponse) })
     }
 
     // Handle AAL2 required

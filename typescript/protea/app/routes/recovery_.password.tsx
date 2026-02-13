@@ -154,7 +154,8 @@ export default function Page() {
 export async function action({ request }: ActionFunctionArgs) {
   const cookie = getCookie(request)
   const url = new URL(request.url)
-  const flowId = url.searchParams.get('flow')!
+  const flowId = url.searchParams.get('flow')
+  if (!flowId) return redirect('/recovery/password')
 
   const form = await request.formData()
   const csrfToken = form.get('csrf_token') as string

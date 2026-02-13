@@ -145,7 +145,8 @@ export default function Page() {
 
 export async function action({ request }: ActionFunctionArgs) {
   const form = await request.formData()
-  const flow = form.get('flow')
+  const flow = form.get('flow') as string | null
+  if (!flow) throw redirect('/totp/challenge')
   const totp_code = form.get('totp_code')
   const csrf_token = form.get('csrf_token')
   const cookie = getCookie(request)
