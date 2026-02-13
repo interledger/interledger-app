@@ -14,8 +14,6 @@ import (
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/providers/xago"
 
-	"gitlab.com/fynbos/backend/identities"
-
 	"github.com/bxcodec/faker/v3"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -352,31 +350,6 @@ func TestClient(t *testing.T) {
 				OTP: "123456",
 			})
 			require.NoError(st, err)
-
-			if tc.AddIdentity {
-				b.env.RegisterDelayedCallback(func() {
-
-					var platform identities.Platform
-					switch tc.Args.Receiver.Type {
-					case payments.IdentityTypeSlack:
-						platform = identities.PlatformSlack
-					case payments.IdentityTypeDiscord:
-						platform = identities.PlatformDiscord
-					case payments.IdentityTypeTwitter:
-						platform = identities.PlatformTwitter
-					}
-
-					id, err := b.Identities().Add(ctx, identities.AddArgs{
-						WalletID:   recvWallet.walletID,
-						Platform:   platform,
-						Identifier: tc.Args.Receiver.Identifier,
-					})
-					require.NoError(st, err)
-					err = b.Identities().UpdateState(ctx, id.ID, identities.StateVerified, "")
-					require.NoError(st, err)
-				}, time.Hour)
-
-			}
 
 			p, requiredActions, err := pc.Confirm(ctx, p.ID)
 			require.NoError(st, err)
