@@ -15,7 +15,6 @@
     "build-storybook": "storybook build",
     "test:unit": "vitest",
     "chromatic": "chromatic --exit-zero-on-changes",
-    "generate-cms": "graphql-codegen --config graphql.config.yml",
     "upload-sourcemaps": "sentry-upload-sourcemaps --release $IMAGE_HASH && sentry-upload-sourcemaps --release $IMAGE_HASH --url-prefix /app/build --buildPath build "
   },
   "dependencies": {
@@ -44,7 +43,6 @@
     "datocms-structured-text-utils": "^2.0.4",
     "dompurify": "^3.0.3",
     "framer-motion": "^10.16.4",
-    "graphql": "^16.6.0",
     "isbot": "^3.6.10",
     "libphonenumber-js": "^1.10.30",
     "luxon": "^3.3.0",
@@ -65,11 +63,6 @@
     "zustand": "^4.3.9"
   },
   "devDependencies": {
-    "@graphql-codegen/cli": "^3.3.1",
-    "@graphql-codegen/typed-document-node": "^4.0.1",
-    "@graphql-codegen/typescript": "^3.0.4",
-    "@graphql-codegen/typescript-operations": "^3.0.4",
-    "@graphql-typed-document-node/core": "^3.2.0",
     "@remix-run/dev": "^2.0.1",
     "@remix-run/eslint-config": "^2.0.1",
     "@remix-run/testing": "^2.0.1",
