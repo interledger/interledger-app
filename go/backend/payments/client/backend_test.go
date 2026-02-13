@@ -65,7 +65,6 @@ import (
 	"gitlab.com/fynbos/backend/user"
 	user_client "gitlab.com/fynbos/backend/user/client/mock"
 	user_mock "gitlab.com/fynbos/backend/user/client/mock"
-	"gitlab.com/fynbos/backend/vault"
 	"gitlab.com/fynbos/backend/wallets"
 	wallet_client "gitlab.com/fynbos/backend/wallets/client"
 	temporal_client "go.temporal.io/sdk/client"
@@ -298,10 +297,6 @@ func (b *TestBackends) Images() images.Client {
 
 func (b *TestBackends) Keys() keys.Client {
 	return keys_client.New(b)
-}
-
-func (b *TestBackends) Vault() vault.Client {
-	return nil
 }
 
 func (b *TestBackends) Users() user.Client {

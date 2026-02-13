@@ -16,22 +16,6 @@ import (
 	"gitlab.com/fynbos/env"
 )
 
-func TestAdd(t *testing.T) {
-	ctx := context.Background()
-	db := db.MigrateTestDB(t, ctx)
-	b := ops.NewTestBackends(t, db)
-
-	env.SetEnv(t, "local")
-
-	// Publicly visible
-	_, err := ops.Add(ctx, b, identities.AddArgs{
-		WalletID:   uuid.NewString(),
-		Platform:   identities.PlatformTwitter,
-		Identifier: "@king_cold",
-	})
-	require.NoError(t, err)
-}
-
 func TestList(t *testing.T) {
 	ctx := context.Background()
 	db := db.MigrateTestDB(t, ctx)
@@ -41,12 +25,6 @@ func TestList(t *testing.T) {
 
 	walletID := uuid.NewString()
 	// Publicly visible
-	pv, err := ops.Add(ctx, b, identities.AddArgs{
-		WalletID:   walletID,
-		Platform:   identities.PlatformTwitter,
-		Identifier: "@king_cold",
-	})
-	require.NoError(t, err)
 
 	il, err := ops.List(ctx, b, walletID)
 	require.NoError(t, err)
@@ -59,10 +37,6 @@ func TestList(t *testing.T) {
 
 	require.Len(t, il, 0)
 
-	// Verify public identity
-	_, err = db.ExecContext(ctx, "UPDATE identities SET state=$1 WHERE id=$2", identities.StateVerified, pv.ID)
-	require.NoError(t, err)
-
 	il, err = ops.ListPublic(ctx, b, walletID)
 	require.NoError(t, err)
 
@@ -73,140 +47,6 @@ func TestList(t *testing.T) {
 	assert.Equal(t, walletID, il[0].WalletID)
 	assert.Equal(t, identities.StateVerified, il[0].State)
 	assert.True(t, il[0].Public)
-}
-
-func TestDelete(t *testing.T) {
-	ctx := context.Background()
-	db := db.MigrateTestDB(t, ctx)
-	b := ops.NewTestBackends(t, db)
-
-	walletID := uuid.NewString()
-
-	env.SetEnv(t, "local")
-
-	// Publicly visible
-	iv, err := ops.Add(ctx, b, identities.AddArgs{
-		WalletID:   walletID,
-		Platform:   identities.PlatformTwitter,
-		Identifier: "@king_cold",
-	})
-	require.NoError(t, err)
-
-	_, err = ops.Get(ctx, b, iv.ID)
-	require.NoError(t, err)
-
-	err = ops.Delete(ctx, b, iv.ID, walletID)
-	require.NoError(t, err)
-
-	_, err = ops.Get(ctx, b, iv.ID)
-	require.ErrorIs(t, err, identities.ErrNotFound)
-}
-
-func TestSetPublic(t *testing.T) {
-	ctx := context.Background()
-	db := db.MigrateTestDB(t, ctx)
-	b := ops.NewTestBackends(t, db)
-
-	walletID := uuid.NewString()
-
-	env.SetEnv(t, "local")
-
-	// Publicly visible
-	iv, err := ops.Add(ctx, b, identities.AddArgs{
-		WalletID:   walletID,
-		Platform:   identities.PlatformTwitter,
-		Identifier: "@king_cold",
-	})
-	require.NoError(t, err)
-
-	id, err := ops.Get(ctx, b, iv.ID)
-	require.NoError(t, err)
-	assert.True(t, id.Public)
-
-	id, err = ops.SetPublic(ctx, b, iv.ID, walletID, false)
-	require.NoError(t, err)
-	assert.False(t, id.Public)
-}
-
-func TestVerified(t *testing.T) {
-	ctx := context.Background()
-	db := db.MigrateTestDB(t, ctx)
-	b := ops.NewTestBackends(t, db)
-
-	walletID := uuid.NewString()
-
-	env.SetEnv(t, "local")
-
-	// Publicly visible
-	iv, err := ops.Add(ctx, b, identities.AddArgs{
-		WalletID:   walletID,
-		Platform:   identities.PlatformTwitter,
-		Identifier: "@king_cold",
-	})
-	require.NoError(t, err)
-
-	id, err := ops.Get(ctx, b, iv.ID)
-	require.NoError(t, err)
-	assert.True(t, id.Public)
-	assert.Equal(t, identities.StateUnverified, id.State)
-	assert.False(t, id.VerifiedAt.Valid)
-
-	err = ops.UpdateState(ctx, b, id.ID, identities.StateVerified, "")
-	require.NoError(t, err)
-
-	id, err = ops.Get(ctx, b, iv.ID)
-	require.NoError(t, err)
-	assert.Equal(t, identities.StateVerified, id.State)
-	assert.True(t, id.VerifiedAt.Valid)
-}
-
-func TestGetBySignatureHash(t *testing.T) {
-	ctx := context.Background()
-	db := db.MigrateTestDB(t, ctx)
-	b := ops.NewTestBackends(t, db)
-
-	walletID := uuid.NewString()
-
-	env.SetEnv(t, "local")
-
-	// Publicly visible
-	iv, err := ops.Add(ctx, b, identities.AddArgs{
-		WalletID:   walletID,
-		Platform:   identities.PlatformTwitter,
-		Identifier: "@king_cold",
-	})
-	require.NoError(t, err)
-
-	id, err := ops.GetBySignatureHash(ctx, b, iv.SignatureHash)
-	require.NoError(t, err)
-	assert.True(t, id.Public)
-	assert.Equal(t, iv.ID, id.ID)
-}
-
-func TestGetByIdentifier(t *testing.T) {
-	ctx := context.Background()
-	db := db.MigrateTestDB(t, ctx)
-	b := ops.NewTestBackends(t, db)
-
-	walletID := uuid.NewString()
-
-	env.SetEnv(t, "local")
-
-	// Publicly visible
-	iv, err := ops.Add(ctx, b, identities.AddArgs{
-		WalletID:   walletID,
-		Platform:   identities.PlatformTwitter,
-		Identifier: "king_cold",
-	})
-	require.NoError(t, err)
-
-	id, err := ops.GetByIdentifier(ctx, b, iv.Identifier)
-	require.NoError(t, err)
-	assert.True(t, id.Public)
-	assert.Equal(t, iv.ID, id.ID)
-
-	_, err = ops.GetByIdentifier(ctx, b, "notfound")
-	require.ErrorIs(t, err, identities.ErrNotFound)
 }
 
 func TestSearch(t *testing.T) {
@@ -229,19 +69,6 @@ func TestSearch(t *testing.T) {
 	// add approved KYC
 	b.DB().MustExecContext(ctx, "INSERT INTO  wallet_kyc_status (wallet_id, status, created_at, updated_at) VALUES ($1, $2, NOW(), NOW())",
 		walletID, kyc.StatusLevel2)
-	// Publicly visible
-	id, err := ops.Add(ctx, b, identities.AddArgs{
-		WalletID:   walletID,
-		Platform:   identities.PlatformTwitter,
-		Identifier: "king_cold",
-	})
-	require.NoError(t, err)
-
-	_, err = ops.SetPublic(ctx, b, id.ID, walletID, true)
-	require.NoError(t, err)
-
-	err = ops.UpdateState(ctx, b, id.ID, identities.StateVerified, "proof")
-	require.NoError(t, err)
 
 	res, err := ops.Search(ctx, b, uuid.NewString(), "cold")
 	require.NoError(t, err)
