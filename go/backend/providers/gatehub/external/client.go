@@ -27,25 +27,6 @@ var (
 	cardAppIDHeader   = "x-gatehub-card-app-id"
 )
 
-// maskSecret returns the first n characters of a secret followed by ***, useful for logging
-func maskSecret(secret string, visibleChars int) string {
-	if secret == "" {
-		return "[EMPTY]"
-	}
-	if len(secret) <= visibleChars {
-		return secret[:len(secret)] + "***"
-	}
-	return secret[:visibleChars] + "***"
-}
-
-// truncateString returns a string truncated to maxLen characters with ellipsis if needed
-func truncateString(s string, maxLen int) string {
-	if len(s) <= maxLen {
-		return s
-	}
-	return s[:maxLen] + "..."
-}
-
 type client struct {
 	onOffRampClientID       string
 	onboardingClientID      string
@@ -93,31 +74,24 @@ func NewClient(appID, secret, cardAppID, gatewayID, cardAccountProductCode, vaul
 	}
 
 	if onboardingClientID == "" {
-		log.Error("onboardingClientID is not set")
 		return nil
 	}
 
 	if exchangeClientID == "" {
-		log.Error("exchangeClientID is not set")
 		return nil
 	}
 
 	if baseURL == "" {
-		log.Error("baseURL is not set")
 		return nil
 	}
 
 	if onboardingBaseURL == "" {
-		log.Error("onboardingBaseURL is not set")
 		return nil
 	}
 
 	if onOffRampBaseURL == "" {
-		log.Error("onOffRampBaseURL is not set")
 		return nil
 	}
-
-	log.Info(fmt.Sprintf("NewClient: onboardingBaseURL=%s", onboardingBaseURL))
 
 	return &client{
 		onOffRampClientID:       onOffRampClientID,
@@ -147,9 +121,7 @@ func (c *client) GetOnboardingWidget(ctx context.Context, userID string) (string
 		return "", err
 	}
 
-	url := fmt.Sprintf("%s?bearer=%s", c.onboardingBaseURL, token.Token)
-	log.Info(fmt.Sprintf("GetOnboardingWidget returning URL: %s (base was: %s)", url, c.onboardingBaseURL))
-	return url, nil
+	return fmt.Sprintf("%s?bearer=%s", c.onboardingBaseURL, token.Token), nil
 }
 
 func (c *client) GetOnOffRampWidget(ctx context.Context, userID string, isDeposit bool) (string, error) {
@@ -297,7 +269,6 @@ func (c *client) CreateUser(ctx context.Context, email string) (*CreateUserRespo
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
-	log.Info(fmt.Sprintf("Gatehub CreateUser endpoint=%s email=%s", endpoint, email))
 
 	body, err := json.Marshal(CreateUserRequest{
 		Email: email,
@@ -660,8 +631,7 @@ func (c *client) GetTransaction(ctx context.Context, userID, id string) (*Transa
 }
 
 func (c *client) Sign(ctx context.Context, req *http.Request, date time.Time, payload []byte, targetURL string) error {
-	timestamp := date.UnixMilli()
-	base := fmt.Sprintf("%d|%s|%s|%s", timestamp, req.Method, targetURL, string(payload))
+	base := fmt.Sprintf("%d|%s|%s|%s", date.UnixMilli(), req.Method, targetURL, string(payload))
 	base = strings.Trim(base, "|")
 	hmac := hmac.New(sha256.New, []byte(c.apiSecret))
 	_, err := hmac.Write([]byte(base))
@@ -669,23 +639,9 @@ func (c *client) Sign(ctx context.Context, req *http.Request, date time.Time, pa
 		return err
 	}
 
-	signature := hex.EncodeToString(hmac.Sum(nil))
-	appIDValue := c.appID
-
-	// Log detailed signing information at INFO level
-	log.Info(fmt.Sprintf("[GATEHUB SIGN] URL: %s | Method: %s | Timestamp: %d", targetURL, req.Method, timestamp))
-	log.Info(fmt.Sprintf("[GATEHUB SIGN] AppID: %s (len=%d)", appIDValue, len(appIDValue)))
-	log.Info(fmt.Sprintf("[GATEHUB SIGN] Secret length: %d", len(c.apiSecret)))
-	log.Info(fmt.Sprintf("[GATEHUB SIGN] Payload length: %d", len(payload)))
-	log.Info(fmt.Sprintf("[GATEHUB SIGN] Base string for signing (first 100 chars): %s", truncateString(base, 100)))
-	log.Info(fmt.Sprintf("[GATEHUB SIGN] Signature: %s", signature))
-
-	req.Header.Set(appIDHeader, appIDValue)
-	req.Header.Set(timestampHeader, fmt.Sprintf("%d", timestamp))
-	req.Header.Set(signatureHeader, signature)
-
-	// Log the actual headers being sent
-	log.Info(fmt.Sprintf("[GATEHUB SIGN] Headers set - AppID header: %s, Timestamp header: %s, Signature header: %s", appIDHeader, timestampHeader, signatureHeader))
+	req.Header.Set(appIDHeader, c.appID)
+	req.Header.Set(timestampHeader, fmt.Sprintf("%d", date.UnixMilli()))
+	req.Header.Set(signatureHeader, hex.EncodeToString(hmac.Sum(nil)))
 
 	return nil
 }

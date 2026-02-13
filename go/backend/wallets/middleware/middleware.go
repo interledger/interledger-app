@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"strings"
-	"time"
 
 	"gitlab.com/fynbos/backend/wallets"
 
@@ -38,19 +37,14 @@ func MakeUnaryInterceptor(uc user.Client, wc wallets.Client) grpc.ServerOption {
 			return handler(ctx, req)
 		}
 
-		log.Info("wallets.middleware: listing wallets - start", zap.String("user_id", u.ID), zap.Time("ts", time.Now()))
 		walletList, err := wc.List(ctx, u.ID)
 		if err != nil {
 			// Do nothing for now.
-			log.Warn("wallets.middleware: List returned error", zap.String("user_id", u.ID), zap.Error(err))
 			return handler(ctx, req)
 		}
-		log.Info("wallets.middleware: listing wallets - result", zap.String("user_id", u.ID), zap.Int("count", len(walletList)), zap.Time("ts", time.Now()))
 
 		// Create a default wallet for the user if they don't already have one
-		// Create() now includes transaction locking to prevent concurrent creation
 		if len(walletList) == 0 {
-			log.Info("wallets.middleware: creating default wallet", zap.String("user_id", u.ID), zap.String("country", string(u.Country)), zap.Time("ts", time.Now()))
 			_, err = wc.Create(ctx, wallets.CreateArgs{
 				UserID:  u.ID,
 				Country: u.Country,
@@ -58,11 +52,9 @@ func MakeUnaryInterceptor(uc user.Client, wc wallets.Client) grpc.ServerOption {
 			if err != nil && !errors.Is(err, wallets.ErrDuplicateWallet) {
 				log.Warn("failed to create default wallet for user", zap.Error(err), zap.String("user_id", u.ID))
 			}
-			log.Info("wallets.middleware: re-listing wallets after create", zap.String("user_id", u.ID), zap.Time("ts", time.Now()))
 			walletList, err = wc.List(ctx, u.ID)
 			if err != nil || len(walletList) <= 0 {
 				// Do nothing for now. We tried and the next request will try again
-				log.Warn("wallets.middleware: wallets still empty after create", zap.String("user_id", u.ID), zap.Error(err))
 				return handler(ctx, req)
 			}
 		}

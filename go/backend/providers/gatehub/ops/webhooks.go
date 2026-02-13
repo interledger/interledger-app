@@ -183,14 +183,10 @@ func NewWebhook(b Backends, cfg gatehub.Config) http.HandlerFunc {
 			return
 		}
 
-		log.Info("Routing webhook to handler", zap.String("event_type", wh.EventType))
-
 		switch wh.EventType {
 		case "id.verification.accepted", "id.verification.rejected":
-			log.Info("Calling HandleUserVerificationWebhook")
 			HandleUserVerificationWebhook(r.Context(), b, body, w)
 		case "core.deposit.completed":
-			log.Info("Calling HandleUserDeposit")
 			HandleUserDeposit(r.Context(), b, body, w)
 		case "id.document_notice.expired", "id.document_notice.warning", "id.verification.action_required":
 			HandleActionRequiredWebhook(r.Context(), b, body, w)
@@ -306,14 +302,9 @@ func HandleUserDeposit(ctx context.Context, b Backends, raw json.RawMessage, w h
 		return
 	}
 
-	log.Info("HandleUserDeposit called", zap.String("external_user_uuid", wh.UserID), zap.String("tx_uuid", wh.Data.TrxID), zap.String("deposit_type", wh.Data.DepositType))
-
 	// `hosted` deposit type is for wallet-to-wallet transfers. Here we signal the payments engine
 	if wh.Data.DepositType == "hosted" {
-		log.Info("Detected hosted deposit - signaling payment workflow", zap.String("tx_uuid", wh.Data.TrxID))
-		log.Info("About to call SignalGatehubTransferComplete", zap.String("external_transaction_id", wh.Data.TrxID))
 		err = b.Payments().SignalGatehubTransferComplete(ctx, wh.Data.TrxID)
-		log.Info("SignalGatehubTransferComplete returned", zap.String("external_transaction_id", wh.Data.TrxID), zap.Error(err))
 		if err != nil {
 			log.Error("gatehub webhook: Failed to signal payments workflow about wallet transfer", zap.String("external_user_uuid", wh.UserID), zap.String("external_transaction_id", wh.Data.TrxID), zap.Error(err))
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
