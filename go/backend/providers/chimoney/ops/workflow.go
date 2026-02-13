@@ -218,10 +218,11 @@ func (a *Activity) CreateChimoneyWallet(ctx context.Context, walletID string) (s
 type withdrawalStage uint8
 
 var (
-	reserveLiquidity   withdrawalStage = 0
-	externalWithdrawal withdrawalStage = 1
-	finalizeReserve    withdrawalStage = 2
-	updateTransaction  withdrawalStage = 3
+	reserveLiquidity         withdrawalStage = 0
+	externalWithdrawal       withdrawalStage = 1
+	finalizeReserve          withdrawalStage = 2
+	updateTransaction        withdrawalStage = 3
+	externalWithdrawalFailed withdrawalStage = 4
 )
 
 func ExecuteChimoneyFinishWithdrawalWorkflow(
@@ -248,13 +249,14 @@ func ExecuteChimoneyFinishWithdrawalWorkflow(
 	if err != nil {
 		return err
 	}
-	if trx.State == transactions.StateCompleted {
-		logger.Info("Chimoney withdrawal already completed, skipping.", zap.String("issueID", IssueID))
+
+	if trx.State == transactions.StateCompleted || trx.State == transactions.StateFailed {
+		logger.Info("Chimoney withdrawal already finalized with status: ", zap.String("status", string(trx.State)), zap.String("issueID", IssueID))
 		return nil
 	}
 
-	if status == "failed" || status == "expired" {
-		return rollBackWithdrawal(ctx, a, externalWithdrawal, trx.WalletID, trx.ID)
+	if status == "cancelled" || status == "expired" {
+		return rollBackWithdrawal(ctx, a, externalWithdrawalFailed, trx.WalletID, trx.ID)
 	}
 
 	// finalize balance
@@ -604,6 +606,14 @@ func rollBackWithdrawal(ctx workflow.Context, a *Activity, stage withdrawalStage
 			"wallet-info-bot",
 			fmt.Sprintf("Chimoney withdrawal failed after external api call. walletID=%s, transactionID=%s", walletID, trxID),
 		)
+	case externalWithdrawalFailed:
+		slack.SendToChannel(
+			context.Background(),
+			slack.ChannelNotifyEvents,
+			"wallet-info-bot",
+			fmt.Sprintf("Chimoney withdrawal failed on Chimoney side. walletID=%s, transactionID=%s", walletID, trxID),
+		)
+		fallthrough
 	case externalWithdrawal:
 		err := workflow.ExecuteActivity(ctx, a.RollbackChimoneyBalance, trxID).Get(ctx, nil)
 		if err != nil {
