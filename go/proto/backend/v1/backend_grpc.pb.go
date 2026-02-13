@@ -75,8 +75,6 @@ const (
 	BackendService_GetCardDetails_FullMethodName                 = "/backend.v1.BackendService/GetCardDetails"
 	BackendService_ListFeatures_FullMethodName                   = "/backend.v1.BackendService/ListFeatures"
 	BackendService_CreateTwitterAuthURL_FullMethodName           = "/backend.v1.BackendService/CreateTwitterAuthURL"
-	BackendService_TwitterCallback_FullMethodName                = "/backend.v1.BackendService/TwitterCallback"
-	BackendService_CreateDomainIdentity_FullMethodName           = "/backend.v1.BackendService/CreateDomainIdentity"
 	BackendService_GetPaymentAddress_FullMethodName              = "/backend.v1.BackendService/GetPaymentAddress"
 	BackendService_CreatePayment_FullMethodName                  = "/backend.v1.BackendService/CreatePayment"
 	BackendService_UpdatePayment_FullMethodName                  = "/backend.v1.BackendService/UpdatePayment"
@@ -89,10 +87,8 @@ const (
 	BackendService_GetLinkedAccountsForDeposit_FullMethodName    = "/backend.v1.BackendService/GetLinkedAccountsForDeposit"
 	BackendService_DepositBalance_FullMethodName                 = "/backend.v1.BackendService/DepositBalance"
 	BackendService_SearchWallets_FullMethodName                  = "/backend.v1.BackendService/SearchWallets"
-	BackendService_DiscordCallback_FullMethodName                = "/backend.v1.BackendService/DiscordCallback"
 	BackendService_CreateDiscordAuthURL_FullMethodName           = "/backend.v1.BackendService/CreateDiscordAuthURL"
 	BackendService_CreateSlackAuthURL_FullMethodName             = "/backend.v1.BackendService/CreateSlackAuthURL"
-	BackendService_SlackCallback_FullMethodName                  = "/backend.v1.BackendService/SlackCallback"
 	BackendService_AddXagoBankAccount_FullMethodName             = "/backend.v1.BackendService/AddXagoBankAccount"
 	BackendService_AddXagoBalanceAccount_FullMethodName          = "/backend.v1.BackendService/AddXagoBalanceAccount"
 	BackendService_WithdrawXagoBalance_FullMethodName            = "/backend.v1.BackendService/WithdrawXagoBalance"
@@ -204,9 +200,6 @@ type BackendServiceClient interface {
 	ListFeatures(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Features, error)
 	// Twitter
 	CreateTwitterAuthURL(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*CreateTwitterAuthURLResponse, error)
-	TwitterCallback(ctx context.Context, in *TwitterCallbackRequest, opts ...grpc.CallOption) (*TwitterCallbackResponse, error)
-	// Domain Identities
-	CreateDomainIdentity(ctx context.Context, in *CreateDomainIdentityRequest, opts ...grpc.CallOption) (*CreateDomainIdentityResponse, error)
 	// Payments
 	GetPaymentAddress(ctx context.Context, in *GetPaymentAddressRequest, opts ...grpc.CallOption) (*GetPaymentAddressResponse, error)
 	CreatePayment(ctx context.Context, in *CreatePaymentRequest, opts ...grpc.CallOption) (*Payment, error)
@@ -223,11 +216,9 @@ type BackendServiceClient interface {
 	// Search
 	SearchWallets(ctx context.Context, in *SearchWalletsRequest, opts ...grpc.CallOption) (*SearchWalletsResponse, error)
 	// Discord
-	DiscordCallback(ctx context.Context, in *DiscordCallbackRequest, opts ...grpc.CallOption) (*DiscordCallbackResponse, error)
 	CreateDiscordAuthURL(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*CreateDiscordAuthURLResponse, error)
 	// Slack
 	CreateSlackAuthURL(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*CreateSlackAuthURLResponse, error)
-	SlackCallback(ctx context.Context, in *SlackCallbackRequest, opts ...grpc.CallOption) (*SlackCallbackResponse, error)
 	// Xago
 	AddXagoBankAccount(ctx context.Context, in *AddXagoBankAccountRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
 	AddXagoBalanceAccount(ctx context.Context, in *AddXagoBalanceAccountRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
@@ -838,26 +829,6 @@ func (c *backendServiceClient) CreateTwitterAuthURL(ctx context.Context, in *Emp
 	return out, nil
 }
 
-func (c *backendServiceClient) TwitterCallback(ctx context.Context, in *TwitterCallbackRequest, opts ...grpc.CallOption) (*TwitterCallbackResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(TwitterCallbackResponse)
-	err := c.cc.Invoke(ctx, BackendService_TwitterCallback_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *backendServiceClient) CreateDomainIdentity(ctx context.Context, in *CreateDomainIdentityRequest, opts ...grpc.CallOption) (*CreateDomainIdentityResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CreateDomainIdentityResponse)
-	err := c.cc.Invoke(ctx, BackendService_CreateDomainIdentity_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *backendServiceClient) GetPaymentAddress(ctx context.Context, in *GetPaymentAddressRequest, opts ...grpc.CallOption) (*GetPaymentAddressResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetPaymentAddressResponse)
@@ -978,16 +949,6 @@ func (c *backendServiceClient) SearchWallets(ctx context.Context, in *SearchWall
 	return out, nil
 }
 
-func (c *backendServiceClient) DiscordCallback(ctx context.Context, in *DiscordCallbackRequest, opts ...grpc.CallOption) (*DiscordCallbackResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(DiscordCallbackResponse)
-	err := c.cc.Invoke(ctx, BackendService_DiscordCallback_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *backendServiceClient) CreateDiscordAuthURL(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*CreateDiscordAuthURLResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CreateDiscordAuthURLResponse)
@@ -1002,16 +963,6 @@ func (c *backendServiceClient) CreateSlackAuthURL(ctx context.Context, in *Empty
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CreateSlackAuthURLResponse)
 	err := c.cc.Invoke(ctx, BackendService_CreateSlackAuthURL_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *backendServiceClient) SlackCallback(ctx context.Context, in *SlackCallbackRequest, opts ...grpc.CallOption) (*SlackCallbackResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(SlackCallbackResponse)
-	err := c.cc.Invoke(ctx, BackendService_SlackCallback_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1433,9 +1384,6 @@ type BackendServiceServer interface {
 	ListFeatures(context.Context, *Empty) (*Features, error)
 	// Twitter
 	CreateTwitterAuthURL(context.Context, *Empty) (*CreateTwitterAuthURLResponse, error)
-	TwitterCallback(context.Context, *TwitterCallbackRequest) (*TwitterCallbackResponse, error)
-	// Domain Identities
-	CreateDomainIdentity(context.Context, *CreateDomainIdentityRequest) (*CreateDomainIdentityResponse, error)
 	// Payments
 	GetPaymentAddress(context.Context, *GetPaymentAddressRequest) (*GetPaymentAddressResponse, error)
 	CreatePayment(context.Context, *CreatePaymentRequest) (*Payment, error)
@@ -1452,11 +1400,9 @@ type BackendServiceServer interface {
 	// Search
 	SearchWallets(context.Context, *SearchWalletsRequest) (*SearchWalletsResponse, error)
 	// Discord
-	DiscordCallback(context.Context, *DiscordCallbackRequest) (*DiscordCallbackResponse, error)
 	CreateDiscordAuthURL(context.Context, *Empty) (*CreateDiscordAuthURLResponse, error)
 	// Slack
 	CreateSlackAuthURL(context.Context, *Empty) (*CreateSlackAuthURLResponse, error)
-	SlackCallback(context.Context, *SlackCallbackRequest) (*SlackCallbackResponse, error)
 	// Xago
 	AddXagoBankAccount(context.Context, *AddXagoBankAccountRequest) (*LinkedAccount, error)
 	AddXagoBalanceAccount(context.Context, *AddXagoBalanceAccountRequest) (*LinkedAccount, error)
@@ -1674,12 +1620,6 @@ func (UnimplementedBackendServiceServer) ListFeatures(context.Context, *Empty) (
 func (UnimplementedBackendServiceServer) CreateTwitterAuthURL(context.Context, *Empty) (*CreateTwitterAuthURLResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateTwitterAuthURL not implemented")
 }
-func (UnimplementedBackendServiceServer) TwitterCallback(context.Context, *TwitterCallbackRequest) (*TwitterCallbackResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method TwitterCallback not implemented")
-}
-func (UnimplementedBackendServiceServer) CreateDomainIdentity(context.Context, *CreateDomainIdentityRequest) (*CreateDomainIdentityResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method CreateDomainIdentity not implemented")
-}
 func (UnimplementedBackendServiceServer) GetPaymentAddress(context.Context, *GetPaymentAddressRequest) (*GetPaymentAddressResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetPaymentAddress not implemented")
 }
@@ -1716,17 +1656,11 @@ func (UnimplementedBackendServiceServer) DepositBalance(context.Context, *Transf
 func (UnimplementedBackendServiceServer) SearchWallets(context.Context, *SearchWalletsRequest) (*SearchWalletsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SearchWallets not implemented")
 }
-func (UnimplementedBackendServiceServer) DiscordCallback(context.Context, *DiscordCallbackRequest) (*DiscordCallbackResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method DiscordCallback not implemented")
-}
 func (UnimplementedBackendServiceServer) CreateDiscordAuthURL(context.Context, *Empty) (*CreateDiscordAuthURLResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateDiscordAuthURL not implemented")
 }
 func (UnimplementedBackendServiceServer) CreateSlackAuthURL(context.Context, *Empty) (*CreateSlackAuthURLResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateSlackAuthURL not implemented")
-}
-func (UnimplementedBackendServiceServer) SlackCallback(context.Context, *SlackCallbackRequest) (*SlackCallbackResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method SlackCallback not implemented")
 }
 func (UnimplementedBackendServiceServer) AddXagoBankAccount(context.Context, *AddXagoBankAccountRequest) (*LinkedAccount, error) {
 	return nil, status.Error(codes.Unimplemented, "method AddXagoBankAccount not implemented")
@@ -2858,42 +2792,6 @@ func _BackendService_CreateTwitterAuthURL_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BackendService_TwitterCallback_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(TwitterCallbackRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).TwitterCallback(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: BackendService_TwitterCallback_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).TwitterCallback(ctx, req.(*TwitterCallbackRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _BackendService_CreateDomainIdentity_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateDomainIdentityRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).CreateDomainIdentity(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: BackendService_CreateDomainIdentity_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).CreateDomainIdentity(ctx, req.(*CreateDomainIdentityRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _BackendService_GetPaymentAddress_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetPaymentAddressRequest)
 	if err := dec(in); err != nil {
@@ -3110,24 +3008,6 @@ func _BackendService_SearchWallets_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BackendService_DiscordCallback_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DiscordCallbackRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).DiscordCallback(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: BackendService_DiscordCallback_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).DiscordCallback(ctx, req.(*DiscordCallbackRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _BackendService_CreateDiscordAuthURL_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Empty)
 	if err := dec(in); err != nil {
@@ -3160,24 +3040,6 @@ func _BackendService_CreateSlackAuthURL_Handler(srv interface{}, ctx context.Con
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BackendServiceServer).CreateSlackAuthURL(ctx, req.(*Empty))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _BackendService_SlackCallback_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SlackCallbackRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).SlackCallback(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: BackendService_SlackCallback_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).SlackCallback(ctx, req.(*SlackCallbackRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -4026,14 +3888,6 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _BackendService_CreateTwitterAuthURL_Handler,
 		},
 		{
-			MethodName: "TwitterCallback",
-			Handler:    _BackendService_TwitterCallback_Handler,
-		},
-		{
-			MethodName: "CreateDomainIdentity",
-			Handler:    _BackendService_CreateDomainIdentity_Handler,
-		},
-		{
 			MethodName: "GetPaymentAddress",
 			Handler:    _BackendService_GetPaymentAddress_Handler,
 		},
@@ -4082,20 +3936,12 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _BackendService_SearchWallets_Handler,
 		},
 		{
-			MethodName: "DiscordCallback",
-			Handler:    _BackendService_DiscordCallback_Handler,
-		},
-		{
 			MethodName: "CreateDiscordAuthURL",
 			Handler:    _BackendService_CreateDiscordAuthURL_Handler,
 		},
 		{
 			MethodName: "CreateSlackAuthURL",
 			Handler:    _BackendService_CreateSlackAuthURL_Handler,
-		},
-		{
-			MethodName: "SlackCallback",
-			Handler:    _BackendService_SlackCallback_Handler,
 		},
 		{
 			MethodName: "AddXagoBankAccount",

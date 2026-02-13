@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"gitlab.com/fynbos/backend/kyc"
-	"gitlab.com/fynbos/backend/slack"
 
 	"gitlab.com/fynbos/backend/notify"
 
@@ -18,7 +17,6 @@ import (
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
 
-	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/identities/platforms"
@@ -50,65 +48,6 @@ func ListPublic(ctx context.Context, b Backends, walletID string) ([]identities.
 	}
 
 	return res, nil
-}
-
-func Add(ctx context.Context, b Backends, args identities.AddArgs) (*identities.Identity, error) {
-	err := b.Validator().StructCtx(ctx, args)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", identities.ErrInvalidArgument, err)
-	}
-
-	p, err := platforms.Get(b, args.Platform)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", identities.ErrInvalidArgument, err)
-	}
-
-	var existing identities.Identity
-	err = b.DB().GetContext(ctx, &existing, fmt.Sprintf("SELECT %s FROM identities WHERE platform=$1 AND lower(identifier)=$2", cols),
-		args.Platform, strings.ToLower(args.Identifier))
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
-	}
-	if existing.ID != "" {
-		return nil, fmt.Errorf("%w %s identifier %s has already been created", identities.ErrAlreadyExists, args.Platform, args.Identifier)
-	}
-
-	id := uuid.NewString()
-	c, err := p.GenerateSignedClaim(ctx, &platforms.SignedClaimArgs{
-		Identifier: args.Identifier,
-		WalletID:   args.WalletID,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
-	}
-
-	err = p.GenerateImages(ctx, &platforms.GenerateImagesArgs{
-		Identifier:    c.Claim.Identifier,
-		SignatureHash: c.SignatureHash,
-		WalletURL:     strings.TrimPrefix(c.Claim.Wallet, "https://"),
-	})
-	if err != nil {
-		log.Error("error generating images", zap.Error(err))
-	}
-
-	ts := time.Unix(c.Claim.Ctime, 0)
-	var identity identities.Identity
-	err = b.DB().GetContext(ctx, &identity, "INSERT INTO identities(id, wallet_id, state, public, platform, key_id, identifier,proof, signature, signature_hash, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING "+cols,
-		id, args.WalletID, identities.StateUnverified, true, args.Platform, c.Claim.Kid, args.Identifier, "", c.Signature, c.SignatureHash, ts)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
-	}
-
-	err = b.Notify().NotifyWallet(ctx, args.WalletID, notify.NotificationTypeIdentity)
-	if err != nil {
-		log.Error("error notifying wallet", zap.Error(err), zap.String("type", notify.NotificationTypeIdentity))
-	}
-	// TODO discuss with DEVOPS what will be the new admin url
-	if args.Platform == identities.PlatformDiscord || args.Platform == identities.PlatformSlack {
-		slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "Fynbot", fmt.Sprintf(":troll: *New identity created*\n*Identifier:* %s\n*Platform:* %s\n*Wallet:* https://admin.interledger.tech/wallet/%s/profile", args.Identifier, args.Platform, args.WalletID))
-	}
-
-	return &identity, nil
 }
 
 func Get(ctx context.Context, b Backends, id string) (*identities.Identity, error) {

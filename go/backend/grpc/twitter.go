@@ -2,10 +2,8 @@ package grpc
 
 import (
 	"context"
-	"errors"
 
 	"github.com/google/uuid"
-	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/twitter"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 )
@@ -36,33 +34,5 @@ func (s *rpcService) CreateTwitterAuthURL(
 
 	return &backendv1.CreateTwitterAuthURLResponse{
 		Url: url,
-	}, nil
-}
-
-func (s *rpcService) TwitterCallback(
-	ctx context.Context, request *backendv1.TwitterCallbackRequest,
-) (*backendv1.TwitterCallbackResponse, error) {
-	connection, err := s.b.Twitter().CreateConnection(ctx, &twitter.CreateConnectionArgs{
-		State:    request.State,
-		AuthCode: request.Code,
-	})
-	if err != nil {
-		return nil, InternalError("Create Twitter Connection")
-	}
-
-	identity, err := s.b.Identities().Add(ctx, identities.AddArgs{
-		WalletID:   connection.WalletID,
-		Platform:   identities.PlatformTwitter,
-		Identifier: connection.Username,
-	})
-	if err != nil {
-		if errors.Is(err, identities.ErrAlreadyExists) {
-			return nil, AlreadyExistsError("Identity already exists.")
-		}
-		return nil, InternalError("Error adding identity.")
-	}
-
-	return &backendv1.TwitterCallbackResponse{
-		Id: identity.ID,
 	}, nil
 }

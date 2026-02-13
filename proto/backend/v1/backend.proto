@@ -98,10 +98,6 @@ service BackendService {
 
   // Twitter
   rpc CreateTwitterAuthURL(Empty) returns (CreateTwitterAuthURLResponse);
-  rpc TwitterCallback(TwitterCallbackRequest) returns (TwitterCallbackResponse);
-
-  // Domain Identities
-  rpc CreateDomainIdentity(CreateDomainIdentityRequest) returns (CreateDomainIdentityResponse);
 
   // Payments
   rpc GetPaymentAddress(GetPaymentAddressRequest) returns (GetPaymentAddressResponse);
@@ -124,12 +120,10 @@ service BackendService {
   rpc SearchWallets(SearchWalletsRequest) returns (SearchWalletsResponse);
 
   // Discord
-  rpc DiscordCallback(DiscordCallbackRequest) returns (DiscordCallbackResponse);
   rpc CreateDiscordAuthURL(Empty) returns (CreateDiscordAuthURLResponse);
 
   // Slack
   rpc CreateSlackAuthURL(Empty) returns (CreateSlackAuthURLResponse);
-  rpc SlackCallback(SlackCallbackRequest) returns (SlackCallbackResponse);
 
   // Xago
   rpc AddXagoBankAccount(AddXagoBankAccountRequest) returns (LinkedAccount);
@@ -564,15 +558,6 @@ message SetDefaultSendLinkedAccountRequest {
 }
 
 message SetDefaultReceiveLinkedAccountRequest {
-  string id = 1;
-}
-
-message SlackCallbackRequest {
-  string state = 1;
-  string code = 2;
-}
-
-message SlackCallbackResponse {
   string id = 1;
 }
 
@@ -1144,24 +1129,6 @@ message CreateTwitterAuthURLResponse {
   string url = 1;
 }
 
-message TwitterCallbackRequest {
-  string state = 1;
-  string code = 2;
-}
-
-message TwitterCallbackResponse {
-  string id = 1;
-}
-
-message DiscordCallbackRequest {
-  string state = 1;
-  string code = 2;
-}
-
-message DiscordCallbackResponse {
-  string id = 1;
-}
-
 message CreateDiscordAuthURLResponse {
   string url = 1;
 }
@@ -1187,14 +1154,6 @@ message GetPaymentAddressResponse {
   string type = 2; // wallet, twitter
   string handle = 3; // url or twitter handle
   bool canSendToAddress = 4;
-}
-
-message CreateDomainIdentityRequest {
-  string url = 1;
-}
-
-message CreateDomainIdentityResponse {
-  string id = 1;
 }
 
 message VerifyIdentityRequest {

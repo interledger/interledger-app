@@ -2,14 +2,9 @@ package platforms
 
 import (
 	"context"
-	"crypto"
 	"encoding/base64"
-	"encoding/json"
-	"fmt"
-	"time"
 
 	"gitlab.com/fynbos/backend/cdn"
-	"gitlab.com/fynbos/backend/keys"
 
 	"gitlab.com/fynbos/backend/identities"
 )
@@ -21,60 +16,6 @@ type discordPlatform struct {
 
 func (d *discordPlatform) VerifyWorkflow() interface{} {
 	return nil
-}
-
-func (d *discordPlatform) GenerateSignedClaim(ctx context.Context, args *SignedClaimArgs) (*GeneratedSignedClaim, error) {
-	walletKeys, err := d.b.Keys().List(ctx, args.WalletID)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
-	}
-
-	// Get first custodial key
-	var signingKey *keys.Key
-	for _, k := range walletKeys {
-		if k.Type == keys.Custodial {
-			signingKey = &k
-			break
-		}
-	}
-
-	if signingKey == nil {
-		return nil, fmt.Errorf("%w %s", identities.ErrInternal, "no custodial key found")
-	}
-
-	wallet, err := d.b.Wallets().Get(ctx, args.WalletID)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
-	}
-
-	claim := identities.Claim{
-		Wallet:     wallet.AddressString(),
-		Type:       "discord",
-		Identifier: args.Identifier,
-		Kid:        signingKey.ID,
-		Ctime:      time.Now().Unix(),
-	}
-
-	jsonClaim, err := json.Marshal(claim)
-
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
-	}
-
-	signature, err := d.b.Keys().Sign(ctx, signingKey.ID, args.WalletID, jsonClaim)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
-	}
-
-	signatureHash := crypto.SHA256.New()
-	signatureHash.Write(signature)
-	hash := signatureHash.Sum(nil)
-
-	return &GeneratedSignedClaim{
-		Claim:         claim,
-		Signature:     signature,
-		SignatureHash: hash,
-	}, nil
 }
 
 func (d *discordPlatform) GenerateImages(ctx context.Context, args *GenerateImagesArgs) error {

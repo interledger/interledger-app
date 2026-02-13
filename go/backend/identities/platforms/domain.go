@@ -2,9 +2,7 @@ package platforms
 
 import (
 	"context"
-	"crypto"
 	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net"
@@ -12,7 +10,6 @@ import (
 
 	"gitlab.com/fynbos/backend/cdn"
 	"gitlab.com/fynbos/backend/identities"
-	"gitlab.com/fynbos/backend/keys"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
@@ -67,60 +64,6 @@ func (dp *domainPlatform) GenerateImages(ctx context.Context, args *GenerateImag
 	}
 
 	return nil
-}
-
-func (dp *domainPlatform) GenerateSignedClaim(ctx context.Context, args *SignedClaimArgs) (*GeneratedSignedClaim, error) {
-	walletKeys, err := dp.b.Keys().List(ctx, args.WalletID)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
-	}
-
-	// Get first custodial key
-	var signingKey *keys.Key
-	for _, k := range walletKeys {
-		if k.Type == keys.Custodial {
-			signingKey = &k
-			break
-		}
-	}
-
-	if signingKey == nil {
-		return nil, fmt.Errorf("%w %s", identities.ErrInternal, "no custodial key found")
-	}
-
-	wallet, err := dp.b.Wallets().Get(ctx, args.WalletID)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
-	}
-
-	claim := identities.Claim{
-		Wallet:     wallet.AddressString(),
-		Type:       string(identities.PlatformDomain),
-		Identifier: args.Identifier,
-		Kid:        signingKey.ID,
-		Ctime:      time.Now().Unix(),
-	}
-
-	jsonClaim, err := json.Marshal(claim)
-
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
-	}
-
-	signature, err := dp.b.Keys().Sign(ctx, signingKey.ID, args.WalletID, jsonClaim)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
-	}
-
-	signatureHash := crypto.SHA256.New()
-	signatureHash.Write(signature)
-	hash := signatureHash.Sum(nil)
-
-	return &GeneratedSignedClaim{
-		Claim:         claim,
-		Signature:     signature,
-		SignatureHash: hash,
-	}, nil
 }
 
 func DomainVerifyWorkflow(ctx workflow.Context, id, domain string) (string, error) {

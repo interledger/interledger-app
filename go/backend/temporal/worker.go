@@ -38,8 +38,6 @@ func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config) (worker.Worker,
 
 	// Jobs
 	w.RegisterActivity(jobs.NewActivity(b, gatehubConfig))
-	w.RegisterWorkflow(jobs.AddWalletPrivateKeysWorkflow)
-	w.RegisterWorkflow(jobs.FixWalletPublicKeysWorkflow)
 	w.RegisterWorkflow(jobs.MigratePaymentPointers)
 	w.RegisterWorkflow(jobs.MigrateOpenPaymentsObjects)
 	w.RegisterWorkflow(jobs.BackfillTransactionsRefundState)

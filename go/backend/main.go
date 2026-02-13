@@ -83,7 +83,6 @@ import (
 	twitter_client "gitlab.com/fynbos/backend/twitter/client"
 	"gitlab.com/fynbos/backend/user"
 	user_client "gitlab.com/fynbos/backend/user/client"
-	"gitlab.com/fynbos/backend/vault"
 	"gitlab.com/fynbos/backend/waitlist"
 	waitlist_client "gitlab.com/fynbos/backend/waitlist/client"
 	"gitlab.com/fynbos/backend/wallets"
@@ -474,7 +473,6 @@ type backends struct {
 	contacts       contacts.Client
 	limits         limits.Client
 	ident          identities.Client
-	vault          vault.Client
 	feat           features.Client
 	img            images.Client
 	wallet         wallets.Client
@@ -614,10 +612,6 @@ func (b backends) Keys() keys.Client {
 	return b.keys
 }
 
-func (b backends) Vault() vault.Client {
-	return b.vault
-}
-
 func (b backends) Images() images.Client {
 	return b.img
 }
@@ -736,13 +730,6 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 
 	log.Debug("initialising images")
 	b.img = img_client.New(b)
-
-	log.Debug("initialising vault")
-	vc, err := vault.NewClient()
-	if err != nil {
-		log.Error("error vault", zap.Error(err))
-	}
-	b.vault = vc
 
 	log.Debug("initialising keys")
 	b.keys = keys_client.New(b)
