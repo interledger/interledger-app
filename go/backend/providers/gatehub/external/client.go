@@ -11,12 +11,10 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 	"time"
 
 	httplog "gitlab.com/fynbos/backend/providers/http"
-	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/log"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
@@ -61,67 +59,62 @@ type client struct {
 	onboardingBaseURL       string
 	onOffRampBaseURL        string
 	cardApplicationProducts []CardApplicationProduct
+	vaultID                 string
 
 	api *http.Client
 }
 
-func NewClient(appID, secret, cardAppID, gatewayID string, transport *http.Client) Client {
-	onOffRampClientID := "f8119dfd-e563-44ee-9ae2-1e60a4fce74f"
-	onboardingClientID := "4df24d1b-5796-4eec-951b-21699d61b970"
-	exchangeClientID := "4e28d4df-22d7-414c-97a3-d71956df29ba"
-	baseURL := "https://api.sandbox.gatehub.net"
-	onboardingBaseURL := "https://onboarding.sandbox.gatehub.net"
-	onOffRampBaseURL := "https://managed-ramp.sandbox.gatehub.net"
-	if env.IsProd() {
-		onOffRampClientID = "f4c8f30f-7fc3-4aa1-8573-520cb67565e3"
-		onboardingClientID = "40a22fc5-9091-4c6f-aff6-a3fddf475b33"
-		exchangeClientID = "50e7c590-f6f9-4fa9-9498-260bd978c5d6"
-		baseURL = "https://api.gatehub.net"
-		onboardingBaseURL = "https://onboarding.gatehub.net"
-		onOffRampBaseURL = "https://managed-ramp.gatehub.net"
-	}
-
-	// Log initial Gatehub configuration (INFO level for debugging)
-	log.Info(fmt.Sprintf("[GATEHUB CONFIG] Initializing Gatehub client - AppID: %s (len=%d), CardAppID: %s (len=%d), Secret: %s*** (len=%d), GatewayID: %s",
-		appID, len(appID),
-		cardAppID, len(cardAppID),
-		maskSecret(secret, 3), len(secret),
-		gatewayID))
-
-	// Allow overriding baseURL via environment variable (for local development with MockGatehub)
-	if envBaseURL := os.Getenv("GATEHUB_API_BASE_URL"); envBaseURL != "" {
-		log.Info(fmt.Sprintf("[GATEHUB CONFIG] Using GATEHUB_API_BASE_URL override: %s", envBaseURL))
-		baseURL = envBaseURL
-		// Also override onboarding and onOffRamp URLs to point to the same base
-		onboardingBaseURL = envBaseURL
-		onOffRampBaseURL = envBaseURL
-	} else {
-		log.Info(fmt.Sprintf("[GATEHUB CONFIG] GATEHUB_API_BASE_URL not set, defaulting to: %s", baseURL))
-	}
-
-	// Allow overriding widget URLs separately (so browser iframes can use HTTPS while the API stays on HTTP internally)
-	if envWidgetBaseURL := os.Getenv("GATEHUB_WIDGET_BASE_URL"); envWidgetBaseURL != "" {
-		log.Info(fmt.Sprintf("[GATEHUB CONFIG] Using GATEHUB_WIDGET_BASE_URL override: %s", envWidgetBaseURL))
-		onboardingBaseURL = envWidgetBaseURL
-		onOffRampBaseURL = envWidgetBaseURL
-	}
-
+func NewClient(appID, secret, cardAppID, gatewayID, cardAccountProductCode, vaultID, onOffRampClientID, onboardingClientID, exchangeClientID, baseURL, onboardingBaseURL, onOffRampBaseURL string, transport *http.Client) Client {
 	api := otelhttp.DefaultClient
 	if transport != nil {
 		api = transport
 	}
 
-	cardAccountProductCode := os.Getenv("GATEHUB_CARD_ACCOUNT_PRODUCT_CODE")
+	// Some additional sanity checks
+
 	if cardAccountProductCode == "" {
-		log.Info("[GATEHUB CONFIG] GATEHUB_CARD_ACCOUNT_PRODUCT_CODE variable is not set")
-	} else {
-		log.Info(fmt.Sprintf("[GATEHUB CONFIG] GATEHUB_CARD_ACCOUNT_PRODUCT_CODE: %s", cardAccountProductCode))
+		log.Error("cardAccountProductCode is not set")
+		return nil
 	}
 
 	if gatewayID == "" {
-		log.Info("[GATEHUB CONFIG] GATEHUB_GATEWAY_ID is not set")
-	} else {
-		log.Info(fmt.Sprintf("[GATEHUB CONFIG] GATEHUB_GATEWAY_ID: %s", gatewayID))
+		log.Error("gatewayID is not set")
+		return nil
+	}
+
+	if vaultID == "" {
+		log.Error("vaultID is not set")
+		return nil
+	}
+
+	if onOffRampClientID == "" {
+		log.Error("onOffRampClientID is not set")
+		return nil
+	}
+
+	if onboardingClientID == "" {
+		log.Error("onboardingClientID is not set")
+		return nil
+	}
+
+	if exchangeClientID == "" {
+		log.Error("exchangeClientID is not set")
+		return nil
+	}
+
+	if baseURL == "" {
+		log.Error("baseURL is not set")
+		return nil
+	}
+
+	if onboardingBaseURL == "" {
+		log.Error("onboardingBaseURL is not set")
+		return nil
+	}
+
+	if onOffRampBaseURL == "" {
+		log.Error("onOffRampBaseURL is not set")
+		return nil
 	}
 
 	return &client{
@@ -137,16 +130,13 @@ func NewClient(appID, secret, cardAppID, gatewayID string, transport *http.Clien
 		onboardingBaseURL:       onboardingBaseURL,
 		onOffRampBaseURL:        onOffRampBaseURL,
 		cardApplicationProducts: []CardApplicationProduct{},
+		vaultID:                 vaultID,
 		api:                     api,
 	}
 }
 
 func (c *client) GetVaultID() string {
-	vaultID := os.Getenv("GATEHUB_PAYWISER_EURO_VAULT_ID")
-	if vaultID == "" {
-		log.Warn("GATEHUB_PAYWISER_EURO_VAULT_ID environment variable is not set")
-	}
-	return vaultID
+	return c.vaultID
 }
 
 func (c *client) GetOnboardingWidget(ctx context.Context, userID string) (string, error) {

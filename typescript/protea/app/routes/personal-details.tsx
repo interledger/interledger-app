@@ -16,6 +16,7 @@ import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { useScript } from '~/lib/useScript'
+import logger from '~/lib/logger.server'
 
 const KYCErrors: KYCErrorsType = {
   UnableToPars: 'KYC: unable to parse message data'
@@ -33,14 +34,15 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   if (isConnectError(response)) throw response.errorResponse
 
-  console.log('[KYC] Personal details page loaded:', {
+  logger.info({
     provider: response.provider,
     hasGatehubWidget: !!response.gatehubWidget,
     gatehubWidgetUrl: response.gatehubWidget?.widgetUrl,
     hasPersonaWidget: !!response.personaInquiry,
     hasChimoneyWidget: !!response.chimoneyWidget,
-    hasPtiWidget: !!response.ptiWidget
-  })
+    hasPtiWidget: !!response.ptiWidget,
+    flow: 'kyc'
+  }, '[KYC] Personal details page loaded')
 
   // if (response.provider === 'local') {
   //   // wait 1s on local for the async processes to finish
@@ -165,7 +167,6 @@ function GatehubPage() {
         hasType: !!e.data?.type,
         hasValue: !!e.data?.value
       })
-      
       if (!e.data?.type || !e.data?.value) {
         console.warn('[KYC] Message missing type or value, ignoring')
         return
@@ -211,7 +212,9 @@ function GatehubPage() {
     <>
       <KycIntro
         onClick={() => {
-          console.log('[KYC] Opening gatehub KYC dialog with widget URL:', gatehubWidget?.widgetUrl)
+          console.log('[KYC] Opening gatehub KYC dialog', {
+            hasWidgetUrl: !!gatehubWidget?.widgetUrl
+          })
           setDialogOpen(true)
         }}
         ready
@@ -343,18 +346,17 @@ export default function Page() {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  console.log('[KYC] Personal details action called - marking KYC status as pending')
+  logger.info({ flow: 'kyc' }, '[KYC] Personal details action called - marking KYC status as pending')
   
   await exitFlow(request, flowType.PersonalDetails)
 
   const setKycResponse = await grpc.setKYCStatusPending(request, {})
-  
   if (isConnectError(setKycResponse)) {
-    console.error('[KYC] Failed to set KYC status as pending:', setKycResponse)
+    logger.error({ error: setKycResponse, flow: 'kyc' }, '[KYC] Failed to set KYC status as pending')
     throw setKycResponse.errorResponse
   }
   
-  console.log('[KYC] KYC status set to pending successfully')
+  logger.info({ flow: 'kyc' }, '[KYC] KYC status set to pending successfully')
 
   return redirectWithSnackbar(request, route('/'), {
     message: 'Personal details captured.',

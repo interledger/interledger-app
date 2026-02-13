@@ -44,7 +44,8 @@ func Create(ctx context.Context, b Backends, args wallets.CreateArgs) (*wallets.
 	var walletCreated bool
 
 	err = crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
-		// Use advisory lock to prevent concurrent wallet creation for the same user
+		// Use advisory lock to prevent concurrent wallet creation for the same user.
+		// NOTE: This relies on Postgres advisory locks; CockroachDB support is being removed soon.
 		// This locks on the user ID itself, not on rows (which don't exist yet for new users)
 		// pg_advisory_xact_lock uses a transaction-level lock that auto-releases on commit/rollback
 		_, err := tx.ExecContext(ctx, "SELECT pg_advisory_xact_lock(hashtext($1))", userID)
@@ -61,9 +62,23 @@ func Create(ctx context.Context, b Backends, args wallets.CreateArgs) (*wallets.
 
 		existingCount := len(existingWalletIDs)
 
-		// If user already has wallets (from concurrent request), skip creation
-		// This makes Create() idempotent for the middleware use case
+		// If user already has wallets (from concurrent request), potentially skip creation.
+		// This makes Create() idempotent for the middleware use case, but we must ensure
+		// that the existing wallet is compatible with the requested parameters.
 		if existingCount > 0 && name == "default" {
+			// Validate existing wallet has compatible parameters before treating this as
+			// an idempotent no-op.
+			var existingWallet wallets.Wallet
+			err = tx.GetContext(ctx, &existingWallet, "SELECT country FROM wallets WHERE id = $1", existingWalletIDs[0])
+			if err != nil {
+				return fmt.Errorf("%w %s", wallets.ErrInternal, err)
+			}
+			if existingWallet.Country != ctry {
+				return fmt.Errorf("%w existing wallet country (%s) does not match requested country (%s)", wallets.ErrWalletConflict, existingWallet.Country, ctry)
+			}
+			if len(args.Addresses) > 0 {
+				return fmt.Errorf("%w addresses provided for existing wallet", wallets.ErrWalletConflict)
+			}
 			walletCreated = false
 			return nil
 		}
@@ -110,6 +125,14 @@ func Create(ctx context.Context, b Backends, args wallets.CreateArgs) (*wallets.
 		if err != nil || len(existingWallets) == 0 {
 			return nil, fmt.Errorf("%w: wallet not created and none found", wallets.ErrInternal)
 		}
+
+		if len(args.Addresses) > 0 {
+			return nil, fmt.Errorf("%w: addresses provided for existing wallet", wallets.ErrWalletConflict)
+		}
+
+		if existingWallets[0].Country != ctry {
+			return nil, fmt.Errorf("%w existing wallet country (%s) does not match requested country (%s)", wallets.ErrWalletConflict, existingWallets[0].Country, ctry)
+		}
 		return &existingWallets[0], nil
 	}
 
@@ -117,7 +140,6 @@ func Create(ctx context.Context, b Backends, args wallets.CreateArgs) (*wallets.
 	for range args.Addresses {
 		b.Analytics().TrackWalletPaymentPointerCreated(walletID)
 	}
-
 	// Do not provision custodial private key
 	// err = b.Keys().ProvisionPrivateKey(ctx, walletID)
 	// if err != nil {
