@@ -37,7 +37,7 @@ func TestSearch(t *testing.T) {
 	b.DB().MustExecContext(ctx, "INSERT INTO  wallet_kyc_status (wallet_id, status, created_at, updated_at) VALUES ($1, $2, NOW(), NOW())",
 		walletID, kyc.StatusLevel2)
 
-	res, err := ops.Search(ctx, b, uuid.NewString(), "cold")
+	res, err := ops.Search(ctx, b, uuid.NewString(), "notking")
 	require.NoError(t, err)
 
 	assert.Len(t, res, 1)
