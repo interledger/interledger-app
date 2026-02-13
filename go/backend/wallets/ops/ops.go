@@ -150,9 +150,6 @@ func Create(ctx context.Context, b Backends, args wallets.CreateArgs) (*wallets.
 	return Get(ctx, b, walletID)
 }
 
-// CreateIfEmpty atomically checks if a user has any wallets and creates one if they don't.
-// This prevents race conditions where multiple concurrent requests both create wallets.
-// Returns (wallet, true) if a wallet was created, or (nil, false) if wallets already exist.
 func AddAddress(ctx context.Context, b Backends, id, url string) (*wallets.Wallet, error) {
 	// Check if it already exists
 	w, err := GetFromAddress(ctx, b, url)
