@@ -1,21 +1,15 @@
 package geo
 
 import (
-	"math"
 	"math/big"
 	"testing"
 
 	geopbv1 "gitlab.com/fynbos/proto/geo/v1"
 )
 
-const (
-	maxInt64 = math.MaxInt64
-	minInt64 = math.MinInt64
-)
-
 func TestClone(t *testing.T) {
 	original := NewCurrency(USD())
-	original.SetAmount("100.00")
+	original.SetAmountString("100.00")
 
 	clone := original.Clone()
 
@@ -25,7 +19,7 @@ func TestClone(t *testing.T) {
 	}
 
 	// Modify clone and verify original is unchanged
-	clone.SetAmount("200.00")
+	clone.SetAmountString("200.00")
 	if original.Amount() != "100.00" {
 		t.Errorf("Original was modified when clone changed: got %s, want 100.00", original.Amount())
 	}
@@ -33,7 +27,7 @@ func TestClone(t *testing.T) {
 
 func TestRawAmount(t *testing.T) {
 	currency := NewCurrency(USD())
-	currency.SetAmount("123.45")
+	currency.SetAmountString("123.45")
 
 	raw := currency.RawAmount()
 	expected := big.NewInt(12345)
@@ -49,20 +43,53 @@ func TestRawAmount(t *testing.T) {
 	}
 }
 
-func TestSetRawAmount(t *testing.T) {
+func TestSetRawAmountBigInt(t *testing.T) {
 	currency := NewCurrency(USD())
-	currency.SetRawAmount(big.NewInt(12345))
+	currency.SetRawAmountBigInt(big.NewInt(12345))
 
 	if currency.Amount() != "123.45" {
-		t.Errorf("SetRawAmount: got %s, want 123.45", currency.Amount())
+		t.Errorf("SetRawAmountBigInt: got %s, want 123.45", currency.Amount())
 	}
 
 	// Verify it creates a copy (modifying input doesn't affect currency)
 	input := big.NewInt(50000)
-	currency.SetRawAmount(input)
+	currency.SetRawAmountBigInt(input)
 	input.SetInt64(0)
 	if currency.RawAmount().Cmp(big.NewInt(50000)) != 0 {
-		t.Error("SetRawAmount used reference instead of copy")
+		t.Error("SetRawAmountBigInt used reference instead of copy")
+	}
+}
+
+func TestSetRawAmountInt64(t *testing.T) {
+	currency := NewCurrency(USD())
+	currency.SetRawAmountInt64(12345)
+
+	if currency.Amount() != "123.45" {
+		t.Errorf("SetRawAmountInt64: got %s, want 123.45", currency.Amount())
+	}
+
+	currency.SetRawAmountInt64(-6789)
+	if currency.Amount() != "-67.89" {
+		t.Errorf("SetRawAmountInt64 negative: got %s, want -67.89", currency.Amount())
+	}
+
+	currency.SetRawAmountInt64(0)
+	if currency.Amount() != "0.00" {
+		t.Errorf("SetRawAmountInt64 zero: got %s, want 0.00", currency.Amount())
+	}
+}
+
+func TestSetRawAmountUint64(t *testing.T) {
+	currency := NewCurrency(USD())
+	currency.SetRawAmountUint64(12345)
+
+	if currency.Amount() != "123.45" {
+		t.Errorf("SetRawAmountUint64: got %s, want 123.45", currency.Amount())
+	}
+
+	currency.SetRawAmountUint64(0)
+	if currency.Amount() != "0.00" {
+		t.Errorf("SetRawAmountUint64 zero: got %s, want 0.00", currency.Amount())
 	}
 }
 
@@ -82,7 +109,7 @@ func TestIsZero(t *testing.T) {
 
 	for _, test := range cases {
 		currency := NewCurrency(USD())
-		currency.SetAmount(test.amount)
+		currency.SetAmountString(test.amount)
 		if currency.IsZero() != test.expected {
 			t.Errorf("IsZero(%s): got %v, want %v", test.amount, currency.IsZero(), test.expected)
 		}
@@ -104,7 +131,7 @@ func TestIsNegative(t *testing.T) {
 
 	for _, test := range cases {
 		currency := NewCurrency(USD())
-		currency.SetAmount(test.amount)
+		currency.SetAmountString(test.amount)
 		if currency.IsNegative() != test.expected {
 			t.Errorf("IsNegative(%s): got %v, want %v", test.amount, currency.IsNegative(), test.expected)
 		}
@@ -125,7 +152,7 @@ func TestIsPositive(t *testing.T) {
 
 	for _, test := range cases {
 		currency := NewCurrency(USD())
-		currency.SetAmount(test.amount)
+		currency.SetAmountString(test.amount)
 		if currency.IsPositive() != test.expected {
 			t.Errorf("IsPositive(%s): got %v, want %v", test.amount, currency.IsPositive(), test.expected)
 		}
@@ -134,13 +161,13 @@ func TestIsPositive(t *testing.T) {
 
 func TestCmp(t *testing.T) {
 	usd1 := NewCurrency(USD())
-	usd1.SetAmount("100.00")
+	usd1.SetAmountString("100.00")
 
 	usd2 := NewCurrency(USD())
-	usd2.SetAmount("200.00")
+	usd2.SetAmountString("200.00")
 
 	usd3 := NewCurrency(USD())
-	usd3.SetAmount("100.00")
+	usd3.SetAmountString("100.00")
 
 	// Less than
 	cmp, err := usd1.Cmp(usd2)
@@ -182,16 +209,16 @@ func TestCmpAssetMismatch(t *testing.T) {
 
 func TestCurrencyEqual(t *testing.T) {
 	usd1 := NewCurrency(USD())
-	usd1.SetAmount("100.00")
+	usd1.SetAmountString("100.00")
 
 	usd2 := NewCurrency(USD())
-	usd2.SetAmount("100.00")
+	usd2.SetAmountString("100.00")
 
 	usd3 := NewCurrency(USD())
-	usd3.SetAmount("200.00")
+	usd3.SetAmountString("200.00")
 
 	eur := NewCurrency(EUR())
-	eur.SetAmount("100.00")
+	eur.SetAmountString("100.00")
 
 	if !usd1.Equal(usd2) {
 		t.Error("Same amount, same asset should be equal")
@@ -208,37 +235,32 @@ func TestCurrencyEqual(t *testing.T) {
 
 func TestAdd(t *testing.T) {
 	usd1 := NewCurrency(USD())
-	usd1.SetAmount("100.50")
+	usd1.SetAmountString("100.50")
 
 	usd2 := NewCurrency(USD())
-	usd2.SetAmount("50.25")
+	usd2.SetAmountString("50.25")
 
-	result, err := usd1.Add(usd2)
+	err := usd1.Add(usd2)
 	if err != nil {
 		t.Fatalf("Add failed: %v", err)
 	}
 
-	if result.Amount() != "150.75" {
-		t.Errorf("100.50 + 50.25: got %s, want 150.75", result.Amount())
-	}
-
-	// Verify original is unchanged
-	if usd1.Amount() != "100.50" {
-		t.Errorf("Original was modified: got %s, want 100.50", usd1.Amount())
+	if usd1.Amount() != "150.75" {
+		t.Errorf("100.50 + 50.25: got %s, want 150.75", usd1.Amount())
 	}
 }
 
 func TestAddNegative(t *testing.T) {
 	usd1 := NewCurrency(USD())
-	usd1.SetAmount("100.00")
+	usd1.SetAmountString("100.00")
 
 	usd2 := NewCurrency(USD())
-	usd2.SetAmount("-150.00")
+	usd2.SetAmountString("-150.00")
 
-	result, _ := usd1.Add(usd2)
+	usd1.Add(usd2)
 
-	if result.Amount() != "-50.00" {
-		t.Errorf("100 + (-150): got %s, want -50.00", result.Amount())
+	if usd1.Amount() != "-50.00" {
+		t.Errorf("100 + (-150): got %s, want -50.00", usd1.Amount())
 	}
 }
 
@@ -246,7 +268,7 @@ func TestAddAssetMismatch(t *testing.T) {
 	usd := NewCurrency(USD())
 	eur := NewCurrency(EUR())
 
-	_, err := usd.Add(eur)
+	err := usd.Add(eur)
 	if err == nil {
 		t.Error("Expected error when adding different assets")
 	}
@@ -254,32 +276,32 @@ func TestAddAssetMismatch(t *testing.T) {
 
 func TestSub(t *testing.T) {
 	usd1 := NewCurrency(USD())
-	usd1.SetAmount("100.50")
+	usd1.SetAmountString("100.50")
 
 	usd2 := NewCurrency(USD())
-	usd2.SetAmount("50.25")
+	usd2.SetAmountString("50.25")
 
-	result, err := usd1.Sub(usd2)
+	err := usd1.Sub(usd2)
 	if err != nil {
 		t.Fatalf("Sub failed: %v", err)
 	}
 
-	if result.Amount() != "50.25" {
-		t.Errorf("100.50 - 50.25: got %s, want 50.25", result.Amount())
+	if usd1.Amount() != "50.25" {
+		t.Errorf("100.50 - 50.25: got %s, want 50.25", usd1.Amount())
 	}
 }
 
 func TestSubResultNegative(t *testing.T) {
 	usd1 := NewCurrency(USD())
-	usd1.SetAmount("50.00")
+	usd1.SetAmountString("50.00")
 
 	usd2 := NewCurrency(USD())
-	usd2.SetAmount("100.00")
+	usd2.SetAmountString("100.00")
 
-	result, _ := usd1.Sub(usd2)
+	usd1.Sub(usd2)
 
-	if result.Amount() != "-50.00" {
-		t.Errorf("50 - 100: got %s, want -50.00", result.Amount())
+	if usd1.Amount() != "-50.00" {
+		t.Errorf("50 - 100: got %s, want -50.00", usd1.Amount())
 	}
 }
 
@@ -287,7 +309,7 @@ func TestSubAssetMismatch(t *testing.T) {
 	usd := NewCurrency(USD())
 	eur := NewCurrency(EUR())
 
-	_, err := usd.Sub(eur)
+	err := usd.Sub(eur)
 	if err == nil {
 		t.Error("Expected error when subtracting different assets")
 	}
@@ -306,16 +328,11 @@ func TestNeg(t *testing.T) {
 
 	for _, test := range cases {
 		currency := NewCurrency(USD())
-		currency.SetAmount(test.input)
-		result := currency.Neg()
+		currency.SetAmountString(test.input)
+		currency.Neg()
 
-		if result.Amount() != test.expected {
-			t.Errorf("Neg(%s): got %s, want %s", test.input, result.Amount(), test.expected)
-		}
-
-		// Verify original unchanged
-		if currency.Amount() != test.input {
-			t.Errorf("Original was modified: got %s, want %s", currency.Amount(), test.input)
+		if currency.Amount() != test.expected {
+			t.Errorf("Neg(%s): got %s, want %s", test.input, currency.Amount(), test.expected)
 		}
 	}
 }
@@ -333,11 +350,11 @@ func TestAbs(t *testing.T) {
 
 	for _, test := range cases {
 		currency := NewCurrency(USD())
-		currency.SetAmount(test.input)
-		result := currency.Abs()
+		currency.SetAmountString(test.input)
+		currency.Abs()
 
-		if result.Amount() != test.expected {
-			t.Errorf("Abs(%s): got %s, want %s", test.input, result.Amount(), test.expected)
+		if currency.Amount() != test.expected {
+			t.Errorf("Abs(%s): got %s, want %s", test.input, currency.Amount(), test.expected)
 		}
 	}
 }
@@ -357,7 +374,7 @@ func TestCurrencyString(t *testing.T) {
 
 	for _, test := range cases {
 		currency := NewCurrency(test.asset)
-		currency.SetAmount(test.amount)
+		currency.SetAmountString(test.amount)
 		result := currency.String()
 
 		if result != test.expected {
@@ -369,7 +386,7 @@ func TestCurrencyString(t *testing.T) {
 func TestAmountWithScaleZero(t *testing.T) {
 	// JPY has scale 0, so no fractional part
 	jpy := NewCurrency(JPY())
-	jpy.SetAmount("12345")
+	jpy.SetAmountString("12345")
 
 	if jpy.Amount() != "12345" {
 		t.Errorf("JPY Amount: got %s, want 12345", jpy.Amount())
@@ -469,33 +486,23 @@ func TestAmount(t *testing.T) {
 		}
 	}
 
-	// non-zero amount test can be added when WithAmount or Amount methods are implemented
-
+	// Test non-zero amounts with SetAmountString
 	testCurrency := NewCurrency(USD())
 
-	nonZeroCases := []struct {
-		value       any
-		expectedAmt *big.Int
-	}{
-		{100, big.NewInt(10000)},              // int
-		{int64(250), big.NewInt(25000)},       // int64
-		{*big.NewInt(500), big.NewInt(50000)}, // *big.Int
-		{"123.45", big.NewInt(12345)},         // string
-		{"-67.89", big.NewInt(-6789)},         // string negative
+	c := *testCurrency
+	if err := c.SetAmountString("123.45"); err != nil {
+		t.Fatalf("SetAmountString(123.45) failed: %v", err)
+	}
+	if c.amount.Cmp(big.NewInt(12345)) != 0 {
+		t.Errorf("SetAmountString(123.45): expected 12345, got %s", c.amount.String())
 	}
 
-	for _, test := range nonZeroCases {
-		copy := *testCurrency // create a copy to avoid state carry-over
-
-		_, err := copy.SetAmount(test.value)
-		if err != nil {
-			t.Errorf("SetAmount failed for value %v: %v", test.value, err)
-		}
-
-		amount := copy.amount
-		if amount.Cmp(test.expectedAmt) != 0 {
-			t.Errorf("For value %v, expected amount %s, got %s", test.value, test.expectedAmt.String(), amount.String())
-		}
+	c = *testCurrency
+	if err := c.SetAmountString("-67.89"); err != nil {
+		t.Fatalf("SetAmountString(-67.89) failed: %v", err)
+	}
+	if c.amount.Cmp(big.NewInt(-6789)) != 0 {
+		t.Errorf("SetAmountString(-67.89): expected -6789, got %s", c.amount.String())
 	}
 
 }
@@ -520,52 +527,22 @@ func TestCurrencyFactor(t *testing.T) {
 	}
 }
 
-func TestSetAmount(t *testing.T) {
+func TestSetAmountString(t *testing.T) {
 	positiveBigInt := new(big.Int).Lsh(big.NewInt(1), 200) // 2^200, a very large number
 	negativeBigInt := new(big.Int).Neg(positiveBigInt)
 
-	currency := NewCurrency(USD())
-	factor := currency.Factor()
+	factor := NewCurrency(USD()).Factor()
 
 	cases := []struct {
-		input       any
+		input       string
 		expectError bool
 		expected    big.Int
 	}{
-		// int
-		{0, false, *big.NewInt(0)},     // 0 * 10^2
-		{10, false, *big.NewInt(1000)}, // 10 * 10^2
-		{-5, false, *big.NewInt(-500)}, // -5 * 10^2
-		{maxInt64, false, *big.NewInt(maxInt64).Mul(big.NewInt(maxInt64), factor)}, // Max int64 * 10^2
-		{minInt64, false, *big.NewInt(minInt64).Mul(big.NewInt(minInt64), factor)}, // Min int64 * 10^2
-
-		// int64
-		{int64(0), false, *big.NewInt(0)},                                                 // 0 * 10^2
-		{int64(15), false, *big.NewInt(1500)},                                             // 15 * 10^2
-		{int64(-20), false, *big.NewInt(-2000)},                                           // -20 * 10^2
-		{int64(maxInt64), false, *big.NewInt(maxInt64).Mul(big.NewInt(maxInt64), factor)}, // Max int64 * 10^2
-		{int64(minInt64), false, *big.NewInt(minInt64).Mul(big.NewInt(minInt64), factor)}, // Min int64 * 10^2
-
-		// big.Int
-		{*big.NewInt(0), false, *big.NewInt(0)},                                                 // 0 * 10^2
-		{*big.NewInt(30), false, *big.NewInt(3000)},                                             // 30 * 10^2
-		{*big.NewInt(-40), false, *big.NewInt(-4000)},                                           // -40 * 10^2
-		{*big.NewInt(maxInt64), false, *big.NewInt(maxInt64).Mul(big.NewInt(maxInt64), factor)}, // Max int64 * 10^2
-		{*big.NewInt(minInt64), false, *big.NewInt(minInt64).Mul(big.NewInt(minInt64), factor)}, // Min int64 * 10^2
-
-		// *big.Int
-		{func() *big.Int { v := big.NewInt(50); return v }(), false, *big.NewInt(5000)},                                             // 50 * 10^2
-		{func() *big.Int { v := big.NewInt(0); return v }(), false, *big.NewInt(0)},                                                 // 0 * 10^2
-		{func() *big.Int { v := big.NewInt(-60); return v }(), false, *big.NewInt(-6000)},                                           // -60 * 10^2
-		{func() *big.Int { v := big.NewInt(maxInt64); return v }(), false, *big.NewInt(maxInt64).Mul(big.NewInt(maxInt64), factor)}, // Max int64 * 10^2
-		{func() *big.Int { v := big.NewInt(minInt64); return v }(), false, *big.NewInt(minInt64).Mul(big.NewInt(minInt64), factor)}, // Min int64 * 10^2
-
-		// string
-		{"0", false, *big.NewInt(0)},       // 0 * 10^2
-		{"70", false, *big.NewInt(7000)},   // 70 * 10^2
-		{"-80", false, *big.NewInt(-8000)}, // -80 * 10^2
-		{func() string { v := "92233720368547758"; return v }(), false, *big.NewInt(9223372036854775800)},
-		{func() string { v := "-92233720368547758"; return v }(), false, *big.NewInt(-9223372036854775800)},
+		{"0", false, *big.NewInt(0)},
+		{"70", false, *big.NewInt(7000)},
+		{"-80", false, *big.NewInt(-8000)},
+		{"92233720368547758", false, *big.NewInt(9223372036854775800)},
+		{"-92233720368547758", false, *big.NewInt(-9223372036854775800)},
 		{positiveBigInt.String(), false, *new(big.Int).Mul(positiveBigInt, factor)},
 		{negativeBigInt.String(), false, *new(big.Int).Mul(negativeBigInt, factor)},
 
@@ -586,7 +563,6 @@ func TestSetAmount(t *testing.T) {
 		{"0.001", false, *big.NewInt(0)},
 		{"-0.001", false, *big.NewInt(0)},
 
-		{"0", false, *big.NewInt(0)},
 		{"-0", false, *big.NewInt(0)},
 
 		{"+0.0", false, *big.NewInt(0)},
@@ -598,6 +574,26 @@ func TestSetAmount(t *testing.T) {
 		{"-19.9999999", false, *big.NewInt(-1999)},
 		{"999999999999.9999", false, *big.NewInt(99999999999999)},
 		{"-999999999999.9999", false, *big.NewInt(-99999999999999)},
+
+		// valid comma-separated
+		{"1,234", false, *big.NewInt(123400)},
+		{"1,234.56", false, *big.NewInt(123456)},
+		{"12,345.67", false, *big.NewInt(1234567)},
+		{"1,234,567.89", false, *big.NewInt(123456789)},
+		{"-1,234.56", false, *big.NewInt(-123456)},
+		{"+1,234.56", false, *big.NewInt(123456)},
+
+		// invalid comma placement
+		{",123", true, *big.NewInt(0)},          // leading comma
+		{"1,,234", true, *big.NewInt(0)},         // consecutive commas
+		{"1,23", true, *big.NewInt(0)},           // wrong grouping
+		{"1234,567", true, *big.NewInt(0)},       // first group too large
+		{"1,234,56", true, *big.NewInt(0)},       // last group too small
+		{"1,,,,2.34", true, *big.NewInt(0)},      // multiple consecutive commas
+		{"1.234,56", true, *big.NewInt(0)},       // comma in fractional part
+		{",", true, *big.NewInt(0)},              // just a comma
+		{"-,123", true, *big.NewInt(0)},          // sign then comma
+		{"1,234,", true, *big.NewInt(0)},         // trailing comma
 
 		// invalid strings
 		{"", true, *big.NewInt(0)},
@@ -621,43 +617,33 @@ func TestSetAmount(t *testing.T) {
 		{"1a2.34", true, *big.NewInt(0)},   // invalid whole part (mixed)
 		{"12.ab", true, *big.NewInt(0)},    // invalid fractional part (letters)
 		{"12.3a", true, *big.NewInt(0)},    // invalid fractional part (mixed)
-
-		// unsupported type
-		{[]int{1, 2, 3}, true, *big.NewInt(0)},
-		{struct{}{}, true, *big.NewInt(0)},
-		{nil, true, *big.NewInt(0)},
 	}
 
 	for _, test := range cases {
 		currency := NewCurrency(USD())
-		var err error
-		currency, err = currency.SetAmount(test.input)
+		err := currency.SetAmountString(test.input)
 		if test.expectError {
 			if err == nil {
-				t.Errorf("Expected error for input %v, but got none", test.input)
+				t.Errorf("Expected error for input %q, but got none", test.input)
 			}
-			if currency != nil {
-				t.Errorf("Expected nil currency for input %v on error, but got: %v", test.input, currency)
-			}
-
 		} else {
 			if err != nil {
-				t.Errorf("Did not expect error for input %v, but got: %v", test.input, err)
+				t.Errorf("Did not expect error for input %q, but got: %v", test.input, err)
 			} else if currency.amount.Cmp(&test.expected) != 0 {
-				t.Errorf("For input %v, expected amount %s, got %s", test.input, test.expected.String(), currency.amount.String())
+				t.Errorf("For input %q, expected amount %s, got %s", test.input, test.expected.String(), currency.amount.String())
 			}
 		}
 	}
 }
 
-func BenchmarkSetAmount(b *testing.B) {
+func BenchmarkSetAmountString(b *testing.B) {
 	currency := NewCurrency(USD())
 	input := "12345.67"
 
 	for b.Loop() {
-		_, err := currency.SetAmount(input)
+		err := currency.SetAmountString(input)
 		if err != nil {
-			b.Errorf("SetAmount failed: %v", err)
+			b.Errorf("SetAmountString failed: %v", err)
 		}
 	}
 }
@@ -698,7 +684,7 @@ func TestCurrencyToProtoGeoV1(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			currency := NewCurrency(tt.asset)
-			currency.SetAmount(tt.amount)
+			currency.SetAmountString(tt.amount)
 
 			pb := currency.ToProtoGeoV1(tt.countryCode)
 
