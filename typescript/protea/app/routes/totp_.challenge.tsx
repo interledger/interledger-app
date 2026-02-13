@@ -16,7 +16,7 @@ import { mergeMeta } from '~/lib/meta'
 import { safeReturnTo } from '~/lib/url.server'
 import { kratosPublic } from '~/lib/kratos/kratos-client.server'
 import { buildHeadersWithCookies, getCookie, withCookie } from '~/lib/kratos/cookie.util'
-import { mapFlowToFieldErrors } from '~/lib/kratos/error'
+import { mapFlowToFieldErrors, printKratosError } from '~/lib/kratos/error'
 import { CreateBrowserLoginFlowResponse, KratosError } from '~/lib/kratos/types'
 
 export type TotpAction =
@@ -72,11 +72,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
         aal: 'aal2',
       }, withCookie(cookie))
     } catch (err) {
-      const kratosError = err as KratosError
-      const errorIdData = kratosError.response?.data?.error?.id
-      const errorId = kratosError.id
-      const status = kratosError.response?.status
-      throw new Error(`Error initializing flow, errorIdData ${errorIdData} and status ${status} and errorId ${errorId}`)
+      throw new Error(printKratosError(err))
     }
 
     const flowFromRedirect = getFlowFromRedirect(aal2Flow)
@@ -93,17 +89,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
   try {
     loginFlow = await kratosPublic.getLoginFlow({ id: flowId, cookie })
   } catch (err) {
-    const kratosError = err as KratosError
-    const status = kratosError.response?.status
-
-    switch (status) {
-      case 404:
-        console.log("Invalid FLOW ID, redirect to blank challenge")
-        throw redirect("/totp/challenge")
-      default:
-        console.error("Unknown error getting flow on getLoginFlow, redirect to blank challenge")
-        throw redirect("/totp/challenge")
-    }
+    printKratosError(err)
+    throw redirect("/totp/challenge")
   }
 
   const flow: LoginFlow = loginFlow.data
@@ -187,7 +174,7 @@ export async function action({ request }: ActionFunctionArgs) {
         throw redirect("/totp/challenge")
 
       default:
-        console.error("Unknwon case when updateLoginFlow")
+        console.error("Unknown case when updateLoginFlow")
         throw redirect("/totp/challenge")
     }
 

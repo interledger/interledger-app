@@ -56,8 +56,9 @@ export type KratosError = {
     }
 }
 
-export type CreateBrowserLoginFlowResponse = Awaited<ReturnType<typeof kratosPublic.createBrowserLoginFlow>>/**
- 
+export type CreateBrowserLoginFlowResponse = Awaited<ReturnType<typeof kratosPublic.createBrowserLoginFlow>>
+
+/** 
  * Kratos error IDs for error message overrides
  */
 export enum KratosErrorId {

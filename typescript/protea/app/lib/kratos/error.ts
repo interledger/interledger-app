@@ -40,7 +40,13 @@ export function handleFlowError(
 ): void {
   const flowData = error.response?.data ?? error
 
-  if (!flowData?.error?.id) return
+  if (!flowData?.error?.id) {
+    console.error('[handleFlowError] Unrecognized error shape:', {
+      status: error.response?.status,
+      data: flowData
+    })
+    return
+  }
 
   let redirectRoute = `/${redirectTo}`
 

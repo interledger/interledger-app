@@ -34,7 +34,7 @@ export const NON_VERIFIED_EMAIL_ROUTES = ['/logout', '/verify']
 /**
  * Check if the user has TOTP enabled
  */
-export async function isTotpSet(
+async function isTotpSet(
   session: Session,
   headers: Headers
 ): Promise<boolean> {
@@ -61,29 +61,7 @@ export async function isTotpSet(
   }
 }
 
-export async function ensureTOTP(
-  session: Session,
-  headers: Headers,
-  returnTo: string
-): Promise<void> {
-  const hasTotp = await isTotpSet(session, headers)
-  if (!hasTotp) {
-    throw redirect(
-      `/totp/two-factor-authentication?refresh=true&returnTo=${encodeURIComponent(
-        returnTo
-      )}`,
-      {
-        headers: headers
-      }
-    )
-  }
-}
-
-/**
- * Check if user's email is verified
- * Returns true if the user has verified their email address
- */
-export function isEmailVerified(session: Session): boolean {
+function isEmailVerified(session: Session): boolean {
   return !!(
     session.identity?.verifiable_addresses &&
     session.identity.verifiable_addresses.length > 0 &&

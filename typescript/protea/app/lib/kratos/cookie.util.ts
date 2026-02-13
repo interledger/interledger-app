@@ -1,5 +1,8 @@
 import { RequestConfig } from "./types";
 
+type ResponseWithCookies = {
+    headers?: { 'set-cookie'?: string | string[]; [key: string]: unknown }
+}
 
 /**
  * Helper to extract cookie header from Request for SDK calls
@@ -13,7 +16,7 @@ export function getCookie(request: Request): string {
  * Helper to extract set-cookie headers from Axios response as an array
  */
 export function extractSetCookieHeaders(
-    response: { headers?: Record<string, unknown> }
+    response: ResponseWithCookies
 ): string[] {
     const setCookie = response.headers?.['set-cookie']
     if (!setCookie) return []
@@ -26,7 +29,7 @@ export function extractSetCookieHeaders(
  * Helper to build response headers with set-cookie from Kratos response
  */
 export function buildHeadersWithCookies(
-    response: { headers?: Record<string, unknown> }
+    response: ResponseWithCookies
 ): Headers {
     const headers = new Headers()
     const cookies = extractSetCookieHeaders(response)
@@ -47,8 +50,7 @@ export function withCookie(cookie: string): RequestConfig {
     return {
         headers: {
             Cookie: cookie
-        },
-        withCredentials: true
+        }
     }
 }
 
