@@ -32,9 +32,6 @@ help:
 
 	@echo ""
 
-	@echo "e2e-test                Run e2e tests (headless with video)"
-	@echo "e2e-test-headed         Run e2e tests in headed mode"
-	@echo "e2e-test-debug          Run e2e tests in debug mode (slow, headed)"
 	@echo ""
 
 .PHONY: \
@@ -55,7 +52,6 @@ help:
 
 	hosts \
 
-	e2e-test e2e-test-headed e2e-test-debug
 
 infrastructure:
 	docker compose --profile infrastructure up
