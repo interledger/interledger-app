@@ -48,7 +48,7 @@ Feature: Peer-to-Peer Payments
     And I navigate to the send payment page
     Then I should see the payments page
 
-  @p2p-payment @p2p-payment-only
+  @p2p-payment @p2p-quick
   Scenario: Successfully send payment from one user to another
     # Set up sender user with KYC
     Given the details of 'sender' are

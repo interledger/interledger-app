@@ -12,6 +12,7 @@ import (
 	"gitlab.com/fynbos/backend/providers/chimoney"
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	"gitlab.com/fynbos/backend/providers/pti"
+	"gitlab.com/fynbos/log"
 
 	"gitlab.com/fynbos/env"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -46,6 +47,8 @@ func (s *rpcService) GetKYCProviderWidget(ctx context.Context, req *pb.GetKYCPro
 		if err != nil {
 			return nil, toGRPCError(err)
 		}
+
+		log.Info(fmt.Sprintf("GetKYCProviderWidget returning widget URL from GetOnboardingWidget: %s", onboardingWidget))
 
 		return &pb.KYCProviderWidget{
 			Provider: gatehub.ProviderName,

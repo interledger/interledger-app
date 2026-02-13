@@ -117,6 +117,8 @@ func NewClient(appID, secret, cardAppID, gatewayID, cardAccountProductCode, vaul
 		return nil
 	}
 
+	log.Info(fmt.Sprintf("NewClient: onboardingBaseURL=%s", onboardingBaseURL))
+
 	return &client{
 		onOffRampClientID:       onOffRampClientID,
 		onboardingClientID:      onboardingClientID,
@@ -145,7 +147,9 @@ func (c *client) GetOnboardingWidget(ctx context.Context, userID string) (string
 		return "", err
 	}
 
-	return fmt.Sprintf("%s?bearer=%s", c.onboardingBaseURL, token.Token), nil
+	url := fmt.Sprintf("%s?bearer=%s", c.onboardingBaseURL, token.Token)
+	log.Info(fmt.Sprintf("GetOnboardingWidget returning URL: %s (base was: %s)", url, c.onboardingBaseURL))
+	return url, nil
 }
 
 func (c *client) GetOnOffRampWidget(ctx context.Context, userID string, isDeposit bool) (string, error) {
