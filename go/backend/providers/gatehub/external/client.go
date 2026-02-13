@@ -74,22 +74,27 @@ func NewClient(appID, secret, cardAppID, gatewayID, cardAccountProductCode, vaul
 	}
 
 	if onboardingClientID == "" {
+		log.Error("onboardingClientID is not set")
 		return nil
 	}
 
 	if exchangeClientID == "" {
+		log.Error("exchangeClientID is not set")
 		return nil
 	}
 
 	if baseURL == "" {
+		log.Error("baseURL is not set")
 		return nil
 	}
 
 	if onboardingBaseURL == "" {
+		log.Error("onboardingBaseURL is not set")
 		return nil
 	}
 
 	if onOffRampBaseURL == "" {
+		log.Error("onOffRampBaseURL is not set")
 		return nil
 	}
 
