@@ -70,7 +70,7 @@ jobs:
         working-directory: local/e2e-playwright
         run: |
           go mod download
-          go run github.com/playwright-community/playwright-go/cmd/playwright install --no-shell chromium
+          go run github.com/playwright-community/playwright-go/cmd/playwright install chromium
 
       - name: Build local-dev-tool
         working-directory: local/scripts
