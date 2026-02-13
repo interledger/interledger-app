@@ -1,0 +1,218 @@
+name: E2E Tests (PR)
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Login to GHCR (private images)
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.1'
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libnss3 \
+            libnspr4 \
+            libatk1.0-0 \
+            libatk-bridge2.0-0 \
+            libcups2 \
+            libxkbcommon0 \
+            libatspi2.0-0 \
+            libxcomposite1 \
+            libxdamage1 \
+            libxext6 \
+            libxfixes3 \
+            libxrandr2 \
+            libgbm1 \
+            libpango-1.0-0 \
+            libcairo2 \
+            libasound2 \
+            libnss3-tools \
+            ca-certificates
+
+      - name: Configure local hosts and certs
+        working-directory: local
+        run: |
+          make hosts
+          make certs
+          make trust-debian
+
+      - name: Install Playwright browsers
+        working-directory: local/e2e-playwright
+        run: |
+          go mod download
+          go run github.com/playwright-community/playwright-go/cmd/playwright install
+
+      - name: Build local-dev-tool
+        working-directory: local/scripts
+        run: make build
+
+      - name: Start infrastructure
+        working-directory: local
+        run: docker compose --profile infrastructure up -d
+
+      - name: Wait for infrastructure
+        working-directory: local
+        run: |
+          set -e
+
+          wait_for_health() {
+            local service="$1"
+            local timeout="$2"
+            local cid
+            local status
+
+            cid=$(docker compose ps -q "$service")
+            if [ -z "$cid" ]; then
+              echo "Service not started: $service"
+              exit 1
+            fi
+
+            for i in $(seq 1 "$timeout"); do
+              status=$(docker inspect -f '{{.State.Health.Status}}' "$cid" 2>/dev/null || echo "none")
+              if [ "$status" = "healthy" ]; then
+                echo "$service is healthy"
+                return 0
+              fi
+              sleep 2
+            done
+
+            echo "Timed out waiting for health on $service"
+            exit 1
+          }
+
+          wait_for_port() {
+            local port="$1"
+            local name="$2"
+
+            for i in $(seq 1 60); do
+              if nc -z localhost "$port"; then
+                echo "$name is listening on $port"
+                return 0
+              fi
+              sleep 2
+            done
+
+            echo "Timed out waiting for $name on port $port"
+            exit 1
+          }
+
+          wait_for_health postgres 30
+          wait_for_port 6379 redis
+          wait_for_port 443 traefik
+
+          for i in $(seq 1 30); do
+            if curl -k -sSf https://traefik.test >/dev/null; then
+              echo "Traefik is responding"
+              exit 0
+            fi
+            sleep 2
+          done
+
+          echo "Traefik did not respond in time"
+          exit 1
+
+      - name: Start services
+        working-directory: local
+        run: docker compose --profile services up -d
+
+      - name: Wait for services
+        working-directory: local
+        run: |
+          set -e
+
+          wait_for_port() {
+            local port="$1"
+            local name="$2"
+
+            for i in $(seq 1 60); do
+              if nc -z localhost "$port"; then
+                echo "$name is listening on $port"
+                return 0
+              fi
+              sleep 2
+            done
+
+            echo "Timed out waiting for $name on port $port"
+            exit 1
+          }
+
+          wait_for_port 4433 kratos
+          wait_for_port 4434 kratos-admin
+          wait_for_port 7233 temporal
+          wait_for_port 3001 rafiki-backend
+          wait_for_port 3003 rafiki-auth
+
+      - name: Seed Rafiki assets
+        working-directory: local/scripts
+        run: ./local-dev-tool rafiki --skip-ui
+
+      - name: Start application
+        working-directory: local
+        run: docker compose --profile application up -d
+
+      - name: Wait for application
+        working-directory: local
+        run: |
+          set -e
+
+          wait_for_port() {
+            local port="$1"
+            local name="$2"
+
+            for i in $(seq 1 60); do
+              if nc -z localhost "$port"; then
+                echo "$name is listening on $port"
+                return 0
+              fi
+              sleep 2
+            done
+
+            echo "Timed out waiting for $name on port $port"
+            exit 1
+          }
+
+          wait_for_port 8080 backend
+
+          for i in $(seq 1 60); do
+            if curl -k -sSf https://interledger.test >/dev/null; then
+              echo "interledger.test is responding"
+              exit 0
+            fi
+            sleep 2
+          done
+
+          echo "interledger.test did not respond in time"
+          exit 1
+
+      - name: Run e2e tests
+        working-directory: local/e2e-playwright
+        run: go test -v -timeout 10m -args -tags @signuponly
+
+      - name: Dump docker logs on failure
+        if: failure()
+        working-directory: local
+        run: |
+          docker compose ps
+          docker compose --profile "*" logs --no-color
