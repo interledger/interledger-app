@@ -70,6 +70,22 @@ jobs:
         working-directory: local/scripts
         run: make build
 
+      - name: Cache Docker images
+        uses: actions/cache@v4
+        id: docker-cache
+        with:
+          path: /tmp/docker-images
+          key: docker-images-${{ hashFiles('local/*.yaml') }}
+          restore-keys: |
+            docker-images-
+
+      - name: Load cached Docker images
+        if: steps.docker-cache.outputs.cache-hit == 'true'
+        run: |
+          for tar in /tmp/docker-images/*.tar; do
+            docker load -i "$tar" || true
+          done
+
       - name: Start infrastructure
         working-directory: local
         run: docker compose --profile infrastructure up -d
@@ -168,7 +184,7 @@ jobs:
 
       - name: Seed Rafiki assets
         working-directory: local/scripts
-        run: ./local-dev-tool rafiki --skip-ui
+        run: ./local-dev-tool rafiki --skip-ui --wait-for-ready 120
 
       - name: Start application
         working-directory: local
@@ -207,6 +223,15 @@ jobs:
 
           echo "interledger.test did not respond in time"
           exit 1
+
+      - name: Export Docker images for cache
+        if: steps.docker-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p /tmp/docker-images
+          docker images --format '{{.Repository}}:{{.Tag}}' | grep -v '<none>' | while read -r img; do
+            name=$(echo "$img" | tr '/:' '_')
+            docker save -o "/tmp/docker-images/${name}.tar" "$img" 2>/dev/null || true
+          done
 
       - name: Run e2e tests
         working-directory: local/e2e-playwright

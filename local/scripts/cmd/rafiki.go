@@ -2,6 +2,9 @@ package cmd
 
 import (
 	"fmt"
+	"net/http"
+	"strings"
+	"time"
 
 	"local-dev-tool/internal/rafiki"
 	"local-dev-tool/internal/tui"
@@ -13,6 +16,7 @@ import (
 func NewRafikiCmd() *cobra.Command {
 	var skipUI bool
 	var selectedAssets []string
+	var waitForReady int
 
 	cmd := &cobra.Command{
 		Use:   "rafiki",
@@ -20,6 +24,30 @@ func NewRafikiCmd() *cobra.Command {
 		Long:  `Setup and seed Rafiki backend with currency assets and initial liquidity.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg := rafiki.LoadConfig()
+
+			if waitForReady > 0 {
+				healthURL := strings.TrimSuffix(cfg.GraphQLEndpoint, "/graphql") + "/healthz"
+				fmt.Printf("Waiting up to %ds for Rafiki to be ready at %s...\n", waitForReady, healthURL)
+
+				client := &http.Client{Timeout: 2 * time.Second}
+				deadline := time.Now().Add(time.Duration(waitForReady) * time.Second)
+
+				for time.Now().Before(deadline) {
+					resp, err := client.Get(healthURL)
+					if err == nil {
+						resp.Body.Close()
+						if resp.StatusCode == http.StatusOK {
+							fmt.Println("Rafiki is ready")
+							break
+						}
+					}
+					time.Sleep(2 * time.Second)
+				}
+
+				if time.Now().After(deadline) {
+					return fmt.Errorf("rafiki did not become ready within %ds", waitForReady)
+				}
+			}
 
 			var assetsToCreate []rafiki.Asset
 			if len(selectedAssets) > 0 {
@@ -71,6 +99,7 @@ func NewRafikiCmd() *cobra.Command {
 
 	cmd.Flags().BoolVar(&skipUI, "skip-ui", false, "Skip interactive UI and create all assets")
 	cmd.Flags().StringSliceVar(&selectedAssets, "assets", []string{}, "Comma-separated list of asset codes (e.g., USD,EUR,GBP)")
+	cmd.Flags().IntVar(&waitForReady, "wait-for-ready", 0, "Wait up to N seconds for Rafiki to be healthy before proceeding")
 
 	return cmd
 }
