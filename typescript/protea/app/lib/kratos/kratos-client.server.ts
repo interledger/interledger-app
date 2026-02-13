@@ -9,6 +9,10 @@ import {
   FrontendApi,
 } from '@ory/client'
 
+export const KRATOS_SESSION_COOKIE = 'ory_kratos_session'
+
+export const CLEAR_SESSION_COOKIE_HEADER = `${KRATOS_SESSION_COOKIE}=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax`
+
 const KRATOS_PUBLIC_URL = process.env.KRATOS_URL
 if (!KRATOS_PUBLIC_URL) {
   throw new Error('KRATOS_URL environment variable is not set')

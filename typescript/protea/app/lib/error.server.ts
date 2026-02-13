@@ -5,6 +5,7 @@ import type { TypedResponse } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { captureMessage } from '@sentry/remix'
 import { route } from 'routes-gen'
+import { CLEAR_SESSION_COOKIE_HEADER } from './kratos/kratos-client.server'
 import type {
   BadRequest_FieldViolation,
   PreconditionFailure_Violation
@@ -162,7 +163,7 @@ export class ConnectError {
       throw redirect(route('/login') + url.search, {
         headers: {
           'Set-Cookie':
-            'ory_kratos_session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT'
+            CLEAR_SESSION_COOKIE_HEADER
         }
       })
     }

@@ -1,7 +1,7 @@
 import type { Session } from '@ory/client'
 import { redirect } from '@remix-run/node'
 import { getUserSession } from './kratos/session.util'
-import { kratosPublic } from './kratos/kratos-client.server'
+import { kratosPublic, CLEAR_SESSION_COOKIE_HEADER } from './kratos/kratos-client.server'
 import { withCookie } from './kratos/cookie.util'
 
 /**
@@ -136,7 +136,7 @@ export async function recoveryLinkSessionInvalidationGuard(pathname: string, req
   if (isLinkRecoverySession) {
     throw redirect('/login', {
       headers: {
-        'Set-Cookie': 'ory_kratos_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax'
+        'Set-Cookie': CLEAR_SESSION_COOKIE_HEADER
       }
     })
   }

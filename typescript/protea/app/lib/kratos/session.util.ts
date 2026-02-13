@@ -2,7 +2,7 @@ import type { Session } from '@ory/client'
 import { redirect } from '@remix-run/node'
 import { route } from 'routes-gen'
 import { safeReturnTo } from '../url.server'
-import { kratosPublic } from './kratos-client.server'
+import { kratosPublic, KRATOS_SESSION_COOKIE } from './kratos-client.server'
 import { getCookie } from './cookie.util'
 
 
@@ -49,7 +49,7 @@ export async function getUserSession(
  * @returns boolean - if the user has a session cookie.
  */
 export function hasUserSession(request: Request): boolean {
-  return String(request.headers.get('cookie')).includes('ory_kratos_session')
+  return String(request.headers.get('cookie')).includes(KRATOS_SESSION_COOKIE)
 }
 
 /**

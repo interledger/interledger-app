@@ -15,7 +15,7 @@ import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts, TextField } from '~/components'
 import { error } from '~/lib/error.server'
-import { kratosPublic } from '~/lib/kratos/kratos-client.server'
+import { kratosPublic, CLEAR_SESSION_COOKIE_HEADER } from '~/lib/kratos/kratos-client.server'
 import { getCookie, withCookie, buildHeadersWithCookies } from '~/lib/kratos/cookie.util'
 import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.util'
 import { handleFlowError, mapFlowToFieldErrors } from '~/lib/kratos/error'
@@ -194,7 +194,7 @@ export async function action({ request }: ActionFunctionArgs) {
       {
         headers: {
           'Set-Cookie':
-            'ory_kratos_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax'
+            CLEAR_SESSION_COOKIE_HEADER
         }
       }
     )
