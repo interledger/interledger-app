@@ -35,21 +35,6 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
 }
 
-// Add mocks base method.
-func (m *MockClient) Add(ctx context.Context, args identities.AddArgs) (*identities.Identity, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Add", ctx, args)
-	ret0, _ := ret[0].(*identities.Identity)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Add indicates an expected call of Add.
-func (mr *MockClientMockRecorder) Add(ctx, args interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Add", reflect.TypeOf((*MockClient)(nil).Add), ctx, args)
-}
-
 // Delete mocks base method.
 func (m *MockClient) Delete(ctx context.Context, id, walletID string) error {
 	m.ctrl.T.Helper()
