@@ -56,10 +56,22 @@ func (c *Currency) RawAmount() *big.Int {
 	return new(big.Int).Set(&c.amount)
 }
 
-// SetRawAmount sets the internal scaled amount directly.
+// SetRawAmountBigInt sets the internal scaled amount directly from a *big.Int.
 // For USD with scale 2, value 12345 represents "123.45".
-func (c *Currency) SetRawAmount(value *big.Int) {
+func (c *Currency) SetRawAmountBigInt(value *big.Int) {
 	c.amount.Set(value)
+}
+
+// SetRawAmountInt64 sets the internal scaled amount directly from an int64.
+// For USD with scale 2, value 12345 represents "123.45".
+func (c *Currency) SetRawAmountInt64(value int64) {
+	c.amount.SetInt64(value)
+}
+
+// SetRawAmountUint64 sets the internal scaled amount directly from a uint64.
+// For USD with scale 2, value 12345 represents "123.45".
+func (c *Currency) SetRawAmountUint64(value uint64) {
+	c.amount.SetUint64(value)
 }
 
 // IsZero returns true if the amount is zero.
@@ -150,37 +162,17 @@ func (c *Currency) Amount() string {
 	return sign + abs.String() + "." + fractionalStr
 }
 
-// SetAmount sets the amount from a human-readable string representation.
+// SetAmountString sets the amount from a human-readable string representation.
 // The value is scaled according to the asset's scale.
 // For USD with scale 2, input "12.34" sets the internal amount to 1234.
-func (c *Currency) SetAmount(s string) error {
+// So far, this is the only way to set the human-readable amount.
+func (c *Currency) SetAmountString(s string) error {
 	parsed, err := c.parseString(s, &c.asset.factor)
 	if err != nil {
 		return err
 	}
 	c.amount = *parsed
 	return nil
-}
-
-// SetAmountInt sets the amount from an integer value representing whole units.
-// The value is scaled according to the asset's scale.
-// For USD with scale 2, input 12 sets the internal amount to 1200.
-func (c *Currency) SetAmountInt(v int64) {
-	c.amount.Mul(big.NewInt(v), &c.asset.factor)
-}
-
-// SetAmountUint64 sets the amount from an unsigned integer value representing whole units.
-// The value is scaled according to the asset's scale.
-// For USD with scale 2, input 12 sets the internal amount to 1200.
-func (c *Currency) SetAmountUint64(v uint64) {
-	c.amount.Mul(new(big.Int).SetUint64(v), &c.asset.factor)
-}
-
-// SetAmountBigInt sets the amount from a *big.Int value representing whole units.
-// The value is scaled according to the asset's scale.
-// For USD with scale 2, input 12 sets the internal amount to 1200.
-func (c *Currency) SetAmountBigInt(v *big.Int) {
-	c.amount.Mul(v, &c.asset.factor)
 }
 
 // parseString parses a string amount and returns the scaled big.Int value.
@@ -311,6 +303,6 @@ func CurrencyFromProtoGeoV1(pb *geopbv1.Currency) (*Currency, error) {
 	if !ok {
 		return nil, fmt.Errorf("%w: %s", ErrInvalidFormat, pb.Amount)
 	}
-	currency.SetRawAmount(amount)
+	currency.SetRawAmountBigInt(amount)
 	return currency, nil
 }

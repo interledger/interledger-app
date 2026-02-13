@@ -69,12 +69,7 @@ Currency handles monetary amounts with precise arithmetic using `math/big`. All 
 amount := geo.NewCurrency(geo.USD())
 
 // Set amount from a string (supports decimals and comma-separated thousands)
-amount.SetAmount("1,234.56")
-
-// Set amount from numeric types (value represents whole units, scaled internally)
-amount.SetAmountInt(123)                  // internal: 12300 (cents)
-amount.SetAmountUint64(123)               // internal: 12300
-amount.SetAmountBigInt(big.NewInt(123))   // internal: 12300
+amount.SetAmountString("1,234.56")
 
 // Read the amount
 fmt.Println(amount.Amount()) // "123.00"
@@ -84,7 +79,7 @@ fmt.Println(amount.Scale())  // 2
 
 // Arithmetic (in-place — use Clone() first if you need the original)
 other := geo.NewCurrency(geo.USD())
-other.SetAmount("50.00")
+other.SetAmountString("50.00")
 
 err := amount.Add(other)   // amount is now 173.00
 err = amount.Sub(other)    // amount is now 123.00
@@ -103,7 +98,9 @@ clone := amount.Clone()
 
 // Raw amount access (scaled integer, e.g., cents for USD)
 raw := amount.RawAmount()              // *big.Int: 12300 for "123.00" USD
-amount.SetRawAmount(big.NewInt(5000))  // Sets to "50.00" USD
+amount.SetRawAmountBigInt(big.NewInt(5000))  // Sets to "50.00" USD
+amount.SetRawAmountInt64(5000)               // Sets to "50.00" USD
+amount.SetRawAmountUint64(5000)              // Sets to "50.00" USD
 ```
 
 > **Note:** `Add`, `Sub`, `Neg`, and `Abs` modify the receiver. `Add` and `Sub` return an `error` (non-nil when assets don't match); `Neg` and `Abs` have no return value.
