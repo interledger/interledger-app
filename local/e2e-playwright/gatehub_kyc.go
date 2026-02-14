@@ -210,6 +210,13 @@ func (sc *E2EContext) iFillAndSubmitTheMockgatehubiframe() error {
 		}
 	}
 
+	// Take screenshot of filled form before submission
+	debugPrintf("   📸 Taking screenshot of filled KYC form...\n")
+	if err := sc.iTakeAScreenshot("kyc-form-filled"); err != nil {
+		debugPrintf("   ⚠️  Failed to take screenshot: %v\n", err)
+		// Don't fail the test for screenshot failure
+	}
+
 	// Look for the submit button and click it
 	buttons := frameLocator.Locator("button")
 	buttonCount, _ := buttons.Count()

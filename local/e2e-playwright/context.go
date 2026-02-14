@@ -90,7 +90,11 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	// User details and impersonation steps
 	ctx.Step(`^the details of '([^']*)' are$`, func(userName string, table *godog.Table) error { return sc.theDetailsOfAre(userName, table) })
 	ctx.Step(`^I impersonate '([^']*)'$`, func(userName string) error { return sc.iImpersonate(userName) })
+	ctx.Step(`^that my "([^"]*)" is "([^"]*)"$`, func(fieldKey, value string) error { return sc.thatMyFieldIs(fieldKey, value) })
 	ctx.Step(`^I completed the signup workflow$`, func() error { return sc.iCompletedTheSignupWorkflow() })
+	ctx.Step(`^I completed the account verification workflow$`, func() error { return sc.iCompletedTheAccountVerificationWorkflow() })
+	ctx.Step(`^I finished the TOTP registration workflow$`, func() error { return sc.iFinishedTheTOTPRegistrationWorkflow() })
+	ctx.Step(`^I finished the wallet address creation workflow$`, func() error { return sc.iFinishedTheWalletAddressCreationWorkflow() })
 	ctx.Step(`^I fill in "([^"]*)" with my "([^"]*)"$`, func(fieldName, fieldKey string) error { return sc.iFillInWithMy(fieldName, fieldKey) })
 	ctx.Step(`^I fill in "([^"]*)" with "([^"]*)" prefixed with the random identifier$`, func(fieldName, fieldKey string) error { return sc.iFillInWithPrefixed(fieldName, fieldKey) })
 	ctx.Step(`^I try to fill in "([^"]*)" with my "([^"]*)"$`, func(fieldName, fieldKey string) error { return sc.iTryToFillInWithMy(fieldName, fieldKey) })
@@ -146,6 +150,7 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	// KYC and account activation steps
 	ctx.Step(`^I navigate to the personal details page to activate wallet$`, func() error { return sc.iNavigateToThePersonalDetailsPageToActivateWallet() })
 	ctx.Step(`^I should see the activate wallet button$`, func() error { return sc.iShouldSeeTheActivateWalletButton() })
+	ctx.Step(`^I should be shown the "([^"]*)" prompt form$`, func(promptText string) error { return sc.iShouldBeShownTheActivateWalletPromptForm(promptText) })
 	ctx.Step(`^I wait for the KYC iframe to load$`, func() error { return sc.iWaitForTheKYCIframeToLoad() })
 	ctx.Step(`^I fill and submit the mockgatehub KYC iframe$`, func() error { return sc.iFillAndSubmitTheMockgatehubiframe() })
 	ctx.Step(`^I wait for the KYC completion$`, func() error { return sc.iWaitForTheKYCCompletion() })
