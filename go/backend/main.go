@@ -28,9 +28,6 @@ import (
 	"gitlab.com/fynbos/backend/analytics"
 	analytics_client "gitlab.com/fynbos/backend/analytics/client"
 	analytics_webhook "gitlab.com/fynbos/backend/analytics/webhook"
-	"gitlab.com/fynbos/backend/authorisation"
-	authorisation_client "gitlab.com/fynbos/backend/authorisation/client"
-	auth_http "gitlab.com/fynbos/backend/authorisation/http"
 	"gitlab.com/fynbos/backend/cli"
 	"gitlab.com/fynbos/backend/contacts"
 	contacts_client "gitlab.com/fynbos/backend/contacts/client"
@@ -38,8 +35,6 @@ import (
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/discord"
 	discord_client "gitlab.com/fynbos/backend/discord/client"
-	"gitlab.com/fynbos/backend/dynamicforms"
-	dynamicforms_client "gitlab.com/fynbos/backend/dynamicforms/client"
 	"gitlab.com/fynbos/backend/email"
 	email_client "gitlab.com/fynbos/backend/email/client"
 	"gitlab.com/fynbos/backend/features"
@@ -197,12 +192,11 @@ func start(args *cli.StartArgs) {
 		log.Fatalln(err)
 	}
 	router.Handle("/webhooks/pti", ptiWebhook)
-	router.Handle("/webhooks/gatehub", gatehub_ops.NewWebhook(b))
+	router.Handle("/webhooks/gatehub", gatehub_ops.NewWebhook(b, b.gatehubConfig))
 	router.Handle("/{wallet_id}/identities/{identity_sig_hash}", wallet_handler.GetIdentityHandler(b))
 	router.NotFound(wallet_handler.WalletRedirectHandler(b))
 
 	var wg sync.WaitGroup
-	serveHTTP(&http.Server{Addr: ":" + args.AuthorisationPort, Handler: auth_http.AuthorisationHTTPHandler(b)}, &wg)
 
 	log.Info("backend running at http://localhost:%s", zap.String("port", args.Port))
 	serveHTTP(&http.Server{Addr: ":" + args.Port, Handler: router}, &wg)
@@ -446,7 +440,7 @@ func startWorker(args *cli.StartArgs) {
 	serveHTTP(&http.Server{Addr: ":8081", Handler: router}, &wg)
 
 	log.Info("Worker creating")
-	w, err := temporal.NewTemporalWorker(b)
+	w, err := temporal.NewTemporalWorker(b, b.gatehubConfig)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -476,7 +470,6 @@ type backends struct {
 	email          email.Client
 	transactions   transactions.Client
 	notify         notify.Client
-	auth           authorisation.InternalClient
 	analytics      analytics.Client
 	contacts       contacts.Client
 	limits         limits.Client
@@ -487,13 +480,13 @@ type backends struct {
 	wallet         wallets.Client
 	payment        payments.Client
 	discord        discord.Client
-	dynamicforms   dynamicforms.Client
 	slack          slack.Client
 	rafiki         rafiki.Client
 	xago           xago.Client
 	pac            pacioli.Client
 	pti            pti.Client
 	gatehub        gatehub.Client
+	gatehubConfig  gatehub.Config
 	chimoney       chimoney.Client
 }
 
@@ -511,10 +504,6 @@ func (b backends) Pacioli() pacioli.Client {
 
 func (b backends) Xago() xago.Client {
 	return b.xago
-}
-
-func (b backends) DynamicForms() dynamicforms.Client {
-	return b.dynamicforms
 }
 
 func (b backends) Slack() slack.Client {
@@ -539,10 +528,6 @@ func (b backends) Wallets() wallets.Client {
 
 func (b backends) Features() features.Client {
 	return b.feat
-}
-
-func (b backends) Authorisation() authorisation.InternalClient {
-	return b.auth
 }
 
 func (b backends) Transactions() transactions.Client {
@@ -691,14 +676,10 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 		RedirectURL:   args.DiscordRedirectURL,
 	})
 
-	b.dynamicforms = dynamicforms_client.New(b)
-
 	b.slack, err = slack_client.New(b)
 	if err != nil {
 		log.Fatalln(err)
 	}
-
-	b.auth = authorisation_client.New(b)
 
 	b.analytics = analytics_client.New(b, args.SegmentKey)
 
@@ -786,7 +767,30 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	b.pti = pti_client.New(b)
 
 	log.Debug("initialising Gatehub")
-	b.gatehub = gatehub_client.New(b)
+	b.gatehubConfig = gatehub.Config{
+		AppID:                  args.GatehubAppID,
+		Secret:                 args.GatehubSecret,
+		CardAppID:              args.GatehubCardAppID,
+		GatewayID:              args.GatehubGatewayID,
+		CardAccountProductCode: args.GatehubCardAccountProductCode,
+		PaywiserEuroVaultID:    args.GatehubPaywiserEuroVaultID,
+		SendingUserID:          args.GatehubSendingUserID,
+		SendingUserAddress:     args.GatehubSendingUserAddress,
+		WebhookSecret:          args.GatehubWebhookSecret,
+		FallbackWebhookURL:     args.GatehubFallbackWebhookURL,
+		OnOffRampClientID:      args.GatehubOnOffRampClientID,
+		OnboardingClientID:     args.GatehubOnboardingClientID,
+		ExchangeClientID:       args.GatehubExchangeClientID,
+		APIBaseURL:             args.GatehubAPIBaseURL,
+		OnboardingBaseURL:      args.GatehubOnboardingBaseURL,
+		OnOffRampBaseURL:       args.GatehubOnOffRampBaseURL,
+		EUROpsAccount:          args.GatehubEUROpsAccount,
+		EUROpsLedgerID:         args.GatehubEUROpsLedgerID,
+	}
+	b.gatehub = gatehub_client.New(b, b.gatehubConfig)
+	if b.gatehub == nil {
+		log.Fatalln(errors.New("failed to initialize Gatehub client; check Gatehub configuration"))
+	}
 
 	log.Debug("initialising Chimoney")
 	b.chimoney = chimoney_client.New(b)

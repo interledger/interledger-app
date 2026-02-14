@@ -4,6 +4,8 @@ import { kratosPublic } from '~/lib/kratos/kratos-client.server'
 import { withCookie } from '~/lib/kratos/cookie.util'
 import { getNodeValueFromFlow, isNodeInFlow } from '~/lib/kratos/flow.util'
 import { CreateBrowserLoginFlowResponse } from '~/lib/kratos/types'
+import logger, { addRequestId } from '~/lib/logger.server'
+import { extractOrGenerateRequestId } from '~/lib/requestContext.server'
 
 /**
  * Initialize a TOTP challenge flow (AAL2)
@@ -40,7 +42,15 @@ export async function action({ request }: ActionFunctionArgs) {
       shouldRevalidate: false
     })
   } catch (error) {
-    console.error('Error initializing TOTP challenge:', error)
+    const requestId = extractOrGenerateRequestId(request)
+    const errorDetails =
+      error instanceof Error
+        ? { error }
+        : { error: String(error) }
+    logger.error(
+      { ...addRequestId(requestId), ...errorDetails },
+      'Error initializing TOTP challenge'
+    )
     if (error instanceof UserDisplayableError) {
       return json({ error: error.message })
     }

@@ -19,7 +19,8 @@ import {
 import { Label } from '~/components/Label'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { ErrorDescriptions } from '~/lib/error.constants'
-import { TwillioError, TwillioErrorMapper } from '~/lib/error.mappers'
+import type { TwillioError} from '~/lib/error.mappers';
+import { TwillioErrorMapper } from '~/lib/error.mappers'
 import { isConnectError, isTwilioError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { kratosPublic } from '~/lib/kratos/kratos-client.server'

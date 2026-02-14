@@ -25,10 +25,6 @@ service Backend {
   rpc GetLinkedAccountReview(GetLinkedAccountReviewRequest) returns (LinkedAccountReview);
   rpc CompleteLinkedAccountReview(CompleteLinkedAccountReviewRequest) returns (LinkedAccountReview);
   rpc GetLinkedAccount(GetLinkedAccountRequest) returns (LinkedAccount);
-  rpc ListFormSubmissionCounts(PaginationRequest) returns (ListFormSubmissionCountsResponse);
-  rpc ExportFormSubmissions(ExportFormSubmissionsRequest) returns (stream ExportFormSubmissionsResponse);
-  rpc ListFormSubmissions(ListFormSubmissionsRequest) returns (ListFormSubmissionsResponse);
-  rpc GetFormSubmissionDetails(GetFormSubmissionDetailsRequest) returns (FormSubmissionDetails);
   rpc ListExternalApiCalls(ListExternalApiCallsRequest) returns (ListExternalApiCallsResponse);
   rpc ListPaymentsAwaitingSignal(google.protobuf.Empty) returns (ListPaymentsAwaitingSignalResponse);
   rpc SetWalletXagoBalanceEnabled(SetWalletXagoBalanceEnabledRequest) returns (Empty);
@@ -404,50 +400,6 @@ message WaitlistSignup {
   bool can_signup = 5;
   string mug_id = 6;
   string country_code = 7;
-}
-
-message FormSubmissionCount {
-  string form_id = 1;
-  int32 submission_count = 2;
-}
-
-message ListFormSubmissionCountsResponse {
-  repeated FormSubmissionCount form_submission_counts = 1;
-  string next_page_token = 2;
-}
-
-message ExportFormSubmissionsRequest {
-  string form_id = 1;
-}
-
-message ExportFormSubmissionsResponse {
-  bytes chunk = 1;
-}
-
-message FormSubmission {
-  string id = 1;
-  string form_id = 2;
-  google.protobuf.Timestamp timestamp = 3;
-}
-
-message ListFormSubmissionsRequest {
-  string form_id = 1;
-}
-
-message ListFormSubmissionsResponse {
-  repeated FormSubmission form_submissions = 1;
-}
-
-message GetFormSubmissionDetailsRequest {
-  string id = 1;
-}
-
-message FormSubmissionDetails {
-  string id = 1;
-  optional string wallet_id = 2;
-  string form_id = 3;
-  string data = 4;
-  google.protobuf.Timestamp timestamp = 5;
 }
 
 message SetWalletXagoBalanceEnabledRequest {

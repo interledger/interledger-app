@@ -4,7 +4,7 @@ import type {
   MetaFunction
 } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-
+import logger from '~/lib/logger.server'
 import { Code } from '@bufbuild/connect'
 import type { SuccessfulNativeRegistration } from '@ory/client'
 import { useLoaderData } from '@remix-run/react'
@@ -220,6 +220,13 @@ export async function otpAction({ request }: ActionFunctionArgs) {
   const otp = form.get('otp') as string
   const phone = form.get('phone') as string
 
+  logger.info({
+    id,
+    phone,
+    hasOtp: !!otp,
+    flow: 'signup'
+  }, 'Setting mobile number for signup')
+
   const response = await grpc.setSignupMobileNumber(request, {
     id,
     mobile: phone,
@@ -227,6 +234,12 @@ export async function otpAction({ request }: ActionFunctionArgs) {
   })
 
   if (isConnectError(response)) {
+    logger.error({
+      code: response.code,
+      hasPhone: !!phone,
+      flow: 'signup'
+    }, 'Failed to set mobile number')
+
     if (response.code == Code.InvalidArgument) {
       data.errors.phone = 'Mobile phone number is invalid.'
       return response.error(data, mapping)
@@ -237,6 +250,8 @@ export async function otpAction({ request }: ActionFunctionArgs) {
       return response.error(data, mapping, { action: 'Contact support' })
     }
   }
+
+  logger.info({ id, flow: 'signup' }, 'Mobile number set successfully for signup')
   return json({ id, phone, errors: data.errors })
 }
 
@@ -260,6 +275,7 @@ export async function passwordAction({ request }: ActionFunctionArgs) {
   const country = form.get('country') as string
   const email = form.get('email') as string
   const phone = form.get('phone') as string
+  const cookie = getCookie(request)
 
   await validateCSRFToken(request, form)
 
@@ -280,29 +296,48 @@ export async function passwordAction({ request }: ActionFunctionArgs) {
     return error(request, { errors })
   }
 
-  const cookie = getCookie(request)
+  const kratosRequestPayload = {
+    method: 'password' as const,
+    traits: {
+      email,
+      phone,
+      firstName,
+      lastName,
+      countryCode: country
+    },
+    password,
+    csrf_token: kratosCsrfToken
+  }
+  logger.info({
+    flowId: kratosFlowId,
+    countryCode: kratosRequestPayload.traits.countryCode,
+    hasTraits: !!kratosRequestPayload.traits,
+    hasPassword: !!password,
+    hasCsrfToken: !!kratosCsrfToken,
+    flow: 'signup'
+  }, 'Sending registration request to Kratos')
 
   let response
   try {
     response = await kratosPublic.updateRegistrationFlow(
       {
         flow: kratosFlowId,
-        updateRegistrationFlowBody: {
-          method: 'password',
-          traits: {
-            email,
-            phone,
-            firstName,
-            lastName,
-            countryCode: country
-          },
-          password,
-          csrf_token: kratosCsrfToken
-        }
+        updateRegistrationFlowBody: kratosRequestPayload
       },
       withCookie(cookie)
     )
+    logger.info({
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers?.['set-cookie'],
+      flow: 'signup'
+    }, 'Kratos registration response')
   } catch (err: any) {
+    logger.error({
+      status: err.response?.status,
+      statusText: err.response?.statusText,
+      flow: 'signup'
+    }, 'Kratos registration error') // ?????
     const flowData = err.response?.data
     const errs = mapFlowToFieldErrors(flowData, errors)
     if ((errs as any)[KratosErrorTraits.PHONE]) {
@@ -313,9 +348,15 @@ export async function passwordAction({ request }: ActionFunctionArgs) {
   }
 
   const successData = response.data as SuccessfulNativeRegistration
+  logger.info({
+    identityId: successData.identity.id,
+    signupId: id,
+    flow: 'signup'
+  }, 'Kratos registration successful')
 
   // Mark signup complete
   // TODO: also handle via kratos webhook, add retry here and error handling
+  logger.info({ id, userId: successData.identity.id, flow: 'signup' }, 'Completing signup in backend')
   await grpc.completeSignup(request, {
     id,
     userId: successData.identity.id

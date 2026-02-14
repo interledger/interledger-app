@@ -99,7 +99,7 @@ export function Landing() {
           </div>
         </CardContent>
       </Card>
-      <Button type='button' onClick={_onClick}>
+      <Button type='button' onClick={_onClick} data-testid='signup-get-started'>
         Let's get started
       </Button>
       <div className='flex justify-center'>

@@ -3,6 +3,8 @@ import { kratosPublic } from '~/lib/kratos/kratos-client.server'
 import { getCookie, withCookie, buildHeadersWithCookies } from '~/lib/kratos/cookie.util'
 import { mapFlowToFieldErrors } from '~/lib/kratos/error'
 import { KratosError } from '~/lib/kratos/types'
+import logger, { addRequestId, withErrorLog } from '~/lib/logger.server'
+import { extractOrGenerateRequestId } from '~/lib/requestContext.server'
 
 /**
  * Verify TOTP code for AAL2 challenge
@@ -32,15 +34,21 @@ export async function action({ request }: ActionFunctionArgs) {
         csrf_token: csrfToken
       }
     }, withCookie(cookie))
-
     const headers = buildHeadersWithCookies(submitTotpResponse)
-    console.log("✅✅✅")
+
     return json({ success: true, shouldRevalidate: false }, { headers })
   } catch (error) {
     const kratosError = error as KratosError
     const flowStatus = kratosError.response?.status
     const flowData = kratosError.response?.data
-    console.log("❌❌❌")
+    const requestId = extractOrGenerateRequestId(request)
+    logger.error(
+      {
+        ...addRequestId(requestId),
+        ...withErrorLog(error)
+      },
+      'Unexpected error verifying TOTP challenge'
+    )
 
     if (flowStatus === 400 && flowData) {
       const errorMapping: Record<string, string> = {}
@@ -58,8 +66,7 @@ export async function action({ request }: ActionFunctionArgs) {
         error: 'Flow expired. Please reinitialize the verification.'
       })
     }
-
-    console.error('(totp-challenge-verify) Unexpected error:', error)
+    
     return json({
       success: false,
       error: 'An unexpected error occurred'

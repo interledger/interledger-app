@@ -102,6 +102,30 @@ services:
       - GATEHUB_GATEWAY_ID=b18965b5-8bb0-486e-88b2-7be47b974ac1
       - GATEHUB_CARD_ACCOUNT_PRODUCT_CODE=PWSR_DEBP_2404
       - GATEHUB_WEBHOOK_SECRET=
+      - GATEHUB_PAYWISER_EURO_VAULT_ID=
+      - GATEHUB_FALLBACK_WEBHOOK_URL=
+
+      # Gatehub Sandbox Client IDs (default values)
+      - GATEHUB_ON_OFF_RAMP_CLIENT_ID=f8119dfd-e563-44ee-9ae2-1e60a4fce74f
+      - GATEHUB_ONBOARDING_CLIENT_ID=4df24d1b-5796-4eec-951b-21699d61b970
+      - GATEHUB_EXCHANGE_CLIENT_ID=4e28d4df-22d7-414c-97a3-d71956df29ba
+
+      # Gatehub Sandbox API URLs
+      - GATEHUB_API_BASE_URL=https://api.sandbox.gatehub.net
+      - GATEHUB_ONBOARDING_BASE_URL=https://onboarding.sandbox.gatehub.net
+      - GATEHUB_ON_OFF_RAMP_BASE_URL=https://managed-ramp.sandbox.gatehub.net
+
+      # Gatehub EUR Operations Account and Ledger
+      - GATEHUB_EUR_OPS_ACCOUNT=1854f171-eafa-4e30-bf66-7dbfe167ccfa
+      - GATEHUB_EUR_OPS_LEDGER_ID=4482387
+
+      # PRODUCTION CONFIGURATION (uncomment for production use)
+      # - GATEHUB_ON_OFF_RAMP_CLIENT_ID=f4c8f30f-7fc3-4aa1-8573-520cb67565e3
+      # - GATEHUB_ONBOARDING_CLIENT_ID=40a22fc5-9091-4c6f-aff6-a3fddf475b33
+      # - GATEHUB_EXCHANGE_CLIENT_ID=50e7c590-f6f9-4fa9-9498-260bd978c5d6
+      # - GATEHUB_API_BASE_URL=https://api.gatehub.net
+      # - GATEHUB_ONBOARDING_BASE_URL=https://onboarding.gatehub.net
+      # - GATEHUB_ON_OFF_RAMP_BASE_URL=https://managed-ramp.gatehub.net
 
       # Random generated data for FIANT 
       - PTI_BASE_URL=https://pti-base-url.com
