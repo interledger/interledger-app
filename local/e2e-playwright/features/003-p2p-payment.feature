@@ -5,6 +5,7 @@ Feature: Peer-to-Peer Payments
 
   Background:
     Given a random test identifier is generated
+    And that Gatehub charges a 0% deposit fee    
     And the frontend is running at "https://interledger.test"
     And Rafiki assets are seeded
 
@@ -48,7 +49,7 @@ Feature: Peer-to-Peer Payments
     And I navigate to the send payment page
     Then I should see the payments page
 
-  @p2p-payment @p2p-quick
+  @p2p-payment @quick
   Scenario: Successfully send payment from one user to another
     # Set up sender user with KYC
     Given the details of 'sender' are

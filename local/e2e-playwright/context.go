@@ -169,6 +169,9 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I should see my balance updated with "([^"]*)" "([^"]*)"$`, func(amount, currency string) error {
 		return sc.iShouldSeeMyBalanceUpdatedWithAmount(amount, currency)
 	})
+	ctx.Step(`^that Gatehub charges a ([0-9.]+)% deposit fee$`, func(feePercent string) error {
+		return sc.thatGatehubChargesDepositFee(feePercent)
+	})
 
 	// P2P Payment steps
 	ctx.Step(`^I navigate to the dashboard$`, func() error { return sc.iNavigateToTheDashboard() })

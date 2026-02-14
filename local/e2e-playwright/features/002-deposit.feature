@@ -5,6 +5,7 @@ Feature: Deposit Funds
 
   Background:
     Given a random test identifier is generated
+    And that Gatehub charges a 0% deposit fee
     And the frontend is running at "https://interledger.test"
     And Rafiki assets are seeded
     Given the details of 'deposit-user' are
@@ -22,3 +23,10 @@ Feature: Deposit Funds
     When I navigate to the deposit page
     And I deposit "100" "EUR" via the deposit iframe
     Then I should see my balance updated with "100" "EUR"
+
+  @deposit
+  Scenario: Successfully deposit 100 EUR into wallet with 1% fee
+    Given that Gatehub charges a 1% deposit fee
+    When I navigate to the deposit page
+    And I deposit "100" "EUR" via the deposit iframe
+    Then I should see my balance updated with "99" "EUR"

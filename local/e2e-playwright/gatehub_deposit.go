@@ -1,7 +1,12 @@
 package main
 
 import (
+	"crypto/tls"
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -198,4 +203,59 @@ func (sc *E2EContext) iShouldSeeMyBalanceUpdatedWithAmount(amount, currency stri
 	}
 
 	return fmt.Errorf("balance update not visible on UI after waiting")
+}
+
+// thatGatehubChargesDepositFee configures MockGatehub to charge a deposit fee
+func (sc *E2EContext) thatGatehubChargesDepositFee(feePercent string) error {
+	debugPrintf("\n💰 Configuring Gatehub deposit fee to %s%%...\n", feePercent)
+
+	// Convert feePercent string to float64
+	feePct, err := strconv.ParseFloat(feePercent, 64)
+	if err != nil {
+		return fmt.Errorf("failed to parse fee percentage: %w", err)
+	}
+
+	// Call MockGatehub's /admin/fees endpoint to set the deposit fee
+	mockgatehubURL := "https://mockgatehub.interledger.test"
+	feeEndpoint := mockgatehubURL + "/admin/fees"
+
+	// Create the request payload with numeric fee value
+	payload := map[string]interface{}{
+		"deposit_fee_percentage": feePct,
+	}
+
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		return fmt.Errorf("failed to marshal fee config: %w", err)
+	}
+
+	// Create and send the PUT request
+	req, err := http.NewRequest("PUT", feeEndpoint, strings.NewReader(string(payloadBytes)))
+	if err != nil {
+		return fmt.Errorf("failed to create fee config request: %w", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	// Use a client with InsecureSkipVerify for local testing
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to set fee config on MockGatehub: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("MockGatehub /admin/fees returned status %d: %s", resp.StatusCode, string(body))
+	}
+
+	debugPrintf("✓ MockGatehub deposit fee configured to %s%%\n", feePercent)
+	return nil
 }
