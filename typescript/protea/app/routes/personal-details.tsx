@@ -265,7 +265,7 @@ function KycIntro({ onClick, ready }: KycIntroProps) {
       <Card>
         <CardContent>
           <span>
-            Complete theses steps to confirm your identity and activate your
+            Complete these steps to confirm your identity and activate your
             wallet:
           </span>
           <div className='mt-6 flex items-start'>
