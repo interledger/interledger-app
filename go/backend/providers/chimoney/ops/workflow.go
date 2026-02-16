@@ -26,8 +26,6 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
-const depositChannel = "chimoney_deposits"
-
 type Activity struct {
 	b        Backends
 	external external.Client
