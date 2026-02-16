@@ -1,41 +1,12 @@
 package main
 
-import (
-	"net/http"
-)
-
 const (
-	baseURL        = "http://localhost:28080"
+	mockXagoURL    = "http://localhost:24024"
 	maxWaitSeconds = 30
-	testPublicKey  = "test-public-key"
-	testSecret     = "test-secret"
+	defaultPolicy  = "5e2585a474b0e90012ce8ff1"
+	defaultPubKey  = "test_public_key_12345"
+	defaultSecret  = "test_secret_key_98765"
 )
-
-type harness struct {
-	client *http.Client
-	token  string
-}
-
-type scenario struct {
-	name string
-	run  func(h *harness) (string, error)
-}
-
-type loginResponse struct {
-	TokenValue string `json:"tokenValue"`
-}
-
-type createSubAccountRequest struct {
-	WalletID                  string `json:"walletId"`
-	FirstName                 string `json:"firstName"`
-	LastName                  string `json:"lastName"`
-	Email                     string `json:"email"`
-	MobileNumber              string `json:"mobileNumber"`
-	IdentityType              string `json:"identityType"`
-	IDNumber                  string `json:"idNumber"`
-	PhysicalAddress           string `json:"physicalAddress"`
-	ThirdPartyVerificationURL string `json:"thirdPartyVerificationUrl"`
-}
 
 type createSubAccountResponse struct {
 	AccountID          string                         `json:"accountId"`
@@ -83,4 +54,9 @@ type currencyResponse struct {
 	AccountNumber string `json:"accountNumber"`
 	BranchCode    string `json:"branchCode"`
 	SwiftBIC      string `json:"swiftBIC"`
+}
+
+type errorResponse struct {
+	Error   string `json:"error"`
+	Message string `json:"message"`
 }

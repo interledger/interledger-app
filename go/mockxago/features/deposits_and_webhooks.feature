@@ -1,3 +1,4 @@
+@stubbed
 Feature: Xago Deposits and Webhook Notifications
   As a wallet backend
   I want to receive and process deposit notifications

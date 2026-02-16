@@ -19,6 +19,7 @@ func setupTestHandler(t *testing.T) *Handler {
 	// Set environment variables for testing
 	os.Setenv("XAGO_API_PUBLIC_KEY", "test-public-key")
 	os.Setenv("XAGO_API_SECRET", "test-secret")
+	os.Setenv("XAGO_MOCK_TEST_MODE", "true")
 
 	store := storage.NewMemoryStorage()
 	return NewHandler(store)
@@ -112,7 +113,7 @@ func TestLogin_MissingPublicKey(t *testing.T) {
 
 	var resp models.ErrorResponse
 	json.NewDecoder(w.Body).Decode(&resp)
-	assert.Equal(t, "missing_credentials", resp.Error)
+	assert.Equal(t, "invalid_request", resp.Error)
 }
 
 func TestLogin_MissingSecret(t *testing.T) {

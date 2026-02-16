@@ -87,6 +87,28 @@ type BalanceResponse struct {
 	Balances  []BalanceItem `json:"balances"`
 }
 
+// TestSetBalanceRequest represents a test-only balance set payload.
+type TestSetBalanceRequest struct {
+	AccountID    string  `json:"accountId"`
+	WalletID     string  `json:"walletId"`
+	CurrencyCode string  `json:"currencyCode"`
+	Available    float64 `json:"available"`
+	Reserved     float64 `json:"reserved"`
+}
+
+// TestBalanceDeltaRequest represents a test-only balance delta payload.
+type TestBalanceDeltaRequest struct {
+	AccountID    string  `json:"accountId"`
+	WalletID     string  `json:"walletId"`
+	CurrencyCode string  `json:"currencyCode"`
+	Amount       float64 `json:"amount"`
+}
+
+// TestBalanceResponse represents a test-only balance response.
+type TestBalanceResponse struct {
+	Status string `json:"status"`
+}
+
 // CurrencyResponse represents available currency and bank details
 type CurrencyResponse struct {
 	CurrencyID    string `json:"currencyId"`

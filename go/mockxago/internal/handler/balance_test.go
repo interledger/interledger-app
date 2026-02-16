@@ -187,3 +187,91 @@ func TestBalance_RequiresAuth(t *testing.T) {
 
 	assert.Equal(t, http.StatusUnauthorized, w.Code)
 }
+
+func TestBalance_TestSetBalanceEndpoint(t *testing.T) {
+	h := setupAuthHandler(t)
+	token := issueToken(t, h)
+	created := createSubAccountForBalance(t, h, token, "wallet_test_set")
+
+	req := models.TestSetBalanceRequest{
+		AccountID:    created.AccountID,
+		CurrencyCode: "ZAR",
+		Available:    5000.0,
+		Reserved:     500.0,
+	}
+	body, _ := json.Marshal(req)
+	r := authorizedRequest(http.MethodPost, "/xago/v1/test/balances/set", token, body)
+	w := httptest.NewRecorder()
+
+	h.TestSetBalance(w, r)
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	_, resp := requestBalance(t, h, token, created.AccountID)
+	var zar models.BalanceItem
+	for _, b := range resp.Balances {
+		if b.CurrencyCode == "ZAR" {
+			zar = b
+		}
+	}
+	assert.Equal(t, 5000.0, zar.Available)
+	assert.Equal(t, 500.0, zar.Reserved)
+	assert.Equal(t, 5500.0, zar.Total)
+}
+
+func TestBalance_TestDepositEndpoint(t *testing.T) {
+	h := setupAuthHandler(t)
+	token := issueToken(t, h)
+	created := createSubAccountForBalance(t, h, token, "wallet_test_deposit")
+
+	req := models.TestBalanceDeltaRequest{
+		AccountID:    created.AccountID,
+		CurrencyCode: "ZAR",
+		Amount:       10000.0,
+	}
+	body, _ := json.Marshal(req)
+	r := authorizedRequest(http.MethodPost, "/xago/v1/test/balances/deposit", token, body)
+	w := httptest.NewRecorder()
+
+	h.TestDeposit(w, r)
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	_, resp := requestBalance(t, h, token, created.AccountID)
+	var zar models.BalanceItem
+	for _, b := range resp.Balances {
+		if b.CurrencyCode == "ZAR" {
+			zar = b
+		}
+	}
+	assert.Equal(t, 10000.0, zar.Available)
+	assert.Equal(t, 10000.0, zar.Total)
+}
+
+func TestBalance_TestTransferEndpoint(t *testing.T) {
+	h := setupAuthHandler(t)
+	token := issueToken(t, h)
+	created := createSubAccountForBalance(t, h, token, "wallet_test_transfer")
+
+	_ = h.store.SetBalance(context.Background(), "wallet_test_transfer", "ZAR", 5000.0, 0)
+
+	req := models.TestBalanceDeltaRequest{
+		AccountID:    created.AccountID,
+		CurrencyCode: "ZAR",
+		Amount:       2000.0,
+	}
+	body, _ := json.Marshal(req)
+	r := authorizedRequest(http.MethodPost, "/xago/v1/test/balances/transfer", token, body)
+	w := httptest.NewRecorder()
+
+	h.TestTransfer(w, r)
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	_, resp := requestBalance(t, h, token, created.AccountID)
+	var zar models.BalanceItem
+	for _, b := range resp.Balances {
+		if b.CurrencyCode == "ZAR" {
+			zar = b
+		}
+	}
+	assert.Equal(t, 3000.0, zar.Available)
+	assert.Equal(t, 3000.0, zar.Total)
+}

@@ -1,3 +1,4 @@
+@stubbed
 Feature: Xago Integration Workflows
   As a wallet backend
   I want to perform complete user workflows

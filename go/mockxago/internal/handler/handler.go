@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"os"
+	"strings"
 
 	"gitlab.com/fynbos/mockxago/internal/auth"
 	"gitlab.com/fynbos/mockxago/internal/logger"
@@ -18,6 +19,7 @@ type Handler struct {
 	validator *auth.Validator
 	publicKey string
 	secret    string
+	testMode  bool
 }
 
 // NewHandler creates a new handler
@@ -27,6 +29,7 @@ func NewHandler(store storage.Storage) *Handler {
 		validator: auth.NewValidator(store),
 		publicKey: os.Getenv("XAGO_API_PUBLIC_KEY"),
 		secret:    os.Getenv("XAGO_API_SECRET"),
+		testMode:  strings.EqualFold(os.Getenv("XAGO_MOCK_TEST_MODE"), "true"),
 	}
 }
 
@@ -37,7 +40,7 @@ func (h *Handler) AuthMiddleware(next http.Handler) http.Handler {
 		if err != nil {
 			switch err {
 			case auth.ErrMissingToken:
-				h.sendError(w, http.StatusUnauthorized, "unauthorized", "authorization token required")
+				h.sendError(w, http.StatusUnauthorized, "unauthorized", "missing authorization header")
 				return
 			case auth.ErrInvalidFormat:
 				h.sendError(w, http.StatusUnauthorized, "unauthorized", "invalid authorization format")
@@ -66,15 +69,30 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if strings.TrimSpace(req.PolicyID) == "" {
+		h.sendError(w, http.StatusBadRequest, "invalid_request", "policyId is required")
+		return
+	}
+
 	// Extract credentials from fields
 	var publicKey, secret string
 	for _, field := range req.Fields {
 		switch field.FieldName {
-		case "publicKey":
+		case "publicKey", "apiPublicKey":
 			publicKey = field.FieldValue
-		case "secret":
+		case "secret", "secretKey", "apiSecretKey":
 			secret = field.FieldValue
 		}
+	}
+
+	if strings.TrimSpace(publicKey) == "" {
+		h.sendError(w, http.StatusBadRequest, "invalid_request", "apiPublicKey is required")
+		return
+	}
+
+	if strings.TrimSpace(secret) == "" {
+		h.sendError(w, http.StatusBadRequest, "invalid_request", "apiSecretKey is required")
+		return
 	}
 
 	// Validate credentials
@@ -83,7 +101,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 			h.sendError(w, http.StatusBadRequest, "missing_credentials", "Missing credentials")
 			return
 		}
-		h.sendError(w, http.StatusUnauthorized, "unauthorized", "Invalid credentials")
+		h.sendError(w, http.StatusUnauthorized, "unauthorized", "unauthorized")
 		logger.Infof("Failed login attempt with public_key=%s", publicKey)
 		return
 	}

@@ -1,3 +1,4 @@
+@stubbed
 Feature: Xago Beneficiary Management
   As a wallet backend
   I want to manage bank account beneficiaries

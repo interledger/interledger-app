@@ -90,6 +90,9 @@ func setupRoutes(router *chi.Mux, h *handler.Handler) {
 			pr.Put("/company/accounts/{accountId}", h.UpdateSubAccount)
 			pr.Get("/company/accounts", h.GetSubAccountByWallet)
 			pr.Get("/accounts/{accountId}/balance", h.GetBalance)
+			pr.Post("/test/balances/set", h.TestSetBalance)
+			pr.Post("/test/balances/deposit", h.TestDeposit)
+			pr.Post("/test/balances/transfer", h.TestTransfer)
 		})
 	})
 
