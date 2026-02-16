@@ -1,6 +1,6 @@
 services:
   mockgatehub:
-    image: ghcr.io/interledger/mockgatehub:1.6.3
+    image: ghcr.io/interledger/mockgatehub:1.8
     # build:
     #   context: ../../mockgatehub
     profiles:
