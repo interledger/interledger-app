@@ -15,31 +15,26 @@ func init() {
 
 // Form filling step implementations
 
-// iFillInPhoneWithRandomNumber generates a random phone number with provided prefix and fills it
-func (sc *E2EContext) iFillInPhoneWithRandomNumber(prefix string) error {
-	// Get the current user's details to extract the email suffix
-	if sc.currentUser == "" {
-		return fmt.Errorf("no current user set for phone generation")
+// getPhoneBaseForCountry returns the base phone number template for a given country.
+// The trailing zeros in each base are replaced by a deterministic overlay.
+func getPhoneBaseForCountry(country string) string {
+	switch strings.ToLower(country) {
+	case "south africa":
+		// +27 country code, 71 prefix preserved → +27710000000 (11 digits)
+		return "+27710000000"
+	default:
+		// Germany / fallback: +49 country code, 1700 prefix → +491700000000 (12 digits)
+		return "+491700000000"
 	}
+}
 
-	details, ok := sc.userDetails[sc.currentUser]
-	if !ok {
-		return fmt.Errorf("no user details for current user '%s'", sc.currentUser)
-	}
-
-	// Use emailSuffix (without the test prefix) for consistent hashing
-	emailSuffix, ok := details.Fields["emailSuffix"]
-	if !ok {
-		return fmt.Errorf("no emailSuffix defined for user '%s'", sc.currentUser)
-	}
-
-	// Generate deterministic test phone using base +491700000000 and overlay test identifier
-	// Include email hash to make unique per user (so sender and receiver get different numbers)
-	// Example: test id 112233 + email hash -> +491700112233XXX
-	base := "+491700000000"
+// generateDeterministicPhone builds a phone number from a country-specific base
+// by overlaying a deterministic 6-digit suffix derived from testEmailPrefix and emailSuffix.
+func generateDeterministicPhone(country, testEmailPrefix, emailSuffix string) string {
+	base := getPhoneBaseForCountry(country)
 
 	// Create a unique overlay combining test prefix and email hash
-	overlay := sc.testEmailPrefix
+	overlay := testEmailPrefix
 	if emailSuffix != "" {
 		// Extract the part before @ to get unique username (e.g., "sender-p2p" from "sender-p2p@example.com")
 		emailParts := strings.Split(emailSuffix, "@")
@@ -73,8 +68,29 @@ func (sc *E2EContext) iFillInPhoneWithRandomNumber(prefix string) error {
 	if split < 1 {
 		split = 1
 	}
-	phoneNumber := base[:split] + overlay
-	debugPrintf("📱 Generated phone number: %s (overlay %s, emailSuffix %s, user %s)\n", phoneNumber, overlay, emailSuffix, sc.currentUser)
+	return base[:split] + overlay
+}
+
+// iFillInPhoneWithRandomNumber generates a country-aware phone number and fills it
+func (sc *E2EContext) iFillInPhoneWithRandomNumber(prefix string) error {
+	// Get the current user's details to extract the email suffix
+	if sc.currentUser == "" {
+		return fmt.Errorf("no current user set for phone generation")
+	}
+
+	details, ok := sc.userDetails[sc.currentUser]
+	if !ok {
+		return fmt.Errorf("no user details for current user '%s'", sc.currentUser)
+	}
+
+	// Use emailSuffix (without the test prefix) for consistent hashing
+	emailSuffix, ok := details.Fields["emailSuffix"]
+	if !ok {
+		return fmt.Errorf("no emailSuffix defined for user '%s'", sc.currentUser)
+	}
+
+	phoneNumber := generateDeterministicPhone(sc.country, sc.testEmailPrefix, emailSuffix)
+	debugPrintf("📱 Generated phone number: %s (country %s, emailSuffix %s, user %s)\n", phoneNumber, sc.country, emailSuffix, sc.currentUser)
 
 	// Store in user details for current user
 	if sc.currentUser != "" && sc.userDetails[sc.currentUser] != nil {

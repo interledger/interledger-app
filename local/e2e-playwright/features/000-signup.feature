@@ -15,7 +15,17 @@ Feature: User Signup
       | dateOfBirth     | 1995-03-20                   |
     And I impersonate 'signup-user'
 
-  @signup
+  @signup @xago
+  Scenario: Successfully sign up as a South-African user
+    Given that my "country" is "South Africa"
+    And I completed the signup workflow
+    And I completed the account verification workflow
+    And I finished the TOTP registration workflow
+    And I finished the wallet address creation workflow
+    Then I should be navigated back to the dashboard with reserved wallet status
+    And I take a screenshot "signup-complete"
+
+  @signup @gatehub
   Scenario: Successfully sign up as a German user
     Given that my "country" is "germany"
     And I completed the signup workflow
@@ -25,7 +35,7 @@ Feature: User Signup
     Then I should be navigated back to the dashboard with reserved wallet status
     And I take a screenshot "signup-complete"
 
-  @signup
+  @signup @gatehub
   Scenario: Signup form validates required fields
     Given the details of 'signup-invalid-user' are
       | field           | value                        |

@@ -129,7 +129,7 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I trigger user verification for myself$`, func() error { return sc.iTriggerUserVerificationForMyself() })
 
 	// Phone steps
-	ctx.Step(`^I fill in "([^"]*)" with a unique valid German number$`, func(fieldName string) error { return sc.iFillInWithUniqueGermanPhoneNumber(fieldName) })
+	ctx.Step(`^I fill in "([^"]*)" with a unique valid phone number$`, func(fieldName string) error { return sc.iFillInWithUniquePhoneNumber(fieldName) })
 
 	// Login steps
 	ctx.Step(`^I clear the browser session$`, func() error { return sc.iClearTheBrowserSession() })

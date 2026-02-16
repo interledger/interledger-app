@@ -16,3 +16,4 @@ include:
   - botanist.yaml
   - mockbos.yaml
   - mockgatehub.yaml
+  - mockxago.yaml

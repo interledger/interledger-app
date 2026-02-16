@@ -1,0 +1,33 @@
+services:
+  mockxago:
+    build:
+      context: ../go/mockxago
+    profiles:
+      - application
+    restart: always
+    expose:
+      - "8080"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mockxago.rule=Host(`mockxago.interledger.test`)"
+      - "traefik.http.routers.mockxago.entrypoints=websecure"
+      - "traefik.http.services.mockxago.loadbalancer.server.port=8080"
+    environment:
+      LOG_LEVEL: debug
+      # Storage configuration
+      MOCKXAGO_REDIS_URL: redis://redis:6379
+      MOCKXAGO_REDIS_DB: '3'  # Use DB 3 (separate from other services)
+      
+      # Webhook configuration - for KYC and deposit events
+      WEBHOOK_URL: http://backend:8080/webhooks/xago
+      WEBHOOK_SECRET: ${XAGO_WEBHOOK_SECRET:-33333333333333333333333333333333333333}
+
+      # Auth configuration
+      MOCKXAGO_VALID_CREDENTIALS: local-test-app-id:local-test-app-secret
+    
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
