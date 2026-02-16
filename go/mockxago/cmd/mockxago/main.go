@@ -96,6 +96,16 @@ func setupRoutes(router *chi.Mux, h *handler.Handler) {
 		})
 	})
 
+	// KYC endpoints (no auth required for iframe)
+	router.Get("/kyc/iframe", h.KYCIframe)
+	router.Post("/kyc/submit", h.KYCIframeSubmit)
+
+	// Persona SDK compatible endpoints (v1 API) - no auth required
+	router.Post("/v1/inquiries", h.PersonaCreateInquiry)
+	router.Get("/v1/inquiries/{inquiryId}", h.PersonaGetInquiry)
+	router.Get("/v1/inquiries/{inquiryId}/iframe", h.PersonaGetInquiryIframe)
+	router.Post("/v1/inquiries/{inquiryId}/submit", h.PersonaInquirySubmit)
+
 	// Health check
 	router.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")

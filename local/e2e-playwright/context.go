@@ -153,6 +153,7 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I should be shown the "([^"]*)" prompt form$`, func(promptText string) error { return sc.iShouldBeShownTheActivateWalletPromptForm(promptText) })
 	ctx.Step(`^I wait for the KYC iframe to load$`, func() error { return sc.iWaitForTheKYCIframeToLoad() })
 	ctx.Step(`^I fill and submit the mockgatehub KYC iframe$`, func() error { return sc.iFillAndSubmitTheMockgatehubiframe() })
+	ctx.Step(`^I fill and submit the mockxago KYC iframe$`, func() error { return sc.iFillAndSubmitTheMockxagoiframe() })
 	ctx.Step(`^I wait for the KYC completion$`, func() error { return sc.iWaitForTheKYCCompletion() })
 
 	// Wallet address creation steps

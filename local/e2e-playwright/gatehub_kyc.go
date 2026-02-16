@@ -605,3 +605,167 @@ func (sc *E2EContext) iCompleteMinimalKYCFlow(userName string) error {
 	// Call the existing detailed KYC flow which handles signup + post-signup KYC
 	return sc.iCompleteMinimalKYCFlowWithDetails(firstName, lastName, emailSuffix, country, phone, password)
 }
+
+// iFillAndSubmitTheMockxagoiframe fills and submits the KYC iframe
+// In local development, the MockXago service acts as the Persona API provider
+// This step interacts with the Persona SDK iframe which loads from MockXago routes
+func (sc *E2EContext) iFillAndSubmitTheMockxagoiframe() error {
+	debugPrintln("\n📝 Filling and submitting Persona KYC iframe (MockXago provider in local dev)...")
+
+	time.Sleep(500 * time.Millisecond)
+
+	// Take a screenshot of the page with the iframe before trying to interact
+	debugPrintf("   📸 Taking screenshot of page with iframe...\n")
+	if err := sc.iTakeAScreenshot("xago-kyc-iframe-before-fill"); err != nil {
+		debugPrintf("   ⚠️  Failed to take screenshot: %v\n", err)
+	}
+
+	// Get the iframe src to understand what origin it's from
+	iframeLocator := sc.page.Locator("iframe").First()
+	iframeSrc, _ := iframeLocator.GetAttribute("src")
+	debugPrintf("   📍 Iframe src: %s\n", iframeSrc)
+
+	// Set up a listener to capture the postMessage
+	debugPrintf("   📍 Setting up message listener...\n")
+	_, err := sc.page.Evaluate(`() => {
+		window.kycCompleted = false;
+		window.addEventListener('message', (e) => {
+			console.log('Parent received message:', e.data);
+			if (e.data?.type === 'OnboardingCompleted' && JSON.parse(e.data.value || '{}').applicantStatus === 'submitted') {
+				window.kycCompleted = true;
+				console.log('KYC completed message received');
+			}
+		});
+	}`)
+	if err != nil {
+		debugPrintf("   ⚠️  Failed to set up message listener: %v\n", err)
+	}
+
+	// Get the frame locator
+	frameLocator := sc.page.FrameLocator("iframe").First()
+
+	// Check if iframe exists
+	iframeCount, _ := iframeLocator.Count()
+	if iframeCount == 0 {
+		return fmt.Errorf("no iframe found on page")
+	}
+
+	debugPrintf("   📍 Found iframe, searching for form elements\n")
+
+	// Wait for iframe to be loaded and interactive
+	time.Sleep(1 * time.Second)
+
+	// Try to find all inputs in the iframe - be aggressive about waiting
+	inputs := frameLocator.Locator("input:not([type='hidden'])")
+	inputCount, _ := inputs.Count()
+	debugPrintf("   ℹ️  Found %d non-hidden input fields\n", inputCount)
+
+	// Try all inputs including hidden ones
+	allInputsLocator := frameLocator.Locator("input")
+	allInputCount, _ := allInputsLocator.Count()
+	debugPrintf("   ℹ️  Found %d total input fields (including hidden)\n", allInputCount)
+
+	// Debug: Try to find labels and form elements
+	labels := frameLocator.Locator("label")
+	labelCount, _ := labels.Count()
+	debugPrintf("   📍 Found %d label elements in iframe\n", labelCount)
+
+	buttons := frameLocator.Locator("button[type='submit']")
+	buttonCount, _ := buttons.Count()
+	debugPrintf("   📍 Found %d submit buttons in iframe\n", buttonCount)
+
+	// Use allInputsLocator for the form filling loop if we have visible inputs, otherwise use all inputs
+	var inputsToFill playwright.Locator
+	if inputCount > 0 {
+		inputsToFill = inputs
+	} else if allInputCount > 2 { // More than 2 suggests we have the form (token + user_id hidden + visible fields)
+		inputsToFill = allInputsLocator
+		inputCount = allInputCount
+	}
+
+	// If we have inputs, try to interact with them
+	if inputCount > 0 {
+		// Use stored user details for form filling
+		firstName := sc.firstName
+		if firstName == "" {
+			firstName = "Test"
+		}
+		lastName := sc.lastName
+		if lastName == "" {
+			lastName = "User"
+		}
+
+		// Try to fill the required fields with test data
+		for i := 0; i < inputCount; i++ {
+			input := inputsToFill.Nth(i)
+
+			// Get input attributes to understand what it is
+			placeholder, _ := input.GetAttribute("placeholder")
+			name, _ := input.GetAttribute("name")
+			inputType, _ := input.GetAttribute("type")
+
+			debugPrintf("   📍 Input %d: type=%s, name=%s, placeholder=%s\n", i, inputType, name, placeholder)
+
+			// Fill required visible fields
+			if inputType != "hidden" {
+				switch name {
+				case "first_name":
+					debugPrintf("   📝 Filling first_name with: %s\n", firstName)
+					_ = input.Fill(firstName)
+				case "last_name":
+					debugPrintf("   📝 Filling last_name with: %s\n", lastName)
+					_ = input.Fill(lastName)
+				case "dob":
+					debugPrintf("   📝 Filling dob with: 1990-01-15\n")
+					_ = input.Fill("1990-01-15")
+				case "address":
+					debugPrintf("   📝 Filling address with: 123 Main Street\n")
+					_ = input.Fill("123 Main Street")
+				case "city":
+					debugPrintf("   📝 Filling city with: Johannesburg\n")
+					_ = input.Fill("Johannesburg")
+				case "country":
+					debugPrintf("   📝 Filling country with: South Africa\n")
+					_ = input.Fill("South Africa")
+				}
+			}
+		}
+	} else {
+		debugPrintf("   ⚠️  NO INPUT FIELDS FOUND IN IFRAME - Form may not be loading correctly\n")
+		debugPrintf("   ℹ️  This could indicate: template not found, template not rendering, or iframe URL issue\n")
+		// Return error so test fails with clearer message
+		return fmt.Errorf("no input fields found in MockXago KYC iframe - form not loading")
+	}
+
+	// Take screenshot of filled form before submission
+	debugPrintf("   📸 Taking screenshot of filled KYC form...\n")
+	if err := sc.iTakeAScreenshot("xago-kyc-form-filled"); err != nil {
+		debugPrintf("   ⚠️  Failed to take screenshot: %v\n", err)
+		// Don't fail the test for screenshot failure
+	}
+
+	// Look for and click the submit button
+	debugPrintf("   📍 Attempting to click submit button (%d found)\n", buttonCount)
+	buttonClicked := false
+	for i := 0; i < buttonCount; i++ {
+		button := buttons.Nth(i)
+		buttonText, _ := button.TextContent()
+		buttonText = strings.TrimSpace(buttonText)
+
+		debugPrintf("   📍 Submit button %d: %s\n", i, buttonText)
+
+		// Click the submit button
+		debugPrintf("   ✓ Clicking submit button: %s\n", buttonText)
+		_ = button.Click()
+		buttonClicked = true
+		time.Sleep(500 * time.Millisecond)
+		break
+	}
+
+	if !buttonClicked {
+		debugPrintf("   ⚠️  Could not find submit button, form may not have been submitted\n")
+	}
+
+	debugPrintf("   ✓ Persona KYC iframe form submission attempted (MockXago provider)\n")
+	return nil
+}

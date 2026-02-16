@@ -34,11 +34,17 @@ type client struct {
 }
 
 func New() Client {
+	baseURL := "https://api.withpersona.com/api/v1/"
+	// In local development without PERSONA_TOKEN, use MockXago
+	if os.Getenv("PERSONA_TOKEN") == "" && os.Getenv("MOCKXAGO_ENDPOINT") != "" {
+		baseURL = os.Getenv("MOCKXAGO_ENDPOINT") + "/v1/"
+	}
+
 	return &client{
 		api:           otelhttp.DefaultClient,
 		bearerToken:   os.Getenv("PERSONA_TOKEN"),
 		webhookSecret: os.Getenv("PERSONA_WEBHOOK_TOKEN"),
-		baseURL:       "https://api.withpersona.com/api/v1/",
+		baseURL:       baseURL,
 	}
 }
 

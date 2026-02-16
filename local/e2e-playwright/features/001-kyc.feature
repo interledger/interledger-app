@@ -18,7 +18,7 @@ Feature: User KYC and Account Activation
 
 
   @kyc @germany
-  Scenario: Successfully activate account and complete KYC as verified user
+  Scenario: Successfully complete KYC as a verified user in Germany
     Given that my "country" is "germany"
     And I completed the signup workflow
     And I completed the account verification workflow
@@ -28,7 +28,7 @@ Feature: User KYC and Account Activation
     # Shows "Complete these steps to confirm your identity and activate your wallet"
     Then I should be shown the "Activate wallet" prompt form
     
-    # Trigger KYC flow and fill iframe
+    # Trigger KYC flow and fill iframe (Germany uses GateHub)
     When I click the "Continue" button
     And I wait for the KYC iframe to load
     And I fill and submit the mockgatehub KYC iframe
@@ -37,3 +37,23 @@ Feature: User KYC and Account Activation
     And I should see my account balance with kyc approved
     And I take a screenshot "kyc-completed-dashboard"    
 
+
+  @kyc @xago
+  Scenario: Successfully complete KYC as a verified user in South Africa
+    Given that my "country" is "South Africa"
+    And I completed the signup workflow
+    And I completed the account verification workflow
+    And I finished the TOTP registration workflow
+    And I finished the wallet address creation workflow
+
+    # Shows "Complete these steps to confirm your identity and activate your wallet"
+    Then I should be shown the "Activate wallet" prompt form
+    
+    # Trigger KYC flow via MockXago Persona-like iframe
+    When I click the "Continue" button
+    And I wait for the KYC iframe to load
+    And I fill and submit the mockxago KYC iframe
+    And I wait for the KYC completion
+    Then I should be navigated back to the dashboard with approved kyc status
+    And I should see my account balance with kyc approved
+    And I take a screenshot "kyc-completed-dashboard"    

@@ -9,6 +9,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o /app/mockxago ./cmd/mockxago
 FROM alpine:3.19
 WORKDIR /app
 COPY --from=builder /app/mockxago /usr/local/bin/mockxago
+COPY --from=builder /app/web ./web
 EXPOSE 8080
 ENV XAGO_MOCK_PORT=8080 \
     XAGO_API_PUBLIC_KEY=test-public-key \

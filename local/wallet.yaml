@@ -103,6 +103,9 @@ services:
       - GATEHUB_CARD_APP_ID=local-test-card-app-id
       - GATEHUB_GATEWAY_ID=b18965b5-8bb0-486e-88b2-7be47b974ac1
       - GATEHUB_CARD_ACCOUNT_PRODUCT_CODE=PWSR_DEBP_2404
+
+      # MockXago Persona API endpoint (for local development)
+      - MOCKXAGO_ENDPOINT=https://mockxago.interledger.test
       - GATEHUB_WEBHOOK_SECRET=${GATEHUB_WEBHOOK_SECRET:-6d6f636b5f776562686f6f6b5f736563726574}
       - GATEHUB_PAYWISER_EURO_VAULT_ID=a09a0a2c-1a3a-44c5-a1b9-603a6eea9341
       - GATEHUB_SENDING_USER_ID=test-sending-user-id
