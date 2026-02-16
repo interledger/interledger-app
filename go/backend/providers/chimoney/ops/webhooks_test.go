@@ -433,6 +433,14 @@ func TestKYCEventUnmarshal(t *testing.T) {
 				UserID:    "",
 			},
 		},
+		{
+			name:    "kyc event with missing userID field",
+			payload: `{"eventType":"user.kyc.completed"}`,
+			want: ops.KYCEvent{
+				EventType: "user.kyc.completed",
+				UserID:    "",
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -442,6 +450,172 @@ func TestKYCEventUnmarshal(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, tt.want.EventType, got.EventType)
 			require.Equal(t, tt.want.UserID, got.UserID)
+		})
+	}
+}
+
+func TestRedeemEventUnmarshal(t *testing.T) {
+	tests := []struct {
+		name          string
+		payload       string
+		wantEventType string
+		wantIssueID   string
+		wantStatus    string
+	}{
+		{
+			name:          "redeem completed event",
+			payload:       `{"eventType":"chimoney.redeem.completed","issueID":"wallet123_4_1234567890","status":"completed"}`,
+			wantEventType: "chimoney.redeem.completed",
+			wantIssueID:   "wallet123_4_1234567890",
+			wantStatus:    "completed",
+		},
+		{
+			name:          "redeem failed event",
+			payload:       `{"eventType":"chimoney.redeem.failed","issueID":"wallet456_10_9876543210","status":"failed"}`,
+			wantEventType: "chimoney.redeem.failed",
+			wantIssueID:   "wallet456_10_9876543210",
+			wantStatus:    "failed",
+		},
+		{
+			name:          "redeem event with empty issueID",
+			payload:       `{"eventType":"chimoney.redeem.completed","issueID":"","status":"completed"}`,
+			wantEventType: "chimoney.redeem.completed",
+			wantIssueID:   "",
+			wantStatus:    "completed",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var got ops.PaymentEvent
+			err := json.Unmarshal([]byte(tt.payload), &got)
+			require.NoError(t, err)
+			require.Equal(t, tt.wantEventType, got.EventType)
+			require.Equal(t, tt.wantIssueID, got.IssueID)
+			require.Equal(t, tt.wantStatus, got.Status)
+		})
+	}
+}
+
+func TestWithdrawEventMetaIssuerFallback(t *testing.T) {
+	// Test that when meta.issuer is empty, we can extract from issueID
+	tests := []struct {
+		name              string
+		issueID           string
+		metaIssuer        string
+		expectedExtracted string
+		shouldExtract     bool
+	}{
+		{
+			name:              "meta.issuer present - no extraction needed",
+			issueID:           "wallet123_4_1234567890",
+			metaIssuer:        "wallet456",
+			expectedExtracted: "",
+			shouldExtract:     false,
+		},
+		{
+			name:              "meta.issuer empty - extraction needed",
+			issueID:           "wallet789_10_9876543210",
+			metaIssuer:        "",
+			expectedExtracted: "wallet789",
+			shouldExtract:     true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.shouldExtract {
+				extracted, err := ops.ExtractChiWalletIDFromIssueID(tt.issueID)
+				require.NoError(t, err)
+				require.Equal(t, tt.expectedExtracted, extracted)
+			}
+		})
+	}
+}
+
+func TestChargeEventUnmarshal(t *testing.T) {
+	tests := []struct {
+		name          string
+		payload       string
+		wantEventType string
+		wantIssueID   string
+	}{
+		{
+			name:          "card charge completed",
+			payload:       `{"eventType":"charge.card.completed","issueID":"charge_123"}`,
+			wantEventType: "charge.card.completed",
+			wantIssueID:   "charge_123",
+		},
+		{
+			name:          "wallet charge completed",
+			payload:       `{"eventType":"charge.chimoney-wallet.completed","issueID":"charge_456"}`,
+			wantEventType: "charge.chimoney-wallet.completed",
+			wantIssueID:   "charge_456",
+		},
+		{
+			name:          "interac charge completed",
+			payload:       `{"eventType":"charge.interac.completed","issueID":"charge_789"}`,
+			wantEventType: "charge.interac.completed",
+			wantIssueID:   "charge_789",
+		},
+		{
+			name:          "xrpl crypto charge confirmed",
+			payload:       `{"eventType":"charge.crypto.xrpl.confirmed","issueID":"charge_xrpl_123"}`,
+			wantEventType: "charge.crypto.xrpl.confirmed",
+			wantIssueID:   "charge_xrpl_123",
+		},
+		{
+			name:          "celo crypto charge confirmed",
+			payload:       `{"eventType":"charge.crypto.celo.confirmed","issueID":"charge_celo_456"}`,
+			wantEventType: "charge.crypto.celo.confirmed",
+			wantIssueID:   "charge_celo_456",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var got ops.PaymentEvent
+			err := json.Unmarshal([]byte(tt.payload), &got)
+			require.NoError(t, err)
+			require.Equal(t, tt.wantEventType, got.EventType)
+			require.Equal(t, tt.wantIssueID, got.IssueID)
+		})
+	}
+}
+
+func TestWithdrawEventStatusVariations(t *testing.T) {
+	tests := []struct {
+		name        string
+		payload     string
+		wantStatus  string
+		description string
+	}{
+		{
+			name:        "completed status",
+			payload:     `{"eventType":"payout.interac.completed","issueID":"w123_4_1234","status":"completed","meta":{"issuer":"w123"}}`,
+			wantStatus:  "completed",
+			description: "Successful withdrawal",
+		},
+		{
+			name:        "expired status",
+			payload:     `{"eventType":"payout.interac.expired","issueID":"w456_4_5678","status":"expired","meta":{"issuer":"w456"}}`,
+			wantStatus:  "expired",
+			description: "Withdrawal expired",
+		},
+		{
+			name:        "cancelled status",
+			payload:     `{"eventType":"payout.interac.cancelled","issueID":"w789_4_9012","status":"cancelled","meta":{"issuer":"w789"}}`,
+			wantStatus:  "cancelled",
+			description: "Withdrawal cancelled",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var got ops.WithdrawEvent
+			err := json.Unmarshal([]byte(tt.payload), &got)
+			require.NoError(t, err)
+			require.Equal(t, tt.wantStatus, got.Status)
 		})
 	}
 }
