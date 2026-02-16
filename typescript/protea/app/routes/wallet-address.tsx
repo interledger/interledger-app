@@ -35,6 +35,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
 
   const session = await getUserSession(request)
+  if (!session?.identity) {
+    throw redirect('/login')
+  }
+
   let usernameIsValid = false
   let attempts = 0
   let username = session.identity.traits.firstName
