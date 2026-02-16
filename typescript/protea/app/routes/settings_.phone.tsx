@@ -35,7 +35,7 @@ import { kratosPublic } from '~/lib/kratos/kratos-client.server'
 import { getCookie, withCookie } from '~/lib/kratos/cookie.util'
 import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.util'
 import { handleFlowError, mapFlowToFieldErrors } from '~/lib/kratos/error'
-import { getUserSession } from '~/lib/kratos/session.util'
+import { getUserSession, getSessionTraits } from '~/lib/kratos/session.util'
 import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import type { action as sendOtpAction } from '~/routes/api_.sendOtp'
@@ -86,7 +86,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   return jsonWithCSRF(request, {
     flow,
-    countryCode: session.identity?.traits.countryCode,
+    countryCode: getSessionTraits(session).countryCode,
     countries,
     csrf_token: getCsrfTokenFromFlow(flow)
   })
@@ -263,7 +263,7 @@ export async function action({ request }: ActionFunctionArgs) {
         updateSettingsFlowBody: {
           method: 'profile',
           traits: {
-            ...session.identity?.traits,
+            ...getSessionTraits(session),
             phone
           },
           csrf_token: csrfToken

@@ -26,19 +26,20 @@ import { grpc } from '~/lib/grpc.server'
 import { kratosPublic } from '~/lib/kratos/kratos-client.server'
 import { getCookie, withCookie, buildHeadersWithCookies } from '~/lib/kratos/cookie.util'
 import { handleFlowError } from '~/lib/kratos/error'
-import { getUserSession } from '~/lib/kratos/session.util'
+import { getUserSession, getSessionTraits } from '~/lib/kratos/session.util'
 import { mergeMeta } from '~/lib/meta'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const session = await getUserSession(request)
+  const { phone } = getSessionTraits(session)
 
-  const len = session.identity.traits.phone.length
-  const phoneMask = session.identity.traits.phone
+  const len = phone.length
+  const phoneMask = phone
     .substring(len - 4, len)
     .padStart(len, '*')
 
   let response = await grpc.sendPhoneVerification(request, {
-    to: session.identity.traits.phone
+    to: phone
   })
   if (isConnectError(response)) throw response.errorResponse
 
@@ -126,6 +127,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const returnTo = form.get('return_to') as string
 
   const session = await getUserSession(request)
+  const { phone } = getSessionTraits(session)
 
   await validateCSRFToken(request, form)
 
@@ -134,7 +136,7 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   const response = await grpc.checkPhoneVerification(request, {
-    to: session.identity.traits.phone,
+    to: phone,
     otp
   })
 

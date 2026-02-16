@@ -80,3 +80,11 @@ export type RequestConfig = {
     withCredentials?: boolean
 }
 
+export type KratosTraits = {
+    email: string
+    phone: string
+    firstName: string
+    lastName: string
+    countryCode: string
+}
+

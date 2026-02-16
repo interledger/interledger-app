@@ -34,7 +34,7 @@ import type { ConnectError } from '~/lib/error.server'
 import { error, isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { getClientIP } from '~/lib/ip.server'
-import { getUserSession } from '~/lib/kratos/session.util'
+import { getUserSession, getSessionTraits } from '~/lib/kratos/session.util'
 import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { PayStep, usePayStore } from '~/lib/usePayStore'
@@ -133,9 +133,10 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
   // Only load the phone mask if we require otp
   if (payment.requiredActions.includes(7)) {
-    phoneMask = await getUserSession(request).then((v) => {
-      const len = v.identity.traits.phone.length
-      return v.identity.traits.phone.substring(len - 4, len).padStart(len, '*')
+    phoneMask = await getUserSession(request).then((session) => {
+      const { phone } = getSessionTraits(session)
+      const len = phone.length
+      return phone.substring(len - 4, len).padStart(len, '*')
     })
   }
 

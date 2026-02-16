@@ -4,6 +4,7 @@ import { route } from 'routes-gen'
 import { safeReturnTo } from '../url.server'
 import { kratosPublic, KRATOS_SESSION_COOKIE } from './kratos-client.server'
 import { getCookie } from './cookie.util'
+import type { KratosTraits } from './types'
 
 
 /**
@@ -41,6 +42,17 @@ export async function getUserSession(
         throw redirect(`${route('/login')}?${searchParams.toString()}`)
     }
   }
+}
+
+/**
+ * Extracts typed traits from a Kratos session.
+ * Throws redirect to login if session or identity is missing.
+ */
+export function getSessionTraits(session: Session | null): KratosTraits {
+  if (!session?.identity) {
+    throw redirect(route('/login'))
+  }
+  return session.identity.traits as KratosTraits
 }
 
 /**

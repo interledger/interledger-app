@@ -13,7 +13,7 @@ import { kratosPublic } from '~/lib/kratos/kratos-client.server'
 import { getCookie, withCookie, buildHeadersWithCookies } from '~/lib/kratos/cookie.util'
 import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.util'
 import { handleFlowError, mapFlowToFieldErrors } from '~/lib/kratos/error'
-import { getUserSession } from '~/lib/kratos/session.util'
+import { getUserSession, getSessionTraits } from '~/lib/kratos/session.util'
 import { mergeMeta } from '~/lib/meta'
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -31,7 +31,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       return json({
         flow: kratosFlow,
         csrfToken: getCsrfTokenFromFlow(kratosFlow),
-        email: session.identity?.traits.email
+        email: getSessionTraits(session).email
       })
     } catch (err: any) {
       handleFlowError(err, 'login/challenge')

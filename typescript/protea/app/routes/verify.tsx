@@ -34,8 +34,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
   const cookie = getCookie(request)
-
-  // getUserSession handles all error cases (401, 403, 422, 500) with appropriate redirects
   const userSession = await getUserSession(request, true)
 
   if (!userSession) {
@@ -56,7 +54,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       )
       return json({
         flow,
-        email: userSession.identity?.verifiable_addresses?.[0]?.value,
+        email: userSession.identity?.verifiable_addresses?.[0]?.value ?? '',
         csrfToken: getCsrfTokenFromFlow(flow)
       })
     } catch (err: any) {
