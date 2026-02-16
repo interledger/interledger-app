@@ -18,6 +18,18 @@ var (
 	ZAROpsAccount = "b0944908-16e6-4ef4-8677-192165e33c59"
 )
 
+type Config struct {
+	APIBaseURL      string
+	IdentityBaseURL string
+	APIPublicKey    string
+	APISecret       string
+	PolicyID        string
+	USDOpsAccount   string
+	ZAROpsAccount   string
+	LedgerIDZAR     uint32
+	LedgerIDUSD     uint32
+}
+
 type Await func(ctx context.Context, result interface{}) error
 
 type SubAccount struct {

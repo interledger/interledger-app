@@ -440,7 +440,7 @@ func startWorker(args *cli.StartArgs) {
 	serveHTTP(&http.Server{Addr: ":8081", Handler: router}, &wg)
 
 	log.Info("Worker creating")
-	w, err := temporal.NewTemporalWorker(b, b.gatehubConfig)
+	w, err := temporal.NewTemporalWorker(b, b.gatehubConfig, b.xagoConfig)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -487,6 +487,7 @@ type backends struct {
 	pti            pti.Client
 	gatehub        gatehub.Client
 	gatehubConfig  gatehub.Config
+	xagoConfig     xago.Config
 	chimoney       chimoney.Client
 }
 
@@ -761,7 +762,18 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	b.pac = pacioli_client.NewLocal(pacDB)
 
 	log.Debug("initialising xago")
-	b.xago = xago_client.New(b)
+	b.xagoConfig = xago.Config{
+		APIBaseURL:      args.XagoAPIBaseURL,
+		IdentityBaseURL: args.XagoIdentityBaseURL,
+		APIPublicKey:    args.XagoAPIPublicKey,
+		APISecret:       args.XagoAPISecret,
+		PolicyID:        args.XagoPolicyID,
+		USDOpsAccount:   args.XagoUSDOpsAccount,
+		ZAROpsAccount:   args.XagoZAROpsAccount,
+		LedgerIDZAR:     args.XagoLedgerIDZAR,
+		LedgerIDUSD:     args.XagoLedgerIDUSD,
+	}
+	b.xago = xago_client.New(b, b.xagoConfig)
 
 	log.Debug("initialising FIANT")
 	b.pti = pti_client.New(b)

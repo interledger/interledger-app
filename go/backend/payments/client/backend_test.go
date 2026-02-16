@@ -119,7 +119,17 @@ func NewTestBackends(t *testing.T) *TestBackends {
 	}).AnyTimes()
 	b.temporal = tp
 
-	b.xgo = xago_client.New(b)
+	b.xgo = xago_client.New(b, xago.Config{
+		APIBaseURL:      "https://test-api.xago.io:8085/v1",
+		IdentityBaseURL: "https://test-api.xago.io:9000/v1",
+		APIPublicKey:    "test-public-key",
+		APISecret:       "test-secret",
+		PolicyID:        "5e2585a474b0e90012ce8ff1",
+		USDOpsAccount:   "868196c3-f6b4-4920-bbfb-d1c7f6a98183",
+		ZAROpsAccount:   "b0944908-16e6-4ef4-8677-192165e33c59",
+		LedgerIDZAR:     9246927,
+		LedgerIDUSD:     9246873,
+	})
 
 	kc := kyc_mock.NewMockClient(ctrl)
 	kc.EXPECT().GetIndividualDetails(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, walletID string) (*kyc.IndividualDetails, error) {

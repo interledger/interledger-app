@@ -1,11 +1,7 @@
 go 1.25
 
 use ./go
-<<<<<<< HEAD
-
-=======
 use ./go/mockxago
->>>>>>> 6996b139c (e2e2 testsing scheme)
 use ./local/scripts
 
 use (

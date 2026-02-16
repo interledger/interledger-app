@@ -57,12 +57,12 @@ type client struct {
 	b ops.Backends
 }
 
-func New(b Backends) xago.Client {
+func New(b Backends, cfg xago.Config) xago.Client {
 	ex := external.New(&http.Client{
 		Transport: otelhttp.NewTransport(
 			httplogger.NewTransport(http.DefaultTransport, b, Redact),
 		),
-	}, b.DB())
+	}, b.DB(), cfg.APIBaseURL, cfg.IdentityBaseURL, cfg.APIPublicKey, cfg.APISecret, cfg.PolicyID)
 	if env.IsTest() {
 		ex = mock_client.SetupDevMock(nil)
 	}

@@ -99,6 +99,15 @@ type StartArgs struct {
 	GatehubOnOffRampBaseURL       string
 	GatehubEUROpsAccount          string
 	GatehubEUROpsLedgerID         uint32
+	XagoAPIBaseURL                string
+	XagoIdentityBaseURL           string
+	XagoAPIPublicKey              string
+	XagoAPISecret                 string
+	XagoPolicyID                  string
+	XagoUSDOpsAccount             string
+	XagoZAROpsAccount             string
+	XagoLedgerIDZAR               uint32
+	XagoLedgerIDUSD               uint32
 }
 
 func ParseStartArgs() (*StartArgs, error) {
@@ -301,6 +310,61 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, errors.New("GATEHUB_EUR_OPS_LEDGER_ID is required in production")
 	}
 
+	xagoAPIBaseURL := os.Getenv("XAGO_API_BASE_URL")
+	if xagoAPIBaseURL == "" {
+		return nil, errors.New("XAGO_API_BASE_URL is required")
+	}
+
+	xagoIdentityBaseURL := os.Getenv("XAGO_IDENTITY_BASE_URL")
+	if xagoIdentityBaseURL == "" {
+		return nil, errors.New("XAGO_IDENTITY_BASE_URL is required")
+	}
+
+	xagoAPIPublicKey := os.Getenv("XAGO_API_PUBLIC_KEY")
+	if xagoAPIPublicKey == "" {
+		return nil, errors.New("XAGO_API_PUBLIC_KEY is required")
+	}
+
+	xagoAPISecret := os.Getenv("XAGO_API_SECRET")
+	if xagoAPISecret == "" {
+		return nil, errors.New("XAGO_API_SECRET is required")
+	}
+
+	xagoPolicyID := os.Getenv("XAGO_POLICY_ID")
+	if xagoPolicyID == "" {
+		return nil, errors.New("XAGO_POLICY_ID is required")
+	}
+
+	xagoUSDOpsAccount := os.Getenv("XAGO_USD_OPS_ACCOUNT")
+	if xagoUSDOpsAccount == "" {
+		return nil, errors.New("XAGO_USD_OPS_ACCOUNT is required")
+	}
+
+	xagoZAROpsAccount := os.Getenv("XAGO_ZAR_OPS_ACCOUNT")
+	if xagoZAROpsAccount == "" {
+		return nil, errors.New("XAGO_ZAR_OPS_ACCOUNT is required")
+	}
+
+	xagoLedgerIDZARStr := os.Getenv("XAGO_LEDGER_ID_ZAR")
+	if xagoLedgerIDZARStr == "" {
+		return nil, errors.New("XAGO_LEDGER_ID_ZAR is required")
+	}
+	id64, err := strconv.ParseUint(xagoLedgerIDZARStr, 10, 32)
+	if err != nil {
+		return nil, errors.New("XAGO_LEDGER_ID_ZAR must be a valid uint32")
+	}
+	xagoLedgerIDZAR := uint32(id64)
+
+	xagoLedgerIDUSDStr := os.Getenv("XAGO_LEDGER_ID_USD")
+	if xagoLedgerIDUSDStr == "" {
+		return nil, errors.New("XAGO_LEDGER_ID_USD is required")
+	}
+	id64, err = strconv.ParseUint(xagoLedgerIDUSDStr, 10, 32)
+	if err != nil {
+		return nil, errors.New("XAGO_LEDGER_ID_USD must be a valid uint32")
+	}
+	xagoLedgerIDUSD := uint32(id64)
+
 	return &StartArgs{
 		Port:                          port,
 		AuthorisationPort:             authorisationPort,
@@ -348,5 +412,14 @@ func ParseStartArgs() (*StartArgs, error) {
 		GatehubOnOffRampBaseURL:       gatehubOnOffRampBaseURL,
 		GatehubEUROpsAccount:          gatehubEUROpsAccount,
 		GatehubEUROpsLedgerID:         gatehubEUROpsLedgerID,
+		XagoAPIBaseURL:                xagoAPIBaseURL,
+		XagoIdentityBaseURL:           xagoIdentityBaseURL,
+		XagoAPIPublicKey:              xagoAPIPublicKey,
+		XagoAPISecret:                 xagoAPISecret,
+		XagoPolicyID:                  xagoPolicyID,
+		XagoUSDOpsAccount:             xagoUSDOpsAccount,
+		XagoZAROpsAccount:             xagoZAROpsAccount,
+		XagoLedgerIDZAR:               xagoLedgerIDZAR,
+		XagoLedgerIDUSD:               xagoLedgerIDUSD,
 	}, nil
 }

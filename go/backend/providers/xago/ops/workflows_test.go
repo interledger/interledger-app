@@ -13,13 +13,25 @@ import (
 	"gitlab.com/fynbos/backend/providers/xago/ops"
 )
 
+var testXagoConfig = xago.Config{
+	APIBaseURL:      "https://test-api.xago.io:8085/v1",
+	IdentityBaseURL: "https://test-api.xago.io:9000/v1",
+	APIPublicKey:    "test-public-key",
+	APISecret:       "test-secret",
+	PolicyID:        "5e2585a474b0e90012ce8ff1",
+	USDOpsAccount:   "868196c3-f6b4-4920-bbfb-d1c7f6a98183",
+	ZAROpsAccount:   "b0944908-16e6-4ef4-8677-192165e33c59",
+	LedgerIDZAR:     9246927,
+	LedgerIDUSD:     9246873,
+}
+
 func TestActivity_SaveBeneficiary(t *testing.T) {
 	ctx := context.Background()
 	b := ops.NewTestBackends(t, func(tb *ops.TestBackends) {
 		tb.DBC = db.MigrateTestDB(t, ctx)
 	})
 
-	a := ops.NewActivity(b)
+	a := ops.NewActivity(b, testXagoConfig)
 
 	walletID := uuid.NewString()
 	beneficiaryID := uuid.NewString()
@@ -58,7 +70,7 @@ func TestActivity_SaveSubAccount(t *testing.T) {
 		tb.DBC = db.MigrateTestDB(t, ctx)
 	})
 
-	a := ops.NewActivity(b)
+	a := ops.NewActivity(b, testXagoConfig)
 
 	walletID := uuid.NewString()
 	accountID := uuid.NewString()
