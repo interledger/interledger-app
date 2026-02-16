@@ -630,11 +630,6 @@ func rollBackWithdrawal(ctx workflow.Context, a *Activity, stage withdrawalStage
 	return nil
 }
 
-type depositSignal struct {
-	IssueID string
-	Success bool
-}
-
 func CreateChimoneyDepositWorkflow(ctx workflow.Context, issueID string) error {
 	var a *Activity
 	ao := workflow.ActivityOptions{
@@ -653,51 +648,62 @@ func CreateChimoneyDepositWorkflow(ctx workflow.Context, issueID string) error {
 		return err
 	}
 
-	var transactionID string
-	err = workflow.ExecuteActivity(ctx, a.CreateChimoneyDepositTransaction, walletID, issueID).Get(ctx, &transactionID)
+	return workflow.ExecuteActivity(ctx, a.CreateChimoneyDepositTransaction, walletID, issueID).Get(ctx, nil)
+}
+
+func FinishChimoneyDepositWorkflow(ctx workflow.Context, issueID string, status string, chiWalletID string) error {
+	var a *Activity
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Second,
+	}
+
+	ctx = workflow.WithActivityOptions(ctx, ao)
+	logger := workflow.GetLogger(ctx)
+	logger.Info("Finishing chimoney deposit.")
+
+	var walletID string
+	err := workflow.ExecuteActivity(ctx, a.GetWalletIDFromChimoneyID, chiWalletID).Get(ctx, &walletID)
 	if err != nil {
 		return err
 	}
 
-	for {
-		selector := workflow.NewSelector(ctx)
+	var trx transactions.Transaction
+	err = workflow.ExecuteActivity(ctx, a.GetChimoneyTransactionByForeignID, walletID, issueID).Get(ctx, &trx)
+	if err != nil {
+		return err
+	}
 
-		// Wait for 5 minutes to check the status or for the signal from the webhook
-		selector.AddFuture(workflow.NewTimer(ctx, 5*time.Minute), func(f workflow.Future) {})
-		selector.AddReceive(workflow.GetSignalChannel(ctx, depositChannel), func(c workflow.ReceiveChannel, more bool) {
-			c.Receive(ctx, nil)
-		})
+	var externalPayment external.Payment
+	err = workflow.ExecuteActivity(ctx, a.VerifyChimoneyPayment, walletID, issueID).Get(ctx, &externalPayment)
+	if err != nil {
+		return err
+	}
 
-		selector.Select(ctx)
-
-		var externalPayment external.Payment
-		err = workflow.ExecuteActivity(ctx, a.VerifyChimoneyPayment, walletID, issueID).Get(ctx, &externalPayment)
+	switch externalPayment.Status {
+	case "failed", "expired":
+		err = workflow.ExecuteActivity(ctx, a.FailChimoneyTransaction, walletID, trx.ID).Get(ctx, nil)
 		if err != nil {
 			return err
 		}
 
-		if externalPayment.Status == "redeemed" {
-			break
+		return nil
+	case "redeemed":
+		// continue to finalize the transaction
+		err = workflow.ExecuteActivity(ctx, a.AssignChimoneyBalance, walletID, trx.ID).Get(ctx, nil)
+		if err != nil {
+			return err
 		}
 
-		if externalPayment.Status == "failed" || externalPayment.Status == "expired" {
-			err = workflow.ExecuteActivity(ctx, a.FailChimoneyTransaction, walletID, transactionID).Get(ctx, nil)
-			if err != nil {
-				return err
-			}
-
-			return nil
+		err = workflow.ExecuteActivity(ctx, a.CompleteChimoneyTransaction, walletID, trx.ID).Get(ctx, nil)
+		if err != nil {
+			return err
 		}
-	}
-
-	err = workflow.ExecuteActivity(ctx, a.AssignChimoneyBalance, walletID, transactionID).Get(ctx, nil)
-	if err != nil {
-		return err
-	}
-
-	err = workflow.ExecuteActivity(ctx, a.CompleteChimoneyTransaction, walletID, transactionID).Get(ctx, nil)
-	if err != nil {
-		return err
+	default:
+		logger.Info("Chimoney deposit in unrecognized state: ", zap.String("status", externalPayment.Status))
+		err = workflow.ExecuteActivity(ctx, a.FailChimoneyTransaction, walletID, trx.ID).Get(ctx, nil)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

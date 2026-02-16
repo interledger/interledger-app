@@ -179,12 +179,17 @@ func handleRedeemWebhook(ctx context.Context, b Backends, raw json.RawMessage) e
 	if err != nil {
 		return err
 	}
-
-	signal := depositSignal{
-		IssueID: wh.IssueID,
-		Success: true,
+	if wh.IssueID == "" {
+		log.Info("Webhook data not complete", zap.String("issueID", wh.IssueID), zap.String("status", wh.Status))
+		return nil
 	}
-	return b.Temporal().SignalWorkflow(ctx, fmt.Sprintf("chimoney_deposit_%s", wh.IssueID), "", depositChannel, signal)
+	var ChiWalletID string
+	ChiWalletID, err = ExtractChiWalletIDFromIssueID(wh.IssueID)
+	if err != nil {
+		return err
+	}
+
+	return ExecuteFinishDeposit(ctx, b, wh.IssueID, wh.Status, ChiWalletID)
 }
 
 func handleWithdrawal(ctx context.Context, b Backends, ec external.Client, raw json.RawMessage) error {

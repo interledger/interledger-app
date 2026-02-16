@@ -102,6 +102,42 @@ func ExecuteCompleteKYCWorkflow(ctx context.Context, b Backends, externalID stri
 	return nil
 }
 
+func ExecuteFinishDeposit(ctx context.Context, b Backends, IssueID string, status string, ChiWalletID string) error {
+	wo := client.StartWorkflowOptions{
+		ID:                    "finish_chimoney_deposit_" + status + "_" + IssueID,
+		TaskQueue:             "backend",
+		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+	}
+
+	var workflowStatus enums.WorkflowExecutionStatus
+	wflow, err := b.Temporal().DescribeWorkflowExecution(ctx, wo.ID, "")
+	switch err.(type) {
+	case *serviceerror.Internal,
+		*serviceerror.Unavailable,
+		*serviceerror.InvalidArgument:
+		return fmt.Errorf("%w %s", chimoney.ErrInternal, err)
+	case *serviceerror.NotFound:
+		// do nothing
+	default:
+		if wflow != nil {
+			workflowStatus = wflow.GetWorkflowExecutionInfo().Status
+		}
+	}
+
+	// return workflow if it's running
+	var executeErr error
+	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
+		_ = b.Temporal().GetWorkflow(ctx, wo.ID, "")
+	} else {
+		_, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, FinishChimoneyDepositWorkflow, IssueID, status, ChiWalletID)
+	}
+	if executeErr != nil {
+		return fmt.Errorf("%w %s", chimoney.ErrInternal, executeErr)
+	}
+
+	return nil
+}
+
 func SetInteracEmail(ctx context.Context, b Backends, walletID, email string) (*linkedaccounts.LinkedAccount, error) {
 	las, err := b.LinkedAccounts().ListByWalletId(ctx, walletID)
 	if err != nil {
