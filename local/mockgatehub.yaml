@@ -2,7 +2,7 @@ services:
   mockgatehub:
     image: ghcr.io/interledger/mockgatehub:1.8
     # build:
-    #   context: ../../mockgatehub
+      # context: ../../mockgatehub
     profiles:
       - application
     restart: always

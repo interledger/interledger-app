@@ -74,6 +74,7 @@ export function Confirm() {
             id='service-agreement'
             name='serviceAgreement'
             form='pay-confirm'
+            data-testid='pay-confirm-agreement'
             className='flex'
             aria-invalid={
               Boolean(actionData?.errors?.serviceAgreement) || undefined
@@ -100,6 +101,7 @@ export function Confirm() {
         name='formName'
         value='confirmPayment'
         type='submit'
+        data-testid='pay-confirm-submit'
       >
         Confirm payment
       </Button>
