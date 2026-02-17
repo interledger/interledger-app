@@ -4,12 +4,14 @@ import (
 	"context"
 	"testing"
 
+	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/kyc/ops"
+	notify_client "gitlab.com/fynbos/backend/notify/client/mock"
 )
 
 func TestUpdateUserDetails(t *testing.T) {
@@ -159,4 +161,58 @@ func TestUpdateUserDetails(t *testing.T) {
 	err = db.GetContext(ctx, &revisionCnt, "select count(*) from individual_kyc_details where wallet_id=$1", walletID)
 	require.NoError(t, err)
 	assert.Equal(t, 3, revisionCnt)
+}
+
+// TestUpdateKYCStatusPendingGuard verifies that a delayed "pending" write
+// cannot overwrite a higher KYC status (e.g. level1, denied). This guards
+// against a race where the frontend's personal-details action fires after
+// a GateHub webhook has already advanced the status.
+func TestUpdateKYCStatusPendingGuard(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name           string
+		currentStatus  kyc.Status
+		newStatus      kyc.Status
+		expectedStatus kyc.Status
+	}{
+		// Pending must not overwrite higher statuses
+		{"pending blocked by level1", kyc.StatusLevel1, kyc.StatusPending, kyc.StatusLevel1},
+		{"pending blocked by level2", kyc.StatusLevel2, kyc.StatusPending, kyc.StatusLevel2},
+		{"pending blocked by denied", kyc.StatusDenied, kyc.StatusPending, kyc.StatusDenied},
+		{"pending blocked by in-review", kyc.StatusInReview, kyc.StatusPending, kyc.StatusInReview},
+		// Pending allowed from low statuses
+		{"pending allowed from unknown", kyc.StatusUnknown, kyc.StatusPending, kyc.StatusPending},
+		{"pending idempotent", kyc.StatusPending, kyc.StatusPending, kyc.StatusPending},
+		// Non-pending writes are unconditional
+		{"level1 overwrites pending", kyc.StatusPending, kyc.StatusLevel1, kyc.StatusLevel1},
+		{"denied overwrites level1", kyc.StatusLevel1, kyc.StatusDenied, kyc.StatusDenied},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			ctx := context.Background()
+			testDB := db.MigrateTestDB(t, ctx)
+
+			ctrl := gomock.NewController(t)
+			t.Cleanup(ctrl.Finish)
+			nc := notify_client.NewMockClient(ctrl)
+			nc.EXPECT().NotifyWallet(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+
+			b := ops.NewTestBackends(t, testDB, nil, nil, nil, nc, nil, nil)
+			a := ops.NewActivity(b)
+
+			walletID := uuid.NewString()
+			_, err := testDB.ExecContext(ctx, "INSERT INTO wallet_kyc_status (wallet_id, status) VALUES ($1, $2)", walletID, tc.currentStatus)
+			require.NoError(t, err)
+
+			err = a.UpdateKYCStatus(ctx, walletID, tc.newStatus)
+			require.NoError(t, err)
+
+			status, err := ops.GetKYCStatus(ctx, b, walletID)
+			require.NoError(t, err)
+			assert.Equal(t, tc.expectedStatus, status)
+		})
+	}
 }
