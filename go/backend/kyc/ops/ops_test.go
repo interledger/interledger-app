@@ -168,30 +168,30 @@ func TestUpdateUserDetails(t *testing.T) {
 // against a race where the frontend's personal-details action fires after
 // a GateHub webhook has already advanced the status.
 func TestUpdateKYCStatusPendingGuard(t *testing.T) {
-	t.Parallel()
-
 	tests := []struct {
 		name           string
-		currentStatus  kyc.Status
+		seedStatus     *kyc.Status // nil = no existing row
 		newStatus      kyc.Status
 		expectedStatus kyc.Status
 	}{
+		// Insert path: no existing row
+		{"pending inserts for new wallet", nil, kyc.StatusPending, kyc.StatusPending},
+		{"level1 inserts for new wallet", nil, kyc.StatusLevel1, kyc.StatusLevel1},
 		// Pending must not overwrite higher statuses
-		{"pending blocked by level1", kyc.StatusLevel1, kyc.StatusPending, kyc.StatusLevel1},
-		{"pending blocked by level2", kyc.StatusLevel2, kyc.StatusPending, kyc.StatusLevel2},
-		{"pending blocked by denied", kyc.StatusDenied, kyc.StatusPending, kyc.StatusDenied},
-		{"pending blocked by in-review", kyc.StatusInReview, kyc.StatusPending, kyc.StatusInReview},
+		{"pending blocked by level1", ptr(kyc.StatusLevel1), kyc.StatusPending, kyc.StatusLevel1},
+		{"pending blocked by level2", ptr(kyc.StatusLevel2), kyc.StatusPending, kyc.StatusLevel2},
+		{"pending blocked by denied", ptr(kyc.StatusDenied), kyc.StatusPending, kyc.StatusDenied},
+		{"pending blocked by in-review", ptr(kyc.StatusInReview), kyc.StatusPending, kyc.StatusInReview},
 		// Pending allowed from low statuses
-		{"pending allowed from unknown", kyc.StatusUnknown, kyc.StatusPending, kyc.StatusPending},
-		{"pending idempotent", kyc.StatusPending, kyc.StatusPending, kyc.StatusPending},
+		{"pending allowed from unknown", ptr(kyc.StatusUnknown), kyc.StatusPending, kyc.StatusPending},
+		{"pending idempotent", ptr(kyc.StatusPending), kyc.StatusPending, kyc.StatusPending},
 		// Non-pending writes are unconditional
-		{"level1 overwrites pending", kyc.StatusPending, kyc.StatusLevel1, kyc.StatusLevel1},
-		{"denied overwrites level1", kyc.StatusLevel1, kyc.StatusDenied, kyc.StatusDenied},
+		{"level1 overwrites pending", ptr(kyc.StatusPending), kyc.StatusLevel1, kyc.StatusLevel1},
+		{"denied overwrites level1", ptr(kyc.StatusLevel1), kyc.StatusDenied, kyc.StatusDenied},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
 			ctx := context.Background()
 			testDB := db.MigrateTestDB(t, ctx)
 
@@ -204,10 +204,12 @@ func TestUpdateKYCStatusPendingGuard(t *testing.T) {
 			a := ops.NewActivity(b)
 
 			walletID := uuid.NewString()
-			_, err := testDB.ExecContext(ctx, "INSERT INTO wallet_kyc_status (wallet_id, status) VALUES ($1, $2)", walletID, tc.currentStatus)
-			require.NoError(t, err)
+			if tc.seedStatus != nil {
+				_, err := testDB.ExecContext(ctx, "INSERT INTO wallet_kyc_status (wallet_id, status) VALUES ($1, $2)", walletID, *tc.seedStatus)
+				require.NoError(t, err)
+			}
 
-			err = a.UpdateKYCStatus(ctx, walletID, tc.newStatus)
+			err := a.UpdateKYCStatus(ctx, walletID, tc.newStatus)
 			require.NoError(t, err)
 
 			status, err := ops.GetKYCStatus(ctx, b, walletID)
@@ -216,3 +218,5 @@ func TestUpdateKYCStatusPendingGuard(t *testing.T) {
 		})
 	}
 }
+
+func ptr(s kyc.Status) *kyc.Status { return &s }
