@@ -1,9 +1,6 @@
 go 1.25
 
-use ./go
-
-use ./local/scripts
-
 use (
-	./local/e2e-playwright
+	./go
+	./local/scripts
 )

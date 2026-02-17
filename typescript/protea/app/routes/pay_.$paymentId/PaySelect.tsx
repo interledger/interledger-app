@@ -72,14 +72,10 @@ export const PaySelect = forwardRef<HTMLInputElement, PayTextFieldProps>(
                 <input
                   ref={inputRef}
                   {...inputProps}
-                  data-testid='pay-amount-input'
                   className='w-full overflow-hidden border-none bg-transparent px-4 text-2xl focus:ring-0'
                 />
                 {linkedAccountOptions.length > 0 && (
-                  <Listbox.Button
-                    className='flex h-full items-center gap-x-2 bg-nav px-4 text-medium focus-visible:bg-nav-active focus-visible:outline-none'
-                    data-testid='pay-currency-select'
-                  >
+                  <Listbox.Button className='flex h-full items-center gap-x-2 bg-nav px-4 text-medium focus-visible:bg-nav-active focus-visible:outline-none'>
                     <Icon>{linkedAccount?.icon}</Icon>
                     {linkedAccount?.mask && <span>{linkedAccount?.mask}</span>}
                   </Listbox.Button>
@@ -102,9 +98,6 @@ export const PaySelect = forwardRef<HTMLInputElement, PayTextFieldProps>(
                     <Listbox.Option
                       key={index}
                       disabled={!option.enabled}
-                      data-testid='pay-currency-option'
-                      data-currency-code={option.sendCurrencyCode}
-                      data-currency-mask={option.mask}
                       className={({ active, disabled }) =>
                         clsx(
                           'relative flex h-12 select-none items-center gap-x-2 rounded-lg pl-4 pr-3',

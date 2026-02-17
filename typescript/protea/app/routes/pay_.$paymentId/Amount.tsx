@@ -373,13 +373,7 @@ export const Amount = () => {
         />
       </Card>
 
-      <Button
-        type='submit'
-        form='amount-form'
-        name='intent'
-        value='submit'
-        data-testid='pay-amount-continue'
-      >
+      <Button type='submit' form='amount-form' name='intent' value='submit'>
         Continue
       </Button>
     </>

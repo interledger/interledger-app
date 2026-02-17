@@ -377,6 +377,8 @@ func gatehubPayOut(ctx workflow.Context, a *Activity, paymentID, trxID, walletID
 		return "", false, err
 	}
 
+	logger := workflow.GetLogger(ctx)
+
 	// Webmonetization is assumed to be Interledger to Interledger
 	if pt != payments.TypePeer2Peer && pt != payments.TypeRafikiPeer2Peer && pt != payments.TypeWebMonetization {
 		return "", false, temporal.NewNonRetryableApplicationError("incorrect payment type for gatehub pay in flow", "InvalidArgument", gatehub.ErrInternal, "paymentID", paymentID, "type", pt)
@@ -385,31 +387,31 @@ func gatehubPayOut(ctx workflow.Context, a *Activity, paymentID, trxID, walletID
 	// Wait for gatehub completion, webhook or poll
 	var externalTransaction gatehub_external.Transaction
 	for {
-		workflow.GetLogger(ctx).Info("PayoutWorkflow gatehubPayOut entering selector loop", workflow.Now(ctx))
+		logger.Info("PayoutWorkflow gatehubPayOut entering selector loop", workflow.Now(ctx))
 		selector := workflow.NewSelector(ctx)
 
 		// Wait for 20 minutes to check the status or for the signal from the webhook
 		selector.AddFuture(workflow.NewTimer(ctx, 20*time.Minute), func(f workflow.Future) {
-			workflow.GetLogger(ctx).Info("Timer fired - 20 minutes elapsed")
+			logger.Info("Timer fired - 20 minutes elapsed")
 		})
 		selector.AddReceive(workflow.GetSignalChannel(ctx, gatehubNotifyChanName), func(c workflow.ReceiveChannel, more bool) {
-			workflow.GetLogger(ctx).Info("***SIGNAL RECEIVED*** on gatehub notify channel", workflow.Now(ctx))
+			logger.Info("***SIGNAL RECEIVED*** on gatehub notify channel", workflow.Now(ctx))
 			c.Receive(ctx, nil)
 		})
 
 		selector.Select(ctx)
-		workflow.GetLogger(ctx).Info("Selector completed - checking transaction status", workflow.Now(ctx))
+		logger.Info("Selector completed - checking transaction status", workflow.Now(ctx))
 
 		err = workflow.ExecuteActivity(ctx, a.GetGatehubTransfer, paymentID).Get(ctx, &externalTransaction)
 		if err != nil {
-			workflow.GetLogger(ctx).Error("GetGatehubTransfer activity failed", "error", err)
+			logger.Error("GetGatehubTransfer activity failed", "error", err)
 			return "", false, err
 		}
 
-		workflow.GetLogger(ctx).Info("Transaction status check", "status", externalTransaction.Status, "id", externalTransaction.ID)
+		logger.Info("Transaction status check", "status", externalTransaction.Status, "id", externalTransaction.ID)
 
 		if externalTransaction.Status == gatehub_external.TransactionStatusCompleted {
-			workflow.GetLogger(ctx).Info("Transaction completed - breaking polling loop")
+			logger.Info("Transaction completed - breaking polling loop")
 			break
 		} else if externalTransaction.Status == gatehub_external.TransactionStatusFailed {
 			return "", false, nil

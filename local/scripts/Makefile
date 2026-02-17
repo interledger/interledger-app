@@ -1,4 +1,4 @@
-.PHONY: build test coverage clean run install help
+.PHONY: build test coverage clean install help
 
 # Binary name
 BINARY=local-dev-tool
@@ -37,10 +37,6 @@ clean:
 run-rafiki:
 	go run main.go rafiki
 
-# Run with all assets (no UI)
-run-rafiki-all:
-	go run main.go rafiki --skip-ui
-
 # Install dependencies
 install:
 	@echo "Installing dependencies..."
@@ -48,19 +44,8 @@ install:
 	go mod tidy
 	@echo "✓ Dependencies installed"
 
-# Format code
-fmt:
-	@echo "Formatting code..."
-	go fmt ./...
-	@echo "✓ Code formatted"
-
-# Run linter (requires golangci-lint)
-lint:
-	@echo "Running linter..."
-	golangci-lint run ./...
-
 # Quick build and test
-all: install fmt test build
+all: install test build
 
 # Help
 help:
@@ -75,9 +60,6 @@ help:
 	@echo "  coverage-html   Generate and open HTML coverage report"
 	@echo "  clean           Remove build artifacts"
 	@echo "  run-rafiki      Run Rafiki setup (interactive)"
-	@echo "  run-rafiki-all  Run Rafiki setup (all assets, no UI)"
 	@echo "  install         Install dependencies"
-	@echo "  fmt             Format code"
-	@echo "  lint            Run linter (requires golangci-lint)"
-	@echo "  all             Install, format, test, and build"
+	@echo "  all             Install, test, and build"
 	@echo "  help            Show this help message"

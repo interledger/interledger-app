@@ -9,7 +9,11 @@ func NewRootCmd() *cobra.Command {
 		Use:   "local-dev-tool",
 		Short: "Local development environment management tool",
 		Long: `A TUI tool to manage the Interledger local development environment.
-Includes Rafiki setup/seeding and verification tools.`,
+Includes Rafiki setup/seeding and verification tools.
+
+Defaults:
+  KRATOS_DATABASE_URL=postgres://postgres:postgres@localhost:5432/kratos?sslmode=disable
+  KRATOS_ADMIN_URL=http://localhost:4434`,
 	}
 
 	rootCmd.AddCommand(NewRafikiCmd())

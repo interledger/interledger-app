@@ -125,7 +125,6 @@ export function CommandActions() {
         <Combobox.Input
           as={TextField}
           id='search'
-          data-testid='pay-search-input'
           autoFocus
           form='search-form'
           onBlur={(e) => {
@@ -155,9 +154,6 @@ export function CommandActions() {
                 value={result}
                 name='walletUrl'
                 type='button'
-                data-testid='pay-search-result'
-                data-wallet-url={result.walletUrl}
-                data-identifier={result.identifier}
                 className={({ active }) =>
                   clsx('items-center gap-x-3', active ? 'bg-nav-hover' : '')
                 }
@@ -167,7 +163,6 @@ export function CommandActions() {
                   value={result.walletUrl}
                   name='walletUrl'
                   type='hidden'
-                  data-testid='pay-search-result-wallet-url'
                 />
                 <div className='flex gap-x-3'>
                   {(result.identifierType == 'wallet' ||
