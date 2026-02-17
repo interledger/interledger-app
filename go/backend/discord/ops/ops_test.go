@@ -18,6 +18,7 @@ import (
 )
 
 func TestCreateAuthURL(t *testing.T) {
+	t.Skip("Discord is deprecated")
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	b := &TestBackends{
@@ -48,6 +49,7 @@ func TestCreateAuthURL(t *testing.T) {
 }
 
 func TestCreateToken(t *testing.T) {
+	t.Skip("Discord is deprecated")
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	b := &TestBackends{
