@@ -183,16 +183,9 @@ func (a *Activity) GetKYCStatus(ctx context.Context, walletID string) (kyc.Statu
 }
 
 func (a *Activity) UpdateKYCStatus(ctx context.Context, walletID string, status kyc.Status) error {
-	query := "INSERT INTO wallet_kyc_status (wallet_id, status) VALUES ($1, $2) ON CONFLICT (wallet_id) DO UPDATE SET status = excluded.status;"
-	args := []interface{}{walletID, status}
-	// Guard against a race where a delayed Pending update overwrites a higher KYC status.
-	// Only allow Pending to be written when the current status is Unknown or already Pending.
-	if status == kyc.StatusPending {
-		query = "INSERT INTO wallet_kyc_status (wallet_id, status) VALUES ($1, $2) ON CONFLICT (wallet_id) DO UPDATE SET status = excluded.status WHERE wallet_kyc_status.status IN ($3, $4);"
-		args = append(args, kyc.StatusUnknown, kyc.StatusPending)
-	}
-
-	_, err := a.b.DB().ExecContext(ctx, query, args...)
+	_, err := a.b.DB().ExecContext(ctx,
+		"INSERT INTO wallet_kyc_status (wallet_id, status) VALUES ($1, $2) ON CONFLICT (wallet_id) DO UPDATE SET status = excluded.status;",
+		walletID, status)
 	if err != nil {
 		return fmt.Errorf("%w %s", kyc.ErrInternal, err)
 	}
