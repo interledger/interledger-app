@@ -178,6 +178,15 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 		return sc.thatGatehubChargesDepositFee(feePercent)
 	})
 
+	// Withdrawal steps
+	ctx.Step(`^I navigate to the withdrawal page$`, func() error { return sc.iNavigateToTheWithdrawalPage() })
+	ctx.Step(`^I withdraw "([^"]*)" "([^"]*)" via the withdrawal iframe$`, func(amount, currency string) error {
+		return sc.iWithdrawViATheWithdrawalIframe(amount, currency)
+	})
+	ctx.Step(`^that Gatehub charges a ([0-9.]+)% withdrawal fee$`, func(feePercent string) error {
+		return sc.thatGatehubChargesWithdrawalFee(feePercent)
+	})
+
 	// P2P Payment steps
 	ctx.Step(`^I navigate to the dashboard$`, func() error { return sc.iNavigateToTheDashboard() })
 	ctx.Step(`^I should see my account balance with "([^"]*)" "([^"]*)"$`, func(amount, currency string) error {

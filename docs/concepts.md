@@ -13,8 +13,8 @@ graph TD
 
     User -->|owns| Wallet
 
-    Wallet -->|contains| LA1["Linked Account<br/>PTI · USD · balance"]
-    Wallet -->|contains| LA2["Linked Account<br/>Xago · ZAR · balance"]
+    Wallet -->|contains| LA1["Linked Account<br/>PTI · USD · balance<br/>ILP: ilp.example...USD"]
+    Wallet -->|contains| LA2["Linked Account<br/>Xago · ZAR · balance<br/>ILP: ilp.example...ZAR"]
     Wallet -->|contains| LA3["Linked Account<br/>PTI · bank account"]
 
     LA1 --> Provider1["PTI"]
@@ -30,7 +30,8 @@ graph TD
     style Provider2 fill:#4074a1,stroke:#33608a,color:#fff
 ```
 
-- Multiple currencies per wallet: **yes** (via linked accounts)
+- Multiple ILP addresses per wallet: **yes** (one per asset/currency)
+- Multiple currencies per wallet: **yes** (via linked accounts with separate ILP addresses)
 - Multiple providers per wallet: **yes**
 - Multiple wallets per user: **no**
 
@@ -38,7 +39,7 @@ graph TD
 
 | Term | Interledger App meaning | Notes |
 |------|------------------------|-------|
-| **Wallet** | The user's single financial account: one ILP address, one country, multiple linked accounts | GateHub "wallet" = XRPL address; PTI "wallet" = per-currency balance; Xago uses "SubAccount" |
+| **Wallet** | The user's single financial account: multiple ILP addresses (one per currency), one country, multiple linked accounts | GateHub "wallet" = XRPL address; PTI "wallet" = per-currency balance; Xago uses "SubAccount" |
 | **Linked Account** | Any external account connected to the wallet (balance, bank account, card, interac) | Each has one provider and one currency |
 | **User** | Identity & authentication (Kratos) — separate from the wallet | Keeps auth and financial data decoupled |
 | **Payment** | An intent to move money (P2P, deposit, withdrawal) — orchestrated asynchronously | Creates one or more Transactions |

@@ -50,7 +50,7 @@ services:
       - "traefik.http.services.backend.loadbalancer.server.port=8080"
 
     environment:
-      - LOG_LEVEL=debug
+      - LOG_LEVEL=info
       - ENV_FILE=
       - FYNBOS_ENV=local
 

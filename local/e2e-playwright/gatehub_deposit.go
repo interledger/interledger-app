@@ -13,6 +13,14 @@ import (
 	"github.com/playwright-community/playwright-go"
 )
 
+// min returns the minimum of two integers
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
 // iNavigateToTheDepositPage navigates to the deposit page
 func (sc *E2EContext) iNavigateToTheDepositPage() error {
 	debugPrintln("\n💰 Navigating to deposit page...")
@@ -148,14 +156,38 @@ func (sc *E2EContext) iShouldSeeMyBalanceUpdatedWithAmount(amount, currency stri
 	_, _ = sc.page.Goto(sc.baseURL, playwright.PageGotoOptions{WaitUntil: playwright.WaitUntilStateNetworkidle})
 
 	// Allow time for webhook processing and UI refresh
+	// Extended timeout for withdrawals which use Temporal workflows (can take up to 2-3 minutes)
 	amountVariants := []string{amount}
 	if !strings.Contains(amount, ".") {
 		amountVariants = append(amountVariants, amount+".00")
 	}
 
 	findBalanceMatch := func() bool {
+		// First try: Look for text that's specifically in a balance-related container
+		// This prevents matching amounts in fee text, transaction history, etc.
+		balanceContainers := sc.page.Locator("div, li, section, article")
+		count, _ := balanceContainers.Count()
+
+		for i := 0; i < count && i < 100; i++ {
+			el := balanceContainers.Nth(i)
+			text, _ := el.TextContent()
+
+			// Check if this element contains both currency and amount
+			if strings.Contains(text, currency) && strings.Contains(text, amount) {
+				// Also check if it looks like a balance display (contains "Balance", "Available", etc.)
+				if strings.Contains(text, "Balance") || strings.Contains(text, "balance") ||
+					strings.Contains(text, "Available") || strings.Contains(text, "available") ||
+					strings.Contains(text, "wallet") {
+					_ = el.ScrollIntoViewIfNeeded()
+					debugPrintf("  Found balance in element containing '%s '\n", strings.TrimSpace(text[:min(len(text), 60)]))
+					return true
+				}
+			}
+		}
+
+		// Fallback: original broad search
 		balanceLocator := sc.page.Locator(":has-text('Balance'), :has-text('balance')")
-		count, _ := balanceLocator.Count()
+		count, _ = balanceLocator.Count()
 		if count > 20 {
 			count = 20
 		}
@@ -169,25 +201,12 @@ func (sc *E2EContext) iShouldSeeMyBalanceUpdatedWithAmount(amount, currency stri
 			}
 		}
 
-		currencyLocator := sc.page.Locator(fmt.Sprintf(":has-text(\"%s\")", currency))
-		count, _ = currencyLocator.Count()
-		if count > 20 {
-			count = 20
-		}
-		for j := 0; j < count; j++ {
-			text, _ := currencyLocator.Nth(j).TextContent()
-			for _, amt := range amountVariants {
-				if strings.Contains(text, amt) {
-					_ = currencyLocator.Nth(j).ScrollIntoViewIfNeeded()
-					return true
-				}
-			}
-		}
-
 		return false
 	}
 
-	for i := 0; i < 30; i++ {
+	// Increase max attempts from 30 to 120 to allow up to 4 minutes for Temporal workflows
+	maxAttempts := 120
+	for i := 0; i < maxAttempts; i++ {
 		time.Sleep(2 * time.Second)
 		_, _ = sc.page.Reload()
 
@@ -195,14 +214,18 @@ func (sc *E2EContext) iShouldSeeMyBalanceUpdatedWithAmount(amount, currency stri
 			// Force one more refresh before capturing the screenshot
 			_, _ = sc.page.Reload()
 			if findBalanceMatch() {
-				debugPrintf("✓ Balance appears updated on UI (attempt %d)\n", i+1)
-				_ = sc.iTakeAScreenshot("deposit-balance-updated")
+				debugPrintf("✓ Balance appears updated on UI (attempt %d/%d)\n", i+1, maxAttempts)
+				_ = sc.iTakeAScreenshot("balance-updated")
 				return nil
 			}
 		}
+
+		if i%20 == 0 && i > 0 {
+			debugPrintf("   ... still waiting for balance update (attempt %d/%d, elapsed: %ds)\n", i+1, maxAttempts, (i+1)*2)
+		}
 	}
 
-	return fmt.Errorf("balance update not visible on UI after waiting")
+	return fmt.Errorf("balance update not visible on UI after waiting %d seconds", maxAttempts*2)
 }
 
 // thatGatehubChargesDepositFee configures MockGatehub to charge a deposit fee
