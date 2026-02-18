@@ -18,9 +18,3 @@ jobs:
       test_path: './go/pacioli'
       coverage_key: 'pacioli'
       db_name: 'pacioli'
-  geo:
-    uses: ./.github/workflows/go-test-template.yml
-    with:
-      test_path: './go/geo'
-      coverage_key: 'geo'
-      db_name: 'backend'

@@ -19,8 +19,6 @@ services:
       - "4434:4434"  # Admin
     environment:
       - DSN=postgres://postgres:postgres@postgres:5432/kratos?sslmode=disable
-      - LOG_LEVEL=debug
-      - LOG_LEAK_SENSITIVE_VALUES=true
     command: serve -c /etc/config/kratos/kratos.yml --dev
     volumes:
       - ./config:/etc/config/kratos
