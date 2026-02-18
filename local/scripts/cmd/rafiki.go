@@ -13,6 +13,7 @@ import (
 func NewRafikiCmd() *cobra.Command {
 	var skipUI bool
 	var selectedAssets []string
+	var waitForReady int
 
 	cmd := &cobra.Command{
 		Use:   "rafiki",
@@ -20,6 +21,15 @@ func NewRafikiCmd() *cobra.Command {
 		Long:  `Setup and seed Rafiki backend with currency assets and initial liquidity.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg := rafiki.LoadConfig()
+
+			// Wait for Rafiki to be ready if requested
+			if waitForReady > 0 {
+				fmt.Printf("Waiting for Rafiki at %s (timeout: %ds)\n", cfg.GraphQLEndpoint, waitForReady)
+				if err := rafiki.WaitForReady(cfg, waitForReady); err != nil {
+					return fmt.Errorf("failed to connect to Rafiki: %w", err)
+				}
+				fmt.Println("✅ Rafiki is ready")
+			}
 
 			var assetsToCreate []rafiki.Asset
 			if len(selectedAssets) > 0 {
@@ -71,6 +81,7 @@ func NewRafikiCmd() *cobra.Command {
 
 	cmd.Flags().BoolVar(&skipUI, "skip-ui", false, "Skip interactive UI and create all assets")
 	cmd.Flags().StringSliceVar(&selectedAssets, "assets", []string{}, "Comma-separated list of asset codes (e.g., USD,EUR,GBP)")
+	cmd.Flags().IntVar(&waitForReady, "wait-for-ready", 0, "Wait for Rafiki to be ready (in seconds, e.g., 120)")
 
 	return cmd
 }
