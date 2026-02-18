@@ -634,38 +634,6 @@ func (sc *E2EContext) iFillInTheReceiverWalletAddress() error {
 	return fmt.Errorf("receiver wallet address not found in search results")
 }
 
-// iWaitSecondsForThePaymentToComplete waits for specified seconds for payment to complete
-func (sc *E2EContext) iWaitSecondsForThePaymentToComplete(seconds string) error {
-	secondsInt := parseSeconds(seconds)
-	debugPrintf("\n⏳ Waiting %d seconds for payment to complete...\n", secondsInt)
-
-	for i := 0; i < secondsInt; i++ {
-		time.Sleep(1 * time.Second)
-		if i%2 == 0 {
-			debugPrintf("   Waiting... (%d/%d seconds)\n", i+1, secondsInt)
-		}
-	}
-
-	debugPrintln("✓ Payment wait period complete")
-	return nil
-}
-
-// iWaitSecondsForTheDepositToProcess waits for specified seconds for deposit to process
-func (sc *E2EContext) iWaitSecondsForTheDepositToProcess(seconds string) error {
-	secondsInt := parseSeconds(seconds)
-	debugPrintf("\n⏳ Waiting %d seconds for deposit to process...\n", secondsInt)
-
-	for i := 0; i < secondsInt; i++ {
-		time.Sleep(1 * time.Second)
-		if i%2 == 0 {
-			debugPrintf("   Waiting... (%d/%d seconds)\n", i+1, secondsInt)
-		}
-	}
-
-	debugPrintln("✓ Deposit wait period complete")
-	return nil
-}
-
 // iShouldSeeThePaymentInMyTransactionHistory verifies payment appears in history
 func (sc *E2EContext) iShouldSeeThePaymentInMyTransactionHistory() error {
 	debugPrintln("\n📜 Verifying payment appears in transaction history...")

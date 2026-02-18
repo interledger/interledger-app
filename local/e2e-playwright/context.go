@@ -25,7 +25,6 @@ type E2EContext struct {
 	baseURL     string
 	email       string
 	password    string
-	phone       string // Store random phone number
 	firstName   string
 	lastName    string
 	country     string
@@ -309,70 +308,4 @@ func (sc *E2EContext) getKratosUserIDByEmail(email string) string {
 
 	debugPrintf("   - No Kratos identity found for %s\n", email)
 	return ""
-}
-
-func (sc *E2EContext) deleteKratosIdentityByEmail(email string) error {
-	kratosAdminURL := os.Getenv("KRATOS_ADMIN_URL")
-	if kratosAdminURL == "" {
-		kratosAdminURL = "http://localhost:4434"
-	}
-
-	client := &http.Client{Timeout: 30 * time.Second}
-	listReq, err := http.NewRequestWithContext(context.Background(), "GET", kratosAdminURL+"/admin/identities", nil)
-	if err != nil {
-		return fmt.Errorf("deleteKratosIdentityByEmail: failed to build request: %w", err)
-	}
-
-	debugPrintf("→ GET %s/admin/identities\n", kratosAdminURL)
-	listResp, err := client.Do(listReq)
-	if err != nil {
-		return fmt.Errorf("deleteKratosIdentityByEmail: request error: %w", err)
-	}
-	defer listResp.Body.Close()
-
-	if listResp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(listResp.Body)
-		return fmt.Errorf("failed to list identities: status %d: %s", listResp.StatusCode, string(body))
-	}
-
-	var identities []kratosIdentity
-	if err := json.NewDecoder(listResp.Body).Decode(&identities); err != nil {
-		return fmt.Errorf("deleteKratosIdentityByEmail: decode error: %w", err)
-	}
-
-	var identityID string
-	for _, identity := range identities {
-		traits := identity.Traits
-		if v, ok := traits["email"]; ok {
-			if s, ok2 := v.(string); ok2 && s == email {
-				identityID = identity.ID
-				break
-			}
-		}
-	}
-
-	if identityID == "" {
-		debugPrintf("   - No Kratos identity to delete for %s\n", email)
-		return nil // Identity not found, nothing to delete
-	}
-
-	deleteReq, err := http.NewRequestWithContext(context.Background(), "DELETE", kratosAdminURL+"/admin/identities/"+identityID, nil)
-	if err != nil {
-		return fmt.Errorf("deleteKratosIdentityByEmail: failed to build delete request: %w", err)
-	}
-
-	debugPrintf("→ DELETE %s/admin/identities/%s\n", kratosAdminURL, identityID)
-	deleteResp, err := client.Do(deleteReq)
-	if err != nil {
-		return fmt.Errorf("deleteKratosIdentityByEmail: delete request error: %w", err)
-	}
-	defer deleteResp.Body.Close()
-
-	if deleteResp.StatusCode != http.StatusNoContent && deleteResp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(deleteResp.Body)
-		return fmt.Errorf("failed to delete identity: status %d: %s", deleteResp.StatusCode, string(body))
-	}
-
-	debugPrintf("   ✓ Deleted Kratos identity id=%s for email=%s\n", identityID, email)
-	return nil
 }
