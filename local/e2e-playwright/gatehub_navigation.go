@@ -68,6 +68,7 @@ func (sc *E2EContext) iNavigateToTheSignupPage() error {
 		if err != nil {
 			return fmt.Errorf("failed to start playwright: %w", err)
 		}
+		sc.pw = pw
 
 		browser, err := pw.Chromium.Launch()
 		if err != nil {

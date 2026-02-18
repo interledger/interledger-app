@@ -18,6 +18,7 @@ import (
 
 // E2EContext holds the test context for signup scenarios
 type E2EContext struct {
+	pw          *playwright.Playwright
 	browser     playwright.Browser
 	context     playwright.BrowserContext
 	page        playwright.Page
@@ -73,6 +74,9 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 		}
 		if sc.browser != nil {
 			_ = sc.browser.Close()
+		}
+		if sc.pw != nil {
+			_ = sc.pw.Stop()
 		}
 		if sc.db != nil {
 			_ = sc.db.Close()
