@@ -96,24 +96,26 @@ services:
       - ALLOWED_WALLET_IDS=
       - BLOCKED_REGIONS=
 
-      - GATEHUB_APP_ID=
-      - GATEHUB_SECRET=
-      - GATEHUB_CARD_APP_ID=
+      - GATEHUB_API_BASE_URL=http://mockgatehub:8080
+      - GATEHUB_APP_ID=local-test-app-id
+      - GATEHUB_SECRET=local-test-app-secret
+      - GATEHUB_CARD_APP_ID=local-test-card-app-id
       - GATEHUB_GATEWAY_ID=b18965b5-8bb0-486e-88b2-7be47b974ac1
       - GATEHUB_CARD_ACCOUNT_PRODUCT_CODE=PWSR_DEBP_2404
-      - GATEHUB_WEBHOOK_SECRET=
-      - GATEHUB_PAYWISER_EURO_VAULT_ID=
-      - GATEHUB_FALLBACK_WEBHOOK_URL=
+      - GATEHUB_WEBHOOK_SECRET=${GATEHUB_WEBHOOK_SECRET:-6d6f636b5f776562686f6f6b5f736563726574}
+      - GATEHUB_PAYWISER_EURO_VAULT_ID=a09a0a2c-1a3a-44c5-a1b9-603a6eea9341
+      - GATEHUB_SENDING_USER_ID=test-sending-user-id
+      - GATEHUB_SENDING_USER_ADDRESS=rN7n7otQDd6FczFgLdVZGMbpKRtFVfT4hb
 
       # Gatehub Sandbox Client IDs (default values)
       - GATEHUB_ON_OFF_RAMP_CLIENT_ID=f8119dfd-e563-44ee-9ae2-1e60a4fce74f
       - GATEHUB_ONBOARDING_CLIENT_ID=4df24d1b-5796-4eec-951b-21699d61b970
       - GATEHUB_EXCHANGE_CLIENT_ID=4e28d4df-22d7-414c-97a3-d71956df29ba
 
-      # Gatehub Sandbox API URLs
-      - GATEHUB_API_BASE_URL=https://api.sandbox.gatehub.net
-      - GATEHUB_ONBOARDING_BASE_URL=https://onboarding.sandbox.gatehub.net
-      - GATEHUB_ON_OFF_RAMP_BASE_URL=https://managed-ramp.sandbox.gatehub.net
+      # Gatehub MockGatehub API URLs (local development)
+      # Note: Use public Traefik URLs for iframe endpoints (accessed by browser)
+      - GATEHUB_ONBOARDING_BASE_URL=https://mockgatehub.interledger.test/iframe/onboarding
+      - GATEHUB_ON_OFF_RAMP_BASE_URL=https://mockgatehub.interledger.test
 
       # Gatehub EUR Operations Account and Ledger
       - GATEHUB_EUR_OPS_ACCOUNT=1854f171-eafa-4e30-bf66-7dbfe167ccfa
@@ -135,3 +137,4 @@ services:
 
     depends_on:
       - migration
+      - mockgatehub
