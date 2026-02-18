@@ -10,7 +10,8 @@ import (
 )
 
 var (
-	tags = flag.String("tags", "", "Godog tags expression, e.g. @wip or @phone-debug")
+	tags        = flag.String("tags", "", "Godog tags expression, e.g. @wip or @phone-debug")
+	concurrency = flag.Int("concurrency", 1, "Number of concurrent scenarios (default: 1)")
 )
 
 // cleanupDebugScreenshots removes all PNG files from the debug directory
@@ -44,10 +45,11 @@ func TestFeatures(t *testing.T) {
 	suite := godog.TestSuite{
 		ScenarioInitializer: InitializeScenario,
 		Options: &godog.Options{
-			Format:   "pretty",
-			Paths:    []string{"features"},
-			TestingT: t,
-			Tags:     *tags,
+			Format:      "pretty",
+			Paths:       []string{"features"},
+			TestingT:    t,
+			Tags:        *tags,
+			Concurrency: *concurrency,
 		},
 	}
 

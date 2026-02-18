@@ -4,6 +4,9 @@
 
 Cucumber is a behavior-driven development (BDD) tool that lets you write tests in plain language using Gherkin syntax. Instead of writing test code directly, you describe what the application should do in `.feature` files. These files bridge the gap between stakeholders and developers by making tests readable to everyone.
 
+## Important detail
+In order to be able to run tests in parralel, it is critical to design all tests to be completely independent of each other. Otherwise running tests become unfeasible.
+
 **How it works here:**
 
 1. **Feature files** (`.feature`) contain human-readable test scenarios written in Gherkin
@@ -81,13 +84,12 @@ go test -v -timeout 10m -args -tags "not @wip"
 ```
 
 Available tags in feature files:
-- `@signuponly` – User registration flow
+- `@signup` – User registration flow
 - `@kyc` – KYC verification (identity verification)
 - `@deposit` – Deposit transactions
 - `@p2p` – Peer-to-peer payments
-- `@wip` – Work in progress (skipped by default)
+- `@wip` or `@skip` – Work in progress (skipped by default)
 - `@phone-debug` – Phone number validation debugging
-- `@debug` – Debug mode tests
 
 ### Running with Debug Output
 
