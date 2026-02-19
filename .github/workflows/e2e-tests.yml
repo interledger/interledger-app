@@ -100,13 +100,18 @@ jobs:
       cancel-in-progress: true
 
     steps:
-      - name: Remove if exists
-        run: sudo rm -rf /home/runner/actions-runner/_work/interledger-app/interledger-app
+      - name: Fix workspace ownership
+        run: sudo chown -R "$(id -u):$(id -g)" "$GITHUB_WORKSPACE"
 
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          clean: true
+
+      - name: Clean workspace
+        run: |
+          git clean -ffdx
 
       - name: Login to GHCR (private images)
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
