@@ -244,7 +244,7 @@ jobs:
 
       - name: Start application
         working-directory: local
-        run: docker compose --profile application up -d
+        run: make all-nowatch
 
       - name: Wait for application
         working-directory: local
