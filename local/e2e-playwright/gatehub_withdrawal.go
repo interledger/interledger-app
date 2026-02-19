@@ -112,10 +112,10 @@ func (sc *E2EContext) thatGatehubChargesWithdrawalFee(feePercent string) error {
 		return fmt.Errorf("failed to get current user email: %w", err)
 	}
 
-	// Get the GateHub wallet ID for this user
-	gatehubWalletID, err := sc.getGatehubWalletIDByEmail(email)
+	// Get the GateHub managed user ID for this user
+	gatehubUserID, err := sc.getGatehubUserIDByEmail(email)
 	if err != nil {
-		return fmt.Errorf("failed to get GateHub wallet ID for user %s: %w", email, err)
+		return fmt.Errorf("failed to get GateHub user ID for user %s: %w", email, err)
 	}
 
 	// Parse fee percentage
@@ -126,7 +126,7 @@ func (sc *E2EContext) thatGatehubChargesWithdrawalFee(feePercent string) error {
 	}
 
 	// Call MockGatehub's /admin/users/{userId}/fees endpoint
-	url := fmt.Sprintf("https://mockgatehub.interledger.test/admin/users/%s/fees", gatehubWalletID)
+	url := fmt.Sprintf("https://mockgatehub.interledger.test/admin/users/%s/fees", gatehubUserID)
 	payload := map[string]interface{}{
 		"withdrawal_fee_percentage": feePct,
 	}
@@ -159,9 +159,9 @@ func (sc *E2EContext) thatGatehubChargesWithdrawalFee(feePercent string) error {
 
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNoContent {
 		body, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("MockGatehub /admin/users/%s/fees returned status %d: %s", gatehubWalletID, resp.StatusCode, string(body))
+		return fmt.Errorf("MockGatehub /admin/users/%s/fees returned status %d: %s", gatehubUserID, resp.StatusCode, string(body))
 	}
 
-	debugPrintf("✓ MockGatehub user-specific withdrawal fee configured to %s%% for wallet ID: %s\n", feePercent, gatehubWalletID)
+	debugPrintf("✓ MockGatehub user-specific withdrawal fee configured to %s%% for user ID: %s\n", feePercent, gatehubUserID)
 	return nil
 }

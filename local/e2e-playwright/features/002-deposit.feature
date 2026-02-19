@@ -18,13 +18,13 @@ Feature: Deposit Funds
       | dateOfBirth     | 1984-06-27                   |
     And I complete the minimal KYC flow `deposit-user`
 
-  @deposit
+  @deposit @gatehub
   Scenario: Successfully deposit 100 EUR into wallet
     When I navigate to the deposit page
     And I deposit "100" "EUR" via the deposit iframe
     Then I should see my balance updated with "100" "EUR"
 
-  @deposit
+  @deposit @fees @gatehub
   Scenario: Successfully deposit 100 EUR into wallet with 1% fee
     Given that Gatehub charges my user a 1% deposit fee
     When I navigate to the deposit page

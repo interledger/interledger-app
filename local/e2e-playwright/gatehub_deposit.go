@@ -204,8 +204,7 @@ func (sc *E2EContext) iShouldSeeMyBalanceUpdatedWithAmount(amount, currency stri
 		return false
 	}
 
-	// Increase max attempts from 30 to 120 to allow up to 4 minutes for Temporal workflows
-	maxAttempts := 120
+	maxAttempts := 30
 	for i := 0; i < maxAttempts; i++ {
 		time.Sleep(2 * time.Second)
 		_, _ = sc.page.Reload()
@@ -238,10 +237,10 @@ func (sc *E2EContext) thatGatehubChargesDepositFee(feePercent string) error {
 		return fmt.Errorf("failed to get current user email: %w", err)
 	}
 
-	// Get the GateHub wallet ID for this user
-	gatehubWalletID, err := sc.getGatehubWalletIDByEmail(email)
+	// Get the GateHub managed user ID for this user
+	gatehubUserID, err := sc.getGatehubUserIDByEmail(email)
 	if err != nil {
-		return fmt.Errorf("failed to get GateHub wallet ID for user %s: %w", email, err)
+		return fmt.Errorf("failed to get GateHub user ID for user %s: %w", email, err)
 	}
 
 	// Convert feePercent string to float64
@@ -252,7 +251,7 @@ func (sc *E2EContext) thatGatehubChargesDepositFee(feePercent string) error {
 
 	// Call MockGatehub's /admin/users/{userId}/fees endpoint to set user-specific deposit fee
 	mockgatehubURL := "https://mockgatehub.interledger.test"
-	feeEndpoint := fmt.Sprintf("%s/admin/users/%s/fees", mockgatehubURL, gatehubWalletID)
+	feeEndpoint := fmt.Sprintf("%s/admin/users/%s/fees", mockgatehubURL, gatehubUserID)
 
 	// Create the request payload with numeric fee value
 	payload := map[string]interface{}{
@@ -288,9 +287,9 @@ func (sc *E2EContext) thatGatehubChargesDepositFee(feePercent string) error {
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("MockGatehub /admin/users/%s/fees returned status %d: %s", gatehubWalletID, resp.StatusCode, string(body))
+		return fmt.Errorf("MockGatehub /admin/users/%s/fees returned status %d: %s", gatehubUserID, resp.StatusCode, string(body))
 	}
 
-	debugPrintf("✓ MockGatehub user-specific deposit fee configured to %s%% for wallet ID: %s\n", feePercent, gatehubWalletID)
+	debugPrintf("✓ MockGatehub user-specific deposit fee configured to %s%% for user ID: %s\n", feePercent, gatehubUserID)
 	return nil
 }

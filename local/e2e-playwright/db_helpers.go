@@ -102,3 +102,42 @@ func (sc *E2EContext) getGatehubWalletIDByEmail(email string) (string, error) {
 	debugPrintf("   ✓ Found GateHub wallet ID: %s\n", gateHubWalletID)
 	return gateHubWalletID, nil
 }
+
+// getGatehubUserIDByEmail fetches the GateHub managed user ID (external_id) for a user by email.
+// It queries the gatehub_users table using the user's wallet associations.
+func (sc *E2EContext) getGatehubUserIDByEmail(email string) (string, error) {
+	if sc.db == nil {
+		connStr := "host=localhost port=5432 user=postgres password=postgres dbname=backend sslmode=disable"
+		db, err := sql.Open("postgres", connStr)
+		if err != nil {
+			return "", fmt.Errorf("getGatehubUserIDByEmail: failed to open db: %w", err)
+		}
+		sc.db = db
+	}
+
+	kratosID := sc.getKratosUserIDByEmail(email)
+	if kratosID == "" {
+		return "", fmt.Errorf("getGatehubUserIDByEmail: could not resolve kratos user id for %s", email)
+	}
+
+	debugPrintf("   📋 Looking up GateHub user ID for email: %s (kratos ID: %s)\n", email, kratosID)
+
+	var gatehubUserID string
+	err := sc.db.QueryRow(`
+		SELECT gu.external_id
+		FROM gatehub_users gu
+		JOIN user_wallets uw ON uw.wallet_id = gu.wallet_id
+		WHERE uw.user_id = $1
+		LIMIT 1
+	`, kratosID).Scan(&gatehubUserID)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", fmt.Errorf("getGatehubUserIDByEmail: no GateHub user found for %s", email)
+		}
+		return "", fmt.Errorf("getGatehubUserIDByEmail: database error: %w", err)
+	}
+
+	debugPrintf("   ✓ Found GateHub user ID: %s\n", gatehubUserID)
+	return gatehubUserID, nil
+}
