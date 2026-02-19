@@ -119,9 +119,9 @@ jobs:
           set -e
           sudo make hosts
           make certs
-          rm -rf "$HOME/.pki/nssdb"
           mkdir -p "$HOME/.pki/nssdb"
           certutil -d sql:"$HOME/.pki/nssdb" -N --empty-password
+          certutil -d sql:"$HOME/.pki/nssdb" -A -t "C,," -n "interledger.test" -i config/certs/local.crt
           sudo make trust-debian
 
       - name: Install Playwright browsers

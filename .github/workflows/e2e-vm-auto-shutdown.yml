@@ -3,7 +3,7 @@ name: E2E VM Auto-Shutdown
 
 on:
   schedule:
-    - cron: '*/60 * * * *'  # Check every 60 minutes
+    - cron: '0 * * * *'  # Check every hour
   workflow_dispatch:
 
 jobs:
