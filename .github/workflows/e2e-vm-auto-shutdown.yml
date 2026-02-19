@@ -1,0 +1,83 @@
+# .github/workflows/e2e-vm-auto-shutdown.yml
+name: E2E VM Auto-Shutdown
+
+on:
+  schedule:
+    - cron: '*/60 * * * *'  # Check every 60 minutes
+  workflow_dispatch:
+
+jobs:
+  check-and-shutdown:
+    runs-on: ubuntu-latest
+    environment: e2e-tester
+    
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GSA }}
+      
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ vars.PROJECT_ID }}
+      
+      - name: Check runner status and shutdown if idle
+        env:
+          VM_NAME: ${{ vars.INSTANCE_NAME }}
+          PROJECT_ID: ${{ vars.PROJECT_ID }}
+          VM_ZONE: ${{ vars.ZONE }}
+        run: |
+          # Check if VM is running
+          STATUS=$(gcloud compute instances describe "$VM_NAME" \
+            --zone="$VM_ZONE" \
+            --project="$PROJECT_ID" \
+            --format="value(status)" 2>/dev/null || echo "NOT_FOUND")
+          
+          if [ "$STATUS" != "RUNNING" ]; then
+            echo "VM not running, nothing to do"
+            exit 0
+          fi
+          
+          # Check for queued/in-progress e2e jobs
+          PENDING=$(gh run list \
+            --workflow="e2e-tests.yml" \
+            --status="queued,in_progress" \
+            --json status \
+            --jq 'length')
+          
+          if [ "$PENDING" -gt 0 ]; then
+            echo "✅ Found $PENDING active/pending jobs. Keeping VM running."
+            exit 0
+          fi
+          
+          # Get last successful run timestamp
+          LAST_RUN=$(gh run list \
+            --workflow="e2e-tests.yml" \
+            --status="completed" \
+            --limit 1 \
+            --json updatedAt \
+            --jq '.[0].updatedAt' 2>/dev/null)
+          
+          if [ -z "$LAST_RUN" ]; then
+            echo "No completed runs found yet"
+            exit 0
+          fi
+          
+          # Calculate idle time (in seconds)
+          NOW=$(date +%s)
+          LAST=$(date -d "$LAST_RUN" +%s)
+          IDLE=$((NOW - LAST))
+          IDLE_MINUTES=$((IDLE / 60))
+          
+          echo "Last job: $IDLE_MINUTES minutes ago"
+          
+          if [ "$IDLE_MINUTES" -ge 60 ]; then
+            echo "🛑 VM idle for $IDLE_MINUTES minutes. Shutting down..."
+            gcloud compute instances stop "$VM_NAME" \
+              --zone="$VM_ZONE" \
+              --project="$PROJECT_ID"
+            echo "✅ VM stopped"
+          else
+            echo "⏳ VM still within 60-minute window ($IDLE_MINUTES minutes). Keeping running."
+          fi
