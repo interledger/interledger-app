@@ -117,6 +117,10 @@ jobs:
         working-directory: local
         run: |
           set -e
+
+          sudo apt-get update
+          sudo apt-get install -y netcat-openbsd libnss3-tools
+
           sudo make hosts
           make certs HEADLESS=1
           rm -rf "$HOME/.pki/nssdb"
