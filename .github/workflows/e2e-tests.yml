@@ -187,6 +187,13 @@ jobs:
           docker container prune -f
           docker volume prune -f
 
+      - name: Upload screenshots to artifacts always
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: e2e-screenshots
+          path: local/e2e-playwright/debug
+
       - name: Dump docker logs to artifacts if tests failed
         if: failure()
         working-directory: local
@@ -194,5 +201,5 @@ jobs:
           mkdir -p $GITHUB_WORKSPACE/logs
           for container in $(docker compose ps --format json | jq -r '.[].Name'); do
             docker logs "$container" > "$GITHUB_WORKSPACE/logs/$container.log" 2>&1 || true
-          fi
+          done
         continue-on-error: true
