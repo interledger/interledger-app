@@ -108,11 +108,12 @@ jobs:
       - name: Configure local hosts and certs
         working-directory: local
         run: |
-          make hosts
+          set -e
+          sudo make hosts
           make certs
           mkdir -p "$HOME/.pki/nssdb"
           certutil -d sql:"$HOME/.pki/nssdb" -N --empty-password
-          make trust-debian
+          sudo make trust-debian
 
       - name: Install Playwright browsers
         working-directory: local/e2e-playwright
