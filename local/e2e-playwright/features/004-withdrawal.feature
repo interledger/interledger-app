@@ -6,6 +6,7 @@ Feature: Withdraw Funds
   Background:
     Given a random test identifier is generated
     And the frontend is running at "https://interledger.test"
+    And mockgatehub is running at "https://mockgatehub.interledger.test"
     And Rafiki assets are seeded
     Given the details of 'withdrawal-user' are
       | field           | value                        |

@@ -232,7 +232,7 @@ jobs:
 
       - name: Run e2e tests
         working-directory: local/e2e-playwright
-        run: go test -v -timeout 20m -args -debug=false -concurrency=8
+        run: go test -v -timeout 20m
 
       - name: Export Docker images for cache
         if: always() && steps.docker-cache.outputs.cache-hit != 'true'

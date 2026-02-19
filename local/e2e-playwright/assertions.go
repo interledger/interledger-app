@@ -57,8 +57,8 @@ func (sc *E2EContext) aSignupRecordShouldExistInTheDatabase(email string) error 
 	// Check if email is already prefixed (starts with testEmailPrefix)
 	// If not, prefix it
 	prefixedEmail := email
-	if sc.testEmailPrefix != "" && !strings.HasPrefix(email, sc.testEmailPrefix+"-") {
-		prefixedEmail = fmt.Sprintf("%s-%s", sc.testEmailPrefix, email)
+	if sc.testIdentifier != "" && !strings.HasPrefix(email, sc.testIdentifier+"-") {
+		prefixedEmail = fmt.Sprintf("%s-%s", sc.testIdentifier, email)
 	}
 
 	var id, countryCode string
@@ -192,8 +192,8 @@ func (sc *E2EContext) iTriggerUserVerificationFor(email string) error {
 	// Check if email is already prefixed (starts with testEmailPrefix)
 	// If not, prefix it
 	prefixedEmail := email
-	if sc.testEmailPrefix != "" && !strings.HasPrefix(email, sc.testEmailPrefix+"-") {
-		prefixedEmail = fmt.Sprintf("%s-%s", sc.testEmailPrefix, email)
+	if sc.testIdentifier != "" && !strings.HasPrefix(email, sc.testIdentifier+"-") {
+		prefixedEmail = fmt.Sprintf("%s-%s", sc.testIdentifier, email)
 	}
 
 	kratosAdminURL := os.Getenv("KRATOS_ADMIN_URL")

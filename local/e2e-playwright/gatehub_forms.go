@@ -39,7 +39,7 @@ func (sc *E2EContext) iFillInPhoneWithRandomNumber(prefix string) error {
 	base := "+491700000000"
 
 	// Create a unique overlay combining test prefix and email hash
-	overlay := sc.testEmailPrefix
+	overlay := sc.testIdentifier
 	if emailSuffix != "" {
 		// Extract the part before @ to get unique username (e.g., "sender-p2p" from "sender-p2p@example.com")
 		emailParts := strings.Split(emailSuffix, "@")
@@ -147,7 +147,7 @@ func (sc *E2EContext) iFillInWith(fieldName, value string) error {
 		})
 	case "email":
 		// Prefix email with random test identifier (avoid double prefix)
-		prefix := fmt.Sprintf("%s-", sc.testEmailPrefix)
+		prefix := fmt.Sprintf("%s-", sc.testIdentifier)
 		if !strings.HasPrefix(value, prefix) {
 			value = fmt.Sprintf("%s%s", prefix, value)
 		}

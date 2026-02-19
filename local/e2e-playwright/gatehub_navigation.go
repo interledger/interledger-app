@@ -198,7 +198,7 @@ func (sc *E2EContext) iShouldBeOnStep(step int) error {
 func (sc *E2EContext) iTakeAScreenshot(name string) error {
 	os.MkdirAll("./debug", 0755)
 	sc.screenshotCount++
-	path := fmt.Sprintf("./debug/%s-%02d-%s.png", sc.testEmailPrefix, sc.screenshotCount, name)
+	path := fmt.Sprintf("./debug/%s-%02d-%s.png", sc.testIdentifier, sc.screenshotCount, name)
 	_, err := sc.page.Screenshot(playwright.PageScreenshotOptions{
 		Path: playwright.String(path),
 	})

@@ -229,7 +229,7 @@ func (sc *E2EContext) iFillInTheReceiverEmailWith(userName string) error {
 	}
 
 	// Construct full email with test prefix
-	email := fmt.Sprintf("%s-%s", sc.testEmailPrefix, emailSuffix)
+	email := fmt.Sprintf("%s-%s", sc.testIdentifier, emailSuffix)
 	debugPrintf("   Receiver email: %s\n", email)
 
 	// Find and fill the email input field
@@ -543,7 +543,7 @@ func (sc *E2EContext) iGetTheReceiverWalletAddressFor(userName string) error {
 	}
 
 	// Construct the full email address
-	walletIdentifier := fmt.Sprintf("%s-%s", sc.testEmailPrefix, emailSuffix)
+	walletIdentifier := fmt.Sprintf("%s-%s", sc.testIdentifier, emailSuffix)
 
 	// Store for use in next step
 	sc.receiverWalletAddress = walletIdentifier

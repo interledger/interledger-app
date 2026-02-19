@@ -19,8 +19,8 @@ func (sc *E2EContext) iFillInLoginCredentials(email, password string) error {
 	// Check if email is already prefixed (starts with testEmailPrefix)
 	// If not, prefix it
 	prefixedEmail := email
-	if sc.testEmailPrefix != "" && !strings.HasPrefix(email, sc.testEmailPrefix+"-") {
-		prefixedEmail = fmt.Sprintf("%s-%s", sc.testEmailPrefix, email)
+	if sc.testIdentifier != "" && !strings.HasPrefix(email, sc.testIdentifier+"-") {
+		prefixedEmail = fmt.Sprintf("%s-%s", sc.testIdentifier, email)
 	}
 
 	// Wait for page to load and be interactive

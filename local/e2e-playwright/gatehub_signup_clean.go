@@ -33,7 +33,7 @@ func (sc *E2EContext) iFillInWithUniqueGermanPhoneNumber(fieldName string) error
 
 	// Generate deterministic test phone using base +491700000000 and overlay test identifier + email hash
 	base := "+491700000000"
-	overlay := sc.testEmailPrefix
+	overlay := sc.testIdentifier
 
 	if emailSuffix != "" {
 		// Extract the part before @ to get unique username (e.g., "sender-p2p" from "sender-p2p@example.com")
@@ -195,7 +195,7 @@ func (sc *E2EContext) iCompletedTheSignupWorkflow() error {
 func (sc *E2EContext) iFillInTheLoginFormWithMyDetails() error {
 	if sc.email == "" {
 		if value, err := sc.getFieldValue("emailSuffix"); err == nil && value != "" {
-			sc.email = fmt.Sprintf("%s-%s", sc.testEmailPrefix, value)
+			sc.email = fmt.Sprintf("%s-%s", sc.testIdentifier, value)
 		}
 	}
 	if sc.password == "" {

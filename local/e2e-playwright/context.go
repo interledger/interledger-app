@@ -2,13 +2,16 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/cucumber/godog"
@@ -43,7 +46,7 @@ type E2EContext struct {
 	currentStep     int
 	signupID        string
 	passwordFilled  bool   // Track if password was successfully filled
-	testEmailPrefix string // Random prefix for test emails to ensure uniqueness
+	testIdentifier  string // Random prefix for test emails to ensure uniqueness
 	screenshotCount int    // Track number of screenshots taken in this scenario
 	totpSecret      string // TOTP secret for the current user
 }
@@ -88,6 +91,7 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	// Background steps - wrapped to ensure sc is initialized
 	ctx.Step(`^a random test identifier is generated$`, func() error { return sc.aRandomTestIdentifierIsGenerated() })
 	ctx.Step(`^the frontend is running at "([^"]*)"$`, func(url string) error { return sc.theFrontendIsRunningAt(url) })
+	ctx.Step(`^mockgatehub is running at "([^"]*)"$`, func(url string) error { return sc.theMockgatehubIsRunningAt(url) })
 	ctx.Step(`^Rafiki assets are seeded$`, func() error { return sc.rafikiAssetsExist() })
 
 	// User details and impersonation steps
@@ -232,17 +236,46 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 func (sc *E2EContext) aRandomTestIdentifierIsGenerated() error {
 	// Generate a random test identifier based on current timestamp
 	// This ensures uniqueness across test runs
-	sc.testEmailPrefix = fmt.Sprintf("%d", time.Now().UnixNano()%1000000)
-	debugPrintf("✓ Generated random test identifier: %s\n", sc.testEmailPrefix)
+	sc.testIdentifier = fmt.Sprintf("%d", time.Now().UnixNano()%1000000)
+	debugPrintf("✓ Generated random test identifier: %s\n", sc.testIdentifier)
 	return nil
 }
 
-func (sc *E2EContext) theFrontendIsRunningAt(url string) error {
-	sc.baseURL = url
-	return sc.ensureHostsResolve([]string{
-		"interledger.test",
-		"mockgatehub.interledger.test",
-	})
+func (sc *E2EContext) theFrontendIsRunningAt(urlStr string) error {
+	sc.baseURL = urlStr
+
+	// Extract hostname from URL
+	parsedURL, err := url.Parse(urlStr)
+	if err != nil {
+		return fmt.Errorf("failed to parse frontend URL: %w", err)
+	}
+
+	// First ensure DNS resolves
+	if err := sc.ensureHostsResolve([]string{parsedURL.Hostname()}); err != nil {
+		return err
+	}
+
+	// Then verify the frontend is actually serving HTML
+	debugPrintf("🔍 Verifying frontend is serving content at %s...\n", urlStr)
+	return sc.waitForHTMLToBeServed(urlStr, 60*time.Second)
+}
+
+func (sc *E2EContext) theMockgatehubIsRunningAt(urlStr string) error {
+	// Extract hostname from URL
+	parsedURL, err := url.Parse(urlStr)
+	if err != nil {
+		return fmt.Errorf("failed to parse mockgatehub URL: %w", err)
+	}
+
+	// First ensure DNS resolves
+	if err := sc.ensureHostsResolve([]string{parsedURL.Hostname()}); err != nil {
+		return err
+	}
+
+	// Then verify mockgatehub health endpoint is responding
+	debugPrintf("🔍 Verifying mockgatehub health endpoint at %s...\n", urlStr)
+	healthURL := strings.TrimSuffix(urlStr, "/") + "/health"
+	return sc.waitForHealthEndpoint(healthURL, 30*time.Second)
 }
 
 func (sc *E2EContext) ensureHostsResolve(hosts []string) error {
@@ -257,6 +290,99 @@ func (sc *E2EContext) ensureHostsResolve(hosts []string) error {
 	}
 
 	return nil
+}
+
+// waitForHTMLToBeServed polls a URL until it returns HTML content or times out
+func (sc *E2EContext) waitForHTMLToBeServed(url string, timeout time.Duration) error {
+	client := &http.Client{
+		Timeout: 5 * time.Second,
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
+
+	deadline := time.Now().Add(timeout)
+	attempt := 0
+
+	for time.Now().Before(deadline) {
+		attempt++
+		req, err := http.NewRequestWithContext(context.Background(), "GET", url, nil)
+		if err != nil {
+			return fmt.Errorf("failed to create request: %w", err)
+		}
+
+		resp, err := client.Do(req)
+		if err == nil && resp.StatusCode == http.StatusOK {
+			defer resp.Body.Close()
+
+			// Read first few bytes to verify it's actually HTML
+			buf := make([]byte, 512)
+			n, _ := io.ReadFull(resp.Body, buf)
+			content := string(buf[:n])
+
+			// Check if response looks like HTML
+			if strings.Contains(strings.ToLower(content), "<html") ||
+				strings.Contains(strings.ToLower(content), "<!doctype") ||
+				strings.Contains(content, "<head") {
+				debugPrintf("✅ Service is serving HTML content (attempt %d)\n", attempt)
+				return nil
+			}
+
+			debugPrintf("⚠️  Service returned 200 but content doesn't look like HTML (attempt %d)\n", attempt)
+		} else if err != nil {
+			debugPrintf("⏳ Waiting for service to be ready... (attempt %d: %v)\n", attempt, err)
+		} else {
+			debugPrintf("⏳ Service returned status %d (attempt %d), waiting...\n", resp.StatusCode, attempt)
+			if resp.Body != nil {
+				resp.Body.Close()
+			}
+		}
+
+		time.Sleep(2 * time.Second)
+	}
+
+	return fmt.Errorf("service at %s did not serve HTML content within %v (tried %d times)", url, timeout, attempt)
+}
+
+// waitForHealthEndpoint polls a health endpoint until it returns 200 OK or times out
+func (sc *E2EContext) waitForHealthEndpoint(url string, timeout time.Duration) error {
+	client := &http.Client{
+		Timeout: 5 * time.Second,
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
+
+	deadline := time.Now().Add(timeout)
+	attempt := 0
+
+	for time.Now().Before(deadline) {
+		attempt++
+		req, err := http.NewRequestWithContext(context.Background(), "GET", url, nil)
+		if err != nil {
+			return fmt.Errorf("failed to create health check request: %w", err)
+		}
+
+		resp, err := client.Do(req)
+		if err == nil && resp.StatusCode == http.StatusOK {
+			resp.Body.Close()
+			debugPrintf("✅ Health endpoint is responding (attempt %d)\n", attempt)
+			return nil
+		}
+
+		if err != nil {
+			debugPrintf("⏳ Waiting for health endpoint... (attempt %d: %v)\n", attempt, err)
+		} else {
+			debugPrintf("⏳ Health endpoint returned status %d (attempt %d), waiting...\n", resp.StatusCode, attempt)
+			if resp.Body != nil {
+				resp.Body.Close()
+			}
+		}
+
+		time.Sleep(2 * time.Second)
+	}
+
+	return fmt.Errorf("health endpoint at %s did not respond with 200 OK within %v (tried %d times)", url, timeout, attempt)
 }
 
 type kratosIdentity struct {
