@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/cucumber/godog"
@@ -14,24 +13,14 @@ var (
 	concurrency = flag.Int("concurrency", 1, "Number of concurrent scenarios (default: 1)")
 )
 
-// cleanupDebugScreenshots removes all PNG files from the debug directory
+// cleanupDebugScreenshots removes all screenshots from the debug directory
 func cleanupDebugScreenshots() error {
 	debugDir := "debug"
 	if _, err := os.Stat(debugDir); os.IsNotExist(err) {
 		return nil // Directory doesn't exist, nothing to clean
 	}
 
-	files, err := filepath.Glob(filepath.Join(debugDir, "*.png"))
-	if err != nil {
-		return err
-	}
-
-	for _, file := range files {
-		if err := os.Remove(file); err != nil {
-			return err
-		}
-	}
-	return nil
+	return os.RemoveAll(debugDir)
 }
 
 func TestFeatures(t *testing.T) {

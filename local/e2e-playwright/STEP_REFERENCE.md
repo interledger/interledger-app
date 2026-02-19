@@ -205,7 +205,7 @@ Then I can confirm the "Save" button is available to click
 And I take a screenshot "screenshot-name"
 ```
 - Captures full page screenshot
-- Saves to `/tmp/screenshot-name.png`
+- Saves to `debug/<feature>__<scenario>/<test-id>-NN-screenshot-name.png`
 - Useful for documentation and debugging
 - **Time:** < 0.5 seconds
 - **Examples:**

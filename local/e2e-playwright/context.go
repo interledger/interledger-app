@@ -443,3 +443,40 @@ func (sc *E2EContext) getKratosUserIDByEmail(email string) string {
 	debugPrintf("   - No Kratos identity found for %s\n", email)
 	return ""
 }
+
+var nonAlphaNumeric = regexp.MustCompile(`[^a-z0-9]+`)
+
+func normalizeName(value string) string {
+	value = strings.ToLower(value)
+	value = nonAlphaNumeric.ReplaceAllString(value, "-")
+	value = strings.Trim(value, "-")
+	return value
+}
+
+func featureNameFromScenario(scenario *godog.Scenario) string {
+	if scenario == nil {
+		return "feature"
+	}
+	if scenario.Uri == "" {
+		return "feature"
+	}
+	fileName := filepath.Base(scenario.Uri)
+	return strings.TrimSuffix(fileName, filepath.Ext(fileName))
+}
+
+func buildScenarioScreenshotDir(scenario *godog.Scenario) string {
+	featureSlug := normalizeName(featureNameFromScenario(scenario))
+	if featureSlug == "" {
+		featureSlug = "feature"
+	}
+	scenarioName := ""
+	if scenario != nil {
+		scenarioName = scenario.Name
+	}
+	scenarioSlug := normalizeName(scenarioName)
+	if scenarioSlug == "" {
+		scenarioSlug = "scenario"
+	}
+	folderName := fmt.Sprintf("%s__%s", featureSlug, scenarioSlug)
+	return filepath.Join("debug", folderName)
+}

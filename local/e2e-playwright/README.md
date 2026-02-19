@@ -114,7 +114,7 @@ This disables `debugPrintln()` output but still runs tests normally.
 
 When a test fails:
 
-1. **Check screenshots** in `debug/` – Shows page state at failure
+1. **Check screenshots** in `debug/<feature>__<scenario>/` – Shows page state at failure
 2. **Review logs** from failed steps
 3. **Enable debug mode** for that specific test:
    ```bash
