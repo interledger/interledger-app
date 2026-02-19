@@ -10,7 +10,82 @@ permissions:
   packages: read
 
 jobs:
+  start-vm:
+    runs-on: ubuntu-latest
+    environment: e2e-tester
+    timeout-minutes: 10
+    
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GSA }}
+      
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ vars.GCP_PROJECT_NAME }}
+      
+      - name: Check VM status and start if needed
+        env:
+          VM_NAME: ${{ vars.INSTANCE_NAME }}
+          PROJECT_ID: ${{ vars.GCP_PROJECT_NAME }}
+          VM_ZONE: ${{ vars.ZONE }}
+        run: |
+          echo "Checking VM: $VM_NAME in zone $VM_ZONE"
+          
+          # Check if VM exists
+          if ! gcloud compute instances describe "$VM_NAME" \
+               --zone="$VM_ZONE" \
+               --project="$PROJECT_ID" &>/dev/null; then
+            echo "❌ VM '$VM_NAME' does not exist"
+            exit 1
+          fi
+          
+          # Get current VM status
+          STATUS=$(gcloud compute instances describe "$VM_NAME" \
+            --zone="$VM_ZONE" \
+            --project="$PROJECT_ID" \
+            --format="value(status)")
+          
+          echo "Current VM status: $STATUS"
+          
+          if [ "$STATUS" = "RUNNING" ]; then
+            echo "✅ VM is already running"
+            exit 0
+          fi
+          
+          # Start the VM
+          echo "🚀 Starting VM..."
+          gcloud compute instances start "$VM_NAME" \
+            --zone="$VM_ZONE" \
+            --project="$PROJECT_ID"
+          
+          # Wait for VM to be running (up to 5 minutes)
+          echo "⏳ Waiting for VM to start..."
+          for i in {1..30}; do
+            STATUS=$(gcloud compute instances describe "$VM_NAME" \
+              --zone="$VM_ZONE" \
+              --project="$PROJECT_ID" \
+              --format="value(status)")
+            
+            if [ "$STATUS" = "RUNNING" ]; then
+              echo "✅ VM is now RUNNING"
+              # Additional wait for full initialization (runner startup, docker, etc.)
+              echo "⏳ Waiting 60 seconds for runner initialization..."
+              sleep 60
+              exit 0
+            fi
+            
+            echo "Attempt $i/30: Status is $STATUS, waiting..."
+            sleep 10
+          done
+          
+          echo "❌ Timed out waiting for VM to start"
+          exit 1
+
   e2e:
+    needs: start-vm
     runs-on: e2e-tester
     timeout-minutes: 90
 
@@ -27,29 +102,6 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: '1.25.1'
-
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libnss3 \
-            libnspr4 \
-            libatk1.0-0t64 \
-            libatk-bridge2.0-0t64 \
-            libcups2t64 \
-            libxkbcommon0 \
-            libatspi2.0-0t64 \
-            libxcomposite1 \
-            libxdamage1 \
-            libxext6 \
-            libxfixes3 \
-            libxrandr2 \
-            libgbm1 \
-            libpango-1.0-0 \
-            libcairo2 \
-            libasound2t64 \
-            libnss3-tools \
-            ca-certificates
 
       - name: Configure local hosts and certs
         working-directory: local
