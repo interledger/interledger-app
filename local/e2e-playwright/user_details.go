@@ -67,6 +67,9 @@ func (sc *E2EContext) iImpersonate(userName string) error {
 		debugPrintf("✓ Stored email in userDetails: %s\n", prefixedEmail)
 	}
 
+	// Overriding current user fields into context so that steps
+	// can access them without casting
+
 	if password, ok := details.Fields["password"]; ok {
 		sc.password = password
 		debugPrintf("✓ Set password\n")
