@@ -13,6 +13,14 @@ import (
 	"github.com/playwright-community/playwright-go"
 )
 
+// min returns the minimum of two integers
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
 // iNavigateToTheDepositPage navigates to the deposit page
 func (sc *E2EContext) iNavigateToTheDepositPage() error {
 	debugPrintln("\n💰 Navigating to deposit page...")
@@ -148,14 +156,38 @@ func (sc *E2EContext) iShouldSeeMyBalanceUpdatedWithAmount(amount, currency stri
 	_, _ = sc.page.Goto(sc.baseURL, playwright.PageGotoOptions{WaitUntil: playwright.WaitUntilStateNetworkidle})
 
 	// Allow time for webhook processing and UI refresh
+	// Extended timeout for withdrawals which use Temporal workflows (can take up to 2-3 minutes)
 	amountVariants := []string{amount}
 	if !strings.Contains(amount, ".") {
 		amountVariants = append(amountVariants, amount+".00")
 	}
 
 	findBalanceMatch := func() bool {
+		// First try: Look for text that's specifically in a balance-related container
+		// This prevents matching amounts in fee text, transaction history, etc.
+		balanceContainers := sc.page.Locator("div, li, section, article")
+		count, _ := balanceContainers.Count()
+
+		for i := 0; i < count && i < 100; i++ {
+			el := balanceContainers.Nth(i)
+			text, _ := el.TextContent()
+
+			// Check if this element contains both currency and amount
+			if strings.Contains(text, currency) && strings.Contains(text, amount) {
+				// Also check if it looks like a balance display (contains "Balance", "Available", etc.)
+				if strings.Contains(text, "Balance") || strings.Contains(text, "balance") ||
+					strings.Contains(text, "Available") || strings.Contains(text, "available") ||
+					strings.Contains(text, "wallet") {
+					_ = el.ScrollIntoViewIfNeeded()
+					debugPrintf("  Found balance in element containing '%s '\n", strings.TrimSpace(text[:min(len(text), 60)]))
+					return true
+				}
+			}
+		}
+
+		// Fallback: original broad search
 		balanceLocator := sc.page.Locator(":has-text('Balance'), :has-text('balance')")
-		count, _ := balanceLocator.Count()
+		count, _ = balanceLocator.Count()
 		if count > 20 {
 			count = 20
 		}
@@ -169,25 +201,11 @@ func (sc *E2EContext) iShouldSeeMyBalanceUpdatedWithAmount(amount, currency stri
 			}
 		}
 
-		currencyLocator := sc.page.Locator(fmt.Sprintf(":has-text(\"%s\")", currency))
-		count, _ = currencyLocator.Count()
-		if count > 20 {
-			count = 20
-		}
-		for j := 0; j < count; j++ {
-			text, _ := currencyLocator.Nth(j).TextContent()
-			for _, amt := range amountVariants {
-				if strings.Contains(text, amt) {
-					_ = currencyLocator.Nth(j).ScrollIntoViewIfNeeded()
-					return true
-				}
-			}
-		}
-
 		return false
 	}
 
-	for i := 0; i < 30; i++ {
+	maxAttempts := 30
+	for i := 0; i < maxAttempts; i++ {
 		time.Sleep(2 * time.Second)
 		_, _ = sc.page.Reload()
 
@@ -195,19 +213,35 @@ func (sc *E2EContext) iShouldSeeMyBalanceUpdatedWithAmount(amount, currency stri
 			// Force one more refresh before capturing the screenshot
 			_, _ = sc.page.Reload()
 			if findBalanceMatch() {
-				debugPrintf("✓ Balance appears updated on UI (attempt %d)\n", i+1)
-				_ = sc.iTakeAScreenshot("deposit-balance-updated")
+				debugPrintf("✓ Balance appears updated on UI (attempt %d/%d)\n", i+1, maxAttempts)
+				_ = sc.iTakeAScreenshot("balance-updated")
 				return nil
 			}
 		}
+
+		if i%20 == 0 && i > 0 {
+			debugPrintf("   ... still waiting for balance update (attempt %d/%d, elapsed: %ds)\n", i+1, maxAttempts, (i+1)*2)
+		}
 	}
 
-	return fmt.Errorf("balance update not visible on UI after waiting")
+	return fmt.Errorf("balance update not visible on UI after waiting %d seconds", maxAttempts*2)
 }
 
-// thatGatehubChargesDepositFee configures MockGatehub to charge a deposit fee
+// thatGatehubChargesDepositFee configures MockGatehub to charge a deposit fee for the current user
 func (sc *E2EContext) thatGatehubChargesDepositFee(feePercent string) error {
-	debugPrintf("\n💰 Configuring Gatehub deposit fee to %s%%...\n", feePercent)
+	debugPrintf("\n💰 Configuring GateHub deposit fee for user to %s%%...\n", feePercent)
+
+	// Get the current user's email
+	email, err := sc.getCurrentUserEmail()
+	if err != nil {
+		return fmt.Errorf("failed to get current user email: %w", err)
+	}
+
+	// Get the GateHub managed user ID for this user
+	gatehubUserID, err := sc.getGatehubUserIDByEmail(email)
+	if err != nil {
+		return fmt.Errorf("failed to get GateHub user ID for user %s: %w", email, err)
+	}
 
 	// Convert feePercent string to float64
 	feePct, err := strconv.ParseFloat(feePercent, 64)
@@ -215,9 +249,9 @@ func (sc *E2EContext) thatGatehubChargesDepositFee(feePercent string) error {
 		return fmt.Errorf("failed to parse fee percentage: %w", err)
 	}
 
-	// Call MockGatehub's /admin/fees endpoint to set the deposit fee
+	// Call MockGatehub's /admin/users/{userId}/fees endpoint to set user-specific deposit fee
 	mockgatehubURL := "https://mockgatehub.interledger.test"
-	feeEndpoint := mockgatehubURL + "/admin/fees"
+	feeEndpoint := fmt.Sprintf("%s/admin/users/%s/fees", mockgatehubURL, gatehubUserID)
 
 	// Create the request payload with numeric fee value
 	payload := map[string]interface{}{
@@ -253,9 +287,9 @@ func (sc *E2EContext) thatGatehubChargesDepositFee(feePercent string) error {
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("MockGatehub /admin/fees returned status %d: %s", resp.StatusCode, string(body))
+		return fmt.Errorf("MockGatehub /admin/users/%s/fees returned status %d: %s", gatehubUserID, resp.StatusCode, string(body))
 	}
 
-	debugPrintf("✓ MockGatehub deposit fee configured to %s%%\n", feePercent)
+	debugPrintf("✓ MockGatehub user-specific deposit fee configured to %s%% for user ID: %s\n", feePercent, gatehubUserID)
 	return nil
 }

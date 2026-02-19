@@ -1,9 +1,8 @@
 go 1.25
 
-use ./go
-use ./go/mockxago
-use ./local/scripts
-
 use (
+	./go
+	./go/mockxago
 	./local/e2e-playwright
+	./local/scripts
 )

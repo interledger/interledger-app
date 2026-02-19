@@ -6,6 +6,8 @@ Feature: User Signup
   Background:
     Given a random test identifier is generated
     And the frontend is running at "https://interledger.test"
+    And mockgatehub is running at "https://mockgatehub.interledger.test"
+    And mockxago is running at "https://mockxago.interledger.test"
     Given the details of 'signup-user' are
       | field           | value                        |
       | emailSuffix     | signup@example.com           |

@@ -61,11 +61,14 @@ func (sc *E2EContext) iImpersonate(userName string) error {
 	// Extract and store standard fields from the details
 	if email, ok := details.Fields["emailSuffix"]; ok {
 		// Prefix email with random test identifier
-		prefixedEmail := fmt.Sprintf("%s-%s", sc.testEmailPrefix, email)
+		prefixedEmail := fmt.Sprintf("%s-%s", sc.testIdentifier, email)
 		// Store in user details, not global sc.email
 		details.Fields["email"] = prefixedEmail
 		debugPrintf("✓ Stored email in userDetails: %s\n", prefixedEmail)
 	}
+
+	// Overriding current user fields into context so that steps
+	// can access them without casting
 
 	if password, ok := details.Fields["password"]; ok {
 		sc.password = password
@@ -150,7 +153,7 @@ func (sc *E2EContext) iFillInWithPrefixed(fieldName, fieldKey string) error {
 	}
 
 	// Prefix with test identifier
-	prefixedValue := fmt.Sprintf("%s-%s", sc.testEmailPrefix, value)
+	prefixedValue := fmt.Sprintf("%s-%s", sc.testIdentifier, value)
 	debugPrintf("📝 Filling '%s' with '%s' (prefixed, from field '%s')\n", fieldName, prefixedValue, fieldKey)
 
 	// Store the prefixed email in context

@@ -163,7 +163,7 @@ func (sc *E2EContext) iFillInWith(fieldName, value string) error {
 		})
 	case "email":
 		// Prefix email with random test identifier (avoid double prefix)
-		prefix := fmt.Sprintf("%s-", sc.testEmailPrefix)
+		prefix := fmt.Sprintf("%s-", sc.testIdentifier)
 		if !strings.HasPrefix(value, prefix) {
 			value = fmt.Sprintf("%s%s", prefix, value)
 		}

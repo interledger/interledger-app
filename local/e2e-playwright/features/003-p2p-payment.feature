@@ -5,8 +5,8 @@ Feature: Peer-to-Peer Payments
 
   Background:
     Given a random test identifier is generated
-    And that Gatehub charges a 0% deposit fee    
     And the frontend is running at "https://interledger.test"
+    And mockgatehub is running at "https://mockgatehub.interledger.test"
     And Rafiki assets are seeded
 
   @p2p-payment

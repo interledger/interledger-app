@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -68,6 +69,7 @@ func (sc *E2EContext) iNavigateToTheSignupPage() error {
 		if err != nil {
 			return fmt.Errorf("failed to start playwright: %w", err)
 		}
+		sc.pw = pw
 
 		browser, err := pw.Chromium.Launch()
 		if err != nil {
@@ -195,9 +197,20 @@ func (sc *E2EContext) iShouldBeOnStep(step int) error {
 }
 
 func (sc *E2EContext) iTakeAScreenshot(name string) error {
-	os.MkdirAll("./debug", 0755)
+	shotDir := sc.screenshotDir
+	if shotDir == "" {
+		shotDir = filepath.Join("debug", "unknown-scenario")
+	}
+	if err := os.MkdirAll(shotDir, 0755); err != nil {
+		return err
+	}
+
+	shotName := normalizeName(name)
+	if shotName == "" {
+		shotName = "screenshot"
+	}
 	sc.screenshotCount++
-	path := fmt.Sprintf("./debug/%s-%02d-%s.png", sc.testEmailPrefix, sc.screenshotCount, name)
+	path := filepath.Join(shotDir, fmt.Sprintf("%s-%02d-%s.png", sc.testIdentifier, sc.screenshotCount, shotName))
 	_, err := sc.page.Screenshot(playwright.PageScreenshotOptions{
 		Path: playwright.String(path),
 	})

@@ -32,9 +32,6 @@ help:
 
 	@echo ""
 
-	@echo "e2e-test                Run e2e tests (headless with video)"
-	@echo "e2e-test-headed         Run e2e tests in headed mode"
-	@echo "e2e-test-debug          Run e2e tests in debug mode (slow, headed)"
 	@echo ""
 
 .PHONY: \
@@ -55,7 +52,6 @@ help:
 
 	hosts \
 
-	e2e-test e2e-test-headed e2e-test-debug
 
 infrastructure:
 	docker compose --profile infrastructure up
@@ -98,9 +94,16 @@ reset: delete-volumes
 
 certs:
 	mkdir -p config/certs
-	openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
-    -keyout config/certs/local.key -out config/certs/local.crt \
-    -config config/san.cnf
+	@if [ "$(HEADLESS)" = "1" ]; then \
+		openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
+			-keyout config/certs/local.key -out config/certs/local.crt \
+			-subj "/CN=interledger.test/O=Interledger/C=US" \
+			-config config/san.cnf; \
+	else \
+		openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
+			-keyout config/certs/local.key -out config/certs/local.crt \
+			-config config/san.cnf; \
+	fi
 
 print-certs:
 	openssl x509 -in config/certs/local.crt -text -noout
@@ -120,6 +123,9 @@ untrust:
 trust-debian:
 	sudo cp config/certs/local.crt /usr/local/share/ca-certificates/
 	sudo update-ca-certificates
+	rm -rf $(HOME)/.pki/nssdb
+	mkdir -p $(HOME)/.pki/nssdb
+	certutil -d sql:$(HOME)/.pki/nssdb -N --empty-password
 	certutil -d sql:$(HOME)/.pki/nssdb -A -t "C,," -n "interledger.test" -i config/certs/local.crt
 
 print-trust-debian:
@@ -129,8 +135,6 @@ untrust-debian:
 	sudo rm /usr/local/share/ca-certificates/local.crt
 	sudo update-ca-certificates
 	certutil -d sql:$(HOME)/.pki/nssdb -D -n "interledger.test"
-
-
 HOSTS := interledger.test \
 	admin.mgnt.interledger.test \
 	temporal.mgnt.interledger.test \

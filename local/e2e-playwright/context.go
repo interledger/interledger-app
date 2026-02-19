@@ -2,13 +2,18 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
+	"path/filepath"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/cucumber/godog"
@@ -18,6 +23,7 @@ import (
 
 // E2EContext holds the test context for signup scenarios
 type E2EContext struct {
+	pw          *playwright.Playwright
 	browser     playwright.Browser
 	context     playwright.BrowserContext
 	page        playwright.Page
@@ -25,7 +31,6 @@ type E2EContext struct {
 	baseURL     string
 	email       string
 	password    string
-	phone       string // Store random phone number
 	firstName   string
 	lastName    string
 	country     string
@@ -43,8 +48,9 @@ type E2EContext struct {
 	currentStep     int
 	signupID        string
 	passwordFilled  bool   // Track if password was successfully filled
-	testEmailPrefix string // Random prefix for test emails to ensure uniqueness
+	testIdentifier  string // Random prefix for test emails to ensure uniqueness
 	screenshotCount int    // Track number of screenshots taken in this scenario
+	screenshotDir   string // Per-scenario screenshot directory
 	totpSecret      string // TOTP secret for the current user
 }
 
@@ -57,6 +63,7 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 		// Create a fresh SignupContext for each scenario
 		// This ensures complete isolation between scenarios
 		sc = &E2EContext{}
+		sc.screenshotDir = buildScenarioScreenshotDir(scenario)
 		debugPrintf("\n🔧 Initialized new context for scenario: %s\n", scenario.Name)
 		return goCtx, nil
 	})
@@ -75,6 +82,9 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 		if sc.browser != nil {
 			_ = sc.browser.Close()
 		}
+		if sc.pw != nil {
+			_ = sc.pw.Stop()
+		}
 		if sc.db != nil {
 			_ = sc.db.Close()
 		}
@@ -85,6 +95,8 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	// Background steps - wrapped to ensure sc is initialized
 	ctx.Step(`^a random test identifier is generated$`, func() error { return sc.aRandomTestIdentifierIsGenerated() })
 	ctx.Step(`^the frontend is running at "([^"]*)"$`, func(url string) error { return sc.theFrontendIsRunningAt(url) })
+	ctx.Step(`^mockgatehub is running at "([^"]*)"$`, func(url string) error { return sc.theMockgatehubIsRunningAt(url) })
+	ctx.Step(`^mockxago is running at "([^"]*)"$`, func(url string) error { return sc.theMockxagoIsRunningAt(url) })
 	ctx.Step(`^Rafiki assets are seeded$`, func() error { return sc.rafikiAssetsExist() })
 
 	// User details and impersonation steps
@@ -175,8 +187,17 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I should see my balance updated with "([^"]*)" "([^"]*)"$`, func(amount, currency string) error {
 		return sc.iShouldSeeMyBalanceUpdatedWithAmount(amount, currency)
 	})
-	ctx.Step(`^that Gatehub charges a ([0-9.]+)% deposit fee$`, func(feePercent string) error {
+	ctx.Step(`^that Gatehub charges my user a ([0-9.]+)% deposit fee$`, func(feePercent string) error {
 		return sc.thatGatehubChargesDepositFee(feePercent)
+	})
+
+	// Withdrawal steps
+	ctx.Step(`^I navigate to the withdrawal page$`, func() error { return sc.iNavigateToTheWithdrawalPage() })
+	ctx.Step(`^I withdraw "([^"]*)" "([^"]*)" via the withdrawal iframe$`, func(amount, currency string) error {
+		return sc.iWithdrawViATheWithdrawalIframe(amount, currency)
+	})
+	ctx.Step(`^that Gatehub charges my user a ([0-9.]+)% withdrawal fee$`, func(feePercent string) error {
+		return sc.thatGatehubChargesWithdrawalFee(feePercent)
 	})
 
 	// P2P Payment steps
@@ -221,17 +242,64 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 func (sc *E2EContext) aRandomTestIdentifierIsGenerated() error {
 	// Generate a random test identifier based on current timestamp
 	// This ensures uniqueness across test runs
-	sc.testEmailPrefix = fmt.Sprintf("%d", time.Now().UnixNano()%1000000)
-	debugPrintf("✓ Generated random test identifier: %s\n", sc.testEmailPrefix)
+	sc.testIdentifier = fmt.Sprintf("%d", time.Now().UnixNano()%1000000)
+	debugPrintf("✓ Generated random test identifier: %s\n", sc.testIdentifier)
 	return nil
 }
 
-func (sc *E2EContext) theFrontendIsRunningAt(url string) error {
-	sc.baseURL = url
-	return sc.ensureHostsResolve([]string{
-		"interledger.test",
-		"mockgatehub.interledger.test",
-	})
+func (sc *E2EContext) theFrontendIsRunningAt(urlStr string) error {
+	sc.baseURL = urlStr
+
+	// Extract hostname from URL
+	parsedURL, err := url.Parse(urlStr)
+	if err != nil {
+		return fmt.Errorf("failed to parse frontend URL: %w", err)
+	}
+
+	// First ensure DNS resolves
+	if err := sc.ensureHostsResolve([]string{parsedURL.Hostname()}); err != nil {
+		return err
+	}
+
+	// Then verify the frontend is actually serving HTML
+	debugPrintf("🔍 Verifying frontend is serving content at %s...\n", urlStr)
+	return sc.waitForHTMLToBeServed(urlStr, 60*time.Second)
+}
+
+func (sc *E2EContext) theMockgatehubIsRunningAt(urlStr string) error {
+	// Extract hostname from URL
+	parsedURL, err := url.Parse(urlStr)
+	if err != nil {
+		return fmt.Errorf("failed to parse mockgatehub URL: %w", err)
+	}
+
+	// First ensure DNS resolves
+	if err := sc.ensureHostsResolve([]string{parsedURL.Hostname()}); err != nil {
+		return err
+	}
+
+	// Then verify mockgatehub health endpoint is responding
+	debugPrintf("🔍 Verifying mockgatehub health endpoint at %s...\n", urlStr)
+	healthURL := strings.TrimSuffix(urlStr, "/") + "/health"
+	return sc.waitForHealthEndpoint(healthURL, 30*time.Second)
+}
+
+func (sc *E2EContext) theMockxagoIsRunningAt(urlStr string) error {
+	// Extract hostname from URL
+	parsedURL, err := url.Parse(urlStr)
+	if err != nil {
+		return fmt.Errorf("failed to parse mockxago URL: %w", err)
+	}
+
+	// First ensure DNS resolves
+	if err := sc.ensureHostsResolve([]string{parsedURL.Hostname()}); err != nil {
+		return err
+	}
+
+	// Then verify mockxago health endpoint is responding
+	debugPrintf("🔍 Verifying mockxago health endpoint at %s...\n", urlStr)
+	healthURL := strings.TrimSuffix(urlStr, "/") + "/health"
+	return sc.waitForHealthEndpoint(healthURL, 30*time.Second)
 }
 
 func (sc *E2EContext) ensureHostsResolve(hosts []string) error {
@@ -246,6 +314,99 @@ func (sc *E2EContext) ensureHostsResolve(hosts []string) error {
 	}
 
 	return nil
+}
+
+// waitForHTMLToBeServed polls a URL until it returns HTML content or times out
+func (sc *E2EContext) waitForHTMLToBeServed(url string, timeout time.Duration) error {
+	client := &http.Client{
+		Timeout: 5 * time.Second,
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
+
+	deadline := time.Now().Add(timeout)
+	attempt := 0
+
+	for time.Now().Before(deadline) {
+		attempt++
+		req, err := http.NewRequestWithContext(context.Background(), "GET", url, nil)
+		if err != nil {
+			return fmt.Errorf("failed to create request: %w", err)
+		}
+
+		resp, err := client.Do(req)
+		if err == nil && resp.StatusCode == http.StatusOK {
+			defer resp.Body.Close()
+
+			// Read first few bytes to verify it's actually HTML
+			buf := make([]byte, 512)
+			n, _ := io.ReadFull(resp.Body, buf)
+			content := string(buf[:n])
+
+			// Check if response looks like HTML
+			if strings.Contains(strings.ToLower(content), "<html") ||
+				strings.Contains(strings.ToLower(content), "<!doctype") ||
+				strings.Contains(content, "<head") {
+				debugPrintf("✅ Service is serving HTML content (attempt %d)\n", attempt)
+				return nil
+			}
+
+			debugPrintf("⚠️  Service returned 200 but content doesn't look like HTML (attempt %d)\n", attempt)
+		} else if err != nil {
+			debugPrintf("⏳ Waiting for service to be ready... (attempt %d: %v)\n", attempt, err)
+		} else {
+			debugPrintf("⏳ Service returned status %d (attempt %d), waiting...\n", resp.StatusCode, attempt)
+			if resp.Body != nil {
+				resp.Body.Close()
+			}
+		}
+
+		time.Sleep(2 * time.Second)
+	}
+
+	return fmt.Errorf("service at %s did not serve HTML content within %v (tried %d times)", url, timeout, attempt)
+}
+
+// waitForHealthEndpoint polls a health endpoint until it returns 200 OK or times out
+func (sc *E2EContext) waitForHealthEndpoint(url string, timeout time.Duration) error {
+	client := &http.Client{
+		Timeout: 5 * time.Second,
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
+
+	deadline := time.Now().Add(timeout)
+	attempt := 0
+
+	for time.Now().Before(deadline) {
+		attempt++
+		req, err := http.NewRequestWithContext(context.Background(), "GET", url, nil)
+		if err != nil {
+			return fmt.Errorf("failed to create health check request: %w", err)
+		}
+
+		resp, err := client.Do(req)
+		if err == nil && resp.StatusCode == http.StatusOK {
+			resp.Body.Close()
+			debugPrintf("✅ Health endpoint is responding (attempt %d)\n", attempt)
+			return nil
+		}
+
+		if err != nil {
+			debugPrintf("⏳ Waiting for health endpoint... (attempt %d: %v)\n", attempt, err)
+		} else {
+			debugPrintf("⏳ Health endpoint returned status %d (attempt %d), waiting...\n", resp.StatusCode, attempt)
+			if resp.Body != nil {
+				resp.Body.Close()
+			}
+		}
+
+		time.Sleep(2 * time.Second)
+	}
+
+	return fmt.Errorf("health endpoint at %s did not respond with 200 OK within %v (tried %d times)", url, timeout, attempt)
 }
 
 type kratosIdentity struct {
@@ -303,68 +464,39 @@ func (sc *E2EContext) getKratosUserIDByEmail(email string) string {
 	return ""
 }
 
-func (sc *E2EContext) deleteKratosIdentityByEmail(email string) error {
-	kratosAdminURL := os.Getenv("KRATOS_ADMIN_URL")
-	if kratosAdminURL == "" {
-		kratosAdminURL = "http://localhost:4434"
-	}
+var nonAlphaNumeric = regexp.MustCompile(`[^a-z0-9]+`)
 
-	client := &http.Client{Timeout: 30 * time.Second}
-	listReq, err := http.NewRequestWithContext(context.Background(), "GET", kratosAdminURL+"/admin/identities", nil)
-	if err != nil {
-		return fmt.Errorf("deleteKratosIdentityByEmail: failed to build request: %w", err)
-	}
+func normalizeName(value string) string {
+	value = strings.ToLower(value)
+	value = nonAlphaNumeric.ReplaceAllString(value, "-")
+	value = strings.Trim(value, "-")
+	return value
+}
 
-	debugPrintf("→ GET %s/admin/identities\n", kratosAdminURL)
-	listResp, err := client.Do(listReq)
-	if err != nil {
-		return fmt.Errorf("deleteKratosIdentityByEmail: request error: %w", err)
+func featureNameFromScenario(scenario *godog.Scenario) string {
+	if scenario == nil {
+		return "feature"
 	}
-	defer listResp.Body.Close()
-
-	if listResp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(listResp.Body)
-		return fmt.Errorf("failed to list identities: status %d: %s", listResp.StatusCode, string(body))
+	if scenario.Uri == "" {
+		return "feature"
 	}
+	fileName := filepath.Base(scenario.Uri)
+	return strings.TrimSuffix(fileName, filepath.Ext(fileName))
+}
 
-	var identities []kratosIdentity
-	if err := json.NewDecoder(listResp.Body).Decode(&identities); err != nil {
-		return fmt.Errorf("deleteKratosIdentityByEmail: decode error: %w", err)
+func buildScenarioScreenshotDir(scenario *godog.Scenario) string {
+	featureSlug := normalizeName(featureNameFromScenario(scenario))
+	if featureSlug == "" {
+		featureSlug = "feature"
 	}
-
-	var identityID string
-	for _, identity := range identities {
-		traits := identity.Traits
-		if v, ok := traits["email"]; ok {
-			if s, ok2 := v.(string); ok2 && s == email {
-				identityID = identity.ID
-				break
-			}
-		}
+	scenarioName := ""
+	if scenario != nil {
+		scenarioName = scenario.Name
 	}
-
-	if identityID == "" {
-		debugPrintf("   - No Kratos identity to delete for %s\n", email)
-		return nil // Identity not found, nothing to delete
+	scenarioSlug := normalizeName(scenarioName)
+	if scenarioSlug == "" {
+		scenarioSlug = "scenario"
 	}
-
-	deleteReq, err := http.NewRequestWithContext(context.Background(), "DELETE", kratosAdminURL+"/admin/identities/"+identityID, nil)
-	if err != nil {
-		return fmt.Errorf("deleteKratosIdentityByEmail: failed to build delete request: %w", err)
-	}
-
-	debugPrintf("→ DELETE %s/admin/identities/%s\n", kratosAdminURL, identityID)
-	deleteResp, err := client.Do(deleteReq)
-	if err != nil {
-		return fmt.Errorf("deleteKratosIdentityByEmail: delete request error: %w", err)
-	}
-	defer deleteResp.Body.Close()
-
-	if deleteResp.StatusCode != http.StatusNoContent && deleteResp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(deleteResp.Body)
-		return fmt.Errorf("failed to delete identity: status %d: %s", deleteResp.StatusCode, string(body))
-	}
-
-	debugPrintf("   ✓ Deleted Kratos identity id=%s for email=%s\n", identityID, email)
-	return nil
+	folderName := fmt.Sprintf("%s__%s", featureSlug, scenarioSlug)
+	return filepath.Join("debug", folderName)
 }

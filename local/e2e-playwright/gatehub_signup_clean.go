@@ -159,7 +159,7 @@ func (sc *E2EContext) iCompletedTheSignupWorkflow() error {
 func (sc *E2EContext) iFillInTheLoginFormWithMyDetails() error {
 	if sc.email == "" {
 		if value, err := sc.getFieldValue("emailSuffix"); err == nil && value != "" {
-			sc.email = fmt.Sprintf("%s-%s", sc.testEmailPrefix, value)
+			sc.email = fmt.Sprintf("%s-%s", sc.testIdentifier, value)
 		}
 	}
 	if sc.password == "" {

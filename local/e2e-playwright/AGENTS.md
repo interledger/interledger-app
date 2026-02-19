@@ -1,19 +1,24 @@
 The correct way to run specific tests from `features/*.feature` is to tag the specific test appropriately and then use the -args and -tags flags together.
-`go test -v -timeout 5m -args -tags @signuponly`
 
-You can also target multiple tags using a && parameter to act as a better filter.
-`go test -v -args -tags "@kyc && @xago"`
+```
+go test -v -timeout 5m -args -tags @signuponly
+go test -v -timeout 10m -args -tags "@kyc&&@xago"
+go test -v -timeout 10m -args -tags "@withdrawal&&@fees"
+```
 
 DO NOT SUPPRESS TEST OUTPUT EVER
 
 ## Troubleshooting
 - Remember during tests users are unique, so database cleanup has very limited value if at all.
-- Keep in mind that from the e2e test perspecive we should use the public url mode to access iframes. For example `mockxago` is available at `mockxago.interledger.test`
+- Keep in mind that from the e2e test perspective we should use the public URL mode to access iframes. For example `mockxago` is available at `mockxago.interledger.test`.
+- You can investigate temporal jobs by executing temporal cli commands within the temporal container.
+- We spent a long time chasing Kratos `format: "tel"` validation failures that appeared to reject valid phone numbers. After cleaning the environment with `make reset` in `local`, the issue disappeared. The root cause is still unknown, so keep this in mind if `tel` errors resurface after environment changes.
 - Important details about phone number troubleshooting
-  + Keep in mind that the tests aim to generate randomised phone numbers so they are not supposed tobe duplicate
+  + Keep in mind that the tests aim to generate randomized phone numbers so they are not supposed to be duplicate
   + We've confirmed that the correct format is +49987654321
-  + Most issues relate to kratos validation, either the phone number already exist or format is wrong
+  + Most issues relate to kratos validation, either the phone number already exists or format is wrong
 - When starting up the environment then use `make all-nowatch`
+- The `/withdraw` page loads a MockGatehub iframe widget similar to deposits
 - **Wallet address form submission flakiness** (observed Feb 3, 2026)
   + The `@kyc` test sometimes fails with "wallet does not appear to be in 'Reserved' state, still on wallet-address"
   + This means the wallet-address form submission failed and the page never redirected away from `/wallet-address`
@@ -47,13 +52,12 @@ DO NOT SUPPRESS TEST OUTPUT EVER
   + Test step: `I fill and submit the mockxago KYC iframe` handles form filling and submission
   + **How it works**:
     1. Frontend redirects South Africa users to Persona KYC (backend routes via `GetKYCProviderWidget`)
-    2. Persona widget points to MockXago's `/kyc/iframe` endpoint  
+    2. Persona widget points to MockXago's `/kyc/iframe` endpoint
     3. User fills verification form (name, address, DOB, etc.)
     4. Form submission sends POST to `/kyc/submit` with multipart form data
     5. MockXago saves sub-account details and sends webhook to backend
     6. Backend receives webhook and starts Temporal workflow for Xago onboarding
     7. Eventually triggers creation of Xago balance account and linked account setup
-
 
 ## Maintain
 It is the job of the agent to add, update or remove relevant information to this file.
