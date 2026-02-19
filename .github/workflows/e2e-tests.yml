@@ -9,13 +9,15 @@ permissions:
   contents: read
   packages: read
 
-concurrency: e2e-tests
-
 jobs:
   start-vm:
     runs-on: ubuntu-latest
     environment: e2e-tester
     timeout-minutes: 10
+
+    concurrency:
+      group: e2e-tests-vm-starter
+      cancel-in-progress: true
     
     steps:
       - name: Authenticate to Google Cloud
@@ -87,9 +89,15 @@ jobs:
           exit 1
 
   e2e:
-    # needs: start-vm # Why not start these in parralel?
+    needs: start-vm
     runs-on: e2e-tester
     timeout-minutes: 90
+    environment: e2e-tester
+    concurrency:
+      # Since we only have one vm, we need to ensure only one e2e job runs at a time to avoid
+      # conflicts
+      group: e2e-tests
+      cancel-in-progress: true
 
     steps:
       - name: Checkout code
