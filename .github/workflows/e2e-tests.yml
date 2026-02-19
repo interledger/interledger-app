@@ -138,113 +138,38 @@ jobs:
         working-directory: local/scripts
         run: make build
 
-      - name: Start infrastructure
-        working-directory: local
-        run: docker compose --profile infrastructure up -d
-
-      - name: Wait for infrastructure
-        working-directory: local
-        run: |
-          set -e
-
-          wait_for_health() {
-            local service="$1"
-            local timeout="$2"
-            local cid
-            local status
-
-            cid=$(docker compose ps -q "$service")
-            if [ -z "$cid" ]; then
-              echo "Service not started: $service"
-              exit 1
-            fi
-
-            for i in $(seq 1 "$timeout"); do
-              status=$(docker inspect -f '{{.State.Health.Status}}' "$cid" 2>/dev/null || echo "none")
-              if [ "$status" = "healthy" ]; then
-                echo "$service is healthy"
-                return 0
-              fi
-              sleep 2
-            done
-
-            echo "Timed out waiting for health on $service"
-            exit 1
-          }
-
-          wait_for_port() {
-            local port="$1"
-            local name="$2"
-
-            for i in $(seq 1 60); do
-              if nc -z localhost "$port"; then
-                echo "$name is listening on $port"
-                return 0
-              fi
-              sleep 2
-            done
-
-            echo "Timed out waiting for $name on port $port"
-            exit 1
-          }
-
-          wait_for_health postgres 30
-          wait_for_port 6379 redis
-          wait_for_port 443 traefik
-
-          for i in $(seq 1 30); do
-            if curl -k -sSf https://traefik.test >/dev/null; then
-              echo "Traefik is responding"
-              exit 0
-            fi
-            sleep 2
-          done
-
-          echo "Traefik did not respond in time"
-          exit 1
-
       - name: Build containers
         working-directory: local
         run: docker compose build --no-cache
 
-      - name: Start services
+      - name: Start application
         working-directory: local
-        run: docker compose --profile services up -d
+        run: make all-nowatch
 
-      - name: Wait for services
+      - name: Wait until all containers are up and healthy
         working-directory: local
         run: |
           set -e
 
-          wait_for_port() {
-            local port="$1"
-            local name="$2"
+          for i in $(seq 1 60); do
+            if docker compose ps --format json | jq -e '.[].State' | grep -qv "running"; then
+              echo "Waiting for containers to be running..."
+              sleep 5
+            elif docker compose ps --format json | jq -e '.[].Health.Status' | grep -qv "healthy"; then
+              echo "Waiting for containers to be healthy..."
+              sleep 5
+            else
+              echo "All containers are running and healthy"
+              exit 0
+            fi
+          done
 
-            for i in $(seq 1 60); do
-              if nc -z localhost "$port"; then
-                echo "$name is listening on $port"
-                return 0
-              fi
-              sleep 2
-            done
-
-            echo "Timed out waiting for $name on port $port"
-            exit 1
-          }
-
-          wait_for_port 4433 kratos
-          wait_for_port 4434 kratos-admin
-          wait_for_port 7233 temporal
-          wait_for_port 3001 rafiki-backend
-          wait_for_port 3003 rafiki-auth
+          echo "Timed out waiting for containers to be healthy"
+          exit 1
 
       - name: Seed Rafiki assets
         working-directory: local/scripts
         run: ./local-dev-tool rafiki --skip-ui --wait-for-ready 120
-
-      - name: Start application
-        working-directory: local
-        run: make all-nowatch
 
       - name: Wait for application
         working-directory: local
