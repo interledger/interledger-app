@@ -134,38 +134,32 @@ jobs:
           go mod download
           go run github.com/playwright-community/playwright-go/cmd/playwright install chromium
 
+      - name: Cleanup from previous runs
+        working-directory: local
+        run: docker compose --profile="*" down --volumes --remove-orphans
+          
       - name: Build local-dev-tool
         working-directory: local/scripts
         run: make build
 
       - name: Build containers
         working-directory: local
-        run: docker compose build --no-cache
+        run: docker compose --profile="*" build
+
+      - name: Start infrastructure
+        working-directory: local
+        run: docker compose --profile="infrastructure" up -d
+
+      - name: Wait 10 seconds
+        run: sleep 10
+
+      - name: Start services
+        working-directory: local
+        run: docker compose --profile="services" up -d
 
       - name: Start application
         working-directory: local
         run: make all-nowatch
-
-      - name: Wait until all containers are up and healthy
-        working-directory: local
-        run: |
-          set -e
-
-          for i in $(seq 1 60); do
-            if docker compose ps --format json | jq -e '.[].State' | grep -qv "running"; then
-              echo "Waiting for containers to be running..."
-              sleep 5
-            elif docker compose ps --format json | jq -e '.[].Health.Status' | grep -qv "healthy"; then
-              echo "Waiting for containers to be healthy..."
-              sleep 5
-            else
-              echo "All containers are running and healthy"
-              exit 0
-            fi
-          done
-
-          echo "Timed out waiting for containers to be healthy"
-          exit 1
 
       - name: Seed Rafiki assets
         working-directory: local/scripts
@@ -215,9 +209,12 @@ jobs:
           docker container prune -f
           docker volume prune -f
 
-      - name: Dump docker logs on failure
+      - name: Dump docker logs to artifacts if tests failed
         if: failure()
         working-directory: local
         run: |
-          docker compose ps
-          docker compose --profile "*" logs --no-color
+          mkdir -p $GITHUB_WORKSPACE/logs
+          for container in $(docker compose ps --format json | jq -r '.[].Name'); do
+            docker logs "$container" > "$GITHUB_WORKSPACE/logs/$container.log" 2>&1 || true
+          fi
+        continue-on-error: true
