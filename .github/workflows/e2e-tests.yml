@@ -179,7 +179,7 @@ jobs:
 
       - name: Run e2e tests
         working-directory: local/e2e-playwright
-        run: go test -v -timeout 20m -args -concurrency=8 -debug=false
+        run: go test -v -timeout 20m -args -concurrency=10 -debug=false
 
       - name: Clean up Docker containers and volumes
         if: always()
