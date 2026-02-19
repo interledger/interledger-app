@@ -2,7 +2,9 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/cucumber/godog"
@@ -11,6 +13,7 @@ import (
 var (
 	tags        = flag.String("tags", "", "Godog tags expression, e.g. @wip or @phone-debug")
 	concurrency = flag.Int("concurrency", 1, "Number of concurrent scenarios (default: 1)")
+	reportPath  = flag.String("report", "debug/report.md", "Path for markdown report output")
 )
 
 // cleanupDebugScreenshots removes all screenshots from the debug directory
@@ -31,10 +34,19 @@ func TestFeatures(t *testing.T) {
 		t.Logf("Warning: failed to cleanup debug screenshots: %v", err)
 	}
 
+	format := "pretty"
+	if reportPath != nil && *reportPath != "" {
+		reportDir := filepath.Dir(*reportPath)
+		if err := os.MkdirAll(reportDir, 0755); err != nil {
+			t.Fatalf("failed to create report directory: %v", err)
+		}
+		format = fmt.Sprintf("pretty:%s", *reportPath)
+	}
+
 	suite := godog.TestSuite{
 		ScenarioInitializer: InitializeScenario,
 		Options: &godog.Options{
-			Format:      "pretty",
+			Format:      format,
 			Paths:       []string{"features"},
 			TestingT:    t,
 			Tags:        *tags,
