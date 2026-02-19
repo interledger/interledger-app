@@ -189,10 +189,12 @@ jobs:
 
       - name: Upload screenshots to artifacts always
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v6
         with:
           name: e2e-screenshots
           path: local/e2e-playwright/debug
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Dump docker logs to artifacts if tests failed
         if: failure()

@@ -11,6 +11,8 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
@@ -48,6 +50,7 @@ type E2EContext struct {
 	passwordFilled  bool   // Track if password was successfully filled
 	testIdentifier  string // Random prefix for test emails to ensure uniqueness
 	screenshotCount int    // Track number of screenshots taken in this scenario
+	screenshotDir   string // Per-scenario screenshot directory
 	totpSecret      string // TOTP secret for the current user
 }
 
@@ -60,6 +63,7 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 		// Create a fresh SignupContext for each scenario
 		// This ensures complete isolation between scenarios
 		sc = &E2EContext{}
+		sc.screenshotDir = buildScenarioScreenshotDir(scenario)
 		debugPrintf("\n🔧 Initialized new context for scenario: %s\n", scenario.Name)
 		return goCtx, nil
 	})
