@@ -134,22 +134,6 @@ jobs:
         working-directory: local/scripts
         run: make build
 
-      - name: Cache Docker images
-        uses: actions/cache@v4
-        id: docker-cache
-        with:
-          path: /tmp/docker-images
-          key: docker-images-${{ hashFiles('local/*.yaml') }}
-          restore-keys: |
-            docker-images-
-
-      - name: Load cached Docker images
-        if: steps.docker-cache.outputs.cache-hit == 'true'
-        run: |
-          for tar in /tmp/docker-images/*.tar; do
-            docker load -i "$tar" || true
-          done
-
       - name: Start infrastructure
         working-directory: local
         run: docker compose --profile infrastructure up -d
@@ -291,20 +275,6 @@ jobs:
       - name: Run e2e tests
         working-directory: local/e2e-playwright
         run: go test -v -timeout 20m
-
-      - name: Export Docker images for cache
-        if: always() && steps.docker-cache.outputs.cache-hit != 'true'
-        run: |
-          FREE_KB=$(df --output=avail /tmp | tail -1)
-          if [ "$FREE_KB" -lt 5242880 ]; then
-            echo "Less than 5GB free, skipping cache export"
-            exit 0
-          fi
-          mkdir -p /tmp/docker-images
-          docker images --format '{{.Repository}}:{{.Tag}}' | grep -v '<none>' | while read -r img; do
-            name=$(echo "$img" | tr '/:' '_')
-            docker save -o "/tmp/docker-images/${name}.tar" "$img" 2>/dev/null || true
-          done
 
       - name: Dump docker logs on failure
         if: failure()
