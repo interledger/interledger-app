@@ -181,7 +181,7 @@ jobs:
 
       - name: Run e2e tests
         working-directory: local/e2e-playwright
-        run: go test -v -timeout 20m -args -concurrency=10 -debug=false -report=debug/report.md
+        run: go test -v -timeout 20m -args -tags @withdrawal -concurrency=10 -debug=false -report=debug/report.md
 
       - name: Show report
         if: always()
@@ -235,7 +235,7 @@ jobs:
         working-directory: local
         run: |
           mkdir -p $GITHUB_WORKSPACE/logs
-          for container in $(docker compose ps --format json | jq -r '.[].Name'); do
+          for container in $(docker compose ps --format "{{.Name}}"); do
             docker logs "$container" > "$GITHUB_WORKSPACE/logs/$container.log" 2>&1 || true
           done
         continue-on-error: true
