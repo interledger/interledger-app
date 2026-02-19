@@ -87,7 +87,7 @@ jobs:
           exit 1
 
   e2e:
-    needs: start-vm
+    # needs: start-vm # Why not start these in parralel?
     runs-on: e2e-tester
     timeout-minutes: 90
 
@@ -111,6 +111,7 @@ jobs:
           set -e
           sudo make hosts
           make certs
+          rm -rf "$HOME/.pki/nssdb"
           mkdir -p "$HOME/.pki/nssdb"
           certutil -d sql:"$HOME/.pki/nssdb" -N --empty-password
           sudo make trust-debian
