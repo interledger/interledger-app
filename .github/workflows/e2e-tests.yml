@@ -175,41 +175,11 @@ jobs:
 
       - name: Wait for application
         working-directory: local
-        run: |
-          set -e
-
-          wait_for_port() {
-            local port="$1"
-            local name="$2"
-
-            for i in $(seq 1 60); do
-              if nc -z localhost "$port"; then
-                echo "$name is listening on $port"
-                return 0
-              fi
-              sleep 2
-            done
-
-            echo "Timed out waiting for $name on port $port"
-            exit 1
-          }
-
-          wait_for_port 8080 backend
-
-          for i in $(seq 1 60); do
-            if curl -k -sSf https://interledger.test >/dev/null; then
-              echo "interledger.test is responding"
-              exit 0
-            fi
-            sleep 2
-          done
-
-          echo "interledger.test did not respond in time"
-          exit 1
+        run: sleep 10
 
       - name: Run e2e tests
         working-directory: local/e2e-playwright
-        run: go test -v -timeout 20m
+        run: go test -v -timeout 20m -args -concurrency=8 -debug=false
 
       - name: Clean up Docker containers and volumes
         if: always()
