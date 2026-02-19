@@ -4,69 +4,77 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	"gitlab.com/fynbos/mockxago/internal/logger"
 )
 
-// PersonaInquiry represents a Persona KYC inquiry
-type PersonaInquiry struct {
-	ID           string                 `json:"id"`
-	Status       string                 `json:"status"` // "created", "approved", "failed", "expired", "needs_retry"
-	CreatedAt    time.Time              `json:"createdAt"`
-	UpdatedAt    time.Time              `json:"updatedAt"`
-	Attributes   map[string]interface{} `json:"attributes,omitempty"`
-	Tags         []string               `json:"tags,omitempty"`
-	DecisionsTags []string              `json:"decisionsTags,omitempty"`
+type personaCreateInquiryRequest struct {
+	Data struct {
+		Attributes struct {
+			ReferenceID string `json:"reference-id,omitempty"`
+			CountryCode string `json:"country-code,omitempty"`
+		} `json:"attributes"`
+	} `json:"data"`
 }
 
-// PersonaInquiryRequest is the request to create an inquiry
-type PersonaInquiryRequest struct {
-	InquiryTemplateID string                 `json:"inquiryTemplateId,omitempty"`
-	ClientUserID      string                 `json:"clientUserId,omitempty"`
-	Fields            map[string]interface{} `json:"fields,omitempty"`
-	Attributes        map[string]interface{} `json:"attributes,omitempty"`
-	Tags              []string               `json:"tags,omitempty"`
+type personaInquiryResponse struct {
+	Data personaInquiryData `json:"data"`
 }
 
-// PersonaInquiryResponse is the response from Persona API
-type PersonaInquiryResponse struct {
-	ID        string         `json:"id"`
-	Status    string         `json:"status"`
-	CreatedAt time.Time      `json:"createdAt"`
-	UpdatedAt time.Time      `json:"updatedAt"`
-	Attributes map[string]interface{} `json:"attributes,omitempty"`
-	Links     map[string]string `json:"_links,omitempty"`
+type personaInquiryData struct {
+	Type       string                   `json:"type"`
+	ID         string                   `json:"id"`
+	Attributes personaInquiryAttributes `json:"attributes"`
+	Meta       personaInquiryMeta       `json:"meta"`
+}
+
+type personaInquiryAttributes struct {
+	Status      string `json:"status"`
+	ReferenceID string `json:"reference-id"`
+	CreatedAt   string `json:"created-at"`
+	UpdatedAt   string `json:"updated-at"`
+	CompletedAt string `json:"completed-at,omitempty"`
+}
+
+type personaInquiryMeta struct {
+	SessionToken string `json:"session-token"`
 }
 
 // PersonaCreateInquiry handles POST /inquiries - Create or retrieve inquiry
 // Compatible with Persona SDK API
 func (h *Handler) PersonaCreateInquiry(w http.ResponseWriter, r *http.Request) {
-	var req PersonaInquiryRequest
+	var req personaCreateInquiryRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		logger.Errorf("Failed to decode inquiry request: %v", err)
 		h.sendError(w, http.StatusBadRequest, "invalid_request", "Invalid request body")
 		return
 	}
 
-	// For local dev, create a mock inquiry
-	inquiryID := req.ClientUserID
+	refID := strings.TrimSpace(req.Data.Attributes.ReferenceID)
+	inquiryID := refID
 	if inquiryID == "" {
-		// Generate inquiry ID if not provided
 		inquiryID = fmt.Sprintf("inq_%d", time.Now().Unix())
 	}
 
-	logger.Infof("Created Persona inquiry: %s", inquiryID)
+	now := time.Now().UTC().Format(time.RFC3339)
+	logger.Infof("Created Persona inquiry: %s (reference-id=%s)", inquiryID, refID)
 
-	// Return inquiry response
-	response := PersonaInquiryResponse{
-		ID:        inquiryID,
-		Status:    "created",
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-		Links: map[string]string{
-			"inquiry-iframe": fmt.Sprintf("https://mockxago.interledger.test/v1/inquiries/%s/iframe", inquiryID),
-			"inquiry-hosted": fmt.Sprintf("https://mockxago.interledger.test/v1/inquiries/%s/hosted", inquiryID),
+	response := personaInquiryResponse{
+		Data: personaInquiryData{
+			Type: "inquiry",
+			ID:   inquiryID,
+			Attributes: personaInquiryAttributes{
+				Status:      "created",
+				ReferenceID: refID,
+				CreatedAt:   now,
+				UpdatedAt:   now,
+			},
+			Meta: personaInquiryMeta{
+				SessionToken: "mock-session-token",
+			},
 		},
 	}
 
@@ -76,7 +84,7 @@ func (h *Handler) PersonaCreateInquiry(w http.ResponseWriter, r *http.Request) {
 // PersonaGetInquiry handles GET /inquiries/{id} - Get inquiry status
 // Compatible with Persona SDK API
 func (h *Handler) PersonaGetInquiry(w http.ResponseWriter, r *http.Request) {
-	inquiryID := r.PathValue("inquiryId")
+	inquiryID := chi.URLParam(r, "inquiryId")
 	if inquiryID == "" {
 		h.sendError(w, http.StatusBadRequest, "missing_inquiry_id", "Inquiry ID is required")
 		return
@@ -84,24 +92,20 @@ func (h *Handler) PersonaGetInquiry(w http.ResponseWriter, r *http.Request) {
 
 	logger.Infof("Getting Persona inquiry: %s", inquiryID)
 
-	// Check if inquiry has been approved (via KYC submission)
-	// This is a simple mock - in real world we'd check storage
-	status := "created"
-	
-	// For testing: if inquiry exists in our storage (from KYC submission), mark as approved
-	if h.storage != nil {
-		// Try to get approval status from storage
-		// For now, default to "created"
-	}
-
-	response := PersonaInquiryResponse{
-		ID:        inquiryID,
-		Status:    status,
-		CreatedAt: time.Now().Add(-1 * time.Hour), // Pretend it was created 1 hour ago
-		UpdatedAt: time.Now(),
-		Links: map[string]string{
-			"inquiry-iframe": fmt.Sprintf("https://mockxago.interledger.test/v1/inquiries/%s/iframe", inquiryID),
-			"inquiry-hosted": fmt.Sprintf("https://mockxago.interledger.test/v1/inquiries/%s/hosted", inquiryID),
+	now := time.Now().UTC().Format(time.RFC3339)
+	response := personaInquiryResponse{
+		Data: personaInquiryData{
+			Type: "inquiry",
+			ID:   inquiryID,
+			Attributes: personaInquiryAttributes{
+				Status:      "created",
+				ReferenceID: inquiryID,
+				CreatedAt:   now,
+				UpdatedAt:   now,
+			},
+			Meta: personaInquiryMeta{
+				SessionToken: "mock-session-token",
+			},
 		},
 	}
 
@@ -110,7 +114,7 @@ func (h *Handler) PersonaGetInquiry(w http.ResponseWriter, r *http.Request) {
 
 // PersonaGetInquiryIframe handles GET /inquiries/{id}/iframe - Serves the KYC iframe
 func (h *Handler) PersonaGetInquiryIframe(w http.ResponseWriter, r *http.Request) {
-	inquiryID := r.PathValue("inquiryId")
+	inquiryID := chi.URLParam(r, "inquiryId")
 	if inquiryID == "" {
 		h.sendError(w, http.StatusBadRequest, "missing_inquiry_id", "Inquiry ID is required")
 		return
@@ -162,7 +166,7 @@ func (h *Handler) PersonaGetInquiryIframe(w http.ResponseWriter, r *http.Request
 
 // PersonaInquirySubmit handles POST /inquiries/{id}/submit - Form submission callback
 func (h *Handler) PersonaInquirySubmit(w http.ResponseWriter, r *http.Request) {
-	inquiryID := r.PathValue("inquiryId")
+	inquiryID := chi.URLParam(r, "inquiryId")
 	if inquiryID == "" {
 		h.sendError(w, http.StatusBadRequest, "missing_inquiry_id", "Inquiry ID is required")
 		return
@@ -191,11 +195,11 @@ func (h *Handler) PersonaInquirySubmit(w http.ResponseWriter, r *http.Request) {
 	// For testing, we mark it as approved immediately
 
 	// Send webhook notification to backend
-	go h.sendKYCWebhook(inquiryID, "id.verification.accepted")
+	go h.sendKYCWebhook(inquiryID)
 
 	// Return success response
 	h.sendJSON(w, http.StatusOK, map[string]string{
-		"status": "ok",
+		"status":  "ok",
 		"message": "Inquiry submitted successfully",
 	})
 }
@@ -318,24 +322,4 @@ func (h *Handler) readFile(path string) ([]byte, error) {
 </body>
 </html>`
 	return []byte(content), nil
-}
-
-func (h *Handler) sendKYCWebhook(inquiryID, eventType string) {
-	// Similar to existing sendWebhookWithSignature but for KYC events
-	if h.webhookURL == "" {
-		logger.Infof("No webhook URL configured, skipping KYC webhook for inquiry: %s", inquiryID)
-		return
-	}
-
-	event := map[string]interface{}{
-		"event_type": eventType,
-		"inquiry_id": inquiryID,
-		"timestamp":  time.Now().UTC().Format(time.RFC3339),
-		"data": map[string]interface{}{
-			"message": "KYC verification completed",
-			"status": "approved",
-		},
-	}
-
-	go h.sendWebhookWithSignature(event)
 }

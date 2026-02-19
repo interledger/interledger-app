@@ -148,6 +148,7 @@ func (h *Handler) KYCIframeSubmit(w http.ResponseWriter, r *http.Request) {
 	// Send webhook to backend notifying of KYC completion
 	// This triggers the backend's Temporal workflow for Xago onboarding
 	go h.sendKYCWebhook(walletID)
+	go h.sendPersonaInquiryApproved(walletID)
 
 	// Return success response
 	w.Header().Set("Content-Type", "application/json")
@@ -182,6 +183,77 @@ func (h *Handler) sendKYCWebhook(walletID string) {
 	}
 
 	logger.Infof("KYC webhook sent for wallet %s", walletID)
+}
+
+func (h *Handler) sendPersonaInquiryApproved(walletID string) {
+	webhookURL := os.Getenv("PERSONA_WEBHOOK_URL")
+	if webhookURL == "" {
+		webhookURL = "http://backend:8080/webhooks/persona"
+	}
+	secret := os.Getenv("PERSONA_WEBHOOK_TOKEN")
+
+	now := time.Now().UTC().Format(time.RFC3339)
+	inquiry := map[string]interface{}{
+		"data": map[string]interface{}{
+			"type": "inquiry",
+			"id":   walletID,
+			"attributes": map[string]interface{}{
+				"status":       "approved",
+				"reference-id": walletID,
+				"created-at":   now,
+				"updated-at":   now,
+				"completed-at": now,
+			},
+		},
+	}
+
+	webhook := map[string]interface{}{
+		"data": map[string]interface{}{
+			"type": "event",
+			"id":   fmt.Sprintf("evt_%d", time.Now().UnixNano()),
+			"attributes": map[string]interface{}{
+				"name":       "inquiry.approved",
+				"payload":    inquiry,
+				"created-at": now,
+			},
+		},
+	}
+
+	body, err := json.Marshal(webhook)
+	if err != nil {
+		logger.Errorf("Failed to marshal persona webhook: %v", err)
+		return
+	}
+
+	req, err := http.NewRequest("POST", webhookURL, bytes.NewReader(body))
+	if err != nil {
+		logger.Errorf("Failed to create persona webhook request: %v", err)
+		return
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Persona-Version", "2023-01-05")
+
+	timestamp := fmt.Sprintf("%d", time.Now().Unix())
+	mac := hmac.New(sha256.New, []byte(secret))
+	mac.Write(append([]byte(timestamp+"."), body...))
+	signature := hex.EncodeToString(mac.Sum(nil))
+	req.Header.Set("Persona-Signature", fmt.Sprintf("t=%s,v1=%s", timestamp, signature))
+
+	client := &http.Client{Timeout: 30 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		logger.Errorf("Persona webhook request failed: %v", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 400 {
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		logger.Errorf("Persona webhook failed with status %d: %s", resp.StatusCode, string(bodyBytes))
+		return
+	}
+
+	logger.Infof("Persona inquiry approved webhook sent for wallet %s", walletID)
 }
 
 // sendWebhookWithSignature sends a POST request with HMAC signature

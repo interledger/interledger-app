@@ -31,7 +31,7 @@ func (sc *E2EContext) iFillInWithUniquePhoneNumber(fieldName string) error {
 		return fmt.Errorf("no emailSuffix defined for user '%s'", sc.currentUser)
 	}
 
-	phoneNumber := generateDeterministicPhone(sc.country, sc.testEmailPrefix, emailSuffix)
+	phoneNumber := generateDeterministicPhone(sc.country, sc.testIdentifier, emailSuffix)
 	debugPrintf("📱 Generated unique phone number: %s (country %s, emailSuffix %s, user %s)\n", phoneNumber, sc.country, emailSuffix, sc.currentUser)
 
 	// Store in user details for current user

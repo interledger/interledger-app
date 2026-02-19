@@ -141,3 +141,67 @@ func (sc *E2EContext) getGatehubUserIDByEmail(email string) (string, error) {
 	debugPrintf("   ✓ Found GateHub user ID: %s\n", gatehubUserID)
 	return gatehubUserID, nil
 }
+
+// getWalletIDByEmail fetches the wallet ID for a user by email.
+// It queries the user_wallets table using the Kratos identity id.
+func (sc *E2EContext) getWalletIDByEmail(email string) (string, error) {
+	if sc.db == nil {
+		connStr := "host=localhost port=5432 user=postgres password=postgres dbname=backend sslmode=disable"
+		db, err := sql.Open("postgres", connStr)
+		if err != nil {
+			return "", fmt.Errorf("getWalletIDByEmail: failed to open db: %w", err)
+		}
+		sc.db = db
+	}
+
+	kratosID := sc.getKratosUserIDByEmail(email)
+	if kratosID == "" {
+		return "", fmt.Errorf("getWalletIDByEmail: could not resolve kratos user id for %s", email)
+	}
+
+	debugPrintf("   📋 Looking up wallet ID for email: %s (kratos ID: %s)\n", email, kratosID)
+
+	var walletID string
+	err := sc.db.QueryRow(`
+		SELECT wallet_id FROM user_wallets
+		WHERE user_id = $1
+		LIMIT 1
+	`, kratosID).Scan(&walletID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", fmt.Errorf("getWalletIDByEmail: no wallet found for user %s", email)
+		}
+		return "", fmt.Errorf("getWalletIDByEmail: database error: %w", err)
+	}
+
+	debugPrintf("   ✓ Found wallet ID: %s\n", walletID)
+	return walletID, nil
+}
+
+// getKYCStatusByWalletID fetches the KYC status integer for a wallet.
+func (sc *E2EContext) getKYCStatusByWalletID(walletID string) (int, error) {
+	if sc.db == nil {
+		connStr := "host=localhost port=5432 user=postgres password=postgres dbname=backend sslmode=disable"
+		db, err := sql.Open("postgres", connStr)
+		if err != nil {
+			return 0, fmt.Errorf("getKYCStatusByWalletID: failed to open db: %w", err)
+		}
+		sc.db = db
+	}
+
+	var status int
+	err := sc.db.QueryRow(`
+		SELECT status FROM wallet_kyc_status
+		WHERE wallet_id = $1
+		LIMIT 1
+	`, walletID).Scan(&status)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return 0, fmt.Errorf("getKYCStatusByWalletID: no status found for wallet %s", walletID)
+		}
+		return 0, fmt.Errorf("getKYCStatusByWalletID: database error: %w", err)
+	}
+
+	debugPrintf("   📊 KYC status for wallet %s: %d\n", walletID, status)
+	return status, nil
+}

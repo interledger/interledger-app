@@ -55,7 +55,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
     gatehubWidget: response.gatehubWidget,
     personaWidget: response.personaInquiry,
     chimoneyWidget: response.chimoneyWidget,
-    ptiWidget: response.ptiWidget
+    ptiWidget: response.ptiWidget,
+    mockxagoEndpoint: process.env.MOCKXAGO_ENDPOINT || ''
   })
 }
 
@@ -112,18 +113,40 @@ function ChimoneyPage() {
 
 function PersonaPage() {
   const submit = useSubmit()
-  const { personaWidget } = useLoaderData<typeof loader>()
+  const { personaWidget, mockxagoEndpoint } = useLoaderData<typeof loader>()
   const [ready, setReady] = useState(false)
   const status = useScript(
     'https://cdn.withpersona.com/dist/persona-v4.8.0-alpha.js'
   )
   let personaRef = useRef<any>(null)
+  const mockxagoActive = !!mockxagoEndpoint
+  const mockxagoBase = mockxagoEndpoint.replace(/\/$/, '')
+  const mockxagoInquiryId = personaWidget?.id || 'local-inquiry-id'
 
   const [setLoading] = useScaffoldStore((state) => [state.setLoading])
+
+  // Log initial state
+  useEffect(() => {
+    console.log('[KYC PersonaPage] Initialized:', {
+      mockxagoActive,
+      mockxagoEndpoint,
+      mockxagoBase,
+      mockxagoInquiryId,
+      personaWidget,
+      ready
+    })
+  }, [])
 
   useEffect(() => {
     setLoading(!ready)
   }, [ready, setLoading])
+
+  useEffect(() => {
+    if (mockxagoActive) {
+      console.log('[KYC PersonaPage] Setting ready=true because mockxagoActive is true')
+      setReady(true)
+    }
+  }, [mockxagoActive])
 
   // Unmount make sure the loading state is set to false
   useEffect(() => {
@@ -131,6 +154,62 @@ function PersonaPage() {
       setLoading(false)
     }
   }, [setLoading])
+
+  useEffect(() => {
+    if (!mockxagoActive) return
+    const onKYCComplete = (e: MessageEvent) => {
+      console.log('[KYC PersonaPage] MockXago message received:', {
+        type: e.data?.type,
+        value: e.data?.value,
+        data: e.data
+      })
+      if (!e.data?.type || !e.data?.value) return
+      try {
+        const parsedValue = JSON.parse(e.data.value)
+        console.log('[KYC PersonaPage] Parsed value:', parsedValue)
+        if (
+          e.data.type === 'OnboardingCompleted' &&
+          parsedValue?.applicantStatus === 'submitted'
+        ) {
+          console.log('[KYC PersonaPage] MockXago completion detected, submitting form')
+          submit(null, {
+            action: '/personal-details',
+            method: 'post'
+          })
+        }
+      } catch (err) {
+        console.warn('[KYC PersonaPage] Failed to parse MockXago message', err)
+      }
+    }
+
+    window.addEventListener('message', onKYCComplete)
+    console.log('[KYC PersonaPage] Registered message listener for mockxago')
+    return () => {
+      window.removeEventListener('message', onKYCComplete)
+      console.log('[KYC PersonaPage] Unregistered message listener')
+    }
+  }, [mockxagoActive, submit])
+
+  if (mockxagoActive) {
+    const iframeSrc = `${mockxagoBase}/v1/inquiries/${mockxagoInquiryId}/iframe`
+    console.log('[KYC PersonaPage] Rendering mockxago iframe:', {
+      iframeSrc,
+      ready,
+      sandbox: 'allow-top-navigation allow-forms allow-same-origin allow-popups allow-scripts'
+    })
+    return (
+      <iframe
+        title='Activate wallet'
+        src={iframeSrc}
+        sandbox='allow-top-navigation allow-forms allow-same-origin allow-popups allow-scripts'
+        scrolling='yes'
+        allow='camera;microphone'
+        className='h-[750px] sm:min-w-[400px] md:min-w-[400px]'
+        onLoad={() => console.log('[KYC PersonaPage] MockXago iframe loaded')}
+        onError={(e) => console.error('[KYC PersonaPage] MockXago iframe error:', e)}
+      />
+    )
+  }
 
   useEffect(() => {
     if (typeof window !== 'undefined' && status == 'ready') {
