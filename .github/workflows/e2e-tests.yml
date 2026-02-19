@@ -111,7 +111,7 @@ jobs:
 
       - name: Clean workspace
         run: |
-          git clean -ffdx
+          sudo git clean -ffdx
 
       - name: Login to GHCR (private images)
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
