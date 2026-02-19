@@ -96,7 +96,7 @@ jobs:
     concurrency:
       # Since we only have one vm, we need to ensure only one e2e job runs at a time to avoid
       # conflicts
-      group: e2e-tests
+      group: e2e-tests-on-vm
       cancel-in-progress: true
 
     steps:
