@@ -31,7 +31,7 @@ jobs:
       - name: Check VM status and start if needed
         env:
           VM_NAME: ${{ vars.INSTANCE_NAME }}
-          PROJECT_ID: ${{ vars.GCP_PROJECT_NAME }}
+          PROJECT_ID: ${{ vars.PROJECT_ID }}
           VM_ZONE: ${{ vars.ZONE }}
         run: |
           echo "Checking VM: $VM_NAME in zone $VM_ZONE"
