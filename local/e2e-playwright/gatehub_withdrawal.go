@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -103,17 +104,29 @@ func (sc *E2EContext) iWithdrawViATheWithdrawalIframe(amount, currency string) e
 }
 
 func (sc *E2EContext) thatGatehubChargesWithdrawalFee(feePercent string) error {
-	debugPrintf("\n💸 Configuring Gatehub withdrawal fee to %s%%...\n", feePercent)
+	debugPrintf("\n💸 Configuring GateHub withdrawal fee for user to %s%%...\n", feePercent)
+
+	// Get the current user's email
+	email, err := sc.getCurrentUserEmail()
+	if err != nil {
+		return fmt.Errorf("failed to get current user email: %w", err)
+	}
+
+	// Get the GateHub wallet ID for this user
+	gatehubWalletID, err := sc.getGatehubWalletIDByEmail(email)
+	if err != nil {
+		return fmt.Errorf("failed to get GateHub wallet ID for user %s: %w", email, err)
+	}
 
 	// Parse fee percentage
 	var feePct float64
-	_, err := fmt.Sscanf(feePercent, "%f", &feePct)
+	_, err = fmt.Sscanf(feePercent, "%f", &feePct)
 	if err != nil {
 		return fmt.Errorf("invalid fee percentage: %s", feePercent)
 	}
 
-	// Call MockGatehub's /admin/fees endpoint
-	url := "https://mockgatehub.interledger.test/admin/fees"
+	// Call MockGatehub's /admin/users/{userId}/fees endpoint
+	url := fmt.Sprintf("https://mockgatehub.interledger.test/admin/users/%s/fees", gatehubWalletID)
 	payload := map[string]interface{}{
 		"withdrawal_fee_percentage": feePct,
 	}
@@ -124,7 +137,12 @@ func (sc *E2EContext) thatGatehubChargesWithdrawalFee(feePercent string) error {
 	}
 
 	// Use HTTP client for local testing
-	httpClient := &http.Client{Timeout: 10 * time.Second}
+	httpClient := &http.Client{
+		Timeout: 10 * time.Second,
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
 
 	req, err := http.NewRequest("PUT", url, bytes.NewReader(jsonPayload))
 	if err != nil {
@@ -141,9 +159,9 @@ func (sc *E2EContext) thatGatehubChargesWithdrawalFee(feePercent string) error {
 
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNoContent {
 		body, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("MockGatehub /admin/fees returned status %d: %s", resp.StatusCode, string(body))
+		return fmt.Errorf("MockGatehub /admin/users/%s/fees returned status %d: %s", gatehubWalletID, resp.StatusCode, string(body))
 	}
 
-	debugPrintf("✓ MockGatehub withdrawal fee configured to %s%%\n", feePercent)
+	debugPrintf("✓ MockGatehub user-specific withdrawal fee configured to %s%% for wallet ID: %s\n", feePercent, gatehubWalletID)
 	return nil
 }

@@ -5,8 +5,6 @@ Feature: Withdraw Funds
 
   Background:
     Given a random test identifier is generated
-    And that Gatehub charges a 0% deposit fee
-    And that Gatehub charges a 0% withdrawal fee
     And the frontend is running at "https://interledger.test"
     And Rafiki assets are seeded
     Given the details of 'withdrawal-user' are
@@ -31,7 +29,7 @@ Feature: Withdraw Funds
 
   @withdrawal @gatehub @fees
   Scenario: Successfully deposit 100 EUR and withdraw with 2% fee
-    Given that Gatehub charges a 2% withdrawal fee
+    Given that Gatehub charges my user a 2% withdrawal fee
     When I navigate to the deposit page
     And I deposit "100" "EUR" via the deposit iframe
     Then I should see my balance updated with "100" "EUR"

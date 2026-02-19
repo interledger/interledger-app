@@ -177,7 +177,7 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I should see my balance updated with "([^"]*)" "([^"]*)"$`, func(amount, currency string) error {
 		return sc.iShouldSeeMyBalanceUpdatedWithAmount(amount, currency)
 	})
-	ctx.Step(`^that Gatehub charges a ([0-9.]+)% deposit fee$`, func(feePercent string) error {
+	ctx.Step(`^that Gatehub charges my user a ([0-9.]+)% deposit fee$`, func(feePercent string) error {
 		return sc.thatGatehubChargesDepositFee(feePercent)
 	})
 
@@ -186,7 +186,7 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I withdraw "([^"]*)" "([^"]*)" via the withdrawal iframe$`, func(amount, currency string) error {
 		return sc.iWithdrawViATheWithdrawalIframe(amount, currency)
 	})
-	ctx.Step(`^that Gatehub charges a ([0-9.]+)% withdrawal fee$`, func(feePercent string) error {
+	ctx.Step(`^that Gatehub charges my user a ([0-9.]+)% withdrawal fee$`, func(feePercent string) error {
 		return sc.thatGatehubChargesWithdrawalFee(feePercent)
 	})
 
