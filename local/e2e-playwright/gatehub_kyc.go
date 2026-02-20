@@ -153,34 +153,34 @@ func (sc *E2EContext) iWaitForTheKYCIframeToLoad() error {
 			src, _ := iframeLocator.First().GetAttribute("src")
 			title, _ := iframeLocator.First().GetAttribute("title")
 			debugPrintf("   ✓ KYC iframe found: src=%s, title=%s\n", src, title)
-			
+
 			// Log iframe visibility
 			visible, _ := iframeLocator.First().IsVisible()
 			debugPrintf("   📍 Iframe visible: %v\n", visible)
-			
+
 			// Take screenshot of the iframe
 			debugPrintf("   📸 Taking screenshot of loaded iframe...\n")
 			if err := sc.iTakeAScreenshot("xago-kyc-iframe-loaded"); err != nil {
 				debugPrintf("   ⚠️  Failed to take screenshot: %v\n", err)
 			}
-			
+
 			// Check if iframe has loaded content by checking for form elements
 			frameLocator := sc.page.FrameLocator("iframe").First()
 			inputs := frameLocator.Locator("input")
 			inputCount, _ := inputs.Count()
 			debugPrintf("   📍 Input fields in iframe: %d\n", inputCount)
-			
+
 			buttons := frameLocator.Locator("button")
 			buttonCount, _ := buttons.Count()
 			debugPrintf("   📍 Buttons in iframe: %d\n", buttonCount)
-			
+
 			// If we have inputs or buttons, iframe is rendering
 			if inputCount > 0 || buttonCount > 0 {
 				debugPrintf("   ✓ Iframe contains form elements (inputs: %d, buttons: %d)\n", inputCount, buttonCount)
 			} else {
 				debugPrintf("   ⚠️  No form elements found in iframe yet\n")
 			}
-			
+
 			time.Sleep(500 * time.Millisecond) // Give iframe time to fully load
 			return nil
 		}
