@@ -12,7 +12,6 @@ import (
 
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/chimoney"
 	"gitlab.com/fynbos/backend/providers/chimoney/external"
@@ -57,49 +56,6 @@ func CreateWallet(ctx context.Context, b Backends, walletID string) (chimoney.Aw
 	}
 
 	return await.Get, nil
-}
-
-func ExecuteCompleteKYCWorkflow(ctx context.Context, b Backends, externalID string, kycStatus kyc.Status) error {
-
-	walletID, err := GetWalletID(ctx, b, externalID)
-	if err != nil {
-		return fmt.Errorf("%w %s", chimoney.ErrInternal, err)
-	}
-
-	wo := client.StartWorkflowOptions{
-		ID:                    "chimoney_kyc_" + walletID + "_" + kycStatus.String(),
-		TaskQueue:             "backend",
-		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
-	}
-
-	var workflowStatus enums.WorkflowExecutionStatus
-	wflow, err := b.Temporal().DescribeWorkflowExecution(ctx, wo.ID, "")
-	switch err.(type) {
-	case *serviceerror.Internal,
-		*serviceerror.Unavailable,
-		*serviceerror.InvalidArgument:
-		return fmt.Errorf("%w %s", chimoney.ErrInternal, err)
-	case *serviceerror.NotFound:
-		// do nothing
-	default:
-		if wflow != nil {
-			workflowStatus = wflow.GetWorkflowExecutionInfo().Status
-		}
-	}
-
-	// return workflow if it's running
-	var executeErr error
-	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
-		// Do nothing
-	} else {
-		_, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, ChimomeyCompleteKYC, walletID, kycStatus)
-	}
-
-	if executeErr != nil {
-		return fmt.Errorf("%w %s", chimoney.ErrInternal, executeErr)
-	}
-
-	return nil
 }
 
 func ExecuteFinishDeposit(ctx context.Context, b Backends, IssueID string, status string, ChiWalletID string) error {

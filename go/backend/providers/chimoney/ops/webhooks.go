@@ -254,5 +254,9 @@ func handleKYC(ctx context.Context, b Backends, raw json.RawMessage) error {
 		return fmt.Errorf("unknown KYC status: %s", wh.EventType)
 	}
 
-	return ExecuteCompleteKYCWorkflow(ctx, b, wh.UserID, kycStatus)
+	walletID, err := GetWalletID(ctx, b, wh.UserID)
+	if err != nil {
+		return fmt.Errorf("%w %s", chimoney.ErrInternal, err)
+	}
+	return b.KYC().SetKYCStatus(ctx, walletID, kycStatus)
 }
