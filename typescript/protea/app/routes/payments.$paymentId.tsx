@@ -149,8 +149,8 @@ export const meta: MetaFunction<typeof loader> = mergeMeta(({ data }) => [
         ? 'Payment'
         : // TODO Fix this for withdrawal
         data.transaction.type == 'sent' || data.transaction.type == 'web_monetization_outgoing'
-        ? `${data.transaction.subtotal} to ${data.transaction.title}`
-        : `${data.transaction.formattedAmount} from ${data.transaction.title}`
+          ? `${data.transaction.subtotal} to ${data.transaction.title}`
+          : `${data.transaction.formattedAmount} from ${data.transaction.title}`
   }
 ])
 
@@ -164,12 +164,12 @@ export default function Page() {
     <>
       {(transaction.type == 'sent' ||
         transaction.type == 'web_monetization_outgoing') && (
-        <Sent openDialog={() => setShowDialog(true)} />
-      )}
+          <Sent openDialog={() => setShowDialog(true)} />
+        )}
       {(transaction.type == 'received' ||
         transaction.type == 'web_monetization_incoming') && (
-        <Received openDialog={() => setShowDialog(true)} />
-      )}
+          <Received openDialog={() => setShowDialog(true)} />
+        )}
       {transaction.type == 'card_transaction' && <CardTransaction />}
       {transaction.type == 'withdrawal' && <Withdrawal />}
       {transaction.type == 'deposit' && <Deposit />}
@@ -835,16 +835,16 @@ function CardTransaction() {
           </div>
         </CardContent>
         <Label>
-          {transaction.cardTransactionDetails?.type === '0' && 'Recipient'}
-          {transaction.cardTransactionDetails?.type === '1' && 'Cash at'}
+          {transaction.cardTransactionDetails?.type?.toString() === '0' && 'Recipient'}
+          {transaction.cardTransactionDetails?.type?.toString() === '1' && 'Cash at'}
         </Label>
         <div className='my-1 flex space-x-2 rounded-xl bg-nav p-3'>
           <div className='flex w-full items-center justify-between text-medium'>
             <div className='flex space-x-2'>
               <Icon>
-                {transaction.cardTransactionDetails?.type === '0' &&
+                {transaction.cardTransactionDetails?.type?.toString() === '0' &&
                   'local_mall'}
-                {transaction.cardTransactionDetails?.type === '1' && 'atm'}
+                {transaction.cardTransactionDetails?.type?.toString() === '1' && 'atm'}
               </Icon>
               <span>{transaction.title}</span>
             </div>

@@ -11,7 +11,7 @@ import {
   TextField
 } from '~/components'
 import { SignupStep, useSignupStore } from '~/lib/useSignupStore'
-import type { detailsAction, loader } from './route'
+import type { loader } from './route'
 
 export function isEUCountry(countryCode: string) {
   const euCountryCodes = [
@@ -48,7 +48,7 @@ export function isEUCountry(countryCode: string) {
 }
 
 export function About() {
-  const details = useFetcher<typeof detailsAction>()
+  const details = useFetcher<any>()
   const { csrfToken } = useLoaderData<typeof loader>()
 
   const [

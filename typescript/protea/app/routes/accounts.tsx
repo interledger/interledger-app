@@ -24,8 +24,8 @@ import { getFeatures, getKycStatus } from '~/data/wallet.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
-import { KycStatus } from '~/routes/_index/route'
-import styles from '~/styles/flags.css'
+import { KycStatus } from '~/lib/types'
+import styles from '~/styles/flags.css?url'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const { bankAccounts, cardAccounts, interacAccounts } =

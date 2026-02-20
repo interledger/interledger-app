@@ -20,8 +20,8 @@ import { getClientIP } from '~/lib/ip.server'
 import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { usePTISdk } from '~/lib/usePTISdk'
-import { KycStatus } from '~/routes/_index/route'
-import { PaymentRequiredAction } from './pay_.$paymentId/route'
+import { KycStatus, PaymentRequiredAction } from '~/lib/types'
+
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const { kycStatus } = await getKycStatus(request)
@@ -197,7 +197,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     }
   }
 
-    return redirectWithSnackbar(request, route('/'), {
+  return redirectWithSnackbar(request, route('/'), {
     message: 'Deposit created successfully.',
     icon: 'close'
   })

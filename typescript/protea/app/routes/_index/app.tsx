@@ -26,8 +26,8 @@ import {
 import { Label } from '~/components/Label'
 import { usePendingConfirmations } from '~/lib/cards/usePendingConfirmations'
 import { usePusher } from '~/lib/usePusher'
-import type { appLoader } from './route'
-import { KycStatus } from './route'
+import type { loader } from './route'
+import { KycStatus } from '~/lib/types'
 
 export function AppPage() {
   const {
@@ -37,7 +37,7 @@ export function AppPage() {
     kycStatus,
     pusherArgs,
     balances
-  } = useLoaderData<typeof appLoader>()
+  } = useLoaderData<any>()
 
   const { pendingConfirmations } = usePendingConfirmations()
 
@@ -84,18 +84,18 @@ export function AppPage() {
         )}
         {(kycStatus == KycStatus.Pending ||
           kycStatus == KycStatus.InReview) && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Activation</CardTitle>
-              <Chip color={ChipColor.orange}>Pending</Chip>
-            </CardHeader>
-            <CardContent>
-              <p className='text-sm text-medium'>
-                Just a moment, we are verifying your details.
-              </p>
-            </CardContent>
-          </Card>
-        )}
+            <Card>
+              <CardHeader>
+                <CardTitle>Activation</CardTitle>
+                <Chip color={ChipColor.orange}>Pending</Chip>
+              </CardHeader>
+              <CardContent>
+                <p className='text-sm text-medium'>
+                  Just a moment, we are verifying your details.
+                </p>
+              </CardContent>
+            </Card>
+          )}
         {kycStatus == KycStatus.Denied && (
           <Card>
             <CardHeader>
@@ -141,7 +141,7 @@ export function AppPage() {
             <div className='contents lg:hidden'>
               <CTACards />
             </div>
-            {balances.map((method) => (
+            {balances.map((method: any) => (
               <Card key={method.linkedAccount}>
                 <CardContent className='flex items-center justify-between'>
                   <div className='flex items-center space-x-3'>
@@ -213,7 +213,7 @@ export function AppPage() {
                   </div>
                 </CardContent>
               )}
-              {transactions.map((transaction, index) => (
+              {transactions.map((transaction: any, index: number) => (
                 <CardLink
                   key={transaction.id}
                   to={route('/payments/:paymentId', {
@@ -303,7 +303,7 @@ export function AppPage() {
 }
 
 function CTACards() {
-  const { features, walletInfo } = useLoaderData<typeof appLoader>()
+  const { features, walletInfo } = useLoaderData<any>()
 
   return (
     <>

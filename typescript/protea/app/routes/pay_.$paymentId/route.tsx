@@ -39,31 +39,11 @@ import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { PayStep, usePayStore } from '~/lib/usePayStore'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
-import { KycStatus } from '~/routes/_index/route'
-import styles from '~/styles/flags.css'
+import { KycStatus, PaymentIdentityType, PaymentRequiredAction } from '~/lib/types'
+import styles from '~/styles/flags.css?url'
 import { Amount } from './Amount'
 import { Confirm } from './Confirm'
 
-export enum PaymentRequiredAction {
-  Unknown,
-  ThreeDS,
-  SenderIdentifier,
-  SenderAccount,
-  ReceiverIdentifier,
-  SenderAmount,
-  ReceiverAmount,
-  OTP,
-  IPAddress
-}
-export enum PaymentIdentityType {
-  Unknown,
-  Twitter,
-  WalletID,
-  WalletURL,
-  Slack,
-  Discord,
-  Sentinel // End of range value must be last, no need to public
-}
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   let account: FormattedLinkedAccount
@@ -276,7 +256,7 @@ export async function action(args: ActionFunctionArgs) {
   }
 }
 
-export async function confirmPaymentAction({
+async function confirmPaymentAction({
   request,
   params
 }: ActionFunctionArgs) {
@@ -330,7 +310,7 @@ function stringToBigInt(amount: string) {
   return BigInt(parseFloat(amount) * 100)
 }
 
-export async function updatePaymentAction({
+async function updatePaymentAction({
   request,
   params
 }: ActionFunctionArgs) {

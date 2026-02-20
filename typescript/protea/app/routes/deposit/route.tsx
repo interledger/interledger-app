@@ -1,9 +1,11 @@
 import {
+  json,
   redirect,
   type ActionFunctionArgs,
   type LoaderFunctionArgs,
   type MetaFunction
 } from '@remix-run/node'
+import { Code } from '@bufbuild/connect'
 import { useLoaderData } from '@remix-run/react'
 import type { ApplicationProps } from '~/components'
 import { Layouts } from '~/components'
@@ -11,37 +13,119 @@ import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
 import { route } from 'routes-gen'
-import styles from '~/styles/flags.css'
+import styles from '~/styles/flags.css?url'
+import { ChimoneyDepositPage } from './chimoney'
+import { FynbosDepositPage } from './fynbos'
+import { GatehubDepositPage } from './gatehub'
+import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
+import { redirectWithSnackbar } from '~/lib/snackbar.server'
+import { getUserSession } from '~/lib/kratos.server'
 import {
-  ChimoneyDepositPage,
-  chimoneyAmountAction,
-  chimoneyDepositLoader,
-  chimoneySuccessfullDepositAction
-} from './chimoney'
-import {
-  FynbosDepositPage,
-  fynbosDepositAction,
-  fynbosDepositLoader,
-  xagoTestAccountDepositAction
-} from './fynbos'
-import { GatehubDepositPage, gatehubDepositLoader } from './gatehub'
+  getBalancesForTransfer,
+  getLinkedAccountsForDeposit
+} from '~/data/accounts.server'
+import type {
+  Balance,
+  XagoDepositDetails
+} from '~/generated/connect/backend/v1/backend_pb'
 import { KRATOS_URL } from '~/lib/kratos.server'
 
 import { getKycStatus } from '~/data/wallet.server'
-import { KycStatus } from '../_index/route'
+import { KycStatus } from '~/lib/types'
 
+function stringToBigInt(amount: string) {
+  if (amount == '') return BigInt(0)
+  const dotIndex = amount.lastIndexOf('.')
+  if (dotIndex > -1) {
+    const amounts = amount.split('.')
+    return BigInt(amounts[0] + amounts[1].slice(0, 2).padEnd(2, '0'))
+  }
+  return BigInt(parseFloat(amount) * 100)
+}
+
+async function gatehubDepositLoader({ request }: LoaderFunctionArgs) {
+  const widgetResponse = await grpc.getGatehubDepositWidget(request, {})
+  if (isConnectError(widgetResponse)) throw widgetResponse.error
+
+  return jsonWithCSRF(request, {
+    provider: 'gatehub',
+    gatehubWidgetUrl: widgetResponse.widgetUrl
+  })
+}
+
+async function chimoneyDepositLoader({ request }: LoaderFunctionArgs) {
+  return jsonWithCSRF(request, { provider: 'chimoney' })
+}
+
+async function fynbosDepositLoader({ request }: LoaderFunctionArgs) {
+  const providerResponse = await grpc.getOnOffRampProvider(request, {})
+  if (isConnectError(providerResponse)) throw providerResponse.error
+  const url = new URL(request.url)
+  let balanceAccount: Balance | undefined
+  let balance: any
+  let depositDetails: XagoDepositDetails | undefined
+
+  const balanceResponse = await grpc.getBalances(request, {})
+  if (isConnectError(balanceResponse)) throw balanceResponse.error
+
+  const balances = await getBalancesForTransfer(request)
+
+  const linkedAccount = url.searchParams.get('linkedAccount')
+
+  if (linkedAccount) {
+    balanceAccount = balanceResponse.balances.find(
+      (acc) => acc.linkedAccount == linkedAccount
+    )
+  } else {
+    balanceAccount = balanceResponse.balances[0]
+  }
+  balance = balances.find((acc) => acc.id == balanceAccount?.linkedAccount)
+  if (
+    !balanceAccount ||
+    typeof balanceAccount == 'undefined' ||
+    !balance ||
+    typeof balance == 'undefined'
+  )
+    throw json({}, { status: 404 })
+
+  const linkedAccounts = await getLinkedAccountsForDeposit(
+    request,
+    balanceAccount.linkedAccount
+  )
+
+  if (linkedAccounts.length == 0 && balanceAccount.countryCode == 'ZA') {
+    let details = await grpc.getXagoDepositDetails(request, {
+      linkedAccount: balanceAccount.linkedAccount
+    })
+    if (isConnectError(details)) throw details.errorResponse
+
+    let ret = details.details.filter(
+      (d) => d.currency == balanceAccount?.currency
+    )
+    depositDetails = ret[0]
+  }
+
+  return jsonWithCSRF(request, {
+    provider: providerResponse.provider,
+    balanceAccount,
+    balance,
+    balances,
+    linkedAccounts,
+    depositDetails
+  })
+}
 
 export async function loader(args: LoaderFunctionArgs) {
   const session = await fetch(`${KRATOS_URL}/sessions/whoami`, {
-      headers: args.request.headers
-    })
-    if (session.status === 401) {
-      return redirect('/login')
-    }
-    const { kycStatus } = await getKycStatus(args.request)
-    if (kycStatus != KycStatus.Approved)
-      return redirect(route('/personal-details'))
-  
+    headers: args.request.headers
+  })
+  if (session.status === 401) {
+    return redirect('/login')
+  }
+  const { kycStatus } = await getKycStatus(args.request)
+  if (kycStatus != KycStatus.Approved)
+    return redirect(route('/personal-details'))
+
   const providerResponse = await grpc.getOnOffRampProvider(args.request, {})
   if (isConnectError(providerResponse)) throw providerResponse.error
   if (providerResponse.provider == 'gatehub') {
@@ -72,13 +156,129 @@ export function links() {
 }
 
 export default function Page() {
-  const { provider } = useLoaderData<typeof loader>()
+  const { provider } = useLoaderData<any>()
 
   if (provider == 'gatehub') {
     return <GatehubDepositPage />
   } else if (provider == 'chimoney') {
     return <ChimoneyDepositPage />
   } else return <FynbosDepositPage />
+}
+
+async function chimoneyAmountAction({ request }: ActionFunctionArgs) {
+  const form = await request.formData()
+  const depositAmount = String(form.get('depositAmount') || '')
+
+  const response = await grpc.getChimoneyDepositLink(request, {
+    amount: stringToBigInt(depositAmount),
+    asset: 'CAD',
+    assetScale: 2
+  })
+  if (isConnectError(response)) throw response.error
+
+  return json({
+    chimoneyWidget: response.link
+  })
+}
+
+async function chimoneySuccessfullDepositAction({
+  request
+}: ActionFunctionArgs) {
+  const form = await request.formData()
+  const issueId = String(form.get('issueId') || '')
+
+  const response = await grpc.createChimoneyDeposit(request, { issueId })
+  if (isConnectError(response)) throw response.error
+
+  return redirect(route('/'))
+}
+
+async function fynbosDepositAction({ request }: ActionFunctionArgs) {
+  const form = await request.formData()
+  const depositAmount = String(form.get('depositAmount') || '')
+  const toLinkedAccount = form.get('toLinkedAccount') as string
+  const fromLinkedAccount = form.get('fromLinkedAccount') as string
+  const provider = form.get('provider') as string
+  const note = form.get('note') as string
+
+  await validateCSRFToken(request, form)
+
+  const errors = {
+    form: '',
+    depositAmount: '',
+    toLinkedAccount: '',
+    note: ''
+  }
+
+  const cc = provider === 'pit' ? 'USD' : 'ZAR'
+  const depositResponse = await grpc.depositBalance(request, {
+    fromLinkedAccount: fromLinkedAccount,
+    toLinkedAccount: toLinkedAccount,
+    amount: {
+      amount: stringToBigInt(depositAmount),
+      asset: cc,
+      assetScale: 2
+    },
+    note
+  })
+  if (isConnectError(depositResponse)) {
+    if (depositResponse.code == Code.InvalidArgument) {
+      return depositResponse.error({
+        errors: {
+          ...errors,
+          depositAmount: depositResponse?.fieldViolations?.find((v: { field: string }) => v.field === 'amount')?.description ?? ''
+        }
+      })
+    }
+    if (
+      depositResponse.code == Code.FailedPrecondition &&
+      depositResponse.violations.findIndex(
+        (violation) =>
+          violation.type === 'Payment' &&
+          violation.subject === 'insufficientFunds'
+      ) > -1
+    ) {
+      return depositResponse.error({
+        errors: {
+          ...errors,
+          depositAmount: 'You have insufficient funds available.'
+        }
+      })
+    }
+    errors.form = 'Failed to create deposital.'
+    return depositResponse.error(
+      { errors },
+      {},
+      {
+        action: 'Contact support'
+      }
+    )
+  }
+
+  return redirect(
+    route('/deposit/:paymentId', {
+      paymentId: depositResponse.id
+    })
+  )
+}
+
+async function xagoTestAccountDepositAction({
+  request
+}: ActionFunctionArgs) {
+  const form = await request.formData()
+
+  await validateCSRFToken(request, form)
+
+  const response = await grpc.depositTestXago(request, {})
+
+  if (isConnectError(response)) {
+    return response.errorResponse
+  }
+
+  return redirectWithSnackbar(request, route('/'), {
+    message: 'Test deposit added successfully.',
+    icon: 'close'
+  })
 }
 
 export async function action(args: ActionFunctionArgs) {
@@ -92,6 +292,6 @@ export async function action(args: ActionFunctionArgs) {
     return chimoneySuccessfullDepositAction(args)
   } else if (formName === 'xago-test-account-deposit') {
     return xagoTestAccountDepositAction(args)
-  } 
+  }
   return fynbosDepositAction(args)
 }

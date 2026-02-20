@@ -52,8 +52,8 @@ import { mergeMeta } from '~/lib/meta'
 import type { IframeMessage } from '~/lib/types'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { PaySelect } from '~/routes/pay_.$paymentId/PaySelect'
-import styles from '~/styles/flags.css'
-import { KycStatus } from './_index/route'
+import styles from '~/styles/flags.css?url'
+import { KycStatus } from '~/lib/types'
 import type { JsonValue } from '@bufbuild/protobuf'
 
 type WithdrawalLoaderData = {
@@ -68,14 +68,14 @@ type WithdrawalLoaderData = {
 export async function loader(args: LoaderFunctionArgs) {
   const providerResponse = await grpc.getOnOffRampProvider(args.request, {})
   if (isConnectError(providerResponse)) throw providerResponse.error
-  
+
   const { kycStatus } = await getKycStatus(args.request)
   if (kycStatus != KycStatus.Approved)
     return redirect(route('/personal-details'))
-  
+
   if (providerResponse.provider == 'gatehub') {
     return gatehubWithdrawalLoader(args)
-  } else if(providerResponse.provider == 'pti')
+  } else if (providerResponse.provider == 'pti')
     return ptiWithdrawalLoader(args)
   else return fynbosWithdrawalLoader(args)
 }
@@ -91,11 +91,11 @@ async function gatehubWithdrawalLoader({ request }: LoaderFunctionArgs) {
 }
 
 async function fynbosWithdrawalLoader({ request }: LoaderFunctionArgs) {
-  return await addProviderToLoader(request,'interledger')
+  return await addProviderToLoader(request, 'interledger')
 }
 
 async function ptiWithdrawalLoader({ request }: LoaderFunctionArgs) {
-  return await addProviderToLoader(request,'pti')
+  return await addProviderToLoader(request, 'pti')
 }
 
 export const handle: ApplicationProps = {
@@ -167,7 +167,7 @@ function GatehubWithdrawalPage() {
   const { gatehubWidgetUrl } = useLoaderData<typeof gatehubWithdrawalLoader>()
   useEffect(() => {
     const url = new URL(gatehubWidgetUrl)
-    const handler = (event: MessageEvent<IframeMessage>) => {  
+    const handler = (event: MessageEvent<IframeMessage>) => {
       if (
         event.origin === url.origin &&
         event.data.type === 'WithdrawalCompleted'
@@ -175,22 +175,22 @@ function GatehubWithdrawalPage() {
         const formData = new FormData()
         formData.append('provider', 'gatehub')
         formData.append('withdrawalId', event.data.uuid)
-  
+
         submit(formData, {
           action: '/withdraw',
           method: 'post'
         })
       }
     }
-    if(window) {
+    if (window) {
       window.addEventListener('message', handler)
     }
-      
+
     return () => {
-      if(window) {
+      if (window) {
         window.removeEventListener('message', handler)
       }
-      
+
     }
   })
 
@@ -211,7 +211,7 @@ function FynbosWithdrawalPage() {
   const amountData: WithdrawalLoaderData = {
     balances: data.balances,
     provider: data.provider,
-    balanceAccount:  data.balanceAccount,
+    balanceAccount: data.balanceAccount as any,
     linkedAccounts: data.linkedAccounts,
     csrfToken: data.csrfToken,
     balance: data.balance
@@ -263,7 +263,7 @@ const formatAmount = (amount?: PlainMessage<RpcAmount>): string => {
 }
 
 
-const Amount = ({data}: {data: WithdrawalLoaderData}) => {
+const Amount = ({ data }: { data: WithdrawalLoaderData }) => {
   const { balance, balances, balanceAccount, linkedAccounts, csrfToken, provider } = data
   const balanceAcc = Balance.fromJson(balanceAccount);
   const [, setSearchParams] = useSearchParams()
@@ -323,10 +323,10 @@ const Amount = ({data}: {data: WithdrawalLoaderData}) => {
         type='hidden'
       />
       <input
-      form='account-withdraw'
-      value={provider}
-      name='provider'
-      type='hidden'
+        form='account-withdraw'
+        value={provider}
+        name='provider'
+        type='hidden'
       />
       <Card>
         <PaySelect
@@ -417,7 +417,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const toLinkedAccount = form.get('toLinkedAccount') as string
   const fromLinkedAccount = form.get('fromLinkedAccount') as string
   const note = form.get('note') as string
- const provider = form.get('provider') as string
+  const provider = form.get('provider') as string
   await validateCSRFToken(request, form)
 
   if (provider == 'gatehub') {

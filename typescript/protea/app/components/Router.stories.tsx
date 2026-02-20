@@ -1,4 +1,4 @@
-import { unstable_createRemixStub as createRemixStub } from '@remix-run/testing'
+import { createRemixStub as createRemixStub } from '@remix-run/testing'
 import type { Meta, StoryFn } from '@storybook/react'
 import { Router } from '~/components'
 

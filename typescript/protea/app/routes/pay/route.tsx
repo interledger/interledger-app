@@ -32,8 +32,8 @@ import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { getClientIP } from '~/lib/ip.server'
 import { mergeMeta } from '~/lib/meta'
-import { KycStatus } from '~/routes/_index/route'
-import { PaymentIdentityType } from '~/routes/pay_.$paymentId/route'
+import { KycStatus } from '~/lib/types'
+import { PaymentIdentityType } from '~/lib/types'
 
 export async function loader(args: LoaderFunctionArgs) {
   const url = new URL(args.request.url)
@@ -46,7 +46,7 @@ export async function loader(args: LoaderFunctionArgs) {
   return payLoader(args)
 }
 
-export async function searchLoader(
+async function searchLoader(
   { request }: LoaderFunctionArgs,
   term: string
 ) {
@@ -58,7 +58,7 @@ export async function searchLoader(
   return json({ results })
 }
 
-export async function payLoader({ request }: LoaderFunctionArgs) {
+async function payLoader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
 
   let results: PlainMessage<SearchResult>[] = []

@@ -1,24 +1,13 @@
-import type { LoaderFunctionArgs } from '@remix-run/node'
+
 import { useLoaderData, useNavigate } from '@remix-run/react'
 import { useEffect } from 'react'
-import { jsonWithCSRF } from '~/lib/csrf.server'
-import { isConnectError } from '~/lib/error.server'
-import { grpc } from '~/lib/grpc.server'
+
 import type { IframeMessage } from '~/lib/types'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 
-export async function gatehubDepositLoader({ request }: LoaderFunctionArgs) {
-  const widgetResponse = await grpc.getGatehubDepositWidget(request, {})
-  if (isConnectError(widgetResponse)) throw widgetResponse.error
-
-  return jsonWithCSRF(request, {
-    provider: 'gatehub',
-    gatehubWidgetUrl: widgetResponse.widgetUrl
-  })
-}
 
 export function GatehubDepositPage() {
-  const { gatehubWidgetUrl } = useLoaderData<typeof gatehubDepositLoader>()
+  const { gatehubWidgetUrl } = useLoaderData<any>()
   const [pushSnackbar] = useScaffoldStore((state) => [state.pushSnackbar])
   const navigate = useNavigate()
   useEffect(() => {
@@ -40,7 +29,7 @@ export function GatehubDepositPage() {
     if (window) {
       window.addEventListener('message', handler)
     }
-      
+
     return () => {
       if (window) {
         window.removeEventListener('message', handler)

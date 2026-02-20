@@ -18,7 +18,7 @@ import {
 import { Label } from '~/components/Label'
 import type { SearchResult } from '~/generated/connect/backend/v1/backend_pb'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
-import type { searchLoader } from '~/routes/pay/route'
+
 
 type Action = {
   icon: string
@@ -53,7 +53,7 @@ const defaultActions = [
 ]
 
 export function CommandActions() {
-  const search = useFetcher<typeof searchLoader>()
+  const search = useFetcher<{ results?: PlainMessage<SearchResult>[] }>()
 
   const navigate = useNavigate()
 
@@ -167,8 +167,8 @@ export function CommandActions() {
                 <div className='flex gap-x-3'>
                   {(result.identifierType == 'wallet' ||
                     result.identifierType == 'wallet_url') && (
-                    <InterledgerIcon />
-                  )}
+                      <InterledgerIcon />
+                    )}
                   {result.identifierType == 'twitter' && <TwitterIcon />}
                   {result.identifierType == 'discord' && <DiscordIcon />}
                   {result.identifierType == 'domain' && (

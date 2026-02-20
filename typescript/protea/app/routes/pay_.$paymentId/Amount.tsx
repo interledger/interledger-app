@@ -22,7 +22,7 @@ import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { PayTextField } from '~/routes/pay_.$paymentId/PayTextField'
 import { PaySelect } from './PaySelect'
 import { PaymentDetailsCard } from './PaymentDetailsCard'
-import type { loader, updatePaymentAction } from './route'
+import type { loader } from './route'
 
 const DEBOUNCE_WAIT = 150
 
@@ -98,7 +98,7 @@ function reducer(state: AmountState, action: Action): AmountState {
 
 export const Amount = () => {
   const { account, sendAccounts, payment, csrfToken } =
-    useLoaderData<typeof loader>()
+    useLoaderData<any>()
 
   const [localPayment, dispatchPayment] = useReducer(
     reducer,
@@ -106,7 +106,7 @@ export const Amount = () => {
     createInitialState
   )
 
-  const updatePaymentFetcher = useFetcher<typeof updatePaymentAction>()
+  const updatePaymentFetcher = useFetcher<any>()
 
   const [setStep] = usePayStore((state) => [state.setStep])
 

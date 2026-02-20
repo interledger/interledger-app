@@ -5,12 +5,12 @@ import { Button, Card, CardContent, Checkbox } from '~/components'
 import { DateTime } from 'luxon'
 import { usePTISdk } from '~/lib/usePTISdk'
 import { PaymentDetailsCard } from './PaymentDetailsCard'
-import type { confirmPaymentAction, loader } from './route'
+import type { loader } from './route'
 
 export function Confirm() {
   const { payment, account, csrfToken, PTIClientId } =
     useLoaderData<typeof loader>()
-  const actionData = useActionData<typeof confirmPaymentAction>()
+  const actionData = useActionData<any>()
 
   usePTISdk(payment.id, PTIClientId)
 

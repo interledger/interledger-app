@@ -15,7 +15,7 @@ import {
 } from '~/components'
 import { getKycStatus } from '~/data/wallet.server'
 import { mergeMeta } from '~/lib/meta'
-import { KycStatus } from '~/routes/_index/route'
+import { KycStatus } from '~/lib/types'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)

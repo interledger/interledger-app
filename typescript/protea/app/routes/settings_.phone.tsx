@@ -41,7 +41,7 @@ import {
 import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import type { action as sendOtpAction } from '~/routes/api_.sendOtp'
-import styles from '~/styles/flags.css'
+import styles from '~/styles/flags.css?url'
 
 // The loader generates a new 3ds session. This must only be called on initial page load
 // and not after submitting actions.

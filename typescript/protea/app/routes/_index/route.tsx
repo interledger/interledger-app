@@ -1,3 +1,4 @@
+import { KycStatus } from '~/lib/types'
 import type { LinksFunction, LoaderFunctionArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import type { UIMatch } from '@remix-run/react'
@@ -14,20 +15,11 @@ import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { hasUserSession } from '~/lib/kratos.server'
 import { getPusherArgs } from '~/lib/pusher.server'
-import flagStyles from '~/styles/flags.css'
+import flagStyles from '~/styles/flags.css?url'
 import { AppPage } from './app'
 import { MarketingPage } from './marketing'
 
-export enum KycStatus {
-  Unknown = 0,
-  Pending = 1,
-  DocumentsRequired = 2,
-  Approved = 3,
-  Denied = 4,
-  InReview = 5,
-  Level1 = 6,
-  Level2 = 7
-}
+
 
 export const links: LinksFunction = () => {
   return [{ rel: 'stylesheet', href: flagStyles }]
@@ -43,7 +35,7 @@ export async function loader(args: LoaderFunctionArgs) {
   }
 }
 
-export async function appLoader({ request }: LoaderFunctionArgs) {
+async function appLoader({ request }: LoaderFunctionArgs) {
   const [
     walletInfo,
     transactions,
@@ -74,7 +66,7 @@ export async function appLoader({ request }: LoaderFunctionArgs) {
   })
 }
 
-export async function marketingLoader() {
+async function marketingLoader() {
   return json({
     isUser: false
   })

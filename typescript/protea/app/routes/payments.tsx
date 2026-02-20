@@ -39,7 +39,7 @@ import { grpc } from '~/lib/grpc.server'
 
 import { isConnectError } from '~/lib/error.server'
 import { mergeMeta } from '~/lib/meta'
-import { KycStatus } from '~/routes/_index/route'
+import { KycStatus } from '~/lib/types'
 
 /**
  * Allows us to change the searchParams without revalidating the pages data

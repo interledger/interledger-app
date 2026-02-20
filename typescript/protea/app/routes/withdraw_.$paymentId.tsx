@@ -20,8 +20,8 @@ import { getClientIP } from '~/lib/ip.server'
 import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { usePTISdk } from '~/lib/usePTISdk'
-import { KycStatus } from '~/routes/_index/route'
-import { PaymentRequiredAction } from './pay_.$paymentId/route'
+import { KycStatus, PaymentRequiredAction } from '~/lib/types'
+
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const { kycStatus } = await getKycStatus(request)
@@ -91,7 +91,7 @@ export default function Page() {
         name='csrfToken'
         type='hidden'
       />
-         <input
+      <input
         form='withdraw-confirm'
         value={payment.senderAmount?.country}
         name='country'
@@ -167,7 +167,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
   const clientIpAddress = getClientIP(request)
 
   if (country.toLowerCase() === 'us') {
-    const ptiResponse = await grpc.createPTIWithdrawal (request, {
+    const ptiResponse = await grpc.createPTIWithdrawal(request, {
       paymentId: params.paymentId || ''
     })
     if (isConnectError(ptiResponse)) {
