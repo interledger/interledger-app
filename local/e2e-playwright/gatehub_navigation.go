@@ -149,6 +149,15 @@ func (sc *E2EContext) iClickTheButton(buttonText string) error {
 			time.Sleep(1 * time.Second)
 			return nil
 		}
+		// For Continue/Next: if an iframe is already present, the mockxago flow
+		// renders the KYC iframe directly without a Continue button — skip the click
+		if strings.ToLower(buttonText) == "continue" || strings.ToLower(buttonText) == "next" {
+			iframeCount, _ := sc.page.Locator("iframe").Count()
+			if iframeCount > 0 {
+				debugPrintf("   ✓ '%s' button not found but KYC iframe already present, skipping click\n", buttonText)
+				return nil
+			}
+		}
 		return fmt.Errorf("failed to click button '%s': %w", buttonText, err)
 	}
 

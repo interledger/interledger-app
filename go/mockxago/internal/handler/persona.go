@@ -3,7 +3,9 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -122,13 +124,13 @@ func (h *Handler) PersonaGetInquiryIframe(w http.ResponseWriter, r *http.Request
 
 	logger.Infof("Serving Persona iframe for inquiry: %s", inquiryID)
 
-	// Get user_id from query params if provided
+	// Get user_id from query params if provided, fall back to inquiryID
 	userID := r.URL.Query().Get("user_id")
 	if userID == "" {
 		userID = inquiryID
 	}
 
-	// Load and serve the KYC iframe template
+	// Load and serve the KYC iframe template (same pattern as KYCIframe in kyc.go)
 	possiblePaths := []string{
 		"web/kyc-iframe.html",
 		"./web/kyc-iframe.html",
@@ -138,30 +140,37 @@ func (h *Handler) PersonaGetInquiryIframe(w http.ResponseWriter, r *http.Request
 
 	var templatePath string
 	for _, path := range possiblePaths {
-		if h.fileExists(path) {
+		if _, err := os.Stat(path); err == nil {
 			templatePath = path
 			break
 		}
 	}
 
 	if templatePath == "" {
-		logger.Errorf("Could not find KYC iframe template")
+		logger.Errorf("Could not find KYC iframe template, tried: %v", possiblePaths)
 		h.sendError(w, http.StatusInternalServerError, "template_not_found", "KYC template not found")
 		return
 	}
 
-	// Read and serve the HTML directly (without template processing for Persona API)
-	content, err := h.readFile(templatePath)
+	tmpl, err := template.ParseFiles(templatePath)
 	if err != nil {
-		logger.Errorf("Failed to read KYC iframe template: %v", err)
-		h.sendError(w, http.StatusInternalServerError, "template_error", "Failed to read template")
+		logger.Errorf("Failed to parse KYC iframe template: %v", err)
+		h.sendError(w, http.StatusInternalServerError, "template_error", "Failed to parse template")
 		return
+	}
+
+	data := map[string]string{
+		"Token":  r.URL.Query().Get("token"),
+		"UserID": userID,
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("X-Frame-Options", "ALLOWALL") // Allow framing from any origin
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprint(w, string(content))
+	if err := tmpl.Execute(w, data); err != nil {
+		logger.Errorf("Failed to execute KYC iframe template: %v", err)
+		h.sendError(w, http.StatusInternalServerError, "template_execution_error", "Failed to execute template")
+		return
+	}
 }
 
 // PersonaInquirySubmit handles POST /inquiries/{id}/submit - Form submission callback
@@ -204,122 +213,3 @@ func (h *Handler) PersonaInquirySubmit(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// Helper functions
-func (h *Handler) fileExists(path string) bool {
-	_, err := h.readFile(path)
-	return err == nil
-}
-
-func (h *Handler) readFile(path string) ([]byte, error) {
-	// This is a simple mock - in real implementation would use os.ReadFile
-	// For now, we'll return the actual KYC iframe HTML content
-	content := `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Persona KYC Verification</title>
-    <style>
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto'; 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .container {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-            width: 100%;
-            max-width: 500px;
-            padding: 40px;
-        }
-        h1 { color: #1a1a1a; margin-bottom: 8px; }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; color: #1a1a1a; font-weight: 500; }
-        input { 
-            width: 100%; 
-            padding: 10px 12px; 
-            border: 1px solid #e0e0e0; 
-            border-radius: 6px; 
-            font-size: 14px;
-        }
-        button {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 20px;
-        }
-        button:hover { transform: translateY(-2px); }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Identity Verification</h1>
-        <p>Please provide your information</p>
-
-        <form id="kycForm" method="POST" action="/kyc/submit" enctype="multipart/form-data">
-            <div class="form-group">
-                <label>First Name *</label>
-                <input type="text" id="first_name" name="first_name" required placeholder="John">
-            </div>
-            <div class="form-group">
-                <label>Last Name *</label>
-                <input type="text" id="last_name" name="last_name" required placeholder="Doe">
-            </div>
-            <div class="form-group">
-                <label>Date of Birth *</label>
-                <input type="date" id="dob" name="dob" required>
-            </div>
-            <div class="form-group">
-                <label>Address *</label>
-                <input type="text" id="address" name="address" required placeholder="123 Main Street">
-            </div>
-            <div class="form-group">
-                <label>City *</label>
-                <input type="text" id="city" name="city" required placeholder="City">
-            </div>
-            <div class="form-group">
-                <label>Country *</label>
-                <input type="text" id="country" name="country" required placeholder="Country">
-            </div>
-            <button type="submit">Submit Verification</button>
-        </form>
-    </div>
-
-    <script>
-        const form = document.getElementById('kycForm');
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = new FormData(form);
-            try {
-                await fetch(form.action, {
-                    method: 'POST',
-                    body: formData
-                });
-                // Notify parent of completion
-                window.parent.postMessage({
-                    type: 'OnboardingCompleted',
-                    value: JSON.stringify({
-                        applicantStatus: 'submitted'
-                    })
-                }, '*');
-                setTimeout(() => window.parent.location.reload(), 2000);
-            } catch (error) {
-                console.error('Submission error:', error);
-            }
-        });
-    </script>
-</body>
-</html>`
-	return []byte(content), nil
-}

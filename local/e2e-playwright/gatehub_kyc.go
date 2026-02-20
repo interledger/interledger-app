@@ -94,10 +94,19 @@ func (sc *E2EContext) iNavigateToThePersonalDetailsPageToActivateWallet() error 
 }
 
 // iShouldSeeTheActivateWalletButton verifies the activate wallet button is visible
+// For mockxago flow, the iframe may be rendered directly without a button
 func (sc *E2EContext) iShouldSeeTheActivateWalletButton() error {
-	debugPrintln("\n👁️  Checking for activate wallet button...")
+	debugPrintln("\n👁️  Checking for activate wallet button or KYC iframe...")
 
 	time.Sleep(1 * time.Second)
+
+	// Check if a KYC iframe is already loaded (mockxago flow renders iframe directly)
+	iframeLocator := sc.page.Locator("iframe")
+	iframeCount, _ := iframeLocator.Count()
+	if iframeCount > 0 {
+		debugPrintf("   ✓ KYC iframe already present (mockxago direct-iframe flow)\n")
+		return nil
+	}
 
 	// Look for Continue button or similar activation trigger
 	selectors := []string{
@@ -117,7 +126,7 @@ func (sc *E2EContext) iShouldSeeTheActivateWalletButton() error {
 		}
 	}
 
-	return fmt.Errorf("no activate wallet button found")
+	return fmt.Errorf("no activate wallet button or KYC iframe found")
 }
 
 // iWaitForTheKYCIframeToLoad waits for the KYC iframe to appear and load
