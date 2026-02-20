@@ -136,7 +136,7 @@ type Payment struct {
 	Issuer              string      `json:"issuer"`
 	TID                 int         `json:"t_id"`
 	ChiRef              string      `json:"chiRef"`
-	Meta                interface{} `json:"meta"`
+	Meta                PaymentMeta `json:"meta"`
 	Integration         Integration `json:"integration"`
 	Currency            string      `json:"currency"`
 	InteracFee          float64     `json:"interacFee"`
@@ -147,6 +147,20 @@ type Payment struct {
 	InitiatedBy         string      `json:"initiatedBy"`
 	RedirectURL         string      `json:"redirect_url"`
 	Status              string      `json:"status"`
+	PaymentType         string      `json:"paymentType,omitempty"`
+}
+
+type PaymentMeta struct {
+	Amount        float64               `json:"amount"`
+	ProcessingFee *PaymentProcessingFee `json:"processingFee,omitempty"`
+}
+
+type PaymentProcessingFee struct {
+	Amount      float64 `json:"amount"`
+	Currency    string  `json:"currency"`
+	GrossAmount float64 `json:"grossAmount"`
+	NetAmount   float64 `json:"netAmount"`
+	Provider    string  `json:"provider"`
 }
 
 type VerifyPaymentReq struct {

@@ -81,7 +81,3 @@ func (c *Client) RollbackReserve(ctx context.Context, txID string) error {
 func (c *Client) GetKYCWidget(ctx context.Context, walletID string) (string, error) {
 	return ops.GetKYCWidget(ctx, c.b, walletID)
 }
-
-func (c *Client) CreateDeposit(ctx context.Context, issueID string) (chimoney.Await, error) {
-	return ops.CreateDeposit(ctx, c.b, c.external, issueID)
-}

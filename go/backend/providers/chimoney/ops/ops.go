@@ -230,7 +230,7 @@ func CreateDepositLink(ctx context.Context, b Backends, ex external.Client, wall
 
 func ExecuteFinishWithdraw(ctx context.Context, b Backends, ec external.Client, IssueID string, status string, chiWalletID string) error {
 	wo := client.StartWorkflowOptions{
-		ID:                    "finish_chimoney_withdrawal_" + status + "_" + IssueID,
+		ID:                    "finish_chimoney_withdrawal_" + IssueID,
 		TaskQueue:             "backend",
 		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
 	}
@@ -250,9 +250,9 @@ func ExecuteFinishWithdraw(ctx context.Context, b Backends, ec external.Client, 
 		}
 	}
 
-	// return workflow if it's running
+	// return workflow if it's running or already completed
 	var executeErr error
-	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
+	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING || workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_COMPLETED {
 		_ = b.Temporal().GetWorkflow(ctx, wo.ID, "")
 	} else {
 		_, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, ExecuteChimoneyFinishWithdrawalWorkflow, IssueID, chiWalletID, status)
@@ -591,7 +591,7 @@ func GetKYCWidget(ctx context.Context, b Backends, walletID string) (string, err
 	return widgetURL, nil
 }
 
-func CreateDeposit(ctx context.Context, b Backends, ex external.Client, issueID string) (chimoney.Await, error) {
+func CreateDeposit(ctx context.Context, b Backends, ex external.Client, issueID string, chiWalletID string) (chimoney.Await, error) {
 	wo := client.StartWorkflowOptions{
 		ID:                    "chimoney_deposit_" + issueID,
 		TaskQueue:             "backend",
@@ -616,13 +616,13 @@ func CreateDeposit(ctx context.Context, b Backends, ex external.Client, issueID 
 	// return workflow if it's running
 	var await client.WorkflowRun
 	var executeErr error
-	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
+	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING || workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_COMPLETED {
 		await = b.Temporal().GetWorkflow(ctx, wo.ID, "")
 	} else {
-		await, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, CreateChimoneyDepositWorkflow, issueID)
+		await, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, CreateChimoneyDepositWorkflow, issueID, chiWalletID)
 	}
 	if executeErr != nil {
-		return nil, fmt.Errorf("%w %s", chimoney.ErrInternal, err)
+		return nil, fmt.Errorf("%w %s", chimoney.ErrInternal, executeErr)
 	}
 
 	return await.Get, nil

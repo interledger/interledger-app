@@ -116,8 +116,10 @@ func NewWebhook(b Backends) http.HandlerFunc {
 			"payout.interac.cancelled",
 			"payout.interac.completed":
 			err = handleWithdrawal(r.Context(), b, ec, body)
-		case "chimoney.redeem.completed", "chimoney.redeem.failed":
-			err = handleRedeemWebhook(r.Context(), b, body)
+		case "chimoney.redeem.completed":
+			err = handleRedeemWebhook(r.Context(), b, body, "completed")
+		case "chimoney.redeem.failed":
+			err = handleRedeemWebhook(r.Context(), b, body, "failed")
 		case "charge.card.completed",
 			"charge.chimoney-wallet.completed",
 			"charge.interac.completed",
@@ -173,7 +175,7 @@ func Verify(ctx context.Context, r *http.Request, key []byte) ([]byte, error) {
 	return payload, nil
 }
 
-func handleRedeemWebhook(ctx context.Context, b Backends, raw json.RawMessage) error {
+func handleRedeemWebhook(ctx context.Context, b Backends, raw json.RawMessage, status string) error {
 	var wh PaymentEvent
 	err := json.Unmarshal(raw, &wh)
 	if err != nil {
@@ -183,13 +185,13 @@ func handleRedeemWebhook(ctx context.Context, b Backends, raw json.RawMessage) e
 		log.Info("Webhook data not complete", zap.String("issueID", wh.IssueID), zap.String("status", wh.Status))
 		return nil
 	}
-	var ChiWalletID string
-	ChiWalletID, err = ExtractChiWalletIDFromIssueID(wh.IssueID)
+	var chiWalletID string
+	chiWalletID, err = ExtractChiWalletIDFromIssueID(wh.IssueID)
 	if err != nil {
 		return err
 	}
 
-	return ExecuteFinishDeposit(ctx, b, wh.IssueID, wh.Status, ChiWalletID)
+	return ExecuteFinishDeposit(ctx, b, wh.IssueID, status, chiWalletID)
 }
 
 func handleWithdrawal(ctx context.Context, b Backends, ec external.Client, raw json.RawMessage) error {
@@ -203,7 +205,7 @@ func handleWithdrawal(ctx context.Context, b Backends, ec external.Client, raw j
 		return nil
 	}
 
-	// Populate ChiWalletID from Meta.Issuer
+	// Populate wh.ChiWalletID from Meta.Issuer
 	wh.ChiWalletID = wh.Meta.Issuer
 	if wh.ChiWalletID == "" {
 		wh.ChiWalletID, err = ExtractChiWalletIDFromIssueID(wh.IssueID)
@@ -221,8 +223,13 @@ func handleConfirmedOrCompletedCharge(ctx context.Context, b Backends, ec extern
 	if err != nil {
 		return err
 	}
+	var chiWalletID string
+	chiWalletID, err = ExtractChiWalletIDFromIssueID(wh.IssueID)
+	if err != nil {
+		return err
+	}
 
-	_, err = CreateDeposit(ctx, b, ec, wh.IssueID)
+	_, err = CreateDeposit(ctx, b, ec, wh.IssueID, chiWalletID)
 	return err
 }
 
