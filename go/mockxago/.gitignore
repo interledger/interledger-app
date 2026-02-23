@@ -1,3 +1,4 @@
 ./mockxago
 ./testenv/*.txt
 ./testenv/*.log
+*.txt
