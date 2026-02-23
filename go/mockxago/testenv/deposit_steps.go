@@ -105,12 +105,10 @@ func (tc *TestContext) simulateTestDepositWithDetails(table *godog.Table) error 
 
 func (tc *TestContext) simulateTestDepositOf(amount string, currency string) error {
 	accountID := tc.lastSubAccount.AccountID
-	fmt.Printf("DEBUG: Simulating deposit of %s %s for account %s (wallet: %s)\n", amount, currency, accountID, tc.lastSubAccount.WalletID)
 	depositReference, err := tc.depositReferenceForCurrency(currency)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("DEBUG: Using deposit reference: %s\n", depositReference)
 	return tc.doSimulateTestDeposit(accountID, amount, currency, depositReference, true)
 }
 

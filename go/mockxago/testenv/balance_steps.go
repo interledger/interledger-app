@@ -212,6 +212,13 @@ func (tc *TestContext) balanceResponseShows(table *godog.Table) error {
 }
 
 func (tc *TestContext) availableBalanceIs(currency string, expected string) error {
+	// Fetch balance if not already fetched
+	if tc.lastBalanceResponse.AccountID == "" || len(tc.lastBalanceResponse.Balances) == 0 {
+		if err := tc.requestBalanceForSubAccount(); err != nil {
+			return err
+		}
+	}
+
 	item, ok := tc.findBalance(currency)
 	if !ok {
 		return fmt.Errorf("currency %s not found in balance response", currency)
@@ -223,6 +230,13 @@ func (tc *TestContext) availableBalanceIs(currency string, expected string) erro
 }
 
 func (tc *TestContext) totalBalanceIs(currency string, expected string) error {
+	// Fetch balance if not already fetched
+	if tc.lastBalanceResponse.AccountID == "" || len(tc.lastBalanceResponse.Balances) == 0 {
+		if err := tc.requestBalanceForSubAccount(); err != nil {
+			return err
+		}
+	}
+
 	item, ok := tc.findBalance(currency)
 	if !ok {
 		return fmt.Errorf("currency %s not found in balance response", currency)
@@ -234,6 +248,13 @@ func (tc *TestContext) totalBalanceIs(currency string, expected string) error {
 }
 
 func (tc *TestContext) balancesAreIndependent() error {
+	// Fetch balance if not already fetched
+	if tc.lastBalanceResponse.AccountID == "" || len(tc.lastBalanceResponse.Balances) == 0 {
+		if err := tc.requestBalanceForSubAccount(); err != nil {
+			return err
+		}
+	}
+
 	_, zarOk := tc.findBalance("ZAR")
 	_, usdOk := tc.findBalance("USD")
 	if !zarOk || !usdOk {
