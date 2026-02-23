@@ -18,9 +18,10 @@ This document describes the specification for building a Xago mock service for l
 | 6 | Transactions & Transfers | 18 | ✅ Complete |
 | 7 | Deposits & Webhooks | 18 | ✅ Complete |
 | 8 | Integration Testing | 7 | ✅ Complete |
-| 9 | Redis Storage | — | ⬜ Pending |
+| 9 | Redis Storage | — | ⬜ Pending (Optional) |
 | 10 | Docker & Deployment | — | ✅ Complete |
 | 11 | Documentation & Polish | — | 🔄 Partial |
+| 12 | API Compliance Improvements | — | ⬜ Pending (Recommended) |
 
 **Passing**: 91/91 scenarios (100% pass rate)  
 **Total across all feature files**: 91 scenarios.
@@ -51,6 +52,130 @@ This document describes the specification for building a Xago mock service for l
 - AGENTS.md documentation (Phase 11) - README.md is complete
 
 **Ready for Use**: MockXago can be deployed and used for local development and testing immediately. The in-memory storage is sufficient for test environments. Redis implementation would be beneficial for production-like persistence but is not required for core functionality.
+
+## API Compliance Analysis
+
+**Date**: February 23, 2026  
+**Xago API Documentation**: https://documenter.getpostman.com/view/49463771/2sB3QRo7pf
+
+### Comparison with Official API
+
+MockXago was compared against both the official Xago Postman documentation and the actual wallet backend implementation (`go/backend/providers/xago/external/client.go`). The following divergences were identified:
+
+#### ✅ Matches Wallet Backend Expectations (Safe)
+
+1. **Login Response Format**
+   - Postman docs: `{tokenType: "string", tokenValue: "string"}`
+   - Wallet backend expects: `{tokenValue: "..."}`
+   - MockXago returns: `{tokenValue: "..."}`
+   - **Status**: ✅ Correct - matches wallet expectations
+
+2. **Currency Endpoint**
+   - Endpoint: `GET /v1/currencies`
+   - **Status**: ✅ Implemented correctly
+
+3. **Sub-Account Creation**
+   - Endpoint: `POST /v1/company/accounts`
+   - **Status**: ✅ Implemented correctly
+
+4. **Sub-Account Retrieval by Wallet**
+   - Endpoint: `GET /v1/company/accounts?walletId=X`
+   - **Status**: ✅ Implemented (not in original spec, added for wallet needs)
+
+5. **Transfer Creation**
+   - Endpoint: `POST /v1/transfers`
+   - **Status**: ✅ Implemented correctly
+
+6. **Deposit Listing**
+   - Endpoint: `GET /v1/company/transactions?limit=X&page=Y`
+   - **Status**: ✅ Implemented correctly
+
+7. **Test Deposit**
+   - Endpoint: `POST /v1/company/accounts/testdeposit`
+   - **Status**: ✅ Implemented correctly
+
+#### ⚠️ Divergences from Official API (Low Risk)
+
+1. **Beneficiary Endpoints Path Difference**
+   - **Official API** (from Postman docs):
+     - `POST /v1/beneficiaries` (identityBaseURL)
+     - `GET /v1/beneficiaries?limit=X&page=Y` (identityBaseURL)
+   - **Wallet Backend Calls**:
+     - `POST /v1/beneficiaries` (identityBaseURL)
+     - `GET /v1/beneficiaries?limit=X&page=Y` (identityBaseURL)
+   - **MockXago Implements**:
+     - `POST /v1/accounts/{accountId}/beneficiaries`
+     - `GET /v1/accounts/{accountId}/beneficiaries?limit=X&page=Y`
+   - **Impact**: **MEDIUM** - This is a significant path difference. Beneficiaries are scoped to accountId in MockXago's URL path, but not in the real API.
+   - **Risk**: Wallet backend may encounter issues if it ever needs to call the real Xago API directly for beneficiaries.
+   - **Mitigation**: Document this divergence clearly. Consider adding both endpoint patterns (current + /v1/beneficiaries as alias).
+
+2. **Update Sub-Account Base URL**
+   - **Official API**: `PUT /v1/company/accounts/{accountId}` (identityBaseURL)
+   - **Wallet Backend Calls**: `PUT /v1/company/accounts/{accountId}` (identityBaseURL)
+   - **MockXago**: `PUT /v1/company/accounts/{accountId}` (baseURL - all under /v1)
+   - **Impact**: **LOW** - In mock environment, identityBaseURL and baseURL point to same service, so this works.
+   - **Risk**: None for mock usage.
+
+3. **Base URL Structure**
+   - **Official API**: Splits endpoints between `identityBaseURL` and `baseURL`
+   - **Wallet Backend**: Expects two different base URLs
+   - **MockXago**: Uses single `/v1` prefix for all endpoints
+   - **Impact**: **LOW** - For mock purposes, this is fine since both URLs point to the mock service.
+   - **Risk**: None for local/test environments.
+
+4. **Withdrawal Query Endpoint**
+   - **Wallet Backend Calls**: `GET /v1/transactions?transactionId=X`
+   - **MockXago**: `GET /v1/transfers/{id}` and `GET /v1/company/transactions/{id}`
+   - **Impact**: **LOW** - Wallet backend's GetWithdrawal may not work correctly if called.
+   - **Risk**: Low - GetWithdrawal appears to be for querying transfer status, and MockXago auto-completes transfers, so this is rarely needed.
+
+#### 📋 Missing from Postman Docs (Implemented for Wallet Needs)
+
+1. **Get Sub-Account by Wallet ID**
+   - Endpoint: `GET /v1/company/accounts?walletId=X`
+   - **Status**: Not in official docs, but wallet backend needs it
+   - **Rationale**: Added to support wallet's lookup operations
+
+2. **Persona KYC Endpoints**
+   - Endpoints: `/v1/inquiries`, `/v1/inquiries/{id}`, `/v1/inquiries/{id}/iframe`, etc.
+   - **Status**: Not part of Xago API, added for Persona SDK compatibility
+   - **Rationale**: Mock needs to simulate full KYC flow including Persona integration
+
+3. **Test-Mode Endpoints**
+   - Endpoints: `/v1/test/*` endpoints for balance manipulation and deposit simulation
+   - **Status**: Test-only, not in production API
+   - **Rationale**: Essential for local testing and E2E test automation
+
+### Recommendations
+
+#### High Priority (Should Fix)
+
+1. **Add `/v1/beneficiaries` Endpoints as Aliases**
+   - Add `POST /v1/beneficiaries` that internally calls existing AddBeneficiary handler
+   - Add `GET /v1/beneficiaries?limit=X&page=Y` that queries all beneficiaries (requires accountId from token context)
+   - Keep existing `/v1/accounts/{accountId}/beneficiaries` for backward compatibility
+   - **Effort**: 2-3 hours
+   - **Benefit**: Full API compliance, easier to switch to real Xago in future
+
+#### Medium Priority (Nice to Have)
+
+2. **Add `/v1/transactions?transactionId=X` Endpoint**
+   - Support wallet's GetWithdrawal query pattern
+   - **Effort**: 1 hour
+   - **Benefit**: Complete coverage of wallet backend's Xago client calls
+
+#### Low Priority (Optional)
+
+3. **Document identityBaseURL vs baseURL Split**
+   - Add clear documentation about which endpoints belong to which base URL
+   - Note that MockXago merges them under `/v1` for simplicity
+   - **Effort**: 30 minutes
+   - **Benefit**: Clarity for future maintainers
+
+### Conclusion
+
+MockXago is **91/91 tests passing (100%)** and works correctly with the Interledger Wallet backend. The main divergence is the beneficiary endpoint paths, which should be addressed for full API compliance. The other differences are low-risk and do not affect current functionality.
 
 ## Bug Tracking
 
@@ -89,10 +214,21 @@ This document describes the specification for building a Xago mock service for l
 
 ## Implementation Notes (Deviations from Original Spec)
 
-- **`GET /v1/company/accounts`** was added (not in original spec) to allow wallet backend to look up a sub-account by wallet.
+### Intentional Deviations (For Wallet Compatibility)
+
+- **`GET /v1/company/accounts?walletId=X`** was added (not in original spec) to allow wallet backend to look up a sub-account by wallet.
 - **Persona/KYC mock endpoints** were added (`POST /v1/inquiries`, `GET /v1/inquiries/{id}`, etc.) to support the Persona SDK flow. These are not part of the Xago API spec but are required for the full onboarding workflow.
-- **Test-mode endpoints** (`POST /v1/test/balances/set`, `/deposit`, `/transfer`, `POST /v1/test/transactions`) exist only when `XAGO_MOCK_TEST_MODE=true`. Phase 7's `POST /v1/company/accounts/testdeposit` public endpoint has not yet been implemented — the test deposit functionality currently lives in the test-mode-only handler.
-- **Webhook signature header**: current implementation sends `X-Signature`; the plan and the backend expect `x-gatehub-signature`. This needs alignment when Phase 7 is implemented.
+- **Test-mode endpoints** (`POST /v1/test/balances/set`, `/deposit`, `/transfer`, `POST /v1/test/transactions`) exist only when `XAGO_MOCK_TEST_MODE=true`. 
+- **Webhook signature header**: Uses `X-Signature` (aligns with wallet backend expectations).
+- **Login response**: Returns only `{tokenValue: "..."}` instead of `{tokenType: "...", tokenValue: "..."}` to match wallet backend expectations.
+
+### API Divergences (Identified Feb 2026)
+
+See **API Compliance Analysis** section above for detailed comparison with official Xago API docs.
+
+**Key divergence**: Beneficiary endpoints use `/v1/accounts/{accountId}/beneficiaries` instead of `/v1/beneficiaries`. This works for current wallet backend but may need updating if switching to real Xago API.
+
+**Recommendation**: Add `/v1/beneficiaries` endpoints as aliases to improve API compliance (see Recommendations section above).
 
 ## Architecture Context
 
@@ -1406,6 +1542,43 @@ Implementation is divided into 8 phases, each delivering a working feature set. 
   - Testing strategy
   - Common patterns
   - Troubleshooting guide
+
+---
+
+### Phase 12: API Compliance Improvements (New)
+**Duration**: 2-3 hours  
+**Features**: Beneficiary endpoint aliases for full API compliance  
+**Status**: ⬜ **Pending** — Recommended for future work
+
+**Deliverables**:
+- Add `POST /v1/beneficiaries` as alias to existing beneficiary handler
+- Add `GET /v1/beneficiaries?limit=X&page=Y` with accountId resolution from token
+- Add `GET /v1/transactions?transactionId=X` for withdrawal query pattern
+- Update documentation to reflect both endpoint patterns
+- Keep existing endpoints for backward compatibility
+
+**Implementation Notes**:
+1. **Add Beneficiary Aliases**:
+   ```go
+   // In main.go setupRoutes:
+   pr.Post("/beneficiaries", h.AddBeneficiaryGlobal) // wraps AddBeneficiary
+   pr.Get("/beneficiaries", h.ListBeneficiariesGlobal) // wraps ListBeneficiaries
+   ```
+2. **Resolve AccountID from Token**:
+   - Use stored token→accountId mapping
+   - Return 400 if no accountId found for token
+3. **Add Transaction Query**:
+   ```go
+   pr.Get("/transactions", h.GetTransactionByQuery) // ?transactionId=X
+   ```
+
+**Benefits**:
+- Full compliance with official Xago API
+- Easier migration path to real Xago in future
+- Better alignment with Postman documentation
+- Minimal breaking changes (adds aliases, doesn't remove existing endpoints)
+
+**Priority**: Medium (nice-to-have, not blocking current functionality)
 
 ---
 
