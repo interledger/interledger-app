@@ -1,5 +1,6 @@
 import { vitePlugin as remix } from "@remix-run/dev";
 import { defineConfig } from "vite";
+import { nodePolyfills } from "vite-plugin-node-polyfills";
 import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
@@ -32,6 +33,10 @@ export default defineConfig({
       // the structure will be different than classic Remix compiler. We'll leave the default "build".
     }),
     tsconfigPaths(),
+    nodePolyfills({
+      include: ['os', 'crypto', 'constants', 'buffer', 'assert', 'process'],
+      globals: { Buffer: true, process: true },
+    }),
   ],
   ssr: {
     noExternal: ['react-datocms'],
