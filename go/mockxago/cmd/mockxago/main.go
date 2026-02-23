@@ -93,12 +93,29 @@ func setupRoutes(router *chi.Mux, h *handler.Handler) {
 			pr.Post("/test/balances/set", h.TestSetBalance)
 			pr.Post("/test/balances/deposit", h.TestDeposit)
 			pr.Post("/test/balances/transfer", h.TestTransfer)
+			pr.Post("/test/transactions", h.TestCreateTransaction)
 		})
+	})
+
+	// Company transaction endpoints (no auth required - backend needs to verify)
+	// These need to be under /v1 prefix since backend calls http://mockxago:8080/v1/company/transactions
+	router.Route("/v1/company/transactions", func(r chi.Router) {
+		r.Get("/", h.ListTransactions)   // GET /v1/company/transactions?limit=10&page=1
+		r.Get("/{id}", h.GetTransaction) // GET /v1/company/transactions/{id}
+	})
+
+	// Also provide at root level for compatibility
+	router.Route("/company/transactions", func(r chi.Router) {
+		r.Get("/", h.ListTransactions)   // GET /company/transactions?limit=10&page=1
+		r.Get("/{id}", h.GetTransaction) // GET /company/transactions/{id}
 	})
 
 	// KYC endpoints (no auth required for iframe)
 	router.Get("/kyc/iframe", h.KYCIframe)
 	router.Post("/kyc/submit", h.KYCIframeSubmit)
+
+	// Authentication endpoint at /v1/login (used by backend for OAuth-like token generation)
+	router.Post("/v1/login", h.Login)
 
 	// Persona SDK compatible endpoints (v1 API) - no auth required
 	router.Post("/v1/inquiries", h.PersonaCreateInquiry)

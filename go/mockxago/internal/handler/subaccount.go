@@ -37,7 +37,7 @@ func (h *Handler) CreateSubAccount(w http.ResponseWriter, r *http.Request) {
 	subAcc := &models.SubAccount{
 		ID:                        utils.GenerateUUID(),
 		WalletID:                  walletID,
-		AccountID:                 utils.GenerateUUID(),
+		AccountID:                 utils.GenerateUUID(), // Xago returns proper UUID for account ID
 		FirstName:                 req.FirstName,
 		LastName:                  req.LastName,
 		Email:                     req.Email,
@@ -90,6 +90,10 @@ func (h *Handler) CreateSubAccount(w http.ResponseWriter, r *http.Request) {
 // UpdateSubAccount handles PUT /xago/v1/company/accounts/{accountId}
 func (h *Handler) UpdateSubAccount(w http.ResponseWriter, r *http.Request) {
 	accountID := chi.URLParam(r, "accountId")
+	if accountID == "" {
+		h.sendError(w, http.StatusBadRequest, "invalid_request", "invalid account ID format")
+		return
+	}
 	if _, err := uuid.Parse(accountID); err != nil {
 		h.sendError(w, http.StatusBadRequest, "invalid_request", "invalid account ID format")
 		return

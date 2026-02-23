@@ -124,11 +124,8 @@ func (h *Handler) PersonaGetInquiryIframe(w http.ResponseWriter, r *http.Request
 
 	logger.Infof("Serving Persona iframe for inquiry: %s", inquiryID)
 
-	// Get user_id from query params if provided, fall back to inquiryID
-	userID := r.URL.Query().Get("user_id")
-	if userID == "" {
-		userID = inquiryID
-	}
+	// Use inquiry ID as the wallet identifier for mock Persona flows.
+	userID := inquiryID
 
 	// Load and serve the KYC iframe template (same pattern as KYCIframe in kyc.go)
 	possiblePaths := []string{
@@ -212,4 +209,3 @@ func (h *Handler) PersonaInquirySubmit(w http.ResponseWriter, r *http.Request) {
 		"message": "Inquiry submitted successfully",
 	})
 }
-

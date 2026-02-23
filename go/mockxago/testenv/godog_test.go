@@ -92,6 +92,7 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I attempt to update a sub-account with invalid ID "([^"]*)"$`, tc.attemptUpdateSubAccountInvalidID)
 
 	ctx.Step(`^I have created two sub-accounts for different wallets$`, tc.createTwoSubAccountsDifferentWallets)
+	ctx.Step(`^I have created sub-accounts for two different wallets$`, tc.createTwoSubAccountsDifferentWallets)
 	ctx.Step(`^I retrieve sub-account information for "([^"]*)"$`, tc.retrieveSubAccountInfoForWallet)
 	ctx.Step(`^I get the correct sub-account associated with "([^"]*)"$`, tc.correctSubAccountAssociated)
 	ctx.Step(`^I do not get sub-accounts from other wallets$`, tc.subAccountIsolationConfirmed)

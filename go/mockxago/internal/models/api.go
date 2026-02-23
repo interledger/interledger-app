@@ -98,10 +98,11 @@ type TestSetBalanceRequest struct {
 
 // TestBalanceDeltaRequest represents a test-only balance delta payload.
 type TestBalanceDeltaRequest struct {
-	AccountID    string  `json:"accountId"`
-	WalletID     string  `json:"walletId"`
-	CurrencyCode string  `json:"currencyCode"`
-	Amount       float64 `json:"amount"`
+	AccountID     string  `json:"accountId"`
+	WalletID      string  `json:"walletId"`
+	CurrencyCode  string  `json:"currencyCode"`
+	Amount        float64 `json:"amount"`
+	TransactionID string  `json:"transactionId"` // Optional: references pre-created transaction for backend verification
 }
 
 // TestBalanceResponse represents a test-only balance response.

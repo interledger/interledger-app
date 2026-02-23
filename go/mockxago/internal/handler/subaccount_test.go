@@ -74,8 +74,9 @@ func TestCreateSubAccount_Success(t *testing.T) {
 	var resp models.CreateSubAccountResponse
 	json.NewDecoder(w.Body).Decode(&resp)
 
+	// Validate accountID is a proper UUID
 	_, err := uuid.Parse(resp.AccountID)
-	assert.NoError(t, err)
+	assert.NoError(t, err, "accountID should be a valid UUID")
 	assert.True(t, strings.HasPrefix(resp.DepositAddress, "r"))
 	assert.True(t, resp.DepositTag > 0)
 	assert.NotNil(t, resp.BankDepositDetails["ZAR"])

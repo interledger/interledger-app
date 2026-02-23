@@ -13,6 +13,10 @@ import (
 // GetBalance handles GET /xago/v1/accounts/{accountId}/balance
 func (h *Handler) GetBalance(w http.ResponseWriter, r *http.Request) {
 	accountID := chi.URLParam(r, "accountId")
+	if accountID == "" {
+		h.sendError(w, http.StatusBadRequest, "invalid_request", "invalid account ID")
+		return
+	}
 	if _, err := uuid.Parse(accountID); err != nil {
 		h.sendError(w, http.StatusBadRequest, "invalid_request", "invalid account ID")
 		return
