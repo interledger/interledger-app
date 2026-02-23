@@ -50,6 +50,7 @@ Feature: Xago Deposits and Webhook Notifications
     And I wait for the deposit to complete
     Then the sub-account ZAR balance is 5000.00
 
+  @buggy
   Scenario: Multiple deposits accumulate correctly
     Given the sub-account starts with zero balance
     When I simulate a test deposit of 2000.00 ZAR
@@ -58,6 +59,7 @@ Feature: Xago Deposits and Webhook Notifications
     And I wait for the deposit to complete
     Then the total ZAR balance is 5000.00
 
+  @buggy
   Scenario: Deposit for each currency is independent
     Given the sub-account has zero balance
     When I simulate a ZAR deposit of 1000.00

@@ -1,8 +1,9 @@
-//go:build e2e
-
 package main
 
 import (
+	"context"
+	"flag"
+	"fmt"
 	"os"
 	"testing"
 
@@ -10,12 +11,9 @@ import (
 	"github.com/cucumber/godog/colors"
 )
 
-var opts = godog.Options{
-	Output: colors.Colored(os.Stdout),
-	Format: "progress",
-	Paths:  []string{"../features"},
-	Tags:   "~@skip && ~@stubbed",
-}
+var (
+	tags = flag.String("tags", "", "Godog tags expression, e.g. @wip or @phone-debug")
+)
 
 func TestFeatures(t *testing.T) {
 	if err := startServices(); err != nil {
@@ -25,6 +23,14 @@ func TestFeatures(t *testing.T) {
 
 	if err := waitForServices(); err != nil {
 		t.Fatalf("Services failed to start: %v", err)
+	}
+
+	opts := godog.Options{
+		Output:   colors.Colored(os.Stdout),
+		TestingT: t,
+		Format:   "pretty",
+		Paths:    []string{"../features"},
+		Tags:     *tags,
 	}
 
 	suite := godog.TestSuite{
@@ -40,6 +46,16 @@ func TestFeatures(t *testing.T) {
 func InitializeScenario(ctx *godog.ScenarioContext) {
 	tc := &TestContext{}
 	tc.Reset()
+
+	ctx.Before(func(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
+		// Ensure backend state is clean before each scenario
+		if err := tc.resetBackend(); err != nil {
+			return ctx, fmt.Errorf("failed to reset backend: %w", err)
+		}
+		// Also re-run client-side reset just in case
+		tc.Reset()
+		return ctx, nil
+	})
 
 	ctx.Step(`^the Xago mock service is running$`, tc.xagoMockServiceRunning)
 	ctx.Step(`^the environment variables are set:$`, tc.environmentVariablesAreSet)

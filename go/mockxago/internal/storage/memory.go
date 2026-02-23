@@ -22,6 +22,7 @@ type MemoryStorage struct {
 	balances              map[string]map[string]balanceEntry // [walletID][currency] -> entry
 	deposits              map[string]*models.Deposit
 	depositsByReference   map[string]*models.Deposit
+	jobs                  map[string]*models.Job
 }
 
 type balanceEntry struct {
@@ -43,6 +44,7 @@ func NewMemoryStorage() Storage {
 		balances:              make(map[string]map[string]balanceEntry),
 		deposits:              make(map[string]*models.Deposit),
 		depositsByReference:   make(map[string]*models.Deposit),
+		jobs:                  make(map[string]*models.Job),
 	}
 }
 
@@ -451,5 +453,138 @@ func (m *MemoryStorage) UpdateDepositStatus(ctx context.Context, depositID strin
 		deposit.SettledAt = &now
 	}
 	m.deposits[depositID] = deposit
+	return nil
+}
+
+// ClearDeposits removes all deposit records (used for test state reset between scenarios).
+func (m *MemoryStorage) ClearDeposits(ctx context.Context) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	m.deposits = make(map[string]*models.Deposit)
+	m.depositsByReference = make(map[string]*models.Deposit)
+	return nil
+}
+
+// ClearBalances removes all balance records (used for test state reset between scenarios).
+func (m *MemoryStorage) ClearBalances(ctx context.Context) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	m.balances = make(map[string]map[string]balanceEntry)
+	return nil
+}
+
+// Job operations
+
+// SaveJob saves a job to storage
+func (m *MemoryStorage) SaveJob(ctx context.Context, job *models.Job) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	m.jobs[job.ID] = job
+	return nil
+}
+
+// GetJob retrieves a job by ID
+func (m *MemoryStorage) GetJob(ctx context.Context, jobID string) (*models.Job, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	job, ok := m.jobs[jobID]
+	if !ok {
+		return nil, nil // Not found
+	}
+	return job, nil
+}
+
+// ListReadyJobs returns jobs that are ready for processing (status=pending and NotBefore <= now)
+func (m *MemoryStorage) ListReadyJobs(ctx context.Context, limit int) ([]*models.Job, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	now := time.Now()
+	var ready []*models.Job
+
+	for _, job := range m.jobs {
+		if job.Status == "pending" && !job.NotBefore.After(now) {
+			ready = append(ready, job)
+		}
+	}
+
+	// Sort by NotBefore ascending (oldest first)
+	// Simple bubble sort for small lists
+	for i := 0; i < len(ready); i++ {
+		for j := i + 1; j < len(ready); j++ {
+			if ready[i].NotBefore.After(ready[j].NotBefore) {
+				ready[i], ready[j] = ready[j], ready[i]
+			}
+		}
+	}
+
+	if len(ready) > limit {
+		ready = ready[:limit]
+	}
+
+	return ready, nil
+}
+
+// UpdateJobStatus updates a job's status, completed_at, and last_error
+func (m *MemoryStorage) UpdateJobStatus(ctx context.Context, jobID string, status string, completedAt *time.Time, lastError string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	job, ok := m.jobs[jobID]
+	if !ok {
+		return nil // Job not found, ignore
+	}
+
+	job.Status = status
+	job.CompletedAt = completedAt
+	job.LastError = lastError
+	return nil
+}
+
+// IncrementJobAttempts increments the attempts counter for a job
+func (m *MemoryStorage) IncrementJobAttempts(ctx context.Context, jobID string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	job, ok := m.jobs[jobID]
+	if !ok {
+		return nil // Job not found, ignore
+	}
+
+	job.Attempts++
+	return nil
+}
+
+// ClearJobs removes all job records (used for test state reset between scenarios)
+func (m *MemoryStorage) ClearJobs(ctx context.Context) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	m.jobs = make(map[string]*models.Job)
+	return nil
+}
+
+// Reset clears all data in storage (used for test state reset between scenarios)
+func (m *MemoryStorage) Reset(ctx context.Context) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	m.tokens = make(map[string]*models.AccessToken)
+	m.tokenAccounts = make(map[string]string)
+	m.subAccounts = make(map[string]*models.SubAccount)
+	m.subAccountsByWallet = make(map[string]*models.SubAccount)
+	m.beneficiaries = make(map[string]*models.Beneficiary)
+	m.beneficiariesByWallet = make(map[string][]*models.Beneficiary)
+	m.transactions = make(map[string]*models.Transaction)
+	m.idempotencyKeys = make(map[string]string)
+	m.balances = make(map[string]map[string]balanceEntry)
+	m.deposits = make(map[string]*models.Deposit)
+	m.depositsByReference = make(map[string]*models.Deposit)
+	m.jobs = make(map[string]*models.Job)
+
 	return nil
 }

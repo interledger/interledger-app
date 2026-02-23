@@ -13,7 +13,7 @@ test: unit-test e2e-test
 
 unit-test:
 	@echo "Running unit tests..."
-	go test -count=1 -v ./...
+	go test -count=1 -v ./cmd/... ./internal/...
 
 e2e-test:
 	@echo "Running e2e tests..."

@@ -289,3 +289,47 @@ func (h *Handler) TestTransfer(w http.ResponseWriter, r *http.Request) {
 
 	h.sendJSON(w, http.StatusOK, models.TestBalanceResponse{Status: "ok"})
 }
+
+// TestClearDeposits handles POST /v1/test/deposits/clear (test-mode only)
+// Resets deposits, balances, and jobs to clear state between test scenarios,
+// but preserves auth tokens and accounts so setup steps remain valid.
+func (h *Handler) TestClearDeposits(w http.ResponseWriter, r *http.Request) {
+	if !h.ensureTestMode(w) {
+		return
+	}
+
+	if err := h.store.ClearDeposits(r.Context()); err != nil {
+		h.sendError(w, http.StatusInternalServerError, "internal_error", "failed to clear deposits")
+		return
+	}
+
+	if err := h.store.ClearBalances(r.Context()); err != nil {
+		h.sendError(w, http.StatusInternalServerError, "internal_error", "failed to clear balances")
+		return
+	}
+
+	// Also clear jobs as they are related to deposits
+	if err := h.store.ClearJobs(r.Context()); err != nil {
+		h.sendError(w, http.StatusInternalServerError, "internal_error", "failed to clear jobs")
+		return
+	}
+
+	logger.Infof("Cleared deposits, balances and jobs (test reset)")
+	h.sendJSON(w, http.StatusOK, models.TestBalanceResponse{Status: "ok"})
+}
+
+// TestReset handles POST /v1/test/reset (test-mode only)
+// completely wipes all data from storage.
+func (h *Handler) TestReset(w http.ResponseWriter, r *http.Request) {
+	if !h.ensureTestMode(w) {
+		return
+	}
+
+	if err := h.store.Reset(r.Context()); err != nil {
+		h.sendError(w, http.StatusInternalServerError, "internal_error", "failed to reset storage")
+		return
+	}
+
+	logger.Infof("Reset ALL storage data (full wipe)")
+	h.sendJSON(w, http.StatusOK, models.TestBalanceResponse{Status: "ok"})
+}

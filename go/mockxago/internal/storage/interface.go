@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"errors"
+	"time"
 
 	"gitlab.com/fynbos/mockxago/internal/models"
 )
@@ -58,4 +59,17 @@ type Storage interface {
 	GetDepositByReference(ctx context.Context, reference string) (*models.Deposit, error)
 	ListDeposits(ctx context.Context, limit int, offset int) ([]*models.Deposit, int, error)
 	UpdateDepositStatus(ctx context.Context, depositID string, status string) error
+	ClearDeposits(ctx context.Context) error
+	ClearBalances(ctx context.Context) error
+
+	// Job operations
+	SaveJob(ctx context.Context, job *models.Job) error
+	GetJob(ctx context.Context, jobID string) (*models.Job, error)
+	ListReadyJobs(ctx context.Context, limit int) ([]*models.Job, error)
+	UpdateJobStatus(ctx context.Context, jobID string, status string, completedAt *time.Time, lastError string) error
+	IncrementJobAttempts(ctx context.Context, jobID string) error
+	ClearJobs(ctx context.Context) error
+
+	// Reset all data (for testing)
+	Reset(ctx context.Context) error
 }

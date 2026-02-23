@@ -1,5 +1,3 @@
-//go:build e2e
-
 package main
 
 import (
@@ -20,6 +18,13 @@ var (
 	globalWebhookEvents   []webhookEvent
 	globalWebhookEventsMu sync.Mutex
 )
+
+// resetWebhookEvents clears all webhook events (called between scenarios)
+func resetWebhookEvents() {
+	globalWebhookEventsMu.Lock()
+	globalWebhookEvents = nil
+	globalWebhookEventsMu.Unlock()
+}
 
 func (tc *TestContext) startWebhookServer(webhookURL string) error {
 	globalWebhookMu.Lock()
@@ -145,6 +150,16 @@ func (tc *TestContext) waitForWebhookCount(count int, timeout time.Duration) err
 	globalWebhookEventsMu.Unlock()
 
 	return fmt.Errorf("expected %d webhooks, got %d", count, currentCount)
+}
+
+// waitForNextWebhook waits for 1 new webhook to arrive beyond the current count.
+func (tc *TestContext) waitForNextWebhook(timeout time.Duration) error {
+	globalWebhookEventsMu.Lock()
+	baseline := len(globalWebhookEvents)
+	globalWebhookEventsMu.Unlock()
+
+	target := baseline + 1
+	return tc.waitForWebhookCount(target, timeout)
 }
 
 func (tc *TestContext) lastWebhookEvent() (webhookEvent, error) {

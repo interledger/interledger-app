@@ -12,6 +12,7 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"gitlab.com/fynbos/mockxago/internal/handler"
+	"gitlab.com/fynbos/mockxago/internal/jobs"
 	"gitlab.com/fynbos/mockxago/internal/logger"
 	"gitlab.com/fynbos/mockxago/internal/storage"
 )
@@ -39,11 +40,22 @@ func main() {
 	store := storage.NewMemoryStorage()
 	logger.Infof("Initialized in-memory storage")
 
+	// Initialize job queue and worker
+	queue := jobs.NewQueue(store)
+	worker := jobs.NewWorker(queue)
+
 	// Initialize router
 	router := chi.NewRouter()
 
 	// Create handler
-	h := handler.NewHandler(store)
+	h := handler.NewHandler(store, queue)
+
+	// Register job handlers
+	worker.RegisterHandler(handler.JobTypeProcessDeposit, h.NewProcessDepositHandler())
+
+	// Start job worker in background
+	worker.StartAsync()
+	logger.Infof("Job worker started")
 
 	// Setup routes
 	setupRoutes(router, h)
@@ -69,6 +81,11 @@ func main() {
 
 	// Graceful shutdown
 	logger.Infof("Shutting down server...")
+
+	// Stop worker first
+	worker.Stop()
+	logger.Infof("Job worker stopped")
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -104,7 +121,11 @@ func setupRoutes(router *chi.Mux, h *handler.Handler) {
 			pr.Post("/test/balances/deposit", h.TestDeposit)
 			pr.Post("/test/balances/transfer", h.TestTransfer)
 			pr.Post("/test/transactions", h.TestCreateTransaction)
+			pr.Post("/test/deposits/clear", h.TestClearDeposits)
 		})
+
+		// Reset endpoint (outside auth middleware, but protected by ensureTestMode)
+		r.Post("/test/reset", h.TestReset)
 	})
 
 	// KYC endpoints (no auth required for iframe)

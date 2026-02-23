@@ -11,6 +11,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"gitlab.com/fynbos/mockxago/internal/jobs"
 	"gitlab.com/fynbos/mockxago/internal/models"
 	"gitlab.com/fynbos/mockxago/internal/storage"
 )
@@ -22,7 +23,8 @@ func setupTestHandler(t *testing.T) *Handler {
 	os.Setenv("XAGO_MOCK_TEST_MODE", "true")
 
 	store := storage.NewMemoryStorage()
-	return NewHandler(store)
+	queue := jobs.NewQueue(store)
+	return NewHandler(store, queue)
 }
 
 func TestLogin_Success(t *testing.T) {

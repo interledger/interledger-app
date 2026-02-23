@@ -14,6 +14,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gitlab.com/fynbos/mockxago/internal/jobs"
 	"gitlab.com/fynbos/mockxago/internal/models"
 	"gitlab.com/fynbos/mockxago/internal/storage"
 )
@@ -128,7 +129,7 @@ func TestSimulateTestDeposit(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			store := storage.NewMemoryStorage()
-			h := NewHandler(store)
+			h := NewHandler(store, jobs.NewQueue(store))
 
 			// Setup test account if needed
 			if tt.setupAccount {
@@ -175,7 +176,7 @@ func TestSimulateTestDeposit(t *testing.T) {
 
 func TestSimulateTestDeposit_DepositRecorded(t *testing.T) {
 	store := storage.NewMemoryStorage()
-	h := NewHandler(store)
+	h := NewHandler(store, jobs.NewQueue(store))
 
 	// Create test account
 	subAccount := &models.SubAccount{
@@ -264,7 +265,7 @@ func TestListCompanyDeposits(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			store := storage.NewMemoryStorage()
-			h := NewHandler(store)
+			h := NewHandler(store, jobs.NewQueue(store))
 
 			// Setup deposits
 			for i := 0; i < tt.setupDeposits; i++ {
@@ -300,7 +301,7 @@ func TestListCompanyDeposits(t *testing.T) {
 
 func TestListCompanyDeposits_RequiresAuth(t *testing.T) {
 	store := storage.NewMemoryStorage()
-	h := NewHandler(store)
+	h := NewHandler(store, jobs.NewQueue(store))
 
 	req := httptest.NewRequest(http.MethodGet, "/v1/company/deposits", nil)
 	w := httptest.NewRecorder()
@@ -336,7 +337,7 @@ func TestSimulateTestDeposit_WebhookConfiguration(t *testing.T) {
 	}()
 
 	store := storage.NewMemoryStorage()
-	h := NewHandler(store)
+	h := NewHandler(store, jobs.NewQueue(store))
 
 	// Create test account
 	subAccount := &models.SubAccount{

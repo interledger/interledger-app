@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"sync"
 	"time"
@@ -98,4 +99,28 @@ func (tc *TestContext) Reset() {
 	tc.lastDepositReference = ""
 	tc.depositRefsByWallet = make(map[string]map[string]string)
 	tc.accountIDsByWallet = make(map[string]string)
+
+	// Reset global webhook events between scenarios
+	resetWebhookEvents()
+}
+
+// resetBackend calls the mockxago /v1/test/reset endpoint to clear all data
+func (tc *TestContext) resetBackend() error {
+	client := &http.Client{Timeout: 5 * time.Second}
+	req, err := http.NewRequest("POST", tc.baseURL+"/v1/test/reset", nil)
+	if err != nil {
+		return err
+	}
+	// No auth needed for this endpoint in test mode
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("backend reset failed with status: %d", resp.StatusCode)
+	}
+	return nil
 }

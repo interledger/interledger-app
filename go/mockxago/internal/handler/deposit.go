@@ -3,15 +3,20 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
 	"time"
 
+	"gitlab.com/fynbos/mockxago/internal/jobs"
 	"gitlab.com/fynbos/mockxago/internal/logger"
 	"gitlab.com/fynbos/mockxago/internal/models"
 )
+
+// JobTypeProcessDeposit is the job type for async deposit processing.
+const JobTypeProcessDeposit = "process_deposit"
 
 // SimulateTestDeposit handles POST /v1/company/accounts/testdeposit
 // This is a public endpoint (no auth required) for simulating external deposits
@@ -84,55 +89,71 @@ func (h *Handler) SimulateTestDeposit(w http.ResponseWriter, r *http.Request) {
 	logger.Infof("Test deposit created: %s for account %s: %f %s (ref: %s)",
 		transactionID, req.AccountID, req.Amount, req.CurrencyCode, depositReference)
 
-	// Process deposit asynchronously (simulate real-world delay)
-	go h.processDepositAsync(transactionID, req.AccountID, req.Amount, req.CurrencyCode, depositReference)
+	// Enqueue deposit processing job (will be picked up by the worker)
+	jobData := map[string]interface{}{
+		"transaction_id":    transactionID,
+		"account_id":        req.AccountID,
+		"amount":            req.Amount,
+		"currency":          req.CurrencyCode,
+		"deposit_reference": depositReference,
+	}
+	readyAt := time.Now().Add(500 * time.Millisecond) // simulate processing delay
+	if _, err := h.queue.Enqueue(JobTypeProcessDeposit, jobData, readyAt); err != nil {
+		logger.Errorf("Failed to enqueue deposit job: %v", err)
+	}
 }
 
-// processDepositAsync simulates the deposit clearing process
-// After a delay, it credits the account balance and sends a webhook
-func (h *Handler) processDepositAsync(transactionID, accountID string, amount float64, currency, depositReference string) {
-	// Simulate processing delay (500ms minimum)
-	time.Sleep(500 * time.Millisecond)
+// NewProcessDepositHandler returns a JobHandler that processes deposit jobs.
+// It credits the balance, updates deposit status, and sends a webhook.
+func (h *Handler) NewProcessDepositHandler() jobs.JobHandler {
+	return func(ctx context.Context, job *models.Job) error {
+		transactionID, _ := job.Data["transaction_id"].(string)
+		accountID, _ := job.Data["account_id"].(string)
+		amount, _ := job.Data["amount"].(float64)
+		currency, _ := job.Data["currency"].(string)
+		depositReference, _ := job.Data["deposit_reference"].(string)
 
-	ctx := context.Background()
+		logger.Infof("Processing deposit job: txn=%s account=%s amount=%f %s",
+			transactionID, accountID, amount, currency)
 
-	// Get sub-account to find wallet ID
-	subAccount, err := h.store.GetSubAccount(ctx, accountID)
-	if err != nil {
-		logger.Errorf("Failed to get sub-account for deposit processing: %v", err)
-		return
-	}
-
-	// Credit the balance
-	logger.Infof("Crediting balance: walletID=%s, currency=%s, amount=%f", subAccount.WalletID, currency, amount)
-	if err := h.store.AddBalance(ctx, subAccount.WalletID, currency, amount); err != nil {
-		logger.Errorf("Failed to credit balance for deposit %s: %v", transactionID, err)
-		return
-	}
-	logger.Infof("Balance credited successfully for deposit %s", transactionID)
-
-	// Update deposit status to completed
-	if err := h.store.UpdateDepositStatus(ctx, transactionID, "completed"); err != nil {
-		logger.Errorf("Failed to update deposit status: %v", err)
-	}
-
-	// Update deposit code to 104 (successful)
-	deposit, err := h.store.GetDeposit(ctx, transactionID)
-	if err == nil {
-		deposit.Code = 104
-		deposit.Status = "completed"
-		settledAt := time.Now()
-		deposit.SettledAt = &settledAt
-		if err := h.store.SaveDeposit(ctx, deposit); err != nil {
-			logger.Errorf("Failed to update deposit record: %v", err)
+		// Get sub-account to find wallet ID
+		subAccount, err := h.store.GetSubAccount(ctx, accountID)
+		if err != nil {
+			return fmt.Errorf("failed to get sub-account %s: %w", accountID, err)
 		}
+
+		// Credit the balance
+		logger.Infof("Crediting balance: walletID=%s, currency=%s, amount=%f", subAccount.WalletID, currency, amount)
+		if err := h.store.AddBalance(ctx, subAccount.WalletID, currency, amount); err != nil {
+			return fmt.Errorf("failed to credit balance for deposit %s: %w", transactionID, err)
+		}
+		logger.Infof("Balance credited successfully for deposit %s", transactionID)
+
+		// Update deposit status to completed
+		if err := h.store.UpdateDepositStatus(ctx, transactionID, "completed"); err != nil {
+			logger.Errorf("Failed to update deposit status: %v", err)
+		}
+
+		// Update deposit code to 104 (successful)
+		deposit, err := h.store.GetDeposit(ctx, transactionID)
+		if err == nil {
+			deposit.Code = 104
+			deposit.Status = "completed"
+			settledAt := time.Now()
+			deposit.SettledAt = &settledAt
+			if err := h.store.SaveDeposit(ctx, deposit); err != nil {
+				logger.Errorf("Failed to update deposit record: %v", err)
+			}
+		}
+
+		logger.Infof("Deposit completed: %s for account %s: %f %s",
+			transactionID, accountID, amount, currency)
+
+		// Send webhook notification
+		h.sendDepositCompletedWebhook(accountID, amount, currency, transactionID, depositReference)
+
+		return nil
 	}
-
-	logger.Infof("Deposit completed: %s for account %s: %f %s",
-		transactionID, accountID, amount, currency)
-
-	// Send webhook notification
-	h.sendDepositCompletedWebhook(accountID, amount, currency, transactionID, depositReference)
 }
 
 // sendDepositCompletedWebhook sends a webhook notification when a deposit completes

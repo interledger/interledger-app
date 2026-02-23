@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"gitlab.com/fynbos/mockxago/internal/auth"
+	"gitlab.com/fynbos/mockxago/internal/jobs"
 	"gitlab.com/fynbos/mockxago/internal/logger"
 	"gitlab.com/fynbos/mockxago/internal/models"
 	"gitlab.com/fynbos/mockxago/internal/storage"
@@ -21,16 +22,18 @@ import (
 type Handler struct {
 	store     storage.Storage
 	validator *auth.Validator
+	queue     *jobs.Queue
 	publicKey string
 	secret    string
 	testMode  bool
 }
 
 // NewHandler creates a new handler
-func NewHandler(store storage.Storage) *Handler {
+func NewHandler(store storage.Storage, queue *jobs.Queue) *Handler {
 	return &Handler{
 		store:     store,
 		validator: auth.NewValidator(store),
+		queue:     queue,
 		publicKey: os.Getenv("XAGO_API_PUBLIC_KEY"),
 		secret:    os.Getenv("XAGO_API_SECRET"),
 		testMode:  strings.EqualFold(os.Getenv("XAGO_MOCK_TEST_MODE"), "true"),

@@ -1,5 +1,3 @@
-//go:build e2e
-
 package main
 
 import (
@@ -78,6 +76,10 @@ func registerDepositSteps(sc *godog.ScenarioContext, tc *TestContext) {
 }
 
 func (tc *TestContext) walletWebhookURLConfigured(url string) error {
+	// Clear server-side deposits so list/count tests start from zero
+	if err := tc.clearServerDeposits(); err != nil {
+		fmt.Printf("WARN: failed to clear server deposits: %v\n", err)
+	}
 	return tc.startWebhookServer(url)
 }
 
@@ -158,18 +160,25 @@ func (tc *TestContext) simulateFiveDeposits() error {
 }
 
 func (tc *TestContext) waitForWebhookSeconds(seconds int) error {
-	if err := tc.waitSeconds(seconds); err != nil {
-		return err
-	}
-	return tc.waitForWebhookCount(1, 5*time.Second)
+	// Snapshot baseline BEFORE sleeping, then wait for 1 more webhook
+	globalWebhookEventsMu.Lock()
+	baseline := len(globalWebhookEvents)
+	globalWebhookEventsMu.Unlock()
+
+	// Sleep the requested time
+	time.Sleep(time.Duration(seconds) * time.Second)
+
+	// Now wait for baseline+1 (the webhook should have arrived during sleep)
+	target := baseline + 1
+	return tc.waitForWebhookCount(target, 5*time.Second)
 }
 
 func (tc *TestContext) waitForWebhookDelivery() error {
-	return tc.waitForWebhookCount(1, 5*time.Second)
+	return tc.waitForNextWebhook(5 * time.Second)
 }
 
 func (tc *TestContext) waitForDepositCompletion() error {
-	return tc.waitForWebhookCount(1, 5*time.Second)
+	return tc.waitForNextWebhook(5 * time.Second)
 }
 
 func (tc *TestContext) waitForAllDeposits() error {
@@ -177,7 +186,13 @@ func (tc *TestContext) waitForAllDeposits() error {
 	if count == 0 {
 		count = 1
 	}
-	return tc.waitForWebhookCount(count, 10*time.Second)
+	// Wait for `count` new webhooks beyond current total
+	globalWebhookEventsMu.Lock()
+	baseline := len(globalWebhookEvents)
+	globalWebhookEventsMu.Unlock()
+
+	target := baseline + count
+	return tc.waitForWebhookCount(target, 10*time.Second)
 }
 
 func (tc *TestContext) depositResponseStatusIs(status string) error {
@@ -470,6 +485,10 @@ func (tc *TestContext) eachDepositIncludes(table *godog.Table) error {
 }
 
 func (tc *TestContext) bothDepositsRecorded() error {
+	// List deposits first, then verify count
+	if err := tc.listCompanyDepositsWithLimit(10); err != nil {
+		return err
+	}
 	return tc.responseIncludesDeposits(2)
 }
 
@@ -655,7 +674,13 @@ func (tc *TestContext) allDepositsHaveCompleted() error {
 	if expectedCount == 0 {
 		return fmt.Errorf("no deposits created")
 	}
-	return tc.waitForWebhookCount(expectedCount, 5*time.Second)
+	// Wait for `expectedCount` new webhooks beyond current total
+	globalWebhookEventsMu.Lock()
+	baseline := len(globalWebhookEvents)
+	globalWebhookEventsMu.Unlock()
+
+	target := baseline + expectedCount
+	return tc.waitForWebhookCount(target, 10*time.Second)
 }
 
 func (tc *TestContext) accountBalanceIsCreditedTwice() error {
@@ -674,4 +699,10 @@ func (tc *TestContext) responseIncludesTransactionID() error {
 		return fmt.Errorf("invalid transactionID format: %s", tc.lastDepositResponse.TransactionID)
 	}
 	return nil
+}
+
+// clearServerDeposits calls the test reset endpoint to clear all deposit records on the server.
+func (tc *TestContext) clearServerDeposits() error {
+	_, err := tc.request("POST", "/v1/test/deposits/clear", nil, true, nil)
+	return err
 }
