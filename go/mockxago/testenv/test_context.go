@@ -32,6 +32,11 @@ type TestContext struct {
 	previousCurrencies  string
 
 	subAccountsByWallet map[string]createSubAccountResponse
+
+	// Beneficiary state
+	lastBeneficiary    addBeneficiaryResponse
+	lastBeneficiaries  listBeneficiariesResponse
+	addedBeneficiaries []addBeneficiaryResponse
 }
 
 // Reset initializes the test context to a clean state.
@@ -60,4 +65,8 @@ func (tc *TestContext) Reset() {
 	tc.previousCurrencies = ""
 
 	tc.subAccountsByWallet = make(map[string]createSubAccountResponse)
+
+	tc.lastBeneficiary = addBeneficiaryResponse{}
+	tc.lastBeneficiaries = listBeneficiariesResponse{}
+	tc.addedBeneficiaries = nil
 }

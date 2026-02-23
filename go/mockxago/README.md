@@ -94,6 +94,59 @@ Fetch a sub-account by wallet id.
 
 Returns balances for ZAR and USD.
 
+### POST /v1/accounts/{accountId}/beneficiaries
+
+Add a bank account as a withdrawal beneficiary. Requires an existing sub-account `accountId`. Required fields:
+
+- `name`, `accountNumber`
+
+Optional fields: `scope`, `currencyCode`, `branchCode`, `bankName`, `accountName`, `reference`, `isOwn`
+
+Response:
+
+```json
+{
+  "uuid": "<uuid>",
+  "name": "My ABSA Account",
+  "currencyCode": "ZAR",
+  "accountNumber": "1234567890",
+  "branchCode": "250155",
+  "bankName": "ABSA",
+  "accountName": "John Doe",
+  "reference": "My ABSA Account",
+  "isOwn": true,
+  "status": "pending"
+}
+```
+
+The beneficiary starts with `status: "pending"` and is automatically transitioned to `status: "approved"` after 3 seconds (sandbox behaviour).
+
+### GET /v1/accounts/{accountId}/beneficiaries?limit={limit}&page={page}
+
+List beneficiaries for a sub-account. Supports pagination.
+
+Response:
+
+```json
+{
+  "data": [
+    {
+      "uuid": "<uuid>",
+      "name": "My ABSA Account",
+      "currencyCode": "ZAR",
+      "accountNumber": "1234567890",
+      "status": "approved"
+    }
+  ],
+  "pagination": {
+    "limit": 10,
+    "page": 1,
+    "numberOfPages": 1,
+    "total": 1
+  }
+}
+```
+
 ### GET /v1/company/transactions
 ### GET /v1/company/transactions/{id}
 

@@ -45,10 +45,14 @@ type SubAccount struct {
 type Beneficiary struct {
 	ID            string    `db:"id"`
 	WalletID      string    `db:"wallet_id"`
+	Name          string    `db:"name"`
+	Scope         string    `db:"scope"`
+	IsOwn         bool      `db:"is_own"`
 	BankName      string    `db:"bank_name"`
 	AccountNumber string    `db:"account_number"`
 	AccountName   string    `db:"account_name"`
 	BranchCode    string    `db:"branch_code"`
+	Reference     string    `db:"reference"`
 	Currency      string    `db:"currency"`
 	Country       string    `db:"country"`
 	Status        string    `db:"status"`
