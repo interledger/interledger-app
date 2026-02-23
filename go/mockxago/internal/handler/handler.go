@@ -1,7 +1,11 @@
 package handler
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"os"
 	"strings"
@@ -147,4 +151,13 @@ func bearerTokenFromHeader(authHeader string) string {
 		return ""
 	}
 	return strings.TrimSpace(parts[1])
+}
+
+// generateWebhookSignature generates an HMAC-SHA256 signature for webhooks
+// Format: HMAC-SHA256(timestamp|method|url|body, secret)
+func generateWebhookSignature(secret string, timestamp int64, method, url string, body []byte) string {
+	message := fmt.Sprintf("%d|%s|%s|%s", timestamp, method, url, string(body))
+	h := hmac.New(sha256.New, []byte(secret))
+	h.Write([]byte(message))
+	return hex.EncodeToString(h.Sum(nil))
 }

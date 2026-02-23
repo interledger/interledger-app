@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"sync"
 	"time"
 )
 
@@ -41,6 +42,17 @@ type TestContext struct {
 	// Transaction state
 	lastTransactionID   string
 	createdTransactions []string
+
+	// Deposit/Webhook state
+	webhookURL           string
+	webhookServer        *http.Server
+	webhookMu            sync.Mutex
+	webhookEvents        []webhookEvent
+	createdDeposits      []string
+	lastDepositResponse  depositResponse
+	lastDepositReference string
+	depositRefsByWallet  map[string]map[string]string
+	accountIDsByWallet   map[string]string
 }
 
 // Reset initializes the test context to a clean state.
@@ -76,4 +88,14 @@ func (tc *TestContext) Reset() {
 
 	tc.lastTransactionID = ""
 	tc.createdTransactions = nil
+
+	tc.webhookURL = ""
+	tc.webhookMu.Lock()
+	tc.webhookEvents = nil
+	tc.webhookMu.Unlock()
+	tc.createdDeposits = nil
+	tc.lastDepositResponse = depositResponse{}
+	tc.lastDepositReference = ""
+	tc.depositRefsByWallet = make(map[string]map[string]string)
+	tc.accountIDsByWallet = make(map[string]string)
 }

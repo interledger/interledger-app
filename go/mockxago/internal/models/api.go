@@ -220,3 +220,58 @@ type GetTransactionResponse struct {
 	CreatedAt     string  `json:"createdAt"`
 	SettledAt     string  `json:"settledAt,omitempty"`
 }
+
+// TestDepositRequest represents the payload for simulating a test deposit
+type TestDepositRequest struct {
+	AccountID        string  `json:"accountId"`
+	Amount           float64 `json:"amount"`
+	CurrencyCode     string  `json:"currencyCode"`
+	DepositReference string  `json:"depositReference,omitempty"`
+}
+
+// TestDepositResponse represents the response from simulating a test deposit
+type TestDepositResponse struct {
+	TransactionID string `json:"transactionId"`
+	Status        string `json:"status"`
+}
+
+// DepositItem represents a single deposit in list responses
+type DepositItem struct {
+	TransactionID        string  `json:"transactionId"`
+	AccountID            string  `json:"accountId"`
+	Amount               float64 `json:"amount"`
+	CurrencyCode         string  `json:"currencyCode"`
+	DepositReference     string  `json:"depositReference,omitempty"`
+	TransactionReference string  `json:"transactionReference,omitempty"`
+	Status               string  `json:"status"`
+	Code                 int     `json:"code"`
+	CreatedAt            string  `json:"createdAt"`
+	SettledAt            string  `json:"settledAt,omitempty"`
+}
+
+// DepositPagination represents pagination info for deposit lists
+type DepositPagination struct {
+	Limit         int `json:"limit"`
+	Page          int `json:"page"`
+	NumberOfPages int `json:"numberOfPages"`
+	Total         int `json:"total"`
+}
+
+// ListDepositsResponse represents the paginated list of deposits
+type ListDepositsResponse struct {
+	Data       []DepositItem     `json:"data"`
+	Pagination DepositPagination `json:"pagination"`
+}
+
+// DepositWebhookPayload represents the webhook payload sent when a deposit completes
+type DepositWebhookPayload struct {
+	AccountID            string  `json:"accountId"`
+	Amount               float64 `json:"amount"`
+	CurrencyCode         string  `json:"currencyCode"`
+	TransactionID        string  `json:"transactionId"`
+	TransactionReference string  `json:"transactionReference,omitempty"`
+	Status               string  `json:"status"`
+	Code                 int     `json:"code"`
+	CreatedAt            string  `json:"createdAt"`
+	SettledAt            string  `json:"settledAt,omitempty"`
+}

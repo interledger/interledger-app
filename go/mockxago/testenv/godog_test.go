@@ -189,4 +189,5 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 
 	// Transaction management steps
 	registerTransactionSteps(ctx, tc)
+	registerDepositSteps(ctx, tc)
 }

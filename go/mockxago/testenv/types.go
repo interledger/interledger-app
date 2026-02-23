@@ -1,11 +1,18 @@
 package main
 
+import (
+	"net/http"
+	"time"
+)
+
 const (
-	mockXagoURL    = "http://localhost:24024"
-	maxWaitSeconds = 30
-	defaultPolicy  = "5e2585a474b0e90012ce8ff1"
-	defaultPubKey  = "test_public_key_12345"
-	defaultSecret  = "test_secret_key_98765"
+	mockXagoURL          = "http://localhost:24024"
+	maxWaitSeconds       = 30
+	defaultPolicy        = "5e2585a474b0e90012ce8ff1"
+	defaultPubKey        = "test_public_key_12345"
+	defaultSecret        = "test_secret_key_98765"
+	defaultWebhookSecret = "test-webhook-secret"
+	defaultWebhookAppID  = "xago-mock"
 )
 
 type createSubAccountResponse struct {
@@ -85,4 +92,50 @@ type beneficiaryPagination struct {
 type listBeneficiariesResponse struct {
 	Data       []addBeneficiaryResponse `json:"data"`
 	Pagination beneficiaryPagination    `json:"pagination"`
+}
+
+type depositResponse struct {
+	TransactionID string `json:"transactionId"`
+	Status        string `json:"status"`
+}
+
+type companyDepositItem struct {
+	TransactionID string  `json:"transactionId"`
+	AccountID     string  `json:"accountId"`
+	Amount        float64 `json:"amount"`
+	CurrencyCode  string  `json:"currencyCode"`
+	Status        string  `json:"status"`
+	Code          int     `json:"code"`
+	CreatedAt     string  `json:"createdAt"`
+	SettledAt     string  `json:"settledAt"`
+}
+
+type companyDepositPagination struct {
+	Limit int `json:"limit"`
+	Page  int `json:"page"`
+	Total int `json:"total"`
+}
+
+type listCompanyDepositsResponse struct {
+	Data       []companyDepositItem     `json:"data"`
+	Pagination companyDepositPagination `json:"pagination"`
+}
+
+type webhookPayload struct {
+	AccountID            string  `json:"accountId"`
+	Amount               float64 `json:"amount"`
+	CurrencyCode         string  `json:"currencyCode"`
+	TransactionID        string  `json:"transactionId"`
+	TransactionReference string  `json:"transactionReference"`
+	Status               string  `json:"status"`
+	Code                 int     `json:"code"`
+	CreatedAt            string  `json:"createdAt"`
+	SettledAt            string  `json:"settledAt"`
+}
+
+type webhookEvent struct {
+	Body       webhookPayload
+	Headers    http.Header
+	RawBody    []byte
+	ReceivedAt time.Time
 }
