@@ -1368,43 +1368,6 @@ export class PtiTokenResponse extends Message<PtiTokenResponse> {
 }
 
 /**
- * @generated from message backend.v1.CreateChimoneyDepositRequest
- */
-export class CreateChimoneyDepositRequest extends Message<CreateChimoneyDepositRequest> {
-  /**
-   * @generated from field: string issueId = 1;
-   */
-  issueId = "";
-
-  constructor(data?: PartialMessage<CreateChimoneyDepositRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "backend.v1.CreateChimoneyDepositRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "issueId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateChimoneyDepositRequest {
-    return new CreateChimoneyDepositRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CreateChimoneyDepositRequest {
-    return new CreateChimoneyDepositRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CreateChimoneyDepositRequest {
-    return new CreateChimoneyDepositRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: CreateChimoneyDepositRequest | PlainMessage<CreateChimoneyDepositRequest> | undefined, b: CreateChimoneyDepositRequest | PlainMessage<CreateChimoneyDepositRequest> | undefined): boolean {
-    return proto3.util.equals(CreateChimoneyDepositRequest, a, b);
-  }
-}
-
-/**
  * @generated from message backend.v1.GetChimoneyDepositLinkResponse
  */
 export class GetChimoneyDepositLinkResponse extends Message<GetChimoneyDepositLinkResponse> {

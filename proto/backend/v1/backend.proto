@@ -164,7 +164,6 @@ service BackendService {
   rpc GetChimoneyInterlocEmail(Empty) returns (ChimoneyInterlocEmail);
   rpc CreateChimoneyWallet(Empty) returns (Empty);
   rpc GetChimoneyDepositLink(Amount) returns (GetChimoneyDepositLinkResponse);
-  rpc CreateChimoneyDeposit(CreateChimoneyDepositRequest) returns (Empty);
 
   // Cards
   rpc ListCards(Empty) returns (ListCardsResponse);
@@ -359,10 +358,6 @@ message PtiTokenResponse {
   string accessToken = 1;
   double expiresAt = 2;
   string tokenType = 3;
-}
-
-message CreateChimoneyDepositRequest {
-  string issueId = 1;
 }
 
 message GetChimoneyDepositLinkResponse {
