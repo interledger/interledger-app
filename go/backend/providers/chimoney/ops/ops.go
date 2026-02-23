@@ -58,9 +58,9 @@ func CreateWallet(ctx context.Context, b Backends, walletID string) (chimoney.Aw
 	return await.Get, nil
 }
 
-func ExecuteFinishDeposit(ctx context.Context, b Backends, IssueID string, status string, ChiWalletID string) error {
+func ExecuteFinishDeposit(ctx context.Context, b Backends, IssueID string, Status string, ChiWalletID string) error {
 	wo := client.StartWorkflowOptions{
-		ID:                    "finish_chimoney_deposit_" + status + "_" + IssueID,
+		ID:                    "finish_chimoney_deposit_" + Status + "_" + IssueID,
 		TaskQueue:             "backend",
 		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
 	}
@@ -85,7 +85,7 @@ func ExecuteFinishDeposit(ctx context.Context, b Backends, IssueID string, statu
 	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
 		_ = b.Temporal().GetWorkflow(ctx, wo.ID, "")
 	} else {
-		_, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, FinishChimoneyDepositWorkflow, IssueID, status, ChiWalletID)
+		_, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, FinishChimoneyDepositWorkflow, IssueID, ChiWalletID)
 	}
 	if executeErr != nil {
 		return fmt.Errorf("%w %s", chimoney.ErrInternal, executeErr)
@@ -310,7 +310,7 @@ func GetWalletID(ctx context.Context, b Backends, chiWalletID string) (string, e
 	var walletID string
 	err := b.DB().GetContext(ctx, &walletID, "SELECT wallet_ID FROM chi_money_wallets WHERE external_id=$1;", chiWalletID)
 	if errors.Is(err, sql.ErrNoRows) {
-		return "", fmt.Errorf("%w no wallet found for chiWalletID", chimoney.ErrNotFound)
+		return "", fmt.Errorf("%w no wallet found for chiWalletID %s", chimoney.ErrNotFound, chiWalletID)
 	}
 	if err != nil {
 		return "", chimoney.ErrInternal

@@ -646,7 +646,7 @@ func CreateChimoneyDepositWorkflow(ctx workflow.Context, issueID string, chiWall
 	logger.Info("Creating chimoney deposit.")
 
 	var walletID string
-	err := workflow.ExecuteActivity(ctx, a.GetWalletIDFromChimoneyID, issueID, chiWalletID).Get(ctx, &walletID)
+	err := workflow.ExecuteActivity(ctx, a.GetWalletIDFromChimoneyID, chiWalletID).Get(ctx, &walletID)
 	if err != nil {
 		return err
 	}
@@ -657,7 +657,7 @@ func CreateChimoneyDepositWorkflow(ctx workflow.Context, issueID string, chiWall
 	return workflow.ExecuteActivity(ctx, a.CreateChimoneyDepositTransaction, walletID, issueID, externalPayment).Get(ctx, nil)
 }
 
-func FinishChimoneyDepositWorkflow(ctx workflow.Context, issueID string, status string, chiWalletID string) error {
+func FinishChimoneyDepositWorkflow(ctx workflow.Context, issueID string, chiWalletID string) error {
 	var a *Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 10 * time.Second,
