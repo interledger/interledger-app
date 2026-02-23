@@ -12,7 +12,7 @@ func (tc *TestContext) requestBalanceForSubAccount() error {
 	if tc.lastSubAccount.AccountID == "" {
 		return fmt.Errorf("no accountId available")
 	}
-	_, err := tc.request("GET", "/xago/v1/accounts/"+tc.lastSubAccount.AccountID+"/balance", nil, true, nil)
+	_, err := tc.request("GET", "/v1/accounts/"+tc.lastSubAccount.AccountID+"/balance", nil, true, nil)
 	if err != nil {
 		return err
 	}
@@ -61,7 +61,7 @@ func (tc *TestContext) setBalanceForSubAccount(table *godog.Table) error {
 		"available":    availableValue,
 		"reserved":     reservedValue,
 	}
-	_, err = tc.request("POST", "/xago/v1/test/balances/set", payload, true, nil)
+	_, err = tc.request("POST", "/v1/test/balances/set", payload, true, nil)
 	return err
 }
 
@@ -77,7 +77,7 @@ func (tc *TestContext) subAccountStartsWithZeroBalance() error {
 			"available":    0.0,
 			"reserved":     0.0,
 		}
-		if _, err := tc.request("POST", "/xago/v1/test/balances/set", payload, true, nil); err != nil {
+		if _, err := tc.request("POST", "/v1/test/balances/set", payload, true, nil); err != nil {
 			return err
 		}
 	}
@@ -98,7 +98,7 @@ func (tc *TestContext) depositReceivedAndProcessed(amount string, currency strin
 		"currencyCode": currency,
 		"amount":       amountValue,
 	}
-	_, err = tc.request("POST", "/xago/v1/test/balances/deposit", payload, true, nil)
+	_, err = tc.request("POST", "/v1/test/balances/deposit", payload, true, nil)
 	return err
 }
 
@@ -116,7 +116,7 @@ func (tc *TestContext) transferInitiatedAndCompleted(amount string, currency str
 		"currencyCode": currency,
 		"amount":       amountValue,
 	}
-	_, err = tc.request("POST", "/xago/v1/test/balances/transfer", payload, true, nil)
+	_, err = tc.request("POST", "/v1/test/balances/transfer", payload, true, nil)
 	return err
 }
 
@@ -135,19 +135,19 @@ func (tc *TestContext) depositToWallet(amount string, currency string, walletID 
 		"currencyCode": currency,
 		"amount":       amountValue,
 	}
-	_, err = tc.request("POST", "/xago/v1/test/balances/deposit", payload, true, nil)
+	_, err = tc.request("POST", "/v1/test/balances/deposit", payload, true, nil)
 	return err
 }
 
 func (tc *TestContext) requestBalanceForInvalidAccount(accountID string) error {
-	_, err := tc.request("GET", "/xago/v1/accounts/"+accountID+"/balance", nil, true, nil)
+	_, err := tc.request("GET", "/v1/accounts/"+accountID+"/balance", nil, true, nil)
 	return err
 }
 
 func (tc *TestContext) requestBalanceWithoutAuth() error {
 	token := tc.token
 	tc.token = ""
-	_, err := tc.request("GET", "/xago/v1/accounts/"+tc.lastSubAccount.AccountID+"/balance", nil, true, nil)
+	_, err := tc.request("GET", "/v1/accounts/"+tc.lastSubAccount.AccountID+"/balance", nil, true, nil)
 	tc.token = token
 	return err
 }
@@ -248,7 +248,7 @@ func (tc *TestContext) balanceForWalletIs(walletID string, expected string) erro
 		return fmt.Errorf("no sub-account for wallet %s", walletID)
 	}
 
-	_, err := tc.request("GET", "/xago/v1/accounts/"+account.AccountID+"/balance", nil, true, nil)
+	_, err := tc.request("GET", "/v1/accounts/"+account.AccountID+"/balance", nil, true, nil)
 	if err != nil {
 		return err
 	}

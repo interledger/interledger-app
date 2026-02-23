@@ -147,42 +147,12 @@ func (h *Handler) KYCIframeSubmit(w http.ResponseWriter, r *http.Request) {
 
 	// Send webhook to backend notifying of KYC completion
 	// This triggers the backend's Temporal workflow for Xago onboarding
-	go h.sendKYCWebhook(walletID)
 	go h.sendPersonaInquiryApproved(walletID)
 
 	// Return success response
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprint(w, `{"status":"accepted","message":"KYC verification submitted successfully"}`)
-}
-
-// sendKYCWebhook sends a Persona KYC approval webhook to the backend
-func (h *Handler) sendKYCWebhook(walletID string) {
-	webhookURL := os.Getenv("WEBHOOK_URL")
-	webhookSecret := os.Getenv("WEBHOOK_SECRET")
-
-	if webhookURL == "" {
-		logger.Warnf("WEBHOOK_URL not configured, skipping webhook for wallet %s", walletID)
-		return
-	}
-
-	// Build webhook payload
-	payload := map[string]interface{}{
-		"event_type": "id.verification.accepted",
-		"wallet_id":  walletID,
-		"timestamp":  time.Now().Format(time.RFC3339),
-		"data": map[string]interface{}{
-			"message": "Persona KYC verification accepted",
-		},
-	}
-
-	// Send webhook with HMAC signature if secret is configured
-	if err := sendWebhookWithSignature(webhookURL, webhookSecret, payload); err != nil {
-		logger.Errorf("Failed to send KYC webhook: %v", err)
-		return
-	}
-
-	logger.Infof("KYC webhook sent for wallet %s", walletID)
 }
 
 func (h *Handler) sendPersonaInquiryApproved(walletID string) {

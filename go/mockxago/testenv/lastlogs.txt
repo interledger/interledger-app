@@ -1,0 +1,62 @@
+mockxago-test  | INFO: 2026/02/23 08:34:23 Initialized in-memory storage
+mockxago-test  | INFO: 2026/02/23 08:34:23 Starting MockXago server on port 8080
+mockxago-test  | INFO: 2026/02/23 08:34:23 Successful login with public_key=test_public_key_12345, issued token=e68e3425-7fbe-481a-b992-0a854bcc02cd
+mockxago-test  | INFO: 2026/02/23 08:34:23 Failed login attempt with public_key=invalid_public_key
+mockxago-test  | INFO: 2026/02/23 08:34:23 Failed login attempt with public_key=test_public_key_12345
+mockxago-test  | INFO: 2026/02/23 08:34:23 Successful login with public_key=test_public_key_12345, issued token=5d0fb1fd-2f2f-466f-93c1-bc56a9f6a8f3
+mockxago-test  | INFO: 2026/02/23 08:34:23 Successful login with public_key=test_public_key_12345, issued token=5463114c-30f0-4217-a1a8-d8e31b54ba8c
+mockxago-test  | INFO: 2026/02/23 08:34:23 Successful login with public_key=test_public_key_12345, issued token=c5961015-0963-4c03-8b4a-42f7ba58ee44
+mockxago-test  | INFO: 2026/02/23 08:34:23 Successful login with public_key=test_public_key_12345, issued token=5a8217dd-652a-4a40-9be4-a5f2df3e430d
+mockxago-test  | INFO: 2026/02/23 08:34:23 Successful login with public_key=test_public_key_12345, issued token=a23f972c-86ed-45b3-8db9-7c22b3906222
+mockxago-test  | INFO: 2026/02/23 08:34:23 Successful login with public_key=test_public_key_12345, issued token=3ef54814-c29f-4148-90a4-8d8308387097
+mockxago-test  | WARN: 2026/02/23 08:34:23 WEBHOOK_URL not configured, skipping webhook for wallet wallet_bal_test
+mockxago-test  | INFO: 2026/02/23 08:34:23 Successful login with public_key=test_public_key_12345, issued token=b39de1cc-54c6-4889-964c-e70c8f78ecad
+mockxago-test  | INFO: 2026/02/23 08:34:23 Successful login with public_key=test_public_key_12345, issued token=6117cd37-b825-4260-ac61-13b3a2f6246a
+mockxago-test  | INFO: 2026/02/23 08:34:23 Successful login with public_key=test_public_key_12345, issued token=3aa7ca8f-ed29-4823-a415-eb01477ae8b1
+mockxago-test  | INFO: 2026/02/23 08:34:23 Successful login with public_key=test_public_key_12345, issued token=2942abac-3523-47c3-bbb4-c1d37d1cd2c0
+mockxago-test  | INFO: 2026/02/23 08:34:23 Successful login with public_key=test_public_key_12345, issued token=82d9afd6-40ab-4ec7-9509-9c32da204e61
+mockxago-test  | WARN: 2026/02/23 08:34:23 WEBHOOK_URL not configured, skipping webhook for wallet wallet_bal_test
+mockxago-test  | WARN: 2026/02/23 08:34:23 WEBHOOK_URL not configured, skipping webhook for wallet wallet_bal_test
+mockxago-test  | WARN: 2026/02/23 08:34:23 WEBHOOK_URL not configured, skipping webhook for wallet wallet_bal_test
+mockxago-test  | INFO: 2026/02/23 08:34:23 Successful login with public_key=test_public_key_12345, issued token=dada59f6-959d-4d3b-a137-3b482d9577a2
+mockxago-test  | WARN: 2026/02/23 08:34:23 WEBHOOK_URL not configured, skipping webhook for wallet wallet_100
+mockxago-test  | INFO: 2026/02/23 08:34:23 Successful login with public_key=test_public_key_12345, issued token=989af967-7965-4d6c-b167-3194007617d7
+mockxago-test  | INFO: 2026/02/23 08:34:23 Successful login with public_key=test_public_key_12345, issued token=539ff7d0-6b1c-43f8-bc26-3a1ac137b732
+mockxago-test  | INFO: 2026/02/23 08:34:23 Successful login with public_key=test_public_key_12345, issued token=e4c9744e-d7ac-4966-a795-cac49ea71878
+mockxago-test  | INFO: 2026/02/23 08:34:23 Successful login with public_key=test_public_key_12345, issued token=01ded468-9c29-4fac-aa48-0c5b687617b6
+mockxago-test  | INFO: 2026/02/23 08:34:23 Successful login with public_key=test_public_key_12345, issued token=cccdfef0-18bb-44f7-8804-41de83d509a6
+mockxago-test  | INFO: 2026/02/23 08:34:23 Successful login with public_key=test_public_key_12345, issued token=174b7e73-56ba-4c04-a4f4-2cd4978b0666
+mockxago-test  | INFO: 2026/02/23 08:34:23 Successful login with public_key=test_public_key_12345, issued token=f401b82c-2199-400d-a70f-cf925eddcc39
+mockxago-test  | INFO: 2026/02/23 08:34:23 Successful login with public_key=test_public_key_12345, issued token=3b52a71e-10fa-4d09-b03b-78c8960a0e70
+mockxago-test  | INFO: 2026/02/23 08:34:23 KYC iframe form submitted
+mockxago-test  | INFO: 2026/02/23 08:34:23 KYC submitted - wallet_id: wallet_kyc_001, name: Sarah Smith
+mockxago-test  | INFO: 2026/02/23 08:34:23 Parsed birth year: 1990
+mockxago-test  | INFO: 2026/02/23 08:34:23 KYC submission successful for wallet wallet_kyc_001
+mockxago-test  | ERROR: 2026/02/23 08:34:23 Persona webhook request failed: Post "http://backend:8080/webhooks/persona": dial tcp: lookup backend on 127.0.0.11:53: server misbehaving
+mockxago-test  | INFO: 2026/02/23 08:34:23 Successful login with public_key=test_public_key_12345, issued token=e79353b8-9789-47a7-9c39-313b9f2533e1
+mockxago-test  | WARN: 2026/02/23 08:34:23 WEBHOOK_URL not configured, skipping webhook for wallet wallet_flow_001
+mockxago-test  | INFO: 2026/02/23 08:34:23 Successful login with public_key=test_public_key_12345, issued token=8df42478-c783-4baf-a71e-5f4123925a11
+mockxago-test  | WARN: 2026/02/23 08:34:23 WEBHOOK_URL not configured, skipping webhook for wallet wallet_multi_001
+mockxago-test  | WARN: 2026/02/23 08:34:23 WEBHOOK_URL not configured, skipping webhook for wallet wallet_multi_001
+mockxago-test  | INFO: 2026/02/23 08:34:23 Successful login with public_key=test_public_key_12345, issued token=73124dc9-faac-40c2-a60c-c9f98c90fece
+mockxago-test  | WARN: 2026/02/23 08:34:23 WEBHOOK_URL not configured, skipping webhook for wallet wallet_aaa
+mockxago-test  | WARN: 2026/02/23 08:34:23 WEBHOOK_URL not configured, skipping webhook for wallet wallet_bbb
+mockxago-test  | INFO: 2026/02/23 08:34:23 Successful login with public_key=test_public_key_12345, issued token=b549982d-1803-4ed0-875c-8e82b816a7f3
+mockxago-test  | INFO: 2026/02/23 08:34:23 Successful login with public_key=test_public_key_12345, issued token=9b748fc4-8b21-4e17-9426-e5ad9880c5dd
+mockxago-test  | INFO: 2026/02/23 08:34:23 Successful login with public_key=test_public_key_12345, issued token=dcb8bd88-3577-4fdb-9bc5-6ccc6b517c85
+mockxago-test  | INFO: 2026/02/23 08:34:23 Successful login with public_key=test_public_key_12345, issued token=019f11ce-b6d0-4e76-bab4-b2e36973d9ec
+mockxago-test  | INFO: 2026/02/23 08:34:23 Test transaction created: 86c30b80-030f-44e2-b653-1368fc9cc0fc for account 41b977f9-14ff-4990-b8c1-62dc59f9498a: 10000.000000 ZAR
+mockxago-test  | INFO: 2026/02/23 08:34:23 Test transaction created: 26d3d3eb-0c75-4a4a-bd09-4b8e0b71f13d for account 41b977f9-14ff-4990-b8c1-62dc59f9498a: 2000.000000 ZAR
+mockxago-test  | INFO: 2026/02/23 08:34:23 Test transaction created: ad79b3b8-a358-4055-9f00-4d384207677c for account 41b977f9-14ff-4990-b8c1-62dc59f9498a: 5000.000000 ZAR
+mockxago-test  | INFO: 2026/02/23 08:34:23 Test transaction created: fc2cd6f3-2d83-47a0-97cc-8c45dd532cce for account 41b977f9-14ff-4990-b8c1-62dc59f9498a: 1000.000000 USD
+mockxago-test  | INFO: 2026/02/23 08:34:23 Listed transactions: page=1, limit=10, total=4, returned=4
+mockxago-test  | INFO: 2026/02/23 08:34:23 Successful login with public_key=test_public_key_12345, issued token=08ffffa2-eb17-43c5-8fd5-6833e18a06e9
+mockxago-test  | INFO: 2026/02/23 08:34:23 Successful login with public_key=test_public_key_12345, issued token=e95e0235-7508-43cf-a873-dcf1ca5c9cf1
+mockxago-test  | INFO: 2026/02/23 08:34:23 Successful login with public_key=test_public_key_12345, issued token=becafb9d-d245-4e7d-b82c-d46e3c3916a4
+mockxago-test  | INFO: 2026/02/23 08:34:23 Successful login with public_key=test_public_key_12345, issued token=64469036-de08-4d7f-96a2-699451b3ad65
+mockxago-test  | INFO: 2026/02/23 08:34:23 Successful login with public_key=test_public_key_12345, issued token=c4e71277-ec76-4e0a-82d7-2c233c7a81b5
+mockxago-test  | INFO: 2026/02/23 08:34:23 Successful login with public_key=test_public_key_12345, issued token=ec5db445-079d-4873-905a-dbfbec9dab99
+mockxago-test  | INFO: 2026/02/23 08:34:23 Successful login with public_key=test_public_key_12345, issued token=da99f41e-ae02-4cf4-ac34-7b1cd02adb1a
+mockxago-test  | INFO: 2026/02/23 08:34:23 Successful login with public_key=test_public_key_12345, issued token=3d5c61c1-1310-4c20-9585-44d743bbf1e6
+mockxago-test  | INFO: 2026/02/23 08:34:24 Successful login with public_key=test_public_key_12345, issued token=a3397639-97fc-49c2-93c8-d64aafd4b187
+mockxago-test  | INFO: 2026/02/23 08:34:24 Successful login with public_key=test_public_key_12345, issued token=b2f8f8d7-a97f-4a03-9041-54771a6af8cd

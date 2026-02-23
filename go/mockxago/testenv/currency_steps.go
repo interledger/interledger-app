@@ -10,7 +10,7 @@ import (
 )
 
 func (tc *TestContext) requestCurrencyList() error {
-	_, err := tc.request("GET", "/xago/v1/currencies", nil, false, nil)
+	_, err := tc.request("GET", "/v1/currencies", nil, false, nil)
 	if err != nil {
 		return err
 	}
@@ -27,7 +27,7 @@ func (tc *TestContext) requestCurrencyListAgain() error {
 }
 
 func (tc *TestContext) requestCurrencyListWithoutAuth() error {
-	_, err := tc.request("GET", "/xago/v1/currencies", nil, false, nil)
+	_, err := tc.request("GET", "/v1/currencies", nil, false, nil)
 	if err != nil {
 		return err
 	}
@@ -63,7 +63,7 @@ func (tc *TestContext) usdCurrencyIncludes(table *godog.Table) error {
 }
 
 func (tc *TestContext) storeCurrencyList() error {
-	_, err := tc.request("GET", "/xago/v1/currencies", nil, false, nil)
+	_, err := tc.request("GET", "/v1/currencies", nil, false, nil)
 	if err != nil {
 		return err
 	}

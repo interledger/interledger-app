@@ -80,7 +80,8 @@ func main() {
 }
 
 func setupRoutes(router *chi.Mux, h *handler.Handler) {
-	router.Route("/xago/v1", func(r chi.Router) {
+	// Canonical /v1 prefix — matches XAGO_API_BASE_URL=http://mockxago:8080/v1 in wallet.yaml
+	router.Route("/v1", func(r chi.Router) {
 		r.Post("/login", h.Login)
 		r.Get("/currencies", h.ListCurrencies)
 
@@ -90,6 +91,8 @@ func setupRoutes(router *chi.Mux, h *handler.Handler) {
 			pr.Put("/company/accounts/{accountId}", h.UpdateSubAccount)
 			pr.Get("/company/accounts", h.GetSubAccountByWallet)
 			pr.Get("/accounts/{accountId}/balance", h.GetBalance)
+			pr.Get("/company/transactions", h.ListTransactions)
+			pr.Get("/company/transactions/{id}", h.GetTransaction)
 			pr.Post("/test/balances/set", h.TestSetBalance)
 			pr.Post("/test/balances/deposit", h.TestDeposit)
 			pr.Post("/test/balances/transfer", h.TestTransfer)
@@ -97,27 +100,11 @@ func setupRoutes(router *chi.Mux, h *handler.Handler) {
 		})
 	})
 
-	// Company transaction endpoints (no auth required - backend needs to verify)
-	// These need to be under /v1 prefix since backend calls http://mockxago:8080/v1/company/transactions
-	router.Route("/v1/company/transactions", func(r chi.Router) {
-		r.Get("/", h.ListTransactions)   // GET /v1/company/transactions?limit=10&page=1
-		r.Get("/{id}", h.GetTransaction) // GET /v1/company/transactions/{id}
-	})
-
-	// Also provide at root level for compatibility
-	router.Route("/company/transactions", func(r chi.Router) {
-		r.Get("/", h.ListTransactions)   // GET /company/transactions?limit=10&page=1
-		r.Get("/{id}", h.GetTransaction) // GET /company/transactions/{id}
-	})
-
 	// KYC endpoints (no auth required for iframe)
 	router.Get("/kyc/iframe", h.KYCIframe)
 	router.Post("/kyc/submit", h.KYCIframeSubmit)
 
-	// Authentication endpoint at /v1/login (used by backend for OAuth-like token generation)
-	router.Post("/v1/login", h.Login)
-
-	// Persona SDK compatible endpoints (v1 API) - no auth required
+	// Persona SDK compatible endpoints - no auth required
 	router.Post("/v1/inquiries", h.PersonaCreateInquiry)
 	router.Get("/v1/inquiries/{inquiryId}", h.PersonaGetInquiry)
 	router.Get("/v1/inquiries/{inquiryId}/iframe", h.PersonaGetInquiryIframe)

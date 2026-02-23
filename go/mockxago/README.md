@@ -29,7 +29,7 @@ curl -s http://localhost:8080/health
 - `XAGO_MOCK_PORT`: HTTP port (default `8080`)
 - `XAGO_API_PUBLIC_KEY`: expected login public key (default `test-public-key`)
 - `XAGO_API_SECRET`: expected login secret key (default `test-secret`)
-- `XAGO_MOCK_TEST_MODE`: enables `/xago/v1/test/*` endpoints when set to `true`
+- `XAGO_MOCK_TEST_MODE`: enables `/v1/test/*` endpoints when set to `true`
 - `WEBHOOK_URL`: where MockXago sends wallet-facing webhooks (KYC + deposits)
 - `WEBHOOK_SECRET`: HMAC secret for `X-Signature` header
 - `PERSONA_WEBHOOK_URL`: optional Persona-style webhook URL (default `http://backend:8080/webhooks/persona`)
@@ -37,17 +37,17 @@ curl -s http://localhost:8080/health
 
 ## Authentication
 
-Most `/xago/v1` endpoints require a bearer token:
+Most `/v1` endpoints require a bearer token:
 
 ```
 Authorization: Bearer <tokenValue>
 ```
 
-Get a token with `POST /xago/v1/login`.
+Get a token with `POST /v1/login`.
 
 ## API
 
-### POST /xago/v1/login
+### POST /v1/login
 
 Request:
 
@@ -69,11 +69,11 @@ Response:
 }
 ```
 
-### GET /xago/v1/currencies
+### GET /v1/currencies
 
 Returns bank details for ZAR and USD.
 
-### POST /xago/v1/company/accounts
+### POST /v1/company/accounts
 
 Create a sub-account. Required fields:
 
@@ -82,27 +82,22 @@ Create a sub-account. Required fields:
 
 Response includes `accountId`, `bankDepositDetails`, and deposit references.
 
-### PUT /xago/v1/company/accounts/{accountId}
+### PUT /v1/company/accounts/{accountId}
 
 Update KYC-related fields for a sub-account.
 
-### GET /xago/v1/company/accounts?walletId={walletId}
+### GET /v1/company/accounts?walletId={walletId}
 
 Fetch a sub-account by wallet id.
 
-### GET /xago/v1/accounts/{accountId}/balance
+### GET /v1/accounts/{accountId}/balance
 
 Returns balances for ZAR and USD.
 
 ### GET /v1/company/transactions
 ### GET /v1/company/transactions/{id}
 
-Lists or fetches deposit transactions. These endpoints are unauthenticated so the wallet backend can verify deposits.
-
-Also available at:
-
-- `GET /company/transactions`
-- `GET /company/transactions/{id}`
+Lists or fetches deposit transactions. These endpoints require authentication.
 
 ### KYC iframe (wallet flow)
 
@@ -120,10 +115,10 @@ Also available at:
 
 All are authenticated with bearer token:
 
-- `POST /xago/v1/test/balances/set`
-- `POST /xago/v1/test/balances/deposit`
-- `POST /xago/v1/test/balances/transfer`
-- `POST /xago/v1/test/transactions`
+- `POST /v1/test/balances/set`
+- `POST /v1/test/balances/deposit`
+- `POST /v1/test/balances/transfer`
+- `POST /v1/test/transactions`
 
 ## Webhooks
 
@@ -149,7 +144,7 @@ Authentication:
 
 ### Deposit webhook
 
-Triggered by `POST /xago/v1/test/balances/deposit` (test mode). Payload:
+Triggered by `POST /v1/test/balances/deposit` (test mode). Payload:
 
 ```json
 {
@@ -178,7 +173,7 @@ MockXago does not emit withdrawal webhooks. Transfers in this mock are handled v
 
 ## How the real flow maps to the mock
 
-1. The wallet retrieves Xago banking details using `GET /xago/v1/currencies`.
+1. The wallet retrieves Xago banking details using `GET /v1/currencies`.
 2. The user EFTs funds to the bank account with the provided reference.
 3. Xago confirms the deposit and sends a webhook to the wallet backend.
-4. In the mock, you simulate that confirmation by calling `POST /xago/v1/test/balances/deposit`, which both credits the balance and emits the deposit webhook.
+4. In the mock, you simulate that confirmation by calling `POST /v1/test/balances/deposit`, which both credits the balance and emits the deposit webhook.

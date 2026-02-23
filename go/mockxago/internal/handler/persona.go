@@ -200,9 +200,6 @@ func (h *Handler) PersonaInquirySubmit(w http.ResponseWriter, r *http.Request) {
 	// In a real implementation, this would trigger background verification
 	// For testing, we mark it as approved immediately
 
-	// Send webhook notification to backend
-	go h.sendKYCWebhook(inquiryID)
-
 	// Return success response
 	h.sendJSON(w, http.StatusOK, map[string]string{
 		"status":  "ok",

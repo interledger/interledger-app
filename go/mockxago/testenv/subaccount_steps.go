@@ -89,7 +89,7 @@ func (tc *TestContext) postSubAccount(payload map[string]string, auth bool) erro
 	if tc.lastSubAccount.AccountID != "" {
 		tc.previousAccountID = tc.lastSubAccount.AccountID
 	}
-	_, err := tc.request("POST", "/xago/v1/company/accounts", payload, auth, nil)
+	_, err := tc.request("POST", "/v1/company/accounts", payload, auth, nil)
 	if err != nil {
 		return err
 	}
@@ -227,7 +227,7 @@ func (tc *TestContext) updateSubAccountWithDetails(table *godog.Table) error {
 		return fmt.Errorf("no accountId available for update")
 	}
 	payload := tableToMap(table)
-	_, err := tc.request("PUT", "/xago/v1/company/accounts/"+tc.lastSubAccount.AccountID, payload, true, nil)
+	_, err := tc.request("PUT", "/v1/company/accounts/"+tc.lastSubAccount.AccountID, payload, true, nil)
 	return err
 }
 
@@ -251,7 +251,7 @@ func (tc *TestContext) responseContainsUpdatedStatus() error {
 
 func (tc *TestContext) attemptUpdateSubAccountInvalidID(accountID string) error {
 	payload := map[string]string{"thirdPartyVerificationUrl": "https://example.com/updated"}
-	_, err := tc.request("PUT", "/xago/v1/company/accounts/"+accountID, payload, true, nil)
+	_, err := tc.request("PUT", "/v1/company/accounts/"+accountID, payload, true, nil)
 	return err
 }
 
@@ -272,7 +272,7 @@ func (tc *TestContext) createTwoSubAccountsDifferentWallets(table *godog.Table) 
 }
 
 func (tc *TestContext) retrieveSubAccountInfoForWallet(walletID string) error {
-	_, err := tc.request("GET", "/xago/v1/company/accounts?walletId="+walletID, nil, true, nil)
+	_, err := tc.request("GET", "/v1/company/accounts?walletId="+walletID, nil, true, nil)
 	if err != nil {
 		return err
 	}

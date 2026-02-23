@@ -56,7 +56,7 @@ func (tc *TestContext) requestNewLoginTokenWithValidCredentials() error {
 
 func (tc *TestContext) attemptToUseExpiredToken() error {
 	tc.token = "expired_token_" + fmt.Sprint(time.Now().UnixNano())
-	_, _ = tc.request("GET", "/xago/v1/company/accounts?walletId=wallet_exp", nil, true, nil)
+	_, _ = tc.request("GET", "/v1/company/accounts?walletId=wallet_exp", nil, true, nil)
 	return nil
 }
 
@@ -94,7 +94,7 @@ func (tc *TestContext) newTokenIsDifferentFromExpired() error {
 
 func (tc *TestContext) newTokenIsValid() error {
 	payload := buildSubAccountPayload(map[string]string{}, true, "wallet_valid_token")
-	_, err := tc.request("POST", "/xago/v1/company/accounts", payload, true, nil)
+	_, err := tc.request("POST", "/v1/company/accounts", payload, true, nil)
 	if err != nil {
 		return err
 	}
@@ -103,12 +103,12 @@ func (tc *TestContext) newTokenIsValid() error {
 
 func (tc *TestContext) createSubAccountWithToken(table *godog.Table) error {
 	payload := buildSubAccountPayload(tableToMap(table), true, "")
-	_, err := tc.request("POST", "/xago/v1/company/accounts", payload, true, nil)
+	_, err := tc.request("POST", "/v1/company/accounts", payload, true, nil)
 	return err
 }
 
 func (tc *TestContext) listCurrenciesWithToken() error {
-	_, err := tc.request("GET", "/xago/v1/currencies", nil, true, nil)
+	_, err := tc.request("GET", "/v1/currencies", nil, true, nil)
 	return err
 }
 
@@ -120,7 +120,7 @@ func (tc *TestContext) loginWithDefaults() error {
 			{"fieldName": "secret", "fieldValue": tc.secret},
 		},
 	}
-	_, err := tc.request("POST", "/xago/v1/login", payload, false, nil)
+	_, err := tc.request("POST", "/v1/login", payload, false, nil)
 	return err
 }
 
@@ -152,6 +152,6 @@ func (tc *TestContext) loginWithTable(table *godog.Table) error {
 		payload["fields"] = fields
 	}
 
-	_, err := tc.request("POST", "/xago/v1/login", payload, false, nil)
+	_, err := tc.request("POST", "/v1/login", payload, false, nil)
 	return err
 }

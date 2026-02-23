@@ -143,4 +143,12 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^the balances are independent$`, tc.balancesAreIndependent)
 	ctx.Step(`^I deposit ([0-9.]+) (ZAR|USD) to (wallet_[^ ]+)$`, tc.depositToWallet)
 	ctx.Step(`^the balance for (wallet_[^ ]+) is ([0-9.]+)$`, tc.balanceForWalletIs)
+
+	// Integration workflow steps
+	ctx.Step(`^the wallet backend is configured to use Xago$`, tc.walletBackendConfigured)
+	ctx.Step(`^I submit KYC for wallet "([^"]*)" with name "([^"]*)" "([^"]*)"$`, tc.submitKYCForWallet)
+	ctx.Step(`^the KYC submission is accepted$`, tc.kycSubmissionIsAccepted)
+	ctx.Step(`^the sub-account for "([^"]*)" is retrievable$`, tc.subAccountForWalletIsRetrievable)
+	ctx.Step(`^I create the following test transactions:$`, tc.createFollowingTestTransactions)
+	ctx.Step(`^the transaction history contains at least (\d+) records$`, tc.transactionHistoryContainsAtLeast)
 }
