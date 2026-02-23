@@ -225,6 +225,75 @@ func (h *Handler) sendPersonaInquiryApproved(walletID string) {
 	}
 
 	logger.Infof("Persona inquiry approved webhook sent for wallet %s", walletID)
+
+	// Wait briefly then send account.tag-added webhook to trigger SetKYCStatus workflow.
+	// The backend processes inquiry.approved first (records inquiry state),
+	// then account.tag-added triggers the actual KYC status change and sub-account creation.
+	time.Sleep(2 * time.Second)
+	h.sendPersonaAccountTagAdded(walletID, webhookURL, secret)
+}
+
+func (h *Handler) sendPersonaAccountTagAdded(walletID, webhookURL, secret string) {
+	now := time.Now().UTC().Format(time.RFC3339)
+
+	account := map[string]interface{}{
+		"data": map[string]interface{}{
+			"type": "account",
+			"id":   walletID,
+			"attributes": map[string]interface{}{
+				"reference-id": walletID,
+				"tags":         []string{"STATUS:KYC-LEVEL:1"},
+			},
+		},
+	}
+
+	webhook := map[string]interface{}{
+		"data": map[string]interface{}{
+			"type": "event",
+			"id":   fmt.Sprintf("evt_%d", time.Now().UnixNano()),
+			"attributes": map[string]interface{}{
+				"name":       "account.tag-added",
+				"payload":    account,
+				"created-at": now,
+			},
+		},
+	}
+
+	body, err := json.Marshal(webhook)
+	if err != nil {
+		logger.Errorf("Failed to marshal account.tag-added webhook: %v", err)
+		return
+	}
+
+	req, err := http.NewRequest("POST", webhookURL, bytes.NewReader(body))
+	if err != nil {
+		logger.Errorf("Failed to create account.tag-added webhook request: %v", err)
+		return
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Persona-Version", "2023-01-05")
+
+	timestamp := fmt.Sprintf("%d", time.Now().Unix())
+	mac := hmac.New(sha256.New, []byte(secret))
+	mac.Write(append([]byte(timestamp+"."), body...))
+	signature := hex.EncodeToString(mac.Sum(nil))
+	req.Header.Set("Persona-Signature", fmt.Sprintf("t=%s,v1=%s", timestamp, signature))
+
+	client := &http.Client{Timeout: 30 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		logger.Errorf("account.tag-added webhook request failed: %v", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 400 {
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		logger.Errorf("account.tag-added webhook failed with status %d: %s", resp.StatusCode, string(bodyBytes))
+		return
+	}
+
+	logger.Infof("Persona account.tag-added webhook sent for wallet %s", walletID)
 }
 
 // sendWebhookWithSignature sends a POST request with HMAC signature

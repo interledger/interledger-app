@@ -178,6 +178,8 @@ func setupRoutes(router *chi.Mux, h *handler.Handler) {
 	router.Get("/v1/inquiries/{inquiryId}", h.PersonaGetInquiry)
 	router.Get("/v1/inquiries/{inquiryId}/iframe", h.PersonaGetInquiryIframe)
 	router.Post("/v1/inquiries/{inquiryId}/submit", h.PersonaInquirySubmit)
+	router.Get("/v1/accounts/{accountId}", h.PersonaGetAccount)
+	router.Post("/v1/accounts/{accountId}/remove-tag", h.PersonaRemoveTag)
 
 	// Health check
 	router.Get("/health", func(w http.ResponseWriter, r *http.Request) {

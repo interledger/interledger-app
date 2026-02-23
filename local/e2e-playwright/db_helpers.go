@@ -234,3 +234,28 @@ func (sc *E2EContext) getXagoAccountIDByWalletID(walletID string) (string, error
 	debugPrintf("   ✓ Found xago account ID: %s\n", accountID)
 	return accountID, nil
 }
+
+// xagoLinkedAccountExists checks whether a linked account for the Xago balance
+// provider has been created for the given wallet. The deposit webhook handler
+// requires this row to exist before it can process incoming deposits.
+func (sc *E2EContext) xagoLinkedAccountExists(walletID string) (bool, error) {
+	if sc.db == nil {
+		connStr := "host=localhost port=5432 user=postgres password=postgres dbname=backend sslmode=disable"
+		db, err := sql.Open("postgres", connStr)
+		if err != nil {
+			return false, fmt.Errorf("xagoLinkedAccountExists: failed to open db: %w", err)
+		}
+		sc.db = db
+	}
+
+	var count int
+	err := sc.db.QueryRow(`
+		SELECT COUNT(*) FROM linked_accounts
+		WHERE wallet_id = $1 AND provider = 'xago' AND type = 'balance'
+	`, walletID).Scan(&count)
+	if err != nil {
+		return false, fmt.Errorf("xagoLinkedAccountExists: database error: %w", err)
+	}
+
+	return count > 0, nil
+}

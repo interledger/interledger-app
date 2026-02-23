@@ -15,8 +15,8 @@ services:
     environment:
       LOG_LEVEL: debug
       # Storage configuration
-      MOCKXAGO_REDIS_URL: redis://redis:6379
-      MOCKXAGO_REDIS_DB: '3'  # Use DB 3 (separate from other services)
+      MOCKXAGO_REDIS_URL: redis:6379
+      MOCKXAGO_REDIS_DB: '4'  # Use DB 3 (separate from other services)
       
       # Webhook configuration - for KYC and deposit events
       WEBHOOK_URL: http://backend:8080/webhooks/xago

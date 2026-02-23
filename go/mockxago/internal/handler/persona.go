@@ -95,18 +95,30 @@ func (h *Handler) PersonaGetInquiry(w http.ResponseWriter, r *http.Request) {
 	logger.Infof("Getting Persona inquiry: %s", inquiryID)
 
 	now := time.Now().UTC().Format(time.RFC3339)
-	response := personaInquiryResponse{
-		Data: personaInquiryData{
-			Type: "inquiry",
-			ID:   inquiryID,
-			Attributes: personaInquiryAttributes{
-				Status:      "created",
-				ReferenceID: inquiryID,
-				CreatedAt:   now,
-				UpdatedAt:   now,
+
+	// Return inquiry as approved with included session data (IP address)
+	// The backend's dirty-sync path needs inquiry-session data for IP address
+	response := map[string]interface{}{
+		"data": map[string]interface{}{
+			"type": "inquiry",
+			"id":   inquiryID,
+			"attributes": map[string]interface{}{
+				"status":       "approved",
+				"reference-id": inquiryID,
+				"created-at":   now,
+				"updated-at":   now,
+				"completed-at": now,
 			},
-			Meta: personaInquiryMeta{
-				SessionToken: "mock-session-token",
+			"meta": map[string]interface{}{
+				"session-token": "mock-session-token",
+			},
+		},
+		"included": []map[string]interface{}{
+			{
+				"type": "inquiry-session",
+				"attributes": map[string]interface{}{
+					"ip-address": "127.0.0.1",
+				},
 			},
 		},
 	}
@@ -205,4 +217,93 @@ func (h *Handler) PersonaInquirySubmit(w http.ResponseWriter, r *http.Request) {
 		"status":  "ok",
 		"message": "Inquiry submitted successfully",
 	})
+}
+
+// PersonaGetAccount handles GET /v1/accounts/{accountId} - Get account details
+// Compatible with Persona SDK API. The backend calls this after receiving
+// an account.tag-added webhook to fetch full account attributes.
+func (h *Handler) PersonaGetAccount(w http.ResponseWriter, r *http.Request) {
+	accountID := chi.URLParam(r, "accountId")
+	if accountID == "" {
+		h.sendError(w, http.StatusBadRequest, "missing_account_id", "Account ID is required")
+		return
+	}
+
+	logger.Infof("Getting Persona account: %s", accountID)
+
+	// The account ID is the wallet ID in our mock
+	walletID := accountID
+
+	// Try to get sub-account data for name fields
+	var nameFirst, nameLast, physicalAddress string
+	subAccount, err := h.store.GetSubAccountByWalletID(r.Context(), walletID)
+	if err == nil && subAccount != nil {
+		nameFirst = subAccount.FirstName
+		nameLast = subAccount.LastName
+		physicalAddress = subAccount.PhysicalAddress
+	}
+	if physicalAddress == "" {
+		physicalAddress = "123 Main Street"
+	}
+
+	// Build identification numbers with a valid ZA ID
+	// Format: YYMMDDSSSSCZD (13 digits with Luhn check)
+	identificationNumbers := map[string]interface{}{
+		"pp": []map[string]interface{}{
+			{
+				"issuing-country":       "ZA",
+				"identification-class":  "dl",
+				"identification-number": "8406270000087",
+			},
+		},
+	}
+
+	response := map[string]interface{}{
+		"data": map[string]interface{}{
+			"type": "account",
+			"id":   accountID,
+			"attributes": map[string]interface{}{
+				"reference-id":           walletID,
+				"name-first":             nameFirst,
+				"name-last":              nameLast,
+				"country-code":           "ZA",
+				"birthdate":              "1984-06-27",
+				"address-street-1":       physicalAddress,
+				"address-city":           "Johannesburg",
+				"address-subdivision":    "GP",
+				"address-postal-code":    "2000",
+				"tags":                   []string{"DIRTY", "STATUS:KYC-LEVEL:1"},
+				"identification-numbers": identificationNumbers,
+			},
+		},
+	}
+
+	h.sendJSON(w, http.StatusOK, response)
+}
+
+// PersonaRemoveTag handles POST /v1/accounts/{accountId}/remove-tag
+// Compatible with Persona SDK API. Called by the backend after dirty-sync
+// to remove the DIRTY tag from the account.
+func (h *Handler) PersonaRemoveTag(w http.ResponseWriter, r *http.Request) {
+	accountID := chi.URLParam(r, "accountId")
+	if accountID == "" {
+		h.sendError(w, http.StatusBadRequest, "missing_account_id", "Account ID is required")
+		return
+	}
+
+	logger.Infof("Removing tag from Persona account: %s", accountID)
+
+	// Return the account without the DIRTY tag (just STATUS:KYC-LEVEL:1)
+	response := map[string]interface{}{
+		"data": map[string]interface{}{
+			"type": "account",
+			"id":   accountID,
+			"attributes": map[string]interface{}{
+				"reference-id": accountID,
+				"tags":         []string{"STATUS:KYC-LEVEL:1"},
+			},
+		},
+	}
+
+	h.sendJSON(w, http.StatusOK, response)
 }

@@ -9,7 +9,6 @@ func NewRootCmd() *cobra.Command {
 		Use:   "local-dev-tool",
 		Short: "Local development environment management tool",
 		Long: `A TUI tool to manage the Interledger local development environment.
-		Long: `A TUI tool to manage the Interledger local development environment.
 Includes Rafiki setup/seeding and verification tools.
 
 Defaults:

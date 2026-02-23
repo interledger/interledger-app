@@ -40,7 +40,8 @@ func TestFeatures(t *testing.T) {
 		if err := os.MkdirAll(reportDir, 0755); err != nil {
 			t.Fatalf("failed to create report directory: %v", err)
 		}
-		format = fmt.Sprintf("pretty:%s", *reportPath)
+		// Output pretty to stdout AND write cucumber report to file
+		format = fmt.Sprintf("pretty,cucumber:%s", *reportPath)
 	}
 
 	suite := godog.TestSuite{

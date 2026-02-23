@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"crypto/rand"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
@@ -11,7 +12,18 @@ import (
 	"time"
 )
 
-// iGetTheXagoSubAccountDetailsForTheCurrentUser retrieves sub account info from backend
+// generateUUID generates a random UUID v4 string.
+func generateUUID() string {
+	b := make([]byte, 16)
+	_, _ = rand.Read(b)
+	b[6] = (b[6] & 0x0f) | 0x40 // version 4
+	b[8] = (b[8] & 0x3f) | 0x80 // variant 10
+	return fmt.Sprintf("%08x-%04x-%04x-%04x-%012x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:16])
+}
+
+// iGetTheXagoSubAccountDetailsForTheCurrentUser retrieves sub account info from backend.
+// It polls for the sub-account and linked account to exist, since the Temporal
+// CreateBalanceAccountWorkflow may still be running after KYC completion.
 func (sc *E2EContext) iGetTheXagoSubAccountDetailsForTheCurrentUser() error {
 	debugPrintln("\n🔍 Getting Xago sub account details from backend...")
 
@@ -32,12 +44,38 @@ func (sc *E2EContext) iGetTheXagoSubAccountDetailsForTheCurrentUser() error {
 	// Store the wallet ID in context for use in the deposit step
 	sc.userDetails[sc.currentUser].Fields["xago_wallet_id"] = walletID
 
-	// Look up the real account_id (UUID) from xago_sub_accounts
-	accountID, err := sc.getXagoAccountIDByWalletID(walletID)
-	if err != nil {
-		return fmt.Errorf("failed to get xago account ID: %w", err)
+	// Poll for the sub-account to appear (Temporal workflow may still be running)
+	var accountID string
+	maxWait := 30 * time.Second
+	pollInterval := 2 * time.Second
+	deadline := time.Now().Add(maxWait)
+
+	for time.Now().Before(deadline) {
+		accountID, err = sc.getXagoAccountIDByWalletID(walletID)
+		if err == nil && accountID != "" {
+			break
+		}
+		debugPrintf("   ⏳ Waiting for Xago sub-account (wallet: %s)...\n", walletID)
+		time.Sleep(pollInterval)
 	}
+	if accountID == "" {
+		return fmt.Errorf("xago sub-account not created within %v for wallet %s", maxWait, walletID)
+	}
+
 	sc.userDetails[sc.currentUser].Fields["xago_account_id"] = accountID
+	debugPrintf("   ✓ Found xago account ID: %s\n", accountID)
+
+	// Also wait for the linked account to exist — the deposit webhook handler
+	// needs it (ListByWalletId) to process the deposit successfully.
+	for time.Now().Before(deadline) {
+		exists, checkErr := sc.xagoLinkedAccountExists(walletID)
+		if checkErr == nil && exists {
+			debugPrintln("   ✓ Xago linked account exists")
+			break
+		}
+		debugPrintf("   ⏳ Waiting for Xago linked account (wallet: %s)...\n", walletID)
+		time.Sleep(pollInterval)
+	}
 
 	debugPrintln("   ✓ Sub account details retrieved")
 	return nil
@@ -68,8 +106,8 @@ func (sc *E2EContext) iCreateATestTransactionInMockXagoFor(amountStr, currency s
 		return fmt.Errorf("invalid amount: %s", amountStr)
 	}
 
-	// Generate a unique transaction ID
-	transactionID := fmt.Sprintf("test-tx-%d", time.Now().UnixNano())
+	// Generate a UUID transaction ID (backend requires UUID format)
+	transactionID := generateUUID()
 
 	// Create HTTP client with TLS verification disabled for local testing
 	client := &http.Client{
@@ -82,7 +120,7 @@ func (sc *E2EContext) iCreateATestTransactionInMockXagoFor(amountStr, currency s
 	}
 
 	// Step 1: Login to MockXago to get a token
-	loginURL := "https://mockxago.interledger.test/xago/v1/login"
+	loginURL := "https://mockxago.interledger.test/v1/login"
 	loginBody, err := json.Marshal(map[string]interface{}{
 		"policyId": "test-policy",
 		"fields": []map[string]string{
@@ -129,7 +167,7 @@ func (sc *E2EContext) iCreateATestTransactionInMockXagoFor(amountStr, currency s
 	debugPrintf("   ✓ Got token from MockXago\n")
 
 	// Step 2: Create the test transaction
-	mockXagoURL := "https://mockxago.interledger.test/xago/v1/test/transactions"
+	mockXagoURL := "https://mockxago.interledger.test/v1/test/transactions"
 
 	txReqBody, err := json.Marshal(map[string]interface{}{
 		"transactionId": transactionID,
@@ -185,8 +223,8 @@ func (sc *E2EContext) iCreateATestTransactionInMockXagoWithAccountIDFor(amountSt
 		return fmt.Errorf("invalid amount: %s", amountStr)
 	}
 
-	// Generate a unique transaction ID
-	transactionID := fmt.Sprintf("test-tx-%d", time.Now().UnixNano())
+	// Generate a UUID transaction ID (backend requires UUID format)
+	transactionID := generateUUID()
 
 	// Create HTTP client with TLS verification disabled for local testing
 	client := &http.Client{
@@ -199,7 +237,7 @@ func (sc *E2EContext) iCreateATestTransactionInMockXagoWithAccountIDFor(amountSt
 	}
 
 	// Step 1: Login to MockXago to get a token
-	loginURL := "https://mockxago.interledger.test/xago/v1/login"
+	loginURL := "https://mockxago.interledger.test/v1/login"
 	loginBody, err := json.Marshal(map[string]interface{}{
 		"policyId": "test-policy",
 		"fields": []map[string]string{
@@ -246,7 +284,7 @@ func (sc *E2EContext) iCreateATestTransactionInMockXagoWithAccountIDFor(amountSt
 	debugPrintf("   ✓ Got token from MockXago\n")
 
 	// Step 2: Create the test transaction
-	mockXagoURL := "https://mockxago.interledger.test/xago/v1/test/transactions"
+	mockXagoURL := "https://mockxago.interledger.test/v1/test/transactions"
 
 	txReqBody, err := json.Marshal(map[string]interface{}{
 		"transactionId": transactionID,
@@ -320,7 +358,7 @@ func (sc *E2EContext) iPerformATestDepositOfInMockXago(amountStr, currency strin
 	}
 
 	// Step 1: Login to MockXago to get a token
-	loginURL := "https://mockxago.interledger.test/xago/v1/login"
+	loginURL := "https://mockxago.interledger.test/v1/login"
 	loginBody, err := json.Marshal(map[string]interface{}{
 		"policyId": "test-policy",
 		"fields": []map[string]string{
@@ -367,12 +405,21 @@ func (sc *E2EContext) iPerformATestDepositOfInMockXago(amountStr, currency strin
 	debugPrintf("   ✓ Got token from MockXago: %s...\n", tokenValue[:min(20, len(tokenValue))])
 
 	// Step 2: Perform test deposit with token
-	mockXagoURL := "https://mockxago.interledger.test/xago/v1/test/balances/deposit"
+	mockXagoURL := "https://mockxago.interledger.test/v1/test/balances/deposit"
 
 	depositReqPayload := map[string]interface{}{
 		"walletId":     walletID,
 		"amount":       amount,
 		"currencyCode": currency,
+	}
+
+	// Add accountId so MockXago can include the correct account ID in the webhook.
+	// Without this, MockXago cannot resolve the Xago account ID from the backend wallet ID
+	// because the backend doesn't send walletId when creating the sub-account.
+	accountID, hasAccountID := sc.userDetails[sc.currentUser].Fields["xago_account_id"]
+	if hasAccountID && accountID != "" {
+		depositReqPayload["accountId"] = accountID
+		debugPrintf("   📋 Using account ID: %s\n", accountID)
 	}
 
 	// Add transaction ID if we created one

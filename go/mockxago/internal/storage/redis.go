@@ -561,21 +561,21 @@ func (r *RedisStorage) ClearTransactions(ctx context.Context) error {
 	}
 
 	if len(keys) > 0 {
-		 if err := r.client.Del(ctx, keys...).Err(); err != nil {
+		if err := r.client.Del(ctx, keys...).Err(); err != nil {
 			return err
 		}
 	}
-	
+
 	// Also clear idempotency keys
 	idempKeys, err := r.client.Keys(ctx, "idempotency:*").Result()
 	if err != nil {
 		return err
 	}
-	
+
 	if len(idempKeys) > 0 {
 		return r.client.Del(ctx, idempKeys...).Err()
 	}
-	
+
 	return nil
 }
 
