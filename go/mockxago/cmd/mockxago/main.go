@@ -36,9 +36,32 @@ func main() {
 		logger.Infof("Using default XAGO_API_SECRET: %s", secret)
 	}
 
-	// Initialize storage
-	store := storage.NewMemoryStorage()
-	logger.Infof("Initialized in-memory storage")
+	// Initialize storage (Redis if REDIS_URL set, otherwise in-memory)
+	var store storage.Storage
+	redisURL := os.Getenv("REDIS_URL")
+	if redisURL == "" {
+		redisURL = os.Getenv("MOCKXAGO_REDIS_URL") // Support alternative env var name
+	}
+	
+	if redisURL != "" {
+		redisDB := 0
+		if dbStr := os.Getenv("REDIS_DB"); dbStr != "" {
+			fmt.Sscanf(dbStr, "%d", &redisDB)
+		}
+		if dbStr := os.Getenv("MOCKXAGO_REDIS_DB"); dbStr != "" {
+			fmt.Sscanf(dbStr, "%d", &redisDB)
+		}
+		
+		var err error
+		store, err = storage.NewRedisStorage(redisURL, redisDB)
+		if err != nil {
+			logger.Fatal("Failed to initialize Redis storage", err)
+		}
+		logger.Infof("Initialized Redis storage: %s (DB: %d)", redisURL, redisDB)
+	} else {
+		store = storage.NewMemoryStorage()
+		logger.Infof("Initialized in-memory storage")
+	}
 
 	// Initialize job queue and worker
 	queue := jobs.NewQueue(store)
@@ -111,20 +134,20 @@ func setupRoutes(router *chi.Mux, h *handler.Handler) {
 			pr.Get("/accounts/{accountId}/balance", h.GetBalance)
 			pr.Post("/accounts/{accountId}/beneficiaries", h.AddBeneficiary)
 			pr.Get("/accounts/{accountId}/beneficiaries", h.ListBeneficiaries)
-			
+
 			// Global beneficiary endpoints (API compliance aliases)
 			pr.Post("/beneficiaries", h.AddBeneficiaryGlobal)
 			pr.Get("/beneficiaries", h.ListBeneficiariesGlobal)
-			
+
 			pr.Post("/transfers", h.CreateTransfer)
 			pr.Get("/transfers", h.ListTransfers)
 			pr.Get("/transfers/{id}", h.GetTransaction)
 			pr.Get("/company/transactions", h.ListTransactions)
 			pr.Get("/company/transactions/{id}", h.GetTransaction)
-			
+
 			// Transaction query endpoint (API compliance)
 			pr.Get("/transactions", h.GetTransactionByQuery)
-			
+
 			pr.Get("/company/deposits", h.ListCompanyDeposits)
 			pr.Post("/test/balances/set", h.TestSetBalance)
 			pr.Post("/test/balances/deposit", h.TestDeposit)

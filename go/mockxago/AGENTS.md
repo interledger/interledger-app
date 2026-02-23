@@ -123,18 +123,37 @@ mockxago/
 
 ### 1. Storage Layer
 
-**Implementation** (`internal/storage/storage.go`):
-```go
-type Storage struct {
-    mu                sync.RWMutex
-    subAccounts       map[string]*models.SubAccount       // accountId -> SubAccount
-    subAccountsByWallet map[string]string                 // walletId -> accountId
-    beneficiaries     map[string][]*models.Beneficiary    // accountId -> []Beneficiary
-    transactions      map[string]*models.Transaction      // transactionId -> Transaction
-    balances          map[string]map[string]float64       // accountId -> currency -> balance
-    inquiries         map[string]*models.Inquiry          // inquiryId -> Inquiry
-    tokens            map[string]string                   // token -> accountId (optional mapping)
-}
+**Interface** (`internal/storage/interface.go`):
+Defines all storage operations with two implementations:
+
+**Memory Storage** (`internal/storage/memory.go`):
+- Used for unit tests
+- Fast, no external dependencies
+- Thread-safe with `sync.RWMutex`
+
+**Redis Storage** (`internal/storage/redis.go`):
+- Used for E2E tests and production deployments
+- Persistent, production-ready
+- Connection pooling (10 connections, 2 min idle)
+- Atomic operations for balance updates
+
+**Key Patterns** (Redis):
+```
+token:{tokenValue}                        → JSON (with TTL)
+token:account:{tokenValue}                → accountId
+subaccount:{accountId}                    → JSON
+subaccount:wallet:{walletId}              → accountId
+beneficiary:{beneficiaryId}               → JSON
+beneficiaries:wallet:{walletId}           → List of beneficiary IDs
+transaction:{transactionId}               → JSON
+transactions:account:{accountId}          → List of transaction IDs
+balance:{walletId}:{currency}:available   → Float64 (atomic)
+balance:{walletId}:{currency}:reserved    → Float64 (atomic)
+deposit:{depositId}                       → JSON
+deposit:ref:{reference}                   → depositId
+deposits:all                              → List of deposit IDs
+job:{jobId}                               → JSON
+jobs:ready                                → Sorted set (score = notBefore timestamp)
 ```
 
 **Key Methods**:
@@ -569,6 +588,12 @@ XAGO_MOCK_PORT=8080                          # HTTP port
 XAGO_API_PUBLIC_KEY=test-public-key          # Expected login public key
 XAGO_API_SECRET=test-secret                  # Expected login secret key
 XAGO_MOCK_TEST_MODE=true                     # Enable /v1/test/* endpoints
+
+# Storage backend (Redis recommended for E2E/production)
+REDIS_URL=redis:6379                         # Redis connection (or MOCKXAGO_REDIS_URL)
+REDIS_DB=0                                   # Redis database number (or MOCKXAGO_REDIS_DB)
+
+# Webhooks
 WEBHOOK_URL=http://backend:8080/xago/webhooks/event  # Wallet webhook URL
 WEBHOOK_SECRET=local-webhook-secret          # HMAC secret for webhooks
 PERSONA_WEBHOOK_URL=http://backend:8080/webhooks/persona  # Persona webhook URL

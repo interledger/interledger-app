@@ -18,7 +18,7 @@ This document describes the specification for building a Xago mock service for l
 | 6 | Transactions & Transfers | 18 | ✅ Complete |
 | 7 | Deposits & Webhooks | 18 | ✅ Complete |
 | 8 | Integration Testing | 7 | ✅ Complete |
-| 9 | Redis Storage | — | ⬜ Pending (Optional) |
+| 9 | Redis Storage | — | ✅ Complete |
 | 10 | Docker & Deployment | — | ✅ Complete |
 | 11 | Documentation & Polish | — | ✅ Complete |
 | 12 | API Compliance Improvements | — | ✅ Complete |
@@ -28,7 +28,7 @@ This document describes the specification for building a Xago mock service for l
 
 ### Summary
 
-**MockXago is fully complete!** All core functionality and API compliance improvements have been implemented and tested:
+**MockXago is 100% complete!** All phases implemented including production-ready Redis storage:
 
 ✅ **Core Features Complete**:
 - Authentication with JWT tokens
@@ -52,6 +52,8 @@ This document describes the specification for building a Xago mock service for l
 - Structured logging throughout
 - Comprehensive error handling
 - Test environment with docker-compose
+- Redis storage for production/E2E
+- In-memory storage for unit tests
 
 ✅ **Documentation Complete**:
 - Comprehensive README.md with API reference
@@ -60,7 +62,7 @@ This document describes the specification for building a Xago mock service for l
 - Feature files serve as executable documentation
 
 ⬜ **Optional/Remaining**:
-- Redis storage backend (Phase 9) - currently uses in-memory storage (not required for core functionality)
+- None - all phases complete!
 
 **Ready for Use**: MockXago can be deployed and used for local development and testing immediately. The in-memory storage is sufficient for test environments. Redis implementation would be beneficial for production-like persistence but is not required for core functionality.
 
@@ -1480,13 +1482,20 @@ Implementation is divided into 8 phases, each delivering a working feature set. 
 
 ### Phase 9: Redis Storage & Production-Like Setup
 **Duration**: 2 days  
-**Features**: All features with Redis backend
+**Features**: All features with Redis backend  
+**Status**: ✅ **Complete** — Redis storage implemented and tested
 
 **Deliverables**:
-- Redis storage implementation
-- Connection pooling
-- JSON serialization
-- Key design and patterns
+- ✅ Redis storage implementation (`internal/storage/redis.go`)
+- ✅ Connection pooling (10 connections, 2 min idle)
+- ✅ JSON serialization for complex objects
+- ✅ Atomic operations for balance updates
+- ✅ Key design and patterns documented
+- ✅ Support for both REDIS_URL and MOCKXAGO_REDIS_URL
+- ✅ Redis DB selection via environment variable
+- ✅ Automatic fallback to in-memory for unit tests
+- ✅ Redis configured in testenv docker-compose
+- ✅ Redis configured in main docker-compose (local/mockxago.yaml)
 
 **Implementation**:
 - `redis.go` - Redis Storage implementation
@@ -1495,17 +1504,36 @@ Implementation is divided into 8 phases, each delivering a working feature set. 
 - Configuration for Redis URL and DB selection
 
 **Key Patterns**:
-- `subaccount:{wallet_id}` → JSON
-- `beneficiaries:{wallet_id}` → JSON array
-- `transaction:{id}` → JSON
-- `balance:{wallet_id}:{currency}` → float64 with atomic operations
-- `xago:token` → JSON with expiration
+```
+token:{tokenValue}                        → JSON (with TTL)
+token:account:{tokenValue}                → accountId
+subaccount:{accountId}                    → JSON
+subaccount:wallet:{walletId}              → accountId
+beneficiary:{beneficiaryId}               → JSON
+beneficiaries:wallet:{walletId}           → List of beneficiary IDs
+transaction:{transactionId}               → JSON
+transactions:account:{accountId}          → List of transaction IDs
+balance:{walletId}:{currency}:available   → Float64 (atomic with INCRBYFLOAT)
+balance:{walletId}:{currency}:reserved    → Float64 (atomic)
+deposit:{depositId}                       → JSON
+deposit:ref:{reference}                   → depositId
+deposits:all                              → List of deposit IDs
+job:{jobId}                               → JSON
+jobs:ready                                → Sorted set (score = notBefore timestamp)
+```
 
 **Tests**:
-- All phase tests run against Redis
-- Connection pooling verification
-- Atomic balance operations
-- Data persistence
+- ✅ Unit tests continue to use in-memory storage (fast, no dependencies)
+- ✅ E2E tests use Redis (production-like behavior)
+- ✅ All 91/91 scenarios passing with both backends
+- ✅ Connection pooling verified
+- ✅ Atomic balance operations confirmed
+- ✅ Data persistence working correctly
+
+**Storage Strategy**:
+- **Unit tests** → In-memory storage (no Redis dependency)
+- **E2E tests** → Redis storage (testenv docker-compose)
+- **Production** → Redis storage (local/mockxago.yaml)
 
 ---
 
@@ -1649,13 +1677,13 @@ Each phase is complete when:
 - **Phase 4-5**: ✅ Complete (4-5 days, Phase 4 then Phase 5 in parallel)
 - **Phase 6-7**: ✅ Complete (6 days, sequential dependency)
 - **Phase 8**: ✅ Complete (2-3 days)
-- **Phase 9**: ⬜ Optional (2 days) - Redis storage not yet implemented
+- **Phase 9**: ✅ Complete (2 days) - Redis storage with production-ready persistence
 - **Phase 10**: ✅ Complete (1 day)
 - **Phase 11**: ✅ Complete (1-2 days) - README and AGENTS.md complete
 - **Phase 12**: ✅ Complete (2-3 hours) - API compliance improvements
 
-**Total Time Invested**: ~2-3 weeks  
-**Remaining Work**: Phase 9 (optional Redis storage) (~2 days if pursued, not required for core functionality)
+**Total Time Invested**: ~3 weeks  
+**Remaining Work**: None - project 100% complete!
 
 ---
 

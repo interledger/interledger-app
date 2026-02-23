@@ -26,10 +26,22 @@ curl -s http://localhost:8080/health
 
 ## Configuration
 
+### Basic Settings
 - `XAGO_MOCK_PORT`: HTTP port (default `8080`)
 - `XAGO_API_PUBLIC_KEY`: expected login public key (default `test-public-key`)
 - `XAGO_API_SECRET`: expected login secret key (default `test-secret`)
 - `XAGO_MOCK_TEST_MODE`: enables `/v1/test/*` endpoints when set to `true`
+
+### Storage Backend
+- `REDIS_URL` or `MOCKXAGO_REDIS_URL`: Redis connection string (e.g., `redis:6379`). If not set, uses in-memory storage.
+- `REDIS_DB` or `MOCKXAGO_REDIS_DB`: Redis database number (default `0`)
+
+**Storage Strategy**:
+- **Unit tests**: In-memory storage (fast, no external dependencies)
+- **E2E tests**: Redis storage (production-like behavior)
+- **Deployments**: Redis storage (persistent, production-ready)
+
+### Webhooks
 - `WEBHOOK_URL`: where MockXago sends wallet-facing webhooks (KYC + deposits)
 - `WEBHOOK_SECRET`: HMAC secret for `X-Signature` header
 - `PERSONA_WEBHOOK_URL`: optional Persona-style webhook URL (default `http://backend:8080/webhooks/persona`)
