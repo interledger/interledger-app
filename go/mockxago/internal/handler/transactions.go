@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"strconv"
@@ -12,6 +13,7 @@ import (
 	"gitlab.com/fynbos/mockxago/internal/models"
 	"gitlab.com/fynbos/mockxago/internal/storage"
 	"gitlab.com/fynbos/mockxago/internal/utils"
+	"go.uber.org/zap"
 )
 
 // CreateTransfer handles POST /v1/transfers
@@ -48,7 +50,9 @@ func (h *Handler) CreateTransfer(w http.ResponseWriter, r *http.Request) {
 	// Get beneficiary to validate it exists and get wallet ID
 	beneficiary, err := h.store.GetBeneficiary(r.Context(), beneficiaryID)
 	if err != nil {
-		logger.Warnf("Beneficiary not found: %s", beneficiaryID)
+		logger.Warn("Beneficiary not found for transfer",
+			zap.String("beneficiary_id", beneficiaryID),
+			zap.Error(err))
 		h.sendError(w, http.StatusBadRequest, "invalid_request", "beneficiary not found")
 		return
 	}
@@ -71,7 +75,10 @@ func (h *Handler) CreateTransfer(w http.ResponseWriter, r *http.Request) {
 	// Check balance
 	available, _, err := h.store.GetBalance(r.Context(), walletID, currency)
 	if err != nil {
-		logger.Errorf("Failed to get balance: %v", err)
+		logger.Error("Failed to get balance for transfer",
+			zap.String("wallet_id", walletID),
+			zap.String("currency", currency),
+			zap.Error(err))
 		h.sendError(w, http.StatusInternalServerError, "internal_error", "Failed to check balance")
 		return
 	}
@@ -86,7 +93,10 @@ func (h *Handler) CreateTransfer(w http.ResponseWriter, r *http.Request) {
 		if err == storage.ErrInsufficientBalance {
 			h.sendError(w, http.StatusBadRequest, "invalid_request", "insufficient balance")
 		} else {
-			logger.Errorf("Failed to subtract balance: %v", err)
+			logger.Error("Failed to subtract balance for transfer",
+				zap.String("wallet_id", walletID),
+				zap.Float64("amount", req.Amount),
+				zap.Error(err))
 			h.sendError(w, http.StatusInternalServerError, "internal_error", "Failed to process transfer")
 		}
 		return
@@ -106,7 +116,9 @@ func (h *Handler) CreateTransfer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.store.SaveTransaction(r.Context(), transaction); err != nil {
-		logger.Errorf("Failed to save transaction: %v", err)
+		logger.Error("Failed to save transaction",
+			zap.String("transaction_id", transaction.ID),
+			zap.Error(err))
 		h.sendError(w, http.StatusInternalServerError, "internal_error", "Failed to create transaction")
 		return
 	}
@@ -114,17 +126,25 @@ func (h *Handler) CreateTransfer(w http.ResponseWriter, r *http.Request) {
 	// Save idempotency key if provided
 	if idempotencyKey != "" {
 		if err := h.store.SaveIdempotencyKey(r.Context(), idempotencyKey, transaction.ID); err != nil {
-			logger.Warnf("Failed to save idempotency key: %v", err)
+			logger.Warn("Failed to save idempotency key",
+				zap.String("idempotency_key", idempotencyKey),
+				zap.Error(err))
 		}
 	}
 
-	logger.Infof("Transfer created: ID=%s, wallet_id=%s, amount=%.2f %s, beneficiary_id=%s",
-		transaction.ID, walletID, req.Amount, currency, beneficiaryID)
+	logger.Info("Transfer created",
+		zap.String("transaction_id", transaction.ID),
+		zap.String("wallet_id", walletID),
+		zap.Float64("amount", req.Amount),
+		zap.String("currency", currency),
+		zap.String("beneficiary_id", beneficiaryID))
 
 	// Schedule auto-completion after 2-3 seconds
+	// IMPORTANT: Use context.Background() instead of r.Context() because the HTTP request
+	// context will be cancelled after the response is sent, before the goroutine completes.
 	go func() {
 		time.Sleep(2500 * time.Millisecond) // 2.5 seconds
-		if err := h.store.UpdateTransactionStatus(r.Context(), transaction.ID, "completed"); err != nil {
+		if err := h.store.UpdateTransactionStatus(context.Background(), transaction.ID, "completed"); err != nil {
 			logger.Errorf("Failed to complete transfer: %v", err)
 		} else {
 			logger.Infof("Transfer auto-completed: %s", transaction.ID)
@@ -165,7 +185,10 @@ func (h *Handler) ListTransactions(w http.ResponseWriter, r *http.Request) {
 	// Get deposits from storage with pagination
 	deposits, depositTotal, err := h.store.ListDeposits(r.Context(), limit, offset)
 	if err != nil {
-		logger.Errorf("Failed to list deposits: %v", err)
+		logger.Error("Failed to list deposits",
+			zap.Int("limit", limit),
+			zap.Int("page", page),
+			zap.Error(err))
 		h.sendError(w, http.StatusInternalServerError, "internal_error", "Failed to retrieve transactions")
 		return
 	}

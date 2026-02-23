@@ -454,12 +454,21 @@ func (r *RedisStorage) SaveDeposit(ctx context.Context, deposit *models.Deposit)
 		return fmt.Errorf("failed to marshal deposit: %w", err)
 	}
 
+	// Check if this deposit already exists to avoid duplicate list entries
+	exists, err := r.client.Exists(ctx, depositKey(deposit.ID)).Result()
+	if err != nil {
+		return err
+	}
+
 	pipe := r.client.Pipeline()
 	pipe.Set(ctx, depositKey(deposit.ID), data, 0)
 	if deposit.DepositReference != "" {
 		pipe.Set(ctx, depositReferenceKey(deposit.DepositReference), deposit.ID, 0)
 	}
-	pipe.RPush(ctx, depositsKey(), deposit.ID)
+	// Only add to deposits list if this is a new deposit (not an update)
+	if exists == 0 {
+		pipe.RPush(ctx, depositsKey(), deposit.ID)
+	}
 	_, err = pipe.Exec(ctx)
 	return err
 }
@@ -543,8 +552,35 @@ func (r *RedisStorage) UpdateDepositStatus(ctx context.Context, depositID string
 	return r.SaveDeposit(ctx, dep)
 }
 
+func (r *RedisStorage) ClearTransactions(ctx context.Context) error {
+	// Clear transactions stored in Redis
+	// Use pattern matching to find all transaction keys
+	keys, err := r.client.Keys(ctx, "transaction:*").Result()
+	if err != nil {
+		return err
+	}
+
+	if len(keys) > 0 {
+		 if err := r.client.Del(ctx, keys...).Err(); err != nil {
+			return err
+		}
+	}
+	
+	// Also clear idempotency keys
+	idempKeys, err := r.client.Keys(ctx, "idempotency:*").Result()
+	if err != nil {
+		return err
+	}
+	
+	if len(idempKeys) > 0 {
+		return r.client.Del(ctx, idempKeys...).Err()
+	}
+	
+	return nil
+}
+
 func (r *RedisStorage) ClearDeposits(ctx context.Context) error {
-	// Get all deposit IDs
+	// Get all deposits to find their references
 	ids, err := r.client.LRange(ctx, depositsKey(), 0, -1).Result()
 	if err != nil {
 		return err
@@ -554,11 +590,21 @@ func (r *RedisStorage) ClearDeposits(ctx context.Context) error {
 		return nil
 	}
 
-	// Delete all deposits and references
+	// Delete all deposits, references, and the deposits list
 	pipe := r.client.Pipeline()
 	for _, id := range ids {
+		// Get the deposit to find its reference
+		depositData, err := r.client.Get(ctx, depositKey(id)).Result()
+		if err == nil {
+			var deposit models.Deposit
+			if err := json.Unmarshal([]byte(depositData), &deposit); err == nil {
+				// Delete the reference mapping
+				if deposit.DepositReference != "" {
+					pipe.Del(ctx, "depositRef:"+deposit.DepositReference)
+				}
+			}
+		}
 		pipe.Del(ctx, depositKey(id))
-		// Also try to delete by reference (we don't know the reference, so we'll skip this)
 	}
 	pipe.Del(ctx, depositsKey())
 	_, err = pipe.Exec(ctx)
@@ -589,11 +635,11 @@ func (r *RedisStorage) SaveJob(ctx context.Context, job *models.Job) error {
 
 	pipe := r.client.Pipeline()
 	pipe.Set(ctx, jobKey(job.ID), data, 0)
-	
+
 	// Add to ready queue with score based on NotBefore
 	score := float64(job.NotBefore.Unix())
 	pipe.ZAdd(ctx, jobsReadyKey(), redis.Z{Score: score, Member: job.ID})
-	
+
 	_, err = pipe.Exec(ctx)
 	return err
 }
@@ -617,7 +663,7 @@ func (r *RedisStorage) GetJob(ctx context.Context, jobID string) (*models.Job, e
 
 func (r *RedisStorage) ListReadyJobs(ctx context.Context, limit int) ([]*models.Job, error) {
 	now := time.Now().Unix()
-	
+
 	// Get job IDs that are ready (score <= now)
 	ids, err := r.client.ZRangeByScore(ctx, jobsReadyKey(), &redis.ZRangeBy{
 		Min:   "-inf",
@@ -661,7 +707,7 @@ func (r *RedisStorage) UpdateJobStatus(ctx context.Context, jobID string, status
 	if status == "completed" || status == "failed" {
 		pipe := r.client.Pipeline()
 		pipe.ZRem(ctx, jobsReadyKey(), jobID)
-		
+
 		data, err := json.Marshal(job)
 		if err != nil {
 			return fmt.Errorf("failed to marshal job: %w", err)

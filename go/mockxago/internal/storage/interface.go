@@ -60,6 +60,7 @@ type Storage interface {
 	ListDeposits(ctx context.Context, limit int, offset int) ([]*models.Deposit, int, error)
 	UpdateDepositStatus(ctx context.Context, depositID string, status string) error
 	ClearDeposits(ctx context.Context) error
+	ClearTransactions(ctx context.Context) error
 	ClearBalances(ctx context.Context) error
 
 	// Job operations

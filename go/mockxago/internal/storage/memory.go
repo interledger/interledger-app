@@ -456,6 +456,16 @@ func (m *MemoryStorage) UpdateDepositStatus(ctx context.Context, depositID strin
 	return nil
 }
 
+// ClearTransactions removes all transaction records (used for test state reset between scenarios).
+func (m *MemoryStorage) ClearTransactions(ctx context.Context) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	m.transactions = make(map[string]*models.Transaction)
+	m.idempotencyKeys = make(map[string]string)
+	return nil
+}
+
 // ClearDeposits removes all deposit records (used for test state reset between scenarios).
 func (m *MemoryStorage) ClearDeposits(ctx context.Context) error {
 	m.mu.Lock()

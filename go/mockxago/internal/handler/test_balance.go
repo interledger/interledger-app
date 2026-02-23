@@ -303,6 +303,11 @@ func (h *Handler) TestClearDeposits(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := h.store.ClearTransactions(r.Context()); err != nil {
+		h.sendError(w, http.StatusInternalServerError, "internal_error", "failed to clear transactions")
+		return
+	}
+
 	if err := h.store.ClearBalances(r.Context()); err != nil {
 		h.sendError(w, http.StatusInternalServerError, "internal_error", "failed to clear balances")
 		return

@@ -18,6 +18,15 @@ import (
 )
 
 func main() {
+	// Initialize logger with configured log level
+	logLevel := os.Getenv("LOG_LEVEL")
+	if logLevel == "" {
+		logLevel = "info" // Default to info level
+	}
+	if err := logger.Initialize(logLevel); err != nil {
+		logger.Fatalln(err)
+	}
+
 	// Load configuration
 	port := os.Getenv("XAGO_MOCK_PORT")
 	if port == "" {
@@ -42,7 +51,7 @@ func main() {
 	if redisURL == "" {
 		redisURL = os.Getenv("MOCKXAGO_REDIS_URL") // Support alternative env var name
 	}
-	
+
 	if redisURL != "" {
 		redisDB := 0
 		if dbStr := os.Getenv("REDIS_DB"); dbStr != "" {
@@ -51,11 +60,11 @@ func main() {
 		if dbStr := os.Getenv("MOCKXAGO_REDIS_DB"); dbStr != "" {
 			fmt.Sscanf(dbStr, "%d", &redisDB)
 		}
-		
+
 		var err error
 		store, err = storage.NewRedisStorage(redisURL, redisDB)
 		if err != nil {
-			logger.Fatal("Failed to initialize Redis storage", err)
+			logger.Fatalln(err)
 		}
 		logger.Infof("Initialized Redis storage: %s (DB: %d)", redisURL, redisDB)
 	} else {
@@ -93,7 +102,7 @@ func main() {
 	go func() {
 		logger.Infof("Starting MockXago server on port %s", port)
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			logger.Fatal("Server error", err)
+			logger.Fatalln(err)
 		}
 	}()
 
