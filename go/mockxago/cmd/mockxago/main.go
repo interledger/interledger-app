@@ -111,11 +111,20 @@ func setupRoutes(router *chi.Mux, h *handler.Handler) {
 			pr.Get("/accounts/{accountId}/balance", h.GetBalance)
 			pr.Post("/accounts/{accountId}/beneficiaries", h.AddBeneficiary)
 			pr.Get("/accounts/{accountId}/beneficiaries", h.ListBeneficiaries)
+			
+			// Global beneficiary endpoints (API compliance aliases)
+			pr.Post("/beneficiaries", h.AddBeneficiaryGlobal)
+			pr.Get("/beneficiaries", h.ListBeneficiariesGlobal)
+			
 			pr.Post("/transfers", h.CreateTransfer)
 			pr.Get("/transfers", h.ListTransfers)
 			pr.Get("/transfers/{id}", h.GetTransaction)
 			pr.Get("/company/transactions", h.ListTransactions)
 			pr.Get("/company/transactions/{id}", h.GetTransaction)
+			
+			// Transaction query endpoint (API compliance)
+			pr.Get("/transactions", h.GetTransactionByQuery)
+			
 			pr.Get("/company/deposits", h.ListCompanyDeposits)
 			pr.Post("/test/balances/set", h.TestSetBalance)
 			pr.Post("/test/balances/deposit", h.TestDeposit)

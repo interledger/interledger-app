@@ -358,3 +358,70 @@ func formatSettledAt(settledAt *time.Time) string {
 	}
 	return settledAt.Format("2006-01-02T15:04:05Z07:00")
 }
+
+// GetTransactionByQuery handles GET /v1/transactions?transactionId=X
+// Queries transaction by ID from query parameter (for wallet backend compatibility)
+func (h *Handler) GetTransactionByQuery(w http.ResponseWriter, r *http.Request) {
+	txID := r.URL.Query().Get("transactionId")
+
+	if txID == "" {
+		h.sendError(w, http.StatusBadRequest, "invalid_request", "transactionId query parameter is required")
+		return
+	}
+
+	// Try to get as a regular transfer first
+	transfer, err := h.store.GetTransaction(r.Context(), txID)
+	if err == nil && transfer != nil {
+		h.sendJSON(w, http.StatusOK, models.GetTransactionResponse{
+			TransactionID: transfer.ID,
+			Status:        transfer.Status,
+			Amount:        transfer.Amount,
+			CurrencyCode:  transfer.Currency,
+			BeneficiaryID: transfer.BeneficiaryID,
+			Reference:     transfer.Reference,
+			CreatedAt:     transfer.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+			SettledAt:     formatSettledAt(transfer.SettledAt),
+		})
+		logger.Infof("Transfer retrieved via query: %s", txID)
+		return
+	}
+
+	// Try to retrieve as a deposit
+	deposit, err := h.store.GetDeposit(r.Context(), txID)
+	if err != nil {
+		if h.testMode {
+			now := time.Now()
+			h.sendJSON(w, http.StatusOK, models.GetTransactionResponse{
+				TransactionID: txID,
+				Status:        "completed",
+				Amount:        0,
+				CurrencyCode:  "ZAR",
+				CreatedAt:     now.Format("2006-01-02T15:04:05Z07:00"),
+				SettledAt:     now.Format("2006-01-02T15:04:05Z07:00"),
+			})
+			logger.Infof("Test mode: returning mock transaction for %s", txID)
+			return
+		}
+		h.sendError(w, http.StatusNotFound, "not_found", "transaction not found")
+		return
+	}
+
+	// Build response matching backend expectations for deposits
+	response := map[string]interface{}{
+		"transactionId": deposit.ID,
+		"accountId":     deposit.AccountID,
+		"amount":        deposit.Amount,
+		"currencyCode":  deposit.Currency,
+		"status":        deposit.Status,
+		"code":          deposit.Code,
+		"createdAt":     deposit.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		"settledAt":     deposit.SettledAt,
+		"isDuplicate":   false,
+		"isRequested":   false,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
+	logger.Infof("Deposit retrieved via query: %s", txID)
+}

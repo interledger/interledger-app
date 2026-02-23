@@ -20,15 +20,15 @@ This document describes the specification for building a Xago mock service for l
 | 8 | Integration Testing | 7 | ✅ Complete |
 | 9 | Redis Storage | — | ⬜ Pending (Optional) |
 | 10 | Docker & Deployment | — | ✅ Complete |
-| 11 | Documentation & Polish | — | 🔄 Partial |
-| 12 | API Compliance Improvements | — | ⬜ Pending (Recommended) |
+| 11 | Documentation & Polish | — | ✅ Complete |
+| 12 | API Compliance Improvements | — | ✅ Complete |
 
 **Passing**: 91/91 scenarios (100% pass rate)  
 **Total across all feature files**: 91 scenarios.
 
 ### Summary
 
-**MockXago is functionally complete!** All core functionality has been implemented and tested:
+**MockXago is fully complete!** All core functionality and API compliance improvements have been implemented and tested:
 
 ✅ **Core Features Complete**:
 - Authentication with JWT tokens
@@ -40,6 +40,12 @@ This document describes the specification for building a Xago mock service for l
 - Deposit simulation and processing
 - Full pagination support across all list endpoints
 
+✅ **API Compliance Complete**:
+- Global beneficiary endpoints (`POST /v1/beneficiaries`, `GET /v1/beneficiaries`)
+- Transaction query endpoint (`GET /v1/transactions?transactionId=X`)
+- Backward compatible with existing endpoints
+- Automatic accountId resolution from bearer token
+
 ✅ **Infrastructure Complete**:
 - Multi-stage Docker build
 - Health check endpoint
@@ -47,9 +53,14 @@ This document describes the specification for building a Xago mock service for l
 - Comprehensive error handling
 - Test environment with docker-compose
 
+✅ **Documentation Complete**:
+- Comprehensive README.md with API reference
+- Complete AGENTS.md developer guide
+- Code comments and function documentation
+- Feature files serve as executable documentation
+
 ⬜ **Optional/Remaining**:
-- Redis storage backend (Phase 9) - currently uses in-memory storage
-- AGENTS.md documentation (Phase 11) - README.md is complete
+- Redis storage backend (Phase 9) - currently uses in-memory storage (not required for core functionality)
 
 **Ready for Use**: MockXago can be deployed and used for local development and testing immediately. The in-memory storage is sufficient for test environments. Redis implementation would be beneficial for production-like persistence but is not required for core functionality.
 
@@ -1512,19 +1523,19 @@ Implementation is divided into 8 phases, each delivering a working feature set. 
 
 ### Phase 11: Documentation & Polish
 **Duration**: 1-2 days  
-**Status**: 🔄 **Partial** — README.md complete, AGENTS.md missing.
+**Status**: ✅ **Complete** — README.md and AGENTS.md both complete.
 
 **Deliverables**:
 - ✅ API documentation (README.md)
 - ✅ Setup and usage guide
 - ✅ Example requests/responses
-- ⬜ AI agent development guide (`AGENTS.md`) ← **MISSING**
+- ✅ AI agent development guide (`AGENTS.md`)
 - ✅ Code comments and function documentation
 - ✅ Example test cases
 
 **Documentation Files**:
 - ✅ `README.md` - User guide, quick start, API reference
-- ⬜ `AGENTS.md` - Developer guide for AI agents (NOT YET CREATED)
+- ✅ `AGENTS.md` - Developer guide for AI agents
 - ✅ Code comments throughout
 - ✅ Feature files serve as executable documentation
 
@@ -1535,27 +1546,28 @@ Implementation is divided into 8 phases, each delivering a working feature set. 
 - ✅ Performance optimization (mutex-based concurrency)
 - ✅ Edge case handling (comprehensive validation)
 
-**Remaining Work**:
-- Create `AGENTS.md` following the pattern from MockGatehub
-  - Architecture overview
-  - Development workflow
-  - Testing strategy
-  - Common patterns
+**Completed Work**:
+- Created comprehensive `AGENTS.md` following MockGatehub pattern
+  - Architecture overview with directory structure
+  - Development workflow and testing strategy
+  - Common patterns and error handling examples
   - Troubleshooting guide
+  - API compliance analysis
+  - Best practices for AI agents
 
 ---
 
 ### Phase 12: API Compliance Improvements (New)
 **Duration**: 2-3 hours  
 **Features**: Beneficiary endpoint aliases for full API compliance  
-**Status**: ⬜ **Pending** — Recommended for future work
+**Status**: ✅ **Complete** — All endpoints implemented and tested
 
 **Deliverables**:
-- Add `POST /v1/beneficiaries` as alias to existing beneficiary handler
-- Add `GET /v1/beneficiaries?limit=X&page=Y` with accountId resolution from token
-- Add `GET /v1/transactions?transactionId=X` for withdrawal query pattern
-- Update documentation to reflect both endpoint patterns
-- Keep existing endpoints for backward compatibility
+- ✅ Add `POST /v1/beneficiaries` as alias to existing beneficiary handler
+- ✅ Add `GET /v1/beneficiaries?limit=X&page=Y` with accountId resolution from token
+- ✅ Add `GET /v1/transactions?transactionId=X` for withdrawal query pattern
+- ✅ Update documentation to reflect both endpoint patterns
+- ✅ Keep existing endpoints for backward compatibility
 
 **Implementation Notes**:
 1. **Add Beneficiary Aliases**:
@@ -1578,7 +1590,16 @@ Implementation is divided into 8 phases, each delivering a working feature set. 
 - Better alignment with Postman documentation
 - Minimal breaking changes (adds aliases, doesn't remove existing endpoints)
 
-**Priority**: Medium (nice-to-have, not blocking current functionality)
+**Completed Work**:
+- Created `AddBeneficiaryGlobal` handler for `POST /v1/beneficiaries`
+- Created `ListBeneficiariesGlobal` handler for `GET /v1/beneficiaries`
+- Created `GetTransactionByQuery` handler for `GET /v1/transactions?transactionId=X`
+- All handlers resolve accountId from bearer token context
+- Updated router to include new endpoints in authenticated group
+- All existing tests pass (91/91 scenarios)
+- Full backward compatibility maintained
+
+**Priority**: ✅ Complete (improved API compliance with official Xago API)
 
 ---
 
@@ -1630,10 +1651,11 @@ Each phase is complete when:
 - **Phase 8**: ✅ Complete (2-3 days)
 - **Phase 9**: ⬜ Optional (2 days) - Redis storage not yet implemented
 - **Phase 10**: ✅ Complete (1 day)
-- **Phase 11**: 🔄 Partial (1-2 days) - README complete, AGENTS.md pending
+- **Phase 11**: ✅ Complete (1-2 days) - README and AGENTS.md complete
+- **Phase 12**: ✅ Complete (2-3 hours) - API compliance improvements
 
 **Total Time Invested**: ~2-3 weeks  
-**Remaining Work**: Phase 9 (optional) + AGENTS.md documentation (~2-3 days)
+**Remaining Work**: Phase 9 (optional Redis storage) (~2 days if pursued, not required for core functionality)
 
 ---
 

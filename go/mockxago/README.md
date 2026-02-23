@@ -147,6 +147,18 @@ Response:
 }
 ```
 
+### POST /v1/beneficiaries
+
+**API Compliance Alias**: Same as `POST /v1/accounts/{accountId}/beneficiaries` but resolves `accountId` from the bearer token context automatically. This endpoint matches the official Xago API specification.
+
+### GET /v1/beneficiaries?limit={limit}&page={page}
+
+**API Compliance Alias**: Same as `GET /v1/accounts/{accountId}/beneficiaries` but resolves `accountId` from the bearer token context automatically. This endpoint matches the official Xago API specification.
+
+### GET /v1/transactions?transactionId={transactionId}
+
+**API Compliance Endpoint**: Query a transaction by ID using query parameter (instead of path parameter). Returns the same response format as `GET /v1/company/transactions/{id}`. This endpoint matches the wallet backend's expected query pattern for withdrawal status checks.
+
 ### GET /v1/company/transactions
 ### GET /v1/company/transactions/{id}
 
