@@ -6,6 +6,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 
+	"gitlab.com/fynbos/mockxago/internal/logger"
 	"gitlab.com/fynbos/mockxago/internal/models"
 	"gitlab.com/fynbos/mockxago/internal/storage"
 )
@@ -34,12 +35,14 @@ func (h *Handler) GetBalance(w http.ResponseWriter, r *http.Request) {
 
 	currencies := []string{"ZAR", "USD"}
 	balances := make([]models.BalanceItem, 0, len(currencies))
+	logger.Infof("GetBalance: accountID=%s, walletID=%s", accountID, subAcc.WalletID)
 	for _, cur := range currencies {
 		available, reserved, err := h.store.GetBalance(r.Context(), subAcc.WalletID, cur)
 		if err != nil {
 			h.sendError(w, http.StatusInternalServerError, "internal_error", "failed to load balance")
 			return
 		}
+		logger.Infof("Balance for %s: available=%f, reserved=%f", cur, available, reserved)
 		balances = append(balances, models.BalanceItem{
 			CurrencyCode: cur,
 			Available:    available,

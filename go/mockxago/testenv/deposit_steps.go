@@ -71,6 +71,10 @@ func registerDepositSteps(sc *godog.ScenarioContext, tc *TestContext) {
 	sc.Step(`^I attempt to simulate a deposit with invalid account ID "([^"]+)":$`, tc.attemptDepositInvalidAccount)
 	sc.Step(`^I attempt to simulate a deposit with amount ([\d\.-]+)$`, tc.attemptDepositWithAmount)
 	sc.Step(`^I attempt to simulate a deposit without authentication$`, tc.attemptDepositWithoutAuth)
+	sc.Step(`^all deposits have completed$`, tc.allDepositsHaveCompleted)
+	sc.Step(`^I have simulated a test deposit with specific deposit reference$`, tc.simulateTestDepositWithSpecificReference)
+	sc.Step(`^the account balance is credited twice$`, tc.accountBalanceIsCreditedTwice)
+	sc.Step(`^the response includes a transaction ID$`, tc.responseIncludesTransactionID)
 }
 
 func (tc *TestContext) walletWebhookURLConfigured(url string) error {
@@ -99,10 +103,12 @@ func (tc *TestContext) simulateTestDepositWithDetails(table *godog.Table) error 
 
 func (tc *TestContext) simulateTestDepositOf(amount string, currency string) error {
 	accountID := tc.lastSubAccount.AccountID
+	fmt.Printf("DEBUG: Simulating deposit of %s %s for account %s (wallet: %s)\n", amount, currency, accountID, tc.lastSubAccount.WalletID)
 	depositReference, err := tc.depositReferenceForCurrency(currency)
 	if err != nil {
 		return err
 	}
+	fmt.Printf("DEBUG: Using deposit reference: %s\n", depositReference)
 	return tc.doSimulateTestDeposit(accountID, amount, currency, depositReference, true)
 }
 
@@ -244,7 +250,19 @@ func (tc *TestContext) webhookIncludes(table *godog.Table) error {
 			}
 		case "transactionReference":
 			if expected == "(the deposit reference)" {
-				expected = tc.lastDepositReference
+				// Set expected to the last deposit reference
+				if tc.lastDepositReference == "" {
+					// If no explicit reference was set, use the default pattern
+					// which is the deposit reference from the sub-account beneficiaries
+					for _, ben := range tc.lastSubAccount.Beneficiaries {
+						if ben.CurrencyID == event.Body.CurrencyCode {
+							expected = ben.DepositReference
+							break
+						}
+					}
+				} else {
+					expected = tc.lastDepositReference
+				}
 			}
 			if event.Body.TransactionReference != expected {
 				return fmt.Errorf("expected transactionReference %s, got %s", expected, event.Body.TransactionReference)
@@ -338,8 +356,13 @@ func (tc *TestContext) webhookBodyIncludesRequiredFields(table *godog.Table) err
 }
 
 func (tc *TestContext) subAccountZARBalanceIs(expected string) error {
+	fmt.Printf("DEBUG: Checking ZAR balance for account %s (wallet: %s)\n", tc.lastSubAccount.AccountID, tc.lastSubAccount.WalletID)
 	if err := tc.requestBalanceForSubAccount(); err != nil {
 		return err
+	}
+	fmt.Printf("DEBUG: Balance response contains %d balances\n", len(tc.lastBalanceResponse.Balances))
+	for _, bal := range tc.lastBalanceResponse.Balances {
+		fmt.Printf("DEBUG: Balance - Currency: %s, Available: %f, Total: %f\n", bal.CurrencyCode, bal.Available, bal.Total)
 	}
 	return tc.totalBalanceIs("ZAR", expected)
 }
@@ -355,6 +378,7 @@ func (tc *TestContext) subAccountStartsWithZeroZARBalance() error {
 	if tc.lastSubAccount.AccountID == "" {
 		return fmt.Errorf("no accountId available")
 	}
+	fmt.Printf("DEBUG: Setting zero ZAR balance for account %s (wallet: %s)\n", tc.lastSubAccount.AccountID, tc.lastSubAccount.WalletID)
 	payload := map[string]interface{}{
 		"accountId":    tc.lastSubAccount.AccountID,
 		"currencyCode": "ZAR",
@@ -366,13 +390,13 @@ func (tc *TestContext) subAccountStartsWithZeroZARBalance() error {
 }
 
 func (tc *TestContext) listCompanyDepositsWithLimit(limit int) error {
-	path := fmt.Sprintf("/v1/company/transactions?limit=%d", limit)
+	path := fmt.Sprintf("/v1/company/deposits?limit=%d", limit)
 	_, err := tc.request("GET", path, nil, true, nil)
 	return err
 }
 
 func (tc *TestContext) listCompanyDepositsWithLimitAndPage(limit, page int) error {
-	path := fmt.Sprintf("/v1/company/transactions?limit=%d&page=%d", limit, page)
+	path := fmt.Sprintf("/v1/company/deposits?limit=%d&page=%d", limit, page)
 	_, err := tc.request("GET", path, nil, true, nil)
 	return err
 }
@@ -382,7 +406,7 @@ func (tc *TestContext) listCompanyDeposits() error {
 }
 
 func (tc *TestContext) listCompanyDepositsWithoutAuth() error {
-	_, err := tc.request("GET", "/v1/company/transactions?limit=10", nil, false, nil)
+	_, err := tc.request("GET", "/v1/company/deposits?limit=10", nil, false, nil)
 	return err
 }
 
@@ -609,8 +633,11 @@ func (tc *TestContext) validateWebhookSignature(event webhookEvent, timestamp st
 	}
 	secret := defaultWebhookSecret
 
+	// Match the format used by the handler: timestamp|method|url|body
+	url := "http://host.docker.internal:3000/xago/webhooks"
+	message := fmt.Sprintf("%s|POST|%s|%s", timestamp, url, string(event.RawBody))
 	mac := hmac.New(sha256.New, []byte(secret))
-	mac.Write(event.RawBody)
+	mac.Write([]byte(message))
 	expected := hex.EncodeToString(mac.Sum(nil))
 	actual := event.Headers.Get("x-gatehub-signature")
 	if actual == "" {
@@ -618,6 +645,33 @@ func (tc *TestContext) validateWebhookSignature(event webhookEvent, timestamp st
 	}
 	if !hmac.Equal([]byte(expected), []byte(actual)) {
 		return fmt.Errorf("invalid signature")
+	}
+	return nil
+}
+
+func (tc *TestContext) allDepositsHaveCompleted() error {
+	// Wait for all deposits to process (use webhook count as proxy)
+	expectedCount := len(tc.createdDeposits)
+	if expectedCount == 0 {
+		return fmt.Errorf("no deposits created")
+	}
+	return tc.waitForWebhookCount(expectedCount, 5*time.Second)
+}
+
+func (tc *TestContext) accountBalanceIsCreditedTwice() error {
+	// Check that balance reflects two deposits
+	if err := tc.requestBalanceForSubAccount(); err != nil {
+		return err
+	}
+	return tc.totalBalanceIs("ZAR", "2000.00")
+}
+
+func (tc *TestContext) responseIncludesTransactionID() error {
+	if tc.lastDepositResponse.TransactionID == "" {
+		return fmt.Errorf("no transactionID in response")
+	}
+	if _, err := uuid.Parse(tc.lastDepositResponse.TransactionID); err != nil {
+		return fmt.Errorf("invalid transactionID format: %s", tc.lastDepositResponse.TransactionID)
 	}
 	return nil
 }

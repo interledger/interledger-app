@@ -102,6 +102,7 @@ func (tc *TestContext) postSubAccount(payload map[string]string, auth bool) erro
 	}
 	if walletID := payload["walletId"]; walletID != "" {
 		tc.lastWalletID = walletID
+		resp.WalletID = walletID // Store wallet ID in response for later use
 	}
 	if email := payload["email"]; email != "" {
 		tc.lastEmail = email

@@ -17,6 +17,7 @@ const (
 
 type createSubAccountResponse struct {
 	AccountID          string                         `json:"accountId"`
+	WalletID           string                         `json:"-"` // Not in API, but needed for tests
 	DepositAddress     string                         `json:"depositAddress"`
 	DepositTag         int                            `json:"depositTag"`
 	BankDepositDetails map[string][]bankDepositDetail `json:"bankDepositDetails"`

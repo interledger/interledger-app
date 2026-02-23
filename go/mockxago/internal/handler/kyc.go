@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"gitlab.com/fynbos/mockxago/internal/logger"
 	"gitlab.com/fynbos/mockxago/internal/models"
 )
@@ -265,5 +266,5 @@ func sendWebhookWithSignature(webhookURL string, secret string, payload map[stri
 
 // generateID generates a random ID
 func generateID() string {
-	return fmt.Sprintf("mock-%d", time.Now().UnixNano())
+	return uuid.NewString()
 }

@@ -104,10 +104,12 @@ func (h *Handler) processDepositAsync(transactionID, accountID string, amount fl
 	}
 
 	// Credit the balance
+	logger.Infof("Crediting balance: walletID=%s, currency=%s, amount=%f", subAccount.WalletID, currency, amount)
 	if err := h.store.AddBalance(ctx, subAccount.WalletID, currency, amount); err != nil {
 		logger.Errorf("Failed to credit balance for deposit %s: %v", transactionID, err)
 		return
 	}
+	logger.Infof("Balance credited successfully for deposit %s", transactionID)
 
 	// Update deposit status to completed
 	if err := h.store.UpdateDepositStatus(ctx, transactionID, "completed"); err != nil {
