@@ -95,8 +95,3 @@ func (s *rpcService) GetChimoneyDepositLink(ctx context.Context, pbAmt *pb.Amoun
 
 	return &pb.GetChimoneyDepositLinkResponse{Link: link}, err
 }
-
-func (s *rpcService) CreateChimoneyDeposit(ctx context.Context, req *pb.CreateChimoneyDepositRequest) (*pb.Empty, error) {
-	// This method is deprecated and handled via webhooks
-	return nil, UnavailableError("CreateChimoneyDeposit is deprecated and handled via webhooks")
-}
