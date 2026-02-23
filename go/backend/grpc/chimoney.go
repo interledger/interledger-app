@@ -97,20 +97,6 @@ func (s *rpcService) GetChimoneyDepositLink(ctx context.Context, pbAmt *pb.Amoun
 }
 
 func (s *rpcService) CreateChimoneyDeposit(ctx context.Context, req *pb.CreateChimoneyDepositRequest) (*pb.Empty, error) {
-	_, err := s.b.Users().UserForContext(ctx)
-	if err != nil {
-		return nil, UnauthenticatedError("Unauthenticated.")
-	}
-
-	_, err = s.b.Wallets().ForContext(ctx)
-	if err != nil {
-		return nil, UnauthenticatedError("Unauthenticated.")
-	}
-
-	_, err = s.b.Chimoney().CreateDeposit(ctx, req.GetIssueId())
-	if err != nil {
-		return nil, toGRPCError(err)
-	}
-
-	return &pb.Empty{}, nil
+	// This method is deprecated and handled via webhooks
+	return nil, UnavailableError("CreateChimoneyDeposit is deprecated and handled via webhooks")
 }
