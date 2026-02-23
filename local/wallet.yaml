@@ -128,8 +128,8 @@ services:
       # Xago configuration (MockXago for local development)
       - XAGO_API_BASE_URL=http://mockxago:8080/v1
       - XAGO_IDENTITY_BASE_URL=http://mockxago:8080/v1
-      - XAGO_API_PUBLIC_KEY=local-test-app-id
-      - XAGO_API_SECRET=local-test-app-secret
+      - XAGO_API_PUBLIC_KEY=test-public-key
+      - XAGO_API_SECRET=test-secret
       - XAGO_POLICY_ID=5e2585a474b0e90012ce8ff1
       - XAGO_USD_OPS_ACCOUNT=868196c3-f6b4-4920-bbfb-d1c7f6a98183
       - XAGO_ZAR_OPS_ACCOUNT=b0944908-16e6-4ef4-8677-192165e33c59

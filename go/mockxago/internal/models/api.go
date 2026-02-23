@@ -168,3 +168,55 @@ type ListBeneficiariesResponse struct {
 	Data       []BeneficiaryItem     `json:"data"`
 	Pagination BeneficiaryPagination `json:"pagination"`
 }
+
+// CreateTransferRequest represents the payload for creating a transfer
+type CreateTransferRequest struct {
+	Amount         float64 `json:"amount"`
+	CurrencyCode   string  `json:"currencyCode"`
+	BeneficiaryID  string  `json:"beneficiaryId"`
+	Reference      string  `json:"reference,omitempty"`
+	IdempotencyKey string  `json:"idempotencyKey,omitempty"`
+}
+
+// CreateTransferResponse represents the response when creating a transfer
+type CreateTransferResponse struct {
+	TransactionID string `json:"transactionId"`
+}
+
+// TransactionItem represents a single transaction in list responses
+type TransactionItem struct {
+	TransactionID string  `json:"transactionId"`
+	Status        string  `json:"status"`
+	Amount        float64 `json:"amount"`
+	CurrencyCode  string  `json:"currencyCode"`
+	BeneficiaryID string  `json:"beneficiaryId"`
+	Reference     string  `json:"reference"`
+	CreatedAt     string  `json:"createdAt"`
+	SettledAt     string  `json:"settledAt,omitempty"`
+}
+
+// TransactionPagination represents pagination info for transaction lists
+type TransactionPagination struct {
+	Limit         int `json:"limit"`
+	Page          int `json:"page"`
+	NumberOfPages int `json:"numberOfPages"`
+	Total         int `json:"total"`
+}
+
+// ListTransactionsResponse represents the paginated list of transactions
+type ListTransactionsResponse struct {
+	Data       []TransactionItem     `json:"data"`
+	Pagination TransactionPagination `json:"pagination"`
+}
+
+// GetTransactionResponse represents details of a single transaction
+type GetTransactionResponse struct {
+	TransactionID string  `json:"transactionId"`
+	Status        string  `json:"status"`
+	Amount        float64 `json:"amount"`
+	CurrencyCode  string  `json:"currencyCode"`
+	BeneficiaryID string  `json:"beneficiaryId"`
+	Reference     string  `json:"reference"`
+	CreatedAt     string  `json:"createdAt"`
+	SettledAt     string  `json:"settledAt,omitempty"`
+}

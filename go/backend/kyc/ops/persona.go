@@ -5,27 +5,15 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"math/rand"
 	"regexp"
 	"strconv"
 	"time"
-
-	"gitlab.com/fynbos/env"
-	"gitlab.com/fynbos/log"
 
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/kyc/persona"
 )
 
 func GetPersonaInquiry(ctx context.Context, b Backends, cl persona.Client, walletID, idempotencyKey string) (*kyc.PersonaInquiry, error) {
-	if env.IsLocal() {
-		err := GenerateKycData(ctx, b, walletID)
-		return &kyc.PersonaInquiry{
-			ID:     "local-inquiry-id",
-			Status: persona.InquiryStatus(persona.InquiryApproved),
-		}, err
-	}
-
 	// Check current KYC status fro the user.
 	kycStatus, err := GetKYCStatus(ctx, b, walletID)
 	if err != nil {
@@ -114,10 +102,6 @@ func GetPersonaInquiry(ctx context.Context, b Backends, cl persona.Client, walle
 func GetApprovedPersonaInquiryURL(ctx context.Context, b Backends, walletID string) (string, error) {
 	urlFormat := "https://app.withpersona.com/dashboard/inquiries/%s"
 
-	if env.IsLocal() {
-		return fmt.Sprintf(urlFormat, "local-inquiry-id"), nil
-	}
-
 	var inquiryID string
 	err := b.DB().GetContext(ctx, &inquiryID, "SELECT external_id FROM kyc_persona_inquiries WHERE wallet_id=$1 AND state=$2;", walletID, persona.InquiryApproved)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -131,13 +115,6 @@ func GetApprovedPersonaInquiryURL(ctx context.Context, b Backends, walletID stri
 }
 
 func GetPersonaIDNumbers(ctx context.Context, b Backends, cl persona.Client, walletID string) (*kyc.PersonaIDNumbers, error) {
-	// I hate that we have to do this. It looks like there is no other way to override
-	// the Persona defaults - updating document issuing country from US to ZA.
-	if !env.IsProd() {
-		log.Warn("generating fake ID number")
-		return generateLocalIDNumbers(), nil
-	}
-
 	// Lookup the latest "approved" inquiry.
 	var inqID string
 	err := b.DB().GetContext(ctx, &inqID, "SELECT external_id FROM kyc_persona_inquiries WHERE wallet_id=$1 AND state=$2 ORDER BY updated_at DESC ",
@@ -178,14 +155,6 @@ func GetPersonaIDNumbers(ctx context.Context, b Backends, cl persona.Client, wal
 }
 
 func GetZAIDNumber(ctx context.Context, b Backends, cl persona.Client, walletID string) (string, error) {
-	// I hate that we have to do this. It looks like there is no other way to override
-	// the Persona defaults in sandbox to have a full production workflow in the sandbox
-	// environment - updating document issuing country from US to ZA.
-	if !env.IsProd() {
-		log.Warn("generating fake ID number")
-		return generateLocalTestIdNumber("male", true), nil
-	}
-
 	var accID string
 	err := b.DB().GetContext(ctx, &accID, "SELECT external_id FROM kyc_persona_accounts WHERE wallet_id=$1", walletID)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -267,48 +236,4 @@ func calculateZAIDChecksum(idBody string) int {
 	}
 
 	return (10 - (sum % 10)) % 10
-}
-
-func generateLocalIDNumbers() *kyc.PersonaIDNumbers {
-	return &kyc.PersonaIDNumbers{
-		SocialSecurity:       "123456789",
-		IssuingCountry:       "US",
-		IssuingState:         "CA",
-		IdentificationClass:  "1",
-		IdentificationNumber: "123456789",
-		ExpirationDate:       time.Now().Add(365 * 24 * time.Hour),
-	}
-}
-
-func generateLocalTestIdNumber(gender string, isCitizen bool) string {
-	// Set current year and calculate year range for 18-40 years old
-	currentYear := time.Now().Year()
-	minYear := currentYear - 40
-	maxYear := currentYear - 18
-
-	// Generate a random date of birth within the age range
-	year := rand.Intn(maxYear-minYear+1) + minYear
-	month := rand.Intn(12) + 1
-	day := rand.Intn(28) + 1
-
-	// Generate sequence number based on gender
-	seqStart := 0000
-	seqEnd := 9999
-	if gender == "male" {
-		seqStart = 5000
-	} else if gender == "female" {
-		seqEnd = 4999
-	}
-	sequence := rand.Intn(seqEnd-seqStart+1) + seqStart
-
-	// Citizen status
-	citizenDigit := 0
-	if !isCitizen {
-		citizenDigit = 1
-	}
-
-	// Combine all parts
-	idNumber := fmt.Sprintf("%02d%02d%02d%04d%d8", year%100, month, day, sequence, citizenDigit)
-
-	return idNumber
 }

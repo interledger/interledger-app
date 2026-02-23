@@ -191,6 +191,29 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 		return sc.thatGatehubChargesDepositFee(feePercent)
 	})
 
+	// Xago deposit steps (test-mode via MockXago)
+	ctx.Step(`^I get the Xago sub account details for the current user$`, func() error {
+		return sc.iGetTheXagoSubAccountDetailsForTheCurrentUser()
+	})
+	ctx.Step(`^I create a test transaction in MockXago for "([^"]*)" "([^"]*)"$`, func(amount, currency string) error {
+		return sc.iCreateATestTransactionInMockXagoFor(amount, currency)
+	})
+	ctx.Step(`^I perform a test deposit of "([^"]*)" "([^"]*)" in MockXago$`, func(amount, currency string) error {
+		return sc.iPerformATestDepositOfInMockXago(amount, currency)
+	})
+	ctx.Step(`^I wait "([^"]*)" seconds for the webhook to be processed$`, func(seconds string) error {
+		return sc.iWaitSecondsForTheWebhookToBeProcessed(seconds)
+	})
+	ctx.Step(`^I navigate to the home page$`, func() error {
+		return sc.iNavigateToTheHomePage()
+	})
+	ctx.Step(`^I should see my ZAR balance updated with "([^"]*)"$`, func(amount string) error {
+		return sc.iShouldSeeMyZARBalanceUpdatedWith(amount)
+	})
+	ctx.Step(`^the test deposit should have been accepted by MockXago$`, func() error {
+		return sc.iTheTestDepositShouldHaveBeenAcceptedByMockXago()
+	})
+
 	// Withdrawal steps
 	ctx.Step(`^I navigate to the withdrawal page$`, func() error { return sc.iNavigateToTheWithdrawalPage() })
 	ctx.Step(`^I withdraw "([^"]*)" "([^"]*)" via the withdrawal iframe$`, func(amount, currency string) error {

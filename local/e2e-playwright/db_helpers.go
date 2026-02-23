@@ -205,3 +205,32 @@ func (sc *E2EContext) getKYCStatusByWalletID(walletID string) (int, error) {
 	debugPrintf("   📊 KYC status for wallet %s: %d\n", walletID, status)
 	return status, nil
 }
+
+// getXagoAccountIDByWalletID fetches the real account_id (UUID) from xago_sub_accounts
+// for a given wallet ID. This is the ID assigned by mockxago during CreateSubAccount.
+func (sc *E2EContext) getXagoAccountIDByWalletID(walletID string) (string, error) {
+	if sc.db == nil {
+		connStr := "host=localhost port=5432 user=postgres password=postgres dbname=backend sslmode=disable"
+		db, err := sql.Open("postgres", connStr)
+		if err != nil {
+			return "", fmt.Errorf("getXagoAccountIDByWalletID: failed to open db: %w", err)
+		}
+		sc.db = db
+	}
+
+	var accountID string
+	err := sc.db.QueryRow(`
+		SELECT account_id FROM xago_sub_accounts
+		WHERE wallet_id = $1
+		LIMIT 1
+	`, walletID).Scan(&accountID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", fmt.Errorf("getXagoAccountIDByWalletID: no xago sub account found for wallet %s", walletID)
+		}
+		return "", fmt.Errorf("getXagoAccountIDByWalletID: database error: %w", err)
+	}
+
+	debugPrintf("   ✓ Found xago account ID: %s\n", accountID)
+	return accountID, nil
+}

@@ -1,4 +1,3 @@
-@stubbed
 Feature: Xago Transactions and Transfers
   As a wallet backend
   I want to create and track transactions

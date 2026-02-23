@@ -37,6 +37,10 @@ type TestContext struct {
 	lastBeneficiary    addBeneficiaryResponse
 	lastBeneficiaries  listBeneficiariesResponse
 	addedBeneficiaries []addBeneficiaryResponse
+
+	// Transaction state
+	lastTransactionID   string
+	createdTransactions []string
 }
 
 // Reset initializes the test context to a clean state.
@@ -69,4 +73,7 @@ func (tc *TestContext) Reset() {
 	tc.lastBeneficiary = addBeneficiaryResponse{}
 	tc.lastBeneficiaries = listBeneficiariesResponse{}
 	tc.addedBeneficiaries = nil
+
+	tc.lastTransactionID = ""
+	tc.createdTransactions = nil
 }

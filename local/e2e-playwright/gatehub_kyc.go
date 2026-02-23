@@ -98,35 +98,46 @@ func (sc *E2EContext) iNavigateToThePersonalDetailsPageToActivateWallet() error 
 func (sc *E2EContext) iShouldSeeTheActivateWalletButton() error {
 	debugPrintln("\n👁️  Checking for activate wallet button or KYC iframe...")
 
-	time.Sleep(1 * time.Second)
+	// Use a short poll loop rather than a single sleep+count, so that we
+	// tolerate the extra round-trip that requireFlow makes on the first visit
+	// to /personal-details (server 302 → same URL, new session cookie).
+	deadline := time.Now().Add(10 * time.Second)
+	for {
+		pageURL := sc.page.URL()
 
-	// Check if a KYC iframe is already loaded (mockxago flow renders iframe directly)
-	iframeLocator := sc.page.Locator("iframe")
-	iframeCount, _ := iframeLocator.Count()
-	if iframeCount > 0 {
-		debugPrintf("   ✓ KYC iframe already present (mockxago direct-iframe flow)\n")
-		return nil
-	}
-
-	// Look for Continue button or similar activation trigger
-	selectors := []string{
-		"button:has-text('Continue')",
-		"button:has-text('Activate')",
-		"button:has-text('Next')",
-		"[data-testid='kyc-continue']",
-		"button[type='button']",
-	}
-
-	for _, selector := range selectors {
-		button := sc.page.Locator(selector)
-		count, err := button.Count()
-		if err == nil && count > 0 {
-			debugPrintf("   ✓ Found button: %s\n", selector)
+		// Check if a KYC iframe is already loaded (mockxago / persona flow
+		// renders the iframe directly without a Continue button).
+		iframeLocator := sc.page.Locator("iframe")
+		iframeCount, _ := iframeLocator.Count()
+		if iframeCount > 0 {
+			debugPrintf("   ✓ KYC iframe present on %s\n", pageURL)
 			return nil
 		}
-	}
 
-	return fmt.Errorf("no activate wallet button or KYC iframe found")
+		// Look for Continue button or similar activation trigger.
+		selectors := []string{
+			"button:has-text('Continue')",
+			"button:has-text('Activate')",
+			"button:has-text('Next')",
+			"[data-testid='kyc-continue']",
+			"button[type='button']:not([aria-label='menu'])",
+		}
+		for _, selector := range selectors {
+			button := sc.page.Locator(selector)
+			count, err := button.Count()
+			if err == nil && count > 0 {
+				debugPrintf("   ✓ Found button '%s' on %s\n", selector, pageURL)
+				return nil
+			}
+		}
+
+		if time.Now().After(deadline) {
+			pageTitle, _ := sc.page.Title()
+			debugPrintf("   ✗ Gave up waiting. URL=%s title=%s\n", pageURL, pageTitle)
+			return fmt.Errorf("no activate wallet button or KYC iframe found on %s", pageURL)
+		}
+		time.Sleep(500 * time.Millisecond)
+	}
 }
 
 // iWaitForTheKYCIframeToLoad waits for the KYC iframe to appear and load

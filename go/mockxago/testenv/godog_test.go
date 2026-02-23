@@ -186,4 +186,7 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I get the correct beneficiaries$`, tc.getCorrectBeneficiaries)
 	ctx.Step(`^I do not get beneficiaries from wallet_bbb$`, tc.doNotGetBeneficiariesFromWalletBBB)
 	ctx.Step(`^the beneficiary details match exactly:$`, tc.beneficiaryDetailsMatchExactly)
+
+	// Transaction management steps
+	registerTransactionSteps(ctx, tc)
 }

@@ -23,7 +23,11 @@ services:
       WEBHOOK_SECRET: ${XAGO_WEBHOOK_SECRET:-33333333333333333333333333333333333333}
 
       # Auth configuration
-      MOCKXAGO_VALID_CREDENTIALS: local-test-app-id:local-test-app-secret
+      XAGO_API_PUBLIC_KEY: test-public-key
+      XAGO_API_SECRET: test-secret
+      
+      # Enable test mode for test deposit endpoints
+      XAGO_MOCK_TEST_MODE: "true"
     
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/health"]

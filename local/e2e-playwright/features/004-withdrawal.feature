@@ -38,3 +38,22 @@ Feature: Withdraw Funds
     When I navigate to the withdrawal page
     And I withdraw "50" "EUR" via the withdrawal iframe
     Then I should see my balance updated with "49" "EUR"
+
+  @withdrawal @xago
+  Scenario: Withdrawal page not available for South African users with linked accounts
+    Given the details of 'xago-withdrawal-user' are
+      | field           | value                        |
+      | emailSuffix     | bob-za@example.com           |
+      | password        | InterlEdger2025!TestPassword |
+      | country         | South Africa                 |
+      | firstName       | Bob                          |
+      | lastName        | Zuma                         |
+      | dateOfBirth     | 1990-03-15                   |
+    And I complete the minimal KYC flow `xago-withdrawal-user`
+    When I navigate to the withdrawal page
+    And I wait "3" seconds for the page to load
+    Then I should see text "404" on the page
+    And I should see text "An error occurred" on the page
+    # Note: Like deposits, withdrawal page is not available for Xago users with
+    # auto-created linked accounts. Withdrawals for Xago users likely use a
+    # different interface/flow specific to South African banking requirements.
