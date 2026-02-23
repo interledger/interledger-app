@@ -10,12 +10,13 @@ type Signature struct {
 }
 
 type Agreement struct {
-	ID        string `db:"id"`
-	Name      string `db:"name"`
-	Version   string `db:"version"`
-	Content   string `db:"content"`
-	CreatedAt string `db:"created_at"`
-	UpdatedAt string `db:"updated_at"`
+	ID          string `db:"id"`
+	Name        string `db:"name"`
+	Version     string `db:"version"`
+	Content     string `db:"content"`
+	CreatedAt   string `db:"created_at"`
+	UpdatedAt   string `db:"updated_at"`
+	GitFilePath string `db:"git_file_path"`
 }
 
 type SignArgs struct {

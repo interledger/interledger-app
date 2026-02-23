@@ -68,6 +68,10 @@ table "agreements" {
     type    = timestamp
     default = sql("now()::TIMESTAMP")
   }
+  column "git_file_path" {
+    null = true
+    type = text
+  }
   primary_key {
     columns = [column.id]
   }
