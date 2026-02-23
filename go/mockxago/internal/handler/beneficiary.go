@@ -51,11 +51,11 @@ func (h *Handler) AddBeneficiary(w http.ResponseWriter, r *http.Request) {
 	}
 
 	beneficiary := &models.Beneficiary{
-		ID: utils.GenerateUUID(),
-		// Use AccountID (not WalletID) as the storage key so that each sub-account
-		// gets its own isolated beneficiary list, even when multiple sub-accounts
-		// share the same WalletID.
-		WalletID:      subAcc.AccountID,
+		ID:        utils.GenerateUUID(),
+		AccountID: accountID,
+		// Store the actual WalletID so that transfers can properly look up balances
+		// Beneficiary isolation by account is handled at the storage layer
+		WalletID:      subAcc.WalletID,
 		Name:          req.Name,
 		Scope:         req.Scope,
 		IsOwn:         req.IsOwn,

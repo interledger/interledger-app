@@ -576,6 +576,13 @@ func (tc *TestContext) totalAmountTransferredIs(expectedTotal string) error {
 		return fmt.Errorf("invalid expected total: %s", expectedTotal)
 	}
 
+	if len(tc.createdTransactions) > 0 {
+		limit := len(tc.createdTransactions) + 10
+		if err := tc.listTransactionsWithLimit(limit); err != nil {
+			return err
+		}
+	}
+
 	if tc.lastResponse == nil || tc.lastResponse.StatusCode >= 400 {
 		return fmt.Errorf("failed to list transactions, status %d", tc.lastResponse.StatusCode)
 	}
@@ -586,8 +593,20 @@ func (tc *TestContext) totalAmountTransferredIs(expectedTotal string) error {
 	}
 
 	var total float64
-	for _, tx := range resp.Data {
-		total += tx.Amount
+	if len(tc.createdTransactions) == 0 {
+		for _, tx := range resp.Data {
+			total += tx.Amount
+		}
+	} else {
+		created := make(map[string]struct{}, len(tc.createdTransactions))
+		for _, id := range tc.createdTransactions {
+			created[id] = struct{}{}
+		}
+		for _, tx := range resp.Data {
+			if _, ok := created[tx.TransactionID]; ok {
+				total += tx.Amount
+			}
+		}
 	}
 
 	if total != expectedVal {
@@ -673,6 +692,23 @@ func registerTransactionSteps(sc *godog.ScenarioContext, tc *TestContext) {
 func (tc *TestContext) createdMultipleTransfers(count int) error {
 	if len(tc.addedBeneficiaries) == 0 {
 		return fmt.Errorf("no beneficiaries added yet")
+	}
+	if tc.lastSubAccount.AccountID == "" {
+		return fmt.Errorf("no accountId available")
+	}
+
+	// Ensure the account balance can cover all transfers in this scenario.
+	baseAmount := 1000.0
+	stepAmount := 100.0
+	transferTotal := float64(count) * (2*baseAmount + float64(count-1)*stepAmount) / 2
+	setBalancePayload := map[string]interface{}{
+		"accountId":    tc.lastSubAccount.AccountID,
+		"currencyCode": "ZAR",
+		"available":    transferTotal + 1000.0,
+		"reserved":     0.0,
+	}
+	if _, err := tc.request("POST", "/v1/test/balances/set", setBalancePayload, true, nil); err != nil {
+		return err
 	}
 
 	for i := 0; i < count; i++ {

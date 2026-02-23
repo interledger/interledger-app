@@ -11,6 +11,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 
+	"gitlab.com/fynbos/mockxago/internal/logger"
 	"gitlab.com/fynbos/mockxago/internal/models"
 	"gitlab.com/fynbos/mockxago/internal/storage"
 	"gitlab.com/fynbos/mockxago/internal/utils"
@@ -55,6 +56,13 @@ func (h *Handler) CreateSubAccount(w http.ResponseWriter, r *http.Request) {
 	if err := h.store.SaveSubAccount(r.Context(), subAcc); err != nil {
 		h.sendError(w, http.StatusInternalServerError, "internal_error", "failed to create sub-account")
 		return
+	}
+
+	tokenValue := bearerTokenFromHeader(r.Header.Get("Authorization"))
+	if tokenValue != "" {
+		if err := h.store.SaveTokenAccount(r.Context(), tokenValue, subAcc.AccountID); err != nil {
+			logger.Warnf("Failed to link token to account: %v", err)
+		}
 	}
 
 	resp := models.CreateSubAccountResponse{

@@ -172,14 +172,15 @@ func TestMemoryStorage_ListBeneficiariesByWallet(t *testing.T) {
 
 	for i := 0; i < 5; i++ {
 		beneficiary := &models.Beneficiary{
-			ID:       "ben" + string(rune(i)),
-			WalletID: "wallet1",
-			BankName: "Bank " + string(rune(i)),
+			ID:        "ben" + string(rune(i)),
+			AccountID: "account1",
+			WalletID:  "wallet1",
+			BankName:  "Bank " + string(rune(i)),
 		}
 		store.SaveBeneficiary(context.Background(), beneficiary)
 	}
 
-	beneficiaries, total, err := store.ListBeneficiariesByWallet(context.Background(), "wallet1", 3, 0)
+	beneficiaries, total, err := store.ListBeneficiariesByWallet(context.Background(), "account1", 3, 0)
 	assert.NoError(t, err)
 	assert.Equal(t, 5, total)
 	assert.Equal(t, 3, len(beneficiaries))

@@ -140,3 +140,11 @@ func (h *Handler) sendError(w http.ResponseWriter, status int, error, message st
 		Message: message,
 	})
 }
+
+func bearerTokenFromHeader(authHeader string) string {
+	parts := strings.SplitN(strings.TrimSpace(authHeader), " ", 2)
+	if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") {
+		return ""
+	}
+	return strings.TrimSpace(parts[1])
+}

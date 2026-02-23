@@ -23,6 +23,8 @@ type Storage interface {
 	SaveAccessToken(ctx context.Context, token *models.AccessToken) error
 	GetAccessToken(ctx context.Context, tokenValue string) (*models.AccessToken, error)
 	InvalidateAccessToken(ctx context.Context, tokenValue string) error
+	SaveTokenAccount(ctx context.Context, tokenValue string, accountID string) error
+	GetAccountIDByToken(ctx context.Context, tokenValue string) (string, error)
 
 	// Sub-account operations
 	SaveSubAccount(ctx context.Context, account *models.SubAccount) error
@@ -41,7 +43,7 @@ type Storage interface {
 	GetTransaction(ctx context.Context, transactionID string) (*models.Transaction, error)
 	GetTransactionByIdempotencyKey(ctx context.Context, key string) (*models.Transaction, error)
 	SaveIdempotencyKey(ctx context.Context, key string, transactionID string) error
-	ListTransactionsByWallet(ctx context.Context, walletID string, limit int, offset int) ([]*models.Transaction, int, error)
+	ListTransactionsByAccount(ctx context.Context, accountID string, limit int, offset int) ([]*models.Transaction, int, error)
 	UpdateTransactionStatus(ctx context.Context, transactionID string, status string) error
 
 	// Balance operations

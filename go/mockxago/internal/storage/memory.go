@@ -12,6 +12,7 @@ import (
 type MemoryStorage struct {
 	mu                    sync.RWMutex
 	tokens                map[string]*models.AccessToken
+	tokenAccounts         map[string]string
 	subAccounts           map[string]*models.SubAccount
 	subAccountsByWallet   map[string]*models.SubAccount
 	beneficiaries         map[string]*models.Beneficiary
@@ -32,6 +33,7 @@ type balanceEntry struct {
 func NewMemoryStorage() Storage {
 	return &MemoryStorage{
 		tokens:                make(map[string]*models.AccessToken),
+		tokenAccounts:         make(map[string]string),
 		subAccounts:           make(map[string]*models.SubAccount),
 		subAccountsByWallet:   make(map[string]*models.SubAccount),
 		beneficiaries:         make(map[string]*models.Beneficiary),
@@ -77,6 +79,30 @@ func (m *MemoryStorage) InvalidateAccessToken(ctx context.Context, tokenValue st
 
 	delete(m.tokens, tokenValue)
 	return nil
+}
+
+func (m *MemoryStorage) SaveTokenAccount(ctx context.Context, tokenValue string, accountID string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	if tokenValue == "" || accountID == "" {
+		return nil
+	}
+
+	m.tokenAccounts[tokenValue] = accountID
+	return nil
+}
+
+func (m *MemoryStorage) GetAccountIDByToken(ctx context.Context, tokenValue string) (string, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	accountID, ok := m.tokenAccounts[tokenValue]
+	if !ok {
+		return "", ErrTokenNotFound
+	}
+
+	return accountID, nil
 }
 
 // Sub-account operations
@@ -139,7 +165,8 @@ func (m *MemoryStorage) SaveBeneficiary(ctx context.Context, beneficiary *models
 	beneficiary.CreatedAt = time.Now()
 	beneficiary.UpdatedAt = time.Now()
 	m.beneficiaries[beneficiary.ID] = beneficiary
-	m.beneficiariesByWallet[beneficiary.WalletID] = append(m.beneficiariesByWallet[beneficiary.WalletID], beneficiary)
+	// Index by AccountID for querying beneficiaries associated with a specific account
+	m.beneficiariesByWallet[beneficiary.AccountID] = append(m.beneficiariesByWallet[beneficiary.AccountID], beneficiary)
 	return nil
 }
 
@@ -251,13 +278,13 @@ func (m *MemoryStorage) SaveIdempotencyKey(ctx context.Context, key string, tran
 	return nil
 }
 
-func (m *MemoryStorage) ListTransactionsByWallet(ctx context.Context, walletID string, limit int, offset int) ([]*models.Transaction, int, error) {
+func (m *MemoryStorage) ListTransactionsByAccount(ctx context.Context, accountID string, limit int, offset int) ([]*models.Transaction, int, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
 	var transactions []*models.Transaction
 	for _, tx := range m.transactions {
-		if tx.WalletID == walletID {
+		if tx.AccountID == accountID {
 			transactions = append(transactions, tx)
 		}
 	}

@@ -15,14 +15,14 @@ This document describes the specification for building a Xago mock service for l
 | 3 | Currencies & Deposit Details | 7 | ✅ Complete |
 | 4 | Balance Management | 9 | ✅ Complete |
 | 5 | Beneficiary Management | 13 | ✅ Complete |
-| 6 | Transactions & Transfers | 18 | 🔄 In Progress (63/73 passing, 86%) |
+| 6 | Transactions & Transfers | 18 | 🔄 In Progress (69/73 passing, 94%) |
 | 7 | Deposits & Webhooks | 18 | ⬜ Pending (`@stubbed`) |
 | 8 | Integration Testing | 7 | ✅ Complete |
 | 9 | Redis Storage | — | ⬜ Pending |
 | 10 | Docker & Deployment | — | ✅ Complete |
 | 11 | Documentation & Polish | — | ⬜ Pending |
 
-**Passing**: 63 scenarios (including Phase 6 work in progress).  
+**Passing**: 69 scenarios (including Phase 6 work in progress).  
 **Stubbed (not running)**: 18 scenarios in `deposits_and_webhooks.feature`.  
 **Total across all feature files**: 91 scenarios.
 

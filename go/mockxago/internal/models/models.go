@@ -44,6 +44,7 @@ type SubAccount struct {
 // Beneficiary represents a bank account beneficiary
 type Beneficiary struct {
 	ID            string    `db:"id"`
+	AccountID     string    `db:"account_id"`
 	WalletID      string    `db:"wallet_id"`
 	Name          string    `db:"name"`
 	Scope         string    `db:"scope"`
@@ -63,6 +64,7 @@ type Beneficiary struct {
 // Transaction represents a transfer transaction
 type Transaction struct {
 	ID            string     `db:"id"`
+	AccountID     string     `db:"account_id"`
 	WalletID      string     `db:"wallet_id"`
 	BeneficiaryID string     `db:"beneficiary_id"`
 	Amount        float64    `db:"amount"`
