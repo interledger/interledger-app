@@ -1,371 +1,409 @@
-mockxago-test  | INFO: 2026/02/23 12:03:49 Initialized in-memory storage
-mockxago-test  | INFO: 2026/02/23 12:03:49 Starting MockXago server on port 8080
-mockxago-test  | INFO: 2026/02/23 12:03:49 Successful login with public_key=test_public_key_12345, issued token=6b6c8087-3a69-45bc-9d3a-dcd84e2449b4
-mockxago-test  | INFO: 2026/02/23 12:03:49 Failed login attempt with public_key=invalid_public_key
-mockxago-test  | INFO: 2026/02/23 12:03:49 Failed login attempt with public_key=test_public_key_12345
-mockxago-test  | INFO: 2026/02/23 12:03:49 Successful login with public_key=test_public_key_12345, issued token=245ef141-d569-4ab9-81a8-8bf88bb0c217
-mockxago-test  | INFO: 2026/02/23 12:03:49 Successful login with public_key=test_public_key_12345, issued token=e6db0699-d7c6-448d-94e7-2b88f1bedb0c
-mockxago-test  | INFO: 2026/02/23 12:03:49 Successful login with public_key=test_public_key_12345, issued token=6791cd7b-4c18-4e1a-a8a9-f2f3c9b6ecf9
-mockxago-test  | INFO: 2026/02/23 12:03:49 Successful login with public_key=test_public_key_12345, issued token=b212950d-7003-4d5a-a0be-8a72e65ffded
-mockxago-test  | INFO: 2026/02/23 12:03:49 Successful login with public_key=test_public_key_12345, issued token=17fd77c1-2483-4101-a704-cb5260b8c7e8
-mockxago-test  | INFO: 2026/02/23 12:03:49 Successful login with public_key=test_public_key_12345, issued token=145afb10-bdb9-453b-8346-0c72ca6fd11a
-mockxago-test  | ERROR: 2026/02/23 12:03:49 Failed to send deposit webhook: Post "http://host.docker.internal:3000/xago/webhooks": dial tcp 172.17.0.1:3000: connect: connection refused
-mockxago-test  | INFO: 2026/02/23 12:03:49 Successful login with public_key=test_public_key_12345, issued token=76b380ee-1b36-4ce7-9025-0a61f4f936c7
-mockxago-test  | INFO: 2026/02/23 12:03:49 Successful login with public_key=test_public_key_12345, issued token=09e922e4-801e-40ba-861f-ba3c8b5d885c
-mockxago-test  | INFO: 2026/02/23 12:03:49 Successful login with public_key=test_public_key_12345, issued token=53b231ee-0cd1-4b57-8b44-74967f3800b1
-mockxago-test  | INFO: 2026/02/23 12:03:49 Successful login with public_key=test_public_key_12345, issued token=879e38f8-1129-4314-98e2-12bc65a4b2c2
-mockxago-test  | INFO: 2026/02/23 12:03:49 Successful login with public_key=test_public_key_12345, issued token=39427f6c-b41d-48b5-84fb-77f70bd6ccca
-mockxago-test  | ERROR: 2026/02/23 12:03:49 Failed to send deposit webhook: Post "http://host.docker.internal:3000/xago/webhooks": dial tcp 172.17.0.1:3000: connect: connection refused
-mockxago-test  | ERROR: 2026/02/23 12:03:49 Failed to send deposit webhook: Post "http://host.docker.internal:3000/xago/webhooks": dial tcp 172.17.0.1:3000: connect: connection refused
-mockxago-test  | ERROR: 2026/02/23 12:03:49 Failed to send deposit webhook: Post "http://host.docker.internal:3000/xago/webhooks": dial tcp 172.17.0.1:3000: connect: connection refused
-mockxago-test  | INFO: 2026/02/23 12:03:49 Successful login with public_key=test_public_key_12345, issued token=4acfd8d8-83c1-4fdc-8c08-fbef9a78c6f2
-mockxago-test  | ERROR: 2026/02/23 12:03:49 Failed to send deposit webhook: Post "http://host.docker.internal:3000/xago/webhooks": dial tcp 172.17.0.1:3000: connect: connection refused
-mockxago-test  | INFO: 2026/02/23 12:03:49 Successful login with public_key=test_public_key_12345, issued token=5df6832e-aa81-49ae-b10b-d79cfbaa9935
-mockxago-test  | INFO: 2026/02/23 12:03:49 Created beneficiary 977342d0-3282-4d44-9bd2-fa87d6cfb4c2 for account 794a910a-df68-4399-af4c-d6c30712217b (wallet wallet_ben_test)
-mockxago-test  | INFO: 2026/02/23 12:03:49 Successful login with public_key=test_public_key_12345, issued token=475171bb-7a57-4857-a1f0-eb57a79dc7b7
-mockxago-test  | INFO: 2026/02/23 12:03:49 Created beneficiary 5308b8c3-26ad-4d4e-97ce-8a30ca37cbcc for account d2d6758d-9187-4a52-8f09-d34e0b29d45f (wallet wallet_ben_test)
-mockxago-test  | INFO: 2026/02/23 12:03:49 Successful login with public_key=test_public_key_12345, issued token=fda11e8e-2675-4d58-9af1-f0d9bac10307
-mockxago-test  | INFO: 2026/02/23 12:03:49 Created beneficiary 2509064c-19f3-4009-8fd0-2b0421ab5c0e for account 5aa60218-139c-4a74-9c36-c7e87319ac86 (wallet wallet_ben_test)
-mockxago-test  | INFO: 2026/02/23 12:03:52 Auto-approved beneficiary 977342d0-3282-4d44-9bd2-fa87d6cfb4c2
-mockxago-test  | INFO: 2026/02/23 12:03:52 Auto-approved beneficiary 5308b8c3-26ad-4d4e-97ce-8a30ca37cbcc
-mockxago-test  | INFO: 2026/02/23 12:03:52 Listed 1 beneficiaries for account 5aa60218-139c-4a74-9c36-c7e87319ac86 (page=1, limit=100, total=1)
-mockxago-test  | INFO: 2026/02/23 12:03:52 Auto-approved beneficiary 2509064c-19f3-4009-8fd0-2b0421ab5c0e
-mockxago-test  | INFO: 2026/02/23 12:03:52 Successful login with public_key=test_public_key_12345, issued token=37f8af80-f276-4794-917d-cce8dab97aa5
-mockxago-test  | INFO: 2026/02/23 12:03:52 Created beneficiary 0e452b77-4cd5-4230-8691-685bff3b2a27 for account 3c133aa7-ba31-455d-afae-5cb521b229e8 (wallet wallet_ben_test)
-mockxago-test  | INFO: 2026/02/23 12:03:52 Successful login with public_key=test_public_key_12345, issued token=31cc2704-cff7-486f-8500-fec77f7b5c82
-mockxago-test  | INFO: 2026/02/23 12:03:52 Successful login with public_key=test_public_key_12345, issued token=121372c9-4ef5-484e-a8c6-c32b87fa95c1
-mockxago-test  | INFO: 2026/02/23 12:03:52 Successful login with public_key=test_public_key_12345, issued token=fb634004-30ed-4482-b154-9cd047b07110
-mockxago-test  | INFO: 2026/02/23 12:03:52 Created beneficiary 0f1af770-819c-459d-b64b-3e419eb8bd5c for account a77a5573-0c1b-4e3d-b97f-4c2f6ba052c2 (wallet wallet_ben_test)
-mockxago-test  | INFO: 2026/02/23 12:03:52 Created beneficiary 95cf9036-62b6-41a0-8096-800529c639e9 for account a77a5573-0c1b-4e3d-b97f-4c2f6ba052c2 (wallet wallet_ben_test)
-mockxago-test  | INFO: 2026/02/23 12:03:52 Created beneficiary 0931006b-7784-4349-94fa-e19c87fa0efb for account a77a5573-0c1b-4e3d-b97f-4c2f6ba052c2 (wallet wallet_ben_test)
-mockxago-test  | INFO: 2026/02/23 12:03:52 Listed 3 beneficiaries for account a77a5573-0c1b-4e3d-b97f-4c2f6ba052c2 (page=1, limit=10, total=3)
-mockxago-test  | INFO: 2026/02/23 12:03:52 Successful login with public_key=test_public_key_12345, issued token=406aa03c-888b-466c-8918-14632510d672
-mockxago-test  | INFO: 2026/02/23 12:03:52 Created beneficiary cc2a0d83-2cc2-46a4-8db4-b998686d251f for account c77e6e36-0180-473b-be8c-e22938acbc49 (wallet wallet_ben_test)
-mockxago-test  | INFO: 2026/02/23 12:03:52 Created beneficiary dfd1c875-9845-44f6-8cd1-d576f127ae04 for account c77e6e36-0180-473b-be8c-e22938acbc49 (wallet wallet_ben_test)
-mockxago-test  | INFO: 2026/02/23 12:03:52 Created beneficiary 8a1c5f04-4dc6-4f90-a2d9-68eea9c225fe for account c77e6e36-0180-473b-be8c-e22938acbc49 (wallet wallet_ben_test)
-mockxago-test  | INFO: 2026/02/23 12:03:52 Created beneficiary 172be09c-8564-4481-80f8-36559e6dc78f for account c77e6e36-0180-473b-be8c-e22938acbc49 (wallet wallet_ben_test)
-mockxago-test  | INFO: 2026/02/23 12:03:52 Created beneficiary 1ab8cdcb-5b9d-4c9b-8eb8-564dce55b526 for account c77e6e36-0180-473b-be8c-e22938acbc49 (wallet wallet_ben_test)
-mockxago-test  | INFO: 2026/02/23 12:03:52 Created beneficiary 5703cfca-99f6-4b55-9fd5-0093aec14ab8 for account c77e6e36-0180-473b-be8c-e22938acbc49 (wallet wallet_ben_test)
-mockxago-test  | INFO: 2026/02/23 12:03:52 Created beneficiary b174bfd3-3f12-4ad0-9b00-6515a9a4cd78 for account c77e6e36-0180-473b-be8c-e22938acbc49 (wallet wallet_ben_test)
-mockxago-test  | INFO: 2026/02/23 12:03:52 Created beneficiary eaf88ef7-b024-469a-96f1-15c6970a2363 for account c77e6e36-0180-473b-be8c-e22938acbc49 (wallet wallet_ben_test)
-mockxago-test  | INFO: 2026/02/23 12:03:52 Created beneficiary d4897523-4b98-4110-a119-5c534bce5a1c for account c77e6e36-0180-473b-be8c-e22938acbc49 (wallet wallet_ben_test)
-mockxago-test  | INFO: 2026/02/23 12:03:52 Created beneficiary 7a703d76-0402-4580-a82c-f9ea34767a05 for account c77e6e36-0180-473b-be8c-e22938acbc49 (wallet wallet_ben_test)
-mockxago-test  | INFO: 2026/02/23 12:03:52 Created beneficiary 36f03b2f-c3ee-4849-a190-8d0a3755eb1d for account c77e6e36-0180-473b-be8c-e22938acbc49 (wallet wallet_ben_test)
-mockxago-test  | INFO: 2026/02/23 12:03:52 Created beneficiary 4aa4a2d7-6dab-4127-aa8d-98bd50b4b237 for account c77e6e36-0180-473b-be8c-e22938acbc49 (wallet wallet_ben_test)
-mockxago-test  | INFO: 2026/02/23 12:03:52 Created beneficiary 9d6ab0cd-af4b-42f1-b03a-c8ea4c0d1473 for account c77e6e36-0180-473b-be8c-e22938acbc49 (wallet wallet_ben_test)
-mockxago-test  | INFO: 2026/02/23 12:03:52 Created beneficiary f4c177d9-df1c-4304-b7f8-743c129df820 for account c77e6e36-0180-473b-be8c-e22938acbc49 (wallet wallet_ben_test)
-mockxago-test  | INFO: 2026/02/23 12:03:52 Created beneficiary 14e63a52-934f-4904-acad-e969212d4598 for account c77e6e36-0180-473b-be8c-e22938acbc49 (wallet wallet_ben_test)
-mockxago-test  | INFO: 2026/02/23 12:03:52 Listed 10 beneficiaries for account c77e6e36-0180-473b-be8c-e22938acbc49 (page=1, limit=10, total=15)
-mockxago-test  | INFO: 2026/02/23 12:03:52 Listed 5 beneficiaries for account c77e6e36-0180-473b-be8c-e22938acbc49 (page=2, limit=10, total=15)
-mockxago-test  | INFO: 2026/02/23 12:03:52 Successful login with public_key=test_public_key_12345, issued token=e5c650ff-4a34-4674-b063-474a888c8d3b
-mockxago-test  | INFO: 2026/02/23 12:03:52 Created beneficiary bb06b994-c79e-4de7-9ed8-5f0f1bd4d38c for account 98a6562b-8cf4-4f1a-beef-948bf168f6d2 (wallet wallet_ben_test)
-mockxago-test  | INFO: 2026/02/23 12:03:52 Created beneficiary dbadaf66-61d4-4841-ac63-fddb80368c02 for account 98a6562b-8cf4-4f1a-beef-948bf168f6d2 (wallet wallet_ben_test)
-mockxago-test  | INFO: 2026/02/23 12:03:52 Listed 2 beneficiaries for account 98a6562b-8cf4-4f1a-beef-948bf168f6d2 (page=1, limit=100, total=2)
-mockxago-test  | INFO: 2026/02/23 12:03:52 Successful login with public_key=test_public_key_12345, issued token=9a9f3a8b-9ef3-4e94-8212-3504dee8b4f2
-mockxago-test  | INFO: 2026/02/23 12:03:52 Created beneficiary e896cb5d-68d7-4ffc-ad37-b23bb581bb2d for account 398f6717-5271-4ece-bc9a-fa58240ec15c (wallet wallet_aaa)
-mockxago-test  | INFO: 2026/02/23 12:03:52 Created beneficiary 190a812f-65ef-480f-b1da-b6422f8fc78b for account 398f6717-5271-4ece-bc9a-fa58240ec15c (wallet wallet_aaa)
-mockxago-test  | INFO: 2026/02/23 12:03:52 Listed 2 beneficiaries for account 398f6717-5271-4ece-bc9a-fa58240ec15c (page=1, limit=100, total=2)
-mockxago-test  | INFO: 2026/02/23 12:03:52 Listed 0 beneficiaries for account 6952a326-efef-4539-87ec-c71276a18782 (page=1, limit=100, total=0)
-mockxago-test  | INFO: 2026/02/23 12:03:52 Listed 2 beneficiaries for account 398f6717-5271-4ece-bc9a-fa58240ec15c (page=1, limit=100, total=2)
-mockxago-test  | INFO: 2026/02/23 12:03:52 Successful login with public_key=test_public_key_12345, issued token=bb6d5e36-884d-416c-918c-c7a01c675653
-mockxago-test  | INFO: 2026/02/23 12:03:52 Created beneficiary 55dbd44e-9bc1-4975-9a8a-54e8d920c7bf for account f62f3b5a-8561-4d7b-ac24-f074ea90ce51 (wallet wallet_ben_test)
-mockxago-test  | INFO: 2026/02/23 12:03:52 Listed 1 beneficiaries for account f62f3b5a-8561-4d7b-ac24-f074ea90ce51 (page=1, limit=100, total=1)
-mockxago-test  | INFO: 2026/02/23 12:03:52 Successful login with public_key=test_public_key_12345, issued token=b2e60ac4-a8e1-4c73-8608-bdccfd7d7949
-mockxago-test  | INFO: 2026/02/23 12:03:52 Successful login with public_key=test_public_key_12345, issued token=952a417e-2770-4807-b17f-61ac54186cff
-mockxago-test  | INFO: 2026/02/23 12:03:52 Successful login with public_key=test_public_key_12345, issued token=98709dc1-0d8b-463a-861f-32ab84dfb987
-mockxago-test  | INFO: 2026/02/23 12:03:52 Successful login with public_key=test_public_key_12345, issued token=a210acc3-636a-4153-ba5a-b81e0b09ab03
-mockxago-test  | INFO: 2026/02/23 12:03:52 Successful login with public_key=test_public_key_12345, issued token=7c7a3511-7266-4cd5-83bb-8e8f3cab8da1
-mockxago-test  | INFO: 2026/02/23 12:03:52 Successful login with public_key=test_public_key_12345, issued token=6afe098f-71cc-4e73-ba3f-d29e75742c2c
-mockxago-test  | INFO: 2026/02/23 12:03:52 Successful login with public_key=test_public_key_12345, issued token=d33ae245-70fa-4445-9ed8-47924e821f11
-mockxago-test  | INFO: 2026/02/23 12:03:52 Successful login with public_key=test_public_key_12345, issued token=b8f31412-dc19-455e-bbc1-087cd511a821
-mockxago-test  | INFO: 2026/02/23 12:03:52 Successful login with public_key=test_public_key_12345, issued token=f7b2c248-b5c2-45b0-8ed4-9a4f8f911278
-mockxago-test  | INFO: 2026/02/23 12:03:52 Successful login with public_key=test_public_key_12345, issued token=15af4a23-b436-4355-a44c-33b160a69a33
-mockxago-test  | INFO: 2026/02/23 12:03:52 Test deposit created: mock-1771848232961164578 for account a93a2548-42e9-45b6-9b8d-5e0be300c0b6: 5000.000000 ZAR (ref: wallet_dep_test_ZAR)
-mockxago-test  | INFO: 2026/02/23 12:03:52 Successful login with public_key=test_public_key_12345, issued token=4801467d-a1df-4a82-b4e7-e3ecbfdd5c42
-mockxago-test  | INFO: 2026/02/23 12:03:52 Test deposit created: mock-1771848232966852740 for account 91b7229e-2c0b-4e33-b7df-008ecfb9c5f0: 10000.000000 ZAR (ref: wallet_dep_test_ZAR)
-mockxago-test  | INFO: 2026/02/23 12:03:53 Deposit completed: mock-1771848232961164578 for account a93a2548-42e9-45b6-9b8d-5e0be300c0b6: 5000.000000 ZAR
-mockxago-test  | ERROR: 2026/02/23 12:03:53 Failed to send deposit webhook: Post "http://host.docker.internal:3000/xago/webhooks": dial tcp 172.17.0.1:3000: connect: connection refused
-mockxago-test  | INFO: 2026/02/23 12:03:53 Deposit completed: mock-1771848232966852740 for account 91b7229e-2c0b-4e33-b7df-008ecfb9c5f0: 10000.000000 ZAR
-mockxago-test  | ERROR: 2026/02/23 12:03:53 Failed to send deposit webhook: Post "http://host.docker.internal:3000/xago/webhooks": dial tcp 172.17.0.1:3000: connect: connection refused
-mockxago-test  | INFO: 2026/02/23 12:03:55 Auto-approved beneficiary 0e452b77-4cd5-4230-8691-685bff3b2a27
-mockxago-test  | INFO: 2026/02/23 12:03:55 Auto-approved beneficiary 0f1af770-819c-459d-b64b-3e419eb8bd5c
-mockxago-test  | INFO: 2026/02/23 12:03:55 Auto-approved beneficiary 95cf9036-62b6-41a0-8096-800529c639e9
-mockxago-test  | INFO: 2026/02/23 12:03:55 Auto-approved beneficiary 0931006b-7784-4349-94fa-e19c87fa0efb
-mockxago-test  | INFO: 2026/02/23 12:03:55 Auto-approved beneficiary 8a1c5f04-4dc6-4f90-a2d9-68eea9c225fe
-mockxago-test  | INFO: 2026/02/23 12:03:55 Auto-approved beneficiary dfd1c875-9845-44f6-8cd1-d576f127ae04
-mockxago-test  | INFO: 2026/02/23 12:03:55 Auto-approved beneficiary cc2a0d83-2cc2-46a4-8db4-b998686d251f
-mockxago-test  | INFO: 2026/02/23 12:03:55 Auto-approved beneficiary 172be09c-8564-4481-80f8-36559e6dc78f
-mockxago-test  | INFO: 2026/02/23 12:03:55 Auto-approved beneficiary 1ab8cdcb-5b9d-4c9b-8eb8-564dce55b526
-mockxago-test  | INFO: 2026/02/23 12:03:55 Auto-approved beneficiary 36f03b2f-c3ee-4849-a190-8d0a3755eb1d
-mockxago-test  | INFO: 2026/02/23 12:03:55 Auto-approved beneficiary b174bfd3-3f12-4ad0-9b00-6515a9a4cd78
-mockxago-test  | INFO: 2026/02/23 12:03:55 Auto-approved beneficiary d4897523-4b98-4110-a119-5c534bce5a1c
-mockxago-test  | INFO: 2026/02/23 12:03:55 Auto-approved beneficiary 9d6ab0cd-af4b-42f1-b03a-c8ea4c0d1473
-mockxago-test  | INFO: 2026/02/23 12:03:55 Auto-approved beneficiary eaf88ef7-b024-469a-96f1-15c6970a2363
-mockxago-test  | INFO: 2026/02/23 12:03:55 Auto-approved beneficiary 5703cfca-99f6-4b55-9fd5-0093aec14ab8
-mockxago-test  | INFO: 2026/02/23 12:03:55 Auto-approved beneficiary 4aa4a2d7-6dab-4127-aa8d-98bd50b4b237
-mockxago-test  | INFO: 2026/02/23 12:03:55 Auto-approved beneficiary 7a703d76-0402-4580-a82c-f9ea34767a05
-mockxago-test  | INFO: 2026/02/23 12:03:55 Auto-approved beneficiary 14e63a52-934f-4904-acad-e969212d4598
-mockxago-test  | INFO: 2026/02/23 12:03:55 Auto-approved beneficiary f4c177d9-df1c-4304-b7f8-743c129df820
-mockxago-test  | INFO: 2026/02/23 12:03:55 Auto-approved beneficiary dbadaf66-61d4-4841-ac63-fddb80368c02
-mockxago-test  | INFO: 2026/02/23 12:03:55 Auto-approved beneficiary bb06b994-c79e-4de7-9ed8-5f0f1bd4d38c
-mockxago-test  | INFO: 2026/02/23 12:03:55 Auto-approved beneficiary e896cb5d-68d7-4ffc-ad37-b23bb581bb2d
-mockxago-test  | INFO: 2026/02/23 12:03:55 Auto-approved beneficiary 190a812f-65ef-480f-b1da-b6422f8fc78b
-mockxago-test  | INFO: 2026/02/23 12:03:55 Auto-approved beneficiary 55dbd44e-9bc1-4975-9a8a-54e8d920c7bf
-mockxago-test  | INFO: 2026/02/23 12:04:00 Successful login with public_key=test_public_key_12345, issued token=9df35bb0-febf-4009-a366-12173a388af7
-mockxago-test  | INFO: 2026/02/23 12:04:00 Test deposit created: mock-1771848240003051027 for account 264169ad-0ac6-4733-ab1f-d66d2405b00f: 1000.000000 ZAR (ref: wallet_dep_test_ZAR)
-mockxago-test  | INFO: 2026/02/23 12:04:00 Deposit completed: mock-1771848240003051027 for account 264169ad-0ac6-4733-ab1f-d66d2405b00f: 1000.000000 ZAR
-mockxago-test  | ERROR: 2026/02/23 12:04:00 Failed to send deposit webhook: Post "http://host.docker.internal:3000/xago/webhooks": dial tcp 172.17.0.1:3000: connect: connection refused
-mockxago-test  | INFO: 2026/02/23 12:04:05 Successful login with public_key=test_public_key_12345, issued token=7301efa5-4fba-4d17-b823-15c03d4e4410
-mockxago-test  | INFO: 2026/02/23 12:04:05 Test deposit created: mock-1771848245042422566 for account 8883d01a-2fd5-4ff4-94fd-bed7f5961c19: 1000.000000 ZAR (ref: wallet_dep_test_ZAR)
-mockxago-test  | INFO: 2026/02/23 12:04:05 Deposit completed: mock-1771848245042422566 for account 8883d01a-2fd5-4ff4-94fd-bed7f5961c19: 1000.000000 ZAR
-mockxago-test  | ERROR: 2026/02/23 12:04:05 Failed to send deposit webhook: Post "http://host.docker.internal:3000/xago/webhooks": dial tcp 172.17.0.1:3000: connect: connection refused
-mockxago-test  | INFO: 2026/02/23 12:04:10 Successful login with public_key=test_public_key_12345, issued token=31eaded3-6000-4238-9495-da988cd0f988
-mockxago-test  | INFO: 2026/02/23 12:04:10 Test deposit created: mock-1771848250074275517 for account d532ed9f-b6f5-4adf-8087-d4150de38ebc: 5000.000000 ZAR (ref: wallet_dep_test_ZAR)
-mockxago-test  | INFO: 2026/02/23 12:04:10 Deposit completed: mock-1771848250074275517 for account d532ed9f-b6f5-4adf-8087-d4150de38ebc: 5000.000000 ZAR
-mockxago-test  | ERROR: 2026/02/23 12:04:10 Failed to send deposit webhook: Post "http://host.docker.internal:3000/xago/webhooks": dial tcp 172.17.0.1:3000: connect: connection refused
-mockxago-test  | INFO: 2026/02/23 12:04:15 Successful login with public_key=test_public_key_12345, issued token=ee90c18e-42e1-42b9-83e2-1eb620e45b99
-mockxago-test  | INFO: 2026/02/23 12:04:15 Test deposit created: mock-1771848255111990668 for account d446fa49-6d6e-476b-9bb5-6e7878ced866: 2000.000000 ZAR (ref: wallet_dep_test_ZAR)
-mockxago-test  | INFO: 2026/02/23 12:04:15 Deposit completed: mock-1771848255111990668 for account d446fa49-6d6e-476b-9bb5-6e7878ced866: 2000.000000 ZAR
-mockxago-test  | ERROR: 2026/02/23 12:04:15 Failed to send deposit webhook: Post "http://host.docker.internal:3000/xago/webhooks": dial tcp 172.17.0.1:3000: connect: connection refused
-mockxago-test  | INFO: 2026/02/23 12:04:20 Successful login with public_key=test_public_key_12345, issued token=0a648da3-c274-4393-8b36-2572c4d9777d
-mockxago-test  | INFO: 2026/02/23 12:04:20 Test deposit created: mock-1771848260147522634 for account b24406c3-b5e0-4016-bc3b-fa5c08c8d832: 1000.000000 ZAR (ref: wallet_dep_test_ZAR)
-mockxago-test  | INFO: 2026/02/23 12:04:20 Deposit completed: mock-1771848260147522634 for account b24406c3-b5e0-4016-bc3b-fa5c08c8d832: 1000.000000 ZAR
-mockxago-test  | ERROR: 2026/02/23 12:04:20 Failed to send deposit webhook: Post "http://host.docker.internal:3000/xago/webhooks": dial tcp 172.17.0.1:3000: connect: connection refused
-mockxago-test  | INFO: 2026/02/23 12:04:25 Successful login with public_key=test_public_key_12345, issued token=2c47b5f6-a7e0-4d87-8352-95e35690bc8c
-mockxago-test  | INFO: 2026/02/23 12:04:25 Test deposit created: mock-1771848265188896579 for account ada9f42b-4d31-4bb6-8197-38aa93f41f25: 1000.000000 ZAR (ref: wallet_dep_test_ZAR)
-mockxago-test  | INFO: 2026/02/23 12:04:25 Test deposit created: mock-1771848265189901735 for account ada9f42b-4d31-4bb6-8197-38aa93f41f25: 1100.000000 ZAR (ref: wallet_dep_test_ZAR)
-mockxago-test  | INFO: 2026/02/23 12:04:25 Test deposit created: mock-1771848265191516496 for account ada9f42b-4d31-4bb6-8197-38aa93f41f25: 1200.000000 ZAR (ref: wallet_dep_test_ZAR)
-mockxago-test  | INFO: 2026/02/23 12:04:25 Successful login with public_key=test_public_key_12345, issued token=a8048ae6-529c-4870-a130-6d5497039836
-mockxago-test  | INFO: 2026/02/23 12:04:25 Test deposit created: mock-1771848265200547612 for account 1b0f1508-cbcb-4b5f-a49a-c44e71dd8f02: 1000.000000 ZAR (ref: wallet_dep_test_ZAR)
-mockxago-test  | INFO: 2026/02/23 12:04:25 Test deposit created: mock-1771848265200803789 for account 1b0f1508-cbcb-4b5f-a49a-c44e71dd8f02: 1100.000000 ZAR (ref: wallet_dep_test_ZAR)
-mockxago-test  | INFO: 2026/02/23 12:04:25 Test deposit created: mock-1771848265201001568 for account 1b0f1508-cbcb-4b5f-a49a-c44e71dd8f02: 1200.000000 ZAR (ref: wallet_dep_test_ZAR)
-mockxago-test  | INFO: 2026/02/23 12:04:25 Test deposit created: mock-1771848265201203488 for account 1b0f1508-cbcb-4b5f-a49a-c44e71dd8f02: 1300.000000 ZAR (ref: wallet_dep_test_ZAR)
-mockxago-test  | INFO: 2026/02/23 12:04:25 Test deposit created: mock-1771848265201361289 for account 1b0f1508-cbcb-4b5f-a49a-c44e71dd8f02: 1400.000000 ZAR (ref: wallet_dep_test_ZAR)
-mockxago-test  | INFO: 2026/02/23 12:04:25 Test deposit created: mock-1771848265201532732 for account 1b0f1508-cbcb-4b5f-a49a-c44e71dd8f02: 1500.000000 ZAR (ref: wallet_dep_test_ZAR)
-mockxago-test  | INFO: 2026/02/23 12:04:25 Test deposit created: mock-1771848265201681663 for account 1b0f1508-cbcb-4b5f-a49a-c44e71dd8f02: 1600.000000 ZAR (ref: wallet_dep_test_ZAR)
-mockxago-test  | INFO: 2026/02/23 12:04:25 Test deposit created: mock-1771848265201818633 for account 1b0f1508-cbcb-4b5f-a49a-c44e71dd8f02: 1700.000000 ZAR (ref: wallet_dep_test_ZAR)
-mockxago-test  | INFO: 2026/02/23 12:04:25 Test deposit created: mock-1771848265201955526 for account 1b0f1508-cbcb-4b5f-a49a-c44e71dd8f02: 1800.000000 ZAR (ref: wallet_dep_test_ZAR)
-mockxago-test  | INFO: 2026/02/23 12:04:25 Test deposit created: mock-1771848265202095891 for account 1b0f1508-cbcb-4b5f-a49a-c44e71dd8f02: 1900.000000 ZAR (ref: wallet_dep_test_ZAR)
-mockxago-test  | INFO: 2026/02/23 12:04:25 Test deposit created: mock-1771848265202224411 for account 1b0f1508-cbcb-4b5f-a49a-c44e71dd8f02: 2000.000000 ZAR (ref: wallet_dep_test_ZAR)
-mockxago-test  | INFO: 2026/02/23 12:04:25 Test deposit created: mock-1771848265202351300 for account 1b0f1508-cbcb-4b5f-a49a-c44e71dd8f02: 2100.000000 ZAR (ref: wallet_dep_test_ZAR)
-mockxago-test  | INFO: 2026/02/23 12:04:25 Test deposit created: mock-1771848265202475155 for account 1b0f1508-cbcb-4b5f-a49a-c44e71dd8f02: 2200.000000 ZAR (ref: wallet_dep_test_ZAR)
-mockxago-test  | INFO: 2026/02/23 12:04:25 Test deposit created: mock-1771848265202611607 for account 1b0f1508-cbcb-4b5f-a49a-c44e71dd8f02: 2300.000000 ZAR (ref: wallet_dep_test_ZAR)
-mockxago-test  | INFO: 2026/02/23 12:04:25 Test deposit created: mock-1771848265202749061 for account 1b0f1508-cbcb-4b5f-a49a-c44e71dd8f02: 2400.000000 ZAR (ref: wallet_dep_test_ZAR)
-mockxago-test  | INFO: 2026/02/23 12:04:25 Listed transactions: page=1, limit=10, total=25, returned=10
-mockxago-test  | INFO: 2026/02/23 12:04:25 Listed transactions: page=2, limit=10, total=25, returned=10
-mockxago-test  | INFO: 2026/02/23 12:04:25 Successful login with public_key=test_public_key_12345, issued token=29aacb4f-f68e-4336-bff4-75a9333f466a
-mockxago-test  | INFO: 2026/02/23 12:04:25 Test deposit created: mock-1771848265209505396 for account 61d01e60-c5e4-4a51-80dc-63bae2d05f3a: 1000.000000 ZAR (ref: wallet_100_ZAR)
-mockxago-test  | INFO: 2026/02/23 12:04:25 Deposit completed: mock-1771848265188896579 for account ada9f42b-4d31-4bb6-8197-38aa93f41f25: 1000.000000 ZAR
-mockxago-test  | INFO: 2026/02/23 12:04:25 Deposit completed: mock-1771848265189901735 for account ada9f42b-4d31-4bb6-8197-38aa93f41f25: 1100.000000 ZAR
-mockxago-test  | ERROR: 2026/02/23 12:04:25 Failed to send deposit webhook: Post "http://host.docker.internal:3000/xago/webhooks": dial tcp 172.17.0.1:3000: connect: connection refused
-mockxago-test  | ERROR: 2026/02/23 12:04:25 Failed to send deposit webhook: Post "http://host.docker.internal:3000/xago/webhooks": dial tcp 172.17.0.1:3000: connect: connection refused
-mockxago-test  | INFO: 2026/02/23 12:04:25 Deposit completed: mock-1771848265191516496 for account ada9f42b-4d31-4bb6-8197-38aa93f41f25: 1200.000000 ZAR
-mockxago-test  | ERROR: 2026/02/23 12:04:25 Failed to send deposit webhook: Post "http://host.docker.internal:3000/xago/webhooks": dial tcp 172.17.0.1:3000: connect: connection refused
-mockxago-test  | INFO: 2026/02/23 12:04:25 Deposit completed: mock-1771848265201001568 for account 1b0f1508-cbcb-4b5f-a49a-c44e71dd8f02: 1200.000000 ZAR
-mockxago-test  | INFO: 2026/02/23 12:04:25 Deposit completed: mock-1771848265200803789 for account 1b0f1508-cbcb-4b5f-a49a-c44e71dd8f02: 1100.000000 ZAR
-mockxago-test  | INFO: 2026/02/23 12:04:25 Deposit completed: mock-1771848265201203488 for account 1b0f1508-cbcb-4b5f-a49a-c44e71dd8f02: 1300.000000 ZAR
-mockxago-test  | INFO: 2026/02/23 12:04:25 Deposit completed: mock-1771848265201361289 for account 1b0f1508-cbcb-4b5f-a49a-c44e71dd8f02: 1400.000000 ZAR
-mockxago-test  | INFO: 2026/02/23 12:04:25 Deposit completed: mock-1771848265201532732 for account 1b0f1508-cbcb-4b5f-a49a-c44e71dd8f02: 1500.000000 ZAR
-mockxago-test  | INFO: 2026/02/23 12:04:25 Deposit completed: mock-1771848265201681663 for account 1b0f1508-cbcb-4b5f-a49a-c44e71dd8f02: 1600.000000 ZAR
-mockxago-test  | INFO: 2026/02/23 12:04:25 Deposit completed: mock-1771848265200547612 for account 1b0f1508-cbcb-4b5f-a49a-c44e71dd8f02: 1000.000000 ZAR
-mockxago-test  | ERROR: 2026/02/23 12:04:25 Failed to send deposit webhook: Post "http://host.docker.internal:3000/xago/webhooks": dial tcp 172.17.0.1:3000: connect: connection refused
-mockxago-test  | INFO: 2026/02/23 12:04:25 Deposit completed: mock-1771848265201818633 for account 1b0f1508-cbcb-4b5f-a49a-c44e71dd8f02: 1700.000000 ZAR
-mockxago-test  | INFO: 2026/02/23 12:04:25 Deposit completed: mock-1771848265201955526 for account 1b0f1508-cbcb-4b5f-a49a-c44e71dd8f02: 1800.000000 ZAR
-mockxago-test  | INFO: 2026/02/23 12:04:25 Deposit completed: mock-1771848265202095891 for account 1b0f1508-cbcb-4b5f-a49a-c44e71dd8f02: 1900.000000 ZAR
-mockxago-test  | INFO: 2026/02/23 12:04:25 Deposit completed: mock-1771848265202224411 for account 1b0f1508-cbcb-4b5f-a49a-c44e71dd8f02: 2000.000000 ZAR
-mockxago-test  | ERROR: 2026/02/23 12:04:25 Failed to send deposit webhook: Post "http://host.docker.internal:3000/xago/webhooks": dial tcp 172.17.0.1:3000: connect: connection refused
-mockxago-test  | ERROR: 2026/02/23 12:04:25 Failed to send deposit webhook: Post "http://host.docker.internal:3000/xago/webhooks": dial tcp 172.17.0.1:3000: connect: connection refused
-mockxago-test  | INFO: 2026/02/23 12:04:25 Deposit completed: mock-1771848265202351300 for account 1b0f1508-cbcb-4b5f-a49a-c44e71dd8f02: 2100.000000 ZAR
-mockxago-test  | INFO: 2026/02/23 12:04:25 Deposit completed: mock-1771848265202475155 for account 1b0f1508-cbcb-4b5f-a49a-c44e71dd8f02: 2200.000000 ZAR
-mockxago-test  | INFO: 2026/02/23 12:04:25 Deposit completed: mock-1771848265202611607 for account 1b0f1508-cbcb-4b5f-a49a-c44e71dd8f02: 2300.000000 ZAR
-mockxago-test  | ERROR: 2026/02/23 12:04:25 Failed to send deposit webhook: Post "http://host.docker.internal:3000/xago/webhooks": dial tcp 172.17.0.1:3000: connect: connection refused
-mockxago-test  | INFO: 2026/02/23 12:04:25 Deposit completed: mock-1771848265202749061 for account 1b0f1508-cbcb-4b5f-a49a-c44e71dd8f02: 2400.000000 ZAR
-mockxago-test  | ERROR: 2026/02/23 12:04:25 Failed to send deposit webhook: Post "http://host.docker.internal:3000/xago/webhooks": dial tcp 172.17.0.1:3000: connect: connection refused
-mockxago-test  | ERROR: 2026/02/23 12:04:25 Failed to send deposit webhook: Post "http://host.docker.internal:3000/xago/webhooks": dial tcp 172.17.0.1:3000: connect: connection refused
-mockxago-test  | ERROR: 2026/02/23 12:04:25 Failed to send deposit webhook: Post "http://host.docker.internal:3000/xago/webhooks": dial tcp 172.17.0.1:3000: connect: connection refused
-mockxago-test  | ERROR: 2026/02/23 12:04:25 Failed to send deposit webhook: Post "http://host.docker.internal:3000/xago/webhooks": dial tcp 172.17.0.1:3000: connect: connection refused
-mockxago-test  | ERROR: 2026/02/23 12:04:25 Failed to send deposit webhook: Post "http://host.docker.internal:3000/xago/webhooks": dial tcp 172.17.0.1:3000: connect: connection refused
-mockxago-test  | ERROR: 2026/02/23 12:04:25 Failed to send deposit webhook: Post "http://host.docker.internal:3000/xago/webhooks": dial tcp 172.17.0.1:3000: connect: connection refused
-mockxago-test  | ERROR: 2026/02/23 12:04:25 Failed to send deposit webhook: Post "http://host.docker.internal:3000/xago/webhooks": dial tcp 172.17.0.1:3000: connect: connection refused
-mockxago-test  | ERROR: 2026/02/23 12:04:25 Failed to send deposit webhook: Post "http://host.docker.internal:3000/xago/webhooks": dial tcp 172.17.0.1:3000: connect: connection refused
-mockxago-test  | ERROR: 2026/02/23 12:04:25 Failed to send deposit webhook: Post "http://host.docker.internal:3000/xago/webhooks": dial tcp 172.17.0.1:3000: connect: connection refused
-mockxago-test  | ERROR: 2026/02/23 12:04:25 Failed to send deposit webhook: Post "http://host.docker.internal:3000/xago/webhooks": dial tcp 172.17.0.1:3000: connect: connection refused
-mockxago-test  | ERROR: 2026/02/23 12:04:25 Failed to send deposit webhook: Post "http://host.docker.internal:3000/xago/webhooks": dial tcp 172.17.0.1:3000: connect: connection refused
-mockxago-test  | INFO: 2026/02/23 12:04:25 Deposit completed: mock-1771848265209505396 for account 61d01e60-c5e4-4a51-80dc-63bae2d05f3a: 1000.000000 ZAR
-mockxago-test  | ERROR: 2026/02/23 12:04:25 Failed to send deposit webhook: Post "http://host.docker.internal:3000/xago/webhooks": dial tcp 172.17.0.1:3000: connect: connection refused
-mockxago-test  | INFO: 2026/02/23 12:04:30 Successful login with public_key=test_public_key_12345, issued token=a49ffb00-b821-4730-b57e-3b9cfad24bcf
-mockxago-test  | INFO: 2026/02/23 12:04:30 Successful login with public_key=test_public_key_12345, issued token=6f7e00b1-0bb8-4885-92c4-f737f552934b
-mockxago-test  | INFO: 2026/02/23 12:04:30 Successful login with public_key=test_public_key_12345, issued token=ddab4402-3fe7-4f9b-8e94-0e041495dee0
-mockxago-test  | INFO: 2026/02/23 12:04:30 Successful login with public_key=test_public_key_12345, issued token=3ae67f57-4ddd-4bfb-bcc8-1424867204c5
-mockxago-test  | INFO: 2026/02/23 12:04:30 Test deposit created: mock-1771848270259313184 for account 537b22b1-4e6e-4705-890e-244eab9dac3f: 1000.000000 ZAR (ref: wallet_dep_test_ZAR)
-mockxago-test  | INFO: 2026/02/23 12:04:30 Deposit completed: mock-1771848270259313184 for account 537b22b1-4e6e-4705-890e-244eab9dac3f: 1000.000000 ZAR
-mockxago-test  | ERROR: 2026/02/23 12:04:30 Failed to send deposit webhook: Post "http://host.docker.internal:3000/xago/webhooks": dial tcp 172.17.0.1:3000: connect: connection refused
-mockxago-test  | INFO: 2026/02/23 12:04:35 Successful login with public_key=test_public_key_12345, issued token=6f39bd6a-0fe5-49e6-b633-bff8ae6b5bf1
-mockxago-test  | INFO: 2026/02/23 12:04:35 Test deposit created: mock-1771848275308430604 for account 83ee25b8-c4ee-4436-91d4-0bde6ec7f788: 1000.000000 ZAR (ref: dep_mock-1771848275308430604)
-mockxago-test  | INFO: 2026/02/23 12:04:35 Successful login with public_key=test_public_key_12345, issued token=d87b4aa4-d013-44a0-bbaf-b743c574363e
-mockxago-test  | INFO: 2026/02/23 12:04:35 Successful login with public_key=test_public_key_12345, issued token=9e4e5582-8057-4498-baa1-3ffb37c37aa3
-mockxago-test  | INFO: 2026/02/23 12:04:35 Successful login with public_key=test_public_key_12345, issued token=e13ad37f-82fa-47a1-88a8-db743a587061
-mockxago-test  | INFO: 2026/02/23 12:04:35 Test deposit created: mock-1771848275326785719 for account 373d7f21-30f6-4dd9-b78d-d50245c199ac: 1000.000000 ZAR (ref: wallet_dep_test_ZAR)
-mockxago-test  | INFO: 2026/02/23 12:04:35 Test deposit created: mock-1771848275327055604 for account 373d7f21-30f6-4dd9-b78d-d50245c199ac: 1100.000000 ZAR (ref: wallet_dep_test_ZAR)
-mockxago-test  | INFO: 2026/02/23 12:04:35 Test deposit created: mock-1771848275327292913 for account 373d7f21-30f6-4dd9-b78d-d50245c199ac: 1200.000000 ZAR (ref: wallet_dep_test_ZAR)
-mockxago-test  | INFO: 2026/02/23 12:04:35 Test deposit created: mock-1771848275327449167 for account 373d7f21-30f6-4dd9-b78d-d50245c199ac: 1300.000000 ZAR (ref: wallet_dep_test_ZAR)
-mockxago-test  | INFO: 2026/02/23 12:04:35 Test deposit created: mock-1771848275327636254 for account 373d7f21-30f6-4dd9-b78d-d50245c199ac: 1400.000000 ZAR (ref: wallet_dep_test_ZAR)
-mockxago-test  | INFO: 2026/02/23 12:04:35 Deposit completed: mock-1771848275308430604 for account 83ee25b8-c4ee-4436-91d4-0bde6ec7f788: 1000.000000 ZAR
-mockxago-test  | ERROR: 2026/02/23 12:04:35 Failed to send deposit webhook: Post "http://host.docker.internal:3000/xago/webhooks": dial tcp 172.17.0.1:3000: connect: connection refused
-mockxago-test  | INFO: 2026/02/23 12:04:35 Deposit completed: mock-1771848275326785719 for account 373d7f21-30f6-4dd9-b78d-d50245c199ac: 1000.000000 ZAR
-mockxago-test  | INFO: 2026/02/23 12:04:35 Deposit completed: mock-1771848275327292913 for account 373d7f21-30f6-4dd9-b78d-d50245c199ac: 1200.000000 ZAR
-mockxago-test  | INFO: 2026/02/23 12:04:35 Deposit completed: mock-1771848275327055604 for account 373d7f21-30f6-4dd9-b78d-d50245c199ac: 1100.000000 ZAR
-mockxago-test  | INFO: 2026/02/23 12:04:35 Deposit completed: mock-1771848275327449167 for account 373d7f21-30f6-4dd9-b78d-d50245c199ac: 1300.000000 ZAR
-mockxago-test  | INFO: 2026/02/23 12:04:35 Deposit completed: mock-1771848275327636254 for account 373d7f21-30f6-4dd9-b78d-d50245c199ac: 1400.000000 ZAR
-mockxago-test  | ERROR: 2026/02/23 12:04:35 Failed to send deposit webhook: Post "http://host.docker.internal:3000/xago/webhooks": dial tcp 172.17.0.1:3000: connect: connection refused
-mockxago-test  | ERROR: 2026/02/23 12:04:35 Failed to send deposit webhook: Post "http://host.docker.internal:3000/xago/webhooks": dial tcp 172.17.0.1:3000: connect: connection refused
-mockxago-test  | ERROR: 2026/02/23 12:04:35 Failed to send deposit webhook: Post "http://host.docker.internal:3000/xago/webhooks": dial tcp 172.17.0.1:3000: connect: connection refused
-mockxago-test  | ERROR: 2026/02/23 12:04:35 Failed to send deposit webhook: Post "http://host.docker.internal:3000/xago/webhooks": dial tcp 172.17.0.1:3000: connect: connection refused
-mockxago-test  | ERROR: 2026/02/23 12:04:35 Failed to send deposit webhook: Post "http://host.docker.internal:3000/xago/webhooks": dial tcp 172.17.0.1:3000: connect: connection refused
-mockxago-test  | INFO: 2026/02/23 12:04:45 Successful login with public_key=test_public_key_12345, issued token=361cb4ed-21a4-46e9-af0d-50c715934deb
-mockxago-test  | INFO: 2026/02/23 12:04:45 KYC iframe form submitted
-mockxago-test  | INFO: 2026/02/23 12:04:45 KYC submitted - wallet_id: wallet_kyc_001, name: Sarah Smith
-mockxago-test  | INFO: 2026/02/23 12:04:45 Parsed birth year: 1990
-mockxago-test  | INFO: 2026/02/23 12:04:45 KYC submission successful for wallet wallet_kyc_001
-mockxago-test  | ERROR: 2026/02/23 12:04:45 Persona webhook request failed: Post "http://backend:8080/webhooks/persona": dial tcp: lookup backend on 127.0.0.11:53: server misbehaving
-mockxago-test  | INFO: 2026/02/23 12:04:45 Successful login with public_key=test_public_key_12345, issued token=2d0fae5a-0032-4da3-b7f6-1323bcae8b6f
-mockxago-test  | ERROR: 2026/02/23 12:04:45 Failed to send deposit webhook: Post "http://host.docker.internal:3000/xago/webhooks": dial tcp 172.17.0.1:3000: connect: connection refused
-mockxago-test  | INFO: 2026/02/23 12:04:45 Successful login with public_key=test_public_key_12345, issued token=29d81239-868f-4216-a6d9-2fbc91668376
-mockxago-test  | ERROR: 2026/02/23 12:04:45 Failed to send deposit webhook: Post "http://host.docker.internal:3000/xago/webhooks": dial tcp 172.17.0.1:3000: connect: connection refused
-mockxago-test  | ERROR: 2026/02/23 12:04:45 Failed to send deposit webhook: Post "http://host.docker.internal:3000/xago/webhooks": dial tcp 172.17.0.1:3000: connect: connection refused
-mockxago-test  | INFO: 2026/02/23 12:04:45 Successful login with public_key=test_public_key_12345, issued token=23eb92ec-659e-4a9e-bcd2-b38a21295355
-mockxago-test  | ERROR: 2026/02/23 12:04:45 Failed to send deposit webhook: Post "http://host.docker.internal:3000/xago/webhooks": dial tcp 172.17.0.1:3000: connect: connection refused
-mockxago-test  | ERROR: 2026/02/23 12:04:45 Failed to send deposit webhook: Post "http://host.docker.internal:3000/xago/webhooks": dial tcp 172.17.0.1:3000: connect: connection refused
-mockxago-test  | INFO: 2026/02/23 12:04:45 Successful login with public_key=test_public_key_12345, issued token=dc0b4d4e-e11f-4b1c-ba8f-2d462f42ed4a
-mockxago-test  | INFO: 2026/02/23 12:04:45 Successful login with public_key=test_public_key_12345, issued token=3f957fa3-427f-453d-ab31-df8197a3f046
-mockxago-test  | INFO: 2026/02/23 12:04:45 Successful login with public_key=test_public_key_12345, issued token=77a56e48-1ecf-4f4e-a860-03b3733a71ef
-mockxago-test  | INFO: 2026/02/23 12:04:45 Successful login with public_key=test_public_key_12345, issued token=52285687-f59a-4e9d-b7a1-3593a980da31
-mockxago-test  | INFO: 2026/02/23 12:04:45 Test transaction created: 4b8f3517-a399-40ec-87b9-ebfc7c79e84e for account b7cb1b43-4860-4295-9836-3dc69bad1a66: 10000.000000 ZAR
-mockxago-test  | INFO: 2026/02/23 12:04:45 Test transaction created: 908061c8-a364-465c-b1f4-c1e3b5437943 for account b7cb1b43-4860-4295-9836-3dc69bad1a66: 2000.000000 ZAR
-mockxago-test  | INFO: 2026/02/23 12:04:45 Test transaction created: da0da7ec-2f7a-4158-9372-0b956c04e7af for account b7cb1b43-4860-4295-9836-3dc69bad1a66: 5000.000000 ZAR
-mockxago-test  | INFO: 2026/02/23 12:04:45 Test transaction created: daf2dadf-88f5-4e71-9800-a18831528155 for account b7cb1b43-4860-4295-9836-3dc69bad1a66: 1000.000000 USD
-mockxago-test  | INFO: 2026/02/23 12:04:45 Listed transactions: page=1, limit=10, total=37, returned=10
-mockxago-test  | INFO: 2026/02/23 12:04:45 Successful login with public_key=test_public_key_12345, issued token=5a74d4b5-8c86-480d-b7c3-bf5c0c265edd
-mockxago-test  | INFO: 2026/02/23 12:04:45 Successful login with public_key=test_public_key_12345, issued token=8db1f9aa-694e-4d31-89c1-96fd77bef3de
-mockxago-test  | INFO: 2026/02/23 12:04:45 Successful login with public_key=test_public_key_12345, issued token=5097cb00-5814-4a76-9b58-6a2d3825edfb
-mockxago-test  | INFO: 2026/02/23 12:04:45 Successful login with public_key=test_public_key_12345, issued token=589b3ed5-0f16-4930-aaa9-2c563716fbe9
-mockxago-test  | INFO: 2026/02/23 12:04:45 Successful login with public_key=test_public_key_12345, issued token=c24e6f14-3ab5-4665-b5e0-981ef1f7a6f2
-mockxago-test  | INFO: 2026/02/23 12:04:45 Successful login with public_key=test_public_key_12345, issued token=e4d5adc3-38f8-44b2-9675-1de9440ca4ec
-mockxago-test  | INFO: 2026/02/23 12:04:45 Successful login with public_key=test_public_key_12345, issued token=961d5299-874d-48fa-bc97-8588a651f3c3
-mockxago-test  | INFO: 2026/02/23 12:04:45 Successful login with public_key=test_public_key_12345, issued token=7c804cfa-94f7-4bdc-bd60-19d5864fe92b
-mockxago-test  | INFO: 2026/02/23 12:04:45 Successful login with public_key=test_public_key_12345, issued token=f6fe0dd0-cb49-42c7-9f94-4a590d673e13
-mockxago-test  | INFO: 2026/02/23 12:04:45 Successful login with public_key=test_public_key_12345, issued token=e897e34d-65e1-4aae-aac1-2d3043330c4d
-mockxago-test  | INFO: 2026/02/23 12:04:45 Successful login with public_key=test_public_key_12345, issued token=5040a267-15e0-485e-8832-b90c1383add8
-mockxago-test  | INFO: 2026/02/23 12:04:45 Created beneficiary f4a08021-a5ea-4be9-ae9a-7ca9791f3794 for account 5c0e75f5-f641-4a79-bf3b-2110e361b869 (wallet wallet_txn_test)
-mockxago-test  | INFO: 2026/02/23 12:04:45 Transfer created: ID=19f857bf-4d7b-4dde-9def-969368e532bd, wallet_id=wallet_txn_test, amount=1000.50 ZAR, beneficiary_id=f4a08021-a5ea-4be9-ae9a-7ca9791f3794
-mockxago-test  | INFO: 2026/02/23 12:04:45 Successful login with public_key=test_public_key_12345, issued token=7a37510c-3567-439b-b6e2-963b55fac989
-mockxago-test  | INFO: 2026/02/23 12:04:45 Created beneficiary e4dd4856-8ec4-4b1e-906e-90edf86c385e for account 439580aa-d6fe-4ab7-bb38-3918c4f0b67b (wallet wallet_txn_test)
-mockxago-test  | INFO: 2026/02/23 12:04:45 Transfer created: ID=128d7409-1b9d-4d53-92f9-704f61afe5ee, wallet_id=wallet_txn_test, amount=1000.00 ZAR, beneficiary_id=e4dd4856-8ec4-4b1e-906e-90edf86c385e
-mockxago-test  | INFO: 2026/02/23 12:04:45 Successful login with public_key=test_public_key_12345, issued token=7f4c113e-c61d-4c03-aad9-8a094270c957
-mockxago-test  | INFO: 2026/02/23 12:04:45 Created beneficiary d3046b88-fe20-490f-b8ae-f9074381470f for account cfcc4302-5074-4a92-bd5a-cd91c30dd5ac (wallet wallet_txn_test)
-mockxago-test  | INFO: 2026/02/23 12:04:45 Successful login with public_key=test_public_key_12345, issued token=0424e68e-adea-4579-9cba-4fc1edf195a4
-mockxago-test  | INFO: 2026/02/23 12:04:45 Created beneficiary 9eff2b9d-91ce-4e73-a6f2-5285d8a891b9 for account 2cb205c6-06ea-4c7c-bb1d-5ccf836930c4 (wallet wallet_txn_test)
-mockxago-test  | INFO: 2026/02/23 12:04:45 Transfer created: ID=c033ea83-714c-460c-aec4-4df8de18c971, wallet_id=wallet_txn_test, amount=500.00 ZAR, beneficiary_id=9eff2b9d-91ce-4e73-a6f2-5285d8a891b9
-mockxago-test  | INFO: 2026/02/23 12:04:48 Transfer auto-completed: 19f857bf-4d7b-4dde-9def-969368e532bd
-mockxago-test  | INFO: 2026/02/23 12:04:48 Transfer auto-completed: 128d7409-1b9d-4d53-92f9-704f61afe5ee
-mockxago-test  | INFO: 2026/02/23 12:04:48 Transfer auto-completed: c033ea83-714c-460c-aec4-4df8de18c971
-mockxago-test  | INFO: 2026/02/23 12:04:48 Auto-approved beneficiary f4a08021-a5ea-4be9-ae9a-7ca9791f3794
-mockxago-test  | INFO: 2026/02/23 12:04:48 Auto-approved beneficiary e4dd4856-8ec4-4b1e-906e-90edf86c385e
-mockxago-test  | INFO: 2026/02/23 12:04:48 Auto-approved beneficiary d3046b88-fe20-490f-b8ae-f9074381470f
-mockxago-test  | INFO: 2026/02/23 12:04:48 Auto-approved beneficiary 9eff2b9d-91ce-4e73-a6f2-5285d8a891b9
-mockxago-test  | INFO: 2026/02/23 12:04:48 Transfer retrieved: c033ea83-714c-460c-aec4-4df8de18c971
-mockxago-test  | INFO: 2026/02/23 12:04:48 Successful login with public_key=test_public_key_12345, issued token=ff1d1cc7-4658-4731-9844-5bdba5ccb749
-mockxago-test  | INFO: 2026/02/23 12:04:48 Created beneficiary dcc9e077-45b6-4e9a-bd7d-3fdd3ac4dafb for account 0af63693-5712-4cce-9db1-c40a496505dc (wallet wallet_txn_test)
-mockxago-test  | INFO: 2026/02/23 12:04:48 Transfer created: ID=f95b8a94-a9ba-4b39-ac99-e932da8b9de4, wallet_id=wallet_txn_test, amount=1000.00 ZAR, beneficiary_id=dcc9e077-45b6-4e9a-bd7d-3fdd3ac4dafb
-mockxago-test  | INFO: 2026/02/23 12:04:48 Idempotent transfer request: returning existing transaction f95b8a94-a9ba-4b39-ac99-e932da8b9de4
-mockxago-test  | INFO: 2026/02/23 12:04:48 Successful login with public_key=test_public_key_12345, issued token=9e51fe19-2780-4f3f-8d9d-b9df5dffd646
-mockxago-test  | INFO: 2026/02/23 12:04:48 Created beneficiary 7b0f5383-36ad-4e67-bf78-2fb58ea59c03 for account 3b477d41-16e1-4ffb-9ecb-63e56bdb15db (wallet wallet_txn_test)
-mockxago-test  | INFO: 2026/02/23 12:04:48 Successful login with public_key=test_public_key_12345, issued token=25d3a90f-b185-4d8d-a816-13b86e4b690a
-mockxago-test  | INFO: 2026/02/23 12:04:48 Created beneficiary b477e76a-2e5e-4857-919d-ed01920171a4 for account 3a1ef930-2bf1-4bbd-b8d5-059750974625 (wallet wallet_txn_test)
-mockxago-test  | WARN: 2026/02/23 12:04:48 Beneficiary not found: invalid_ben_123
-mockxago-test  | INFO: 2026/02/23 12:04:48 Successful login with public_key=test_public_key_12345, issued token=fa683c5f-2ec3-46ec-9a39-62bdc91aec03
-mockxago-test  | INFO: 2026/02/23 12:04:48 Created beneficiary eaa72d86-7713-4cd3-a421-61c9e6fc435f for account fac147e3-4acc-438f-a0b3-23c3cf95e8fd (wallet wallet_txn_test)
-mockxago-test  | INFO: 2026/02/23 12:04:48 Successful login with public_key=test_public_key_12345, issued token=a5bdc484-e224-4e5e-987f-55c3a2ae1f04
-mockxago-test  | INFO: 2026/02/23 12:04:48 Created beneficiary 969052a1-8786-4f98-a191-bd123e4ef8a0 for account 0a343f0e-0c13-4ad5-8d51-42d2601e348f (wallet wallet_txn_test)
-mockxago-test  | INFO: 2026/02/23 12:04:48 Successful login with public_key=test_public_key_12345, issued token=08e22395-c09c-4e8c-b83b-2734d7d7b887
-mockxago-test  | INFO: 2026/02/23 12:04:48 Created beneficiary 2928bf1f-0709-46de-8a26-6fbbe4a339e4 for account b9d4a978-5bad-4458-931c-331318a547a8 (wallet wallet_txn_test)
-mockxago-test  | INFO: 2026/02/23 12:04:48 Transfer created: ID=6168701a-728e-42f5-8d97-0aa84c04e834, wallet_id=wallet_txn_test, amount=1000.00 ZAR, beneficiary_id=2928bf1f-0709-46de-8a26-6fbbe4a339e4
-mockxago-test  | INFO: 2026/02/23 12:04:48 Transfer created: ID=e6e0d0ce-04b5-421d-9995-ed38b45aeb50, wallet_id=wallet_txn_test, amount=1100.00 ZAR, beneficiary_id=2928bf1f-0709-46de-8a26-6fbbe4a339e4
-mockxago-test  | INFO: 2026/02/23 12:04:48 Transfer created: ID=4a50b52b-fc4b-4514-bf1f-c9b3b4428dde, wallet_id=wallet_txn_test, amount=1200.00 ZAR, beneficiary_id=2928bf1f-0709-46de-8a26-6fbbe4a339e4
-mockxago-test  | INFO: 2026/02/23 12:04:48 Listed transfers: page=1, limit=10, total=3, returned=3
-mockxago-test  | INFO: 2026/02/23 12:04:48 Successful login with public_key=test_public_key_12345, issued token=069ad928-1818-4f38-88cf-c847a16c38f2
-mockxago-test  | INFO: 2026/02/23 12:04:48 Created beneficiary ab4e2cef-c308-4453-b51e-2c70ce270abf for account 14076b33-c983-409c-b72b-23743f4944f3 (wallet wallet_txn_test)
-mockxago-test  | INFO: 2026/02/23 12:04:48 Transfer created: ID=31fb6fd7-3833-4fbd-b777-04cc2895b8cc, wallet_id=wallet_txn_test, amount=1000.00 ZAR, beneficiary_id=ab4e2cef-c308-4453-b51e-2c70ce270abf
-mockxago-test  | INFO: 2026/02/23 12:04:48 Transfer created: ID=f44ed30d-e493-465e-be3d-3598086b53eb, wallet_id=wallet_txn_test, amount=1100.00 ZAR, beneficiary_id=ab4e2cef-c308-4453-b51e-2c70ce270abf
-mockxago-test  | INFO: 2026/02/23 12:04:48 Transfer created: ID=a4d98062-e126-431b-828e-9ec4ef2f90c2, wallet_id=wallet_txn_test, amount=1200.00 ZAR, beneficiary_id=ab4e2cef-c308-4453-b51e-2c70ce270abf
-mockxago-test  | INFO: 2026/02/23 12:04:48 Transfer created: ID=e5df4583-9e7f-4952-b181-10d63bb875b3, wallet_id=wallet_txn_test, amount=1300.00 ZAR, beneficiary_id=ab4e2cef-c308-4453-b51e-2c70ce270abf
-mockxago-test  | INFO: 2026/02/23 12:04:48 Transfer created: ID=95e752f6-e01d-4d76-a001-23191b2138c4, wallet_id=wallet_txn_test, amount=1400.00 ZAR, beneficiary_id=ab4e2cef-c308-4453-b51e-2c70ce270abf
-mockxago-test  | INFO: 2026/02/23 12:04:48 Transfer created: ID=a32373e2-aada-4a05-9885-7d12bc9bfa5f, wallet_id=wallet_txn_test, amount=1500.00 ZAR, beneficiary_id=ab4e2cef-c308-4453-b51e-2c70ce270abf
-mockxago-test  | INFO: 2026/02/23 12:04:48 Transfer created: ID=624108f4-b2d7-4c80-b7ed-5c6c6d055809, wallet_id=wallet_txn_test, amount=1600.00 ZAR, beneficiary_id=ab4e2cef-c308-4453-b51e-2c70ce270abf
-mockxago-test  | INFO: 2026/02/23 12:04:48 Transfer created: ID=0cdbadd2-f84c-41af-be65-ff9256a9b401, wallet_id=wallet_txn_test, amount=1700.00 ZAR, beneficiary_id=ab4e2cef-c308-4453-b51e-2c70ce270abf
-mockxago-test  | INFO: 2026/02/23 12:04:48 Transfer created: ID=2995592b-7667-45af-b07b-948f7757918c, wallet_id=wallet_txn_test, amount=1800.00 ZAR, beneficiary_id=ab4e2cef-c308-4453-b51e-2c70ce270abf
-mockxago-test  | INFO: 2026/02/23 12:04:48 Transfer created: ID=2e55babf-342f-4f6b-a755-230fa49b54ef, wallet_id=wallet_txn_test, amount=1900.00 ZAR, beneficiary_id=ab4e2cef-c308-4453-b51e-2c70ce270abf
-mockxago-test  | INFO: 2026/02/23 12:04:48 Transfer created: ID=9bdb11ee-92fa-45da-b360-9a163a47e8af, wallet_id=wallet_txn_test, amount=2000.00 ZAR, beneficiary_id=ab4e2cef-c308-4453-b51e-2c70ce270abf
-mockxago-test  | INFO: 2026/02/23 12:04:48 Transfer created: ID=1585ea87-ed0f-4114-90f9-ad18ec49bb2a, wallet_id=wallet_txn_test, amount=2100.00 ZAR, beneficiary_id=ab4e2cef-c308-4453-b51e-2c70ce270abf
-mockxago-test  | INFO: 2026/02/23 12:04:48 Transfer created: ID=5b3cb327-84d3-4170-a2fb-b7755550eeee, wallet_id=wallet_txn_test, amount=2200.00 ZAR, beneficiary_id=ab4e2cef-c308-4453-b51e-2c70ce270abf
-mockxago-test  | INFO: 2026/02/23 12:04:48 Transfer created: ID=9752a330-4253-4d3b-a325-f779eebcca91, wallet_id=wallet_txn_test, amount=2300.00 ZAR, beneficiary_id=ab4e2cef-c308-4453-b51e-2c70ce270abf
-mockxago-test  | INFO: 2026/02/23 12:04:48 Transfer created: ID=646c0ad4-00d1-422d-a96c-eabe2579d341, wallet_id=wallet_txn_test, amount=2400.00 ZAR, beneficiary_id=ab4e2cef-c308-4453-b51e-2c70ce270abf
-mockxago-test  | INFO: 2026/02/23 12:04:48 Listed transfers: page=1, limit=10, total=15, returned=10
-mockxago-test  | INFO: 2026/02/23 12:04:48 Listed transfers: page=2, limit=10, total=15, returned=5
-mockxago-test  | INFO: 2026/02/23 12:04:48 Successful login with public_key=test_public_key_12345, issued token=8f4d0323-efec-4072-b95b-287e13768dd3
-mockxago-test  | INFO: 2026/02/23 12:04:48 Created beneficiary 3dc20faf-a711-4586-8a4d-e292e6962ef6 for account 99ca208d-7549-4d0b-9f6c-dfd07a8e211d (wallet wallet_txn_test)
-mockxago-test  | INFO: 2026/02/23 12:04:48 Stubbed transfer returned in test mode: txn_123
-mockxago-test  | INFO: 2026/02/23 12:04:48 Successful login with public_key=test_public_key_12345, issued token=cde89372-892c-4fe6-adbb-cadf620b30bf
-mockxago-test  | INFO: 2026/02/23 12:04:48 Created beneficiary 4ce002aa-5876-4782-ac7b-a2f1cd6039a7 for account 8593ef17-3b53-4a77-9065-031862467196 (wallet wallet_txn_test)
-mockxago-test  | INFO: 2026/02/23 12:04:48 Transfer created: ID=28d434c1-b6aa-4c3d-b042-9257e2a17d99, wallet_id=wallet_txn_test, amount=1000.00 ZAR, beneficiary_id=4ce002aa-5876-4782-ac7b-a2f1cd6039a7
-mockxago-test  | INFO: 2026/02/23 12:04:51 Transfer auto-completed: f95b8a94-a9ba-4b39-ac99-e932da8b9de4
-mockxago-test  | INFO: 2026/02/23 12:04:51 Transfer auto-completed: 6168701a-728e-42f5-8d97-0aa84c04e834
-mockxago-test  | INFO: 2026/02/23 12:04:51 Transfer auto-completed: 4a50b52b-fc4b-4514-bf1f-c9b3b4428dde
-mockxago-test  | INFO: 2026/02/23 12:04:51 Transfer auto-completed: e6e0d0ce-04b5-421d-9995-ed38b45aeb50
-mockxago-test  | INFO: 2026/02/23 12:04:51 Transfer auto-completed: 31fb6fd7-3833-4fbd-b777-04cc2895b8cc
-mockxago-test  | INFO: 2026/02/23 12:04:51 Transfer auto-completed: f44ed30d-e493-465e-be3d-3598086b53eb
-mockxago-test  | INFO: 2026/02/23 12:04:51 Transfer auto-completed: a4d98062-e126-431b-828e-9ec4ef2f90c2
-mockxago-test  | INFO: 2026/02/23 12:04:51 Transfer auto-completed: 0cdbadd2-f84c-41af-be65-ff9256a9b401
-mockxago-test  | INFO: 2026/02/23 12:04:51 Transfer auto-completed: e5df4583-9e7f-4952-b181-10d63bb875b3
-mockxago-test  | INFO: 2026/02/23 12:04:51 Transfer auto-completed: a32373e2-aada-4a05-9885-7d12bc9bfa5f
-mockxago-test  | INFO: 2026/02/23 12:04:51 Transfer auto-completed: 2995592b-7667-45af-b07b-948f7757918c
-mockxago-test  | INFO: 2026/02/23 12:04:51 Transfer auto-completed: 95e752f6-e01d-4d76-a001-23191b2138c4
-mockxago-test  | INFO: 2026/02/23 12:04:51 Transfer auto-completed: 624108f4-b2d7-4c80-b7ed-5c6c6d055809
-mockxago-test  | INFO: 2026/02/23 12:04:51 Transfer auto-completed: 2e55babf-342f-4f6b-a755-230fa49b54ef
-mockxago-test  | INFO: 2026/02/23 12:04:51 Transfer auto-completed: 646c0ad4-00d1-422d-a96c-eabe2579d341
-mockxago-test  | INFO: 2026/02/23 12:04:51 Transfer auto-completed: 9bdb11ee-92fa-45da-b360-9a163a47e8af
-mockxago-test  | INFO: 2026/02/23 12:04:51 Transfer auto-completed: 5b3cb327-84d3-4170-a2fb-b7755550eeee
-mockxago-test  | INFO: 2026/02/23 12:04:51 Transfer auto-completed: 9752a330-4253-4d3b-a325-f779eebcca91
-mockxago-test  | INFO: 2026/02/23 12:04:51 Transfer auto-completed: 1585ea87-ed0f-4114-90f9-ad18ec49bb2a
-mockxago-test  | INFO: 2026/02/23 12:04:51 Transfer auto-completed: 28d434c1-b6aa-4c3d-b042-9257e2a17d99
-mockxago-test  | INFO: 2026/02/23 12:04:51 Auto-approved beneficiary dcc9e077-45b6-4e9a-bd7d-3fdd3ac4dafb
-mockxago-test  | INFO: 2026/02/23 12:04:51 Auto-approved beneficiary 7b0f5383-36ad-4e67-bf78-2fb58ea59c03
-mockxago-test  | INFO: 2026/02/23 12:04:51 Auto-approved beneficiary b477e76a-2e5e-4857-919d-ed01920171a4
-mockxago-test  | INFO: 2026/02/23 12:04:51 Auto-approved beneficiary eaa72d86-7713-4cd3-a421-61c9e6fc435f
-mockxago-test  | INFO: 2026/02/23 12:04:51 Auto-approved beneficiary 969052a1-8786-4f98-a191-bd123e4ef8a0
-mockxago-test  | INFO: 2026/02/23 12:04:51 Auto-approved beneficiary 2928bf1f-0709-46de-8a26-6fbbe4a339e4
-mockxago-test  | INFO: 2026/02/23 12:04:51 Auto-approved beneficiary ab4e2cef-c308-4453-b51e-2c70ce270abf
-mockxago-test  | INFO: 2026/02/23 12:04:51 Auto-approved beneficiary 3dc20faf-a711-4586-8a4d-e292e6962ef6
-mockxago-test  | INFO: 2026/02/23 12:04:51 Auto-approved beneficiary 4ce002aa-5876-4782-ac7b-a2f1cd6039a7
-mockxago-test  | INFO: 2026/02/23 12:04:51 Transfer retrieved: 28d434c1-b6aa-4c3d-b042-9257e2a17d99
-mockxago-test  | INFO: 2026/02/23 12:04:51 Successful login with public_key=test_public_key_12345, issued token=3210b39c-7901-4d50-8ac2-341cb9702092
-mockxago-test  | INFO: 2026/02/23 12:04:51 Created beneficiary b7001b62-7387-45e9-9dce-5faaf70fd101 for account adf80675-eb30-4030-b2f0-e4df4c5b0e93 (wallet wallet_txn_test)
-mockxago-test  | INFO: 2026/02/23 12:04:51 Created beneficiary 8a32f2d4-4c8b-4290-8fd0-260fdeb41b83 for account adf80675-eb30-4030-b2f0-e4df4c5b0e93 (wallet wallet_txn_test)
-mockxago-test  | INFO: 2026/02/23 12:04:51 Transfer created: ID=31c73cf0-d6a4-4c0b-9160-025c28ecba0d, wallet_id=wallet_txn_test, amount=1000.00 ZAR, beneficiary_id=b7001b62-7387-45e9-9dce-5faaf70fd101
-mockxago-test  | INFO: 2026/02/23 12:04:51 Listed transfers: page=1, limit=10, total=1, returned=1
-mockxago-test  | INFO: 2026/02/23 12:04:51 Successful login with public_key=test_public_key_12345, issued token=64824f19-ba80-443a-a18b-17019ba2702c
-mockxago-test  | INFO: 2026/02/23 12:04:51 Created beneficiary 246609d7-ecce-4638-9e34-dfbd9188b284 for account 87320a99-ce54-4e6b-892f-e13e43cf3aa9 (wallet wallet_txn_test)
-mockxago-test  | INFO: 2026/02/23 12:04:51 Successful login with public_key=test_public_key_12345, issued token=82ac933b-aef7-4ef8-9acd-dda62eb60b53
-mockxago-test  | INFO: 2026/02/23 12:04:51 Created beneficiary f33da776-9f7f-4c2e-9bef-5c3e9925a6e6 for account f4625233-3315-46aa-af04-249aa15ea436 (wallet wallet_txn_test)
-mockxago-test  | INFO: 2026/02/23 12:04:51 Successful login with public_key=test_public_key_12345, issued token=09225ac7-88d5-4d63-b702-2d1948b4ae4f
-mockxago-test  | INFO: 2026/02/23 12:04:51 Created beneficiary 931be587-10f5-4096-82e4-a18adc27128b for account 422f6209-ff99-4bc4-bade-8d5154abd0a1 (wallet wallet_txn_test)
-mockxago-test  | INFO: 2026/02/23 12:04:51 Transfer created: ID=060e5812-d148-48d9-b264-ae754fcee303, wallet_id=wallet_txn_test, amount=2000.00 ZAR, beneficiary_id=931be587-10f5-4096-82e4-a18adc27128b
-mockxago-test  | INFO: 2026/02/23 12:04:51 Transfer created: ID=fd665705-86b2-494c-91d5-203458e82c68, wallet_id=wallet_txn_test, amount=3000.00 ZAR, beneficiary_id=931be587-10f5-4096-82e4-a18adc27128b
-mockxago-test  | INFO: 2026/02/23 12:04:51 Transfer created: ID=9ee451d3-9e42-42f1-9de4-eb1d4d066641, wallet_id=wallet_txn_test, amount=1000.00 ZAR, beneficiary_id=931be587-10f5-4096-82e4-a18adc27128b
-mockxago-test  | INFO: 2026/02/23 12:04:51 Listed transfers: page=1, limit=13, total=3, returned=3
-mockxago-test  | INFO: 2026/02/23 12:04:51 Listed transfers: page=1, limit=6, total=3, returned=3
-mockxago-test  | INFO: 2026/02/23 12:04:51 Successful login with public_key=test_public_key_12345, issued token=02edf627-f015-4da6-96db-91a469a95fd5
-mockxago-test  | INFO: 2026/02/23 12:04:51 Created beneficiary 03b9ad0f-8cbb-4e67-818e-4ce288b9773b for account 4d5ae32b-99a2-4b3b-ada3-99ad526882fc (wallet wallet_txn_test)
-mockxago-test  | INFO: 2026/02/23 12:04:51 Created beneficiary 0d60b488-d9e5-489b-98eb-0916e6dc0c8e for account 4d5ae32b-99a2-4b3b-ada3-99ad526882fc (wallet wallet_txn_test)
-mockxago-test  | INFO: 2026/02/23 12:04:51 Transfer created: ID=0c497d3d-3495-487a-be15-c73e4e46d612, wallet_id=wallet_txn_test, amount=1000.00 ZAR, beneficiary_id=03b9ad0f-8cbb-4e67-818e-4ce288b9773b
-mockxago-test  | INFO: 2026/02/23 12:04:51 Transfer created: ID=d10e8a92-7584-43a4-8473-337cc677d8f1, wallet_id=wallet_txn_test, amount=200.00 USD, beneficiary_id=03b9ad0f-8cbb-4e67-818e-4ce288b9773b
+mockxago-test  | INFO: 2026/02/23 12:40:33 Initialized in-memory storage
+mockxago-test  | INFO: 2026/02/23 12:40:33 Starting MockXago server on port 8080
+mockxago-test  | INFO: 2026/02/23 12:40:33 Successful login with public_key=test_public_key_12345, issued token=99a57499-cafa-4e49-a015-e16286e313cf
+mockxago-test  | INFO: 2026/02/23 12:40:33 Failed login attempt with public_key=invalid_public_key
+mockxago-test  | INFO: 2026/02/23 12:40:33 Failed login attempt with public_key=test_public_key_12345
+mockxago-test  | INFO: 2026/02/23 12:40:33 Successful login with public_key=test_public_key_12345, issued token=3ed193fa-e8db-40b8-9d9e-8883406f19f8
+mockxago-test  | INFO: 2026/02/23 12:40:33 Successful login with public_key=test_public_key_12345, issued token=0bf2e303-5aa2-4976-8946-69d64121bdaf
+mockxago-test  | INFO: 2026/02/23 12:40:33 Successful login with public_key=test_public_key_12345, issued token=dea1a158-2d90-4e5d-8a33-f65f10ce0194
+mockxago-test  | INFO: 2026/02/23 12:40:34 Successful login with public_key=test_public_key_12345, issued token=c3a8f404-091e-4e07-a289-3bc49d51e003
+mockxago-test  | INFO: 2026/02/23 12:40:34 Successful login with public_key=test_public_key_12345, issued token=5b7305d2-20e6-45ab-82cf-b5f52b2ad76c
+mockxago-test  | INFO: 2026/02/23 12:40:34 Successful login with public_key=test_public_key_12345, issued token=fa22d3a3-d92e-4c18-8adc-b1ba7874dc76
+mockxago-test  | ERROR: 2026/02/23 12:40:34 Failed to send deposit webhook: Post "http://host.docker.internal:3000/xago/webhooks": dial tcp 172.17.0.1:3000: connect: connection refused
+mockxago-test  | INFO: 2026/02/23 12:40:34 Successful login with public_key=test_public_key_12345, issued token=775fc550-0505-4d0d-bdb0-a786df2bc27d
+mockxago-test  | INFO: 2026/02/23 12:40:34 Successful login with public_key=test_public_key_12345, issued token=02d80d2b-6a0c-43de-ae47-6c4b6faac930
+mockxago-test  | INFO: 2026/02/23 12:40:34 Successful login with public_key=test_public_key_12345, issued token=94a04c63-c554-4c18-b419-f563a671a214
+mockxago-test  | INFO: 2026/02/23 12:40:34 Successful login with public_key=test_public_key_12345, issued token=505261db-b428-443a-8832-d770948adee6
+mockxago-test  | INFO: 2026/02/23 12:40:34 Successful login with public_key=test_public_key_12345, issued token=36ad0839-9ed6-4b19-9bb1-080a5e9db46c
+mockxago-test  | ERROR: 2026/02/23 12:40:34 Failed to send deposit webhook: Post "http://host.docker.internal:3000/xago/webhooks": dial tcp 172.17.0.1:3000: connect: connection refused
+mockxago-test  | ERROR: 2026/02/23 12:40:34 Failed to send deposit webhook: Post "http://host.docker.internal:3000/xago/webhooks": dial tcp 172.17.0.1:3000: connect: connection refused
+mockxago-test  | ERROR: 2026/02/23 12:40:34 Failed to send deposit webhook: Post "http://host.docker.internal:3000/xago/webhooks": dial tcp 172.17.0.1:3000: connect: connection refused
+mockxago-test  | INFO: 2026/02/23 12:40:34 Successful login with public_key=test_public_key_12345, issued token=135104f6-ac5d-437d-bc03-d2b4e71c18e5
+mockxago-test  | ERROR: 2026/02/23 12:40:34 Failed to send deposit webhook: Post "http://host.docker.internal:3000/xago/webhooks": dial tcp 172.17.0.1:3000: connect: connection refused
+mockxago-test  | INFO: 2026/02/23 12:40:34 Successful login with public_key=test_public_key_12345, issued token=7ecb1bba-ba81-4495-ae9f-4921da41de47
+mockxago-test  | INFO: 2026/02/23 12:40:34 Created beneficiary 31dde715-20f3-4f58-9298-993627ad02a2 for account 95c56055-9956-438c-af62-cee148df467a (wallet wallet_ben_test)
+mockxago-test  | INFO: 2026/02/23 12:40:34 Successful login with public_key=test_public_key_12345, issued token=71f8a1b0-8b4f-44c4-8f31-0bf6449e9926
+mockxago-test  | INFO: 2026/02/23 12:40:34 Created beneficiary 3e887616-5752-4196-8b36-32d56c5138f9 for account 0d51a070-81f5-4e82-8349-9aaa4225e3bc (wallet wallet_ben_test)
+mockxago-test  | INFO: 2026/02/23 12:40:34 Successful login with public_key=test_public_key_12345, issued token=ab62d676-e61e-4277-9e55-b0038bec56cd
+mockxago-test  | INFO: 2026/02/23 12:40:34 Created beneficiary ff92fc09-2832-4613-bb46-f7f6a02d5fff for account 81b01da3-e71a-4b6d-970d-60a5f343ead6 (wallet wallet_ben_test)
+mockxago-test  | INFO: 2026/02/23 12:40:37 Auto-approved beneficiary 31dde715-20f3-4f58-9298-993627ad02a2
+mockxago-test  | INFO: 2026/02/23 12:40:37 Auto-approved beneficiary 3e887616-5752-4196-8b36-32d56c5138f9
+mockxago-test  | INFO: 2026/02/23 12:40:37 Auto-approved beneficiary ff92fc09-2832-4613-bb46-f7f6a02d5fff
+mockxago-test  | INFO: 2026/02/23 12:40:37 Listed 1 beneficiaries for account 81b01da3-e71a-4b6d-970d-60a5f343ead6 (page=1, limit=100, total=1)
+mockxago-test  | INFO: 2026/02/23 12:40:37 Successful login with public_key=test_public_key_12345, issued token=76eabd23-11ad-4080-8a24-103ef9554f9a
+mockxago-test  | INFO: 2026/02/23 12:40:37 Created beneficiary 6a5c2521-68f1-46b5-ad61-e7ed19d38384 for account b4113686-d91c-49d3-9299-ed5a21115e19 (wallet wallet_ben_test)
+mockxago-test  | INFO: 2026/02/23 12:40:37 Successful login with public_key=test_public_key_12345, issued token=8c25e91f-7985-4f6f-97eb-e156af4154a3
+mockxago-test  | INFO: 2026/02/23 12:40:37 Successful login with public_key=test_public_key_12345, issued token=35386c9d-75e1-4a33-8456-fcc9136ded7b
+mockxago-test  | INFO: 2026/02/23 12:40:37 Successful login with public_key=test_public_key_12345, issued token=8046eced-9273-4693-ad93-8c35234afd85
+mockxago-test  | INFO: 2026/02/23 12:40:37 Created beneficiary 0ae063c4-0511-4053-a196-822855cdfa56 for account 965fd39a-c085-46cb-969c-76ef1aab4141 (wallet wallet_ben_test)
+mockxago-test  | INFO: 2026/02/23 12:40:37 Created beneficiary d022f458-fe4d-4db4-a674-7655f4c5a45c for account 965fd39a-c085-46cb-969c-76ef1aab4141 (wallet wallet_ben_test)
+mockxago-test  | INFO: 2026/02/23 12:40:37 Created beneficiary 2c5deb1c-2df0-4e4c-93d3-f4e6ceeec8c4 for account 965fd39a-c085-46cb-969c-76ef1aab4141 (wallet wallet_ben_test)
+mockxago-test  | INFO: 2026/02/23 12:40:37 Listed 3 beneficiaries for account 965fd39a-c085-46cb-969c-76ef1aab4141 (page=1, limit=10, total=3)
+mockxago-test  | INFO: 2026/02/23 12:40:37 Successful login with public_key=test_public_key_12345, issued token=94828c8f-321d-40f2-9418-364a0b874497
+mockxago-test  | INFO: 2026/02/23 12:40:37 Created beneficiary c83583ff-c712-4be8-a1b8-acf0f0e7e64c for account 61fe5657-4dae-419d-b736-7ad903532417 (wallet wallet_ben_test)
+mockxago-test  | INFO: 2026/02/23 12:40:37 Created beneficiary 485ce2b2-40ba-4685-926d-270fbf9b40ed for account 61fe5657-4dae-419d-b736-7ad903532417 (wallet wallet_ben_test)
+mockxago-test  | INFO: 2026/02/23 12:40:37 Created beneficiary 8afd1b93-3adf-407c-84b8-d99ad56223c7 for account 61fe5657-4dae-419d-b736-7ad903532417 (wallet wallet_ben_test)
+mockxago-test  | INFO: 2026/02/23 12:40:37 Created beneficiary d4c8b8ff-a309-48a9-816d-9ea5a1b19427 for account 61fe5657-4dae-419d-b736-7ad903532417 (wallet wallet_ben_test)
+mockxago-test  | INFO: 2026/02/23 12:40:37 Created beneficiary aac3515c-90bb-4cc2-acb2-d496eb51fe70 for account 61fe5657-4dae-419d-b736-7ad903532417 (wallet wallet_ben_test)
+mockxago-test  | INFO: 2026/02/23 12:40:37 Created beneficiary 8a5f54c5-2691-4abd-8a62-85d843aa76ad for account 61fe5657-4dae-419d-b736-7ad903532417 (wallet wallet_ben_test)
+mockxago-test  | INFO: 2026/02/23 12:40:37 Created beneficiary 6557bb34-bb5b-4c24-aeec-e45e33de9752 for account 61fe5657-4dae-419d-b736-7ad903532417 (wallet wallet_ben_test)
+mockxago-test  | INFO: 2026/02/23 12:40:37 Created beneficiary 2055d351-ccc0-424c-8ed3-cda45923df43 for account 61fe5657-4dae-419d-b736-7ad903532417 (wallet wallet_ben_test)
+mockxago-test  | INFO: 2026/02/23 12:40:37 Created beneficiary 45fad4d3-c04d-4beb-83b0-0b53697533d9 for account 61fe5657-4dae-419d-b736-7ad903532417 (wallet wallet_ben_test)
+mockxago-test  | INFO: 2026/02/23 12:40:37 Created beneficiary 0cb5f0ec-bcca-4c75-a239-08245e5451fa for account 61fe5657-4dae-419d-b736-7ad903532417 (wallet wallet_ben_test)
+mockxago-test  | INFO: 2026/02/23 12:40:37 Created beneficiary 3e472082-f761-4e91-8f0f-25da1e1b0942 for account 61fe5657-4dae-419d-b736-7ad903532417 (wallet wallet_ben_test)
+mockxago-test  | INFO: 2026/02/23 12:40:37 Created beneficiary 1cc90141-72df-4aba-a23e-f4f3998878ea for account 61fe5657-4dae-419d-b736-7ad903532417 (wallet wallet_ben_test)
+mockxago-test  | INFO: 2026/02/23 12:40:37 Created beneficiary 949fbe6a-1312-4d5b-8fc5-5b7f43132e10 for account 61fe5657-4dae-419d-b736-7ad903532417 (wallet wallet_ben_test)
+mockxago-test  | INFO: 2026/02/23 12:40:37 Created beneficiary def527e0-2623-47a7-ab18-6bb65ddc81ee for account 61fe5657-4dae-419d-b736-7ad903532417 (wallet wallet_ben_test)
+mockxago-test  | INFO: 2026/02/23 12:40:37 Created beneficiary e70299a1-3b59-4dee-a78f-d8c8eb7cede0 for account 61fe5657-4dae-419d-b736-7ad903532417 (wallet wallet_ben_test)
+mockxago-test  | INFO: 2026/02/23 12:40:37 Listed 10 beneficiaries for account 61fe5657-4dae-419d-b736-7ad903532417 (page=1, limit=10, total=15)
+mockxago-test  | INFO: 2026/02/23 12:40:37 Listed 5 beneficiaries for account 61fe5657-4dae-419d-b736-7ad903532417 (page=2, limit=10, total=15)
+mockxago-test  | INFO: 2026/02/23 12:40:37 Successful login with public_key=test_public_key_12345, issued token=ba12b12a-55f1-41c1-9835-ddeab05bfe2f
+mockxago-test  | INFO: 2026/02/23 12:40:37 Created beneficiary 602bf23f-2520-4b81-a9e5-ddc273732370 for account eba4c37e-16e5-4c5f-9b94-2db0b2159968 (wallet wallet_ben_test)
+mockxago-test  | INFO: 2026/02/23 12:40:37 Created beneficiary 454e9589-ac04-47a2-a67f-d0b4fe54a0d1 for account eba4c37e-16e5-4c5f-9b94-2db0b2159968 (wallet wallet_ben_test)
+mockxago-test  | INFO: 2026/02/23 12:40:37 Listed 2 beneficiaries for account eba4c37e-16e5-4c5f-9b94-2db0b2159968 (page=1, limit=100, total=2)
+mockxago-test  | INFO: 2026/02/23 12:40:37 Successful login with public_key=test_public_key_12345, issued token=c72672f9-1ed8-49e0-9b51-af1433692d01
+mockxago-test  | INFO: 2026/02/23 12:40:37 Created beneficiary 312ce1bd-4529-4066-86d9-3c9e3601fe79 for account db3d7905-e575-4f4c-9d82-0e277f5e8797 (wallet wallet_aaa)
+mockxago-test  | INFO: 2026/02/23 12:40:37 Created beneficiary c6f51d07-d835-4e0e-ab1d-26289ff2eaca for account db3d7905-e575-4f4c-9d82-0e277f5e8797 (wallet wallet_aaa)
+mockxago-test  | INFO: 2026/02/23 12:40:37 Listed 2 beneficiaries for account db3d7905-e575-4f4c-9d82-0e277f5e8797 (page=1, limit=100, total=2)
+mockxago-test  | INFO: 2026/02/23 12:40:37 Listed 0 beneficiaries for account 85d4512f-bda0-4d2f-9924-0ff205c2bd5f (page=1, limit=100, total=0)
+mockxago-test  | INFO: 2026/02/23 12:40:37 Listed 2 beneficiaries for account db3d7905-e575-4f4c-9d82-0e277f5e8797 (page=1, limit=100, total=2)
+mockxago-test  | INFO: 2026/02/23 12:40:37 Successful login with public_key=test_public_key_12345, issued token=85a1fa69-9c7e-4cb6-b4e6-e803a7650e90
+mockxago-test  | INFO: 2026/02/23 12:40:37 Created beneficiary 6f5f67ed-763f-4928-bd3b-dd6fb06a8357 for account 3439d607-12db-4ff0-a8d2-f561404d7b08 (wallet wallet_ben_test)
+mockxago-test  | INFO: 2026/02/23 12:40:37 Listed 1 beneficiaries for account 3439d607-12db-4ff0-a8d2-f561404d7b08 (page=1, limit=100, total=1)
+mockxago-test  | INFO: 2026/02/23 12:40:37 Successful login with public_key=test_public_key_12345, issued token=eb5391c9-37df-484c-8981-31c622e40e58
+mockxago-test  | INFO: 2026/02/23 12:40:37 Successful login with public_key=test_public_key_12345, issued token=00824c21-e5c5-49a2-bd58-e6571b2621c2
+mockxago-test  | INFO: 2026/02/23 12:40:37 Successful login with public_key=test_public_key_12345, issued token=6473b550-d8cf-4be2-9743-e119ce41ff9f
+mockxago-test  | INFO: 2026/02/23 12:40:37 Successful login with public_key=test_public_key_12345, issued token=18327347-361f-49c0-9b6c-3d9d2bf777cc
+mockxago-test  | INFO: 2026/02/23 12:40:37 Successful login with public_key=test_public_key_12345, issued token=1b1ddcd1-026e-4412-aade-ac77464be47f
+mockxago-test  | INFO: 2026/02/23 12:40:37 Successful login with public_key=test_public_key_12345, issued token=58df48c4-d84d-4c35-981e-8f9f2b4c58ae
+mockxago-test  | INFO: 2026/02/23 12:40:37 Successful login with public_key=test_public_key_12345, issued token=6ec63adb-10b8-4dbf-b3f1-656b87242a80
+mockxago-test  | INFO: 2026/02/23 12:40:37 Successful login with public_key=test_public_key_12345, issued token=8d3841a0-6885-43f1-b64c-dab34ce956fe
+mockxago-test  | INFO: 2026/02/23 12:40:37 Successful login with public_key=test_public_key_12345, issued token=9f62de9b-d0bb-4d36-958d-556d365b557b
+mockxago-test  | INFO: 2026/02/23 12:40:37 Successful login with public_key=test_public_key_12345, issued token=e1e738bb-74b1-45b4-a086-d212712be4c1
+mockxago-test  | INFO: 2026/02/23 12:40:37 Test deposit created: mock-1771850437333323419 for account 647786cf-f7ec-4689-8e7a-4364d8d90986: 5000.000000 ZAR (ref: wallet_dep_test_ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:37 Successful login with public_key=test_public_key_12345, issued token=841d1177-1600-47cc-962a-d9d9cf271b58
+mockxago-test  | INFO: 2026/02/23 12:40:37 Test deposit created: mock-1771850437352851973 for account d0963810-74cf-41ae-98c7-9f80ebef812b: 10000.000000 ZAR (ref: wallet_dep_test_ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:37 Deposit completed: mock-1771850437333323419 for account 647786cf-f7ec-4689-8e7a-4364d8d90986: 5000.000000 ZAR
+mockxago-test  | INFO: 2026/02/23 12:40:37 Attempting to send webhook for deposit mock-1771850437333323419 to http://host.docker.internal:3000/xago/webhooks
+mockxago-test  | INFO: 2026/02/23 12:40:37 Deposit webhook sent successfully for transaction mock-1771850437333323419 (account: 647786cf-f7ec-4689-8e7a-4364d8d90986, amount: 5000.000000 ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:37 Deposit completed: mock-1771850437352851973 for account d0963810-74cf-41ae-98c7-9f80ebef812b: 10000.000000 ZAR
+mockxago-test  | INFO: 2026/02/23 12:40:37 Attempting to send webhook for deposit mock-1771850437352851973 to http://host.docker.internal:3000/xago/webhooks
+mockxago-test  | INFO: 2026/02/23 12:40:37 Deposit webhook sent successfully for transaction mock-1771850437352851973 (account: d0963810-74cf-41ae-98c7-9f80ebef812b, amount: 10000.000000 ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Successful login with public_key=test_public_key_12345, issued token=1d17d491-3e9e-4ed6-b383-fb7cc0145acb
+mockxago-test  | INFO: 2026/02/23 12:40:39 Test deposit created: mock-1771850439363886375 for account 85de5993-947e-44f4-8d37-e5636b37710b: 1000.000000 ZAR (ref: wallet_dep_test_ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Successful login with public_key=test_public_key_12345, issued token=ad4d8749-0c1a-4b12-b607-4e7916cbce04
+mockxago-test  | INFO: 2026/02/23 12:40:39 Test deposit created: mock-1771850439368802918 for account 1bc09ad7-1004-47ab-b95a-b4858693a9d0: 1000.000000 ZAR (ref: wallet_dep_test_ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Successful login with public_key=test_public_key_12345, issued token=3dae0707-5493-49ee-a982-e828dd08de85
+mockxago-test  | INFO: 2026/02/23 12:40:39 Test deposit created: mock-1771850439373804763 for account 193ffef8-e2a2-4206-a53c-31c5a50de6ad: 5000.000000 ZAR (ref: wallet_dep_test_ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Successful login with public_key=test_public_key_12345, issued token=4c2769ac-d445-4f15-8b0e-b6a47b33a2d2
+mockxago-test  | INFO: 2026/02/23 12:40:39 Test deposit created: mock-1771850439380498883 for account 2fddcf8e-199c-4773-b5c3-cf47a0258221: 2000.000000 ZAR (ref: wallet_dep_test_ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Test deposit created: mock-1771850439380834828 for account 2fddcf8e-199c-4773-b5c3-cf47a0258221: 3000.000000 ZAR (ref: wallet_dep_test_ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Successful login with public_key=test_public_key_12345, issued token=3627cd42-d14b-4870-87f9-bf0f6833da21
+mockxago-test  | INFO: 2026/02/23 12:40:39 Test deposit created: mock-1771850439387578130 for account 031e79f9-a1a0-4585-9277-95d0bfc543f0: 1000.000000 ZAR (ref: wallet_dep_test_ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Test deposit created: mock-1771850439387953957 for account 031e79f9-a1a0-4585-9277-95d0bfc543f0: 500.000000 USD (ref: wallet_dep_test_USD)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Successful login with public_key=test_public_key_12345, issued token=fe891d0b-5bd5-47cb-a9e3-0bf3886bff61
+mockxago-test  | INFO: 2026/02/23 12:40:39 Test deposit created: mock-1771850439393847503 for account a25ef7af-b61e-47a1-becf-a9a65434a153: 1000.000000 ZAR (ref: wallet_dep_test_ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Test deposit created: mock-1771850439394049714 for account a25ef7af-b61e-47a1-becf-a9a65434a153: 1100.000000 ZAR (ref: wallet_dep_test_ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Test deposit created: mock-1771850439394259913 for account a25ef7af-b61e-47a1-becf-a9a65434a153: 1200.000000 ZAR (ref: wallet_dep_test_ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Successful login with public_key=test_public_key_12345, issued token=d919ae60-6f04-4bbb-8f31-10ef9b0dede0
+mockxago-test  | INFO: 2026/02/23 12:40:39 Test deposit created: mock-1771850439400164298 for account 1df72b1e-ac3e-4904-bae1-2e48024060be: 1000.000000 ZAR (ref: wallet_dep_test_ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Test deposit created: mock-1771850439400355420 for account 1df72b1e-ac3e-4904-bae1-2e48024060be: 1100.000000 ZAR (ref: wallet_dep_test_ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Test deposit created: mock-1771850439400558936 for account 1df72b1e-ac3e-4904-bae1-2e48024060be: 1200.000000 ZAR (ref: wallet_dep_test_ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Test deposit created: mock-1771850439400778157 for account 1df72b1e-ac3e-4904-bae1-2e48024060be: 1300.000000 ZAR (ref: wallet_dep_test_ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Test deposit created: mock-1771850439400965500 for account 1df72b1e-ac3e-4904-bae1-2e48024060be: 1400.000000 ZAR (ref: wallet_dep_test_ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Test deposit created: mock-1771850439401162749 for account 1df72b1e-ac3e-4904-bae1-2e48024060be: 1500.000000 ZAR (ref: wallet_dep_test_ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Test deposit created: mock-1771850439401332060 for account 1df72b1e-ac3e-4904-bae1-2e48024060be: 1600.000000 ZAR (ref: wallet_dep_test_ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Test deposit created: mock-1771850439401528118 for account 1df72b1e-ac3e-4904-bae1-2e48024060be: 1700.000000 ZAR (ref: wallet_dep_test_ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Test deposit created: mock-1771850439401711486 for account 1df72b1e-ac3e-4904-bae1-2e48024060be: 1800.000000 ZAR (ref: wallet_dep_test_ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Test deposit created: mock-1771850439401885735 for account 1df72b1e-ac3e-4904-bae1-2e48024060be: 1900.000000 ZAR (ref: wallet_dep_test_ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Test deposit created: mock-1771850439402066472 for account 1df72b1e-ac3e-4904-bae1-2e48024060be: 2000.000000 ZAR (ref: wallet_dep_test_ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Test deposit created: mock-1771850439402235431 for account 1df72b1e-ac3e-4904-bae1-2e48024060be: 2100.000000 ZAR (ref: wallet_dep_test_ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Test deposit created: mock-1771850439402402919 for account 1df72b1e-ac3e-4904-bae1-2e48024060be: 2200.000000 ZAR (ref: wallet_dep_test_ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Test deposit created: mock-1771850439402556491 for account 1df72b1e-ac3e-4904-bae1-2e48024060be: 2300.000000 ZAR (ref: wallet_dep_test_ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Test deposit created: mock-1771850439402759119 for account 1df72b1e-ac3e-4904-bae1-2e48024060be: 2400.000000 ZAR (ref: wallet_dep_test_ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Listed transactions: page=1, limit=10, total=27, returned=10
+mockxago-test  | INFO: 2026/02/23 12:40:39 Listed transactions: page=2, limit=10, total=27, returned=10
+mockxago-test  | INFO: 2026/02/23 12:40:39 Successful login with public_key=test_public_key_12345, issued token=527cbff1-f67c-4cb1-b3be-6b2503e738b0
+mockxago-test  | INFO: 2026/02/23 12:40:39 Test deposit created: mock-1771850439410750947 for account 9cb13a90-39a9-4782-835c-79de734828ae: 1000.000000 ZAR (ref: wallet_100_ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Successful login with public_key=test_public_key_12345, issued token=a604af68-e5c6-4d93-85ee-91eddd163289
+mockxago-test  | INFO: 2026/02/23 12:40:39 Successful login with public_key=test_public_key_12345, issued token=b803add5-8fc6-461b-b631-3d033cc9a793
+mockxago-test  | INFO: 2026/02/23 12:40:39 Successful login with public_key=test_public_key_12345, issued token=82699f85-f305-437e-9c1a-49157b6ccad8
+mockxago-test  | INFO: 2026/02/23 12:40:39 Successful login with public_key=test_public_key_12345, issued token=aa3d9166-58a7-4ac8-81f9-2e2a962620f6
+mockxago-test  | INFO: 2026/02/23 12:40:39 Test deposit created: mock-1771850439436014864 for account e63cb77f-3471-47e8-adbc-3303d9d9cfa5: 1000.000000 ZAR (ref: wallet_dep_test_ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Successful login with public_key=test_public_key_12345, issued token=99cef243-22b6-4854-b8a5-21d0ff9b5d61
+mockxago-test  | INFO: 2026/02/23 12:40:39 Successful login with public_key=test_public_key_12345, issued token=72439b6a-cae1-4528-ad4c-6b0f6aded279
+mockxago-test  | INFO: 2026/02/23 12:40:39 Successful login with public_key=test_public_key_12345, issued token=d9313fc7-a941-4657-bf94-5e1e97e0322c
+mockxago-test  | INFO: 2026/02/23 12:40:39 Successful login with public_key=test_public_key_12345, issued token=51e0d72a-b445-4db9-a3a0-650c798ca68e
+mockxago-test  | INFO: 2026/02/23 12:40:39 Test deposit created: mock-1771850439459555352 for account 9168c96b-001d-42b1-95b8-979bc60a1086: 1000.000000 ZAR (ref: wallet_dep_test_ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Test deposit created: mock-1771850439459850578 for account 9168c96b-001d-42b1-95b8-979bc60a1086: 1100.000000 ZAR (ref: wallet_dep_test_ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Test deposit created: mock-1771850439460101510 for account 9168c96b-001d-42b1-95b8-979bc60a1086: 1200.000000 ZAR (ref: wallet_dep_test_ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Test deposit created: mock-1771850439460316118 for account 9168c96b-001d-42b1-95b8-979bc60a1086: 1300.000000 ZAR (ref: wallet_dep_test_ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Test deposit created: mock-1771850439460514663 for account 9168c96b-001d-42b1-95b8-979bc60a1086: 1400.000000 ZAR (ref: wallet_dep_test_ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit completed: mock-1771850439363886375 for account 85de5993-947e-44f4-8d37-e5636b37710b: 1000.000000 ZAR
+mockxago-test  | INFO: 2026/02/23 12:40:39 Attempting to send webhook for deposit mock-1771850439363886375 to http://host.docker.internal:3000/xago/webhooks
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit webhook sent successfully for transaction mock-1771850439363886375 (account: 85de5993-947e-44f4-8d37-e5636b37710b, amount: 1000.000000 ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit completed: mock-1771850439368802918 for account 1bc09ad7-1004-47ab-b95a-b4858693a9d0: 1000.000000 ZAR
+mockxago-test  | INFO: 2026/02/23 12:40:39 Attempting to send webhook for deposit mock-1771850439368802918 to http://host.docker.internal:3000/xago/webhooks
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit webhook sent successfully for transaction mock-1771850439368802918 (account: 1bc09ad7-1004-47ab-b95a-b4858693a9d0, amount: 1000.000000 ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit completed: mock-1771850439373804763 for account 193ffef8-e2a2-4206-a53c-31c5a50de6ad: 5000.000000 ZAR
+mockxago-test  | INFO: 2026/02/23 12:40:39 Attempting to send webhook for deposit mock-1771850439373804763 to http://host.docker.internal:3000/xago/webhooks
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit webhook sent successfully for transaction mock-1771850439373804763 (account: 193ffef8-e2a2-4206-a53c-31c5a50de6ad, amount: 5000.000000 ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit completed: mock-1771850439380498883 for account 2fddcf8e-199c-4773-b5c3-cf47a0258221: 2000.000000 ZAR
+mockxago-test  | INFO: 2026/02/23 12:40:39 Attempting to send webhook for deposit mock-1771850439380498883 to http://host.docker.internal:3000/xago/webhooks
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit completed: mock-1771850439380834828 for account 2fddcf8e-199c-4773-b5c3-cf47a0258221: 3000.000000 ZAR
+mockxago-test  | INFO: 2026/02/23 12:40:39 Attempting to send webhook for deposit mock-1771850439380834828 to http://host.docker.internal:3000/xago/webhooks
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit webhook sent successfully for transaction mock-1771850439380834828 (account: 2fddcf8e-199c-4773-b5c3-cf47a0258221, amount: 3000.000000 ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit webhook sent successfully for transaction mock-1771850439380498883 (account: 2fddcf8e-199c-4773-b5c3-cf47a0258221, amount: 2000.000000 ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit completed: mock-1771850439387953957 for account 031e79f9-a1a0-4585-9277-95d0bfc543f0: 500.000000 USD
+mockxago-test  | INFO: 2026/02/23 12:40:39 Attempting to send webhook for deposit mock-1771850439387953957 to http://host.docker.internal:3000/xago/webhooks
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit completed: mock-1771850439387578130 for account 031e79f9-a1a0-4585-9277-95d0bfc543f0: 1000.000000 ZAR
+mockxago-test  | INFO: 2026/02/23 12:40:39 Attempting to send webhook for deposit mock-1771850439387578130 to http://host.docker.internal:3000/xago/webhooks
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit webhook sent successfully for transaction mock-1771850439387953957 (account: 031e79f9-a1a0-4585-9277-95d0bfc543f0, amount: 500.000000 USD)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit webhook sent successfully for transaction mock-1771850439387578130 (account: 031e79f9-a1a0-4585-9277-95d0bfc543f0, amount: 1000.000000 ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit completed: mock-1771850439394049714 for account a25ef7af-b61e-47a1-becf-a9a65434a153: 1100.000000 ZAR
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit completed: mock-1771850439394259913 for account a25ef7af-b61e-47a1-becf-a9a65434a153: 1200.000000 ZAR
+mockxago-test  | INFO: 2026/02/23 12:40:39 Attempting to send webhook for deposit mock-1771850439394049714 to http://host.docker.internal:3000/xago/webhooks
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit completed: mock-1771850439393847503 for account a25ef7af-b61e-47a1-becf-a9a65434a153: 1000.000000 ZAR
+mockxago-test  | INFO: 2026/02/23 12:40:39 Attempting to send webhook for deposit mock-1771850439393847503 to http://host.docker.internal:3000/xago/webhooks
+mockxago-test  | INFO: 2026/02/23 12:40:39 Attempting to send webhook for deposit mock-1771850439394259913 to http://host.docker.internal:3000/xago/webhooks
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit webhook sent successfully for transaction mock-1771850439393847503 (account: a25ef7af-b61e-47a1-becf-a9a65434a153, amount: 1000.000000 ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit webhook sent successfully for transaction mock-1771850439394259913 (account: a25ef7af-b61e-47a1-becf-a9a65434a153, amount: 1200.000000 ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit webhook sent successfully for transaction mock-1771850439394049714 (account: a25ef7af-b61e-47a1-becf-a9a65434a153, amount: 1100.000000 ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit completed: mock-1771850439400355420 for account 1df72b1e-ac3e-4904-bae1-2e48024060be: 1100.000000 ZAR
+mockxago-test  | INFO: 2026/02/23 12:40:39 Attempting to send webhook for deposit mock-1771850439400355420 to http://host.docker.internal:3000/xago/webhooks
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit completed: mock-1771850439400558936 for account 1df72b1e-ac3e-4904-bae1-2e48024060be: 1200.000000 ZAR
+mockxago-test  | INFO: 2026/02/23 12:40:39 Attempting to send webhook for deposit mock-1771850439400558936 to http://host.docker.internal:3000/xago/webhooks
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit completed: mock-1771850439400164298 for account 1df72b1e-ac3e-4904-bae1-2e48024060be: 1000.000000 ZAR
+mockxago-test  | INFO: 2026/02/23 12:40:39 Attempting to send webhook for deposit mock-1771850439400164298 to http://host.docker.internal:3000/xago/webhooks
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit completed: mock-1771850439400778157 for account 1df72b1e-ac3e-4904-bae1-2e48024060be: 1300.000000 ZAR
+mockxago-test  | INFO: 2026/02/23 12:40:39 Attempting to send webhook for deposit mock-1771850439400778157 to http://host.docker.internal:3000/xago/webhooks
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit completed: mock-1771850439400965500 for account 1df72b1e-ac3e-4904-bae1-2e48024060be: 1400.000000 ZAR
+mockxago-test  | INFO: 2026/02/23 12:40:39 Attempting to send webhook for deposit mock-1771850439400965500 to http://host.docker.internal:3000/xago/webhooks
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit completed: mock-1771850439401162749 for account 1df72b1e-ac3e-4904-bae1-2e48024060be: 1500.000000 ZAR
+mockxago-test  | INFO: 2026/02/23 12:40:39 Attempting to send webhook for deposit mock-1771850439401162749 to http://host.docker.internal:3000/xago/webhooks
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit completed: mock-1771850439401332060 for account 1df72b1e-ac3e-4904-bae1-2e48024060be: 1600.000000 ZAR
+mockxago-test  | INFO: 2026/02/23 12:40:39 Attempting to send webhook for deposit mock-1771850439401332060 to http://host.docker.internal:3000/xago/webhooks
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit completed: mock-1771850439402402919 for account 1df72b1e-ac3e-4904-bae1-2e48024060be: 2200.000000 ZAR
+mockxago-test  | INFO: 2026/02/23 12:40:39 Attempting to send webhook for deposit mock-1771850439402402919 to http://host.docker.internal:3000/xago/webhooks
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit completed: mock-1771850439401711486 for account 1df72b1e-ac3e-4904-bae1-2e48024060be: 1800.000000 ZAR
+mockxago-test  | INFO: 2026/02/23 12:40:39 Attempting to send webhook for deposit mock-1771850439401711486 to http://host.docker.internal:3000/xago/webhooks
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit completed: mock-1771850439402556491 for account 1df72b1e-ac3e-4904-bae1-2e48024060be: 2300.000000 ZAR
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit completed: mock-1771850439402235431 for account 1df72b1e-ac3e-4904-bae1-2e48024060be: 2100.000000 ZAR
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit completed: mock-1771850439401885735 for account 1df72b1e-ac3e-4904-bae1-2e48024060be: 1900.000000 ZAR
+mockxago-test  | INFO: 2026/02/23 12:40:39 Attempting to send webhook for deposit mock-1771850439402556491 to http://host.docker.internal:3000/xago/webhooks
+mockxago-test  | INFO: 2026/02/23 12:40:39 Attempting to send webhook for deposit mock-1771850439401885735 to http://host.docker.internal:3000/xago/webhooks
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit completed: mock-1771850439402759119 for account 1df72b1e-ac3e-4904-bae1-2e48024060be: 2400.000000 ZAR
+mockxago-test  | INFO: 2026/02/23 12:40:39 Attempting to send webhook for deposit mock-1771850439402759119 to http://host.docker.internal:3000/xago/webhooks
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit completed: mock-1771850439402066472 for account 1df72b1e-ac3e-4904-bae1-2e48024060be: 2000.000000 ZAR
+mockxago-test  | INFO: 2026/02/23 12:40:39 Attempting to send webhook for deposit mock-1771850439402066472 to http://host.docker.internal:3000/xago/webhooks
+mockxago-test  | INFO: 2026/02/23 12:40:39 Attempting to send webhook for deposit mock-1771850439402235431 to http://host.docker.internal:3000/xago/webhooks
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit completed: mock-1771850439401528118 for account 1df72b1e-ac3e-4904-bae1-2e48024060be: 1700.000000 ZAR
+mockxago-test  | INFO: 2026/02/23 12:40:39 Attempting to send webhook for deposit mock-1771850439401528118 to http://host.docker.internal:3000/xago/webhooks
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit webhook sent successfully for transaction mock-1771850439400558936 (account: 1df72b1e-ac3e-4904-bae1-2e48024060be, amount: 1200.000000 ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit webhook sent successfully for transaction mock-1771850439400164298 (account: 1df72b1e-ac3e-4904-bae1-2e48024060be, amount: 1000.000000 ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit webhook sent successfully for transaction mock-1771850439401162749 (account: 1df72b1e-ac3e-4904-bae1-2e48024060be, amount: 1500.000000 ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit webhook sent successfully for transaction mock-1771850439400965500 (account: 1df72b1e-ac3e-4904-bae1-2e48024060be, amount: 1400.000000 ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit webhook sent successfully for transaction mock-1771850439400778157 (account: 1df72b1e-ac3e-4904-bae1-2e48024060be, amount: 1300.000000 ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit webhook sent successfully for transaction mock-1771850439400355420 (account: 1df72b1e-ac3e-4904-bae1-2e48024060be, amount: 1100.000000 ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit webhook sent successfully for transaction mock-1771850439401885735 (account: 1df72b1e-ac3e-4904-bae1-2e48024060be, amount: 1900.000000 ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit webhook sent successfully for transaction mock-1771850439402759119 (account: 1df72b1e-ac3e-4904-bae1-2e48024060be, amount: 2400.000000 ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit webhook sent successfully for transaction mock-1771850439402402919 (account: 1df72b1e-ac3e-4904-bae1-2e48024060be, amount: 2200.000000 ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit webhook sent successfully for transaction mock-1771850439401332060 (account: 1df72b1e-ac3e-4904-bae1-2e48024060be, amount: 1600.000000 ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit webhook sent successfully for transaction mock-1771850439402066472 (account: 1df72b1e-ac3e-4904-bae1-2e48024060be, amount: 2000.000000 ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit webhook sent successfully for transaction mock-1771850439401711486 (account: 1df72b1e-ac3e-4904-bae1-2e48024060be, amount: 1800.000000 ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit webhook sent successfully for transaction mock-1771850439401528118 (account: 1df72b1e-ac3e-4904-bae1-2e48024060be, amount: 1700.000000 ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit webhook sent successfully for transaction mock-1771850439402556491 (account: 1df72b1e-ac3e-4904-bae1-2e48024060be, amount: 2300.000000 ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit webhook sent successfully for transaction mock-1771850439402235431 (account: 1df72b1e-ac3e-4904-bae1-2e48024060be, amount: 2100.000000 ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit completed: mock-1771850439410750947 for account 9cb13a90-39a9-4782-835c-79de734828ae: 1000.000000 ZAR
+mockxago-test  | INFO: 2026/02/23 12:40:39 Attempting to send webhook for deposit mock-1771850439410750947 to http://host.docker.internal:3000/xago/webhooks
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit webhook sent successfully for transaction mock-1771850439410750947 (account: 9cb13a90-39a9-4782-835c-79de734828ae, amount: 1000.000000 ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit completed: mock-1771850439436014864 for account e63cb77f-3471-47e8-adbc-3303d9d9cfa5: 1000.000000 ZAR
+mockxago-test  | INFO: 2026/02/23 12:40:39 Attempting to send webhook for deposit mock-1771850439436014864 to http://host.docker.internal:3000/xago/webhooks
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit webhook sent successfully for transaction mock-1771850439436014864 (account: e63cb77f-3471-47e8-adbc-3303d9d9cfa5, amount: 1000.000000 ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit completed: mock-1771850439460316118 for account 9168c96b-001d-42b1-95b8-979bc60a1086: 1300.000000 ZAR
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit completed: mock-1771850439459850578 for account 9168c96b-001d-42b1-95b8-979bc60a1086: 1100.000000 ZAR
+mockxago-test  | INFO: 2026/02/23 12:40:39 Attempting to send webhook for deposit mock-1771850439460316118 to http://host.docker.internal:3000/xago/webhooks
+mockxago-test  | INFO: 2026/02/23 12:40:39 Attempting to send webhook for deposit mock-1771850439459850578 to http://host.docker.internal:3000/xago/webhooks
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit completed: mock-1771850439460101510 for account 9168c96b-001d-42b1-95b8-979bc60a1086: 1200.000000 ZAR
+mockxago-test  | INFO: 2026/02/23 12:40:39 Attempting to send webhook for deposit mock-1771850439460101510 to http://host.docker.internal:3000/xago/webhooks
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit completed: mock-1771850439459555352 for account 9168c96b-001d-42b1-95b8-979bc60a1086: 1000.000000 ZAR
+mockxago-test  | INFO: 2026/02/23 12:40:39 Attempting to send webhook for deposit mock-1771850439459555352 to http://host.docker.internal:3000/xago/webhooks
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit completed: mock-1771850439460514663 for account 9168c96b-001d-42b1-95b8-979bc60a1086: 1400.000000 ZAR
+mockxago-test  | INFO: 2026/02/23 12:40:39 Attempting to send webhook for deposit mock-1771850439460514663 to http://host.docker.internal:3000/xago/webhooks
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit webhook sent successfully for transaction mock-1771850439460316118 (account: 9168c96b-001d-42b1-95b8-979bc60a1086, amount: 1300.000000 ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit webhook sent successfully for transaction mock-1771850439459555352 (account: 9168c96b-001d-42b1-95b8-979bc60a1086, amount: 1000.000000 ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit webhook sent successfully for transaction mock-1771850439460101510 (account: 9168c96b-001d-42b1-95b8-979bc60a1086, amount: 1200.000000 ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit webhook sent successfully for transaction mock-1771850439460514663 (account: 9168c96b-001d-42b1-95b8-979bc60a1086, amount: 1400.000000 ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Deposit webhook sent successfully for transaction mock-1771850439459850578 (account: 9168c96b-001d-42b1-95b8-979bc60a1086, amount: 1100.000000 ZAR)
+mockxago-test  | INFO: 2026/02/23 12:40:39 Listed transactions: page=1, limit=10, total=34, returned=10
+mockxago-test  | INFO: 2026/02/23 12:40:39 Successful login with public_key=test_public_key_12345, issued token=41fe60a0-d910-473e-bab0-ed7f1327efac
+mockxago-test  | INFO: 2026/02/23 12:40:39 KYC iframe form submitted
+mockxago-test  | INFO: 2026/02/23 12:40:39 KYC submitted - wallet_id: wallet_kyc_001, name: Sarah Smith
+mockxago-test  | INFO: 2026/02/23 12:40:39 Parsed birth year: 1990
+mockxago-test  | INFO: 2026/02/23 12:40:39 KYC submission successful for wallet wallet_kyc_001
+mockxago-test  | ERROR: 2026/02/23 12:40:39 Persona webhook request failed: Post "http://backend:8080/webhooks/persona": dial tcp: lookup backend on 127.0.0.11:53: server misbehaving
+mockxago-test  | INFO: 2026/02/23 12:40:39 Successful login with public_key=test_public_key_12345, issued token=c4fe1854-5fcd-450e-851f-82ad8553585e
+mockxago-test  | INFO: 2026/02/23 12:40:40 Deposit webhook sent successfully for wallet wallet_flow_001: ZAR 10000.000000 (account: 3cde021d-46a4-4362-b52e-bd19fb269365, tx: mock-1771850440000287963)
+mockxago-test  | INFO: 2026/02/23 12:40:40 Successful login with public_key=test_public_key_12345, issued token=4e0881e7-7c25-4bb5-8587-a7162b0c39ba
+mockxago-test  | INFO: 2026/02/23 12:40:40 Deposit webhook sent successfully for wallet wallet_multi_001: ZAR 5000.000000 (account: 55ad3732-7e99-4494-a949-c808413c1980, tx: mock-1771850440009926232)
+mockxago-test  | INFO: 2026/02/23 12:40:40 Deposit webhook sent successfully for wallet wallet_multi_001: USD 1000.000000 (account: 55ad3732-7e99-4494-a949-c808413c1980, tx: mock-1771850440010216881)
+mockxago-test  | INFO: 2026/02/23 12:40:40 Successful login with public_key=test_public_key_12345, issued token=67e41b50-3901-4749-9a17-9e5f482fe6cf
+mockxago-test  | INFO: 2026/02/23 12:40:40 Deposit webhook sent successfully for wallet wallet_aaa: ZAR 5000.000000 (account: 234af052-d7ff-40b3-9c59-e67e54362df6, tx: mock-1771850440015944087)
+mockxago-test  | INFO: 2026/02/23 12:40:40 Deposit webhook sent successfully for wallet wallet_bbb: ZAR 2000.000000 (account: 3818fa2a-b254-4146-8aa0-358554f31c19, tx: mock-1771850440016173361)
+mockxago-test  | INFO: 2026/02/23 12:40:40 Successful login with public_key=test_public_key_12345, issued token=15f7f668-e3f6-4a99-aaa8-1de5034a626f
+mockxago-test  | INFO: 2026/02/23 12:40:40 Successful login with public_key=test_public_key_12345, issued token=bbf027f2-d8d5-4095-91f4-6201099ea3b8
+mockxago-test  | INFO: 2026/02/23 12:40:40 Successful login with public_key=test_public_key_12345, issued token=d112c96d-daad-4a8f-b646-345055203aed
+mockxago-test  | INFO: 2026/02/23 12:40:40 Successful login with public_key=test_public_key_12345, issued token=3e463b5a-92f9-4f48-9335-3e3e22b1ca65
+mockxago-test  | INFO: 2026/02/23 12:40:40 Test transaction created: 6e857f56-a04e-4659-8827-aa82c916e13a for account e2e6e696-6f7f-4969-a049-2c829f5552e4: 10000.000000 ZAR
+mockxago-test  | INFO: 2026/02/23 12:40:40 Test transaction created: f50acb67-a96e-4fe9-a9ac-4e8b7a74c778 for account e2e6e696-6f7f-4969-a049-2c829f5552e4: 2000.000000 ZAR
+mockxago-test  | INFO: 2026/02/23 12:40:40 Test transaction created: 207ed6b4-5e0e-4308-8b1e-3dfc923adffb for account e2e6e696-6f7f-4969-a049-2c829f5552e4: 5000.000000 ZAR
+mockxago-test  | INFO: 2026/02/23 12:40:40 Test transaction created: 6af5ab11-946f-452f-854b-0a0ddc37d7f9 for account e2e6e696-6f7f-4969-a049-2c829f5552e4: 1000.000000 USD
+mockxago-test  | INFO: 2026/02/23 12:40:40 Listed transactions: page=1, limit=10, total=38, returned=10
+mockxago-test  | INFO: 2026/02/23 12:40:40 Successful login with public_key=test_public_key_12345, issued token=3e1d5aba-a2ef-49b3-a4b7-6438edbda7df
+mockxago-test  | INFO: 2026/02/23 12:40:40 Successful login with public_key=test_public_key_12345, issued token=3aebc010-0a0a-4ac7-a53b-4879d7ed19ed
+mockxago-test  | INFO: 2026/02/23 12:40:40 Successful login with public_key=test_public_key_12345, issued token=52113844-7141-4261-bb93-25879a7610ed
+mockxago-test  | INFO: 2026/02/23 12:40:40 Successful login with public_key=test_public_key_12345, issued token=0a251051-e40e-43d5-b2fb-cbb64ad358ee
+mockxago-test  | INFO: 2026/02/23 12:40:40 Successful login with public_key=test_public_key_12345, issued token=0b0a5b08-6d02-483f-80db-a29b576070a6
+mockxago-test  | INFO: 2026/02/23 12:40:40 Successful login with public_key=test_public_key_12345, issued token=9d193ce1-5fe6-4acc-99b4-90a1e5b474b5
+mockxago-test  | INFO: 2026/02/23 12:40:40 Successful login with public_key=test_public_key_12345, issued token=54f576da-808e-4c69-a37c-510432ec983b
+mockxago-test  | INFO: 2026/02/23 12:40:40 Successful login with public_key=test_public_key_12345, issued token=2a03abfe-633d-4dd0-b0eb-6b5899885279
+mockxago-test  | INFO: 2026/02/23 12:40:40 Successful login with public_key=test_public_key_12345, issued token=c43261cc-0c68-41bd-9801-c206db1bfc53
+mockxago-test  | INFO: 2026/02/23 12:40:40 Successful login with public_key=test_public_key_12345, issued token=eb00a3c8-ac60-4a4c-949b-245a41ac21d9
+mockxago-test  | INFO: 2026/02/23 12:40:40 Successful login with public_key=test_public_key_12345, issued token=579f818b-659f-45fa-a13d-fb205e1730fb
+mockxago-test  | INFO: 2026/02/23 12:40:40 Created beneficiary ef3a9de5-2694-47f1-8d1f-4299dc1ccfe7 for account b3fd04fc-095d-47ce-bd60-880108dd416e (wallet wallet_txn_test)
+mockxago-test  | INFO: 2026/02/23 12:40:40 Transfer created: ID=0b35b342-5583-4bd3-b7a3-d74ef0b86dc4, wallet_id=wallet_txn_test, amount=1000.50 ZAR, beneficiary_id=ef3a9de5-2694-47f1-8d1f-4299dc1ccfe7
+mockxago-test  | INFO: 2026/02/23 12:40:40 Successful login with public_key=test_public_key_12345, issued token=05fd5723-220d-42c9-820c-b50ec46fcd3f
+mockxago-test  | INFO: 2026/02/23 12:40:40 Created beneficiary e4d238fc-ccc9-4d59-844e-faa1db26728e for account 6e93c682-cb29-411d-b53d-23a14b8ad5d4 (wallet wallet_txn_test)
+mockxago-test  | INFO: 2026/02/23 12:40:40 Transfer created: ID=71119aa2-1aae-43ac-b1e4-3f52f7b21a7e, wallet_id=wallet_txn_test, amount=1000.00 ZAR, beneficiary_id=e4d238fc-ccc9-4d59-844e-faa1db26728e
+mockxago-test  | INFO: 2026/02/23 12:40:40 Successful login with public_key=test_public_key_12345, issued token=c89dd6cc-7c13-452b-86fc-094ebb6d5093
+mockxago-test  | INFO: 2026/02/23 12:40:40 Created beneficiary 4320a684-64b0-47e8-9a48-978a26f61774 for account 71a9917e-e15f-4f96-8372-a0dfe3ba670f (wallet wallet_txn_test)
+mockxago-test  | INFO: 2026/02/23 12:40:40 Successful login with public_key=test_public_key_12345, issued token=9883be9b-5b4a-4687-b1b3-50c779283bd3
+mockxago-test  | INFO: 2026/02/23 12:40:40 Created beneficiary 3351f1c9-2061-4bf0-863c-3cefe88b97d1 for account b8f0fbd1-e25d-4cfb-93a7-83e618726c20 (wallet wallet_txn_test)
+mockxago-test  | INFO: 2026/02/23 12:40:40 Transfer created: ID=6222f90b-6ef3-48af-b831-1400fc6dce8a, wallet_id=wallet_txn_test, amount=500.00 ZAR, beneficiary_id=3351f1c9-2061-4bf0-863c-3cefe88b97d1
+mockxago-test  | INFO: 2026/02/23 12:40:40 Auto-approved beneficiary 6a5c2521-68f1-46b5-ad61-e7ed19d38384
+mockxago-test  | INFO: 2026/02/23 12:40:40 Auto-approved beneficiary 0ae063c4-0511-4053-a196-822855cdfa56
+mockxago-test  | INFO: 2026/02/23 12:40:40 Auto-approved beneficiary 2c5deb1c-2df0-4e4c-93d3-f4e6ceeec8c4
+mockxago-test  | INFO: 2026/02/23 12:40:40 Auto-approved beneficiary d022f458-fe4d-4db4-a674-7655f4c5a45c
+mockxago-test  | INFO: 2026/02/23 12:40:40 Auto-approved beneficiary 485ce2b2-40ba-4685-926d-270fbf9b40ed
+mockxago-test  | INFO: 2026/02/23 12:40:40 Auto-approved beneficiary c83583ff-c712-4be8-a1b8-acf0f0e7e64c
+mockxago-test  | INFO: 2026/02/23 12:40:40 Auto-approved beneficiary 6557bb34-bb5b-4c24-aeec-e45e33de9752
+mockxago-test  | INFO: 2026/02/23 12:40:40 Auto-approved beneficiary aac3515c-90bb-4cc2-acb2-d496eb51fe70
+mockxago-test  | INFO: 2026/02/23 12:40:40 Auto-approved beneficiary 8a5f54c5-2691-4abd-8a62-85d843aa76ad
+mockxago-test  | INFO: 2026/02/23 12:40:40 Auto-approved beneficiary 8afd1b93-3adf-407c-84b8-d99ad56223c7
+mockxago-test  | INFO: 2026/02/23 12:40:40 Auto-approved beneficiary d4c8b8ff-a309-48a9-816d-9ea5a1b19427
+mockxago-test  | INFO: 2026/02/23 12:40:40 Auto-approved beneficiary 2055d351-ccc0-424c-8ed3-cda45923df43
+mockxago-test  | INFO: 2026/02/23 12:40:40 Auto-approved beneficiary 949fbe6a-1312-4d5b-8fc5-5b7f43132e10
+mockxago-test  | INFO: 2026/02/23 12:40:40 Auto-approved beneficiary 0cb5f0ec-bcca-4c75-a239-08245e5451fa
+mockxago-test  | INFO: 2026/02/23 12:40:40 Auto-approved beneficiary 1cc90141-72df-4aba-a23e-f4f3998878ea
+mockxago-test  | INFO: 2026/02/23 12:40:40 Auto-approved beneficiary def527e0-2623-47a7-ab18-6bb65ddc81ee
+mockxago-test  | INFO: 2026/02/23 12:40:40 Auto-approved beneficiary 45fad4d3-c04d-4beb-83b0-0b53697533d9
+mockxago-test  | INFO: 2026/02/23 12:40:40 Auto-approved beneficiary 3e472082-f761-4e91-8f0f-25da1e1b0942
+mockxago-test  | INFO: 2026/02/23 12:40:40 Auto-approved beneficiary e70299a1-3b59-4dee-a78f-d8c8eb7cede0
+mockxago-test  | INFO: 2026/02/23 12:40:40 Auto-approved beneficiary 602bf23f-2520-4b81-a9e5-ddc273732370
+mockxago-test  | INFO: 2026/02/23 12:40:40 Auto-approved beneficiary 454e9589-ac04-47a2-a67f-d0b4fe54a0d1
+mockxago-test  | INFO: 2026/02/23 12:40:40 Auto-approved beneficiary 312ce1bd-4529-4066-86d9-3c9e3601fe79
+mockxago-test  | INFO: 2026/02/23 12:40:40 Auto-approved beneficiary c6f51d07-d835-4e0e-ab1d-26289ff2eaca
+mockxago-test  | INFO: 2026/02/23 12:40:40 Auto-approved beneficiary 6f5f67ed-763f-4928-bd3b-dd6fb06a8357
+mockxago-test  | INFO: 2026/02/23 12:40:42 Transfer auto-completed: 0b35b342-5583-4bd3-b7a3-d74ef0b86dc4
+mockxago-test  | INFO: 2026/02/23 12:40:42 Transfer auto-completed: 71119aa2-1aae-43ac-b1e4-3f52f7b21a7e
+mockxago-test  | INFO: 2026/02/23 12:40:42 Transfer auto-completed: 6222f90b-6ef3-48af-b831-1400fc6dce8a
+mockxago-test  | INFO: 2026/02/23 12:40:43 Auto-approved beneficiary ef3a9de5-2694-47f1-8d1f-4299dc1ccfe7
+mockxago-test  | INFO: 2026/02/23 12:40:43 Auto-approved beneficiary e4d238fc-ccc9-4d59-844e-faa1db26728e
+mockxago-test  | INFO: 2026/02/23 12:40:43 Auto-approved beneficiary 4320a684-64b0-47e8-9a48-978a26f61774
+mockxago-test  | INFO: 2026/02/23 12:40:43 Auto-approved beneficiary 3351f1c9-2061-4bf0-863c-3cefe88b97d1
+mockxago-test  | INFO: 2026/02/23 12:40:43 Transfer retrieved: 6222f90b-6ef3-48af-b831-1400fc6dce8a
+mockxago-test  | INFO: 2026/02/23 12:40:43 Successful login with public_key=test_public_key_12345, issued token=62608cda-ce53-4a40-aed7-eda4ff34ca8a
+mockxago-test  | INFO: 2026/02/23 12:40:43 Created beneficiary edddb0c7-d0e7-4543-acd9-e6c0d615cb10 for account ff027ba1-4eed-4cee-a174-642c118e0159 (wallet wallet_txn_test)
+mockxago-test  | INFO: 2026/02/23 12:40:43 Transfer created: ID=7a56916d-1bf4-4d0f-9d72-39c2ae432b43, wallet_id=wallet_txn_test, amount=1000.00 ZAR, beneficiary_id=edddb0c7-d0e7-4543-acd9-e6c0d615cb10
+mockxago-test  | INFO: 2026/02/23 12:40:43 Idempotent transfer request: returning existing transaction 7a56916d-1bf4-4d0f-9d72-39c2ae432b43
+mockxago-test  | INFO: 2026/02/23 12:40:43 Successful login with public_key=test_public_key_12345, issued token=0eaf42a6-ce59-4d22-b2a9-f84bfe7e8872
+mockxago-test  | INFO: 2026/02/23 12:40:43 Created beneficiary 9e5ee12a-351b-40b4-b7fe-3ed3b970ad9b for account 511209fd-821a-4adb-a5a3-5dbbffb686cc (wallet wallet_txn_test)
+mockxago-test  | INFO: 2026/02/23 12:40:43 Successful login with public_key=test_public_key_12345, issued token=0ad2c9fb-579a-48cd-9979-c19b0f4755fd
+mockxago-test  | INFO: 2026/02/23 12:40:43 Created beneficiary 5a51186a-5198-4a74-95f9-7c941d8d1955 for account a30c3b9c-dce1-4c63-9d2e-1e47de421e95 (wallet wallet_txn_test)
+mockxago-test  | WARN: 2026/02/23 12:40:43 Beneficiary not found: invalid_ben_123
+mockxago-test  | INFO: 2026/02/23 12:40:43 Successful login with public_key=test_public_key_12345, issued token=1c6c3a4a-30e5-440c-b223-60740fbf5646
+mockxago-test  | INFO: 2026/02/23 12:40:43 Created beneficiary 95777059-d0da-4ef4-845c-a882f78cadfc for account 28ab668c-a7e5-4fc9-b0fc-7061cfdbc2c0 (wallet wallet_txn_test)
+mockxago-test  | INFO: 2026/02/23 12:40:43 Successful login with public_key=test_public_key_12345, issued token=c74bb0d3-45ab-40c7-9f53-d0dde2e76467
+mockxago-test  | INFO: 2026/02/23 12:40:43 Created beneficiary 9511d8e0-f23b-45c8-b6f6-47e786d05611 for account 2cdd968e-397d-4bb2-8174-82cee64c230a (wallet wallet_txn_test)
+mockxago-test  | INFO: 2026/02/23 12:40:43 Successful login with public_key=test_public_key_12345, issued token=b00e26a0-47f3-4016-b4c1-cefeb298ffab
+mockxago-test  | INFO: 2026/02/23 12:40:43 Created beneficiary 05affb5d-66ac-47da-b836-f40045603e2c for account 07775e97-49cd-4358-ae59-0fc0a84bfebd (wallet wallet_txn_test)
+mockxago-test  | INFO: 2026/02/23 12:40:43 Transfer created: ID=906cd20b-953c-46bd-bfdd-aa4f6ef2b9ab, wallet_id=wallet_txn_test, amount=1000.00 ZAR, beneficiary_id=05affb5d-66ac-47da-b836-f40045603e2c
+mockxago-test  | INFO: 2026/02/23 12:40:43 Transfer created: ID=de05eaad-c7a7-4212-a726-90ba3fd7969f, wallet_id=wallet_txn_test, amount=1100.00 ZAR, beneficiary_id=05affb5d-66ac-47da-b836-f40045603e2c
+mockxago-test  | INFO: 2026/02/23 12:40:43 Transfer created: ID=eccb2766-e533-4886-bedc-88073d2c822a, wallet_id=wallet_txn_test, amount=1200.00 ZAR, beneficiary_id=05affb5d-66ac-47da-b836-f40045603e2c
+mockxago-test  | INFO: 2026/02/23 12:40:43 Listed transfers: page=1, limit=10, total=3, returned=3
+mockxago-test  | INFO: 2026/02/23 12:40:43 Successful login with public_key=test_public_key_12345, issued token=35d47a10-34c0-46a5-bf90-1073df10a5a8
+mockxago-test  | INFO: 2026/02/23 12:40:43 Created beneficiary 60c03f67-8e91-4cd8-a68b-ac743849af05 for account cb8cfcfc-a399-449c-a9df-8c69fdfb3fa9 (wallet wallet_txn_test)
+mockxago-test  | INFO: 2026/02/23 12:40:43 Transfer created: ID=3fb742d9-9759-4a29-a3ed-a7c24166c0b6, wallet_id=wallet_txn_test, amount=1000.00 ZAR, beneficiary_id=60c03f67-8e91-4cd8-a68b-ac743849af05
+mockxago-test  | INFO: 2026/02/23 12:40:43 Transfer created: ID=6a628e0d-0144-4eb3-92a8-6e8c94fcd6f8, wallet_id=wallet_txn_test, amount=1100.00 ZAR, beneficiary_id=60c03f67-8e91-4cd8-a68b-ac743849af05
+mockxago-test  | INFO: 2026/02/23 12:40:43 Transfer created: ID=3b9f4f5b-7406-4362-8b8a-3ff793e27adf, wallet_id=wallet_txn_test, amount=1200.00 ZAR, beneficiary_id=60c03f67-8e91-4cd8-a68b-ac743849af05
+mockxago-test  | INFO: 2026/02/23 12:40:43 Transfer created: ID=01940b43-8c75-42a9-8b18-582160640166, wallet_id=wallet_txn_test, amount=1300.00 ZAR, beneficiary_id=60c03f67-8e91-4cd8-a68b-ac743849af05
+mockxago-test  | INFO: 2026/02/23 12:40:43 Transfer created: ID=ca41ed55-322b-48dc-a6c7-7474d265731d, wallet_id=wallet_txn_test, amount=1400.00 ZAR, beneficiary_id=60c03f67-8e91-4cd8-a68b-ac743849af05
+mockxago-test  | INFO: 2026/02/23 12:40:43 Transfer created: ID=94548142-62f8-4c6c-8d1a-adefad9b206a, wallet_id=wallet_txn_test, amount=1500.00 ZAR, beneficiary_id=60c03f67-8e91-4cd8-a68b-ac743849af05
+mockxago-test  | INFO: 2026/02/23 12:40:43 Transfer created: ID=4bbac3ce-db45-4ab9-86a7-84a8d3202e99, wallet_id=wallet_txn_test, amount=1600.00 ZAR, beneficiary_id=60c03f67-8e91-4cd8-a68b-ac743849af05
+mockxago-test  | INFO: 2026/02/23 12:40:43 Transfer created: ID=17ea41ff-beb9-4b47-8e8a-a36ee1794d90, wallet_id=wallet_txn_test, amount=1700.00 ZAR, beneficiary_id=60c03f67-8e91-4cd8-a68b-ac743849af05
+mockxago-test  | INFO: 2026/02/23 12:40:43 Transfer created: ID=5051006b-27e0-4835-af00-b9cf15124ed2, wallet_id=wallet_txn_test, amount=1800.00 ZAR, beneficiary_id=60c03f67-8e91-4cd8-a68b-ac743849af05
+mockxago-test  | INFO: 2026/02/23 12:40:43 Transfer created: ID=5f5f01bb-fe7b-4450-a1ac-b368171fddba, wallet_id=wallet_txn_test, amount=1900.00 ZAR, beneficiary_id=60c03f67-8e91-4cd8-a68b-ac743849af05
+mockxago-test  | INFO: 2026/02/23 12:40:43 Transfer created: ID=755c2b85-8756-44bb-b54e-2c8d825d4c00, wallet_id=wallet_txn_test, amount=2000.00 ZAR, beneficiary_id=60c03f67-8e91-4cd8-a68b-ac743849af05
+mockxago-test  | INFO: 2026/02/23 12:40:43 Transfer created: ID=01d47a28-8f54-45e5-bdbb-98056aa7c706, wallet_id=wallet_txn_test, amount=2100.00 ZAR, beneficiary_id=60c03f67-8e91-4cd8-a68b-ac743849af05
+mockxago-test  | INFO: 2026/02/23 12:40:43 Transfer created: ID=00bbf10f-d2b0-4e67-b758-4110b67b4105, wallet_id=wallet_txn_test, amount=2200.00 ZAR, beneficiary_id=60c03f67-8e91-4cd8-a68b-ac743849af05
+mockxago-test  | INFO: 2026/02/23 12:40:43 Transfer created: ID=b1b810d1-e8df-4e6d-b81b-213a5d47a0fd, wallet_id=wallet_txn_test, amount=2300.00 ZAR, beneficiary_id=60c03f67-8e91-4cd8-a68b-ac743849af05
+mockxago-test  | INFO: 2026/02/23 12:40:43 Transfer created: ID=b01eaea0-c2fc-449e-8ff3-a0d1b51b6f11, wallet_id=wallet_txn_test, amount=2400.00 ZAR, beneficiary_id=60c03f67-8e91-4cd8-a68b-ac743849af05
+mockxago-test  | INFO: 2026/02/23 12:40:43 Listed transfers: page=1, limit=10, total=15, returned=10
+mockxago-test  | INFO: 2026/02/23 12:40:43 Listed transfers: page=2, limit=10, total=15, returned=5
+mockxago-test  | INFO: 2026/02/23 12:40:43 Successful login with public_key=test_public_key_12345, issued token=aed179de-69af-4b70-9149-2bd92b9ac1d6
+mockxago-test  | INFO: 2026/02/23 12:40:43 Created beneficiary 5046b59d-faa6-45cf-aac7-f27294f58976 for account 39dfb9fc-a473-4aef-82d2-c74c328aea97 (wallet wallet_txn_test)
+mockxago-test  | INFO: 2026/02/23 12:40:43 Stubbed transfer returned in test mode: txn_123
+mockxago-test  | INFO: 2026/02/23 12:40:43 Successful login with public_key=test_public_key_12345, issued token=c1c5f584-3b3e-4cf5-a9c7-8c8f26f2a68f
+mockxago-test  | INFO: 2026/02/23 12:40:43 Created beneficiary 72dc8d17-8223-40c1-b285-81eb50c6d574 for account 2ca8c2d7-1efa-44bb-9cb7-4ea35ee4a8d1 (wallet wallet_txn_test)
+mockxago-test  | INFO: 2026/02/23 12:40:43 Transfer created: ID=aeb190b2-841d-4c46-8680-065062030c62, wallet_id=wallet_txn_test, amount=1000.00 ZAR, beneficiary_id=72dc8d17-8223-40c1-b285-81eb50c6d574
+mockxago-test  | INFO: 2026/02/23 12:40:45 Transfer auto-completed: 7a56916d-1bf4-4d0f-9d72-39c2ae432b43
+mockxago-test  | INFO: 2026/02/23 12:40:45 Transfer auto-completed: de05eaad-c7a7-4212-a726-90ba3fd7969f
+mockxago-test  | INFO: 2026/02/23 12:40:45 Transfer auto-completed: 906cd20b-953c-46bd-bfdd-aa4f6ef2b9ab
+mockxago-test  | INFO: 2026/02/23 12:40:45 Transfer auto-completed: eccb2766-e533-4886-bedc-88073d2c822a
+mockxago-test  | INFO: 2026/02/23 12:40:45 Transfer auto-completed: 6a628e0d-0144-4eb3-92a8-6e8c94fcd6f8
+mockxago-test  | INFO: 2026/02/23 12:40:45 Transfer auto-completed: 3fb742d9-9759-4a29-a3ed-a7c24166c0b6
+mockxago-test  | INFO: 2026/02/23 12:40:45 Transfer auto-completed: 3b9f4f5b-7406-4362-8b8a-3ff793e27adf
+mockxago-test  | INFO: 2026/02/23 12:40:45 Transfer auto-completed: 5051006b-27e0-4835-af00-b9cf15124ed2
+mockxago-test  | INFO: 2026/02/23 12:40:45 Transfer auto-completed: 755c2b85-8756-44bb-b54e-2c8d825d4c00
+mockxago-test  | INFO: 2026/02/23 12:40:45 Transfer auto-completed: ca41ed55-322b-48dc-a6c7-7474d265731d
+mockxago-test  | INFO: 2026/02/23 12:40:45 Transfer auto-completed: 4bbac3ce-db45-4ab9-86a7-84a8d3202e99
+mockxago-test  | INFO: 2026/02/23 12:40:45 Transfer auto-completed: 94548142-62f8-4c6c-8d1a-adefad9b206a
+mockxago-test  | INFO: 2026/02/23 12:40:45 Transfer auto-completed: 01940b43-8c75-42a9-8b18-582160640166
+mockxago-test  | INFO: 2026/02/23 12:40:45 Transfer auto-completed: 17ea41ff-beb9-4b47-8e8a-a36ee1794d90
+mockxago-test  | INFO: 2026/02/23 12:40:45 Transfer auto-completed: 5f5f01bb-fe7b-4450-a1ac-b368171fddba
+mockxago-test  | INFO: 2026/02/23 12:40:45 Transfer auto-completed: b1b810d1-e8df-4e6d-b81b-213a5d47a0fd
+mockxago-test  | INFO: 2026/02/23 12:40:45 Transfer auto-completed: b01eaea0-c2fc-449e-8ff3-a0d1b51b6f11
+mockxago-test  | INFO: 2026/02/23 12:40:45 Transfer auto-completed: 01d47a28-8f54-45e5-bdbb-98056aa7c706
+mockxago-test  | INFO: 2026/02/23 12:40:45 Transfer auto-completed: 00bbf10f-d2b0-4e67-b758-4110b67b4105
+mockxago-test  | INFO: 2026/02/23 12:40:45 Transfer auto-completed: aeb190b2-841d-4c46-8680-065062030c62
+mockxago-test  | INFO: 2026/02/23 12:40:46 Auto-approved beneficiary edddb0c7-d0e7-4543-acd9-e6c0d615cb10
+mockxago-test  | INFO: 2026/02/23 12:40:46 Auto-approved beneficiary 9e5ee12a-351b-40b4-b7fe-3ed3b970ad9b
+mockxago-test  | INFO: 2026/02/23 12:40:46 Auto-approved beneficiary 5a51186a-5198-4a74-95f9-7c941d8d1955
+mockxago-test  | INFO: 2026/02/23 12:40:46 Auto-approved beneficiary 95777059-d0da-4ef4-845c-a882f78cadfc
+mockxago-test  | INFO: 2026/02/23 12:40:46 Auto-approved beneficiary 9511d8e0-f23b-45c8-b6f6-47e786d05611
+mockxago-test  | INFO: 2026/02/23 12:40:46 Auto-approved beneficiary 05affb5d-66ac-47da-b836-f40045603e2c
+mockxago-test  | INFO: 2026/02/23 12:40:46 Auto-approved beneficiary 60c03f67-8e91-4cd8-a68b-ac743849af05
+mockxago-test  | INFO: 2026/02/23 12:40:46 Auto-approved beneficiary 5046b59d-faa6-45cf-aac7-f27294f58976
+mockxago-test  | INFO: 2026/02/23 12:40:46 Auto-approved beneficiary 72dc8d17-8223-40c1-b285-81eb50c6d574
+mockxago-test  | INFO: 2026/02/23 12:40:46 Transfer retrieved: aeb190b2-841d-4c46-8680-065062030c62
+mockxago-test  | INFO: 2026/02/23 12:40:46 Successful login with public_key=test_public_key_12345, issued token=ba0004c1-dc5e-4e44-bb23-0f13eedcf020
+mockxago-test  | INFO: 2026/02/23 12:40:46 Created beneficiary 74af0ac9-187c-4384-9c48-4442788e8a49 for account 7d90bea0-33e7-479b-9612-9385ffd7bfc1 (wallet wallet_txn_test)
+mockxago-test  | INFO: 2026/02/23 12:40:46 Created beneficiary 99768436-15d4-47d3-9355-609a509c1d3d for account 7d90bea0-33e7-479b-9612-9385ffd7bfc1 (wallet wallet_txn_test)
+mockxago-test  | INFO: 2026/02/23 12:40:46 Transfer created: ID=aba8cc6c-d0b9-4993-9553-e72e1c646841, wallet_id=wallet_txn_test, amount=1000.00 ZAR, beneficiary_id=74af0ac9-187c-4384-9c48-4442788e8a49
+mockxago-test  | INFO: 2026/02/23 12:40:46 Listed transfers: page=1, limit=10, total=1, returned=1
+mockxago-test  | INFO: 2026/02/23 12:40:46 Successful login with public_key=test_public_key_12345, issued token=18b1f8c4-d19e-4e7b-a35e-916c05192a88
+mockxago-test  | INFO: 2026/02/23 12:40:46 Created beneficiary 6c37b2a4-2051-47e9-bd4e-df631b3a7a82 for account c23039c9-e7da-45ee-9a80-3d29f68cf5af (wallet wallet_txn_test)
+mockxago-test  | INFO: 2026/02/23 12:40:46 Successful login with public_key=test_public_key_12345, issued token=e2f58daa-5b23-446e-a0c2-c10ac15b25e5
+mockxago-test  | INFO: 2026/02/23 12:40:46 Created beneficiary edef318b-c75c-4501-aa22-0394e7dec05b for account ee064801-eef3-4a52-a88b-026e2927dcc8 (wallet wallet_txn_test)
+mockxago-test  | INFO: 2026/02/23 12:40:46 Successful login with public_key=test_public_key_12345, issued token=6460ef69-4906-45a1-a6bc-06b6adff77d1
+mockxago-test  | INFO: 2026/02/23 12:40:46 Created beneficiary f6a6201f-1eb2-47c8-86e5-9313afeb6870 for account 43aad6fc-bb43-4027-b4eb-d59f97b3fad1 (wallet wallet_txn_test)
+mockxago-test  | INFO: 2026/02/23 12:40:46 Transfer created: ID=f3016e9a-2985-433d-8a04-cfea0271d740, wallet_id=wallet_txn_test, amount=2000.00 ZAR, beneficiary_id=f6a6201f-1eb2-47c8-86e5-9313afeb6870
+mockxago-test  | INFO: 2026/02/23 12:40:46 Transfer created: ID=32cd0f7b-8deb-4aa6-85f4-0ee53c944802, wallet_id=wallet_txn_test, amount=3000.00 ZAR, beneficiary_id=f6a6201f-1eb2-47c8-86e5-9313afeb6870
+mockxago-test  | INFO: 2026/02/23 12:40:46 Transfer created: ID=8be80780-00fc-4ae6-ae13-5bc3ca836b42, wallet_id=wallet_txn_test, amount=1000.00 ZAR, beneficiary_id=f6a6201f-1eb2-47c8-86e5-9313afeb6870
+mockxago-test  | INFO: 2026/02/23 12:40:46 Listed transfers: page=1, limit=13, total=3, returned=3
+mockxago-test  | INFO: 2026/02/23 12:40:46 Listed transfers: page=1, limit=6, total=3, returned=3
+mockxago-test  | INFO: 2026/02/23 12:40:46 Successful login with public_key=test_public_key_12345, issued token=8546cabc-7450-4ed1-85b7-f41486ebfa8f
+mockxago-test  | INFO: 2026/02/23 12:40:46 Created beneficiary 465612f2-e4c3-4392-b538-a60d5bec6592 for account 08c11de4-3d1e-4e45-a4b2-225dca25618f (wallet wallet_txn_test)
+mockxago-test  | INFO: 2026/02/23 12:40:46 Created beneficiary 43e90038-98ce-4d17-bb7c-8a9b697e4851 for account 08c11de4-3d1e-4e45-a4b2-225dca25618f (wallet wallet_txn_test)
+mockxago-test  | INFO: 2026/02/23 12:40:46 Transfer created: ID=69bcb196-657b-4ad4-9161-b9a407239950, wallet_id=wallet_txn_test, amount=1000.00 ZAR, beneficiary_id=465612f2-e4c3-4392-b538-a60d5bec6592
+mockxago-test  | INFO: 2026/02/23 12:40:46 Transfer created: ID=f617ac63-9c75-4d08-9bc4-0752328939c4, wallet_id=wallet_txn_test, amount=200.00 USD, beneficiary_id=465612f2-e4c3-4392-b538-a60d5bec6592

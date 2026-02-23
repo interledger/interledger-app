@@ -85,12 +85,10 @@ func setupRoutes(router *chi.Mux, h *handler.Handler) {
 		r.Post("/login", h.Login)
 		r.Get("/currencies", h.ListCurrencies)
 
-		// Public deposit simulation endpoint (no auth required)
-		r.Post("/company/accounts/testdeposit", h.SimulateTestDeposit)
-
 		r.Group(func(pr chi.Router) {
 			pr.Use(h.AuthMiddleware)
 			pr.Post("/company/accounts", h.CreateSubAccount)
+			pr.Post("/company/accounts/testdeposit", h.SimulateTestDeposit)
 			pr.Put("/company/accounts/{accountId}", h.UpdateSubAccount)
 			pr.Get("/company/accounts", h.GetSubAccountByWallet)
 			pr.Get("/accounts/{accountId}/balance", h.GetBalance)

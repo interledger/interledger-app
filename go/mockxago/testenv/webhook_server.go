@@ -6,14 +6,27 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
-	"strings"
+	"sync"
 	"time"
 )
 
+// Global shared webhook server state across all scenarios
+var (
+	globalWebhookServer   *http.Server
+	globalWebhookMu       sync.Mutex
+	globalWebhookEvents   []webhookEvent
+	globalWebhookEventsMu sync.Mutex
+)
+
 func (tc *TestContext) startWebhookServer(webhookURL string) error {
-	if tc.webhookServer != nil {
+	globalWebhookMu.Lock()
+	defer globalWebhookMu.Unlock()
+
+	// If server already running, just update the URL and return
+	if globalWebhookServer != nil {
 		tc.webhookURL = webhookURL
 		return nil
 	}
@@ -28,30 +41,42 @@ func (tc *TestContext) startWebhookServer(webhookURL string) error {
 		path = "/"
 	}
 
-	addr := parsed.Host
-	if addr == "" {
-		addr = ":3000"
+	// Extract host and port from URL
+	host, port, err := net.SplitHostPort(parsed.Host)
+	if err != nil {
+		// No port specified, use the whole host
+		host = parsed.Host
+		port = "3000"
 	}
-	if !strings.Contains(addr, ":") {
-		addr = addr + ":80"
+
+	// Replace localhost with 0.0.0.0 to make server accessible from Docker
+	if host == "localhost" || host == "127.0.0.1" {
+		host = "0.0.0.0"
 	}
+
+	addr := host + ":" + port
 
 	mux := http.NewServeMux()
 	mux.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
+		fmt.Printf("Webhook received: %s %s from %s\n", r.Method, r.URL.Path, r.RemoteAddr)
+
 		body, _ := io.ReadAll(r.Body)
 		_ = r.Body.Close()
 
 		var payload webhookPayload
 		_ = json.Unmarshal(body, &payload)
 
-		tc.webhookMu.Lock()
-		tc.webhookEvents = append(tc.webhookEvents, webhookEvent{
+		// Store in global webhook events
+		globalWebhookEventsMu.Lock()
+		globalWebhookEvents = append(globalWebhookEvents, webhookEvent{
 			Body:       payload,
 			Headers:    r.Header.Clone(),
 			RawBody:    body,
 			ReceivedAt: time.Now(),
 		})
-		tc.webhookMu.Unlock()
+		globalWebhookEventsMu.Unlock()
+
+		fmt.Printf("Webhook stored, total count: %d\n", len(globalWebhookEvents))
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
@@ -66,12 +91,32 @@ func (tc *TestContext) startWebhookServer(webhookURL string) error {
 		return fmt.Errorf("https webhook server not supported in test harness")
 	}
 
-	tc.webhookServer = server
+	globalWebhookServer = server
 	tc.webhookURL = webhookURL
 
+	// Start server in background
+	started := make(chan error, 1)
 	go func() {
-		_ = server.ListenAndServe()
+		// Signal that we're attempting to listen
+		started <- nil
+		err := server.ListenAndServe()
+		if err != nil && err != http.ErrServerClosed {
+			fmt.Printf("Webhook server error: %v\n", err)
+		}
 	}()
+
+	// Wait for server to start (or fail immediately)
+	select {
+	case err := <-started:
+		if err != nil {
+			return err
+		}
+		// Give the server a moment to actually bind to the port
+		time.Sleep(100 * time.Millisecond)
+		fmt.Printf("Webhook server started on %s%s\n", addr, path)
+	case <-time.After(2 * time.Second):
+		return fmt.Errorf("timeout waiting for webhook server to start")
+	}
 
 	return nil
 }
@@ -79,26 +124,36 @@ func (tc *TestContext) startWebhookServer(webhookURL string) error {
 func (tc *TestContext) waitForWebhookCount(count int, timeout time.Duration) error {
 	deadline := time.Now().Add(timeout)
 	for time.Now().Before(deadline) {
-		tc.webhookMu.Lock()
-		got := len(tc.webhookEvents)
-		tc.webhookMu.Unlock()
-		if got >= count {
+		// Copy global webhooks to local context
+		globalWebhookEventsMu.Lock()
+		tc.webhookEvents = make([]webhookEvent, len(globalWebhookEvents))
+		copy(tc.webhookEvents, globalWebhookEvents)
+		currentCount := len(tc.webhookEvents)
+		globalWebhookEventsMu.Unlock()
+
+		if currentCount >= count {
 			return nil
 		}
 		time.Sleep(100 * time.Millisecond)
 	}
 
-	tc.webhookMu.Lock()
-	got := len(tc.webhookEvents)
-	tc.webhookMu.Unlock()
-	return fmt.Errorf("expected %d webhooks, got %d", count, got)
+	// Final check
+	globalWebhookEventsMu.Lock()
+	tc.webhookEvents = make([]webhookEvent, len(globalWebhookEvents))
+	copy(tc.webhookEvents, globalWebhookEvents)
+	currentCount := len(tc.webhookEvents)
+	globalWebhookEventsMu.Unlock()
+
+	return fmt.Errorf("expected %d webhooks, got %d", count, currentCount)
 }
 
 func (tc *TestContext) lastWebhookEvent() (webhookEvent, error) {
-	tc.webhookMu.Lock()
-	defer tc.webhookMu.Unlock()
-	if len(tc.webhookEvents) == 0 {
+	// Sync from global state
+	globalWebhookEventsMu.Lock()
+	defer globalWebhookEventsMu.Unlock()
+
+	if len(globalWebhookEvents) == 0 {
 		return webhookEvent{}, fmt.Errorf("no webhook events received")
 	}
-	return tc.webhookEvents[len(tc.webhookEvents)-1], nil
+	return globalWebhookEvents[len(globalWebhookEvents)-1], nil
 }

@@ -27,7 +27,11 @@ func (h *Handler) SimulateTestDeposit(w http.ResponseWriter, r *http.Request) {
 		h.sendError(w, http.StatusBadRequest, "invalid_request", "accountId is required")
 		return
 	}
-	if req.Amount <= 0 {
+	if req.Amount < 0 {
+		h.sendError(w, http.StatusBadRequest, "invalid_request", "amount must be positive")
+		return
+	}
+	if req.Amount == 0 {
 		h.sendError(w, http.StatusBadRequest, "invalid_request", "amount must be greater than 0")
 		return
 	}
@@ -138,6 +142,7 @@ func (h *Handler) sendDepositCompletedWebhook(accountID string, amount float64, 
 	}
 
 	webhookSecret := os.Getenv("WEBHOOK_SECRET")
+	logger.Infof("Attempting to send webhook for deposit %s to %s", transactionID, webhookURL)
 
 	// Retrieve deposit for complete details
 	ctx := context.Background()
