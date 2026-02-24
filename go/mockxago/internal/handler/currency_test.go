@@ -18,11 +18,22 @@ func TestListCurrencies_NoAuthRequired(t *testing.T) {
 	h.ListCurrencies(w, r)
 	assert.Equal(t, http.StatusOK, w.Code)
 
-	var resp []map[string]string
+	var resp []map[string]interface{}
 	json.NewDecoder(w.Body).Decode(&resp)
 	assert.GreaterOrEqual(t, len(resp), 2)
-	assert.Equal(t, "ZAR", resp[0]["currencyId"])
-	assert.Equal(t, "USD", resp[1]["currencyId"])
+	
+	// Verify nested format
+	assert.Equal(t, "ZAR", resp[0]["currencyCode"])
+	assert.Equal(t, "USD", resp[1]["currencyCode"])
+	
+	// Verify nested structure
+	assert.NotNil(t, resp[0]["bankingProviders"])
+	assert.NotNil(t, resp[1]["bankingProviders"])
+	
+	// Verify ZAR has banking providers
+	zarProviders, ok := resp[0]["bankingProviders"].([]interface{})
+	assert.True(t, ok)
+	assert.GreaterOrEqual(t, len(zarProviders), 1)
 }
 
 func TestListCurrencies_IsStableAcrossCalls(t *testing.T) {

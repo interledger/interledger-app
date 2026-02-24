@@ -121,6 +121,36 @@ type CurrencyResponse struct {
 	SwiftBIC      string `json:"swiftBIC"`
 }
 
+// DepositFields contains bank account deposit details
+type DepositFields struct {
+	BankName       string `json:"bankName"`
+	AccountName    string `json:"accountName"`
+	AccountNumber  string `json:"accountNumber"`
+	BankAddress    string `json:"bankAddress,omitempty"`
+	AccountAddress string `json:"accountAddress,omitempty"`
+	BranchCode     string `json:"branchCode"`
+	SwiftBIC       string `json:"swiftBIC,omitempty"`
+}
+
+// BankingProvider represents a banking provider with deposit availability
+type BankingProvider struct {
+	Name             string        `json:"name"`
+	DepositAvailable bool          `json:"depositAvailable"`
+	DepositFields    DepositFields `json:"depositFields"`
+}
+
+// CurrencyNested represents currency with nested banking providers
+// This format matches what the backend expects (see go/backend/providers/xago/external/types.go)
+type CurrencyNested struct {
+	CurrencyCode     string            `json:"currencyCode"`
+	Name             string            `json:"name,omitempty"`
+	Symbol           string            `json:"symbol,omitempty"`
+	DepositEnabled   bool              `json:"depositEnabled"`
+	WithdrawEnabled  bool              `json:"withdrawEnabled"`
+	MarketEnabled    bool              `json:"marketEnabled,omitempty"`
+	BankingProviders []BankingProvider `json:"bankingProviders"`
+}
+
 // ErrorResponse represents a standard error response
 type ErrorResponse struct {
 	Error   string `json:"error"`

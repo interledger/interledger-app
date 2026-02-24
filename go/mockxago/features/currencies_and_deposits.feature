@@ -65,3 +65,32 @@ Feature: Xago Currencies and Deposit Details
     Then the deposit references are different
     And deposit reference for wallet_aaa is unique
     And deposit reference for wallet_bbb is unique
+
+  Scenario: Currency list returns nested banking providers (backend format)
+    When I request the list of available currencies
+    Then I receive a successful response with status code 200
+    And the response includes currencies in nested format
+    And the ZAR currency has nested banking providers with:
+      | depositEnabled   | true            |
+      | withdrawEnabled  | true            |
+    And the first ZAR banking provider includes:
+      | name              | FNB             |
+      | depositAvailable  | true            |
+    And the first ZAR provider deposit fields include:
+      | bankName      | FNB             |
+      | accountNumber | 62057334567     |
+      | branchCode    | 250145          |
+    And the USD currency has nested banking providers
+
+  Scenario: Backend can parse nested currency response
+    When I request the list of available currencies
+    Then I receive a successful response with status code 200
+    And the response structure matches backend expectations
+    And each currency has required fields:
+      | currencyCode     |
+      | depositEnabled   |
+      | bankingProviders |
+    And each banking provider has required fields:
+      | name             |
+      | depositAvailable |
+      | depositFields    |

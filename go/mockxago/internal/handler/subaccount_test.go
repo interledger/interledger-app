@@ -228,8 +228,26 @@ func TestGetSubAccountByWallet_Isolated(t *testing.T) {
 	curReq := httptest.NewRequest(http.MethodGet, "/xago/v1/currencies", nil)
 	curW := httptest.NewRecorder()
 	h.ListCurrencies(curW, curReq)
-	var currencies []map[string]string
-	json.NewDecoder(curW.Body).Decode(&currencies)
+	var currenciesNested []map[string]interface{}
+	json.NewDecoder(curW.Body).Decode(&currenciesNested)
+	
+	// Convert nested format to flat for test compatibility
+	currencies := make([]map[string]string, 0, len(currenciesNested))
+	for _, curr := range currenciesNested {
+		if providers, ok := curr["bankingProviders"].([]interface{}); ok && len(providers) > 0 {
+			if provider, ok := providers[0].(map[string]interface{}); ok {
+				if fields, ok := provider["depositFields"].(map[string]interface{}); ok {
+					currencies = append(currencies, map[string]string{
+						"currencyId":    curr["currencyCode"].(string),
+						"bankName":      fields["bankName"].(string),
+						"accountNumber": fields["accountNumber"].(string),
+						"branchCode":    fields["branchCode"].(string),
+						"swiftBIC":      fields["swiftBIC"].(string),
+					})
+				}
+			}
+		}
+	}
 
 	create := func(wallet string) models.CreateSubAccountResponse {
 		req := models.CreateSubAccountRequest{

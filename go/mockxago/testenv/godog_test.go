@@ -124,6 +124,16 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I request the list of available currencies without authentication$`, tc.requestCurrencyListWithoutAuth)
 	ctx.Step(`^the response includes available currencies$`, tc.responseIncludesAvailableCurrencies)
 
+	// Nested currency format steps (backend compatibility)
+	ctx.Step(`^the response includes currencies in nested format$`, tc.responseIncludesCurrenciesInNestedFormat)
+	ctx.Step(`^the ZAR currency has nested banking providers with:$`, tc.zarCurrencyHasNestedBankingProvidersWith)
+	ctx.Step(`^the first ZAR banking provider includes:$`, tc.firstZarBankingProviderIncludes)
+	ctx.Step(`^the first ZAR provider deposit fields include:$`, tc.firstZarProviderDepositFieldsInclude)
+	ctx.Step(`^the USD currency has nested banking providers$`, tc.usdCurrencyHasNestedBankingProviders)
+	ctx.Step(`^the response structure matches backend expectations$`, tc.responseStructureMatchesBackendExpectations)
+	ctx.Step(`^each currency has required fields:$`, tc.eachCurrencyHasRequiredFields)
+	ctx.Step(`^each banking provider has required fields:$`, tc.eachBankingProviderHasRequiredFields)
+
 	ctx.Step(`^I have created a sub-account$`, tc.createSubAccount)
 	ctx.Step(`^I retrieve the created sub-account details$`, tc.retrieveCreatedSubAccountDetails)
 	ctx.Step(`^the bankDepositDetails in the sub-account match the currencies endpoint$`, tc.bankDetailsMatchCurrenciesEndpoint)

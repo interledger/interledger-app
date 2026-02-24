@@ -14,6 +14,20 @@ func (tc *TestContext) requestCurrencyList() error {
 	if err != nil {
 		return err
 	}
+	// Try parsing as nested format first
+	var nested []currencyNested
+	if err := tc.decodeLastResponse(&nested); err == nil {
+		// Convert nested to flat for backward compatibility
+		tc.lastCurrenciesNested = nested
+		tc.lastCurrencies = make([]currencyResponse, 0, len(nested))
+		for _, n := range nested {
+			if flat := n.toFlat(); flat != nil {
+				tc.lastCurrencies = append(tc.lastCurrencies, *flat)
+			}
+		}
+		return nil
+	}
+	// Fallback to flat format
 	var resp []currencyResponse
 	if err := tc.decodeLastResponse(&resp); err != nil {
 		return err
@@ -93,6 +107,31 @@ func (tc *TestContext) accountNumbersAndBankCodesSame() error {
 	if tc.previousCurrencies == "" {
 		return fmt.Errorf("no previous currency response stored")
 	}
+	// Try parsing as nested format first
+	var prevNested []currencyNested
+	if err := json.Unmarshal([]byte(tc.previousCurrencies), &prevNested); err == nil {
+		// Convert to flat for comparison
+		prevFlat := make([]currencyResponse, 0, len(prevNested))
+		for _, n := range prevNested {
+			if flat := n.toFlat(); flat != nil {
+				prevFlat = append(prevFlat, *flat)
+			}
+		}
+		if len(prevFlat) != len(tc.lastCurrencies) {
+			return fmt.Errorf("currency list lengths differ between calls")
+		}
+		for _, curr := range prevFlat {
+			current := tc.findCurrency(curr.CurrencyID)
+			if current == nil {
+				return fmt.Errorf("currency %s missing in latest response", curr.CurrencyID)
+			}
+			if current.AccountNumber != curr.AccountNumber || current.BranchCode != curr.BranchCode {
+				return fmt.Errorf("currency %s account details changed", curr.CurrencyID)
+			}
+		}
+		return nil
+	}
+	// Fallback to flat format parsing
 	var prev []currencyResponse
 	if err := json.Unmarshal([]byte(tc.previousCurrencies), &prev); err != nil {
 		return err
@@ -222,6 +261,218 @@ func (tc *TestContext) findCurrency(code string) *currencyResponse {
 	for i, curr := range tc.lastCurrencies {
 		if curr.CurrencyID == code {
 			return &tc.lastCurrencies[i]
+		}
+	}
+	return nil
+}
+
+// New step definitions for nested format testing
+
+func (tc *TestContext) responseIncludesCurrenciesInNestedFormat() error {
+	if len(tc.lastCurrenciesNested) == 0 {
+		return fmt.Errorf("no currencies returned in nested format")
+	}
+	// Verify structure has required nested fields
+	for _, curr := range tc.lastCurrenciesNested {
+		if curr.CurrencyCode == "" {
+			return fmt.Errorf("currency missing currencyCode")
+		}
+		if len(curr.BankingProviders) == 0 {
+			return fmt.Errorf("currency %s missing bankingProviders", curr.CurrencyCode)
+		}
+	}
+	return nil
+}
+
+func (tc *TestContext) zarCurrencyHasNestedBankingProvidersWith(table *godog.Table) error {
+	return tc.currencyHasNestedProvidersWith("ZAR", table)
+}
+
+func (tc *TestContext) currencyHasNestedProvidersWith(code string, table *godog.Table) error {
+	curr := tc.findNestedCurrency(code)
+	if curr == nil {
+		return fmt.Errorf("currency %s not found", code)
+	}
+	
+	values := tableToMap(table)
+	for key, expected := range values {
+		switch key {
+		case "depositEnabled":
+			expectedBool := expected == "true"
+			if curr.DepositEnabled != expectedBool {
+				return fmt.Errorf("expected depositEnabled %v, got %v", expectedBool, curr.DepositEnabled)
+			}
+		case "withdrawEnabled":
+			expectedBool := expected == "true"
+			if curr.WithdrawEnabled != expectedBool {
+				return fmt.Errorf("expected withdrawEnabled %v, got %v", expectedBool, curr.WithdrawEnabled)
+			}
+		}
+	}
+	return nil
+}
+
+func (tc *TestContext) firstZarBankingProviderIncludes(table *godog.Table) error {
+	return tc.firstProviderIncludes("ZAR", table)
+}
+
+func (tc *TestContext) firstProviderIncludes(code string, table *godog.Table) error {
+	curr := tc.findNestedCurrency(code)
+	if curr == nil {
+		return fmt.Errorf("currency %s not found", code)
+	}
+	if len(curr.BankingProviders) == 0 {
+		return fmt.Errorf("no banking providers for currency %s", code)
+	}
+	
+	provider := curr.BankingProviders[0]
+	values := tableToMap(table)
+	for key, expected := range values {
+		switch key {
+		case "name":
+			if provider.Name != expected {
+return fmt.Errorf("expected name %s, got %s", expected, provider.Name)
+			}
+		case "depositAvailable":
+			expectedBool := expected == "true"
+			if provider.DepositAvailable != expectedBool {
+				return fmt.Errorf("expected depositAvailable %v, got %v", expectedBool, provider.DepositAvailable)
+			}
+		}
+	}
+	return nil
+}
+
+func (tc *TestContext) firstZarProviderDepositFieldsInclude(table *godog.Table) error {
+	return tc.firstProviderDepositFieldsInclude("ZAR", table)
+}
+
+func (tc *TestContext) firstProviderDepositFieldsInclude(code string, table *godog.Table) error {
+	curr := tc.findNestedCurrency(code)
+	if curr == nil {
+		return fmt.Errorf("currency %s not found", code)
+	}
+	if len(curr.BankingProviders) == 0 {
+		return fmt.Errorf("no banking providers for currency %s", code)
+	}
+	
+	fields := curr.BankingProviders[0].DepositFields
+	values := tableToMap(table)
+	for key, expected := range values {
+		switch key {
+		case "bankName":
+			if fields.BankName != expected {
+				return fmt.Errorf("expected bankName %s, got %s", expected, fields.BankName)
+			}
+		case "accountNumber":
+			if fields.AccountNumber != expected {
+				return fmt.Errorf("expected accountNumber %s, got %s", expected, fields.AccountNumber)
+			}
+		case "branchCode":
+			if fields.BranchCode != expected {
+				return fmt.Errorf("expected branchCode %s, got %s", expected, fields.BranchCode)
+			}
+		case "accountName":
+			if fields.AccountName != expected {
+				return fmt.Errorf("expected accountName %s, got %s", expected, fields.AccountName)
+			}
+		}
+	}
+	return nil
+}
+
+func (tc *TestContext) usdCurrencyHasNestedBankingProviders() error {
+	curr := tc.findNestedCurrency("USD")
+	if curr == nil {
+		return fmt.Errorf("USD currency not found")
+	}
+	if len(curr.BankingProviders) == 0 {
+		return fmt.Errorf("USD currency has no banking providers")
+	}
+	return nil
+}
+
+func (tc *TestContext) responseStructureMatchesBackendExpectations() error {
+	if len(tc.lastCurrenciesNested) == 0 {
+		return fmt.Errorf("no currencies in nested format")
+	}
+	// Verify at least one currency has all required fields
+	for _, curr := range tc.lastCurrenciesNested {
+		if curr.CurrencyCode == "" {
+			return fmt.Errorf("missing currencyCode")
+		}
+		if len(curr.BankingProviders) == 0 {
+			return fmt.Errorf("missing bankingProviders")
+		}
+		for _, provider := range curr.BankingProviders {
+			if provider.Name == "" {
+				return fmt.Errorf("provider missing name")
+			}
+		}
+	}
+	return nil
+}
+
+func (tc *TestContext) eachCurrencyHasRequiredFields(table *godog.Table) error {
+	requiredFields := make([]string, 0)
+	for i := 1; i < len(table.Rows); i++ {
+		if len(table.Rows[i].Cells) > 0 {
+			requiredFields = append(requiredFields, table.Rows[i].Cells[0].Value)
+		}
+	}
+	
+	for _, curr := range tc.lastCurrenciesNested {
+		for _, field := range requiredFields {
+			switch field {
+			case "currencyCode":
+				if curr.CurrencyCode == "" {
+					return fmt.Errorf("currency missing currencyCode")
+				}
+			case "depositEnabled":
+				// Just check it exists (can be true or false)
+			case "bankingProviders":
+				if len(curr.BankingProviders) == 0 {
+					return fmt.Errorf("currency %s missing bankingProviders", curr.CurrencyCode)
+				}
+			}
+		}
+	}
+	return nil
+}
+
+func (tc *TestContext) eachBankingProviderHasRequiredFields(table *godog.Table) error {
+	requiredFields := make([]string, 0)
+	for i := 1; i < len(table.Rows); i++ {
+		if len(table.Rows[i].Cells) > 0 {
+			requiredFields = append(requiredFields, table.Rows[i].Cells[0].Value)
+		}
+	}
+	
+	for _, curr := range tc.lastCurrenciesNested {
+		for _, provider := range curr.BankingProviders {
+			for _, field := range requiredFields {
+				switch field {
+				case "name":
+					if provider.Name == "" {
+						return fmt.Errorf("provider missing name")
+					}
+				case "depositAvailable":
+					// Just check it exists (can be true or false)
+				case "depositFields":
+					if provider.DepositFields.BankName == "" {
+						return fmt.Errorf("provider missing depositFields")
+					}
+				}
+			}
+		}
+	}
+	return nil
+}
+
+func (tc *TestContext) findNestedCurrency(code string) *currencyNested {
+	for i, curr := range tc.lastCurrenciesNested {
+		if curr.CurrencyCode == code {
+			return &tc.lastCurrenciesNested[i]
 		}
 	}
 	return nil

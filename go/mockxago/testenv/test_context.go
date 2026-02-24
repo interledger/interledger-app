@@ -31,6 +31,7 @@ type TestContext struct {
 	lastSubAccount      createSubAccountResponse
 	lastBalanceResponse balanceResponse
 	lastCurrencies      []currencyResponse
+	lastCurrenciesNested []currencyNested
 	previousCurrencies  string
 
 	subAccountsByWallet map[string]createSubAccountResponse
