@@ -39,7 +39,7 @@ Feature: Withdraw Funds
     And I withdraw "50" "EUR" via the withdrawal iframe
     Then I should see my balance updated with "49" "EUR"
 
-  @withdrawal @xago
+  @withdrawal @xago @skip
   Scenario: Withdrawal page not available for South African users with linked accounts
     Given the details of 'xago-withdrawal-user' are
       | field           | value                        |

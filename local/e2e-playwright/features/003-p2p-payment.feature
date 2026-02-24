@@ -7,6 +7,7 @@ Feature: Peer-to-Peer Payments
     Given a random test identifier is generated
     And the frontend is running at "https://interledger.test"
     And mockgatehub is running at "https://mockgatehub.interledger.test"
+    And mockxago is running at "https://mockxago.interledger.test"
     And Rafiki assets are seeded
 
   @p2p-payment @gatehub
@@ -163,9 +164,25 @@ Feature: Peer-to-Peer Payments
     Then my Xago specific deposit instructions should be displayed to me
     When I simulate a "800.12" "ZAR" EFT payment to Xago
     And I wait "5" seconds for the webhook to be processed
-    Then I should see my balance updated to be "800.12" "ZAR"
+    Then I should see my balance updated with "800.12" "ZAR"
 
     # Verify sender can navigate to payment page
-    When I select to pay user `za-receiver`
-    And continue to pay them "400.00" "ZAR" from my Xago linked account
-    Then I should see my balance updated to be "400.12" "ZAR"
+    When I navigate to the send payment page
+    And I get the receiver wallet address for "za-receiver"
+    And I fill in the receiver wallet address
+    And I fill in the payment amount "400.00"
+    And I select the payment currency "ZAR"
+    And I submit the payment
+    And I wait for the payment to complete
+    Then I should see a payment confirmation
+    And I should see my balance updated with "400.12" "ZAR"
+
+    # Verify receiver sees the funds
+    When I clear the browser session
+    And I navigate to https://interledger.test
+    And I wait "2" seconds for the page to load
+    And I impersonate 'za-receiver'
+    And I log in as myself
+    And I wait "3" seconds for the page to load
+    Then I should see my balance updated with "400.00" "ZAR"
+    And I take a screenshot "za-receiver-balance"

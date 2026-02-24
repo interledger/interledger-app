@@ -44,6 +44,8 @@ DO NOT SUPPRESS TEST OUTPUT EVER
     - Balance API endpoint returning wrong user's data
     - Temporal workflow completing but not updating correct user record
     - User UUID mismatch between mockgatehub deposit and backend user
+- **Xago P2P scenario setup** (observed Feb 24, 2026)
+  + Ensure the feature background includes `mockxago is running at "https://mockxago.interledger.test"` so Xago KYC and test deposit steps can reach MockXago.
 - **MockXago Persona KYC Implementation** (added Feb 16, 2026)
   + MockXago now serves a Persona-like KYC iframe at `/kyc/iframe` endpoint
   + This enables South African (Xago) users to complete KYC verification in tests
