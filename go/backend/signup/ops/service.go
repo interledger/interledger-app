@@ -180,7 +180,7 @@ func Complete(ctx context.Context, b Backends, id, userID string) error {
 	}
 
 	if current.MobileNumber == "" {
-		log.Warn("signup did not have a mobile number for user %s, perhaps otp is disabled.", zap.String("userID", current.UserID))
+		log.Warn("signup did not have a mobile number, perhaps otp is disabled.", zap.String("userID", userID))
 	}
 
 	_, err = b.DB().ExecContext(ctx, "UPDATE signups SET user_id=$1, updated_at=now() WHERE id=$2 and user_id is null",
