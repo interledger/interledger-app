@@ -699,6 +699,9 @@ func FinishChimoneyDepositWorkflow(ctx workflow.Context, issueID string, chiWall
 		return nil
 	}
 
+	// Note: The webhook payload doesn't contain status information for redeem events.
+	// We call VerifyChimoneyPayment to get the actual payment status from the Chimoney API.
+	// This returns externalPayment.Status which can be "redeemed", "failed", or other states.
 	var externalPayment external.Payment
 	err = workflow.ExecuteActivity(ctx, a.VerifyChimoneyPayment, walletID, issueID).Get(ctx, &externalPayment)
 	if err != nil {
