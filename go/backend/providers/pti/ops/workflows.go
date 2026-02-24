@@ -215,41 +215,37 @@ func ReturnedWorkflow(ctx workflow.Context, wh pti.TransactionStatusPayload) (st
 	logger := workflow.GetLogger(ctx)
 	logger.Info("Creating pti deposit.")
 
-	cc := currency.ParseCurrency(wh.Currency)
-	if cc != currency.USD {
+	webhookCurrency := currency.ParseCurrency(wh.Currency)
+	transactionTotalCurrency := currency.ParseCurrency(wh.TransactionTotal.Total.Currency)
+
+	// if currency is not provided in webhook, check transaction total currency. If both are not provided or not USD, return error
+	// this is to handle a potential issue (communicated to PTI) where the currency is empty string
+	if !(webhookCurrency == currency.USD || transactionTotalCurrency == currency.USD) { // if currency is not provided in webhook, check transaction total currency. If both are not provided or not USD, return error
 		return "", temporal.NewNonRetryableApplicationError("Invalid currency", "ErrInternal", fmt.Errorf("%w invalid currency", pti.ErrInternal))
 	}
 
 	amt := currency.FromFloat64(wh.Amount, currency.USD)
+	originalTransactionID := wh.RequestID
+	ptiUserID := wh.UserID
 
 	var walletID string
-	err := workflow.ExecuteActivity(ctx, a.GetWalletFromPTIUser, wh.UserID).Get(ctx, &walletID)
+	err := workflow.ExecuteActivity(ctx, a.GetWalletFromPTIUser, ptiUserID).Get(ctx, &walletID)
 	if err != nil {
 		return "", err
 	}
 
-	var txID string
-	err = workflow.ExecuteActivity(ctx, a.ReturnTransaction, wh.RequestID, walletID, amt).Get(ctx, &txID)
+	var returnTransactionID string
+	err = workflow.ExecuteActivity(ctx, a.ReturnTransaction, originalTransactionID, walletID, amt).Get(ctx, &returnTransactionID)
 	if err != nil {
 		return "", err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.ReservePTIBalance, walletID, txID).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.PostTransfer, returnTransactionID, walletID, amt).Get(ctx, nil)
 	if err != nil {
 		return "", err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.FinalizePTIBalance, txID, walletID, amt).Get(ctx, &txID)
-	if err != nil {
-		return "", err
-	}
-
-	err = workflow.ExecuteActivity(ctx, a.UpdatePaymentState, wh.RequestID, payments.StateFailed).Get(ctx, nil)
-	if err != nil {
-		return "", err
-	}
-
-	return txID, nil
+	return returnTransactionID, nil
 }
 
 func MarkTransactionStateWorkflow(ctx workflow.Context, wh pti.TransactionStatusPayload, state transactions.State) error {

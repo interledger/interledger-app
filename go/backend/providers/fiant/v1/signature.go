@@ -34,8 +34,6 @@ func (art *apiRoundTripper) signature(req *http.Request) (string, error) {
 		contentType = "content-type:" + req.Header.Get("Content-Type")
 	}
 
-	// fmt.Printf("req method: %s\n", req.Method)
-
 	sinatureTemplate := fmt.Sprintf(
 		"%s\n%s\n%s\n%s\n%s\n%s",
 		req.Method,

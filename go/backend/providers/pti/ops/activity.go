@@ -866,14 +866,6 @@ func (a *Activity) ReturnTransaction(ctx context.Context, originalTransactionID,
 		return "", err
 	}
 
-	wallet, err := a.b.Wallets().Get(ctx, walletID)
-	if errors.Is(err, pti.ErrNotFound) {
-		return "", temporal.NewNonRetryableApplicationError("Wallet not found", "ErrNotFound", fmt.Errorf("%w No wallet found for pti user", pti.ErrNotFound))
-	}
-	if err != nil {
-		return "", err
-	}
-
 	las, err := a.b.LinkedAccounts().ListBalances(ctx, walletID)
 	if err != nil {
 		return "", err
@@ -889,15 +881,31 @@ func (a *Activity) ReturnTransaction(ctx context.Context, originalTransactionID,
 		return "", temporal.NewNonRetryableApplicationError("PTI USD balance account not found", "ErrInternal", fmt.Errorf("%w Fiant USD balance account not found", pti.ErrInternal))
 	}
 
+	title := ""
+	returnSource := ""
+	returnDestination := ""
+	switch originalTransaction.Type {
+	case transactions.TransactionTypeDeposit:
+		title = "ACH return for deposit"
+		returnSource = originalTransaction.Destination
+		returnDestination = originalTransaction.Source
+	case transactions.TransactionTypeWithdrawal:
+		title = "ACH return for withdrawal"
+		returnSource = originalTransaction.Source
+		returnDestination = originalTransaction.Destination
+	default:
+		return "", temporal.NewNonRetryableApplicationError("Unsupported transaction type", "ErrInternal", fmt.Errorf("%w unsupported transaction type for return: %s", pti.ErrInternal, originalTransaction.Type))
+	}
+
 	returnTransactionID, err := a.b.Transactions().CreateTransaction(ctx, transactions.CreateTransactionArgs{
 		WalletID:                walletID,
 		ForeignID:               originalTransaction.ID,
-		ForeignType:             transactions.TransactionTypeWithdrawal,
+		ForeignType:             transactions.TransactionTypeACHReturn,
 		Provider:                pti.ProviderName,
 		State:                   transactions.StateCompleted,
-		Source:                  wallet.AddressString(),
-		Destination:             wallet.AddressString(),
-		Title:                   "Withdrawal return",
+		Source:                  returnSource,
+		Destination:             returnDestination,
+		Title:                   title,
 		DestinationIdentity:     walletID,
 		DestinationIdentityType: payments.IdentityTypeWalletID.String(),
 		Amount:                  amount,
@@ -918,4 +926,74 @@ func (a *Activity) ReturnTransaction(ctx context.Context, originalTransactionID,
 	}
 
 	return returnTransactionID, nil
+}
+
+func (a *Activity) PostTransfer(ctx context.Context, transactionID, walletID string) error {
+	returnTransaction, err := a.b.Transactions().GetTransaction(ctx, walletID, transactionID)
+	if err != nil {
+		return err
+	}
+
+	originalTransaction, err := a.b.Transactions().GetTransaction(ctx, walletID, returnTransaction.ForeignID)
+	if err != nil {
+		return err
+	}
+
+	if originalTransaction.Type == transactions.TransactionTypeWithdrawal {
+		_, err := a.b.Pacioli().VoidTransfers(ctx, []string{originalTransaction.ID})
+		if err != nil {
+			return fmt.Errorf("%w %s", pti.ErrInternal, err)
+		}
+		return nil
+	}
+
+	if returnTransaction.Amount.Currency != currency.USD {
+		return temporal.NewNonRetryableApplicationError("Invalid currency", "ErrInternal", fmt.Errorf("%w invalid currency", pti.ErrInternal))
+	}
+
+	las, err := a.b.LinkedAccounts().ListBalances(ctx, walletID)
+	if err != nil {
+		return err
+	}
+
+	var USDBalance *linkedaccounts.LinkedAccount
+	for _, la := range las {
+		if la.Provider == pti.ProviderName && la.Type == pti.AccTypeBalance {
+			USDBalance = &la
+			break
+		}
+	}
+	if USDBalance == nil {
+		return temporal.NewNonRetryableApplicationError("PTI USD balance account not found", "ErrInternal", fmt.Errorf("%w PTI USD balance account not found", pti.ErrInternal))
+	}
+
+	opsAcc := pti.USDOpsAccount
+	ledger := pti.LedgerIDUSD
+	tx, err := a.b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
+		{
+			ID:              returnTransaction.ID,
+			Amount:          returnTransaction.Amount.Value,
+			CreditAccountID: opsAcc,
+			DebitAccountID:  USDBalance.ID,
+			Pending:         false,
+			Code:            1,
+			Ledger:          ledger,
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+	if len(tx) > 0 {
+		if tx[0].Code == pacioli.TransferExists {
+			return nil
+		}
+		if tx[0].Code == pacioli.TransferExceedsCredits || tx[0].Code == pacioli.TransferExceedsDebits || tx[0].Code == pacioli.TransferExceedsPendingTransferAmount {
+			return fmt.Errorf("%w insufficient balance code (%s)", pti.ErrInsufficientBalance, tx[0].Code.String())
+		}
+		if tx[0].Code != 0 {
+			return fmt.Errorf("%w non success code (%s)", pti.ErrInternal, tx[0].Code.String())
+		}
+	}
+
+	return nil
 }

@@ -34,15 +34,6 @@ func (th *transactionHandler) SandboxAction(ctx context.Context, requestID strin
 	}
 	defer resp.Body.Close()
 
-	// body, err := io.ReadAll(resp.Body)
-	// if err != nil {
-	// 	return err
-	// }
-	// defer resp.Body.Close()
-
-	// fmt.Printf("code: %d\n", resp.StatusCode)
-	// fmt.Println(string(body))
-
 	if resp.StatusCode != http.StatusCreated {
 		// return fmt.Errorf("failed to perform sandbox action, code: %s, response: %s", resp.Status, string(body))
 		return fmt.Errorf("failed to perform sandbox action, code: %s", resp.Status)
