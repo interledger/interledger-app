@@ -84,7 +84,7 @@ func WithDerivedKeys(privateKey jwk.Key) Options {
 			return fmt.Errorf("%w: %s", ErrFailedToDerivePublicKey, err)
 
 		}
-		ctrl.publicKey = publicKey
+		// ctrl.publicKey = publicKey
 
 		publicKeyThumbprint, err := publicKey.Thumbprint(crypto.SHA256)
 		if err != nil {
