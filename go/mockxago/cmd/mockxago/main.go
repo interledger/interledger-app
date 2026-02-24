@@ -133,6 +133,7 @@ func setupRoutes(router *chi.Mux, h *handler.Handler) {
 	router.Route("/v1", func(r chi.Router) {
 		r.Post("/login", h.Login)
 		r.Get("/currencies", h.ListCurrencies)
+		r.Get("/banking-providers", h.ListCurrencies) // Alias for E2E tests
 
 		r.Group(func(pr chi.Router) {
 			pr.Use(h.AuthMiddleware)

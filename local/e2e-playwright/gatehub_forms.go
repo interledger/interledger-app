@@ -208,20 +208,7 @@ func (sc *E2EContext) iFillInWith(fieldName, value string) error {
 			}
 		}
 		if count == 0 {
-			currentEmail, err := sc.getCurrentUserEmail()
-			if err != nil {
-				return fmt.Errorf("failed to get current user email for phone fill: %w", err)
-			}
-			var signupID string
-			err = sc.db.QueryRow("SELECT id FROM signups WHERE email = $1", currentEmail).Scan(&signupID)
-			if err == nil && signupID != "" {
-				_, _ = sc.db.Exec(
-					"UPDATE signups SET mobile_number = $1 WHERE id = $2",
-					value,
-					signupID,
-				)
-				debugPrintf("📱 Updated mobile_number in database for signup %s\n", signupID)
-			}
+			return fmt.Errorf("no phone input field found on page")
 		}
 	case "password":
 		// Wait for password field to be available

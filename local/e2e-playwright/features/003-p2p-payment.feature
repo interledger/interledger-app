@@ -9,7 +9,7 @@ Feature: Peer-to-Peer Payments
     And mockgatehub is running at "https://mockgatehub.interledger.test"
     And Rafiki assets are seeded
 
-  @p2p-payment
+  @p2p-payment @gatehub
   Scenario: Successfully navigate to send payment page and fill payment form
     # Set up sender user with deposit
     Given the details of 'sender-user' are
@@ -32,7 +32,7 @@ Feature: Peer-to-Peer Payments
     Then I should see the payments page
     And I take a screenshot "payment-form-filled"
 
-  @p2p-payment
+  @p2p-payment @gatehub
   Scenario: Successfully set up two users and navigate to payments
     Given the details of 'user-two' are
       | field           | value                        |
@@ -49,7 +49,7 @@ Feature: Peer-to-Peer Payments
     And I navigate to the send payment page
     Then I should see the payments page
 
-  @p2p-payment @quick
+  @p2p-payment @gatehub
   Scenario: Successfully send payment from one user to another
     # Set up sender user with KYC
     Given the details of 'sender' are
@@ -151,10 +151,6 @@ Feature: Peer-to-Peer Payments
       | dateOfBirth     | 1987-08-20                   |
     And I complete the minimal KYC flow `za-receiver`
 
-    # Note: For now, we skip the deposit step for SA users due to UI limitations
-    # In a real scenario, users would fund via bank transfer
-    # Future: Add test deposit capability via backend API
-
     # Log back in as sender
     When I clear the browser session
     And I navigate to https://interledger.test
@@ -163,7 +159,13 @@ Feature: Peer-to-Peer Payments
     And I log in as myself
     And I wait "3" seconds for the page to load
 
+    When I initiate a deposit for my Xago linked account
+    Then my Xago specific deposit instructions should be displayed to me
+    When I simulate a "800.12" "ZAR" EFT payment to Xago
+    And I wait "5" seconds for the webhook to be processed
+    Then I should see my balance updated to be "800.12" "ZAR"
+
     # Verify sender can navigate to payment page
-    And I navigate to the send payment page
-    Then I should see the payments page
-    And I take a screenshot "za-send-payment-ready"
+    When I select to pay user `za-receiver`
+    And continue to pay them "400.00" "ZAR" from my Xago linked account
+    Then I should see my balance updated to be "400.12" "ZAR"

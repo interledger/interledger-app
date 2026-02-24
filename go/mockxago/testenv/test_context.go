@@ -28,11 +28,11 @@ type TestContext struct {
 	lastEmail         string
 	previousAccountID string
 
-	lastSubAccount      createSubAccountResponse
-	lastBalanceResponse balanceResponse
-	lastCurrencies      []currencyResponse
+	lastSubAccount       createSubAccountResponse
+	lastBalanceResponse  balanceResponse
+	lastCurrencies       []currencyResponse
 	lastCurrenciesNested []currencyNested
-	previousCurrencies  string
+	previousCurrencies   string
 
 	subAccountsByWallet map[string]createSubAccountResponse
 

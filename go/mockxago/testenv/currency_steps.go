@@ -293,7 +293,7 @@ func (tc *TestContext) currencyHasNestedProvidersWith(code string, table *godog.
 	if curr == nil {
 		return fmt.Errorf("currency %s not found", code)
 	}
-	
+
 	values := tableToMap(table)
 	for key, expected := range values {
 		switch key {
@@ -324,14 +324,14 @@ func (tc *TestContext) firstProviderIncludes(code string, table *godog.Table) er
 	if len(curr.BankingProviders) == 0 {
 		return fmt.Errorf("no banking providers for currency %s", code)
 	}
-	
+
 	provider := curr.BankingProviders[0]
 	values := tableToMap(table)
 	for key, expected := range values {
 		switch key {
 		case "name":
 			if provider.Name != expected {
-return fmt.Errorf("expected name %s, got %s", expected, provider.Name)
+				return fmt.Errorf("expected name %s, got %s", expected, provider.Name)
 			}
 		case "depositAvailable":
 			expectedBool := expected == "true"
@@ -355,7 +355,7 @@ func (tc *TestContext) firstProviderDepositFieldsInclude(code string, table *god
 	if len(curr.BankingProviders) == 0 {
 		return fmt.Errorf("no banking providers for currency %s", code)
 	}
-	
+
 	fields := curr.BankingProviders[0].DepositFields
 	values := tableToMap(table)
 	for key, expected := range values {
@@ -420,7 +420,7 @@ func (tc *TestContext) eachCurrencyHasRequiredFields(table *godog.Table) error {
 			requiredFields = append(requiredFields, table.Rows[i].Cells[0].Value)
 		}
 	}
-	
+
 	for _, curr := range tc.lastCurrenciesNested {
 		for _, field := range requiredFields {
 			switch field {
@@ -447,7 +447,7 @@ func (tc *TestContext) eachBankingProviderHasRequiredFields(table *godog.Table) 
 			requiredFields = append(requiredFields, table.Rows[i].Cells[0].Value)
 		}
 	}
-	
+
 	for _, curr := range tc.lastCurrenciesNested {
 		for _, provider := range curr.BankingProviders {
 			for _, field := range requiredFields {

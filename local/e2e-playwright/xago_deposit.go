@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/playwright-community/playwright-go"
 )
 
 // generateUUID generates a random UUID v4 string.
@@ -598,5 +600,241 @@ func (sc *E2EContext) iTheTestDepositShouldHaveBeenAcceptedByMockXago() error {
 	debugPrintln("\n✓ Test deposit was successfully accepted by MockXago")
 	debugPrintln("   ✓ Deposit request returned 200 OK status")
 	debugPrintln("   Note: Test deposits update balance in MockXago but may not appear on dashboard")
+	return nil
+}
+
+// iInitiateADepositForMyXagoLinkedAccount navigates to the deposit page,
+// retrieves sub account details, and takes a screenshot
+func (sc *E2EContext) iInitiateADepositForMyXagoLinkedAccount() error {
+	debugPrintln("\n🏦 Initiating deposit for Xago linked account...")
+
+	// Get the Xago sub account details (this polls for sub-account creation)
+	if err := sc.iGetTheXagoSubAccountDetailsForTheCurrentUser(); err != nil {
+		return fmt.Errorf("failed to get Xago sub account details: %w", err)
+	}
+
+	// Verify MockXago has bank accounts configured before navigating
+	debugPrintln("   🔍 Verifying MockXago bank account configuration...")
+	if err := sc.verifyMockXagoBankAccountExists(); err != nil {
+		return fmt.Errorf("MockXago bank account not configured: %w", err)
+	}
+
+	// Navigate to deposit page
+	if err := sc.iNavigateToTheDepositPage(); err != nil {
+		return fmt.Errorf("failed to navigate to deposit page: %w", err)
+	}
+
+	// Wait for the page to be fully loaded and for network requests to complete
+	debugPrintln("   ⏳ Waiting for deposit instructions to load...")
+	sc.page.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
+		State: playwright.LoadStateNetworkidle,
+	})
+
+	// Additional wait to ensure the deposit details component has rendered
+	time.Sleep(2 * time.Second)
+
+	// Take a screenshot of the deposit page with instructions
+	if err := sc.iTakeAScreenshot("xago_deposit_instructions"); err != nil {
+		debugPrintf("   ⚠️  Failed to take screenshot: %v\n", err)
+		// Don't fail on screenshot error
+	}
+
+	debugPrintln("   ✓ Deposit initiated, instructions should be visible")
+	return nil
+}
+
+// verifyMockXagoBankAccountExists checks that MockXago has bank accounts configured for ZAR
+func (sc *E2EContext) verifyMockXagoBankAccountExists() error {
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true,
+			},
+		},
+	}
+
+	// Login to MockXago
+	loginURL := "https://mockxago.interledger.test/v1/login"
+	loginBody, _ := json.Marshal(map[string]interface{}{
+		"policyId": "test-policy",
+		"fields": []map[string]string{
+			{"fieldName": "publicKey", "fieldValue": "test-public-key"},
+			{"fieldName": "secret", "fieldValue": "test-secret"},
+		},
+	})
+
+	loginReq, _ := http.NewRequest("POST", loginURL, bytes.NewBuffer(loginBody))
+	loginReq.Header.Set("Content-Type", "application/json")
+
+	loginResp, err := client.Do(loginReq)
+	if err != nil {
+		return fmt.Errorf("failed to login to MockXago: %w", err)
+	}
+	defer loginResp.Body.Close()
+
+	if loginResp.StatusCode != http.StatusOK {
+		return fmt.Errorf("MockXago login failed with status %d", loginResp.StatusCode)
+	}
+
+	loginRespBody, _ := ioutil.ReadAll(loginResp.Body)
+	var loginData map[string]interface{}
+	json.Unmarshal(loginRespBody, &loginData)
+	tokenValue := loginData["tokenValue"].(string)
+
+	// Check banking providers
+	bankingURL := "https://mockxago.interledger.test/v1/banking-providers"
+	bankReq, _ := http.NewRequest("GET", bankingURL, nil)
+	bankReq.Header.Set("Authorization", "Bearer "+tokenValue)
+
+	bankResp, err := client.Do(bankReq)
+	if err != nil {
+		return fmt.Errorf("failed to get banking providers: %w", err)
+	}
+	defer bankResp.Body.Close()
+
+	bankRespBody, _ := ioutil.ReadAll(bankResp.Body)
+
+	if bankResp.StatusCode != http.StatusOK {
+		return fmt.Errorf("banking providers endpoint returned status %d: %s", bankResp.StatusCode, string(bankRespBody))
+	}
+
+	// Parse response to check for ZAR deposit-enabled accounts
+	var bankAccounts []map[string]interface{}
+	if err := json.Unmarshal(bankRespBody, &bankAccounts); err != nil {
+		return fmt.Errorf("failed to parse banking providers response: %w", err)
+	}
+
+	// Look for ZAR account with deposit enabled
+	foundZAR := false
+	for _, account := range bankAccounts {
+		if currency, ok := account["currencyCode"].(string); ok && currency == "ZAR" {
+			if depositEnabled, ok := account["depositEnabled"].(bool); ok && depositEnabled {
+				foundZAR = true
+				debugPrintln("   ✓ Found ZAR bank account with deposits enabled")
+				break
+			}
+		}
+	}
+
+	if !foundZAR {
+		return fmt.Errorf("no ZAR bank account with deposits enabled found in MockXago - this must be configured for the test to work")
+	}
+
+	return nil
+}
+
+// myXagoSpecificDepositInstructionsShouldBeDisplayedToMe verifies that
+// the Xago deposit instructions are displayed with bank details
+func (sc *E2EContext) myXagoSpecificDepositInstructionsShouldBeDisplayedToMe() error {
+	debugPrintln("\n🔍 Verifying Xago deposit instructions are displayed...")
+
+	// Wait for the page to be in a stable state
+	debugPrintln("   ⏳ Waiting for deposit instructions to load...")
+	time.Sleep(2 * time.Second)
+
+	// First, check if there's an error on the page
+	pageContent, err := sc.page.TextContent("body")
+	if err != nil {
+		return fmt.Errorf("failed to get page content: %w", err)
+	}
+
+	// Check for common error patterns
+	errorPatterns := []string{
+		"500",
+		"Internal Server Error",
+		"Internal server error",
+		"Something went wrong",
+		"Error loading",
+		"Failed to load",
+	}
+
+	for _, pattern := range errorPatterns {
+		if strings.Contains(pageContent, pattern) {
+			_ = sc.iTakeAScreenshot("xago_deposit_page_error")
+			debugPrintf("   ❌ Page shows error: %s\n", pattern)
+			debugPrintf("   📄 Page content (first 1000 chars):\n%s\n", pageContent[:min(1000, len(pageContent))])
+
+			// Get the current URL for debugging
+			url := sc.page.URL()
+			debugPrintf("   🔗 Current URL: %s\n", url)
+
+			return fmt.Errorf("page shows error (%s) instead of deposit instructions - check backend logs for GetXagoDepositDetails errors", pattern)
+		}
+	}
+
+	// Define selectors for key fields - these match the actual rendered content
+	fieldSelectors := []struct {
+		name     string
+		selector string
+	}{
+		{"Bank field", "text=Bank"},
+		{"Branch code field", "text=Branch code"},
+		{"Account number field", "text=Account number"},
+		{"Reference field", "text=Reference"},
+	}
+
+	// Wait for each field to appear with a reasonable timeout
+	maxWait := 10 * time.Second
+	deadline := time.Now().Add(maxWait)
+
+	for _, field := range fieldSelectors {
+		for time.Now().Before(deadline) {
+			locator := sc.page.Locator(field.selector)
+			count, _ := locator.Count()
+			if count > 0 {
+				debugPrintf("   ✓ %s is displayed\n", field.name)
+				break
+			}
+			time.Sleep(500 * time.Millisecond)
+		}
+
+		// Final check
+		locator := sc.page.Locator(field.selector)
+		count, _ := locator.Count()
+		if count == 0 {
+			// Take a screenshot for debugging
+			_ = sc.iTakeAScreenshot("xago_deposit_instructions_missing_fields")
+
+			// Get page content for debugging
+			debugPrintf("   ⚠️  Page content (first 1000 chars): %s\n", pageContent[:min(1000, len(pageContent))])
+
+			return fmt.Errorf("%s not found on page - deposit instructions may not have loaded", field.name)
+		}
+	}
+
+	// Verify we can see the EFT details card title
+	eftDetailsLocator := sc.page.Locator("text=EFT details")
+	count, _ := eftDetailsLocator.Count()
+	if count > 0 {
+		debugPrintln("   ✓ EFT details section found")
+	} else {
+		debugPrintln("   ⚠️  'EFT details' heading not found, but required fields are present")
+	}
+
+	debugPrintln("   ✓ All Xago deposit instructions are displayed correctly")
+	return nil
+}
+
+// iSimulateAnEFTPaymentToXago simulates an EFT payment by creating a transaction
+// in MockXago and performing a test deposit
+func (sc *E2EContext) iSimulateAnEFTPaymentToXago(amountStr, currency string) error {
+	debugPrintf("\n💳 Simulating EFT payment of %s %s to Xago...\n", amountStr, currency)
+
+	// Step 1: Create a test transaction in MockXago
+	debugPrintln("   📝 Creating test transaction...")
+	if err := sc.iCreateATestTransactionInMockXagoFor(amountStr, currency); err != nil {
+		return fmt.Errorf("failed to create test transaction: %w", err)
+	}
+	debugPrintln("   ✓ Test transaction created")
+
+	// Step 2: Perform the test deposit which triggers the webhook
+	debugPrintln("   💰 Performing test deposit...")
+	if err := sc.iPerformATestDepositOfInMockXago(amountStr, currency); err != nil {
+		return fmt.Errorf("failed to perform test deposit: %w", err)
+	}
+	debugPrintln("   ✓ Test deposit completed")
+
+	debugPrintf("   ✓ EFT payment simulation complete for %s %s\n", amountStr, currency)
 	return nil
 }

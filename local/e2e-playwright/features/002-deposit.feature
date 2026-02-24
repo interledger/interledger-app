@@ -57,8 +57,8 @@ Feature: Deposit Funds
       | lastName        | Nkosi                        |
       | dateOfBirth     | 1984-06-27                   |
     And I complete the minimal KYC flow `xago-deposit-user`
-    When I get the Xago sub account details for the current user
-    And I create a test transaction in MockXago for "500" "ZAR"
-    And I perform a test deposit of "500" "ZAR" in MockXago
+    When I initiate a deposit for my Xago linked account
+    Then my Xago specific deposit instructions should be displayed to me
+    When I simulate a "500" "ZAR" EFT payment to Xago
     And I wait "5" seconds for the webhook to be processed
     Then I should see my balance updated with "500" "ZAR"

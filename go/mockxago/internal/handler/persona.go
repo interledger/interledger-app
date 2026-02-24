@@ -270,7 +270,6 @@ func (h *Handler) PersonaGetAccount(w http.ResponseWriter, r *http.Request) {
 				"birthdate":              "1984-06-27",
 				"address-street-1":       physicalAddress,
 				"address-city":           "Johannesburg",
-				"address-subdivision":    "GP",
 				"address-postal-code":    "2000",
 				"tags":                   []string{"DIRTY", "STATUS:KYC-LEVEL:1"},
 				"identification-numbers": identificationNumbers,
