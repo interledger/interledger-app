@@ -266,6 +266,9 @@ func ExecuteChimoneyFinishWithdrawalWorkflow(
 	if paymentType == "interac" && amount != trx.Amount.Float64() {
 		// lets update the transaction to reflect the actual amount withdrawn if there's a mismatch. This can happen if there are fees that we didn't account for.
 		err = workflow.ExecuteActivity(ctx, a.UpdateChimoneyWithdrawalTransactionAmountAndFee, trx.WalletID, trx.ID, amount).Get(ctx, nil)
+		if err != nil {
+			logger.Warn("Update transaction withdrawal amount and fee failed", zap.Error(err))
+		}
 	}
 
 	// finalize transaction
