@@ -15,3 +15,4 @@ include:
   - protea.yaml
   - botanist.yaml
   - mockbos.yaml
+  - mockgatehub.yaml

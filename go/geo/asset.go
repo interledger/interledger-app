@@ -18,7 +18,7 @@ type Asset struct {
 	code       string
 	numeric    string
 	scale      uint8
-	factor     *big.Int
+	factor     big.Int
 	formatFunc func(value string) string
 }
 
@@ -38,7 +38,7 @@ func NewAsset(code string, numeric string, scale uint8, formatFunc func(string) 
 		code:       code,
 		numeric:    numeric,
 		scale:      scale,
-		factor:     factor,
+		factor:     *factor,
 		formatFunc: formatFunc,
 	}
 }
@@ -61,7 +61,7 @@ func (a Asset) Scale() uint8 {
 // Factor returns a copy of the scaling factor (10^scale) for this asset.
 // Returns a copy to preserve immutability.
 func (a Asset) Factor() *big.Int {
-	return new(big.Int).Set(a.factor)
+	return new(big.Int).Set(&a.factor)
 }
 
 // Format applies the asset's formatting function to the given value string.

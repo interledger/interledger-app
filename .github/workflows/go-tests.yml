@@ -18,9 +18,9 @@ jobs:
       test_path: './go/pacioli'
       coverage_key: 'pacioli'
       db_name: 'pacioli'
-  httpmessagesignatures-tests:
+  geo:
     uses: ./.github/workflows/go-test-template.yml
     with:
-      test_path: './go/httpmessagesignatures'
-      coverage_key: 'httpmessagesignatures'
-      db_name: 'httpmessagesignatures'
+      test_path: './go/geo'
+      coverage_key: 'geo'
+      db_name: 'backend'
