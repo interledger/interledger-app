@@ -28,6 +28,8 @@ type Client interface {
 
 	SetTransactionAmountTx(ctx context.Context, tx *sqlx.Tx, ID string, amount currency.Amount) error
 
+	SetTransactionAmountAndFee(ctx context.Context, ID string, amount currency.Amount, fee currency.Amount) error
+
 	GetHasTransacted(ctx context.Context, walletID, destination string) (bool, error)
 	GetTransactedCount(ctx context.Context, walletID, destination string) (int, error)
 	CountSendTransactions(ctx context.Context, walletID string) (int, error)

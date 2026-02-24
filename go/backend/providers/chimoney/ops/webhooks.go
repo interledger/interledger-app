@@ -37,11 +37,14 @@ type (
 		EventType   string            `json:"eventType"`
 		IssueID     string            `json:"issueID"`
 		Status      string            `json:"status"`
+		Amount      string            `json:"amount"`
 		Meta        WithdrawEventMeta `json:"meta"`
 		ChiWalletID string            `json:"-"` // Populated from Meta.Issuer
 	}
 	WithdrawEventMeta struct {
-		Issuer string `json:"issuer"`
+		Issuer      string                 `json:"issuer"`
+		Amount      external.FlexibleFloat `json:"amount,omitempty"`
+		PaymentType string                 `json:"paymentType,omitempty"`
 	}
 	KYCEvent struct {
 		EventType string `json:"eventType"`
@@ -214,7 +217,7 @@ func handleWithdrawal(ctx context.Context, b Backends, ec external.Client, raw j
 		}
 	}
 
-	return ExecuteFinishWithdraw(ctx, b, ec, wh.IssueID, wh.Status, wh.ChiWalletID)
+	return ExecuteFinishWithdraw(ctx, b, ec, wh.IssueID, wh.Status, wh.ChiWalletID, wh.Meta.Amount.Float64(), wh.Meta.PaymentType)
 }
 
 func handleConfirmedOrCompletedCharge(ctx context.Context, b Backends, ec external.Client, raw json.RawMessage) error {

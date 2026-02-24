@@ -184,7 +184,7 @@ func CreateDepositLink(ctx context.Context, b Backends, ex external.Client, wall
 	return resp.PaymentLink, nil
 }
 
-func ExecuteFinishWithdraw(ctx context.Context, b Backends, ec external.Client, IssueID string, status string, chiWalletID string) error {
+func ExecuteFinishWithdraw(ctx context.Context, b Backends, ec external.Client, IssueID string, status string, chiWalletID string, amount float64, paymentType string) error {
 	wo := client.StartWorkflowOptions{
 		ID:                    "finish_chimoney_withdrawal_" + IssueID,
 		TaskQueue:             "backend",
@@ -211,7 +211,7 @@ func ExecuteFinishWithdraw(ctx context.Context, b Backends, ec external.Client, 
 	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING || workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_COMPLETED {
 		_ = b.Temporal().GetWorkflow(ctx, wo.ID, "")
 	} else {
-		_, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, ExecuteChimoneyFinishWithdrawalWorkflow, IssueID, chiWalletID, status)
+		_, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, ExecuteChimoneyFinishWithdrawalWorkflow, IssueID, chiWalletID, status, amount, paymentType)
 	}
 	if executeErr != nil {
 		return fmt.Errorf("%w %s", chimoney.ErrInternal, err)

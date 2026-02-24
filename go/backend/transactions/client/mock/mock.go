@@ -261,6 +261,20 @@ func (mr *MockClientMockRecorder) ListWithPending(ctx, page, walletID interface{
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListWithPending", reflect.TypeOf((*MockClient)(nil).ListWithPending), ctx, page, walletID)
 }
 
+// SetTransactionAmountAndFee mocks base method.
+func (m *MockClient) SetTransactionAmountAndFee(ctx context.Context, ID string, amount, fee currency.Amount) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetTransactionAmountAndFee", ctx, ID, amount, fee)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SetTransactionAmountAndFee indicates an expected call of SetTransactionAmountAndFee.
+func (mr *MockClientMockRecorder) SetTransactionAmountAndFee(ctx, ID, amount, fee interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetTransactionAmountAndFee", reflect.TypeOf((*MockClient)(nil).SetTransactionAmountAndFee), ctx, ID, amount, fee)
+}
+
 // SetTransactionAmountTx mocks base method.
 func (m *MockClient) SetTransactionAmountTx(ctx context.Context, tx *sqlx.Tx, ID string, amount currency.Amount) error {
 	m.ctrl.T.Helper()

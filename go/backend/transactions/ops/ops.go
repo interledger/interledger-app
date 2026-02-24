@@ -619,6 +619,23 @@ func SetTransactionAmountTx(ctx context.Context, b Backends, tx *sqlx.Tx, ID str
 	return nil
 }
 
+func SetTransactionAmountAndFee(ctx context.Context, b Backends, ID string, amount currency.Amount, fee currency.Amount) error {
+	var walletID string
+	_, err := b.DB().ExecContext(ctx,
+		"UPDATE transactions SET amount=$1, asset_code=$2, asset_scale=$3, provider_fee=$4, updated_at=now() WHERE id=$5",
+		amount.Value, amount.Currency.String(), amount.Scale, fee.Value, ID)
+	if err != nil {
+		return fmt.Errorf("%w %s", transactions.ErrInternal, err)
+	}
+
+	err = b.Notify().NotifyWallet(ctx, walletID, notify.NotificationTypeTransaction)
+	if err != nil {
+		log.Warn("error sending notification", zap.Error(err))
+	}
+
+	return nil
+}
+
 func SetTransactionRefundState(ctx context.Context, b Backends, id string, state transactions.RefundState) error {
 	_, err := b.DB().ExecContext(ctx, "UPDATE transactions SET refund_state=$1, updated_at=now() WHERE id=$2",
 		state, id)

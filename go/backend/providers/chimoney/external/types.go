@@ -2,10 +2,41 @@ package external
 
 import (
 	"encoding/json"
+	"fmt"
+	"strconv"
 	"time"
 
 	"gitlab.com/fynbos/backend/currency"
 )
+
+// FlexibleFloat handles JSON fields that can be either string or float64
+type FlexibleFloat float64
+
+func (f *FlexibleFloat) UnmarshalJSON(data []byte) error {
+	var v interface{}
+	if err := json.Unmarshal(data, &v); err != nil {
+		return err
+	}
+
+	switch value := v.(type) {
+	case float64:
+		*f = FlexibleFloat(value)
+	case string:
+		parsed, err := strconv.ParseFloat(value, 64)
+		if err != nil {
+			return fmt.Errorf("invalid float string: %w", err)
+		}
+		*f = FlexibleFloat(parsed)
+	default:
+		return fmt.Errorf("amount must be string or number, got %T", v)
+	}
+
+	return nil
+}
+
+func (f FlexibleFloat) Float64() float64 {
+	return float64(f)
+}
 
 type CreateWalletReq struct {
 	Name        string `json:"name"`
@@ -151,7 +182,7 @@ type Payment struct {
 }
 
 type PaymentMeta struct {
-	Amount        float64               `json:"amount"`
+	Amount        FlexibleFloat         `json:"amount"`
 	ProcessingFee *PaymentProcessingFee `json:"processingFee,omitempty"`
 }
 

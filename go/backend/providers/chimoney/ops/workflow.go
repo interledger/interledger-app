@@ -225,7 +225,7 @@ var (
 )
 
 func ExecuteChimoneyFinishWithdrawalWorkflow(
-	ctx workflow.Context, IssueID string, chiWalletID string, status string,
+	ctx workflow.Context, IssueID string, chiWalletID string, status string, amount float64, paymentType string,
 ) error {
 	var a *Activity
 	ao := workflow.ActivityOptions{
@@ -262,6 +262,10 @@ func ExecuteChimoneyFinishWithdrawalWorkflow(
 	err = workflow.ExecuteActivity(ctx, a.FinalizeChimoneyBalance, trx.ID).Get(ctx, nil)
 	if err != nil {
 		return rollBackWithdrawal(ctx, a, finalizeReserve, trx.WalletID, trx.ID)
+	}
+	if paymentType == "interac" && amount != trx.Amount.Float64() {
+		// lets update the transaction to reflect the actual amount withdrawn if there's a mismatch. This can happen if there are fees that we didn't account for.
+		err = workflow.ExecuteActivity(ctx, a.UpdateChimoneyWithdrawalTransactionAmountAndFee, trx.WalletID, trx.ID, amount).Get(ctx, nil)
 	}
 
 	// finalize transaction
@@ -416,6 +420,17 @@ func (a *Activity) CreateChimoneyDepositTransaction(ctx context.Context, walletI
 	}
 
 	return trx, nil
+}
+
+func (a *Activity) UpdateChimoneyWithdrawalTransactionAmountAndFee(ctx context.Context, walletID, trxID string, amount float64) error {
+	trx, err := a.b.Transactions().GetTransaction(ctx, walletID, trxID)
+	if err != nil {
+		return err
+	}
+
+	fee := currency.FromFloat64(trx.Amount.Float64()-amount, trx.Amount.Currency)
+
+	return a.b.Transactions().SetTransactionAmountAndFee(ctx, trxID, currency.FromFloat64(amount, trx.Amount.Currency), fee)
 }
 
 func (a *Activity) GetChimoneyTransactionByForeignID(ctx context.Context, walletID string, foreignID string) (*transactions.Transaction, error) {
