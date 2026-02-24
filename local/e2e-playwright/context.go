@@ -52,6 +52,10 @@ type E2EContext struct {
 	screenshotCount int    // Track number of screenshots taken in this scenario
 	screenshotDir   string // Per-scenario screenshot directory
 	totpSecret      string // TOTP secret for the current user
+
+	// Deferred fee configuration (when user context is not yet set)
+	pendingGatehubDepositFee    string
+	pendingGatehubWithdrawalFee string
 }
 
 // InitializeScenario sets up the scenario context
@@ -266,6 +270,9 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	})
 	ctx.Step(`^I should see the payment in my transaction history$`, func() error {
 		return sc.iShouldSeeThePaymentInMyTransactionHistory()
+	})
+	ctx.Step(`^I should see text "([^"]*)" on the page$`, func(text string) error {
+		return sc.iShouldSeeTextOnThePage(text)
 	})
 }
 

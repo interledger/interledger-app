@@ -598,16 +598,29 @@ func (sc *E2EContext) iCompletedTheKYCFlowFor(email string) error {
 	}
 
 	// 6. Trigger KYC flow and fill iframe
-	if err := sc.iClickTheButton("Continue"); err != nil {
-		return fmt.Errorf("click Continue button failed: %w", err)
+	useMockXago := strings.EqualFold(sc.country, "South Africa") || strings.EqualFold(sc.countryCode, "ZA")
+
+	continueBtn := sc.page.Locator("button:has-text('Continue')")
+	if count, _ := continueBtn.Count(); count > 0 {
+		if err := sc.iClickTheButton("Continue"); err != nil {
+			return fmt.Errorf("click Continue button failed: %w", err)
+		}
+	} else {
+		debugPrintf("   ℹ️  Continue button not found; proceeding with iframe flow\n")
 	}
 
 	if err := sc.iWaitForTheKYCIframeToLoad(); err != nil {
 		return fmt.Errorf("KYC iframe load failed: %w", err)
 	}
 
-	if err := sc.iFillAndSubmitTheMockgatehubiframe(); err != nil {
-		return fmt.Errorf("fill KYC iframe failed: %w", err)
+	if useMockXago {
+		if err := sc.iFillAndSubmitTheMockxagoiframe(); err != nil {
+			return fmt.Errorf("fill Xago KYC iframe failed: %w", err)
+		}
+	} else {
+		if err := sc.iFillAndSubmitTheMockgatehubiframe(); err != nil {
+			return fmt.Errorf("fill Gatehub KYC iframe failed: %w", err)
+		}
 	}
 
 	if err := sc.iWaitForTheKYCCompletion(); err != nil {
@@ -641,6 +654,10 @@ func (sc *E2EContext) iCompleteMinimalKYCFlowWithDetails(firstName, lastName, em
 
 	if err := sc.iCompletedTheKYCFlowFor(email); err != nil {
 		return fmt.Errorf("post-signup KYC flow failed: %w", err)
+	}
+
+	if err := sc.applyPendingGatehubFees(); err != nil {
+		return fmt.Errorf("failed to apply pending Gatehub fees: %w", err)
 	}
 
 	return nil

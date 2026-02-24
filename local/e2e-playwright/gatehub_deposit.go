@@ -241,6 +241,16 @@ func (sc *E2EContext) iShouldSeeMyBalanceUpdatedWithAmount(amount, currency stri
 // thatGatehubChargesDepositFee configures MockGatehub to charge a deposit fee for the current user
 func (sc *E2EContext) thatGatehubChargesDepositFee(feePercent string) error {
 	debugPrintf("\n💰 Configuring GateHub deposit fee for user to %s%%...\n", feePercent)
+	if sc.currentUser == "" {
+		sc.pendingGatehubDepositFee = feePercent
+		debugPrintf("   ⏳ No current user set yet; deferring deposit fee configuration (%s%%)\n", feePercent)
+		return nil
+	}
+
+	return sc.applyGatehubDepositFee(feePercent)
+}
+
+func (sc *E2EContext) applyGatehubDepositFee(feePercent string) error {
 
 	// Get the current user's email
 	email, err := sc.getCurrentUserEmail()
@@ -302,5 +312,23 @@ func (sc *E2EContext) thatGatehubChargesDepositFee(feePercent string) error {
 	}
 
 	debugPrintf("✓ MockGatehub user-specific deposit fee configured to %s%% for user ID: %s\n", feePercent, gatehubUserID)
+	return nil
+}
+
+func (sc *E2EContext) applyPendingGatehubFees() error {
+	if sc.pendingGatehubDepositFee != "" {
+		if err := sc.applyGatehubDepositFee(sc.pendingGatehubDepositFee); err != nil {
+			return err
+		}
+		sc.pendingGatehubDepositFee = ""
+	}
+
+	if sc.pendingGatehubWithdrawalFee != "" {
+		if err := sc.applyGatehubWithdrawalFee(sc.pendingGatehubWithdrawalFee); err != nil {
+			return err
+		}
+		sc.pendingGatehubWithdrawalFee = ""
+	}
+
 	return nil
 }

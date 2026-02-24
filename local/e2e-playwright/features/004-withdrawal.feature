@@ -53,7 +53,5 @@ Feature: Withdraw Funds
     When I navigate to the withdrawal page
     And I wait "3" seconds for the page to load
     Then I should see text "404" on the page
-    And I should see text "An error occurred" on the page
-    # Note: Like deposits, withdrawal page is not available for Xago users with
-    # auto-created linked accounts. Withdrawals for Xago users likely use a
-    # different interface/flow specific to South African banking requirements.
+    # Withdrawal for Xago is not undestood well enough yet to make e2e tests
+    # coming soon

@@ -105,6 +105,16 @@ func (sc *E2EContext) iWithdrawViATheWithdrawalIframe(amount, currency string) e
 
 func (sc *E2EContext) thatGatehubChargesWithdrawalFee(feePercent string) error {
 	debugPrintf("\n💸 Configuring GateHub withdrawal fee for user to %s%%...\n", feePercent)
+	if sc.currentUser == "" {
+		sc.pendingGatehubWithdrawalFee = feePercent
+		debugPrintf("   ⏳ No current user set yet; deferring withdrawal fee configuration (%s%%)\n", feePercent)
+		return nil
+	}
+
+	return sc.applyGatehubWithdrawalFee(feePercent)
+}
+
+func (sc *E2EContext) applyGatehubWithdrawalFee(feePercent string) error {
 
 	// Get the current user's email
 	email, err := sc.getCurrentUserEmail()
