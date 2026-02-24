@@ -180,7 +180,7 @@ func (sc *E2EContext) iWaitForTheKYCIframeToLoad() error {
 
 			// Take screenshot of the iframe
 			debugPrintf("   📸 Taking screenshot of loaded iframe...\n")
-			if err := sc.iTakeAScreenshot("xago-kyc-iframe-loaded"); err != nil {
+			if err := sc.iTakeAScreenshot("kyc-iframe-loaded"); err != nil {
 				debugPrintf("   ⚠️  Failed to take screenshot: %v\n", err)
 			}
 
