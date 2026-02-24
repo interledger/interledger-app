@@ -8,6 +8,7 @@ import type {
 import { json, redirectDocument } from '@remix-run/node'
 import { Form, useActionData, useLoaderData, useSubmit } from '@remix-run/react'
 import { useRef } from 'react'
+import { trimHeaders } from '~/lib/headers.server'
 import logger, { addRequestId } from '~/lib/logger.server'
 import { extractOrGenerateRequestId } from '~/lib/requestContext.server'
 import { route } from 'routes-gen'
@@ -248,13 +249,9 @@ export async function action({ request }: ActionFunctionArgs) {
 
     if (res.ok) {
       const returnTo = new URL(request.url).searchParams.get('returnTo') || '/'
-      const response = redirectDocument(returnTo ?? '/')
-      const setCookieHeader = res.headers.get('set-cookie')
-      if (setCookieHeader) {
-        response.headers.set('Set-Cookie', setCookieHeader)
-      }
+      const headers = trimHeaders(res.headers, ['set-cookie'])
       // Hard reload so the root loader is also run
-      return response
+      return redirectDocument(returnTo ?? '/', { headers })
     }
 
     if (res.status === 400) {
