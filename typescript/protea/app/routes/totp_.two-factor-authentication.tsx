@@ -249,6 +249,10 @@ export async function action({ request }: ActionFunctionArgs) {
     if (res.ok) {
       const returnTo = new URL(request.url).searchParams.get('returnTo') || '/'
       const response = redirectDocument(returnTo ?? '/')
+      const setCookieHeader = res.headers.get('set-cookie')
+      if (setCookieHeader) {
+        response.headers.set('Set-Cookie', setCookieHeader)
+      }
       // Hard reload so the root loader is also run
       return response
     }
