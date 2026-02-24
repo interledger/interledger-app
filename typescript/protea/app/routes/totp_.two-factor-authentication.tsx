@@ -250,6 +250,11 @@ export async function action({ request }: ActionFunctionArgs) {
       const returnTo = new URL(request.url).searchParams.get('returnTo') || '/'
       const response = redirectDocument(returnTo ?? '/')
       // Hard reload so the root loader is also run
+      // Forward the session cookie if Kratos issued a new/upgraded one
+      const setCookieHeader = res.headers.get('set-cookie')
+      if (setCookieHeader) {
+        response.headers.set('Set-Cookie', setCookieHeader)
+      }
       return response
     }
 
