@@ -12,7 +12,8 @@ type apiRoundTripper struct {
 	url string
 	// clientID string
 
-	privateKey, publicKey jwk.Key
+	privateKey jwk.Key
+	//publicKey jwk.Key // for later use
 
 	publicKeyThumbprint string
 
