@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
 	"strings"
 	"time"
@@ -221,23 +220,15 @@ func (sc *E2EContext) iClickTheButtonOnTheWalletAddressForm(buttonText string) e
 		if err == nil && sc.db != nil {
 			kratosID := sc.getKratosUserIDByEmail(email)
 			if kratosID != "" {
-				var count int
-				err := sc.db.QueryRow(`SELECT COUNT(*) FROM user_wallets WHERE user_id = $1`, kratosID).Scan(&count)
+				count, err := sc.getUserWalletCount(kratosID)
 				if err == nil {
 					debugPrintf("   📊 DB wallet count: %d\n", count)
 					if count > 0 {
 						// Wallet was created, fetch details
-						var walletID, walletName, walletAddress sql.NullString
-						err = sc.db.QueryRow(`
-							SELECT w.id, w.name, w.wallet_address 
-							FROM wallets w 
-							JOIN user_wallets uw ON w.id = uw.wallet_id 
-							WHERE uw.user_id = $1 
-							ORDER BY w.created_at DESC LIMIT 1
-						`, kratosID).Scan(&walletID, &walletName, &walletAddress)
+						walletDetails, err := sc.getWalletDetailsForUser(kratosID)
 						if err == nil {
 							debugPrintf("   ✓ Wallet exists in DB: id=%s, name=%s, address=%s\n",
-								walletID.String, walletName.String, walletAddress.String)
+								walletDetails.ID, walletDetails.Name, walletDetails.WalletAddress)
 							debugPrintf("   💡 Wallet created successfully but UI did not redirect - possible frontend issue\n")
 						}
 					}

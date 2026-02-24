@@ -49,35 +49,30 @@ func (sc *E2EContext) iShouldSeeMyAccountBalanceWith(amount, currency string) er
 			// Verify user exists in database and check actual balance
 			debugPrintf("   🔍 Checking database for user and balance...\n")
 
-			// First get the user_id from signups table using email
-			var kratosUserID string
-			err = sc.db.QueryRow("SELECT user_id FROM signups WHERE email = $1", email).Scan(&kratosUserID)
+			// Get user_id from signups table using email
+			kratosUserID, err := sc.getUserIDFromSignup(email)
 			if err != nil {
-				debugPrintf("   ⚠️  User NOT found in signups table: %v\n", err)
+				debugPrintf("   ⚠️  %v\n", err)
 			} else {
 				debugPrintf("   ✓ User found in signups: user_id=%s\n", kratosUserID)
 
 				// Get wallet_id from user_wallets
-				var walletID string
-				err = sc.db.QueryRow("SELECT wallet_id FROM user_wallets WHERE user_id = $1", kratosUserID).Scan(&walletID)
+				walletID, err := sc.getWalletIDForUser(kratosUserID)
 				if err != nil {
-					debugPrintf("   ⚠️  Wallet NOT found for user: %v\n", err)
+					debugPrintf("   ⚠️  %v\n", err)
 				} else {
 					debugPrintf("   ✓ Wallet found: wallet_id=%s\n", walletID)
 
 					// Check accounts table for balance
-					var dbBalance float64
-					err = sc.db.QueryRow("SELECT COALESCE(value, 0) FROM accounts WHERE wallet_id = $1 AND asset_code = $2",
-						walletID, currency).Scan(&dbBalance)
+					dbBalance, err := sc.getAccountBalance(walletID, currency)
 					if err != nil {
-						debugPrintf("   ⚠️  No balance record in accounts table: %v\n", err)
+						debugPrintf("   ⚠️  %v\n", err)
 					} else {
 						debugPrintf("   ✓ Database balance: %s %f\n", currency, dbBalance)
 					}
 
 					// Check transactions table
-					var txCount int
-					err = sc.db.QueryRow("SELECT COUNT(*) FROM transactions WHERE wallet_id = $1", walletID).Scan(&txCount)
+					txCount, err := sc.getTransactionCount(walletID)
 					if err == nil {
 						debugPrintf("   ✓ Transaction count: %d\n", txCount)
 					}

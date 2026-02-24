@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -44,16 +43,6 @@ func (sc *E2EContext) iShouldSeeValidationErrors() error {
 }
 
 func (sc *E2EContext) aSignupRecordShouldExistInTheDatabase(email string) error {
-	// Initialize database connection if not already done
-	if sc.db == nil {
-		connStr := "host=localhost port=5432 user=postgres password=postgres dbname=backend sslmode=disable"
-		db, err := sql.Open("postgres", connStr)
-		if err != nil {
-			return fmt.Errorf("failed to connect to database: %w", err)
-		}
-		sc.db = db
-	}
-
 	// Check if email is already prefixed (starts with testEmailPrefix)
 	// If not, prefix it
 	prefixedEmail := email
@@ -61,32 +50,16 @@ func (sc *E2EContext) aSignupRecordShouldExistInTheDatabase(email string) error 
 		prefixedEmail = fmt.Sprintf("%s-%s", sc.testIdentifier, email)
 	}
 
-	var id, countryCode string
-
-	err := sc.db.QueryRow("SELECT id, country_code FROM signups WHERE email = $1", prefixedEmail).
-		Scan(&id, &countryCode)
-
-	if err == sql.ErrNoRows {
-		// Try waitlist_signups
-		err = sc.db.QueryRow("SELECT id, country_code FROM waitlist_signups WHERE email = $1", prefixedEmail).
-			Scan(&id, &countryCode)
-
-		if err != nil {
-			return fmt.Errorf("no signup record found for %s: %w", prefixedEmail, err)
-		}
-
-		// Store for later verification
-		sc.signupID = id
-		return nil
-	} else if err != nil {
-		return fmt.Errorf("failed to query signup: %w", err)
+	record, err := sc.getSignupRecord(prefixedEmail)
+	if err != nil {
+		return err
 	}
 
 	// Note: Password is stored in Kratos identity system, not in signups table
 	debugPrintf("✓ Signup record found in signups table (password managed by Kratos)\n")
 
 	// Store for later verification
-	sc.signupID = id
+	sc.signupID = record.ID
 	return nil
 }
 
@@ -96,10 +69,9 @@ func (sc *E2EContext) theSignupShouldHaveFirstName(expectedFirstName string) err
 		return err
 	}
 
-	var firstName string
-	err = sc.db.QueryRow("SELECT first_name FROM signups WHERE email = $1", email).Scan(&firstName)
+	firstName, err := sc.getSignupFirstName(email)
 	if err != nil {
-		return fmt.Errorf("failed to query signup: %w", err)
+		return err
 	}
 
 	// Handle the "GermanyMüller" case where country was typed before selection
@@ -116,10 +88,9 @@ func (sc *E2EContext) theSignupShouldHaveLastName(expectedLastName string) error
 		return err
 	}
 
-	var lastName string
-	err = sc.db.QueryRow("SELECT last_name FROM signups WHERE email = $1", email).Scan(&lastName)
+	lastName, err := sc.getSignupLastName(email)
 	if err != nil {
-		return fmt.Errorf("failed to query signup: %w", err)
+		return err
 	}
 
 	if !strings.EqualFold(lastName, expectedLastName) {
@@ -135,10 +106,9 @@ func (sc *E2EContext) theSignupShouldHaveCountryCode(expectedCode string) error 
 		return err
 	}
 
-	var countryCode string
-	err = sc.db.QueryRow("SELECT country_code FROM signups WHERE email = $1", email).Scan(&countryCode)
+	countryCode, err := sc.getSignupCountryCode(email)
 	if err != nil {
-		return fmt.Errorf("failed to query signup: %w", err)
+		return err
 	}
 
 	if !strings.EqualFold(countryCode, expectedCode) {
@@ -156,32 +126,14 @@ func (sc *E2EContext) iShouldBeAbleToVerifyTheFullUserStatus() error {
 	}
 
 	// 1. Check signups table
-	var signupID, firstName, lastName, countryCode string
-	var userID sql.NullString
-	err = sc.db.QueryRow(
-		"SELECT id, first_name, last_name, country_code, user_id FROM signups WHERE email = $1",
-		email,
-	).Scan(&signupID, &firstName, &lastName, &countryCode, &userID)
-
-	if err == sql.ErrNoRows {
-		return fmt.Errorf("no signup record found for email: %s", sc.email)
-	} else if err != nil {
-		return fmt.Errorf("database error querying signups: %w", err)
+	record, err := sc.getSignupRecord(email)
+	if err != nil {
+		return err
 	}
 
-	// 3. Check wallets table
-	var walletID, walletName, walletCountry string
-
-	err = sc.db.QueryRow(`
-		SELECT id, name, country
-		FROM wallets
-		LIMIT 1
-	`).Scan(&walletID, &walletName, &walletCountry)
-
-	if err == sql.ErrNoRows {
-		// No wallet found, continue
-	} else if err != nil {
-		// Query error, continue
+	// Verify we have the required fields
+	if record.ID == "" {
+		return fmt.Errorf("no signup record found for email: %s", email)
 	}
 
 	return nil
@@ -235,20 +187,12 @@ func (sc *E2EContext) iTriggerUserVerificationFor(email string) error {
 	if identityID == "" {
 		// Fallback: try to look up identity_id directly in Kratos Postgres DB
 		debugPrintf("   ⚠️  Identity not found via admin API, falling back to Kratos DB lookup for %s\n", prefixedEmail)
-		kratosConnStr := "host=localhost port=5432 user=postgres password=postgres dbname=kratos sslmode=disable"
-		kratosDB, err := sql.Open("postgres", kratosConnStr)
-		if err == nil {
-			defer kratosDB.Close()
-			var dbIdentityID string
-			row := kratosDB.QueryRow(`SELECT identity_id FROM identity_verifiable_addresses WHERE value = $1 LIMIT 1`, prefixedEmail)
-			if err := row.Scan(&dbIdentityID); err == nil && dbIdentityID != "" {
-				identityID = dbIdentityID
-				debugPrintf("   ✓ Found Kratos identity via DB lookup: %s\n", identityID)
-			} else {
-				debugPrintf("   - Kratos DB lookup did not find identity for %s: %v\n", prefixedEmail, err)
-			}
+		var err error
+		identityID, err = sc.lookupKratosIdentityByEmail(prefixedEmail)
+		if err != nil {
+			debugPrintf("   - Kratos DB lookup did not find identity for %s: %v\n", prefixedEmail, err)
 		} else {
-			debugPrintf("   ⚠️  Could not open Kratos DB for fallback lookup: %v\n", err)
+			debugPrintf("   ✓ Found Kratos identity via DB lookup: %s\n", identityID)
 		}
 
 		if identityID == "" {
@@ -304,27 +248,7 @@ func (sc *E2EContext) iTriggerUserVerificationFor(email string) error {
 	}
 
 	// Step 3: Mark email as verified in Kratos database (test helper to bypass email verification)
-	kratosConnStr := "host=localhost port=5432 user=postgres password=postgres dbname=kratos sslmode=disable"
-	kratosDB, err := sql.Open("postgres", kratosConnStr)
-	if err != nil {
-		debugPrintf("⚠️  Could not connect to Kratos database: %v\n", err)
-		return nil
-	}
-	defer kratosDB.Close()
-
-	_, err = kratosDB.Exec(`
-		UPDATE identity_verifiable_addresses 
-		SET verified = TRUE, verified_at = NOW()
-		WHERE value = $1
-	`, prefixedEmail)
-
-	if err != nil {
-		debugPrintf("⚠️  Could not mark email as verified in Kratos: %v\n", err)
-		return nil
-	}
-
-	debugPrintf("✓ Marked email as verified for %s\n", prefixedEmail)
-	return nil
+	return sc.markKratosEmailAsVerified(prefixedEmail)
 }
 
 // getKratosIdentities retrieves all Kratos identities
@@ -398,82 +322,5 @@ func (sc *E2EContext) getKratosIdentities() ([]kratosIdentity, error) {
 // rafikiAssetsExist checks if required Rafiki assets are seeded
 func (sc *E2EContext) rafikiAssetsExist() error {
 	debugPrintln("\n🔍 Checking if Rafiki assets are seeded...")
-
-	// Required assets for the tests
-	requiredAssets := []string{"EUR", "USD"}
-
-	// Connect to Rafiki database (separate from backend database)
-	rafikiConnStr := os.Getenv("RAFIKI_DB_URL")
-	if rafikiConnStr == "" {
-		rafikiConnStr = "host=localhost port=5432 user=postgres password=postgres dbname=rafiki_backend sslmode=disable"
-	}
-
-	rafikiDB, err := sql.Open("postgres", rafikiConnStr)
-	if err != nil {
-		return fmt.Errorf("❌ Could not connect to Rafiki database: %w\n\n"+
-			"Ensure Rafiki is running:\n"+
-			"  cd local\n"+
-			"  docker compose up -d rafiki\n", err)
-	}
-	defer rafikiDB.Close()
-
-	// Test connection
-	if err := rafikiDB.Ping(); err != nil {
-		return fmt.Errorf("❌ Could not ping Rafiki database: %w\n\n"+
-			"Ensure Rafiki database is accessible:\n"+
-			"  docker compose ps postgres\n", err)
-	}
-
-	// Query for assets
-	query := `SELECT code, scale FROM assets WHERE code IN ('EUR', 'USD') ORDER BY code`
-	rows, err := rafikiDB.Query(query)
-	if err != nil {
-		return fmt.Errorf("❌ Could not query Rafiki assets: %w\n\n"+
-			"This may indicate Rafiki is not properly initialized.\n"+
-			"Run the seed script:\n"+
-			"  cd local\n"+
-			"  ./scripts/local-dev-tool rafiki\n", err)
-	}
-	defer rows.Close()
-
-	foundAssets := make(map[string]int)
-	for rows.Next() {
-		var code string
-		var scale int
-		if err := rows.Scan(&code, &scale); err != nil {
-			continue
-		}
-		foundAssets[code] = scale
-		debugPrintf("   ✓ Found asset: %s (scale: %d)\n", code, scale)
-	}
-
-	// Check which assets are missing
-	missingAssets := []string{}
-	for _, asset := range requiredAssets {
-		if _, found := foundAssets[asset]; !found {
-			missingAssets = append(missingAssets, asset)
-		}
-	}
-
-	if len(missingAssets) > 0 {
-		return fmt.Errorf("\n❌ RAFIKI ASSETS MISSING: %v\n\n"+
-			"The following assets must be seeded in Rafiki before running tests:\n"+
-			"  Missing: %s\n\n"+
-			"To fix this:\n"+
-			"  1. Run the Rafiki seed script:\n"+
-			"     cd local\n"+
-			"     ./scripts/local-dev-tool rafiki\n\n"+
-			"  2. Verify assets were created:\n"+
-			"     docker compose exec -T postgres psql -U postgres -d rafiki_backend -c \\\n"+
-			"       \"SELECT code, scale FROM assets ORDER BY code;\"\n\n"+
-			"  3. Expected output should include:\n"+
-			"     code | scale\n"+
-			"     -----+-------\n"+
-			"     EUR  |     2\n"+
-			"     USD  |     2\n",
-			missingAssets, strings.Join(missingAssets, ", "))
-	}
-
-	debugPrintf("   ✓ All required Rafiki assets present: %v\n", requiredAssets)
-	return nil
+	return sc.checkRafikiAssetsSeeded()
 }
