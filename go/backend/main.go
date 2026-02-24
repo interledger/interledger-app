@@ -213,6 +213,9 @@ func start(args *cli.StartArgs) {
 		fiant.WithClientID(clientID),
 		fiant.WithDerivedKeys(ptiPrivateKey),
 	)
+	if err != nil {
+		log.Fatalln(err)
+	}
 
 	// TODO(bradu): testing fiant api without going through pti ops
 	// to be removed before going into main
