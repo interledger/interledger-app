@@ -158,38 +158,11 @@ func (sc *E2EContext) iFillInWith(fieldName, value string) error {
 		})
 		sc.email = value // Store prefixed email
 	case "phone":
-		// Try flexible phone selectors
-		input = sc.page.Locator("input[type='tel']")
+		// Phone field is critical for Kratos - use direct ID selector from Protea form
+		input = sc.page.Locator("input#phone")
 		count, _ := input.Count()
 		if count == 0 {
-			input = sc.page.Locator("input[name*='phone' i]")
-			count, _ = input.Count()
-		}
-		if count == 0 {
-			input = sc.page.Locator("input[placeholder*='phone' i]")
-			count, _ = input.Count()
-		}
-		if count == 0 {
-			phoneLabel := sc.page.Locator("label:has-text('Phone')")
-			labelCount, _ := phoneLabel.Count()
-			if labelCount > 0 {
-				forAttr, _ := phoneLabel.First().GetAttribute("for")
-				if forAttr != "" {
-					input = sc.page.Locator(fmt.Sprintf("input#%s", forAttr))
-				}
-			}
-		}
-		if count == 0 {
-			allInputs := sc.page.Locator("input[type='text']")
-			allCount, _ := allInputs.Count()
-			for i := 0; i < allCount; i++ {
-				inp := allInputs.Nth(i)
-				inputName, _ := inp.GetAttribute("name")
-				if !strings.Contains(strings.ToLower(inputName), "country") {
-					input = inp
-					break
-				}
-			}
+			return fmt.Errorf("phone input field not found - expected input#phone from PhoneTextField component")
 		}
 	case "password":
 		// Wait for password field to be available

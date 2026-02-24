@@ -51,11 +51,11 @@ func (sc *E2EContext) thatMyFieldIs(fieldKey, value string) error {
 // Usage: And I completed the account verification workflow
 func (sc *E2EContext) iCompletedTheAccountVerificationWorkflow() error {
 	debugPrintln("\n🔄 Running account verification workflow...")
-	
+
 	if err := sc.iTriggerUserVerificationForMyself(); err != nil {
 		return fmt.Errorf("failed to trigger user verification: %w", err)
 	}
-	
+
 	debugPrintln("✓ Account verification workflow completed")
 	return nil
 }
@@ -64,46 +64,46 @@ func (sc *E2EContext) iCompletedTheAccountVerificationWorkflow() error {
 // Usage: And I finished the TOTP registration workflow
 func (sc *E2EContext) iFinishedTheTOTPRegistrationWorkflow() error {
 	debugPrintln("\n🔄 Running TOTP registration workflow...")
-	
+
 	// Clear session and navigate to login
 	if err := sc.iClearTheBrowserSession(); err != nil {
 		return fmt.Errorf("failed to clear browser session: %w", err)
 	}
-	
+
 	if err := sc.iNavigateToTheLoginPage(); err != nil {
 		return fmt.Errorf("failed to navigate to login page: %w", err)
 	}
-	
+
 	// Fill in login credentials
 	if err := sc.iFillInTheLoginFormWithMyDetails(); err != nil {
 		return fmt.Errorf("failed to fill login form: %w", err)
 	}
-	
+
 	// Submit login
 	if err := sc.iSubmitTheLogin(); err != nil {
 		return fmt.Errorf("failed to submit login: %w", err)
 	}
-	
+
 	// Verify we're on TOTP page
 	if err := sc.iShouldBeNavigatedToTheTOTPPage(); err != nil {
 		return fmt.Errorf("failed to navigate to TOTP page: %w", err)
 	}
-	
+
 	// Enter TOTP code
 	if err := sc.iTypeInMyGeneratedTotpForMyself(); err != nil {
 		return fmt.Errorf("failed to generate and type TOTP: %w", err)
 	}
-	
+
 	// Submit TOTP
 	if err := sc.iSubmitTheTotpRegistration(); err != nil {
 		return fmt.Errorf("failed to submit TOTP: %w", err)
 	}
-	
+
 	// Verify we're on dashboard
 	if err := sc.iShouldBeNavigatedToTheApplicationDashboard(); err != nil {
 		return fmt.Errorf("failed to navigate to dashboard: %w", err)
 	}
-	
+
 	debugPrintln("✓ TOTP registration workflow completed")
 	return nil
 }
@@ -112,39 +112,39 @@ func (sc *E2EContext) iFinishedTheTOTPRegistrationWorkflow() error {
 // Usage: And I finished the wallet address creation workflow
 func (sc *E2EContext) iFinishedTheWalletAddressCreationWorkflow() error {
 	debugPrintln("\n🔄 Running wallet address creation workflow...")
-	
+
 	// Verify we're on wallet address creation page
 	if err := sc.iShouldBeRedirectedToTheWalletAddressCreationPage(); err != nil {
 		return fmt.Errorf("not on wallet address creation page: %w", err)
 	}
-	
+
 	// Fill and submit the wallet address form
 	if err := sc.iFillInAndSubmitTheWalletAddressFormWithAUniqueAddress(); err != nil {
 		return fmt.Errorf("failed to fill wallet address form: %w", err)
 	}
-	
+
 	// Take screenshot for debugging
 	if err := sc.iTakeAScreenshot("wallet-address-created"); err != nil {
 		debugPrintf("⚠️  Failed to take screenshot: %v\n", err)
 		// Don't fail the workflow for screenshot failure
 	}
-	
+
 	// Click save button
 	if err := sc.iClickTheButtonOnTheWalletAddressForm("save"); err != nil {
 		return fmt.Errorf("failed to click save button: %w", err)
 	}
-	
+
 	// Verify we're back on dashboard with reserved status
 	if err := sc.iShouldBeNavigatedBackToTheDashboardWithReservedWalletStatus(); err != nil {
 		return fmt.Errorf("failed to navigate to dashboard with reserved status: %w", err)
 	}
-	
+
 	// Take screenshot of reserved state
 	if err := sc.iTakeAScreenshot("wallet-reserved-status"); err != nil {
 		debugPrintf("⚠️  Failed to take screenshot: %v\n", err)
 		// Don't fail the workflow for screenshot failure
 	}
-	
+
 	debugPrintln("✓ Wallet address creation workflow completed")
 	return nil
 }
@@ -153,23 +153,23 @@ func (sc *E2EContext) iFinishedTheWalletAddressCreationWorkflow() error {
 // Usage: Then I should be shown the "Activate wallet" prompt form
 func (sc *E2EContext) iShouldBeShownTheActivateWalletPromptForm(promptText string) error {
 	debugPrintf("\n👁️  Verifying '%s' prompt is shown...\n", promptText)
-	
+
 	// Navigate to personal details page
 	if err := sc.iNavigateToThePersonalDetailsPageToActivateWallet(); err != nil {
 		return fmt.Errorf("failed to navigate to personal details page: %w", err)
 	}
-	
+
 	// Verify the activate wallet button is visible
 	if err := sc.iShouldSeeTheActivateWalletButton(); err != nil {
 		return fmt.Errorf("activate wallet button not visible: %w", err)
 	}
-	
+
 	// Take screenshot for debugging
 	if err := sc.iTakeAScreenshot("activate-wallet-prompt"); err != nil {
 		debugPrintf("⚠️  Failed to take screenshot: %v\n", err)
 		// Don't fail for screenshot failure
 	}
-	
+
 	debugPrintf("✓ '%s' prompt form is displayed\n", promptText)
 	return nil
 }

@@ -63,14 +63,6 @@ func (sc *E2EContext) iShouldSeeMyAccountBalanceWith(amount, currency string) er
 				} else {
 					debugPrintf("   ✓ Wallet found: wallet_id=%s\n", walletID)
 
-					// Check accounts table for balance
-					dbBalance, err := sc.getAccountBalance(walletID, currency)
-					if err != nil {
-						debugPrintf("   ⚠️  %v\n", err)
-					} else {
-						debugPrintf("   ✓ Database balance: %s %f\n", currency, dbBalance)
-					}
-
 					// Check transactions table
 					txCount, err := sc.getTransactionCount(walletID)
 					if err == nil {
@@ -98,7 +90,8 @@ func (sc *E2EContext) iShouldSeeMyAccountBalanceWith(amount, currency string) er
 		debugPrintf("   Reloading page to fetch latest balance (attempt %d)...\n", i+1)
 		_, _ = sc.page.Reload()
 		sc.page.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
-			State: playwright.LoadStateNetworkidle,
+			State:   playwright.LoadStateNetworkidle,
+			Timeout: playwright.Float(10000),
 		})
 		time.Sleep(1 * time.Second)
 

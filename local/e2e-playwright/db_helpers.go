@@ -386,31 +386,6 @@ func (sc *E2EContext) getWalletIDForUser(kratosUserID string) (string, error) {
 	return walletID, nil
 }
 
-// getAccountBalance retrieves the balance for a wallet and currency
-func (sc *E2EContext) getAccountBalance(walletID, currency string) (float64, error) {
-	if sc.db == nil {
-		connStr := "host=localhost port=5432 user=postgres password=postgres dbname=backend sslmode=disable"
-		db, err := sql.Open("postgres", connStr)
-		if err != nil {
-			return 0, fmt.Errorf("getAccountBalance: failed to open db: %w", err)
-		}
-		sc.db = db
-	}
-
-	var balance float64
-	err := sc.db.QueryRow("SELECT COALESCE(value, 0) FROM accounts WHERE wallet_id = $1 AND asset_code = $2",
-		walletID, currency).Scan(&balance)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			// No balance found is ok - return 0
-			return 0, nil
-		}
-		return 0, fmt.Errorf("getAccountBalance: query error: %w", err)
-	}
-
-	return balance, nil
-}
-
 // getTransactionCount retrieves the transaction count for a wallet
 func (sc *E2EContext) getTransactionCount(walletID string) (int, error) {
 	if sc.db == nil {

@@ -25,6 +25,12 @@ func min(a, b int) int {
 func (sc *E2EContext) iNavigateToTheDepositPage() error {
 	debugPrintln("\n💰 Navigating to deposit page...")
 
+	// Check if we're on login page - if so, the user session was lost during KYC
+	currentURL := sc.page.URL()
+	if strings.Contains(currentURL, "/login") {
+		return fmt.Errorf("cannot navigate to deposit page: user is on login page - session was lost during KYC completion. Current URL: %s", currentURL)
+	}
+
 	url := sc.baseURL + "/deposit"
 	_, err := sc.page.Goto(url, playwright.PageGotoOptions{
 		WaitUntil: playwright.WaitUntilStateNetworkidle,

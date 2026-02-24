@@ -243,10 +243,10 @@ func (sc *E2EContext) iFillAndSubmitTheMockgatehubiframe() error {
 	}
 
 	if !buttonClicked {
-		debugPrintf("   ⚠️  Could not find submit button, form may not have been submitted\n")
+		return fmt.Errorf("KYC iframe submit button not found - form was not submitted (found %d buttons in iframe)", buttonCount)
 	}
 
-	debugPrintf("   ✓ KYC iframe form submission attempted\n")
+	debugPrintf("   ✓ KYC iframe form submitted\n")
 	return nil
 }
 
@@ -267,9 +267,9 @@ func (sc *E2EContext) iWaitForTheKYCCompletion() error {
 		debugPrintf("   ✓ KYC completion message received by parent\n")
 	}
 
-	// The page will navigate away from personal-details after completion
-	// Or the backend might trigger a redirect
-	// Wait for that navigation to happen
+	// After KYC submission, we should return to dashboard (not login!)
+	// The page will navigate away from personal-details
+	// Wait for that navigation to happen and validate we don't end up on login
 	for i := 0; i < 60; i++ { // 30 seconds timeout
 		currentURL := sc.page.URL()
 
@@ -278,6 +278,12 @@ func (sc *E2EContext) iWaitForTheKYCCompletion() error {
 			debugPrintf("   📍 Current URL (attempt %d): %s\n", i, currentURL)
 		}
 
+		// If we're on login page, that's a session loss issue - return error
+		if strings.Contains(currentURL, "/login") {
+			return fmt.Errorf("KYC completed but redirected to login - user session was lost: %s", currentURL)
+		}
+
+		// We should navigate away from personal-details
 		if !strings.Contains(currentURL, "/personal-details") {
 			debugPrintf("   ✓ KYC completed, navigated away from personal-details\n")
 			time.Sleep(500 * time.Millisecond)
@@ -303,7 +309,12 @@ func (sc *E2EContext) iShouldBeNavigatedBackToTheDashboardWithApprovedKYCStatus(
 		currentURL := sc.page.URL()
 		debugPrintf("   📍 Current URL (check %d): %s\n", i+1, currentURL)
 
-		// Should be at root dashboard
+		// If on login page, session was lost - that's a failure
+		if strings.Contains(currentURL, "/login") {
+			return fmt.Errorf("user was redirected to login page - session lost after KYC attempt: %s", currentURL)
+		}
+
+		// Should be at root dashboard or related authenticated pages
 		baseURLNormalized := strings.TrimSuffix(sc.baseURL, "/")
 		if !strings.HasPrefix(currentURL, baseURLNormalized) || strings.Contains(currentURL, "/personal-details") || strings.Contains(currentURL, "/wallet-address") {
 			continue
@@ -339,7 +350,12 @@ func (sc *E2EContext) iShouldBeNavigatedBackToTheDashboardWithApprovedKYCStatus(
 		}
 	}
 
-	// Give one final check
+	// Give one final check - but NOT on login page
+	currentURL := sc.page.URL()
+	if strings.Contains(currentURL, "/login") {
+		return fmt.Errorf("failed KYC check: user is on login page (session lost): %s", currentURL)
+	}
+
 	content, _ := sc.page.Content()
 	if !strings.Contains(content, "Reserved") {
 		debugPrintf("   ✓ 'Reserved' status not found - KYC appears approved\n")

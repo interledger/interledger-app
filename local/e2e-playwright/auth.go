@@ -245,10 +245,7 @@ func (sc *E2EContext) iTypeInMyGeneratedTotpForMyNewUser() error {
 
 // iShouldBeNavigatedToTheApplicationDashboard verifies navigation to dashboard after TOTP
 func (sc *E2EContext) iShouldBeNavigatedToTheApplicationDashboard() error {
-	// Wait for page load
-	time.Sleep(1 * time.Second)
-
-	currentURL := sc.page.URL()
+	debugPrintln("   🏠 Waiting for dashboard navigation...")
 
 	// Dashboard URLs might include: /dashboard, /app, /home, /wallet, etc.
 	dashboardPatterns := []string{
@@ -261,18 +258,30 @@ func (sc *E2EContext) iShouldBeNavigatedToTheApplicationDashboard() error {
 		"/activation",
 	}
 
-	for _, pattern := range dashboardPatterns {
-		if strings.Contains(currentURL, pattern) {
+	// Try for up to 15 seconds waiting for dashboard navigation
+	for attempt := 0; attempt < 30; attempt++ {
+		currentURL := sc.page.URL()
+		debugPrintf("   📍 Current URL (attempt %d): %s\n", attempt+1, currentURL)
+
+		// Check if we're on a dashboard page
+		for _, pattern := range dashboardPatterns {
+			if strings.Contains(currentURL, pattern) {
+				debugPrintf("   ✓ Successfully navigated to dashboard (matched pattern: %s)\n", pattern)
+				return nil
+			}
+		}
+
+		// If not on login/totp page, we might be on an okay page
+		if !strings.Contains(currentURL, "/login") && !strings.Contains(currentURL, "/totp") {
+			debugPrintf("   ✓ On application page (not login/TOTP): %s\n", currentURL)
 			return nil
 		}
+
+		time.Sleep(500 * time.Millisecond)
 	}
 
-	// If not on any expected dashboard URL, check if we're past the login/TOTP flow
-	if !strings.Contains(currentURL, "/login") && !strings.Contains(currentURL, "/totp") {
-		return nil
-	}
-
-	return fmt.Errorf("not on application dashboard - still at: %s", currentURL)
+	finalURL := sc.page.URL()
+	return fmt.Errorf("not on application dashboard - still at: %s", finalURL)
 }
 
 // extractTOTPSecretFromPage extracts the TOTP secret from the page HTML
@@ -324,12 +333,22 @@ func (sc *E2EContext) extractTOTPSecretFromPage(htmlContent string) (string, err
 
 // iSubmitTheTotpRegistration clicks the TOTP registration submit button
 func (sc *E2EContext) iSubmitTheTotpRegistration() error {
-	// Find submit button
-	submitButton := sc.page.Locator("button[type='submit'], button:has-text('Verify'), button:has-text('Submit'), button:has-text('Enable'), button:has-text('Continue')")
+	debugPrintln("   🔘 Looking for TOTP submit button...")
+
+	// Find submit button - TotpChallenge component uses button with type='submit'
+	// and text 'Verify' when showing challenge form
+	submitButton := sc.page.Locator("button:has-text('Verify')")
 	submitCount, _ := submitButton.Count()
 	if submitCount == 0 {
-		return fmt.Errorf("failed to find TOTP submit button")
+		// Fallback to type='submit' if text selector doesn't work
+		submitButton = sc.page.Locator("button[type='submit']")
+		submitCount, _ = submitButton.Count()
+		if submitCount == 0 {
+			return fmt.Errorf("failed to find TOTP submit button (tried: 'Verify' text and type='submit')")
+		}
 	}
+
+	debugPrintf("   ✓ Found %d button(s), clicking first one\n", submitCount)
 
 	err := submitButton.First().Click(playwright.LocatorClickOptions{
 		Timeout: playwright.Float(5000),
@@ -338,8 +357,24 @@ func (sc *E2EContext) iSubmitTheTotpRegistration() error {
 		return fmt.Errorf("failed to click TOTP submit button: %w", err)
 	}
 
-	// Wait for page transition
-	time.Sleep(2 * time.Second)
+	debugPrintln("   ⏳ Waiting for page redirect after TOTP submission...")
+
+	// Wait for navigation to complete. TOTP submission triggers a redirect via redirectDocument()
+	// which should happen within 5 seconds
+	currentURL := sc.page.URL()
+	for i := 0; i < 10; i++ {
+		time.Sleep(500 * time.Millisecond)
+		newURL := sc.page.URL()
+		if newURL != currentURL {
+			debugPrintf("   ✓ Page redirected after TOTP submission (attempt %d)\n", i+1)
+			return nil
+		}
+	}
+
+	// If URL didn't change, wait a bit more and return
+	// The app may redirect after a delay
+	debugPrintf("   ⚠️  URL did not change within 5s, returning anyway\n")
+	time.Sleep(1 * time.Second)
 
 	return nil
 }

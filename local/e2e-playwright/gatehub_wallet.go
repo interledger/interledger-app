@@ -40,16 +40,18 @@ func (sc *E2EContext) iShouldBeOnTheWalletAddressCreationPage() error {
 func (sc *E2EContext) iShouldBeRedirectedToTheWalletAddressCreationPage() error {
 	debugPrintln("\n🔁 Waiting to be redirected to the wallet address creation page...")
 
-	for i := 0; i < 15; i++ {
+	// Wait up to 30 seconds (was 15) for the redirect
+	for i := 0; i < 30; i++ {
 		currentURL := sc.page.URL()
 		debugPrintf("   📍 Current URL (attempt %d): %s\n", i+1, currentURL)
 		if strings.Contains(currentURL, "/wallet-address") {
+			debugPrintln("   ✓ Successfully redirected to wallet address page")
 			return sc.iShouldBeOnTheWalletAddressCreationPage()
 		}
 		time.Sleep(1 * time.Second)
 	}
 
-	return fmt.Errorf("did not redirect to wallet address page within timeout")
+	return fmt.Errorf("did not redirect to wallet address page within timeout (30 seconds)")
 }
 
 // iFillInAndSubmitTheWalletAddressFormWithAUniqueAddress fills the wallet address form (without clicking submit)
