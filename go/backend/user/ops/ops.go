@@ -251,20 +251,21 @@ func searchTotpURL(credentials map[string]client.IdentityCredentials, userID str
 			continue
 		}
 
-		if *cred.Type == client.IDENTITYCREDENTIALSTYPE_TOTP {
-			raw, exists := cred.Config["totp_url"]
-			if !exists {
-				return ""
-			}
+		if *cred.Type != client.IDENTITYCREDENTIALSTYPE_TOTP {
+			continue
+		}
 
-			if url, ok := raw.(string); !ok {
-				log.Error("totp_url is present, but not a string", zap.String("userID", userID), zap.Any("totpURL", raw))
-				return ""
-			} else {
-				totpURL = url
-				break
-			}
+		raw, exists := cred.Config["totp_url"]
+		if !exists {
+			return ""
+		}
 
+		if url, ok := raw.(string); !ok {
+			log.Error("totp_url is present, but not a string", zap.String("userID", userID), zap.Any("totpURL", raw))
+			return ""
+		} else {
+			totpURL = url
+			break
 		}
 	}
 
