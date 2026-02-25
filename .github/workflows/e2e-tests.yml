@@ -146,7 +146,7 @@ jobs:
 
       - name: Cleanup from previous runs
         working-directory: local
-        run: docker compose --profile="*" down --volumes --remove-orphans
+        run: make down && make reset
           
       - name: Build local-dev-tool
         working-directory: local/scripts
