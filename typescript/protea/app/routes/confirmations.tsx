@@ -19,7 +19,7 @@ import {
   WalletGrid
 } from '~/components'
 import { usePendingConfirmations } from '~/lib/cards/usePendingConfirmations'
-import { hasUserSession } from '~/lib/kratos/session.util'
+import { hasUserSession } from '~/lib/kratos/session.util.server'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const session = hasUserSession(request)

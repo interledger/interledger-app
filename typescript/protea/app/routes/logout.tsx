@@ -11,7 +11,7 @@ import { Button, Card, CardContent, Layouts } from '~/components'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { kratosPublic } from '~/lib/kratos/kratos-client.server'
 import { getCookie, buildHeadersWithCookies } from '~/lib/kratos/cookie.util'
-import { handleFlowError } from '~/lib/kratos/error'
+import { handleFlowError } from '~/lib/kratos/error.server'
 import { mergeMeta } from '~/lib/meta'
 
 export async function loader({ request }: LoaderFunctionArgs) {

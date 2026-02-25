@@ -1,6 +1,6 @@
 import type { Session } from '@ory/client'
 import { redirect } from '@remix-run/node'
-import { getUserSession } from './kratos/session.util'
+import { getUserSession } from './kratos/session.util.server'
 import { kratosPublic, CLEAR_SESSION_COOKIE_HEADER } from './kratos/kratos-client.server'
 import { withCookie } from './kratos/cookie.util'
 

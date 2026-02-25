@@ -38,7 +38,7 @@ import type { Query } from '~/generated/dato-cms-graphql'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { getClientIP } from '~/lib/ip.server'
-import { hasUserSession } from '~/lib/kratos/session.util'
+import { hasUserSession } from '~/lib/kratos/session.util.server'
 import { mergeMeta } from '~/lib/meta'
 
 export async function loader({ request, params }: LoaderFunctionArgs) {

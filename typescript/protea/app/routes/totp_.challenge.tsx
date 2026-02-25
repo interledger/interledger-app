@@ -16,8 +16,8 @@ import { mergeMeta } from '~/lib/meta'
 import { safeReturnTo } from '~/lib/url.server'
 import { kratosPublic } from '~/lib/kratos/kratos-client.server'
 import { buildHeadersWithCookies, getCookie, withCookie } from '~/lib/kratos/cookie.util'
-import { mapFlowToFieldErrors, printKratosError } from '~/lib/kratos/error'
-import { CreateBrowserLoginFlowResponse, KratosError } from '~/lib/kratos/types'
+import { mapFlowToFieldErrors, printKratosError } from '~/lib/kratos/error.server'
+import { CreateBrowserLoginFlowResponse, KratosError } from '~/lib/kratos/types.server'
 
 export type TotpAction =
   | {

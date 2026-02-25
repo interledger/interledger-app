@@ -1,8 +1,8 @@
 import { json, type ActionFunctionArgs } from '@remix-run/node'
 import { kratosPublic } from '~/lib/kratos/kratos-client.server'
 import { getCookie, withCookie, buildHeadersWithCookies } from '~/lib/kratos/cookie.util'
-import { mapFlowToFieldErrors } from '~/lib/kratos/error'
-import { KratosError } from '~/lib/kratos/types'
+import { mapFlowToFieldErrors } from '~/lib/kratos/error.server'
+import { KratosError } from '~/lib/kratos/types.server'
 import logger, { addRequestId, withErrorLog } from '~/lib/logger.server'
 import { extractOrGenerateRequestId } from '~/lib/requestContext.server'
 

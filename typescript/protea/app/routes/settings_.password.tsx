@@ -12,10 +12,10 @@ import { error } from '~/lib/error.server'
 import { kratosPublic } from '~/lib/kratos/kratos-client.server'
 import { getCookie, withCookie, buildHeadersWithCookies } from '~/lib/kratos/cookie.util'
 import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.util'
-import { handleFlowError, mapFlowToFieldErrors } from '~/lib/kratos/error'
+import { handleFlowError, mapFlowToFieldErrors } from '~/lib/kratos/error.server'
 import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
-import { KratosError } from '~/lib/kratos/types'
+import { KratosError } from '~/lib/kratos/types.server'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)

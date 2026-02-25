@@ -25,8 +25,8 @@ import { isConnectError, isTwilioError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { kratosPublic } from '~/lib/kratos/kratos-client.server'
 import { getCookie, withCookie, buildHeadersWithCookies } from '~/lib/kratos/cookie.util'
-import { handleFlowError } from '~/lib/kratos/error'
-import { getUserSession, getSessionTraits } from '~/lib/kratos/session.util'
+import { handleFlowError } from '~/lib/kratos/error.server'
+import { getUserSession, getSessionTraits } from '~/lib/kratos/session.util.server'
 import { mergeMeta } from '~/lib/meta'
 
 export async function loader({ request }: LoaderFunctionArgs) {

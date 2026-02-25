@@ -4,7 +4,7 @@ import { route } from 'routes-gen'
 import { safeReturnTo } from '../url.server'
 import { kratosPublic, KRATOS_SESSION_COOKIE } from './kratos-client.server'
 import { getCookie } from './cookie.util'
-import type { KratosTraits } from './types'
+import type { KratosTraits } from './types.server'
 
 
 /**

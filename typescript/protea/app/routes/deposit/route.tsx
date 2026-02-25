@@ -25,7 +25,7 @@ import {
   xagoTestAccountDepositAction
 } from './fynbos'
 import { GatehubDepositPage, gatehubDepositLoader } from './gatehub'
-import { getUserSession } from '~/lib/kratos/session.util'
+import { getUserSession } from '~/lib/kratos/session.util.server'
 
 import { getKycStatus } from '~/data/wallet.server'
 import { KycStatus } from '../_index/route'

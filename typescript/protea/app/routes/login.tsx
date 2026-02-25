@@ -31,10 +31,10 @@ import {
   withCookie
 } from '~/lib/kratos/cookie.util'
 import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.util'
-import { mapFlowToFieldErrors } from '~/lib/kratos/error'
-import { handleFlowError } from '~/lib/kratos/error'
-import { type KratosError } from '~/lib/kratos/types'
-import { requireNoUserSession } from '~/lib/kratos/session.util'
+import { mapFlowToFieldErrors } from '~/lib/kratos/error.server'
+import { handleFlowError } from '~/lib/kratos/error.server'
+import { type KratosError } from '~/lib/kratos/types.server'
+import { requireNoUserSession } from '~/lib/kratos/session.util.server'
 import { mergeMeta } from '~/lib/meta'
 import { safeReturnTo } from '~/lib/url.server'
 

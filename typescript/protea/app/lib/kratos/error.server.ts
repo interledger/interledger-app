@@ -1,6 +1,6 @@
 import { redirect } from "@remix-run/node"
 import { route } from "routes-gen"
-import { KratosError, KratosErrorId, KratosMessage, type UiNode } from "./types"
+import { KratosError, KratosErrorId, KratosMessage, type UiNode } from "./types.server"
 
 export class UserDisplayableError extends Error {
   constructor(public message: string) {
