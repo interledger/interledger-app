@@ -183,7 +183,7 @@ func TestSearchTotpURL(t *testing.T) {
 }
 
 // Maybe it might sense to move to Go 1.26, since the `new` function is now
-// accepting expressions and return a pointer to the result.
+// accepting expressions and it returns a pointer to the result.
 // https://go.dev/doc/go1.26#language
 func ptr[T any](v T) *T {
 	return &v

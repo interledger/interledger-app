@@ -65,11 +65,6 @@ func UserForCookie(ctx context.Context, b Backends, cookie string) (*user.User, 
 		return nil, getSessionRetrievalError(resp, err)
 	}
 
-	_, err = GetTotpURL(ctx, b, session.Identity.Id)
-	if err != nil {
-		return nil, err
-	}
-
 	u := convertTraits(session.Identity.Id, session.Identity.Traits)
 	return &u, nil
 }
@@ -250,8 +245,6 @@ func Delete2FATotpEnrollment(ctx context.Context, b Backends, identityID string)
 // It returns an empty string if no TOTP URL is found.
 func searchTotpURL(credentials map[string]client.IdentityCredentials, userID string) string {
 	var totpURL string
-
-	log.Error("Credentials", zap.Any("credentials", credentials))
 
 	for _, cred := range credentials {
 		if cred.Type == nil {
