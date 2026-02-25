@@ -154,7 +154,7 @@ jobs:
 
       - name: Build containers
         working-directory: local
-        run: docker compose --profile="*" build
+        run: docker compose --profile="*" --no-cache build
 
       - name: Start infrastructure
         working-directory: local
