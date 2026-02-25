@@ -54,7 +54,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       flow = data
     } else {
       // Otherwise we initialize it
-      const returnTo = url.searchParams.get('return_to') ?? undefined
+      const returnTo = url.searchParams.get('returnTo') ?? undefined
       const aal = url.searchParams.get('aal') as 'aal1' | 'aal2' | undefined
       const refresh = url.searchParams.get('refresh') === 'true'
 
