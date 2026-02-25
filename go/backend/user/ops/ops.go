@@ -252,7 +252,6 @@ func searchTotpURL(credentials map[string]client.IdentityCredentials, userID str
 		}
 
 		if *cred.Type == client.IDENTITYCREDENTIALSTYPE_TOTP {
-			log.Error("Identifier", zap.Any("identifier", cred.Config))
 			raw, exists := cred.Config["totp_url"]
 			if !exists {
 				return ""
