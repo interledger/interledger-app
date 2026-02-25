@@ -31,7 +31,7 @@ coverage.out
 **/dev_bck
 .pnpm-store
 
-go/mockxago/mockxago
+go/mock/mockxago/mockxago
 
 # Claude Code
 CLAUDE.md

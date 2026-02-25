@@ -2,7 +2,7 @@ go 1.25
 
 use (
 	./go
-	./go/mockxago
+	./go/mock/mockxago
 	./e2e
 	./local/scripts
 )

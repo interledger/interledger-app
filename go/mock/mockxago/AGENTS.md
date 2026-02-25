@@ -43,7 +43,7 @@ MockXago removes the dependency on real Xago credentials and services, enabling:
 ### Directory Structure
 
 ```
-mockxago/
+go/mock/mockxago/
 ├── cmd/mockxago/              # Application entry point
 │   └── main.go                # HTTP server setup, routing
 ├── internal/                  # Private application code

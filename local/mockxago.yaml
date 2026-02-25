@@ -1,7 +1,7 @@
 services:
   mockxago:
     build:
-      context: ../go/mockxago
+      context: ../go/mock/mockxago
     profiles:
       - application
     restart: always

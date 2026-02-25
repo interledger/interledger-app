@@ -51,8 +51,9 @@ interledger-app/
 │   │   ├── jobs/                # Async job implementations
 │   │   ├── middleware/          # HTTP middleware (auth, logging, etc.)
 │   │   └── Makefile             # Backend build/test commands
-│   ├── mockxago/                # Mock Xago payment provider
-│   ├── mockbos/                 # Mock BOS/PTI service
+│   ├── mock/                    # Mock services
+│   │   ├── mockxago/             # Mock Xago payment provider
+│   │   └── mockbos/              # Mock BOS/PTI service
 │   ├── pacioli/                 # Double-entry accounting ledger (gRPC)
 │   ├── proto/                   # Generated Go protobuf code
 │   ├── env/                     # Environment utilities

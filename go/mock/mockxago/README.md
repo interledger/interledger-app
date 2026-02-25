@@ -5,7 +5,7 @@ MockXago is a lightweight mock of the Xago API used by the Interledger Wallet fo
 ## Quick Start
 
 ```bash
-# From this directory
+# From go/mock/mockxago
 export XAGO_API_PUBLIC_KEY=test-public-key
 export XAGO_API_SECRET=test-secret
 export XAGO_MOCK_PORT=8080
