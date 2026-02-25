@@ -538,7 +538,7 @@ Feature: Signup Form Validation
 
 ### Running Tests Locally
 ```bash
-cd /home/stephan/interledger/interledger-app/local/e2e-playwright
+cd /home/stephan/interledger/interledger-app/e2e
 go test -v -timeout 300s
 ```
 

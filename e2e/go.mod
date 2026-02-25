@@ -1,4 +1,4 @@
-module github.com/interledger/interledger-app/e2e-playwright
+module github.com/interledger/interledger-app/e2e
 
 go 1.24
 
