@@ -1,0 +1,8 @@
+version: "2"
+
+# E2E test code linting configuration
+# Relaxed rules for test/integration code that uses Playwright
+linters:
+  disable:
+    - errcheck     # Test code intentionally ignores some errors (screenshots, page loads)
+    - staticcheck  # Deprecated Playwright APIs, test error formatting
