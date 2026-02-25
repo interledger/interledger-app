@@ -1,11 +1,13 @@
 # E2E Tests with Cucumber & Godog
 
-## What is Cucumber?
+## What is Cucumber/Gherkin?
 
 Cucumber is a behavior-driven development (BDD) tool that lets you write tests in plain language using Gherkin syntax. Instead of writing test code directly, you describe what the application should do in `.feature` files. These files bridge the gap between stakeholders and developers by making tests readable to everyone.
 
+If all of this is new to you, please go through the [10-minute tutorial](https://cucumber.io/docs/guides/10-minute-tutorial) and also the examples of [Anti patterns](https://cucumber.io/docs/guides/anti-patterns).
+
 ## Important detail
-In order to be able to run tests in parralel, it is critical to design all tests to be completely independent of each other. Otherwise running tests become unfeasible.
+In order to be able to run tests in parralel, it is critical to design all tests to be completely independent of each other. We currently achieve this by making sure that each and every test runs as a separate user. This will not always be possible, for example for testing settlements etc. But we can restructure for those. 
 
 **How it works here:**
 
@@ -32,7 +34,7 @@ The test runner reads feature files, matches each line to a corresponding step d
 2. **Playwright dependencies** – Install the browser binaries:
    ```bash
    sudo apt-get install -y libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 libxkbcommon0 libatspi2.0-0 libxcomposite1 libxdamage1 libxext6 libxfixes3 libxrandr2 libgbm1 libpango-1.0-0 libcairo2 libasound2
-   cd local/e2e-playwright
+   cd e2e
    go mod download
    go run github.com/playwright-community/playwright-go/cmd/playwright install
    ```
@@ -54,8 +56,10 @@ The test runner reads feature files, matches each line to a corresponding step d
 ### Running All Tests
 
 ```bash
-cd local/e2e-playwright
-go test -v -timeout 10m
+cd e2e
+# This will start 10 headless browsers, so consider less concurrency if your machine
+# is struggling. You can also switch on debug for more info.
+go test -v -timeout 10m -args -concurrency=10 -debug=false
 ```
 
 Output will show:
@@ -95,7 +99,7 @@ Available tags in feature files:
 
 #### Standard Output (minimal)
 ```bash
-cd local/e2e-playwright
+cd e2e
 go test -v -timeout 10m
 ```
 
@@ -103,8 +107,8 @@ go test -v -timeout 10m
 
 Debug output is enabled by default. To run tests without debug logs:
 ```bash
-cd local/e2e-playwright
-go test -v -timeout 10m -args -debug=false
+cd e2e
+go test -v -timeout 10m -args -debug=false -concurrency=10
 ```
 
 This disables `debugPrintln()` output but still runs tests normally.
@@ -115,7 +119,7 @@ This disables `debugPrintln()` output but still runs tests normally.
 When a test fails:
 
 1. **Check screenshots** in `debug/<feature>__<scenario>/` – Shows page state at failure
-2. **Review logs** from failed steps
+2. **Review logs** from failed steps, typically `cd local && docker compose logs --tail=50 backend protea`
 3. **Enable debug mode** for that specific test:
    ```bash
    go test -v -timeout 10m -args -tags @kyc
@@ -142,8 +146,6 @@ KYC and deposit tests interact with MockGatehub, a lightweight mock implementati
 - Running in the local environment at `https://mockgatehub.interledger.test` (via Traefik HTTPS)
 - Accessed by the backend at `http://mockgatehub:8080` (internal Docker network)
 - Pre-configured with test users and balances for E2E testing
-
-See [gatehub-mock-setup.md](docs/gatehub/gatehub-mock-setup.md) for architecture details.
 
 ## Troubleshooting
 

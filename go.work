@@ -3,6 +3,6 @@ go 1.25
 use (
 	./go
 	./go/mockxago
-	./local/e2e-playwright
+	./e2e
 	./local/scripts
 )

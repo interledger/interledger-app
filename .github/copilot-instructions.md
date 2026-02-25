@@ -75,12 +75,13 @@ interledger-app/
 ├── local/                       # Docker Compose development environment
 │   ├── docker-compose.yaml      # Main compose file
 │   ├── Makefile                 # Local environment commands
-│   ├── e2e-playwright/          # BDD E2E tests (Godog)
-│   │   ├── godog_test.go        # Test runner
-│   │   ├── features/            # Gherkin feature files
-│   │   ├── *_steps.go           # Step definitions
-│   │   ├── AGENTS.md            # E2E testing guide for AI agents
-│   │   └── STEP_REFERENCE.md    # Available step definitions
+│   ├── config/                  # Service configurations
+├── e2e/                         # BDD E2E tests (Godog)
+│   ├── godog_test.go            # Test runner
+│   ├── features/                # Gherkin feature files
+│   ├── *_steps.go               # Step definitions
+│   ├── AGENTS.md                # E2E testing guide for AI agents
+│   └── STEP_REFERENCE.md        # Available step definitions
 │   ├── config/                  # Service configurations
 │   ├── initdb/                  # Database initialization scripts
 │   ├── scripts/                 # Helper scripts
@@ -188,7 +189,7 @@ Each provider implements a common interface with `client/` and `ops/` packages.
    ```
 3. **Run E2E tests** — Once unit tests pass, run relevant E2E scenarios.
    ```bash
-   cd local/e2e-playwright
+   cd e2e
    go test -v -timeout 10m -args -tags "@domain&&@provider"
    ```
 4. **Commit** — Only commit once both unit and E2E tests pass.
@@ -380,7 +381,7 @@ func TestCreatePayment(t *testing.T) {
 
 ### E2E Tests (BDD with Godog)
 
-**Location**: `local/e2e-playwright/`
+**Location**: `e2e/`
 
 **Key Files**:
 - `features/*.feature` - Gherkin feature files (Given/When/Then scenarios)
@@ -391,7 +392,7 @@ func TestCreatePayment(t *testing.T) {
 
 **Running E2E Tests**:
 ```bash
-cd local/e2e-playwright
+cd e2e
 
 # Run all tests
 go test -v -timeout 30m
@@ -661,15 +662,15 @@ func ProcessPaymentWorkflow(ctx workflow.Context, paymentID string) error {
 2. **`go.work`** - Go workspace configuration
 3. **`local/docker-compose.yaml`** - Service orchestration
 4. **`docs/logging-policy.md`** - What NOT to log
-5. **`local/e2e-playwright/AGENTS.md`** - E2E testing guide
+5. **`e2e/AGENTS.md`** - E2E testing guide
 
 ### Frequently Modified
 
 1. **`go/backend/{domain}/*.go`** - Domain handlers
 2. **`go/backend/{domain}/ops/*.go`** - Business logic
 3. **`go/backend/{domain}/types.go`** - Domain models
-4. **`local/e2e-playwright/features/*.feature`** - E2E scenarios
-5. **`local/e2e-playwright/*_steps.go`** - E2E step definitions
+4. **`e2e/features/*.feature`** - E2E scenarios
+5. **`e2e/*_steps.go`** - E2E step definitions
 
 ### Rarely Touch
 
@@ -881,7 +882,7 @@ Your changes should maintain or improve:
 
 When encountering ambiguity:
 1. Check existing implementation in similar domains
-2. Refer to `AGENTS.md` in relevant directory (e.g., `local/e2e-playwright/AGENTS.md`)
+2. Refer to `AGENTS.md` in relevant directory (e.g., `e2e/AGENTS.md`)
 3. Review logs for error context: `docker compose logs -f [service]`
 4. Search codebase for similar patterns: `grep -r "pattern" go/backend/`
 5. Default to simplest solution that maintains test coverage

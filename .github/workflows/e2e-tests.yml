@@ -139,7 +139,7 @@ jobs:
           sudo make trust-debian
 
       - name: Install Playwright browsers
-        working-directory: local/e2e-playwright
+        working-directory: e2e
         run: |
           go mod download
           go run github.com/playwright-community/playwright-go/cmd/playwright install chromium
@@ -180,13 +180,13 @@ jobs:
         run: sleep 10
 
       - name: Run e2e tests
-        working-directory: local/e2e-playwright
+        working-directory: e2e
         run: go test -v -timeout 20m -args -concurrency=10 -debug=false -report=debug/report.md
 
       - name: Show report
         if: always()
         continue-on-error: true
-        run: cat local/e2e-playwright/debug/report.md || true
+        run: cat e2e/debug/report.md || true
 
       - name: Clean up Docker containers and volumes
         if: always()
@@ -199,7 +199,7 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: e2e-screenshots
-          path: local/e2e-playwright/debug
+          path: e2e/debug
           if-no-files-found: ignore
           retention-days: 7
 
@@ -208,7 +208,7 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: e2e-markdown-report
-          path: local/e2e-playwright/debug/report.md
+          path: e2e/debug/report.md
           if-no-files-found: ignore
           retention-days: 7
 

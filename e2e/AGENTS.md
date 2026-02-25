@@ -2,7 +2,7 @@
 
 ## Running Tests
 
-Run from `local/e2e-playwright/`. Select scenarios by tag:
+Run from `e2e/`. Select scenarios by tag:
 
 ```bash
 go test -v -timeout 5m  -args -tags @signup
