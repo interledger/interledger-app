@@ -65,6 +65,11 @@ func UserForCookie(ctx context.Context, b Backends, cookie string) (*user.User, 
 		return nil, getSessionRetrievalError(resp, err)
 	}
 
+	_, err = GetTotpURL(ctx, b, session.Identity.Id)
+	if err != nil {
+		return nil, err
+	}
+
 	u := convertTraits(session.Identity.Id, session.Identity.Traits)
 	return &u, nil
 }
@@ -116,6 +121,36 @@ func UserForContext(ctx context.Context) (*user.User, error) {
 		return nil, user.ErrNoUserFound
 	}
 	return u, nil
+}
+
+// GetTotpURL returns the TOTP URL for the given userID.
+// If the user has no TOTP URL, it returns an empty string.
+//
+// Usage:
+//
+//	totpURL, err := GetTotpURL(ctx, b, userID)
+//	if err != nil {
+//		return err
+//	}
+//
+//	if totpURL == "" {
+//		// The user has no TOTP url
+//		panic("no totp url")
+//	}
+//
+//	// Do something with the TOTP URL
+func GetTotpURL(ctx context.Context, b Backends, userID string) (string, error) {
+	identity, _, err := b.Kratos().IdentityApi.GetIdentity(ctx, userID).IncludeCredential([]string{"totp"}).Execute()
+	if err != nil {
+		return "", fmt.Errorf("%w %s", user.ErrInternal, err)
+	}
+
+	if identity.Credentials == nil {
+		// TODO: Do we want to return an error here? :thinking:
+		return "", nil
+	}
+
+	return searchTotpURL(*identity.Credentials, userID), nil
 }
 
 // TODO: Modify?
@@ -208,4 +243,38 @@ func Delete2FATotpEnrollment(ctx context.Context, b Backends, identityID string)
 	}
 
 	return nil
+}
+
+// searchTotpURL searches for the TOTP URL in the identity credentials.
+// The UserID is only used for debugging purposes.
+// It returns an empty string if no TOTP URL is found.
+func searchTotpURL(credentials map[string]client.IdentityCredentials, userID string) string {
+	var totpURL string
+
+	log.Error("Credentials", zap.Any("credentials", credentials))
+
+	for _, cred := range credentials {
+		if cred.Type == nil {
+			continue
+		}
+
+		if *cred.Type == client.IDENTITYCREDENTIALSTYPE_TOTP {
+			log.Error("Identifier", zap.Any("identifier", cred.Config))
+			raw, exists := cred.Config["totp_url"]
+			if !exists {
+				return ""
+			}
+
+			if url, ok := raw.(string); !ok {
+				log.Error("totp_url is present, but not a string", zap.String("userID", userID), zap.Any("totpURL", raw))
+				return ""
+			} else {
+				totpURL = url
+				break
+			}
+
+		}
+	}
+
+	return totpURL
 }
