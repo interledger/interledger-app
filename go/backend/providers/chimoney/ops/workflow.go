@@ -263,7 +263,9 @@ func ExecuteChimoneyFinishWithdrawalWorkflow(
 	if err != nil {
 		return rollBackWithdrawal(ctx, a, finalizeReserve, trx.WalletID, trx.ID)
 	}
-	if paymentType == "interac" && amount != trx.Amount.Float64() {
+	amountIntWithDecimal := GetIntFromFloat64WithScale(amount, trx.Amount.Scale)
+	trxAmountIntWithDecimal := GetIntFromFloat64WithScale(trx.Amount.Float64(), trx.Amount.Scale)
+	if paymentType == "interac" && amountIntWithDecimal != trxAmountIntWithDecimal {
 		// lets update the transaction to reflect the actual amount withdrawn if there's a mismatch. This can happen if there are fees that we didn't account for.
 		err = workflow.ExecuteActivity(ctx, a.UpdateChimoneyWithdrawalTransactionAmountAndFee, trx.WalletID, trx.ID, amount).Get(ctx, nil)
 		if err != nil {
@@ -374,7 +376,8 @@ func (a *Activity) CreateChimoneyDepositTransaction(ctx context.Context, walletI
 	if externalPayment.Meta.ProcessingFee != nil && externalPayment.Meta.ProcessingFee.NetAmount != 0 {
 		// for card payments we capture fees
 		amountFloat := amount.Float64()
-		netAmount := math.Floor(externalPayment.Meta.ProcessingFee.NetAmount*100) / 100
+		decMultiplier := math.Pow10(amount.Scale)
+		netAmount := externalPayment.Meta.ProcessingFee.NetAmount * decMultiplier / decMultiplier
 		feeFloat := amountFloat - netAmount
 		fee := currency.FromFloat64(feeFloat, currency.ParseCurrency(externalPayment.Currency))
 		providerFee = &fee
@@ -431,9 +434,20 @@ func (a *Activity) UpdateChimoneyWithdrawalTransactionAmountAndFee(ctx context.C
 		return err
 	}
 
-	fee := currency.FromFloat64(trx.Amount.Float64()-amount, trx.Amount.Currency)
+	originalAmount := trx.Amount.Float64()
+	if amount > originalAmount {
+		return fmt.Errorf("updated amount %.2f exceeds original transaction amount %.2f", amount, originalAmount)
+	}
 
-	return a.b.Transactions().SetTransactionAmountAndFee(ctx, trxID, currency.FromFloat64(amount, trx.Amount.Currency), fee)
+	feeFloat := originalAmount - amount
+	if feeFloat < 0 {
+		feeFloat = 0
+	}
+
+	newAmount := currency.FromFloat64(amount, trx.Amount.Currency)
+	fee := currency.FromFloat64(feeFloat, trx.Amount.Currency)
+
+	return a.b.Transactions().SetTransactionAmountAndFee(ctx, trxID, newAmount, fee)
 }
 
 func (a *Activity) GetChimoneyTransactionByForeignID(ctx context.Context, walletID string, foreignID string) (*transactions.Transaction, error) {
@@ -541,10 +555,11 @@ func (a *Activity) AssignChimoneyBalance(ctx context.Context, walletID, trxID st
 
 	amountToAssign := trx.Amount
 	if trx.ProviderFee != nil && !trx.ProviderFee.IsEmpty() {
-		amountFloat := trx.Amount.Float64()
-		feeFloat := trx.ProviderFee.Float64()
-		netAmount := amountFloat - feeFloat
-		amountToAssign = currency.FromFloat64(netAmount, trx.Amount.Currency)
+		netValue := trx.Amount.Value - trx.ProviderFee.Value
+		if netValue < 0 {
+			netValue = 0
+		}
+		amountToAssign.Value = netValue
 	}
 
 	_, err = AssignBalance(ctx, a.b, chimoneyAcc.ID, trxID, amountToAssign)

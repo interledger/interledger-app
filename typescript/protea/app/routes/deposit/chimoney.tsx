@@ -141,12 +141,3 @@ export async function chimoneyAmountAction({ request }: ActionFunctionArgs) {
     chimoneyWidget: response.link
   })
 }
-
-export async function chimoneySuccessfullDepositAction({
-  request
-}: ActionFunctionArgs) {
-  const form = await request.formData()
-  const issueId = String(form.get('issueId') || '')
-
-  return redirect(route('/'))
-}
