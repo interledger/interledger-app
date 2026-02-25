@@ -227,6 +227,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const session = await getUserSession(request)
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
+  if (!flowId) return redirect('/otp/challenge')
 
   const form = await request.formData()
   const csrfToken = form.get('csrf_token') as string
@@ -259,7 +260,7 @@ export async function action({ request }: ActionFunctionArgs) {
   try {
     await kratosPublic.updateSettingsFlow(
       {
-        flow: flowId!,
+        flow: flowId,
         updateSettingsFlowBody: {
           method: 'profile',
           traits: {

@@ -137,8 +137,8 @@ export default function Page() {
         {isActive
           ? `Resend in ${remainingSeconds}s`
           : fetcher.state !== 'idle'
-          ? 'Sending...'
-          : 'Resend verification'}
+            ? 'Sending...'
+            : 'Resend verification'}
       </Button>
 
       <OutlineButtonRouter to={route('/logout')} className='mt-4'>
@@ -170,6 +170,9 @@ export async function action({
 }: ActionFunctionArgs): Promise<ReturnType<typeof json<ActionData>>> {
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
+  if (!flowId) {
+    throw redirect("/verify")
+  }
 
   const form = await request.formData()
   const csrfToken = form.get('csrf_token') as string
@@ -191,7 +194,7 @@ export async function action({
   try {
     await kratosPublic.updateVerificationFlow(
       {
-        flow: flowId!,
+        flow: flowId,
         updateVerificationFlowBody: {
           method: 'link',
           email,

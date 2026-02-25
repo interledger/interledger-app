@@ -38,7 +38,7 @@ export function getNodeValueFromFlow(flow: KratosFlowWithUi | undefined, attribu
 }
 
 /**
- * Check in node exists in Kratos flow
+ * Check if node exists in Kratos flow
  */
 export function isNodeInFlow(flow: KratosFlowWithUi | undefined, attributeName: string): boolean {
     if (!flow?.ui?.nodes) {

@@ -18,6 +18,7 @@ import { kratosPublic } from '~/lib/kratos/kratos-client.server'
 import { buildHeadersWithCookies, getCookie, withCookie } from '~/lib/kratos/cookie.util'
 import { mapFlowToFieldErrors, printKratosError } from '~/lib/kratos/error.server'
 import { CreateBrowserLoginFlowResponse, KratosError } from '~/lib/kratos/types.server'
+import logger from '~/lib/logger.server'
 
 export type TotpAction =
   | {
@@ -156,7 +157,7 @@ export async function action({ request }: ActionFunctionArgs) {
       return redirect(returnTo ?? '/', { headers })
     }
 
-    console.error("No session after updateLoginFlow, status", submitTotpResponse.status)
+    logger.error({ status: submitTotpResponse.status, route: "totp.challange" }, "No session after updateLoginFlow", submitTotpResponse.status)
     return redirect("/totp/challenge")
   } catch (err) {
     const kratosError = err as KratosError
@@ -174,7 +175,7 @@ export async function action({ request }: ActionFunctionArgs) {
         throw redirect("/totp/challenge")
 
       default:
-        console.error("Unknown case when updateLoginFlow")
+        logger.error({ status: flowStatus, flowData, route: "totp.challange" }, "Unknown case when updateLoginFlow")
         throw redirect("/totp/challenge")
     }
 

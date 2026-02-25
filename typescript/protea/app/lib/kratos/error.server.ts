@@ -1,6 +1,7 @@
 import { redirect } from "@remix-run/node"
 import { route } from "routes-gen"
 import { KratosError, KratosErrorId, KratosMessage, type UiNode } from "./types.server"
+import logger from "../logger.server"
 
 export class UserDisplayableError extends Error {
   constructor(public message: string) {
@@ -14,14 +15,14 @@ export const printKratosError = (err: any) => {
   const errorId = kratosError.id
   const status = kratosError.response?.status
   const message = `Error initializing flow, errorIdData ${errorIdData} and status ${status} and errorId ${errorId}`
-  console.error(message)
+  logger.error(message)
 
   return message
 }
+
 /**
  * Use this when catching flow initialization/fetch errors
  */
-
 export function handleFlowError(
   error: any,
   redirectTo: 'login' |
@@ -41,10 +42,11 @@ export function handleFlowError(
   const flowData = error.response?.data ?? error
 
   if (!flowData?.error?.id) {
-    console.error('[handleFlowError] Unrecognized error shape:', {
+    logger.error({
+      flow: "handleErrorFlow",
       status: error.response?.status,
       data: flowData
-    })
+    }, "Unrecognized error shape")
     return
   }
 
@@ -60,7 +62,7 @@ export function handleFlowError(
     case 'session_already_available':
       throw redirect(route('/'))
     case 'session_refresh_required':
-      throw redirect(`/login/challenge`) // todo ????
+      throw redirect(`/login/challenge`)
     case 'self_service_flow_expired':
     case 'security_csrf_violation':
     case 'security_identity_mismatch':
@@ -70,13 +72,13 @@ export function handleFlowError(
     case 'browser_location_change_required':
       throw redirect(flowData.error.redirect_browser_to)
   }
-}/**
+}
+
+/**
  * Overrides the kratos error messages.
  * Will pass on the kratos error message if not overridden.
  * @param error The kratos error message.
  */
-
-
 export function kratosErrorMessage(error: KratosMessage): string {
   switch (error.id) {
     case KratosErrorId.ErrorValidationInvalidCredentials:
@@ -87,11 +89,11 @@ export function kratosErrorMessage(error: KratosMessage): string {
       return error.text
   }
 }
+
 /**
  * Helper to map SDK flow errors to field errors
  * Use this when catching SDK exceptions in route actions
  */
-
 export function mapFlowToFieldErrors<T extends object>(
   flowData: any,
   fieldErrors: T

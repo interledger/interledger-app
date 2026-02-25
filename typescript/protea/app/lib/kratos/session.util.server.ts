@@ -10,7 +10,7 @@ import type { KratosTraits } from './types.server'
 /**
  * getUserSession allows fetching a user's kratos session.
  * @param request Request received in a loader function.
- * @returns boolean - if the user has a session.
+ * @returns Promise<Session | null> - the user's Kratos session, or null if no valid session is available and AAL1 is allowed.
  */
 export async function getUserSession(
   request: Request,

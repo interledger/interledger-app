@@ -337,7 +337,7 @@ export async function passwordAction({ request }: ActionFunctionArgs) {
       status: err.response?.status,
       statusText: err.response?.statusText,
       flow: 'signup'
-    }, 'Kratos registration error') // ?????
+    }, 'Kratos registration error')
     const flowData = err.response?.data
     const errs = mapFlowToFieldErrors(flowData, errors)
     if ((errs as any)[KratosErrorTraits.PHONE]) {
