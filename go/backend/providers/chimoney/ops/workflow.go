@@ -685,7 +685,10 @@ func CreateChimoneyDepositWorkflow(ctx workflow.Context, issueID string, chiWall
 	}
 
 	var externalPayment external.Payment
-	workflow.ExecuteActivity(ctx, a.VerifyChimoneyPayment, walletID, issueID).Get(ctx, &externalPayment)
+	err = workflow.ExecuteActivity(ctx, a.VerifyChimoneyPayment, walletID, issueID).Get(ctx, &externalPayment)
+	if err != nil {
+		return err
+	}
 
 	return workflow.ExecuteActivity(ctx, a.CreateChimoneyDepositTransaction, walletID, issueID, externalPayment).Get(ctx, nil)
 }
