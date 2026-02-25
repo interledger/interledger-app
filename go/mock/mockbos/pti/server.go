@@ -14,8 +14,8 @@ import (
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/providers/pti/external"
 	"gitlab.com/fynbos/log"
-	"gitlab.com/fynbos/mockbos/db"
-	"gitlab.com/fynbos/mockbos/utils"
+	"gitlab.com/fynbos/mock/mockbos/db"
+	"gitlab.com/fynbos/mock/mockbos/utils"
 	"go.uber.org/zap"
 )
 

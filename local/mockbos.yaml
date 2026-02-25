@@ -2,7 +2,7 @@ services:
   mockbos:
     build:
       context: ../go
-      dockerfile: mockbos/Dockerfile
+      dockerfile: mock/mockbos/Dockerfile
       target: builder
     profiles:
       - application

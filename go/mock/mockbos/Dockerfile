@@ -23,12 +23,12 @@ COPY . ./
 FROM base AS builder
 
 ENV GOCACHE=/root/.cache/go-build
-RUN --mount=type=cache,target="/root/.cache/go-build" go build -C mockbos -o main
-ENTRYPOINT ["/build/mockbos/main"]
+RUN --mount=type=cache,target="/root/.cache/go-build" go build -C mock/mockbos -o main
+ENTRYPOINT ["/build/mock/mockbos/main"]
 
 FROM gcr.io/distroless/cc:nonroot
 WORKDIR /dist
 
 COPY --from=builder /bin/atlas /bin/atlas
-COPY --from=builder /build/mockbos/main .
+COPY --from=builder /build/mock/mockbos/main .
 ENTRYPOINT ["/dist/main"]
