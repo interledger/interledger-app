@@ -9,7 +9,7 @@ import { About } from '~/routes/signup/About'
 import { Landing } from '~/routes/signup/Landing'
 import { Password } from '~/routes/signup/Password'
 import { Phone } from '~/routes/signup/Phone'
-import styles from '~/styles/flags.css'
+import styles from '~/styles/flags.css?url'
 import type { loader } from './route.server'
 
 export { loader, action } from './route.server'
