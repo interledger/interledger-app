@@ -8,9 +8,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5"
-	"gitlab.com/fynbos/mockbos/db"
-	"gitlab.com/fynbos/mockbos/pti"
-	"gitlab.com/fynbos/mockbos/xago"
+	"gitlab.com/fynbos/mock/mockbos/db"
+	"gitlab.com/fynbos/mock/mockbos/pti"
+	"gitlab.com/fynbos/mock/mockbos/xago"
 )
 
 func main() {
