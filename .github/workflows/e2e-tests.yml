@@ -153,7 +153,7 @@ jobs:
 
       - name: Build containers in parallel
         working-directory: local
-        run: docker compose --parallel 8 --profile="*" build --no-cache
+        run: docker compose --parallel 8 --profile="*" build
         
       - name: Build local-dev-tool
         working-directory: local/scripts
