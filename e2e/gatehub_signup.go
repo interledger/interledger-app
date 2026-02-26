@@ -25,8 +25,9 @@ func (sc *E2EContext) iCompleteSignupFlow(firstName, lastName, email, country, p
 	if err := sc.page.Locator(getStartedSelector).First().Click(playwright.LocatorClickOptions{
 		Timeout: playwright.Float(2000),
 	}); err == nil {
-		// Button was clicked successfully, wait for form to appear
-		sc.page.WaitForTimeout(1000)
+		// Button was clicked successfully, wait longer for React to transition and render the form
+		// Under high concurrency, the frontend needs more time to process the state change
+		sc.page.WaitForTimeout(2000)
 		debugPrintf("   📍 URL after Get Started: %s\n", sc.page.URL())
 	}
 	// else: button didn't exist or timed out, continue anyway
