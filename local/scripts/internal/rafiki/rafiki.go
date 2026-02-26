@@ -331,6 +331,33 @@ func EnsureAssets(cfg Config, assets []Asset) error {
 	return nil
 }
 
+// WaitForReady waits for Rafiki GraphQL endpoint to be ready
+func WaitForReady(cfg Config, timeoutSeconds int) error {
+	start := time.Now()
+	timeout := time.Duration(timeoutSeconds) * time.Second
+	pollInterval := 2 * time.Second
+
+	for {
+		// Try a simple introspection query to check if the endpoint is ready
+		req := GraphQLRequest{
+			Query: `query { __typename }`,
+		}
+
+		_, err := graphqlRequest(req, cfg)
+		if err == nil {
+			return nil // Success!
+		}
+
+		// Check if we've exceeded the timeout
+		if time.Since(start) >= timeout {
+			return fmt.Errorf("timeout waiting for Rafiki after %v: %w", timeout, err)
+		}
+
+		// Wait before retrying
+		time.Sleep(pollInterval)
+	}
+}
+
 // EnsureLiquidity adds liquidity to the specified assets
 func EnsureLiquidity(cfg Config, assets []Asset) error {
 	for _, asset := range assets {

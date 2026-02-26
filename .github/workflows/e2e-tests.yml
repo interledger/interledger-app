@@ -1,0 +1,241 @@
+name: E2E Tests (PR)
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  packages: read
+  pull-requests: write
+
+jobs:
+  start-vm:
+    runs-on: ubuntu-latest
+    environment: e2e-tester
+    timeout-minutes: 10
+
+    concurrency:
+      group: e2e-tests-vm-starter
+      cancel-in-progress: true
+    
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GSA }}
+      
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ vars.PROJECT_ID }}
+      
+      - name: Check VM status and start if needed
+        env:
+          VM_NAME: ${{ vars.INSTANCE_NAME }}
+          PROJECT_ID: ${{ vars.PROJECT_ID }}
+          VM_ZONE: ${{ vars.ZONE }}
+        run: |
+          echo "Checking VM: $VM_NAME in zone $VM_ZONE"
+          
+          # Check if VM exists
+          if ! gcloud compute instances describe "$VM_NAME" \
+               --zone="$VM_ZONE" \
+               --project="$PROJECT_ID" &>/dev/null; then
+            echo "❌ VM '$VM_NAME' does not exist"
+            exit 1
+          fi
+          
+          # Get current VM status
+          STATUS=$(gcloud compute instances describe "$VM_NAME" \
+            --zone="$VM_ZONE" \
+            --project="$PROJECT_ID" \
+            --format="value(status)")
+          
+          echo "Current VM status: $STATUS"
+          
+          if [ "$STATUS" = "RUNNING" ]; then
+            echo "✅ VM is already running"
+            exit 0
+          fi
+          
+          # Start the VM
+          echo "🚀 Starting VM..."
+          gcloud compute instances start "$VM_NAME" \
+            --zone="$VM_ZONE" \
+            --project="$PROJECT_ID"
+          
+          # Wait for VM to be running (up to 5 minutes)
+          echo "⏳ Waiting for VM to start..."
+          for i in {1..30}; do
+            STATUS=$(gcloud compute instances describe "$VM_NAME" \
+              --zone="$VM_ZONE" \
+              --project="$PROJECT_ID" \
+              --format="value(status)")
+            
+            if [ "$STATUS" = "RUNNING" ]; then
+              echo "✅ VM is now RUNNING"
+              # Additional wait for full initialization (runner startup, docker, etc.)
+              echo "⏳ Waiting 60 seconds for runner initialization..."
+              sleep 60
+              exit 0
+            fi
+            
+            echo "Attempt $i/30: Status is $STATUS, waiting..."
+            sleep 10
+          done
+          
+          echo "❌ Timed out waiting for VM to start"
+          exit 1
+
+  e2e:
+    needs: start-vm
+    runs-on: e2e-tester
+    timeout-minutes: 90
+    environment: e2e-tester
+    concurrency:
+      # Since we only have one vm, we need to ensure only one e2e job runs at a time to avoid
+      # conflicts
+      group: e2e-tests-on-vm
+      # Do not cancel because someone else might have started a job they are really interested in
+      cancel-in-progress: false
+
+    steps:
+      - name: Fix workspace ownership
+        run: sudo chown -R "$(id -u):$(id -g)" "$GITHUB_WORKSPACE"
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          clean: true
+
+      - name: Clean workspace
+        run: |
+          sudo git clean -ffdx
+
+      - name: Login to GHCR (private images)
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.1'
+
+      - name: Configure local hosts and certs
+        working-directory: local
+        run: |
+          set -e
+
+          sudo apt-get update
+          sudo apt-get install -y netcat-openbsd libnss3-tools
+
+          sudo make hosts
+          make certs HEADLESS=1
+          rm -rf "$HOME/.pki/nssdb"
+          mkdir -p "$HOME/.pki/nssdb"
+          certutil -d sql:"$HOME/.pki/nssdb" -N --empty-password
+          sudo make trust-debian
+
+      - name: Install Playwright browsers
+        working-directory: e2e
+        run: |
+          go mod download
+          go run github.com/playwright-community/playwright-go/cmd/playwright install chromium
+
+      - name: Cleanup from previous runs
+        working-directory: local
+        run: make down && make reset
+          
+      - name: Build local-dev-tool
+        working-directory: local/scripts
+        run: make build
+
+      - name: Build containers
+        working-directory: local
+        run: docker compose --profile="*" build --no-cache
+
+      - name: Start infrastructure
+        working-directory: local
+        run: docker compose --profile="infrastructure" up -d
+
+      - name: Wait 10 seconds
+        run: sleep 10
+
+      - name: Start services
+        working-directory: local
+        run: docker compose --profile="services" up -d
+
+      - name: Start application
+        working-directory: local
+        run: make all-nowatch
+
+      - name: Seed Rafiki assets
+        working-directory: local/scripts
+        run: ./local-dev-tool rafiki --skip-ui --wait-for-ready 120
+
+      - name: Wait for application
+        working-directory: local
+        run: sleep 10
+
+      - name: Run e2e tests
+        working-directory: e2e
+        run: go test -v -timeout 20m -args -concurrency=10 -debug=false -report=debug/report.md
+
+      - name: Show report
+        if: always()
+        continue-on-error: true
+        run: cat e2e/debug/report.md || true
+
+      - name: Clean up Docker containers and volumes
+        if: always()
+        run: |
+          docker container prune -f
+          docker volume prune -f
+
+      - name: Upload screenshots to artifacts always
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: e2e-screenshots
+          path: e2e/debug
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Upload markdown report
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: e2e-markdown-report
+          path: e2e/debug/report.md
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Comment report link on PR
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const body = [
+              'E2E markdown report is available as an artifact:',
+              `- Run artifacts: ${runUrl}`,
+              '- Artifact name: e2e-markdown-report'
+            ].join('\n');
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body
+            });
+
+      - name: Dump docker logs to artifacts if tests failed
+        if: failure()
+        working-directory: local
+        run: |
+          mkdir -p $GITHUB_WORKSPACE/logs
+          for container in $(docker compose ps --format "{{.Name}}"); do
+            docker logs "$container" > "$GITHUB_WORKSPACE/logs/$container.log" 2>&1 || true
+          done
+        continue-on-error: true
