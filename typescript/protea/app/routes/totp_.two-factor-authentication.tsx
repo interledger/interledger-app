@@ -22,7 +22,7 @@ import {
   TextField
 } from '~/components'
 import { kratosPublic } from '~/lib/kratos/kratos-client.server'
-import { getCookie, withCookie } from '~/lib/kratos/cookie.util'
+import { buildHeadersWithCookies, getCookie, withCookie } from '~/lib/kratos/cookie.util'
 import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.util'
 import { mergeMeta } from '~/lib/meta'
 import { useTotpChallenge } from '~/lib/useTotpChallenge'
@@ -127,9 +127,8 @@ export default function Page() {
       <Form
         ref={formRef}
         id='2fa-form'
-        action={`/totp/two-factor-authentication?flow=${flowId}${
-          totpUnlink ? '&totpUnlink=true' : ''
-        }`}
+        action={`/totp/two-factor-authentication?flow=${flowId}${totpUnlink ? '&totpUnlink=true' : ''
+          }`}
         method='post'
       >
         <GridColumn className='col-span-full lg:col-span-6'>
@@ -215,7 +214,7 @@ export async function action({ request }: ActionFunctionArgs) {
     : { method: 'totp' as const, totp_code: totpCode, csrf_token: csrfToken }
 
   try {
-    await kratosPublic.updateSettingsFlow(
+    const response = await kratosPublic.updateSettingsFlow(
       {
         flow: flowId,
         updateSettingsFlowBody: updateBody
@@ -224,7 +223,7 @@ export async function action({ request }: ActionFunctionArgs) {
     )
 
     const returnTo = new URL(request.url).searchParams.get('returnTo') || '/'
-    return redirectDocument(returnTo) // Hard reload so the root loader is also run
+    return redirectDocument(returnTo, { headers: buildHeadersWithCookies(response) }) // Hard reload so the root loader is also run
   } catch (err: any) {
     const status = err.response?.status
     if (status === 400) {
