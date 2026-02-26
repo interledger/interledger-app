@@ -21,6 +21,6 @@ jobs:
   mockxago-tests:
     uses: ./.github/workflows/go-test-template.yml
     with:
-      test_path: './go/mock/mockxago'
+      test_path: './go/mock/mockxago/internal'
       coverage_key: 'mockxago'
       db_name: 'mockxago'

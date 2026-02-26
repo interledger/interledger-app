@@ -20,7 +20,7 @@ unit-test:
 	@echo "Running unit tests..."
 	go test -count=1 -v -coverprofile=coverage.out ./internal/...
 	@echo "\nCoverage Report:"
-	@go tool cover -func=coverage.out | tail -1
+	@go tool cover -func=coverage.out
 
 e2e-test:
 	@echo "Running e2e tests..."
