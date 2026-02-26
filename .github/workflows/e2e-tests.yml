@@ -147,14 +147,17 @@ jobs:
       - name: Cleanup from previous runs
         working-directory: local
         run: make down && make reset
-          
-      - name: Build local-dev-tool
-        working-directory: local/scripts
-        run: make build
+
+      - name: Clean Docker build cache
+        run: docker builder prune -af --verbose
 
       - name: Build containers in parallel
         working-directory: local
         run: docker compose --parallel 8 --profile="*" build --no-cache
+        
+      - name: Build local-dev-tool
+        working-directory: local/scripts
+        run: make build
 
       - name: Start infrastructure
         working-directory: local
