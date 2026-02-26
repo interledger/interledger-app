@@ -118,22 +118,23 @@ func UserForContext(ctx context.Context) (*user.User, error) {
 	return u, nil
 }
 
-// GetTotpURL returns the TOTP URL for the given userID.
-// If the user has no TOTP URL, it returns an empty string.
+// GetTotpURL retrieves the TOTP URL for the given userID.
+//
+// Errors:
+//   - user.ErrNoCredentials if the identity has no credentials
+//   - user.ErrTotpNotConfigured if the user has no TOTP credential configured
+//   - user.ErrInvalidTotpConfig if the TOTP configuration is malformed
+//   - user.ErrInternal if fetching the identity from Kratos fails
 //
 // Usage:
 //
 //	totpURL, err := GetTotpURL(ctx, b, userID)
 //	if err != nil {
+//		// Check errors if more granularity is needed
 //		return err
 //	}
 //
-//	if totpURL == "" {
-//		// The user has no TOTP url
-//		panic("no totp url")
-//	}
-//
-//	// Do something with the TOTP URL
+//	// Use totpURL
 func GetTotpURL(ctx context.Context, b Backends, userID string) (string, error) {
 	identity, _, err := b.Kratos().IdentityApi.GetIdentity(ctx, userID).IncludeCredential([]string{"totp"}).Execute()
 	if err != nil {
@@ -141,11 +142,15 @@ func GetTotpURL(ctx context.Context, b Backends, userID string) (string, error) 
 	}
 
 	if identity.Credentials == nil {
-		// TODO: Do we want to return an error here? :thinking:
-		return "", nil
+		return "", user.ErrNoCredentials
 	}
 
-	return searchTotpURL(*identity.Credentials, userID), nil
+	totpURL, err := searchTotpURL(*identity.Credentials)
+	if err != nil {
+		return "", err
+	}
+
+	return totpURL, nil
 }
 
 // TODO: Modify?
@@ -240,12 +245,12 @@ func Delete2FATotpEnrollment(ctx context.Context, b Backends, identityID string)
 	return nil
 }
 
-// searchTotpURL searches for the TOTP URL in the identity credentials.
-// The UserID is only used for debugging purposes.
-// It returns an empty string if no TOTP URL is found.
-func searchTotpURL(credentials map[string]client.IdentityCredentials, userID string) string {
-	var totpURL string
-
+// searchTotpURL searches for the TOTP URL in the provided identity credentials.
+// It returns the TOTP URL if found.
+// Errors:
+//   - user.ErrTotpNotConfigured if no TOTP credential exists or the TOTP URL is missing.
+//   - user.ErrInvalidTotpConfig if the TOTP configuration is malformed.
+func searchTotpURL(credentials map[string]client.IdentityCredentials) (string, error) {
 	for _, cred := range credentials {
 		if cred.Type == nil {
 			continue
@@ -257,17 +262,16 @@ func searchTotpURL(credentials map[string]client.IdentityCredentials, userID str
 
 		raw, exists := cred.Config["totp_url"]
 		if !exists {
-			return ""
+			return "", user.ErrTotpNotConfigured
 		}
 
-		if url, ok := raw.(string); !ok {
-			log.Error("totp_url is present, but not a string", zap.String("userID", userID), zap.Any("totpURL", raw))
-			return ""
-		} else {
-			totpURL = url
-			break
+		url, ok := raw.(string)
+		if !ok {
+			return "", user.ErrInvalidTotpConfig
 		}
+
+		return url, nil
 	}
 
-	return totpURL
+	return "", user.ErrTotpNotConfigured
 }

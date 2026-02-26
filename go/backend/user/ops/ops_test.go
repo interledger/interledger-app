@@ -33,7 +33,8 @@ func TestSearchTotpURL(t *testing.T) {
 		name        string
 		credentials map[string]kratos.IdentityCredentials
 		userID      string
-		expected    string
+		expectedURL string
+		expectedErr error
 	}{
 		{
 			name: "returns the TOTP URL if it is a string",
@@ -46,17 +47,19 @@ func TestSearchTotpURL(t *testing.T) {
 					},
 				},
 			},
-			userID:   "1234",
-			expected: "totp://totp",
+			userID:      "1234",
+			expectedURL: "totp://totp",
+			expectedErr: nil,
 		},
 		{
-			name:        "returns empty string if TOTP URL is not present",
+			name:        "returns ErrTotpNotConfigured if TOTP URL is not present",
 			credentials: map[string]kratos.IdentityCredentials{},
 			userID:      "1234",
-			expected:    "",
+			expectedURL: "",
+			expectedErr: user.ErrTotpNotConfigured,
 		},
 		{
-			name: "returns empty string if TOTP URL is present but not a string",
+			name: "returns ErrInvalidTotpConfig if TOTP URL is present but not a string",
 			credentials: map[string]kratos.IdentityCredentials{
 				"totp": {
 					Identifiers: []string{"totp"},
@@ -66,8 +69,9 @@ func TestSearchTotpURL(t *testing.T) {
 					},
 				},
 			},
-			userID:   "1234",
-			expected: "",
+			userID:      "1234",
+			expectedURL: "",
+			expectedErr: user.ErrInvalidTotpConfig,
 		},
 		{
 			name: "skips credentials with nil Type",
@@ -80,8 +84,9 @@ func TestSearchTotpURL(t *testing.T) {
 					},
 				},
 			},
-			userID:   "1234",
-			expected: "",
+			userID:      "1234",
+			expectedURL: "",
+			expectedErr: user.ErrTotpNotConfigured,
 		},
 		{
 			name: "ignores non-TOTP credentials even if totp_url is present",
@@ -94,11 +99,12 @@ func TestSearchTotpURL(t *testing.T) {
 					},
 				},
 			},
-			userID:   "1234",
-			expected: "",
+			userID:      "1234",
+			expectedURL: "",
+			expectedErr: user.ErrTotpNotConfigured,
 		},
 		{
-			name: "returns empty string if TOTP credential exists but totp_url key is missing",
+			name: "returns ErrTotpNotConfigured if TOTP credential exists but totp_url key is missing",
 			credentials: map[string]kratos.IdentityCredentials{
 				"totp": {
 					Identifiers: []string{"totp"},
@@ -108,11 +114,12 @@ func TestSearchTotpURL(t *testing.T) {
 					},
 				},
 			},
-			userID:   "1234",
-			expected: "",
+			userID:      "1234",
+			expectedURL: "",
+			expectedErr: user.ErrTotpNotConfigured,
 		},
 		{
-			name: "returns empty string if TOTP credential exists but Config is nil",
+			name: "returns ErrTotpNotConfigured if TOTP credential exists but Config is nil",
 			credentials: map[string]kratos.IdentityCredentials{
 				"totp": {
 					Identifiers: []string{"totp"},
@@ -120,8 +127,9 @@ func TestSearchTotpURL(t *testing.T) {
 					Config:      nil,
 				},
 			},
-			userID:   "1234",
-			expected: "",
+			userID:      "1234",
+			expectedURL: "",
+			expectedErr: user.ErrTotpNotConfigured,
 		},
 		{
 			name: "returns the TOTP URL when multiple credential types are present",
@@ -141,8 +149,9 @@ func TestSearchTotpURL(t *testing.T) {
 					},
 				},
 			},
-			userID:   "1234",
-			expected: "totp://totp",
+			userID:      "1234",
+			expectedURL: "totp://totp",
+			expectedErr: nil,
 		},
 		{
 			name: "returns empty string if totp_url is an empty string",
@@ -155,11 +164,12 @@ func TestSearchTotpURL(t *testing.T) {
 					},
 				},
 			},
-			userID:   "1234",
-			expected: "",
+			userID:      "1234",
+			expectedURL: "",
+			expectedErr: nil, // empty string is still a valid string per implementation
 		},
 		{
-			name: "returns empty string if totp_url is nil",
+			name: "returns ErrInvalidTotpConfig if totp_url is nil",
 			credentials: map[string]kratos.IdentityCredentials{
 				"totp": {
 					Identifiers: []string{"totp"},
@@ -169,15 +179,22 @@ func TestSearchTotpURL(t *testing.T) {
 					},
 				},
 			},
-			userID:   "1234",
-			expected: "",
+			userID:      "1234",
+			expectedURL: "",
+			expectedErr: user.ErrInvalidTotpConfig,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			totpURL := searchTotpURL(tc.credentials, tc.userID)
-			assert.Equal(t, tc.expected, totpURL)
+			totpURL, err := searchTotpURL(tc.credentials)
+
+			assert.Equal(t, tc.expectedURL, totpURL)
+			if tc.expectedErr == nil {
+				assert.NoError(t, err)
+			} else {
+				assert.ErrorIs(t, err, tc.expectedErr)
+			}
 		})
 	}
 }
