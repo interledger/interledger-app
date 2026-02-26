@@ -34,7 +34,7 @@ export default defineConfig({
     }),
     tsconfigPaths(),
     nodePolyfills({
-      include: ['os', 'crypto', 'constants', 'buffer', 'assert', 'process'],
+      include: ['os', 'constants', 'buffer', 'assert', 'process'],
       globals: { Buffer: true, process: true },
     }),
   ],
