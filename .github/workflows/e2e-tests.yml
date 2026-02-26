@@ -152,9 +152,9 @@ jobs:
         working-directory: local/scripts
         run: make build
 
-      - name: Build containers
+      - name: Build containers in parallel
         working-directory: local
-        run: docker compose --profile="*" build --no-cache
+        run: docker compose --parallel 8 --profile="*" build --no-cache
 
       - name: Start infrastructure
         working-directory: local
@@ -176,7 +176,6 @@ jobs:
         run: ./local-dev-tool rafiki --skip-ui --wait-for-ready 120
 
       - name: Wait for application
-        working-directory: local
         run: sleep 10
 
       - name: Run e2e tests
