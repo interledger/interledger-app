@@ -6,6 +6,9 @@ on:
     - cron: '0 * * * *'  # Check every hour
   workflow_dispatch:
 
+permissions:
+  actions: read  # Required to list workflow runs via gh CLI
+
 jobs:
   check-and-shutdown:
     runs-on: ubuntu-latest
@@ -27,6 +30,7 @@ jobs:
           VM_NAME: ${{ vars.INSTANCE_NAME }}
           PROJECT_ID: ${{ vars.PROJECT_ID }}
           VM_ZONE: ${{ vars.ZONE }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Check if VM is running
           STATUS=$(gcloud compute instances describe "$VM_NAME" \
@@ -42,9 +46,9 @@ jobs:
           # Check for queued/in-progress e2e jobs
           PENDING=$(gh run list \
             --workflow="e2e-tests.yml" \
-            --status="queued,in_progress" \
+            --limit 100 \
             --json status \
-            --jq 'length')
+            --jq '[.[] | select(.status == "queued" or .status == "in_progress" or .status == "pending" or .status == "waiting" or .status == "requested")] | length')
           
           if [ "$PENDING" -gt 0 ]; then
             echo "✅ Found $PENDING active/pending jobs. Keeping VM running."
