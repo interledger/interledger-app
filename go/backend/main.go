@@ -786,6 +786,7 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 		OnOffRampBaseURL:       args.GatehubOnOffRampBaseURL,
 		EUROpsAccount:          args.GatehubEUROpsAccount,
 		EUROpsLedgerID:         args.GatehubEUROpsLedgerID,
+		OrganizationID:         args.GatehubOrganizationID,
 	}
 	b.gatehub = gatehub_client.New(b, b.gatehubConfig)
 	if b.gatehub == nil {
