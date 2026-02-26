@@ -148,8 +148,8 @@ jobs:
         working-directory: local
         run: make down && make reset
 
-      - name: Clean old Docker build cache
-        run: docker builder prune -f --filter until=56h
+      - name: Clean Docker build cache
+        run: docker builder prune -af --verbose
 
       - name: Build containers in parallel
         working-directory: local
