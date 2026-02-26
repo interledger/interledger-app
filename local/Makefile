@@ -94,9 +94,16 @@ reset: delete-volumes
 
 certs:
 	mkdir -p config/certs
-	openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
-    -keyout config/certs/local.key -out config/certs/local.crt \
-    -config config/san.cnf
+	@if [ "$(HEADLESS)" = "1" ]; then \
+		openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
+			-keyout config/certs/local.key -out config/certs/local.crt \
+			-subj "/CN=interledger.test/O=Interledger/C=US" \
+			-config config/san.cnf; \
+	else \
+		openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
+			-keyout config/certs/local.key -out config/certs/local.crt \
+			-config config/san.cnf; \
+	fi
 
 print-certs:
 	openssl x509 -in config/certs/local.crt -text -noout
@@ -116,6 +123,9 @@ untrust:
 trust-debian:
 	sudo cp config/certs/local.crt /usr/local/share/ca-certificates/
 	sudo update-ca-certificates
+	rm -rf $(HOME)/.pki/nssdb
+	mkdir -p $(HOME)/.pki/nssdb
+	certutil -d sql:$(HOME)/.pki/nssdb -N --empty-password
 	certutil -d sql:$(HOME)/.pki/nssdb -A -t "C,," -n "interledger.test" -i config/certs/local.crt
 
 print-trust-debian:

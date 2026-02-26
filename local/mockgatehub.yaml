@@ -1,8 +1,8 @@
 services:
   mockgatehub:
-    image: ghcr.io/interledger/mockgatehub:1.8
+    image: ghcr.io/interledger/mockgatehub:1.10
     # build:
-    #   context: ../../mockgatehub
+      # context: ../../mockgatehub
     profiles:
       - application
     restart: always
@@ -14,10 +14,11 @@ services:
       - "traefik.http.routers.mockgatehub.entrypoints=websecure"
       - "traefik.http.services.mockgatehub.loadbalancer.server.port=8080"
     environment:
+      LOG_LEVEL: info
       # Storage configuration
       MOCKGATEHUB_REDIS_URL: redis://redis:6379
       MOCKGATEHUB_REDIS_DB: '2'  # Use DB 2 (separate from other services)
-      
+      WEBHOOK_MIN_DELAY_SEC: '0.1'
       # Webhook configuration - for KYC and deposit events
       WEBHOOK_URL: http://backend:8080/webhooks/gatehub
       WEBHOOK_SECRET: ${GATEHUB_WEBHOOK_SECRET:-6d6f636b5f776562686f6f6b5f736563726574}
