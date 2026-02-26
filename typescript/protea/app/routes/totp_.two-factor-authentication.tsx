@@ -8,7 +8,6 @@ import type {
 import { json, redirectDocument } from '@remix-run/node'
 import { Form, useActionData, useLoaderData, useSubmit } from '@remix-run/react'
 import { useRef } from 'react'
-import { trimHeaders } from '~/lib/headers.server'
 import logger, { addRequestId } from '~/lib/logger.server'
 import { extractOrGenerateRequestId } from '~/lib/requestContext.server'
 import { route } from 'routes-gen'
