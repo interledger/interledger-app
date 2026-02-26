@@ -32,16 +32,22 @@ func main() {
 		port = "8080"
 	}
 
-	publicKey := os.Getenv("XAGO_API_PUBLIC_KEY")
-	if publicKey == "" {
-		publicKey = "test-public-key"
-		logger.Infof("Using default XAGO_API_PUBLIC_KEY: %s", publicKey)
+	if os.Getenv("XAGO_API_PUBLIC_KEY") == "" {
+		defaultPublicKey := "test-public-key"
+		if err := os.Setenv("XAGO_API_PUBLIC_KEY", defaultPublicKey); err != nil {
+			logger.Errorf("Failed to set default XAGO_API_PUBLIC_KEY: %v", err)
+		} else {
+			logger.Infof("Using default XAGO_API_PUBLIC_KEY: %s", defaultPublicKey)
+		}
 	}
 
-	secret := os.Getenv("XAGO_API_SECRET")
-	if secret == "" {
-		secret = "test-secret"
-		logger.Infof("Using default XAGO_API_SECRET: %s", secret)
+	if os.Getenv("XAGO_API_SECRET") == "" {
+		defaultSecret := "test-secret"
+		if err := os.Setenv("XAGO_API_SECRET", defaultSecret); err != nil {
+			logger.Errorf("Failed to set default XAGO_API_SECRET: %v", err)
+		} else {
+			logger.Infof("Using default XAGO_API_SECRET: %s", defaultSecret)
+		}
 	}
 
 	// Initialize in-memory storage

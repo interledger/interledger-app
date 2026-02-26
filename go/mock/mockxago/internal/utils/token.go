@@ -7,12 +7,12 @@ import (
 )
 
 // GenerateToken generates a random hex token
-func GenerateToken() string {
+func GenerateToken() (string, error) {
 	bytes := make([]byte, 32)
 	if _, err := rand.Read(bytes); err != nil {
-		panic(err)
+		return "", err
 	}
-	return hex.EncodeToString(bytes)
+	return hex.EncodeToString(bytes), nil
 }
 
 // GenerateTokenExpiresAt generates an expiration time (55 minutes from now)

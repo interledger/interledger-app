@@ -117,7 +117,8 @@ This is an **unauthenticated endpoint** — no bearer token required.
 
 ```json
 {
-  "tokenValue": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  "tokenValue": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "expiresInMinutes": 55
 }
 ```
 
@@ -168,7 +169,8 @@ Response:
 
 ```json
 {
-  "tokenValue": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  "tokenValue": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "expiresInMinutes": 55
 }
 ```
 
@@ -259,7 +261,7 @@ echo "Got token: $TOKEN"
 
 # Step 2: Use the token to call protected endpoints
 curl -H "Authorization: Bearer $TOKEN" \
-  http://localhost:8080/v1/currencies | jq
+  http://localhost:8080/v1/example-route | jq
 
 # Step 3: Invalid token rejection
 curl -H "Authorization: Bearer invalid_token" \

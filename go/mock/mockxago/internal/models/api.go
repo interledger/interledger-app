@@ -14,7 +14,8 @@ type FieldData struct {
 
 // LoginResponse represents the login response
 type LoginResponse struct {
-	TokenValue string `json:"tokenValue"`
+	TokenValue       string `json:"tokenValue"`
+	ExpiresInMinutes int    `json:"expiresInMinutes"`
 }
 
 // ErrorResponse represents a standard error response

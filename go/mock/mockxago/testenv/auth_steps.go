@@ -1,3 +1,5 @@
+//go:build e2e
+
 package main
 
 import (
@@ -79,6 +81,24 @@ func (tc *TestContext) tokenExpiresIn55Minutes() error {
 	if tc.lastLoginToken == "" {
 		return fmt.Errorf("no token available to validate")
 	}
+
+	var resp struct {
+		TokenValue       string `json:"tokenValue"`
+		ExpiresInMinutes int    `json:"expiresInMinutes"`
+	}
+
+	if err := tc.decodeLastResponse(&resp); err != nil {
+		return err
+	}
+
+	if resp.ExpiresInMinutes == 0 {
+		return fmt.Errorf("expiresInMinutes missing or zero in response")
+	}
+
+	if resp.ExpiresInMinutes != 55 {
+		return fmt.Errorf("expected token to expire in 55 minutes, got %d", resp.ExpiresInMinutes)
+	}
+
 	return nil
 }
 

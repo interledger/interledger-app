@@ -61,7 +61,7 @@ func (h *Handler) AuthMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-// Login handles POST /xago/v1/login
+// Login handles POST /v1/login
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	var req models.LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -107,9 +107,16 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Generate token
+	tokenValue, err := utils.GenerateToken()
+	if err != nil {
+		h.sendError(w, http.StatusInternalServerError, "internal_error", "Failed to generate token")
+		logger.Errorf("Failed to generate token: %v", err)
+		return
+	}
+
 	token := &models.AccessToken{
 		ID:        utils.GenerateUUID(),
-		Token:     utils.GenerateToken(),
+		Token:     tokenValue,
 		ExpiresAt: utils.GenerateTokenExpiresAt(),
 	}
 
@@ -122,7 +129,8 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	logger.Infof("Successful login with public_key=%s, issued token=%s", publicKey, token.ID)
 
 	h.sendJSON(w, http.StatusOK, models.LoginResponse{
-		TokenValue: token.Token,
+		TokenValue:       token.Token,
+		ExpiresInMinutes: 55,
 	})
 }
 
