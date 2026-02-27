@@ -479,5 +479,3 @@ Tests automatically buffer logs to keep output clean. Logs are displayed only if
 ```go
 defer logger.FlushLogsOnFailure(t)()
 ```
-
-This is optional—tests without buffering show logs immediately.
