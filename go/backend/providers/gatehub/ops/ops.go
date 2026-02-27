@@ -923,6 +923,10 @@ func UpdateOrganizationConfiguration(ctx context.Context, ec external.Client, ap
 		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
 	}
 
+	if baseURL.Scheme != "https" {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, "api url must be https")
+	}
+
 	t, err := external.ParseTwoFA(twoFAType)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
