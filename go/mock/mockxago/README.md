@@ -471,3 +471,17 @@ make test       # All tests
 make unit-test  # Unit tests only
 make e2e-test   # E2E tests
 ```
+
+The E2E tests cover:
+- Successful login with valid credentials
+- Authentication failures (invalid public key, secret key)
+- Validation of required fields (policyId, publicKey, secret)
+- Token reuse across multiple requests
+- Token refresh on expiration
+- Rejection of missing/invalid tokens
+- Sub-account creation with full and minimal fields
+- Sub-account validation (missing firstName, lastName, email)
+- Deposit reference routing format
+- Sub-account update with verification URL
+- Invalid account ID rejection
+- Wallet-based sub-account isolation and retrieval
