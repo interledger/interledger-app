@@ -55,6 +55,7 @@
     "zustand": "^4.3.9"
   },
   "devDependencies": {
+    "@react-router/fs-routes": "^7.13.1",
     "@remix-run/dev": "^2.15.0",
     "@remix-run/eslint-config": "^2.15.0",
     "@remix-run/testing": "^2.15.0",

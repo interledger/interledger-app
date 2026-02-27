@@ -27,7 +27,6 @@ import {
   Error,
   GridColumn,
   InterledgerLogo,
-  LiveReload,
   WalletGrid
 } from '~/components'
 import { Scaffold } from '~/components/Scaffold'
@@ -122,7 +121,6 @@ function Document({ children, theme = 'theme-system' }: DocumentProps) {
         {children}
         <ScrollRestoration />
         <Scripts />
-        <LiveReload port={443} />
       </body>
     </html>
   )

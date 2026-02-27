@@ -15,6 +15,9 @@ export default defineConfig({
     host: true,
     hmr: {
       port: 8002,
+      clientPort: 443,
+      protocol: 'wss',
+      path: '/socket',
     },
   },
 
@@ -37,6 +40,7 @@ export default defineConfig({
         v3_throwAbortReason: true,
         v3_singleFetch: true,
         v3_lazyRouteDiscovery: true,
+        v3_routeConfig: true,
       },
     }),
     tsconfigPaths(),
