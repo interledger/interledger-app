@@ -3,6 +3,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 )
@@ -81,11 +82,15 @@ func (tc *TestContext) resetBackend() error {
 	}
 	resp, err := tc.client.Do(req)
 	if err != nil {
-		// Server might not be ready yet; reset client-side only
-		tc.Reset()
-		return nil
+		// Return error to fail fast if backend is unreachable
+		return fmt.Errorf("failed to reset backend at %s: %w", tc.baseURL, err)
 	}
-	resp.Body.Close()
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("backend reset failed with status %d", resp.StatusCode)
+	}
+
 	tc.Reset()
 	return nil
 }

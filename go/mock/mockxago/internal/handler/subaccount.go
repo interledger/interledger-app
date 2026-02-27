@@ -1,9 +1,9 @@
 package handler
 
 import (
+	cryptorand "crypto/rand"
 	"encoding/json"
 	"fmt"
-	"math/rand"
 	"net/http"
 	"strings"
 
@@ -218,7 +218,7 @@ func (h *Handler) validateCreateSubAccount(req models.CreateSubAccountRequest) e
 
 func bankDepositDetails() map[string][]models.BankDepositDetail {
 	return map[string][]models.BankDepositDetail{
-		"ZAR": {
+		"ZAR": []models.BankDepositDetail{
 			{
 				BankName:      "FNB",
 				AccountName:   "Xago Holdings",
@@ -227,7 +227,7 @@ func bankDepositDetails() map[string][]models.BankDepositDetail {
 				SwiftBIC:      "FIRSZA22",
 			},
 		},
-		"USD": {
+		"USD": []models.BankDepositDetail{
 			{
 				BankName:      "Citibank",
 				AccountName:   "Xago Inc",
@@ -248,7 +248,15 @@ func generateDepositAddress() string {
 }
 
 func generateDepositTag() int {
-	return rand.Intn(900000) + 100000
+	// Use crypto/rand for better randomness in mock
+	buf := make([]byte, 4)
+	if _, err := cryptorand.Read(buf); err != nil {
+		// Fallback to sequential increment if crypto/rand fails
+		return 100000 + int(buf[0])%900000
+	}
+	// Convert 4 random bytes to a 6-digit number
+	val := (int(buf[0]) | int(buf[1])<<8 | int(buf[2])<<16) % 900000
+	return 100000 + val
 }
 
 func bearerTokenFromHeader(header string) string {

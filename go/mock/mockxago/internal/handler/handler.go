@@ -154,7 +154,12 @@ func (h *Handler) ExampleProtectedRoute(w http.ResponseWriter, r *http.Request) 
 }
 
 // TestReset handles POST /v1/test/reset — clears all server-side state for E2E tests
+// Only available in test mode to prevent accidental data wipes in production
 func (h *Handler) TestReset(w http.ResponseWriter, r *http.Request) {
+	if !h.testMode {
+		h.sendError(w, http.StatusForbidden, "forbidden", "test reset endpoint not available")
+		return
+	}
 	if err := h.store.Reset(r.Context()); err != nil {
 		h.sendError(w, http.StatusInternalServerError, "internal_error", "reset failed")
 		return
