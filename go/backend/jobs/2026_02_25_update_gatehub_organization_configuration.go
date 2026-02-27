@@ -26,16 +26,8 @@ func UpdateGateHubOrganizationConfig(ctx workflow.Context, args UpdateArgs) erro
 
 	logger := workflow.GetLogger(ctx)
 
-	var gatehubWallets []GatehubWallets
-	err := workflow.ExecuteActivity(ctx, a.GetGatehubUsers).Get(ctx, &gatehubWallets)
-	if err != nil {
-		return err
-	}
-
-	logger.Info("wallets", "gatehubWallets", gatehubWallets)
-
 	var res external.UpdateOrgnizationConfigurationResponse
-	err = workflow.ExecuteActivity(ctx, a.UpdateOrganizationConfig, args).Get(ctx, &res)
+	err := workflow.ExecuteActivity(ctx, a.UpdateOrganizationConfig, args).Get(ctx, &res)
 	if err != nil {
 		return err
 	}
