@@ -27,6 +27,7 @@ func TestNewClientValidation(t *testing.T) {
 		baseURL                string
 		onboardingBaseURL      string
 		onOffRampBaseURL       string
+		organizationID         string
 	}{
 		appID:                  "test-app-id",
 		secret:                 "test-secret",
@@ -40,6 +41,7 @@ func TestNewClientValidation(t *testing.T) {
 		baseURL:                "https://api.example.com",
 		onboardingBaseURL:      "https://onboarding.example.com",
 		onOffRampBaseURL:       "https://ramp.example.com",
+		organizationID:         "test-organization-id",
 	}
 
 	tests := []struct {
@@ -56,6 +58,7 @@ func TestNewClientValidation(t *testing.T) {
 		baseURL                string
 		onboardingBaseURL      string
 		onOffRampBaseURL       string
+		organizationID         string
 		expectNil              bool
 	}{
 		{
@@ -72,6 +75,7 @@ func TestNewClientValidation(t *testing.T) {
 			baseURL:                validParams.baseURL,
 			onboardingBaseURL:      validParams.onboardingBaseURL,
 			onOffRampBaseURL:       validParams.onOffRampBaseURL,
+			organizationID:         validParams.organizationID,
 			expectNil:              false,
 		},
 		{
@@ -88,6 +92,7 @@ func TestNewClientValidation(t *testing.T) {
 			baseURL:                validParams.baseURL,
 			onboardingBaseURL:      validParams.onboardingBaseURL,
 			onOffRampBaseURL:       validParams.onOffRampBaseURL,
+			organizationID:         validParams.organizationID,
 			expectNil:              true,
 		},
 		{
@@ -104,6 +109,7 @@ func TestNewClientValidation(t *testing.T) {
 			baseURL:                validParams.baseURL,
 			onboardingBaseURL:      validParams.onboardingBaseURL,
 			onOffRampBaseURL:       validParams.onOffRampBaseURL,
+			organizationID:         validParams.organizationID,
 			expectNil:              true,
 		},
 		{
@@ -120,6 +126,7 @@ func TestNewClientValidation(t *testing.T) {
 			baseURL:                validParams.baseURL,
 			onboardingBaseURL:      validParams.onboardingBaseURL,
 			onOffRampBaseURL:       validParams.onOffRampBaseURL,
+			organizationID:         validParams.organizationID,
 			expectNil:              true,
 		},
 		{
@@ -136,6 +143,7 @@ func TestNewClientValidation(t *testing.T) {
 			baseURL:                validParams.baseURL,
 			onboardingBaseURL:      validParams.onboardingBaseURL,
 			onOffRampBaseURL:       validParams.onOffRampBaseURL,
+			organizationID:         validParams.organizationID,
 			expectNil:              true,
 		},
 		{
@@ -152,6 +160,7 @@ func TestNewClientValidation(t *testing.T) {
 			baseURL:                validParams.baseURL,
 			onboardingBaseURL:      validParams.onboardingBaseURL,
 			onOffRampBaseURL:       validParams.onOffRampBaseURL,
+			organizationID:         validParams.organizationID,
 			expectNil:              true,
 		},
 		{
@@ -168,6 +177,7 @@ func TestNewClientValidation(t *testing.T) {
 			baseURL:                validParams.baseURL,
 			onboardingBaseURL:      validParams.onboardingBaseURL,
 			onOffRampBaseURL:       validParams.onOffRampBaseURL,
+			organizationID:         validParams.organizationID,
 			expectNil:              true,
 		},
 		{
@@ -184,6 +194,7 @@ func TestNewClientValidation(t *testing.T) {
 			baseURL:                "",
 			onboardingBaseURL:      validParams.onboardingBaseURL,
 			onOffRampBaseURL:       validParams.onOffRampBaseURL,
+			organizationID:         validParams.organizationID,
 			expectNil:              true,
 		},
 		{
@@ -200,6 +211,7 @@ func TestNewClientValidation(t *testing.T) {
 			baseURL:                validParams.baseURL,
 			onboardingBaseURL:      "",
 			onOffRampBaseURL:       validParams.onOffRampBaseURL,
+			organizationID:         validParams.organizationID,
 			expectNil:              true,
 		},
 		{
@@ -216,6 +228,24 @@ func TestNewClientValidation(t *testing.T) {
 			baseURL:                validParams.baseURL,
 			onboardingBaseURL:      validParams.onboardingBaseURL,
 			onOffRampBaseURL:       "",
+			organizationID:         validParams.organizationID,
+			expectNil:              true,
+		},
+		{
+			name:                   "missing organizationID",
+			appID:                  validParams.appID,
+			secret:                 validParams.secret,
+			cardAppID:              validParams.cardAppID,
+			gatewayID:              validParams.gatewayID,
+			cardAccountProductCode: validParams.cardAccountProductCode,
+			vaultID:                validParams.vaultID,
+			onOffRampClientID:      validParams.onOffRampClientID,
+			onboardingClientID:     validParams.onboardingClientID,
+			exchangeClientID:       validParams.exchangeClientID,
+			baseURL:                validParams.baseURL,
+			onboardingBaseURL:      validParams.onboardingBaseURL,
+			onOffRampBaseURL:       validParams.onOffRampBaseURL,
+			organizationID:         "",
 			expectNil:              true,
 		},
 	}
@@ -235,6 +265,7 @@ func TestNewClientValidation(t *testing.T) {
 				tt.baseURL,
 				tt.onboardingBaseURL,
 				tt.onOffRampBaseURL,
+				tt.organizationID,
 				nil,
 			)
 
@@ -261,11 +292,12 @@ func TestClient(t *testing.T) {
 	apiBaseURL := os.Getenv("GATEHUB_API_BASE_URL")
 	onboardingBaseURL := os.Getenv("GATEHUB_ONBOARDING_BASE_URL")
 	onOffRampBaseURL := os.Getenv("GATEHUB_ON_OFF_RAMP_BASE_URL")
+	organizationID := os.Getenv("GATEHUB_ORGANIZATION_ID")
 
 	if appID == "" || secret == "" || cardAppID == "" || gatewayID == "" || cardAccountProductCode == "" || vaultID == "" || onOffRampClientID == "" || onboardingClientID == "" || exchangeClientID == "" || apiBaseURL == "" || onboardingBaseURL == "" || onOffRampBaseURL == "" {
 		t.SkipNow()
 	}
-	c := external.NewClient(appID, secret, cardAppID, gatewayID, cardAccountProductCode, vaultID, onOffRampClientID, onboardingClientID, exchangeClientID, apiBaseURL, onboardingBaseURL, onOffRampBaseURL, nil)
+	c := external.NewClient(appID, secret, cardAppID, gatewayID, cardAccountProductCode, vaultID, onOffRampClientID, onboardingClientID, exchangeClientID, apiBaseURL, onboardingBaseURL, onOffRampBaseURL, organizationID, nil)
 	if c == nil {
 		t.SkipNow()
 	}
@@ -305,11 +337,12 @@ func TestUser(t *testing.T) {
 	apiBaseURL := os.Getenv("GATEHUB_API_BASE_URL")
 	onboardingBaseURL := os.Getenv("GATEHUB_ONBOARDING_BASE_URL")
 	onOffRampBaseURL := os.Getenv("GATEHUB_ON_OFF_RAMP_BASE_URL")
+	organizationID := os.Getenv("GATEHUB_ORGANIZATION_ID")
 
 	if appID == "" || secret == "" || cardAppID == "" || gatewayID == "" || cardAccountProductCode == "" || vaultID == "" || onOffRampClientID == "" || onboardingClientID == "" || exchangeClientID == "" || apiBaseURL == "" || onboardingBaseURL == "" || onOffRampBaseURL == "" {
 		t.SkipNow()
 	}
-	c := external.NewClient(appID, secret, cardAppID, gatewayID, cardAccountProductCode, vaultID, onOffRampClientID, onboardingClientID, exchangeClientID, apiBaseURL, onboardingBaseURL, onOffRampBaseURL, nil)
+	c := external.NewClient(appID, secret, cardAppID, gatewayID, cardAccountProductCode, vaultID, onOffRampClientID, onboardingClientID, exchangeClientID, apiBaseURL, onboardingBaseURL, onOffRampBaseURL, organizationID, nil)
 	if c == nil {
 		t.SkipNow()
 	}
