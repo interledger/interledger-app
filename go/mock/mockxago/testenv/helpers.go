@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/cucumber/godog"
+	"github.com/google/uuid"
 )
 
 func tableToMap(table *godog.Table) map[string]string {
@@ -93,4 +94,9 @@ func (tc *TestContext) environmentVariablesAreSet(table *godog.Table) error {
 		}
 	}
 	return nil
+}
+
+func parseUUID(value string) error {
+	_, err := uuid.Parse(value)
+	return err
 }

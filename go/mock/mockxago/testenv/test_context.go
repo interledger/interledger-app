@@ -30,6 +30,10 @@ type TestContext struct {
 
 	previousCurrencies string
 
+	// Sub-account state
+	lastSubAccount      createSubAccountResponse
+	subAccountsByWallet map[string]createSubAccountResponse
+
 	// Beneficiary state
 	lastBeneficiary    addBeneficiaryResponse
 	lastBeneficiaries  listBeneficiariesResponse
@@ -58,6 +62,9 @@ func (tc *TestContext) Reset() {
 
 	tc.previousCurrencies = ""
 
+	tc.lastSubAccount = createSubAccountResponse{}
+	tc.subAccountsByWallet = make(map[string]createSubAccountResponse)
+
 	tc.lastBeneficiary = addBeneficiaryResponse{}
 	tc.lastBeneficiaries = listBeneficiariesResponse{}
 	tc.addedBeneficiaries = nil
@@ -68,7 +75,17 @@ func (tc *TestContext) Reset() {
 
 // resetBackend calls the mockxago /v1/test/reset endpoint to clear all data
 func (tc *TestContext) resetBackend() error {
-	// For the minimal authentication-only version, we simply reset the client state
+	req, err := http.NewRequest("POST", tc.baseURL+"/v1/test/reset", nil)
+	if err != nil {
+		return err
+	}
+	resp, err := tc.client.Do(req)
+	if err != nil {
+		// Server might not be ready yet; reset client-side only
+		tc.Reset()
+		return nil
+	}
+	resp.Body.Close()
 	tc.Reset()
 	return nil
 }

@@ -152,3 +152,12 @@ func (h *Handler) sendError(w http.ResponseWriter, status int, error, message st
 func (h *Handler) ExampleProtectedRoute(w http.ResponseWriter, r *http.Request) {
 	h.sendJSON(w, http.StatusOK, map[string]string{"message": "This is an example route"})
 }
+
+// TestReset handles POST /v1/test/reset — clears all server-side state for E2E tests
+func (h *Handler) TestReset(w http.ResponseWriter, r *http.Request) {
+	if err := h.store.Reset(r.Context()); err != nil {
+		h.sendError(w, http.StatusInternalServerError, "internal_error", "reset failed")
+		return
+	}
+	h.sendJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+}
