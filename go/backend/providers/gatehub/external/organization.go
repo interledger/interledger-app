@@ -63,7 +63,6 @@ func (c *client) UpdateOrganizationConfiguration(ctx context.Context, args Updat
 
 	var res UpdateOrgnizationConfigurationResponse
 
-	fmt.Println(string(body))
 	err = json.Unmarshal(body, &res)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)

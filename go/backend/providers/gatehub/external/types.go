@@ -511,7 +511,7 @@ type (
 	}
 
 	UpdateOrgnizationConfigurationArgs struct {
-		APIBaseURL string `json:"apiBaseURL"`
+		APIBaseURL string `json:"apiBaseUrl"`
 		TwoFAType  TwoFA  `json:"type2fa"`
 	}
 
@@ -533,8 +533,8 @@ func (a *OrderCardArgs) WithAccountProductCode(productCode string) {
 }
 
 var stringToTwoFA = map[string]TwoFA{
-	"2fa": TwoFATotp,
-	"sms": TwoFASms,
+	"totp": TwoFATotp,
+	"sms":  TwoFASms,
 }
 
 func ParseTwoFA(v string) (TwoFA, error) {
