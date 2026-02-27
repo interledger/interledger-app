@@ -6,7 +6,6 @@ package main
 import (
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/cucumber/godog"
 )
@@ -14,15 +13,14 @@ import (
 func buildSubAccountPayload(values map[string]string, fillDefaults bool, walletIDOverride string) map[string]string {
 	payload := map[string]string{}
 
+	// Only set walletId if explicitly provided or if override given
+	// Don't auto-generate it — test should verify server auto-generation behavior
 	walletID := values["walletId"]
 	if walletID == "" {
 		walletID = values["wallet_id"]
 	}
 	if walletIDOverride != "" {
 		walletID = walletIDOverride
-	}
-	if walletID == "" && fillDefaults {
-		walletID = fmt.Sprintf("wallet_%d", time.Now().UnixNano())
 	}
 	if walletID != "" {
 		payload["walletId"] = walletID
@@ -51,11 +49,6 @@ func buildSubAccountPayload(values map[string]string, fillDefaults bool, walletI
 }
 
 func (tc *TestContext) createSubAccountWithDetails(table *godog.Table) error {
-	payload := buildSubAccountPayload(tableToMap(table), true, "")
-	return tc.postSubAccount(payload, true)
-}
-
-func (tc *TestContext) createSubAccountWithOnlyRequiredFields(table *godog.Table) error {
 	payload := buildSubAccountPayload(tableToMap(table), true, "")
 	return tc.postSubAccount(payload, true)
 }

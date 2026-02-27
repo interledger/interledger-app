@@ -219,7 +219,7 @@ func (h *Handler) validateCreateSubAccount(req models.CreateSubAccountRequest) e
 
 func bankDepositDetails() map[string][]models.BankDepositDetail {
 	return map[string][]models.BankDepositDetail{
-		"ZAR": {
+		"ZAR": []models.BankDepositDetail{
 			{
 				BankName:      "FNB",
 				AccountName:   "Xago Holdings",
@@ -228,7 +228,7 @@ func bankDepositDetails() map[string][]models.BankDepositDetail {
 				SwiftBIC:      "FIRSZA22",
 			},
 		},
-		"USD": {
+		"USD": []models.BankDepositDetail{
 			{
 				BankName:      "Citibank",
 				AccountName:   "Xago Inc",
