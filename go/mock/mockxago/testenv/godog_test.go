@@ -91,7 +91,7 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 
 	// Sub-account creation steps
 	ctx.Step(`^I create a sub-account with the following details:$`, tc.createSubAccountWithDetails)
-	ctx.Step(`^I create a sub-account with only required fields:$`, tc.createSubAccountWithOnlyRequiredFields)
+	ctx.Step(`^I create a sub-account with only required fields:$`, tc.createSubAccountWithDetails)
 	ctx.Step(`^I attempt to create a sub-account without firstName:$`, tc.attemptCreateSubAccountWithoutFirstName)
 	ctx.Step(`^I attempt to create a sub-account without lastName:$`, tc.attemptCreateSubAccountWithoutLastName)
 	ctx.Step(`^I attempt to create a sub-account without email:$`, tc.attemptCreateSubAccountWithoutEmail)
