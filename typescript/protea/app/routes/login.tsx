@@ -3,7 +3,7 @@ import type {
   LoaderFunctionArgs,
   MetaFunction
 } from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
+import { data, json, redirect } from '@remix-run/node'
 import {
   Form,
   useActionData,
@@ -66,14 +66,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
     headers = trimHeaders(flowRes.headers, ['set-cookie'])
   }
 
-  return json(
-    {
-      flowId: flow.id,
-      csrfToken: getCsrfTokenFromFlow(flow)
-    },
-    {
-      headers: headers ?? undefined
-    }
+  return data(
+    { flowId: flow.id, csrfToken: getCsrfTokenFromFlow(flow) },
+    headers ? { headers } : undefined
   )
 }
 

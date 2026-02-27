@@ -45,7 +45,7 @@ export const handle: ApplicationProps = {
   layout: Layouts.Marketing,
   scaffold: {
     header: {},
-    footer: (match: UIMatch<typeof loader>) => match.data.footer
+    footer: (match: UIMatch<typeof loader>) => match.data.footer as any
   }
 }
 

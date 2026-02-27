@@ -8,7 +8,7 @@ import { PassThrough } from 'stream'
 import logger, { addRequestId } from './lib/logger.server'
 import { extractOrGenerateRequestId } from './lib/requestContext.server'
 
-const ABORT_DELAY = 5_000
+export const streamTimeout = 5_000
 
 // Track request timing for logging
 function getResponseTime(startTime: number): number {
@@ -141,7 +141,7 @@ function handleBotRequest(
       <RemixServer
         context={remixContext}
         url={request.url}
-        abortDelay={ABORT_DELAY}
+        abortDelay={streamTimeout + 1000}
       />,
       {
         onAllReady() {
@@ -175,7 +175,7 @@ function handleBotRequest(
       }
     )
 
-    setTimeout(abort, ABORT_DELAY)
+    setTimeout(abort, streamTimeout + 1000)
   })
 }
 
@@ -192,7 +192,7 @@ function handleBrowserRequest(
       <RemixServer
         context={remixContext}
         url={request.url}
-        abortDelay={ABORT_DELAY}
+        abortDelay={streamTimeout + 1000}
       />,
       {
         onShellReady() {
@@ -226,6 +226,6 @@ function handleBrowserRequest(
       }
     )
 
-    setTimeout(abort, ABORT_DELAY)
+    setTimeout(abort, streamTimeout + 1000)
   })
 }

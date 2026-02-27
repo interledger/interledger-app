@@ -1,4 +1,4 @@
-import { json, type ActionFunctionArgs } from '@remix-run/node'
+import { data, json, type ActionFunctionArgs } from '@remix-run/node'
 import { KRATOS_URL } from '~/lib/kratos.server'
 import logger, { addRequestId, withErrorLog } from '~/lib/logger.server'
 import { extractOrGenerateRequestId } from '~/lib/requestContext.server'
@@ -43,11 +43,9 @@ export async function action({ request }: ActionFunctionArgs) {
 
     const setCookieHeader = verifyTotpCodeResponse.headers.get('set-cookie')
     if (verifyTotpCodeResponse.ok || verifyTotpCodeResponse.status === 200) {
-      return json(
+      return data(
         { success: true, shouldRevalidate: false },
-        setCookieHeader
-          ? { headers: { 'Set-Cookie': setCookieHeader } }
-          : undefined
+        setCookieHeader ? { headers: { 'Set-Cookie': setCookieHeader } } : undefined
       )
     }
 
