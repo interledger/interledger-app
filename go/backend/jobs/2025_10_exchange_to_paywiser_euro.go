@@ -68,6 +68,7 @@ func (a *Activity) BackfillPaywiserBalance(ctx context.Context, gatehubWallets [
 		a.gatehubConfig.APIBaseURL,
 		a.gatehubConfig.OnboardingBaseURL,
 		a.gatehubConfig.OnOffRampBaseURL,
+		a.gatehubConfig.OrganizationID,
 		&http.Client{
 			Transport: otelhttp.NewTransport(
 				httplogger.NewTransport(http.DefaultTransport, a.b, nil),
