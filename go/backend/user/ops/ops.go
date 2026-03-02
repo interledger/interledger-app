@@ -153,6 +153,19 @@ func GetTotpURL(ctx context.Context, b Backends, userID string) (string, error) 
 	return totpURL, nil
 }
 
+func GetUserIDForWallet(ctx context.Context, b Backends, walletID string) (string, error) {
+	var userID string
+	err := b.DB().GetContext(ctx, &userID, "SELECT user_id FROM user_wallets WHERE wallet_id = $1", walletID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", user.ErrNoUserFound
+		}
+		return "", fmt.Errorf("%w %s", user.ErrInternal, err)
+	}
+
+	return userID, nil
+}
+
 // TODO: Modify?
 func ListUsers(ctx context.Context, b Backends, walletID string) ([]user.User, error) {
 	if walletID == wallets.WebMonetizationWalletID {
