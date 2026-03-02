@@ -118,6 +118,41 @@ func UserForContext(ctx context.Context) (*user.User, error) {
 	return u, nil
 }
 
+// GetTotpURL retrieves the TOTP URL for the given userID.
+//
+// Errors:
+//   - user.ErrNoCredentials if the identity has no credentials
+//   - user.ErrTotpNotConfigured if the user has no TOTP credential configured
+//   - user.ErrInvalidTotpConfig if the TOTP configuration is malformed
+//   - user.ErrInternal if fetching the identity from Kratos fails
+//
+// Usage:
+//
+//	totpURL, err := GetTotpURL(ctx, b, userID)
+//	if err != nil {
+//		// Check errors if more granularity is needed
+//		return err
+//	}
+//
+//	// Use totpURL
+func GetTotpURL(ctx context.Context, b Backends, userID string) (string, error) {
+	identity, _, err := b.Kratos().IdentityApi.GetIdentity(ctx, userID).IncludeCredential([]string{"totp"}).Execute()
+	if err != nil {
+		return "", fmt.Errorf("%w %s", user.ErrInternal, err)
+	}
+
+	if identity.Credentials == nil {
+		return "", user.ErrNoCredentials
+	}
+
+	totpURL, err := searchTotpURL(*identity.Credentials)
+	if err != nil {
+		return "", err
+	}
+
+	return totpURL, nil
+}
+
 // TODO: Modify?
 func ListUsers(ctx context.Context, b Backends, walletID string) ([]user.User, error) {
 	if walletID == wallets.WebMonetizationWalletID {
@@ -208,4 +243,39 @@ func Delete2FATotpEnrollment(ctx context.Context, b Backends, identityID string)
 	}
 
 	return nil
+}
+
+// searchTotpURL searches for the TOTP URL in the provided identity credentials.
+// It returns the TOTP URL if found.
+// Errors:
+//   - user.ErrTotpNotConfigured if no TOTP credential exists or the TOTP URL is missing.
+//   - user.ErrInvalidTotpConfig if the TOTP configuration is malformed.
+func searchTotpURL(credentials map[string]client.IdentityCredentials) (string, error) {
+	for _, cred := range credentials {
+		if cred.Type == nil {
+			continue
+		}
+
+		if *cred.Type != client.IDENTITYCREDENTIALSTYPE_TOTP {
+			continue
+		}
+
+		if cred.Config == nil {
+			return "", user.ErrTotpNotConfigured
+		}
+
+		raw, exists := cred.Config["totp_url"]
+		if !exists {
+			return "", user.ErrTotpNotConfigured
+		}
+
+		url, ok := raw.(string)
+		if !ok {
+			return "", user.ErrInvalidTotpConfig
+		}
+
+		return url, nil
+	}
+
+	return "", user.ErrTotpNotConfigured
 }
