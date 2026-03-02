@@ -1,18 +1,9 @@
 import { Code } from '@bufbuild/connect'
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { redirect } from '@remix-run/node'
-import {
-  Form,
-  useActionData,
-  useLoaderData,
-  useNavigation
-} from '@remix-run/react'
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { redirect } from 'react-router';
+import { Form, useActionData, useLoaderData, useNavigation } from 'react-router';
 import { useEffect, useState } from 'react'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import type { ApplicationProps, SelectOptions } from '~/components'
 import {
   Button,
@@ -36,7 +27,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     balancesResponse.balances.filter((bal) => bal.countryCode == 'US').length ==
       0
   )
-    throw redirect(route('/'))
+    throw redirect(href('/'))
 
   const accountTypes: SelectOptions[] = [
     { id: 'CHECKING', name: 'Checking' },
@@ -50,7 +41,7 @@ export const handle: ApplicationProps = {
   layout: Layouts.Focus,
   scaffold: {
     header: {
-      back: route('/accounts'),
+      back: href('/accounts'),
       title: 'Connect bank account'
     }
   }
@@ -85,7 +76,7 @@ export default function Page() {
     <>
       <Form
         id='connect-bank-us'
-        action={route('/connect/bank/us')}
+        action={href('/connect/bank/us')}
         method='post'
         className='hidden'
       />
@@ -200,7 +191,7 @@ export async function action({ request }: ActionFunctionArgs) {
     }
   }
 
-  return redirectWithSnackbar(request, route('/accounts'), {
+  return redirectWithSnackbar(request, href('/accounts'), {
     message: 'New bank account successfully saved.',
     icon: 'close'
   })

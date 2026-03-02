@@ -1,4 +1,4 @@
-import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
+import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
 import type { ApplicationProps } from '~/components'
 import {
   AnchorRouter,

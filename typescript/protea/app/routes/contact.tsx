@@ -1,6 +1,6 @@
-import type { LoaderFunctionArgs } from '@remix-run/node'
-import type { UIMatch } from '@remix-run/react'
-import { useLoaderData } from '@remix-run/react'
+import type { LoaderFunctionArgs } from 'react-router';
+import type { UIMatch } from 'react-router';
+import { useLoaderData } from 'react-router';
 import type { ApplicationProps } from '~/components'
 import { AnchorRouter, Icon, Layouts } from '~/components'
 import { MarketingPageWithSections } from '~/components/Content'

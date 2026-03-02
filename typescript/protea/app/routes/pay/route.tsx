@@ -1,13 +1,9 @@
 import { Code } from '@bufbuild/connect'
 import type { PlainMessage } from '@bufbuild/protobuf/dist/types/message'
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
-import { useLoaderData } from '@remix-run/react'
-import { route } from 'routes-gen'
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { data, redirect } from 'react-router';
+import { useLoaderData } from 'react-router';
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   Alert,
@@ -55,7 +51,7 @@ async function searchLoader(
   if (isConnectError(response)) throw response.errorResponse
 
   const results: PlainMessage<SearchResult>[] = response.results
-  return json({ results })
+  return data({ results })
 }
 
 async function payLoader({ request }: LoaderFunctionArgs) {
@@ -73,7 +69,7 @@ async function payLoader({ request }: LoaderFunctionArgs) {
   if (url.search == '') {
     const { kycStatus } = await getKycStatus(request)
     if (kycStatus != KycStatus.Approved)
-      return redirect(route('/personal-details'))
+      return redirect(href('/personal-details'))
 
     features = await getFeatures(request)
   }
@@ -129,7 +125,7 @@ export default function Page() {
                 <Router
                   prefetch='render'
                   className='text-sm font-medium text-primary'
-                  to={route('/accounts')}
+                  to={href('/accounts')}
                 >
                   Go to accounts page
                 </Router>
@@ -174,5 +170,5 @@ export async function action({ request }: ActionFunctionArgs) {
     )
   }
 
-  return redirect(route('/pay/:paymentId', { paymentId: payment.id }))
+  return redirect(href('/pay/:paymentId', { paymentId: payment.id }))
 }

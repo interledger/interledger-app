@@ -1,17 +1,8 @@
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
-import {
-  Form,
-  useActionData,
-  useLoaderData,
-  useRevalidator
-} from '@remix-run/react'
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { data, redirect } from 'react-router';
+import { Form, useActionData, useLoaderData, useRevalidator } from 'react-router';
 import { useEffect, useState } from 'react'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts, TextField } from '~/components'
 import { error } from '~/lib/error.server'
@@ -48,7 +39,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const isUser = hasUserSession(request)
 
   if (!isUser) {
-    return json({ flowId: '', csrfToken: '' })
+    return data({ flowId: '', csrfToken: '' })
   }
 
   let flow
@@ -82,7 +73,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       headers: trimHeaders(flowRes.headers, ['set-cookie'])
     })
   }
-  return json({ flowId: flow.id, csrfToken: getCsrfTokenFromFlow(flow) })
+  return data({ flowId: flow.id, csrfToken: getCsrfTokenFromFlow(flow) })
 }
 
 export default function Page() {
@@ -203,7 +194,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   return redirectWithSnackbar(
     request,
-    route('/login'),
+    href('/login'),
     {
       message:
         'New password successfully saved. Please log in with your new password.',

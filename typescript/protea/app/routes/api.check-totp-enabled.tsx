@@ -1,4 +1,4 @@
-import { json, type LoaderFunctionArgs } from '@remix-run/node'
+import { data, type LoaderFunctionArgs } from 'react-router';
 import { KRATOS_URL } from '~/lib/kratos.server'
 import { isTotpSet } from '~/lib/totp.server'
 
@@ -15,15 +15,15 @@ export async function loader({ request }: LoaderFunctionArgs) {
     })
 
     if (!sessionResponse.ok) {
-      return json({ enabled: false, error: 'No valid session' })
+      return data({ enabled: false, error: 'No valid session' })
     }
 
     const session = await sessionResponse.json()
     const headers = new Headers(request.headers)
     const hasTotpEnabled = await isTotpSet(session, headers)
 
-    return json({ enabled: hasTotpEnabled })
+    return data({ enabled: hasTotpEnabled })
   } catch (error) {
-    return json({ enabled: false, error: 'Failed to check TOTP status' })
+    return data({ enabled: false, error: 'Failed to check TOTP status' })
   }
 }

@@ -1,5 +1,5 @@
 import type { Identity, Session } from '@ory/kratos-client'
-import { redirect } from '@remix-run/node'
+import { redirect } from 'react-router';
 import { KRATOS_URL, getUserSession } from './kratos.server'
 
 /**

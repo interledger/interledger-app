@@ -1,18 +1,18 @@
 import {
-  json,
+  data,
   redirect,
   type ActionFunctionArgs,
   type LoaderFunctionArgs,
-  type MetaFunction
-} from '@remix-run/node'
+  type MetaFunction,
+} from 'react-router';
 import { Code } from '@bufbuild/connect'
-import { useLoaderData } from '@remix-run/react'
+import { useLoaderData } from 'react-router';
 import type { ApplicationProps } from '~/components'
 import { Layouts } from '~/components'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import styles from '~/styles/flags.css?url'
 import { ChimoneyDepositPage } from './chimoney'
 import { FynbosDepositPage } from './fynbos'
@@ -86,7 +86,7 @@ async function fynbosDepositLoader({ request }: LoaderFunctionArgs) {
     !balance ||
     typeof balance == 'undefined'
   )
-    throw json({}, { status: 404 })
+    throw data({}, { status: 404 })
 
   const linkedAccounts = await getLinkedAccountsForDeposit(
     request,
@@ -124,7 +124,7 @@ export async function loader(args: LoaderFunctionArgs) {
   }
   const { kycStatus } = await getKycStatus(args.request)
   if (kycStatus != KycStatus.Approved)
-    return redirect(route('/personal-details'))
+    return redirect(href('/personal-details'))
 
   const providerResponse = await grpc.getOnOffRampProvider(args.request, {})
   if (isConnectError(providerResponse)) throw providerResponse.error
@@ -176,7 +176,7 @@ async function chimoneyAmountAction({ request }: ActionFunctionArgs) {
   })
   if (isConnectError(response)) throw response.error
 
-  return json({
+  return data({
     chimoneyWidget: response.link
   })
 }
@@ -190,7 +190,7 @@ async function chimoneySuccessfullDepositAction({
   const response = await grpc.createChimoneyDeposit(request, { issueId })
   if (isConnectError(response)) throw response.error
 
-  return redirect(route('/'))
+  return redirect(href('/'))
 }
 
 async function fynbosDepositAction({ request }: ActionFunctionArgs) {
@@ -256,7 +256,7 @@ async function fynbosDepositAction({ request }: ActionFunctionArgs) {
   }
 
   return redirect(
-    route('/deposit/:paymentId', {
+    href('/deposit/:paymentId', {
       paymentId: depositResponse.id
     })
   )
@@ -275,7 +275,7 @@ async function xagoTestAccountDepositAction({
     return response.errorResponse
   }
 
-  return redirectWithSnackbar(request, route('/'), {
+  return redirectWithSnackbar(request, href('/'), {
     message: 'Test deposit added successfully.',
     icon: 'close'
   })

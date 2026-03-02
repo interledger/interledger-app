@@ -1,5 +1,5 @@
-import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
+import type { ActionFunctionArgs, LoaderFunctionArgs } from 'react-router';
+import { data, redirect } from 'react-router';
 
 import { Code } from '@bufbuild/connect'
 import type { SuccessfulSelfServiceRegistrationWithoutBrowser } from '@ory/kratos-client'
@@ -17,7 +17,7 @@ import {
 } from '~/lib/kratos.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { isEUCountry } from '~/routes/signup/About'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
@@ -69,7 +69,7 @@ export async function action(args: ActionFunctionArgs) {
     return passwordAction(args)
   }
 
-  throw json(
+  throw data(
     { title: "Submitted a form that doesn't exist" },
     {
       status: 400
@@ -128,7 +128,7 @@ export async function detailsAction({ request }: ActionFunctionArgs) {
     } else return response.error(data, mapping, { action: 'Contact support' })
   }
 
-  return json({
+  return data({
     id: response.id,
     firstName,
     lastName,
@@ -192,7 +192,7 @@ export async function otpAction({ request }: ActionFunctionArgs) {
 
   logger.info({ id, flow: 'signup' }, '[SIGNUP] Mobile number set successfully for signup')
 
-  return json({ id, phone, errors: data.errors })
+  return data({ id, phone, errors: data.errors })
 }
 
 const KratosErrorTraits = {
@@ -329,7 +329,7 @@ export async function passwordAction({ request }: ActionFunctionArgs) {
 
   return redirectWithSnackbar(
     request,
-    route('/wallet-address'),
+    href('/wallet-address'),
     {
       message: 'Your account was created successfully.',
       icon: 'close'

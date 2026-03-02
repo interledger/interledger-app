@@ -1,7 +1,7 @@
-import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
-import { json } from '@remix-run/node'
-import { useLoaderData } from '@remix-run/react'
-import { route } from 'routes-gen'
+import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { data } from 'react-router';
+import { useLoaderData } from 'react-router';
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   ButtonRouter,
@@ -20,14 +20,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   if (isConnectError(response)) throw response.errorResponse
 
-  return json({ keys: response.keys })
+  return data({ keys: response.keys })
 }
 
 export const handle: ApplicationProps = {
   layout: Layouts.Wallet,
   scaffold: {
     header: {
-      back: route('/settings'),
+      back: href('/settings'),
       title: 'Keys'
     },
     isNested: true
@@ -55,7 +55,7 @@ export default function Page() {
         {keys.length > 0 &&
           keys.map((key) => (
             <CardLink
-              to={route('/settings/keys/:keyId', {
+              to={href('/settings/keys/:keyId', {
                 keyId: key.id
               })}
               className='flex items-center justify-between'
@@ -76,7 +76,7 @@ export default function Page() {
           ))}
       </Card>
 
-      <ButtonRouter to={route('/settings/keys/add-public')}>
+      <ButtonRouter to={href('/settings/keys/add-public')}>
         Add a public key
       </ButtonRouter>
     </>

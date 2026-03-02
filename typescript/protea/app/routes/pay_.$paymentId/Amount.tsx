@@ -1,7 +1,7 @@
-import { useFetcher, useLoaderData } from '@remix-run/react'
+import { useFetcher, useLoaderData } from 'react-router';
 import type { ChangeEventHandler } from 'react'
 import { useCallback, useEffect, useReducer, useRef } from 'react'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import {
   Button,
   Card,
@@ -236,7 +236,7 @@ export const Amount = () => {
     <>
       <updatePaymentFetcher.Form
         id='amount-form'
-        action={route('/pay/:paymentId', { paymentId: payment.id })}
+        action={href('/pay/:paymentId', { paymentId: payment.id })}
         method='post'
         className='hidden'
       />
@@ -280,7 +280,7 @@ export const Amount = () => {
           linkedAccountOptions={sendAccounts || []}
           onChangeLinkedAccount={_onChangeLinkedAccount}
           selectButton={
-            <SelectRouter to={route('/accounts')}>
+            <SelectRouter to={href('/accounts')}>
               <span>Connect new account</span> <Icon>add</Icon>
             </SelectRouter>
           }

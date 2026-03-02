@@ -1,6 +1,6 @@
-import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
-import { json } from '@remix-run/node'
-import { useLoaderData } from '@remix-run/react'
+import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { data } from 'react-router';
+import { useLoaderData } from 'react-router';
 import { useEffect } from 'react'
 import type { ApplicationProps } from '~/components'
 import { Layouts } from '~/components'
@@ -9,7 +9,7 @@ import { mergeMeta } from '~/lib/meta'
 export async function loader(args: LoaderFunctionArgs) {
   const url = new URL(args.request.url)
 
-  return json({
+  return data({
     issueID: url.searchParams.get('issueID'),
     status: url.searchParams.get('status'),
     kyc: url.searchParams.has('kyc')

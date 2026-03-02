@@ -1,8 +1,8 @@
-import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
-import { json } from '@remix-run/node'
-import { useLoaderData } from '@remix-run/react'
+import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { data } from 'react-router';
+import { useLoaderData } from 'react-router';
 import { DateTime } from 'luxon'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Card, CardContent, Icon, Layouts } from '~/components'
 import { Label } from '~/components/Label'
@@ -41,7 +41,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       break
   }
 
-  return json({
+  return data({
     kycStatus,
     kycDetails,
     gender,
@@ -58,7 +58,7 @@ export const handle: ApplicationProps = {
   layout: Layouts.Wallet,
   scaffold: {
     header: {
-      back: route('/settings'),
+      back: href('/settings'),
       title: 'Personal information'
     },
     isNested: true

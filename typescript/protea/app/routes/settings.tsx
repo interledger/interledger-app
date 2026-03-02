@@ -1,7 +1,7 @@
-import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
-import { Outlet, useLoaderData, useLocation } from '@remix-run/react'
-import { route } from 'routes-gen'
+import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { data, redirect } from 'react-router';
+import { Outlet, useLoaderData, useLocation } from 'react-router';
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   Card,
@@ -21,11 +21,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
 
   const flowId = url.searchParams.get('flow')
-  if (flowId) return redirect(`${route('/recovery/password')}`)
+  if (flowId) return redirect(`${href('/recovery/password')}`)
 
   const { kycStatus } = await getKycStatus(request)
 
-  return json({
+  return data({
     kycStatus
   })
 }
@@ -65,7 +65,7 @@ export default function Page() {
               end
               preventScrollReset
               prefetch='intent'
-              to={route('/settings/profile-personal')}
+              to={href('/settings/profile-personal')}
             >
               <div className='mr-auto flex space-x-3'>
                 <Icon>account_circle</Icon>
@@ -78,7 +78,7 @@ export default function Page() {
             end
             preventScrollReset
             prefetch='intent'
-            to={route('/settings/profile-public')}
+            to={href('/settings/profile-public')}
           >
             <div className='mr-auto flex space-x-3'>
               <Icon>contact_page</Icon>
@@ -90,7 +90,7 @@ export default function Page() {
             end
             preventScrollReset
             prefetch='intent'
-            to={route('/settings/profile-contact')}
+            to={href('/settings/profile-contact')}
           >
             <div className='mr-auto flex space-x-3'>
               <Icon>call</Icon>
@@ -107,7 +107,7 @@ export default function Page() {
             end
             preventScrollReset
             prefetch='intent'
-            to={route('/settings/grants')}
+            to={href('/settings/grants')}
           >
             <div className='mr-auto flex space-x-3'>
               <Icon>request_quote</Icon>
@@ -119,7 +119,7 @@ export default function Page() {
             end
             preventScrollReset
             prefetch='intent'
-            to={route('/settings/keys')}
+            to={href('/settings/keys')}
           >
             <div className='mr-auto flex space-x-3'>
               <Icon>key</Icon>
@@ -136,7 +136,7 @@ export default function Page() {
             end
             preventScrollReset
             prefetch='intent'
-            to={route('/totp/two-factor-authentication')}
+            to={href('/totp/two-factor-authentication')}
           >
             <div className='mr-auto flex space-x-3'>
               <Icon>scan</Icon>
@@ -148,7 +148,7 @@ export default function Page() {
             end
             preventScrollReset
             prefetch='intent'
-            to={route('/login/challenge')}
+            to={href('/login/challenge')}
           >
             <div className='mr-auto flex space-x-3'>
               <Icon>password</Icon>
@@ -160,7 +160,7 @@ export default function Page() {
             end
             preventScrollReset
             prefetch='intent'
-            to={route('/logout')}
+            to={href('/logout')}
           >
             <div className='mr-auto flex space-x-3'>
               <Icon>logout</Icon>

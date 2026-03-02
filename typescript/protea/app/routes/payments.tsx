@@ -1,16 +1,10 @@
-import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
-import { json } from '@remix-run/node'
-import type { ShouldRevalidateFunction } from '@remix-run/react'
-import {
-  Outlet,
-  useFetcher,
-  useLoaderData,
-  useLocation,
-  useSearchParams
-} from '@remix-run/react'
+import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { data } from 'react-router';
+import type { ShouldRevalidateFunction } from 'react-router';
+import { Outlet, useFetcher, useLoaderData, useLocation, useSearchParams } from 'react-router';
 import clsx from 'clsx'
 import { useCallback, useEffect, useState } from 'react'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   Card,
@@ -96,7 +90,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     }, Object.create(null))
   )
 
-  return json({
+  return data({
     kycStatus: kycStatus.kycStatus,
     transactions: dateGroupedTransactions,
     nextPageToken: pageInfo.pageToken
@@ -225,7 +219,7 @@ export default function Page() {
   const pathSegments = location.pathname.split('/').filter(Boolean)
 
   return (
-    <WalletGrid ref={divHeight}>
+    (<WalletGrid ref={divHeight}>
       <GridColumn
         hideOnMobile={pathSegments[pathSegments.length - 1] !== 'payments'}
         className='col-span-full lg:col-span-6'
@@ -249,7 +243,7 @@ export default function Page() {
                   <Router
                     prefetch='render'
                     className='text-sm font-medium text-primary'
-                    to={route('/personal-details')}
+                    to={href('/personal-details')}
                   >
                     Activate wallet
                   </Router>
@@ -269,7 +263,7 @@ export default function Page() {
                     transacting.
                   </span>
                   <Router
-                    to={route('/pay')}
+                    to={href('/pay')}
                     className='text-sm font-medium text-primary'
                   >
                     Send or receive payments now
@@ -286,7 +280,7 @@ export default function Page() {
                 transaction.type.includes('web_monetization_') &&
                 transaction.state == 'Pending' ? (
                   // Can't disable a link :/
-                  <div
+                  (<div
                     key={transaction.id + transaction.state}
                     className='my-1 flex justify-between space-x-4 rounded-xl p-3 first:mt-0 last-of-type:mb-0'
                   >
@@ -314,13 +308,13 @@ export default function Page() {
                       </span>
                       <div className='h-6 w-6' />
                     </div>
-                  </div>
+                  </div>)
                 ) : (
                   <CardLink
                     preventScrollReset={!isMobile}
                     prefetch='none'
                     key={transaction.id + transaction.state}
-                    to={route('/payments/:paymentId', {
+                    to={href('/payments/:paymentId', {
                       paymentId: transaction.id
                     })}
                     className='justify-between space-x-4'
@@ -394,6 +388,6 @@ export default function Page() {
       <GridColumn sticky className='col-span-full lg:col-span-6 lg:col-start-7'>
         <Outlet />
       </GridColumn>
-    </WalletGrid>
-  )
+    </WalletGrid>)
+  );
 }

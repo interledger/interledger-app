@@ -1,12 +1,8 @@
 import type { SelfServiceLoginFlow } from '@ory/kratos-client'
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
-import { useActionData, useLoaderData } from '@remix-run/react'
-import { route } from 'routes-gen'
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { data, redirect } from 'react-router';
+import { useActionData, useLoaderData } from 'react-router';
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Layouts, OutlineButtonRouter } from '~/components'
 import { TotpChallenge } from '~/components/TotpChallenge'
@@ -64,7 +60,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     searchParams.set('returnTo', returnTo)
     searchParams.set('flow', flowFromRedirect)
 
-    return redirect(`${route('/totp/challenge')}?${searchParams.toString()}`)
+    return redirect(`${href('/totp/challenge')}?${searchParams.toString()}`)
   }
   const kratosFlow = await fetch(
     `${KRATOS_URL}/self-service/login/flows?id=${flowId}`,
@@ -80,7 +76,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
 
   const flow: SelfServiceLoginFlow = await kratosFlow.json()
-  return json({ flowId, csrfToken: getCsrfTokenFromFlow(flow) })
+  return data({ flowId, csrfToken: getCsrfTokenFromFlow(flow) })
 }
 
 export const handle: ApplicationProps = {
@@ -109,7 +105,7 @@ export default function Page() {
         csrfToken={csrfToken}
         actionData={actionData}
       />
-      <OutlineButtonRouter to={route('/logout')} className='mt-4'>
+      <OutlineButtonRouter to={href('/logout')} className='mt-4'>
         Log out
       </OutlineButtonRouter>
     </>
@@ -149,7 +145,7 @@ export async function action({ request }: ActionFunctionArgs) {
     if (isSessionAlreadyExitsMessage(message)) {
       return response
     }
-    return json({
+    return data({
       errors: {
         totp_code: message || 'Invalid code'
       }

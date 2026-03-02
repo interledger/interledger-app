@@ -1,12 +1,8 @@
 import { Code } from '@bufbuild/connect'
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { redirect } from '@remix-run/node'
-import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import { route } from 'routes-gen'
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { redirect } from 'react-router';
+import { Form, useActionData, useLoaderData } from 'react-router';
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   Button,
@@ -57,7 +53,7 @@ export const handle: ApplicationProps = {
   layout: Layouts.Focus,
   scaffold: {
     header: {
-      back: route('/'),
+      back: href('/'),
       title: 'Confirmation'
     }
   }

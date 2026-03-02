@@ -1,11 +1,7 @@
 import { Code } from '@bufbuild/connect'
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import { route } from 'routes-gen'
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { Form, useActionData, useLoaderData } from 'react-router';
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, Layouts, TextField } from '~/components'
 import { getPublicWalletDetails, getWalletInfo } from '~/data/wallet.server'
@@ -28,7 +24,7 @@ export const handle: ApplicationProps = {
   layout: Layouts.Focus,
   scaffold: {
     header: {
-      back: route('/settings/profile-public'),
+      back: href('/settings/profile-public'),
       title: 'Edit public name'
     }
   }
@@ -47,7 +43,7 @@ export default function Page() {
     <>
       <Form
         id='edit-public-name'
-        action={route('/settings/profile-public/name')}
+        action={href('/settings/profile-public/name')}
         method='post'
         className='hidden'
       />
@@ -100,7 +96,7 @@ export async function action({ request }: ActionFunctionArgs) {
     } else return response.error({ errors }, {}, { action: 'Contact support' })
   }
 
-  return redirectWithSnackbar(request, route('/settings/profile-public'), {
+  return redirectWithSnackbar(request, href('/settings/profile-public'), {
     message: 'Your public name was updated.',
     icon: 'close'
   })

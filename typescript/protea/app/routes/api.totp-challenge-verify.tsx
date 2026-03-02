@@ -1,4 +1,4 @@
-import { data, json, type ActionFunctionArgs } from '@remix-run/node'
+import { data, type ActionFunctionArgs } from 'react-router';
 import { KRATOS_URL } from '~/lib/kratos.server'
 import logger, { addRequestId, withErrorLog } from '~/lib/logger.server'
 import { extractOrGenerateRequestId } from '~/lib/requestContext.server'
@@ -18,7 +18,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const csrfToken = formData.get('csrf_token') as string
 
     if (!flowId || !totpCode) {
-      return json(
+      return data(
         { success: false, error: 'Missing required fields' },
         { status: 400 }
       )
@@ -63,7 +63,7 @@ export async function action({ request }: ActionFunctionArgs) {
       }
     }
 
-    return json({
+    return data({
       success: false,
       error: errorMessage,
       flowId: errorData.id,
@@ -77,7 +77,7 @@ export async function action({ request }: ActionFunctionArgs) {
       },
       'Unexpected error verifying TOTP challenge'
     )
-    return json({
+    return data({
       success: false,
       error: 'An unexpected error occurred'
     })

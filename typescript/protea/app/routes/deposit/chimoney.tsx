@@ -1,8 +1,8 @@
-import { json, redirect } from '@remix-run/node'
-import { Form, useActionData, useNavigation, useSubmit } from '@remix-run/react'
+import { data, redirect } from 'react-router';
+import { Form, useActionData, useNavigation, useSubmit } from 'react-router';
 import type { ChangeEventHandler } from 'react'
 import { useCallback, useEffect, useState } from 'react'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import { Button, Card } from '~/components'
 
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
@@ -47,7 +47,7 @@ export function ChimoneyDepositPage() {
             issueId: e.data.issueID
           },
           {
-            action: route('/deposit'),
+            action: href('/deposit'),
             method: 'POST'
           }
         )
@@ -80,7 +80,7 @@ export function ChimoneyDepositPage() {
         <>
           <Form
             id='chimoney-amount'
-            action={route('/deposit')}
+            action={href('/deposit')}
             method='post'
             className='hidden'
           />

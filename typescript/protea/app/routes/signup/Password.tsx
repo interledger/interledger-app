@@ -1,6 +1,6 @@
-import { useFetcher, useLoaderData } from '@remix-run/react'
+import { useFetcher, useLoaderData } from 'react-router';
 import { useEffect, useState } from 'react'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import {
   Button,
   Card,
@@ -57,7 +57,7 @@ export function Password() {
     <>
       <passwordFetcher.Form
         id='signup-password'
-        action={route('/signup')}
+        action={href('/signup')}
         method='post'
         className='hidden'
       />

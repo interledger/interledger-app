@@ -1,10 +1,10 @@
 import type { PlainMessage } from '@bufbuild/protobuf/dist/types/message'
 import { Combobox } from '@headlessui/react'
-import { Form, useFetcher, useNavigate } from '@remix-run/react'
+import { Form, useFetcher, useNavigate } from 'react-router';
 import clsx from 'clsx'
 import type { ChangeEventHandler } from 'react'
 import { useCallback, useEffect, useState } from 'react'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import {
   Card,
   CardButton,
@@ -42,13 +42,13 @@ const defaultActions = [
     icon: 'south_west',
     title: 'Deposit',
     kbd: 'D',
-    route: route('/deposit')
+    route: href('/deposit')
   },
   {
     icon: 'north_east',
     title: 'Withdraw',
     kbd: 'W',
-    route: route('/withdraw')
+    route: href('/withdraw')
   }
 ]
 
@@ -94,7 +94,7 @@ export function CommandActions() {
         submit.submit(
           { walletUrl: event.walletUrl },
           {
-            action: route('/pay'),
+            action: href('/pay'),
             method: 'POST'
           }
         )
@@ -117,7 +117,7 @@ export function CommandActions() {
     <Combobox onChange={_onChangeCombobox}>
       <Form
         id='pay-search-form'
-        action={route('/pay')}
+        action={href('/pay')}
         method='post'
         className='hidden'
       />

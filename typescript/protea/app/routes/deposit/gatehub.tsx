@@ -1,5 +1,5 @@
 
-import { useLoaderData, useNavigate } from '@remix-run/react'
+import { useLoaderData, useNavigate } from 'react-router';
 import { useEffect } from 'react'
 
 import type { IframeMessage } from '~/lib/types'

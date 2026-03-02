@@ -1,13 +1,8 @@
 import { proto3 } from '@bufbuild/protobuf'
-import {
-  json,
-  redirect,
-  type ActionFunctionArgs,
-  type LoaderFunctionArgs
-} from '@remix-run/node'
-import { useLoaderData } from '@remix-run/react'
+import { data, redirect, type ActionFunctionArgs, type LoaderFunctionArgs } from 'react-router';
+import { useLoaderData } from 'react-router';
 import { useEffect } from 'react'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import {
   CardProcessingPlaceholder,
   Layouts,
@@ -50,7 +45,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     throw res.errorResponse
   }
 
-  return json(res)
+  return data(res)
 }
 
 export default function Page() {
@@ -126,7 +121,7 @@ export async function action({ request }: ActionFunctionArgs) {
     })
   }
 
-  return redirectWithSnackbar(request, route('/cards'), {
+  return redirectWithSnackbar(request, href('/cards'), {
     message:
       'Your card in the making! We’ll notify you as soon as it’s ready to go.',
     icon: 'close'

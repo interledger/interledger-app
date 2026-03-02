@@ -1,4 +1,4 @@
-import type { ActionFunctionArgs } from '@remix-run/node'
+import type { ActionFunctionArgs } from 'react-router';
 import logger, { addRequestId, withErrorLog } from '~/lib/logger.server'
 import { extractOrGenerateRequestId } from '~/lib/requestContext.server'
 

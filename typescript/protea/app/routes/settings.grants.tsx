@@ -1,7 +1,7 @@
-import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
-import { json } from '@remix-run/node'
-import { useLoaderData } from '@remix-run/react'
-import { route } from 'routes-gen'
+import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { data } from 'react-router';
+import { useLoaderData } from 'react-router';
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Alert, AlertBody, Card, CardLink, Icon, Layouts } from '~/components'
 import { isConnectError } from '~/lib/error.server'
@@ -13,14 +13,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   if (isConnectError(response)) throw response.errorResponse
 
-  return json({ grants: response.grants })
+  return data({ grants: response.grants })
 }
 
 export const handle: ApplicationProps = {
   layout: Layouts.Wallet,
   scaffold: {
     header: {
-      back: route('/settings'),
+      back: href('/settings'),
       title: 'Grants'
     },
     isNested: true
@@ -49,7 +49,7 @@ export default function Page() {
         <Card>
           {grants.map((grant) => (
             <CardLink
-              to={route('/settings/grants/:grantId', {
+              to={href('/settings/grants/:grantId', {
                 grantId: grant.id
               })}
               className='flex items-center justify-between'

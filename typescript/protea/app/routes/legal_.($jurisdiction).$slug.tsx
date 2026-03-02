@@ -1,10 +1,10 @@
-import { json } from '@remix-run/node'
+import { data } from 'react-router';
 import type { ApplicationProps } from '~/components'
 import { Layouts } from '~/components'
 
-import type { LoaderFunctionArgs } from '@remix-run/node'
-import type { UIMatch } from '@remix-run/react'
-import { useLoaderData } from '@remix-run/react'
+import type { LoaderFunctionArgs } from 'react-router';
+import type { UIMatch } from 'react-router';
+import { useLoaderData } from 'react-router';
 import { DateTime } from 'luxon'
 import { StructuredText } from 'react-datocms'
 import { Prose } from '~/components/Content'
@@ -20,7 +20,7 @@ export async function loader({ params }: LoaderFunctionArgs) {
   })
 
   if (legalPage === null)
-    throw json(null, { status: 404, statusText: 'Not Found' })
+    throw data(null, { status: 404, statusText: 'Not Found' })
 
   // TODO decide if we want to route to the global version if there isn't a jurisdiction specific one.
 
@@ -29,7 +29,7 @@ export async function loader({ params }: LoaderFunctionArgs) {
     externalContent = await fetchAndSanitizeHTML(legalPage.external)
   }
 
-  return json({
+  return data({
     footer,
     page: {
       ...legalPage,

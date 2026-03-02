@@ -1,4 +1,4 @@
-import { createRemixStub as createRemixStub } from '@remix-run/testing'
+import { createRoutesStub } from 'react-router';
 import type { Meta, StoryFn } from '@storybook/react'
 import { Icon, TextField } from '~/components'
 
@@ -7,7 +7,7 @@ const meta: Meta<typeof TextField> = {
   component: TextField,
   decorators: [
     (Story) => {
-      const RemixStub = createRemixStub([
+      const RemixStub = createRoutesStub([
         {
           path: '/',
           // @ts-ignore

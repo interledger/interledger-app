@@ -1,4 +1,4 @@
-import { json, type ActionFunctionArgs } from '@remix-run/node'
+import { data, type ActionFunctionArgs } from 'react-router';
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 
@@ -14,7 +14,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const confirmed = formData.get('confirmed') as 'true' | 'false'
 
   if (!transactionId || !confirmed) {
-    return json<PaymentConfirmationResponse>(
+    return data<PaymentConfirmationResponse>(
       {
         success: false,
         errors: {
@@ -27,7 +27,7 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   if (confirmed !== 'true' && confirmed !== 'false') {
-    return json<PaymentConfirmationResponse>(
+    return data<PaymentConfirmationResponse>(
       {
         success: false,
         errors: {
@@ -44,7 +44,7 @@ export async function action({ request }: ActionFunctionArgs) {
   })
 
   if (isConnectError(response)) {
-    return json<PaymentConfirmationResponse>(
+    return data<PaymentConfirmationResponse>(
       {
         success: false,
         errors: {
@@ -55,7 +55,7 @@ export async function action({ request }: ActionFunctionArgs) {
     )
   }
 
-  return json<PaymentConfirmationResponse>({
+  return data<PaymentConfirmationResponse>({
     success: true,
     result: confirmed === 'true' ? 'confirmed' : 'declined'
   })

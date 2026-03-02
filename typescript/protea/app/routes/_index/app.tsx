@@ -1,6 +1,6 @@
-import { useLoaderData } from '@remix-run/react'
+import { useLoaderData } from 'react-router';
 import clsx from 'clsx'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import {
   Alert,
   AlertBody,
@@ -50,7 +50,7 @@ export function AppPage() {
           <Alert>
             <Icon>south_west</Icon>
             <AlertBody>Receive only account</AlertBody>
-            <Router className='ml-auto text-primary' to={route('/pay')}>
+            <Router className='ml-auto text-primary' to={href('/pay')}>
               Find out why
             </Router>
           </Alert>
@@ -73,7 +73,7 @@ export function AppPage() {
                   </p>
                   <Router
                     className='text-sm font-medium text-primary'
-                    to={route('/personal-details')}
+                    to={href('/personal-details')}
                   >
                     Activate wallet
                   </Router>
@@ -165,7 +165,7 @@ export function AppPage() {
                       Cards
                     </span>
                   </div>
-                  <Router className='flex max-h-fit' to={route('/cards')}>
+                  <Router className='flex max-h-fit' to={href('/cards')}>
                     <Icon className='text-medium'>read_more</Icon>
                   </Router>
                 </CardContent>
@@ -175,7 +175,7 @@ export function AppPage() {
             {/* PENDING CONFIRMATIONS */}
             {pendingConfirmations.length > 0 && (
               <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-                <Router className='flex max-h-fit' to={route('/confirmations')}>
+                <Router className='flex max-h-fit' to={href('/confirmations')}>
                   <CardHeader className='mb-2'>
                     <CardTitle className='flex'>
                       <Icon className='mr-2 mt-1 flex w-6 text-orange-500'>
@@ -193,7 +193,7 @@ export function AppPage() {
             <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
               <CardHeader>
                 <CardTitle>Latest payments</CardTitle>
-                <Router className='flex max-h-fit' to={route('/payments')}>
+                <Router className='flex max-h-fit' to={href('/payments')}>
                   <Icon className='text-medium'>read_more</Icon>
                 </Router>
               </CardHeader>
@@ -205,7 +205,7 @@ export function AppPage() {
                       transacting.
                     </span>
                     <Router
-                      to={route('/pay')}
+                      to={href('/pay')}
                       className='text-sm font-medium text-primary'
                     >
                       Send or receive payments now
@@ -216,7 +216,7 @@ export function AppPage() {
               {transactions.map((transaction: any, index: number) => (
                 <CardLink
                   key={transaction.id}
-                  to={route('/payments/:paymentId', {
+                  to={href('/payments/:paymentId', {
                     paymentId: transaction.id
                   })}
                   className='justify-between'
@@ -324,7 +324,7 @@ function CTACards() {
                   </p>
                   <Router
                     className='text-sm font-medium text-primary'
-                    to={route('/accounts')}
+                    to={href('/accounts')}
                   >
                     Connect a bank or card
                   </Router>
@@ -348,7 +348,7 @@ function CTACards() {
                   </p>
                   <Router
                     className='text-sm font-medium text-primary'
-                    to={route('/connect/card')}
+                    to={href('/connect/card')}
                   >
                     Connect a card
                   </Router>
@@ -373,7 +373,7 @@ function CTACards() {
                   </p>
                   <Router
                     className='text-sm font-medium text-primary'
-                    to={route(
+                    to={href(
                       walletInfo.country === 'US'
                         ? '/connect/bank/us'
                         : '/connect/bank/za'
@@ -400,7 +400,7 @@ function CTACards() {
                 </p>
                 <Router
                   className='text-sm font-medium text-primary'
-                  to={route('/connect/interac')}
+                  to={href('/connect/interac')}
                 >
                   Connect an Interac account
                 </Router>

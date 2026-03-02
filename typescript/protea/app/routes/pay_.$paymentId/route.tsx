@@ -1,14 +1,10 @@
 import { Code } from '@bufbuild/connect'
 import type { PlainMessage } from '@bufbuild/protobuf/dist/types/message'
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
-import { useLoaderData } from '@remix-run/react'
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { data, redirect } from 'react-router';
+import { useLoaderData } from 'react-router';
 import { useEffect } from 'react'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 
 import type { ApplicationProps } from '~/components'
 import {
@@ -55,7 +51,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
   const { kycStatus } = await getKycStatus(request)
   if (kycStatus != KycStatus.Approved)
-    return redirect(route('/personal-details'))
+    return redirect(href('/personal-details'))
 
   features = await getFeatures(request)
 
@@ -64,7 +60,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   if (isConnectError(payment)) throw payment.errorResponse
 
   // This payment is already confirmed
-  if (payment.state > 1) throw redirect(route('/pay'))
+  if (payment.state > 1) throw redirect(href('/pay'))
 
   const publicWalletInfoResponse = await grpc.getPublicWalletInfo(request, {
     walletAddress: payment.receiverWalletUrl
@@ -193,7 +189,7 @@ export default function Page() {
                 <Router
                   prefetch='render'
                   className='text-sm font-medium text-primary'
-                  to={route('/accounts')}
+                  to={href('/accounts')}
                 >
                   Go to accounts page
                 </Router>
@@ -219,7 +215,7 @@ export default function Page() {
               <Router
                 prefetch='render'
                 className='text-sm font-medium text-primary'
-                to={route('/accounts')}
+                to={href('/accounts')}
               >
                 Go to accounts page
               </Router>
@@ -247,7 +243,7 @@ export async function action(args: ActionFunctionArgs) {
   } else if (formName === 'confirmPayment') {
     return confirmPaymentAction(args)
   } else {
-    throw json(
+    throw data(
       { title: "Submitted a form that doesn't exist" },
       {
         status: 400
@@ -294,7 +290,7 @@ async function confirmPaymentAction({
     return response.error({ errors }, {}, { action: 'Contact support' })
   }
 
-  return redirectWithSnackbar(request, route('/'), {
+  return redirectWithSnackbar(request, href('/'), {
     message: 'Payment created successfully.',
     icon: 'close'
   })
@@ -390,7 +386,7 @@ async function updatePaymentAction({
     )
   }
 
-  return json({
+  return data({
     payment: response,
     intent,
     errors

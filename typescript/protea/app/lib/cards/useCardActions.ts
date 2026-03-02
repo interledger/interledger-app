@@ -1,6 +1,6 @@
-import { useFetcher } from '@remix-run/react'
+import { useFetcher } from 'react-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import {
   CardLockLevel,
   CardStatus,
@@ -248,7 +248,7 @@ export const useCardActions = (card: StorableCard) => {
         formData.append('publicKey', keyPair?.publicKey)
         fetcher.submit(formData, {
           method: 'post',
-          action: route('/api/getCardToken')
+          action: href('/api/getCardToken')
         })
       })
     },
@@ -296,7 +296,7 @@ export const useCardActions = (card: StorableCard) => {
         formData.append('operation', operation)
         fetcher.submit(formData, {
           method: 'post',
-          action: route('/api/cardOperation')
+          action: href('/api/cardOperation')
         })
       })
     },

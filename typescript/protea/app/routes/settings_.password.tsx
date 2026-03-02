@@ -1,11 +1,7 @@
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
-import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import { route } from 'routes-gen'
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { data, redirect } from 'react-router';
+import { Form, useActionData, useLoaderData } from 'react-router';
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts, TextField } from '~/components'
 import { error } from '~/lib/error.server'
@@ -50,10 +46,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
       headers: trimHeaders(flowRes.headers, ['set-cookie'])
     })
   }
-  return json({
+  return data({
     flow,
     csrfToken: getCsrfTokenFromFlow(flow)
-    // backTo: route('/settings')
+    // backTo: href('/settings')
   })
 }
 
@@ -61,7 +57,7 @@ export const handle: ApplicationProps = {
   layout: Layouts.Focus,
   scaffold: {
     header: {
-      back: route('/settings'),
+      back: href('/settings'),
       title: 'Set password'
     }
   }
@@ -154,7 +150,7 @@ export async function action({ request }: ActionFunctionArgs) {
     return error(request, { errors: errs })
   }
 
-  return redirectWithSnackbar(request, route('/settings'), {
+  return redirectWithSnackbar(request, href('/settings'), {
     message: 'New password successfully saved.',
     icon: 'close'
   })

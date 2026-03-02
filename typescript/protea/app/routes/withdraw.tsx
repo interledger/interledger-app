@@ -1,25 +1,15 @@
 import { Code } from '@bufbuild/connect'
 import type { PlainMessage } from '@bufbuild/protobuf/dist/types/message'
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
-import {
-  Form,
-  useActionData,
-  useLoaderData,
-  useSearchParams,
-  useSubmit
-} from '@remix-run/react'
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { data, redirect } from 'react-router';
+import { Form, useActionData, useLoaderData, useSearchParams, useSubmit } from 'react-router';
 import {
   useCallback,
   useEffect,
   useState,
   type ChangeEventHandler
 } from 'react'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import type { ApplicationProps, SelectOptions } from '~/components'
 import {
   Button,
@@ -71,7 +61,7 @@ export async function loader(args: LoaderFunctionArgs) {
 
   const { kycStatus } = await getKycStatus(args.request)
   if (kycStatus != KycStatus.Approved)
-    return redirect(route('/personal-details'))
+    return redirect(href('/personal-details'))
 
   if (providerResponse.provider == 'gatehub') {
     return gatehubWithdrawalLoader(args)
@@ -133,7 +123,7 @@ async function addProviderToLoader(request: Request, provider: 'interledger' | '
   }
 
   balance = balances.find((acc) => acc.id == balanceAccount?.linkedAccount)
-  if (!balanceAccount) throw json({}, { status: 404 })
+  if (!balanceAccount) throw data({}, { status: 404 })
 
   const linkedAccounts = await getLinkedAccountsForWithdraw(
     request,
@@ -240,7 +230,7 @@ function FynbosWithdrawalPage() {
               <Router
                 prefetch='render'
                 className='text-sm font-medium text-primary'
-                to={route('/accounts')}
+                to={href('/accounts')}
               >
                 Go to accounts page
               </Router>
@@ -300,7 +290,7 @@ const Amount = ({ data }: { data: WithdrawalLoaderData }) => {
     <>
       <Form
         id='account-withdraw'
-        action={route('/withdraw')}
+        action={href('/withdraw')}
         method='post'
         className='hidden'
       />
@@ -472,7 +462,7 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   return redirect(
-    route('/withdraw/:paymentId', {
+    href('/withdraw/:paymentId', {
       paymentId: withdrawResponse.id
     })
   )
@@ -487,7 +477,7 @@ async function createGatehubWithdrawal(request: Request, formData: FormData) {
   }
 
   return redirect(
-    route('/transactions/:transactionId', {
+    href('/transactions/:transactionId', {
       transactionId: withdrawResponse.transactionId
     })
   )

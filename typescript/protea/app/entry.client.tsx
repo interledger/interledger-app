@@ -1,6 +1,6 @@
-import { RemixBrowser, useLocation, useMatches } from '@remix-run/react'
-import * as Sentry from '@sentry/remix'
-import { StrictMode, startTransition, useEffect } from 'react'
+import { HydratedRouter } from 'react-router/dom';
+import * as Sentry from '@sentry/react-router'
+import { StrictMode, startTransition } from 'react'
 import { hydrateRoot } from 'react-dom/client'
 
 if (
@@ -12,14 +12,8 @@ if (
     dsn: (window as any).ENV.sentryDsn,
     release: (window as any).ENV.sentryRelease,
     integrations: [
-      new Sentry.BrowserTracing({
-        routingInstrumentation: Sentry.remixRouterInstrumentation(
-          useEffect,
-          useLocation,
-          useMatches
-        )
-      }),
-      new Sentry.Replay()
+      Sentry.browserTracingIntegration(),
+      Sentry.replayIntegration()
     ],
     tracesSampleRate: 1.0,
     tracePropagationTargets: ['https://interledger.app'],
@@ -32,7 +26,7 @@ startTransition(() => {
   hydrateRoot(
     document,
     <StrictMode>
-      <RemixBrowser />
+      <HydratedRouter />
     </StrictMode>
   )
 })

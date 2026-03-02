@@ -1,10 +1,10 @@
 import type { PlainMessage } from '@bufbuild/protobuf/dist/types/message'
-import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
-import { json } from '@remix-run/node'
-import type { UIMatch } from '@remix-run/react'
-import { Link, useLoaderData } from '@remix-run/react'
+import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { data } from 'react-router';
+import type { UIMatch } from 'react-router';
+import { Link, useLoaderData } from 'react-router';
 import { useState } from 'react'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   Alert,
@@ -80,7 +80,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
   const pusherArgs = await getPusherArgs(request)
 
-  return json({
+  return data({
     senderAccountTitle,
     receiverAccountTitle,
     publicWalletInfo,
@@ -99,7 +99,7 @@ export const handle: ApplicationProps = {
   layout: Layouts.Wallet,
   scaffold: {
     header: {
-      back: route('/payments'),
+      back: href('/payments'),
       title: 'Payment',
       actions: (match: UIMatch<typeof loader>) => {
         if (
@@ -879,7 +879,7 @@ function CardTransaction() {
             <span className='text-medium'>
               <Link
                 className='text-primary'
-                to={route('/cards/:cardId', {
+                to={href('/cards/:cardId', {
                   cardId: transaction.cardTransactionDetails!.cardId // cardId will always be set for a card_transaction
                 })}
               >

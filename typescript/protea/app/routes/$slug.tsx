@@ -1,10 +1,10 @@
-import { json } from '@remix-run/node'
+import { data } from 'react-router';
 import type { ApplicationProps } from '~/components'
 import { Layouts } from '~/components'
 
-import type { LoaderFunctionArgs } from '@remix-run/node'
-import type { UIMatch } from '@remix-run/react'
-import { useLoaderData } from '@remix-run/react'
+import type { LoaderFunctionArgs } from 'react-router';
+import type { UIMatch } from 'react-router';
+import { useLoaderData } from 'react-router';
 import { MarketingPageWithSections } from '~/components/Content'
 import { getCurrentMarketingPage } from '~/data/content.server'
 import type { SectionRecord } from '~/generated/dato-cms-graphql'
@@ -17,9 +17,9 @@ export async function loader({ params }: LoaderFunctionArgs) {
   })
 
   if (marketingPage === null)
-    throw json(null, { status: 404, statusText: 'Not Found' })
+    throw data(null, { status: 404, statusText: 'Not Found' })
 
-  return json({
+  return data({
     footer,
     marketingPage
   })

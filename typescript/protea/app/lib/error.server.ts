@@ -1,10 +1,9 @@
 import { Code } from '@bufbuild/connect'
 import type { ConnectError as BufConnectError } from '@bufbuild/connect/dist/types/connect-error'
 import type { PlainMessage } from '@bufbuild/protobuf/dist/types/message'
-import type { TypedResponse } from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
-import { captureMessage } from '@sentry/remix'
-import { route } from 'routes-gen'
+import { data as rrData, redirect } from 'react-router';
+import { captureMessage } from '@sentry/react-router'
+import { href } from 'react-router'
 import type {
   BadRequest_FieldViolation,
   PreconditionFailure_Violation
@@ -27,7 +26,7 @@ type JsonWithErrorFunction = <
   snackbar?: Partial<SnackbarType>,
   init?: number | ResponseInit,
   isConnectError?: boolean
-) => Promise<TypedResponse<(Data & object) | (Data & null)>>
+) => Promise<Data & object | Data & null>
 
 type JsonWithConnectErrorFunction = <
   Data extends Record<string, unknown> &
@@ -37,10 +36,10 @@ type JsonWithConnectErrorFunction = <
   mapping?: Partial<Data['errors']>,
   snackbar?: Partial<SnackbarType>,
   init?: number | ResponseInit
-) => Promise<TypedResponse<(Data & object) | (Data & null)>>
+) => Promise<Data & object | Data & null>
 
 /**
- * This is an extension of the json function from Remix.
+ * This is an extension of the data function from Remix.
  * This function will set the status of the response to 400, and can flash a snackbar if required.
  * It will also log the error to Sentry.
  * @param request
@@ -96,7 +95,7 @@ export const error: JsonWithErrorFunction = async (
   }
 
   if (typeof data !== 'object') {
-    throw json(
+    throw rrData(
       {},
       {
         status: 400,
@@ -105,7 +104,7 @@ export const error: JsonWithErrorFunction = async (
     )
   }
 
-  return json(data, {
+  return rrData(data, {
     ...responseInit,
     headers: newHeaders,
     status: 400
@@ -138,7 +137,7 @@ export class ConnectError {
 
     const mappedStatus = httpMapping(err.code)
     this.status = mappedStatus
-    this.errorResponse = json({}, mappedStatus)
+    this.errorResponse = rrData({}, mappedStatus)
 
     const url = new URL(request.url)
 
@@ -156,10 +155,10 @@ export class ConnectError {
       const errorDetails = err.findDetails(ErrorInfo)
       const reason = errorDetails?.[0]?.reason
       if (reason === 'aal2_required') {
-        throw redirect(route('/totp/challenge') + url.search)
+        throw redirect(href('/totp/challenge') + url.search)
       }
 
-      throw redirect(route('/login') + url.search, {
+      throw redirect(href('/login') + url.search, {
         headers: {
           'Set-Cookie':
             'ory_kratos_session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT'

@@ -1,12 +1,8 @@
 import { Code } from '@bufbuild/connect'
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import type { UIMatch } from '@remix-run/react'
-import { Form, useActionData, useLoaderData, useParams } from '@remix-run/react'
-import { route } from 'routes-gen'
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
+import type { UIMatch } from 'react-router';
+import { Form, useActionData, useLoaderData, useParams } from 'react-router';
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, Layouts, TextField } from '~/components'
 import { getLinkedAccount } from '~/data/accounts.server'
@@ -28,7 +24,7 @@ export const handle: ApplicationProps = {
   layout: Layouts.Focus,
   scaffold: {
     header: {
-      back: route('/accounts'),
+      back: href('/accounts'),
       title: (match: UIMatch<typeof loader>) =>
         match.data.type == 'bank' ? 'Bank account nickname' : 'Card nickname'
     }
@@ -52,7 +48,7 @@ export default function Page() {
     <>
       <Form
         id='edit-linked-account-name'
-        action={route('/accounts/:accountId/name', {
+        action={href('/accounts/:accountId/name', {
           accountId: params.accountId as string
         })}
         method='post'
@@ -115,7 +111,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
   return redirectWithSnackbar(
     request,
-    route('/accounts/:accountId', {
+    href('/accounts/:accountId', {
       accountId: params.accountId as string
     }),
     {

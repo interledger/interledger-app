@@ -1,16 +1,7 @@
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { data, json, redirect } from '@remix-run/node'
-import {
-  Form,
-  useActionData,
-  useLoaderData,
-  useSearchParams
-} from '@remix-run/react'
-import { route } from 'routes-gen'
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { data, redirect } from 'react-router';
+import { Form, useActionData, useLoaderData, useSearchParams } from 'react-router';
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   Button,
@@ -127,7 +118,7 @@ export default function Page() {
           id='password'
           label='Password'
           labelLink='Forgot password?'
-          labelLinkTo={route('/recovery')}
+          labelLinkTo={href('/recovery')}
           name='password'
           type='password'
           form='login'
@@ -145,7 +136,7 @@ export default function Page() {
       </Button>
       <p className='text-center text-sm font-medium text-medium'>
         New to the Interledger Wallet?{' '}
-        <Router className='text-primary' to={route('/signup')}>
+        <Router className='text-primary' to={href('/signup')}>
           Sign up
         </Router>
       </p>
@@ -207,7 +198,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const headers = trimHeaders(res.headers, ['set-cookie'])
 
   if (res.status === 422) {
-    return redirect(`${route('/totp/challenge')}?${searchParams.toString()}`, {
+    return redirect(`${href('/totp/challenge')}?${searchParams.toString()}`, {
       headers
     })
   }
@@ -217,7 +208,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const checkTOTP = await responseCopy.json()
     if (checkTOTP?.session?.authenticator_assurance_level === 'aal1') {
       return redirect(
-        `${route(
+        `${href(
           '/totp/two-factor-authentication'
         )}?${searchParams.toString()}`,
         {
@@ -235,7 +226,7 @@ export async function action({ request }: ActionFunctionArgs) {
     })
   }
 
-  return redirect(route('/'), {
+  return redirect(href('/'), {
     headers: headers
   })
 }

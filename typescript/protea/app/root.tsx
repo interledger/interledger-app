@@ -1,9 +1,4 @@
-import type {
-  LinksFunction,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { json } from '@remix-run/node'
+import type { LinksFunction, LoaderFunctionArgs, MetaFunction } from 'react-router';
 import {
   Links,
   Meta,
@@ -13,9 +8,9 @@ import {
   useLoaderData,
   useNavigation,
   useRouteError,
-  type ShouldRevalidateFunction
-} from '@remix-run/react'
-import { captureRemixErrorBoundaryError, withSentry } from '@sentry/remix'
+  type ShouldRevalidateFunction,
+} from 'react-router';
+import { captureException } from '@sentry/react-router'
 import clsx from 'clsx'
 import { type ReactNode } from 'react'
 import {
@@ -144,7 +139,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
 
   if (!isUser) {
-    return json({
+    return {
       isDisabled,
       walletAddress,
       isUser: false,
@@ -152,7 +147,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       snackbar,
       pusherArgs,
       env
-    })
+    }
   }
 
   await recoveryLinkSessionInvalidationGuard(pathname, request)
@@ -172,7 +167,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     }
   })
 
-  return json({
+  return {
     isDisabled,
     walletAddress,
     isUser,
@@ -180,7 +175,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     snackbar,
     pusherArgs,
     env
-  })
+  }
 }
 
 function Page() {
@@ -207,11 +202,11 @@ function Page() {
     </Document>
   )
 }
-export default withSentry(Page)
+export default Page
 
 export function ErrorBoundary() {
   const error = useRouteError()
-  captureRemixErrorBoundaryError(error)
+  captureException(error)
 
   if (isRouteErrorResponse(error)) {
     return (

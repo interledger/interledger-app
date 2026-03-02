@@ -7,8 +7,8 @@ import type {
   Session,
   UiNodeInputAttributes
 } from '@ory/kratos-client'
-import { redirect } from '@remix-run/node'
-import { route } from 'routes-gen'
+import { redirect } from 'react-router';
+import { href } from 'react-router'
 import { safeReturnTo } from './url.server'
 import logger from './logger.server'
 
@@ -58,12 +58,12 @@ export async function getUserSession(
   switch (session.status) {
     case 401:
     case 500:
-      throw redirect(`${route('/login')}?${searchParams.toString()}`)
+      throw redirect(`${href('/login')}?${searchParams.toString()}`)
     case 403:
     case 422: // Need to complete 2FA.
       if (!allowAal1) {
         requestUrl.searchParams.set('aal', 'aal2')
-        throw redirect(`${route('/login')}?${searchParams.toString()}`)
+        throw redirect(`${href('/login')}?${searchParams.toString()}`)
       }
   }
 
@@ -96,11 +96,11 @@ export async function requireNoUserSession(request: Request): Promise<void> {
     // User shouldn't have session/cookies so don't catch unauthorised - 401.
     case 403:
     case 422: // Need to complete 2FA.
-      throw redirect(route('/totp/challenge'))
+      throw redirect(href('/totp/challenge'))
   }
 
   const userSession = await session.json()
-  if (typeof userSession.error == 'undefined') throw redirect(route('/'))
+  if (typeof userSession.error == 'undefined') throw redirect(href('/'))
 }
 
 // This will only run on the server so don't need a router.
@@ -128,7 +128,7 @@ export function handleFlowError(
   switch (flow.error.id) {
     case 'session_inactive':
       // The user doesn't have a session
-      throw redirect(route('/login'), {
+      throw redirect(href('/login'), {
         headers: {
           'Clear-Site-Data': 'cookies'
         }
@@ -138,7 +138,7 @@ export function handleFlowError(
       throw redirect(`/totp/challenge?returnTo=${redirectRoute}`)
     case 'session_already_available':
       // User is already signed in, let's redirect them home!
-      throw redirect(route('/'))
+      throw redirect(href('/'))
     case 'session_refresh_required':
       // We need to re-authenticate to perform this action
       // NOTE: this is a last resort in case a user manualy bypasses the standard flow.

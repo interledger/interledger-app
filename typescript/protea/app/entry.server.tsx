@@ -1,7 +1,14 @@
-import type { DataFunctionArgs, EntryContext } from '@remix-run/node'
-import { createReadableStreamFromReadable } from '@remix-run/node'
-import { RemixServer, isRouteErrorResponse } from '@remix-run/react'
-import * as Sentry from '@sentry/remix'
+import { webcrypto } from 'node:crypto'
+
+// Ensure Web Crypto API is available as a global in Vite's SSR module context
+if (typeof globalThis.crypto === 'undefined') {
+  ;(globalThis as Record<string, unknown>).crypto = webcrypto
+}
+
+import type { EntryContext } from 'react-router';
+import { createReadableStreamFromReadable } from '@react-router/node';
+import { ServerRouter, isRouteErrorResponse } from 'react-router';
+import * as Sentry from '@sentry/react-router'
 import isbot from 'isbot'
 import { renderToPipeableStream } from 'react-dom/server'
 import { PassThrough } from 'stream'
@@ -22,7 +29,7 @@ if (process.env.SENTRY_DSN) {
     tracesSampleRate: 1,
     environment: process.env.FYNBOS_ENV,
     integrations: [
-      new Sentry.Integrations.RequestData({
+      Sentry.requestDataIntegration({
         include: {
           cookies: false
         }
@@ -33,19 +40,12 @@ if (process.env.SENTRY_DSN) {
 
 export function handleError(
   error: unknown,
-  { request }: DataFunctionArgs
+  { request }: { request: Request }
 ): void {
   const requestId = extractOrGenerateRequestId(request)
   
   if (error instanceof Error) {
-    Sentry.captureRemixServerException(error, 'remix.server', request).catch(
-      (e) => {
-        logger.error(
-          { ...addRequestId(requestId), error: e instanceof Error ? e.message : String(e) },
-          'Failed to capture error in Sentry'
-        )
-      }
-    )
+    Sentry.captureException(error)
   } else {
     // Opt out for 404 errors
     if (isRouteErrorResponse(error) && error.status === 404) {
@@ -64,7 +64,7 @@ export default function handleRequest(
   request: Request,
   responseStatusCode: number,
   responseHeaders: Headers,
-  remixContext: EntryContext
+  reactRouterContext: EntryContext
 ) {
   const startTime = Date.now()
   const requestId = extractOrGenerateRequestId(request)
@@ -86,7 +86,7 @@ export default function handleRequest(
         request,
         responseStatusCode,
         responseHeaders,
-        remixContext,
+        reactRouterContext,
         requestId,
         startTime
       )
@@ -94,7 +94,7 @@ export default function handleRequest(
         request,
         responseStatusCode,
         responseHeaders,
-        remixContext,
+        reactRouterContext,
         requestId,
         startTime
       )
@@ -132,16 +132,15 @@ function handleBotRequest(
   request: Request,
   responseStatusCode: number,
   responseHeaders: Headers,
-  remixContext: EntryContext,
+  reactRouterContext: EntryContext,
   requestId: string,
   startTime: number
 ) {
   return new Promise<Response>((resolve, reject) => {
     const { pipe, abort } = renderToPipeableStream(
-      <RemixServer
-        context={remixContext}
+      <ServerRouter
+        context={reactRouterContext}
         url={request.url}
-        abortDelay={streamTimeout + 1000}
       />,
       {
         onAllReady() {
@@ -176,23 +175,22 @@ function handleBotRequest(
     )
 
     setTimeout(abort, streamTimeout + 1000)
-  })
+  });
 }
 
 function handleBrowserRequest(
   request: Request,
   responseStatusCode: number,
   responseHeaders: Headers,
-  remixContext: EntryContext,
+  reactRouterContext: EntryContext,
   requestId: string,
   startTime: number
 ) {
   return new Promise<Response>((resolve, reject) => {
     const { pipe, abort } = renderToPipeableStream(
-      <RemixServer
-        context={remixContext}
+      <ServerRouter
+        context={reactRouterContext}
         url={request.url}
-        abortDelay={streamTimeout + 1000}
       />,
       {
         onShellReady() {
@@ -227,5 +225,5 @@ function handleBrowserRequest(
     )
 
     setTimeout(abort, streamTimeout + 1000)
-  })
+  });
 }

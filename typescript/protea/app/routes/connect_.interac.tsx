@@ -1,18 +1,9 @@
 import { Code } from '@bufbuild/connect'
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { redirect } from '@remix-run/node'
-import {
-  Form,
-  useActionData,
-  useLoaderData,
-  useNavigation
-} from '@remix-run/react'
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { redirect } from 'react-router';
+import { Form, useActionData, useLoaderData, useNavigation } from 'react-router';
 import { useEffect, useState } from 'react'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts, TextField } from '~/components'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
@@ -28,7 +19,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     isConnectError(balancesResponse) ||
     balancesResponse.balances.filter((bal) => bal.currency == 'CAD').length == 0
   )
-    throw redirect(route('/'))
+    throw redirect(href('/'))
 
   return jsonWithCSRF(request, {})
 }
@@ -37,7 +28,7 @@ export const handle: ApplicationProps = {
   layout: Layouts.Focus,
   scaffold: {
     header: {
-      back: route('/accounts'),
+      back: href('/accounts'),
       title: 'Connect interac account'
     }
   }
@@ -72,7 +63,7 @@ export default function Page() {
     <>
       <Form
         id='connect-interac'
-        action={route('/connect/interac')}
+        action={href('/connect/interac')}
         method='post'
         className='hidden'
       />
@@ -135,7 +126,7 @@ export async function action({ request }: ActionFunctionArgs) {
     }
   }
 
-  return redirectWithSnackbar(request, route('/accounts'), {
+  return redirectWithSnackbar(request, href('/accounts'), {
     message: 'New interac account successfully saved.',
     icon: 'close'
   })

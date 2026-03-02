@@ -1,7 +1,6 @@
-import { type SerializeFrom } from '@remix-run/node'
-import { useNavigate, useParams, useRouteLoaderData } from '@remix-run/react'
+import { useNavigate, useParams, useRouteLoaderData } from 'react-router';
 import { useEffect, useMemo } from 'react'
-import { route, type RouteParams } from 'routes-gen'
+import { href } from 'react-router'
 import { Layouts, type ApplicationProps } from '~/components'
 import { CardView } from '~/components/Cards'
 import { useCardsStore } from '~/lib/cards/useCardsStore'
@@ -12,7 +11,7 @@ export const handle: ApplicationProps = {
   scaffold: {
     header: {
       title: 'Cards',
-      back: route('/cards')
+      back: href('/cards')
     },
     isNested: true
   }
@@ -20,9 +19,7 @@ export const handle: ApplicationProps = {
 
 export default function PageCardID() {
   const navigate = useNavigate()
-  const { features } = useRouteLoaderData('root') as SerializeFrom<
-    typeof rootLoader
-  >
+  const { features } = useRouteLoaderData('root') as Awaited<ReturnType<typeof rootLoader>>
   const { cards, areCardsFetched } = useCardsStore()
   const { cardId } = useParams<RouteParams['/cards/:cardId']>()
   const card = useMemo(

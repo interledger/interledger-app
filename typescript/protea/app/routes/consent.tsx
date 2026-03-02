@@ -1,10 +1,6 @@
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
-import { Form, useLoaderData, useSearchParams } from '@remix-run/react'
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { data, redirect } from 'react-router';
+import { Form, useLoaderData, useSearchParams } from 'react-router';
 import type { ApplicationProps } from '~/components'
 import {
   Button,
@@ -32,10 +28,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   // there should be a grant. Throw 404 for now.
   if (grants.length < 1) {
-    throw json({}, 404)
+    throw data({}, 404)
   }
 
-  return json({
+  return data({
     ...grants[0],
     clientName,
     clientUri,
@@ -190,7 +186,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   // there should be a grant. Throw 404 for now.
   if (grants.length < 1) {
-    throw json({}, 404)
+    throw data({}, 404)
   }
 
   let walletInfo = await getWalletInfo(request)
@@ -201,7 +197,7 @@ export async function action({ request }: ActionFunctionArgs) {
     }
   })
   if (!ownsResource) {
-    throw json({}, 403)
+    throw data({}, 403)
   }
 
   let userDecision: 'accept' | 'reject' =

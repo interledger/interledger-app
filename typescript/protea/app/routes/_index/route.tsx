@@ -1,8 +1,8 @@
 import { KycStatus } from '~/lib/types'
-import type { LinksFunction, LoaderFunctionArgs } from '@remix-run/node'
-import { json } from '@remix-run/node'
-import type { UIMatch } from '@remix-run/react'
-import { useLoaderData } from '@remix-run/react'
+import type { LinksFunction, LoaderFunctionArgs } from 'react-router';
+import { data } from 'react-router';
+import type { UIMatch } from 'react-router';
+import { useLoaderData } from 'react-router';
 import type { ApplicationProps } from '~/components'
 import { Fab, Layouts } from '~/components'
 import {
@@ -55,7 +55,7 @@ async function appLoader({ request }: LoaderFunctionArgs) {
   ])
   if (isConnectError(balanceResponse)) throw balanceResponse.error
 
-  return json({
+  return data({
     isUser: true,
     walletInfo,
     transactions: transactions.transactions,
@@ -67,7 +67,7 @@ async function appLoader({ request }: LoaderFunctionArgs) {
 }
 
 async function marketingLoader() {
-  return json({
+  return data({
     isUser: false
   })
 }

@@ -1,11 +1,7 @@
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import type { UIMatch } from '@remix-run/react'
-import { Form, useLoaderData } from '@remix-run/react'
-import { route } from 'routes-gen'
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
+import type { UIMatch } from 'react-router';
+import { Form, useLoaderData } from 'react-router';
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Card, CardContent, Layouts, OutlineButton } from '~/components'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
@@ -98,7 +94,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     return response.error({ errors })
   }
 
-  return redirectWithSnackbar(request, route('/settings/keys'), {
+  return redirectWithSnackbar(request, href('/settings/keys'), {
     message: 'Public key was deleted.',
     icon: 'close'
   })

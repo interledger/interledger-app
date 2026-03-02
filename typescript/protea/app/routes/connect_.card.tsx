@@ -1,12 +1,8 @@
 import { Code } from '@bufbuild/connect'
-import {
-  type ActionFunctionArgs,
-  type LoaderFunctionArgs,
-  type MetaFunction
-} from '@remix-run/node'
-import { useLoaderData, useSubmit } from '@remix-run/react'
+import { type ActionFunctionArgs, type LoaderFunctionArgs, type MetaFunction } from 'react-router';
+import { useLoaderData, useSubmit } from 'react-router';
 import { useEffect } from 'react'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Layouts } from '~/components'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
@@ -34,7 +30,7 @@ export const handle: ApplicationProps = {
   layout: Layouts.Focus,
   scaffold: {
     header: {
-      back: route('/accounts'),
+      back: href('/accounts'),
       title: 'Connect card'
     }
   }
@@ -159,7 +155,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   return redirectWithSnackbar(
     request,
-    route('/accounts/:accountId', { accountId: response.id }),
+    href('/accounts/:accountId', { accountId: response.id }),
     {
       message: 'New card successfully saved.',
       icon: 'close'

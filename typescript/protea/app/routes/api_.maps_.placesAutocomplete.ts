@@ -1,6 +1,6 @@
 import { PlaceAutocompleteType } from '@googlemaps/google-maps-services-js'
-import type { LoaderFunctionArgs } from '@remix-run/node'
-import { json } from '@remix-run/node'
+import type { LoaderFunctionArgs } from 'react-router';
+import { data } from 'react-router';
 import { mapsClient } from '~/lib/maps.server'
 import logger from '~/lib/logger.server'
 
@@ -33,7 +33,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       return e
     })
 
-  return json({
+  return data({
     predictions
   })
 }

@@ -1,4 +1,4 @@
-import { json, type ActionFunctionArgs } from '@remix-run/node'
+import { data, type ActionFunctionArgs } from 'react-router';
 import { KRATOS_URL } from '~/lib/kratos.server'
 import logger, { addRequestId } from '~/lib/logger.server'
 import { extractOrGenerateRequestId } from '~/lib/requestContext.server'
@@ -33,14 +33,14 @@ export async function action({ request }: ActionFunctionArgs) {
       const location = initResponse.headers.get('location')
 
       if (!location) {
-        return json({ error: 'Failed to initialize TOTP challenge' })
+        return data({ error: 'Failed to initialize TOTP challenge' })
       }
 
       // Extract flow ID from the redirect URL
       const flowId = new URL(location, KRATOS_URL).searchParams.get('flow')
 
       if (!flowId) {
-        return json({ error: 'Failed to extract flow ID' })
+        return data({ error: 'Failed to extract flow ID' })
       }
 
       // Step 3: Fetch the full flow details using the flow ID
@@ -55,7 +55,7 @@ export async function action({ request }: ActionFunctionArgs) {
       )
 
       if (!flowResponse.ok) {
-        return json(
+        return data(
           { error: 'Failed to fetch flow details' },
           { status: flowResponse.status }
         )
@@ -72,10 +72,10 @@ export async function action({ request }: ActionFunctionArgs) {
       )
 
       if (!totpNode) {
-        return json({ error: 'TOTP is not configured for this account' })
+        return data({ error: 'TOTP is not configured for this account' })
       }
 
-      return json({
+      return data({
         flowId,
         csrfToken,
         method: flow.ui?.method ?? 'POST',
@@ -101,10 +101,10 @@ export async function action({ request }: ActionFunctionArgs) {
           )
 
           if (!totpNode) {
-            return json({ error: 'TOTP is not configured for this account' })
+            return data({ error: 'TOTP is not configured for this account' })
           }
 
-          return json({
+          return data({
             flowId: flow.id,
             csrfToken,
             method: flow.ui?.method ?? 'POST',
@@ -116,7 +116,7 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     const errorText = await initResponse.text()
-    return json({ error: `Unexpected response from Kratos ${errorText}` })
+    return data({ error: `Unexpected response from Kratos ${errorText}` })
   } catch (error) {
     const requestId = extractOrGenerateRequestId(request)
     const errorDetails =
@@ -127,6 +127,6 @@ export async function action({ request }: ActionFunctionArgs) {
       { ...addRequestId(requestId), ...errorDetails },
       'Error initializing TOTP challenge'
     )
-    return json({ error: 'An unexpected error occurred' })
+    return data({ error: 'An unexpected error occurred' })
   }
 }

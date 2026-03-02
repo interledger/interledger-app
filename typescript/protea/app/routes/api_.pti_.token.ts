@@ -1,4 +1,4 @@
-import { json, type ActionFunctionArgs } from '@remix-run/node'
+import { data, type ActionFunctionArgs } from 'react-router';
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 
@@ -11,7 +11,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   if (isConnectError(response)) throw response.errorResponse
 
-  return json({
+  return data({
     accessToken: response.accessToken,
     expiresAt: response.expiresAt,
     tokenType: response.tokenType

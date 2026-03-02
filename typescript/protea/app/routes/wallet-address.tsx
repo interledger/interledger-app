@@ -1,14 +1,10 @@
 import { Code } from '@bufbuild/connect'
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
-import { useFetcher, useLoaderData } from '@remix-run/react'
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { data, redirect } from 'react-router';
+import { useFetcher, useLoaderData } from 'react-router';
 import type { ChangeEventHandler } from 'react'
 import { useCallback } from 'react'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   Button,
@@ -31,7 +27,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   if (isConnectError(response)) {
     throw response.errorResponse
   } else if (response.hasWalletAddress) {
-    throw redirect(route('/'))
+    throw redirect(href('/'))
   }
 
   const session = await getUserSession(request)
@@ -217,9 +213,9 @@ export async function action({ request }: ActionFunctionArgs) {
         })
     }
 
-    return redirectWithSnackbar(request, route('/'), {
+    return redirectWithSnackbar(request, href('/'), {
       message: 'Your wallet address is reserved.',
       icon: 'close'
     })
-  } else return json({ errors })
+  } else return data({ errors })
 }

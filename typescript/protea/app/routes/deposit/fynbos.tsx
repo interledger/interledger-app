@@ -1,15 +1,8 @@
-import type { SerializeFrom } from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
-import {
-  Form,
-  useActionData,
-  useLoaderData,
-  useRouteLoaderData,
-  useSearchParams
-} from '@remix-run/react'
+import { data, redirect } from 'react-router';
+import { Form, useActionData, useLoaderData, useRouteLoaderData, useSearchParams } from 'react-router';
 import type { ChangeEventHandler } from 'react'
 import { useCallback, useEffect, useState } from 'react'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import {
   Alert,
   AlertBody,
@@ -97,7 +90,7 @@ const Amount = () => {
               <Router
                 prefetch='render'
                 className='text-sm font-medium text-primary'
-                to={route('/accounts')}
+                to={href('/accounts')}
               >
                 Go to accounts page
               </Router>
@@ -111,7 +104,7 @@ const Amount = () => {
     <>
       <Form
         id='account-deposit'
-        action={route('/deposit')}
+        action={href('/deposit')}
         method='post'
         className='hidden'
       />
@@ -210,7 +203,7 @@ const Amount = () => {
 export function DepositDetails() {
   const { depositDetails, csrfToken } =
     useLoaderData<any>()
-  const { env } = useRouteLoaderData('root') as SerializeFrom<typeof rootLoader>
+  const { env } = useRouteLoaderData('root') as Awaited<ReturnType<typeof rootLoader>>
 
   return (
     <>
@@ -243,7 +236,7 @@ export function DepositDetails() {
       {env.fynbosEnv !== 'prod' ? (
         <Form
           id='xago-test-account-deposit'
-          action={route('/deposit')}
+          action={href('/deposit')}
           method='post'
         >
           <input

@@ -1,11 +1,7 @@
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
-import { Form, useLoaderData } from '@remix-run/react'
-import { route } from 'routes-gen'
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { data, redirect } from 'react-router';
+import { Form, useLoaderData } from 'react-router';
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts } from '~/components'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
@@ -32,7 +28,7 @@ export const handle: ApplicationProps = {
   layout: Layouts.Focus,
   scaffold: {
     header: {
-      back: route('/'),
+      back: href('/'),
       title: 'Log out'
     }
   }
@@ -84,7 +80,7 @@ export async function action({ request }: ActionFunctionArgs) {
   })
 
   if (res.status >= 400) {
-    return json(
+    return data(
       { errors: { form: 'Something went wrong trying to logout.' } },
       { status: 400 }
     )
@@ -97,7 +93,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const headers = trimHeaders(res.headers, ['set-cookie'])
   headers.append('Set-Cookie', sessionHeaders)
 
-  return redirect(route('/'), {
+  return redirect(href('/'), {
     headers: headers
   })
 }

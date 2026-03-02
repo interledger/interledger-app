@@ -1,5 +1,5 @@
-import type { ActionFunctionArgs} from '@remix-run/node';
-import { json } from '@remix-run/node'
+import type { ActionFunctionArgs } from 'react-router';
+import { data } from 'react-router';
 import type {
   CardTokenType,
   TokenLink
@@ -31,7 +31,7 @@ export async function action({ request }: ActionFunctionArgs) {
     return tokenResponse.error({ errors: { operation: 'card-token' } })
   }
 
-  return json({
+  return data({
     tokenType,
     token: tokenResponse.token,
     links: tokenResponse.links,

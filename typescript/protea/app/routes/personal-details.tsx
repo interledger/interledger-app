@@ -1,12 +1,8 @@
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { json } from '@remix-run/node'
-import { useLoaderData, useSubmit } from '@remix-run/react'
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { data } from 'react-router';
+import { useLoaderData, useSubmit } from 'react-router';
 import { useEffect, useRef, useState } from 'react'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import { Button, Card, CardContent, Dialog, Layouts, Shape } from '~/components'
 import { isConnectError } from '~/lib/error.server'
 import type { FiantSdkMessage } from '~/lib/fiant'
@@ -50,7 +46,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   //   throw redirect('/')
   // }
 
-  return json({
+  return data({
     provider: response.provider,
     gatehubWidget: response.gatehubWidget,
     personaWidget: response.personaInquiry,
@@ -64,7 +60,7 @@ export const handle = {
   scaffold: {
     header: {
       title: 'Activate wallet',
-      back: route('/')
+      back: href('/')
     }
   }
 }
@@ -358,7 +354,7 @@ export async function action({ request }: ActionFunctionArgs) {
   
   logger.info({ flow: 'kyc' }, '[KYC] KYC status set to pending successfully')
 
-  return redirectWithSnackbar(request, route('/'), {
+  return redirectWithSnackbar(request, href('/'), {
     message: 'Personal details captured.',
     icon: 'close'
   })

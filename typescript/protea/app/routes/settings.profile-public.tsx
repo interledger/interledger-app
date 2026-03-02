@@ -1,7 +1,7 @@
-import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
-import { json } from '@remix-run/node'
-import { useLoaderData } from '@remix-run/react'
-import { route } from 'routes-gen'
+import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { data } from 'react-router';
+import { useLoaderData } from 'react-router';
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   AnchorRouter,
@@ -19,7 +19,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const walletInfo = await getWalletInfo(request)
   const wallet = await getPublicWalletDetails(request, walletInfo.walletID)
 
-  return json({
+  return data({
     name: wallet.publicName,
     walletInfo
   })
@@ -29,7 +29,7 @@ export const handle: ApplicationProps = {
   layout: Layouts.Wallet,
   scaffold: {
     header: {
-      back: route('/settings'),
+      back: href('/settings'),
       title: 'Public information'
     },
     isNested: true
@@ -63,7 +63,7 @@ export default function Page() {
         <CardLink
           prefetch='intent'
           className='items-center justify-between'
-          to={route('/settings/profile-public/name')}
+          to={href('/settings/profile-public/name')}
         >
           <div className='flex space-x-3'>
             <Icon>account_circle</Icon>

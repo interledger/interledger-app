@@ -1,19 +1,10 @@
 import { Code } from '@bufbuild/connect'
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { redirect } from '@remix-run/node'
-import type { ShouldRevalidateFunction } from '@remix-run/react'
-import {
-  Form,
-  useActionData,
-  useFetcher,
-  useLoaderData
-} from '@remix-run/react'
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { redirect } from 'react-router';
+import type { ShouldRevalidateFunction } from 'react-router';
+import { Form, useActionData, useFetcher, useLoaderData } from 'react-router';
 import { useEffect, useState } from 'react'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import type { ApplicationProps, PhoneAutocompleteOptions } from '~/components'
 import {
   Button,
@@ -79,7 +70,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     if (flowRes.status >= 400) handleFlowError(flow, 'settings/password')
   } else {
     // If we don't have a flow, the user hasn't confirmed their old phone yet
-    throw redirect(route('/otp/challenge'))
+    throw redirect(href('/otp/challenge'))
   }
 
   let response = await grpc.getCountries(request, {})
@@ -100,7 +91,7 @@ export const handle: ApplicationProps = {
   layout: Layouts.Focus,
   scaffold: {
     header: {
-      back: route('/settings'),
+      back: href('/settings'),
       title: 'Set new mobile number'
     }
   }
@@ -137,7 +128,7 @@ export default function Page() {
     <>
       <otpFetcher.Form
         id='settings-phone-otp'
-        action={route('/api/sendOtp')}
+        action={href('/api/sendOtp')}
         method='post'
         className='hidden'
       />
@@ -286,7 +277,7 @@ export async function action({ request }: ActionFunctionArgs) {
     return error(request, { errors: errs })
   }
 
-  return redirectWithSnackbar(request, route('/settings/profile-contact'), {
+  return redirectWithSnackbar(request, href('/settings/profile-contact'), {
     message: 'New mobile number successfully saved.',
     icon: 'close'
   })

@@ -1,5 +1,5 @@
-import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import { route } from 'routes-gen'
+import { Form, useActionData, useLoaderData } from 'react-router';
+import { href } from 'react-router'
 import { Button, Card, CardContent, Checkbox } from '~/components'
 
 import { DateTime } from 'luxon'
@@ -18,7 +18,7 @@ export function Confirm() {
     <>
       <Form
         id='pay-confirm'
-        action={route('/pay/:paymentId', { paymentId: payment.id })}
+        action={href('/pay/:paymentId', { paymentId: payment.id })}
         method='post'
         className='hidden'
       />

@@ -1,4 +1,4 @@
-import { vitePlugin as remix } from "@remix-run/dev";
+import { reactRouter } from "@react-router/dev/vite";
 import { defineConfig } from "vite";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
 import tsconfigPaths from "vite-tsconfig-paths";
@@ -26,23 +26,7 @@ export default defineConfig({
   },
 
   plugins: [
-    remix({
-      appDirectory: "app",
-      ignoredRouteFiles: [".*", "**/*.stories.tsx", "**/*.test.{ts,tsx}"],
-      serverModuleFormat: "cjs",
-      // assetsBuildDirectory is replaced by buildDirectory (defaults to "build").
-      // With Vite, output automatically goes to buildDirectory/client and buildDirectory/server
-      // so if you specifically need public/build, you might set buildDirectory: "public/build" however
-      // the structure will be different than classic Remix compiler. We'll leave the default "build".
-      future: {
-        v3_fetcherPersist: true,
-        v3_relativeSplatPath: true,
-        v3_throwAbortReason: true,
-        v3_singleFetch: true,
-        v3_lazyRouteDiscovery: true,
-        v3_routeConfig: true,
-      },
-    }),
+    reactRouter(),
     tsconfigPaths(),
     nodePolyfills({
       include: ['os', 'constants', 'buffer', 'assert', 'process'],
@@ -51,5 +35,6 @@ export default defineConfig({
   ],
   ssr: {
     noExternal: ['react-datocms'],
+    external: ['pusher-js'],
   },
 });

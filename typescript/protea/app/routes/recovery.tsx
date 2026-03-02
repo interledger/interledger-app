@@ -1,10 +1,6 @@
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
-import { useFetcher, useLoaderData } from '@remix-run/react'
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { data, redirect } from 'react-router';
+import { useFetcher, useLoaderData } from 'react-router';
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts, TextField } from '~/components'
 import { error } from '~/lib/error.server'
@@ -55,7 +51,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     })
   }
 
-  return json({ flow, csrfToken: getCsrfTokenFromFlow(flow) })
+  return data({ flow, csrfToken: getCsrfTokenFromFlow(flow) })
 }
 
 export const handle: ApplicationProps = {
@@ -173,5 +169,5 @@ export async function action({ request }: ActionFunctionArgs) {
     return error(request, { errors: errs })
   }
 
-  return json({ success: true })
+  return data({ success: true })
 }

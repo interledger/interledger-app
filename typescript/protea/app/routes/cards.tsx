@@ -1,9 +1,9 @@
-import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
-import type { ShouldRevalidateFunction } from '@remix-run/react'
-import { Outlet, useLoaderData, useLocation } from '@remix-run/react'
+import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { data, redirect } from 'react-router';
+import type { ShouldRevalidateFunction } from 'react-router';
+import { Outlet, useLoaderData, useLocation } from 'react-router';
 import { useEffect } from 'react'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   ButtonRouter,
@@ -54,7 +54,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     throw response.errorResponse
   }
 
-  return json({
+  return data({
     isWaitingForCreation: response.isWaitingForCreation,
     cards: response.cards
   })
@@ -112,7 +112,7 @@ export default function Page() {
                   <CardLink
                     preventScrollReset={!isMobile}
                     prefetch='intent'
-                    to={route('/cards/:cardId', {
+                    to={href('/cards/:cardId', {
                       cardId: card.id
                     })}
                     className='justify-between space-x-4'
@@ -141,7 +141,7 @@ export default function Page() {
                   </CardLink>
                 </Card>
               ))}
-            <ButtonRouter to={route('/cards/order')}>Order card</ButtonRouter>
+            <ButtonRouter to={href('/cards/order')}>Order card</ButtonRouter>
           </>
         )}
       </GridColumn>

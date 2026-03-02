@@ -1,6 +1,6 @@
 import { Code } from '@bufbuild/connect'
-import type { ActionFunctionArgs } from '@remix-run/node'
-import { json } from '@remix-run/node'
+import type { ActionFunctionArgs } from 'react-router';
+import { data } from 'react-router';
 import type { CountryCode, ParseError } from 'libphonenumber-js'
 import { parsePhoneNumberWithError } from 'libphonenumber-js'
 import { validateCSRFToken } from '~/lib/csrf.server'
@@ -72,5 +72,5 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   data.success = true
-  return json(data)
+  return data(data)
 }

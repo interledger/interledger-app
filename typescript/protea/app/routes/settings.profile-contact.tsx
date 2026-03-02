@@ -1,7 +1,7 @@
-import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
-import { json } from '@remix-run/node'
-import { useLoaderData } from '@remix-run/react'
-import { route } from 'routes-gen'
+import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { data } from 'react-router';
+import { useLoaderData } from 'react-router';
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Card, CardLink, Icon, Layouts } from '~/components'
 import { Label } from '~/components/Label'
@@ -15,7 +15,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     .substring(len - 4, len)
     .padStart(len, '*')
 
-  return json({
+  return data({
     phoneMask,
     email: session.identity.traits.email
   })
@@ -25,7 +25,7 @@ export const handle: ApplicationProps = {
   layout: Layouts.Wallet,
   scaffold: {
     header: {
-      back: route('/settings'),
+      back: href('/settings'),
       title: 'Contact information'
     },
     isNested: true
@@ -52,7 +52,7 @@ export default function Page() {
       <Label className='mt-4'>Mobile phone number</Label>
       <CardLink
         className='items-center justify-between'
-        to={route('/otp/challenge')}
+        to={href('/otp/challenge')}
       >
         <div className='flex space-x-3'>
           <Icon>call</Icon>

@@ -1,11 +1,7 @@
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
-import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import { route } from 'routes-gen'
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { data, redirect } from 'react-router';
+import { Form, useActionData, useLoaderData } from 'react-router';
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts, TextField } from '~/components'
 import { error } from '~/lib/error.server'
@@ -52,7 +48,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       headers: trimHeaders(flowRes.headers, ['set-cookie'])
     })
   }
-  return json({
+  return data({
     flow: kratosFlow,
     csrfToken: getCsrfTokenFromFlow(kratosFlow),
     email: session.identity.traits.email
@@ -63,7 +59,7 @@ export const handle: ApplicationProps = {
   layout: Layouts.Focus,
   scaffold: {
     header: {
-      back: route('/'),
+      back: href('/'),
       title: 'Confirmation'
     }
   }
@@ -164,7 +160,7 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   const headers = trimHeaders(res.headers, ['set-cookie'])
-  return redirect(route('/settings/password'), {
+  return redirect(href('/settings/password'), {
     headers: headers
   })
 }
