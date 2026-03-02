@@ -260,6 +260,10 @@ func searchTotpURL(credentials map[string]client.IdentityCredentials) (string, e
 			continue
 		}
 
+		if cred.Config == nil {
+			return "", user.ErrTotpNotConfigured
+		}
+
 		raw, exists := cred.Config["totp_url"]
 		if !exists {
 			return "", user.ErrTotpNotConfigured
