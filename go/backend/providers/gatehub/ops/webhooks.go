@@ -180,7 +180,10 @@ func NewWebhook(b Backends, cfg gatehub.Config) http.HandlerFunc {
 			return
 		}
 
-		if _, err := getWalletID(r.Context(), b, wh.UserID); err != nil {
+		intermediaryUserID := os.Getenv("GATEHUB_MANAGED_USER_UUID")
+		isIntermediary := intermediaryUserID != "" && wh.UserID == intermediaryUserID
+
+		if _, err := getWalletID(r.Context(), b, wh.UserID); err != nil && !isIntermediary {
 			log.Info("Wallet not found for Gatehub user; attempting cards fallback",
 				zap.String("external_user_uuid", wh.UserID),
 				zap.Error(err),
@@ -360,10 +363,7 @@ func HandleUserDeposit(ctx context.Context, b Backends, raw json.RawMessage, w h
 		return
 	}
 
-	// `hosted` deposit type is for wallet-to-wallet transfers. Here we signal the payments engine
 	if wh.Data.DepositType == "hosted" {
-		// Workaround to see updated balance in wallet UI when depositing from Gatehub UI
-		//TODO Will delete it after review
 		var paymentID string
 		err = b.DB().GetContext(ctx, &paymentID, "SELECT payment_id FROM gatehub_transactions WHERE external_id=$1;", wh.Data.TrxID)
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
@@ -382,10 +382,32 @@ func HandleUserDeposit(ctx context.Context, b Backends, raw json.RawMessage, w h
 			return
 		}
 
+		// Check if this is a Rafiki workflow transfer
+		var rafikiWorkflowID string
+		err = b.DB().GetContext(ctx, &rafikiWorkflowID, "SELECT workflow_id FROM rafiki_gatehub_transfers WHERE gatehub_tx_id=$1;", wh.Data.TrxID)
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			log.Error("gatehub webhook: Failed to lookup rafiki workflow for transfer",
+				zap.String("external_transaction_id", wh.Data.TrxID),
+				zap.Error(err))
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+
+		if err == nil && rafikiWorkflowID != "" {
+			signalErr := b.Temporal().SignalWorkflow(ctx, rafikiWorkflowID, "", "rafiki_gatehub_signal", nil)
+			if signalErr != nil {
+				log.Error("gatehub webhook: Failed to signal rafiki workflow",
+					zap.String("workflowID", rafikiWorkflowID),
+					zap.String("external_transaction_id", wh.Data.TrxID),
+					zap.Error(signalErr))
+				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+				return
+			}
+			w.WriteHeader(http.StatusOK)
+			return
+		}
 	}
 
-	// `external` deposit type is for a deposit done through the ramp widget. We start a workflow
-	// to handle this.
 	wo := client.StartWorkflowOptions{
 		ID:                    "gatehub_deposit_webhook" + wh.ID,
 		TaskQueue:             "backend",
@@ -410,7 +432,6 @@ func HandleUserDeposit(ctx context.Context, b Backends, raw json.RawMessage, w h
 		}
 	}
 
-	// execute workflow if it's not running
 	if workflowStatus != enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
 		_, err = b.Temporal().ExecuteWorkflow(ctx, wo, CreateGatehubDeposit, wh)
 		if err != nil {

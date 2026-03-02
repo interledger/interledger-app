@@ -3135,6 +3135,25 @@ table "chi_money_interac_emails" {
   }
 }
 
+table "rafiki_gatehub_transfers" {
+  schema = schema.public
+  column "gatehub_tx_id" {
+    null = false
+    type = text
+  }
+  column "workflow_id" {
+    null = false
+    type = text
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now()::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.gatehub_tx_id]
+  }
+}
 table "atlas_schema_history" {
   schema = schema.public
   column "id" {

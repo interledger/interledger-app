@@ -16,6 +16,7 @@ import (
 	pti_workflows "gitlab.com/fynbos/backend/providers/pti/ops"
 	xago_external "gitlab.com/fynbos/backend/providers/xago/external"
 	xago_workflows "gitlab.com/fynbos/backend/providers/xago/ops"
+	rafiki_external "gitlab.com/fynbos/backend/rafiki/external"
 	rafiki_workflows "gitlab.com/fynbos/backend/rafiki/ops"
 	twitter_workflows "gitlab.com/fynbos/backend/twitter/workflows"
 	"go.temporal.io/sdk/worker"
@@ -73,8 +74,13 @@ func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago
 	w.RegisterWorkflow(payments_workflows.AwaitReceiverWorkflow)
 
 	// Rafiki
-	w.RegisterActivity(rafiki_workflows.NewActivity(b))
+	rafikiExt := rafiki_external.New()
+	w.RegisterActivity(rafiki_workflows.NewActivity(b, rafikiExt))
 	w.RegisterWorkflow(rafiki_workflows.WebMonetizationPaymentsWorkflow)
+	w.RegisterWorkflow(rafiki_workflows.RafikiIncomingPaymentFinalizedWorkflow)
+	w.RegisterWorkflow(rafiki_workflows.RafikiOutgoingPaymentCreatedWorkflow)
+	w.RegisterWorkflow(rafiki_workflows.RafikiOutgoingPaymentCompletedWorkflow)
+	w.RegisterWorkflow(rafiki_workflows.RafikiOutgoingPaymentFailedWorkflow)
 
 	rafiki_workflows.StartRafikiIncomingPaymentsPolling(b)
 
