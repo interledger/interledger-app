@@ -99,6 +99,7 @@ type StartArgs struct {
 	GatehubOnOffRampBaseURL       string
 	GatehubEUROpsAccount          string
 	GatehubEUROpsLedgerID         uint32
+	GatehubOrganizationID         string
 }
 
 func ParseStartArgs() (*StartArgs, error) {
@@ -301,6 +302,11 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, errors.New("GATEHUB_EUR_OPS_LEDGER_ID is required in production")
 	}
 
+	gatehubOrganizationID := os.Getenv("GATEHUB_ORGANIZATION_ID")
+	if gatehubOrganizationID == "" && env.IsProd() {
+		return nil, errors.New("GATEHUB_ORGANIZATION_ID is required in production")
+	}
+
 	return &StartArgs{
 		Port:                          port,
 		AuthorisationPort:             authorisationPort,
@@ -348,5 +354,6 @@ func ParseStartArgs() (*StartArgs, error) {
 		GatehubOnOffRampBaseURL:       gatehubOnOffRampBaseURL,
 		GatehubEUROpsAccount:          gatehubEUROpsAccount,
 		GatehubEUROpsLedgerID:         gatehubEUROpsLedgerID,
+		GatehubOrganizationID:         gatehubOrganizationID,
 	}, nil
 }

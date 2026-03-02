@@ -106,6 +106,7 @@ services:
       - GATEHUB_PAYWISER_EURO_VAULT_ID=a09a0a2c-1a3a-44c5-a1b9-603a6eea9341
       - GATEHUB_SENDING_USER_ID=test-sending-user-id
       - GATEHUB_SENDING_USER_ADDRESS=rN7n7otQDd6FczFgLdVZGMbpKRtFVfT4hb
+      - GATEHUB_ORGANIZATION_ID=test-user-id
 
       # Gatehub Sandbox Client IDs (default values)
       - GATEHUB_ON_OFF_RAMP_CLIENT_ID=f8119dfd-e563-44ee-9ae2-1e60a4fce74f
