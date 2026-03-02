@@ -30,5 +30,5 @@ type Client interface {
 	LinkUserToGateway(ctx context.Context, gatehubUserID string) error
 	GetCardDetails(ctx context.Context, userID, cardID string) (*Card, error)
 	GetCardTransaction(ctx context.Context, userID, txID string) (*CardTransaction, error)
-	UpdateOrganizationConfiguration(ctx context.Context, args UpdateOrgnizationConfigurationArgs) (*UpdateOrgnizationConfigurationResponse, error)
+	UpdateOrganizationConfiguration(ctx context.Context, args UpdateOrganizationConfigurationArgs) (*UpdateOrganizationConfigurationResponse, error)
 }

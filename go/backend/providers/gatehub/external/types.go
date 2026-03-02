@@ -2,6 +2,7 @@ package external
 
 import (
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -510,12 +511,12 @@ type (
 		SpendCurrency             *string               `json:"spendCurrency"`
 	}
 
-	UpdateOrgnizationConfigurationArgs struct {
+	UpdateOrganizationConfigurationArgs struct {
 		APIBaseURL string `json:"apiBaseUrl"`
 		TwoFAType  TwoFA  `json:"type2fa"`
 	}
 
-	UpdateOrgnizationConfigurationResponse struct {
+	UpdateOrganizationConfigurationResponse struct {
 		ID         string `json:"id"`
 		APIBaseURL string `json:"apiBaseUrl"`
 		TwoFAType  TwoFA  `json:"type2fa"`
@@ -538,7 +539,9 @@ var stringToTwoFA = map[string]TwoFA{
 }
 
 func ParseTwoFA(v string) (TwoFA, error) {
-	t, ok := stringToTwoFA[v]
+	val := strings.TrimSpace(strings.ToLower(v))
+
+	t, ok := stringToTwoFA[val]
 	if !ok {
 		return "", fmt.Errorf("invalid two FA type: %s", v)
 	}

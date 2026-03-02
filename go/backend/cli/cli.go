@@ -303,7 +303,7 @@ func ParseStartArgs() (*StartArgs, error) {
 	}
 
 	gatehubOrganizationID := os.Getenv("GATEHUB_ORGANIZATION_ID")
-	if gatehubOnOffRampBaseURL == "" && env.IsProd() {
+	if gatehubOrganizationID == "" && env.IsProd() {
 		return nil, errors.New("GATEHUB_ORGANIZATION_ID is required in production")
 	}
 

@@ -294,7 +294,7 @@ func TestClient(t *testing.T) {
 	onOffRampBaseURL := os.Getenv("GATEHUB_ON_OFF_RAMP_BASE_URL")
 	organizationID := os.Getenv("GATEHUB_ORGANIZATION_ID")
 
-	if appID == "" || secret == "" || cardAppID == "" || gatewayID == "" || cardAccountProductCode == "" || vaultID == "" || onOffRampClientID == "" || onboardingClientID == "" || exchangeClientID == "" || apiBaseURL == "" || onboardingBaseURL == "" || onOffRampBaseURL == "" {
+	if appID == "" || secret == "" || cardAppID == "" || gatewayID == "" || cardAccountProductCode == "" || vaultID == "" || onOffRampClientID == "" || onboardingClientID == "" || exchangeClientID == "" || apiBaseURL == "" || onboardingBaseURL == "" || onOffRampBaseURL == "" || organizationID == "" {
 		t.SkipNow()
 	}
 	c := external.NewClient(appID, secret, cardAppID, gatewayID, cardAccountProductCode, vaultID, onOffRampClientID, onboardingClientID, exchangeClientID, apiBaseURL, onboardingBaseURL, onOffRampBaseURL, organizationID, nil)

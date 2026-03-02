@@ -917,7 +917,7 @@ func GetPendingCardTransactions(ctx context.Context, b Backends) ([]pendingTrans
 	return txs, nil
 }
 
-func UpdateOrganizationConfiguration(ctx context.Context, ec external.Client, apiBaseURL, twoFAType string) (*external.UpdateOrgnizationConfigurationResponse, error) {
+func UpdateOrganizationConfiguration(ctx context.Context, ec external.Client, apiBaseURL, twoFAType string) (*external.UpdateOrganizationConfigurationResponse, error) {
 	baseURL, err := url.Parse(apiBaseURL)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
@@ -932,7 +932,7 @@ func UpdateOrganizationConfiguration(ctx context.Context, ec external.Client, ap
 		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
 	}
 
-	return ec.UpdateOrganizationConfiguration(ctx, external.UpdateOrgnizationConfigurationArgs{
+	return ec.UpdateOrganizationConfiguration(ctx, external.UpdateOrganizationConfigurationArgs{
 		APIBaseURL: baseURL.String(),
 		TwoFAType:  t,
 	})

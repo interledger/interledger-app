@@ -13,7 +13,7 @@ import (
 	httplog "gitlab.com/fynbos/backend/providers/http"
 )
 
-func (c *client) UpdateOrganizationConfiguration(ctx context.Context, args UpdateOrgnizationConfigurationArgs) (*UpdateOrgnizationConfigurationResponse, error) {
+func (c *client) UpdateOrganizationConfiguration(ctx context.Context, args UpdateOrganizationConfigurationArgs) (*UpdateOrganizationConfigurationResponse, error) {
 	meta, ok := httplog.MetaForContext(ctx)
 	if ok {
 		meta.Method = "PATCH"
@@ -49,6 +49,7 @@ func (c *client) UpdateOrganizationConfiguration(ctx context.Context, args Updat
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
+	defer resp.Body.Close()
 
 	err = checkResponseStatusCode(resp)
 	if err != nil {
@@ -59,9 +60,8 @@ func (c *client) UpdateOrganizationConfiguration(ctx context.Context, args Updat
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
-	defer resp.Body.Close()
 
-	var res UpdateOrgnizationConfigurationResponse
+	var res UpdateOrganizationConfigurationResponse
 
 	err = json.Unmarshal(body, &res)
 	if err != nil {

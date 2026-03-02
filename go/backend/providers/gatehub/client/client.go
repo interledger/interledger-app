@@ -200,6 +200,6 @@ func (c Client) ThreeDSPaymentConfirmation(ctx context.Context, userID, txID str
 	return ops.ThreeDSPaymentConfirmation(ctx, c.external, userID, txID, confirmed)
 }
 
-func (c Client) UpdateOrganizationConfiguration(ctx context.Context, apiBaseURL, twoFAType string) (*external.UpdateOrgnizationConfigurationResponse, error) {
+func (c Client) UpdateOrganizationConfiguration(ctx context.Context, apiBaseURL, twoFAType string) (*external.UpdateOrganizationConfigurationResponse, error) {
 	return ops.UpdateOrganizationConfiguration(ctx, c.external, apiBaseURL, twoFAType)
 }

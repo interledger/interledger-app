@@ -9,12 +9,12 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
-type UpdateArgs struct {
+type updateOrganizationArgs struct {
 	APIBaseURL string `json:"apiBaseUrl"`
 	TwoFAType  string `json:"twoFAType"`
 }
 
-func UpdateGateHubOrganizationConfig(ctx workflow.Context, args UpdateArgs) error {
+func UpdateGateHubOrganizationConfig(ctx workflow.Context, args updateOrganizationArgs) error {
 	var a *Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 10 * time.Second,
@@ -26,7 +26,7 @@ func UpdateGateHubOrganizationConfig(ctx workflow.Context, args UpdateArgs) erro
 
 	logger := workflow.GetLogger(ctx)
 
-	var res external.UpdateOrgnizationConfigurationResponse
+	var res external.UpdateOrganizationConfigurationResponse
 	err := workflow.ExecuteActivity(ctx, a.UpdateOrganizationConfig, args).Get(ctx, &res)
 	if err != nil {
 		return err
@@ -37,7 +37,7 @@ func UpdateGateHubOrganizationConfig(ctx workflow.Context, args UpdateArgs) erro
 	return nil
 }
 
-func (a *Activity) UpdateOrganizationConfig(ctx context.Context, args UpdateArgs) (*external.UpdateOrgnizationConfigurationResponse, error) {
+func (a *Activity) UpdateOrganizationConfig(ctx context.Context, args updateOrganizationArgs) (*external.UpdateOrganizationConfigurationResponse, error) {
 	res, err := a.b.Gatehub().UpdateOrganizationConfiguration(ctx, args.APIBaseURL, args.TwoFAType)
 	if err != nil {
 		return nil, err
