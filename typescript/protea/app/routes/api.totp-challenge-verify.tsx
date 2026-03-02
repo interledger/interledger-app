@@ -1,3 +1,4 @@
+import type { UiNode } from '@ory/kratos-client'
 import { data, type ActionFunctionArgs } from 'react-router';
 import { KRATOS_URL } from '~/lib/kratos.server'
 import logger, { addRequestId, withErrorLog } from '~/lib/logger.server'
@@ -56,7 +57,7 @@ export async function action({ request }: ActionFunctionArgs) {
       errorMessage = errorData.ui.messages[0].text
     } else if (errorData?.ui?.nodes) {
       const totpNode = errorData.ui.nodes.find(
-        (node: any) => node.attributes?.name === 'totp_code'
+        (node: UiNode) => 'name' in node.attributes && node.attributes.name === 'totp_code'
       )
       if (totpNode?.messages && totpNode.messages.length > 0) {
         errorMessage = totpNode.messages[0].text

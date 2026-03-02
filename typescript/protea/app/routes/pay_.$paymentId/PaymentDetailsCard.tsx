@@ -105,7 +105,7 @@ export const PaymentDetailsCard = () => {
             </CardLink>
           </>
         )}
-        {publicWalletInfo?.identities.map((identity) => (
+        {publicWalletInfo?.identities.map((identity: any) => (
           <div key={identity.id} className='contents'>
             <Label className='mt-2 capitalize'>{identity.platform}</Label>
             <CardLink className='flex w-full' to={publicWalletInfo.address}>

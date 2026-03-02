@@ -26,7 +26,7 @@ export default function Page() {
   const { pendingConfirmations, hasFetched, removeConfirmation } =
     usePendingConfirmations()
   const { confirmationId } =
-    useParams<RouteParams['/confirmations/:confirmationId']>()
+    useParams<{ confirmationId: string }>()
 
   const confirmation = useMemo(
     () =>

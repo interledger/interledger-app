@@ -25,8 +25,8 @@ export const handle: ApplicationProps = {
   scaffold: {
     header: {
       back: href('/accounts'),
-      title: (match: UIMatch<typeof loader>) =>
-        match.data.type == 'bank' ? 'Bank account nickname' : 'Card nickname'
+      title: (match: UIMatch<Awaited<ReturnType<typeof loader>>['data']>) =>
+        match.data!.type == 'bank' ? 'Bank account nickname' : 'Card nickname'
     }
   }
 }

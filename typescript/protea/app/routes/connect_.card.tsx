@@ -58,7 +58,7 @@ export default function Page() {
   }, [setLoading])
 
   useEffect(() => {
-    if (scriptStatus == 'ready' && typeof (window as any).PTI !== 'undefined') {
+    if (scriptStatus == 'ready' && window.PTI !== undefined) {
       const styling = {
         mode: window.matchMedia('(prefers-color-scheme: dark)').matches
           ? 'dark'
@@ -68,12 +68,12 @@ export default function Page() {
         fontFamily: 'Poppins'
       }
 
-      ;(window as any).PTI.init({
+      window.PTI.init({
         clientId: widget?.clientId,
         generateTokenPath: widget?.generateTokenPath,
         ptiFormsUrl: widget?.formsUrl || 'https://forms.platform.fiant.io'
       })
-      ;(window as any).PTI.form({
+      window.PTI.form({
         type: 'ADD_CC',
         requestId: widget?.requestId,
         userId: widget?.userId,

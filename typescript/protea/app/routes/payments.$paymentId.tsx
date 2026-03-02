@@ -1,4 +1,4 @@
-import type { PlainMessage } from '@bufbuild/protobuf/dist/types/message'
+import type { PlainMessage } from '@bufbuild/protobuf'
 import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
 import { data } from 'react-router';
 import type { UIMatch } from 'react-router';
@@ -101,23 +101,24 @@ export const handle: ApplicationProps = {
     header: {
       back: href('/payments'),
       title: 'Payment',
-      actions: (match: UIMatch<typeof loader>) => {
+      actions: (match: UIMatch<Awaited<ReturnType<typeof loader>>['data']>) => {
+        const { transaction } = match.data!
         if (
-          match.data.transaction.refundState == TransactionRefundState.PENDING
+          transaction.refundState == TransactionRefundState.PENDING
         ) {
           return {
             key: 'Pending refund',
             nodes: <Chip color={ChipColor.red}>Pending refund</Chip>
           }
         } else if (
-          match.data.transaction.refundState == TransactionRefundState.COMPLETED
+          transaction.refundState == TransactionRefundState.COMPLETED
         ) {
           return {
             key: 'Refunded',
             nodes: <Chip color={ChipColor.red}>Refunded</Chip>
           }
         }
-        switch (match.data.transaction.state) {
+        switch (transaction.state) {
           case 'Completed':
             return {
               key: 'Complete',

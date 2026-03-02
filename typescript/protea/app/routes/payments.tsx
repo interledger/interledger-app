@@ -123,13 +123,13 @@ export default function Page() {
   )
   const [scrollPosition, setScrollPosition] = useState(0)
   const [clientHeight, setClientHeight] = useState(0)
-  const [height, setHeight] = useState(null)
+  const [height, setHeight] = useState<number | null>(null)
   const [shouldFetch, setShouldFetch] = useState(true)
 
   const isMobile = typeof document !== 'undefined' && window.innerWidth < 1024
 
   const divHeight = useCallback(
-    (node: any) => {
+    (node: HTMLDivElement | null) => {
       if (node !== null) {
         setHeight(node.getBoundingClientRect().height)
       }

@@ -130,20 +130,20 @@ function PersonaPage() {
 
   useEffect(() => {
     if (typeof window !== 'undefined' && status == 'ready') {
-      personaRef.current = (window as any).Persona
-      personaRef.current = new (window as any).Persona.Client({
+      personaRef.current = window.Persona
+      personaRef.current = new window.Persona!.Client({
         inquiryId: personaWidget?.id,
         sessionToken: personaWidget?.sessionToken,
         onReady: () => setReady(true),
-        onComplete: ({ inquiryId, status, fields }: any) => {
+        onComplete: ({ inquiryId, status, fields }) => {
           setReady(false)
           submit(null, {
             action: '/personal-details',
             method: 'post'
           })
         },
-        onCancel: ({ inquiryId, sessionToken }: any) => console.log('onCancel'),
-        onError: (error: any) => console.log(error)
+        onCancel: ({ inquiryId, sessionToken }) => console.log('onCancel'),
+        onError: (error) => console.log(error)
       })
     }
   }, [personaWidget, status, submit])
@@ -247,13 +247,13 @@ function PtiPage() {
   }, [setLoading])
 
   useEffect(() => {
-    if (scriptStatus == 'ready' && typeof (window as any).PTI !== 'undefined') {
-      ;(window as any).PTI.init({
+    if (scriptStatus == 'ready' && window.PTI !== undefined) {
+      window.PTI.init({
         clientId: ptiWidget?.clientId,
         generateTokenPath: ptiWidget?.generateTokenPath,
         ptiFormsUrl: ptiWidget?.formsUrl || 'https://forms.platform.fiant.io'
       })
-      ;(window as any).PTI.form({
+      window.PTI.form({
         type: 'KYC',
         requestId: ptiWidget?.requestId,
         userId: ptiWidget?.userId,

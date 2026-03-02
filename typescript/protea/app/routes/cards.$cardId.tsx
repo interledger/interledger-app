@@ -21,7 +21,7 @@ export default function PageCardID() {
   const navigate = useNavigate()
   const { features } = useRouteLoaderData('root') as Awaited<ReturnType<typeof rootLoader>>
   const { cards, areCardsFetched } = useCardsStore()
-  const { cardId } = useParams<RouteParams['/cards/:cardId']>()
+  const { cardId } = useParams<{ cardId: string }>()
   const card = useMemo(
     () => (cardId ? cards?.[cardId] : undefined),
     [cards, cardId]

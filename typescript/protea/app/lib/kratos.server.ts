@@ -33,8 +33,8 @@ export const getCsrfTokenFromFlow = (
   return node ? (node.attributes as UiNodeInputAttributes).value : ''
 }
 
-function isUiNodeInputAttributes(n: any): n is UiNodeInputAttributes {
-  return 'name' in n
+function isUiNodeInputAttributes(n: unknown): n is UiNodeInputAttributes {
+  return typeof n === 'object' && n !== null && 'name' in n
 }
 
 /**

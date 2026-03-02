@@ -19,7 +19,7 @@ const Turnstile = forwardRef<TurnstileInstance | undefined, TurnstileProps>(
           return
         }
 
-        const { turnstile } = window as any
+        const { turnstile } = window
         return {
           reset() {
             if (!turnstile?.reset) {
@@ -52,7 +52,7 @@ const Turnstile = forwardRef<TurnstileInstance | undefined, TurnstileProps>(
         return
       }
 
-      ;(window as any).turnstile.render(turnstileRef.current, {
+      window.turnstile?.render(turnstileRef.current!, {
         sitekey: siteKey,
         callback: (token: string) => {
           if (props.onSuccess) {

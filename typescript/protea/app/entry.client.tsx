@@ -4,13 +4,13 @@ import { StrictMode, startTransition } from 'react'
 import { hydrateRoot } from 'react-dom/client'
 
 if (
-  typeof (window as any).ENV !== 'undefined' &&
-  (window as any).ENV.sentryDsn
+  typeof window.ENV !== 'undefined' &&
+  window.ENV.sentryDsn
 ) {
   Sentry.init({
     tunnel: '/api/fern',
-    dsn: (window as any).ENV.sentryDsn,
-    release: (window as any).ENV.sentryRelease,
+    dsn: window.ENV.sentryDsn,
+    release: window.ENV.sentryRelease,
     integrations: [
       Sentry.browserTracingIntegration(),
       Sentry.replayIntegration()

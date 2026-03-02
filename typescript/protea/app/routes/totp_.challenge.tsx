@@ -1,4 +1,4 @@
-import type { SelfServiceLoginFlow } from '@ory/kratos-client'
+import type { SelfServiceLoginFlow, UiText } from '@ory/kratos-client'
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
 import { data, redirect } from 'react-router';
 import { useActionData, useLoaderData } from 'react-router';
@@ -141,7 +141,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const data = await res.json()
     // if the form is submitted twice the user already has a valid session
     const message: string =
-      data.ui?.messages?.find((m: any) => m.type === 'error')?.text ?? ''
+      data.ui?.messages?.find((m: UiText) => m.type === 'error')?.text ?? ''
     if (isSessionAlreadyExitsMessage(message)) {
       return response
     }

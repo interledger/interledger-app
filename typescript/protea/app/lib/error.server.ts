@@ -1,7 +1,7 @@
 import { Code } from '@bufbuild/connect'
-import type { ConnectError as BufConnectError } from '@bufbuild/connect/dist/types/connect-error'
-import type { PlainMessage } from '@bufbuild/protobuf/dist/types/message'
-import { data as rrData, redirect } from 'react-router';
+import type { ConnectError as BufConnectError } from '@bufbuild/connect'
+import type { PlainMessage } from '@bufbuild/protobuf'
+import { data as rrData, redirect, UNSAFE_DataWithResponseInit as DataWithResponseInit } from 'react-router';
 import { captureMessage } from '@sentry/react-router'
 import { href } from 'react-router'
 import type {
@@ -26,7 +26,7 @@ type JsonWithErrorFunction = <
   snackbar?: Partial<SnackbarType>,
   init?: number | ResponseInit,
   isConnectError?: boolean
-) => Promise<Data & object | Data & null>
+) => Promise<DataWithResponseInit<Data & object | Data & null>>
 
 type JsonWithConnectErrorFunction = <
   Data extends Record<string, unknown> &
@@ -36,7 +36,7 @@ type JsonWithConnectErrorFunction = <
   mapping?: Partial<Data['errors']>,
   snackbar?: Partial<SnackbarType>,
   init?: number | ResponseInit
-) => Promise<Data & object | Data & null>
+) => Promise<DataWithResponseInit<Data & object | Data & null>>
 
 /**
  * This is an extension of the data function from Remix.
@@ -125,7 +125,7 @@ export class ConnectError {
   readonly code: Code
   // The HTTP status code for this error.
   readonly status: ResponseInit | undefined
-  readonly errorResponse: Response | undefined
+  readonly errorResponse: DataWithResponseInit<Record<string, never>> | undefined
 
   violations: PlainMessage<PreconditionFailure_Violation>[] = []
   fieldViolations: PlainMessage<BadRequest_FieldViolation>[] = []
@@ -173,9 +173,9 @@ export class ConnectError {
         .reduce(
           (
             accumulator: PlainMessage<PreconditionFailure_Violation>[],
-            currentValue
+            currentValue: PlainMessage<PreconditionFailure>
           ) => {
-            currentValue.violations.forEach((val) => accumulator.push(val))
+            currentValue.violations.forEach((val: PlainMessage<PreconditionFailure_Violation>) => accumulator.push(val))
             return accumulator
           },
           []
@@ -189,9 +189,9 @@ export class ConnectError {
         .reduce(
           (
             accumulator: PlainMessage<BadRequest_FieldViolation>[],
-            currentValue
+            currentValue: PlainMessage<BadRequest>
           ) => {
-            currentValue.fieldViolations.forEach((val) => accumulator.push(val))
+            currentValue.fieldViolations.forEach((val: PlainMessage<BadRequest_FieldViolation>) => accumulator.push(val))
             return accumulator
           },
           []
@@ -307,5 +307,5 @@ export function isTwilioCodeError(error: ConnectError): boolean {
 
 export function isTwilioError(error: ConnectError): boolean {
   const errorInfo = error._err.findDetails(ErrorInfo)
-  return errorInfo.some((info) => info.reason === 'TwilioError')
+  return errorInfo.some((info: PlainMessage<ErrorInfo>) => info.reason === 'TwilioError')
 }

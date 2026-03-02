@@ -73,8 +73,8 @@ async function marketingLoader() {
 }
 
 export const handle: ApplicationProps = {
-  layout: (match: UIMatch<typeof loader>) =>
-    match.data.isUser ? Layouts.Wallet : Layouts.Marketing,
+  layout: (match: UIMatch<Awaited<ReturnType<typeof loader>>['data']>) =>
+    match.data!.isUser ? Layouts.Wallet : Layouts.Marketing,
   scaffold: {
     header: {
       title: 'Home'

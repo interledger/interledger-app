@@ -1,4 +1,4 @@
-import type { Identity, Session } from '@ory/kratos-client'
+import type { Identity, Session, SessionAuthenticationMethod, UiNode } from '@ory/kratos-client'
 import { redirect } from 'react-router';
 import { KRATOS_URL, getUserSession } from './kratos.server'
 
@@ -53,7 +53,7 @@ export async function isTotpAvailable(request: Request): Promise<boolean> {
     const nodes = flow?.ui?.nodes ?? []
 
     // Check if there are any TOTP-related nodes in the flow
-    const hasTotpNodes = nodes.some((node: any) => node.group === 'totp')
+    const hasTotpNodes = nodes.some((node: UiNode) => node.group === 'totp')
 
     return hasTotpNodes
   } catch (error) {
@@ -164,7 +164,7 @@ export async function recoveryLinkSessionInvalidationGuard(pathname: string, req
 
   const session = await getUserSession(request)
 
-  const isLinkRecoverySession = !!session.authentication_methods?.some((method: any) => method.method === 'link_recovery')
+  const isLinkRecoverySession = !!session.authentication_methods?.some((method: SessionAuthenticationMethod) => method.method === 'link_recovery')
   if (isLinkRecoverySession) {
     throw redirect('/login', {
       headers: {

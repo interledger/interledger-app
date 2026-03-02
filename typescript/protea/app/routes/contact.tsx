@@ -18,7 +18,7 @@ export const handle: ApplicationProps = {
   layout: Layouts.Marketing,
   scaffold: {
     header: {},
-    footer: (match: UIMatch<typeof loader>) => match.data.footer as any
+    footer: (match: UIMatch<Awaited<ReturnType<typeof loader>>['data']>) => match.data!.footer
   }
 }
 

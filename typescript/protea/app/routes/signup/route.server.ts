@@ -1,5 +1,5 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from 'react-router';
-import { data, redirect } from 'react-router';
+import { data as rrData, redirect } from 'react-router';
 
 import { Code } from '@bufbuild/connect'
 import type { SuccessfulSelfServiceRegistrationWithoutBrowser } from '@ory/kratos-client'
@@ -69,7 +69,7 @@ export async function action(args: ActionFunctionArgs) {
     return passwordAction(args)
   }
 
-  throw data(
+  throw rrData(
     { title: "Submitted a form that doesn't exist" },
     {
       status: 400
@@ -128,7 +128,7 @@ export async function detailsAction({ request }: ActionFunctionArgs) {
     } else return response.error(data, mapping, { action: 'Contact support' })
   }
 
-  return data({
+  return rrData({
     id: response.id,
     firstName,
     lastName,
@@ -192,7 +192,7 @@ export async function otpAction({ request }: ActionFunctionArgs) {
 
   logger.info({ id, flow: 'signup' }, '[SIGNUP] Mobile number set successfully for signup')
 
-  return data({ id, phone, errors: data.errors })
+  return rrData({ id, phone, errors: data.errors })
 }
 
 const KratosErrorTraits = {

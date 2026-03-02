@@ -14,7 +14,7 @@ export const mergeMeta = <
 
     return arg.matches.reduceRight((acc, match) => {
       for (let parentMeta of match.meta) {
-        let index = acc.findIndex(
+        let index = (acc ?? []).findIndex(
           (meta) =>
             ('name' in meta &&
               'name' in parentMeta &&
@@ -26,10 +26,10 @@ export const mergeMeta = <
         )
         if (index == -1) {
           // Parent meta not found in acc, so add it
-          acc.push(parentMeta)
+          acc?.push(parentMeta)
         }
       }
       return acc
-    }, leafMeta)
+    }, leafMeta ?? [])
   }
 }

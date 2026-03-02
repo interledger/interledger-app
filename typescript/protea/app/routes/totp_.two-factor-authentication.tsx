@@ -31,7 +31,7 @@ type TotpForm = {
 
 export async function loader({
   request
-}: LoaderFunctionArgs): Promise<TotpForm> {
+}: LoaderFunctionArgs) {
   const cookie = String(request.headers.get('cookie') ?? '')
   try {
     const response = await fetch(
@@ -73,14 +73,14 @@ export async function loader({
       }
     )
 
-    return data({ ...totpSchema, csrfToken: getCsrfTokenFromFlow(flow) })
+    return data({ ...totpSchema, csrfToken: getCsrfTokenFromFlow(flow) } as TotpForm)
   } catch (error) {
     const requestId = extractOrGenerateRequestId(request)
     logger.error(
       { ...addRequestId(requestId), error },
       'Error loading TOTP settings flow'
     )
-    return data({ csrfToken: undefined })
+    return data({ csrfToken: undefined } as TotpForm)
   }
 }
 

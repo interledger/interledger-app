@@ -102,8 +102,8 @@ export default function Page() {
   const handleResend = () => {
     withDebounce(() => {
       const formData = new FormData()
-      formData.append('csrf_token', csrfToken)
-      formData.append('email', email)
+      formData.append('csrf_token', csrfToken ?? '')
+      formData.append('email', email ?? '')
 
       fetcher.submit(formData, {
         method: 'post',

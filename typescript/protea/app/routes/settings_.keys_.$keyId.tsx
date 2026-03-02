@@ -15,8 +15,8 @@ export const handle: ApplicationProps = {
   scaffold: {
     header: {
       back: '/settings/keys',
-      title: (match: UIMatch<typeof loader>) =>
-        match.data.connection.applicationName
+      title: (match: UIMatch<Awaited<ReturnType<typeof loader>>['data']>) =>
+        match.data!.connection.applicationName
     }
   }
 }

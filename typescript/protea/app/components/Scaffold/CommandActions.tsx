@@ -1,4 +1,4 @@
-import type { PlainMessage } from '@bufbuild/protobuf/dist/types/message'
+import type { PlainMessage } from '@bufbuild/protobuf'
 import { Combobox } from '@headlessui/react'
 import { Form, useFetcher, useNavigate } from 'react-router';
 import clsx from 'clsx'

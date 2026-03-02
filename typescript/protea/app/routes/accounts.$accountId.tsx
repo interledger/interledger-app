@@ -84,11 +84,12 @@ export const handle: ApplicationProps = {
   scaffold: {
     header: {
       back: href('/accounts'),
-      actions: (match: UIMatch<typeof loader>) => {
-        const state = match.data.account.state
+      actions: (match: UIMatch<Awaited<ReturnType<typeof loader>>['data']>) => {
+        const { account } = match.data!
+        const state = account.state
         if (state == 'Verified') {
-          const canSend = match.data.account.canSend
-          const canReceive = match.data.account.canReceive
+          const canSend = account.canSend
+          const canReceive = account.canReceive
           if (canSend && canReceive) {
             return {
               key: 'send+receive',

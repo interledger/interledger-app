@@ -1,3 +1,4 @@
+import type { UiNode } from '@ory/kratos-client'
 import { data, type ActionFunctionArgs } from 'react-router';
 import { KRATOS_URL } from '~/lib/kratos.server'
 import logger, { addRequestId } from '~/lib/logger.server'
@@ -64,11 +65,11 @@ export async function action({ request }: ActionFunctionArgs) {
       const flow = await flowResponse.json()
       const nodes = flow.ui?.nodes ?? []
       const csrfNode = nodes.find(
-        (node: any) => node.attributes?.name === 'csrf_token'
+        (node: UiNode) => 'name' in node.attributes && node.attributes.name === 'csrf_token'
       )
       const csrfToken = csrfNode?.attributes?.value ?? ''
       const totpNode = nodes.find(
-        (node: any) => node.attributes?.name === 'totp_code'
+        (node: UiNode) => 'name' in node.attributes && node.attributes.name === 'totp_code'
       )
 
       if (!totpNode) {
@@ -93,11 +94,11 @@ export async function action({ request }: ActionFunctionArgs) {
           // Extract necessary data from the flow
           const nodes = flow.ui?.nodes ?? []
           const csrfNode = nodes.find(
-            (node: any) => node.attributes?.name === 'csrf_token'
+            (node: UiNode) => 'name' in node.attributes && node.attributes.name === 'csrf_token'
           )
           const csrfToken = csrfNode?.attributes?.value ?? ''
           const totpNode = nodes.find(
-            (node: any) => node.attributes?.name === 'totp_code'
+            (node: UiNode) => 'name' in node.attributes && node.attributes.name === 'totp_code'
           )
 
           if (!totpNode) {

@@ -12,7 +12,7 @@ import {
 } from '~/components'
 import { PayStep, usePayStore } from '~/lib/usePayStore'
 
-import type { PlainMessage } from '@bufbuild/protobuf/dist/types/message'
+import type { PlainMessage } from '@bufbuild/protobuf'
 import type { FormattedLinkedAccount } from '~/data/accounts.server'
 import type {
   Payment,

@@ -1,5 +1,5 @@
 import { Code } from '@bufbuild/connect'
-import type { PlainMessage } from '@bufbuild/protobuf/dist/types/message'
+import type { PlainMessage } from '@bufbuild/protobuf'
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
 import { data, redirect } from 'react-router';
 import { Form, useActionData, useLoaderData, useSearchParams, useSubmit } from 'react-router';

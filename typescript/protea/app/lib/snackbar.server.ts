@@ -1,4 +1,4 @@
-import { data as rrData, redirect } from 'react-router';
+import { data as rrData, redirect, UNSAFE_DataWithResponseInit as DataWithResponseInit } from 'react-router';
 import { v4 } from 'uuid'
 import type { SnackbarType } from '~/lib/useScaffoldStore'
 import { commitSession, getSession } from '~/session.server'
@@ -63,7 +63,7 @@ type JsonWithSnackbarFunction = <Data>(
   data: Data,
   snackbar: Partial<SnackbarType>,
   init?: number | ResponseInit
-) => Promise<Data & object | Data & null>
+) => Promise<DataWithResponseInit<(Data & object) | (Data & null)>>
 
 /**
  * This is an extension of the data function from Remix.

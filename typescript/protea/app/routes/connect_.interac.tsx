@@ -50,7 +50,7 @@ export default function Page() {
   const [setLoading] = useScaffoldStore((state) => [state.setLoading])
 
   useEffect(() => {
-    if (navigation.state == 'submitting' && navigation.formMethod === 'post') {
+    if (navigation.state == 'submitting' && navigation.formMethod === 'POST') {
       setLoading(true)
     } else if (navigation.state == 'loading' || navigation.state == 'idle') {
       setLoading(false)

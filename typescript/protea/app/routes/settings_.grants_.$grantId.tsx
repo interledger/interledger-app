@@ -1,3 +1,4 @@
+import type { PlainMessage } from '@bufbuild/protobuf'
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
 import type { UIMatch } from 'react-router';
 import { Form, useLoaderData } from 'react-router';
@@ -15,6 +16,7 @@ import { Label } from '~/components/Label'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
+import type { RafikiAccess } from '~/generated/connect/backend/v1/backend_pb'
 import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 
@@ -23,9 +25,10 @@ export const handle: ApplicationProps = {
   scaffold: {
     header: {
       back: '/settings/grants',
-      title: (match: UIMatch<typeof loader>) => match.data.grant.client,
-      actions: (match: UIMatch<typeof loader>) => {
-        switch (match.data.grant.state) {
+      title: (match: UIMatch<Awaited<ReturnType<typeof loader>>['data']>) => match.data!.grant.client,
+      actions: (match: UIMatch<Awaited<ReturnType<typeof loader>>['data']>) => {
+        const { grant } = match.data!
+        switch (grant.state) {
           case 'GRANTED':
             return {
               key: 'Approved',
@@ -92,7 +95,7 @@ export default function Page() {
         </CardContent>
       </Card>
 
-      {grant.access.map((a) => (
+      {grant.access.map((a: PlainMessage<RafikiAccess>) => (
         <Card key={a.id}>
           <Label>{a.type}</Label>
           <CardContent className='mt-2 flex flex-col gap-y-4'>
