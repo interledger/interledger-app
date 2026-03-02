@@ -141,3 +141,7 @@ func (c Client) GetPendingThreeDSConfirmations(ctx context.Context, userID strin
 func (c Client) ThreeDSPaymentConfirmation(ctx context.Context, userID, txID string, confirmed bool) error {
 	return ops.ThreeDSPaymentConfirmation(ctx, c.external, userID, txID, confirmed)
 }
+
+func (c Client) ExternalClient() external.Client {
+	return c.external
+}
