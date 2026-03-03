@@ -18,3 +18,9 @@ jobs:
       test_path: './go/pacioli'
       coverage_key: 'pacioli'
       db_name: 'pacioli'
+  mockxago-tests:
+    uses: ./.github/workflows/go-test-template.yml
+    with:
+      test_path: './go/mock/mockxago'
+      coverage_key: 'mockxago'
+      db_name: 'mockxago'
