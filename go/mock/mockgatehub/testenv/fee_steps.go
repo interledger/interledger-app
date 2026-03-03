@@ -274,7 +274,7 @@ func (tc *TestContext) userFeeSourceIs(feeType, expectedSource string) error {
 	if err := json.Unmarshal(tc.lastResponseBody, &result); err != nil {
 		return err
 	}
-	
+
 	var sourceField string
 	if feeType == "deposit" {
 		sourceField = "deposit_fee_source"
@@ -283,7 +283,7 @@ func (tc *TestContext) userFeeSourceIs(feeType, expectedSource string) error {
 	} else {
 		return fmt.Errorf("invalid fee type %q, must be 'deposit' or 'withdrawal'", feeType)
 	}
-	
+
 	actual, ok := result[sourceField].(string)
 	if !ok {
 		return fmt.Errorf("%s not found or not a string in response: %s", sourceField, string(tc.lastResponseBody))
