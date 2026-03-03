@@ -7,9 +7,11 @@
 
 **Related documents:**
 - [Payments Guide](payments-explainer.md) — Overview and navigation hub
+- [Wallets vs Accounts vs Addresses](wallets-vs-accounts-vs-addresses.md) — Provider account shapes and routing model
 - [Transaction Types Reference](transaction-types-explainer.md) — Transaction status codes per provider
 - [Ledger System Architecture](ledger-system-explainer.md) — Settlement models per provider
 - [Payment Troubleshooting](payment-troubleshooting-guide.md) — Provider-specific debugging
+- [KYC Explainer](kyc-explainer.md) — Provider onboarding and verification differences
 - [Concepts](concepts.md) — Provider terminology translation
 
 **Quick Navigation:**

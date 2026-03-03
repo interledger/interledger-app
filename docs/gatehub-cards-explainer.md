@@ -6,6 +6,7 @@
 
 **Related documents:**
 - [Concepts](concepts.md) — Core terminology ("Account" → Linked Account mapping)
+- [Payments Guide](payments-explainer.md) — End-to-end payment model and orchestration context
 - [Transaction Types Reference](transaction-types-explainer.md) — Card transaction field specifications
 - [Provider Payments Guide](provider-payments-guide.md) — GateHub-specific payment behavior
 - [Payment Troubleshooting](payment-troubleshooting-guide.md) — Debugging card transaction issues

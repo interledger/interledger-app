@@ -6,7 +6,9 @@
 - [Concepts](concepts.md) — Core terminology (this document extends Concepts)
 - [Payments Guide](payments-explainer.md) — How addresses are used in payment flows
 - [Provider Payments Guide](provider-payments-guide.md) — Provider-specific account structures
+- [Ledger System Architecture](ledger-system-explainer.md) — How account choices affect reconciliation behavior
 - [Transaction Types Reference](transaction-types-explainer.md) — How transactions reference linked accounts
+- [Payment Troubleshooting](payment-troubleshooting-guide.md) — Practical routing and account-debug workflows
 - [KYC Explainer](kyc-explainer.md) — Wallet activation and KYC impact on accounts
 
 **Quick Navigation:**

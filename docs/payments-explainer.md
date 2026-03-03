@@ -1,6 +1,15 @@
 # Payments & Transactions: A Non-Technical Guide to the Interledger Wallet
 
-> **Cross-reference guide:** This document complements [Concepts: Interledger App vs Service Providers](concepts.md) (terminology and provider translation), [Wallets vs Accounts vs Addresses](wallets-vs-accounts-vs-addresses.md) (architecture and address model), and [KYC Explainer](kyc-explainer.md) (KYC's role in payment authorization).
+> **Payments guide.** End-to-end explanation of how money moves through Interledger App.
+
+**Related documents:**
+- [Concepts](concepts.md) — Core terminology and provider translation
+- [Wallets vs Accounts vs Addresses](wallets-vs-accounts-vs-addresses.md) — Wallet and linked-account architecture
+- [Provider Payments Guide](provider-payments-guide.md) — Provider-specific payment behavior
+- [Ledger System Architecture](ledger-system-explainer.md) — Why we run dual ledgers and reconciliation
+- [Transaction Types Reference](transaction-types-explainer.md) — Transaction fields, states, and mappings
+- [Payment Troubleshooting](payment-troubleshooting-guide.md) — Systematic payment debugging
+- [KYC Explainer](kyc-explainer.md) — KYC gating and provider-specific verification paths
 
 ## Table of Contents
 1. [The Big Picture](#the-big-picture)
@@ -26,6 +35,11 @@ The Interledger Wallet helps people manage their money across multiple providers
 - Tracks every transaction that happens
 - Keeps its own records to ensure nothing gets lost
 - Settles with providers regularly to match accounts
+
+**Three core ideas behind the design:**
+1. **Provider-agnostic orchestration** — one payment engine coordinates money movement across providers.
+2. **Double-entry accounting** — Pacioli records every debit and credit to prevent loss or double-spend.
+3. **Durable workflows** — Temporal orchestrates multi-step payments with retries and recovery.
 
 ---
 
@@ -277,6 +291,16 @@ sequenceDiagram
 ---
 
 ## Understanding Transactions
+
+### Payment vs Transaction (at a glance)
+
+| | Payment | Transaction |
+|---|---|---|
+| **Represents** | Intent to move money | Ledger record of what happened to one wallet |
+| **Visibility** | Internal orchestration lifecycle | User-facing history item |
+| **Per transfer** | Usually one payment | Usually two transactions (`sent` + `received`) for P2P |
+| **State focus** | Created → Confirmed → Processing → Completed/Failed | Pending → Completed/Failed/OnHold |
+| **Primary fields** | Sender, receiver, amounts, FX, routing | Wallet owner, amount, provider, transfer details |
 
 ### What is a Transaction?
 
@@ -1155,68 +1179,6 @@ Step 4: Check Webhooks
 
 5. Recheck: Now we show $5,000 ✓
 ```
-
-### Prevention Checklist
-
-Before transactions fail, ensure:
-
-- [ ] Network connectivity stable (test webhook endpoint)
-- [ ] Provider API accessible (test health endpoint)
-- [ ] Database disks not full (check storage)
-- [ ] Temporal workflow engine running (check Temporal dashboard)
-- [ ] All users' linked accounts set up (verify in database)
-- [ ] Provider credentials valid (test credentials)
-- [ ] Webhook URL configured correctly (test webhook)
-- [ ] Ledger system running (check Pacioli)
-
----
-
-## Key Takeaways
-
-1. **One Wallet, One Provider**
-   - Each user has one wallet connected to one payment provider
-   - Different users can use different providers (Alice → GateHub, Bob → PTI, etc.)
-   - Payments between providers happen through the Interledger network
-
-2. **Wallets Hold Multiple Linked Accounts**
-   - One wallet per user = one financial identity
-   - Multiple linked accounts = currencies and account types within your chosen provider
-   - Each linked account = specific currency/type at that one provider
-
-3. **Payments create Transactions**
-   - Both sender AND receiver get a transaction record
-   - Transactions are pending until provider confirms
-   - We use webhooks (fast) + polling (reliable) for confirmation
-
-4. **Two Ledgers Work Together**
-   - Our ledger: immediate updates, optimistic, for user experience
-   - Provider's ledger: authoritative, slower, for business truth
-   - They must reconcile to prevent money loss
-
-5. **Fees Reduce Net Amount**
-   - Provider charges per transaction
-   - Subtracted from deposits, added to withdrawals
-   - Stored for reconciliation and reporting
-
-6. **Providers Differ Significantly**
-   - GateHub: multi-currency custodian, fast (US/Global)
-   - PTI: bank integration, slower but reliable (Europe/traditional banking)
-   - Xago: regional specialist, South Africa focused
-   - Chimoney: international remittance, flexible
-   - Each user picks ONE provider that best suits their location/needs
-   - System handles payment routing between different providers
-
-7. **Settlement Makes It Real**
-   - Data settlement: continuous ledger checks
-   - Financial settlement: daily/weekly reconciliation
-   - Cash settlement: actual money movement
-   - All three must complete for financial health
-
-8. **Debugging is Systematic**
-   - Always start with "do ledgers agree?"
-   - Then check transaction status with provider
-   - Reconcile if different
-   - Investigate root cause
 
 ---
 

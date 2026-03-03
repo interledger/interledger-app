@@ -6,15 +6,16 @@
 - [Concepts](concepts.md) — Wallet and linked-account terminology
 - [Payments Guide](payments-explainer.md) — How KYC gates transaction authorization
 - [Provider Payments Guide](provider-payments-guide.md) — Provider-specific KYC implementations
+- [Ledger System Architecture](ledger-system-explainer.md) — How KYC completion affects balance/account provisioning
 - [Wallets vs Accounts](wallets-vs-accounts-vs-addresses.md) — Wallet activation architecture
 - [Payment Troubleshooting](payment-troubleshooting-guide.md) — Debugging KYC-blocked transactions
 
 **Quick Navigation:**
-- **User stuck in KYC?** → Jump to [Provider-Specific Flows](#8-provider-specific-kyc-deep-dives)
-- **What does "action_required" mean?** → See [KYC Status Values](#6-kyc-status-values)
-- **GateHub iframe issues?** → See [GateHub KYC Flow](#81-gatehub-kyc-flow)
-- **Xago verification problems?** → See [Xago KYC Flow](#82-xago-kyc-flow)
-- **General KYC troubleshooting?** → See [Troubleshooting Checklist](#9-troubleshooting-checklist)
+- **User stuck in KYC?** → Jump to [Provider Deep Dive](#8-provider-deep-dive)
+- **Need context for `action_required`?** → See [GateHub KYC Flow](#81-gatehub-eu-heavy-path)
+- **GateHub iframe issues?** → See [GateHub KYC Flow](#81-gatehub-eu-heavy-path)
+- **Xago verification problems?** → See [Xago KYC Flow](#82-xago-and-persona-south-africa-path)
+- **General KYC troubleshooting?** → See [Practical Troubleshooting Checklist](#11-practical-troubleshooting-checklist-for-support)
 
 **Scope:** What KYC is, how it works in Interledger App, and how provider differences affect the user journey.
 
@@ -201,7 +202,7 @@ sequenceDiagram
 
 ---
 
-## 8.2 Xago + Persona (South Africa path, multi-party)
+## 8.2 Xago and Persona (South Africa path)
 
 ### How it works
 

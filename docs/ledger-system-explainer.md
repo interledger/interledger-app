@@ -7,6 +7,7 @@
 
 **Related documents:**
 - [Payments Guide](payments-explainer.md) — Overview and navigation hub
+- [Wallets vs Accounts vs Addresses](wallets-vs-accounts-vs-addresses.md) — Linked-account architecture behind ledger entries
 - [Transaction Types Reference](transaction-types-explainer.md) — Transaction fields and lifecycle
 - [Provider Payments Guide](provider-payments-guide.md) — Provider-specific ledger behavior
 - [Payment Troubleshooting](payment-troubleshooting-guide.md) — Debugging balance discrepancies
@@ -23,14 +24,12 @@
 
 ## Quick Summary
 
-The Interledger App Wallet (a reference implementation for Account Servicing Entities integrating with the Interledger network) maintains **two separate accounting systems**:
+Interledger App uses **two accounting systems**:
 
 1. **Our Ledger (Pacioli)** — immediate, optimistic, internal source of truth
 2. **Provider's Ledger** — authoritative, external, slow but definitive
 
-These ledgers must continuously reconcile to prevent money loss. Understanding how and why they exist is critical for operations.
-
-> **Note:** This dual-ledger architecture is part of how the wallet demonstrates ASE integration patterns for the open payment network — balancing user experience (fast internal ledger) with regulatory/settlement requirements (provider ledgers).
+These ledgers must continuously reconcile. That is what prevents missing funds, duplicate posting, and false balance views.
 
 ---
 

@@ -10,6 +10,7 @@
 - [Ledger System Architecture](ledger-system-explainer.md) — Understanding balance discrepancies
 - [Transaction Types Reference](transaction-types-explainer.md) — Transaction field details
 - [Provider Payments Guide](provider-payments-guide.md) — Provider-specific debugging paths
+- [KYC Explainer](kyc-explainer.md) — KYC gating that can block payment flows
 - [Concepts](concepts.md) — Core terminology
 
 **Quick Navigation:**
@@ -18,13 +19,17 @@
 - **Recipient didn't receive?** → See [Problem 3: Missing Receipt](#problem-3-sender-sent-money-but-recipient-didnt-receive-it)
 - **Ledger discrepancy?** → See [Problem 4: Ledger Mismatch](#problem-4-our-balance-doesnt-match-providers-balance)
 - **Using Temporal?** → See [Temporal Debugging Guide](#temporal-debugging-guide)
-- **Prevention checklist?** → See [Prevention Checklist](#prevention-checklist)
 
 ---
 
 ## Introduction
 
-When something goes wrong with a payment, follow this systematic debugging framework. Don't guess — follow the evidence trail.
+When something goes wrong with a payment, follow this order:
+1) verify provider status,
+2) compare with our records,
+3) fix the mismatch at the source.
+
+Don't guess — follow the evidence trail.
 
 ```mermaid
 graph TD
@@ -48,7 +53,7 @@ graph TD
     CheckWebhook -->|Yes| Strange["Strange mismatch:<br/>Webhook says<br/>complete but<br/>provider says<br/>pending"]
     CheckWebhook -->|No| Wait["Wait 20 min for<br/>provider to process<br/>then check again"]
     
-    strange --> Escalate
+    Strange --> Escalate
     Wait --> CheckAgain["Poll provider<br/>again"]
     CheckAgain --> TxStatus
     
@@ -621,53 +626,6 @@ Fix:
 
 ---
 
-## Prevention Checklist
-
-Before transactions fail, ensure system health:
-
-- [ ] **Network Connectivity**
-  - [ ] Test webhook endpoint (POST /webhooks/provider)
-  - [ ] Verify outbound connectivity to all provider APIs
-  - [ ] Check DNS resolution for provider domains
-
-- [ ] **Provider APIs**
-  - [ ] Test provider health endpoints
-  - [ ] Verify API credentials are valid (test every 24hr)
-  - [ ] Check rate limits aren't being exceeded
-
-- [ ] **Database**
-  - [ ] Disk space > 20% available (critical at < 10%)
-  - [ ] No long-running queries causing locks
-  - [ ] Backups completing successfully
-
-- [ ] **Temporal Workflow Engine**
-  - [ ] Temporal server running (check dashboard)
-  - [ ] Workers registered and active
-  - [ ] No activity timeout errors in logs
-
-- [ ] **User Setups**
-  - [ ] All users have at least one linked account
-  - [ ] Linked accounts are in "active" state
-  - [ ] No account lockouts or restrictions
-
-- [ ] **Provider Credentials**
-  - [ ] GateHub app ID/secret valid
-  - [ ] PTI API key unexpired
-  - [ ] Xago credentials working
-  - [ ] Chimoney API token unexpired
-
-- [ ] **Webhook Configuration**
-  - [ ] Webhook URL is correct (check config)
-  - [ ] Webhook endpoint accessible from outside
-  - [ ] Webhook handler not timing out
-
-- [ ] **System Ledgers**
-  - [ ] Pacioli (our ledger) running and responsive
-  - [ ] Daily reconciliation with providers completing
-  - [ ] No unresolved discrepancies > 24 hours old
-
----
-
 ## Temporal Debugging Guide
 
 Temporal is the workflow orchestration engine that manages payment processing. When payments seem stuck or behave unexpectedly, Temporal's Web UI provides visibility into exactly what's happening.
@@ -1054,17 +1012,6 @@ stateDiagram-v2
 - Large balances missing
 - Multiple users affected
 - Fraud suspicion
-
----
-
-## Key Takeaways
-
-1. **Always check provider first** — They have authoritative truth
-2. **Follow the framework** — Do ledgers agree? → What's transaction status? → Investigate root cause
-3. **Look for webhooks first** — Most problems are webhook failures
-4. **Use 20-minute rule** — Wait before assuming stuck, then poll
-5. **Reconcile regularly** — Catch problems early, before they compound
-6. **Document findings** — Help future troubleshooting and prevent repeats
 
 ---
 

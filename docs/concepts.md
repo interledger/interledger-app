@@ -5,6 +5,8 @@
 **Related documents:**
 - [Wallets vs Accounts vs Addresses](wallets-vs-accounts-vs-addresses.md) — Architectural deep dive on wallet/account/address layers
 - [Payments & Transactions Guide](payments-explainer.md) — How payments work and navigate to specialist guides
+- [Ledger System Architecture](ledger-system-explainer.md) — Dual-ledger model and reconciliation behavior
+- [Payment Troubleshooting](payment-troubleshooting-guide.md) — Incident investigation workflow
 - [KYC Explainer](kyc-explainer.md) — Identity verification flows per provider
 - [GateHub Cards](gatehub-cards-explainer.md) — Card issuing integration details
 - [Transaction Types Reference](transaction-types-explainer.md) — Transaction field specifications

@@ -7,6 +7,7 @@
 
 **Related documents:**
 - [Payments Guide](payments-explainer.md) — Overview and navigation hub
+- [Wallets vs Accounts vs Addresses](wallets-vs-accounts-vs-addresses.md) — How linked accounts shape transaction creation
 - [Ledger System Architecture](ledger-system-explainer.md) — How transactions update ledgers
 - [Provider Payments Guide](provider-payments-guide.md) — Provider-specific transaction behavior
 - [Payment Troubleshooting](payment-troubleshooting-guide.md) — Debugging transaction issues
