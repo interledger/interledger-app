@@ -2,9 +2,18 @@
 
 ## Project Context
 
-**Purpose**: Interledger Wallet is a comprehensive fintech application enabling users to manage digital wallets, make payments, handle KYC verification, and interact with the Interledger Protocol network.
+**Purpose**: The Interledger App Wallet is a reference implementation for Account Servicing Entities (ASEs) demonstrating how to integrate with the Interledger network to build an open payment network where multiple ASE organizations can connect and interoperate.
 
-**Why it exists**: Provides a production-grade reference implementation of a wallet application integrating with multiple payment providers (GateHub, Xago, Chimoney, PTI), Interledger Protocol via Rafiki, and identity management via Ory Kratos.
+**Why it exists**: 
+- Serves as a **production-grade example** for ASEs looking to join the Interledger network
+- Demonstrates integration patterns with multiple payment providers (GateHub, Xago, Chimoney, PTI)
+- Shows how to leverage **Interledger Protocol, Open Payments, and Web Monetization** for:
+  - Cross-border payments that are quick and easy
+  - High-speed transactions
+  - Content creator monetization with fewer restrictions
+- Provides multi-provider, multi-currency money management without users maintaining separate accounts at each provider
+
+**Related applications**: There is also an Interledger App mobile application (separate codebase) that provides mobile access to wallet capabilities.
 
 **Tech Stack**:
 - **Backend**: Go 1.24+ (Chi HTTP router, gRPC, Temporal workflows)

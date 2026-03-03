@@ -17,13 +17,15 @@
 
 This document extends [concepts.md](./concepts.md) and explains how wallets, linked accounts, and addresses fit together in the Interledger App. It is written for senior technical support who need a reliable operational mental model when diagnosing payment-routing, currency, and provider-integration issues.
 
+**Context:** The Interledger App Wallet is a reference implementation demonstrating how Account Servicing Entities (ASEs) can integrate with the Interledger network to enable cross-border payments, high-speed transactions, and content creator monetization.
+
 At a high level, the system has three different layers that are often conflated:
 
-- **Wallet layer (product identity)**: one wallet per user, user-facing identity anchor.
+- **Wallet layer (product identity)**: one wallet per user, user-facing identity anchor, Interledger network participant.
 - **Linked-account layer (money movement rails)**: provider-specific accounts that actually send/receive value.
-- **Address layer (discovery/Open Payments identity)**: wallet URLs/payment pointers used to target a wallet.
+- **Address layer (discovery/Open Payments identity)**: wallet URLs/payment pointers used to target a wallet for Interledger payments.
 
-Most support confusion comes from mixing these layers. A payment can be addressed to a wallet URL, but settlement still occurs through linked accounts.
+Most support confusion comes from mixing these layers. A payment can be addressed to a wallet URL (Open Payments), but settlement still occurs through linked accounts.
 
 ---
 

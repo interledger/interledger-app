@@ -1,5 +1,22 @@
 # Interledger Wallet
 
+> **A reference implementation for Account Servicing Entities (ASEs) integrating with the Interledger network.**
+
+The Interledger App Wallet demonstrates how to build an open payment network where multiple ASE organizations can connect and interoperate. It showcases integration patterns for:
+
+- **Cross-border payments** that are quick and easy
+- **High-speed transactions** leveraging Interledger Protocol  
+- **Content creator monetization** through Open Payments and Web Monetization
+- **Multi-provider, multi-currency** money management
+
+**Technology stack**: Go backend, TypeScript frontend (Remix), PostgreSQL, Redis, Temporal workflows, Ory Kratos authentication, Rafiki (Interledger connector).
+
+**Related applications**: There is also an Interledger App mobile application (separate codebase).
+
+For support and operations documentation, see [`docs/`](./docs/), starting with [payments-explainer.md](./docs/payments-explainer.md).
+
+---
+
 ## Local Development Environment
 
 Go to ```./local``` and follow [getting-started](./local/docs/getting-started.md).

@@ -25,12 +25,18 @@
 
 ## The Big Picture
 
-The Interledger Wallet helps people manage their money across multiple providers and currencies. Think of it like a personal accountant who works with multiple banks on your behalf.
+The Interledger App Wallet is a **reference implementation** showing Account Servicing Entities (ASEs) how to integrate with the Interledger network. It demonstrates how to build an open payment network where multiple ASE organizations can connect and interoperate.
 
-**The core problem we solve**: People want to move money between different financial systems (open payment networks, banks, card networks) without having to maintain separate accounts and logins at each one.
+**For users**, the wallet enables:
+- **Cross-border payments** that are quick and easy
+- **High-speed transactions** leveraging Interledger Protocol
+- **Content creator monetization** through Open Payments and Web Monetization with fewer restrictions
+- **Multi-provider, multi-currency** money management without maintaining separate accounts at each provider
 
-**The solution**: A wallet that:
-- Holds your connection to multiple providers
+> **Note:** There is also an Interledger App mobile application (separate codebase) that provides mobile access to these wallet capabilities.
+
+**How it works**: The wallet acts like a personal accountant, managing your connections to multiple financial providers (banks, payment networks, card networks) on your behalf. It:
+- Holds your connections to multiple providers
 - Tracks every transaction that happens
 - Keeps its own records to ensure nothing gets lost
 - Settles with providers regularly to match accounts

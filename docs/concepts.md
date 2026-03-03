@@ -18,7 +18,9 @@
 
 ---
 
-The Interledger App integrates with GateHub, PTI, Xago, and Chimoney — each with their own vocabularies. A "wallet" in the Interledger App is fundamentally different from a "wallet" in GateHub or PTI. This document maps the terminology.
+The Interledger App Wallet serves as a reference implementation for Account Servicing Entities (ASEs), demonstrating integration with the Interledger network to enable cross-border payments, high-speed transactions, and content creator monetization via Open Payments and Web Monetization.
+
+The wallet integrates with multiple payment providers — GateHub, PTI, Xago, and Chimoney — each with their own vocabularies. A "wallet" in the Interledger App is fundamentally different from a "wallet" in GateHub or PTI. This document maps the terminology.
 
 ## Wallet Structure
 

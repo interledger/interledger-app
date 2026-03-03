@@ -23,12 +23,14 @@
 
 ## Quick Summary
 
-The Interledger Wallet maintains **two separate accounting systems**:
+The Interledger App Wallet (a reference implementation for Account Servicing Entities integrating with the Interledger network) maintains **two separate accounting systems**:
 
 1. **Our Ledger (Pacioli)** — immediate, optimistic, internal source of truth
 2. **Provider's Ledger** — authoritative, external, slow but definitive
 
 These ledgers must continuously reconcile to prevent money loss. Understanding how and why they exist is critical for operations.
+
+> **Note:** This dual-ledger architecture is part of how the wallet demonstrates ASE integration patterns for the open payment network — balancing user experience (fast internal ledger) with regulatory/settlement requirements (provider ledgers).
 
 ---
 
