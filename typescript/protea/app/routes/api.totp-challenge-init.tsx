@@ -1,5 +1,6 @@
+import type { Route } from './+types/api.totp-challenge-init'
 import type { UiNode } from '@ory/kratos-client'
-import { data, type ActionFunctionArgs } from 'react-router';
+import { data } from 'react-router';
 import { KRATOS_URL } from '~/lib/kratos.server'
 import logger, { addRequestId } from '~/lib/logger.server'
 import { extractOrGenerateRequestId } from '~/lib/requestContext.server'
@@ -8,7 +9,7 @@ import { extractOrGenerateRequestId } from '~/lib/requestContext.server'
  * Initialize a TOTP challenge flow (AAL2) via Kratos API endpoint
  * This is used for inline TOTP verification without page redirects
  */
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   try {
     const cookie = request.headers.get('cookie') ?? ''
 

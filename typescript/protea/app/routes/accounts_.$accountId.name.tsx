@@ -1,5 +1,5 @@
+import type { Route } from './+types/accounts_.$accountId.name'
 import { Code } from '@bufbuild/connect'
-import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
 import type { UIMatch } from 'react-router';
 import { Form, useActionData, useLoaderData, useParams } from 'react-router';
 import { href } from 'react-router'
@@ -12,7 +12,7 @@ import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 
-export async function loader({ request, params }: LoaderFunctionArgs) {
+export async function loader({ request, params }: Route.LoaderArgs) {
   const account = await getLinkedAccount(request, params.accountId as string)
   return jsonWithCSRF(request, {
     name: account.nickname,
@@ -31,17 +31,14 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction<typeof loader> = mergeMeta<typeof loader>(
-  ({ data }) => [
-    {
-      title: data?.type == 'bank' ? 'Bank account nickname' : 'Card nickname'
-    }
-  ]
-)
+export const meta = mergeMeta(({ data }) => {
+  const d = data as Awaited<ReturnType<typeof loader>>['data'] | undefined
+  return [{ title: d?.type == 'bank' ? 'Bank account nickname' : 'Card nickname' }]
+})
 
 export default function Page() {
   const { name, csrfToken } = useLoaderData<typeof loader>()
-  const actionData = useActionData<typeof action>()
+  const actionData = useActionData()
   const params = useParams()
 
   return (
@@ -82,7 +79,7 @@ export default function Page() {
   )
 }
 
-export async function action({ request, params }: ActionFunctionArgs) {
+export async function action({ request, params }: Route.ActionArgs) {
   const form = await request.formData()
   const nickname = form.get('name') as string
 

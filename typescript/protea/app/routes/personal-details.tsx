@@ -1,6 +1,6 @@
-import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
 import { data } from 'react-router';
 import { useLoaderData, useSubmit } from 'react-router';
+import type { Route } from './+types/personal-details'
 import { useEffect, useRef, useState } from 'react'
 import { href } from 'react-router'
 import { Button, Card, CardContent, Dialog, Layouts, Shape } from '~/components'
@@ -22,10 +22,10 @@ type KYCErrorsType = {
   UnableToPars: 'KYC: unable to parse message data'
 }
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const flow = await requireFlow(request, flowType.PersonalDetails)
   const response = await grpc.getKYCProviderWidget(request, {
-    idempotencyKey: flow.data.idempotencyKey
+    idempotencyKey: flow.data?.idempotencyKey as string
   })
 
   if (isConnectError(response)) throw response.errorResponse
@@ -65,7 +65,7 @@ export const handle = {
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Activate wallet'
   }
@@ -73,7 +73,7 @@ export const meta: MetaFunction = mergeMeta(() => [
 
 function ChimoneyPage() {
   const submit = useSubmit()
-  const { chimoneyWidget } = useLoaderData<typeof loader>()
+  const { chimoneyWidget } = useLoaderData()
 
   useEffect(() => {
     const onKYCComplete = (e: MessageEvent) => {
@@ -108,7 +108,7 @@ function ChimoneyPage() {
 
 function PersonaPage() {
   const submit = useSubmit()
-  const { personaWidget } = useLoaderData<typeof loader>()
+  const { personaWidget } = useLoaderData()
   const [ready, setReady] = useState(false)
   const status = useScript(
     'https://cdn.withpersona.com/dist/persona-v4.8.0-alpha.js'
@@ -152,7 +152,7 @@ function PersonaPage() {
 }
 
 function GatehubPage() {
-  const { gatehubWidget } = useLoaderData<typeof loader>()
+  const { gatehubWidget } = useLoaderData()
   const [dialogOpen, setDialogOpen] = useState(false)
   const submit = useSubmit()
   useEffect(() => {
@@ -232,7 +232,7 @@ function GatehubPage() {
 }
 
 function PtiPage() {
-  const { ptiWidget } = useLoaderData<typeof loader>()
+  const { ptiWidget } = useLoaderData()
   const submit = useSubmit()
   const scriptStatus = useScript(
     ptiWidget?.sdkUrl || 'https://sdk.platform.fiant.io/0.0.23/index.js'
@@ -330,7 +330,7 @@ function KycIntro({ onClick, ready }: KycIntroProps) {
 }
 
 export default function Page() {
-  const { provider } = useLoaderData<typeof loader>()
+  const { provider } = useLoaderData()
 
   if (provider == 'persona') {
     return <PersonaPage />
@@ -341,7 +341,7 @@ export default function Page() {
   } else return <GatehubPage />
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   logger.info({ flow: 'kyc' }, '[KYC] Personal details action called - marking KYC status as pending')
   
   await exitFlow(request, flowType.PersonalDetails)

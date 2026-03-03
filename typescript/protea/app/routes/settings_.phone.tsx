@@ -1,5 +1,5 @@
+import type { Route } from './+types/settings_.phone'
 import { Code } from '@bufbuild/connect'
-import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
 import { redirect } from 'react-router';
 import type { ShouldRevalidateFunction } from 'react-router';
 import { Form, useActionData, useFetcher, useLoaderData } from 'react-router';
@@ -48,7 +48,7 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({
   return defaultShouldRevalidate
 }
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
   const cookie = String(request.headers.get('cookie'))
@@ -97,7 +97,7 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Set new mobile number'
   }
@@ -109,9 +109,9 @@ export function links() {
 
 export default function Page() {
   const otpFetcher = useFetcher<typeof sendOtpAction>()
-  const actionData = useActionData<typeof action>()
+  const actionData = useActionData()
   const { flow, countryCode, countries, csrfToken, csrf_token } =
-    useLoaderData<typeof loader>()
+    useLoaderData()
   const [showDialog, setShowDialog] = useState<boolean>(false)
 
   useEffect(() => {
@@ -218,7 +218,7 @@ export default function Page() {
   )
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const session = await getUserSession(request)
   const cookie = request.headers.get('Cookie') as string
   const url = new URL(request.url)

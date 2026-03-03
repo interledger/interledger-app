@@ -1,4 +1,4 @@
-import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
+import type { Route } from './+types/payments'
 import { data } from 'react-router';
 import type { ShouldRevalidateFunction } from 'react-router';
 import { Outlet, useFetcher, useLoaderData, useLocation, useSearchParams } from 'react-router';
@@ -48,7 +48,7 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({
   return defaultShouldRevalidate
 }
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url)
   const pages = parseInt(url.searchParams.get('pages') || '1')
 
@@ -107,14 +107,14 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Payments'
   }
 ])
 
 export default function Page() {
-  const initialPage = useLoaderData<typeof loader>()
+  const initialPage = useLoaderData()
   let [, setSearchParams] = useSearchParams()
   const fetcher = useFetcher<typeof loader>()
   const [transactions, setTransactions] = useState(initialPage.transactions)
@@ -181,7 +181,7 @@ export default function Page() {
   // Handle new transactions being fetched and add to transaction list
   useEffect(() => {
     if (fetcher.data && fetcher.data.transactions.length > 0) {
-      setTransactions((currentTransactions) => {
+      setTransactions((currentTransactions: import("~/generated/connect/backend/v1/backend_pb").Transaction[][]) => {
         if (!fetcher.data) return currentTransactions
 
         const lastOfCurrent =
@@ -273,10 +273,10 @@ export default function Page() {
             </Card>
           )}
         {transactions &&
-          transactions.map((transactionGroup, index) => (
+          transactions.map((transactionGroup: import("~/generated/connect/backend/v1/backend_pb").Transaction[], index: number) => (
             <Card key={`group-${index}`}>
               <Label>{transactionGroup[0].formattedDate}</Label>
-              {transactionGroup.map((transaction) =>
+              {transactionGroup.map((transaction: import("~/generated/connect/backend/v1/backend_pb").Transaction) =>
                 transaction.type.includes('web_monetization_') &&
                 transaction.state == 'Pending' ? (
                   // Can't disable a link :/

@@ -1,4 +1,4 @@
-import type { ActionFunctionArgs } from 'react-router';
+import type { Route } from './+types/api_.getPendingConfirmations'
 import { data } from 'react-router';
 import type { PendingThreeDSConfirmation } from '~/generated/connect/backend/v1/backend_pb'
 import { isConnectError } from '~/lib/error.server'
@@ -11,7 +11,7 @@ export type GetPendingConfirmationsResponse = {
   }
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const response = await grpc.getPendingThreeDSConfirmations(request, {})
   if (isConnectError(response)) {
     return data<GetPendingConfirmationsResponse>(

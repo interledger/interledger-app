@@ -1,8 +1,8 @@
-import type { ActionFunctionArgs } from 'react-router';
+import type { Route } from './+types/api_.fern'
 import logger, { addRequestId, withErrorLog } from '~/lib/logger.server'
 import { extractOrGenerateRequestId } from '~/lib/requestContext.server'
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   try {
     let expectedDsn = process.env.SENTRY_DSN || ''
     let envelope = await request.text()

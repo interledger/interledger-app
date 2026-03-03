@@ -1,5 +1,5 @@
+import type { Route } from './+types/api_.sendOtp'
 import { Code } from '@bufbuild/connect'
-import type { ActionFunctionArgs } from 'react-router';
 import { data as rrData } from 'react-router';
 import type { CountryCode, ParseError } from 'libphonenumber-js'
 import { parsePhoneNumberWithError } from 'libphonenumber-js'
@@ -8,7 +8,7 @@ import { error, isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { getUserSession } from '~/lib/kratos.server'
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const form = await request.formData()
   const country = form.get('country') as string
   const phone = form.get('phone') as string

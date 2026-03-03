@@ -6,6 +6,7 @@ import {
   CardStatus,
   CardTokenType
 } from '~/generated/connect/backend/v1/backend_pb'
+import type { TokenLink } from '~/generated/connect/backend/v1/backend_pb'
 import { cardProcessorClient } from '~/lib/cards/CardProcessorApiClient'
 import type {
   CardProcessorSensitiveDataResponse,
@@ -99,7 +100,7 @@ export const useCardActions = (card: StorableCard) => {
    * Token listeners
    */
   const onSensitiveDataToken = useCallback(
-    async ({ token: jwtToken, links }: any) => {
+    async ({ token: jwtToken, links }: { token: string; links: TokenLink[] }) => {
       executeAction({
         execute: async () => {
           const hrefs = links[0].href
@@ -109,7 +110,7 @@ export const useCardActions = (card: StorableCard) => {
             await cardProcessorClient.card.getSensitiveData({
               jwtToken,
               cardProcessorUrl: hrefs,
-              httpMethod: method
+              httpMethod: method as HttpMethod
             })
 
           const decryptedCardData =
@@ -130,7 +131,7 @@ export const useCardActions = (card: StorableCard) => {
   )
 
   const onGetPinToken = useCallback(
-    async ({ token: jwtToken, links }: any) => {
+    async ({ token: jwtToken, links }: { token: string; links: TokenLink[] }) => {
       executeAction({
         execute: async () => {
           const href = links[0].href
@@ -157,7 +158,7 @@ export const useCardActions = (card: StorableCard) => {
   )
 
   const onChangePinToken = useCallback(
-    async ({ token: jwtToken, links }: any) => {
+    async ({ token: jwtToken, links }: { token: string; links: TokenLink[] }) => {
       executeAction({
         execute: async () => {
           const newPin = newPinRef.current

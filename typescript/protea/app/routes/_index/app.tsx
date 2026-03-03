@@ -26,7 +26,7 @@ import {
 import { Label } from '~/components/Label'
 import { usePendingConfirmations } from '~/lib/cards/usePendingConfirmations'
 import { usePusher } from '~/lib/usePusher'
-import type { loader } from './route'
+import type { loader, AppLoaderData } from './route'
 import { KycStatus } from '~/lib/types'
 
 export function AppPage() {
@@ -37,7 +37,7 @@ export function AppPage() {
     kycStatus,
     pusherArgs,
     balances
-  } = useLoaderData<any>()
+  } = useLoaderData<typeof loader>() as AppLoaderData
 
   const { pendingConfirmations } = usePendingConfirmations()
 
@@ -141,7 +141,7 @@ export function AppPage() {
             <div className='contents lg:hidden'>
               <CTACards />
             </div>
-            {balances.map((method: any) => (
+            {balances.map((method) => (
               <Card key={method.linkedAccount}>
                 <CardContent className='flex items-center justify-between'>
                   <div className='flex items-center space-x-3'>
@@ -213,7 +213,7 @@ export function AppPage() {
                   </div>
                 </CardContent>
               )}
-              {transactions.map((transaction: any, index: number) => (
+              {transactions.map((transaction, index) => (
                 <CardLink
                   key={transaction.id}
                   to={href('/payments/:paymentId', {
@@ -303,7 +303,7 @@ export function AppPage() {
 }
 
 function CTACards() {
-  const { features, walletInfo } = useLoaderData<any>()
+  const { features, walletInfo } = useLoaderData<typeof loader>() as AppLoaderData
 
   return (
     <>

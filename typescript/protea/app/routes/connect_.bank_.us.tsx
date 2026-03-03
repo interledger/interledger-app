@@ -1,5 +1,5 @@
+import type { Route } from './+types/connect_.bank_.us'
 import { Code } from '@bufbuild/connect'
-import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
 import { redirect } from 'react-router';
 import { Form, useActionData, useLoaderData, useNavigation } from 'react-router';
 import { useEffect, useState } from 'react'
@@ -20,7 +20,7 @@ import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const balancesResponse = await grpc.getBalances(request, {})
   if (
     isConnectError(balancesResponse) ||
@@ -47,17 +47,17 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Connect bank account'
   }
 ])
 
 export default function Page() {
-  const { accountTypes, csrfToken } = useLoaderData<typeof loader>()
+  const { accountTypes, csrfToken } = useLoaderData()
 
   const navigation = useNavigation()
-  const actionData = useActionData<typeof action>()
+  const actionData = useActionData()
   const [accountType, setAccountType] = useState<SelectOptions>(accountTypes[0])
 
   const [setLoading] = useScaffoldStore((state) => [state.setLoading])
@@ -158,7 +158,7 @@ export default function Page() {
   )
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const form = await request.formData()
   const accountType = form.get('accountType') as string
   const accountNumber = form.get('accountNumber') as string

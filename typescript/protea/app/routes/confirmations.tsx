@@ -1,4 +1,5 @@
-import { data, redirect, type LoaderFunctionArgs, type MetaFunction } from 'react-router';
+import type { Route } from './+types/confirmations'
+import { data, redirect } from 'react-router';
 import type { ShouldRevalidateFunction } from 'react-router';
 import { Outlet, useLocation } from 'react-router';
 import { href } from 'react-router'
@@ -16,7 +17,7 @@ import {
 import { usePendingConfirmations } from '~/lib/cards/usePendingConfirmations'
 import { hasUserSession } from '~/lib/kratos.server'
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const session = hasUserSession(request)
   const returnTo = new URL(request.url).pathname
 
@@ -48,7 +49,7 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = () => [
+export const meta: Route.MetaFunction = () => [
   {
     title: 'Pending 3DS Confirmations'
   }

@@ -1,4 +1,4 @@
-import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
+import type { Route } from './+types/accounts'
 import { data } from 'react-router';
 import { Outlet, useLoaderData, useLocation } from 'react-router';
 import { href } from 'react-router'
@@ -27,7 +27,7 @@ import { mergeMeta } from '~/lib/meta'
 import { KycStatus } from '~/lib/types'
 import styles from '~/styles/flags.css?url'
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const { bankAccounts, cardAccounts, interacAccounts } =
     await getLinkedAccounts(request)
   const kycStatus = await getKycStatus(request)
@@ -62,7 +62,7 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Accounts'
   }
@@ -83,7 +83,7 @@ export default function Page() {
     hasBank,
     kycStatus,
     hasZABalance
-  } = useLoaderData<typeof loader>()
+  } = useLoaderData()
 
   const location = useLocation()
   const pathSegments = location.pathname.split('/').filter(Boolean)
@@ -127,7 +127,7 @@ export default function Page() {
             <CardHeader>
               <CardTitle>Connected cards</CardTitle>
             </CardHeader>
-            {cardAccounts.map((method) => (
+            {cardAccounts.map((method: import("~/data/accounts.server").FormattedLinkedAccount) => (
               <CardLink
                 key={method.id}
                 to={href('/accounts/:accountId', {
@@ -183,7 +183,7 @@ export default function Page() {
             <CardHeader>
               <CardTitle>Connected bank accounts</CardTitle>
             </CardHeader>
-            {bankAccounts.map((method) => (
+            {bankAccounts.map((method: import("~/data/accounts.server").FormattedLinkedAccount) => (
               <CardLink
                 key={method.id}
                 to={href('/accounts/:accountId', {
@@ -215,7 +215,7 @@ export default function Page() {
             <CardHeader>
               <CardTitle>Connected interac accounts</CardTitle>
             </CardHeader>
-            {interacAccounts.map((method) => (
+            {interacAccounts.map((method: import("~/data/accounts.server").FormattedLinkedAccount) => (
               <CardLink
                 key={method.id}
                 to={href('/accounts/:accountId', {

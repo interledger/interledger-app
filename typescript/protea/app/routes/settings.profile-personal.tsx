@@ -1,4 +1,4 @@
-import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
+import type { Route } from './+types/settings.profile-personal'
 import { data } from 'react-router';
 import { useLoaderData } from 'react-router';
 import { DateTime } from 'luxon'
@@ -11,7 +11,7 @@ import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const kycStatus = await getKycStatus(request)
 
   const kycDetails = await grpc.getIndividualKYC(request, {})
@@ -65,7 +65,7 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Personal information'
   }
@@ -73,7 +73,7 @@ export const meta: MetaFunction = mergeMeta(() => [
 
 export default function Page() {
   const { dateOfBirth, gender, kycDetails, country } =
-    useLoaderData<typeof loader>()
+    useLoaderData()
   return (
     <Card>
       <CardContent className='flex flex-col space-y-4'>
@@ -96,8 +96,8 @@ export default function Page() {
               <span>
                 {kycDetails.address?.formattedAddress
                   ?.split(',')
-                  .filter((line) => line.length > 0)
-                  .map((line) => (
+                  .filter((line: string) => line.length > 0)
+                  .map((line: string) => (
                     <>
                       <span>{line}</span>
                       <br />

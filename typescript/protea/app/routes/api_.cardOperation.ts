@@ -1,4 +1,4 @@
-import type { ActionFunctionArgs } from 'react-router';
+import type { Route } from './+types/api_.cardOperation'
 import { data } from 'react-router';
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
@@ -9,10 +9,10 @@ export type OperationResponse = {
   success: boolean
   operation: Operation
   shouldRevalidate?: boolean
-  errors?: any
+  errors?: { operation: string }
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   let form = await request.formData()
   const cardId = form.get('cardId') as string
   const operation = form.get('operation') as Operation

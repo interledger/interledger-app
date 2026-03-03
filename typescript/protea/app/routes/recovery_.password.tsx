@@ -1,4 +1,4 @@
-import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
+import type { Route } from './+types/recovery_.password'
 import { data, redirect } from 'react-router';
 import { Form, useActionData, useLoaderData, useRevalidator } from 'react-router';
 import { useEffect, useState } from 'react'
@@ -26,13 +26,13 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Set password'
   }
 ])
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
   const cookie = String(request.headers.get('cookie'))
@@ -77,8 +77,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export default function Page() {
-  const actionData = useActionData<typeof action>()
-  const { flowId, csrfToken } = useLoaderData<typeof loader>()
+  const actionData = useActionData()
+  const { flowId, csrfToken } = useLoaderData()
   const { revalidate, state } = useRevalidator()
 
   const [revalidateCount, setRevalidateCount] = useState<number>(0)
@@ -147,7 +147,7 @@ export default function Page() {
   )
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const cookie = request.headers.get('Cookie') as string
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')

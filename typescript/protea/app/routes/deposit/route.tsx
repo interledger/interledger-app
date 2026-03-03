@@ -28,6 +28,7 @@ import type {
   Balance,
   XagoDepositDetails
 } from '~/generated/connect/backend/v1/backend_pb'
+import type { FormattedLinkedAccount } from '~/data/accounts.server'
 import { KRATOS_URL } from '~/lib/kratos.server'
 
 import { getKycStatus } from '~/data/wallet.server'
@@ -62,7 +63,7 @@ async function fynbosDepositLoader({ request }: LoaderFunctionArgs) {
   if (isConnectError(providerResponse)) throw providerResponse.error
   const url = new URL(request.url)
   let balanceAccount: Balance | undefined
-  let balance: any
+  let balance: FormattedLinkedAccount | undefined
   let depositDetails: XagoDepositDetails | undefined
 
   const balanceResponse = await grpc.getBalances(request, {})
@@ -156,7 +157,7 @@ export function links() {
 }
 
 export default function Page() {
-  const { provider } = useLoaderData<any>()
+  const { provider } = useLoaderData<typeof loader>()
 
   if (provider == 'gatehub') {
     return <GatehubDepositPage />

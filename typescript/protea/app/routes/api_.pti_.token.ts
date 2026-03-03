@@ -1,8 +1,9 @@
-import { data, type ActionFunctionArgs } from 'react-router';
+import type { Route } from './+types/api_.pti_.token'
+import { data } from 'react-router';
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const payload = await request.json()
   const response = await grpc.createPtiToken(request, {
     url: payload['x-pti-token-payload'].url,

@@ -1,4 +1,4 @@
-import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
+import type { Route } from './+types/verify'
 import { data, redirect } from 'react-router';
 import { useFetcher, useLoaderData } from 'react-router';
 import { href } from 'react-router'
@@ -28,7 +28,7 @@ type ActionData = {
   success: boolean
 }
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
   const cookie = String(request.headers.get('cookie'))
@@ -86,14 +86,14 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Verify your email'
   }
 ])
 
 export default function Page() {
-  const { flow, email, csrfToken } = useLoaderData<typeof loader>()
+  const { flow, email, csrfToken } = useLoaderData()
   const fetcher = useFetcher<ActionData>()
 
   const withDebounce = useDebounceAction(RESEND_DELAY)
@@ -166,7 +166,7 @@ export default function Page() {
 
 export async function action({
   request
-}: ActionFunctionArgs): Promise<ReturnType<typeof data<ActionData>>> {
+}: Route.ActionArgs): Promise<ReturnType<typeof data<ActionData>>> {
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
 

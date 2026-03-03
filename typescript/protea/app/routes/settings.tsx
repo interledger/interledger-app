@@ -1,4 +1,4 @@
-import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
+import type { Route } from './+types/settings'
 import { data, redirect } from 'react-router';
 import { Outlet, useLoaderData, useLocation } from 'react-router';
 import { href } from 'react-router'
@@ -17,7 +17,7 @@ import { getKycStatus } from '~/data/wallet.server'
 import { mergeMeta } from '~/lib/meta'
 import { KycStatus } from '~/lib/types'
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url)
 
   const flowId = url.searchParams.get('flow')
@@ -39,14 +39,14 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Settings'
   }
 ])
 
 export default function Page() {
-  const { kycStatus } = useLoaderData<typeof loader>()
+  const { kycStatus } = useLoaderData()
   const location = useLocation()
   const pathSegments = location.pathname.split('/').filter(Boolean)
 

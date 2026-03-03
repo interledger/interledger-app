@@ -1,5 +1,5 @@
+import type { Route } from './+types/totp_.two-factor-authentication'
 import type { UiNode } from '@ory/kratos-client'
-import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
 import { data, redirectDocument } from 'react-router';
 import { Form, useActionData, useLoaderData, useSubmit } from 'react-router';
 import { useRef } from 'react'
@@ -31,7 +31,7 @@ type TotpForm = {
 
 export async function loader({
   request
-}: LoaderFunctionArgs) {
+}: Route.LoaderArgs) {
   const cookie = String(request.headers.get('cookie') ?? '')
   try {
     const response = await fetch(
@@ -93,14 +93,14 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   { title: 'Two-factor authentication' }
 ])
 
 export default function Page() {
   const { flowId, qrNode, secretKey, totpUnlink, csrfToken } =
-    useLoaderData<typeof loader>()
-  const actionData = useActionData<typeof action>()
+    useLoaderData()
+  const actionData = useActionData()
   const formRef = useRef<HTMLFormElement>(null)
   const submit = useSubmit()
   const { withTotpChallenge } = useTotpChallenge()
@@ -200,7 +200,7 @@ function TOTPSetupForm(totp: { qrNode: string; secretKey: string }) {
   )
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const totpUnlink =
     new URL(request.url).searchParams.get('totpUnlink') === 'true'
   const form = await request.formData()

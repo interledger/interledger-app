@@ -1,5 +1,5 @@
+import type { Route } from './+types/payments.$paymentId'
 import type { PlainMessage } from '@bufbuild/protobuf'
-import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
 import { data } from 'react-router';
 import type { UIMatch } from 'react-router';
 import { Link, useLoaderData } from 'react-router';
@@ -38,7 +38,7 @@ import { mergeMeta } from '~/lib/meta'
 import { getPusherArgs } from '~/lib/pusher.server'
 import { usePusher } from '~/lib/usePusher'
 
-export async function loader({ request, params }: LoaderFunctionArgs) {
+export async function loader({ request, params }: Route.LoaderArgs) {
   let senderAccountTitle, receiverAccountTitle
 
   const transaction = await grpc.lookupTransaction(request, {
@@ -143,17 +143,18 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction<typeof loader> = mergeMeta(({ data }) => [
-  {
+export const meta = mergeMeta(({ data }) => {
+  const d = data as Awaited<ReturnType<typeof loader>>['data'] | undefined
+  return [{
     title:
-      typeof data == 'undefined'
+      typeof d == 'undefined'
         ? 'Payment'
         : // TODO Fix this for withdrawal
-        data.transaction.type == 'sent' || data.transaction.type == 'web_monetization_outgoing'
-          ? `${data.transaction.subtotal} to ${data.transaction.title}`
-          : `${data.transaction.formattedAmount} from ${data.transaction.title}`
-  }
-])
+        d.transaction.type == 'sent' || d.transaction.type == 'web_monetization_outgoing'
+          ? `${d.transaction.subtotal} to ${d.transaction.title}`
+          : `${d.transaction.formattedAmount} from ${d.transaction.title}`
+  }]
+})
 
 export default function Page() {
   const { transaction, publicWalletInfo, pusherArgs } =

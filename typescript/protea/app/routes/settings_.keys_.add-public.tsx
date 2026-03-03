@@ -1,5 +1,5 @@
+import type { Route } from './+types/settings_.keys_.add-public'
 import { Code } from '@bufbuild/connect'
-import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
 import { Form, useActionData, useLoaderData } from 'react-router';
 import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
@@ -28,19 +28,19 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Add a public key'
   }
 ])
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   return jsonWithCSRF(request, {})
 }
 
 export default function Page() {
-  const actionData = useActionData<typeof action>()
-  const { csrfToken } = useLoaderData<typeof loader>()
+  const actionData = useActionData()
+  const { csrfToken } = useLoaderData()
 
   return (
     <>
@@ -103,7 +103,7 @@ export default function Page() {
   )
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const form = await request.formData()
 
   await validateCSRFToken(request, form)

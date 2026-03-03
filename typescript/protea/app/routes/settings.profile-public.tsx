@@ -1,4 +1,4 @@
-import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
+import type { Route } from './+types/settings.profile-public'
 import { data } from 'react-router';
 import { useLoaderData } from 'react-router';
 import { href } from 'react-router'
@@ -15,7 +15,7 @@ import { Label } from '~/components/Label'
 import { getPublicWalletDetails, getWalletInfo } from '~/data/wallet.server'
 import { mergeMeta } from '~/lib/meta'
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const walletInfo = await getWalletInfo(request)
   const wallet = await getPublicWalletDetails(request, walletInfo.walletID)
 
@@ -36,14 +36,14 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Public information'
   }
 ])
 
 export default function Page() {
-  const { name, walletInfo } = useLoaderData<typeof loader>()
+  const { name, walletInfo } = useLoaderData()
 
   return (
     <>

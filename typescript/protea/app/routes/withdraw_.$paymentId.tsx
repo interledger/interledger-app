@@ -1,4 +1,4 @@
-import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
+import type { Route } from './+types/withdraw_.$paymentId'
 import { redirect } from 'react-router';
 import { Form, useLoaderData } from 'react-router';
 import { DateTime } from 'luxon'
@@ -18,8 +18,7 @@ import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { usePTISdk } from '~/lib/usePTISdk'
 import { KycStatus, PaymentRequiredAction } from '~/lib/types'
 
-
-export async function loader({ request, params }: LoaderFunctionArgs) {
+export async function loader({ request, params }: Route.LoaderArgs) {
   const { kycStatus } = await getKycStatus(request)
   if (kycStatus != KycStatus.Approved)
     return redirect(href('/personal-details'))
@@ -54,7 +53,7 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Confirm withdraw'
   }
@@ -67,7 +66,7 @@ export default function Page() {
     senderAccountTitle,
     csrfToken,
     PTIClientId
-  } = useLoaderData<typeof loader>()
+  } = useLoaderData()
 
   usePTISdk(payment.id, PTIClientId)
 
@@ -149,7 +148,7 @@ export default function Page() {
   )
 }
 
-export async function action({ request, params }: ActionFunctionArgs) {
+export async function action({ request, params }: Route.ActionArgs) {
   const form = await request.formData()
   const country = form.get('country') as string
   await validateCSRFToken(request, form)

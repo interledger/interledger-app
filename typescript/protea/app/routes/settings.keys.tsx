@@ -1,4 +1,6 @@
-import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
+import type { Route } from './+types/settings.keys'
+import type { PlainMessage } from '@bufbuild/protobuf'
+import type { Connection } from '~/generated/connect/backend/v1/backend_pb'
 import { data } from 'react-router';
 import { useLoaderData } from 'react-router';
 import { href } from 'react-router'
@@ -15,7 +17,7 @@ import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   let response = await grpc.listConnections(request, {})
 
   if (isConnectError(response)) throw response.errorResponse
@@ -34,14 +36,14 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Keys'
   }
 ])
 
 export default function Page() {
-  const { keys } = useLoaderData<typeof loader>()
+  const { keys } = useLoaderData()
 
   return (
     <>
@@ -53,7 +55,7 @@ export default function Page() {
           </p>
         </CardContent>
         {keys.length > 0 &&
-          keys.map((key) => (
+          keys.map((key: PlainMessage<Connection>) => (
             <CardLink
               to={href('/settings/keys/:keyId', {
                 keyId: key.id

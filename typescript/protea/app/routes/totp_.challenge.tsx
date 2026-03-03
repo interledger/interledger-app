@@ -1,5 +1,5 @@
+import type { Route } from './+types/totp_.challenge'
 import type { SelfServiceLoginFlow, UiText } from '@ory/kratos-client'
-import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
 import { data, redirect } from 'react-router';
 import { useActionData, useLoaderData } from 'react-router';
 import { href } from 'react-router'
@@ -22,7 +22,7 @@ export type TotpAction =
     }
   | undefined
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
   const returnTo = safeReturnTo(url.searchParams.get('returnTo'))
@@ -88,15 +88,15 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Enter TOTP Code'
   }
 ])
 
 export default function Page() {
-  const { flowId, csrfToken } = useLoaderData<typeof loader>()
-  const actionData: TotpAction = useActionData<typeof action>()
+  const { flowId, csrfToken } = useLoaderData()
+  const actionData: TotpAction = useActionData()
 
   return (
     <>
@@ -112,7 +112,7 @@ export default function Page() {
   )
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const form = await request.formData()
   const flow = form.get('flow')
   const totp_code = form.get('totp_code')

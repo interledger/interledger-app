@@ -1,4 +1,4 @@
-import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
+import type { Route } from './+types/settings.profile-contact'
 import { data } from 'react-router';
 import { useLoaderData } from 'react-router';
 import { href } from 'react-router'
@@ -8,7 +8,7 @@ import { Label } from '~/components/Label'
 import { getUserSession } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const session = await getUserSession(request)
   const len = session.identity.traits.phone.length
   const phoneMask = session.identity.traits.phone
@@ -32,14 +32,14 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Contact information'
   }
 ])
 
 export default function Page() {
-  const { phoneMask, email } = useLoaderData<typeof loader>()
+  const { phoneMask, email } = useLoaderData()
   return (
     <Card>
       <Label>Email address</Label>

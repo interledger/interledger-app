@@ -1,4 +1,4 @@
-import type { ActionFunctionArgs } from 'react-router';
+import type { Route } from './+types/api_.getCardToken'
 import { data } from 'react-router';
 import type {
   CardTokenType,
@@ -12,10 +12,10 @@ export type GetCardTokenResponse = {
   token: string
   links: TokenLink[]
   shouldRevalidate?: boolean
-  errors?: any
+  errors?: { operation: string }
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   let form = await request.formData()
   const cardId = form.get('cardId') as string
   const tokenType = Number(form.get('tokenType')) as CardTokenType

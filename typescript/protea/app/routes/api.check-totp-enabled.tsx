@@ -1,4 +1,5 @@
-import { data, type LoaderFunctionArgs } from 'react-router';
+import type { Route } from './+types/api.check-totp-enabled'
+import { data } from 'react-router';
 import { KRATOS_URL } from '~/lib/kratos.server'
 import { isTotpSet } from '~/lib/totp.server'
 
@@ -7,7 +8,7 @@ import { isTotpSet } from '~/lib/totp.server'
  * This is called before showing the TOTP challenge popup
  * to ensure we don't prompt users who haven't set up 2FA yet
  */
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   try {
     const cookie = request.headers.get('cookie') ?? ''
     const sessionResponse = await fetch(`${KRATOS_URL}/sessions/whoami`, {

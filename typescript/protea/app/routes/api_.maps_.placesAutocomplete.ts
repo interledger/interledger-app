@@ -1,10 +1,10 @@
+import type { Route } from './+types/api_.maps_.placesAutocomplete'
 import { PlaceAutocompleteType } from '@googlemaps/google-maps-services-js'
-import type { LoaderFunctionArgs } from 'react-router';
 import { data } from 'react-router';
 import { mapsClient } from '~/lib/maps.server'
 import logger from '~/lib/logger.server'
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url)
   const query = url.searchParams.get('query') || ''
   const country = url.searchParams.get('country') || ''

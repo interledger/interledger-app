@@ -1,4 +1,3 @@
-import type { MetaFunction } from 'react-router';
 import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { ButtonRouter, Card, Layouts, SuccessShapes } from '~/components'
@@ -14,7 +13,7 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Contact | Success'
   }

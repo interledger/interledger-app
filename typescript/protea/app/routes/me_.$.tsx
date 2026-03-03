@@ -1,4 +1,4 @@
-import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
+import type { Route } from './+types/me_.$'
 import { data, redirect } from 'react-router';
 import { Form, isRouteErrorResponse, useLoaderData, useParams, useRouteError } from 'react-router';
 import { captureException } from '@sentry/react-router'
@@ -31,7 +31,7 @@ import { getClientIP } from '~/lib/ip.server'
 import { hasUserSession } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
 
-export async function loader({ request, params }: LoaderFunctionArgs) {
+export async function loader({ request, params }: Route.LoaderArgs) {
   const unsanitizedWalletAddressParam = params['*'] as string
   let profilePicture: { person: Query['person'] } | { person: null } = {
     person: null
@@ -85,12 +85,12 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction<typeof loader> = mergeMeta(
+export const meta = mergeMeta(
   ({ data, location }) => [
     {
       tagName: 'link',
       rel: 'monetization',
-      href: data?.walletAddress.address
+      href: (data as { walletAddress?: { address: string } } | undefined)?.walletAddress?.address
     }
   ]
 )
@@ -236,7 +236,7 @@ export function ErrorBoundary() {
   throw error
 }
 
-export async function action({ request, params }: ActionFunctionArgs) {
+export async function action({ request, params }: Route.ActionArgs) {
   // TODO: create payment here and redirect to /pay/:paymentId
   const walletAddressParam = params['*'] as string
 

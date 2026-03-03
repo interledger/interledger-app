@@ -1,15 +1,15 @@
+import type { Route } from './+types/$slug'
 import { data } from 'react-router';
 import type { ApplicationProps } from '~/components'
 import { Layouts } from '~/components'
 
-import type { LoaderFunctionArgs } from 'react-router';
 import type { UIMatch } from 'react-router';
 import { useLoaderData } from 'react-router';
 import { MarketingPageWithSections } from '~/components/Content'
 import { getCurrentMarketingPage } from '~/data/content.server'
 import type { SectionRecord } from '~/generated/dato-cms-graphql'
 
-export async function loader({ params }: LoaderFunctionArgs) {
+export async function loader({ params }: Route.LoaderArgs) {
   const { marketingPage, footer } = await getCurrentMarketingPage({
     filter: {
       slug: { eq: params.slug }
@@ -34,10 +34,10 @@ export const handle: ApplicationProps = {
 }
 
 export default function Page() {
-  const { marketingPage } = useLoaderData<typeof loader>()
+  const { marketingPage } = useLoaderData()
   return (
     <>
-      {marketingPage?.body?.map((section) => (
+      {marketingPage?.body?.map((section: import("~/generated/dato-cms-graphql").SectionRecord) => (
         <MarketingPageWithSections
           key={section.id}
           section={section as SectionRecord}

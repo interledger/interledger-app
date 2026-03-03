@@ -1,4 +1,4 @@
-import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
+import type { Route } from './+types/login'
 import { data, redirect } from 'react-router';
 import { Form, useActionData, useLoaderData, useSearchParams } from 'react-router';
 import { href } from 'react-router'
@@ -25,7 +25,7 @@ import {
 import { mergeMeta } from '~/lib/meta'
 import { safeReturnTo } from '~/lib/url.server'
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   await requireNoUserSession(request)
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
@@ -70,15 +70,15 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Log in'
   }
 ])
 
 export default function Page() {
-  const actionData = useActionData<typeof action>()
-  const { csrfToken, flowId } = useLoaderData<typeof loader>()
+  const actionData = useActionData()
+  const { csrfToken, flowId } = useLoaderData()
   const searchParams = useSearchParams()
 
   return (
@@ -144,7 +144,7 @@ export default function Page() {
   )
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const form = await request.formData()
   const csrfToken = form.get('csrf_token')
   const email = form.get('email')

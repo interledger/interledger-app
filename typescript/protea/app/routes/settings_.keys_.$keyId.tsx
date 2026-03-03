@@ -1,4 +1,4 @@
-import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
+import type { Route } from './+types/settings_.keys_.$keyId'
 import type { UIMatch } from 'react-router';
 import { Form, useLoaderData } from 'react-router';
 import { href } from 'react-router'
@@ -21,13 +21,12 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction<typeof loader> = mergeMeta(({ data }) => [
-  {
-    title: data?.connection.applicationName || 'Public key'
-  }
-])
+export const meta = mergeMeta(({ data }) => {
+  const d = data as Awaited<ReturnType<typeof loader>>['data'] | undefined
+  return [{ title: d?.connection.applicationName || 'Public key' }]
+})
 
-export async function loader({ request, params }: LoaderFunctionArgs) {
+export async function loader({ request, params }: Route.LoaderArgs) {
   const connection = await grpc.getConnection(request, {
     id: params.keyId as string
   })
@@ -77,7 +76,7 @@ export default function Page() {
   )
 }
 
-export async function action({ request, params }: ActionFunctionArgs) {
+export async function action({ request, params }: Route.ActionArgs) {
   const form = await request.formData()
 
   await validateCSRFToken(request, form)

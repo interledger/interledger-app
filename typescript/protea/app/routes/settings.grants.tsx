@@ -1,4 +1,6 @@
-import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
+import type { Route } from './+types/settings.grants'
+import type { PlainMessage } from '@bufbuild/protobuf'
+import type { RafikiGrant } from '~/generated/connect/backend/v1/backend_pb'
 import { data } from 'react-router';
 import { useLoaderData } from 'react-router';
 import { href } from 'react-router'
@@ -8,7 +10,7 @@ import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   let response = await grpc.listRafikiGrants(request, {})
 
   if (isConnectError(response)) throw response.errorResponse
@@ -27,14 +29,14 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Grants'
   }
 ])
 
 export default function Page() {
-  const { grants } = useLoaderData<typeof loader>()
+  const { grants } = useLoaderData()
 
   return (
     <>
@@ -47,7 +49,7 @@ export default function Page() {
 
       {grants.length > 0 && (
         <Card>
-          {grants.map((grant) => (
+          {grants.map((grant: PlainMessage<RafikiGrant>) => (
             <CardLink
               to={href('/settings/grants/:grantId', {
                 grantId: grant.id

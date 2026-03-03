@@ -1,4 +1,4 @@
-import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
+import type { Route } from './+types/callbacks_.chimoney'
 import { data } from 'react-router';
 import { useLoaderData } from 'react-router';
 import { useEffect } from 'react'
@@ -6,7 +6,7 @@ import type { ApplicationProps } from '~/components'
 import { Layouts } from '~/components'
 import { mergeMeta } from '~/lib/meta'
 
-export async function loader(args: LoaderFunctionArgs) {
+export async function loader(args: Route.LoaderArgs) {
   const url = new URL(args.request.url)
 
   return data({
@@ -20,14 +20,14 @@ export const handle: ApplicationProps = {
   layout: Layouts.Focus
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Deposit'
   }
 ])
 
 export default function Page() {
-  const { issueID, status, kyc } = useLoaderData<typeof loader>()
+  const { issueID, status, kyc } = useLoaderData()
 
   useEffect(() => {
     if (parent) {

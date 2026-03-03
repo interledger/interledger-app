@@ -1,5 +1,6 @@
+import type { Route } from './+types/cards_.order'
 import { proto3 } from '@bufbuild/protobuf'
-import { data, redirect, type ActionFunctionArgs, type LoaderFunctionArgs } from 'react-router';
+import { data, redirect } from 'react-router';
 import { useLoaderData } from 'react-router';
 import { useEffect } from 'react'
 import { href } from 'react-router'
@@ -34,7 +35,7 @@ export const handle: ApplicationProps = {
   }
 }
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const features = await getFeatures(request)
   if (!features.manageWalletCardsEnabled) {
     throw redirect('/')
@@ -50,7 +51,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export default function Page() {
   const { products, addresses, countries, isWaitingForCreation } =
-    useLoaderData<typeof loader>()
+    useLoaderData()
   const [step, setProducts, setAddresses, reset, setCountries] =
     useOrderCardStore((state) => [
       state.step,
@@ -90,7 +91,7 @@ export default function Page() {
   )
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   let form = await request.formData()
   const cardProductCode = form.get('cardProductCode') as string
   const type = Number(form.get('type')) as CardType

@@ -1,8 +1,8 @@
+import type { Route } from './+types/legal_.($jurisdiction).$slug'
 import { data } from 'react-router';
 import type { ApplicationProps } from '~/components'
 import { Layouts } from '~/components'
 
-import type { LoaderFunctionArgs } from 'react-router';
 import type { UIMatch } from 'react-router';
 import { useLoaderData } from 'react-router';
 import { DateTime } from 'luxon'
@@ -11,7 +11,7 @@ import { Prose } from '~/components/Content'
 import { getCurrentLegalPage } from '~/data/content.server'
 import { fetchAndSanitizeHTML } from '~/lib/fetchAndSanitizeHTML.server'
 
-export async function loader({ params }: LoaderFunctionArgs) {
+export async function loader({ params }: Route.LoaderArgs) {
   const { legalPage, footer } = await getCurrentLegalPage({
     filter: {
       slug: { eq: params.slug },
@@ -50,7 +50,7 @@ export const handle: ApplicationProps = {
 }
 
 export default function Page() {
-  const { page, externalContent } = useLoaderData<typeof loader>()
+  const { page, externalContent } = useLoaderData()
 
   return (
     <main className='w-full overflow-hidden'>

@@ -1,4 +1,4 @@
-import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
+import type { Route } from './+types/cards'
 import { data, redirect } from 'react-router';
 import type { ShouldRevalidateFunction } from 'react-router';
 import { Outlet, useLoaderData, useLocation } from 'react-router';
@@ -42,7 +42,7 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({
   return defaultShouldRevalidate
 }
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const features = await getFeatures(request)
   if (!features.manageWalletCardsEnabled) {
     throw redirect('/')
@@ -69,19 +69,19 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Cards'
   }
 ])
 
 export default function Page() {
-  const { cards, isWaitingForCreation } = useLoaderData<typeof loader>()
+  const { cards, isWaitingForCreation } = useLoaderData()
   const location = useLocation()
   const { setCards } = useCardsStore()
 
   useEffect(() => {
-    const storableCards = cards.map((c) => toStorableCard(c))
+    const storableCards = cards.map((c: import("~/lib/cards/types").SerializedCard) => toStorableCard(c))
     setCards(storableCards)
   }, [cards, setCards])
 
@@ -107,7 +107,7 @@ export default function Page() {
               </Card>
             )}
             {cards.length > 0 &&
-              cards.map((card) => (
+              cards.map((card: import("~/lib/cards/types").SerializedCard) => (
                 <Card key={card.id} className='relative'>
                   <CardLink
                     preventScrollReset={!isMobile}

@@ -1,4 +1,3 @@
-import { KycStatus } from '~/lib/types'
 import type { LinksFunction, LoaderFunctionArgs } from 'react-router';
 import { data } from 'react-router';
 import type { UIMatch } from 'react-router';
@@ -34,6 +33,8 @@ export async function loader(args: LoaderFunctionArgs) {
     return marketingLoader()
   }
 }
+
+export type AppLoaderData = Awaited<ReturnType<typeof appLoader>>['data']
 
 async function appLoader({ request }: LoaderFunctionArgs) {
   const [

@@ -1,5 +1,5 @@
+import type { Route } from './+types/connect_.card'
 import { Code } from '@bufbuild/connect'
-import { type ActionFunctionArgs, type LoaderFunctionArgs, type MetaFunction } from 'react-router';
 import { useLoaderData, useSubmit } from 'react-router';
 import { useEffect } from 'react'
 import { href } from 'react-router'
@@ -14,7 +14,7 @@ import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { useScript } from '~/lib/useScript'
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const response = await grpc.getKYCProviderWidget(request, {
     idempotencyKey: ''
   })
@@ -36,16 +36,16 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Connect card'
   }
 ])
 
 export default function Page() {
-  const { widget, csrfToken } = useLoaderData<typeof loader>()
+  const { widget, csrfToken } = useLoaderData()
   const submit = useSubmit()
-  // const actionData = useActionData<typeof action>()
+  // const actionData = useActionData()
   const [setLoading] = useScaffoldStore((state) => [state.setLoading])
   const scriptStatus = useScript(
     widget?.sdkUrl || 'https://sdk.platform.fiant.io/0.0.23/index.js'
@@ -111,7 +111,7 @@ export default function Page() {
   )
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const form = await request.formData()
   const cardToken = form.get('tokenId') as string
 
