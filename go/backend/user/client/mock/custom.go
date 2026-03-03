@@ -141,6 +141,10 @@ func ActingAs(req *graphql.Request, usr *user.User) error {
 	return nil
 }
 
+func (mc *MockClient) GetUserIDForWallet(_ context.Context, walletID string) (string, error) {
+	return "", nil
+}
+
 func NewMock() *MockClient {
 	return &MockClient{
 		WalletUser: make(map[string]string),

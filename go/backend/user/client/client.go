@@ -91,3 +91,7 @@ func (c *client) Delete2FATotpEnrollment(ctx context.Context, identityID string)
 func (c *client) GetTotpURL(ctx context.Context, userID string) (string, error) {
 	return ops.GetTotpURL(ctx, c.b, userID)
 }
+
+func (c *client) GetUserIDForWallet(ctx context.Context, walletID string) (string, error) {
+	return ops.GetUserIDForWallet(ctx, c.b, walletID)
+}
