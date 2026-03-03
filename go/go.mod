@@ -27,6 +27,7 @@ require (
 	github.com/n0madic/twitter-scraper v0.0.0-20230423143228-6d13e319a39d
 	github.com/ory/kratos-client-go v0.13.1
 	github.com/pusher/pusher-http-go/v5 v5.1.1
+	github.com/redis/go-redis/v9 v9.18.0
 	github.com/riandyrn/otelchi v0.4.0
 	github.com/segmentio/analytics-go/v3 v3.2.1
 	github.com/sendgrid/rest v2.6.9+incompatible
@@ -60,6 +61,7 @@ require (
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
 	github.com/cenkalti/backoff/v3 v3.0.0 // indirect
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
+	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cockroachdb/cockroach-go/v2 v2.2.1 // indirect
 	github.com/containerd/log v0.1.0 // indirect
 	github.com/containerd/platforms v0.2.1 // indirect
@@ -67,6 +69,7 @@ require (
 	github.com/cucumber/gherkin/go/v26 v26.2.0 // indirect
 	github.com/cucumber/messages/go/v21 v21.0.1 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0 // indirect
+	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/distribution/reference v0.6.0 // indirect
 	github.com/ebitengine/purego v0.8.2 // indirect
 	github.com/fatih/color v1.9.0 // indirect
