@@ -1,5 +1,20 @@
 # Wallets vs Accounts vs Addresses (Support Deep Dive)
 
+> **Architecture deep dive.** Understand the three-layer model: wallet, linked accounts, and addresses.
+
+**Related documents:**
+- [Concepts](concepts.md) — Core terminology (this document extends Concepts)
+- [Payments Guide](payments-explainer.md) — How addresses are used in payment flows
+- [Provider Payments Guide](provider-payments-guide.md) — Provider-specific account structures
+- [Transaction Types Reference](transaction-types-explainer.md) — How transactions reference linked accounts
+- [KYC Explainer](kyc-explainer.md) — Wallet activation and KYC impact on accounts
+
+**Quick Navigation:**
+- **What's the difference between wallet and account?** → See [System Model](#system-model-one-wallet-many-linked-accounts)
+- **Why do providers differ?** → See [Provider Shape Differences](#provider-shape-why-linked-account-is-not-identical-across-integrations)
+- **How are addresses used?** → See [Address Model](#address-model-wallet-urls-vs-ilp-open-payments-addresses)
+- **Payment routing issues?** → See [Incident Triage Model](#incident-triage-model)
+
 This document extends [concepts.md](./concepts.md) and explains how wallets, linked accounts, and addresses fit together in the Interledger App. It is written for senior technical support who need a reliable operational mental model when diagnosing payment-routing, currency, and provider-integration issues.
 
 At a high level, the system has three different layers that are often conflated:

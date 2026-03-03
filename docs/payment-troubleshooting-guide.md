@@ -3,6 +3,22 @@
 **Audience:** Support staff, operations, first-line debugging  
 **Time to read:** 15 minutes
 
+> **Debugging framework.** Systematic approach to resolving payment issues.
+
+**Related documents:**
+- [Payments Guide](payments-explainer.md) — Overview and navigation hub
+- [Ledger System Architecture](ledger-system-explainer.md) — Understanding balance discrepancies
+- [Transaction Types Reference](transaction-types-explainer.md) — Transaction field details
+- [Provider Payments Guide](provider-payments-guide.md) — Provider-specific debugging paths
+- [Concepts](concepts.md) — Core terminology
+
+**Quick Navigation:**
+- **Payment stuck?** → See [Problem 1: Payment Stuck in Processing](#problem-1-payment-appears-stuck-in-processing)
+- **Balance wrong?** → See [Problem 2: Balance Mismatch](#problem-2-balance-is-wrong---shows-£100-but-should-be-£150)
+- **Recipient didn't receive?** → See [Problem 3: Missing Receipt](#problem-3-sender-sent-money-but-recipient-didnt-receive-it)
+- **Ledger discrepancy?** → See [Problem 4: Ledger Mismatch](#problem-4-our-balance-doesnt-match-providers-balance)
+- **Prevention checklist?** → See [Prevention Checklist](#prevention-checklist)
+
 ---
 
 ## Introduction

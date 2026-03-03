@@ -2,6 +2,23 @@
 
 **Last Updated:** February 28, 2026
 
+> **Card issuing integration reference.** Technical details on GateHub's EUR debit card service.
+
+**Related documents:**
+- [Concepts](concepts.md) — Core terminology ("Account" → Linked Account mapping)
+- [Transaction Types Reference](transaction-types-explainer.md) — Card transaction field specifications
+- [Provider Payments Guide](provider-payments-guide.md) — GateHub-specific payment behavior
+- [Payment Troubleshooting](payment-troubleshooting-guide.md) — Debugging card transaction issues
+- [KYC Explainer](kyc-explainer.md) — GateHub KYC requirements for card issuance
+
+**Quick Navigation:**
+- **New to cards?** → Start with [System Overview](#1-system-overview)
+- **Customer onboarding flow?** → See [Customer Onboarding](#4-customer-onboarding-and-first-card)
+- **Card status meanings?** → See [Card Status Lifecycle](#6-card-status-lifecycle)
+- **3DS authentication?** → See [3D Secure](#11-3d-secure-3ds-authentication)
+- **Webhook integration?** → See [Webhook Events](#12-webhook-events)
+- **API endpoints?** → See [API Reference](#14-api-endpoint-reference)
+
 This document explains how GateHub's card issuing service integrates with the Interledger Wallet to give users EUR-denominated debit cards that draw from their wallet balances.
 
 > **Terminology Note:** GateHub's "Account" (a EUR card account) is represented as a `card` type [Linked Account](concepts.md#linked-account-types) in the Interledger App. All card-specific transactions are a subset of the broader [transaction types](concepts.md#core-terms). See [Concepts](concepts.md) for the core Interledger App terminology and provider translation table.

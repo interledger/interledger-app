@@ -3,6 +3,22 @@
 **Audience:** Support staff, operations, developers integrating with payment APIs  
 **Time to read:** 10 minutes
 
+> **Transaction field specifications.** Complete reference for transaction structure, types, and provider mappings.
+
+**Related documents:**
+- [Payments Guide](payments-explainer.md) — Overview and navigation hub
+- [Ledger System Architecture](ledger-system-explainer.md) — How transactions update ledgers
+- [Provider Payments Guide](provider-payments-guide.md) — Provider-specific transaction behavior
+- [Payment Troubleshooting](payment-troubleshooting-guide.md) — Debugging transaction issues
+- [Concepts](concepts.md) — Core terminology (transaction vs payment)
+
+**Quick Navigation:**
+- **What fields does a transaction have?** → See [Core Transaction Fields](#core-transaction-fields)
+- **Transaction types?** → See [Transaction Types](#transaction-types)
+- **Lifecycle states?** → See [Transaction Lifecycle](#transaction-lifecycle)
+- **Why two-sided transactions?** → See [Why Track Both Sides](#why-track-both-sides-of-a-transaction)
+- **Provider field mappings?** → See [Provider-Specific Field Mappings](#provider-specific-field-mappings)
+
 ---
 
 ## What is a Transaction?

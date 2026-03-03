@@ -1,8 +1,22 @@
 # KYC Explainer for Support Staff
 
-**Scope:** What KYC is, how it works in Interledger App, and how provider differences affect support conversations.
+> **Identity verification guide.** Understand KYC flows and how they gate wallet activation across providers.
 
-**Cross-references:** See [Concepts: Interledger App vs Service Providers](concepts.md) for wallet and linked-account terminology, and [Payments & Transactions](payments-explainer.md) for how KYC gates transaction authorization.
+**Related documents:**
+- [Concepts](concepts.md) — Wallet and linked-account terminology
+- [Payments Guide](payments-explainer.md) — How KYC gates transaction authorization
+- [Provider Payments Guide](provider-payments-guide.md) — Provider-specific KYC implementations
+- [Wallets vs Accounts](wallets-vs-accounts-vs-addresses.md) — Wallet activation architecture
+- [Payment Troubleshooting](payment-troubleshooting-guide.md) — Debugging KYC-blocked transactions
+
+**Quick Navigation:**
+- **User stuck in KYC?** → Jump to [Provider-Specific Flows](#8-provider-specific-kyc-deep-dives)
+- **What does "action_required" mean?** → See [KYC Status Values](#6-kyc-status-values)
+- **GateHub iframe issues?** → See [GateHub KYC Flow](#81-gatehub-kyc-flow)
+- **Xago verification problems?** → See [Xago KYC Flow](#82-xago-kyc-flow)
+- **General KYC troubleshooting?** → See [Troubleshooting Checklist](#9-troubleshooting-checklist)
+
+**Scope:** What KYC is, how it works in Interledger App, and how provider differences affect support conversations.
 
 ---
 

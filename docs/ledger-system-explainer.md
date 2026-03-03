@@ -3,6 +3,22 @@
 **Audience:** Operations managers, engineers debugging balance issues, finance staff  
 **Time to read:** 15-20 minutes
 
+> **Dual-ledger architecture reference.** Why we maintain two accounting systems and how they reconcile.
+
+**Related documents:**
+- [Payments Guide](payments-explainer.md) — Overview and navigation hub
+- [Transaction Types Reference](transaction-types-explainer.md) — Transaction fields and lifecycle
+- [Provider Payments Guide](provider-payments-guide.md) — Provider-specific ledger behavior
+- [Payment Troubleshooting](payment-troubleshooting-guide.md) — Debugging balance discrepancies
+- [Concepts](concepts.md) — Terminology (wallet, linked account, transaction)
+
+**Quick Navigation:**
+- **Why two ledgers?** → See [Why Have Two Ledgers](#why-have-two-ledgers-4-scenarios)
+- **Balance mismatch between us and provider?** → See [When Ledgers Disagree](#when-ledgers-disagree)
+- **How to reconcile?** → See [Reconciliation Process](#reconciliation-process)
+- **Settlement procedures?** → See [Settlement Importance](#settlement-importance)
+- **Real-world example?** → See [Real-World Example: Xago Transfer](#real-world-example-xago-transfer)
+
 ---
 
 ## Quick Summary

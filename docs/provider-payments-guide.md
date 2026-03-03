@@ -3,6 +3,24 @@
 **Audience:** Operations managers, integrators, support technical leads  
 **Time to read:** 20-25 minutes
 
+> **Provider comparison reference.** GateHub vs PTI vs Xago vs Chimoney — speeds, fees, capabilities, and special cases.
+
+**Related documents:**
+- [Payments Guide](payments-explainer.md) — Overview and navigation hub
+- [Transaction Types Reference](transaction-types-explainer.md) — Transaction status codes per provider
+- [Ledger System Architecture](ledger-system-explainer.md) — Settlement models per provider
+- [Payment Troubleshooting](payment-troubleshooting-guide.md) — Provider-specific debugging
+- [Concepts](concepts.md) — Provider terminology translation
+
+**Quick Navigation:**
+- **Which provider is fastest?** → See [Provider Comparison Matrix](#provider-comparison-matrix)
+- **Fee breakdown?** → See [Fee Comparison](#fee-comparison)
+- **GateHub details?** → See [GateHub Deep Dive](#gatehub-deep-dive)
+- **PTI details?** → See [PTI Deep Dive](#pti-deep-dive)
+- **Xago details?** → See [Xago Deep Dive](#xago-deep-dive)
+- **Chimoney details?** → See [Chimoney Deep Dive](#chimoney-deep-dive)
+- **Cross-provider payments?** → See [Special Cases](#special-cases)
+
 ---
 
 ## Quick Overview

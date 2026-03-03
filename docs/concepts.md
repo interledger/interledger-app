@@ -1,5 +1,23 @@
 # Concepts: Interledger App vs Service Providers
 
+> **Your terminology reference.** This document maps provider vocabularies to Interledger App concepts.
+
+**Related documents:**
+- [Wallets vs Accounts vs Addresses](wallets-vs-accounts-vs-addresses.md) — Architectural deep dive on wallet/account/address layers
+- [Payments & Transactions Guide](payments-explainer.md) — How payments work and navigate to specialist guides
+- [KYC Explainer](kyc-explainer.md) — Identity verification flows per provider
+- [GateHub Cards](gatehub-cards-explainer.md) — Card issuing integration details
+- [Transaction Types Reference](transaction-types-explainer.md) — Transaction field specifications
+- [Provider Payments Guide](provider-payments-guide.md) — Provider-specific payment behavior
+
+**Quick Navigation:**
+- **Need terminology mapping?** → See [Core Terms](#core-terms) and [Provider Translation](#provider-translation) below
+- **Confused about wallet structure?** → See [Wallet Structure](#wallet-structure) diagram
+- **Looking for linked account types?** → See [Linked Account Types](#linked-account-types) table
+- **Wondering what a transaction is?** → See [Transaction Types Reference](transaction-types-explainer.md)
+
+---
+
 The Interledger App integrates with GateHub, PTI, Xago, and Chimoney — each with their own vocabularies. A "wallet" in the Interledger App is fundamentally different from a "wallet" in GateHub or PTI. This document maps the terminology.
 
 ## Wallet Structure
