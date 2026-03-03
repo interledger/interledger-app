@@ -84,10 +84,11 @@ type User struct {
 	UserPTIMetaData    map[string]any `json:"userPtiMeta,omitempty"`
 	UserClientMetaData map[string]any `json:"userClientMeta,omitempty"`
 
-	Name        *Name   `json:"name,omitempty"`
-	DateOfBirth string  `json:"dateOfBirth,omitempty"`
-	Emails      []Email `json:"emails,omitempty"`
-	Phones      []Phone `json:"phones,omitempty"`
+	Name                 *Name   `json:"name,omitempty"`
+	DateOfBirth          string  `json:"dateOfBirth,omitempty"`
+	CountryOfCitizenship string  `json:"countryOfCitizenship,omitempty"`
+	Emails               []Email `json:"emails,omitempty"`
+	Phones               []Phone `json:"phones,omitempty"`
 }
 
 // controller expects that all structs that are sent in the body of a request implement MarshalJSON and UnmarshalJSON
@@ -196,6 +197,12 @@ func WithUserPhones(phones []Phone) UserOption {
 func WithUserAddresses(addresses []Address) UserOption {
 	return func(u *User) {
 		u.Addresses = addresses
+	}
+}
+
+func WithUserCountryOfCitizenship(countryOfCitizenship string) UserOption {
+	return func(u *User) {
+		u.CountryOfCitizenship = countryOfCitizenship
 	}
 }
 

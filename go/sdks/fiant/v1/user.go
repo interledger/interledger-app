@@ -45,7 +45,7 @@ func (uh *userHandler) ListAll(ctx context.Context) (dto.UserPage, error) {
 }
 
 // https://developers.platform.fiant.io/reference/getlastkyc
-func (uh *userHandler) GetAssessment(ctx context.Context, user *dto.User) (dto.UserAssessment, error) {
+func (uh *userHandler) GetAssessment(ctx context.Context, user dto.User) (dto.UserAssessment, error) {
 	path, err := url.JoinPath(uh.path, user.ID, "assessments")
 	if err != nil {
 		return dto.UserAssessment{}, err
@@ -58,14 +58,14 @@ func (uh *userHandler) GetAssessment(ctx context.Context, user *dto.User) (dto.U
 }
 
 // https://developers.platform.fiant.io/reference/startuserassessment
-func (uh *userHandler) StartAssessment(ctx context.Context, user *dto.User, scenarioID string) (dto.ObjectReference, error) {
+func (uh *userHandler) StartAssessment(ctx context.Context, user dto.User, scenarioID string) (dto.ObjectReference, error) {
 	path, err := url.JoinPath(uh.path, "assessments")
 	if err != nil {
 		return dto.ObjectReference{}, err
 	}
 	resp, err := uh.ctrl.post(ctx, path, struct {
 		ScenarioID string `json:"scenarioId"`
-		*dto.User
+		dto.User
 	}{
 		ScenarioID: scenarioID,
 		User:       user,
@@ -76,5 +76,44 @@ func (uh *userHandler) StartAssessment(ctx context.Context, user *dto.User, scen
 	if err != nil {
 		return dto.ObjectReference{}, err
 	}
-	return consumeResponse[dto.ObjectReference](resp, http.StatusOK)
+	return consumeResponse[dto.ObjectReference](resp, http.StatusCreated)
+}
+
+// https://developers.platform.fiant.io/reference/createwallet
+func (uh *userHandler) CreateWallet(ctx context.Context, user dto.User, wallet dto.Wallet) (dto.Wallet, error) {
+	path, err := url.JoinPath(uh.path, user.ID, "wallets")
+	if err != nil {
+		return dto.Wallet{}, err
+	}
+	resp, err := uh.ctrl.post(ctx, path, wallet) // POST /users/{userId}/wallets
+	if err != nil {
+		return dto.Wallet{}, err
+	}
+	return consumeResponse[dto.Wallet](resp, http.StatusCreated)
+}
+
+// https://developers.platform.fiant.io/reference/getwallet
+func (uh *userHandler) GetWallet(ctx context.Context, user dto.User, walletID string) (dto.Wallet, error) {
+	path, err := url.JoinPath(uh.path, user.ID, "wallets", walletID)
+	if err != nil {
+		return dto.Wallet{}, err
+	}
+	resp, err := uh.ctrl.get(ctx, path) // GET /users/{userId}/wallets/{walletId}
+	if err != nil {
+		return dto.Wallet{}, err
+	}
+	return consumeResponse[dto.Wallet](resp, http.StatusOK)
+}
+
+// https://developers.platform.fiant.io/reference/getwallets
+func (uh *userHandler) ListWallets(ctx context.Context, user dto.User) ([]dto.Wallet, error) {
+	path, err := url.JoinPath(uh.path, user.ID, "wallets")
+	if err != nil {
+		return nil, err
+	}
+	resp, err := uh.ctrl.get(ctx, path) // GET /users/{userId}/wallets
+	if err != nil {
+		return nil, err
+	}
+	return consumeResponse[[]dto.Wallet](resp, http.StatusOK)
 }
