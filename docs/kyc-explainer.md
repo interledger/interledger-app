@@ -1,4 +1,4 @@
-# KYC Explainer for Support Staff
+# KYC Explainer
 
 > **Identity verification guide.** Understand KYC flows and how they gate wallet activation across providers.
 
@@ -16,13 +16,13 @@
 - **Xago verification problems?** → See [Xago KYC Flow](#82-xago-kyc-flow)
 - **General KYC troubleshooting?** → See [Troubleshooting Checklist](#9-troubleshooting-checklist)
 
-**Scope:** What KYC is, how it works in Interledger App, and how provider differences affect support conversations.
+**Scope:** What KYC is, how it works in Interledger App, and how provider differences affect the user journey.
 
 ---
 
 ## 1) User journey first: signup → activate wallet → KYC
 
-Before going deep into KYC internals, this is the user-facing journey support should keep in mind.
+Before going deep into KYC internals, this is the user-facing journey to keep in mind.
 
 After a user completes signup (account creation, verification, and wallet address setup), the app asks them to **Activate wallet**.
 
@@ -61,7 +61,7 @@ From an Interledger App wallet perspective:
 - That wallet can have one or more **linked accounts** at one or more providers (see [Concepts](concepts.md#core-terms) for definitions).
 - KYC status is tracked at the wallet level in Interledger App, but **evidence and verification workflows are often provider-specific**.
 
-In practice, support should think of KYC as:
+In practice, KYC should be understood as:
 
 1. **A compliance gate** (can this wallet perform regulated actions?)
 2. **A provider integration** (which external party performed verification?)
@@ -302,7 +302,7 @@ During migrations or staged rollouts, it is valid for:
 - some users in country C to be on provider A,
 - while others in the same country are on provider B.
 
-Support should always identify:
+When investigating KYC issues, always identify:
 
 1. user wallet country
 2. current provider assignment / linked accounts

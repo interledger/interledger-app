@@ -85,7 +85,7 @@ graph TD
 
 ## KYC and Wallet Activation
 
-KYC (Know Your Customer) is a compliance gate linked to wallet activation and is provider-specific. Each provider has different verification flows and status models. See [KYC Explainer for Support Staff](kyc-explainer.md) for detailed provider-by-provider guidance, status states, and troubleshooting.
+KYC (Know Your Customer) is a compliance gate linked to wallet activation and is provider-specific. Each provider has different verification flows and status models. See [KYC Explainer](kyc-explainer.md) for detailed provider-by-provider guidance, status states, and troubleshooting.
 
 ---
 
