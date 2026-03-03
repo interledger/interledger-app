@@ -1,0 +1,46 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Test binaries
+*.test
+*.test.exe
+
+# Output of test and coverage tools
+*.out
+coverage.out
+*.coverprofile
+
+# Go workspace file
+go.work.sum
+
+# Build artifacts
+/tmp/
+/dist/
+
+# Test logs
+test_output.log
+lastlogs.txt
+*.log
+
+# Docker build artifacts
+tmp/
+
+# IDE artifacts
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS artifacts
+.DS_Store
+.env.local
+
+# Build binary (but not the cmd/mockxago folder)
+/mockxago
+
