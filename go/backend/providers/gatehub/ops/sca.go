@@ -103,17 +103,6 @@ func NewSCA(b Backends, cfg gatehub.Config) http.HandlerFunc {
 				return
 			}
 
-			// func getWalletID(ctx context.Context, b Backends, externalUserID string) (string, error) {
-			// 	var walletID string
-			// 	err := b.DB().GetContext(ctx, &walletID, "SELECT wallet_id FROM gatehub_users WHERE external_id=$1;", externalUserID)
-			// 	if errors.Is(err, sql.ErrNoRows) {
-			// 		return "", fmt.Errorf("%w %s", gatehub.ErrNotFound, err)
-			// 	} else if err != nil {
-			// 		return "", fmt.Errorf("%w %s", gatehub.ErrInternal, err)
-			// 	}
-			//
-			// 	return walletID, nil
-			// }
 		default:
 			log.Error("received unknown SCA action", zap.String("user", gatehubUserID), zap.String("action", string(sr.Action)))
 			w.WriteHeader(http.StatusOK)
