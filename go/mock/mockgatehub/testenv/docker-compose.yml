@@ -10,8 +10,8 @@ services:
 
   mockgatehub:
     build:
-      context: ..
-      dockerfile: Dockerfile
+      context: ../../../..
+      dockerfile: go/mock/mockgatehub/Dockerfile
     # container_name: mockgatehub-test
     ports:
       - "25151:8080"  # Use different port to avoid conflicts

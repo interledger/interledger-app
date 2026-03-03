@@ -13,7 +13,7 @@ help:
 	@echo ""
 
 # Run all tests: unit tests + feature tests
-test: unit-tests e2e-tests
+test: lint unit-tests e2e-tests
 	@echo ""
 	@echo "✅ All tests completed"
 

@@ -1,28 +1,24 @@
-# Build stage
-FROM golang:1.24-alpine AS builder
+# Multi-stage build for mockgatehub
+FROM golang:1.25-alpine AS builder
 
 ARG BUILD_TIME
 
-# Install build dependencies
-RUN apk add --no-cache git make
+WORKDIR /workspace
 
-WORKDIR /app
-
-# Copy go mod files
-COPY go.mod go.sum ./
+# Copy only Go module files first for better layer caching
+COPY go/go.mod go/go.sum ./go/
 
 # Download dependencies
-RUN go mod download
+RUN cd go && go mod download
 
-# Copy source code
-COPY . .
+# Copy mockgatehub source from monorepo
+COPY go/mock/mockgatehub ./go/mock/mockgatehub/
 
-# Clean Go cache and build the application
-RUN go clean -cache
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags="-X 'main.buildTime=${BUILD_TIME:-unknown}'" -o mockgatehub ./cmd/mockgatehub
+# Build
+RUN cd go && CGO_ENABLED=0 GOOS=linux go build -ldflags="-X 'main.buildTime=${BUILD_TIME:-unknown}'" -o /workspace/mockgatehub ./mock/mockgatehub/cmd/mockgatehub
 
 # Final stage
-FROM alpine:latest
+FROM alpine:3.19
 
 RUN apk --no-cache add ca-certificates curl tzdata
 
@@ -30,12 +26,11 @@ RUN apk --no-cache add ca-certificates curl tzdata
 RUN addgroup -g 1000 mockgatehub && \
     adduser -D -u 1000 -G mockgatehub mockgatehub
 
-# Set working directory
 WORKDIR /app
 
 # Copy binary and web assets from builder
-COPY --from=builder --chown=mockgatehub:mockgatehub /app/mockgatehub .
-COPY --from=builder --chown=mockgatehub:mockgatehub /app/web ./web
+COPY --from=builder --chown=mockgatehub:mockgatehub /workspace/mockgatehub .
+COPY --from=builder --chown=mockgatehub:mockgatehub /workspace/go/mock/mockgatehub/web ./web
 
 # Switch to non-root user
 USER mockgatehub

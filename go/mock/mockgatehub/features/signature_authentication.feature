@@ -81,7 +81,7 @@ Feature: HMAC signature authentication
     And the base string uses "https://mockgatehub.interledger.test/auth/v1/users/managed" as the URL
     When I POST /auth/v1/users/managed with body '{"email":"proxy@example.com"}' signed using the proxied URL
     And the request includes header X-Forwarded-Proto "https"
-    And the request includes header X-Forwarded-Host "gitlab.com/fynbos/mock/mockgatehub.interledger.test"
+    And the request includes header X-Forwarded-Host "mockgatehub.interledger.test"
     Then the response status is 201
 
   # ── Public endpoints bypass authentication ──────────────────────────

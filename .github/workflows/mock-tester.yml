@@ -1,0 +1,78 @@
+name: Mock Service Tester
+
+on:
+  workflow_call:
+    inputs:
+      test_path:
+        required: true
+        type: string
+        description: 'Path to the mock service (e.g., ./go/mock/mockxago)'
+      coverage_key:
+        required: true
+        type: string
+        description: 'Coverage threshold key (e.g., mockxago)'
+
+jobs:
+  run-mock-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.25'
+
+      - name: Set up Docker for E2E tests
+        uses: docker/setup-buildx-action@v2
+
+      - name: Cache Go modules and build cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Run make test
+        run: |
+          cd ${{ inputs.test_path }}
+          make test
+
+      - name: Extract and check coverage
+        run: |
+          cd ${{ inputs.test_path }}
+          if [ ! -f "coverage.out" ]; then
+            echo "::error::coverage.out not found in ${{ inputs.test_path }}"
+            exit 1
+          fi
+          
+          COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}')
+          # strip the trailing '%' so bc can do its math
+          COVERAGE_NUM=${COVERAGE%\%}
+          echo "${{ inputs.coverage_key }} coverage: $COVERAGE_NUM%"
+          
+          THRESHOLD=$(cat "../../coverage.thresholds" | grep -oP '${{ inputs.coverage_key }}=\K[0-9.]+')
+          echo "${{ inputs.coverage_key }} coverage threshold: $THRESHOLD%"
+          
+          if ! command -v bc >/dev/null 2>&1; then
+            echo "::error::bc not found, cannot compare coverage"
+            exit 1
+          fi
+          
+          if (( $(echo "$COVERAGE_NUM < $THRESHOLD" | bc -l) )); then
+            echo "::error::${{ inputs.coverage_key }} coverage ($COVERAGE_NUM%) is below threshold ($THRESHOLD%)"
+            exit 1
+          else
+            echo "::notice::coverage check passed ($COVERAGE_NUM% ≥ $THRESHOLD%)"
+          fi
+        shell: bash
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.coverage_key }}-coverage-report
+          path: ${{ inputs.test_path }}/coverage.out

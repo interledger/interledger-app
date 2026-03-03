@@ -24,7 +24,7 @@ func TestReconstructURL(t *testing.T) {
 			name: "forwarded headers",
 			headers: map[string]string{
 				"X-Forwarded-Proto": "https",
-				"X-Forwarded-Host":  "gitlab.com/fynbos/mock/mockgatehub.interledger.test",
+				"X-Forwarded-Host":  "mockgatehub.interledger.test",
 			},
 			host: "localhost:25151",
 			url:  "http://localhost/auth/v1/users/managed?clientId=abc",
