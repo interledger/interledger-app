@@ -46,6 +46,8 @@ lint:
 	@echo "Running linters..."
 	@gofmt -l .
 	@go vet ./...
+	@echo "Running golangci-lint..."
+	golangci-lint run ./...
 
 # Clean up artifacts
 clean:
