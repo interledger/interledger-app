@@ -17,6 +17,7 @@
 - **Balance wrong?** → See [Problem 2: Balance Mismatch](#problem-2-balance-is-wrong---shows-£100-but-should-be-£150)
 - **Recipient didn't receive?** → See [Problem 3: Missing Receipt](#problem-3-sender-sent-money-but-recipient-didnt-receive-it)
 - **Ledger discrepancy?** → See [Problem 4: Ledger Mismatch](#problem-4-our-balance-doesnt-match-providers-balance)
+- **Using Temporal?** → See [Temporal Debugging Guide](#temporal-debugging-guide)
 - **Prevention checklist?** → See [Prevention Checklist](#prevention-checklist)
 
 ---
@@ -664,6 +665,374 @@ Before transactions fail, ensure system health:
   - [ ] Pacioli (our ledger) running and responsive
   - [ ] Daily reconciliation with providers completing
   - [ ] No unresolved discrepancies > 24 hours old
+
+---
+
+## Temporal Debugging Guide
+
+Temporal is the workflow orchestration engine that manages payment processing. When payments seem stuck or behave unexpectedly, Temporal's Web UI provides visibility into exactly what's happening.
+
+**Accessing Temporal Web UI:**
+- URL: `http://localhost:8233` (or your Temporal server address)
+- No authentication required for local development
+- Production: Requires proper credentials
+
+### Understanding Payment Workflow Structure
+
+Every payment creates **three workflows** that work together:
+
+```mermaid
+graph TD
+    Payment["PaymentWorkflow<br/>ID: payments_&lt;uuid&gt;"]
+    PayIn["PayinWorkflow<br/>ID: payment_pay_in_&lt;uuid&gt;"]
+    PayOut["PayoutWorkflow<br/>ID: payment_pay_out_&lt;uuid&gt;"]
+    
+    Payment -->|starts| PayIn
+    Payment -->|starts| PayOut
+    PayIn -->|signals| PayOut
+    
+    PayIn -->|waits for| Webhook["Provider Webhook<br/>(transfer completed)"]
+    Webhook -->|signals| PayIn
+    PayIn -->|completes| PayOut
+    
+    style Payment fill:#e3f2fd,stroke:#1976d2
+    style PayIn fill:#fff9c4,stroke:#f57f17
+    style PayOut fill:#f3e5f5,stroke:#7b1fa2
+    style Webhook fill:#e8f5e9,stroke:#388e3c
+```
+
+**Workflow IDs to search for:**
+- **Parent workflow**: `payments_<payment_uuid>`
+- **Pay-in workflow**: `payment_pay_in_<payment_uuid>`
+- **Pay-out workflow**: `payment_pay_out_<payment_uuid>`
+
+### Finding a Stuck Payment in Temporal
+
+**Step 1: Get the Payment UUID**
+
+From your database:
+```sql
+SELECT id, public_id, state, sender_id, receiver_id, created_at
+FROM payments 
+WHERE id = 'payment_uuid' 
+  OR public_id = 'public_id_from_user';
+```
+
+Copy the `id` (UUID format like `57d4e5c4-957d-4638-847b-aad5e5714614`).
+
+**Step 2: Search for the Workflow**
+
+1. Open Temporal Web UI: `http://localhost:8233`
+2. Go to **"Workflows"** tab (left sidebar)
+3. In the search box, enter:
+   - `payment_pay_in_<your_uuid>` for the sender side
+   - `payment_pay_out_<your_uuid>` for the receiver side
+   - `payments_<your_uuid>` for the parent orchestrator
+
+**Step 3: Check Workflow Status**
+
+Each workflow will show one of these statuses:
+
+| Status | Meaning | Action |
+|--------|---------|--------|
+| **Running** | Workflow is actively processing or waiting | Check how long it's been running — see details below |
+| **Completed** | Workflow finished successfully | Check execution time — should be <30 seconds normally |
+| **Failed** | Workflow encountered an error | Check error message in workflow details |
+| **Terminated** | Manually stopped or system shutdown | Investigate why it was terminated |
+| **Timed Out** | Exceeded maximum allowed time | Check activity timeouts in workflow history |
+
+### Investigating a Running Workflow
+
+When a workflow shows "Running" status:
+
+**Step 1: Click on the Workflow ID** to see details
+
+**Step 2: Check the "Summary" section**
+```
+WorkflowId:      payment_pay_in_57d4e5c4-957d-4638-847b-aad5e5714614
+Type:            PayinWorkflow
+Status:          Running
+Start Time:      3 minutes ago
+Run Time:        3 minutes
+```
+
+**Questions to ask:**
+- **How long has it been running?**
+  - `< 5 minutes` → Normal, likely waiting for webhook
+  - `5-20 minutes` → Monitor, should complete soon
+  - `> 20 minutes` → Investigate why webhook hasn't arrived
+
+**Step 3: View the "Pending Activities" section**
+
+If the workflow is waiting, you'll see:
+```
+Pending Activities:
+  (none) — Workflow is waiting for a signal
+```
+
+This means the workflow has finished all its tasks and is now waiting for the provider's webhook to arrive.
+
+**Step 4: Check the "History" tab**
+
+The history shows every step the workflow took. Look for:
+
+1. **Activities that completed:**
+   ```
+   ActivityTaskScheduled: ReserveBalance
+   ActivityTaskStarted:   ReserveBalance
+   ActivityTaskCompleted: ReserveBalance
+   ```
+   ✓ This activity finished successfully
+
+2. **The transfer call to the provider:**
+   ```
+   ActivityTaskScheduled: GatehubTransfer (or XagoTransfer, PTITransfer)
+   ActivityTaskStarted:   GatehubTransfer
+   ActivityTaskCompleted: GatehubTransfer
+   ```
+   ✓ Transfer was sent to provider
+
+3. **Signal waiting (the important part):**
+   ```
+   [All activities complete]
+   [No "WorkflowExecutionSignaled" event yet]
+   ```
+   ⏳ Workflow is waiting for provider webhook
+
+4. **When webhook arrives:**
+   ```
+   WorkflowExecutionSignaled
+   ```
+   ✓ Webhook received!
+
+5. **Post-webhook activities:**
+   ```
+   ActivityTaskScheduled: UpdatePayInTransactionState
+   ActivityTaskCompleted: UpdatePayInTransactionState
+   WorkflowExecutionCompleted
+   ```
+   ✓ Payment finalized
+
+### Common Temporal Scenarios
+
+#### Scenario 1: Workflow Waiting for Signal (Normal)
+
+**What you see:**
+```
+Status:    Running
+Run Time:  2 minutes
+History:   - ReserveBalance ✓
+           - GatehubTransfer ✓
+           - SaveGatehubTransfer ✓
+           - (waiting for signal)
+```
+
+**Meaning:** The workflow sent the payment to the provider and is now waiting for the webhook confirmation.
+
+**Action:**
+- **If < 5 minutes:** Wait, this is normal
+- **If 5-20 minutes:** Check webhook logs to see if webhook arrived
+- **If > 20 minutes:** Provider might be slow, or webhook lost. See [Webhook Troubleshooting](#webhook-troubleshooting)
+
+####  Scenario 2: Workflow Stuck on an Activity
+
+**What you see:**
+```
+Status:    Running
+Run Time:  10 minutes
+Pending Activities:
+  - GatehubTransfer (started 10 minutes ago, retrying)
+```
+
+**Meaning:** An activity is stuck or failing repeatedly.
+
+**Action:**
+1. Click on the activity in History to see error details
+2. Common causes:
+   - Provider API is down (check provider status)
+   - Network timeout (check connectivity)
+   - Invalid credentials (check config)
+   - Rate limit exceeded (wait and retry)
+
+**To retry manually:**
+- Workflows auto-retry failed activities
+- If you need to force a retry, you can terminate and restart the workflow (last resort)
+
+#### Scenario 3: Workflow Failed
+
+**What you see:**
+```
+Status:     Failed
+Run Time:   0.5 seconds
+Error:      "insufficient funds"
+```
+
+**Meaning:** The workflow encountered a business logic error and stopped.
+
+**Action:**
+1. Read the error message in the workflow details
+2. Common errors:
+   - `"insufficient funds"` → User doesn't have enough money, check balance
+   - `"account not found"` → Linked account missing, check user's accounts
+   - `"provider error: ..."` → Provider rejected transaction, check provider response
+
+**Resolution:**
+- For business errors (insufficient funds, etc.): Fix the underlying issue and create a new payment
+- For technical errors (timeout, network): Retry the payment
+
+#### Scenario 4: Signal Received, Still Running
+
+**What you see:**
+```
+Status:    Running
+Run Time:  5 minutes
+History:   - GatehubTransfer ✓
+           - WorkflowExecutionSignaled ✓ (3 minutes ago)
+           - UpdatePayInTransactionState (started 3 minutes ago, still running)
+```
+
+**Meaning:** Webhook arrived, but the finalization activity is stuck.
+
+**Action:**
+1. Check the activity details to see what's failing
+2. Common causes:
+   - Database is slow or locked
+   - Pacioli ledger is unavailable
+   - Network issue connecting to internal services
+3. Check system health: database, Pacioli, network
+
+### Webhook Troubleshooting Using Temporal
+
+When a payment seems stuck waiting for a webhook:
+
+**Step 1: Confirm Workflow is Waiting**
+
+In Temporal UI, the workflow history should end with something like:
+```
+ActivityTaskCompleted: SaveGatehubTransfer
+[no more events]
+```
+
+No `WorkflowExecutionSignaled` event means webhook hasn't arrived yet.
+
+**Step 2: Check Provider Status**
+
+Query the provider directly:
+```bash
+# For GateHub
+curl https://mockgatehub.interledger.test/core/v1/transactions/<txn_id>
+
+# Check status field
+{
+  "id": "txn_abc123",
+  "status": 100,  ← Completed at provider
+  "amount": "100.00"
+}
+```
+
+**If provider says "completed" but no signal in Temporal:**
+
+This means the webhook was lost or never sent.
+
+**Step 3: Check Webhook Logs**
+
+```bash
+# Search backend logs for webhook receipts
+docker compose logs backend | grep "Webhook received"
+
+# Search for the specific payment ID
+docker compose logs backend | grep "57d4e5c4-957d-4638-847b-aad5e5714614"
+```
+
+**If no webhook found in logs:**
+- Network issue prevented webhook delivery
+- Provider didn't send webhook (check provider logs)
+- Webhook URL misconfigured
+
+**Step 4: Manual Signal (Emergency Recovery)**
+
+If the provider completed the transaction but webhook won't arrive, you can manually signal the workflow:
+
+⚠️ **WARNING: Only do this if you're certain the provider confirmed completion!**
+
+```bash
+# Using Temporal CLI
+docker compose exec temporal temporal workflow signal \
+  --workflow-id "payment_pay_in_57d4e5c4-957d-4638-847b-aad5e5714614" \
+  --name "payment_gatehub_signals" \
+  --input '{"tx_uuid":"txn_abc123","status":"100"}'
+```
+
+Or use the Temporal Web UI:
+1. Open the workflow
+2. Click "Signal" button (top right)
+3. Signal Name: `payment_gatehub_signals`
+4. Signal Input:
+   ```json
+   {
+     "tx_uuid": "txn_abc123",
+     "status": "100"
+   }
+   ```
+5. Click "Send Signal"
+
+The workflow should immediately proceed with finalization.
+
+### Temporal Best Practices for Support
+
+1. **Always check Temporal first for "stuck" payments**
+   - Faster than database queries
+   - Shows exactly where the workflow is waiting
+   - Reveals errors immediately
+
+2. **Use the History tab to trace execution**
+   - See which activities completed
+   - See which activities failed
+   - See timing between steps
+
+3. **Look for signals to understand webhook delivery**
+   - `WorkflowExecutionSignaled` = webhook arrived
+   - Missing signal = webhook lost or delayed
+
+4. **Don't terminate workflows unless absolutely necessary**
+   - Workflows have built-in retry logic
+   - Terminating loses state and may cause data inconsistency
+   - Only terminate for unrecoverable errors
+
+5. **Document workflow IDs when investigating**
+   - Payment UUID → Workflow IDs mapping
+   - Makes follow-up investigation easier
+   - Helps with escalation to engineering
+
+### Temporal Workflow Lifecycle Summary
+
+```mermaid
+stateDiagram-v2
+    [*] --> Running: Payment initiated
+    
+    Running --> Activities: Execute business logic
+    
+    Activities --> Waiting: Sent to provider
+    note right of Waiting: Workflow waits for webhook<br/>(no timeout, waits indefinitely)
+    
+    Waiting --> SignalReceived: Webhook arrives
+    SignalReceived --> Finalization: Complete transaction
+    
+    Finalization --> Completed: Success
+    Finalization --> Failed: Error during finalization
+    
+    Activities --> Failed: Activity error
+    
+    Completed --> [*]
+    Failed --> [*]
+```
+
+**Key timing expectations:**
+- Activities phase: 1-5 seconds (reserve balance, call provider)
+- Waiting phase: 1-30 seconds normally (webhook arrival)
+- Finalization phase: 1-3 seconds (update ledger, mark complete)
+- **Total normal runtime: 5-40 seconds**
+- **Stuck if: > 5 minutes with no signal**
 
 ---
 

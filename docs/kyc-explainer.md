@@ -341,7 +341,641 @@ Then classify:
 
 ---
 
-## 13) Final mental model
+## 13) Temporal Debugging Guide for KYC
+
+Temporal is the workflow orchestration engine that manages KYC processing. When users appear stuck in wallet activation or KYC status isn't updating, Temporal's Web UI provides visibility into what's happening behind the scenes.
+
+**Accessing Temporal Web UI:**
+- URL: `http://localhost:8233` (or your Temporal server address)
+- No authentication required for local development
+- Production: Requires proper credentials
+
+### Understanding KYC Workflow Structure
+
+KYC workflows vary by provider, but they all follow a similar pattern of orchestrating provider integration, status updates, and downstream provisioning.
+
+```mermaid
+graph TD
+    Start["User clicks 'Continue'<br/>on Activate Wallet"]
+    
+    Widget["GetKYCProviderWidget<br/>(returns widget URL)"]
+    
+    Provider["User completes KYC<br/>in provider UI"]
+    
+    Webhook["Provider sends<br/>verification webhook"]
+    
+    Workflow["KYC Workflow<br/>(SetKYC, Backfill, etc.)"]
+    
+    Activities["Workflow Activities:<br/>- Update wallet KYC status<br/>- Create/update linked accounts<br/>- Provision provider accounts<br/>- Send notifications"]
+    
+    Complete["Wallet shows<br/>as activated"]
+    
+    Start --> Widget
+    Widget --> Provider
+    Provider --> Webhook
+    Webhook --> Workflow
+    Workflow --> Activities
+    Activities --> Complete
+    
+    style Start fill:#e3f2fd,stroke:#1976d2
+    style Webhook fill:#e8f5e9,stroke:#388e3c
+    style Workflow fill:#fff9c4,stroke:#f57f17
+    style Complete fill:#f3e5f5,stroke:#7b1fa2
+```
+
+**Common KYC workflow types:**
+- **SetKYCWorkflow** - Updates wallet KYC status based on provider webhooks
+- **BackfillKYCWorkflow** - Syncs existing provider KYC state to wallet
+- **CreateLinkedAccountWorkflow** - Provisions provider accounts after KYC approval
+- **KYCWatcherWorkflow** - Polls provider for KYC completion (Chimoney, some PTI flows)
+
+### Finding a Stuck KYC Process in Temporal
+
+**Step 1: Get the User/Wallet Identifier**
+
+From your database:
+```sql
+-- Find wallet by user email
+SELECT w.id as wallet_id, w.country, w.kyc_status, u.id as user_id
+FROM wallets w
+JOIN users u ON u.wallet_id = w.id
+JOIN identities i ON i.id = u.identity_id
+WHERE i.email = 'user@example.com';
+
+-- Or directly by wallet ID
+SELECT id, country, kyc_status, created_at, updated_at
+FROM wallets
+WHERE id = 'wallet_uuid';
+```
+
+Copy the `wallet_id` or `user_id` to search for workflows.
+
+**Step 2: Search for KYC Workflows**
+
+1. Open Temporal Web UI: `http://localhost:8233`
+2. Go to **"Workflows"** tab (left sidebar)
+3. Search for workflows using the wallet or user ID:
+   - Enter the UUID in the search box
+   - Or filter by workflow type: `SetKYCWorkflow`, `BackfillKYCWorkflow`, etc.
+
+**Step 3: Check Workflow Status**
+
+| Status | Meaning | Action |
+|--------|---------|--------|
+| **Running** | Workflow is actively processing or waiting | Check duration — KYC workflows vary by provider |
+| **Completed** | Workflow finished successfully | Verify wallet KYC status updated in database |
+| **Failed** | Workflow encountered an error | Check error message for root cause |
+| **Terminated** | Manually stopped or system shutdown | Investigate why and whether to retry |
+| **Timed Out** | Exceeded maximum allowed time | Rare for KYC workflows; check activity timeouts |
+
+### Investigating a Running KYC Workflow
+
+**Provider-specific normal durations:**
+
+| Provider | Normal Duration | What's Happening |
+|----------|----------------|------------------|
+| **GateHub** | 5-30 seconds | Webhook-driven, completes quickly after verification |
+| **Xago + Persona** | 2-5 minutes | Multi-step: Persona inquiry → webhook → Xago account creation |
+| **PTI** | 1-3 minutes | Widget callback → account provisioning |
+| **Chimoney** | 5-20 minutes | Polling-based, checks every few minutes for completion |
+
+**Step 1: Click on the Workflow ID** to see details
+
+**Step 2: Check the "Summary" section**
+```
+WorkflowId:      SetKYCWorkflow_<wallet_uuid>
+Type:            SetKYCWorkflow
+Status:          Running
+Start Time:      8 minutes ago
+Run Time:        8 minutes
+```
+
+**Questions to ask based on provider:**
+
+**GateHub (webhook-driven):**
+- **< 2 minutes** → Normal, waiting for webhook
+- **2-10 minutes** → Check webhook logs, provider may be slow
+- **> 10 minutes** → Webhook likely lost, investigate provider status
+
+**Xago + Persona (multi-step):**
+- **< 5 minutes** → Normal, multi-step process
+- **5-15 minutes** → Monitor, could be Xago account creation delay
+- **> 15 minutes** → Check both Persona inquiry state AND Xago account status
+
+**Chimoney (polling):**
+- **< 20 minutes** → Normal, polling every few minutes
+- **20-40 minutes** → Monitor, may need manual check of Chimoney status
+- **> 40 minutes** → Likely provider issue or polling failure
+
+**PTI (callback):**
+- **< 5 minutes** → Normal, waiting for widget callback
+- **5-15 minutes** → Check callback logs
+- **> 15 minutes** → Callback likely lost or failed
+
+**Step 3: View the "Pending Activities" section**
+
+```
+Pending Activities:
+  CreateXagoSubaccount (started 3 minutes ago)
+```
+
+This shows which activity is currently executing. Common activities:
+
+- `UpdateWalletKYCStatus` - Writing KYC status to database
+- `CreateLinkedAccount` - Creating provider account link
+- `CreateGatehubManagedUser` - Provisioning GateHub user
+- `CreateXagoSubaccount` - Provisioning Xago subaccount
+- `CreatePersonaInquiry` - Starting Persona verification
+- `GetChimoneyKYCStatus` - Polling Chimoney for completion
+
+**Step 4: Check the "History" tab**
+
+Look for key events in the workflow timeline:
+
+1. **Workflow started:**
+   ```
+   WorkflowExecutionStarted
+   Input: { "walletId": "...", "provider": "gatehub", "event": "id.verification.accepted" }
+   ```
+
+2. **Activities executing:**
+   ```
+   ActivityTaskScheduled: UpdateWalletKYCStatus
+   ActivityTaskStarted:   UpdateWalletKYCStatus
+   ActivityTaskCompleted: UpdateWalletKYCStatus
+   ```
+
+3. **For webhook-driven flows, look for signal:**
+   ```
+   WorkflowExecutionSignaled
+   Signal: kyc_verification_webhook
+   Input: { "status": "accepted", "userId": "..." }
+   ```
+
+4. **Provider-specific activities:**
+
+   **GateHub:**
+   ```
+   ActivityTaskCompleted: CreateGatehubManagedUser
+   ActivityTaskCompleted: LinkGatehubGateway
+   ActivityTaskCompleted: UpdateWalletKYCStatus (status: level1)
+   ```
+
+   **Xago + Persona:**
+   ```
+   ActivityTaskCompleted: CreatePersonaInquiry
+   [Wait for webhook signal]
+   WorkflowExecutionSignaled: persona_inquiry_completed
+   ActivityTaskScheduled: CreateXagoSubaccount
+   ActivityTaskCompleted: CreateXagoSubaccount
+   ActivityTaskCompleted: UpdateWalletKYCStatus (status: level1)
+   ```
+
+   **Chimoney:**
+   ```
+   ActivityTaskScheduled: GetChimoneyKYCStatus (attempt 1)
+   ActivityTaskCompleted: GetChimoneyKYCStatus (result: pending)
+   [Timer: wait 2 minutes]
+   ActivityTaskScheduled: GetChimoneyKYCStatus (attempt 2)
+   ActivityTaskCompleted: GetChimoneyKYCStatus (result: approved)
+   ActivityTaskCompleted: UpdateWalletKYCStatus
+   ```
+
+### Common KYC Temporal Scenarios
+
+#### Scenario 1: Waiting for Provider Webhook (GateHub, Xago)
+
+**What you see:**
+```
+Type:      SetKYCWorkflow
+Status:    Running
+Run Time:  3 minutes
+History:   - WorkflowExecutionStarted ✓
+           - (waiting for signal)
+```
+
+**Meaning:** Workflow was started (probably by a widget redirect or preemptive setup) and is now waiting for the provider to send verification results.
+
+**Action:**
+- **If < 5 minutes:** Normal, user may still be completing KYC in provider UI
+- **If 5-15 minutes:** Check if user completed provider KYC steps
+- **If > 15 minutes:** 
+  - Verify user finished provider KYC
+  - Check webhook logs for missed events
+  - Check provider status directly
+
+**How to check provider status:**
+
+**GateHub:**
+```bash
+# Query GateHub user status
+curl -H "Authorization: Bearer <token>" \
+  https://mockgatehub.interledger.test/id/v1/users/<gatehub_user_id>
+
+# Look for kyc_status field
+{
+  "kyc_status": "accepted",  ← KYC completed
+  "updated_at": "..."
+}
+```
+
+**Persona (for Xago):**
+```sql
+-- Check inquiry status in database
+SELECT id, status, created_at, updated_at
+FROM persona_inquiries
+WHERE wallet_id = 'wallet_uuid';
+```
+
+#### Scenario 2: Polling for Completion (Chimoney, some PTI)
+
+**What you see:**
+```
+Type:      KYCWatcherWorkflow
+Status:    Running
+Run Time:  12 minutes
+History:   - GetChimoneyKYCStatus (attempt 1) → pending
+           - Timer: 2 minutes
+           - GetChimoneyKYCStatus (attempt 2) → pending
+           - Timer: 2 minutes
+           - GetChimoneyKYCStatus (attempt 3) → pending
+           - (current: waiting for next poll)
+```
+
+**Meaning:** Workflow is periodically checking Chimoney API for KYC completion. This is normal behavior.
+
+**Action:**
+- **If < 20 minutes:** Normal, polls happen every 2-5 minutes
+- **If 20-40 minutes:** Monitor, but still within expected range
+- **If > 40 minutes and all polls return "pending":**
+  - Check Chimoney dashboard directly
+  - Verify user completed KYC in Chimoney widget
+  - Check for Chimoney API issues
+
+#### Scenario 3: Activity Stuck or Failing
+
+**What you see:**
+```
+Status:    Running
+Run Time:  8 minutes
+Pending Activities:
+  - CreateXagoSubaccount (attempt 3, started 1 minute ago)
+History:   - ActivityTaskScheduled: CreateXagoSubaccount
+           - ActivityTaskStarted
+           - ActivityTaskFailed (error: "rate limit exceeded")
+           - [Retry delay: 30 seconds]
+           - ActivityTaskStarted (attempt 2)
+           - ActivityTaskFailed (error: "rate limit exceeded")
+           - [Retry delay: 60 seconds]
+           - ActivityTaskStarted (attempt 3)
+```
+
+**Meaning:** An activity is failing and being retried. Common causes:
+
+- Provider API rate limits
+- Provider API downtime
+- Network connectivity issues
+- Database locks/timeouts
+- Invalid provider credentials
+
+**Action:**
+1. Click on the failed activity in History to see error details
+2. Common errors and fixes:
+
+   | Error | Cause | Fix |
+   |-------|-------|-----|
+   | `"rate limit exceeded"` | Too many API calls to provider | Wait for retry, workflows auto-retry |
+   | `"account already exists"` | Duplicate account creation attempt | Safe to ignore, workflow handles this |
+   | `"invalid credentials"` | Provider API keys incorrect | Check environment configuration |
+   | `"network timeout"` | Provider API slow/down | Check provider status, retry |
+   | `"database locked"` | Concurrent updates | Auto-retries should resolve |
+
+3. Temporal has built-in retry logic (up to 10 attempts with backoff)
+4. If still failing after 10 attempts, workflow will fail and require manual intervention
+
+#### Scenario 4: Workflow Completed but KYC Status Not Updated
+
+**What you see in Temporal:**
+```
+Status:     Completed
+Run Time:   4.5 seconds
+Completion: Success
+```
+
+**But in database:**
+```sql
+SELECT kyc_status FROM wallets WHERE id = 'wallet_uuid';
+-- Result: "pending" (expected: "level1" or "approved")
+```
+
+**Meaning:** Workflow executed successfully, but either:
+1. The status update activity didn't run (check workflow history)
+2. Status was updated to a different value than expected
+3. Wrong wallet ID was used
+
+**Action:**
+1. Check workflow history for `UpdateWalletKYCStatus` activity
+2. Look at activity input/output:
+   ```
+   ActivityTaskCompleted: UpdateWalletKYCStatus
+   Input:  { "walletId": "...", "status": "level1" }
+   Output: { "success": true }
+   ```
+3. If activity ran successfully, verify database write:
+   ```sql
+   -- Check wallet audit log or update timestamp
+   SELECT id, kyc_status, updated_at
+   FROM wallets
+   WHERE id = 'wallet_uuid';
+   ```
+4. If timestamps match but status is wrong, check business logic in activity code
+
+### Provider-Specific Debugging Tips
+
+#### GateHub KYC Troubleshooting
+
+**Webhook events to look for:**
+- `id.verification.action_required` - User needs to provide more info
+- `id.verification.accepted` - KYC approved
+- `id.verification.rejected` - KYC denied
+- `id.verification.in_review` - Manual review in progress
+
+**Common issues:**
+- **"Action required" loop**: User completed widget but GateHub needs more documents
+  - Check GateHub dashboard for specific requirements
+  - User must re-enter widget to upload additional docs
+  
+- **Webhook arrives but workflow doesn't start:**
+  - Check webhook signature validation
+  - Verify webhook endpoint is accessible
+  - Check webhook logs for HTTP errors
+
+**Debug workflow:**
+```
+Workflow: SetKYCWorkflow
+Search: wallet_uuid or gatehub_user_id
+Expected activities:
+  1. ParseWebhookEvent
+  2. ValidateGatehubUser
+  3. UpdateWalletKYCStatus
+  4. (optional) CreateLinkedAccount
+  5. SendUserNotification
+```
+
+#### Xago + Persona Troubleshooting
+
+**This is a multi-stage flow:**
+
+**Stage 1: Persona Inquiry**
+```
+Workflow: CreatePersonaInquiryWorkflow
+Activities:
+  - CreatePersonaInquiry (returns inquiry URL)
+  - StoreInquiryReference
+```
+
+**Stage 2: User Completes Persona**
+```
+[User action: completes docs/photos in Persona UI]
+Webhook: persona_inquiry_completed
+Signal to workflow: persona_verification_complete
+```
+
+**Stage 3: Xago Account Creation**
+```
+Workflow: SetKYCWorkflow (continues after signal)
+Activities:
+  - CreateXagoSubaccount (uses Persona inquiry ID)
+  - UpdateWalletKYCStatus
+  - CreateLinkedAccount
+```
+
+**Common issues:**
+- **Persona inquiry created but user never received URL:**
+  - Check inquiry creation response for URL
+  - Verify frontend received inquiry URL from backend
+  - Check network logs in browser
+
+- **User completed Persona but no webhook received:**
+  - Check Persona webhook configuration
+  - Verify webhook endpoint is publicly accessible
+  - Check Persona dashboard for webhook delivery status
+
+- **Persona approved but Xago account creation fails:**
+  - Verify Persona inquiry ID is stored correctly
+  - Check Xago API for duplicate account errors
+  - Verify ID number format matches Xago requirements
+
+**Debug workflow:**
+```
+Workflow: SetKYCWorkflow (Xago/Persona path)
+Search: wallet_uuid or persona_inquiry_id
+Expected flow:
+  1. CreatePersonaInquiry
+  2. [Wait for signal: persona_verification_complete]
+  3. CreateXagoSubaccount
+  4. UpdateWalletKYCStatus (status: level1)
+  5. CreateLinkedAccount (provider: xago)
+```
+
+#### PTI KYC Troubleshooting
+
+**PTI flow is callback-based:**
+
+```
+1. User gets PTI widget URL
+2. User completes KYC in PTI widget
+3. PTI redirects to callback URL with token
+4. Backend validates token and starts workflow
+5. Workflow updates KYC status and provisions account
+```
+
+**Common issues:**
+- **Callback URL never called:**
+  - Verify callback URL is accessible from PTI's servers
+  - Check firewall/network rules
+  - Check PTI logs for callback attempts
+
+- **Callback received but token invalid:**
+  - Check token signature validation
+  - Verify PTI shared secret is correct
+  - Check for token expiration
+
+- **KYC approved but account not provisioned:**
+  - Check workflow for account creation failures
+  - Verify PTI API credentials
+  - Check for duplicate account errors
+
+**Debug workflow:**
+```
+Workflow: SetKYCWorkflow (PTI path)
+Search: wallet_uuid or pti_user_id
+Expected flow:
+  1. ValidateCallbackToken
+  2. UpdateWalletKYCStatus
+  3. CreatePTIWallet
+  4. CreateLinkedAccount (provider: pti)
+```
+
+#### Chimoney KYC Troubleshooting
+
+**Chimoney uses polling (no webhooks):**
+
+```
+Workflow: KYCWatcherWorkflow
+Loop every 2-5 minutes:
+  1. GetChimoneyKYCStatus
+  2. If pending: wait, retry
+  3. If approved: UpdateWalletKYCStatus, complete
+  4. If rejected: UpdateWalletKYCStatus, complete
+```
+
+**Common issues:**
+- **Polling workflow shows "pending" for too long:**
+  - Check Chimoney dashboard directly
+  - Verify user completed Chimoney KYC widget
+  - Chimoney manual review can take 24-48 hours
+
+- **Polling fails with API error:**
+  - Check Chimoney API credentials
+  - Verify Chimoney rate limits
+  - Check network connectivity
+
+- **User approved in Chimoney but workflow still polling:**
+  - Check polling interval (may need to wait for next poll)
+  - Verify polling is checking the correct Chimoney user ID
+  - Check for API response parsing errors
+
+**Debug workflow:**
+```
+Workflow: KYCWatcherWorkflow
+Search: wallet_uuid or chimoney_user_id
+Expected pattern:
+  Loop history (every 2-5 minutes):
+    - ActivityTaskScheduled: GetChimoneyKYCStatus
+    - ActivityTaskCompleted: GetChimoneyKYCStatus (result: pending/approved/rejected)
+    - TimerFired: wait_interval
+  Until status != pending:
+    - UpdateWalletKYCStatus
+    - WorkflowExecutionCompleted
+```
+
+### Manual Intervention: Signaling KYC Workflows
+
+⚠️ **WARNING: Only use manual signals when you've confirmed the provider has approved KYC and the webhook/callback was lost.**
+
+**When to manually signal:**
+1. Provider confirms KYC approved (check provider dashboard)
+2. No webhook/callback arrived (checked logs)
+3. Workflow is stuck waiting for signal (checked Temporal history)
+
+**How to manually signal:**
+
+**Using Temporal CLI:**
+```bash
+# For webhook-based providers (GateHub, Xago)
+docker compose exec temporal temporal workflow signal \
+  --workflow-id "SetKYCWorkflow_<wallet_uuid>" \
+  --name "kyc_verification_webhook" \
+  --input '{"provider":"gatehub","status":"accepted","userId":"<gatehub_user_id>"}'
+
+# For Persona
+docker compose exec temporal temporal workflow signal \
+  --workflow-id "SetKYCWorkflow_<wallet_uuid>" \
+  --name "persona_verification_complete" \
+  --input '{"inquiryId":"<inquiry_id>","status":"approved"}'
+```
+
+**Using Temporal Web UI:**
+1. Open the stuck workflow
+2. Click **"Signal"** button (top right)
+3. Signal Name: `kyc_verification_webhook` or `persona_verification_complete`
+4. Signal Input (JSON):
+   ```json
+   {
+     "provider": "gatehub",
+     "status": "accepted",
+     "userId": "gatehub_user_uuid"
+   }
+   ```
+5. Click **"Send Signal"**
+
+The workflow should immediately resume and complete KYC processing.
+
+### KYC Workflow Best Practices for Support
+
+1. **Always check Temporal first for "stuck activation" tickets**
+   - Shows exact state of KYC processing
+   - Reveals which provider step is blocking
+   - Faster than manual database/log digging
+
+2. **Know your provider patterns:**
+   - GateHub/Xago: webhook-driven, should complete in < 5 minutes
+   - Chimoney: polling-based, can take 20+ minutes
+   - PTI: callback-based, usually < 5 minutes
+
+3. **Look for signals to understand webhook delivery:**
+   - `WorkflowExecutionSignaled` = webhook arrived
+   - Missing signal = webhook lost or delayed
+
+4. **Check provider status directly when workflows are stuck:**
+   - Don't assume workflow state = provider state
+   - Provider may have approved KYC but webhook failed
+
+5. **Document workflow IDs when escalating:**
+   - Wallet ID → Workflow ID mapping
+   - Provider-specific identifiers (Persona inquiry ID, GateHub user ID, etc.)
+   - Helps engineering investigate faster
+
+6. **Don't terminate workflows unless necessary:**
+   - Workflows have retry logic
+   - Terminating can cause inconsistent state
+   - Only terminate for unrecoverable errors (wrong wallet ID, etc.)
+
+### KYC Workflow Lifecycle Summary
+
+```mermaid
+stateDiagram-v2
+    [*] --> WidgetRequested: User clicks Continue
+    
+    WidgetRequested --> UserInProvider: Widget URL returned
+    note right of UserInProvider: User completes docs/biometrics<br/>in provider UI
+    
+    UserInProvider --> WebhookWaiting: Submitted to provider
+    note right of WebhookWaiting: Workflow waiting for<br/>provider signal
+    
+    WebhookWaiting --> Processing: Webhook/callback arrives
+    
+    Processing --> Provisioning: KYC status updated
+    note right of Provisioning: Create linked accounts<br/>provision provider accounts
+    
+    Provisioning --> Completed: All activities successful
+    
+    Processing --> Failed: Activity error
+    UserInProvider --> Failed: Provider rejection
+    
+    Completed --> [*]
+    Failed --> [*]
+```
+
+**Key timing expectations by provider:**
+
+| Provider | Widget → Webhook | Webhook → Complete | Total Normal Time |
+|----------|------------------|-------------------|-------------------|
+| **GateHub** | 2-10 minutes | 10-30 seconds | 2-11 minutes |
+| **Xago + Persona** | 3-15 minutes | 1-3 minutes | 4-18 minutes |
+| **PTI** | 2-10 minutes | 30-90 seconds | 3-12 minutes |
+| **Chimoney (polling)** | 5-30 minutes | 30-60 seconds | 6-31 minutes |
+
+**Stuck if:**
+- GateHub: > 15 minutes with no signal
+- Xago: > 20 minutes with no signal
+- PTI: > 15 minutes with no callback
+- Chimoney: > 45 minutes of polling "pending"
+
+---
+
+## 14) Final mental model
 
 Think of KYC in Interledger App as a **policy + orchestration layer**:
 
