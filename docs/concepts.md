@@ -38,20 +38,20 @@ graph TD
 
 | Term | Interledger App meaning | Notes |
 |------|------------------------|-------|
-| **Wallet** | The user's single financial account: one ILP address, one country, multiple linked accounts | GateHub "wallet" = XRPL address; PTI "wallet" = per-currency balance; Xago uses "SubAccount" |
-| **Linked Account** | Any external account connected to the wallet (balance, bank account, card, interac) | Each has one provider and one currency |
-| **User** | Identity & authentication (Kratos) — separate from the wallet | Keeps auth and financial data decoupled |
-| **Payment** | An intent to move money (P2P, deposit, withdrawal) — orchestrated asynchronously | Creates one or more Transactions |
-| **Transaction** | A ledger entry recording what actually happened to money | Has types: sent, received, deposit, withdrawal, card, web monetization |
+| **Wallet** | The user's single financial account: one ILP address, one country, multiple linked accounts | See [Wallets vs Accounts vs Addresses](wallets-vs-accounts-vs-addresses.md). GateHub "wallet" = XRPL address; PTI "wallet" = per-currency balance; Xago uses "SubAccount" |
+| **Linked Account** | Any external account connected to the wallet (balance, bank account, card, interac) | Each has one provider and one currency. See [Provider shape differences](wallets-vs-accounts-vs-addresses.md#provider-shape-why-linked-account-is-not-identical-across-integrations). |
+| **User** | Identity & authentication (Kratos) — separate from the wallet | Keeps auth and financial data decoupled. In GateHub context, this user becomes a "Managed User" (see [GateHub Cards](gatehub-cards-explainer.md#2-authentication)). |
+| **Payment** | An intent to move money (P2P, deposit, withdrawal) — orchestrated asynchronously | Creates one or more Transactions. See [The Payment Story](payments-explainer.md#the-payment-story) for a detailed walkthrough. |
+| **Transaction** | A ledger entry recording what actually happened to money | Has types: sent, received, deposit, withdrawal, card, web monetization. See [Understanding Transactions](payments-explainer.md#understanding-transactions). |
 
 ## Linked Account Types
 
-| Type | Providers | Purpose |
-|------|-----------|---------|
-| `balance` | GateHub, PTI, Xago, Chimoney | Money held in custody by the provider |
-| `bank_account` | PTI, Xago | External bank account for deposits/withdrawals |
-| `card` | PTI, GateHub | Debit or credit card |
-| `interac` | Chimoney | Interac e-Transfer (Canada) |
+| Type | Providers | Purpose | See also |
+|------|-----------|---------|----------|
+| `balance` | GateHub, PTI, Xago, Chimoney | Money held in custody by the provider | [Wallets and Accounts](payments-explainer.md#wallets-and-accounts) |
+| `bank_account` | PTI, Xago | External bank account for deposits/withdrawals | [Provider shape differences](wallets-vs-accounts-vs-addresses.md#provider-shape-why-linked-account-is-not-identical-across-integrations) |
+| `card` | PTI, GateHub | Debit or credit card | [GateHub Cards](gatehub-cards-explainer.md) |
+| `interac` | Chimoney | Interac e-Transfer (Canada) | [Provider shape differences](wallets-vs-accounts-vs-addresses.md#provider-shape-why-linked-account-is-not-identical-across-integrations) |
 
 ## Provider Translation
 
@@ -63,13 +63,19 @@ graph TD
 | User account | User | User | SubAccount |
 | `provider_id` format | XRPL address (`rHb9C...`) | UUID | Composite (`xago_ZAR_...`) or beneficiary UUID |
 
+## KYC and Wallet Activation
+
+KYC (Know Your Customer) is a compliance gate linked to wallet activation and is provider-specific. Each provider has different verification flows and status models. See [KYC Explainer for Support Staff](kyc-explainer.md) for detailed provider-by-provider guidance, status states, and troubleshooting.
+
+---
+
 ## Common Pitfalls
 
 | Pitfall | What to know |
 |---------|-------------|
 | Wallet confusion | Interledger wallet ≠ GateHub/PTI wallet. Use `linked_accounts.provider_id` for provider API calls, not `wallets.id`. |
 | Transaction vs Payment lookup | Provider transaction ID → Interledger Transaction (via `foreign_id`) → Payment (via `send_transaction_id` / `receive_transaction_id`). |
-| Balance mismatch | Check webhook logs, run backfill workflow, compare Pacioli ledger (`accounts` table) with provider API. |
+| Balance mismatch | Check webhook logs, run backfill workflow, compare Pacioli ledger (`accounts` table) with provider API. See [The Two Ledgers](payments-explainer.md#the-two-ledgers) for architecture explanation. |
 | `provider_id` format | Provider-specific — never parse generically. GateHub=XRPL address, PTI=UUID, Xago=composite, Chimoney=external ID. |
 | Status code types | GateHub returns ints, PTI/Xago return strings. Always use the provider-specific mapping in `backend/providers/*/external/`. |
 

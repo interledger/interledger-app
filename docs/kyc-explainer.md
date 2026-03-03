@@ -2,6 +2,8 @@
 
 **Scope:** What KYC is, how it works in Interledger App, and how provider differences affect support conversations.
 
+**Cross-references:** See [Concepts: Interledger App vs Service Providers](concepts.md) for wallet and linked-account terminology, and [Payments & Transactions](payments-explainer.md) for how KYC gates transaction authorization.
+
 ---
 
 ## 1) User journey first: signup → activate wallet → KYC
@@ -42,7 +44,7 @@ KYC (Know Your Customer) is the process of verifying a user’s real-world ident
 From an Interledger App wallet perspective:
 
 - A user has **one Interledger wallet**.
-- That wallet can have one or more **linked accounts** at one or more providers.
+- That wallet can have one or more **linked accounts** at one or more providers (see [Concepts](concepts.md#core-terms) for definitions).
 - KYC status is tracked at the wallet level in Interledger App, but **evidence and verification workflows are often provider-specific**.
 
 In practice, support should think of KYC as:
@@ -71,7 +73,7 @@ Support talk track:
 
 At a policy level, KYC is linked to anti-money-laundering (AML) obligations. Operationally, this means:
 
-- Transactions must be attributable to appropriately verified users.
+- Transactions must be attributable to appropriately verified users (see [Payments & Transactions](payments-explainer.md#understanding-transactions)).
 - The exact requirement can differ by country and provider.
 - We should expect policy evolution, including possibilities like:
   - KYC expiration/reverification windows

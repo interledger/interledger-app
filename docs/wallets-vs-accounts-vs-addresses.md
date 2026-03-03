@@ -101,6 +101,8 @@ This also explains why users may occasionally perceive "wrong account selected":
 
 Cross-currency behavior is intentionally constrained in the current payment engine for standard P2P paths, so multi-currency availability does not imply unrestricted FX routing.
 
+**Note:** Account selection also depends on [KYC status](kyc-explainer.md#4-compliance-reality-kyc-is-tied-to-transactions). See [Payment Story](payments-explainer.md#the-payment-story) for a walkthrough of the full payment flow.
+
 ---
 
 ## Open Payments single-asset exposure and the multi-currency wallet gap
@@ -134,3 +136,12 @@ When a report says "wrong currency", "wrong account", or "payment went to unexpe
 6. **Open Payments context**: whether asset-scoped address behavior influenced account matching.
 
 Using this sequence keeps analysis grounded in how the system actually routes funds and prevents terminology-based misdiagnosis.
+
+---
+
+## See Also
+
+- [Concepts: Interledger App vs Service Providers](concepts.md) — Core terminology and provider translation table
+- [Payments & Transactions](payments-explainer.md) — Payment lifecycle and the two-ledger system
+- [KYC Explainer](kyc-explainer.md) — How identity verification gates payment authorization
+- [GateHub Cards](gatehub-cards-explainer.md) — Card-specific linked accounts (EUR card type)

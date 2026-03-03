@@ -4,6 +4,8 @@
 
 This document explains how GateHub's card issuing service integrates with the Interledger Wallet to give users EUR-denominated debit cards that draw from their wallet balances.
 
+> **Terminology Note:** GateHub's "Account" (a EUR card account) is represented as a `card` type [Linked Account](concepts.md#linked-account-types) in the Interledger App. All card-specific transactions are a subset of the broader [transaction types](concepts.md#core-terms). See [Concepts](concepts.md) for the core Interledger App terminology and provider translation table.
+
 ---
 
 ## Table of Contents
@@ -92,11 +94,11 @@ erDiagram
     CARD ||--o{ THREE_DS_CHALLENGE : "may trigger"
 ```
 
-**Managed User** — The wallet user's identity within GateHub. Created during KYC onboarding. Referenced by UUID in every card request header.
+**Managed User** — The wallet user's identity within GateHub. In Interledger App terminology, this is the [User](concepts.md#core-terms) (Kratos identity) registered with GateHub. Created during KYC onboarding. Referenced by UUID in every card request header.
 
 **Customer** — A card-programme customer. Created atomically with the first card order. Holds KYC status, delivery addresses, and one or more accounts. Has both an internal `id` (GateHub-generated) and a `sourceId` (the wallet user UUID).
 
-**Account** — A EUR card account. Each account has a product code that determines card properties, limits, and pricing. Accounts hold one or more cards.
+**Account** — A EUR card account (a `card` type [Linked Account](concepts.md#linked-account-types) in Interledger App terminology). Each account has a product code that determines card properties, limits, and pricing. Accounts hold one or more cards.
 
 **Card** — A virtual or physical debit card. Identified by a card ID (prefixed `crd.` in production). Key attributes:
 - `maskedPan` — BIN + last 4 digits (e.g. `512345******2346`)
