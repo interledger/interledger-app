@@ -14,11 +14,11 @@
 - [Concepts](concepts.md) — Terminology (wallet, linked account, transaction)
 
 **Quick Navigation:**
-- **Why two ledgers?** → See [Why Have Two Ledgers](#why-have-two-ledgers-4-scenarios)
+- **Why two ledgers?** → See [Why Have Two Ledgers](#why-have-two-ledgers)
 - **Balance mismatch between us and provider?** → See [When Ledgers Disagree](#when-ledgers-disagree)
-- **How to reconcile?** → See [Reconciliation Process](#reconciliation-process)
-- **Settlement procedures?** → See [Settlement Importance](#settlement-importance)
-- **Real-world example?** → See [Real-World Example: Xago Transfer](#real-world-example-xago-transfer)
+- **How to reconcile?** → See [Reconciliation Process](#the-reconciliation-process)
+- **Settlement procedures?** → See [Settlement Importance](#why-this-matters-for-settlement)
+- **Real-world example?** → See [Real-World Example: Xago Transfer](#real-world-example-xago-settlement)
 
 ---
 

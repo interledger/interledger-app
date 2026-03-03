@@ -16,11 +16,11 @@
 
 **Quick Navigation:**
 - **Which provider is fastest?** → See [Provider Comparison Matrix](#provider-comparison-matrix)
-- **Fee breakdown?** → See [Fee Comparison](#fee-comparison)
-- **GateHub details?** → See [GateHub Deep Dive](#gatehub-deep-dive)
-- **PTI details?** → See [PTI Deep Dive](#pti-deep-dive)
-- **Xago details?** → See [Xago Deep Dive](#xago-deep-dive)
-- **Chimoney details?** → See [Chimoney Deep Dive](#chimoney-deep-dive)
+- **Fee breakdown?** → See [Fee Comparison](#fee-comparison-summary)
+- **GateHub details?** → See [GateHub Deep Dive](#gatehub-the-multi-currency-custodian)
+- **PTI details?** → See [PTI Deep Dive](#pti-the-bank-network-provider)
+- **Xago details?** → See [Xago Deep Dive](#xago-regional-payments-specialist)
+- **Chimoney details?** → See [Chimoney Deep Dive](#chimoney-international-remittance)
 - **Cross-provider payments?** → See [Special Cases](#special-cases)
 
 ---
@@ -364,7 +364,7 @@ OPTION B: Internal transfer (Interledger magic)
 Interledger uses OPTION B when possible!
 ```
 
-**Internal transfers are a unique Xago feature.** See [Ledger System Architecture](ledger-system-explainer.md#scenario-3-internal-transfers-xagoesame-provider-case) for details.
+**Internal transfers are a unique Xago feature.** See [Ledger System Architecture](ledger-system-explainer.md#scenario-3-internal-transfers-xagosame-provider-case) for details.
 
 ### Withdrawal to ZAR Bank Account
 

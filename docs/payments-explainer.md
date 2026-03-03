@@ -145,7 +145,7 @@ Amount: £100
 To: bob@example.com
 ```
 
-**Note on addresses:** The email address (or wallet URL/payment pointer) is used for discovery — finding Bob's wallet. Behind the scenes, the actual money moves through [linked accounts](wallets-vs-accounts-vs-addresses.md#address-model-wallet-urls-vs-ilp-open-payments-addresses). The system resolves the email to Bob's wallet address and then selects appropriate linked accounts for settlement.
+**Note on addresses:** The email address (or wallet URL/payment pointer) is used for discovery — finding Bob's wallet. Behind the scenes, the actual money moves through [linked accounts](wallets-vs-accounts-vs-addresses.md#address-model-wallet-urls-vs-ilpopen-payments-addresses). The system resolves the email to Bob's wallet address and then selects appropriate linked accounts for settlement.
 
 What happens:
 - The wallet checks: "Does Alice have £100?"
@@ -1184,10 +1184,10 @@ Step 4: Check Webhooks
 
 ## Further Reading
 
-- **[GateHub Payments (Technical)](./gatehub-payments.md)** - Deep dive on payment flows for developers
-- **[GateHub Transaction Fees (Technical)](./gatehub-transaction-fees.md)** - Fee implementation details
-- **[Concepts Reference](../../interledger-app/docs/concepts.md)** - Provider terminology guide
-- **[Wallet Architecture](../../interledger-app/docs/architecture.md)** - System design (if available)
+- **[Provider Payments Guide](provider-payments-guide.md)** - Provider-by-provider payment behavior and edge cases
+- **[Transaction Types Reference](transaction-types-explainer.md)** - Transaction fields, states, and fee mapping
+- **[Concepts Reference](concepts.md)** - Provider terminology guide
+- **[Ledger System Architecture](ledger-system-explainer.md)** - How dual-ledger reconciliation works
 
 ---
 

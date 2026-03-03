@@ -15,7 +15,7 @@
 
 **Quick Navigation:**
 - **Payment stuck?** → See [Problem 1: Payment Stuck in Processing](#problem-1-payment-appears-stuck-in-processing)
-- **Balance wrong?** → See [Problem 2: Balance Mismatch](#problem-2-balance-is-wrong---shows-£100-but-should-be-£150)
+- **Balance wrong?** → See [Problem 2: Balance Mismatch](#problem-2-balance-is-wrong---shows-100-but-should-be-150)
 - **Recipient didn't receive?** → See [Problem 3: Missing Receipt](#problem-3-sender-sent-money-but-recipient-didnt-receive-it)
 - **Ledger discrepancy?** → See [Problem 4: Ledger Mismatch](#problem-4-our-balance-doesnt-match-providers-balance)
 - **Using Temporal?** → See [Temporal Debugging Guide](#temporal-debugging-guide)
@@ -790,7 +790,7 @@ History:   - ReserveBalance ✓
 **Action:**
 - **If < 5 minutes:** Wait, this is normal
 - **If 5-20 minutes:** Check webhook logs to see if webhook arrived
-- **If > 20 minutes:** Provider might be slow, or webhook lost. See [Webhook Troubleshooting](#webhook-troubleshooting)
+- **If > 20 minutes:** Provider might be slow, or webhook lost. See [Webhook Troubleshooting](#webhook-troubleshooting-using-temporal)
 
 ####  Scenario 2: Workflow Stuck on an Activity
 

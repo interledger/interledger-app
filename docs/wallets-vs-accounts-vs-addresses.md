@@ -14,8 +14,8 @@
 **Quick Navigation:**
 - **What's the difference between wallet and account?** → See [System Model](#system-model-one-wallet-many-linked-accounts)
 - **Why do providers differ?** → See [Provider Shape Differences](#provider-shape-why-linked-account-is-not-identical-across-integrations)
-- **How are addresses used?** → See [Address Model](#address-model-wallet-urls-vs-ilp-open-payments-addresses)
-- **Payment routing issues?** → See [Incident Triage Model](#incident-triage-model)
+- **How are addresses used?** → See [Address Model](#address-model-wallet-urls-vs-ilpopen-payments-addresses)
+- **Payment routing issues?** → See [Incident Triage Model](#incident-triage-model-for-support)
 
 This document extends [concepts.md](./concepts.md) and explains how wallets, linked accounts, and addresses fit together in the Interledger App. It is written for senior technical support who need a reliable operational mental model when diagnosing payment-routing, currency, and provider-integration issues.
 

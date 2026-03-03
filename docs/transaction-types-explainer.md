@@ -17,8 +17,8 @@
 - **What fields does a transaction have?** → See [Core Transaction Fields](#core-transaction-fields)
 - **Transaction types?** → See [Transaction Types](#transaction-types)
 - **Lifecycle states?** → See [Transaction Lifecycle](#transaction-lifecycle)
-- **Why two-sided transactions?** → See [Why Track Both Sides](#why-track-both-sides-of-a-transaction)
-- **Provider field mappings?** → See [Provider-Specific Field Mappings](#provider-specific-field-mappings)
+- **Why two-sided transactions?** → See [Why Track Both Sides](#why-do-we-create-both-send-and-receive-transactions)
+- **Provider field mappings?** → See [Provider-Specific Field Mappings](#provider-specific-transaction-field-mappings)
 
 ---
 
