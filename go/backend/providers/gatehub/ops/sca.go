@@ -22,7 +22,7 @@ type SCARequest struct {
 
 const (
 	SCAActionInitiate = "INITIATE"
-	SCAACtionVerify   = "VERIFY"
+	SCAActionVerify   = "VERIFY"
 )
 
 func NewSCA(b Backends, cfg gatehub.Config) http.HandlerFunc {
@@ -82,7 +82,7 @@ func NewSCA(b Backends, cfg gatehub.Config) http.HandlerFunc {
 			log.Error("received SCA initiate request. SMS initation not implemented", zap.String("user", gatehubUserID))
 			w.WriteHeader(http.StatusOK)
 			return
-		case SCAACtionVerify:
+		case SCAActionVerify:
 			walletID, err := getWalletID(r.Context(), b, gatehubUserID)
 			if err != nil {
 				log.Error("failed to retrieve wallet ID", zap.Error(err))
