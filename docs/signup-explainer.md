@@ -54,6 +54,8 @@ sequenceDiagram
 
 ### Step 2 — Phone Verification (OTP)
 
+> **Note:** OTP verification is currently **disabled** in the codebase. The frontend OTP dialog is commented out (phone is stored locally and the flow advances to the password step), and the backend Twilio calls are stubbed to always return "approved". The intended flow is documented below.
+
 ```mermaid
 sequenceDiagram
     participant U as 👤 User
@@ -64,7 +66,8 @@ sequenceDiagram
 
     rect rgb(245, 158, 11)
     U->>FE: Enter phone number
-    FE->>TW: SendVerificationCode
+    FE->>BE: SendPhoneVerification gRPC
+    BE->>TW: SendVerificationCode
     TW-->>U: SMS with 6-digit code
     U->>FE: Enter OTP code
     FE->>BE: SetSignupMobileNumber gRPC
@@ -230,15 +233,18 @@ Phone verification prevents automated account creation and ensures users can rec
 **Validity:** 10 minutes  
 **Delivery:** SMS to user's phone
 
+> **Current state:** OTP is disabled. The frontend OTP dialog is commented out in `Phone.tsx` (the phone number is stored locally and the flow skips directly to the password step). The backend Twilio calls in `twilio/service.go` are stubbed to always return `"approved"`. When re-enabled, the intended flow is described below.
+
 ### Frontend Flow
 
 Route: [`/signup`](../typescript/protea/app/routes/signup/route.tsx) (Phone step)
 
 1. User enters phone number in **E.164 format** (e.g., `+14155552671`)
-2. Frontend triggers Twilio verification code send
-3. User receives SMS with 6-digit code
-4. User enters code in verification field
-5. Frontend submits phone + OTP to backend
+2. Frontend calls `SendPhoneVerification` gRPC on the backend
+3. Backend calls Twilio Verify API to send SMS
+4. User receives SMS with 6-digit code
+5. User enters code in verification field
+6. Frontend submits phone + OTP to backend via `SetSignupMobileNumber` gRPC
 
 ### Backend Processing
 
@@ -303,6 +309,8 @@ Password registration is handled entirely by **Ory Kratos** using the self-servi
 
 **Kratos endpoint:** `/self-service/registration/browser`  
 **Session:** Managed via cookies (set by Kratos)
+
+**Note on phone numbers:** Kratos is not involved in phone/OTP verification. The phone number is passed to Kratos only as a passive `traits.phone` field during the registration step — Kratos stores it but does not verify it.
 
 ### Frontend Flow
 
