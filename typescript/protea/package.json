@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
-    "build": "pnpm typecheck && vite build",
+    "build": "react-router typegen && pnpm typecheck && vite build",
     "start": "react-router-serve ./build/server/index.js",
     "lint": "eslint --fix --cache --cache-location ./node_modules/.cache/eslint .",
     "typecheck": "tsc -b",
