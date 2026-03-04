@@ -209,6 +209,9 @@ export function Scaffold() {
               </button>
             )}
             <NavDrawer.ListItem to={route('/')}>Home</NavDrawer.ListItem>
+            <NavDrawer.ListItem to={route('/quick-pay')}>
+              Quick Pay
+            </NavDrawer.ListItem>
             <NavDrawer.ListItem to={route('/accounts')}>
               Accounts
             </NavDrawer.ListItem>
@@ -263,6 +266,7 @@ export function Scaffold() {
               {/*<HeaderPopover />*/}
               {/*<HeaderLink to={route('/docs')} title='Docs' />*/}
               {/*<HeaderLink to={route('/blog')} title='Blog' />*/}
+              <HeaderLink to={route('/quick-pay')} title='Quick Pay' />
               <HeaderLink to={route('/contact')} title='Contact' />
             </div>
             <div className='ml-auto hidden items-center lg:flex'>
@@ -538,6 +542,9 @@ export function Scaffold() {
                   </Router>
                 </div>
                 <NavDrawer.ListItem to={route('/')}>Home</NavDrawer.ListItem>
+                <NavDrawer.ListItem to={route('/quick-pay')}>
+                  Quick Pay
+                </NavDrawer.ListItem>
                 <NavDrawer.ListItem to={route('/accounts')}>
                   Accounts
                 </NavDrawer.ListItem>
@@ -616,6 +623,9 @@ export function Scaffold() {
                 {/*<NavDrawer.ListItem to={route('/docs')}>*/}
                 {/*  Docs*/}
                 {/*</NavDrawer.ListItem>*/}
+                <NavDrawer.ListItem to={route('/quick-pay')}>
+                  Quick Pay
+                </NavDrawer.ListItem>
                 <NavDrawer.ListItem to={route('/contact')}>
                   Contact
                 </NavDrawer.ListItem>

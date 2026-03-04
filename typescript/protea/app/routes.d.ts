@@ -7,7 +7,6 @@ declare module "routes-gen" {
     "/accounts/:accountId/name": { "accountId": string };
     "/api/cardOperation": Record<string, never>;
     "/api/check-totp-enabled": Record<string, never>;
-    "/api/confirmPendingConfirmation": Record<string, never>;
     "/api/fern": Record<string, never>;
     "/api/getCardToken": Record<string, never>;
     "/api/getPendingConfirmations": Record<string, never>;
@@ -45,6 +44,11 @@ declare module "routes-gen" {
     "/payments": Record<string, never>;
     "/payments/:paymentId": { "paymentId": string };
     "/personal-details": Record<string, never>;
+    "/quick-pay": Record<string, never>;
+    "/quick-pay/amount": Record<string, never>;
+    "/quick-pay/finish": Record<string, never>;
+    "/quick-pay/pay": Record<string, never>;
+    "/quick-pay/request": Record<string, never>;
     "/recovery": Record<string, never>;
     "/recovery/password": Record<string, never>;
     "/settings": Record<string, never>;
@@ -84,7 +88,6 @@ declare module "routes-gen" {
       | ["/accounts/:accountId/name", RouteParams["/accounts/:accountId/name"]]
       | ["/api/cardOperation"]
       | ["/api/check-totp-enabled"]
-      | ["/api/confirmPendingConfirmation"]
       | ["/api/fern"]
       | ["/api/getCardToken"]
       | ["/api/getPendingConfirmations"]
@@ -122,6 +125,11 @@ declare module "routes-gen" {
       | ["/payments"]
       | ["/payments/:paymentId", RouteParams["/payments/:paymentId"]]
       | ["/personal-details"]
+      | ["/quick-pay"]
+      | ["/quick-pay/amount"]
+      | ["/quick-pay/finish"]
+      | ["/quick-pay/pay"]
+      | ["/quick-pay/request"]
       | ["/recovery"]
       | ["/recovery/password"]
       | ["/settings"]
