@@ -20,7 +20,7 @@ typescript/**/node_modules
 
 # test migrations
 testmigrations
-
+documentation/site
 coverage.out
 
 .env
