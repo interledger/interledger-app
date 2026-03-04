@@ -300,7 +300,32 @@ func (s *rpcService) GetPayment(ctx context.Context, req *pb.GetPaymentRequest) 
 		return nil, NotFoundError("payment not found")
 	}
 
-	return transformPayment(ctx, s.b, p)
+	transformedPayment, err := transformPayment(ctx, s.b, p)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	if p.Type == payments.TypeWithdrawal && p.SenderAmount.Currency == currency.CAD && p.ReceiverAmount.Currency == currency.CAD {
+
+		var fees currency.Amount
+		receiverAmount := p.ReceiverAmount
+		fees, err = s.b.Chimoney().GetEstimatedFee(ctx, p.SenderAmount)
+		if err != nil {
+			return nil, toGRPCError(err)
+		}
+
+		if p.ReceiverAmount.Value > fees.Value {
+			receiverAmount = currency.FromUInt64(p.ReceiverAmount.Value-fees.Value, p.ReceiverAmount.Currency)
+		} else {
+			receiverAmount = currency.FromUInt64(0, p.ReceiverAmount.Currency)
+		}
+
+		transformedPayment.TotalSendAmount = receiverAmount.Format()
+		transformedPayment.FormattedFees = fees.Format()
+		transformedPayment.ReceiverAmount = receiverAmount.ToPB()
+	}
+
+	return transformedPayment, nil
 }
 
 func (s *rpcService) ConfirmPayment(ctx context.Context, req *pb.ConfirmPaymentRequest) (*pb.Payment, error) {
@@ -371,24 +396,9 @@ func transformPayment(ctx context.Context, b Backends, p *payments.Payment) (*pb
 		}
 		receiveWalletAddress = receiveWallet.AddressString()
 	}
-	var fees currency.Amount
-	var err error
-	receiverAmount := p.ReceiverAmount
-	if p.Type == payments.TypeWithdrawal && p.SenderAmount.Currency == currency.CAD && p.ReceiverAmount.Currency == currency.CAD {
-		fees, err = b.Chimoney().GetEstimatedFee(ctx, p.SenderAmount)
-		if err != nil {
-			return nil, toGRPCError(err)
-		}
 
-		if receiverAmount.Value > fees.Value {
-			receiverAmount = currency.FromUInt64(receiverAmount.Value-fees.Value, receiverAmount.Currency)
-		} else {
-			receiverAmount = currency.FromUInt64(0, receiverAmount.Currency)
-		}
-	} else {
-		// hard-coded to be 0 for now
-		fees = currency.FromUInt64(0, p.SenderAmount.Currency)
-	}
+	// hard-coded to be 0 for now
+	fees := currency.FromUInt64(0, p.SenderAmount.Currency)
 	ret := &pb.Payment{
 		Id:                   p.ID,
 		PublicID:             p.PublicID,
@@ -398,11 +408,11 @@ func transformPayment(ctx context.Context, b Backends, p *payments.Payment) (*pb
 		ReceiverIdentityType: int32(p.Receiver.Type),
 		SenderAmount:         p.SenderAmount.ToPB(),
 		SenderAccount:        p.SenderAccount,
-		TotalSendAmount:      receiverAmount.Format(),
+		TotalSendAmount:      p.SenderAmount.Format(),
 		Note:                 p.Note,
 		RequiredActions:      requiredActions,
 		FxRate:               fmt.Sprintf("%6f", p.FXRate),
-		ReceiverAmount:       receiverAmount.ToPB(),
+		ReceiverAmount:       p.ReceiverAmount.ToPB(),
 		FormattedFees:        fees.Format(),
 		ReceiverAccount:      p.ReceiverAccount,
 	}
