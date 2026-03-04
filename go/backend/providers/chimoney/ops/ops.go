@@ -184,6 +184,22 @@ func CreateDepositLink(ctx context.Context, b Backends, ex external.Client, wall
 	return resp.PaymentLink, nil
 }
 
+func GetEstimatedFee(ctx context.Context, b Backends, ex external.Client, amount currency.Amount) (currency.Amount, error) {
+	resp, err := ex.GetEstimatedFee(ctx, external.EstimateFeeReq{
+		Amount:    amount.FormatAmount(),
+		Currency:  amount.Currency.String(),
+		Rail:      "interac",
+		Direction: "payout", // only support interac payout for now since that's the only CAD withdrawal method we have
+	})
+
+	if err != nil {
+		return currency.Amount{}, fmt.Errorf("%w %s", chimoney.ErrInternal, err)
+	}
+
+	feeAmt := currency.FromFloat64(resp.TotalFee, currency.ParseCurrency(resp.Currency))
+	return feeAmt, nil
+}
+
 func ExecuteFinishWithdraw(ctx context.Context, b Backends, ec external.Client, IssueID string, status string, chiWalletID string, amount float64, paymentType string) error {
 	wo := client.StartWorkflowOptions{
 		ID:                    "finish_chimoney_withdrawal_" + IssueID,

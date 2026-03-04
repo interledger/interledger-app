@@ -22,6 +22,7 @@ type Client interface {
 	GetWallet(ctx context.Context, id string) (*WalletResp, error)
 	Transfer(ctx context.Context, req TransferReq) error
 	Deposit(ctx context.Context, req DepositReq) (*DepositResp, error)
+	GetEstimatedFee(ctx context.Context, req EstimateFeeReq) (*EstimateFeeResp, error)
 	Withdraw(ctx context.Context, req WithdrawalReq) (*WithdrawResponse, error)
 	PayoutStatus(ctx context.Context, req PayoutStatusRequest) (*PayoutStatusResponse, error)
 	ConvertToUSD(ctx context.Context, req ConvertToUSDRequest) (*currency.Amount, error)
@@ -420,6 +421,66 @@ func (c client) ConvertToUSD(ctx context.Context, req ConvertToUSDRequest) (*cur
 	amt := currency.FromFloat64(resp.AmountInUSD, currency.USD)
 
 	return &amt, nil
+}
+
+func (c client) GetEstimatedFee(ctx context.Context, req EstimateFeeReq) (*EstimateFeeResp, error) {
+	endpoint, err := url.JoinPath(c.baseURL, "info", "fee-estimate")
+	if err != nil {
+		return nil, err
+	}
+
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "POST"
+		meta.Provider = "chimoney"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "POST",
+			Provider: "chimoney",
+		})
+	}
+	body, err := json.Marshal(req)
+
+	if err != nil {
+		return nil, err
+	}
+
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewBuffer(body))
+	if err != nil {
+		return nil, err
+	}
+	httpReq.Header.Add("Content-Type", "application/json")
+	httpReq.Header.Add("Accept", "application/json")
+	httpReq.Header.Add("X-API-KEY", c.apiKey)
+
+	httpResp, err := c.api.Do(httpReq)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err = io.ReadAll(httpResp.Body)
+	if err != nil {
+		return nil, err
+	}
+	defer httpResp.Body.Close()
+
+	var respWrapper APIResponse
+	err = json.Unmarshal(body, &respWrapper)
+	if err != nil {
+		return nil, err
+	}
+
+	if !strings.EqualFold(respWrapper.Status, "success") || respWrapper.Error != "" {
+		return nil, fmt.Errorf("request failed on estimating fee with status (%s) error (%s)", respWrapper.Status, respWrapper.Error)
+	}
+
+	var resp EstimateFeeResp
+	err = json.Unmarshal(respWrapper.Data, &resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return &resp, nil
 }
 
 func (c client) VerifyPayment(ctx context.Context, req VerifyPaymentReq) (*Payment, error) {

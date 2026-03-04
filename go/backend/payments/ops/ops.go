@@ -823,7 +823,14 @@ func Confirm(ctx context.Context, b Backends, id string) (*payments.Payment, []p
 			title = "Deposit"
 			txType = transactions.TransactionTypeDeposit
 		}
+
 		fee := currency.FromFloat64(0, currency.USD)
+		if dbp.Type == payments.TypeWithdrawal && la.Provider == chimoney.ProviderName && la.Type == chimoney.AccTypeBalance {
+			fee, err = b.Chimoney().GetEstimatedFee(ctx, dbp.SenderAmount)
+			if err != nil {
+				return fmt.Errorf("%w failed to get withdrawal fee", payments.ErrInternal)
+			}
+		}
 		txID, err := b.Transactions().CreateTransactionTx(ctx, tx, transactions.CreateTransactionArgs{
 			WalletID:                senderWallet.ID,
 			ForeignID:               dbp.ID,

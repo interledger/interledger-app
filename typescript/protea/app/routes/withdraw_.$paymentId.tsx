@@ -91,7 +91,7 @@ export default function Page() {
         name='csrfToken'
         type='hidden'
       />
-         <input
+      <input
         form='withdraw-confirm'
         value={payment.senderAmount?.country}
         name='country'
@@ -167,7 +167,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
   const clientIpAddress = getClientIP(request)
 
   if (country.toLowerCase() === 'us') {
-    const ptiResponse = await grpc.createPTIWithdrawal (request, {
+    const ptiResponse = await grpc.createPTIWithdrawal(request, {
       paymentId: params.paymentId || ''
     })
     if (isConnectError(ptiResponse)) {
