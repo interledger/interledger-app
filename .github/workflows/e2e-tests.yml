@@ -147,14 +147,17 @@ jobs:
       - name: Cleanup from previous runs
         working-directory: local
         run: make down && make reset
-          
+
+      - name: Clean Docker build cache
+        run: docker builder prune -af --verbose
+
+      - name: Build containers in parallel
+        working-directory: local
+        run: docker compose --parallel 8 --profile="*" build
+        
       - name: Build local-dev-tool
         working-directory: local/scripts
         run: make build
-
-      - name: Build containers
-        working-directory: local
-        run: docker compose --profile="*" build --no-cache
 
       - name: Start infrastructure
         working-directory: local
@@ -176,12 +179,11 @@ jobs:
         run: ./local-dev-tool rafiki --skip-ui --wait-for-ready 120
 
       - name: Wait for application
-        working-directory: local
         run: sleep 10
 
       - name: Run e2e tests
         working-directory: e2e
-        run: go test -v -timeout 20m -args -concurrency=10 -debug=false -report=debug/report.md
+        run: go test -v -timeout 20m -args -concurrency=5 -debug=false -report=debug/report.md
 
       - name: Show report
         if: always()

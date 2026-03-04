@@ -13,7 +13,7 @@ export const GO_PACKAGES = [
     name: "mockbos",
     type: "go",
     context: "./go",
-    file: "./go/mockbos/Dockerfile",
+    file: "./go/mock/mockbos/Dockerfile",
   },
 ];
 

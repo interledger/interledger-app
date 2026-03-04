@@ -1,0 +1,21 @@
+services:
+  mockxago:
+    build:
+      context: ../../../../
+      dockerfile: go/mock/mockxago/Dockerfile
+    container_name: mockxago-test
+    ports:
+      - "24024:8080"
+    environment:
+      - XAGO_MOCK_PORT=8080
+      - XAGO_API_PUBLIC_KEY=test_public_key_12345
+      - XAGO_API_SECRET=test_secret_key_98765
+      - XAGO_MOCK_TEST_MODE=true
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+

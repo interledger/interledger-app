@@ -18,8 +18,8 @@ import (
 	"gitlab.com/fynbos/backend/providers/xago/external"
 	"gitlab.com/fynbos/backend/providers/xago/ops"
 	"gitlab.com/fynbos/log"
-	"gitlab.com/fynbos/mockbos/db"
-	"gitlab.com/fynbos/mockbos/utils"
+	"gitlab.com/fynbos/mock/mockbos/db"
+	"gitlab.com/fynbos/mock/mockbos/utils"
 	"go.uber.org/zap"
 )
 
