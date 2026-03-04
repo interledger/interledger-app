@@ -2,6 +2,7 @@
   "name": "protea",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "vite dev",
     "build": "pnpm typecheck && vite build",
