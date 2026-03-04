@@ -33,87 +33,141 @@ The signup process creates a complete user account with authentication, wallet i
 5. **TOTP Registration** — Time-based one-time password setup for 2FA
 6. **Wallet Address Creation** — Unique payment address (e.g., `https://ilp.link/alice`)
 
+### Step 1 — Profile Details
+
 ```mermaid
 sequenceDiagram
-    participant U as User
-    participant FE as Frontend (Protea)
+    participant U as 👤 User
+    participant FE as Frontend
     participant BE as Backend
-    participant K as Ory Kratos
-    participant T as Twilio
     participant DB as PostgreSQL
-    participant TW as Temporal Worker
 
-    rect rgb(240, 248, 255)
-    Note over U,DB: Step 1: Profile Details
+    rect rgb(59, 130, 246)
     U->>FE: Enter name, email, country
     FE->>BE: SetSignupUserData gRPC
     BE->>DB: INSERT INTO signups
+    DB-->>BE: OK
     BE-->>FE: signup_id
+    FE-->>U: Show phone step
     end
+```
 
-    rect rgb(255, 250, 240)
-    Note over U,T: Step 2: Phone Verification (OTP)
+### Step 2 — Phone Verification (OTP)
+
+```mermaid
+sequenceDiagram
+    participant U as 👤 User
+    participant FE as Frontend
+    participant BE as Backend
+    participant TW as Twilio
+    participant DB as PostgreSQL
+
+    rect rgb(245, 158, 11)
     U->>FE: Enter phone number
-    FE->>T: SendVerificationCode
-    T-->>U: SMS with 6-digit code
+    FE->>TW: SendVerificationCode
+    TW-->>U: SMS with 6-digit code
     U->>FE: Enter OTP code
     FE->>BE: SetSignupMobileNumber gRPC
-    BE->>T: CheckVerificationCode
-    alt OTP Valid
-        T-->>BE: valid=true
-        BE->>DB: UPDATE signups SET mobile_number
-        BE-->>FE: success
-    else OTP Invalid
-        T-->>BE: valid=false
-        BE-->>FE: ErrInvalidOTP
-    end
+    BE->>TW: CheckVerificationCode
     end
 
-    rect rgb(240, 255, 240)
-    Note over U,K: Step 3: Password Creation (Kratos)
+    alt ✅ OTP Valid
+        TW-->>BE: valid = true
+        BE->>DB: UPDATE signups SET mobile_number
+        BE-->>FE: success
+    else ❌ OTP Invalid
+        TW-->>BE: valid = false
+        BE-->>FE: ErrInvalidOTP
+    end
+```
+
+### Step 3 — Password & Account Creation (Kratos)
+
+```mermaid
+sequenceDiagram
+    participant U as 👤 User
+    participant FE as Frontend
+    participant K as Ory Kratos
+    participant BE as Backend
+    participant DB as PostgreSQL
+
+    rect rgb(16, 185, 129)
     U->>FE: Enter password
     FE->>K: Submit registration flow
-    K->>DB: Create identity (users table)
-    K->>U: Send verification email
+    K->>DB: Create identity
+    K-->>U: Send verification email
     K-->>FE: Registration complete
     FE->>BE: CompleteSignup gRPC
     BE->>DB: UPDATE signups SET user_id
     BE-->>FE: success
     end
+```
 
-    rect rgb(255, 255, 240)
-    Note over U,K: Step 4: Account Verification
-    U->>U: Click email verification link
+### Step 4 — Email Verification
+
+```mermaid
+sequenceDiagram
+    participant U as 👤 User
+    participant K as Ory Kratos
+
+    rect rgb(139, 92, 246)
+    U->>U: Open verification email
+    U->>K: Click verification link
     K->>K: Mark identity verified
     K-->>U: Redirect to login
     end
+```
 
-    rect rgb(255, 240, 255)
-    Note over U,K: Step 5: TOTP Registration
+### Step 5 — TOTP Registration (2FA)
+
+```mermaid
+sequenceDiagram
+    participant U as 👤 User
+    participant FE as Frontend
+    participant K as Ory Kratos
+    participant DB as PostgreSQL
+
+    rect rgb(236, 72, 153)
     U->>FE: Login with password
     FE->>K: Submit login flow
     K-->>FE: Redirect to TOTP setup
     FE->>K: Request settings flow
     K-->>FE: QR code + secret key
+    end
+
+    rect rgb(219, 39, 119)
     U->>U: Scan QR in authenticator app
     U->>FE: Enter 6-digit TOTP code
     FE->>K: Submit TOTP code
     K->>DB: Store TOTP credential
-    K-->>FE: TOTP enabled
+    K-->>FE: TOTP enabled ✓
     end
+```
 
-    rect rgb(240, 255, 255)
-    Note over U,TW: Step 6: Wallet Address Creation
+### Step 6 — Wallet Address Creation
+
+```mermaid
+sequenceDiagram
+    participant U as 👤 User
+    participant FE as Frontend
+    participant BE as Backend
+    participant R as Rafiki (ILP)
+    participant DB as PostgreSQL
+
+    rect rgb(6, 182, 212)
     U->>FE: Enter desired username
     FE->>BE: WalletAddressValid gRPC
-    BE-->>FE: available=true
+    BE-->>FE: available = true
     U->>FE: Submit
+    end
+
+    rect rgb(8, 145, 178)
     FE->>BE: CreateWalletAddress gRPC
-    BE->>TW: CreateRafikiPaymentPointer
-    TW->>Rafiki: Create payment pointer
-    BE->>DB: INSERT INTO wallets, addresses
+    BE->>R: Create payment pointer
+    R-->>BE: pointer ID
+    BE->>DB: INSERT wallet address
     BE-->>FE: success
-    FE-->>U: Redirect to dashboard
+    FE-->>U: Redirect to dashboard 🎉
     end
 ```
 
