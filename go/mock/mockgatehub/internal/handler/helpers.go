@@ -16,19 +16,20 @@ import (
 // Helper methods for JSON responses
 
 func (h *Handler) sendJSON(w http.ResponseWriter, status int, data interface{}) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-
-	// Marshal to log the response
+	// Marshal first so we can choose the correct status code before writing headers.
 	body, err := json.MarshalIndent(data, "", "  ")
+	respStatus := status
 	if err != nil {
 		logger.Error("failed to marshal response", zap.Error(err))
-		w.Write([]byte(`{"error":"internal server error"}`))
-		return
+		respStatus = http.StatusInternalServerError
+		body = []byte(`{"error":"internal server error"}`)
 	}
 
-	logger.Debug("sending json response", zap.Int("status", status))
-	w.Write(body)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(respStatus)
+
+	logger.Debug("sending json response", zap.Int("status", respStatus))
+	_, _ = w.Write(body)
 }
 
 func (h *Handler) sendError(w http.ResponseWriter, status int, message string) {

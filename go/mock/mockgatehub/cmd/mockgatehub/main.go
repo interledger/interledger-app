@@ -78,23 +78,31 @@ func main() {
 		webhookQueue = webhook.NewQueue(redisStore.GetClient(), cfg.WebhookMinDelaySec)
 		logger.Info("using redis-backed webhook queue")
 	} else {
-		// For in-memory mode, we still need Redis for webhook queue
-		// Create a dedicated Redis connection just for webhooks
-		logger.Warn("in-memory storage mode requires redis for webhook queue")
-		logger.Info("connecting to redis for webhook queue", zap.String("url", cfg.RedisURL), zap.Int("db", cfg.RedisDB))
-		redisClient, err := storage.NewRedisClient(cfg.RedisURL, cfg.RedisDB)
-		if err != nil {
-			logger.Fatal("failed to connect to redis for webhook queue", zap.Error(err))
+		// In in-memory mode, use Redis-backed webhook queue only if a Redis URL is configured
+		if cfg.RedisURL == "" {
+			logger.Warn("no redis_url configured in in-memory mode; webhook queue will be disabled")
+		} else {
+			// Create a dedicated Redis connection just for webhooks
+			logger.Info("connecting to redis for webhook queue", zap.String("url", cfg.RedisURL), zap.Int("db", cfg.RedisDB))
+			redisClient, err := storage.NewRedisClient(cfg.RedisURL, cfg.RedisDB)
+			if err != nil {
+				logger.Fatal("failed to connect to redis for webhook queue", zap.Error(err))
+			}
+			webhookQueue = webhook.NewQueue(redisClient, cfg.WebhookMinDelaySec)
+			logger.Info("using redis-backed webhook queue in in-memory storage mode")
 		}
-		webhookQueue = webhook.NewQueue(redisClient, cfg.WebhookMinDelaySec)
 	}
 
 	webhookManager := webhook.NewManager(cfg.WebhookURL, cfg.WebhookSecret, webhookQueue, store, cfg.DefaultOrganizationID)
-	webhookWorker = webhook.NewWorker(webhookQueue, webhookManager)
+	if webhookQueue != nil {
+		webhookWorker = webhook.NewWorker(webhookQueue, webhookManager)
 
-	// Start webhook worker in background
-	webhookWorker.StartAsync()
-	logger.Info("webhook worker started")
+		// Start webhook worker in background
+		webhookWorker.StartAsync()
+		logger.Info("webhook worker started")
+	} else {
+		logger.Info("webhook queue is disabled; webhook worker will not be started")
+	}
 	h := handler.NewHandler(store, webhookManager)
 	r := chi.NewRouter()
 

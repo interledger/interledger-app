@@ -130,7 +130,6 @@ func Middleware(validCredentials map[string]string) func(next http.Handler) http
 					zap.String("received_signature", signature),
 					zap.String("expected_signature_full", expectedSig),
 					zap.String("expected_signature_path_only", expectedPathSig),
-					zap.String("secret", secret),
 					zap.String("timestamp", timestamp),
 					zap.String("body", string(bodyBytes)),
 				)

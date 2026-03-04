@@ -256,13 +256,14 @@ All API requests require HMAC-SHA256 signatures by default, matching real GateHu
 Include these headers on every request:
 
 - `x-gatehub-app-id` — application identifier
-- `x-gatehub-timestamp` — Unix timestamp (seconds)
+- `x-gatehub-timestamp` — Unix timestamp (milliseconds)
 - `x-gatehub-signature` — `HMAC-SHA256(timestamp|method|full_url|body, secret)`, hex-encoded
 
 ```bash
-TIMESTAMP=$(date +%s)
+TIMESTAMP=$(date +%s%3N)
 BODY='{"email":"user@example.com"}'
-SIGNATURE=$(echo -n "${TIMESTAMP}POST/auth/v1/tokens${BODY}" | openssl dgst -sha256 -hmac "local-test-app-secret" -hex | cut -d' ' -f2)
+SIGNING_STRING="${TIMESTAMP}|POST|http://localhost:8080/auth/v1/tokens|${BODY}"
+SIGNATURE=$(printf '%s' "$SIGNING_STRING" | openssl dgst -sha256 -hmac "local-test-app-secret" -hex | cut -d' ' -f2)
 
 curl -X POST http://localhost:8080/auth/v1/tokens \
   -H "x-gatehub-app-id: local-test-app-id" \
@@ -288,7 +289,7 @@ MOCKGATEHUB_ENFORCE_AUTHENTICATION=false
 
 ### Prerequisites
 
-- Go 1.24+
+- Go 1.25+
 - Docker & Docker Compose
 - Redis (required for webhook queue, optional for app storage)
 

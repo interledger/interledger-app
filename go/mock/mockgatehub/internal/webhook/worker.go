@@ -109,10 +109,15 @@ func (w *Worker) StartAsync() {
 		defer func() {
 			if r := recover(); r != nil {
 				logger.Error("panic in webhook worker", zap.Any("panic", r))
-				// Restart worker after panic
+				// Restart worker after panic, but only if context is still active
 				time.Sleep(5 * time.Second)
-				logger.Info("restarting webhook worker after panic")
-				w.StartAsync()
+				select {
+				case <-w.ctx.Done():
+					logger.Info("not restarting webhook worker after panic because context is canceled")
+				default:
+					logger.Info("restarting webhook worker after panic")
+					w.StartAsync()
+				}
 			}
 		}()
 		w.Start()
