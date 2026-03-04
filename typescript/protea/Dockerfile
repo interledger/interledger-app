@@ -38,8 +38,6 @@ COPY --from=deps /app/node_modules ./node_modules
 RUN corepack enable && corepack prepare pnpm@8.5.0 --activate
 RUN pnpm build
 
-RUN pnpm build --sourcemap
-
 ENV SENTRY_ORG=${SENTRY_ORG}
 ENV SENTRY_PROJECT=${SENTRY_PROJECT}
 ENV SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}
@@ -47,7 +45,7 @@ ENV SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}
 RUN [ -n "${SENTRY_PROJECT}" ] && [ "${UPLOAD_SOURCEMAPS}" = "true" ] && IMAGE_HASH=${IMAGE_HASH} pnpm upload-sourcemaps || echo "Skipping sourcemap upload: SENTRY_PROJECT is empty or UPLOAD_SOURCEMAPS is not 'true'"
 
 RUN if [ -n "${REMIX_PUBLIC_PATH}" ]; then \
-    rclone --config=rclone.conf -c --check-first --progress copy public/build cdn:${CDN_BUCKET_NAME}/protea/build/; \
+    rclone --config=rclone.conf -c --check-first --progress copy build/client cdn:${CDN_BUCKET_NAME}/protea/build/; \
     else \
     echo "Skipping CDN upload: REMIX_PUBLIC_PATH is not set"; \
     fi
@@ -70,10 +68,8 @@ RUN corepack enable && corepack prepare pnpm@8.5.0 --activate
 # COPY --from=builder /app/remix.config.js ./
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=remix:nodejs /app/build ./build
-COPY --from=builder --chown=remix:nodejs /app/public/build ./public/build
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
-RUN find ./public/build -type f -name '*.map' -delete
 RUN find ./build -type f -name '*.map' -delete
 
 USER remix
