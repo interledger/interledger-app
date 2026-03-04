@@ -6,6 +6,7 @@
 > **Debugging framework.** Systematic approach to resolving payment issues.
 
 **Related documents:**
+
 - [Payments Guide](payments-explainer.md) — Overview and navigation hub
 - [Ledger System Architecture](ledger-system-explainer.md) — Understanding balance discrepancies
 - [Transaction Types Reference](transaction-types-explainer.md) — Transaction field details
@@ -14,6 +15,7 @@
 - [Concepts](concepts.md) — Core terminology
 
 **Quick Navigation:**
+
 - **Payment stuck?** → See [Problem 1: Payment Stuck in Processing](#problem-1-payment-appears-stuck-in-processing)
 - **Balance wrong?** → See [Problem 2: Balance Mismatch](#problem-2-balance-is-wrong-shows-100-but-should-be-150)
 - **Recipient didn't receive?** → See [Problem 3: Missing Receipt](#problem-3-sender-sent-money-but-recipient-didnt-receive-it)

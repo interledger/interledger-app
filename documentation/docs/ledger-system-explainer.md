@@ -6,6 +6,7 @@
 > **Dual-ledger architecture reference.** Why we maintain two accounting systems and how they reconcile.
 
 **Related documents:**
+
 - [Payments Guide](payments-explainer.md) — Overview and navigation hub
 - [Wallets vs Accounts vs Addresses](wallets-vs-accounts-vs-addresses.md) — Linked-account architecture behind ledger entries
 - [Transaction Types Reference](transaction-types-explainer.md) — Transaction fields and lifecycle
@@ -14,6 +15,7 @@
 - [Concepts](concepts.md) — Terminology (wallet, linked account, transaction)
 
 **Quick Navigation:**
+
 - **Why two ledgers?** → See [Why Have Two Ledgers](#why-have-two-ledgers)
 - **Balance mismatch between us and provider?** → See [When Ledgers Disagree](#when-ledgers-disagree)
 - **How to reconcile?** → See [Reconciliation Process](#the-reconciliation-process)

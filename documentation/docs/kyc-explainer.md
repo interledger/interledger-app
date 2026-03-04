@@ -3,6 +3,7 @@
 > **Identity verification guide.** Understand KYC flows and how they gate wallet activation across providers.
 
 **Related documents:**
+
 - [Concepts](concepts.md) — Wallet and linked-account terminology
 - [Payments Guide](payments-explainer.md) — How KYC gates transaction authorization
 - [Provider Payments Guide](provider-payments-guide.md) — Provider-specific KYC implementations
@@ -11,6 +12,7 @@
 - [Payment Troubleshooting](payment-troubleshooting-guide.md) — Debugging KYC-blocked transactions
 
 **Quick Navigation:**
+
 - **User stuck in KYC?** → Jump to [Provider Deep Dive](#8-provider-deep-dive)
 - **Need context for `action_required`?** → See [GateHub KYC Flow](#81-gatehub-eu-heavy-path)
 - **GateHub iframe issues?** → See [GateHub KYC Flow](#81-gatehub-eu-heavy-path)

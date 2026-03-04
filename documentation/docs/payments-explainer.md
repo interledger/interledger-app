@@ -3,6 +3,7 @@
 > **Payments guide.** End-to-end explanation of how money moves through Interledger App.
 
 **Related documents:**
+
 - [Concepts](concepts.md) — Core terminology and provider translation
 - [Wallets vs Accounts vs Addresses](wallets-vs-accounts-vs-addresses.md) — Wallet and linked-account architecture
 - [Provider Payments Guide](provider-payments-guide.md) — Provider-specific payment behavior

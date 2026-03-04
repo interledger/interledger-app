@@ -3,6 +3,7 @@
 > **User registration guide.** Understand the complete signup process, phone verification (OTP), two-factor authentication (TOTP), and wallet initialization workflows.
 
 **Related documents:**
+
 - [Concepts](concepts.md) — Wallet and linked-account terminology
 - [KYC Explainer](kyc-explainer.md) — Identity verification flows per provider
 - [Wallets vs Accounts](wallets-vs-accounts-vs-addresses.md) — Wallet activation architecture
@@ -10,6 +11,7 @@
 - [Logging Policy](logging-policy.md) — What information can be safely logged during signup
 
 **Quick Navigation:**
+
 - **Need signup overview?** → Jump to [The Big Picture](#the-big-picture)
 - **Phone verification issues?** → See [Phone Number Verification (OTP)](#2-phone-number-verification-otp)
 - **TOTP setup problems?** → See [Two-Factor Authentication (TOTP)](#5-two-factor-authentication-totp)

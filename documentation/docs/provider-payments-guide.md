@@ -6,6 +6,7 @@
 > **Provider comparison reference.** GateHub vs PTI vs Xago vs Chimoney — speeds, fees, capabilities, and special cases.
 
 **Related documents:**
+
 - [Payments Guide](payments-explainer.md) — Overview and navigation hub
 - [Wallets vs Accounts vs Addresses](wallets-vs-accounts-vs-addresses.md) — Provider account shapes and routing model
 - [Transaction Types Reference](transaction-types-explainer.md) — Transaction status codes per provider
@@ -15,6 +16,7 @@
 - [Concepts](concepts.md) — Provider terminology translation
 
 **Quick Navigation:**
+
 - **Which provider is fastest?** → See [Provider Comparison Matrix](#provider-comparison-matrix)
 - **Fee breakdown?** → See [Fee Comparison](#fee-comparison-summary)
 - **GateHub details?** → See [GateHub Deep Dive](#gatehub-the-multi-currency-custodian)

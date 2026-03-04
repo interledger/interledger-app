@@ -3,6 +3,7 @@
 > **Your terminology reference.** This document maps provider vocabularies to Interledger App concepts.
 
 **Related documents:**
+
 - [Wallets vs Accounts vs Addresses](wallets-vs-accounts-vs-addresses.md) — Architectural deep dive on wallet/account/address layers
 - [Payments & Transactions Guide](payments-explainer.md) — How payments work and navigate to specialist guides
 - [Ledger System Architecture](ledger-system-explainer.md) — Dual-ledger model and reconciliation behavior
@@ -13,6 +14,7 @@
 - [Provider Payments Guide](provider-payments-guide.md) — Provider-specific payment behavior
 
 **Quick Navigation:**
+
 - **Need terminology mapping?** → See [Core Terms](#core-terms) and [Provider Translation](#provider-translation) below
 - **Confused about wallet structure?** → See [Wallet Structure](#wallet-structure) diagram
 - **Looking for linked account types?** → See [Linked Account Types](#linked-account-types) table

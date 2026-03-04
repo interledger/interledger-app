@@ -3,6 +3,7 @@
 > **Architecture deep dive.** Understand the three-layer model: wallet, linked accounts, and addresses.
 
 **Related documents:**
+
 - [Concepts](concepts.md) — Core terminology (this document extends Concepts)
 - [Payments Guide](payments-explainer.md) — How addresses are used in payment flows
 - [Provider Payments Guide](provider-payments-guide.md) — Provider-specific account structures
@@ -12,6 +13,7 @@
 - [KYC Explainer](kyc-explainer.md) — Wallet activation and KYC impact on accounts
 
 **Quick Navigation:**
+
 - **What's the difference between wallet and account?** → See [System Model](#system-model-one-wallet-many-linked-accounts)
 - **Why do providers differ?** → See [Provider Shape Differences](#provider-shape-why-linked-account-is-not-identical-across-integrations)
 - **How are addresses used?** → See [Address Model](#address-model-wallet-urls-vs-ilpopen-payments-addresses)

@@ -6,6 +6,7 @@
 > **Transaction field specifications.** Complete reference for transaction structure, types, and provider mappings.
 
 **Related documents:**
+
 - [Payments Guide](payments-explainer.md) — Overview and navigation hub
 - [Wallets vs Accounts vs Addresses](wallets-vs-accounts-vs-addresses.md) — How linked accounts shape transaction creation
 - [Ledger System Architecture](ledger-system-explainer.md) — How transactions update ledgers
@@ -14,6 +15,7 @@
 - [Concepts](concepts.md) — Core terminology (transaction vs payment)
 
 **Quick Navigation:**
+
 - **What fields does a transaction have?** → See [Core Transaction Fields](#core-transaction-fields)
 - **Transaction types?** → See [Transaction Types](#transaction-types)
 - **Lifecycle states?** → See [Transaction Lifecycle](#transaction-lifecycle)

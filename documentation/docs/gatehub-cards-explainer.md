@@ -5,6 +5,7 @@
 > **Card issuing integration reference.** Technical details on GateHub's EUR debit card service.
 
 **Related documents:**
+
 - [Concepts](concepts.md) — Core terminology ("Account" → Linked Account mapping)
 - [Payments Guide](payments-explainer.md) — End-to-end payment model and orchestration context
 - [Transaction Types Reference](transaction-types-explainer.md) — Card transaction field specifications
@@ -13,6 +14,7 @@
 - [KYC Explainer](kyc-explainer.md) — GateHub KYC requirements for card issuance
 
 **Quick Navigation:**
+
 - **New to cards?** → Start with [System Overview](#1-system-overview)
 - **Customer onboarding flow?** → See [Customer Onboarding](#4-customer-onboarding-and-first-card)
 - **Card status meanings?** → See [Card Status Lifecycle](#6-card-status-lifecycle)
