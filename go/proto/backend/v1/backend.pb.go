@@ -4534,7 +4534,8 @@ type Payment struct {
 	TotalSendAmount                  string                 `protobuf:"bytes,13,opt,name=totalSendAmount,proto3" json:"totalSendAmount,omitempty"` // total debit amount
 	ReceiverLinkedAccountCountryCode string                 `protobuf:"bytes,14,opt,name=receiverLinkedAccountCountryCode,proto3" json:"receiverLinkedAccountCountryCode,omitempty"`
 	FormattedFees                    string                 `protobuf:"bytes,15,opt,name=formattedFees,proto3" json:"formattedFees,omitempty"`
-	ReceiverAccount                  string                 `protobuf:"bytes,16,opt,name=receiverAccount,proto3" json:"receiverAccount,omitempty"` // Linked account ID. Only populated on withdrawals
+	ReceiverAccount                  string                 `protobuf:"bytes,16,opt,name=receiverAccount,proto3" json:"receiverAccount,omitempty"`     // Linked account ID. Only populated on withdrawals
+	ReceivedNetAmount                string                 `protobuf:"bytes,17,opt,name=receivedNetAmount,proto3" json:"receivedNetAmount,omitempty"` // withdrawal net amount received after fees
 	unknownFields                    protoimpl.UnknownFields
 	sizeCache                        protoimpl.SizeCache
 }
@@ -4677,6 +4678,13 @@ func (x *Payment) GetFormattedFees() string {
 func (x *Payment) GetReceiverAccount() string {
 	if x != nil {
 		return x.ReceiverAccount
+	}
+	return ""
+}
+
+func (x *Payment) GetReceivedNetAmount() string {
+	if x != nil {
+		return x.ReceivedNetAmount
 	}
 	return ""
 }
@@ -10363,7 +10371,7 @@ const file_backend_v1_backend_proto_rawDesc = "" +
 	"\n" +
 	"_threeDSIDB\f\n" +
 	"\n" +
-	"_ipAddress\"\x8f\x05\n" +
+	"_ipAddress\"\xbd\x05\n" +
 	"\aPayment\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
 	"\bpublicID\x18\x02 \x01(\tR\bpublicID\x12\x14\n" +
@@ -10381,7 +10389,8 @@ const file_backend_v1_backend_proto_rawDesc = "" +
 	"\x0ftotalSendAmount\x18\r \x01(\tR\x0ftotalSendAmount\x12J\n" +
 	" receiverLinkedAccountCountryCode\x18\x0e \x01(\tR receiverLinkedAccountCountryCode\x12$\n" +
 	"\rformattedFees\x18\x0f \x01(\tR\rformattedFees\x12(\n" +
-	"\x0freceiverAccount\x18\x10 \x01(\tR\x0freceiverAccount\"\xbd\x03\n" +
+	"\x0freceiverAccount\x18\x10 \x01(\tR\x0freceiverAccount\x12,\n" +
+	"\x11receivedNetAmount\x18\x11 \x01(\tR\x11receivedNetAmount\"\xbd\x03\n" +
 	"\x14CreatePaymentRequest\x126\n" +
 	"\fsenderAmount\x18\x01 \x01(\v2\x12.backend.v1.AmountR\fsenderAmount\x12:\n" +
 	"\x0ereceiverAmount\x18\x02 \x01(\v2\x12.backend.v1.AmountR\x0ereceiverAmount\x12*\n" +

@@ -320,9 +320,8 @@ func (s *rpcService) GetPayment(ctx context.Context, req *pb.GetPaymentRequest) 
 			receiverAmount = currency.FromUInt64(0, p.ReceiverAmount.Currency)
 		}
 
-		transformedPayment.TotalSendAmount = receiverAmount.Format()
+		transformedPayment.ReceivedNetAmount = receiverAmount.Format()
 		transformedPayment.FormattedFees = fees.Format()
-		transformedPayment.ReceiverAmount = receiverAmount.ToPB()
 	}
 
 	return transformedPayment, nil
