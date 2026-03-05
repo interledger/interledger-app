@@ -14,6 +14,8 @@ test: unit-test e2e-test
 unit-test:
 	@echo "Running unit tests..."
 	go test -count=1 -v ./cmd/... ./internal/...
+	@echo "Checking coverage for internal"
+	@go test -v -coverprofile=coverage.out ./internal/...
 
 e2e-test:
 	@echo "Running e2e tests..."
