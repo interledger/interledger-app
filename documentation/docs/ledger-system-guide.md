@@ -40,9 +40,9 @@ These ledgers must continuously reconcile. That is what prevents missing funds, 
 ### Our Ledger: Pacioli
 
 - **Who owns it:** Interledger Foundation
-- **How often updated:** Immediately (within milliseconds)
+- **How often updated:** Immediately (within milliseconds) — Pacioli uses a synchronous in-process client ([`go/pacioli/client/local.go`](https://github.com/interledger/interledger-app/blob/main/go/pacioli/client/local.go)) making direct SQL calls to CockroachDB; there is no message queue or eventual consistency within Pacioli itself
 - **Source of truth for:** Our business logic, user experience, balance calculations
-- **Can be changed:** Yes, retroactively for corrections
+- **Can be changed:** Yes, retroactively via `PostTransfers` (finalize) or `VoidTransfers` (rollback) — see the [Pacioli Client API](https://github.com/interledger/interledger-app/blob/main/go/pacioli/api.go)
 
 ### Provider's Ledger
 
@@ -113,7 +113,7 @@ Let's examine real scenarios where a single ledger would fail.
 
 This is the most interesting case.
 
-Some providers like Xago allow **internal transfers** — moving money between users without telling the provider.
+Some providers like Xago allow **internal transfers** — moving money between users without telling the provider. In our codebase, Xago P2P payments generate a synthetic transaction ID and only update the Pacioli ledger, never calling the Xago API (see [`xagoPayIn`](https://github.com/interledger/interledger-app/blob/main/go/backend/payments/ops/workflows.go) and [`WithdrawFromXagoBalance`](https://github.com/interledger/interledger-app/blob/main/go/backend/payments/ops/accountactivities.go)). Other providers (GateHub, PTI, Chimoney) always call their external APIs for P2P transfers.
 
 ```
 Both Alice and Bob use Xago (South Africa)
@@ -170,17 +170,25 @@ T+0:00 - Alice clicks "Send Bob £100"
           ↓
 T+0:01 - Our system checks: "Alice has £100? Yes ✓"
          Pacioli ledger: Reserve £100 from Alice
+         (Pacioli CreateTransfers with Pending=true, see ReserveBalance in
+          go/backend/providers/gatehub/ops/ops.go)
           ↓
 T+0:02 - System creates two pending transactions
          (Alice's send, Bob's receive)
           ↓
 T+0:03 - System says to GateHub: "Create transfer of £100"
+          (see GatehubTransfer activity in go/backend/payments/ops/activities.go)
           ↓
 T+0:05 - GateHub responds in HTTP: "Created, status: pending"
          Backend records: Transaction ID = "txn_abc123"
           ↓
 T+0:10 - GateHub webhook arrives: "Transfer completed!"
+         (webhook dispatched via go/backend/providers/gatehub/ops/webhooks.go)
          Pacioli ledger: Finalize - Deduct £102 from Alice, Add £100 to Bob
+         (PostTransfers to finalize the pending reservation, see FinaliseReserve
+          in go/backend/providers/gatehub/ops/ops.go;
+          fee logic: remainder = amount - providerFee, see
+          go/backend/providers/gatehub/ops/workflows.go)
           ↓
 T+0:11 - Frontend shows: "✓ Sent! Bob received £100"
 ```
@@ -246,7 +254,7 @@ Why did this happen?
 
 **Investigation:**
 
-1. Check webhook logs: Is there a received webhook for txn_45?
+1. Check webhook logs: Is there a received webhook for txn_45? Webhook routes are registered in [`go/backend/main.go`](https://github.com/interledger/interledger-app/blob/main/go/backend/main.go) and each provider dispatches events in its own `webhooks.go` handler.
 2. If yes: Why didn't we process it? Check transaction handler logs.
 3. If no: Provider completed but webhook never arrived. This is critical.
 4. Action: Manually fetch transaction status from provider. If actually completed, update our ledger.
@@ -279,7 +287,7 @@ Provider's Ledger:
 └─ Second one already processed
 ```
 
-**Why rare:** Our Temporal workers usually process confirmations quickly enough that this doesn't happen.
+**Why rare:** Our Temporal workers usually process confirmations quickly enough that this doesn't happen. Activity `StartToCloseTimeout` is typically 20 minutes ([`workflows.go`](https://github.com/interledger/interledger-app/blob/main/go/backend/payments/ops/workflows.go)), and Pacioli updates are synchronous SQL calls, so processing is fast once the webhook arrives.
 
 **If it happens:** Not an error. Just means provider processed faster than our workers could update. Wait for next webhook.
 
@@ -309,6 +317,9 @@ Fix:
 ```
 
 ### The Reconciliation Process
+
+!!! note "Aspirational — not fully automated"
+    The daily/weekly/monthly cadence described below reflects the intended operational process. As of this writing, there is a one-off balance discrepancy job ([`go/backend/jobs/2025_07_25_balance_discrepancy.go`](https://github.com/interledger/interledger-app/blob/main/go/backend/jobs/2025_07_25_balance_discrepancy.go)) but no scheduled automated reconciliation pipeline.
 
 ```
 Daily (Automated):
@@ -482,27 +493,41 @@ Final Reconciliation:
 
 ### The 20-Minute Rule
 
-Most providers resolve transaction status within 20 minutes:
+!!! warning "Provider-specific — not universal"
+    The 20-minute polling interval is specific to GateHub. Each provider has its own timeout strategy.
+
+The `gatehubPayOut` Temporal workflow uses a dual-mode resolution strategy: it waits for a webhook signal on the `payment_gatehub_signals` channel, but if none arrives, a **20-minute timer** fires as a fallback poll. This loop repeats (within the overall 8-day workflow execution timeout) until the transaction resolves. See the `workflow.NewTimer(ctx, 20*time.Minute)` selector in [`go/backend/payments/ops/workflows.go`](https://github.com/interledger/interledger-app/blob/main/go/backend/payments/ops/workflows.go).
 
 ```
 T+0:00   - Transaction created
 T+0:05   - Webhook arrives (expected)
-T+20:00  - If no webhook: Manual poll from provider
-T+20:30  - Mark completed/failed based on poll result
+T+20:00  - If no webhook: Fallback poll fires, checks GateHub status
+T+40:00  - If still pending: Another poll fires
+           (continues until resolved or 8-day workflow timeout)
 ```
 
-If nothing resolved by T+20:00, something went wrong. Escalate.
+**Other providers have different intervals:**
+
+| Provider | Poll/Retry Interval | Source |
+|----------|-------------------|--------|
+| GateHub | 20 minutes (webhook + timer) | [`workflows.go`](https://github.com/interledger/interledger-app/blob/main/go/backend/payments/ops/workflows.go) — `gatehubPayOut` |
+| PTI | 10 minutes (sleep between status checks) | [`workflows.go`](https://github.com/interledger/interledger-app/blob/main/go/backend/payments/ops/workflows.go) — `ptiPayOut` |
+| Chimoney | 5 minutes (webhook + timer) | [`workflow.go`](https://github.com/interledger/interledger-app/blob/main/go/backend/providers/chimoney/ops/workflow.go) |
+| Xago | 1 hour (withdrawal completion check) | [`workflows.go`](https://github.com/interledger/interledger-app/blob/main/go/backend/payments/ops/workflows.go) — `xagoPayOut` |
 
 ### Settlement Periods
 
+!!! note "Operational knowledge — not enforced in code"
+    These settlement windows reflect provider behavior observed during operations, not values configured in our codebase. Verify with each provider's current documentation or account manager. See also the [Provider Payments Guide](provider-payments-reference.md) which duplicates this table.
+
 Different providers have different settlement windows:
 
-| Provider | Settlement | Frequency |
-|----------|-----------|-----------|
-| GateHub | Continuous | Real-time |
-| PTI | Batch | Daily |
-| Xago | Daily | Nightly |
-| Chimoney | Per-transfer or weekly | Varies |
+| Provider | Settlement | Frequency | Code Relevance |
+|----------|-----------|-----------|----------------|
+| GateHub | Continuous | Real-time | Webhook-driven: completion triggers immediate Pacioli update ([`webhooks.go`](https://github.com/interledger/interledger-app/blob/main/go/backend/providers/gatehub/ops/webhooks.go)) |
+| PTI | Batch | Daily | Webhook `SETTLED` status triggers `SettleDepositWorkflow` ([`webhooks.go`](https://github.com/interledger/interledger-app/blob/main/go/backend/providers/pti/ops/webhooks.go)) |
+| Xago | Daily | Nightly | Hourly deposit polling cron: `"0 */1 * * *"` ([`cron.go`](https://github.com/interledger/interledger-app/blob/main/go/backend/providers/xago/ops/cron.go)) |
+| Chimoney | Per-transfer or weekly | Varies | Per-webhook processing, no batch cron found in code |
 
 **Plan your reconciliation accordingly.**
 
@@ -520,6 +545,9 @@ Difference: $500 (we think we have more)
 ```
 
 **Step 2:** Find the transaction
+
+Our internal transaction types are string-based (`deposit`, `withdrawal`, `sent`, `received`, `transfer`, etc. — see [`go/backend/transactions/types.go`](https://github.com/interledger/interledger-app/blob/main/go/backend/transactions/types.go)). GateHub uses numeric codes externally (`0`=Withdrawal, `1`=Deposit, `2`=Hosted, `100`=Completed, `101`=Failed — see [`go/backend/providers/gatehub/external/types.go`](https://github.com/interledger/interledger-app/blob/main/go/backend/providers/gatehub/external/types.go)).
+
 ```
 Which transactions might cause $500 difference?
 ├─ Deposits we record but provider hasn't confirmed? (Check pending status)
@@ -587,4 +615,28 @@ After fix:
 - [Transaction Types Reference](transaction-types-reference.md) — What fields transactions contain
 - [Payment Troubleshooting Guide](payment-troubleshooting-guide.md) — Debugging common payment issues
 - [Provider Payments Guide](provider-payments-reference.md) — Provider-specific differences
+
+---
+
+## Sources & Evidence
+
+Key claims in this document are traced to the following code and configuration:
+
+| Claim | Source | Notes |
+|-------|--------|-------|
+| Pacioli updates are synchronous / "within milliseconds" | [`go/pacioli/client/local.go`](https://github.com/interledger/interledger-app/blob/main/go/pacioli/client/local.go), [`go/pacioli/api.go`](https://github.com/interledger/interledger-app/blob/main/go/pacioli/api.go) | In-process SQL calls to CockroachDB, no queue |
+| 20-minute GateHub fallback poll | [`go/backend/payments/ops/workflows.go`](https://github.com/interledger/interledger-app/blob/main/go/backend/payments/ops/workflows.go) — `gatehubPayOut` | `workflow.NewTimer(ctx, 20*time.Minute)` |
+| Xago internal transfers skip provider API | [`go/backend/payments/ops/workflows.go`](https://github.com/interledger/interledger-app/blob/main/go/backend/payments/ops/workflows.go) — `xagoPayIn`, [`go/backend/payments/ops/accountactivities.go`](https://github.com/interledger/interledger-app/blob/main/go/backend/payments/ops/accountactivities.go) — `WithdrawFromXagoBalance` | P2P returns synthetic UUID, no API call |
+| P2P requires same provider | [`go/backend/payments/ops/ops.go`](https://github.com/interledger/interledger-app/blob/main/go/backend/payments/ops/ops.go) — `validateSenderReceiver` | Returns `ErrIncompatibleAccounts` for cross-provider |
+| GateHub: deposit fee = net credited after deduction | [`go/backend/providers/gatehub/ops/workflows.go`](https://github.com/interledger/interledger-app/blob/main/go/backend/providers/gatehub/ops/workflows.go) | `remainder := amountValue - providerFeeValue` |
+| GateHub: withdrawal reserves amount + fee | [`go/backend/providers/gatehub/ops/activity.go`](https://github.com/interledger/interledger-app/blob/main/go/backend/providers/gatehub/ops/activity.go) | `amountWithFee = tx.Amount.Value + tx.ProviderFee.Value` |
+| Transaction types / statuses (internal) | [`go/backend/transactions/types.go`](https://github.com/interledger/interledger-app/blob/main/go/backend/transactions/types.go) | `Pending`, `Completed`, `Failed`, `OnHold` |
+| Transaction types / statuses (GateHub external) | [`go/backend/providers/gatehub/external/types.go`](https://github.com/interledger/interledger-app/blob/main/go/backend/providers/gatehub/external/types.go) | Numeric codes: `0`=Withdrawal, `1`=Deposit, `100`=Completed, etc. |
+| Webhook endpoints | [`go/backend/main.go`](https://github.com/interledger/interledger-app/blob/main/go/backend/main.go) | Routes: `/webhooks/gatehub`, `/webhooks/xago`, `/webhooks/pti`, `/webhooks/chimoney` |
+| Reserve → Finalize → Rollback pattern | [`go/backend/providers/gatehub/ops/ops.go`](https://github.com/interledger/interledger-app/blob/main/go/backend/providers/gatehub/ops/ops.go) | `ReserveBalance`, `FinaliseReserve`, `RollbackReserve` — all providers follow this pattern |
+| Settlement periods table | Operational knowledge | Not enforced in code; verify with provider documentation |
+| Reconciliation cadence (daily/weekly/monthly) | Aspirational | One-off job exists at [`go/backend/jobs/2025_07_25_balance_discrepancy.go`](https://github.com/interledger/interledger-app/blob/main/go/backend/jobs/2025_07_25_balance_discrepancy.go); no scheduled pipeline yet |
+| Overall payment workflow timeout | [`go/backend/payments/ops/ops.go`](https://github.com/interledger/interledger-app/blob/main/go/backend/payments/ops/ops.go) | `WorkflowExecutionTimeout: 8 days` |
+
+*Last verified: March 2026. If code has changed, these references may be stale — grep for the function/constant names to find current locations.*
 
