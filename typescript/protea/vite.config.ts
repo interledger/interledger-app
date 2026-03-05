@@ -25,10 +25,6 @@ export default defineConfig({
     // The sourcemap gets deleted in the Dockerfile anyways
     sourcemap: process.env.NODE_ENV === 'production' ? 'hidden' : true,
   },
-
-  optimizeDeps: {
-    include: ['@sentry/react-router', 'react-router', 'react', 'react/jsx-runtime', 'react-dom', 'react-dom/client'],
-  },
   plugins: [
     reactRouter(),
     tsconfigPaths(),
@@ -37,6 +33,20 @@ export default defineConfig({
       globals: { Buffer: true, process: true },
     }),
   ],
+  optimizeDeps: {
+    include: [
+      'react',
+      'react/jsx-runtime',
+      'react/jsx-dev-runtime',
+      'react-dom',
+      'react-dom/client',
+      'react-router',
+      '@sentry/react-router',
+      'react-datocms',
+      'framer-motion',
+      'zustand'
+    ]
+  },
   ssr: {
     // react-datocms is ESM-only (no CJS build). Vite's SSR output is CJS by default, and when
     // a package is externalized Vite emits require() for it — which Node can't execute against
