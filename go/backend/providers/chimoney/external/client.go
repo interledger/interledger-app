@@ -457,12 +457,17 @@ func (c client) GetEstimatedFee(ctx context.Context, req EstimateFeeReq) (*Estim
 	if err != nil {
 		return nil, err
 	}
+	defer httpResp.Body.Close()
+
+	if httpResp.StatusCode < http.StatusOK || httpResp.StatusCode >= http.StatusMultipleChoices {
+		body, _ := io.ReadAll(httpResp.Body)
+		return nil, fmt.Errorf("request failed on estimating fee: http status %d, body: %s", httpResp.StatusCode, string(body))
+	}
 
 	body, err = io.ReadAll(httpResp.Body)
 	if err != nil {
 		return nil, err
 	}
-	defer httpResp.Body.Close()
 
 	var respWrapper APIResponse
 	err = json.Unmarshal(body, &respWrapper)

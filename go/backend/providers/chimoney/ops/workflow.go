@@ -267,7 +267,7 @@ func ExecuteChimoneyFinishWithdrawalWorkflow(
 	// update transaction to add withdrawal fee based on the actual amount after fees received from the webhook
 	err = workflow.ExecuteActivity(ctx, a.UpdateChimoneyWithdrawalTransactionFee, trx.WalletID, trx.ID, amount).Get(ctx, nil)
 	if err != nil {
-		logger.Warn("Update transaction withdrawal amount and fee failed", zap.Error(err))
+		logger.Warn("Update transaction withdrawal fee failed", zap.Error(err))
 	}
 
 	// finalize transaction
