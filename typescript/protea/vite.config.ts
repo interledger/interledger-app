@@ -27,7 +27,7 @@ export default defineConfig({
   },
 
   optimizeDeps: {
-    include: ['@sentry/react-router', 'react-router', 'react', 'react-dom']
+    include: ['@sentry/react-router', 'react-router', 'react', 'react/jsx-runtime', 'react-dom', 'react-dom/client'],
   },
   plugins: [
     reactRouter(),
