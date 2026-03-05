@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gitlab.com/fynbos/backend/agreements"
 	"gitlab.com/fynbos/backend/signup"
 	pb "gitlab.com/fynbos/proto/backend/v1"
 )
@@ -90,4 +91,70 @@ func TestGetSignup(t *testing.T) {
 	assert.Equal(t, "test@interledger.test", resp.Email)
 	assert.Equal(t, mobile, resp.MobileNumber)
 	assert.True(t, resp.Completed)
+}
+
+func TestCompleteSignup_NoAgreementSigning(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	c := NewTestContainer(t, ctrl)
+	_, _, client := startTestServer(t, c)
+
+	sID := uuid.NewString()
+	userID := uuid.NewString()
+
+	c.SignupService.EXPECT().Complete(gomock.Any(), sID, userID).Return(nil).Times(1)
+	// Agreements().Sign must not be called when ipAddress is empty (or env unset)
+
+	_, err := client.CompleteSignup(context.Background(), &pb.CompleteSignupRequest{
+		Id:     sID,
+		UserId: userID,
+		// ipAddress omitted / empty
+	})
+	require.NoError(t, err)
+}
+
+func TestCompleteSignup_WithAgreementSigning(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	c := NewTestContainer(t, ctrl)
+	_, _, client := startTestServer(t, c)
+
+	sID := uuid.NewString()
+	userID := uuid.NewString()
+	ip := "192.168.1.1"
+	agreementIDs := "privacy_policy-0.0.0,terms_of_service-0.0.0"
+	t.Setenv("SIGNUP_AGREEMENT_IDS", agreementIDs)
+
+	c.SignupService.EXPECT().Complete(gomock.Any(), sID, userID).Return(nil).Times(1)
+	c.AgreementsService.EXPECT().Sign(gomock.Any(), &agreements.SignArgs{
+		AgreementIDs: []string{"privacy_policy-0.0.0", "terms_of_service-0.0.0"},
+		UserID:       userID,
+		IPAddress:    ip,
+	}).Return(nil).Times(1)
+
+	_, err := client.CompleteSignup(context.Background(), &pb.CompleteSignupRequest{
+		Id:        sID,
+		UserId:    userID,
+		IpAddress: &ip,
+	})
+	require.NoError(t, err)
+}
+
+func TestCompleteSignup_SignFailsStillSucceeds(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	c := NewTestContainer(t, ctrl)
+	_, _, client := startTestServer(t, c)
+
+	sID := uuid.NewString()
+	userID := uuid.NewString()
+	ip := "10.0.0.1"
+	t.Setenv("SIGNUP_AGREEMENT_IDS", "privacy_policy-0.0.0")
+
+	c.SignupService.EXPECT().Complete(gomock.Any(), sID, userID).Return(nil).Times(1)
+	c.AgreementsService.EXPECT().Sign(gomock.Any(), gomock.Any()).Return(agreements.ErrNotFound).Times(1)
+
+	_, err := client.CompleteSignup(context.Background(), &pb.CompleteSignupRequest{
+		Id:        sID,
+		UserId:    userID,
+		IpAddress: &ip,
+	})
+	require.NoError(t, err)
 }
