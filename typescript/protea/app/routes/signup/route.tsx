@@ -17,6 +17,7 @@ import { error, isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { trimHeaders } from '~/lib/headers.server'
 import logger from '~/lib/logger.server'
+import { getClientIP } from '~/lib/ip.server'
 import {
   KRATOS_URL,
   getCsrfTokenFromFlow,
@@ -238,7 +239,7 @@ export async function otpAction({ request }: ActionFunctionArgs) {
       hasPhone: !!phone,
       flow: 'signup'
     }, '[SIGNUP] Failed to set mobile number')
-    
+
     if (response.code == Code.InvalidArgument) {
       data.errors.phone = 'Mobile phone number is invalid.'
       return response.error(data, mapping)
@@ -249,9 +250,9 @@ export async function otpAction({ request }: ActionFunctionArgs) {
       return response.error(data, mapping, { action: 'Contact support' })
     }
   }
-  
+
   logger.info({ id, flow: 'signup' }, '[SIGNUP] Mobile number set successfully for signup')
-  
+
   return json({ id, phone, errors: data.errors })
 }
 
@@ -335,7 +336,7 @@ export async function passwordAction({ request }: ActionFunctionArgs) {
     headers: Object.fromEntries(trimHeaders(response.headers, ['set-cookie']).entries()),
     flow: 'signup'
   }, '[SIGNUP] Kratos registration response')
-  
+
   if (response.status >= 400) {
     const responseText = await response.clone().text()
     logger.error({
@@ -348,7 +349,7 @@ export async function passwordAction({ request }: ActionFunctionArgs) {
         : undefined,
       flow: 'signup'
     }, '[SIGNUP] Kratos registration failed')
-    
+
     try {
       const responseJson = JSON.parse(responseText)
       logger.error({
@@ -384,7 +385,8 @@ export async function passwordAction({ request }: ActionFunctionArgs) {
   logger.info({ id, userId: successData.identity.id, flow: 'signup' }, '[SIGNUP] Completing signup in backend')
   await grpc.completeSignup(request, {
     id,
-    userId: successData.identity.id
+    userId: successData.identity.id,
+    ipAddress: getClientIP(request) ?? ''
   })
 
   return redirectWithSnackbar(

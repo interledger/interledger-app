@@ -916,6 +916,7 @@ message Signup {
 message CompleteSignupRequest {
   string id = 1;
   string userId = 2;
+  optional string ipAddress = 3;
 }
 
 message CreateUserDefaultWalletRequest {

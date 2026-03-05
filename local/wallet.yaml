@@ -96,6 +96,8 @@ services:
       - ALLOWED_WALLET_IDS=
       - BLOCKED_REGIONS=
 
+      - SIGNUP_AGREEMENT_IDS=privacy_policy-0.0.0
+
       - GATEHUB_API_BASE_URL=http://mockgatehub:8080
       - GATEHUB_APP_ID=local-test-app-id
       - GATEHUB_SECRET=local-test-app-secret

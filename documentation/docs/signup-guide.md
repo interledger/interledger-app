@@ -104,6 +104,7 @@ sequenceDiagram
     K-->>FE: Registration complete
     FE->>BE: CompleteSignup gRPC
     BE->>DB: UPDATE signups SET user_id
+    BE->>DB: INSERT agreement_signatures (when SIGNUP_AGREEMENT_IDS set)
     BE-->>FE: success
     end
 ```

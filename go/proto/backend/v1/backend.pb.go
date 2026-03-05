@@ -7072,6 +7072,7 @@ type CompleteSignupRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	UserId        string                 `protobuf:"bytes,2,opt,name=userId,proto3" json:"userId,omitempty"`
+	IpAddress     *string                `protobuf:"bytes,3,opt,name=ipAddress,proto3,oneof" json:"ipAddress,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -7116,6 +7117,13 @@ func (x *CompleteSignupRequest) GetId() string {
 func (x *CompleteSignupRequest) GetUserId() string {
 	if x != nil {
 		return x.UserId
+	}
+	return ""
+}
+
+func (x *CompleteSignupRequest) GetIpAddress() string {
+	if x != nil && x.IpAddress != nil {
+		return *x.IpAddress
 	}
 	return ""
 }
@@ -10660,10 +10668,13 @@ const file_backend_v1_backend_proto_rawDesc = "" +
 	"\vcountryCode\x18\x05 \x01(\tR\vcountryCode\x12\"\n" +
 	"\fmobileNumber\x18\x06 \x01(\tR\fmobileNumber\x12\x16\n" +
 	"\x06userId\x18\a \x01(\tR\x06userId\x12\x1c\n" +
-	"\tcompleted\x18\b \x01(\bR\tcompleted\"?\n" +
+	"\tcompleted\x18\b \x01(\bR\tcompleted\"p\n" +
 	"\x15CompleteSignupRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x16\n" +
-	"\x06userId\x18\x02 \x01(\tR\x06userId\"8\n" +
+	"\x06userId\x18\x02 \x01(\tR\x06userId\x12!\n" +
+	"\tipAddress\x18\x03 \x01(\tH\x00R\tipAddress\x88\x01\x01B\f\n" +
+	"\n" +
+	"_ipAddress\"8\n" +
 	"\x1eCreateUserDefaultWalletRequest\x12\x16\n" +
 	"\x06userID\x18\x01 \x01(\tR\x06userID\".\n" +
 	"\x1cSendPhoneVerificationRequest\x12\x0e\n" +
@@ -11517,6 +11528,7 @@ func file_backend_v1_backend_proto_init() {
 	file_backend_v1_backend_proto_msgTypes[91].OneofWrappers = []any{}
 	file_backend_v1_backend_proto_msgTypes[92].OneofWrappers = []any{}
 	file_backend_v1_backend_proto_msgTypes[100].OneofWrappers = []any{}
+	file_backend_v1_backend_proto_msgTypes[104].OneofWrappers = []any{}
 	file_backend_v1_backend_proto_msgTypes[112].OneofWrappers = []any{}
 	file_backend_v1_backend_proto_msgTypes[137].OneofWrappers = []any{}
 	file_backend_v1_backend_proto_msgTypes[141].OneofWrappers = []any{}
