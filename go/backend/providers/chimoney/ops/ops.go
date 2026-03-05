@@ -196,7 +196,7 @@ func GetEstimatedFee(ctx context.Context, b Backends, ex external.Client, amount
 	var feeAmt currency.Amount
 	if err != nil {
 		// fallback solution here because this endpoint might not exist on production, yet
-
+		// this is NOT the final fee calculation, the fee amount will be updated in the ExecuteChimoneyFinishWithdrawalWorkflow based on the actual amount received from the webhook, this is just an estimation based on the fee structure we have for interac payout which is a fixed fee + percentage of the amount
 		// fee = fixed + (percent / 100) × amount
 		fixed := 1.00
 		percent := .5
