@@ -468,7 +468,7 @@ Final Reconciliation:
 
 ## Key Concepts
 
-### Optimism vs Authoritativenss
+### Optimism vs Authoritativeness
 
 | System | Optimism | Speed | Reliability | Authority |
 |--------|----------|-------|-------------|-----------|

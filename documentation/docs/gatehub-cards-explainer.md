@@ -24,7 +24,7 @@
 
 This document explains how GateHub's card issuing service integrates with the Interledger App Wallet to give users EUR-denominated debit cards that draw from their wallet balances.
 
-> **Context:** The Interledger App Wallet is a reference implementation for Account Servicing Entities integrating with the Interledger network, demonstrating multi-provider payment capabilities including traditional card networks.
+> **Context:** The Interledger App Wallet is a multi-provider payment platform built on the Interledger network, offering cross-provider payment capabilities including traditional card networks.
 
 > **Terminology Note:** GateHub's "Account" (a EUR card account) is represented as a `card` type [Linked Account](concepts.md#linked-account-types) in the Interledger App. All card-specific transactions are a subset of the broader [transaction types](concepts.md#core-terms). See [Concepts](concepts.md) for the core Interledger App terminology and provider translation table.
 

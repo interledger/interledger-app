@@ -61,7 +61,7 @@ KYC (Know Your Customer) is the process of verifying a user’s real-world ident
 From an Interledger App wallet perspective:
 
 - A user has **one Interledger wallet**.
-- That wallet can have one or more **linked accounts** at one or more providers (see [Concepts](concepts.md#core-terms) for definitions).
+- That wallet has **linked accounts** at its associated provider (see [Concepts](concepts.md#core-terms) for definitions).
 - KYC status is tracked at the wallet level in Interledger App, but **evidence and verification workflows are often provider-specific**.
 
 In practice, KYC should be understood as:

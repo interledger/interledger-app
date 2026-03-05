@@ -712,8 +712,8 @@ See [GateHub Cards Explainer](gatehub-cards-explainer.md) for full details.
 ### User wants card payments?
 → **GateHub** (only provider with card issuing)
 
-### User wants multi-provider flexibility?
-→ All supported via Interledger Protocol routing
+### User wants to pay someone at a different provider?
+→ Supported via Interledger Protocol routing — each user stays with their own provider
 
 ---
 

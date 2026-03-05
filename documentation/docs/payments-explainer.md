@@ -27,12 +27,12 @@
 
 ## The Big Picture
 
-The Interledger Wallet helps people manage their money across multiple providers and currencies. Think of it like a personal accountant who works with multiple banks on your behalf.
+The Interledger Wallet helps people manage their money across currencies and send payments globally. Think of it like a personal accountant who works with your bank on your behalf — and can still reach people at other banks.
 
 **The core problem we solve**: People want to move money between different financial systems (open payment networks, banks, card networks) without having to maintain separate accounts and logins at each one.
 
 **The solution**: A wallet that:
-- Holds your connection to multiple providers
+- Connects you to a payment provider based on your country
 - Tracks every transaction that happens
 - Keeps its own records to ensure nothing gets lost
 - Settles with providers regularly to match accounts
@@ -46,20 +46,20 @@ The Interledger Wallet helps people manage their money across multiple providers
 
 ## Wallets and Accounts
 
-### Your Wallet = One Financial Identity (Per Provider)
+### Your Wallet = One Financial Identity, One Provider
 
-In the Interledger system, you have **one wallet per user**. This wallet represents your financial identity and connects to **one payment provider**.
+In the Interledger system, you have **one wallet per user**. This wallet represents your financial identity and is tied to **one payment provider** based on your country.
 
 ```mermaid
 graph TD
     JaneUser["👤 Jane (US-based)<br/>Kratos Identity"]
-    JaneWallet["🏦 Jane's Wallet<br/>Connected to GateHub"]
+    JaneWallet["🏦 Jane's Wallet<br/>Provider: GateHub"]
     
     AlessandroUser["👤 Alessandro (South Africa)<br/>Kratos Identity"]
-    AlessandroWallet["🏦 Alessandro's Wallet<br/>Connected to Xago"]
+    AlessandroWallet["🏦 Alessandro's Wallet<br/>Provider: Xago"]
     
     PatrickUser["👤 Patrick (Europe)<br/>Kratos Identity"]
-    PatrickWallet["🏦 Patrick's Wallet<br/>Connected to PTI"]
+    PatrickWallet["🏦 Patrick's Wallet<br/>Provider: PTI"]
     
     JaneUser -->|has| JaneWallet
     AlessandroUser -->|has| AlessandroWallet
@@ -108,7 +108,7 @@ Each linked account has:
 
 ### Multiple Accounts, Single Provider
 
-Your wallet connects to **one payment provider** based on your location/needs:
+Your wallet connects to **one payment provider** based on your country. This keeps things simple: you only go through **one KYC verification process**, deal with one set of compliance rules, and have a single provider managing your funds.
 
 - **In the US?** You connect to **GateHub** and hold USD, EUR, and other currencies within GateHub
 - **In South Africa?** You connect to **Xago** and hold ZAR with integration to SA banking

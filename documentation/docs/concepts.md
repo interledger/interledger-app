@@ -22,13 +22,13 @@
 
 ---
 
-The Interledger App Wallet serves as a reference implementation for Account Servicing Entities (ASEs), demonstrating integration with the Interledger network to enable cross-border payments, high-speed transactions, and content creator monetization via Open Payments and Web Monetization.
+The Interledger App Wallet is a multi-provider payment platform built on the Interledger network. It operates as an Account Servicing Entity (ASE), enabling cross-border payments, high-speed transactions, and content creator monetization via Open Payments and Web Monetization.
 
-The wallet integrates with multiple payment providers — GateHub, PTI, Xago, and Chimoney — each with their own vocabularies. A "wallet" in the Interledger App is fundamentally different from a "wallet" in GateHub or PTI. This document maps the terminology.
+The platform integrates with multiple payment providers — GateHub, PTI, Xago, and Chimoney — each with their own vocabularies. A "wallet" in the Interledger App is fundamentally different from a "wallet" in GateHub or PTI. This document maps the terminology.
 
 ## Wallet Structure
 
-One user gets **one wallet** containing multiple **linked accounts** from one or more providers.
+One user gets **one wallet** containing multiple **linked accounts** from their provider.
 
 ```mermaid
 graph TD
@@ -37,12 +37,12 @@ graph TD
 
     User -->|owns| Wallet
 
-    Wallet -->|contains| LA1["Linked Account<br/>PTI · USD · balance"]
-    Wallet -->|contains| LA2["Linked Account<br/>Xago · ZAR · balance"]
-    Wallet -->|contains| LA3["Linked Account<br/>PTI · bank account"]
+    Wallet -->|contains| LA1["Linked Account<br/>GateHub · USD · balance"]
+    Wallet -->|contains| LA2["Linked Account<br/>GateHub · EUR · balance"]
+    Wallet -->|contains| LA3["Linked Account<br/>GateHub · bank account"]
 
-    LA1 --> Provider1["PTI"]
-    LA2 --> Provider2["Xago"]
+    LA1 --> Provider1["GateHub"]
+    LA2 --> Provider1
     LA3 --> Provider1
 
     style User fill:#1a3a5c,stroke:#0f2440,color:#fff
@@ -51,11 +51,10 @@ graph TD
     style LA2 fill:#33608a,stroke:#264d73,color:#fff
     style LA3 fill:#33608a,stroke:#264d73,color:#fff
     style Provider1 fill:#4074a1,stroke:#33608a,color:#fff
-    style Provider2 fill:#4074a1,stroke:#33608a,color:#fff
 ```
 
 - Multiple currencies per wallet: **yes** (via linked accounts)
-- Multiple providers per wallet: **yes**
+- Multiple providers per wallet: **typically no** — each wallet is associated with one country and one provider. This keeps the user experience simple (one KYC process, one set of compliance rules) and reflects the significant legal and operational effort required to onboard each provider. The data model does support multiple providers per wallet as a contingency for scenarios like provider migration.
 - Multiple wallets per user: **no**
 
 ## Core Terms

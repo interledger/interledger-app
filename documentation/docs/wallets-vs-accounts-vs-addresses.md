@@ -21,7 +21,7 @@
 
 This document extends [concepts.md](./concepts.md) and explains how wallets, linked accounts, and addresses fit together in the Interledger App. It is written for senior technical support who need a reliable operational mental model when diagnosing payment-routing, currency, and provider-integration issues.
 
-**Context:** The Interledger App Wallet is a reference implementation demonstrating how Account Servicing Entities (ASEs) can integrate with the Interledger network to enable cross-border payments, high-speed transactions, and content creator monetization.
+**Context:** The Interledger App Wallet is a multi-provider payment platform built on the Interledger network. Operating as an Account Servicing Entity (ASE), it enables cross-border payments, high-speed transactions, and content creator monetization.
 
 At a high level, the system has three different layers that are often conflated:
 
@@ -35,7 +35,9 @@ Most support confusion comes from mixing these layers. A payment can be addresse
 
 ## System model: one wallet, many linked accounts
 
-In Interledger App, a wallet is intentionally a container, not a single balance bucket. A single wallet can hold multiple linked accounts across providers and currencies. That is how one user can have EUR and GBP availability (or ZAR and USD, etc.) while still having one wallet identity.
+In Interledger App, a wallet is intentionally a container, not a single balance bucket. A single wallet holds multiple linked accounts across currencies at its associated provider. That is how one user can have EUR and GBP availability (or ZAR and USD, etc.) while still having one wallet identity.
+
+> **Note:** The data model technically supports linking accounts from multiple providers to a single wallet. This exists as a contingency for operational scenarios like provider migration, not as a user-facing feature. In normal use, each wallet is tied to one country and one provider — this avoids forcing users through multiple KYC processes and reflects the significant legal effort involved in onboarding each provider.
 
 A linked account contains the routing details that matter for execution:
 

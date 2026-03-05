@@ -329,7 +329,7 @@ Fix:
 ├─ Check: Did both complete or just one?
 ├─ Investigate: Transaction order in log
 ├─ Resolution: Likely one failed (insufficient funds)
-├─ Recover: Mark second as failed, unreseve amount
+├─ Recover: Mark second as failed, unreserve amount
 ```
 
 ---

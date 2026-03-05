@@ -1,14 +1,14 @@
 # Interledger App Wallet
 
-The Interledger App Wallet is a reference implementation for **Account Servicing Entities (ASEs)** demonstrating how to integrate with the Interledger network to build an open payment network where multiple organizations can connect and interoperate.
+The Interledger App Wallet is a multi-provider payment platform built on the Interledger network. It operates as an **Account Servicing Entity (ASE)**, connecting to payment providers in different countries to offer users a unified wallet experience across an open payment network.
 
 It enables:
 
 - **Cross-border payments** that are quick and easy
-- **High-speed transactions** across multiple providers and currencies
+- **High-speed transactions** across currencies and providers
 - **Content creator monetization** via Open Payments and Web Monetization
 
-Users get a single wallet that connects to one payment provider (GateHub, PTI, Xago, or Chimoney) and holds multiple linked accounts across different currencies — without maintaining separate accounts at each provider.
+Users get a single wallet tied to one payment provider (GateHub, PTI, Xago, or Chimoney) based on their country, with linked accounts that can hold balances across different currencies.
 
 ---
 
