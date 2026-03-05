@@ -42,3 +42,30 @@ type listBeneficiariesResponse struct {
 	Data       []addBeneficiaryResponse `json:"data"`
 	Pagination beneficiaryPagination    `json:"pagination"`
 }
+
+type createSubAccountResponse struct {
+	AccountID          string                         `json:"accountId"`
+	WalletID           string                         `json:"-"`
+	DepositAddress     string                         `json:"depositAddress"`
+	DepositTag         int                            `json:"depositTag"`
+	BankDepositDetails map[string][]bankDepositDetail `json:"bankDepositDetails"`
+	Beneficiaries      []beneficiaryResponse          `json:"beneficiaries"`
+}
+
+type bankDepositDetail struct {
+	BankName      string `json:"bankName"`
+	AccountName   string `json:"accountName"`
+	AccountNumber string `json:"accountNumber"`
+	BranchCode    string `json:"branchCode"`
+	SwiftBIC      string `json:"swiftBIC"`
+}
+
+type beneficiaryResponse struct {
+	BeneficiaryID    string `json:"beneficiaryId"`
+	BeneficiaryType  string `json:"beneficiaryType"`
+	CurrencyID       string `json:"currencyId"`
+	DepositReference string `json:"depositReference"`
+	AccountNumber    string `json:"accountNumber"`
+	BankName         string `json:"bankName"`
+	AccountName      string `json:"accountName"`
+}
