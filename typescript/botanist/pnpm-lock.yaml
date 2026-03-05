@@ -6,7 +6,7 @@ dependencies:
     version: 1.8.14
   '@headlessui/react':
     specifier: ^1.7.14
-    version: 1.7.14(react-dom@18.2.0)(react@18.2.0)
+    version: 1.7.19(react-dom@18.2.0)(react@18.2.0)
   '@protobuf-ts/grpc-transport':
     specifier: ^2.9.0
     version: 2.9.0(@grpc/grpc-js@1.8.14)
@@ -83,7 +83,7 @@ devDependencies:
     version: 9.0.1
   autoprefixer:
     specifier: ^10.4.14
-    version: 10.4.24(postcss@8.5.6)
+    version: 10.4.24(postcss@8.5.8)
   eslint:
     specifier: ^8.40.0
     version: 8.40.0
@@ -1653,13 +1653,14 @@ packages:
       yargs: 17.7.2
     dev: false
 
-  /@headlessui/react@1.7.14(react-dom@18.2.0)(react@18.2.0):
-    resolution: {integrity: sha512-znzdq9PG8rkwcu9oQ2FwIy0ZFtP9Z7ycS+BAqJ3R5EIqC/0bJGvhT7193rFf+45i9nnPsYvCQVW4V/bB9Xc+gA==}
+  /@headlessui/react@1.7.19(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-Ll+8q3OlMJfJbAKM/+/Y2q6PPYbryqNTXDbryx7SXLIDamkF6iQFbriYHga0dY44PvDhvvBWCx1Xj4U5+G4hOw==}
     engines: {node: '>=10'}
     peerDependencies:
       react: ^16 || ^17 || ^18
       react-dom: ^16 || ^17 || ^18
     dependencies:
+      '@tanstack/react-virtual': 3.13.19(react-dom@18.2.0)(react@18.2.0)
       client-only: 0.0.1
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
@@ -2111,6 +2112,21 @@ packages:
       postcss-selector-parser: 6.0.10
       tailwindcss: 3.3.2
     dev: true
+
+  /@tanstack/react-virtual@3.13.19(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-KzwmU1IbE0IvCZSm6OXkS+kRdrgW2c2P3Ho3NC+zZXWK6oObv/L+lcV/2VuJ+snVESRlMJ+w/fg4WXI/JzoNGQ==}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+      react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+    dependencies:
+      '@tanstack/virtual-core': 3.13.19
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+    dev: false
+
+  /@tanstack/virtual-core@3.13.19:
+    resolution: {integrity: sha512-/BMP7kNhzKOd7wnDeB8NrIRNLwkf5AhCYCvtfZV2GXWbBieFm/el0n6LOAXlTi6ZwHICSNnQcIxRCWHrLzDY+g==}
+    dev: false
 
   /@testing-library/dom@8.20.0:
     resolution: {integrity: sha512-d9ULIT+a4EXLX3UU8FBjauG9NnsZHkHztXoIcTsOKoOw030fyjheN9svkTULjJxtYag9DZz5Jz5qkWZDPxTFwA==}
@@ -2675,7 +2691,7 @@ packages:
     hasBin: true
     dev: true
 
-  /autoprefixer@10.4.24(postcss@8.5.6):
+  /autoprefixer@10.4.24(postcss@8.5.8):
     resolution: {integrity: sha512-uHZg7N9ULTVbutaIsDRoUkoS8/h3bdsmVJYZ5l3wv8Cp/6UIIoRDm90hZ+BwxUj/hGBEzLxdHNSKuFpn8WOyZw==}
     engines: {node: ^10 || ^12 || >=14}
     hasBin: true
@@ -2686,7 +2702,7 @@ packages:
       caniuse-lite: 1.0.30001769
       fraction.js: 5.3.4
       picocolors: 1.1.1
-      postcss: 8.5.6
+      postcss: 8.5.8
       postcss-value-parser: 4.2.0
     dev: true
 
@@ -6517,8 +6533,8 @@ packages:
       source-map-js: 1.0.2
     dev: true
 
-  /postcss@8.5.6:
-    resolution: {integrity: sha512-3Ybi1tAuwAP9s0r1UQ2J4n5Y0G05bJkpUIO0/bI9MhwmD70S5aTWbXGBwxHrelT+XM1k6dM0pk+SwNkpTRN7Pg==}
+  /postcss@8.5.8:
+    resolution: {integrity: sha512-OW/rX8O/jXnm82Ey1k44pObPtdblfiuWnrd8X7GJ7emImCOstunGbXUpp7HdBrFQX6rJzn3sPT397Wp5aCwCHg==}
     engines: {node: ^10 || ^12 || >=14}
     dependencies:
       nanoid: 3.3.11
