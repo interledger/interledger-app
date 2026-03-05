@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"math"
 	"time"
 
 	"gitlab.com/fynbos/env"
@@ -192,11 +193,19 @@ func GetEstimatedFee(ctx context.Context, b Backends, ex external.Client, amount
 		Direction: "payout", // only support interac payout for now since that's the only CAD withdrawal method we have
 	})
 
+	var feeAmt currency.Amount
 	if err != nil {
-		return currency.Amount{}, fmt.Errorf("%w %s", chimoney.ErrInternal, err)
-	}
+		// fallback solution here because this endpoint might not exist on production, yet
 
-	feeAmt := currency.FromFloat64(resp.TotalFee, currency.ParseCurrency(resp.Currency))
+		// fee = fixed + (percent / 100) × amount
+		fixed := 1.00
+		percent := .5
+		feeAmount := fixed + ((percent / 100) * float64(amount.Value) / 100)
+		feeAmount = math.Round(feeAmount*100) / 100
+		feeAmt = currency.FromFloat64(feeAmount, amount.Currency)
+	} else {
+		feeAmt = currency.FromFloat64(resp.TotalFee, currency.ParseCurrency(resp.Currency))
+	}
 	return feeAmt, nil
 }
 
