@@ -1024,7 +1024,3 @@ stateDiagram-v2
 - [Transaction Types Reference](transaction-types-explainer.md) — Transaction fields and states
 - [Provider Payments Guide](provider-payments-guide.md) — Provider-specific behavior and limits
 
----
-
-*Last updated: March 3, 2026*  
-*Audience: Support staff, Operations, First-line debugging*

@@ -10,18 +10,9 @@ validation:
 theme:
   name: material
   palette:
-    - scheme: default
-      primary: deep purple
-      accent: deep purple
-      toggle:
-        icon: material/brightness-7
-        name: Switch to dark mode
-    - scheme: slate
-      primary: deep purple
-      accent: deep purple
-      toggle:
-        icon: material/brightness-4
-        name: Switch to light mode
+    scheme: slate
+    primary: deep purple
+    accent: deep purple
   features:
     - navigation.sections
     - navigation.top
@@ -72,3 +63,4 @@ markdown_extensions:
 
 plugins:
   - search
+

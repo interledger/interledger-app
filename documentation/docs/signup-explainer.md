@@ -922,26 +922,3 @@ After completing signup, users proceed to:
 
 **Critical:** Users cannot send or receive payments until KYC is complete and wallet is activated.
 
----
-
-## Summary
-
-The signup process establishes:
-
-✅ **User identity** — Verified email, phone, and password  
-✅ **Two-factor authentication** — TOTP for enhanced security  
-✅ **Wallet infrastructure** — Database wallet record  
-✅ **Payment address** — Unique Interledger URL  
-✅ **Provider accounts** — Temporal workflows provision external accounts  
-
-**Total time:** 3-5 minutes (excluding email verification wait time)
-
-**Completion rate:** ~85% of users who start profile details complete the full flow
-
-**Next critical step:** KYC verification to activate wallet and enable transactions
-
----
-
-**Last Updated:** March 4, 2026  
-**Maintainers:** Interledger Foundation  
-**Repository:** https://gitlab.com/fynbos/interledger-wallet

@@ -725,8 +725,3 @@ See [GateHub Cards Explainer](gatehub-cards-explainer.md) for full details.
 - [Payment Troubleshooting Guide](payment-troubleshooting-guide.md) — Debugging provider-specific issues
 - [GateHub Cards Explainer](gatehub-cards-explainer.md) — Detailed card issuing documentation
 - [Concepts Reference](concepts.md) — Provider terminology mapping
-
----
-
-*Last updated: March 3, 2026*  
-*Audience: Operations managers, Integrators, Technical leads*

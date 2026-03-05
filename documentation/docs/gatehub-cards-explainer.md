@@ -1,7 +1,5 @@
 # GateHub Cards — How It Works
 
-**Last Updated:** February 28, 2026
-
 > **Card issuing integration reference.** Technical details on GateHub's EUR debit card service.
 
 **Related documents:**

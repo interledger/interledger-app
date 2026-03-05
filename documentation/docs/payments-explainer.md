@@ -1190,8 +1190,3 @@ Step 4: Check Webhooks
 - **[Concepts Reference](concepts.md)** - Provider terminology guide
 - **[Ledger System Architecture](ledger-system-explainer.md)** - How dual-ledger reconciliation works
 
----
-
-*Last updated: March 3, 2026*  
-*Audience: Engineering Managers, Operations Managers, Support Staff*  
-*Questions? Contact the Payments Team*

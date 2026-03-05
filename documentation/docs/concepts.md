@@ -45,12 +45,15 @@ graph TD
     LA2 --> Provider1
     LA3 --> Provider1
 
-    style User fill:#1a3a5c,stroke:#0f2440,color:#fff
-    style Wallet fill:#264d73,stroke:#1a3a5c,color:#fff
-    style LA1 fill:#33608a,stroke:#264d73,color:#fff
-    style LA2 fill:#33608a,stroke:#264d73,color:#fff
-    style LA3 fill:#33608a,stroke:#264d73,color:#fff
-    style Provider1 fill:#4074a1,stroke:#33608a,color:#fff
+    classDef user fill:#1a3a5c,stroke:#264d73,color:#ffffff
+    classDef wallet fill:#264d73,stroke:#1a3a5c,color:#ffffff
+    classDef la fill:#33608a,stroke:#264d73,color:#ffffff
+    classDef provider fill:#4074a1,stroke:#33608a,color:#ffffff
+
+    class User user
+    class Wallet wallet
+    class LA1,LA2,LA3 la
+    class Provider1 provider
 ```
 
 - Multiple currencies per wallet: **yes** (via linked accounts)

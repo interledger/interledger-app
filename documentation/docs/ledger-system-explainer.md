@@ -588,7 +588,3 @@ After fix:
 - [Payment Troubleshooting Guide](payment-troubleshooting-guide.md) — Debugging common payment issues
 - [Provider Payments Guide](provider-payments-guide.md) — Provider-specific differences
 
----
-
-*Last updated: March 3, 2026*  
-*Audience: Operations managers, Finance staff, Engineers*

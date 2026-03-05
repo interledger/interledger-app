@@ -489,8 +489,3 @@ AND timestamp < NOW() - INTERVAL '20 minutes'
 - [Payment Story Deep Dive](payments-explainer.md#the-payment-story) — Complete walkthrough with diagrams
 - [Ledger System Architecture](ledger-system-explainer.md) — How two ledgers reconcile
 - [Payment Troubleshooting Guide](payment-troubleshooting-guide.md) — Debugging payment issues
-
----
-
-*Last updated: March 3, 2026*  
-*Audience: Support staff, Operations, Developers*

@@ -3,6 +3,7 @@ include:
   - traefik.yaml
   - postgres.yaml
   - redis.yaml
+  - mkdocs.yaml
 
   # profile: services
   - kratos.yaml
