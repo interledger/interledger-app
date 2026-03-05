@@ -661,6 +661,7 @@ message Payment {
   string receiverLinkedAccountCountryCode = 14;
   string formattedFees = 15;
   string receiverAccount = 16; // Linked account ID. Only populated on withdrawals
+  string receivedNetAmount = 17; // withdrawal net amount received after fees
 }
 
 message CreatePaymentRequest {

@@ -50,6 +50,10 @@ func (c *Client) CreateDepositLink(ctx context.Context, walletID string, amt cur
 	return ops.CreateDepositLink(ctx, c.b, c.external, walletID, amt)
 }
 
+func (c *Client) GetEstimatedFee(ctx context.Context, amount currency.Amount) (currency.Amount, error) {
+	return ops.GetEstimatedFee(ctx, c.b, c.external, amount)
+}
+
 func (c *Client) ExecuteWithdraw(ctx context.Context, walletID, transactionID string) error {
 	return ops.ExecuteWithdraw(ctx, c.b, walletID, transactionID)
 }

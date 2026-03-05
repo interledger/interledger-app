@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"math"
 	"time"
 
 	"gitlab.com/fynbos/env"
@@ -182,6 +183,30 @@ func CreateDepositLink(ctx context.Context, b Backends, ex external.Client, wall
 	}
 
 	return resp.PaymentLink, nil
+}
+
+func GetEstimatedFee(ctx context.Context, b Backends, ex external.Client, amount currency.Amount) (currency.Amount, error) {
+	resp, err := ex.GetEstimatedFee(ctx, external.EstimateFeeReq{
+		Amount:    amount.FormatAmount(),
+		Currency:  amount.Currency.String(),
+		Rail:      "interac",
+		Direction: "payout", // only support interac payout for now since that's the only CAD withdrawal method we have
+	})
+
+	var feeAmt currency.Amount
+	if err != nil {
+		// fallback solution here because this endpoint might not exist on production, yet
+		// this is NOT the final fee calculation, the fee amount will be updated in the ExecuteChimoneyFinishWithdrawalWorkflow based on the actual amount received from the webhook, this is just an estimation based on the fee structure we have for interac payout which is a fixed fee + percentage of the amount
+		// fee = fixed + (percent / 100) × amount
+		fixed := 1.00
+		percent := .5
+		feeAmount := fixed + ((percent / 100) * float64(amount.Value) / 100)
+		feeAmount = math.Round(feeAmount*100) / 100
+		feeAmt = currency.FromFloat64(feeAmount, amount.Currency)
+	} else {
+		feeAmt = currency.FromFloat64(resp.TotalFee, currency.ParseCurrency(resp.Currency))
+	}
+	return feeAmt, nil
 }
 
 func ExecuteFinishWithdraw(ctx context.Context, b Backends, ec external.Client, IssueID string, status string, chiWalletID string, amount float64, paymentType string) error {

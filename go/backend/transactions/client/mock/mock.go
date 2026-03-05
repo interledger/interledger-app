@@ -261,20 +261,6 @@ func (mr *MockClientMockRecorder) ListWithPending(ctx, page, walletID interface{
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListWithPending", reflect.TypeOf((*MockClient)(nil).ListWithPending), ctx, page, walletID)
 }
 
-// SetTransactionAmountAndFee mocks base method.
-func (m *MockClient) SetTransactionAmountAndFee(ctx context.Context, ID string, amount, fee currency.Amount) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SetTransactionAmountAndFee", ctx, ID, amount, fee)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// SetTransactionAmountAndFee indicates an expected call of SetTransactionAmountAndFee.
-func (mr *MockClientMockRecorder) SetTransactionAmountAndFee(ctx, ID, amount, fee interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetTransactionAmountAndFee", reflect.TypeOf((*MockClient)(nil).SetTransactionAmountAndFee), ctx, ID, amount, fee)
-}
-
 // SetTransactionAmountTx mocks base method.
 func (m *MockClient) SetTransactionAmountTx(ctx context.Context, tx *sqlx.Tx, ID string, amount currency.Amount) error {
 	m.ctrl.T.Helper()
@@ -301,6 +287,20 @@ func (m *MockClient) SetTransactionDestination(ctx context.Context, id, destinat
 func (mr *MockClientMockRecorder) SetTransactionDestination(ctx, id, destination interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetTransactionDestination", reflect.TypeOf((*MockClient)(nil).SetTransactionDestination), ctx, id, destination)
+}
+
+// SetTransactionFee mocks base method.
+func (m *MockClient) SetTransactionFee(ctx context.Context, ID string, fee currency.Amount) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetTransactionFee", ctx, ID, fee)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SetTransactionFee indicates an expected call of SetTransactionFee.
+func (mr *MockClientMockRecorder) SetTransactionFee(ctx, ID, fee interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetTransactionFee", reflect.TypeOf((*MockClient)(nil).SetTransactionFee), ctx, ID, fee)
 }
 
 // SetTransactionForeignID mocks base method.

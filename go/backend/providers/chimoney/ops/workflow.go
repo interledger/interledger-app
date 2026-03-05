@@ -263,14 +263,11 @@ func ExecuteChimoneyFinishWithdrawalWorkflow(
 	if err != nil {
 		return rollBackWithdrawal(ctx, a, finalizeReserve, trx.WalletID, trx.ID)
 	}
-	amountIntWithDecimal := GetIntFromFloat64WithScale(amount, trx.Amount.Scale)
-	trxAmountIntWithDecimal := GetIntFromFloat64WithScale(trx.Amount.Float64(), trx.Amount.Scale)
-	if paymentType == "interac" && amountIntWithDecimal != trxAmountIntWithDecimal {
-		// lets update the transaction to reflect the actual amount withdrawn if there's a mismatch. This can happen if there are fees that we didn't account for.
-		err = workflow.ExecuteActivity(ctx, a.UpdateChimoneyWithdrawalTransactionAmountAndFee, trx.WalletID, trx.ID, amount).Get(ctx, nil)
-		if err != nil {
-			logger.Warn("Update transaction withdrawal amount and fee failed", zap.Error(err))
-		}
+
+	// update transaction to add withdrawal fee based on the actual amount after fees received from the webhook
+	err = workflow.ExecuteActivity(ctx, a.UpdateChimoneyWithdrawalTransactionFee, trx.WalletID, trx.ID, amount).Get(ctx, nil)
+	if err != nil {
+		logger.Warn("Update transaction withdrawal fee failed", zap.Error(err))
 	}
 
 	// finalize transaction
@@ -428,7 +425,7 @@ func (a *Activity) CreateChimoneyDepositTransaction(ctx context.Context, walletI
 	return trx, nil
 }
 
-func (a *Activity) UpdateChimoneyWithdrawalTransactionAmountAndFee(ctx context.Context, walletID, trxID string, amount float64) error {
+func (a *Activity) UpdateChimoneyWithdrawalTransactionFee(ctx context.Context, walletID, trxID string, amount float64) error {
 	trx, err := a.b.Transactions().GetTransaction(ctx, walletID, trxID)
 	if err != nil {
 		return err
@@ -444,10 +441,9 @@ func (a *Activity) UpdateChimoneyWithdrawalTransactionAmountAndFee(ctx context.C
 		feeFloat = 0
 	}
 
-	newAmount := currency.FromFloat64(amount, trx.Amount.Currency)
 	fee := currency.FromFloat64(feeFloat, trx.Amount.Currency)
 
-	return a.b.Transactions().SetTransactionAmountAndFee(ctx, trxID, newAmount, fee)
+	return a.b.Transactions().SetTransactionFee(ctx, trxID, fee)
 }
 
 func (a *Activity) GetChimoneyTransactionByForeignID(ctx context.Context, walletID string, foreignID string) (*transactions.Transaction, error) {

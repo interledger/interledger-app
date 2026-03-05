@@ -79,6 +79,23 @@ type WithdrawalReq struct {
 	TurnOffNotification bool       `json:"turnOffNotification,omitempty"`
 }
 
+type EstimateFeeReq struct {
+	Amount    string `json:"amount"`
+	Currency  string `json:"currency"`
+	Rail      string `json:"rail,omitempty"`
+	Direction string `json:"direction,omitempty"`
+}
+
+type EstimateFeeResp struct {
+	Amount    float64 `json:"amount,omitempty"`
+	Currency  string  `json:"currency,omitempty"`
+	Rail      string  `json:"rail,omitempty"`
+	Direction string  `json:"direction,omitempty"`
+	TotalFee  float64 `json:"totalFee,omitempty"`
+	NetAmount float64 `json:"netAmount,omitempty"`
+	Note      string  `json:"note,omitempty"`
+}
+
 type WithdrawResponse struct {
 	Data        []WithdrawData `json:"data"`
 	Error       string         `json:"error"`

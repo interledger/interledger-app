@@ -17,6 +17,7 @@ type Client interface {
 	Transfer(ctx context.Context, args TransferArgs) error
 	GetKYCWidget(ctx context.Context, walletID string) (string, error)
 
+	GetEstimatedFee(ctx context.Context, amount currency.Amount) (currency.Amount, error)
 	GetBalance(ctx context.Context, linkedAccountID string) (*Balance, error)
 	ReserveBalance(ctx context.Context, linkedAccountID, txID string, amt currency.Amount, timeout time.Duration) (*Balance, error)
 	FinaliseReserve(ctx context.Context, txID string) error
