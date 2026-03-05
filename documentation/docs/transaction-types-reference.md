@@ -7,12 +7,12 @@
 
 **Related documents:**
 
-- [Payments Guide](payments-explainer.md) — Overview and navigation hub
-- [Wallets vs Accounts vs Addresses](wallets-vs-accounts-vs-addresses.md) — How linked accounts shape transaction creation
-- [Ledger System Architecture](ledger-system-explainer.md) — How transactions update ledgers
-- [Provider Payments Guide](provider-payments-guide.md) — Provider-specific transaction behavior
+- [Payments Guide](payments-guide.md) — Overview and navigation hub
+- [Wallets vs Accounts vs Addresses](wallets-accounts-addresses-guide.md) — How linked accounts shape transaction creation
+- [Ledger System Architecture](ledger-system-guide.md) — How transactions update ledgers
+- [Provider Payments Guide](provider-payments-reference.md) — Provider-specific transaction behavior
 - [Payment Troubleshooting](payment-troubleshooting-guide.md) — Debugging transaction issues
-- [Concepts](concepts.md) — Core terminology (transaction vs payment)
+- [Concepts](terminology.md) — Core terminology (transaction vs payment)
 
 **Quick Navigation:**
 
@@ -485,7 +485,7 @@ AND timestamp < NOW() - INTERVAL '20 minutes'
 
 ## See Also
 
-- [Payments & Transactions Guide](payments-explainer.md) — Overview and navigation hub
-- [Payment Story Deep Dive](payments-explainer.md#the-payment-story) — Complete walkthrough with diagrams
-- [Ledger System Architecture](ledger-system-explainer.md) — How two ledgers reconcile
+- [Payments & Transactions Guide](payments-guide.md) — Overview and navigation hub
+- [Payment Story Deep Dive](payments-guide.md#the-payment-story) — Complete walkthrough with diagrams
+- [Ledger System Architecture](ledger-system-guide.md) — How two ledgers reconcile
 - [Payment Troubleshooting Guide](payment-troubleshooting-guide.md) — Debugging payment issues

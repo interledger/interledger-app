@@ -7,12 +7,12 @@
 
 **Related documents:**
 
-- [Payments Guide](payments-explainer.md) — Overview and navigation hub
-- [Ledger System Architecture](ledger-system-explainer.md) — Understanding balance discrepancies
-- [Transaction Types Reference](transaction-types-explainer.md) — Transaction field details
-- [Provider Payments Guide](provider-payments-guide.md) — Provider-specific debugging paths
-- [KYC Explainer](kyc-explainer.md) — KYC gating that can block payment flows
-- [Concepts](concepts.md) — Core terminology
+- [Payments Guide](payments-guide.md) — Overview and navigation hub
+- [Ledger System Architecture](ledger-system-guide.md) — Understanding balance discrepancies
+- [Transaction Types Reference](transaction-types-reference.md) — Transaction field details
+- [Provider Payments Guide](provider-payments-reference.md) — Provider-specific debugging paths
+- [KYC Explainer](kyc-guide.md) — KYC gating that can block payment flows
+- [Concepts](terminology.md) — Core terminology
 
 **Quick Navigation:**
 
@@ -1019,8 +1019,8 @@ stateDiagram-v2
 
 ## See Also
 
-- [Payments & Transactions Guide](payments-explainer.md) — Overview and navigation hub
-- [Ledger System Architecture](ledger-system-explainer.md) — How discrepancies form and resolve
-- [Transaction Types Reference](transaction-types-explainer.md) — Transaction fields and states
-- [Provider Payments Guide](provider-payments-guide.md) — Provider-specific behavior and limits
+- [Payments & Transactions Guide](payments-guide.md) — Overview and navigation hub
+- [Ledger System Architecture](ledger-system-guide.md) — How discrepancies form and resolve
+- [Transaction Types Reference](transaction-types-reference.md) — Transaction fields and states
+- [Provider Payments Guide](provider-payments-reference.md) — Provider-specific behavior and limits
 

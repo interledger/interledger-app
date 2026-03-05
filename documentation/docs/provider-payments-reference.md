@@ -7,13 +7,13 @@
 
 **Related documents:**
 
-- [Payments Guide](payments-explainer.md) — Overview and navigation hub
-- [Wallets vs Accounts vs Addresses](wallets-vs-accounts-vs-addresses.md) — Provider account shapes and routing model
-- [Transaction Types Reference](transaction-types-explainer.md) — Transaction status codes per provider
-- [Ledger System Architecture](ledger-system-explainer.md) — Settlement models per provider
+- [Payments Guide](payments-guide.md) — Overview and navigation hub
+- [Wallets vs Accounts vs Addresses](wallets-accounts-addresses-guide.md) — Provider account shapes and routing model
+- [Transaction Types Reference](transaction-types-reference.md) — Transaction status codes per provider
+- [Ledger System Architecture](ledger-system-guide.md) — Settlement models per provider
 - [Payment Troubleshooting](payment-troubleshooting-guide.md) — Provider-specific debugging
-- [KYC Explainer](kyc-explainer.md) — Provider onboarding and verification differences
-- [Concepts](concepts.md) — Provider terminology translation
+- [KYC Explainer](kyc-guide.md) — Provider onboarding and verification differences
+- [Concepts](terminology.md) — Provider terminology translation
 
 **Quick Navigation:**
 
@@ -366,7 +366,7 @@ OPTION B: Internal transfer (Interledger magic)
 Interledger uses OPTION B when possible!
 ```
 
-**Internal transfers are a unique Xago feature.** See [Ledger System Architecture](ledger-system-explainer.md#scenario-3-internal-transfers-xagosame-provider-case) for details.
+**Internal transfers are a unique Xago feature.** See [Ledger System Architecture](ledger-system-guide.md#scenario-3-internal-transfers-xagosame-provider-case) for details.
 
 ### Withdrawal to ZAR Bank Account
 
@@ -691,7 +691,7 @@ Card Payment Flow:
 └─ Webhook: Card transaction posted
 ```
 
-See [GateHub Cards Explainer](gatehub-cards-explainer.md) for full details.
+See [GateHub Cards Explainer](gatehub-cards-guide.md) for full details.
 
 ---
 
@@ -719,9 +719,9 @@ See [GateHub Cards Explainer](gatehub-cards-explainer.md) for full details.
 
 ## See Also
 
-- [Payments & Transactions Guide](payments-explainer.md) — Overview and navigation hub
-- [Ledger System Architecture](ledger-system-explainer.md) — How transactions are recorded and reconciled
-- [Transaction Types Reference](transaction-types-explainer.md) — Transaction fields and statuses
+- [Payments & Transactions Guide](payments-guide.md) — Overview and navigation hub
+- [Ledger System Architecture](ledger-system-guide.md) — How transactions are recorded and reconciled
+- [Transaction Types Reference](transaction-types-reference.md) — Transaction fields and statuses
 - [Payment Troubleshooting Guide](payment-troubleshooting-guide.md) — Debugging provider-specific issues
-- [GateHub Cards Explainer](gatehub-cards-explainer.md) — Detailed card issuing documentation
-- [Concepts Reference](concepts.md) — Provider terminology mapping
+- [GateHub Cards Explainer](gatehub-cards-guide.md) — Detailed card issuing documentation
+- [Concepts Reference](terminology.md) — Provider terminology mapping

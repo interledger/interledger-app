@@ -4,13 +4,13 @@
 
 **Related documents:**
 
-- [Concepts](concepts.md) — Core terminology (this document extends Concepts)
-- [Payments Guide](payments-explainer.md) — How addresses are used in payment flows
-- [Provider Payments Guide](provider-payments-guide.md) — Provider-specific account structures
-- [Ledger System Architecture](ledger-system-explainer.md) — How account choices affect reconciliation behavior
-- [Transaction Types Reference](transaction-types-explainer.md) — How transactions reference linked accounts
+- [Concepts](terminology.md) — Core terminology (this document extends Concepts)
+- [Payments Guide](payments-guide.md) — How addresses are used in payment flows
+- [Provider Payments Guide](provider-payments-reference.md) — Provider-specific account structures
+- [Ledger System Architecture](ledger-system-guide.md) — How account choices affect reconciliation behavior
+- [Transaction Types Reference](transaction-types-reference.md) — How transactions reference linked accounts
 - [Payment Troubleshooting](payment-troubleshooting-guide.md) — Practical routing and account-debug workflows
-- [KYC Explainer](kyc-explainer.md) — Wallet activation and KYC impact on accounts
+- [KYC Explainer](kyc-guide.md) — Wallet activation and KYC impact on accounts
 
 **Quick Navigation:**
 
@@ -19,7 +19,7 @@
 - **How are addresses used?** → See [Address Model](#address-model-wallet-urls-vs-ilpopen-payments-addresses)
 - **Payment routing issues?** → See [Incident Triage Model](#incident-triage-model-for-support)
 
-This document extends [concepts.md](./concepts.md) and explains how wallets, linked accounts, and addresses fit together in the Interledger App. It is written for senior technical support who need a reliable operational mental model when diagnosing payment-routing, currency, and provider-integration issues.
+This document extends [terminology.md](./terminology.md) and explains how wallets, linked accounts, and addresses fit together in the Interledger App. It is written for senior technical support who need a reliable operational mental model when diagnosing payment-routing, currency, and provider-integration issues.
 
 **Context:** The Interledger App Wallet is a multi-provider payment platform built on the Interledger network. Operating as an Account Servicing Entity (ASE), it enables cross-border payments, high-speed transactions, and content creator monetization.
 
@@ -124,7 +124,7 @@ This also explains why users may occasionally perceive "wrong account selected":
 
 Cross-currency behavior is intentionally constrained in the current payment engine for standard P2P paths, so multi-currency availability does not imply unrestricted FX routing.
 
-**Note:** Account selection also depends on [KYC status](kyc-explainer.md#4-compliance-reality-kyc-is-tied-to-transactions). See [Payment Story](payments-explainer.md#the-payment-story) for a walkthrough of the full payment flow.
+**Note:** Account selection also depends on [KYC status](kyc-guide.md#4-compliance-reality-kyc-is-tied-to-transactions). See [Payment Story](payments-guide.md#the-payment-story) for a walkthrough of the full payment flow.
 
 ---
 
@@ -164,7 +164,7 @@ Using this sequence keeps analysis grounded in how the system actually routes fu
 
 ## See Also
 
-- [Concepts: Interledger App vs Service Providers](concepts.md) — Core terminology and provider translation table
-- [Payments & Transactions](payments-explainer.md) — Payment lifecycle and the two-ledger system
-- [KYC Explainer](kyc-explainer.md) — How identity verification gates payment authorization
-- [GateHub Cards](gatehub-cards-explainer.md) — Card-specific linked accounts (EUR card type)
+- [Concepts: Interledger App vs Service Providers](terminology.md) — Core terminology and provider translation table
+- [Payments & Transactions](payments-guide.md) — Payment lifecycle and the two-ledger system
+- [KYC Explainer](kyc-guide.md) — How identity verification gates payment authorization
+- [GateHub Cards](gatehub-cards-guide.md) — Card-specific linked accounts (EUR card type)

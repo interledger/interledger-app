@@ -4,11 +4,11 @@
 
 **Related documents:**
 
-- [Concepts](concepts.md) — Wallet and linked-account terminology
-- [KYC Explainer](kyc-explainer.md) — Identity verification flows per provider
-- [Wallets vs Accounts](wallets-vs-accounts-vs-addresses.md) — Wallet activation architecture
-- [Payments Guide](payments-explainer.md) — How KYC and wallet setup enable transactions
-- [Logging Policy](logging-policy.md) — What information can be safely logged during signup
+- [Concepts](terminology.md) — Wallet and linked-account terminology
+- [KYC Explainer](kyc-guide.md) — Identity verification flows per provider
+- [Wallets vs Accounts](wallets-accounts-addresses-guide.md) — Wallet activation architecture
+- [Payments Guide](payments-guide.md) — How KYC and wallet setup enable transactions
+- [Logging Policy](logging-reference.md) — What information can be safely logged during signup
 
 **Quick Navigation:**
 
@@ -693,7 +693,7 @@ After signup, users must complete KYC to activate their wallet. These workflows 
   4. `MarkBackfillUser` — Update account balance in database
   5. `SetKYCStatus` — Update `wallet_kyc_status` to `level1`
 
-**See [KYC Explainer](kyc-explainer.md) for detailed KYC workflow documentation.**
+**See [KYC Explainer](kyc-guide.md) for detailed KYC workflow documentation.**
 
 ### Workflow Worker
 
@@ -804,7 +804,7 @@ Passwords are **never** stored in plaintext or logged. Kratos handles:
 - Breach detection (Have I Been Pwned integration)
 - Password policy enforcement
 
-**Logging policy:** See [logging-policy.md](logging-policy.md) — Never log passwords, tokens, or secrets.
+**Logging policy:** See [logging-reference.md](logging-reference.md) — Never log passwords, tokens, or secrets.
 
 ### TOTP Secret Storage
 
@@ -915,10 +915,10 @@ Then I should be navigated to the application dashboard
 
 After completing signup, users proceed to:
 
-1. **Wallet Activation** — Complete KYC verification (see [KYC Explainer](kyc-explainer.md))
+1. **Wallet Activation** — Complete KYC verification (see [KYC Explainer](kyc-guide.md))
 2. **Provider Linking** — Connect to payment providers (GateHub, Xago, etc.)
 3. **Balance Management** — Deposit funds to wallet
-4. **Payments** — Send and receive payments (see [Payments Guide](payments-explainer.md))
+4. **Payments** — Send and receive payments (see [Payments Guide](payments-guide.md))
 
 **Critical:** Users cannot send or receive payments until KYC is complete and wallet is activated.
 

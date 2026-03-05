@@ -7,12 +7,12 @@
 
 **Related documents:**
 
-- [Payments Guide](payments-explainer.md) — Overview and navigation hub
-- [Wallets vs Accounts vs Addresses](wallets-vs-accounts-vs-addresses.md) — Linked-account architecture behind ledger entries
-- [Transaction Types Reference](transaction-types-explainer.md) — Transaction fields and lifecycle
-- [Provider Payments Guide](provider-payments-guide.md) — Provider-specific ledger behavior
+- [Payments Guide](payments-guide.md) — Overview and navigation hub
+- [Wallets vs Accounts vs Addresses](wallets-accounts-addresses-guide.md) — Linked-account architecture behind ledger entries
+- [Transaction Types Reference](transaction-types-reference.md) — Transaction fields and lifecycle
+- [Provider Payments Guide](provider-payments-reference.md) — Provider-specific ledger behavior
 - [Payment Troubleshooting](payment-troubleshooting-guide.md) — Debugging balance discrepancies
-- [Concepts](concepts.md) — Terminology (wallet, linked account, transaction)
+- [Concepts](terminology.md) — Terminology (wallet, linked account, transaction)
 
 **Quick Navigation:**
 
@@ -583,8 +583,8 @@ After fix:
 
 ## See Also
 
-- [Payments & Transactions Guide](payments-explainer.md) — Overview and navigation hub
-- [Transaction Types Reference](transaction-types-explainer.md) — What fields transactions contain
+- [Payments & Transactions Guide](payments-guide.md) — Overview and navigation hub
+- [Transaction Types Reference](transaction-types-reference.md) — What fields transactions contain
 - [Payment Troubleshooting Guide](payment-troubleshooting-guide.md) — Debugging common payment issues
-- [Provider Payments Guide](provider-payments-guide.md) — Provider-specific differences
+- [Provider Payments Guide](provider-payments-reference.md) — Provider-specific differences
 

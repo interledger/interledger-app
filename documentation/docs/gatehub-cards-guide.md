@@ -4,12 +4,12 @@
 
 **Related documents:**
 
-- [Concepts](concepts.md) — Core terminology ("Account" → Linked Account mapping)
-- [Payments Guide](payments-explainer.md) — End-to-end payment model and orchestration context
-- [Transaction Types Reference](transaction-types-explainer.md) — Card transaction field specifications
-- [Provider Payments Guide](provider-payments-guide.md) — GateHub-specific payment behavior
+- [Concepts](terminology.md) — Core terminology ("Account" → Linked Account mapping)
+- [Payments Guide](payments-guide.md) — End-to-end payment model and orchestration context
+- [Transaction Types Reference](transaction-types-reference.md) — Card transaction field specifications
+- [Provider Payments Guide](provider-payments-reference.md) — GateHub-specific payment behavior
 - [Payment Troubleshooting](payment-troubleshooting-guide.md) — Debugging card transaction issues
-- [KYC Explainer](kyc-explainer.md) — GateHub KYC requirements for card issuance
+- [KYC Explainer](kyc-guide.md) — GateHub KYC requirements for card issuance
 
 **Quick Navigation:**
 
@@ -24,7 +24,7 @@ This document explains how GateHub's card issuing service integrates with the In
 
 > **Context:** The Interledger App Wallet is a multi-provider payment platform built on the Interledger network, offering cross-provider payment capabilities including traditional card networks.
 
-> **Terminology Note:** GateHub's "Account" (a EUR card account) is represented as a `card` type [Linked Account](concepts.md#linked-account-types) in the Interledger App. All card-specific transactions are a subset of the broader [transaction types](concepts.md#core-terms). See [Concepts](concepts.md) for the core Interledger App terminology and provider translation table.
+> **Terminology Note:** GateHub's "Account" (a EUR card account) is represented as a `card` type [Linked Account](terminology.md#linked-account-types) in the Interledger App. All card-specific transactions are a subset of the broader [transaction types](terminology.md#core-terms). See [Concepts](terminology.md) for the core Interledger App terminology and provider translation table.
 
 ---
 
@@ -114,11 +114,11 @@ erDiagram
     CARD ||--o{ THREE_DS_CHALLENGE : "may trigger"
 ```
 
-**Managed User** — The wallet user's identity within GateHub. In Interledger App terminology, this is the [User](concepts.md#core-terms) (Kratos identity) registered with GateHub. Created during KYC onboarding. Referenced by UUID in every card request header.
+**Managed User** — The wallet user's identity within GateHub. In Interledger App terminology, this is the [User](terminology.md#core-terms) (Kratos identity) registered with GateHub. Created during KYC onboarding. Referenced by UUID in every card request header.
 
 **Customer** — A card-programme customer. Created atomically with the first card order. Holds KYC status, delivery addresses, and one or more accounts. Has both an internal `id` (GateHub-generated) and a `sourceId` (the wallet user UUID).
 
-**Account** — A EUR card account (a `card` type [Linked Account](concepts.md#linked-account-types) in Interledger App terminology). Each account has a product code that determines card properties, limits, and pricing. Accounts hold one or more cards.
+**Account** — A EUR card account (a `card` type [Linked Account](terminology.md#linked-account-types) in Interledger App terminology). Each account has a product code that determines card properties, limits, and pricing. Accounts hold one or more cards.
 
 **Card** — A virtual or physical debit card. Identified by a card ID (prefixed `crd.` in production). Key attributes:
 - `maskedPan` — BIN + last 4 digits (e.g. `512345******2346`)

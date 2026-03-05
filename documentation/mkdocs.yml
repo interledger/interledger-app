@@ -25,21 +25,22 @@ theme:
 nav:
   - Home: index.md
   - Getting Started:
-      - Core Concepts: concepts.md
-      - Signup Flow: signup-explainer.md
-      - KYC & Identity Verification: kyc-explainer.md
+      - Terminology: terminology.md
+      - Signup Flow: signup-guide.md
+      - KYC & Identity Verification: kyc-guide.md
   - Architecture:
-      - Wallets, Accounts & Addresses: wallets-vs-accounts-vs-addresses.md
-      - Dual-Ledger System: ledger-system-explainer.md
+      - Wallets, Accounts & Addresses: wallets-accounts-addresses-guide.md
+      - Dual-Ledger System: ledger-system-guide.md
   - Payments:
-      - Payments & Transactions: payments-explainer.md
-      - Transaction Types Reference: transaction-types-explainer.md
-      - Provider Comparison: provider-payments-guide.md
+      - Payments & Transactions: payments-guide.md
+      - Transaction Types Reference: transaction-types-reference.md
+      - Provider Comparison: provider-payments-reference.md
   - Integrations:
-      - GateHub Cards: gatehub-cards-explainer.md
+      - GateHub Cards: gatehub-cards-guide.md
   - Operations:
       - Payment Troubleshooting: payment-troubleshooting-guide.md
-      - Logging Policy: logging-policy.md
+  - Developers:
+      - Logging Reference: logging-reference.md
 
 markdown_extensions:
   - pymdownx.superfences:

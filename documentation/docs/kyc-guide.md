@@ -4,11 +4,11 @@
 
 **Related documents:**
 
-- [Concepts](concepts.md) — Wallet and linked-account terminology
-- [Payments Guide](payments-explainer.md) — How KYC gates transaction authorization
-- [Provider Payments Guide](provider-payments-guide.md) — Provider-specific KYC implementations
-- [Ledger System Architecture](ledger-system-explainer.md) — How KYC completion affects balance/account provisioning
-- [Wallets vs Accounts](wallets-vs-accounts-vs-addresses.md) — Wallet activation architecture
+- [Concepts](terminology.md) — Wallet and linked-account terminology
+- [Payments Guide](payments-guide.md) — How KYC gates transaction authorization
+- [Provider Payments Guide](provider-payments-reference.md) — Provider-specific KYC implementations
+- [Ledger System Architecture](ledger-system-guide.md) — How KYC completion affects balance/account provisioning
+- [Wallets vs Accounts](wallets-accounts-addresses-guide.md) — Wallet activation architecture
 - [Payment Troubleshooting](payment-troubleshooting-guide.md) — Debugging KYC-blocked transactions
 
 **Quick Navigation:**
@@ -61,7 +61,7 @@ KYC (Know Your Customer) is the process of verifying a user’s real-world ident
 From an Interledger App wallet perspective:
 
 - A user has **one Interledger wallet**.
-- That wallet has **linked accounts** at its associated provider (see [Concepts](concepts.md#core-terms) for definitions).
+- That wallet has **linked accounts** at its associated provider (see [Concepts](terminology.md#core-terms) for definitions).
 - KYC status is tracked at the wallet level in Interledger App, but **evidence and verification workflows are often provider-specific**.
 
 In practice, KYC should be understood as:
@@ -90,7 +90,7 @@ Support talk track:
 
 At a policy level, KYC is linked to anti-money-laundering (AML) obligations. Operationally, this means:
 
-- Transactions must be attributable to appropriately verified users (see [Payments & Transactions](payments-explainer.md#understanding-transactions)).
+- Transactions must be attributable to appropriately verified users (see [Payments & Transactions](payments-guide.md#understanding-transactions)).
 - The exact requirement can differ by country and provider.
 - We should expect policy evolution, including possibilities like:
   - KYC expiration/reverification windows

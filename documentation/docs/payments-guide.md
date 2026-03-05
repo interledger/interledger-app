@@ -4,13 +4,13 @@
 
 **Related documents:**
 
-- [Concepts](concepts.md) — Core terminology and provider translation
-- [Wallets vs Accounts vs Addresses](wallets-vs-accounts-vs-addresses.md) — Wallet and linked-account architecture
-- [Provider Payments Guide](provider-payments-guide.md) — Provider-specific payment behavior
-- [Ledger System Architecture](ledger-system-explainer.md) — Why we run dual ledgers and reconciliation
-- [Transaction Types Reference](transaction-types-explainer.md) — Transaction fields, states, and mappings
+- [Concepts](terminology.md) — Core terminology and provider translation
+- [Wallets vs Accounts vs Addresses](wallets-accounts-addresses-guide.md) — Wallet and linked-account architecture
+- [Provider Payments Guide](provider-payments-reference.md) — Provider-specific payment behavior
+- [Ledger System Architecture](ledger-system-guide.md) — Why we run dual ledgers and reconciliation
+- [Transaction Types Reference](transaction-types-reference.md) — Transaction fields, states, and mappings
 - [Payment Troubleshooting](payment-troubleshooting-guide.md) — Systematic payment debugging
-- [KYC Explainer](kyc-explainer.md) — KYC gating and provider-specific verification paths
+- [KYC Explainer](kyc-guide.md) — KYC gating and provider-specific verification paths
 
 ## Table of Contents
 1. [The Big Picture](#the-big-picture)
@@ -104,7 +104,7 @@ Each linked account has:
 - A currency (USD, EUR, ZAR, etc.)
 - A unique identifier at your provider (the `provider_id`)
 
-**See [Wallets vs Accounts vs Addresses](wallets-vs-accounts-vs-addresses.md#system-model-one-wallet-many-linked-accounts) for detailed explanation of linked-account properties and provider-specific differences.**
+**See [Wallets vs Accounts vs Addresses](wallets-accounts-addresses-guide.md#system-model-one-wallet-many-linked-accounts) for detailed explanation of linked-account properties and provider-specific differences.**
 
 ### Multiple Accounts, Single Provider
 
@@ -146,7 +146,7 @@ Amount: £100
 To: bob@example.com
 ```
 
-**Note on addresses:** The email address (or wallet URL/payment pointer) is used for discovery — finding Bob's wallet. Behind the scenes, the actual money moves through [linked accounts](wallets-vs-accounts-vs-addresses.md#address-model-wallet-urls-vs-ilpopen-payments-addresses). The system resolves the email to Bob's wallet address and then selects appropriate linked accounts for settlement.
+**Note on addresses:** The email address (or wallet URL/payment pointer) is used for discovery — finding Bob's wallet. Behind the scenes, the actual money moves through [linked accounts](wallets-accounts-addresses-guide.md#address-model-wallet-urls-vs-ilpopen-payments-addresses). The system resolves the email to Bob's wallet address and then selects appropriate linked accounts for settlement.
 
 What happens:
 - The wallet checks: "Does Alice have £100?"
@@ -1185,8 +1185,8 @@ Step 4: Check Webhooks
 
 ## Further Reading
 
-- **[Provider Payments Guide](provider-payments-guide.md)** - Provider-by-provider payment behavior and edge cases
-- **[Transaction Types Reference](transaction-types-explainer.md)** - Transaction fields, states, and fee mapping
-- **[Concepts Reference](concepts.md)** - Provider terminology guide
-- **[Ledger System Architecture](ledger-system-explainer.md)** - How dual-ledger reconciliation works
+- **[Provider Payments Guide](provider-payments-reference.md)** - Provider-by-provider payment behavior and edge cases
+- **[Transaction Types Reference](transaction-types-reference.md)** - Transaction fields, states, and fee mapping
+- **[Concepts Reference](terminology.md)** - Provider terminology guide
+- **[Ledger System Architecture](ledger-system-guide.md)** - How dual-ledger reconciliation works
 
