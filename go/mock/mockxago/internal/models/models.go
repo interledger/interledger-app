@@ -19,3 +19,24 @@ func (at *AccessToken) IsExpired() bool {
 func (at *AccessToken) IsValid() bool {
 	return at.Token != "" && !at.IsExpired()
 }
+
+// SubAccount represents a Xago sub-account
+type SubAccount struct {
+	ID                        string    `db:"id"`
+	WalletID                  string    `db:"wallet_id"`
+	AccountID                 string    `db:"account_id"`
+	FirstName                 string    `db:"first_name"`
+	LastName                  string    `db:"last_name"`
+	Email                     string    `db:"email"`
+	MobileNumber              string    `db:"mobile_number"`
+	IdentityType              string    `db:"identity_type"`
+	IDNumber                  string    `db:"id_number"`
+	PhysicalAddress           string    `db:"physical_address"`
+	ThirdPartyVerificationURL string    `db:"third_party_verification_url"`
+	DepositAddress            string    `db:"deposit_address"`
+	DepositTag                int       `db:"deposit_tag"`
+	DepositReferenceZAR       string    `db:"deposit_reference_zar"`
+	DepositReferenceUSD       string    `db:"deposit_reference_usd"`
+	CreatedAt                 time.Time `db:"created_at"`
+	UpdatedAt                 time.Time `db:"updated_at"`
+}

@@ -10,16 +10,20 @@ import (
 
 // MemoryStorage is an in-memory implementation of the Storage interface
 type MemoryStorage struct {
-	mu            sync.RWMutex
-	tokens        map[string]*models.AccessToken
-	tokenAccounts map[string]string
+	mu                  sync.RWMutex
+	tokens              map[string]*models.AccessToken
+	tokenAccounts       map[string]string
+	subAccounts         map[string]*models.SubAccount
+	subAccountsByWallet map[string]*models.SubAccount
 }
 
 // NewMemoryStorage creates a new in-memory storage
 func NewMemoryStorage() Storage {
 	return &MemoryStorage{
-		tokens:        make(map[string]*models.AccessToken),
-		tokenAccounts: make(map[string]string),
+		tokens:              make(map[string]*models.AccessToken),
+		tokenAccounts:       make(map[string]string),
+		subAccounts:         make(map[string]*models.SubAccount),
+		subAccountsByWallet: make(map[string]*models.SubAccount),
 	}
 }
 
@@ -89,6 +93,58 @@ func (m *MemoryStorage) Reset(ctx context.Context) error {
 
 	m.tokens = make(map[string]*models.AccessToken)
 	m.tokenAccounts = make(map[string]string)
+	m.subAccounts = make(map[string]*models.SubAccount)
+	m.subAccountsByWallet = make(map[string]*models.SubAccount)
 
+	return nil
+}
+
+// Sub-account operations
+
+func (m *MemoryStorage) SaveSubAccount(ctx context.Context, account *models.SubAccount) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	now := time.Now()
+	account.CreatedAt = now
+	account.UpdatedAt = now
+	m.subAccounts[account.AccountID] = account
+	if account.WalletID != "" {
+		m.subAccountsByWallet[account.WalletID] = account
+	}
+	return nil
+}
+
+func (m *MemoryStorage) GetSubAccount(ctx context.Context, accountID string) (*models.SubAccount, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	account, ok := m.subAccounts[accountID]
+	if !ok {
+		return nil, ErrSubAccountNotFound
+	}
+	return account, nil
+}
+
+func (m *MemoryStorage) GetSubAccountByWalletID(ctx context.Context, walletID string) (*models.SubAccount, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	account, ok := m.subAccountsByWallet[walletID]
+	if !ok {
+		return nil, ErrSubAccountNotFound
+	}
+	return account, nil
+}
+
+func (m *MemoryStorage) UpdateSubAccount(ctx context.Context, account *models.SubAccount) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	account.UpdatedAt = time.Now()
+	m.subAccounts[account.AccountID] = account
+	if account.WalletID != "" {
+		m.subAccountsByWallet[account.WalletID] = account
+	}
 	return nil
 }

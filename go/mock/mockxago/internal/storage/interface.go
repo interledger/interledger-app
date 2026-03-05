@@ -11,6 +11,7 @@ var (
 	ErrTokenNotFound       = errors.New("token not found")
 	ErrInvalidToken        = errors.New("invalid token")
 	ErrTokenExpired        = errors.New("token expired")
+	ErrSubAccountNotFound  = errors.New("sub-account not found")
 	ErrBeneficiaryNotFound = errors.New("beneficiary not found")
 )
 
@@ -22,6 +23,12 @@ type Storage interface {
 	InvalidateAccessToken(ctx context.Context, tokenValue string) error
 	SaveTokenAccount(ctx context.Context, tokenValue string, accountID string) error
 	GetAccountIDByToken(ctx context.Context, tokenValue string) (string, error)
+
+	// Sub-account operations
+	SaveSubAccount(ctx context.Context, account *models.SubAccount) error
+	GetSubAccount(ctx context.Context, accountID string) (*models.SubAccount, error)
+	GetSubAccountByWalletID(ctx context.Context, walletID string) (*models.SubAccount, error)
+	UpdateSubAccount(ctx context.Context, account *models.SubAccount) error
 
 	// Reset all data (for testing)
 	Reset(ctx context.Context) error
