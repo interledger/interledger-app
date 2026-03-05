@@ -15,6 +15,10 @@ on:
       db_name:
         required: true
         type: string
+      additional-tests:
+        required: false
+        type: string
+        description: 'Additional commands to run after unit tests (e.g., "make test")'
 
 jobs:
   run-go-tests:
@@ -102,6 +106,13 @@ jobs:
           else
             echo "::notice::coverage check passed ($COVERAGE_NUM% ≥ $THRESHOLD%)"
           fi
+        shell: bash
+
+      - name: Run additional tests
+        if: ${{ inputs.additional-tests != '' }}
+        run: |
+          set -e
+          ${{ inputs.additional-tests }}
         shell: bash
 
       - name: Upload coverage report
