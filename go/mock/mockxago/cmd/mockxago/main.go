@@ -106,6 +106,10 @@ func setupRoutes(router *chi.Mux, h *handler.Handler) {
 			pr.Post("/company/accounts", h.CreateSubAccount)
 			pr.Put("/company/accounts/{accountId}", h.UpdateSubAccount)
 			pr.Get("/company/accounts", h.GetSubAccountByWallet)
+
+			// Beneficiary management
+			pr.Post("/accounts/{accountId}/beneficiaries", h.AddBeneficiary)
+			pr.Get("/accounts/{accountId}/beneficiaries", h.ListBeneficiaries)
 		})
 	})
 

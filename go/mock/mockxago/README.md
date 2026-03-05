@@ -1,8 +1,8 @@
 # MockXago (Work in Progress)
 
-> **Status**: MockXago with authentication and sub-account management.
+> **Status**: MockXago with authentication, sub-account management, and beneficiary management.
 >
-> This iteration provides the core authentication/token flow plus sub-account management endpoints (create, update, retrieve by wallet). Additional features (beneficiaries, transfers, KYC, deposits, balances, jobs, currencies, etc.) will be added incrementally.
+> This iteration provides the core authentication/token flow, sub-account management endpoints (create, update, retrieve by wallet), and beneficiary management (add, list). Additional features (transfers, KYC, deposits, balances, jobs, currencies, etc.) will be added incrementally.
 
 MockXago is a lightweight mock of the Xago API used by the Interledger Wallet for local development and tests.
 
@@ -258,6 +258,110 @@ Update an existing sub-account. Requires a valid bearer token.
 Retrieve a sub-account by wallet ID. Requires a valid bearer token.
 
 **Response (success 200):** Same shape as the create response.
+
+### Beneficiary Management Endpoints
+
+Beneficiaries represent external bank accounts where funds can be transferred. All beneficiary endpoints require authentication (bearer token).
+
+#### POST /v1/accounts/{accountId}/beneficiaries
+
+Add a new beneficiary for a sub-account.
+
+**Request:**
+
+```json
+{
+  "name": "My ABSA Account",
+  "scope": "external",
+  "currencyCode": "ZAR",
+  "accountNumber": "1234567890",
+  "branchCode": "250155",
+  "bankName": "ABSA",
+  "accountName": "John Doe",
+  "reference": "My ABSA Account",
+  "isOwn": true
+}
+```
+
+Required fields: `name`, `accountNumber`
+
+**Response (success 200):**
+
+```json
+{
+  "uuid": "550e8400-e29b-41d4-a716-446655440001",
+  "name": "My ABSA Account",
+  "scope": "external",
+  "currencyCode": "ZAR",
+  "accountNumber": "1234567890",
+  "branchCode": "250155",
+  "bankName": "ABSA",
+  "accountName": "John Doe",
+  "reference": "My ABSA Account",
+  "isOwn": true,
+  "status": "pending"
+}
+```
+
+**Auto-Approval Behavior:** Beneficiaries are created with status `"pending"` and automatically transition to `"approved"` after 3 seconds (sandbox behavior).
+
+**Error (400):** Missing required fields (`name` or `accountNumber`)
+
+```json
+{
+  "error": "invalid_request",
+  "message": "name is required"
+}
+```
+
+**Error (404):** Sub-account not found
+
+```json
+{
+  "error": "not_found",
+  "message": "sub-account not found"
+}
+```
+
+#### GET /v1/accounts/{accountId}/beneficiaries
+
+List beneficiaries for a sub-account with pagination.
+
+**Query Parameters:**
+- `limit` (optional, default 10): Number of results per page
+- `page` (optional, default 1): Page number (1-indexed)
+
+**Example:** `GET /v1/accounts/{accountId}/beneficiaries?limit=10&page=2`
+
+**Response (success 200):**
+
+```json
+{
+  "data": [
+    {
+      "uuid": "550e8400-e29b-41d4-a716-446655440001",
+      "name": "My ABSA Account",
+      "scope": "external",
+      "currencyCode": "ZAR",
+      "accountNumber": "1234567890",
+      "branchCode": "250155",
+      "bankName": "ABSA",
+      "accountName": "John Doe",
+      "reference": "My ABSA Account",
+      "isOwn": true,
+      "status": "approved"
+    }
+  ],
+  "pagination": {
+    "limit": 10,
+    "page": 1,
+    "numberOfPages": 1,
+    "total": 1
+  }
+}
+```
+
+**Error (404):** Sub-account not found
 
 ### Test-Only Endpoints
 

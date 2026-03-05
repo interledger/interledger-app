@@ -30,6 +30,12 @@ type Storage interface {
 	GetSubAccountByWalletID(ctx context.Context, walletID string) (*models.SubAccount, error)
 	UpdateSubAccount(ctx context.Context, account *models.SubAccount) error
 
+	// Beneficiary operations
+	SaveBeneficiary(ctx context.Context, beneficiary *models.Beneficiary) error
+	GetBeneficiary(ctx context.Context, beneficiaryID string) (*models.Beneficiary, error)
+	ListBeneficiariesByWallet(ctx context.Context, accountID string, limit int, offset int) ([]*models.Beneficiary, int, error)
+	UpdateBeneficiaryStatus(ctx context.Context, beneficiaryID string, status string) error
+
 	// Reset all data (for testing)
 	Reset(ctx context.Context) error
 }

@@ -67,6 +67,7 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I have obtained a valid access token$`, tc.obtainValidAccessToken)
 	ctx.Step(`^I have obtained an access token that is about to expire$`, tc.obtainExpiringAccessToken)
 	ctx.Step(`^I have not obtained an access token$`, tc.clearAccessToken)
+	ctx.Step(`^I do not have a valid access token$`, tc.clearAccessToken)
 	ctx.Step(`^I have an invalid access token "([^"]*)"$`, tc.useInvalidAccessToken)
 
 	ctx.Step(`^I request a login token with valid credentials$`, tc.requestLoginTokenWithValidCredentials)
@@ -117,4 +118,39 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I retrieve sub-account information for "([^"]*)"$`, tc.retrieveSubAccountInfoForWallet)
 	ctx.Step(`^I get the correct sub-account associated with "([^"]*)"$`, tc.correctSubAccountAssociated)
 	ctx.Step(`^I do not get sub-accounts from other wallets$`, tc.subAccountIsolationConfirmed)
+
+	// Beneficiary management steps
+	ctx.Step(`^I add a beneficiary with the following details:$`, tc.addBeneficiaryWithDetails)
+	ctx.Step(`^I add a beneficiary with only required fields:$`, tc.addBeneficiaryWithRequiredFieldsOnly)
+	ctx.Step(`^I add a beneficiary with specific details:$`, tc.addBeneficiaryWithSpecificDetails)
+	ctx.Step(`^I attempt to add a beneficiary without name:$`, tc.attemptAddBeneficiaryWithoutName)
+	ctx.Step(`^I attempt to add a beneficiary without account number:$`, tc.attemptAddBeneficiaryWithoutAccountNumber)
+	ctx.Step(`^I attempt to add a beneficiary without authentication$`, tc.attemptAddBeneficiaryWithoutAuthentication)
+	ctx.Step(`^I attempt to list beneficiaries without authentication$`, tc.attemptListBeneficiariesWithoutAuthentication)
+
+	ctx.Step(`^I list the beneficiaries$`, tc.listBeneficiaries)
+	ctx.Step(`^I request to list beneficiaries with limit (\d+)$`, tc.requestListWithLimit)
+	ctx.Step(`^I request to list beneficiaries with limit (\d+) and page (\d+)$`, tc.requestListWithLimitAndPage)
+	ctx.Step(`^I list beneficiaries for wallet_aaa$`, tc.listBeneficiariesForWalletAAA)
+
+	ctx.Step(`^I have added a beneficiary with status "([^"]*)"$`, tc.haveAddedBeneficiaryWithStatus)
+	ctx.Step(`^I have added (\d+) beneficiaries to the sub-account$`, tc.haveAddedNBeneficiariesToSubAccount)
+	ctx.Step(`^I have added (\d+) beneficiaries$`, tc.haveAddedNBeneficiaries)
+	ctx.Step(`^I have created sub-accounts for two wallets$`, tc.haveCreatedSubAccountsForTwoWallets)
+	ctx.Step(`^I have added beneficiaries to wallet_aaa$`, tc.haveAddedBeneficiariesToWalletAAA)
+
+	ctx.Step(`^I wait (\d+) seconds for auto-approval$`, tc.waitNSecondsForAutoApproval)
+
+	ctx.Step(`^the response includes a beneficiary with:$`, tc.responseIncludesBeneficiaryWith)
+	ctx.Step(`^the beneficiary is created with status "([^"]*)"$`, tc.beneficiaryCreatedWithStatus)
+	ctx.Step(`^the beneficiary is created$`, tc.beneficiaryIsCreated)
+	ctx.Step(`^the beneficiary status has transitioned to "([^"]*)"$`, tc.beneficiaryStatusTransitionedTo)
+	ctx.Step(`^the response includes (\d+) beneficiaries$`, tc.responseIncludesNBeneficiaries)
+	ctx.Step(`^each beneficiary includes required fields$`, tc.eachBeneficiaryHasRequiredFields)
+	ctx.Step(`^the pagination shows numberOfPages is (\d+)$`, tc.paginationShowsNumberOfPages)
+	ctx.Step(`^the UUIDs are different$`, tc.uuidsAreDifferent)
+	ctx.Step(`^each UUID is unique$`, tc.eachUUIDIsUnique)
+	ctx.Step(`^I get the correct beneficiaries$`, tc.getCorrectBeneficiaries)
+	ctx.Step(`^I do not get beneficiaries from wallet_bbb$`, tc.doNotGetBeneficiariesFromWalletBBB)
+	ctx.Step(`^the beneficiary details match exactly:$`, tc.beneficiaryDetailsMatchExactly)
 }

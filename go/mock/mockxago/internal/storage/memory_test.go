@@ -146,3 +146,39 @@ func TestMemoryStorage_UpdateSubAccount(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "456 Oak Ave", retrieved.PhysicalAddress)
 }
+
+func TestMemoryStorage_SaveBeneficiary(t *testing.T) {
+	store := NewMemoryStorage()
+	beneficiary := &models.Beneficiary{
+		ID:       "ben1",
+		WalletID: "wallet1",
+		BankName: "Test Bank",
+		Status:   "active",
+	}
+
+	err := store.SaveBeneficiary(context.Background(), beneficiary)
+	assert.NoError(t, err)
+
+	retrieved, err := store.GetBeneficiary(context.Background(), "ben1")
+	assert.NoError(t, err)
+	assert.NotNil(t, retrieved)
+}
+
+func TestMemoryStorage_ListBeneficiariesByWallet(t *testing.T) {
+	store := NewMemoryStorage()
+
+	for i := 0; i < 5; i++ {
+		beneficiary := &models.Beneficiary{
+			ID:        "ben" + string(rune(i)),
+			AccountID: "account1",
+			WalletID:  "wallet1",
+			BankName:  "Bank " + string(rune(i)),
+		}
+		store.SaveBeneficiary(context.Background(), beneficiary)
+	}
+
+	beneficiaries, total, err := store.ListBeneficiariesByWallet(context.Background(), "account1", 3, 0)
+	assert.NoError(t, err)
+	assert.Equal(t, 5, total)
+	assert.Equal(t, 3, len(beneficiaries))
+}
