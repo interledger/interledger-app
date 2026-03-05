@@ -26,6 +26,9 @@ export default defineConfig({
     sourcemap: process.env.NODE_ENV === 'production' ? 'hidden' : true,
   },
 
+  optimizeDeps: {
+    include: ['@sentry/react-router', 'react-router', 'react', 'react-dom']
+  },
   plugins: [
     reactRouter(),
     tsconfigPaths(),
