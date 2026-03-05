@@ -10,20 +10,24 @@ import (
 
 // MemoryStorage is an in-memory implementation of the Storage interface
 type MemoryStorage struct {
-	mu                  sync.RWMutex
-	tokens              map[string]*models.AccessToken
-	tokenAccounts       map[string]string
-	subAccounts         map[string]*models.SubAccount
-	subAccountsByWallet map[string]*models.SubAccount
+	mu                    sync.RWMutex
+	tokens                map[string]*models.AccessToken
+	tokenAccounts         map[string]string
+	subAccounts           map[string]*models.SubAccount
+	subAccountsByWallet   map[string]*models.SubAccount
+	beneficiaries         map[string]*models.Beneficiary
+	beneficiariesByWallet map[string][]*models.Beneficiary
 }
 
 // NewMemoryStorage creates a new in-memory storage
 func NewMemoryStorage() Storage {
 	return &MemoryStorage{
-		tokens:              make(map[string]*models.AccessToken),
-		tokenAccounts:       make(map[string]string),
-		subAccounts:         make(map[string]*models.SubAccount),
-		subAccountsByWallet: make(map[string]*models.SubAccount),
+		tokens:                make(map[string]*models.AccessToken),
+		tokenAccounts:         make(map[string]string),
+		subAccounts:           make(map[string]*models.SubAccount),
+		subAccountsByWallet:   make(map[string]*models.SubAccount),
+		beneficiaries:         make(map[string]*models.Beneficiary),
+		beneficiariesByWallet: make(map[string][]*models.Beneficiary),
 	}
 }
 
@@ -95,6 +99,8 @@ func (m *MemoryStorage) Reset(ctx context.Context) error {
 	m.tokenAccounts = make(map[string]string)
 	m.subAccounts = make(map[string]*models.SubAccount)
 	m.subAccountsByWallet = make(map[string]*models.SubAccount)
+	m.beneficiaries = make(map[string]*models.Beneficiary)
+	m.beneficiariesByWallet = make(map[string][]*models.Beneficiary)
 
 	return nil
 }
@@ -146,5 +152,67 @@ func (m *MemoryStorage) UpdateSubAccount(ctx context.Context, account *models.Su
 	if account.WalletID != "" {
 		m.subAccountsByWallet[account.WalletID] = account
 	}
+	return nil
+}
+
+// Beneficiary operations
+
+func (m *MemoryStorage) SaveBeneficiary(ctx context.Context, beneficiary *models.Beneficiary) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	beneficiary.CreatedAt = time.Now()
+	beneficiary.UpdatedAt = time.Now()
+	m.beneficiaries[beneficiary.ID] = beneficiary
+	// Index by AccountID for querying beneficiaries associated with a specific account
+	m.beneficiariesByWallet[beneficiary.AccountID] = append(m.beneficiariesByWallet[beneficiary.AccountID], beneficiary)
+	return nil
+}
+
+func (m *MemoryStorage) GetBeneficiary(ctx context.Context, beneficiaryID string) (*models.Beneficiary, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	beneficiary, ok := m.beneficiaries[beneficiaryID]
+	if !ok {
+		return nil, ErrBeneficiaryNotFound
+	}
+
+	return beneficiary, nil
+}
+
+func (m *MemoryStorage) ListBeneficiariesByWallet(ctx context.Context, accountID string, limit int, offset int) ([]*models.Beneficiary, int, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	beneficiaries, ok := m.beneficiariesByWallet[accountID]
+	if !ok {
+		return []*models.Beneficiary{}, 0, nil
+	}
+
+	total := len(beneficiaries)
+	end := offset + limit
+	if end > total {
+		end = total
+	}
+
+	if offset >= total {
+		return []*models.Beneficiary{}, total, nil
+	}
+
+	return beneficiaries[offset:end], total, nil
+}
+
+func (m *MemoryStorage) UpdateBeneficiaryStatus(ctx context.Context, beneficiaryID string, status string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	beneficiary, ok := m.beneficiaries[beneficiaryID]
+	if !ok {
+		return ErrBeneficiaryNotFound
+	}
+
+	beneficiary.Status = status
+	beneficiary.UpdatedAt = time.Now()
 	return nil
 }

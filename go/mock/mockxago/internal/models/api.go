@@ -79,3 +79,45 @@ type ErrorResponse struct {
 	Error   string `json:"error"`
 	Message string `json:"message,omitempty"`
 }
+
+// AddBeneficiaryRequest represents the payload for adding a beneficiary
+type AddBeneficiaryRequest struct {
+	Name          string `json:"name"`
+	Scope         string `json:"scope"`
+	CurrencyCode  string `json:"currencyCode"`
+	AccountNumber string `json:"accountNumber"`
+	BranchCode    string `json:"branchCode"`
+	BankName      string `json:"bankName"`
+	AccountName   string `json:"accountName"`
+	Reference     string `json:"reference"`
+	IsOwn         bool   `json:"isOwn"`
+}
+
+// BeneficiaryItem represents a single beneficiary in API responses
+type BeneficiaryItem struct {
+	UUID          string `json:"uuid"`
+	Name          string `json:"name"`
+	Scope         string `json:"scope"`
+	CurrencyCode  string `json:"currencyCode"`
+	AccountNumber string `json:"accountNumber"`
+	BranchCode    string `json:"branchCode"`
+	BankName      string `json:"bankName"`
+	AccountName   string `json:"accountName"`
+	Reference     string `json:"reference"`
+	IsOwn         bool   `json:"isOwn"`
+	Status        string `json:"status"`
+}
+
+// BeneficiaryPagination represents pagination info in list responses
+type BeneficiaryPagination struct {
+	Limit         int `json:"limit"`
+	Page          int `json:"page"`
+	NumberOfPages int `json:"numberOfPages"`
+	Total         int `json:"total"`
+}
+
+// ListBeneficiariesResponse represents the paginated list of beneficiaries
+type ListBeneficiariesResponse struct {
+	Data       []BeneficiaryItem     `json:"data"`
+	Pagination BeneficiaryPagination `json:"pagination"`
+}
