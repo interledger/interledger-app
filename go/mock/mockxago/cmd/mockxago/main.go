@@ -12,6 +12,7 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"gitlab.com/fynbos/mock/mockxago/internal/handler"
+	"gitlab.com/fynbos/mock/mockxago/internal/jobs"
 	"gitlab.com/fynbos/mock/mockxago/internal/logger"
 	"gitlab.com/fynbos/mock/mockxago/internal/storage"
 )
@@ -32,33 +33,36 @@ func main() {
 		port = "8080"
 	}
 
-	if os.Getenv("XAGO_API_PUBLIC_KEY") == "" {
-		defaultPublicKey := "test-public-key"
-		if err := os.Setenv("XAGO_API_PUBLIC_KEY", defaultPublicKey); err != nil {
-			logger.Errorf("Failed to set default XAGO_API_PUBLIC_KEY: %v", err)
-		} else {
-			logger.Infof("Using default XAGO_API_PUBLIC_KEY: %s", defaultPublicKey)
-		}
+	publicKey := os.Getenv("XAGO_API_PUBLIC_KEY")
+	if publicKey == "" {
+		publicKey = "test-public-key"
+		logger.Infof("Using default XAGO_API_PUBLIC_KEY: %s", publicKey)
 	}
 
-	if os.Getenv("XAGO_API_SECRET") == "" {
-		defaultSecret := "test-secret"
-		if err := os.Setenv("XAGO_API_SECRET", defaultSecret); err != nil {
-			logger.Errorf("Failed to set default XAGO_API_SECRET: %v", err)
-		} else {
-			logger.Infof("Using default XAGO_API_SECRET: %s", defaultSecret)
-		}
+	secret := os.Getenv("XAGO_API_SECRET")
+	if secret == "" {
+		secret = "test-secret"
+		logger.Infof("Using default XAGO_API_SECRET: %s", secret)
 	}
 
-	// Initialize in-memory storage
-	store := storage.NewMemoryStorage()
+	// Initialize storage (in-memory only for now)
+	var store storage.Storage
+	store = storage.NewMemoryStorage()
 	logger.Infof("Initialized in-memory storage")
+
+	// Initialize job queue and worker
+	queue := jobs.NewQueue(store)
+	worker := jobs.NewWorker(queue)
 
 	// Initialize router
 	router := chi.NewRouter()
 
 	// Create handler
-	h := handler.NewHandler(store)
+	h := handler.NewHandler(store, queue)
+
+	// Start job worker in background
+	worker.StartAsync()
+	logger.Infof("Job worker started")
 
 	// Setup routes
 	setupRoutes(router, h)
@@ -85,6 +89,10 @@ func main() {
 	// Graceful shutdown
 	logger.Infof("Shutting down server...")
 
+	// Stop worker first
+	worker.Stop()
+	logger.Infof("Job worker stopped")
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -102,19 +110,38 @@ func setupRoutes(router *chi.Mux, h *handler.Handler) {
 
 		r.Group(func(pr chi.Router) {
 			pr.Use(h.AuthMiddleware)
-			pr.Get("/example-route", h.ExampleProtectedRoute)
 			pr.Post("/company/accounts", h.CreateSubAccount)
 			pr.Put("/company/accounts/{accountId}", h.UpdateSubAccount)
 			pr.Get("/company/accounts", h.GetSubAccountByWallet)
-
-			// Beneficiary management
+			pr.Get("/accounts/{accountId}/balance", h.GetBalance)
 			pr.Post("/accounts/{accountId}/beneficiaries", h.AddBeneficiary)
 			pr.Get("/accounts/{accountId}/beneficiaries", h.ListBeneficiaries)
-		})
-	})
 
-	// Test-only endpoint (outside auth middleware)
-	router.Post("/v1/test/reset", h.TestReset)
+			// Global beneficiary endpoints (API compliance aliases)
+			pr.Post("/beneficiaries", h.AddBeneficiaryGlobal)
+			pr.Get("/beneficiaries", h.ListBeneficiariesGlobal)
+
+			pr.Get("/currencies", h.ListCurrencies)
+
+			pr.Post("/transfers", h.CreateTransfer)
+			pr.Get("/transfers", h.ListTransfers)
+			pr.Get("/transfers/{id}", h.GetTransaction)
+			pr.Get("/company/transactions", h.ListTransactions)
+			pr.Get("/company/transactions/{id}", h.GetTransaction)
+
+			// Transaction query endpoint (API compliance)
+			pr.Get("/transactions", h.GetTransactionByQuery)
+
+			pr.Post("/test/balances/set", h.TestSetBalance)
+			pr.Post("/test/balances/deposit", h.TestDeposit)
+			pr.Post("/test/balances/transfer", h.TestTransfer)
+			pr.Post("/test/transactions", h.TestCreateTransaction)
+			pr.Post("/test/deposits/clear", h.TestClearDeposits)
+		})
+
+		// Reset endpoint (outside auth middleware, but protected by ensureTestMode)
+		r.Post("/test/reset", h.TestReset)
+	})
 
 	// Health check
 	router.Get("/health", func(w http.ResponseWriter, r *http.Request) {

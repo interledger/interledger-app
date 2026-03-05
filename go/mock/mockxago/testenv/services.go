@@ -1,5 +1,3 @@
-//go:build e2e
-
 package main
 
 import (
@@ -12,11 +10,9 @@ import (
 
 func startServices() error {
 	cmd := exec.Command("docker", "compose", "-f", "docker-compose.yml", "up", "-d", "--build", "--force-recreate")
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("failed to start docker compose services: %v\nOutput:\n%s", err, string(output))
-	}
-	return nil
+	cmd.Stdout = nil
+	cmd.Stderr = nil
+	return cmd.Run()
 }
 
 // dumpLogs saves all container logs to testenv/lastlogs.txt for post-mortem analysis.
@@ -47,9 +43,8 @@ func cleanup() {
 }
 
 func waitForServices() error {
-	client := &http.Client{Timeout: 5 * time.Second}
 	for i := 0; i < maxWaitSeconds; i++ {
-		resp, err := client.Get(mockXagoURL + "/health")
+		resp, err := http.Get(mockXagoURL + "/health")
 		if err == nil && resp.StatusCode == http.StatusOK {
 			resp.Body.Close()
 			return nil

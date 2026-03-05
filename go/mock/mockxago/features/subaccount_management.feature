@@ -9,13 +9,13 @@ Feature: Xago Sub-Account Management
 
   Scenario: Create a sub-account successfully
     When I create a sub-account with the following details:
-      | firstName                 | John                                                    |
-      | lastName                  | Doe                                                     |
-      | email                     | john@example.com                                        |
-      | mobileNumber              | +27123456789                                            |
-      | identityType              | individual                                              |
-      | idNumber                  | 9001011234567                                           |
-      | physicalAddress           | 123 Main St, Cape Town, SA                              |
+      | firstName               | John                                        |
+      | lastName                | Doe                                         |
+      | email                   | john@example.com                            |
+      | mobileNumber            | +27123456789                                |
+      | identityType            | individual                                  |
+      | idNumber                | 9001011234567                              |
+      | physicalAddress         | 123 Main St, Cape Town, SA                  |
       | thirdPartyVerificationUrl | https://app.withpersona.com/dashboard/inquiries/inq_123 |
     Then I receive a successful response with status code 200
     And the sub-account is created with:
@@ -28,13 +28,13 @@ Feature: Xago Sub-Account Management
 
   Scenario: Create sub-account with minimal required fields
     When I create a sub-account with only required fields:
-      | firstName                 | Jane                                                    |
-      | lastName                  | Smith                                                   |
-      | email                     | jane@example.com                                        |
-      | mobileNumber              | +27987654321                                            |
-      | identityType              | individual                                              |
-      | idNumber                  | 8512301234567                                           |
-      | physicalAddress           | 456 Oak Ave, Johannesburg, SA                           |
+      | firstName               | Jane                                        |
+      | lastName                | Smith                                       |
+      | email                   | jane@example.com                            |
+      | mobileNumber            | +27987654321                                |
+      | identityType            | individual                                  |
+      | idNumber                | 8512301234567                              |
+      | physicalAddress         | 456 Oak Ave, Johannesburg, SA              |
       | thirdPartyVerificationUrl | https://app.withpersona.com/dashboard/inquiries/inq_456 |
     Then I receive a successful response with status code 200
     And a new sub-account is created
@@ -42,62 +42,62 @@ Feature: Xago Sub-Account Management
 
   Scenario: Reject sub-account creation with missing firstName
     When I attempt to create a sub-account without firstName:
-      | lastName                  | Doe                                                     |
-      | email                     | john@example.com                                        |
-      | mobileNumber              | +27123456789                                            |
-      | identityType              | individual                                              |
-      | idNumber                  | 9001011234567                                           |
-      | physicalAddress           | 123 Main St, Cape Town, SA                              |
+      | lastName                | Doe                                         |
+      | email                   | john@example.com                            |
+      | mobileNumber            | +27123456789                                |
+      | identityType            | individual                                  |
+      | idNumber                | 9001011234567                              |
+      | physicalAddress         | 123 Main St, Cape Town, SA                  |
       | thirdPartyVerificationUrl | https://app.withpersona.com/dashboard/inquiries/inq_123 |
     Then I receive an error response with status code 400
     And the error message contains "firstName is required"
 
   Scenario: Reject sub-account creation with missing lastName
     When I attempt to create a sub-account without lastName:
-      | firstName                 | John                                                    |
-      | email                     | john@example.com                                        |
-      | mobileNumber              | +27123456789                                            |
-      | identityType              | individual                                              |
-      | idNumber                  | 9001011234567                                           |
-      | physicalAddress           | 123 Main St, Cape Town, SA                              |
+      | firstName               | John                                        |
+      | email                   | john@example.com                            |
+      | mobileNumber            | +27123456789                                |
+      | identityType            | individual                                  |
+      | idNumber                | 9001011234567                              |
+      | physicalAddress         | 123 Main St, Cape Town, SA                  |
       | thirdPartyVerificationUrl | https://app.withpersona.com/dashboard/inquiries/inq_123 |
     Then I receive an error response with status code 400
     And the error message contains "lastName is required"
 
   Scenario: Reject sub-account creation with missing email
     When I attempt to create a sub-account without email:
-      | firstName                 | John                                                    |
-      | lastName                  | Doe                                                     |
-      | mobileNumber              | +27123456789                                            |
-      | identityType              | individual                                              |
-      | idNumber                  | 9001011234567                                           |
-      | physicalAddress           | 123 Main St, Cape Town, SA                              |
+      | firstName               | John                                        |
+      | lastName                | Doe                                         |
+      | mobileNumber            | +27123456789                                |
+      | identityType            | individual                                  |
+      | idNumber                | 9001011234567                              |
+      | physicalAddress         | 123 Main St, Cape Town, SA                  |
       | thirdPartyVerificationUrl | https://app.withpersona.com/dashboard/inquiries/inq_123 |
     Then I receive an error response with status code 400
     And the error message contains "email is required"
 
   Scenario: Sub-account includes deposit reference for routing
     When I create a sub-account with the following details:
-      | firstName                 | Bob                                                     |
-      | lastName                  | Johnson                                                 |
-      | email                     | bob@example.com                                         |
-      | mobileNumber              | +27111222333                                            |
-      | identityType              | individual                                              |
-      | idNumber                  | 8501121234567                                           |
-      | physicalAddress           | 789 Pine Rd, Durban, SA                                 |
+      | firstName               | Bob                                         |
+      | lastName                | Johnson                                     |
+      | email                   | bob@example.com                             |
+      | mobileNumber            | +27111222333                                |
+      | identityType            | individual                                  |
+      | idNumber                | 8501121234567                              |
+      | physicalAddress         | 789 Pine Rd, Durban, SA                     |
       | thirdPartyVerificationUrl | https://app.withpersona.com/dashboard/inquiries/inq_789 |
     Then I receive a successful response with status code 200
     And the beneficiaries in the response include:
-      | beneficiaryType  | rollup                                    |
-      | depositReference | (contains wallet ID and currency)         |
+      | beneficiaryType | rollup   |
+      | depositReference | (contains wallet ID and currency) |
     And each currency has a unique deposit reference
 
   Scenario: Update sub-account with new verification URL
     Given I have created a sub-account for wallet "wallet_123"
     When I update the sub-account with new details:
       | thirdPartyVerificationUrl | https://app.withpersona.com/dashboard/inquiries/inq_999 |
-      | idNumber                  | 9001011234567                                           |
-      | physicalAddress           | 999 Updated St, Cape Town, SA                           |
+      | idNumber                | 9001011234567                              |
+      | physicalAddress         | 999 Updated St, Cape Town, SA              |
     Then I receive a successful response with status code 200
     And the sub-account is updated with the new verification URL
     And the response contains updated status confirmation

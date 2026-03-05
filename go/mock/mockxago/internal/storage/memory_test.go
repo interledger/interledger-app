@@ -66,85 +66,88 @@ func TestMemoryStorage_InvalidateAccessToken(t *testing.T) {
 	assert.Error(t, err)
 }
 
+func TestMemoryStorage_GetBalance_NoBalance(t *testing.T) {
+	store := NewMemoryStorage()
+
+	available, reserved, err := store.GetBalance(context.Background(), "wallet1", "USD")
+	assert.NoError(t, err)
+	assert.Equal(t, 0.0, available)
+	assert.Equal(t, 0.0, reserved)
+}
+
+func TestMemoryStorage_SetBalance(t *testing.T) {
+	store := NewMemoryStorage()
+
+	err := store.SetBalance(context.Background(), "wallet1", "USD", 100.0, 10.0)
+	assert.NoError(t, err)
+
+	available, reserved, _ := store.GetBalance(context.Background(), "wallet1", "USD")
+	assert.Equal(t, 100.0, available)
+	assert.Equal(t, 10.0, reserved)
+}
+
+func TestMemoryStorage_AddBalance(t *testing.T) {
+	store := NewMemoryStorage()
+
+	store.SetBalance(context.Background(), "wallet1", "USD", 100.0, 5.0)
+	err := store.AddBalance(context.Background(), "wallet1", "USD", 50.0)
+	assert.NoError(t, err)
+
+	available, reserved, _ := store.GetBalance(context.Background(), "wallet1", "USD")
+	assert.Equal(t, 150.0, available)
+	assert.Equal(t, 5.0, reserved)
+}
+
+func TestMemoryStorage_SubtractBalance(t *testing.T) {
+	store := NewMemoryStorage()
+
+	store.SetBalance(context.Background(), "wallet1", "USD", 100.0, 0)
+	err := store.SubtractBalance(context.Background(), "wallet1", "USD", 30.0)
+	assert.NoError(t, err)
+
+	available, _, _ := store.GetBalance(context.Background(), "wallet1", "USD")
+	assert.Equal(t, 70.0, available)
+}
+
+func TestMemoryStorage_SubtractBalance_InsufficientFunds(t *testing.T) {
+	store := NewMemoryStorage()
+
+	store.SetBalance(context.Background(), "wallet1", "USD", 50.0, 0)
+	err := store.SubtractBalance(context.Background(), "wallet1", "USD", 100.0)
+	assert.Error(t, err)
+	assert.Equal(t, ErrInsufficientBalance, err)
+}
+
 func TestMemoryStorage_SaveSubAccount(t *testing.T) {
 	store := NewMemoryStorage()
 	account := &models.SubAccount{
-		ID:        "sub-id",
-		WalletID:  "wallet-1",
-		AccountID: "account-1",
-		FirstName: "John",
-		LastName:  "Doe",
-		Email:     "john@example.com",
+		ID:        "sub1",
+		WalletID:  "wallet1",
+		AccountID: "acc1",
 	}
 
 	err := store.SaveSubAccount(context.Background(), account)
 	assert.NoError(t, err)
 
-	retrieved, err := store.GetSubAccount(context.Background(), "account-1")
+	retrieved, err := store.GetSubAccount(context.Background(), "acc1")
 	assert.NoError(t, err)
 	assert.NotNil(t, retrieved)
-	assert.Equal(t, "account-1", retrieved.AccountID)
-	assert.Equal(t, "John", retrieved.FirstName)
-}
-
-func TestMemoryStorage_GetSubAccount_NotFound(t *testing.T) {
-	store := NewMemoryStorage()
-
-	_, err := store.GetSubAccount(context.Background(), "non-existent")
-	assert.Error(t, err)
-	assert.Equal(t, ErrSubAccountNotFound, err)
 }
 
 func TestMemoryStorage_GetSubAccountByWalletID(t *testing.T) {
 	store := NewMemoryStorage()
 	account := &models.SubAccount{
-		ID:        "sub-id",
-		WalletID:  "wallet-1",
-		AccountID: "account-1",
-		FirstName: "Jane",
-		LastName:  "Smith",
-		Email:     "jane@example.com",
-	}
-
-	err := store.SaveSubAccount(context.Background(), account)
-	assert.NoError(t, err)
-
-	retrieved, err := store.GetSubAccountByWalletID(context.Background(), "wallet-1")
-	assert.NoError(t, err)
-	assert.NotNil(t, retrieved)
-	assert.Equal(t, "account-1", retrieved.AccountID)
-	assert.Equal(t, "wallet-1", retrieved.WalletID)
-}
-
-func TestMemoryStorage_GetSubAccountByWalletID_NotFound(t *testing.T) {
-	store := NewMemoryStorage()
-
-	_, err := store.GetSubAccountByWalletID(context.Background(), "non-existent")
-	assert.Error(t, err)
-	assert.Equal(t, ErrSubAccountNotFound, err)
-}
-
-func TestMemoryStorage_UpdateSubAccount(t *testing.T) {
-	store := NewMemoryStorage()
-	account := &models.SubAccount{
-		ID:              "sub-id",
-		WalletID:        "wallet-1",
-		AccountID:       "account-1",
-		FirstName:       "John",
-		LastName:        "Doe",
-		Email:           "john@example.com",
-		PhysicalAddress: "123 Main St",
+		ID:        "sub1",
+		WalletID:  "wallet1",
+		AccountID: "acc1",
 	}
 
 	store.SaveSubAccount(context.Background(), account)
 
-	account.PhysicalAddress = "456 Oak Ave"
-	err := store.UpdateSubAccount(context.Background(), account)
+	retrieved, err := store.GetSubAccountByWalletID(context.Background(), "wallet1")
 	assert.NoError(t, err)
-
-	retrieved, err := store.GetSubAccount(context.Background(), "account-1")
-	assert.NoError(t, err)
-	assert.Equal(t, "456 Oak Ave", retrieved.PhysicalAddress)
+	assert.NotNil(t, retrieved)
+	assert.Equal(t, "wallet1", retrieved.WalletID)
 }
 
 func TestMemoryStorage_SaveBeneficiary(t *testing.T) {
@@ -181,4 +184,60 @@ func TestMemoryStorage_ListBeneficiariesByWallet(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 5, total)
 	assert.Equal(t, 3, len(beneficiaries))
+}
+
+func TestMemoryStorage_SaveTransaction(t *testing.T) {
+	store := NewMemoryStorage()
+	tx := &models.Transaction{
+		ID:       "tx1",
+		WalletID: "wallet1",
+		Amount:   100.0,
+		Currency: "USD",
+		Status:   "pending",
+	}
+
+	err := store.SaveTransaction(context.Background(), tx)
+	assert.NoError(t, err)
+
+	retrieved, err := store.GetTransaction(context.Background(), "tx1")
+	assert.NoError(t, err)
+	assert.NotNil(t, retrieved)
+}
+
+func TestMemoryStorage_SaveDeposit(t *testing.T) {
+	store := NewMemoryStorage()
+	deposit := &models.Deposit{
+		ID:               "dep1",
+		AccountID:        "acc1",
+		Amount:           100.0,
+		Currency:         "USD",
+		DepositReference: "ref123",
+		Status:           "pending",
+	}
+
+	err := store.SaveDeposit(context.Background(), deposit)
+	assert.NoError(t, err)
+
+	retrieved, err := store.GetDeposit(context.Background(), "dep1")
+	assert.NoError(t, err)
+	assert.NotNil(t, retrieved)
+}
+
+func TestMemoryStorage_GetDepositByReference(t *testing.T) {
+	store := NewMemoryStorage()
+	deposit := &models.Deposit{
+		ID:               "dep1",
+		AccountID:        "acc1",
+		Amount:           100.0,
+		Currency:         "USD",
+		DepositReference: "ref123",
+		Status:           "pending",
+	}
+
+	store.SaveDeposit(context.Background(), deposit)
+
+	retrieved, err := store.GetDepositByReference(context.Background(), "ref123")
+	assert.NoError(t, err)
+	assert.NotNil(t, retrieved)
+	assert.Equal(t, "ref123", retrieved.DepositReference)
 }

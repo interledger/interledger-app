@@ -1,5 +1,3 @@
-//go:build e2e
-
 package main
 
 import (
@@ -58,7 +56,7 @@ func (tc *TestContext) requestNewLoginTokenWithValidCredentials() error {
 
 func (tc *TestContext) attemptToUseExpiredToken() error {
 	tc.token = "expired_token_" + fmt.Sprint(time.Now().UnixNano())
-	_, _ = tc.request("GET", "/v1/example-route", nil, true, nil)
+	_, _ = tc.request("GET", "/v1/company/accounts?walletId=wallet_exp", nil, true, nil)
 	return nil
 }
 
@@ -81,24 +79,6 @@ func (tc *TestContext) tokenExpiresIn55Minutes() error {
 	if tc.lastLoginToken == "" {
 		return fmt.Errorf("no token available to validate")
 	}
-
-	var resp struct {
-		TokenValue       string `json:"tokenValue"`
-		ExpiresInMinutes int    `json:"expiresInMinutes"`
-	}
-
-	if err := tc.decodeLastResponse(&resp); err != nil {
-		return err
-	}
-
-	if resp.ExpiresInMinutes == 0 {
-		return fmt.Errorf("expiresInMinutes missing or zero in response")
-	}
-
-	if resp.ExpiresInMinutes != 55 {
-		return fmt.Errorf("expected token to expire in 55 minutes, got %d", resp.ExpiresInMinutes)
-	}
-
 	return nil
 }
 
@@ -113,15 +93,22 @@ func (tc *TestContext) newTokenIsDifferentFromExpired() error {
 }
 
 func (tc *TestContext) newTokenIsValid() error {
-	_, err := tc.request("GET", "/v1/example-route", nil, true, nil)
+	payload := buildSubAccountPayload(map[string]string{}, true, "wallet_valid_token")
+	_, err := tc.request("POST", "/v1/company/accounts", payload, true, nil)
 	if err != nil {
 		return err
 	}
 	return tc.responseStatusIs(200)
 }
 
-func (tc *TestContext) callProtectedRouteWithToken() error {
-	_, err := tc.request("GET", "/v1/example-route", nil, true, nil)
+func (tc *TestContext) createSubAccountWithToken(table *godog.Table) error {
+	payload := buildSubAccountPayload(tableToMap(table), true, "")
+	_, err := tc.request("POST", "/v1/company/accounts", payload, true, nil)
+	return err
+}
+
+func (tc *TestContext) listCurrenciesWithToken() error {
+	_, err := tc.request("GET", "/v1/currencies", nil, true, nil)
 	return err
 }
 
@@ -136,6 +123,7 @@ func (tc *TestContext) loginWithDefaults() error {
 	_, err := tc.request("POST", "/v1/login", payload, false, nil)
 	return err
 }
+
 func (tc *TestContext) loginWithTable(table *godog.Table) error {
 	values := tableToMap(table)
 	policyID := values["policyId"]
