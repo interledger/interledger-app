@@ -19,13 +19,14 @@ var userID = uuid.NewString()
 var walletID = uuid.NewString()
 var gatehubUserID = uuid.NewString()
 var totpURL = fmt.Sprintf("otpauth://totp/local.interledger.app:%s?algorithm=SHA1&digits=6&issuer=local.interledger.app&period=30&secret=EGO3DEBFSF6Q3RKNRENIQ7XT7JO76MFA", userID)
+var now = time.Now()
 
 var seed = fmt.Sprintf(`
 INSERT INTO wallets (id, name) VALUES ('%s', 'testingwallet') ON CONFLICT DO NOTHING;
 INSERT INTO gatehub_users (external_id, wallet_id) values ('%s', '%s') ON CONFLICT DO NOTHING;
 `, walletID, gatehubUserID, walletID)
 
-func TestHandleSCAVerification_Invalid(t *testing.T) {
+func TestHandleSCAVerification(t *testing.T) {
 	ctx := context.Background()
 	db := db.MigrateTestDB(t, ctx)
 	users := user_mock.NewMock()
@@ -130,7 +131,7 @@ func TestHandleSCAVerification_Invalid(t *testing.T) {
 			if tc.before != nil {
 				tc.before()
 			}
-			res := ops.HandleSCAVerification(ctx, b, tc.req, tc.gatehubUserID)
+			res := ops.HandleSCAVerification(ctx, b, tc.req, tc.gatehubUserID, now)
 			assert.Equal(t, tc.expected, res)
 			if tc.after != nil {
 				tc.after()

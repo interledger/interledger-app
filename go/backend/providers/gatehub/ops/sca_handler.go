@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
@@ -106,7 +107,7 @@ func NewSCAHandler(b Backends, cfg gatehub.Config) http.HandlerFunc {
 			log.Info("received SCA initiate request. SMS initation not implemented", zap.String("gatehub-user-id", gatehubUserID))
 			sendResponse(w, failRespJSON)
 		case SCAActionVerify:
-			valid := HandleSCAVerification(r.Context(), b, sr, gatehubUserID)
+			valid := HandleSCAVerification(r.Context(), b, sr, gatehubUserID, time.Now())
 			resp.Success = valid
 
 			json, err := json.Marshal(resp)
@@ -123,7 +124,7 @@ func NewSCAHandler(b Backends, cfg gatehub.Config) http.HandlerFunc {
 	}
 }
 
-func HandleSCAVerification(ctx context.Context, b Backends, req SCARequest, gatehubUserID string) bool {
+func HandleSCAVerification(ctx context.Context, b Backends, req SCARequest, gatehubUserID string, t time.Time) bool {
 	if req.Code == nil {
 		return false
 	}
@@ -163,7 +164,19 @@ func HandleSCAVerification(ctx context.Context, b Backends, req SCARequest, gate
 		return false
 	}
 
-	return totp.Validate(*req.Code, otpKey.Secret())
+	valid, err := totp.ValidateCustom(*req.Code, otpKey.Secret(), t, totp.ValidateOpts{
+		Period:    30,
+		Skew:      1,
+		Digits:    otpKey.Digits(),
+		Algorithm: otpKey.Algorithm(),
+	})
+
+	if err != nil {
+		log.Error("failed to validate totp", zap.Error(err))
+		return false
+	}
+
+	return valid
 }
 
 // sendResponse is a helper function to send the SCA response.
