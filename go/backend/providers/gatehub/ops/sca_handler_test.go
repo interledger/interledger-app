@@ -4,8 +4,11 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
+	"github.com/pquerna/otp"
+	"github.com/pquerna/otp/totp"
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/providers/gatehub/ops"
@@ -16,14 +19,13 @@ var userID = uuid.NewString()
 var walletID = uuid.NewString()
 var gatehubUserID = uuid.NewString()
 var totpURL = fmt.Sprintf("otpauth://totp/local.interledger.app:%s?algorithm=SHA1&digits=6&issuer=local.interledger.app&period=30&secret=EGO3DEBFSF6Q3RKNRENIQ7XT7JO76MFA", userID)
-var code = "933451"
 
 var seed = fmt.Sprintf(`
 INSERT INTO wallets (id, name) VALUES ('%s', 'testingwallet') ON CONFLICT DO NOTHING;
 INSERT INTO gatehub_users (external_id, wallet_id) values ('%s', '%s') ON CONFLICT DO NOTHING;
 `, walletID, gatehubUserID, walletID)
 
-func TestHandleSCAVerification(t *testing.T) {
+func TestHandleSCAVerification_Invalid(t *testing.T) {
 	ctx := context.Background()
 	db := db.MigrateTestDB(t, ctx)
 	users := user_mock.NewMock()
@@ -110,7 +112,7 @@ func TestHandleSCAVerification(t *testing.T) {
 		},
 		{
 			name: "returns true for a valid totp code",
-			req:  ops.SCARequest{Action: ops.SCAActionVerify, Code: &code},
+			req:  ops.SCARequest{Action: ops.SCAActionVerify, Code: ptr(codeFromTOTPURL(t, totpURL))},
 			before: func() {
 				users.MapUserWallet(ctx, userID, walletID)
 				users.MapUserTotpURL(ctx, userID, totpURL)
@@ -119,7 +121,7 @@ func TestHandleSCAVerification(t *testing.T) {
 				users.Cleanup()
 			},
 			gatehubUserID: gatehubUserID,
-			expected:      false,
+			expected:      true,
 		},
 	}
 
@@ -139,4 +141,20 @@ func TestHandleSCAVerification(t *testing.T) {
 
 func ptr[T any](v T) *T {
 	return &v
+}
+
+func codeFromTOTPURL(t *testing.T, totpURL string) string {
+	t.Helper()
+
+	key, err := otp.NewKeyFromURL(totpURL)
+	if err != nil {
+		t.Fatalf("failed to parse totp url: %v", err)
+	}
+
+	code, err := totp.GenerateCode(key.Secret(), time.Now())
+	if err != nil {
+		t.Fatalf("failed to generate totp code: %v", err)
+	}
+
+	return code
 }
