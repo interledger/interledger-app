@@ -200,8 +200,7 @@ func start(args *cli.StartArgs) {
 	router.Handle("/{wallet_id}/identities/{identity_sig_hash}", wallet_handler.GetIdentityHandler(b))
 	router.NotFound(wallet_handler.WalletRedirectHandler(b))
 
-	// bradu fiant
-
+	// fiant sandbox actions
 	ptiPrivateKey, err := jwk.ParseKey([]byte(os.Getenv("PTI_JWK")))
 	if err != nil {
 		log.Fatalln(err)
@@ -217,29 +216,9 @@ func start(args *cli.StartArgs) {
 		log.Fatalln(err)
 	}
 
-	// TODO(bradu): testing fiant api without going through pti ops
-	// to be removed before going into main
-	// resp, err := ctrl.Users.ListAll(context.Background())
-	// if err != nil {
-	// 	log.Fatalln(err)
-	// }
-
-	// body, err := io.ReadAll(resp.Body)
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// fmt.Println(string(body))
-
-	// fmt.Println("status: ")
-	// fmt.Println(resp.Status)
-	// fmt.Println("body: ")
-	// fmt.Println(string(body))
-
 	router.Handle("/settle/{transaction_id}", ctrl.SettleTransactionHook())
 	router.Handle("/return/{transaction_id}", ctrl.ReturnTransactionHook())
-
-	// ~bradu fiant
+	// ~fiant sandbox actions
 
 	var wg sync.WaitGroup
 

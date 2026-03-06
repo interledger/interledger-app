@@ -39,7 +39,6 @@ func (art *apiRoundTripper) signature(req *http.Request) (string, error) {
 		req.Method,
 		strings.ToUpper(encodedPayload),
 		contentType,
-		// fmt.Sprintf("date:%s", date.Format(http.TimeFormat)),
 		fmt.Sprintf("date:%s", req.Header.Get("Date")),
 		clientIDHeader+":"+req.Header.Get(clientIDHeader),
 		req.URL.Path,

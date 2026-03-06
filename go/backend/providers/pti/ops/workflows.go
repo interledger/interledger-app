@@ -212,9 +212,6 @@ func ReturnedWorkflow(ctx workflow.Context, wh pti.TransactionStatusPayload) (st
 
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
-	logger := workflow.GetLogger(ctx)
-	logger.Info("Creating pti deposit.")
-
 	webhookCurrency := currency.ParseCurrency(wh.Currency)
 	transactionTotalCurrency := currency.ParseCurrency(wh.TransactionTotal.Total.Currency)
 
