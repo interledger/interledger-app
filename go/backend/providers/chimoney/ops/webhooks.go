@@ -219,12 +219,10 @@ func handleWithdrawal(ctx context.Context, b Backends, ec external.Client, raw j
 		}
 	}
 
-	// Build currency.Amount object from Meta.Amount and Meta.Currency
 	var amount currency.Amount
 	if wh.Meta.Currency != "" {
 		amount = currency.FromFloat64(wh.Meta.Amount.Float64(), currency.ParseCurrency(wh.Meta.Currency))
 	} else {
-		// Default to CAD if currency is not provided
 		amount = currency.FromFloat64(wh.Meta.Amount.Float64(), currency.CAD)
 	}
 
