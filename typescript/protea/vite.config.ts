@@ -34,35 +34,20 @@ export default defineConfig({
     }),
   ],
   optimizeDeps: {
+    // Scan all application entries on boot so Vite discovers all dependencies upfront.
+    entries: [
+      './app/routes/**/*.{ts,tsx}',
+      './app/components/**/*.{ts,tsx}',
+      './app/root.tsx',
+      './app/entry.client.tsx',
+      './app/entry.server.tsx'
+    ],
     include: [
-      // Explicitly include all major dependencies to avoid a mid-load optimization trigger.
-      // If discovered lazily (like navigating directly to /signup during E2E), Vite re-optimizes 
-      // chunks, causing a version mismatch and the "TypeError: Cannot read properties of null (reading 'useContext')" crash.
-      'react',
-      'react/jsx-runtime',
-      'react/jsx-dev-runtime',
-      'react-dom',
-      'react-dom/client',
-      'react-router',
-      '@sentry/react-router',
-      'react-datocms',
-      'framer-motion',
-      'zustand',
-      '@headlessui/react',
-      'libphonenumber-js',
-      'clsx',
-      'uuid',
-      '@bufbuild/protobuf',
-      '@bufbuild/connect',
-      '@bufbuild/connect-node',
-      'pusher-js',
-      'node-rsa',
-      'datocms-structured-text-utils',
-      'pino',
-      '@redis/client',
-      'vite-plugin-node-polyfills/shims/buffer',
-      'vite-plugin-node-polyfills/shims/global',
-      'vite-plugin-node-polyfills/shims/process'
+      // We keep these explicitly because they are dynamically injected polyfills 
+      // or server-side specifics not naturally found by scanning JSX.
+      // 'vite-plugin-node-polyfills/shims/buffer',
+      // 'vite-plugin-node-polyfills/shims/global',
+      // 'vite-plugin-node-polyfills/shims/process'
     ]
   },
   ssr: {
