@@ -25,6 +25,9 @@ jobs:
         with:
           project_id: ${{ vars.PROJECT_ID }}
       
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
       - name: Check runner status and shutdown if idle
         env:
           VM_NAME: ${{ vars.INSTANCE_NAME }}
