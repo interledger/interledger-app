@@ -17,11 +17,16 @@ import (
 var _ user.Client = &MockClient{}
 
 type MockClient struct {
-	WalletUser map[string]string
+	WalletUser  map[string]string
+	UserTotpURL map[string]string
 }
 
 func (mc *MockClient) MapUserWallet(_ context.Context, userID, walletID string) {
 	mc.WalletUser[walletID] = userID
+}
+
+func (mc *MockClient) MapUserTotpURL(_ context.Context, userID, totpURL string) {
+	mc.UserTotpURL[userID] = totpURL
 }
 
 func (mc *MockClient) GetUser(_ context.Context, userID string) (*user.User, error) {
@@ -91,7 +96,11 @@ func (mc MockClient) Delete2FATotpEnrollment(ctx context.Context, token string) 
 }
 
 func (mc MockClient) GetTotpURL(ctx context.Context, userID string) (string, error) {
-	return "", nil
+	totpURL, ok := mc.UserTotpURL[userID]
+	if !ok {
+		return "", user.ErrNoUserFound
+	}
+	return totpURL, nil
 }
 
 func (mc MockClient) UserForContext(ctx context.Context) (*user.User, error) {
@@ -142,11 +151,21 @@ func ActingAs(req *graphql.Request, usr *user.User) error {
 }
 
 func (mc *MockClient) GetUserIDForWallet(_ context.Context, walletID string) (string, error) {
-	return "", nil
+	uid, ok := mc.WalletUser[walletID]
+	if !ok {
+		return "", user.ErrNoUserFound
+	}
+	return uid, nil
+}
+
+func (mc *MockClient) Cleanup() {
+	mc.WalletUser = map[string]string{}
+	mc.UserTotpURL = map[string]string{}
 }
 
 func NewMock() *MockClient {
 	return &MockClient{
-		WalletUser: make(map[string]string),
+		WalletUser:  make(map[string]string),
+		UserTotpURL: make(map[string]string),
 	}
 }
