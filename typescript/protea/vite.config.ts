@@ -35,16 +35,10 @@ export default defineConfig({
   ],
   optimizeDeps: {
     include: [
-      'react',
-      'react/jsx-runtime',
-      'react/jsx-dev-runtime',
-      'react-dom',
-      'react-dom/client',
-      'react-router',
-      '@sentry/react-router',
+      // react-datocms must be pre-bundled to avoid a mid-load optimization trigger.
+      // If discovered lazily, Vite re-optimizes chunks, causing a version mismatch
+      // and the "TypeError: Cannot read properties of null (reading 'useContext')" crash.
       'react-datocms',
-      'framer-motion',
-      'zustand'
     ]
   },
   ssr: {
