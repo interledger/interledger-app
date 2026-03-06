@@ -10,19 +10,19 @@ import (
 
 // MemoryStorage is an in-memory implementation of the Storage interface
 type MemoryStorage struct {
-	mu                    sync.RWMutex
-	tokens                map[string]*models.AccessToken
-	tokenAccounts         map[string]string
-	subAccounts           map[string]*models.SubAccount
-	subAccountsByWallet   map[string]*models.SubAccount
-	beneficiaries         map[string]*models.Beneficiary
+	mu                     sync.RWMutex
+	tokens                 map[string]*models.AccessToken
+	tokenAccounts          map[string]string
+	subAccounts            map[string]*models.SubAccount
+	subAccountsByWallet    map[string]*models.SubAccount
+	beneficiaries          map[string]*models.Beneficiary
 	beneficiariesByAccount map[string][]*models.Beneficiary
-	transactions          map[string]*models.Transaction
-	idempotencyKeys       map[string]string
-	balances              map[string]map[string]balanceEntry // [walletID][currency] -> entry
-	deposits              map[string]*models.Deposit
-	depositsByReference   map[string]*models.Deposit
-	jobs                  map[string]*models.Job
+	transactions           map[string]*models.Transaction
+	idempotencyKeys        map[string]string
+	balances               map[string]map[string]balanceEntry // [walletID][currency] -> entry
+	deposits               map[string]*models.Deposit
+	depositsByReference    map[string]*models.Deposit
+	jobs                   map[string]*models.Job
 }
 
 type balanceEntry struct {
@@ -33,18 +33,18 @@ type balanceEntry struct {
 // NewMemoryStorage creates a new in-memory storage
 func NewMemoryStorage() Storage {
 	return &MemoryStorage{
-		tokens:                make(map[string]*models.AccessToken),
-		tokenAccounts:         make(map[string]string),
-		subAccounts:           make(map[string]*models.SubAccount),
-		subAccountsByWallet:   make(map[string]*models.SubAccount),
-		beneficiaries:         make(map[string]*models.Beneficiary),
+		tokens:                 make(map[string]*models.AccessToken),
+		tokenAccounts:          make(map[string]string),
+		subAccounts:            make(map[string]*models.SubAccount),
+		subAccountsByWallet:    make(map[string]*models.SubAccount),
+		beneficiaries:          make(map[string]*models.Beneficiary),
 		beneficiariesByAccount: make(map[string][]*models.Beneficiary),
-		transactions:          make(map[string]*models.Transaction),
-		idempotencyKeys:       make(map[string]string),
-		balances:              make(map[string]map[string]balanceEntry),
-		deposits:              make(map[string]*models.Deposit),
-		depositsByReference:   make(map[string]*models.Deposit),
-		jobs:                  make(map[string]*models.Job),
+		transactions:           make(map[string]*models.Transaction),
+		idempotencyKeys:        make(map[string]string),
+		balances:               make(map[string]map[string]balanceEntry),
+		deposits:               make(map[string]*models.Deposit),
+		depositsByReference:    make(map[string]*models.Deposit),
+		jobs:                   make(map[string]*models.Job),
 	}
 }
 
