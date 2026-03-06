@@ -38,29 +38,6 @@ import { getPusherArgs } from './lib/pusher.server'
 import { emailVerificationGuard, recoveryLinkSessionInvalidationGuard, withAAL2Guard } from './lib/totp.server'
 import { usePusher } from './lib/usePusher'
 
-export const middleware = [
-  async ({ request }: any, next: () => Promise<Response>) => {
-    let userEmail = 'Not logged in';
-    if (hasUserSession(request)) {
-      try {
-        const fetchRes = await fetch(`${KRATOS_URL}/sessions/whoami`, {
-          headers: request.headers
-        });
-        if (fetchRes.ok) {
-          const sessionData = await fetchRes.json();
-          userEmail = sessionData.identity?.traits?.email || 'Unknown email';
-        }
-      } catch (err) {
-        // Ignored
-      }
-    }
-
-    console.log(`❤️[MIDDLEWARE RUN] Path: ${new URL(request.url).pathname} | Auth: ${userEmail}`);
-
-    return next();
-  }
-];
-
 export const shouldRevalidate: ShouldRevalidateFunction = ({
   actionResult,
   defaultShouldRevalidate

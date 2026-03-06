@@ -1,9 +1,4 @@
-import { webcrypto } from 'node:crypto'
 
-// Ensure Web Crypto API is available as a global in Vite's SSR module context
-if (typeof globalThis.crypto === 'undefined') {
-  ;(globalThis as Record<string, unknown>).crypto = webcrypto
-}
 
 import type { EntryContext } from 'react-router';
 import { createReadableStreamFromReadable } from '@react-router/node';
@@ -43,7 +38,7 @@ export function handleError(
   { request }: { request: Request }
 ): void {
   const requestId = extractOrGenerateRequestId(request)
-  
+
   if (error instanceof Error) {
     Sentry.captureException(error)
   } else {
@@ -53,7 +48,7 @@ export function handleError(
     }
     Sentry.captureException(error)
   }
-  
+
   logger.error(
     { ...addRequestId(requestId), error: error instanceof Error ? error.message : String(error) },
     'Unhandled error in server'
@@ -69,7 +64,7 @@ export default function handleRequest(
   const startTime = Date.now()
   const requestId = extractOrGenerateRequestId(request)
   const url = new URL(request.url)
-  
+
   // Log incoming request
   logger.debug(
     {
@@ -83,21 +78,21 @@ export default function handleRequest(
 
   const handler = isbot(request.headers.get('user-agent'))
     ? handleBotRequest(
-        request,
-        responseStatusCode,
-        responseHeaders,
-        reactRouterContext,
-        requestId,
-        startTime
-      )
+      request,
+      responseStatusCode,
+      responseHeaders,
+      reactRouterContext,
+      requestId,
+      startTime
+    )
     : handleBrowserRequest(
-        request,
-        responseStatusCode,
-        responseHeaders,
-        reactRouterContext,
-        requestId,
-        startTime
-      )
+      request,
+      responseStatusCode,
+      responseHeaders,
+      reactRouterContext,
+      requestId,
+      startTime
+    )
 
   return handler.then((response) => {
     // Log response
@@ -163,7 +158,7 @@ function handleBotRequest(
         onError(error: unknown) {
           responseStatusCode = 500
           logger.error(
-            { 
+            {
               ...addRequestId(requestId),
               error: error instanceof Error ? error.message : String(error),
               responseTime: getResponseTime(startTime),
@@ -212,7 +207,7 @@ function handleBrowserRequest(
         },
         onError(error: unknown) {
           logger.error(
-            { 
+            {
               ...addRequestId(requestId),
               error: error instanceof Error ? error.message : String(error),
               responseTime: getResponseTime(startTime),
