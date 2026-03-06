@@ -18,11 +18,15 @@ import (
 var _ user.Client = &MockClient{}
 
 type MockClient struct {
-	WalletUser map[string]string
+	WalletUser  map[string]string
+	UserTotpURL map[string]string
 }
 
 func (mc *MockClient) MapUserWallet(_ context.Context, userID, walletID string) {
 	mc.WalletUser[walletID] = userID
+}
+
+func (mc *MockClient) MapUserTotpURL(_ context.Context, userID, totpURL string) {
 }
 
 func (mc *MockClient) GetUser(_ context.Context, userID string) (*user.User, error) {
@@ -144,7 +148,16 @@ func ActingAs(req *graphql.Request, usr *user.User) error {
 }
 
 func (mc *MockClient) GetUserIDForWallet(_ context.Context, walletID string) (string, error) {
-	return "", nil
+	uid, ok := mc.WalletUser[walletID]
+	if !ok {
+		return "", user.ErrNoUserFound
+	}
+	return uid, nil
+}
+
+func (mc *MockClient) Cleanup() {
+	mc.WalletUser = map[string]string{}
+	mc.UserTotpURL = map[string]string{}
 }
 
 func NewMock() *MockClient {
