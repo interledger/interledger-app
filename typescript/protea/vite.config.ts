@@ -45,9 +45,9 @@ export default defineConfig({
     include: [
       // We keep these explicitly because they are dynamically injected polyfills 
       // or server-side specifics not naturally found by scanning JSX.
-      // 'vite-plugin-node-polyfills/shims/buffer',
-      // 'vite-plugin-node-polyfills/shims/global',
-      // 'vite-plugin-node-polyfills/shims/process'
+      'vite-plugin-node-polyfills/shims/buffer',
+      'vite-plugin-node-polyfills/shims/global',
+      'vite-plugin-node-polyfills/shims/process'
     ]
   },
   ssr: {
