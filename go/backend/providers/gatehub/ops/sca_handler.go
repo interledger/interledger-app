@@ -120,10 +120,7 @@ func NewSCAHandler(b Backends, cfg gatehub.Config) http.HandlerFunc {
 			log.Warn("received unknown SCA action", zap.String("user", gatehubUserID), zap.String("action", string(sr.Action)))
 			sendResponse(w, failRespJSON)
 		}
-
-		return
 	}
-
 }
 
 func HandleSCAVerification(ctx context.Context, b Backends, req SCARequest, gatehubUserID string) bool {
@@ -166,12 +163,7 @@ func HandleSCAVerification(ctx context.Context, b Backends, req SCARequest, gate
 		return false
 	}
 
-	valid := totp.Validate(*req.Code, otpKey.Secret())
-	if !valid {
-		return false
-	}
-
-	return true
+	return totp.Validate(*req.Code, otpKey.Secret())
 }
 
 // sendResponse is a helper function to send the SCA response.

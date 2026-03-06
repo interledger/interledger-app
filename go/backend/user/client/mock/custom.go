@@ -3,6 +3,7 @@ package mock
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"testing"
@@ -91,7 +92,8 @@ func (mc MockClient) Delete2FATotpEnrollment(ctx context.Context, token string) 
 }
 
 func (mc MockClient) GetTotpURL(ctx context.Context, userID string) (string, error) {
-	return "", nil
+	totpURL := fmt.Sprintf("otpauth://totp/local.interledger.app:%s?algorithm=SHA1&digits=6&issuer=local.interledger.app&period=30&secret=EGO3DEBFSF6Q3RKNRENIQ7XT7JO76MFA", userID)
+	return totpURL, nil
 }
 
 func (mc MockClient) UserForContext(ctx context.Context) (*user.User, error) {
