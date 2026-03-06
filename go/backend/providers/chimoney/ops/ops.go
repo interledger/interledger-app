@@ -209,7 +209,7 @@ func GetEstimatedFee(ctx context.Context, b Backends, ex external.Client, amount
 	return feeAmt, nil
 }
 
-func ExecuteFinishWithdraw(ctx context.Context, b Backends, ec external.Client, IssueID string, status string, chiWalletID string, amount float64, paymentType string) error {
+func ExecuteFinishWithdraw(ctx context.Context, b Backends, ec external.Client, IssueID string, status string, chiWalletID string, amount currency.Amount, paymentType string) error {
 	wo := client.StartWorkflowOptions{
 		ID:                    "finish_chimoney_withdrawal_" + IssueID,
 		TaskQueue:             "backend",

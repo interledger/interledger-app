@@ -225,7 +225,7 @@ var (
 )
 
 func ExecuteChimoneyFinishWithdrawalWorkflow(
-	ctx workflow.Context, IssueID string, chiWalletID string, status string, amount float64, paymentType string,
+	ctx workflow.Context, IssueID string, chiWalletID string, status string, amount currency.Amount, paymentType string,
 ) error {
 	var a *Activity
 	ao := workflow.ActivityOptions{
@@ -425,23 +425,18 @@ func (a *Activity) CreateChimoneyDepositTransaction(ctx context.Context, walletI
 	return trx, nil
 }
 
-func (a *Activity) UpdateChimoneyWithdrawalTransactionFee(ctx context.Context, walletID, trxID string, amount float64) error {
+func (a *Activity) UpdateChimoneyWithdrawalTransactionFee(ctx context.Context, walletID, trxID string, amount currency.Amount) error {
 	trx, err := a.b.Transactions().GetTransaction(ctx, walletID, trxID)
 	if err != nil {
 		return err
 	}
 
-	originalAmount := trx.Amount.Float64()
-	if amount > originalAmount {
-		return fmt.Errorf("updated amount %.2f exceeds original transaction amount %.2f", amount, originalAmount)
+	if amount.Value > trx.Amount.Value {
+		return fmt.Errorf("updated amount %s exceeds original transaction amount %s", amount.Format(), trx.Amount.Format())
 	}
 
-	feeFloat := originalAmount - amount
-	if feeFloat < 0 {
-		feeFloat = 0
-	}
-
-	fee := currency.FromFloat64(feeFloat, trx.Amount.Currency)
+	feeValue := trx.Amount.Value - amount.Value
+	fee := currency.FromUInt64(feeValue, trx.Amount.Currency)
 
 	return a.b.Transactions().SetTransactionFee(ctx, trxID, fee)
 }
@@ -551,11 +546,11 @@ func (a *Activity) AssignChimoneyBalance(ctx context.Context, walletID, trxID st
 
 	amountToAssign := trx.Amount
 	if trx.ProviderFee != nil && !trx.ProviderFee.IsEmpty() {
-		netValue := trx.Amount.Value - trx.ProviderFee.Value
-		if netValue < 0 {
-			netValue = 0
+		if trx.ProviderFee.Value >= trx.Amount.Value {
+			amountToAssign.Value = 0
+		} else {
+			amountToAssign.Value = trx.Amount.Value - trx.ProviderFee.Value
 		}
-		amountToAssign.Value = netValue
 	}
 
 	_, err = AssignBalance(ctx, a.b, chimoneyAcc.ID, trxID, amountToAssign)

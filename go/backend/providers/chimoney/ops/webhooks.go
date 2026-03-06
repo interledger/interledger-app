@@ -14,6 +14,7 @@ import (
 	"regexp"
 	"strings"
 
+	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/providers/chimoney"
 	"gitlab.com/fynbos/backend/providers/chimoney/external"
@@ -44,6 +45,7 @@ type (
 	WithdrawEventMeta struct {
 		Issuer      string                 `json:"issuer"`
 		Amount      external.FlexibleFloat `json:"amount,omitempty"`
+		Currency    string                 `json:"currency,omitempty"`
 		PaymentType string                 `json:"paymentType,omitempty"`
 	}
 	KYCEvent struct {
@@ -217,7 +219,16 @@ func handleWithdrawal(ctx context.Context, b Backends, ec external.Client, raw j
 		}
 	}
 
-	return ExecuteFinishWithdraw(ctx, b, ec, wh.IssueID, wh.Status, wh.ChiWalletID, wh.Meta.Amount.Float64(), wh.Meta.PaymentType)
+	// Build currency.Amount object from Meta.Amount and Meta.Currency
+	var amount currency.Amount
+	if wh.Meta.Currency != "" {
+		amount = currency.FromFloat64(wh.Meta.Amount.Float64(), currency.ParseCurrency(wh.Meta.Currency))
+	} else {
+		// Default to CAD if currency is not provided
+		amount = currency.FromFloat64(wh.Meta.Amount.Float64(), currency.CAD)
+	}
+
+	return ExecuteFinishWithdraw(ctx, b, ec, wh.IssueID, wh.Status, wh.ChiWalletID, amount, wh.Meta.PaymentType)
 }
 
 func handleConfirmedOrCompletedCharge(ctx context.Context, b Backends, ec external.Client, raw json.RawMessage) error {
