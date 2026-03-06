@@ -3,7 +3,6 @@ package mock
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/url"
 	"testing"
@@ -27,6 +26,7 @@ func (mc *MockClient) MapUserWallet(_ context.Context, userID, walletID string) 
 }
 
 func (mc *MockClient) MapUserTotpURL(_ context.Context, userID, totpURL string) {
+	mc.UserTotpURL[userID] = totpURL
 }
 
 func (mc *MockClient) GetUser(_ context.Context, userID string) (*user.User, error) {
@@ -96,7 +96,10 @@ func (mc MockClient) Delete2FATotpEnrollment(ctx context.Context, token string) 
 }
 
 func (mc MockClient) GetTotpURL(ctx context.Context, userID string) (string, error) {
-	totpURL := fmt.Sprintf("otpauth://totp/local.interledger.app:%s?algorithm=SHA1&digits=6&issuer=local.interledger.app&period=30&secret=EGO3DEBFSF6Q3RKNRENIQ7XT7JO76MFA", userID)
+	totpURL, ok := mc.UserTotpURL[userID]
+	if !ok {
+		return "", user.ErrNoUserFound
+	}
 	return totpURL, nil
 }
 
@@ -162,6 +165,7 @@ func (mc *MockClient) Cleanup() {
 
 func NewMock() *MockClient {
 	return &MockClient{
-		WalletUser: make(map[string]string),
+		WalletUser:  make(map[string]string),
+		UserTotpURL: make(map[string]string),
 	}
 }
