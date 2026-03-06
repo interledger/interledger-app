@@ -259,9 +259,18 @@ func (sc *E2EContext) theFrontendIsRunningAt(urlStr string) error {
 		return err
 	}
 
-	// Then verify the frontend is actually serving HTML
-	debugPrintf("🔍 Verifying frontend is serving content at %s...\n", urlStr)
-	return sc.waitForHTMLToBeServed(urlStr, 60*time.Second)
+	// Check /healthz endpoint first (more reliable indicator of app readiness)
+	healthURL := strings.TrimSuffix(urlStr, "/") + "/healthz"
+	debugPrintf("🔍 Checking frontend health endpoint at %s...\n", healthURL)
+	if err := sc.waitForHealthEndpoint(healthURL, 120*time.Second); err != nil {
+		// If /healthz fails, fall back to HTML check for backwards compatibility
+		debugPrintf("⚠️  Health endpoint check failed, falling back to HTML check: %v\n", err)
+		debugPrintf("🔍 Verifying frontend is serving content at %s...\n", urlStr)
+		return sc.waitForHTMLToBeServed(urlStr, 60*time.Second)
+	}
+
+	debugPrintf("✅ Frontend passed health check\n")
+	return nil
 }
 
 func (sc *E2EContext) theMockgatehubIsRunningAt(urlStr string) error {

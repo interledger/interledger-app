@@ -1,0 +1,7 @@
+# Go build artifacts
+go.mod
+go.sum
+
+# Compiled test binaries
+test_e2e
+lastlogs.txt

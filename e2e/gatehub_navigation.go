@@ -167,27 +167,36 @@ func (sc *E2EContext) iShouldSeeTheSignupForm() error {
 		return fmt.Errorf("not on signup page, current URL: %s", currentURL)
 	}
 
-	// Wait for signup form inputs to be visible (retry with reload)
+	// Wait for signup form inputs to be visible
+	// Use a longer timeout and retry WITHOUT reloading (reloading restarts React and causes race conditions)
 	firstNameInput := sc.page.Locator("input[name='firstName'], input[name='first_name'], input[placeholder*='first' i]")
-	for i := 0; i < 3; i++ {
-		err := firstNameInput.First().WaitFor(playwright.LocatorWaitForOptions{
-			State:   playwright.WaitForSelectorStateVisible,
-			Timeout: playwright.Float(10000),
-		})
-		if err == nil {
-			_ = sc.iTakeAScreenshot("signup-form")
-			return nil
-		}
-		debugPrintf("   ⚠️  Signup form not ready (attempt %d/3), reloading...\n", i+1)
-		_, _ = sc.page.Reload()
-		sc.page.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
-			State:   playwright.LoadStateNetworkidle,
-			Timeout: playwright.Float(15000),
-		})
-		time.Sleep(500 * time.Millisecond)
+
+	// Single wait with increased timeout (60s total instead of 3×10s with reloads)
+	// This allows React to fully hydrate even under load
+	err := firstNameInput.First().WaitFor(playwright.LocatorWaitForOptions{
+		State:   playwright.WaitForSelectorStateVisible,
+		Timeout: playwright.Float(60000),
+	})
+	if err == nil {
+		_ = sc.iTakeAScreenshot("signup-form")
+		return nil
 	}
 
-	return fmt.Errorf("signup form not found: first name input not visible")
+	// If still not visible after 60s, take a debug screenshot
+	debugPrintf("   ⚠️  Signup form not visible after 60s, taking debug screenshot\n")
+	_ = sc.iTakeAScreenshot("signup-form-not-visible")
+
+	// Try one more time with a shorter wait (in case React just finished mounting)
+	err = firstNameInput.First().WaitFor(playwright.LocatorWaitForOptions{
+		State:   playwright.WaitForSelectorStateVisible,
+		Timeout: playwright.Float(5000),
+	})
+	if err == nil {
+		_ = sc.iTakeAScreenshot("signup-form")
+		return nil
+	}
+
+	return fmt.Errorf("signup form not found: first name input not visible after 65s")
 }
 
 func (sc *E2EContext) iShouldBeOnStep(step int) error {
