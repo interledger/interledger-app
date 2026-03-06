@@ -1,8 +1,8 @@
 # MockXago (Work in Progress)
 
-> **Status**: Minimal MockXago focused on authentication and a single protected endpoint.
+> **Status**: MockXago with authentication, sub-account management, and beneficiary management.
 >
-> This iteration provides only the core authentication/token flow plus a protected `GET /v1/example-route` endpoint used by the authentication test suite. Additional features (sub-accounts, transfers, KYC, deposits, balances, jobs, currencies, etc.) are intentionally excluded.
+> This iteration provides the core authentication/token flow, sub-account management endpoints (create, update, retrieve by wallet), and beneficiary management (add, list). Additional features (transfers, KYC, deposits, balances, jobs, currencies, etc.) will be added incrementally.
 
 MockXago is a lightweight mock of the Xago API used by the Interledger Wallet for local development and tests.
 
@@ -188,6 +188,195 @@ Returns a simple JSON payload. This endpoint requires a valid bearer token.
 }
 ```
 
+#### POST /v1/company/accounts
+
+Create a sub-account linked to a wallet. Requires a valid bearer token.
+
+**Request:**
+
+```json
+{
+  "walletId": "wallet_123",
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john@example.com",
+  "mobileNumber": "+27123456789",
+  "identityType": "individual",
+  "idNumber": "9001011234567",
+  "physicalAddress": "123 Main St, Cape Town, SA",
+  "thirdPartyVerificationUrl": "https://app.withpersona.com/dashboard/inquiries/inq_123"
+}
+```
+
+All 8 fields (firstName, lastName, email, mobileNumber, identityType, idNumber, physicalAddress, thirdPartyVerificationUrl) are required. `walletId` is optional — if omitted, a UUID is auto-generated.
+
+**Response (success 200):**
+
+```json
+{
+  "accountId": "550e8400-e29b-41d4-a716-446655440000",
+  "depositAddress": "r1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p7",
+  "depositTag": 123456,
+  "bankDepositDetails": {
+    "ZAR": [{"bankName": "FNB", "accountName": "Xago Holdings", "accountNumber": "62057334567", "branchCode": "250145", "swiftBIC": "FIRSZA22"}],
+    "USD": [{"bankName": "Citibank", "accountName": "Xago Inc", "accountNumber": "0123456789", "branchCode": "021", "swiftBIC": "CITIUS33"}]
+  },
+  "beneficiaries": [
+    {"beneficiaryId": "...", "beneficiaryType": "rollup", "currencyId": "ZAR", "depositReference": "wallet_123_ZAR", "accountNumber": "62057334567", "bankName": "FNB", "accountName": "Xago Holdings"},
+    {"beneficiaryId": "...", "beneficiaryType": "rollup", "currencyId": "USD", "depositReference": "wallet_123_USD", "accountNumber": "0123456789", "bankName": "Citibank", "accountName": "Xago Inc"}
+  ]
+}
+```
+
+#### PUT /v1/company/accounts/{accountId}
+
+Update an existing sub-account. Requires a valid bearer token.
+
+**Request:**
+
+```json
+{
+  "thirdPartyVerificationUrl": "https://app.withpersona.com/dashboard/inquiries/inq_999",
+  "idNumber": "9001011234567",
+  "physicalAddress": "999 Updated St, Cape Town, SA"
+}
+```
+
+**Response (success 200):**
+
+```json
+{
+  "accountId": "550e8400-e29b-41d4-a716-446655440000",
+  "status": "updated"
+}
+```
+
+**Error (400):** Returned when `accountId` is not a valid UUID format.
+
+#### GET /v1/company/accounts?walletId=...
+
+Retrieve a sub-account by wallet ID. Requires a valid bearer token.
+
+**Response (success 200):** Same shape as the create response.
+
+### Beneficiary Management Endpoints
+
+Beneficiaries represent external bank accounts where funds can be transferred. All beneficiary endpoints require authentication (bearer token).
+
+#### POST /v1/accounts/{accountId}/beneficiaries
+
+Add a new beneficiary for a sub-account.
+
+**Request:**
+
+```json
+{
+  "name": "My ABSA Account",
+  "scope": "external",
+  "currencyCode": "ZAR",
+  "accountNumber": "1234567890",
+  "branchCode": "250155",
+  "bankName": "ABSA",
+  "accountName": "John Doe",
+  "reference": "My ABSA Account",
+  "isOwn": true
+}
+```
+
+Required fields: `name`, `accountNumber`
+
+**Response (success 200):**
+
+```json
+{
+  "uuid": "550e8400-e29b-41d4-a716-446655440001",
+  "name": "My ABSA Account",
+  "scope": "external",
+  "currencyCode": "ZAR",
+  "accountNumber": "1234567890",
+  "branchCode": "250155",
+  "bankName": "ABSA",
+  "accountName": "John Doe",
+  "reference": "My ABSA Account",
+  "isOwn": true,
+  "status": "pending"
+}
+```
+
+**Auto-Approval Behavior:** Beneficiaries are created with status `"pending"` and automatically transition to `"approved"` after 3 seconds (sandbox behavior).
+
+**Error (400):** Missing required fields (`name` or `accountNumber`)
+
+```json
+{
+  "error": "invalid_request",
+  "message": "name is required"
+}
+```
+
+**Error (404):** Sub-account not found
+
+```json
+{
+  "error": "not_found",
+  "message": "sub-account not found"
+}
+```
+
+#### GET /v1/accounts/{accountId}/beneficiaries
+
+List beneficiaries for a sub-account with pagination.
+
+**Query Parameters:**
+- `limit` (optional, default 10): Number of results per page
+- `page` (optional, default 1): Page number (1-indexed)
+
+**Example:** `GET /v1/accounts/{accountId}/beneficiaries?limit=10&page=2`
+
+**Response (success 200):**
+
+```json
+{
+  "data": [
+    {
+      "uuid": "550e8400-e29b-41d4-a716-446655440001",
+      "name": "My ABSA Account",
+      "scope": "external",
+      "currencyCode": "ZAR",
+      "accountNumber": "1234567890",
+      "branchCode": "250155",
+      "bankName": "ABSA",
+      "accountName": "John Doe",
+      "reference": "My ABSA Account",
+      "isOwn": true,
+      "status": "approved"
+    }
+  ],
+  "pagination": {
+    "limit": 10,
+    "page": 1,
+    "numberOfPages": 1,
+    "total": 1
+  }
+}
+```
+
+**Error (404):** Sub-account not found
+
+### Test-Only Endpoints
+
+#### POST /v1/test/reset
+
+Clears all server-side state (tokens, sub-accounts). No authentication required. Used by E2E tests for clean state between scenarios.
+
+**Response (200):**
+
+```json
+{
+  "status": "ok"
+}
+```
+
 
 #### Using Bearer Tokens on Protected Endpoints
 
@@ -282,11 +471,3 @@ make test       # All tests
 make unit-test  # Unit tests only
 make e2e-test   # E2E tests
 ```
-
-The E2E tests cover:
-- Successful login with valid credentials
-- Authentication failures (invalid public key, secret key)
-- Validation of required fields (policyId, publicKey, secret)
-- Token reuse across multiple requests
-- Token refresh on expiration
-- Rejection of missing/invalid tokens

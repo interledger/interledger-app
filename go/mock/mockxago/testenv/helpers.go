@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/cucumber/godog"
+	"github.com/google/uuid"
 )
 
 func tableToMap(table *godog.Table) map[string]string {
@@ -27,6 +28,20 @@ func tableToMap(table *godog.Table) map[string]string {
 		}
 	}
 	return values
+}
+
+func tableToPairs(table *godog.Table) [][2]string {
+	pairs := make([][2]string, 0)
+	if table == nil {
+		return pairs
+	}
+	for _, row := range table.Rows {
+		if len(row.Cells) < 2 {
+			continue
+		}
+		pairs = append(pairs, [2]string{strings.TrimSpace(row.Cells[0].Value), strings.TrimSpace(row.Cells[1].Value)})
+	}
+	return pairs
 }
 
 func (tc *TestContext) decodeLastResponse(out interface{}) error {
@@ -93,4 +108,9 @@ func (tc *TestContext) environmentVariablesAreSet(table *godog.Table) error {
 		}
 	}
 	return nil
+}
+
+func parseUUID(value string) error {
+	_, err := uuid.Parse(value)
+	return err
 }

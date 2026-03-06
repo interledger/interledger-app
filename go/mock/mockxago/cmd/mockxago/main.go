@@ -103,8 +103,18 @@ func setupRoutes(router *chi.Mux, h *handler.Handler) {
 		r.Group(func(pr chi.Router) {
 			pr.Use(h.AuthMiddleware)
 			pr.Get("/example-route", h.ExampleProtectedRoute)
+			pr.Post("/company/accounts", h.CreateSubAccount)
+			pr.Put("/company/accounts/{accountId}", h.UpdateSubAccount)
+			pr.Get("/company/accounts", h.GetSubAccountByWallet)
+
+			// Beneficiary management
+			pr.Post("/accounts/{accountId}/beneficiaries", h.AddBeneficiary)
+			pr.Get("/accounts/{accountId}/beneficiaries", h.ListBeneficiaries)
 		})
 	})
+
+	// Test-only endpoint (outside auth middleware)
+	router.Post("/v1/test/reset", h.TestReset)
 
 	// Health check
 	router.Get("/health", func(w http.ResponseWriter, r *http.Request) {
