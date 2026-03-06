@@ -110,9 +110,16 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Generate token
+	tokenValue, err := utils.GenerateToken()
+	if err != nil {
+		h.sendError(w, http.StatusInternalServerError, "internal_error", "Failed to generate token")
+		logger.Errorf("Failed to generate token: %v", err)
+		return
+	}
+
 	token := &models.AccessToken{
 		ID:        utils.GenerateUUID(),
-		Token:     utils.GenerateToken(),
+		Token:     tokenValue,
 		ExpiresAt: utils.GenerateTokenExpiresAt(),
 	}
 

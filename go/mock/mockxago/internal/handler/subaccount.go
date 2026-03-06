@@ -1,12 +1,12 @@
 package handler
 
 import (
+	"crypto/rand"
 	"encoding/json"
 	"fmt"
-	"math/rand"
+	"math/big"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
@@ -241,12 +241,18 @@ func bankDepositDetails() map[string][]models.BankDepositDetail {
 }
 
 func generateDepositAddress() string {
-	// Generate a mock XRP-like address
-	rand.Seed(time.Now().UnixNano())
-	return "r" + utils.GenerateToken()[:33]
+	// Generate a mock XRP-like address using crypto/rand
+	bytes := make([]byte, 17)
+	if _, err := rand.Read(bytes); err != nil {
+		return "rMOCKADDRESS" + fmt.Sprintf("%033d", 0)
+	}
+	return "r" + fmt.Sprintf("%x", bytes)[:33]
 }
 
 func generateDepositTag() int {
-	rand.Seed(time.Now().UnixNano())
-	return rand.Intn(900000) + 100000
+	n, err := rand.Int(rand.Reader, big.NewInt(900000))
+	if err != nil {
+		return 100000
+	}
+	return int(n.Int64()) + 100000
 }

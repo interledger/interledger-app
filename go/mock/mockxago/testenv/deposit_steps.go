@@ -654,8 +654,7 @@ func (tc *TestContext) validateWebhookSignature(event webhookEvent, timestamp st
 	secret := defaultWebhookSecret
 
 	// Match the format used by the handler: timestamp|method|url|body
-	url := "http://host.docker.internal:3000/xago/webhooks"
-	message := fmt.Sprintf("%s|POST|%s|%s", timestamp, url, string(event.RawBody))
+	message := fmt.Sprintf("%s|POST|%s|%s", timestamp, tc.webhookURL, string(event.RawBody))
 	mac := hmac.New(sha256.New, []byte(secret))
 	mac.Write([]byte(message))
 	expected := hex.EncodeToString(mac.Sum(nil))

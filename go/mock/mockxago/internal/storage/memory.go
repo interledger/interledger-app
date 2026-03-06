@@ -16,7 +16,7 @@ type MemoryStorage struct {
 	subAccounts           map[string]*models.SubAccount
 	subAccountsByWallet   map[string]*models.SubAccount
 	beneficiaries         map[string]*models.Beneficiary
-	beneficiariesByWallet map[string][]*models.Beneficiary
+	beneficiariesByAccount map[string][]*models.Beneficiary
 	transactions          map[string]*models.Transaction
 	idempotencyKeys       map[string]string
 	balances              map[string]map[string]balanceEntry // [walletID][currency] -> entry
@@ -38,7 +38,7 @@ func NewMemoryStorage() Storage {
 		subAccounts:           make(map[string]*models.SubAccount),
 		subAccountsByWallet:   make(map[string]*models.SubAccount),
 		beneficiaries:         make(map[string]*models.Beneficiary),
-		beneficiariesByWallet: make(map[string][]*models.Beneficiary),
+		beneficiariesByAccount: make(map[string][]*models.Beneficiary),
 		transactions:          make(map[string]*models.Transaction),
 		idempotencyKeys:       make(map[string]string),
 		balances:              make(map[string]map[string]balanceEntry),
@@ -168,7 +168,7 @@ func (m *MemoryStorage) SaveBeneficiary(ctx context.Context, beneficiary *models
 	beneficiary.UpdatedAt = time.Now()
 	m.beneficiaries[beneficiary.ID] = beneficiary
 	// Index by AccountID for querying beneficiaries associated with a specific account
-	m.beneficiariesByWallet[beneficiary.AccountID] = append(m.beneficiariesByWallet[beneficiary.AccountID], beneficiary)
+	m.beneficiariesByAccount[beneficiary.AccountID] = append(m.beneficiariesByAccount[beneficiary.AccountID], beneficiary)
 	return nil
 }
 
@@ -184,11 +184,11 @@ func (m *MemoryStorage) GetBeneficiary(ctx context.Context, beneficiaryID string
 	return beneficiary, nil
 }
 
-func (m *MemoryStorage) ListBeneficiariesByWallet(ctx context.Context, walletID string, limit int, offset int) ([]*models.Beneficiary, int, error) {
+func (m *MemoryStorage) ListBeneficiariesByAccountID(ctx context.Context, accountID string, limit int, offset int) ([]*models.Beneficiary, int, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
-	beneficiaries, ok := m.beneficiariesByWallet[walletID]
+	beneficiaries, ok := m.beneficiariesByAccount[accountID]
 	if !ok {
 		return []*models.Beneficiary{}, 0, nil
 	}
@@ -219,8 +219,8 @@ func (m *MemoryStorage) UpdateBeneficiaryStatus(ctx context.Context, beneficiary
 	beneficiary.UpdatedAt = time.Now()
 	m.beneficiaries[beneficiaryID] = beneficiary
 
-	// Update in wallet list
-	if benList, ok := m.beneficiariesByWallet[beneficiary.WalletID]; ok {
+	// Update in account list
+	if benList, ok := m.beneficiariesByAccount[beneficiary.AccountID]; ok {
 		for i, b := range benList {
 			if b.ID == beneficiaryID {
 				benList[i] = beneficiary
@@ -588,7 +588,7 @@ func (m *MemoryStorage) Reset(ctx context.Context) error {
 	m.subAccounts = make(map[string]*models.SubAccount)
 	m.subAccountsByWallet = make(map[string]*models.SubAccount)
 	m.beneficiaries = make(map[string]*models.Beneficiary)
-	m.beneficiariesByWallet = make(map[string][]*models.Beneficiary)
+	m.beneficiariesByAccount = make(map[string][]*models.Beneficiary)
 	m.transactions = make(map[string]*models.Transaction)
 	m.idempotencyKeys = make(map[string]string)
 	m.balances = make(map[string]map[string]balanceEntry)

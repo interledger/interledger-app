@@ -13,9 +13,11 @@ import (
 
 func startServices() error {
 	cmd := exec.Command("docker", "compose", "-f", "docker-compose.yml", "up", "-d", "--build", "--force-recreate")
-	cmd.Stdout = nil
-	cmd.Stderr = nil
-	return cmd.Run()
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("docker compose up failed: %w\n%s", err, output)
+	}
+	return nil
 }
 
 // dumpLogs saves all container logs to testenv/lastlogs.txt for post-mortem analysis.

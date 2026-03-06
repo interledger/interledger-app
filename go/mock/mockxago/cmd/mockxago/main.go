@@ -108,6 +108,9 @@ func setupRoutes(router *chi.Mux, h *handler.Handler) {
 	router.Route("/v1", func(r chi.Router) {
 		r.Post("/login", h.Login)
 
+		// Public endpoint (no auth required)
+		r.Get("/currencies", h.ListCurrencies)
+
 		r.Group(func(pr chi.Router) {
 			pr.Use(h.AuthMiddleware)
 			pr.Post("/company/accounts", h.CreateSubAccount)
@@ -120,8 +123,6 @@ func setupRoutes(router *chi.Mux, h *handler.Handler) {
 			// Global beneficiary endpoints (API compliance aliases)
 			pr.Post("/beneficiaries", h.AddBeneficiaryGlobal)
 			pr.Get("/beneficiaries", h.ListBeneficiariesGlobal)
-
-			pr.Get("/currencies", h.ListCurrencies)
 
 			pr.Post("/transfers", h.CreateTransfer)
 			pr.Get("/transfers", h.ListTransfers)

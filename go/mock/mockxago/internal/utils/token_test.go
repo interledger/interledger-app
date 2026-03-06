@@ -9,8 +9,11 @@ import (
 
 func TestGenerateToken(t *testing.T) {
 	// Generate multiple tokens
-	token1 := GenerateToken()
-	token2 := GenerateToken()
+	token1, err1 := GenerateToken()
+	token2, err2 := GenerateToken()
+
+	assert.NoError(t, err1)
+	assert.NoError(t, err2)
 
 	// Verify tokens are non-empty
 	assert.NotEmpty(t, token1)

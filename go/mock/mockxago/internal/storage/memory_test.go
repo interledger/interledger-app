@@ -167,7 +167,7 @@ func TestMemoryStorage_SaveBeneficiary(t *testing.T) {
 	assert.NotNil(t, retrieved)
 }
 
-func TestMemoryStorage_ListBeneficiariesByWallet(t *testing.T) {
+func TestMemoryStorage_ListBeneficiariesByAccountID(t *testing.T) {
 	store := NewMemoryStorage()
 
 	for i := 0; i < 5; i++ {
@@ -180,7 +180,7 @@ func TestMemoryStorage_ListBeneficiariesByWallet(t *testing.T) {
 		store.SaveBeneficiary(context.Background(), beneficiary)
 	}
 
-	beneficiaries, total, err := store.ListBeneficiariesByWallet(context.Background(), "account1", 3, 0)
+	beneficiaries, total, err := store.ListBeneficiariesByAccountID(context.Background(), "account1", 3, 0)
 	assert.NoError(t, err)
 	assert.Equal(t, 5, total)
 	assert.Equal(t, 3, len(beneficiaries))

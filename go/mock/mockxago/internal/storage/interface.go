@@ -36,7 +36,7 @@ type Storage interface {
 	// Beneficiary operations
 	SaveBeneficiary(ctx context.Context, beneficiary *models.Beneficiary) error
 	GetBeneficiary(ctx context.Context, beneficiaryID string) (*models.Beneficiary, error)
-	ListBeneficiariesByWallet(ctx context.Context, walletID string, limit int, offset int) ([]*models.Beneficiary, int, error)
+	ListBeneficiariesByAccountID(ctx context.Context, accountID string, limit int, offset int) ([]*models.Beneficiary, int, error)
 	UpdateBeneficiaryStatus(ctx context.Context, beneficiaryID string, status string) error
 
 	// Transaction operations

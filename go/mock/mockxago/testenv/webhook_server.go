@@ -49,20 +49,15 @@ func (tc *TestContext) startWebhookServer(webhookURL string) error {
 		path = "/"
 	}
 
-	// Extract host and port from URL
-	host, port, err := net.SplitHostPort(parsed.Host)
+	// Extract port from URL — always bind to 0.0.0.0 regardless of the
+	// hostname in the URL so the server is reachable from Docker containers.
+	_, port, err := net.SplitHostPort(parsed.Host)
 	if err != nil {
-		// No port specified, use the whole host
-		host = parsed.Host
+		// No port specified, default to 3000
 		port = "3000"
 	}
 
-	// Replace localhost with 0.0.0.0 to make server accessible from Docker
-	if host == "localhost" || host == "127.0.0.1" {
-		host = "0.0.0.0"
-	}
-
-	addr := host + ":" + port
+	addr := "0.0.0.0:" + port
 
 	mux := http.NewServeMux()
 	mux.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
@@ -92,40 +87,30 @@ func (tc *TestContext) startWebhookServer(webhookURL string) error {
 	})
 
 	server := &http.Server{
-		Addr:    addr,
 		Handler: mux,
 	}
 	if parsed.Scheme == "https" {
 		return fmt.Errorf("https webhook server not supported in test harness")
 	}
 
+	// Bind port eagerly so we know immediately if it fails
+	listener, err := net.Listen("tcp", addr)
+	if err != nil {
+		return fmt.Errorf("webhook server failed to bind %s: %w", addr, err)
+	}
+
 	globalWebhookServer = server
 	tc.webhookURL = webhookURL
 
-	// Start server in background
-	started := make(chan error, 1)
+	// Start server in background on the already-bound listener
 	go func() {
-		// Signal that we're attempting to listen
-		started <- nil
-		err := server.ListenAndServe()
+		err := server.Serve(listener)
 		if err != nil && err != http.ErrServerClosed {
 			fmt.Printf("Webhook server error: %v\n", err)
 		}
 	}()
 
-	// Wait for server to start (or fail immediately)
-	select {
-	case err := <-started:
-		if err != nil {
-			return err
-		}
-		// Give the server a moment to actually bind to the port
-		time.Sleep(100 * time.Millisecond)
-		fmt.Printf("Webhook server started on %s%s\n", addr, path)
-	case <-time.After(2 * time.Second):
-		return fmt.Errorf("timeout waiting for webhook server to start")
-	}
-
+	fmt.Printf("Webhook server started on %s%s\n", addr, path)
 	return nil
 }
 

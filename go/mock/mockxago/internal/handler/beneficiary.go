@@ -126,7 +126,7 @@ func (h *Handler) ListBeneficiaries(w http.ResponseWriter, r *http.Request) {
 
 	offset := (page - 1) * limit
 
-	beneficiaries, total, err := h.store.ListBeneficiariesByWallet(r.Context(), subAcc.AccountID, limit, offset)
+	beneficiaries, total, err := h.store.ListBeneficiariesByAccountID(r.Context(), subAcc.AccountID, limit, offset)
 	if err != nil {
 		logger.Errorf("Failed to list beneficiaries: %v", err)
 		h.sendError(w, http.StatusInternalServerError, "internal_error", "failed to list beneficiaries")
@@ -300,7 +300,7 @@ func (h *Handler) ListBeneficiariesGlobal(w http.ResponseWriter, r *http.Request
 
 	offset := (page - 1) * limit
 
-	beneficiaries, total, err := h.store.ListBeneficiariesByWallet(r.Context(), subAcc.AccountID, limit, offset)
+	beneficiaries, total, err := h.store.ListBeneficiariesByAccountID(r.Context(), subAcc.AccountID, limit, offset)
 	if err != nil {
 		logger.Errorf("Failed to list beneficiaries: %v", err)
 		h.sendError(w, http.StatusInternalServerError, "internal_error", "failed to list beneficiaries")
