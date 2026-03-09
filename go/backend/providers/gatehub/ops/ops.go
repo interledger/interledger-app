@@ -23,6 +23,7 @@ import (
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/serviceerror"
 	"go.temporal.io/sdk/client"
+	"go.temporal.io/sdk/temporal"
 )
 
 func CreateUser(ctx context.Context, b Backends, walletID string) (gatehub.Await, error) {
@@ -535,6 +536,16 @@ func CreateTransfer(ctx context.Context, b Backends, ec external.Client, args ga
 		return nil, err
 	}
 
+	// Validate vault ID is available before making the external call
+	vaultID := ec.GetVaultID()
+	if vaultID == "" && !env.IsTestExecution() {
+		return nil, temporal.NewNonRetryableApplicationError(
+			"Gatehub vault ID not configured",
+			"ConfigurationError",
+			fmt.Errorf("GATEHUB_PAYWISER_EURO_VAULT_ID environment variable is not set"),
+		)
+	}
+
 	externalTx, err := ec.CreateTransaction(ctx, external.CreateTransactionRequest{
 		SendingUserID:    sendingUser,
 		SendingAddress:   sendLA.ProviderID,
@@ -542,7 +553,7 @@ func CreateTransfer(ctx context.Context, b Backends, ec external.Client, args ga
 		Amount:           args.Amount.Float64(),
 		Message:          fmt.Sprintf("Payment to %s", recvWallet.Name),
 		Type:             external.TransactionTypeHosted,
-		VaultID:          ec.GetVaultID(),
+		VaultID:          vaultID,
 	})
 	if errors.Is(err, external.ErrNotFound) {
 		return nil, fmt.Errorf("%w %s", gatehub.ErrNotFound, err)

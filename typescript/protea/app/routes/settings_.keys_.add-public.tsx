@@ -7,6 +7,7 @@ import type {
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
+import logger from '~/lib/logger.server'
 import {
   Button,
   Card,
@@ -119,26 +120,11 @@ export async function action({ request }: ActionFunctionArgs) {
 
   const response = await grpc.createConnection(request, {
     applicationName: form.get('applicationName') as string,
-    publicKey: form.get('publicKey') as string,
-    dailyLimit: {
-      amount: 10000n,
-      asset: 'USD',
-      assetScale: 2
-    },
-    monthlyLimit: {
-      amount: 10000n,
-      asset: 'USD',
-      assetScale: 2
-    },
-    overallLimit: {
-      amount: 10000n,
-      asset: 'USD',
-      assetScale: 2
-    }
+    publicKey: form.get('publicKey') as string
   })
 
   if (isConnectError(response)) {
-    console.log(response)
+    logger.error({ response }, 'Failed to create connection')
     if (response.code == Code.InvalidArgument) {
       return response.error({ errors })
     } else return response.error({ errors }, {}, { action: 'Contact support' })

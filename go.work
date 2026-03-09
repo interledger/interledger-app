@@ -1,4 +1,7 @@
 go 1.25
 
-
-use ./go
+use (
+	./go
+	./e2e
+	./local/scripts
+)

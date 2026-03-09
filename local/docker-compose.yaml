@@ -3,6 +3,7 @@ include:
   - traefik.yaml
   - postgres.yaml
   - redis.yaml
+  - mkdocs.yaml
 
   # profile: services
   - kratos.yaml
@@ -15,3 +16,4 @@ include:
   - protea.yaml
   - botanist.yaml
   - mockbos.yaml
+  - mockgatehub.yaml

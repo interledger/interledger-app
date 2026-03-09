@@ -1,5 +1,7 @@
 import { json, type ActionFunctionArgs } from '@remix-run/node'
 import { KRATOS_URL } from '~/lib/kratos.server'
+import logger, { addRequestId } from '~/lib/logger.server'
+import { extractOrGenerateRequestId } from '~/lib/requestContext.server'
 
 /**
  * Initialize a TOTP challenge flow (AAL2) via Kratos API endpoint
@@ -116,7 +118,15 @@ export async function action({ request }: ActionFunctionArgs) {
     const errorText = await initResponse.text()
     return json({ error: `Unexpected response from Kratos ${errorText}` })
   } catch (error) {
-    console.error('Error initializing TOTP challenge:', error)
+    const requestId = extractOrGenerateRequestId(request)
+    const errorDetails =
+      error instanceof Error
+        ? { error }
+        : { error: String(error) }
+    logger.error(
+      { ...addRequestId(requestId), ...errorDetails },
+      'Error initializing TOTP challenge'
+    )
     return json({ error: 'An unexpected error occurred' })
   }
 }
