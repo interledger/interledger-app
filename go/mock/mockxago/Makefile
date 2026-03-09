@@ -16,6 +16,7 @@ unit-test:
 	go test -count=1 -v ./cmd/... ./internal/...
 	@echo "Checking coverage for internal"
 	@go test -v -coverprofile=coverage.out ./internal/...
+	@go tool cover -html=coverage.out -o coverage.html
 
 e2e-test:
 	@echo "Running e2e tests..."

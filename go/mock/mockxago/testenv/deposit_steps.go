@@ -653,19 +653,31 @@ func (tc *TestContext) validateWebhookSignature(event webhookEvent, timestamp st
 	}
 	secret := defaultWebhookSecret
 
-	// Match the format used by the handler: timestamp|method|url|body
-	message := fmt.Sprintf("%s|POST|%s|%s", timestamp, tc.webhookURL, string(event.RawBody))
-	mac := hmac.New(sha256.New, []byte(secret))
-	mac.Write([]byte(message))
-	expected := hex.EncodeToString(mac.Sum(nil))
+	// The signature could have been generated with either localhost or host.docker.internal
+	// depending on whether it's coming from the container or local process.
+	// Try both URLs to account for Docker networking.
+	possibleURLs := []string{
+		tc.webhookURL, // e.g., http://localhost:3000/xago/webhooks
+		"http://host.docker.internal:3000/xago/webhooks", // Docker container URL
+	}
+
 	actual := event.Headers.Get("x-gatehub-signature")
 	if actual == "" {
 		return fmt.Errorf("missing x-gatehub-signature header")
 	}
-	if !hmac.Equal([]byte(expected), []byte(actual)) {
-		return fmt.Errorf("invalid signature")
+
+	for _, url := range possibleURLs {
+		message := fmt.Sprintf("%s|POST|%s|%s", timestamp, url, string(event.RawBody))
+		mac := hmac.New(sha256.New, []byte(secret))
+		mac.Write([]byte(message))
+		expected := hex.EncodeToString(mac.Sum(nil))
+
+		if hmac.Equal([]byte(expected), []byte(actual)) {
+			return nil // Signature is valid with this URL
+		}
 	}
-	return nil
+
+	return fmt.Errorf("invalid signature")
 }
 
 func (tc *TestContext) allDepositsHaveCompleted() error {

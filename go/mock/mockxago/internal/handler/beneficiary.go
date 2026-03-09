@@ -86,7 +86,7 @@ func (h *Handler) AddBeneficiary(w http.ResponseWriter, r *http.Request) {
 
 	logger.Infof("Created beneficiary %s for account %s (wallet %s)", beneficiary.ID, accountID, subAcc.WalletID)
 
-	h.sendJSON(w, http.StatusOK, beneficiaryToItem(beneficiary))
+	h.sendJSON(w, http.StatusOK, BeneficiaryToItem(beneficiary))
 }
 
 // ListBeneficiaries handles GET /v1/accounts/{accountId}/beneficiaries
@@ -140,7 +140,7 @@ func (h *Handler) ListBeneficiaries(w http.ResponseWriter, r *http.Request) {
 
 	items := make([]models.BeneficiaryItem, 0, len(beneficiaries))
 	for _, b := range beneficiaries {
-		items = append(items, beneficiaryToItem(b))
+		items = append(items, BeneficiaryToItem(b))
 	}
 
 	resp := models.ListBeneficiariesResponse{
@@ -161,19 +161,15 @@ func (h *Handler) ListBeneficiaries(w http.ResponseWriter, r *http.Request) {
 // Resolves accountId from the bearer token context
 func (h *Handler) AddBeneficiaryGlobal(w http.ResponseWriter, r *http.Request) {
 	// Extract token from Authorization header
-	authHeader := r.Header.Get("Authorization")
-	if authHeader == "" {
-		h.sendError(w, http.StatusUnauthorized, "unauthorized", "missing authorization header")
+	tokenValue, err := ExtractBearerToken(r.Header.Get("Authorization"))
+	if err != nil {
+		if err == ErrMissingAuthHeader {
+			h.sendError(w, http.StatusUnauthorized, "unauthorized", "missing authorization header")
+		} else {
+			h.sendError(w, http.StatusUnauthorized, "unauthorized", "invalid authorization format")
+		}
 		return
 	}
-
-	// Parse "Bearer <token>" format
-	parts := strings.Split(authHeader, " ")
-	if len(parts) != 2 || parts[0] != "Bearer" {
-		h.sendError(w, http.StatusUnauthorized, "unauthorized", "invalid authorization format")
-		return
-	}
-	tokenValue := parts[1]
 
 	// Resolve accountId from token
 	accountID, err := h.store.GetAccountIDByToken(r.Context(), tokenValue)
@@ -242,26 +238,22 @@ func (h *Handler) AddBeneficiaryGlobal(w http.ResponseWriter, r *http.Request) {
 
 	logger.Infof("Created beneficiary %s for account %s via global endpoint", beneficiary.ID, accountID)
 
-	h.sendJSON(w, http.StatusOK, beneficiaryToItem(beneficiary))
+	h.sendJSON(w, http.StatusOK, BeneficiaryToItem(beneficiary))
 }
 
 // ListBeneficiariesGlobal handles GET /v1/beneficiaries (without accountId in path)
 // Resolves accountId from the bearer token context
 func (h *Handler) ListBeneficiariesGlobal(w http.ResponseWriter, r *http.Request) {
 	// Extract token from Authorization header
-	authHeader := r.Header.Get("Authorization")
-	if authHeader == "" {
-		h.sendError(w, http.StatusUnauthorized, "unauthorized", "missing authorization header")
+	tokenValue, err := ExtractBearerToken(r.Header.Get("Authorization"))
+	if err != nil {
+		if err == ErrMissingAuthHeader {
+			h.sendError(w, http.StatusUnauthorized, "unauthorized", "missing authorization header")
+		} else {
+			h.sendError(w, http.StatusUnauthorized, "unauthorized", "invalid authorization format")
+		}
 		return
 	}
-
-	// Parse "Bearer <token>" format
-	parts := strings.Split(authHeader, " ")
-	if len(parts) != 2 || parts[0] != "Bearer" {
-		h.sendError(w, http.StatusUnauthorized, "unauthorized", "invalid authorization format")
-		return
-	}
-	tokenValue := parts[1]
 
 	// Resolve accountId from token
 	accountID, err := h.store.GetAccountIDByToken(r.Context(), tokenValue)
@@ -284,21 +276,7 @@ func (h *Handler) ListBeneficiariesGlobal(w http.ResponseWriter, r *http.Request
 	limitStr := r.URL.Query().Get("limit")
 	pageStr := r.URL.Query().Get("page")
 
-	limit := 10
-	page := 1
-
-	if limitStr != "" {
-		if l, err := strconv.Atoi(limitStr); err == nil && l > 0 {
-			limit = l
-		}
-	}
-	if pageStr != "" {
-		if p, err := strconv.Atoi(pageStr); err == nil && p > 0 {
-			page = p
-		}
-	}
-
-	offset := (page - 1) * limit
+	limit, page, offset := ParsePagination(limitStr, pageStr, 10)
 
 	beneficiaries, total, err := h.store.ListBeneficiariesByAccountID(r.Context(), subAcc.AccountID, limit, offset)
 	if err != nil {
@@ -307,14 +285,11 @@ func (h *Handler) ListBeneficiariesGlobal(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	numberOfPages := 1
-	if total > 0 {
-		numberOfPages = int(math.Ceil(float64(total) / float64(limit)))
-	}
+	numberOfPages := CalculatePages(total, limit)
 
 	items := make([]models.BeneficiaryItem, 0, len(beneficiaries))
 	for _, b := range beneficiaries {
-		items = append(items, beneficiaryToItem(b))
+		items = append(items, BeneficiaryToItem(b))
 	}
 
 	resp := models.ListBeneficiariesResponse{
@@ -329,20 +304,4 @@ func (h *Handler) ListBeneficiariesGlobal(w http.ResponseWriter, r *http.Request
 
 	logger.Infof("Listed %d beneficiaries for account %s via global endpoint (page=%d, limit=%d, total=%d)", len(items), accountID, page, limit, total)
 	h.sendJSON(w, http.StatusOK, resp)
-}
-
-func beneficiaryToItem(b *models.Beneficiary) models.BeneficiaryItem {
-	return models.BeneficiaryItem{
-		UUID:          b.ID,
-		Name:          b.Name,
-		Scope:         b.Scope,
-		CurrencyCode:  b.Currency,
-		AccountNumber: b.AccountNumber,
-		BranchCode:    b.BranchCode,
-		BankName:      b.BankName,
-		AccountName:   b.AccountName,
-		Reference:     b.Reference,
-		IsOwn:         b.IsOwn,
-		Status:        b.Status,
-	}
 }

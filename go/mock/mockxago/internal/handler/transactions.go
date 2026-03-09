@@ -374,12 +374,12 @@ func (h *Handler) GetTransaction(w http.ResponseWriter, r *http.Request) {
 	logger.Infof("Deposit retrieved: %s", txID)
 }
 
-// formatSettledAt formats the settled at timestamp
+// formatSettledAt formats the settled at timestamp (nil-safe wrapper for FormatSettledAt)
 func formatSettledAt(settledAt *time.Time) string {
 	if settledAt == nil {
 		return ""
 	}
-	return settledAt.Format("2006-01-02T15:04:05Z07:00")
+	return FormatSettledAt(*settledAt)
 }
 
 // GetTransactionByQuery handles GET /v1/transactions?transactionId=X
