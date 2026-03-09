@@ -21,14 +21,14 @@ func (bs *bufferedSyncer) Write(p []byte) (n int, err error) {
 	bs.Lock()
 	defer bs.Unlock()
 
-	// Always write to buffer
-	bs.buffer = append(bs.buffer, p...)
-
-	// If not buffering, also write to target
-	if !bs.isBuffering {
-		return bs.target.Write(p)
+	// If buffering is enabled, capture output in memory.
+	if bs.isBuffering {
+		bs.buffer = append(bs.buffer, p...)
+		return len(p), nil
 	}
-	return len(p), nil
+
+	// Otherwise pass through directly.
+	return bs.target.Write(p)
 }
 
 func (bs *bufferedSyncer) Sync() error {
