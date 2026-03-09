@@ -12,8 +12,9 @@ import (
 )
 
 const (
-	RafikiGatehubSignalChannel   = "rafiki_gatehub_signal"
-	errMsgStoreTransferMapping   = "failed to store gatehub transfer mapping"
+	RafikiGatehubSignalChannel = "rafiki_gatehub_signal"
+	errMsgStoreTransferMapping = "failed to store gatehub transfer mapping"
+	errMsgCancelOutgoingFailed = "failed to cancel outgoing payment"
 )
 
 type RafikiIncomingPaymentFinalizedArgs struct {
@@ -104,8 +105,15 @@ func RafikiIncomingPaymentFinalizedWorkflow(ctx workflow.Context, args RafikiInc
 		return nil
 	}
 
+	var accountInfo GatehubLinkedAccountInfo
+	err = workflow.ExecuteActivity(ctx, a.GetGatehubLinkedAccountInfo, ip.WalletAddressID).Get(ctx, &accountInfo)
+	if err != nil {
+		logger.Error("failed to get gatehub linked account info", "paymentId", ip.ID, "err", err)
+		return err
+	}
+
 	var gatehubTxID string
-	err = workflow.ExecuteActivity(ctx, a.TransferFromIntermediaryToUser, ip.WalletAddressID, ip.ReceivedAmount).Get(ctx, &gatehubTxID)
+	err = workflow.ExecuteActivity(ctx, a.TransferFromIntermediaryToUser, accountInfo, ip.ReceivedAmount).Get(ctx, &gatehubTxID)
 	if err != nil {
 		logger.Error("failed to transfer from intermediary to user", "paymentId", ip.ID, "err", err)
 		return err
@@ -153,21 +161,31 @@ func RafikiOutgoingPaymentCreatedWorkflow(ctx workflow.Context, op outgoingPayme
 	ctx = workflow.WithActivityOptions(ctx, ao)
 	logger := workflow.GetLogger(ctx)
 
+	var cancelReason string
+	defer func() {
+		if cancelReason == "" {
+			return
+		}
+		err := workflow.ExecuteActivity(ctx, a.CancelOutgoingPayment, op.ID, cancelReason).Get(ctx, nil)
+		if err != nil {
+			logger.Error(errMsgCancelOutgoingFailed, "paymentId", op.ID, "err", err)
+		}
+	}()
+
 	var validationResult ValidationResult
 	err := workflow.ExecuteActivity(ctx, a.ValidateOutgoingPayment, op).Get(ctx, &validationResult)
 	if err != nil {
 		logger.Error("failed to validate outgoing payment", "paymentId", op.ID, "err", err)
+		cancelReason = "validation error"
 		return err
 	}
 
 	if !validationResult.Valid {
-		logger.Warn("outgoing payment validation failed, cancelling",
+		logger.Warn("outgoing payment invalid, cancelling",
 			"paymentId", op.ID,
 			"reason", validationResult.Reason)
-		err = workflow.ExecuteActivity(ctx, a.CancelOutgoingPayment, op.ID, validationResult.Reason).Get(ctx, nil)
-		if err != nil {
-			logger.Error("failed to cancel outgoing payment", "paymentId", op.ID, "err", err)
-		}
+		cancelReason = validationResult.Reason
+		// Don't treat this as a workflow error, just cancel the payment
 		return nil
 	}
 
@@ -175,12 +193,14 @@ func RafikiOutgoingPaymentCreatedWorkflow(ctx workflow.Context, op outgoingPayme
 	err = workflow.ExecuteActivity(ctx, a.TransferFromUserToIntermediary, op.WalletAddressID, op.DebitAmount).Get(ctx, &gatehubTxID)
 	if err != nil {
 		logger.Error("failed to transfer from user to intermediary", "paymentId", op.ID, "err", err)
+		cancelReason = "failed to transfer from user to intermediary"
 		return err
 	}
 
 	err = workflow.ExecuteActivity(ctx, a.StoreGatehubTransferMapping, gatehubTxID, workflow.GetInfo(ctx).WorkflowExecution.ID).Get(ctx, nil)
 	if err != nil {
 		logger.Error(errMsgStoreTransferMapping, "paymentId", op.ID, "err", err)
+		cancelReason = errMsgStoreTransferMapping
 		return err
 	}
 
@@ -190,18 +210,21 @@ func RafikiOutgoingPaymentCreatedWorkflow(ctx workflow.Context, op outgoingPayme
 	err = workflow.ExecuteActivity(ctx, a.CreateOutgoingPaymentTransaction, op).Get(ctx, nil)
 	if err != nil {
 		logger.Error("failed to create outgoing payment transaction", "paymentId", op.ID, "err", err)
+		cancelReason = "failed to create outgoing payment transaction"
 		return err
 	}
 
 	err = workflow.ExecuteActivity(ctx, a.ReserveBalanceForOutgoing, op).Get(ctx, nil)
 	if err != nil {
 		logger.Error("failed to reserve balance for outgoing payment", "paymentId", op.ID, "err", err)
+		cancelReason = "failed to reserve balance for outgoing payment"
 		return err
 	}
 
 	err = workflow.ExecuteActivity(ctx, a.DepositOutgoingPaymentLiquidity, op.ID).Get(ctx, nil)
 	if err != nil {
 		logger.Error("failed to deposit outgoing payment liquidity", "paymentId", op.ID, "err", err)
+		cancelReason = "failed to deposit outgoing payment liquidity"
 		return err
 	}
 
@@ -251,8 +274,15 @@ func RafikiOutgoingPaymentFailedWorkflow(ctx workflow.Context, op outgoingPaymen
 	ctx = workflow.WithActivityOptions(ctx, ao)
 	logger := workflow.GetLogger(ctx)
 
+	var accountInfo GatehubLinkedAccountInfo
+	err := workflow.ExecuteActivity(ctx, a.GetGatehubLinkedAccountInfo, op.WalletAddressID).Get(ctx, &accountInfo)
+	if err != nil {
+		logger.Error("failed to get gatehub linked account info", "paymentId", op.ID, "err", err)
+		return err
+	}
+
 	var gatehubTxID string
-	err := workflow.ExecuteActivity(ctx, a.TransferFromIntermediaryToUser, op.WalletAddressID, op.DebitAmount).Get(ctx, &gatehubTxID)
+	err = workflow.ExecuteActivity(ctx, a.TransferFromIntermediaryToUser, accountInfo, op.DebitAmount).Get(ctx, &gatehubTxID)
 	if err != nil {
 		logger.Error("failed to transfer from intermediary to user (refund)", "paymentId", op.ID, "err", err)
 		return err
