@@ -192,15 +192,28 @@ export async function action({ request }: ActionFunctionArgs) {
       }
     }
   )
-  const data = await res.json()
-  if (res.status > 400) handleFlowError(data, 'recovery/password')
+  if (res.status > 400) {
+    const data = await res.json()
+    handleFlowError(data, 'recovery/password')
+  }
   else if (res.status == 400) {
     const errs = await kratosErrorMapping(res, fieldErrors)
     return error(request, { errors: errs })
   }
 
-  return redirectWithSnackbar(request, route('/settings'), {
-    message: 'New password successfully saved.',
-    icon: 'close'
-  })
+  return redirectWithSnackbar(
+    request,
+    route('/login'),
+    {
+      message:
+        'New password successfully saved. Please log in with your new password.',
+      icon: 'close'
+    },
+    {
+      headers: {
+        'Set-Cookie':
+          'ory_kratos_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax'
+      }
+    }
+  )
 }

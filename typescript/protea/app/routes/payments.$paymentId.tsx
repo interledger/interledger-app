@@ -31,7 +31,7 @@ import {
   WebMoLogo
 } from '~/components'
 import { Label } from '~/components/Label'
-import type { PublicWalletInfo } from '~/generated/connect/backend/v1/backend_pb'
+import { type PublicWalletInfo } from '~/generated/connect/backend/v1/backend_pb'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
@@ -44,7 +44,6 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const transaction = await grpc.lookupTransaction(request, {
     id: params.paymentId as string
   })
-
   if (isConnectError(transaction)) throw transaction.errorResponse
 
   if (transaction.type == 'withdrawal' || transaction.type == 'deposit') {
@@ -60,14 +59,14 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   }
 
   const walletUrl =
-    transaction.type == 'sent' ? transaction.destination : transaction.source
-
-  let publicWalletInfo: PlainMessage<PublicWalletInfo>
-
+    transaction.type == 'sent' || transaction.type == 'web_monetization_outgoing'
+      ? transaction.destination
+      : transaction.source
   const publicWalletInfoResponse = await grpc.getPublicWalletInfo(request, {
     walletAddress: walletUrl
   })
 
+  let publicWalletInfo: PlainMessage<PublicWalletInfo>
   if (isConnectError(publicWalletInfoResponse)) {
     publicWalletInfo = {
       walletID: 'not-found',
@@ -149,7 +148,7 @@ export const meta: MetaFunction<typeof loader> = mergeMeta(({ data }) => [
       typeof data == 'undefined'
         ? 'Payment'
         : // TODO Fix this for withdrawal
-        data.transaction.type == 'sent'
+        data.transaction.type == 'sent' || data.transaction.type == 'web_monetization_outgoing'
         ? `${data.transaction.subtotal} to ${data.transaction.title}`
         : `${data.transaction.formattedAmount} from ${data.transaction.title}`
   }
@@ -216,10 +215,16 @@ export default function Page() {
             <CardLink className='flex w-full' to={publicWalletInfo.address}>
               <div className='flex w-full items-center justify-between text-medium'>
                 <div className='flex space-x-2'>
-                  {identity.platform == 'twitter' && <TwitterIcon />}
-                  {identity.platform == 'linkedin' && <LinkedInIcon />}
-                  {identity.platform == 'discord' && <DiscordIcon />}
-                  {identity.platform == 'slack' && <SlackIcon />}
+                  {identity.platform.toLowerCase() == 'twitter' && (
+                    <TwitterIcon />
+                  )}
+                  {identity.platform.toLowerCase() == 'linkedin' && (
+                    <LinkedInIcon />
+                  )}
+                  {identity.platform.toLowerCase() == 'discord' && (
+                    <DiscordIcon />
+                  )}
+                  {identity.platform.toLowerCase() == 'slack' && <SlackIcon />}
                   <span>{identity.identifier}</span>
                 </div>
                 {identity.state == 'verified' && (
@@ -570,19 +575,16 @@ function Sent({ openDialog }: { openDialog: () => void }) {
         <CardButton noHover onClick={openDialog}>
           <div className='flex w-full items-center justify-between text-medium'>
             <div className='flex space-x-2'>
-              {transaction.destinationIdentityType === 'wallet' && (
-                <InterledgerIcon />
-              )}
-              {transaction.destinationIdentityType === 'linkedin' && (
-                <TwitterIcon />
-              )}
-              {transaction.destinationIdentityType === 'twitter' && (
-                <LinkedInIcon />
-              )}
-              {transaction.destinationIdentityType === 'discord' && (
-                <DiscordIcon />
-              )}
-              {transaction.destinationIdentityType === 'slack' && <SlackIcon />}
+              {transaction.destinationIdentityType.toLowerCase() ===
+                'wallet' && <InterledgerIcon />}
+              {transaction.destinationIdentityType.toLowerCase() ===
+                'twitter' && <TwitterIcon />}
+              {transaction.destinationIdentityType.toLowerCase() ===
+                'linkedin' && <LinkedInIcon />}
+              {transaction.destinationIdentityType.toLowerCase() ===
+                'discord' && <DiscordIcon />}
+              {transaction.destinationIdentityType.toLowerCase() ===
+                'slack' && <SlackIcon />}
               <span>{transaction.title}</span>
             </div>
             <Icon>navigate_next</Icon>
@@ -748,19 +750,16 @@ function Received({ openDialog }: { openDialog: () => void }) {
         <CardButton noHover onClick={openDialog}>
           <div className='flex w-full items-center justify-between text-medium'>
             <div className='flex space-x-2'>
-              {transaction.destinationIdentityType === 'wallet' && (
-                <InterledgerIcon />
-              )}
-              {transaction.destinationIdentityType === 'linkedin' && (
-                <TwitterIcon />
-              )}
-              {transaction.destinationIdentityType === 'twitter' && (
-                <LinkedInIcon />
-              )}
-              {transaction.destinationIdentityType === 'discord' && (
-                <DiscordIcon />
-              )}
-              {transaction.destinationIdentityType === 'slack' && <SlackIcon />}
+              {transaction.destinationIdentityType.toLowerCase() ===
+                'wallet' && <InterledgerIcon />}
+              {transaction.destinationIdentityType.toLowerCase() ===
+                'twitter' && <TwitterIcon />}
+              {transaction.destinationIdentityType.toLowerCase() ===
+                'linkedin' && <LinkedInIcon />}
+              {transaction.destinationIdentityType.toLowerCase() ===
+                'discord' && <DiscordIcon />}
+              {transaction.destinationIdentityType.toLowerCase() ===
+                'slack' && <SlackIcon />}
               <span>{transaction.title}</span>
             </div>
             <Icon>navigate_next</Icon>

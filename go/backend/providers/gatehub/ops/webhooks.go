@@ -12,7 +12,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"strings"
 
 	"gitlab.com/fynbos/backend/kyc"
@@ -127,14 +126,14 @@ type (
 	}
 )
 
-func NewWebhook(b Backends) http.HandlerFunc {
-	if os.Getenv("GATEHUB_WEBHOOK_SECRET") == "" {
-		log.Error("GATEHUB_WEBHOOK_SECRET is empty")
+func NewWebhook(b Backends, cfg gatehub.Config) http.HandlerFunc {
+	if cfg.WebhookSecret == "" {
+		log.Error("WebhookSecret is empty in Gatehub configuration")
 	}
 
-	key, err := hex.DecodeString(os.Getenv("GATEHUB_WEBHOOK_SECRET"))
+	key, err := hex.DecodeString(cfg.WebhookSecret)
 	if err != nil {
-		log.Fatal("Failed to decode GATEHUB_WEBHOOK_SECRET", zap.Error(err))
+		log.Fatal("Failed to decode WebhookSecret", zap.Error(err))
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -175,7 +174,7 @@ func NewWebhook(b Backends) http.HandlerFunc {
 				zap.Error(err),
 			)
 
-			if err := forwardWebhookToFallback(r.Context(), body, r.Header); err != nil {
+			if err := forwardWebhookToFallback(r.Context(), body, r.Header, cfg.FallbackWebhookURL); err != nil {
 				log.Error("failed to forward webhook to cards fallback",
 					zap.Error(err),
 					zap.String("external_user_uuid", wh.UserID),
@@ -477,14 +476,13 @@ func Verify(ctx context.Context, r *http.Request, key []byte) ([]byte, error) {
 	return payload, nil
 }
 
-func forwardWebhookToFallback(ctx context.Context, body []byte, headers http.Header) error {
-	forwardURL := os.Getenv("GATEHUB_FALLBACK_WEBHOOK_URL")
-	if forwardURL == "" {
-		log.Error("GATEHUB_FALLBACK_WEBHOOK_URL is not set")
-		return fmt.Errorf("GATEHUB_FALLBACK_WEBHOOK_URL is not set")
+func forwardWebhookToFallback(ctx context.Context, body []byte, headers http.Header, fallbackURL string) error {
+	if fallbackURL == "" {
+		log.Error("FallbackWebhookURL is not set in Gatehub configuration")
+		return fmt.Errorf("FallbackWebhookURL is not set in configuration")
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, forwardURL, bytes.NewReader(body))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, fallbackURL, bytes.NewReader(body))
 	if err != nil {
 		return fmt.Errorf("creating forward request: %w", err)
 	}
@@ -501,9 +499,9 @@ func forwardWebhookToFallback(ctx context.Context, body []byte, headers http.Hea
 	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return fmt.Errorf("webhook forward failed with status %d to %s", resp.StatusCode, forwardURL)
+		return fmt.Errorf("webhook forward failed with status %d to %s", resp.StatusCode, fallbackURL)
 	}
 
-	log.Info("Webhook successfully forwarded", zap.String("url", forwardURL), zap.Int("status", resp.StatusCode))
+	log.Info("Webhook successfully forwarded", zap.String("url", fallbackURL), zap.Int("status", resp.StatusCode))
 	return nil
 }

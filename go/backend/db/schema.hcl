@@ -68,6 +68,10 @@ table "agreements" {
     type    = timestamp
     default = sql("now()::TIMESTAMP")
   }
+  column "git_file_path" {
+    null = true
+    type = text
+  }
   primary_key {
     columns = [column.id]
   }
@@ -994,186 +998,6 @@ table "transfers" {
     on_delete   = NO_ACTION
   }
 }
-table "authorisation_clients" {
-  schema = schema.public
-  column "id" {
-    null    = false
-    type    = uuid
-    default = sql("gen_random_uuid()")
-  }
-  column "url" {
-    null    = false
-    type    = text
-  }
-  column "created_at" {
-    null    = false
-    type    = timestamp
-    default = sql("now()::TIMESTAMP")
-  }
-  column "updated_at" {
-    null    = false
-    type    = timestamp
-    default = sql("now()::TIMESTAMP")
-  }
-  primary_key {
-    columns = [column.id]
-  }
-  index "url_uniq" {
-    unique  = true
-    columns = [column.url]
-  }
-}
-table "authorisation_grants" {
-  schema = schema.public
-  column "id" {
-    null    = false
-    type    = uuid
-    default = sql("gen_random_uuid()")
-  }
-  column "client_id" {
-    null = false
-    type = uuid
-  }
-  column "state" {
-    null = false
-    type = text
-  }
-  column "continue_token" {
-    null = false
-    type = text
-  }
-  column "wait" {
-    null = true
-    type = bigint
-  }
-  column "created_at" {
-    null    = false
-    type    = timestamp
-    default = sql("now()::TIMESTAMP")
-  }
-  column "updated_at" {
-    null    = false
-    type    = timestamp
-    default = sql("now()::TIMESTAMP")
-  }
-  primary_key {
-    columns = [column.id]
-  }
-  index "continue_token_uniq" {
-    unique  = true
-    columns = [column.continue_token]
-  }
-  foreign_key "fk_grants_clients" {
-    columns     = [column.client_id]
-    ref_columns = [table.authorisation_clients.column.id]
-    on_update   = NO_ACTION
-    on_delete   = NO_ACTION
-  }
-  index "client_id_ind" {
-    columns = [column.client_id]
-  }
-}
-table "authorisation_tokens" {
-  schema = schema.public
-  column "id" {
-    null    = false
-    type    = uuid
-    default = sql("gen_random_uuid()")
-  }
-  column "grant_id" {
-    null = false
-    type = uuid
-  }
-  column "state" {
-    null = false
-    type = text
-  }
-  column "label" {
-    null = false
-    type = text
-  }
-  column "token" {
-    null = false
-    type = text
-  }
-  column "expires_in" {
-    null = false
-    type = bigint
-  }
-  column "revoked_at" {
-    null    = true
-    type    = timestamp
-  }
-  column "created_at" {
-    null    = false
-    type    = timestamp
-    default = sql("now()::TIMESTAMP")
-  }
-  column "updated_at" {
-    null    = false
-    type    = timestamp
-    default = sql("now()::TIMESTAMP")
-  }
-  primary_key {
-    columns = [column.id]
-  }
-  index "token_uniq" {
-    unique  = true
-    columns = [column.token]
-  }
-  foreign_key "fk_token_grant" {
-    columns     = [column.grant_id]
-    ref_columns = [table.authorisation_grants.column.id]
-    on_update   = NO_ACTION
-    on_delete   = NO_ACTION
-  }
-}
-table "authorisation_token_access" {
-  schema = schema.public
-  column "id" {
-    null    = false
-    type    = uuid
-    default = sql("gen_random_uuid()")
-  }
-  column "token_id" {
-    null = false
-    type = uuid
-  }
-  column "type" {
-    null = false
-    type = text
-  }
-  column "actions" {
-    null = true
-    type = sql("text[]")
-  }
-  column "identifier" {
-    null = false
-    type = text
-  }
-  column "locations" {
-    null = true
-    type = sql("text[]")
-  }
-  column "data_types" {
-    null = true
-    type = sql("text[]")
-  }
-  column "interval" {
-    null = true
-    type = text
-  }
-  primary_key {
-    columns = [column.id]
-  }
-  foreign_key "fk_access_token" {
-    columns     = [column.token_id]
-    ref_columns = [table.authorisation_tokens.column.id]
-    on_update   = NO_ACTION
-    on_delete   = NO_ACTION
-  }
-}
-
 table "contacts" {
   schema = schema.public
   column "id" {
@@ -2345,40 +2169,6 @@ table "discord_connections" {
   index "discord_wallet_user_ind" {
     unique  = true
     columns = [column.wallet_id, column.user_id]
-  }
-}
-
-table "dynamic_forms" {
-  schema = schema.public
-  column "id" {
-    null = false
-    type = uuid
-    default = sql("gen_random_uuid()")
-  }
-  column "wallet_id" {
-    null = true
-    type = uuid
-  }
-  column "form_id" {
-    null = false
-    type = text
-  }
-  column "data" {
-    null = false
-    type = jsonb
-  }
-  column "created_at" {
-    null    = false
-    type    = timestamp
-    default = sql("now()::TIMESTAMP")
-  }
-  column "updated_at" {
-    null    = false
-    type    = timestamp
-    default = sql("now()::TIMESTAMP")
-  }
-  primary_key {
-    columns = [column.id]
   }
 }
 

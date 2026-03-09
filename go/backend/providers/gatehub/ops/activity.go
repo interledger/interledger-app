@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
@@ -34,14 +33,28 @@ import (
 type Activity struct {
 	b        Backends
 	external external.Client
+	config   gatehub.Config
 }
 
-func NewActivity(b Backends) *Activity {
+func NewActivity(b Backends, cfg gatehub.Config) *Activity {
+	// Validate vault ID is available for activities
+	if cfg.PaywiserEuroVaultID == "" {
+		log.Warn("PaywiserEuroVaultID is not set in Gatehub configuration")
+	}
+
 	ec := external.NewClient(
-		os.Getenv("GATEHUB_APP_ID"),
-		os.Getenv("GATEHUB_SECRET"),
-		os.Getenv("GATEHUB_CARD_APP_ID"),
-		os.Getenv("GATEHUB_GATEWAY_ID"),
+		cfg.AppID,
+		cfg.Secret,
+		cfg.CardAppID,
+		cfg.GatewayID,
+		cfg.CardAccountProductCode,
+		cfg.PaywiserEuroVaultID,
+		cfg.OnOffRampClientID,
+		cfg.OnboardingClientID,
+		cfg.ExchangeClientID,
+		cfg.APIBaseURL,
+		cfg.OnboardingBaseURL,
+		cfg.OnOffRampBaseURL,
 		&http.Client{
 			Transport: otelhttp.NewTransport(
 				httplogger.NewTransport(http.DefaultTransport, b, nil),
@@ -52,6 +65,7 @@ func NewActivity(b Backends) *Activity {
 	return &Activity{
 		b:        b,
 		external: ec,
+		config:   cfg,
 	}
 }
 
@@ -519,13 +533,11 @@ func (a *Activity) GetLinkedAccount(ctx context.Context, walletID string) (linke
 }
 
 func (a *Activity) BackfillPaywiserBalanceAfterKYC(ctx context.Context, walletID string) (*gatehub.Balance, error) {
-	sendingUserID := os.Getenv("GATEHUB_SENDING_USER_ID")
-	if sendingUserID == "" {
-		return nil, fmt.Errorf("missing GATEHUB_SENDING_USER_ID")
+	if a.config.SendingUserID == "" {
+		return nil, fmt.Errorf("missing SendingUserID in Gatehub configuration")
 	}
-	sendingAddress := os.Getenv("GATEHUB_SENDING_USER_ADDRESS")
-	if sendingAddress == "" {
-		return nil, fmt.Errorf("missing GATEHUB_SENDING_USER_ADDRESS")
+	if a.config.SendingUserAddress == "" {
+		return nil, fmt.Errorf("missing SendingUserAddress in Gatehub configuration")
 	}
 
 	la, err := a.b.LinkedAccounts().ListByWalletId(ctx, walletID)
@@ -550,12 +562,12 @@ func (a *Activity) BackfillPaywiserBalanceAfterKYC(ctx context.Context, walletID
 		log.Info("no balance to transfer", zap.String("wallet_id", walletID))
 		return balance, nil
 	}
-	if sendingAddress == linkedAccount.ProviderID {
+	if a.config.SendingUserAddress == linkedAccount.ProviderID {
 		return balance, nil
 	}
 	externalTx, err := a.external.CreateTransaction(ctx, external.CreateTransactionRequest{
-		SendingUserID:    sendingUserID,
-		SendingAddress:   sendingAddress,
+		SendingUserID:    a.config.SendingUserID,
+		SendingAddress:   a.config.SendingUserAddress,
 		ReceivingAddress: linkedAccount.ProviderID,
 		Amount:           transfer,
 		Message:          "backfill transfer",
