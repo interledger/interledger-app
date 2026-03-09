@@ -6,6 +6,7 @@ package main
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/cucumber/godog"
 )

@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strconv"
 	"syscall"
 	"time"
 
@@ -51,20 +50,12 @@ func main() {
 	var store storage.Storage
 	redisURL := os.Getenv("MOCKXAGO_REDIS_URL")
 	if redisURL != "" {
-		redisDB := 0
-		if dbStr := os.Getenv("MOCKXAGO_REDIS_DB"); dbStr != "" {
-			var err error
-			redisDB, err = strconv.Atoi(dbStr)
-			if err != nil {
-				logger.Fatal("invalid MOCKXAGO_REDIS_DB value", zap.String("value", dbStr), zap.Error(err))
-			}
-		}
 		var err error
-		store, err = storage.NewRedisStorage(redisURL, redisDB)
+		store, err = storage.NewRedisStorage(redisURL, 0)
 		if err != nil {
 			logger.Fatal("failed to initialize Redis storage", zap.Error(err))
 		}
-		logger.Infof("Initialized Redis storage at %s (DB %d)", redisURL, redisDB)
+		logger.Infof("Initialized Redis storage at %s", redisURL)
 	} else {
 		store = storage.NewMemoryStorage()
 		logger.Infof("Initialized in-memory storage")
