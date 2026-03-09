@@ -6,11 +6,9 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strings"
 	"time"
 
 	"gitlab.com/fynbos/backend/rafiki"
-	"gitlab.com/fynbos/backend/wallets"
 
 	"gitlab.com/fynbos/env"
 
@@ -185,29 +183,6 @@ func startRafikiWorkflow(ctx context.Context, b Backends, hook webhook, prepare 
 		zap.String("type", hook.Type),
 		zap.String("workflowID", wfID))
 	return http.StatusOK
-}
-
-func getReceiverWalletFromIncomingPayment(ctx context.Context, b Backends, incomingPaymentURL string) (*wallets.Wallet, error) {
-	const urlPart = "incoming-payments"
-	id := incomingPaymentURL
-	if strings.Contains(incomingPaymentURL, urlPart) {
-		parts := strings.Split(incomingPaymentURL, "/")
-		id = parts[len(parts)-1]
-	}
-
-	ip, err := b.External().GetIncomingPayment(ctx, id)
-	if err != nil {
-		log.Error("failed to get incoming payment", zap.Error(err))
-		return nil, err
-	}
-
-	walletID, err := LookupWalletID(ctx, b, ip.WalletAddressId)
-	if err != nil {
-		log.Error("failed to lookup receiver wallet ID from incoming payment", zap.Error(err))
-		return nil, err
-	}
-
-	return b.Wallets().Get(ctx, walletID)
 }
 
 func incomingPaymentCreated(ctx context.Context, b Backends, hook webhook) error {
