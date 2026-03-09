@@ -61,6 +61,11 @@ type RafikiPayment struct {
 	Asset        string         `db:"amount_asset"`
 }
 
+type GatehubLinkedAccountInfo struct {
+	WalletID   string
+	ProviderID string
+}
+
 func parseAmountValue(val string) (uint64, error) {
 	return strconv.ParseUint(val, 10, 64)
 }
@@ -179,6 +184,18 @@ func (a *Activity) getGatehubLinkedAccount(ctx context.Context, walletAddressID 
 	return nil, walletID, fmt.Errorf("%w no gatehub balance account found for wallet %s", rafiki.ErrNotFound, walletID)
 }
 
+func (a *Activity) GetGatehubLinkedAccountInfo(ctx context.Context, walletAddressID string) (*GatehubLinkedAccountInfo, error) {
+	la, walletID, err := a.getGatehubLinkedAccount(ctx, walletAddressID)
+	if err != nil {
+		return nil, temporal.NewNonRetryableApplicationError("failed to get gatehub linked account", "ErrNotFound", err)
+	}
+
+	return &GatehubLinkedAccountInfo{
+		WalletID:   walletID,
+		ProviderID: la.ProviderID,
+	}, nil
+}
+
 func (a *Activity) getGatehubExternalUserID(ctx context.Context, walletID string) (string, error) {
 	var externalID string
 	err := a.b.DB().GetContext(ctx, &externalID, "SELECT external_id FROM gatehub_users WHERE wallet_id=$1;", walletID)
@@ -199,12 +216,7 @@ func lookupWalletIDFromActivity(ctx context.Context, b ActivityBackends, payment
 
 // Creates a GateHub hosted transfer from the system intermediary
 // account to the user's GateHub wallet. Returns the GateHub transaction ID.
-func (a *Activity) TransferFromIntermediaryToUser(ctx context.Context, walletAddressID string, amt amount) (string, error) {
-	la, walletID, err := a.getGatehubLinkedAccount(ctx, walletAddressID)
-	if err != nil {
-		return "", temporal.NewNonRetryableApplicationError("failed to get gatehub linked account", "ErrNotFound", err)
-	}
-
+func (a *Activity) TransferFromIntermediaryToUser(ctx context.Context, info GatehubLinkedAccountInfo, amt amount) (string, error) {
 	parsedAmt, err := parseAmountValue(amt.Value)
 	if err != nil {
 		return "", temporal.NewNonRetryableApplicationError("invalid amount value", "ErrInternal", err)
@@ -220,7 +232,7 @@ func (a *Activity) TransferFromIntermediaryToUser(ctx context.Context, walletAdd
 	currencyAmt := currency.FromUInt64(parsedAmt, cc)
 	floatAmt := currencyAmt.Float64()
 
-	wallet, err := a.b.Wallets().Get(ctx, walletID)
+	wallet, err := a.b.Wallets().Get(ctx, info.WalletID)
 	if err != nil {
 		return "", fmt.Errorf("%w %s", rafiki.ErrInternal, err)
 	}
@@ -228,7 +240,7 @@ func (a *Activity) TransferFromIntermediaryToUser(ctx context.Context, walletAdd
 	ghClient := a.b.Gatehub().ExternalClient()
 	tx, err := ghClient.CreateTransaction(ctx, ghExternal.CreateTransactionRequest{
 		SendingAddress:   sendingAddress,
-		ReceivingAddress: la.ProviderID,
+		ReceivingAddress: info.ProviderID,
 		Amount:           floatAmt,
 		Message:          fmt.Sprintf("Rafiki incoming payment to %s", wallet.Name),
 		Type:             ghExternal.TransactionTypeHosted,
@@ -365,6 +377,7 @@ func (a *Activity) validateCurrencyMatch(ctx context.Context, op outgoingPayment
 	return &ValidationResult{Valid: true}, nil
 }
 
+// TODO This should have more checks and return asset based on jurisdiction + support all providers
 func findProviderCurrency(accs []linkedaccounts.LinkedAccount, assetCode string, isSender bool) string {
 	for _, la := range accs {
 		if la.Provider != gatehub.ProviderName {
