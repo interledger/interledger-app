@@ -11,6 +11,10 @@ services:
       - XAGO_API_PUBLIC_KEY=test_public_key_12345
       - XAGO_API_SECRET=test_secret_key_98765
       - XAGO_MOCK_TEST_MODE=true
+      - WEBHOOK_URL=http://host.docker.internal:3000/xago/webhooks
+      - WEBHOOK_SECRET=test-webhook-secret
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 5s

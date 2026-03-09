@@ -14,8 +14,7 @@ type FieldData struct {
 
 // LoginResponse represents the login response
 type LoginResponse struct {
-	TokenValue       string `json:"tokenValue"`
-	ExpiresInMinutes int    `json:"expiresInMinutes"`
+	TokenValue string `json:"tokenValue"`
 }
 
 // CreateSubAccountRequest represents sub-account creation payload
@@ -74,6 +73,84 @@ type UpdateSubAccountResponse struct {
 	Status    string `json:"status"`
 }
 
+// BalanceItem represents balance per currency
+type BalanceItem struct {
+	CurrencyCode string  `json:"currencyCode"`
+	Available    float64 `json:"available"`
+	Reserved     float64 `json:"reserved"`
+	Total        float64 `json:"total"`
+}
+
+// BalanceResponse represents balance response for an account
+type BalanceResponse struct {
+	AccountID string        `json:"accountId"`
+	Balances  []BalanceItem `json:"balances"`
+}
+
+// TestSetBalanceRequest represents a test-only balance set payload.
+type TestSetBalanceRequest struct {
+	AccountID    string  `json:"accountId"`
+	WalletID     string  `json:"walletId"`
+	CurrencyCode string  `json:"currencyCode"`
+	Available    float64 `json:"available"`
+	Reserved     float64 `json:"reserved"`
+}
+
+// TestBalanceDeltaRequest represents a test-only balance delta payload.
+type TestBalanceDeltaRequest struct {
+	AccountID     string  `json:"accountId"`
+	WalletID      string  `json:"walletId"`
+	CurrencyCode  string  `json:"currencyCode"`
+	Amount        float64 `json:"amount"`
+	TransactionID string  `json:"transactionId"` // Optional: references pre-created transaction for backend verification
+}
+
+// TestBalanceResponse represents a test-only balance response.
+type TestBalanceResponse struct {
+	Status string `json:"status"`
+}
+
+// CurrencyResponse represents available currency and bank details
+type CurrencyResponse struct {
+	CurrencyID    string `json:"currencyId"`
+	CurrencyName  string `json:"currencyName"`
+	BankName      string `json:"bankName"`
+	AccountName   string `json:"accountName"`
+	AccountNumber string `json:"accountNumber"`
+	BranchCode    string `json:"branchCode"`
+	SwiftBIC      string `json:"swiftBIC"`
+}
+
+// DepositFields contains bank account deposit details
+type DepositFields struct {
+	BankName       string `json:"bankName"`
+	AccountName    string `json:"accountName"`
+	AccountNumber  string `json:"accountNumber"`
+	BankAddress    string `json:"bankAddress,omitempty"`
+	AccountAddress string `json:"accountAddress,omitempty"`
+	BranchCode     string `json:"branchCode"`
+	SwiftBIC       string `json:"swiftBIC,omitempty"`
+}
+
+// BankingProvider represents a banking provider with deposit availability
+type BankingProvider struct {
+	Name             string        `json:"name"`
+	DepositAvailable bool          `json:"depositAvailable"`
+	DepositFields    DepositFields `json:"depositFields"`
+}
+
+// CurrencyNested represents currency with nested banking providers
+// This format matches what the backend expects (see go/backend/providers/xago/external/types.go)
+type CurrencyNested struct {
+	CurrencyCode     string            `json:"currencyCode"`
+	Name             string            `json:"name,omitempty"`
+	Symbol           string            `json:"symbol,omitempty"`
+	DepositEnabled   bool              `json:"depositEnabled"`
+	WithdrawEnabled  bool              `json:"withdrawEnabled"`
+	MarketEnabled    bool              `json:"marketEnabled,omitempty"`
+	BankingProviders []BankingProvider `json:"bankingProviders"`
+}
+
 // ErrorResponse represents a standard error response
 type ErrorResponse struct {
 	Error   string `json:"error"`
@@ -120,4 +197,111 @@ type BeneficiaryPagination struct {
 type ListBeneficiariesResponse struct {
 	Data       []BeneficiaryItem     `json:"data"`
 	Pagination BeneficiaryPagination `json:"pagination"`
+}
+
+// CreateTransferRequest represents the payload for creating a transfer
+type CreateTransferRequest struct {
+	Amount         float64 `json:"amount"`
+	CurrencyCode   string  `json:"currencyCode"`
+	BeneficiaryID  string  `json:"beneficiaryId"`
+	Reference      string  `json:"reference,omitempty"`
+	IdempotencyKey string  `json:"idempotencyKey,omitempty"`
+}
+
+// CreateTransferResponse represents the response when creating a transfer
+type CreateTransferResponse struct {
+	TransactionID string `json:"transactionId"`
+}
+
+// TransactionItem represents a single transaction in list responses
+type TransactionItem struct {
+	TransactionID string  `json:"transactionId"`
+	Status        string  `json:"status"`
+	Amount        float64 `json:"amount"`
+	CurrencyCode  string  `json:"currencyCode"`
+	BeneficiaryID string  `json:"beneficiaryId"`
+	Reference     string  `json:"reference"`
+	CreatedAt     string  `json:"createdAt"`
+	SettledAt     string  `json:"settledAt,omitempty"`
+}
+
+// TransactionPagination represents pagination info for transaction lists
+type TransactionPagination struct {
+	Limit         int `json:"limit"`
+	Page          int `json:"page"`
+	NumberOfPages int `json:"numberOfPages"`
+	Total         int `json:"total"`
+}
+
+// ListTransactionsResponse represents the paginated list of transactions
+type ListTransactionsResponse struct {
+	Data       []TransactionItem     `json:"data"`
+	Pagination TransactionPagination `json:"pagination"`
+}
+
+// GetTransactionResponse represents details of a single transaction
+type GetTransactionResponse struct {
+	TransactionID string  `json:"transactionId"`
+	Status        string  `json:"status"`
+	Amount        float64 `json:"amount"`
+	CurrencyCode  string  `json:"currencyCode"`
+	BeneficiaryID string  `json:"beneficiaryId"`
+	Reference     string  `json:"reference"`
+	CreatedAt     string  `json:"createdAt"`
+	SettledAt     string  `json:"settledAt,omitempty"`
+}
+
+// TestDepositRequest represents the payload for simulating a test deposit
+type TestDepositRequest struct {
+	AccountID        string  `json:"accountId"`
+	Amount           float64 `json:"amount"`
+	CurrencyCode     string  `json:"currencyCode"`
+	DepositReference string  `json:"depositReference,omitempty"`
+}
+
+// TestDepositResponse represents the response from simulating a test deposit
+type TestDepositResponse struct {
+	TransactionID string `json:"transactionId"`
+	Status        string `json:"status"`
+}
+
+// DepositItem represents a single deposit in list responses
+type DepositItem struct {
+	TransactionID        string  `json:"transactionId"`
+	AccountID            string  `json:"accountId"`
+	Amount               float64 `json:"amount"`
+	CurrencyCode         string  `json:"currencyCode"`
+	DepositReference     string  `json:"depositReference,omitempty"`
+	TransactionReference string  `json:"transactionReference,omitempty"`
+	Status               string  `json:"status"`
+	Code                 int     `json:"code"`
+	CreatedAt            string  `json:"createdAt"`
+	SettledAt            string  `json:"settledAt,omitempty"`
+}
+
+// DepositPagination represents pagination info for deposit lists
+type DepositPagination struct {
+	Limit         int `json:"limit"`
+	Page          int `json:"page"`
+	NumberOfPages int `json:"numberOfPages"`
+	Total         int `json:"total"`
+}
+
+// ListDepositsResponse represents the paginated list of deposits
+type ListDepositsResponse struct {
+	Data       []DepositItem     `json:"data"`
+	Pagination DepositPagination `json:"pagination"`
+}
+
+// DepositWebhookPayload represents the webhook payload sent when a deposit completes
+type DepositWebhookPayload struct {
+	AccountID            string  `json:"accountId"`
+	Amount               float64 `json:"amount"`
+	CurrencyCode         string  `json:"currencyCode"`
+	TransactionID        string  `json:"transactionId"`
+	TransactionReference string  `json:"transactionReference,omitempty"`
+	Status               string  `json:"status"`
+	Code                 int     `json:"code"`
+	CreatedAt            string  `json:"createdAt"`
+	SettledAt            string  `json:"settledAt,omitempty"`
 }
