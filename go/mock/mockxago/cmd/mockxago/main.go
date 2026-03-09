@@ -60,6 +60,10 @@ func main() {
 	// Create handler
 	h := handler.NewHandler(store, queue)
 
+	// Register job handlers BEFORE starting worker
+	worker.RegisterHandler(handler.JobTypeProcessDeposit, h.NewProcessDepositHandler())
+	logger.Infof("Registered deposit job handler")
+
 	// Start job worker in background
 	worker.StartAsync()
 	logger.Infof("Job worker started")
