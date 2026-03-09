@@ -7,6 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
+  contents: read  # Required to read workflow files and run details
   actions: read  # Required to list workflow runs via gh CLI
 
 jobs:
@@ -24,6 +25,9 @@ jobs:
         uses: google-github-actions/setup-gcloud@v2
         with:
           project_id: ${{ vars.PROJECT_ID }}
+      
+      - name: Checkout repository
+        uses: actions/checkout@v4
       
       - name: Check runner status and shutdown if idle
         env:
