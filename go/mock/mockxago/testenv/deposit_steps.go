@@ -14,6 +14,8 @@ import (
 
 	"github.com/cucumber/godog"
 	"github.com/google/uuid"
+	"gitlab.com/fynbos/mock/mockxago/internal/logger"
+	"go.uber.org/zap"
 )
 
 func registerDepositSteps(sc *godog.ScenarioContext, tc *TestContext) {
@@ -81,7 +83,7 @@ func registerDepositSteps(sc *godog.ScenarioContext, tc *TestContext) {
 func (tc *TestContext) walletWebhookURLConfigured(url string) error {
 	// Clear server-side deposits so list/count tests start from zero
 	if err := tc.clearServerDeposits(); err != nil {
-		fmt.Printf("WARN: failed to clear server deposits: %v\n", err)
+		logger.Warn("failed to clear server deposits", zap.Error(err))
 	}
 	return tc.startWebhookServer(url)
 }
@@ -372,13 +374,18 @@ func (tc *TestContext) webhookBodyIncludesRequiredFields(table *godog.Table) err
 }
 
 func (tc *TestContext) subAccountZARBalanceIs(expected string) error {
-	fmt.Printf("DEBUG: Checking ZAR balance for account %s (wallet: %s)\n", tc.lastSubAccount.AccountID, tc.lastSubAccount.WalletID)
+	logger.Debug("checking ZAR balance",
+		zap.String("account_id", tc.lastSubAccount.AccountID),
+		zap.String("wallet_id", tc.lastSubAccount.WalletID))
 	if err := tc.requestBalanceForSubAccount(); err != nil {
 		return err
 	}
-	fmt.Printf("DEBUG: Balance response contains %d balances\n", len(tc.lastBalanceResponse.Balances))
+	logger.Debug("balance response received", zap.Int("balance_count", len(tc.lastBalanceResponse.Balances)))
 	for _, bal := range tc.lastBalanceResponse.Balances {
-		fmt.Printf("DEBUG: Balance - Currency: %s, Available: %f, Total: %f\n", bal.CurrencyCode, bal.Available, bal.Total)
+		logger.Debug("balance details",
+			zap.String("currency", bal.CurrencyCode),
+			zap.Float64("available", bal.Available),
+			zap.Float64("total", bal.Total))
 	}
 	return tc.totalBalanceIs("ZAR", expected)
 }
@@ -394,7 +401,9 @@ func (tc *TestContext) subAccountStartsWithZeroZARBalance() error {
 	if tc.lastSubAccount.AccountID == "" {
 		return fmt.Errorf("no accountId available")
 	}
-	fmt.Printf("DEBUG: Setting zero ZAR balance for account %s (wallet: %s)\n", tc.lastSubAccount.AccountID, tc.lastSubAccount.WalletID)
+	logger.Debug("setting zero ZAR balance",
+		zap.String("account_id", tc.lastSubAccount.AccountID),
+		zap.String("wallet_id", tc.lastSubAccount.WalletID))
 	payload := map[string]interface{}{
 		"accountId":    tc.lastSubAccount.AccountID,
 		"currencyCode": "ZAR",

@@ -447,6 +447,9 @@ func (r *RedisStorage) GetBalance(ctx context.Context, walletID string, currency
 	availCmd := pipe.Get(ctx, availKey)
 	reservedCmd := pipe.Get(ctx, reservedKey)
 	_, err = pipe.Exec(ctx)
+	if err != nil && err != redis.Nil {
+		return 0, 0, err
+	}
 
 	// Parse available (default to 0 if not found)
 	availStr, err := availCmd.Result()

@@ -195,21 +195,19 @@ func (h *Handler) ListTransactions(w http.ResponseWriter, r *http.Request) {
 
 	// Convert deposits to transaction items
 	data := make([]map[string]interface{}, 0)
-	if deposits != nil {
-		for _, deposit := range deposits {
-			data = append(data, map[string]interface{}{
-				"transactionId": deposit.ID,
-				"accountId":     deposit.AccountID,
-				"amount":        deposit.Amount,
-				"currencyCode":  deposit.Currency,
-				"status":        deposit.Status,
-				"code":          deposit.Code,
-				"createdAt":     deposit.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
-				"settledAt":     deposit.SettledAt,
-				"isDuplicate":   false,
-				"isRequested":   false,
-			})
-		}
+	for _, deposit := range deposits {
+		data = append(data, map[string]interface{}{
+			"transactionId": deposit.ID,
+			"accountId":     deposit.AccountID,
+			"amount":        deposit.Amount,
+			"currencyCode":  deposit.Currency,
+			"status":        deposit.Status,
+			"code":          deposit.Code,
+			"createdAt":     deposit.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+			"settledAt":     deposit.SettledAt,
+			"isDuplicate":   false,
+			"isRequested":   false,
+		})
 	}
 
 	// Build response with transaction list
@@ -275,19 +273,17 @@ func (h *Handler) ListTransfers(w http.ResponseWriter, r *http.Request) {
 
 	// Convert to response format
 	transactionItems := make([]models.TransactionItem, 0)
-	if transfers != nil {
-		for _, tx := range transfers {
-			transactionItems = append(transactionItems, models.TransactionItem{
-				TransactionID: tx.ID,
-				Status:        tx.Status,
-				Amount:        tx.Amount,
-				CurrencyCode:  tx.Currency,
-				BeneficiaryID: tx.BeneficiaryID,
-				Reference:     tx.Reference,
-				CreatedAt:     tx.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
-				SettledAt:     formatSettledAt(tx.SettledAt),
-			})
-		}
+	for _, tx := range transfers {
+		transactionItems = append(transactionItems, models.TransactionItem{
+			TransactionID: tx.ID,
+			Status:        tx.Status,
+			Amount:        tx.Amount,
+			CurrencyCode:  tx.Currency,
+			BeneficiaryID: tx.BeneficiaryID,
+			Reference:     tx.Reference,
+			CreatedAt:     tx.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+			SettledAt:     formatSettledAt(tx.SettledAt),
+		})
 	}
 
 	response := models.ListTransactionsResponse{
