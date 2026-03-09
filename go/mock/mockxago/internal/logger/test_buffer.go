@@ -163,3 +163,25 @@ func GetBufferedLogs() string {
 
 	return string(append(append([]byte{}, stdoutBuffer.buffer...), stderrBuffer.buffer...))
 }
+
+// StartBufferingLogs starts buffering all log output (for godog/E2E tests)
+func StartBufferingLogs() {
+	stdoutBuffer.StartBuffering()
+	stderrBuffer.StartBuffering()
+}
+
+// FlushBufferedLogs outputs all buffered logs to stdout/stderr (for failed scenarios)
+func FlushBufferedLogs() {
+	stdoutBuffer.FlushBuffer(os.Stdout)
+	stderrBuffer.FlushBuffer(os.Stderr)
+	stdoutBuffer.StopBuffering()
+	stderrBuffer.StopBuffering()
+}
+
+// DiscardBufferedLogs clears all buffered logs without outputting (for passed scenarios)
+func DiscardBufferedLogs() {
+	stdoutBuffer.ClearBuffer()
+	stderrBuffer.ClearBuffer()
+	stdoutBuffer.StopBuffering()
+	stderrBuffer.StopBuffering()
+}
