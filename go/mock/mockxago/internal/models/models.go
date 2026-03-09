@@ -60,3 +60,43 @@ type Beneficiary struct {
 	CreatedAt     time.Time `db:"created_at"`
 	UpdatedAt     time.Time `db:"updated_at"`
 }
+
+// Transaction represents a transfer transaction
+type Transaction struct {
+	ID            string     `db:"id"`
+	AccountID     string     `db:"account_id"`
+	WalletID      string     `db:"wallet_id"`
+	BeneficiaryID string     `db:"beneficiary_id"`
+	Amount        float64    `db:"amount"`
+	Currency      string     `db:"currency"`
+	Reference     string     `db:"reference"`
+	Status        string     `db:"status"`
+	CreatedAt     time.Time  `db:"created_at"`
+	SettledAt     *time.Time `db:"settled_at"`
+}
+
+// Deposit represents a fiat deposit transaction
+type Deposit struct {
+	ID               string     `db:"id"`
+	AccountID        string     `db:"account_id"`
+	Amount           float64    `db:"amount"`
+	Currency         string     `db:"currency"`
+	DepositReference string     `db:"deposit_reference"`
+	Status           string     `db:"status"`
+	Code             int        `db:"code"`
+	CreatedAt        time.Time  `db:"created_at"`
+	SettledAt        *time.Time `db:"settled_at"`
+}
+
+// Job represents a unit of async work (deposit processing, webhook delivery, etc.)
+type Job struct {
+	ID          string                 `json:"id"`
+	JobType     string                 `json:"job_type"`
+	Data        map[string]interface{} `json:"data"`
+	Attempts    int                    `json:"attempts"`
+	Status      string                 `json:"status"`
+	CreatedAt   time.Time              `json:"created_at"`
+	NotBefore   time.Time              `json:"not_before"`
+	LastError   string                 `json:"last_error"`
+	CompletedAt *time.Time             `json:"completed_at,omitempty"`
+}
