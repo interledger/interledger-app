@@ -6,6 +6,7 @@ package main
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/cucumber/godog"
 )
@@ -305,7 +306,9 @@ func (tc *TestContext) subAccountIsolationConfirmed() error {
 }
 
 func (tc *TestContext) createSubAccount() error {
-	payload := buildSubAccountPayload(map[string]string{}, true, "")
+	// Generate a default wallet ID for this test scenario
+	walletID := fmt.Sprintf("wallet_default_%d", time.Now().UnixNano())
+	payload := buildSubAccountPayload(map[string]string{}, true, walletID)
 	return tc.postSubAccount(payload, true)
 }
 
