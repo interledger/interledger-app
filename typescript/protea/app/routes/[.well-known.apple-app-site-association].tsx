@@ -13,7 +13,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       details: [
         {
           appIDs: [appID],
-          components: [{ '/': '/*' }]
+          components: [{ '/': '/transactions*' }]
         }
       ]
     },
