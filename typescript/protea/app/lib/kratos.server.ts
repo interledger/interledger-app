@@ -124,6 +124,9 @@ export function handleFlowError(
   flowId?: string
 ): void {
   let redirectRoute = `/${flowType}`
+  if (flowId) {
+    redirectRoute += `?flow=${flowId}`
+  }
 
   switch (flow.error.id) {
     case 'session_inactive':
@@ -135,7 +138,7 @@ export function handleFlowError(
       })
     case 'session_aal2_required':
       // 2FA is enabled and enforced, but user did not perform 2fa yet!
-      throw redirect(`/totp/challenge?returnTo=${redirectRoute}`)
+      throw redirect(`/totp/challenge?returnTo=${encodeURIComponent(redirectRoute)}`)
     case 'session_already_available':
       // User is already signed in, let's redirect them home!
       throw redirect(href('/'))

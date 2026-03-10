@@ -20,13 +20,18 @@ const PASSWORD_RECOVERY_ALLOWED_ROUTES = [
   '/login',
   '/totp/challenge',
   '/recovery',
-  '/recovery/password'
+  '/recovery/password',
+  '/settings'
 ]
 
 /**
  * Routes that can be accessed without verified email
  */
 export const NON_VERIFIED_EMAIL_ROUTES = ['/logout', '/verify']
+
+const isSessionFromRecoveryLink = (session: Session): boolean => {
+  return !!session.authentication_methods?.some((method: SessionAuthenticationMethod) => method.method === 'link_recovery')
+}
 
 /**
  * Check if TOTP is available in Kratos settings flow
@@ -148,7 +153,16 @@ export async function withAAL2Guard(pathname: string, request: Request, fn: () =
     return
   }
 
+  const url = new URL(request.url)
+  if (pathname === '/settings' && url.searchParams.has('flow')) {
+    return
+  }
+
   const session = await getUserSession(request)
+  if (isSessionFromRecoveryLink(session)) {
+    return await fn();
+  }
+
   const totpAvailable = await isTotpSet(session, request.headers)
   if (!totpAvailable) {
     throw redirect('/totp/two-factor-authentication')
@@ -163,9 +177,7 @@ export async function recoveryLinkSessionInvalidationGuard(pathname: string, req
   }
 
   const session = await getUserSession(request)
-
-  const isLinkRecoverySession = !!session.authentication_methods?.some((method: SessionAuthenticationMethod) => method.method === 'link_recovery')
-  if (isLinkRecoverySession) {
+  if (isSessionFromRecoveryLink(session)) {
     throw redirect('/login', {
       headers: {
         'Set-Cookie': 'ory_kratos_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax'

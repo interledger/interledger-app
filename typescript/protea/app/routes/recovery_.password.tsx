@@ -55,7 +55,7 @@ export async function loader({ request }: Route.LoaderArgs) {
       }
     )
     flow = await flowRes.json()
-    if (flowRes.status >= 400) handleFlowError(flow, 'recovery/password')
+    if (flowRes.status >= 400) handleFlowError(flow, 'recovery/password', flowId)
   } else {
     // Otherwise we initialize it
     const flowRes = await fetch(
@@ -65,10 +65,12 @@ export async function loader({ request }: Route.LoaderArgs) {
     flow = await flowRes.json()
 
     if (flow.error?.id === 'session_aal2_required') {
-      return redirect('/totp/challenge?returnTo=/recovery/password')
+      const redirectURL = `/totp/challenge?returnTo=/recovery/password${flow.id ? encodeURIComponent(`?flow=${flow.id}`) : ''
+        }`
+      return redirect(redirectURL)
     }
 
-    if (flowRes.status >= 400) handleFlowError(flow, 'recovery/password')
+    if (flowRes.status >= 400) handleFlowError(flow, 'recovery/password', flow.id)
     return redirect(`/recovery/password?flow=${flow.id}`, {
       headers: trimHeaders(flowRes.headers, ['set-cookie'])
     })
