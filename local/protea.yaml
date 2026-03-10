@@ -45,8 +45,8 @@ services:
 
       - REDIS_URL=redis://redis:6379/2
 
-      - OP_KEY_ID=42fb67b77-27bf-482e-8ad3-7a2131036a32
-      - OP_PRIVATE_KEY="LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1DNENBUUF3QlFZREsyVndCQ0lFSU1Dd2ZJNmJFdlA3b2ZHazNTV0J0aTl0RkF0YWwwWWFDNUV3SDE4Mk1LenAKLS0tLS1FTkQgUFJJVkFURSBLRVktLS0tLQo="
+      - OP_KEY_ID=
+      - OP_PRIVATE_KEY=
       - OP_WALLET_ADDRESS=https://ilp.interledger-test.dev/interledger
 
     depends_on:
