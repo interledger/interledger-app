@@ -1,0 +1,33 @@
+sequenceDiagram
+    title Outgoing Payment Completed
+
+    participant RA as Rafiki Admin
+    participant R as Rafiki
+    participant WB as Wallet Backend
+    participant T as Temporal (Workflows)
+    participant P as Provider (GateHub)
+
+    R ->> WB: Send webhook
+    WB ->> WB: Validate signature
+    alt not valid
+        WB ->>R: Return 400
+    end
+    WB ->> WB: Determine webhook type
+    alt unknown webhook type
+        WB ->> WB: Log unknown webhook type
+        WB ->>R: Return 200
+    end 
+    WB ->> WB: Webhook type is outgoing_payment.completed
+    WB ->> T: Start workflow RafikiOutgoingPaymentCompleted
+    alt cannot start workflow
+        T ->> WB: Returns error
+        WB ->> R: Return 400
+    else
+        T ->> WB: Workflow started
+        WB ->> R: Return 200 (ACKNOWLEDGED)
+    end
+    
+    Note over T: Async Workflow
+    T ->> T: Update TX Status (completed)
+    T ->> T: Post the transfer in Pacioli
+    T ->> RA: CreateOutgoingPaymentWithdrawal
