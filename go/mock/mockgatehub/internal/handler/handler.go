@@ -42,8 +42,17 @@ type TransactionRequest struct {
 	TOTPCode   string `json:"totp_code,omitempty"`
 }
 
-// NewHandler creates a new handler with dependencies
-func NewHandler(cfg *config.Config, store storage.Storage, webhookManager *webhook.Manager) *Handler {
+// NewHandler creates a new handler using configuration loaded from the environment.
+// For tests or custom setups, use NewHandlerWithConfig to inject a pre-built config.
+func NewHandler(store storage.Storage, webhookManager *webhook.Manager) *Handler {
+	return NewHandlerWithConfig(config.Load(), store, webhookManager)
+}
+
+// NewHandlerWithConfig creates a new handler with the provided configuration.
+func NewHandlerWithConfig(cfg *config.Config, store storage.Storage, webhookManager *webhook.Manager) *Handler {
+	if cfg == nil {
+		cfg = config.Load()
+	}
 	logger.Info("initializing http handlers")
 	return &Handler{
 		config:         cfg,
