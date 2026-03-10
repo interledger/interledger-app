@@ -52,11 +52,11 @@ type client struct {
 }
 
 func New(transport *http.Client, dbc *sqlx.DB) Client {
-	baseURL := "https://test-api.xago.io:8085/v1"
-	identityBaseURL := "https://test-api.xago.io:9000/v1"
+	baseURL := "https://test.xago.io/exchange/v1"
+	identityBaseURL := "https://test.xago.io/identity/v1"
 	if env.IsProd() {
-		baseURL = "https://exchange-api.xago.io/v1"
-		identityBaseURL = "https://identity-api.xago.io/v1"
+		baseURL = "https://exchange.xago.io/exchange/v1"
+		identityBaseURL = "https://exchange.xago.io/identity/v1"
 	}
 	if env.IsLocal() {
 		baseURL = "http://mockbos:8080/xago/v1"
