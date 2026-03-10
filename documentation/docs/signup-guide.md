@@ -192,7 +192,7 @@ The user fills in:
 - **Email** — Primary contact email
 - **Country** — Country of residence (ISO 3166-1 alpha-2 code)
 
-**Country restrictions:** Only users from CA, US, ZA, or EU countries can proceed. Others are redirected to the waitlist.
+**Country restrictions:** Only users from supported countries can proceed: all EU member states, US, CA, GB, IN, JP, and others. Users from unsupported countries are redirected to the waitlist.
 
 ### Backend Processing
 
@@ -679,7 +679,7 @@ After wallet creation, provider-specific workflows provision external accounts:
 After signup, users must complete KYC to activate their wallet. These workflows are triggered during KYC:
 
 **LinkGatehubUserToGatewayWorkflow**
-- **Workflow ID:** `gatehub_link_user_{externalUserID}`
+- **Workflow ID:** `gatehub_link_user_to_gateway_{walletID}`
 - **Purpose:** Connect managed user to Paywiser gateway
 - **Trigger:** After `CreateGatehubUserWorkflow` completes
 
@@ -697,7 +697,7 @@ After signup, users must complete KYC to activate their wallet. These workflows 
 
 ### Workflow Worker
 
-**Worker service:** `cmd/mockgatehub/main.go::worker` subcommand
+**Worker service:** `go/backend/main.go` with `worker` subcommand
 
 The Temporal worker runs separately from the HTTP server:
 
@@ -715,7 +715,7 @@ The Temporal worker runs separately from the HTTP server:
 **Worker registration:** `temporal/worker.go`
 
 ```go
-func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago.Config) (worker.Worker, error) {
+func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config) (worker.Worker, error) {
     w := worker.New(b.Temporal(), "backend", worker.Options{})
     
     // Register all workflows

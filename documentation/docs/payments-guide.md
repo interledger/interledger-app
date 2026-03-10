@@ -67,7 +67,7 @@ graph TD
     
     JaneWallet -->|multi-currency balance| LA1["EUR Account<br/>€5,000"]
     JaneWallet -->|multi-currency balance| LA2["GBP Account<br/>£3,000"]
-    JaneWallet -->|withdrawal to| LA3["Bank Account<br/>EU Bank"]
+    JaneWallet -->|card account| LA3["EUR Debit Card"]
     
     AlessandroWallet -->|ZAR balance| LA4["ZAR Account<br/>R50,000"]
     AlessandroWallet -->|payments via| LA5["South African Banking<br/>Integration"]
@@ -112,7 +112,7 @@ Your wallet connects to **one payment provider** based on your country. This kee
 
 - **In Europe?** You connect to **GateHub** and hold EUR, GBP, and other currencies within GateHub
 - **In South Africa?** You connect to **Xago** and hold ZAR with integration to SA banking
-- **In the US?** You connect to **PTI** for bank transfers and multi-currency support
+- **In the US?** You connect to **PTI** for bank transfers and a USD balance
 - **In Canada?** You might connect to **Chimoney** for Interac e-transfer support
 
 **Cross-Provider Payments:** Even though each user connects to one provider, the Interledger network allows you to send money to users at different providers. Alice (using GateHub) can send to Alessandro (using Xago) through the open payments network.
@@ -312,10 +312,10 @@ A **transaction** is a record of money movement. It's like a receipt.
 | Field | Meaning | Example |
 |-------|---------|---------|
 | **ID** | Unique identifier | `txn_abc123` |
-| **Type** | What kind of movement | Send, Receive, Deposit, Withdrawal, Card Payment |
+| **Type** | What kind of movement | `sent`, `received`, `deposit`, `withdrawal`, `card_transaction` |
 | **Amount** | How much money | £100.00 |
 | **Currency** | What currency | GBP |
-| **Status** | Where it is in process | Pending, Completed, Failed |
+| **Status** | Where it is in process | Pending, Completed, Failed, OnHold |
 | **Provider Fee** | Cost charged by the provider | £2.00 |
 | **Provider ID** | ID at the provider's system | GateHub ID: `txn_gate_xyz` |
 | **Timestamp** | When it happened | 2026-03-03 14:30:45 UTC |
@@ -345,16 +345,18 @@ You might wonder: if Alice sent £100 and Bob received £100, isn't that the sam
 
 ### Transaction States
 
+Transactions use a simple four-state model. These are distinct from the internal **Payment** states (Created → Confirmed → Processing → Completed/Failed) which track orchestration internally.
+
 ```mermaid
 stateDiagram-v2
-    [*] --> Created
-    Created --> Processing: System picks it up
+    [*] --> Pending: Transaction created
     
-    Processing --> Pending: Sent to provider
+    Pending --> Completed: Provider confirms success
+    Pending --> Failed: Provider reports error
+    Pending --> OnHold: Requires manual review
     
-    Pending --> Checking: Waiting for confirmation
-    Checking --> Completed: Provider says: ✓ Done
-    Checking --> Failed: Provider says: ✗ Error
+    OnHold --> Completed: Issue resolved
+    OnHold --> Failed: Cannot resolve
     
     Completed --> [*]
     Failed --> [*]
@@ -751,7 +753,7 @@ graph TD
 | **Primary Use** | Holds multi-currency balances | Bank integration on/off ramps | South African payments | International remittance |
 | **Account Model** | User account holds multiple currency vaults | Each transfer is separate | SubAccount per user | External IDs per user |
 | **Transaction Types** | Deposit, Withdrawal, Hosted Transfer | Transfer, Card Payment | Transfer (limited) | Transfer, Interac |
-| **Status Codes** | Numeric (1=pending, 100=complete, 3=failed) | String (PENDING, SETTLED, FAILED) | String (pending, completed, failed) | Varies by service |
+| **Status Codes** | Numeric (0=pending, 1=processing, 100=completed, 101=failed) | String (PENDING, SETTLED, FAILED) | String (pending, completed, failed) | Varies by service |
 | **Fee Structure** | Per-transaction deposit/withdrawal fees | Per-transaction fees | Per-transaction fees | Per-transfer fees |
 | **KYC** | GateHub's KYC flow | Integrated into platform | Varies by method | External KYC typically |
 | **Supported Currencies** | 20+ currencies | 10+ currencies | Limited (ZAR primary) | 20+ currencies |

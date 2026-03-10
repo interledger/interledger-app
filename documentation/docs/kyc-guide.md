@@ -321,7 +321,7 @@ When user says “my KYC is stuck,” gather this minimum context:
 
 1. Wallet ID and country
 2. Provider path (GateHub / Xago+Persona / PTI / Chimoney)
-3. Current KYC status in backend (`unknown`, `pending`, `in_review`, `denied`, `level1`, `level2`)
+3. Current KYC status in backend (`unknown`, `pending`, `documents_required`, `approved`, `denied`, `in_review`, `level1`, `level2`)
 4. Most recent provider webhook signal (if any)
 5. Whether downstream provisioning finished (for example linked account/subaccount creation)
 
