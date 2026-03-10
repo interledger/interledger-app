@@ -373,7 +373,7 @@ func (a *Activity) CreateChimoneyDepositTransaction(ctx context.Context, walletI
 	if externalPayment.Meta.ProcessingFee != nil && externalPayment.Meta.ProcessingFee.NetAmount != 0 {
 		// for card payments we capture fees
 		decMultiplier := math.Pow10(amount.Scale)
-		netAmount := currency.FromFloat64(externalPayment.Meta.ProcessingFee.NetAmount*decMultiplier/decMultiplier, currency.ParseCurrency(externalPayment.Currency))
+		netAmount := currency.FromUInt64(uint64(externalPayment.Meta.ProcessingFee.NetAmount*decMultiplier), currency.ParseCurrency(externalPayment.Currency))
 		feeInt := amount.Value - netAmount.Value
 		fee := currency.FromUInt64(feeInt, currency.ParseCurrency(externalPayment.Currency))
 		providerFee = &fee
