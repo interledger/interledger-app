@@ -1,0 +1,72 @@
+# .github/workflows/e2e-runner-scaler.yml
+#
+# Manages a pool of spot-instance runners labeled "e2e-tester-dynamic".
+#
+# Runs every 10 minutes. Logic lives in tooling/github-scripts/e2e-runner-scaler.js
+# and is fully unit-tested (see tooling/github-scripts/tests/e2e-runner-scaler.test.js).
+#
+# Scale UP:  if ≥1 e2e job has been queued >30s → create spot instances (up to MAX_SPOTS)
+# Scale DOWN: if no queued/active e2e jobs → delete idle spot instances (keep MIN_SPOTS)
+# Cleanup:   remove offline GitHub runners matching our naming pattern
+#
+# Required secrets in the "e2e-tester" environment:
+#   GSA              – GCP service account JSON (compute.instances.create/delete/list)
+#   RUNNER_ADMIN_TOKEN – GitHub PAT with "Administration" repo permission (write)
+#
+# Required variables in the "e2e-tester" environment:
+#   PROJECT_ID – GCP project ID
+#   ZONE       – GCP zone for spot instances
+#
+name: E2E Runner Scaler
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  scale:
+    runs-on: ubuntu-latest
+    environment: e2e-tester
+    timeout-minutes: 10
+    concurrency:
+      group: e2e-runner-scaler
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GSA_E2E }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ vars.PROJECT_ID }}
+
+      - name: Scale runners
+        uses: actions/github-script@v7
+        env:
+          PROJECT_ID: ${{ vars.PROJECT_ID }}
+          ZONE: ${{ vars.ZONE }}
+          RUNNER_ADMIN_TOKEN: ${{ secrets.RUNNER_ADMIN_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MACHINE_IMAGE: e2e-tester-dynamic-20260310
+          MACHINE_TYPE: n2-standard-4
+          MAX_SPOTS: "5"
+          MIN_SPOTS: "0"
+          SPOT_PREFIX: e2e-spot
+          RUNNER_LABEL: e2e-tester-dynamic
+        with:
+          script: |
+            const { default: run } = await import(
+              `${process.env.GITHUB_WORKSPACE}/tooling/github-scripts/e2e-runner-scaler.js`
+            );
+            await run({ core, exec, context, github });
