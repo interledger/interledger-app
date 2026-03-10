@@ -427,7 +427,7 @@ func Verify(ctx context.Context, r *http.Request, key []byte) ([]byte, error) {
 		log.Error("gatehub webhook: Failed to get request body.", zap.Error(err))
 		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
 	}
-	log.Info("Gatehub webhook: ", zap.String("body", string(payload)))
+	log.Debug("Gatehub webhook: ", zap.String("body", string(payload)))
 	hmac := hmac.New(sha256.New, key)
 	_, err = hmac.Write(payload)
 	if err != nil {

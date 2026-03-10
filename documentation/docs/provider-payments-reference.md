@@ -59,16 +59,16 @@ graph TD
 | Aspect | GateHub | PTI | Xago | Chimoney |
 |--------|---------|-----|------|----------|
 | **Primary Use** | Multi-currency custodian | Bank on/off-ramps | South African payments | International remittance |
-| **Default Geography** | Global (USD, EUR focus) | Europe (SEPA, UK focus) | South Africa (ZAR focus) | Africa, Asia (remittance routes) |
-| **Account Model** | User account with currency vaults | Per-transfer, no persistent user account | SubAccount per user | External ID per protocol |
+| **Default Geography** | Europe (EUR, multi-currency focus) | US (ACH, bank network focus) | South Africa (ZAR focus) | Africa, Asia (remittance routes) |
+| **Account Model** | User account with currency vaults | Persistent user account with USD wallet/balance + linked bank accounts | SubAccount per user | External ID per protocol |
 | **P2P Speed** | 1-5 seconds | 1-3 business days | Minutes to hours | 2-48 hours |
 | **Deposit Speed** | Seconds (if balance account) | Hours to days | ZAR: Hours | 1-7 days |
-| **Withdrawal Speed** | Seconds (internal) | Hours to days (ACH/SEPA) | Minutes to hours | 1-7 days (wire/local transfer) |
-| **Status Codes** | Numeric (1, 100, 3) | String (PENDING, SETTLED, FAILED) | String (pending, completed, failed) | Varies by service |
+| **Withdrawal Speed** | Seconds (internal) | Hours to days (ACH) | Minutes to hours | 1-7 days (wire/local transfer) |
+| **Status Codes** | Numeric (0=pending, 1=processing, 100=completed, 101=failed) | String (PENDING, SETTLED, FAILED) | String (pending, completed, failed) | Varies by service |
 | **Webhook Reliability** | Excellent | Good | Moderate | Variable |
 | **Max Transaction** | Per-vault limit (typically $500k) | Per-transfer limit | Per-subaccount limit | Per-method limit |
 | **Fees** | Per-transaction (0.5%-2%) | Per-transfer ($1-$20) | Per-transfer (fixed) | Per-service (0.5%-5%) |
-| **Supported Currencies** | 20+ (XRP, USD, EUR, GBP, JPY, SGD, etc.) | 10+ (EUR, GBP, SEK, etc.) | Primary: ZAR | 50+ (via local methods) |
+| **Supported Currencies** | 20+ (XRP, USD, EUR, GBP, JPY, SGD, etc.) | USD (ACH-based) | Primary: ZAR | 50+ (via local methods) |
 | **KYC Provider** | Internal (GateHub) | Integrated in PTI | External (Persona) | External/Internal |
 | **Internal Transfers** | No (always ask GateHub) | No (always initiate transfer) | **Yes** (fast, no fee) | No |
 | **Card Issuing** | Yes (EUR debit cards) | Yes | No | No |
@@ -84,7 +84,7 @@ graph TD
 
 **Best for:** Users who want to hold multiple currencies, fast P2P, card payments.
 
-**Geographic focus:** Global (but strong in US, EU).
+**Geographic focus:** Europe (EU, multi-currency).
 
 ### Account Structure
 
@@ -148,7 +148,7 @@ Fee is returned in GateHub response:
   "amount": "100.00",
   "fee": "2.00",
   "total_amount": "100.00",
-  "status": 1
+  "status": 1  // 1 = processing (not pending — see Status Codes below)
 }
 ```
 
@@ -158,11 +158,17 @@ GateHub uses numeric codes (unusual among modern APIs):
 
 | Code | Meaning | Finality |
 |------|---------|----------|
-| `1` | Pending | Not final — may change |
+| `0` | Pending | Not final — may change |
+| `1` | Processing | Not final — in progress |
+| `3` | Unmatched | Not final — needs attention |
+| `5` | Returning | Not final |
+| `10` | Manual Review | Not final — needs manual review |
 | `100` | Completed | **Final** — money moved |
-| `3` | Failed | **Final** — rejection |
+| `101` | Failed | **Final** — rejection |
+| `102` | User Cancelled | **Final** |
+| `103` | Admin Cancelled | **Final** |
 
-**Issue:** Status `100` is not official REST convention (usually `200` for HTTP). Be careful not to confuse.
+**Note:** These are GateHub-specific transaction status codes (not HTTP status codes). Status `1` means "Processing" (not "Pending" — pending is `0`). Status `101` is "Failed" (not `3` — that's "Unmatched").
 
 ### Limitations
 
@@ -186,35 +192,35 @@ GateHub uses numeric codes (unusual among modern APIs):
 
 ### Overview
 
-**What it does:** Connects directly to bank networks (ACH, SEPA, wire transfers).
+**What it does:** Connects directly to US bank networks (ACH, wire transfers).
 
-**Best for:** Users who want real bank-account on/off-ramps, regulated transfers, European payments.
+**Best for:** Users who want real bank-account on/off-ramps, regulated transfers, US payments.
 
-**Geographic focus:** Europe (SEPA), UK (faster payments), North America (ACH).
+**Geographic focus:** US (ACH, bank network).
 
 ### Account Structure
 
 ```
 PTI user account (persistent):
 ├─ One or more linked bank accounts
-├─ One or more currency balances
+├─ USD balance
 ├─ Card if issued (optional)
 └─ Transaction history
 ```
 
-Unlike GateHub, PTI keeps a persistent user account. No separate vaults — just one balance per currency.
+Unlike GateHub, PTI keeps a persistent user account. No separate currency vaults — just a USD balance.
 
 ### P2P Payment Flow
 
 ```
-Alice (PTI, EUR) sends Bob (PTI, EUR) €50:
+Alice (PTI, USD) sends Bob (PTI, USD) $50:
 
 Timeline:
 ├─ T+0: Alice initiates transfer
 ├─ T+0.5s: PTI receives request
 ├─ T+2s: PTI creates transaction (status: PENDING)
 ├─ T+3s: PTI sends webhook: status = PENDING
-├─ T+10s-2m: Bank network processes (SEPA, ACH, etc.)
+├─ T+10s-2m: Bank network processes (ACH)
 ├─ T+2m-24h: Funds settle (depends on rail)
 ├─ T+settlement: PTI webhook: status = SETTLED
 └─ Final: Bob sees balance increase
@@ -223,13 +229,13 @@ Timeline:
 ### Withdrawal to Real Bank Account
 
 ```
-Charlie (PTI) withdraws €100 to his bank account:
+Charlie (PTI) withdraws $100 to his bank account:
 
 ├─ T+0: Charlie clicks "Withdraw"
-├─ T+0.5s: PTI initiates ACH/SEPA transfer
+├─ T+0.5s: PTI initiates ACH transfer
 ├─ T+2s: Webhook: status = PENDING
 ├─ T+1h-3d: Bank processes (depends on method)
-└─ T+final: Charlie's bank shows €100
+└─ T+final: Charlie's bank shows $100
 ```
 
 **Key difference:** The money actually leaves the Interledger system and goes to Charlie's real bank. No middleman.
@@ -264,11 +270,9 @@ Slow case:
 
 ```
 PTI fee structure:
-├─ SEPA transfer: €0.50 - €1.50
-├─ UK faster payment: £0.50 - £1.00
-├─ ACH (US): $0.25 - $1.00
+├─ ACH transfer: $0.25 - $1.00
 ├─ Wire transfer: $10 - $30
-└─ Monthly account: €5 - €10
+└─ Monthly account: $5 - $10
 ```
 
 Fees are sent in response:
@@ -292,7 +296,7 @@ When a user links a new bank account, PTI requires verification:
 Day 1: User provides bank account info
   └─ Status: UNVERIFIED
 
-Day 2: PTI sends micro-deposits (€0.01, €0.02)
+Day 2: PTI sends micro-deposits ($0.01, $0.02)
   └─ Status: PENDING_VERIFICATION
 
 Day 5: User confirms amounts received
@@ -697,11 +701,11 @@ See [GateHub Cards Explainer](gatehub-cards-guide.md) for full details.
 
 ## Choosing the Right Provider
 
-### User is in the US?
+### User is in Europe?
 → **GateHub** (fast, multi-currency, card support)
 
-### User is in Europe?
-→ **PTI** (real bank integration) OR **GateHub** (if they want speed/multi-currency)
+### User is in the US?
+→ **PTI** (real bank integration)
 
 ### User is in South Africa?
 → **Xago** (ZAR specialist, fastest local transfers)

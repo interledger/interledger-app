@@ -26,6 +26,7 @@ require (
 	github.com/machinebox/graphql v0.2.2
 	github.com/n0madic/twitter-scraper v0.0.0-20230423143228-6d13e319a39d
 	github.com/ory/kratos-client-go v0.13.1
+	github.com/pquerna/otp v1.5.0
 	github.com/pusher/pusher-http-go/v5 v5.1.1
 	github.com/redis/go-redis/v9 v9.18.0
 	github.com/riandyrn/otelchi v0.4.0
@@ -60,6 +61,7 @@ require (
 	dario.cat/mergo v1.0.1 // indirect
 	github.com/alicebob/miniredis/v2 v2.35.0 // indirect
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
+	github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc // indirect
 	github.com/cenkalti/backoff/v3 v3.0.0 // indirect
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
