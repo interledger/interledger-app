@@ -63,7 +63,7 @@ jobs:
           MACHINE_IMAGE: e2e-tester-dynamic-20260310
           MACHINE_TYPE: n2-standard-4
           MAX_SPOTS: "5"
-          MIN_SPOTS: "0"
+          MIN_SPOTS: "1"
           SPOT_PREFIX: e2e-spot
           RUNNER_LABEL: e2e-tester-dynamic
         with:
