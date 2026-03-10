@@ -1,45 +1,44 @@
+// note(bradu): this is just a stub
+// nothing here is tested or guaranteed to be correct, it's just a starting point for development
+
 package v1
 
 import (
 	"context"
 	"fmt"
 	"net/http"
-	"net/url"
 )
 
-type transactionHandler struct {
-	path string
-	ctrl *Controller
+// note: transactions do not use transactionID in the paths
+// requestID is the identifier
+// as such, we will use requestID as the identifier for transactions
+// this applies on all actions, unless otherwise noted in the documentation
+type transactionsService struct {
+	client *Client
 }
 
-// the requestID is the transaction ID
+// stub!
 // https://developers.platform.fiant.io/reference/gettransaction
-func (th *transactionHandler) Get(ctx context.Context, requestID string) (*http.Response, error) {
-	path, err := url.JoinPath(th.path, requestID)
-	if err != nil {
-		return nil, err
-	}
-	return th.ctrl.get(ctx, path)
+func (ts *transactionsService) Get(ctx context.Context, requestID string) (*http.Response, error) {
+	path := fmt.Sprintf("transactions/%v", requestID)
+	return ts.client.get(ctx, path)
 }
 
-type SandboxActionType string
+type SandboxActionTypeEnum string
 
 const (
-	SETTLE_ACH SandboxActionType = "SETTLE_ACH"
-	RETURN_ACH SandboxActionType = "RETURN_ACH"
+	SETTLE_ACH SandboxActionTypeEnum = "SETTLE_ACH"
+	RETURN_ACH SandboxActionTypeEnum = "RETURN_ACH"
 )
 
+// stub!
 // only available in sandbox environment, used to simulate settlement and returns for ACH transactions
 // https://developers.platform.fiant.io/reference/performaction
-func (th *transactionHandler) SandboxAction(ctx context.Context, requestID string, action SandboxActionType) error {
-	path, err := url.JoinPath(th.path, requestID, "actions") // "transactions/{requestId}/actions"
-	if err != nil {
-		return err
-	}
+func (ts *transactionsService) SandboxAction(ctx context.Context, requestID string, action SandboxActionTypeEnum) error {
+	path := fmt.Sprintf("transactions/%v/actions", requestID)
 
 	payload := []byte(`{"action":"` + string(action) + `"}`)
-
-	resp, err := th.ctrl.post(ctx, path, payload)
+	resp, err := ts.client.post(ctx, path, payload)
 	if err != nil {
 		return err
 	}

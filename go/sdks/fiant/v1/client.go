@@ -20,14 +20,8 @@ var allowedURLs = []string{
 	"https://api.staging.fiant.io/v1/",
 }
 
-/*
-note(bradu):
-some of the fields in the Controller are not definitely needed
-but they are included for clarity and future use
-*/
-
-// Controller is the main entry point for interacting with the Fiant API
-type Controller struct {
+// Client is the main entry point for interacting with the Fiant API
+type Client struct {
 	url      string
 	clientID string
 
@@ -39,38 +33,38 @@ type Controller struct {
 
 	http *http.Client
 
-	// handlers
-	Auth         *authHandler
-	Users        *userHandler
-	Transactions *transactionHandler
+	// services
+	AuthService         *authService
+	UsersService        *usersService
+	TransactionsService *transactionsService
 }
 
-type ControllerOptions func(*Controller) error
+type ClientOptions func(*Client) error
 
-func WithBaseURL(providerURL string) ControllerOptions {
-	return func(ctrl *Controller) error {
+func WithBaseURL(providerURL string) ClientOptions {
+	return func(client *Client) error {
 		if !slices.Contains(allowedURLs, providerURL) {
 			return ErrInvalidURL
 		}
 
-		ctrl.url = providerURL
+		client.url = providerURL
 		return nil
 	}
 }
 
-func WithClientID(clientID string) ControllerOptions {
-	return func(ctrl *Controller) error {
+func WithClientID(clientID string) ClientOptions {
+	return func(client *Client) error {
 		if clientID == "" {
 			return ErrMissingClientID
 		}
 
-		ctrl.clientID = clientID
+		client.clientID = clientID
 		return nil
 	}
 }
 
-func WithDerivedKeys(privateKey jwk.Key) ControllerOptions {
-	return func(ctrl *Controller) error {
+func WithDerivedKeys(privateKey jwk.Key) ClientOptions {
+	return func(client *Client) error {
 		if privateKey == nil {
 			return ErrMissingPrivateKey
 		}
@@ -79,76 +73,65 @@ func WithDerivedKeys(privateKey jwk.Key) ControllerOptions {
 		if err := privateKey.Remove("kid"); err != nil {
 			return fmt.Errorf("%w: %s", ErrFailedToRemoveKid, err)
 		}
-		ctrl.privateKey = privateKey
+		client.privateKey = privateKey
 
-		publicKey, err := ctrl.privateKey.PublicKey()
+		publicKey, err := client.privateKey.PublicKey()
 		if err != nil {
 			return fmt.Errorf("%w: %s", ErrFailedToDerivePublicKey, err)
 
 		}
-		// ctrl.publicKey = publicKey
+		// client.publicKey = publicKey
 
 		publicKeyThumbprint, err := publicKey.Thumbprint(crypto.SHA256)
 		if err != nil {
 			return fmt.Errorf("%w: %s", ErrFailedToDerivePublicKey, err)
 		}
 
-		ctrl.publicKeyThumbprint = base64.RawURLEncoding.EncodeToString(publicKeyThumbprint)
+		client.publicKeyThumbprint = base64.RawURLEncoding.EncodeToString(publicKeyThumbprint)
 
 		return nil
 	}
 }
 
-func WithHTTPClient(httpClient *http.Client) ControllerOptions {
-	return func(ctrl *Controller) error {
+func WithHTTPClient(httpClient *http.Client) ClientOptions {
+	return func(client *Client) error {
 		if httpClient == nil {
 			return ErrMissingHTTPClient
 		}
-		ctrl.http = httpClient
+		client.http = httpClient
 		return nil
 	}
 }
 
-func NewController(opts ...ControllerOptions) (*Controller, error) {
-	ctrl := &Controller{}
+func NewClient(opts ...ClientOptions) (*Client, error) {
+	client := &Client{}
 
 	for _, opt := range opts {
-		if err := opt(ctrl); err != nil {
+		if err := opt(client); err != nil {
 			return nil, err
 		}
 	}
 
-	ctrl.http = &http.Client{
+	client.http = &http.Client{
 		Transport: &apiRoundTripper{
-			url:                 ctrl.url,
-			privateKey:          ctrl.privateKey,
-			publicKeyThumbprint: ctrl.publicKeyThumbprint,
+			url:                 client.url,
+			privateKey:          client.privateKey,
+			publicKeyThumbprint: client.publicKeyThumbprint,
 			defaultTransport:    http.DefaultTransport,
 			headers: map[string]string{
 				acceptHeader:      acceptValue,
 				contentTypeHeader: contentTypeValue,
-				clientIDHeader:    ctrl.clientID,
+				clientIDHeader:    client.clientID,
 			},
 		},
 	}
 
-	// initialize handlers
-	ctrl.Auth = &authHandler{
-		ctrl: ctrl,
-		path: "auth",
-	}
+	// services
+	client.AuthService = &authService{client: client}
+	client.UsersService = &usersService{client: client}
+	client.TransactionsService = &transactionsService{client: client}
 
-	ctrl.Users = &userHandler{
-		ctrl: ctrl,
-		path: "users",
-	}
-
-	ctrl.Transactions = &transactionHandler{
-		ctrl: ctrl,
-		path: "transactions",
-	}
-
-	return ctrl, nil
+	return client, nil
 }
 
 type requestOption func(*http.Request)
@@ -157,8 +140,8 @@ func withHeader(key, value string) requestOption {
 	return func(r *http.Request) { r.Header.Set(key, value) }
 }
 
-func (ctrl *Controller) get(ctx context.Context, path string, opts ...requestOption) (*http.Response, error) {
-	endpoint, err := url.JoinPath(ctrl.url, path)
+func (client *Client) get(ctx context.Context, path string, opts ...requestOption) (*http.Response, error) {
+	endpoint, err := url.JoinPath(client.url, path)
 	if err != nil {
 		return nil, err
 	}
@@ -172,7 +155,7 @@ func (ctrl *Controller) get(ctx context.Context, path string, opts ...requestOpt
 		opt(req)
 	}
 
-	resp, err := ctrl.http.Do(req)
+	resp, err := client.http.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -183,8 +166,8 @@ func (ctrl *Controller) get(ctx context.Context, path string, opts ...requestOpt
 // the method expects that payload has
 // MarshallJSON/UnmarshalJSON implemented if it is a struct, otherwise it will be marshaled as is
 // see any dto struct in the domain/dto package for an example of how to implement these methods
-func (ctrl *Controller) post(ctx context.Context, path string, payload any, opts ...requestOption) (*http.Response, error) {
-	endpoint, err := url.JoinPath(ctrl.url, path)
+func (client *Client) post(ctx context.Context, path string, payload any, opts ...requestOption) (*http.Response, error) {
+	endpoint, err := url.JoinPath(client.url, path)
 	if err != nil {
 		return nil, err
 	}
@@ -203,7 +186,7 @@ func (ctrl *Controller) post(ctx context.Context, path string, payload any, opts
 		opt(req)
 	}
 
-	resp, err := ctrl.http.Do(req)
+	resp, err := client.http.Do(req)
 	if err != nil {
 		return nil, err
 	}

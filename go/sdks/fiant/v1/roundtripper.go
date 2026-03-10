@@ -23,6 +23,8 @@ type apiRoundTripper struct {
 }
 
 func (art *apiRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
+	req = req.Clone(req.Context())
+
 	date := time.Now()
 	req.Header.Add("Date", date.Format(http.TimeFormat))
 
@@ -37,7 +39,7 @@ func (art *apiRoundTripper) RoundTrip(req *http.Request) (*http.Response, error)
 		return nil, err
 	}
 
-	req.Header.Add(signatureHeader, signature)
+	req.Header.Set(signatureHeader, signature)
 
 	return art.defaultTransport.RoundTrip(req)
 }

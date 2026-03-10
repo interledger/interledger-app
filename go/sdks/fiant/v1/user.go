@@ -2,33 +2,30 @@ package v1
 
 import (
 	"context"
+	"fmt"
 	"net/http"
-	"net/url"
 
 	"github.com/google/uuid"
 	"gitlab.com/fynbos/sdks/fiant/v1/domain/dto"
 )
 
-type userHandler struct {
-	path string
-	ctrl *Controller
+type usersService struct {
+	client *Client
 }
 
 // https://developers.platform.fiant.io/reference/addauser
-func (uh *userHandler) Create(ctx context.Context, user dto.User) (dto.User, error) {
-	resp, err := uh.ctrl.post(ctx, uh.path, user) // POST /users
+func (us *usersService) Create(ctx context.Context, user dto.User) (dto.User, error) {
+	path := "users" // POST /users
+	resp, err := us.client.post(ctx, path, user)
 	if err != nil {
 		return dto.User{}, err
 	}
 	return consumeResponse[dto.User](resp, http.StatusCreated)
 }
 
-func (uh *userHandler) Get(ctx context.Context, userID string) (dto.User, error) {
-	path, err := url.JoinPath(uh.path, userID)
-	if err != nil {
-		return dto.User{}, err
-	}
-	resp, err := uh.ctrl.get(ctx, path) // GET /users/{userId}
+func (us *usersService) Get(ctx context.Context, userID string) (dto.User, error) {
+	path := fmt.Sprintf("users/%v", userID) // GET /users/{userId}
+	resp, err := us.client.get(ctx, path)
 	if err != nil {
 		return dto.User{}, err
 	}
@@ -36,8 +33,9 @@ func (uh *userHandler) Get(ctx context.Context, userID string) (dto.User, error)
 }
 
 // https://developers.platform.fiant.io/reference/getlistofusers
-func (uh *userHandler) ListAll(ctx context.Context) (dto.UserPage, error) {
-	resp, err := uh.ctrl.get(ctx, uh.path) // GET /users
+func (us *usersService) ListAll(ctx context.Context) (dto.UserPage, error) {
+	path := "users" // GET /users
+	resp, err := us.client.get(ctx, path)
 	if err != nil {
 		return dto.UserPage{}, err
 	}
@@ -45,12 +43,9 @@ func (uh *userHandler) ListAll(ctx context.Context) (dto.UserPage, error) {
 }
 
 // https://developers.platform.fiant.io/reference/getlastkyc
-func (uh *userHandler) GetAssessment(ctx context.Context, user dto.User) (dto.UserAssessment, error) {
-	path, err := url.JoinPath(uh.path, user.ID, "assessments")
-	if err != nil {
-		return dto.UserAssessment{}, err
-	}
-	resp, err := uh.ctrl.get(ctx, path) // GET /users/{userId}/assessments
+func (us *usersService) GetAssessment(ctx context.Context, user dto.User) (dto.UserAssessment, error) {
+	path := fmt.Sprintf("users/%v/assessments", user.ID) // GET /users/{userId}/assessments
+	resp, err := us.client.get(ctx, path)
 	if err != nil {
 		return dto.UserAssessment{}, err
 	}
@@ -58,12 +53,9 @@ func (uh *userHandler) GetAssessment(ctx context.Context, user dto.User) (dto.Us
 }
 
 // https://developers.platform.fiant.io/reference/startuserassessment
-func (uh *userHandler) StartAssessment(ctx context.Context, user dto.User, scenarioID string) (dto.ObjectReference, error) {
-	path, err := url.JoinPath(uh.path, "assessments")
-	if err != nil {
-		return dto.ObjectReference{}, err
-	}
-	resp, err := uh.ctrl.post(ctx, path, struct {
+func (us *usersService) StartAssessment(ctx context.Context, user dto.User, scenarioID string) (dto.ObjectReference, error) {
+	path := fmt.Sprintf("users/%v/assessments", user.ID) // POST /users/{userId}/assessments
+	resp, err := us.client.post(ctx, path, struct {
 		ScenarioID string `json:"scenarioId"`
 		dto.User
 	}{
@@ -72,7 +64,7 @@ func (uh *userHandler) StartAssessment(ctx context.Context, user dto.User, scena
 	},
 		withHeader(ptiRequestIDHeader, uuid.NewString()),
 		withHeader(ptiScenarioIDHeader, scenarioID),
-	) // POST /users/assessments
+	)
 	if err != nil {
 		return dto.ObjectReference{}, err
 	}
@@ -80,12 +72,9 @@ func (uh *userHandler) StartAssessment(ctx context.Context, user dto.User, scena
 }
 
 // https://developers.platform.fiant.io/reference/createwallet
-func (uh *userHandler) CreateWallet(ctx context.Context, user dto.User, wallet dto.Wallet) (dto.Wallet, error) {
-	path, err := url.JoinPath(uh.path, user.ID, "wallets")
-	if err != nil {
-		return dto.Wallet{}, err
-	}
-	resp, err := uh.ctrl.post(ctx, path, wallet) // POST /users/{userId}/wallets
+func (us *usersService) CreateWallet(ctx context.Context, user dto.User, wallet dto.Wallet) (dto.Wallet, error) {
+	path := fmt.Sprintf("users/%v/wallets", user.ID) // POST /users/{userId}/wallets
+	resp, err := us.client.post(ctx, path, wallet)
 	if err != nil {
 		return dto.Wallet{}, err
 	}
@@ -93,12 +82,9 @@ func (uh *userHandler) CreateWallet(ctx context.Context, user dto.User, wallet d
 }
 
 // https://developers.platform.fiant.io/reference/getwallet
-func (uh *userHandler) GetWallet(ctx context.Context, user dto.User, walletID string) (dto.Wallet, error) {
-	path, err := url.JoinPath(uh.path, user.ID, "wallets", walletID)
-	if err != nil {
-		return dto.Wallet{}, err
-	}
-	resp, err := uh.ctrl.get(ctx, path) // GET /users/{userId}/wallets/{walletId}
+func (us *usersService) GetWallet(ctx context.Context, user dto.User, walletID string) (dto.Wallet, error) {
+	path := fmt.Sprintf("users/%v/wallets/%v", user.ID, walletID) // GET /users/{userId}/wallets/{walletId}
+	resp, err := us.client.get(ctx, path)
 	if err != nil {
 		return dto.Wallet{}, err
 	}
@@ -106,12 +92,9 @@ func (uh *userHandler) GetWallet(ctx context.Context, user dto.User, walletID st
 }
 
 // https://developers.platform.fiant.io/reference/getwallets
-func (uh *userHandler) ListWallets(ctx context.Context, user dto.User) ([]dto.Wallet, error) {
-	path, err := url.JoinPath(uh.path, user.ID, "wallets")
-	if err != nil {
-		return nil, err
-	}
-	resp, err := uh.ctrl.get(ctx, path) // GET /users/{userId}/wallets
+func (us *usersService) ListWallets(ctx context.Context, user dto.User) ([]dto.Wallet, error) {
+	path := fmt.Sprintf("users/%v/wallets", user.ID) // GET /users/{userId}/wallets
+	resp, err := us.client.get(ctx, path)
 	if err != nil {
 		return nil, err
 	}
