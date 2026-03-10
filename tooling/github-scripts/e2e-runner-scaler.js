@@ -242,6 +242,7 @@ export default async ({ core, exec }) => {
         "--machine-type", opts.machineType,
         "--provisioning-model", "SPOT",
         "--instance-termination-action", "DELETE",
+        "--maintenance-policy", "TERMINATE",
         "--no-restart-on-failure",
         "--metadata", metadataStr,
       ]);
