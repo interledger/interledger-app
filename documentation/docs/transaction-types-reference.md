@@ -39,8 +39,8 @@ Every transaction has these fields:
 | Field | Type | Example | Meaning |
 |-------|------|---------|---------|
 | **ID** | UUID | `txn_550e8400-e29b-41d4-a716-446655440000` | Unique identifier in our system |
-| **Type** | Enum | `send`, `receive`, `deposit`, `withdrawal`, `card_payment` | What kind of movement is this? |
-| **Status** | Enum | `created`, `processing`, `pending`, `completed`, `failed` | Where is it in the lifecycle? |
+| **Type** | Enum | `sent`, `received`, `deposit`, `withdrawal`, `card_transaction`, `transfer`, `open_payments_incoming`, `open_payments_outgoing`, `web_monetization_incoming`, `web_monetization_outgoing` | What kind of movement is this? |
+| **Status** | Enum | `Pending`, `Completed`, `Failed`, `OnHold` | Where is it in the lifecycle? |
 | **Amount** | Decimal | `100.00` | How much money? |
 | **Currency** | Code | `GBP`, `USD`, `EUR`, `ZAR` | What currency? |
 | **User ID** | UUID | `user_550e8400-e29b-41d4-a716-446655440001` | Which user is affected? |
@@ -57,7 +57,7 @@ Every transaction has these fields:
 
 ## Transaction Types
 
-### Send (`send`)
+### Sent (`sent`)
 
 **What it means:** User is sending money out.
 
@@ -66,7 +66,6 @@ Every transaction has these fields:
 **When it's created:**
 - When user initiates P2P payment to another user
 - When user initiates hosted transfer to external service
-- When user creates withdrawal to bank account
 
 **Balance impact:**
 - Sender's balance: **decreases** by `amount + fees`
@@ -77,13 +76,13 @@ Every transaction has these fields:
 Alice sends Bob £100 (GateHub charges £2 fee)
 
 Alice's transaction:
-├─ Type: send
+├─ Type: sent
 ├─ Amount: £100
 ├─ Fee: £2
 ├─ Net impact: -£102
 
 Bob's transaction:
-├─ Type: receive
+├─ Type: received
 ├─ Amount: £100
 ├─ Fee: £0 (receiver doesn't pay)
 ├─ Net impact: +£100
@@ -91,7 +90,7 @@ Bob's transaction:
 
 ---
 
-### Receive (`receive`)
+### Received (`received`)
 
 **What it means:** User is receiving money in.
 
@@ -99,7 +98,6 @@ Bob's transaction:
 
 **When it's created:**
 - When another user sends money to this user
-- When external deposit arrives
 - When payment pointer receives funds
 
 **Balance impact:**
@@ -108,12 +106,12 @@ Bob's transaction:
 
 **Example:**
 ```
-Charlie receives £1,000 from external source
+Charlie receives £1,000 from another user
 
 Charlie's transaction:
-├─ Type: receive
+├─ Type: received
 ├─ Amount: £1,000
-├─ Fee: £0 (bank may have charged, but it's already deducted)
+├─ Fee: £0 (receiver doesn't pay)
 ├─ Net impact: +£1,000
 ```
 
@@ -186,7 +184,7 @@ Edward's transaction:
 
 ---
 
-### Card Payment (`card_payment`)
+### Card Transaction (`card_transaction`)
 
 **What it means:** Charge to a card connected to the wallet.
 
@@ -211,7 +209,7 @@ Edward's transaction:
 Frank uses his Interledger card at a coffee shop
 
 Frank's transaction:
-├─ Type: card_payment
+├─ Type: card_transaction
 ├─ Amount: £5.50 (coffee purchase)
 ├─ Merchant: "StarBrew Coffee"
 ├─ Fee: £0 (no card fee, absorbed by Interledger)
@@ -220,61 +218,44 @@ Frank's transaction:
 
 ---
 
-### Other Transaction Types (Less Common)
+### Other Transaction Types
 
 | Type | Meaning | When |
 |------|---------|------|
-| `refund` | Money returned after cancellation | After payment cancelled |
-| `reversal` | Transaction undone | Provider error correction |
-| `chargeback` | Card dispute | Card fraud/error claim |
-| `web_monetization` | Payment pointer micropayment | WM protocol enabled |
-| `internal_transfer` | Xago-style internal move | Same-provider P2P |
+| `transfer` | Internal transfer between linked accounts | Same-provider P2P, balance moves |
+| `open_payments_incoming` | Incoming Interledger/Open Payments payment | Received via ILP protocol |
+| `open_payments_outgoing` | Outgoing Interledger/Open Payments payment | Sent via ILP protocol |
+| `web_monetization_incoming` | Incoming Web Monetization micropayment | WM protocol receiver |
+| `web_monetization_outgoing` | Outgoing Web Monetization micropayment | WM protocol sender |
 
 ---
 
 ## Transaction Lifecycle
 
-All transactions progress through these states:
+Transactions have four states:
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Created
-    Created --> Processing: System processes
+    [*] --> Pending: Transaction created
     
-    Processing --> Pending: Sent to provider/external system
+    Pending --> Completed: Provider confirms ✓
+    Pending --> Failed: Provider rejects ✗
+    Pending --> OnHold: Needs review
     
-    Pending --> Checking: Waiting for confirmation
-    Checking --> Completed: Provider confirms ✓
-    Checking --> Failed: Provider rejects ✗
+    OnHold --> Completed: Resolved ✓
+    OnHold --> Failed: Resolved ✗
     
     Completed --> [*]: Final state (money moved)
     Failed --> [*]: Final state (money didn't move)
 ```
 
-### State Definitions
-
-**Created**
-- Just created in our system
-- Haven't sent to provider yet
-- Usually lasts <1 second
-
-**Processing**
-- Being prepared for submission
-- Validation checks running
-- Building provider request
-- Usually lasts <2 seconds
+### Transaction State Definitions
 
 **Pending**
-- Sent to provider
+- Transaction created and sent to provider
 - Awaiting confirmation
 - Money NOT yet confirmed moved
 - **Expected duration: 1 second to 20 minutes** (provider-dependent)
-
-**Checking**
-- We've sent the request
-- Provider usually responds within 20 minutes
-- If they don't respond, we manually poll
-- Rare state, usually just a transitional moment
 
 **Completed** ✓
 - Provider confirmed transaction succeeded
@@ -287,6 +268,12 @@ stateDiagram-v2
 - Money did NOT move
 - May have an error message from provider
 - **Terminal state** — cannot change
+
+**OnHold**
+- Transaction requires manual review or intervention
+- May be resolved to Completed or Failed
+
+> **Note:** There is also a separate **Payment** state machine used for internal orchestration (Created → Confirmed → Processing → Completed/Failed). Payment states are internal orchestration lifecycle stages and are not directly visible to users. Transaction states (`Pending`, `Completed`, `Failed`, `OnHold`) are the user-facing states.
 
 ---
 
@@ -373,7 +360,7 @@ Different providers use different field names and status codes. We normalize the
 | `id` | `provider_id` | `txn_abc123` |
 | `amount` | `amount` | `100.00` |
 | `fee` | `provider_fee` | `2.00` |
-| `status` | `status` | GateHub: `1` (pending), `100` (complete) → We store: `pending`, `completed` |
+| `status` | `status` | GateHub: `0` (pending), `1` (processing), `100` (completed), `101` (failed) → We store: `Pending`, `Completed`, `Failed` |
 | `created` | `timestamp` | `2026-03-03T14:30:45Z` |
 | `currency` | `currency` | `GBP` |
 
