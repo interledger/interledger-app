@@ -1,0 +1,20 @@
+sequenceDiagram
+    title Incoming Payment Created
+
+    participant RA as Rafiki Admin
+    participant R as Rafiki
+    participant WB as Wallet Backend
+    participant T as Temporal (Workflows)
+    participant P as Provider (GateHub)
+
+    R ->> WB: Send webhook
+    WB ->> WB: Validate signature
+    alt not valid
+        WB ->>R: Return 400
+    end
+    WB ->> WB: Determine webhook type
+    alt unknown webhook type
+        WB ->> WB: Log unknown webhook type
+        WB ->>R: Return 200
+    end 
+    WB ->> WB: Webhook type is incoming_payment.created
