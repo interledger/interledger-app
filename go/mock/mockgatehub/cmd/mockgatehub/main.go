@@ -103,7 +103,7 @@ func main() {
 	} else {
 		logger.Info("webhook queue is disabled; webhook worker will not be started")
 	}
-	h := handler.NewHandler(store, webhookManager)
+	h := handler.NewHandlerWithConfig(cfg, store, webhookManager)
 	r := chi.NewRouter()
 
 	// Built-in middleware
