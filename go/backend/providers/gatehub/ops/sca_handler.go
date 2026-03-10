@@ -70,7 +70,7 @@ func NewSCAHandler(b Backends, cfg gatehub.Config) http.HandlerFunc {
 
 		body, err := Verify(r.Context(), r, key)
 		if errors.Is(err, gatehub.ErrInvalidWebhook) {
-			log.Error("invalid signature weebhook", zap.Error(err))
+			log.Error("invalid signature webhook", zap.Error(err))
 			sendResponse(w, failRespJSON)
 			return
 		}
@@ -110,13 +110,13 @@ func NewSCAHandler(b Backends, cfg gatehub.Config) http.HandlerFunc {
 			valid := HandleSCAVerification(r.Context(), b, sr, gatehubUserID, time.Now())
 			resp.Success = valid
 
-			json, err := json.Marshal(resp)
+			raw, err := json.Marshal(resp)
 			if err != nil {
 				// Not much we can do here if marshalling the response fails.
 				log.Error("Failed to marshal fail response", zap.Error(err))
 				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			}
-			sendResponse(w, json)
+			sendResponse(w, raw)
 		default:
 			log.Warn("received unknown SCA action", zap.String("user", gatehubUserID), zap.String("action", string(sr.Action)))
 			sendResponse(w, failRespJSON)
@@ -149,12 +149,12 @@ func HandleSCAVerification(ctx context.Context, b Backends, req SCARequest, gate
 
 	totpURL, err := b.Users().GetTotpURL(ctx, userID)
 	if err != nil {
-		log.Error("failed to retrieve user totp RUL", zap.String("user", userID), zap.String("walletID", walletID), zap.Error(err))
+		log.Error("failed to retrieve user totp URL", zap.String("user", userID), zap.String("walletID", walletID), zap.Error(err))
 		return false
 	}
 
 	if totpURL == "" {
-		log.Error("totpURL is empty after a sucessful retreival", zap.String("user", userID), zap.String("walletID", walletID))
+		log.Error("totpURL is empty after a successful retrieval", zap.String("user", userID), zap.String("walletID", walletID))
 		return false
 	}
 
@@ -183,6 +183,6 @@ func HandleSCAVerification(ctx context.Context, b Backends, req SCARequest, gate
 func sendResponse(w http.ResponseWriter, raw []byte) {
 	w.Header().Set("Content-Type", "application/json")
 	if _, err := w.Write(raw); err != nil {
-		log.Warn("failed to write response: %v")
+		log.Warn("failed to write response", zap.Error(err))
 	}
 }

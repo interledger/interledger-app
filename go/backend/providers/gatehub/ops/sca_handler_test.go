@@ -65,7 +65,7 @@ func TestHandleSCAVerification(t *testing.T) {
 			name: "returns false if it cannot retrieve the user id for the given wallet id",
 			req:  ops.SCARequest{Action: ops.SCAActionVerify, Code: ptr("111111")},
 			before: func() {
-				users.MapUserWallet(ctx, userID, walletID)
+				users.MapUserWallet(ctx, userID, "another-wallet-id")
 			},
 			after: func() {
 				users.Cleanup()
@@ -113,7 +113,7 @@ func TestHandleSCAVerification(t *testing.T) {
 		},
 		{
 			name: "returns true for a valid totp code",
-			req:  ops.SCARequest{Action: ops.SCAActionVerify, Code: ptr(codeFromTOTPURL(t, totpURL))},
+			req:  ops.SCARequest{Action: ops.SCAActionVerify, Code: ptr(codeFromTOTPURL(t, totpURL, now))},
 			before: func() {
 				users.MapUserWallet(ctx, userID, walletID)
 				users.MapUserTotpURL(ctx, userID, totpURL)
@@ -144,7 +144,7 @@ func ptr[T any](v T) *T {
 	return &v
 }
 
-func codeFromTOTPURL(t *testing.T, totpURL string) string {
+func codeFromTOTPURL(t *testing.T, totpURL string, now time.Time) string {
 	t.Helper()
 
 	key, err := otp.NewKeyFromURL(totpURL)
@@ -152,7 +152,7 @@ func codeFromTOTPURL(t *testing.T, totpURL string) string {
 		t.Fatalf("failed to parse totp url: %v", err)
 	}
 
-	code, err := totp.GenerateCode(key.Secret(), time.Now())
+	code, err := totp.GenerateCode(key.Secret(), now)
 	if err != nil {
 		t.Fatalf("failed to generate totp code: %v", err)
 	}

@@ -32,7 +32,6 @@ func TestSearchTotpURL(t *testing.T) {
 	cases := []struct {
 		name        string
 		credentials map[string]kratos.IdentityCredentials
-		userID      string
 		expectedURL string
 		expectedErr error
 	}{
@@ -47,14 +46,12 @@ func TestSearchTotpURL(t *testing.T) {
 					},
 				},
 			},
-			userID:      "1234",
 			expectedURL: "totp://totp",
 			expectedErr: nil,
 		},
 		{
 			name:        "returns ErrTotpNotConfigured if TOTP URL is not present",
 			credentials: map[string]kratos.IdentityCredentials{},
-			userID:      "1234",
 			expectedURL: "",
 			expectedErr: user.ErrTotpNotConfigured,
 		},
@@ -69,7 +66,6 @@ func TestSearchTotpURL(t *testing.T) {
 					},
 				},
 			},
-			userID:      "1234",
 			expectedURL: "",
 			expectedErr: user.ErrInvalidTotpConfig,
 		},
@@ -84,7 +80,6 @@ func TestSearchTotpURL(t *testing.T) {
 					},
 				},
 			},
-			userID:      "1234",
 			expectedURL: "",
 			expectedErr: user.ErrTotpNotConfigured,
 		},
@@ -99,7 +94,6 @@ func TestSearchTotpURL(t *testing.T) {
 					},
 				},
 			},
-			userID:      "1234",
 			expectedURL: "",
 			expectedErr: user.ErrTotpNotConfigured,
 		},
@@ -114,7 +108,6 @@ func TestSearchTotpURL(t *testing.T) {
 					},
 				},
 			},
-			userID:      "1234",
 			expectedURL: "",
 			expectedErr: user.ErrTotpNotConfigured,
 		},
@@ -127,7 +120,6 @@ func TestSearchTotpURL(t *testing.T) {
 					Config:      nil,
 				},
 			},
-			userID:      "1234",
 			expectedURL: "",
 			expectedErr: user.ErrTotpNotConfigured,
 		},
@@ -149,7 +141,6 @@ func TestSearchTotpURL(t *testing.T) {
 					},
 				},
 			},
-			userID:      "1234",
 			expectedURL: "totp://totp",
 			expectedErr: nil,
 		},
@@ -164,7 +155,6 @@ func TestSearchTotpURL(t *testing.T) {
 					},
 				},
 			},
-			userID:      "1234",
 			expectedURL: "",
 			expectedErr: nil, // empty string is still a valid string per implementation
 		},
@@ -179,7 +169,6 @@ func TestSearchTotpURL(t *testing.T) {
 					},
 				},
 			},
-			userID:      "1234",
 			expectedURL: "",
 			expectedErr: user.ErrInvalidTotpConfig,
 		},

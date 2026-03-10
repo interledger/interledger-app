@@ -22,7 +22,7 @@ var (
 	tags                 = flag.String("tags", "", "Godog tags expression, e.g. @wip or @phone-debug")
 	concurrency          = flag.Int("concurrency", 1, "Number of concurrent scenarios (default: 1)")
 	reportPath           = flag.String("report", "debug/report.md", "Path for markdown report output")
-	temporalWorfklowArgs = workflowArgs{APIBaseURL: "http://backend:8080/webhooks/gatehub", TwoFAType: "totp"}
+	temporalWorkflowArgs = workflowArgs{APIBaseURL: "http://backend:8080/webhooks/gatehub", TwoFAType: "totp"}
 )
 
 // cleanupDebugScreenshots removes all screenshots from the debug directory
@@ -80,7 +80,7 @@ func TestMain(m *testing.M) {
 	os.Exit(status)
 }
 
-func prerequisite(t *testing.T) error {
+func prerequisite(t *testing.T) {
 	// We need to update the GateHub organization config before running the tests.
 	// This is done by starting the workflow that makes the update.
 	// Notice: This was introduced with the SCA requirement, so it is only
@@ -100,15 +100,13 @@ func prerequisite(t *testing.T) error {
 		WorkflowExecutionTimeout: 1 * time.Minute,
 	}
 
-	run, err := temporalClient.ExecuteWorkflow(t.Context(), wo, "UpdateGateHubOrganizationConfig", temporalWorfklowArgs)
+	run, err := temporalClient.ExecuteWorkflow(t.Context(), wo, "UpdateGateHubOrganizationConfig", temporalWorkflowArgs)
 	if err != nil {
-		t.Fatal("failed to execute workflow %w", err)
+		t.Fatalf("failed to execute workflow %v", err)
 	}
 
 	err = run.Get(t.Context(), nil)
 	if err != nil {
-		t.Fatal("failed to get workflow result %w", err)
+		t.Fatalf("failed to get workflow result %v", err)
 	}
-
-	return nil
 }

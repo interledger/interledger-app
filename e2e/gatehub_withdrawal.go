@@ -73,7 +73,10 @@ func (sc *E2EContext) iWithdrawViATheWithdrawalIframe(amount, currency string) e
 	debugPrintln("   ✓ Amount filled")
 
 	// Retrieve the user's TOTP secret
-	totpSecret, _ := sc.getCurrentUserTOTPSecret()
+	totpSecret, err := sc.getCurrentUserTOTPSecret()
+	if err != nil {
+		return fmt.Errorf("failed to get current user TOTP secret: %w", err)
+	}
 
 	// Look for the SCA TOTP Verification checkbox
 	debugPrintln("   Looking for SCA trigger checkbox in iframe...")
