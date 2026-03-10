@@ -619,10 +619,10 @@ func SetTransactionAmountTx(ctx context.Context, b Backends, tx *sqlx.Tx, ID str
 	return nil
 }
 
-func SetTransactionFee(ctx context.Context, b Backends, ID string, fee currency.Amount) error {
+func SetTransactionFeeAndStateCompleted(ctx context.Context, b Backends, ID string, fee currency.Amount, state transactions.State) error {
 	_, err := b.DB().ExecContext(ctx,
-		"UPDATE transactions SET provider_fee=$1, updated_at=now() WHERE id=$2",
-		fee.Value, ID)
+		"UPDATE transactions SET provider_fee=$1, state=$2, updated_at=now() WHERE id=$3",
+		fee.Value, state, ID)
 	if err != nil {
 		return fmt.Errorf("%w %s", transactions.ErrInternal, err)
 	}
