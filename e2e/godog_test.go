@@ -6,14 +6,23 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/cucumber/godog"
+	"github.com/google/uuid"
+	"go.temporal.io/sdk/client"
 )
 
+type workflowArgs struct {
+	APIBaseURL string `json:"apiBaseUrl"`
+	TwoFAType  string `json:"twoFAType"`
+}
+
 var (
-	tags        = flag.String("tags", "", "Godog tags expression, e.g. @wip or @phone-debug")
-	concurrency = flag.Int("concurrency", 1, "Number of concurrent scenarios (default: 1)")
-	reportPath  = flag.String("report", "debug/report.md", "Path for markdown report output")
+	tags                 = flag.String("tags", "", "Godog tags expression, e.g. @wip or @phone-debug")
+	concurrency          = flag.Int("concurrency", 1, "Number of concurrent scenarios (default: 1)")
+	reportPath           = flag.String("report", "debug/report.md", "Path for markdown report output")
+	temporalWorkflowArgs = workflowArgs{APIBaseURL: "http://backend:8080/webhooks/gatehub", TwoFAType: "totp"}
 )
 
 // cleanupDebugScreenshots removes all screenshots from the debug directory
@@ -44,6 +53,9 @@ func TestFeatures(t *testing.T) {
 		format = fmt.Sprintf("pretty,pretty:%s", *reportPath)
 	}
 
+	// Setup before all tests
+	prerequisite(t)
+
 	suite := godog.TestSuite{
 		ScenarioInitializer: InitializeScenario,
 		Options: &godog.Options{
@@ -66,4 +78,35 @@ func TestMain(m *testing.M) {
 
 	// Cleanup after all tests
 	os.Exit(status)
+}
+
+func prerequisite(t *testing.T) {
+	// We need to update the GateHub organization config before running the tests.
+	// This is done by starting the workflow that makes the update.
+	// Notice: This was introduced with the SCA requirement, so it is only
+	// relevant for GateHub users.
+	temporalClient, err := client.Dial(client.Options{
+		Namespace: "default",
+		HostPort:  "localhost:7233",
+	})
+	if err != nil {
+		t.Fatalf("failed to connect to temporal: %v", err)
+	}
+	defer temporalClient.Close()
+
+	wo := client.StartWorkflowOptions{
+		ID:                       uuid.NewString(),
+		TaskQueue:                "backend",
+		WorkflowExecutionTimeout: 1 * time.Minute,
+	}
+
+	run, err := temporalClient.ExecuteWorkflow(t.Context(), wo, "UpdateGateHubOrganizationConfig", temporalWorkflowArgs)
+	if err != nil {
+		t.Fatalf("failed to execute workflow %v", err)
+	}
+
+	err = run.Get(t.Context(), nil)
+	if err != nil {
+		t.Fatalf("failed to get workflow result %v", err)
+	}
 }

@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"gitlab.com/fynbos/mock/mockgatehub/internal/config"
 	"gitlab.com/fynbos/mock/mockgatehub/internal/consts"
 	"gitlab.com/fynbos/mock/mockgatehub/internal/logger"
 	"gitlab.com/fynbos/mock/mockgatehub/internal/models"
@@ -25,6 +26,7 @@ import (
 
 // Handler holds dependencies for HTTP handlers
 type Handler struct {
+	config         *config.Config
 	store          storage.Storage
 	webhookManager *webhook.Manager
 	httpClient     *http.Client
@@ -40,10 +42,20 @@ type TransactionRequest struct {
 	TOTPCode   string `json:"totp_code,omitempty"`
 }
 
-// NewHandler creates a new handler with dependencies
+// NewHandler creates a new handler using configuration loaded from the environment.
+// For tests or custom setups, use NewHandlerWithConfig to inject a pre-built config.
 func NewHandler(store storage.Storage, webhookManager *webhook.Manager) *Handler {
+	return NewHandlerWithConfig(config.Load(), store, webhookManager)
+}
+
+// NewHandlerWithConfig creates a new handler with the provided configuration.
+func NewHandlerWithConfig(cfg *config.Config, store storage.Storage, webhookManager *webhook.Manager) *Handler {
+	if cfg == nil {
+		cfg = config.Load()
+	}
 	logger.Info("initializing http handlers")
 	return &Handler{
+		config:         cfg,
 		store:          store,
 		webhookManager: webhookManager,
 		httpClient: &http.Client{
