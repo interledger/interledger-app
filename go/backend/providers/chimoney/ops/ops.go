@@ -59,9 +59,9 @@ func CreateWallet(ctx context.Context, b Backends, walletID string) (chimoney.Aw
 	return await.Get, nil
 }
 
-func ExecuteFinishDeposit(ctx context.Context, b Backends, IssueID string, Status string, ChiWalletID string) error {
+func ExecuteFinishDeposit(ctx context.Context, b Backends, issueID string, status string, chiWalletID string) error {
 	wo := client.StartWorkflowOptions{
-		ID:                    "finish_chimoney_deposit_" + Status + "_" + IssueID,
+		ID:                    "finish_chimoney_deposit_" + status + "_" + issueID,
 		TaskQueue:             "backend",
 		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
 	}
@@ -86,7 +86,7 @@ func ExecuteFinishDeposit(ctx context.Context, b Backends, IssueID string, Statu
 	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
 		_ = b.Temporal().GetWorkflow(ctx, wo.ID, "")
 	} else {
-		_, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, FinishChimoneyDepositWorkflow, IssueID, ChiWalletID)
+		_, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, FinishChimoneyDepositWorkflow, issueID, chiWalletID)
 	}
 	if executeErr != nil {
 		return fmt.Errorf("%w %s", chimoney.ErrInternal, executeErr)
