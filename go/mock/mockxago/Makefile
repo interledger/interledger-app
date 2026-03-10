@@ -8,7 +8,7 @@ help:
 	@echo "  build        - Build the mockxago binary"
 	@echo "  clean        - Remove build artifacts"
 
-test: unit-test e2e-test
+test: lint unit-test e2e-test
 	@echo "All tests completed successfully"
 
 unit-test:
@@ -16,6 +16,15 @@ unit-test:
 	go test -count=1 -v ./cmd/... ./internal/...
 	@echo "Checking coverage for internal"
 	@go test -v -coverprofile=coverage.out ./internal/...
+	@go tool cover -html=coverage.out -o coverage.html
+
+# Run linter
+lint:
+	@echo "Running linters..."
+	@gofmt -l .
+	@go vet ./...
+	@echo "Running golangci-lint..."
+	golangci-lint run ./...
 
 e2e-test:
 	@echo "Running e2e tests..."
