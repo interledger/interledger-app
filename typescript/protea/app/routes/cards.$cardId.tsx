@@ -19,7 +19,7 @@ export const handle: ApplicationProps = {
 
 export default function PageCardID() {
   const navigate = useNavigate()
-  const { features } = useRouteLoaderData('root') as Awaited<ReturnType<typeof rootLoader>>
+  const { features } = useRouteLoaderData<typeof rootLoader>('root')
   const { cards, areCardsFetched } = useCardsStore()
   const { cardId } = useParams<{ cardId: string }>()
   const card = useMemo(

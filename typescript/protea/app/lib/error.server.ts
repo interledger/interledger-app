@@ -18,8 +18,8 @@ import type { SnackbarType } from '~/lib/useScaffoldStore'
 
 type JsonWithErrorFunction = <
   Data extends
-    | null
-    | (Record<string, unknown> & Record<'errors', Record<string, string>>)
+  | null
+  | (Record<string, unknown> & Record<'errors', Record<string, string>>)
 >(
   request: Request,
   data: Data,
@@ -30,7 +30,7 @@ type JsonWithErrorFunction = <
 
 type JsonWithConnectErrorFunction = <
   Data extends Record<string, unknown> &
-    Record<'errors', Record<string, string>>
+  Record<'errors', Record<string, string>>
 >(
   data: Data,
   mapping?: Partial<Data['errors']>,
@@ -92,6 +92,10 @@ export const error: JsonWithErrorFunction = async (
       icon: 'close'
     })
     newHeaders.append('Set-Cookie', cookie)
+
+    if (data && typeof data === 'object') {
+      data.shouldRevalidate = true
+    }
   }
 
   if (typeof data !== 'object') {
@@ -242,7 +246,7 @@ export class ConnectError {
     return this.fieldViolations.reduce((accumulator, current) => {
       let fieldName = fieldNames[current.field.toLowerCase()]
       if (fieldName) {
-        ;(accumulator as Record<string, string>)[fieldName] =
+        ; (accumulator as Record<string, string>)[fieldName] =
           current.description
       }
       return accumulator

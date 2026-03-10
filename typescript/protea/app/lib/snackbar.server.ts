@@ -25,13 +25,15 @@ export async function flashSnackbar(
  * @param request Request
  * @returns Promise<SnackbarType>
  */
-export async function getSnackbar(request: Request): Promise<SnackbarType> {
+export async function getSnackbar(request: Request): Promise<{ snackbar: SnackbarType; headers: Headers }> {
   const session = await getSession(request.headers.get('Cookie'))
 
   const snackbar = session.get('snackbar')
-  await commitSession(session)
+  const cookie = await commitSession(session)
+  const headers = new Headers()
+  headers.append('Set-Cookie', cookie)
 
-  return snackbar
+  return { snackbar, headers }
 }
 
 /**

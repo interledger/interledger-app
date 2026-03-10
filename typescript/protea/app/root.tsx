@@ -8,6 +8,7 @@ import {
   useLoaderData,
   useNavigation,
   useRouteError,
+  data,
   type ShouldRevalidateFunction,
 } from 'react-router';
 import { captureException } from '@sentry/react-router'
@@ -123,7 +124,7 @@ function Document({ children, theme = 'theme-system' }: DocumentProps) {
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const isUser = hasUserSession(request)
-  const snackbar = await getSnackbar(request)
+  const { snackbar, headers } = await getSnackbar(request)
   const pusherArgs = await getPusherArgs(request)
 
   const url = new URL(request.url)
@@ -139,7 +140,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
 
   if (!isUser) {
-    return {
+    return data({
       isDisabled,
       walletAddress,
       isUser: false,
@@ -147,7 +148,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       snackbar,
       pusherArgs,
       env
-    }
+    }, { headers })
   }
 
   await recoveryLinkSessionInvalidationGuard(pathname, request)
@@ -167,7 +168,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     }
   })
 
-  return {
+  return data({
     isDisabled,
     walletAddress,
     isUser,
@@ -175,7 +176,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     snackbar,
     pusherArgs,
     env
-  }
+  }, { headers })
 }
 
 function Page() {
