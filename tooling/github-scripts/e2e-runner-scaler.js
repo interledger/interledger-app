@@ -306,7 +306,7 @@ function requireEnv(name) {
 }
 
 /**
- * Run a command and return stdout.
+ * Run a command and return stdout. Throws on non-zero exit code.
  *
  * @param {import('github-script').AsyncFunctionArguments['exec']} exec
  * @param {string[]} args
@@ -314,11 +314,18 @@ function requireEnv(name) {
  */
 async function execCommand(exec, args) {
   let stdout = "";
-  await exec.exec(args[0], args.slice(1), {
-    listeners: { stdout: (/** @type {Buffer} */ data) => { stdout += data.toString(); } },
-    silent: true,
+  let stderr = "";
+  const exitCode = await exec.exec(args[0], args.slice(1), {
+    listeners: {
+      stdout: (/** @type {Buffer} */ data) => { stdout += data.toString(); },
+      stderr: (/** @type {Buffer} */ data) => { stderr += data.toString(); },
+    },
+    silent: false,
     ignoreReturnCode: true,
   });
+  if (exitCode !== 0) {
+    throw new Error(`Command failed (exit ${exitCode}): ${args.join(" ")}\n${stderr}`);
+  }
   return stdout.trim();
 }
 
