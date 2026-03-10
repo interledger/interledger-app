@@ -2,7 +2,7 @@
 #
 # Manages a pool of spot-instance runners labeled "e2e-tester-dynamic".
 #
-# Runs every 10 minutes. Logic lives in tooling/github-scripts/e2e-runner-scaler.js
+# Runs every hour. Logic lives in tooling/github-scripts/e2e-runner-scaler.js
 # and is fully unit-tested (see tooling/github-scripts/tests/e2e-runner-scaler.test.js).
 #
 # Scale UP:  if ≥1 e2e job has been queued >30s → create spot instances (up to MAX_SPOTS)
@@ -10,7 +10,7 @@
 # Cleanup:   remove offline GitHub runners matching our naming pattern
 #
 # Required secrets in the "e2e-tester" environment:
-#   GSA              – GCP service account JSON (compute.instances.create/delete/list)
+#   GSA_E2E          – GCP service account JSON (compute.instances.create/delete/list)
 #   RUNNER_ADMIN_TOKEN – GitHub PAT with "Administration" repo permission (write)
 #
 # Required variables in the "e2e-tester" environment:
@@ -23,8 +23,6 @@ on:
   schedule:
     - cron: '0 * * * *'
   workflow_dispatch:
-  pull_request:
-    
 
 permissions:
   contents: read

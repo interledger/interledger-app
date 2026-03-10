@@ -16,17 +16,17 @@ import {
 // Helpers
 // ---------------------------------------------------------------------------
 
-/** @returns {import('../e2e-runner-scaler.js').ScalerConfig} */
+/** @returns {ScalerConfig} */
 function cfg(overrides = {}) {
   return { ...DEFAULT_CONFIG, ...overrides };
 }
 
-/** @param {Partial<import('../types').QueueState>} [overrides] */
+/** @param {Partial<QueueState>} [overrides] */
 function queue(overrides = {}) {
   return { pendingCount: 0, oldestWaitSecs: 0, ...overrides };
 }
 
-/** @param {Partial<import('../types').SpotState>} [overrides] */
+/** @param {Partial<SpotState>} [overrides] */
 function spots(overrides = {}) {
   return { running: 0, booting: 0, total: 0, ...overrides };
 }
@@ -35,7 +35,7 @@ function spots(overrides = {}) {
  * @param {string}  name
  * @param {string}  [status]
  * @param {boolean} [busy]
- * @returns {import('../types').RunnerInfo}
+ * @returns {RunnerInfo}
  */
 function runner(name, status = "online", busy = false) {
   return { id: Math.floor(Math.random() * 10000), name, status, busy };
@@ -356,13 +356,13 @@ describe("e2e-runner-scaler/executeDecision", () => {
     const created = /** @type {string[]} */ ([]);
     const tokenCalls = /** @type {number[]} */ ([]);
 
-    /** @type {import('../types').GcpAdapter} */
+    /** @type {GcpAdapter} */
     const gcp = {
       createSpotInstance: async (name) => { created.push(name); },
       deleteInstance: async () => {},
     };
 
-    /** @type {import('../types').GitHubAdapter} */
+    /** @type {GitHubAdapter} */
     const gh = {
       getRegistrationToken: async () => { tokenCalls.push(1); return "fake-token"; },
       removeRunner: async () => {},
@@ -383,13 +383,13 @@ describe("e2e-runner-scaler/executeDecision", () => {
   it("calls gcp.deleteInstance for each instance to delete", async () => {
     const deleted = /** @type {string[]} */ ([]);
 
-    /** @type {import('../types').GcpAdapter} */
+    /** @type {GcpAdapter} */
     const gcp = {
       createSpotInstance: async () => {},
       deleteInstance: async (name) => { deleted.push(name); },
     };
 
-    /** @type {import('../types').GitHubAdapter} */
+    /** @type {GitHubAdapter} */
     const gh = {
       getRegistrationToken: async () => "fake",
       removeRunner: async () => {},
@@ -409,13 +409,13 @@ describe("e2e-runner-scaler/executeDecision", () => {
   it("calls gh.removeRunner for each offline runner", async () => {
     const removed = /** @type {number[]} */ ([]);
 
-    /** @type {import('../types').GcpAdapter} */
+    /** @type {GcpAdapter} */
     const gcp = {
       createSpotInstance: async () => {},
       deleteInstance: async () => {},
     };
 
-    /** @type {import('../types').GitHubAdapter} */
+    /** @type {GitHubAdapter} */
     const gh = {
       getRegistrationToken: async () => "fake",
       removeRunner: async (id) => { removed.push(id); },
@@ -442,13 +442,13 @@ describe("e2e-runner-scaler/executeDecision", () => {
   it("does nothing when decision is empty", async () => {
     let anyCalled = false;
 
-    /** @type {import('../types').GcpAdapter} */
+    /** @type {GcpAdapter} */
     const gcp = {
       createSpotInstance: async () => { anyCalled = true; },
       deleteInstance: async () => { anyCalled = true; },
     };
 
-    /** @type {import('../types').GitHubAdapter} */
+    /** @type {GitHubAdapter} */
     const gh = {
       getRegistrationToken: async () => { anyCalled = true; return "x"; },
       removeRunner: async () => { anyCalled = true; },

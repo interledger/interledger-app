@@ -9,8 +9,6 @@
  * @module e2e-runner-scaler
  */
 
-/** @import { ScalerConfig, QueueState, SpotState, RunnerInfo, ScaleDecision, GcpAdapter, GitHubAdapter } from './types' */
-
 /** @type {ScalerConfig} */
 export const DEFAULT_CONFIG = {
   maxSpots: 5,
@@ -207,11 +205,21 @@ export default async ({ core, exec }) => {
     runnerLabel: process.env.RUNNER_LABEL ?? DEFAULT_CONFIG.runnerLabel,
   };
 
+  if (Number.isNaN(config.minSpots) || Number.isNaN(config.maxSpots)) {
+    throw new Error(`Invalid config: MIN_SPOTS and MAX_SPOTS must be numbers (got min=${process.env.MIN_SPOTS}, max=${process.env.MAX_SPOTS})`);
+  }
+  if (config.minSpots > config.maxSpots) {
+    throw new Error(`Invalid config: MIN_SPOTS (${config.minSpots}) must not exceed MAX_SPOTS (${config.maxSpots})`);
+  }
+  if (config.minSpots < 0) {
+    throw new Error(`Invalid config: MIN_SPOTS must be >= 0 (got ${config.minSpots})`);
+  }
+
   const projectId = requireEnv("PROJECT_ID");
   const zone = requireEnv("ZONE");
   const runnerAdminToken = requireEnv("RUNNER_ADMIN_TOKEN");
   const repo = requireEnv("GITHUB_REPOSITORY");
-  const ghToken = requireEnv("GH_TOKEN");
+  requireEnv("GH_TOKEN");
 
   const log = /** @param {string} msg */ (msg) => core.info(msg);
 
