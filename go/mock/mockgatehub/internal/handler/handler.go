@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"gitlab.com/fynbos/mock/mockgatehub/internal/config"
 	"gitlab.com/fynbos/mock/mockgatehub/internal/consts"
 	"gitlab.com/fynbos/mock/mockgatehub/internal/logger"
 	"gitlab.com/fynbos/mock/mockgatehub/internal/models"
@@ -25,6 +26,7 @@ import (
 
 // Handler holds dependencies for HTTP handlers
 type Handler struct {
+	config         *config.Config
 	store          storage.Storage
 	webhookManager *webhook.Manager
 	httpClient     *http.Client
@@ -41,9 +43,10 @@ type TransactionRequest struct {
 }
 
 // NewHandler creates a new handler with dependencies
-func NewHandler(store storage.Storage, webhookManager *webhook.Manager) *Handler {
+func NewHandler(cfg *config.Config, store storage.Storage, webhookManager *webhook.Manager) *Handler {
 	logger.Info("initializing http handlers")
 	return &Handler{
+		config:         cfg,
 		store:          store,
 		webhookManager: webhookManager,
 		httpClient: &http.Client{

@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	"gitlab.com/fynbos/mock/mockgatehub/internal/auth"
 	"gitlab.com/fynbos/mock/mockgatehub/internal/consts"
 	"gitlab.com/fynbos/mock/mockgatehub/internal/logger"
 	"gitlab.com/fynbos/mock/mockgatehub/internal/models"
@@ -436,7 +437,16 @@ func (h *Handler) call2FAVerify(endpoint, code string) (bool, error) {
 		return false, fmt.Errorf("failed to marshal payload: %w", err)
 	}
 
-	resp, err := h.httpClient.Post(endpoint, "application/json", bytes.NewReader(body))
+	req, err := http.NewRequest(http.MethodPost, endpoint, bytes.NewReader(body))
+	if err != nil {
+		return false, fmt.Errorf("failed to create request for 2FA callback: %w", err)
+	}
+
+	signature := auth.GenerateGateHubWebhookSignature(string(body), h.config.WebhookSecret)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-GH-Webhook-Signature", signature)
+
+	resp, err := h.httpClient.Do(req)
 	if err != nil {
 		return false, fmt.Errorf("callback request failed: %w", err)
 	}

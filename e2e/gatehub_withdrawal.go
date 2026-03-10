@@ -72,6 +72,57 @@ func (sc *E2EContext) iWithdrawViATheWithdrawalIframe(amount, currency string) e
 	}
 	debugPrintln("   ✓ Amount filled")
 
+	// Retrieve the user's TOTP secret
+	totpSecret, _ := sc.getCurrentUserTOTPSecret()
+
+	// Look for the SCA TOTP Verification checkbox
+	debugPrintln("   Looking for SCA trigger checkbox in iframe...")
+	checkbox := iframeLocator.Locator("input#trigger_sca")
+
+	err = checkbox.WaitFor(playwright.LocatorWaitForOptions{
+		State:   playwright.WaitForSelectorStateVisible,
+		Timeout: playwright.Float(15000),
+	})
+	if err != nil {
+		sc.iTakeAScreenshot("sca-checkbox-not-found")
+		return fmt.Errorf("could not find sca trigger checkbox: %w", err)
+	}
+
+	// Set the checkbox to true
+	err = checkbox.SetChecked(true)
+	if err != nil {
+		return fmt.Errorf("could not set sca trigger checkbox: %w", err)
+	}
+	debugPrintln("   ✓ SCA trigger checkbox set to true")
+
+	// Look for the TOTP input field
+	debugPrintln("   Looking for TOTP code input in iframe...")
+	totpInput := iframeLocator.Locator("input#totp_code")
+
+	err = totpInput.WaitFor(playwright.LocatorWaitForOptions{
+		State:   playwright.WaitForSelectorStateVisible,
+		Timeout: playwright.Float(15000),
+	})
+	if err != nil {
+		sc.iTakeAScreenshot("totp-input-not-found")
+		return fmt.Errorf("could not find totp input: %w", err)
+	}
+
+	// Generate a TOTP code with the user's secret
+	totpCode, err := generateTOTPCode(totpSecret)
+	if err != nil {
+		return fmt.Errorf("failed to generate TOTP code for SCA verification: %w", err)
+	}
+	debugPrintln("   ✓ Generated TOTP code")
+
+	// Fill the TOTP input field
+	err = totpInput.Fill(totpCode)
+	if err != nil {
+		sc.iTakeAScreenshot("totp-input-fill-error")
+		return fmt.Errorf("failed to fill totp field: %w", err)
+	}
+	debugPrintln("   ✓ TOTP input filled")
+
 	// Take screenshot showing filled form
 	sc.iTakeAScreenshot("withdrawal-iframe-filled")
 
