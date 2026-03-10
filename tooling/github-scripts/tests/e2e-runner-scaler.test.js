@@ -317,19 +317,17 @@ describe("e2e-runner-scaler/buildDecision", () => {
     assert.strictEqual(decision.runnersToCleanup.length, 0);
   });
 
-  it("combines scale-up and ensure-minimum when both needed", () => {
+  it("combines scale-up and ensure-minimum without double-counting", () => {
     // No existing spots, 1 pending job, minSpots=2
-    // scaleUp = 1 (1 pending), ensureMin = max(0, 2 - (0 - 0)) - already counted by scaleUp?
-    // Actually: scaleUp=1, ensureMin = max(0, 2 - (0 - 0)) = 2, but scaleUp already adds 1
-    // Wait, ensureMin looks at spots.total - pendingDeletions, not accounting for creates
-    // So: ensureMin = 2 - (0 - 0) = 2, total = 1 + 2 = 3
+    // scaleUp = 1 (1 pending), ensureMin = max(0, 2 - (0 + 1)) = 1
+    // Total = 1 + 1 = 2 (NOT 3: the scale-up instance counts toward minimum)
     const decision = buildDecision(
       queue({ pendingCount: 1, oldestWaitSecs: 60 }),
       spots({ total: 0 }),
       [],
       cfg({ maxSpots: 5, minSpots: 2 }),
     );
-    assert.strictEqual(decision.instancesToCreate, 3);
+    assert.strictEqual(decision.instancesToCreate, 2);
   });
 });
 

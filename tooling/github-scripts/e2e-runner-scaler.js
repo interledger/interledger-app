@@ -110,7 +110,14 @@ export function buildDecision(queue, spots, runners, config) {
   const toCreate = decideScaleUp(queue, spots, config);
   const toDelete = decideScaleDown(queue, runners, config);
   const toCleanup = decideCleanup(runners, config);
-  const toEnsureMin = decideEnsureMinimum(spots, toDelete.length, config);
+
+  // Account for scale-up creations when checking minimum:
+  // if we're already creating instances for demand, they count toward the pool.
+  const effectiveTotal = spots.total + toCreate;
+  const afterDeletion = effectiveTotal - toDelete.length;
+  const toEnsureMin = afterDeletion >= config.minSpots
+    ? 0
+    : config.minSpots - afterDeletion;
 
   return {
     instancesToCreate: toCreate + toEnsureMin,
