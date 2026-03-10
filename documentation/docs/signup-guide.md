@@ -192,7 +192,7 @@ The user fills in:
 - **Email** — Primary contact email
 - **Country** — Country of residence (ISO 3166-1 alpha-2 code)
 
-**Country restrictions:** Only users from supported countries can proceed: all EU member states, US, CA, GB, IN, JP, and others. Users from unsupported countries are redirected to the waitlist.
+**Country restrictions:** Only users from supported countries can proceed: all EU member states, US, CA, and ZA. Users from unsupported countries are redirected to the waitlist (see `isEUCountry()` in `typescript/protea/app/routes/signup/About.tsx` and the country check in `route.tsx`).
 
 ### Backend Processing
 

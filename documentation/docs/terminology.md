@@ -33,13 +33,13 @@ One user gets **one wallet** containing multiple **linked accounts** from their 
 ```mermaid
 graph TD
     User["👤 User"]
-    Wallet["Interledger Wallet<br/>(Country: EU)"]
+    Wallet["Interledger Wallet<br/>(Country: DE)"]
 
     User -->|owns| Wallet
 
     Wallet -->|contains| LA1["Linked Account<br/>GateHub · USD · balance"]
     Wallet -->|contains| LA2["Linked Account<br/>GateHub · EUR · balance"]
-    Wallet -->|contains| LA3["Linked Account<br/>GateHub · bank account"]
+    Wallet -->|contains| LA3["Linked Account<br/>GateHub · GBP · balance"]
 
     LA1 --> Provider1["GateHub"]
     LA2 --> Provider1

@@ -115,9 +115,7 @@ Your wallet connects to **one payment provider** based on your country. This kee
 - **In the US?** You connect to **PTI** for bank transfers and a USD balance
 - **In Canada?** You might connect to **Chimoney** for Interac e-transfer support
 
-**Cross-Provider Payments:** Even though each user connects to one provider, the Interledger network allows you to send money to users at different providers. Alice (using GateHub) can send to Alessandro (using Xago) through the open payments network.
-
-Think of it like email: you pick one email provider (Gmail, Outlook, etc.), but you can still send messages to people using other providers.
+**In-app P2P payments require the same provider.** Alice (GateHub) can send to Bob (GateHub), but cannot send directly to Alessandro (Xago) via in-app P2P — the backend rejects cross-provider P2P with `ErrIncompatibleAccounts`. Cross-provider payments are only possible via **Open Payments** (the Interledger protocol), which is a separate flow from in-app P2P.
 
 ---
 
