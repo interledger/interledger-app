@@ -2,7 +2,7 @@ ARG NODE_IMAGE_PREFIX=""
 
 # Install dependencies only when needed
 FROM ${NODE_IMAGE_PREFIX}node:16-alpine AS deps
-RUN apk add --no-cache python3 make g++ curl
+RUN apk update && apk add --no-cache python3 make g++ curl
 RUN corepack enable && corepack prepare pnpm@8.5.0 --activate
 WORKDIR /app
 COPY package.json pnpm-lock.yaml ./

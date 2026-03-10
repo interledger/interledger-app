@@ -7,7 +7,7 @@ RUN corepack enable && corepack prepare pnpm@8.5.0 --activate
 WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
 
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile --shamefully-hoist
 
 # Rebuild the source code only when needed
 FROM ${NODE_IMAGE_PREFIX}node:18.20-alpine AS dev 
