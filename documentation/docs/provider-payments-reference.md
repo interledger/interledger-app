@@ -60,7 +60,7 @@ graph TD
 |--------|---------|-----|------|----------|
 | **Primary Use** | Multi-currency custodian | Bank on/off-ramps | South African payments | International remittance |
 | **Default Geography** | Europe (EUR, multi-currency focus) | US (ACH, bank network focus) | South Africa (ZAR focus) | Africa, Asia (remittance routes) |
-| **Account Model** | User account with currency vaults | Per-transfer, no persistent user account | SubAccount per user | External ID per protocol |
+| **Account Model** | User account with currency vaults | Persistent user account with USD wallet/balance + linked bank accounts | SubAccount per user | External ID per protocol |
 | **P2P Speed** | 1-5 seconds | 1-3 business days | Minutes to hours | 2-48 hours |
 | **Deposit Speed** | Seconds (if balance account) | Hours to days | ZAR: Hours | 1-7 days |
 | **Withdrawal Speed** | Seconds (internal) | Hours to days (ACH) | Minutes to hours | 1-7 days (wire/local transfer) |
