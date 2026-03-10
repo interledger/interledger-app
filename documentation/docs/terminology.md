@@ -33,7 +33,7 @@ One user gets **one wallet** containing multiple **linked accounts** from their 
 ```mermaid
 graph TD
     User["👤 User"]
-    Wallet["Interledger Wallet<br/>(Country: US)"]
+    Wallet["Interledger Wallet<br/>(Country: EU)"]
 
     User -->|owns| Wallet
 

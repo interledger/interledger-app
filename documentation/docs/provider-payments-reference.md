@@ -59,7 +59,7 @@ graph TD
 | Aspect | GateHub | PTI | Xago | Chimoney |
 |--------|---------|-----|------|----------|
 | **Primary Use** | Multi-currency custodian | Bank on/off-ramps | South African payments | International remittance |
-| **Default Geography** | Global (USD, EUR focus) | Europe (SEPA, UK focus) | South Africa (ZAR focus) | Africa, Asia (remittance routes) |
+| **Default Geography** | Europe (EUR, multi-currency focus) | US (ACH, bank network focus) | South Africa (ZAR focus) | Africa, Asia (remittance routes) |
 | **Account Model** | User account with currency vaults | Per-transfer, no persistent user account | SubAccount per user | External ID per protocol |
 | **P2P Speed** | 1-5 seconds | 1-3 business days | Minutes to hours | 2-48 hours |
 | **Deposit Speed** | Seconds (if balance account) | Hours to days | ZAR: Hours | 1-7 days |
@@ -84,7 +84,7 @@ graph TD
 
 **Best for:** Users who want to hold multiple currencies, fast P2P, card payments.
 
-**Geographic focus:** Global (but strong in US, EU).
+**Geographic focus:** Europe (EU, multi-currency).
 
 ### Account Structure
 
@@ -188,9 +188,9 @@ GateHub uses numeric codes (unusual among modern APIs):
 
 **What it does:** Connects directly to bank networks (ACH, SEPA, wire transfers).
 
-**Best for:** Users who want real bank-account on/off-ramps, regulated transfers, European payments.
+**Best for:** Users who want real bank-account on/off-ramps, regulated transfers, US payments.
 
-**Geographic focus:** Europe (SEPA), UK (faster payments), North America (ACH).
+**Geographic focus:** US (ACH, bank network).
 
 ### Account Structure
 
@@ -697,11 +697,11 @@ See [GateHub Cards Explainer](gatehub-cards-guide.md) for full details.
 
 ## Choosing the Right Provider
 
-### User is in the US?
+### User is in Europe?
 → **GateHub** (fast, multi-currency, card support)
 
-### User is in Europe?
-→ **PTI** (real bank integration) OR **GateHub** (if they want speed/multi-currency)
+### User is in the US?
+→ **PTI** (real bank integration)
 
 ### User is in South Africa?
 → **Xago** (ZAR specialist, fastest local transfers)
