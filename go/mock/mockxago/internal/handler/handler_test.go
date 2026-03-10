@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -246,4 +247,113 @@ func TestLogin_MultipleLogins(t *testing.T) {
 	t2, _ := h.store.GetAccessToken(context.Background(), token2)
 	assert.NotNil(t, t1)
 	assert.NotNil(t, t2)
+}
+
+func TestAuthMiddleware_MissingToken(t *testing.T) {
+	h := setupTestHandler(t)
+
+	nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	httpReq := httptest.NewRequest(http.MethodGet, "/test", nil)
+	w := httptest.NewRecorder()
+
+	h.AuthMiddleware(nextHandler).ServeHTTP(w, httpReq)
+
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+	var resp models.ErrorResponse
+	json.NewDecoder(w.Body).Decode(&resp)
+	assert.Equal(t, "unauthorized", resp.Error)
+}
+
+func TestAuthMiddleware_InvalidFormat(t *testing.T) {
+	h := setupTestHandler(t)
+
+	nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	httpReq := httptest.NewRequest(http.MethodGet, "/test", nil)
+	httpReq.Header.Set("Authorization", "InvalidFormat")
+	w := httptest.NewRecorder()
+
+	h.AuthMiddleware(nextHandler).ServeHTTP(w, httpReq)
+
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+}
+
+func TestAuthMiddleware_ExpiredToken(t *testing.T) {
+	h := setupTestHandler(t)
+
+	// Create an expired token
+	expiredToken := &models.AccessToken{
+		ID:        "expired-id",
+		Token:     "expired-token",
+		ExpiresAt: time.Unix(1, 0), // Unix epoch time 1 second - definitely expired
+	}
+	h.store.SaveAccessToken(context.Background(), expiredToken)
+
+	nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	httpReq := httptest.NewRequest(http.MethodGet, "/test", nil)
+	httpReq.Header.Set("Authorization", "Bearer expired-token")
+	w := httptest.NewRecorder()
+
+	h.AuthMiddleware(nextHandler).ServeHTTP(w, httpReq)
+
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+}
+
+func TestAuthMiddleware_InvalidToken(t *testing.T) {
+	h := setupTestHandler(t)
+
+	nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	httpReq := httptest.NewRequest(http.MethodGet, "/test", nil)
+	httpReq.Header.Set("Authorization", "Bearer nonexistent-token")
+	w := httptest.NewRecorder()
+
+	h.AuthMiddleware(nextHandler).ServeHTTP(w, httpReq)
+
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+}
+
+func TestAuthMiddleware_ValidToken(t *testing.T) {
+	h := setupTestHandler(t)
+
+	// Login to get a valid token
+	req := models.LoginRequest{
+		PolicyID: "test-policy",
+		Fields: []models.FieldData{
+			{FieldName: "publicKey", FieldValue: "test-public-key"},
+			{FieldName: "secret", FieldValue: "test-secret"},
+		},
+	}
+	body, _ := json.Marshal(req)
+	loginReq := httptest.NewRequest("POST", "/xago/v1/login", bytes.NewReader(body))
+	loginW := httptest.NewRecorder()
+	h.Login(loginW, loginReq)
+
+	var loginResp models.LoginResponse
+	json.NewDecoder(loginW.Body).Decode(&loginResp)
+
+	nextHandlerCalled := false
+	nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		nextHandlerCalled = true
+		w.WriteHeader(http.StatusOK)
+	})
+
+	httpReq := httptest.NewRequest(http.MethodGet, "/test", nil)
+	httpReq.Header.Set("Authorization", "Bearer "+loginResp.TokenValue)
+	w := httptest.NewRecorder()
+
+	h.AuthMiddleware(nextHandler).ServeHTTP(w, httpReq)
+
+	assert.True(t, nextHandlerCalled)
+	assert.Equal(t, http.StatusOK, w.Code)
 }

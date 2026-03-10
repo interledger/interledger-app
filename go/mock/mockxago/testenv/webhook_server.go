@@ -12,6 +12,9 @@ import (
 	"net/url"
 	"sync"
 	"time"
+
+	"gitlab.com/fynbos/mock/mockxago/internal/logger"
+	"go.uber.org/zap"
 )
 
 // Global shared webhook server state across all scenarios
@@ -61,7 +64,10 @@ func (tc *TestContext) startWebhookServer(webhookURL string) error {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
-		fmt.Printf("Webhook received: %s %s from %s\n", r.Method, r.URL.Path, r.RemoteAddr)
+		logger.Info("webhook received",
+			zap.String("method", r.Method),
+			zap.String("path", r.URL.Path),
+			zap.String("remote_addr", r.RemoteAddr))
 
 		body, _ := io.ReadAll(r.Body)
 		_ = r.Body.Close()
@@ -79,7 +85,7 @@ func (tc *TestContext) startWebhookServer(webhookURL string) error {
 		})
 		globalWebhookEventsMu.Unlock()
 
-		fmt.Printf("Webhook stored, total count: %d\n", len(globalWebhookEvents))
+		logger.Info("webhook stored", zap.Int("total_count", len(globalWebhookEvents)))
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
@@ -106,11 +112,11 @@ func (tc *TestContext) startWebhookServer(webhookURL string) error {
 	go func() {
 		err := server.Serve(listener)
 		if err != nil && err != http.ErrServerClosed {
-			fmt.Printf("Webhook server error: %v\n", err)
+			logger.Error("webhook server error", zap.Error(err))
 		}
 	}()
 
-	fmt.Printf("Webhook server started on %s%s\n", addr, path)
+	logger.Info("webhook server started", zap.String("address", addr), zap.String("path", path))
 	return nil
 }
 
