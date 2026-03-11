@@ -45,6 +45,9 @@ services:
 
       - REDIS_URL=redis://redis:6379/2
 
+      - OP_KEY_ID=${OP_KEY_ID:?OP_KEY_ID is required}
+      - OP_PRIVATE_KEY=${OP_PRIVATE_KEY:?OP_PRIVATE_KEY is required}
+      - OP_WALLET_ADDRESS=${OP_WALLET_ADDRESS:?OP_WALLET_ADDRESS is required}
 
     depends_on:
       - backend
