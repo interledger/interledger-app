@@ -12,23 +12,22 @@ import { useDialPadContext } from '~/lib/context/dialpad'
 import { mergeMeta } from '~/lib/meta'
 import { getSession } from '~/session.server'
 import { getUserSession } from '~/lib/kratos.server'
-import { QuickPaySessionError} from '~/lib/error.server'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   let isLoggedIn
-  
-    try {
-      await getUserSession(request)
-      isLoggedIn = true
-  
-    } catch (err) {
-      isLoggedIn = false
-    }
-  
+
+  try {
+    await getUserSession(request)
+    isLoggedIn = true
+
+  } catch (err) {
+    isLoggedIn = false
+  }
+
   const session = await getSession(request.headers.get('Cookie'))
   const walletAddressInfo = session.get('quickPay')
   const assetCode = walletAddressInfo?.validWalletAddress?.assetCode
-  
+
   if (walletAddressInfo === undefined || assetCode === undefined) {
     throw json(
       {
@@ -66,6 +65,19 @@ export default function Page() {
     setAssetCode(assetCode)
   })
 
+  const processAmount = (e: React.MouseEvent<HTMLElement>) => {
+    if (
+      amountValue.indexOf(DialPadIds.Dot) === -1 ||
+      amountValue.endsWith(DialPadIds.Dot)
+    ) {
+      setAmountValue(Number(amountValue).toFixed(2).toString())
+    }
+
+    if (Number(amountValue) === 0) {
+      e.preventDefault()
+    }
+  }
+
   return (
     <WalletGrid>
       <GridColumn
@@ -75,15 +87,7 @@ export default function Page() {
         <div className="flex justify-center gap-2 mt-12 w-64">
           <Link
             to={`/quick-pay/request`}
-            onClick={(e: React.MouseEvent<HTMLElement>) => {
-              if (
-                amountValue.indexOf(DialPadIds.Dot) === -1 ||
-                amountValue.endsWith(DialPadIds.Dot)
-              ) {
-                setAmountValue(Number(amountValue).toFixed(2).toString())
-              }
-              if (Number(amountValue) === 0) e.preventDefault()
-            }}
+            onClick={processAmount}
             className='min-w-28'
           >
             <Button
@@ -95,15 +99,7 @@ export default function Page() {
           </Link>
           <Link
             to={`/quick-pay/pay`}
-            onClick={(e: React.MouseEvent<HTMLElement>) => {
-              if (
-                amountValue.indexOf(DialPadIds.Dot) === -1 ||
-                amountValue.endsWith(DialPadIds.Dot)
-              ) {
-                setAmountValue(Number(amountValue).toFixed(2).toString())
-              }
-              if (Number(amountValue) === 0) e.preventDefault()
-            }}
+            onClick={processAmount}
             className='min-w-28'
           >
             <Button
