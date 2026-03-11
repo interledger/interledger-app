@@ -25,6 +25,7 @@ import {
   CardHeader,
   CardTitle,
   Error,
+  QuickPayError,
   GridColumn,
   InterledgerLogo,
   LiveReload,
@@ -43,6 +44,7 @@ import { grpc } from './lib/grpc.server'
 import { getPusherArgs } from './lib/pusher.server'
 import { emailVerificationGuard, recoveryLinkSessionInvalidationGuard, withAAL2Guard } from './lib/totp.server'
 import { usePusher } from './lib/usePusher'
+import { DialPadProvider } from './lib/providers/dialPadProvider'
 
 export const shouldRevalidate: ShouldRevalidateFunction = ({
   actionResult,
@@ -192,15 +194,17 @@ function Page() {
 
   return (
     <Document>
-      {isDisabled ? (
-        <Unavailable walletAddress={walletAddress} />
-      ) : (
-        <>
-          <Scaffold />
-          <PendingConfirmationsLoader walletId={pusherArgs.walletId} />
-          <TotpChallengeGlobal />
-        </>
-      )}
+      <DialPadProvider>
+        {isDisabled ? (
+          <Unavailable walletAddress={walletAddress} />
+        ) : (
+          <>
+            <Scaffold />
+            <PendingConfirmationsLoader walletId={pusherArgs.walletId} />
+            <TotpChallengeGlobal />
+          </>
+        )}
+      </DialPadProvider>
       <script
         dangerouslySetInnerHTML={{
           __html: `window.ENV = ${JSON.stringify(env)}`
@@ -216,7 +220,15 @@ export function ErrorBoundary() {
   captureRemixErrorBoundaryError(error)
 
   if (isRouteErrorResponse(error)) {
-    return (
+    return error.data?.code === "QUICKPAY_SESSION_ERROR" ? (
+      <Document>
+        <QuickPayError
+          status={error.status}
+          statusText={error.statusText}
+          data={error.data}
+        />
+      </Document>
+    ) : (
       <Document>
         <Error
           status={error.status}
