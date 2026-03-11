@@ -77,6 +77,7 @@ func New(b ops.Backends, cfg gatehub.Config) *Client {
 		cfg.APIBaseURL,
 		cfg.OnboardingBaseURL,
 		cfg.OnOffRampBaseURL,
+		cfg.OrganizationID,
 		&http.Client{
 			Transport: otelhttp.NewTransport(
 				httplogger.NewTransport(http.DefaultTransport, b, nil),
@@ -201,4 +202,8 @@ func (c Client) ThreeDSPaymentConfirmation(ctx context.Context, userID, txID str
 
 func (c Client) ExternalClient() external.Client {
 	return c.external
+}
+
+func (c Client) UpdateOrganizationConfiguration(ctx context.Context, apiBaseURL, twoFAType string) (*external.UpdateOrganizationConfigurationResponse, error) {
+	return ops.UpdateOrganizationConfiguration(ctx, c.external, apiBaseURL, twoFAType)
 }

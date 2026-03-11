@@ -8,10 +8,11 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
+	"time"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 
+	"gitlab.com/fynbos/mock/mockxago/internal/jobs"
 	"gitlab.com/fynbos/mock/mockxago/internal/models"
 	"gitlab.com/fynbos/mock/mockxago/internal/storage"
 )
@@ -23,7 +24,8 @@ func setupTestHandler(t *testing.T) *Handler {
 	os.Setenv("XAGO_MOCK_TEST_MODE", "true")
 
 	store := storage.NewMemoryStorage()
-	return NewHandler(store)
+	queue := jobs.NewQueue(store)
+	return NewHandler(store, queue)
 }
 
 func TestLogin_Success(t *testing.T) {
@@ -247,246 +249,111 @@ func TestLogin_MultipleLogins(t *testing.T) {
 	assert.NotNil(t, t2)
 }
 
-// Sub-account tests
-
-func TestCreateSubAccount_Success(t *testing.T) {
+func TestAuthMiddleware_MissingToken(t *testing.T) {
 	h := setupTestHandler(t)
 
-	req := models.CreateSubAccountRequest{
-		WalletID:                  "wallet_123",
-		FirstName:                 "John",
-		LastName:                  "Doe",
-		Email:                     "john@example.com",
-		MobileNumber:              "+27123456789",
-		IdentityType:              "individual",
-		IDNumber:                  "9001011234567",
-		PhysicalAddress:           "123 Main St",
-		ThirdPartyVerificationURL: "https://example.com",
-	}
+	nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
 
-	body, _ := json.Marshal(req)
-	httpReq := httptest.NewRequest("POST", "/v1/company/accounts", bytes.NewReader(body))
-	httpReq.Header.Set("Authorization", "Bearer valid-token")
+	httpReq := httptest.NewRequest(http.MethodGet, "/test", nil)
 	w := httptest.NewRecorder()
 
-	h.CreateSubAccount(w, httpReq)
+	h.AuthMiddleware(nextHandler).ServeHTTP(w, httpReq)
 
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+	var resp models.ErrorResponse
+	json.NewDecoder(w.Body).Decode(&resp)
+	assert.Equal(t, "unauthorized", resp.Error)
+}
+
+func TestAuthMiddleware_InvalidFormat(t *testing.T) {
+	h := setupTestHandler(t)
+
+	nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	httpReq := httptest.NewRequest(http.MethodGet, "/test", nil)
+	httpReq.Header.Set("Authorization", "InvalidFormat")
+	w := httptest.NewRecorder()
+
+	h.AuthMiddleware(nextHandler).ServeHTTP(w, httpReq)
+
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+}
+
+func TestAuthMiddleware_ExpiredToken(t *testing.T) {
+	h := setupTestHandler(t)
+
+	// Create an expired token
+	expiredToken := &models.AccessToken{
+		ID:        "expired-id",
+		Token:     "expired-token",
+		ExpiresAt: time.Unix(1, 0), // Unix epoch time 1 second - definitely expired
+	}
+	h.store.SaveAccessToken(context.Background(), expiredToken)
+
+	nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	httpReq := httptest.NewRequest(http.MethodGet, "/test", nil)
+	httpReq.Header.Set("Authorization", "Bearer expired-token")
+	w := httptest.NewRecorder()
+
+	h.AuthMiddleware(nextHandler).ServeHTTP(w, httpReq)
+
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+}
+
+func TestAuthMiddleware_InvalidToken(t *testing.T) {
+	h := setupTestHandler(t)
+
+	nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	httpReq := httptest.NewRequest(http.MethodGet, "/test", nil)
+	httpReq.Header.Set("Authorization", "Bearer nonexistent-token")
+	w := httptest.NewRecorder()
+
+	h.AuthMiddleware(nextHandler).ServeHTTP(w, httpReq)
+
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+}
+
+func TestAuthMiddleware_ValidToken(t *testing.T) {
+	h := setupTestHandler(t)
+
+	// Login to get a valid token
+	req := models.LoginRequest{
+		PolicyID: "test-policy",
+		Fields: []models.FieldData{
+			{FieldName: "publicKey", FieldValue: "test-public-key"},
+			{FieldName: "secret", FieldValue: "test-secret"},
+		},
+	}
+	body, _ := json.Marshal(req)
+	loginReq := httptest.NewRequest("POST", "/xago/v1/login", bytes.NewReader(body))
+	loginW := httptest.NewRecorder()
+	h.Login(loginW, loginReq)
+
+	var loginResp models.LoginResponse
+	json.NewDecoder(loginW.Body).Decode(&loginResp)
+
+	nextHandlerCalled := false
+	nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		nextHandlerCalled = true
+		w.WriteHeader(http.StatusOK)
+	})
+
+	httpReq := httptest.NewRequest(http.MethodGet, "/test", nil)
+	httpReq.Header.Set("Authorization", "Bearer "+loginResp.TokenValue)
+	w := httptest.NewRecorder()
+
+	h.AuthMiddleware(nextHandler).ServeHTTP(w, httpReq)
+
+	assert.True(t, nextHandlerCalled)
 	assert.Equal(t, http.StatusOK, w.Code)
-
-	var resp models.CreateSubAccountResponse
-	json.NewDecoder(w.Body).Decode(&resp)
-	assert.NotEmpty(t, resp.AccountID)
-	assert.NotEmpty(t, resp.DepositAddress)
-	assert.NotZero(t, resp.DepositTag)
-	assert.NotEmpty(t, resp.Beneficiaries)
-	assert.Len(t, resp.Beneficiaries, 2)
-}
-
-func TestCreateSubAccount_MissingFirstName(t *testing.T) {
-	h := setupTestHandler(t)
-
-	req := models.CreateSubAccountRequest{
-		// Missing FirstName
-		LastName:                  "Doe",
-		Email:                     "john@example.com",
-		MobileNumber:              "+27123456789",
-		IdentityType:              "individual",
-		IDNumber:                  "9001011234567",
-		PhysicalAddress:           "123 Main St",
-		ThirdPartyVerificationURL: "https://example.com",
-	}
-
-	body, _ := json.Marshal(req)
-	httpReq := httptest.NewRequest("POST", "/v1/company/accounts", bytes.NewReader(body))
-	httpReq.Header.Set("Authorization", "Bearer valid-token")
-	w := httptest.NewRecorder()
-
-	h.CreateSubAccount(w, httpReq)
-
-	assert.Equal(t, http.StatusBadRequest, w.Code)
-
-	var resp models.ErrorResponse
-	json.NewDecoder(w.Body).Decode(&resp)
-	assert.Contains(t, resp.Message, "firstName is required")
-}
-
-func TestCreateSubAccount_MissingEmail(t *testing.T) {
-	h := setupTestHandler(t)
-
-	req := models.CreateSubAccountRequest{
-		FirstName: "John",
-		LastName:  "Doe",
-		// Missing Email
-		MobileNumber:              "+27123456789",
-		IdentityType:              "individual",
-		IDNumber:                  "9001011234567",
-		PhysicalAddress:           "123 Main St",
-		ThirdPartyVerificationURL: "https://example.com",
-	}
-
-	body, _ := json.Marshal(req)
-	httpReq := httptest.NewRequest("POST", "/v1/company/accounts", bytes.NewReader(body))
-	httpReq.Header.Set("Authorization", "Bearer valid-token")
-	w := httptest.NewRecorder()
-
-	h.CreateSubAccount(w, httpReq)
-
-	assert.Equal(t, http.StatusBadRequest, w.Code)
-
-	var resp models.ErrorResponse
-	json.NewDecoder(w.Body).Decode(&resp)
-	assert.Contains(t, resp.Message, "email is required")
-}
-
-func TestUpdateSubAccount_Success(t *testing.T) {
-	h := setupTestHandler(t)
-
-	// First, create a sub-account
-	createdResp := createTestSubAccount(t, h)
-
-	// Now update it
-	updateReq := models.UpdateSubAccountRequest{
-		ThirdPartyVerificationURL: "https://example.com/updated",
-		IDNumber:                  "9001011234568",
-		PhysicalAddress:           "456 Oak Ave",
-	}
-
-	body, _ := json.Marshal(updateReq)
-	httpReq := httptest.NewRequest("PUT", "/v1/company/accounts/"+createdResp.AccountID, bytes.NewReader(body))
-	httpReq.Header.Set("Authorization", "Bearer valid-token")
-
-	// Set chi URL parameter
-	rctx := chi.NewRouteContext()
-	rctx.URLParams.Add("accountId", createdResp.AccountID)
-	httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), chi.RouteCtxKey, rctx))
-
-	w := httptest.NewRecorder()
-
-	h.UpdateSubAccount(w, httpReq)
-
-	assert.Equal(t, http.StatusOK, w.Code)
-
-	var resp models.UpdateSubAccountResponse
-	json.NewDecoder(w.Body).Decode(&resp)
-	assert.Equal(t, createdResp.AccountID, resp.AccountID)
-	assert.Equal(t, "updated", resp.Status)
-}
-
-func TestUpdateSubAccount_InvalidID(t *testing.T) {
-	h := setupTestHandler(t)
-
-	updateReq := models.UpdateSubAccountRequest{
-		ThirdPartyVerificationURL: "https://example.com/updated",
-	}
-
-	body, _ := json.Marshal(updateReq)
-	httpReq := httptest.NewRequest("PUT", "/v1/company/accounts/invalid-id", bytes.NewReader(body))
-	httpReq.Header.Set("Authorization", "Bearer valid-token")
-	w := httptest.NewRecorder()
-
-	h.UpdateSubAccount(w, httpReq)
-
-	assert.Equal(t, http.StatusBadRequest, w.Code)
-
-	var resp models.ErrorResponse
-	json.NewDecoder(w.Body).Decode(&resp)
-	assert.Contains(t, resp.Message, "invalid account ID format")
-}
-
-func TestUpdateSubAccount_NotFound(t *testing.T) {
-	h := setupTestHandler(t)
-
-	validUUID := "550e8400-e29b-41d4-a716-446655440000"
-	updateReq := models.UpdateSubAccountRequest{
-		ThirdPartyVerificationURL: "https://example.com/updated",
-	}
-
-	body, _ := json.Marshal(updateReq)
-	httpReq := httptest.NewRequest("PUT", "/v1/company/accounts/"+validUUID, bytes.NewReader(body))
-	httpReq.Header.Set("Authorization", "Bearer valid-token")
-
-	// Set chi URL parameter
-	rctx := chi.NewRouteContext()
-	rctx.URLParams.Add("accountId", validUUID)
-	httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), chi.RouteCtxKey, rctx))
-
-	w := httptest.NewRecorder()
-
-	h.UpdateSubAccount(w, httpReq)
-
-	assert.Equal(t, http.StatusNotFound, w.Code)
-}
-
-func TestGetSubAccountByWallet_Success(t *testing.T) {
-	h := setupTestHandler(t)
-
-	// First, create a sub-account
-	createdResp := createTestSubAccount(t, h)
-
-	// Now retrieve it
-	httpReq := httptest.NewRequest("GET", "/v1/company/accounts?walletId=wallet_123", nil)
-	httpReq.Header.Set("Authorization", "Bearer valid-token")
-	w := httptest.NewRecorder()
-
-	h.GetSubAccountByWallet(w, httpReq)
-
-	assert.Equal(t, http.StatusOK, w.Code)
-
-	var resp models.CreateSubAccountResponse
-	json.NewDecoder(w.Body).Decode(&resp)
-	assert.Equal(t, createdResp.AccountID, resp.AccountID)
-}
-
-func TestGetSubAccountByWallet_MissingWalletId(t *testing.T) {
-	h := setupTestHandler(t)
-
-	httpReq := httptest.NewRequest("GET", "/v1/company/accounts", nil)
-	httpReq.Header.Set("Authorization", "Bearer valid-token")
-	w := httptest.NewRecorder()
-
-	h.GetSubAccountByWallet(w, httpReq)
-
-	assert.Equal(t, http.StatusBadRequest, w.Code)
-
-	var resp models.ErrorResponse
-	json.NewDecoder(w.Body).Decode(&resp)
-	assert.Contains(t, resp.Message, "walletId is required")
-}
-
-func TestGetSubAccountByWallet_NotFound(t *testing.T) {
-	h := setupTestHandler(t)
-
-	httpReq := httptest.NewRequest("GET", "/v1/company/accounts?walletId=nonexistent", nil)
-	httpReq.Header.Set("Authorization", "Bearer valid-token")
-	w := httptest.NewRecorder()
-
-	h.GetSubAccountByWallet(w, httpReq)
-
-	assert.Equal(t, http.StatusNotFound, w.Code)
-}
-
-// Helper function to create a test sub-account
-func createTestSubAccount(t *testing.T, h *Handler) models.CreateSubAccountResponse {
-	req := models.CreateSubAccountRequest{
-		WalletID:                  "wallet_123",
-		FirstName:                 "John",
-		LastName:                  "Doe",
-		Email:                     "john@example.com",
-		MobileNumber:              "+27123456789",
-		IdentityType:              "individual",
-		IDNumber:                  "9001011234567",
-		PhysicalAddress:           "123 Main St",
-		ThirdPartyVerificationURL: "https://example.com",
-	}
-
-	body, _ := json.Marshal(req)
-	httpReq := httptest.NewRequest("POST", "/v1/company/accounts", bytes.NewReader(body))
-	httpReq.Header.Set("Authorization", "Bearer valid-token")
-	w := httptest.NewRecorder()
-
-	h.CreateSubAccount(w, httpReq)
-
-	var resp models.CreateSubAccountResponse
-	json.NewDecoder(w.Body).Decode(&resp)
-	return resp
 }

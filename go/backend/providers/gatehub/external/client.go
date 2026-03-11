@@ -41,11 +41,12 @@ type client struct {
 	onOffRampBaseURL        string
 	cardApplicationProducts []CardApplicationProduct
 	vaultID                 string
+	organizationID          string
 
 	api *http.Client
 }
 
-func NewClient(appID, secret, cardAppID, gatewayID, cardAccountProductCode, vaultID, onOffRampClientID, onboardingClientID, exchangeClientID, baseURL, onboardingBaseURL, onOffRampBaseURL string, transport *http.Client) Client {
+func NewClient(appID, secret, cardAppID, gatewayID, cardAccountProductCode, vaultID, onOffRampClientID, onboardingClientID, exchangeClientID, baseURL, onboardingBaseURL, onOffRampBaseURL, organizationID string, transport *http.Client) Client {
 	api := otelhttp.DefaultClient
 	if transport != nil {
 		api = transport
@@ -98,6 +99,11 @@ func NewClient(appID, secret, cardAppID, gatewayID, cardAccountProductCode, vaul
 		return nil
 	}
 
+	if organizationID == "" {
+		log.Error("organizationID is not set")
+		return nil
+	}
+
 	return &client{
 		onOffRampClientID:       onOffRampClientID,
 		onboardingClientID:      onboardingClientID,
@@ -112,6 +118,7 @@ func NewClient(appID, secret, cardAppID, gatewayID, cardAccountProductCode, vaul
 		onOffRampBaseURL:        onOffRampBaseURL,
 		cardApplicationProducts: []CardApplicationProduct{},
 		vaultID:                 vaultID,
+		organizationID:          organizationID,
 		api:                     api,
 	}
 }
