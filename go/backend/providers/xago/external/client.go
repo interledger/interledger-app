@@ -10,7 +10,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -22,7 +21,6 @@ import (
 	"gitlab.com/fynbos/backend/kyc"
 	httplog "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/backend/user"
-	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/log"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
@@ -40,6 +38,15 @@ type Client interface {
 	GetDeposit(ctx context.Context, id string) (*Deposit, error)
 }
 
+// Config holds the configuration for the Xago external client.
+type Config struct {
+	APIBaseURL      string
+	IdentityBaseURL string
+	PublicKey       string
+	Secret          string
+	PolicyID        string
+}
+
 type client struct {
 	baseURL         string
 	identityBaseURL string
@@ -47,40 +54,25 @@ type client struct {
 	accessToken     AccessToken
 	publicKey       string
 	secret          string
+	policyID        string
 	tokenLock       sync.Mutex
 	dbc             *sqlx.DB
 }
 
-func New(transport *http.Client, dbc *sqlx.DB) Client {
-	baseURL := "https://test-api.xago.io:8085/v1"
-	identityBaseURL := "https://test-api.xago.io:9000/v1"
-	if env.IsProd() {
-		baseURL = "https://exchange-api.xago.io/v1"
-		identityBaseURL = "https://identity-api.xago.io/v1"
-	}
-	if env.IsLocal() {
-		// Use environment variables for local development (MockXago)
-		baseURL = os.Getenv("XAGO_API_BASE_URL")
-		if baseURL == "" {
-			baseURL = "http://mockxago:8080/v1"
-		}
-		identityBaseURL = os.Getenv("XAGO_IDENTITY_BASE_URL")
-		if identityBaseURL == "" {
-			identityBaseURL = "http://mockxago:8080/v1"
-		}
-	}
+func New(transport *http.Client, dbc *sqlx.DB, cfg Config) Client {
 	if transport == nil {
 		transport = otelhttp.DefaultClient
 	}
 
 	cl := &client{
 		dbc:             dbc,
-		baseURL:         baseURL,
-		identityBaseURL: identityBaseURL,
+		baseURL:         cfg.APIBaseURL,
+		identityBaseURL: cfg.IdentityBaseURL,
 		api:             transport,
 		accessToken:     AccessToken{},
-		publicKey:       os.Getenv("XAGO_API_PUBLIC_KEY"),
-		secret:          os.Getenv("XAGO_API_SECRET"),
+		publicKey:       cfg.PublicKey,
+		secret:          cfg.Secret,
+		policyID:        cfg.PolicyID,
 	}
 
 	return cl
@@ -128,15 +120,8 @@ func (c *client) refreshAccessToken(ctx context.Context) error {
 			Fields   []reqField `json:"fields"`
 		}
 
-		// Staging policy ID
-		policyID := "5e2585a474b0e90012ce8ff1"
-		if env.IsProd() {
-			// Prod policy ID
-			policyID = "5eb29c307df9090021eed488"
-		}
-
 		reqStruct := reqFormat{
-			PolicyID: policyID,
+			PolicyID: c.policyID,
 			Fields: []reqField{
 				{
 					FieldName:  "apiPublicKey",
