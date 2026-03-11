@@ -29,6 +29,7 @@ type Config struct {
 	OnOffRampBaseURL       string
 	EUROpsAccount          string
 	EUROpsLedgerID         uint32
+	OrganizationID         string
 }
 
 const (

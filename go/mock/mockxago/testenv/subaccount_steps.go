@@ -1,10 +1,12 @@
 //go:build e2e
+// +build e2e
 
 package main
 
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/cucumber/godog"
 )
@@ -70,6 +72,16 @@ func (tc *TestContext) attemptCreateSubAccountWithoutEmail(table *godog.Table) e
 	return tc.postSubAccount(payload, true)
 }
 
+func (tc *TestContext) attemptCreateSubAccountWithoutToken(table *godog.Table) error {
+	payload := buildSubAccountPayload(tableToMap(table), true, "")
+	return tc.postSubAccount(payload, false)
+}
+
+func (tc *TestContext) attemptCreateSubAccountWithInvalidToken(table *godog.Table) error {
+	payload := buildSubAccountPayload(tableToMap(table), true, "")
+	return tc.postSubAccount(payload, true)
+}
+
 func (tc *TestContext) postSubAccount(payload map[string]string, auth bool) error {
 	if tc.lastSubAccount.AccountID != "" {
 		tc.previousAccountID = tc.lastSubAccount.AccountID
@@ -87,7 +99,7 @@ func (tc *TestContext) postSubAccount(payload map[string]string, auth bool) erro
 	}
 	if walletID := payload["walletId"]; walletID != "" {
 		tc.lastWalletID = walletID
-		resp.WalletID = walletID
+		resp.WalletID = walletID // Store wallet ID in response for later use
 	}
 	if email := payload["email"]; email != "" {
 		tc.lastEmail = email
@@ -291,4 +303,94 @@ func (tc *TestContext) subAccountIsolationConfirmed() error {
 		}
 	}
 	return nil
+}
+
+func (tc *TestContext) createSubAccount() error {
+	// Generate a default wallet ID for this test scenario
+	walletID := fmt.Sprintf("wallet_default_%d", time.Now().UnixNano())
+	payload := buildSubAccountPayload(map[string]string{}, true, walletID)
+	return tc.postSubAccount(payload, true)
+}
+
+func (tc *TestContext) createSubAccountForWalletID(walletID string) error {
+	return tc.createSubAccountForWallet(walletID)
+}
+
+func (tc *TestContext) retrieveCreatedSubAccountDetails() error {
+	if tc.lastWalletID == "" {
+		return fmt.Errorf("no walletId available for retrieval")
+	}
+	return tc.retrieveSubAccountInfoForWallet(tc.lastWalletID)
+}
+
+func (tc *TestContext) retrieveSubAccountDetails() error {
+	return tc.retrieveCreatedSubAccountDetails()
+}
+
+func (tc *TestContext) createTwoSubAccounts(table *godog.Table) error {
+	return tc.createTwoSubAccountsDifferentWallets(table)
+}
+
+func (tc *TestContext) retrieveBothSubAccounts() error {
+	if len(tc.subAccountsByWallet) < 2 {
+		return fmt.Errorf("expected at least two sub-accounts")
+	}
+	return nil
+}
+
+func (tc *TestContext) depositReferencesAreDifferent() error {
+	walletIDs := make([]string, 0, len(tc.subAccountsByWallet))
+	for walletID := range tc.subAccountsByWallet {
+		walletIDs = append(walletIDs, walletID)
+	}
+	if len(walletIDs) < 2 {
+		return fmt.Errorf("expected two wallets")
+	}
+
+	refA := tc.depositReferenceForWalletCurrency(walletIDs[0], "ZAR")
+	refB := tc.depositReferenceForWalletCurrency(walletIDs[1], "ZAR")
+	if refA == "" || refB == "" {
+		return fmt.Errorf("missing deposit references to compare")
+	}
+	if refA == refB {
+		return fmt.Errorf("expected different deposit references for wallets")
+	}
+	return nil
+}
+
+func (tc *TestContext) depositReferenceWalletAAAUnique() error {
+	return tc.depositReferenceUnique("wallet_aaa")
+}
+
+func (tc *TestContext) depositReferenceWalletBBBUnique() error {
+	return tc.depositReferenceUnique("wallet_bbb")
+}
+
+func (tc *TestContext) depositReferenceUnique(walletID string) error {
+	ref := tc.depositReferenceForWalletCurrency(walletID, "ZAR")
+	if ref == "" {
+		return fmt.Errorf("missing deposit reference for %s", walletID)
+	}
+	for otherWallet := range tc.subAccountsByWallet {
+		if otherWallet == walletID {
+			continue
+		}
+		if ref == tc.depositReferenceForWalletCurrency(otherWallet, "ZAR") {
+			return fmt.Errorf("expected unique deposit reference for %s", walletID)
+		}
+	}
+	return nil
+}
+
+func (tc *TestContext) depositReferenceForWalletCurrency(walletID, currency string) string {
+	account, ok := tc.subAccountsByWallet[walletID]
+	if !ok {
+		return ""
+	}
+	for _, ben := range account.Beneficiaries {
+		if ben.CurrencyID == currency {
+			return ben.DepositReference
+		}
+	}
+	return ""
 }

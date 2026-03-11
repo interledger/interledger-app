@@ -33,13 +33,13 @@ One user gets **one wallet** containing multiple **linked accounts** from their 
 ```mermaid
 graph TD
     User["👤 User"]
-    Wallet["Interledger Wallet<br/>(Country: US)"]
+    Wallet["Interledger Wallet<br/>(Country: DE)"]
 
     User -->|owns| Wallet
 
     Wallet -->|contains| LA1["Linked Account<br/>GateHub · USD · balance"]
     Wallet -->|contains| LA2["Linked Account<br/>GateHub · EUR · balance"]
-    Wallet -->|contains| LA3["Linked Account<br/>GateHub · bank account"]
+    Wallet -->|contains| LA3["Linked Account<br/>GateHub · GBP · balance"]
 
     LA1 --> Provider1["GateHub"]
     LA2 --> Provider1
@@ -101,7 +101,7 @@ KYC (Know Your Customer) is a compliance gate linked to wallet activation and is
 |---------|-------------|
 | Wallet confusion | Interledger wallet ≠ GateHub/PTI wallet. Use `linked_accounts.provider_id` for provider API calls, not `wallets.id`. |
 | Transaction vs Payment lookup | Provider transaction ID → Interledger Transaction (via `foreign_id`) → Payment (via `send_transaction_id` / `receive_transaction_id`). |
-| Balance mismatch | Check webhook logs, run backfill workflow, compare Pacioli ledger (`accounts` table) with provider API. See [The Two Ledgers](payments-guide.md#the-two-ledgers) for architecture explanation. |
+| Balance mismatch | Check webhook logs, run backfill workflow, compare Pacioli ledger (`ledger_accounts` table) with provider API. See [The Two Ledgers](payments-guide.md#the-two-ledgers) for architecture explanation. |
 | `provider_id` format | Provider-specific — never parse generically. GateHub=XRPL address, PTI=UUID, Xago=composite, Chimoney=external ID. |
 | Status code types | GateHub returns ints, PTI/Xago return strings. Always use the provider-specific mapping in `backend/providers/*/external/`. |
 

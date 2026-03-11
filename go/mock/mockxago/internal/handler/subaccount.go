@@ -1,9 +1,10 @@
 package handler
 
 import (
-	cryptorand "crypto/rand"
+	"crypto/rand"
 	"encoding/json"
 	"fmt"
+	"math/big"
 	"net/http"
 	"strings"
 
@@ -16,7 +17,7 @@ import (
 	"gitlab.com/fynbos/mock/mockxago/internal/utils"
 )
 
-// CreateSubAccount handles POST /v1/company/accounts
+// CreateSubAccount handles POST /xago/v1/company/accounts
 func (h *Handler) CreateSubAccount(w http.ResponseWriter, r *http.Request) {
 	var req models.CreateSubAccountRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -37,7 +38,7 @@ func (h *Handler) CreateSubAccount(w http.ResponseWriter, r *http.Request) {
 	subAcc := &models.SubAccount{
 		ID:                        utils.GenerateUUID(),
 		WalletID:                  walletID,
-		AccountID:                 utils.GenerateUUID(),
+		AccountID:                 utils.GenerateUUID(), // Xago returns proper UUID for account ID
 		FirstName:                 req.FirstName,
 		LastName:                  req.LastName,
 		Email:                     req.Email,
@@ -94,7 +95,7 @@ func (h *Handler) CreateSubAccount(w http.ResponseWriter, r *http.Request) {
 	h.sendJSON(w, http.StatusOK, resp)
 }
 
-// UpdateSubAccount handles PUT /v1/company/accounts/{accountId}
+// UpdateSubAccount handles PUT /xago/v1/company/accounts/{accountId}
 func (h *Handler) UpdateSubAccount(w http.ResponseWriter, r *http.Request) {
 	accountID := chi.URLParam(r, "accountId")
 	if accountID == "" {
@@ -140,7 +141,7 @@ func (h *Handler) UpdateSubAccount(w http.ResponseWriter, r *http.Request) {
 	h.sendJSON(w, http.StatusOK, models.UpdateSubAccountResponse{AccountID: accountID, Status: "updated"})
 }
 
-// GetSubAccountByWallet handles GET /v1/company/accounts?walletId=...
+// GetSubAccountByWallet handles GET /xago/v1/company/accounts?walletId=...
 func (h *Handler) GetSubAccountByWallet(w http.ResponseWriter, r *http.Request) {
 	walletID := r.URL.Query().Get("walletId")
 	if strings.TrimSpace(walletID) == "" {
@@ -240,28 +241,18 @@ func bankDepositDetails() map[string][]models.BankDepositDetail {
 }
 
 func generateDepositAddress() string {
-	tokenVal, err := utils.GenerateToken()
-	if err != nil {
-		return "r" + utils.GenerateUUID()[:33]
+	// Generate a mock XRP-like address using crypto/rand
+	bytes := make([]byte, 17)
+	if _, err := rand.Read(bytes); err != nil {
+		return "rMOCKADDRESS" + fmt.Sprintf("%033d", 0)
 	}
-	return "r" + tokenVal[:33]
+	return "r" + fmt.Sprintf("%x", bytes)[:33]
 }
 
 func generateDepositTag() int {
-	// Use crypto/rand for better randomness in mock
-	buf := make([]byte, 4)
-	if _, err := cryptorand.Read(buf); err != nil {
-		// Fallback to sequential increment if crypto/rand fails
-		return 100000 + int(buf[0])%900000
+	n, err := rand.Int(rand.Reader, big.NewInt(900000))
+	if err != nil {
+		return 100000
 	}
-	// Convert 4 random bytes to a 6-digit number
-	val := (int(buf[0]) | int(buf[1])<<8 | int(buf[2])<<16) % 900000
-	return 100000 + val
-}
-
-func bearerTokenFromHeader(header string) string {
-	if strings.HasPrefix(header, "Bearer ") {
-		return strings.TrimPrefix(header, "Bearer ")
-	}
-	return ""
+	return int(n.Int64()) + 100000
 }
