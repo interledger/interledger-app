@@ -1,4 +1,5 @@
 //go:build e2e
+// +build e2e
 
 package main
 
@@ -14,7 +15,7 @@ func startServices() error {
 	cmd := exec.Command("docker", "compose", "-f", "docker-compose.yml", "up", "-d", "--build", "--force-recreate")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("failed to start docker compose services: %v\nOutput:\n%s", err, string(output))
+		return fmt.Errorf("docker compose up failed: %w\n%s", err, output)
 	}
 	return nil
 }
@@ -47,9 +48,8 @@ func cleanup() {
 }
 
 func waitForServices() error {
-	client := &http.Client{Timeout: 5 * time.Second}
 	for i := 0; i < maxWaitSeconds; i++ {
-		resp, err := client.Get(mockXagoURL + "/health")
+		resp, err := http.Get(mockXagoURL + "/health")
 		if err == nil && resp.StatusCode == http.StatusOK {
 			resp.Body.Close()
 			return nil

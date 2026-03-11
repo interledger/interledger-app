@@ -57,9 +57,12 @@ Feature: Xago Authentication
 
   Scenario: Reuse access token across multiple requests
     Given I have obtained a valid access token
-    When I use the token to call a protected route
+    When I use the token to create a sub-account
+      | firstName   | John             |
+      | lastName    | Doe              |
+      | email       | john@example.com |
     Then the request succeeds with status code 200
-    When I use the same token to call a protected route
+    When I use the same token to list currencies
     Then the request succeeds with status code 200
 
   Scenario: Automatically refresh expired token
@@ -70,3 +73,20 @@ Feature: Xago Authentication
     And the new token is different from the expired token
     And the new token is valid
 
+  Scenario: Reject requests without token
+    Given I have not obtained an access token
+    When I attempt to create a sub-account without a token
+      | firstName   | John             |
+      | lastName    | Doe              |
+      | email       | john@example.com |
+    Then I receive an error response with status code 401
+    And the error message is "missing authorization header"
+
+  Scenario: Reject requests with invalid token
+    Given I have an invalid access token "invalid_token_xyz"
+    When I attempt to create a sub-account with the invalid token
+      | firstName   | John             |
+      | lastName    | Doe              |
+      | email       | john@example.com |
+    Then I receive an error response with status code 401
+    And the error message is "invalid token"
