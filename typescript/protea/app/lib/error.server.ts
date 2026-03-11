@@ -310,3 +310,10 @@ export function isTwilioError(error: ConnectError): boolean {
   const errorInfo = error._err.findDetails(ErrorInfo)
   return errorInfo.some((info) => info.reason === 'TwilioError')
 }
+
+export class QuickPaySessionError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'QuickPaySessionError'
+  }
+}
