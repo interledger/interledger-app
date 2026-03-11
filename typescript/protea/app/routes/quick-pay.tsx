@@ -69,7 +69,7 @@ export default function Page() {
             placeholder="Wallet address"
             name="walletAddress"
             autoFocus
-            value={walletAddress || ""}
+            defaultValue={walletAddress || ""}
             errorMessage={String(actionData?.errors?.walletAddress || '')}
           />
 
