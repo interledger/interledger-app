@@ -1,4 +1,3 @@
-import { data, redirect } from 'react-router';
 import { Form, useActionData, useLoaderData, useRouteLoaderData, useSearchParams } from 'react-router';
 import type { ChangeEventHandler } from 'react'
 import { useCallback, useEffect, useState } from 'react'
@@ -22,12 +21,13 @@ import {
 import type { FormattedLinkedAccount } from '~/data/accounts.server'
 
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
-import type { loader as rootLoader } from '~/root'
 import { PaySelect } from '../pay_.$paymentId/PaySelect'
+import type { FynbosDepositLoaderData } from './route'
+import { RootLoaderData } from '~/root';
 
 
 export function FynbosDepositPage() {
-  const { depositDetails } = useLoaderData<any>()
+  const { depositDetails } = useLoaderData<FynbosDepositLoaderData>()
 
   const [setLoading] = useScaffoldStore((state) => [state.setLoading])
 
@@ -45,7 +45,7 @@ export function FynbosDepositPage() {
 
 const Amount = () => {
   const { balance, balances, balanceAccount, linkedAccounts, csrfToken, provider } =
-    useLoaderData<any>()
+    useLoaderData<FynbosDepositLoaderData>()
   const [, setSearchParams] = useSearchParams()
   const actionData = useActionData<any>()
 
@@ -202,8 +202,8 @@ const Amount = () => {
 
 export function DepositDetails() {
   const { depositDetails, csrfToken } =
-    useLoaderData<any>()
-  const { env } = useRouteLoaderData('root') as Awaited<ReturnType<typeof rootLoader>>
+    useLoaderData<FynbosDepositLoaderData>()
+  const { env } = useRouteLoaderData('root') as RootLoaderData
 
   return (
     <>

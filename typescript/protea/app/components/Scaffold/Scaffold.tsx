@@ -37,7 +37,7 @@ import { useFormStore } from '~/lib/useFormStore'
 import { PayStep, usePayStore } from '~/lib/usePayStore'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { SignupStep, useSignupStore } from '~/lib/useSignupStore'
-import type { loader as rootLoader } from '~/root'
+import type { RootLoaderData, loader as rootLoader } from '~/root'
 import { Fade } from '../Animations/Fade'
 import { NavDrawer } from './NavDrawer'
 
@@ -99,9 +99,7 @@ export function Scaffold() {
   const matches = useMatches()
   const navigate = useNavigate()
   const [search] = useSearchParams()
-  const { isUser, snackbar, features } = useRouteLoaderData(
-    'root'
-  ) as Awaited<ReturnType<typeof rootLoader>>
+  const { isUser, snackbar, features } = useRouteLoaderData('root') as RootLoaderData
 
   const currentPath = matches[matches.length - 1]?.pathname
 

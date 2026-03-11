@@ -4,7 +4,7 @@ import { href } from 'react-router'
 import { Layouts, type ApplicationProps } from '~/components'
 import { CardView } from '~/components/Cards'
 import { useCardsStore } from '~/lib/cards/useCardsStore'
-import type { loader as rootLoader } from '~/root'
+import type { RootLoaderData } from '~/root'
 
 export const handle: ApplicationProps = {
   layout: Layouts.Wallet,
@@ -19,7 +19,7 @@ export const handle: ApplicationProps = {
 
 export default function PageCardID() {
   const navigate = useNavigate()
-  const { features } = useRouteLoaderData<typeof rootLoader>('root')
+  const { features } = useRouteLoaderData('root') as RootLoaderData
   const { cards, areCardsFetched } = useCardsStore()
   const { cardId } = useParams<{ cardId: string }>()
   const card = useMemo(

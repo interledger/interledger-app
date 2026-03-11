@@ -38,6 +38,7 @@ import { grpc } from './lib/grpc.server'
 import { getPusherArgs } from './lib/pusher.server'
 import { emailVerificationGuard, recoveryLinkSessionInvalidationGuard, withAAL2Guard } from './lib/totp.server'
 import { usePusher } from './lib/usePusher'
+import { Route } from './+types/root';
 
 export const shouldRevalidate: ShouldRevalidateFunction = ({
   actionResult,
@@ -179,9 +180,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }, { headers })
 }
 
+export type RootLoaderData = Route.ComponentProps['loaderData']
+
 function Page() {
   const { pusherArgs, env, isDisabled, walletAddress } =
-    useLoaderData<typeof loader>()
+    useLoaderData<RootLoaderData>()
   usePusher(pusherArgs, ['cardReady'])
 
   return (

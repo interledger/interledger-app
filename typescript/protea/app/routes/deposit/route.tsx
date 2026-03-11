@@ -58,6 +58,8 @@ async function chimoneyDepositLoader({ request }: LoaderFunctionArgs) {
   return jsonWithCSRF(request, { provider: 'chimoney' })
 }
 
+export type FynbosDepositLoaderData = Awaited<ReturnType<typeof fynbosDepositLoader>>['data']
+
 async function fynbosDepositLoader({ request }: LoaderFunctionArgs) {
   const providerResponse = await grpc.getOnOffRampProvider(request, {})
   if (isConnectError(providerResponse)) throw providerResponse.error
