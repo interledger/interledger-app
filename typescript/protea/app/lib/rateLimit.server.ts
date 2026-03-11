@@ -37,14 +37,13 @@ export async function rateLimit(
   try {
     const current = await redisClient.get(key)
     const count = Number(current) || 0
-    // if (count >= limit) {
-    //   return 'Too many attempts. Please try again later.'
-    // }
+    if (count >= limit) {
+      return 'Too many attempts. Please try again later.'
+    }
     await redisClient.set(key, count + 1, { EX: ttlSeconds })
   } catch (err) {
     logger.error({ error: err instanceof Error ? err.message : String(err) }, 'Rate limit check failed')
   }
-  return undefined
 }
 
 export function getKey(
