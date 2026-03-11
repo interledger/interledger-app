@@ -25,14 +25,14 @@ export const handle: ApplicationProps = {
   scaffold: {
     header: {
       back: href('/accounts'),
-      title: (match: UIMatch<Awaited<ReturnType<typeof loader>>['data']>) =>
-        match.data!.type == 'bank' ? 'Bank account nickname' : 'Card nickname'
+      title: (match: UIMatch<Route.ComponentProps['loaderData']>) =>
+        match.loaderData?.type == 'bank' ? 'Bank account nickname' : 'Card nickname'
     }
   }
 }
 
 export const meta = mergeMeta(({ data }) => {
-  const d = data as Awaited<ReturnType<typeof loader>>['data'] | undefined
+  const d = data as Route.ComponentProps['loaderData'] | undefined
   return [{ title: d?.type == 'bank' ? 'Bank account nickname' : 'Card nickname' }]
 })
 

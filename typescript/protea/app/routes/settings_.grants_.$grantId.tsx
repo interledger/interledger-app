@@ -25,9 +25,10 @@ export const handle: ApplicationProps = {
   scaffold: {
     header: {
       back: '/settings/grants',
-      title: (match: UIMatch<Awaited<ReturnType<typeof loader>>['data']>) => match.data!.grant.client,
-      actions: (match: UIMatch<Awaited<ReturnType<typeof loader>>['data']>) => {
-        const { grant } = match.data!
+      title: (match: UIMatch<Route.ComponentProps['loaderData']>) => match.loaderData?.grant.client ?? '',
+      actions: (match: UIMatch<Route.ComponentProps['loaderData']>) => {
+        if (!match.loaderData) return null
+        const { grant } = match.loaderData
         switch (grant.state) {
           case 'GRANTED':
             return {
@@ -58,7 +59,7 @@ export const handle: ApplicationProps = {
 }
 
 export const meta = mergeMeta(({ data }) => {
-  const d = data as Awaited<ReturnType<typeof loader>>['data'] | undefined
+  const d = data as Route.ComponentProps['loaderData'] | undefined
   return [{ title: d?.grant.client || 'Grant' }]
 })
 

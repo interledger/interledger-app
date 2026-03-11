@@ -101,8 +101,9 @@ export const handle: ApplicationProps = {
     header: {
       back: href('/payments'),
       title: 'Payment',
-      actions: (match: UIMatch<Awaited<ReturnType<typeof loader>>['data']>) => {
-        const { transaction } = match.data!
+      actions: (match: UIMatch<Route.ComponentProps['loaderData']>) => {
+        if (!match.loaderData) return null
+        const { transaction } = match.loaderData
         if (
           transaction.refundState == TransactionRefundState.PENDING
         ) {
@@ -144,7 +145,7 @@ export const handle: ApplicationProps = {
 }
 
 export const meta = mergeMeta(({ data }) => {
-  const d = data as Awaited<ReturnType<typeof loader>>['data'] | undefined
+  const d = data as Route.ComponentProps['loaderData'] | undefined
   return [{
     title:
       typeof d == 'undefined'

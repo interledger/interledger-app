@@ -15,14 +15,14 @@ export const handle: ApplicationProps = {
   scaffold: {
     header: {
       back: '/settings/keys',
-      title: (match: UIMatch<Awaited<ReturnType<typeof loader>>['data']>) =>
-        match.data!.connection.applicationName
+      title: (match: UIMatch<Route.ComponentProps['loaderData']>) =>
+        match.loaderData?.connection.applicationName ?? ''
     }
   }
 }
 
 export const meta = mergeMeta(({ data }) => {
-  const d = data as Awaited<ReturnType<typeof loader>>['data'] | undefined
+  const d = data as Route.ComponentProps['loaderData'] | undefined
   return [{ title: d?.connection.applicationName || 'Public key' }]
 })
 

@@ -1,3 +1,4 @@
+import type { Route } from './+types/route'
 import type { LinksFunction, LoaderFunctionArgs } from 'react-router';
 import { data } from 'react-router';
 import type { UIMatch } from 'react-router';
@@ -74,8 +75,8 @@ async function marketingLoader() {
 }
 
 export const handle: ApplicationProps = {
-  layout: (match: UIMatch<Awaited<ReturnType<typeof loader>>['data']>) =>
-    match.data!.isUser ? Layouts.Wallet : Layouts.Marketing,
+  layout: (match: UIMatch<Route.ComponentProps['loaderData']>) =>
+    match.loaderData?.isUser ? Layouts.Wallet : Layouts.Marketing,
   scaffold: {
     header: {
       title: 'Home'

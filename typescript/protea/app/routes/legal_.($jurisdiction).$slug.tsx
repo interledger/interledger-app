@@ -45,7 +45,7 @@ export const handle: ApplicationProps = {
   layout: Layouts.Marketing,
   scaffold: {
     header: {},
-    footer: (match: UIMatch<Awaited<ReturnType<typeof loader>>['data']>) => match.data!.footer
+    footer: (match: UIMatch<Route.ComponentProps['loaderData']>) => match.loaderData?.footer ?? null
   }
 }
 

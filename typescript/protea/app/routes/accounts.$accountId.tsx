@@ -84,8 +84,9 @@ export const handle: ApplicationProps = {
   scaffold: {
     header: {
       back: href('/accounts'),
-      actions: (match: UIMatch<Awaited<ReturnType<typeof loader>>['data']>) => {
-        const { account } = match.data!
+      actions: (match: UIMatch<Route.ComponentProps['loaderData']>) => {
+        if (!match.loaderData) return null
+        const { account } = match.loaderData
         const state = account.state
         if (state == 'Verified') {
           const canSend = account.canSend
