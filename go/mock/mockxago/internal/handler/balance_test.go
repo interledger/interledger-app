@@ -10,6 +10,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 
+	"gitlab.com/fynbos/mock/mockxago/internal/logger"
 	"gitlab.com/fynbos/mock/mockxago/internal/models"
 )
 
@@ -53,6 +54,8 @@ func requestBalance(t *testing.T, h *Handler, token string, accountID string) (*
 }
 
 func TestBalance_InitialZero(t *testing.T) {
+	defer logger.FlushLogsOnFailure(t)()
+
 	h := setupAuthHandler(t)
 	token := issueToken(t, h)
 

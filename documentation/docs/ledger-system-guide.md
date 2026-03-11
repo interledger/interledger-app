@@ -40,7 +40,7 @@ These ledgers must continuously reconcile. That is what prevents missing funds, 
 ### Our Ledger: Pacioli
 
 - **Who owns it:** Interledger Foundation
-- **How often updated:** Immediately (within milliseconds) — Pacioli uses a synchronous in-process client ([`go/pacioli/client/local.go`](https://github.com/interledger/interledger-app/blob/main/go/pacioli/client/local.go)) making direct SQL calls to CockroachDB; there is no message queue or eventual consistency within Pacioli itself
+- **How often updated:** Immediately (within milliseconds) — Pacioli uses a synchronous in-process client ([`go/pacioli/client/local.go`](https://github.com/interledger/interledger-app/blob/main/go/pacioli/client/local.go)) making direct SQL calls to CockroachDB (PostgreSQL-compatible); there is no message queue or eventual consistency within Pacioli itself
 - **Source of truth for:** Our business logic, user experience, balance calculations
 - **Can be changed:** Yes, retroactively via `PostTransfers` (finalize) or `VoidTransfers` (rollback) — see the [Pacioli Client API](https://github.com/interledger/interledger-app/blob/main/go/pacioli/api.go)
 
@@ -624,7 +624,7 @@ Key claims in this document are traced to the following code and configuration:
 
 | Claim | Source | Notes |
 |-------|--------|-------|
-| Pacioli updates are synchronous / "within milliseconds" | [`go/pacioli/client/local.go`](https://github.com/interledger/interledger-app/blob/main/go/pacioli/client/local.go), [`go/pacioli/api.go`](https://github.com/interledger/interledger-app/blob/main/go/pacioli/api.go) | In-process SQL calls to CockroachDB, no queue |
+| Pacioli updates are synchronous / "within milliseconds" | [`go/pacioli/client/local.go`](https://github.com/interledger/interledger-app/blob/main/go/pacioli/client/local.go), [`go/pacioli/api.go`](https://github.com/interledger/interledger-app/blob/main/go/pacioli/api.go) | In-process SQL calls to CockroachDB (PostgreSQL-compatible), no queue |
 | 20-minute GateHub fallback poll | [`go/backend/payments/ops/workflows.go`](https://github.com/interledger/interledger-app/blob/main/go/backend/payments/ops/workflows.go) — `gatehubPayOut` | `workflow.NewTimer(ctx, 20*time.Minute)` |
 | Xago internal transfers skip provider API | [`go/backend/payments/ops/workflows.go`](https://github.com/interledger/interledger-app/blob/main/go/backend/payments/ops/workflows.go) — `xagoPayIn`, [`go/backend/payments/ops/accountactivities.go`](https://github.com/interledger/interledger-app/blob/main/go/backend/payments/ops/accountactivities.go) — `WithdrawFromXagoBalance` | P2P returns synthetic UUID, no API call |
 | P2P requires same provider | [`go/backend/payments/ops/ops.go`](https://github.com/interledger/interledger-app/blob/main/go/backend/payments/ops/ops.go) — `validateSenderReceiver` | Returns `ErrIncompatibleAccounts` for cross-provider |

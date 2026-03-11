@@ -193,6 +193,7 @@ func start(args *cli.StartArgs) {
 	}
 	router.Handle("/webhooks/pti", ptiWebhook)
 	router.Handle("/webhooks/gatehub", gatehub_ops.NewWebhook(b, b.gatehubConfig))
+	router.Handle("/webhooks/gatehub/v1/users/managed/{userId}/2fa", gatehub_ops.NewSCAHandler(b, b.gatehubConfig))
 	router.Handle("/{wallet_id}/identities/{identity_sig_hash}", wallet_handler.GetIdentityHandler(b))
 	router.NotFound(wallet_handler.WalletRedirectHandler(b))
 
@@ -786,6 +787,7 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 		OnOffRampBaseURL:       args.GatehubOnOffRampBaseURL,
 		EUROpsAccount:          args.GatehubEUROpsAccount,
 		EUROpsLedgerID:         args.GatehubEUROpsLedgerID,
+		OrganizationID:         args.GatehubOrganizationID,
 	}
 	b.gatehub = gatehub_client.New(b, b.gatehubConfig)
 	if b.gatehub == nil {

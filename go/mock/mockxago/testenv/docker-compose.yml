@@ -1,4 +1,17 @@
 services:
+  redis:
+    image: redis:7-alpine
+    container_name: mockxago-redis-test
+    ports:
+      - "26379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 1s
+      retries: 5
+    volumes:
+      - mockxago-redis-data:/data
+
   mockxago:
     build:
       context: ../../../../
@@ -13,8 +26,12 @@ services:
       - XAGO_MOCK_TEST_MODE=true
       - WEBHOOK_URL=http://host.docker.internal:3000/xago/webhooks
       - WEBHOOK_SECRET=test-webhook-secret
+      - MOCKXAGO_REDIS_URL=redis://redis:6379
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    depends_on:
+      redis:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 5s
@@ -22,4 +39,6 @@ services:
       retries: 3
       start_period: 5s
 
+volumes:
+  mockxago-redis-data:
 

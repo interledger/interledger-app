@@ -40,7 +40,7 @@ tmp/
 # OS artifacts
 .DS_Store
 .env.local
-
+coverage*
 # Build binary (but not the cmd/mockxago folder)
 /mockxago
 
