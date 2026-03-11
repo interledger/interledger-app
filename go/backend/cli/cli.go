@@ -377,6 +377,7 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, errors.New("XAGO_POLICY_ID is required")
 	}
 
+<<<<<<< HEAD
 	ptiEnabled := os.Getenv("PTI_ENABLED") == "true"
 	ptiBaseURL := os.Getenv("PTI_BASE_URL")
 	ptiJWK := os.Getenv("PTI_JWK")
@@ -394,6 +395,8 @@ func ParseStartArgs() (*StartArgs, error) {
 		}
 	}
 
+=======
+>>>>>>> f2940a039 (ci: xago environment variables must now be passed)
 	return &StartArgs{
 		Port:                          port,
 		AuthorisationPort:             authorisationPort,
@@ -447,10 +450,13 @@ func ParseStartArgs() (*StartArgs, error) {
 		XagoPublicKey:                 xagoPublicKey,
 		XagoSecret:                    xagoSecret,
 		XagoPolicyID:                  xagoPolicyID,
+<<<<<<< HEAD
 		PTIEnabled:                    ptiEnabled,
 		PTIBaseURL:                    ptiBaseURL,
 		PTIJWK:                        ptiJWK,
 		PTIClientID:                   ptiClientID,
 		PTIPublicKeyJWK:               ptiPublicKeyJWK,
+=======
+>>>>>>> f2940a039 (ci: xago environment variables must now be passed)
 	}, nil
 }
