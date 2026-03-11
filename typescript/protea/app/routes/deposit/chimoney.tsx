@@ -1,18 +1,16 @@
-import { data, redirect } from 'react-router';
 import { Form, useActionData, useNavigation, useSubmit } from 'react-router';
 import type { ChangeEventHandler } from 'react'
 import { useCallback, useEffect, useState } from 'react'
 import { href } from 'react-router'
 import { Button, Card } from '~/components'
-
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { PaySelect } from '../pay_.$paymentId/PaySelect'
-import { stringToBigInt } from './fynbos'
+import { ChimoneyAmountActionData } from './route';
 
 
 export function ChimoneyDepositPage() {
   const [amount, setAmount] = useState<string>('')
-  const actionData = useActionData<any>()
+  const actionData = useActionData<ChimoneyAmountActionData>()
   const navigation = useNavigation()
   const submit = useSubmit()
   const _onChangeDepositAmount = useCallback<

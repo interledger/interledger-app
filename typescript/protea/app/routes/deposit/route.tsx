@@ -19,7 +19,6 @@ import { FynbosDepositPage } from './fynbos'
 import { GatehubDepositPage } from './gatehub'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
-import { getUserSession } from '~/lib/kratos.server'
 import {
   getBalancesForTransfer,
   getLinkedAccountsForDeposit
@@ -33,6 +32,7 @@ import { KRATOS_URL } from '~/lib/kratos.server'
 
 import { getKycStatus } from '~/data/wallet.server'
 import { KycStatus } from '~/lib/types'
+import { ActionData, LoaderData } from '~/lib/types.server';
 
 function stringToBigInt(amount: string) {
   if (amount == '') return BigInt(0)
@@ -44,6 +44,9 @@ function stringToBigInt(amount: string) {
   return BigInt(parseFloat(amount) * 100)
 }
 
+/**
+ * Loaders:
+ */
 async function gatehubDepositLoader({ request }: LoaderFunctionArgs) {
   const widgetResponse = await grpc.getGatehubDepositWidget(request, {})
   if (isConnectError(widgetResponse)) throw widgetResponse.error
@@ -57,8 +60,6 @@ async function gatehubDepositLoader({ request }: LoaderFunctionArgs) {
 async function chimoneyDepositLoader({ request }: LoaderFunctionArgs) {
   return jsonWithCSRF(request, { provider: 'chimoney' })
 }
-
-export type FynbosDepositLoaderData = Awaited<ReturnType<typeof fynbosDepositLoader>>['data']
 
 async function fynbosDepositLoader({ request }: LoaderFunctionArgs) {
   const providerResponse = await grpc.getOnOffRampProvider(request, {})
@@ -118,6 +119,10 @@ async function fynbosDepositLoader({ request }: LoaderFunctionArgs) {
   })
 }
 
+export type GatehubDepositLoaderData  = LoaderData<typeof gatehubDepositLoader>
+export type ChimoneyDepositLoaderData = LoaderData<typeof chimoneyDepositLoader>
+export type FynbosDepositLoaderData   = LoaderData<typeof fynbosDepositLoader>
+
 export async function loader(args: LoaderFunctionArgs) {
   const session = await fetch(`${KRATOS_URL}/sessions/whoami`, {
     headers: args.request.headers
@@ -168,6 +173,9 @@ export default function Page() {
   } else return <FynbosDepositPage />
 }
 
+/**
+ * Actions:
+ */
 async function chimoneyAmountAction({ request }: ActionFunctionArgs) {
   const form = await request.formData()
   const depositAmount = String(form.get('depositAmount') || '')
@@ -283,6 +291,11 @@ async function xagoTestAccountDepositAction({
     icon: 'close'
   })
 }
+
+export type ChimoneyAmountActionData             = ActionData<typeof chimoneyAmountAction>
+export type ChimoneySuccessfullDepositActionData = ActionData<typeof chimoneySuccessfullDepositAction>
+export type FynbosDepositActionData              = ActionData<typeof fynbosDepositAction>
+export type XagoTestAccountDepositActionData     = ActionData<typeof xagoTestAccountDepositAction>
 
 export async function action(args: ActionFunctionArgs) {
   const formName = (await args.request.clone().formData()).get(
