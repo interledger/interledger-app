@@ -237,7 +237,7 @@ func ReturnedWorkflow(ctx workflow.Context, wh pti.TransactionStatusPayload) (st
 		return "", err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.PostTransfer, returnTransactionID, walletID, amt).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.PostTransfer, returnTransactionID, walletID).Get(ctx, nil)
 	if err != nil {
 		return "", err
 	}

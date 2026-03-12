@@ -37,7 +37,7 @@ func (art *apiRoundTripper) RoundTrip(req *http.Request) (*http.Response, error)
 		return nil, err
 	}
 
-	req.Header.Add(signatureHeader, signature)
+	req.Header.Set(signatureHeader, signature)
 
 	return art.defaultTransport.RoundTrip(req)
 }

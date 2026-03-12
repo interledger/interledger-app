@@ -12,15 +12,15 @@ type transactionHandler struct {
 	ctrl *Controller
 }
 
-type SandboxActionType string
+type SandboxActionTypeEnum string
 
 const (
-	SETTLE_ACH SandboxActionType = "SETTLE_ACH"
-	RETURN_ACH SandboxActionType = "RETURN_ACH"
+	SettleAch SandboxActionTypeEnum = "SETTLE_ACH"
+	ReturnAch SandboxActionTypeEnum = "RETURN_ACH"
 )
 
 // https://developers.platform.fiant.io/reference/performaction
-func (th *transactionHandler) SandboxAction(ctx context.Context, requestID string, action SandboxActionType) error {
+func (th *transactionHandler) SandboxAction(ctx context.Context, requestID string, action SandboxActionTypeEnum) error {
 	path, err := url.JoinPath(th.path, requestID, "actions") // "transactions/{requestId}/actions"
 	if err != nil {
 		return err

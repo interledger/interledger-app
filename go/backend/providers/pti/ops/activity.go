@@ -890,6 +890,15 @@ func (a *Activity) ReturnTransaction(ctx context.Context, originalTransactionID,
 		return "", nil
 	}
 
+	returnedTransaction, err := a.b.Transactions().GetTransactionByForeignID(ctx, walletID, originalTransactionID)
+	if err != nil {
+		return "", err
+	}
+
+	if returnedTransaction != nil {
+		return "already has a return transaction", temporal.NewNonRetryableApplicationError("already has a return transaction", "ErrInternal", fmt.Errorf("%w already has a return transaction", pti.ErrInternal))
+	}
+
 	var title, returnSource, returnDestination string
 	var transferType transactions.TransferType
 	switch originalTransaction.Type {
@@ -911,7 +920,7 @@ func (a *Activity) ReturnTransaction(ctx context.Context, originalTransactionID,
 	returnTransactionID, err := a.b.Transactions().CreateTransaction(ctx, transactions.CreateTransactionArgs{
 		WalletID:                walletID,
 		ForeignID:               originalTransaction.ID,
-		ForeignType:             transactions.TransactionTypeACHReturn,
+		ForeignType:             transactions.TransactionTypeReturn,
 		Provider:                pti.ProviderName,
 		State:                   transactions.StateCompleted,
 		Source:                  returnSource,
