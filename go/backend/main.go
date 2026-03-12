@@ -20,6 +20,7 @@ import (
 	"github.com/riandyrn/otelchi"
 	"github.com/uptrace/opentelemetry-go-extra/otelsql"
 	"github.com/uptrace/opentelemetry-go-extra/otelsqlx"
+	aassassetlinks "gitlab.com/fynbos/backend/aass_assetlinks"
 	"gitlab.com/fynbos/backend/admin"
 	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/agreements"
@@ -191,6 +192,8 @@ func start(args *cli.StartArgs) {
 	router.Handle("/webhooks/xago", b.xago.WebhookHandler())
 	router.Handle("/webhooks/persona", kyc_ops.NewHandlePersonaWebhook(b))
 	router.Handle("/webhooks/chimoney", chimoney_ops.NewWebhook(b))
+	router.Handle("/.well-known/apple-app-site-association", aassassetlinks.AppSiteAssociationHandler(b.aasaConfig))
+	router.Handle("/.well-known/assetlinks.json", aassassetlinks.AssetLinksHandler(b.aasaConfig))
 
 	if args.PTIEnabled {
 		ptiWebhook, err := pti_ops.Webhook(b)
@@ -518,6 +521,7 @@ type backends struct {
 	gatehub        gatehub.Client
 	gatehubConfig  gatehub.Config
 	chimoney       chimoney.Client
+	aasaConfig     aassassetlinks.Config
 }
 
 func (b backends) Chimoney() chimoney.Client {
@@ -832,6 +836,12 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 
 	log.Debug("initialising Chimoney")
 	b.chimoney = chimoney_client.New(b)
+
+	b.aasaConfig = aassassetlinks.Config{
+		AppleAppID:         args.AppleAppID,
+		AndroidPackageName: args.AndroidPackageName,
+		AndroidSHA256:      args.AndroidSHA256,
+	}
 
 	return b
 }

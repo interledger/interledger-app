@@ -105,11 +105,17 @@ type StartArgs struct {
 	XagoPublicKey                 string
 	XagoSecret                    string
 	XagoPolicyID                  string
+<<<<<<< HEAD
 	PTIEnabled                    bool
 	PTIBaseURL                    string
 	PTIJWK                        string
 	PTIClientID                   string
 	PTIPublicKeyJWK               string
+=======
+	AppleAppID                    string
+	AndroidPackageName            string
+	AndroidSHA256                 string
+>>>>>>> 48df32e3b (Move handlers to backend)
 }
 
 func ParseStartArgs() (*StartArgs, error) {
@@ -377,6 +383,7 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, errors.New("XAGO_POLICY_ID is required")
 	}
 
+<<<<<<< HEAD
 	ptiEnabled := os.Getenv("PTI_ENABLED") == "true"
 	ptiBaseURL := os.Getenv("PTI_BASE_URL")
 	ptiJWK := os.Getenv("PTI_JWK")
@@ -392,6 +399,21 @@ func ParseStartArgs() (*StartArgs, error) {
 		if ptiClientID == "" {
 			return nil, errors.New("PTI_CLIENT_ID is required when PTI_ENABLED=true")
 		}
+=======
+	appleAppID := os.Getenv("APPLE_APP_ID")
+	if appleAppID == "" {
+		return nil, errors.New("APPLE_APP_ID is required")
+	}
+
+	androidPackageName := os.Getenv("ANDROID_PACKAGE_NAME")
+	if androidPackageName == "" {
+		return nil, errors.New("ANDROID_PACKAGE_NAME is required")
+	}
+
+	androidSHA256 := os.Getenv("ANDROID_SHA256")
+	if androidSHA256 == "" {
+		return nil, errors.New("ANDROID_SHA256 is required")
+>>>>>>> 48df32e3b (Move handlers to backend)
 	}
 
 	return &StartArgs{
@@ -447,10 +469,16 @@ func ParseStartArgs() (*StartArgs, error) {
 		XagoPublicKey:                 xagoPublicKey,
 		XagoSecret:                    xagoSecret,
 		XagoPolicyID:                  xagoPolicyID,
+<<<<<<< HEAD
 		PTIEnabled:                    ptiEnabled,
 		PTIBaseURL:                    ptiBaseURL,
 		PTIJWK:                        ptiJWK,
 		PTIClientID:                   ptiClientID,
 		PTIPublicKeyJWK:               ptiPublicKeyJWK,
+=======
+		AppleAppID:                    appleAppID,
+		AndroidPackageName:            androidPackageName,
+		AndroidSHA256:                 androidSHA256,
+>>>>>>> 48df32e3b (Move handlers to backend)
 	}, nil
 }
