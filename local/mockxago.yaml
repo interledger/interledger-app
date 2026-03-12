@@ -21,17 +21,17 @@ services:
       
       # Webhook configuration
       WEBHOOK_URL: http://backend:8080/webhooks/xago
-      WEBHOOK_SECRET: ${XAGO_WEBHOOK_SECRET:-xago-webhook-secret}
+      WEBHOOK_SECRET: ${BACKEND_XAGO_WEBHOOK_SECRET:-xago-webhook-secret}
       WEBHOOK_MIN_DELAY_SEC: '2'
       
       # API credentials
-      XAGO_API_PUBLIC_KEY: test-public-key
-      XAGO_API_SECRET: test-secret
+      XAGO_API_PUBLIC_KEY: ${BACKEND_XAGO_API_PUBLIC_KEY:-test-public-key}
+      XAGO_API_SECRET: ${BACKEND_XAGO_API_SECRET:-test-secret}
       XAGO_MOCK_TEST_MODE: "true"
-      
-      # Auth configuration
+
+      # Login auth is validated against XAGO_API_PUBLIC_KEY and XAGO_API_SECRET.
+      # Protected routes then use bearer-token authentication.
       MOCKXAGO_ENFORCE_AUTHENTICATION: "true"
-      MOCKXAGO_VALID_CREDENTIALS: local-test-app-id:local-test-app-secret
     
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]

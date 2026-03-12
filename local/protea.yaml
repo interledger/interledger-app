@@ -26,26 +26,24 @@ services:
       - "traefik.http.services.protea-ws.loadbalancer.server.port=8002"
 
     environment:
-      - FYNBOS_ENV=local
-      - LOG_LEVEL=debug
+      - FYNBOS_ENV=${PROTEA_FYNBOS_ENV:-local}
+      - LOG_LEVEL=${PROTEA_LOG_LEVEL:-debug}
       # Setting LOG_PRETTY to false will result in json logs
-      - LOG_PRETTY=true
+      - LOG_PRETTY=${PROTEA_LOG_PRETTY:-true}
 
-      - KRATOS_URL=http://kratos:4433
-      - RAFIKI_AUTH_ENDPOINT=http://rafiki_auth:3009
-      - RAFIKI_AUTH_SECRET=my-super-secret-identity-key
+      - KRATOS_URL=${PROTEA_KRATOS_URL:-http://kratos:4433}
+      - RAFIKI_AUTH_ENDPOINT=${PROTEA_RAFIKI_AUTH_ENDPOINT:-http://rafiki_auth:3009}
+      - RAFIKI_AUTH_SECRET=${PROTEA_RAFIKI_AUTH_SECRET:-my-super-secret-identity-key}
 
-      - CHOKIDAR_USEPOLLING=true
-      - COOKIE_SECRETS="[\"localsecret\"]"
-      - PUSHER_APP_KEY=91988d6075551d29760a
-      - PUSHER_APP_CLUSTER=eu
-      - PAYMENT_POINTER_BASE=local.ilp.link # todo find a way to figure the name
-      - DATO_API_TOKEN=b96709bce873f5280722da965b0e9d
-      - BACKEND_GRPC_URL=http://backend:8443
+      - CHOKIDAR_USEPOLLING=${PROTEA_CHOKIDAR_USEPOLLING:-true}
+      - COOKIE_SECRETS=${PROTEA_COOKIE_SECRETS:-"[\"localsecret\"]"}
+      - PUSHER_APP_KEY=${PROTEA_PUSHER_APP_KEY:-91988d6075551d29760a}
+      - PUSHER_APP_CLUSTER=${PROTEA_PUSHER_APP_CLUSTER:-eu}
+      - PAYMENT_POINTER_BASE=${PROTEA_PAYMENT_POINTER_BASE:-local.ilp.link} # todo find a way to figure the name
+      - DATO_API_TOKEN=${PROTEA_DATO_API_TOKEN:-b96709bce873f5280722da965b0e9d}
+      - BACKEND_GRPC_URL=${PROTEA_BACKEND_GRPC_URL:-http://backend:8443}
 
-      - REDIS_URL=redis://redis:6379/2
-
-
+      - REDIS_URL=${PROTEA_REDIS_URL:-redis://redis:6379/2}
 
     depends_on:
       - backend
