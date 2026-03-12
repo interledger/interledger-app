@@ -659,14 +659,14 @@ func TestParseWebhookSecret_EdgeCases(t *testing.T) {
 			wantNil: false,
 		},
 		{
-			name:    "just underscore - returns empty slice",
+			name:    "just underscore - returns nil for empty secret",
 			input:   "_",
-			wantNil: false, // splits to ["", ""], base64 decoding empty string returns empty slice
+			wantNil: true, // splits to ["", ""], base64 decoding empty string returns empty slice which is invalid
 		},
 		{
-			name:    "prefix only - returns empty slice",
+			name:    "prefix only - returns nil for empty secret",
 			input:   "whsec_",
-			wantNil: false, // base64 decoding of empty string returns empty slice, not nil
+			wantNil: true, // base64 decoding of empty string returns empty slice which is invalid
 		},
 	}
 
