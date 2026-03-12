@@ -143,6 +143,8 @@ docker compose down -v
 | https://traefik.test                      | Traefik dashboard                           |
 | https://rafiki.mgnt.interledger.test      | Rafiki                                      |
 | https://ngrok.test                        | Ngrok ui                                    |
+| https://mockgatehub.interledger.test      | MockGateHub API (local GateHub replacement) |
+| https://mockxago.interledger.test         | MockXago API (local Xago replacement)       |
 
 
 ### TODO

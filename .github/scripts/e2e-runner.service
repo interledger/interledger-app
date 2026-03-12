@@ -1,0 +1,22 @@
+# /etc/systemd/system/e2e-runner.service
+#
+# Systemd unit that runs the runner setup script on boot.
+# Install on the machine image:
+#   sudo cp e2e-runner.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable e2e-runner.service
+#
+[Unit]
+Description=GitHub Actions E2E Runner Setup
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/opt/runner-setup.sh
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

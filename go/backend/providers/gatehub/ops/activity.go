@@ -55,6 +55,7 @@ func NewActivity(b Backends, cfg gatehub.Config) *Activity {
 		cfg.APIBaseURL,
 		cfg.OnboardingBaseURL,
 		cfg.OnOffRampBaseURL,
+		cfg.OrganizationID,
 		&http.Client{
 			Transport: otelhttp.NewTransport(
 				httplogger.NewTransport(http.DefaultTransport, b, nil),
