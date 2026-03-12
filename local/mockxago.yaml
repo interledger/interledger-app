@@ -28,10 +28,10 @@ services:
       XAGO_API_PUBLIC_KEY: ${BACKEND_XAGO_API_PUBLIC_KEY:-test-public-key}
       XAGO_API_SECRET: ${BACKEND_XAGO_API_SECRET:-test-secret}
       XAGO_MOCK_TEST_MODE: "true"
-      
-      # Auth configuration
+
+      # Login auth is validated against XAGO_API_PUBLIC_KEY and XAGO_API_SECRET.
+      # Protected routes then use bearer-token authentication.
       MOCKXAGO_ENFORCE_AUTHENTICATION: "true"
-      MOCKXAGO_VALID_CREDENTIALS: ${BACKEND_GATEHUB_APP_ID:-local-test-app-id}:${BACKEND_GATEHUB_SECRET:-local-test-app-secret}
     
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
