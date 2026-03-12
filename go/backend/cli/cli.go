@@ -105,6 +105,11 @@ type StartArgs struct {
 	XagoPublicKey                 string
 	XagoSecret                    string
 	XagoPolicyID                  string
+	PTIEnabled                    bool
+	PTIBaseURL                    string
+	PTIJWK                        string
+	PTIClientID                   string
+	PTIPublicKeyJWK               string
 }
 
 func ParseStartArgs() (*StartArgs, error) {
@@ -337,6 +342,23 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, errors.New("XAGO_POLICY_ID is required")
 	}
 
+	ptiEnabled := os.Getenv("PTI_ENABLED") == "true"
+	ptiBaseURL := os.Getenv("PTI_BASE_URL")
+	ptiJWK := os.Getenv("PTI_JWK")
+	ptiClientID := os.Getenv("PTI_CLIENT_ID")
+	ptiPublicKeyJWK := os.Getenv("PTI_PUBLIC_KEY_JWK")
+	if ptiEnabled {
+		if ptiBaseURL == "" {
+			return nil, errors.New("PTI_BASE_URL is required when PTI_ENABLED=true")
+		}
+		if ptiJWK == "" {
+			return nil, errors.New("PTI_JWK is required when PTI_ENABLED=true")
+		}
+		if ptiClientID == "" {
+			return nil, errors.New("PTI_CLIENT_ID is required when PTI_ENABLED=true")
+		}
+	}
+
 	return &StartArgs{
 		Port:                          port,
 		AuthorisationPort:             authorisationPort,
@@ -390,5 +412,10 @@ func ParseStartArgs() (*StartArgs, error) {
 		XagoPublicKey:                 xagoPublicKey,
 		XagoSecret:                    xagoSecret,
 		XagoPolicyID:                  xagoPolicyID,
+		PTIEnabled:                    ptiEnabled,
+		PTIBaseURL:                    ptiBaseURL,
+		PTIJWK:                        ptiJWK,
+		PTIClientID:                   ptiClientID,
+		PTIPublicKeyJWK:               ptiPublicKeyJWK,
 	}, nil
 }
