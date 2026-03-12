@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import type { Route } from './+types/login'
 import { data, redirect } from 'react-router';
 import { Form, useActionData, useLoaderData, useSearchParams } from 'react-router';
@@ -23,6 +24,7 @@ import {
   requireNoUserSession
 } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
+import { flashSnackbar } from '~/lib/snackbar.server';
 import { safeReturnTo } from '~/lib/url.server'
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -80,6 +82,10 @@ export default function Page() {
   const actionData = useActionData()
   const { csrfToken, flowId } = useLoaderData()
   const searchParams = useSearchParams()
+
+  useEffect(() => {
+    console.log('CHANGEDDDDDDD', { csrfToken }, { flowId })
+  }, [csrfToken, flowId])
 
   return (
     <>
@@ -191,7 +197,23 @@ export async function action({ request }: Route.ActionArgs) {
     if (isSessionAlreadyExitsMessage(errors.form)) {
       return redirect(returnTo || '/')
     }
-    return error(request, { errors }, { action: 'Contact support' })
+
+    // Redirect instead of  returning error codes because we need fresh 
+    // flow and csrf token, otherwise we have stale data in the loader data
+    // See: https://reactrouter.com/how-to/form-validation#2-defining-the-action
+    const redirectParams = new URLSearchParams(searchParams)
+    redirectParams.set('flow', String(flowId))
+    const snackbarCookie = await flashSnackbar(request, {
+      message: errors.form || "An error occured, please retry.",
+      icon: 'close',
+      action: 'Contact support'
+    })
+    const redirectHeaders = new Headers()
+    redirectHeaders.append('Set-Cookie', snackbarCookie)
+
+    return redirect(`/login?${redirectParams.toString()}`, {
+      headers: redirectHeaders
+    })
   }
 
   // Remove all headers besides set-cookie
