@@ -53,6 +53,7 @@ help:
 	certs print-certs \
 
 	trust print-trust untrust \
+	trust-debian print-trust-debian untrust-debian \
 	trust-arch print-trust-arch untrust-arch \
 
 	hosts \
