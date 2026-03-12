@@ -7,7 +7,7 @@
 
 We provide a `docker compose` managed environment that will attempt to automatically rebuild the sources upon any change.
 
-Service configuration can be overridden through a `.env` file in the `local/` directory. Start by copying [local/example.env](local/example.env) to `.env` and editing only the values you want to change.
+Service configuration can be overridden through a `.env` file in the `local/` directory. Start by copying [local/example.env](./example.env) to `.env` and editing only the values you want to change.
 
 Environment variable names are prefixed by service to avoid collisions:
 - `BACKEND_*` configures the wallet backend and shared mock credentials used by `mockgatehub` and `mockxago`
