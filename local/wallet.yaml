@@ -153,6 +153,13 @@ services:
       # Xago webhook secret
       - XAGO_WEBHOOK_SECRET=${XAGO_WEBHOOK_SECRET:-xago-webhook-secret}
 
+      - ADMIN_POLICY_AUD=${BACKEND_ADMIN_POLICY_AUD:-admin-policy}
+      - ADMIN_TEAM_DOMAIN=${BACKEND_ADMIN_TEAM_DOMAIN:-admin-team}
+      - SENDGRID_API_KEY=${BACKEND_SENDGRID_API_KEY:-test-sendgrid-api-key}
+      - SMARTY_AUTH_ID=${BACKEND_SMARTY_AUTH_ID:-test-smarty-auth-id}
+      - SMARTY_AUTH_TOKEN=${BACKEND_SMARTY_AUTH_TOKEN:-test-smarty-auth-token}
+      - PUSHER_ADDR=${BACKEND_PUSHER_ADDR:-http://pusher:8080}
+      - SEGMENT_KEY=${BACKEND_SEGMENT_KEY:-test-segment-key}
     depends_on:
       - migration
       - mockgatehub
