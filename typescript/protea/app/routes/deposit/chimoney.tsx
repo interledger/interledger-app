@@ -104,7 +104,7 @@ export function ChimoneyDepositPage() {
               form='chimoney-amount'
               value={amount}
               onChange={_onChangeDepositAmount}
-              onChangeLinkedAccount={() => {}}
+              onChangeLinkedAccount={() => { }}
               linkedAccountOptions={[]}
               placeholder='0'
               prefixIcon={<div className={`flag:CA`} />}
@@ -140,16 +140,4 @@ export async function chimoneyAmountAction({ request }: ActionFunctionArgs) {
   return json({
     chimoneyWidget: response.link
   })
-}
-
-export async function chimoneySuccessfullDepositAction({
-  request
-}: ActionFunctionArgs) {
-  const form = await request.formData()
-  const issueId = String(form.get('issueId') || '')
-
-  const response = await grpc.createChimoneyDeposit(request, { issueId })
-  if (isConnectError(response)) throw response.error
-
-  return redirect(route('/'))
 }

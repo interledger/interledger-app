@@ -14,6 +14,7 @@ import (
 	"regexp"
 	"strings"
 
+	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/providers/chimoney"
 	"gitlab.com/fynbos/backend/providers/chimoney/external"
@@ -37,11 +38,15 @@ type (
 		EventType   string            `json:"eventType"`
 		IssueID     string            `json:"issueID"`
 		Status      string            `json:"status"`
+		Amount      string            `json:"amount"`
 		Meta        WithdrawEventMeta `json:"meta"`
 		ChiWalletID string            `json:"-"` // Populated from Meta.Issuer
 	}
 	WithdrawEventMeta struct {
-		Issuer string `json:"issuer"`
+		Issuer      string                 `json:"issuer"`
+		Amount      external.FlexibleFloat `json:"amount,omitempty"`
+		Currency    string                 `json:"currency,omitempty"`
+		PaymentType string                 `json:"paymentType,omitempty"`
 	}
 	KYCEvent struct {
 		EventType string `json:"eventType"`
@@ -116,8 +121,10 @@ func NewWebhook(b Backends) http.HandlerFunc {
 			"payout.interac.cancelled",
 			"payout.interac.completed":
 			err = handleWithdrawal(r.Context(), b, ec, body)
-		case "chimoney.redeem.completed", "chimoney.redeem.failed":
-			err = handleRedeemWebhook(r.Context(), b, body)
+		case "chimoney.redeem.completed":
+			err = handleRedeemWebhook(r.Context(), b, body, "completed")
+		case "chimoney.redeem.failed":
+			err = handleRedeemWebhook(r.Context(), b, body, "failed")
 		case "charge.card.completed",
 			"charge.chimoney-wallet.completed",
 			"charge.interac.completed",
@@ -173,18 +180,23 @@ func Verify(ctx context.Context, r *http.Request, key []byte) ([]byte, error) {
 	return payload, nil
 }
 
-func handleRedeemWebhook(ctx context.Context, b Backends, raw json.RawMessage) error {
+func handleRedeemWebhook(ctx context.Context, b Backends, raw json.RawMessage, status string) error {
 	var wh PaymentEvent
 	err := json.Unmarshal(raw, &wh)
 	if err != nil {
 		return err
 	}
-
-	signal := depositSignal{
-		IssueID: wh.IssueID,
-		Success: true,
+	if wh.IssueID == "" {
+		log.Info("Webhook data not complete", zap.String("issueID", wh.IssueID), zap.String("status", wh.Status))
+		return nil
 	}
-	return b.Temporal().SignalWorkflow(ctx, fmt.Sprintf("chimoney_deposit_%s", wh.IssueID), "", depositChannel, signal)
+	var chiWalletID string
+	chiWalletID, err = ExtractChiWalletIDFromIssueID(wh.IssueID)
+	if err != nil {
+		return err
+	}
+
+	return ExecuteFinishDeposit(ctx, b, wh.IssueID, status, chiWalletID)
 }
 
 func handleWithdrawal(ctx context.Context, b Backends, ec external.Client, raw json.RawMessage) error {
@@ -198,7 +210,7 @@ func handleWithdrawal(ctx context.Context, b Backends, ec external.Client, raw j
 		return nil
 	}
 
-	// Populate ChiWalletID from Meta.Issuer
+	// Populate wh.ChiWalletID from Meta.Issuer
 	wh.ChiWalletID = wh.Meta.Issuer
 	if wh.ChiWalletID == "" {
 		wh.ChiWalletID, err = ExtractChiWalletIDFromIssueID(wh.IssueID)
@@ -207,7 +219,14 @@ func handleWithdrawal(ctx context.Context, b Backends, ec external.Client, raw j
 		}
 	}
 
-	return ExecuteFinishWithdraw(ctx, b, ec, wh.IssueID, wh.Status, wh.ChiWalletID)
+	var amount currency.Amount
+	if wh.Meta.Currency != "" {
+		amount = currency.FromFloat64(wh.Meta.Amount.Float64(), currency.ParseCurrency(wh.Meta.Currency))
+	} else {
+		amount = currency.FromFloat64(wh.Meta.Amount.Float64(), currency.CAD)
+	}
+
+	return ExecuteFinishWithdraw(ctx, b, ec, wh.IssueID, wh.Status, wh.ChiWalletID, amount, wh.Meta.PaymentType)
 }
 
 func handleConfirmedOrCompletedCharge(ctx context.Context, b Backends, ec external.Client, raw json.RawMessage) error {
@@ -216,8 +235,13 @@ func handleConfirmedOrCompletedCharge(ctx context.Context, b Backends, ec extern
 	if err != nil {
 		return err
 	}
+	var chiWalletID string
+	chiWalletID, err = ExtractChiWalletIDFromIssueID(wh.IssueID)
+	if err != nil {
+		return err
+	}
 
-	_, err = CreateDeposit(ctx, b, ec, wh.IssueID)
+	_, err = CreateDeposit(ctx, b, ec, wh.IssueID, chiWalletID)
 	return err
 }
 
@@ -242,5 +266,9 @@ func handleKYC(ctx context.Context, b Backends, raw json.RawMessage) error {
 		return fmt.Errorf("unknown KYC status: %s", wh.EventType)
 	}
 
-	return ExecuteCompleteKYCWorkflow(ctx, b, wh.UserID, kycStatus)
+	walletID, err := GetWalletID(ctx, b, wh.UserID)
+	if err != nil {
+		return fmt.Errorf("%w %s", chimoney.ErrInternal, err)
+	}
+	return b.KYC().SetKYCStatus(ctx, walletID, kycStatus)
 }

@@ -72,6 +72,10 @@ func (c *client) SetTransactionAmountTx(ctx context.Context, tx *sqlx.Tx, ID str
 	return ops.SetTransactionAmountTx(ctx, c.b, tx, ID, amount)
 }
 
+func (c *client) SetTransactionFeeAndStateCompleted(ctx context.Context, ID string, fee currency.Amount, state transactions.State) error {
+	return ops.SetTransactionFeeAndStateCompleted(ctx, c.b, ID, fee, state)
+}
+
 func (c *client) List(ctx context.Context, page db.Pagination, walletID string) ([]transactions.Transaction, error) {
 	return ops.List(ctx, c.b, walletID, page)
 }
