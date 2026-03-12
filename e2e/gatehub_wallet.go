@@ -75,24 +75,29 @@ func (sc *E2EContext) iFillInAndSubmitTheWalletAddressFormWithAUniqueAddress() e
 	time.Sleep(500 * time.Millisecond)
 
 	// Generate a unique username based on test timestamp
+	// Backend requires: ASCII [a-z0-9_], first 3 chars must be letters, length 3–16
+	const maxWalletAddressLen = 16
+
 	idPart := normalizeWalletAddressToken(sc.testIdentifier)
 	userPart := normalizeWalletAddressToken(sc.currentUser)
+
+	// Ensure userPart is at least 3 ASCII letters to satisfy the backend prefix rule
+	for len(userPart) < 3 {
+		userPart += "x"
+	}
+	// Keep only the first 3 characters as a letter prefix
+	userPart = userPart[:3]
+
 	if idPart == "" {
 		idPart = "test"
-	}
-	if userPart == "" {
-		userPart = "user"
 	}
 	if len(idPart) > 6 {
 		idPart = idPart[:6]
 	}
-	if len(userPart) > 3 {
-		userPart = userPart[:3]
-	}
+
 	timePart := strconv.FormatInt(time.Now().UnixNano(), 36)
-	// Ensure total length is under 16 characters (backend requirement)
-	// userPart (3) + idPart (up to 6) + timePart (remaining)
-	maxTimePart := 15 - len(userPart) - len(idPart)
+	// Trim timePart so total length stays within maxWalletAddressLen
+	maxTimePart := maxWalletAddressLen - len(userPart) - len(idPart)
 	if maxTimePart < 0 {
 		maxTimePart = 0
 	}
@@ -366,6 +371,8 @@ func (sc *E2EContext) iShouldBeNavigatedBackToTheDashboardWithReservedWalletStat
 	return fmt.Errorf("wallet does not appear to be in 'Reserved' state, still on wallet-address")
 }
 
+// normalizeWalletAddressToken strips non-ASCII-alphanumeric characters and lowercases.
+// The backend wallet address validator only allows ASCII [a-z0-9_].
 func normalizeWalletAddressToken(input string) string {
 	if input == "" {
 		return ""
@@ -375,9 +382,12 @@ func normalizeWalletAddressToken(input string) string {
 	builder.Grow(len(input))
 
 	for _, character := range input {
-		if unicode.IsLetter(character) || unicode.IsDigit(character) {
+		if (character >= 'a' && character <= 'z') || (character >= '0' && character <= '9') {
+			builder.WriteRune(character)
+		} else if character >= 'A' && character <= 'Z' {
 			builder.WriteRune(unicode.ToLower(character))
 		}
+		// Skip non-ASCII and special characters
 	}
 
 	return builder.String()

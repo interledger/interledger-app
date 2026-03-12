@@ -147,7 +147,7 @@ services:
       # Xago webhook secret
       - XAGO_WEBHOOK_SECRET=${BACKEND_XAGO_WEBHOOK_SECRET:-xago-webhook-secret}
       - ADMIN_POLICY_AUD=${BACKEND_ADMIN_POLICY_AUD:-local-admin-policy-audience}
-      - ADMIN_TEAM_DOMAIN=${BACKEND_ADMIN_TEAM_DOMAIN:-https://team.example.com}      
+      - ADMIN_TEAM_DOMAIN=${BACKEND_ADMIN_TEAM_DOMAIN:-https://team.example.com}
 
     depends_on:
       - migration
