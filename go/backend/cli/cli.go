@@ -249,21 +249,6 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, errors.New("SEGMENT_KEY is required")
 	}
 
-	discordClientID := os.Getenv("DISCORD_CLIENT_ID")
-	if discordClientID == "" {
-		return nil, errors.New("DISCORD_CLIENT_ID is required")
-	}
-
-	discordClientSecret := os.Getenv("DISCORD_CLIENT_SECRET")
-	if discordClientSecret == "" {
-		return nil, errors.New("DISCORD_CLIENT_SECRET is required")
-	}
-
-	discordRedirectURL := os.Getenv("DISCORD_REDIRECT_URL")
-	if discordRedirectURL == "" {
-		return nil, errors.New("DISCORD_REDIRECT_URL is required")
-	}
-
 	gatehubAppID := os.Getenv("GATEHUB_APP_ID")
 	if gatehubAppID == "" && env.IsProd() {
 		return nil, errors.New("GATEHUB_APP_ID is required in production")
@@ -413,9 +398,9 @@ func ParseStartArgs() (*StartArgs, error) {
 		SmartyAuthToken:               smartyAuthToken,
 		PusherAddr:                    pusherAddr,
 		SegmentKey:                    segmentKey,
-		DiscordClientID:               discordClientID,
-		DiscordClientSecret:           discordClientSecret,
-		DiscordRedirectURL:            discordRedirectURL,
+		DiscordClientID:               "",
+		DiscordClientSecret:           "",
+		DiscordRedirectURL:            "",
 		GatehubAppID:                  gatehubAppID,
 		GatehubSecret:                 gatehubSecret,
 		GatehubCardAppID:              gatehubCardAppID,
