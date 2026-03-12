@@ -109,6 +109,25 @@ jobs:
         continue-on-error: true
         run: cat e2e/debug/report.md || true
 
+      - name: Dump docker logs if tests failed
+        if: failure()
+        working-directory: local
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/logs"
+          for container in $(docker compose ps -a --format "{{.Name}}"); do
+            docker logs "$container" > "$GITHUB_WORKSPACE/logs/$container.log" 2>&1 || true
+          done
+        continue-on-error: true
+
+      - name: Upload container logs if tests failed
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: e2e-container-logs
+          path: logs
+          if-no-files-found: ignore
+          retention-days: 7
+
       - name: Clean up Docker containers and volumes
         if: always()
         run: |
@@ -150,13 +169,3 @@ jobs:
               issue_number: context.payload.pull_request.number,
               body
             });
-
-      - name: Dump docker logs to artifacts if tests failed
-        if: failure()
-        working-directory: local
-        run: |
-          mkdir -p $GITHUB_WORKSPACE/logs
-          for container in $(docker compose ps --format "{{.Name}}"); do
-            docker logs "$container" > "$GITHUB_WORKSPACE/logs/$container.log" 2>&1 || true
-          done
-        continue-on-error: true
