@@ -14,13 +14,14 @@ import (
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	gatehub_workflows "gitlab.com/fynbos/backend/providers/gatehub/ops"
 	pti_workflows "gitlab.com/fynbos/backend/providers/pti/ops"
+	xago_external "gitlab.com/fynbos/backend/providers/xago/external"
 	xago_workflows "gitlab.com/fynbos/backend/providers/xago/ops"
 	rafiki_workflows "gitlab.com/fynbos/backend/rafiki/ops"
 	twitter_workflows "gitlab.com/fynbos/backend/twitter/workflows"
 	"go.temporal.io/sdk/worker"
 )
 
-func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config) (worker.Worker, error) {
+func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago_external.Config) (worker.Worker, error) {
 	w := worker.New(b.Temporal(), "backend", worker.Options{})
 
 	w.RegisterActivity(kyc_workflows.NewActivity(b))
@@ -60,6 +61,7 @@ func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config) (worker.Worker,
 	w.RegisterWorkflow(jobs.BackfillPaywiserAccountsJob)
 	w.RegisterWorkflow(jobs.PtiSettleDepositAndWithdrawsForWallet)
 	w.RegisterWorkflow(jobs.EnableSendVerificationEmailToUnverifiedUserJob)
+	w.RegisterWorkflow(jobs.UpdateGateHubOrganizationConfig)
 
 	// Payment Engine
 	w.RegisterActivity(payments_workflows.NewActivity(b))
@@ -76,7 +78,7 @@ func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config) (worker.Worker,
 	rafiki_workflows.StartRafikiIncomingPaymentsPolling(b)
 
 	// Xago
-	w.RegisterActivity(xago_workflows.NewActivity(b))
+	w.RegisterActivity(xago_workflows.NewActivity(b, xagoConfig))
 	w.RegisterWorkflow(xago_workflows.CreateBeneficiaryWorkflow)
 	w.RegisterWorkflow(xago_workflows.CreateBalanceAccountWorkflow)
 	w.RegisterWorkflow(xago_workflows.XagoDepositPollWorkflow)

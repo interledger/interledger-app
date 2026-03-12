@@ -1,7 +1,7 @@
 services:
   # 1. Rafiki Auth
   rafiki_auth:
-    image: ghcr.io/interledger/rafiki-auth:v1.2.0-beta
+    image: ghcr.io/interledger/rafiki-auth:v1.2.1-beta
     profiles:
       - services
     restart: always
@@ -62,7 +62,7 @@ services:
 
   # # 2. Rafiki Service
   rafiki_backend:
-    image: ghcr.io/interledger/rafiki-backend:v1.2.0-beta
+    image: ghcr.io/interledger/rafiki-backend:v1.2.1-beta
     profiles:
       - services
     restart: always
@@ -149,7 +149,7 @@ services:
 
   # # 3. Rafiki Frontend
   rafiki_frontend:
-    image: ghcr.io/interledger/rafiki-frontend:v1.2.0-beta
+    image: ghcr.io/interledger/rafiki-frontend:v1.2.1-beta
     profiles:
       - services
     restart: always
