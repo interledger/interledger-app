@@ -7,11 +7,23 @@
 
 We provide a `docker compose` managed environment that will attempt to automatically rebuild the sources upon any change.
 
+Service configuration can be overridden through a `.env` file in the `local/` directory. Start by copying [local/example.env](./example.env) to `.env` and editing only the values you want to change.
+
+Environment variable names are prefixed by service to avoid collisions:
+- `BACKEND_*` configures the wallet backend and shared mock credentials used by `mockgatehub` and `mockxago`
+- `PROTEA_*` configures the Protea frontend
+
+```sh
+cp example.env .env
+```
+
 The environment creation is backed up by a ```Makefile``` in the ```local``` directory. 
 
 **This is the recommended way to use it.** However, you can use plain ```docker compose```.
 
 > **Note:** Make sure that your current working directory ```local``` before starting.
+
+> **Note:** `docker compose` automatically reads `.env` from this directory, so you do not need to pass `--env-file` for the normal local workflow.
 
 ### Getting familiar with ```make``` interface
 Running ```make``` or ```make help``` will output some available commands:

@@ -21,10 +21,10 @@ services:
       WEBHOOK_MIN_DELAY_SEC: '0.1'
       # Webhook configuration - for KYC and deposit events
       WEBHOOK_URL: http://backend:8080/webhooks/gatehub
-      WEBHOOK_SECRET: ${GATEHUB_WEBHOOK_SECRET:-6d6f636b5f776562686f6f6b5f736563726574}
+      WEBHOOK_SECRET: ${BACKEND_GATEHUB_WEBHOOK_SECRET:-6d6f636b5f776562686f6f6b5f736563726574}
 
       # Auth configuration
-      MOCKGATEHUB_VALID_CREDENTIALS: local-test-app-id:local-test-app-secret
+      MOCKGATEHUB_VALID_CREDENTIALS: ${BACKEND_GATEHUB_APP_ID:-local-test-app-id}:${BACKEND_GATEHUB_SECRET:-local-test-app-secret}
     
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
