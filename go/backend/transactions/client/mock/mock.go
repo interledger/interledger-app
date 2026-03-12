@@ -290,17 +290,17 @@ func (mr *MockClientMockRecorder) SetTransactionDestination(ctx, id, destination
 }
 
 // SetTransactionFeeAndStateCompleted mocks base method.
-func (m *MockClient) SetTransactionFeeAndStateCompleted(ctx context.Context, ID string, fee currency.Amount, state transactions.State) error {
+func (m *MockClient) SetTransactionFeeAndStateCompleted(ctx context.Context, ID string, fee currency.Amount, state transactions.State, walletID string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SetTransactionFeeAndStateCompleted", ctx, ID, fee, state)
+	ret := m.ctrl.Call(m, "SetTransactionFeeAndStateCompleted", ctx, ID, fee, state, walletID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SetTransactionFeeAndStateCompleted indicates an expected call of SetTransactionFeeAndStateCompleted.
-func (mr *MockClientMockRecorder) SetTransactionFeeAndStateCompleted(ctx, ID, fee, state interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) SetTransactionFeeAndStateCompleted(ctx, ID, fee, state, walletID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetTransactionFeeAndStateCompleted", reflect.TypeOf((*MockClient)(nil).SetTransactionFeeAndStateCompleted), ctx, ID, fee, state)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetTransactionFeeAndStateCompleted", reflect.TypeOf((*MockClient)(nil).SetTransactionFeeAndStateCompleted), ctx, ID, fee, state, walletID)
 }
 
 // SetTransactionForeignID mocks base method.

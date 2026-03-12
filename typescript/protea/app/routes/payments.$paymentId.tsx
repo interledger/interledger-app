@@ -380,7 +380,7 @@ function Withdrawal() {
               <span className='text-medium'>{transaction.fees}</span>
             </div>
             <div className='mt-2 flex w-full justify-between font-medium'>
-              <span className='text-medium'>Total Amount withdrawn</span>
+              <span className='text-medium'>Total amount withdrawn</span>
               <span className='text-medium'>{transaction.subtotal}</span>
             </div>
           </CardContent>

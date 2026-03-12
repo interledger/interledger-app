@@ -235,7 +235,7 @@ func ExecuteChimoneyFinishWithdrawalWorkflow(
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
 	logger := workflow.GetLogger(ctx)
-	logger.Info("Executing chimoney finish withdrawal with status: ", zap.String("status", status))
+	logger.Info("Executing chimoney finish withdrawal with status: ", "status", status)
 
 	var walletID string
 	err := workflow.ExecuteActivity(ctx, a.GetWalletIDFromChimoneyID, chiWalletID).Get(ctx, &walletID)
@@ -250,7 +250,7 @@ func ExecuteChimoneyFinishWithdrawalWorkflow(
 	}
 
 	if trx.State == transactions.StateCompleted || trx.State == transactions.StateFailed {
-		logger.Info("Chimoney withdrawal already finalized with status: ", zap.String("status", string(trx.State)), zap.String("issueID", IssueID))
+		logger.Info("Chimoney withdrawal already finalized with status: ", "status", string(trx.State), "issueID", IssueID)
 		return nil
 	}
 
@@ -383,7 +383,9 @@ func (a *Activity) CreateChimoneyDepositTransaction(ctx context.Context, walletI
 		// for card payments we capture fees
 		decMultiplier := math.Pow10(amount.Scale)
 		cc := currency.ParseCurrency(externalPayment.Currency)
-		netAmount := currency.FromUInt64(uint64(externalPayment.Meta.ProcessingFee.NetAmount*decMultiplier), cc)
+		netMinorFloat := externalPayment.Meta.ProcessingFee.NetAmount * decMultiplier
+		netMinor := min(uint64(math.Round(netMinorFloat)), amount.Value)
+		netAmount := currency.FromUInt64(netMinor, cc)
 		feeInt := amount.Value - netAmount.Value
 		fee := currency.FromUInt64(feeInt, cc)
 		providerFee = &fee
@@ -447,7 +449,7 @@ func (a *Activity) UpdateChimoneyWithdrawalFeeAndCompleteTransaction(ctx context
 	feeValue := trx.Amount.Value - amount.Value
 	fee := currency.FromUInt64(feeValue, trx.Amount.Currency)
 
-	return a.b.Transactions().SetTransactionFeeAndStateCompleted(ctx, trxID, fee, transactions.StateCompleted)
+	return a.b.Transactions().SetTransactionFeeAndStateCompleted(ctx, trxID, fee, transactions.StateCompleted, walletID)
 }
 
 func (a *Activity) GetChimoneyTransactionByForeignID(ctx context.Context, walletID string, foreignID string) (*transactions.Transaction, error) {

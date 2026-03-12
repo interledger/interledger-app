@@ -28,7 +28,7 @@ type Client interface {
 
 	SetTransactionAmountTx(ctx context.Context, tx *sqlx.Tx, ID string, amount currency.Amount) error
 
-	SetTransactionFeeAndStateCompleted(ctx context.Context, ID string, fee currency.Amount, state State) error
+	SetTransactionFeeAndStateCompleted(ctx context.Context, ID string, fee currency.Amount, state State, walletID string) error
 
 	GetHasTransacted(ctx context.Context, walletID, destination string) (bool, error)
 	GetTransactedCount(ctx context.Context, walletID, destination string) (int, error)

@@ -69,6 +69,10 @@ func ParseWebhookSecret(input string) []byte {
 		log.Error("chimoney webhook: error parsing CHIMONEY_WEBHOOK_SECRET", zap.Error(err))
 		return nil
 	}
+	if len(secret) == 0 {
+		log.Error("chimoney webhook: CHIMONEY_WEBHOOK_SECRET decoded to an empty secret, which is invalid")
+		return nil
+	}
 
 	return secret
 }
@@ -155,7 +159,18 @@ func Verify(ctx context.Context, r *http.Request, key []byte) ([]byte, error) {
 		log.Error("chimoney webhook: Failed to get request body.", zap.Error(err))
 		return nil, fmt.Errorf("%w %s", chimoney.ErrInternal, err)
 	}
-	log.Info("chimoney webhook: ", zap.String("body", string(payload)))
+
+	var wh Webhook
+	if err := json.Unmarshal(payload, &wh); err != nil {
+		log.Info("chimoney webhook: received webhook payload",
+			zap.Int("payloadSize", len(payload)),
+		)
+	} else {
+		log.Info("chimoney webhook: received webhook payload",
+			zap.String("eventType", wh.EventType),
+			zap.Int("payloadSize", len(payload)),
+		)
+	}
 
 	signedContent := fmt.Sprintf("%s.%s.%s", r.Header.Get("svix-id"), r.Header.Get("svix-timestamp"), string(payload))
 	hmac := hmac.New(sha256.New, key)

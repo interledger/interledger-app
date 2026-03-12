@@ -619,7 +619,7 @@ func SetTransactionAmountTx(ctx context.Context, b Backends, tx *sqlx.Tx, ID str
 	return nil
 }
 
-func SetTransactionFeeAndStateCompleted(ctx context.Context, b Backends, ID string, fee currency.Amount, state transactions.State) error {
+func SetTransactionFeeAndStateCompleted(ctx context.Context, b Backends, ID string, fee currency.Amount, state transactions.State, walletID string) error {
 	_, err := b.DB().ExecContext(ctx,
 		"UPDATE transactions SET provider_fee=$1, state=$2, updated_at=now() WHERE id=$3",
 		fee.Value, state, ID)
@@ -627,7 +627,7 @@ func SetTransactionFeeAndStateCompleted(ctx context.Context, b Backends, ID stri
 		return fmt.Errorf("%w %s", transactions.ErrInternal, err)
 	}
 
-	err = b.Notify().NotifyWallet(ctx, ID, notify.NotificationTypeTransaction)
+	err = b.Notify().NotifyWallet(ctx, walletID, notify.NotificationTypeTransaction)
 	if err != nil {
 		log.Warn("error sending notification", zap.Error(err))
 	}
