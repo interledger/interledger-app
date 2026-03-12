@@ -146,7 +146,7 @@ trust-arch:
 	sudo cp config/certs/local.crt /etc/ca-certificates/trust-source/anchors/interledger-test.crt
 	sudo update-ca-trust
 	mkdir -p $(HOME)/.pki/nssdb
-	certutil -d sql:$(HOME)/.pki/nssdb -N --empty-password 2>/dev/null || true
+	[ -f "$(HOME)/.pki/nssdb/cert9.db" ] || certutil -d sql:$(HOME)/.pki/nssdb -N --empty-password
 	certutil -d sql:$(HOME)/.pki/nssdb -A -t "C,," -n "interledger.test" -i config/certs/local.crt
 
 print-trust-arch:
