@@ -214,6 +214,56 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, errors.New("TWITTER_REDIRECT_URL is required")
 	}
 
+	adminPolicyAud := os.Getenv("ADMIN_POLICY_AUD")
+	if adminPolicyAud == "" {
+		return nil, errors.New("ADMIN_POLICY_AUD is required")
+	}
+
+	adminTeamDomain := os.Getenv("ADMIN_TEAM_DOMAIN")
+	if adminTeamDomain == "" {
+		return nil, errors.New("ADMIN_TEAM_DOMAIN is required")
+	}
+
+	sendgridAPIKey := os.Getenv("SENDGRID_API_KEY")
+	if sendgridAPIKey == "" {
+		return nil, errors.New("SENDGRID_API_KEY is required")
+	}
+
+	smartyAuthID := os.Getenv("SMARTY_AUTH_ID")
+	if smartyAuthID == "" {
+		return nil, errors.New("SMARTY_AUTH_ID is required")
+	}
+
+	smartyAuthToken := os.Getenv("SMARTY_AUTH_TOKEN")
+	if smartyAuthToken == "" {
+		return nil, errors.New("SMARTY_AUTH_TOKEN is required")
+	}
+
+	pusherAddr := os.Getenv("PUSHER_ADDR")
+	if pusherAddr == "" {
+		return nil, errors.New("PUSHER_ADDR is required")
+	}
+
+	segmentKey := os.Getenv("SEGMENT_KEY")
+	if segmentKey == "" {
+		return nil, errors.New("SEGMENT_KEY is required")
+	}
+
+	discordClientID := os.Getenv("DISCORD_CLIENT_ID")
+	if discordClientID == "" {
+		return nil, errors.New("DISCORD_CLIENT_ID is required")
+	}
+
+	discordClientSecret := os.Getenv("DISCORD_CLIENT_SECRET")
+	if discordClientSecret == "" {
+		return nil, errors.New("DISCORD_CLIENT_SECRET is required")
+	}
+
+	discordRedirectURL := os.Getenv("DISCORD_REDIRECT_URL")
+	if discordRedirectURL == "" {
+		return nil, errors.New("DISCORD_REDIRECT_URL is required")
+	}
+
 	gatehubAppID := os.Getenv("GATEHUB_APP_ID")
 	if gatehubAppID == "" && env.IsProd() {
 		return nil, errors.New("GATEHUB_APP_ID is required in production")
@@ -356,16 +406,16 @@ func ParseStartArgs() (*StartArgs, error) {
 		TwitterClientSecret:           twitterClientSecret,
 		TwitterRedirectURL:            twitterRedirectURL,
 		TwitterBearerToken:            twitterBearerToken,
-		AdminPolicyAud:                os.Getenv("ADMIN_POLICY_AUD"),
-		AdminTeamDomain:               os.Getenv("ADMIN_TEAM_DOMAIN"),
-		SendgridAPIKey:                os.Getenv("SENDGRID_API_KEY"),
-		SmartyAuthID:                  os.Getenv("SMARTY_AUTH_ID"),
-		SmartyAuthToken:               os.Getenv("SMARTY_AUTH_TOKEN"),
-		PusherAddr:                    os.Getenv("PUSHER_ADDR"),
-		SegmentKey:                    os.Getenv("SEGMENT_KEY"),
-		DiscordClientID:               os.Getenv("DISCORD_CLIENT_ID"),
-		DiscordClientSecret:           os.Getenv("DISCORD_CLIENT_SECRET"),
-		DiscordRedirectURL:            os.Getenv("DISCORD_REDIRECT_URL"),
+		AdminPolicyAud:                adminPolicyAud,
+		AdminTeamDomain:               adminTeamDomain,
+		SendgridAPIKey:                sendgridAPIKey,
+		SmartyAuthID:                  smartyAuthID,
+		SmartyAuthToken:               smartyAuthToken,
+		PusherAddr:                    pusherAddr,
+		SegmentKey:                    segmentKey,
+		DiscordClientID:               discordClientID,
+		DiscordClientSecret:           discordClientSecret,
+		DiscordRedirectURL:            discordRedirectURL,
 		GatehubAppID:                  gatehubAppID,
 		GatehubSecret:                 gatehubSecret,
 		GatehubCardAppID:              gatehubCardAppID,
