@@ -255,6 +255,10 @@ func ExecuteChimoneyFinishWithdrawalWorkflow(
 	}
 
 	if status == "cancelled" || status == "expired" {
+		err = workflow.ExecuteActivity(ctx, a.UpdateChimoneyPaymentState, trx.ID, payments.StateFailed).Get(ctx, nil)
+		if err != nil {
+			return err
+		}
 		return rollBackWithdrawal(ctx, a, externalWithdrawalFailed, trx.WalletID, trx.ID)
 	}
 
@@ -269,6 +273,11 @@ func ExecuteChimoneyFinishWithdrawalWorkflow(
 	err = workflow.ExecuteActivity(ctx, a.UpdateChimoneyWithdrawalFeeAndCompleteTransaction, trx.WalletID, trx.ID, amount).Get(ctx, nil)
 	if err != nil {
 		return rollBackWithdrawal(ctx, a, updateTransaction, trx.WalletID, trx.ID)
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.UpdateChimoneyPaymentState, trx.ID, payments.StateCompleted).Get(ctx, nil)
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -289,6 +298,11 @@ func ExecuteChimoneyWithdrawalWorkflow(
 
 	var trx transactions.Transaction
 	err := workflow.ExecuteActivity(ctx, a.GetChimoneyTransaction, walletID, trxID).Get(ctx, &trx)
+	if err != nil {
+		return err
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.UpdateChimoneyPaymentState, trx.ID, payments.StateProcessing).Get(ctx, nil)
 	if err != nil {
 		return err
 	}
@@ -564,6 +578,14 @@ func (a *Activity) ChimoneyWithdraw(ctx context.Context, walletID, trxID string)
 
 func (a *Activity) SetChimoneyTransactionForeignID(ctx context.Context, trxID, foreignID string) error {
 	return a.b.Transactions().SetTransactionForeignID(ctx, trxID, foreignID)
+}
+
+func (a *Activity) UpdateChimoneyPaymentState(ctx context.Context, trxID string, state payments.State) error {
+	_, err := a.b.DB().ExecContext(ctx, "UPDATE payments SET state=$1, updated_at=now() where send_transaction_id=$2", state, trxID)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (a *Activity) CompleteChimoneyTransaction(ctx context.Context, walletID, trxID string) error {
