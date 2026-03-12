@@ -128,12 +128,12 @@ func ParseStartArgs() (*StartArgs, error) {
 	}
 	dbUrl := os.Getenv("DB_URL")
 	if dbUrl == "" {
-		dbUrl = "cockroach://backend@cockroachdb-public:26257/backend?sslmode=verify-full&sslrootcert=/cockroach-certs/ca.crt&sslcert=/cockroach-certs/client.backend.crt&sslkey=/cockroach-certs/client.backend.key&max_conns=20&max_idle_conns=4"
+		return nil, errors.New("DB_URL is required.")
 	}
 
 	pacDB := os.Getenv("PACIOLI_DB_URL")
 	if pacDB == "" {
-		dbUrl = "cockroach://backend@cockroachdb-public:26257/pacioli?sslmode=verify-full&sslrootcert=/cockroach-certs/ca.crt&sslcert=/cockroach-certs/client.backend.crt&sslkey=/cockroach-certs/client.backend.key&max_conns=20&max_idle_conns=4"
+		return nil, errors.New("PACIOLI_DB_URL is required.")
 	}
 
 	kratosUrl := os.Getenv("KRATOS_URL")
