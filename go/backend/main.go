@@ -69,6 +69,7 @@ import (
 	pti_ops "gitlab.com/fynbos/backend/providers/pti/ops"
 	"gitlab.com/fynbos/backend/providers/xago"
 	xago_client "gitlab.com/fynbos/backend/providers/xago/client"
+	xago_external "gitlab.com/fynbos/backend/providers/xago/external"
 	"gitlab.com/fynbos/backend/rafiki"
 	rafiki_client "gitlab.com/fynbos/backend/rafiki/client"
 	"gitlab.com/fynbos/backend/signup"
@@ -441,7 +442,7 @@ func startWorker(args *cli.StartArgs) {
 	serveHTTP(&http.Server{Addr: ":8081", Handler: router}, &wg)
 
 	log.Info("Worker creating")
-	w, err := temporal.NewTemporalWorker(b, b.gatehubConfig)
+	w, err := temporal.NewTemporalWorker(b, b.gatehubConfig, b.xagoConfig)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -484,6 +485,7 @@ type backends struct {
 	slack          slack.Client
 	rafiki         rafiki.Client
 	xago           xago.Client
+	xagoConfig     xago_external.Config
 	pac            pacioli.Client
 	pti            pti.Client
 	gatehub        gatehub.Client
@@ -762,7 +764,14 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	b.pac = pacioli_client.NewLocal(pacDB)
 
 	log.Debug("initialising xago")
-	b.xago = xago_client.New(b)
+	b.xagoConfig = xago_external.Config{
+		APIBaseURL:      args.XagoAPIBaseURL,
+		IdentityBaseURL: args.XagoIdentityBaseURL,
+		PublicKey:       args.XagoPublicKey,
+		Secret:          args.XagoSecret,
+		PolicyID:        args.XagoPolicyID,
+	}
+	b.xago = xago_client.New(b, b.xagoConfig)
 
 	log.Debug("initialising FIANT")
 	b.pti = pti_client.New(b)
