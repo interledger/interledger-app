@@ -100,6 +100,11 @@ type StartArgs struct {
 	GatehubEUROpsAccount          string
 	GatehubEUROpsLedgerID         uint32
 	GatehubOrganizationID         string
+	XagoAPIBaseURL                string
+	XagoIdentityBaseURL           string
+	XagoPublicKey                 string
+	XagoSecret                    string
+	XagoPolicyID                  string
 }
 
 func ParseStartArgs() (*StartArgs, error) {
@@ -307,6 +312,31 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, errors.New("GATEHUB_ORGANIZATION_ID is required in production")
 	}
 
+	xagoAPIBaseURL := os.Getenv("XAGO_API_BASE_URL")
+	if xagoAPIBaseURL == "" {
+		return nil, errors.New("XAGO_API_BASE_URL is required")
+	}
+
+	xagoIdentityBaseURL := os.Getenv("XAGO_IDENTITY_BASE_URL")
+	if xagoIdentityBaseURL == "" {
+		return nil, errors.New("XAGO_IDENTITY_BASE_URL is required")
+	}
+
+	xagoPublicKey := os.Getenv("XAGO_API_PUBLIC_KEY")
+	if xagoPublicKey == "" {
+		return nil, errors.New("XAGO_API_PUBLIC_KEY is required")
+	}
+
+	xagoSecret := os.Getenv("XAGO_API_SECRET")
+	if xagoSecret == "" {
+		return nil, errors.New("XAGO_API_SECRET is required")
+	}
+
+	xagoPolicyID := os.Getenv("XAGO_POLICY_ID")
+	if xagoPolicyID == "" {
+		return nil, errors.New("XAGO_POLICY_ID is required")
+	}
+
 	return &StartArgs{
 		Port:                          port,
 		AuthorisationPort:             authorisationPort,
@@ -355,5 +385,10 @@ func ParseStartArgs() (*StartArgs, error) {
 		GatehubEUROpsAccount:          gatehubEUROpsAccount,
 		GatehubEUROpsLedgerID:         gatehubEUROpsLedgerID,
 		GatehubOrganizationID:         gatehubOrganizationID,
+		XagoAPIBaseURL:                xagoAPIBaseURL,
+		XagoIdentityBaseURL:           xagoIdentityBaseURL,
+		XagoPublicKey:                 xagoPublicKey,
+		XagoSecret:                    xagoSecret,
+		XagoPolicyID:                  xagoPolicyID,
 	}, nil
 }

@@ -69,6 +69,7 @@ import (
 	pti_ops "gitlab.com/fynbos/backend/providers/pti/ops"
 	"gitlab.com/fynbos/backend/providers/xago"
 	xago_client "gitlab.com/fynbos/backend/providers/xago/client"
+	xago_external "gitlab.com/fynbos/backend/providers/xago/external"
 	"gitlab.com/fynbos/backend/rafiki"
 	rafiki_client "gitlab.com/fynbos/backend/rafiki/client"
 	"gitlab.com/fynbos/backend/signup"
@@ -99,6 +100,10 @@ import (
 	"go.temporal.io/sdk/worker"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+
+	// bradu
+	"github.com/lestrrat-go/jwx/v3/jwk"
+	fiant "gitlab.com/fynbos/backend/providers/fiant/v1"
 )
 
 func main() {
@@ -196,6 +201,26 @@ func start(args *cli.StartArgs) {
 	router.Handle("/webhooks/gatehub/v1/users/managed/{userId}/2fa", gatehub_ops.NewSCAHandler(b, b.gatehubConfig))
 	router.Handle("/{wallet_id}/identities/{identity_sig_hash}", wallet_handler.GetIdentityHandler(b))
 	router.NotFound(wallet_handler.WalletRedirectHandler(b))
+
+	// fiant sandbox actions
+	ptiPrivateKey, err := jwk.ParseKey([]byte(os.Getenv("PTI_JWK")))
+	if err != nil {
+		log.Fatalln(err)
+	}
+	clientID := os.Getenv("PTI_CLIENT_ID")
+
+	ctrl, err := fiant.NewController(
+		fiant.WithBaseURL(os.Getenv("PTI_BASE_URL")),
+		fiant.WithClientID(clientID),
+		fiant.WithDerivedKeys(ptiPrivateKey),
+	)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	router.Handle("/settle/{transaction_id}", ctrl.SettleTransactionHook())
+	router.Handle("/return/{transaction_id}", ctrl.ReturnTransactionHook())
+	// ~fiant sandbox actions
 
 	var wg sync.WaitGroup
 
@@ -441,7 +466,7 @@ func startWorker(args *cli.StartArgs) {
 	serveHTTP(&http.Server{Addr: ":8081", Handler: router}, &wg)
 
 	log.Info("Worker creating")
-	w, err := temporal.NewTemporalWorker(b, b.gatehubConfig)
+	w, err := temporal.NewTemporalWorker(b, b.gatehubConfig, b.xagoConfig)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -484,6 +509,7 @@ type backends struct {
 	slack          slack.Client
 	rafiki         rafiki.Client
 	xago           xago.Client
+	xagoConfig     xago_external.Config
 	pac            pacioli.Client
 	pti            pti.Client
 	gatehub        gatehub.Client
@@ -762,7 +788,14 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	b.pac = pacioli_client.NewLocal(pacDB)
 
 	log.Debug("initialising xago")
-	b.xago = xago_client.New(b)
+	b.xagoConfig = xago_external.Config{
+		APIBaseURL:      args.XagoAPIBaseURL,
+		IdentityBaseURL: args.XagoIdentityBaseURL,
+		PublicKey:       args.XagoPublicKey,
+		Secret:          args.XagoSecret,
+		PolicyID:        args.XagoPolicyID,
+	}
+	b.xago = xago_client.New(b, b.xagoConfig)
 
 	log.Debug("initialising FIANT")
 	b.pti = pti_client.New(b)
