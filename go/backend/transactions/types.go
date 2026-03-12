@@ -19,6 +19,7 @@ const (
 	TransactionTypeWebMonetizationIncoming TransactionType = "web_monetization_incoming"
 	TransactionTypeWebMonetizationOutgoing TransactionType = "web_monetization_outgoing"
 	TransactionTypeCardTransaction         TransactionType = "card_transaction"
+	TransactionTypeReturn                  TransactionType = "return"
 )
 
 type State string
