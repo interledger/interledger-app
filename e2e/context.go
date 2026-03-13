@@ -304,7 +304,7 @@ func (sc *E2EContext) theMockxagoIsRunningAt(urlStr string) error {
 
 	debugPrintf("🔍 Verifying mockxago health endpoint at %s...\n", urlStr)
 	healthURL := strings.TrimSuffix(urlStr, "/") + "/health"
-	return sc.waitForHealthEndpoint(healthURL, 30*time.Second)
+	return waitForHealthEndpoint(healthURL, 30*time.Second)
 }
 
 func (sc *E2EContext) ensureHostsResolve(hosts []string) error {

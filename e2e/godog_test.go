@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/cucumber/godog"
 	"github.com/google/uuid"
@@ -13,10 +14,16 @@ import (
 	"go.temporal.io/sdk/client"
 )
 
+type workflowArgs struct {
+	APIBaseURL string `json:"apiBaseUrl"`
+	TwoFAType  string `json:"twoFAType"`
+}
+
 var (
-	tags        = flag.String("tags", "", "Godog tags expression, e.g. @wip or @phone-debug")
-	concurrency = flag.Int("concurrency", 1, "Number of concurrent scenarios (default: 1)")
-	reportPath  = flag.String("report", "debug/report.json", "Path for cucumber report output")
+	tags                 = flag.String("tags", "", "Godog tags expression, e.g. @wip or @phone-debug")
+	concurrency          = flag.Int("concurrency", 1, "Number of concurrent scenarios (default: 1)")
+	reportPath           = flag.String("report", "debug/report.json", "Path for cucumber report output")
+	temporalWorkflowArgs = workflowArgs{APIBaseURL: "http://backend:8080/webhooks/gatehub", TwoFAType: "totp"}
 )
 
 // cleanupDebugScreenshots removes all screenshots from the debug directory
@@ -47,6 +54,8 @@ func TestFeatures(t *testing.T) {
 		format = fmt.Sprintf("pretty,cucumber:%s", *reportPath)
 	}
 
+	prerequisite(t)
+
 	suite := godog.TestSuite{
 		ScenarioInitializer: InitializeScenario,
 		Options: &godog.Options{
@@ -67,7 +76,6 @@ func TestMain(m *testing.M) {
 	status := m.Run()
 	os.Exit(status)
 }
-<<<<<<< HEAD
 
 func prerequisite(t *testing.T) {
 	// Wait for the backend HTTP server to be healthy before doing anything else.
@@ -125,5 +133,3 @@ func waitForWorkers(t *testing.T, c client.Client, taskQueue string, timeout tim
 	}
 	t.Fatalf("timed out waiting for workers on task queue %q after %v", taskQueue, timeout)
 }
-=======
->>>>>>> 10f5d60ed (test: e2e signup tests now working)
