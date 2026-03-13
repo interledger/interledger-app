@@ -22,7 +22,6 @@ export default defineConfig({
   },
 
   build: {
-    // The sourcemap gets deleted in the Dockerfile anyways
     sourcemap: process.env.NODE_ENV === 'production' ? 'hidden' : true,
   },
   plugins: [

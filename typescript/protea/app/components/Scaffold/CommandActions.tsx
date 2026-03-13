@@ -18,6 +18,7 @@ import {
 import { Label } from '~/components/Label'
 import type { SearchResult } from '~/generated/connect/backend/v1/backend_pb'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
+import { searchLoader } from '~/routes/pay/route';
 
 
 type Action = {
@@ -53,7 +54,7 @@ const defaultActions = [
 ]
 
 export function CommandActions() {
-  const search = useFetcher<{ results?: PlainMessage<SearchResult>[] }>()
+  const search = useFetcher<typeof searchLoader>()
 
   const navigate = useNavigate()
 

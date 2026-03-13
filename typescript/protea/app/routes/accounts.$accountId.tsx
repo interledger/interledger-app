@@ -176,7 +176,7 @@ function InteracDetailsPage() {
 }
 
 function BankDetailsPage() {
-  const { account } = useLoaderData()
+  const { account } = useLoaderData<typeof bankLoader>()
   const params = useParams()
   return (
     <>
@@ -208,7 +208,7 @@ function BankDetailsPage() {
 }
 
 function CardDetailsPage() {
-  const { card, account, csrfToken } = useLoaderData()
+  const { card, account, csrfToken } = useLoaderData<typeof cardLoader>()
   const params = useParams()
   const [limitationsDialog, setLimitationsDialog] = useState<boolean>(false)
   const [showDialog, setShowDialog] = useState<boolean>(false)

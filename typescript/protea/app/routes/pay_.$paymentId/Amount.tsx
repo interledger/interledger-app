@@ -1,4 +1,5 @@
 import { useFetcher, useLoaderData } from 'react-router';
+import type { action, loader, updatePaymentAction } from './route'
 import type { ChangeEventHandler } from 'react'
 import { useCallback, useEffect, useReducer, useRef } from 'react'
 import { href } from 'react-router'
@@ -22,7 +23,6 @@ import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { PayTextField } from '~/routes/pay_.$paymentId/PayTextField'
 import { PaySelect } from './PaySelect'
 import { PaymentDetailsCard } from './PaymentDetailsCard'
-import type { loader } from './route'
 
 const DEBOUNCE_WAIT = 150
 
@@ -98,7 +98,7 @@ function reducer(state: AmountState, action: Action): AmountState {
 
 export const Amount = () => {
   const { account, sendAccounts, payment, csrfToken } =
-    useLoaderData<any>()
+    useLoaderData<typeof loader>()
 
   const [localPayment, dispatchPayment] = useReducer(
     reducer,
@@ -106,7 +106,7 @@ export const Amount = () => {
     createInitialState
   )
 
-  const updatePaymentFetcher = useFetcher<any>()
+  const updatePaymentFetcher = useFetcher<typeof updatePaymentAction>()
 
   const [setStep] = usePayStore((state) => [state.setStep])
 

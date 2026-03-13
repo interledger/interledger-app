@@ -11,7 +11,6 @@ import { Password } from '~/routes/signup/Password'
 import { Phone } from '~/routes/signup/Phone'
 import styles from '~/styles/flags.css?url'
 import type { loader } from './route.server'
-
 export { loader, action } from './route.server'
 
 export const handle: ApplicationProps = {

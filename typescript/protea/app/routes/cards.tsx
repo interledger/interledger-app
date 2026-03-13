@@ -76,12 +76,12 @@ export const meta = mergeMeta(() => [
 ])
 
 export default function Page() {
-  const { cards, isWaitingForCreation } = useLoaderData()
+  const { cards, isWaitingForCreation } = useLoaderData<typeof loader>()
   const location = useLocation()
   const { setCards } = useCardsStore()
 
   useEffect(() => {
-    const storableCards = cards.map((c: import("~/lib/cards/types").SerializedCard) => toStorableCard(c))
+    const storableCards = cards.map((c) => toStorableCard(c))
     setCards(storableCards)
   }, [cards, setCards])
 

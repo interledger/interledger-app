@@ -42,7 +42,7 @@ export async function loader(args: LoaderFunctionArgs) {
   return payLoader(args)
 }
 
-async function searchLoader(
+export async function searchLoader(
   { request }: LoaderFunctionArgs,
   term: string
 ) {

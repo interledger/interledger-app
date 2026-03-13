@@ -252,7 +252,7 @@ export async function action(args: ActionFunctionArgs) {
   }
 }
 
-async function confirmPaymentAction({
+export async function confirmPaymentAction({
   request,
   params
 }: ActionFunctionArgs) {
@@ -306,7 +306,7 @@ function stringToBigInt(amount: string) {
   return BigInt(parseFloat(amount) * 100)
 }
 
-async function updatePaymentAction({
+export async function updatePaymentAction({
   request,
   params
 }: ActionFunctionArgs) {

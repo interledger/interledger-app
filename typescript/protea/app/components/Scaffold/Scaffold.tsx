@@ -460,7 +460,7 @@ export function Scaffold() {
                 {footer.column1.map((link, index) => (
                   <ContentRouter
                     key={link.id + 'FooterLink'}
-                    to={link as any}
+                    to={link}
                     className='mt-1 text-disabled first-of-type:mt-4'
                   />
                 ))}
@@ -472,7 +472,7 @@ export function Scaffold() {
                 {footer.column2.map((link, index) => (
                   <ContentRouter
                     key={link.id + 'FooterLink'}
-                    to={link as any}
+                    to={link}
                     className='mt-1 text-disabled first-of-type:mt-4'
                   />
                 ))}
@@ -484,7 +484,7 @@ export function Scaffold() {
                 {footer.column3.map((link, index) => (
                   <ContentRouter
                     key={link.id + 'FooterLink'}
-                    to={link as any}
+                    to={link}
                     className='mt-1 text-disabled first-of-type:mt-4'
                   />
                 ))}

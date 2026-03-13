@@ -83,7 +83,7 @@ export default function Page() {
     hasBank,
     kycStatus,
     hasZABalance
-  } = useLoaderData()
+  } = useLoaderData<typeof loader>()
 
   const location = useLocation()
   const pathSegments = location.pathname.split('/').filter(Boolean)
@@ -127,7 +127,7 @@ export default function Page() {
             <CardHeader>
               <CardTitle>Connected cards</CardTitle>
             </CardHeader>
-            {cardAccounts.map((method: import("~/data/accounts.server").FormattedLinkedAccount) => (
+            {cardAccounts.map((method) => (
               <CardLink
                 key={method.id}
                 to={href('/accounts/:accountId', {
@@ -183,7 +183,7 @@ export default function Page() {
             <CardHeader>
               <CardTitle>Connected bank accounts</CardTitle>
             </CardHeader>
-            {bankAccounts.map((method: import("~/data/accounts.server").FormattedLinkedAccount) => (
+            {bankAccounts.map((method) => (
               <CardLink
                 key={method.id}
                 to={href('/accounts/:accountId', {
@@ -215,7 +215,7 @@ export default function Page() {
             <CardHeader>
               <CardTitle>Connected interac accounts</CardTitle>
             </CardHeader>
-            {interacAccounts.map((method: import("~/data/accounts.server").FormattedLinkedAccount) => (
+            {interacAccounts.map((method) => (
               <CardLink
                 key={method.id}
                 to={href('/accounts/:accountId', {

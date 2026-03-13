@@ -114,7 +114,7 @@ export const meta = mergeMeta(() => [
 ])
 
 export default function Page() {
-  const initialPage = useLoaderData()
+  const initialPage = useLoaderData<typeof loader>()
   let [, setSearchParams] = useSearchParams()
   const fetcher = useFetcher<typeof loader>()
   const [transactions, setTransactions] = useState(initialPage.transactions)
@@ -181,7 +181,7 @@ export default function Page() {
   // Handle new transactions being fetched and add to transaction list
   useEffect(() => {
     if (fetcher.data && fetcher.data.transactions.length > 0) {
-      setTransactions((currentTransactions: import("~/generated/connect/backend/v1/backend_pb").Transaction[][]) => {
+      setTransactions((currentTransactions) => {
         if (!fetcher.data) return currentTransactions
 
         const lastOfCurrent =

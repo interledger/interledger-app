@@ -34,10 +34,10 @@ export const handle: ApplicationProps = {
 }
 
 export default function Page() {
-  const { marketingPage } = useLoaderData()
+  const { marketingPage } = useLoaderData<typeof loader>()
   return (
     <>
-      {marketingPage?.body?.map((section: import("~/generated/dato-cms-graphql").SectionRecord) => (
+      {marketingPage?.body?.map((section) => (
         <MarketingPageWithSections
           key={section.id}
           section={section as SectionRecord}

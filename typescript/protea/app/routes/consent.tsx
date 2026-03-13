@@ -13,8 +13,8 @@ import {
 import { getWalletInfo } from '~/data/wallet.server'
 import { getUserSession } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
-import type { Amount } from '~/lib/rafikiauth'
-import { consent, getInteraction } from '~/lib/rafikiauth'
+import type { Amount } from '~/lib/rafikiauth.server'
+import { consent, getInteraction } from '~/lib/rafikiauth.server'
 
 export async function loader({ request }: Route.LoaderArgs) {
   await getUserSession(request)
