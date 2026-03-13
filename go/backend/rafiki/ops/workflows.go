@@ -254,7 +254,7 @@ func RafikiOutgoingPaymentCompletedWorkflow(ctx workflow.Context, op outgoingPay
 		return err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.WithdrawOutgoingPaymentLiquidity, op.ID).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.WithdrawOutgoingPaymentLiquidity, op).Get(ctx, nil)
 	if err != nil {
 		logger.Error("failed to withdraw outgoing payment liquidity", "paymentId", op.ID, "err", err)
 		return err
@@ -309,7 +309,7 @@ func RafikiOutgoingPaymentFailedWorkflow(ctx workflow.Context, op outgoingPaymen
 		return err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.WithdrawOutgoingPaymentLiquidity, op.ID).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.WithdrawOutgoingPaymentLiquidity, op).Get(ctx, nil)
 	if err != nil {
 		logger.Error("failed to withdraw outgoing payment liquidity", "paymentId", op.ID, "err", err)
 		return err

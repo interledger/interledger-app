@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -20,22 +19,20 @@ import (
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/gatehub"
-	ghExternal "gitlab.com/fynbos/backend/providers/gatehub/external"
 	"gitlab.com/fynbos/backend/rafiki"
-	rafikiExternal "gitlab.com/fynbos/backend/rafiki/external"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/pacioli"
 )
 
 type Activity struct {
-	b              ActivityBackends
-	rafikiExternal rafikiExternal.Client
+	b          ActivityBackends
+	gatehubCfg gatehub.Config
 }
 
-func NewActivity(b ActivityBackends, rafikiExt rafikiExternal.Client) *Activity {
+func NewActivity(b ActivityBackends, gatehubCfg gatehub.Config) *Activity {
 	return &Activity{
-		b:              b,
-		rafikiExternal: rafikiExt,
+		b:          b,
+		gatehubCfg: gatehubCfg,
 	}
 }
 
@@ -196,15 +193,6 @@ func (a *Activity) GetGatehubLinkedAccountInfo(ctx context.Context, walletAddres
 	}, nil
 }
 
-func (a *Activity) getGatehubExternalUserID(ctx context.Context, walletID string) (string, error) {
-	var externalID string
-	err := a.b.DB().GetContext(ctx, &externalID, "SELECT external_id FROM gatehub_users WHERE wallet_id=$1;", walletID)
-	if err != nil {
-		return "", fmt.Errorf("%w %s", rafiki.ErrInternal, err)
-	}
-	return externalID, nil
-}
-
 func lookupWalletIDFromActivity(ctx context.Context, b ActivityBackends, paymentPointerID string) (string, error) {
 	var wid string
 	err := b.DB().GetContext(ctx, &wid, "SELECT wallet_id FROM rafiki_payment_pointers WHERE payment_pointer_id=$1", paymentPointerID)
@@ -217,34 +205,29 @@ func lookupWalletIDFromActivity(ctx context.Context, b ActivityBackends, payment
 // Creates a GateHub hosted transfer from the system intermediary
 // account to the user's GateHub wallet. Returns the GateHub transaction ID.
 func (a *Activity) TransferFromIntermediaryToUser(ctx context.Context, info GatehubLinkedAccountInfo, amt amount) (string, error) {
+	if a.gatehubCfg.SendingUserAddress == "" {
+		return "", temporal.NewNonRetryableApplicationError("intermediary gatehub credentials not configured", "ErrInternal",
+			fmt.Errorf("missing SendingUserAddress in gatehub config"))
+	}
+
 	parsedAmt, err := parseAmountValue(amt.Value)
 	if err != nil {
 		return "", temporal.NewNonRetryableApplicationError("invalid amount value", "ErrInternal", err)
 	}
-
-	sendingAddress := os.Getenv("GATEHUB_MANAGED_USER_WALLET")
-	if sendingAddress == "" {
-		return "", temporal.NewNonRetryableApplicationError("intermediary gatehub credentials not configured", "ErrInternal",
-			fmt.Errorf("missing GATEHUB_MANAGED_USER_WALLET"))
-	}
-
-	cc := currency.ParseCurrency(amt.AssetCode)
-	currencyAmt := currency.FromUInt64(parsedAmt, cc)
-	floatAmt := currencyAmt.Float64()
 
 	wallet, err := a.b.Wallets().Get(ctx, info.WalletID)
 	if err != nil {
 		return "", fmt.Errorf("%w %s", rafiki.ErrInternal, err)
 	}
 
-	ghClient := a.b.Gatehub().ExternalClient()
-	tx, err := ghClient.CreateTransaction(ctx, ghExternal.CreateTransactionRequest{
-		SendingAddress:   sendingAddress,
+	cc := currency.ParseCurrency(amt.AssetCode)
+	currencyAmt := currency.FromUInt64(parsedAmt, cc)
+
+	tx, err := a.b.Gatehub().CreateTransfer(ctx, gatehub.CreateTransferArgs{
+		SendingAddress:   a.gatehubCfg.SendingUserAddress,
 		ReceivingAddress: info.ProviderID,
-		Amount:           floatAmt,
+		Amount:           currencyAmt,
 		Message:          fmt.Sprintf("Rafiki incoming payment to %s", wallet.Name),
-		Type:             ghExternal.TransactionTypeHosted,
-		VaultID:          ghClient.GetVaultID(),
 	})
 	if err != nil {
 		return "", fmt.Errorf("gatehub transfer from intermediary to user failed: %w", err)
@@ -256,7 +239,12 @@ func (a *Activity) TransferFromIntermediaryToUser(ctx context.Context, info Gate
 // Creates a GateHub hosted transfer from the user's
 // GateHub wallet to the system intermediary account. Returns the GateHub transaction ID.
 func (a *Activity) TransferFromUserToIntermediary(ctx context.Context, walletAddressID string, amt amount) (string, error) {
-	la, walletID, err := a.getGatehubLinkedAccount(ctx, walletAddressID)
+	if a.gatehubCfg.SendingUserAddress == "" {
+		return "", temporal.NewNonRetryableApplicationError("intermediary gatehub credentials not configured", "ErrInternal",
+			fmt.Errorf("missing SendingUserAddress in gatehub config"))
+	}
+
+	la, _, err := a.getGatehubLinkedAccount(ctx, walletAddressID)
 	if err != nil {
 		return "", temporal.NewNonRetryableApplicationError("failed to get gatehub linked account", "ErrNotFound", err)
 	}
@@ -266,30 +254,14 @@ func (a *Activity) TransferFromUserToIntermediary(ctx context.Context, walletAdd
 		return "", temporal.NewNonRetryableApplicationError("invalid amount value", "ErrInternal", err)
 	}
 
-	sendingAddress := os.Getenv("GATEHUB_MANAGED_USER_WALLET")
-	if sendingAddress == "" {
-		return "", temporal.NewNonRetryableApplicationError("intermediary gatehub credentials not configured", "ErrInternal",
-			fmt.Errorf("missing GATEHUB_MANAGED_USER_WALLET"))
-	}
-
-	externalUserID, err := a.getGatehubExternalUserID(ctx, walletID)
-	if err != nil {
-		return "", temporal.NewNonRetryableApplicationError("failed to get gatehub external user", "ErrNotFound", err)
-	}
-
 	cc := currency.ParseCurrency(amt.AssetCode)
 	currencyAmt := currency.FromUInt64(parsedAmt, cc)
-	floatAmt := currencyAmt.Float64()
 
-	ghClient := a.b.Gatehub().ExternalClient()
-	tx, err := ghClient.CreateTransaction(ctx, ghExternal.CreateTransactionRequest{
-		SendingUserID:    externalUserID,
-		SendingAddress:   la.ProviderID,
-		ReceivingAddress: sendingAddress,
-		Amount:           floatAmt,
-		Message:          "Rafiki outgoing payment",
-		Type:             ghExternal.TransactionTypeHosted,
-		VaultID:          ghClient.GetVaultID(),
+	tx, err := a.b.Gatehub().CreateTransfer(ctx, gatehub.CreateTransferArgs{
+		SendingLinkedAccountID: la.ID,
+		ReceivingAddress:       a.gatehubCfg.SendingUserAddress,
+		Amount:                 currencyAmt,
+		Message:                "Rafiki outgoing payment",
 	})
 	if err != nil {
 		return "", fmt.Errorf("gatehub transfer from user to intermediary failed: %w", err)
@@ -329,14 +301,14 @@ func (a *Activity) ValidateOutgoingPayment(ctx context.Context, op outgoingPayme
 func (a *Activity) validateLocalReceiver(ctx context.Context, op outgoingPaymentData, senderWalletID string) (*ValidationResult, error) {
 	receiverID := extractIncomingPaymentID(op.Receiver)
 
-	receiverIP, err := a.rafikiExternal.GetIncomingPayment(ctx, receiverID)
+	receiverIP, err := a.b.Rafiki().GetIncomingPayment(ctx, receiverID)
 	if err != nil {
 		return &ValidationResult{Valid: false, Reason: "could not resolve receiver"}, nil
 	}
 
 	var receiverWalletID string
 	err = a.b.DB().GetContext(ctx, &receiverWalletID,
-		"SELECT wallet_id FROM rafiki_payment_pointers WHERE payment_pointer_id=$1", receiverIP.WalletAddressId)
+		"SELECT wallet_id FROM rafiki_payment_pointers WHERE payment_pointer_id=$1", receiverIP.WalletAddressID)
 	if err != nil {
 		return &ValidationResult{Valid: true}, nil
 	}
@@ -394,7 +366,7 @@ func findProviderCurrency(accs []linkedaccounts.LinkedAccount, assetCode string,
 }
 
 func (a *Activity) CancelOutgoingPayment(ctx context.Context, paymentID, reason string) error {
-	return a.rafikiExternal.CancelOutgoingPayment(ctx, paymentID, reason)
+	return a.b.Rafiki().CancelOutgoingPayment(ctx, paymentID, reason)
 }
 
 func (a *Activity) CreateIncomingPaymentTransaction(ctx context.Context, ip incomingPaymentData) error {
@@ -484,7 +456,7 @@ func (a *Activity) CreateAndPostLedgerTransferForIncoming(ctx context.Context, i
 }
 
 func (a *Activity) WithdrawIncomingPaymentLiquidity(ctx context.Context, incomingPaymentID string) error {
-	err := a.rafikiExternal.WithdrawIncomingPaymentLiquidity(ctx, incomingPaymentID, 0)
+	err := a.b.Rafiki().WithdrawIncomingPaymentLiquidity(ctx, incomingPaymentID)
 	if err != nil {
 		log.Error("failed to withdraw incoming payment liquidity",
 			zap.String("incomingPaymentId", incomingPaymentID),
@@ -582,7 +554,7 @@ func (a *Activity) ReserveBalanceForOutgoing(ctx context.Context, op outgoingPay
 }
 
 func (a *Activity) DepositOutgoingPaymentLiquidity(ctx context.Context, outgoingPaymentID string) error {
-	err := a.rafikiExternal.FundOutgoingPayment(ctx, outgoingPaymentID)
+	err := a.b.Rafiki().FundOutgoingPayment(ctx, outgoingPaymentID)
 	if err != nil {
 		if strings.Contains(err.Error(), "wrong state") {
 			log.Info("rafiki outgoing payment already funded", zap.String("paymentId", outgoingPaymentID))
@@ -649,12 +621,28 @@ func (a *Activity) VoidLedgerTransferForOutgoing(ctx context.Context, op outgoin
 	return nil
 }
 
-func (a *Activity) WithdrawOutgoingPaymentLiquidity(ctx context.Context, outgoingPaymentID string) error {
-	err := a.rafikiExternal.WithdrawOutgoingPaymentLiquidity(ctx, outgoingPaymentID, 0)
+func (a *Activity) WithdrawOutgoingPaymentLiquidity(ctx context.Context, op outgoingPaymentData) error {
+	balance, err := parseAmountValue(op.Balance)
+	if err != nil {
+		log.Error("failed to parse outgoing payment balance",
+			zap.String("paymentId", op.ID),
+			zap.String("balance", op.Balance),
+			zap.Error(err))
+		return err
+	}
+
+	if balance == 0 {
+		log.Info("no outgoing payment liquidity to withdraw",
+			zap.String("paymentId", op.ID))
+		return nil
+	}
+
+	err = a.b.Rafiki().WithdrawOutgoingPaymentLiquidity(ctx, op.ID)
 	if err != nil {
 		log.Error("failed to withdraw outgoing payment liquidity",
-			zap.String("paymentId", outgoingPaymentID),
+			zap.String("paymentId", op.ID),
 			zap.Error(err))
+		return err
 	}
 	return nil
 }
