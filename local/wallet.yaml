@@ -144,7 +144,6 @@ services:
       - XAGO_LEDGER_ID_USD=${BACKEND_XAGO_LEDGER_ID_USD:-9246873}
 
       # Xago webhook secret
-<<<<<<< HEAD
       - XAGO_WEBHOOK_SECRET=${BACKEND_XAGO_WEBHOOK_SECRET:-xago-webhook-secret}
       - ADMIN_POLICY_AUD=${BACKEND_ADMIN_POLICY_AUD:-admin-policy}
       - ADMIN_TEAM_DOMAIN=${BACKEND_ADMIN_TEAM_DOMAIN:-admin-team}
@@ -153,15 +152,9 @@ services:
       - SMARTY_AUTH_TOKEN=${BACKEND_SMARTY_AUTH_TOKEN:-test-smarty-auth-token}
       - PUSHER_ADDR=${BACKEND_PUSHER_ADDR:-http://pusher:8080}
       - SEGMENT_KEY=${BACKEND_SEGMENT_KEY:-test-segment-key}
-=======
-      - XAGO_WEBHOOK_SECRET=${XAGO_WEBHOOK_SECRET:-xago-webhook-secret}
-
-      # AASA & Asset Links configuration
       - APPLE_APP_ID=6B7AFCRT3V.app.wallet.interledger.test
       - ANDROID_PACKAGE_NAME=org.interledger.walletandroid.test
       - ANDROID_SHA256=25:D0:6A:A1:4F:BD:F6:05:93:2C:80:A2:AC:DA:DE:E4:2F:72:BC:23:9C:8F:2C:78:85:49:9A:AC:D2:4B:A4:FF
-
->>>>>>> 48df32e3b (Move handlers to backend)
     depends_on:
       - migration
       - mockgatehub
