@@ -5,12 +5,12 @@ import { href } from 'react-router'
 import { Button, Card } from '~/components'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { PaySelect } from '../pay_.$paymentId/PaySelect'
-import { ChimoneyAmountActionData } from './route';
+import { chimoneyAmountAction } from './action.server';
 
 
 export function ChimoneyDepositPage() {
   const [amount, setAmount] = useState<string>('')
-  const actionData = useActionData<ChimoneyAmountActionData>()
+  const actionData = useActionData<typeof chimoneyAmountAction>()
   const navigation = useNavigation()
   const submit = useSubmit()
   const _onChangeDepositAmount = useCallback<

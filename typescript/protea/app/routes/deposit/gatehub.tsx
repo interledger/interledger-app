@@ -4,10 +4,11 @@ import { useEffect } from 'react'
 
 import type { IframeMessage } from '~/lib/types'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
+import { gatehubDepositLoader } from './loader.server';
 
 
 export function GatehubDepositPage() {
-  const { gatehubWidgetUrl } = useLoaderData<any>()
+  const { gatehubWidgetUrl } = useLoaderData<typeof gatehubDepositLoader>()
   const [pushSnackbar] = useScaffoldStore((state) => [state.pushSnackbar])
   const navigate = useNavigate()
   useEffect(() => {

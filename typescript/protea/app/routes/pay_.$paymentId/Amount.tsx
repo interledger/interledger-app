@@ -1,5 +1,5 @@
 import { useFetcher, useLoaderData } from 'react-router';
-import type { action, loader, updatePaymentAction } from './route'
+import type { loader } from './route'
 import type { ChangeEventHandler } from 'react'
 import { useCallback, useEffect, useReducer, useRef } from 'react'
 import { href } from 'react-router'
@@ -23,6 +23,7 @@ import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { PayTextField } from '~/routes/pay_.$paymentId/PayTextField'
 import { PaySelect } from './PaySelect'
 import { PaymentDetailsCard } from './PaymentDetailsCard'
+import { updatePaymentAction } from './action.server';
 
 const DEBOUNCE_WAIT = 150
 

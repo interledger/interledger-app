@@ -5,7 +5,9 @@ import { Button, Card, CardContent, Checkbox } from '~/components'
 import { DateTime } from 'luxon'
 import { usePTISdk } from '~/lib/usePTISdk'
 import { PaymentDetailsCard } from './PaymentDetailsCard'
-import type { action, confirmPaymentAction, loader } from './route'
+import type { loader } from './route'
+import { confirmPaymentAction } from './action.server';
+
 
 export function Confirm() {
   const { payment, account, csrfToken, PTIClientId } =
