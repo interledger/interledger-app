@@ -45,6 +45,9 @@ services:
 
       - REDIS_URL=redis://redis:6379/2
 
+      - OP_KEY_ID=
+      - OP_PRIVATE_KEY=
+      - OP_WALLET_ADDRESS=https://ilp.interledger-test.dev/interledger
 
     depends_on:
       - backend

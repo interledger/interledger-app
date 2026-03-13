@@ -11,6 +11,14 @@ module.exports = {
   publicPath: `${process.env.REMIX_PUBLIC_PATH || ''}/build/`,
   ignoredRouteFiles: ['.*', '**/*.stories.tsx', '**/*.test.{ts,tsx}'],
   sourcemap: true,
+
+// ✅ bundle ESM dependencies so Node doesn't try to require() them
+  serverDependenciesToBundle: [
+    "@paralleldrive/cuid2",
+    "@interledger/open-payments",
+    /^@noble\/hashes.*/
+  ],
+
   browserNodeBuiltinsPolyfill: {
     modules: {
       os: true,
