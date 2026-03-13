@@ -890,8 +890,8 @@ func (a *Activity) ReturnTransaction(ctx context.Context, originalTransactionID,
 		return "", nil
 	}
 
-	returnedTransaction, err := a.b.Transactions().GetTransactionByForeignID(ctx, walletID, originalTransactionID)
-	if err != nil {
+	returnedTransaction, err := a.b.Transactions().GetTransactionByForeignID(ctx, walletID, originalTransaction.ID)
+	if err != nil && !errors.Is(err, transactions.ErrNotFound) {
 		return "", err
 	}
 
