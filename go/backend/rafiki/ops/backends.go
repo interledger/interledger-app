@@ -10,6 +10,7 @@ import (
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/providers/xago"
+	"gitlab.com/fynbos/backend/rafiki"
 	"gitlab.com/fynbos/backend/rafiki/external"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/wallets"
@@ -27,6 +28,7 @@ type TestActivityBackends struct {
 	transactions   transactions.Client
 	pacioli        pacioli.Client
 	gatehub        gatehub.Client
+	rafiki         rafiki.Client
 }
 
 func (t *TestActivityBackends) DB() *sqlx.DB                          { return t.db }
@@ -38,6 +40,7 @@ func (t *TestActivityBackends) Wallets() wallets.Client               { return t
 func (t *TestActivityBackends) Transactions() transactions.Client     { return t.transactions }
 func (t *TestActivityBackends) Pacioli() pacioli.Client               { return t.pacioli }
 func (t *TestActivityBackends) Gatehub() gatehub.Client               { return t.gatehub }
+func (t *TestActivityBackends) Rafiki() rafiki.Client                 { return t.rafiki }
 
 func (t *TestActivityBackends) SetDB(db *sqlx.DB)                          { t.db = db }
 func (t *TestActivityBackends) SetPayments(p payments.Client)              { t.payments = p }
@@ -48,6 +51,7 @@ func (t *TestActivityBackends) SetWallets(w wallets.Client)                { t.w
 func (t *TestActivityBackends) SetTransactions(tx transactions.Client)     { t.transactions = tx }
 func (t *TestActivityBackends) SetPacioli(p pacioli.Client)                { t.pacioli = p }
 func (t *TestActivityBackends) SetGatehub(g gatehub.Client)                { t.gatehub = g }
+func (t *TestActivityBackends) SetRafiki(r rafiki.Client)                  { t.rafiki = r }
 
 func NewTestActivityBackends() *TestActivityBackends {
 	return &TestActivityBackends{}
@@ -78,6 +82,7 @@ type ActivityBackends interface {
 	Transactions() transactions.Client
 	Pacioli() pacioli.Client
 	Gatehub() gatehub.Client
+	Rafiki() rafiki.Client
 }
 
 type TestBackends struct {

@@ -110,3 +110,19 @@ func (c *client) ListPendingTransactions(ctx context.Context, walletID string) (
 func (c *client) UpdateWalletAddressStatus(ctx context.Context, walletID rafiki.UpdateAddressStatus, status bool) error {
 	return ops.UpdateWalletAddressStatus(ctx, c.b, walletID, status)
 }
+
+func (c *client) GetIncomingPayment(ctx context.Context, id string) (*rafiki.IncomingPayment, error) {
+	return ops.GetIncomingPayment(ctx, c.b, id)
+}
+
+func (c *client) CancelOutgoingPayment(ctx context.Context, paymentPointerID, reason string) error {
+	return ops.CancelOutgoingPayment(ctx, c.b, paymentPointerID, reason)
+}
+
+func (c *client) WithdrawIncomingPaymentLiquidity(ctx context.Context, incomingPaymentID string) error {
+	return ops.WithdrawIncomingPaymentLiquidity(ctx, c.b, incomingPaymentID)
+}
+
+func (c *client) WithdrawOutgoingPaymentLiquidity(ctx context.Context, outgoingPaymentID string) error {
+	return ops.WithdrawOutgoingPaymentLiquidity(ctx, c.b, outgoingPaymentID)
+}

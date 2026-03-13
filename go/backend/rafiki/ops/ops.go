@@ -375,7 +375,32 @@ func RevokeGrant(ctx context.Context, b Backends, grantID string) error {
 
 func UpdateWalletAddressStatus(ctx context.Context, b Backends, walletId rafiki.UpdateAddressStatus, status bool) error {
 	return b.External().UpdateWalletAddressStatus(ctx, walletId, status)
+}
 
+func GetIncomingPayment(ctx context.Context, b Backends, id string) (*rafiki.IncomingPayment, error) {
+	ip, err := b.External().GetIncomingPayment(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return &rafiki.IncomingPayment{
+		ID:              ip.Id,
+		WalletAddressID: ip.WalletAddressId,
+		State:           rafiki.IncomingPaymentState(ip.State),
+		ExpiresAt:       ip.ExpiresAt,
+		CreatedAt:       ip.CreatedAt,
+	}, nil
+}
+
+func CancelOutgoingPayment(ctx context.Context, b Backends, paymentPointerID, reason string) error {
+	return b.External().CancelOutgoingPayment(ctx, paymentPointerID, reason)
+}
+
+func WithdrawIncomingPaymentLiquidity(ctx context.Context, b Backends, incomingPaymentID string) error {
+	return b.External().WithdrawIncomingPaymentLiquidity(ctx, incomingPaymentID, 0)
+}
+
+func WithdrawOutgoingPaymentLiquidity(ctx context.Context, b Backends, outgoingPaymentID string) error {
+	return b.External().WithdrawOutgoingPaymentLiquidity(ctx, outgoingPaymentID, 0)
 }
 
 func ListPendingWebMonetization(ctx context.Context, b Backends, walletID string) ([]transactions.Transaction, error) {

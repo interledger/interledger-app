@@ -167,7 +167,7 @@ func startRafikiWorkflow(ctx context.Context, b Backends, hook webhook, prepare 
 	wo := client.StartWorkflowOptions{
 		ID:                    wfID,
 		TaskQueue:             "backend",
-		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_ALLOW_DUPLICATE_FAILED_ONLY,
+		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_UNSPECIFIED,
 	}
 
 	_, err := b.Temporal().ExecuteWorkflow(ctx, wo, workflowFn, args)

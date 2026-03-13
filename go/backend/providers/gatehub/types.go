@@ -96,6 +96,11 @@ type CreateTransferArgs struct {
 	ReceivingLinkedAccountID string
 	Amount                   currency.Amount
 	ProviderFee              *currency.Amount
+	// Optional addresses for cases where one side has no linked account (e.g. intermediary account).
+	// When set, these override the linked account lookup for the respective side.
+	SendingAddress   string
+	ReceivingAddress string
+	Message string
 }
 
 type User = external.User
