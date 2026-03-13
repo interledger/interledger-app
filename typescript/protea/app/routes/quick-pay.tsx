@@ -97,7 +97,7 @@ export async function action({ request }: ActionFunctionArgs) {
   })
 
   try {
-    const validWalletAddress = await getValidWalletAddress(walletAddress) //as WalletAddress
+    const validWalletAddress = await getValidWalletAddress(walletAddress)
     session.set('quickPay', {
       validWalletAddress: validWalletAddress
     })
