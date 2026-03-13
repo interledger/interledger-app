@@ -373,7 +373,7 @@ func (a *Activity) CreatePTIBalanceAccount(ctx context.Context, id string) error
 			ID:                         id,
 			LedgerID:                   pti.LedgerIDUSD,
 			Code:                       1,
-			DebitsMustNotExceedCredits: true,
+			DebitsMustNotExceedCredits: false,
 			CreditsMustNotExceedDebits: false,
 		},
 	})
@@ -858,4 +858,167 @@ func (a *Activity) RollbackPTIBalance(ctx context.Context, id, walletID string) 
 	}
 
 	return RollbackReserve(ctx, a.b, tx.ID)
+}
+
+func (a *Activity) ReturnTransaction(ctx context.Context, originalTransactionID, walletID string, amount currency.Amount) (string, error) {
+	originalTransaction, err := a.b.Transactions().GetTransactionByForeignID(ctx, walletID, originalTransactionID)
+	if err != nil && !errors.Is(err, transactions.ErrNotFound) {
+		return "", err
+	}
+
+	las, err := a.b.LinkedAccounts().ListBalances(ctx, walletID)
+	if err != nil {
+		return "", err
+	}
+	var balance *linkedaccounts.LinkedAccount
+	for _, la := range las {
+		if la.Provider == pti.ProviderName && la.Type == pti.AccTypeBalance {
+			balance = &la
+			break
+		}
+	}
+	if balance == nil {
+		return "", temporal.NewNonRetryableApplicationError("PTI USD balance account not found", "ErrInternal", fmt.Errorf("%w Fiant USD balance account not found", pti.ErrInternal))
+	}
+
+	if originalTransaction.Type == transactions.TransactionTypeDeposit && originalTransaction.State == transactions.StatePending {
+		// if the original transaction is still pending (deposit only) we can just fail it without creating a return transaction
+		err = a.b.Transactions().SetTransactionState(ctx, originalTransaction.ID, transactions.StateFailed)
+		if err != nil {
+			return "", err
+		}
+		return "", nil
+	}
+
+	returnedTransaction, err := a.b.Transactions().GetTransactionByForeignID(ctx, walletID, originalTransactionID)
+	if err != nil {
+		return "", err
+	}
+
+	if returnedTransaction != nil {
+		return "already has a return transaction", temporal.NewNonRetryableApplicationError("already has a return transaction", "ErrInternal", fmt.Errorf("%w already has a return transaction", pti.ErrInternal))
+	}
+
+	var title, returnSource, returnDestination string
+	var transferType transactions.TransferType
+	switch originalTransaction.Type {
+	case transactions.TransactionTypeDeposit:
+		title = "ACH return for deposit"
+		returnSource = originalTransaction.Destination
+		returnDestination = originalTransaction.Source
+		transferType = transactions.TransferTypeDebitBalance
+
+	case transactions.TransactionTypeWithdrawal:
+		title = "ACH return for withdrawal"
+		returnSource = originalTransaction.Source
+		returnDestination = originalTransaction.Destination
+		transferType = transactions.TransferTypeCreditBalance
+	default:
+		return "", temporal.NewNonRetryableApplicationError("Unsupported transaction type", "ErrInternal", fmt.Errorf("%w unsupported transaction type for return: %s", pti.ErrInternal, originalTransaction.Type))
+	}
+
+	returnTransactionID, err := a.b.Transactions().CreateTransaction(ctx, transactions.CreateTransactionArgs{
+		WalletID:                walletID,
+		ForeignID:               originalTransaction.ID,
+		ForeignType:             transactions.TransactionTypeReturn,
+		Provider:                pti.ProviderName,
+		State:                   transactions.StateCompleted,
+		Source:                  returnSource,
+		Destination:             returnDestination,
+		Title:                   title,
+		DestinationIdentity:     walletID,
+		DestinationIdentityType: payments.IdentityTypeWalletID.String(),
+		Amount:                  amount,
+		ProviderFee:             nil,
+		LinkedAccountTitle:      "US Balance",
+		Transfers: []transactions.TransferArgs{
+			{
+				LinkedAccountID: balance.ID,
+				ForeignID:       originalTransactionID,
+				Amount:          amount,
+				Type:            transferType,
+				State:           transactions.StateCompleted,
+			},
+		},
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return returnTransactionID, nil
+}
+
+func (a *Activity) PostTransfer(ctx context.Context, transactionID, walletID string) error {
+	returnTransaction, err := a.b.Transactions().GetTransaction(ctx, walletID, transactionID)
+	if err != nil {
+		return err
+	}
+
+	originalTransaction, err := a.b.Transactions().GetTransaction(ctx, walletID, returnTransaction.ForeignID)
+	if err != nil {
+		return err
+	}
+
+	if returnTransaction.Amount.Currency != currency.USD {
+		return temporal.NewNonRetryableApplicationError("Invalid currency", "ErrInternal", fmt.Errorf("%w invalid currency", pti.ErrInternal))
+	}
+
+	las, err := a.b.LinkedAccounts().ListBalances(ctx, walletID)
+	if err != nil {
+		return err
+	}
+
+	var USDBalance *linkedaccounts.LinkedAccount
+	for _, la := range las {
+		if la.Provider == pti.ProviderName && la.Type == pti.AccTypeBalance {
+			USDBalance = &la
+			break
+		}
+	}
+	if USDBalance == nil {
+		return temporal.NewNonRetryableApplicationError("PTI USD balance account not found", "ErrInternal", fmt.Errorf("%w PTI USD balance account not found", pti.ErrInternal))
+	}
+
+	opsAcc := pti.USDOpsAccount
+	ledger := pti.LedgerIDUSD
+
+	var creditAccountID, debitAccountID string
+	switch originalTransaction.Type {
+	case transactions.TransactionTypeDeposit:
+		creditAccountID = opsAcc
+		debitAccountID = USDBalance.ID
+	case transactions.TransactionTypeWithdrawal:
+		creditAccountID = USDBalance.ID
+		debitAccountID = opsAcc
+	default:
+		return temporal.NewNonRetryableApplicationError("Unsupported transaction type", "ErrInternal", fmt.Errorf("%w unsupported transaction type for return: %s", pti.ErrInternal, originalTransaction.Type))
+	}
+
+	tx, err := a.b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
+		{
+			ID:              returnTransaction.ID,
+			Amount:          returnTransaction.Amount.Value,
+			CreditAccountID: creditAccountID,
+			DebitAccountID:  debitAccountID,
+			Pending:         false,
+			Code:            1,
+			Ledger:          ledger,
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+	if len(tx) > 0 {
+		if tx[0].Code == pacioli.TransferExists {
+			return nil
+		}
+		if tx[0].Code == pacioli.TransferExceedsCredits || tx[0].Code == pacioli.TransferExceedsDebits || tx[0].Code == pacioli.TransferExceedsPendingTransferAmount {
+			return fmt.Errorf("%w insufficient balance code (%s)", pti.ErrInsufficientBalance, tx[0].Code.String())
+		}
+		if tx[0].Code != 0 {
+			return fmt.Errorf("%w non success code (%s)", pti.ErrInternal, tx[0].Code.String())
+		}
+	}
+
+	return nil
 }
