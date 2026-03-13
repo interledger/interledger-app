@@ -18,7 +18,7 @@ Feature: User KYC and Account Activation
     And I impersonate 'kyc-user'
 
 
-  @kyc @germany
+  @kyc @gatehub
   Scenario: Successfully activate account and complete KYC as verified user
     Given that my "country" is "germany"
     And I completed the signup workflow
