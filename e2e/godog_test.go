@@ -22,7 +22,7 @@ type workflowArgs struct {
 var (
 	tags                 = flag.String("tags", "", "Godog tags expression, e.g. @wip or @phone-debug")
 	concurrency          = flag.Int("concurrency", 1, "Number of concurrent scenarios (default: 1)")
-	reportPath           = flag.String("report", "debug/report.md", "Path for markdown report output")
+	reportPath           = flag.String("report", "debug/report.json", "Path for cucumber report output")
 	temporalWorkflowArgs = workflowArgs{APIBaseURL: "http://backend:8080/webhooks/gatehub", TwoFAType: "totp"}
 )
 
@@ -50,11 +50,10 @@ func TestFeatures(t *testing.T) {
 		if err := os.MkdirAll(reportDir, 0755); err != nil {
 			t.Fatalf("failed to create report directory: %v", err)
 		}
-		// Output to both stdout and report file
-		format = fmt.Sprintf("pretty,pretty:%s", *reportPath)
+		// Output to both stdout and cucumber JSON report file
+		format = fmt.Sprintf("pretty,cucumber:%s", *reportPath)
 	}
 
-	// Setup before all tests
 	prerequisite(t)
 
 	suite := godog.TestSuite{
@@ -74,10 +73,7 @@ func TestFeatures(t *testing.T) {
 }
 
 func TestMain(m *testing.M) {
-	// Setup before all tests
 	status := m.Run()
-
-	// Cleanup after all tests
 	os.Exit(status)
 }
 
