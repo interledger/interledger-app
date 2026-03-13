@@ -37,19 +37,9 @@ Feature: User Signup
     Then I should be navigated back to the dashboard with reserved wallet status
     And I take a screenshot "signup-complete"
 
-  @signup @gatehub
+  @signup @validation-failure
   Scenario: Signup form validates required fields
-    Given the details of 'signup-invalid-user' are
-      | field           | value                        |
-      | emailSuffix     | hendry@example.com           |
-      | password        | InterlEdger2025!TestPassword |
-      | country         | Germany                      |
-      | countryCode     | DE                           |
-      | firstName       | Hendry                       |
-      | lastName        | Dogger                       |
-      | dateOfBirth     | 1995-03-20                   |
-    And I impersonate 'signup-invalid-user'
-    And I navigate to the signup page
+    Given I navigate to the signup page
     When I click the "Sign Up" button
     Then I should see the signup form
     When I try to submit without filling required fields
