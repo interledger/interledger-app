@@ -517,24 +517,40 @@ func AssignBalance(ctx context.Context, b Backends, linkedAccountID, txID string
 }
 
 func CreateTransfer(ctx context.Context, b Backends, ec external.Client, args gatehub.CreateTransferArgs) (*external.Transaction, error) {
-	sendLA, err := b.LinkedAccounts().Get(ctx, args.SendingLinkedAccountID)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	var sendingAddress, sendingUser string
+
+	if args.SendingLinkedAccountID != "" {
+		sendLA, err := b.LinkedAccounts().Get(ctx, args.SendingLinkedAccountID)
+		if err != nil {
+			return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+		}
+		sendingAddress = sendLA.ProviderID
+		sendingUser, err = getExternalUserID(ctx, b, sendLA.WalletID)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		sendingAddress = args.SendingAddress
 	}
 
-	recvLA, err := b.LinkedAccounts().Get(ctx, args.ReceivingLinkedAccountID)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
-	}
+	var receivingAddress string
+	message := args.Message
 
-	recvWallet, err := b.Wallets().Get(ctx, recvLA.WalletID)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
-	}
-
-	sendingUser, err := getExternalUserID(ctx, b, sendLA.WalletID)
-	if err != nil {
-		return nil, err
+	if args.ReceivingLinkedAccountID != "" {
+		recvLA, err := b.LinkedAccounts().Get(ctx, args.ReceivingLinkedAccountID)
+		if err != nil {
+			return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+		}
+		receivingAddress = recvLA.ProviderID
+		if message == "" {
+			recvWallet, err := b.Wallets().Get(ctx, recvLA.WalletID)
+			if err != nil {
+				return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+			}
+			message = fmt.Sprintf("Payment to %s", recvWallet.Name)
+		}
+	} else {
+		receivingAddress = args.ReceivingAddress
 	}
 
 	// Validate vault ID is available before making the external call
@@ -549,10 +565,10 @@ func CreateTransfer(ctx context.Context, b Backends, ec external.Client, args ga
 
 	externalTx, err := ec.CreateTransaction(ctx, external.CreateTransactionRequest{
 		SendingUserID:    sendingUser,
-		SendingAddress:   sendLA.ProviderID,
-		ReceivingAddress: recvLA.ProviderID,
+		SendingAddress:   sendingAddress,
+		ReceivingAddress: receivingAddress,
 		Amount:           args.Amount.Float64(),
-		Message:          fmt.Sprintf("Payment to %s", recvWallet.Name),
+		Message:          message,
 		Type:             external.TransactionTypeHosted,
 		VaultID:          vaultID,
 	})

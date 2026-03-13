@@ -12,7 +12,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"strings"
 
 	"gitlab.com/fynbos/backend/kyc"
@@ -166,8 +165,7 @@ func NewWebhook(b Backends, cfg gatehub.Config) http.HandlerFunc {
 			return
 		}
 
-		intermediaryUserID := os.Getenv("GATEHUB_MANAGED_USER_UUID")
-		isIntermediary := intermediaryUserID != "" && wh.UserID == intermediaryUserID
+		isIntermediary := cfg.SendingUserID != "" && wh.UserID == cfg.SendingUserID
 
 		if _, err := getWalletID(r.Context(), b, wh.UserID); err != nil && !isIntermediary {
 			log.Info("Wallet not found for Gatehub user; attempting cards fallback",
@@ -308,24 +306,6 @@ func HandleUserDeposit(ctx context.Context, b Backends, raw json.RawMessage, w h
 	}
 
 	if wh.Data.DepositType == "hosted" {
-		var paymentID string
-		err = b.DB().GetContext(ctx, &paymentID, "SELECT payment_id FROM gatehub_transactions WHERE external_id=$1;", wh.Data.TrxID)
-		if err != nil && !errors.Is(err, sql.ErrNoRows) {
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			return
-		}
-
-		if err == nil && paymentID != "" {
-			err = b.Payments().SignalGatehubTransferComplete(ctx, wh.Data.TrxID)
-			if err != nil {
-				log.Error("gatehub webhook: Failed to signal payments workflow about wallet transfer", zap.String("external_user_uuid", wh.UserID), zap.String("external_transaction_id", wh.Data.TrxID), zap.Error(err))
-				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-				return
-			}
-			w.WriteHeader(http.StatusOK)
-			return
-		}
-
 		// Check if this is a Rafiki workflow transfer
 		var rafikiWorkflowID string
 		err = b.DB().GetContext(ctx, &rafikiWorkflowID, "SELECT workflow_id FROM rafiki_gatehub_transfers WHERE gatehub_tx_id=$1;", wh.Data.TrxID)
@@ -337,6 +317,7 @@ func HandleUserDeposit(ctx context.Context, b Backends, raw json.RawMessage, w h
 			return
 		}
 
+		// Rafiki transfer: signal the Rafiki workflow only, skip the payments path.
 		if err == nil && rafikiWorkflowID != "" {
 			signalErr := b.Temporal().SignalWorkflow(ctx, rafikiWorkflowID, "", "rafiki_gatehub_signal", nil)
 			if signalErr != nil {
@@ -350,6 +331,18 @@ func HandleUserDeposit(ctx context.Context, b Backends, raw json.RawMessage, w h
 			w.WriteHeader(http.StatusOK)
 			return
 		}
+
+		if err := b.Payments().SignalGatehubTransferComplete(ctx, wh.Data.TrxID); err != nil {
+			log.Error("gatehub webhook: Failed to signal payments workflow about wallet transfer",
+				zap.String("external_user_uuid", wh.UserID),
+				zap.String("external_transaction_id", wh.Data.TrxID),
+				zap.Error(err))
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		return
 	}
 
 	wo := client.StartWorkflowOptions{

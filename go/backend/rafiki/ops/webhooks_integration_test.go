@@ -27,8 +27,8 @@ import (
 	linkedaccounts_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/gatehub"
-	rafiki_external "gitlab.com/fynbos/backend/rafiki/external"
-	rafiki_external_mock "gitlab.com/fynbos/backend/rafiki/external/mock"
+	"gitlab.com/fynbos/backend/rafiki"
+	rafiki_mock "gitlab.com/fynbos/backend/rafiki/client/mock"
 	"gitlab.com/fynbos/backend/transactions"
 	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
 	"gitlab.com/fynbos/backend/wallets"
@@ -414,8 +414,7 @@ func TestValidateOutgoingPayment_KYCNotApproved(t *testing.T) {
 	kycMock.EXPECT().IsKYCApproved(gomock.Any(), walletID).Return(false, nil)
 	ab.SetKYC(kycMock)
 
-	extMock := rafiki_external_mock.NewMockClient(ctrl)
-	act := &Activity{b: ab, rafikiExternal: extMock}
+	act := NewActivity(ab, gatehub.Config{})
 
 	result, err := act.ValidateOutgoingPayment(ctx, op)
 	require.NoError(t, err)
@@ -444,10 +443,12 @@ func TestValidateOutgoingPayment_SameWallet_Invalid(t *testing.T) {
 	kycMock.EXPECT().IsKYCApproved(gomock.Any(), walletID).Return(true, nil)
 	ab.SetKYC(kycMock)
 
-	extMock := rafiki_external_mock.NewMockClient(ctrl)
-	extMock.EXPECT().GetIncomingPayment(gomock.Any(), ipID).
-		Return(&rafiki_external.GetIncomingPaymentIncomingPayment{WalletAddressId: ppID}, nil)
-	act := &Activity{b: ab, rafikiExternal: extMock}
+	rafikiMock := rafiki_mock.NewMockClient(ctrl)
+	rafikiMock.EXPECT().GetIncomingPayment(gomock.Any(), ipID).
+		Return(&rafiki.IncomingPayment{WalletAddressID: ppID}, nil)
+	ab.SetRafiki(rafikiMock)
+
+	act := NewActivity(ab, gatehub.Config{})
 
 	result, err := act.ValidateOutgoingPayment(ctx, op)
 	require.NoError(t, err)
@@ -483,9 +484,10 @@ func TestValidateOutgoingPayment_DifferentWallets_Valid(t *testing.T) {
 	kycMock.EXPECT().IsKYCApproved(gomock.Any(), senderWalletID).Return(true, nil)
 	ab.SetKYC(kycMock)
 
-	extMock := rafiki_external_mock.NewMockClient(ctrl)
-	extMock.EXPECT().GetIncomingPayment(gomock.Any(), ipID).
-		Return(&rafiki_external.GetIncomingPaymentIncomingPayment{WalletAddressId: receiverPP}, nil)
+	rafikiMock := rafiki_mock.NewMockClient(ctrl)
+	rafikiMock.EXPECT().GetIncomingPayment(gomock.Any(), ipID).
+		Return(&rafiki.IncomingPayment{WalletAddressID: receiverPP}, nil)
+	ab.SetRafiki(rafikiMock)
 
 	linkedMock := linkedaccounts_mock.NewMockClient(ctrl)
 	linkedMock.EXPECT().ListBalances(gomock.Any(), senderWalletID).Return([]linkedaccounts.LinkedAccount{
@@ -496,7 +498,7 @@ func TestValidateOutgoingPayment_DifferentWallets_Valid(t *testing.T) {
 	}, nil)
 	ab.SetLinkedAccounts(linkedMock)
 
-	act := &Activity{b: ab, rafikiExternal: extMock}
+	act := NewActivity(ab, gatehub.Config{})
 
 	result, err := act.ValidateOutgoingPayment(ctx, op)
 	require.NoError(t, err)
@@ -922,10 +924,12 @@ func TestWithdrawIncomingPaymentLiquidity_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	ipID := "ip_" + uuid.NewString()[:8]
-	extMock := rafiki_external_mock.NewMockClient(ctrl)
-	extMock.EXPECT().WithdrawIncomingPaymentLiquidity(gomock.Any(), ipID, uint64(0)).Return(nil)
+	rafikiMock := rafiki_mock.NewMockClient(ctrl)
+	rafikiMock.EXPECT().WithdrawIncomingPaymentLiquidity(gomock.Any(), ipID).Return(nil)
 
-	act := &Activity{rafikiExternal: extMock}
+	ab := NewTestActivityBackends()
+	ab.SetRafiki(rafikiMock)
+	act := NewActivity(ab, gatehub.Config{})
 	err := act.WithdrawIncomingPaymentLiquidity(context.Background(), ipID)
 	assert.NoError(t, err)
 }
@@ -935,11 +939,13 @@ func TestWithdrawIncomingPaymentLiquidity_Error_StillReturnsNil(t *testing.T) {
 	defer ctrl.Finish()
 
 	ipID := "ip_" + uuid.NewString()[:8]
-	extMock := rafiki_external_mock.NewMockClient(ctrl)
-	extMock.EXPECT().WithdrawIncomingPaymentLiquidity(gomock.Any(), ipID, uint64(0)).
+	rafikiMock := rafiki_mock.NewMockClient(ctrl)
+	rafikiMock.EXPECT().WithdrawIncomingPaymentLiquidity(gomock.Any(), ipID).
 		Return(fmt.Errorf("rafiki error"))
 
-	act := &Activity{rafikiExternal: extMock}
+	ab := NewTestActivityBackends()
+	ab.SetRafiki(rafikiMock)
+	act := NewActivity(ab, gatehub.Config{})
 	err := act.WithdrawIncomingPaymentLiquidity(context.Background(), ipID)
 	assert.NoError(t, err, "withdraw errors are logged but not returned")
 }
@@ -949,12 +955,34 @@ func TestWithdrawOutgoingPaymentLiquidity_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	opID := uuid.NewString()
-	extMock := rafiki_external_mock.NewMockClient(ctrl)
-	extMock.EXPECT().WithdrawOutgoingPaymentLiquidity(gomock.Any(), opID, uint64(0)).Return(nil)
+	op := outgoingPaymentData{
+		ID:      opID,
+		Balance: "100",
+	}
+	rafikiMock := rafiki_mock.NewMockClient(ctrl)
+	rafikiMock.EXPECT().WithdrawOutgoingPaymentLiquidity(gomock.Any(), opID).Return(nil)
 
-	act := &Activity{rafikiExternal: extMock}
-	err := act.WithdrawOutgoingPaymentLiquidity(context.Background(), opID)
+	ab := NewTestActivityBackends()
+	ab.SetRafiki(rafikiMock)
+	act := NewActivity(ab, gatehub.Config{})
+	err := act.WithdrawOutgoingPaymentLiquidity(context.Background(), op)
 	assert.NoError(t, err)
+}
+
+func TestWithdrawOutgoingPaymentLiquidity_InsufficientBalance_NoError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	opID := uuid.NewString()
+	op := outgoingPaymentData{
+		ID:      opID,
+		Balance: "0",
+	}
+
+	ab := NewTestActivityBackends()
+	act := NewActivity(ab, gatehub.Config{})
+	err := act.WithdrawOutgoingPaymentLiquidity(context.Background(), op)
+	assert.NoError(t, err, "zero liquidity should be treated as no-op")
 }
 
 func TestDepositOutgoingPaymentLiquidity_Success(t *testing.T) {
@@ -962,10 +990,12 @@ func TestDepositOutgoingPaymentLiquidity_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	opID := uuid.NewString()
-	extMock := rafiki_external_mock.NewMockClient(ctrl)
-	extMock.EXPECT().FundOutgoingPayment(gomock.Any(), opID).Return(nil)
+	rafikiMock := rafiki_mock.NewMockClient(ctrl)
+	rafikiMock.EXPECT().FundOutgoingPayment(gomock.Any(), opID).Return(nil)
 
-	act := &Activity{rafikiExternal: extMock}
+	ab := NewTestActivityBackends()
+	ab.SetRafiki(rafikiMock)
+	act := NewActivity(ab, gatehub.Config{})
 	err := act.DepositOutgoingPaymentLiquidity(context.Background(), opID)
 	assert.NoError(t, err)
 }
@@ -975,11 +1005,13 @@ func TestDepositOutgoingPaymentLiquidity_WrongState_Ignored(t *testing.T) {
 	defer ctrl.Finish()
 
 	opID := uuid.NewString()
-	extMock := rafiki_external_mock.NewMockClient(ctrl)
-	extMock.EXPECT().FundOutgoingPayment(gomock.Any(), opID).
+	rafikiMock := rafiki_mock.NewMockClient(ctrl)
+	rafikiMock.EXPECT().FundOutgoingPayment(gomock.Any(), opID).
 		Return(fmt.Errorf("wrong state for operation"))
 
-	act := &Activity{rafikiExternal: extMock}
+	ab := NewTestActivityBackends()
+	ab.SetRafiki(rafikiMock)
+	act := NewActivity(ab, gatehub.Config{})
 	err := act.DepositOutgoingPaymentLiquidity(context.Background(), opID)
 	assert.NoError(t, err, "wrong state should be silently ignored")
 }
@@ -989,10 +1021,12 @@ func TestCancelOutgoingPayment(t *testing.T) {
 	defer ctrl.Finish()
 
 	opID := uuid.NewString()
-	extMock := rafiki_external_mock.NewMockClient(ctrl)
-	extMock.EXPECT().CancelOutgoingPayment(gomock.Any(), opID, "test reason").Return(nil)
+	rafikiMock := rafiki_mock.NewMockClient(ctrl)
+	rafikiMock.EXPECT().CancelOutgoingPayment(gomock.Any(), opID, "test reason").Return(nil)
 
-	act := &Activity{rafikiExternal: extMock}
+	ab := NewTestActivityBackends()
+	ab.SetRafiki(rafikiMock)
+	act := NewActivity(ab, gatehub.Config{})
 	err := act.CancelOutgoingPayment(context.Background(), opID, "test reason")
 	assert.NoError(t, err)
 }
