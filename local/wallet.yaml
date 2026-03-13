@@ -145,6 +145,10 @@ services:
 
       # Xago webhook secret
       - XAGO_WEBHOOK_SECRET=${BACKEND_XAGO_WEBHOOK_SECRET:-xago-webhook-secret}
+
+      # MockXago Persona endpoint (routes Persona API calls to MockXago in local dev)
+      - MOCKXAGO_ENDPOINT=${BACKEND_MOCKXAGO_ENDPOINT:-http://mockxago:8080}
+
       - ADMIN_POLICY_AUD=${BACKEND_ADMIN_POLICY_AUD:-admin-policy}
       - ADMIN_TEAM_DOMAIN=${BACKEND_ADMIN_TEAM_DOMAIN:-admin-team}
       - SENDGRID_API_KEY=${BACKEND_SENDGRID_API_KEY:-test-sendgrid-api-key}

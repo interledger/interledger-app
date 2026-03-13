@@ -55,7 +55,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
     gatehubWidget: response.gatehubWidget,
     personaWidget: response.personaInquiry,
     chimoneyWidget: response.chimoneyWidget,
-    ptiWidget: response.ptiWidget
+    ptiWidget: response.ptiWidget,
+    mockxagoEndpoint: process.env.MOCKXAGO_ENDPOINT || ''
   })
 }
 
@@ -112,10 +113,12 @@ function ChimoneyPage() {
 
 function PersonaPage() {
   const submit = useSubmit()
-  const { personaWidget } = useLoaderData<typeof loader>()
+  const { personaWidget, mockxagoEndpoint } = useLoaderData<typeof loader>()
   const [ready, setReady] = useState(false)
   const status = useScript(
-    'https://cdn.withpersona.com/dist/persona-v4.8.0-alpha.js'
+    mockxagoEndpoint
+      ? '' // Don't load Persona SDK when using MockXago
+      : 'https://cdn.withpersona.com/dist/persona-v4.8.0-alpha.js'
   )
   let personaRef = useRef<any>(null)
 
@@ -132,7 +135,42 @@ function PersonaPage() {
     }
   }, [setLoading])
 
+  // MockXago iframe mode: listen for postMessage from MockXago iframe
   useEffect(() => {
+    if (!mockxagoEndpoint) return
+
+    setReady(true)
+
+    const onKYCComplete = (e: MessageEvent) => {
+      console.log('[KYC] MockXago iframe message received:', e.data)
+      if (!e.data?.type || !e.data?.value) return
+
+      let parsedValue
+      try {
+        parsedValue = JSON.parse(e.data.value)
+      } catch {
+        return
+      }
+
+      if (
+        e.data.type === 'OnboardingCompleted' &&
+        parsedValue?.applicantStatus === 'submitted'
+      ) {
+        console.log('[KYC] MockXago KYC completed, submitting form')
+        submit(null, {
+          action: '/personal-details',
+          method: 'post'
+        })
+      }
+    }
+
+    window.addEventListener('message', onKYCComplete)
+    return () => window.removeEventListener('message', onKYCComplete)
+  }, [mockxagoEndpoint, submit])
+
+  // Real Persona SDK mode
+  useEffect(() => {
+    if (mockxagoEndpoint) return
     if (typeof window !== 'undefined' && status == 'ready') {
       personaRef.current = (window as any).Persona
       personaRef.current = new (window as any).Persona.Client({
@@ -150,7 +188,22 @@ function PersonaPage() {
         onError: (error: any) => console.log(error)
       })
     }
-  }, [personaWidget, status, submit])
+  }, [mockxagoEndpoint, personaWidget, status, submit])
+
+  // MockXago: render iframe directly
+  if (mockxagoEndpoint && personaWidget?.id) {
+    const iframeSrc = `${mockxagoEndpoint}/v1/inquiries/${personaWidget.id}/iframe`
+    return (
+      <iframe
+        title='Activate wallet'
+        src={iframeSrc}
+        sandbox='allow-top-navigation allow-forms allow-same-origin allow-popups allow-scripts'
+        scrolling='yes'
+        allow='camera;microphone'
+        className='h-[750px] sm:min-w-[400px] md:min-w-[400px]'
+      />
+    )
+  }
 
   return <KycIntro onClick={() => personaRef.current.open()} ready={ready} />
 }
