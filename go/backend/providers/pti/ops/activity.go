@@ -881,18 +881,38 @@ func (a *Activity) ReturnTransaction(ctx context.Context, originalTransactionID,
 		return "", temporal.NewNonRetryableApplicationError("PTI USD balance account not found", "ErrInternal", fmt.Errorf("%w Fiant USD balance account not found", pti.ErrInternal))
 	}
 
-	title := ""
-	returnSource := ""
-	returnDestination := ""
+	if originalTransaction.Type == transactions.TransactionTypeDeposit && originalTransaction.State == transactions.StatePending {
+		// if the original transaction is still pending (deposit only) we can just fail it without creating a return transaction
+		err = a.b.Transactions().SetTransactionState(ctx, originalTransaction.ID, transactions.StateFailed)
+		if err != nil {
+			return "", err
+		}
+		return "", nil
+	}
+
+	returnedTransaction, err := a.b.Transactions().GetTransactionByForeignID(ctx, walletID, originalTransaction.ID)
+	if err != nil && !errors.Is(err, transactions.ErrNotFound) {
+		return "", err
+	}
+
+	if returnedTransaction != nil {
+		return "already has a return transaction", temporal.NewNonRetryableApplicationError("already has a return transaction", "ErrInternal", fmt.Errorf("%w already has a return transaction", pti.ErrInternal))
+	}
+
+	var title, returnSource, returnDestination string
+	var transferType transactions.TransferType
 	switch originalTransaction.Type {
 	case transactions.TransactionTypeDeposit:
 		title = "ACH return for deposit"
 		returnSource = originalTransaction.Destination
 		returnDestination = originalTransaction.Source
+		transferType = transactions.TransferTypeDebitBalance
+
 	case transactions.TransactionTypeWithdrawal:
 		title = "ACH return for withdrawal"
 		returnSource = originalTransaction.Source
 		returnDestination = originalTransaction.Destination
+		transferType = transactions.TransferTypeCreditBalance
 	default:
 		return "", temporal.NewNonRetryableApplicationError("Unsupported transaction type", "ErrInternal", fmt.Errorf("%w unsupported transaction type for return: %s", pti.ErrInternal, originalTransaction.Type))
 	}
@@ -900,7 +920,7 @@ func (a *Activity) ReturnTransaction(ctx context.Context, originalTransactionID,
 	returnTransactionID, err := a.b.Transactions().CreateTransaction(ctx, transactions.CreateTransactionArgs{
 		WalletID:                walletID,
 		ForeignID:               originalTransaction.ID,
-		ForeignType:             transactions.TransactionTypeACHReturn,
+		ForeignType:             transactions.TransactionTypeReturn,
 		Provider:                pti.ProviderName,
 		State:                   transactions.StateCompleted,
 		Source:                  returnSource,
@@ -916,7 +936,7 @@ func (a *Activity) ReturnTransaction(ctx context.Context, originalTransactionID,
 				LinkedAccountID: balance.ID,
 				ForeignID:       originalTransactionID,
 				Amount:          amount,
-				Type:            transactions.TransferTypeDebitBalance,
+				Type:            transferType,
 				State:           transactions.StateCompleted,
 			},
 		},
@@ -937,14 +957,6 @@ func (a *Activity) PostTransfer(ctx context.Context, transactionID, walletID str
 	originalTransaction, err := a.b.Transactions().GetTransaction(ctx, walletID, returnTransaction.ForeignID)
 	if err != nil {
 		return err
-	}
-
-	if originalTransaction.Type == transactions.TransactionTypeWithdrawal {
-		_, err := a.b.Pacioli().VoidTransfers(ctx, []string{originalTransaction.ID})
-		if err != nil {
-			return fmt.Errorf("%w %s", pti.ErrInternal, err)
-		}
-		return nil
 	}
 
 	if returnTransaction.Amount.Currency != currency.USD {
@@ -969,12 +981,25 @@ func (a *Activity) PostTransfer(ctx context.Context, transactionID, walletID str
 
 	opsAcc := pti.USDOpsAccount
 	ledger := pti.LedgerIDUSD
+
+	var creditAccountID, debitAccountID string
+	switch originalTransaction.Type {
+	case transactions.TransactionTypeDeposit:
+		creditAccountID = opsAcc
+		debitAccountID = USDBalance.ID
+	case transactions.TransactionTypeWithdrawal:
+		creditAccountID = USDBalance.ID
+		debitAccountID = opsAcc
+	default:
+		return temporal.NewNonRetryableApplicationError("Unsupported transaction type", "ErrInternal", fmt.Errorf("%w unsupported transaction type for return: %s", pti.ErrInternal, originalTransaction.Type))
+	}
+
 	tx, err := a.b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
 		{
 			ID:              returnTransaction.ID,
 			Amount:          returnTransaction.Amount.Value,
-			CreditAccountID: opsAcc,
-			DebitAccountID:  USDBalance.ID,
+			CreditAccountID: creditAccountID,
+			DebitAccountID:  debitAccountID,
 			Pending:         false,
 			Code:            1,
 			Ledger:          ledger,

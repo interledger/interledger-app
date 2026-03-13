@@ -15,7 +15,7 @@ func (ctrl *Controller) ReturnTransactionHook() http.HandlerFunc {
 		parts := strings.Split(r.URL.Path, "/")
 		requestID := parts[len(parts)-1]
 
-		if err := ctrl.Transactions.SandboxAction(r.Context(), requestID, RETURN_ACH); err != nil {
+		if err := ctrl.Transactions.SandboxAction(r.Context(), requestID, ReturnAch); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -29,7 +29,7 @@ func (ctrl *Controller) SettleTransactionHook() http.HandlerFunc {
 		parts := strings.Split(r.URL.Path, "/")
 		requestID := parts[len(parts)-1]
 
-		if err := ctrl.Transactions.SandboxAction(r.Context(), requestID, SETTLE_ACH); err != nil {
+		if err := ctrl.Transactions.SandboxAction(r.Context(), requestID, SettleAch); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}

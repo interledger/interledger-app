@@ -585,7 +585,7 @@ var Details = map[Country]Detail{
 	XK: {Name: "Kosovo", Numeric: "383"},
 	YE: {Name: "Yemen", Numeric: "887"},
 	YT: {Name: "Mayotte", Numeric: "175"},
-	ZA: {Name: "South Africa", Numeric: "710"},
+	ZA: {Name: "South Africa", Numeric: "710", Supported: true},
 	ZM: {Name: "Zambia", Numeric: "894"},
 	ZW: {Name: "Zimbabwe", Numeric: "716"},
 }

@@ -5,6 +5,7 @@ import (
 	"embed"
 	"fmt"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -15,6 +16,12 @@ import (
 
 //go:embed assets/*
 var fs embed.FS
+
+// gitFilePathForAsset returns the repo-relative path for an agreement file, same as MigrateFromEmbeddedMarkdowns.
+// envName is the last path segment of the assets dir (e.g. "prod", "testing").
+func gitFilePathForAsset(envName, filename string) string {
+	return fmt.Sprintf("go/backend/agreements/migrations/assets/%s/%s", envName, filename)
+}
 
 func MigrateFromMarkdowns(ctx context.Context, db *sqlx.DB, dir string) error {
 	agreementFiles, err := os.ReadDir(dir)
@@ -38,7 +45,7 @@ func MigrateFromMarkdowns(ctx context.Context, db *sqlx.DB, dir string) error {
 		return fmt.Errorf("%w %s", agreements.ErrInternal, err.Error())
 	}
 
-	txStmt, err := tx.PrepareContext(ctx, `INSERT INTO agreements (id, name, version, content) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING`)
+	txStmt, err := tx.PrepareContext(ctx, `INSERT INTO agreements (id, name, version, content, git_file_path) VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING`)
 	if err != nil {
 		return fmt.Errorf("%w %s", agreements.ErrInternal, err.Error())
 	}
@@ -55,6 +62,8 @@ func MigrateFromMarkdowns(ctx context.Context, db *sqlx.DB, dir string) error {
 	for _, agreement := range agreementIDs {
 		agreementsMap[agreement] = true
 	}
+
+	envName := filepath.Base(dir)
 
 	for _, agreementFile := range agreementFiles {
 		if !regex.MatchString(agreementFile.Name()) {
@@ -74,7 +83,9 @@ func MigrateFromMarkdowns(ctx context.Context, db *sqlx.DB, dir string) error {
 			return fmt.Errorf("%w %s", agreements.ErrInternal, err.Error())
 		}
 
-		_, err = txStmt.Exec(agreementID, agreementName, agreementVersion, string(agreementContent))
+		gitFilePath := gitFilePathForAsset(envName, agreementFile.Name())
+
+		_, err = txStmt.Exec(agreementID, agreementName, agreementVersion, string(agreementContent), gitFilePath)
 		if err != nil {
 			return fmt.Errorf("%w %s", agreements.ErrInternal, err.Error())
 		}
@@ -89,7 +100,8 @@ func MigrateFromMarkdowns(ctx context.Context, db *sqlx.DB, dir string) error {
 }
 
 func MigrateFromEmbeddedMarkdowns(ctx context.Context, db *sqlx.DB) error {
-	dir := fmt.Sprintf("assets/%s", env.GetEnv())
+	envName := env.GetEnv()
+	dir := fmt.Sprintf("assets/%s", envName)
 	agreementFiles, err := fs.ReadDir(dir)
 	if err != nil {
 		return fmt.Errorf("%w %s", agreements.ErrNotFound, err)
@@ -111,7 +123,7 @@ func MigrateFromEmbeddedMarkdowns(ctx context.Context, db *sqlx.DB) error {
 		return fmt.Errorf("%w %s", agreements.ErrInternal, err.Error())
 	}
 
-	txStmt, err := tx.PrepareContext(ctx, `INSERT INTO agreements (id, name, version, content) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING`)
+	txStmt, err := tx.PrepareContext(ctx, `INSERT INTO agreements (id, name, version, content, git_file_path) VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING`)
 	if err != nil {
 		return fmt.Errorf("%w %s", agreements.ErrInternal, err.Error())
 	}
@@ -147,7 +159,9 @@ func MigrateFromEmbeddedMarkdowns(ctx context.Context, db *sqlx.DB) error {
 			return fmt.Errorf("%w %s", agreements.ErrInternal, err.Error())
 		}
 
-		_, err = txStmt.Exec(agreementID, agreementName, agreementVersion, string(agreementContent))
+		gitFilePath := gitFilePathForAsset(envName, agreementFile.Name())
+
+		_, err = txStmt.Exec(agreementID, agreementName, agreementVersion, string(agreementContent), gitFilePath)
 		if err != nil {
 			return fmt.Errorf("%w %s", agreements.ErrInternal, err.Error())
 		}

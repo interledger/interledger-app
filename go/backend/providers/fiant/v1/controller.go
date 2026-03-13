@@ -88,7 +88,7 @@ func WithDerivedKeys(privateKey jwk.Key) Options {
 
 		publicKeyThumbprint, err := publicKey.Thumbprint(crypto.SHA256)
 		if err != nil {
-			return fmt.Errorf("%w: %s", ErrFailedToDerivePublicKey, err)
+			return fmt.Errorf("%w: %s", ErrFailedToComputeThumbprint, err)
 		}
 
 		ctrl.publicKeyThumbprint = base64.RawURLEncoding.EncodeToString(publicKeyThumbprint)
@@ -116,18 +116,20 @@ func NewController(opts ...Options) (*Controller, error) {
 		}
 	}
 
-	ctrl.http = &http.Client{
-		Transport: &apiRoundTripper{
-			url:                 ctrl.url,
-			privateKey:          ctrl.privateKey,
-			publicKeyThumbprint: ctrl.publicKeyThumbprint,
-			defaultTransport:    http.DefaultTransport,
-			headers: map[string]string{
-				acceptHeader:      acceptValue,
-				contentTypeHeader: contentTypeValue,
-				clientIDHeader:    ctrl.clientID,
+	if ctrl.http == nil {
+		ctrl.http = &http.Client{
+			Transport: &apiRoundTripper{
+				url:                 ctrl.url,
+				privateKey:          ctrl.privateKey,
+				publicKeyThumbprint: ctrl.publicKeyThumbprint,
+				defaultTransport:    http.DefaultTransport,
+				headers: map[string]string{
+					acceptHeader:      acceptValue,
+					contentTypeHeader: contentTypeValue,
+					clientIDHeader:    ctrl.clientID,
+				},
 			},
-		},
+		}
 	}
 
 	// initialize handlers

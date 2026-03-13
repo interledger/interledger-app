@@ -34,12 +34,11 @@ func (art *apiRoundTripper) signature(req *http.Request) (string, error) {
 		contentType = "content-type:" + req.Header.Get("Content-Type")
 	}
 
-	sinatureTemplate := fmt.Sprintf(
+	signatureTemplate := fmt.Sprintf(
 		"%s\n%s\n%s\n%s\n%s\n%s",
 		req.Method,
 		strings.ToUpper(encodedPayload),
 		contentType,
-		// fmt.Sprintf("date:%s", date.Format(http.TimeFormat)),
 		fmt.Sprintf("date:%s", req.Header.Get("Date")),
 		clientIDHeader+":"+req.Header.Get(clientIDHeader),
 		req.URL.Path,
@@ -55,7 +54,7 @@ func (art *apiRoundTripper) signature(req *http.Request) (string, error) {
 
 		return "", fmt.Errorf("%w %s", ErrSettingKidInJWSHeaders, err)
 	}
-	signature, err := jws.Sign([]byte(sinatureTemplate), jws.WithKey(jwa.RS512(), art.privateKey, jws.WithProtectedHeaders(h)))
+	signature, err := jws.Sign([]byte(signatureTemplate), jws.WithKey(jwa.RS512(), art.privateKey, jws.WithProtectedHeaders(h)))
 	if err != nil {
 		return "", fmt.Errorf("%w %s", ErrComputingSignature, err)
 	}
