@@ -7,7 +7,6 @@ Feature: Peer-to-Peer Payments
     Given a random test identifier is generated
     And the frontend is running at "https://interledger.test"
     And mockgatehub is running at "https://mockgatehub.interledger.test"
-    And mockxago is running at "https://mockxago.interledger.test"
     And Rafiki assets are seeded
 
   @p2p-payment @gatehub
