@@ -47,6 +47,21 @@ func NewActivity(b Backends) *Activity {
 	}
 }
 
+type DepositWorkflowArgs struct {
+	IssueID     string
+	ChiWalletID string
+}
+type InitiateWithdrawalWorkflowArgs struct {
+	WalletID      string
+	TransactionID string
+}
+type WithdrawWorkflowArgs struct {
+	IssueID     string
+	ChiWalletID string
+	Amount      currency.Amount
+	Status      string
+}
+
 func ChimomeyCompleteKYC(ctx workflow.Context, walletID string, kycStatus kyc.Status) error {
 	var a *Activity
 	ao := workflow.ActivityOptions{
@@ -224,9 +239,7 @@ var (
 	externalWithdrawalFailed withdrawalStage = 4
 )
 
-func ExecuteChimoneyFinishWithdrawalWorkflow(
-	ctx workflow.Context, IssueID string, chiWalletID string, status string, amount currency.Amount, paymentType string,
-) error {
+func ExecuteChimoneyFinishWithdrawalWorkflow(ctx workflow.Context, args WithdrawWorkflowArgs) error {
 	var a *Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 10 * time.Second,
@@ -235,26 +248,26 @@ func ExecuteChimoneyFinishWithdrawalWorkflow(
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
 	logger := workflow.GetLogger(ctx)
-	logger.Info("Executing chimoney finish withdrawal with status: ", "status", status)
+	logger.Info("Executing chimoney finish withdrawal with status: ", "status", args.Status)
 
 	var walletID string
-	err := workflow.ExecuteActivity(ctx, a.GetWalletIDFromChimoneyID, chiWalletID).Get(ctx, &walletID)
+	err := workflow.ExecuteActivity(ctx, a.GetWalletIDFromChimoneyID, args.ChiWalletID).Get(ctx, &walletID)
 	if err != nil {
 		return err
 	}
 
 	var trx transactions.Transaction
-	err = workflow.ExecuteActivity(ctx, a.GetChimoneyTransactionByForeignID, walletID, IssueID).Get(ctx, &trx)
+	err = workflow.ExecuteActivity(ctx, a.GetChimoneyTransactionByForeignID, walletID, args.IssueID).Get(ctx, &trx)
 	if err != nil {
 		return err
 	}
 
 	if trx.State == transactions.StateCompleted || trx.State == transactions.StateFailed {
-		logger.Info("Chimoney withdrawal already finalized with status: ", "status", string(trx.State), "issueID", IssueID)
+		logger.Info("Chimoney withdrawal already finalized with status: ", "status", string(trx.State), "issueID", args.IssueID)
 		return temporal.NewNonRetryableApplicationError("Chimoney withdrawal already finalized", "ErrAlreadyFinalized", err)
 	}
 
-	if status == "cancelled" || status == "expired" {
+	if args.Status == "cancelled" || args.Status == "expired" {
 		err = workflow.ExecuteActivity(ctx, a.UpdateChimoneyPaymentState, trx.ID, payments.StateFailed).Get(ctx, nil)
 		if err != nil {
 			return err
@@ -270,7 +283,7 @@ func ExecuteChimoneyFinishWithdrawalWorkflow(
 
 	// update transaction to add withdrawal fee based on the actual amount after fees received from the webhook
 	// and finalize transaction
-	err = workflow.ExecuteActivity(ctx, a.UpdateChimoneyWithdrawalFeeAndCompleteTransaction, trx.WalletID, trx.ID, amount).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.UpdateChimoneyWithdrawalFeeAndCompleteTransaction, trx.WalletID, trx.ID, args.Amount).Get(ctx, nil)
 	if err != nil {
 		return rollBackWithdrawal(ctx, a, updateTransaction, trx.WalletID, trx.ID)
 	}
@@ -284,7 +297,7 @@ func ExecuteChimoneyFinishWithdrawalWorkflow(
 
 }
 func ExecuteChimoneyWithdrawalWorkflow(
-	ctx workflow.Context, walletID, trxID string,
+	ctx workflow.Context, args InitiateWithdrawalWorkflowArgs,
 ) error {
 	var a *Activity
 	ao := workflow.ActivityOptions{
@@ -297,7 +310,7 @@ func ExecuteChimoneyWithdrawalWorkflow(
 	logger.Info("Executing chimoney withdrawal.")
 
 	var trx transactions.Transaction
-	err := workflow.ExecuteActivity(ctx, a.GetChimoneyTransaction, walletID, trxID).Get(ctx, &trx)
+	err := workflow.ExecuteActivity(ctx, a.GetChimoneyTransaction, args.WalletID, args.TransactionID).Get(ctx, &trx)
 	if err != nil {
 		return err
 	}
@@ -307,32 +320,32 @@ func ExecuteChimoneyWithdrawalWorkflow(
 		return err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.SetWithdrawalTransfer, walletID, trxID).Get(ctx, &trx)
+	err = workflow.ExecuteActivity(ctx, a.SetWithdrawalTransfer, args.WalletID, args.TransactionID).Get(ctx, &trx)
 	if err != nil {
 		return err
 	}
 
 	// reserve liquidity and surface Insufficient balance errors.
-	err = workflow.ExecuteActivity(ctx, a.ReserveChimoneyBalance, walletID, trxID).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.ReserveChimoneyBalance, args.WalletID, args.TransactionID).Get(ctx, nil)
 	if err != nil {
-		return rollBackWithdrawal(ctx, a, reserveLiquidity, walletID, trxID)
+		return rollBackWithdrawal(ctx, a, reserveLiquidity, args.WalletID, args.TransactionID)
 	}
 
 	// perform the withdrawal. Rollback on failure
 	var externalTrx external.WithdrawResponse
-	err = workflow.ExecuteActivity(ctx, a.ChimoneyWithdraw, walletID, trxID).Get(ctx, &externalTrx)
+	err = workflow.ExecuteActivity(ctx, a.ChimoneyWithdraw, args.WalletID, args.TransactionID).Get(ctx, &externalTrx)
 	if err != nil {
-		return rollBackWithdrawal(ctx, a, externalWithdrawal, walletID, trxID)
+		return rollBackWithdrawal(ctx, a, externalWithdrawal, args.WalletID, args.TransactionID)
 	}
 
 	if len(externalTrx.Data) < 1 {
 		logger.Error("chimoney withdrawal: No payout data found")
-		return rollBackWithdrawal(ctx, a, externalWithdrawal, walletID, trxID)
+		return rollBackWithdrawal(ctx, a, externalWithdrawal, args.WalletID, args.TransactionID)
 	}
 	// set the foreign ID to the issueID from chimoney so we can track it via webhooks
-	err = workflow.ExecuteActivity(ctx, a.SetChimoneyTransactionForeignID, trxID, externalTrx.Data[0].IssueID).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.SetChimoneyTransactionForeignID, args.TransactionID, externalTrx.Data[0].IssueID).Get(ctx, nil)
 	if err != nil {
-		return rollBackWithdrawal(ctx, a, externalWithdrawal, walletID, trxID)
+		return rollBackWithdrawal(ctx, a, externalWithdrawal, args.WalletID, args.TransactionID)
 	}
 
 	return nil
@@ -677,7 +690,7 @@ func rollBackWithdrawal(ctx workflow.Context, a *Activity, stage withdrawalStage
 	return nil
 }
 
-func CreateChimoneyDepositWorkflow(ctx workflow.Context, issueID string, chiWalletID string) error {
+func CreateChimoneyDepositWorkflow(ctx workflow.Context, args DepositWorkflowArgs) error {
 	var a *Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 10 * time.Second,
@@ -689,21 +702,21 @@ func CreateChimoneyDepositWorkflow(ctx workflow.Context, issueID string, chiWall
 	logger.Info("Creating chimoney deposit.")
 
 	var walletID string
-	err := workflow.ExecuteActivity(ctx, a.GetWalletIDFromChimoneyID, chiWalletID).Get(ctx, &walletID)
+	err := workflow.ExecuteActivity(ctx, a.GetWalletIDFromChimoneyID, args.ChiWalletID).Get(ctx, &walletID)
 	if err != nil {
 		return err
 	}
 
 	var externalPayment external.Payment
-	err = workflow.ExecuteActivity(ctx, a.VerifyChimoneyPayment, walletID, issueID).Get(ctx, &externalPayment)
+	err = workflow.ExecuteActivity(ctx, a.VerifyChimoneyPayment, walletID, args.IssueID).Get(ctx, &externalPayment)
 	if err != nil {
 		return err
 	}
 
-	return workflow.ExecuteActivity(ctx, a.CreateChimoneyDepositTransaction, walletID, issueID, externalPayment).Get(ctx, nil)
+	return workflow.ExecuteActivity(ctx, a.CreateChimoneyDepositTransaction, walletID, args.IssueID, externalPayment).Get(ctx, nil)
 }
 
-func FinishChimoneyDepositWorkflow(ctx workflow.Context, issueID string, chiWalletID string) error {
+func FinishChimoneyDepositWorkflow(ctx workflow.Context, args DepositWorkflowArgs) error {
 	var a *Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 10 * time.Second,
@@ -714,19 +727,19 @@ func FinishChimoneyDepositWorkflow(ctx workflow.Context, issueID string, chiWall
 	logger.Info("Finishing chimoney deposit.")
 
 	var walletID string
-	err := workflow.ExecuteActivity(ctx, a.GetWalletIDFromChimoneyID, chiWalletID).Get(ctx, &walletID)
+	err := workflow.ExecuteActivity(ctx, a.GetWalletIDFromChimoneyID, args.ChiWalletID).Get(ctx, &walletID)
 	if err != nil {
 		return err
 	}
 
 	var trx transactions.Transaction
-	err = workflow.ExecuteActivity(ctx, a.GetChimoneyTransactionByForeignID, walletID, issueID).Get(ctx, &trx)
+	err = workflow.ExecuteActivity(ctx, a.GetChimoneyTransactionByForeignID, walletID, args.IssueID).Get(ctx, &trx)
 	if err != nil {
 		return err
 	}
 
 	if trx.State == transactions.StateCompleted || trx.State == transactions.StateFailed {
-		logger.Info("Chimoney deposit already finalized with status: ", "status", string(trx.State), " issueID", issueID)
+		logger.Info("Chimoney deposit already finalized with status: ", "status", string(trx.State), " issueID", args.IssueID)
 		return temporal.NewNonRetryableApplicationError("Chimoney deposit already finalized", "ErrAlreadyFinalized", err)
 	}
 
@@ -734,7 +747,7 @@ func FinishChimoneyDepositWorkflow(ctx workflow.Context, issueID string, chiWall
 	// We call VerifyChimoneyPayment to get the actual payment status from the Chimoney API.
 	// This returns externalPayment.Status which can be "redeemed", "failed", or other states.
 	var externalPayment external.Payment
-	err = workflow.ExecuteActivity(ctx, a.VerifyChimoneyPayment, walletID, issueID).Get(ctx, &externalPayment)
+	err = workflow.ExecuteActivity(ctx, a.VerifyChimoneyPayment, walletID, args.IssueID).Get(ctx, &externalPayment)
 	if err != nil {
 		return err
 	}

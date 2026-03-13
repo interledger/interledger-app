@@ -86,7 +86,10 @@ func ExecuteFinishDeposit(ctx context.Context, b Backends, issueID string, statu
 	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING || workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_COMPLETED {
 		_ = b.Temporal().GetWorkflow(ctx, wo.ID, "")
 	} else {
-		_, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, FinishChimoneyDepositWorkflow, issueID, chiWalletID)
+		_, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, FinishChimoneyDepositWorkflow, DepositWorkflowArgs{
+			IssueID:     issueID,
+			ChiWalletID: chiWalletID,
+		})
 	}
 	if executeErr != nil {
 		return fmt.Errorf("%w %s", chimoney.ErrInternal, executeErr)
@@ -209,7 +212,7 @@ func GetEstimatedFee(ctx context.Context, b Backends, ex external.Client, amount
 	return feeAmt, nil
 }
 
-func ExecuteFinishWithdraw(ctx context.Context, b Backends, ec external.Client, IssueID string, status string, chiWalletID string, amount currency.Amount, paymentType string) error {
+func ExecuteFinishWithdraw(ctx context.Context, b Backends, ec external.Client, IssueID string, status string, chiWalletID string, amount currency.Amount) error {
 	wo := client.StartWorkflowOptions{
 		ID:                    "finish_chimoney_withdrawal_" + IssueID,
 		TaskQueue:             "backend",
@@ -236,10 +239,18 @@ func ExecuteFinishWithdraw(ctx context.Context, b Backends, ec external.Client, 
 	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING || workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_COMPLETED {
 		_ = b.Temporal().GetWorkflow(ctx, wo.ID, "")
 	} else {
-		_, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, ExecuteChimoneyFinishWithdrawalWorkflow, IssueID, chiWalletID, status, amount, paymentType)
+		//
+
+		//_, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, ExecuteChimoneyFinishWithdrawalWorkflow, IssueID, chiWalletID, status, amount)
+		_, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, ExecuteChimoneyFinishWithdrawalWorkflow, WithdrawWorkflowArgs{
+			IssueID:     IssueID,
+			ChiWalletID: chiWalletID,
+			Amount:      amount,
+			Status:      status,
+		})
 	}
 	if executeErr != nil {
-		return fmt.Errorf("%w %s", chimoney.ErrInternal, err)
+		return fmt.Errorf("%w %s", chimoney.ErrInternal, executeErr)
 	}
 
 	return nil
@@ -272,10 +283,14 @@ func ExecuteWithdraw(ctx context.Context, b Backends, walletID, transactionID st
 	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
 		_ = b.Temporal().GetWorkflow(ctx, wo.ID, "")
 	} else {
-		_, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, ExecuteChimoneyWithdrawalWorkflow, walletID, transactionID)
+
+		_, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, ExecuteChimoneyWithdrawalWorkflow, InitiateWithdrawalWorkflowArgs{
+			WalletID:      walletID,
+			TransactionID: transactionID,
+		})
 	}
 	if executeErr != nil {
-		return fmt.Errorf("%w %s", chimoney.ErrInternal, err)
+		return fmt.Errorf("%w %s", chimoney.ErrInternal, executeErr)
 	}
 
 	return nil
@@ -600,7 +615,10 @@ func CreateDeposit(ctx context.Context, b Backends, ex external.Client, issueID 
 	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING || workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_COMPLETED {
 		await = b.Temporal().GetWorkflow(ctx, wo.ID, "")
 	} else {
-		await, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, CreateChimoneyDepositWorkflow, issueID, chiWalletID)
+		await, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, CreateChimoneyDepositWorkflow, DepositWorkflowArgs{
+			IssueID:     issueID,
+			ChiWalletID: chiWalletID,
+		})
 	}
 	if executeErr != nil {
 		return nil, fmt.Errorf("%w %s", chimoney.ErrInternal, executeErr)

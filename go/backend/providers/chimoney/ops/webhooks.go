@@ -241,7 +241,7 @@ func handleWithdrawal(ctx context.Context, b Backends, ec external.Client, raw j
 		amount = currency.FromFloat64(wh.Meta.Amount.Float64(), currency.CAD)
 	}
 
-	return ExecuteFinishWithdraw(ctx, b, ec, wh.IssueID, wh.Status, wh.ChiWalletID, amount, wh.Meta.PaymentType)
+	return ExecuteFinishWithdraw(ctx, b, ec, wh.IssueID, wh.Status, wh.ChiWalletID, amount)
 }
 
 func handleConfirmedOrCompletedCharge(ctx context.Context, b Backends, ec external.Client, raw json.RawMessage) error {
