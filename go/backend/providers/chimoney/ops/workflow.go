@@ -61,7 +61,7 @@ func ChimomeyCompleteKYC(ctx workflow.Context, walletID string, kycStatus kyc.St
 func CreateChimoneyUserWorkflow(ctx workflow.Context, walletID string) (string, error) {
 	var a *Activity
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: 10 * time.Second,
+		StartToCloseTimeout: 60 * time.Second,
 	}
 
 	ctx = workflow.WithActivityOptions(ctx, ao)
