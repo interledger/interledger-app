@@ -7,6 +7,7 @@ Feature: User KYC and Account Activation
     Given a random test identifier is generated
     And the frontend is running at "https://interledger.test"
     And mockgatehub is running at "https://mockgatehub.interledger.test"
+    And mockxago is running at "https://mockxago.interledger.test"
     And Rafiki assets are seeded
     Given the details of 'kyc-user' are
       | field           | value                        |
@@ -18,8 +19,8 @@ Feature: User KYC and Account Activation
     And I impersonate 'kyc-user'
 
 
-  @kyc @gatehub
-  Scenario: Successfully activate account and complete KYC as verified user
+  @kyc @germany
+  Scenario: Successfully complete KYC as a verified user in Germany
     Given that my "country" is "germany"
     And I completed the signup workflow
     And I completed the account verification workflow
@@ -38,3 +39,20 @@ Feature: User KYC and Account Activation
     And I should see my account balance with kyc approved
     And I take a screenshot "kyc-completed-dashboard"    
 
+
+  @kyc @xago
+  Scenario: Successfully complete KYC as a verified user in South Africa
+    Given that my "country" is "south africa"
+    And I completed the signup workflow
+    And I completed the account verification workflow
+    And I finished the TOTP registration workflow
+    And I finished the wallet address creation workflow
+
+    # MockXago Persona iframe loads directly on personal-details page (no KycIntro)
+    When I navigate to the personal details page to activate wallet
+    And I wait for the KYC iframe to load
+    And I fill and submit the mockxago KYC iframe
+    And I wait for the KYC completion
+    Then I should be navigated back to the dashboard with approved kyc status
+    And I should see my account balance with kyc approved
+    And I take a screenshot "kyc-completed-dashboard"

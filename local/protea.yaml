@@ -43,6 +43,9 @@ services:
       - DATO_API_TOKEN=${PROTEA_DATO_API_TOKEN:-b96709bce873f5280722da965b0e9d}
       - BACKEND_GRPC_URL=${PROTEA_BACKEND_GRPC_URL:-http://backend:8443}
 
+      # MockXago endpoint (browser-accessible URL via Traefik for Persona iframe)
+      - MOCKXAGO_ENDPOINT=${PROTEA_MOCKXAGO_ENDPOINT:-https://mockxago.interledger.test}
+
       - REDIS_URL=${PROTEA_REDIS_URL:-redis://redis:6379/2}
 
     depends_on:

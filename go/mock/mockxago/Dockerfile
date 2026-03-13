@@ -15,11 +15,15 @@ COPY go/mock/mockxago ./go/mock/mockxago/
 # Build
 RUN cd go && CGO_ENABLED=0 GOOS=linux go build -o /workspace/mockxago ./mock/mockxago/cmd/mockxago
 
+# Copy web assets to a known location for the final stage
+RUN cp -r /workspace/go/mock/mockxago/web /workspace/web
+
 FROM alpine:3.19
 RUN apk --no-cache add ca-certificates curl
 
 WORKDIR /app
 COPY --from=builder /workspace/mockxago /usr/local/bin/mockxago
+COPY --from=builder /workspace/web ./web/
 
 EXPOSE 8080
 ENV XAGO_MOCK_PORT=8080 \
