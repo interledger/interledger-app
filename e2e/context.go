@@ -262,7 +262,7 @@ func (sc *E2EContext) theFrontendIsRunningAt(urlStr string) error {
 	// Check /healthz endpoint first (more reliable indicator of app readiness)
 	healthURL := strings.TrimSuffix(urlStr, "/") + "/healthz"
 	debugPrintf("🔍 Checking frontend health endpoint at %s...\n", healthURL)
-	if err := sc.waitForHealthEndpoint(healthURL, 120*time.Second); err != nil {
+	if err := waitForHealthEndpoint(healthURL, 120*time.Second); err != nil {
 		// If /healthz fails, fall back to HTML check for backwards compatibility
 		debugPrintf("⚠️  Health endpoint check failed, falling back to HTML check: %v\n", err)
 		debugPrintf("🔍 Verifying frontend is serving content at %s...\n", urlStr)
@@ -288,7 +288,7 @@ func (sc *E2EContext) theMockgatehubIsRunningAt(urlStr string) error {
 	// Then verify mockgatehub health endpoint is responding
 	debugPrintf("🔍 Verifying mockgatehub health endpoint at %s...\n", urlStr)
 	healthURL := strings.TrimSuffix(urlStr, "/") + "/health"
-	return sc.waitForHealthEndpoint(healthURL, 30*time.Second)
+	return waitForHealthEndpoint(healthURL, 30*time.Second)
 }
 
 func (sc *E2EContext) ensureHostsResolve(hosts []string) error {
@@ -357,8 +357,8 @@ func (sc *E2EContext) waitForHTMLToBeServed(url string, timeout time.Duration) e
 	return fmt.Errorf("service at %s did not serve HTML content within %v (tried %d times)", url, timeout, attempt)
 }
 
-// waitForHealthEndpoint polls a health endpoint until it returns 200 OK or times out
-func (sc *E2EContext) waitForHealthEndpoint(url string, timeout time.Duration) error {
+// waitForHealthEndpoint polls a health endpoint until it returns 200 OK or times out.
+func waitForHealthEndpoint(url string, timeout time.Duration) error {
 	client := &http.Client{
 		Timeout: 5 * time.Second,
 		Transport: &http.Transport{

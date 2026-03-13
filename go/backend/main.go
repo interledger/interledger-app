@@ -192,34 +192,37 @@ func start(args *cli.StartArgs) {
 	router.Handle("/webhooks/persona", kyc_ops.NewHandlePersonaWebhook(b))
 	router.Handle("/webhooks/chimoney", chimoney_ops.NewWebhook(b))
 
-	ptiWebhook, err := pti_ops.Webhook(b)
-	if err != nil {
-		log.Fatalln(err)
+	if args.PTIEnabled {
+		ptiWebhook, err := pti_ops.Webhook(b)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		router.Handle("/webhooks/pti", ptiWebhook)
 	}
-	router.Handle("/webhooks/pti", ptiWebhook)
 	router.Handle("/webhooks/gatehub", gatehub_ops.NewWebhook(b, b.gatehubConfig))
 	router.Handle("/webhooks/gatehub/v1/users/managed/{userId}/2fa", gatehub_ops.NewSCAHandler(b, b.gatehubConfig))
 	router.Handle("/{wallet_id}/identities/{identity_sig_hash}", wallet_handler.GetIdentityHandler(b))
 	router.NotFound(wallet_handler.WalletRedirectHandler(b))
 
-	// fiant sandbox actions
-	ptiPrivateKey, err := jwk.ParseKey([]byte(os.Getenv("PTI_JWK")))
-	if err != nil {
-		log.Fatalln(err)
-	}
-	clientID := os.Getenv("PTI_CLIENT_ID")
+	// fiant sandbox actions (only when PTI is enabled)
+	if args.PTIEnabled {
+		ptiPrivateKey, err := jwk.ParseKey([]byte(args.PTIJWK))
+		if err != nil {
+			log.Fatalln(err)
+		}
 
-	ctrl, err := fiant.NewController(
-		fiant.WithBaseURL(os.Getenv("PTI_BASE_URL")),
-		fiant.WithClientID(clientID),
-		fiant.WithDerivedKeys(ptiPrivateKey),
-	)
-	if err != nil {
-		log.Fatalln(err)
-	}
+		ctrl, err := fiant.NewController(
+			fiant.WithBaseURL(args.PTIBaseURL),
+			fiant.WithClientID(args.PTIClientID),
+			fiant.WithDerivedKeys(ptiPrivateKey),
+		)
+		if err != nil {
+			log.Fatalln(err)
+		}
 
-	router.Handle("/settle/{transaction_id}", ctrl.SettleTransactionHook())
-	router.Handle("/return/{transaction_id}", ctrl.ReturnTransactionHook())
+		router.Handle("/settle/{transaction_id}", ctrl.SettleTransactionHook())
+		router.Handle("/return/{transaction_id}", ctrl.ReturnTransactionHook())
+	}
 	// ~fiant sandbox actions
 
 	var wg sync.WaitGroup

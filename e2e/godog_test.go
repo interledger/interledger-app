@@ -10,6 +10,7 @@ import (
 
 	"github.com/cucumber/godog"
 	"github.com/google/uuid"
+	enums "go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/client"
 )
 
@@ -81,6 +82,11 @@ func TestMain(m *testing.M) {
 }
 
 func prerequisite(t *testing.T) {
+	// Wait for the backend HTTP server to be healthy before doing anything else.
+	if err := waitForHealthEndpoint("http://localhost:8080/healthz", 2*time.Minute); err != nil {
+		t.Fatalf("backend not ready: %v", err)
+	}
+
 	// We need to update the GateHub organization config before running the tests.
 	// This is done by starting the workflow that makes the update.
 	// Notice: This was introduced with the SCA requirement, so it is only
@@ -94,10 +100,14 @@ func prerequisite(t *testing.T) {
 	}
 	defer temporalClient.Close()
 
+	// Wait for the backend Temporal worker to register before starting the workflow.
+	// In CI, the backend may still be booting when the test starts.
+	waitForWorkers(t, temporalClient, "backend", 1*time.Minute)
+
 	wo := client.StartWorkflowOptions{
 		ID:                       uuid.NewString(),
 		TaskQueue:                "backend",
-		WorkflowExecutionTimeout: 1 * time.Minute,
+		WorkflowExecutionTimeout: 2 * time.Minute,
 	}
 
 	run, err := temporalClient.ExecuteWorkflow(t.Context(), wo, "UpdateGateHubOrganizationConfig", temporalWorkflowArgs)
@@ -109,4 +119,21 @@ func prerequisite(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to get workflow result %v", err)
 	}
+}
+
+// waitForWorkers polls Temporal until at least one workflow worker is
+// registered on the given task queue, or the timeout expires.
+func waitForWorkers(t *testing.T, c client.Client, taskQueue string, timeout time.Duration) {
+	t.Helper()
+	t.Logf("Waiting for workers on task queue %q (timeout: %v)...", taskQueue, timeout)
+	deadline := time.Now().Add(timeout)
+	for time.Now().Before(deadline) {
+		resp, err := c.DescribeTaskQueue(t.Context(), taskQueue, enums.TASK_QUEUE_TYPE_WORKFLOW)
+		if err == nil && len(resp.Pollers) > 0 {
+			t.Logf("Found %d worker(s) on task queue %q", len(resp.Pollers), taskQueue)
+			return
+		}
+		time.Sleep(2 * time.Second)
+	}
+	t.Fatalf("timed out waiting for workers on task queue %q after %v", taskQueue, timeout)
 }
