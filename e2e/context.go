@@ -96,6 +96,7 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^a random test identifier is generated$`, func() error { return sc.aRandomTestIdentifierIsGenerated() })
 	ctx.Step(`^the frontend is running at "([^"]*)"$`, func(url string) error { return sc.theFrontendIsRunningAt(url) })
 	ctx.Step(`^mockgatehub is running at "([^"]*)"$`, func(url string) error { return sc.theMockgatehubIsRunningAt(url) })
+	ctx.Step(`^mockxago is running at "([^"]*)"$`, func(url string) error { return sc.theMockxagoIsRunningAt(url) })
 	ctx.Step(`^Rafiki assets are seeded$`, func() error { return sc.rafikiAssetsExist() })
 
 	// User details and impersonation steps
@@ -140,7 +141,7 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I trigger user verification for myself$`, func() error { return sc.iTriggerUserVerificationForMyself() })
 
 	// Phone steps
-	ctx.Step(`^I fill in "([^"]*)" with a unique valid German number$`, func(fieldName string) error { return sc.iFillInWithUniqueGermanPhoneNumber(fieldName) })
+	ctx.Step(`^I fill in "([^"]*)" with a unique valid phone number$`, func(fieldName string) error { return sc.iFillInWithUniquePhoneNumber(fieldName) })
 
 	// Login steps
 	ctx.Step(`^I clear the browser session$`, func() error { return sc.iClearTheBrowserSession() })
@@ -289,6 +290,21 @@ func (sc *E2EContext) theMockgatehubIsRunningAt(urlStr string) error {
 	debugPrintf("🔍 Verifying mockgatehub health endpoint at %s...\n", urlStr)
 	healthURL := strings.TrimSuffix(urlStr, "/") + "/health"
 	return waitForHealthEndpoint(healthURL, 30*time.Second)
+}
+
+func (sc *E2EContext) theMockxagoIsRunningAt(urlStr string) error {
+	parsedURL, err := url.Parse(urlStr)
+	if err != nil {
+		return fmt.Errorf("failed to parse mockxago URL: %w", err)
+	}
+
+	if err := sc.ensureHostsResolve([]string{parsedURL.Hostname()}); err != nil {
+		return err
+	}
+
+	debugPrintf("🔍 Verifying mockxago health endpoint at %s...\n", urlStr)
+	healthURL := strings.TrimSuffix(urlStr, "/") + "/health"
+	return sc.waitForHealthEndpoint(healthURL, 30*time.Second)
 }
 
 func (sc *E2EContext) ensureHostsResolve(hosts []string) error {

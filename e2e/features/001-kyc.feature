@@ -7,6 +7,7 @@ Feature: User KYC and Account Activation
     Given a random test identifier is generated
     And the frontend is running at "https://interledger.test"
     And mockgatehub is running at "https://mockgatehub.interledger.test"
+    And mockxago is running at "https://mockxago.interledger.test"
     And Rafiki assets are seeded
     Given the details of 'kyc-user' are
       | field           | value                        |
@@ -18,7 +19,7 @@ Feature: User KYC and Account Activation
     And I impersonate 'kyc-user'
 
 
-  @kyc @germany
+  @kyc @gatehub
   Scenario: Successfully activate account and complete KYC as verified user
     Given that my "country" is "germany"
     And I completed the signup workflow
