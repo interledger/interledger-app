@@ -270,6 +270,7 @@ func (a *Activity) TransferFromUserToIntermediary(ctx context.Context, walletAdd
 	return tx.ID, nil
 }
 
+// TODO Find a way to map Gatehub transfers without storing the workflow ID in the database
 // Stores the mapping between a GateHub transaction ID
 // and a Temporal workflow ID so the GateHub webhook can signal the correct workflow.
 func (a *Activity) StoreGatehubTransferMapping(ctx context.Context, gatehubTxID, workflowID string) error {
