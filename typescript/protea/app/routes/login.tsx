@@ -83,10 +83,6 @@ export default function Page() {
   const { csrfToken, flowId } = useLoaderData()
   const searchParams = useSearchParams()
 
-  useEffect(() => {
-    console.log('CHANGEDDDDDDD', { csrfToken }, { flowId })
-  }, [csrfToken, flowId])
-
   return (
     <>
       <Form
