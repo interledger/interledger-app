@@ -3,14 +3,16 @@ package utils
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"fmt"
 	"time"
 )
 
-// GenerateToken generates a random hex token
+// GenerateToken generates a random hex token.
+// Returns the token string and any error from the crypto/rand source.
 func GenerateToken() (string, error) {
 	bytes := make([]byte, 32)
 	if _, err := rand.Read(bytes); err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to generate token: %w", err)
 	}
 	return hex.EncodeToString(bytes), nil
 }

@@ -7,6 +7,7 @@ import (
 	"encoding/base32"
 	"errors"
 	"fmt"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -914,6 +915,31 @@ func GetPendingCardTransactions(ctx context.Context, b Backends) ([]pendingTrans
 	}
 
 	return txs, nil
+}
+
+func UpdateOrganizationConfiguration(ctx context.Context, ec external.Client, apiBaseURL, twoFAType string) (*external.UpdateOrganizationConfigurationResponse, error) {
+	baseURL, err := url.Parse(apiBaseURL)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	if !env.IsLocal() && baseURL.Scheme != "https" {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, "api url must be https")
+	}
+
+	if env.IsLocal() && baseURL.Scheme != "http" && baseURL.Scheme != "https" {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, "api url must be http or https")
+	}
+
+	t, err := external.ParseTwoFA(twoFAType)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	return ec.UpdateOrganizationConfiguration(ctx, external.UpdateOrganizationConfigurationArgs{
+		APIBaseURL: baseURL.String(),
+		TwoFAType:  t,
+	})
 }
 
 func updateCardTransactionStatus(ctx context.Context, b Backends, txID, status string) error {

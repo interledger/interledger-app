@@ -2,7 +2,6 @@ package logger
 
 import (
 	"fmt"
-	"os"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -20,8 +19,8 @@ func buildLogger(minLevel *zapcore.Level) *zap.Logger {
 	encoderConfig := zap.NewProductionEncoderConfig()
 	encoder := zapcore.NewJSONEncoder(encoderConfig)
 
-	// Create stdout sink for info/debug/warn
-	stdoutSink := zapcore.Lock(zapcore.AddSync(os.Stdout))
+	// Use buffered sinks for test-friendly output
+	stdoutSink := zapcore.Lock(stdoutBuffer)
 	stdoutCore := zapcore.NewCore(
 		encoder,
 		stdoutSink,
@@ -37,7 +36,7 @@ func buildLogger(minLevel *zapcore.Level) *zap.Logger {
 	)
 
 	// Create stderr sink for error/fatal
-	stderrSink := zapcore.Lock(zapcore.AddSync(os.Stderr))
+	stderrSink := zapcore.Lock(stderrBuffer)
 	stderrCore := zapcore.NewCore(
 		encoder,
 		stderrSink,

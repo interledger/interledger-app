@@ -2,8 +2,8 @@ name: Go Tests
 
 on:
   pull_request:
-    branches:
-      - main
+    paths-ignore:
+      - 'documentation/**'
 
 jobs:
   backend-tests:

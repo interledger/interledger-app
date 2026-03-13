@@ -30,6 +30,10 @@ help:
 	@echo "print-trust-debian     List all self-signed TLS certificates on Debian-based systems"
 	@echo "untrust-debian         Remove the self-signed TLS certificates from Debian-based systems"
 
+	@echo "trust-arch             Trust the self-signed TLS certificates on Arch-based systems"
+	@echo "print-trust-arch       List all self-signed TLS certificates on Arch-based systems"
+	@echo "untrust-arch           Remove the self-signed TLS certificates from Arch-based systems"
+
 	@echo ""
 
 	@echo ""
@@ -49,6 +53,8 @@ help:
 	certs print-certs \
 
 	trust print-trust untrust \
+	trust-debian print-trust-debian untrust-debian \
+	trust-arch print-trust-arch untrust-arch \
 
 	hosts \
 
@@ -136,6 +142,21 @@ untrust-debian:
 	sudo update-ca-certificates
 	certutil -d sql:$(HOME)/.pki/nssdb -D -n "interledger.test"
 
+trust-arch:
+	sudo cp config/certs/local.crt /etc/ca-certificates/trust-source/anchors/interledger-test.crt
+	sudo update-ca-trust
+	mkdir -p $(HOME)/.pki/nssdb
+	[ -f "$(HOME)/.pki/nssdb/cert9.db" ] || certutil -d sql:$(HOME)/.pki/nssdb -N --empty-password
+	certutil -d sql:$(HOME)/.pki/nssdb -A -t "C,," -n "interledger.test" -i config/certs/local.crt
+
+print-trust-arch:
+	trust list | grep -A5 "interledger"
+
+untrust-arch:
+	sudo rm -f /etc/ca-certificates/trust-source/anchors/interledger-test.crt
+	sudo update-ca-trust
+	certutil -d sql:$(HOME)/.pki/nssdb -D -n "interledger.test"
+
 HOSTS := interledger.test \
 	admin.mgnt.interledger.test \
 	temporal.mgnt.interledger.test \
@@ -147,6 +168,7 @@ HOSTS := interledger.test \
 	ngrok.test \
 	identity.interledger.test \
 	mockgatehub.interledger.test \
+	mockxago.interledger.test \
 	docs.interledger.test
 
 hosts:

@@ -12,10 +12,9 @@ import (
 	"time"
 )
 
-// iFillInWithUniqueGermanPhoneNumber fills in phone field with a unique German number
-// Usage: I fill in "phone" with a unique valid German number
-func (sc *E2EContext) iFillInWithUniqueGermanPhoneNumber(fieldName string) error {
-	// Get the current user's details to extract the email suffix for uniqueness
+// iFillInWithUniquePhoneNumber fills in phone field with a unique phone number for the current user's country
+// Usage: I fill in "phone" with a unique valid phone number
+func (sc *E2EContext) iFillInWithUniquePhoneNumber(fieldName string) error {
 	if sc.currentUser == "" {
 		return fmt.Errorf("no current user set for phone generation")
 	}
@@ -25,50 +24,13 @@ func (sc *E2EContext) iFillInWithUniqueGermanPhoneNumber(fieldName string) error
 		return fmt.Errorf("no user details for current user '%s'", sc.currentUser)
 	}
 
-	// Use emailSuffix (without the test prefix) for consistent hashing
 	emailSuffix, ok := details.Fields["emailSuffix"]
 	if !ok {
 		return fmt.Errorf("no emailSuffix defined for user '%s'", sc.currentUser)
 	}
 
-	// Generate deterministic test phone using base +491700000000 and overlay test identifier + email hash
-	base := "+491700000000"
-	overlay := sc.testIdentifier
-
-	if emailSuffix != "" {
-		// Extract the part before @ to get unique username (e.g., "sender-p2p" from "sender-p2p@example.com")
-		emailParts := strings.Split(emailSuffix, "@")
-		username := emailParts[0]
-
-		// Hash the full username to get 3 unique digits
-		userHash := 0
-		for _, c := range username {
-			userHash = (userHash*31 + int(c)) % 1000
-		}
-		emailHash := fmt.Sprintf("%03d", userHash)
-
-		// Use first 6 digits: testPrefix (3) + email hash (3)
-		if len(overlay) >= 3 {
-			overlay = overlay[:3] + emailHash
-		} else {
-			overlay = overlay + emailHash
-		}
-	}
-
-	if overlay == "" {
-		overlay = fmt.Sprintf("%d", time.Now().UnixNano()%1000000)
-	}
-
-	// Ensure we don't slice into the leading '+' when overlaying
-	if len(overlay) >= len(base) {
-		overlay = overlay[len(overlay)-(len(base)-1):]
-	}
-	split := len(base) - len(overlay)
-	if split < 1 {
-		split = 1
-	}
-	phoneNumber := base[:split] + overlay
-	debugPrintf("📱 Generated unique German phone number: %s (emailSuffix %s, user %s)\n", phoneNumber, emailSuffix, sc.currentUser)
+	phoneNumber := generateDeterministicPhone(sc.country, sc.testIdentifier, emailSuffix)
+	debugPrintf("📱 Generated unique phone number: %s (country %s, emailSuffix %s, user %s)\n", phoneNumber, sc.country, emailSuffix, sc.currentUser)
 
 	// Store in user details for current user
 	if sc.currentUser != "" && sc.userDetails[sc.currentUser] != nil {
@@ -184,8 +146,8 @@ func (sc *E2EContext) iCompletedTheSignupWorkflow() error {
 		return fmt.Errorf("missing signup details (firstName=%q, lastName=%q, email=%q, country=%q, password set=%t)", firstName, lastName, email, country, password != "")
 	}
 
-	// Use a German phone prefix by default for KYC flows; the phone generator ignores the prefix value.
-	phonePrefix := "+49"
+	// Phone prefix is empty — generateDeterministicPhone picks the right base from sc.country
+	phonePrefix := ""
 
 	return sc.iCompleteSignupFlow(firstName, lastName, email, country, phonePrefix, password)
 }

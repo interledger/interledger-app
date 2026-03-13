@@ -471,3 +471,11 @@ make test       # All tests
 make unit-test  # Unit tests only
 make e2e-test   # E2E tests
 ```
+
+### Log Buffering
+
+Tests automatically buffer logs to keep output clean. Logs are displayed only if a test fails, making debugging easier. To enable buffering in a test, add this as the first line:
+
+```go
+defer logger.FlushLogsOnFailure(t)()
+```
