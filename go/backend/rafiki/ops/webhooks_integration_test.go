@@ -289,7 +289,7 @@ func (s *RafikiWorkflowSuite) TestOutgoingPaymentCompleted_HappyPath() {
 
 	s.env.OnActivity(a.UpdateOutgoingPaymentTransactionState, mock.Anything, op, "Completed").Return(nil)
 	s.env.OnActivity(a.PostLedgerTransferForOutgoing, mock.Anything, op).Return(nil)
-	s.env.OnActivity(a.WithdrawOutgoingPaymentLiquidity, mock.Anything, op.ID).Return(nil)
+	s.env.OnActivity(a.WithdrawOutgoingPaymentLiquidity, mock.Anything, op).Return(nil)
 
 	s.env.ExecuteWorkflow(RafikiOutgoingPaymentCompletedWorkflow, op)
 	s.True(s.env.IsWorkflowCompleted())
@@ -336,7 +336,7 @@ func (s *RafikiWorkflowSuite) TestOutgoingPaymentFailed_HappyPath() {
 
 	s.env.OnActivity(a.UpdateOutgoingPaymentTransactionState, mock.Anything, op, "Failed").Return(nil)
 	s.env.OnActivity(a.VoidLedgerTransferForOutgoing, mock.Anything, op).Return(nil)
-	s.env.OnActivity(a.WithdrawOutgoingPaymentLiquidity, mock.Anything, op.ID).Return(nil)
+	s.env.OnActivity(a.WithdrawOutgoingPaymentLiquidity, mock.Anything, op).Return(nil)
 
 	s.env.ExecuteWorkflow(RafikiOutgoingPaymentFailedWorkflow, op)
 	s.True(s.env.IsWorkflowCompleted())
