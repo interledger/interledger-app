@@ -6,13 +6,13 @@ import { defineConfig } from 'vitest/config'
 import tsconfigPaths from 'vite-tsconfig-paths'
 
 export default defineConfig({
-  plugins: [react() as any, tsconfigPaths() as any],
+  plugins: [react(), tsconfigPaths()],
   test: {
     globals: true,
     environment: 'jsdom',
     // setupFiles: ['./test/setup-test-env.ts'],
     include: ['./**/*.test.{ts,tsx}'],
-    watchExclude: ['.*\\/node_modules\\/.*', '.*\\/build\\/.*'],
+    exclude: ['.*\\/node_modules\\/.*', '.*\\/build\\/.*'],
     env: {
       SESSION_SECRET: 'foobar'
     }
