@@ -560,7 +560,6 @@ func phoneRangeForCountry(country string) (prefix string, pattern string, digits
 		return "+491700", `^\+491700([0-9]{6})$`, 6
 	}
 }
-
 // getWalletIDByEmail looks up the wallet ID for a user by their email address
 func (sc *E2EContext) getWalletIDByEmail(email string) (string, error) {
 	if sc.db == nil {
