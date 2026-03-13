@@ -110,6 +110,9 @@ type StartArgs struct {
 	PTIJWK                        string
 	PTIClientID                   string
 	PTIPublicKeyJWK               string
+	AppleAppID                    string
+	AndroidPackageName            string
+	AndroidSHA256                 string
 }
 
 func ParseStartArgs() (*StartArgs, error) {
@@ -392,6 +395,24 @@ func ParseStartArgs() (*StartArgs, error) {
 		if ptiClientID == "" {
 			return nil, errors.New("PTI_CLIENT_ID is required when PTI_ENABLED=true")
 		}
+		if ptiPublicKeyJWK == "" {
+			return nil, errors.New("PTI_PUBLIC_KEY_JWK is required when PTI_ENABLED=true")
+		}
+	}
+
+	appleAppID := os.Getenv("APPLE_APP_ID")
+	if appleAppID == "" {
+		return nil, errors.New("APPLE_APP_ID is required")
+	}
+
+	androidPackageName := os.Getenv("ANDROID_PACKAGE_NAME")
+	if androidPackageName == "" {
+		return nil, errors.New("ANDROID_PACKAGE_NAME is required")
+	}
+
+	androidSHA256 := os.Getenv("ANDROID_SHA256")
+	if androidSHA256 == "" {
+		return nil, errors.New("ANDROID_SHA256 is required")
 	}
 
 	return &StartArgs{
@@ -452,5 +473,8 @@ func ParseStartArgs() (*StartArgs, error) {
 		PTIJWK:                        ptiJWK,
 		PTIClientID:                   ptiClientID,
 		PTIPublicKeyJWK:               ptiPublicKeyJWK,
+		AppleAppID:                    appleAppID,
+		AndroidPackageName:            androidPackageName,
+		AndroidSHA256:                 androidSHA256,
 	}, nil
 }
