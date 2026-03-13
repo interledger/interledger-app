@@ -251,7 +251,7 @@ func ExecuteChimoneyFinishWithdrawalWorkflow(
 
 	if trx.State == transactions.StateCompleted || trx.State == transactions.StateFailed {
 		logger.Info("Chimoney withdrawal already finalized with status: ", "status", string(trx.State), "issueID", IssueID)
-		return nil
+		return temporal.NewNonRetryableApplicationError("Chimoney withdrawal already finalized", "ErrAlreadyFinalized", err)
 	}
 
 	if status == "cancelled" || status == "expired" {
@@ -726,8 +726,8 @@ func FinishChimoneyDepositWorkflow(ctx workflow.Context, issueID string, chiWall
 	}
 
 	if trx.State == transactions.StateCompleted || trx.State == transactions.StateFailed {
-		logger.Info("Chimoney deposit already finalized with status: ", zap.String("status", string(trx.State)), zap.String("issueID", issueID))
-		return nil
+		logger.Info("Chimoney deposit already finalized with status: ", "status", string(trx.State), " issueID", issueID)
+		return temporal.NewNonRetryableApplicationError("Chimoney deposit already finalized", "ErrAlreadyFinalized", err)
 	}
 
 	// Note: The webhook payload doesn't contain status information for redeem events.

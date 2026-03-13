@@ -83,7 +83,7 @@ func ExecuteFinishDeposit(ctx context.Context, b Backends, issueID string, statu
 
 	// return workflow if it's running
 	var executeErr error
-	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
+	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING || workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_COMPLETED {
 		_ = b.Temporal().GetWorkflow(ctx, wo.ID, "")
 	} else {
 		_, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, FinishChimoneyDepositWorkflow, issueID, chiWalletID)
