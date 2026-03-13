@@ -248,6 +248,7 @@ func HandleTransactionStatus(ctx context.Context, b Backends, raw json.RawMessag
 		capturedState    string = "CAPTURED"
 		settledState     string = "SETTLED"
 		clearingFunds    string = "CLEARING_FUNDS"
+		returnedState    string = "RETURNED"
 	)
 
 	walletID, err := getWalletID(ctx, b, payload.UserID)
@@ -291,6 +292,13 @@ func HandleTransactionStatus(ctx context.Context, b Backends, raw json.RawMessag
 			w.WriteHeader(http.StatusInternalServerError)
 			return err
 		}
+	case returnedState:
+		err = HandleReturned(ctx, b, payload)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return err
+		}
+
 	default:
 		log.Error("failed to handle pti transaction status webhook", zap.String("externalUserId", payload.UserID), zap.String("status", payload.Status), zap.String("requestId", payload.RequestID))
 		slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "wallet-info-bot", fmt.Sprintf("fiant webhook: transaction status=%s walletID=%s", payload.Status, payload.UserID))
@@ -328,6 +336,40 @@ func HandleSettleDeposit(ctx context.Context, b Backends, payload pti.Transactio
 		_, err = b.Temporal().ExecuteWorkflow(ctx, wo, SettleDepositWorkflow, payload)
 		if err != nil {
 			log.Error("Failed to handle pti deposit webhook", zap.Error(err))
+			return err
+		}
+	}
+	return nil
+}
+
+func HandleReturned(ctx context.Context, b Backends, payload pti.TransactionStatusPayload) error {
+	wo := client.StartWorkflowOptions{
+		ID:                    "pti_returned_webhook_" + payload.RequestID,
+		TaskQueue:             "backend",
+		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+	}
+
+	var workflowStatus enums.WorkflowExecutionStatus
+	wflow, err := b.Temporal().DescribeWorkflowExecution(ctx, wo.ID, "")
+	switch err.(type) {
+	case *serviceerror.Internal,
+		*serviceerror.Unavailable,
+		*serviceerror.InvalidArgument:
+		log.Error("Failed to handle pti returned webhook", zap.Error(err))
+		return err
+	case *serviceerror.NotFound:
+		// do nothing
+	default:
+		if wflow != nil {
+			workflowStatus = wflow.GetWorkflowExecutionInfo().Status
+		}
+	}
+
+	// execute workflow if it's not running
+	if workflowStatus != enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
+		_, err = b.Temporal().ExecuteWorkflow(ctx, wo, ReturnedWorkflow, payload)
+		if err != nil {
+			log.Error("Failed to handle pti returned webhook", zap.Error(err))
 			return err
 		}
 	}

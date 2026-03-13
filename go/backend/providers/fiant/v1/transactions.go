@@ -1,0 +1,43 @@
+package v1
+
+import (
+	"context"
+	"fmt"
+	"net/http"
+	"net/url"
+)
+
+type transactionHandler struct {
+	path string
+	ctrl *Controller
+}
+
+type SandboxActionTypeEnum string
+
+const (
+	SettleAch SandboxActionTypeEnum = "SETTLE_ACH"
+	ReturnAch SandboxActionTypeEnum = "RETURN_ACH"
+)
+
+// https://developers.platform.fiant.io/reference/performaction
+func (th *transactionHandler) SandboxAction(ctx context.Context, requestID string, action SandboxActionTypeEnum) error {
+	path, err := url.JoinPath(th.path, requestID, "actions") // "transactions/{requestId}/actions"
+	if err != nil {
+		return err
+	}
+
+	payload := []byte(`{"action":"` + string(action) + `"}`)
+
+	resp, err := th.ctrl.post(ctx, path, payload)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusCreated {
+		// return fmt.Errorf("failed to perform sandbox action, code: %s, response: %s", resp.Status, string(body))
+		return fmt.Errorf("failed to perform sandbox action, code: %s", resp.Status)
+	}
+
+	return nil
+}
