@@ -81,13 +81,11 @@ func (s *rpcService) CompleteSignup(ctx context.Context, req *pb.CompleteSignupR
 		return nil, toGRPCError(err)
 	}
 
-	ipAddress := req.GetIpAddress()
 	agreementIDs := getSignupAgreementIDs()
-	if ipAddress != "" && len(agreementIDs) > 0 {
+	if len(agreementIDs) > 0 {
 		signErr := s.b.Agreements().Sign(ctx, &agreements.SignArgs{
 			AgreementIDs: agreementIDs,
 			UserID:       req.UserId,
-			IPAddress:    ipAddress,
 		})
 		if signErr != nil {
 			log.Warn("complete_signup: failed to record agreement signatures", zap.Error(signErr), zap.String("userId", req.UserId))

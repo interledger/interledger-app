@@ -2014,10 +2014,6 @@ export interface CompleteSignupRequest {
      * @generated from protobuf field: string userId = 2;
      */
     userId: string;
-    /**
-     * @generated from protobuf field: optional string ipAddress = 3;
-     */
-    ipAddress?: string;
 }
 /**
  * @generated from protobuf message backend.v1.CreateUserDefaultWalletRequest
@@ -2080,10 +2076,6 @@ export interface SignAgreementsRequest {
      * @generated from protobuf field: string userId = 2;
      */
     userId: string;
-    /**
-     * @generated from protobuf field: string ipAddress = 3;
-     */
-    ipAddress: string;
 }
 /**
  * @generated from protobuf message backend.v1.SignAgreementsResponse
@@ -9632,8 +9624,7 @@ class CompleteSignupRequest$Type extends MessageType<CompleteSignupRequest> {
     constructor() {
         super("backend.v1.CompleteSignupRequest", [
             { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "userId", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "ipAddress", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ }
+            { no: 2, name: "userId", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<CompleteSignupRequest>): CompleteSignupRequest {
@@ -9654,9 +9645,6 @@ class CompleteSignupRequest$Type extends MessageType<CompleteSignupRequest> {
                 case /* string userId */ 2:
                     message.userId = reader.string();
                     break;
-                case /* optional string ipAddress */ 3:
-                    message.ipAddress = reader.string();
-                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -9675,9 +9663,6 @@ class CompleteSignupRequest$Type extends MessageType<CompleteSignupRequest> {
         /* string userId = 2; */
         if (message.userId !== "")
             writer.tag(2, WireType.LengthDelimited).string(message.userId);
-        /* optional string ipAddress = 3; */
-        if (message.ipAddress !== undefined)
-            writer.tag(3, WireType.LengthDelimited).string(message.ipAddress);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -9935,12 +9920,11 @@ class SignAgreementsRequest$Type extends MessageType<SignAgreementsRequest> {
     constructor() {
         super("backend.v1.SignAgreementsRequest", [
             { no: 1, name: "agreementIds", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "userId", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "ipAddress", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 2, name: "userId", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<SignAgreementsRequest>): SignAgreementsRequest {
-        const message = { agreementIds: [], userId: "", ipAddress: "" };
+        const message = { agreementIds: [], userId: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<SignAgreementsRequest>(this, message, value);
@@ -9956,9 +9940,6 @@ class SignAgreementsRequest$Type extends MessageType<SignAgreementsRequest> {
                     break;
                 case /* string userId */ 2:
                     message.userId = reader.string();
-                    break;
-                case /* string ipAddress */ 3:
-                    message.ipAddress = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -9978,9 +9959,6 @@ class SignAgreementsRequest$Type extends MessageType<SignAgreementsRequest> {
         /* string userId = 2; */
         if (message.userId !== "")
             writer.tag(2, WireType.LengthDelimited).string(message.userId);
-        /* string ipAddress = 3; */
-        if (message.ipAddress !== "")
-            writer.tag(3, WireType.LengthDelimited).string(message.ipAddress);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

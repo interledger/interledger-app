@@ -102,12 +102,11 @@ func TestCompleteSignup_NoAgreementSigning(t *testing.T) {
 	userID := uuid.NewString()
 
 	c.SignupService.EXPECT().Complete(gomock.Any(), sID, userID).Return(nil).Times(1)
-	// Agreements().Sign must not be called when ipAddress is empty (or env unset)
+	// Agreements().Sign must not be called when SIGNUP_AGREEMENT_IDS is unset
 
 	_, err := client.CompleteSignup(context.Background(), &pb.CompleteSignupRequest{
 		Id:     sID,
 		UserId: userID,
-		// ipAddress omitted / empty
 	})
 	require.NoError(t, err)
 }
@@ -119,7 +118,6 @@ func TestCompleteSignup_WithAgreementSigning(t *testing.T) {
 
 	sID := uuid.NewString()
 	userID := uuid.NewString()
-	ip := "192.168.1.1"
 	agreementIDs := "privacy_policy-0.0.0,terms_of_service-0.0.0"
 	t.Setenv("SIGNUP_AGREEMENT_IDS", agreementIDs)
 
@@ -127,13 +125,11 @@ func TestCompleteSignup_WithAgreementSigning(t *testing.T) {
 	c.AgreementsService.EXPECT().Sign(gomock.Any(), &agreements.SignArgs{
 		AgreementIDs: []string{"privacy_policy-0.0.0", "terms_of_service-0.0.0"},
 		UserID:       userID,
-		IPAddress:    ip,
 	}).Return(nil).Times(1)
 
 	_, err := client.CompleteSignup(context.Background(), &pb.CompleteSignupRequest{
-		Id:        sID,
-		UserId:    userID,
-		IpAddress: &ip,
+		Id:     sID,
+		UserId: userID,
 	})
 	require.NoError(t, err)
 }
@@ -145,16 +141,14 @@ func TestCompleteSignup_SignFailsStillSucceeds(t *testing.T) {
 
 	sID := uuid.NewString()
 	userID := uuid.NewString()
-	ip := "10.0.0.1"
 	t.Setenv("SIGNUP_AGREEMENT_IDS", "privacy_policy-0.0.0")
 
 	c.SignupService.EXPECT().Complete(gomock.Any(), sID, userID).Return(nil).Times(1)
 	c.AgreementsService.EXPECT().Sign(gomock.Any(), gomock.Any()).Return(agreements.ErrNotFound).Times(1)
 
 	_, err := client.CompleteSignup(context.Background(), &pb.CompleteSignupRequest{
-		Id:        sID,
-		UserId:    userID,
-		IpAddress: &ip,
+		Id:     sID,
+		UserId: userID,
 	})
 	require.NoError(t, err)
 }

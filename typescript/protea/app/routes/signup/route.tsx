@@ -17,7 +17,6 @@ import { error, isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { trimHeaders } from '~/lib/headers.server'
 import logger from '~/lib/logger.server'
-import { getClientIP } from '~/lib/ip.server'
 import {
   KRATOS_URL,
   getCsrfTokenFromFlow,
@@ -385,8 +384,7 @@ export async function passwordAction({ request }: ActionFunctionArgs) {
   logger.info({ id, userId: successData.identity.id, flow: 'signup' }, '[SIGNUP] Completing signup in backend')
   await grpc.completeSignup(request, {
     id,
-    userId: successData.identity.id,
-    ipAddress: getClientIP(request) ?? ''
+    userId: successData.identity.id
   })
 
   return redirectWithSnackbar(
