@@ -7,7 +7,7 @@ export async function getValidWalletAddress(walletAddress: string) {
   const opClient = await createClient()
   const response = await getWalletAddress(walletAddress, opClient)
   return response
-  
+
 }
 
 export const walletSchema = z.object({
@@ -110,13 +110,26 @@ export interface WalletAddressType {
   resourceServer: string
 }
 
-type Errors = Array<string | null | undefined> | null | undefined
+export type Errors = {
+  errors?: Array<string | null | undefined> | null
+}
 
-export function formatError(errors: Errors) {
-  const filteredErrors = errors?.filter(Boolean)
+export function formatError(error: Errors | null | undefined) {
+  const filteredErrors = error?.errors?.filter(
+    (e): e is string => Boolean(e)
+  )
+
   if (!filteredErrors?.length) return undefined
 
   return filteredErrors.join(', ')
+}
+
+export function createError(key: string, message: string): Errors {
+  return {
+    [key]: {
+      errors: [message],
+    },
+  }
 }
 
 export const getCurrencySymbol = (assetCode: string): string => {

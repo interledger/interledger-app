@@ -90,7 +90,6 @@ export async function fetchQuote(
 
   return response
 }
-
 export async function fetchRequestQuote(args: {
   walletAddress: string
   incomingPaymentUrl: string
@@ -467,11 +466,24 @@ async function getQuoteGrant({ authServer, opClient }: QuoteGrantParams) {
       throw new Error('Could not retrieve quote grant.')
     })
 }
-
+//It breaks on the next line
 async function getIncomingPaymentGrant(
   url: string,
   opClient: AuthenticatedClient
 ) {
+  console.log({
+      url: url
+    })
+    console.log(JSON.stringify({
+      access_token: {
+        access: [
+          {
+            type: 'incoming-payment',
+            actions: ['read', 'create', 'complete']
+          }
+        ]
+      }
+    }))
   const nonInteractiveGrant = await opClient.grant.request(
     {
       url: url
@@ -487,6 +499,7 @@ async function getIncomingPaymentGrant(
       }
     }
   )
+  console.log({nonInteractiveGrant})
 
   if (isPendingGrant(nonInteractiveGrant)) {
     throw new Error('Expected non-interactive grant')

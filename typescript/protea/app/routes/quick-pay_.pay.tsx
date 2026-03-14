@@ -1,4 +1,3 @@
-import { WalletAddress } from '@interledger/open-payments'
 import type {
   ActionFunctionArgs,
   LoaderFunctionArgs,
@@ -9,41 +8,61 @@ import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { useEffect, useState } from 'react'
 import { z } from 'zod'
 import type { ApplicationProps } from '~/components'
-import { Button, GridColumn, Layouts, TextField, WalletGrid } from '~/components'
+import { ActionMessage, Button, GridColumn, Layouts, TextField, WalletGrid } from '~/components'
 import { AmountDisplay, QuoteDialog, PayWithInterledgerMark } from '~/components/QuickPay/'
 import { useDialPadContext } from '~/lib/context/dialpad'
 import { mergeMeta } from '~/lib/meta'
 import { fetchQuote, initializePayment } from '~/lib/open-payments.server'
-import { formatAmount, formatError } from '~/lib/utils'
-import { getValidWalletAddress, paymentSchema } from '~/lib/utils'
-import { commitSession, destroySession, getSession } from '~/session.server'
+import { getValidWalletAddress, paymentSchema, formatAmount, formatError, Errors, createError } from '~/lib/utils'
+import { commitSession, getSession } from '~/session.server'
+
+type ActionData = {
+  errors?: {
+    walletAddress?: Errors
+    receiverAddress?: Errors
+    note?: Errors
+    actionError?: Errors
+  }
+}
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const searchParams = new URL(request.url).searchParams
   const isQuote = searchParams.get('quote') || false
 
   const session = await getSession(request.headers.get('Cookie'))
-  const walletAddressInfo = session.get('wallet-address')
+  const sessionData = session.get('quickPay')
+  const walletAddressInfo = sessionData?.validWalletAddress
 
   let receiverName = ''
   let receiveAmount = null
   let debitAmount = null
 
   if (walletAddressInfo === undefined) {
-    throw new Error('Payment session expired.')
+    throw json(
+      {
+        code: "QUICKPAY_SESSION_ERROR",
+        message: "Payment session expired."
+      },
+      { status: 400 }
+    )
   }
 
   if (isQuote) {
-    const quote = session.get('quote')
-    const receiver = session.get('receiver-wallet-address')
+    const quote = session.data.quote
+    const receiver = sessionData.receiverAddress
 
     if (quote === undefined) {
-      throw new Error('Payment session expired.')
+      throw json(
+        {
+          code: "QUICKPAY_SESSION_ERROR",
+          message: "Payment session expired."
+        },
+        { status: 400 }
+      )
     }
 
     receiverName =
       receiver.publicName === undefined ? 'Recepient' : receiver.publicName
-
     receiveAmount = formatAmount({
       value: quote.receiveAmount.value,
       assetCode: quote.receiveAmount.assetCode,
@@ -58,7 +77,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
 
   return json({
-    senderAddress: walletAddressInfo.walletAddress.id,
+    senderAddress: walletAddressInfo.id,
     receiveAmount: receiveAmount ? receiveAmount.amountWithCurrency : null,
     debitAmount: debitAmount ? debitAmount.amountWithCurrency : null,
     receiverName: receiverName,
@@ -81,9 +100,10 @@ export const meta: MetaFunction = mergeMeta(() => [
 
 export default function Page() {
   const { senderAddress, receiveAmount, debitAmount, receiverName, isQuote } = useLoaderData<typeof loader>()
-  const actionData = useActionData<typeof action>()
+  const actionData = useActionData<ActionData>()
   const { amountValue } = useDialPadContext()
   const [modalOpen, setModalOpen] = useState(false)
+  const errors = actionData?.errors
 
   useEffect(() => {
     setModalOpen(Boolean(isQuote))
@@ -110,13 +130,13 @@ export default function Page() {
                 name="receiverAddress"
                 placeholder="Enter receiver wallet address"
                 autoFocus
-                errorMessage={actionData?.errors?.receiverAddress}
+                errorMessage={formatError(errors?.receiverAddress)}
               />
               <TextField
                 label="Payment note"
                 name="note"
                 placeholder="Note"
-                errorMessage={actionData?.errors?.note}
+                errorMessage={formatError(errors?.note)}
               />
               <input
                 type="hidden"
@@ -134,6 +154,7 @@ export default function Page() {
                   <PayWithInterledgerMark className="h-8 w-40 mx-2" />
                 </Button>
               </div>
+              <ActionMessage message= {formatError(errors?.actionError)} />
             </div>
           </Form>
         </div>
@@ -151,45 +172,69 @@ export default function Page() {
 
 export async function action({ request }: ActionFunctionArgs) {
   const session = await getSession(request.headers.get('Cookie'))
+  const formData = Object.fromEntries(await request.formData())
 
-  let receiverAddress = {} as WalletAddress
+  const intent = formData.intent
 
-  const formData = await request.formData()
-  const intent = formData.get('intent')
+  if (intent !== 'pay' && intent !== 'confirm') {
+    return json(formData)
+  }
 
-  if (intent === 'pay') {
-    const formData = Object.fromEntries(await request.formData())
+  const result = paymentSchema.safeParse(formData)
 
-    if (!formData.value || formData.intent !== 'submit') {
-      return json(formData)
-    }
-
-    const quote = await fetchQuote(formData.value, receiverAddress)
-    session.set('quote', quote)
-
-    return redirect(`/quick-pay/pay?quote=true`, {
-      headers: { 'Set-Cookie': await commitSession(session) }
-    })
-  } else if (intent === 'confirm') {
-    const quote = session.get('quote')
-    const walletAddressInfo = session.get('wallet-address')
-
-    if (quote === undefined || walletAddressInfo === undefined) {
-      throw new Error('Payment session expired.')
-    }
-
-    const grant = await initializePayment({
-      walletAddress: walletAddressInfo.walletAddress.id,
-      quote: quote
-    })
-
-    session.set('payment-grant', grant)
-    return redirect(grant.interact.redirect, {
-      headers: { 'Set-Cookie': await commitSession(session) }
-    })
-  } else {
-    return redirect('/quick-pay/', {
-      headers: { 'Set-Cookie': await destroySession(session) }
+  if (!result.success) {
+    const errors = z.treeifyError(result.error).properties
+    return json({
+      errors
     })
   }
+
+  let receiverAddress
+  try {
+    receiverAddress = await getValidWalletAddress(result.data.receiverAddress)
+    session.set('quickPay', { receiverAddress: receiverAddress })
+  } catch (err) {
+    return json({ errors: createError("receiverAddress", "Your wallet address is not valid.") })
+  }
+
+  const sessionData = session.get('quickPay')
+  const walletAddressInfo = sessionData.validWalletAddress
+
+  if (intent === 'pay') {
+    try {
+      const quote = await fetchQuote(result.data, receiverAddress)
+      session.set('quickPay', { quote: quote })
+
+      return redirect(`/quick-pay/pay?quote=true`, {
+        headers: { 'Set-Cookie': await commitSession(session) }
+      })
+    } catch (err) { console.log({ err }) }
+    return json({ errors: createError("actionError", "An error occured, please try again.") })
+  }
+
+  const quote = sessionData?.quote
+  if (intent === 'confirm') {
+
+
+    if (quote === undefined || walletAddressInfo === undefined) {
+      throw json(
+        {
+          code: "QUICKPAY_SESSION_ERROR",
+          message: "Payment session expired."
+        },
+        { status: 400 }
+      )
+    }
+  }
+
+  const grant = await initializePayment({
+    walletAddress: walletAddressInfo.walletAddress.id,
+    quote
+  })
+
+  session.set('payment-grant', grant)
+  return redirect(grant.interact.redirect, {
+    headers: { 'Set-Cookie': await commitSession(session) }
+  })
 }
+
