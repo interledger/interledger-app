@@ -115,8 +115,11 @@ func NotifyAgreementChangedWorkflow(ctx workflow.Context, agreementIDs []string,
 	}
 	drainPending()
 
-	// Checkpoint: continue as a new run with the advanced offset and cached metadata so that
-	// a failure on the next page does not replay from the beginning or re-fetch metadata.
+	// If we got a full page there may be more — checkpoint via ContinueAsNew.
+	// A partial page means we've reached the end; return nil to complete the workflow.
+	if len(userIDs) < agreementChangePageSize {
+		return nil
+	}
 	return workflow.NewContinueAsNewError(ctx, NotifyAgreementChangedWorkflow, agreementIDs, deadlineDate, startOffset+agreementChangePageSize, changes, metadata)
 }
 
