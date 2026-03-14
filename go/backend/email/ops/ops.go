@@ -21,7 +21,10 @@ import (
 	"go.uber.org/zap"
 )
 
-const oneTemplateID = "d-12030774d225454ea91720034b9adb97"
+const (
+	oneTemplateID             = "d-12030774d225454ea91720034b9adb97"
+	agreementUpdatedSubject   = "We've updated our terms"
+)
 
 func getEmailsAndGreeting(ctx context.Context, b Backends, walletID string) ([]sendgrid.Email, string, error) {
 	users, err := b.Users().ListUsers(ctx, walletID)
@@ -499,5 +502,36 @@ func SendPending3DSConfirmation(ctx context.Context, b Backends, walletID, confi
 	}, nil)
 	if err != nil {
 		log.Error("Failed to send card created email.", zap.Error(err), zap.String("walletID", walletID))
+	}
+}
+
+func SendAgreementChangedEmail(ctx context.Context, b Backends, userID string, agreements []email.AgreementLink, deadlineDate string) {
+	u, err := b.Users().GetUser(ctx, userID)
+	if err != nil {
+		log.Error("Failed to send agreement changed email: could not get user.", zap.Error(err), zap.String("userID", userID))
+		return
+	}
+	greeting := strings.TrimSpace(fmt.Sprintf("Hello %s", u.FirstName)) + ","
+	sendTo := []sendgrid.Email{{Name: u.FirstName + " " + u.LastName, Address: u.Email}}
+
+	tableRows := make([]map[string]interface{}, 0, len(agreements))
+	for _, a := range agreements {
+		tableRows = append(tableRows, map[string]interface{}{"label": a.DisplayName, "text": a.TermsURL})
+	}
+	closingParagraph := fmt.Sprintf("If you don't agree with these changes, you can close your Interledger Wallet account in-app at no charge until %s, but we'll be sad to see you go.", deadlineDate)
+
+	data := []map[string]interface{}{
+		{"paragraph": greeting},
+		{"heading": agreementUpdatedSubject},
+		{"paragraph": "You don't need to do anything for these changes to come into effect. You can check the updated documents below."},
+		{"table": tableRows},
+		{"paragraph": closingParagraph},
+	}
+	err = b.External().SendTemplate(ctx, agreementUpdatedSubject, sendTo, oneTemplateID, map[string]interface{}{
+		"subject": agreementUpdatedSubject,
+		"data":    data,
+	}, nil)
+	if err != nil {
+		log.Error("Failed to send agreement changed email.", zap.Error(err), zap.String("userID", userID))
 	}
 }

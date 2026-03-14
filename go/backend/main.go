@@ -2,12 +2,16 @@ package main
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"net"
 	"net/http"
 	"os"
 	"os/signal"
+	"sort"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -46,6 +50,7 @@ import (
 	identities_client "gitlab.com/fynbos/backend/identities/client"
 	"gitlab.com/fynbos/backend/images"
 	img_client "gitlab.com/fynbos/backend/images/client"
+	"gitlab.com/fynbos/backend/jobs"
 	"gitlab.com/fynbos/backend/keys"
 	keys_client "gitlab.com/fynbos/backend/keys/client"
 	"gitlab.com/fynbos/backend/kyc"
@@ -97,6 +102,7 @@ import (
 	pacioli_db "gitlab.com/fynbos/pacioli/db"
 	"gitlab.com/fynbos/tracing"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
+	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
 	"go.uber.org/zap"
@@ -178,6 +184,23 @@ func start(args *cli.StartArgs) {
 
 	b := NewBackends(args, false)
 	defer CloseBackends(b)
+
+	// Run agreement migration so new agreement versions are loaded; notify affected users in background.
+	if newAgreementIDs, err := agreements_migrations.MigrateFromEmbeddedMarkdowns(context.Background(), b.DB()); err != nil {
+		log.Warn("agreement migration on start failed", zap.Error(err))
+	} else if len(newAgreementIDs) > 0 {
+		deadlineDate := time.Now().UTC().Add(30 * 24 * time.Hour).Format("January 2, 2006")
+		sort.Strings(newAgreementIDs)
+		h := sha256.Sum256([]byte(strings.Join(newAgreementIDs, ",")))
+		wo := client.StartWorkflowOptions{
+			ID:                    "agreement_change_notify_" + hex.EncodeToString(h[:8]),
+			TaskQueue:             "backend",
+			WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_ALLOW_DUPLICATE_FAILED_ONLY,
+		}
+		if _, err := b.Temporal().ExecuteWorkflow(context.Background(), wo, jobs.NotifyAgreementChangedWorkflow, newAgreementIDs, deadlineDate, 0, nil, nil); err != nil {
+			log.Warn("failed to start agreement change notification workflow", zap.Error(err), zap.Strings("agreementIDs", newAgreementIDs))
+		}
+	}
 
 	router := chi.NewRouter()
 	router.Routes()
@@ -326,7 +349,7 @@ func migrate(args *cli.MigrationArgs) {
 		log.Fatalln(err)
 	}
 
-	err = agreements_migrations.MigrateFromEmbeddedMarkdowns(context.Background(), dbConn)
+	_, err = agreements_migrations.MigrateFromEmbeddedMarkdowns(context.Background(), dbConn)
 	if err != nil {
 		log.Fatalln(err)
 	}

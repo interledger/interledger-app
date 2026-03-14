@@ -91,3 +91,7 @@ func (c *client) SendCardCreatedEmail(ctx context.Context, walletID, cardID stri
 func (c *client) SendPending3DSConfirmation(ctx context.Context, walletID, confirmationID string) {
 	ops.SendPending3DSConfirmation(ctx, c.b, walletID, confirmationID)
 }
+
+func (c *client) SendAgreementChangedEmail(ctx context.Context, userID string, agreements []email.AgreementLink, deadlineDate string) {
+	ops.SendAgreementChangedEmail(ctx, c.b, userID, agreements, deadlineDate)
+}

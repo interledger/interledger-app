@@ -99,51 +99,48 @@ func MigrateFromMarkdowns(ctx context.Context, db *sqlx.DB, dir string) error {
 	return nil
 }
 
-func MigrateFromEmbeddedMarkdowns(ctx context.Context, db *sqlx.DB) error {
+func MigrateFromEmbeddedMarkdowns(ctx context.Context, db *sqlx.DB) ([]string, error) {
 	envName := env.GetEnv()
 	dir := fmt.Sprintf("assets/%s", envName)
 	agreementFiles, err := fs.ReadDir(dir)
 	if err != nil {
-		return fmt.Errorf("%w %s", agreements.ErrNotFound, err)
+		return nil, fmt.Errorf("%w %s", agreements.ErrNotFound, err)
 	}
 
 	tx, err := db.BeginTxx(ctx, nil)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer func() {
-		err = tx.Rollback()
+		_ = tx.Rollback()
 	}()
-	if err != nil {
-		return fmt.Errorf("%w %s", agreements.ErrInternal, err.Error())
-	}
 
 	regex, err := regexp.Compile(`^[a-zA-Z0-9_]+-[0-9]+\.[0-9]+\.[0-9]+\.md$`)
 	if err != nil {
-		return fmt.Errorf("%w %s", agreements.ErrInternal, err.Error())
+		return nil, fmt.Errorf("%w %s", agreements.ErrInternal, err.Error())
 	}
 
 	txStmt, err := tx.PrepareContext(ctx, `INSERT INTO agreements (id, name, version, content, git_file_path) VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING`)
 	if err != nil {
-		return fmt.Errorf("%w %s", agreements.ErrInternal, err.Error())
+		return nil, fmt.Errorf("%w %s", agreements.ErrInternal, err.Error())
 	}
 	defer txStmt.Close()
 
 	var agreementIDs []string
 	err = tx.SelectContext(ctx, &agreementIDs, "SELECT id FROM agreements")
 	if err != nil {
-		return fmt.Errorf("%w %s", agreements.ErrInternal, err.Error())
+		return nil, fmt.Errorf("%w %s", agreements.ErrInternal, err.Error())
 	}
 
-	// convert to map for faster lookup
 	agreementsMap := make(map[string]bool)
 	for _, agreement := range agreementIDs {
 		agreementsMap[agreement] = true
 	}
 
+	var newlyInserted []string
 	for _, agreementFile := range agreementFiles {
 		if !regex.MatchString(agreementFile.Name()) {
-			return fmt.Errorf("%w %s", agreements.ErrInternal, "invalid agreement file name format")
+			return nil, fmt.Errorf("%w %s", agreements.ErrInternal, "invalid agreement file name format")
 		}
 
 		agreementID := agreementFile.Name()[:len(agreementFile.Name())-3]
@@ -156,21 +153,21 @@ func MigrateFromEmbeddedMarkdowns(ctx context.Context, db *sqlx.DB) error {
 
 		agreementContent, err := fs.ReadFile(fmt.Sprintf("%s/%s", dir, agreementFile.Name()))
 		if err != nil {
-			return fmt.Errorf("%w %s", agreements.ErrInternal, err.Error())
+			return nil, fmt.Errorf("%w %s", agreements.ErrInternal, err.Error())
 		}
 
 		gitFilePath := gitFilePathForAsset(envName, agreementFile.Name())
 
 		_, err = txStmt.Exec(agreementID, agreementName, agreementVersion, string(agreementContent), gitFilePath)
 		if err != nil {
-			return fmt.Errorf("%w %s", agreements.ErrInternal, err.Error())
+			return nil, fmt.Errorf("%w %s", agreements.ErrInternal, err.Error())
 		}
+		newlyInserted = append(newlyInserted, agreementID)
 	}
 
-	err = tx.Commit()
-	if err != nil {
-		return fmt.Errorf("%w %s", agreements.ErrInternal, err.Error())
+	if err := tx.Commit(); err != nil {
+		return nil, fmt.Errorf("%w %s", agreements.ErrInternal, err.Error())
 	}
 
-	return nil
+	return newlyInserted, nil
 }

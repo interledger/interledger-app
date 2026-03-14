@@ -62,6 +62,7 @@ func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago
 	w.RegisterWorkflow(jobs.PtiSettleDepositAndWithdrawsForWallet)
 	w.RegisterWorkflow(jobs.EnableSendVerificationEmailToUnverifiedUserJob)
 	w.RegisterWorkflow(jobs.UpdateGateHubOrganizationConfig)
+	w.RegisterWorkflow(jobs.NotifyAgreementChangedWorkflow)
 
 	// Payment Engine
 	w.RegisterActivity(payments_workflows.NewActivity(b))

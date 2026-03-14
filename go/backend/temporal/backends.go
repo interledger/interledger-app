@@ -3,6 +3,7 @@ package temporal
 import (
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
+	"gitlab.com/fynbos/backend/agreements"
 	"gitlab.com/fynbos/backend/analytics"
 	"gitlab.com/fynbos/backend/contacts"
 	"gitlab.com/fynbos/backend/email"
@@ -31,6 +32,7 @@ import (
 )
 
 type Backends interface {
+	Agreements() agreements.Client
 	Twitter() twitter.Client
 	Validator() *validator.Validate
 	DB() *sqlx.DB

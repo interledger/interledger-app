@@ -26,4 +26,11 @@ type Client interface {
 	SendLimitsExceededEmail(ctx context.Context, walletID string)
 	SendCardCreatedEmail(ctx context.Context, walletID, cardID string)
 	SendPending3DSConfirmation(ctx context.Context, walletID, confirmationID string)
+	SendAgreementChangedEmail(ctx context.Context, userID string, agreements []AgreementLink, deadlineDate string)
+}
+
+// AgreementLink is a single agreement to show in the agreement-change email (display name + URL).
+type AgreementLink struct {
+	DisplayName string
+	TermsURL    string
 }

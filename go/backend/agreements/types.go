@@ -24,3 +24,9 @@ type SignArgs struct {
 	UserID       string   `validate:"required"`
 	IPAddress    string   `validate:"required,ip_addr"`
 }
+
+// AgreementChange identifies a changed agreement: Name (e.g. "privacy_policy") and ExceptID (the new version ID to exclude when finding users who signed older versions).
+type AgreementChange struct {
+	Name     string
+	ExceptID string
+}

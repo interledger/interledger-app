@@ -2,6 +2,7 @@ package jobs
 
 import (
 	"github.com/jmoiron/sqlx"
+	"gitlab.com/fynbos/backend/agreements"
 	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/keys"
 	"gitlab.com/fynbos/backend/kyc"
@@ -30,6 +31,7 @@ type Backends interface {
 	LinkedAccounts() linkedaccounts.Client
 	Pacioli() pacioli.Client
 	PTI() pti.Client
+	Agreements() agreements.Client
 }
 
 type Activity struct {
