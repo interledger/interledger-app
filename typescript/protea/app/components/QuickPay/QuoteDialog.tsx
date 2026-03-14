@@ -13,7 +13,7 @@ export type QuoteArgs = {
   setShowDialog: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-export default function QuoteDialog({
+export function QuoteDialog({
   receiverName,
   receiveAmount,
   debitAmount,
