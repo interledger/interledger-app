@@ -7,6 +7,10 @@ import { renderToPipeableStream } from 'react-dom/server'
 import { PassThrough } from 'stream'
 import logger, { addRequestId } from './lib/logger.server'
 import { extractOrGenerateRequestId } from './lib/requestContext.server'
+import { envVarValidation } from './env.server'
+
+//Validate required variables
+  envVarValidation()
 
 const ABORT_DELAY = 5_000
 
