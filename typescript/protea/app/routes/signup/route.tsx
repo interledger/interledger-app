@@ -16,6 +16,7 @@ import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { error, isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { trimHeaders } from '~/lib/headers.server'
+import logger from '~/lib/logger.server'
 import {
   KRATOS_URL,
   getCsrfTokenFromFlow,
@@ -218,6 +219,13 @@ export async function otpAction({ request }: ActionFunctionArgs) {
   const otp = form.get('otp') as string
   const phone = form.get('phone') as string
 
+  logger.info({
+    id,
+    phone,
+    hasOtp: !!otp,
+    flow: 'signup'
+  }, 'Setting mobile number for signup')
+
   const response = await grpc.setSignupMobileNumber(request, {
     id,
     mobile: phone,
@@ -225,6 +233,12 @@ export async function otpAction({ request }: ActionFunctionArgs) {
   })
 
   if (isConnectError(response)) {
+    logger.error({
+      code: response.code,
+      hasPhone: !!phone,
+      flow: 'signup'
+    }, '[SIGNUP] Failed to set mobile number')
+    
     if (response.code == Code.InvalidArgument) {
       data.errors.phone = 'Mobile phone number is invalid.'
       return response.error(data, mapping)
@@ -235,6 +249,9 @@ export async function otpAction({ request }: ActionFunctionArgs) {
       return response.error(data, mapping, { action: 'Contact support' })
     }
   }
+  
+  logger.info({ id, flow: 'signup' }, '[SIGNUP] Mobile number set successfully for signup')
+  
   return json({ id, phone, errors: data.errors })
 }
 
@@ -278,29 +295,71 @@ export async function passwordAction({ request }: ActionFunctionArgs) {
     return error(request, { errors })
   }
 
+  const kratosRequestPayload = {
+    method: 'password',
+    traits: {
+      email: email,
+      phone: phone,
+      firstName: firstName,
+      lastName: lastName,
+      countryCode: country
+    },
+    password: password,
+    csrf_token: kratosCsrfToken
+  }
+
+  logger.info({
+    url: `${KRATOS_URL}/self-service/registration?flow=${kratosFlowId}`,
+    flowId: kratosFlowId,
+    countryCode: kratosRequestPayload.traits.countryCode,
+    hasTraits: !!kratosRequestPayload.traits,
+    hasPassword: !!password,
+    hasCsrfToken: !!kratosCsrfToken,
+    flow: 'signup'
+  }, '[SIGNUP] Sending registration request to Kratos')
+
   const response = await fetch(
     `${KRATOS_URL}/self-service/registration?flow=${kratosFlowId}`,
     {
       method: 'POST',
-      body: JSON.stringify({
-        method: 'password',
-        traits: {
-          email: email,
-          phone: phone,
-          firstName: firstName,
-          lastName: lastName,
-          countryCode: country
-        },
-        password: password,
-        csrf_token: kratosCsrfToken
-      }),
+      body: JSON.stringify(kratosRequestPayload),
       headers: {
         'Content-type': 'application/json',
         cookie: String(request.headers.get('cookie'))
       }
     }
   )
+  logger.info({
+    status: response.status,
+    statusText: response.statusText,
+    headers: Object.fromEntries(trimHeaders(response.headers, ['set-cookie']).entries()),
+    flow: 'signup'
+  }, '[SIGNUP] Kratos registration response')
+  
   if (response.status >= 400) {
+    const responseText = await response.clone().text()
+    logger.error({
+      status: response.status,
+      statusText: response.statusText,
+      flowId: kratosFlowId,
+      responseBody: responseText,
+      requestTraits: kratosRequestPayload?.traits
+        ? Object.keys(kratosRequestPayload.traits)
+        : undefined,
+      flow: 'signup'
+    }, '[SIGNUP] Kratos registration failed')
+    
+    try {
+      const responseJson = JSON.parse(responseText)
+      logger.error({
+        ui: responseJson.ui,
+        messages: responseJson.ui?.messages,
+        nodes: responseJson.ui?.nodes,
+        flow: 'signup'
+      }, '[SIGNUP] Kratos error details')
+    } catch (e) {
+      logger.error({ flow: 'signup' }, '[SIGNUP] Could not parse Kratos error response as JSON')
+    }
     const errs = await kratosErrorMapping(response, errors)
     if ((errs as any)[KratosErrorTraits.PHONE]) {
       errors.phone = KratosErrorMessages[KratosErrorTraits.PHONE]
@@ -314,8 +373,15 @@ export async function passwordAction({ request }: ActionFunctionArgs) {
   // has some weird naming for types....
   const successData = data as SuccessfulSelfServiceRegistrationWithoutBrowser
 
+  logger.info({
+    identityId: successData.identity.id,
+    signupId: id,
+    flow: 'signup'
+  }, '[SIGNUP] Kratos registration successful')
+
   // Mark signup complete
   // TODO: also handle via kratos webhook, add retry here and error handling
+  logger.info({ id, userId: successData.identity.id, flow: 'signup' }, '[SIGNUP] Completing signup in backend')
   await grpc.completeSignup(request, {
     id,
     userId: successData.identity.id

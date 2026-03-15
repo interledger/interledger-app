@@ -292,9 +292,10 @@ func Transfer(ctx context.Context, b Backends, ex external.Client, args chimoney
 	}
 
 	err = ex.Transfer(ctx, external.TransferReq{
-		SenderSubAccount:   sender,
-		ReceiverSubAccount: receiver,
-		Amount:             args.Amount,
+		SenderSubAccount:    sender,
+		ReceiverSubAccount:  receiver,
+		Amount:              args.Amount,
+		TurnOffNotification: true,
 	})
 	if err != nil {
 		return fmt.Errorf("%w %s", chimoney.ErrInternal, err)

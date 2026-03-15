@@ -2,6 +2,8 @@
 .DS_Store
 *.pem
 
+.venv
+
 # ide
 .idea/*
 
@@ -20,11 +22,10 @@ typescript/**/node_modules
 
 # test migrations
 testmigrations
-
+documentation/site
 coverage.out
 
 .env
-*.env
 
 **/.vagrant
 **/.pnpm-store
