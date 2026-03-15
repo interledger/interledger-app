@@ -1,0 +1,25 @@
+services:
+  mkdocs:
+    build:
+      context: ../documentation
+      dockerfile: Dockerfile
+    profiles:
+      - infrastructure
+    restart: always
+    expose:
+      - "8000"
+    develop:
+      watch:
+        - action: sync+restart
+          path: ../documentation/docs
+          target: /docs/docs
+        - action: sync+restart
+          path: ../documentation/mkdocs.yml
+          target: /docs/mkdocs.yml
+        - action: rebuild
+          path: ../documentation/Dockerfile
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mkdocs.rule=Host(`docs.interledger.test`)"
+      - "traefik.http.routers.mkdocs.entrypoints=websecure"
+      - "traefik.http.services.mkdocs.loadbalancer.server.port=8000"

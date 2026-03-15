@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"os"
 	"time"
 
 	"go.uber.org/zap"
@@ -43,10 +42,19 @@ func BalanceDiscrepanciesJob(ctx workflow.Context) error {
 
 func (a *Activity) BalanceDiscrepancies(ctx context.Context) error {
 	gatehubExternal := gatehub_external.NewClient(
-		os.Getenv("GATEHUB_APP_ID"),
-		os.Getenv("GATEHUB_SECRET"),
-		os.Getenv("GATEHUB_CARD_APP_ID"),
-		os.Getenv("GATEHUB_GATEWAY_ID"),
+		a.gatehubConfig.AppID,
+		a.gatehubConfig.Secret,
+		a.gatehubConfig.CardAppID,
+		a.gatehubConfig.GatewayID,
+		a.gatehubConfig.CardAccountProductCode,
+		a.gatehubConfig.PaywiserEuroVaultID,
+		a.gatehubConfig.OnOffRampClientID,
+		a.gatehubConfig.OnboardingClientID,
+		a.gatehubConfig.ExchangeClientID,
+		a.gatehubConfig.APIBaseURL,
+		a.gatehubConfig.OnboardingBaseURL,
+		a.gatehubConfig.OnOffRampBaseURL,
+		a.gatehubConfig.OrganizationID,
 		&http.Client{
 			Transport: otelhttp.NewTransport(
 				httplogger.NewTransport(http.DefaultTransport, a.b, nil),
