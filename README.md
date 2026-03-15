@@ -2,7 +2,7 @@
 
 ## Local Development Environment
 
-Go to ```./local``` and follow [getting-started](./local/docs/getting-started.md).
+Go to [local/README.md](local/README.md) for the local development setup.
 
 ## Testing
 
