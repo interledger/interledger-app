@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package geo.v1;
+
+option go_package = "./geo.v1;geo";
+
+import "geo/v1/asset.proto";
+
+// Currency represents a monetary amount in a specific asset and country context.
+message Currency {
+  // The amount in the smallest unit (e.g., cents for USD).
+  // Stored as a string to support arbitrary precision (big.Int).
+  string amount = 1;
+  // The asset this currency represents.
+  Asset asset = 2;
+  // ISO 3166-1 alpha-2 country code (e.g., "US" for United States)
+  string country_code = 3;
+}

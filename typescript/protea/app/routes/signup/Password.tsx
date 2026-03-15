@@ -129,6 +129,7 @@ export function Password() {
               ? 'password-error'
               : undefined
           }
+          data-testid='signup-password'
           required
           errorMessage={passwordFetcher.data?.errors?.password}
         />
@@ -139,6 +140,7 @@ export function Password() {
           form='signup-password'
           type='password'
           className='mt-2'
+          data-testid='signup-confirm-password'
           required
         />
       </Card>
@@ -159,6 +161,7 @@ export function Password() {
                 ? 'serviceAgreement-error'
                 : undefined
             }
+            data-testid='signup-terms-checkbox'
             errorMessage={passwordFetcher.data?.errors?.serviceAgreement}
           >
             I agree to the Interledger Wallet&nbsp;
@@ -182,6 +185,7 @@ export function Password() {
         form='signup-password'
         name='formName'
         value='password'
+        data-testid='signup-password-confirm'
         type='submit'
       >
         Confirm

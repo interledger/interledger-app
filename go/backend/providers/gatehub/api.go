@@ -36,6 +36,7 @@ type Client interface {
 	AssignBalance(ctx context.Context, linkedAccountID, trxID string, amount currency.Amount) (*Balance, error)
 	LinkUserToGatewayByWalletID(ctx context.Context, walletID string) error
 	LinkUserToGatewayByExternalID(ctx context.Context, ExternalID string) error
+	UpdateOrganizationConfiguration(ctx context.Context, apiBaseURL, twoFAType string) (*external.UpdateOrganizationConfigurationResponse, error)
 }
 
 type Await func(ctx context.Context, result interface{}) error
