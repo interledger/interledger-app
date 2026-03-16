@@ -3,6 +3,7 @@ import type {
   LoaderFunctionArgs,
   MetaFunction
 } from '@remix-run/node'
+import { z } from 'zod'
 import { useLoaderData, useRouteLoaderData } from '@remix-run/react'
 import type { ApplicationProps } from '~/components'
 import { Layouts } from '~/components'
@@ -10,7 +11,7 @@ import { mergeMeta } from '~/lib/meta'
 import { getSession, commitSession } from '~/session.server'
 import { Form, useActionData } from '@remix-run/react'
 import { WalletGrid, GridColumn, TextField, Button } from '~/components'
-import { getValidWalletAddress } from '~/lib/utils'
+import { getValidWalletAddress, walletSchema } from '~/lib/utils'
 import { json, redirect } from '@remix-run/node'
 import { getUserSession } from '~/lib/kratos.server'
 import { type SerializeFrom } from '@remix-run/node'
@@ -83,6 +84,14 @@ export default function Page() {
 export async function action({ request }: ActionFunctionArgs) {
   const session = await getSession(request.headers.get('Cookie'))
   const formData = Object.fromEntries(await request.formData())
+  const result = walletSchema.safeParse(formData)
+
+  if (!result.success) {
+    const errors = z.treeifyError(result.error).properties
+    return json({
+      errors
+    })
+  }
   const walletAddress = String(formData?.walletAddress)
 
   session.set('quickPay', {
