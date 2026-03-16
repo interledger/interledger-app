@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"gitlab.com/fynbos/pacioli"
-	"go.uber.org/zap"
 
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/kyc"
@@ -772,7 +771,7 @@ func FinishChimoneyDepositWorkflow(ctx workflow.Context, args DepositWorkflowArg
 			return err
 		}
 	default:
-		logger.Info("Chimoney deposit in unrecognized state: ", zap.String("status", externalPayment.Status))
+		logger.Info("Chimoney deposit in unrecognized state: ", "status", externalPayment.Status)
 		err = workflow.ExecuteActivity(ctx, a.FailChimoneyTransaction, walletID, trx.ID).Get(ctx, nil)
 		if err != nil {
 			return err

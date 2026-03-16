@@ -139,7 +139,7 @@ func NewWebhook(b Backends) http.HandlerFunc {
 			"user.kyc.completed":
 			err = handleKYC(r.Context(), b, body)
 		default:
-			log.Warn("chimoney webhook. Unhandled webhook type", zap.String("event_type", wh.EventType), zap.String("payload", string(body)))
+			log.Warn("chimoney webhook. Unhandled webhook type", zap.String("event_type", wh.EventType))
 		}
 		if err != nil {
 			log.Error("chimoney webhook: failed to handle webhook", zap.Error(err))
