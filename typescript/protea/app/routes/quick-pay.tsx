@@ -1,20 +1,17 @@
 import type {
   ActionFunctionArgs,
   LoaderFunctionArgs,
-  MetaFunction
+  MetaFunction,
+  SerializeFrom
 } from '@remix-run/node'
 import { z } from 'zod'
-import { useLoaderData, useRouteLoaderData } from '@remix-run/react'
-import type { ApplicationProps } from '~/components'
-import { Layouts } from '~/components'
 import { mergeMeta } from '~/lib/meta'
 import { getSession, commitSession } from '~/session.server'
-import { Form, useActionData } from '@remix-run/react'
-import { WalletGrid, GridColumn, TextField, Button } from '~/components'
-import { getValidWalletAddress, walletSchema } from '~/lib/utils'
+import { Form, useActionData, useRouteLoaderData } from '@remix-run/react'
+import { type ApplicationProps, Layouts, WalletGrid, GridColumn, TextField, Button } from '~/components'
+import { createError, getValidWalletAddress, walletSchema } from '~/lib/utils'
 import { json, redirect } from '@remix-run/node'
 import { getUserSession } from '~/lib/kratos.server'
-import { type SerializeFrom } from '@remix-run/node'
 import type { loader as rootLoader } from '~/root'
 import { type ActionData } from "~/lib/types"
 
@@ -106,7 +103,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   } catch (err) {
     console.log({ err })
-    return json({ errors: { walletAddress: "Your wallet address is not valid." } })
+    return json({ errors: createError("walletAddress", "Your wallet address is not valid.") })
   }
 
   return redirect('/quick-pay/amount', {
