@@ -75,7 +75,7 @@ table "agreements" {
   column "notified" {
     null    = false
     type    = boolean
-    default = false
+    default = true
   }
   primary_key {
     columns = [column.id]

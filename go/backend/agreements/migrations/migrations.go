@@ -120,7 +120,7 @@ func MigrateFromEmbeddedMarkdowns(ctx context.Context, db *sqlx.DB) ([]string, e
 		return nil, fmt.Errorf("%w %s", agreements.ErrInternal, err.Error())
 	}
 
-	txStmt, err := tx.PrepareContext(ctx, `INSERT INTO agreements (id, name, version, content, git_file_path) VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING`)
+	txStmt, err := tx.PrepareContext(ctx, `INSERT INTO agreements (id, name, version, content, git_file_path, notified) VALUES ($1, $2, $3, $4, $5, false) ON CONFLICT DO NOTHING`)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", agreements.ErrInternal, err.Error())
 	}
