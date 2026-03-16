@@ -12,22 +12,14 @@ import { AmountDisplay, QuoteDialog, PayWithInterledgerMark } from '~/components
 import { useDialPadContext } from '~/lib/context/dialpad'
 import { mergeMeta } from '~/lib/meta'
 import { fetchQuote, initializePayment } from '~/lib/open-payments.server'
-import { getValidWalletAddress, paymentSchema, formatAmount, formatError, Errors, createError, QuickPaySession } from '~/lib/utils'
+import { getValidWalletAddress, paymentSchema, formatAmount, formatError, createError, isWalletLayout } from '~/lib/utils'
 import { commitSession, getSession } from '~/session.server'
-
-type ActionData = {
-  errors?: {
-    walletAddress?: Errors
-    receiverAddress?: Errors
-    note?: Errors
-    actionError?: Errors
-  }
-}
+import { ActionData, QuickPaySession } from '~/lib/types'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const searchParams = new URL(request.url).searchParams
   const isQuote = searchParams.get('quote') || false
-
+  const isWalletView = await isWalletLayout(request)
   const session = await getSession(request.headers.get('Cookie'))
   const sessionData = session.get('quickPay')
   const walletAddressInfo = sessionData?.validWalletAddress
@@ -80,12 +72,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
     receiveAmount: receiveAmount ? receiveAmount.amountWithCurrency : null,
     debitAmount: debitAmount ? debitAmount.amountWithCurrency : null,
     receiverName: receiverName,
-    isQuote: isQuote
+    isQuote: isQuote,
+    isWalletView
   } as const)
 }
 
 export const handle: ApplicationProps = {
-  layout: Layouts.Marketing,
+  layout: (match) =>
+    match.data?.isWalletView ? Layouts.Wallet : Layouts.Marketing,
   scaffold: {
     header: { title: 'Interledger Pay' }
   }
@@ -173,7 +167,6 @@ export default function Page() {
           receiveAmount={receiveAmount || ''}
           debitAmount={debitAmount || ''}
         />
-
       </GridColumn>
     </WalletGrid>)
 }
@@ -181,35 +174,38 @@ export default function Page() {
 export async function action({ request }: ActionFunctionArgs) {
   const session = await getSession(request.headers.get('Cookie'))
   const sessionData: QuickPaySession = session.get('quickPay') || {}
-  const formData = Object.fromEntries(await request.formData())
+  const walletAddressInfo = sessionData.validWalletAddress
 
+  const formData = Object.fromEntries(await request.formData())
   const intent = formData.intent
 
   if (intent !== 'pay' && intent !== 'confirm') {
-    return json(formData)
-  }
-
-  const result = paymentSchema.safeParse(formData)
-
-  if (!result.success) {
-    const errors = z.treeifyError(result.error).properties
-    return json({
-      errors
+    sessionData.quote = undefined
+    session.set('quickPay', sessionData)
+    return redirect(`/quick-pay/pay`, {
+      headers: { 'Set-Cookie': await commitSession(session) }
     })
   }
 
-  let receiverAddress
-  try {
-    receiverAddress = await getValidWalletAddress(result.data.receiverAddress)
-    sessionData.receiverAddress = receiverAddress
-    session.set('quickPay', sessionData)
-  } catch (err) {
-    return json({ errors: createError("receiverAddress", "Your wallet address is not valid.") })
-  }
-
-  const walletAddressInfo = sessionData.validWalletAddress
-
   if (intent === 'pay') {
+    const result = paymentSchema.safeParse(formData)
+
+    if (!result.success) {
+      const errors = z.treeifyError(result.error).properties
+      return json({
+        errors
+      })
+    }
+
+    let receiverAddress
+    try {
+      receiverAddress = await getValidWalletAddress(result.data.receiverAddress)
+      sessionData.receiverAddress = receiverAddress
+      session.set('quickPay', sessionData)
+    } catch (err) {
+      return json({ errors: createError("receiverAddress", "Your wallet address is not valid.") })
+    }
+
     try {
       const quote = await fetchQuote(result.data, receiverAddress)
       sessionData.quote = quote
@@ -226,8 +222,6 @@ export async function action({ request }: ActionFunctionArgs) {
 
   const quote = sessionData?.quote
   if (intent === 'confirm') {
-
-
     if (quote === undefined || walletAddressInfo === undefined) {
       throw json(
         {
@@ -240,7 +234,7 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   const grant = await initializePayment({
-    walletAddress: walletAddressInfo.walletAddress.id,
+    walletAddress: walletAddressInfo.id,
     quote
   })
   sessionData.grant = grant

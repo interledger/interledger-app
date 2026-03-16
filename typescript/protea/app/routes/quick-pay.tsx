@@ -9,30 +9,21 @@ import { mergeMeta } from '~/lib/meta'
 import { getSession, commitSession } from '~/session.server'
 import { Form, useActionData, useRouteLoaderData } from '@remix-run/react'
 import { type ApplicationProps, Layouts, WalletGrid, GridColumn, TextField, Button } from '~/components'
-import { createError, getValidWalletAddress, walletSchema } from '~/lib/utils'
+import { createError, getValidWalletAddress, isWalletLayout, walletSchema } from '~/lib/utils'
 import { json, redirect } from '@remix-run/node'
-import { getUserSession } from '~/lib/kratos.server'
 import type { loader as rootLoader } from '~/root'
-import { type ActionData } from "~/lib/types"
+import { type ActionData, QuickPaySession } from "~/lib/types"
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  let isLoggedIn
-
-  try {
-    await getUserSession(request)
-    isLoggedIn = true
-
-  } catch (err) {
-    isLoggedIn = false
-  }
+  const isWalletView = await isWalletLayout(request)
   return json({
-    isLoggedIn
+    isWalletView
   })
 }
 
 export const handle: ApplicationProps = {
   layout: (match) =>
-    match.data?.isLoggedIn ? Layouts.Wallet : Layouts.Marketing,
+    match.data?.isWalletView ? Layouts.Wallet : Layouts.Marketing,
   scaffold: {
     header: { title: 'Interledger Pay' }
   }
@@ -82,7 +73,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const session = await getSession(request.headers.get('Cookie'))
   const sessionData: QuickPaySession = {}
   const formData = Object.fromEntries(await request.formData())
-  const result = walletSchema.safeParse(formData)
+  const result = await walletSchema.safeParseAsync(formData)
 
   if (!result.success) {
     const errors = z.treeifyError(result.error).properties

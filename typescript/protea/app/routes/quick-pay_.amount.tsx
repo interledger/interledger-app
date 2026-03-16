@@ -12,17 +12,10 @@ import { useDialPadContext } from '~/lib/context/dialpad'
 import { mergeMeta } from '~/lib/meta'
 import { getSession } from '~/session.server'
 import { getUserSession } from '~/lib/kratos.server'
+import { isWalletLayout} from '~/lib/utils'
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  let isLoggedIn
-
-  try {
-    await getUserSession(request)
-    isLoggedIn = true
-
-  } catch (err) {
-    isLoggedIn = false
-  }
+  const isWalletView = await isWalletLayout(request)
 
   const session = await getSession(request.headers.get('Cookie'))
   const walletAddressInfo = session.get('quickPay')
@@ -39,13 +32,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
   return json({
     assetCode,
-    isLoggedIn
+    isWalletView
   } as const)
 }
 
 export const handle: ApplicationProps = {
   layout: (match) =>
-    match.data?.isLoggedIn ? Layouts.Wallet : Layouts.Marketing,
+    match.data?.isWalletView ? Layouts.Wallet : Layouts.Marketing,
   scaffold: {
     header: { title: 'Interledger Pay' }
   }

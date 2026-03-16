@@ -21,13 +21,6 @@ export function QuoteDialog({
   setShowDialog
 }: QuoteArgs) {
 
-
-  
-
-  // if (receiverName !== '') {
-  //   setIsLoading(false)
-  // }
-
   return (
     <Dialog open={showDialog} setOpen={setShowDialog}>
       <div className="flex h-full flex-col justify-center gap-10 p-2">
