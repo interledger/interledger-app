@@ -64,8 +64,11 @@ Feature: User KYC and Account Activation
     And I finished the TOTP registration workflow
     And I finished the wallet address creation workflow
 
-    # MockXago Persona iframe loads directly on personal-details page (no KycIntro)
-    When I navigate to the personal details page to activate wallet
+    # Shows "Complete these steps to confirm your identity and activate your wallet"
+    Then I should be shown the "Activate wallet" prompt form
+
+    # Trigger KYC flow and fill MockXago Persona iframe
+    When I click the "Continue" button
     And I wait for the KYC iframe to load
     And I fill and submit the mockxago KYC iframe
     And I wait for the KYC completion

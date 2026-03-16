@@ -135,7 +135,6 @@ function PersonaPage() {
     }
   }, [setLoading])
 
-  // MockXago iframe mode: listen for postMessage from MockXago iframe
   useEffect(() => {
     if (!mockxagoEndpoint) return
 
