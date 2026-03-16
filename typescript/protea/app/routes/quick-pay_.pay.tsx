@@ -4,16 +4,15 @@ import type {
   MetaFunction
 } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { Form, useActionData, useLoaderData } from '@remix-run/react'
+import { Form, useActionData, useLoaderData, useNavigation } from '@remix-run/react'
 import { useEffect, useState } from 'react'
 import { z } from 'zod'
-import type { ApplicationProps } from '~/components'
-import { ActionMessage, Button, GridColumn, Layouts, TextField, WalletGrid } from '~/components'
+import { ActionMessage, type ApplicationProps, Button, GridColumn, Layouts, TextField, WalletGrid } from '~/components'
 import { AmountDisplay, QuoteDialog, PayWithInterledgerMark } from '~/components/QuickPay/'
 import { useDialPadContext } from '~/lib/context/dialpad'
 import { mergeMeta } from '~/lib/meta'
 import { fetchQuote, initializePayment } from '~/lib/open-payments.server'
-import { getValidWalletAddress, paymentSchema, formatAmount, formatError, Errors, createError } from '~/lib/utils'
+import { getValidWalletAddress, paymentSchema, formatAmount, formatError, Errors, createError, QuickPaySession } from '~/lib/utils'
 import { commitSession, getSession } from '~/session.server'
 
 type ActionData = {
@@ -48,7 +47,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
 
   if (isQuote) {
-    const quote = session.data.quote
+    const quote = sessionData?.quote
     const receiver = sessionData.receiverAddress
 
     if (quote === undefined) {
@@ -101,6 +100,8 @@ export const meta: MetaFunction = mergeMeta(() => [
 export default function Page() {
   const { senderAddress, receiveAmount, debitAmount, receiverName, isQuote } = useLoaderData<typeof loader>()
   const actionData = useActionData<ActionData>()
+  const navigation = useNavigation()
+  const isSubmitting = navigation.state === "submitting"
   const { amountValue } = useDialPadContext()
   const [modalOpen, setModalOpen] = useState(false)
   const errors = actionData?.errors
@@ -149,12 +150,19 @@ export default function Page() {
                   type="submit"
                   name="intent"
                   value="pay"
+                  disabled={isSubmitting}
                 >
-                  <span className="text-md">Pay with</span>
-                  <PayWithInterledgerMark className="h-8 w-40 mx-2" />
+                  {isSubmitting ? (
+                    <span className="animate-pulse">Processing...</span>
+                  ) : (
+                    <>
+                      <span className="text-md">Pay with</span>
+                      <PayWithInterledgerMark className="h-8 w-40 mx-2" />
+                    </>
+                  )}
                 </Button>
               </div>
-              <ActionMessage message= {formatError(errors?.actionError)} />
+              <ActionMessage message={formatError(errors?.actionError)} />
             </div>
           </Form>
         </div>
@@ -172,6 +180,7 @@ export default function Page() {
 
 export async function action({ request }: ActionFunctionArgs) {
   const session = await getSession(request.headers.get('Cookie'))
+  const sessionData: QuickPaySession = session.get('quickPay') || {}
   const formData = Object.fromEntries(await request.formData())
 
   const intent = formData.intent
@@ -192,24 +201,27 @@ export async function action({ request }: ActionFunctionArgs) {
   let receiverAddress
   try {
     receiverAddress = await getValidWalletAddress(result.data.receiverAddress)
-    session.set('quickPay', { receiverAddress: receiverAddress })
+    sessionData.receiverAddress = receiverAddress
+    session.set('quickPay', sessionData)
   } catch (err) {
     return json({ errors: createError("receiverAddress", "Your wallet address is not valid.") })
   }
 
-  const sessionData = session.get('quickPay')
   const walletAddressInfo = sessionData.validWalletAddress
 
   if (intent === 'pay') {
     try {
       const quote = await fetchQuote(result.data, receiverAddress)
-      session.set('quickPay', { quote: quote })
+      sessionData.quote = quote
+      session.set('quickPay', sessionData)
 
-      return redirect(`/quick-pay/pay?quote=true`, {
-        headers: { 'Set-Cookie': await commitSession(session) }
-      })
-    } catch (err) { console.log({ err }) }
-    return json({ errors: createError("actionError", "An error occured, please try again.") })
+    } catch (err) {
+      console.log({ err })
+      return json({ errors: createError("actionError", "An error occured, please try again.") })
+    }
+    return redirect(`/quick-pay/pay?quote=true`, {
+      headers: { 'Set-Cookie': await commitSession(session) }
+    })
   }
 
   const quote = sessionData?.quote
@@ -231,8 +243,8 @@ export async function action({ request }: ActionFunctionArgs) {
     walletAddress: walletAddressInfo.walletAddress.id,
     quote
   })
-
-  session.set('payment-grant', grant)
+  sessionData.grant = grant
+  session.set('payment-grant', sessionData)
   return redirect(grant.interact.redirect, {
     headers: { 'Set-Cookie': await commitSession(session) }
   })

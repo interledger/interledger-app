@@ -12,9 +12,9 @@ import { randomUUID } from 'crypto'
 
 export async function createClient() {
   return await createAuthenticatedClient({
-    keyId: process.env.OP_KEY_ID!,
-    privateKey: Buffer.from(process.env.OP_PRIVATE_KEY!, 'base64'),
-    walletAddressUrl: process.env.OP_WALLET_ADDRESS!,
+    keyId: process.env.OP_INTPAY_KEY_ID!,
+    privateKey: Buffer.from(process.env.OP_INTPAY_PRIVATE_KEY!, 'base64'),
+    walletAddressUrl: process.env.OP_INTPAY_WALLET_ADDRESS!,
     validateResponses: false
   })
 }
@@ -64,6 +64,16 @@ export async function fetchQuote(
   }
 
   // create quote with debit amount, you don't care how much money receiver gets
+  console.log({
+        url: walletAddress.resourceServer,
+        accessToken: quoteGrant.access_token?.value || ''
+      })
+      console.log({
+        method: 'ilp',
+        walletAddress: walletAddress.id,
+        receiver: incomingPayment.id,
+        debitAmount: amountObj
+      })
   const quote = await opClient.quote
     .create(
       {
@@ -77,7 +87,8 @@ export async function fetchQuote(
         debitAmount: amountObj
       }
     )
-    .catch(() => {
+    .catch((err) => {
+      console.log({err})
       throw new Error(
         `Could not create quote for receiver ${receiver.publicName}.`
       )
@@ -264,8 +275,8 @@ async function createOutgoingPaymentGrant(
               limits: debitAmount
                 ? { debitAmount }
                 : receiveAmount
-                ? { receiveAmount }
-                : {}
+                  ? { receiveAmount }
+                  : {}
             }
           ]
         },
@@ -273,7 +284,7 @@ async function createOutgoingPaymentGrant(
           start: ['redirect'],
           finish: {
             method: 'redirect',
-            uri: `${process.env.REDIRECT_URL}?paymentId=${paymentId}`,
+            uri: `${process.env.OP_INTPAY_REDIRECT_URL}?paymentId=${paymentId}`,
             nonce: nonce || ''
           }
         }
@@ -466,24 +477,11 @@ async function getQuoteGrant({ authServer, opClient }: QuoteGrantParams) {
       throw new Error('Could not retrieve quote grant.')
     })
 }
-//It breaks on the next line
+
 async function getIncomingPaymentGrant(
   url: string,
   opClient: AuthenticatedClient
 ) {
-  console.log({
-      url: url
-    })
-    console.log(JSON.stringify({
-      access_token: {
-        access: [
-          {
-            type: 'incoming-payment',
-            actions: ['read', 'create', 'complete']
-          }
-        ]
-      }
-    }))
   const nonInteractiveGrant = await opClient.grant.request(
     {
       url: url
@@ -499,7 +497,6 @@ async function getIncomingPaymentGrant(
       }
     }
   )
-  console.log({nonInteractiveGrant})
 
   if (isPendingGrant(nonInteractiveGrant)) {
     throw new Error('Expected non-interactive grant')

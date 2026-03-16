@@ -10,7 +10,7 @@ import { mergeMeta } from '~/lib/meta'
 import { getSession, commitSession } from '~/session.server'
 import { Form, useActionData } from '@remix-run/react'
 import { WalletGrid, GridColumn, TextField, Button } from '~/components'
-import { getValidWalletAddress } from '~/lib/utils'
+import { getValidWalletAddress, QuickPaySession } from '~/lib/utils'
 import { json, redirect } from '@remix-run/node'
 import { getUserSession } from '~/lib/kratos.server'
 import { type SerializeFrom } from '@remix-run/node'
@@ -89,18 +89,14 @@ export default function Page() {
 
 export async function action({ request }: ActionFunctionArgs) {
   const session = await getSession(request.headers.get('Cookie'))
+  const sessionData: QuickPaySession = {}
   const formData = Object.fromEntries(await request.formData())
   const walletAddress = String(formData?.walletAddress)
 
-  session.set('quickPay', {
-    walletAddress: walletAddress
-  })
-
   try {
-    const validWalletAddress = await getValidWalletAddress(walletAddress) //as WalletAddress
-    session.set('quickPay', {
-      validWalletAddress: validWalletAddress
-    })
+    const validWalletAddress = await getValidWalletAddress(walletAddress)
+    sessionData.validWalletAddress = validWalletAddress
+    session.set('quickPay', sessionData)
 
   } catch (err) {
     console.log({ err })

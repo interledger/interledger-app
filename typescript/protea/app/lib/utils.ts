@@ -101,7 +101,6 @@ async function isValidWalletAddress(
   return true
 }
 
-
 export interface WalletAddressType {
   id: string
   assetScale: number
@@ -205,4 +204,11 @@ export const formatAmount = (args: FormatAmountArgs): FormattedAmount => {
     amountWithCurrency,
     symbol
   }
+}
+
+export type QuickPaySession = {
+  validWalletAddress?: any
+  receiverAddress?: any
+  quote?: any
+  grant?: any
 }
