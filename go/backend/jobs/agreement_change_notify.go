@@ -15,12 +15,13 @@ import (
 )
 
 const (
-	agreementChangePageSize     = 500
-	agreementChangeConcurrency  = 50
+	agreementChangePageSize        = 500
+	agreementChangeConcurrency     = 50
 	agreementChangeActivityTimeout = 2 * time.Minute
+	AgreementChangeDeadlineDays    = 30
 )
 
-// AgreementMetadata is the display name and terms URL for an agreement (keyed by agreement name in metadata map).
+// AgreementMetadata holds the display name and URL for an agreement.
 type AgreementMetadata struct {
 	DisplayName string
 	TermsURL    string
@@ -32,11 +33,8 @@ type AgreementChangeMetadataResult struct {
 	Metadata map[string]AgreementMetadata
 }
 
-// NotifyAgreementChangedWorkflow notifies users who signed previous versions of any of the changed agreements.
-// agreementIDs are the newly inserted agreement IDs (e.g. privacy_policy-2.0.0). deadlineDate is the last date
-// to close account at no charge. startOffset is the pagination cursor; pass 0 on the initial call.
-// cachedChanges and cachedMetadata are pre-loaded on the first run and carried through ContinueAsNew so that
-// LoadAgreementChangeMetadata is only called once, not once per page.
+// NotifyAgreementChangedWorkflow emails users who signed older versions of the changed agreements.
+// Pass startOffset=0 and nil caches on the initial call; ContinueAsNew carries them forward across pages.
 func NotifyAgreementChangedWorkflow(ctx workflow.Context, agreementIDs []string, deadlineDate string, startOffset int, cachedChanges []agreements.AgreementChange, cachedMetadata map[string]AgreementMetadata) error {
 	if len(agreementIDs) == 0 {
 		return nil
@@ -115,8 +113,6 @@ func NotifyAgreementChangedWorkflow(ctx workflow.Context, agreementIDs []string,
 	}
 	drainPending()
 
-	// If we got a full page there may be more — checkpoint via ContinueAsNew.
-	// A partial page means we've reached the end; return nil to complete the workflow.
 	if len(userIDs) < agreementChangePageSize {
 		return nil
 	}

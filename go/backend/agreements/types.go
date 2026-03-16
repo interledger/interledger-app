@@ -17,6 +17,7 @@ type Agreement struct {
 	CreatedAt   string `db:"created_at"`
 	UpdatedAt   string `db:"updated_at"`
 	GitFilePath string `db:"git_file_path"`
+	Notified    bool   `db:"notified"`
 }
 
 type SignArgs struct {
@@ -25,7 +26,7 @@ type SignArgs struct {
 	IPAddress    string   `validate:"required,ip_addr"`
 }
 
-// AgreementChange identifies a changed agreement: Name (e.g. "privacy_policy") and ExceptID (the new version ID to exclude when finding users who signed older versions).
+// AgreementChange identifies a changed agreement and the new version ID to exclude from old-signer queries.
 type AgreementChange struct {
 	Name     string
 	ExceptID string

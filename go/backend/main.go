@@ -185,11 +185,12 @@ func start(args *cli.StartArgs) {
 	b := NewBackends(args, false)
 	defer CloseBackends(b)
 
-	// Run agreement migration so new agreement versions are loaded; notify affected users in background.
-	if newAgreementIDs, err := agreements_migrations.MigrateFromEmbeddedMarkdowns(context.Background(), b.DB()); err != nil {
-		log.Warn("agreement migration on start failed", zap.Error(err))
+	// Atomically claim unnotified agreements
+	var newAgreementIDs []string
+	if err := b.DB().SelectContext(context.Background(), &newAgreementIDs, "UPDATE agreements SET notified = true WHERE notified = false RETURNING id"); err != nil {
+		log.Warn("failed to claim unnotified agreements", zap.Error(err))
 	} else if len(newAgreementIDs) > 0 {
-		deadlineDate := time.Now().UTC().Add(30 * 24 * time.Hour).Format("January 2, 2006")
+		deadlineDate := time.Now().UTC().Add(jobs.AgreementChangeDeadlineDays * 24 * time.Hour).Format("January 2, 2006")
 		sort.Strings(newAgreementIDs)
 		h := sha256.Sum256([]byte(strings.Join(newAgreementIDs, ",")))
 		wo := client.StartWorkflowOptions{

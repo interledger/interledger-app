@@ -94,8 +94,7 @@ func GetSignatures(ctx context.Context, b Backends, userID string) ([]agreements
 	return signatures, nil
 }
 
-// buildChangePlaceholders builds SQL WHERE clause conditions and collects args for a set of AgreementChange values.
-// baseOffset is the 1-based index of the first placeholder ($baseOffset).
+// buildChangePlaceholders returns WHERE conditions and args for changes, with placeholders starting at $baseOffset.
 func buildChangePlaceholders(changes []agreements.AgreementChange, baseOffset int) (placeholders []string, args []interface{}) {
 	for i, c := range changes {
 		args = append(args, c.Name, c.ExceptID)
@@ -105,8 +104,7 @@ func buildChangePlaceholders(changes []agreements.AgreementChange, baseOffset in
 	return
 }
 
-// ListAffectedUserIDsPaginated returns a page of distinct user IDs who have signed at least one "old" version
-// of any of the given agreements (old = same name but id != exceptID). Used to notify users when agreements change.
+// ListAffectedUserIDsPaginated returns user IDs who signed an older version of any of the given agreements.
 func ListAffectedUserIDsPaginated(ctx context.Context, b Backends, changes []agreements.AgreementChange, limit, offset int) ([]string, error) {
 	if len(changes) == 0 {
 		return nil, nil
@@ -127,8 +125,7 @@ func ListAffectedUserIDsPaginated(ctx context.Context, b Backends, changes []agr
 	return userIDs, nil
 }
 
-// GetAgreementNamesSignedByUsersFromSet returns for each user ID (in the given slice) the list of agreement
-// names from the changes set that the user has signed an "old" version of. Used to personalize the agreement-change email.
+// GetAgreementNamesSignedByUsersFromSet returns, keyed by user ID, the old agreement names each user has signed.
 func GetAgreementNamesSignedByUsersFromSet(ctx context.Context, b Backends, userIDs []string, changes []agreements.AgreementChange) (map[string][]string, error) {
 	if len(userIDs) == 0 || len(changes) == 0 {
 		return map[string][]string{}, nil
