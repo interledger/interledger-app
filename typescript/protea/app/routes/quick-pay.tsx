@@ -15,13 +15,7 @@ import { json, redirect } from '@remix-run/node'
 import { getUserSession } from '~/lib/kratos.server'
 import { type SerializeFrom } from '@remix-run/node'
 import type { loader as rootLoader } from '~/root'
-
-
-type ActionData = {
-  errors?: {
-    walletAddress?: string
-  }
-}
+import { type ActionData } from "~/lib/types"
 
 export async function loader({ request }: LoaderFunctionArgs) {
   let isLoggedIn
@@ -37,7 +31,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
     isLoggedIn
   })
 }
-
 
 export const handle: ApplicationProps = {
   layout: (match) =>
