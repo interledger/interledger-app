@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/fynbos/mock/mockxago/internal/logger"
+	"gitlab.com/fynbos/mock/mockxago/internal/models"
 )
 
 type personaCreateInquiryRequest struct {
@@ -182,6 +183,33 @@ func (h *Handler) PersonaGetInquiryIframe(w http.ResponseWriter, r *http.Request
 	}
 }
 
+// PersonaSDK handles GET /persona-sdk.js - Serves a Persona-compatible SDK mock
+func (h *Handler) PersonaSDK(w http.ResponseWriter, r *http.Request) {
+	possiblePaths := []string{
+		"web/persona-sdk.js",
+		"./web/persona-sdk.js",
+		"../../web/persona-sdk.js",
+		"../../../web/persona-sdk.js",
+	}
+
+	var scriptPath string
+	for _, path := range possiblePaths {
+		if _, err := os.Stat(path); err == nil {
+			scriptPath = path
+			break
+		}
+	}
+
+	if scriptPath == "" {
+		logger.Errorf("Could not find Persona SDK script, tried: %v", possiblePaths)
+		h.sendError(w, http.StatusInternalServerError, "script_not_found", "Persona SDK script not found")
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/javascript; charset=utf-8")
+	http.ServeFile(w, r, scriptPath)
+}
+
 // PersonaInquirySubmit handles POST /inquiries/{id}/submit - Form submission callback
 func (h *Handler) PersonaInquirySubmit(w http.ResponseWriter, r *http.Request) {
 	inquiryID := chi.URLParam(r, "inquiryId")
@@ -205,8 +233,49 @@ func (h *Handler) PersonaInquirySubmit(w http.ResponseWriter, r *http.Request) {
 	firstName := r.FormValue("first_name")
 	lastName := r.FormValue("last_name")
 	dob := r.FormValue("dob")
+	address := r.FormValue("address")
 
 	logger.Infof("KYC submitted for inquiry %s: %s %s (DOB: %s)", inquiryID, firstName, lastName, dob)
+
+	if firstName == "" || lastName == "" {
+		h.sendError(w, http.StatusBadRequest, "missing_name", "First and last name are required")
+		return
+	}
+
+	if dob == "" {
+		h.sendError(w, http.StatusBadRequest, "missing_dob", "Date of birth is required")
+		return
+	}
+
+	if _, err := time.Parse("2006-01-02", dob); err != nil {
+		h.sendError(w, http.StatusBadRequest, "invalid_dob", "Date of birth must be in YYYY-MM-DD format")
+		return
+	}
+
+	if address == "" {
+		address = "123 Main Street"
+	}
+
+	ctx := r.Context()
+	subAccount, err := h.store.GetSubAccountByWalletID(ctx, inquiryID)
+	if err != nil {
+		subAccount = &models.SubAccount{
+			ID:        generateID(),
+			WalletID:  inquiryID,
+			AccountID: generateID(),
+		}
+	}
+
+	subAccount.FirstName = firstName
+	subAccount.LastName = lastName
+	subAccount.DateOfBirth = dob
+	subAccount.PhysicalAddress = address
+
+	if err := h.store.SaveSubAccount(ctx, subAccount); err != nil {
+		logger.Errorf("Failed to save sub-account from persona submit: %v", err)
+		h.sendError(w, http.StatusInternalServerError, "save_error", "Failed to save account")
+		return
+	}
 
 	// Update inquiry status to approved
 	// In a real implementation, this would trigger background verification
@@ -231,16 +300,26 @@ func (h *Handler) PersonaGetAccount(w http.ResponseWriter, r *http.Request) {
 
 	logger.Infof("Getting Persona account: %s", accountID)
 
-	// The account ID is the wallet ID in our mock
+	// Resolve wallet and profile data from stored sub-account.
+	// For Xago-style records, accountID is a distinct sub-account ID.
+	// For older mock/persona flows, accountID may equal walletID.
 	walletID := accountID
-
-	// Try to get sub-account data for name fields
-	var nameFirst, nameLast, physicalAddress string
-	subAccount, err := h.store.GetSubAccountByWalletID(r.Context(), walletID)
+	var nameFirst, nameLast, dateOfBirth, physicalAddress string
+	subAccount, err := h.store.GetSubAccount(r.Context(), accountID)
+	if err != nil {
+		subAccount, err = h.store.GetSubAccountByWalletID(r.Context(), accountID)
+	}
 	if err == nil && subAccount != nil {
+		walletID = subAccount.WalletID
 		nameFirst = subAccount.FirstName
 		nameLast = subAccount.LastName
+		dateOfBirth = subAccount.DateOfBirth
 		physicalAddress = subAccount.PhysicalAddress
+	}
+	if dateOfBirth == "" {
+		logger.Errorf("date of birth missing for wallet %s", walletID)
+		h.sendError(w, http.StatusBadRequest, "missing_dob", "Date of birth not found for account")
+		return
 	}
 	if physicalAddress == "" {
 		physicalAddress = "123 Main Street"
@@ -267,7 +346,7 @@ func (h *Handler) PersonaGetAccount(w http.ResponseWriter, r *http.Request) {
 				"name-first":             nameFirst,
 				"name-last":              nameLast,
 				"country-code":           "ZA",
-				"birthdate":              "1984-06-27",
+				"birthdate":              dateOfBirth,
 				"address-street-1":       physicalAddress,
 				"address-city":           "Johannesburg",
 				"address-postal-code":    "2000",
