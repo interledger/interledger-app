@@ -59,6 +59,7 @@ func NotifyAgreementChangedWorkflow(ctx workflow.Context, agreementIDs []string,
 			return nil
 		}
 	}
+
 	var userIDs []string
 	if err := workflow.ExecuteActivity(ctx, a.GetNextPageOfAffectedUserIDs, changes, agreementChangePageSize, startOffset).Get(ctx, &userIDs); err != nil {
 		return err
@@ -72,16 +73,25 @@ func NotifyAgreementChangedWorkflow(ctx workflow.Context, agreementIDs []string,
 		return err
 	}
 
-	sendOpts := workflow.ActivityOptions{
+	sendOpts := workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
 		StartToCloseTimeout: agreementChangeActivityTimeout,
 		RetryPolicy:         &temporal.RetryPolicy{MaximumAttempts: 3},
+	})
+	dispatchEmails(sendOpts, a, userIDs, namesByUser, metadata, deadlineDate)
+
+	if len(userIDs) < agreementChangePageSize {
+		return nil
 	}
+	return workflow.NewContinueAsNewError(ctx, NotifyAgreementChangedWorkflow, agreementIDs, deadlineDate, startOffset+agreementChangePageSize, changes, metadata)
+}
+
+func dispatchEmails(ctx workflow.Context, a *Activity, userIDs []string, namesByUser map[string][]string, metadata map[string]AgreementMetadata, deadlineDate string) {
 	type pendingEmail struct {
 		userID string
 		future workflow.Future
 	}
 	var pending []pendingEmail
-	drainPending := func() {
+	drain := func() {
 		for _, p := range pending {
 			if err := p.future.Get(ctx, nil); err != nil {
 				workflow.GetLogger(ctx).Warn("failed to send agreement changed email after retries", zap.String("userID", p.userID), zap.Error(err))
@@ -90,33 +100,29 @@ func NotifyAgreementChangedWorkflow(ctx workflow.Context, agreementIDs []string,
 		pending = nil
 	}
 	for _, userID := range userIDs {
-		names := namesByUser[userID]
-		if len(names) == 0 {
-			continue
-		}
-		agreementLinks := make([]email.AgreementLink, 0, len(names))
-		for _, name := range names {
-			if m, ok := metadata[name]; ok {
-				agreementLinks = append(agreementLinks, email.AgreementLink{DisplayName: m.DisplayName, TermsURL: m.TermsURL})
-			}
-		}
-		if len(agreementLinks) == 0 {
+		links := agreementLinksForUser(userID, namesByUser, metadata)
+		if len(links) == 0 {
 			continue
 		}
 		pending = append(pending, pendingEmail{
 			userID: userID,
-			future: workflow.ExecuteActivity(workflow.WithActivityOptions(ctx, sendOpts), a.SendAgreementChangedEmailActivity, userID, agreementLinks, deadlineDate),
+			future: workflow.ExecuteActivity(ctx, a.SendAgreementChangedEmailActivity, userID, links, deadlineDate),
 		})
 		if len(pending) >= agreementChangeConcurrency {
-			drainPending()
+			drain()
 		}
 	}
-	drainPending()
+	drain()
+}
 
-	if len(userIDs) < agreementChangePageSize {
-		return nil
+func agreementLinksForUser(userID string, namesByUser map[string][]string, metadata map[string]AgreementMetadata) []email.AgreementLink {
+	var links []email.AgreementLink
+	for _, name := range namesByUser[userID] {
+		if m, ok := metadata[name]; ok {
+			links = append(links, email.AgreementLink{DisplayName: m.DisplayName, TermsURL: m.TermsURL})
+		}
 	}
-	return workflow.NewContinueAsNewError(ctx, NotifyAgreementChangedWorkflow, agreementIDs, deadlineDate, startOffset+agreementChangePageSize, changes, metadata)
+	return links
 }
 
 func (a *Activity) LoadAgreementChangeMetadata(ctx context.Context, agreementIDs []string) (AgreementChangeMetadataResult, error) {

@@ -109,19 +109,23 @@ func ListAffectedUserIDsPaginated(ctx context.Context, b Backends, changes []agr
 	if len(changes) == 0 {
 		return nil, nil
 	}
+
 	placeholders, args := buildChangePlaceholders(changes, 1)
 	limitParam := len(args) + 1
 	offsetParam := len(args) + 2
 	args = append(args, limit, offset)
+
 	query := fmt.Sprintf(`SELECT DISTINCT as_.user_id FROM agreement_signatures as_
 		JOIN agreements a ON a.id = as_.agreement_id
 		WHERE %s
 		ORDER BY as_.user_id
 		LIMIT $%d OFFSET $%d`, strings.Join(placeholders, " OR "), limitParam, offsetParam)
+
 	var userIDs []string
 	if err := b.DB().SelectContext(ctx, &userIDs, query, args...); err != nil {
 		return nil, fmt.Errorf("%w %s", agreements.ErrInternal, err.Error())
 	}
+
 	return userIDs, nil
 }
 
@@ -130,6 +134,7 @@ func GetAgreementNamesSignedByUsersFromSet(ctx context.Context, b Backends, user
 	if len(userIDs) == 0 || len(changes) == 0 {
 		return map[string][]string{}, nil
 	}
+
 	userArgs := make([]interface{}, len(userIDs))
 	userPlaceholders := make([]string, len(userIDs))
 	for i, u := range userIDs {
@@ -138,15 +143,18 @@ func GetAgreementNamesSignedByUsersFromSet(ctx context.Context, b Backends, user
 	}
 	changePlaceholders, changeArgs := buildChangePlaceholders(changes, len(userIDs)+1)
 	args := append(userArgs, changeArgs...)
+
 	query := `SELECT DISTINCT ON (as_.user_id, a.name) as_.user_id, a.name FROM agreement_signatures as_
 		JOIN agreements a ON a.id = as_.agreement_id
 		WHERE as_.user_id IN (` + strings.Join(userPlaceholders, ",") + `) AND (` + strings.Join(changePlaceholders, " OR ") + `)
 		ORDER BY as_.user_id, a.name`
+
 	rows, err := b.DB().QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", agreements.ErrInternal, err.Error())
 	}
 	defer rows.Close()
+
 	result := make(map[string][]string)
 	for rows.Next() {
 		var userID, name string
