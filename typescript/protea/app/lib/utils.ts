@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { createClient, getWalletAddress } from './open-payments.server'
+import { Errors, FormattedAmount, FormatAmountArgs, WalletAddressType } from './types'
 
 export class WalletAddressFormatError extends Error { }
 
@@ -7,7 +8,6 @@ export async function getValidWalletAddress(walletAddress: string) {
   const opClient = await createClient()
   const response = await getWalletAddress(walletAddress, opClient)
   return response
-  
 }
 
 export const walletSchema = z.object({
@@ -101,22 +101,22 @@ async function isValidWalletAddress(
   return true
 }
 
+export function formatError(error: Errors | null | undefined) {
+  const filteredErrors = error?.errors?.filter(
+    (e): e is string => Boolean(e)
+  )
 
-export interface WalletAddressType {
-  id: string
-  assetScale: number
-  assetCode: string
-  authServer: string
-  resourceServer: string
-}
-
-type Errors = Array<string | null | undefined> | null | undefined
-
-export function formatError(errors: Errors) {
-  const filteredErrors = errors?.filter(Boolean)
   if (!filteredErrors?.length) return undefined
 
   return filteredErrors.join(', ')
+}
+
+export function createError(key: string, message: string): Errors {
+  return {
+    [key]: {
+      errors: [message],
+    },
+  }
 }
 
 export const getCurrencySymbol = (assetCode: string): string => {
@@ -150,22 +150,6 @@ export const isWalletAddress = (
 
 export function toWalletAddressUrl(s: string): string {
   return s.startsWith('$') ? s.replace('$', 'https://') : s
-}
-
-export type FormattedAmount = {
-  amount: number
-  amountWithCurrency: string
-  symbol: string
-}
-
-export interface Amount {
-  value: string
-  assetCode: string
-  assetScale: number
-}
-
-type FormatAmountArgs = Amount & {
-  value: string
 }
 
 export const formatAmount = (args: FormatAmountArgs): FormattedAmount => {
