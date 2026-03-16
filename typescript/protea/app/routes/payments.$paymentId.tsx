@@ -371,13 +371,13 @@ function Withdrawal() {
               <span className='text-weak'>Withdrawal from</span>
               <span className='text-medium'>{senderAccountTitle}</span>
             </div>
-            <div className='mt-4 flex w-full justify-between font-medium'>
-              <span className='text-weak'>Net amount</span>
-              <span className='text-medium'>{transaction.fundsReceived}</span>
-            </div>
             <div className='mt-2 flex w-full justify-between'>
               <span className='text-weak'>Fees</span>
               <span className='text-medium'>{transaction.fees}</span>
+            </div>
+            <div className='mt-4 flex w-full justify-between font-medium'>
+              <span className='text-weak'>Net amount</span>
+              <span className='text-medium'>{transaction.fundsReceived}</span>
             </div>
             <div className='mt-2 flex w-full justify-between font-medium'>
               <span className='text-medium'>Total amount withdrawn</span>
