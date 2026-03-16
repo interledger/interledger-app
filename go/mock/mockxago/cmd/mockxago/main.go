@@ -143,6 +143,7 @@ func setupRoutes(router *chi.Mux, h *handler.Handler) {
 		r.Post("/inquiries/{inquiryId}/submit", h.PersonaInquirySubmit)
 		r.Get("/accounts/{accountId}", h.PersonaGetAccount)
 		r.Post("/accounts/{accountId}/remove-tag", h.PersonaRemoveTag)
+		r.Get("/persona-sdk.js", h.PersonaSDK)
 
 		r.Group(func(pr chi.Router) {
 			pr.Use(h.AuthMiddleware)
