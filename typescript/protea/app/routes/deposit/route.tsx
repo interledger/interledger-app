@@ -19,7 +19,7 @@ import { KRATOS_URL } from '~/lib/kratos.server'
 import { getKycStatus } from '~/data/wallet.server'
 import { KycStatus } from '~/lib/types'
 import { chimoneyDepositLoader, fynbosDepositLoader, gatehubDepositLoader } from './loader.server';
-import { chimoneyAmountAction, chimoneySuccessfullDepositAction, fynbosDepositAction, xagoTestAccountDepositAction } from './action.server';
+import { chimoneyAmountAction, fynbosDepositAction, xagoTestAccountDepositAction } from './action.server';
 
 
 export async function loader(args: LoaderFunctionArgs) {
@@ -80,7 +80,7 @@ export async function action(args: ActionFunctionArgs) {
   if (formName === 'chimoney-amount') {
     return chimoneyAmountAction(args)
   } else if (formName === 'chimoney-successfull-deposit') {
-    return chimoneySuccessfullDepositAction(args)
+    return redirect(href('/'))
   } else if (formName === 'xago-test-account-deposit') {
     return xagoTestAccountDepositAction(args)
   }

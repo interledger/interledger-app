@@ -37,18 +37,6 @@ export async function chimoneyAmountAction({ request }: ActionFunctionArgs) {
     })
 }
 
-export async function chimoneySuccessfullDepositAction({
-    request
-}: ActionFunctionArgs) {
-    const form = await request.formData()
-    const issueId = String(form.get('issueId') || '')
-
-    const response = await grpc.createChimoneyDeposit(request, { issueId })
-    if (isConnectError(response)) throw response.error
-
-    return redirect(href('/'))
-}
-
 export async function fynbosDepositAction({ request }: ActionFunctionArgs) {
     const form = await request.formData()
     const depositAmount = String(form.get('depositAmount') || '')
