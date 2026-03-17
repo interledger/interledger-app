@@ -148,6 +148,7 @@ services:
 
       # MockXago Persona endpoint (routes Persona API calls to MockXago in local dev)
       - MOCKXAGO_ENDPOINT=${BACKEND_MOCKXAGO_ENDPOINT:-http://mockxago:8080}
+      - PERSONA_BASE_URL=${BACKEND_PERSONA_BASE_URL:-http://mockxago:8080/v1/}
 
       - ADMIN_POLICY_AUD=${BACKEND_ADMIN_POLICY_AUD:-admin-policy}
       - ADMIN_TEAM_DOMAIN=${BACKEND_ADMIN_TEAM_DOMAIN:-admin-team}
