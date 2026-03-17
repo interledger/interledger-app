@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"gitlab.com/fynbos/mock/mockxago/internal/auth"
+	"gitlab.com/fynbos/mock/mockxago/internal/jobs"
 	"gitlab.com/fynbos/mock/mockxago/internal/logger"
 	"gitlab.com/fynbos/mock/mockxago/internal/models"
 	"gitlab.com/fynbos/mock/mockxago/internal/storage"
@@ -17,16 +18,18 @@ import (
 type Handler struct {
 	store     storage.Storage
 	validator *auth.Validator
+	queue     *jobs.Queue
 	publicKey string
 	secret    string
 	testMode  bool
 }
 
 // NewHandler creates a new handler
-func NewHandler(store storage.Storage) *Handler {
+func NewHandler(store storage.Storage, queue *jobs.Queue) *Handler {
 	return &Handler{
 		store:     store,
 		validator: auth.NewValidator(store),
+		queue:     queue,
 		publicKey: os.Getenv("XAGO_API_PUBLIC_KEY"),
 		secret:    os.Getenv("XAGO_API_SECRET"),
 		testMode:  strings.EqualFold(os.Getenv("XAGO_MOCK_TEST_MODE"), "true"),
@@ -61,7 +64,7 @@ func (h *Handler) AuthMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-// Login handles POST /v1/login
+// Login handles POST /xago/v1/login
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	var req models.LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -129,8 +132,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	logger.Infof("Successful login with public_key=%s, issued token=%s", publicKey, token.ID)
 
 	h.sendJSON(w, http.StatusOK, models.LoginResponse{
-		TokenValue:       token.Token,
-		ExpiresInMinutes: 55,
+		TokenValue: token.Token,
 	})
 }
 
@@ -149,20 +151,10 @@ func (h *Handler) sendError(w http.ResponseWriter, status int, error, message st
 	})
 }
 
-func (h *Handler) ExampleProtectedRoute(w http.ResponseWriter, r *http.Request) {
-	h.sendJSON(w, http.StatusOK, map[string]string{"message": "This is an example route"})
-}
-
-// TestReset handles POST /v1/test/reset — clears all server-side state for E2E tests
-// Only available in test mode to prevent accidental data wipes in production
-func (h *Handler) TestReset(w http.ResponseWriter, r *http.Request) {
-	if !h.testMode {
-		h.sendError(w, http.StatusForbidden, "forbidden", "test reset endpoint not available")
-		return
+func bearerTokenFromHeader(authHeader string) string {
+	parts := strings.SplitN(strings.TrimSpace(authHeader), " ", 2)
+	if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") {
+		return ""
 	}
-	if err := h.store.Reset(r.Context()); err != nil {
-		h.sendError(w, http.StatusInternalServerError, "internal_error", "reset failed")
-		return
-	}
-	h.sendJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+	return strings.TrimSpace(parts[1])
 }
