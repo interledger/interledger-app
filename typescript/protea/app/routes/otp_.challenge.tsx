@@ -45,7 +45,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   if (isConnectError(response)) throw response.errorResponse
 
   const url = new URL(request.url)
-  const returnTo = safeReturnTo(url.searchParams.get('returnTo'), '')
+  const returnTo = safeReturnTo(url.searchParams.get('returnTo'))
 
   return jsonWithCSRF(request, {
     phoneMask,
