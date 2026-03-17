@@ -73,7 +73,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   if (typeof token !== 'string') {
     return json(
-      { errors: { form: 'Invalid logout token.' } },
+      { errors: { form: 'Something went wrong trying to logout.' } },
       { status: 400 }
     )
   }
