@@ -3,9 +3,8 @@ import type {
   LoaderFunctionArgs,
   MetaFunction
 } from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
+import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
-import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import { Layouts } from '~/components'
 import { mergeMeta } from '~/lib/meta'
