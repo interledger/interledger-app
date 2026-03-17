@@ -17,7 +17,7 @@ import { safeReturnTo } from '~/lib/url.server'
 import { kratosPublic } from '~/lib/kratos/kratos-client.server'
 import { buildHeadersWithCookies, getCookie, withCookie } from '~/lib/kratos/cookie.server'
 import { mapFlowToFieldErrors, printKratosError } from '~/lib/kratos/error.server'
-import { CreateBrowserLoginFlowResponse, KratosError } from '~/lib/kratos/types.server'
+import type { CreateBrowserLoginFlowResponse, KratosError } from '~/lib/kratos/types.server'
 import logger from '~/lib/logger.server'
 
 export type TotpAction =
@@ -133,12 +133,25 @@ export default function Page() {
 
 export async function action({ request }: ActionFunctionArgs) {
   const form = await request.formData()
-  const flow = form.get('flow') as string | null
-  if (!flow) throw redirect('/totp/challenge')
+  const flow = form.get('flow')
   const totp_code = form.get('totp_code')
   const csrf_token = form.get('csrf_token')
+
+  if (!flow || typeof flow !== 'string') {
+    throw redirect('/totp/challenge')
+  }
+  if (!totp_code || typeof totp_code !== 'string') {
+    logger.error({ route: "totp.challange" }, "TOTP code is required")
+    return json({ errors: { totp_code: "TOTP code is required" } })
+  }
+  if (!csrf_token || typeof csrf_token !== 'string') {
+    logger.error({ route: "totp.challange" }, "CSRF token is required")
+    return json({ errors: { totp_code: "Unknown error, please retry." } })
+  }
+
   const cookie = getCookie(request)
-  const returnTo = new URL(request.url).searchParams.get('returnTo') || '/'
+  const url = new URL(request.url)
+  const returnTo = safeReturnTo(url.searchParams.get('returnTo'))
 
   await validateCSRFToken(request, form)
 
@@ -147,14 +160,14 @@ export async function action({ request }: ActionFunctionArgs) {
       flow: flow as string,
       updateLoginFlowBody: {
         method: 'totp',
-        totp_code: totp_code as string,
-        csrf_token: csrf_token as string
+        totp_code: totp_code,
+        csrf_token: csrf_token
       }
     }, withCookie(cookie))
 
     if (submitTotpResponse.data.session) {
       const headers = buildHeadersWithCookies(submitTotpResponse)
-      return redirect(returnTo ?? '/', { headers })
+      return redirect(returnTo, { headers })
     }
 
     logger.error({ status: submitTotpResponse.status, route: "totp.challange" }, "No session after updateLoginFlow", submitTotpResponse.status)

@@ -210,10 +210,12 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   if (typeof flowId !== 'string' || typeof csrfToken !== 'string') {
+    logger.error({ route: "totp.two-factor-authentication" }, "Invalid form submission")
     return json({ errors: { totpCode: 'Invalid form submission' } }, { status: 400 })
   }
 
   if (!totpUnlink && typeof totpCode !== 'string') {
+    logger.error({ route: "totp.two-factor-authentication" }, "Invalid code provided")
     return json({ errors: { totpCode: 'Invalid code provided' } }, { status: 400 })
   }
 
@@ -239,6 +241,7 @@ export async function action({ request }: ActionFunctionArgs) {
       errors.totpCode =
         'Invalid code. Please scan the QR code again or add the new code to your authenticator application.'
     }
+    logger.error({ status, route: "totp.two-factor-authentication" }, "Error updating settings flow")
     return json({ errors }, { status: status ?? 500 })
   }
 }
