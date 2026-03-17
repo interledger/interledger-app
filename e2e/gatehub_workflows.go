@@ -3,6 +3,9 @@ package main
 import (
 	"fmt"
 	"strings"
+	"time"
+
+	"github.com/playwright-community/playwright-go"
 )
 
 // thatMyFieldIs dynamically sets a field value for the current user
@@ -129,9 +132,26 @@ func (sc *E2EContext) iFinishedTheWalletAddressCreationWorkflow() error {
 		// Don't fail the workflow for screenshot failure
 	}
 
-	// Click save button
+	// Click save button — retry once if a transient error (e.g. Bad Gateway) replaced the page
 	if err := sc.iClickTheButtonOnTheWalletAddressForm("save"); err != nil {
-		return fmt.Errorf("failed to click save button: %w", err)
+		debugPrintf("⚠️  First save attempt failed: %v — reloading and retrying\n", err)
+		sc.iTakeAScreenshot("wallet-address-save-retry")
+
+		if _, reloadErr := sc.page.Reload(playwright.PageReloadOptions{
+			Timeout: playwright.Float(15000),
+		}); reloadErr != nil {
+			return fmt.Errorf("failed to reload page after save failure: %w", reloadErr)
+		}
+		time.Sleep(2 * time.Second)
+
+		// Re-fill form on the reloaded page
+		if fillErr := sc.iFillInAndSubmitTheWalletAddressFormWithAUniqueAddress(); fillErr != nil {
+			return fmt.Errorf("failed to refill wallet address form after reload: %w", fillErr)
+		}
+
+		if retryErr := sc.iClickTheButtonOnTheWalletAddressForm("save"); retryErr != nil {
+			return fmt.Errorf("failed to click save button after retry: %w", retryErr)
+		}
 	}
 
 	// Verify we're back on dashboard with reserved status

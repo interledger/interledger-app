@@ -103,12 +103,20 @@ func (sc *E2EContext) iNavigateToTheSignupPage() error {
 
 	// Navigate directly to the signup page
 	signupURL := sc.baseURL + "/signup"
-	_, err = sc.page.Goto(signupURL, playwright.PageGotoOptions{
-		Timeout:   playwright.Float(30000),
-		WaitUntil: playwright.WaitUntilStateNetworkidle,
-	})
-	if err != nil {
-		return fmt.Errorf("failed to navigate to signup: %w", err)
+	var navErr error
+	for attempt := 0; attempt < 3; attempt++ {
+		_, navErr = sc.page.Goto(signupURL, playwright.PageGotoOptions{
+			Timeout:   playwright.Float(30000),
+			WaitUntil: playwright.WaitUntilStateNetworkidle,
+		})
+		if navErr == nil {
+			break
+		}
+		debugPrintf("   ⚠️  Navigation attempt %d failed: %v — retrying\n", attempt+1, navErr)
+		time.Sleep(2 * time.Second)
+	}
+	if navErr != nil {
+		return fmt.Errorf("failed to navigate to signup: %w", navErr)
 	}
 
 	// Ensure page is fully loaded by waiting for network
