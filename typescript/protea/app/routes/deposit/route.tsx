@@ -2,32 +2,24 @@ import {
   redirect,
   type ActionFunctionArgs,
   type LoaderFunctionArgs,
-  type MetaFunction
-} from '@remix-run/node'
-import { useLoaderData } from '@remix-run/react'
+  type MetaFunction,
+} from 'react-router';
+import { useLoaderData } from 'react-router';
 import type { ApplicationProps } from '~/components'
 import { Layouts } from '~/components'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
-import { route } from 'routes-gen'
-import styles from '~/styles/flags.css'
-import {
-  ChimoneyDepositPage,
-  chimoneyAmountAction,
-  chimoneyDepositLoader
-} from './chimoney'
-import {
-  FynbosDepositPage,
-  fynbosDepositAction,
-  fynbosDepositLoader,
-  xagoTestAccountDepositAction
-} from './fynbos'
-import { GatehubDepositPage, gatehubDepositLoader } from './gatehub'
+import { href } from 'react-router'
+import styles from '~/styles/flags.css?url'
+import { ChimoneyDepositPage } from './chimoney'
+import { FynbosDepositPage } from './fynbos'
+import { GatehubDepositPage } from './gatehub'
 import { KRATOS_URL } from '~/lib/kratos.server'
-
 import { getKycStatus } from '~/data/wallet.server'
-import { KycStatus } from '../_index/route'
+import { KycStatus } from '~/lib/types'
+import { chimoneyDepositLoader, fynbosDepositLoader, gatehubDepositLoader } from './loader.server';
+import { chimoneyAmountAction, fynbosDepositAction, xagoTestAccountDepositAction } from './action.server';
 
 
 export async function loader(args: LoaderFunctionArgs) {
@@ -39,7 +31,7 @@ export async function loader(args: LoaderFunctionArgs) {
   }
   const { kycStatus } = await getKycStatus(args.request)
   if (kycStatus != KycStatus.Approved)
-    return redirect(route('/personal-details'))
+    return redirect(href('/personal-details'))
 
   const providerResponse = await grpc.getOnOffRampProvider(args.request, {})
   if (isConnectError(providerResponse)) throw providerResponse.error
@@ -88,7 +80,7 @@ export async function action(args: ActionFunctionArgs) {
   if (formName === 'chimoney-amount') {
     return chimoneyAmountAction(args)
   } else if (formName === 'chimoney-successfull-deposit') {
-    return redirect(route('/'))
+    return redirect(href('/'))
   } else if (formName === 'xago-test-account-deposit') {
     return xagoTestAccountDepositAction(args)
   }

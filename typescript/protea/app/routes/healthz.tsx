@@ -1,5 +1,5 @@
-import type { LoaderFunctionArgs } from '@remix-run/node'
+import type { Route } from './+types/healthz'
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
+export const loader = async ({ request }: Route.LoaderArgs) => {
   return new Response('OK', { status: 200 })
 }

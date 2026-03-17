@@ -1,4 +1,4 @@
-import { json } from '@remix-run/node'
+import { data } from 'react-router';
 
 const RAFIKI_AUTH_ENDPOINT =
   process.env.RAFIKI_AUTH_ENDPOINT || 'http://rafiki-rafiki-auth.rafiki:3006'
@@ -47,7 +47,7 @@ export async function getInteraction(
     }
   )
   if (rpc.status > 300) {
-    throw json({}, rpc.status)
+    throw data({}, rpc.status)
   }
   let body = (await rpc.json()) as GrantDetails
 
@@ -69,6 +69,6 @@ export async function consent(
   )
 
   if (rpc.status != 202) {
-    throw json({}, rpc.status)
+    throw data({}, rpc.status)
   }
 }

@@ -1,18 +1,9 @@
+import type { Route } from './+types/connect_.bank_.za'
 import { Code } from '@bufbuild/connect'
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { redirect } from '@remix-run/node'
-import {
-  Form,
-  useActionData,
-  useLoaderData,
-  useNavigation
-} from '@remix-run/react'
+import { redirect } from 'react-router';
+import { Form, useActionData, useLoaderData, useNavigation } from 'react-router';
 import { useEffect, useState } from 'react'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import type { ApplicationProps, SelectOptions } from '~/components'
 import {
   Button,
@@ -29,14 +20,14 @@ import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const balancesResponse = await grpc.getBalances(request, {})
   if (
     isConnectError(balancesResponse) ||
     balancesResponse.balances.filter((bal) => bal.countryCode == 'ZA').length ==
       0
   )
-    throw redirect(route('/'))
+    throw redirect(href('/'))
 
   const banks: SelectOptions[] = [
     { id: '632005', name: 'Absa Bank' },
@@ -70,29 +61,29 @@ export const handle: ApplicationProps = {
   layout: Layouts.Focus,
   scaffold: {
     header: {
-      back: route('/accounts'),
+      back: href('/accounts'),
       title: 'Connect bank account'
     }
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Connect bank account'
   }
 ])
 
 export default function Page() {
-  const { banks, csrfToken } = useLoaderData<typeof loader>()
+  const { banks, csrfToken } = useLoaderData()
 
   const navigation = useNavigation()
-  const actionData = useActionData<typeof action>()
+  const actionData = useActionData()
   const [bank, setBank] = useState<SelectOptions>(banks[0])
 
   const [setLoading] = useScaffoldStore((state) => [state.setLoading])
 
   useEffect(() => {
-    if (navigation.state == 'submitting' && navigation.formMethod === 'post') {
+    if (navigation.state == 'submitting' && navigation.formMethod === 'POST') {
       setLoading(true)
     } else if (navigation.state == 'loading' || navigation.state == 'idle') {
       setLoading(false)
@@ -105,7 +96,7 @@ export default function Page() {
     <>
       <Form
         id='connect-bank-za'
-        action={route('/connect/bank/za')}
+        action={href('/connect/bank/za')}
         method='post'
         className='hidden'
       />
@@ -161,7 +152,7 @@ export default function Page() {
   )
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const form = await request.formData()
   const accountNumber = form.get('accountNumber') as string
   const branchCode = form.get('branchCode') as string
@@ -191,7 +182,7 @@ export async function action({ request }: ActionFunctionArgs) {
     }
   }
 
-  return redirectWithSnackbar(request, route('/accounts'), {
+  return redirectWithSnackbar(request, href('/accounts'), {
     message: 'New bank account successfully saved.',
     icon: 'close'
   })

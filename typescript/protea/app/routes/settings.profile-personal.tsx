@@ -1,8 +1,8 @@
-import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
-import { json } from '@remix-run/node'
-import { useLoaderData } from '@remix-run/react'
+import type { Route } from './+types/settings.profile-personal'
+import { data } from 'react-router';
+import { useLoaderData } from 'react-router';
 import { DateTime } from 'luxon'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Card, CardContent, Icon, Layouts } from '~/components'
 import { Label } from '~/components/Label'
@@ -11,7 +11,7 @@ import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const kycStatus = await getKycStatus(request)
 
   const kycDetails = await grpc.getIndividualKYC(request, {})
@@ -41,7 +41,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       break
   }
 
-  return json({
+  return data({
     kycStatus,
     kycDetails,
     gender,
@@ -58,14 +58,14 @@ export const handle: ApplicationProps = {
   layout: Layouts.Wallet,
   scaffold: {
     header: {
-      back: route('/settings'),
+      back: href('/settings'),
       title: 'Personal information'
     },
     isNested: true
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Personal information'
   }
@@ -73,7 +73,7 @@ export const meta: MetaFunction = mergeMeta(() => [
 
 export default function Page() {
   const { dateOfBirth, gender, kycDetails, country } =
-    useLoaderData<typeof loader>()
+    useLoaderData()
   return (
     <Card>
       <CardContent className='flex flex-col space-y-4'>
@@ -96,8 +96,8 @@ export default function Page() {
               <span>
                 {kycDetails.address?.formattedAddress
                   ?.split(',')
-                  .filter((line) => line.length > 0)
-                  .map((line) => (
+                  .filter((line: string) => line.length > 0)
+                  .map((line: string) => (
                     <>
                       <span>{line}</span>
                       <br />
