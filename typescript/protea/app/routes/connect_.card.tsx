@@ -1,12 +1,8 @@
+import type { Route } from './+types/connect_.card'
 import { Code } from '@bufbuild/connect'
-import {
-  type ActionFunctionArgs,
-  type LoaderFunctionArgs,
-  type MetaFunction
-} from '@remix-run/node'
-import { useLoaderData, useSubmit } from '@remix-run/react'
+import { useLoaderData, useSubmit } from 'react-router';
 import { useEffect } from 'react'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Layouts } from '~/components'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
@@ -18,7 +14,7 @@ import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { useScript } from '~/lib/useScript'
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const response = await grpc.getKYCProviderWidget(request, {
     idempotencyKey: ''
   })
@@ -34,22 +30,22 @@ export const handle: ApplicationProps = {
   layout: Layouts.Focus,
   scaffold: {
     header: {
-      back: route('/accounts'),
+      back: href('/accounts'),
       title: 'Connect card'
     }
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Connect card'
   }
 ])
 
 export default function Page() {
-  const { widget, csrfToken } = useLoaderData<typeof loader>()
+  const { widget, csrfToken } = useLoaderData()
   const submit = useSubmit()
-  // const actionData = useActionData<typeof action>()
+  // const actionData = useActionData()
   const [setLoading] = useScaffoldStore((state) => [state.setLoading])
   const scriptStatus = useScript(
     widget?.sdkUrl || 'https://sdk.platform.fiant.io/0.0.23/index.js'
@@ -62,7 +58,7 @@ export default function Page() {
   }, [setLoading])
 
   useEffect(() => {
-    if (scriptStatus == 'ready' && typeof (window as any).PTI !== 'undefined') {
+    if (scriptStatus == 'ready' && window.PTI !== undefined) {
       const styling = {
         mode: window.matchMedia('(prefers-color-scheme: dark)').matches
           ? 'dark'
@@ -72,12 +68,12 @@ export default function Page() {
         fontFamily: 'Poppins'
       }
 
-      ;(window as any).PTI.init({
+      window.PTI.init({
         clientId: widget?.clientId,
         generateTokenPath: widget?.generateTokenPath,
         ptiFormsUrl: widget?.formsUrl || 'https://forms.platform.fiant.io'
       })
-      ;(window as any).PTI.form({
+      window.PTI.form({
         type: 'ADD_CC',
         requestId: widget?.requestId,
         userId: widget?.userId,
@@ -115,7 +111,7 @@ export default function Page() {
   )
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const form = await request.formData()
   const cardToken = form.get('tokenId') as string
 
@@ -159,7 +155,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   return redirectWithSnackbar(
     request,
-    route('/accounts/:accountId', { accountId: response.id }),
+    href('/accounts/:accountId', { accountId: response.id }),
     {
       message: 'New card successfully saved.',
       icon: 'close'

@@ -1,17 +1,17 @@
-import { json } from '@remix-run/node'
+import type { Route } from './+types/legal_.($jurisdiction).$slug'
+import { data } from 'react-router';
 import type { ApplicationProps } from '~/components'
 import { Layouts } from '~/components'
 
-import type { LoaderFunctionArgs } from '@remix-run/node'
-import type { UIMatch } from '@remix-run/react'
-import { useLoaderData } from '@remix-run/react'
+import type { UIMatch } from 'react-router';
+import { useLoaderData } from 'react-router';
 import { DateTime } from 'luxon'
 import { StructuredText } from 'react-datocms'
 import { Prose } from '~/components/Content'
 import { getCurrentLegalPage } from '~/data/content.server'
 import { fetchAndSanitizeHTML } from '~/lib/fetchAndSanitizeHTML.server'
 
-export async function loader({ params }: LoaderFunctionArgs) {
+export async function loader({ params }: Route.LoaderArgs) {
   const { legalPage, footer } = await getCurrentLegalPage({
     filter: {
       slug: { eq: params.slug },
@@ -20,7 +20,7 @@ export async function loader({ params }: LoaderFunctionArgs) {
   })
 
   if (legalPage === null)
-    throw json(null, { status: 404, statusText: 'Not Found' })
+    throw data(null, { status: 404, statusText: 'Not Found' })
 
   // TODO decide if we want to route to the global version if there isn't a jurisdiction specific one.
 
@@ -29,7 +29,7 @@ export async function loader({ params }: LoaderFunctionArgs) {
     externalContent = await fetchAndSanitizeHTML(legalPage.external)
   }
 
-  return json({
+  return data({
     footer,
     page: {
       ...legalPage,
@@ -45,12 +45,12 @@ export const handle: ApplicationProps = {
   layout: Layouts.Marketing,
   scaffold: {
     header: {},
-    footer: (match: UIMatch<typeof loader>) => match.data.footer
+    footer: (match: UIMatch<Route.ComponentProps['loaderData']>) => match.loaderData?.footer ?? null
   }
 }
 
 export default function Page() {
-  const { page, externalContent } = useLoaderData<typeof loader>()
+  const { page, externalContent } = useLoaderData()
 
   return (
     <main className='w-full overflow-hidden'>
