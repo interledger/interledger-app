@@ -20,6 +20,7 @@ import (
 	"github.com/riandyrn/otelchi"
 	"github.com/uptrace/opentelemetry-go-extra/otelsql"
 	"github.com/uptrace/opentelemetry-go-extra/otelsqlx"
+	aassassetlinks "gitlab.com/fynbos/backend/aass_assetlinks"
 	"gitlab.com/fynbos/backend/admin"
 	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/agreements"
@@ -69,6 +70,7 @@ import (
 	pti_ops "gitlab.com/fynbos/backend/providers/pti/ops"
 	"gitlab.com/fynbos/backend/providers/xago"
 	xago_client "gitlab.com/fynbos/backend/providers/xago/client"
+	xago_external "gitlab.com/fynbos/backend/providers/xago/external"
 	"gitlab.com/fynbos/backend/rafiki"
 	rafiki_client "gitlab.com/fynbos/backend/rafiki/client"
 	"gitlab.com/fynbos/backend/signup"
@@ -99,6 +101,10 @@ import (
 	"go.temporal.io/sdk/worker"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+
+	// bradu
+	"github.com/lestrrat-go/jwx/v3/jwk"
+	fiant "gitlab.com/fynbos/backend/providers/fiant/v1"
 )
 
 func main() {
@@ -186,16 +192,41 @@ func start(args *cli.StartArgs) {
 	router.Handle("/webhooks/xago", b.xago.WebhookHandler())
 	router.Handle("/webhooks/persona", kyc_ops.NewHandlePersonaWebhook(b))
 	router.Handle("/webhooks/chimoney", chimoney_ops.NewWebhook(b))
+	router.Handle("/.well-known/apple-app-site-association", aassassetlinks.AppSiteAssociationHandler(b.aasaConfig))
+	router.Handle("/.well-known/assetlinks.json", aassassetlinks.AssetLinksHandler(b.aasaConfig))
 
-	ptiWebhook, err := pti_ops.Webhook(b)
-	if err != nil {
-		log.Fatalln(err)
+	if args.PTIEnabled {
+		ptiWebhook, err := pti_ops.Webhook(b)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		router.Handle("/webhooks/pti", ptiWebhook)
 	}
-	router.Handle("/webhooks/pti", ptiWebhook)
 	router.Handle("/webhooks/gatehub", gatehub_ops.NewWebhook(b, b.gatehubConfig))
 	router.Handle("/webhooks/gatehub/v1/users/managed/{userId}/2fa", gatehub_ops.NewSCAHandler(b, b.gatehubConfig))
 	router.Handle("/{wallet_id}/identities/{identity_sig_hash}", wallet_handler.GetIdentityHandler(b))
 	router.NotFound(wallet_handler.WalletRedirectHandler(b))
+
+	// fiant sandbox actions (only when PTI is enabled)
+	if args.PTIEnabled {
+		ptiPrivateKey, err := jwk.ParseKey([]byte(args.PTIJWK))
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		ctrl, err := fiant.NewController(
+			fiant.WithBaseURL(args.PTIBaseURL),
+			fiant.WithClientID(args.PTIClientID),
+			fiant.WithDerivedKeys(ptiPrivateKey),
+		)
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		router.Handle("/settle/{transaction_id}", ctrl.SettleTransactionHook())
+		router.Handle("/return/{transaction_id}", ctrl.ReturnTransactionHook())
+	}
+	// ~fiant sandbox actions
 
 	var wg sync.WaitGroup
 
@@ -441,7 +472,7 @@ func startWorker(args *cli.StartArgs) {
 	serveHTTP(&http.Server{Addr: ":8081", Handler: router}, &wg)
 
 	log.Info("Worker creating")
-	w, err := temporal.NewTemporalWorker(b, b.gatehubConfig)
+	w, err := temporal.NewTemporalWorker(b, b.gatehubConfig, b.xagoConfig)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -484,11 +515,13 @@ type backends struct {
 	slack          slack.Client
 	rafiki         rafiki.Client
 	xago           xago.Client
+	xagoConfig     xago_external.Config
 	pac            pacioli.Client
 	pti            pti.Client
 	gatehub        gatehub.Client
 	gatehubConfig  gatehub.Config
 	chimoney       chimoney.Client
+	aasaConfig     aassassetlinks.Config
 }
 
 func (b backends) Chimoney() chimoney.Client {
@@ -762,7 +795,14 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	b.pac = pacioli_client.NewLocal(pacDB)
 
 	log.Debug("initialising xago")
-	b.xago = xago_client.New(b)
+	b.xagoConfig = xago_external.Config{
+		APIBaseURL:      args.XagoAPIBaseURL,
+		IdentityBaseURL: args.XagoIdentityBaseURL,
+		PublicKey:       args.XagoPublicKey,
+		Secret:          args.XagoSecret,
+		PolicyID:        args.XagoPolicyID,
+	}
+	b.xago = xago_client.New(b, b.xagoConfig)
 
 	log.Debug("initialising FIANT")
 	b.pti = pti_client.New(b)
@@ -796,6 +836,12 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 
 	log.Debug("initialising Chimoney")
 	b.chimoney = chimoney_client.New(b)
+
+	b.aasaConfig = aassassetlinks.Config{
+		AppleAppID:         args.AppleAppID,
+		AndroidPackageName: args.AndroidPackageName,
+		AndroidSHA256:      args.AndroidSHA256,
+	}
 
 	return b
 }

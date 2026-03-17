@@ -9,7 +9,7 @@ Feature: Peer-to-Peer Payments
     And mockgatehub is running at "https://mockgatehub.interledger.test"
     And Rafiki assets are seeded
 
-  @p2p-payment
+  @p2p-payment @gatehub
   Scenario: Successfully navigate to send payment page and fill payment form
     # Set up sender user with deposit
     Given the details of 'sender-user' are
@@ -32,7 +32,7 @@ Feature: Peer-to-Peer Payments
     Then I should see the payments page
     And I take a screenshot "payment-form-filled"
 
-  @p2p-payment
+  @p2p-payment @gatehub
   Scenario: Successfully set up two users and navigate to payments
     Given the details of 'user-two' are
       | field           | value                        |
@@ -49,7 +49,7 @@ Feature: Peer-to-Peer Payments
     And I navigate to the send payment page
     Then I should see the payments page
 
-  @p2p-payment @quick
+  @p2p-payment @quick @gatehub
   Scenario: Successfully send payment from one user to another
     # Set up sender user with KYC
     Given the details of 'sender' are

@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/playwright-community/playwright-go"
 )
@@ -73,7 +75,37 @@ func (sc *E2EContext) iFillInAndSubmitTheWalletAddressFormWithAUniqueAddress() e
 	time.Sleep(500 * time.Millisecond)
 
 	// Generate a unique username based on test timestamp
-	uniqueUsername := fmt.Sprintf("testuser%d", time.Now().UnixNano()%1000000)
+	// Backend requires: ASCII [a-z0-9_], first 3 chars must be letters, length 3–16
+	const maxWalletAddressLen = 16
+
+	idPart := normalizeWalletAddressToken(sc.testIdentifier)
+	userPart := normalizeWalletAddressToken(sc.currentUser)
+
+	// Ensure userPart is at least 3 ASCII letters to satisfy the backend prefix rule
+	for len(userPart) < 3 {
+		userPart += "x"
+	}
+	// Keep only the first 3 characters as a letter prefix
+	userPart = userPart[:3]
+
+	if idPart == "" {
+		idPart = "test"
+	}
+	if len(idPart) > 6 {
+		idPart = idPart[:6]
+	}
+
+	timePart := strconv.FormatInt(time.Now().UnixNano(), 36)
+	// Trim timePart so total length stays within maxWalletAddressLen
+	maxTimePart := maxWalletAddressLen - len(userPart) - len(idPart)
+	if maxTimePart < 0 {
+		maxTimePart = 0
+	}
+	if len(timePart) > maxTimePart {
+		timePart = timePart[len(timePart)-maxTimePart:]
+	}
+	// userPart must come first so the address starts with letters (backend requires first 3 chars to be letters)
+	uniqueUsername := fmt.Sprintf("%s%s%s", userPart, idPart, timePart)
 	debugPrintf("   📝 Using wallet address: %s\n", uniqueUsername)
 
 	// Type in the username character by character to trigger onChange events
@@ -167,22 +199,50 @@ func (sc *E2EContext) iClickTheButtonOnTheWalletAddressForm(buttonText string) e
 		}
 	})
 
-	// Find all buttons
-	allButtons := sc.page.Locator("button")
-
-	// Find the button with matching text
-	submitButton := sc.page.Locator(fmt.Sprintf("button:has-text('%s')", buttonText))
+	// Find the wallet-address submit button first (most deterministic locator)
+	submitButton := sc.page.Locator("button[form='wallet-address'][type='submit']")
 	btnCount, _ := submitButton.Count()
 
 	if btnCount == 0 {
-		debugPrintf("   ⚠️  '%s' button not found, trying last button\n", buttonText)
-		submitButton = allButtons.Last()
-	} else {
-		debugPrintf("   ✓ Found '%s' button\n", buttonText)
+		// Fallback to text match if the form/type attributes are unavailable
+		submitButton = sc.page.Locator(fmt.Sprintf("button:has-text('%s')", buttonText))
+		btnCount, _ = submitButton.Count()
+		if btnCount == 0 {
+			return fmt.Errorf("could not find wallet-address submit button")
+		}
 	}
 
+	err := submitButton.First().WaitFor(playwright.LocatorWaitForOptions{
+		State:   playwright.WaitForSelectorStateVisible,
+		Timeout: playwright.Float(10000),
+	})
+	if err != nil {
+		return fmt.Errorf("submit button not visible: %w", err)
+	}
+
+	var enabled bool
+	for i := 0; i < 20; i++ {
+		enabled, err = submitButton.First().IsEnabled()
+		if err != nil {
+			return fmt.Errorf("failed to inspect submit button state: %w", err)
+		}
+		if enabled {
+			break
+		}
+		time.Sleep(250 * time.Millisecond)
+	}
+
+	if !enabled {
+		disabledAttr, _ := submitButton.First().GetAttribute("disabled")
+		return fmt.Errorf("submit button remained disabled before click (disabled=%v)", disabledAttr != "")
+	}
+
+	debugPrintf("   ✓ Found actionable '%s' button\n", buttonText)
+
 	// Click the submit button
-	err := submitButton.Click()
+	err = submitButton.First().Click(playwright.LocatorClickOptions{
+		Timeout: playwright.Float(10000),
+	})
 	if err != nil {
 		return fmt.Errorf("failed to click '%s' button: %w", buttonText, err)
 	}
@@ -309,4 +369,26 @@ func (sc *E2EContext) iShouldBeNavigatedBackToTheDashboardWithReservedWalletStat
 	}
 
 	return fmt.Errorf("wallet does not appear to be in 'Reserved' state, still on wallet-address")
+}
+
+// normalizeWalletAddressToken strips non-ASCII-alphanumeric characters and lowercases.
+// The backend wallet address validator only allows ASCII [a-z0-9_].
+func normalizeWalletAddressToken(input string) string {
+	if input == "" {
+		return ""
+	}
+
+	var builder strings.Builder
+	builder.Grow(len(input))
+
+	for _, character := range input {
+		if (character >= 'a' && character <= 'z') || (character >= '0' && character <= '9') {
+			builder.WriteRune(character)
+		} else if character >= 'A' && character <= 'Z' {
+			builder.WriteRune(unicode.ToLower(character))
+		}
+		// Skip non-ASCII and special characters
+	}
+
+	return builder.String()
 }

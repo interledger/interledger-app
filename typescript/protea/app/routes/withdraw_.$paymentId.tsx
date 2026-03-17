@@ -93,11 +93,13 @@ export default function Page() {
         type='hidden'
       />
       <Card>
-        <Label className='mt-2'>Withdraw to</Label>
-        <div className='my-1 flex space-x-2 rounded-xl bg-nav p-3'>
-          <Icon>account_balance</Icon>
-          <span>{receiverAccountTitle}</span>
-        </div>
+        <CardContent>
+          <Label className='mt-2'>Withdraw to</Label>
+          <div className='my-1 flex space-x-2 rounded-xl bg-nav p-3'>
+            <Icon>account_balance</Icon>
+            <span>{receiverAccountTitle}</span>
+          </div>
+        </CardContent>
       </Card>
       <Card>
         <CardContent>
@@ -115,8 +117,12 @@ export default function Page() {
             <span className='text-weak'>Fees</span>
             <span className='text-medium'>{payment.formattedFees}</span>
           </div>
-          <div className='mt-4 flex w-full justify-between font-medium'>
+          <div className='mt-2 flex w-full justify-between font-medium'>
             <span className='text-medium'>You will receive</span>
+            <span className='text-medium'>{payment.receivedNetAmount !== '' ? payment.receivedNetAmount : payment.totalSendAmount}</span>
+          </div>
+          <div className='mt-4 flex w-full justify-between'>
+            <span className='font-medium text-medium'>Total</span>
             <span className='text-error'>{payment.totalSendAmount}</span>
           </div>
         </CardContent>
