@@ -379,8 +379,14 @@ func (sc *E2EContext) iCompletedTheKYCFlowFor(email string) error {
 		return fmt.Errorf("KYC iframe load failed: %w", err)
 	}
 
-	if err := sc.iFillAndSubmitTheMockgatehubiframe(); err != nil {
-		return fmt.Errorf("fill KYC iframe failed: %w", err)
+	if strings.EqualFold(sc.country, "south africa") {
+		if err := sc.iFillAndSubmitTheMockxagoiframe(); err != nil {
+			return fmt.Errorf("fill MockXago KYC iframe failed: %w", err)
+		}
+	} else {
+		if err := sc.iFillAndSubmitTheMockgatehubiframe(); err != nil {
+			return fmt.Errorf("fill KYC iframe failed: %w", err)
+		}
 	}
 
 	if err := sc.iWaitForTheKYCCompletion(); err != nil {
