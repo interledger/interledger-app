@@ -15,8 +15,7 @@ import styles from '~/styles/flags.css'
 import {
   ChimoneyDepositPage,
   chimoneyAmountAction,
-  chimoneyDepositLoader,
-  chimoneySuccessfullDepositAction
+  chimoneyDepositLoader
 } from './chimoney'
 import {
   FynbosDepositPage,
@@ -84,7 +83,7 @@ export async function action(args: ActionFunctionArgs) {
   if (formName === 'chimoney-amount') {
     return chimoneyAmountAction(args)
   } else if (formName === 'chimoney-successfull-deposit') {
-    return chimoneySuccessfullDepositAction(args)
+    return redirect(route('/'))
   } else if (formName === 'xago-test-account-deposit') {
     return xagoTestAccountDepositAction(args)
   }

@@ -8,4 +8,5 @@ var (
 	ErrInsufficientBalance  = errors.New("chimoney: insufficient balance")
 	ErrInteracAlreadyLinked = errors.New("chimoney: interac account already linked")
 	ErrTimedOut             = errors.New("chimoney: timed out")
+	ErrInvalidWebhook       = errors.New("chimoney: invalid webhook")
 )

@@ -9,6 +9,9 @@ import (
 	"os"
 	"os/exec"
 	"time"
+
+	"gitlab.com/fynbos/mock/mockxago/internal/logger"
+	"go.uber.org/zap"
 )
 
 func startServices() error {
@@ -25,11 +28,11 @@ func dumpLogs() {
 	cmd := exec.Command("docker", "compose", "-f", "docker-compose.yml", "logs", "--no-color")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Warning: failed to dump container logs: %v\n", err)
+		logger.Warn("failed to dump container logs", zap.Error(err))
 		return
 	}
 	if err := os.WriteFile("lastlogs.txt", output, 0644); err != nil {
-		fmt.Fprintf(os.Stderr, "Warning: failed to write lastlogs.txt: %v\n", err)
+		logger.Warn("failed to write lastlogs.txt", zap.Error(err))
 	}
 }
 
@@ -37,7 +40,7 @@ func cleanup() {
 	dumpLogs()
 
 	if os.Getenv("KEEP_CONTAINERS") != "" {
-		fmt.Println("KEEP_CONTAINERS is set — skipping container teardown")
+		logger.Info("KEEP_CONTAINERS is set — skipping container teardown")
 		return
 	}
 

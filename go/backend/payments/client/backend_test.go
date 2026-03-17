@@ -19,6 +19,7 @@ import (
 	pacioli_db "gitlab.com/fynbos/pacioli/db"
 
 	xago_client "gitlab.com/fynbos/backend/providers/xago/client"
+	xago_external "gitlab.com/fynbos/backend/providers/xago/external"
 	"gitlab.com/fynbos/pacioli"
 	pacioli_client "gitlab.com/fynbos/pacioli/client"
 
@@ -119,7 +120,7 @@ func NewTestBackends(t *testing.T) *TestBackends {
 	}).AnyTimes()
 	b.temporal = tp
 
-	b.xgo = xago_client.New(b)
+	b.xgo = xago_client.New(b, xago_external.Config{})
 
 	kc := kyc_mock.NewMockClient(ctrl)
 	kc.EXPECT().GetIndividualDetails(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, walletID string) (*kyc.IndividualDetails, error) {

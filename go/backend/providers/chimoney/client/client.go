@@ -50,6 +50,10 @@ func (c *Client) CreateDepositLink(ctx context.Context, walletID string, amt cur
 	return ops.CreateDepositLink(ctx, c.b, c.external, walletID, amt)
 }
 
+func (c *Client) GetEstimatedFee(ctx context.Context, amount currency.Amount) (currency.Amount, error) {
+	return ops.GetEstimatedFee(ctx, c.b, c.external, amount)
+}
+
 func (c *Client) ExecuteWithdraw(ctx context.Context, walletID, transactionID string) error {
 	return ops.ExecuteWithdraw(ctx, c.b, walletID, transactionID)
 }
@@ -80,12 +84,4 @@ func (c *Client) RollbackReserve(ctx context.Context, txID string) error {
 
 func (c *Client) GetKYCWidget(ctx context.Context, walletID string) (string, error) {
 	return ops.GetKYCWidget(ctx, c.b, walletID)
-}
-
-func (c *Client) WatchForSuccessfulKYC(ctx context.Context, walletID string) error {
-	return ops.WatchForSuccessfulKYC(ctx, c.b, walletID)
-}
-
-func (c *Client) CreateDeposit(ctx context.Context, issueID string) (chimoney.Await, error) {
-	return ops.CreateDeposit(ctx, c.b, c.external, issueID)
 }

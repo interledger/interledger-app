@@ -26,7 +26,6 @@ documentation/site
 coverage.out
 
 .env
-*.env
 
 **/.vagrant
 **/.pnpm-store

@@ -6,10 +6,12 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"go.uber.org/zap"
 
 	"gitlab.com/fynbos/mock/mockxago/internal/handler"
 	"gitlab.com/fynbos/mock/mockxago/internal/jobs"
@@ -45,10 +47,28 @@ func main() {
 		logger.Infof("Using default XAGO_API_SECRET: %s", secret)
 	}
 
-	// Initialize storage (in-memory only for now)
+	// Initialize storage (memory or Redis)
 	var store storage.Storage
-	store = storage.NewMemoryStorage()
-	logger.Infof("Initialized in-memory storage")
+	redisURL := os.Getenv("MOCKXAGO_REDIS_URL")
+	if redisURL != "" {
+		redisDB := 0
+		if dbStr := os.Getenv("MOCKXAGO_REDIS_DB"); dbStr != "" {
+			var err error
+			redisDB, err = strconv.Atoi(dbStr)
+			if err != nil {
+				logger.Fatal("invalid MOCKXAGO_REDIS_DB value", zap.String("value", dbStr), zap.Error(err))
+			}
+		}
+		var err error
+		store, err = storage.NewRedisStorage(redisURL, redisDB)
+		if err != nil {
+			logger.Fatal("failed to initialize Redis storage", zap.Error(err))
+		}
+		logger.Infof("Initialized Redis storage at %s (DB %d)", redisURL, redisDB)
+	} else {
+		store = storage.NewMemoryStorage()
+		logger.Infof("Initialized in-memory storage")
+	}
 
 	// Initialize job queue and worker
 	queue := jobs.NewQueue(store)
@@ -59,6 +79,10 @@ func main() {
 
 	// Create handler
 	h := handler.NewHandler(store, queue)
+
+	// Register job handlers BEFORE starting worker
+	worker.RegisterHandler(handler.JobTypeProcessDeposit, h.NewProcessDepositHandler())
+	logger.Infof("Registered deposit job handler")
 
 	// Start job worker in background
 	worker.StartAsync()
@@ -116,6 +140,8 @@ func setupRoutes(router *chi.Mux, h *handler.Handler) {
 			pr.Post("/company/accounts", h.CreateSubAccount)
 			pr.Put("/company/accounts/{accountId}", h.UpdateSubAccount)
 			pr.Get("/company/accounts", h.GetSubAccountByWallet)
+			pr.Post("/company/accounts/testdeposit", h.SimulateTestDeposit)
+			pr.Get("/company/deposits", h.ListCompanyDeposits)
 			pr.Get("/accounts/{accountId}/balance", h.GetBalance)
 			pr.Post("/accounts/{accountId}/beneficiaries", h.AddBeneficiary)
 			pr.Get("/accounts/{accountId}/beneficiaries", h.ListBeneficiaries)
@@ -143,6 +169,10 @@ func setupRoutes(router *chi.Mux, h *handler.Handler) {
 		// Reset endpoint (outside auth middleware, but protected by ensureTestMode)
 		r.Post("/test/reset", h.TestReset)
 	})
+
+	// KYC endpoints (public, not under /v1)
+	router.Get("/kyc/iframe", h.KYCIframe)
+	router.Post("/kyc/submit", h.KYCIframeSubmit)
 
 	// Health check
 	router.Get("/health", func(w http.ResponseWriter, r *http.Request) {
