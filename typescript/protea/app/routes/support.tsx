@@ -12,7 +12,7 @@ import {
   WalletGrid
 } from '~/components'
 import { jsonWithCSRF } from '~/lib/csrf.server'
-import { getUserSession } from '~/lib/kratos/session.util.server'
+import { getUserSession } from '~/lib/kratos/session.server'
 import { mergeMeta } from '~/lib/meta'
 
 export async function loader({ request }: LoaderFunctionArgs) {

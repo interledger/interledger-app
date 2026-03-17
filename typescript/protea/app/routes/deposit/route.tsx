@@ -25,7 +25,7 @@ import {
   xagoTestAccountDepositAction
 } from './fynbos'
 import { GatehubDepositPage, gatehubDepositLoader } from './gatehub'
-import { getUserSession } from '~/lib/kratos/session.util.server'
+import { getUserSession } from '~/lib/kratos/session.server'
 
 import { getKycStatus } from '~/data/wallet.server'
 import { KycStatus } from '../_index/route'
@@ -33,10 +33,10 @@ import { KycStatus } from '../_index/route'
 
 export async function loader(args: LoaderFunctionArgs) {
   await getUserSession(args.request)
-    const { kycStatus } = await getKycStatus(args.request)
-    if (kycStatus != KycStatus.Approved)
-      return redirect(route('/personal-details'))
-  
+  const { kycStatus } = await getKycStatus(args.request)
+  if (kycStatus != KycStatus.Approved)
+    return redirect(route('/personal-details'))
+
   const providerResponse = await grpc.getOnOffRampProvider(args.request, {})
   if (isConnectError(providerResponse)) throw providerResponse.error
   if (providerResponse.provider == 'gatehub') {
@@ -87,6 +87,6 @@ export async function action(args: ActionFunctionArgs) {
     return chimoneySuccessfullDepositAction(args)
   } else if (formName === 'xago-test-account-deposit') {
     return xagoTestAccountDepositAction(args)
-  } 
+  }
   return fynbosDepositAction(args)
 }

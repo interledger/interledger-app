@@ -29,12 +29,11 @@ import {
   isSessionAlreadyExistsMessage,
   buildHeadersWithCookies,
   withCookie
-} from '~/lib/kratos/cookie.util'
-import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.util'
-import { mapFlowToFieldErrors } from '~/lib/kratos/error.server'
-import { handleFlowError } from '~/lib/kratos/error.server'
+} from '~/lib/kratos/cookie.server'
+import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.server'
+import { mapFlowToFieldErrors, handleFlowError } from '~/lib/kratos/error.server'
 import { type KratosError } from '~/lib/kratos/types.server'
-import { requireNoUserSession } from '~/lib/kratos/session.util.server'
+import { requireNoUserSession } from '~/lib/kratos/session.server'
 import { mergeMeta } from '~/lib/meta'
 import { safeReturnTo } from '~/lib/url.server'
 
@@ -54,7 +53,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       flow = data
     } else {
       // Otherwise we initialize it
-      const returnTo = url.searchParams.get('returnTo') ?? undefined
+      const returnTo = safeReturnTo(url.searchParams.get('returnTo'))
       const aal = url.searchParams.get('aal') as 'aal1' | 'aal2' | undefined
       const refresh = url.searchParams.get('refresh') === 'true'
 
@@ -206,7 +205,7 @@ export async function action({ request }: ActionFunctionArgs) {
       )
     }
 
-    return redirect(returnTo || '/', { headers })
+    return redirect(returnTo, { headers })
   } catch (err) {
     const errResponse = (err as KratosError).response
 
@@ -227,7 +226,7 @@ export async function action({ request }: ActionFunctionArgs) {
       // an error (no error ID but ...) similar to the one for the TOTP challenge
       // when someone double submits.
       if (isSessionAlreadyExistsMessage(errors.form)) {
-        return redirect(returnTo || '/')
+        return redirect(returnTo)
       }
       return json({ errors }, { status: 400, headers: buildHeadersWithCookies(errResponse) })
     }

@@ -22,9 +22,10 @@ import {
   TextField
 } from '~/components'
 import { kratosPublic } from '~/lib/kratos/kratos-client.server'
-import { buildHeadersWithCookies, getCookie, withCookie } from '~/lib/kratos/cookie.util'
-import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.util'
+import { buildHeadersWithCookies, getCookie, withCookie } from '~/lib/kratos/cookie.server'
+import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.server'
 import { mergeMeta } from '~/lib/meta'
+import { safeReturnTo } from '~/lib/url.server'
 import { useTotpChallenge } from '~/lib/useTotpChallenge'
 
 type TotpForm = {
@@ -201,17 +202,25 @@ export async function action({ request }: ActionFunctionArgs) {
   const totpUnlink =
     new URL(request.url).searchParams.get('totpUnlink') === 'true'
   const form = await request.formData()
-  const flowId = form.get('flow') as string
-  const csrfToken = form.get('csrf_token') as string
-  const totpCode = form.get('totp_code') as string
+  const flowId = form.get('flow')
+  const csrfToken = form.get('csrf_token')
+  const totpCode = form.get('totp_code')
   const errors = {
     totpCode: ''
+  }
+
+  if (typeof flowId !== 'string' || typeof csrfToken !== 'string') {
+    return json({ errors: { totpCode: 'Invalid form submission' } }, { status: 400 })
+  }
+
+  if (!totpUnlink && typeof totpCode !== 'string') {
+    return json({ errors: { totpCode: 'Invalid code provided' } }, { status: 400 })
   }
 
   const cookie = getCookie(request)
   const updateBody = totpUnlink
     ? { method: 'totp' as const, totp_unlink: true, csrf_token: csrfToken }
-    : { method: 'totp' as const, totp_code: totpCode, csrf_token: csrfToken }
+    : { method: 'totp' as const, totp_code: totpCode as string, csrf_token: csrfToken }
 
   try {
     const response = await kratosPublic.updateSettingsFlow(
@@ -222,7 +231,7 @@ export async function action({ request }: ActionFunctionArgs) {
       withCookie(cookie)
     )
 
-    const returnTo = new URL(request.url).searchParams.get('returnTo') || '/'
+    const returnTo = safeReturnTo(new URL(request.url).searchParams.get('returnTo'))
     return redirectDocument(returnTo, { headers: buildHeadersWithCookies(response) }) // Hard reload so the root loader is also run
   } catch (err: any) {
     const status = err.response?.status

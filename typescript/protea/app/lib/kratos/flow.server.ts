@@ -1,5 +1,5 @@
 import type { UiNodeInputAttributes } from "@ory/client";
-import { KratosFlowWithUi } from "./types.server";
+import type { KratosFlowWithUi } from "./types.server";
 
 
 /**

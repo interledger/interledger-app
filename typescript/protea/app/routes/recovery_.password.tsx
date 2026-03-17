@@ -16,11 +16,12 @@ import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts, TextField } from '~/components'
 import { error } from '~/lib/error.server'
 import { kratosPublic, CLEAR_SESSION_COOKIE_HEADER } from '~/lib/kratos/kratos-client.server'
-import { getCookie, withCookie, buildHeadersWithCookies } from '~/lib/kratos/cookie.util'
-import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.util'
+import { getCookie, withCookie, buildHeadersWithCookies } from '~/lib/kratos/cookie.server'
+import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.server'
 import { handleFlowError, mapFlowToFieldErrors } from '~/lib/kratos/error.server'
-import { hasUserSession } from '~/lib/kratos/session.util.server'
+import { hasUserSession } from '~/lib/kratos/session.server'
 import { mergeMeta } from '~/lib/meta'
+import { safeReturnTo } from '~/lib/url.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 
 export const handle: ApplicationProps = {
@@ -64,7 +65,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   // Initialize new settings flow
   try {
     const response = await kratosPublic.createBrowserSettingsFlow(
-      { returnTo: url.searchParams.get('returnTo') ?? undefined },
+      { returnTo: safeReturnTo(url.searchParams.get('returnTo')) },
       withCookie(cookie)
     )
     return redirect(`/recovery/password?flow=${response.data.id}`, {

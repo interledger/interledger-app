@@ -1,8 +1,8 @@
 import { json, type ActionFunctionArgs } from '@remix-run/node'
 import { kratosPublic } from '~/lib/kratos/kratos-client.server'
-import { getCookie, withCookie, buildHeadersWithCookies } from '~/lib/kratos/cookie.util'
+import { getCookie, withCookie, buildHeadersWithCookies } from '~/lib/kratos/cookie.server'
 import { mapFlowToFieldErrors } from '~/lib/kratos/error.server'
-import { KratosError } from '~/lib/kratos/types.server'
+import type { KratosError } from '~/lib/kratos/types.server'
 import logger, { addRequestId, withErrorLog } from '~/lib/logger.server'
 import { extractOrGenerateRequestId } from '~/lib/requestContext.server'
 
@@ -66,7 +66,7 @@ export async function action({ request }: ActionFunctionArgs) {
         error: 'Flow expired. Please reinitialize the verification.'
       })
     }
-    
+
     return json({
       success: false,
       error: 'An unexpected error occurred'

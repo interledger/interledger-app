@@ -1,4 +1,4 @@
-import { RequestConfig } from "./types.server";
+import type { RequestConfig } from "./types.server";
 
 type ResponseWithCookies = {
     headers?: { 'set-cookie'?: string | string[]; [key: string]: unknown }

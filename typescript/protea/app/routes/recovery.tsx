@@ -9,13 +9,14 @@ import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts, TextField } from '~/components'
 import { error } from '~/lib/error.server'
 import { kratosPublic } from '~/lib/kratos/kratos-client.server'
-import { getCookie, withCookie, buildHeadersWithCookies } from '~/lib/kratos/cookie.util'
-import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.util'
+import { getCookie, withCookie, buildHeadersWithCookies } from '~/lib/kratos/cookie.server'
+import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.server'
 import { handleFlowError, mapFlowToFieldErrors } from '~/lib/kratos/error.server'
-import { requireNoUserSession } from '~/lib/kratos/session.util.server'
+import { requireNoUserSession } from '~/lib/kratos/session.server'
 import { mergeMeta } from '~/lib/meta'
 import { RateLimitKeys, getKey, rateLimit } from '~/lib/rateLimit.server'
-import { KratosError } from '~/lib/kratos/types.server'
+import { safeReturnTo } from '~/lib/url.server'
+import type { KratosError } from '~/lib/kratos/types.server'
 
 type ActionResponse =
   | { success: true }
@@ -47,7 +48,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   // Initialize new recovery flow
   try {
     const response = await kratosPublic.createBrowserRecoveryFlow(
-      { returnTo: url.searchParams.get('returnTo') ?? undefined },
+      { returnTo: safeReturnTo(url.searchParams.get('returnTo')) },
       withCookie(cookie)
     )
     return redirect(`/recovery?flow=${response.data.id}`, {

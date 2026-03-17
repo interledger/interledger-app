@@ -10,12 +10,26 @@ import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts, TextField } from '~/components'
 import { error } from '~/lib/error.server'
 import { kratosPublic } from '~/lib/kratos/kratos-client.server'
-import { getCookie, withCookie, buildHeadersWithCookies } from '~/lib/kratos/cookie.util'
-import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.util'
+import { getCookie, withCookie, buildHeadersWithCookies } from '~/lib/kratos/cookie.server'
+import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.server'
 import { handleFlowError, mapFlowToFieldErrors } from '~/lib/kratos/error.server'
-import { getUserSession, getSessionTraits } from '~/lib/kratos/session.util.server'
+import { getUserSession, getSessionTraits } from '~/lib/kratos/session.server'
 import { mergeMeta } from '~/lib/meta'
 
+// 4000001 represents the Kratos message ID when a user already has a privileged session
+const ERROR_ID_SESSION_ALREADY_PRIVILEGED = 4000001
+
+/**
+ * The login challenge flow is triggered when the user is already authenticated
+ * but attempts to access a highly sensitive route (like changing their password
+ * or updating security settings).
+ * 
+ * This functions as a "sudo mode" check or session elevation, forcing the user
+ * to re-authenticate with their password to confirm their identity.
+ * 
+ * It can also be triggered if the session is reported as `session_refresh_required`
+ * by Kratos during certain critical operations.
+ */
 export async function loader({ request }: LoaderFunctionArgs) {
   const session = await getUserSession(request)
   const url = new URL(request.url)
@@ -154,8 +168,8 @@ export async function action({ request }: ActionFunctionArgs) {
     })
   } catch (err: any) {
     const flowData = err.response?.data
-    // 4000001 = user already has a privileged session — not an error
-    if (flowData?.ui?.messages?.[0]?.id === 4000001) {
+    // User already has a privileged session — not an error
+    if (flowData?.ui?.messages?.[0]?.id === ERROR_ID_SESSION_ALREADY_PRIVILEGED) {
       return redirect(route('/settings/password'), {
         headers: buildHeadersWithCookies(err.response)
       })

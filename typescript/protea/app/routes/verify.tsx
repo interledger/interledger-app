@@ -15,11 +15,12 @@ import {
   OutlineButtonRouter
 } from '~/components'
 import { kratosPublic } from '~/lib/kratos/kratos-client.server'
-import { getCookie, withCookie, buildHeadersWithCookies } from '~/lib/kratos/cookie.util'
-import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.util'
+import { getCookie, withCookie, buildHeadersWithCookies } from '~/lib/kratos/cookie.server'
+import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.server'
 import { handleFlowError } from '~/lib/kratos/error.server'
-import { getUserSession } from '~/lib/kratos/session.util.server'
+import { getUserSession } from '~/lib/kratos/session.server'
 import { mergeMeta } from '~/lib/meta'
+import { safeReturnTo } from '~/lib/url.server'
 import { RateLimitKeys, getKey, rateLimit } from '~/lib/rateLimit.server'
 import { useCountdown } from '~/lib/useCountdown'
 import { useDebounceAction } from '~/lib/useDebounceAction'
@@ -66,7 +67,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   // Initialize new verification flow
   try {
     const response = await kratosPublic.createBrowserVerificationFlow(
-      { returnTo: url.searchParams.get('returnTo') ?? undefined },
+      { returnTo: safeReturnTo(url.searchParams.get('returnTo')) },
       withCookie(cookie)
     )
     return redirect(`/verify?flow=${response.data.id}`, {

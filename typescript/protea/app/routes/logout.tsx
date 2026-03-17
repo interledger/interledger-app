@@ -10,7 +10,7 @@ import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts } from '~/components'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { kratosPublic } from '~/lib/kratos/kratos-client.server'
-import { getCookie, buildHeadersWithCookies } from '~/lib/kratos/cookie.util'
+import { getCookie, buildHeadersWithCookies } from '~/lib/kratos/cookie.server'
 import { handleFlowError } from '~/lib/kratos/error.server'
 import { mergeMeta } from '~/lib/meta'
 
@@ -69,7 +69,14 @@ export default function Page() {
 export async function action({ request }: ActionFunctionArgs) {
   const cookie = getCookie(request)
   const form = await request.formData()
-  const token = form.get('logoutToken') as string
+  const token = form.get('logoutToken')
+
+  if (typeof token !== 'string') {
+    return json(
+      { errors: { form: 'Invalid logout token.' } },
+      { status: 400 }
+    )
+  }
 
   await validateCSRFToken(request, form)
 
