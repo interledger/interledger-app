@@ -56,7 +56,7 @@ devDependencies:
     version: 1.16.0(eslint@8.40.0)(react@18.2.0)(typescript@5.0.4)
   '@routes-gen/remix':
     specifier: ^0.3.6
-    version: 0.3.6(@remix-run/dev@1.16.0)
+    version: 0.3.7(@remix-run/dev@1.16.0)
   '@tailwindcss/forms':
     specifier: ^0.5.3
     version: 0.5.3(tailwindcss@3.3.2)
@@ -83,7 +83,7 @@ devDependencies:
     version: 9.0.1
   autoprefixer:
     specifier: ^10.4.14
-    version: 10.4.24(postcss@8.5.6)
+    version: 10.4.24(postcss@8.5.8)
   eslint:
     specifier: ^8.40.0
     version: 8.40.0
@@ -2066,13 +2066,13 @@ packages:
       picomatch: 2.3.1
     dev: true
 
-  /@routes-gen/remix@0.3.6(@remix-run/dev@1.16.0):
-    resolution: {integrity: sha512-JDWOLJP5H8YrEs5+driMJtOKjvya6xDSBuSrh7W5oEZddOX3pf98VXO0lQ3mg06A0L+DvvGX2rMA5HwFL/Vz+g==}
+  /@routes-gen/remix@0.3.7(@remix-run/dev@1.16.0):
+    resolution: {integrity: sha512-3sDFer1qOVcJ4CHx4kk1m3767sM79ptM7f35nccCscecwkHf1U8KNvH1GO60ChgGo/23ASDOZzNqVDOoT8kn8w==}
     peerDependencies:
-      '@remix-run/dev': ^1.0.3
+      '@remix-run/dev': ^1.0.3 || ^2.0.0
     dependencies:
       '@remix-run/dev': 1.16.0(@remix-run/serve@1.16.0)(@types/node@20.1.2)
-      routes-gen: 0.6.0
+      routes-gen: 0.6.1
     dev: true
 
   /@rushstack/eslint-patch@1.2.0:
@@ -2675,7 +2675,7 @@ packages:
     hasBin: true
     dev: true
 
-  /autoprefixer@10.4.24(postcss@8.5.6):
+  /autoprefixer@10.4.24(postcss@8.5.8):
     resolution: {integrity: sha512-uHZg7N9ULTVbutaIsDRoUkoS8/h3bdsmVJYZ5l3wv8Cp/6UIIoRDm90hZ+BwxUj/hGBEzLxdHNSKuFpn8WOyZw==}
     engines: {node: ^10 || ^12 || >=14}
     hasBin: true
@@ -2686,7 +2686,7 @@ packages:
       caniuse-lite: 1.0.30001769
       fraction.js: 5.3.4
       picocolors: 1.1.1
-      postcss: 8.5.6
+      postcss: 8.5.8
       postcss-value-parser: 4.2.0
     dev: true
 
@@ -2773,8 +2773,8 @@ packages:
     resolution: {integrity: sha512-vyL2OymJxmarO8gxMr0mhChsO9QGwhynfuu4+MHTAW6czfq9humCB7rKpUjDd9YUiDPU4mzpyupFSvOClAwbmQ==}
     dev: true
 
-  /binary-extensions@2.2.0:
-    resolution: {integrity: sha512-jDctJ/IVQbZoJykoeHbhXpOlNBqGNcwXJKJog42E5HDPUwQTSdjCHdihjj0DlnheQ7blbT6dHOafNAiS8ooQKA==}
+  /binary-extensions@2.3.0:
+    resolution: {integrity: sha512-Ceh+7ox5qe7LJuLHoY0feh3pHuUDHAcRUeyL2VYghZwfpkNIy/+8Ocg0a3UuSoYzavmylwuLWQOf3hl0jjMMIw==}
     engines: {node: '>=8'}
 
   /bindings@1.5.0:
@@ -2836,6 +2836,13 @@ packages:
     engines: {node: '>=8'}
     dependencies:
       fill-range: 7.0.1
+    dev: true
+
+  /braces@3.0.3:
+    resolution: {integrity: sha512-yQbXgO/OSZVD2IsiLlro+7Hf6Q18EJrKSEsdoMzKePKXct3gvD8oLcOQdIzGupr5Fj+EDe8gO/lxc1BzfMpxvA==}
+    engines: {node: '>=8'}
+    dependencies:
+      fill-range: 7.1.1
 
   /browserify-zlib@0.1.4:
     resolution: {integrity: sha512-19OEpq7vWgsH6WkvkBJQDFvJS1uPcbFOQ4v9CU839dO+ZZXUZO6XpE6hNCqvlIIj+4fZvRiJ6DsAQ382GwiyTQ==}
@@ -3001,7 +3008,7 @@ packages:
     engines: {node: '>= 8.10.0'}
     dependencies:
       anymatch: 3.1.3
-      braces: 3.0.2
+      braces: 3.0.3
       glob-parent: 5.1.2
       is-binary-path: 2.1.0
       is-glob: 4.0.3
@@ -3009,6 +3016,21 @@ packages:
       readdirp: 3.6.0
     optionalDependencies:
       fsevents: 2.3.3
+
+  /chokidar@3.6.0:
+    resolution: {integrity: sha512-7VT13fmjotKpGipCW9JEQAusEPE+Ei8nl6/g4FBAmIm0GOOLMua9NDDo/DWp0ZAxCr3cPq5ZpBqmPAQgDda2Pw==}
+    engines: {node: '>= 8.10.0'}
+    dependencies:
+      anymatch: 3.1.3
+      braces: 3.0.3
+      glob-parent: 5.1.2
+      is-binary-path: 2.1.0
+      is-glob: 4.0.3
+      normalize-path: 3.0.0
+      readdirp: 3.6.0
+    optionalDependencies:
+      fsevents: 2.3.3
+    dev: true
 
   /chownr@1.1.4:
     resolution: {integrity: sha512-jJ0bqzaylmJtVnNgzTeSOs8DPavpbYgEr/b0YL8/2GO3xJEhInFmhKMUnEJQjZumK7KXGFhUy89PrsJWlakBVg==}
@@ -4199,6 +4221,13 @@ packages:
     engines: {node: '>=8'}
     dependencies:
       to-regex-range: 5.0.1
+    dev: true
+
+  /fill-range@7.1.1:
+    resolution: {integrity: sha512-YsGpe3WHLK8ZYi4tWDg2Jy3ebRz2rXowDxnld4bkQB00cc/1Zw9AWnC0i9ztDJitivtQvaI9KaLyKrc+hBW0yg==}
+    engines: {node: '>=8'}
+    dependencies:
+      to-regex-range: 5.0.1
 
   /finalhandler@1.2.0:
     resolution: {integrity: sha512-5uXcUVftlQMFnWC9qu/svkWv3GTd2PfUhK/3PLkYNAe7FbqJMt3515HaxE6eRL74GdsriiwujiawdaB1BpEISg==}
@@ -4804,7 +4833,7 @@ packages:
     resolution: {integrity: sha512-ZMERYes6pDydyuGidse7OsHxtbI7WVeUEozgR/g7rd0xUimYNlvZRE/K2MgZTjWy725IfelLeVcEM97mmtRGXw==}
     engines: {node: '>=8'}
     dependencies:
-      binary-extensions: 2.2.0
+      binary-extensions: 2.3.0
 
   /is-boolean-object@1.1.2:
     resolution: {integrity: sha512-gDYaKHJmnj4aWxyj6YHyXVpdQawtVLHU5cb+eztPGczf6cjuTdwve5ZIEfgXqH4e57An1D1AKf8CZ3kYrQRqYA==}
@@ -6517,8 +6546,8 @@ packages:
       source-map-js: 1.0.2
     dev: true
 
-  /postcss@8.5.6:
-    resolution: {integrity: sha512-3Ybi1tAuwAP9s0r1UQ2J4n5Y0G05bJkpUIO0/bI9MhwmD70S5aTWbXGBwxHrelT+XM1k6dM0pk+SwNkpTRN7Pg==}
+  /postcss@8.5.8:
+    resolution: {integrity: sha512-OW/rX8O/jXnm82Ey1k44pObPtdblfiuWnrd8X7GJ7emImCOstunGbXUpp7HdBrFQX6rJzn3sPT397Wp5aCwCHg==}
     engines: {node: ^10 || ^12 || >=14}
     dependencies:
       nanoid: 3.3.11
@@ -7058,6 +7087,17 @@ packages:
       chokidar: 3.5.3
       fs-extra: 10.1.0
       meow: 9.0.0
+    dev: false
+
+  /routes-gen@0.6.1:
+    resolution: {integrity: sha512-XNOkOsbqKqFFkfyCmGvphg+pVo6XSOrvZ+pR6PzQ9+ZMSodmMybZTsXw8A0OifrjtxDMbxe02iAb7nuy/4sPsg==}
+    hasBin: true
+    dependencies:
+      chalk: 4.1.2
+      chokidar: 3.6.0
+      fs-extra: 10.1.0
+      meow: 9.0.0
+    dev: true
 
   /run-applescript@5.0.0:
     resolution: {integrity: sha512-XcT5rBksx1QdIhlFOCtgZkB99ZEouFZ1E2Kc2LHqNW13U3/74YGdkQRmThTwxy4QIyookibDKYZOPqX//6BlAg==}
