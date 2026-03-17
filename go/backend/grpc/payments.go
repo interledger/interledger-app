@@ -300,7 +300,31 @@ func (s *rpcService) GetPayment(ctx context.Context, req *pb.GetPaymentRequest) 
 		return nil, NotFoundError("payment not found")
 	}
 
-	return transformPayment(ctx, s.b, p)
+	transformedPayment, err := transformPayment(ctx, s.b, p)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	if p.Type == payments.TypeWithdrawal && p.SenderAmount.Currency == currency.CAD && p.ReceiverAmount.Currency == currency.CAD {
+
+		var fees currency.Amount
+		receiverAmount := p.ReceiverAmount
+		fees, err = s.b.Chimoney().GetEstimatedFee(ctx, p.SenderAmount)
+		if err != nil {
+			return nil, toGRPCError(err)
+		}
+
+		if p.ReceiverAmount.Value > fees.Value {
+			receiverAmount = currency.FromUInt64(p.ReceiverAmount.Value-fees.Value, p.ReceiverAmount.Currency)
+		} else {
+			receiverAmount = currency.FromUInt64(0, p.ReceiverAmount.Currency)
+		}
+
+		transformedPayment.ReceivedNetAmount = receiverAmount.Format()
+		transformedPayment.FormattedFees = fees.Format()
+	}
+
+	return transformedPayment, nil
 }
 
 func (s *rpcService) ConfirmPayment(ctx context.Context, req *pb.ConfirmPaymentRequest) (*pb.Payment, error) {

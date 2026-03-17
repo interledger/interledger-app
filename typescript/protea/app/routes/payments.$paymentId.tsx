@@ -149,8 +149,8 @@ export const meta: MetaFunction<typeof loader> = mergeMeta(({ data }) => [
         ? 'Payment'
         : // TODO Fix this for withdrawal
         data.transaction.type == 'sent' || data.transaction.type == 'web_monetization_outgoing'
-        ? `${data.transaction.subtotal} to ${data.transaction.title}`
-        : `${data.transaction.formattedAmount} from ${data.transaction.title}`
+          ? `${data.transaction.subtotal} to ${data.transaction.title}`
+          : `${data.transaction.formattedAmount} from ${data.transaction.title}`
   }
 ])
 
@@ -164,12 +164,12 @@ export default function Page() {
     <>
       {(transaction.type == 'sent' ||
         transaction.type == 'web_monetization_outgoing') && (
-        <Sent openDialog={() => setShowDialog(true)} />
-      )}
+          <Sent openDialog={() => setShowDialog(true)} />
+        )}
       {(transaction.type == 'received' ||
         transaction.type == 'web_monetization_incoming') && (
-        <Received openDialog={() => setShowDialog(true)} />
-      )}
+          <Received openDialog={() => setShowDialog(true)} />
+        )}
       {transaction.type == 'card_transaction' && <CardTransaction />}
       {transaction.type == 'withdrawal' && <Withdrawal />}
       {transaction.type == 'deposit' && <Deposit />}
@@ -372,16 +372,16 @@ function Withdrawal() {
               <span className='text-medium'>{senderAccountTitle}</span>
             </div>
             <div className='mt-2 flex w-full justify-between'>
-              <span className='text-weak'>Amount sent</span>
-              <span className='text-medium'>{transaction.subtotal}</span>
-            </div>
-            <div className='mt-2 flex w-full justify-between'>
               <span className='text-weak'>Fees</span>
               <span className='text-medium'>{transaction.fees}</span>
             </div>
             <div className='mt-4 flex w-full justify-between font-medium'>
-              <span className='text-medium'>Total amount withdrawn</span>
+              <span className='text-weak'>Net amount</span>
               <span className='text-medium'>{transaction.fundsReceived}</span>
+            </div>
+            <div className='mt-2 flex w-full justify-between font-medium'>
+              <span className='text-medium'>Total amount withdrawn</span>
+              <span className='text-medium'>{transaction.subtotal}</span>
             </div>
           </CardContent>
         </Card>

@@ -1054,3 +1054,224 @@ func TestVerifyPayment_Mock_WithRedeemData(t *testing.T) {
 	require.Equal(t, "payer@example.com", payment.RedeemData.PayerEmail)
 	require.Equal(t, "sub-account-123", payment.RedeemData.SubAccount)
 }
+
+func TestGetEstimatedFee_Mock_Success(t *testing.T) {
+	mockResponse := map[string]interface{}{
+		"status": "success",
+		"data": map[string]interface{}{
+			"amount":    100.00,
+			"currency":  "CAD",
+			"rail":      "interac",
+			"direction": "payout",
+			"totalFee":  1.50,
+			"netAmount": 98.50,
+			"note":      "Fee includes processing and Interac charges",
+		},
+	}
+
+	_, client := mockChimoneyServer(t, func(w http.ResponseWriter, r *http.Request) {
+		// Verify request method and path
+		require.Equal(t, http.MethodPost, r.Method)
+		require.Contains(t, r.URL.Path, "/info/fee-estimate")
+
+		// Verify headers
+		require.Equal(t, "application/json", r.Header.Get("Content-Type"))
+		require.Equal(t, "application/json", r.Header.Get("Accept"))
+		require.Equal(t, "test-api-key", r.Header.Get("X-API-KEY"))
+
+		// Verify request body
+		var req external.EstimateFeeReq
+		err := json.NewDecoder(r.Body).Decode(&req)
+		require.NoError(t, err)
+		require.Equal(t, "100.00", req.Amount)
+		require.Equal(t, "CAD", req.Currency)
+		require.Equal(t, "interac", req.Rail)
+		require.Equal(t, "payout", req.Direction)
+
+		// Send mock response
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(mockResponse)
+	})
+
+	resp, err := client.GetEstimatedFee(context.Background(), external.EstimateFeeReq{
+		Amount:    "100.00",
+		Currency:  "CAD",
+		Rail:      "interac",
+		Direction: "payout",
+	})
+
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	require.Equal(t, 100.00, resp.Amount)
+	require.Equal(t, "CAD", resp.Currency)
+	require.Equal(t, "interac", resp.Rail)
+	require.Equal(t, "payout", resp.Direction)
+	require.Equal(t, 1.50, resp.TotalFee)
+	require.Equal(t, 98.50, resp.NetAmount)
+	require.Equal(t, "Fee includes processing and Interac charges", resp.Note)
+}
+
+func TestGetEstimatedFee_Mock_MinimalResponse(t *testing.T) {
+	mockResponse := map[string]interface{}{
+		"status": "success",
+		"data": map[string]interface{}{
+			"totalFee": 2.00,
+			"currency": "CAD",
+		},
+	}
+
+	_, client := mockChimoneyServer(t, func(w http.ResponseWriter, r *http.Request) {
+		require.Equal(t, http.MethodPost, r.Method)
+		require.Contains(t, r.URL.Path, "/info/fee-estimate")
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(mockResponse)
+	})
+
+	resp, err := client.GetEstimatedFee(context.Background(), external.EstimateFeeReq{
+		Amount:   "50.00",
+		Currency: "CAD",
+	})
+
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	require.Equal(t, 2.00, resp.TotalFee)
+	require.Equal(t, "CAD", resp.Currency)
+}
+
+func TestGetEstimatedFee_Mock_ErrorStatus(t *testing.T) {
+	mockResponse := map[string]interface{}{
+		"status": "error",
+		"error":  "Invalid currency",
+	}
+
+	_, client := mockChimoneyServer(t, func(w http.ResponseWriter, r *http.Request) {
+		require.Equal(t, http.MethodPost, r.Method)
+		require.Contains(t, r.URL.Path, "/info/fee-estimate")
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(mockResponse)
+	})
+
+	_, err := client.GetEstimatedFee(context.Background(), external.EstimateFeeReq{
+		Amount:   "100.00",
+		Currency: "INVALID",
+	})
+
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "Invalid currency")
+}
+
+func TestGetEstimatedFee_Mock_HTTPError(t *testing.T) {
+	_, client := mockChimoneyServer(t, func(w http.ResponseWriter, r *http.Request) {
+		require.Equal(t, http.MethodPost, r.Method)
+		require.Contains(t, r.URL.Path, "/info/fee-estimate")
+
+		// Return HTTP 400 Bad Request
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"status": "error",
+			"error":  "Bad request",
+		})
+	})
+
+	_, err := client.GetEstimatedFee(context.Background(), external.EstimateFeeReq{
+		Amount:   "invalid",
+		Currency: "CAD",
+	})
+
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "request failed on estimating fee")
+	require.Contains(t, err.Error(), "400")
+}
+
+func TestGetEstimatedFee_Mock_InvalidJSON(t *testing.T) {
+	_, client := mockChimoneyServer(t, func(w http.ResponseWriter, r *http.Request) {
+		require.Equal(t, http.MethodPost, r.Method)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("not valid json"))
+	})
+
+	_, err := client.GetEstimatedFee(context.Background(), external.EstimateFeeReq{
+		Amount:   "100.00",
+		Currency: "CAD",
+	})
+
+	require.Error(t, err)
+}
+
+func TestGetEstimatedFee_Mock_DifferentRails(t *testing.T) {
+	tests := []struct {
+		name      string
+		rail      string
+		direction string
+		totalFee  float64
+	}{
+		{
+			name:      "Interac payout",
+			rail:      "interac",
+			direction: "payout",
+			totalFee:  1.50,
+		},
+		{
+			name:      "Bank transfer",
+			rail:      "bank",
+			direction: "payout",
+			totalFee:  2.00,
+		},
+		{
+			name:      "Deposit",
+			rail:      "interac",
+			direction: "deposit",
+			totalFee:  0.50,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			mockResponse := map[string]interface{}{
+				"status": "success",
+				"data": map[string]interface{}{
+					"amount":    100.00,
+					"currency":  "CAD",
+					"rail":      tc.rail,
+					"direction": tc.direction,
+					"totalFee":  tc.totalFee,
+					"netAmount": 100.00 - tc.totalFee,
+				},
+			}
+
+			_, client := mockChimoneyServer(t, func(w http.ResponseWriter, r *http.Request) {
+				require.Equal(t, http.MethodPost, r.Method)
+
+				var req external.EstimateFeeReq
+				json.NewDecoder(r.Body).Decode(&req)
+				require.Equal(t, tc.rail, req.Rail)
+				require.Equal(t, tc.direction, req.Direction)
+
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusOK)
+				json.NewEncoder(w).Encode(mockResponse)
+			})
+
+			resp, err := client.GetEstimatedFee(context.Background(), external.EstimateFeeReq{
+				Amount:    "100.00",
+				Currency:  "CAD",
+				Rail:      tc.rail,
+				Direction: tc.direction,
+			})
+
+			require.NoError(t, err)
+			require.NotNil(t, resp)
+			require.Equal(t, tc.totalFee, resp.TotalFee)
+			require.Equal(t, tc.rail, resp.Rail)
+			require.Equal(t, tc.direction, resp.Direction)
+		})
+	}
+}

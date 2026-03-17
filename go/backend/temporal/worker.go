@@ -136,9 +136,11 @@ func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago
 	// Chimoney
 	w.RegisterActivity(chimoney_workflows.NewActivity(b))
 	w.RegisterWorkflow(chimoney_workflows.CreateChimoneyUserWorkflow)
-	w.RegisterWorkflow(chimoney_workflows.ChimomeyWatchForSuccessfulKYC)
+	w.RegisterWorkflow(chimoney_workflows.ChimomeyCompleteKYC)
 	w.RegisterWorkflow(chimoney_workflows.CreateChimoneyDepositWorkflow)
+	w.RegisterWorkflow(chimoney_workflows.FinishChimoneyDepositWorkflow)
 	w.RegisterWorkflow(chimoney_workflows.ExecuteChimoneyWithdrawalWorkflow)
+	w.RegisterWorkflow(chimoney_workflows.ExecuteChimoneyFinishWithdrawalWorkflow)
 
 	return w, nil
 }
