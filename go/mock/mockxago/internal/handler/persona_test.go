@@ -286,8 +286,8 @@ func TestPersonaGetAccount_NotFound(t *testing.T) {
 	w := httptest.NewRecorder()
 	h.PersonaGetAccount(w, r)
 
-	// DOB is now required and no fallback hardcoded birthdate is returned.
-	assert.Equal(t, http.StatusBadRequest, w.Code)
+	// Account doesn't exist, should return 404.
+	assert.Equal(t, http.StatusNotFound, w.Code)
 }
 
 func TestPersonaGetAccount_MissingID(t *testing.T) {

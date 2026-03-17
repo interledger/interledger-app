@@ -35,8 +35,8 @@ type client struct {
 
 func New() Client {
 	baseURL := "https://api.withpersona.com/api/v1/"
-	if os.Getenv("PERSONA_TOKEN") == "" && os.Getenv("MOCKXAGO_ENDPOINT") != "" {
-		baseURL = os.Getenv("MOCKXAGO_ENDPOINT") + "/v1/"
+	if override := os.Getenv("PERSONA_BASE_URL"); override != "" {
+		baseURL = override
 	}
 
 	return &client{

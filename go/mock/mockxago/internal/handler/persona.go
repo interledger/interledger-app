@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/fynbos/mock/mockxago/internal/logger"
 	"gitlab.com/fynbos/mock/mockxago/internal/models"
+	"gitlab.com/fynbos/mock/mockxago/web"
 )
 
 type personaCreateInquiryRequest struct {
@@ -140,29 +140,7 @@ func (h *Handler) PersonaGetInquiryIframe(w http.ResponseWriter, r *http.Request
 	// Use inquiry ID as the wallet identifier for mock Persona flows.
 	userID := inquiryID
 
-	// Load and serve the KYC iframe template (same pattern as KYCIframe in kyc.go)
-	possiblePaths := []string{
-		"web/kyc-iframe.html",
-		"./web/kyc-iframe.html",
-		"../../web/kyc-iframe.html",
-		"../../../web/kyc-iframe.html",
-	}
-
-	var templatePath string
-	for _, path := range possiblePaths {
-		if _, err := os.Stat(path); err == nil {
-			templatePath = path
-			break
-		}
-	}
-
-	if templatePath == "" {
-		logger.Errorf("Could not find KYC iframe template, tried: %v", possiblePaths)
-		h.sendError(w, http.StatusInternalServerError, "template_not_found", "KYC template not found")
-		return
-	}
-
-	tmpl, err := template.ParseFiles(templatePath)
+	tmpl, err := template.ParseFS(web.Assets, "kyc-iframe.html")
 	if err != nil {
 		logger.Errorf("Failed to parse KYC iframe template: %v", err)
 		h.sendError(w, http.StatusInternalServerError, "template_error", "Failed to parse template")
@@ -185,29 +163,15 @@ func (h *Handler) PersonaGetInquiryIframe(w http.ResponseWriter, r *http.Request
 
 // PersonaSDK handles GET /persona-sdk.js - Serves a Persona-compatible SDK mock
 func (h *Handler) PersonaSDK(w http.ResponseWriter, r *http.Request) {
-	possiblePaths := []string{
-		"web/persona-sdk.js",
-		"./web/persona-sdk.js",
-		"../../web/persona-sdk.js",
-		"../../../web/persona-sdk.js",
-	}
-
-	var scriptPath string
-	for _, path := range possiblePaths {
-		if _, err := os.Stat(path); err == nil {
-			scriptPath = path
-			break
-		}
-	}
-
-	if scriptPath == "" {
-		logger.Errorf("Could not find Persona SDK script, tried: %v", possiblePaths)
+	data, err := web.Assets.ReadFile("persona-sdk.js")
+	if err != nil {
+		logger.Errorf("Failed to read embedded persona-sdk.js: %v", err)
 		h.sendError(w, http.StatusInternalServerError, "script_not_found", "Persona SDK script not found")
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/javascript; charset=utf-8")
-	http.ServeFile(w, r, scriptPath)
+	w.Write(data)
 }
 
 // PersonaInquirySubmit handles POST /inquiries/{id}/submit - Form submission callback
@@ -309,13 +273,16 @@ func (h *Handler) PersonaGetAccount(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		subAccount, err = h.store.GetSubAccountByWalletID(r.Context(), accountID)
 	}
-	if err == nil && subAccount != nil {
-		walletID = subAccount.WalletID
-		nameFirst = subAccount.FirstName
-		nameLast = subAccount.LastName
-		dateOfBirth = subAccount.DateOfBirth
-		physicalAddress = subAccount.PhysicalAddress
+	if err != nil || subAccount == nil {
+		logger.Errorf("account not found: %s", accountID)
+		h.sendError(w, http.StatusNotFound, "account_not_found", "Account not found")
+		return
 	}
+	walletID = subAccount.WalletID
+	nameFirst = subAccount.FirstName
+	nameLast = subAccount.LastName
+	dateOfBirth = subAccount.DateOfBirth
+	physicalAddress = subAccount.PhysicalAddress
 	if dateOfBirth == "" {
 		logger.Errorf("date of birth missing for wallet %s", walletID)
 		h.sendError(w, http.StatusBadRequest, "missing_dob", "Date of birth not found for account")
