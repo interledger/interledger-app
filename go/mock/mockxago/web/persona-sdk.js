@@ -72,7 +72,11 @@
     this.overlay = overlay;
 
     var self = this;
+    var expectedOrigin = sdkOrigin;
     this.onMessage = function (event) {
+      if (event.origin !== expectedOrigin) {
+        return;
+      }
       if (!event || !event.data || event.data.type !== 'OnboardingCompleted') {
         return;
       }
