@@ -1,7 +1,7 @@
 The correct way to run specific tests from `features/*.feature` is to tag the specific test appropriately and then use the -args and -tags flags together.
 ```
 # Run only the @signuponly tests
-go test -v -timeout 5m -args -tags @signuponly 
+go test -v -timeout 5m -args -tags @signuponly
 # Run tests tagged with @withdrawal AND @fees
 go test -v -timeout 10m -args -tags="@withdrawal&&@fees"
 # Run tests without debug info
@@ -32,4 +32,4 @@ DO NOT SUPPRESS TEST OUTPUT EVER
 - `WaitForLoadState(networkidle)` without a timeout will block indefinitely if the page never settles. Always pass `Timeout: playwright.Float(10000)` when calling it inside retry loops.
 
 ## Maintain
-It is the job of the agent to add, update or remove relevant information to this file.
+It is the job of Claude to add, update or remove relevant information to this file.

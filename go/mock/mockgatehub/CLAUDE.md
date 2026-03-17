@@ -1,6 +1,13 @@
-# MockGatehub — AI Agent Development Guide
+# MockGatehub — Development Guide
 
-Comprehensive guidance for AI coding agents working on the MockGatehub project.
+Comprehensive guidance for working on the MockGatehub project.
+
+## Official API Documentation
+
+**Always consult the official GateHub API docs when uncertain about endpoint behavior, request/response formats, or field semantics:**
+https://docs.gatehub.net/api-documentation/c3OPAp5dM191CDAdwyYS
+
+When implementing or modifying endpoints, check the official docs first to ensure MockGatehub matches real GateHub behavior.
 
 ## Project Context
 
@@ -108,7 +115,7 @@ mockgatehub/
 ├── .releaserc.json               # Semantic-release configuration
 ├── go.mod                         # Go module (chi, redis, godog, zap, testify, uuid)
 ├── README.md                      # User-facing project documentation
-└── AGENTS.md                      # This file
+└── CLAUDE.md                      # This file
 ```
 
 ### Design Principles
@@ -444,17 +451,12 @@ docker compose -f local/docker-compose.yaml exec -T postgres \
 curl -sk https://mockgatehub.interledger.test/core/v1/wallets/PROVIDER_ID/balances | jq
 ```
 
-## Critical Notes for AI Agents
+## Critical Notes
 
 1. **ALWAYS run all tests after changes**: `make test`
 2. **Maintain API compatibility**: Applications rely on exact GateHub response format
 3. **Never modify vault UUIDs or currency codes**: These are immutable
 4. **Test both storage backends**: Changes must work with memory AND Redis
-5. **Update AGENTS.md if you discover outdated guidance**: Keep instructions fresh
+5. **Update CLAUDE.md if you discover outdated guidance**: Keep instructions fresh
 6. **Use zap structured logging**: Always include context fields for debugging
 7. **Webhook queue requires Redis**: Even in in-memory storage mode
-
----
-
-**Last Updated**: February 2026
-**Maintainers**: Interledger Foundation

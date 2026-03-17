@@ -1,4 +1,4 @@
-# GitHub Copilot Instructions for Interledger App
+# Claude Instructions for Interledger App
 
 ## Project Overview
 
@@ -278,7 +278,7 @@ atlas migrate diff create_all \
 **Fix**: Always pass timeout when using `WaitForLoadState(networkidle)`:
 
 ```go
-page.WaitForLoadState(playwright.LoadStateNetworkidle, 
+page.WaitForLoadState(playwright.LoadStateNetworkidle,
   playwright.PageWaitForLoadStateOptions{Timeout: playwright.Float(10000)})
 ```
 
@@ -315,12 +315,8 @@ All logs must be JSON, one object per line. Include `ts` (Unix timestamp), optio
 
 ## Additional Resources
 
-- `e2e/AGENTS.md` - Agent-specific E2E testing guidance (tag usage, troubleshooting)
+- `e2e/CLAUDE.md` - E2E testing guidance (tag usage, troubleshooting)
 - `docs/concepts.md` - Provider terminology mapping
 - `local/README.md` - Detailed local environment documentation
 - `e2e/README.md` - E2E test setup and execution guide
 - `e2e/STEP_REFERENCE.md` - Gherkin step definitions reference
-
-## Trust These Instructions
-
-These instructions were validated by running commands and reading the codebase comprehensively. Only perform additional searches if you encounter information that contradicts these instructions or if you need details not covered here.
