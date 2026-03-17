@@ -85,12 +85,7 @@ func SetKYCStatusWorkflow(ctx workflow.Context, args SetKYCStatusWorkflowArgs) e
 	if err != nil {
 		return err
 	}
-	if status == kyc.StatusPending && wallet.Country == country.CA {
-		err = workflow.ExecuteActivity(ctx, a.KYCWatchForChimoneySuccessfulKYC, walletID).Get(ctx, nil)
-		if err != nil {
-			return err
-		}
-	}
+
 	if status == kyc.StatusPending && wallet.Country == country.US {
 		err = workflow.ExecuteActivity(ctx, a.KYCCreatePTIWallet, walletID).Get(ctx, nil)
 		if err != nil {
@@ -103,10 +98,6 @@ func SetKYCStatusWorkflow(ctx workflow.Context, args SetKYCStatusWorkflowArgs) e
 
 func (a *Activity) KYCGetWallet(ctx context.Context, walletID string) (*wallets.Wallet, error) {
 	return a.b.Wallets().Get(ctx, walletID)
-}
-
-func (a *Activity) KYCWatchForChimoneySuccessfulKYC(ctx context.Context, walletID string) error {
-	return a.b.Chimoney().WatchForSuccessfulKYC(ctx, walletID)
 }
 
 func (a *Activity) ResetExceededLimits(ctx context.Context, walletID string) error {

@@ -15,8 +15,7 @@ import styles from '~/styles/flags.css'
 import {
   ChimoneyDepositPage,
   chimoneyAmountAction,
-  chimoneyDepositLoader,
-  chimoneySuccessfullDepositAction
+  chimoneyDepositLoader
 } from './chimoney'
 import {
   FynbosDepositPage,
@@ -33,15 +32,15 @@ import { KycStatus } from '../_index/route'
 
 export async function loader(args: LoaderFunctionArgs) {
   const session = await fetch(`${KRATOS_URL}/sessions/whoami`, {
-      headers: args.request.headers
-    })
-    if (session.status === 401) {
-      return redirect('/login')
-    }
-    const { kycStatus } = await getKycStatus(args.request)
-    if (kycStatus != KycStatus.Approved)
-      return redirect(route('/personal-details'))
-  
+    headers: args.request.headers
+  })
+  if (session.status === 401) {
+    return redirect('/login')
+  }
+  const { kycStatus } = await getKycStatus(args.request)
+  if (kycStatus != KycStatus.Approved)
+    return redirect(route('/personal-details'))
+
   const providerResponse = await grpc.getOnOffRampProvider(args.request, {})
   if (isConnectError(providerResponse)) throw providerResponse.error
   if (providerResponse.provider == 'gatehub') {
@@ -89,9 +88,9 @@ export async function action(args: ActionFunctionArgs) {
   if (formName === 'chimoney-amount') {
     return chimoneyAmountAction(args)
   } else if (formName === 'chimoney-successfull-deposit') {
-    return chimoneySuccessfullDepositAction(args)
+    return redirect(route('/'))
   } else if (formName === 'xago-test-account-deposit') {
     return xagoTestAccountDepositAction(args)
-  } 
+  }
   return fynbosDepositAction(args)
 }
