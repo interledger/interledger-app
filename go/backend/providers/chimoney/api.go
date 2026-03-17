@@ -13,12 +13,11 @@ type Client interface {
 	AddInterlocEmail(ctx context.Context, walletID, email string) (*linkedaccounts.LinkedAccount, error)
 	GetInterlocEmail(ctx context.Context, walletID string) (string, error)
 	CreateDepositLink(ctx context.Context, walletID string, amt currency.Amount) (string, error)
-	CreateDeposit(ctx context.Context, issueID string) (Await, error)
 	ExecuteWithdraw(ctx context.Context, walletID string, transactionID string) error
 	Transfer(ctx context.Context, args TransferArgs) error
 	GetKYCWidget(ctx context.Context, walletID string) (string, error)
-	WatchForSuccessfulKYC(ctx context.Context, walletID string) error
 
+	GetEstimatedFee(ctx context.Context, amount currency.Amount) (currency.Amount, error)
 	GetBalance(ctx context.Context, linkedAccountID string) (*Balance, error)
 	ReserveBalance(ctx context.Context, linkedAccountID, txID string, amt currency.Amount, timeout time.Duration) (*Balance, error)
 	FinaliseReserve(ctx context.Context, txID string) error
