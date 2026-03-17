@@ -235,7 +235,9 @@ func (sc *E2EContext) iFillAndSubmitTheMockgatehubiframe() error {
 		// Look for submit button
 		if strings.Contains(strings.ToLower(buttonText), "submit") {
 			debugPrintf("   ✓ Clicking submit button: %s\n", buttonText)
-			_ = button.Click()
+			if err := button.Click(); err != nil {
+				return fmt.Errorf("failed to click submit button: %w", err)
+			}
 			buttonClicked = true
 			time.Sleep(500 * time.Millisecond)
 			break
@@ -319,19 +321,23 @@ func (sc *E2EContext) iFillAndSubmitTheMockxagoiframe() error {
 			continue
 		}
 
+		var fillErr error
 		switch name {
 		case "first_name":
-			_ = input.Fill("Thabo")
+			fillErr = input.Fill("Thabo")
 		case "last_name":
-			_ = input.Fill("Mbeki")
+			fillErr = input.Fill("Mbeki")
 		case "dob":
-			_ = input.Fill("1990-01-15")
+			fillErr = input.Fill("1990-01-15")
 		case "address":
-			_ = input.Fill("42 Nelson Mandela Drive")
+			fillErr = input.Fill("42 Nelson Mandela Drive")
 		case "city":
-			_ = input.Fill("Johannesburg")
+			fillErr = input.Fill("Johannesburg")
 		case "country":
-			_ = input.Fill("South Africa")
+			fillErr = input.Fill("South Africa")
+		}
+		if fillErr != nil {
+			return fmt.Errorf("failed to fill field %q: %w", name, fillErr)
 		}
 	}
 
@@ -353,7 +359,9 @@ func (sc *E2EContext) iFillAndSubmitTheMockxagoiframe() error {
 
 		if strings.Contains(strings.ToLower(buttonText), "submit") {
 			debugPrintf("   ✓ Clicking submit button: %s\n", buttonText)
-			_ = button.Click()
+			if err := button.Click(); err != nil {
+				return fmt.Errorf("failed to click submit button: %w", err)
+			}
 			buttonClicked = true
 			time.Sleep(500 * time.Millisecond)
 			break

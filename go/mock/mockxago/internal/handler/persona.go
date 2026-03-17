@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -11,6 +12,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/fynbos/mock/mockxago/internal/logger"
 	"gitlab.com/fynbos/mock/mockxago/internal/models"
+	"gitlab.com/fynbos/mock/mockxago/internal/storage"
 	"gitlab.com/fynbos/mock/mockxago/web"
 )
 
@@ -223,6 +225,11 @@ func (h *Handler) PersonaInquirySubmit(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	subAccount, err := h.store.GetSubAccountByWalletID(ctx, inquiryID)
 	if err != nil {
+		if !errors.Is(err, storage.ErrSubAccountNotFound) {
+			logger.Errorf("Failed to look up sub-account for inquiry %s: %v", inquiryID, err)
+			h.sendError(w, http.StatusInternalServerError, "storage_error", "Failed to retrieve account")
+			return
+		}
 		subAccount = &models.SubAccount{
 			ID:        generateID(),
 			WalletID:  inquiryID,

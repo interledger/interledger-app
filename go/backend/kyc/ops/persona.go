@@ -14,7 +14,7 @@ import (
 )
 
 func GetPersonaInquiry(ctx context.Context, b Backends, cl persona.Client, walletID, idempotencyKey string) (*kyc.PersonaInquiry, error) {
-	// Check current KYC status fro the user.
+	// Check current KYC status for the user.
 	kycStatus, err := GetKYCStatus(ctx, b, walletID)
 	if err != nil {
 		return nil, err

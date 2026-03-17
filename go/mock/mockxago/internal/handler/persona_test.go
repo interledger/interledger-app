@@ -478,3 +478,15 @@ func TestPersonaInquirySubmit_MissingInquiryID(t *testing.T) {
 
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
+
+func TestPersonaSDK_ServesScript(t *testing.T) {
+	h := setupTestHandler(t)
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/persona-sdk.js", nil)
+	w := httptest.NewRecorder()
+	h.PersonaSDK(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, "application/javascript; charset=utf-8", w.Header().Get("Content-Type"))
+	assert.Greater(t, w.Body.Len(), 0)
+}
