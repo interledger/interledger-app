@@ -19,17 +19,19 @@ type Config struct {
 	PaywiserEuroVaultID    string
 	SendingUserID          string
 	SendingUserAddress     string
-	WebhookSecret          string
-	FallbackWebhookURL     string
-	OnOffRampClientID      string
-	OnboardingClientID     string
-	ExchangeClientID       string
-	APIBaseURL             string
-	OnboardingBaseURL      string
-	OnOffRampBaseURL       string
-	EUROpsAccount          string
-	EUROpsLedgerID         uint32
-	OrganizationID         string
+	IntermediaryUserID      string
+	IntermediaryUserAddress string
+	WebhookSecret           string
+	FallbackWebhookURL      string
+	OnOffRampClientID       string
+	OnboardingClientID      string
+	ExchangeClientID        string
+	APIBaseURL              string
+	OnboardingBaseURL       string
+	OnOffRampBaseURL        string
+	EUROpsAccount           string
+	EUROpsLedgerID          uint32
+	OrganizationID          string
 }
 
 const (
@@ -100,7 +102,7 @@ type CreateTransferArgs struct {
 	// When set, these override the linked account lookup for the respective side.
 	SendingAddress   string
 	ReceivingAddress string
-	Message string
+	Message          string
 }
 
 type User = external.User

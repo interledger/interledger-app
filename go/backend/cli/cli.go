@@ -89,6 +89,8 @@ type StartArgs struct {
 	GatehubPaywiserEuroVaultID    string
 	GatehubSendingUserID          string
 	GatehubSendingUserAddress     string
+	GatehubIntermediaryUserID     string
+	GatehubIntermediaryUserAddress string
 	GatehubWebhookSecret          string
 	GatehubFallbackWebhookURL     string
 	GatehubOnOffRampClientID      string
@@ -299,6 +301,15 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, errors.New("GATEHUB_SENDING_USER_ADDRESS is required in production")
 	}
 
+	gatehubIntermediaryUserID := os.Getenv("GATEHUB_INTERMEDIARY_USER_ID")
+	gatehubIntermediaryUserAddress := os.Getenv("GATEHUB_INTERMEDIARY_USER_ADDRESS")
+	if gatehubIntermediaryUserID == "" && env.IsProd() {
+		return nil, errors.New("GATEHUB_INTERMEDIARY_USER_ID is required in production")
+	}
+	if gatehubIntermediaryUserAddress == "" && env.IsProd() {
+		return nil, errors.New("GATEHUB_INTERMEDIARY_USER_ADDRESS is required in production")
+	}
+
 	gatehubWebhookSecret := os.Getenv("GATEHUB_WEBHOOK_SECRET")
 	// Webhook secret is optional but log if missing
 
@@ -462,6 +473,8 @@ func ParseStartArgs() (*StartArgs, error) {
 		GatehubPaywiserEuroVaultID:    gatehubPaywiserEuroVaultID,
 		GatehubSendingUserID:          gatehubSendingUserID,
 		GatehubSendingUserAddress:     gatehubSendingUserAddress,
+		GatehubIntermediaryUserID:     gatehubIntermediaryUserID,
+		GatehubIntermediaryUserAddress: gatehubIntermediaryUserAddress,
 		GatehubWebhookSecret:          gatehubWebhookSecret,
 		GatehubFallbackWebhookURL:     gatehubFallbackWebhookURL,
 		GatehubOnOffRampClientID:      gatehubOnOffRampClientID,

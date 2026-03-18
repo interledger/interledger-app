@@ -205,9 +205,10 @@ func lookupWalletIDFromActivity(ctx context.Context, b ActivityBackends, payment
 // Creates a GateHub hosted transfer from the system intermediary
 // account to the user's GateHub wallet. Returns the GateHub transaction ID.
 func (a *Activity) TransferFromIntermediaryToUser(ctx context.Context, info GatehubLinkedAccountInfo, amt amount) (string, error) {
-	if a.gatehubCfg.SendingUserAddress == "" {
+	intermediaryAddress := a.gatehubCfg.IntermediaryUserAddress
+	if intermediaryAddress == "" {
 		return "", temporal.NewNonRetryableApplicationError("intermediary gatehub credentials not configured", "ErrInternal",
-			fmt.Errorf("missing SendingUserAddress in gatehub config"))
+			fmt.Errorf("missing IntermediaryUserAddress in gatehub config"))
 	}
 
 	parsedAmt, err := parseAmountValue(amt.Value)
@@ -224,7 +225,7 @@ func (a *Activity) TransferFromIntermediaryToUser(ctx context.Context, info Gate
 	currencyAmt := currency.FromUInt64(parsedAmt, cc)
 
 	tx, err := a.b.Gatehub().CreateTransfer(ctx, gatehub.CreateTransferArgs{
-		SendingAddress:   a.gatehubCfg.SendingUserAddress,
+		SendingAddress:   intermediaryAddress,
 		ReceivingAddress: info.ProviderID,
 		Amount:           currencyAmt,
 		Message:          fmt.Sprintf("Rafiki incoming payment to %s", wallet.Name),
@@ -239,9 +240,10 @@ func (a *Activity) TransferFromIntermediaryToUser(ctx context.Context, info Gate
 // Creates a GateHub hosted transfer from the user's
 // GateHub wallet to the system intermediary account. Returns the GateHub transaction ID.
 func (a *Activity) TransferFromUserToIntermediary(ctx context.Context, walletAddressID string, amt amount) (string, error) {
-	if a.gatehubCfg.SendingUserAddress == "" {
+	intermediaryAddress := a.gatehubCfg.IntermediaryUserAddress
+	if intermediaryAddress == "" {
 		return "", temporal.NewNonRetryableApplicationError("intermediary gatehub credentials not configured", "ErrInternal",
-			fmt.Errorf("missing SendingUserAddress in gatehub config"))
+			fmt.Errorf("missing IntermediaryUserAddress in gatehub config"))
 	}
 
 	la, _, err := a.getGatehubLinkedAccount(ctx, walletAddressID)
@@ -259,7 +261,7 @@ func (a *Activity) TransferFromUserToIntermediary(ctx context.Context, walletAdd
 
 	tx, err := a.b.Gatehub().CreateTransfer(ctx, gatehub.CreateTransferArgs{
 		SendingLinkedAccountID: la.ID,
-		ReceivingAddress:       a.gatehubCfg.SendingUserAddress,
+		ReceivingAddress:       intermediaryAddress,
 		Amount:                 currencyAmt,
 		Message:                "Rafiki outgoing payment",
 	})
