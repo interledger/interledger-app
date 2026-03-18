@@ -136,15 +136,15 @@ function PersonaPage() {
         inquiryId: personaWidget?.id,
         sessionToken: personaWidget?.sessionToken,
         onReady: () => setReady(true),
-        onComplete: ({ inquiryId, status, fields }) => {
+        onComplete: () => {
           setReady(false)
           submit(null, {
             action: '/personal-details',
             method: 'post'
           })
         },
-        onCancel: ({ inquiryId, sessionToken }) => console.log('onCancel'),
-        onError: (error) => console.log(error)
+        onCancel: () => console.log('onCancel'),
+        onError: (error: unknown) => console.log(error)
       })
     }
   }, [personaWidget, scriptStatus, submit])
