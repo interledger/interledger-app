@@ -1,4 +1,4 @@
-import { unstable_createRemixStub as createRemixStub } from '@remix-run/testing'
+import { createRoutesStub } from 'react-router';
 import type { Meta, StoryFn } from '@storybook/react'
 import { Button } from '~/components'
 
@@ -8,7 +8,7 @@ const meta: Meta<typeof Button> = {
   argTypes: { onClick: { action: 'clicked' } },
   decorators: [
     (Story) => {
-      const RemixStub = createRemixStub([
+      const RemixStub = createRoutesStub([
         {
           path: '/',
           // @ts-ignore TODO Remove once fixed

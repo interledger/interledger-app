@@ -1,11 +1,7 @@
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
-import { Form, useLoaderData } from '@remix-run/react'
-import { route } from 'routes-gen'
+import type { Route } from './+types/logout'
+import { data, redirect } from 'react-router';
+import { Form, useLoaderData } from 'react-router';
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts } from '~/components'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
@@ -14,7 +10,7 @@ import { KRATOS_URL, handleFlowError } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
 import { destroySession, getSession } from '~/session.server'
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const cookie = String(request.headers.get('cookie'))
   let flow
   const flowRes = await fetch(`${KRATOS_URL}/self-service/logout/browser`, {
@@ -32,20 +28,20 @@ export const handle: ApplicationProps = {
   layout: Layouts.Focus,
   scaffold: {
     header: {
-      back: route('/'),
+      back: href('/'),
       title: 'Log out'
     }
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Log out'
   }
 ])
 
 export default function Page() {
-  const { logoutToken, csrfToken } = useLoaderData<typeof loader>()
+  const { logoutToken, csrfToken } = useLoaderData()
 
   return (
     <>
@@ -68,7 +64,7 @@ export default function Page() {
   )
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const cookie = request.headers.get('cookie') as string
   const form = await request.formData()
   const token = form.get('logoutToken')
@@ -84,7 +80,7 @@ export async function action({ request }: ActionFunctionArgs) {
   })
 
   if (res.status >= 400) {
-    return json(
+    return data(
       { errors: { form: 'Something went wrong trying to logout.' } },
       { status: 400 }
     )
@@ -97,7 +93,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const headers = trimHeaders(res.headers, ['set-cookie'])
   headers.append('Set-Cookie', sessionHeaders)
 
-  return redirect(route('/'), {
+  return redirect(href('/'), {
     headers: headers
   })
 }

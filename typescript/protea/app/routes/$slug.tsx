@@ -1,15 +1,15 @@
-import { json } from '@remix-run/node'
+import type { Route } from './+types/$slug'
+import { data } from 'react-router';
 import type { ApplicationProps } from '~/components'
 import { Layouts } from '~/components'
 
-import type { LoaderFunctionArgs } from '@remix-run/node'
-import type { UIMatch } from '@remix-run/react'
-import { useLoaderData } from '@remix-run/react'
+import type { UIMatch } from 'react-router';
+import { useLoaderData } from 'react-router';
 import { MarketingPageWithSections } from '~/components/Content'
 import { getCurrentMarketingPage } from '~/data/content.server'
 import type { SectionRecord } from '~/generated/dato-cms-graphql'
 
-export async function loader({ params }: LoaderFunctionArgs) {
+export async function loader({ params }: Route.LoaderArgs) {
   const { marketingPage, footer } = await getCurrentMarketingPage({
     filter: {
       slug: { eq: params.slug }
@@ -17,9 +17,9 @@ export async function loader({ params }: LoaderFunctionArgs) {
   })
 
   if (marketingPage === null)
-    throw json(null, { status: 404, statusText: 'Not Found' })
+    throw data(null, { status: 404, statusText: 'Not Found' })
 
-  return json({
+  return data({
     footer,
     marketingPage
   })
@@ -29,7 +29,7 @@ export const handle: ApplicationProps = {
   layout: Layouts.Marketing,
   scaffold: {
     header: {},
-    footer: (match: UIMatch<typeof loader>) => match.data.footer
+    footer: (match: UIMatch<Route.ComponentProps['loaderData']>) => match.loaderData?.footer
   }
 }
 

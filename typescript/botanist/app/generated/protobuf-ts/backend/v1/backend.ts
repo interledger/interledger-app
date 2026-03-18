@@ -390,15 +390,6 @@ export interface PtiTokenResponse {
     tokenType: string;
 }
 /**
- * @generated from protobuf message backend.v1.CreateChimoneyDepositRequest
- */
-export interface CreateChimoneyDepositRequest {
-    /**
-     * @generated from protobuf field: string issueId = 1;
-     */
-    issueId: string;
-}
-/**
  * @generated from protobuf message backend.v1.GetChimoneyDepositLinkResponse
  */
 export interface GetChimoneyDepositLinkResponse {
@@ -1257,6 +1248,10 @@ export interface Payment {
      * @generated from protobuf field: string receiverAccount = 16;
      */
     receiverAccount: string; // Linked account ID. Only populated on withdrawals
+    /**
+     * @generated from protobuf field: string receivedNetAmount = 17;
+     */
+    receivedNetAmount: string; // withdrawal net amount received after fees
 }
 /**
  * @generated from protobuf message backend.v1.CreatePaymentRequest
@@ -4253,53 +4248,6 @@ class PtiTokenResponse$Type extends MessageType<PtiTokenResponse> {
  */
 export const PtiTokenResponse = new PtiTokenResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class CreateChimoneyDepositRequest$Type extends MessageType<CreateChimoneyDepositRequest> {
-    constructor() {
-        super("backend.v1.CreateChimoneyDepositRequest", [
-            { no: 1, name: "issueId", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
-        ]);
-    }
-    create(value?: PartialMessage<CreateChimoneyDepositRequest>): CreateChimoneyDepositRequest {
-        const message = { issueId: "" };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<CreateChimoneyDepositRequest>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CreateChimoneyDepositRequest): CreateChimoneyDepositRequest {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string issueId */ 1:
-                    message.issueId = reader.string();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: CreateChimoneyDepositRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string issueId = 1; */
-        if (message.issueId !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.issueId);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message backend.v1.CreateChimoneyDepositRequest
- */
-export const CreateChimoneyDepositRequest = new CreateChimoneyDepositRequest$Type();
-// @generated message type with reflection information, may provide speed optimized methods
 class GetChimoneyDepositLinkResponse$Type extends MessageType<GetChimoneyDepositLinkResponse> {
     constructor() {
         super("backend.v1.GetChimoneyDepositLinkResponse", [
@@ -7164,11 +7112,12 @@ class Payment$Type extends MessageType<Payment> {
             { no: 13, name: "totalSendAmount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 14, name: "receiverLinkedAccountCountryCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 15, name: "formattedFees", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 16, name: "receiverAccount", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 16, name: "receiverAccount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 17, name: "receivedNetAmount", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Payment>): Payment {
-        const message = { id: "", publicID: "", state: 0, receiverWalletUrl: "", receiverIdentity: "", receiverIdentityType: 0, senderAccount: "", note: "", requiredActions: [], fxRate: "", totalSendAmount: "", receiverLinkedAccountCountryCode: "", formattedFees: "", receiverAccount: "" };
+        const message = { id: "", publicID: "", state: 0, receiverWalletUrl: "", receiverIdentity: "", receiverIdentityType: 0, senderAccount: "", note: "", requiredActions: [], fxRate: "", totalSendAmount: "", receiverLinkedAccountCountryCode: "", formattedFees: "", receiverAccount: "", receivedNetAmount: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Payment>(this, message, value);
@@ -7230,6 +7179,9 @@ class Payment$Type extends MessageType<Payment> {
                     break;
                 case /* string receiverAccount */ 16:
                     message.receiverAccount = reader.string();
+                    break;
+                case /* string receivedNetAmount */ 17:
+                    message.receivedNetAmount = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -7295,6 +7247,9 @@ class Payment$Type extends MessageType<Payment> {
         /* string receiverAccount = 16; */
         if (message.receiverAccount !== "")
             writer.tag(16, WireType.LengthDelimited).string(message.receiverAccount);
+        /* string receivedNetAmount = 17; */
+        if (message.receivedNetAmount !== "")
+            writer.tag(17, WireType.LengthDelimited).string(message.receivedNetAmount);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -12844,7 +12799,6 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "GetChimoneyInterlocEmail", options: {}, I: Empty, O: ChimoneyInterlocEmail },
     { name: "CreateChimoneyWallet", options: {}, I: Empty, O: Empty },
     { name: "GetChimoneyDepositLink", options: {}, I: Amount, O: GetChimoneyDepositLinkResponse },
-    { name: "CreateChimoneyDeposit", options: {}, I: CreateChimoneyDepositRequest, O: Empty },
     { name: "ListCards", options: {}, I: Empty, O: ListCardsResponse },
     { name: "GetCardOrderOptions", options: {}, I: Empty, O: GetCardOrderOptionsResponse },
     { name: "OrderCard", options: {}, I: OrderCardRequest, O: Empty },

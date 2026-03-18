@@ -1,4 +1,4 @@
-import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
+import type { ActionFunctionArgs, LoaderFunctionArgs } from 'react-router';
 import logger, { addRequestId, addCorrelationId } from './logger.server'
 import {
   initializeRequestContext,

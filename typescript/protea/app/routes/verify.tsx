@@ -1,11 +1,7 @@
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
-import { useFetcher, useLoaderData } from '@remix-run/react'
-import { route } from 'routes-gen'
+import type { Route } from './+types/verify'
+import { data, redirect } from 'react-router';
+import { useFetcher, useLoaderData } from 'react-router';
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   Button,
@@ -32,7 +28,7 @@ type ActionData = {
   success: boolean
 }
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
   const cookie = String(request.headers.get('cookie'))
@@ -42,7 +38,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   
   // We currently only allow one email per user.
   if (userSession.identity?.verifiable_addresses?.[0]?.verified) {
-    return redirect(route('/'))
+    return redirect(href('/'))
   }
 
   // Ensure any redirects are thrown
@@ -74,7 +70,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       headers: trimHeaders(flowRes.headers, ['set-cookie'])
     })
   }
-  return json({
+  return data({
     flow,
     email: userSession.identity?.verifiable_addresses?.[0]?.value,
     csrfToken: getCsrfTokenFromFlow(flow)
@@ -90,14 +86,14 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Verify your email'
   }
 ])
 
 export default function Page() {
-  const { flow, email, csrfToken } = useLoaderData<typeof loader>()
+  const { flow, email, csrfToken } = useLoaderData()
   const fetcher = useFetcher<ActionData>()
 
   const withDebounce = useDebounceAction(RESEND_DELAY)
@@ -106,8 +102,8 @@ export default function Page() {
   const handleResend = () => {
     withDebounce(() => {
       const formData = new FormData()
-      formData.append('csrf_token', csrfToken)
-      formData.append('email', email)
+      formData.append('csrf_token', csrfToken ?? '')
+      formData.append('email', email ?? '')
 
       fetcher.submit(formData, {
         method: 'post',
@@ -144,7 +140,7 @@ export default function Page() {
           : 'Resend verification'}
       </Button>
 
-      <OutlineButtonRouter to={route('/logout')} className='mt-4'>
+      <OutlineButtonRouter to={href('/logout')} className='mt-4'>
         Log out
       </OutlineButtonRouter>
 
@@ -170,7 +166,7 @@ export default function Page() {
 
 export async function action({
   request
-}: ActionFunctionArgs): Promise<ReturnType<typeof json<ActionData>>> {
+}: Route.ActionArgs): Promise<ReturnType<typeof data<ActionData>>> {
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
 
@@ -181,7 +177,7 @@ export async function action({
   const key = getKey(RateLimitKeys.VerifyEmail, email)
   const rateError = await rateLimit(key)
   if (rateError) {
-    return json<ActionData>(
+    return data<ActionData>(
       {
         success: false
       },
@@ -210,5 +206,5 @@ export async function action({
     throw new Error('Could not send verification email')
   }
 
-  return json<ActionData>({ success: true }, { status: 200 })
+  return data<ActionData>({ success: true }, { status: 200 })
 }

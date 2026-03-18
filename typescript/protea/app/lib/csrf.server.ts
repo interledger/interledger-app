@@ -1,6 +1,5 @@
-import type { TypedResponse } from '@remix-run/node'
-import { json } from '@remix-run/node'
-import { captureMessage } from '@sentry/remix'
+import { data as rrData, UNSAFE_DataWithResponseInit as DataWithResponseInit } from 'react-router';
+import { captureMessage } from '@sentry/react-router'
 import { randomUUID } from 'crypto'
 import { commitSession, getSession } from '~/session.server'
 
@@ -38,17 +37,16 @@ type JsonWithCSRFFunction = <Data>(
   data: Data,
   init?: number | ResponseInit
 ) => Promise<
-  TypedResponse<
+  DataWithResponseInit<
     Data &
-      object & {
-        // Typescript is a weird beast
-        csrfToken: `${string}-${string}-${string}-${string}-${string}`
-      }
+    object & {
+      csrfToken: `${string}-${string}-${string}-${string}-${string}`
+    }
   >
 >
 
 /**
- * This is an extension of the json function from Remix.
+ * This is an extension of the data function from Remix.
  * This function will add a CSRF token to the response data.
  * And ensure that a new CSRF token is always set in the session storage.
  * @param request
@@ -68,7 +66,7 @@ export const jsonWithCSRF: JsonWithCSRFFunction = async (
   )
 
   if (typeof data !== 'object') {
-    throw json(
+    throw rrData(
       {},
       {
         status: 400,
@@ -77,7 +75,7 @@ export const jsonWithCSRF: JsonWithCSRFFunction = async (
     )
   }
 
-  return json(
+  return rrData(
     { ...data, csrfToken },
     {
       ...responseInit,
@@ -121,7 +119,7 @@ export async function validateCSRFToken(
         session: session.id
       }
     })
-    // throw json(
+    // throw rrData(
     //   {
     //     action: {
     //       route: url.pathname,
