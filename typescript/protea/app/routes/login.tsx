@@ -13,18 +13,17 @@ import {
   Router,
   TextField
 } from '~/components'
-import { error } from '~/lib/error.server'
 import { trimHeaders } from '~/lib/headers.server'
 import {
   KRATOS_URL,
   getCsrfTokenFromFlow,
   handleFlowError,
   isSessionAlreadyExitsMessage,
-  kratosErrorMapping,
   requireNoUserSession
 } from '~/lib/kratos.server'
+import { fromKratosResponse } from '~/lib/error-mapper.server'
 import { mergeMeta } from '~/lib/meta'
-import { flashSnackbar } from '~/lib/snackbar.server';
+import { redirectWithSnackbar } from '~/lib/snackbar.server';
 import { safeReturnTo } from '~/lib/url.server'
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -160,12 +159,6 @@ export async function action({ request }: Route.ActionArgs) {
   const searchParams = new URLSearchParams()
   searchParams.set('returnTo', returnTo)
 
-  const fieldErrors = {
-    form: '',
-    email: '',
-    password: ''
-  }
-
   const res = await fetch(`${KRATOS_URL}/self-service/login?flow=${flowId}`, {
     method: 'POST',
     body: JSON.stringify({
@@ -182,7 +175,7 @@ export async function action({ request }: Route.ActionArgs) {
   })
 
   if (res.status >= 400 && res.status !== 422) {
-    const errors = await kratosErrorMapping(res, fieldErrors)
+    const bffError = await fromKratosResponse(res)
 
     // In case the user clicks a link from the email or from another website,
     // our cookie will not be sent (we have SameSite=Strict). Therefore, the
@@ -190,26 +183,21 @@ export async function action({ request }: Route.ActionArgs) {
     // and if by any chance they already have a valid session, Kratos will throw
     // an error (no error ID but ...) similar to the one for the TOTP challenge
     // when someone double submits.
-    if (isSessionAlreadyExitsMessage(errors.form)) {
+    if (isSessionAlreadyExitsMessage(bffError.message)) {
       return redirect(returnTo || '/')
     }
 
-    // Redirect instead of  returning error codes because we need fresh 
+    // Redirect instead of returning error codes because we need fresh
     // flow and csrf token, otherwise we have stale data in the loader data
     // See: https://reactrouter.com/how-to/form-validation#2-defining-the-action
     const redirectParams = new URLSearchParams(searchParams)
     redirectParams.set('flow', String(flowId))
-    const snackbarCookie = await flashSnackbar(request, {
-      message: errors.form || "An error occured, please retry.",
-      icon: 'close',
-      action: 'Contact support'
-    })
-    const redirectHeaders = new Headers()
-    redirectHeaders.append('Set-Cookie', snackbarCookie)
 
-    return redirect(`/login?${redirectParams.toString()}`, {
-      headers: redirectHeaders
-    })
+    return redirectWithSnackbar(
+      request,
+      `/login?${redirectParams.toString()}`,
+      { message: bffError.message, icon: 'close', action: 'Contact support' }
+    )
   }
 
   // Remove all headers besides set-cookie

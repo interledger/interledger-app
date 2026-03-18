@@ -8,9 +8,9 @@ import {
   KRATOS_URL,
   getCsrfTokenFromFlow,
   handleFlowError,
-  kratosErrorMapping,
   requireNoUserSession
 } from '~/lib/kratos.server'
+import { fromKratosResponse, sendBffError } from '~/lib/error-mapper.server'
 import { mergeMeta } from '~/lib/meta'
 import { RateLimitKeys, getKey, rateLimit } from '~/lib/rateLimit.server'
 
@@ -165,8 +165,8 @@ export async function action({ request }: Route.ActionArgs) {
   )
 
   if (res.status >= 400) {
-    const errs = await kratosErrorMapping(res, fieldErrors)
-    return error(request, { errors: errs })
+    const bffError = await fromKratosResponse(res)
+    return sendBffError(bffError)
   }
 
   return data({ success: true })

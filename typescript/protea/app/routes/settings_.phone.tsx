@@ -20,15 +20,15 @@ import {
 } from '~/components'
 import { Label } from '~/components/Label'
 import { jsonWithCSRF } from '~/lib/csrf.server'
-import { error, isConnectError } from '~/lib/error.server'
+import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import {
   KRATOS_URL,
   getCsrfTokenFromFlow,
   getUserSession,
-  handleFlowError,
-  kratosErrorMapping
+  handleFlowError
 } from '~/lib/kratos.server'
+import { fromKratosData, sendBffError } from '~/lib/error-mapper.server'
 import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import type { action as sendOtpAction } from '~/routes/api_.sendOtp'
@@ -273,8 +273,8 @@ export async function action({ request }: Route.ActionArgs) {
 
   if (res.status > 400) handleFlowError(data, 'settings/phone')
   if (res.status == 400) {
-    const errs = await kratosErrorMapping(res, errors)
-    return error(request, { errors: errs })
+    const bffError = fromKratosData(data, res.status)
+    return sendBffError(bffError)
   }
 
   return redirectWithSnackbar(request, href('/settings/profile-contact'), {

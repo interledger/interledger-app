@@ -1,18 +1,17 @@
 import type { Route } from './+types/login_.challenge'
-import { data, redirect } from 'react-router';
+import { data, data as rrData, redirect } from 'react-router';
 import { Form, useActionData, useLoaderData } from 'react-router';
 import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts, TextField } from '~/components'
-import { error } from '~/lib/error.server'
 import { trimHeaders } from '~/lib/headers.server'
 import {
   KRATOS_URL,
   getCsrfTokenFromFlow,
   getUserSession,
-  handleFlowError,
-  kratosErrorMapping
+  handleFlowError
 } from '~/lib/kratos.server'
+import { fromKratosData } from '~/lib/error-mapper.server'
 import { mergeMeta } from '~/lib/meta'
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -130,12 +129,6 @@ export async function action({ request }: Route.ActionArgs) {
   const email = form.get('email') as string
   const password = form.get('password') as string
 
-  const fieldErrors = {
-    form: '',
-    email: '',
-    password: ''
-  }
-
   const res = await fetch(`${KRATOS_URL}/self-service/login?flow=${flowId}`, {
     method: 'POST',
     body: JSON.stringify({
@@ -154,8 +147,8 @@ export async function action({ request }: Route.ActionArgs) {
     const data = await res.json()
     // 4000001 is an error if the user already has a privileged session.
     if (data.ui.messages[0].id !== 4000001) {
-      const errs = await kratosErrorMapping(res, fieldErrors)
-      return error(request, { errors: errs })
+      const bffError = fromKratosData(data, res.status)
+      return rrData(bffError, { status: bffError.status })
     }
   }
 

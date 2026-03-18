@@ -4,14 +4,13 @@ import { Form, useActionData, useLoaderData } from 'react-router';
 import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts, TextField } from '~/components'
-import { error } from '~/lib/error.server'
 import { trimHeaders } from '~/lib/headers.server'
 import {
   KRATOS_URL,
   getCsrfTokenFromFlow,
-  handleFlowError,
-  kratosErrorMapping
+  handleFlowError
 } from '~/lib/kratos.server'
+import { fromKratosData, sendBffError } from '~/lib/error-mapper.server'
 import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 
@@ -146,8 +145,8 @@ export async function action({ request }: Route.ActionArgs) {
 
   if (res.status > 400) handleFlowError(data, 'settings/password')
   if (res.status == 400) {
-    const errs = await kratosErrorMapping(res, fieldErrors)
-    return error(request, { errors: errs })
+    const bffError = fromKratosData(data, res.status)
+    return sendBffError(bffError)
   }
 
   return redirectWithSnackbar(request, href('/settings'), {

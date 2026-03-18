@@ -11,9 +11,9 @@ import {
   KRATOS_URL,
   getCsrfTokenFromFlow,
   handleFlowError,
-  hasUserSession,
-  kratosErrorMapping
+  hasUserSession
 } from '~/lib/kratos.server'
+import { fromKratosResponse, sendBffError } from '~/lib/error-mapper.server'
 import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 
@@ -190,8 +190,8 @@ export async function action({ request }: Route.ActionArgs) {
     handleFlowError(data, 'recovery/password')
   }
   else if (res.status == 400) {
-    const errs = await kratosErrorMapping(res, fieldErrors)
-    return error(request, { errors: errs })
+    const bffError = await fromKratosResponse(res)
+    return sendBffError(bffError)
   }
 
   return redirectWithSnackbar(

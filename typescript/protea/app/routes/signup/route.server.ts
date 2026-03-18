@@ -12,9 +12,9 @@ import {
   KRATOS_URL,
   getCsrfTokenFromFlow,
   handleFlowError,
-  kratosErrorMapping,
   requireNoUserSession
 } from '~/lib/kratos.server'
+import { fromKratosResponse, sendBffError } from '~/lib/error-mapper.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { isEUCountry } from '~/routes/signup/About'
 import { href } from 'react-router'
@@ -300,12 +300,12 @@ export async function passwordAction({ request }: ActionFunctionArgs) {
     } catch (e) {
       logger.error({ flow: 'signup' }, '[SIGNUP] Could not parse Kratos error response as JSON')
     }
-    const errs = await kratosErrorMapping(response, errors)
-    if ((errs as any)[KratosErrorTraits.PHONE]) {
-      errors.phone = KratosErrorMessages[KratosErrorTraits.PHONE]
-      return error(request, { errors })
+    const bffError = await fromKratosResponse(response)
+    if (bffError.formErrors?.[KratosErrorTraits.PHONE]) {
+      delete bffError.formErrors[KratosErrorTraits.PHONE]
+      bffError.formErrors.phone = KratosErrorMessages[KratosErrorTraits.PHONE]
     }
-    return error(request, { errors: errs })
+    return sendBffError(bffError)
   }
 
   const data = await response.json()
