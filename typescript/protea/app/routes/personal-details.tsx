@@ -176,15 +176,15 @@ function PersonaPage() {
         inquiryId: personaWidget?.id,
         sessionToken: personaWidget?.sessionToken,
         onReady: () => setReady(true),
-        onComplete: ({ inquiryId, status, fields }: { inquiryId: string; status: string; fields: Record<string, unknown> }) => {
+        onComplete: () => {
           setReady(false)
           submit(null, {
             action: '/personal-details',
             method: 'post'
           })
         },
-        onCancel: ({ inquiryId, sessionToken }: { inquiryId: string; sessionToken: string }) => console.log('onCancel'),
-        onError: (error: Error) => console.log(error)
+        onCancel: () => console.log('onCancel'),
+        onError: (error: unknown) => console.log(error)
       })
     }
   }, [mockxagoEndpoint, personaWidget, scriptStatus, submit])
