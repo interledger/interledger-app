@@ -285,6 +285,17 @@ func (sc *E2EContext) iSelectThePaymentCurrency(currency string) error {
 
 	// Prefer headless-ui listbox test selectors
 	listboxBtn := sc.page.Locator("[data-testid='pay-currency-select']")
+
+	// Wait for the button to be visible and stable — filling the amount field
+	// triggers a debounced network request that causes React re-renders, which
+	// can make the button temporarily unstable for Playwright's actionability
+	// checks.
+	_ = listboxBtn.First().WaitFor(playwright.LocatorWaitForOptions{
+		State:   playwright.WaitForSelectorStateVisible,
+		Timeout: playwright.Float(10000),
+	})
+	time.Sleep(500 * time.Millisecond)
+
 	if count, _ := listboxBtn.Count(); count > 0 {
 		if err := listboxBtn.First().Click(); err != nil {
 			return fmt.Errorf("failed to open currency selector: %w", err)
