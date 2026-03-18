@@ -1,7 +1,7 @@
 services:
   # 1. Rafiki Auth
   rafiki_auth:
-    image: ghcr.io/interledger/rafiki-auth:v1.2.1-beta
+    image: ghcr.io/interledger/rafiki-auth:v2.3.0-beta
     profiles:
       - services
     restart: always
@@ -22,6 +22,10 @@ services:
       - LOG_LEVEL=info
       - NODE_ENV=production
       - NODE_TLS_REJECT_UNAUTHORIZED=0
+
+      # Multi-tenancy
+      - OPERATOR_TENANT_ID=my-tenant-id
+      - ADMIN_API_SECRET=my-super-secret-admin-api-key
 
       # Database configuration
       - AUTH_DATABASE_URL=postgres://postgres:postgres@postgres:5432/rafiki_auth?sslmode=disable
@@ -62,7 +66,7 @@ services:
 
   # # 2. Rafiki Service
   rafiki_backend:
-    image: ghcr.io/interledger/rafiki-backend:v1.2.1-beta
+    image: ghcr.io/interledger/rafiki-backend:v2.3.0-beta
     profiles:
       - services
     restart: always
@@ -89,6 +93,10 @@ services:
       - NODE_ENV=production
       - NODE_TLS_REJECT_UNAUTHORIZED=0
 
+      # Multi-tenancy
+      - OPERATOR_TENANT_ID=my-tenant-id
+      - ADMIN_API_SECRET=my-super-secret-admin-api-key
+
       # Database configuration
       - DATABASE_URL=postgres://postgres:postgres@postgres:5432/rafiki_backend?sslmode=disable
 
@@ -106,6 +114,7 @@ services:
 
       - AUTH_SERVER_GRANT_URL=https://auth.local.ilp.link
       - AUTH_SERVER_INTROSPECTION_URL=http://rafiki_auth:3007
+      - AUTH_SERVICE_API_URL=http://rafiki_auth:3011
 
       - EXCHANGE_RATES_LIFETIME=15000
 
@@ -149,7 +158,7 @@ services:
 
   # # 3. Rafiki Frontend
   rafiki_frontend:
-    image: ghcr.io/interledger/rafiki-frontend:v1.2.1-beta
+    image: ghcr.io/interledger/rafiki-frontend:v2.3.0-beta
     profiles:
       - services
     restart: always

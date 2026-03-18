@@ -3,6 +3,7 @@ package external
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 	"strconv"
 	"sync"
@@ -50,13 +51,13 @@ func New() Client {
 	if os.Getenv("RAFIKI_BACKEND_GRAPHQL_URL") != "" {
 		backendGraphql = os.Getenv("RAFIKI_BACKEND_GRAPHQL_URL")
 	}
-	cl := graphql.NewClient(backendGraphql, otelhttp.DefaultClient) // TODO: set auth headers maybe
+	cl := graphql.NewClient(backendGraphql, newSignedAdminHTTPClient())
 
 	authGraphql := "http://localhost:3003/graphql"
 	if os.Getenv("RAFIKI_AUTH_GRAPHQL_URL") != "" {
 		authGraphql = os.Getenv("RAFIKI_AUTH_GRAPHQL_URL")
 	}
-	authCl := graphql.NewClient(authGraphql, otelhttp.DefaultClient)
+	authCl := graphql.NewClient(authGraphql, newSignedAdminHTTPClient())
 
 	return &client{backendClient: cl, authClient: authCl, a: &assets{data: nil}}
 }
@@ -96,7 +97,7 @@ func (c client) CreatePaymentPointer(ctx context.Context, w wallets.Wallet) (str
 	log.Info("Creating payment pointer in rafiki", zap.String("url", w.AddressString()))
 	pp, err := CreateWalletAddress(ctx, c.backendClient, CreateWalletAddressInput{
 		AssetId:        assetID,
-		Url:            w.AddressString(),
+		Address:        w.AddressString(),
 		PublicName:     w.Name,
 		IdempotencyKey: w.ID,
 	})
@@ -202,6 +203,19 @@ func (c client) GetIncomingPayment(ctx context.Context, id string) (*GetIncoming
 	}
 
 	return &r.IncomingPayment, nil
+}
+
+func newSignedAdminHTTPClient() *http.Client {
+	base := otelhttp.DefaultClient
+	baseTransport := base.Transport
+	if baseTransport == nil {
+		baseTransport = http.DefaultTransport
+	}
+
+	return &http.Client{
+		Transport: &adminSigningRoundTripper{base: baseTransport},
+		Timeout:   base.Timeout,
+	}
 }
 
 func (a *assets) Get(ctx context.Context, backendClient graphql.Client, assetCode string) (string, error) {

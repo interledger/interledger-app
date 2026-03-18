@@ -38,6 +38,20 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
 }
 
+// CancelOutgoingPayment mocks base method.
+func (m *MockClient) CancelOutgoingPayment(ctx context.Context, paymentPointerID, reason string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CancelOutgoingPayment", ctx, paymentPointerID, reason)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CancelOutgoingPayment indicates an expected call of CancelOutgoingPayment.
+func (mr *MockClientMockRecorder) CancelOutgoingPayment(ctx, paymentPointerID, reason interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CancelOutgoingPayment", reflect.TypeOf((*MockClient)(nil).CancelOutgoingPayment), ctx, paymentPointerID, reason)
+}
+
 // CreatePaymentPointer mocks base method.
 func (m *MockClient) CreatePaymentPointer(ctx context.Context, wallet wallets.Wallet) (string, error) {
 	m.ctrl.T.Helper()
@@ -51,21 +65,6 @@ func (m *MockClient) CreatePaymentPointer(ctx context.Context, wallet wallets.Wa
 func (mr *MockClientMockRecorder) CreatePaymentPointer(ctx, wallet interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePaymentPointer", reflect.TypeOf((*MockClient)(nil).CreatePaymentPointer), ctx, wallet)
-}
-
-// GetWalletAddress mocks base method.
-func (m *MockClient) GetWalletAddress(ctx context.Context, id string) (*external.GetWalletAddressWalletAddress, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetWalletAddress", ctx, id)
-	ret0, _ := ret[0].(*external.GetWalletAddressWalletAddress)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetWalletAddress indicates an expected call of GetWalletAddress.
-func (mr *MockClientMockRecorder) GetWalletAddress(ctx, id interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWalletAddress", reflect.TypeOf((*MockClient)(nil).GetWalletAddress), ctx, id)
 }
 
 // CreatePaymentPointerKey mocks base method.
@@ -83,20 +82,6 @@ func (mr *MockClientMockRecorder) CreatePaymentPointerKey(ctx, paymentPointerID,
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePaymentPointerKey", reflect.TypeOf((*MockClient)(nil).CreatePaymentPointerKey), ctx, paymentPointerID, key)
 }
 
-// RevokePaymentPointerKey mocks base method.
-func (m *MockClient) RevokePaymentPointerKey(ctx context.Context, keyID string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RevokePaymentPointerKey", ctx, keyID)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// RevokePaymentPointerKey indicates an expected call of RevokePaymentPointerKey.
-func (mr *MockClientMockRecorder) RevokePaymentPointerKey(ctx, keyID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RevokePaymentPointerKey", reflect.TypeOf((*MockClient)(nil).RevokePaymentPointerKey), ctx, keyID)
-}
-
 // FundOutgoingPayment mocks base method.
 func (m *MockClient) FundOutgoingPayment(ctx context.Context, outgoingPaymentID string) error {
 	m.ctrl.T.Helper()
@@ -109,21 +94,6 @@ func (m *MockClient) FundOutgoingPayment(ctx context.Context, outgoingPaymentID 
 func (mr *MockClientMockRecorder) FundOutgoingPayment(ctx, outgoingPaymentID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FundOutgoingPayment", reflect.TypeOf((*MockClient)(nil).FundOutgoingPayment), ctx, outgoingPaymentID)
-}
-
-// ListGrants mocks base method.
-func (m *MockClient) ListGrants(ctx context.Context, paymentPointer string) ([]external.ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrant, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListGrants", ctx, paymentPointer)
-	ret0, _ := ret[0].([]external.ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrant)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListGrants indicates an expected call of ListGrants.
-func (mr *MockClientMockRecorder) ListGrants(ctx, paymentPointer interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListGrants", reflect.TypeOf((*MockClient)(nil).ListGrants), ctx, paymentPointer)
 }
 
 // GetGrant mocks base method.
@@ -141,6 +111,51 @@ func (mr *MockClientMockRecorder) GetGrant(ctx, grantID interface{}) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGrant", reflect.TypeOf((*MockClient)(nil).GetGrant), ctx, grantID)
 }
 
+// GetIncomingPayment mocks base method.
+func (m *MockClient) GetIncomingPayment(ctx context.Context, id string) (*external.GetIncomingPaymentIncomingPayment, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetIncomingPayment", ctx, id)
+	ret0, _ := ret[0].(*external.GetIncomingPaymentIncomingPayment)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetIncomingPayment indicates an expected call of GetIncomingPayment.
+func (mr *MockClientMockRecorder) GetIncomingPayment(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIncomingPayment", reflect.TypeOf((*MockClient)(nil).GetIncomingPayment), ctx, id)
+}
+
+// GetWalletAddress mocks base method.
+func (m *MockClient) GetWalletAddress(ctx context.Context, id string) (*external.GetWalletAddressWalletAddress, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetWalletAddress", ctx, id)
+	ret0, _ := ret[0].(*external.GetWalletAddressWalletAddress)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetWalletAddress indicates an expected call of GetWalletAddress.
+func (mr *MockClientMockRecorder) GetWalletAddress(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWalletAddress", reflect.TypeOf((*MockClient)(nil).GetWalletAddress), ctx, id)
+}
+
+// ListGrants mocks base method.
+func (m *MockClient) ListGrants(ctx context.Context, paymentPointer string) ([]external.ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrant, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListGrants", ctx, paymentPointer)
+	ret0, _ := ret[0].([]external.ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrant)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListGrants indicates an expected call of ListGrants.
+func (mr *MockClientMockRecorder) ListGrants(ctx, paymentPointer interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListGrants", reflect.TypeOf((*MockClient)(nil).ListGrants), ctx, paymentPointer)
+}
+
 // RevokeGrant mocks base method.
 func (m *MockClient) RevokeGrant(ctx context.Context, grantID string) error {
 	m.ctrl.T.Helper()
@@ -155,19 +170,18 @@ func (mr *MockClientMockRecorder) RevokeGrant(ctx, grantID interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RevokeGrant", reflect.TypeOf((*MockClient)(nil).RevokeGrant), ctx, grantID)
 }
 
-// GetIncomingPayment mocks base method.
-func (m *MockClient) GetIncomingPayment(ctx context.Context, id string) (*external.GetIncomingPaymentIncomingPayment, error) {
+// RevokePaymentPointerKey mocks base method.
+func (m *MockClient) RevokePaymentPointerKey(ctx context.Context, keyID string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetIncomingPayment", ctx, id)
-	ret0, _ := ret[0].(*external.GetIncomingPaymentIncomingPayment)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret := m.ctrl.Call(m, "RevokePaymentPointerKey", ctx, keyID)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
-// GetIncomingPayment indicates an expected call of GetIncomingPayment.
-func (mr *MockClientMockRecorder) GetIncomingPayment(ctx, id interface{}) *gomock.Call {
+// RevokePaymentPointerKey indicates an expected call of RevokePaymentPointerKey.
+func (mr *MockClientMockRecorder) RevokePaymentPointerKey(ctx, keyID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIncomingPayment", reflect.TypeOf((*MockClient)(nil).GetIncomingPayment), ctx, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RevokePaymentPointerKey", reflect.TypeOf((*MockClient)(nil).RevokePaymentPointerKey), ctx, keyID)
 }
 
 // UpdateWalletAddressStatus mocks base method.
@@ -184,18 +198,18 @@ func (mr *MockClientMockRecorder) UpdateWalletAddressStatus(ctx, walletID, statu
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateWalletAddressStatus", reflect.TypeOf((*MockClient)(nil).UpdateWalletAddressStatus), ctx, walletID, status)
 }
 
-// CancelOutgoingPayment mocks base method.
-func (m *MockClient) CancelOutgoingPayment(ctx context.Context, paymentPointerID, reason string) error {
+// WithdrawIncomingPaymentLiquidity mocks base method.
+func (m *MockClient) WithdrawIncomingPaymentLiquidity(ctx context.Context, incomingPaymentID string, timeoutSeconds uint64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CancelOutgoingPayment", ctx, paymentPointerID, reason)
+	ret := m.ctrl.Call(m, "WithdrawIncomingPaymentLiquidity", ctx, incomingPaymentID, timeoutSeconds)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// CancelOutgoingPayment indicates an expected call of CancelOutgoingPayment.
-func (mr *MockClientMockRecorder) CancelOutgoingPayment(ctx, paymentPointerID, reason interface{}) *gomock.Call {
+// WithdrawIncomingPaymentLiquidity indicates an expected call of WithdrawIncomingPaymentLiquidity.
+func (mr *MockClientMockRecorder) WithdrawIncomingPaymentLiquidity(ctx, incomingPaymentID, timeoutSeconds interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CancelOutgoingPayment", reflect.TypeOf((*MockClient)(nil).CancelOutgoingPayment), ctx, paymentPointerID, reason)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithdrawIncomingPaymentLiquidity", reflect.TypeOf((*MockClient)(nil).WithdrawIncomingPaymentLiquidity), ctx, incomingPaymentID, timeoutSeconds)
 }
 
 // WithdrawOutgoingPaymentLiquidity mocks base method.
@@ -210,18 +224,4 @@ func (m *MockClient) WithdrawOutgoingPaymentLiquidity(ctx context.Context, outgo
 func (mr *MockClientMockRecorder) WithdrawOutgoingPaymentLiquidity(ctx, outgoingPaymentID, timeoutSeconds interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithdrawOutgoingPaymentLiquidity", reflect.TypeOf((*MockClient)(nil).WithdrawOutgoingPaymentLiquidity), ctx, outgoingPaymentID, timeoutSeconds)
-}
-
-// WithdrawIncomingPaymentLiquidity mocks base method.
-func (m *MockClient) WithdrawIncomingPaymentLiquidity(ctx context.Context, incomingPaymentID string, timeoutSeconds uint64) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "WithdrawIncomingPaymentLiquidity", ctx, incomingPaymentID, timeoutSeconds)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// WithdrawIncomingPaymentLiquidity indicates an expected call of WithdrawIncomingPaymentLiquidity.
-func (mr *MockClientMockRecorder) WithdrawIncomingPaymentLiquidity(ctx, incomingPaymentID, timeoutSeconds interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithdrawIncomingPaymentLiquidity", reflect.TypeOf((*MockClient)(nil).WithdrawIncomingPaymentLiquidity), ctx, incomingPaymentID, timeoutSeconds)
 }
