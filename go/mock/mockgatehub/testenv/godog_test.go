@@ -147,14 +147,14 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I POST (.+) with cardId, amount "([^"]*)", currency "([^"]*)", and managed user UUID header$`, tc.postCardTransaction)
 	ctx.Step(`^the response contains a card transaction with transactionId and ghResponseCode "([^"]*)"$`, tc.responseContainsCardTransactionWithGH)
 	ctx.Step(`^the response contains the card transaction with transactionId and transactionAmount$`, tc.responseContainsCardTransactionDetails)
-	ctx.Step(`^the response contains pending 3DS confirmations$`, tc.responseIsArrayOfPending3DS)
+	ctx.Step(`^the response contains pending 3DS confirmations$`, tc.responseContainsPendingConfirmations)
 
 	// Additional card steps
 	ctx.Step(`^I DELETE (.+) with managed user UUID header$`, tc.deleteWithManagedUserHeader)
 	ctx.Step(`^I POST (.+) with managed user UUID header$`, tc.postWithManagedUserHeader)
 	ctx.Step(`^the response status is (\d+) with status "([^"]*)"$`, tc.responseStatusWithStatus)
 	ctx.Step(`^the response contains a token starting with "([^"]*)"$`, tc.responseContainsTokenStarting)
-	ctx.Step(`^the response is an array of pending (\d+)DS confirmations$`, tc.responseIsArrayOfPending3DSConfirmations)
+	ctx.Step(`^the response contains pending (\d+)DS confirmations$`, tc.responseContainsPending3DSConfirmations)
 	ctx.Step(`^each confirmation includes transactionId, merchantName, purchaseAmount, purchaseCurrency, and timeout$`, tc.eachConfirmationHasRequiredFields)
 	ctx.Step(`^I POST (.+) with managed user UUID header, confirmed (true|false), authMethod "([^"]*)"$`, tc.postWith3DSConfirmation)
 	ctx.Step(`^the response indicates success with status "([^"]*)"$`, tc.responseIndicatesSuccess)

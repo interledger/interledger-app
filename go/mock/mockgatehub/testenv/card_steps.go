@@ -442,8 +442,8 @@ func (tc *TestContext) responseContainsCardTransactionDetails() error {
 	return tc.checkRequiredFields([]string{"transactionId", "transactionAmount"})
 }
 
-func (tc *TestContext) responseIsArrayOfPending3DS() error {
-	return tc.responseIsArrayOfPending3DSConfirmations(3)
+func (tc *TestContext) responseContainsPendingConfirmations() error {
+	return tc.responseContainsPending3DSConfirmations(3)
 }
 
 func (tc *TestContext) responseStatusWithStatus(status int, statusStr string) error {
@@ -471,7 +471,7 @@ func (tc *TestContext) responseContainsTokenStarting(prefix string) error {
 	return nil
 }
 
-func (tc *TestContext) responseIsArrayOfPending3DSConfirmations(version int) error {
+func (tc *TestContext) responseContainsPending3DSConfirmations(version int) error {
 	var result struct {
 		PendingConfirmations []map[string]interface{} `json:"pendingConfirmations"`
 	}

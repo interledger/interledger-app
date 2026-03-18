@@ -396,7 +396,7 @@ func (h *Handler) GetPendingConfirmations(w http.ResponseWriter, r *http.Request
 	challenges, err := h.store.GetPendingThreeDSChallenges(userID)
 	if err != nil {
 		h.sendJSON(w, http.StatusOK, map[string][]models.PendingThreeDSConfirmation{
-			"pendingConfirmations": {},
+			"pendingConfirmations": nil,
 		})
 		return
 	}

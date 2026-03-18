@@ -290,11 +290,22 @@ func (sc *E2EContext) iSelectThePaymentCurrency(currency string) error {
 	// triggers a debounced network request that causes React re-renders, which
 	// can make the button temporarily unstable for Playwright's actionability
 	// checks.
-	_ = listboxBtn.First().WaitFor(playwright.LocatorWaitForOptions{
+	err := listboxBtn.First().WaitFor(playwright.LocatorWaitForOptions{
 		State:   playwright.WaitForSelectorStateVisible,
 		Timeout: playwright.Float(10000),
 	})
-	time.Sleep(500 * time.Millisecond)
+	if err != nil {
+		return fmt.Errorf("currency selector not visible: %w", err)
+	}
+
+	// Wait for the page to settle after the amount-change network request
+	// completes and React finishes re-rendering.
+	if err := sc.page.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
+		State:   playwright.LoadStateNetworkidle,
+		Timeout: playwright.Float(5000),
+	}); err != nil {
+		debugPrintf("⚠ network idle wait timed out, proceeding anyway\n")
+	}
 
 	if count, _ := listboxBtn.Count(); count > 0 {
 		if err := listboxBtn.First().Click(); err != nil {
