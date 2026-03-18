@@ -125,14 +125,19 @@ func (sc *E2EContext) iGetTheXagoSubAccountDetailsForTheCurrentUser() error {
 
 	// Also wait for the linked account to exist — the deposit webhook handler
 	// needs it (ListByWalletId) to process the deposit successfully.
+	linkedAccountExists := false
 	for time.Now().Before(deadline) {
 		exists, checkErr := sc.xagoLinkedAccountExists(walletID)
 		if checkErr == nil && exists {
 			debugPrintln("   ✓ Xago linked account exists")
+			linkedAccountExists = true
 			break
 		}
 		debugPrintf("   ⏳ Waiting for Xago linked account (wallet: %s)...\n", walletID)
 		time.Sleep(pollInterval)
+	}
+	if !linkedAccountExists {
+		return fmt.Errorf("xago linked account not created within %v for wallet %s", maxWait, walletID)
 	}
 
 	debugPrintln("   ✓ Sub account details retrieved")

@@ -36,8 +36,9 @@ func (h *Handler) KYCIframe(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := map[string]string{
-		"Token":  token,
-		"UserID": userID,
+		"Token":      token,
+		"UserID":     userID,
+		"SubmitPath": "/kyc/submit",
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")

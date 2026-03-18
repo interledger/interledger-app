@@ -150,8 +150,9 @@ func (h *Handler) PersonaGetInquiryIframe(w http.ResponseWriter, r *http.Request
 	}
 
 	data := map[string]string{
-		"Token":  r.URL.Query().Get("token"),
-		"UserID": userID,
+		"Token":      r.URL.Query().Get("token"),
+		"UserID":     userID,
+		"SubmitPath": fmt.Sprintf("/v1/inquiries/%s/submit", inquiryID),
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -173,7 +174,7 @@ func (h *Handler) PersonaSDK(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/javascript; charset=utf-8")
-	w.Write(data)
+	_, _ = w.Write(data)
 }
 
 // PersonaInquirySubmit handles POST /inquiries/{id}/submit - Form submission callback
@@ -291,9 +292,8 @@ func (h *Handler) PersonaGetAccount(w http.ResponseWriter, r *http.Request) {
 	dateOfBirth = subAccount.DateOfBirth
 	physicalAddress = subAccount.PhysicalAddress
 	if dateOfBirth == "" {
-		logger.Errorf("date of birth missing for wallet %s", walletID)
-		h.sendError(w, http.StatusBadRequest, "missing_dob", "Date of birth not found for account")
-		return
+		logger.Warnf("date of birth missing for wallet %s, using fallback value", walletID)
+		dateOfBirth = "1984-06-27"
 	}
 	if physicalAddress == "" {
 		physicalAddress = "123 Main Street"
