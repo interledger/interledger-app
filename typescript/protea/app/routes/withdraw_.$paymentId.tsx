@@ -1,12 +1,8 @@
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { redirect } from '@remix-run/node'
-import { Form, useLoaderData } from '@remix-run/react'
+import type { Route } from './+types/withdraw_.$paymentId'
+import { redirect } from 'react-router';
+import { Form, useLoaderData } from 'react-router';
 import { DateTime } from 'luxon'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Icon, Layouts } from '~/components'
 import { Label } from '~/components/Label'
@@ -20,20 +16,19 @@ import { getClientIP } from '~/lib/ip.server'
 import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { usePTISdk } from '~/lib/usePTISdk'
-import { KycStatus } from '~/routes/_index/route'
-import { PaymentRequiredAction } from './pay_.$paymentId/route'
+import { KycStatus, PaymentRequiredAction } from '~/lib/types'
 
-export async function loader({ request, params }: LoaderFunctionArgs) {
+export async function loader({ request, params }: Route.LoaderArgs) {
   const { kycStatus } = await getKycStatus(request)
   if (kycStatus != KycStatus.Approved)
-    return redirect(route('/personal-details'))
+    return redirect(href('/personal-details'))
 
   const payment = await grpc.getPayment(request, { id: params.paymentId })
 
   if (isConnectError(payment)) throw payment.errorResponse
 
   // This payment is already confirmed
-  if (payment.state > 1) throw redirect(route('/withdraw'))
+  if (payment.state > 1) throw redirect(href('/withdraw'))
 
   const linkedAccountsResponse = await grpc.getLinkedAccounts(request, {})
   if (isConnectError(linkedAccountsResponse)) throw linkedAccountsResponse.error
@@ -58,7 +53,7 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Confirm withdraw'
   }
@@ -71,7 +66,7 @@ export default function Page() {
     senderAccountTitle,
     csrfToken,
     PTIClientId
-  } = useLoaderData<typeof loader>()
+  } = useLoaderData()
 
   usePTISdk(payment.id, PTIClientId)
 
@@ -79,7 +74,7 @@ export default function Page() {
     <>
       <Form
         id='withdraw-confirm'
-        action={route('/withdraw/:paymentId', {
+        action={href('/withdraw/:paymentId', {
           paymentId: payment.id
         })}
         method='post'
@@ -159,7 +154,7 @@ export default function Page() {
   )
 }
 
-export async function action({ request, params }: ActionFunctionArgs) {
+export async function action({ request, params }: Route.ActionArgs) {
   const form = await request.formData()
   const country = form.get('country') as string
   await validateCSRFToken(request, form)
@@ -179,7 +174,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     if (isConnectError(ptiResponse)) {
       return ptiResponse.error({ errors }, {}, { action: 'Contact support' })
     }
-    return redirectWithSnackbar(request, route('/'), {
+    return redirectWithSnackbar(request, href('/'), {
       message: 'Withdraw created successfully.',
       icon: 'close'
     })
@@ -209,7 +204,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     return response.error({ errors }, {}, { action: 'Contact support' })
   }
 
-  return redirectWithSnackbar(request, route('/'), {
+  return redirectWithSnackbar(request, href('/'), {
     message: 'Withdraw created successfully.',
     icon: 'close'
   })

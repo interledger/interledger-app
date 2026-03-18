@@ -1,6 +1,6 @@
-import { useFetcher } from '@remix-run/react'
+import { useFetcher } from 'react-router';
 import { memo, useEffect } from 'react'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import type { PendingThreeDSConfirmation } from '~/generated/connect/backend/v1/backend_pb'
 import { usePendingConfirmations } from '~/lib/cards/usePendingConfirmations'
 
@@ -16,7 +16,7 @@ export const PendingConfirmationsLoader = memo(
       if (walletId) {
         confirmationsFetcher.submit(null, {
           method: 'post',
-          action: route('/api/getPendingConfirmations')
+          action: href('/api/getPendingConfirmations')
         })
       } else {
         clearTimeouts()

@@ -1,8 +1,8 @@
-import { useNavigate } from '@remix-run/react'
+import { useNavigate } from 'react-router';
 import clsx from 'clsx'
 import { motion } from 'framer-motion'
 import { forwardRef, useEffect, useRef, useState } from 'react'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import { IconButton, TextButton } from '~/components/Buttons'
 import type { SnackbarAction, SnackbarType } from '~/lib/useScaffoldStore'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
@@ -21,11 +21,11 @@ const Stage = forwardRef<any>(({ ...motionProps }, ref) => {
     switch (action) {
       case 'Contact support':
         shiftSnackbar()
-        navigate(route('/support'))
+        navigate(href('/support'))
         break
       case 'View cards':
         shiftSnackbar()
-        navigate(route('/cards'))
+        navigate(href('/cards'))
         break
       default:
         shiftSnackbar()

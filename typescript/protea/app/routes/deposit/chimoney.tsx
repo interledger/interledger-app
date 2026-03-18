@@ -1,20 +1,12 @@
-import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
-import { Form, useActionData, useNavigation, useSubmit } from '@remix-run/react'
+import { Form, useActionData, useNavigation, useSubmit } from 'react-router';
 import type { ChangeEventHandler } from 'react'
 import { useCallback, useEffect, useState } from 'react'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import { Button, Card } from '~/components'
-import { jsonWithCSRF } from '~/lib/csrf.server'
-import { isConnectError } from '~/lib/error.server'
-import { grpc } from '~/lib/grpc.server'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { PaySelect } from '../pay_.$paymentId/PaySelect'
-import { stringToBigInt } from './fynbos'
+import { chimoneyAmountAction } from './action.server';
 
-export async function chimoneyDepositLoader({ request }: LoaderFunctionArgs) {
-  return jsonWithCSRF(request, { provider: 'chimoney' })
-}
 
 export function ChimoneyDepositPage() {
   const [amount, setAmount] = useState<string>('')
@@ -53,7 +45,7 @@ export function ChimoneyDepositPage() {
             issueId: e.data.issueID
           },
           {
-            action: route('/deposit'),
+            action: href('/deposit'),
             method: 'POST'
           }
         )
@@ -86,7 +78,7 @@ export function ChimoneyDepositPage() {
         <>
           <Form
             id='chimoney-amount'
-            action={route('/deposit')}
+            action={href('/deposit')}
             method='post'
             className='hidden'
           />
@@ -124,20 +116,4 @@ export function ChimoneyDepositPage() {
       )}
     </>
   )
-}
-
-export async function chimoneyAmountAction({ request }: ActionFunctionArgs) {
-  const form = await request.formData()
-  const depositAmount = String(form.get('depositAmount') || '')
-
-  const response = await grpc.getChimoneyDepositLink(request, {
-    amount: stringToBigInt(depositAmount),
-    asset: 'CAD',
-    assetScale: 2
-  })
-  if (isConnectError(response)) throw response.error
-
-  return json({
-    chimoneyWidget: response.link
-  })
 }
