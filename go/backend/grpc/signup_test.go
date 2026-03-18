@@ -100,6 +100,7 @@ func TestCompleteSignup_NoAgreementSigning(t *testing.T) {
 
 	sID := uuid.NewString()
 	userID := uuid.NewString()
+	t.Setenv("SIGNUP_AGREEMENT_IDS", "")
 
 	c.SignupService.EXPECT().Complete(gomock.Any(), sID, userID).Return(nil).Times(1)
 	// Agreements().Sign must not be called when SIGNUP_AGREEMENT_IDS is unset

@@ -51,7 +51,7 @@ func Sign(ctx context.Context, b Backends, args *agreements.SignArgs) error {
 		_, err := txStmt.ExecContext(ctx, id, args.UserID)
 		if err != nil {
 			if pgErr, isPGErr := err.(*pq.Error); isPGErr {
-				if pgErr.Code != "23503" {
+				if pgErr.Code == "23503" {
 					return fmt.Errorf("%w %s", agreements.ErrNotFound, err.Error())
 				}
 			}
