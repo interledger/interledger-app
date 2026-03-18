@@ -147,7 +147,7 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I POST (.+) with cardId, amount "([^"]*)", currency "([^"]*)", and managed user UUID header$`, tc.postCardTransaction)
 	ctx.Step(`^the response contains a card transaction with transactionId and ghResponseCode "([^"]*)"$`, tc.responseContainsCardTransactionWithGH)
 	ctx.Step(`^the response contains the card transaction with transactionId and transactionAmount$`, tc.responseContainsCardTransactionDetails)
-	ctx.Step(`^the response is an array of pending 3DS confirmations$`, tc.responseIsArrayOfPending3DS)
+	ctx.Step(`^the response contains pending 3DS confirmations$`, tc.responseIsArrayOfPending3DS)
 
 	// Additional card steps
 	ctx.Step(`^I DELETE (.+) with managed user UUID header$`, tc.deleteWithManagedUserHeader)
