@@ -181,7 +181,7 @@ type CreateWalletAddressInput struct {
 	// Asset of the wallet address
 	AssetId string `json:"assetId"`
 	// Wallet Address URL
-	Url string `json:"url"`
+	Address string `json:"address"`
 	// Public name associated with the wallet address
 	PublicName string `json:"publicName"`
 	// Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)
@@ -193,8 +193,8 @@ type CreateWalletAddressInput struct {
 // GetAssetId returns CreateWalletAddressInput.AssetId, and is useful for accessing the field via an interface.
 func (v *CreateWalletAddressInput) GetAssetId() string { return v.AssetId }
 
-// GetUrl returns CreateWalletAddressInput.Url, and is useful for accessing the field via an interface.
-func (v *CreateWalletAddressInput) GetUrl() string { return v.Url }
+// GetAddress returns CreateWalletAddressInput.Address, and is useful for accessing the field via an interface.
+func (v *CreateWalletAddressInput) GetAddress() string { return v.Address }
 
 // GetPublicName returns CreateWalletAddressInput.PublicName, and is useful for accessing the field via an interface.
 func (v *CreateWalletAddressInput) GetPublicName() string { return v.PublicName }
@@ -616,8 +616,8 @@ type GetWalletAddressWalletAddress struct {
 	Id string `json:"id"`
 	// Status of the wallet address
 	Status WalletAddressStatus `json:"status"`
-	// Wallet Address URL
-	Url string `json:"url"`
+	// Wallet address (full URL or path suffix)
+	Address string `json:"address"`
 	// Asset of the wallet address
 	Asset GetWalletAddressWalletAddressAsset `json:"asset"`
 }
@@ -628,8 +628,8 @@ func (v *GetWalletAddressWalletAddress) GetId() string { return v.Id }
 // GetStatus returns GetWalletAddressWalletAddress.Status, and is useful for accessing the field via an interface.
 func (v *GetWalletAddressWalletAddress) GetStatus() WalletAddressStatus { return v.Status }
 
-// GetUrl returns GetWalletAddressWalletAddress.Url, and is useful for accessing the field via an interface.
-func (v *GetWalletAddressWalletAddress) GetUrl() string { return v.Url }
+// GetAddress returns GetWalletAddressWalletAddress.Address, and is useful for accessing the field via an interface.
+func (v *GetWalletAddressWalletAddress) GetAddress() string { return v.Address }
 
 // GetAsset returns GetWalletAddressWalletAddress.Asset, and is useful for accessing the field via an interface.
 func (v *GetWalletAddressWalletAddress) GetAsset() GetWalletAddressWalletAddressAsset { return v.Asset }
@@ -1604,7 +1604,7 @@ query GetWalletAddress ($id: String!) {
 	walletAddress(id: $id) {
 		id
 		status
-		url
+		address
 		asset {
 			id
 			code

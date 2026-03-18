@@ -80,7 +80,7 @@ func GetWalletAddress(ctx context.Context, b Backends, walletID string) (*rafiki
 		ID:         address.Id,
 		AssetCode:  address.Asset.Code,
 		AssetScale: address.Asset.Scale,
-		URL:        address.Url,
+		URL:        address.Address,
 	}, nil
 }
 
@@ -108,17 +108,9 @@ func LookupPaymentPointerID(ctx context.Context, b Backends, walletID string) (s
 }
 
 func FundOutgoingPayment(ctx context.Context, b Backends, paymentID string) error {
-	var outgoingPaymentIDs []string
-	err := b.DB().SelectContext(ctx, &outgoingPaymentIDs, "SELECT id FROM rafiki_outgoing_payments WHERE payment_id=$1", paymentID)
+	err := b.External().FundOutgoingPayment(ctx, paymentID)
 	if err != nil {
 		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
-	}
-
-	for _, id := range outgoingPaymentIDs {
-		err = b.External().FundOutgoingPayment(ctx, id)
-		if err != nil {
-			return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
-		}
 	}
 
 	return nil
