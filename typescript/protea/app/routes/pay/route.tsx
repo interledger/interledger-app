@@ -1,13 +1,9 @@
 import { Code } from '@bufbuild/connect'
-import type { PlainMessage } from '@bufbuild/protobuf/dist/types/message'
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
-import { useLoaderData } from '@remix-run/react'
-import { route } from 'routes-gen'
+
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { redirect } from 'react-router';
+import { useLoaderData } from 'react-router';
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   Alert,
@@ -20,20 +16,13 @@ import {
   Router
 } from '~/components'
 import { CommandActions } from '~/components/Scaffold/CommandActions'
-import { getFeatures, getKycStatus } from '~/data/wallet.server'
-import type {
-  Features,
-  Payment,
-  PublicWalletInfo,
-  SearchResult
-} from '~/generated/connect/backend/v1/backend_pb'
-import { jsonWithCSRF } from '~/lib/csrf.server'
+
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { getClientIP } from '~/lib/ip.server'
 import { mergeMeta } from '~/lib/meta'
-import { KycStatus } from '~/routes/_index/route'
-import { PaymentIdentityType } from '~/routes/pay_.$paymentId/route'
+import { PaymentIdentityType } from '~/lib/types'
+import { payLoader, searchLoader } from './loader.server';
 
 export async function loader(args: LoaderFunctionArgs) {
   const url = new URL(args.request.url)
@@ -44,49 +33,6 @@ export async function loader(args: LoaderFunctionArgs) {
   }
 
   return payLoader(args)
-}
-
-export async function searchLoader(
-  { request }: LoaderFunctionArgs,
-  term: string
-) {
-  const response = await grpc.searchWallets(request, { term })
-
-  if (isConnectError(response)) throw response.errorResponse
-
-  const results: PlainMessage<SearchResult>[] = response.results
-  return json({ results })
-}
-
-export async function payLoader({ request }: LoaderFunctionArgs) {
-  const url = new URL(request.url)
-
-  let results: PlainMessage<SearchResult>[] = []
-  let address: PlainMessage<SearchResult> | null = null
-  let publicWalletInfo: PublicWalletInfo | null = null
-  let phoneMask: string = ''
-  let features: Features | null = null
-  let payment: PlainMessage<Payment> | null = null
-
-  // used only on route load, params change and form submission
-  // TODO should figure out if we need these based on the status of the payment
-  if (url.search == '') {
-    const { kycStatus } = await getKycStatus(request)
-    if (kycStatus != KycStatus.Approved)
-      return redirect(route('/personal-details'))
-
-    features = await getFeatures(request)
-  }
-
-  return jsonWithCSRF(request, {
-    features,
-    results,
-    address,
-    phoneMask,
-    publicWalletInfo,
-    fynbosEnv: process.env.FYNBOS_ENV,
-    payment
-  })
 }
 
 export const handle: ApplicationProps = {
@@ -129,7 +75,7 @@ export default function Page() {
                 <Router
                   prefetch='render'
                   className='text-sm font-medium text-primary'
-                  to={route('/accounts')}
+                  to={href('/accounts')}
                 >
                   Go to accounts page
                 </Router>
@@ -174,5 +120,5 @@ export async function action({ request }: ActionFunctionArgs) {
     )
   }
 
-  return redirect(route('/pay/:paymentId', { paymentId: payment.id }))
+  return redirect(href('/pay/:paymentId', { paymentId: payment.id }))
 }

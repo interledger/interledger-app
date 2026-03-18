@@ -1,6 +1,6 @@
-import { useNavigate, useParams } from '@remix-run/react'
+import { useNavigate, useParams } from 'react-router';
 import { useEffect, useMemo } from 'react'
-import { route, type RouteParams } from 'routes-gen'
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Icon, Layouts } from '~/components'
 import { Label } from '~/components/Label'
@@ -14,7 +14,7 @@ export const handle: ApplicationProps = {
   layout: Layouts.Wallet,
   scaffold: {
     header: {
-      back: route('/confirmations'),
+      back: href('/confirmations'),
       title: 'Confirmation'
     },
     isNested: true
@@ -26,7 +26,7 @@ export default function Page() {
   const { pendingConfirmations, hasFetched, removeConfirmation } =
     usePendingConfirmations()
   const { confirmationId } =
-    useParams<RouteParams['/confirmations/:confirmationId']>()
+    useParams<{ confirmationId: string }>()
 
   const confirmation = useMemo(
     () =>

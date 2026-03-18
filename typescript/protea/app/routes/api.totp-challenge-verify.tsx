@@ -1,4 +1,6 @@
-import { json, type ActionFunctionArgs } from '@remix-run/node'
+import type { Route } from './+types/api.totp-challenge-verify'
+import type { UiNode } from '@ory/kratos-client'
+import { data } from 'react-router';
 import { KRATOS_URL } from '~/lib/kratos.server'
 import logger, { addRequestId, withErrorLog } from '~/lib/logger.server'
 import { extractOrGenerateRequestId } from '~/lib/requestContext.server'
@@ -8,7 +10,7 @@ import { extractOrGenerateRequestId } from '~/lib/requestContext.server'
  * This handles the inline TOTP verification without redirects
  * IMPORTANT: Forwards Set-Cookie header to update the session
  */
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   try {
     const cookie = request.headers.get('cookie') ?? ''
     const formData = await request.formData()
@@ -18,7 +20,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const csrfToken = formData.get('csrf_token') as string
 
     if (!flowId || !totpCode) {
-      return json(
+      return data(
         { success: false, error: 'Missing required fields' },
         { status: 400 }
       )
@@ -43,11 +45,9 @@ export async function action({ request }: ActionFunctionArgs) {
 
     const setCookieHeader = verifyTotpCodeResponse.headers.get('set-cookie')
     if (verifyTotpCodeResponse.ok || verifyTotpCodeResponse.status === 200) {
-      return json(
+      return data(
         { success: true, shouldRevalidate: false },
-        setCookieHeader
-          ? { headers: { 'Set-Cookie': setCookieHeader } }
-          : undefined
+        setCookieHeader ? { headers: { 'Set-Cookie': setCookieHeader } } : undefined
       )
     }
 
@@ -58,14 +58,14 @@ export async function action({ request }: ActionFunctionArgs) {
       errorMessage = errorData.ui.messages[0].text
     } else if (errorData?.ui?.nodes) {
       const totpNode = errorData.ui.nodes.find(
-        (node: any) => node.attributes?.name === 'totp_code'
+        (node: UiNode) => 'name' in node.attributes && node.attributes.name === 'totp_code'
       )
       if (totpNode?.messages && totpNode.messages.length > 0) {
         errorMessage = totpNode.messages[0].text
       }
     }
 
-    return json({
+    return data({
       success: false,
       error: errorMessage,
       flowId: errorData.id,
@@ -79,7 +79,7 @@ export async function action({ request }: ActionFunctionArgs) {
       },
       'Unexpected error verifying TOTP challenge'
     )
-    return json({
+    return data({
       success: false,
       error: 'An unexpected error occurred'
     })

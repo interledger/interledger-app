@@ -1,4 +1,4 @@
-import { useLocation } from '@remix-run/react'
+import { useLocation } from 'react-router';
 import { AnalyticsBrowser } from '@segment/analytics-next'
 import { useEffect } from 'react'
 

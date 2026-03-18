@@ -71,7 +71,7 @@ selfservice:
     recovery:
       enabled: true
       lifespan: 15m
-      ui_url: http://interledger.test/error
+      ui_url: http://interledger.test/recovery
       use: link
     registration:
       after:

@@ -1,10 +1,10 @@
-import type { PlainMessage } from '@bufbuild/protobuf/dist/types/message'
-import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
-import { json } from '@remix-run/node'
-import type { UIMatch } from '@remix-run/react'
-import { Link, useLoaderData } from '@remix-run/react'
+import type { Route } from './+types/payments.$paymentId'
+import type { PlainMessage } from '@bufbuild/protobuf'
+import { data } from 'react-router';
+import type { UIMatch } from 'react-router';
+import { Link, useLoaderData } from 'react-router';
 import { useState } from 'react'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   Alert,
@@ -38,7 +38,7 @@ import { mergeMeta } from '~/lib/meta'
 import { getPusherArgs } from '~/lib/pusher.server'
 import { usePusher } from '~/lib/usePusher'
 
-export async function loader({ request, params }: LoaderFunctionArgs) {
+export async function loader({ request, params }: Route.LoaderArgs) {
   let senderAccountTitle, receiverAccountTitle
 
   const transaction = await grpc.lookupTransaction(request, {
@@ -80,7 +80,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
   const pusherArgs = await getPusherArgs(request)
 
-  return json({
+  return data({
     senderAccountTitle,
     receiverAccountTitle,
     publicWalletInfo,
@@ -99,25 +99,27 @@ export const handle: ApplicationProps = {
   layout: Layouts.Wallet,
   scaffold: {
     header: {
-      back: route('/payments'),
+      back: href('/payments'),
       title: 'Payment',
-      actions: (match: UIMatch<typeof loader>) => {
+      actions: (match: UIMatch<Route.ComponentProps['loaderData']>) => {
+        if (!match.loaderData) return null
+        const { transaction } = match.loaderData
         if (
-          match.data.transaction.refundState == TransactionRefundState.PENDING
+          transaction.refundState == TransactionRefundState.PENDING
         ) {
           return {
             key: 'Pending refund',
             nodes: <Chip color={ChipColor.red}>Pending refund</Chip>
           }
         } else if (
-          match.data.transaction.refundState == TransactionRefundState.COMPLETED
+          transaction.refundState == TransactionRefundState.COMPLETED
         ) {
           return {
             key: 'Refunded',
             nodes: <Chip color={ChipColor.red}>Refunded</Chip>
           }
         }
-        switch (match.data.transaction.state) {
+        switch (transaction.state) {
           case 'Completed':
             return {
               key: 'Complete',
@@ -142,17 +144,18 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction<typeof loader> = mergeMeta(({ data }) => [
-  {
+export const meta = mergeMeta(({ data }) => {
+  const d = data as Route.ComponentProps['loaderData'] | undefined
+  return [{
     title:
-      typeof data == 'undefined'
+      typeof d == 'undefined'
         ? 'Payment'
         : // TODO Fix this for withdrawal
-        data.transaction.type == 'sent' || data.transaction.type == 'web_monetization_outgoing'
-          ? `${data.transaction.subtotal} to ${data.transaction.title}`
-          : `${data.transaction.formattedAmount} from ${data.transaction.title}`
-  }
-])
+        d.transaction.type == 'sent' || d.transaction.type == 'web_monetization_outgoing'
+          ? `${d.transaction.subtotal} to ${d.transaction.title}`
+          : `${d.transaction.formattedAmount} from ${d.transaction.title}`
+  }]
+})
 
 export default function Page() {
   const { transaction, publicWalletInfo, pusherArgs } =
@@ -835,16 +838,16 @@ function CardTransaction() {
           </div>
         </CardContent>
         <Label>
-          {transaction.cardTransactionDetails?.type === '0' && 'Recipient'}
-          {transaction.cardTransactionDetails?.type === '1' && 'Cash at'}
+          {transaction.cardTransactionDetails?.type?.toString() === '0' && 'Recipient'}
+          {transaction.cardTransactionDetails?.type?.toString() === '1' && 'Cash at'}
         </Label>
         <div className='my-1 flex space-x-2 rounded-xl bg-nav p-3'>
           <div className='flex w-full items-center justify-between text-medium'>
             <div className='flex space-x-2'>
               <Icon>
-                {transaction.cardTransactionDetails?.type === '0' &&
+                {transaction.cardTransactionDetails?.type?.toString() === '0' &&
                   'local_mall'}
-                {transaction.cardTransactionDetails?.type === '1' && 'atm'}
+                {transaction.cardTransactionDetails?.type?.toString() === '1' && 'atm'}
               </Icon>
               <span>{transaction.title}</span>
             </div>
@@ -879,7 +882,7 @@ function CardTransaction() {
             <span className='text-medium'>
               <Link
                 className='text-primary'
-                to={route('/cards/:cardId', {
+                to={href('/cards/:cardId', {
                   cardId: transaction.cardTransactionDetails!.cardId // cardId will always be set for a card_transaction
                 })}
               >
