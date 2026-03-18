@@ -42,6 +42,29 @@ func (sc *E2EContext) iShouldSeeValidationErrors() error {
 	return nil
 }
 
+func (sc *E2EContext) iShouldSeeTextOnThePage(text string) error {
+	if sc.page == nil {
+		return fmt.Errorf("no page available to verify text")
+	}
+
+	deadline := time.Now().Add(10 * time.Second)
+	for time.Now().Before(deadline) {
+		locator := sc.page.Locator(fmt.Sprintf("text=%s", text))
+		count, err := locator.Count()
+		if err == nil && count > 0 {
+			return nil
+		}
+		time.Sleep(500 * time.Millisecond)
+	}
+
+	content, _ := sc.page.Content()
+	if strings.Contains(content, text) {
+		return nil
+	}
+
+	return fmt.Errorf("expected text %q not found on page", text)
+}
+
 func (sc *E2EContext) aSignupRecordShouldExistInTheDatabase(email string) error {
 	// Check if email is already prefixed (starts with testEmailPrefix)
 	// If not, prefix it

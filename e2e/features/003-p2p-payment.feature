@@ -7,6 +7,7 @@ Feature: Peer-to-Peer Payments
     Given a random test identifier is generated
     And the frontend is running at "https://interledger.test"
     And mockgatehub is running at "https://mockgatehub.interledger.test"
+    And mockxago is running at "https://mockxago.interledger.test"
     And Rafiki assets are seeded
 
   @p2p-payment @gatehub
@@ -121,4 +122,67 @@ Feature: Peer-to-Peer Payments
     And I log in as myself
     And I wait "3" seconds for the page to load
     And I should see my account balance with "100" "EUR"
-    And I take a screenshot "money-received"       
+    And I take a screenshot "money-received"
+
+  @p2p-payment @xago
+  Scenario: Successfully send payment from one South African user to another
+    # Set up sender user with KYC
+    Given the details of 'za-sender' are
+      | field           | value                        |
+      | emailSuffix     | za-sender-p2p@example.com    |
+      | password        | InterlEdger2025!TestPassword |
+      | country         | South Africa                 |
+      | firstName       | Thabo                        |
+      | lastName        | Mbeki                        |
+      | dateOfBirth     | 1985-06-15                   |
+    And I complete the minimal KYC flow `za-sender`
+
+    # Clear browser state and set up receiver
+    When I clear the browser session
+    And I navigate to https://interledger.test
+    And I wait "2" seconds for the page to load
+
+    Given the details of 'za-receiver' are
+      | field           | value                        |
+      | emailSuffix     | za-receiver-p2p@example.com  |
+      | password        | InterlEdger2025!TestPassword |
+      | country         | South Africa                 |
+      | firstName       | Mandla                       |
+      | lastName        | Zuma                         |
+      | dateOfBirth     | 1987-08-20                   |
+    And I complete the minimal KYC flow `za-receiver`
+
+    # Log back in as sender
+    When I clear the browser session
+    And I navigate to https://interledger.test
+    And I wait "2" seconds for the page to load
+    And I impersonate 'za-sender'
+    And I log in as myself
+    And I wait "3" seconds for the page to load
+
+    When I initiate a deposit for my Xago linked account
+    Then my Xago specific deposit instructions should be displayed to me
+    When I simulate a "800.12" "ZAR" EFT payment to Xago
+    And I wait "5" seconds for the webhook to be processed
+    Then I should see my balance updated with "800.12" "ZAR"
+
+    # Sender initiates payment to receiver
+    When I navigate to the send payment page
+    And I get the receiver wallet address for "za-receiver"
+    And I fill in the receiver wallet address
+    And I fill in the payment amount "400.00"
+    And I select the payment currency "ZAR"
+    And I submit the payment
+    And I wait for the payment to complete
+    Then I should see a payment confirmation
+    And I should see my balance updated with "400.12" "ZAR"
+
+    # Verify receiver sees the funds
+    When I clear the browser session
+    And I navigate to https://interledger.test
+    And I wait "2" seconds for the page to load
+    And I impersonate 'za-receiver'
+    And I log in as myself
+    And I wait "3" seconds for the page to load
+    Then I should see my balance updated with "400.00" "ZAR"
+    And I take a screenshot "za-receiver-balance"

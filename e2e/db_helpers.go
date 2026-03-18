@@ -63,47 +63,6 @@ func (sc *E2EContext) waitForStableWalletCount(expectedMin int, stableFor int, t
 	return fmt.Errorf("waitForStableWalletCount: timeout waiting for >=%d wallets", expectedMin)
 }
 
-// getGatehubWalletIDByEmail fetches the GateHub wallet ID (provider_id) for a user by email
-// It queries the linked_accounts table to find the GateHub provider_id for the user
-func (sc *E2EContext) getGatehubWalletIDByEmail(email string) (string, error) {
-	if sc.db == nil {
-		connStr := "host=localhost port=5432 user=postgres password=postgres dbname=backend sslmode=disable"
-		db, err := sql.Open("postgres", connStr)
-		if err != nil {
-			return "", fmt.Errorf("getGatehubWalletIDByEmail: failed to open db: %w", err)
-		}
-		sc.db = db
-	}
-
-	// Get the Kratos user ID from the email
-	kratosID := sc.getKratosUserIDByEmail(email)
-	if kratosID == "" {
-		return "", fmt.Errorf("getGatehubWalletIDByEmail: could not resolve kratos user id for %s", email)
-	}
-
-	debugPrintf("   📋 Looking up GateHub wallet ID for email: %s (kratos ID: %s)\n", email, kratosID)
-
-	// Query the linked_accounts table to get the GateHub provider_id
-	var gateHubWalletID string
-	err := sc.db.QueryRow(`
-		SELECT provider_id FROM linked_accounts 
-		WHERE wallet_id IN (
-			SELECT wallet_id FROM user_wallets WHERE user_id = $1
-		)
-		AND provider = 'gatehub'
-		LIMIT 1
-	`, kratosID).Scan(&gateHubWalletID)
-
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return "", fmt.Errorf("getGatehubWalletIDByEmail: no GateHub linked account found for user %s", email)
-		}
-		return "", fmt.Errorf("getGatehubWalletIDByEmail: database error: %w", err)
-	}
-
-	debugPrintf("   ✓ Found GateHub wallet ID: %s\n", gateHubWalletID)
-	return gateHubWalletID, nil
-}
 
 // getGatehubUserIDByEmail fetches the GateHub managed user ID (external_id) for a user by email.
 // It queries the gatehub_users table using the user's wallet associations.
@@ -495,26 +454,57 @@ func (sc *E2EContext) getWalletIDByEmail(email string) (string, error) {
 	return walletID, nil
 }
 
-// getKYCStatusByWalletID looks up the KYC status for a wallet
-func (sc *E2EContext) getKYCStatusByWalletID(walletID string) (int, error) {
+// getXagoAccountIDByWalletID fetches the real account_id (UUID) from xago_sub_accounts
+// for a given wallet ID. This is the ID assigned by mockxago during CreateSubAccount.
+func (sc *E2EContext) getXagoAccountIDByWalletID(walletID string) (string, error) {
 	if sc.db == nil {
 		connStr := "host=localhost port=5432 user=postgres password=postgres dbname=backend sslmode=disable"
 		db, err := sql.Open("postgres", connStr)
 		if err != nil {
-			return -1, fmt.Errorf("getKYCStatusByWalletID: failed to open db: %w", err)
+			return "", fmt.Errorf("getXagoAccountIDByWalletID: failed to open db: %w", err)
 		}
 		sc.db = db
 	}
 
-	var status int
-	err := sc.db.QueryRow(`SELECT status FROM wallet_kyc_status WHERE wallet_id = $1`, walletID).Scan(&status)
+	var accountID string
+	err := sc.db.QueryRow(`
+		SELECT account_id FROM xago_sub_accounts
+		WHERE wallet_id = $1
+		LIMIT 1
+	`, walletID).Scan(&accountID)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return 0, nil // Unknown/not started
+			return "", fmt.Errorf("getXagoAccountIDByWalletID: no xago sub account found for wallet %s", walletID)
 		}
-		return -1, fmt.Errorf("getKYCStatusByWalletID: query error: %w", err)
+		return "", fmt.Errorf("getXagoAccountIDByWalletID: database error: %w", err)
 	}
 
-	debugPrintf("   📋 KYC status for wallet %s: %d\n", walletID, status)
-	return status, nil
+	debugPrintf("   ✓ Found xago account ID: %s\n", accountID)
+	return accountID, nil
 }
+
+// xagoLinkedAccountExists checks whether a linked account for the Xago balance
+// provider has been created for the given wallet. The deposit webhook handler
+// requires this row to exist before it can process incoming deposits.
+func (sc *E2EContext) xagoLinkedAccountExists(walletID string) (bool, error) {
+	if sc.db == nil {
+		connStr := "host=localhost port=5432 user=postgres password=postgres dbname=backend sslmode=disable"
+		db, err := sql.Open("postgres", connStr)
+		if err != nil {
+			return false, fmt.Errorf("xagoLinkedAccountExists: failed to open db: %w", err)
+		}
+		sc.db = db
+	}
+
+	var count int
+	err := sc.db.QueryRow(`
+		SELECT COUNT(*) FROM linked_accounts
+		WHERE wallet_id = $1 AND provider = 'xago' AND type = 'balance'
+	`, walletID).Scan(&count)
+	if err != nil {
+		return false, fmt.Errorf("xagoLinkedAccountExists: database error: %w", err)
+	}
+
+	return count > 0, nil
+}
+
