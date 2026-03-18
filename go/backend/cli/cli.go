@@ -53,63 +53,65 @@ func ParseMigrationArgs() (*MigrationArgs, error) {
 }
 
 type StartArgs struct {
-	Port                          string
-	AuthorisationPort             string
-	DbConnectionString            string
-	PacioliDBConString            string
-	KratosUrl                     string
-	KratosAdminUrl                string
-	LogLevel                      string
-	LogOutputPath                 string
-	TemporalUrl                   string
-	TwilioSid                     string
-	TwilioSecret                  string
-	TwilioServiceSid              string
-	ZendeskUser                   string
-	ZendeskToken                  string
-	AdminPolicyAud                string
-	AdminTeamDomain               string
-	SendgridAPIKey                string
-	SmartyAuthID                  string
-	SmartyAuthToken               string
-	PusherAddr                    string
-	SegmentKey                    string
-	TwitterClientID               string
-	TwitterClientSecret           string
-	TwitterRedirectURL            string
-	TwitterBearerToken            string
-	DiscordClientID               string
-	DiscordClientSecret           string
-	DiscordRedirectURL            string
-	GatehubAppID                  string
-	GatehubSecret                 string
-	GatehubCardAppID              string
-	GatehubGatewayID              string
-	GatehubCardAccountProductCode string
-	GatehubPaywiserEuroVaultID    string
-	GatehubSendingUserID          string
-	GatehubSendingUserAddress     string
-	GatehubWebhookSecret          string
-	GatehubFallbackWebhookURL     string
-	GatehubOnOffRampClientID      string
-	GatehubOnboardingClientID     string
-	GatehubExchangeClientID       string
-	GatehubAPIBaseURL             string
-	GatehubOnboardingBaseURL      string
-	GatehubOnOffRampBaseURL       string
-	GatehubEUROpsAccount          string
-	GatehubEUROpsLedgerID         uint32
-	GatehubOrganizationID         string
-	XagoAPIBaseURL                string
-	XagoIdentityBaseURL           string
-	XagoPublicKey                 string
-	XagoSecret                    string
-	XagoPolicyID                  string
-	PTIEnabled                    bool
-	PTIBaseURL                    string
-	PTIJWK                        string
-	PTIClientID                   string
-	PTIPublicKeyJWK               string
+	Port                           string
+	AuthorisationPort              string
+	DbConnectionString             string
+	PacioliDBConString             string
+	KratosUrl                      string
+	KratosAdminUrl                 string
+	LogLevel                       string
+	LogOutputPath                  string
+	TemporalUrl                    string
+	TwilioSid                      string
+	TwilioSecret                   string
+	TwilioServiceSid               string
+	ZendeskUser                    string
+	ZendeskToken                   string
+	AdminPolicyAud                 string
+	AdminTeamDomain                string
+	SendgridAPIKey                 string
+	SmartyAuthID                   string
+	SmartyAuthToken                string
+	PusherAddr                     string
+	SegmentKey                     string
+	TwitterClientID                string
+	TwitterClientSecret            string
+	TwitterRedirectURL             string
+	TwitterBearerToken             string
+	DiscordClientID                string
+	DiscordClientSecret            string
+	DiscordRedirectURL             string
+	GatehubAppID                   string
+	GatehubSecret                  string
+	GatehubCardAppID               string
+	GatehubGatewayID               string
+	GatehubCardAccountProductCode  string
+	GatehubPaywiserEuroVaultID     string
+	GatehubSendingUserID           string
+	GatehubSendingUserAddress      string
+	GatehubIntermediaryUserID      string
+	GatehubIntermediaryUserAddress string
+	GatehubWebhookSecret           string
+	GatehubFallbackWebhookURL      string
+	GatehubOnOffRampClientID       string
+	GatehubOnboardingClientID      string
+	GatehubExchangeClientID        string
+	GatehubAPIBaseURL              string
+	GatehubOnboardingBaseURL       string
+	GatehubOnOffRampBaseURL        string
+	GatehubEUROpsAccount           string
+	GatehubEUROpsLedgerID          uint32
+	GatehubOrganizationID          string
+	XagoAPIBaseURL                 string
+	XagoIdentityBaseURL            string
+	XagoPublicKey                  string
+	XagoSecret                     string
+	XagoPolicyID                   string
+	PTIEnabled                     bool
+	PTIBaseURL                     string
+	PTIJWK                         string
+	PTIClientID                    string
+	PTIPublicKeyJWK                string
 }
 
 func ParseStartArgs() (*StartArgs, error) {
@@ -294,6 +296,15 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, errors.New("GATEHUB_SENDING_USER_ADDRESS is required in production")
 	}
 
+	gatehubIntermediaryUserID := os.Getenv("GATEHUB_INTERMEDIARY_USER_ID")
+	gatehubIntermediaryUserAddress := os.Getenv("GATEHUB_INTERMEDIARY_USER_ADDRESS")
+	if gatehubIntermediaryUserID == "" && env.IsProd() {
+		return nil, errors.New("GATEHUB_INTERMEDIARY_USER_ID is required in production")
+	}
+	if gatehubIntermediaryUserAddress == "" && env.IsProd() {
+		return nil, errors.New("GATEHUB_INTERMEDIARY_USER_ADDRESS is required in production")
+	}
+
 	gatehubWebhookSecret := os.Getenv("GATEHUB_WEBHOOK_SECRET")
 	// Webhook secret is optional but log if missing
 
@@ -395,62 +406,64 @@ func ParseStartArgs() (*StartArgs, error) {
 	}
 
 	return &StartArgs{
-		Port:                          port,
-		AuthorisationPort:             authorisationPort,
-		DbConnectionString:            dbUrl,
-		PacioliDBConString:            pacDB,
-		KratosUrl:                     kratosUrl,
-		KratosAdminUrl:                kratosAdminUrl,
-		LogLevel:                      logLevel,
-		LogOutputPath:                 logOutputPath,
-		TemporalUrl:                   temporalUrl,
-		TwilioSid:                     TwilioSid,
-		TwilioSecret:                  TwilioSecret,
-		TwilioServiceSid:              twilioServiceSid,
-		ZendeskUser:                   zendeskUser,
-		ZendeskToken:                  zendeskToken,
-		TwitterClientID:               twitterClientId,
-		TwitterClientSecret:           twitterClientSecret,
-		TwitterRedirectURL:            twitterRedirectURL,
-		TwitterBearerToken:            twitterBearerToken,
-		AdminPolicyAud:                adminPolicyAud,
-		AdminTeamDomain:               adminTeamDomain,
-		SendgridAPIKey:                sendgridAPIKey,
-		SmartyAuthID:                  smartyAuthID,
-		SmartyAuthToken:               smartyAuthToken,
-		PusherAddr:                    pusherAddr,
-		SegmentKey:                    segmentKey,
-		DiscordClientID:               "",
-		DiscordClientSecret:           "",
-		DiscordRedirectURL:            "",
-		GatehubAppID:                  gatehubAppID,
-		GatehubSecret:                 gatehubSecret,
-		GatehubCardAppID:              gatehubCardAppID,
-		GatehubGatewayID:              gatehubGatewayID,
-		GatehubCardAccountProductCode: gatehubCardAccountProductCode,
-		GatehubPaywiserEuroVaultID:    gatehubPaywiserEuroVaultID,
-		GatehubSendingUserID:          gatehubSendingUserID,
-		GatehubSendingUserAddress:     gatehubSendingUserAddress,
-		GatehubWebhookSecret:          gatehubWebhookSecret,
-		GatehubFallbackWebhookURL:     gatehubFallbackWebhookURL,
-		GatehubOnOffRampClientID:      gatehubOnOffRampClientID,
-		GatehubOnboardingClientID:     gatehubOnboardingClientID,
-		GatehubExchangeClientID:       gatehubExchangeClientID,
-		GatehubAPIBaseURL:             gatehubAPIBaseURL,
-		GatehubOnboardingBaseURL:      gatehubOnboardingBaseURL,
-		GatehubOnOffRampBaseURL:       gatehubOnOffRampBaseURL,
-		GatehubEUROpsAccount:          gatehubEUROpsAccount,
-		GatehubEUROpsLedgerID:         gatehubEUROpsLedgerID,
-		GatehubOrganizationID:         gatehubOrganizationID,
-		XagoAPIBaseURL:                xagoAPIBaseURL,
-		XagoIdentityBaseURL:           xagoIdentityBaseURL,
-		XagoPublicKey:                 xagoPublicKey,
-		XagoSecret:                    xagoSecret,
-		XagoPolicyID:                  xagoPolicyID,
-		PTIEnabled:                    ptiEnabled,
-		PTIBaseURL:                    ptiBaseURL,
-		PTIJWK:                        ptiJWK,
-		PTIClientID:                   ptiClientID,
-		PTIPublicKeyJWK:               ptiPublicKeyJWK,
+		Port:                           port,
+		AuthorisationPort:              authorisationPort,
+		DbConnectionString:             dbUrl,
+		PacioliDBConString:             pacDB,
+		KratosUrl:                      kratosUrl,
+		KratosAdminUrl:                 kratosAdminUrl,
+		LogLevel:                       logLevel,
+		LogOutputPath:                  logOutputPath,
+		TemporalUrl:                    temporalUrl,
+		TwilioSid:                      TwilioSid,
+		TwilioSecret:                   TwilioSecret,
+		TwilioServiceSid:               twilioServiceSid,
+		ZendeskUser:                    zendeskUser,
+		ZendeskToken:                   zendeskToken,
+		TwitterClientID:                twitterClientId,
+		TwitterClientSecret:            twitterClientSecret,
+		TwitterRedirectURL:             twitterRedirectURL,
+		TwitterBearerToken:             twitterBearerToken,
+		AdminPolicyAud:                 adminPolicyAud,
+		AdminTeamDomain:                adminTeamDomain,
+		SendgridAPIKey:                 sendgridAPIKey,
+		SmartyAuthID:                   smartyAuthID,
+		SmartyAuthToken:                smartyAuthToken,
+		PusherAddr:                     pusherAddr,
+		SegmentKey:                     segmentKey,
+		DiscordClientID:                "",
+		DiscordClientSecret:            "",
+		DiscordRedirectURL:             "",
+		GatehubAppID:                   gatehubAppID,
+		GatehubSecret:                  gatehubSecret,
+		GatehubCardAppID:               gatehubCardAppID,
+		GatehubGatewayID:               gatehubGatewayID,
+		GatehubCardAccountProductCode:  gatehubCardAccountProductCode,
+		GatehubPaywiserEuroVaultID:     gatehubPaywiserEuroVaultID,
+		GatehubSendingUserID:           gatehubSendingUserID,
+		GatehubSendingUserAddress:      gatehubSendingUserAddress,
+		GatehubIntermediaryUserID:      gatehubIntermediaryUserID,
+		GatehubIntermediaryUserAddress: gatehubIntermediaryUserAddress,
+		GatehubWebhookSecret:           gatehubWebhookSecret,
+		GatehubFallbackWebhookURL:      gatehubFallbackWebhookURL,
+		GatehubOnOffRampClientID:       gatehubOnOffRampClientID,
+		GatehubOnboardingClientID:      gatehubOnboardingClientID,
+		GatehubExchangeClientID:        gatehubExchangeClientID,
+		GatehubAPIBaseURL:              gatehubAPIBaseURL,
+		GatehubOnboardingBaseURL:       gatehubOnboardingBaseURL,
+		GatehubOnOffRampBaseURL:        gatehubOnOffRampBaseURL,
+		GatehubEUROpsAccount:           gatehubEUROpsAccount,
+		GatehubEUROpsLedgerID:          gatehubEUROpsLedgerID,
+		GatehubOrganizationID:          gatehubOrganizationID,
+		XagoAPIBaseURL:                 xagoAPIBaseURL,
+		XagoIdentityBaseURL:            xagoIdentityBaseURL,
+		XagoPublicKey:                  xagoPublicKey,
+		XagoSecret:                     xagoSecret,
+		XagoPolicyID:                   xagoPolicyID,
+		PTIEnabled:                     ptiEnabled,
+		PTIBaseURL:                     ptiBaseURL,
+		PTIJWK:                         ptiJWK,
+		PTIClientID:                    ptiClientID,
+		PTIPublicKeyJWK:                ptiPublicKeyJWK,
 	}, nil
 }

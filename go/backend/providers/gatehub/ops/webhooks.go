@@ -165,7 +165,8 @@ func NewWebhook(b Backends, cfg gatehub.Config) http.HandlerFunc {
 			return
 		}
 
-		isIntermediary := cfg.SendingUserID != "" && wh.UserID == cfg.SendingUserID
+		intermediaryUserID := cfg.IntermediaryUserID
+		isIntermediary := intermediaryUserID != "" && wh.UserID == intermediaryUserID
 
 		if _, err := getWalletID(r.Context(), b, wh.UserID); err != nil && !isIntermediary {
 			log.Info("Wallet not found for Gatehub user; attempting cards fallback",
