@@ -9,6 +9,7 @@
 - [Wallets vs Accounts](wallets-accounts-addresses-guide.md) — Wallet activation architecture
 - [Payments Guide](payments-guide.md) — How KYC and wallet setup enable transactions
 - [Logging Policy](logging-reference.md) — What information can be safely logged during signup
+- [Environment Variables](env-variables.md) — Signup/auth runtime configuration (Kratos, Twilio, and related settings)
 
 **Quick Navigation:**
 

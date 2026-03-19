@@ -1,5 +1,22 @@
 # Environment Variables Reference
 
+> **Configuration reference.** Central source for runtime environment variables, secret classification, and per-environment values.
+
+**Related documents:**
+
+- [Home](index.md) - Full documentation map and topic index
+- [Logging Reference](logging-reference.md) - Log configuration and structured logging policy
+- [Signup Explainer](signup-guide.md) - Signup flow and auth-related runtime dependencies
+- [KYC Explainer](kyc-guide.md) - Provider verification flows and integration dependencies
+- [Provider Payments Guide](provider-payments-reference.md) - Provider behavior and configuration differences
+- [GateHub Cards](gatehub-cards-guide.md) - GateHub integration configuration and card-specific secrets
+
+**Quick Navigation:**
+
+- **Need to compare service-level variables?** -> See [Protea (Frontend)](#protea-frontend), [Botanist (Admin Portal)](#botanist-admin-portal), and [Backend (Wallet)](#backend-wallet)
+- **Reviewing PR config changes?** -> See [Reviewing Environment Variable Changes](#reviewing-environment-variable-changes)
+- **Need legacy variable context?** -> See [Legacy Variables](#legacy-variables)
+
 This document covers all environment variables for the three deployed application services:
 
 - **Protea** — user-facing frontend (`typescript/protea`)
@@ -30,7 +47,6 @@ Protea is a Remix application serving the user-facing wallet UI.
 | `RAFIKI_AUTH_ENDPOINT` | Internal URL for the Rafiki auth gRPC/GraphQL endpoint | No | `http://rafiki-auth-service:3009` | `http://rafiki-auth-service:3009` | `http://rafiki-auth-service:3009` | `http://rafiki_auth:3009` |
 | `PAYMENT_POINTER_BASE` | Domain used to build Open Payments payment pointer addresses | No | `ilp.link` | `sandbox.ilp.link` | `development.ilp.link` | `local.ilp.link` |
 | `BACKEND_GRPC_URL` | Internal URL for the wallet backend gRPC server | No | `http://wallet-backend-service-grpc:8443` | `http://wallet-backend-service-grpc:8443` | `http://wallet-backend-service-grpc:8443` | `http://backend:8443` |
-| `GATE_SIGNUP` | When `true`, new user registrations are gated/disabled | No | TODO | TODO | TODO | `false` |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | OpenTelemetry collector endpoint for traces | No | `grpc://api.honeycomb.io:443` | `grpc://api.honeycomb.io:443` | `grpc://api.honeycomb.io:443` | `grpc://api.honeycomb.io:443` |
 | `OTEL_SERVICE_NAME` | Service name reported in OpenTelemetry traces | No | `protea` | `protea` | `protea` | `protea` |
 | `DEFAULT_RATE_LIMIT_REQUESTS` | Max requests allowed per time window before rate limiting kicks in | No | TODO | TODO | TODO | `4` (code default) |
@@ -50,7 +66,7 @@ Protea is a Remix application serving the user-facing wallet UI.
 | `REDIS_URL` | Redis connection URL used for session storage and caching | **Yes** | SECRET | SECRET | SECRET | `redis://redis:6379/2` |
 | `SENTRY_DSN` | Sentry DSN for client-side and server-side error reporting | **Yes** | SECRET | SECRET | SECRET | `(not set)` |
 | `SEGMENT_API_KEY` | Segment analytics write key for event tracking | **Yes** | SECRET | SECRET | SECRET | `(not set)` |
-| `BT_TOKEN` | Basis Theory token for card tokenisation flows in the frontend | **Yes** | SECRET | SECRET | SECRET | `(not set)` |
+| `GOOGLE_MAPS_API_KEY` | Google Maps API key for geocoding and places autocomplete endpoints used during onboarding | **Yes** | SECRET | SECRET | SECRET | `(not set)` |
 | `OTEL_EXPORTER_OTLP_HEADERS` | Auth headers for the OTLP endpoint (e.g. `x-honeycomb-team=<key>`) | **Yes** | SECRET | SECRET | SECRET | `(not set)` |
 
 ### Legacy Variables
@@ -58,9 +74,10 @@ Protea is a Remix application serving the user-facing wallet UI.
 | Variable | Description | Secret? | Notes |
 |---|---|---|---|
 | `DATO_API_TOKEN` | DatoCMS API token used by legacy CMS content loading paths | **Yes** | Keep documented, no environment value guidance |
+| `BT_TOKEN` | Basis Theory token for legacy frontend card tokenisation integration paths | **Yes** | Legacy variable in local compose; not used in current Protea app code |
 | `CF_TURNSTILE_SITE_KEY` | Cloudflare Turnstile site key used in legacy bot-protection integration | **Yes** | Keep documented, no environment value guidance |
 | `CF_TURNSTILE_SECRET_KEY` | Cloudflare Turnstile secret key used in legacy server verification | **Yes** | Keep documented, no environment value guidance |
-| `GOOGLE_MAPS_API_KEY` | Google Maps API key used in legacy geocode/autocomplete endpoints | **Yes** | Keep documented, no environment value guidance |
+| `GATE_SIGNUP` | Signup gating feature flag from older frontend config wiring | No | Legacy variable in local compose; not used in current Protea app code |
 
 ---
 
