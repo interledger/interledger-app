@@ -270,6 +270,7 @@ PTI is a US-focused payment provider currently disabled except in production.
 | `PTI_CLIENT_ID` | PTI client UUID for API and webhook validation | **Yes** | SECRET | SECRET | SECRET | `04d3e1b5-96d4-47e4-9eaa-13e9b4b0f219` |
 | `PTI_JWK` | PTI private RSA JWK used for request signing and webhook crypto | **Yes** | SECRET | SECRET | SECRET | *(test RSA key in local compose)* |
 | `PTI_PUBLIC_KEY_JWK` | PTI public RSA JWK used for webhook signature verification | **Yes** | SECRET | SECRET | SECRET | *(test RSA public key in local compose)* |
+| `FYNBOS_BACKEND_HOST` | Host used by the PTI mock webhook proxy (`/webhooks/pti`) when forwarding requests to the wallet backend | No | `(not set)` | `(not set)` | `(not set)` | `(not set)` |
 
 ### Legacy Variables
 
@@ -286,6 +287,12 @@ PTI is a US-focused payment provider currently disabled except in production.
 | `TWITTER_CLIENT_SECRET` | Twitter/X OAuth client secret used by legacy social login integration | No | Keep documented, no environment value guidance |
 | `TWITTER_BEARER_TOKEN` | Twitter/X API bearer token used by legacy integration paths | No | Keep documented, no environment value guidance |
 | `TWITTER_REDIRECT_URL` | Twitter/X OAuth redirect URL used by legacy callback handling | No | Keep documented, no environment value guidance |
+| `RAFIKI_GRAPHQL_URL` | Legacy Rafiki GraphQL URL alias from older local compose manifests | No | Historic YAML-only variable; should not be used for active configuration |
+| `XAGO_USD_OPS_ACCOUNT` | Legacy Xago USD operations account UUID from older local compose manifests | No | Historic YAML-only variable; should not be used for active configuration |
+| `XAGO_ZAR_OPS_ACCOUNT` | Legacy Xago ZAR operations account UUID from older local compose manifests | No | Historic YAML-only variable; should not be used for active configuration |
+| `XAGO_LEDGER_ID_ZAR` | Legacy Xago ZAR ledger ID from older local compose manifests | No | Historic YAML-only variable; should not be used for active configuration |
+| `XAGO_LEDGER_ID_USD` | Legacy Xago USD ledger ID from older local compose manifests | No | Historic YAML-only variable; should not be used for active configuration |
+| `XAGO_WEBHOOK_SECRET` | Legacy Xago webhook secret placeholder from older local compose manifests | **Yes** | Historic YAML-only variable; should not be used for active configuration |
 
 > **Discord:** No Discord-related environment variables are currently present in the active service configuration.
 
