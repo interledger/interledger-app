@@ -3,20 +3,17 @@ import { data, redirect } from 'react-router';
 import { useFetcher, useLoaderData } from 'react-router';
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts, TextField } from '~/components'
-import { error } from '~/lib/error.server'
 import {
   KRATOS_URL,
   getCsrfTokenFromFlow,
   handleFlowError,
   requireNoUserSession
 } from '~/lib/kratos.server'
+import { isBFFApiError } from '~/lib/bff-error'
 import { fromKratosResponse, sendBffError } from '~/lib/error-mapper.server'
+import { error } from '~/lib/error.server'
 import { mergeMeta } from '~/lib/meta'
 import { RateLimitKeys, getKey, rateLimit } from '~/lib/rateLimit.server'
-
-type ActionResponse =
-  | { success: true }
-  | { errors: { form: string; email: string } }
 
 export async function loader({ request }: Route.LoaderArgs) {
   await requireNoUserSession(request)
@@ -71,13 +68,16 @@ export const meta = mergeMeta(() => [
 
 export default function Page() {
   const { flow, csrfToken } = useLoaderData()
-  const fetcher = useFetcher<ActionResponse>()
+  const fetcher = useFetcher<typeof action>()
 
   const isSubmitting = fetcher.state !== 'idle'
   const isSuccess =
     fetcher.data && 'success' in fetcher.data && fetcher.data.success
-  const errors =
-    fetcher.data && 'errors' in fetcher.data ? fetcher.data.errors : undefined
+  const bffError = isBFFApiError(fetcher.data) ? fetcher.data : undefined
+  const rateLimitErrors =
+    !bffError && fetcher.data && 'errors' in fetcher.data
+      ? (fetcher.data as { errors: { form: string; email: string } }).errors
+      : undefined
 
   return (
     <>
@@ -107,16 +107,16 @@ export default function Page() {
           name='email'
           type='email'
           className='mt-2'
-          aria-invalid={Boolean(errors?.email) || undefined}
-          aria-describedby={errors?.email ? 'email-error' : undefined}
+          aria-invalid={Boolean(bffError?.formErrors?.email) || undefined}
+          aria-describedby={bffError?.formErrors?.email ? 'email-error' : undefined}
           required
-          errorMessage={errors?.email}
+          errorMessage={bffError?.formErrors?.email}
         />
       </Card>
       <Button
         form='recovery'
         type='submit'
-        disabled={isSubmitting || isSuccess}
+        disabled={isSubmitting || Boolean(isSuccess)}
       >
         {isSubmitting ? 'Sending...' : 'Recover account'}
       </Button>
@@ -125,7 +125,12 @@ export default function Page() {
           Recovery email sent successfully.
         </p>
       )}
-      {errors?.form && <p className='mt-2 text-sm text-error'>{errors.form}</p>}
+      {bffError?.message && (
+        <p className='mt-2 text-sm text-error'>{bffError.message}</p>
+      )}
+      {rateLimitErrors?.form && (
+        <p className='mt-2 text-sm text-error'>{rateLimitErrors.form}</p>
+      )}
     </>
   )
 }

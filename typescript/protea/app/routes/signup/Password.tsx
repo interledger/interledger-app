@@ -16,7 +16,6 @@ import { passwordAction } from './route.server';
 
 export function Password() {
   const passwordFetcher = useFetcher<typeof passwordAction>()
-  const errors = passwordFetcher.data?.errors
   const { kratosFlowId, kratosCsrfToken, csrfToken } =
     useLoaderData<typeof loader>()
 
@@ -24,24 +23,15 @@ export function Password() {
   const [serviceAgreement, setServiceAgreement] = useState(false)
 
   useEffect(() => {
-    if (errors?.form) {
+    if (passwordFetcher.data?.message) {
       pushSnackbar({
-        id: errors?.form,
-        message: errors?.form,
+        id: passwordFetcher.data.message,
+        message: passwordFetcher.data.message,
         icon: 'close',
         canShow: true
       })
     }
-
-    if (errors?.phone) {
-      pushSnackbar({
-        id: errors?.phone,
-        message: errors?.phone,
-        icon: 'close',
-        canShow: true
-      })
-    }
-  }, [errors, pushSnackbar])
+  }, [passwordFetcher.data, pushSnackbar])
 
   const [firstName, lastName, email, country, id, phone] = useSignupStore(
     (state) => [
@@ -123,16 +113,16 @@ export function Password() {
           type='password'
           className='mt-2'
           aria-invalid={
-            Boolean(passwordFetcher.data?.errors?.password) || undefined
+            Boolean(passwordFetcher.data?.formErrors?.password) || undefined
           }
           aria-describedby={
-            passwordFetcher.data?.errors?.password
+            passwordFetcher.data?.formErrors?.password
               ? 'password-error'
               : undefined
           }
           data-testid='signup-password'
           required
-          errorMessage={passwordFetcher.data?.errors?.password}
+          errorMessage={passwordFetcher.data?.formErrors?.password}
         />
         <TextField
           id='confirm-password'
@@ -154,16 +144,16 @@ export function Password() {
             onChange={(e) => setServiceAgreement(e.target.checked)}
             className='flex'
             aria-invalid={
-              Boolean(passwordFetcher.data?.errors?.serviceAgreement) ||
+              Boolean(passwordFetcher.data?.formErrors?.serviceAgreement) ||
               undefined
             }
             aria-describedby={
-              passwordFetcher.data?.errors?.serviceAgreement
+              passwordFetcher.data?.formErrors?.serviceAgreement
                 ? 'serviceAgreement-error'
                 : undefined
             }
             data-testid='signup-terms-checkbox'
-            errorMessage={passwordFetcher.data?.errors?.serviceAgreement}
+            errorMessage={passwordFetcher.data?.formErrors?.serviceAgreement}
           >
             I agree to the Interledger Wallet&nbsp;
             <Router className='text-primary' to='/legal/privacy-policy'>

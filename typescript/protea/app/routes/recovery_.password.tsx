@@ -5,7 +5,6 @@ import { useEffect, useState } from 'react'
 import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts, TextField } from '~/components'
-import { error } from '~/lib/error.server'
 import { trimHeaders } from '~/lib/headers.server'
 import {
   KRATOS_URL,
@@ -119,12 +118,12 @@ export default function Page() {
           name='new-password'
           type='password'
           className='mt-2'
-          aria-invalid={Boolean(actionData?.errors?.password) || undefined}
+          aria-invalid={Boolean(actionData?.formErrors?.password) || undefined}
           aria-describedby={
-            actionData?.errors?.password ? 'password-error' : undefined
+            actionData?.formErrors?.password ? 'password-error' : undefined
           }
           required
-          errorMessage={actionData?.errors?.password}
+          errorMessage={actionData?.formErrors?.password}
         />
         <TextField
           id='confirm-new-password'
@@ -159,14 +158,8 @@ export async function action({ request }: Route.ActionArgs) {
   const password = form.get('new-password') as string
   const confirmPassword = form.get('confirm-new-password') as string
 
-  const fieldErrors = {
-    form: '',
-    password: ''
-  }
-
   if (password !== confirmPassword) {
-    fieldErrors.password = 'Passwords do not match'
-    return error(request, { errors: fieldErrors })
+    return sendBffError({ message: 'Passwords do not match', formErrors: { password: 'Passwords do not match' }, status: 400 })
   }
 
   const res = await fetch(

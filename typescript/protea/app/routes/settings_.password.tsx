@@ -97,12 +97,12 @@ export default function Page() {
           name='new-password'
           type='password'
           className='mt-2'
-          aria-invalid={Boolean(actionData?.errors?.password) || undefined}
+          aria-invalid={Boolean(actionData?.formErrors?.password) || undefined}
           aria-describedby={
-            actionData?.errors?.password ? 'password-error' : undefined
+            actionData?.formErrors?.password ? 'password-error' : undefined
           }
           required
-          errorMessage={actionData?.errors?.password}
+          errorMessage={actionData?.formErrors?.password}
         />
       </Card>
       <Button form='settings-password' type='submit'>
@@ -121,10 +121,6 @@ export async function action({ request }: Route.ActionArgs) {
   const csrfToken = form.get('csrf_token') as string
   const password = form.get('new-password') as string
 
-  const fieldErrors = {
-    form: '',
-    password: ''
-  }
   const res = await fetch(
     `${KRATOS_URL}/self-service/settings?flow=${flowId}`,
     {

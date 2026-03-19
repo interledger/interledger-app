@@ -4,7 +4,7 @@ import { data as rrData, redirect } from 'react-router';
 import { Code } from '@bufbuild/connect'
 import type { SuccessfulSelfServiceRegistrationWithoutBrowser } from '@ory/kratos-client'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
-import { error, isConnectError } from '~/lib/error.server'
+import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { trimHeaders } from '~/lib/headers.server'
 import logger from '~/lib/logger.server'
@@ -218,21 +218,12 @@ export async function passwordAction({ request }: ActionFunctionArgs) {
 
   await validateCSRFToken(request, form)
 
-  const errors = {
-    form: '',
-    serviceAgreement: '',
-    password: '',
-    phone: ''
-  }
-
   if (serviceAgreement == null) {
-    errors.serviceAgreement = 'You are required to agree to continue.'
-    return error(request, { errors })
+    return sendBffError({ message: 'You are required to agree to continue.', formErrors: { serviceAgreement: 'You are required to agree to continue.' }, status: 400 })
   }
 
   if (password !== confirmPassword) {
-    errors.password = 'Passwords do not match.'
-    return error(request, { errors })
+    return sendBffError({ message: 'Passwords do not match.', formErrors: { password: 'Passwords do not match.' }, status: 400 })
   }
 
   const kratosRequestPayload = {

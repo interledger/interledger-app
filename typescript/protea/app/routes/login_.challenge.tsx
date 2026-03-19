@@ -105,12 +105,12 @@ export default function Page() {
           name='password'
           type='password'
           className='mt-2'
-          aria-invalid={Boolean(actionData?.errors?.password) || undefined}
+          aria-invalid={Boolean(actionData?.formErrors?.password) || undefined}
           aria-describedby={
-            actionData?.errors?.password ? 'password-error' : undefined
+            actionData?.formErrors?.password ? 'password-error' : undefined
           }
           required
-          errorMessage={actionData?.errors?.password}
+          errorMessage={actionData?.formErrors?.password}
         />
       </Card>
       <Button form='login-challenge' type='submit'>
