@@ -172,23 +172,23 @@ func RafikiOutgoingPaymentCreatedWorkflow(ctx workflow.Context, op outgoingPayme
 		}
 	}()
 
-	var validationResult ValidationResult
-	err := workflow.ExecuteActivity(ctx, a.ValidateOutgoingPayment, op).Get(ctx, &validationResult)
-	if err != nil {
-		logger.Error("failed to validate outgoing payment", "paymentId", op.ID, "err", err)
-		cancelReason = "validation error"
-		return err
-	}
+	// var validationResult ValidationResult
+	// err := workflow.ExecuteActivity(ctx, a.ValidateOutgoingPayment, op).Get(ctx, &validationResult)
+	// if err != nil {
+	// 	logger.Error("failed to validate outgoing payment", "paymentId", op.ID, "err", err)
+	// 	cancelReason = "validation error"
+	// 	return err
+	// }
 
-	if !validationResult.Valid {
-		logger.Warn("outgoing payment invalid, cancelling",
-			"paymentId", op.ID,
-			"reason", validationResult.Reason)
-		cancelReason = validationResult.Reason
-		// Don't treat this as a workflow error, just cancel the payment
-		return nil
-	}
-
+	// if !validationResult.Valid {
+	// 	logger.Warn("outgoing payment invalid, cancelling",
+	// 		"paymentId", op.ID,
+	// 		"reason", validationResult.Reason)
+	// 	cancelReason = validationResult.Reason
+	// 	// Don't treat this as a workflow error, just cancel the payment
+	// 	return nil
+	// }
+	var err error
 	var gatehubTxID string
 	err = workflow.ExecuteActivity(ctx, a.TransferFromUserToIntermediary, op.WalletAddressID, op.DebitAmount).Get(ctx, &gatehubTxID)
 	if err != nil {
