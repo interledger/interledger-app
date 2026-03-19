@@ -1,53 +1,112 @@
 import type {
   ActionFunctionArgs,
   LoaderFunctionArgs,
-  MetaFunction
+  MetaFunction,
+  SerializeFrom
 } from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
-import { useLoaderData } from '@remix-run/react'
-import { route } from 'routes-gen'
-import type { ApplicationProps } from '~/components'
-import { Layouts } from '~/components'
+import { z } from 'zod'
 import { mergeMeta } from '~/lib/meta'
+import { getSession, commitSession } from '~/session.server'
+import { Form, useActionData, useRouteLoaderData } from '@remix-run/react'
+import { type ApplicationProps, Layouts, WalletGrid, GridColumn, TextField, Button } from '~/components'
+import { createError, getValidWalletAddress, walletSchema } from '~/lib/utils'
+import { json, redirect } from '@remix-run/node'
+import { getUserSession } from '~/lib/kratos.server'
+import type { loader as rootLoader } from '~/root'
+import { type ActionData } from "~/lib/types"
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const url = new URL(request.url)
-  console.log({ url })
-  const features = null
+  let isLoggedIn
 
+  try {
+    await getUserSession(request)
+    isLoggedIn = true
+
+  } catch (err) {
+    isLoggedIn = false
+  }
   return json({
-    features
+    isLoggedIn
   })
 }
 
 export const handle: ApplicationProps = {
-  layout: Layouts.Focus,
+  layout: (match) =>
+    match.data?.isLoggedIn ? Layouts.Wallet : Layouts.Marketing,
   scaffold: {
     header: { title: 'Interledger Pay' }
   }
 }
 
 export const meta: MetaFunction = mergeMeta(() => [
-  {
-    title: 'Interledger Pay'
-  }
+  { title: 'Interledger Pay' }
 ])
 
 export default function Page() {
-  const { features } = useLoaderData<typeof loader>()
+  const actionData = useActionData<ActionData>()
+  const { walletAddress } = useRouteLoaderData("root") as SerializeFrom<
+    typeof rootLoader
+  >
 
   return (
-    <>
-      <p>{features}</p>
-    </>
+    <WalletGrid>
+      <GridColumn className="col-span-full mt-20 mx-auto">
+        <div className="text-3xl">Pay anyone, anywhere in the world.</div>
+
+        <Form method="POST" id="ilpay-form" className="mt-16 max-w-96">
+          <TextField
+            type="text"
+            label="Enter your wallet address"
+            placeholder="Wallet address"
+            name="walletAddress"
+            autoFocus
+            value={walletAddress || ""}
+            errorMessage={String(actionData?.errors?.walletAddress || '')}
+          />
+
+          <Button
+            form="ilpay-form"
+            type="submit"
+            name="intent"
+            className="max-w-xs mt-12 mx-auto"
+          >
+            Pay now
+          </Button>
+        </Form>
+      </GridColumn>
+    </WalletGrid>
   )
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const form = await request.formData()
-  const type = form.get('type') as string
+  const session = await getSession(request.headers.get('Cookie'))
+  const formData = Object.fromEntries(await request.formData())
+  const result = walletSchema.safeParse(formData)
 
-  console.log(type)
+  if (!result.success) {
+    const errors = z.treeifyError(result.error).properties
+    return json({
+      errors
+    })
+  }
+  const walletAddress = String(formData?.walletAddress)
 
-  return null
+  session.set('quickPay', {
+    walletAddress: walletAddress
+  })
+
+  try {
+    const validWalletAddress = await getValidWalletAddress(walletAddress)
+    session.set('quickPay', {
+      validWalletAddress: validWalletAddress
+    })
+
+  } catch (err) {
+    console.log({ err })
+    return json({ errors: createError("walletAddress", "Your wallet address is not valid.") })
+  }
+
+  return redirect('/quick-pay/amount', {
+    headers: { 'Set-Cookie': await commitSession(session) }
+  })
 }
