@@ -1,20 +1,22 @@
 import type { Route } from './+types/recovery_.password'
-import { data, redirect } from 'react-router';
-import { Form, useActionData, useLoaderData, useRevalidator } from 'react-router';
+import { data, redirect, href } from 'react-router'
+import {
+  Form,
+  useActionData,
+  useLoaderData,
+  useRevalidator
+} from 'react-router'
 import { useEffect, useState } from 'react'
-import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts, TextField } from '~/components'
 import { error } from '~/lib/error.server'
-import { trimHeaders } from '~/lib/headers.server'
-import {
-  KRATOS_URL,
-  getCsrfTokenFromFlow,
-  handleFlowError,
-  hasUserSession,
-  kratosErrorMapping
-} from '~/lib/kratos.server'
+import { kratosPublic, CLEAR_SESSION_COOKIE_HEADER } from '~/lib/kratos/kratos-client.server'
+import { getCookie, withCookie, buildHeadersWithCookies } from '~/lib/kratos/cookie.server'
+import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.server'
+import { handleFlowError, mapFlowToFieldErrors } from '~/lib/kratos/error.server'
+import { hasUserSession } from '~/lib/kratos/session.server'
 import { mergeMeta } from '~/lib/meta'
+import { safeReturnTo } from '~/lib/url.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 
 export const handle: ApplicationProps = {
@@ -35,47 +37,43 @@ export const meta = mergeMeta(() => [
 export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
-  const cookie = String(request.headers.get('cookie'))
+  const cookie = getCookie(request)
   const isUser = hasUserSession(request)
 
   if (!isUser) {
     return data({ flowId: '', csrfToken: '' })
   }
 
-  let flow
   if (flowId) {
-    // If ?flow=.. was in the URL, we fetch it
-    const flowRes = await fetch(
-      `${KRATOS_URL}/self-service/settings/flows?id=${flowId}`,
-      {
-        headers: {
-          cookie: cookie,
-          Accept: 'application/json'
-        }
-      }
-    )
-    flow = await flowRes.json()
-    if (flowRes.status >= 400) handleFlowError(flow, 'recovery/password', flowId)
-  } else {
-    // Otherwise we initialize it
-    const flowRes = await fetch(
-      `${KRATOS_URL}/self-service/settings/browser?${url.searchParams}`,
-      { headers: { cookie: cookie, Accept: 'application/json' } }
-    )
-    flow = await flowRes.json()
-
-    if (flow.error?.id === 'session_aal2_required') {
-      const redirectURL = `/totp/challenge?returnTo=/recovery/password${flow.id ? encodeURIComponent(`?flow=${flow.id}`) : ''
-        }`
-      return redirect(redirectURL)
+    try {
+      const { data: flow } = await kratosPublic.getSettingsFlow(
+        { id: flowId },
+        withCookie(cookie)
+      )
+      return data({ flowId: flow.id, csrfToken: getCsrfTokenFromFlow(flow) })
+    } catch (err: any) {
+      handleFlowError(err, 'recovery/password')
+      throw err
     }
-
-    if (flowRes.status >= 400) handleFlowError(flow, 'recovery/password', flow.id)
-    return redirect(`/recovery/password?flow=${flow.id}`, {
-      headers: trimHeaders(flowRes.headers, ['set-cookie'])
-    })
   }
-  return data({ flowId: flow.id, csrfToken: getCsrfTokenFromFlow(flow) })
+
+  // Initialize new settings flow
+  try {
+    const response = await kratosPublic.createBrowserSettingsFlow(
+      { returnTo: safeReturnTo(url.searchParams.get('returnTo')) },
+      withCookie(cookie)
+    )
+    return redirect(`/recovery/password?flow=${response.data.id}`, {
+      headers: buildHeadersWithCookies(response)
+    })
+  } catch (err: any) {
+    const flowData = err.response?.data
+    if (flowData?.error?.id === 'session_aal2_required') {
+      return redirect('/totp/challenge?returnTo=/recovery/password')
+    }
+    handleFlowError(err, 'recovery/password')
+    throw err
+  }
 }
 
 export default function Page() {
@@ -150,9 +148,10 @@ export default function Page() {
 }
 
 export async function action({ request }: Route.ActionArgs) {
-  const cookie = request.headers.get('Cookie') as string
+  const cookie = getCookie(request)
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
+  if (!flowId) return redirect('/recovery/password')
 
   const form = await request.formData()
   const csrfToken = form.get('csrf_token') as string
@@ -169,44 +168,41 @@ export async function action({ request }: Route.ActionArgs) {
     return error(request, { errors: fieldErrors })
   }
 
-  const res = await fetch(
-    `${KRATOS_URL}/self-service/settings?flow=${flowId}`,
-    {
-      method: 'POST',
-      body: JSON.stringify({
-        method: 'password',
-        password: password,
-        csrf_token: csrfToken
-      }),
-      headers: {
-        'Content-type': 'application/json',
-        Accept: 'application/json',
-        cookie
+  try {
+    await kratosPublic.updateSettingsFlow(
+      {
+        flow: flowId,
+        updateSettingsFlowBody: {
+          method: 'password',
+          password,
+          csrf_token: csrfToken
+        }
+      },
+      withCookie(cookie)
+    )
+    return redirectWithSnackbar(
+      request,
+      href('/login'),
+      {
+        message:
+          'New password successfully saved. Please log in with your new password.',
+        icon: 'close'
+      },
+      {
+        headers: {
+          'Set-Cookie':
+            CLEAR_SESSION_COOKIE_HEADER
+        }
       }
+    )
+  } catch (err: any) {
+    const status = err.response?.status
+    const flowData = err.response?.data
+    if (status === 400) {
+      const errs = mapFlowToFieldErrors(flowData, fieldErrors)
+      return error(request, { errors: errs })
     }
-  )
-  if (res.status > 400) {
-    const data = await res.json()
-    handleFlowError(data, 'recovery/password')
+    handleFlowError(err, 'recovery/password')
+    throw err
   }
-  else if (res.status == 400) {
-    const errs = await kratosErrorMapping(res, fieldErrors)
-    return error(request, { errors: errs })
-  }
-
-  return redirectWithSnackbar(
-    request,
-    href('/login'),
-    {
-      message:
-        'New password successfully saved. Please log in with your new password.',
-      icon: 'close'
-    },
-    {
-      headers: {
-        'Set-Cookie':
-          'ory_kratos_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax'
-      }
-    }
-  )
 }

@@ -1,18 +1,18 @@
 import type { Route } from './+types/recovery'
-import { data, redirect } from 'react-router';
-import { useFetcher, useLoaderData } from 'react-router';
+import { data, redirect } from 'react-router'
+import { useFetcher, useLoaderData } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts, TextField } from '~/components'
 import { error } from '~/lib/error.server'
-import {
-  KRATOS_URL,
-  getCsrfTokenFromFlow,
-  handleFlowError,
-  kratosErrorMapping,
-  requireNoUserSession
-} from '~/lib/kratos.server'
+import { kratosPublic } from '~/lib/kratos/kratos-client.server'
+import { getCookie, withCookie, buildHeadersWithCookies } from '~/lib/kratos/cookie.server'
+import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.server'
+import { handleFlowError, mapFlowToFieldErrors } from '~/lib/kratos/error.server'
+import { requireNoUserSession } from '~/lib/kratos/session.server'
 import { mergeMeta } from '~/lib/meta'
 import { RateLimitKeys, getKey, rateLimit } from '~/lib/rateLimit.server'
+import { safeReturnTo } from '~/lib/url.server'
+import type { KratosError } from '~/lib/kratos/types.server'
 
 type ActionResponse =
   | { success: true }
@@ -22,36 +22,38 @@ export async function loader({ request }: Route.LoaderArgs) {
   await requireNoUserSession(request)
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
-  const cookie = String(request.headers.get('cookie'))
+  const cookie = getCookie(request)
 
-  let flow
   if (flowId) {
-    // If ?flow=.. was in the URL, we fetch it
-    const flowRes = await fetch(
-      `${KRATOS_URL}/self-service/recovery/flows?id=${flowId}`,
-      {
-        headers: {
-          cookie: cookie,
-          Accept: 'application/json'
-        }
+    try {
+      const { data: flow } = await kratosPublic.getRecoveryFlow(
+        { id: flowId },
+        withCookie(cookie)
+      )
+      return data({ flow, csrfToken: getCsrfTokenFromFlow(flow) })
+    } catch (err: any) {
+      const errResponse = (err as KratosError).response
+      if (errResponse.status != 410) {
+        handleFlowError(err, 'recovery')
+        throw err
       }
-    )
-    flow = await flowRes.json()
-    if (flowRes.status >= 400) handleFlowError(flow, 'recovery')
-  } else {
-    // Otherwise we initialize it
-    const flowRes = await fetch(
-      `${KRATOS_URL}/self-service/recovery/browser?${url.searchParams}`,
-      { headers: { Accept: 'application/json' } }
-    )
-    flow = await flowRes.json()
-    if (flowRes.status >= 400) handleFlowError(flow, 'recovery')
-    return redirect(`/recovery?flow=${flow.id}`, {
-      headers: flowRes.headers
-    })
+      // 410 - generate a new flow
+    }
   }
 
-  return data({ flow, csrfToken: getCsrfTokenFromFlow(flow) })
+  // Initialize new recovery flow
+  try {
+    const response = await kratosPublic.createBrowserRecoveryFlow(
+      { returnTo: safeReturnTo(url.searchParams.get('returnTo')) },
+      withCookie(cookie)
+    )
+    return redirect(`/recovery?flow=${response.data.id}`, {
+      headers: buildHeadersWithCookies(response)
+    })
+  } catch (err: any) {
+    handleFlowError(err, 'recovery')
+    throw err
+  }
 }
 
 export const handle: ApplicationProps = {
@@ -133,10 +135,14 @@ export default function Page() {
 export async function action({ request }: Route.ActionArgs) {
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
-
   const form = await request.formData()
   const csrfToken = form.get('csrf_token')
   const email = form.get('email') ?? ''
+
+  if (!flowId || flowId === '' || !csrfToken) {
+    throw redirect('/recovery')
+  }
+
   const fieldErrors = {
     form: '',
     email: ''
@@ -148,26 +154,26 @@ export async function action({ request }: Route.ActionArgs) {
     return error(request, { errors: fieldErrors })
   }
 
-  const res = await fetch(
-    `${KRATOS_URL}/self-service/recovery?flow=${flowId}`,
-    {
-      method: 'POST',
-      body: JSON.stringify({
-        method: 'link',
-        email: email,
-        csrf_token: csrfToken
-      }),
-      headers: {
-        'Content-Type': 'application/json',
-        cookie: String(request.headers.get('cookie'))
-      }
-    }
-  )
+  const cookie = getCookie(request)
 
-  if (res.status >= 400) {
-    const errs = await kratosErrorMapping(res, fieldErrors)
+  try {
+    await kratosPublic.updateRecoveryFlow(
+      {
+        flow: flowId!,
+        updateRecoveryFlowBody: {
+          method: 'link',
+          email: email as string,
+          csrf_token: csrfToken as string
+        }
+      },
+      withCookie(cookie)
+    )
+
+    return data({ success: true })
+  } catch (err: any) {
+    const errResponse = (err as KratosError).response
+    const flowData = errResponse.data
+    const errs = mapFlowToFieldErrors(flowData, fieldErrors)
     return error(request, { errors: errs })
   }
-
-  return data({ success: true })
 }

@@ -1,58 +1,66 @@
 import type { Route } from './+types/login_.challenge'
-import { data, redirect } from 'react-router';
-import { Form, useActionData, useLoaderData } from 'react-router';
-import { href } from 'react-router'
+import { data, redirect, href } from 'react-router'
+import { Form, useActionData, useLoaderData } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts, TextField } from '~/components'
 import { error } from '~/lib/error.server'
-import { trimHeaders } from '~/lib/headers.server'
-import {
-  KRATOS_URL,
-  getCsrfTokenFromFlow,
-  getUserSession,
-  handleFlowError,
-  kratosErrorMapping
-} from '~/lib/kratos.server'
+import { kratosPublic } from '~/lib/kratos/kratos-client.server'
+import { getCookie, withCookie, buildHeadersWithCookies } from '~/lib/kratos/cookie.server'
+import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.server'
+import { handleFlowError, mapFlowToFieldErrors } from '~/lib/kratos/error.server'
+import { getUserSession, getSessionTraits } from '~/lib/kratos/session.server'
 import { mergeMeta } from '~/lib/meta'
 
+// 4000001 represents the Kratos message ID when a user already has a privileged session
+const ERROR_ID_SESSION_ALREADY_PRIVILEGED = 4000001
+
+/**
+ * The login challenge flow is triggered when the user is already authenticated
+ * but attempts to access a highly sensitive route (like changing their password
+ * or updating security settings).
+ *
+ * This functions as a "sudo mode" check or session elevation, forcing the user
+ * to re-authenticate with their password to confirm their identity.
+ *
+ * It can also be triggered if the session is reported as `session_refresh_required`
+ * by Kratos during certain critical operations.
+ */
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await getUserSession(request)
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
+  const cookie = getCookie(request)
 
-  const cookie = String(request.headers.get('cookie'))
-
-  let kratosFlow
   if (flowId) {
-    // If ?flow=.. was in the URL, we fetch it
-    const flowRes = await fetch(
-      `${KRATOS_URL}/self-service/login/flows?id=${flowId}`,
-      {
-        headers: {
-          cookie: cookie,
-          Accept: 'application/json'
-        }
-      }
-    )
-    kratosFlow = await flowRes.json()
-    if (flowRes.status >= 400) handleFlowError(kratosFlow, 'login/challenge')
-  } else {
-    // Otherwise we initialize it
-    const flowRes = await fetch(
-      `${KRATOS_URL}/self-service/login/browser?refresh=true`,
-      { headers: { Accept: 'application/json' } }
-    )
-    if (flowRes.status >= 400) handleFlowError(kratosFlow, 'login/challenge')
-    kratosFlow = await flowRes.json()
-    return redirect(`/login/challenge?flow=${kratosFlow.id}`, {
-      headers: trimHeaders(flowRes.headers, ['set-cookie'])
-    })
+    try {
+      const { data: kratosFlow } = await kratosPublic.getLoginFlow(
+        { id: flowId },
+        withCookie(cookie)
+      )
+      return data({
+        flow: kratosFlow,
+        csrfToken: getCsrfTokenFromFlow(kratosFlow),
+        email: getSessionTraits(session).email
+      })
+    } catch (err: any) {
+      handleFlowError(err, 'login/challenge')
+      throw err
+    }
   }
-  return data({
-    flow: kratosFlow,
-    csrfToken: getCsrfTokenFromFlow(kratosFlow),
-    email: session.identity.traits.email
-  })
+
+  // No flow ID — initialize a new login flow with refresh
+  try {
+    const response = await kratosPublic.createBrowserLoginFlow(
+      { refresh: true },
+      withCookie(cookie)
+    )
+    return redirect(`/login/challenge?flow=${response.data.id}`, {
+      headers: buildHeadersWithCookies(response)
+    })
+  } catch (err: any) {
+    handleFlowError(err, 'login/challenge')
+    throw err
+  }
 }
 
 export const handle: ApplicationProps = {
@@ -123,7 +131,8 @@ export default function Page() {
 
 export async function action({ request }: Route.ActionArgs) {
   const url = new URL(request.url)
-  const flowId = url.searchParams.get('flow')
+  const flowId = url.searchParams.get('flow')!
+  const cookie = getCookie(request)
 
   const form = await request.formData()
   const csrfToken = form.get('csrf_token') as string
@@ -136,31 +145,31 @@ export async function action({ request }: Route.ActionArgs) {
     password: ''
   }
 
-  const res = await fetch(`${KRATOS_URL}/self-service/login?flow=${flowId}`, {
-    method: 'POST',
-    body: JSON.stringify({
-      method: 'password',
-      identifier: email,
-      password: password,
-      csrf_token: csrfToken
-    }),
-    headers: {
-      'Content-type': 'application/json',
-      Accept: 'application/json',
-      Cookie: String(request.headers.get('cookie'))
+  try {
+    const response = await kratosPublic.updateLoginFlow(
+      {
+        flow: flowId,
+        updateLoginFlowBody: {
+          method: 'password',
+          identifier: email,
+          password,
+          csrf_token: csrfToken
+        }
+      },
+      withCookie(cookie)
+    )
+    return redirect(href('/settings/password'), {
+      headers: buildHeadersWithCookies(response)
+    })
+  } catch (err: any) {
+    const flowData = err.response?.data
+    // User already has a privileged session — not an error
+    if (flowData?.ui?.messages?.[0]?.id === ERROR_ID_SESSION_ALREADY_PRIVILEGED) {
+      return redirect(href('/settings/password'), {
+        headers: buildHeadersWithCookies(err.response)
+      })
     }
-  })
-  if (res.status >= 400) {
-    const data = await res.json()
-    // 4000001 is an error if the user already has a privileged session.
-    if (data.ui.messages[0].id !== 4000001) {
-      const errs = await kratosErrorMapping(res, fieldErrors)
-      return error(request, { errors: errs })
-    }
+    const errs = mapFlowToFieldErrors(flowData, fieldErrors)
+    return error(request, { errors: errs })
   }
-
-  const headers = trimHeaders(res.headers, ['set-cookie'])
-  return redirect(href('/settings/password'), {
-    headers: headers
-  })
 }

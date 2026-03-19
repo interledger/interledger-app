@@ -17,7 +17,7 @@ import {
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { error, isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
-import { getUserSession } from '~/lib/kratos.server'
+import { getUserSession, getSessionTraits } from '~/lib/kratos/session.server'
 import { mergeMeta } from '~/lib/meta'
 import { PAYMENT_POINTER_BASE } from '~/lib/paymentPointer.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
@@ -31,11 +31,12 @@ export async function loader({ request }: Route.LoaderArgs) {
   }
 
   const session = await getUserSession(request)
+  const { firstName, lastName } = getSessionTraits(session)
+
   let usernameIsValid = false
   let attempts = 0
-  let username = session.identity.traits.firstName
-  let publicName =
-    session.identity.traits.firstName + ' ' + session.identity.traits.lastName
+  let username = firstName
+  let publicName = firstName + ' ' + lastName
 
   while (!usernameIsValid && attempts < 5) {
     let response = await grpc.walletAddressValid(request, {
@@ -44,8 +45,8 @@ export async function loader({ request }: Route.LoaderArgs) {
 
     if (isConnectError(response) || response.exists) {
       attempts++
-      username = session.identity.traits.firstName
-      if (username.length < 4) username += session.identity.traits.lastName
+      username = firstName
+      if (username.length < 4) username += lastName
 
       if (attempts > 1)
         username += String(Math.floor(Math.random() * 10000)).padStart(4, '0')

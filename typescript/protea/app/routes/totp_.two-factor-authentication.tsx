@@ -1,5 +1,5 @@
 import type { Route } from './+types/totp_.two-factor-authentication'
-import type { UiNode } from '@ory/kratos-client'
+import type { UiNode } from '@ory/client'
 import { data, redirectDocument } from 'react-router';
 import { Form, useActionData, useLoaderData, useSubmit } from 'react-router';
 import { useRef } from 'react'
@@ -17,7 +17,8 @@ import {
   OutlineButtonRouter,
   TextField
 } from '~/components'
-import { KRATOS_URL, getCsrfTokenFromFlow } from '~/lib/kratos.server'
+import { KRATOS_URL } from '~/lib/kratos/kratos-client.server'
+import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.server'
 import { mergeMeta } from '~/lib/meta'
 import { useTotpChallenge } from '~/lib/useTotpChallenge'
 

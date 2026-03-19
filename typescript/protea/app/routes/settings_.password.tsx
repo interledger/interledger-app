@@ -1,56 +1,51 @@
 import type { Route } from './+types/settings_.password'
-import { data, redirect } from 'react-router';
-import { Form, useActionData, useLoaderData } from 'react-router';
-import { href } from 'react-router'
+import { data, redirect, href } from 'react-router'
+import { Form, useActionData, useLoaderData } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts, TextField } from '~/components'
 import { error } from '~/lib/error.server'
-import { trimHeaders } from '~/lib/headers.server'
-import {
-  KRATOS_URL,
-  getCsrfTokenFromFlow,
-  handleFlowError,
-  kratosErrorMapping
-} from '~/lib/kratos.server'
+import { kratosPublic } from '~/lib/kratos/kratos-client.server'
+import { getCookie, withCookie, buildHeadersWithCookies } from '~/lib/kratos/cookie.server'
+import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.server'
+import { handleFlowError, mapFlowToFieldErrors } from '~/lib/kratos/error.server'
 import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
+import { KratosError } from '~/lib/kratos/types.server'
 
 export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
-  const cookie = String(request.headers.get('cookie'))
+  const cookie = getCookie(request)
 
-  let flow
   if (flowId) {
-    // If ?flow=.. was in the URL, we fetch it
-    const flowRes = await fetch(
-      `${KRATOS_URL}/self-service/settings/flows?id=${flowId}`,
-      {
-        headers: {
-          cookie: cookie,
-          Accept: 'application/json'
-        }
-      }
-    )
-    flow = await flowRes.json()
-    if (flowRes.status >= 400) handleFlowError(flow, 'settings/password')
-  } else {
-    // Otherwise we initialize it
-    const flowRes = await fetch(
-      `${KRATOS_URL}/self-service/settings/browser?${url.searchParams}`,
-      { headers: { cookie: cookie, Accept: 'application/json' } }
-    )
-    flow = await flowRes.json()
-    if (flowRes.status >= 400) handleFlowError(flow, 'settings/password')
-    return redirect(`/settings/password?flow=${flow.id}`, {
-      headers: trimHeaders(flowRes.headers, ['set-cookie'])
-    })
+    try {
+      const { data: flow } = await kratosPublic.getSettingsFlow(
+        { id: flowId },
+        withCookie(cookie)
+      )
+      return data({
+        flow,
+        csrfToken: getCsrfTokenFromFlow(flow)
+      })
+    } catch (err: any) {
+      handleFlowError(err, 'settings/password')
+      throw err
+    }
   }
-  return data({
-    flow,
-    csrfToken: getCsrfTokenFromFlow(flow)
-    // backTo: href('/settings')
-  })
+
+  // Initialize new settings flow
+  try {
+    const response = await kratosPublic.createBrowserSettingsFlow(
+      { returnTo: url.searchParams.get('returnTo') ?? undefined },
+      withCookie(cookie)
+    )
+    return redirect(`/settings/password?flow=${response.data.id}`, {
+      headers: buildHeadersWithCookies(response)
+    })
+  } catch (err: any) {
+    handleFlowError(err, 'settings/password')
+    throw err
+  }
 }
 
 export const handle: ApplicationProps = {
@@ -114,9 +109,10 @@ export default function Page() {
 }
 
 export async function action({ request }: Route.ActionArgs) {
-  const cookie = request.headers.get('Cookie') as string
+  const cookie = getCookie(request)
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
+  if (!flowId) return redirect('/settings/password')
 
   const form = await request.formData()
   const csrfToken = form.get('csrf_token') as string
@@ -126,32 +122,32 @@ export async function action({ request }: Route.ActionArgs) {
     form: '',
     password: ''
   }
-  const res = await fetch(
-    `${KRATOS_URL}/self-service/settings?flow=${flowId}`,
-    {
-      method: 'POST',
-      body: JSON.stringify({
-        method: 'password',
-        password: password,
-        csrf_token: csrfToken
-      }),
-      headers: {
-        'Content-type': 'application/json',
-        Accept: 'application/json',
-        cookie
-      }
+
+  try {
+    await kratosPublic.updateSettingsFlow(
+      {
+        flow: flowId,
+        updateSettingsFlowBody: {
+          method: 'password',
+          password,
+          csrf_token: csrfToken
+        }
+      },
+      withCookie(cookie)
+    )
+    return redirectWithSnackbar(request, href('/settings'), {
+      message: 'New password successfully saved.',
+      icon: 'close'
+    })
+  } catch (err: any) {
+    const errResponse = (err as KratosError).response
+    const status = errResponse?.status
+    const flowData = errResponse?.data
+    if (status === 400) {
+      const errs = mapFlowToFieldErrors(flowData, fieldErrors)
+      return error(request, { errors: errs })
     }
-  )
-  const data = await res.json()
-
-  if (res.status > 400) handleFlowError(data, 'settings/password')
-  if (res.status == 400) {
-    const errs = await kratosErrorMapping(res, fieldErrors)
-    return error(request, { errors: errs })
+    handleFlowError(err, 'settings/password')
+    throw err
   }
-
-  return redirectWithSnackbar(request, href('/settings'), {
-    message: 'New password successfully saved.',
-    icon: 'close'
-  })
 }
