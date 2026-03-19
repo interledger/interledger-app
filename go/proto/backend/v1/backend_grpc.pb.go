@@ -126,6 +126,7 @@ const (
 	BackendService_BlockCard_FullMethodName                      = "/backend.v1.BackendService/BlockCard"
 	BackendService_GetPendingThreeDSConfirmations_FullMethodName = "/backend.v1.BackendService/GetPendingThreeDSConfirmations"
 	BackendService_ThreeDSPaymentConfirmation_FullMethodName     = "/backend.v1.BackendService/ThreeDSPaymentConfirmation"
+	BackendService_CreatePaymentV2_FullMethodName                = "/backend.v1.BackendService/CreatePaymentV2"
 )
 
 // BackendServiceClient is the client API for BackendService service.
@@ -266,6 +267,8 @@ type BackendServiceClient interface {
 	BlockCard(ctx context.Context, in *BlockCardRequest, opts ...grpc.CallOption) (*Empty, error)
 	GetPendingThreeDSConfirmations(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetPendingThreeDSConfirmationsResponse, error)
 	ThreeDSPaymentConfirmation(ctx context.Context, in *ThreeDSPaymentConfirmationRequest, opts ...grpc.CallOption) (*Empty, error)
+	// New PaymentV2
+	CreatePaymentV2(ctx context.Context, in *CreatePaymentV2Request, opts ...grpc.CallOption) (*CreatePaymentV2Response, error)
 }
 
 type backendServiceClient struct {
@@ -1346,6 +1349,16 @@ func (c *backendServiceClient) ThreeDSPaymentConfirmation(ctx context.Context, i
 	return out, nil
 }
 
+func (c *backendServiceClient) CreatePaymentV2(ctx context.Context, in *CreatePaymentV2Request, opts ...grpc.CallOption) (*CreatePaymentV2Response, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreatePaymentV2Response)
+	err := c.cc.Invoke(ctx, BackendService_CreatePaymentV2_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServiceServer is the server API for BackendService service.
 // All implementations should embed UnimplementedBackendServiceServer
 // for forward compatibility.
@@ -1484,6 +1497,8 @@ type BackendServiceServer interface {
 	BlockCard(context.Context, *BlockCardRequest) (*Empty, error)
 	GetPendingThreeDSConfirmations(context.Context, *Empty) (*GetPendingThreeDSConfirmationsResponse, error)
 	ThreeDSPaymentConfirmation(context.Context, *ThreeDSPaymentConfirmationRequest) (*Empty, error)
+	// New PaymentV2
+	CreatePaymentV2(context.Context, *CreatePaymentV2Request) (*CreatePaymentV2Response, error)
 }
 
 // UnimplementedBackendServiceServer should be embedded to have
@@ -1813,6 +1828,9 @@ func (UnimplementedBackendServiceServer) GetPendingThreeDSConfirmations(context.
 }
 func (UnimplementedBackendServiceServer) ThreeDSPaymentConfirmation(context.Context, *ThreeDSPaymentConfirmationRequest) (*Empty, error) {
 	return nil, status.Error(codes.Unimplemented, "method ThreeDSPaymentConfirmation not implemented")
+}
+func (UnimplementedBackendServiceServer) CreatePaymentV2(context.Context, *CreatePaymentV2Request) (*CreatePaymentV2Response, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreatePaymentV2 not implemented")
 }
 func (UnimplementedBackendServiceServer) testEmbeddedByValue() {}
 
@@ -3760,6 +3778,24 @@ func _BackendService_ThreeDSPaymentConfirmation_Handler(srv interface{}, ctx con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_CreatePaymentV2_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreatePaymentV2Request)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).CreatePaymentV2(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_CreatePaymentV2_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).CreatePaymentV2(ctx, req.(*CreatePaymentV2Request))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BackendService_ServiceDesc is the grpc.ServiceDesc for BackendService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -4194,6 +4230,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ThreeDSPaymentConfirmation",
 			Handler:    _BackendService_ThreeDSPaymentConfirmation_Handler,
+		},
+		{
+			MethodName: "CreatePaymentV2",
+			Handler:    _BackendService_CreatePaymentV2_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

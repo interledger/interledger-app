@@ -59,6 +59,7 @@ import (
 	notify_client "gitlab.com/fynbos/backend/notify/client"
 	"gitlab.com/fynbos/backend/payments"
 	payments_client "gitlab.com/fynbos/backend/payments/client"
+	"gitlab.com/fynbos/backend/paymentsv2"
 	"gitlab.com/fynbos/backend/providers/chimoney"
 	chimoney_client "gitlab.com/fynbos/backend/providers/chimoney/client"
 	chimoney_ops "gitlab.com/fynbos/backend/providers/chimoney/ops"
@@ -522,6 +523,7 @@ type backends struct {
 	gatehubConfig  gatehub.Config
 	chimoney       chimoney.Client
 	aasaConfig     aassassetlinks.Config
+	paymentsv2     *paymentsv2.Service
 }
 
 func (b backends) Chimoney() chimoney.Client {
@@ -654,6 +656,10 @@ func (b backends) Vault() vault.Client {
 
 func (b backends) Images() images.Client {
 	return b.img
+}
+
+func (b backends) PaymentsV2() *paymentsv2.Service {
+	return b.paymentsv2
 }
 
 func (b backends) PTI() pti.Client {
@@ -842,6 +848,11 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 		AndroidPackageName: args.AndroidPackageName,
 		AndroidSHA256:      args.AndroidSHA256,
 	}
+
+	paymentsv2Repo := paymentsv2.NewRepository(db)
+	paymentsv2Service := paymentsv2.NewService(paymentsv2Repo, b.pac, tp)
+
+	b.paymentsv2 = paymentsv2Service
 
 	return b
 }

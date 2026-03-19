@@ -17,6 +17,7 @@ import (
 	"gitlab.com/fynbos/backend/limits"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
+	"gitlab.com/fynbos/backend/paymentsv2"
 	"gitlab.com/fynbos/backend/providers/chimoney"
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	"gitlab.com/fynbos/backend/providers/pti"
@@ -64,4 +65,5 @@ type Backends interface {
 	PTI() pti.Client
 	Gatehub() gatehub.Client
 	Chimoney() chimoney.Client
+	PaymentsV2() *paymentsv2.Service
 }

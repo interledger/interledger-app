@@ -10,6 +10,7 @@ import (
 	"gitlab.com/fynbos/backend/jobs"
 	kyc_workflows "gitlab.com/fynbos/backend/kyc/ops"
 	payments_workflows "gitlab.com/fynbos/backend/payments/ops"
+	"gitlab.com/fynbos/backend/paymentsv2"
 	chimoney_workflows "gitlab.com/fynbos/backend/providers/chimoney/ops"
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	gatehub_workflows "gitlab.com/fynbos/backend/providers/gatehub/ops"
@@ -141,6 +142,9 @@ func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago
 	w.RegisterWorkflow(chimoney_workflows.FinishChimoneyDepositWorkflow)
 	w.RegisterWorkflow(chimoney_workflows.ExecuteChimoneyWithdrawalWorkflow)
 	w.RegisterWorkflow(chimoney_workflows.ExecuteChimoneyFinishWithdrawalWorkflow)
+
+	w.RegisterActivity(paymentsv2.NewActivity(b.PaymentsV2()))
+	w.RegisterWorkflow(paymentsv2.PaymentWorkflowV2)
 
 	return w, nil
 }

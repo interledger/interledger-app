@@ -24,7 +24,7 @@ export class Currency extends Message<Currency> {
   /**
    * The asset this currency represents.
    *
-   * @generated from field: geo.Asset asset = 2;
+   * @generated from field: geo.v1.Asset asset = 2;
    */
   asset?: Asset;
 

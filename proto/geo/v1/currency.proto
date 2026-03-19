@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package geo.v1;
 
-option go_package = "./geo.v1;geo";
+option go_package = "gitlab.com/fynbos/proto/geo/v1;geov1";
 
 import "geo/v1/asset.proto";
 

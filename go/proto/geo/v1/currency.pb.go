@@ -4,7 +4,7 @@
 // 	protoc        (unknown)
 // source: geo/v1/currency.proto
 
-package geo
+package geov1
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -90,12 +90,11 @@ var File_geo_v1_currency_proto protoreflect.FileDescriptor
 
 const file_geo_v1_currency_proto_rawDesc = "" +
 	"\n" +
-	"\x15geo/v1/currency.proto\x12\x06geo.v1\x1a\x12geo/v1/asset.proto\"g\n" +
+	"\x15geo/v1/currency.proto\x12\x06geo.v1\x1a\x12geo/v1/asset.proto\"j\n" +
 	"\bCurrency\x12\x16\n" +
-	"\x06amount\x18\x01 \x01(\tR\x06amount\x12 \n" +
-	"\x05asset\x18\x02 \x01(\v2\n" +
-	".geo.AssetR\x05asset\x12!\n" +
-	"\fcountry_code\x18\x03 \x01(\tR\vcountryCodeB\x0eZ\f./geo.v1;geob\x06proto3"
+	"\x06amount\x18\x01 \x01(\tR\x06amount\x12#\n" +
+	"\x05asset\x18\x02 \x01(\v2\r.geo.v1.AssetR\x05asset\x12!\n" +
+	"\fcountry_code\x18\x03 \x01(\tR\vcountryCodeB&Z$gitlab.com/fynbos/proto/geo/v1;geov1b\x06proto3"
 
 var (
 	file_geo_v1_currency_proto_rawDescOnce sync.Once
@@ -112,10 +111,10 @@ func file_geo_v1_currency_proto_rawDescGZIP() []byte {
 var file_geo_v1_currency_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
 var file_geo_v1_currency_proto_goTypes = []any{
 	(*Currency)(nil), // 0: geo.v1.Currency
-	(*Asset)(nil),    // 1: geo.Asset
+	(*Asset)(nil),    // 1: geo.v1.Asset
 }
 var file_geo_v1_currency_proto_depIdxs = []int32{
-	1, // 0: geo.v1.Currency.asset:type_name -> geo.Asset
+	1, // 0: geo.v1.Currency.asset:type_name -> geo.v1.Asset
 	1, // [1:1] is the sub-list for method output_type
 	1, // [1:1] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name

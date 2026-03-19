@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package geo;
+package geo.v1;
 
-option go_package = "./geo.v1;geo";
+option go_package = "gitlab.com/fynbos/proto/geo/v1;geov1";
 
 // Asset represents a financial asset, such as a currency or commodity.
 // The 'code' field is the primary identifier for the asset, while 'numeric' and 'scale' provide additional information.

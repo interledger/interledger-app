@@ -4,7 +4,7 @@
 // 	protoc        (unknown)
 // source: geo/v1/asset.proto
 
-package geo
+package geov1
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -90,11 +90,11 @@ var File_geo_v1_asset_proto protoreflect.FileDescriptor
 
 const file_geo_v1_asset_proto_rawDesc = "" +
 	"\n" +
-	"\x12geo/v1/asset.proto\x12\x03geo\"K\n" +
+	"\x12geo/v1/asset.proto\x12\x06geo.v1\"K\n" +
 	"\x05Asset\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\tR\x04code\x12\x18\n" +
 	"\anumeric\x18\x02 \x01(\tR\anumeric\x12\x14\n" +
-	"\x05scale\x18\x03 \x01(\rR\x05scaleB\x0eZ\f./geo.v1;geob\x06proto3"
+	"\x05scale\x18\x03 \x01(\rR\x05scaleB&Z$gitlab.com/fynbos/proto/geo/v1;geov1b\x06proto3"
 
 var (
 	file_geo_v1_asset_proto_rawDescOnce sync.Once
@@ -110,7 +110,7 @@ func file_geo_v1_asset_proto_rawDescGZIP() []byte {
 
 var file_geo_v1_asset_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
 var file_geo_v1_asset_proto_goTypes = []any{
-	(*Asset)(nil), // 0: geo.Asset
+	(*Asset)(nil), // 0: geo.v1.Asset
 }
 var file_geo_v1_asset_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type

@@ -1,6 +1,8 @@
 package geo
 
-import "strings"
+import (
+	"strings"
+)
 
 type Country string
 

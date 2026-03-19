@@ -3135,6 +3135,79 @@ table "chi_money_interac_emails" {
   }
 }
 
+// Note: Without fees or FX at this point.
+table "payments_v2" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+  }
+
+  column "sender_wallet_id" {
+    null = false
+    type = uuid
+  }
+
+  column "sender_account_id" {
+    null = false
+    type = uuid
+  }
+
+  column "receiver_wallet_id" {
+    null = false
+    type = uuid
+  }
+
+  column "receiver_account_id" {
+    null = true
+    type = uuid
+  }
+
+  column "state" {
+    null = false
+    type = text
+  }
+
+  column "transfers" {
+    null = false
+    type = sql("text[]")
+  }
+
+  column "sender_net_amount" {
+    null = false
+    type = int 
+  }
+
+  column "sender_net_amount_asset" {
+    null = false
+    type = text
+  }
+
+  column "sender_net_amount_scale" {
+    null = false
+    type = int
+  }
+
+  column "receiver_net_amount" {
+    null = false
+    type = int
+  }
+
+  column "receiver_net_amount_asset" {
+    null = false
+    type = text
+  }
+
+  column "receiver_net_amount_scale" {
+    null = false
+    type = int
+  }
+
+  primary_key {
+    columns = [column.id]
+  }
+}
+
 table "atlas_schema_history" {
   schema = schema.public
   column "id" {

@@ -1299,3 +1299,16 @@ func NewSoftDescriptor(date time.Time) (string, error) {
 	// Trim key to 12 characters, we don't care about the last 4 bits
 	return key[:12], nil
 }
+
+func Get(ctx context.Context, b Backends, paymentID, walletID string) (*payments.Payment, error) {
+	var res dbPayment
+	err := b.DB().GetContext(ctx, &res, fmt.Sprintf("SELECT %s FROM payments WHERE id=$1 AND sender_id = $2;", cols), paymentID, walletID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, payments.ErrNotFound
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+
+	return transformPayment(ctx, b, res, nil, nil)
+}

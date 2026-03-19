@@ -25,6 +25,7 @@ RUN go mod download
 COPY backend ./backend
 COPY env ./env
 COPY proto ./proto
+COPY geo ./geo
 COPY pacioli ./pacioli
 COPY log ./log
 COPY tracing ./tracing

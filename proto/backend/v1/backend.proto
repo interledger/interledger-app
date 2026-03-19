@@ -6,6 +6,7 @@ import "google/protobuf/timestamp.proto";
 import "google/rpc/code.proto";
 import "google/rpc/error_details.proto";
 import "google/rpc/status.proto";
+import "geo/v1/currency.proto";
 
 option go_package = "./backend/v1;backend";
 
@@ -175,6 +176,9 @@ service BackendService {
   rpc BlockCard(BlockCardRequest) returns (Empty);
   rpc GetPendingThreeDSConfirmations(Empty) returns (GetPendingThreeDSConfirmationsResponse);
   rpc ThreeDSPaymentConfirmation(ThreeDSPaymentConfirmationRequest) returns (Empty); 
+
+  // New PaymentV2
+  rpc CreatePaymentV2(CreatePaymentV2Request) returns (CreatePaymentV2Response);
 }
 
 message ThreeDSPaymentConfirmationRequest {
@@ -1194,5 +1198,16 @@ message CreateDomainIdentityResponse {
 }
 
 message VerifyIdentityRequest {
+  string id = 1;
+}
+
+message CreatePaymentV2Request {
+  geo.v1.Currency sender_currency = 1;
+  string sender_wallet_id = 2;
+  string sender_account_id = 3;
+  string receiver_wallet_address = 4;
+}
+
+message CreatePaymentV2Response {
   string id = 1;
 }

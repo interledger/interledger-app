@@ -28,7 +28,7 @@ export interface Currency {
     /**
      * The asset this currency represents.
      *
-     * @generated from protobuf field: geo.Asset asset = 2;
+     * @generated from protobuf field: geo.v1.Asset asset = 2;
      */
     asset?: Asset;
     /**
@@ -62,7 +62,7 @@ class Currency$Type extends MessageType<Currency> {
                 case /* string amount */ 1:
                     message.amount = reader.string();
                     break;
-                case /* geo.Asset asset */ 2:
+                case /* geo.v1.Asset asset */ 2:
                     message.asset = Asset.internalBinaryRead(reader, reader.uint32(), options, message.asset);
                     break;
                 case /* string country_code */ 3:
@@ -83,7 +83,7 @@ class Currency$Type extends MessageType<Currency> {
         /* string amount = 1; */
         if (message.amount !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.amount);
-        /* geo.Asset asset = 2; */
+        /* geo.v1.Asset asset = 2; */
         if (message.asset)
             Asset.internalBinaryWrite(message.asset, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
         /* string country_code = 3; */

@@ -12,6 +12,7 @@ import type { PartialMessage } from "@protobuf-ts/runtime";
 import { reflectionMergePartial } from "@protobuf-ts/runtime";
 import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
+import { Currency } from "../../geo/v1/currency";
 import { Timestamp } from "../../google/protobuf/timestamp";
 /**
  * @generated from protobuf message backend.v1.PaginationRequest
@@ -2736,6 +2737,36 @@ export interface CreateDomainIdentityResponse {
  * @generated from protobuf message backend.v1.VerifyIdentityRequest
  */
 export interface VerifyIdentityRequest {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+}
+/**
+ * @generated from protobuf message backend.v1.CreatePaymentV2Request
+ */
+export interface CreatePaymentV2Request {
+    /**
+     * @generated from protobuf field: geo.v1.Currency sender_currency = 1;
+     */
+    senderCurrency?: Currency;
+    /**
+     * @generated from protobuf field: string sender_wallet_id = 2;
+     */
+    senderWalletId: string;
+    /**
+     * @generated from protobuf field: string sender_account_id = 3;
+     */
+    senderAccountId: string;
+    /**
+     * @generated from protobuf field: string receiver_wallet_address = 4;
+     */
+    receiverWalletAddress: string;
+}
+/**
+ * @generated from protobuf message backend.v1.CreatePaymentV2Response
+ */
+export interface CreatePaymentV2Response {
     /**
      * @generated from protobuf field: string id = 1;
      */
@@ -12708,6 +12739,121 @@ class VerifyIdentityRequest$Type extends MessageType<VerifyIdentityRequest> {
  * @generated MessageType for protobuf message backend.v1.VerifyIdentityRequest
  */
 export const VerifyIdentityRequest = new VerifyIdentityRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CreatePaymentV2Request$Type extends MessageType<CreatePaymentV2Request> {
+    constructor() {
+        super("backend.v1.CreatePaymentV2Request", [
+            { no: 1, name: "sender_currency", kind: "message", T: () => Currency },
+            { no: 2, name: "sender_wallet_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "sender_account_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "receiver_wallet_address", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<CreatePaymentV2Request>): CreatePaymentV2Request {
+        const message = { senderWalletId: "", senderAccountId: "", receiverWalletAddress: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CreatePaymentV2Request>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CreatePaymentV2Request): CreatePaymentV2Request {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* geo.v1.Currency sender_currency */ 1:
+                    message.senderCurrency = Currency.internalBinaryRead(reader, reader.uint32(), options, message.senderCurrency);
+                    break;
+                case /* string sender_wallet_id */ 2:
+                    message.senderWalletId = reader.string();
+                    break;
+                case /* string sender_account_id */ 3:
+                    message.senderAccountId = reader.string();
+                    break;
+                case /* string receiver_wallet_address */ 4:
+                    message.receiverWalletAddress = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CreatePaymentV2Request, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* geo.v1.Currency sender_currency = 1; */
+        if (message.senderCurrency)
+            Currency.internalBinaryWrite(message.senderCurrency, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* string sender_wallet_id = 2; */
+        if (message.senderWalletId !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.senderWalletId);
+        /* string sender_account_id = 3; */
+        if (message.senderAccountId !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.senderAccountId);
+        /* string receiver_wallet_address = 4; */
+        if (message.receiverWalletAddress !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.receiverWalletAddress);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.CreatePaymentV2Request
+ */
+export const CreatePaymentV2Request = new CreatePaymentV2Request$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CreatePaymentV2Response$Type extends MessageType<CreatePaymentV2Response> {
+    constructor() {
+        super("backend.v1.CreatePaymentV2Response", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<CreatePaymentV2Response>): CreatePaymentV2Response {
+        const message = { id: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CreatePaymentV2Response>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CreatePaymentV2Response): CreatePaymentV2Response {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CreatePaymentV2Response, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.CreatePaymentV2Response
+ */
+export const CreatePaymentV2Response = new CreatePaymentV2Response$Type();
 /**
  * @generated ServiceType for protobuf service backend.v1.BackendService
  */
@@ -12818,5 +12964,6 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "UnfreezeCard", options: {}, I: UnfreezeCardRequest, O: Empty },
     { name: "BlockCard", options: {}, I: BlockCardRequest, O: Empty },
     { name: "GetPendingThreeDSConfirmations", options: {}, I: Empty, O: GetPendingThreeDSConfirmationsResponse },
-    { name: "ThreeDSPaymentConfirmation", options: {}, I: ThreeDSPaymentConfirmationRequest, O: Empty }
+    { name: "ThreeDSPaymentConfirmation", options: {}, I: ThreeDSPaymentConfirmationRequest, O: Empty },
+    { name: "CreatePaymentV2", options: {}, I: CreatePaymentV2Request, O: CreatePaymentV2Response }
 ]);

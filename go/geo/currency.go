@@ -1,6 +1,7 @@
 package geo
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"strings"
@@ -305,4 +306,70 @@ func CurrencyFromProtoGeoV1(pb *geopbv1.Currency) (*Currency, error) {
 	}
 	currency.SetRawAmountBigInt(amount)
 	return currency, nil
+}
+
+// assetJSON is the intermediate representation for Asset serialization.
+// formatFunc is intentionally excluded — functions cannot be serialized.
+type assetJSON struct {
+	Code    string `json:"code"`
+	Numeric string `json:"numeric"`
+	Scale   uint8  `json:"scale"`
+	Factor  string `json:"factor"` // big.Int as decimal string
+}
+
+func (a Asset) MarshalJSON() ([]byte, error) {
+	return json.Marshal(assetJSON{
+		Code:    a.code,
+		Numeric: a.numeric,
+		Scale:   a.scale,
+		Factor:  a.factor.String(),
+	})
+}
+
+func (a *Asset) UnmarshalJSON(data []byte) error {
+	var aj assetJSON
+	if err := json.Unmarshal(data, &aj); err != nil {
+		return fmt.Errorf("asset: unmarshal: %w", err)
+	}
+
+	factor, ok := new(big.Int).SetString(aj.Factor, 10)
+	if !ok {
+		return fmt.Errorf("asset: invalid factor %q", aj.Factor)
+	}
+
+	a.code = aj.Code
+	a.numeric = aj.Numeric
+	a.scale = aj.Scale
+	a.factor = *factor
+	// formatFunc is not restored from JSON — caller must re-attach if needed.
+	return nil
+}
+
+// currencyJSON is the intermediate representation for Currency serialization.
+type currencyJSON struct {
+	Amount string `json:"amount"` // big.Int as decimal string
+	Asset  Asset  `json:"asset"`
+}
+
+func (c Currency) MarshalJSON() ([]byte, error) {
+	return json.Marshal(currencyJSON{
+		Amount: c.amount.String(),
+		Asset:  c.asset,
+	})
+}
+
+func (c *Currency) UnmarshalJSON(data []byte) error {
+	var cj currencyJSON
+	if err := json.Unmarshal(data, &cj); err != nil {
+		return fmt.Errorf("currency: unmarshal: %w", err)
+	}
+
+	amount, ok := new(big.Int).SetString(cj.Amount, 10)
+	if !ok {
+		return fmt.Errorf("currency: invalid amount %q", cj.Amount)
+	}
+
+	c.amount = *amount
+	c.asset = cj.Asset
+	return nil
 }

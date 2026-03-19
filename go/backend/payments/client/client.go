@@ -68,6 +68,10 @@ func (c client) SignalGatehubTransferComplete(ctx context.Context, externalTrans
 	return ops.SignalGatehubTransferComplete(ctx, c.b, externalTransactionID)
 }
 
+func (c client) Get(ctx context.Context, paymentID, walletID string) (*payments.Payment, error) {
+	return ops.Get(ctx, c.b, paymentID, walletID)
+}
+
 var maxRetries = 3
 var baseDelay = 1 * time.Millisecond
 

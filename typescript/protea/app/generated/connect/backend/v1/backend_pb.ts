@@ -5,6 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
+import { Currency } from "../../geo/v1/currency_pb.js";
 
 /**
  * @generated from enum backend.v1.CardTokenType
@@ -8228,6 +8229,98 @@ export class VerifyIdentityRequest extends Message<VerifyIdentityRequest> {
 
   static equals(a: VerifyIdentityRequest | PlainMessage<VerifyIdentityRequest> | undefined, b: VerifyIdentityRequest | PlainMessage<VerifyIdentityRequest> | undefined): boolean {
     return proto3.util.equals(VerifyIdentityRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.CreatePaymentV2Request
+ */
+export class CreatePaymentV2Request extends Message<CreatePaymentV2Request> {
+  /**
+   * @generated from field: geo.v1.Currency sender_currency = 1;
+   */
+  senderCurrency?: Currency;
+
+  /**
+   * @generated from field: string sender_wallet_id = 2;
+   */
+  senderWalletId = "";
+
+  /**
+   * @generated from field: string sender_account_id = 3;
+   */
+  senderAccountId = "";
+
+  /**
+   * @generated from field: string receiver_wallet_address = 4;
+   */
+  receiverWalletAddress = "";
+
+  constructor(data?: PartialMessage<CreatePaymentV2Request>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.CreatePaymentV2Request";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "sender_currency", kind: "message", T: Currency },
+    { no: 2, name: "sender_wallet_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "sender_account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "receiver_wallet_address", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreatePaymentV2Request {
+    return new CreatePaymentV2Request().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CreatePaymentV2Request {
+    return new CreatePaymentV2Request().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CreatePaymentV2Request {
+    return new CreatePaymentV2Request().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CreatePaymentV2Request | PlainMessage<CreatePaymentV2Request> | undefined, b: CreatePaymentV2Request | PlainMessage<CreatePaymentV2Request> | undefined): boolean {
+    return proto3.util.equals(CreatePaymentV2Request, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.CreatePaymentV2Response
+ */
+export class CreatePaymentV2Response extends Message<CreatePaymentV2Response> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  constructor(data?: PartialMessage<CreatePaymentV2Response>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.CreatePaymentV2Response";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreatePaymentV2Response {
+    return new CreatePaymentV2Response().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CreatePaymentV2Response {
+    return new CreatePaymentV2Response().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CreatePaymentV2Response {
+    return new CreatePaymentV2Response().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CreatePaymentV2Response | PlainMessage<CreatePaymentV2Response> | undefined, b: CreatePaymentV2Response | PlainMessage<CreatePaymentV2Response> | undefined): boolean {
+    return proto3.util.equals(CreatePaymentV2Response, a, b);
   }
 }
 

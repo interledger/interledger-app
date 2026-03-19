@@ -81,6 +81,21 @@ func (mr *MockClientMockRecorder) Create(ctx, args interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockClient)(nil).Create), ctx, args)
 }
 
+// Get mocks base method.
+func (m *MockClient) Get(ctx context.Context, paymentID, walletID string) (*payments.Payment, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Get", ctx, paymentID, walletID)
+	ret0, _ := ret[0].(*payments.Payment)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Get indicates an expected call of Get.
+func (mr *MockClientMockRecorder) Get(ctx, paymentID, walletID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockClient)(nil).Get), ctx, paymentID, walletID)
+}
+
 // Lookup mocks base method.
 func (m *MockClient) Lookup(ctx context.Context, id string) (*payments.Payment, error) {
 	m.ctrl.T.Helper()
