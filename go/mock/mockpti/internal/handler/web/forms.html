@@ -63,6 +63,10 @@
         padding: 10px 14px;
         cursor: pointer;
       }
+      button:disabled {
+        cursor: not-allowed;
+        opacity: 0.55;
+      }
       .ok {
         background: #16a34a;
         color: #fff;
@@ -106,12 +110,35 @@
         var formsToken = params.get('formsToken') || '';
         var dobField = document.getElementById('dobField');
         var dobInput = document.getElementById('dob');
+        var completeButton = document.getElementById('complete');
 
         document.getElementById('type').textContent = 'Type: ' + type;
         document.getElementById('request').textContent = 'Request ID: ' + requestId;
         if (type === 'KYC') {
+          var defaultDob = new Date();
+          defaultDob.setFullYear(defaultDob.getFullYear() - 20);
+
           dobField.style.display = 'block';
+          completeButton.disabled = true;
+          dobInput.required = true;
+          dobInput.value = defaultDob.toISOString().slice(0, 10);
         }
+
+        function updateCompleteState() {
+          if (type !== 'KYC') {
+            completeButton.disabled = false;
+            return;
+          }
+
+          completeButton.disabled = !(dobInput && dobInput.value);
+        }
+
+        if (dobInput) {
+          dobInput.addEventListener('input', updateCompleteState);
+          dobInput.addEventListener('change', updateCompleteState);
+        }
+
+        updateCompleteState();
 
         function buildPayload() {
           if (type === 'ADD_CC') {
@@ -158,6 +185,9 @@
         document.getElementById('complete').addEventListener('click', async function () {
           try {
             if (type === 'KYC') {
+              if (!dobInput || !dobInput.value) {
+                return;
+              }
               await completeOnServer();
             }
             post(buildPayload());
