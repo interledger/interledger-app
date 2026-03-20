@@ -1,27 +1,19 @@
 import type {
   ActionFunctionArgs,
   LoaderFunctionArgs,
-  MetaFunction
+  MetaFunction,
+  SerializeFrom
 } from '@remix-run/node'
-import { useLoaderData, useRouteLoaderData } from '@remix-run/react'
-import type { ApplicationProps } from '~/components'
-import { Layouts } from '~/components'
+import { z } from 'zod'
 import { mergeMeta } from '~/lib/meta'
 import { getSession, commitSession } from '~/session.server'
-import { Form, useActionData } from '@remix-run/react'
-import { WalletGrid, GridColumn, TextField, Button } from '~/components'
-import { getValidWalletAddress } from '~/lib/utils'
+import { Form, useActionData, useRouteLoaderData } from '@remix-run/react'
+import { type ApplicationProps, Layouts, WalletGrid, GridColumn, TextField, Button } from '~/components'
+import { createError, getValidWalletAddress, walletSchema } from '~/lib/utils'
 import { json, redirect } from '@remix-run/node'
 import { getUserSession } from '~/lib/kratos.server'
-import { type SerializeFrom } from '@remix-run/node'
 import type { loader as rootLoader } from '~/root'
-
-
-type ActionData = {
-  errors?: {
-    walletAddress?: string
-  }
-}
+import { type ActionData } from "~/lib/types"
 
 export async function loader({ request }: LoaderFunctionArgs) {
   let isLoggedIn
@@ -37,7 +29,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
     isLoggedIn
   })
 }
-
 
 export const handle: ApplicationProps = {
   layout: (match) =>
@@ -90,6 +81,14 @@ export default function Page() {
 export async function action({ request }: ActionFunctionArgs) {
   const session = await getSession(request.headers.get('Cookie'))
   const formData = Object.fromEntries(await request.formData())
+  const result = walletSchema.safeParse(formData)
+
+  if (!result.success) {
+    const errors = z.treeifyError(result.error).properties
+    return json({
+      errors
+    })
+  }
   const walletAddress = String(formData?.walletAddress)
 
   session.set('quickPay', {
@@ -97,14 +96,14 @@ export async function action({ request }: ActionFunctionArgs) {
   })
 
   try {
-    const validWalletAddress = await getValidWalletAddress(walletAddress) //as WalletAddress
+    const validWalletAddress = await getValidWalletAddress(walletAddress)
     session.set('quickPay', {
       validWalletAddress: validWalletAddress
     })
 
   } catch (err) {
     console.log({ err })
-    return json({ errors: { walletAddress: "Your wallet address is not valid." } })
+    return json({ errors: createError("walletAddress", "Your wallet address is not valid.") })
   }
 
   return redirect('/quick-pay/amount', {
