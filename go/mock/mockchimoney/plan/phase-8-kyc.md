@@ -2,6 +2,8 @@
 
 **Goal**: Browser-served KYC page with approve/decline, updating sub-account state and sending KYC webhooks.
 
+**Definition of Done**: This phase is complete when `make test` passes successfully.
+
 ## Deliverables
 
 - `internal/storage/interface.go` extended: `UpdateSubAccountKYCStatus`

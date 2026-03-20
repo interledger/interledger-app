@@ -2,6 +2,8 @@
 
 **Goal**: The deposit half of the payment flow: creating a payment link, serving the pay page, and verifying payment status.
 
+**Definition of Done**: This phase is complete when `make test` passes successfully.
+
 ## Deliverables
 
 - `internal/storage/interface.go` extended: `CreatePayment`, `GetPaymentByIssueID`, `UpdatePaymentStatus`

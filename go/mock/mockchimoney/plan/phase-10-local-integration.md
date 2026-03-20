@@ -2,6 +2,8 @@
 
 **Goal**: MockChimoney is part of the standard `local/` Docker Compose environment and the backend routes all chimoney API calls to it.
 
+**Definition of Done**: This phase is complete when `make test` passes successfully.
+
 ## Deliverables
 
 - `local/mockchimoney.yaml` — Docker Compose service definition (see main plan.md section "Required Local Environment Changes")

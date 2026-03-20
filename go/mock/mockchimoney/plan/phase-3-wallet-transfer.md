@@ -2,6 +2,8 @@
 
 **Goal**: The wallet-to-wallet transfer endpoint.
 
+**Definition of Done**: This phase is complete when `make test` passes successfully.
+
 ## Deliverables
 
 - `internal/handler/transfer.go` — `POST /v0.2.4/multicurrency-wallets/transfer`
