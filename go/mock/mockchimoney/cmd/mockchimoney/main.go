@@ -48,6 +48,8 @@ func main() {
 
 	// Register routes
 	r.Get("/health", h.Health)
+	r.Post("/v0.2.4/multicurrency-wallets/create", h.CreateWallet)
+	r.Get("/v0.2.4/multicurrency-wallets/get", h.GetWallet)
 
 	// Create HTTP server
 	server := &http.Server{

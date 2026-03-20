@@ -10,6 +10,7 @@ import (
 
 	"gitlab.com/fynbos/mock/mockchimoney/internal/config"
 	"gitlab.com/fynbos/mock/mockchimoney/internal/logger"
+	"gitlab.com/fynbos/mock/mockchimoney/internal/storage"
 
 	"go.uber.org/zap"
 )
@@ -17,16 +18,27 @@ import (
 // Handler holds dependencies for HTTP handlers
 type Handler struct {
 	config *config.Config
+	store  storage.Store
 }
 
 // NewHandler creates a new handler using configuration loaded from the environment.
 func NewHandler(cfg *config.Config) *Handler {
+	return NewHandlerWithStore(cfg, storage.NewMemoryStore())
+}
+
+// NewHandlerWithStore creates a new handler with an explicit store implementation.
+func NewHandlerWithStore(cfg *config.Config, store storage.Store) *Handler {
 	if cfg == nil {
 		cfg = config.Load()
 	}
+	if store == nil {
+		store = storage.NewMemoryStore()
+	}
+
 	logger.Info("initializing http handlers")
 	return &Handler{
 		config: cfg,
+		store:  store,
 	}
 }
 
