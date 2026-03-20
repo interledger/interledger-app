@@ -10,7 +10,10 @@ import (
 
 	"gitlab.com/fynbos/mock/mockchimoney/internal/config"
 	"gitlab.com/fynbos/mock/mockchimoney/internal/handler"
+	"gitlab.com/fynbos/mock/mockchimoney/internal/jobs"
 	"gitlab.com/fynbos/mock/mockchimoney/internal/logger"
+	"gitlab.com/fynbos/mock/mockchimoney/internal/storage"
+	"gitlab.com/fynbos/mock/mockchimoney/internal/webhook"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -37,8 +40,14 @@ func main() {
 		zap.Bool("enforce_authentication", cfg.EnforceAuthentication),
 	)
 
-	// Initialize handler
-	h := handler.NewHandler(cfg)
+	store := storage.NewMemoryStore()
+	queue := jobs.NewInMemoryQueue(64)
+	sender := webhook.NewSender(&http.Client{Timeout: 10 * time.Second})
+	h := handler.NewHandlerWithDeps(cfg, store, queue, sender)
+
+	workerCtx, workerCancel := context.WithCancel(context.Background())
+	defer workerCancel()
+	go jobs.StartWorker(workerCtx, queue)
 
 	// Create chi router
 	r := chi.NewRouter()
@@ -49,11 +58,22 @@ func main() {
 
 	// Register routes
 	r.Get("/health", h.Health)
+	r.Get("/pay/{issueID}", h.PayPage)
+	r.Post("/pay/{issueID}/confirm", h.ConfirmPayPage)
+	r.Get("/verify/kyc/{externalID}", h.KYCPage)
+	r.Post("/verify/kyc/{externalID}/approve", h.KYCApprove)
+	r.Post("/verify/kyc/{externalID}/decline", h.KYCDecline)
 	r.Group(func(r chi.Router) {
 		r.Use(handler.APIKeyMiddleware(cfg.APIKey, cfg.EnforceAuthentication))
 		r.Post("/v0.2.4/multicurrency-wallets/create", h.CreateWallet)
 		r.Get("/v0.2.4/multicurrency-wallets/get", h.GetWallet)
 		r.Post("/v0.2.4/multicurrency-wallets/transfer", h.Transfer)
+		r.Post("/v0.2.4/payment/initiate", h.InitiatePayment)
+		r.Post("/v0.2.4/payment/verify", h.VerifyPayment)
+		r.Post("/v0.2.4/payouts/interac", h.PayoutInterac)
+		r.Post("/v0.2.4/payouts/status", h.PayoutStatus)
+		r.Post("/v0.2.4/info/fee-estimate", h.FeeEstimate)
+		r.Get("/v0.2.4/info/convert/local-amount-to-usd", h.ConvertLocalAmountToUSD)
 	})
 
 	// Create HTTP server
@@ -79,6 +99,8 @@ func main() {
 	<-sigChan
 
 	logger.Info("shutting down MockChimoney")
+	workerCancel()
+	queue.Close()
 
 	// Graceful shutdown
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)

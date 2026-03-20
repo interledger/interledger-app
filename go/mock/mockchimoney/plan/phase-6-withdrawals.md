@@ -2,6 +2,8 @@
 
 **Goal**: Interac withdrawal payouts, status checks, and the `payout.interac.completed` webhook.
 
+**Status**: Completed (2026-03-20)
+
 **Definition of Done**: This phase is complete when `make test` passes successfully.
 
 ## Deliverables
@@ -36,21 +38,33 @@
 
 ## Acceptance Criteria
 
-- [ ] Payout initiation with required fields succeeds
-- [ ] Payout returns an array of payout records (one per interac entry)
-- [ ] Each payout has an `issueID` in format `{subAccountID}_{uuid}`
-- [ ] Payout initiation requires `debitCurrency`
-- [ ] Payout initiation requires at least one interac entry
-- [ ] Payout initiation for non-existent sub-account returns 400
-- [ ] Multiple interac entries produce separate payout records
-- [ ] Payout status check by `chiRef` succeeds
-- [ ] Payout status check requires `chiRef`
-- [ ] Unknown `chiRef` returns 404
-- [ ] `payout.interac.completed` webhook fires after payout initiation
-- [ ] Webhook includes correct `issuer`, `currency`, `amount` in meta
-- [ ] Webhook issueID encodes the sub-account ID
-- [ ] All previous feature scenarios still pass
-- [ ] All code passes `golangci-lint run ./..`
-- [ ] Unit test coverage ≥ 60% (unit tests use memory-backed store); E2E tests use redis-backed store
-- [ ] `make test` runs successfully (linting + unit tests + e2e tests)
-- [ ] All code passes `golangci-lint run ./...`
+- [x] Payout initiation with required fields succeeds
+- [x] Payout returns an array of payout records (one per interac entry)
+- [x] Each payout has an `issueID` in format `{subAccountID}_{uuid}`
+- [x] Payout initiation requires `debitCurrency`
+- [x] Payout initiation requires at least one interac entry
+- [x] Payout initiation for non-existent sub-account returns 400
+- [x] Multiple interac entries produce separate payout records
+- [x] Payout status check by `chiRef` succeeds
+- [x] Payout status check requires `chiRef`
+- [x] Unknown `chiRef` returns 404
+- [x] `payout.interac.completed` webhook fires after payout initiation
+- [x] Webhook includes correct `issuer`, `currency`, `amount` in meta
+- [x] Webhook issueID encodes the sub-account ID
+- [x] All previous feature scenarios still pass
+- [x] All code passes `golangci-lint run ./..`
+- [x] Unit test coverage ≥ 60% (unit tests use memory-backed store); E2E tests use redis-backed store
+- [x] `make test` runs successfully (linting + unit tests + e2e tests)
+- [x] All code passes `golangci-lint run ./...`
+
+## Implementation Notes
+
+- Added payout storage methods in `internal/storage/interface.go` and `internal/storage/memory.go`.
+- Added payout handlers in `internal/handler/payout.go` for initiation and status checks.
+- Reused shared issueID generation utility for payout issue IDs.
+- Enqueued `payout.interac.completed` webhook on payout initiation and update payout status to `completed` after successful send.
+- Added payout flow tests in `internal/handler/payout_test.go`.
+
+## Phase 7 Handoff Notes
+
+- Fee and conversion handlers should use config values already added (`INTERAC_FEE_FLAT`, `CAD_TO_USD_RATE`).

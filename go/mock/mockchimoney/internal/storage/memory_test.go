@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -29,6 +30,82 @@ func TestMemoryStore_CreateAndGetSubAccount(t *testing.T) {
 	}
 	if got.ID != account.ID {
 		t.Fatalf("GetSubAccount() ID mismatch: got %q want %q", got.ID, account.ID)
+	}
+}
+
+func TestMemoryStore_PaymentLifecycle(t *testing.T) {
+	t.Parallel()
+
+	store := NewMemoryStore()
+	p := models.Payment{ID: uuid.NewString(), IssueID: "a_b", Amount: 10, Currency: "CAD", Status: "pending", CreatedAt: time.Now().UTC()}
+
+	if _, err := store.CreatePayment(context.Background(), p); err != nil {
+		t.Fatalf("CreatePayment() unexpected error: %v", err)
+	}
+
+	got, err := store.GetPaymentByIssueID(context.Background(), p.IssueID)
+	if err != nil {
+		t.Fatalf("GetPaymentByIssueID() unexpected error: %v", err)
+	}
+	if got.Status != "pending" {
+		t.Fatalf("status mismatch: got %q want %q", got.Status, "pending")
+	}
+
+	updated, err := store.UpdatePaymentStatus(context.Background(), p.IssueID, "redeemed")
+	if err != nil {
+		t.Fatalf("UpdatePaymentStatus() unexpected error: %v", err)
+	}
+	if updated.Status != "redeemed" {
+		t.Fatalf("updated status mismatch: got %q", updated.Status)
+	}
+}
+
+func TestMemoryStore_PayoutLifecycle(t *testing.T) {
+	t.Parallel()
+
+	store := NewMemoryStore()
+	p := models.Payout{ID: uuid.NewString(), IssueID: "x_y", ChiRef: uuid.NewString(), Amount: 22, Currency: "CAD", Status: "pending", CreatedAt: time.Now().UTC()}
+
+	if _, err := store.CreatePayout(context.Background(), p); err != nil {
+		t.Fatalf("CreatePayout() unexpected error: %v", err)
+	}
+
+	got, err := store.GetPayoutByChiRef(context.Background(), p.ChiRef)
+	if err != nil {
+		t.Fatalf("GetPayoutByChiRef() unexpected error: %v", err)
+	}
+	if got.IssueID != p.IssueID {
+		t.Fatalf("issue mismatch: got %q want %q", got.IssueID, p.IssueID)
+	}
+
+	if _, err := store.GetPayoutByIssueID(context.Background(), p.IssueID); err != nil {
+		t.Fatalf("GetPayoutByIssueID() unexpected error: %v", err)
+	}
+
+	updated, err := store.UpdatePayoutStatus(context.Background(), p.IssueID, "completed")
+	if err != nil {
+		t.Fatalf("UpdatePayoutStatus() unexpected error: %v", err)
+	}
+	if updated.Status != "completed" {
+		t.Fatalf("status mismatch: got %q", updated.Status)
+	}
+}
+
+func TestMemoryStore_UpdateSubAccountKYCStatus(t *testing.T) {
+	t.Parallel()
+
+	store := NewMemoryStore()
+	acct := models.SubAccount{ID: "kyc-1", Name: "A", KYCStatus: "pending"}
+	if _, err := store.CreateSubAccount(context.Background(), acct); err != nil {
+		t.Fatalf("CreateSubAccount() unexpected error: %v", err)
+	}
+
+	updated, err := store.UpdateSubAccountKYCStatus(context.Background(), acct.ID, "completed")
+	if err != nil {
+		t.Fatalf("UpdateSubAccountKYCStatus() unexpected error: %v", err)
+	}
+	if updated.KYCStatus != "completed" {
+		t.Fatalf("KYC status mismatch: got %q", updated.KYCStatus)
 	}
 }
 

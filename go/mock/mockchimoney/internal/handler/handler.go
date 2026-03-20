@@ -9,8 +9,10 @@ import (
 	"time"
 
 	"gitlab.com/fynbos/mock/mockchimoney/internal/config"
+	"gitlab.com/fynbos/mock/mockchimoney/internal/jobs"
 	"gitlab.com/fynbos/mock/mockchimoney/internal/logger"
 	"gitlab.com/fynbos/mock/mockchimoney/internal/storage"
+	"gitlab.com/fynbos/mock/mockchimoney/internal/webhook"
 
 	"go.uber.org/zap"
 )
@@ -19,26 +21,41 @@ import (
 type Handler struct {
 	config *config.Config
 	store  storage.Store
+	queue  jobs.Queue
+	sender *webhook.Sender
 }
 
 // NewHandler creates a new handler using configuration loaded from the environment.
 func NewHandler(cfg *config.Config) *Handler {
-	return NewHandlerWithStore(cfg, storage.NewMemoryStore())
+	return NewHandlerWithDeps(cfg, storage.NewMemoryStore(), jobs.NewNoopQueue(), webhook.NewSender(&http.Client{Timeout: 10 * time.Second}))
 }
 
 // NewHandlerWithStore creates a new handler with an explicit store implementation.
 func NewHandlerWithStore(cfg *config.Config, store storage.Store) *Handler {
+	return NewHandlerWithDeps(cfg, store, jobs.NewNoopQueue(), webhook.NewSender(&http.Client{Timeout: 10 * time.Second}))
+}
+
+// NewHandlerWithDeps creates a new handler with explicit dependencies.
+func NewHandlerWithDeps(cfg *config.Config, store storage.Store, queue jobs.Queue, sender *webhook.Sender) *Handler {
 	if cfg == nil {
 		cfg = config.Load()
 	}
 	if store == nil {
 		store = storage.NewMemoryStore()
 	}
+	if queue == nil {
+		queue = jobs.NewNoopQueue()
+	}
+	if sender == nil {
+		sender = webhook.NewSender(&http.Client{Timeout: 10 * time.Second})
+	}
 
 	logger.Info("initializing http handlers")
 	return &Handler{
 		config: cfg,
 		store:  store,
+		queue:  queue,
+		sender: sender,
 	}
 }
 

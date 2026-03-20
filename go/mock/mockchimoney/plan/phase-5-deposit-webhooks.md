@@ -2,6 +2,8 @@
 
 **Goal**: Svix-signed webhook delivery for deposits, backed by a simple in-process job queue.
 
+**Status**: Completed (2026-03-20)
+
 **Definition of Done**: This phase is complete when `make test` passes successfully.
 
 ## Deliverables
@@ -38,20 +40,32 @@
 
 ## Acceptance Criteria
 
-- [ ] `charge.interac.completed` webhook fires after pay page completion
-- [ ] `chimoney.redeem.completed` webhook fires after pay page completion
-- [ ] Both webhooks are delivered in sequence
-- [ ] Webhook issueID encodes the sub-account ID correctly
-- [ ] Webhooks include valid `svix-id` header in format `msg_<uuid>`
-- [ ] Webhooks include valid `svix-timestamp` header (Unix epoch)
-- [ ] Webhooks include valid `svix-signature` header starting with `v1,`
-- [ ] Webhook signature verifies correctly with the configured secret
-- [ ] Webhook signature fails with wrong secret
-- [ ] Webhook payload is a flat JSON object (no `data` wrapper)
-- [ ] All previous feature scenarios still pass
-- [ ] All code passes `golangci-lint run ./...`
-- [ ] Unit test coverage ≥ 50% (unit tests use memory-backed store); E2E tests use redis-backed store
-- [ ] `make test` runs successfully (linting + unit tests + e2e tests)
+- [x] `charge.interac.completed` webhook fires after pay page completion
+- [x] `chimoney.redeem.completed` webhook fires after pay page completion
+- [x] Both webhooks are delivered in sequence
+- [x] Webhook issueID encodes the sub-account ID correctly
+- [x] Webhooks include valid `svix-id` header in format `msg_<uuid>`
+- [x] Webhooks include valid `svix-timestamp` header (Unix epoch)
+- [x] Webhooks include valid `svix-signature` header starting with `v1,`
+- [x] Webhook signature verifies correctly with the configured secret
+- [x] Webhook signature fails with wrong secret
+- [x] Webhook payload is a flat JSON object (no `data` wrapper)
+- [x] All previous feature scenarios still pass
+- [x] All code passes `golangci-lint run ./...`
+- [x] Unit test coverage ≥ 50% (unit tests use memory-backed store); E2E tests use redis-backed store
+- [x] `make test` runs successfully (linting + unit tests + e2e tests)
+
+## Implementation Notes
+
+- Added svix webhook sender in `internal/webhook/sender.go` with `ParseSecret`, `ComputeSignature`, and `Send`.
+- Added channel-backed queue and worker in `internal/jobs/job.go`, `internal/jobs/queue.go`, and `internal/jobs/worker.go`.
+- Wired queue worker and sender in `cmd/mockchimoney/main.go`.
+- Added deposit webhook enqueueing after pay confirmation in `internal/handler/payment.go`.
+- Added webhook signature and payload tests in `internal/webhook/sender_test.go` and deposit webhook sequencing assertions in `internal/handler/payment_test.go`.
+
+## Phase 6 Handoff Notes
+
+- Reuse `generateIssueID` and webhook enqueue helpers from `internal/handler/common.go` and `internal/handler/webhook_enqueue.go` for payout webhook flow.
 
 ## Testing Notes
 

@@ -19,6 +19,7 @@ type SubAccount struct {
 
 // Payment represents a Chimoney deposit payment record.
 type Payment struct {
+	ID          string
 	IssueID     string
 	SubAccount  string
 	Amount      float64
