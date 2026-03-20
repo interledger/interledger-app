@@ -318,7 +318,6 @@ All logs must be JSON, one object per line. Include `ts` (Unix timestamp), optio
 - `e2e/AGENTS.md` - Agent-specific E2E testing guidance (tag usage, troubleshooting)
 - `docs/concepts.md` - Provider terminology mapping
 - `documentation/docs/env-variables.md` - Full environment variable reference for Protea, Botanist, and Backend
-- `env-cleanup.txt` - Variables used in code but missing from local compose, and stale local variables
 - `local/README.md` - Detailed local environment documentation
 - `e2e/README.md` - E2E test setup and execution guide
 - `e2e/STEP_REFERENCE.md` - Gherkin step definitions reference
@@ -333,11 +332,10 @@ All environment variables for Protea (frontend), Botanist (admin), and the Go Ba
 **When reviewing PRs that touch environment configuration, always check:**
 
 1. **New env vars added to `go/backend` or TypeScript apps** — add the variable to `documentation/docs/env-variables.md` with correct secret classification and per-environment values.
-2. **Changes to `local/*.yaml` compose files or `local/example.env`** — keep `documentation/docs/env-variables.md` and `env-cleanup.txt` in sync.
+2. **Changes to `local/*.yaml` compose files or `local/example.env`** — keep `documentation/docs/env-variables.md` in sync.
 3. **Changes to `interledger-app-deploy` values files** — update the Production/Sandbox/Development columns in `documentation/docs/env-variables.md`.
 4. **Secrets must never be committed** — any new sensitive variable must reference a 1Password vault item; flag any plaintext secrets immediately.
-5. **Check `env-cleanup.txt`** — if a new variable is added without a local default, document it there with the default behaviour and whether a mock value is needed.
-6. **Production vs sandbox Gatehub client IDs differ** — production uses different OAuth client IDs. See the GateHub section of `documentation/docs/env-variables.md`.
+5. **Production vs sandbox Gatehub client IDs differ** — production uses different OAuth client IDs. See the GateHub section of `documentation/docs/env-variables.md`.
 
 ## Trust These Instructions
 

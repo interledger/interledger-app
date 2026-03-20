@@ -14,7 +14,6 @@
 **Quick Navigation:**
 
 - **Need to compare service-level variables?** -> See [Protea (Frontend)](#protea-frontend), [Botanist (Admin Portal)](#botanist-admin-portal), and [Backend (Wallet)](#backend-wallet)
-- **Reviewing PR config changes?** -> See [Reviewing Environment Variable Changes](#reviewing-environment-variable-changes)
 - **Need legacy variable context?** -> See [Legacy Variables](#legacy-variables)
 
 This document covers all environment variables for the three deployed application services:
@@ -23,7 +22,7 @@ This document covers all environment variables for the three deployed applicatio
 - **Botanist** — admin portal (`typescript/botanist`)
 - **Backend** — Go wallet backend (`go/backend`)
 
-Variables with **Secret: Yes** must be stored in 1Password and injected via a Kubernetes secret; never committed to config files. Variables with **Secret: No** are safe to store in a ConfigMap or compose file.
+Variables with **Secret: Yes** must be stored in 1Password and injected via a Kubernetes secret; real production secret values must never be committed to repository config files. Variables with **Secret: No** are safe to store in a ConfigMap or compose file.
 
 ---
 
@@ -40,8 +39,6 @@ Protea is a Remix application serving the user-facing wallet UI.
 | `RAFIKI_AUTH_ENDPOINT` | Internal URL for the Rafiki auth gRPC/GraphQL endpoint | No | Deployed: `http://rafiki-auth-service:3009`; Local: `http://rafiki_auth:3009` |
 | `PAYMENT_POINTER_BASE` | Domain used to build Open Payments payment pointer addresses | No | Prod: `ilp.link`; Sandbox: `sandbox.ilp.link`; Dev: `development.ilp.link`; Local: `local.ilp.link` |
 | `BACKEND_GRPC_URL` | Internal URL for the wallet backend gRPC server | No | Deployed: `http://wallet-backend-service-grpc:8443`; Local: `http://backend:8443` |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | OpenTelemetry collector endpoint for traces | No | All environments: `grpc://api.honeycomb.io:443` |
-| `OTEL_SERVICE_NAME` | Service name reported in OpenTelemetry traces | No | All environments: `protea` |
 | `DEFAULT_RATE_LIMIT_REQUESTS` | Max requests allowed per time window before rate limiting kicks in | No | Local default: `4` (code default); deployed values TBD |
 | `DEFAULT_RATE_LIMIT_TIME` | Rate limit time window in seconds | No | Local default: `3600` (code default); deployed values TBD |
 | `PTI_CLIENT_ID` | PTI/Fiant payment provider client UUID, passed to the browser for payment widget initialisation | No | Local default: `''` (code default); deployed values TBD |
@@ -55,7 +52,6 @@ Protea is a Remix application serving the user-facing wallet UI.
 | `SENTRY_DSN` | Sentry DSN for client-side and server-side error reporting | Yes | Not set locally |
 | `SEGMENT_API_KEY` | Segment analytics write key for event tracking | Yes | Not set locally |
 | `GOOGLE_MAPS_API_KEY` | Google Maps API key for geocoding and places autocomplete endpoints used during onboarding | Yes | Not set locally |
-| `OTEL_EXPORTER_OTLP_HEADERS` | Auth headers for the OTLP endpoint (e.g. `x-honeycomb-team=<key>`) | Yes | Not set locally |
 
 ### Legacy Variables
 
@@ -77,8 +73,7 @@ Botanist is a Remix application providing the internal admin interface. It conne
 |---|---|---|---|
 | `FYNBOS_ENV` | Runtime environment tag | No | Prod: `prod`; Sandbox/Dev: `dev`; Local: `local` |
 | `BACKEND_GRPC_URL` | Internal URL for the backend admin gRPC port (8448) | No | Deployed: `wallet-backend-service-grpc:8448`; Local: `backend:8448` |
-| `KRATOS_ADMIN_URL` | Internal URL for the Ory Kratos Admin API | No | Deployed: `http://kratos-admin:4434`; Local: `http://kratos:4434` |
-| `PAYMENT_POINTER_BASE` | Domain used to display payment pointer addresses for users | No | Prod: `ilp.link`; Sandbox: `sandbox.ilp.link`; Dev: `development.ilp.link`; Local: not set |
+| `PAYMENT_POINTER_BASE` | Domain used to display payment pointer addresses for users | No | Prod: `ilp.link`; Sandbox: `sandbox.ilp.link`; Dev: `development.ilp.link`; Local: `local.ilp.link` |
 
 ---
 
@@ -118,7 +113,7 @@ The Go backend is the core of the wallet, handling payments, provider integratio
 |---|---|---|---|
 | `USD_LEDGER_ID` | Internal Pacioli ledger ID for USD accounts | No | All environments: `1` |
 | `NOOP_EQUITY_ACCOUNT_ID` | Equity account UUID used as no-op placeholder in ledger entries | No | Deployed: `00000000-0000-0000-0000-000000000000`; Local: `43d4b2bd-e29b-4a63-9aa8-7990776c714e` |
-| `REDIS_URL` | Redis connection URL for queues and caching | Yes | Not set locally |
+| `REDIS_URL` | Redis connection URL for queues and caching | Yes | Local default: `redis://redis:6379/0` (provided by local compose); currently no direct `REDIS_URL` reference under `go/backend` |
 | `ALLOWED_WALLET_IDS` | Comma-separated wallet IDs allowed through regional blocks | No | All environments: empty |
 | `BLOCKED_REGIONS` | Comma-separated ISO country codes to block wallet access from | No | Prod: `US`; all others: empty |
 | `APPLE_APP_ID` | Apple App Site Association app ID for deep-links | No | Prod: `6B7AFCRT3V.app.wallet.interledger`; Sandbox: TBD; Dev: `6B7AFCRT3V.app.wallet.interledger.dev`; Local: `6B7AFCRT3V.app.wallet.interledger.test` |
