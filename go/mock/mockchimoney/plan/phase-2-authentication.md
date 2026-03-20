@@ -1,5 +1,7 @@
 # Phase 2 — Authentication Middleware
 
+**Status**: Completed (2026-03-20)
+
 **Goal**: `X-API-KEY` validation on all non-health endpoints, controlled by an env var toggle.
 
 **Definition of Done**: This phase is complete when `make test` passes successfully.
@@ -30,12 +32,20 @@
 
 ## Acceptance Criteria
 
-- [ ] Valid API key is accepted
-- [ ] Missing X-API-KEY header is rejected with 401 when enforced
-- [ ] Wrong API key is rejected with 401 when enforced
-- [ ] All protected endpoints (`payment`, `payout`, `wallet`, etc.) require the key
-- [ ] Health check does not require authentication even when enforced
-- [ ] Authentication can be disabled for development (`MOCKCHIMONEY_ENFORCE_AUTHENTICATION=false`)
-- [ ] All previous feature scenarios still pass
-- [ ] All code passes `golangci-lint run ./...`- [ ] Unit test coverage ≥ 50% (unit tests use memory-backed store)
-- [ ] `make test` runs successfully (linting + unit tests + e2e tests)
+- [x] Valid API key is accepted
+- [x] Missing X-API-KEY header is rejected with 401 when enforced
+- [x] Wrong API key is rejected with 401 when enforced
+- [x] All protected endpoints (`payment`, `payout`, `wallet`, etc.) require the key
+- [x] Health check does not require authentication even when enforced
+- [x] Authentication can be disabled for development (`MOCKCHIMONEY_ENFORCE_AUTHENTICATION=false`)
+- [x] All previous feature scenarios still pass
+- [x] All code passes `golangci-lint run ./...`
+- [x] Unit test coverage ≥ 50% (unit tests use memory-backed store)
+- [x] `make test` runs successfully (linting + unit tests + e2e tests)
+
+## Verification Run
+
+- `gofmt -w ./cmd ./internal`
+- `go test ./...`
+- `go test ./internal/handler -cover` (`57.5%`)
+- `make test`

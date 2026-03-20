@@ -34,6 +34,7 @@ func main() {
 	logger.Info("configuration loaded",
 		zap.String("log_level", cfg.LogLevel),
 		zap.String("port", cfg.Port),
+		zap.Bool("enforce_authentication", cfg.EnforceAuthentication),
 	)
 
 	// Initialize handler
@@ -48,8 +49,11 @@ func main() {
 
 	// Register routes
 	r.Get("/health", h.Health)
-	r.Post("/v0.2.4/multicurrency-wallets/create", h.CreateWallet)
-	r.Get("/v0.2.4/multicurrency-wallets/get", h.GetWallet)
+	r.Group(func(r chi.Router) {
+		r.Use(handler.APIKeyMiddleware(cfg.APIKey, cfg.EnforceAuthentication))
+		r.Post("/v0.2.4/multicurrency-wallets/create", h.CreateWallet)
+		r.Get("/v0.2.4/multicurrency-wallets/get", h.GetWallet)
+	})
 
 	// Create HTTP server
 	server := &http.Server{

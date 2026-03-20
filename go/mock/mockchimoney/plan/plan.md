@@ -688,7 +688,7 @@ Each phase has its own document in the `plan/` directory:
 |-------|-------|------|--------|
 | [Phase 0](phase-0-bootstrap.md) | Bootstrap: Repository Skeleton and Health Check | None | Planned |
 | [Phase 1](phase-1-storage-and-wallets.md) | Storage Layer and Wallet APIs | Phase 0 | Completed (2026-03-20) |
-| [Phase 2](phase-2-authentication.md) | Authentication Middleware | Phases 0-1 | Planned |
+| [Phase 2](phase-2-authentication.md) | Authentication Middleware | Phases 0-1 | Completed (2026-03-20) |
 | [Phase 3](phase-3-wallet-transfer.md) | Wallet Transfer | Phases 0-2 | Planned |
 | [Phase 4](phase-4-payment-initiation.md) | Payment Initiation and Verification | Phases 0-3 | Planned |
 | [Phase 5](phase-5-deposit-webhooks.md) | Webhook Infrastructure and Deposit Webhooks | Phases 0-4 | Planned |
