@@ -2,6 +2,8 @@
 
 **Goal**: Automated Godog BDD tests that run against a real MockChimoney instance in Docker, suitable for CI.
 
+**Definition of Done**: This phase is complete when `make test` passes successfully.
+
 ## Deliverables
 
 - `testenv/` directory with the following structure:

@@ -2,6 +2,8 @@
 
 **Goal**: Svix-signed webhook delivery for deposits, backed by a simple in-process job queue.
 
+**Definition of Done**: This phase is complete when `make test` passes successfully.
+
 ## Deliverables
 
 - `internal/webhook/sender.go` — `Send(ctx, webhookURL, secret, payload)`:

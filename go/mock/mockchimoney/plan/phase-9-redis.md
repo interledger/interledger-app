@@ -2,6 +2,8 @@
 
 **Goal**: Persistent storage that survives service restarts, using the same Redis instance as the rest of the local environment.
 
+**Definition of Done**: This phase is complete when `make test` passes successfully.
+
 ## Deliverables
 
 - `internal/storage/redis.go` — Redis implementation of `Store` interface, using `MOCKCHIMONEY_REDIS_URL` and `MOCKCHIMONEY_REDIS_DB`

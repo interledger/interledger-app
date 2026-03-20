@@ -2,6 +2,8 @@
 
 **Goal**: `X-API-KEY` validation on all non-health endpoints, controlled by an env var toggle.
 
+**Definition of Done**: This phase is complete when `make test` passes successfully.
+
 ## Deliverables
 
 - `internal/handler/middleware.go` — `APIKeyMiddleware(key string, enforce bool) func(http.Handler) http.Handler`

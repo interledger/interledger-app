@@ -2,6 +2,8 @@
 
 **Goal**: A runnable service that can be built, started, and health-checked. Nothing else.
 
+**Definition of Done**: This phase is complete when `make test` passes successfully.
+
 ## Deliverables
 
 - `go.mod` (module `gitlab.com/fynbos/mock/mockchimoney`)

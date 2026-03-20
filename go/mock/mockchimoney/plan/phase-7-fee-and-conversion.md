@@ -2,6 +2,8 @@
 
 **Goal**: The two info endpoints used by the backend.
 
+**Definition of Done**: This phase is complete when `make test` passes successfully.
+
 ## Deliverables
 
 - `internal/handler/fee.go` — `POST /v0.2.4/info/fee-estimate`:

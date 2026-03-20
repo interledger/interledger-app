@@ -2,6 +2,8 @@
 
 **Goal**: Persistent (in-memory) storage for sub-accounts, plus the create/get wallet endpoints.
 
+**Definition of Done**: This phase is complete when `make test` passes successfully.
+
 ## Deliverables
 
 - `internal/models/models.go` — `SubAccount`, `Payment`, `Payout` structs (Go-idiomatic, no JSON tags yet)

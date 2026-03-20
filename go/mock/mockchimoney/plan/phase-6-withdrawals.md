@@ -2,6 +2,8 @@
 
 **Goal**: Interac withdrawal payouts, status checks, and the `payout.interac.completed` webhook.
 
+**Definition of Done**: This phase is complete when `make test` passes successfully.
+
 ## Deliverables
 
 - `internal/storage/interface.go` extended: `CreatePayout`, `GetPayoutByChiRef`, `GetPayoutByIssueID`, `UpdatePayoutStatus`
