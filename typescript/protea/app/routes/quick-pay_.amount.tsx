@@ -63,7 +63,7 @@ export default function Page() {
 
   useEffect(() => {
     setAssetCode(assetCode)
-  })
+  }, [setAssetCode, assetCode])
 
   const handleNavigation = (e: React.MouseEvent<HTMLElement>, url: string) => {
     if (
