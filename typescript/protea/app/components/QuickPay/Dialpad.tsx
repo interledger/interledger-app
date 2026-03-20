@@ -101,13 +101,13 @@ const DialPadRow = ({
   idThird
 }: DialPadRowProps) => {
   return (
-    <ul>
-      <div className="flex justify-between">
+    <div>
+      <ul className="flex justify-between">
         <DialPadKey label={first} id={idFirst ? idFirst : first} />
         <DialPadKey label={second} id={idSecond ? idSecond : second} />
         <DialPadKey label={third} id={idThird ? idThird : third} />
-      </div>
-    </ul>
+      </ul>
+    </div>
   )
 }
 DialPadRow.displayName = 'DialPadRow'
