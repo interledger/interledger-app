@@ -31,3 +31,8 @@ jobs:
       test_path: './go/mock/mockgatehub'
       coverage_key: 'mockgatehub'
 
+  mockchimoney-tests:
+    uses: ./.github/workflows/mock-tester.yml
+    with:
+      test_path: './go/mock/mockchimoney'
+      coverage_key: 'mockchimoney'
