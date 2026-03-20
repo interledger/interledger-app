@@ -8,8 +8,10 @@ import (
 )
 
 var (
-	ErrUserNotFound       = errors.New("user not found")
-	ErrAssessmentNotFound = errors.New("assessment not found")
+	ErrUserNotFound               = errors.New("user not found")
+	ErrAssessmentNotFound         = errors.New("assessment not found")
+	ErrWalletNotFound             = errors.New("wallet not found")
+	ErrPaymentInformationNotFound = errors.New("payment information not found")
 )
 
 // Storage defines all persistence operations for mockpti.
@@ -22,6 +24,15 @@ type Storage interface {
 	// Assessment operations
 	SaveAssessment(ctx context.Context, assessment *models.Assessment) error
 	GetLatestAssessment(ctx context.Context, userID string) (*models.Assessment, error)
+
+	// Wallet operations
+	SaveWallet(ctx context.Context, wallet *models.Wallet) error
+	GetWallet(ctx context.Context, userID, walletID string) (*models.Wallet, error)
+	ListWallets(ctx context.Context, userID string) ([]*models.Wallet, error)
+
+	// Payment information operations
+	SavePaymentInformation(ctx context.Context, pi *models.PaymentInformation) error
+	GetPaymentInformation(ctx context.Context, userID, piID string) (*models.PaymentInformation, error)
 
 	// Reset all data (for testing)
 	Reset(ctx context.Context) error

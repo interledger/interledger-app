@@ -12,8 +12,8 @@ This roadmap breaks the mock PTI implementation into five reviewable phases with
 - Outgoing webhook HTTP calls must use a persisted jobs mechanism (no direct fire-and-forget HTTP from request handlers/domain code).
 
 ## Phase Sequence
-1. Phase 1: Foundations and Signup Core
-2. Phase 2: Wallets and Payment Information
+1. ~~Phase 1: Foundations and Signup Core~~ ✅ Done
+2. Phase 2: Wallets and Payment Information ← current
 3. Phase 3: Transactions
 4. Phase 4: Webhook Jobs and Delivery
 5. Phase 5: Local Integration and SDK Reliability

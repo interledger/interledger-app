@@ -56,6 +56,18 @@ func assessmentsKey(userID string) string {
 	return fmt.Sprintf("pti:assessments:%s", userID)
 }
 
+func walletKey(userID, walletID string) string {
+	return fmt.Sprintf("pti:wallet:%s:%s", userID, walletID)
+}
+
+func walletsIndexKey(userID string) string {
+	return fmt.Sprintf("pti:wallets:%s", userID)
+}
+
+func paymentInfoKey(userID, piID string) string {
+	return fmt.Sprintf("pti:paymentinfo:%s:%s", userID, piID)
+}
+
 // User operations
 
 func (r *RedisStorage) SaveUser(ctx context.Context, user *models.User) error {
@@ -128,4 +140,84 @@ func (r *RedisStorage) GetLatestAssessment(ctx context.Context, userID string) (
 
 func (r *RedisStorage) Reset(ctx context.Context) error {
 	return r.client.FlushDB(ctx).Err()
+}
+
+// Wallet operations
+
+func (r *RedisStorage) SaveWallet(ctx context.Context, wallet *models.Wallet) error {
+	data, err := json.Marshal(wallet)
+	if err != nil {
+		return fmt.Errorf("failed to marshal wallet: %w", err)
+	}
+	pipe := r.client.Pipeline()
+	pipe.Set(ctx, walletKey(wallet.UserID, wallet.WalletID), data, 0)
+	pipe.SAdd(ctx, walletsIndexKey(wallet.UserID), wallet.WalletID)
+	_, err = pipe.Exec(ctx)
+	return err
+}
+
+func (r *RedisStorage) GetWallet(ctx context.Context, userID, walletID string) (*models.Wallet, error) {
+	data, err := r.client.Get(ctx, walletKey(userID, walletID)).Bytes()
+	if err != nil {
+		if err == redis.Nil {
+			return nil, ErrWalletNotFound
+		}
+		return nil, err
+	}
+
+	var wallet models.Wallet
+	if err := json.Unmarshal(data, &wallet); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal wallet: %w", err)
+	}
+	return &wallet, nil
+}
+
+func (r *RedisStorage) ListWallets(ctx context.Context, userID string) ([]*models.Wallet, error) {
+	ids, err := r.client.SMembers(ctx, walletsIndexKey(userID)).Result()
+	if err != nil {
+		return nil, err
+	}
+
+	wallets := make([]*models.Wallet, 0, len(ids))
+	for _, id := range ids {
+		data, err := r.client.Get(ctx, walletKey(userID, id)).Bytes()
+		if err != nil {
+			if err == redis.Nil {
+				continue
+			}
+			return nil, err
+		}
+		var wallet models.Wallet
+		if err := json.Unmarshal(data, &wallet); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal wallet: %w", err)
+		}
+		wallets = append(wallets, &wallet)
+	}
+	return wallets, nil
+}
+
+// Payment information operations
+
+func (r *RedisStorage) SavePaymentInformation(ctx context.Context, pi *models.PaymentInformation) error {
+	data, err := json.Marshal(pi)
+	if err != nil {
+		return fmt.Errorf("failed to marshal payment information: %w", err)
+	}
+	return r.client.Set(ctx, paymentInfoKey(pi.UserID, pi.ID), data, 0).Err()
+}
+
+func (r *RedisStorage) GetPaymentInformation(ctx context.Context, userID, piID string) (*models.PaymentInformation, error) {
+	data, err := r.client.Get(ctx, paymentInfoKey(userID, piID)).Bytes()
+	if err != nil {
+		if err == redis.Nil {
+			return nil, ErrPaymentInformationNotFound
+		}
+		return nil, err
+	}
+
+	var pi models.PaymentInformation
+	if err := json.Unmarshal(data, &pi); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal payment information: %w", err)
+	}
+	return &pi, nil
 }

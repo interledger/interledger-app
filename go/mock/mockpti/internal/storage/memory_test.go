@@ -146,6 +146,8 @@ func TestMemoryStorage_Reset(t *testing.T) {
 
 	_ = store.SaveUser(ctx, &models.User{ID: "user-1"})
 	_ = store.SaveAssessment(ctx, &models.Assessment{UserID: "user-1", RequestID: "req-1"})
+	_ = store.SaveWallet(ctx, &models.Wallet{WalletID: "w1", UserID: "user-1", Currency: "USD"})
+	_ = store.SavePaymentInformation(ctx, &models.PaymentInformation{ID: "pi1", UserID: "user-1", Type: "BANK_ACCOUNT"})
 
 	if err := store.Reset(ctx); err != nil {
 		t.Fatalf("Reset failed: %v", err)
@@ -159,5 +161,161 @@ func TestMemoryStorage_Reset(t *testing.T) {
 	_, err = store.GetLatestAssessment(ctx, "user-1")
 	if err != ErrAssessmentNotFound {
 		t.Errorf("expected ErrAssessmentNotFound after reset, got %v", err)
+	}
+
+	_, err = store.GetWallet(ctx, "user-1", "w1")
+	if err != ErrWalletNotFound {
+		t.Errorf("expected ErrWalletNotFound after reset, got %v", err)
+	}
+
+	_, err = store.GetPaymentInformation(ctx, "user-1", "pi1")
+	if err != ErrPaymentInformationNotFound {
+		t.Errorf("expected ErrPaymentInformationNotFound after reset, got %v", err)
+	}
+}
+
+// Wallet storage tests
+
+func TestMemoryStorage_SaveAndGetWallet(t *testing.T) {
+	store := NewMemoryStorage()
+	ctx := context.Background()
+
+	wallet := &models.Wallet{
+		WalletID:       "wallet-1",
+		Currency:       "USD",
+		Reference:      "test-ref",
+		CreateDateTime: "2026-03-20T00:00:00Z",
+		Balance:        0,
+		UserID:         "user-1",
+	}
+
+	if err := store.SaveWallet(ctx, wallet); err != nil {
+		t.Fatalf("SaveWallet failed: %v", err)
+	}
+
+	got, err := store.GetWallet(ctx, "user-1", "wallet-1")
+	if err != nil {
+		t.Fatalf("GetWallet failed: %v", err)
+	}
+
+	if got.WalletID != "wallet-1" {
+		t.Errorf("expected walletId wallet-1, got %s", got.WalletID)
+	}
+	if got.Currency != "USD" {
+		t.Errorf("expected currency USD, got %s", got.Currency)
+	}
+	if got.Reference != "test-ref" {
+		t.Errorf("expected reference test-ref, got %s", got.Reference)
+	}
+}
+
+func TestMemoryStorage_GetWallet_NotFound(t *testing.T) {
+	store := NewMemoryStorage()
+	ctx := context.Background()
+
+	_, err := store.GetWallet(ctx, "user-1", "nonexistent")
+	if err != ErrWalletNotFound {
+		t.Errorf("expected ErrWalletNotFound, got %v", err)
+	}
+}
+
+func TestMemoryStorage_GetWallet_WrongUser(t *testing.T) {
+	store := NewMemoryStorage()
+	ctx := context.Background()
+
+	_ = store.SaveWallet(ctx, &models.Wallet{WalletID: "w1", UserID: "user-1", Currency: "USD"})
+
+	_, err := store.GetWallet(ctx, "user-2", "w1")
+	if err != ErrWalletNotFound {
+		t.Errorf("expected ErrWalletNotFound for wrong user, got %v", err)
+	}
+}
+
+func TestMemoryStorage_ListWallets(t *testing.T) {
+	store := NewMemoryStorage()
+	ctx := context.Background()
+
+	_ = store.SaveWallet(ctx, &models.Wallet{WalletID: "w1", UserID: "user-1", Currency: "USD"})
+	_ = store.SaveWallet(ctx, &models.Wallet{WalletID: "w2", UserID: "user-1", Currency: "EUR"})
+	_ = store.SaveWallet(ctx, &models.Wallet{WalletID: "w3", UserID: "user-2", Currency: "GBP"})
+
+	wallets, err := store.ListWallets(ctx, "user-1")
+	if err != nil {
+		t.Fatalf("ListWallets failed: %v", err)
+	}
+
+	if len(wallets) != 2 {
+		t.Errorf("expected 2 wallets for user-1, got %d", len(wallets))
+	}
+}
+
+func TestMemoryStorage_ListWallets_Empty(t *testing.T) {
+	store := NewMemoryStorage()
+	ctx := context.Background()
+
+	wallets, err := store.ListWallets(ctx, "user-no-wallets")
+	if err != nil {
+		t.Fatalf("ListWallets failed: %v", err)
+	}
+
+	if len(wallets) != 0 {
+		t.Errorf("expected 0 wallets, got %d", len(wallets))
+	}
+}
+
+// Payment information storage tests
+
+func TestMemoryStorage_SaveAndGetPaymentInformation(t *testing.T) {
+	store := NewMemoryStorage()
+	ctx := context.Background()
+
+	pi := &models.PaymentInformation{
+		ID:                "pi-1",
+		Type:              "BANK_ACCOUNT",
+		BankAccountNumber: "123456789",
+		BankRoutingNumber: "021000021",
+		AccountBankName:   "Test Bank",
+		UserID:            "user-1",
+	}
+
+	if err := store.SavePaymentInformation(ctx, pi); err != nil {
+		t.Fatalf("SavePaymentInformation failed: %v", err)
+	}
+
+	got, err := store.GetPaymentInformation(ctx, "user-1", "pi-1")
+	if err != nil {
+		t.Fatalf("GetPaymentInformation failed: %v", err)
+	}
+
+	if got.ID != "pi-1" {
+		t.Errorf("expected ID pi-1, got %s", got.ID)
+	}
+	if got.Type != "BANK_ACCOUNT" {
+		t.Errorf("expected type BANK_ACCOUNT, got %s", got.Type)
+	}
+	if got.BankAccountNumber != "123456789" {
+		t.Errorf("expected bank account 123456789, got %s", got.BankAccountNumber)
+	}
+}
+
+func TestMemoryStorage_GetPaymentInformation_NotFound(t *testing.T) {
+	store := NewMemoryStorage()
+	ctx := context.Background()
+
+	_, err := store.GetPaymentInformation(ctx, "user-1", "nonexistent")
+	if err != ErrPaymentInformationNotFound {
+		t.Errorf("expected ErrPaymentInformationNotFound, got %v", err)
+	}
+}
+
+func TestMemoryStorage_GetPaymentInformation_WrongUser(t *testing.T) {
+	store := NewMemoryStorage()
+	ctx := context.Background()
+
+	_ = store.SavePaymentInformation(ctx, &models.PaymentInformation{ID: "pi-1", UserID: "user-1", Type: "BANK_ACCOUNT"})
+
+	_, err := store.GetPaymentInformation(ctx, "user-2", "pi-1")
+	if err != ErrPaymentInformationNotFound {
+		t.Errorf("expected ErrPaymentInformationNotFound for wrong user, got %v", err)
 	}
 }

@@ -63,6 +63,29 @@ type Assessment struct {
 	RefusalReason string `json:"refusalReason,omitempty"`
 }
 
+// Wallet represents a PTI user wallet.
+type Wallet struct {
+	WalletID       string  `json:"walletId,omitempty"`
+	Currency       string  `json:"currency,omitempty"`
+	Reference      string  `json:"reference,omitempty"`
+	CreateDateTime string  `json:"createDateTime,omitempty"`
+	Balance        float64 `json:"balance"`
+	UserID         string  `json:"-"`
+}
+
+// PaymentInformation represents a stored payment method for a PTI user.
+type PaymentInformation struct {
+	ID                    string `json:"id,omitempty"`
+	Type                  string `json:"type"`
+	BankAccountNumber     string `json:"bankAccountNumber,omitempty"`
+	BankAccountType       string `json:"bankAccountType,omitempty"`
+	BankSwiftCode         string `json:"bankSwiftCode,omitempty"`
+	BankRoutingNumber     string `json:"bankRoutingNumber,omitempty"`
+	BankRoutingCheckDigit string `json:"bankRoutingCheckDigit,omitempty"`
+	AccountBankName       string `json:"accountBankName,omitempty"`
+	UserID                string `json:"-"`
+}
+
 // TokenResponse represents a PTI JWT token response.
 type TokenResponse struct {
 	AccessToken string  `json:"accessToken"`

@@ -32,6 +32,11 @@ func newTestRouter(h *Handler) *chi.Mux {
 		r.Put("/users", h.PutUser)
 		r.Post("/users/assessments", h.StartUserAssessment)
 		r.Get("/users/{id}/assessments", h.GetUserAssessment)
+		r.Post("/users/{id}/wallets", h.CreateWallet)
+		r.Get("/users/{id}/wallets", h.ListWallets)
+		r.Get("/users/{id}/wallets/{walletId}", h.GetWallet)
+		r.Post("/users/{id}/payment-information", h.CreatePaymentInformation)
+		r.Get("/users/{id}/payment-information/{piId}", h.GetPaymentInformation)
 		r.Post("/auth/jwt", h.CreateJWT)
 	})
 	return r

@@ -10,16 +10,20 @@ import (
 
 // MemoryStorage is an in-memory implementation of the Storage interface.
 type MemoryStorage struct {
-	mu          sync.RWMutex
-	users       map[string]*models.User
-	assessments map[string][]*models.Assessment // userID -> assessments (ordered by creation)
+	mu                  sync.RWMutex
+	users               map[string]*models.User
+	assessments         map[string][]*models.Assessment                  // userID -> assessments (ordered by creation)
+	wallets             map[string]map[string]*models.Wallet             // userID -> walletID -> wallet
+	paymentInformations map[string]map[string]*models.PaymentInformation // userID -> piID -> payment info
 }
 
 // NewMemoryStorage creates a new in-memory storage.
 func NewMemoryStorage() Storage {
 	return &MemoryStorage{
-		users:       make(map[string]*models.User),
-		assessments: make(map[string][]*models.Assessment),
+		users:               make(map[string]*models.User),
+		assessments:         make(map[string][]*models.Assessment),
+		wallets:             make(map[string]map[string]*models.Wallet),
+		paymentInformations: make(map[string]map[string]*models.PaymentInformation),
 	}
 }
 
@@ -85,5 +89,75 @@ func (m *MemoryStorage) Reset(ctx context.Context) error {
 
 	m.users = make(map[string]*models.User)
 	m.assessments = make(map[string][]*models.Assessment)
+	m.wallets = make(map[string]map[string]*models.Wallet)
+	m.paymentInformations = make(map[string]map[string]*models.PaymentInformation)
 	return nil
+}
+
+// Wallet operations
+
+func (m *MemoryStorage) SaveWallet(ctx context.Context, wallet *models.Wallet) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	if m.wallets[wallet.UserID] == nil {
+		m.wallets[wallet.UserID] = make(map[string]*models.Wallet)
+	}
+	m.wallets[wallet.UserID][wallet.WalletID] = wallet
+	return nil
+}
+
+func (m *MemoryStorage) GetWallet(ctx context.Context, userID, walletID string) (*models.Wallet, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	userWallets, ok := m.wallets[userID]
+	if !ok {
+		return nil, ErrWalletNotFound
+	}
+	wallet, ok := userWallets[walletID]
+	if !ok {
+		return nil, ErrWalletNotFound
+	}
+	return wallet, nil
+}
+
+func (m *MemoryStorage) ListWallets(ctx context.Context, userID string) ([]*models.Wallet, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	userWallets := m.wallets[userID]
+	result := make([]*models.Wallet, 0, len(userWallets))
+	for _, w := range userWallets {
+		result = append(result, w)
+	}
+	return result, nil
+}
+
+// Payment information operations
+
+func (m *MemoryStorage) SavePaymentInformation(ctx context.Context, pi *models.PaymentInformation) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	if m.paymentInformations[pi.UserID] == nil {
+		m.paymentInformations[pi.UserID] = make(map[string]*models.PaymentInformation)
+	}
+	m.paymentInformations[pi.UserID][pi.ID] = pi
+	return nil
+}
+
+func (m *MemoryStorage) GetPaymentInformation(ctx context.Context, userID, piID string) (*models.PaymentInformation, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	userPIs, ok := m.paymentInformations[userID]
+	if !ok {
+		return nil, ErrPaymentInformationNotFound
+	}
+	pi, ok := userPIs[piID]
+	if !ok {
+		return nil, ErrPaymentInformationNotFound
+	}
+	return pi, nil
 }

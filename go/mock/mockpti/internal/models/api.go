@@ -54,3 +54,22 @@ type ErrorResponse struct {
 	Error   string `json:"error"`
 	Message string `json:"message"`
 }
+
+// CreateWalletRequest is the request body for POST /users/{id}/wallets.
+type CreateWalletRequest struct {
+	ID        string `json:"id,omitempty"`
+	Currency  string `json:"currency,omitempty"`
+	Type      string `json:"type,omitempty"`
+	Reference string `json:"reference,omitempty"`
+}
+
+// CreatePaymentInformationRequest is the request body for POST /users/{id}/payment-information.
+type CreatePaymentInformationRequest struct {
+	Type                  string `json:"type,omitempty"`
+	BankAccountNumber     string `json:"bankAccountNumber,omitempty"`
+	BankAccountType       string `json:"bankAccountType,omitempty"`
+	BankSwiftCode         string `json:"bankSwiftCode,omitempty"`
+	BankRoutingNumber     string `json:"bankRoutingNumber,omitempty"`
+	BankRoutingCheckDigit string `json:"bankRoutingCheckDigit,omitempty"`
+	AccountBankName       string `json:"accountBankName,omitempty"`
+}
