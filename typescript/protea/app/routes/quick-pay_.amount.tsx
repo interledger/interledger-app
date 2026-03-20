@@ -3,8 +3,9 @@ import type {
   MetaFunction
 } from '@remix-run/node'
 import { json } from '@remix-run/node'
-import { useLoaderData } from '@remix-run/react'
+import { useLoaderData, useNavigate } from '@remix-run/react'
 import { useEffect } from 'react'
+import { flushSync } from 'react-dom'
 import type { ApplicationProps } from '~/components'
 import { Button, GridColumn, Layouts, WalletGrid } from '~/components'
 import { DialPad, DialPadIds } from '~/components/QuickPay/Dialpad'
@@ -12,7 +13,7 @@ import { useDialPadContext } from '~/lib/context/dialpad'
 import { mergeMeta } from '~/lib/meta'
 import { getSession } from '~/session.server'
 import { getUserSession } from '~/lib/kratos.server'
-import { isWalletLayout} from '~/lib/utils'
+import { isWalletLayout } from '~/lib/utils'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const isWalletView = await isWalletLayout(request)
@@ -51,6 +52,7 @@ export const meta: MetaFunction = mergeMeta(() => [
 ])
 
 export default function Page() {
+  const navigate = useNavigate()
   const { assetCode } = useLoaderData<typeof loader>()
   const { amountValue, setAmountValue, setAssetCode } = useDialPadContext()
 
@@ -59,17 +61,23 @@ export default function Page() {
   }, [setAssetCode, assetCode])
 
   const handleNavigation = (e: React.MouseEvent<HTMLElement>, url: string) => {
+    let normalizedAmount: string = amountValue
     if (
       amountValue.indexOf(DialPadIds.Dot) === -1 ||
       amountValue.endsWith(DialPadIds.Dot)
     ) {
-      setAmountValue(Number(amountValue).toFixed(2).toString())
+      normalizedAmount = Number(amountValue).toFixed(2).toString()
     }
 
     if (Number(amountValue) === 0) {
       return e.preventDefault()
     }
-    document.location = url
+
+    flushSync(() => {
+      setAmountValue(normalizedAmount)
+    })
+
+    navigate(url)
   }
 
   return (

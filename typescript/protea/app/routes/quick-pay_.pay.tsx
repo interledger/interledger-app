@@ -32,7 +32,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     throw json(
       {
         code: "QUICKPAY_SESSION_ERROR",
-        message: "Payment session expired."
+        title: "Payment session expired."
       },
       { status: 400 }
     )
@@ -46,7 +46,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       throw json(
         {
           code: "QUICKPAY_SESSION_ERROR",
-          message: "Payment session expired."
+          title: "Payment session expired."
         },
         { status: 400 }
       )
@@ -213,7 +213,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
     } catch (err) {
       console.log({ err })
-      return json({ errors: createError("actionError", "An error occured, please try again.") })
+      return json({ errors: createError("actionError", "An error occurred, please try again.") })
     }
     return redirect(`/quick-pay/pay?quote=true`, {
       headers: { 'Set-Cookie': await commitSession(session) }
@@ -226,7 +226,7 @@ export async function action({ request }: ActionFunctionArgs) {
       throw json(
         {
           code: "QUICKPAY_SESSION_ERROR",
-          message: "Payment session expired."
+          title: "Payment session expired."
         },
         { status: 400 }
       )
