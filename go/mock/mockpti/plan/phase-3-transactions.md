@@ -35,3 +35,6 @@ Deliver PTI transaction endpoints with deterministic, testable status progressio
 - Transaction endpoints pass unit/e2e coverage for happy and failure paths.
 - Status transitions are deterministic and documented.
 - Phase 1 and Phase 2 suites remain green.
+
+## Verification
+Run `make test` from the `go/mock/mockpti` directory. The phase is complete when the command exits with code 0.

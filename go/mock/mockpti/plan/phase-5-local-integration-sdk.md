@@ -42,3 +42,6 @@ Make mock PTI first-class in local development and stabilize browser e2e behavio
 - Local environment uses mockpti without app code edits.
 - Browser signup e2e can run reliably with mockpti-backed configuration.
 - Prior phase tests remain green.
+
+## Verification
+Run `make test` from the `go/mock/mockpti` directory. The phase is complete when the command exits with code 0.

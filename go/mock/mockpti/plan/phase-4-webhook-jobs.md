@@ -41,3 +41,6 @@ Implement asynchronous webhook delivery via a persisted jobs mechanism compatibl
 - Queue behavior is fully tested and deterministic.
 - Webhook delivery is resilient to transient failures (retry behavior verified).
 - By phase end, backend signup flow can complete through webhook updates.
+
+## Verification
+Run `make test` from the `go/mock/mockpti` directory. The phase is complete when the command exits with code 0.

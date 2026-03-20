@@ -32,3 +32,6 @@ Implement wallet and payment information APIs required by backend PTI onboarding
 - All phase endpoints pass unit and e2e scenarios.
 - No leakage of storage concerns into handlers/domain logic.
 - Existing Phase 1 tests remain green.
+
+## Verification
+Run `make test` from the `go/mock/mockpti` directory. The phase is complete when the command exits with code 0.

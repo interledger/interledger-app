@@ -44,3 +44,6 @@ Establish the service foundation and deliver the minimum PTI API surface needed 
 - `make lint`, `make unit-test`, `make build` pass.
 - No domain code performs direct persistence outside the store interface.
 - Endpoint behavior is covered with test-first unit tests.
+
+## Verification
+Run `make test` from the `go/mock/mockpti` directory. The phase is complete when the command exits with code 0.
