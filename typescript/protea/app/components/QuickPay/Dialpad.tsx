@@ -3,7 +3,6 @@ import { useEffect } from 'react'
 import { useDialPadContext } from '~/lib/context/dialpad'
 import { getCurrencySymbol } from '~/lib/utils'
 
-
 export enum DialPadIds {
   Backspace = 'Backspace',
   Dot = '.',
@@ -18,8 +17,44 @@ export enum DialPadIds {
   Eight = '8',
   Nine = '9'
 }
+const handleDialPadInputs = (id: string, amountValue: string, setAmountValue: (amount: string) => void) => {
+  const label = id === DialPadIds.Backspace ? '<' : id
+  if (Object.values<string>(DialPadIds).includes(id)) {
+    if (id === DialPadIds.Backspace) {
+      setAmountValue(`${amountValue.substring(0, amountValue.length - 1)}`)
+    } else if (amountValue === '0.00' && id !== DialPadIds.Dot) {
+      setAmountValue(
+        `${amountValue.substring(0, amountValue.length - 4)}${label}`
+      )
+    } else if (amountValue === '0' && id !== DialPadIds.Dot) {
+      setAmountValue(
+        `${amountValue.substring(0, amountValue.length - 1)}${label}`
+      )
+    } else if (
+      (id === DialPadIds.Dot &&
+        amountValue.indexOf(DialPadIds.Dot) === -1 &&
+        amountValue.length !== 0) ||
+      id !== DialPadIds.Dot
+    ) {
+      setAmountValue(`${amountValue}${label}`)
+    }
+  }
+}
+
 
 export const DialPad = () => {
+  const { amountValue, setAmountValue } = useDialPadContext()
+
+  useEffect(() => {
+    document.addEventListener('keydown', (e: KeyboardEvent) => {
+      handleDialPadInputs(e.key, amountValue, setAmountValue)
+    })
+    return function cleanup() {
+      document.removeEventListener('keydown', (e: KeyboardEvent) => {
+        handleDialPadInputs(e.key, amountValue, setAmountValue)
+      })
+    }
+  }, [handleDialPadInputs, amountValue, setAmountValue])
   return (
     <div className="flex flex-col gap-10 text-xl">
       <AmountDisplay />
@@ -66,13 +101,13 @@ const DialPadRow = ({
   idThird
 }: DialPadRowProps) => {
   return (
-    <ul>
-      <div className="flex justify-between">
+    <div>
+      <ul className="flex justify-between">
         <DialPadKey label={first} id={idFirst ? idFirst : first} />
         <DialPadKey label={second} id={idSecond ? idSecond : second} />
         <DialPadKey label={third} id={idThird ? idThird : third} />
-      </div>
-    </ul>
+      </ul>
+    </div>
   )
 }
 DialPadRow.displayName = 'DialPadRow'
@@ -84,52 +119,16 @@ type DialPadKeyProps = {
 const DialPadKey = ({ label, id }: DialPadKeyProps) => {
   const { amountValue, setAmountValue } = useDialPadContext()
 
-  useEffect(() => {
-    function handleKeyDown(e: any) {
-      handleDialPadInputs(e.key)
-    }
-
-    document.addEventListener('keydown', handleKeyDown)
-
-    return function cleanup() {
-      document.removeEventListener('keydown', handleKeyDown)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [amountValue])
-
-  const handleDialPadInputs = (id: string) => {
-    const label = id === DialPadIds.Backspace ? '<' : id
-    if (Object.values<string>(DialPadIds).includes(id)) {
-      if (id === DialPadIds.Backspace) {
-        setAmountValue(`${amountValue.substring(0, amountValue.length - 1)}`)
-      } else if (amountValue === '0.00' && id !== DialPadIds.Dot) {
-        setAmountValue(
-          `${amountValue.substring(0, amountValue.length - 4)}${label}`
-        )
-      } else if (amountValue === '0' && id !== DialPadIds.Dot) {
-        setAmountValue(
-          `${amountValue.substring(0, amountValue.length - 1)}${label}`
-        )
-      } else if (
-        (id === DialPadIds.Dot &&
-          amountValue.indexOf(DialPadIds.Dot) === -1 &&
-          amountValue.length !== 0) ||
-        id !== DialPadIds.Dot
-      ) {
-        setAmountValue(`${amountValue}${label}`)
-      }
-    }
-  }
-
   return (
     <li
+      role="button"
       className={clsx(
         'cursor-pointer hover:text-green-1',
         id === DialPadIds.Dot ? 'pl-1' : ''
       )}
       tabIndex={0}
       id={id}
-      onClick={() => handleDialPadInputs(id)}
+      onClick={() => handleDialPadInputs(id, amountValue, setAmountValue)}
     >
       {label}
     </li>

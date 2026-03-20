@@ -3,7 +3,7 @@ import type {
   MetaFunction
 } from '@remix-run/node'
 import { json } from '@remix-run/node'
-import { Link, useLoaderData } from '@remix-run/react'
+import { useLoaderData } from '@remix-run/react'
 import { useEffect } from 'react'
 import type { ApplicationProps } from '~/components'
 import { Button, GridColumn, Layouts, WalletGrid } from '~/components'
@@ -25,7 +25,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     throw json(
       {
         code: "QUICKPAY_SESSION_ERROR",
-        message: "Payment session expired."
+        title: "Payment session expired."
       },
       { status: 400 }
     )
@@ -56,9 +56,9 @@ export default function Page() {
 
   useEffect(() => {
     setAssetCode(assetCode)
-  })
+  }, [setAssetCode, assetCode])
 
-  const processAmount = (e: React.MouseEvent<HTMLElement>) => {
+  const handleNavigation = (e: React.MouseEvent<HTMLElement>, url: string) => {
     if (
       amountValue.indexOf(DialPadIds.Dot) === -1 ||
       amountValue.endsWith(DialPadIds.Dot)
@@ -67,8 +67,9 @@ export default function Page() {
     }
 
     if (Number(amountValue) === 0) {
-      e.preventDefault()
+      return e.preventDefault()
     }
+    document.location = url
   }
 
   return (
@@ -78,30 +79,21 @@ export default function Page() {
       >
         <DialPad />
         <div className="flex justify-center gap-2 mt-12 w-64">
-          <Link
-            to={`/quick-pay/request`}
-            onClick={processAmount}
-            className='min-w-28'
+          <Button
+            aria-label="request"
+            onClick={e => handleNavigation(e, `/quick-pay/request`)}
+            disabled={Number(amountValue) === 0}
           >
-            <Button
-              aria-label="request"
-              disabled={Number(amountValue) === 0}
-            >
-              Request
-            </Button>
-          </Link>
-          <Link
-            to={`/quick-pay/pay`}
-            onClick={processAmount}
-            className='min-w-28'
+            Request
+          </Button>
+
+          <Button
+            aria-label="pay"
+            onClick={e => handleNavigation(e, `/quick-pay/pay`)}
+            disabled={Number(amountValue) === 0}
           >
-            <Button
-              aria-label="pay"
-              disabled={Number(amountValue) === 0}
-            >
-              Pay
-            </Button>
-          </Link>
+            Pay
+          </Button>
         </div>
       </GridColumn>
     </WalletGrid>

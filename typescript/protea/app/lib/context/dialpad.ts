@@ -14,7 +14,7 @@ export const useDialPadContext = () => {
 
   if (!dialPadContext) {
     throw new Error(
-      '"useDialPadContext" is used outside the DialPadContextProvider.'
+      '"useDialPadContext" is used outside the DialPadProvider.'
     )
   }
 
