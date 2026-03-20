@@ -102,6 +102,8 @@
         var type = params.get('type') || 'KYC';
         var requestId = params.get('requestId') || 'default';
         var auto = params.get('auto') === '1';
+        var parentOrigin = params.get('parentOrigin') || '';
+        var formsToken = params.get('formsToken') || '';
         var dobField = document.getElementById('dobField');
         var dobInput = document.getElementById('dob');
 
@@ -125,15 +127,22 @@
         }
 
         function post(payload) {
-          if (window.parent) {
-            window.parent.postMessage(payload, '*');
+          if (!window.parent || !parentOrigin) {
+            return;
           }
+
+          window.parent.postMessage(payload, parentOrigin);
         }
 
         async function completeOnServer() {
+          const headers = { 'Content-Type': 'application/json' };
+          if (formsToken) {
+            headers['x-mockpti-forms-token'] = formsToken;
+          }
+
           const response = await fetch('/forms/complete', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: headers,
             body: JSON.stringify({
               userId: params.get('userId') || '',
               requestId: requestId,

@@ -60,6 +60,11 @@ func (h *Handler) AuthMiddleware(next http.Handler) http.Handler {
 			h.sendError(w, http.StatusUnauthorized, "unauthorized", "missing x-pti-client-id header")
 			return
 		}
+
+		if h.config != nil && h.config.ClientID != "" && clientID != h.config.ClientID {
+			h.sendError(w, http.StatusUnauthorized, "unauthorized", "invalid x-pti-client-id")
+			return
+		}
 		next.ServeHTTP(w, r)
 	})
 }

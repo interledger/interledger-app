@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
-
 	"gitlab.com/fynbos/mock/mockpti/internal/logger"
 	"gitlab.com/fynbos/mock/mockpti/internal/models"
 	"gitlab.com/fynbos/mock/mockpti/internal/storage"
+	"gitlab.com/fynbos/mock/mockpti/internal/utils"
 )
 
 const (
@@ -34,7 +33,7 @@ func NewQueue(store storage.Storage) *Queue {
 func (q *Queue) Enqueue(jobType string, data map[string]interface{}, readyAt time.Time) (string, error) {
 	ctx := context.Background()
 	job := &models.Job{
-		ID:        uuid.NewString(),
+		ID:        utils.GenerateUUID(),
 		JobType:   jobType,
 		Data:      data,
 		Attempts:  0,

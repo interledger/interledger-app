@@ -12,6 +12,7 @@ type Config struct {
 	WebhookURL           string
 	WebhookSigningJWK    string
 	WebhookEncryptionJWK string
+	FormsMutationToken   string
 }
 
 // Load reads configuration from environment variables with sensible defaults.
@@ -25,6 +26,7 @@ func Load() *Config {
 		WebhookURL:           os.Getenv("MOCKPTI_WEBHOOK_URL"),
 		WebhookSigningJWK:    os.Getenv("MOCKPTI_WEBHOOK_SIGNING_JWK"),
 		WebhookEncryptionJWK: os.Getenv("MOCKPTI_WEBHOOK_ENCRYPTION_JWK"),
+		FormsMutationToken:   os.Getenv("MOCKPTI_FORMS_MUTATION_TOKEN"),
 	}
 }
 

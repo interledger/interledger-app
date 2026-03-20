@@ -21,7 +21,12 @@ unit-test:
 
 lint:
 	@echo "Running linters..."
-	@gofmt -l .
+	@UNFORMATTED=$$(gofmt -l .); \
+	if [ -n "$$UNFORMATTED" ]; then \
+		echo "gofmt found unformatted files:"; \
+		echo "$$UNFORMATTED"; \
+		exit 1; \
+	fi
 	@go vet ./...
 	@echo "Running golangci-lint..."
 	golangci-lint run ./...

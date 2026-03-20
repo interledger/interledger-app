@@ -10,7 +10,7 @@ type User struct {
 	StatusReason       string         `json:"statusReason,omitempty"`
 	Tags               []string       `json:"tags,omitempty"`
 	SourceOfFunds      string         `json:"sourceOfFunds,omitempty"`
-	UserCreationDate   string         `json:"userCreateionDate,omitempty"`
+	UserCreationDate   string         `json:"userCreationDate,omitempty"`
 	Addresses          []Address      `json:"addresses,omitempty"`
 	UserPTIMetaData    map[string]any `json:"userPtiMeta,omitempty"`
 	UserClientMetaData map[string]any `json:"userClientMeta,omitempty"`

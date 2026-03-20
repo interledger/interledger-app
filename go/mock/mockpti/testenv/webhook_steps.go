@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"strings"
 	"sync"
@@ -26,6 +27,8 @@ type capturedWebhook struct {
 }
 
 var capture webhookCapture
+var webhookServerOnce sync.Once
+var webhookServerErr error
 
 func webhookHandler(w http.ResponseWriter, r *http.Request) {
 	body, _ := io.ReadAll(r.Body)
@@ -44,28 +47,30 @@ func webhookHandler(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write([]byte(`{"ok":true}`))
 }
 
-func ensureWebhookServer() {
-	capture.mu.Lock()
-	alreadyStarted := capture.started
-	capture.mu.Unlock()
-	if alreadyStarted {
-		return
-	}
+func ensureWebhookServer() error {
+	webhookServerOnce.Do(func() {
+		mux := http.NewServeMux()
+		mux.HandleFunc("/webhooks/pti", webhookHandler)
+		server := &http.Server{Addr: ":24100", Handler: mux}
 
-	mux := http.NewServeMux()
-	mux.HandleFunc("/webhooks/pti", webhookHandler)
-	server := &http.Server{Addr: ":24100", Handler: mux}
+		listener, err := net.Listen("tcp", ":24100")
+		if err != nil {
+			webhookServerErr = fmt.Errorf("failed to bind webhook server: %w", err)
+			return
+		}
 
-	capture.mu.Lock()
-	capture.started = true
-	capture.mu.Unlock()
+		capture.mu.Lock()
+		capture.started = true
+		capture.mu.Unlock()
 
-	go func() {
-		_ = server.ListenAndServe()
-	}()
+		go func() {
+			if err := server.Serve(listener); err != nil && err != http.ErrServerClosed {
+				fmt.Printf("webhook server error: %v\n", err)
+			}
+		}()
+	})
 
-	// Give the listener a moment to bind before tests continue.
-	time.Sleep(100 * time.Millisecond)
+	return webhookServerErr
 }
 
 func resetWebhookCapture() {
@@ -105,7 +110,9 @@ func (tc *TestContext) webhookDeliveryIsConfiguredToBackend(path string) error {
 	if path != "/webhooks/pti" {
 		return fmt.Errorf("unsupported webhook path %q", path)
 	}
-	ensureWebhookServer()
+	if err := ensureWebhookServer(); err != nil {
+		return err
+	}
 	resetWebhookCapture()
 	return nil
 }

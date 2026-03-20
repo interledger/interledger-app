@@ -31,7 +31,9 @@ const mockPTISDKScript = `(function () {
         requestId: options.requestId || '',
         userId: options.userId || '',
         scenarioId: options.scenarioId || '',
-        auto: options.type === 'ADD_CC' ? '1' : '0'
+				auto: options.type === 'ADD_CC' ? '1' : '0',
+				parentOrigin: window.location.origin,
+				formsToken: (window.__mockPtiInit && window.__mockPtiInit.formsMutationToken) || ''
       });
 
       if (options.parentElement && formsBase) {
@@ -69,6 +71,13 @@ func (h *Handler) CompleteAssessmentFromForm(w http.ResponseWriter, r *http.Requ
 	if r.Method != http.MethodPost {
 		h.sendError(w, http.StatusMethodNotAllowed, "method_not_allowed", "only POST is supported")
 		return
+	}
+
+	if h.config != nil && h.config.FormsMutationToken != "" {
+		if r.Header.Get("x-mockpti-forms-token") != h.config.FormsMutationToken {
+			h.sendError(w, http.StatusUnauthorized, "unauthorized", "invalid forms mutation token")
+			return
+		}
 	}
 
 	var req completeAssessmentRequest

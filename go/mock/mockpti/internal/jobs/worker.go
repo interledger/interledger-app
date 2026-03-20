@@ -100,13 +100,21 @@ func (w *Worker) processJob(job *models.Job) {
 	logger.Infof("Processing job: id=%s type=%s attempt=%d/%d",
 		job.ID, job.JobType, job.Attempts+1, maxAttempts)
 
-	_ = w.queue.MarkProcessing(job.ID)
+	if err := w.queue.MarkProcessing(job.ID); err != nil {
+		logger.Errorf("failed to mark job processing: id=%s type=%s error=%v", job.ID, job.JobType, err)
+		return
+	}
 
 	if err := handler(w.ctx, job); err != nil {
-		_ = w.queue.MarkFailed(job.ID, err.Error())
+		if markErr := w.queue.MarkFailed(job.ID, err.Error()); markErr != nil {
+			logger.Errorf("failed to mark job failed: id=%s type=%s error=%v", job.ID, job.JobType, markErr)
+			return
+		}
 		logger.Warn(fmt.Sprintf("Job failed: id=%s type=%s error=%s", job.ID, job.JobType, err.Error()))
 		return
 	}
 
-	_ = w.queue.MarkDelivered(job.ID)
+	if err := w.queue.MarkDelivered(job.ID); err != nil {
+		logger.Errorf("failed to mark job delivered: id=%s type=%s error=%v", job.ID, job.JobType, err)
+	}
 }

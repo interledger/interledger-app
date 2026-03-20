@@ -282,11 +282,15 @@ func (r *RedisStorage) SaveJob(ctx context.Context, job *models.Job) error {
 	}
 	pipe := r.client.Pipeline()
 	pipe.Set(ctx, jobKey(job.ID), data, 0)
-	// Use sorted set: score = NotBefore Unix timestamp
-	pipe.ZAdd(ctx, jobsReadySetKey, redis.Z{
-		Score:  float64(job.NotBefore.Unix()),
-		Member: job.ID,
-	})
+	if job.Status == "queued" {
+		// Use sorted set: score = NotBefore Unix timestamp.
+		pipe.ZAdd(ctx, jobsReadySetKey, redis.Z{
+			Score:  float64(job.NotBefore.Unix()),
+			Member: job.ID,
+		})
+	} else {
+		pipe.ZRem(ctx, jobsReadySetKey, job.ID)
+	}
 	_, err = pipe.Exec(ctx)
 	return err
 }
@@ -308,28 +312,45 @@ func (r *RedisStorage) GetJob(ctx context.Context, jobID string) (*models.Job, e
 
 func (r *RedisStorage) ListReadyJobs(ctx context.Context, limit int) ([]*models.Job, error) {
 	now := float64(time.Now().Unix())
-	ids, err := r.client.ZRangeArgs(ctx, redis.ZRangeArgs{
-		Key:     jobsReadySetKey,
-		Start:   "-inf",
-		Stop:    fmt.Sprintf("%f", now),
-		ByScore: true,
-		Offset:  0,
-		Count:   int64(limit),
-	}).Result()
-	if err != nil {
-		return nil, err
+	jobs := make([]*models.Job, 0, limit)
+	offset := int64(0)
+	for len(jobs) < limit {
+		remaining := limit - len(jobs)
+		batch := int64(remaining * 5)
+		if batch < 10 {
+			batch = 10
+		}
+
+		ids, err := r.client.ZRangeArgs(ctx, redis.ZRangeArgs{
+			Key:     jobsReadySetKey,
+			Start:   "-inf",
+			Stop:    fmt.Sprintf("%f", now),
+			ByScore: true,
+			Offset:  offset,
+			Count:   batch,
+		}).Result()
+		if err != nil {
+			return nil, err
+		}
+		if len(ids) == 0 {
+			break
+		}
+
+		offset += int64(len(ids))
+		for _, id := range ids {
+			job, err := r.GetJob(ctx, id)
+			if err != nil {
+				continue
+			}
+			if job.Status == "queued" {
+				jobs = append(jobs, job)
+				if len(jobs) == limit {
+					break
+				}
+			}
+		}
 	}
 
-	jobs := make([]*models.Job, 0, len(ids))
-	for _, id := range ids {
-		job, err := r.GetJob(ctx, id)
-		if err != nil {
-			continue
-		}
-		if job.Status == "queued" {
-			jobs = append(jobs, job)
-		}
-	}
 	return jobs, nil
 }
 
@@ -344,9 +365,15 @@ func (r *RedisStorage) UpdateJobStatus(ctx context.Context, jobID string, status
 		t := *completedAt
 		job.CompletedAt = &t
 	}
-	// Remove from ready set if completed or permanently failed
-	if status == "delivered" || status == "failed" {
+	// Keep ready set consistent with status transitions.
+	if status == "processing" || status == "delivered" || status == "failed" {
 		_ = r.client.ZRem(ctx, jobsReadySetKey, jobID).Err()
+	}
+	if status == "queued" {
+		_ = r.client.ZAdd(ctx, jobsReadySetKey, redis.Z{
+			Score:  float64(job.NotBefore.Unix()),
+			Member: jobID,
+		}).Err()
 	}
 	data, err := json.Marshal(job)
 	if err != nil {
