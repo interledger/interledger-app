@@ -7,6 +7,14 @@ This document is intentionally split into:
 1. technical expectations of PTI behavior (source-of-truth requirements)
 2. implementation plan for the mock service
 
+## Document Index
+- Roadmap: `go/mock/mockpti/roadmap.md`
+- Phase 1: `go/mock/mockpti/phase-1-foundations-signup.md`
+- Phase 2: `go/mock/mockpti/phase-2-wallets-payment-info.md`
+- Phase 3: `go/mock/mockpti/phase-3-transactions.md`
+- Phase 4: `go/mock/mockpti/phase-4-webhook-jobs.md`
+- Phase 5: `go/mock/mockpti/phase-5-local-integration-sdk.md`
+
 ## Formal Documentation and How to Fetch It
 
 Primary source (confirmed):
@@ -214,7 +222,15 @@ Offboarding money (withdraw):
   - BDD features under `features/`
   - e2e harness under `testenv/`
   - Makefile with `lint`, `unit-test`, `e2e-test`, `test`, `build`, `clean`
-- Keep v1 deterministic and stateful (in-memory first, optional persistence later).
+- Use strict test-driven development (TDD): for every behavior, write failing unit tests first, then implement minimal code, then refactor aggressively before moving to the next behavior.
+- Persistence must be abstracted behind a single store interface (same architectural intent as `mockxago`) with swappable implementations:
+  - memory-backed store (default for unit tests)
+  - redis-backed store (used in e2e)
+- Keep v1 deterministic and stateful, but with persistence behavior driven through the shared store interface from day one (no direct in-memory-only shortcuts in business logic).
+- All outgoing webhook HTTP calls must be executed via a persisted jobs mechanism (same pattern as `mockxago`):
+  - enqueue webhook jobs in the store
+  - process jobs asynchronously via worker(s)
+  - persist job state transitions (queued, processing, delivered, failed/retryable)
 - Prioritize endpoints used by live backend code paths.
 
 ### 2.2 Proposed Directory Layout
@@ -236,6 +252,10 @@ Phase 0: Scaffold and quality baseline
 - Initialize module structure.
 - Add `Makefile` and `.golangci.yml` aligned to existing mocks.
 - Add health endpoint (`GET /health`).
+- Establish the persistence seam immediately:
+  - define shared store interface
+  - implement memory and redis store packages with identical contracts
+  - wire service dependencies through the interface only.
 
 Phase 1: Core API for signup + KYC
 - Implement:
@@ -244,7 +264,8 @@ Phase 1: Core API for signup + KYC
   - `POST /users/assessments`
   - `GET /users/{id}/assessments`
   - `POST /auth/jwt`
-- Add in-memory stores and validation errors with realistic status codes.
+- Add validation errors with realistic status codes.
+- Deliver each endpoint using TDD loops (test first -> implementation -> refactor).
 
 Phase 2: Wallet and payment information
 - Implement:
@@ -253,6 +274,7 @@ Phase 2: Wallet and payment information
   - `GET /users/{id}/wallets/{walletId}`
   - `POST /users/{id}/payment-information`
   - `GET /users/{id}/payment-information/{id}`
+- Continue TDD-first delivery for each behavior.
 
 Phase 3: Transaction flows
 - Implement:
@@ -262,15 +284,17 @@ Phase 3: Transaction flows
   - `GET /transactions/{requestId}`
   - `POST /transactions/{requestId}/updates`
 - Add deterministic status progression (PENDING -> SETTLED or configured failure).
+- Continue TDD-first delivery for each behavior.
 
 Phase 4: Webhook emission to backend
-- Add async webhook sender to configured backend URL (default `/webhooks/pti`).
+- Add async webhook sender to configured backend URL (default `/webhooks/pti`) using persisted jobs.
 - Emit resource types:
   - `USER_ASSESSMENT` for KYC completion
   - `TRANSACTION_STATUS` for deposit/withdraw/transfer status changes
 - Include mode switch:
   - `plain` webhook payload mode for local testing
   - `signed/encrypted` compatibility mode (later enhancement)
+- Persist and test job lifecycle semantics (enqueue, execute, retry/backoff, terminal failure) through the shared store interface.
 
 Phase 5: SDK testing support (optional but recommended)
 - Provide optional lightweight PTI SDK stub endpoints for E2E (`sdkUrl`, `formsUrl`) so local browser tests are stable without external PTI assets.
@@ -349,6 +373,13 @@ Recommended local switch UX (target behavior):
 
 ## 3) Testing and Linting Plan (aligned with mockgatehub/mockxago)
 
+### 3.0 Delivery Method: Mandatory TDD
+- For each behavior in each phase, implementation order is mandatory:
+  1. write failing unit test(s)
+  2. implement the minimal code to pass
+  3. refactor aggressively while keeping tests green
+- Do not merge behavior-first code without prior failing tests.
+
 ### 3.1 Make targets
 Planned targets:
 - `lint`: `gofmt -l .`, `go vet ./...`, `golangci-lint run ./...`
@@ -362,6 +393,15 @@ Planned targets:
 - Use godog feature files in `features/` (created below).
 - Testenv should start `mockpti` and (optionally) a webhook sink.
 - Validate both API responses and side effects (state transitions + webhook events).
+
+### 3.3 Store and Queue Test Matrix
+- Unit tests:
+  - run against memory-backed store only
+  - verify domain behavior, validation, and job enqueue semantics without redis dependency
+- E2E tests:
+  - run with redis-backed store enabled
+  - verify persistence across process boundaries and webhook job processing behavior end-to-end
+- Webhook queue tests must assert persisted job state transitions and retries, not only successful HTTP delivery.
 
 ## 4) Open Questions and Team Follow-up Checklist
 
@@ -476,6 +516,10 @@ Follow-up ask to team/PTI:
 
 ## 5) Acceptance Criteria for First Milestone
 - Service starts and passes lint/unit/e2e.
+- Development follows mandatory TDD loops (test-first, then implementation, then refactor) for all delivered behaviors.
+- Persistence is exclusively accessed through one shared interface with both memory and redis implementations.
+- Unit tests use only memory-backed persistence; mockpti e2e uses redis-backed persistence.
+- Outgoing webhook HTTP calls are executed through a persisted jobs queue (not direct fire-and-forget HTTP calls).
 - Local environment can run PTI mock through compose (same operational model as `mockgatehub`/`mockxago`):
   - `mockpti` service is included in local compose.
   - backend defaults use `PTI_BASE_URL=http://mockpti:8080` when PTI is enabled.
