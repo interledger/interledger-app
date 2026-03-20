@@ -27,6 +27,8 @@ test: lint unit-tests e2e-tests
 unit-tests:
 	@echo "Running all unit tests..."
 	@go test -v ./...
+	@echo "Checking coverage for internal"
+	@go test -v -coverprofile=coverage.out ./internal/...
 
 # Run feature e2e tests
 e2e-tests:
