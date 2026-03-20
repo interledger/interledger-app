@@ -1,5 +1,9 @@
 .PHONY: help test unit-tests e2e-tests coverage build lint clean run docker-build
 
+REDIS_TEST_CONTAINER ?= mockchimoney-e2e-redis
+REDIS_TEST_PORT ?= 26381
+REDIS_TEST_DB ?= 5
+
 help:
 	@echo "MockChimoney Commands"
 	@echo ""
@@ -27,8 +31,13 @@ unit-tests:
 # Run feature e2e tests
 e2e-tests:
 	@if [ -d testenv ]; then \
-		echo "Running feature e2e tests (godog)..."; \
-		go test -tags e2e -v -count=1 ./testenv/ -run TestFeatures 2>/dev/null || echo "Note: godog tests can be run manually with: cd testenv && godog"; \
+		echo "Running feature e2e tests (godog) with Redis backend..."; \
+		set -e; \
+		cleanup() { docker rm -f $(REDIS_TEST_CONTAINER) >/dev/null 2>&1 || true; }; \
+		trap cleanup EXIT; \
+		docker rm -f $(REDIS_TEST_CONTAINER) >/dev/null 2>&1 || true; \
+		docker run -d --name $(REDIS_TEST_CONTAINER) -p $(REDIS_TEST_PORT):6379 redis:7-alpine >/dev/null; \
+		MOCKCHIMONEY_REDIS_URL=redis://localhost:$(REDIS_TEST_PORT) MOCKCHIMONEY_REDIS_DB=$(REDIS_TEST_DB) go test -tags e2e -v -count=1 ./testenv/ -run TestFeatures; \
 	else \
 		echo "Skipping e2e tests (testenv not yet created)"; \
 	fi

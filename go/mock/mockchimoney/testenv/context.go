@@ -14,6 +14,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -46,7 +47,8 @@ type TestContext struct {
 	usdRate    float64
 	secret     string
 
-	store  *storage.MemoryStore
+	store  storage.Store
+	closer io.Closer
 	queue  *jobs.InMemoryQueue
 	sender *webhook.Sender
 
@@ -75,6 +77,7 @@ type TestContext struct {
 	captured      *webhookEvent
 	manualSig     string
 	sigValid      bool
+	preserveStore bool
 }
 
 func newTestContext() *TestContext {
@@ -109,6 +112,7 @@ func (tc *TestContext) resetState() {
 	tc.manualSig = ""
 	tc.sigValid = false
 	tc.webhooks = nil
+	tc.preserveStore = false
 }
 
 func (tc *TestContext) closeServers() {
@@ -119,6 +123,10 @@ func (tc *TestContext) closeServers() {
 	if tc.queue != nil {
 		tc.queue.Close()
 		tc.queue = nil
+	}
+	if tc.closer != nil {
+		_ = tc.closer.Close()
+		tc.closer = nil
 	}
 	if tc.mockServer != nil {
 		tc.mockServer.Close()
@@ -151,7 +159,32 @@ func (tc *TestContext) ensureMockServer() error {
 	}
 
 	tc.ensureWebhookServer()
-	tc.store = storage.NewMemoryStore()
+	if redisURL := os.Getenv("MOCKCHIMONEY_REDIS_URL"); redisURL != "" {
+		redisDB := 5
+		if dbStr := os.Getenv("MOCKCHIMONEY_REDIS_DB"); dbStr != "" {
+			parsed, err := strconv.Atoi(dbStr)
+			if err != nil {
+				return fmt.Errorf("invalid MOCKCHIMONEY_REDIS_DB: %w", err)
+			}
+			redisDB = parsed
+		}
+
+		redisStore, err := storage.NewRedisStore(redisURL, redisDB)
+		if err != nil {
+			return err
+		}
+		if !tc.preserveStore {
+			if err := redisStore.FlushAll(context.Background()); err != nil {
+				_ = redisStore.Close()
+				return err
+			}
+		}
+		tc.store = redisStore
+		tc.closer = redisStore
+	} else {
+		tc.store = storage.NewMemoryStore()
+		tc.closer = nil
+	}
 	tc.queue = jobs.NewInMemoryQueue(128)
 	tc.sender = webhook.NewSender(&http.Client{Timeout: 5 * time.Second})
 
@@ -193,16 +226,22 @@ func (tc *TestContext) ensureMockServer() error {
 	tc.workerCancel = cancel
 	go jobs.StartWorker(ctx, tc.queue)
 	tc.mockServer = httptest.NewServer(r)
+	tc.preserveStore = false
 	return nil
 }
 
 func (tc *TestContext) restartMockServer() error {
+	tc.preserveStore = true
 	if tc.workerCancel != nil {
 		tc.workerCancel()
 		tc.workerCancel = nil
 	}
 	if tc.queue != nil {
 		tc.queue.Close()
+	}
+	if tc.closer != nil {
+		_ = tc.closer.Close()
+		tc.closer = nil
 	}
 	if tc.mockServer != nil {
 		tc.mockServer.Close()

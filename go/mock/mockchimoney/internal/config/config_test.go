@@ -7,6 +7,8 @@ func TestLoadUsesDefaults(t *testing.T) {
 	t.Setenv("LOG_LEVEL", "")
 	t.Setenv("MOCKCHIMONEY_API_KEY", "")
 	t.Setenv("MOCKCHIMONEY_ENFORCE_AUTHENTICATION", "")
+	t.Setenv("MOCKCHIMONEY_REDIS_URL", "")
+	t.Setenv("MOCKCHIMONEY_REDIS_DB", "")
 	t.Setenv("WEBHOOK_URL", "")
 	t.Setenv("CHIMONEY_WEBHOOK_SECRET", "")
 	t.Setenv("WEBHOOK_MIN_DELAY_SEC", "")
@@ -27,6 +29,12 @@ func TestLoadUsesDefaults(t *testing.T) {
 	if !cfg.EnforceAuthentication {
 		t.Fatalf("EnforceAuthentication mismatch: got %v want %v", cfg.EnforceAuthentication, true)
 	}
+	if cfg.RedisURL != "" {
+		t.Fatalf("RedisURL mismatch: got %q want empty", cfg.RedisURL)
+	}
+	if cfg.RedisDB != 5 {
+		t.Fatalf("RedisDB mismatch: got %d want %d", cfg.RedisDB, 5)
+	}
 	if cfg.WebhookURL == "" || cfg.WebhookSecret == "" {
 		t.Fatalf("webhook defaults should be populated")
 	}
@@ -37,6 +45,8 @@ func TestLoadUsesEnvironmentOverrides(t *testing.T) {
 	t.Setenv("LOG_LEVEL", "debug")
 	t.Setenv("MOCKCHIMONEY_API_KEY", "abc123")
 	t.Setenv("MOCKCHIMONEY_ENFORCE_AUTHENTICATION", "false")
+	t.Setenv("MOCKCHIMONEY_REDIS_URL", "redis://localhost:6379")
+	t.Setenv("MOCKCHIMONEY_REDIS_DB", "7")
 	t.Setenv("WEBHOOK_URL", "http://localhost:9999/webhooks")
 	t.Setenv("CHIMONEY_WEBHOOK_SECRET", "prefix_bXlzZWNyZXQ=")
 	t.Setenv("WEBHOOK_MIN_DELAY_SEC", "1.25")
@@ -56,6 +66,12 @@ func TestLoadUsesEnvironmentOverrides(t *testing.T) {
 	}
 	if cfg.EnforceAuthentication {
 		t.Fatalf("EnforceAuthentication mismatch: got %v want %v", cfg.EnforceAuthentication, false)
+	}
+	if cfg.RedisURL != "redis://localhost:6379" {
+		t.Fatalf("RedisURL mismatch: got %q", cfg.RedisURL)
+	}
+	if cfg.RedisDB != 7 {
+		t.Fatalf("RedisDB mismatch: got %d want %d", cfg.RedisDB, 7)
 	}
 	if cfg.WebhookURL != "http://localhost:9999/webhooks" {
 		t.Fatalf("WebhookURL mismatch: got %q", cfg.WebhookURL)
@@ -84,5 +100,13 @@ func TestGetEnvAsFloatInvalidFallsBackToDefault(t *testing.T) {
 
 	if getEnvAsFloat("INTERAC_FEE_FLAT", 3.5) != 3.5 {
 		t.Fatalf("getEnvAsFloat() should return default when parsing fails")
+	}
+}
+
+func TestGetEnvAsIntInvalidFallsBackToDefault(t *testing.T) {
+	t.Setenv("MOCKCHIMONEY_REDIS_DB", "not-an-int")
+
+	if getEnvAsInt("MOCKCHIMONEY_REDIS_DB", 11) != 11 {
+		t.Fatalf("getEnvAsInt() should return default when parsing fails")
 	}
 }

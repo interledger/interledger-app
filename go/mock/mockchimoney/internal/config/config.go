@@ -11,6 +11,8 @@ type Config struct {
 	LogLevel              string
 	APIKey                string
 	EnforceAuthentication bool
+	RedisURL              string
+	RedisDB               int
 	WebhookURL            string
 	WebhookSecret         string
 	WebhookMinDelaySec    float64
@@ -26,6 +28,8 @@ func Load() *Config {
 		LogLevel:              getEnv("LOG_LEVEL", "info"),
 		APIKey:                getEnv("MOCKCHIMONEY_API_KEY", "local-test-api-key"),
 		EnforceAuthentication: getEnvAsBool("MOCKCHIMONEY_ENFORCE_AUTHENTICATION", true),
+		RedisURL:              getEnv("MOCKCHIMONEY_REDIS_URL", ""),
+		RedisDB:               getEnvAsInt("MOCKCHIMONEY_REDIS_DB", 5),
 		WebhookURL:            getEnv("WEBHOOK_URL", "http://backend:8080/webhooks/chimoney"),
 		WebhookSecret:         getEnv("CHIMONEY_WEBHOOK_SECRET", "local_bG9jYWwtdGVzdC13ZWJob29rLXNlY3JldA=="),
 		WebhookMinDelaySec:    getEnvAsFloat("WEBHOOK_MIN_DELAY_SEC", 0.5),
@@ -66,6 +70,20 @@ func getEnvAsFloat(key string, defaultVal float64) float64 {
 	}
 
 	parsed, err := strconv.ParseFloat(val, 64)
+	if err != nil {
+		return defaultVal
+	}
+
+	return parsed
+}
+
+func getEnvAsInt(key string, defaultVal int) int {
+	val := os.Getenv(key)
+	if val == "" {
+		return defaultVal
+	}
+
+	parsed, err := strconv.Atoi(val)
 	if err != nil {
 		return defaultVal
 	}

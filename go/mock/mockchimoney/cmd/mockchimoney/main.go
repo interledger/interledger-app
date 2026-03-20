@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"io"
 	"net/http"
 	"os"
 	"os/signal"
@@ -37,10 +38,28 @@ func main() {
 	logger.Info("configuration loaded",
 		zap.String("log_level", cfg.LogLevel),
 		zap.String("port", cfg.Port),
+		zap.String("redis_url", cfg.RedisURL),
+		zap.Int("redis_db", cfg.RedisDB),
 		zap.Bool("enforce_authentication", cfg.EnforceAuthentication),
 	)
 
-	store := storage.NewMemoryStore()
+	var (
+		store       storage.Store
+		storeCloser io.Closer
+	)
+
+	if cfg.RedisURL != "" {
+		redisStore, err := storage.NewRedisStore(cfg.RedisURL, cfg.RedisDB)
+		if err != nil {
+			logger.Fatal("failed to initialize redis store", zap.Error(err))
+		}
+		store = redisStore
+		storeCloser = redisStore
+		logger.Info("using redis-backed store")
+	} else {
+		store = storage.NewMemoryStore()
+		logger.Info("using in-memory store")
+	}
 	queue := jobs.NewInMemoryQueue(64)
 	sender := webhook.NewSender(&http.Client{Timeout: 10 * time.Second})
 	h := handler.NewHandlerWithDeps(cfg, store, queue, sender)
@@ -101,6 +120,11 @@ func main() {
 	logger.Info("shutting down MockChimoney")
 	workerCancel()
 	queue.Close()
+	if storeCloser != nil {
+		if err := storeCloser.Close(); err != nil {
+			logger.Error("failed to close store", zap.Error(err))
+		}
+	}
 
 	// Graceful shutdown
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
