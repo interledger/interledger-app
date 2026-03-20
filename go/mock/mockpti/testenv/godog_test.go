@@ -105,4 +105,16 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^an existing PTI transaction request id$`, tc.anExistingPTITransactionRequestID)
 	ctx.Step(`^I POST "([^"]*)" with feedback payload$`, tc.postWithFeedbackPayload)
 	ctx.Step(`^the response should include an update id$`, tc.responseShouldIncludeUpdateID)
+
+	// Webhook steps
+	ctx.Step(`^webhook delivery is configured to backend "([^"]*)"$`, tc.webhookDeliveryIsConfiguredToBackend)
+	ctx.Step(`^an existing PTI user assessment in state "([^"]*)"$`, tc.anExistingPTIUserAssessmentInState)
+	ctx.Step(`^mockpti processes the assessment completion$`, tc.mockptiProcessesTheAssessmentCompletion)
+	ctx.Step(`^an existing PTI deposit transaction in state "([^"]*)"$`, tc.anExistingPTIDepositTransactionInState)
+	ctx.Step(`^an existing PTI withdrawal transaction in state "([^"]*)"$`, tc.anExistingPTIWithdrawalTransactionInState)
+	ctx.Step(`^mockpti transitions the transaction to "([^"]*)"$`, tc.mockptiTransitionsTheTransactionTo)
+	ctx.Step(`^a webhook should be delivered with resource type "([^"]*)"$`, tc.aWebhookShouldBeDeliveredWithResourceType)
+	ctx.Step(`^the webhook payload should include user id and request id$`, tc.theWebhookPayloadShouldIncludeUserIDAndRequestID)
+	ctx.Step(`^the webhook payload should include transaction type "([^"]*)"$`, tc.theWebhookPayloadShouldIncludeTransactionType)
+	ctx.Step(`^the webhook payload should include status "([^"]*)"$`, tc.theWebhookPayloadShouldIncludeStatus)
 }

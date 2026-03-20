@@ -15,6 +15,7 @@ import (
 
 	"gitlab.com/fynbos/mock/mockpti/internal/config"
 	"gitlab.com/fynbos/mock/mockpti/internal/handler"
+	"gitlab.com/fynbos/mock/mockpti/internal/jobs"
 	"gitlab.com/fynbos/mock/mockpti/internal/logger"
 	"gitlab.com/fynbos/mock/mockpti/internal/storage"
 )
@@ -48,9 +49,17 @@ func main() {
 		logger.Infof("Initialized in-memory storage")
 	}
 
-	// Initialize router and handler
+	// Initialize queue/worker and handler
+	queue := jobs.NewQueue(store)
+	worker := jobs.NewWorker(queue)
+
 	router := chi.NewRouter()
 	h := handler.NewHandler(store, cfg)
+	h.SetQueue(queue)
+
+	worker.RegisterHandler(jobs.JobTypeUserAssessmentWebhook, h.NewUserAssessmentWebhookJobHandler())
+	worker.RegisterHandler(jobs.JobTypeTransactionStatusWebhook, h.NewTransactionStatusWebhookJobHandler())
+	worker.StartAsync()
 
 	setupRoutes(router, h)
 
@@ -72,6 +81,7 @@ func main() {
 	<-sigChan
 
 	logger.Infof("Shutting down server...")
+	worker.Stop()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()

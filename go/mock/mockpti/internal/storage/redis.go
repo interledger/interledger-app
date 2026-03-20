@@ -264,3 +264,120 @@ func (r *RedisStorage) SaveTransactionUpdate(ctx context.Context, update *models
 	}
 	return r.client.RPush(ctx, transactionUpdatesKey(update.RequestID), data).Err()
 }
+
+// Job key helpers
+
+func jobKey(jobID string) string {
+	return fmt.Sprintf("pti:job:%s", jobID)
+}
+
+const jobsReadySetKey = "pti:jobs:ready"
+
+// Job operations
+
+func (r *RedisStorage) SaveJob(ctx context.Context, job *models.Job) error {
+	data, err := json.Marshal(job)
+	if err != nil {
+		return fmt.Errorf("failed to marshal job: %w", err)
+	}
+	pipe := r.client.Pipeline()
+	pipe.Set(ctx, jobKey(job.ID), data, 0)
+	// Use sorted set: score = NotBefore Unix timestamp
+	pipe.ZAdd(ctx, jobsReadySetKey, redis.Z{
+		Score:  float64(job.NotBefore.Unix()),
+		Member: job.ID,
+	})
+	_, err = pipe.Exec(ctx)
+	return err
+}
+
+func (r *RedisStorage) GetJob(ctx context.Context, jobID string) (*models.Job, error) {
+	data, err := r.client.Get(ctx, jobKey(jobID)).Bytes()
+	if err != nil {
+		if err == redis.Nil {
+			return nil, ErrJobNotFound
+		}
+		return nil, err
+	}
+	var job models.Job
+	if err := json.Unmarshal(data, &job); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal job: %w", err)
+	}
+	return &job, nil
+}
+
+func (r *RedisStorage) ListReadyJobs(ctx context.Context, limit int) ([]*models.Job, error) {
+	now := float64(time.Now().Unix())
+	ids, err := r.client.ZRangeArgs(ctx, redis.ZRangeArgs{
+		Key:     jobsReadySetKey,
+		Start:   "-inf",
+		Stop:    fmt.Sprintf("%f", now),
+		ByScore: true,
+		Offset:  0,
+		Count:   int64(limit),
+	}).Result()
+	if err != nil {
+		return nil, err
+	}
+
+	jobs := make([]*models.Job, 0, len(ids))
+	for _, id := range ids {
+		job, err := r.GetJob(ctx, id)
+		if err != nil {
+			continue
+		}
+		if job.Status == "queued" {
+			jobs = append(jobs, job)
+		}
+	}
+	return jobs, nil
+}
+
+func (r *RedisStorage) UpdateJobStatus(ctx context.Context, jobID string, status string, completedAt *time.Time, lastError string) error {
+	job, err := r.GetJob(ctx, jobID)
+	if err != nil {
+		return err
+	}
+	job.Status = status
+	job.LastError = lastError
+	if completedAt != nil {
+		t := *completedAt
+		job.CompletedAt = &t
+	}
+	// Remove from ready set if completed or permanently failed
+	if status == "delivered" || status == "failed" {
+		_ = r.client.ZRem(ctx, jobsReadySetKey, jobID).Err()
+	}
+	data, err := json.Marshal(job)
+	if err != nil {
+		return fmt.Errorf("failed to marshal job: %w", err)
+	}
+	return r.client.Set(ctx, jobKey(jobID), data, 0).Err()
+}
+
+func (r *RedisStorage) IncrementJobAttempts(ctx context.Context, jobID string) error {
+	job, err := r.GetJob(ctx, jobID)
+	if err != nil {
+		return err
+	}
+	job.Attempts++
+	data, err := json.Marshal(job)
+	if err != nil {
+		return fmt.Errorf("failed to marshal job: %w", err)
+	}
+	return r.client.Set(ctx, jobKey(jobID), data, 0).Err()
+}
+
+func (r *RedisStorage) ClearJobs(ctx context.Context) error {
+	// Delete all job keys
+	keys, err := r.client.Keys(ctx, "pti:job:*").Result()
+	if err != nil {
+		return err
+	}
+	if len(keys) > 0 {
+		if err := r.client.Del(ctx, keys...).Err(); err != nil {
+			return err
+		}
+	}
+	return r.client.Del(ctx, jobsReadySetKey).Err()
+}

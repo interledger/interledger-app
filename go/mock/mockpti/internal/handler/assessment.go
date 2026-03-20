@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	"gitlab.com/fynbos/mock/mockpti/internal/jobs"
 	"gitlab.com/fynbos/mock/mockpti/internal/logger"
 	"gitlab.com/fynbos/mock/mockpti/internal/models"
 	"gitlab.com/fynbos/mock/mockpti/internal/storage"
@@ -49,7 +50,7 @@ func (h *Handler) StartUserAssessment(w http.ResponseWriter, r *http.Request) {
 		RequestID:    requestID,
 		UserID:       req.ID,
 		Date:         time.Now().Format(time.RFC3339),
-		Assessment:   "approved",
+		Assessment:   "ACCEPTED",
 		Tier:         1,
 	}
 
@@ -60,6 +61,10 @@ func (h *Handler) StartUserAssessment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	logger.Infof("Started assessment for user %s, requestID=%s", req.ID, requestID)
+	h.enqueueWebhook(jobs.JobTypeUserAssessmentWebhook, map[string]interface{}{
+		"user_id":    req.ID,
+		"request_id": requestID,
+	})
 
 	h.sendJSON(w, http.StatusOK, models.IDResponse{
 		ID:   requestID,

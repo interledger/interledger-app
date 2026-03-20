@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	"gitlab.com/fynbos/mock/mockpti/internal/jobs"
 	"gitlab.com/fynbos/mock/mockpti/internal/logger"
 	"gitlab.com/fynbos/mock/mockpti/internal/models"
 	"gitlab.com/fynbos/mock/mockpti/internal/storage"
@@ -75,6 +76,9 @@ func (h *Handler) CreateDeposit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	logger.Infof("Created deposit transaction requestId=%s status=%s", tx.RequestID, tx.Status)
+	h.enqueueWebhook(jobs.JobTypeTransactionStatusWebhook, map[string]interface{}{
+		"request_id": tx.RequestID,
+	})
 
 	h.sendJSON(w, http.StatusOK, models.IDResponse{
 		ID:   tx.RequestID,
@@ -104,6 +108,9 @@ func (h *Handler) CreateWithdrawal(w http.ResponseWriter, r *http.Request) {
 	}
 
 	logger.Infof("Created withdrawal transaction requestId=%s status=%s", tx.RequestID, tx.Status)
+	h.enqueueWebhook(jobs.JobTypeTransactionStatusWebhook, map[string]interface{}{
+		"request_id": tx.RequestID,
+	})
 
 	h.sendJSON(w, http.StatusOK, models.IDResponse{
 		ID:   tx.RequestID,
@@ -128,6 +135,9 @@ func (h *Handler) CreateTransfer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	logger.Infof("Created transfer transaction requestId=%s status=%s", tx.RequestID, tx.Status)
+	h.enqueueWebhook(jobs.JobTypeTransactionStatusWebhook, map[string]interface{}{
+		"request_id": tx.RequestID,
+	})
 
 	h.sendJSON(w, http.StatusOK, models.IDResponse{
 		ID:   tx.RequestID,

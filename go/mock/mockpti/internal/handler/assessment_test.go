@@ -2,12 +2,15 @@ package handler
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	"gitlab.com/fynbos/mock/mockpti/internal/jobs"
 	"gitlab.com/fynbos/mock/mockpti/internal/models"
+	"gitlab.com/fynbos/mock/mockpti/internal/storage"
 )
 
 func TestStartUserAssessment_Success(t *testing.T) {
@@ -142,8 +145,8 @@ func TestGetUserAssessment_Success(t *testing.T) {
 	var assessment models.Assessment
 	_ = json.NewDecoder(rr.Body).Decode(&assessment)
 
-	if assessment.Assessment != "approved" {
-		t.Errorf("expected assessment approved, got %s", assessment.Assessment)
+	if assessment.Assessment != "ACCEPTED" {
+		t.Errorf("expected assessment ACCEPTED, got %s", assessment.Assessment)
 	}
 	if assessment.UserID != "user-getassess-1" {
 		t.Errorf("expected user ID user-getassess-1, got %s", assessment.UserID)
@@ -168,5 +171,41 @@ func TestGetUserAssessment_NotFound(t *testing.T) {
 
 	if rr.Code != http.StatusNotFound {
 		t.Errorf("expected 404, got %d", rr.Code)
+	}
+}
+
+func TestStartUserAssessment_EnqueuesWebhookJob(t *testing.T) {
+	store := storage.NewMemoryStorage()
+	h := NewHandler(store, newTestHandler().config)
+	q := jobs.NewQueue(store)
+	h.SetQueue(q)
+	router := newTestRouter(h)
+
+	createBody := models.CreateUserRequest{ID: "user-assess-enqueue", Type: "PERSON"}
+	createPayload, _ := json.Marshal(createBody)
+	createReq := httptest.NewRequest(http.MethodPost, "/users", bytes.NewReader(createPayload))
+	ptiHeaders(createReq)
+	router.ServeHTTP(httptest.NewRecorder(), createReq)
+
+	assessBody := models.StartAssessmentRequest{ID: "user-assess-enqueue", Type: "PERSON"}
+	assessPayload, _ := json.Marshal(assessBody)
+	req := httptest.NewRequest(http.MethodPost, "/users/assessments", bytes.NewReader(assessPayload))
+	ptiHeaders(req)
+	rr := httptest.NewRecorder()
+
+	router.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rr.Code)
+	}
+
+	readyJobs, err := store.ListReadyJobs(context.Background(), 10)
+	if err != nil {
+		t.Fatalf("ListReadyJobs failed: %v", err)
+	}
+	if len(readyJobs) == 0 {
+		t.Fatal("expected queued webhook job")
+	}
+	if readyJobs[0].JobType != jobs.JobTypeUserAssessmentWebhook {
+		t.Fatalf("expected job type %s, got %s", jobs.JobTypeUserAssessmentWebhook, readyJobs[0].JobType)
 	}
 }

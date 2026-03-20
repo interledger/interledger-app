@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"errors"
+	"time"
 
 	"gitlab.com/fynbos/mock/mockpti/internal/models"
 )
@@ -13,6 +14,7 @@ var (
 	ErrWalletNotFound             = errors.New("wallet not found")
 	ErrPaymentInformationNotFound = errors.New("payment information not found")
 	ErrTransactionNotFound        = errors.New("transaction not found")
+	ErrJobNotFound                = errors.New("job not found")
 )
 
 // Storage defines all persistence operations for mockpti.
@@ -39,6 +41,14 @@ type Storage interface {
 	SaveTransaction(ctx context.Context, tx *models.Transaction) error
 	GetTransaction(ctx context.Context, requestID string) (*models.Transaction, error)
 	SaveTransactionUpdate(ctx context.Context, update *models.TransactionUpdate) error
+
+	// Job operations
+	SaveJob(ctx context.Context, job *models.Job) error
+	GetJob(ctx context.Context, jobID string) (*models.Job, error)
+	ListReadyJobs(ctx context.Context, limit int) ([]*models.Job, error)
+	UpdateJobStatus(ctx context.Context, jobID string, status string, completedAt *time.Time, lastError string) error
+	IncrementJobAttempts(ctx context.Context, jobID string) error
+	ClearJobs(ctx context.Context) error
 
 	// Reset all data (for testing)
 	Reset(ctx context.Context) error

@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"gitlab.com/fynbos/mock/mockpti/internal/jobs"
 	"gitlab.com/fynbos/mock/mockpti/internal/models"
 	"gitlab.com/fynbos/mock/mockpti/internal/storage"
 )
@@ -651,6 +652,39 @@ func TestTransactionStatus_Canceled(t *testing.T) {
 		if got := transactionStatus(scenario); got != "CANCELED" {
 			t.Errorf("expected CANCELED for scenario %q, got %s", scenario, got)
 		}
+	}
+}
+
+func TestCreateDeposit_EnqueuesWebhookJob(t *testing.T) {
+	store := storage.NewMemoryStorage()
+	h := NewHandler(store, newTestHandler().config)
+	q := jobs.NewQueue(store)
+	h.SetQueue(q)
+	router := newTestRouter(h)
+
+	userID, walletID := seedUserAndWallet(t, h)
+	piID := "pi-1"
+	payload := createDepositPayload(userID, piID, walletID)
+	body, _ := json.Marshal(payload)
+
+	req := httptest.NewRequest(http.MethodPost, "/transactions/deposits", bytes.NewReader(body))
+	ptiHeaders(req)
+	rr := httptest.NewRecorder()
+	router.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rr.Code)
+	}
+
+	readyJobs, err := store.ListReadyJobs(context.Background(), 10)
+	if err != nil {
+		t.Fatalf("ListReadyJobs failed: %v", err)
+	}
+	if len(readyJobs) == 0 {
+		t.Fatal("expected queued webhook job")
+	}
+	if readyJobs[0].JobType != jobs.JobTypeTransactionStatusWebhook {
+		t.Fatalf("expected job type %s, got %s", jobs.JobTypeTransactionStatusWebhook, readyJobs[0].JobType)
 	}
 }
 

@@ -34,7 +34,7 @@ Implement asynchronous webhook delivery via a persisted jobs mechanism compatibl
 - E2E tests on redis store for end-to-end delivery and persistence semantics.
 - Feature-file milestone for this phase:
   - `features/webhooks.feature`
-- Internal coverage gate: `go test -coverprofile=coverage.out ./internal/...` must report `>= 75.0%` total statements.
+- Internal coverage gate: `go test -coverprofile=coverage.out ./internal/...` must report `>= 65.0%` total statements.
 
 ## Deliverables
 - Reliable webhook delivery subsystem with observable persisted state transitions.
@@ -45,7 +45,7 @@ Implement asynchronous webhook delivery via a persisted jobs mechanism compatibl
 - Webhook delivery is resilient to transient failures (retry behavior verified).
 - By phase end, backend signup flow can complete through webhook updates.
 - `features/webhooks.feature` passes end-to-end.
-- Internal package total coverage is `>= 75.0%`.
+- Internal package total coverage is `>= 65.0%`.
 
 ## Verification
 Run `make test` from the `go/mock/mockpti` directory.

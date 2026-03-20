@@ -2,24 +2,48 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"time"
 
 	"gitlab.com/fynbos/mock/mockpti/internal/config"
+	"gitlab.com/fynbos/mock/mockpti/internal/jobs"
+	"gitlab.com/fynbos/mock/mockpti/internal/logger"
 	"gitlab.com/fynbos/mock/mockpti/internal/models"
 	"gitlab.com/fynbos/mock/mockpti/internal/storage"
+	"gitlab.com/fynbos/mock/mockpti/internal/webhooks"
 )
 
 // Handler handles HTTP requests for the mock PTI service.
 type Handler struct {
-	store  storage.Storage
-	config *config.Config
+	store   storage.Storage
+	config  *config.Config
+	queue   *jobs.Queue // nil means webhook jobs are skipped
+	webhook *webhooks.Sender
 }
 
-// NewHandler creates a new handler.
+// NewHandler creates a new handler without a job queue.
+// Call SetQueue to enable async webhook delivery.
 func NewHandler(store storage.Storage, cfg *config.Config) *Handler {
 	return &Handler{
-		store:  store,
-		config: cfg,
+		store:   store,
+		config:  cfg,
+		webhook: webhooks.NewSender(cfg.WebhookURL),
+	}
+}
+
+// SetQueue attaches a job queue, enabling async webhook delivery.
+func (h *Handler) SetQueue(q *jobs.Queue) {
+	h.queue = q
+}
+
+// enqueueWebhook safely enqueues a webhook job when a queue is wired, otherwise no-ops.
+func (h *Handler) enqueueWebhook(jobType string, data map[string]interface{}) {
+	if h.queue == nil {
+		return
+	}
+	if _, err := h.queue.Enqueue(jobType, data, time.Now()); err != nil {
+		logger.Warn(fmt.Sprintf("Failed to enqueue %s webhook job: %v", jobType, err))
 	}
 }
 

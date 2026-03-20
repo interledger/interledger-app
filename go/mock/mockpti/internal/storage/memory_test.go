@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"testing"
+	"time"
 
 	"gitlab.com/fynbos/mock/mockpti/internal/models"
 )
@@ -410,5 +411,33 @@ func TestMemoryStorage_Reset_ClearsTransactions(t *testing.T) {
 	_, err := store.GetTransaction(ctx, "req-1")
 	if err != ErrTransactionNotFound {
 		t.Errorf("expected ErrTransactionNotFound after reset, got %v", err)
+	}
+}
+
+func TestMemoryStorage_JobLifecycle(t *testing.T) {
+	store := NewMemoryStorage()
+	ctx := context.Background()
+
+	job := &models.Job{ID: "job-1", JobType: "webhook", Status: "queued", NotBefore: time.Now().Add(-1 * time.Second)}
+	if err := store.SaveJob(ctx, job); err != nil {
+		t.Fatalf("SaveJob failed: %v", err)
+	}
+
+	if err := store.IncrementJobAttempts(ctx, job.ID); err != nil {
+		t.Fatalf("IncrementJobAttempts failed: %v", err)
+	}
+	now := time.Now()
+	if err := store.UpdateJobStatus(ctx, job.ID, "processing", nil, ""); err != nil {
+		t.Fatalf("UpdateJobStatus processing failed: %v", err)
+	}
+	if err := store.UpdateJobStatus(ctx, job.ID, "delivered", &now, ""); err != nil {
+		t.Fatalf("UpdateJobStatus delivered failed: %v", err)
+	}
+
+	if err := store.ClearJobs(ctx); err != nil {
+		t.Fatalf("ClearJobs failed: %v", err)
+	}
+	if _, err := store.GetJob(ctx, job.ID); err != ErrJobNotFound {
+		t.Fatalf("expected ErrJobNotFound, got %v", err)
 	}
 }

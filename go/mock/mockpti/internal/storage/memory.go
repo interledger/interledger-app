@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"sort"
 	"sync"
 	"time"
 
@@ -17,6 +18,7 @@ type MemoryStorage struct {
 	paymentInformations map[string]map[string]*models.PaymentInformation // userID -> piID -> payment info
 	transactions        map[string]*models.Transaction                   // requestID -> transaction
 	transactionUpdates  map[string][]*models.TransactionUpdate           // requestID -> updates (ordered)
+	jobs                map[string]*models.Job                           // jobID -> job
 }
 
 // NewMemoryStorage creates a new in-memory storage.
@@ -28,6 +30,7 @@ func NewMemoryStorage() Storage {
 		paymentInformations: make(map[string]map[string]*models.PaymentInformation),
 		transactions:        make(map[string]*models.Transaction),
 		transactionUpdates:  make(map[string][]*models.TransactionUpdate),
+		jobs:                make(map[string]*models.Job),
 	}
 }
 
@@ -97,6 +100,7 @@ func (m *MemoryStorage) Reset(ctx context.Context) error {
 	m.paymentInformations = make(map[string]map[string]*models.PaymentInformation)
 	m.transactions = make(map[string]*models.Transaction)
 	m.transactionUpdates = make(map[string][]*models.TransactionUpdate)
+	m.jobs = make(map[string]*models.Job)
 	return nil
 }
 
@@ -195,5 +199,90 @@ func (m *MemoryStorage) SaveTransactionUpdate(ctx context.Context, update *model
 	defer m.mu.Unlock()
 
 	m.transactionUpdates[update.RequestID] = append(m.transactionUpdates[update.RequestID], update)
+	return nil
+}
+
+// Job operations
+
+func (m *MemoryStorage) SaveJob(ctx context.Context, job *models.Job) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	// Make a copy to avoid races on the data map
+	cp := *job
+	m.jobs[job.ID] = &cp
+	return nil
+}
+
+func (m *MemoryStorage) GetJob(ctx context.Context, jobID string) (*models.Job, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	job, ok := m.jobs[jobID]
+	if !ok {
+		return nil, ErrJobNotFound
+	}
+	cp := *job
+	return &cp, nil
+}
+
+func (m *MemoryStorage) ListReadyJobs(ctx context.Context, limit int) ([]*models.Job, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	now := time.Now()
+	var ready []*models.Job
+	for _, job := range m.jobs {
+		if job.Status == "queued" && !job.NotBefore.After(now) {
+			cp := *job
+			ready = append(ready, &cp)
+		}
+	}
+
+	// Sort by NotBefore ascending (oldest first)
+	sort.Slice(ready, func(i, j int) bool {
+		return ready[i].NotBefore.Before(ready[j].NotBefore)
+	})
+
+	if limit > 0 && len(ready) > limit {
+		ready = ready[:limit]
+	}
+	return ready, nil
+}
+
+func (m *MemoryStorage) UpdateJobStatus(ctx context.Context, jobID string, status string, completedAt *time.Time, lastError string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	job, ok := m.jobs[jobID]
+	if !ok {
+		return ErrJobNotFound
+	}
+	job.Status = status
+	job.LastError = lastError
+	if completedAt != nil {
+		t := *completedAt
+		job.CompletedAt = &t
+	}
+	return nil
+}
+
+func (m *MemoryStorage) IncrementJobAttempts(ctx context.Context, jobID string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	job, ok := m.jobs[jobID]
+	if !ok {
+		return ErrJobNotFound
+	}
+	job.Attempts++
+	return nil
+}
+
+func (m *MemoryStorage) ClearJobs(ctx context.Context) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	m.jobs = make(map[string]*models.Job)
 	return nil
 }

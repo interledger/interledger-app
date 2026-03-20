@@ -117,3 +117,16 @@ type TransactionUpdate struct {
 	ProviderName  string    `json:"providerName"`
 	Payload       string    `json:"payload"`
 }
+
+// Job represents a unit of async work (webhook delivery, etc.)
+type Job struct {
+	ID          string                 `json:"id"`
+	JobType     string                 `json:"job_type"`
+	Data        map[string]interface{} `json:"data"`
+	Attempts    int                    `json:"attempts"`
+	Status      string                 `json:"status"`
+	CreatedAt   time.Time              `json:"created_at"`
+	NotBefore   time.Time              `json:"not_before"`
+	LastError   string                 `json:"last_error"`
+	CompletedAt *time.Time             `json:"completed_at,omitempty"`
+}

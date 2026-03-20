@@ -23,6 +23,7 @@ services:
       - MOCKPTI_PORT=8080
       - MOCKPTI_CLIENT_ID=test-client-id
       - MOCKPTI_REDIS_URL=redis://redis:6379
+      - MOCKPTI_WEBHOOK_URL=http://host.docker.internal:24100/webhooks/pti
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
