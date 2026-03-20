@@ -31,13 +31,21 @@
 
 ## Acceptance Criteria
 
-- [ ] Wallet creation with only `name` field succeeds
-- [ ] Wallet creation with all optional fields (`email`, `firstName`, `lastName`, `phoneNumber`) succeeds
-- [ ] Wallet creation without `name` returns 400
-- [ ] Each wallet receives a unique ID
-- [ ] Newly created wallet has `verification.status = "pending"`
-- [ ] `GET /multicurrency-wallets/get?id=<id>` retrieves a wallet by ID
-- [ ] Unknown wallet ID returns 404
-- [ ] Missing `id` query param returns 400
-- [ ] All previous feature scenarios still pass
-- [ ] All code passes `golangci-lint run ./...`- [ ] `make test` runs successfully (linting + unit tests + e2e tests)
+- [x] Wallet creation with only `name` field succeeds
+- [x] Wallet creation with all optional fields (`email`, `firstName`, `lastName`, `phoneNumber`) succeeds
+- [x] Wallet creation without `name` returns 400
+- [x] Each wallet receives a unique ID
+- [x] Newly created wallet has `verification.status = "pending"`
+- [x] `GET /multicurrency-wallets/get?id=<id>` retrieves a wallet by ID
+- [x] Unknown wallet ID returns 404
+- [x] Missing `id` query param returns 400
+- [x] All previous feature scenarios still pass
+- [x] All code passes `golangci-lint run ./...`
+- [x] `make test` runs successfully (linting + unit tests + e2e tests)
+
+## Verification Run
+
+- `gofmt -w ./cmd ./internal`
+- `go test ./...`
+- `golangci-lint run ./...`
+- `make test`
