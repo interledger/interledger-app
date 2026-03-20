@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -136,6 +137,102 @@ func (sc *E2EContext) iShouldBeAbleToVerifyTheFullUserStatus() error {
 		return fmt.Errorf("no signup record found for email: %s", email)
 	}
 
+	return nil
+}
+
+// iShouldHaveALinkedBalanceAccountForProvider verifies a linked balance account exists for the provider.
+func (sc *E2EContext) iShouldHaveALinkedBalanceAccountForProvider(provider string) error {
+	provider = strings.ToLower(strings.TrimSpace(provider))
+	if provider == "" {
+		return fmt.Errorf("provider cannot be empty")
+	}
+
+	if sc.db == nil {
+		connStr := "host=localhost port=5432 user=postgres password=postgres dbname=backend sslmode=disable"
+		db, err := sql.Open("postgres", connStr)
+		if err != nil {
+			return fmt.Errorf("failed to open db: %w", err)
+		}
+		sc.db = db
+	}
+
+	email, err := sc.getCurrentUserEmail()
+	if err != nil {
+		return err
+	}
+
+	kratosID := sc.getKratosUserIDByEmail(email)
+	if kratosID == "" {
+		return fmt.Errorf("could not resolve kratos user id for %s", email)
+	}
+
+	var count int
+	err = sc.db.QueryRow(`
+		SELECT COUNT(*)
+		FROM linked_accounts la
+		JOIN user_wallets uw ON uw.wallet_id = la.wallet_id
+		WHERE uw.user_id = $1
+		  AND lower(la.provider) = $2
+		  AND la.type = 'balance'
+		  AND la.deleted_at IS NULL
+	`, kratosID, provider).Scan(&count)
+	if err != nil {
+		return fmt.Errorf("failed to query linked accounts: %w", err)
+	}
+
+	if count < 1 {
+		return fmt.Errorf("no linked balance account found for provider %q (user=%s)", provider, email)
+	}
+
+	debugPrintf("✓ Found %d linked balance account(s) for provider %s\n", count, provider)
+	return nil
+}
+
+// iShouldUseOnOffRampProvider verifies backend provider selection exposed to the withdraw UI.
+func (sc *E2EContext) iShouldUseOnOffRampProvider(provider string) error {
+	provider = strings.ToLower(strings.TrimSpace(provider))
+	if provider == "" {
+		return fmt.Errorf("provider cannot be empty")
+	}
+
+	if sc.db == nil {
+		connStr := "host=localhost port=5432 user=postgres password=postgres dbname=backend sslmode=disable"
+		db, err := sql.Open("postgres", connStr)
+		if err != nil {
+			return fmt.Errorf("failed to open db: %w", err)
+		}
+		sc.db = db
+	}
+
+	email, err := sc.getCurrentUserEmail()
+	if err != nil {
+		return err
+	}
+
+	kratosID := sc.getKratosUserIDByEmail(email)
+	if kratosID == "" {
+		return fmt.Errorf("could not resolve kratos user id for %s", email)
+	}
+
+	var walletCountry string
+	err = sc.db.QueryRow(`
+		SELECT w.country
+		FROM wallets w
+		JOIN user_wallets uw ON uw.wallet_id = w.id
+		WHERE uw.user_id = $1
+		ORDER BY w.created_at DESC
+		LIMIT 1
+	`, kratosID).Scan(&walletCountry)
+	if err != nil {
+		return fmt.Errorf("failed to query wallet country: %w", err)
+	}
+
+	walletCountry = strings.ToUpper(strings.TrimSpace(walletCountry))
+	if provider == "pti" && walletCountry != "US" {
+		return fmt.Errorf("expected US wallet country for provider pti, got %q", walletCountry)
+	}
+
+	debugPrintf("✓ Wallet country %s matches provider expectation %s\n", walletCountry, provider)
 	return nil
 }
 

@@ -465,3 +465,49 @@ func (sc *E2EContext) getUserWalletCount(kratosUserID string) (int, error) {
 
 	return count, nil
 }
+
+// getNextAvailableUSPhoneNumber returns the next available Kratos-safe US test phone number.
+// Format: +1202555xxxx (xxxx from 0000 to 9999).
+func (sc *E2EContext) getNextAvailableUSPhoneNumber() (string, error) {
+	kratosConnStr := "host=localhost port=5432 user=postgres password=postgres dbname=kratos sslmode=disable"
+	kratosDB, err := sql.Open("postgres", kratosConnStr)
+	if err != nil {
+		return "", fmt.Errorf("getNextAvailableUSPhoneNumber: could not connect to Kratos DB: %w", err)
+	}
+	defer kratosDB.Close()
+
+	var maxSuffix int
+	err = kratosDB.QueryRow(`
+		SELECT COALESCE(MAX((regexp_match(identifier, '^\\+1202555([0-9]{4})$'))[1]::int), -1)
+		FROM identity_credential_identifiers
+		WHERE identifier ~ '^\\+1202555[0-9]{4}$'
+	`).Scan(&maxSuffix)
+	if err != nil {
+		return "", fmt.Errorf("getNextAvailableUSPhoneNumber: failed to query max existing phone: %w", err)
+	}
+
+	start := 0
+	if maxSuffix >= 0 {
+		start = maxSuffix + 1
+	}
+
+	for i := start; i <= 9999; i++ {
+		candidate := fmt.Sprintf("+1202555%04d", i)
+
+		var exists bool
+		err = kratosDB.QueryRow(`
+			SELECT EXISTS (
+				SELECT 1 FROM identity_credential_identifiers WHERE identifier = $1
+			)
+		`, candidate).Scan(&exists)
+		if err != nil {
+			return "", fmt.Errorf("getNextAvailableUSPhoneNumber: failed existence check for %s: %w", candidate, err)
+		}
+
+		if !exists {
+			return candidate, nil
+		}
+	}
+
+	return "", fmt.Errorf("getNextAvailableUSPhoneNumber: exhausted +1202555xxxx range")
+}

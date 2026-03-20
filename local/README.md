@@ -10,7 +10,7 @@ We provide a `docker compose` managed environment that will attempt to automatic
 Service configuration can be overridden through a `.env` file in the `local/` directory. Start by copying [local/example.env](./example.env) to `.env` and editing only the values you want to change.
 
 Environment variable names are prefixed by service to avoid collisions:
-- `BACKEND_*` configures the wallet backend and shared mock credentials used by `mockgatehub` and `mockxago`
+- `BACKEND_*` configures the wallet backend and shared mock credentials used by `mockgatehub`, `mockxago`, and `mockpti`
 - `PROTEA_*` configures the Protea frontend
 
 ```sh
@@ -157,6 +157,7 @@ docker compose down -v
 | https://ngrok.test                        | Ngrok ui                                    |
 | https://mockgatehub.interledger.test      | MockGateHub API (local GateHub replacement) |
 | https://mockxago.interledger.test         | MockXago API (local Xago replacement)       |
+| https://mockpti.interledger.test          | MockPTI API and SDK stub                    |
 
 
 ### TODO

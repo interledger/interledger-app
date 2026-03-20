@@ -21,4 +21,5 @@ DNS.6 = localhost
 DNS.7 = traefik.test
 DNS.8 = ngrok.test
 DNS.9 = mockgatehub.interledger.test
+DNS.10 = mockpti.interledger.test
 IP.1  = 127.0.0.1
