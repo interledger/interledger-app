@@ -690,11 +690,11 @@ Each phase has its own document in the `plan/` directory:
 | [Phase 1](phase-1-storage-and-wallets.md) | Storage Layer and Wallet APIs | Phase 0 | Completed (2026-03-20) |
 | [Phase 2](phase-2-authentication.md) | Authentication Middleware | Phases 0-1 | Completed (2026-03-20) |
 | [Phase 3](phase-3-wallet-transfer.md) | Wallet Transfer | Phases 0-2 | Completed (2026-03-20) |
-| [Phase 4](phase-4-payment-initiation.md) | Payment Initiation and Verification | Phases 0-3 | Planned |
-| [Phase 5](phase-5-deposit-webhooks.md) | Webhook Infrastructure and Deposit Webhooks | Phases 0-4 | Planned |
-| [Phase 6](phase-6-withdrawals.md) | Withdrawal Flow and Webhooks | Phases 0-5 | Planned |
-| [Phase 7](phase-7-fee-and-conversion.md) | Fee Estimation and Currency Conversion | Phases 0-6 | Planned |
-| [Phase 8](phase-8-kyc.md) | KYC Widget | Phases 0-7 | Planned |
+| [Phase 4](phase-4-payment-initiation.md) | Payment Initiation and Verification | Phases 0-3 | Completed (2026-03-20) |
+| [Phase 5](phase-5-deposit-webhooks.md) | Webhook Infrastructure and Deposit Webhooks | Phases 0-4 | Completed (2026-03-20) |
+| [Phase 6](phase-6-withdrawals.md) | Withdrawal Flow and Webhooks | Phases 0-5 | Completed (2026-03-20) |
+| [Phase 7](phase-7-fee-and-conversion.md) | Fee Estimation and Currency Conversion | Phases 0-6 | Completed (2026-03-20) |
+| [Phase 8](phase-8-kyc.md) | KYC Widget | Phases 0-7 | Completed (2026-03-20) |
 | [Phase 9](phase-9-redis.md) | Redis Storage Backend | Phases 0-8 | Planned |
 | [Phase 10](phase-10-local-integration.md) | Local Environment Integration | Phases 0-9 | Planned |
 | [Phase 11 (Optional)](phase-11-bdd-tests.md) | BDD Test Suite | Phases 0-9 (can run in parallel with Phase 10) | Planned |

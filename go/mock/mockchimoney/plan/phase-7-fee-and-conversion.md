@@ -2,6 +2,8 @@
 
 **Goal**: The two info endpoints used by the backend.
 
+**Status**: Completed (2026-03-20)
+
 **Definition of Done**: This phase is complete when `make test` passes successfully.
 
 ## Deliverables
@@ -38,22 +40,32 @@
 
 ## Acceptance Criteria
 
-- [ ] Fee estimation with all fields succeeds
-- [ ] Fee estimation requires `amount`
-- [ ] Fee estimation without rail requires `currency` = USD
-- [ ] Fee estimation with non-USD currency and no rail returns 400
-- [ ] Fee direction defaults to `payout`
-- [ ] Fee direction `funding` is accepted
-- [ ] Fee is consistent across identical requests
-- [ ] Fee reflects configured `INTERAC_FEE_FLAT`
-- [ ] `netAmount` equals `amount` minus `totalFee`
-- [ ] Currency conversion CAD to USD succeeds
-- [ ] Conversion result reflects configured `CAD_TO_USD_RATE`
-- [ ] Conversion requires `originCurrency`
-- [ ] Conversion requires `amountInOriginCurrency`
-- [ ] Conversion with zero amount returns zero USD
-- [ ] Conversion is repeatable with same rate
-- [ ] All previous feature scenarios still pass
-- [ ] All code passes `golangci-lint run ./...`
-- [ ] Unit test coverage ≥ 60% (unit tests use memory-backed store); E2E tests use redis-backed store
-- [ ] `make test` runs successfully (linting + unit tests + e2e tests)
+- [x] Fee estimation with all fields succeeds
+- [x] Fee estimation requires `amount`
+- [x] Fee estimation without rail requires `currency` = USD
+- [x] Fee estimation with non-USD currency and no rail returns 400
+- [x] Fee direction defaults to `payout`
+- [x] Fee direction `funding` is accepted
+- [x] Fee is consistent across identical requests
+- [x] Fee reflects configured `INTERAC_FEE_FLAT`
+- [x] `netAmount` equals `amount` minus `totalFee`
+- [x] Currency conversion CAD to USD succeeds
+- [x] Conversion result reflects configured `CAD_TO_USD_RATE`
+- [x] Conversion requires `originCurrency`
+- [x] Conversion requires `amountInOriginCurrency`
+- [x] Conversion with zero amount returns zero USD
+- [x] Conversion is repeatable with same rate
+- [x] All previous feature scenarios still pass
+- [x] All code passes `golangci-lint run ./...`
+- [x] Unit test coverage ≥ 60% (unit tests use memory-backed store); E2E tests use redis-backed store
+- [x] `make test` runs successfully (linting + unit tests + e2e tests)
+
+## Implementation Notes
+
+- Added `internal/handler/fee.go` implementing `POST /v0.2.4/info/fee-estimate` with amount validation, USD rule when rail is omitted, default direction, and config-driven fee.
+- Added `internal/handler/convert.go` implementing `GET /v0.2.4/info/convert/local-amount-to-usd` with required query params and config-driven exchange conversion.
+- Added unit coverage in `internal/handler/info_test.go`.
+
+## Phase 8 Handoff Notes
+
+- KYC handlers can reuse webhook enqueueing and shared sub-account lookup/update logic already present in storage and handler helpers.
