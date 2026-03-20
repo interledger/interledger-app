@@ -85,18 +85,18 @@ export default function Page() {
       >
         <DialPad />
         <div className="flex justify-center gap-2 mt-12 w-64">
-          <Link
+          {/*<Link
             to={`/quick-pay/request`}
             onClick={processAmount}
             className='min-w-28'
-          >
+          >*/}
             <Button
               aria-label="request"
               disabled={Number(amountValue) === 0}
             >
               Request
             </Button>
-          </Link>
+          {/*</Link>*/}
           <Link
             to={`/quick-pay/pay`}
             onClick={processAmount}

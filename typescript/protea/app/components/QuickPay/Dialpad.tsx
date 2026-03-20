@@ -123,6 +123,7 @@ const DialPadKey = ({ label, id }: DialPadKeyProps) => {
 
   return (
     <li
+      role="button"
       className={clsx(
         'cursor-pointer hover:text-green-1',
         id === DialPadIds.Dot ? 'pl-1' : ''
