@@ -72,5 +72,6 @@ func (tc *TestContext) resolvePath(path string) string {
 	path = strings.ReplaceAll(path, "{userId}", tc.lastUserID)
 	path = strings.ReplaceAll(path, "{walletId}", tc.lastWalletID)
 	path = strings.ReplaceAll(path, "{paymentInformationId}", tc.lastPaymentInformationID)
+	path = strings.ReplaceAll(path, "{requestId}", tc.lastTransactionRequestID)
 	return path
 }

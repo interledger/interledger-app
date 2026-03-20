@@ -77,6 +77,8 @@ func (tc *TestContext) resolvePlaceholder(s string) string {
 		return tc.lastWalletID
 	case "{paymentInformationId}":
 		return tc.lastPaymentInformationID
+	case "{requestId}":
+		return tc.lastTransactionRequestID
 	}
 	return s
 }

@@ -116,6 +116,13 @@ func setupRoutes(router *chi.Mux, h *handler.Handler) {
 		r.Post("/users/{id}/payment-information", h.CreatePaymentInformation)
 		r.Get("/users/{id}/payment-information/{piId}", h.GetPaymentInformation)
 
+		// Transaction endpoints
+		r.Post("/transactions/deposits", h.CreateDeposit)
+		r.Post("/transactions/withdrawals", h.CreateWithdrawal)
+		r.Post("/transactions/transfers", h.CreateTransfer)
+		r.Get("/transactions/{requestId}", h.GetTransaction)
+		r.Post("/transactions/{requestId}/updates", h.UpdateTransaction)
+
 		// Auth endpoints
 		r.Post("/auth/jwt", h.CreateJWT)
 	})

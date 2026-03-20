@@ -23,6 +23,10 @@ func newTestHandler() *Handler {
 }
 
 func newTestRouter(h *Handler) *chi.Mux {
+	return newTestRouterFull(h)
+}
+
+func newTestRouterFull(h *Handler) *chi.Mux {
 	r := chi.NewRouter()
 	r.Group(func(r chi.Router) {
 		r.Use(h.AuthMiddleware)
@@ -38,6 +42,12 @@ func newTestRouter(h *Handler) *chi.Mux {
 		r.Post("/users/{id}/payment-information", h.CreatePaymentInformation)
 		r.Get("/users/{id}/payment-information/{piId}", h.GetPaymentInformation)
 		r.Post("/auth/jwt", h.CreateJWT)
+		// Transaction endpoints
+		r.Post("/transactions/deposits", h.CreateDeposit)
+		r.Post("/transactions/withdrawals", h.CreateWithdrawal)
+		r.Post("/transactions/transfers", h.CreateTransfer)
+		r.Get("/transactions/{requestId}", h.GetTransaction)
+		r.Post("/transactions/{requestId}/updates", h.UpdateTransaction)
 	})
 	return r
 }

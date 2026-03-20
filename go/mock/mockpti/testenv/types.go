@@ -54,3 +54,11 @@ type errorResponse struct {
 	Error   string `json:"error"`
 	Message string `json:"message"`
 }
+
+// transactionResponse mirrors the PTI transaction status JSON.
+type transactionResponse struct {
+	RequestID       string  `json:"requestId"`
+	Status          string  `json:"status"`
+	TransactionType string  `json:"transactionType"`
+	Amount          float64 `json:"amount"`
+}

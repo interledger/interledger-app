@@ -26,6 +26,8 @@ type TestContext struct {
 	lastAssessmentRequestID  string
 	lastWalletID             string
 	lastPaymentInformationID string
+	lastTransactionRequestID string
+	lastUpdateID             string
 }
 
 // Reset initializes the test context to a clean state.
@@ -42,6 +44,8 @@ func (tc *TestContext) Reset() {
 	tc.lastAssessmentRequestID = ""
 	tc.lastWalletID = ""
 	tc.lastPaymentInformationID = ""
+	tc.lastTransactionRequestID = ""
+	tc.lastUpdateID = ""
 }
 
 // resetBackend calls the /test/reset endpoint to clear all mock data.

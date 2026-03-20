@@ -92,3 +92,28 @@ type TokenResponse struct {
 	ExpiresAt   float64 `json:"expiresAt"`
 	TokenType   string  `json:"tokenType"`
 }
+
+// Transaction represents a PTI transaction (deposit, withdrawal, or transfer).
+type Transaction struct {
+	RequestID       string    `json:"requestId"`
+	Status          string    `json:"status"`
+	TransactionType string    `json:"transactionType"`
+	Amount          float64   `json:"amount"`
+	Currency        string    `json:"currency"`
+	Date            string    `json:"date"`
+	UserID          string    `json:"userId,omitempty"`
+	ResourceType    string    `json:"resourceType"`
+	ClientID        string    `json:"clientId,omitempty"`
+	CreatedAt       time.Time `json:"-"`
+}
+
+// TransactionUpdate represents feedback sent back to PTI for a transaction.
+type TransactionUpdate struct {
+	ID            string    `json:"id"`
+	RequestID     string    `json:"-"`
+	TransactionID string    `json:"transactionId"`
+	Feedback      string    `json:"feedback"`
+	Date          time.Time `json:"date"`
+	ProviderName  string    `json:"providerName"`
+	Payload       string    `json:"payload"`
+}

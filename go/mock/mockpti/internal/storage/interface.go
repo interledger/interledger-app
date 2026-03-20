@@ -12,6 +12,7 @@ var (
 	ErrAssessmentNotFound         = errors.New("assessment not found")
 	ErrWalletNotFound             = errors.New("wallet not found")
 	ErrPaymentInformationNotFound = errors.New("payment information not found")
+	ErrTransactionNotFound        = errors.New("transaction not found")
 )
 
 // Storage defines all persistence operations for mockpti.
@@ -33,6 +34,11 @@ type Storage interface {
 	// Payment information operations
 	SavePaymentInformation(ctx context.Context, pi *models.PaymentInformation) error
 	GetPaymentInformation(ctx context.Context, userID, piID string) (*models.PaymentInformation, error)
+
+	// Transaction operations
+	SaveTransaction(ctx context.Context, tx *models.Transaction) error
+	GetTransaction(ctx context.Context, requestID string) (*models.Transaction, error)
+	SaveTransactionUpdate(ctx context.Context, update *models.TransactionUpdate) error
 
 	// Reset all data (for testing)
 	Reset(ctx context.Context) error

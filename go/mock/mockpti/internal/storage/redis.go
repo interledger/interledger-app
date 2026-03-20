@@ -68,6 +68,14 @@ func paymentInfoKey(userID, piID string) string {
 	return fmt.Sprintf("pti:paymentinfo:%s:%s", userID, piID)
 }
 
+func transactionKey(requestID string) string {
+	return fmt.Sprintf("pti:transaction:%s", requestID)
+}
+
+func transactionUpdatesKey(requestID string) string {
+	return fmt.Sprintf("pti:txupdates:%s", requestID)
+}
+
 // User operations
 
 func (r *RedisStorage) SaveUser(ctx context.Context, user *models.User) error {
@@ -220,4 +228,39 @@ func (r *RedisStorage) GetPaymentInformation(ctx context.Context, userID, piID s
 		return nil, fmt.Errorf("failed to unmarshal payment information: %w", err)
 	}
 	return &pi, nil
+}
+
+// Transaction operations
+
+func (r *RedisStorage) SaveTransaction(ctx context.Context, tx *models.Transaction) error {
+	tx.CreatedAt = time.Now()
+	data, err := json.Marshal(tx)
+	if err != nil {
+		return fmt.Errorf("failed to marshal transaction: %w", err)
+	}
+	return r.client.Set(ctx, transactionKey(tx.RequestID), data, 0).Err()
+}
+
+func (r *RedisStorage) GetTransaction(ctx context.Context, requestID string) (*models.Transaction, error) {
+	data, err := r.client.Get(ctx, transactionKey(requestID)).Bytes()
+	if err != nil {
+		if err == redis.Nil {
+			return nil, ErrTransactionNotFound
+		}
+		return nil, err
+	}
+
+	var tx models.Transaction
+	if err := json.Unmarshal(data, &tx); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal transaction: %w", err)
+	}
+	return &tx, nil
+}
+
+func (r *RedisStorage) SaveTransactionUpdate(ctx context.Context, update *models.TransactionUpdate) error {
+	data, err := json.Marshal(update)
+	if err != nil {
+		return fmt.Errorf("failed to marshal transaction update: %w", err)
+	}
+	return r.client.RPush(ctx, transactionUpdatesKey(update.RequestID), data).Err()
 }

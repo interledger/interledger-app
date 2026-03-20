@@ -94,4 +94,15 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	// Payment information steps
 	ctx.Step(`^I POST "([^"]*)" with bank account payload$`, tc.postWithBankAccountPayload)
 	ctx.Step(`^the response should include a payment information id$`, tc.responseShouldIncludePaymentInformationID)
+
+	// Transaction steps
+	ctx.Step(`^an existing PTI user with a USD wallet and bank account$`, tc.anExistingPTIUserWithUSDWalletAndBankAccount)
+	ctx.Step(`^two PTI users each with a USD wallet$`, tc.twoPTIUsersEachWithUSDWallet)
+	ctx.Step(`^I POST "([^"]*)" with a valid deposit payload$`, tc.postWithValidDepositPayload)
+	ctx.Step(`^I POST "([^"]*)" with a valid withdrawal payload$`, tc.postWithValidWithdrawalPayload)
+	ctx.Step(`^I POST "([^"]*)" with a valid transfer payload$`, tc.postWithValidTransferPayload)
+	ctx.Step(`^the response should include a transaction request id$`, tc.responseShouldIncludeTransactionRequestID)
+	ctx.Step(`^an existing PTI transaction request id$`, tc.anExistingPTITransactionRequestID)
+	ctx.Step(`^I POST "([^"]*)" with feedback payload$`, tc.postWithFeedbackPayload)
+	ctx.Step(`^the response should include an update id$`, tc.responseShouldIncludeUpdateID)
 }

@@ -73,3 +73,64 @@ type CreatePaymentInformationRequest struct {
 	BankRoutingCheckDigit string `json:"bankRoutingCheckDigit,omitempty"`
 	AccountBankName       string `json:"accountBankName,omitempty"`
 }
+
+// TransactionPaymentInformation is a payment method reference inside a transaction request.
+type TransactionPaymentInformation struct {
+	Type string `json:"type,omitempty"`
+	ID   string `json:"id,omitempty"`
+}
+
+// TransactionMethod describes the source or destination of a transaction.
+type TransactionMethod struct {
+	Currency           string                        `json:"currency,omitempty"`
+	PaymentMethodType  string                        `json:"paymentMethodType,omitempty"`
+	PaymentInformation TransactionPaymentInformation `json:"paymentInformation,omitempty"`
+}
+
+// TransactionInitiator is the user driving the transaction.
+type TransactionInitiator struct {
+	ID   string `json:"id,omitempty"`
+	Type string `json:"type,omitempty"`
+}
+
+// CreateDepositRequest is the request body for POST /transactions/deposits.
+type CreateDepositRequest struct {
+	Initiator         TransactionInitiator `json:"initiator,omitempty"`
+	SourceMethod      TransactionMethod    `json:"sourceMethod,omitempty"`
+	DestinationMethod TransactionMethod    `json:"destinationMethod,omitempty"`
+	Amount            float64              `json:"amount,omitempty"`
+	USDAmount         float64              `json:"usdValue,omitempty"`
+	Type              string               `json:"type,omitempty"`
+	Date              string               `json:"date,omitempty"`
+}
+
+// CreateWithdrawalRequest is the request body for POST /transactions/withdrawals.
+type CreateWithdrawalRequest struct {
+	Initiator         TransactionInitiator `json:"initiator,omitempty"`
+	SourceMethod      TransactionMethod    `json:"sourceMethod,omitempty"`
+	DestinationMethod TransactionMethod    `json:"destinationMethod,omitempty"`
+	Amount            float64              `json:"amount,omitempty"`
+	USDAmount         float64              `json:"usdValue,omitempty"`
+	Type              string               `json:"type,omitempty"`
+	Date              string               `json:"date,omitempty"`
+}
+
+// CreateTransferRequest is the request body for POST /transactions/transfers.
+type CreateTransferRequest struct {
+	Initiator                 TransactionInitiator `json:"initiator,omitempty"`
+	SourceTransferMethod      TransactionMethod    `json:"sourceTransferMethod,omitempty"`
+	DestinationTransferMethod TransactionMethod    `json:"destinationTransferMethod,omitempty"`
+	TransactionGroupID        string               `json:"transactionGroupId,omitempty"`
+	Amount                    float64              `json:"amount,omitempty"`
+	USDValue                  float64              `json:"usdValue,omitempty"`
+	Type                      string               `json:"type,omitempty"`
+	Date                      string               `json:"date,omitempty"`
+}
+
+// UpdateTransactionRequest is the request body for POST /transactions/{requestId}/updates.
+type UpdateTransactionRequest struct {
+	TransactionID string `json:"transactionId,omitempty"`
+	Feedback      string `json:"feedback,omitempty"`
+	ProviderName  string `json:"providerName,omitempty"`
+	Payload       string `json:"payload,omitempty"`
+}

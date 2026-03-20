@@ -15,6 +15,8 @@ type MemoryStorage struct {
 	assessments         map[string][]*models.Assessment                  // userID -> assessments (ordered by creation)
 	wallets             map[string]map[string]*models.Wallet             // userID -> walletID -> wallet
 	paymentInformations map[string]map[string]*models.PaymentInformation // userID -> piID -> payment info
+	transactions        map[string]*models.Transaction                   // requestID -> transaction
+	transactionUpdates  map[string][]*models.TransactionUpdate           // requestID -> updates (ordered)
 }
 
 // NewMemoryStorage creates a new in-memory storage.
@@ -24,6 +26,8 @@ func NewMemoryStorage() Storage {
 		assessments:         make(map[string][]*models.Assessment),
 		wallets:             make(map[string]map[string]*models.Wallet),
 		paymentInformations: make(map[string]map[string]*models.PaymentInformation),
+		transactions:        make(map[string]*models.Transaction),
+		transactionUpdates:  make(map[string][]*models.TransactionUpdate),
 	}
 }
 
@@ -91,6 +95,8 @@ func (m *MemoryStorage) Reset(ctx context.Context) error {
 	m.assessments = make(map[string][]*models.Assessment)
 	m.wallets = make(map[string]map[string]*models.Wallet)
 	m.paymentInformations = make(map[string]map[string]*models.PaymentInformation)
+	m.transactions = make(map[string]*models.Transaction)
+	m.transactionUpdates = make(map[string][]*models.TransactionUpdate)
 	return nil
 }
 
@@ -160,4 +166,34 @@ func (m *MemoryStorage) GetPaymentInformation(ctx context.Context, userID, piID 
 		return nil, ErrPaymentInformationNotFound
 	}
 	return pi, nil
+}
+
+// Transaction operations
+
+func (m *MemoryStorage) SaveTransaction(ctx context.Context, tx *models.Transaction) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	tx.CreatedAt = time.Now()
+	m.transactions[tx.RequestID] = tx
+	return nil
+}
+
+func (m *MemoryStorage) GetTransaction(ctx context.Context, requestID string) (*models.Transaction, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	tx, ok := m.transactions[requestID]
+	if !ok {
+		return nil, ErrTransactionNotFound
+	}
+	return tx, nil
+}
+
+func (m *MemoryStorage) SaveTransactionUpdate(ctx context.Context, update *models.TransactionUpdate) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	m.transactionUpdates[update.RequestID] = append(m.transactionUpdates[update.RequestID], update)
+	return nil
 }

@@ -319,3 +319,96 @@ func TestMemoryStorage_GetPaymentInformation_WrongUser(t *testing.T) {
 		t.Errorf("expected ErrPaymentInformationNotFound for wrong user, got %v", err)
 	}
 }
+
+// Transaction storage tests
+
+func TestMemoryStorage_SaveAndGetTransaction(t *testing.T) {
+	store := NewMemoryStorage()
+	ctx := context.Background()
+
+	tx := &models.Transaction{
+		RequestID:       "req-1",
+		Status:          "SETTLED",
+		TransactionType: "DEPOSIT",
+		Amount:          100.00,
+		Currency:        "USD",
+	}
+
+	if err := store.SaveTransaction(ctx, tx); err != nil {
+		t.Fatalf("SaveTransaction failed: %v", err)
+	}
+
+	got, err := store.GetTransaction(ctx, "req-1")
+	if err != nil {
+		t.Fatalf("GetTransaction failed: %v", err)
+	}
+
+	if got.RequestID != "req-1" {
+		t.Errorf("expected requestId req-1, got %s", got.RequestID)
+	}
+	if got.Status != "SETTLED" {
+		t.Errorf("expected status SETTLED, got %s", got.Status)
+	}
+	if got.TransactionType != "DEPOSIT" {
+		t.Errorf("expected type DEPOSIT, got %s", got.TransactionType)
+	}
+	if got.Amount != 100.00 {
+		t.Errorf("expected amount 100.00, got %f", got.Amount)
+	}
+	if got.CreatedAt.IsZero() {
+		t.Error("expected non-zero CreatedAt")
+	}
+}
+
+func TestMemoryStorage_GetTransaction_NotFound(t *testing.T) {
+	store := NewMemoryStorage()
+	ctx := context.Background()
+
+	_, err := store.GetTransaction(ctx, "nonexistent")
+	if err != ErrTransactionNotFound {
+		t.Errorf("expected ErrTransactionNotFound, got %v", err)
+	}
+}
+
+func TestMemoryStorage_SaveTransactionUpdate(t *testing.T) {
+	store := NewMemoryStorage()
+	ctx := context.Background()
+
+	update := &models.TransactionUpdate{
+		ID:            "update-1",
+		RequestID:     "req-1",
+		TransactionID: "req-1",
+		Feedback:      "SETTLED",
+		ProviderName:  "test",
+	}
+
+	if err := store.SaveTransactionUpdate(ctx, update); err != nil {
+		t.Fatalf("SaveTransactionUpdate failed: %v", err)
+	}
+
+	// Save a second update for the same request to verify append behavior.
+	update2 := &models.TransactionUpdate{
+		ID:            "update-2",
+		RequestID:     "req-1",
+		TransactionID: "req-1",
+		Feedback:      "RETURNED",
+		ProviderName:  "test",
+	}
+	if err := store.SaveTransactionUpdate(ctx, update2); err != nil {
+		t.Fatalf("SaveTransactionUpdate (second) failed: %v", err)
+	}
+}
+
+func TestMemoryStorage_Reset_ClearsTransactions(t *testing.T) {
+	store := NewMemoryStorage()
+	ctx := context.Background()
+
+	_ = store.SaveTransaction(ctx, &models.Transaction{RequestID: "req-1", Status: "SETTLED"})
+	if err := store.Reset(ctx); err != nil {
+		t.Fatalf("Reset failed: %v", err)
+	}
+	_, err := store.GetTransaction(ctx, "req-1")
+	if err != ErrTransactionNotFound {
+		t.Errorf("expected ErrTransactionNotFound after reset, got %v", err)
+	}
+}
