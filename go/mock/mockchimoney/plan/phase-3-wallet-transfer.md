@@ -2,6 +2,8 @@
 
 **Goal**: The wallet-to-wallet transfer endpoint.
 
+**Status**: Completed (2026-03-20)
+
 **Definition of Done**: This phase is complete when `make test` passes successfully.
 
 ## Deliverables
@@ -32,13 +34,25 @@
 
 ## Acceptance Criteria
 
-- [ ] Transfer between two existing sub-accounts succeeds
-- [ ] Transfer requires `amountToSend`
-- [ ] Transfer requires `originCurrency`
-- [ ] Transfer requires `destinationCurrency`
-- [ ] Transfer from non-existent sender returns 400
-- [ ] The `sendViaInterledger` field is accepted and silently ignored
-- [ ] All previous feature scenarios still pass
-- [ ] All code passes `golangci-lint run ./...`
-- [ ] Unit test coverage ≥ 50% (unit tests use memory-backed store)
-- [ ] `make test` runs successfully (linting + unit tests + e2e tests)
+- [x] Transfer between two existing sub-accounts succeeds
+- [x] Transfer requires `amountToSend`
+- [x] Transfer requires `originCurrency`
+- [x] Transfer requires `destinationCurrency`
+- [x] Transfer from non-existent sender returns 400
+- [x] The `sendViaInterledger` field is accepted and silently ignored
+- [x] All previous feature scenarios still pass
+- [x] All code passes `golangci-lint run ./...`
+- [x] Unit test coverage ≥ 50% (unit tests use memory-backed store)
+- [x] `make test` runs successfully (linting + unit tests + e2e tests)
+
+## Implementation Notes
+
+- Added `POST /v0.2.4/multicurrency-wallets/transfer` in `internal/handler/transfer.go`.
+- Added shared wallet validation helpers in `internal/handler/wallet_validation.go` and reused them from `wallet.go` and `transfer.go`.
+- Added transfer route wiring in `cmd/mockchimoney/main.go`.
+- Added transfer unit tests in `internal/handler/wallet_test.go` for all transfer feature scenarios.
+- Added supporting coverage tests in `internal/config/config_test.go` and `internal/logger/logger_test.go` to keep total unit coverage above threshold.
+- Validation run on 2026-03-20:
+   - `make test`: pass
+   - `golangci-lint run ./...`: pass
+   - `go test ./... -coverprofile=coverage.out && go tool cover -func=coverage.out | tail -n 1`: `total: 63.2%`

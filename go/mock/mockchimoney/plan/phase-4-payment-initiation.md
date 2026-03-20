@@ -23,6 +23,15 @@
 
 - Phases 0–3 must be complete and green
 
+## Phase 3 Handoff Notes
+
+- Reuse `internal/handler/wallet_validation.go` helpers in payment handlers:
+   - `requireTrimmedField` for required request fields.
+   - `ensureSubAccountExists` for validating `subAccount` before creating payment records.
+- Keep validation error wording consistent with existing handlers (`"<field> is required"`) to match existing feature assertions.
+- Route registration pattern is in `cmd/mockchimoney/main.go` inside the authenticated route group.
+- Current baseline test gate is green (`make test`) with total unit coverage at `63.2%`; maintain this while adding payment-phase code.
+
 ## Test-Driven Development Notes
 
 1. **Red**: Run feature scenarios for deposit initiation and verification. Expect handler not found errors.
