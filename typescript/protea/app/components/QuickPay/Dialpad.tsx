@@ -17,8 +17,44 @@ export enum DialPadIds {
   Eight = '8',
   Nine = '9'
 }
+const handleDialPadInputs = (id: string, amountValue: string, setAmountValue: (amount: string) => void) => {
+  const label = id === DialPadIds.Backspace ? '<' : id
+  if (Object.values<string>(DialPadIds).includes(id)) {
+    if (id === DialPadIds.Backspace) {
+      setAmountValue(`${amountValue.substring(0, amountValue.length - 1)}`)
+    } else if (amountValue === '0.00' && id !== DialPadIds.Dot) {
+      setAmountValue(
+        `${amountValue.substring(0, amountValue.length - 4)}${label}`
+      )
+    } else if (amountValue === '0' && id !== DialPadIds.Dot) {
+      setAmountValue(
+        `${amountValue.substring(0, amountValue.length - 1)}${label}`
+      )
+    } else if (
+      (id === DialPadIds.Dot &&
+        amountValue.indexOf(DialPadIds.Dot) === -1 &&
+        amountValue.length !== 0) ||
+      id !== DialPadIds.Dot
+    ) {
+      setAmountValue(`${amountValue}${label}`)
+    }
+  }
+}
+
 
 export const DialPad = () => {
+  const { amountValue, setAmountValue } = useDialPadContext()
+
+  useEffect(() => {
+    document.addEventListener('keydown', (e: KeyboardEvent) => {
+      handleDialPadInputs(e.key, amountValue, setAmountValue)
+    })
+    return function cleanup() {
+      document.removeEventListener('keydown', (e: KeyboardEvent) => {
+        handleDialPadInputs(e.key, amountValue, setAmountValue)
+      })
+    }
+  }, [handleDialPadInputs, amountValue, setAmountValue])
   return (
     <div className="flex flex-col gap-10 text-xl">
       <AmountDisplay />
@@ -83,43 +119,6 @@ type DialPadKeyProps = {
 const DialPadKey = ({ label, id }: DialPadKeyProps) => {
   const { amountValue, setAmountValue } = useDialPadContext()
 
-  useEffect(() => {
-    function handleKeyDown(e: any) {
-      handleDialPadInputs(e.key)
-    }
-
-    document.addEventListener('keydown', handleKeyDown)
-
-    return function cleanup() {
-      document.removeEventListener('keydown', handleKeyDown)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [amountValue])
-
-  const handleDialPadInputs = (id: string) => {
-    const label = id === DialPadIds.Backspace ? '<' : id
-    if (Object.values<string>(DialPadIds).includes(id)) {
-      if (id === DialPadIds.Backspace) {
-        setAmountValue(`${amountValue.substring(0, amountValue.length - 1)}`)
-      } else if (amountValue === '0.00' && id !== DialPadIds.Dot) {
-        setAmountValue(
-          `${amountValue.substring(0, amountValue.length - 4)}${label}`
-        )
-      } else if (amountValue === '0' && id !== DialPadIds.Dot) {
-        setAmountValue(
-          `${amountValue.substring(0, amountValue.length - 1)}${label}`
-        )
-      } else if (
-        (id === DialPadIds.Dot &&
-          amountValue.indexOf(DialPadIds.Dot) === -1 &&
-          amountValue.length !== 0) ||
-        id !== DialPadIds.Dot
-      ) {
-        setAmountValue(`${amountValue}${label}`)
-      }
-    }
-  }
-
   return (
     <li
       role="button"
@@ -129,7 +128,7 @@ const DialPadKey = ({ label, id }: DialPadKeyProps) => {
       )}
       tabIndex={0}
       id={id}
-      onClick={() => handleDialPadInputs(id)}
+      onClick={() => handleDialPadInputs(id, amountValue, setAmountValue)}
     >
       {label}
     </li>
