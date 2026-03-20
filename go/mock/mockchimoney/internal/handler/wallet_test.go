@@ -26,6 +26,7 @@ func setupWalletRouter(t *testing.T) http.Handler {
 	r := chi.NewRouter()
 	r.Post("/v0.2.4/multicurrency-wallets/create", h.CreateWallet)
 	r.Get("/v0.2.4/multicurrency-wallets/get", h.GetWallet)
+	r.Post("/v0.2.4/multicurrency-wallets/transfer", h.Transfer)
 	return r
 }
 
@@ -150,5 +151,168 @@ func TestGetWalletByIDAndErrors(t *testing.T) {
 	router.ServeHTTP(noIDRR, noIDReq)
 	if noIDRR.Code != http.StatusBadRequest {
 		t.Fatalf("missing id status mismatch: got %d want %d", noIDRR.Code, http.StatusBadRequest)
+	}
+}
+
+func TestTransferBetweenExistingSubAccounts(t *testing.T) {
+	t.Parallel()
+
+	router := setupWalletRouter(t)
+	sender := createWallet(t, router, map[string]any{"name": "Sender"})
+	receiver := createWallet(t, router, map[string]any{"name": "Receiver"})
+
+	payload := map[string]any{
+		"subAccount":          sender.Data["id"],
+		"receiver":            receiver.Data["id"],
+		"amountToSend":        "50.00",
+		"originCurrency":      "CAD",
+		"destinationCurrency": "CAD",
+		"turnOffNotification": true,
+	}
+	body, err := json.Marshal(payload)
+	if err != nil {
+		t.Fatalf("json.Marshal() failed: %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodPost, "/v0.2.4/multicurrency-wallets/transfer", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	rr := httptest.NewRecorder()
+	router.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status mismatch: got %d want %d", rr.Code, http.StatusOK)
+	}
+
+	resp := decodeResponse(t, rr)
+	if resp.Status != "success" {
+		t.Fatalf("status field mismatch: got %q want %q", resp.Status, "success")
+	}
+}
+
+func TestTransferRequiresFields(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		payload       map[string]any
+		wantErrorText string
+	}{
+		{
+			name: "requires amountToSend",
+			payload: map[string]any{
+				"originCurrency":      "CAD",
+				"destinationCurrency": "CAD",
+			},
+			wantErrorText: "amountToSend",
+		},
+		{
+			name: "requires originCurrency",
+			payload: map[string]any{
+				"amountToSend":        "10.00",
+				"destinationCurrency": "CAD",
+			},
+			wantErrorText: "originCurrency",
+		},
+		{
+			name: "requires destinationCurrency",
+			payload: map[string]any{
+				"amountToSend":   "10.00",
+				"originCurrency": "CAD",
+			},
+			wantErrorText: "destinationCurrency",
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			router := setupWalletRouter(t)
+			body, err := json.Marshal(tt.payload)
+			if err != nil {
+				t.Fatalf("json.Marshal() failed: %v", err)
+			}
+
+			req := httptest.NewRequest(http.MethodPost, "/v0.2.4/multicurrency-wallets/transfer", bytes.NewReader(body))
+			req.Header.Set("Content-Type", "application/json")
+			rr := httptest.NewRecorder()
+			router.ServeHTTP(rr, req)
+
+			if rr.Code != http.StatusBadRequest {
+				t.Fatalf("status mismatch: got %d want %d", rr.Code, http.StatusBadRequest)
+			}
+
+			resp := decodeResponse(t, rr)
+			if resp.Status != "error" {
+				t.Fatalf("status field mismatch: got %q want %q", resp.Status, "error")
+			}
+			if resp.Error == "" || !bytes.Contains([]byte(resp.Error), []byte(tt.wantErrorText)) {
+				t.Fatalf("error mismatch: got %q should mention %q", resp.Error, tt.wantErrorText)
+			}
+		})
+	}
+}
+
+func TestTransferFromNonExistentSenderReturns400(t *testing.T) {
+	t.Parallel()
+
+	router := setupWalletRouter(t)
+	receiver := createWallet(t, router, map[string]any{"name": "Receiver"})
+
+	payload := map[string]any{
+		"subAccount":          "non-existent-wallet-id",
+		"receiver":            receiver.Data["id"],
+		"amountToSend":        "10.00",
+		"originCurrency":      "CAD",
+		"destinationCurrency": "CAD",
+	}
+	body, err := json.Marshal(payload)
+	if err != nil {
+		t.Fatalf("json.Marshal() failed: %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodPost, "/v0.2.4/multicurrency-wallets/transfer", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	rr := httptest.NewRecorder()
+	router.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusBadRequest {
+		t.Fatalf("status mismatch: got %d want %d", rr.Code, http.StatusBadRequest)
+	}
+
+	resp := decodeResponse(t, rr)
+	if resp.Status != "error" {
+		t.Fatalf("status field mismatch: got %q want %q", resp.Status, "error")
+	}
+}
+
+func TestTransferAcceptsAndIgnoresSendViaInterledger(t *testing.T) {
+	t.Parallel()
+
+	router := setupWalletRouter(t)
+	sender := createWallet(t, router, map[string]any{"name": "Sender"})
+	receiver := createWallet(t, router, map[string]any{"name": "Receiver"})
+
+	payload := map[string]any{
+		"subAccount":          sender.Data["id"],
+		"receiver":            receiver.Data["id"],
+		"amountToSend":        "5.00",
+		"originCurrency":      "CAD",
+		"destinationCurrency": "CAD",
+		"sendViaInterledger":  true,
+	}
+	body, err := json.Marshal(payload)
+	if err != nil {
+		t.Fatalf("json.Marshal() failed: %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodPost, "/v0.2.4/multicurrency-wallets/transfer", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	rr := httptest.NewRecorder()
+	router.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status mismatch: got %d want %d", rr.Code, http.StatusOK)
 	}
 }

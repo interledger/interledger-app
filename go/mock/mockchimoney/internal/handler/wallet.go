@@ -42,8 +42,8 @@ func (h *Handler) CreateWallet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	req.Name = strings.TrimSpace(req.Name)
-	if req.Name == "" {
+	name, ok := requireTrimmedField(req.Name)
+	if !ok {
 		h.respondErr(w, http.StatusBadRequest, "name is required")
 		return
 	}
@@ -52,7 +52,7 @@ func (h *Handler) CreateWallet(w http.ResponseWriter, r *http.Request) {
 		ID:          uuid.NewString(),
 		ParentID:    "mockchimoney-root",
 		UID:         uuid.NewString(),
-		Name:        req.Name,
+		Name:        name,
 		Email:       strings.TrimSpace(req.Email),
 		FirstName:   strings.TrimSpace(req.FirstName),
 		LastName:    strings.TrimSpace(req.LastName),
@@ -73,13 +73,13 @@ func (h *Handler) CreateWallet(w http.ResponseWriter, r *http.Request) {
 
 // GetWallet returns a Chimoney sub-account by ID.
 func (h *Handler) GetWallet(w http.ResponseWriter, r *http.Request) {
-	id := strings.TrimSpace(r.URL.Query().Get("id"))
-	if id == "" {
+	id, ok := requireTrimmedField(r.URL.Query().Get("id"))
+	if !ok {
 		h.respondErr(w, http.StatusBadRequest, "id is required")
 		return
 	}
 
-	account, err := h.store.GetSubAccount(r.Context(), id)
+	account, err := h.getSubAccountByID(r.Context(), id)
 	if err != nil {
 		if errors.Is(err, storage.ErrNotFound) {
 			h.respondErr(w, http.StatusNotFound, "wallet not found")

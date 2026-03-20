@@ -53,6 +53,7 @@ func main() {
 		r.Use(handler.APIKeyMiddleware(cfg.APIKey, cfg.EnforceAuthentication))
 		r.Post("/v0.2.4/multicurrency-wallets/create", h.CreateWallet)
 		r.Get("/v0.2.4/multicurrency-wallets/get", h.GetWallet)
+		r.Post("/v0.2.4/multicurrency-wallets/transfer", h.Transfer)
 	})
 
 	// Create HTTP server
