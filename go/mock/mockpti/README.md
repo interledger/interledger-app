@@ -30,3 +30,34 @@ make test       # lint + unit tests + e2e tests
 make lint       # linters only
 make unit-test  # unit tests only
 ```
+
+## Webhook crypto settings CLI
+
+`mockpti` includes helper CLI commands to generate local webhook JWK settings
+for wallet/backend + mockpti, and to derive a public JWK from a private JWK.
+
+Generate a full local key set:
+
+```bash
+go run ./cmd/mockpti gen-webhook-settings
+```
+
+This command prints ready-to-paste values for:
+
+- `.env` variables (`BACKEND_PTI_JWK`, `BACKEND_PTI_PUBLIC_KEY_JWK`, `MOCKPTI_WEBHOOK_SIGNING_JWK`, `MOCKPTI_WEBHOOK_ENCRYPTION_JWK`)
+- `local/wallet.yaml` backend env lines (`PTI_JWK`, `PTI_PUBLIC_KEY_JWK`)
+- `local/mockpti.yaml` env lines (`MOCKPTI_WEBHOOK_SIGNING_JWK`, `MOCKPTI_WEBHOOK_ENCRYPTION_JWK`)
+
+Derive public JWK from private JWK JSON on stdin:
+
+```bash
+cat private.jwk.json | go run ./cmd/mockpti derive-public-jwk
+```
+
+Notes:
+
+- Webhook security is asymmetric, not a shared symmetric secret.
+- `mockpti` signs webhook payloads with `MOCKPTI_WEBHOOK_SIGNING_JWK` and encrypts
+	to the backend decrypt key (`MOCKPTI_WEBHOOK_ENCRYPTION_JWK`).
+- Backend verifies signatures with `PTI_PUBLIC_KEY_JWK` and decrypts with
+	`PTI_JWK`.

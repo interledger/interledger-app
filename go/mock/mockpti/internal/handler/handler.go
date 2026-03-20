@@ -25,10 +25,15 @@ type Handler struct {
 // NewHandler creates a new handler without a job queue.
 // Call SetQueue to enable async webhook delivery.
 func NewHandler(store storage.Storage, cfg *config.Config) *Handler {
+	sender := webhooks.NewSender(cfg.WebhookURL)
+	if err := sender.ConfigureSecurity(cfg.WebhookSigningJWK, cfg.WebhookEncryptionJWK); err != nil {
+		logger.Warn(fmt.Sprintf("Webhook crypto configuration disabled: %v", err))
+	}
+
 	return &Handler{
 		store:   store,
 		config:  cfg,
-		webhook: webhooks.NewSender(cfg.WebhookURL),
+		webhook: sender,
 	}
 }
 

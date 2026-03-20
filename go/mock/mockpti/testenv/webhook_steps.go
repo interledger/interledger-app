@@ -16,19 +16,28 @@ import (
 
 type webhookCapture struct {
 	mu      sync.Mutex
-	events  []map[string]interface{}
+	events  []capturedWebhook
 	started bool
+}
+
+type capturedWebhook struct {
+	payload   map[string]interface{}
+	encrypted bool
 }
 
 var capture webhookCapture
 
 func webhookHandler(w http.ResponseWriter, r *http.Request) {
 	body, _ := io.ReadAll(r.Body)
-	payload := map[string]interface{}{}
-	_ = json.Unmarshal(body, &payload)
+	payload, encrypted, err := parseWebhookPayload(body)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte(`{"error":"invalid_webhook_payload"}`))
+		return
+	}
 
 	capture.mu.Lock()
-	capture.events = append(capture.events, payload)
+	capture.events = append(capture.events, capturedWebhook{payload: payload, encrypted: encrypted})
 	capture.mu.Unlock()
 
 	w.WriteHeader(http.StatusOK)
@@ -65,20 +74,20 @@ func resetWebhookCapture() {
 	capture.events = nil
 }
 
-func latestWebhook() map[string]interface{} {
+func latestWebhook() capturedWebhook {
 	capture.mu.Lock()
 	defer capture.mu.Unlock()
 	if len(capture.events) == 0 {
-		return nil
+		return capturedWebhook{}
 	}
 	return capture.events[len(capture.events)-1]
 }
 
-func waitForWebhook(timeout time.Duration, predicate func(map[string]interface{}) bool) (map[string]interface{}, error) {
+func waitForWebhook(timeout time.Duration, predicate func(capturedWebhook) bool) (capturedWebhook, error) {
 	deadline := time.Now().Add(timeout)
 	for time.Now().Before(deadline) {
 		capture.mu.Lock()
-		events := make([]map[string]interface{}, len(capture.events))
+		events := make([]capturedWebhook, len(capture.events))
 		copy(events, capture.events)
 		capture.mu.Unlock()
 
@@ -89,7 +98,7 @@ func waitForWebhook(timeout time.Duration, predicate func(map[string]interface{}
 		}
 		time.Sleep(100 * time.Millisecond)
 	}
-	return nil, fmt.Errorf("timed out waiting for webhook")
+	return capturedWebhook{}, fmt.Errorf("timed out waiting for webhook")
 }
 
 func (tc *TestContext) webhookDeliveryIsConfiguredToBackend(path string) error {
@@ -118,13 +127,14 @@ func (tc *TestContext) anExistingPTIUserAssessmentInState(state string) error {
 }
 
 func (tc *TestContext) mockptiProcessesTheAssessmentCompletion() error {
-	evt, err := waitForWebhook(5*time.Second, func(payload map[string]interface{}) bool {
-		return asString(payload["resourceType"]) == "USER_ASSESSMENT"
+	evt, err := waitForWebhook(5*time.Second, func(evt capturedWebhook) bool {
+		return asString(evt.payload["resourceType"]) == "USER_ASSESSMENT"
 	})
 	if err != nil {
 		return err
 	}
-	tc.lastWebhook = evt
+	tc.lastWebhook = evt.payload
+	tc.lastWebhookEncrypted = evt.encrypted
 	return nil
 }
 
@@ -192,19 +202,30 @@ func (tc *TestContext) mockptiTransitionsTheTransactionTo(status string) error {
 		return err
 	}
 
-	evt, err := waitForWebhook(5*time.Second, func(payload map[string]interface{}) bool {
-		if asString(payload["resourceType"]) != "TRANSACTION_STATUS" {
+	evt, err := waitForWebhook(5*time.Second, func(evt capturedWebhook) bool {
+		if asString(evt.payload["resourceType"]) != "TRANSACTION_STATUS" {
 			return false
 		}
-		if asString(payload["requestId"]) != tc.lastTransactionRequestID {
+		if asString(evt.payload["requestId"]) != tc.lastTransactionRequestID {
 			return false
 		}
-		return asString(payload["status"]) == status
+		return asString(evt.payload["status"]) == status
 	})
 	if err != nil {
 		return err
 	}
-	tc.lastWebhook = evt
+	tc.lastWebhook = evt.payload
+	tc.lastWebhookEncrypted = evt.encrypted
+	return nil
+}
+
+func (tc *TestContext) theWebhookPayloadShouldBeSignedAndEncrypted() error {
+	if tc.lastWebhook == nil {
+		return fmt.Errorf("no webhook captured")
+	}
+	if !tc.lastWebhookEncrypted {
+		return fmt.Errorf("expected encrypted webhook payload")
+	}
 	return nil
 }
 

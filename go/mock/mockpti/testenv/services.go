@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"strings"
 	"time"
 
 	"gitlab.com/fynbos/mock/mockpti/internal/logger"
@@ -15,10 +16,19 @@ import (
 )
 
 func startServices() error {
+	env, err := webhookCryptoComposeEnv()
+	if err != nil {
+		return fmt.Errorf("failed to initialize webhook crypto env: %w", err)
+	}
+
 	cmd := exec.Command("docker", "compose", "-f", "docker-compose.yml", "up", "-d", "--build", "--force-recreate")
+	cmd.Env = append(os.Environ(), env...)
+
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("docker compose up failed: %w\n%s", err, output)
+		redactedOutput := strings.ReplaceAll(string(output), webhookCryptoState.signingPrivateJWK, "[REDACTED_SIGNING_JWK]")
+		redactedOutput = strings.ReplaceAll(redactedOutput, webhookCryptoState.encryptionPrivateJWK, "[REDACTED_ENCRYPTION_JWK]")
+		return fmt.Errorf("docker compose up failed: %w\n%s", err, redactedOutput)
 	}
 	return nil
 }

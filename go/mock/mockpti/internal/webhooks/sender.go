@@ -8,6 +8,10 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/lestrrat-go/jwx/v2/jwa"
+	"github.com/lestrrat-go/jwx/v2/jwe"
+	"github.com/lestrrat-go/jwx/v2/jwk"
+	"github.com/lestrrat-go/jwx/v2/jws"
 	"gitlab.com/fynbos/mock/mockpti/internal/logger"
 	"gitlab.com/fynbos/mock/mockpti/internal/models"
 )
@@ -40,6 +44,8 @@ type TransactionStatusPayload struct {
 type Sender struct {
 	webhookURL string
 	client     *http.Client
+	signingKey jwk.Key
+	encryptKey jwk.Key
 }
 
 // NewSender creates a webhook sender targeting webhookURL.
@@ -48,6 +54,33 @@ func NewSender(webhookURL string) *Sender {
 		webhookURL: webhookURL,
 		client:     &http.Client{Timeout: 15 * time.Second},
 	}
+}
+
+// ConfigureSecurity enables PTI-like webhook signing (JWS) and encryption (JWE).
+// If keys are not provided, sender continues with plain JSON payloads.
+func (s *Sender) ConfigureSecurity(signingJWK, encryptionJWK string) error {
+	if signingJWK == "" || encryptionJWK == "" {
+		return nil
+	}
+
+	signingKey, err := jwk.ParseKey([]byte(signingJWK))
+	if err != nil {
+		return fmt.Errorf("invalid webhook signing jwk: %w", err)
+	}
+
+	encryptionKey, err := jwk.ParseKey([]byte(encryptionJWK))
+	if err != nil {
+		return fmt.Errorf("invalid webhook encryption jwk: %w", err)
+	}
+
+	publicKey, err := jwk.PublicKeyOf(encryptionKey)
+	if err != nil {
+		return fmt.Errorf("failed to derive encryption public key: %w", err)
+	}
+
+	s.signingKey = signingKey
+	s.encryptKey = publicKey
+	return nil
 }
 
 // SendUserAssessment delivers a USER_ASSESSMENT webhook built from the given Assessment.
@@ -94,6 +127,25 @@ func (s *Sender) post(ctx context.Context, payload interface{}) error {
 	body, err := json.Marshal(payload)
 	if err != nil {
 		return fmt.Errorf("failed to marshal webhook payload: %w", err)
+	}
+
+	if s.signingKey != nil && s.encryptKey != nil {
+		signed, err := jws.Sign(body, jws.WithKey(jwa.RS512, s.signingKey))
+		if err != nil {
+			return fmt.Errorf("failed to sign webhook payload: %w", err)
+		}
+
+		encrypted, err := jwe.Encrypt(
+			signed,
+			jwe.WithJSON(),
+			jwe.WithContentEncryption(jwa.A256CBC_HS512),
+			jwe.WithKey(jwa.RSA_OAEP_256, s.encryptKey),
+		)
+		if err != nil {
+			return fmt.Errorf("failed to encrypt webhook payload: %w", err)
+		}
+
+		body = encrypted
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, s.webhookURL, bytes.NewReader(body))

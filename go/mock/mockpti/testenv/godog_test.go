@@ -114,6 +114,7 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^an existing PTI withdrawal transaction in state "([^"]*)"$`, tc.anExistingPTIWithdrawalTransactionInState)
 	ctx.Step(`^mockpti transitions the transaction to "([^"]*)"$`, tc.mockptiTransitionsTheTransactionTo)
 	ctx.Step(`^a webhook should be delivered with resource type "([^"]*)"$`, tc.aWebhookShouldBeDeliveredWithResourceType)
+	ctx.Step(`^the webhook payload should be signed and encrypted$`, tc.theWebhookPayloadShouldBeSignedAndEncrypted)
 	ctx.Step(`^the webhook payload should include user id and request id$`, tc.theWebhookPayloadShouldIncludeUserIDAndRequestID)
 	ctx.Step(`^the webhook payload should include transaction type "([^"]*)"$`, tc.theWebhookPayloadShouldIncludeTransactionType)
 	ctx.Step(`^the webhook payload should include status "([^"]*)"$`, tc.theWebhookPayloadShouldIncludeStatus)
