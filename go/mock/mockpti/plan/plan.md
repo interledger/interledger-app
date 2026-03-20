@@ -8,12 +8,17 @@ This document is intentionally split into:
 2. implementation plan for the mock service
 
 ## Document Index
-- Roadmap: `go/mock/mockpti/roadmap.md`
-- Phase 1: `go/mock/mockpti/phase-1-foundations-signup.md`
-- Phase 2: `go/mock/mockpti/phase-2-wallets-payment-info.md`
-- Phase 3: `go/mock/mockpti/phase-3-transactions.md`
-- Phase 4: `go/mock/mockpti/phase-4-webhook-jobs.md`
-- Phase 5: `go/mock/mockpti/phase-5-local-integration-sdk.md`
+- Roadmap: `go/mock/mockpti/plan/roadmap.md`
+- Phase 1: `go/mock/mockpti/plan/phase-1-foundations-signup.md`
+- Phase 2: `go/mock/mockpti/plan/phase-2-wallets-payment-info.md`
+- Phase 3: `go/mock/mockpti/plan/phase-3-transactions.md`
+- Phase 4: `go/mock/mockpti/plan/phase-4-webhook-jobs.md`
+- Phase 5: `go/mock/mockpti/plan/phase-5-local-integration-sdk.md`
+
+## Global Quality Gates (All Phases)
+- Internal package coverage must remain at `>= 75.0%` total statements for `./internal/...`.
+- Every phase must unlock the next planned feature file end-to-end, when applicable.
+- A phase is not complete if its feature-file milestone or coverage gate fails.
 
 ## Formal Documentation and How to Fetch It
 
@@ -266,6 +271,12 @@ Phase 1: Core API for signup + KYC
   - `POST /auth/jwt`
 - Add validation errors with realistic status codes.
 - Deliver each endpoint using TDD loops (test first -> implementation -> refactor).
+- Feature-file milestone:
+  - `features/service_health.feature`
+  - `features/token_generation.feature`
+  - `features/user_and_kyc.feature`
+- Coverage gate:
+  - internal coverage must be `>= 75.0%`.
 
 Phase 2: Wallet and payment information
 - Implement:
@@ -275,6 +286,10 @@ Phase 2: Wallet and payment information
   - `POST /users/{id}/payment-information`
   - `GET /users/{id}/payment-information/{id}`
 - Continue TDD-first delivery for each behavior.
+- Feature-file milestone:
+  - `features/wallet_and_payment_information.feature`
+- Coverage gate:
+  - internal coverage must be `>= 75.0%`.
 
 Phase 3: Transaction flows
 - Implement:
@@ -285,6 +300,10 @@ Phase 3: Transaction flows
   - `POST /transactions/{requestId}/updates`
 - Add deterministic status progression (PENDING -> SETTLED or configured failure).
 - Continue TDD-first delivery for each behavior.
+- Feature-file milestone:
+  - `features/transactions.feature`
+- Coverage gate:
+  - internal coverage must be `>= 75.0%`.
 
 Phase 4: Webhook emission to backend
 - Add async webhook sender to configured backend URL (default `/webhooks/pti`) using persisted jobs.
@@ -295,10 +314,18 @@ Phase 4: Webhook emission to backend
   - `plain` webhook payload mode for local testing
   - `signed/encrypted` compatibility mode (later enhancement)
 - Persist and test job lifecycle semantics (enqueue, execute, retry/backoff, terminal failure) through the shared store interface.
+- Feature-file milestone:
+  - `features/webhooks.feature`
+- Coverage gate:
+  - internal coverage must be `>= 75.0%`.
 
 Phase 5: SDK testing support (optional but recommended)
 - Provide optional lightweight PTI SDK stub endpoints for E2E (`sdkUrl`, `formsUrl`) so local browser tests are stable without external PTI assets.
 - Emit browser `postMessage` events expected by Protea (`UserAssessmentCompleted`, `AddCreditCardCompleted`).
+- Feature-file milestone:
+  - no additional mandatory feature file currently; keep all prior feature files passing and add a new local/browser feature file if introduced.
+- Coverage gate:
+  - internal coverage must be `>= 75.0%`.
 
 ### 2.4 Backend + Protea + Local Environment Changes Needed for Easy Switching
 Goal: make PTI switching in local feel like Gatehub/Xago switching today (compose-managed mock service + env defaults), without editing application code each time.
@@ -518,6 +545,7 @@ Follow-up ask to team/PTI:
 - Service starts and passes lint/unit/e2e.
 - Development follows mandatory TDD loops (test-first, then implementation, then refactor) for all delivered behaviors.
 - Persistence is exclusively accessed through one shared interface with both memory and redis implementations.
+- Internal package coverage is `>= 75.0%` total statements.
 - Unit tests use only memory-backed persistence; mockpti e2e uses redis-backed persistence.
 - Outgoing webhook HTTP calls are executed through a persisted jobs queue (not direct fire-and-forget HTTP calls).
 - Local environment can run PTI mock through compose (same operational model as `mockgatehub`/`mockxago`):

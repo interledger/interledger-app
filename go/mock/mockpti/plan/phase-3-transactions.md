@@ -26,6 +26,9 @@ Deliver PTI transaction endpoints with deterministic, testable status progressio
 ## Testing Requirements
 - Unit coverage for progression and error/failure paths.
 - E2E coverage for deposit/withdraw/transfer creation and status reads.
+- Feature-file milestone for this phase:
+  - `features/transactions.feature`
+- Internal coverage gate: `go test -coverprofile=coverage.out ./internal/...` must report `>= 75.0%` total statements.
 
 ## Deliverables
 - Deterministic transaction APIs suitable for backend integration tests.
@@ -35,6 +38,10 @@ Deliver PTI transaction endpoints with deterministic, testable status progressio
 - Transaction endpoints pass unit/e2e coverage for happy and failure paths.
 - Status transitions are deterministic and documented.
 - Phase 1 and Phase 2 suites remain green.
+- `features/transactions.feature` passes end-to-end.
+- Internal package total coverage is `>= 75.0%`.
 
 ## Verification
-Run `make test` from the `go/mock/mockpti` directory. The phase is complete when the command exits with code 0.
+Run `make test` from the `go/mock/mockpti` directory.
+Run `go test -coverprofile=coverage.out ./internal/... && go tool cover -func=coverage.out | grep total` and verify total coverage is `>= 75.0%`.
+The phase is complete only when both checks pass.

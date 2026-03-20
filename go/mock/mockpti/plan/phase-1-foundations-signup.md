@@ -33,7 +33,11 @@ Establish the service foundation and deliver the minimum PTI API surface needed 
 
 ## Testing Requirements
 - Unit tests use memory store only.
-- E2E harness can be present but does not need full flow coverage yet.
+- E2E milestone coverage for Phase 1 feature files:
+  - `features/service_health.feature`
+  - `features/token_generation.feature`
+  - `features/user_and_kyc.feature`
+- Internal coverage gate: `go test -coverprofile=coverage.out ./internal/...` must report `>= 75.0%` total statements.
 
 ## Deliverables
 - Running mock service with health and core signup/kyc endpoints.
@@ -44,6 +48,10 @@ Establish the service foundation and deliver the minimum PTI API surface needed 
 - `make lint`, `make unit-test`, `make build` pass.
 - No domain code performs direct persistence outside the store interface.
 - Endpoint behavior is covered with test-first unit tests.
+- Phase 1 feature files pass in e2e.
+- Internal package total coverage is `>= 75.0%`.
 
 ## Verification
-Run `make test` from the `go/mock/mockpti` directory. The phase is complete when the command exits with code 0.
+Run `make test` from the `go/mock/mockpti` directory.
+Run `go test -coverprofile=coverage.out ./internal/... && go tool cover -func=coverage.out | grep total` and verify total coverage is `>= 75.0%`.
+The phase is complete only when both checks pass.

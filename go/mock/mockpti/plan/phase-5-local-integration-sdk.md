@@ -33,6 +33,9 @@ Make mock PTI first-class in local development and stabilize browser e2e behavio
 ## Testing Requirements
 - Local profile smoke tests for PTI enabled path.
 - Browser e2e signup flow stability checks.
+- Feature-file milestone for this phase (if appropriate):
+  - no new mandatory API feature file today; keep all existing feature files green and add a dedicated local/browser feature file when introduced.
+- Internal coverage gate: `go test -coverprofile=coverage.out ./internal/...` must report `>= 75.0%` total statements.
 
 ## Deliverables
 - PTI can be switched between mock and real provider by env config only.
@@ -42,6 +45,10 @@ Make mock PTI first-class in local development and stabilize browser e2e behavio
 - Local environment uses mockpti without app code edits.
 - Browser signup e2e can run reliably with mockpti-backed configuration.
 - Prior phase tests remain green.
+- Existing API feature files remain green end-to-end.
+- Internal package total coverage is `>= 75.0%`.
 
 ## Verification
-Run `make test` from the `go/mock/mockpti` directory. The phase is complete when the command exits with code 0.
+Run `make test` from the `go/mock/mockpti` directory.
+Run `go test -coverprofile=coverage.out ./internal/... && go tool cover -func=coverage.out | grep total` and verify total coverage is `>= 75.0%`.
+The phase is complete only when both checks pass.

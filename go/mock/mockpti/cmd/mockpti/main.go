@@ -90,6 +90,9 @@ func setupRoutes(router *chi.Mux, h *handler.Handler) {
 		_, _ = fmt.Fprint(w, `{"status":"ok"}`)
 	})
 
+	// Test-only routes (no auth, only present to support e2e scenario isolation)
+	router.Post("/test/reset", h.Reset)
+
 	// PTI API routes (require x-pti-client-id header)
 	router.Group(func(r chi.Router) {
 		r.Use(h.AuthMiddleware)
