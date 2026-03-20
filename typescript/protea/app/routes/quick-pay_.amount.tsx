@@ -32,7 +32,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     throw json(
       {
         code: "QUICKPAY_SESSION_ERROR",
-        message: "Payment session expired."
+        title: "Payment session expired."
       },
       { status: 400 }
     )
