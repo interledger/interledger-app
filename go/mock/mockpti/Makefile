@@ -27,8 +27,12 @@ lint:
 	golangci-lint run ./...
 
 e2e-test:
-	@echo "Running e2e tests..."
-	go test -count=1 -v -tags e2e ./testenv
+	@if [ -d testenv ]; then \
+		echo "Running e2e tests..."; \
+		go test -count=1 -v -tags e2e ./testenv; \
+	else \
+		echo "Skipping e2e tests (testenv/ not found)"; \
+	fi
 
 build:
 	go build -o mockpti ./cmd/mockpti
