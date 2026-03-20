@@ -2,6 +2,7 @@ package handler
 
 import (
 	"errors"
+	"html"
 	"net/http"
 	"strings"
 	"time"
@@ -30,8 +31,8 @@ func (h *Handler) KYCPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	page := strings.ReplaceAll(web.KYCHTML, "{{EXTERNAL_ID}}", externalID)
-	page = strings.ReplaceAll(page, "{{REDIRECT_URL}}", redirectURL)
+	page := strings.ReplaceAll(web.KYCHTML, "{{EXTERNAL_ID}}", html.EscapeString(externalID))
+	page = strings.ReplaceAll(page, "{{REDIRECT_URL}}", html.EscapeString(redirectURL))
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusOK)

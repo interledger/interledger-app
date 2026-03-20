@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"html"
 	"net/http"
 	"strings"
 	"time"
@@ -37,9 +38,15 @@ func (h *Handler) InitiatePayment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	amount, err := parseAmountString(req.Amount)
-	if err != nil {
+	amountStr, ok := requireTrimmedField(req.Amount)
+	if !ok {
 		h.respondErr(w, http.StatusBadRequest, "amount is required")
+		return
+	}
+
+	amount, err := parseAmountString(amountStr)
+	if err != nil {
+		h.respondErr(w, http.StatusBadRequest, "amount is invalid")
 		return
 	}
 
@@ -156,9 +163,9 @@ func (h *Handler) PayPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	page := strings.ReplaceAll(web.PayHTML, "{{ISSUE_ID}}", issueID)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
+	page := strings.ReplaceAll(web.PayHTML, "{{ISSUE_ID}}", html.EscapeString(issueID))
 	_, _ = w.Write([]byte(page))
 }
 

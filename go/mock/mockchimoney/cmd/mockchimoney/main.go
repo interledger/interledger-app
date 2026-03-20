@@ -38,7 +38,7 @@ func main() {
 	logger.Info("configuration loaded",
 		zap.String("log_level", cfg.LogLevel),
 		zap.String("port", cfg.Port),
-		zap.String("redis_url", cfg.RedisURL),
+		zap.Bool("redis_enabled", cfg.RedisURL != ""),
 		zap.Int("redis_db", cfg.RedisDB),
 		zap.Bool("enforce_authentication", cfg.EnforceAuthentication),
 	)

@@ -1,6 +1,6 @@
-# MockChimoney (Work in Progress)
+# MockChimoney
 
-> **Status**: This service is not yet implemented. This repository contains the implementation plan and feature specifications only. See [`plan/plan.md`](plan/plan.md) for the full design.
+> **Status**: This service is implemented and used for local development and testing. See [`plan/plan.md`](plan/plan.md) for the detailed design and planned enhancements.
 
 MockChimoney is a lightweight Go mock of the Chimoney API for local development and testing of the Interledger Wallet. It follows the same patterns as `mockgatehub` and `mockxago`: go-chi router, Redis-backed storage, background webhook delivery, and Traefik-fronted Docker Compose service.
 

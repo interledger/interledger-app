@@ -34,10 +34,11 @@ COPY --from=builder --chown=mockchimoney:mockchimoney /workspace/mockchimoney .
 # Switch to non-root user
 USER mockchimoney
 
+ENV MOCKCHIMONEY_PORT=41800
 EXPOSE 41800
 
 # Health check
 HEALTHCHECK --interval=10s --timeout=5s --retries=3 \
-  CMD curl -f http://localhost:8080/health || exit 1
+  CMD curl -f http://localhost:${MOCKCHIMONEY_PORT}/health || exit 1
 
 CMD ["./mockchimoney"]

@@ -73,13 +73,19 @@ func (tc *TestContext) setWebhookSecret(secret string) error {
 }
 
 func (tc *TestContext) setConfiguredInteracFeeFlat(v string) error {
-	fee, _ := strconv.ParseFloat(v, 64)
+	fee, err := strconv.ParseFloat(v, 64)
+	if err != nil {
+		return fmt.Errorf("invalid interac fee %q: %w", v, err)
+	}
 	tc.interacFee = fee
 	return tc.restartMockServer()
 }
 
 func (tc *TestContext) setConfiguredCADToUSDRate(v string) error {
-	rate, _ := strconv.ParseFloat(v, 64)
+	rate, err := strconv.ParseFloat(v, 64)
+	if err != nil {
+		return fmt.Errorf("invalid CAD-to-USD rate %q: %w", v, err)
+	}
 	tc.usdRate = rate
 	return tc.restartMockServer()
 }
@@ -409,10 +415,12 @@ func (tc *TestContext) getKYCPageWithoutRedirect() error {
 }
 
 func (tc *TestContext) approveKYCFor(id string) error {
+	tc.lastKYCSubID = id
 	return tc.request(http.MethodPost, "/verify/kyc/"+id+"/approve?redirect=https://app.test/callbacks/chimoney?kyc", nil)
 }
 
 func (tc *TestContext) declineKYCFor(id string) error {
+	tc.lastKYCSubID = id
 	return tc.request(http.MethodPost, "/verify/kyc/"+id+"/decline?redirect=https://app.test/callbacks/chimoney?kyc", nil)
 }
 
@@ -809,10 +817,18 @@ func (tc *TestContext) theErrorMessageMentions(s string) error {
 }
 
 func (tc *TestContext) theErrorMessageIndicatesCurrencyMustBeUSDWhenRailIsNotSpecified() error {
+	errMsg := fmt.Sprint(getPath(tc.lastJSON, "error"))
+	if !strings.Contains(errMsg, "currency must be USD") {
+		return fmt.Errorf("expected error to mention 'currency must be USD', got %q", errMsg)
+	}
 	return nil
 }
 
 func (tc *TestContext) theErrorMessageIndicatesKYCIsAlreadyCompleted() error {
+	errMsg := fmt.Sprint(getPath(tc.lastJSON, "error"))
+	if !strings.Contains(errMsg, "KYC is already completed") {
+		return fmt.Errorf("expected error to mention 'KYC is already completed', got %q", errMsg)
+	}
 	return nil
 }
 
@@ -823,9 +839,17 @@ func (tc *TestContext) eachWalletHasADifferentIDValue() error {
 	return nil
 }
 
-func (tc *TestContext) theSubAccountKYCStatusIs(w string) error {
-	parts := strings.Split(w, "-")
-	_ = parts
+func (tc *TestContext) theSubAccountKYCStatusIs(expected string) error {
+	if tc.lastKYCSubID == "" {
+		return fmt.Errorf("no sub-account ID recorded from a previous KYC step")
+	}
+	account, err := tc.store.GetSubAccount(context.Background(), tc.lastKYCSubID)
+	if err != nil {
+		return fmt.Errorf("failed to get sub-account %s: %w", tc.lastKYCSubID, err)
+	}
+	if account.KYCStatus != expected {
+		return fmt.Errorf("expected KYC status %q, got %q", expected, account.KYCStatus)
+	}
 	return nil
 }
 
@@ -1044,13 +1068,19 @@ func (tc *TestContext) extractPayoutArray() []map[string]any {
 func (tc *TestContext) waitWebhooks(n int, timeout time.Duration) error {
 	deadline := time.Now().Add(timeout)
 	for time.Now().Before(deadline) {
-		if len(tc.webhooks) >= n {
+		tc.webhookMu.Lock()
+		count := len(tc.webhooks)
+		tc.webhookMu.Unlock()
+		if count >= n {
 			return nil
 		}
 		time.Sleep(20 * time.Millisecond)
 	}
-	if len(tc.webhooks) < n {
-		return fmt.Errorf("expected %d webhooks got %d", n, len(tc.webhooks))
+	tc.webhookMu.Lock()
+	count := len(tc.webhooks)
+	tc.webhookMu.Unlock()
+	if count < n {
+		return fmt.Errorf("expected %d webhooks got %d", n, count)
 	}
 	return nil
 }

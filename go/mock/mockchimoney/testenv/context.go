@@ -17,6 +17,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/cucumber/godog"
@@ -78,6 +79,9 @@ type TestContext struct {
 	manualSig     string
 	sigValid      bool
 	preserveStore bool
+	lastKYCSubID  string
+
+	webhookMu sync.Mutex
 }
 
 func newTestContext() *TestContext {
@@ -113,6 +117,7 @@ func (tc *TestContext) resetState() {
 	tc.sigValid = false
 	tc.webhooks = nil
 	tc.preserveStore = false
+	tc.lastKYCSubID = ""
 }
 
 func (tc *TestContext) closeServers() {
@@ -148,7 +153,9 @@ func (tc *TestContext) ensureWebhookServer() {
 		body, _ := io.ReadAll(r.Body)
 		parsed := map[string]any{}
 		_ = json.Unmarshal(body, &parsed)
+		tc.webhookMu.Lock()
 		tc.webhooks = append(tc.webhooks, webhookEvent{Body: parsed, RawBody: body, Header: r.Header.Clone()})
+		tc.webhookMu.Unlock()
 		w.WriteHeader(http.StatusOK)
 	}))
 }

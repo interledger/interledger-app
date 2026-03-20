@@ -59,25 +59,34 @@ func NewHandlerWithDeps(cfg *config.Config, store storage.Store, queue jobs.Queu
 	}
 }
 
-// RequestLogger middleware logs all incoming requests with full details
+// sensitiveHeaders lists header names whose values must be redacted in logs.
+var sensitiveHeaders = map[string]struct{}{
+	"X-Api-Key":     {},
+	"Authorization": {},
+	"Cookie":        {},
+}
+
+// RequestLogger middleware logs incoming requests with safe details.
 func (h *Handler) RequestLogger(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 
-		// Read and re-buffer the body so downstream handlers can still read it
-		var bodyStr string
+		// Re-buffer the body so downstream handlers can still read it
 		if r.Body != nil {
 			bodyBytes, err := io.ReadAll(r.Body)
 			if err == nil {
-				bodyStr = string(bodyBytes)
 				r.Body = io.NopCloser(bytes.NewReader(bodyBytes))
 			}
 		}
 
-		// Collect all headers into a map for structured logging
+		// Collect headers, redacting sensitive values
 		headers := make(map[string]string, len(r.Header))
 		for k, v := range r.Header {
-			headers[k] = strings.Join(v, ", ")
+			if _, redact := sensitiveHeaders[http.CanonicalHeaderKey(k)]; redact {
+				headers[k] = "[REDACTED]"
+			} else {
+				headers[k] = strings.Join(v, ", ")
+			}
 		}
 
 		logger.Debug("request incoming",
@@ -86,7 +95,6 @@ func (h *Handler) RequestLogger(next http.Handler) http.Handler {
 			zap.String("query", r.URL.RawQuery),
 			zap.String("remote_addr", r.RemoteAddr),
 			zap.Any("headers", headers),
-			zap.String("body", bodyStr),
 		)
 
 		// Wrap ResponseWriter to capture status code

@@ -5,6 +5,9 @@ import (
 	"time"
 
 	"gitlab.com/fynbos/mock/mockchimoney/internal/jobs"
+	"gitlab.com/fynbos/mock/mockchimoney/internal/logger"
+
+	"go.uber.org/zap"
 )
 
 func (h *Handler) enqueueWebhook(payload map[string]any, delay time.Duration, afterSend func(context.Context) error) {
@@ -12,7 +15,7 @@ func (h *Handler) enqueueWebhook(payload map[string]any, delay time.Duration, af
 		return
 	}
 
-	_ = h.queue.Enqueue(jobs.Job{
+	if err := h.queue.Enqueue(jobs.Job{
 		Delay: delay,
 		Run: func(ctx context.Context) error {
 			if err := h.sender.Send(ctx, h.config.WebhookURL, h.config.WebhookSecret, payload); err != nil {
@@ -23,5 +26,7 @@ func (h *Handler) enqueueWebhook(payload map[string]any, delay time.Duration, af
 			}
 			return nil
 		},
-	})
+	}); err != nil {
+		logger.Warn("failed to enqueue webhook", zap.Error(err))
+	}
 }
