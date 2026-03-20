@@ -81,7 +81,7 @@ export default function Page() {
 export async function action({ request }: ActionFunctionArgs) {
   const session = await getSession(request.headers.get('Cookie'))
   const formData = Object.fromEntries(await request.formData())
-  const result = walletSchema.safeParse(formData)
+  const result = await walletSchema.safeParseAsync(formData)
 
   if (!result.success) {
     const errors = z.treeifyError(result.error).properties

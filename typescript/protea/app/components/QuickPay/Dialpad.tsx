@@ -3,7 +3,6 @@ import { useEffect } from 'react'
 import { useDialPadContext } from '~/lib/context/dialpad'
 import { getCurrencySymbol } from '~/lib/utils'
 
-
 export enum DialPadIds {
   Backspace = 'Backspace',
   Dot = '.',
