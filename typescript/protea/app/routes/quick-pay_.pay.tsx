@@ -233,13 +233,13 @@ export async function action({ request }: ActionFunctionArgs) {
     }
   }
 
-  const grant = await initializePayment({
+  const { paymentId, outgoingPaymentGrant } = await initializePayment({
     walletAddress: walletAddressInfo.id,
     quote
   })
-  sessionData.grant = grant
+  sessionData.grants = { ...(sessionData?.grants || {}), [paymentId]: outgoingPaymentGrant}
   session.set('payment-grant', sessionData)
-  return redirect(grant.interact.redirect, {
+  return redirect(outgoingPaymentGrant.interact.redirect, {
     headers: { 'Set-Cookie': await commitSession(session) }
   })
 }

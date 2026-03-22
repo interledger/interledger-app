@@ -65,15 +65,15 @@ export async function fetchQuote(
 
   // create quote with debit amount, you don't care how much money receiver gets
   console.log({
-        url: walletAddress.resourceServer,
-        accessToken: quoteGrant.access_token?.value || ''
-      })
-      console.log({
-        method: 'ilp',
-        walletAddress: walletAddress.id,
-        receiver: incomingPayment.id,
-        debitAmount: amountObj
-      })
+    url: walletAddress.resourceServer,
+    accessToken: quoteGrant.access_token?.value || ''
+  })
+  console.log({
+    method: 'ilp',
+    walletAddress: walletAddress.id,
+    receiver: incomingPayment.id,
+    debitAmount: amountObj
+  })
   const quote = await opClient.quote
     .create(
       {
@@ -88,7 +88,7 @@ export async function fetchQuote(
       }
     )
     .catch((err) => {
-      console.log({err})
+      console.log({ err })
       throw new Error(
         `Could not create quote for receiver ${receiver.publicName}.`
       )
@@ -230,7 +230,7 @@ export async function initializePayment(args: {
     opClient
   })
 
-  return outgoingPaymentGrant
+  return { paymentId, outgoingPaymentGrant }
 }
 
 export interface Amount {
