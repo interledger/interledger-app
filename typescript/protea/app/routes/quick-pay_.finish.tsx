@@ -183,9 +183,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const intent = formData.intent
 
   if (intent === 'checkIncomingPayment') {
-    console.log('I AM HERE')
     const interactRef = formData.interactRef as string
-
     const walletAddressInfo = sessionData?.validWalletAddress
     const grant = sessionData.grant
     const quote = sessionData.quote
@@ -202,12 +200,17 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     try {
+      console.log({grant,
+        quote,
+        walletAddressInfo,
+        interactRef})
       const finishPaymentResponse = await finishPayment(
         grant,
         quote,
         walletAddressInfo,
         interactRef
       )
+      console.log({finishPaymentResponse})
       const result = await checkOutgoingPayment(
         finishPaymentResponse.url,
         finishPaymentResponse.accessToken,

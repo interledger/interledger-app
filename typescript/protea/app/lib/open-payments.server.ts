@@ -12,9 +12,9 @@ import { randomUUID } from 'crypto'
 
 export async function createClient() {
   return await createAuthenticatedClient({
-    keyId: process.env.OP_KEY_ID!,
-    privateKey: Buffer.from(process.env.OP_PRIVATE_KEY!, 'base64'),
-    walletAddressUrl: process.env.OP_WALLET_ADDRESS!,
+    keyId: process.env.OP_INTPAY_KEY_ID!,
+    privateKey: Buffer.from(process.env.OP_INTPAY_PRIVATE_KEY!, 'base64'),
+    walletAddressUrl: process.env.OP_INTPAY_WALLET_ADDRESS!,
     validateResponses: false
   })
 }
