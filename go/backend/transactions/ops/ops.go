@@ -240,8 +240,8 @@ type dbTransaction struct {
 	Source                  sql.NullString               `db:"source"`
 	Destination             sql.NullString               `db:"destination"`
 	Title                   sql.NullString               `db:"title"`
-	Amount                  uint64                       `db:"amount"`
-	ProviderFee             uint64                       `db:"provider_fee"`
+	Amount                  int64                        `db:"amount"`
+	ProviderFee             int64                        `db:"provider_fee"`
 	Scale                   int                          `db:"asset_scale"`
 	Asset                   string                       `db:"asset_code"`
 	Timestamp               time.Time                    `db:"updated_at"`
@@ -408,7 +408,7 @@ type dbTransfer struct {
 	LinkedAccountID sql.NullString            `db:"linked_acc_id"`
 	Type            transactions.TransferType `db:"type"`
 	State           transactions.State        `db:"state"`
-	Amount          uint64                    `db:"amount"`
+	Amount          int64                     `db:"amount"`
 	Scale           int                       `db:"asset_scale"`
 	Asset           string                    `db:"asset_code"`
 	Timestamp       time.Time                 `db:"updated_at"`
@@ -523,7 +523,7 @@ func SetTransactionState(ctx context.Context, b Backends, ID string, state trans
 	var trxDetails struct {
 		ID       string                       `db:"id"`
 		WalletID string                       `db:"wallet_id"`
-		Amount   uint64                       `db:"amount"`
+		Amount   int64                        `db:"amount"`
 		Type     transactions.TransactionType `db:"type"`
 		Provider transactions.Provider        `db:"provider"`
 	}
@@ -560,7 +560,7 @@ func SetTransactionStateTx(ctx context.Context, b Backends, tx *sqlx.Tx, ID stri
 	var trxDetails struct {
 		ID       string                       `db:"id"`
 		WalletID string                       `db:"wallet_id"`
-		Amount   uint64                       `db:"amount"`
+		Amount   int64                        `db:"amount"`
 		Type     transactions.TransactionType `db:"type"`
 		Provider transactions.Provider        `db:"provider"`
 	}

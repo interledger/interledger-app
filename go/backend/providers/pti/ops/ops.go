@@ -180,8 +180,8 @@ func GetBalance(ctx context.Context, b Backends, linkedAccountID string) (*pti.B
 	}
 
 	return &pti.Balance{
-		Total:     currency.FromUInt64(accs[0].CreditsPosted-accs[0].DebitsPosted, la.SendCurrency),
-		Available: currency.FromUInt64(accs[0].CreditsPosted-accs[0].DebitsPosted-accs[0].DebitsPending, la.SendCurrency),
+		Total:     currency.FromUInt64(int64(accs[0].CreditsPosted)-int64(accs[0].DebitsPosted), la.SendCurrency),
+		Available: currency.FromUInt64(int64(accs[0].CreditsPosted)-int64(accs[0].DebitsPosted)-int64(accs[0].DebitsPending), la.SendCurrency),
 	}, nil
 }
 
@@ -389,8 +389,8 @@ func ReserveBalance(ctx context.Context, b Backends, linkedAccountID, txID strin
 	}
 
 	return &pti.Balance{
-		Total:     currency.FromUInt64(accs[0].CreditsPosted-accs[0].DebitsPosted, la.SendCurrency),
-		Available: currency.FromUInt64(accs[0].CreditsPosted-accs[0].DebitsPosted-accs[0].DebitsPending, la.SendCurrency),
+		Total:     currency.FromUInt64(int64(accs[0].CreditsPosted)-int64(accs[0].DebitsPosted), la.SendCurrency),
+		Available: currency.FromUInt64(int64(accs[0].CreditsPosted)-int64(accs[0].DebitsPosted)-int64(accs[0].DebitsPending), la.SendCurrency),
 	}, nil
 }
 
@@ -487,8 +487,8 @@ func AssignBalance(ctx context.Context, b Backends, linkedAccountID, txID string
 	}
 
 	return &pti.Balance{
-		Total:     currency.FromUInt64(accs[0].CreditsPosted-accs[0].DebitsPosted, la.SendCurrency),
-		Available: currency.FromUInt64(accs[0].CreditsPosted-accs[0].DebitsPosted-accs[0].DebitsPending, la.SendCurrency),
+		Total:     currency.FromUInt64(int64(accs[0].CreditsPosted)-int64(accs[0].DebitsPosted), la.SendCurrency),
+		Available: currency.FromUInt64(int64(accs[0].CreditsPosted)-int64(accs[0].DebitsPosted)-int64(accs[0].DebitsPending), la.SendCurrency),
 	}, nil
 }
 

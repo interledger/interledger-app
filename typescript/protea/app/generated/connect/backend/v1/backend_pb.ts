@@ -3217,7 +3217,7 @@ export class CreateSlackAuthURLResponse extends Message<CreateSlackAuthURLRespon
  */
 export class Amount extends Message<Amount> {
   /**
-   * @generated from field: uint64 amount = 1;
+   * @generated from field: int64 amount = 1;
    */
   amount = protoInt64.zero;
 
@@ -3244,7 +3244,7 @@ export class Amount extends Message<Amount> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "backend.v1.Amount";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "amount", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 1, name: "amount", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
     { no: 2, name: "asset", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "assetScale", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
     { no: 4, name: "country", kind: "scalar", T: 9 /* ScalarType.STRING */ },

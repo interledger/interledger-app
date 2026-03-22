@@ -793,7 +793,7 @@ func (a *Activity) ReservePTIBalance(ctx context.Context, walletID, id string) e
 	}
 
 	timeout := time.Hour * 24 * 365 // Pending transfers must have a timeout.
-	var fee uint64 = 0
+	var fee int64 = 0
 	if tx.ProviderFee != nil {
 		fee = tx.ProviderFee.Value
 	}
@@ -890,8 +890,8 @@ func (a *Activity) ReturnTransaction(ctx context.Context, originalTransactionID,
 		return "", nil
 	}
 
-	returnedTransaction, err := a.b.Transactions().GetTransactionByForeignID(ctx, walletID, originalTransactionID)
-	if err != nil {
+	returnedTransaction, err := a.b.Transactions().GetTransactionByForeignID(ctx, walletID, originalTransaction.ID)
+	if !errors.Is(err, transactions.ErrNotFound) && err != nil {
 		return "", err
 	}
 
