@@ -446,9 +446,11 @@ func TestGetPendingConfirmations_Empty(t *testing.T) {
 	h.GetPendingConfirmations(w, req)
 
 	assert.Equal(t, http.StatusOK, w.Code)
-	var resp []models.PendingThreeDSConfirmation
+	var resp struct {
+		PendingConfirmations []models.PendingThreeDSConfirmation `json:"pendingConfirmations"`
+	}
 	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
-	assert.Empty(t, resp)
+	assert.Empty(t, resp.PendingConfirmations)
 }
 
 // --- CreateCustomerAddress ---

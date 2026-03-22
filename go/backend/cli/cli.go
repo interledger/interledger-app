@@ -105,6 +105,14 @@ type StartArgs struct {
 	XagoPublicKey                 string
 	XagoSecret                    string
 	XagoPolicyID                  string
+	PTIEnabled                    bool
+	PTIBaseURL                    string
+	PTIJWK                        string
+	PTIClientID                   string
+	PTIPublicKeyJWK               string
+	AppleAppID                    string
+	AndroidPackageName            string
+	AndroidSHA256                 string
 }
 
 func ParseStartArgs() (*StartArgs, error) {
@@ -128,12 +136,12 @@ func ParseStartArgs() (*StartArgs, error) {
 	}
 	dbUrl := os.Getenv("DB_URL")
 	if dbUrl == "" {
-		dbUrl = "cockroach://backend@cockroachdb-public:26257/backend?sslmode=verify-full&sslrootcert=/cockroach-certs/ca.crt&sslcert=/cockroach-certs/client.backend.crt&sslkey=/cockroach-certs/client.backend.key&max_conns=20&max_idle_conns=4"
+		return nil, errors.New("DB_URL is required.")
 	}
 
 	pacDB := os.Getenv("PACIOLI_DB_URL")
 	if pacDB == "" {
-		dbUrl = "cockroach://backend@cockroachdb-public:26257/pacioli?sslmode=verify-full&sslrootcert=/cockroach-certs/ca.crt&sslcert=/cockroach-certs/client.backend.crt&sslkey=/cockroach-certs/client.backend.key&max_conns=20&max_idle_conns=4"
+		return nil, errors.New("PACIOLI_DB_URL is required.")
 	}
 
 	kratosUrl := os.Getenv("KRATOS_URL")
@@ -212,6 +220,41 @@ func ParseStartArgs() (*StartArgs, error) {
 	twitterRedirectURL := os.Getenv("TWITTER_REDIRECT_URL")
 	if twitterClientSecret == "" && env.IsProd() {
 		return nil, errors.New("TWITTER_REDIRECT_URL is required")
+	}
+
+	adminPolicyAud := os.Getenv("ADMIN_POLICY_AUD")
+	if adminPolicyAud == "" {
+		return nil, errors.New("ADMIN_POLICY_AUD is required")
+	}
+
+	adminTeamDomain := os.Getenv("ADMIN_TEAM_DOMAIN")
+	if adminTeamDomain == "" {
+		return nil, errors.New("ADMIN_TEAM_DOMAIN is required")
+	}
+
+	sendgridAPIKey := os.Getenv("SENDGRID_API_KEY")
+	if sendgridAPIKey == "" {
+		return nil, errors.New("SENDGRID_API_KEY is required")
+	}
+
+	smartyAuthID := os.Getenv("SMARTY_AUTH_ID")
+	if smartyAuthID == "" {
+		return nil, errors.New("SMARTY_AUTH_ID is required")
+	}
+
+	smartyAuthToken := os.Getenv("SMARTY_AUTH_TOKEN")
+	if smartyAuthToken == "" {
+		return nil, errors.New("SMARTY_AUTH_TOKEN is required")
+	}
+
+	pusherAddr := os.Getenv("PUSHER_ADDR")
+	if pusherAddr == "" {
+		return nil, errors.New("PUSHER_ADDR is required")
+	}
+
+	segmentKey := os.Getenv("SEGMENT_KEY")
+	if segmentKey == "" {
+		return nil, errors.New("SEGMENT_KEY is required")
 	}
 
 	gatehubAppID := os.Getenv("GATEHUB_APP_ID")
@@ -337,6 +380,41 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, errors.New("XAGO_POLICY_ID is required")
 	}
 
+	ptiEnabled := os.Getenv("PTI_ENABLED") == "true"
+	ptiBaseURL := os.Getenv("PTI_BASE_URL")
+	ptiJWK := os.Getenv("PTI_JWK")
+	ptiClientID := os.Getenv("PTI_CLIENT_ID")
+	ptiPublicKeyJWK := os.Getenv("PTI_PUBLIC_KEY_JWK")
+	if ptiEnabled {
+		if ptiBaseURL == "" {
+			return nil, errors.New("PTI_BASE_URL is required when PTI_ENABLED=true")
+		}
+		if ptiJWK == "" {
+			return nil, errors.New("PTI_JWK is required when PTI_ENABLED=true")
+		}
+		if ptiClientID == "" {
+			return nil, errors.New("PTI_CLIENT_ID is required when PTI_ENABLED=true")
+		}
+		if ptiPublicKeyJWK == "" {
+			return nil, errors.New("PTI_PUBLIC_KEY_JWK is required when PTI_ENABLED=true")
+		}
+	}
+
+	appleAppID := os.Getenv("APPLE_APP_ID")
+	if appleAppID == "" {
+		return nil, errors.New("APPLE_APP_ID is required")
+	}
+
+	androidPackageName := os.Getenv("ANDROID_PACKAGE_NAME")
+	if androidPackageName == "" {
+		return nil, errors.New("ANDROID_PACKAGE_NAME is required")
+	}
+
+	androidSHA256 := os.Getenv("ANDROID_SHA256")
+	if androidSHA256 == "" {
+		return nil, errors.New("ANDROID_SHA256 is required")
+	}
+
 	return &StartArgs{
 		Port:                          port,
 		AuthorisationPort:             authorisationPort,
@@ -356,16 +434,16 @@ func ParseStartArgs() (*StartArgs, error) {
 		TwitterClientSecret:           twitterClientSecret,
 		TwitterRedirectURL:            twitterRedirectURL,
 		TwitterBearerToken:            twitterBearerToken,
-		AdminPolicyAud:                os.Getenv("ADMIN_POLICY_AUD"),
-		AdminTeamDomain:               os.Getenv("ADMIN_TEAM_DOMAIN"),
-		SendgridAPIKey:                os.Getenv("SENDGRID_API_KEY"),
-		SmartyAuthID:                  os.Getenv("SMARTY_AUTH_ID"),
-		SmartyAuthToken:               os.Getenv("SMARTY_AUTH_TOKEN"),
-		PusherAddr:                    os.Getenv("PUSHER_ADDR"),
-		SegmentKey:                    os.Getenv("SEGMENT_KEY"),
-		DiscordClientID:               os.Getenv("DISCORD_CLIENT_ID"),
-		DiscordClientSecret:           os.Getenv("DISCORD_CLIENT_SECRET"),
-		DiscordRedirectURL:            os.Getenv("DISCORD_REDIRECT_URL"),
+		AdminPolicyAud:                adminPolicyAud,
+		AdminTeamDomain:               adminTeamDomain,
+		SendgridAPIKey:                sendgridAPIKey,
+		SmartyAuthID:                  smartyAuthID,
+		SmartyAuthToken:               smartyAuthToken,
+		PusherAddr:                    pusherAddr,
+		SegmentKey:                    segmentKey,
+		DiscordClientID:               "",
+		DiscordClientSecret:           "",
+		DiscordRedirectURL:            "",
 		GatehubAppID:                  gatehubAppID,
 		GatehubSecret:                 gatehubSecret,
 		GatehubCardAppID:              gatehubCardAppID,
@@ -390,5 +468,13 @@ func ParseStartArgs() (*StartArgs, error) {
 		XagoPublicKey:                 xagoPublicKey,
 		XagoSecret:                    xagoSecret,
 		XagoPolicyID:                  xagoPolicyID,
+		PTIEnabled:                    ptiEnabled,
+		PTIBaseURL:                    ptiBaseURL,
+		PTIJWK:                        ptiJWK,
+		PTIClientID:                   ptiClientID,
+		PTIPublicKeyJWK:               ptiPublicKeyJWK,
+		AppleAppID:                    appleAppID,
+		AndroidPackageName:            androidPackageName,
+		AndroidSHA256:                 androidSHA256,
 	}, nil
 }

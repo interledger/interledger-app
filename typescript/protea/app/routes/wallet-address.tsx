@@ -1,14 +1,10 @@
+import type { Route } from './+types/wallet-address'
 import { Code } from '@bufbuild/connect'
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
-import { useFetcher, useLoaderData } from '@remix-run/react'
+import { data, redirect } from 'react-router';
+import { useFetcher, useLoaderData } from 'react-router';
 import type { ChangeEventHandler } from 'react'
 import { useCallback } from 'react'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   Button,
@@ -26,12 +22,12 @@ import { mergeMeta } from '~/lib/meta'
 import { PAYMENT_POINTER_BASE } from '~/lib/paymentPointer.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   let response = await grpc.getWalletInfo(request, {})
   if (isConnectError(response)) {
     throw response.errorResponse
   } else if (response.hasWalletAddress) {
-    throw redirect(route('/'))
+    throw redirect(href('/'))
   }
 
   const session = await getUserSession(request)
@@ -76,7 +72,7 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Wallet'
   }
@@ -85,7 +81,7 @@ export const meta: MetaFunction = mergeMeta(() => [
 export default function Page() {
   const fetcher = useFetcher<typeof action>()
   const { paymentPointerBase, username, csrfToken } =
-    useLoaderData<typeof loader>()
+    useLoaderData()
 
   const _onChangeInput = useCallback<ChangeEventHandler<HTMLInputElement>>(
     (event) => {
@@ -168,7 +164,7 @@ export default function Page() {
   )
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const form = await request.formData()
   const username = form.get('username') as string
   const canSubmit = Boolean(form.get('canSubmit') as string)
@@ -217,9 +213,9 @@ export async function action({ request }: ActionFunctionArgs) {
         })
     }
 
-    return redirectWithSnackbar(request, route('/'), {
+    return redirectWithSnackbar(request, href('/'), {
       message: 'Your wallet address is reserved.',
       icon: 'close'
     })
-  } else return json({ errors })
+  } else return data({ errors })
 }

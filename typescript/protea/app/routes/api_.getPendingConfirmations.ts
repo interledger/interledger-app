@@ -1,5 +1,5 @@
-import type { ActionFunctionArgs } from '@remix-run/node'
-import { json } from '@remix-run/node'
+import type { Route } from './+types/api_.getPendingConfirmations'
+import { data } from 'react-router';
 import type { PendingThreeDSConfirmation } from '~/generated/connect/backend/v1/backend_pb'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
@@ -11,10 +11,10 @@ export type GetPendingConfirmationsResponse = {
   }
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const response = await grpc.getPendingThreeDSConfirmations(request, {})
   if (isConnectError(response)) {
-    return json<GetPendingConfirmationsResponse>(
+    return data<GetPendingConfirmationsResponse>(
       {
         confirmations: [],
         errors: { operation: 'get-pending-confirmations' }
@@ -23,7 +23,7 @@ export async function action({ request }: ActionFunctionArgs) {
     )
   }
 
-  return json<GetPendingConfirmationsResponse>({
+  return data<GetPendingConfirmationsResponse>({
     confirmations: response.confirmations
   })
 }
