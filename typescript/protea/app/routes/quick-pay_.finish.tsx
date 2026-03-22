@@ -9,13 +9,15 @@ import { useEffect, useState } from 'react'
 import {
   type PaymentResultType,
   finishPayment,
-  checkOutgoingPayment
+  checkOutgoingPayment, 
+  getGrantStatus
 } from '~/lib/open-payments.server'
 import { destroySession, getSession } from '~/session.server'
 import { type ApplicationProps, Button, GridColumn, Layouts, WalletGrid } from '~/components'
 import { mergeMeta } from '~/lib/meta'
 import { QuickPaySession } from '~/lib/types'
-//import {isWalletLayout } from '~/lib/utils'
+//import {isWalletLayout } from '~/lib/utils'\
+import { FinishCheck, FinishError } from '~/components/QuickPay'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const searchParams = new URL(request.url).searchParams
@@ -26,14 +28,26 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const session = await getSession(request.headers.get('Cookie'))
   const sessionData = session.get('quickPay')
   const isRequestPayment = sessionData?.isRequestPayment
+  const currentGrant = sessionData?.grants[paymentId]
   //const isWalletView = await isWalletLayout(request)
+
+  if (!currentGrant) {
+    throw json(
+      {
+        code: "QUICKPAY_SESSION_ERROR",
+        title: "Invalid payment grant."
+      },
+      { status: 400 }
+    )
+  }
 
   return json({
     paymentId,
     hash,
     interactRef,
     result,
-    isRequestPayment
+    isRequestPayment,
+    currentGrant
   })
 }
 
@@ -52,9 +66,9 @@ export const meta: MetaFunction = mergeMeta(() => [
 
 export default function Page() {
   const actionData = useActionData<typeof action>()
-  const [loading, setLoading] = useState(false)
-
-  const { paymentId, hash, interactRef, result } = useLoaderData<typeof loader>()
+  const [ loading, setLoading ] = useState(false)
+  const [ message, setMessage ] = useState('') 
+  const { paymentId, hash, interactRef, result, currentGrant } = useLoaderData<typeof loader>()
   const fetcher = useFetcher()
 
   const isLoading = fetcher.state !== 'idle'
@@ -65,16 +79,23 @@ export default function Page() {
 
   useEffect(() => {
     if (result !== 'grant_rejected') {
-      const intent = 'checkIncomingPayment'
-      fetcher.submit(
-        {
-          paymentId,
-          hash,
-          interactRef,
-          intent
-        },
-        { method: 'post' }
-      )
+      //waitTime is the duration the grant continuations specifies before calling the next step. In this case the continue.
+      const waitTime = currentGrant?.continue?.wait ?? 1
+      setTimeout(() => {
+        const intent = 'checkIncomingPayment'
+        fetcher.submit(
+          {
+            paymentId,
+            hash,
+            interactRef,
+            intent
+          },
+          { method: 'post' }
+        )
+      }, waitTime * 1000)
+
+    } else {
+      setMessage('Payment was successfully declined.')
     }
   }, [paymentId, hash, interactRef])
 
@@ -100,9 +121,10 @@ export default function Page() {
 
           {!isLoading && fetcherData && !fetcherData.success && (
             <>
+              <div><FinishError /></div>
               <div className="text-3xl mb-4 text-red-600">Payment failed</div>
               <div className="mb-10">
-                {fetcherData.message || 'Payment failed.'}
+                {fetcherData.message || message}
               </div>
 
               <Button type="submit" name="intent" value="finish">Home</Button>
@@ -185,7 +207,8 @@ export async function action({ request }: ActionFunctionArgs) {
   if (intent === 'checkIncomingPayment') {
     const interactRef = formData.interactRef as string
     const walletAddressInfo = sessionData?.validWalletAddress
-    const grant = sessionData.grant
+    const paymentId = String(formData?.paymentId) || ''
+    const grant = sessionData?.grants[paymentId]
     const quote = sessionData.quote
     const isRequestPayment = sessionData?.isRequestPayment
 
@@ -200,25 +223,23 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     try {
-      console.log({grant,
-        quote,
-        walletAddressInfo,
-        interactRef})
-      const finishPaymentResponse = await finishPayment(
+     /* const finishPaymentResponse = await finishPayment(
         grant,
         quote,
         walletAddressInfo,
         interactRef
       )
-      console.log({finishPaymentResponse})
+      console.log({ finishPaymentResponse })
       const result = await checkOutgoingPayment(
         finishPaymentResponse.url,
         finishPaymentResponse.accessToken,
         quote.incomingPaymentGrantToken,
         quote.receiver,
         isRequestPayment
-      )
-
+      )*/
+      const grantStatus = await getGrantStatus(grant.continue.access_token.value, grant.continue.uri, interactRef)
+      console.log({grantStatus})
+      const result = null
       return json(result)
     } catch (err) {
       console.log({ err })
