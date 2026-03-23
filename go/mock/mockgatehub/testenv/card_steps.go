@@ -442,8 +442,8 @@ func (tc *TestContext) responseContainsCardTransactionDetails() error {
 	return tc.checkRequiredFields([]string{"transactionId", "transactionAmount"})
 }
 
-func (tc *TestContext) responseIsArrayOfPending3DS() error {
-	return tc.responseIsArrayOfPending3DSConfirmations(3)
+func (tc *TestContext) responseContainsPendingConfirmations() error {
+	return tc.responseContainsPending3DSConfirmations(3)
 }
 
 func (tc *TestContext) responseStatusWithStatus(status int, statusStr string) error {
@@ -471,27 +471,31 @@ func (tc *TestContext) responseContainsTokenStarting(prefix string) error {
 	return nil
 }
 
-func (tc *TestContext) responseIsArrayOfPending3DSConfirmations(version int) error {
-	var result []map[string]interface{}
+func (tc *TestContext) responseContainsPending3DSConfirmations(version int) error {
+	var result struct {
+		PendingConfirmations []map[string]interface{} `json:"pendingConfirmations"`
+	}
 	if err := json.Unmarshal(tc.lastResponseBody, &result); err != nil {
-		return fmt.Errorf("response is not an array: %w", err)
+		return fmt.Errorf("response is not an object with pendingConfirmations: %w", err)
 	}
 
-	if len(result) == 0 {
-		return fmt.Errorf("array is empty")
+	if len(result.PendingConfirmations) == 0 {
+		return fmt.Errorf("pendingConfirmations array is empty")
 	}
 
 	return nil
 }
 
 func (tc *TestContext) eachConfirmationHasRequiredFields() error {
-	var result []map[string]interface{}
+	var result struct {
+		PendingConfirmations []map[string]interface{} `json:"pendingConfirmations"`
+	}
 	if err := json.Unmarshal(tc.lastResponseBody, &result); err != nil {
 		return err
 	}
 
 	requiredFields := []string{"transactionId", "merchantName", "purchaseAmount", "purchaseCurrency", "timeout"}
-	for i, item := range result {
+	for i, item := range result.PendingConfirmations {
 		for _, field := range requiredFields {
 			if _, ok := item[field]; !ok {
 				return fmt.Errorf("confirmation %d missing %s", i, field)

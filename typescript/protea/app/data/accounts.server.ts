@@ -1,4 +1,4 @@
-import type { PlainMessage } from '@bufbuild/protobuf/dist/types/message'
+import type { PlainMessage } from '@bufbuild/protobuf'
 import type { LinkedAccount } from '~/generated/connect/backend/v1/backend_pb'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'

@@ -395,7 +395,9 @@ func (h *Handler) GetPendingConfirmations(w http.ResponseWriter, r *http.Request
 
 	challenges, err := h.store.GetPendingThreeDSChallenges(userID)
 	if err != nil {
-		h.sendJSON(w, http.StatusOK, []models.PendingThreeDSConfirmation{})
+		h.sendJSON(w, http.StatusOK, map[string][]models.PendingThreeDSConfirmation{
+			"pendingConfirmations": nil,
+		})
 		return
 	}
 
@@ -415,7 +417,9 @@ func (h *Handler) GetPendingConfirmations(w http.ResponseWriter, r *http.Request
 		pending = []models.PendingThreeDSConfirmation{}
 	}
 
-	h.sendJSON(w, http.StatusOK, pending)
+	h.sendJSON(w, http.StatusOK, map[string][]models.PendingThreeDSConfirmation{
+		"pendingConfirmations": pending,
+	})
 }
 
 // CreateCustomerAddress creates a delivery address for a card customer

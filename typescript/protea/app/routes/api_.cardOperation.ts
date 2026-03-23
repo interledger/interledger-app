@@ -1,5 +1,5 @@
-import type { ActionFunctionArgs} from '@remix-run/node';
-import { json } from '@remix-run/node'
+import type { Route } from './+types/api_.cardOperation'
+import { data } from 'react-router';
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 
@@ -9,10 +9,10 @@ export type OperationResponse = {
   success: boolean
   operation: Operation
   shouldRevalidate?: boolean
-  errors?: any
+  errors?: { operation: string }
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   let form = await request.formData()
   const cardId = form.get('cardId') as string
   const operation = form.get('operation') as Operation
@@ -27,7 +27,7 @@ export async function action({ request }: ActionFunctionArgs) {
     return blockCard(request, cardId)
   }
 
-  return json({
+  return data({
     success: false,
     errors: { operation: 'invalidOperation' }
   })
@@ -42,7 +42,7 @@ const freezeCard = async (request: Request, cardId: string) => {
     return freezeResponse.error({ errors: { operation: 'freeze' } })
   }
 
-  return json({
+  return data({
     success: true,
     operation: 'freeze',
     shouldRevalidate: true
@@ -58,7 +58,7 @@ const unfreezeCard = async (request: Request, cardId: string) => {
     return unfreezeResponse.error({ errors: { operation: 'unfreeze' } })
   }
 
-  return json({
+  return data({
     success: true,
     operation: 'unfreeze',
     shouldRevalidate: true
@@ -74,7 +74,7 @@ const blockCard = async (request: Request, cardId: string) => {
     return blockResponse.error({ errors: { operation: 'block' } })
   }
 
-  return json({
+  return data({
     success: true,
     operation: 'block',
     shouldRevalidate: true

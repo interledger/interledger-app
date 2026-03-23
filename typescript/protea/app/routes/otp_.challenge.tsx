@@ -1,12 +1,8 @@
+import type { Route } from './+types/otp_.challenge'
 import { Code } from '@bufbuild/connect'
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { redirect } from '@remix-run/node'
-import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import { route } from 'routes-gen'
+import { redirect } from 'react-router';
+import { Form, useActionData, useLoaderData } from 'react-router';
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   Button,
@@ -31,7 +27,7 @@ import {
 } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const session = await getUserSession(request)
 
   const len = session.identity.traits.phone.length
@@ -57,21 +53,21 @@ export const handle: ApplicationProps = {
   layout: Layouts.Focus,
   scaffold: {
     header: {
-      back: route('/'),
+      back: href('/'),
       title: 'Confirmation'
     }
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: "Confirm it's you"
   }
 ])
 
 export default function Page() {
-  const actionData = useActionData<typeof action>()
-  const { csrfToken, phoneMask, returnTo } = useLoaderData<typeof loader>()
+  const actionData = useActionData()
+  const { csrfToken, phoneMask, returnTo } = useLoaderData()
 
   return (
     <>
@@ -122,7 +118,7 @@ export default function Page() {
   )
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const form = await request.formData()
   const otp = form.get('otp') as string
   const returnTo = form.get('return_to') as string

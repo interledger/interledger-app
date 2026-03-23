@@ -1,17 +1,8 @@
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
-import {
-  Form,
-  useActionData,
-  useLoaderData,
-  useRevalidator
-} from '@remix-run/react'
+import type { Route } from './+types/recovery_.password'
+import { data, redirect } from 'react-router';
+import { Form, useActionData, useLoaderData, useRevalidator } from 'react-router';
 import { useEffect, useState } from 'react'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts, TextField } from '~/components'
 import { error } from '~/lib/error.server'
@@ -35,20 +26,20 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Set password'
   }
 ])
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
   const cookie = String(request.headers.get('cookie'))
   const isUser = hasUserSession(request)
 
   if (!isUser) {
-    return json({ flowId: '', csrfToken: '' })
+    return data({ flowId: '', csrfToken: '' })
   }
 
   let flow
@@ -64,7 +55,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       }
     )
     flow = await flowRes.json()
-    if (flowRes.status >= 400) handleFlowError(flow, 'recovery/password')
+    if (flowRes.status >= 400) handleFlowError(flow, 'recovery/password', flowId)
   } else {
     // Otherwise we initialize it
     const flowRes = await fetch(
@@ -74,20 +65,22 @@ export async function loader({ request }: LoaderFunctionArgs) {
     flow = await flowRes.json()
 
     if (flow.error?.id === 'session_aal2_required') {
-      return redirect('/totp/challenge?returnTo=/recovery/password')
+      const redirectURL = `/totp/challenge?returnTo=/recovery/password${flow.id ? encodeURIComponent(`?flow=${flow.id}`) : ''
+        }`
+      return redirect(redirectURL)
     }
 
-    if (flowRes.status >= 400) handleFlowError(flow, 'recovery/password')
+    if (flowRes.status >= 400) handleFlowError(flow, 'recovery/password', flow.id)
     return redirect(`/recovery/password?flow=${flow.id}`, {
       headers: trimHeaders(flowRes.headers, ['set-cookie'])
     })
   }
-  return json({ flowId: flow.id, csrfToken: getCsrfTokenFromFlow(flow) })
+  return data({ flowId: flow.id, csrfToken: getCsrfTokenFromFlow(flow) })
 }
 
 export default function Page() {
-  const actionData = useActionData<typeof action>()
-  const { flowId, csrfToken } = useLoaderData<typeof loader>()
+  const actionData = useActionData()
+  const { flowId, csrfToken } = useLoaderData()
   const { revalidate, state } = useRevalidator()
 
   const [revalidateCount, setRevalidateCount] = useState<number>(0)
@@ -156,7 +149,7 @@ export default function Page() {
   )
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const cookie = request.headers.get('Cookie') as string
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
@@ -203,7 +196,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   return redirectWithSnackbar(
     request,
-    route('/login'),
+    href('/login'),
     {
       message:
         'New password successfully saved. Please log in with your new password.',
