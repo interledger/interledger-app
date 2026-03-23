@@ -23,6 +23,9 @@ func getPhoneBaseForCountry(country string) string {
 		// +27 country code, 71 mobile prefix → +27710000000 (11 digits)
 		// South African mobile numbers: +27 XX XXXX XXX (9 digits after country code)
 		return "+27710000000"
+	case "united states", "usa", "us":
+		// +1 country code with US NANP area/exchange prefix.
+		return "+12020000000"
 	default:
 		// Germany / fallback: +49 country code, 1700 prefix → +491700000000 (12 digits)
 		return "+491700000000"
@@ -88,8 +91,17 @@ func (sc *E2EContext) iFillInPhoneWithRandomNumber(prefix string) error {
 		return fmt.Errorf("no emailSuffix defined for user '%s'", sc.currentUser)
 	}
 
-	// Use country-aware phone generation
-	phoneNumber := generateDeterministicPhone(sc.country, sc.testIdentifier, emailSuffix)
+	// Use Kratos-safe allocator for US to satisfy Kratos tel validation rules.
+	var err error
+	phoneNumber := ""
+	if strings.EqualFold(sc.country, "United States") || strings.EqualFold(sc.country, "USA") || strings.EqualFold(sc.country, "US") {
+		phoneNumber, err = sc.getNextAvailableUSPhoneNumber()
+		if err != nil {
+			return fmt.Errorf("failed to allocate US phone number: %w", err)
+		}
+	} else {
+		phoneNumber = generateDeterministicPhone(sc.country, sc.testIdentifier, emailSuffix)
+	}
 	debugPrintf("📱 Generated phone number: %s (country %s, emailSuffix %s, user %s)\n", phoneNumber, sc.country, emailSuffix, sc.currentUser)
 
 	// Store in user details for current user
@@ -106,7 +118,6 @@ func (sc *E2EContext) iFillInPhoneWithRandomNumber(prefix string) error {
 	})
 
 	// Fill in the phone field
-	var err error
 	err = sc.iFillInWith("phone", phoneNumber)
 	if err != nil {
 		return fmt.Errorf("failed to fill phone field: %w", err)

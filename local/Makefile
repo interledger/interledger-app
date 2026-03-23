@@ -169,6 +169,7 @@ HOSTS := interledger.test \
 	identity.interledger.test \
 	mockgatehub.interledger.test \
 	mockxago.interledger.test \
+	mockpti.interledger.test \
 	docs.interledger.test
 
 hosts:
