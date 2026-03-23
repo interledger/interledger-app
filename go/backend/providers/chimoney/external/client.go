@@ -36,9 +36,12 @@ type client struct {
 }
 
 func New(transport *http.Client) Client {
-	baseURL := "https://api.chimoney.io/v0.2.4"
-	if !env.IsProd() {
-		baseURL = "https://api-v2-sandbox.chimoney.io/v0.2.4"
+	baseURL := strings.TrimSuffix(os.Getenv("CHIMONEY_API_BASE_URL"), "/")
+	if baseURL == "" {
+		baseURL = "https://api.chimoney.io/v0.2.4"
+		if !env.IsProd() {
+			baseURL = "https://api-v2-sandbox.chimoney.io/v0.2.4"
+		}
 	}
 
 	api := otelhttp.DefaultClient

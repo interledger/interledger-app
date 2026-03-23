@@ -465,3 +465,40 @@ func (sc *E2EContext) getUserWalletCount(kratosUserID string) (int, error) {
 
 	return count, nil
 }
+
+// canadianPhonePrefix is the fixed prefix for Canadian test phone numbers.
+const canadianPhonePrefix = "+1416555"
+
+// nextCanadianPhone queries the Kratos identities table for phone numbers
+// starting with +1416555 and returns the next sequential number.
+// Format: +14165550001, +14165550002, etc.
+func nextCanadianPhone() (string, error) {
+	kratosConnStr := "host=localhost port=5432 user=postgres password=postgres dbname=kratos sslmode=disable"
+	kratosDB, err := sql.Open("postgres", kratosConnStr)
+	if err != nil {
+		return "", fmt.Errorf("nextCanadianPhone: could not connect to Kratos DB: %w", err)
+	}
+	defer kratosDB.Close()
+
+	// Kratos stores traits as JSONB in identity_traits.traits column.
+	// We look for phone values matching our prefix and find the max suffix.
+	var maxSuffix sql.NullInt64
+	err = kratosDB.QueryRow(`
+		SELECT MAX(CAST(SUBSTRING(traits->>'phone' FROM $1) AS INTEGER))
+		FROM identity_traits
+		WHERE traits->>'phone' LIKE $2
+	`, len(canadianPhonePrefix)+1, canadianPhonePrefix+"%").Scan(&maxSuffix)
+	if err != nil {
+		// Table may not exist or be empty – start at 1
+		debugPrintf("   ⚠️  nextCanadianPhone: query error (starting at 1): %v\n", err)
+		return fmt.Sprintf("%s%04d", canadianPhonePrefix, 1), nil
+	}
+
+	next := int64(1)
+	if maxSuffix.Valid {
+		next = maxSuffix.Int64 + 1
+	}
+	phone := fmt.Sprintf("%s%04d", canadianPhonePrefix, next)
+	debugPrintf("📱 nextCanadianPhone: %s (max existing suffix: %v)\n", phone, maxSuffix)
+	return phone, nil
+}

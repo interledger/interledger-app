@@ -122,9 +122,11 @@ services:
       - PERSONA_TOKEN=${BACKEND_PERSONA_TOKEN:-}
       - PERSONA_WEBHOOK_TOKEN=${BACKEND_PERSONA_WEBHOOK_TOKEN:-}
 
-      # Chimoney
-      - CHIMONEY_TOKEN=${BACKEND_CHIMONEY_TOKEN:-}
-      - CHIMONEY_WEBHOOK_SECRET=${BACKEND_CHIMONEY_WEBHOOK_SECRET:-}
+      # Chimoney provider configuration (MockChimoney for local development)
+      - CHIMONEY_API_BASE_URL=${BACKEND_CHIMONEY_API_BASE_URL:-http://mockchimoney:8080/v0.2.4}
+      - CHIMONEY_KYC_BASE_URL=${BACKEND_CHIMONEY_KYC_BASE_URL:-https://mockchimoney.interledger.test}
+      - CHIMONEY_TOKEN=${BACKEND_CHIMONEY_TOKEN:-local-test-api-key}
+      - CHIMONEY_WEBHOOK_SECRET=${BACKEND_CHIMONEY_WEBHOOK_SECRET:-local_bG9jYWwtdGVzdC13ZWJob29rLXNlY3JldA==}
 
       # Integrations: comms, analytics, support
       - TWILIO_ACCOUNT_SID=${BACKEND_TWILIO_ACCOUNT_SID:-SK021f793191208ba69c3bea87dd426085}
@@ -185,3 +187,4 @@ services:
       - migration
       - mockgatehub
       - mockxago
+      - mockchimoney

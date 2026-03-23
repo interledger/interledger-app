@@ -1,0 +1,32 @@
+services:
+  mockchimoney:
+    build:
+      context: ..
+      dockerfile: go/mock/mockchimoney/Dockerfile
+    profiles:
+      - application
+    restart: always
+    expose:
+      - "8080"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mockchimoney.rule=Host(`mockchimoney.interledger.test`)"
+      - "traefik.http.routers.mockchimoney.entrypoints=websecure"
+      - "traefik.http.services.mockchimoney.loadbalancer.server.port=8080"
+    environment:
+      - LOG_LEVEL=debug
+      - MOCKCHIMONEY_PORT=8080
+      - MOCKCHIMONEY_API_KEY=${BACKEND_CHIMONEY_TOKEN:-local-test-api-key}
+      - MOCKCHIMONEY_ENFORCE_AUTHENTICATION=true
+      - MOCKCHIMONEY_REDIS_URL=redis://redis:6379
+      - MOCKCHIMONEY_REDIS_DB=5
+      - WEBHOOK_URL=http://backend:8080/webhooks/chimoney
+      - CHIMONEY_WEBHOOK_SECRET=${BACKEND_CHIMONEY_WEBHOOK_SECRET:-local_bG9jYWwtdGVzdC13ZWJob29rLXNlY3JldA==}
+      - MOCKCHIMONEY_PUBLIC_BASE_URL=https://mockchimoney.interledger.test
+      - WEBHOOK_MIN_DELAY_SEC=0.1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s

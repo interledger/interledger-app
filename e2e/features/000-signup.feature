@@ -8,6 +8,7 @@ Feature: User Signup
     And the frontend is running at "https://interledger.test"
     And mockgatehub is running at "https://mockgatehub.interledger.test"
     And mockxago is running at "https://mockxago.interledger.test"
+    And mockchimoney is running at "https://mockchimoney.interledger.test"
     Given the details of 'signup-user' are
       | field           | value                        |
       | emailSuffix     | signup@example.com           |
@@ -30,6 +31,16 @@ Feature: User Signup
   @signup @gatehub
   Scenario: Successfully sign up as a German user
     Given that my "country" is "germany"
+    And I completed the signup workflow
+    And I completed the account verification workflow
+    And I finished the TOTP registration workflow
+    And I finished the wallet address creation workflow
+    Then I should be navigated back to the dashboard with reserved wallet status
+    And I take a screenshot "signup-complete"
+
+  @signup @chimoney
+  Scenario: Successfully sign up as a Canadian user
+    Given that my "country" is "Canada"
     And I completed the signup workflow
     And I completed the account verification workflow
     And I finished the TOTP registration workflow

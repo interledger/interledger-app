@@ -23,6 +23,9 @@ func getPhoneBaseForCountry(country string) string {
 		// +27 country code, 71 mobile prefix → +27710000000 (11 digits)
 		// South African mobile numbers: +27 XX XXXX XXX (9 digits after country code)
 		return "+27710000000"
+	case "canada":
+		// +1 country code, 647 Toronto mobile prefix → +16470000000 (11 digits)
+		return "+16470000000"
 	default:
 		// Germany / fallback: +49 country code, 1700 prefix → +491700000000 (12 digits)
 		return "+491700000000"
@@ -89,7 +92,17 @@ func (sc *E2EContext) iFillInPhoneWithRandomNumber(prefix string) error {
 	}
 
 	// Use country-aware phone generation
-	phoneNumber := generateDeterministicPhone(sc.country, sc.testIdentifier, emailSuffix)
+	var phoneNumber string
+	if strings.EqualFold(sc.country, "canada") {
+		// Canada needs a DB-based sequential counter to satisfy Kratos phone validation
+		var err error
+		phoneNumber, err = nextCanadianPhone()
+		if err != nil {
+			return fmt.Errorf("failed to generate Canadian phone number: %w", err)
+		}
+	} else {
+		phoneNumber = generateDeterministicPhone(sc.country, sc.testIdentifier, emailSuffix)
+	}
 	debugPrintf("📱 Generated phone number: %s (country %s, emailSuffix %s, user %s)\n", phoneNumber, sc.country, emailSuffix, sc.currentUser)
 
 	// Store in user details for current user

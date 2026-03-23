@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"os"
+	"strings"
 	"time"
 
 	"gitlab.com/fynbos/env"
@@ -576,11 +578,14 @@ func GetKYCWidget(ctx context.Context, b Backends, walletID string) (string, err
 		return "", err
 	}
 
-	baseURL := "https://dash.chimoney.io"
-	redirectURL := fmt.Sprintf("%s/callbacks/chimoney?kyc", env.GetUrl())
-	if !env.IsProd() {
-		baseURL = "https://sandbox.chimoney.io"
+	baseURL := strings.TrimSuffix(os.Getenv("CHIMONEY_KYC_BASE_URL"), "/")
+	if baseURL == "" {
+		baseURL = "https://dash.chimoney.io"
+		if !env.IsProd() {
+			baseURL = "https://sandbox.chimoney.io"
+		}
 	}
+	redirectURL := fmt.Sprintf("%s/callbacks/chimoney?kyc", env.GetUrl())
 
 	widgetURL := fmt.Sprintf("%s/verify/kyc/%s?redirect=%s", baseURL, externalID, redirectURL)
 

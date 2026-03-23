@@ -18,3 +18,4 @@ include:
   - mockbos.yaml
   - mockgatehub.yaml
   - mockxago.yaml
+  - mockchimoney.yaml

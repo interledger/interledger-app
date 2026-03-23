@@ -97,6 +97,7 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^the frontend is running at "([^"]*)"$`, func(url string) error { return sc.theFrontendIsRunningAt(url) })
 	ctx.Step(`^mockgatehub is running at "([^"]*)"$`, func(url string) error { return sc.theMockgatehubIsRunningAt(url) })
 	ctx.Step(`^mockxago is running at "([^"]*)"$`, func(url string) error { return sc.theMockxagoIsRunningAt(url) })
+	ctx.Step(`^mockchimoney is running at "([^"]*)"$`, func(url string) error { return sc.theMockchimoneyIsRunningAt(url) })
 	ctx.Step(`^Rafiki assets are seeded$`, func() error { return sc.rafikiAssetsExist() })
 
 	// User details and impersonation steps
@@ -303,6 +304,21 @@ func (sc *E2EContext) theMockxagoIsRunningAt(urlStr string) error {
 	}
 
 	debugPrintf("🔍 Verifying mockxago health endpoint at %s...\n", urlStr)
+	healthURL := strings.TrimSuffix(urlStr, "/") + "/health"
+	return waitForHealthEndpoint(healthURL, 30*time.Second)
+}
+
+func (sc *E2EContext) theMockchimoneyIsRunningAt(urlStr string) error {
+	parsedURL, err := url.Parse(urlStr)
+	if err != nil {
+		return fmt.Errorf("failed to parse mockchimoney URL: %w", err)
+	}
+
+	if err := sc.ensureHostsResolve([]string{parsedURL.Hostname()}); err != nil {
+		return err
+	}
+
+	debugPrintf("🔍 Verifying mockchimoney health endpoint at %s...\n", urlStr)
 	healthURL := strings.TrimSuffix(urlStr, "/") + "/health"
 	return waitForHealthEndpoint(healthURL, 30*time.Second)
 }
