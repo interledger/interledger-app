@@ -31,3 +31,9 @@ jobs:
       test_path: './go/mock/mockgatehub'
       coverage_key: 'mockgatehub'
 
+  mockpti-tests:
+    uses: ./.github/workflows/mock-tester.yml
+    with:
+      test_path: './go/mock/mockpti'
+      coverage_key: 'mockpti'
+
