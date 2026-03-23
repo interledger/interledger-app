@@ -9,7 +9,7 @@ import { useEffect, useState } from 'react'
 import {
   type PaymentResultType,
   finishPayment,
-  checkOutgoingPayment, 
+  checkOutgoingPayment,
   getGrantStatus
 } from '~/lib/open-payments.server'
 import { destroySession, getSession } from '~/session.server'
@@ -66,8 +66,8 @@ export const meta: MetaFunction = mergeMeta(() => [
 
 export default function Page() {
   const actionData = useActionData<typeof action>()
-  const [ loading, setLoading ] = useState(false)
-  const [ message, setMessage ] = useState('') 
+  const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState('')
   const { paymentId, hash, interactRef, result, currentGrant } = useLoaderData<typeof loader>()
   const fetcher = useFetcher()
 
@@ -102,35 +102,32 @@ export default function Page() {
   return (
     <WalletGrid>
       <GridColumn className="col-span-full mt-20 mx-auto text-center max-w-md">
-        {isLoading && (
+        {isLoading ? (
           <>
             <div className="animate-spin h-10 w-10 border-b-2 border-current rounded-full mx-auto mb-6" />
             <div className="text-lg">Checking payment...</div>
           </>
-        )}
+        ) : (
+          <Form method="post">
+            {!isLoading && fetcherData?.success ? (
+              <>
+                <div className="text-3xl mb-4">Payment successful</div>
+                <div className="mb-10">Your payment was completed.</div>
 
-        <Form method="post">
-          {!isLoading && fetcherData?.success && (
-            <>
-              <div className="text-3xl mb-4">Payment successful</div>
-              <div className="mb-10">Your payment was completed.</div>
+                <Button type="submit" name="intent" value="finish">Home</Button>
+              </>
+            ) : (
+              <>
+                <div><FinishError /></div>
+                <div className="text-3xl mb-4 text-red-600">Payment failed</div>
+                <div className="mb-10">
+                  {fetcherData?.message || message}
+                </div>
 
-              <Button type="submit" name="intent" value="finish">Home</Button>
-            </>
-          )}
-
-          {!isLoading && fetcherData && !fetcherData.success && (
-            <>
-              <div><FinishError /></div>
-              <div className="text-3xl mb-4 text-red-600">Payment failed</div>
-              <div className="mb-10">
-                {fetcherData.message || message}
-              </div>
-
-              <Button type="submit" name="intent" value="finish">Home</Button>
-            </>
-          )}
-        </Form>
+                <Button type="submit" name="intent" value="finish">Home</Button>
+              </>
+            )}
+          </Form>)}
       </GridColumn>
     </WalletGrid>
   )
@@ -223,22 +220,22 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     try {
-     /* const finishPaymentResponse = await finishPayment(
-        grant,
-        quote,
-        walletAddressInfo,
-        interactRef
-      )
-      console.log({ finishPaymentResponse })
-      const result = await checkOutgoingPayment(
-        finishPaymentResponse.url,
-        finishPaymentResponse.accessToken,
-        quote.incomingPaymentGrantToken,
-        quote.receiver,
-        isRequestPayment
-      )*/
+      /* const finishPaymentResponse = await finishPayment(
+         grant,
+         quote,
+         walletAddressInfo,
+         interactRef
+       )
+       console.log({ finishPaymentResponse })
+       const result = await checkOutgoingPayment(
+         finishPaymentResponse.url,
+         finishPaymentResponse.accessToken,
+         quote.incomingPaymentGrantToken,
+         quote.receiver,
+         isRequestPayment
+       )*/
       const grantStatus = await getGrantStatus(grant.continue.access_token.value, grant.continue.uri, interactRef)
-      console.log({grantStatus})
+      console.log({ grantStatus })
       const result = null
       return json(result)
     } catch (err) {
