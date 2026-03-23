@@ -25,6 +25,7 @@ import (
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/backend/wallets"
+	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/pacioli"
 	temporal "go.temporal.io/sdk/client"
 )
@@ -68,7 +69,7 @@ func (b actionRequiredWebhookBackends) Payments() payments.Client             { 
 func (b actionRequiredWebhookBackends) Notify() notify.Client                 { return nil }
 
 func TestHandleActionRequiredWebhook_StatusDocumentsRequired(t *testing.T) {
-	t.Parallel()
+	env.SetEnv(t, "local")
 
 	ctx := context.Background()
 	testDB := db.MigrateTestDB(t, ctx)
@@ -124,7 +125,7 @@ func TestHandleActionRequiredWebhook_StatusDocumentsRequired(t *testing.T) {
 }
 
 func TestHandleActionRequiredWebhook_InvalidPayload(t *testing.T) {
-	t.Parallel()
+	env.SetEnv(t, "local")
 
 	rr := httptest.NewRecorder()
 	HandleActionRequiredWebhook(context.Background(), actionRequiredWebhookBackends{}, json.RawMessage(`{"event_type":`), rr)
@@ -132,7 +133,7 @@ func TestHandleActionRequiredWebhook_InvalidPayload(t *testing.T) {
 }
 
 func TestHandleActionRequiredWebhook_WalletNotFound(t *testing.T) {
-	t.Parallel()
+	env.SetEnv(t, "local")
 
 	ctx := context.Background()
 	testDB := db.MigrateTestDB(t, ctx)
@@ -157,7 +158,7 @@ func TestHandleActionRequiredWebhook_WalletNotFound(t *testing.T) {
 }
 
 func TestHandleActionRequiredWebhook_IgnoresOtherGateways(t *testing.T) {
-	t.Parallel()
+	env.SetEnv(t, "local")
 
 	ctx := context.Background()
 	testDB := db.MigrateTestDB(t, ctx)
@@ -182,7 +183,7 @@ func TestHandleActionRequiredWebhook_IgnoresOtherGateways(t *testing.T) {
 }
 
 func TestHandleActionRequiredWebhook_SetKYCStatusError(t *testing.T) {
-	t.Parallel()
+	env.SetEnv(t, "local")
 
 	ctx := context.Background()
 	testDB := db.MigrateTestDB(t, ctx)
