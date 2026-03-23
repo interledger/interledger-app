@@ -3,6 +3,7 @@ import type { UIMatch } from '@remix-run/react'
 import {
   NavLink,
   Outlet,
+  useLoaderData,
   useMatches,
   useNavigate,
   useRouteLoaderData,
@@ -96,6 +97,7 @@ const NavDrawerRoot = ({ children }: { children?: ReactNode }) => {
 }
 
 export function Scaffold() {
+  const { showQuickPay } = useLoaderData()
   const [openNavModal, setOpenNavModal] = useState<boolean>(false)
   const matches = useMatches()
   const navigate = useNavigate()
@@ -209,9 +211,10 @@ export function Scaffold() {
               </button>
             )}
             <NavDrawer.ListItem to={route('/')}>Home</NavDrawer.ListItem>
+            {showQuickPay &&
             <NavDrawer.ListItem to={route('/quick-pay')}>
               Quick Pay
-            </NavDrawer.ListItem>
+            </NavDrawer.ListItem>}
             <NavDrawer.ListItem to={route('/accounts')}>
               Accounts
             </NavDrawer.ListItem>
@@ -266,7 +269,8 @@ export function Scaffold() {
               {/*<HeaderPopover />*/}
               {/*<HeaderLink to={route('/docs')} title='Docs' />*/}
               {/*<HeaderLink to={route('/blog')} title='Blog' />*/}
-              <HeaderLink to={route('/quick-pay')} title='Quick Pay' />
+              {showQuickPay &&
+              <HeaderLink to={route('/quick-pay')} title='Quick Pay' />}
               <HeaderLink to={route('/contact')} title='Contact' />
             </div>
             <div className='ml-auto hidden items-center lg:flex'>
@@ -542,9 +546,10 @@ export function Scaffold() {
                   </Router>
                 </div>
                 <NavDrawer.ListItem to={route('/')}>Home</NavDrawer.ListItem>
+                {showQuickPay &&
                 <NavDrawer.ListItem to={route('/quick-pay')}>
                   Quick Pay
-                </NavDrawer.ListItem>
+                </NavDrawer.ListItem>}
                 <NavDrawer.ListItem to={route('/accounts')}>
                   Accounts
                 </NavDrawer.ListItem>
@@ -623,9 +628,10 @@ export function Scaffold() {
                 {/*<NavDrawer.ListItem to={route('/docs')}>*/}
                 {/*  Docs*/}
                 {/*</NavDrawer.ListItem>*/}
+                {showQuickPay &&
                 <NavDrawer.ListItem to={route('/quick-pay')}>
                   Quick Pay
-                </NavDrawer.ListItem>
+                </NavDrawer.ListItem>}
                 <NavDrawer.ListItem to={route('/contact')}>
                   Contact
                 </NavDrawer.ListItem>

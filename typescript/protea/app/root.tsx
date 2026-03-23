@@ -135,6 +135,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   const url = new URL(request.url)
   const pathname = url.pathname
+  const showQuickPay = process.env.OP_INTPAY_ENABLED ?? false
   let features = new Features()
   let isDisabled = false
   let walletAddress = ''
@@ -181,7 +182,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
     features,
     snackbar,
     pusherArgs,
-    env
+    env,
+    showQuickPay
   })
 }
 
