@@ -43,6 +43,7 @@ import { grpc } from './lib/grpc.server'
 import { getPusherArgs } from './lib/pusher.server'
 import { emailVerificationGuard, recoveryLinkSessionInvalidationGuard, withAAL2Guard } from './lib/totp.server'
 import { usePusher } from './lib/usePusher'
+import { envBool } from '~/env.server'
 
 export const shouldRevalidate: ShouldRevalidateFunction = ({
   actionResult,
@@ -135,7 +136,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   const url = new URL(request.url)
   const pathname = url.pathname
-  const showQuickPay = process.env.OP_INTPAY_ENABLED ?? false
+  const showQuickPay = envBool('OP_INTPAY_ENABLED') ?? false
   let features = new Features()
   let isDisabled = false
   let walletAddress = ''
