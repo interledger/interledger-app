@@ -1191,7 +1191,7 @@ table "wallet_kyc_status" {
   }
   column "document_expiration_date" {
     null    = true
-    type    = timestamp
+    type    = date
     comment = "Phase 2: Tracks when documents will expire"
   }
   column "created_at" {
