@@ -92,6 +92,6 @@ func (c *client) SendPending3DSConfirmation(ctx context.Context, walletID, confi
 	ops.SendPending3DSConfirmation(ctx, c.b, walletID, confirmationID)
 }
 
-func (c *client) SendAgreementChangedEmail(ctx context.Context, userID string, agreements []email.AgreementLink, deadlineDate string) {
-	ops.SendAgreementChangedEmail(ctx, c.b, userID, agreements, deadlineDate)
+func (c *client) SendAgreementChangedEmail(ctx context.Context, userID string, agreements []email.AgreementLink, deadlineDate string) error {
+	return ops.SendAgreementChangedEmail(ctx, c.b, userID, agreements, deadlineDate)
 }

@@ -219,9 +219,11 @@ func (mr *MockClientMockRecorder) SendWithdrawalFailedEmail(ctx, walletID interf
 }
 
 // SendAgreementChangedEmail mocks base method.
-func (m *MockClient) SendAgreementChangedEmail(ctx context.Context, userID string, agreements []email.AgreementLink, deadlineDate string) {
+func (m *MockClient) SendAgreementChangedEmail(ctx context.Context, userID string, agreements []email.AgreementLink, deadlineDate string) error {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "SendAgreementChangedEmail", ctx, userID, agreements, deadlineDate)
+	ret := m.ctrl.Call(m, "SendAgreementChangedEmail", ctx, userID, agreements, deadlineDate)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // SendAgreementChangedEmail indicates an expected call of SendAgreementChangedEmail.

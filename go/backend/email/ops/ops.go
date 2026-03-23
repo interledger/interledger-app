@@ -505,11 +505,11 @@ func SendPending3DSConfirmation(ctx context.Context, b Backends, walletID, confi
 	}
 }
 
-func SendAgreementChangedEmail(ctx context.Context, b Backends, userID string, agreements []email.AgreementLink, deadlineDate string) {
+func SendAgreementChangedEmail(ctx context.Context, b Backends, userID string, agreements []email.AgreementLink, deadlineDate string) error {
 	u, err := b.Users().GetUser(ctx, userID)
 	if err != nil {
 		log.Error("Failed to send agreement changed email: could not get user.", zap.Error(err), zap.String("userID", userID))
-		return
+		return err
 	}
 	greeting := strings.TrimSpace(fmt.Sprintf("Hello %s", u.FirstName)) + ","
 	sendTo := []sendgrid.Email{{Name: u.FirstName + " " + u.LastName, Address: u.Email}}
@@ -533,5 +533,7 @@ func SendAgreementChangedEmail(ctx context.Context, b Backends, userID string, a
 	}, nil)
 	if err != nil {
 		log.Error("Failed to send agreement changed email.", zap.Error(err), zap.String("userID", userID))
+		return err
 	}
+	return nil
 }

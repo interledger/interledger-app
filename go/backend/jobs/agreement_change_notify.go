@@ -172,6 +172,5 @@ func (a *Activity) GetAgreementNamesForUserBatch(ctx context.Context, userIDs []
 }
 
 func (a *Activity) SendAgreementChangedEmailActivity(ctx context.Context, userID string, agreements []email.AgreementLink, deadlineDate string) error {
-	a.b.Email().SendAgreementChangedEmail(ctx, userID, agreements, deadlineDate)
-	return nil
+	return a.b.Email().SendAgreementChangedEmail(ctx, userID, agreements, deadlineDate)
 }
