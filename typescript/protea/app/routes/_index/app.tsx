@@ -55,6 +55,32 @@ export function AppPage() {
             </Router>
           </Alert>
         )}
+        {kycStatus == KycStatus.DocumentsRequired && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Wallet</CardTitle>
+              <Chip color={ChipColor.orange}>Reserved</Chip>
+            </CardHeader>
+            <CardContent>
+              <div className='flex items-start space-x-4'>
+                <CardIcon>
+                  <Icon>account_balance_wallet</Icon>
+                </CardIcon>
+                <div className='flex flex-col space-y-4'>
+                  <p className='text-sm text-medium'>
+                    Your documents have expired, upload new ones to reactivate your wallet.
+                  </p>
+                  <Router
+                    className='text-sm font-medium text-primary'
+                    to={href('/personal-details')}
+                  >
+                    Reactivate wallet
+                  </Router>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
         {kycStatus == KycStatus.Unknown && (
           <Card>
             <CardHeader>
