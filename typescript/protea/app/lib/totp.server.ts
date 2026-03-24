@@ -23,7 +23,8 @@ const PASSWORD_RECOVERY_ALLOWED_ROUTES = [
   '/logout', // temporary fix for logging out when on challenge page
   '/totp/challenge',
   '/recovery',
-  '/recovery/password'
+  '/recovery/password',
+  '/settings'
 ]
 
 /**
@@ -89,6 +90,11 @@ export async function emailVerificationGuard(
 
 export async function withAAL2Guard(pathname: string, request: Request, fn: () => Promise<void>) {
   if (NON_FULL_SESSION_ROUTES.includes(pathname)) {
+    return
+  }
+
+  const url = new URL(request.url)
+  if (pathname === '/settings' && url.searchParams.has('flow')) {
     return
   }
 
