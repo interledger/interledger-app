@@ -34,6 +34,6 @@ function requireEnv(name: string, missing: string[]): string | undefined {
     return value
 }
 
-function envBool(name: string): boolean {
+export function envBool(name: string): boolean {
     return process.env[name]?.toLowerCase() === "true"
 }
