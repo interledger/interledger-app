@@ -69,6 +69,7 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 
 	// KYC 2FA steps
 	ctx.Step(`^I submit the KYC form for user \{userId\} without 2FA$`, tc.submitKYCFormWithout2FA)
+	ctx.Step(`^I submit the KYC form for user \{userId\} with outcome "([^"]*)"$`, tc.submitKYCFormWithOutcome)
 	ctx.Step(`^I submit the KYC form for user \{userId\} with 2FA and code "([^"]*)"$`, tc.submitKYCFormWith2FA)
 
 	// Signature auth steps
