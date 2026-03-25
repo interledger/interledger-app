@@ -17,6 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/db"
 	email "gitlab.com/fynbos/backend/email"
+	email_mock "gitlab.com/fynbos/backend/email/client/mock"
 	kycclient "gitlab.com/fynbos/backend/kyc"
 	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -54,6 +55,7 @@ func TestVerifyWebhook(t *testing.T) {
 type actionRequiredWebhookBackends struct {
 	db *sqlx.DB
 	kc kycclient.Client
+	ec email.Client
 }
 
 func (b actionRequiredWebhookBackends) DB() *sqlx.DB                          { return b.db }
@@ -62,7 +64,7 @@ func (b actionRequiredWebhookBackends) Users() user.Client                    { 
 func (b actionRequiredWebhookBackends) Temporal() temporal.Client             { return nil }
 func (b actionRequiredWebhookBackends) Wallets() wallets.Client               { return nil }
 func (b actionRequiredWebhookBackends) Pacioli() pacioli.Client               { return nil }
-func (b actionRequiredWebhookBackends) Email() email.Client                   { return nil }
+func (b actionRequiredWebhookBackends) Email() email.Client                   { return b.ec }
 func (b actionRequiredWebhookBackends) KYC() kycclient.Client                 { return b.kc }
 func (b actionRequiredWebhookBackends) Transactions() transactions.Client     { return nil }
 func (b actionRequiredWebhookBackends) Payments() payments.Client             { return nil }
@@ -77,7 +79,8 @@ func TestHandleActionRequiredWebhook_StatusDocumentsRequired(t *testing.T) {
 	t.Cleanup(ctrl.Finish)
 
 	kc := kyc_mock.NewMockClient(ctrl)
-	b := actionRequiredWebhookBackends{db: testDB, kc: kc}
+	ec := email_mock.NewMockClient(ctrl)
+	b := actionRequiredWebhookBackends{db: testDB, kc: kc, ec: ec}
 
 	const walletID = "ac4fa1e0-2742-49fc-9a0f-fbb6d5859a7b"
 	const externalUserID = "gatehub-user-123"
@@ -115,6 +118,7 @@ func TestHandleActionRequiredWebhook_StatusDocumentsRequired(t *testing.T) {
 			require.NoError(t, err)
 
 			kc.EXPECT().SetKYCStatus(ctx, walletID, kycclient.StatusDocumentsRequired).Return(nil)
+			ec.EXPECT().SendKYCDocumentsRequiredEmail(ctx, walletID, tt.reason)
 
 			rr := httptest.NewRecorder()
 			HandleActionRequiredWebhook(ctx, b, payload, rr)
