@@ -353,33 +353,6 @@ export type DateFilter = {
   neq?: InputMaybe<Scalars['Date']>;
 };
 
-/** Record of type Discord route (discord_route) */
-export type DiscordRouteRecord = RecordInterface & {
-  __typename?: 'DiscordRouteRecord';
-  _createdAt: Scalars['DateTime'];
-  /** Editing URL */
-  _editingUrl?: Maybe<Scalars['String']>;
-  _firstPublishedAt?: Maybe<Scalars['DateTime']>;
-  _isValid: Scalars['BooleanType'];
-  _modelApiKey: Scalars['String'];
-  _publicationScheduledAt?: Maybe<Scalars['DateTime']>;
-  _publishedAt?: Maybe<Scalars['DateTime']>;
-  /** SEO meta tags */
-  _seoMetaTags: Array<Tag>;
-  _status: ItemStatus;
-  _unpublishingScheduledAt?: Maybe<Scalars['DateTime']>;
-  _updatedAt: Scalars['DateTime'];
-  body: Array<SectionRecord>;
-  id: Scalars['ItemId'];
-  seoMeta?: Maybe<SeoField>;
-};
-
-
-/** Record of type Discord route (discord_route) */
-export type DiscordRouteRecord_SeoMetaTagsArgs = {
-  locale?: InputMaybe<SiteLocale>;
-};
-
 export type DocModelFilter = {
   AND?: InputMaybe<Array<InputMaybe<DocModelFilter>>>;
   OR?: InputMaybe<Array<InputMaybe<DocModelFilter>>>;
@@ -3140,8 +3113,6 @@ export type Query = {
   collectablesRoute?: Maybe<CollectablesRouteRecord>;
   /** Returns the single instance record */
   contactRoute?: Maybe<ContactRouteRecord>;
-  /** Returns the single instance record */
-  discordRoute?: Maybe<DiscordRouteRecord>;
   /** Returns a specific record */
   doc?: Maybe<DocRecord>;
   /** Returns the single instance record */
@@ -3354,13 +3325,6 @@ export type QueryCollectablesRouteArgs = {
 
 /** The query root for this schema */
 export type QueryContactRouteArgs = {
-  fallbackLocales?: InputMaybe<Array<SiteLocale>>;
-  locale?: InputMaybe<SiteLocale>;
-};
-
-
-/** The query root for this schema */
-export type QueryDiscordRouteArgs = {
   fallbackLocales?: InputMaybe<Array<SiteLocale>>;
   locale?: InputMaybe<SiteLocale>;
 };

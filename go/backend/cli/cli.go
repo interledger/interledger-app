@@ -78,9 +78,6 @@ type StartArgs struct {
 	TwitterClientSecret           string
 	TwitterRedirectURL            string
 	TwitterBearerToken            string
-	DiscordClientID               string
-	DiscordClientSecret           string
-	DiscordRedirectURL            string
 	GatehubAppID                  string
 	GatehubSecret                 string
 	GatehubCardAppID              string
@@ -441,9 +438,6 @@ func ParseStartArgs() (*StartArgs, error) {
 		SmartyAuthToken:               smartyAuthToken,
 		PusherAddr:                    pusherAddr,
 		SegmentKey:                    segmentKey,
-		DiscordClientID:               "",
-		DiscordClientSecret:           "",
-		DiscordRedirectURL:            "",
 		GatehubAppID:                  gatehubAppID,
 		GatehubSecret:                 gatehubSecret,
 		GatehubCardAppID:              gatehubCardAppID,

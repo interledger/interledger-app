@@ -34,8 +34,7 @@ import (
 	contacts_client "gitlab.com/fynbos/backend/contacts/client"
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/discord"
-	discord_client "gitlab.com/fynbos/backend/discord/client"
+
 	"gitlab.com/fynbos/backend/email"
 	email_client "gitlab.com/fynbos/backend/email/client"
 	"gitlab.com/fynbos/backend/features"
@@ -511,7 +510,6 @@ type backends struct {
 	img            images.Client
 	wallet         wallets.Client
 	payment        payments.Client
-	discord        discord.Client
 	slack          slack.Client
 	rafiki         rafiki.Client
 	xago           xago.Client
@@ -546,10 +544,6 @@ func (b backends) Slack() slack.Client {
 
 func (b backends) Rafiki() rafiki.Client {
 	return b.rafiki
-}
-
-func (b backends) Discord() discord.Client {
-	return b.discord
 }
 
 func (b backends) Payments() payments.Client {
@@ -700,14 +694,6 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 		TokenEndpoint: "https://api.twitter.com/2/oauth2/token",
 		RedirectURL:   args.TwitterRedirectURL,
 		BearerToken:   args.TwitterBearerToken,
-	})
-
-	b.discord = discord_client.New(b, &discord_client.NewClientArgs{
-		ClientID:      args.DiscordClientID,
-		ClientSecret:  args.DiscordClientSecret,
-		AuthEndpoint:  "https://discord.com/oauth2/authorize",
-		TokenEndpoint: "https://discord.com/api/oauth2/token",
-		RedirectURL:   args.DiscordRedirectURL,
 	})
 
 	b.slack, err = slack_client.New(b)

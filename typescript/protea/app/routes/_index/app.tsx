@@ -13,7 +13,6 @@ import {
   CardTitle,
   Chip,
   ChipColor,
-  DiscordIcon,
   GridColumn,
   Icon,
   InterledgerIcon,
@@ -245,9 +244,6 @@ export function AppPage() {
                           )}
                           {transaction.destinationIdentityType == 'Twitter' && (
                             <TwitterIcon />
-                          )}
-                          {transaction.destinationIdentityType == 'Discord' && (
-                            <DiscordIcon />
                           )}
                           {transaction.destinationIdentityType == 'Slack' && (
                             <SlackIcon />

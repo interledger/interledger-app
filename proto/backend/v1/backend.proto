@@ -123,10 +123,6 @@ service BackendService {
   // Search
   rpc SearchWallets(SearchWalletsRequest) returns (SearchWalletsResponse);
 
-  // Discord
-  rpc DiscordCallback(DiscordCallbackRequest) returns (DiscordCallbackResponse);
-  rpc CreateDiscordAuthURL(Empty) returns (CreateDiscordAuthURLResponse);
-
   // Slack
   rpc CreateSlackAuthURL(Empty) returns (CreateSlackAuthURLResponse);
   rpc SlackCallback(SlackCallbackRequest) returns (SlackCallbackResponse);
@@ -1147,19 +1143,6 @@ message TwitterCallbackRequest {
 
 message TwitterCallbackResponse {
   string id = 1;
-}
-
-message DiscordCallbackRequest {
-  string state = 1;
-  string code = 2;
-}
-
-message DiscordCallbackResponse {
-  string id = 1;
-}
-
-message CreateDiscordAuthURLResponse {
-  string url = 1;
 }
 
 message GetIdentityRequest {
