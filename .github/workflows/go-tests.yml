@@ -36,3 +36,9 @@ jobs:
     with:
       test_path: './go/mock/mockchimoney'
       coverage_key: 'mockchimoney'
+
+  mockpti-tests:
+    uses: ./.github/workflows/mock-tester.yml
+    with:
+      test_path: './go/mock/mockpti'
+      coverage_key: 'mockpti'
