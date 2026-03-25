@@ -77,7 +77,13 @@ func NotifyAgreementChangedWorkflow(ctx workflow.Context, agreementIDs []string,
 		StartToCloseTimeout: agreementChangeActivityTimeout,
 		RetryPolicy:         &temporal.RetryPolicy{MaximumAttempts: 3},
 	})
-	dispatchEmails(sendOpts, a, userIDs, namesByUser, metadata, deadlineDate)
+	succeededUserIDs := dispatchEmails(sendOpts, a, userIDs, namesByUser, metadata, deadlineDate)
+
+	if len(succeededUserIDs) > 0 {
+		if err := workflow.ExecuteActivity(ctx, a.MarkUsersNotifiedActivity, succeededUserIDs, changes).Get(ctx, nil); err != nil {
+			return err
+		}
+	}
 
 	if len(userIDs) < agreementChangePageSize {
 		return nil
@@ -85,16 +91,19 @@ func NotifyAgreementChangedWorkflow(ctx workflow.Context, agreementIDs []string,
 	return workflow.NewContinueAsNewError(ctx, NotifyAgreementChangedWorkflow, agreementIDs, deadlineDate, startOffset+agreementChangePageSize, changes, metadata)
 }
 
-func dispatchEmails(ctx workflow.Context, a *Activity, userIDs []string, namesByUser map[string][]string, metadata map[string]AgreementMetadata, deadlineDate string) {
+func dispatchEmails(ctx workflow.Context, a *Activity, userIDs []string, namesByUser map[string][]string, metadata map[string]AgreementMetadata, deadlineDate string) []string {
 	type pendingEmail struct {
 		userID string
 		future workflow.Future
 	}
 	var pending []pendingEmail
+	var succeeded []string
 	drain := func() {
 		for _, p := range pending {
 			if err := p.future.Get(ctx, nil); err != nil {
 				workflow.GetLogger(ctx).Warn("failed to send agreement changed email after retries", zap.String("userID", p.userID), zap.Error(err))
+			} else {
+				succeeded = append(succeeded, p.userID)
 			}
 		}
 		pending = nil
@@ -113,6 +122,7 @@ func dispatchEmails(ctx workflow.Context, a *Activity, userIDs []string, namesBy
 		}
 	}
 	drain()
+	return succeeded
 }
 
 func agreementLinksForUser(userID string, namesByUser map[string][]string, metadata map[string]AgreementMetadata) []email.AgreementLink {
@@ -173,4 +183,8 @@ func (a *Activity) GetAgreementNamesForUserBatch(ctx context.Context, userIDs []
 
 func (a *Activity) SendAgreementChangedEmailActivity(ctx context.Context, userID string, agreements []email.AgreementLink, deadlineDate string) error {
 	return a.b.Email().SendAgreementChangedEmail(ctx, userID, agreements, deadlineDate)
+}
+
+func (a *Activity) MarkUsersNotifiedActivity(ctx context.Context, userIDs []string, changes []agreements.AgreementChange) error {
+	return a.b.Agreements().MarkUsersNotified(ctx, userIDs, changes)
 }

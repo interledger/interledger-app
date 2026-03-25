@@ -82,16 +82,27 @@ func GetSignatures(ctx context.Context, b Backends, userID string) ([]agreements
 	var signatures []agreements.Signature
 	for _, sign := range agreementSigns {
 		signatures = append(signatures, agreements.Signature{
-			ID:          sign.ID,
-			AgreementID: sign.AgreementID,
-			UserID:      sign.UserID,
-			IPAddress:   sign.IPAddress,
-			CreatedAt:   sign.CreatedAt,
-			UpdatedAt:   sign.UpdatedAt,
+			ID:                      sign.ID,
+			AgreementID:             sign.AgreementID,
+			UserID:                  sign.UserID,
+			IPAddress:               sign.IPAddress,
+			CreatedAt:               sign.CreatedAt,
+			UpdatedAt:               sign.UpdatedAt,
+			LastNotifiedAgreementID: sign.LastNotifiedAgreementID,
 		})
 	}
 
 	return signatures, nil
+}
+
+func buildUserPlaceholders(userIDs []string) (placeholders []string, args []interface{}) {
+	placeholders = make([]string, len(userIDs))
+	args = make([]interface{}, len(userIDs))
+	for i, u := range userIDs {
+		args[i] = u
+		placeholders[i] = fmt.Sprintf("$%d", i+1)
+	}
+	return
 }
 
 // buildChangePlaceholders returns WHERE conditions and args for changes, with placeholders starting at $baseOffset.
@@ -129,18 +140,43 @@ func ListAffectedUserIDsPaginated(ctx context.Context, b Backends, changes []agr
 	return userIDs, nil
 }
 
+func MarkUsersNotified(ctx context.Context, b Backends, userIDs []string, changes []agreements.AgreementChange) error {
+	if len(userIDs) == 0 || len(changes) == 0 {
+		return nil
+	}
+
+	userPlaceholders, userArgs := buildUserPlaceholders(userIDs)
+	nameParam := len(userIDs) + 1
+	exceptIDParam := len(userIDs) + 2
+
+	query := fmt.Sprintf(`UPDATE agreement_signatures SET last_notified_agreement_id = $%d
+		WHERE user_id IN (%s)
+		AND agreement_id IN (SELECT id FROM agreements WHERE name = $%d AND id != $%d)`,
+		exceptIDParam,
+		strings.Join(userPlaceholders, ","),
+		nameParam,
+		exceptIDParam,
+	)
+
+	for _, c := range changes {
+		args := make([]interface{}, len(userIDs), len(userIDs)+2)
+		copy(args, userArgs)
+		args = append(args, c.Name, c.ExceptID)
+
+		if _, err := b.DB().ExecContext(ctx, query, args...); err != nil {
+			return fmt.Errorf("%w %s", agreements.ErrInternal, err.Error())
+		}
+	}
+	return nil
+}
+
 // GetAgreementNamesSignedByUsersFromSet returns, keyed by user ID, the old agreement names each user has signed.
 func GetAgreementNamesSignedByUsersFromSet(ctx context.Context, b Backends, userIDs []string, changes []agreements.AgreementChange) (map[string][]string, error) {
 	if len(userIDs) == 0 || len(changes) == 0 {
 		return map[string][]string{}, nil
 	}
 
-	userArgs := make([]interface{}, len(userIDs))
-	userPlaceholders := make([]string, len(userIDs))
-	for i, u := range userIDs {
-		userArgs[i] = u
-		userPlaceholders[i] = fmt.Sprintf("$%d", i+1)
-	}
+	userPlaceholders, userArgs := buildUserPlaceholders(userIDs)
 	changePlaceholders, changeArgs := buildChangePlaceholders(changes, len(userIDs)+1)
 	args := append(userArgs, changeArgs...)
 

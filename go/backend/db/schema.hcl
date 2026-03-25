@@ -30,8 +30,18 @@ table "agreement_signatures" {
   primary_key {
     columns = [column.id]
   }
+  column "last_notified_agreement_id" {
+    null = true
+    type = text
+  }
   foreign_key "fk_agreement" {
     columns     = [column.agreement_id]
+    ref_columns = [table.agreements.column.id]
+    on_update   = NO_ACTION
+    on_delete   = NO_ACTION
+  }
+  foreign_key "fk_last_notified_agreement" {
+    columns     = [column.last_notified_agreement_id]
     ref_columns = [table.agreements.column.id]
     on_update   = NO_ACTION
     on_delete   = NO_ACTION

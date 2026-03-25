@@ -8,4 +8,5 @@ type Client interface {
 	Get(ctx context.Context, id string) (*Agreement, error)
 	ListAffectedUserIDsPaginated(ctx context.Context, changes []AgreementChange, limit, offset int) ([]string, error)
 	GetAgreementNamesSignedByUsersFromSet(ctx context.Context, userIDs []string, changes []AgreementChange) (map[string][]string, error)
+	MarkUsersNotified(ctx context.Context, userIDs []string, changes []AgreementChange) error
 }

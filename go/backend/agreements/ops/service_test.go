@@ -145,6 +145,60 @@ func TestListAffectedUserIDsPaginated(t *testing.T) {
 	})
 }
 
+func TestMarkUsersNotified(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	db := db.MigrateTestDB(t, ctx)
+	if err := migrations.MigrateFromMarkdowns(ctx, db, "../migrations/assets/testing"); err != nil {
+		t.Fatal(err)
+	}
+	b := ops.NewTestBackends(t, db)
+
+	userOld := uuid.NewString() // signed old version → should be marked
+	userNew := uuid.NewString() // signed new version → should NOT be marked
+
+	for _, tc := range []struct {
+		userID      string
+		agreementID string
+	}{
+		{userOld, "privacy_policy-1.0.0"},
+		{userNew, "privacy_policy-2.0.0"},
+	} {
+		require.NoError(t, ops.Sign(ctx, b, &agreements.SignArgs{
+			AgreementIDs: []string{tc.agreementID},
+			UserID:       tc.userID,
+			IPAddress:    "1.2.3.4",
+		}))
+	}
+
+	changes := []agreements.AgreementChange{{Name: "privacy_policy", ExceptID: "privacy_policy-2.0.0"}}
+
+	t.Run("marks old-version signer", func(t *testing.T) {
+		require.NoError(t, ops.MarkUsersNotified(ctx, b, []string{userOld, userNew}, changes))
+
+		sigs, err := ops.GetSignatures(ctx, b, userOld)
+		require.NoError(t, err)
+		require.Len(t, sigs, 1)
+		require.NotNil(t, sigs[0].LastNotifiedAgreementID)
+		assert.Equal(t, "privacy_policy-2.0.0", *sigs[0].LastNotifiedAgreementID)
+	})
+
+	t.Run("does not mark new-version signer", func(t *testing.T) {
+		sigs, err := ops.GetSignatures(ctx, b, userNew)
+		require.NoError(t, err)
+		require.Len(t, sigs, 1)
+		assert.Nil(t, sigs[0].LastNotifiedAgreementID)
+	})
+
+	t.Run("empty userIDs is a no-op", func(t *testing.T) {
+		assert.NoError(t, ops.MarkUsersNotified(ctx, b, nil, changes))
+	})
+
+	t.Run("empty changes is a no-op", func(t *testing.T) {
+		assert.NoError(t, ops.MarkUsersNotified(ctx, b, []string{userOld}, nil))
+	})
+}
+
 func TestGetAgreementNamesSignedByUsersFromSet(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()

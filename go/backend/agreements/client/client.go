@@ -38,3 +38,7 @@ func (c client) ListAffectedUserIDsPaginated(ctx context.Context, changes []agre
 func (c client) GetAgreementNamesSignedByUsersFromSet(ctx context.Context, userIDs []string, changes []agreements.AgreementChange) (map[string][]string, error) {
 	return ops.GetAgreementNamesSignedByUsersFromSet(ctx, c.b, userIDs, changes)
 }
+
+func (c client) MarkUsersNotified(ctx context.Context, userIDs []string, changes []agreements.AgreementChange) error {
+	return ops.MarkUsersNotified(ctx, c.b, userIDs, changes)
+}

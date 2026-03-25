@@ -108,3 +108,17 @@ func (mr *MockClientMockRecorder) GetAgreementNamesSignedByUsersFromSet(ctx, use
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAgreementNamesSignedByUsersFromSet", reflect.TypeOf((*MockClient)(nil).GetAgreementNamesSignedByUsersFromSet), ctx, userIDs, changes)
 }
+
+// MarkUsersNotified mocks base method.
+func (m *MockClient) MarkUsersNotified(ctx context.Context, userIDs []string, changes []agreements.AgreementChange) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "MarkUsersNotified", ctx, userIDs, changes)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// MarkUsersNotified indicates an expected call of MarkUsersNotified.
+func (mr *MockClientMockRecorder) MarkUsersNotified(ctx, userIDs, changes interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MarkUsersNotified", reflect.TypeOf((*MockClient)(nil).MarkUsersNotified), ctx, userIDs, changes)
+}

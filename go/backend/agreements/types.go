@@ -1,12 +1,13 @@
 package agreements
 
 type Signature struct {
-	ID          string `db:"id"`
-	AgreementID string `db:"agreement_id"`
-	UserID      string `db:"user_id"`
-	IPAddress   string `db:"ip_address"`
-	CreatedAt   string `db:"created_at"`
-	UpdatedAt   string `db:"updated_at"`
+	ID                      string  `db:"id"`
+	AgreementID             string  `db:"agreement_id"`
+	UserID                  string  `db:"user_id"`
+	IPAddress               string  `db:"ip_address"`
+	CreatedAt               string  `db:"created_at"`
+	UpdatedAt               string  `db:"updated_at"`
+	LastNotifiedAgreementID *string `db:"last_notified_agreement_id"`
 }
 
 type Agreement struct {
