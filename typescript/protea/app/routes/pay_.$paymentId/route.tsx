@@ -73,7 +73,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         {
           id: payment.receiverWalletUrl,
           wallet: '',
-          platform: payment.receiverIdentityType,
+          platform: 'slack',
           identifier: payment.receiverIdentity,
           state: '',
           keyId: '',
