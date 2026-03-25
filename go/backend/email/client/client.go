@@ -91,3 +91,7 @@ func (c *client) SendCardCreatedEmail(ctx context.Context, walletID, cardID stri
 func (c *client) SendPending3DSConfirmation(ctx context.Context, walletID, confirmationID string) {
 	ops.SendPending3DSConfirmation(ctx, c.b, walletID, confirmationID)
 }
+
+func (c *client) SendKYCDocumentsRequiredEmail(ctx context.Context, walletID, reason string) {
+	ops.SendKYCDocumentsRequiredEmail(ctx, c.b, walletID, reason)
+}

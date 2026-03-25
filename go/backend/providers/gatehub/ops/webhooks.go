@@ -310,8 +310,7 @@ func HandleActionRequiredWebhook(ctx context.Context, b Backends, raw json.RawMe
 	// TODO(Task 1.6): Replace SetKYCStatus with SetKYCStatusWithMetadata to
 	// persist webhook reason/event details and increment resubmission_count.
 
-	// TODO(Task 1.5): Send KYC resubmission email via
-	// SendKYCDocumentsRequiredEmail(ctx, walletID, wh.Data.Reason).
+	b.Email().SendKYCDocumentsRequiredEmail(ctx, walletID, wh.Data.Reason)
 
 	slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "wallet-info-bot",
 		fmt.Sprintf("KYC resubmission required - walletID: %s, event: %s", walletID, wh.EventType),

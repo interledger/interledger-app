@@ -216,3 +216,15 @@ func (mr *MockClientMockRecorder) SendWithdrawalFailedEmail(ctx, walletID interf
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendWithdrawalFailedEmail", reflect.TypeOf((*MockClient)(nil).SendWithdrawalFailedEmail), ctx, walletID)
 }
+
+// SendKYCDocumentsRequiredEmail mocks base method.
+func (m *MockClient) SendKYCDocumentsRequiredEmail(ctx context.Context, walletID, reason string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SendKYCDocumentsRequiredEmail", ctx, walletID, reason)
+}
+
+// SendKYCDocumentsRequiredEmail indicates an expected call of SendKYCDocumentsRequiredEmail.
+func (mr *MockClientMockRecorder) SendKYCDocumentsRequiredEmail(ctx, walletID, reason interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendKYCDocumentsRequiredEmail", reflect.TypeOf((*MockClient)(nil).SendKYCDocumentsRequiredEmail), ctx, walletID, reason)
+}
