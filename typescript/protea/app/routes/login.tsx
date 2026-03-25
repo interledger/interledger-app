@@ -198,7 +198,9 @@ export async function action({ request }: Route.ActionArgs) {
     // flow and csrf token, otherwise we have stale data in the loader data
     // See: https://reactrouter.com/how-to/form-validation#2-defining-the-action
     const redirectParams = new URLSearchParams(searchParams)
-    redirectParams.set('flow', String(flowId))
+    if (flowId) {
+      redirectParams.set('flow', String(flowId))
+    }
     const snackbarCookie = await flashSnackbar(request, {
       message: errors.form || "An error occured, please retry.",
       icon: 'close',
