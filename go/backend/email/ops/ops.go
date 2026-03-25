@@ -509,7 +509,7 @@ func SendKYCDocumentsRequiredEmail(ctx context.Context, b Backends, walletID, re
 		return
 	}
 
-	kycURL, err := url.JoinPath(env.GetUrl(), "kyc")
+	kycURL, err := url.JoinPath(env.GetUrl(), "personal-details")
 	if err != nil {
 		log.Error("Failed to send KYC documents required email.", zap.Error(err), zap.String("walletID", walletID))
 		return
