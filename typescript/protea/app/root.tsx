@@ -155,7 +155,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
       features,
       snackbar,
       pusherArgs,
-      env
+      env,
+      showQuickPay
     })
   }
 
