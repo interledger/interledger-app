@@ -44,7 +44,7 @@ import { grpc } from './lib/grpc.server'
 import { getPusherArgs } from './lib/pusher.server'
 import { emailVerificationGuard, recoveryLinkSessionInvalidationGuard, withAAL2Guard } from './lib/totp.server'
 import { usePusher } from './lib/usePusher'
-import { DialPadProvider } from './lib/providers/dialPadProvider'
+import { DialPadProvider } from '~/lib/providers/dialPadProvider'
 import { envBool } from '~/env.server'
 
 export const shouldRevalidate: ShouldRevalidateFunction = ({
