@@ -1,6 +1,6 @@
-import type { LoaderFunctionArgs } from '@remix-run/node'
-import type { UIMatch } from '@remix-run/react'
-import { useLoaderData } from '@remix-run/react'
+import type { Route } from './+types/contact'
+import type { UIMatch } from 'react-router';
+import { useLoaderData } from 'react-router';
 import type { ApplicationProps } from '~/components'
 import { AnchorRouter, Icon, Layouts } from '~/components'
 import { MarketingPageWithSections } from '~/components/Content'
@@ -8,7 +8,7 @@ import { getContactRoute } from '~/data/content.server'
 import type { SectionRecord } from '~/generated/dato-cms-graphql'
 import { jsonWithCSRF } from '~/lib/csrf.server'
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const { contactRoute, footer } = await getContactRoute()
 
   return jsonWithCSRF(request, { contactRoute, footer })
@@ -18,16 +18,16 @@ export const handle: ApplicationProps = {
   layout: Layouts.Marketing,
   scaffold: {
     header: {},
-    footer: (match: UIMatch<typeof loader>) => match.data.footer
+    footer: (match: UIMatch<Route.ComponentProps['loaderData']>) => match.loaderData?.footer ?? null
   }
 }
 
 export default function Page() {
-  const { contactRoute } = useLoaderData<typeof loader>()
+  const { contactRoute } = useLoaderData()
 
   return (
     <>
-      {contactRoute?.body.map((section) => (
+      {contactRoute?.body.map((section: import("~/generated/dato-cms-graphql").SectionRecord) => (
         <MarketingPageWithSections
           key={section.id}
           section={section as SectionRecord}

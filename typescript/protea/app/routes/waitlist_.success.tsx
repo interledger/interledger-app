@@ -1,5 +1,4 @@
-import type { MetaFunction } from '@remix-run/node'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   ButtonRouter,
@@ -14,13 +13,13 @@ export const handle: ApplicationProps = {
   layout: Layouts.Focus,
   scaffold: {
     header: {
-      back: route('/'),
+      back: href('/'),
       title: 'Success'
     }
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Waitlist | Success'
   }
@@ -40,7 +39,7 @@ export default function Page() {
           </span>
         </CardContent>
       </Card>
-      <ButtonRouter to={route('/')}>Close</ButtonRouter>
+      <ButtonRouter to={href('/')}>Close</ButtonRouter>
     </>
   )
 }

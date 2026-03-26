@@ -1,0 +1,85 @@
+# Auto-labeling configuration for PRs.
+# Keep this file updated as the project evolves — when new providers,
+# mock services, or frontend apps are added, add corresponding entries here.
+# See also: copilot-instructions.md section on "PR Auto-Labeling".
+
+backend:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'go/backend/**'
+
+pacioli:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'go/pacioli/**'
+
+geo:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'go/geo/**'
+
+mock services:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'go/mock/**'
+
+gatehub:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'go/backend/providers/gatehub/**'
+          - 'go/mock/mockgatehub/**'
+
+fiant/pti:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'go/backend/providers/pti/**'
+          - 'go/backend/providers/fiant/**'
+          - 'go/mock/mockpti/**'
+
+xago:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'go/backend/providers/xago/**'
+          - 'go/mock/mockxago/**'
+
+chimoney:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'go/backend/providers/chimoney/**'
+          - 'go/mock/mockchimoney/**'
+
+CI:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.github/workflows/**'
+          - 'tooling/**'
+
+botanist:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'typescript/botanist/**'
+
+protea:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'typescript/protea/**'
+
+hortus:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'typescript/hortus/**'
+
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'documentation/**'
+
+e2e:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'e2e/**'
+
+local:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'local/**'

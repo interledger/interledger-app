@@ -1,7 +1,9 @@
-import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
-import { json } from '@remix-run/node'
-import { useLoaderData } from '@remix-run/react'
-import { route } from 'routes-gen'
+import type { Route } from './+types/settings.keys'
+import type { PlainMessage } from '@bufbuild/protobuf'
+import type { Connection } from '~/generated/connect/backend/v1/backend_pb'
+import { data } from 'react-router';
+import { useLoaderData } from 'react-router';
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   ButtonRouter,
@@ -15,33 +17,33 @@ import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   let response = await grpc.listConnections(request, {})
 
   if (isConnectError(response)) throw response.errorResponse
 
-  return json({ keys: response.keys })
+  return data({ keys: response.keys })
 }
 
 export const handle: ApplicationProps = {
   layout: Layouts.Wallet,
   scaffold: {
     header: {
-      back: route('/settings'),
+      back: href('/settings'),
       title: 'Keys'
     },
     isNested: true
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Keys'
   }
 ])
 
 export default function Page() {
-  const { keys } = useLoaderData<typeof loader>()
+  const { keys } = useLoaderData()
 
   return (
     <>
@@ -53,9 +55,9 @@ export default function Page() {
           </p>
         </CardContent>
         {keys.length > 0 &&
-          keys.map((key) => (
+          keys.map((key: PlainMessage<Connection>) => (
             <CardLink
-              to={route('/settings/keys/:keyId', {
+              to={href('/settings/keys/:keyId', {
                 keyId: key.id
               })}
               className='flex items-center justify-between'
@@ -76,7 +78,7 @@ export default function Page() {
           ))}
       </Card>
 
-      <ButtonRouter to={route('/settings/keys/add-public')}>
+      <ButtonRouter to={href('/settings/keys/add-public')}>
         Add a public key
       </ButtonRouter>
     </>

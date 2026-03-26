@@ -1,25 +1,19 @@
-import { RemixBrowser, useLocation, useMatches } from '@remix-run/react'
-import * as Sentry from '@sentry/remix'
-import { StrictMode, startTransition, useEffect } from 'react'
+import { HydratedRouter } from 'react-router/dom';
+import * as Sentry from '@sentry/react-router'
+import { StrictMode, startTransition } from 'react'
 import { hydrateRoot } from 'react-dom/client'
 
 if (
-  typeof (window as any).ENV !== 'undefined' &&
-  (window as any).ENV.sentryDsn
+  typeof window.ENV !== 'undefined' &&
+  window.ENV.sentryDsn
 ) {
   Sentry.init({
     tunnel: '/api/fern',
-    dsn: (window as any).ENV.sentryDsn,
-    release: (window as any).ENV.sentryRelease,
+    dsn: window.ENV.sentryDsn,
+    release: window.ENV.sentryRelease,
     integrations: [
-      new Sentry.BrowserTracing({
-        routingInstrumentation: Sentry.remixRouterInstrumentation(
-          useEffect,
-          useLocation,
-          useMatches
-        )
-      }),
-      new Sentry.Replay()
+      Sentry.browserTracingIntegration(),
+      Sentry.replayIntegration()
     ],
     tracesSampleRate: 1.0,
     tracePropagationTargets: ['https://interledger.app'],
@@ -32,7 +26,7 @@ startTransition(() => {
   hydrateRoot(
     document,
     <StrictMode>
-      <RemixBrowser />
+      <HydratedRouter />
     </StrictMode>
   )
 })

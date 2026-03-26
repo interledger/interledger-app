@@ -274,8 +274,7 @@ func (h *Handler) PersonaGetAccount(w http.ResponseWriter, r *http.Request) {
 	// Resolve wallet and profile data from stored sub-account.
 	// For Xago-style records, accountID is a distinct sub-account ID.
 	// For older mock/persona flows, accountID may equal walletID.
-	var walletID string
-	var nameFirst, nameLast, dateOfBirth, physicalAddress string
+	var walletID, nameFirst, nameLast, dateOfBirth, physicalAddress string
 	subAccount, err := h.store.GetSubAccount(r.Context(), accountID)
 	if err != nil {
 		subAccount, err = h.store.GetSubAccountByWalletID(r.Context(), accountID)
