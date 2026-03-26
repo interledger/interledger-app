@@ -57,6 +57,11 @@ export async function getUserSession(
 
   switch (session.status) {
     case 401:
+      throw redirect(`${href('/login')}?${searchParams.toString()}`, {
+        headers: {
+          'Set-Cookie': 'ory_kratos_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax'
+        }
+      })
     case 500:
       throw redirect(`${href('/login')}?${searchParams.toString()}`)
     case 403:
