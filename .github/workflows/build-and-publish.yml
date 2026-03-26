@@ -13,6 +13,9 @@ on:
   pull_request:
     branches:
       - "**"
+    paths-ignore:
+      - 'documentation/**'
+      - 'local/**'
 
 permissions:
   id-token: write
