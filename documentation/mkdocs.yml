@@ -41,6 +41,7 @@ nav:
       - Payment Troubleshooting: payment-troubleshooting-guide.md
   - Developers:
       - Logging Reference: logging-reference.md
+      - Environment Variables: env-variables.md
 
 markdown_extensions:
   - pymdownx.superfences:
