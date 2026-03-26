@@ -1,6 +1,6 @@
 import {
   createAuthenticatedClient,
-  isFinalizedGrant,
+  isFinalizedGrantWithAccessToken,
   isPendingGrant,
   type AuthenticatedClient,
   type PendingGrant,
@@ -64,16 +64,6 @@ export async function fetchQuote(
   }
 
   // create quote with debit amount, you don't care how much money receiver gets
-  console.log({
-    url: walletAddress.resourceServer,
-    accessToken: quoteGrant.access_token?.value || ''
-  })
-  console.log({
-    method: 'ilp',
-    walletAddress: walletAddress.id,
-    receiver: incomingPayment.id,
-    debitAmount: amountObj
-  })
   const quote = await opClient.quote
     .create(
       {
@@ -319,7 +309,7 @@ export async function finishPayment(
     }
   )
 
-  if (!isFinalizedGrant(continuation)) {
+  if (!isFinalizedGrantWithAccessToken(continuation)) {
     throw new Error('Expected finalized grant. Received non-finalized grant.')
   }
 
@@ -355,7 +345,6 @@ function timeout(delay: number) {
 
 export type PaymentResultType = {
   message: string
-  color: 'red' | 'green'
   error: boolean
 }
 
@@ -380,13 +369,11 @@ export async function checkOutgoingPayment(
       if (Number(op.sentAmount.value) > 0) {
         paymentResult = {
           message: 'Payment successful',
-          color: 'green',
           error: false
         }
       } else {
         paymentResult = {
           message: 'Payment failed. Check your balance and try again.',
-          color: 'red',
           error: true
         }
       }

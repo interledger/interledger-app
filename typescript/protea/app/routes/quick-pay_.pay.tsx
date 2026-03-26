@@ -238,7 +238,7 @@ export async function action({ request }: ActionFunctionArgs) {
     quote
   })
   sessionData.grants = { ...(sessionData?.grants || {}), [paymentId]: outgoingPaymentGrant}
-  session.set('payment-grant', sessionData)
+  session.set('quickPay', sessionData)
   return redirect(outgoingPaymentGrant.interact.redirect, {
     headers: { 'Set-Cookie': await commitSession(session) }
   })

@@ -37,6 +37,7 @@ export type QuickPaySession = {
   receiverAddress?: any
   quote?: any
   grants?: any
+  isRequestPayment?: boolean
 }
 
 export type ActionData = {
