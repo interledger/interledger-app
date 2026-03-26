@@ -317,9 +317,25 @@ All logs must be JSON, one object per line. Include `ts` (Unix timestamp), optio
 
 - `e2e/AGENTS.md` - Agent-specific E2E testing guidance (tag usage, troubleshooting)
 - `docs/concepts.md` - Provider terminology mapping
+- `documentation/docs/env-variables.md` - Full environment variable reference for Protea, Botanist, and Backend
 - `local/README.md` - Detailed local environment documentation
 - `e2e/README.md` - E2E test setup and execution guide
 - `e2e/STEP_REFERENCE.md` - Gherkin step definitions reference
+
+## Environment Variables
+
+All environment variables for Protea (frontend), Botanist (admin), and the Go Backend are documented in `documentation/docs/env-variables.md`. This file includes:
+- Whether each variable is a secret or not
+- Suggested values per environment (production, sandbox, development, local)
+- Notes on GateHub, Xago, PTI, Chimoney provider-specific config
+
+**When reviewing PRs that touch environment configuration, always check:**
+
+1. **New env vars added to `go/backend` or TypeScript apps** — add the variable to `documentation/docs/env-variables.md` with correct secret classification and per-environment values.
+2. **Changes to `local/*.yaml` compose files or `local/example.env`** — keep `documentation/docs/env-variables.md` in sync.
+3. **Changes to `interledger-app-deploy` values files** — update the Production/Sandbox/Development columns in `documentation/docs/env-variables.md`.
+4. **Secrets must never be committed** — any new sensitive variable must reference a 1Password vault item; flag any plaintext secrets immediately.
+5. **Production vs sandbox Gatehub client IDs differ** — production uses different OAuth client IDs. See the GateHub section of `documentation/docs/env-variables.md`.
 
 ## Trust These Instructions
 
