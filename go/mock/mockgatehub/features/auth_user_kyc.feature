@@ -30,6 +30,30 @@ Feature: Managed user authentication and KYC
     Then the response status is 200
     And GET /id/v1/users/{userId} shows kyc_state "accepted" and risk_level "low"
 
+  Scenario: KYC submission with explicit accepted outcome
+    Given an existing managed user
+    When I POST /id/v1/users/{userId}/hubs/gw
+    And I submit the KYC form for user {userId} with outcome "accepted"
+    Then the response status is 200
+    And the response body contains "status":"accepted"
+    And GET /id/v1/users/{userId} shows kyc_state "accepted" and risk_level "low"
+
+  Scenario: KYC submission with rejected outcome
+    Given an existing managed user
+    When I POST /id/v1/users/{userId}/hubs/gw
+    And I submit the KYC form for user {userId} with outcome "rejected"
+    Then the response status is 200
+    And the response body contains "status":"rejected"
+    And GET /id/v1/users/{userId} shows kyc_state "rejected" and risk_level "low"
+
+  Scenario: KYC submission with action_required outcome
+    Given an existing managed user
+    When I POST /id/v1/users/{userId}/hubs/gw
+    And I submit the KYC form for user {userId} with outcome "action_required"
+    Then the response status is 200
+    And the response body contains "status":"action_required"
+    And GET /id/v1/users/{userId} shows kyc_state "action_required" and risk_level "low"
+
   Scenario: KYC submission with 2FA TOTP but no org callback URL
     Given an existing managed user
     When I POST /id/v1/users/{userId}/hubs/gw

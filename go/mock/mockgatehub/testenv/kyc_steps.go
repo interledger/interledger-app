@@ -77,14 +77,31 @@ func (tc *TestContext) responseIsHTMLMentioning(text1, text2 string) error {
 
 func (tc *TestContext) submitKYCFormWithout2FA() error {
 	formData := map[string]string{
-		"user_id":    tc.userID,
-		"first_name": "Jane",
-		"last_name":  "Doe",
-		"dob":        "1990-05-15",
-		"address":    "123 Main St",
-		"city":       "Testville",
-		"country":    "US",
-		"risk_level": "low",
+		"user_id":     tc.userID,
+		"first_name":  "Jane",
+		"last_name":   "Doe",
+		"dob":         "1990-05-15",
+		"address":     "123 Main St",
+		"city":        "Testville",
+		"country":     "US",
+		"risk_level":  "low",
+		"kyc_outcome": "accepted",
+	}
+	_, err := tc.requestForm("POST", "/iframe/submit", formData)
+	return err
+}
+
+func (tc *TestContext) submitKYCFormWithOutcome(outcome string) error {
+	formData := map[string]string{
+		"user_id":     tc.userID,
+		"first_name":  "Jane",
+		"last_name":   "Doe",
+		"dob":         "1990-05-15",
+		"address":     "123 Main St",
+		"city":        "Testville",
+		"country":     "US",
+		"risk_level":  "low",
+		"kyc_outcome": outcome,
 	}
 	_, err := tc.requestForm("POST", "/iframe/submit", formData)
 	return err
