@@ -30,6 +30,8 @@ services:
 
       - CHOKIDAR_USEPOLLING=true
       - BACKEND_GRPC_URL=backend:8448
+      
+      - PAYMENT_POINTER_BASE=${BOTANIST_PAYMENT_POINTER_BASE:-local.ilp.link}
 
     depends_on:
       - backend
