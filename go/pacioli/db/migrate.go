@@ -84,7 +84,6 @@ func MigrateTestDB(t *testing.T, ctx context.Context) (string, *sqlx.DB) {
 		baseString = testingCrdbConnectionString
 	}
 	connString := fmt.Sprintf(baseString, "")
-	fmt.Println(connString)
 	db, err := sqlx.Connect("postgres", connString)
 	if err != nil {
 		t.Fatal(err)

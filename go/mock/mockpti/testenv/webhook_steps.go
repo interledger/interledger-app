@@ -225,7 +225,6 @@ func (tc *TestContext) mockptiTransitionsTheTransactionTo(status string) error {
 		return err
 	}
 	tc.lastWebhook = evt.payload
-	fmt.Println(tc.lastWebhook)
 	tc.lastWebhookEncrypted = evt.encrypted
 	return nil
 }
