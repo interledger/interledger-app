@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useDialPadContext } from '~/lib/context/dialpad'
 import { getCurrencySymbol } from '~/lib/utils'
 
@@ -17,7 +17,10 @@ export enum DialPadIds {
   Eight = '8',
   Nine = '9'
 }
-const handleDialPadInputs = (id: string, amountValue: string, setAmountValue: (amount: string) => void) => {
+const handleDialPadInputs = (id: string, amountValue: string, setAmountValue: (amount: string) => void, triggerKey?: (key: string) => void,) => {
+  if (triggerKey) {
+    triggerKey(id)
+  }
   const label = id === DialPadIds.Backspace ? '<' : id
   if (Object.values<string>(DialPadIds).includes(id)) {
     if (id === DialPadIds.Backspace) {
@@ -44,17 +47,25 @@ const handleDialPadInputs = (id: string, amountValue: string, setAmountValue: (a
 
 export const DialPad = () => {
   const { amountValue, setAmountValue } = useDialPadContext()
+  const [activeKey, setActiveKey] = useState<string | null>(null)
 
-  useEffect(() => {
-    document.addEventListener('keydown', (e: KeyboardEvent) => {
-      handleDialPadInputs(e.key, amountValue, setAmountValue)
-    })
-    return function cleanup() {
-      document.removeEventListener('keydown', (e: KeyboardEvent) => {
-        handleDialPadInputs(e.key, amountValue, setAmountValue)
-      })
+  const triggerKey = (key: string) => {
+    setActiveKey(String(key))
+
+    setTimeout(() => {
+      setActiveKey(null)
+    }, 500)
+  };
+
+  useEffect(() => { 
+    const eventHandleDialPadInputs = (e: KeyboardEvent) => handleDialPadInputs(e.key, amountValue, setAmountValue, triggerKey)
+    
+    document.addEventListener('keydown', eventHandleDialPadInputs)
+      
+    return () => {
+      document.removeEventListener('keydown', eventHandleDialPadInputs)
     }
-  }, [handleDialPadInputs, amountValue, setAmountValue])
+  }, [amountValue, setAmountValue, triggerKey])
   return (
     <div className="flex flex-col gap-10 text-xl">
       <AmountDisplay />
@@ -62,22 +73,26 @@ export const DialPad = () => {
         first={DialPadIds.One}
         second={DialPadIds.Two}
         third={DialPadIds.Three}
+        activeKey={activeKey}
       />
       <DialPadRow
         first={DialPadIds.Four}
         second={DialPadIds.Five}
         third={DialPadIds.Six}
+        activeKey={activeKey}
       />
       <DialPadRow
         first={DialPadIds.Seven}
         second={DialPadIds.Eight}
         third={DialPadIds.Nine}
+        activeKey={activeKey}
       />
       <DialPadRow
         first={DialPadIds.Dot}
         second={DialPadIds.Zero}
         third="<"
         idThird={DialPadIds.Backspace}
+        activeKey={activeKey}
       />
     </div>
   )
@@ -91,6 +106,7 @@ type DialPadRowProps = {
   idFirst?: string
   idSecond?: string
   idThird?: string
+  activeKey: string | null
 }
 const DialPadRow = ({
   first,
@@ -98,14 +114,15 @@ const DialPadRow = ({
   third,
   idFirst,
   idSecond,
-  idThird
+  idThird,
+  activeKey
 }: DialPadRowProps) => {
   return (
     <div>
       <ul className="flex justify-between">
-        <DialPadKey label={first} id={idFirst ? idFirst : first} />
-        <DialPadKey label={second} id={idSecond ? idSecond : second} />
-        <DialPadKey label={third} id={idThird ? idThird : third} />
+        <DialPadKey label={first} id={idFirst ? idFirst : first} activeKey={activeKey} />
+        <DialPadKey label={second} id={idSecond ? idSecond : second} activeKey={activeKey} />
+        <DialPadKey label={third} id={idThird ? idThird : third} activeKey={activeKey} />
       </ul>
     </div>
   )
@@ -115,16 +132,19 @@ DialPadRow.displayName = 'DialPadRow'
 type DialPadKeyProps = {
   label: string
   id: string
+  activeKey: string | null
 }
-const DialPadKey = ({ label, id }: DialPadKeyProps) => {
+const DialPadKey = ({ label, id, activeKey }: DialPadKeyProps) => {
   const { amountValue, setAmountValue } = useDialPadContext()
+  const isActive = id == activeKey
 
   return (
     <li
       role="button"
-      className={clsx(
-        'cursor-pointer hover:text-green-1',
-        id === DialPadIds.Dot ? 'pl-1' : ''
+      className={clsx('flex items-center justify-center w-16 h-16 rounded-lg cursor-pointer select-none text-base font-medium transition-all duration-100 ease-out',
+        isActive ? 'bg-gray-200/60 dark:bg-white/10 text-rose-600 dark:text-rose-600 scale-95'
+          : 'text-gray-700 dark:text-gray-300',
+        'hover:bg-gray-200/60 dark:hover:bg-white/10 hover:text-rose-600 dark:hover:text-rose-600 active:scale-95'
       )}
       tabIndex={0}
       id={id}
