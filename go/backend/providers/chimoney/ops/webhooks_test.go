@@ -11,10 +11,10 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"gitlab.com/fynbos/backend/providers/chimoney"
 	"gitlab.com/fynbos/backend/providers/chimoney/external"
 	"gitlab.com/fynbos/backend/providers/chimoney/ops"
 	"gotest.tools/assert"
@@ -187,7 +187,7 @@ func TestExtractChiWalletIDFromIssueID(t *testing.T) {
 }
 
 func TestWebhookHandler_OptionsMethod(t *testing.T) {
-	handler := ops.NewWebhook(nil)
+	handler := ops.NewWebhook(nil, chimoney.Config{})
 
 	req := httptest.NewRequest(http.MethodOptions, "/webhook", nil)
 	rec := httptest.NewRecorder()
@@ -198,7 +198,7 @@ func TestWebhookHandler_OptionsMethod(t *testing.T) {
 }
 
 func TestWebhookHandler_InvalidMethod(t *testing.T) {
-	handler := ops.NewWebhook(nil)
+	handler := ops.NewWebhook(nil, chimoney.Config{})
 
 	req := httptest.NewRequest(http.MethodGet, "/webhook", nil)
 	rec := httptest.NewRecorder()
@@ -210,12 +210,10 @@ func TestWebhookHandler_InvalidMethod(t *testing.T) {
 
 func TestWebhookHandler_InvalidJSON(t *testing.T) {
 	secret := []byte("test-secret-key")
-	// Set a temporary env var for the test
-	oldSecret := os.Getenv("CHIMONEY_WEBHOOK_SECRET")
-	os.Setenv("CHIMONEY_WEBHOOK_SECRET", "whsec_"+base64.StdEncoding.EncodeToString(secret))
-	defer os.Setenv("CHIMONEY_WEBHOOK_SECRET", oldSecret)
 
-	handler := ops.NewWebhook(nil)
+	handler := ops.NewWebhook(nil, chimoney.Config{
+		WebhookSecret: "whsec_" + base64.StdEncoding.EncodeToString(secret),
+	})
 
 	payload := `{invalid json}`
 	req := createSignedRequest(t, payload, secret)
@@ -228,11 +226,10 @@ func TestWebhookHandler_InvalidJSON(t *testing.T) {
 
 func TestWebhookHandler_UnknownEventType(t *testing.T) {
 	secret := []byte("test-secret-key")
-	oldSecret := os.Getenv("CHIMONEY_WEBHOOK_SECRET")
-	os.Setenv("CHIMONEY_WEBHOOK_SECRET", "whsec_"+base64.StdEncoding.EncodeToString(secret))
-	defer os.Setenv("CHIMONEY_WEBHOOK_SECRET", oldSecret)
 
-	handler := ops.NewWebhook(nil)
+	handler := ops.NewWebhook(nil, chimoney.Config{
+		WebhookSecret: "whsec_" + base64.StdEncoding.EncodeToString(secret),
+	})
 
 	payload := `{"eventType":"unknown.event.type","issueID":"test-123"}`
 	req := createSignedRequest(t, payload, secret)

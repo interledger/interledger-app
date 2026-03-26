@@ -31,8 +31,10 @@ type Activity struct {
 	external external.Client
 }
 
-func NewActivity(b Backends) *Activity {
+func NewActivity(b Backends, cfg chimoney.Config) *Activity {
 	ec := external.New(
+		cfg.APIBaseURL,
+		cfg.Token,
 		&http.Client{
 			Transport: otelhttp.NewTransport(
 				httplogger.NewTransport(http.DefaultTransport, b, external.Redact),

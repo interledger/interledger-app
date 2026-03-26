@@ -10,6 +10,7 @@ import (
 	"gitlab.com/fynbos/backend/jobs"
 	kyc_workflows "gitlab.com/fynbos/backend/kyc/ops"
 	payments_workflows "gitlab.com/fynbos/backend/payments/ops"
+	"gitlab.com/fynbos/backend/providers/chimoney"
 	chimoney_workflows "gitlab.com/fynbos/backend/providers/chimoney/ops"
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	gatehub_workflows "gitlab.com/fynbos/backend/providers/gatehub/ops"
@@ -21,7 +22,7 @@ import (
 	"go.temporal.io/sdk/worker"
 )
 
-func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago_external.Config) (worker.Worker, error) {
+func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago_external.Config, chimoneyConfig chimoney.Config) (worker.Worker, error) {
 	w := worker.New(b.Temporal(), "backend", worker.Options{})
 
 	w.RegisterActivity(kyc_workflows.NewActivity(b))
@@ -134,7 +135,7 @@ func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago
 	gatehub_workflows.StartCardTransactionsPooling(b)
 
 	// Chimoney
-	w.RegisterActivity(chimoney_workflows.NewActivity(b))
+	w.RegisterActivity(chimoney_workflows.NewActivity(b, chimoneyConfig))
 	w.RegisterWorkflow(chimoney_workflows.CreateChimoneyUserWorkflow)
 	w.RegisterWorkflow(chimoney_workflows.ChimomeyCompleteKYC)
 	w.RegisterWorkflow(chimoney_workflows.CreateChimoneyDepositWorkflow)

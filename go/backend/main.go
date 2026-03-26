@@ -191,7 +191,7 @@ func start(args *cli.StartArgs) {
 	router.Handle("/rafiki", b.rafiki.WebhookHandler())
 	router.Handle("/webhooks/xago", b.xago.WebhookHandler())
 	router.Handle("/webhooks/persona", kyc_ops.NewHandlePersonaWebhook(b))
-	router.Handle("/webhooks/chimoney", chimoney_ops.NewWebhook(b))
+	router.Handle("/webhooks/chimoney", chimoney_ops.NewWebhook(b, b.chimoneyConfig))
 	router.Handle("/.well-known/apple-app-site-association", aassassetlinks.AppSiteAssociationHandler(b.aasaConfig))
 	router.Handle("/.well-known/assetlinks.json", aassassetlinks.AssetLinksHandler(b.aasaConfig))
 
@@ -472,7 +472,7 @@ func startWorker(args *cli.StartArgs) {
 	serveHTTP(&http.Server{Addr: ":8081", Handler: router}, &wg)
 
 	log.Info("Worker creating")
-	w, err := temporal.NewTemporalWorker(b, b.gatehubConfig, b.xagoConfig)
+	w, err := temporal.NewTemporalWorker(b, b.gatehubConfig, b.xagoConfig, b.chimoneyConfig)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -521,6 +521,7 @@ type backends struct {
 	gatehub        gatehub.Client
 	gatehubConfig  gatehub.Config
 	chimoney       chimoney.Client
+	chimoneyConfig chimoney.Config
 	aasaConfig     aassassetlinks.Config
 }
 
@@ -835,7 +836,17 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	}
 
 	log.Debug("initialising Chimoney")
-	b.chimoney = chimoney_client.New(b)
+	b.chimoneyConfig = chimoney.Config{
+		APIBaseURL:    args.ChimoneyAPIBaseURL,
+		KYCBaseURL:    args.ChimoneyKYCBaseURL,
+		Token:         args.ChimoneyToken,
+		WebhookSecret: args.ChimoneyWebhookSecret,
+	}
+	log.Info("chimoney configuration loaded",
+		zap.String("api_base_url", b.chimoneyConfig.APIBaseURL),
+		zap.String("kyc_base_url", b.chimoneyConfig.KYCBaseURL),
+	)
+	b.chimoney = chimoney_client.New(b, b.chimoneyConfig)
 
 	b.aasaConfig = aassassetlinks.Config{
 		AppleAppID:         args.AppleAppID,

@@ -19,12 +19,16 @@ var _ chimoney.Client = &Client{}
 type Client struct {
 	b        ops.Backends
 	external external.Client
+	config   chimoney.Config
 }
 
-func New(b ops.Backends) chimoney.Client {
+func New(b ops.Backends, cfg chimoney.Config) chimoney.Client {
 	return &Client{
-		b: b,
+		b:      b,
+		config: cfg,
 		external: external.New(
+			cfg.APIBaseURL,
+			cfg.Token,
 			&http.Client{
 				Transport: otelhttp.NewTransport(
 					httplogger.NewTransport(http.DefaultTransport, b, external.Redact),
@@ -83,5 +87,5 @@ func (c *Client) RollbackReserve(ctx context.Context, txID string) error {
 }
 
 func (c *Client) GetKYCWidget(ctx context.Context, walletID string) (string, error) {
-	return ops.GetKYCWidget(ctx, c.b, walletID)
+	return ops.GetKYCWidget(ctx, c.b, c.config.KYCBaseURL, walletID)
 }

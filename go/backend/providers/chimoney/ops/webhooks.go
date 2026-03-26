@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"regexp"
 	"strings"
 
@@ -77,13 +76,12 @@ func ParseWebhookSecret(input string) []byte {
 	return secret
 }
 
-func NewWebhook(b Backends) http.HandlerFunc {
-	if os.Getenv("CHIMONEY_WEBHOOK_SECRET") == "" {
-		log.Error("CHIMONEY_WEBHOOK_SECRET is empty")
-	}
-	secret := ParseWebhookSecret(os.Getenv("CHIMONEY_WEBHOOK_SECRET"))
+func NewWebhook(b Backends, cfg chimoney.Config) http.HandlerFunc {
+	secret := ParseWebhookSecret(cfg.WebhookSecret)
 
 	ec := external.New(
+		cfg.APIBaseURL,
+		cfg.Token,
 		&http.Client{
 			Transport: otelhttp.NewTransport(
 				httplogger.NewTransport(http.DefaultTransport, b, external.Redact),

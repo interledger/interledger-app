@@ -8,12 +8,10 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 
 	"gitlab.com/fynbos/backend/currency"
 	httplog "gitlab.com/fynbos/backend/providers/http"
-	"gitlab.com/fynbos/env"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
@@ -35,29 +33,9 @@ type client struct {
 	api     *http.Client
 }
 
-func New(transport *http.Client) Client {
-	baseURL := strings.TrimSuffix(os.Getenv("CHIMONEY_API_BASE_URL"), "/")
-	if baseURL == "" {
-		baseURL = "https://api.chimoney.io/v0.2.4"
-		if !env.IsProd() {
-			baseURL = "https://api-v2-sandbox.chimoney.io/v0.2.4"
-		}
-	}
+func New(baseURL string, apiKey string, transport *http.Client) Client {
+	baseURL = strings.TrimSuffix(baseURL, "/")
 
-	api := otelhttp.DefaultClient
-	if transport != nil {
-		api = transport
-	}
-
-	return &client{
-		api:     api,
-		baseURL: baseURL,
-		apiKey:  os.Getenv("CHIMONEY_TOKEN"),
-	}
-}
-
-// NewWithBaseURL creates a client with a custom baseURL for testing purposes
-func NewWithBaseURL(baseURL string, apiKey string, transport *http.Client) Client {
 	api := otelhttp.DefaultClient
 	if transport != nil {
 		api = transport

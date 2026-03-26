@@ -193,8 +193,10 @@ The Go backend is the core of the wallet, handling payments, provider integratio
 
 | Variable | Description | Secret | Notes |
 |---|---|---|---|
-| `CHIMONEY_TOKEN` | Chimoney API token | Yes | Not set locally |
-| `CHIMONEY_WEBHOOK_SECRET` | Chimoney webhook signature secret | Yes | Not set locally |
+| `CHIMONEY_API_BASE_URL` | Base URL for Chimoney API calls | No | Prod: `https://api.chimoney.io/v0.2.4`; Sandbox/Dev: `https://api-v2-sandbox.chimoney.io/v0.2.4`; Local: `http://mockchimoney:8080/v0.2.4` |
+| `CHIMONEY_KYC_BASE_URL` | Base URL for Chimoney KYC widget | No | Prod: `https://dash.chimoney.io`; Sandbox/Dev: `https://sandbox.chimoney.io`; Local: `https://mockchimoney.interledger.test` |
+| `CHIMONEY_TOKEN` | Chimoney API token | Yes | Local: `local-test-api-key` |
+| `CHIMONEY_WEBHOOK_SECRET` | Chimoney webhook signature secret (svix-style `prefix_base64secret`) | Yes | Local: `local_bG9jYWwtdGVzdC13ZWJob29rLXNlY3JldA==` |
 
 ### GateHub (Payment Provider)
 

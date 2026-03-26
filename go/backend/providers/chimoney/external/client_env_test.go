@@ -2,10 +2,8 @@ package external
 
 import "testing"
 
-func TestNew_UsesCHIMONEYAPIBaseURLOverride(t *testing.T) {
-	t.Setenv("CHIMONEY_API_BASE_URL", "http://mockchimoney:8080/v0.2.4/")
-
-	c, ok := New(nil).(*client)
+func TestNew_TrimsTrailingSlashFromBaseURL(t *testing.T) {
+	c, ok := New("http://mockchimoney:8080/v0.2.4/", "test-key", nil).(*client)
 	if !ok {
 		t.Fatalf("New() returned unexpected client type")
 	}

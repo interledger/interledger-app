@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"os"
 	"strings"
 	"time"
 
@@ -562,7 +561,7 @@ func RollbackReserve(ctx context.Context, b Backends, txID string) error {
 	return nil
 }
 
-func GetKYCWidget(ctx context.Context, b Backends, walletID string) (string, error) {
+func GetKYCWidget(ctx context.Context, b Backends, kycBaseURL string, walletID string) (string, error) {
 	externalID, err := GetChiWallet(ctx, b, walletID)
 	if errors.Is(err, chimoney.ErrNotFound) {
 		await, innerErr := CreateWallet(ctx, b, walletID)
@@ -578,13 +577,7 @@ func GetKYCWidget(ctx context.Context, b Backends, walletID string) (string, err
 		return "", err
 	}
 
-	baseURL := strings.TrimSuffix(os.Getenv("CHIMONEY_KYC_BASE_URL"), "/")
-	if baseURL == "" {
-		baseURL = "https://dash.chimoney.io"
-		if !env.IsProd() {
-			baseURL = "https://sandbox.chimoney.io"
-		}
-	}
+	baseURL := strings.TrimSuffix(kycBaseURL, "/")
 	redirectURL := fmt.Sprintf("%s/callbacks/chimoney?kyc", env.GetUrl())
 
 	widgetURL := fmt.Sprintf("%s/verify/kyc/%s?redirect=%s", baseURL, externalID, redirectURL)

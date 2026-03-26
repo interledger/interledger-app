@@ -17,7 +17,7 @@ func mockChimoneyServer(t *testing.T, handler http.HandlerFunc) (*httptest.Serve
 	server := httptest.NewServer(handler)
 	t.Cleanup(server.Close)
 
-	client := external.NewWithBaseURL(server.URL, "test-api-key", server.Client())
+	client := external.New(server.URL, "test-api-key", server.Client())
 	return server, client
 }
 

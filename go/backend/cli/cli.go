@@ -110,6 +110,10 @@ type StartArgs struct {
 	PTIJWK                        string
 	PTIClientID                   string
 	PTIPublicKeyJWK               string
+	ChimoneyAPIBaseURL            string
+	ChimoneyKYCBaseURL            string
+	ChimoneyToken                 string
+	ChimoneyWebhookSecret         string
 	AppleAppID                    string
 	AndroidPackageName            string
 	AndroidSHA256                 string
@@ -400,6 +404,26 @@ func ParseStartArgs() (*StartArgs, error) {
 		}
 	}
 
+	chimoneyAPIBaseURL := os.Getenv("CHIMONEY_API_BASE_URL")
+	if chimoneyAPIBaseURL == "" {
+		return nil, errors.New("CHIMONEY_API_BASE_URL is required")
+	}
+
+	chimoneyKYCBaseURL := os.Getenv("CHIMONEY_KYC_BASE_URL")
+	if chimoneyKYCBaseURL == "" {
+		return nil, errors.New("CHIMONEY_KYC_BASE_URL is required")
+	}
+
+	chimoneyToken := os.Getenv("CHIMONEY_TOKEN")
+	if chimoneyToken == "" {
+		return nil, errors.New("CHIMONEY_TOKEN is required")
+	}
+
+	chimoneyWebhookSecret := os.Getenv("CHIMONEY_WEBHOOK_SECRET")
+	if chimoneyWebhookSecret == "" {
+		return nil, errors.New("CHIMONEY_WEBHOOK_SECRET is required")
+	}
+
 	appleAppID := os.Getenv("APPLE_APP_ID")
 	if appleAppID == "" {
 		return nil, errors.New("APPLE_APP_ID is required")
@@ -473,6 +497,10 @@ func ParseStartArgs() (*StartArgs, error) {
 		PTIJWK:                        ptiJWK,
 		PTIClientID:                   ptiClientID,
 		PTIPublicKeyJWK:               ptiPublicKeyJWK,
+		ChimoneyAPIBaseURL:            chimoneyAPIBaseURL,
+		ChimoneyKYCBaseURL:            chimoneyKYCBaseURL,
+		ChimoneyToken:                 chimoneyToken,
+		ChimoneyWebhookSecret:         chimoneyWebhookSecret,
 		AppleAppID:                    appleAppID,
 		AndroidPackageName:            androidPackageName,
 		AndroidSHA256:                 androidSHA256,

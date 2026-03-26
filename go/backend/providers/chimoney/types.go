@@ -16,6 +16,13 @@ type Balance struct {
 	Available currency.Amount
 }
 
+type Config struct {
+	APIBaseURL    string
+	KYCBaseURL    string
+	Token         string
+	WebhookSecret string
+}
+
 type TransferArgs struct {
 	SendingWalletID   string
 	ReceivingWalletID string
