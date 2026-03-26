@@ -43,6 +43,7 @@ type E2EContext struct {
 
 	// Payment flow state
 	receiverWalletAddress string // Wallet address/identifier for payment receiver
+	ptiDepositRequestID   string // PTI deposit requestId, captured from /deposit/:id URL
 
 	// Test state
 	currentStep     int
@@ -172,6 +173,15 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I should be shown the "([^"]*)" prompt form$`, func(promptText string) error { return sc.iShouldBeShownTheActivateWalletPromptForm(promptText) })
 	ctx.Step(`^I wait for the KYC iframe to load$`, func() error { return sc.iWaitForTheKYCIframeToLoad() })
 	ctx.Step(`^I fill and submit the mockgatehub KYC iframe$`, func() error { return sc.iFillAndSubmitTheMockgatehubiframe() })
+	ctx.Step(`^I fill and submit the mockpti KYC iframe$`, func() error { return sc.iFillAndSubmitTheMockptiKYCIframe() })
+	ctx.Step("^I complete the minimal PTI KYC flow `([^`]*)`$", func(userName string) error {
+		return sc.iCompleteMinimalPTIKYCFlow(userName)
+	})
+	ctx.Step(`^I connect a US bank account$`, func() error { return sc.iConnectAUSBankAccount() })
+	ctx.Step(`^I deposit "([^"]*)" "([^"]*)" via the PTI deposit form$`, func(amount, currency string) error {
+		return sc.iDepositViaPTIDepositForm(amount, currency)
+	})
+	ctx.Step(`^mockpti returns the deposit$`, func() error { return sc.iMockptiReturnsTheDeposit() })
 	ctx.Step(`^I wait for the KYC completion$`, func() error { return sc.iWaitForTheKYCCompletion() })
 
 	// Wallet address creation steps
@@ -201,6 +211,9 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I navigate to the withdrawal page$`, func() error { return sc.iNavigateToTheWithdrawalPage() })
 	ctx.Step(`^I withdraw "([^"]*)" "([^"]*)" via the withdrawal iframe$`, func(amount, currency string) error {
 		return sc.iWithdrawViATheWithdrawalIframe(amount, currency)
+	})
+	ctx.Step(`^I withdraw "([^"]*)" "([^"]*)" via the PTI withdrawal form$`, func(amount, currency string) error {
+		return sc.iWithdrawViaPTIWithdrawForm(amount, currency)
 	})
 	ctx.Step(`^that Gatehub charges my user a ([0-9.]+)% withdrawal fee$`, func(feePercent string) error {
 		return sc.thatGatehubChargesWithdrawalFee(feePercent)

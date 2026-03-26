@@ -31,3 +31,39 @@ Feature: Deposit Funds
     When I navigate to the deposit page
     And I deposit "100" "EUR" via the deposit iframe
     Then I should see my balance updated with "99" "EUR"
+
+  @deposit @pti @return
+  Scenario: Deposit is returned after settling and balance reverts to initial
+    Given the details of 'deposit-return-pti-user' are
+      | field           | value                          |
+      | emailSuffix     | alice-return-pti@example.com   |
+      | password        | InterlEdger2025!TestPassword   |
+      | country         | United States                  |
+      | firstName       | Alice                          |
+      | lastName        | Smith                          |
+      | dateOfBirth     | 1984-06-27                     |
+    And mockpti is running at "https://mockpti.interledger.test"
+    And I complete the minimal PTI KYC flow `deposit-return-pti-user`
+    When I connect a US bank account
+    And I navigate to the deposit page
+    And I deposit "100" "USD" via the PTI deposit form
+    Then I should see my balance updated with "100" "USD"
+    When mockpti returns the deposit
+    Then I should see my balance updated with "0" "USD"
+
+  @deposit @pti
+  Scenario: Successfully deposit 100 USD into wallet as a USA user
+    Given the details of 'deposit-pti-user' are
+      | field           | value                        |
+      | emailSuffix     | alice-pti@example.com        |
+      | password        | InterlEdger2025!TestPassword |
+      | country         | United States                |
+      | firstName       | Alice                        |
+      | lastName        | Smith                        |
+      | dateOfBirth     | 1984-06-27                   |
+    And mockpti is running at "https://mockpti.interledger.test"
+    And I complete the minimal PTI KYC flow `deposit-pti-user`
+    When I connect a US bank account
+    And I navigate to the deposit page
+    And I deposit "100" "USD" via the PTI deposit form
+    Then I should see my balance updated with "100" "USD"

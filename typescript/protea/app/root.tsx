@@ -27,7 +27,7 @@ import {
 } from '~/components'
 import { Scaffold } from '~/components/Scaffold'
 import { TotpChallengeGlobal } from '~/components/TotpChallengeGlobal'
-import { hasUserSession, KRATOS_URL } from '~/lib/kratos.server'
+import { hasUserSession } from '~/lib/kratos.server'
 import { getSnackbar } from '~/lib/snackbar.server'
 import styles from '~/styles/app.css?url'
 import { PendingConfirmationsLoader } from './components/PendingConfirmationsLoader'

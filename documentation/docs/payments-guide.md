@@ -11,6 +11,7 @@
 - [Transaction Types Reference](transaction-types-reference.md) — Transaction fields, states, and mappings
 - [Payment Troubleshooting](payment-troubleshooting-guide.md) — Systematic payment debugging
 - [KYC Explainer](kyc-guide.md) — KYC gating and provider-specific verification paths
+- [Environment Variables](env-variables.md) — Runtime payment provider endpoints, feature toggles, and credentials
 
 ## Table of Contents
 1. [The Big Picture](#the-big-picture)

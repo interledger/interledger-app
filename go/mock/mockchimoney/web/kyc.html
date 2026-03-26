@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>MockChimoney KYC</title>
+</head>
+<body>
+  <main>
+    <h1>Complete KYC</h1>
+    <p>Use one of the actions below to simulate KYC outcome.</p>
+
+    <form method="post" action="/verify/kyc/{{EXTERNAL_ID}}/approve">
+      <input type="hidden" name="redirect" value="{{REDIRECT_URL}}">
+      <button type="submit">Approve KYC</button>
+    </form>
+
+    <form method="post" action="/verify/kyc/{{EXTERNAL_ID}}/decline">
+      <input type="hidden" name="redirect" value="{{REDIRECT_URL}}">
+      <button type="submit">Decline KYC</button>
+    </form>
+  </main>
+</body>
+</html>
