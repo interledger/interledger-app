@@ -1,6 +1,6 @@
 # MockChimoney
 
-> **Status**: This service is implemented and used for local development and testing. See [`plan/plan.md`](plan/plan.md) for the detailed design and planned enhancements.
+> **Status**: This service is implemented and used for local development and testing.
 
 MockChimoney is a lightweight Go mock of the Chimoney API for local development and testing of the Interledger Wallet. It follows the same patterns as `mockgatehub` and `mockxago`: go-chi router, Redis-backed storage, background webhook delivery, and Traefik-fronted Docker Compose service.
 
@@ -114,9 +114,9 @@ Confirmed by the Chimoney backend developer (Adi): `/info/fee-estimate` was adde
 
 The public docs at `webhooks-and-events` only list a handful of event types (`chimoney.redeem.completed`, `payout.bank.*`, `payout.gift-card.*`). The events the backend actually handles (`charge.interac.completed`, `payout.interac.*`, `user.kyc.*`, etc.) are **not listed in public documentation**. They were found by reading `go/backend/providers/chimoney/ops/webhooks.go` directly.
 
-### KYC API vs. hardcoded URL
+### KYC API vs. configured URL
 
-The Chimoney API has a `GET /sub-account/kyc/link` endpoint that returns a hosted KYC page URL. The backend does **not** call this — it constructs the KYC URL directly by concatenating `CHIMONEY_KYC_BASE_URL + /verify/kyc/{externalID}?redirect={callbackURL}`. The mock implements the `/verify/kyc/<externalID>` path directly; the `/sub-account/kyc/link` endpoint is not implemented.
+The Chimoney API has a `GET /sub-account/kyc/link` endpoint that returns a hosted KYC page URL. The backend does **not** call this — it constructs the KYC URL directly by concatenating `CHIMONEY_KYC_BASE_URL + /verify/kyc/{externalID}?redirect={callbackURL}`, where `CHIMONEY_KYC_BASE_URL` is configured via the backend's `chimoney.Config` (parsed from environment variables at startup). The mock implements the `/verify/kyc/<externalID>` path directly; the `/sub-account/kyc/link` endpoint is not implemented.
 
 ### `issueID` format encodes the sub-account ID
 
@@ -137,11 +137,15 @@ The `POST /multicurrency-wallets/transfer` endpoint has a `sendViaInterledger` b
 - **`payout.interac.expired` vs `payout.interac.cancelled`**: The backend handles both identically (calls `ExecuteFinishWithdraw`). The mock sends `completed` by default; `expired`/`cancelled` are only sent if configured. The exact triggering conditions in production are unknown.
 - **`chimoney.redeem.failed`**: The backend handles this event by calling `ExecuteFinishDeposit` with `"failed"` status. The mock only sends this if the deposit is explicitly failed (not via the normal pay page flow). A way to trigger this from the UI may be desirable. 
 
-## Backend Changes Required
+## Backend Configuration
 
-Two environment variables must be added to the backend before mockchimoney can be used locally:
+All Chimoney environment variables are parsed centrally in `cli.go` and passed through via `chimoney.Config`. The backend requires the following variables to be set (see `local/wallet.yaml` for local defaults):
 
-1. `CHIMONEY_API_BASE_URL` — overrides the hardcoded prod/sandbox base URL in `external/client.go`
-2. `CHIMONEY_KYC_BASE_URL` — overrides the hardcoded `dash.chimoney.io` URL in `ops/ops.go`
+| Variable | Description |
+|----------|-------------|
+| `CHIMONEY_API_BASE_URL` | Base URL for Chimoney API calls |
+| `CHIMONEY_KYC_BASE_URL` | Base URL for Chimoney KYC widget |
+| `CHIMONEY_TOKEN` | Chimoney API token |
+| `CHIMONEY_WEBHOOK_SECRET` | Svix-style webhook signing secret |
 
-See [`plan/plan.md`](plan/plan.md) for the exact code changes.
+See [`documentation/docs/env-variables.md`](../../../documentation/docs/env-variables.md) for per-environment values.
