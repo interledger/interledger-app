@@ -14,6 +14,7 @@
 - [Payment Troubleshooting](payment-troubleshooting-guide.md) — Provider-specific debugging
 - [KYC Explainer](kyc-guide.md) — Provider onboarding and verification differences
 - [Concepts](terminology.md) — Provider terminology translation
+- [Environment Variables](env-variables.md) — Provider API endpoints, credentials, and environment-specific toggles
 
 **Quick Navigation:**
 
