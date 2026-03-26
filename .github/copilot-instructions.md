@@ -217,13 +217,47 @@ typescript/
 3. **E2E Tests** - Full Playwright suite on Google Cloud VM (90m timeout)
 4. **Linting** - golangci-lint v2.5.0 in `go/` directory
 
+### Workflow Path Filtering
+
+Workflows skip unnecessary CI runs based on which files changed:
+- **Documentation-only changes** (`documentation/**`): All tests, builds, and linting are skipped.
+- **Local-only changes** (`local/**`): Unit tests, builds, and linting are skipped. E2E tests still run since they exercise the local environment.
+- These filters apply only to `pull_request` triggers — `push` to main, schedules, and manual dispatches always run.
+
+### PR Auto-Labeling
+
+PRs are automatically labeled by `.github/workflows/labeler.yml` using the config in `.github/labeler.yml`. Labels are only added, never removed (`sync-labels: false`). If a label is already present, it is left as-is.
+
+**Current label mappings** (keep `.github/labeler.yml` updated when the project evolves):
+
+| Label | Paths |
+|-------|-------|
+| `backend` | `go/backend/**` |
+| `pacioli` | `go/pacioli/**` |
+| `geo` | `go/geo/**` |
+| `mock services` | `go/mock/**` |
+| `gatehub` | `go/backend/providers/gatehub/**`, `go/mock/mockgatehub/**` |
+| `fiant/pti` | `go/backend/providers/pti/**`, `go/backend/providers/fiant/**`, `go/mock/mockpti/**` |
+| `xago` | `go/backend/providers/xago/**`, `go/mock/mockxago/**` |
+| `chimoney` | `go/backend/providers/chimoney/**`, `go/mock/mockchimoney/**` |
+| `CI` | `.github/workflows/**`, `tooling/**` |
+| `botanist` | `typescript/botanist/**` |
+| `protea` | `typescript/protea/**` |
+| `hortus` | `typescript/hortus/**` |
+| `documentation` | `documentation/**` |
+| `e2e` | `e2e/**` |
+| `local` | `local/**` |
+
+**When adding new providers, mock services, or frontend apps**: Update `.github/labeler.yml` with appropriate path globs and add the label mapping to this table.
+
 ### Workflows
 
 - `.github/workflows/pr-title-check.yml` - Validates PR title format
-- `.github/workflows/go-tests.yml` - Runs `go-test-template.yml` for backend, pacioli
-- `.github/workflows/e2e-tests.yml` - Starts VM, runs E2E suite with concurrency=10
-- `.github/workflows/linting.yml` - Runs golangci-lint on all Go code
-- `.github/workflows/build-and-publish.yml` - Builds Docker images, pushes to registry
+- `.github/workflows/labeler.yml` - Auto-labels PRs based on changed files (config: `.github/labeler.yml`)
+- `.github/workflows/go-tests.yml` - Runs `go-test-template.yml` for backend, pacioli (skipped for docs/local-only changes)
+- `.github/workflows/e2e-tests.yml` - Starts VM, runs E2E suite with concurrency=10 (skipped for docs-only changes)
+- `.github/workflows/linting.yml` - Runs golangci-lint on all Go code (skipped for docs/local-only changes)
+- `.github/workflows/build-and-publish.yml` - Builds Docker images, pushes to registry (skipped for docs/local-only changes on PRs)
 
 ### Testing Locally Before Push
 
