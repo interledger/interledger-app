@@ -4,6 +4,7 @@ on:
   pull_request:
     paths-ignore:
       - 'documentation/**'
+      - 'local/**'
 
 jobs:
   backend-tests:
