@@ -186,7 +186,12 @@ func convertDBDetails(details dbIndividualDetails) (*kyc.IndividualDetails, erro
 	return resp, nil
 }
 
-func SetKYCStatus(ctx context.Context, b Backends, walletID string, status kyc.Status) error {
+func SetKYCStatus(ctx context.Context, b Backends, walletID string, status kyc.Status, reason ...string) error {
+	reasonValue := ""
+	if len(reason) > 0 {
+		reasonValue = reason[0]
+	}
+
 	wo := client.StartWorkflowOptions{
 		ID:                       "kyc_set_status_" + walletID + "_" + status.String(),
 		TaskQueue:                "backend",
@@ -218,6 +223,7 @@ func SetKYCStatus(ctx context.Context, b Backends, walletID string, status kyc.S
 		await, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, SetKYCStatusWorkflow, SetKYCStatusWorkflowArgs{
 			WalletID: walletID,
 			Status:   status,
+			Reason:   reasonValue,
 		})
 	}
 	if executeErr != nil {

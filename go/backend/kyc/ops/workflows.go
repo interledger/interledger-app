@@ -30,11 +30,13 @@ func NewActivity(b Backends) *Activity {
 type SetKYCStatusWorkflowArgs struct {
 	WalletID string
 	Status   kyc.Status
+	Reason   string
 }
 
 func SetKYCStatusWorkflow(ctx workflow.Context, args SetKYCStatusWorkflowArgs) error {
 	walletID := args.WalletID
 	status := args.Status
+	reason := args.Reason
 	var a *Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute,
@@ -59,6 +61,8 @@ func SetKYCStatusWorkflow(ctx workflow.Context, args SetKYCStatusWorkflowArgs) e
 		_ = workflow.ExecuteActivity(ctx, a.SendDeniedEmail, walletID).Get(ctx, nil)
 	} else if oldStatus != kyc.StatusInReview && status == kyc.StatusInReview {
 		_ = workflow.ExecuteActivity(ctx, a.SendPendingEmail, walletID).Get(ctx, nil)
+	} else if oldStatus != kyc.StatusDocumentsRequired && status == kyc.StatusDocumentsRequired {
+		_ = workflow.ExecuteActivity(ctx, a.SendKYCDocumentsRequiredEmail, walletID, reason).Get(ctx, nil)
 	} else if oldStatus != kyc.StatusLevel1 && oldStatus != kyc.StatusLevel2 && (status == kyc.StatusLevel1 || status == kyc.StatusLevel2) {
 		_ = workflow.ExecuteActivity(ctx, a.SendApprovedEmail, walletID).Get(ctx, nil)
 
@@ -165,6 +169,12 @@ func (a *Activity) SendPendingEmail(ctx context.Context, walletID string) error 
 
 func (a *Activity) SendDeniedEmail(ctx context.Context, walletID string) error {
 	a.b.Email().SendApplicationDeniedEmail(ctx, walletID)
+
+	return nil
+}
+
+func (a *Activity) SendKYCDocumentsRequiredEmail(ctx context.Context, walletID string, reason string) error {
+	a.b.Email().SendKYCDocumentsRequiredEmail(ctx, walletID, reason)
 
 	return nil
 }

@@ -118,7 +118,6 @@ func TestHandleActionRequiredWebhook_StatusDocumentsRequired(t *testing.T) {
 			require.NoError(t, err)
 
 			kc.EXPECT().SetKYCStatus(ctx, walletID, kycclient.StatusDocumentsRequired).Return(nil)
-			ec.EXPECT().SendKYCDocumentsRequiredEmail(ctx, walletID, tt.reason)
 
 			rr := httptest.NewRecorder()
 			HandleActionRequiredWebhook(ctx, b, payload, rr)
