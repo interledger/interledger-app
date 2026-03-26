@@ -27,7 +27,7 @@ import {
 } from '~/components'
 import { Scaffold } from '~/components/Scaffold'
 import { TotpChallengeGlobal } from '~/components/TotpChallengeGlobal'
-import { hasUserSession, KRATOS_URL } from '~/lib/kratos.server'
+import { hasUserSession } from '~/lib/kratos.server'
 import { getSnackbar } from '~/lib/snackbar.server'
 import styles from '~/styles/app.css?url'
 import { PendingConfirmationsLoader } from './components/PendingConfirmationsLoader'
@@ -38,7 +38,7 @@ import { grpc } from './lib/grpc.server'
 import { getPusherArgs } from './lib/pusher.server'
 import { emailVerificationGuard, recoveryLinkSessionInvalidationGuard, withAAL2Guard } from './lib/totp.server'
 import { usePusher } from './lib/usePusher'
-import { Route } from './+types/root';
+import type { Route } from './+types/root';
 
 export const shouldRevalidate: ShouldRevalidateFunction = ({
   actionResult,
