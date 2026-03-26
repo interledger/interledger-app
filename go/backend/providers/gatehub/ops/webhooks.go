@@ -300,7 +300,7 @@ func HandleActionRequiredWebhook(ctx context.Context, b Backends, raw json.RawMe
 		zap.String("reason", wh.Data.Reason),
 	)
 
-	err = b.KYC().SetKYCStatus(ctx, walletID, status)
+	err = b.KYC().SetKYCStatus(ctx, walletID, status, wh.Data.Reason)
 	if err != nil {
 		log.Error("Failed to update KYC status", zap.String("wallet_id", walletID), zap.Error(err))
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
