@@ -68,7 +68,9 @@ export function AppPage() {
                 </CardIcon>
                 <div className='flex flex-col space-y-4'>
                   <p className='text-sm text-medium'>
-                    Document resubmission is required. Upload your documents to reactivate your wallet.
+                    Your KYC submission needs attention. <br />
+                    Please resubmit your documents to activate your wallet. <br />
+                    Your previous submission may have been incomplete, the photos may have been unclear, or your documents may have expired.
                   </p>
                   <Router
                     className='text-sm font-medium text-primary'
