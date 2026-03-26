@@ -1,3 +1,5 @@
+import logger from './lib/logger.server'
+
 export function envVarValidation() {
     try {
 
@@ -17,7 +19,7 @@ export function envVarValidation() {
             )
         }
     } catch (err) {
-        console.error(err)
+        logger.error(err)
         process.exit(1)
     }
 }
@@ -34,6 +36,6 @@ function requireEnv(name: string, missing: string[]): string | undefined {
     return value
 }
 
-function envBool(name: string): boolean {
+export function envBool(name: string): boolean {
     return process.env[name]?.toLowerCase() === "true"
 }
