@@ -1,10 +1,9 @@
 import { Code } from '@bufbuild/connect'
-import type { ConnectError as BufConnectError } from '@bufbuild/connect/dist/types/connect-error'
-import type { PlainMessage } from '@bufbuild/protobuf/dist/types/message'
-import type { TypedResponse } from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
-import { captureMessage } from '@sentry/remix'
-import { route } from 'routes-gen'
+import type { ConnectError as BufConnectError } from '@bufbuild/connect'
+import type { PlainMessage } from '@bufbuild/protobuf'
+import { data as rrData, redirect, UNSAFE_DataWithResponseInit as DataWithResponseInit } from 'react-router';
+import { captureMessage } from '@sentry/react-router'
+import { href } from 'react-router'
 import type {
   BadRequest_FieldViolation,
   PreconditionFailure_Violation
@@ -19,28 +18,28 @@ import type { SnackbarType } from '~/lib/useScaffoldStore'
 
 type JsonWithErrorFunction = <
   Data extends
-    | null
-    | (Record<string, unknown> & Record<'errors', Record<string, string>>)
+  | null
+  | (Record<string, unknown> & Record<'errors', Record<string, string>>)
 >(
   request: Request,
   data: Data,
   snackbar?: Partial<SnackbarType>,
   init?: number | ResponseInit,
   isConnectError?: boolean
-) => Promise<TypedResponse<(Data & object) | (Data & null)>>
+) => Promise<DataWithResponseInit<Data & object | Data & null>>
 
 type JsonWithConnectErrorFunction = <
   Data extends Record<string, unknown> &
-    Record<'errors', Record<string, string>>
+  Record<'errors', Record<string, string>>
 >(
   data: Data,
   mapping?: Partial<Data['errors']>,
   snackbar?: Partial<SnackbarType>,
   init?: number | ResponseInit
-) => Promise<TypedResponse<(Data & object) | (Data & null)>>
+) => Promise<DataWithResponseInit<Data & object | Data & null>>
 
 /**
- * This is an extension of the json function from Remix.
+ * This is an extension of the data function from Remix.
  * This function will set the status of the response to 400, and can flash a snackbar if required.
  * It will also log the error to Sentry.
  * @param request
@@ -93,10 +92,14 @@ export const error: JsonWithErrorFunction = async (
       icon: 'close'
     })
     newHeaders.append('Set-Cookie', cookie)
+
+    if (data && typeof data === 'object') {
+      data.shouldRevalidate = true
+    }
   }
 
   if (typeof data !== 'object') {
-    throw json(
+    throw rrData(
       {},
       {
         status: 400,
@@ -105,7 +108,7 @@ export const error: JsonWithErrorFunction = async (
     )
   }
 
-  return json(data, {
+  return rrData(data, {
     ...responseInit,
     headers: newHeaders,
     status: 400
@@ -126,7 +129,7 @@ export class ConnectError {
   readonly code: Code
   // The HTTP status code for this error.
   readonly status: ResponseInit | undefined
-  readonly errorResponse: Response | undefined
+  readonly errorResponse: DataWithResponseInit<Record<string, never>> | undefined
 
   violations: PlainMessage<PreconditionFailure_Violation>[] = []
   fieldViolations: PlainMessage<BadRequest_FieldViolation>[] = []
@@ -138,7 +141,7 @@ export class ConnectError {
 
     const mappedStatus = httpMapping(err.code)
     this.status = mappedStatus
-    this.errorResponse = json({}, mappedStatus)
+    this.errorResponse = rrData({}, mappedStatus)
 
     const url = new URL(request.url)
 
@@ -156,10 +159,10 @@ export class ConnectError {
       const errorDetails = err.findDetails(ErrorInfo)
       const reason = errorDetails?.[0]?.reason
       if (reason === 'aal2_required') {
-        throw redirect(route('/totp/challenge') + url.search)
+        throw redirect(href('/totp/challenge') + url.search)
       }
 
-      throw redirect(route('/login') + url.search, {
+      throw redirect(href('/login') + url.search, {
         headers: {
           'Set-Cookie':
             'ory_kratos_session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT'
@@ -174,9 +177,9 @@ export class ConnectError {
         .reduce(
           (
             accumulator: PlainMessage<PreconditionFailure_Violation>[],
-            currentValue
+            currentValue: PlainMessage<PreconditionFailure>
           ) => {
-            currentValue.violations.forEach((val) => accumulator.push(val))
+            currentValue.violations.forEach((val: PlainMessage<PreconditionFailure_Violation>) => accumulator.push(val))
             return accumulator
           },
           []
@@ -190,9 +193,9 @@ export class ConnectError {
         .reduce(
           (
             accumulator: PlainMessage<BadRequest_FieldViolation>[],
-            currentValue
+            currentValue: PlainMessage<BadRequest>
           ) => {
-            currentValue.fieldViolations.forEach((val) => accumulator.push(val))
+            currentValue.fieldViolations.forEach((val: PlainMessage<BadRequest_FieldViolation>) => accumulator.push(val))
             return accumulator
           },
           []
@@ -243,7 +246,7 @@ export class ConnectError {
     return this.fieldViolations.reduce((accumulator, current) => {
       let fieldName = fieldNames[current.field.toLowerCase()]
       if (fieldName) {
-        ;(accumulator as Record<string, string>)[fieldName] =
+        ; (accumulator as Record<string, string>)[fieldName] =
           current.description
       }
       return accumulator
@@ -308,5 +311,5 @@ export function isTwilioCodeError(error: ConnectError): boolean {
 
 export function isTwilioError(error: ConnectError): boolean {
   const errorInfo = error._err.findDetails(ErrorInfo)
-  return errorInfo.some((info) => info.reason === 'TwilioError')
+  return errorInfo.some((info: PlainMessage<ErrorInfo>) => info.reason === 'TwilioError')
 }

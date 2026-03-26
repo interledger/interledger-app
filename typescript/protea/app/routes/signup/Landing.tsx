@@ -1,5 +1,5 @@
 import { useCallback } from 'react'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import { Button, Card, CardContent, Router, Shape } from '~/components'
 import { SignupStep, useSignupStore } from '~/lib/useSignupStore'
 
@@ -105,7 +105,7 @@ export function Landing() {
       <div className='flex justify-center'>
         <p className='text-sm font-medium'>
           Have an account?{' '}
-          <Router className='font-medium text-primary' to={route('/login')}>
+          <Router className='font-medium text-primary' to={href('/login')}>
             Log in
           </Router>
         </p>

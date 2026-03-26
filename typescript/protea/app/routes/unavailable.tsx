@@ -1,4 +1,3 @@
-import type { MetaFunction } from '@remix-run/node'
 import type { ApplicationProps } from '~/components'
 import {
   Card,
@@ -11,7 +10,6 @@ import {
 } from '~/components'
 import { mergeMeta } from '~/lib/meta'
 
-
 export const handle: ApplicationProps = {
   layout: Layouts.Wallet,
   scaffold: {
@@ -21,7 +19,7 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Not available'
   }

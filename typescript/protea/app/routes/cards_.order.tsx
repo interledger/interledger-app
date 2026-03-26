@@ -1,13 +1,9 @@
+import type { Route } from './+types/cards_.order'
 import { proto3 } from '@bufbuild/protobuf'
-import {
-  json,
-  redirect,
-  type ActionFunctionArgs,
-  type LoaderFunctionArgs
-} from '@remix-run/node'
-import { useLoaderData } from '@remix-run/react'
+import { data, redirect } from 'react-router';
+import { useLoaderData } from 'react-router';
 import { useEffect } from 'react'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import {
   CardProcessingPlaceholder,
   Layouts,
@@ -39,7 +35,7 @@ export const handle: ApplicationProps = {
   }
 }
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const features = await getFeatures(request)
   if (!features.manageWalletCardsEnabled) {
     throw redirect('/')
@@ -50,12 +46,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
     throw res.errorResponse
   }
 
-  return json(res)
+  return data(res)
 }
 
 export default function Page() {
   const { products, addresses, countries, isWaitingForCreation } =
-    useLoaderData<typeof loader>()
+    useLoaderData()
   const [step, setProducts, setAddresses, reset, setCountries] =
     useOrderCardStore((state) => [
       state.step,
@@ -95,7 +91,7 @@ export default function Page() {
   )
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   let form = await request.formData()
   const cardProductCode = form.get('cardProductCode') as string
   const type = Number(form.get('type')) as CardType
@@ -126,7 +122,7 @@ export async function action({ request }: ActionFunctionArgs) {
     })
   }
 
-  return redirectWithSnackbar(request, route('/cards'), {
+  return redirectWithSnackbar(request, href('/cards'), {
     message:
       'Your card in the making! We’ll notify you as soon as it’s ready to go.',
     icon: 'close'

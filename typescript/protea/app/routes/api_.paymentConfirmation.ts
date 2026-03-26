@@ -1,20 +1,21 @@
-import { json, type ActionFunctionArgs } from '@remix-run/node'
+import type { Route } from './+types/api_.paymentConfirmation'
+import { data } from 'react-router';
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 
 export type PaymentConfirmationResponse = {
   success: boolean
   result?: 'confirmed' | 'declined'
-  errors?: any
+  errors?: { message: string }
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const formData = await request.formData()
   const transactionId = formData.get('transactionId') as string
   const confirmed = formData.get('confirmed') as 'true' | 'false'
 
   if (!transactionId || !confirmed) {
-    return json<PaymentConfirmationResponse>(
+    return data<PaymentConfirmationResponse>(
       {
         success: false,
         errors: {
@@ -27,7 +28,7 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   if (confirmed !== 'true' && confirmed !== 'false') {
-    return json<PaymentConfirmationResponse>(
+    return data<PaymentConfirmationResponse>(
       {
         success: false,
         errors: {
@@ -44,7 +45,7 @@ export async function action({ request }: ActionFunctionArgs) {
   })
 
   if (isConnectError(response)) {
-    return json<PaymentConfirmationResponse>(
+    return data<PaymentConfirmationResponse>(
       {
         success: false,
         errors: {
@@ -55,7 +56,7 @@ export async function action({ request }: ActionFunctionArgs) {
     )
   }
 
-  return json<PaymentConfirmationResponse>({
+  return data<PaymentConfirmationResponse>({
     success: true,
     result: confirmed === 'true' ? 'confirmed' : 'declined'
   })

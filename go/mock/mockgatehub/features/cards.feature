@@ -87,7 +87,7 @@ Feature: Card management and lifecycle
     Given a managed customer with a pending 3DS challenge exists
     When I GET /cards/v1/transaction/pending-confirmations with managed user UUID header
     Then the response status is 200
-    And the response is an array of pending 3DS confirmations
+    And the response contains pending 3DS confirmations
     And each confirmation includes transactionId, merchantName, purchaseAmount, purchaseCurrency, and timeout
 
   Scenario: Confirm 3DS payment (approve)

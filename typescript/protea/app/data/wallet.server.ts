@@ -1,6 +1,6 @@
 import type { PartialMessage } from '@bufbuild/protobuf'
-import { redirect } from '@remix-run/node'
-import { route } from 'routes-gen'
+import { redirect } from 'react-router';
+import { href } from 'react-router'
 import type {
   Features,
   GetPublicWalletDetailsResponse,
@@ -71,7 +71,7 @@ export async function getWalletInfo(request: Request): Promise<WalletInfo> {
   if (isConnectError(response)) {
     throw response.errorResponse
   } else if (!response.hasWalletAddress) {
-    throw redirect(route('/wallet-address'))
+    throw redirect(href('/wallet-address'))
   }
 
   return response

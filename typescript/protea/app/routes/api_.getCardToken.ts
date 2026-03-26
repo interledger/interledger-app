@@ -1,5 +1,5 @@
-import type { ActionFunctionArgs} from '@remix-run/node';
-import { json } from '@remix-run/node'
+import type { Route } from './+types/api_.getCardToken'
+import { data } from 'react-router';
 import type {
   CardTokenType,
   TokenLink
@@ -12,10 +12,10 @@ export type GetCardTokenResponse = {
   token: string
   links: TokenLink[]
   shouldRevalidate?: boolean
-  errors?: any
+  errors?: { operation: string }
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   let form = await request.formData()
   const cardId = form.get('cardId') as string
   const tokenType = Number(form.get('tokenType')) as CardTokenType
@@ -31,7 +31,7 @@ export async function action({ request }: ActionFunctionArgs) {
     return tokenResponse.error({ errors: { operation: 'card-token' } })
   }
 
-  return json({
+  return data({
     tokenType,
     token: tokenResponse.token,
     links: tokenResponse.links,

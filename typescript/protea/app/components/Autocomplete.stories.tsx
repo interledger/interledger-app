@@ -1,4 +1,4 @@
-import { unstable_createRemixStub as createRemixStub } from '@remix-run/testing'
+import { createRoutesStub } from 'react-router';
 import type { Meta, StoryFn } from '@storybook/react'
 import { Autocomplete, Icon } from '~/components'
 
@@ -7,7 +7,7 @@ const meta: Meta<typeof Autocomplete> = {
   component: Autocomplete,
   decorators: [
     (Story) => {
-      const RemixStub = createRemixStub([
+      const RemixStub = createRoutesStub([
         {
           path: '/',
           // @ts-ignore

@@ -1,12 +1,8 @@
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { json } from '@remix-run/node'
-import { useLoaderData, useSubmit } from '@remix-run/react'
+import { data } from 'react-router';
+import { useLoaderData, useSubmit } from 'react-router';
+import type { Route } from './+types/personal-details'
 import { useEffect, useRef, useState } from 'react'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import { Button, Card, CardContent, Dialog, Layouts, Shape } from '~/components'
 import { isConnectError } from '~/lib/error.server'
 import type { FiantSdkMessage } from '~/lib/fiant'
@@ -26,10 +22,10 @@ type KYCErrorsType = {
   UnableToPars: 'KYC: unable to parse message data'
 }
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const flow = await requireFlow(request, flowType.PersonalDetails)
   const response = await grpc.getKYCProviderWidget(request, {
-    idempotencyKey: flow.data.idempotencyKey
+    idempotencyKey: flow.data?.idempotencyKey as string
   })
 
   if (isConnectError(response)) throw response.errorResponse
@@ -50,7 +46,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   //   throw redirect('/')
   // }
 
-  return json({
+  return data({
     provider: response.provider,
     gatehubWidget: response.gatehubWidget,
     personaWidget: response.personaInquiry,
@@ -67,12 +63,12 @@ export const handle = {
   scaffold: {
     header: {
       title: 'Activate wallet',
-      back: route('/')
+      back: href('/')
     }
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Activate wallet'
   }
@@ -80,7 +76,7 @@ export const meta: MetaFunction = mergeMeta(() => [
 
 function ChimoneyPage() {
   const submit = useSubmit()
-  const { chimoneyWidget } = useLoaderData<typeof loader>()
+  const { chimoneyWidget } = useLoaderData()
 
   useEffect(() => {
     const onKYCComplete = (e: MessageEvent) => {
@@ -140,15 +136,15 @@ function PersonaPage() {
         inquiryId: personaWidget?.id,
         sessionToken: personaWidget?.sessionToken,
         onReady: () => setReady(true),
-        onComplete: ({ inquiryId, status, fields }: any) => {
+        onComplete: () => {
           setReady(false)
           submit(null, {
             action: '/personal-details',
             method: 'post'
           })
         },
-        onCancel: ({ inquiryId, sessionToken }: any) => console.log('onCancel'),
-        onError: (error: any) => console.log(error)
+        onCancel: () => console.log('onCancel'),
+        onError: (error: unknown) => console.log(error)
       })
     }
   }, [personaWidget, scriptStatus, submit])
@@ -157,7 +153,7 @@ function PersonaPage() {
 }
 
 function GatehubPage() {
-  const { gatehubWidget } = useLoaderData<typeof loader>()
+  const { gatehubWidget } = useLoaderData()
   const [dialogOpen, setDialogOpen] = useState(false)
   const submit = useSubmit()
   useEffect(() => {
@@ -237,7 +233,7 @@ function GatehubPage() {
 }
 
 function PtiPage() {
-  const { ptiWidget } = useLoaderData<typeof loader>()
+  const { ptiWidget } = useLoaderData()
   const submit = useSubmit()
   const scriptStatus = useScript(
     ptiWidget?.sdkUrl || 'https://sdk.platform.fiant.io/0.0.23/index.js'
@@ -252,13 +248,13 @@ function PtiPage() {
   }, [setLoading])
 
   useEffect(() => {
-    if (scriptStatus == 'ready' && typeof (window as any).PTI !== 'undefined') {
-      ;(window as any).PTI.init({
+    if (scriptStatus == 'ready' && window.PTI !== undefined) {
+      window.PTI.init({
         clientId: ptiWidget?.clientId,
         generateTokenPath: ptiWidget?.generateTokenPath,
         ptiFormsUrl: ptiWidget?.formsUrl || 'https://forms.platform.fiant.io'
       })
-      ;(window as any).PTI.form({
+      window.PTI.form({
         type: 'KYC',
         requestId: ptiWidget?.requestId,
         userId: ptiWidget?.userId,
@@ -335,7 +331,7 @@ function KycIntro({ onClick, ready }: KycIntroProps) {
 }
 
 export default function Page() {
-  const { provider } = useLoaderData<typeof loader>()
+  const { provider } = useLoaderData()
 
   if (provider == 'persona') {
     return <PersonaPage />
@@ -346,7 +342,7 @@ export default function Page() {
   } else return <GatehubPage />
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   logger.info({ flow: 'kyc' }, '[KYC] Personal details action called - marking KYC status as pending')
   
   await exitFlow(request, flowType.PersonalDetails)
@@ -359,7 +355,7 @@ export async function action({ request }: ActionFunctionArgs) {
   
   logger.info({ flow: 'kyc' }, '[KYC] KYC status set to pending successfully')
 
-  return redirectWithSnackbar(request, route('/'), {
+  return redirectWithSnackbar(request, href('/'), {
     message: 'Personal details captured.',
     icon: 'close'
   })

@@ -1,12 +1,8 @@
+import type { Route } from './+types/accounts_.$accountId.name'
 import { Code } from '@bufbuild/connect'
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import type { UIMatch } from '@remix-run/react'
-import { Form, useActionData, useLoaderData, useParams } from '@remix-run/react'
-import { route } from 'routes-gen'
+import type { UIMatch } from 'react-router';
+import { Form, useActionData, useLoaderData, useParams } from 'react-router';
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, Layouts, TextField } from '~/components'
 import { getLinkedAccount } from '~/data/accounts.server'
@@ -16,7 +12,7 @@ import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 
-export async function loader({ request, params }: LoaderFunctionArgs) {
+export async function loader({ request, params }: Route.LoaderArgs) {
   const account = await getLinkedAccount(request, params.accountId as string)
   return jsonWithCSRF(request, {
     name: account.nickname,
@@ -28,31 +24,28 @@ export const handle: ApplicationProps = {
   layout: Layouts.Focus,
   scaffold: {
     header: {
-      back: route('/accounts'),
-      title: (match: UIMatch<typeof loader>) =>
-        match.data.type == 'bank' ? 'Bank account nickname' : 'Card nickname'
+      back: href('/accounts'),
+      title: (match: UIMatch<Route.ComponentProps['loaderData']>) =>
+        match.loaderData?.type == 'bank' ? 'Bank account nickname' : 'Card nickname'
     }
   }
 }
 
-export const meta: MetaFunction<typeof loader> = mergeMeta<typeof loader>(
-  ({ data }) => [
-    {
-      title: data?.type == 'bank' ? 'Bank account nickname' : 'Card nickname'
-    }
-  ]
-)
+export const meta = mergeMeta(({ data }) => {
+  const d = data as Route.ComponentProps['loaderData'] | undefined
+  return [{ title: d?.type == 'bank' ? 'Bank account nickname' : 'Card nickname' }]
+})
 
 export default function Page() {
   const { name, csrfToken } = useLoaderData<typeof loader>()
-  const actionData = useActionData<typeof action>()
+  const actionData = useActionData()
   const params = useParams()
 
   return (
     <>
       <Form
         id='edit-linked-account-name'
-        action={route('/accounts/:accountId/name', {
+        action={href('/accounts/:accountId/name', {
           accountId: params.accountId as string
         })}
         method='post'
@@ -86,7 +79,7 @@ export default function Page() {
   )
 }
 
-export async function action({ request, params }: ActionFunctionArgs) {
+export async function action({ request, params }: Route.ActionArgs) {
   const form = await request.formData()
   const nickname = form.get('name') as string
 
@@ -115,7 +108,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
   return redirectWithSnackbar(
     request,
-    route('/accounts/:accountId', {
+    href('/accounts/:accountId', {
       accountId: params.accountId as string
     }),
     {
