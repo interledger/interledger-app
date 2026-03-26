@@ -4,20 +4,20 @@ import type {
   MetaFunction
 } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { Form, useActionData, useFetcher, useLoaderData } from '@remix-run/react'
+import { Form, useFetcher, useLoaderData } from '@remix-run/react'
 import { useEffect, useState } from 'react'
-import {
-  type PaymentResultType,
-  finishPayment,
-  checkOutgoingPayment,
-  getGrantStatus
-} from '~/lib/open-payments.server'
-import { destroySession, getSession } from '~/session.server'
+import { finishPayment, checkOutgoingPayment } from '~/lib/open-payments.server'
+import { commitSession, getSession } from '~/session.server'
 import { type ApplicationProps, Button, GridColumn, Layouts, WalletGrid } from '~/components'
 import { mergeMeta } from '~/lib/meta'
 import { QuickPaySession } from '~/lib/types'
 //import {isWalletLayout } from '~/lib/utils'\
 import { FinishCheck, FinishError } from '~/components/QuickPay'
+
+export type FinishActionData = {
+  message?: string
+  error?: boolean
+}
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const searchParams = new URL(request.url).searchParams
@@ -65,24 +65,29 @@ export const meta: MetaFunction = mergeMeta(() => [
 ])
 
 export default function Page() {
-  const actionData = useActionData<typeof action>()
-  const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState('')
-  const { paymentId, hash, interactRef, result, currentGrant } = useLoaderData<typeof loader>()
+  const { paymentId, hash, interactRef, isRequestPayment, result, currentGrant } = useLoaderData<typeof loader>()
   const fetcher = useFetcher()
-
-  const isLoading = fetcher.state !== 'idle'
-  const fetcherData = fetcher.data as
-    | { success: true }
-    | { success: false; message?: string }
-    | undefined
+  const fetcherData = fetcher.data as unknown as FinishActionData
+  const [loading, setLoading] = useState(true)
+  const [statusAndMessage, setStatusAndMessage] = useState({ error: false, message: '' })
 
   useEffect(() => {
-    if (result !== 'grant_rejected') {
+    if (fetcherData && fetcherData.message) {
+      setStatusAndMessage({ error: fetcherData.error || false, message: fetcherData.message })
+      setLoading(false)
+    }
+  }, [fetcherData])
+
+  useEffect(() => {
+    if (result === 'grant_rejected') {
+      setStatusAndMessage({ error: true, message: 'Payment was successfully declined.' })
+      setLoading(false)
+    } else if (!fetcherData) {
       //waitTime is the duration the grant continuations specifies before calling the next step. In this case the continue.
       const waitTime = currentGrant?.continue?.wait ?? 1
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         const intent = 'checkIncomingPayment'
+        setLoading(true)
         fetcher.submit(
           {
             paymentId,
@@ -93,24 +98,23 @@ export default function Page() {
           { method: 'post' }
         )
       }, waitTime * 1000)
-
-    } else {
-      setMessage('Payment was successfully declined.')
+      return () => clearTimeout(timer)
     }
-  }, [paymentId, hash, interactRef])
+  }, [paymentId, hash, interactRef, currentGrant])
 
   return (
     <WalletGrid>
       <GridColumn className="col-span-full mt-20 mx-auto text-center max-w-md">
-        {isLoading ? (
+        {loading ? (
           <>
             <div className="animate-spin h-10 w-10 border-b-2 border-current rounded-full mx-auto mb-6" />
             <div className="text-lg">Checking payment...</div>
           </>
         ) : (
           <Form method="post">
-            {!isLoading && fetcherData?.success ? (
+            {!statusAndMessage.error ? (
               <>
+                <div className="flex justify-center mb-6"><FinishCheck className="w-16 h-16" /></div>
                 <div className="text-3xl mb-4">Payment successful</div>
                 <div className="mb-10">Your payment was completed.</div>
 
@@ -118,10 +122,10 @@ export default function Page() {
               </>
             ) : (
               <>
-                <div><FinishError /></div>
+                <div className="flex justify-center mb-6"><FinishError className="w-16 h-16" /></div>
                 <div className="text-3xl mb-4 text-red-600">Payment failed</div>
                 <div className="mb-10">
-                  {fetcherData?.message || message}
+                  {statusAndMessage.message}
                 </div>
 
                 <Button type="submit" name="intent" value="finish">Home</Button>
@@ -131,73 +135,11 @@ export default function Page() {
       </GridColumn>
     </WalletGrid>
   )
-
-  /*return (
-    <>
-      <div className="flex justify-center items-center flex-col h-full px-5 gap-8">
-        <Loader type="large" />
-        <Suspense fallback={<Fallback />}>
-          <Await
-            resolve={data.checkOutgoingPayment}
-            errorElement={<FinishError />}
-          >
-            {(outgoingPaymentCheck) => (
-              <>
-                {setLoading(false)}
-                {outgoingPaymentCheck.error ? (
-                  <>
-                    <FinishError />
-                    <div className="text-destructive uppercase sm:text-2xl font-medium text-center">
-                      {outgoingPaymentCheck.message}
-                    </div>
-                    <Form method="POST">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="wmt-formattable-button"
-                        type="submit"
-                      >
-                        'Home'
-                      </Button>
-                    </Form>
-                  </>
-                ) : (
-                  <>
-                    <FinishCheck color={outgoingPaymentCheck.color} />
-                    <div
-                      className={cx(
-                        'uppercase sm:text-2xl font-medium text-center',
-                        outgoingPaymentCheck.color === 'red'
-                          ? 'text-destructive'
-                          : 'text-green-1'
-                      )}
-                    >
-                      {outgoingPaymentCheck.message}
-                    </div>
-                    <Form method="POST" {...form.props}>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="wmt-formattable-button"
-                        type="submit"
-                      >
-                        'Home'
-                      </Button>
-                    </Form>
-                  </>
-                )}
-              </>
-            )}
-          </Await>
-        </Suspense>
-      </div>
-    </>
-  )*/
 }
 
 export async function action({ request }: ActionFunctionArgs) {
   const session = await getSession(request.headers.get('Cookie'))
-  const sessionData: QuickPaySession = session.get('quickPay') || {}
+  let sessionData: QuickPaySession = session.get('quickPay') || {}
   const formData = Object.fromEntries(await request.formData())
   const intent = formData.intent
 
@@ -219,42 +161,41 @@ export async function action({ request }: ActionFunctionArgs) {
       )
     }
 
+    //Error is generatede on next line
     try {
-      /* const finishPaymentResponse = await finishPayment(
-         grant,
-         quote,
-         walletAddressInfo,
-         interactRef
-       )
-       console.log({ finishPaymentResponse })
-       const result = await checkOutgoingPayment(
-         finishPaymentResponse.url,
-         finishPaymentResponse.accessToken,
-         quote.incomingPaymentGrantToken,
-         quote.receiver,
-         isRequestPayment
-       )*/
-      const grantStatus = await getGrantStatus(grant.continue.access_token.value, grant.continue.uri, interactRef)
-      console.log({ grantStatus })
-      const result = null
+      const finishPaymentResponse = await finishPayment(
+        grant,
+        quote,
+        walletAddressInfo,
+        interactRef
+      )
+      const result = await checkOutgoingPayment(
+        finishPaymentResponse.url,
+        finishPaymentResponse.accessToken,
+        quote.incomingPaymentGrantToken,
+        quote.receiver,
+        isRequestPayment
+      )
+      console.log({ result })
       return json(result)
     } catch (err) {
       console.log({ err })
 
       return json({
-        success: false,
+        error: true,
         message: 'Internal server error'
       })
     }
 
   }
-  /*const submission = session.get('submission')
-  if (submission?.value?.walletAddress) {
-    delete submission.value.walletAddress
+
+  if (intent === 'finish') {
+    //Reset session info
+    sessionData = {}
+    session.set('quickPay', sessionData)
+    return redirect('/quick-pay', {
+      headers: { 'Set-Cookie': await commitSession(session) }
+    })
   }
-  const path = `/quick-pay`
- 
-  return redirect(path, {
-    headers: { 'Set-Cookie': await destroySession(session) }
-  })*/
+
 }
