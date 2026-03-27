@@ -36,8 +36,10 @@ export type QuickPaySession = {
   validWalletAddress?: any
   receiverAddress?: any
   quote?: any
-  grant?: any
+  grants?: any
+  request?: any
 }
+
 export type ActionData = {
   errors?: {
     walletAddress?: Errors

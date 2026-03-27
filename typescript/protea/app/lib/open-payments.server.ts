@@ -468,7 +468,7 @@ async function getQuoteGrant({ authServer, opClient }: QuoteGrantParams) {
     })
 }
 
-async function getIncomingPaymentGrant(
+export async function getIncomingPaymentGrant(
   url: string,
   opClient: AuthenticatedClient
 ) {

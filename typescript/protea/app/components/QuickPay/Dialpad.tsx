@@ -57,11 +57,11 @@ export const DialPad = () => {
     }, 500)
   };
 
-  useEffect(() => { 
+  useEffect(() => {
     const eventHandleDialPadInputs = (e: KeyboardEvent) => handleDialPadInputs(e.key, amountValue, setAmountValue, triggerKey)
-    
+
     document.addEventListener('keydown', eventHandleDialPadInputs)
-      
+
     return () => {
       document.removeEventListener('keydown', eventHandleDialPadInputs)
     }
@@ -158,13 +158,14 @@ DialPadKey.displayName = 'DialPadKey'
 
 type AmountDisplayProps = {
   displayAmount?: string
+  assetCode?: string
 }
 
 export const AmountDisplay = (args: AmountDisplayProps) => {
   const { amountValue, assetCode } = useDialPadContext()
 
   const value = args.displayAmount
-    ? args.displayAmount
+    ? `${getCurrencySymbol(args?.assetCode ?? 'usd')} ${args.displayAmount}`
     : `${getCurrencySymbol(assetCode)} ${amountValue}`
 
   return (

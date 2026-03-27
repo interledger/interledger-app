@@ -1,6 +1,7 @@
 import { z } from 'zod'
-import { createClient, getWalletAddress } from './open-payments.server'
+import { createClient, getIncomingPaymentGrant, getWalletAddress } from './open-payments.server'
 import { Errors, FormattedAmount, FormatAmountArgs, WalletAddressType } from './types'
+import { getUserSession } from '~/lib/kratos.server'
 
 export class WalletAddressFormatError extends Error { }
 
@@ -8,6 +9,48 @@ export async function getValidWalletAddress(walletAddress: string) {
   const opClient = await createClient()
   const response = await getWalletAddress(walletAddress, opClient)
   return response
+}
+
+export async function createRequestPayment(args: {
+  receiverAddress: string
+  amount: number
+  note?: string
+}) {
+  const opClient = await createClient()
+  const walletAddress = await getWalletAddress(args.receiverAddress, opClient)
+
+  const amountObj = {
+    value: BigInt(
+      (args.amount * 10 ** walletAddress.assetScale).toFixed()
+    ).toString(),
+    assetCode: walletAddress.assetCode,
+    assetScale: walletAddress.assetScale
+  }
+
+  const incomingPaymentGrant = await getIncomingPaymentGrant(
+    walletAddress.authServer,
+    opClient
+  )
+
+  // create incoming payment with amount
+  return await opClient.incomingPayment
+    .create(
+      {
+        url: walletAddress.resourceServer,
+        accessToken: incomingPaymentGrant.access_token?.value || ''
+      },
+      {
+        expiresAt: new Date(Date.now() + 6000 * 60 * 5).toISOString(),
+        walletAddress: walletAddress.id,
+        incomingAmount: amountObj,
+        metadata: {
+          description: args.note
+        }
+      }
+    )
+    .catch(() => {
+      throw new Error('Unable to create incoming payment for request.')
+    })
 }
 
 export const walletSchema = z.object({
@@ -35,7 +78,7 @@ export const walletSchema = z.object({
 })
 
 export const paymentSchema = z.object({
-  senderAddress: z.string(),
+  senderAddress: z.string().optional(),
   receiverAddress: z
     .string()
     .transform((val) => val.replace('$', 'https://'))
@@ -152,6 +195,24 @@ export function toWalletAddressUrl(s: string): string {
   return s.startsWith('$') ? s.replace('$', 'https://') : s
 }
 
+type FormatDateArgs = {
+  date: string
+  time?: boolean
+  month?: Intl.DateTimeFormatOptions['month']
+}
+export const formatDate = ({
+  date,
+  time = true,
+  month = 'short'
+}: FormatDateArgs): string => {
+  return new Date(date).toLocaleDateString('default', {
+    day: '2-digit',
+    month,
+    year: 'numeric',
+    ...(time && { hour: '2-digit', minute: '2-digit' })
+  })
+}
+
 export const formatAmount = (args: FormatAmountArgs): FormattedAmount => {
   const { value, assetCode, assetScale } = args
   const formatterWithCurrency = new Intl.NumberFormat('en-US', {
@@ -177,3 +238,14 @@ export const formatAmount = (args: FormatAmountArgs): FormattedAmount => {
     symbol
   }
 }
+export async function isWalletLayout(request: Request) {
+  try {
+      await getUserSession(request)
+      return true
+  
+    } catch (err) {
+      return false
+    }
+}
+
+
