@@ -1,6 +1,6 @@
 import type { Route } from './+types/totp_.challenge'
 import type { SelfServiceLoginFlow, UiText } from '@ory/kratos-client'
-import { data, redirect } from 'react-router';
+import { data as rrData, redirect } from 'react-router';
 import { useActionData, useLoaderData } from 'react-router';
 import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
@@ -76,7 +76,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   }
 
   const flow: SelfServiceLoginFlow = await kratosFlow.json()
-  return data({ flowId, csrfToken: getCsrfTokenFromFlow(flow) })
+  return rrData({ flowId, csrfToken: getCsrfTokenFromFlow(flow) })
 }
 
 export const handle: ApplicationProps = {
@@ -145,7 +145,7 @@ export async function action({ request }: Route.ActionArgs) {
     if (isSessionAlreadyExitsMessage(message)) {
       return response
     }
-    return data({
+    return rrData({
       errors: {
         totp_code: message || 'Invalid code'
       }
