@@ -69,7 +69,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     )
     flow = data
   } catch (err: any) {
-    handleFlowError(err, 'settings/password')
+    handleFlowError(err, 'settings/phone')
     throw err
   }
 
