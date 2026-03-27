@@ -237,23 +237,30 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, errors.New("ADMIN_TEAM_DOMAIN is required")
 	}
 
-	emailEnabled := os.Getenv("EMAIL_ENABLED") != "false"
+	emailEnabled := true
+	if v := os.Getenv("EMAIL_ENABLED"); v != "" {
+		var err error
+		emailEnabled, err = strconv.ParseBool(v)
+		if err != nil {
+			return nil, errors.New("EMAIL_ENABLED must be a valid boolean (true/false/1/0)")
+		}
+	}
 
 	var sendgridAPIKey, sendgridFromName, sendgridFromEmail string
 	if emailEnabled {
 		sendgridAPIKey = os.Getenv("SENDGRID_API_KEY")
 		if sendgridAPIKey == "" {
-			return nil, errors.New("SENDGRID_API_KEY is required when EMAIL_ENABLED is not false")
+			return nil, errors.New("SENDGRID_API_KEY is required when EMAIL_ENABLED is true")
 		}
 
 		sendgridFromName = os.Getenv("SENDGRID_FROM_NAME")
 		if sendgridFromName == "" {
-			return nil, errors.New("SENDGRID_FROM_NAME is required when EMAIL_ENABLED is not false")
+			return nil, errors.New("SENDGRID_FROM_NAME is required when EMAIL_ENABLED is true")
 		}
 
 		sendgridFromEmail = os.Getenv("SENDGRID_FROM_EMAIL")
 		if sendgridFromEmail == "" {
-			return nil, errors.New("SENDGRID_FROM_EMAIL is required when EMAIL_ENABLED is not false")
+			return nil, errors.New("SENDGRID_FROM_EMAIL is required when EMAIL_ENABLED is true")
 		}
 	}
 

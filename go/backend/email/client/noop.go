@@ -24,8 +24,8 @@ func (n *noopClient) SendApplicationPendingEmail(_ context.Context, walletID str
 func (n *noopClient) SendApplicationDeniedEmail(_ context.Context, walletID string) {
 	log.Info("NOT SENDING: application denied email", zap.String("walletID", walletID))
 }
-func (n *noopClient) SendConnectedAccountEmail(_ context.Context, la linkedaccounts.LinkedAccount) {
-	log.Info("NOT SENDING: connected account email", zap.String("providerID", la.ProviderID))
+func (n *noopClient) SendConnectedAccountEmail(_ context.Context, _ linkedaccounts.LinkedAccount) {
+	log.Info("NOT SENDING: connected account email")
 }
 func (n *noopClient) SendConnectedAccountDocumentsNeededEmail(_ context.Context, walletID string) {
 	log.Info("NOT SENDING: connected account documents needed email", zap.String("walletID", walletID))
@@ -34,19 +34,25 @@ func (n *noopClient) SendPaymentFailedEmail(_ context.Context, walletID string) 
 	log.Info("NOT SENDING: payment failed email", zap.String("walletID", walletID))
 }
 func (n *noopClient) SendPaymentSentEmailV2(_ context.Context, walletID string, payment *payments.Payment) {
+	if payment == nil {
+		return
+	}
 	log.Info("NOT SENDING: payment sent email", zap.String("walletID", walletID), zap.String("paymentID", payment.ID))
 }
 func (n *noopClient) SendPaymentReceivedEmailV2(_ context.Context, walletID string, payment *payments.Payment) {
+	if payment == nil {
+		return
+	}
 	log.Info("NOT SENDING: payment received email", zap.String("walletID", walletID), zap.String("paymentID", payment.ID))
 }
-func (n *noopClient) SendDepositReceivedEmail(_ context.Context, walletID string, amt currency.Amount, sourceAccount, date string) {
-	log.Info("NOT SENDING: deposit received email", zap.String("walletID", walletID), zap.String("amount", amt.Format()), zap.String("sourceAccount", sourceAccount), zap.String("date", date))
+func (n *noopClient) SendDepositReceivedEmail(_ context.Context, walletID string, _ currency.Amount, _, _ string) {
+	log.Info("NOT SENDING: deposit received email", zap.String("walletID", walletID))
 }
 func (n *noopClient) SendDepositFailedEmail(_ context.Context, walletID string) {
 	log.Info("NOT SENDING: deposit failed email", zap.String("walletID", walletID))
 }
-func (n *noopClient) SendWithdrawalEmail(_ context.Context, walletID string, amt currency.Amount, destinationAccount, date string) {
-	log.Info("NOT SENDING: withdrawal email", zap.String("walletID", walletID), zap.String("amount", amt.Format()), zap.String("destinationAccount", destinationAccount), zap.String("date", date))
+func (n *noopClient) SendWithdrawalEmail(_ context.Context, walletID string, _ currency.Amount, _, _ string) {
+	log.Info("NOT SENDING: withdrawal email", zap.String("walletID", walletID))
 }
 func (n *noopClient) SendWithdrawalFailedEmail(_ context.Context, walletID string) {
 	log.Info("NOT SENDING: withdrawal failed email", zap.String("walletID", walletID))
