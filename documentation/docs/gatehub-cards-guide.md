@@ -10,6 +10,7 @@
 - [Provider Payments Guide](provider-payments-reference.md) — GateHub-specific payment behavior
 - [Payment Troubleshooting](payment-troubleshooting-guide.md) — Debugging card transaction issues
 - [KYC Explainer](kyc-guide.md) — GateHub KYC requirements for card issuance
+- [Environment Variables](env-variables.md) — GateHub card API credentials, webhook secrets, and base URLs
 
 **Quick Navigation:**
 
