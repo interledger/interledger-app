@@ -69,7 +69,10 @@ type StartArgs struct {
 	ZendeskToken                  string
 	AdminPolicyAud                string
 	AdminTeamDomain               string
+	EmailEnabled                  bool
 	SendgridAPIKey                string
+	SendgridFromName              string
+	SendgridFromEmail             string
 	SmartyAuthID                  string
 	SmartyAuthToken               string
 	PusherAddr                    string
@@ -234,9 +237,24 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, errors.New("ADMIN_TEAM_DOMAIN is required")
 	}
 
-	sendgridAPIKey := os.Getenv("SENDGRID_API_KEY")
-	if sendgridAPIKey == "" {
-		return nil, errors.New("SENDGRID_API_KEY is required")
+	emailEnabled := os.Getenv("EMAIL_ENABLED") != "false"
+
+	var sendgridAPIKey, sendgridFromName, sendgridFromEmail string
+	if emailEnabled {
+		sendgridAPIKey = os.Getenv("SENDGRID_API_KEY")
+		if sendgridAPIKey == "" {
+			return nil, errors.New("SENDGRID_API_KEY is required when EMAIL_ENABLED is not false")
+		}
+
+		sendgridFromName = os.Getenv("SENDGRID_FROM_NAME")
+		if sendgridFromName == "" {
+			return nil, errors.New("SENDGRID_FROM_NAME is required when EMAIL_ENABLED is not false")
+		}
+
+		sendgridFromEmail = os.Getenv("SENDGRID_FROM_EMAIL")
+		if sendgridFromEmail == "" {
+			return nil, errors.New("SENDGRID_FROM_EMAIL is required when EMAIL_ENABLED is not false")
+		}
 	}
 
 	smartyAuthID := os.Getenv("SMARTY_AUTH_ID")
@@ -446,7 +464,10 @@ func ParseStartArgs() (*StartArgs, error) {
 		TwitterBearerToken:            twitterBearerToken,
 		AdminPolicyAud:                adminPolicyAud,
 		AdminTeamDomain:               adminTeamDomain,
+		EmailEnabled:                  emailEnabled,
 		SendgridAPIKey:                sendgridAPIKey,
+		SendgridFromName:              sendgridFromName,
+		SendgridFromEmail:             sendgridFromEmail,
 		SmartyAuthID:                  smartyAuthID,
 		SmartyAuthToken:               smartyAuthToken,
 		PusherAddr:                    pusherAddr,

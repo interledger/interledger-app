@@ -152,7 +152,10 @@ The Go backend is the core of the wallet, handling payments, provider integratio
 
 | Variable | Description | Secret | Notes |
 |---|---|---|---|
-| `SENDGRID_API_KEY` | SendGrid API key for sending emails | Yes | Local default: `test-sendgrid-api-key` |
+| `EMAIL_ENABLED` | Set to `false` to disable all outgoing emails. Defaults to enabled if unset. When disabled, SendGrid env vars are not required. | No | Local default: `false` |
+| `SENDGRID_API_KEY` | SendGrid API key for sending emails. Required when `EMAIL_ENABLED` is not `false`. | Yes | Local default: `test-sendgrid-api-key` |
+| `SENDGRID_FROM_NAME` | Display name for outgoing emails (e.g. "Interledger Wallet"). Required when `EMAIL_ENABLED` is not `false`. | No | Local default: `Interledger Wallet` |
+| `SENDGRID_FROM_EMAIL` | Sender email address for outgoing emails. Required when `EMAIL_ENABLED` is not `false`. | No | Local default: `support@interledger.app` |
 | `ZENDESK_USER` | Zendesk account email (currently not actively used) | No | Deployed: `support@interledger-app.dev`; Local: `matt@fynbos.dev` |
 | `ZENDESK_TOKEN` | Zendesk API token | Yes | Local default: `test` |
 
