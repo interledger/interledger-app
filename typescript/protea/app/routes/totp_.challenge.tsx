@@ -136,11 +136,11 @@ export async function action({ request }: Route.ActionArgs) {
     throw redirect('/totp/challenge')
   }
   if (!totp_code || typeof totp_code !== 'string') {
-    logger.error({ route: "totp.challange" }, "TOTP code is required")
+    logger.error({ route: "totp.challenge" }, "TOTP code is required")
     return data({ errors: { totp_code: "TOTP code is required" } })
   }
   if (!csrf_token || typeof csrf_token !== 'string') {
-    logger.error({ route: "totp.challange" }, "CSRF token is required")
+    logger.error({ route: "totp.challenge" }, "CSRF token is required")
     return data({ errors: { totp_code: "Unknown error, please retry." } })
   }
 
@@ -165,7 +165,7 @@ export async function action({ request }: Route.ActionArgs) {
       return redirect(returnTo, { headers })
     }
 
-    logger.error({ status: submitTotpResponse.status, route: "totp.challange" }, "No session after updateLoginFlow", submitTotpResponse.status)
+    logger.error({ status: submitTotpResponse.status, route: "totp.challenge" }, "No session after updateLoginFlow", submitTotpResponse.status)
     return redirect("/totp/challenge")
   } catch (err) {
     const kratosError = err as KratosError
@@ -174,16 +174,16 @@ export async function action({ request }: Route.ActionArgs) {
 
     switch (flowStatus) {
       case 400:
-        const errorMapping = { form: '' }
+        const errorMapping = { form: '', totp_code: '' }
         mapFlowToFieldErrors(flowData, errorMapping)
-        return data({ errors: { totp_code: errorMapping.form } })
+        return data({ errors: { totp_code: errorMapping.totp_code || errorMapping.form || 'Unknown error, please retry.' } })
 
       case 410:
         // Flow expired
         throw redirect("/totp/challenge")
 
       default:
-        logger.error({ status: flowStatus, flowData, route: "totp.challange" }, "Unknown case when updateLoginFlow")
+        logger.error({ status: flowStatus, flowData, route: "totp.challenge" }, "Unknown case when updateLoginFlow")
         throw redirect("/totp/challenge")
     }
   }

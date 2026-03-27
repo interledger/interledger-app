@@ -131,7 +131,10 @@ export default function Page() {
 
 export async function action({ request }: Route.ActionArgs) {
   const url = new URL(request.url)
-  const flowId = url.searchParams.get('flow')!
+  const flowId = url.searchParams.get('flow')
+  if (!flowId) {
+    return redirect(href('/login/challenge'))
+  }
   const cookie = getCookie(request)
 
   const form = await request.formData()
