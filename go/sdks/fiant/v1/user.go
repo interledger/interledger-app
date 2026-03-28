@@ -100,3 +100,33 @@ func (us *usersService) ListWallets(ctx context.Context, user dto.User) ([]dto.W
 	}
 	return consumeResponse[[]dto.Wallet](resp, http.StatusOK)
 }
+
+// https://developers.platform.fiant.io/reference/getuserpaymentinformations
+func (us *usersService) GetPaymentInformations(ctx context.Context, user dto.User) ([]dto.PaymentInformation, error) {
+	path := fmt.Sprintf("users/%v/payment-information", user.ID) // GET /users/{userId}/payment-information
+	resp, err := us.client.get(ctx, path)
+	if err != nil {
+		return nil, err
+	}
+	return consumeResponse[[]dto.PaymentInformation](resp, http.StatusOK)
+}
+
+// https://developers.platform.fiant.io/reference/adduserpaymentinformation
+func (us *usersService) AddPaymentInformation(ctx context.Context, user dto.User, paymentInformation dto.PaymentInformation) (dto.PaymentInformation, error) {
+	path := fmt.Sprintf("users/%v/payment-information", user.ID) // POST /users/{userId}/payment-information
+	resp, err := us.client.post(ctx, path, paymentInformation)
+	if err != nil {
+		return dto.PaymentInformation{}, err
+	}
+	return consumeResponse[dto.PaymentInformation](resp, http.StatusCreated)
+}
+
+// https://developers.platform.fiant.io/reference/getuserpaymentinformation
+func (us *usersService) GetPaymentInformation(ctx context.Context, user dto.User, paymentInformationID string) (dto.PaymentInformation, error) {
+	path := fmt.Sprintf("users/%v/payment-information/%v", user.ID, paymentInformationID) // GET /users/{userId}/payment-information/{paymentInformationId}
+	resp, err := us.client.get(ctx, path)
+	if err != nil {
+		return dto.PaymentInformation{}, err
+	}
+	return consumeResponse[dto.PaymentInformation](resp, http.StatusOK)
+}

@@ -16,27 +16,42 @@ const (
 )
 
 // https://github.com/provenancetech/pti-platform-sdks/blob/master/java/src/main/java/com/pti/sdk/types/OneOfExternalPaymentInformation.java
-// note that this is composite and we support bank accounts for now
 type PaymentInformation struct {
 	ID   string                     `json:"id,omitempty"`
 	Type PaymentInformationTypeEmum `json:"type,omitempty"`
 
-	BankAccountPaymentInformation
+	*BankAccount
 }
 
+// controller expects that all structs that are sent in the body of a request implement MarshalJSON and UnmarshalJSON
 func (pi PaymentInformation) MarshalJSON() ([]byte, error) {
-	type alias PaymentInformation
-	return json.Marshal(alias(pi))
+	type bankAccountAlias BankAccount
+	type alias struct {
+		ID   string                     `json:"id,omitempty"`
+		Type PaymentInformationTypeEmum `json:"type,omitempty"`
+		*bankAccountAlias
+	}
+	var ba *bankAccountAlias
+	if pi.BankAccount != nil {
+		a := bankAccountAlias(*pi.BankAccount)
+		ba = &a
+	}
+	return json.Marshal(alias{ID: pi.ID, Type: pi.Type, bankAccountAlias: ba})
 }
 
+// controller expects that all structs that are sent in the body of a request implement MarshalJSON and UnmarshalJSON
 func (pi *PaymentInformation) UnmarshalJSON(data []byte) error {
-	type alias PaymentInformation
-	var a alias
-	if err := json.Unmarshal(data, &a); err != nil {
+	var base struct {
+		ID   string                     `json:"id"`
+		Type PaymentInformationTypeEmum `json:"type"`
+	}
+	if err := json.Unmarshal(data, &base); err != nil {
 		return err
 	}
-	*pi = PaymentInformation(a)
-	return nil
+	pi.ID = base.ID
+	pi.Type = base.Type
+	pi.BankAccount = &BankAccount{}
+	return json.Unmarshal(data, pi.BankAccount)
 }
 
 type PaymentInformationOptions func(*PaymentInformation)
@@ -53,10 +68,18 @@ func WithPaymentInformationType(t PaymentInformationTypeEmum) PaymentInformation
 	}
 }
 
-func WithBankAccountPaymentInformation(bankAccount *BankAccountPaymentInformation) PaymentInformationOptions {
+func WithBankAccount(bankAccount *BankAccount) PaymentInformationOptions {
 	return func(pi *PaymentInformation) {
-		pi.BankAccountPaymentInformation = *bankAccount
+		pi.BankAccount = bankAccount
 	}
+}
+
+func NewPaymentInformation(opts ...PaymentInformationOptions) *PaymentInformation {
+	pi := &PaymentInformation{}
+	for _, opt := range opts {
+		opt(pi)
+	}
+	return pi
 }
 
 // https://github.com/provenancetech/pti-platform-sdks/blob/master/java/src/main/java/com/pti/sdk/types/BankAccountPaymentInformationBankAccountType.java
@@ -67,8 +90,8 @@ const (
 	// SAVINGS  BankAccountTypeEnum = "SAVINGS"
 )
 
-// https://github.com/provenancetech/pti-platform-sdks/blob/master/java/src/main/java/com/pti/sdk/types/BankAccountPaymentInformation.java
-type BankAccountPaymentInformation struct {
+// https://github.com/provenancetech/pti-platform-sdks/blob/master/java/src/main/java/com/pti/sdk/types/BankAccount.java
+type BankAccount struct {
 	BankRoutingNumber     string              `json:"bankRoutingNumber,omitempty"`
 	BankAccountType       BankAccountTypeEnum `json:"bankAccountType,omitempty"`
 	BankAccountNumner     string              `json:"bankAccountNumber,omitempty"`
@@ -80,55 +103,71 @@ type BankAccountPaymentInformation struct {
 	// PlaidProcessorToken string `json:"plaidProcessorToken,omitempty"` // not currently supported by us, but may be added in the future
 }
 
-func (bapi BankAccountPaymentInformation) MarshalJSON() ([]byte, error) {
-	type alias BankAccountPaymentInformation
-	return json.Marshal(alias(bapi))
+// controller expects that all structs that are sent in the body of a request implement MarshalJSON and UnmarshalJSON
+func (ba BankAccount) MarshalJSON() ([]byte, error) {
+	type alias BankAccount
+	return json.Marshal(alias(ba))
 }
 
-func (bapi *BankAccountPaymentInformation) UnmarshalJSON(data []byte) error {
-	type alias BankAccountPaymentInformation
+// controller expects that all structs that are sent in the body of a request implement MarshalJSON and UnmarshalJSON
+func (ba *BankAccount) UnmarshalJSON(data []byte) error {
+	type alias BankAccount
 	var a alias
 	if err := json.Unmarshal(data, &a); err != nil {
 		return err
 	}
-	*bapi = BankAccountPaymentInformation(a)
+	*ba = BankAccount(a)
 	return nil
 }
 
-type BankAccountPaymentInformationOptions func(*BankAccountPaymentInformation)
+type BankAccountOptions func(*BankAccount)
 
-func WithBankAccountPaymentInformationBankAccountNumber(number string) BankAccountPaymentInformationOptions {
-	return func(bapi *BankAccountPaymentInformation) {
+func WithAccountNumber(number string) BankAccountOptions {
+	return func(bapi *BankAccount) {
 		bapi.BankAccountNumner = number
 	}
 }
 
-func WithBankAccountPaymentInformationBankAccountType(t BankAccountTypeEnum) BankAccountPaymentInformationOptions {
-	return func(bapi *BankAccountPaymentInformation) {
+func WithAccountType(t BankAccountTypeEnum) BankAccountOptions {
+	return func(bapi *BankAccount) {
 		bapi.BankAccountType = t
 	}
 }
 
-func WithBankAccountPaymentInformationBankSwiftCode(code string) BankAccountPaymentInformationOptions {
-	return func(bapi *BankAccountPaymentInformation) {
+func WithSwiftCode(code string) BankAccountOptions {
+	return func(bapi *BankAccount) {
 		bapi.BankSwiftCode = code
 	}
 }
 
-func WithBankAccountPaymentInformationBankRoutingNumber(number string) BankAccountPaymentInformationOptions {
-	return func(bapi *BankAccountPaymentInformation) {
+func WithRoutingNumber(number string) BankAccountOptions {
+	return func(bapi *BankAccount) {
 		bapi.BankRoutingNumber = number
 	}
 }
 
-func WithBankAccountPaymentInformationBankRoutingCheckDigit(digit string) BankAccountPaymentInformationOptions {
-	return func(bapi *BankAccountPaymentInformation) {
+func WithRoutingCheckDigit(digit string) BankAccountOptions {
+	return func(bapi *BankAccount) {
 		bapi.BankRoutingCheckDigit = digit
 	}
 }
 
-func WithBankAccountPaymentInformationAccountBankName(name string) BankAccountPaymentInformationOptions {
-	return func(bapi *BankAccountPaymentInformation) {
+func WithBankName(name string) BankAccountOptions {
+	return func(bapi *BankAccount) {
 		bapi.AccountBankName = name
 	}
+}
+
+func WithAccountHolderName(name string) BankAccountOptions {
+	return func(bapi *BankAccount) {
+		bapi.AccountHolderName = name
+	}
+}
+
+func NewBankAccount(opts ...BankAccountOptions) *BankAccount {
+	bapi := &BankAccount{}
+	for _, opt := range opts {
+		opt(bapi)
+	}
+	return bapi
 }
