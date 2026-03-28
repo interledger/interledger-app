@@ -1,6 +1,6 @@
 /* Store models */
 
-import type { SerializeFrom } from '@remix-run/node'
+import type { PlainMessage } from '@bufbuild/protobuf'
 import type {
   Card,
   CardLockLevel,
@@ -9,7 +9,7 @@ import type {
   CardType
 } from '~/generated/connect/backend/v1/backend_pb'
 
-export type SerializedCard = SerializeFrom<Card>
+export type SerializedCard = PlainMessage<Card>
 
 export type StorableCard = SerializedCard & {
   id: string

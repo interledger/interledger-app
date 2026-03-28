@@ -1,4 +1,4 @@
-import { useRevalidator } from '@remix-run/react'
+import { useRevalidator } from 'react-router';
 import type { Channel, PresenceChannel } from 'pusher-js'
 import Pusher from 'pusher-js'
 import { useEffect, useState } from 'react'

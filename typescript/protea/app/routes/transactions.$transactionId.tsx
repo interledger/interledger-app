@@ -1,9 +1,9 @@
-import type { LoaderFunctionArgs } from '@remix-run/node'
-import { redirect } from '@remix-run/node'
-import { route } from 'routes-gen'
+import type { Route } from './+types/transactions.$transactionId'
+import { redirect } from 'react-router';
+import { href } from 'react-router'
 
-export async function loader({ params }: LoaderFunctionArgs) {
+export async function loader({ params }: Route.LoaderArgs) {
   return redirect(
-    route('/payments/:paymentId', { paymentId: params.transactionId as string })
+    href('/payments/:paymentId', { paymentId: params.transactionId as string })
   )
 }

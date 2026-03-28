@@ -1,4 +1,4 @@
-import { unstable_createRemixStub as createRemixStub } from '@remix-run/testing'
+import { createRoutesStub } from 'react-router';
 import type { Meta, StoryFn } from '@storybook/react'
 import { Dialog } from '~/components'
 
@@ -15,7 +15,7 @@ const meta: Meta<typeof Dialog> = {
   },
   decorators: [
     (Story) => {
-      const RemixStub = createRemixStub([
+      const RemixStub = createRoutesStub([
         {
           id: '',
           path: '/',

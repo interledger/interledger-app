@@ -1,10 +1,6 @@
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
-import { useFetcher, useLoaderData } from '@remix-run/react'
+import type { Route } from './+types/recovery'
+import { data, redirect } from 'react-router';
+import { useFetcher, useLoaderData } from 'react-router';
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts, TextField } from '~/components'
 import { error } from '~/lib/error.server'
@@ -22,7 +18,7 @@ type ActionResponse =
   | { success: true }
   | { errors: { form: string; email: string } }
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   await requireNoUserSession(request)
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
@@ -55,7 +51,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     })
   }
 
-  return json({ flow, csrfToken: getCsrfTokenFromFlow(flow) })
+  return data({ flow, csrfToken: getCsrfTokenFromFlow(flow) })
 }
 
 export const handle: ApplicationProps = {
@@ -67,14 +63,14 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Recover account'
   }
 ])
 
 export default function Page() {
-  const { flow, csrfToken } = useLoaderData<typeof loader>()
+  const { flow, csrfToken } = useLoaderData()
   const fetcher = useFetcher<ActionResponse>()
 
   const isSubmitting = fetcher.state !== 'idle'
@@ -134,7 +130,7 @@ export default function Page() {
   )
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
 
@@ -173,5 +169,5 @@ export async function action({ request }: ActionFunctionArgs) {
     return error(request, { errors: errs })
   }
 
-  return json({ success: true })
+  return data({ success: true })
 }
