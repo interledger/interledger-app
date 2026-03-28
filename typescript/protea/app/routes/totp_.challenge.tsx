@@ -1,6 +1,6 @@
 import type { Route } from './+types/totp_.challenge'
 import type { SelfServiceLoginFlow, UiText } from '@ory/kratos-client'
-import { data as rrData, redirect } from 'react-router';
+import { data, redirect } from 'react-router';
 import { useActionData, useLoaderData } from 'react-router';
 import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
@@ -76,7 +76,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   }
 
   const flow: SelfServiceLoginFlow = await kratosFlow.json()
-  return rrData({ flowId, csrfToken: getCsrfTokenFromFlow(flow) })
+  return data({ flowId, csrfToken: getCsrfTokenFromFlow(flow) })
 }
 
 export const handle: ApplicationProps = {
@@ -138,14 +138,14 @@ export async function action({ request }: Route.ActionArgs) {
   const response = redirect(returnTo ?? '/')
 
   if (res.status === 400) {
-    const data = await res.json()
+    const responseData = await res.json()
     // if the form is submitted twice the user already has a valid session
     const message: string =
-      data.ui?.messages?.find((m: UiText) => m.type === 'error')?.text ?? ''
+      responseData.ui?.messages?.find((m: UiText) => m.type === 'error')?.text ?? ''
     if (isSessionAlreadyExitsMessage(message)) {
       return response
     }
-    return rrData({
+    return data({
       errors: {
         totp_code: message || 'Invalid code'
       }
