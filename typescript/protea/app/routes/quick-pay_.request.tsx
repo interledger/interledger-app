@@ -14,6 +14,7 @@ import { createRequestPayment, formatAmount, formatDate, formatError, paymentSch
 import { useDialPadContext } from '~/lib/context/dialpad'
 import { QuickPaySession } from '~/lib/types'
 import { Icon } from '~/components/Icon'
+import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { z } from 'zod'
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -75,6 +76,7 @@ export default function Page() {
   const { amountValue } = useDialPadContext()
   const errors = actionData?.errors
   const [copied, setCopied] = useState(false)
+  const pushSnackbar = useScaffoldStore((state) => state.pushSnackbar)
 
   function copyToClipboard(e: React.MouseEvent<HTMLElement>, value: string) {
     e.preventDefault()
@@ -83,6 +85,34 @@ export default function Page() {
     setTimeout(() => {
       setCopied(false)
     }, 2000)
+  }
+
+  function shareUrl(e: React.MouseEvent<HTMLElement>, url: string) {
+    e.preventDefault()
+
+    const showFallback = (message: string) => {
+      pushSnackbar({
+        id: `share-${Date.now()}`, // unique ID
+        message,
+        icon: 'info' // optional (matches your UI system)
+      })
+    }
+
+    if (navigator.share) {
+      navigator
+        .share({
+          title: 'Payment link',
+          text: 'Interledger Pay payment link:',
+          url
+        })
+        .catch(() => {
+          navigator.clipboard.writeText(url)
+          showFallback('Sharing failed. Link copied to clipboard.')
+        })
+    } else {
+      navigator.clipboard.writeText(url)
+      showFallback('Sharing not supported. Link copied to clipboard.')
+    }
   }
 
   return (
@@ -130,6 +160,9 @@ export default function Page() {
                       aria-label="share payment link"
                       className="h-7 w-7 bg-transparent"
                       type="button"
+                      onClick={(e) => {
+                        shareUrl(e, incomingPaymentData.url)
+                      }}
                     >
                       <Icon>share</Icon>
                     </Button>
