@@ -9,10 +9,11 @@ import "encoding/json"
 type PaymentInformationTypeEmum string
 
 const (
-	BANK_ACCOUNT PaymentInformationTypeEmum = "BANK_ACCOUNT"
+	BANK_ACCOUNT_PAYMENT PaymentInformationTypeEmum = "BANK_ACCOUNT"
+	WALLET_PAYMENT       PaymentInformationTypeEmum = "WALLET"
+
 	// ENCRYPTED_CREDIT_CARD PaymentInformationTypeEmum = "ENCRYPTED_CREDIT_CARD" // not currently supported by us, but may be added in the future
 	// CRYPTO                PaymentInformationTypeEmum = "CRYPTO"
-	// WALLET                PaymentInformationTypeEmum = "WALLET"
 )
 
 // https://github.com/provenancetech/pti-platform-sdks/blob/master/java/src/main/java/com/pti/sdk/types/OneOfExternalPaymentInformation.java
