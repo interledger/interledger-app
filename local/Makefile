@@ -14,6 +14,9 @@ help:
 	@echo "frontend|front          Just frontends services"
 	@echo "all                     All services (infra, svc, app)"
 	@echo ""
+	@echo "build                   Build backend images"
+	@echo "pull                    Pull all images"
+	@echo ""
 	@echo "down                    Stop all running services"
 	@echo "delete-volumes|reset    Stop all services and remove associated volumes"
 	@echo ""
@@ -47,6 +50,8 @@ help:
 	backend back \
 	frontend front \
 	all \
+	build \
+	pull \
 	down \
 	delete-volumes reset \
 
@@ -89,6 +94,12 @@ all:
 
 all-nowatch:
 	docker compose --profile "*" up -d
+
+build:
+	docker compose --profile "*" build
+
+pull:
+	docker compose --profile "*" pull
 
 down:
 	docker compose --profile "*" down
