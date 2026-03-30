@@ -50,8 +50,16 @@ func (c client) GetKYCStatus(ctx context.Context, walletID string) (kyc.Status, 
 	return ops.GetKYCStatus(ctx, c.b, walletID)
 }
 
-func (c client) SetKYCStatus(ctx context.Context, walletID string, status kyc.Status, reason ...string) error {
-	return ops.SetKYCStatus(ctx, c.b, walletID, status, reason...)
+func (c client) GetKYCStatusMetadata(ctx context.Context, walletID string) (*kyc.StatusMetadata, error) {
+	return ops.GetKYCStatusMetadata(ctx, c.b, walletID)
+}
+
+func (c client) SetKYCStatus(ctx context.Context, args kyc.StatusUpdateArgs) error {
+	return ops.SetKYCStatus(ctx, c.b, args)
+}
+
+func (c client) CanResubmitKYC(ctx context.Context, walletID string) (bool, error) {
+	return ops.CanResubmitKYC(ctx, c.b, walletID)
 }
 
 func (c client) GetPersonaInquiry(ctx context.Context, walletID, idempotencyKey string) (*kyc.PersonaInquiry, error) {

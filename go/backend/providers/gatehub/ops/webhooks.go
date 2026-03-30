@@ -300,15 +300,17 @@ func HandleActionRequiredWebhook(ctx context.Context, b Backends, raw json.RawMe
 		zap.String("reason", wh.Data.Reason),
 	)
 
-	err = b.KYC().SetKYCStatus(ctx, walletID, status, wh.Data.Reason)
+	err = b.KYC().SetKYCStatus(ctx, kyc.StatusUpdateArgs{
+		WalletID:  walletID,
+		Status:    status,
+		Reason:    wh.Data.Reason,
+		EventType: wh.EventType,
+	})
 	if err != nil {
 		log.Error("Failed to update KYC status", zap.String("wallet_id", walletID), zap.Error(err))
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
-
-	// TODO(Task 1.6): Replace SetKYCStatus with SetKYCStatusWithMetadata to
-	// persist webhook reason/event details and increment resubmission_count.
 
 	slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "wallet-info-bot",
 		fmt.Sprintf("KYC resubmission required - walletID: %s, event: %s", walletID, wh.EventType),
@@ -343,7 +345,7 @@ func HandleUserVerificationWebhook(ctx context.Context, b Backends, raw json.Raw
 		err = BackfillAccountAndSetKYC(ctx, b, walletID, wh.ID)
 		// err = b.KYC().SetKYCStatus(ctx, walletID, kyc.StatusLevel1)
 	} else if wh.Data.Verified.Short == verificationRejected {
-		err = b.KYC().SetKYCStatus(ctx, walletID, kyc.StatusDenied)
+		err = b.KYC().SetKYCStatus(ctx, kyc.StatusUpdateArgs{WalletID: walletID, Status: kyc.StatusDenied})
 	} else {
 		log.Error("Unknown gatehub user verification status", zap.String("external_user_uuid", wh.UserID), zap.String("short", wh.Data.Verified.Short), zap.Int("status", wh.Data.Verified.Status))
 	}

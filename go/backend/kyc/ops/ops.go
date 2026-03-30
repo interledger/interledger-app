@@ -186,11 +186,9 @@ func convertDBDetails(details dbIndividualDetails) (*kyc.IndividualDetails, erro
 	return resp, nil
 }
 
-func SetKYCStatus(ctx context.Context, b Backends, walletID string, status kyc.Status, reason ...string) error {
-	reasonValue := ""
-	if len(reason) > 0 {
-		reasonValue = reason[0]
-	}
+func SetKYCStatus(ctx context.Context, b Backends, args kyc.StatusUpdateArgs) error {
+	walletID := args.WalletID
+	status := args.Status
 
 	wo := client.StartWorkflowOptions{
 		ID:                       "kyc_set_status_" + walletID + "_" + status.String(),
@@ -221,9 +219,10 @@ func SetKYCStatus(ctx context.Context, b Backends, walletID string, status kyc.S
 		await = b.Temporal().GetWorkflow(ctx, wo.ID, "")
 	} else {
 		await, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, SetKYCStatusWorkflow, SetKYCStatusWorkflowArgs{
-			WalletID: walletID,
-			Status:   status,
-			Reason:   reasonValue,
+			WalletID:  walletID,
+			Status:    status,
+			Reason:    args.Reason,
+			EventType: args.EventType,
 		})
 	}
 	if executeErr != nil {
@@ -245,6 +244,59 @@ func GetKYCStatus(ctx context.Context, b Backends, walletID string) (kyc.Status,
 	}
 
 	return s, nil
+}
+
+func GetKYCStatusMetadata(ctx context.Context, b Backends, walletID string) (*kyc.StatusMetadata, error) {
+	var row struct {
+		Status                 kyc.Status     `db:"status"`
+		StatusReason           sql.NullString `db:"status_reason"`
+		LastWebhookEventType   sql.NullString `db:"last_webhook_event_type"`
+		ResubmissionCount      int32          `db:"resubmission_count"`
+		DocumentExpirationDate sql.NullTime   `db:"document_expiration_date"`
+	}
+
+	err := b.DB().GetContext(ctx, &row, "select status, status_reason, last_webhook_event_type, resubmission_count, document_expiration_date from wallet_kyc_status where wallet_id = $1", walletID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return &kyc.StatusMetadata{Status: kyc.StatusUnknown}, nil
+		}
+
+		return nil, err
+	}
+
+	meta := &kyc.StatusMetadata{
+		Status:            row.Status,
+		ResubmissionCount: row.ResubmissionCount,
+	}
+
+	if row.StatusReason.Valid {
+		meta.Reason = row.StatusReason.String
+	}
+
+	if row.LastWebhookEventType.Valid {
+		meta.LastWebhookEvent = row.LastWebhookEventType.String
+	}
+
+	if row.DocumentExpirationDate.Valid {
+		exp := row.DocumentExpirationDate.Time
+		meta.ExpirationDate = &exp
+	}
+
+	return meta, nil
+}
+
+func CanResubmitKYC(ctx context.Context, b Backends, walletID string) (bool, error) {
+	status, err := GetKYCStatus(ctx, b, walletID)
+	if err != nil {
+		return false, err
+	}
+
+	switch status {
+	case kyc.StatusUnknown, kyc.StatusDocumentsRequired, kyc.StatusDenied:
+		return true, nil
+	default:
+		return false, nil
+	}
 }
 
 func GenerateKycData(ctx context.Context, b Backends, walletID string) error {
@@ -272,7 +324,7 @@ func GenerateKycData(ctx context.Context, b Backends, walletID string) error {
 		return err
 	}
 
-	err = SetKYCStatus(ctx, b, walletID, kyc.StatusLevel1)
+	err = SetKYCStatus(ctx, b, kyc.StatusUpdateArgs{WalletID: walletID, Status: kyc.StatusLevel1})
 
 	return err
 }

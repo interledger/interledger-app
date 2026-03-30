@@ -3,13 +3,17 @@ package ops_test
 import (
 	"context"
 	"testing"
+	"time"
 
+	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/kyc/ops"
+	"gitlab.com/fynbos/backend/notify"
+	notifymock "gitlab.com/fynbos/backend/notify/client/mock"
 )
 
 func TestUpdateUserDetails(t *testing.T) {
@@ -159,4 +163,133 @@ func TestUpdateUserDetails(t *testing.T) {
 	err = db.GetContext(ctx, &revisionCnt, "select count(*) from individual_kyc_details where wallet_id=$1", walletID)
 	require.NoError(t, err)
 	assert.Equal(t, 3, revisionCnt)
+}
+
+func TestGetKYCStatusMetadata_ReturnsUnknownWhenRowMissing(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	db := db.MigrateTestDB(t, ctx)
+	b := ops.NewTestBackends(t, db, nil, nil, nil, nil, nil, nil)
+
+	meta, err := ops.GetKYCStatusMetadata(ctx, b, uuid.NewString())
+	require.NoError(t, err)
+	require.Equal(t, kyc.StatusUnknown, meta.Status)
+	require.Zero(t, meta.ResubmissionCount)
+	require.Nil(t, meta.ExpirationDate)
+}
+
+func TestGetKYCStatusMetadata_ReturnsStoredMetadata(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	db := db.MigrateTestDB(t, ctx)
+	b := ops.NewTestBackends(t, db, nil, nil, nil, nil, nil, nil)
+
+	walletID := uuid.NewString()
+	expirationDate := time.Date(2026, time.April, 1, 0, 0, 0, 0, time.UTC)
+	_, err := db.ExecContext(ctx, `
+		INSERT INTO wallet_kyc_status (wallet_id, status, status_reason, last_webhook_event_type, resubmission_count, document_expiration_date)
+		VALUES ($1, $2, $3, $4, $5, $6)
+	`, walletID, kyc.StatusDocumentsRequired, "Photo is blurry", "id.verification.action_required", 2, expirationDate)
+	require.NoError(t, err)
+
+	meta, err := ops.GetKYCStatusMetadata(ctx, b, walletID)
+	require.NoError(t, err)
+	require.Equal(t, kyc.StatusDocumentsRequired, meta.Status)
+	require.Equal(t, "Photo is blurry", meta.Reason)
+	require.Equal(t, "id.verification.action_required", meta.LastWebhookEvent)
+	require.EqualValues(t, 2, meta.ResubmissionCount)
+	require.NotNil(t, meta.ExpirationDate)
+	require.Equal(t, expirationDate.Format("2006-01-02"), meta.ExpirationDate.Format("2006-01-02"))
+}
+
+func TestCanResubmitKYC(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	db := db.MigrateTestDB(t, ctx)
+	b := ops.NewTestBackends(t, db, nil, nil, nil, nil, nil, nil)
+
+	walletID := uuid.NewString()
+
+	canResubmit, err := ops.CanResubmitKYC(ctx, b, walletID)
+	require.NoError(t, err)
+	require.True(t, canResubmit)
+
+	_, err = db.ExecContext(ctx, "INSERT INTO wallet_kyc_status (wallet_id, status) VALUES ($1, $2)", walletID, kyc.StatusApproved)
+	require.NoError(t, err)
+
+	canResubmit, err = ops.CanResubmitKYC(ctx, b, walletID)
+	require.NoError(t, err)
+	require.False(t, canResubmit)
+}
+
+func TestActivityUpdateKYCStatus_StoresMetadataWhenEventTypeProvided(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	database := db.MigrateTestDB(t, ctx)
+	ctrl := gomock.NewController(t)
+	t.Cleanup(ctrl.Finish)
+
+	notifyClient := notifymock.NewMockClient(ctrl)
+	b := ops.NewTestBackends(t, database, nil, nil, nil, notifyClient, nil, nil)
+	activity := ops.NewActivity(b)
+	walletID := uuid.NewString()
+
+	notifyClient.EXPECT().NotifyWallet(gomock.Any(), walletID, notify.NotificationType("kyc")).Return(nil).Times(1)
+
+	err := activity.UpdateKYCStatus(ctx, walletID, kyc.StatusDocumentsRequired, "Photo is blurry", "id.verification.action_required")
+	require.NoError(t, err)
+
+	meta, err := ops.GetKYCStatusMetadata(ctx, b, walletID)
+	require.NoError(t, err)
+	require.Equal(t, kyc.StatusDocumentsRequired, meta.Status)
+	require.Equal(t, "Photo is blurry", meta.Reason)
+	require.Equal(t, "id.verification.action_required", meta.LastWebhookEvent)
+	require.EqualValues(t, 1, meta.ResubmissionCount)
+
+	notifyClient.EXPECT().NotifyWallet(gomock.Any(), walletID, notify.NotificationType("kyc")).Return(nil).Times(1)
+
+	err = activity.UpdateKYCStatus(ctx, walletID, kyc.StatusDocumentsRequired, "Need proof of address", "id.document_notice.expired")
+	require.NoError(t, err)
+
+	meta, err = ops.GetKYCStatusMetadata(ctx, b, walletID)
+	require.NoError(t, err)
+	require.Equal(t, "Need proof of address", meta.Reason)
+	require.Equal(t, "id.document_notice.expired", meta.LastWebhookEvent)
+	require.EqualValues(t, 2, meta.ResubmissionCount)
+}
+
+func TestActivityUpdateKYCStatus_PreservesMetadataWithoutEventType(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	database := db.MigrateTestDB(t, ctx)
+	ctrl := gomock.NewController(t)
+	t.Cleanup(ctrl.Finish)
+
+	notifyClient := notifymock.NewMockClient(ctrl)
+	b := ops.NewTestBackends(t, database, nil, nil, nil, notifyClient, nil, nil)
+	activity := ops.NewActivity(b)
+	walletID := uuid.NewString()
+
+	_, err := database.ExecContext(ctx, `
+		INSERT INTO wallet_kyc_status (wallet_id, status, status_reason, last_webhook_event_type, resubmission_count)
+		VALUES ($1, $2, $3, $4, $5)
+	`, walletID, kyc.StatusDocumentsRequired, "Initial reason", "id.verification.action_required", 3)
+	require.NoError(t, err)
+
+	notifyClient.EXPECT().NotifyWallet(gomock.Any(), walletID, notify.NotificationType("kyc")).Return(nil).Times(1)
+
+	err = activity.UpdateKYCStatus(ctx, walletID, kyc.StatusPending, "", "")
+	require.NoError(t, err)
+
+	meta, err := ops.GetKYCStatusMetadata(ctx, b, walletID)
+	require.NoError(t, err)
+	require.Equal(t, kyc.StatusPending, meta.Status)
+	require.Equal(t, "Initial reason", meta.Reason)
+	require.Equal(t, "id.verification.action_required", meta.LastWebhookEvent)
+	require.EqualValues(t, 3, meta.ResubmissionCount)
 }

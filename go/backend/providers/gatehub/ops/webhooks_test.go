@@ -117,7 +117,12 @@ func TestHandleActionRequiredWebhook_StatusDocumentsRequired(t *testing.T) {
 			})
 			require.NoError(t, err)
 
-			kc.EXPECT().SetKYCStatus(ctx, walletID, kycclient.StatusDocumentsRequired, tt.reason).Return(nil)
+			kc.EXPECT().SetKYCStatus(ctx, kycclient.StatusUpdateArgs{
+				WalletID:  walletID,
+				Status:    kycclient.StatusDocumentsRequired,
+				Reason:    tt.reason,
+				EventType: tt.eventType,
+			}).Return(nil)
 
 			rr := httptest.NewRecorder()
 			HandleActionRequiredWebhook(ctx, b, payload, rr)
@@ -211,7 +216,12 @@ func TestHandleActionRequiredWebhook_SetKYCStatusError(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	kc.EXPECT().SetKYCStatus(ctx, walletID, kycclient.StatusDocumentsRequired, "Additional documents required").Return(errors.New("write failed"))
+	kc.EXPECT().SetKYCStatus(ctx, kycclient.StatusUpdateArgs{
+		WalletID:  walletID,
+		Status:    kycclient.StatusDocumentsRequired,
+		Reason:    "Additional documents required",
+		EventType: "id.verification.action_required",
+	}).Return(errors.New("write failed"))
 
 	rr := httptest.NewRecorder()
 	HandleActionRequiredWebhook(ctx, b, payload, rr)

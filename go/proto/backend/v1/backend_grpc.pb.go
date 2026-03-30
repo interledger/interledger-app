@@ -70,6 +70,7 @@ const (
 	BackendService_VerifyIdentity_FullMethodName                 = "/backend.v1.BackendService/VerifyIdentity"
 	BackendService_KYCStatus_FullMethodName                      = "/backend.v1.BackendService/KYCStatus"
 	BackendService_SetKYCStatusPending_FullMethodName            = "/backend.v1.BackendService/SetKYCStatusPending"
+	BackendService_GetKYCResubmissionInfo_FullMethodName         = "/backend.v1.BackendService/GetKYCResubmissionInfo"
 	BackendService_GetPersonaInquiry_FullMethodName              = "/backend.v1.BackendService/GetPersonaInquiry"
 	BackendService_GetKYCProviderWidget_FullMethodName           = "/backend.v1.BackendService/GetKYCProviderWidget"
 	BackendService_GetCardDetails_FullMethodName                 = "/backend.v1.BackendService/GetCardDetails"
@@ -195,6 +196,7 @@ type BackendServiceClient interface {
 	// KYC
 	KYCStatus(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*KYCStatusResponse, error)
 	SetKYCStatusPending(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
+	GetKYCResubmissionInfo(ctx context.Context, in *GetKYCResubmissionInfoRequest, opts ...grpc.CallOption) (*GetKYCResubmissionInfoResponse, error)
 	GetPersonaInquiry(ctx context.Context, in *KYCPersonaInquiryRequest, opts ...grpc.CallOption) (*KYCPersonaInquiryResponse, error)
 	GetKYCProviderWidget(ctx context.Context, in *GetKYCProviderWidgetRequest, opts ...grpc.CallOption) (*KYCProviderWidget, error)
 	// Basistheory
@@ -780,6 +782,16 @@ func (c *backendServiceClient) SetKYCStatusPending(ctx context.Context, in *Empt
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Empty)
 	err := c.cc.Invoke(ctx, BackendService_SetKYCStatusPending_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) GetKYCResubmissionInfo(ctx context.Context, in *GetKYCResubmissionInfoRequest, opts ...grpc.CallOption) (*GetKYCResubmissionInfoResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetKYCResubmissionInfoResponse)
+	err := c.cc.Invoke(ctx, BackendService_GetKYCResubmissionInfo_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1413,6 +1425,7 @@ type BackendServiceServer interface {
 	// KYC
 	KYCStatus(context.Context, *Empty) (*KYCStatusResponse, error)
 	SetKYCStatusPending(context.Context, *Empty) (*Empty, error)
+	GetKYCResubmissionInfo(context.Context, *GetKYCResubmissionInfoRequest) (*GetKYCResubmissionInfoResponse, error)
 	GetPersonaInquiry(context.Context, *KYCPersonaInquiryRequest) (*KYCPersonaInquiryResponse, error)
 	GetKYCProviderWidget(context.Context, *GetKYCProviderWidgetRequest) (*KYCProviderWidget, error)
 	// Basistheory
@@ -1645,6 +1658,9 @@ func (UnimplementedBackendServiceServer) KYCStatus(context.Context, *Empty) (*KY
 }
 func (UnimplementedBackendServiceServer) SetKYCStatusPending(context.Context, *Empty) (*Empty, error) {
 	return nil, status.Error(codes.Unimplemented, "method SetKYCStatusPending not implemented")
+}
+func (UnimplementedBackendServiceServer) GetKYCResubmissionInfo(context.Context, *GetKYCResubmissionInfoRequest) (*GetKYCResubmissionInfoResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetKYCResubmissionInfo not implemented")
 }
 func (UnimplementedBackendServiceServer) GetPersonaInquiry(context.Context, *KYCPersonaInquiryRequest) (*KYCPersonaInquiryResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetPersonaInquiry not implemented")
@@ -2748,6 +2764,24 @@ func _BackendService_SetKYCStatusPending_Handler(srv interface{}, ctx context.Co
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BackendServiceServer).SetKYCStatusPending(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_GetKYCResubmissionInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetKYCResubmissionInfoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).GetKYCResubmissionInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_GetKYCResubmissionInfo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).GetKYCResubmissionInfo(ctx, req.(*GetKYCResubmissionInfoRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -3970,6 +4004,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetKYCStatusPending",
 			Handler:    _BackendService_SetKYCStatusPending_Handler,
+		},
+		{
+			MethodName: "GetKYCResubmissionInfo",
+			Handler:    _BackendService_GetKYCResubmissionInfo_Handler,
 		},
 		{
 			MethodName: "GetPersonaInquiry",

@@ -82,3 +82,18 @@ type PersonaIDNumbers struct {
 	IdentificationNumber string
 	ExpirationDate       time.Time
 }
+
+type StatusMetadata struct {
+	Status            Status
+	Reason            string
+	LastWebhookEvent  string
+	ResubmissionCount int32
+	ExpirationDate    *time.Time
+}
+
+type StatusUpdateArgs struct {
+	WalletID  string
+	Status    Status
+	Reason    string
+	EventType string
+}

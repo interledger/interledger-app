@@ -201,23 +201,23 @@ func HandleAssessmentUpdate(ctx context.Context, b Backends, data []byte) error 
 	case pendingState:
 		log.Info("got user in pending state")
 	case acceptedState:
-		if err := b.KYC().SetKYCStatus(ctx, ptiUser.WalletID, kyc.StatusLevel2); err != nil {
+		if err := b.KYC().SetKYCStatus(ctx, kyc.StatusUpdateArgs{WalletID: ptiUser.WalletID, Status: kyc.StatusLevel2}); err != nil {
 			return fmt.Errorf("%w %s", pti.ErrInternal, err)
 		}
 	case refusedState:
-		if err := b.KYC().SetKYCStatus(ctx, ptiUser.WalletID, kyc.StatusDenied); err != nil {
+		if err := b.KYC().SetKYCStatus(ctx, kyc.StatusUpdateArgs{WalletID: ptiUser.WalletID, Status: kyc.StatusDenied}); err != nil {
 			return fmt.Errorf("%w %s", pti.ErrInternal, err)
 		}
 	case reviewState:
-		if err := b.KYC().SetKYCStatus(ctx, ptiUser.WalletID, kyc.StatusInReview); err != nil {
+		if err := b.KYC().SetKYCStatus(ctx, kyc.StatusUpdateArgs{WalletID: ptiUser.WalletID, Status: kyc.StatusInReview}); err != nil {
 			return fmt.Errorf("%w %s", pti.ErrInternal, err)
 		}
 	case errorState:
-		if err := b.KYC().SetKYCStatus(ctx, ptiUser.WalletID, kyc.StatusUnknown); err != nil {
+		if err := b.KYC().SetKYCStatus(ctx, kyc.StatusUpdateArgs{WalletID: ptiUser.WalletID, Status: kyc.StatusUnknown}); err != nil {
 			return fmt.Errorf("%w %s", pti.ErrInternal, err)
 		}
 	case requestedMoreInfoState:
-		if err := b.KYC().SetKYCStatus(ctx, ptiUser.WalletID, kyc.StatusDocumentsRequired); err != nil {
+		if err := b.KYC().SetKYCStatus(ctx, kyc.StatusUpdateArgs{WalletID: ptiUser.WalletID, Status: kyc.StatusDocumentsRequired}); err != nil {
 			return fmt.Errorf("%w %s", pti.ErrInternal, err)
 		}
 	default:

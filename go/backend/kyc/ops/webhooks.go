@@ -307,7 +307,7 @@ func accountTagAddedWebhook(ctx context.Context, b Backends, pc persona.Client, 
 		slack.SendToChannel(ctx, slack.ChannelPersona, "wallet-info-bot", fmt.Sprintf("Persona account in [%s] is in unknown state. link [https://app.withpersona.com/dashboard/accounts/%s]",
 			env.GetEnv(), externalAcc.ID))
 	} else if kycState != 0 {
-		err = SetKYCStatus(ctx, b, externalAcc.Attributes.ReferenceID, kycState)
+		err = SetKYCStatus(ctx, b, kyc.StatusUpdateArgs{WalletID: externalAcc.Attributes.ReferenceID, Status: kycState})
 		if err != nil {
 			return err
 		}

@@ -7599,6 +7599,86 @@ export class KYCStatusResponse extends Message<KYCStatusResponse> {
 }
 
 /**
+ * @generated from message backend.v1.GetKYCResubmissionInfoRequest
+ */
+export class GetKYCResubmissionInfoRequest extends Message<GetKYCResubmissionInfoRequest> {
+  constructor(data?: PartialMessage<GetKYCResubmissionInfoRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.GetKYCResubmissionInfoRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetKYCResubmissionInfoRequest {
+    return new GetKYCResubmissionInfoRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetKYCResubmissionInfoRequest {
+    return new GetKYCResubmissionInfoRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetKYCResubmissionInfoRequest {
+    return new GetKYCResubmissionInfoRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetKYCResubmissionInfoRequest | PlainMessage<GetKYCResubmissionInfoRequest> | undefined, b: GetKYCResubmissionInfoRequest | PlainMessage<GetKYCResubmissionInfoRequest> | undefined): boolean {
+    return proto3.util.equals(GetKYCResubmissionInfoRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.GetKYCResubmissionInfoResponse
+ */
+export class GetKYCResubmissionInfoResponse extends Message<GetKYCResubmissionInfoResponse> {
+  /**
+   * @generated from field: bool can_resubmit = 1;
+   */
+  canResubmit = false;
+
+  /**
+   * @generated from field: string reason = 2;
+   */
+  reason = "";
+
+  /**
+   * @generated from field: int32 kyc_status = 4;
+   */
+  kycStatus = 0;
+
+  constructor(data?: PartialMessage<GetKYCResubmissionInfoResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.GetKYCResubmissionInfoResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "can_resubmit", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 2, name: "reason", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "kyc_status", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetKYCResubmissionInfoResponse {
+    return new GetKYCResubmissionInfoResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetKYCResubmissionInfoResponse {
+    return new GetKYCResubmissionInfoResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetKYCResubmissionInfoResponse {
+    return new GetKYCResubmissionInfoResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetKYCResubmissionInfoResponse | PlainMessage<GetKYCResubmissionInfoResponse> | undefined, b: GetKYCResubmissionInfoResponse | PlainMessage<GetKYCResubmissionInfoResponse> | undefined): boolean {
+    return proto3.util.equals(GetKYCResubmissionInfoResponse, a, b);
+  }
+}
+
+/**
  * @generated from message backend.v1.KYCPersonaInquiryRequest
  */
 export class KYCPersonaInquiryRequest extends Message<KYCPersonaInquiryRequest> {

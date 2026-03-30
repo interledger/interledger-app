@@ -28,15 +28,17 @@ func NewActivity(b Backends) *Activity {
 }
 
 type SetKYCStatusWorkflowArgs struct {
-	WalletID string
-	Status   kyc.Status
-	Reason   string
+	WalletID  string
+	Status    kyc.Status
+	Reason    string
+	EventType string
 }
 
 func SetKYCStatusWorkflow(ctx workflow.Context, args SetKYCStatusWorkflowArgs) error {
 	walletID := args.WalletID
 	status := args.Status
 	reason := args.Reason
+	eventType := args.EventType
 	var a *Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute,
@@ -52,7 +54,7 @@ func SetKYCStatusWorkflow(ctx workflow.Context, args SetKYCStatusWorkflowArgs) e
 		return err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.UpdateKYCStatus, walletID, status).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.UpdateKYCStatus, walletID, status, reason, eventType).Get(ctx, nil)
 	if err != nil {
 		logger.Error("failed to set KYC status", "err", err)
 	}
@@ -183,10 +185,27 @@ func (a *Activity) GetKYCStatus(ctx context.Context, walletID string) (kyc.Statu
 	return GetKYCStatus(ctx, a.b, walletID)
 }
 
-func (a *Activity) UpdateKYCStatus(ctx context.Context, walletID string, status kyc.Status) error {
+func (a *Activity) UpdateKYCStatus(ctx context.Context, walletID string, status kyc.Status, reason, eventType string) error {
 	_, err := a.b.DB().ExecContext(ctx,
-		"INSERT INTO wallet_kyc_status (wallet_id, status) VALUES ($1, $2) ON CONFLICT (wallet_id) DO UPDATE SET status = excluded.status;",
-		walletID, status)
+		`INSERT INTO wallet_kyc_status (
+			wallet_id,
+			status,
+			status_reason,
+			last_webhook_event_type,
+			resubmission_count
+		) VALUES (
+			$1,
+			$2,
+			NULLIF($3, ''),
+			NULLIF($4, ''),
+			CASE WHEN $4 <> '' THEN 1 ELSE 0 END
+		) ON CONFLICT (wallet_id) DO UPDATE SET
+			status = EXCLUDED.status,
+			status_reason = CASE WHEN $4 <> '' THEN EXCLUDED.status_reason ELSE wallet_kyc_status.status_reason END,
+			last_webhook_event_type = CASE WHEN $4 <> '' THEN EXCLUDED.last_webhook_event_type ELSE wallet_kyc_status.last_webhook_event_type END,
+			resubmission_count = CASE WHEN $4 <> '' THEN wallet_kyc_status.resubmission_count + 1 ELSE wallet_kyc_status.resubmission_count END,
+			updated_at = NOW();`,
+		walletID, status, reason, eventType)
 	if err != nil {
 		return fmt.Errorf("%w %s", kyc.ErrInternal, err)
 	}

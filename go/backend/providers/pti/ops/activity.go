@@ -179,7 +179,7 @@ func (a *Activity) CheckUserAssessmentAccepted(ctx context.Context, walletID str
 		return nil
 	}
 
-	err = a.b.KYC().SetKYCStatus(ctx, walletID, kyc.StatusLevel2)
+	err = a.b.KYC().SetKYCStatus(ctx, kyc.StatusUpdateArgs{WalletID: walletID, Status: kyc.StatusLevel2})
 	if err != nil {
 		log.Error("pti activity (checkUserAssessmentAccepted): failed to set kyc status to level2", zap.Error(err))
 		return nil

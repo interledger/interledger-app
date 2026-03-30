@@ -2573,6 +2573,28 @@ export interface KYCStatusResponse {
     kycStatus: number;
 }
 /**
+ * @generated from protobuf message backend.v1.GetKYCResubmissionInfoRequest
+ */
+export interface GetKYCResubmissionInfoRequest {
+}
+/**
+ * @generated from protobuf message backend.v1.GetKYCResubmissionInfoResponse
+ */
+export interface GetKYCResubmissionInfoResponse {
+    /**
+     * @generated from protobuf field: bool can_resubmit = 1;
+     */
+    canResubmit: boolean;
+    /**
+     * @generated from protobuf field: string reason = 2;
+     */
+    reason: string;
+    /**
+     * @generated from protobuf field: int32 kyc_status = 4;
+     */
+    kycStatus: number;
+}
+/**
  * @generated from protobuf message backend.v1.KYCPersonaInquiryRequest
  */
 export interface KYCPersonaInquiryRequest {
@@ -11915,6 +11937,93 @@ class KYCStatusResponse$Type extends MessageType<KYCStatusResponse> {
  */
 export const KYCStatusResponse = new KYCStatusResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
+class GetKYCResubmissionInfoRequest$Type extends MessageType<GetKYCResubmissionInfoRequest> {
+    constructor() {
+        super("backend.v1.GetKYCResubmissionInfoRequest", []);
+    }
+    create(value?: PartialMessage<GetKYCResubmissionInfoRequest>): GetKYCResubmissionInfoRequest {
+        const message = {};
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GetKYCResubmissionInfoRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetKYCResubmissionInfoRequest): GetKYCResubmissionInfoRequest {
+        return target ?? this.create();
+    }
+    internalBinaryWrite(message: GetKYCResubmissionInfoRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.GetKYCResubmissionInfoRequest
+ */
+export const GetKYCResubmissionInfoRequest = new GetKYCResubmissionInfoRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GetKYCResubmissionInfoResponse$Type extends MessageType<GetKYCResubmissionInfoResponse> {
+    constructor() {
+        super("backend.v1.GetKYCResubmissionInfoResponse", [
+            { no: 1, name: "can_resubmit", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 2, name: "reason", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "kyc_status", kind: "scalar", T: 5 /*ScalarType.INT32*/ }
+        ]);
+    }
+    create(value?: PartialMessage<GetKYCResubmissionInfoResponse>): GetKYCResubmissionInfoResponse {
+        const message = { canResubmit: false, reason: "", kycStatus: 0 };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GetKYCResubmissionInfoResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetKYCResubmissionInfoResponse): GetKYCResubmissionInfoResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* bool can_resubmit */ 1:
+                    message.canResubmit = reader.bool();
+                    break;
+                case /* string reason */ 2:
+                    message.reason = reader.string();
+                    break;
+                case /* int32 kyc_status */ 4:
+                    message.kycStatus = reader.int32();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GetKYCResubmissionInfoResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* bool can_resubmit = 1; */
+        if (message.canResubmit !== false)
+            writer.tag(1, WireType.Varint).bool(message.canResubmit);
+        /* string reason = 2; */
+        if (message.reason !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.reason);
+        /* int32 kyc_status = 4; */
+        if (message.kycStatus !== 0)
+            writer.tag(4, WireType.Varint).int32(message.kycStatus);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.GetKYCResubmissionInfoResponse
+ */
+export const GetKYCResubmissionInfoResponse = new GetKYCResubmissionInfoResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
 class KYCPersonaInquiryRequest$Type extends MessageType<KYCPersonaInquiryRequest> {
     constructor() {
         super("backend.v1.KYCPersonaInquiryRequest", [
@@ -12763,6 +12872,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "VerifyIdentity", options: {}, I: VerifyIdentityRequest, O: Empty },
     { name: "KYCStatus", options: {}, I: Empty, O: KYCStatusResponse },
     { name: "SetKYCStatusPending", options: {}, I: Empty, O: Empty },
+    { name: "GetKYCResubmissionInfo", options: {}, I: GetKYCResubmissionInfoRequest, O: GetKYCResubmissionInfoResponse },
     { name: "GetPersonaInquiry", options: {}, I: KYCPersonaInquiryRequest, O: KYCPersonaInquiryResponse },
     { name: "GetKYCProviderWidget", options: {}, I: GetKYCProviderWidgetRequest, O: KYCProviderWidget },
     { name: "GetCardDetails", options: {}, I: GetCardDetailsRequest, O: CardDetails },

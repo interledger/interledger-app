@@ -285,5 +285,5 @@ func handleKYC(ctx context.Context, b Backends, raw json.RawMessage) error {
 	if err != nil {
 		return fmt.Errorf("%w %s", chimoney.ErrInternal, err)
 	}
-	return b.KYC().SetKYCStatus(ctx, walletID, kycStatus)
+	return b.KYC().SetKYCStatus(ctx, kyc.StatusUpdateArgs{WalletID: walletID, Status: kycStatus})
 }

@@ -87,6 +87,7 @@ service BackendService {
   // KYC
   rpc KYCStatus(Empty) returns (KYCStatusResponse);
   rpc SetKYCStatusPending(Empty) returns (Empty);
+  rpc GetKYCResubmissionInfo(GetKYCResubmissionInfoRequest) returns (GetKYCResubmissionInfoResponse);
   rpc GetPersonaInquiry(KYCPersonaInquiryRequest) returns (KYCPersonaInquiryResponse);
   rpc GetKYCProviderWidget(GetKYCProviderWidgetRequest) returns (KYCProviderWidget);
 
@@ -1125,6 +1126,16 @@ message ListPublicIdentitiesRequest {
 
 message KYCStatusResponse {
   int32 kyc_status = 1;
+}
+
+message GetKYCResubmissionInfoRequest {}
+
+message GetKYCResubmissionInfoResponse {
+  bool can_resubmit = 1;
+  string reason = 2;
+  reserved 3;
+  reserved "status_message";
+  int32 kyc_status = 4;
 }
 
 message KYCPersonaInquiryRequest {

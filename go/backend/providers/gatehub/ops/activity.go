@@ -622,7 +622,7 @@ func (a *Activity) MarkBackfillUser(ctx context.Context, walletID, externalUserI
 }
 
 func (a *Activity) SetKYCApprovedForGatehub(ctx context.Context, walletID string) error {
-	return a.b.KYC().SetKYCStatus(ctx, walletID, kyc.StatusLevel1)
+	return a.b.KYC().SetKYCStatus(ctx, kyc.StatusUpdateArgs{WalletID: walletID, Status: kyc.StatusLevel1})
 }
 
 func (a *Activity) Notify(ctx context.Context, walletID string, notificationType notify.NotificationType) error {

@@ -229,7 +229,7 @@ func TestSetKYCStatusPending_AllowsDocumentsRequired(t *testing.T) {
 	c.walletImpl.EXPECT().List(gomock.Any(), u.ID).Return([]wallets.Wallet{wallet}, nil).AnyTimes()
 	c.walletImpl.EXPECT().ForContext(gomock.Any()).Return(&wallet, nil).AnyTimes()
 	c.KYCClient.EXPECT().GetKYCStatus(gomock.Any(), wallet.ID).Return(kyc.StatusDocumentsRequired, nil)
-	c.KYCClient.EXPECT().SetKYCStatus(gomock.Any(), wallet.ID, kyc.StatusPending)
+	c.KYCClient.EXPECT().SetKYCStatus(gomock.Any(), kyc.StatusUpdateArgs{WalletID: wallet.ID, Status: kyc.StatusPending})
 
 	_, err := client.SetKYCStatusPending(user_mock.ActingAsContext(t, context.Background(), u), &pb.Empty{})
 	require.NoError(t, err)
@@ -313,4 +313,53 @@ func TestGetKYCProviderWidget_AllowsDocumentsRequired(t *testing.T) {
 	require.NotNil(t, resp)
 	require.NotNil(t, resp.PersonaInquiry)
 	require.Equal(t, "inq-1", resp.PersonaInquiry.Id)
+}
+
+func TestGetKYCResubmissionInfo_ReturnsMetadata(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	c := NewTestContainer(t, ctrl)
+	_, _, client := startTestServer(t, c)
+
+	u := &user.User{ID: uuid.NewString()}
+	wallet := wallets.Wallet{ID: uuid.NewString(), Name: "testing"}
+
+	c.walletImpl.EXPECT().List(gomock.Any(), u.ID).Return([]wallets.Wallet{wallet}, nil).AnyTimes()
+	c.walletImpl.EXPECT().ForContext(gomock.Any()).Return(&wallet, nil).AnyTimes()
+	c.KYCClient.EXPECT().CanResubmitKYC(gomock.Any(), wallet.ID).Return(true, nil)
+	c.KYCClient.EXPECT().GetKYCStatusMetadata(gomock.Any(), wallet.ID).Return(&kyc.StatusMetadata{
+		Status:            kyc.StatusDocumentsRequired,
+		Reason:            "Additional documents required",
+		ResubmissionCount: 2,
+	}, nil)
+
+	resp, err := client.GetKYCResubmissionInfo(user_mock.ActingAsContext(t, context.Background(), u), &pb.GetKYCResubmissionInfoRequest{})
+	require.NoError(t, err)
+	require.True(t, resp.CanResubmit)
+	require.Equal(t, "Additional documents required", resp.Reason)
+	require.Equal(t, kyc.StatusDocumentsRequired.ToInt32(), resp.KycStatus)
+}
+
+func TestGetKYCResubmissionInfo_FallsBackWhenMetadataLookupFails(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	c := NewTestContainer(t, ctrl)
+	_, _, client := startTestServer(t, c)
+
+	u := &user.User{ID: uuid.NewString()}
+	wallet := wallets.Wallet{ID: uuid.NewString(), Name: "testing"}
+
+	c.walletImpl.EXPECT().List(gomock.Any(), u.ID).Return([]wallets.Wallet{wallet}, nil).AnyTimes()
+	c.walletImpl.EXPECT().ForContext(gomock.Any()).Return(&wallet, nil).AnyTimes()
+	c.KYCClient.EXPECT().CanResubmitKYC(gomock.Any(), wallet.ID).Return(false, nil)
+	c.KYCClient.EXPECT().GetKYCStatusMetadata(gomock.Any(), wallet.ID).Return(nil, assert.AnError)
+	c.KYCClient.EXPECT().GetKYCStatus(gomock.Any(), wallet.ID).Return(kyc.StatusPending, nil)
+
+	resp, err := client.GetKYCResubmissionInfo(user_mock.ActingAsContext(t, context.Background(), u), &pb.GetKYCResubmissionInfoRequest{})
+	require.NoError(t, err)
+	require.False(t, resp.CanResubmit)
+	require.Empty(t, resp.Reason)
+	require.Equal(t, kyc.StatusPending.ToInt32(), resp.KycStatus)
 }

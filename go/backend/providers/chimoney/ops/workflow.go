@@ -121,7 +121,7 @@ func (a *Activity) GetChimoneyWallet(ctx context.Context, walletID string) (*ext
 }
 
 func (a *Activity) SetChimoneyKYCStatus(ctx context.Context, walletID string, status kyc.Status) error {
-	return a.b.KYC().SetKYCStatus(ctx, walletID, status)
+	return a.b.KYC().SetKYCStatus(ctx, kyc.StatusUpdateArgs{WalletID: walletID, Status: status})
 }
 
 func (a *Activity) CreateLinkedAccount(ctx context.Context, walletID, externalID string) (*linkedaccounts.LinkedAccount, error) {

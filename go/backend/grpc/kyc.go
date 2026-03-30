@@ -13,6 +13,9 @@ import (
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	"gitlab.com/fynbos/backend/providers/pti"
 
+	"gitlab.com/fynbos/log"
+	"go.uber.org/zap"
+
 	"gitlab.com/fynbos/env"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
@@ -390,7 +393,7 @@ func (s *rpcService) SetKYCStatusPending(ctx context.Context, req *pb.Empty) (*p
 		return &pb.Empty{}, nil
 	}
 
-	err = s.b.KYC().SetKYCStatus(ctx, wallet.ID, kyc.StatusPending)
+	err = s.b.KYC().SetKYCStatus(ctx, kyc.StatusUpdateArgs{WalletID: wallet.ID, Status: kyc.StatusPending})
 	if err != nil {
 		return nil, err
 	}
@@ -403,6 +406,50 @@ func (s *rpcService) SetKYCStatusPending(ctx context.Context, req *pb.Empty) (*p
 	}
 
 	return &pb.Empty{}, nil
+}
+
+func (s *rpcService) GetKYCResubmissionInfo(ctx context.Context, req *pb.GetKYCResubmissionInfoRequest) (*pb.GetKYCResubmissionInfoResponse, error) {
+	user, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	wallet, err := s.b.Wallets().ForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	canResubmit, err := s.b.KYC().CanResubmitKYC(ctx, wallet.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	metadata, err := s.b.KYC().GetKYCStatusMetadata(ctx, wallet.ID)
+	if err != nil {
+		log.Warn("Failed to get KYC metadata", zap.String("wallet_id", wallet.ID), zap.Error(err))
+
+		statusValue, statusErr := s.b.KYC().GetKYCStatus(ctx, wallet.ID)
+		if statusErr != nil {
+			return nil, toGRPCError(statusErr)
+		}
+
+		return &pb.GetKYCResubmissionInfoResponse{
+			CanResubmit: canResubmit,
+			KycStatus:   statusValue.ToInt32(),
+		}, nil
+	}
+
+	log.Info("KYC resubmission info requested",
+		zap.String("user_id", user.ID),
+		zap.String("wallet_id", wallet.ID),
+		zap.Bool("can_resubmit", canResubmit),
+		zap.String("status", metadata.Status.String()))
+
+	return &pb.GetKYCResubmissionInfoResponse{
+		CanResubmit: canResubmit,
+		Reason:      metadata.Reason,
+		KycStatus:   metadata.Status.ToInt32(),
+	}, nil
 }
 
 var maxRetries = 3
