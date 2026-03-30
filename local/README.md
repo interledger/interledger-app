@@ -159,5 +159,48 @@ docker compose down -v
 | https://mockxago.interledger.test         | MockXago API (local Xago replacement)       |
 
 
+## Debugging the backend with Delve
+
+The backend service exposes port `2345` for remote debugging via [Delve](https://github.com/go-delve/delve).
+
+To enable it, switch the Dockerfile in [wallet.yaml](./wallet.yaml) to the debug variant:
+
+```yaml
+# wallet.yaml
+build:
+  context: ../go
+  dockerfile: backend/Dockerfile.delve  # switch to this
+  # dockerfile: backend/Dockerfile
+```
+
+The debug build compiles with `-gcflags="all=-N -l"` (optimizations and inlining disabled) and starts the binary under `dlv` in headless mode.
+
+### Attaching with VS Code
+
+Add a launch configuration to `.vscode/launch.json`:
+
+```json
+{
+  "name": "Attach to backend (Delve)",
+  "type": "go",
+  "request": "attach",
+  "mode": "remote",
+  "host": "localhost",
+  "port": 2345
+}
+```
+
+### Attaching with GoLand / IntelliJ
+
+Go to **Run → Edit Configurations → + → Go Remote** and set host `localhost`, port `2345`.
+
+### Attaching via CLI
+
+```sh
+dlv connect localhost:2345
+```
+
+---
+
 ### TODO
 - [ ] Add instructions for Linux users regarding trusting the self-signed certificates.
