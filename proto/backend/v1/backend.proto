@@ -1133,8 +1133,6 @@ message GetKYCResubmissionInfoRequest {}
 message GetKYCResubmissionInfoResponse {
   bool can_resubmit = 1;
   string reason = 2;
-  reserved 3;
-  reserved "status_message";
   int32 kyc_status = 4;
 }
 

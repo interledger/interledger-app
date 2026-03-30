@@ -10875,12 +10875,12 @@ const file_backend_v1_backend_proto_rawDesc = "" +
 	"\x11KYCStatusResponse\x12\x1d\n" +
 	"\n" +
 	"kyc_status\x18\x01 \x01(\x05R\tkycStatus\"\x1f\n" +
-	"\x1dGetKYCResubmissionInfoRequest\"\x90\x01\n" +
+	"\x1dGetKYCResubmissionInfoRequest\"z\n" +
 	"\x1eGetKYCResubmissionInfoResponse\x12!\n" +
 	"\fcan_resubmit\x18\x01 \x01(\bR\vcanResubmit\x12\x16\n" +
 	"\x06reason\x18\x02 \x01(\tR\x06reason\x12\x1d\n" +
 	"\n" +
-	"kyc_status\x18\x04 \x01(\x05R\tkycStatusJ\x04\b\x03\x10\x04R\x0estatus_message\"\\\n" +
+	"kyc_status\x18\x04 \x01(\x05R\tkycStatus\"\\\n" +
 	"\x18KYCPersonaInquiryRequest\x12,\n" +
 	"\x0fidempotency_key\x18\x01 \x01(\tH\x00R\x0eidempotencyKey\x88\x01\x01B\x12\n" +
 	"\x10_idempotency_key\"k\n" +
