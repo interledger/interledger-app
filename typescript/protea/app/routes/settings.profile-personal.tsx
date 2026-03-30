@@ -10,15 +10,23 @@ import { getKycStatus } from '~/data/wallet.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
-import { ErrorHandler, ErrorMapper, UserFacingErrorType } from '~/lib/error-handling/bff-error';
+import { ErrorHandler, ErrorMapper, UserFacingError } from '~/lib/error-handling/bff-error';
+import { ServerResponse } from '~/lib/error-handling/types';
 
-export async function loader({ request }: Route.LoaderArgs) {
+export async function loader({ request }: Route.LoaderArgs): Promise<ServerResponse> {
   const kycStatus = await getKycStatus(request)
 
   const kycDetails = await grpc.getIndividualKYC(request, {})
   if (isConnectError(kycDetails)) {
     const userFacingError = ErrorMapper.grpc.toUserFacingError(kycDetails)
-    return ErrorHandler(request, userFacingError)
+    return ErrorHandler(request, userFacingError, {
+      cb: () => {
+        return {
+          success: false,
+          error: UserFacingError("Personal information not available, please try again or contact support if the issue persists.")
+        }
+      }
+    })
   }
 
   let countries = await grpc.getCountries(request, {})
@@ -45,17 +53,20 @@ export async function loader({ request }: Route.LoaderArgs) {
       break
   }
 
-  return data({
-    kycStatus,
-    kycDetails,
-    gender,
-    dateOfBirth: DateTime.fromSeconds(
-      Number(kycDetails?.dateOfBirth?.seconds)
-    ).toFormat('dd MMMM yyyy'),
-    country: countries.countries.find(
-      (country) => country.id == kycDetails.address?.countryCode
-    )?.name
-  })
+  return {
+    success: true,
+    data: {
+      kycStatus,
+      kycDetails,
+      gender,
+      dateOfBirth: DateTime.fromSeconds(
+        Number(kycDetails?.dateOfBirth?.seconds)
+      ).toFormat('dd MMMM yyyy'),
+      country: countries.countries.find(
+        (country) => country.id == kycDetails.address?.countryCode
+      )?.name
+    }
+  }
 }
 
 export const handle: ApplicationProps = {
@@ -76,8 +87,20 @@ export const meta = mergeMeta(() => [
 ])
 
 export default function Page() {
-  const { dateOfBirth, gender, kycDetails, country } =
-    useLoaderData()
+  const loaderData = useLoaderData<typeof loader>()
+
+  if (loaderData.success == false) {
+    return (
+      <Card>
+        <CardContent className='flex flex-col space-y-4'>
+          {loaderData.error?.message}
+        </CardContent>
+      </Card>
+    )
+  }
+
+  const { dateOfBirth, gender, kycDetails, country } = loaderData.data
+
   return (
     <Card>
       <CardContent className='flex flex-col space-y-4'>

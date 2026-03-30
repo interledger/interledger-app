@@ -2,6 +2,7 @@ import { Code } from "@bufbuild/connect"
 import { ConnectError } from "../error.server"
 import { redirectWithSnackbar } from "../snackbar.server"
 import logger from "../logger.server"
+import { FailedServerResponse } from "./types"
 
 /**
  * Standard error object that will be used in the BFF layer.
@@ -26,13 +27,9 @@ export const ErrorMapper: Record<Client, ErrorMappingFn> = {
         toUserFacingError: (data: ConnectError) => {
             logger.error({ connectError: { ...data } }, 'Error from GRPC client.')
 
-            if (data.code == Code.Internal) {
+            if (data.code == Code.Unavailable) {
                 // When BFF - BE Contract willl be in place,
                 // on data.details.message, BE will tell us the exact error
-                return UserFacingError("Personal information not available, please contact support.", 500)
-            }
-
-            if (data.code == Code.Unavailable) {
                 return UserFacingError("Service not available, please try again later.", 500)
             }
 
@@ -52,13 +49,27 @@ export const ErrorMapper: Record<Client, ErrorMappingFn> = {
 /**
  * Handles errors by either returning them as is, redirecting with a snackbar, or throwing them.
  */
-export const ErrorHandler = (request: Request, ufe: UserFacingErrorType, cb?: () => UserFacingErrorType) => {
-    if (cb) {
-        return cb();
+export const ErrorHandler = (
+    request: Request,
+    ufe: UserFacingErrorType,
+    opts?: { cb?: () => FailedServerResponse, alwaysReturnUfe?: boolean }
+): FailedServerResponse | Promise<Response> => {
+    if (opts?.cb) {
+        return opts.cb();
+    }
+
+    if (opts?.alwaysReturnUfe) {
+        return {
+            success: false,
+            error: ufe
+        }
     }
 
     if (ufe.status == 400) {
-        return ufe
+        return {
+            success: false,
+            error: ufe
+        }
     }
 
     if ([500].includes(ufe.status)) {

@@ -1,16 +1,15 @@
-type FormError = Record<string, string>
-type UserFacingErrors<T extends FormError = any> = Partial<Record<keyof T, string>>
+import { UserFacingErrorType } from "./bff-error"
 
 export type SuccessfulServerResponse<T = any> = {
     success: true
     data: T
 }
-export type FailedServerResponse<T extends FormError = any> = {
+export type FailedServerResponse = {
     success: false
-    message?: string
-    errors?: UserFacingErrors<T>
+    error: UserFacingErrorType
 }
 
-export type ServerResponse<T extends FormError = any> =
+export type ServerResponse<T = any> =
     SuccessfulServerResponse<T> |
-    FailedServerResponse<T>
+    FailedServerResponse | 
+    Promise<Response>
