@@ -748,9 +748,9 @@ func getRequiredActions(payment *dbPayment) []payments.RequiredActionType {
 		requiredActions = append(requiredActions, payments.RequiredActionTypeReceiverAmount)
 	}
 
-	if payment.OTPRequired && payment.OTP.String == "" {
-		requiredActions = append(requiredActions, payments.RequiredActionTypeOTP)
-	}
+	// if payment.OTPRequired && payment.OTP.String == "" {
+	// 	requiredActions = append(requiredActions, payments.RequiredActionTypeOTP)
+	// }
 
 	if payment.ThreeDSRequired && payment.ThreeDSID.String == "" {
 		requiredActions = append(requiredActions, payments.RequiredActionTypeThreeDS)
@@ -797,6 +797,14 @@ func Confirm(ctx context.Context, b Backends, id string) (*payments.Payment, []p
 		return nil, nil, err
 	}
 
+	fee := currency.FromFloat64(0, currency.USD)
+	if dbp.Type == payments.TypeWithdrawal && la.Provider == chimoney.ProviderName && la.Type == chimoney.AccTypeBalance {
+		fee, err = b.Chimoney().GetEstimatedFee(ctx, dbp.SenderAmount)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+
 	// Do all precursor operations in single TX so we don't get inconsistent state.
 	err = crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
 		err := setStateTX(ctx, tx, id, payments.StateConfirmed)
@@ -823,7 +831,7 @@ func Confirm(ctx context.Context, b Backends, id string) (*payments.Payment, []p
 			title = "Deposit"
 			txType = transactions.TransactionTypeDeposit
 		}
-		fee := currency.FromFloat64(0, currency.USD)
+
 		txID, err := b.Transactions().CreateTransactionTx(ctx, tx, transactions.CreateTransactionArgs{
 			WalletID:                senderWallet.ID,
 			ForeignID:               dbp.ID,

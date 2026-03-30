@@ -1,9 +1,4 @@
-import type {
-  LinksFunction,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
+import type { LinksFunction, LoaderFunctionArgs, MetaFunction } from 'react-router';
 import {
   Links,
   Meta,
@@ -12,23 +7,48 @@ import {
   isRouteErrorResponse,
   useLoaderData,
   useNavigation,
-  useRouteError
-} from '@remix-run/react'
-import { captureRemixErrorBoundaryError, withSentry } from '@sentry/remix'
+  useRouteError,
+  data,
+  type ShouldRevalidateFunction,
+} from 'react-router';
+import { captureException } from '@sentry/react-router'
 import clsx from 'clsx'
 import { type ReactNode } from 'react'
-import { Error, LiveReload } from '~/components'
+import {
+  Card,
+  CardContent,
+  CardCopy,
+  CardHeader,
+  CardTitle,
+  Error,
+  GridColumn,
+  InterledgerLogo,
+  WalletGrid
+} from '~/components'
 import { Scaffold } from '~/components/Scaffold'
 import { TotpChallengeGlobal } from '~/components/TotpChallengeGlobal'
-import { getUserSession, hasUserSession } from '~/lib/kratos.server'
+import { hasUserSession } from '~/lib/kratos.server'
 import { getSnackbar } from '~/lib/snackbar.server'
-import styles from '~/styles/app.css'
+import styles from '~/styles/app.css?url'
 import { PendingConfirmationsLoader } from './components/PendingConfirmationsLoader'
 import { getFeatures } from './data/wallet.server'
 import { Features } from './generated/connect/backend/v1/backend_pb'
+import { isConnectError } from './lib/error.server'
+import { grpc } from './lib/grpc.server'
 import { getPusherArgs } from './lib/pusher.server'
-import { NON_FULL_SESSION_ROUTES, isTotpSet } from './lib/totp.server'
+import { emailVerificationGuard, recoveryLinkSessionInvalidationGuard, withAAL2Guard } from './lib/totp.server'
 import { usePusher } from './lib/usePusher'
+import type { Route } from './+types/root';
+
+export const shouldRevalidate: ShouldRevalidateFunction = ({
+  actionResult,
+  defaultShouldRevalidate
+}) => {
+  if (actionResult && 'shouldRevalidate' in actionResult) {
+    return actionResult.shouldRevalidate === true
+  }
+  return defaultShouldRevalidate
+}
 
 const metaContent = {
   title: 'Interledger Wallet',
@@ -74,6 +94,7 @@ export const links: LinksFunction = () => {
 type DocumentProps = {
   children: ReactNode
   theme?: 'theme-dark' | 'theme-light' | 'theme-system'
+  env?: Record<string, unknown>
 }
 
 function Document({ children, theme = 'theme-system' }: DocumentProps) {
@@ -91,13 +112,12 @@ function Document({ children, theme = 'theme-system' }: DocumentProps) {
         className={clsx(
           theme,
           'bg-page font-sans text-base font-normal text-strong antialiased selection:bg-brand/50',
-          navigation.state == 'submitting' && 'cursor-progress'
+          navigation.state === 'submitting' && 'cursor-progress'
         )}
       >
         {children}
         <ScrollRestoration />
         <Scripts />
-        <LiveReload port={443} />
       </body>
     </html>
   )
@@ -105,51 +125,79 @@ function Document({ children, theme = 'theme-system' }: DocumentProps) {
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const isUser = hasUserSession(request)
-  const snackbar = await getSnackbar(request)
-
-  let features = new Features()
-  const url = new URL(request.url)
-  const pathname = url.pathname
-
-  if (isUser && !NON_FULL_SESSION_ROUTES.includes(pathname)) {
-    const session = await getUserSession(request)
-    const totpAvailable = await isTotpSet(session, request.headers)
-    if (!totpAvailable) {
-      return redirect('/totp/two-factor-authentication')
-    }
-
-    features = await getFeatures(request)
-    if (features && !features.accountEnabled) {
-      return redirect('/unavailable')
-    }
-  }
-
+  const { snackbar, headers } = await getSnackbar(request)
   const pusherArgs = await getPusherArgs(request)
 
-  return json({
+  const url = new URL(request.url)
+  const pathname = url.pathname
+  let features = new Features()
+  let isDisabled = false
+  let walletAddress = ''
+  const env = {
+    fynbosEnv: process.env.FYNBOS_ENV || '',
+    sentryDsn: process.env.SENTRY_DSN || '',
+    sentryRelease: process.env.SENTRY_RELEASE || '',
+    segmentApiKey: process.env.SEGMENT_API_KEY || ''
+  }
+
+  if (!isUser) {
+    return data({
+      isDisabled,
+      walletAddress,
+      isUser: false,
+      features,
+      snackbar,
+      pusherArgs,
+      env
+    }, { headers })
+  }
+
+  await recoveryLinkSessionInvalidationGuard(pathname, request)
+  await emailVerificationGuard(pathname, request)
+  await withAAL2Guard(pathname, request, async () => {
+    features = await getFeatures(request)
+    if (
+      features &&
+      !features.accountEnabled &&
+      url.pathname !== '/wallet-address'
+    ) {
+      const wallet = await grpc.getWalletInfo(request, {})
+      if (!isConnectError(wallet)) {
+        walletAddress = wallet.url
+      }
+      isDisabled = true
+    }
+  })
+
+  return data({
+    isDisabled,
+    walletAddress,
     isUser,
     features,
     snackbar,
     pusherArgs,
-    env: {
-      fynbosEnv: process.env.FYNBOS_ENV,
-      sentryDsn: process.env.SENTRY_DSN,
-      sentryRelease: process.env.SENTRY_RELEASE,
-      segmentApiKey: process.env.SEGMENT_API_KEY || ''
-    }
-  })
+    env
+  }, { headers })
 }
 
-function Page() {
-  const { pusherArgs, env } = useLoaderData<typeof loader>()
+export type RootLoaderData = Route.ComponentProps['loaderData']
 
+function Page() {
+  const { pusherArgs, env, isDisabled, walletAddress } =
+    useLoaderData<RootLoaderData>()
   usePusher(pusherArgs, ['cardReady'])
 
   return (
     <Document>
-      <Scaffold />
-      <PendingConfirmationsLoader walletId={pusherArgs.walletId} />
-      <TotpChallengeGlobal />
+      {isDisabled ? (
+        <Unavailable walletAddress={walletAddress} />
+      ) : (
+        <>
+          <Scaffold />
+          <PendingConfirmationsLoader walletId={pusherArgs.walletId} />
+          <TotpChallengeGlobal />
+        </>
+      )}
       <script
         dangerouslySetInnerHTML={{
           __html: `window.ENV = ${JSON.stringify(env)}`
@@ -158,11 +206,11 @@ function Page() {
     </Document>
   )
 }
-export default withSentry(Page)
+export default Page
 
 export function ErrorBoundary() {
   const error = useRouteError()
-  captureRemixErrorBoundaryError(error)
+  captureException(error)
 
   if (isRouteErrorResponse(error)) {
     return (
@@ -180,5 +228,46 @@ export function ErrorBoundary() {
     <Document>
       <Error data={{ title: (error as Error).message }} />
     </Document>
+  )
+}
+
+function Unavailable({ walletAddress }: { walletAddress: string }) {
+  return (
+    <main className='mb-32 mt-32 w-full px-4'>
+      <WalletGrid>
+        <GridColumn className='col-span-8 col-start-1 space-y-12 xl:col-start-3'>
+          <InterledgerLogo className='max-w-sm self-center' />
+          <Card className='flex !flex-row'>
+            <CardContent className='ml-2 text-lg'>
+              The application is not yet available in your location, but do not
+              worry we are working tirelessly to solve it as fast as possible!{' '}
+              <br />
+              We will notify you by email once the application becomes fully
+              functional in your region.
+            </CardContent>
+          </Card>
+          {walletAddress && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Your wallet address has been reserved!</CardTitle>
+              </CardHeader>
+              <CardCopy
+                copyContent={walletAddress}
+                shareData={{
+                  title: 'Wallet address',
+                  text: 'You can pay me using my wallet address.',
+                  url: walletAddress
+                }}
+                success='Wallet address copied to clipboard.'
+                copyError="Couldn't copy to clipboard."
+                shareError="Couldn't share wallet address."
+              >
+                {walletAddress}
+              </CardCopy>
+            </Card>
+          )}
+        </GridColumn>
+      </WalletGrid>
+    </main>
   )
 }

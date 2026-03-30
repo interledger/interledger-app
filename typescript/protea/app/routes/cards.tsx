@@ -1,9 +1,9 @@
-import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
-import type { ShouldRevalidateFunction } from '@remix-run/react'
-import { Outlet, useLoaderData, useLocation } from '@remix-run/react'
+import type { Route } from './+types/cards'
+import { data, redirect } from 'react-router';
+import type { ShouldRevalidateFunction } from 'react-router';
+import { Outlet, useLoaderData, useLocation } from 'react-router';
 import { useEffect } from 'react'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   ButtonRouter,
@@ -15,17 +15,15 @@ import {
   Layouts,
   WalletGrid
 } from '~/components'
-import {
-  CardProcessingPlaceholder,
-  VirtualCardRibbon
-} from '~/components/CardView'
+import { CardProcessingPlaceholder } from '~/components/Cards'
+import { PhysicalCardChip, VirtualCardChip } from '~/components/Cards/CardChips'
 import { getFeatures } from '~/data/wallet.server'
-import type {
-  Card as CardProto,
-  CardType
-} from '~/generated/connect/backend/v1/backend_pb'
-import { useCardsStore } from '~/lib/cards/hooks/useCardsStore'
-import type { StorableCard } from '~/lib/cards/types'
+import { CardType } from '~/generated/connect/backend/v1/backend_pb'
+import {
+  panLastFour,
+  toStorableCard,
+  useCardsStore
+} from '~/lib/cards/useCardsStore'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
@@ -44,7 +42,7 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({
   return defaultShouldRevalidate
 }
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const features = await getFeatures(request)
   if (!features.manageWalletCardsEnabled) {
     throw redirect('/')
@@ -56,7 +54,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     throw response.errorResponse
   }
 
-  return json({
+  return data({
     isWaitingForCreation: response.isWaitingForCreation,
     cards: response.cards
   })
@@ -71,37 +69,11 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Cards'
   }
 ])
-
-const isVirtualCard = (card: CardProto): boolean => {
-  return card.type === ('CARD_TYPE_VIRTUAL' as unknown as CardType)
-}
-
-/**
- * Convert Card object to StorableCard format for the store
- */
-function convertCardToStorableCard(card: CardProto): StorableCard {
-  return {
-    id: card.id,
-    nameOnCard: card.nameOnCard,
-    maskedPan: card.maskedPan,
-    unmaskedPan: null,
-    expiryDate: card.expiryDate,
-    status: card.status,
-    lockLevel:
-      // Wrong protobuf type will return lockLevels as strings
-      (card.lockLevel as unknown as string) ?? 'CARD_LOCK_LEVEL_UNKNOWN',
-    cvc2: null
-  }
-}
-
-export const formatCardNumber = (cardNumber: string) => {
-  return cardNumber.replace(/(.{4})/g, '$1 ').trim()
-}
 
 export default function Page() {
   const { cards, isWaitingForCreation } = useLoaderData<typeof loader>()
@@ -109,9 +81,7 @@ export default function Page() {
   const { setCards } = useCardsStore()
 
   useEffect(() => {
-    const storableCards = cards.map((c) =>
-      convertCardToStorableCard(c as CardProto)
-    )
+    const storableCards = cards.map((c) => toStorableCard(c))
     setCards(storableCards)
   }, [cards, setCards])
 
@@ -137,13 +107,12 @@ export default function Page() {
               </Card>
             )}
             {cards.length > 0 &&
-              cards.map((card) => (
+              cards.map((card: import("~/lib/cards/types").SerializedCard) => (
                 <Card key={card.id} className='relative'>
-                  {isVirtualCard(card as CardProto) && <VirtualCardRibbon />}
                   <CardLink
                     preventScrollReset={!isMobile}
-                    prefetch='none'
-                    to={route('/cards/:cardId', {
+                    prefetch='intent'
+                    to={href('/cards/:cardId', {
                       cardId: card.id
                     })}
                     className='justify-between space-x-4'
@@ -153,7 +122,7 @@ export default function Page() {
                       <Icon>credit_card</Icon>
                       <div className='flex w-full flex-col space-y-1'>
                         <span className='truncate text-medium'>
-                          {formatCardNumber(card.maskedPan)}
+                          &bull;&bull;&bull;&bull; {panLastFour(card.maskedPan)}
                         </span>
                         <span className='text-xs text-weak'>
                           Expires at: {card.expiryDate.slice(0, 2)}/
@@ -162,12 +131,17 @@ export default function Page() {
                       </div>
                     </div>
                     <div className='flex min-w-max flex-initial items-center space-x-2'>
+                      {card.type === CardType.VIRTUAL ? (
+                        <VirtualCardChip />
+                      ) : (
+                        <PhysicalCardChip />
+                      )}
                       <Icon>navigate_next</Icon>
                     </div>
                   </CardLink>
                 </Card>
               ))}
-            <ButtonRouter to={route('/cards/order')}>Order card</ButtonRouter>
+            <ButtonRouter to={href('/cards/order')}>Order card</ButtonRouter>
           </>
         )}
       </GridColumn>

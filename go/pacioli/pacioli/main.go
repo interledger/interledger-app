@@ -86,18 +86,10 @@ func runInit(args *cli.InitArgs) {
 }
 
 func start(args *cli.StartArgs) {
-	// Setup the logger
-	cfg := zap.NewProductionConfig()
-	err := cfg.Level.UnmarshalText([]byte(args.LogLevel))
+	err := log.Initialize(args.LogLevel)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	cfg.OutputPaths = []string{args.LogOutputPath}
-	logger, err := cfg.Build(zap.AddCallerSkip(1))
-	if err != nil {
-		log.Fatalln(err)
-	}
-	log.Setup(logger)
 
 	traceShutdown, err := tracing.InitTraceProvider("pacioli")
 	if err != nil {

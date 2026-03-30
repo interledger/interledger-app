@@ -10,6 +10,7 @@ module.exports = {
     fontFamily: {
       display: ['Poppins'],
       sans: ['Inter'],
+      titillium: ['Titillium Web'],
       mono: ['"JetBrains Mono"'],
       icon: ['"Material Symbols Outlined"', { fontFeatureSettings: '"liga"' }]
     },
@@ -29,6 +30,17 @@ module.exports = {
       '9xl': ['8rem', { lineHeight: '9.5625rem' }]
     },
     extend: {
+      margin: {
+        18: '4.5rem'
+      },
+      width: {
+        'card-width-small': '18rem',
+        'card-width': '21rem'
+      },
+      height: {
+        'card-height-small': '11rem',
+        'card-height': '14rem'
+      },
       colors: {
         brand: colors.rose[500]
       },
@@ -136,8 +148,11 @@ module.exports = {
       gradientColorStops: {
         'mint-light': 'rgb(var(--mint-light) / <alpha-value>)',
         'mint-dark': 'rgb(var(--mint-dark) / <alpha-value>)'
-      }
+      },
       // End token colours
+      screens: {
+        xs: '30rem' // 480px
+      }
     }
   },
   plugins: [require('@tailwindcss/forms'), require('@tailwindcss/typography')]

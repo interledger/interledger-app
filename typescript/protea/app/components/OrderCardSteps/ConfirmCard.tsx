@@ -1,4 +1,4 @@
-import { useFetcher } from '@remix-run/react'
+import { useFetcher } from 'react-router';
 import {
   Button,
   Card,
@@ -9,7 +9,7 @@ import {
 } from '~/components'
 import { Label } from '~/components/Label'
 import { CardType } from '~/generated/connect/backend/v1/backend_pb'
-import { useOrderCardStore } from '~/lib/useOrderCardStore'
+import { useOrderCardStore } from '~/lib/cards/useOrderCardStore'
 
 export const ConfirmCard = () => {
   const fetcher = useFetcher()
@@ -98,9 +98,19 @@ export const ConfirmCard = () => {
         />
         <input type='hidden' name='type' form='confirm-card' value={type} />
         {isNewAddressSelected() ? (
-          <input type='hidden' name='newDeliveryAddress' form='confirm-card' value={JSON.stringify(address)} />
+          <input
+            type='hidden'
+            name='newDeliveryAddress'
+            form='confirm-card'
+            value={JSON.stringify(address)}
+          />
         ) : (
-          <input type='hidden' name='deliveryAddressId' form='confirm-card' value={address?.id} />
+          <input
+            type='hidden'
+            name='deliveryAddressId'
+            form='confirm-card'
+            value={address?.id}
+          />
         )}
 
         <Button form='confirm-card' type='submit' disabled={isSubmitting}>

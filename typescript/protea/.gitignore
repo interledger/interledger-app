@@ -52,3 +52,4 @@ build-storybook.log
 .env.sentry
 
 gsa-key.json
+.react-router/

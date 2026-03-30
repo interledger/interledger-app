@@ -203,6 +203,48 @@ func SettleDepositWorkflow(ctx workflow.Context, wh pti.TransactionStatusPayload
 	return txID, nil
 }
 
+func ReturnedWorkflow(ctx workflow.Context, wh pti.TransactionStatusPayload) (string, error) {
+	var a *Activity
+
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Second,
+	}
+
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	webhookCurrency := currency.ParseCurrency(wh.Currency)
+	transactionTotalCurrency := currency.ParseCurrency(wh.TransactionTotal.Total.Currency)
+
+	// if currency is not provided in webhook, check transaction total currency. If both are not provided or not USD, return error
+	// this is to handle a potential issue (communicated to PTI) where the currency is empty string
+	if !(webhookCurrency == currency.USD || transactionTotalCurrency == currency.USD) { // if currency is not provided in webhook, check transaction total currency. If both are not provided or not USD, return error
+		return "", temporal.NewNonRetryableApplicationError("Invalid currency", "ErrInternal", fmt.Errorf("%w invalid currency", pti.ErrInternal))
+	}
+
+	amt := currency.FromFloat64(wh.Amount, currency.USD)
+	originalTransactionID := wh.RequestID
+	ptiUserID := wh.UserID
+
+	var walletID string
+	err := workflow.ExecuteActivity(ctx, a.GetWalletFromPTIUser, ptiUserID).Get(ctx, &walletID)
+	if err != nil {
+		return "", err
+	}
+
+	var returnTransactionID string
+	err = workflow.ExecuteActivity(ctx, a.ReturnTransaction, originalTransactionID, walletID, amt).Get(ctx, &returnTransactionID)
+	if err != nil {
+		return "", err
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.PostTransfer, returnTransactionID, walletID).Get(ctx, nil)
+	if err != nil {
+		return "", err
+	}
+
+	return returnTransactionID, nil
+}
+
 func MarkTransactionStateWorkflow(ctx workflow.Context, wh pti.TransactionStatusPayload, state transactions.State) error {
 	var a *Activity
 

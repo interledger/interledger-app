@@ -25,6 +25,7 @@ func NewTemporalClient(temporalUrl string) (client.Client, error) {
 
 	c, err := client.Dial(client.Options{
 		HostPort:           temporalUrl,
+		Logger:             newTemporalLogger(),
 		Interceptors:       []interceptor.ClientInterceptor{traceInterceptor},
 		ContextPropagators: []workflow.ContextPropagator{temporal_context.NewHttpLogContextPropagator()},
 	})
@@ -34,6 +35,7 @@ func NewTemporalClient(temporalUrl string) (client.Client, error) {
 
 	nc, err := client.NewNamespaceClient(client.Options{
 		HostPort: temporalUrl,
+		Logger:   newTemporalLogger(),
 	})
 	if err != nil {
 		log.Error("Failed to create temporal namespace client", zap.Error(err))

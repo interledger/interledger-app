@@ -1,32 +1,13 @@
-import { useFetcher, useLoaderData } from '@remix-run/react'
-import { useEffect, useState } from 'react'
-import { route } from 'routes-gen'
+import { useState } from 'react'
 import type { PhoneAutocompleteOptions } from '~/components'
-import {
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  Dialog,
-  Icon,
-  PhoneTextField,
-  TextButton,
-  TextField
-} from '~/components'
-import { Label } from '~/components/Label'
+import { Button, Card, CardContent, Icon, PhoneTextField } from '~/components'
 import { SignupStep, useSignupStore } from '~/lib/useSignupStore'
-import type { action as sendOtpAction } from '~/routes/api_.sendOtp'
-import type { loader, otpAction } from './route'
 
 export function Phone() {
-  const otpFetcher = useFetcher<typeof sendOtpAction>()
-  const validateFetcher = useFetcher<typeof otpAction>()
-  const { csrfToken } = useLoaderData<typeof loader>()
-  const [showDialog, setShowDialog] = useState<boolean>(false)
-
-  const [id, country, countries, phone, setPhone, setStep] = useSignupStore(
+  // const otpFetcher = useFetcher<typeof sendOtpAction>()
+  const [phoneNumber, setPhoneNumber] = useState<string>('')
+  const [country, countries, phone, setPhone, setStep] = useSignupStore(
     (state) => [
-      state.id,
       state.country,
       state.countries,
       state.phone,
@@ -35,68 +16,8 @@ export function Phone() {
     ]
   )
 
-  useEffect(() => {
-    if (
-      !showDialog &&
-      otpFetcher.state == 'loading' &&
-      otpFetcher?.data?.success
-    ) {
-      setShowDialog(true)
-    }
-  }, [otpFetcher?.data, otpFetcher.state, showDialog])
-
-  useEffect(() => {
-    if (validateFetcher.data?.errors?.phone) {
-      setShowDialog(false)
-    }
-  }, [validateFetcher.data])
-
-  useEffect(() => {
-    if (validateFetcher.data?.id == id && validateFetcher.data?.phone) {
-      setPhone(validateFetcher.data?.phone)
-      setStep(SignupStep.PASSWORD)
-    }
-  }, [
-    id,
-    setPhone,
-    setStep,
-    validateFetcher.data?.id,
-    validateFetcher.data?.phone
-  ])
-
   return (
     <>
-      <otpFetcher.Form
-        id='signup-phone-otp'
-        action={route('/api/sendOtp')}
-        method='post'
-        className='hidden'
-      />
-      <input
-        form='signup-phone-otp'
-        value={csrfToken}
-        name='csrfToken'
-        type='hidden'
-      />
-      <validateFetcher.Form
-        id='signup-phone-otp-validation'
-        action={route('/signup')}
-        method='post'
-        className='hidden'
-      />
-      <input
-        form='signup-phone-otp-validation'
-        value={csrfToken}
-        name='csrfToken'
-        type='hidden'
-      />
-
-      <input
-        form='signup-phone-otp-validation'
-        value={id}
-        name='id'
-        type='hidden'
-      />
       <Card>
         <CardContent>
           {phone && <p>Your mobile phone number is verified.</p>}
@@ -117,22 +38,10 @@ export function Phone() {
             options={countries as PhoneAutocompleteOptions[]}
             label='Mobile number'
             className='mt-2'
-            aria-invalid={
-              Boolean(
-                otpFetcher.data?.errors?.phone ||
-                  validateFetcher.data?.errors?.phone
-              ) || undefined
-            }
-            aria-describedby={
-              otpFetcher.data?.errors?.phone ||
-              validateFetcher.data?.errors?.phone
-                ? 'phone-error'
-                : undefined
-            }
-            errorMessage={
-              otpFetcher.data?.errors?.phone ||
-              validateFetcher.data?.errors?.phone
-            }
+            onInput={(event) => {
+              setPhoneNumber(event.currentTarget.value)
+            }}
+            required
           />
         )}
       </Card>
@@ -142,12 +51,17 @@ export function Phone() {
         </Button>
       )}
       {!phone && (
-        <Button form='signup-phone-otp' type='submit'>
+        <Button
+          onClick={() => {
+            setPhone(phoneNumber)
+            setStep(SignupStep.PASSWORD)
+          }}
+        >
           Continue
         </Button>
       )}
 
-      <Dialog open={showDialog} setOpen={setShowDialog}>
+      {/* <Dialog open={showDialog} setOpen={setShowDialog}>
         <CardHeader>
           <h1 className='text-xl font-medium'>Two-step verification</h1>
         </CardHeader>
@@ -195,7 +109,7 @@ export function Phone() {
             Verify
           </TextButton>
         </CardContent>
-      </Dialog>
+      </Dialog> */}
     </>
   )
 }

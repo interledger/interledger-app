@@ -107,7 +107,7 @@ func createTransaction(ctx context.Context, dbc sqlx.ExecerContext, b Backends, 
 
 	err = b.Notify().NotifyWallet(ctx, args.WalletID, notify.NotificationTypeTransaction)
 	if err != nil {
-		log.Error("notify error", zap.Error(err))
+		log.Warn("error sending notification", zap.Error(err))
 	}
 
 	fee := args.ProviderFee
@@ -492,7 +492,7 @@ func SetTransactionForeignID(ctx context.Context, b Backends, ID string, foreign
 
 	err = b.Notify().NotifyWallet(ctx, walletID, notify.NotificationTypeTransaction)
 	if err != nil {
-		log.Error("error sending notification", zap.Error(err))
+		log.Warn("error sending notification", zap.Error(err))
 	}
 
 	return nil
@@ -535,7 +535,7 @@ func SetTransactionState(ctx context.Context, b Backends, ID string, state trans
 
 	err = b.Notify().NotifyWallet(ctx, trxDetails.WalletID, notify.NotificationTypeTransaction)
 	if err != nil {
-		log.Error("error sending notification", zap.Error(err))
+		log.Warn("error sending notification", zap.Error(err))
 	}
 
 	userID := getWalletUserID(ctx, b, trxDetails.WalletID)
@@ -572,7 +572,7 @@ func SetTransactionStateTx(ctx context.Context, b Backends, tx *sqlx.Tx, ID stri
 
 	err = b.Notify().NotifyWallet(ctx, trxDetails.WalletID, notify.NotificationTypeTransaction)
 	if err != nil {
-		log.Error("error sending notification", zap.Error(err))
+		log.Warn("error sending notification", zap.Error(err))
 	}
 
 	userID := getWalletUserID(ctx, b, trxDetails.WalletID)
@@ -613,7 +613,23 @@ func SetTransactionAmountTx(ctx context.Context, b Backends, tx *sqlx.Tx, ID str
 
 	err = b.Notify().NotifyWallet(ctx, walletID, notify.NotificationTypeTransaction)
 	if err != nil {
-		log.Error("error sending notification", zap.Error(err))
+		log.Warn("error sending notification", zap.Error(err))
+	}
+
+	return nil
+}
+
+func SetTransactionFeeAndStateCompleted(ctx context.Context, b Backends, ID string, fee currency.Amount, state transactions.State, walletID string) error {
+	_, err := b.DB().ExecContext(ctx,
+		"UPDATE transactions SET provider_fee=$1, state=$2, updated_at=now() WHERE id=$3",
+		fee.Value, state, ID)
+	if err != nil {
+		return fmt.Errorf("%w %s", transactions.ErrInternal, err)
+	}
+
+	err = b.Notify().NotifyWallet(ctx, walletID, notify.NotificationTypeTransaction)
+	if err != nil {
+		log.Warn("error sending notification", zap.Error(err))
 	}
 
 	return nil

@@ -1,27 +1,27 @@
-import { type SerializeFrom } from '@remix-run/node'
-import { useNavigate, useParams, useRouteLoaderData } from '@remix-run/react'
+import { useNavigate, useParams, useRouteLoaderData } from 'react-router';
 import { useEffect, useMemo } from 'react'
-import { type RouteParams } from 'routes-gen'
-import { CardView, Layouts, type ApplicationProps } from '~/components'
-import { useCardsStore } from '~/lib/cards/hooks/useCardsStore'
-import type { loader as rootLoader } from '~/root'
+import { href } from 'react-router'
+import { Layouts, type ApplicationProps } from '~/components'
+import { CardView } from '~/components/Cards'
+import { useCardsStore } from '~/lib/cards/useCardsStore'
+import type { RootLoaderData } from '~/root'
 
 export const handle: ApplicationProps = {
   layout: Layouts.Wallet,
   scaffold: {
     header: {
-      title: 'Cards'
-    }
+      title: 'Cards',
+      back: href('/cards')
+    },
+    isNested: true
   }
 }
 
 export default function PageCardID() {
   const navigate = useNavigate()
-  const { features } = useRouteLoaderData('root') as SerializeFrom<
-    typeof rootLoader
-  >
+  const { features } = useRouteLoaderData('root') as RootLoaderData
   const { cards, areCardsFetched } = useCardsStore()
-  const { cardId } = useParams<RouteParams['/cards/:cardId']>()
+  const { cardId } = useParams<{ cardId: string }>()
   const card = useMemo(
     () => (cardId ? cards?.[cardId] : undefined),
     [cards, cardId]

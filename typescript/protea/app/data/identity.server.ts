@@ -1,4 +1,4 @@
-import { json } from '@remix-run/node'
+import { data } from 'react-router';
 import type { Identity } from '~/generated/connect/backend/v1/backend_pb'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
@@ -15,7 +15,7 @@ export async function getIdentity(
 
   // TODO: remove, this should be handled by the backend
   if (!response.identity) {
-    throw json({}, { status: 404, statusText: 'Not found' })
+    throw data({}, { status: 404, statusText: 'Not found' })
   }
 
   return response.identity
@@ -33,9 +33,9 @@ export async function getIdentityBySignatureHash(
 
   // TODO: remove, this should be handled by the backend
   if (!response.identity) {
-    throw json({}, { status: 404, statusText: 'Not found' })
+    throw data({}, { status: 404, statusText: 'Not found' })
   } else if (response.identity.state !== 'verified') {
-    throw json({}, { status: 404, statusText: 'Not found' })
+    throw data({}, { status: 404, statusText: 'Not found' })
   }
 
   return response.identity

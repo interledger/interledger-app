@@ -1,12 +1,27 @@
 /* Store models */
-export type StorableCard = {
+
+import type { PlainMessage } from '@bufbuild/protobuf'
+import type {
+  Card,
+  CardLockLevel,
+  CardStatus,
+  CardStatusReasonCode,
+  CardType
+} from '~/generated/connect/backend/v1/backend_pb'
+
+export type SerializedCard = PlainMessage<Card>
+
+export type StorableCard = SerializedCard & {
   id: string
   nameOnCard: string
   maskedPan: string
-  unmaskedPan: string | null
   expiryDate: string
-  status: number
-  lockLevel: string
+  status: CardStatus
+  statusReasonCode: CardStatusReasonCode
+  lockLevel: CardLockLevel
+  type: CardType
+  productCode: string
+  unmaskedPan: string | null
   cvc2: string | null
 }
 

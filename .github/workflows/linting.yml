@@ -10,6 +10,9 @@ on:
   pull_request:
     branches:
       - "**"
+    paths-ignore:
+      - 'documentation/**'
+      - 'local/**'
 
 jobs:
 
@@ -27,4 +30,4 @@ jobs:
         uses: golangci/golangci-lint-action@v8
         with:
           working-directory: go
-          version: 'v2.5.0'
+          version: latest

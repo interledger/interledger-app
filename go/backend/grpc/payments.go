@@ -10,8 +10,6 @@ import (
 	"gitlab.com/fynbos/backend/limits"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 
-	"gitlab.com/fynbos/backend/twilio"
-
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/payments"
 
@@ -217,7 +215,7 @@ func (s *rpcService) CreatePayment(ctx context.Context, req *pb.CreatePaymentReq
 }
 
 func (s *rpcService) UpdatePayment(ctx context.Context, req *pb.UpdatePaymentRequest) (*pb.Payment, error) {
-	u, err := s.b.Users().UserForContext(ctx)
+	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
@@ -260,19 +258,6 @@ func (s *rpcService) UpdatePayment(ctx context.Context, req *pb.UpdatePaymentReq
 		}
 	}
 
-	if req.GetOtp() != "" {
-		vc, err := s.b.Twilio().CheckVerificationCode(ctx, &twilio.CheckVerificationCodeArgs{
-			PhoneNumber: u.PhoneNumber,
-			Code:        req.GetOtp(),
-		})
-		if err != nil {
-			return nil, toGRPCError(err)
-		}
-		if !vc.IsValid() {
-			return nil, NewValidationError("otp", "Invalid OTP")
-		}
-	}
-
 	args := payments.UpdateArgs{
 		ID:             req.Id,
 		SenderAmount:   currency.FromPB(req.GetSenderAmount()),
@@ -285,7 +270,6 @@ func (s *rpcService) UpdatePayment(ctx context.Context, req *pb.UpdatePaymentReq
 		ReceiverAccount: req.GetReceiverAccount(),
 		Note:            req.GetNote(),
 		ThreeDSID:       req.GetThreeDSID(),
-		OTP:             req.GetOtp(),
 		IPAddress:       req.GetIpAddress(),
 	}
 
@@ -316,7 +300,31 @@ func (s *rpcService) GetPayment(ctx context.Context, req *pb.GetPaymentRequest) 
 		return nil, NotFoundError("payment not found")
 	}
 
-	return transformPayment(ctx, s.b, p)
+	transformedPayment, err := transformPayment(ctx, s.b, p)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	if p.Type == payments.TypeWithdrawal && p.SenderAmount.Currency == currency.CAD && p.ReceiverAmount.Currency == currency.CAD {
+
+		var fees currency.Amount
+		receiverAmount := p.ReceiverAmount
+		fees, err = s.b.Chimoney().GetEstimatedFee(ctx, p.SenderAmount)
+		if err != nil {
+			return nil, toGRPCError(err)
+		}
+
+		if p.ReceiverAmount.Value > fees.Value {
+			receiverAmount = currency.FromUInt64(p.ReceiverAmount.Value-fees.Value, p.ReceiverAmount.Currency)
+		} else {
+			receiverAmount = currency.FromUInt64(0, p.ReceiverAmount.Currency)
+		}
+
+		transformedPayment.ReceivedNetAmount = receiverAmount.Format()
+		transformedPayment.FormattedFees = fees.Format()
+	}
+
+	return transformedPayment, nil
 }
 
 func (s *rpcService) ConfirmPayment(ctx context.Context, req *pb.ConfirmPaymentRequest) (*pb.Payment, error) {

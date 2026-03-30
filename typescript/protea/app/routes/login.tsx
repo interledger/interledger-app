@@ -1,16 +1,8 @@
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
-import {
-  Form,
-  useActionData,
-  useLoaderData,
-  useSearchParams
-} from '@remix-run/react'
-import { route } from 'routes-gen'
+import { useEffect } from 'react';
+import type { Route } from './+types/login'
+import { data, redirect } from 'react-router';
+import { Form, useActionData, useLoaderData, useSearchParams } from 'react-router';
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   Button,
@@ -32,8 +24,10 @@ import {
   requireNoUserSession
 } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
+import { flashSnackbar } from '~/lib/snackbar.server';
+import { safeReturnTo } from '~/lib/url.server'
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   await requireNoUserSession(request)
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
@@ -65,17 +59,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
     headers = trimHeaders(flowRes.headers, ['set-cookie'])
   }
 
-  const returnTo = url.searchParams.get('returnTo')
-
-  return json(
-    {
-      returnTo: returnTo ?? flow.ui.returnTo,
-      flowId: flow.id,
-      csrfToken: getCsrfTokenFromFlow(flow)
-    },
-    {
-      headers: headers ?? undefined
-    }
+  return data(
+    { flowId: flow.id, csrfToken: getCsrfTokenFromFlow(flow) },
+    headers ? { headers } : undefined
   )
 }
 
@@ -86,15 +72,15 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Log in'
   }
 ])
 
 export default function Page() {
-  const actionData = useActionData<typeof action>()
-  const { csrfToken, flowId, returnTo } = useLoaderData<typeof loader>()
+  const actionData = useActionData()
+  const { csrfToken, flowId } = useLoaderData()
   const searchParams = useSearchParams()
 
   return (
@@ -112,12 +98,6 @@ export default function Page() {
         type='hidden'
       />
       <input form='login' defaultValue={flowId} name='flow_id' type='hidden' />
-      <input
-        form='login'
-        defaultValue={returnTo}
-        name='returnTo'
-        type='hidden'
-      />
       <Card>
         <CardHeader>
           <CardTitle>Log in</CardTitle>
@@ -140,7 +120,7 @@ export default function Page() {
           id='password'
           label='Password'
           labelLink='Forgot password?'
-          labelLinkTo={route('/recovery')}
+          labelLinkTo={href('/recovery')}
           name='password'
           type='password'
           form='login'
@@ -158,7 +138,7 @@ export default function Page() {
       </Button>
       <p className='text-center text-sm font-medium text-medium'>
         New to the Interledger Wallet?{' '}
-        <Router className='text-primary' to={route('/signup')}>
+        <Router className='text-primary' to={href('/signup')}>
           Sign up
         </Router>
       </p>
@@ -166,13 +146,19 @@ export default function Page() {
   )
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const form = await request.formData()
   const csrfToken = form.get('csrf_token')
   const email = form.get('email')
   const password = form.get('password')
   const flowId = form.get('flow_id')
-  const returnTo = form.get('returnTo')?.toString()
+
+  // Theoretically, this should 100% safe, since in Remix `request.url` should
+  // always be a valid URL.
+  const requestUrl = new URL(request.url)
+  const returnTo = safeReturnTo(requestUrl.searchParams.get('returnTo'))
+  const searchParams = new URLSearchParams()
+  searchParams.set('returnTo', returnTo)
 
   const fieldErrors = {
     form: '',
@@ -207,14 +193,32 @@ export async function action({ request }: ActionFunctionArgs) {
     if (isSessionAlreadyExitsMessage(errors.form)) {
       return redirect(returnTo || '/')
     }
-    return error(request, { errors }, { action: 'Contact support' })
+
+    // Redirect instead of  returning error codes because we need fresh 
+    // flow and csrf token, otherwise we have stale data in the loader data
+    // See: https://reactrouter.com/how-to/form-validation#2-defining-the-action
+    const redirectParams = new URLSearchParams(searchParams)
+    if (flowId) {
+      redirectParams.set('flow', String(flowId))
+    }
+    const snackbarCookie = await flashSnackbar(request, {
+      message: errors.form || "An error occured, please retry.",
+      icon: 'close',
+      action: 'Contact support'
+    })
+    const redirectHeaders = new Headers()
+    redirectHeaders.append('Set-Cookie', snackbarCookie)
+
+    return redirect(`/login?${redirectParams.toString()}`, {
+      headers: redirectHeaders
+    })
   }
 
   // Remove all headers besides set-cookie
   const headers = trimHeaders(res.headers, ['set-cookie'])
 
   if (res.status === 422) {
-    return redirect('/totp/challenge?returnTo=' + returnTo || '/', {
+    return redirect(`${href('/totp/challenge')}?${searchParams.toString()}`, {
       headers
     })
   }
@@ -224,7 +228,9 @@ export async function action({ request }: ActionFunctionArgs) {
     const checkTOTP = await responseCopy.json()
     if (checkTOTP?.session?.authenticator_assurance_level === 'aal1') {
       return redirect(
-        '/totp/two-factor-authentication?returnTo=' + returnTo || '/',
+        `${href(
+          '/totp/two-factor-authentication'
+        )}?${searchParams.toString()}`,
         {
           headers
         }
@@ -240,7 +246,7 @@ export async function action({ request }: ActionFunctionArgs) {
     })
   }
 
-  return redirect(route('/'), {
+  return redirect(href('/'), {
     headers: headers
   })
 }

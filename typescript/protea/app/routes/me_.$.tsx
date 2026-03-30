@@ -1,21 +1,11 @@
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
-import {
-  Form,
-  isRouteErrorResponse,
-  useLoaderData,
-  useParams,
-  useRouteError
-} from '@remix-run/react'
-import { captureRemixErrorBoundaryError } from '@sentry/remix'
+import type { Route } from './+types/me_.$'
+import { data, redirect } from 'react-router';
+import { Form, isRouteErrorResponse, useLoaderData, useParams, useRouteError } from 'react-router';
+import { captureException } from '@sentry/react-router'
 import clsx from 'clsx'
 import type { ResponsiveImageType } from 'react-datocms'
 import { Image } from 'react-datocms'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   Button,
@@ -41,10 +31,17 @@ import { getClientIP } from '~/lib/ip.server'
 import { hasUserSession } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
 
-export async function loader({ request, params }: LoaderFunctionArgs) {
-  const walletAddressParam = params['*'] as string
+export async function loader({ request, params }: Route.LoaderArgs) {
+  const unsanitizedWalletAddressParam = params['*'] as string
   let profilePicture: { person: Query['person'] } | { person: null } = {
     person: null
+  }
+
+  const walletAddressParam = sanitizeWalletAddress(
+    unsanitizedWalletAddressParam
+  )
+  if (walletAddressParam !== unsanitizedWalletAddressParam) {
+    return redirect(`/me/${walletAddressParam}`)
   }
 
   const response = await grpc.getPublicWalletInfo(request, {
@@ -71,7 +68,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     }
   }
 
-  return json({
+  return data({
     profilePicture,
     isUser,
     canSendToAddress,
@@ -88,12 +85,12 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction<typeof loader> = mergeMeta(
+export const meta = mergeMeta(
   ({ data, location }) => [
     {
       tagName: 'link',
       rel: 'monetization',
-      href: data?.walletAddress.address
+      href: (data as { walletAddress?: { address: string } } | undefined)?.walletAddress?.address
     }
   ]
 )
@@ -191,7 +188,7 @@ export default function Page() {
                 </p>
                 <Router
                   className='text-sm font-medium text-primary'
-                  to={route('/waitlist')}
+                  to={href('/waitlist')}
                 >
                   Join the waitlist
                 </Router>
@@ -210,7 +207,7 @@ export function ErrorBoundary() {
 
   if (isRouteErrorResponse(error)) {
     if (error.status == 404) {
-      captureRemixErrorBoundaryError(error)
+      captureException(error)
       return (
         <>
           <Card>
@@ -228,7 +225,7 @@ export function ErrorBoundary() {
             </div>
           </Card>
           {/* TODO This should prefill the /wallet-address page for the user with the current address*/}
-          <ButtonRouter to={route('/signup')}>
+          <ButtonRouter to={href('/signup')}>
             Claim wallet address
           </ButtonRouter>
         </>
@@ -239,7 +236,7 @@ export function ErrorBoundary() {
   throw error
 }
 
-export async function action({ request, params }: ActionFunctionArgs) {
+export async function action({ request, params }: Route.ActionArgs) {
   // TODO: create payment here and redirect to /pay/:paymentId
   const walletAddressParam = params['*'] as string
 
@@ -258,5 +255,13 @@ export async function action({ request, params }: ActionFunctionArgs) {
   })
   if (isConnectError(payment)) throw payment.errorResponse
 
-  return redirect(route('/pay/:paymentId', { paymentId: payment.id }))
+  return redirect(href('/pay/:paymentId', { paymentId: payment.id }))
+}
+
+function sanitizeWalletAddress(address: string) {
+  const slashCount = (address.match(/\//g) || []).length
+  if (slashCount >= 2) {
+    return address.slice(0, address.lastIndexOf('/'))
+  }
+  return address
 }

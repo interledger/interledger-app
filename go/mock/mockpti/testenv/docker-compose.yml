@@ -1,0 +1,42 @@
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: mockpti-redis-test
+    ports:
+      - "26380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 1s
+      retries: 5
+    volumes:
+      - mockpti-redis-data:/data
+
+  mockpti:
+    build:
+      context: ../../../../
+      dockerfile: go/mock/mockpti/Dockerfile
+    container_name: mockpti-test
+    ports:
+      - "24025:8080"
+    environment:
+      - MOCKPTI_PORT=8080
+      - MOCKPTI_CLIENT_ID=test-client-id
+      - MOCKPTI_REDIS_URL=redis://redis:6379
+      - MOCKPTI_WEBHOOK_URL=http://host.docker.internal:24100/webhooks/pti
+      - MOCKPTI_WEBHOOK_SIGNING_JWK=${MOCKPTI_WEBHOOK_SIGNING_JWK:-}
+      - MOCKPTI_WEBHOOK_ENCRYPTION_JWK=${MOCKPTI_WEBHOOK_ENCRYPTION_JWK:-}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+volumes:
+  mockpti-redis-data:

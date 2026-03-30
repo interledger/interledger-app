@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { Address, AddXagoBalanceAccountRequest, AddXagoBankAccountRequest, Agreement, Amount, BlockCardRequest, CanSignupRequest, CanSignupResponse, CardDetails, CheckPhoneVerificationRequest, ChimoneyInterlocEmail, CompleteSignupRequest, ConfirmPaymentRequest, Connection, ConnectionLimits, Contact, CreateCardRequest, CreateChimoneyDepositRequest, CreateConnectionRequest, CreateContactRequest, CreateDiscordAuthURLResponse, CreateDomainIdentityRequest, CreateDomainIdentityResponse, CreateGatehubWithdrawalRequest, CreateGatehubWithdrawalResponse, CreatePaymentRequest, CreatePtiBankAccountRequest, CreatePTIWithdrawalRequest, CreatePTIWithdrawalResponse, CreateSlackAuthURLResponse, CreateTwitterAuthURLResponse, CreateUserDefaultWalletRequest, CreateWalletAddressRequest, DeleteConnectionRequest, DeleteIdentityRequest, DeleteLinkedAccountRequest, DiscordCallbackRequest, DiscordCallbackResponse, Empty, Features, FreezeCardRequest, GatehubWidget, GetAgreementRequest, GetBalancesResponse, GetCardDetailsRequest, GetCardOrderOptionsResponse, GetCardTokenRequest, GetCardTokenResponse, GetChimoneyDepositLinkResponse, GetConnectionLimitsRequest, GetConnectionRequest, GetCountriesResponse, GetCurrentWalletResponse, GetIdentityBySignatureHashRequest, GetIdentityRequest, GetIdentityResponse, GetKYCProviderWidgetRequest, GetLinkedAccountRequest, GetLinkedAccountsForPaymentRequest, GetLinkedAccountsForPaymentResponse, GetLinkedAccountsForTransferRequest, GetLinkedAccountsResponse, GetOnOffRampProviderResponse, GetPaymentAddressRequest, GetPaymentAddressResponse, GetPaymentRequest, GetPendingThreeDSConfirmationsResponse, GetPtiBalancesResponse, GetPublicWalletDetailsRequest, GetPublicWalletDetailsResponse, GetPublicWalletInfoRequest, GetRafikiGrantRequest, GetSignupRequest, GetXagoBalanceResponse, GetXagoDepositDetailsRequest, GetXagoDepositDetailsResponse, Identity, IndividualKYCResponse, IsMugAvailableRequest, IsMugAvailableResponse, IsUSPSAddressResponse, JoinWaitlistRequest, JoinWaitlistResponse, KYCPersonaInquiryRequest, KYCPersonaInquiryResponse, KYCProviderWidget, KYCStatusResponse, LinkedAccount, ListCardsResponse, ListConnectionsResponse, ListContactsRequest, ListContactsResponse, ListIdentitiesResponse, ListLimitsResponse, ListPublicIdentitiesRequest, ListRafikiGrantsResponse, ListTransactionsResponse, LookupTransactionRequest, OrderCardRequest, PaginationRequest, Payment, PtiCreateDepositRequest, PtiTokenRequest, PtiTokenResponse, PublicWalletInfo, RafikiGrant, RevokeRafikiGrantRequest, SearchWalletsRequest, SearchWalletsResponse, SendPhoneVerificationRequest, SetChimoneyInterlocEmailRequest, SetDefaultReceiveLinkedAccountRequest, SetDefaultSendLinkedAccountRequest, SetIdentityPublicRequest, SetNicknameLinkedAccountRequest, SetSignupCompleteRequest, SetSignupMobileNumberRequest, SetSignupUserDataRequest, SetSignupUserDataResponse, SetWalletNameRequest, SignAgreementsRequest, SignAgreementsResponse, Signup, SlackCallbackRequest, SlackCallbackResponse, SubmitFormRequest, ThreeDSPaymentConfirmationRequest, Transaction, TransferBalanceRequest, TwitterCallbackRequest, TwitterCallbackResponse, UnfreezeCardRequest, UpdateClientLimitsRequest, UpdateConnectionLimitsRequest, UpdateIndividualKYCRequest, UpdatePaymentRequest, VerifyIdentityRequest, WalletAddressValidRequest, WalletAddressValidResponse, WalletInfo, WithdrawXagoBalanceRequest } from "./backend_pb.js";
+import { Address, AddXagoBalanceAccountRequest, AddXagoBankAccountRequest, Agreement, Amount, BlockCardRequest, CanSignupRequest, CanSignupResponse, CardDetails, CheckPhoneVerificationRequest, ChimoneyInterlocEmail, CompleteSignupRequest, ConfirmPaymentRequest, Connection, Contact, CreateCardRequest, CreateConnectionRequest, CreateContactRequest, CreateDiscordAuthURLResponse, CreateDomainIdentityRequest, CreateDomainIdentityResponse, CreateGatehubWithdrawalRequest, CreateGatehubWithdrawalResponse, CreatePaymentRequest, CreatePtiBankAccountRequest, CreatePTIWithdrawalRequest, CreatePTIWithdrawalResponse, CreateSlackAuthURLResponse, CreateTwitterAuthURLResponse, CreateUserDefaultWalletRequest, CreateWalletAddressRequest, DeleteConnectionRequest, DeleteIdentityRequest, DeleteLinkedAccountRequest, DiscordCallbackRequest, DiscordCallbackResponse, Empty, Features, FreezeCardRequest, GatehubWidget, GetAgreementRequest, GetBalancesResponse, GetCardDetailsRequest, GetCardOrderOptionsResponse, GetCardTokenRequest, GetCardTokenResponse, GetChimoneyDepositLinkResponse, GetConnectionRequest, GetCountriesResponse, GetCurrentWalletResponse, GetIdentityBySignatureHashRequest, GetIdentityRequest, GetIdentityResponse, GetKYCProviderWidgetRequest, GetLinkedAccountRequest, GetLinkedAccountsForPaymentRequest, GetLinkedAccountsForPaymentResponse, GetLinkedAccountsForTransferRequest, GetLinkedAccountsResponse, GetOnOffRampProviderResponse, GetPaymentAddressRequest, GetPaymentAddressResponse, GetPaymentRequest, GetPendingThreeDSConfirmationsResponse, GetPtiBalancesResponse, GetPublicWalletDetailsRequest, GetPublicWalletDetailsResponse, GetPublicWalletInfoRequest, GetRafikiGrantRequest, GetSignupRequest, GetXagoBalanceResponse, GetXagoDepositDetailsRequest, GetXagoDepositDetailsResponse, Identity, IndividualKYCResponse, IsMugAvailableRequest, IsMugAvailableResponse, IsUSPSAddressResponse, JoinWaitlistRequest, JoinWaitlistResponse, KYCPersonaInquiryRequest, KYCPersonaInquiryResponse, KYCProviderWidget, KYCStatusResponse, LinkedAccount, ListCardsResponse, ListConnectionsResponse, ListContactsRequest, ListContactsResponse, ListIdentitiesResponse, ListPublicIdentitiesRequest, ListRafikiGrantsResponse, ListTransactionsResponse, LookupTransactionRequest, OrderCardRequest, PaginationRequest, Payment, PtiCreateDepositRequest, PtiTokenRequest, PtiTokenResponse, PublicWalletInfo, RafikiGrant, RevokeRafikiGrantRequest, SearchWalletsRequest, SearchWalletsResponse, SendPhoneVerificationRequest, SetChimoneyInterlocEmailRequest, SetDefaultReceiveLinkedAccountRequest, SetDefaultSendLinkedAccountRequest, SetIdentityPublicRequest, SetNicknameLinkedAccountRequest, SetSignupCompleteRequest, SetSignupMobileNumberRequest, SetSignupUserDataRequest, SetSignupUserDataResponse, SetWalletNameRequest, SignAgreementsRequest, SignAgreementsResponse, Signup, SlackCallbackRequest, SlackCallbackResponse, ThreeDSPaymentConfirmationRequest, Transaction, TransferBalanceRequest, TwitterCallbackRequest, TwitterCallbackResponse, UnfreezeCardRequest, UpdateIndividualKYCRequest, UpdatePaymentRequest, VerifyIdentityRequest, WalletAddressValidRequest, WalletAddressValidResponse, WalletInfo, WithdrawXagoBalanceRequest } from "./backend_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -342,26 +342,6 @@ export const BackendService = {
       kind: MethodKind.Unary,
     },
     /**
-     * Limits GNAP
-     *
-     * @generated from rpc backend.v1.BackendService.ListLimits
-     */
-    listLimits: {
-      name: "ListLimits",
-      I: Empty,
-      O: ListLimitsResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc backend.v1.BackendService.UpdateClientLimits
-     */
-    updateClientLimits: {
-      name: "UpdateClientLimits",
-      I: UpdateClientLimitsRequest,
-      O: Empty,
-      kind: MethodKind.Unary,
-    },
-    /**
      * Connections
      *
      * @generated from rpc backend.v1.BackendService.CreateConnection
@@ -388,24 +368,6 @@ export const BackendService = {
       name: "GetConnection",
       I: GetConnectionRequest,
       O: Connection,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc backend.v1.BackendService.GetConnectionLimits
-     */
-    getConnectionLimits: {
-      name: "GetConnectionLimits",
-      I: GetConnectionLimitsRequest,
-      O: ConnectionLimits,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc backend.v1.BackendService.UpdateConnectionLimits
-     */
-    updateConnectionLimits: {
-      name: "UpdateConnectionLimits",
-      I: UpdateConnectionLimitsRequest,
-      O: Empty,
       kind: MethodKind.Unary,
     },
     /**
@@ -739,17 +701,6 @@ export const BackendService = {
       kind: MethodKind.Unary,
     },
     /**
-     * Dynamic Forms
-     *
-     * @generated from rpc backend.v1.BackendService.SubmitForm
-     */
-    submitForm: {
-      name: "SubmitForm",
-      I: SubmitFormRequest,
-      O: Empty,
-      kind: MethodKind.Unary,
-    },
-    /**
      * Slack
      *
      * @generated from rpc backend.v1.BackendService.CreateSlackAuthURL
@@ -993,15 +944,6 @@ export const BackendService = {
       name: "GetChimoneyDepositLink",
       I: Amount,
       O: GetChimoneyDepositLinkResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc backend.v1.BackendService.CreateChimoneyDeposit
-     */
-    createChimoneyDeposit: {
-      name: "CreateChimoneyDeposit",
-      I: CreateChimoneyDepositRequest,
-      O: Empty,
       kind: MethodKind.Unary,
     },
     /**

@@ -50,7 +50,7 @@ identity:
       url: file:///etc/config/kratos/identity.json
 log:
   format: text
-  leak_sensitive_values: false
+  leak_sensitive_values: true
   level: debug
 selfservice:
   allowed_return_urls:
@@ -71,7 +71,8 @@ selfservice:
     recovery:
       enabled: true
       lifespan: 15m
-      ui_url: http://interledger.test/error
+      ui_url: http://interledger.test/recovery
+      use: link
     registration:
       after:
         default_browser_return_url: http://interledger.test
@@ -89,6 +90,8 @@ selfservice:
       after:
         default_browser_return_url: http://interledger.test
       enabled: true
+      use: link # or "link"
+      lifespan: 24h
       ui_url: http://interledger.test/verify
   methods:
     link:

@@ -23,7 +23,8 @@ const BACKEND_GRPC_URL = process.env.BACKEND_GRPC_URL || 'dns:backend-admin:443'
 
 const transport = new GrpcTransport({
   host: BACKEND_GRPC_URL,
-  channelCredentials: ChannelCredentials.createInsecure()
+  channelCredentials: ChannelCredentials.createInsecure(),
+  timeout: 100000
 })
 
 let grpcClient: BackendClient

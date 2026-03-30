@@ -1,20 +1,19 @@
-import type { SerializeFrom } from '@remix-run/node'
-import type { UIMatch } from '@remix-run/react'
+import type { UIMatch } from 'react-router';
 import {
   NavLink,
   Outlet,
   useMatches,
   useNavigate,
   useRouteLoaderData,
-  useSearchParams
-} from '@remix-run/react'
+  useSearchParams,
+} from 'react-router';
 import clsx from 'clsx'
 import type { MotionProps } from 'framer-motion'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { FC, ReactNode } from 'react'
 import { forwardRef, useEffect, useState } from 'react'
 import { StructuredText } from 'react-datocms'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import {
   AnchorRouter,
   ButtonRouter,
@@ -29,16 +28,17 @@ import { CommandActions } from '~/components/Scaffold/CommandActions'
 import { CommandPalette } from '~/components/Scaffold/CommandPalette'
 import { CardType } from '~/generated/connect/backend/v1/backend_pb'
 import type { FooterRecord } from '~/generated/dato-cms-graphql'
+import { OrderCardStep, useOrderCardStore } from '~/lib/cards/useOrderCardStore'
 import {
   ConnectDomainStep,
   useConnectDomainStore
 } from '~/lib/useConnectDomainStore'
 import { useFormStore } from '~/lib/useFormStore'
-import { OrderCardStep, useOrderCardStore } from '~/lib/useOrderCardStore'
 import { PayStep, usePayStore } from '~/lib/usePayStore'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { SignupStep, useSignupStore } from '~/lib/useSignupStore'
-import type { loader as rootLoader } from '~/root'
+import type { RootLoaderData, loader as rootLoader } from '~/root'
+import { Fade } from '../Animations/Fade'
 import { NavDrawer } from './NavDrawer'
 
 export type ApplicationProps = {
@@ -81,7 +81,7 @@ export type ScaffoldProps = {
   }
   footer?: (
     match: UIMatch<any, ApplicationProps>
-  ) => SerializeFrom<FooterRecord> | null | undefined
+  ) => FooterRecord | null | undefined
   fab?: Fab
   isNested?: boolean
 }
@@ -99,9 +99,7 @@ export function Scaffold() {
   const matches = useMatches()
   const navigate = useNavigate()
   const [search] = useSearchParams()
-  const { isUser, snackbar, features } = useRouteLoaderData(
-    'root'
-  ) as SerializeFrom<typeof rootLoader>
+  const { isUser, snackbar, features } = useRouteLoaderData('root') as RootLoaderData
 
   const currentPath = matches[matches.length - 1]?.pathname
 
@@ -187,14 +185,14 @@ export function Scaffold() {
       className={clsx(
         'relative inset-0 flex min-h-screen flex-col',
         (layout === Layouts.Marketing || layout === Layouts.Docs) &&
-          'bg-mk-page'
+        'bg-mk-page'
       )}
     >
       {layout === Layouts.Wallet && (
         <NavDrawerRoot>
           <NavDrawer.List>
             <div className='ml-4'>
-              <Router to={route('/')} aria-label='Interledger Wallet logo'>
+              <Router to={href('/')} aria-label='Interledger Wallet logo'>
                 <InterledgerWalletLogo className='h-8' />
               </Router>
             </div>
@@ -207,22 +205,22 @@ export function Scaffold() {
                 <span className='font-medium'>Pay</span>
               </button>
             )}
-            <NavDrawer.ListItem to={route('/')}>Home</NavDrawer.ListItem>
-            <NavDrawer.ListItem to={route('/accounts')}>
+            <NavDrawer.ListItem to={href('/')}>Home</NavDrawer.ListItem>
+            <NavDrawer.ListItem to={href('/accounts')}>
               Accounts
             </NavDrawer.ListItem>
             {features.manageWalletCardsEnabled && (
-              <NavDrawer.ListItem to={route('/cards')}>
+              <NavDrawer.ListItem to={href('/cards')}>
                 Cards
               </NavDrawer.ListItem>
             )}
-            <NavDrawer.ListItem to={route('/payments')}>
+            <NavDrawer.ListItem to={href('/payments')}>
               Payments
             </NavDrawer.ListItem>
-            <NavDrawer.ListItem to={route('/settings')}>
+            <NavDrawer.ListItem to={href('/settings')}>
               Settings
             </NavDrawer.ListItem>
-            <NavDrawer.ListItem to={route('/support')}>
+            <NavDrawer.ListItem to={href('/support')}>
               Support
             </NavDrawer.ListItem>
           </NavDrawer.List>
@@ -232,13 +230,13 @@ export function Scaffold() {
         className={clsx(
           'sticky top-0 z-40 flex w-full select-none items-center justify-start space-x-4 p-4',
           layout === Layouts.Marketing &&
-            'h-16 border-b border-slate-200 bg-mk-page dark:border-slate-800 lg:h-24',
+          'h-16 border-b border-slate-200 bg-mk-page dark:border-slate-800 lg:h-24',
           layout === Layouts.Focus &&
-            'mx-auto h-16 select-none bg-page sm:mt-[5.5rem] sm:max-w-[29rem]',
+          'mx-auto h-16 select-none bg-page sm:mt-[5.5rem] sm:max-w-[29rem]',
           layout === Layouts.Wallet &&
-            'min-h-16 flex-col justify-end bg-page lg:mt-[5.5rem] lg:pl-[16.25rem]',
+          'min-h-16 flex-col justify-end bg-page lg:mt-[5.5rem] lg:pl-[16.25rem]',
           layout === Layouts.Docs &&
-            'h-16 bg-mk-page lg:mt-[5.5rem] lg:pl-[16.25rem]'
+          'h-16 bg-mk-page lg:mt-[5.5rem] lg:pl-[16.25rem]'
         )}
       >
         {layout === Layouts.Marketing && (
@@ -252,7 +250,7 @@ export function Scaffold() {
               </IconButton>
             </div>
             <div className='ml-4 lg:ml-0'>
-              <Router to={route('/')} aria-label='Interledger Wallet logo'>
+              <Router to={href('/')} aria-label='Interledger Wallet logo'>
                 <InterledgerWalletLogo className='h-8' />
               </Router>
             </div>
@@ -260,24 +258,24 @@ export function Scaffold() {
               {/*<HeaderLink to='/about' title='About' />*/}
               {/*<HeaderLink to='/wallet' title='Wallet' />*/}
               {/*<HeaderPopover />*/}
-              {/*<HeaderLink to={route('/docs')} title='Docs' />*/}
-              {/*<HeaderLink to={route('/blog')} title='Blog' />*/}
-              <HeaderLink to={route('/contact')} title='Contact' />
+              {/*<HeaderLink to={href('/docs')} title='Docs' />*/}
+              {/*<HeaderLink to={href('/blog')} title='Blog' />*/}
+              <HeaderLink to={href('/contact')} title='Contact' />
             </div>
             <div className='ml-auto hidden items-center lg:flex'>
               {!isUser && (
                 <div className='flex space-x-10 pb-2 pt-3'>
-                  <Router to={route('/login')}>
+                  <Router to={href('/login')}>
                     <span className='text-sm font-medium'>Log in</span>
                   </Router>
-                  <Router to={route('/signup')}>
+                  <Router to={href('/signup')}>
                     <span className='text-sm font-medium'>Sign up</span>
                   </Router>
                 </div>
               )}
               {isUser && (
                 <div className='flex items-center '>
-                  <ButtonRouter to={route('/')}>
+                  <ButtonRouter to={href('/')}>
                     <span className='text-sm font-medium'>Go to app</span>
                   </ButtonRouter>
                 </div>
@@ -334,7 +332,7 @@ export function Scaffold() {
                     } else connectDomainStepBack()
                   } else if (scaffold.header.back === 'cards') {
                     if (addCardStep === OrderCardStep.CARD_TYPE) {
-                      navigate(route('/cards'))
+                      navigate(href('/cards'))
                     } else if (
                       addCardStep === OrderCardStep.CONFIRMATION &&
                       cardType &&
@@ -373,7 +371,7 @@ export function Scaffold() {
                 !title && layout !== Layouts.Focus && 'lg:hidden',
                 title && 'hidden'
               )}
-              to={route('/')}
+              to={href('/')}
               aria-label='Interledger Wallet logo'
             >
               <InterledgerWalletLogo className='h-8' />
@@ -382,22 +380,8 @@ export function Scaffold() {
               <AnimatePresence mode='wait'>
                 {actions == null && ''}
                 {actions != null && (
-                  <motion.div
-                    key={'header-action' + actions.key}
-                    animate={{ opacity: 1, scale: 1 }}
-                    initial={{ opacity: 0, scale: 0.5 }}
-                    exit={{
-                      opacity: 0,
-                      scale: 0.5,
-                      transition: {
-                        duration: 0.2
-                      }
-                    }}
-                    transition={{
-                      type: 'spring',
-                      stiffness: 400,
-                      damping: 20
-                    }}
+                  <Fade
+                    nonce={'header-action' + actions.key}
                     className='flex items-center space-x-2'
                   >
                     {Array.isArray(actions.nodes) &&
@@ -412,7 +396,7 @@ export function Scaffold() {
                         )
                       })}
                     {!Array.isArray(actions.nodes) && actions.nodes}
-                  </motion.div>
+                  </Fade>
                 )}
               </AnimatePresence>
             </div>
@@ -423,11 +407,10 @@ export function Scaffold() {
         className={clsx(
           'relative flex w-full grow flex-col',
           layout === Layouts.Marketing &&
-            `mx-auto justify-evenly xl:max-w-[80rem] ${
-              currentPath === '/legal' ? 'mb-10' : ''
-            }`,
+          `mx-auto justify-evenly xl:max-w-[80rem] ${currentPath === '/legal' ? 'mb-10' : ''
+          }`,
           layout === Layouts.Focus &&
-            'mx-auto w-full gap-y-4 px-4 sm:max-w-[29rem] sm:px-0',
+          'mx-auto w-full gap-y-4 px-4 sm:max-w-[29rem] sm:px-0',
           layout === Layouts.Wallet && 'mb-32 w-full px-4 lg:pl-[16.25rem]',
           layout === Layouts.Docs && 'mb-32 w-full px-4 lg:pl-[16.25rem]'
         )}
@@ -438,11 +421,11 @@ export function Scaffold() {
         className={clsx(
           'w-full',
           layout === Layouts.Marketing &&
-            'mx-auto mb-8 flex max-w-[80rem] rounded-2xl bg-mk-footer',
+          'mx-auto mb-8 flex max-w-[80rem] rounded-2xl bg-mk-footer',
           layout === Layouts.Focus &&
-            'mx-auto flex w-full items-center gap-x-3 px-4 py-6 sm:max-w-[29rem] sm:px-0',
+          'mx-auto flex w-full items-center gap-x-3 px-4 py-6 sm:max-w-[29rem] sm:px-0',
           (layout === Layouts.Wallet || layout === Layouts.Docs) &&
-            'fixed bottom-0 z-50 hidden w-56 items-center gap-x-3 px-4 py-6 lg:flex'
+          'fixed bottom-0 z-50 hidden w-56 items-center gap-x-3 px-4 py-6 lg:flex'
         )}
       >
         {layout !== Layouts.Marketing && (
@@ -546,26 +529,26 @@ export function Scaffold() {
                   >
                     menu_open
                   </IconButton>
-                  <Router to={route('/')} aria-label='Interledger Wallet logo'>
+                  <Router to={href('/')} aria-label='Interledger Wallet logo'>
                     <InterledgerWalletLogo className='h-8' />
                   </Router>
                 </div>
-                <NavDrawer.ListItem to={route('/')}>Home</NavDrawer.ListItem>
-                <NavDrawer.ListItem to={route('/accounts')}>
+                <NavDrawer.ListItem to={href('/')}>Home</NavDrawer.ListItem>
+                <NavDrawer.ListItem to={href('/accounts')}>
                   Accounts
                 </NavDrawer.ListItem>
                 {features.manageWalletCardsEnabled && (
-                  <NavDrawer.ListItem to={route('/cards')}>
+                  <NavDrawer.ListItem to={href('/cards')}>
                     Cards
                   </NavDrawer.ListItem>
                 )}
-                <NavDrawer.ListItem to={route('/payments')}>
+                <NavDrawer.ListItem to={href('/payments')}>
                   Payments
                 </NavDrawer.ListItem>
-                <NavDrawer.ListItem to={route('/settings')}>
+                <NavDrawer.ListItem to={href('/settings')}>
                   Settings
                 </NavDrawer.ListItem>
-                <NavDrawer.ListItem to={route('/support')}>
+                <NavDrawer.ListItem to={href('/support')}>
                   Support
                 </NavDrawer.ListItem>
               </NavDrawer.List>
@@ -587,18 +570,18 @@ export function Scaffold() {
                   <div className='flex flex-col space-y-2'>
                     <Router
                       className='flex h-11 w-full items-center justify-center'
-                      to={route('/login')}
+                      to={href('/login')}
                     >
                       <span className='font-medium text-medium'>Log in</span>
                     </Router>
-                    <ButtonRouter className='h-11' to={route('/signup')}>
+                    <ButtonRouter className='h-11' to={href('/signup')}>
                       Sign up
                     </ButtonRouter>
                   </div>
                 )}
                 {isUser && (
                   <div className='flex flex-col space-y-2'>
-                    <ButtonRouter className='h-11' to={route('/')}>
+                    <ButtonRouter className='h-11' to={href('/')}>
                       Go to app
                     </ButtonRouter>
                   </div>
@@ -617,19 +600,19 @@ export function Scaffold() {
                     menu_open
                   </IconButton>
                   <div className='ml-4 lg:ml-0'>
-                    <Router to={route('/')} aria-label='Interledger App logo'>
+                    <Router to={href('/')} aria-label='Interledger App logo'>
                       <InterledgerWalletLogo className='h-8' />
                     </Router>
                   </div>
                 </div>
-                <NavDrawer.ListItem to={route('/')}>Home</NavDrawer.ListItem>
+                <NavDrawer.ListItem to={href('/')}>Home</NavDrawer.ListItem>
                 {/*<NavDrawer.ListItem to='/about'>About</NavDrawer.ListItem>*/}
                 {/* <NavDrawer.ListItem to='/wallet'>Wallet</NavDrawer.ListItem> */}
                 {/* <NavDrawer.ListItem to='/wealth'>Wealth</NavDrawer.ListItem> */}
-                {/*<NavDrawer.ListItem to={route('/docs')}>*/}
+                {/*<NavDrawer.ListItem to={href('/docs')}>*/}
                 {/*  Docs*/}
                 {/*</NavDrawer.ListItem>*/}
-                <NavDrawer.ListItem to={route('/contact')}>
+                <NavDrawer.ListItem to={href('/contact')}>
                   Contact
                 </NavDrawer.ListItem>
               </NavDrawer.List>
@@ -638,18 +621,18 @@ export function Scaffold() {
                   <div className='flex flex-col space-y-2'>
                     <Router
                       className='flex h-11 w-full items-center justify-center'
-                      to={route('/login')}
+                      to={href('/login')}
                     >
                       <span className='font-medium text-medium'>Log in</span>
                     </Router>
-                    <ButtonRouter className='h-11' to={route('/signup')}>
+                    <ButtonRouter className='h-11' to={href('/signup')}>
                       Sign up
                     </ButtonRouter>
                   </div>
                 )}
                 {isUser && (
                   <div className='flex flex-col space-y-2'>
-                    <ButtonRouter className='h-11' to={route('/')}>
+                    <ButtonRouter className='h-11' to={href('/')}>
                       Go to app
                     </ButtonRouter>
                   </div>

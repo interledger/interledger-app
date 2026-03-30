@@ -1,10 +1,6 @@
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
-import { Form, useActionData, useLoaderData } from '@remix-run/react'
+import type { Route } from './+types/recovery'
+import { data, redirect } from 'react-router';
+import { useFetcher, useLoaderData } from 'react-router';
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts, TextField } from '~/components'
 import { error } from '~/lib/error.server'
@@ -16,9 +12,13 @@ import {
   requireNoUserSession
 } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
-import { redirectWithSnackbar } from '~/lib/snackbar.server'
+import { RateLimitKeys, getKey, rateLimit } from '~/lib/rateLimit.server'
 
-export async function loader({ request }: LoaderFunctionArgs) {
+type ActionResponse =
+  | { success: true }
+  | { errors: { form: string; email: string } }
+
+export async function loader({ request }: Route.LoaderArgs) {
   await requireNoUserSession(request)
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
@@ -51,7 +51,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     })
   }
 
-  return json({ flow, csrfToken: getCsrfTokenFromFlow(flow) })
+  return data({ flow, csrfToken: getCsrfTokenFromFlow(flow) })
 }
 
 export const handle: ApplicationProps = {
@@ -63,19 +63,25 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Recover account'
   }
 ])
 
 export default function Page() {
-  const actionData = useActionData<typeof action>()
-  const { flow, csrfToken } = useLoaderData<typeof loader>()
+  const { flow, csrfToken } = useLoaderData()
+  const fetcher = useFetcher<ActionResponse>()
+
+  const isSubmitting = fetcher.state !== 'idle'
+  const isSuccess =
+    fetcher.data && 'success' in fetcher.data && fetcher.data.success
+  const errors =
+    fetcher.data && 'errors' in fetcher.data ? fetcher.data.errors : undefined
 
   return (
     <>
-      <Form
+      <fetcher.Form
         id='recovery'
         action={`/recovery?flow=${flow.id}`}
         method='post'
@@ -101,32 +107,45 @@ export default function Page() {
           name='email'
           type='email'
           className='mt-2'
-          aria-invalid={Boolean(actionData?.errors?.email) || undefined}
-          aria-describedby={
-            actionData?.errors?.email ? 'email-error' : undefined
-          }
+          aria-invalid={Boolean(errors?.email) || undefined}
+          aria-describedby={errors?.email ? 'email-error' : undefined}
           required
-          errorMessage={actionData?.errors?.email}
+          errorMessage={errors?.email}
         />
       </Card>
-      <Button form='recovery' type='submit'>
-        Recover account
+      <Button
+        form='recovery'
+        type='submit'
+        disabled={isSubmitting || isSuccess}
+      >
+        {isSubmitting ? 'Sending...' : 'Recover account'}
       </Button>
+      {isSuccess && (
+        <p className='mt-2 text-sm text-success'>
+          Recovery email sent successfully.
+        </p>
+      )}
+      {errors?.form && <p className='mt-2 text-sm text-error'>{errors.form}</p>}
     </>
   )
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
 
   const form = await request.formData()
   const csrfToken = form.get('csrf_token')
-  const email = form.get('email')
-
+  const email = form.get('email') ?? ''
   const fieldErrors = {
     form: '',
     email: ''
+  }
+  const key = getKey(RateLimitKeys.RecoveryEmail, email.toString())
+  const rateError = await rateLimit(key)
+  if (rateError) {
+    fieldErrors.form = rateError
+    return error(request, { errors: fieldErrors })
   }
 
   const res = await fetch(
@@ -139,18 +158,16 @@ export async function action({ request }: ActionFunctionArgs) {
         csrf_token: csrfToken
       }),
       headers: {
-        'Content-type': 'application/json',
+        'Content-Type': 'application/json',
         cookie: String(request.headers.get('cookie'))
       }
     }
   )
+
   if (res.status >= 400) {
     const errs = await kratosErrorMapping(res, fieldErrors)
     return error(request, { errors: errs })
   }
 
-  return redirectWithSnackbar(request, `/recovery?flow=${flowId}`, {
-    message: 'Recovery email successfully sent.',
-    icon: 'close'
-  })
+  return data({ success: true })
 }

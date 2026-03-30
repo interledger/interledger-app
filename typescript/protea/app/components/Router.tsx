@@ -1,5 +1,5 @@
-import { Link } from '@remix-run/react'
-import type { RemixLinkProps } from '@remix-run/react/dist/components'
+import { Link } from 'react-router';
+import type { LinkProps } from 'react-router';
 import clsx from 'clsx'
 import type { AnchorHTMLAttributes, ReactNode, RefAttributes } from 'react'
 import { forwardRef } from 'react'
@@ -24,7 +24,7 @@ import { forwardRef } from 'react'
  */
 export const Router = forwardRef<
   any,
-  RemixLinkProps & RefAttributes<HTMLAnchorElement>
+  LinkProps & RefAttributes<HTMLAnchorElement>
 >(({ className, children, ...props }, ref) => {
   return (
     <Link
@@ -43,7 +43,7 @@ export const Router = forwardRef<
 Router.displayName = 'Router'
 
 interface ButtonRouterProps
-  extends RemixLinkProps,
+  extends LinkProps,
     RefAttributes<HTMLAnchorElement> {
   className?: string
   to: string

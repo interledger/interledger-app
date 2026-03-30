@@ -11,15 +11,17 @@ import (
 	kyc_workflows "gitlab.com/fynbos/backend/kyc/ops"
 	payments_workflows "gitlab.com/fynbos/backend/payments/ops"
 	chimoney_workflows "gitlab.com/fynbos/backend/providers/chimoney/ops"
+	"gitlab.com/fynbos/backend/providers/gatehub"
 	gatehub_workflows "gitlab.com/fynbos/backend/providers/gatehub/ops"
 	pti_workflows "gitlab.com/fynbos/backend/providers/pti/ops"
+	xago_external "gitlab.com/fynbos/backend/providers/xago/external"
 	xago_workflows "gitlab.com/fynbos/backend/providers/xago/ops"
 	rafiki_workflows "gitlab.com/fynbos/backend/rafiki/ops"
 	twitter_workflows "gitlab.com/fynbos/backend/twitter/workflows"
 	"go.temporal.io/sdk/worker"
 )
 
-func NewTemporalWorker(b Backends) (worker.Worker, error) {
+func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago_external.Config) (worker.Worker, error) {
 	w := worker.New(b.Temporal(), "backend", worker.Options{})
 
 	w.RegisterActivity(kyc_workflows.NewActivity(b))
@@ -36,7 +38,7 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(twitter_workflows.PublishTwitterProofWorkflow)
 
 	// Jobs
-	w.RegisterActivity(jobs.NewActivity(b))
+	w.RegisterActivity(jobs.NewActivity(b, gatehubConfig))
 	w.RegisterWorkflow(jobs.AddWalletPrivateKeysWorkflow)
 	w.RegisterWorkflow(jobs.FixWalletPublicKeysWorkflow)
 	w.RegisterWorkflow(jobs.MigratePaymentPointers)
@@ -59,6 +61,8 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(jobs.BackfillPaywiserAccountsJob)
 	w.RegisterWorkflow(jobs.PtiSettleDepositAndWithdrawsForWallet)
 	w.RegisterWorkflow(jobs.PtiDropOldDataWorkflow)
+	w.RegisterWorkflow(jobs.EnableSendVerificationEmailToUnverifiedUserJob)
+	w.RegisterWorkflow(jobs.UpdateGateHubOrganizationConfig)
 
 	// Payment Engine
 	w.RegisterActivity(payments_workflows.NewActivity(b))
@@ -75,7 +79,7 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	rafiki_workflows.StartRafikiIncomingPaymentsPolling(b)
 
 	// Xago
-	w.RegisterActivity(xago_workflows.NewActivity(b))
+	w.RegisterActivity(xago_workflows.NewActivity(b, xagoConfig))
 	w.RegisterWorkflow(xago_workflows.CreateBeneficiaryWorkflow)
 	w.RegisterWorkflow(xago_workflows.CreateBalanceAccountWorkflow)
 	w.RegisterWorkflow(xago_workflows.XagoDepositPollWorkflow)
@@ -90,6 +94,7 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(pti_workflows.ReservePtiBalance)
 	w.RegisterWorkflow(pti_workflows.SettleWithdrawWorkflow)
 	w.RegisterWorkflow(pti_workflows.RevertWithdrawWorkflow)
+	w.RegisterWorkflow(pti_workflows.ReturnedWorkflow)
 	var ptiPrivateKey jwk.Key
 	// if env.IsLocal() {
 	// 	privateKey, err := rsa.GenerateKey(rand.Reader, 4096)
@@ -116,7 +121,7 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(pti_workflows.CreatePtiBankAccountWorkflow)
 
 	// Gatehub
-	w.RegisterActivity(gatehub_workflows.NewActivity(b))
+	w.RegisterActivity(gatehub_workflows.NewActivity(b, gatehubConfig))
 	w.RegisterWorkflow(gatehub_workflows.CreateGatehubUserWorkflow)
 	w.RegisterWorkflow(gatehub_workflows.CreateGatehubDeposit)
 	w.RegisterWorkflow(gatehub_workflows.ProcessGatehubWithdrawal)
@@ -132,9 +137,11 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	// Chimoney
 	w.RegisterActivity(chimoney_workflows.NewActivity(b))
 	w.RegisterWorkflow(chimoney_workflows.CreateChimoneyUserWorkflow)
-	w.RegisterWorkflow(chimoney_workflows.ChimomeyWatchForSuccessfulKYC)
+	w.RegisterWorkflow(chimoney_workflows.ChimomeyCompleteKYC)
 	w.RegisterWorkflow(chimoney_workflows.CreateChimoneyDepositWorkflow)
+	w.RegisterWorkflow(chimoney_workflows.FinishChimoneyDepositWorkflow)
 	w.RegisterWorkflow(chimoney_workflows.ExecuteChimoneyWithdrawalWorkflow)
+	w.RegisterWorkflow(chimoney_workflows.ExecuteChimoneyFinishWithdrawalWorkflow)
 
 	return w, nil
 }

@@ -1,67 +1,26 @@
-import {
-  Form,
-  useActionData,
-  useFetcher,
-  useLoaderData
-} from '@remix-run/react'
-import { useEffect, useState } from 'react'
-import { route } from 'routes-gen'
-import {
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  Checkbox,
-  Dialog,
-  Icon,
-  TextButton,
-  TextField
-} from '~/components'
-import { Label } from '~/components/Label'
-import type { action as otpAction } from '~/routes/api_.sendOtp'
+import { Form, useActionData, useLoaderData } from 'react-router';
+import { href } from 'react-router'
+import { Button, Card, CardContent, Checkbox } from '~/components'
 
 import { DateTime } from 'luxon'
 import { usePTISdk } from '~/lib/usePTISdk'
 import { PaymentDetailsCard } from './PaymentDetailsCard'
-import type { confirmPaymentAction, loader } from './route'
+import type { loader } from './route'
+import { confirmPaymentAction } from './action.server';
+
 
 export function Confirm() {
-  const { payment, account, phoneMask, requiresOTP, csrfToken, PTIClientId } =
+  const { payment, account, csrfToken, PTIClientId } =
     useLoaderData<typeof loader>()
   const actionData = useActionData<typeof confirmPaymentAction>()
-  const otpFetcher = useFetcher<typeof otpAction>()
-
-  const [showOTPDialog, setShowOTPDialog] = useState<boolean>(false)
 
   usePTISdk(payment.id, PTIClientId)
 
-  useEffect(() => {
-    if (
-      otpFetcher.state == 'submitting' &&
-      otpFetcher.formMethod == 'POST' &&
-      otpFetcher.formAction == route('/api/sendOtp')
-    ) {
-      setShowOTPDialog(true)
-    }
-  }, [otpFetcher.formAction, otpFetcher.formMethod, otpFetcher.state])
-
   return (
     <>
-      <otpFetcher.Form
-        id='pay-phone-otp'
-        action={route('/api/sendOtp')}
-        method='post'
-        className='hidden'
-      />
-      <input
-        form='pay-phone-otp'
-        value={csrfToken}
-        name='csrfToken'
-        type='hidden'
-      />
       <Form
         id='pay-confirm'
-        action={route('/pay/:paymentId', { paymentId: payment.id })}
+        action={href('/pay/:paymentId', { paymentId: payment.id })}
         method='post'
         className='hidden'
       />
@@ -71,7 +30,6 @@ export function Confirm() {
         name='csrfToken'
         type='hidden'
       />
-
       <PaymentDetailsCard />
       <Card>
         <CardContent>
@@ -118,6 +76,7 @@ export function Confirm() {
             id='service-agreement'
             name='serviceAgreement'
             form='pay-confirm'
+            data-testid='pay-confirm-agreement'
             className='flex'
             aria-invalid={
               Boolean(actionData?.errors?.serviceAgreement) || undefined
@@ -138,62 +97,16 @@ export function Confirm() {
           </Checkbox>
         </CardContent>
       </Card>
-      {requiresOTP && (
-        <Button form='pay-phone-otp' type='submit'>
-          Confirm payment
-        </Button>
-      )}
-      {!requiresOTP && (
-        <Button
-          form='pay-confirm'
-          name='formName'
-          value='confirmPayment'
-          type='submit'
-        >
-          Confirm payment
-        </Button>
-      )}
-      <Dialog open={showOTPDialog} setOpen={setShowOTPDialog}>
-        <CardHeader>
-          <h1 className='text-xl font-medium'>Two-step verification</h1>
-        </CardHeader>
-        <CardContent>
-          <span className='text-medium'>
-            Enter the six digit code sent to your mobile number.
-          </span>
-        </CardContent>
-        <Label className='mt-2'>Your mobile phone number</Label>
-        <div className='mt-1 flex space-x-2 rounded-xl bg-nav p-3 text-medium'>
-          <Icon>phone_android</Icon>
-          <span>{phoneMask}</span>
-        </div>
 
-        <TextField
-          id='otp'
-          form='pay-confirm'
-          label='Verification code'
-          name='otp'
-          type='number'
-          className='mt-4'
-          aria-invalid={Boolean(actionData?.errors.otp) || undefined}
-          aria-describedby={actionData?.errors.otp ? 'email-error' : undefined}
-          required
-          errorMessage={actionData?.errors.otp}
-        />
-        <CardContent className='mt-2 flex w-full justify-end space-x-6'>
-          <TextButton type='submit' form='pay-phone-otp'>
-            Resend code
-          </TextButton>
-          <TextButton
-            form='pay-confirm'
-            name='formName'
-            value='confirmPayment'
-            type='submit'
-          >
-            Verify
-          </TextButton>
-        </CardContent>
-      </Dialog>
+      <Button
+        form='pay-confirm'
+        name='formName'
+        value='confirmPayment'
+        type='submit'
+        data-testid='pay-confirm-submit'
+      >
+        Confirm payment
+      </Button>
     </>
   )
 }

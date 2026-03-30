@@ -1,14 +1,12 @@
+import type { Route } from './+types/totp_.two-factor-authentication'
 import type { UiNode } from '@ory/kratos-client'
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction,
-  TypedResponse
-} from '@remix-run/node'
-import { json, redirectDocument } from '@remix-run/node'
-import { Form, useActionData, useLoaderData, useSubmit } from '@remix-run/react'
+import { data, redirectDocument } from 'react-router';
+import { Form, useActionData, useLoaderData, useSubmit } from 'react-router';
 import { useRef } from 'react'
-import { route } from 'routes-gen'
+import { trimHeaders } from '~/lib/headers.server'
+import logger, { addRequestId } from '~/lib/logger.server'
+import { extractOrGenerateRequestId } from '~/lib/requestContext.server'
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   Button,
@@ -33,7 +31,7 @@ type TotpForm = {
 
 export async function loader({
   request
-}: LoaderFunctionArgs): Promise<TypedResponse<TotpForm>> {
+}: Route.LoaderArgs) {
   const cookie = String(request.headers.get('cookie') ?? '')
   try {
     const response = await fetch(
@@ -75,10 +73,14 @@ export async function loader({
       }
     )
 
-    return json({ ...totpSchema, csrfToken: getCsrfTokenFromFlow(flow) })
+    return data({ ...totpSchema, csrfToken: getCsrfTokenFromFlow(flow) } as TotpForm)
   } catch (error) {
-    console.error('Error loading settings flow:', error)
-    return json({ csrfToken: undefined })
+    const requestId = extractOrGenerateRequestId(request)
+    logger.error(
+      { ...addRequestId(requestId), error },
+      'Error loading TOTP settings flow'
+    )
+    return data({ csrfToken: undefined } as TotpForm)
   }
 }
 
@@ -86,20 +88,19 @@ export const handle: ApplicationProps = {
   layout: Layouts.Focus,
   scaffold: {
     header: {
-      back: route('/'),
       title: 'Two-factor authentication'
     }
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   { title: 'Two-factor authentication' }
 ])
 
 export default function Page() {
   const { flowId, qrNode, secretKey, totpUnlink, csrfToken } =
-    useLoaderData<typeof loader>()
-  const actionData = useActionData<typeof action>()
+    useLoaderData()
+  const actionData = useActionData()
   const formRef = useRef<HTMLFormElement>(null)
   const submit = useSubmit()
   const { withTotpChallenge } = useTotpChallenge()
@@ -108,7 +109,7 @@ export default function Page() {
     return (
       <>
         <p>Failed to load flow data.</p>
-        <OutlineButtonRouter to={route('/logout')} className='mt-4'>
+        <OutlineButtonRouter to={href('/logout')} className='mt-4'>
           Log out
         </OutlineButtonRouter>
       </>
@@ -160,13 +161,18 @@ export default function Page() {
           </Card>
 
           {totpUnlink ? (
-            <Button onClick={handleUnlinkClick}>Unlink TOTP</Button>
+            <>
+              <Button onClick={handleUnlinkClick}>Unlink TOTP</Button>
+              <OutlineButtonRouter to={href('/settings')} className='mt-4'>
+                Back
+              </OutlineButtonRouter>
+            </>
           ) : (
             <Button form='2fa-form' type='submit'>
               Verify TOTP
             </Button>
           )}
-          <OutlineButtonRouter to={route('/logout')} className='mt-4'>
+          <OutlineButtonRouter to={href('/logout')} className='mt-4'>
             Log out
           </OutlineButtonRouter>
         </GridColumn>
@@ -194,7 +200,7 @@ function TOTPSetupForm(totp: { qrNode: string; secretKey: string }) {
   )
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const totpUnlink =
     new URL(request.url).searchParams.get('totpUnlink') === 'true'
   const form = await request.formData()
@@ -233,14 +239,14 @@ export async function action({ request }: ActionFunctionArgs) {
     )
 
     // if (res.ok && totpUnlink) {
-    //   return redirect(route('/logout'))
+    //   return redirect(href('/logout'))
     // }
 
     if (res.ok) {
       const returnTo = new URL(request.url).searchParams.get('returnTo') || '/'
-      const response = redirectDocument(returnTo ?? '/')
+      const headers = trimHeaders(res.headers, ['set-cookie'])
       // Hard reload so the root loader is also run
-      return response
+      return redirectDocument(returnTo ?? '/', { headers })
     }
 
     if (res.status === 400) {
@@ -248,7 +254,7 @@ export async function action({ request }: ActionFunctionArgs) {
         'Invalid code. Please scan the QR code again or add the new code to your authenticator application.'
     }
 
-    return json({ errors }, { status: res.status })
+    return data({ errors }, { status: res.status })
   } catch (error) {
     throw new Error('Failed to set up TOTP authentication')
   }

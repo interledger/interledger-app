@@ -714,51 +714,6 @@ export const SlackIcon: FC<LogoProps> = ({ className, height }) => {
   )
 }
 
-export const MasterCardLogo: FC<LogoProps> = ({ className, height }) => {
-  return (
-    <svg
-      viewBox='0 0 61 38'
-      className={clsx('flex-none', height ? height : 'h-[2.375rem]', className)}
-      fill='none'
-      xmlns='http://www.w3.org/2000/svg'
-    >
-      <path
-        d='M38.9588 4.34131H22.7402V33.4828H38.9588V4.34131Z'
-        fill='#FF5F00'
-      />
-      <path
-        d='M23.7718 18.9116C23.7718 13.248 26.3977 7.84193 30.8256 4.34084C22.7936 -1.99203 11.106 -0.601893 4.77301 7.48153C-1.50845 15.5135 -0.118291 27.1495 7.96522 33.4823C14.7101 38.7855 24.1322 38.7855 30.8771 33.4823C26.3977 29.9812 23.7718 24.5751 23.7718 18.9116Z'
-        fill='#EB001B'
-      />
-      <path
-        d='M60.8445 18.9116C60.8445 29.1574 52.5551 37.4468 42.3091 37.4468C38.1386 37.4468 34.1226 36.0567 30.8789 33.4823C38.9109 27.1495 40.3011 15.5135 33.9681 7.43004C33.0414 6.29733 32.0116 5.21611 30.8789 4.34084C38.9109 -1.99203 50.5986 -0.601893 56.88 7.48153C59.4544 10.7252 60.8445 14.7412 60.8445 18.9116Z'
-        fill='#F79E1B'
-      />
-    </svg>
-  )
-}
-
-export const VisaLogo: FC<LogoProps> = ({ className, height }) => {
-  return (
-    <svg
-      viewBox='0 0 60 20'
-      className={clsx(
-        'flex-none',
-        'text-[#1434CB] dark:text-white',
-        height ? height : 'h-5',
-        className
-      )}
-      fill='none'
-      xmlns='http://www.w3.org/2000/svg'
-    >
-      <path
-        d='M22.7811 0.378774L14.9249 19.1196H9.79994L5.93434 4.16631C5.69997 3.24442 5.49684 2.90692 4.78122 2.51942C3.6156 1.88816 1.69061 1.29441 0 0.925653L0.115625 0.3819H8.36558C9.41557 0.3819 10.3624 1.0819 10.5999 2.29441L12.6406 13.1383L17.6874 0.3819L22.7811 0.378774ZM42.8591 13.0039C42.881 8.05697 36.0185 7.78509 36.0654 5.57569C36.081 4.90381 36.7217 4.18818 38.1216 4.00693C38.8154 3.9163 40.731 3.84755 42.8997 4.84444L43.7497 0.869403C42.5841 0.447525 41.081 0.038147 39.2154 0.038147C34.4248 0.038147 31.0498 2.58504 31.0217 6.23195C30.9904 8.92885 33.4279 10.4351 35.2654 11.332C37.156 12.2508 37.7904 12.8414 37.781 13.6601C37.7685 14.9164 36.2748 15.4727 34.8779 15.4945C32.4404 15.532 31.0279 14.8351 29.8998 14.3101L29.0217 18.4164C30.1529 18.9352 32.2467 19.3883 34.4123 19.4133C39.5123 19.4164 42.8435 16.8977 42.8591 13.0039ZM55.5153 19.1227H59.9996L56.084 0.378774H51.9466C51.0153 0.378774 50.2309 0.919403 49.8841 1.75379L42.6091 19.1196H47.6997L48.7091 16.3195H54.9309L55.5153 19.1227ZM50.1059 12.482L52.6591 5.44444L54.1278 12.482H50.1059ZM29.7061 0.378774L25.6967 19.1196H20.8499L24.8592 0.378774H29.7061Z'
-        className='fill-current'
-      />
-    </svg>
-  )
-}
-
 export const WebMoLogo: FC<LogoProps> = ({ className, height }) => {
   return (
     <svg
@@ -1067,6 +1022,59 @@ export const XagoLogo: FC<LogoProps> = ({ className, height }) => {
           />
         </clipPath>
       </defs>
+    </svg>
+  )
+}
+
+const MASTERCARD_LOGO_SIZES = {
+  xs: 'h-4 w-4',
+  sm: 'h-6 w-6',
+  lg: 'h-10 w-10 xs:h-20 xs:w-20'
+} as const
+
+type MasterCardLogoSize = keyof typeof MASTERCARD_LOGO_SIZES
+
+type MasterCardLogoProps = {
+  className?: string
+  size?: MasterCardLogoSize
+}
+
+export const MasterCardLogo: FC<MasterCardLogoProps> = ({
+  size = 'lg',
+  className
+}) => {
+  return (
+    <svg
+      className={clsx(MASTERCARD_LOGO_SIZES[size], className)}
+      version='1.1'
+      id='Layer_1'
+      xmlns='http://www.w3.org/2000/svg'
+      x='0px'
+      y='0px'
+      viewBox='0 0 152.4 108'
+    >
+      <style
+        dangerouslySetInnerHTML={{
+          __html:
+            '.st0{fill:none;}.st1{fill:#FF5F00;}.st2{fill:#EB001B;}.st3{fill:#F79E1B;}'
+        }}
+      ></style>
+      <g>
+        <rect y='0' className='st0' width='152.4' height='108' />
+        <g>
+          <rect x='60.4' y='25.7' className='st1' width='31.5' height='56.6' />
+          <path
+            className='st2'
+            d='M62.4,54c0-11,5.1-21.5,13.7-28.3c-15.6-12.3-38.3-9.6-50.6,6.1C13.3,47.4,16,70,31.7,82.3
+			c13.1,10.3,31.4,10.3,44.5,0C67.5,75.5,62.4,65,62.4,54z'
+          />
+          <path
+            className='st3'
+            d='M134.4,54c0,19.9-16.1,36-36,36c-8.1,0-15.9-2.7-22.2-7.7c15.6-12.3,18.3-34.9,6-50.6c-1.8-2.2-3.8-4.3-6-6
+			c15.6-12.3,38.3-9.6,50.5,6.1C131.7,38.1,134.4,45.9,134.4,54z'
+          />
+        </g>
+      </g>
     </svg>
   )
 }

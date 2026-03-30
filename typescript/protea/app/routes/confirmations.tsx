@@ -1,12 +1,8 @@
-import {
-  json,
-  redirect,
-  type LoaderFunctionArgs,
-  type MetaFunction
-} from '@remix-run/node'
-import type { ShouldRevalidateFunction } from '@remix-run/react'
-import { Outlet, useLocation } from '@remix-run/react'
-import { route } from 'routes-gen'
+import type { Route } from './+types/confirmations'
+import { data, redirect } from 'react-router';
+import type { ShouldRevalidateFunction } from 'react-router';
+import { Outlet, useLocation } from 'react-router';
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   Card,
@@ -18,20 +14,20 @@ import {
   TimeoutDisplay,
   WalletGrid
 } from '~/components'
+import { usePendingConfirmations } from '~/lib/cards/usePendingConfirmations'
 import { hasUserSession } from '~/lib/kratos.server'
-import { usePendingConfirmations } from '~/lib/usePendingConfirmations'
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const session = hasUserSession(request)
   const returnTo = new URL(request.url).pathname
 
   if (!session) {
     throw redirect(
-      `${route('/login')}?returnTo=${encodeURIComponent(returnTo)}`
+      `${href('/login')}?returnTo=${encodeURIComponent(returnTo)}`
     )
   }
 
-  return json({})
+  return data({})
 }
 
 export const shouldRevalidate: ShouldRevalidateFunction = ({
@@ -53,7 +49,7 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = () => [
+export const meta: Route.MetaFunction = () => [
   {
     title: 'Pending 3DS Confirmations'
   }
@@ -90,7 +86,7 @@ export default function Page() {
                 preventScrollReset={!isMobile}
                 prefetch='none'
                 key={confirmation.transactionId}
-                to={route('/confirmations/:confirmationId', {
+                to={href('/confirmations/:confirmationId', {
                   confirmationId: confirmation.transactionId
                 })}
                 className='justify-between space-x-4'

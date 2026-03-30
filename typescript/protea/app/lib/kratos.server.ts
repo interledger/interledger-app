@@ -7,8 +7,10 @@ import type {
   Session,
   UiNodeInputAttributes
 } from '@ory/kratos-client'
-import { redirect } from '@remix-run/node'
-import { route } from 'routes-gen'
+import { redirect } from 'react-router';
+import { href } from 'react-router'
+import { safeReturnTo } from './url.server'
+import logger from './logger.server'
 
 // Export to ensure this is always evaluated server side.
 export const KRATOS_URL = process.env.KRATOS_URL
@@ -31,8 +33,8 @@ export const getCsrfTokenFromFlow = (
   return node ? (node.attributes as UiNodeInputAttributes).value : ''
 }
 
-function isUiNodeInputAttributes(n: any): n is UiNodeInputAttributes {
-  return 'name' in n
+function isUiNodeInputAttributes(n: unknown): n is UiNodeInputAttributes {
+  return typeof n === 'object' && n !== null && 'name' in n
 }
 
 /**
@@ -40,22 +42,34 @@ function isUiNodeInputAttributes(n: any): n is UiNodeInputAttributes {
  * @param request Request received in a loader function.
  * @returns boolean - if the user has a session.
  */
-export async function getUserSession(request: Request): Promise<Session> {
+export async function getUserSession(
+  request: Request,
+  allowAal1 = false
+): Promise<Session> {
   const session = await fetch(`${KRATOS_URL}/sessions/whoami`, {
     headers: request.headers
   })
 
-  const url = new URL(request.url)
-  url.searchParams.set('returnTo', url.pathname)
+  const requestUrl = new URL(request.url)
+  const returnTo = safeReturnTo(requestUrl.pathname + requestUrl.search)
+  const searchParams = new URLSearchParams()
+  searchParams.set('returnTo', returnTo)
 
   switch (session.status) {
     case 401:
+      throw redirect(`${href('/login')}?${searchParams.toString()}`, {
+        headers: {
+          'Set-Cookie': 'ory_kratos_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax'
+        }
+      })
     case 500:
-      throw redirect(route('/login') + url.search)
+      throw redirect(`${href('/login')}?${searchParams.toString()}`)
     case 403:
     case 422: // Need to complete 2FA.
-      url.searchParams.set('aal', 'aal2')
-      throw redirect(route('/login') + url.search)
+      if (!allowAal1) {
+        requestUrl.searchParams.set('aal', 'aal2')
+        throw redirect(`${href('/login')}?${searchParams.toString()}`)
+      }
   }
 
   return session.json()
@@ -87,11 +101,11 @@ export async function requireNoUserSession(request: Request): Promise<void> {
     // User shouldn't have session/cookies so don't catch unauthorised - 401.
     case 403:
     case 422: // Need to complete 2FA.
-      throw redirect(route('/totp/challenge'))
+      throw redirect(href('/totp/challenge'))
   }
 
   const userSession = await session.json()
-  if (typeof userSession.error == 'undefined') throw redirect(route('/'))
+  if (typeof userSession.error == 'undefined') throw redirect(href('/'))
 }
 
 // This will only run on the server so don't need a router.
@@ -115,21 +129,24 @@ export function handleFlowError(
   flowId?: string
 ): void {
   let redirectRoute = `/${flowType}`
+  if (flowId) {
+    redirectRoute += `?flow=${flowId}`
+  }
 
   switch (flow.error.id) {
     case 'session_inactive':
       // The user doesn't have a session
-      throw redirect(route('/login'), {
+      throw redirect(href('/login'), {
         headers: {
           'Clear-Site-Data': 'cookies'
         }
       })
     case 'session_aal2_required':
       // 2FA is enabled and enforced, but user did not perform 2fa yet!
-      throw redirect(`/totp/challenge?returnTo=${redirectRoute}`)
+      throw redirect(`/totp/challenge?returnTo=${encodeURIComponent(redirectRoute)}`)
     case 'session_already_available':
       // User is already signed in, let's redirect them home!
-      throw redirect(route('/'))
+      throw redirect(href('/'))
     case 'session_refresh_required':
       // We need to re-authenticate to perform this action
       // NOTE: this is a last resort in case a user manualy bypasses the standard flow.
@@ -238,23 +255,21 @@ export async function kratosErrorMapping<T extends object>(
 ): Promise<T> {
   const data = await response.json()
 
-  if (data.ui) {
+  if (data.ui?.nodes) {
     for (let node of data.ui.nodes) {
       // Field validation errors
       if (node.messages.length > 0) {
-        console.error(
-          'Kratos error on node attribute',
-          node.attributes.name,
-          ' with message',
-          node.messages[0].text
+        logger.warn(
+          { node: node.attributes.name, message: node.messages[0].text },
+          'Kratos validation error on node'
         )
         Object.assign(fieldErrors, {
-          [node.attributes.name]: kratosErrorMessage(node.messages[0])
+          [node.attributes?.name]: kratosErrorMessage(node.messages[0])
         })
       }
     }
   }
-  if (data.ui.messages && data.ui.messages.length > 0) {
+  if (data.ui?.messages && data.ui.messages.length > 0) {
     // form message validation errors
     // This gets rendered in a snackbar - only use one.
     Object.assign(fieldErrors, {

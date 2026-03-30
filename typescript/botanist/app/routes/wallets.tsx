@@ -8,19 +8,21 @@ import { route } from 'routes-gen'
 
 export async function loader({ request }: LoaderArgs) {
   const url = new URL(request.url)
-  // let page = url.searchParams.get('page') || '1'
-  let pageSize = url.searchParams.get('pageSize') || '50'
+  let pageSize = url.searchParams.get('pageSize') || '100'
+  let pageToken = url.searchParams.get('pageToken') || ''
   const wallets = await ListWallets(request, {
-    pageSize: parseInt(pageSize)
+    pageSize: parseInt(pageSize),
+    pageToken: pageToken
   })
 
   return json({
-    wallets
+    wallets,
+    pageSize
   })
 }
 
 export default function Page() {
-  const { wallets } = useLoaderData<typeof loader>()
+  const { wallets, pageSize } = useLoaderData<typeof loader>()
 
   return (
     <Grid>
@@ -119,24 +121,14 @@ export default function Page() {
                         </p>
                       </td>
                       <td colSpan={3}>
-                        {/*<div className='flex flex-1 justify-between pr-3 sm:justify-end'>*/}
-                        {/*  {wallets.page?.page && wallets.page?.page > 1 && (*/}
-                        {/*    <Router*/}
-                        {/*      to={`/wallets?page=${wallets.page?.page - 1}`}*/}
-                        {/*      className='relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50'*/}
-                        {/*    >*/}
-                        {/*      Previous*/}
-                        {/*    </Router>*/}
-                        {/*  )}*/}
-                        {/*  {wallets.page?.hasNextPage && (*/}
-                        {/*    <Router*/}
-                        {/*      to={`/wallets?page=${wallets.page?.page + 1}`}*/}
-                        {/*      className='relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50'*/}
-                        {/*    >*/}
-                        {/*      Next*/}
-                        {/*    </Router>*/}
-                        {/*  )}*/}
-                        {/*</div>*/}
+                        <div className='flex flex-1 justify-between pr-3 sm:justify-end'>
+                          <Router
+                            to={`/wallets?pageToken=${wallets.nextPageToken}&pageSize=${pageSize}`}
+                            className='relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50'
+                          >
+                            Next
+                          </Router>
+                        </div>
                       </td>
                     </tr>
                   </tbody>

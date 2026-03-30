@@ -7,6 +7,7 @@ import (
 	"encoding/base32"
 	"errors"
 	"fmt"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -23,6 +24,7 @@ import (
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/serviceerror"
 	"go.temporal.io/sdk/client"
+	"go.temporal.io/sdk/temporal"
 )
 
 func CreateUser(ctx context.Context, b Backends, walletID string) (gatehub.Await, error) {
@@ -532,6 +534,16 @@ func CreateTransfer(ctx context.Context, b Backends, ec external.Client, args ga
 		return nil, err
 	}
 
+	// Validate vault ID is available before making the external call
+	vaultID := ec.GetVaultID()
+	if vaultID == "" && !env.IsTestExecution() {
+		return nil, temporal.NewNonRetryableApplicationError(
+			"Gatehub vault ID not configured",
+			"ConfigurationError",
+			fmt.Errorf("GATEHUB_PAYWISER_EURO_VAULT_ID environment variable is not set"),
+		)
+	}
+
 	externalTx, err := ec.CreateTransaction(ctx, external.CreateTransactionRequest{
 		SendingUserID:    sendingUser,
 		SendingAddress:   sendLA.ProviderID,
@@ -539,7 +551,7 @@ func CreateTransfer(ctx context.Context, b Backends, ec external.Client, args ga
 		Amount:           args.Amount.Float64(),
 		Message:          fmt.Sprintf("Payment to %s", recvWallet.Name),
 		Type:             external.TransactionTypeHosted,
-		VaultID:          ec.GetVaultID(),
+		VaultID:          vaultID,
 	})
 	if errors.Is(err, external.ErrNotFound) {
 		return nil, fmt.Errorf("%w %s", gatehub.ErrNotFound, err)
@@ -903,6 +915,31 @@ func GetPendingCardTransactions(ctx context.Context, b Backends) ([]pendingTrans
 	}
 
 	return txs, nil
+}
+
+func UpdateOrganizationConfiguration(ctx context.Context, ec external.Client, apiBaseURL, twoFAType string) (*external.UpdateOrganizationConfigurationResponse, error) {
+	baseURL, err := url.Parse(apiBaseURL)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	if !env.IsLocal() && baseURL.Scheme != "https" {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, "api url must be https")
+	}
+
+	if env.IsLocal() && baseURL.Scheme != "http" && baseURL.Scheme != "https" {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, "api url must be http or https")
+	}
+
+	t, err := external.ParseTwoFA(twoFAType)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	return ec.UpdateOrganizationConfiguration(ctx, external.UpdateOrganizationConfigurationArgs{
+		APIBaseURL: baseURL.String(),
+		TwoFAType:  t,
+	})
 }
 
 func updateCardTransactionStatus(ctx context.Context, b Backends, txID, status string) error {

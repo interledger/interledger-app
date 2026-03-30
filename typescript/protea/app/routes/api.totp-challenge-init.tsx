@@ -1,11 +1,15 @@
-import { ActionFunctionArgs, json } from '@remix-run/node'
+import type { Route } from './+types/api.totp-challenge-init'
+import type { UiNode } from '@ory/kratos-client'
+import { data } from 'react-router';
 import { KRATOS_URL } from '~/lib/kratos.server'
+import logger, { addRequestId } from '~/lib/logger.server'
+import { extractOrGenerateRequestId } from '~/lib/requestContext.server'
 
 /**
  * Initialize a TOTP challenge flow (AAL2) via Kratos API endpoint
  * This is used for inline TOTP verification without page redirects
  */
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   try {
     const cookie = request.headers.get('cookie') ?? ''
 
@@ -31,14 +35,14 @@ export async function action({ request }: ActionFunctionArgs) {
       const location = initResponse.headers.get('location')
 
       if (!location) {
-        return json({ error: 'Failed to initialize TOTP challenge' })
+        return data({ error: 'Failed to initialize TOTP challenge' })
       }
 
       // Extract flow ID from the redirect URL
       const flowId = new URL(location, KRATOS_URL).searchParams.get('flow')
 
       if (!flowId) {
-        return json({ error: 'Failed to extract flow ID' })
+        return data({ error: 'Failed to extract flow ID' })
       }
 
       // Step 3: Fetch the full flow details using the flow ID
@@ -53,7 +57,7 @@ export async function action({ request }: ActionFunctionArgs) {
       )
 
       if (!flowResponse.ok) {
-        return json(
+        return data(
           { error: 'Failed to fetch flow details' },
           { status: flowResponse.status }
         )
@@ -62,18 +66,18 @@ export async function action({ request }: ActionFunctionArgs) {
       const flow = await flowResponse.json()
       const nodes = flow.ui?.nodes ?? []
       const csrfNode = nodes.find(
-        (node: any) => node.attributes?.name === 'csrf_token'
+        (node: UiNode) => 'name' in node.attributes && node.attributes.name === 'csrf_token'
       )
       const csrfToken = csrfNode?.attributes?.value ?? ''
       const totpNode = nodes.find(
-        (node: any) => node.attributes?.name === 'totp_code'
+        (node: UiNode) => 'name' in node.attributes && node.attributes.name === 'totp_code'
       )
 
       if (!totpNode) {
-        return json({ error: 'TOTP is not configured for this account' })
+        return data({ error: 'TOTP is not configured for this account' })
       }
 
-      return json({
+      return data({
         flowId,
         csrfToken,
         method: flow.ui?.method ?? 'POST',
@@ -91,18 +95,18 @@ export async function action({ request }: ActionFunctionArgs) {
           // Extract necessary data from the flow
           const nodes = flow.ui?.nodes ?? []
           const csrfNode = nodes.find(
-            (node: any) => node.attributes?.name === 'csrf_token'
+            (node: UiNode) => 'name' in node.attributes && node.attributes.name === 'csrf_token'
           )
           const csrfToken = csrfNode?.attributes?.value ?? ''
           const totpNode = nodes.find(
-            (node: any) => node.attributes?.name === 'totp_code'
+            (node: UiNode) => 'name' in node.attributes && node.attributes.name === 'totp_code'
           )
 
           if (!totpNode) {
-            return json({ error: 'TOTP is not configured for this account' })
+            return data({ error: 'TOTP is not configured for this account' })
           }
 
-          return json({
+          return data({
             flowId: flow.id,
             csrfToken,
             method: flow.ui?.method ?? 'POST',
@@ -114,9 +118,17 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     const errorText = await initResponse.text()
-    return json({ error: `Unexpected response from Kratos ${errorText}` })
+    return data({ error: `Unexpected response from Kratos ${errorText}` })
   } catch (error) {
-    console.error('Error initializing TOTP challenge:', error)
-    return json({ error: 'An unexpected error occurred' })
+    const requestId = extractOrGenerateRequestId(request)
+    const errorDetails =
+      error instanceof Error
+        ? { error }
+        : { error: String(error) }
+    logger.error(
+      { ...addRequestId(requestId), ...errorDetails },
+      'Error initializing TOTP challenge'
+    )
+    return data({ error: 'An unexpected error occurred' })
   }
 }

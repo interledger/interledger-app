@@ -1,15 +1,9 @@
-import { Code } from '@bufbuild/connect'
-import type { PlainMessage } from '@bufbuild/protobuf/dist/types/message'
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
-import { useLoaderData } from '@remix-run/react'
+import type { PlainMessage } from '@bufbuild/protobuf'
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { data, redirect } from 'react-router';
+import { useLoaderData } from 'react-router';
 import { useEffect } from 'react'
-import { route } from 'routes-gen'
-
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   Alert,
@@ -29,43 +23,20 @@ import type {
   Payment,
   PublicWalletInfo
 } from '~/generated/connect/backend/v1/backend_pb'
-import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
-import { ErrorDescriptions } from '~/lib/error.constants'
-import { TwillioErrorMapper } from '~/lib/error.mappers'
+import { jsonWithCSRF } from '~/lib/csrf.server'
 import type { ConnectError } from '~/lib/error.server'
-import { error, isConnectError, isTwilioCodeError } from '~/lib/error.server'
+import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
-import { getClientIP } from '~/lib/ip.server'
 import { getUserSession } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
-import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { PayStep, usePayStore } from '~/lib/usePayStore'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
-import { KycStatus } from '~/routes/_index/route'
-import styles from '~/styles/flags.css'
+import { KycStatus, PaymentIdentityType, PaymentRequiredAction } from '~/lib/types'
+import styles from '~/styles/flags.css?url'
 import { Amount } from './Amount'
 import { Confirm } from './Confirm'
+import { confirmPaymentAction, updatePaymentAction } from './action.server';
 
-export enum PaymentRequiredAction {
-  Unknown,
-  ThreeDS,
-  SenderIdentifier,
-  SenderAccount,
-  ReceiverIdentifier,
-  SenderAmount,
-  ReceiverAmount,
-  OTP,
-  IPAddress
-}
-export enum PaymentIdentityType {
-  Unknown,
-  Twitter,
-  WalletID,
-  WalletURL,
-  Slack,
-  Discord,
-  Sentinel // End of range value must be last, no need to public
-}
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   let account: FormattedLinkedAccount
@@ -77,7 +48,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
   const { kycStatus } = await getKycStatus(request)
   if (kycStatus != KycStatus.Approved)
-    return redirect(route('/personal-details'))
+    return redirect(href('/personal-details'))
 
   features = await getFeatures(request)
 
@@ -86,7 +57,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   if (isConnectError(payment)) throw payment.errorResponse
 
   // This payment is already confirmed
-  if (payment.state > 1) throw redirect(route('/pay'))
+  if (payment.state > 1) throw redirect(href('/pay'))
 
   const publicWalletInfoResponse = await grpc.getPublicWalletInfo(request, {
     walletAddress: payment.receiverWalletUrl
@@ -215,7 +186,7 @@ export default function Page() {
                 <Router
                   prefetch='render'
                   className='text-sm font-medium text-primary'
-                  to={route('/accounts')}
+                  to={href('/accounts')}
                 >
                   Go to accounts page
                 </Router>
@@ -241,7 +212,7 @@ export default function Page() {
               <Router
                 prefetch='render'
                 className='text-sm font-medium text-primary'
-                to={route('/accounts')}
+                to={href('/accounts')}
               >
                 Go to accounts page
               </Router>
@@ -269,7 +240,7 @@ export async function action(args: ActionFunctionArgs) {
   } else if (formName === 'confirmPayment') {
     return confirmPaymentAction(args)
   } else {
-    throw json(
+    throw data(
       { title: "Submitted a form that doesn't exist" },
       {
         status: 400
@@ -278,153 +249,3 @@ export async function action(args: ActionFunctionArgs) {
   }
 }
 
-export async function confirmPaymentAction({
-  request,
-  params
-}: ActionFunctionArgs) {
-  const form = await request.formData()
-  const serviceAgreement = form.get('serviceAgreement') as string
-  const otp = String(form.get('otp') || '')
-
-  await validateCSRFToken(request, form)
-
-  const errors = {
-    form: '',
-    otp: '',
-    serviceAgreement: ''
-  }
-
-  if (serviceAgreement == null) {
-    errors.serviceAgreement = 'You are required to authorize to continue.'
-    return error(request, { errors })
-  }
-
-  const clientIpAddress = getClientIP(request)
-
-  let response = await grpc.updatePayment(request, {
-    id: params.paymentId,
-    otp: otp,
-    ipAddress: clientIpAddress
-  })
-  if (isConnectError(response)) {
-    if (isTwilioCodeError(response)) {
-      return response.error(
-        { errors },
-        {
-          otp: TwillioErrorMapper.otp
-        },
-        { action: 'Contact support', message: ErrorDescriptions.INVALID_OTP }
-      )
-    }
-    return response.error({ errors }, {}, { action: 'Contact support' })
-  }
-
-  response = await grpc.confirmPayment(request, {
-    id: params.paymentId
-  })
-  if (isConnectError(response)) {
-    return response.error({ errors }, {}, { action: 'Contact support' })
-  }
-
-  return redirectWithSnackbar(request, route('/'), {
-    message: 'Payment created successfully.',
-    icon: 'close'
-  })
-}
-
-function stringToBigInt(amount: string) {
-  if (amount == '') return BigInt(0)
-  const dotIndex = amount.lastIndexOf('.')
-  if (dotIndex > -1) {
-    const amounts = amount.split('.')
-    return BigInt(amounts[0] + amounts[1].slice(0, 2).padEnd(2, '0'))
-  }
-  return BigInt(parseFloat(amount) * 100)
-}
-
-export async function updatePaymentAction({
-  request,
-  params
-}: ActionFunctionArgs) {
-  const form = await request.formData()
-  const send = String(form.get('send') || '')
-  const receive = String(form.get('receive') || '')
-  const note = String(form.get('note') || '')
-  const accountId = String(form.get('accountId') || '')
-  const sendCurrency = String(form.get('sendCurrency') || '')
-  const receiveCurrency = String(form.get('receiveCurrency') || '')
-  const intent = form.get('intent') as string
-
-  const sendToSubmit = stringToBigInt(send)
-  const receiveToSubmit = stringToBigInt(receive)
-
-  const errors = {
-    form: '',
-    amount: '',
-    linkedAccount: '',
-    note: ''
-  }
-
-  if (intent == 'submit' && sendToSubmit == 0n) {
-    errors.amount = 'Amount is required.'
-    return error(request, { errors, payment: null, intent: '' })
-  }
-
-  const clientIpAddress = getClientIP(request)
-
-  let senderAmount, receiverAmount
-  if (send != '') {
-    senderAmount = {
-      amount: sendToSubmit,
-      assetScale: 2,
-      asset: sendCurrency
-    }
-  }
-  if (receive != '') {
-    receiverAmount = {
-      amount: receiveToSubmit,
-      assetScale: 2,
-      asset: receiveCurrency
-    }
-  }
-
-  let response = await grpc.updatePayment(request, {
-    id: params.paymentId,
-    note,
-    senderAccount: accountId,
-    senderAmount,
-    receiverAmount,
-    ipAddress: clientIpAddress
-  })
-
-  if (isConnectError(response)) {
-    if (response.code == Code.InvalidArgument) {
-      return response.error({ errors, payment: null, intent: '' })
-    }
-    if (
-      response.code == Code.FailedPrecondition &&
-      response.violations.findIndex(
-        (violation) =>
-          violation.type === 'Payment' &&
-          violation.subject === 'insufficientFunds'
-      ) > -1
-    ) {
-      return response.error({
-        errors: { ...errors, amount: 'You have insufficient funds available.' },
-        payment: null,
-        intent: ''
-      })
-    }
-    return response.error(
-      { errors, payment: null, intent: '' },
-      {},
-      { action: 'Contact support' }
-    )
-  }
-
-  return json({
-    payment: response,
-    intent,
-    errors
-  })
-}

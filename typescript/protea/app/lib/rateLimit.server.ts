@@ -1,0 +1,54 @@
+import { redisClient } from './redis.server'
+import logger from './logger.server'
+
+interface RateLimitOptions {
+  limit: number
+  ttlSeconds: number
+}
+function getRateLimitDefaults(): RateLimitOptions {
+  const limit = Number(process.env.DEFAULT_RATE_LIMIT_REQUESTS) || 4
+  const ttlSeconds = Number(process.env.DEFAULT_RATE_LIMIT_TIME) || 3600
+
+  return { limit, ttlSeconds }
+}
+
+const DEFAULT_RATE_LIMIT = getRateLimitDefaults()
+export enum RateLimitKeys {
+  RecoveryEmail = 'recovery.email',
+  VerifyEmail = 'verify.email'
+}
+
+type RateLimitKeyType = `${RateLimitKeys}_${string}`
+
+/**
+ * Redis-based rate limiter.
+ * Only increments the counter if the callback succeeds.
+ *
+ * @param key Unique key per action/user
+ * @param options { limit, ttlSeconds }
+ * @returns string | undefined - error message if rate limit exceeded, otherwise undefined
+ */
+export async function rateLimit(
+  key: RateLimitKeyType,
+  options: RateLimitOptions = DEFAULT_RATE_LIMIT
+): Promise<string | undefined> {
+  const { limit, ttlSeconds } = options
+
+  try {
+    const current = await redisClient.get(key)
+    const count = Number(current) || 0
+    if (count >= limit) {
+      return 'Too many attempts. Please try again later.'
+    }
+    await redisClient.set(key, count + 1, { EX: ttlSeconds })
+  } catch (err) {
+    logger.error({ error: err instanceof Error ? err.message : String(err) }, 'Rate limit check failed')
+  }
+}
+
+export function getKey(
+  rateLimitKeys: RateLimitKeys,
+  id: string
+): RateLimitKeyType {
+  return `${rateLimitKeys}_${id}`
+}

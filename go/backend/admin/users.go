@@ -45,9 +45,14 @@ func (s *AdminRpcService) ListWallets(ctx context.Context, req *adminv1.Paginati
 		}
 	}
 
+	nextPageToken := ""
+	if len(resp) > 0 {
+		nextPageToken = resp[len(resp)-1].WalletID	
+	}
+
 	return &adminv1.ListWalletsResponse{
 		Wallets:       resp,
-		NextPageToken: "", // TODO Need to actually populate this
+		NextPageToken: nextPageToken, // TODO Need to actually populate this
 	}, nil
 }
 

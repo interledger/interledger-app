@@ -20,6 +20,7 @@ import (
 	"github.com/riandyrn/otelchi"
 	"github.com/uptrace/opentelemetry-go-extra/otelsql"
 	"github.com/uptrace/opentelemetry-go-extra/otelsqlx"
+	aassassetlinks "gitlab.com/fynbos/backend/aass_assetlinks"
 	"gitlab.com/fynbos/backend/admin"
 	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/agreements"
@@ -28,11 +29,6 @@ import (
 	"gitlab.com/fynbos/backend/analytics"
 	analytics_client "gitlab.com/fynbos/backend/analytics/client"
 	analytics_webhook "gitlab.com/fynbos/backend/analytics/webhook"
-	"gitlab.com/fynbos/backend/authorisation"
-	authorisation_client "gitlab.com/fynbos/backend/authorisation/client"
-	auth_http "gitlab.com/fynbos/backend/authorisation/http"
-	"gitlab.com/fynbos/backend/aws"
-	aws_client "gitlab.com/fynbos/backend/aws/client"
 	"gitlab.com/fynbos/backend/cli"
 	"gitlab.com/fynbos/backend/contacts"
 	contacts_client "gitlab.com/fynbos/backend/contacts/client"
@@ -40,8 +36,6 @@ import (
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/discord"
 	discord_client "gitlab.com/fynbos/backend/discord/client"
-	"gitlab.com/fynbos/backend/dynamicforms"
-	dynamicforms_client "gitlab.com/fynbos/backend/dynamicforms/client"
 	"gitlab.com/fynbos/backend/email"
 	email_client "gitlab.com/fynbos/backend/email/client"
 	"gitlab.com/fynbos/backend/features"
@@ -76,14 +70,13 @@ import (
 	pti_ops "gitlab.com/fynbos/backend/providers/pti/ops"
 	"gitlab.com/fynbos/backend/providers/xago"
 	xago_client "gitlab.com/fynbos/backend/providers/xago/client"
+	xago_external "gitlab.com/fynbos/backend/providers/xago/external"
 	"gitlab.com/fynbos/backend/rafiki"
 	rafiki_client "gitlab.com/fynbos/backend/rafiki/client"
 	"gitlab.com/fynbos/backend/signup"
 	signup_client "gitlab.com/fynbos/backend/signup/client"
 	"gitlab.com/fynbos/backend/slack"
 	slack_client "gitlab.com/fynbos/backend/slack/client"
-	"gitlab.com/fynbos/backend/statements"
-	statements_client "gitlab.com/fynbos/backend/statements/client"
 	"gitlab.com/fynbos/backend/temporal"
 	"gitlab.com/fynbos/backend/transactions"
 	transactions_client "gitlab.com/fynbos/backend/transactions/client"
@@ -108,6 +101,10 @@ import (
 	"go.temporal.io/sdk/worker"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+
+	// bradu
+	"github.com/lestrrat-go/jwx/v3/jwk"
+	fiant "gitlab.com/fynbos/backend/providers/fiant/v1"
 )
 
 func main() {
@@ -195,18 +192,43 @@ func start(args *cli.StartArgs) {
 	router.Handle("/webhooks/xago", b.xago.WebhookHandler())
 	router.Handle("/webhooks/persona", kyc_ops.NewHandlePersonaWebhook(b))
 	router.Handle("/webhooks/chimoney", chimoney_ops.NewWebhook(b))
+	router.Handle("/.well-known/apple-app-site-association", aassassetlinks.AppSiteAssociationHandler(b.aasaConfig))
+	router.Handle("/.well-known/assetlinks.json", aassassetlinks.AssetLinksHandler(b.aasaConfig))
 
-	ptiWebhook, err := pti_ops.Webhook(b)
-	if err != nil {
-		log.Fatalln(err)
+	if args.PTIEnabled {
+		ptiWebhook, err := pti_ops.Webhook(b)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		router.Handle("/webhooks/pti", ptiWebhook)
 	}
-	router.Handle("/webhooks/pti", ptiWebhook)
-	router.Handle("/webhooks/gatehub", gatehub_ops.NewWebhook(b))
+	router.Handle("/webhooks/gatehub", gatehub_ops.NewWebhook(b, b.gatehubConfig))
+	router.Handle("/webhooks/gatehub/v1/users/managed/{userId}/2fa", gatehub_ops.NewSCAHandler(b, b.gatehubConfig))
 	router.Handle("/{wallet_id}/identities/{identity_sig_hash}", wallet_handler.GetIdentityHandler(b))
 	router.NotFound(wallet_handler.WalletRedirectHandler(b))
 
+	// fiant sandbox actions (only when PTI is enabled)
+	if args.PTIEnabled {
+		ptiPrivateKey, err := jwk.ParseKey([]byte(args.PTIJWK))
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		ctrl, err := fiant.NewController(
+			fiant.WithBaseURL(args.PTIBaseURL),
+			fiant.WithClientID(args.PTIClientID),
+			fiant.WithDerivedKeys(ptiPrivateKey),
+		)
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		router.Handle("/settle/{transaction_id}", ctrl.SettleTransactionHook())
+		router.Handle("/return/{transaction_id}", ctrl.ReturnTransactionHook())
+	}
+	// ~fiant sandbox actions
+
 	var wg sync.WaitGroup
-	serveHTTP(&http.Server{Addr: ":" + args.AuthorisationPort, Handler: auth_http.AuthorisationHTTPHandler(b)}, &wg)
 
 	log.Info("backend running at http://localhost:%s", zap.String("port", args.Port))
 	serveHTTP(&http.Server{Addr: ":" + args.Port, Handler: router}, &wg)
@@ -450,7 +472,7 @@ func startWorker(args *cli.StartArgs) {
 	serveHTTP(&http.Server{Addr: ":8081", Handler: router}, &wg)
 
 	log.Info("Worker creating")
-	w, err := temporal.NewTemporalWorker(b)
+	w, err := temporal.NewTemporalWorker(b, b.gatehubConfig, b.xagoConfig)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -480,8 +502,6 @@ type backends struct {
 	email          email.Client
 	transactions   transactions.Client
 	notify         notify.Client
-	statements     statements.Client
-	auth           authorisation.InternalClient
 	analytics      analytics.Client
 	contacts       contacts.Client
 	limits         limits.Client
@@ -492,15 +512,16 @@ type backends struct {
 	wallet         wallets.Client
 	payment        payments.Client
 	discord        discord.Client
-	dynamicforms   dynamicforms.Client
 	slack          slack.Client
 	rafiki         rafiki.Client
-	aws            aws.Client
 	xago           xago.Client
+	xagoConfig     xago_external.Config
 	pac            pacioli.Client
 	pti            pti.Client
 	gatehub        gatehub.Client
+	gatehubConfig  gatehub.Config
 	chimoney       chimoney.Client
+	aasaConfig     aassassetlinks.Config
 }
 
 func (b backends) Chimoney() chimoney.Client {
@@ -517,14 +538,6 @@ func (b backends) Pacioli() pacioli.Client {
 
 func (b backends) Xago() xago.Client {
 	return b.xago
-}
-
-func (b backends) AWS() aws.Client {
-	return b.aws
-}
-
-func (b backends) DynamicForms() dynamicforms.Client {
-	return b.dynamicforms
 }
 
 func (b backends) Slack() slack.Client {
@@ -549,10 +562,6 @@ func (b backends) Wallets() wallets.Client {
 
 func (b backends) Features() features.Client {
 	return b.feat
-}
-
-func (b backends) Authorisation() authorisation.InternalClient {
-	return b.auth
 }
 
 func (b backends) Transactions() transactions.Client {
@@ -619,10 +628,6 @@ func (b backends) Notify() notify.Client {
 	return b.notify
 }
 
-func (b backends) Statements() statements.Client {
-	return b.statements
-}
-
 func (b backends) Analytics() analytics.Client {
 	return b.analytics
 }
@@ -664,17 +669,11 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	}
 	b.db = db
 
-	cfg := zap.NewProductionConfig()
-	err = cfg.Level.UnmarshalText([]byte(args.LogLevel))
+	// Initialises the logger we will use throughout
+	err = log.Initialize(args.LogLevel)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	cfg.OutputPaths = []string{args.LogOutputPath}
-	logger, err := cfg.Build(zap.AddCallerSkip(1))
-	if err != nil {
-		log.Fatalln(err)
-	}
-	log.Setup(logger)
 
 	tp, err := temporal.NewTemporalClient(args.TemporalUrl)
 	if err != nil {
@@ -692,7 +691,7 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 
 	b.signup = signup_client.New(b)
 
-	b.waitlist = waitlist_client.New(b, logger)
+	b.waitlist = waitlist_client.New(b, log.Logger())
 
 	b.twitter = twitter_client.New(b, &twitter_client.NewClientArgs{
 		ClientID:      args.TwitterClientID,
@@ -711,21 +710,12 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 		RedirectURL:   args.DiscordRedirectURL,
 	})
 
-	b.dynamicforms = dynamicforms_client.New(b)
-
 	b.slack, err = slack_client.New(b)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	b.auth = authorisation_client.New(b)
-
 	b.analytics = analytics_client.New(b, args.SegmentKey)
-
-	b.aws, err = aws_client.New(context.Background())
-	if err != nil {
-		log.Error("failed to start AWS client", zap.Error(err))
-	}
 
 	b.feat = features_client.New(b)
 
@@ -750,7 +740,7 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		b.adminAuth = auth.NewLoggingService(adminUsers, logger)
+		b.adminAuth = auth.NewLoggingService(adminUsers, log.Logger())
 	}
 
 	b.agreements = agreements_client.New(b)
@@ -760,64 +750,98 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 		log.Fatalln(err)
 	}
 
-	logger.Debug("initialising SendGrid")
+	log.Debug("initialising SendGrid")
 	b.email = email_client.New(b, args.SendgridAPIKey)
 
-	logger.Debug("initialising transactions")
+	log.Debug("initialising transactions")
 	b.transactions = transactions_client.New(b)
 
-	logger.Debug("initialising notify")
+	log.Debug("initialising notify")
 	b.notify = notify_client.New(b, args.PusherAddr)
 
-	logger.Debug("initialising statements")
-	b.statements = statements_client.New()
-
-	logger.Debug("initialising limits")
+	log.Debug("initialising limits")
 	b.limits = limits_client.New(b)
 
-	logger.Debug("initialising identities")
+	log.Debug("initialising identities")
 	b.ident = identities_client.New(b)
 
-	logger.Debug("initialising contacts")
+	log.Debug("initialising contacts")
 	b.contacts = contacts_client.New(b)
 
-	logger.Debug("initialising images")
+	log.Debug("initialising images")
 	b.img = img_client.New(b)
 
-	logger.Debug("initialising vault")
+	log.Debug("initialising vault")
 	vc, err := vault.NewClient()
 	if err != nil {
 		log.Error("error vault", zap.Error(err))
 	}
 	b.vault = vc
 
-	logger.Debug("initialising keys")
+	log.Debug("initialising keys")
 	b.keys = keys_client.New(b)
 
-	logger.Debug("initialising validator")
+	log.Debug("initialising validator")
 	b.val = validator.New()
 
-	logger.Debug("initialising rafiki")
+	log.Debug("initialising rafiki")
 	b.rafiki = rafiki_client.New(b)
 
-	logger.Debug("initialising pacioli")
+	log.Debug("initialising pacioli")
 	pacDB, err := otelsqlx.Connect("postgres", args.PacioliDBConString, otelsql.WithAttributes(semconv.DBSystemCockroachdb), otelsql.WithDBName("cockroachdb"))
 	if err != nil {
 		log.Fatalln(err)
 	}
 	b.pac = pacioli_client.NewLocal(pacDB)
 
-	logger.Debug("initialising xago")
-	b.xago = xago_client.New(b)
+	log.Debug("initialising xago")
+	b.xagoConfig = xago_external.Config{
+		APIBaseURL:      args.XagoAPIBaseURL,
+		IdentityBaseURL: args.XagoIdentityBaseURL,
+		PublicKey:       args.XagoPublicKey,
+		Secret:          args.XagoSecret,
+		PolicyID:        args.XagoPolicyID,
+	}
+	b.xago = xago_client.New(b, b.xagoConfig)
 
-	logger.Debug("initialising FIANT")
+	log.Debug("initialising FIANT")
 	b.pti = pti_client.New(b)
 
-	logger.Debug("initialising Gatehub")
-	b.gatehub = gatehub_client.New(b)
+	log.Debug("initialising Gatehub")
+	b.gatehubConfig = gatehub.Config{
+		AppID:                  args.GatehubAppID,
+		Secret:                 args.GatehubSecret,
+		CardAppID:              args.GatehubCardAppID,
+		GatewayID:              args.GatehubGatewayID,
+		CardAccountProductCode: args.GatehubCardAccountProductCode,
+		PaywiserEuroVaultID:    args.GatehubPaywiserEuroVaultID,
+		SendingUserID:          args.GatehubSendingUserID,
+		SendingUserAddress:     args.GatehubSendingUserAddress,
+		WebhookSecret:          args.GatehubWebhookSecret,
+		FallbackWebhookURL:     args.GatehubFallbackWebhookURL,
+		OnOffRampClientID:      args.GatehubOnOffRampClientID,
+		OnboardingClientID:     args.GatehubOnboardingClientID,
+		ExchangeClientID:       args.GatehubExchangeClientID,
+		APIBaseURL:             args.GatehubAPIBaseURL,
+		OnboardingBaseURL:      args.GatehubOnboardingBaseURL,
+		OnOffRampBaseURL:       args.GatehubOnOffRampBaseURL,
+		EUROpsAccount:          args.GatehubEUROpsAccount,
+		EUROpsLedgerID:         args.GatehubEUROpsLedgerID,
+		OrganizationID:         args.GatehubOrganizationID,
+	}
+	b.gatehub = gatehub_client.New(b, b.gatehubConfig)
+	if b.gatehub == nil {
+		log.Fatalln(errors.New("failed to initialize Gatehub client; check Gatehub configuration"))
+	}
 
-	logger.Debug("initialising Chimoney")
+	log.Debug("initialising Chimoney")
 	b.chimoney = chimoney_client.New(b)
+
+	b.aasaConfig = aassassetlinks.Config{
+		AppleAppID:         args.AppleAppID,
+		AndroidPackageName: args.AndroidPackageName,
+		AndroidSHA256:      args.AndroidSHA256,
+	}
 
 	return b
 }

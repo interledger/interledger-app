@@ -1,5 +1,5 @@
-import { json, redirect } from '@remix-run/node'
-import { route } from 'routes-gen'
+import { data, redirect } from 'react-router';
+import { href } from 'react-router'
 import { v4 } from 'uuid'
 import { commitSession, getSession } from '~/session.server'
 
@@ -91,7 +91,7 @@ export async function updateFlow(
 
     return commitSession(session)
   }
-  throw json(
+  throw data(
     {
       title: "Can't update a flow that doesn't exist."
     },
@@ -123,26 +123,26 @@ const flowTemplate = (type: flowType): Flow => {
   switch (type) {
     case flowType.LinkCardAccount:
       return {
-        startRoute: route('/connect/card'),
+        startRoute: href('/connect/card'),
         data: {},
-        returnTo: route('/accounts')
+        returnTo: href('/accounts')
       }
     case flowType.PersonalDetails:
       return {
-        startRoute: route('/personal-details'),
+        startRoute: href('/personal-details'),
         data: {
           idempotencyKey: v4()
         },
-        returnTo: route('/')
+        returnTo: href('/')
       }
     case flowType.PasswordChallenge:
       return {
-        startRoute: route('/login/challenge'),
+        startRoute: href('/login/challenge'),
         data: {},
-        returnTo: route('/settings/password')
+        returnTo: href('/settings/password')
       }
     default:
-      throw json(
+      throw data(
         {
           title: "You specified a flow type that doesn't exist"
         },

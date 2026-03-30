@@ -37,7 +37,7 @@ func (a *Activity) RemoveCustodialKeys(ctx context.Context) error {
 
 	wallets, err := a.b.Wallets().ListAll(ctx, db.Pagination{
 		PageToken: "",
-		PageSize:  50,
+		PageSize:  50000,
 	})
 
 	if err != nil {
