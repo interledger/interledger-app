@@ -9,6 +9,7 @@ import { mergeMeta } from '~/lib/meta'
 import { getSession, commitSession } from '~/session.server'
 import { Form, useActionData, useRouteLoaderData } from '@remix-run/react'
 import { type ApplicationProps, Layouts, WalletGrid, GridColumn, TextField, Button } from '~/components'
+import { BackButton } from '~/components/QuickPay'
 import { createError, getValidWalletAddress, walletSchema } from '~/lib/utils'
 import { json, redirect } from '@remix-run/node'
 import { getUserSession } from '~/lib/kratos.server'
@@ -51,8 +52,8 @@ export default function Page() {
   return (
     <WalletGrid>
       <GridColumn className="col-span-full mt-20 mx-auto">
+        <BackButton title="Home" to="/" />
         <div className="text-3xl">Pay anyone, anywhere in the world.</div>
-
         <Form method="POST" id="ilpay-form" className="mt-16 max-w-96">
           <TextField
             type="text"

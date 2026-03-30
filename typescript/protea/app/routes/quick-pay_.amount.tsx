@@ -7,6 +7,7 @@ import { useLoaderData } from '@remix-run/react'
 import { useEffect } from 'react'
 import type { ApplicationProps } from '~/components'
 import { Button, GridColumn, Layouts, WalletGrid } from '~/components'
+import { BackButton } from '~/components/QuickPay'
 import { DialPad, DialPadIds } from '~/components/QuickPay/Dialpad'
 import { useDialPadContext } from '~/lib/context/dialpad'
 import { mergeMeta } from '~/lib/meta'
@@ -84,6 +85,7 @@ export default function Page() {
       <GridColumn
         className='col-span-full mt-20 mx-auto'
       >
+        <BackButton title="Back" to="/quick-pay" resetAmount/>
         <DialPad />
         <div className="flex justify-center gap-2 mt-12 w-64">
           <Button
