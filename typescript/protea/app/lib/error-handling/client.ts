@@ -1,13 +1,13 @@
 import { href, redirect } from 'react-router'
 import { redirectWithSnackbar } from '../snackbar.server'
-import { BffApiError, isClientError } from './bff-error'
+import { UserFacingError, isClientError } from './bff-error'
 
 /**
  * Higher-order function to intercept a client method call and log errors.
  * `request` is captured from the outer `createClient(request)` closure —
  * no need to pass it into every method, same pattern as grpc.server.ts.
  */
-function withInterceptor<T extends (...args: any[]) => ReturnType<T> | typeof BffApiError>(
+function withInterceptor<T extends (...args: any[]) => ReturnType<T> | typeof UserFacingError>(
     name: string,
     request: Request,
     fn: T
@@ -29,7 +29,7 @@ function withInterceptor<T extends (...args: any[]) => ReturnType<T> | typeof Bf
             }
 
             console.error(`🆘🆘🆘[Interceptor] method "${name}" returning client error:`)
-            return BffApiError(error.message)
+            return UserFacingError(error.message)
         }
 
         return result
@@ -62,11 +62,15 @@ export function createDummyClient(request: Request) {
         }),
 
         submit401: withErrorInterceptor('submit401', (data: any) => {
-            throw new Error('400: Transaction 2 failed: Invalid amount', { cause: 401 })
+            throw new Error('401: Transaction 2 failed: Invalid amount', { cause: 401 })
         }),
 
         submit403: withErrorInterceptor('submit403', (data: any) => {
             throw new Error('403: Transaction 3 failed: Invalid amount', { cause: 403 })
+        }),
+
+        submit500: withErrorInterceptor('submit403', (data: any) => {
+            throw new Error('500: Transaction failed: Invalid amount', { cause: 500 })
         }),
 
         isError: isClientError

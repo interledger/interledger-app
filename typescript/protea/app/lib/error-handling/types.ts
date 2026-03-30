@@ -1,13 +1,16 @@
-export type SuccessfulActionResponse<T = any> = {
+type FormError = Record<string, string>
+type UserFacingErrors<T extends FormError = any> = Partial<Record<keyof T, string>>
+
+export type SuccessfulServerResponse<T = any> = {
     success: true
     data: T
 }
-
-export type UserFacingErrors<T extends Record<string, string> = any> = Partial<Record<keyof T, string>>
-
-export type FailedActionResponse<T = any> = {
+export type FailedServerResponse<T extends FormError = any> = {
     success: false
-    errors: UserFacingErrors
+    message?: string
+    errors?: UserFacingErrors<T>
 }
 
-export type ActionResponse<T = any> = SuccessfulActionResponse<T> | FailedActionResponse<T>
+export type ServerResponse<T extends FormError = any> =
+    SuccessfulServerResponse<T> |
+    FailedServerResponse<T>

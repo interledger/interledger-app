@@ -1,4 +1,4 @@
-import { ActionFunction, Form, LoaderFunction, useFetcher, useLoaderData, data as rrData } from 'react-router';
+import { useFetcher, useLoaderData, data as rrData, LoaderFunctionArgs, ActionFunctionArgs, useRouteError, isRouteErrorResponse } from 'react-router';
 import {
     Button,
     Card,
@@ -10,23 +10,23 @@ import {
 } from '~/components'
 import { useState } from 'react';
 import type { ApplicationProps } from '~/components'
-// import { ErrorMapper } from '~/lib/error-handling/bff-error';
 import { createDummyClient } from '~/lib/error-handling/client';
-import { FailedActionResponse, SuccessfulActionResponse } from '~/lib/error-handling/types';
+import { FailedServerResponse, SuccessfulServerResponse } from '~/lib/error-handling/types';
 
-export async function loader({ request, params }: LoaderFunction) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
     const client = createDummyClient(request)
-    const data = client.getTransactions(true)
+    const clientResp = client.getTransactions()
 
-    if (client.isError(data)) {
-        return rrData<FailedActionResponse>({ success: false, errors: data.message }, { status: 500 })
+    if (client.isError(clientResp)) {
+        const errrrr = clientResp
+        return rrData<FailedServerResponse>({ success: false, message: clientResp.message }, { status: 500 })
     }
 
-    return rrData<SuccessfulActionResponse>({ success: true, data })
+    return rrData<SuccessfulServerResponse>({ success: true, data: clientResp })
 }
 
 export const handle: ApplicationProps = {
-    layout: Layouts.Focus,
+    layout: Layouts.Wallet,
     scaffold: {
         header: {
             title: 'Error Handling Test'
@@ -34,30 +34,33 @@ export const handle: ApplicationProps = {
     }
 }
 
-export async function action({ request, params }: ActionFunction) {
+export async function action({ request, params }: ActionFunctionArgs) {
     const client = createDummyClient(request)
     const formData = await request.formData();
     const data = Object.fromEntries(formData);
     const subType = data.subType as string;
 
-    let result;
+    let clientResp;
     if (subType === 'option1') {
-        result = client.submitSuccesful(data);
+        clientResp = client.submitSuccesful(data);
     } else if (subType === 'option2') {
-        result = client.submit401(data);
+        clientResp = client.submit401(data);
     } else if (subType === 'option3') {
-        result = client.submit403(data);
+        clientResp = client.submit403(data);
+    } else if (subType === 'option4') {
+        clientResp = client.submit500(data);
     } else {
-        result = client.submitSuccesful(data);
+        clientResp = client.submitSuccesful(data);
     }
 
-    if (client.isError(result)) {
+    if (client.isError(clientResp)) {
+        let zzz = clientResp
         // const userFacingError = ErrorMapper.dummyClient.toUserFacingError(result)
         // return rrData<FailedActionResponse>({ success: false, errors: userFacingError.errors }, { status: result.status })
-        return rrData<FailedActionResponse>({ success: false, errors: result.message }, { status: result.status })
+        return rrData<FailedServerResponse>({ success: false, message: clientResp.message })
     }
 
-    return rrData<SuccessfulActionResponse>({ success: true, data: result });
+    return rrData<SuccessfulServerResponse>({ success: true, data: clientResp });
 }
 
 export default function Page() {
@@ -67,14 +70,15 @@ export default function Page() {
     const options = [
         { id: 'option1', name: 'Option 1 (Success)' },
         { id: 'option2', name: 'Option 2 (Error 400)' },
-        { id: 'option3', name: 'Option 3 (Error 403)' }
+        { id: 'option3', name: 'Option 3 (Error 403)' },
+        { id: 'option4', name: 'Option 4 (Error 500)' }
     ]
     const [selectedOption, setSelectedOption] = useState(options[0])
 
     if (loaderData.success == false) {
         return (
             <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-                <h3 className="font-bold">xxxx Error Data from Loader:</h3>
+                <h3 className="font-bold">Error Data from Loader:</h3>
                 <pre className="text-xs overflow-auto">{JSON.stringify(loaderData.errors, null, 2)}</pre>
             </div>
         )
@@ -129,9 +133,34 @@ export default function Page() {
             {fetcher.data && fetcher.data.success == false && (
                 <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
                     <h3 className="font-bold">Error Data from Loader:</h3>
-                    <pre className="text-xs overflow-auto">{JSON.stringify(fetcher.data.errors, null, 2)}</pre>
+                    <pre className="text-xs overflow-auto">Errors: {JSON.stringify(fetcher.data.errors, null, 2)}</pre>
+                    <pre className="text-xs overflow-auto">Message: {JSON.stringify(fetcher.data.message, null, 2)}</pre>
                 </div>
             )}
         </div>
+    )
+}
+
+
+export function ErrorBoundary() {
+    const error = useRouteError()
+    console.error("EROARE: ", error)
+
+    if (isRouteErrorResponse(error)) {
+        return (
+            <>
+                <div>EROARE isRouteErrorResponse: </div>
+                <div>status: ${error.status}</div>
+                <div> statusText: ${error.statusText}</div>
+                <div>data: ${error.data}</div>
+            </>
+        )
+    }
+
+    return (
+        <>
+            <div>EROARE: </div>
+            <div>message: ${(error as any).message}</div>
+        </>
     )
 }

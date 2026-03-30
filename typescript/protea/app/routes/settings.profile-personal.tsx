@@ -1,24 +1,28 @@
 import type { Route } from './+types/settings.profile-personal'
-import { data } from 'react-router';
+import { data, useRouteError } from 'react-router';
 import { useLoaderData } from 'react-router';
 import { DateTime } from 'luxon'
 import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
-import { Card, CardContent, Icon, Layouts } from '~/components'
+import { Card, CardContent, Icon, Layouts, Error } from '~/components'
 import { Label } from '~/components/Label'
 import { getKycStatus } from '~/data/wallet.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
+import { ErrorHandler, ErrorMapper, UserFacingErrorType } from '~/lib/error-handling/bff-error';
 
 export async function loader({ request }: Route.LoaderArgs) {
   const kycStatus = await getKycStatus(request)
 
   const kycDetails = await grpc.getIndividualKYC(request, {})
-  if (isConnectError(kycDetails)) throw kycDetails.errorResponse
+  if (isConnectError(kycDetails)) {
+    const userFacingError = ErrorMapper.grpc.toUserFacingError(kycDetails)
+    return ErrorHandler(request, userFacingError)
+  }
 
   let countries = await grpc.getCountries(request, {})
-  if (isConnectError(countries)) throw countries.errorResponse
+  if (isConnectError(countries)) throw countries
 
   let gender = {
     icon: '',
@@ -138,5 +142,14 @@ export default function Page() {
         </div>
       </CardContent>
     </Card>
+  )
+}
+
+export function ErrorBoundary() {
+  const errorF = useRouteError()
+  const error = (errorF as UserFacingErrorType).message
+
+  return (
+    <div>Encountered error : ${JSON.stringify(error)}</div>
   )
 }
