@@ -169,7 +169,7 @@ To enable it, switch the Dockerfile in [wallet.yaml](./wallet.yaml) to the debug
 # wallet.yaml
 build:
   context: ../go
-  dockerfile: backend/Dockerfile.delve  # switch to this
+  dockerfile: backend/Dockerfile.debug  # switch to this
   # dockerfile: backend/Dockerfile
 ```
 
