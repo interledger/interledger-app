@@ -64,6 +64,16 @@ export async function fetchQuote(
   }
 
   // create quote with debit amount, you don't care how much money receiver gets
+  console.log({
+    url: walletAddress.resourceServer,
+    accessToken: quoteGrant.access_token?.value || ''
+  })
+  console.log({
+    method: 'ilp',
+    walletAddress: walletAddress.id,
+    receiver: incomingPayment.id,
+    debitAmount: amountObj
+  })
   const quote = await opClient.quote
     .create(
       {
@@ -308,6 +318,7 @@ export async function finishPayment(
       interact_ref: interactRef
     }
   )
+  console.log('CONTINUATION RESPONSE:', continuation)
 
   if (!isFinalizedGrantWithAccessToken(continuation)) {
     throw new Error('Expected finalized grant. Received non-finalized grant.')
@@ -490,4 +501,39 @@ async function getIncomingPaymentGrant(
   }
 
   return nonInteractiveGrant
+}
+
+export type GrantStatus = 'pending' | 'finalized' | 'unknown'
+
+export async function getGrantStatus(
+  continueAccessToken: string,
+  continueUri: string,
+  interactRef: string
+): Promise<GrantStatus> {
+  const opClient = await createClient()
+
+  const grant = await opClient.grant
+    .continue(
+      {
+        accessToken: continueAccessToken,
+        url: continueUri
+      },
+      {
+        interact_ref: interactRef
+      }
+    )
+    .catch((err) => {
+      console.log({err})
+      throw new Error('Could not retrieve grant status.')
+    })
+
+  if (isPendingGrant(grant)) {
+    return 'pending'
+  }
+
+  if (isFinalizedGrantWithAccessToken(grant)) {
+    return 'finalized'
+  }
+
+  return 'unknown'
 }
