@@ -90,17 +90,37 @@ func TestHandleActionRequiredWebhook_StatusDocumentsRequired(t *testing.T) {
 	tests := []struct {
 		name      string
 		eventType string
-		reason    string
+		message   string
+		expected  string
 	}{
 		{
 			name:      "action required",
 			eventType: "id.verification.action_required",
-			reason:    "Additional documents required",
+			message:   "Additional documents required",
+			expected:  "Additional documents required",
 		},
 		{
 			name:      "document expired",
 			eventType: "id.document_notice.expired",
-			reason:    "Document expired",
+			message:   "Document expired",
+			expected:  "Document expired",
+		},
+		{
+			name:      "uses message when reason missing",
+			eventType: "id.verification.action_required",
+			message:   "<p>Please re-submit your identification document.</p>",
+			expected:  "<p>Please re-submit your identification document.</p>",
+		},
+		{
+			name:      "message takes precedence over reason",
+			eventType: "id.verification.action_required",
+			message:   "<p>Fallback message</p>",
+			expected:  "<p>Fallback message</p>",
+		},
+		{
+			name:      "empty reason when message missing",
+			eventType: "id.verification.action_required",
+			expected:  "",
 		},
 	}
 
@@ -112,7 +132,7 @@ func TestHandleActionRequiredWebhook_StatusDocumentsRequired(t *testing.T) {
 				UserID:    externalUserID,
 				Data: ActionRequiredWebhookData{
 					Gateway: "Paywiser",
-					Reason:  tt.reason,
+					Message: tt.message,
 				},
 			})
 			require.NoError(t, err)
@@ -120,7 +140,7 @@ func TestHandleActionRequiredWebhook_StatusDocumentsRequired(t *testing.T) {
 			kc.EXPECT().SetKYCStatus(ctx, kycclient.StatusUpdateArgs{
 				WalletID:  walletID,
 				Status:    kycclient.StatusDocumentsRequired,
-				Reason:    tt.reason,
+				Reason:    tt.expected,
 				EventType: tt.eventType,
 			}).Return(nil)
 
@@ -155,7 +175,6 @@ func TestHandleActionRequiredWebhook_WalletNotFound(t *testing.T) {
 		UserID:    "missing-user",
 		Data: ActionRequiredWebhookData{
 			Gateway: "Paywiser",
-			Reason:  "Missing docs",
 		},
 	})
 	require.NoError(t, err)
@@ -180,7 +199,6 @@ func TestHandleActionRequiredWebhook_IgnoresOtherGateways(t *testing.T) {
 		UserID:    "ignored-user",
 		Data: ActionRequiredWebhookData{
 			Gateway: "Other Gateway",
-			Reason:  "Ignored",
 		},
 	})
 	require.NoError(t, err)
@@ -211,7 +229,7 @@ func TestHandleActionRequiredWebhook_SetKYCStatusError(t *testing.T) {
 		UserID:    externalUserID,
 		Data: ActionRequiredWebhookData{
 			Gateway: "Paywiser",
-			Reason:  "Additional documents required",
+			Message: "Additional documents required",
 		},
 	})
 	require.NoError(t, err)

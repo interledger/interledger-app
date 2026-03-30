@@ -135,7 +135,7 @@ type (
 	}
 
 	ActionRequiredWebhookData struct {
-		Reason         string `json:"reason,omitempty"`
+		Message        string `json:"message,omitempty"`
 		Gateway        string `json:"gateway"`
 		ExpirationDate string `json:"expiration_date,omitempty"`
 	}
@@ -293,17 +293,18 @@ func HandleActionRequiredWebhook(ctx context.Context, b Backends, raw json.RawMe
 	}
 
 	status := kyc.StatusDocumentsRequired
+	reason := strings.TrimSpace(wh.Data.Message)
 
 	log.Info("KYC resubmission required",
 		zap.String("wallet_id", walletID),
 		zap.String("event_type", wh.EventType),
-		zap.String("reason", wh.Data.Reason),
+		zap.String("reason", reason),
 	)
 
 	err = b.KYC().SetKYCStatus(ctx, kyc.StatusUpdateArgs{
 		WalletID:  walletID,
 		Status:    status,
-		Reason:    wh.Data.Reason,
+		Reason:    reason,
 		EventType: wh.EventType,
 	})
 	if err != nil {
