@@ -99,8 +99,7 @@ export function Scaffold() {
   const matches = useMatches()
   const navigate = useNavigate()
   const [search] = useSearchParams()
-  const rootData = useRouteLoaderData('root') as RootLoaderData
-  const { isUser, snackbar, features } = rootData || {}
+  const { isUser, snackbar, features } = useRouteLoaderData('root') as RootLoaderData
 
   const currentPath = matches[matches.length - 1]?.pathname
 
@@ -130,7 +129,7 @@ export function Scaffold() {
     ApplicationProps
   >
 
-  const scaffold: ScaffoldProps | undefined = currentMatch.handle?.scaffold
+  const scaffold: ScaffoldProps | undefined = currentMatch.handle.scaffold
 
   const [pushSnackbar, setCommandPaletteOpen] = useScaffoldStore((state) => [
     state.pushSnackbar,
