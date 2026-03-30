@@ -70,42 +70,6 @@ export const ErrorHandler = (request: Request, ufe: UserFacingErrorType, cb?: ()
     throw ufe
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/**
-type Fields = {
-  email: string
-  password: string
-}
-
-type LoginError = UserFacingError<Fields>
-// => { errors: Record<'email' | 'password', string> }
- */
-// export type UserFacingErrorType<T extends Record<string, any> = any> = {
-//     errors: Partial<Record<keyof T, any>>
-//     status: number
-// }
 const deleteLastPathArgument = (path: string) => {
     return path.substring(0, path.lastIndexOf('/'));
-}
-
-
-// Utility function to be used in Bff to check for errors in client responses
-export const isClientError = (data: any): data is ReturnType<typeof UserFacingError> => {
-    return data && typeof data === 'object' && 'status' in data && 'message' in data
 }

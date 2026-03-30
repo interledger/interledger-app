@@ -144,12 +144,3 @@ export default function Page() {
     </Card>
   )
 }
-
-export function ErrorBoundary() {
-  const errorF = useRouteError()
-  const error = (errorF as UserFacingErrorType).message
-
-  return (
-    <div>Encountered error : ${JSON.stringify(error)}</div>
-  )
-}
