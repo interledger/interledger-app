@@ -1,6 +1,7 @@
 package geo
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"strings"
@@ -276,6 +277,31 @@ func validateCommas(s string) error {
 // String returns the string representation of the currency amount with formatting.
 func (c *Currency) String() string {
 	return c.asset.Format(c.Amount())
+}
+
+type currencyJSON struct {
+	Asset  Asset  `json:"asset"`
+	Amount string `json:"amount"`
+}
+
+// MarshalJSON implements json.Marshaler for Currency.
+// Serializes as {"asset":"USD","amount":"123.45"}.
+func (c *Currency) MarshalJSON() ([]byte, error) {
+	return json.Marshal(currencyJSON{
+		Asset:  c.asset,
+		Amount: c.Amount(),
+	})
+}
+
+// UnmarshalJSON implements json.Unmarshaler for Currency.
+// Expects {"asset":"USD","amount":"123.45"}.
+func (c *Currency) UnmarshalJSON(data []byte) error {
+	var j currencyJSON
+	if err := json.Unmarshal(data, &j); err != nil {
+		return err
+	}
+	c.asset = j.Asset
+	return c.SetAmountString(j.Amount)
 }
 
 // ToProtoGeoV1 converts the Currency to its protobuf representation.

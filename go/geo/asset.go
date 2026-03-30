@@ -1,6 +1,7 @@
 package geo
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/big"
 
@@ -111,6 +112,27 @@ var assets = map[string]Asset{
 func GetAsset(code string) (Asset, bool) {
 	asset, ok := assets[code]
 	return asset, ok
+}
+
+// MarshalJSON implements json.Marshaler for Asset.
+// Serializes as the ISO 4217 code string, e.g. "USD".
+func (a Asset) MarshalJSON() ([]byte, error) {
+	return json.Marshal(a.code)
+}
+
+// UnmarshalJSON implements json.Unmarshaler for Asset.
+// Expects a JSON string containing a supported ISO 4217 code.
+func (a *Asset) UnmarshalJSON(data []byte) error {
+	var code string
+	if err := json.Unmarshal(data, &code); err != nil {
+		return err
+	}
+	asset, ok := GetAsset(code)
+	if !ok {
+		return fmt.Errorf("%w: %s", ErrUnsupportedAsset, code)
+	}
+	*a = asset
+	return nil
 }
 
 // IsSupported returns true if the given asset code is supported.
