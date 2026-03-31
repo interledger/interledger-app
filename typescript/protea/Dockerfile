@@ -37,8 +37,6 @@ COPY . .
 COPY --from=deps /app/node_modules ./node_modules
 RUN corepack enable && corepack prepare pnpm@8.5.0 --activate
 RUN pnpm build
-RUN ls -la build/ && (ls -la build/server/ 2>/dev/null || true)
-# RUN mv build/index.js build/index.cjs
 
 ENV SENTRY_ORG=${SENTRY_ORG}
 ENV SENTRY_PROJECT=${SENTRY_PROJECT}
@@ -66,8 +64,8 @@ RUN addgroup -g 1001 -S nodejs
 RUN adduser -S remix -u 1001
 
 ENV COREPACK_HOME=/app/.corepack
+RUN mkdir -p /app/.corepack && chown -R remix:nodejs /app/.corepack && chmod 755 /app/.corepack
 RUN corepack enable && corepack prepare pnpm@8.5.0 --activate
-RUN chmod -R 777 /app/.corepack
 
 # You only need to copy remix.config.js if you are NOT using the default configuration
 # COPY --from=builder /app/remix.config.js ./
