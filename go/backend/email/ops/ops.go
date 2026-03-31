@@ -502,7 +502,7 @@ func SendPending3DSConfirmation(ctx context.Context, b Backends, walletID, confi
 	}
 }
 
-func SendKYCDocumentsRequiredEmail(ctx context.Context, b Backends, walletID, reason string) {
+func SendKYCDocumentsRequiredEmail(ctx context.Context, b Backends, walletID string) {
 	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
 	if err != nil {
 		log.Error("Failed to send KYC documents required email.", zap.Error(err), zap.String("walletID", walletID))
@@ -515,16 +515,11 @@ func SendKYCDocumentsRequiredEmail(ctx context.Context, b Backends, walletID, re
 		return
 	}
 
-	reasonText := reason
-	if reasonText == "" {
-		reasonText = "We were unable to verify your identity with the documents provided."
-	}
-
 	err = b.External().SendTemplate(ctx, "Action Required – Please Resubmit Your Verification Documents", sendTo, oneTemplateID, map[string]interface{}{
 		"subject": "Action Required – Please Resubmit Your Verification Documents",
 		"data": []map[string]interface{}{
 			{"paragraph": greeting},
-			{"paragraph": reasonText},
+			{"paragraph": "Your KYC submission needs attention."},
 			{"paragraph": "To continue using your wallet, please log in to your account and upload the requested documents."},
 		},
 		"cta": map[string]interface{}{

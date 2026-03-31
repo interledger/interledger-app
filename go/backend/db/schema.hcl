@@ -1176,24 +1176,6 @@ table "wallet_kyc_status" {
     null = false
     type = int
   }
-  column "status_reason" {
-    null = true
-    type = text
-  }
-  column "last_webhook_event_type" {
-    null = true
-    type = text
-  }
-  column "resubmission_count" {
-    null    = false
-    type    = int
-    default = 0
-  }
-  column "document_expiration_date" {
-    null    = true
-    type    = date
-    comment = "Phase 2: Tracks when documents will expire"
-  }
   column "created_at" {
     null    = false
     type    = timestamp
@@ -1210,9 +1192,6 @@ table "wallet_kyc_status" {
   index "wallet_id" {
     unique  = true
     columns = [column.wallet_id]
-  }
-  index "wallet_kyc_status_document_expiration_date_idx" {
-    columns = [column.document_expiration_date]
   }
 }
 

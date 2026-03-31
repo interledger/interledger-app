@@ -135,7 +135,6 @@ type (
 	}
 
 	ActionRequiredWebhookData struct {
-		Reason         string `json:"reason,omitempty"`
 		Gateway        string `json:"gateway"`
 		ExpirationDate string `json:"expiration_date,omitempty"`
 	}
@@ -297,18 +296,14 @@ func HandleActionRequiredWebhook(ctx context.Context, b Backends, raw json.RawMe
 	log.Info("KYC resubmission required",
 		zap.String("wallet_id", walletID),
 		zap.String("event_type", wh.EventType),
-		zap.String("reason", wh.Data.Reason),
 	)
 
-	err = b.KYC().SetKYCStatus(ctx, walletID, status, wh.Data.Reason)
+	err = b.KYC().SetKYCStatus(ctx, walletID, status)
 	if err != nil {
 		log.Error("Failed to update KYC status", zap.String("wallet_id", walletID), zap.Error(err))
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
-
-	// TODO(Task 1.6): Replace SetKYCStatus with SetKYCStatusWithMetadata to
-	// persist webhook reason/event details and increment resubmission_count.
 
 	slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "wallet-info-bot",
 		fmt.Sprintf("KYC resubmission required - walletID: %s, event: %s", walletID, wh.EventType),

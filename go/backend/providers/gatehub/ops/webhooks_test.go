@@ -90,17 +90,14 @@ func TestHandleActionRequiredWebhook_StatusDocumentsRequired(t *testing.T) {
 	tests := []struct {
 		name      string
 		eventType string
-		reason    string
 	}{
 		{
 			name:      "action required",
 			eventType: "id.verification.action_required",
-			reason:    "Additional documents required",
 		},
 		{
 			name:      "document expired",
 			eventType: "id.document_notice.expired",
-			reason:    "Document expired",
 		},
 	}
 
@@ -112,12 +109,11 @@ func TestHandleActionRequiredWebhook_StatusDocumentsRequired(t *testing.T) {
 				UserID:    externalUserID,
 				Data: ActionRequiredWebhookData{
 					Gateway: "Paywiser",
-					Reason:  tt.reason,
 				},
 			})
 			require.NoError(t, err)
 
-			kc.EXPECT().SetKYCStatus(ctx, walletID, kycclient.StatusDocumentsRequired, tt.reason).Return(nil)
+			kc.EXPECT().SetKYCStatus(ctx, walletID, kycclient.StatusDocumentsRequired).Return(nil)
 
 			rr := httptest.NewRecorder()
 			HandleActionRequiredWebhook(ctx, b, payload, rr)
@@ -150,7 +146,6 @@ func TestHandleActionRequiredWebhook_WalletNotFound(t *testing.T) {
 		UserID:    "missing-user",
 		Data: ActionRequiredWebhookData{
 			Gateway: "Paywiser",
-			Reason:  "Missing docs",
 		},
 	})
 	require.NoError(t, err)
@@ -175,7 +170,6 @@ func TestHandleActionRequiredWebhook_IgnoresOtherGateways(t *testing.T) {
 		UserID:    "ignored-user",
 		Data: ActionRequiredWebhookData{
 			Gateway: "Other Gateway",
-			Reason:  "Ignored",
 		},
 	})
 	require.NoError(t, err)
@@ -206,12 +200,11 @@ func TestHandleActionRequiredWebhook_SetKYCStatusError(t *testing.T) {
 		UserID:    externalUserID,
 		Data: ActionRequiredWebhookData{
 			Gateway: "Paywiser",
-			Reason:  "Additional documents required",
 		},
 	})
 	require.NoError(t, err)
 
-	kc.EXPECT().SetKYCStatus(ctx, walletID, kycclient.StatusDocumentsRequired, "Additional documents required").Return(errors.New("write failed"))
+	kc.EXPECT().SetKYCStatus(ctx, walletID, kycclient.StatusDocumentsRequired).Return(errors.New("write failed"))
 
 	rr := httptest.NewRecorder()
 	HandleActionRequiredWebhook(ctx, b, payload, rr)
