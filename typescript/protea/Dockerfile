@@ -67,17 +67,19 @@ RUN adduser -S remix -u 1001
 
 ARG SENTRY_RELEASE
 
+WORKDIR /app
 ENV COREPACK_HOME=/app/.corepack
-RUN mkdir -p /app/.corepack && chown -R remix:nodejs /app/.corepack && chmod 755 /app/.corepack
-USER remix
-RUN corepack prepare pnpm@8.5.0 --activate
+RUN mkdir -p /app/.corepack && chown -R remix:nodejs /app && chmod 755 /app/.corepack
 
 # You only need to copy remix.config.js if you are NOT using the default configuration
 # COPY --from=builder /app/remix.config.js ./
-COPY --from=builder /app/public ./public
+COPY --from=builder --chown=remix:nodejs /app/public ./public
 COPY --from=builder --chown=remix:nodejs /app/build ./build
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
+COPY --from=builder --chown=remix:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=remix:nodejs /app/package.json ./package.json
+
+USER remix
+RUN corepack prepare pnpm@8.5.0 --activate
 RUN find ./build -type f -name '*.map' -delete
 
 ENV NODE_ENV=production

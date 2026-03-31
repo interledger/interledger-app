@@ -45,13 +45,15 @@ export default defineConfig(({ isSsrBuild }) => ({
       './app/entry.client.tsx',
       './app/entry.server.tsx'
     ],
-    include: [
-      // These shims are only needed for the browser build. The SSR bundle must keep
-      // Node's native process object so startup code can fail fast with process.exit.
-      'vite-plugin-node-polyfills/shims/buffer',
-      'vite-plugin-node-polyfills/shims/global',
-      'vite-plugin-node-polyfills/shims/process'
-    ]
+    ...(!isSsrBuild && {
+      include: [
+        // These shims are only needed for the browser build. The SSR bundle must keep
+        // Node's native process object so startup code can fail fast with process.exit.
+        'vite-plugin-node-polyfills/shims/buffer',
+        'vite-plugin-node-polyfills/shims/global',
+        'vite-plugin-node-polyfills/shims/process'
+      ]
+    })
   },
   ssr: {
     // react-datocms is ESM-only (no CJS build). Vite's SSR output is CJS by default, and when
