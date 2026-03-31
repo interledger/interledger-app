@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
-    "build": "react-router typegen && pnpm typecheck && vite build",
-    "start": "react-router-serve ./build/index.js",
+    "build": "react-router typegen && pnpm typecheck && react-router build",
+    "start": "react-router-serve ./build/server/index.js",
     "lint": "eslint --fix --cache --cache-location ./node_modules/.cache/eslint .",
     "typecheck": "tsc -b",
     "format": "prettier --write .",
