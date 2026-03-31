@@ -1,6 +1,6 @@
-PROTEA_EFFECTIVE_BUILD_TARGET := $(if $(PROTEA_BUILD_TARGET),$(PROTEA_BUILD_TARGET),runner)
-PROTEA_RUNNER_OVERRIDE := $(if $(filter runner,$(PROTEA_EFFECTIVE_BUILD_TARGET)),-f protea.runner.mounts.yaml,)
-COMPOSE := docker compose -f docker-compose.yaml $(PROTEA_RUNNER_OVERRIDE)
+PROTEA_EFFECTIVE_BUILD_TARGET := $(if $(PROTEA_BUILD_TARGET),$(PROTEA_BUILD_TARGET),dev)
+PROTEA_DEV_OVERRIDE := $(if $(filter dev,$(PROTEA_EFFECTIVE_BUILD_TARGET)),-f protea.dev.mounts.yaml,)
+COMPOSE := docker compose -f docker-compose.yaml $(PROTEA_DEV_OVERRIDE)
 
 help:
 	@echo "make <command>"

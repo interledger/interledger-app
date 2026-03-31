@@ -18,7 +18,8 @@ Build behavior:
 - `BOTANIST_BUILD_TARGET` controls the Dockerfile stage used for Botanist (`dev` or `runner`).
 - Default is `dev` for local development.
 - E2E CI sets both to `runner`.
-- Via `make` targets, Protea source bind mounts are applied only when `PROTEA_BUILD_TARGET=runner` (using `protea.runner.mounts.yaml`).
+- Via `make` targets, Protea source bind mounts are applied only when `PROTEA_BUILD_TARGET=dev` (using `protea.dev.mounts.yaml`).
+- When `PROTEA_BUILD_TARGET=runner` (for example in E2E CI), Protea runs without source bind mounts.
 
 ```sh
 cp example.env .env
