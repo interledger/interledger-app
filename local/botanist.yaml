@@ -2,7 +2,7 @@ services:
   botanist:
     build:
       context: ../typescript/botanist
-      target: dev
+      target: ${BOTANIST_BUILD_TARGET:-dev}
     profiles:
       - application
       - frontend

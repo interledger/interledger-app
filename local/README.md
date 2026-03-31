@@ -13,6 +13,12 @@ Environment variable names are prefixed by service to avoid collisions:
 - `BACKEND_*` configures the wallet backend and shared mock credentials used by `mockgatehub`, `mockxago`, and `mockpti`
 - `PROTEA_*` configures the Protea frontend
 
+Build behavior:
+- `PROTEA_BUILD_TARGET` controls the Dockerfile stage used for Protea (`dev` or `runner`).
+- `BOTANIST_BUILD_TARGET` controls the Dockerfile stage used for Botanist (`dev` or `runner`).
+- Default is `dev` for local development.
+- E2E CI sets both to `runner`.
+
 ```sh
 cp example.env .env
 ```

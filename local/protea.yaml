@@ -2,7 +2,7 @@ services:
   protea:
     build:
       context: ../typescript/protea
-      target: dev
+      target: ${PROTEA_BUILD_TARGET:-dev}
     profiles:
       - application
       - frontend
@@ -65,6 +65,7 @@ services:
       - CF_TURNSTILE_SITE_KEY=${PROTEA_CF_TURNSTILE_SITE_KEY:-}
       - CF_TURNSTILE_SECRET_KEY=${PROTEA_CF_TURNSTILE_SECRET_KEY:-}
       - GATE_SIGNUP=${PROTEA_GATE_SIGNUP:-false}
+      - REMIX_PUBLIC_PATH=https://interledger.test
 
     depends_on:
       - backend
