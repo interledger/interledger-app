@@ -2,7 +2,7 @@ services:
   protea:
     build:
       context: ../typescript/protea
-      target: ${PROTEA_BUILD_TARGET:-runner}
+      target: ${PROTEA_BUILD_TARGET:-dev}
     profiles:
       - application
       - frontend
