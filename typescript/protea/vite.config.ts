@@ -54,6 +54,6 @@ export default defineConfig({
     // a package is externalized Vite emits require() for it — which Node can't execute against
     // a pure-ESM package. noExternal forces Vite to bundle react-datocms inline into the SSR
     // output and transform it to CJS, avoiding the runtime crash.
-    noExternal: ['react-datocms'],
+    noExternal: ['react-datocms']
   },
 });
