@@ -416,7 +416,7 @@ message GetWalletXagoBalanceResponse {
 }
 
 message Amount {
-  uint64 amount = 1;
+  int64 amount = 1;
   string asset = 2;
   int32 assetScale = 3;
   string country = 4;
