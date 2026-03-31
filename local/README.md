@@ -41,6 +41,9 @@ backend|back            Just backends services
 frontend|front          Just frontends services
 all                     All services (infra, svc, app)
 
+build                   Build all images
+pull                    Pull all images
+
 down                    Stop all running services
 delete-volumes|reset    Stop all services and remove associated volumes
 
@@ -103,6 +106,17 @@ The ```help``` in the ```Makefile``` should be enough to provide the support in 
     ```
 
 > **TIP:** Start ```infra``` first, ```svc``` next followed by ```app```, use 3 terminal tabs or ```tmux``` or ```screen```.
+
+### Building and pulling images
+To build all images without starting any services:
+```sh
+make build
+```
+
+To pull all images without starting any services:
+```sh
+make pull
+```
 
 ### Docker compose interface
 If you prefer using plain docker compose here's some tips.
