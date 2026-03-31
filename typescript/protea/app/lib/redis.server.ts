@@ -1,6 +1,7 @@
-import type { RedisClientType } from '@redis/client'
 import { createClient } from '@redis/client'
 import logger from './logger.server'
+
+type RedisClient = ReturnType<typeof createClient>
 
 const REDIS_STARTUP_ATTEMPTS = 3
 const REDIS_RETRY_DELAY_MS = 3000
@@ -13,19 +14,24 @@ if (!configuredRedisUrl) {
   process.exit(1)
 }
 
-let redisClient: RedisClientType = createClient({
-  url: configuredRedisUrl,
-  socket: {
-    reconnectStrategy: 5000
-  }
-})
+interface RedisRuntimeState {
+  client?: RedisClient
+  startupConnectionPromise: Promise<void>
+}
+
+declare global {
+  var __redisRuntimeState: RedisRuntimeState | undefined
+}
+
+let redisClient!: RedisClient
 
 const getRedisTargetForLogs = (redisUrl: string) => {
   try {
     const parsed = new URL(redisUrl)
     return `${parsed.hostname}:${parsed.port || '6379'}`
   } catch {
-    return redisUrl
+    // Avoid leaking credentials from malformed URLs into logs.
+    return '<invalid redis url>'
   }
 }
 
@@ -38,10 +44,21 @@ logger.info(
   'Initializing Redis client'
 )
 
-const attachRedisErrorLogger = (client: RedisClientType) => {
+const attachRedisErrorLogger = (client: RedisClient) => {
   client.on('error', (err) => {
     logger.error({ error: err.message }, 'Redis error')
   })
+}
+
+const createRedisClientWithLogging = (): RedisClient => {
+  const client = createClient({
+    url: configuredRedisUrl,
+    socket: {
+      reconnectStrategy: 5000
+    }
+  })
+  attachRedisErrorLogger(client)
+  return client
 }
 
 const delay = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms))
@@ -50,13 +67,10 @@ const connectWithRetry = async (): Promise<void> => {
   let lastError: unknown
 
   for (let attempt = 1; attempt <= REDIS_STARTUP_ATTEMPTS; attempt++) {
-    redisClient = createClient({
-      url: configuredRedisUrl,
-      socket: {
-        reconnectStrategy: 5000
-      }
-    })
-    attachRedisErrorLogger(redisClient)
+    redisClient = createRedisClientWithLogging()
+    if (global.__redisRuntimeState) {
+      global.__redisRuntimeState.client = redisClient
+    }
 
     try {
       await redisClient.connect()
@@ -75,7 +89,7 @@ const connectWithRetry = async (): Promise<void> => {
       )
 
       try {
-        redisClient.disconnect()
+        await redisClient.disconnect()
       } catch {
         // Ignore cleanup errors and continue retry loop.
       }
@@ -97,7 +111,20 @@ const connectWithRetry = async (): Promise<void> => {
   process.exit(1)
 }
 
-const startupConnectionPromise = connectWithRetry()
+let startupConnectionPromise: Promise<void>
+
+if (global.__redisRuntimeState) {
+  if (global.__redisRuntimeState.client) {
+    redisClient = global.__redisRuntimeState.client
+  }
+  startupConnectionPromise = global.__redisRuntimeState.startupConnectionPromise
+} else {
+  startupConnectionPromise = connectWithRetry()
+  global.__redisRuntimeState = {
+    client: redisClient,
+    startupConnectionPromise
+  }
+}
 
 const waitForRedisConnection = async (timeout: number = DEFAULT_WAIT_TIMEOUT_MS): Promise<void> => {
   await Promise.race([
