@@ -1,6 +1,4 @@
-PROTEA_EFFECTIVE_BUILD_TARGET := $(if $(PROTEA_BUILD_TARGET),$(PROTEA_BUILD_TARGET),dev)
-PROTEA_DEV_OVERRIDE := $(if $(filter dev,$(PROTEA_EFFECTIVE_BUILD_TARGET)),-f protea.dev.mounts.yaml,)
-COMPOSE := docker compose -f docker-compose.yaml $(PROTEA_DEV_OVERRIDE)
+COMPOSE := docker compose
 
 help:
 	@echo "make <command>"
@@ -98,6 +96,9 @@ all:
 
 all-nowatch:
 	$(COMPOSE) --profile "*" up -d
+
+all-ci:
+	$(COMPOSE) -f docker-compose.yaml -f protea.runner.mounts.yaml --profile "*" up -d
 
 build:
 	$(COMPOSE) --profile "*" build
