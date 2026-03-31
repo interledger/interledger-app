@@ -50,8 +50,8 @@ func (c client) GetKYCStatus(ctx context.Context, walletID string) (kyc.Status, 
 	return ops.GetKYCStatus(ctx, c.b, walletID)
 }
 
-func (c client) SetKYCStatus(ctx context.Context, walletID string, status kyc.Status, reason ...string) error {
-	return ops.SetKYCStatus(ctx, c.b, walletID, status, reason...)
+func (c client) SetKYCStatus(ctx context.Context, walletID string, status kyc.Status) error {
+	return ops.SetKYCStatus(ctx, c.b, walletID, status)
 }
 
 func (c client) GetPersonaInquiry(ctx context.Context, walletID, idempotencyKey string) (*kyc.PersonaInquiry, error) {

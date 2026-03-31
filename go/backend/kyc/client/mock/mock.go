@@ -156,22 +156,17 @@ func (mr *MockClientMockRecorder) IsUSPSAddress(ctx, address interface{}) *gomoc
 }
 
 // SetKYCStatus mocks base method.
-func (m *MockClient) SetKYCStatus(ctx context.Context, walletID string, status kyc.Status, reason ...string) error {
+func (m *MockClient) SetKYCStatus(ctx context.Context, walletID string, status kyc.Status) error {
 	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx, walletID, status}
-	for _, a := range reason {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "SetKYCStatus", varargs...)
+	ret := m.ctrl.Call(m, "SetKYCStatus", ctx, walletID, status)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SetKYCStatus indicates an expected call of SetKYCStatus.
-func (mr *MockClientMockRecorder) SetKYCStatus(ctx, walletID, status interface{}, reason ...interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) SetKYCStatus(ctx, walletID, status interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx, walletID, status}, reason...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetKYCStatus", reflect.TypeOf((*MockClient)(nil).SetKYCStatus), varargs...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetKYCStatus", reflect.TypeOf((*MockClient)(nil).SetKYCStatus), ctx, walletID, status)
 }
 
 // UpdateIndividualDetails mocks base method.

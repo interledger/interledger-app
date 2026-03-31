@@ -92,6 +92,6 @@ func (c *client) SendPending3DSConfirmation(ctx context.Context, walletID, confi
 	ops.SendPending3DSConfirmation(ctx, c.b, walletID, confirmationID)
 }
 
-func (c *client) SendKYCDocumentsRequiredEmail(ctx context.Context, walletID, reason string) {
-	ops.SendKYCDocumentsRequiredEmail(ctx, c.b, walletID, reason)
+func (c *client) SendKYCDocumentsRequiredEmail(ctx context.Context, walletID string) {
+	ops.SendKYCDocumentsRequiredEmail(ctx, c.b, walletID)
 }
