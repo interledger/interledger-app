@@ -1,0 +1,6 @@
+services:
+  protea:
+    volumes:
+      - ../typescript/protea:/app:rw
+      # Exclude node_modules from sync when source is bind-mounted
+      - /app/node_modules

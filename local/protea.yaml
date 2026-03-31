@@ -2,15 +2,11 @@ services:
   protea:
     build:
       context: ../typescript/protea
-      target: ${PROTEA_BUILD_TARGET:-dev}
+      target: ${PROTEA_BUILD_TARGET:-runner}
     profiles:
       - application
       - frontend
     restart: always
-    volumes:
-      - ../typescript/protea:/app:rw
-      # Exclude node_modules from sync - use container's version
-      - /app/node_modules
     ports:
       - "3000:3000" # http port
       - "8002:8002" # websocket port
