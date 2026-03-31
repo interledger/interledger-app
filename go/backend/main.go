@@ -805,6 +805,7 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	b.xago = xago_client.New(b, b.xagoConfig)
 
 	log.Debug("initialising FIANT")
+	pti_ops.ConfigureWidgetURLs(args.PTISDKURL, args.PTIFormsURL, args.PTIClientID)
 	b.pti = pti_client.New(b)
 
 	log.Debug("initialising Gatehub")

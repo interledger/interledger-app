@@ -37,6 +37,18 @@ Feature: User Signup
     Then I should be navigated back to the dashboard with reserved wallet status
     And I take a screenshot "signup-complete"
 
+  @signup @pti
+  Scenario: Successfully sign up as a USA user
+    Given that my "country" is "United States"
+    And mockpti is running at "https://mockpti.interledger.test"
+    And I completed the signup workflow
+    And I completed the account verification workflow
+    And I finished the TOTP registration workflow
+    And I finished the wallet address creation workflow
+    Then I should be navigated back to the dashboard with reserved wallet status
+    And I should use the "pti" on-off-ramp provider
+    And I take a screenshot "signup-complete-pti"
+
   @signup @validation-failure
   Scenario: Signup form validates required fields
     Given I navigate to the signup page

@@ -9,6 +9,7 @@ import type { FiantSdkMessage } from '~/lib/fiant'
 import { exitFlow, flowType, requireFlow } from '~/lib/flows.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
+import { usePtiConfig } from '~/lib/pti-context'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { useScript } from '~/lib/useScript'
@@ -234,9 +235,10 @@ function GatehubPage() {
 function PtiPage() {
   const { ptiWidget } = useLoaderData()
   const submit = useSubmit()
-  const scriptStatus = useScript(
-    ptiWidget?.sdkUrl || 'https://sdk.platform.fiant.io/0.0.23/index.js'
-  )
+  const ptiConfig = usePtiConfig()
+  const sdkUrl = ptiConfig?.sdkUrl || ptiWidget?.sdkUrl || ''
+  const formsUrl = ptiConfig?.formsUrl || ptiWidget?.formsUrl || ''
+  const scriptStatus = useScript(sdkUrl)
   const [setLoading] = useScaffoldStore((state) => [state.setLoading])
 
   // Unmount make sure the loading state is set to false
@@ -251,7 +253,7 @@ function PtiPage() {
       window.PTI.init({
         clientId: ptiWidget?.clientId,
         generateTokenPath: ptiWidget?.generateTokenPath,
-        ptiFormsUrl: ptiWidget?.formsUrl || 'https://forms.platform.fiant.io'
+        ptiFormsUrl: formsUrl
       })
       window.PTI.form({
         type: 'KYC',
@@ -277,7 +279,17 @@ function PtiPage() {
     return () => {
       window.removeEventListener('message', handleMessage)
     }
-  }, [scriptStatus, ptiWidget, setLoading, submit])
+  }, [scriptStatus, ptiWidget, formsUrl, setLoading, submit])
+
+  if (scriptStatus === 'error') {
+    return (
+      <Card>
+        <CardContent>
+          Could not load PTI SDK. Check PTI SDK URL and mockpti service health.
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
     <>

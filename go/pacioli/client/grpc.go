@@ -136,7 +136,7 @@ func (c client) CreateTransfers(ctx context.Context, args []pacioli.CreateTransf
 			Id:              a.ID,
 			DebitAccountId:  a.DebitAccountID,
 			CreditAccountId: a.CreditAccountID,
-			Amount:          a.Amount,
+			Amount:          uint64(a.Amount),
 			Code:            uint32(a.Code),
 			Timeout:         a.Timeout,
 			Ledger:          a.Ledger,
