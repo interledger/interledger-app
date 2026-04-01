@@ -13,6 +13,14 @@ Environment variable names are prefixed by service to avoid collisions:
 - `BACKEND_*` configures the wallet backend and shared mock credentials used by `mockgatehub`, `mockxago`, and `mockpti`
 - `PROTEA_*` configures the Protea frontend
 
+Build behavior:
+- `PROTEA_BUILD_TARGET` controls the Dockerfile stage used for Protea (`dev` or `runner`).
+- `BOTANIST_BUILD_TARGET` controls the Dockerfile stage used for Botanist (`dev` or `runner`).
+- Default is `dev` for local development.
+- E2E CI sets both to `runner`.
+- Via `make` targets, Protea source bind mounts are applied only when `PROTEA_BUILD_TARGET=dev` (using `protea.dev.mounts.yaml`).
+- When `PROTEA_BUILD_TARGET=runner` (for example in E2E CI), Protea runs without source bind mounts.
+
 ```sh
 cp example.env .env
 ```
