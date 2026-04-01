@@ -214,25 +214,22 @@ func (sc *E2EContext) getSignupCountryCode(email string) (string, error) {
 	return record.CountryCode, nil
 }
 
-// markKratosEmailAsVerified marks an email as verified in the Kratos database
+// markKratosEmailAsVerified marks an email as verified directly in the Kratos DB.
 func (sc *E2EContext) markKratosEmailAsVerified(email string) error {
 	kratosConnStr := "host=localhost port=5432 user=postgres password=postgres dbname=kratos sslmode=disable"
 	kratosDB, err := sql.Open("postgres", kratosConnStr)
 	if err != nil {
-		debugPrintf("⚠️  markKratosEmailAsVerified: could not connect to Kratos database: %v\n", err)
-		return nil
+		return fmt.Errorf("markKratosEmailAsVerified: could not connect to Kratos DB: %w", err)
 	}
 	defer kratosDB.Close()
 
 	_, err = kratosDB.Exec(`
-		UPDATE identity_verifiable_addresses 
-		SET verified = TRUE, verified_at = NOW()
+		UPDATE identity_verifiable_addresses
+		SET verified = TRUE, verified_at = NOW(), status = 'completed', updated_at = NOW()
 		WHERE value = $1
 	`, email)
-
 	if err != nil {
-		debugPrintf("⚠️  markKratosEmailAsVerified: could not mark email as verified: %v\n", err)
-		return nil
+		return fmt.Errorf("markKratosEmailAsVerified: query failed for %s: %w", email, err)
 	}
 
 	debugPrintf("✓ Marked email as verified in Kratos: %s\n", email)

@@ -254,6 +254,47 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I should see the payment in my transaction history$`, func() error {
 		return sc.iShouldSeeThePaymentInMyTransactionHistory()
 	})
+
+	// Card ordering steps
+	ctx.Step(`^I complete the signup workflow for '([^']*)'$`, func(userName string) error {
+		return sc.iCompleteSignupWorkflowFor(userName)
+	})
+	ctx.Step(`^the "([^"]*)" navigation item should not be visible$`, func(label string) error {
+		return sc.theNavItemShouldNotBeVisible(label)
+	})
+	ctx.Step(`^I navigate to "([^"]*)"$`, func(path string) error {
+		return sc.iNavigateToPath(path)
+	})
+	ctx.Step(`^I should be redirected to "([^"]*)"$`, func(path string) error {
+		return sc.iShouldBeRedirectedTo(path)
+	})
+	ctx.Step(`^I navigate to the cards page$`, func() error {
+		return sc.iNavigateToTheCardsPage()
+	})
+	ctx.Step(`^I should see the cards page with an "([^"]*)" button$`, func(_ string) error {
+		return sc.iShouldSeeTheCardsPageWithOrderButton()
+	})
+	ctx.Step(`^I should be on the card order page$`, func() error {
+		return sc.iShouldBeOnTheCardOrderPage()
+	})
+	ctx.Step(`^I select the first available card product$`, func() error {
+		return sc.iSelectTheFirstAvailableCardProduct()
+	})
+	ctx.Step(`^I should be on the delivery address step$`, func() error {
+		return sc.iShouldBeOnTheDeliveryAddressStep()
+	})
+	ctx.Step(`^I select the existing delivery address$`, func() error {
+		return sc.iSelectTheExistingDeliveryAddress()
+	})
+	ctx.Step(`^I should be on the card order confirmation step$`, func() error {
+		return sc.iShouldBeOnTheCardOrderConfirmationStep()
+	})
+	ctx.Step(`^I confirm the card order$`, func() error {
+		return sc.iConfirmTheCardOrder()
+	})
+	ctx.Step(`^I should see the snackbar "([^"]*)"$`, func(message string) error {
+		return sc.iShouldSeeTheSnackbar(message)
+	})
 }
 
 // Background step implementations
