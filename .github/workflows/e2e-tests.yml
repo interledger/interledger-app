@@ -15,6 +15,9 @@ jobs:
     runs-on: e2e-tester-dynamic
     timeout-minutes: 90
     environment: e2e-tester
+    env:
+      PROTEA_BUILD_TARGET: runner
+      BOTANIST_BUILD_TARGET: runner
     concurrency:
       # Each PR gets its own slot. New pushes to the same PR cancel the previous run.
       group: e2e-${{ github.event.pull_request.number || github.sha }}
@@ -91,7 +94,7 @@ jobs:
 
       - name: Start application
         working-directory: local
-        run: make all-nowatch
+        run: make all-ci
 
       - name: Seed Rafiki assets
         working-directory: local/scripts
