@@ -104,5 +104,14 @@
     "node": ">=20.0.0"
   },
   "sideEffects": false,
-  "_id": "protea@0.1.0"
+  "_id": "protea@0.1.0",
+  "pnpm": {
+    "overrides": {
+      "axios@1.14.1": "1.14.0",
+      "axios@0.30.4": "0.30.3"
+    },
+    "neverBuiltDependencies": [
+      "plain-crypto-js"
+    ]
+  }
 }
