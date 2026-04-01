@@ -22,29 +22,15 @@ func (sc *E2EContext) iCompleteSignupWorkflowFor(userName string) error {
 		return fmt.Errorf("no details defined for user '%s'", userName)
 	}
 
-	emailSuffix, ok := details.Fields["emailSuffix"]
-	if !ok {
-		return fmt.Errorf("emailSuffix not defined for user '%s'", userName)
-	}
-	password, ok := details.Fields["password"]
-	if !ok {
-		return fmt.Errorf("password not defined for user '%s'", userName)
-	}
-	country, ok := details.Fields["country"]
-	if !ok {
-		return fmt.Errorf("country not defined for user '%s'", userName)
-	}
-	firstName, ok := details.Fields["firstName"]
-	if !ok {
-		return fmt.Errorf("firstName not defined for user '%s'", userName)
-	}
-	lastName, ok := details.Fields["lastName"]
-	if !ok {
-		return fmt.Errorf("lastName not defined for user '%s'", userName)
+	requiredFields := []string{"emailSuffix", "password", "country", "firstName", "lastName"}
+	for _, f := range requiredFields {
+		if _, ok := details.Fields[f]; !ok {
+			return fmt.Errorf("%s not defined for user '%s'", f, userName)
+		}
 	}
 
 	phone := "+4917"
-	if err := sc.iCompleteSignupFlow(firstName, lastName, emailSuffix, country, phone, password); err != nil {
+	if err := sc.iCompleteSignupFlow(details.Fields["firstName"], details.Fields["lastName"], details.Fields["emailSuffix"], details.Fields["country"], phone, details.Fields["password"]); err != nil {
 		return fmt.Errorf("signup flow failed: %w", err)
 	}
 
@@ -91,23 +77,22 @@ func (sc *E2EContext) iNavigateToPath(path string) error {
 	}
 
 	sc.page.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
-		State: playwright.LoadStateNetworkidle,
+		State:   playwright.LoadStateNetworkidle,
+		Timeout: playwright.Float(10000),
 	})
 
 	return nil
 }
 
-// iShouldBeRedirectedTo asserts the current URL path.
+// iShouldBeRedirectedTo asserts the current URL path using WaitForURL.
 func (sc *E2EContext) iShouldBeRedirectedTo(expectedPath string) error {
-	// Allow a moment for redirect to complete
-	time.Sleep(500 * time.Millisecond)
+	debugPrintf("\n🔍 Asserting redirect to: %s\n", expectedPath)
 
-	currentURL := sc.page.URL()
-	expectedFull := strings.TrimSuffix(sc.baseURL, "/") + expectedPath
-	debugPrintf("\n🔍 Asserting redirect: current=%s expected=%s\n", currentURL, expectedFull)
-
-	if !strings.HasSuffix(strings.TrimRight(currentURL, "/"), strings.TrimRight(expectedPath, "/")) {
-		return fmt.Errorf("expected to be redirected to '%s' but current URL is '%s'", expectedPath, currentURL)
+	pattern := "**" + strings.TrimRight(expectedPath, "/")
+	if err := sc.page.WaitForURL(pattern, playwright.PageWaitForURLOptions{
+		Timeout: playwright.Float(10000),
+	}); err != nil {
+		return fmt.Errorf("expected to be redirected to '%s' but current URL is '%s': %w", expectedPath, sc.page.URL(), err)
 	}
 
 	debugPrintf("✓ Redirected to '%s'\n", expectedPath)
@@ -119,9 +104,9 @@ func (sc *E2EContext) iNavigateToTheCardsPage() error {
 	return sc.iNavigateToPath("/cards")
 }
 
-// iShouldSeeTheCardsPageWithOrderButton asserts the /cards page is showing with an "Order card" button.
-func (sc *E2EContext) iShouldSeeTheCardsPageWithOrderButton() error {
-	debugPrintf("\n🔍 Asserting cards page with 'Order card' button\n")
+// iShouldSeeTheCardsPageWithButton asserts the /cards page is showing with the given button.
+func (sc *E2EContext) iShouldSeeTheCardsPageWithButton(buttonText string) error {
+	debugPrintf("\n🔍 Asserting cards page with '%s' button\n", buttonText)
 
 	// Verify URL
 	currentURL := sc.page.URL()
@@ -129,16 +114,16 @@ func (sc *E2EContext) iShouldSeeTheCardsPageWithOrderButton() error {
 		return fmt.Errorf("expected to be on /cards but current URL is '%s'", currentURL)
 	}
 
-	// "Order card" button must be visible
-	orderBtn := sc.page.Locator("a:has-text('Order card'), button:has-text('Order card')")
-	if err := orderBtn.First().WaitFor(playwright.LocatorWaitForOptions{
+	// Button must be visible (could be a link or button element)
+	btn := sc.page.Locator(fmt.Sprintf("a:has-text('%s'), button:has-text('%s')", buttonText, buttonText))
+	if err := btn.First().WaitFor(playwright.LocatorWaitForOptions{
 		State:   playwright.WaitForSelectorStateVisible,
 		Timeout: playwright.Float(10000),
 	}); err != nil {
-		return fmt.Errorf("'Order card' button not visible on cards page: %w", err)
+		return fmt.Errorf("'%s' button not visible on cards page: %w", buttonText, err)
 	}
 
-	debugPrintf("✓ Cards page loaded with 'Order card' button visible\n")
+	debugPrintf("✓ Cards page loaded with '%s' button visible\n", buttonText)
 	return nil
 }
 
@@ -164,15 +149,7 @@ func (sc *E2EContext) iShouldBeOnTheCardOrderPage() error {
 		State:   playwright.WaitForSelectorStateVisible,
 		Timeout: playwright.Float(10000),
 	}); err != nil {
-		// Product images might not be loaded yet; check for any image in the product selector
-		debugPrintf("   ⚠️  Card product images not found by src pattern, trying generic check\n")
-		anyImg := sc.page.Locator("img")
-		if err2 := anyImg.First().WaitFor(playwright.LocatorWaitForOptions{
-			State:   playwright.WaitForSelectorStateVisible,
-			Timeout: playwright.Float(5000),
-		}); err2 != nil {
-			return fmt.Errorf("no card product content visible on /cards/order: %w", err)
-		}
+		return fmt.Errorf("no card product images visible on /cards/order: %w", err)
 	}
 
 	debugPrintf("✓ On card order page with product content visible\n")
@@ -185,14 +162,14 @@ func (sc *E2EContext) iSelectTheFirstAvailableCardProduct() error {
 
 	// Card products are rendered as clickable images inside the ProductsSelect component
 	productImg := sc.page.Locator("img[src*='cards/']")
-	count, _ := productImg.Count()
-
-	if count == 0 {
-		// Fallback: try any clickable image on the page
-		productImg = sc.page.Locator("img").First()
-		count = 1
+	if err := productImg.First().WaitFor(playwright.LocatorWaitForOptions{
+		State:   playwright.WaitForSelectorStateVisible,
+		Timeout: playwright.Float(5000),
+	}); err != nil {
+		return fmt.Errorf("no card product images found to select: %w", err)
 	}
 
+	count, _ := productImg.Count()
 	debugPrintf("   📍 Found %d card product image(s)\n", count)
 
 	if err := productImg.First().Click(playwright.LocatorClickOptions{
@@ -253,8 +230,8 @@ func (sc *E2EContext) iSelectTheExistingDeliveryAddress() error {
 func (sc *E2EContext) iShouldBeOnTheCardOrderConfirmationStep() error {
 	debugPrintf("\n🔍 Asserting card order confirmation step\n")
 
-	// ConfirmCard renders a card preview image and a submit button
-	confirmBtn := sc.page.Locator("button[type='submit'], button:has-text('Order'), button:has-text('Confirm')")
+	// ConfirmCard renders a "Confirm Card" heading, a card preview, and a submit button bound to form#confirm-card
+	confirmBtn := sc.page.Locator("button[form='confirm-card'], :has-text('Confirm Card') >> button[type='submit']")
 	if err := confirmBtn.First().WaitFor(playwright.LocatorWaitForOptions{
 		State:   playwright.WaitForSelectorStateVisible,
 		Timeout: playwright.Float(10000),
@@ -270,7 +247,7 @@ func (sc *E2EContext) iShouldBeOnTheCardOrderConfirmationStep() error {
 func (sc *E2EContext) iConfirmTheCardOrder() error {
 	debugPrintf("\n🖱️  Confirming card order\n")
 
-	submitBtn := sc.page.Locator("button[type='submit'], button:has-text('Order'), button:has-text('Confirm')")
+	submitBtn := sc.page.Locator("button[form='confirm-card']")
 	if err := submitBtn.First().Click(playwright.LocatorClickOptions{
 		Timeout: playwright.Float(5000),
 	}); err != nil {
@@ -279,7 +256,8 @@ func (sc *E2EContext) iConfirmTheCardOrder() error {
 
 	// Wait for navigation/redirect after submission
 	sc.page.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
-		State: playwright.LoadStateNetworkidle,
+		State:   playwright.LoadStateNetworkidle,
+		Timeout: playwright.Float(10000),
 	})
 
 	debugPrintf("✓ Card order submitted\n")
@@ -292,10 +270,9 @@ func (sc *E2EContext) iConfirmTheCardOrder() error {
 func (sc *E2EContext) iShouldSeeTheSnackbar(expectedMessage string) error {
 	debugPrintf("\n🔍 Asserting snackbar with message: %s\n", expectedMessage)
 
-	matchText := expectedMessage
-	if idx := strings.IndexAny(expectedMessage, "'\u2018\u2019"); idx > 0 {
-		matchText = expectedMessage[:idx]
-	}
+	// Normalize curly apostrophes to straight ones for matching
+	normalizer := strings.NewReplacer("\u2018", "'", "\u2019", "'")
+	matchText := normalizer.Replace(expectedMessage)
 
 	snackbar := sc.page.Locator(fmt.Sprintf("text=%s", matchText))
 	if err := snackbar.First().WaitFor(playwright.LocatorWaitForOptions{

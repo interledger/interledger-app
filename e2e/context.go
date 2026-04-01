@@ -271,8 +271,8 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I navigate to the cards page$`, func() error {
 		return sc.iNavigateToTheCardsPage()
 	})
-	ctx.Step(`^I should see the cards page with an "([^"]*)" button$`, func(_ string) error {
-		return sc.iShouldSeeTheCardsPageWithOrderButton()
+	ctx.Step(`^I should see the cards page with an "([^"]*)" button$`, func(buttonText string) error {
+		return sc.iShouldSeeTheCardsPageWithButton(buttonText)
 	})
 	ctx.Step(`^I should be on the card order page$`, func() error {
 		return sc.iShouldBeOnTheCardOrderPage()

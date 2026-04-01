@@ -223,13 +223,21 @@ func (sc *E2EContext) markKratosEmailAsVerified(email string) error {
 	}
 	defer kratosDB.Close()
 
-	_, err = kratosDB.Exec(`
+	result, err := kratosDB.Exec(`
 		UPDATE identity_verifiable_addresses
 		SET verified = TRUE, verified_at = NOW(), status = 'completed', updated_at = NOW()
 		WHERE value = $1
 	`, email)
 	if err != nil {
 		return fmt.Errorf("markKratosEmailAsVerified: query failed for %s: %w", email, err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("markKratosEmailAsVerified: could not check rows affected: %w", err)
+	}
+	if rowsAffected == 0 {
+		return fmt.Errorf("markKratosEmailAsVerified: no verifiable address found for %s", email)
 	}
 
 	debugPrintf("✓ Marked email as verified in Kratos: %s\n", email)

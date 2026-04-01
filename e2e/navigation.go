@@ -137,7 +137,7 @@ func (sc *E2EContext) iClickTheButton(buttonText string) error {
 	case "order card":
 		selector = "a:has-text('Order card'), button:has-text('Order card')"
 	default:
-		selector = fmt.Sprintf("button:has-text('%s'), a:has-text('%s')", buttonText, buttonText)
+		selector = fmt.Sprintf("button:has-text('%s')", buttonText)
 	}
 
 	button := sc.page.Locator(selector)
