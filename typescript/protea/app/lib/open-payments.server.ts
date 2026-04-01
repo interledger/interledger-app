@@ -356,7 +356,6 @@ function timeout(delay: number) {
 
 export type PaymentResultType = {
   message: string
-  color: 'red' | 'green'
   error: boolean
 }
 
@@ -381,13 +380,11 @@ export async function checkOutgoingPayment(
       if (Number(op.sentAmount.value) > 0) {
         paymentResult = {
           message: 'Payment successful',
-          color: 'green',
           error: false
         }
       } else {
         paymentResult = {
           message: 'Payment failed. Check your balance and try again.',
-          color: 'red',
           error: true
         }
       }

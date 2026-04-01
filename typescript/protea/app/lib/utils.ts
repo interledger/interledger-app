@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { createClient, getWalletAddress } from './open-payments.server'
 import { Errors, FormattedAmount, FormatAmountArgs, WalletAddressType } from './types'
+import { getUserSession } from '~/lib/kratos.server'
 
 export class WalletAddressFormatError extends Error { }
 
@@ -176,4 +177,14 @@ export const formatAmount = (args: FormatAmountArgs): FormattedAmount => {
     amountWithCurrency,
     symbol
   }
+}
+
+export async function isWalletLayout(request: Request) {
+  try {
+      await getUserSession(request)
+      return true
+  
+    } catch (err) {
+      return false
+    }
 }
