@@ -181,12 +181,18 @@ Add a launch configuration to `.vscode/launch.json`:
 
 ```json
 {
-  "name": "Attach to backend (Delve)",
-  "type": "go",
-  "request": "attach",
-  "mode": "remote",
-  "host": "localhost",
-  "port": 2345
+    "name": "Backend service docker debug",
+    "type": "go",
+    "request": "attach",
+    "mode": "remote",
+    "host": "127.0.0.1",
+    "port": 2345,
+    "substitutePath": [
+        {
+            "from": "${workspaceFolder}/go",
+            "to": "/build"
+        }
+    ]
 }
 ```
 
