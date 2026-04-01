@@ -94,7 +94,7 @@ jobs:
 
       - name: Start application
         working-directory: local
-        run: make all-nowatch
+        run: make all-ci
 
       - name: Seed Rafiki assets
         working-directory: local/scripts
