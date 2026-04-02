@@ -274,7 +274,8 @@ func (sc *E2EContext) iShouldSeeTheSnackbar(expectedMessage string) error {
 	normalizer := strings.NewReplacer("\u2018", "'", "\u2019", "'")
 	matchText := normalizer.Replace(expectedMessage)
 
-	snackbar := sc.page.Locator(fmt.Sprintf("text=%s", matchText))
+	// Use GetByText for reliable matching — avoids selector parsing issues with apostrophes
+	snackbar := sc.page.GetByText(matchText, playwright.PageGetByTextOptions{Exact: playwright.Bool(false)})
 	if err := snackbar.First().WaitFor(playwright.LocatorWaitForOptions{
 		State:   playwright.WaitForSelectorStateVisible,
 		Timeout: playwright.Float(10000),
