@@ -84,13 +84,16 @@ func (sc *E2EContext) iNavigateToPath(path string) error {
 	return nil
 }
 
-// iShouldBeRedirectedTo asserts the current URL path using WaitForURL.
+// iShouldBeRedirectedTo asserts the current URL path.
+// Uses a short timeout — by the time this step runs after iShouldSeeTheSnackbar,
+// the redirect has already happened. A long WaitForURL here would consume the
+// snackbar's 4s auto-dismiss window before the snackbar assertion runs.
 func (sc *E2EContext) iShouldBeRedirectedTo(expectedPath string) error {
 	debugPrintf("\n🔍 Asserting redirect to: %s\n", expectedPath)
 
 	pattern := "**" + strings.TrimRight(expectedPath, "/")
 	if err := sc.page.WaitForURL(pattern, playwright.PageWaitForURLOptions{
-		Timeout: playwright.Float(10000),
+		Timeout: playwright.Float(3000),
 	}); err != nil {
 		return fmt.Errorf("expected to be redirected to '%s' but current URL is '%s': %w", expectedPath, sc.page.URL(), err)
 	}
@@ -254,12 +257,9 @@ func (sc *E2EContext) iConfirmTheCardOrder() error {
 		return fmt.Errorf("failed to click confirm card order button: %w", err)
 	}
 
-	// Wait for navigation/redirect after submission
-	sc.page.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
-		State:   playwright.LoadStateNetworkidle,
-		Timeout: playwright.Float(10000),
-	})
-
+	// Do NOT wait for networkidle here — the snackbar auto-dismisses in 4s and
+	// waiting too long would cause the snackbar assertion to miss it.
+	// iShouldBeRedirectedTo handles the navigation wait via WaitForURL.
 	debugPrintf("✓ Card order submitted\n")
 	return nil
 }
@@ -270,11 +270,16 @@ func (sc *E2EContext) iConfirmTheCardOrder() error {
 func (sc *E2EContext) iShouldSeeTheSnackbar(expectedMessage string) error {
 	debugPrintf("\n🔍 Asserting snackbar with message: %s\n", expectedMessage)
 
-	// Normalize curly apostrophes to straight ones for matching
+	// Normalize curly apostrophes to straight ones, then take the substring before
+	// the first apostrophe to avoid selector parsing issues and font rendering differences.
+	// e.g. "Your card in the making! We'll notify..." → "Your card in the making! We"
 	normalizer := strings.NewReplacer("\u2018", "'", "\u2019", "'")
 	matchText := normalizer.Replace(expectedMessage)
+	if idx := strings.Index(matchText, "'"); idx > 0 {
+		matchText = matchText[:idx]
+	}
 
-	// Use GetByText for reliable matching — avoids selector parsing issues with apostrophes
+	// Use GetByText for reliable matching — avoids selector parsing issues
 	snackbar := sc.page.GetByText(matchText, playwright.PageGetByTextOptions{Exact: playwright.Bool(false)})
 	if err := snackbar.First().WaitFor(playwright.LocatorWaitForOptions{
 		State:   playwright.WaitForSelectorStateVisible,
