@@ -9,7 +9,6 @@ services:
     restart: always
     volumes:
       - ../typescript/protea:/app:rw
-      # Exclude node_modules from sync - use container's version
       - /app/node_modules
     ports:
       - "3000:3000" # http port

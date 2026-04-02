@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"os"
 	"strings"
 	"time"
 
@@ -30,9 +29,18 @@ import (
 )
 
 var (
-	userFields       = "id, external_id, wallet_id, status, assessment_status, created_at, updated_at"
-	userInsertFields = "external_id, wallet_id"
+	userFields        = "id, external_id, wallet_id, status, assessment_status, created_at, updated_at"
+	userInsertFields  = "external_id, wallet_id"
+	ptiWidgetSDKURL   string
+	ptiWidgetFormsURL string
+	ptiWidgetClientID string
 )
+
+func ConfigureWidgetURLs(sdkURL, formsURL, clientID string) {
+	ptiWidgetSDKURL = sdkURL
+	ptiWidgetFormsURL = formsURL
+	ptiWidgetClientID = clientID
+}
 
 func CreateUser(ctx context.Context, b Backends, walletID string) (pti.Await, error) {
 	wo := client.StartWorkflowOptions{
@@ -180,8 +188,8 @@ func GetBalance(ctx context.Context, b Backends, linkedAccountID string) (*pti.B
 	}
 
 	return &pti.Balance{
-		Total:     currency.FromUInt64(accs[0].CreditsPosted-accs[0].DebitsPosted, la.SendCurrency),
-		Available: currency.FromUInt64(accs[0].CreditsPosted-accs[0].DebitsPosted-accs[0].DebitsPending, la.SendCurrency),
+		Total:     currency.FromUInt64(int64(accs[0].CreditsPosted)-int64(accs[0].DebitsPosted), la.SendCurrency),
+		Available: currency.FromUInt64(int64(accs[0].CreditsPosted)-int64(accs[0].DebitsPosted)-int64(accs[0].DebitsPending), la.SendCurrency),
 	}, nil
 }
 
@@ -389,8 +397,8 @@ func ReserveBalance(ctx context.Context, b Backends, linkedAccountID, txID strin
 	}
 
 	return &pti.Balance{
-		Total:     currency.FromUInt64(accs[0].CreditsPosted-accs[0].DebitsPosted, la.SendCurrency),
-		Available: currency.FromUInt64(accs[0].CreditsPosted-accs[0].DebitsPosted-accs[0].DebitsPending, la.SendCurrency),
+		Total:     currency.FromUInt64(int64(accs[0].CreditsPosted)-int64(accs[0].DebitsPosted), la.SendCurrency),
+		Available: currency.FromUInt64(int64(accs[0].CreditsPosted)-int64(accs[0].DebitsPosted)-int64(accs[0].DebitsPending), la.SendCurrency),
 	}, nil
 }
 
@@ -487,8 +495,8 @@ func AssignBalance(ctx context.Context, b Backends, linkedAccountID, txID string
 	}
 
 	return &pti.Balance{
-		Total:     currency.FromUInt64(accs[0].CreditsPosted-accs[0].DebitsPosted, la.SendCurrency),
-		Available: currency.FromUInt64(accs[0].CreditsPosted-accs[0].DebitsPosted-accs[0].DebitsPending, la.SendCurrency),
+		Total:     currency.FromUInt64(int64(accs[0].CreditsPosted)-int64(accs[0].DebitsPosted), la.SendCurrency),
+		Available: currency.FromUInt64(int64(accs[0].CreditsPosted)-int64(accs[0].DebitsPosted)-int64(accs[0].DebitsPending), la.SendCurrency),
 	}, nil
 }
 
@@ -557,24 +565,23 @@ func GetKYCWidget(ctx context.Context, b Backends, walletID string) (*pti.Widget
 		return nil, err
 	}
 
-	sdkUrl := "https://sdk.staging.fiant.io/latest/index.js"
-	formsUrl := "https://forms.staging.fiant.io"
-	if env.IsProd() {
-		sdkUrl = "https://sdk.platform.fiant.io/0.0.23/index.js"
-		formsUrl = "https://forms.platform.fiant.io"
-	}
+	sdkUrl, formsUrl := ResolvePTIWidgetURLs()
 
 	return &pti.WidgetDetails{
 		// ScenarioID:        pti.ScenarioDeposit,
 		ScenarioID:        pti.ScenarioWithdrawal,
 		RequestID:         uuid.NewString(),
 		UserID:            externalUser.ExternalID,
-		ClientID:          os.Getenv("PTI_CLIENT_ID"),
+		ClientID:          ptiWidgetClientID,
 		GenerateTokenPath: fmt.Sprintf("%s/api/pti/token", env.GetUrl()),
 		SdkUrl:            sdkUrl,
 		FormsUrl:          formsUrl,
 		SessionID:         walletID,
 	}, nil
+}
+
+func ResolvePTIWidgetURLs() (string, string) {
+	return ptiWidgetSDKURL, ptiWidgetFormsURL
 }
 
 func CreateCard(ctx context.Context, b Backends, walletID, tokenID string) (pti.Await, error) {

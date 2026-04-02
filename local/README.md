@@ -10,8 +10,16 @@ We provide a `docker compose` managed environment that will attempt to automatic
 Service configuration can be overridden through a `.env` file in the `local/` directory. Start by copying [local/example.env](./example.env) to `.env` and editing only the values you want to change.
 
 Environment variable names are prefixed by service to avoid collisions:
-- `BACKEND_*` configures the wallet backend and shared mock credentials used by `mockgatehub` and `mockxago`
+- `BACKEND_*` configures the wallet backend and shared mock credentials used by `mockgatehub`, `mockxago`, and `mockpti`
 - `PROTEA_*` configures the Protea frontend
+
+Build behavior:
+- `PROTEA_BUILD_TARGET` controls the Dockerfile stage used for Protea (`dev` or `runner`).
+- `BOTANIST_BUILD_TARGET` controls the Dockerfile stage used for Botanist (`dev` or `runner`).
+- Default is `dev` for local development.
+- E2E CI sets both to `runner`.
+- Via `make` targets, Protea source bind mounts are applied only when `PROTEA_BUILD_TARGET=dev` (using `protea.dev.mounts.yaml`).
+- When `PROTEA_BUILD_TARGET=runner` (for example in E2E CI), Protea runs without source bind mounts.
 
 ```sh
 cp example.env .env
@@ -40,6 +48,9 @@ application|app         Wallet application, backends + frontends (requires infra
 backend|back            Just backends services
 frontend|front          Just frontends services
 all                     All services (infra, svc, app)
+
+build                   Build all images
+pull                    Pull all images
 
 down                    Stop all running services
 delete-volumes|reset    Stop all services and remove associated volumes
@@ -104,6 +115,17 @@ The ```help``` in the ```Makefile``` should be enough to provide the support in 
 
 > **TIP:** Start ```infra``` first, ```svc``` next followed by ```app```, use 3 terminal tabs or ```tmux``` or ```screen```.
 
+### Building and pulling images
+To build all images without starting any services:
+```sh
+make build
+```
+
+To pull all images without starting any services:
+```sh
+make pull
+```
+
 ### Docker compose interface
 If you prefer using plain docker compose here's some tips.
 
@@ -157,6 +179,7 @@ docker compose down -v
 | https://ngrok.test                        | Ngrok ui                                    |
 | https://mockgatehub.interledger.test      | MockGateHub API (local GateHub replacement) |
 | https://mockxago.interledger.test         | MockXago API (local Xago replacement)       |
+| https://mockpti.interledger.test          | MockPTI API and SDK stub                    |
 
 
 ## Debugging the backend with Delve

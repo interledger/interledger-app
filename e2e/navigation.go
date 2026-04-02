@@ -143,11 +143,14 @@ func (sc *E2EContext) iClickTheButton(buttonText string) error {
 		Timeout: playwright.Float(5000),
 	})
 	if err != nil {
-		// Timeout on final submit is expected
 		if strings.Contains(strings.ToLower(buttonText), "confirm") ||
 			strings.Contains(strings.ToLower(buttonText), "submit") {
+			// Give the UI a moment in case navigation was already triggered.
 			time.Sleep(1 * time.Second)
-			return nil
+			currentURL := sc.page.URL()
+			if !strings.Contains(currentURL, "/signup") {
+				return nil
+			}
 		}
 		return fmt.Errorf("failed to click button '%s': %w", buttonText, err)
 	}
