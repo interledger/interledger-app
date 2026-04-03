@@ -1,5 +1,12 @@
 lockfileVersion: '6.0'
 
+neverBuiltDependencies:
+  - plain-crypto-js
+
+overrides:
+  axios@1.14.1: 1.14.0
+  axios@0.30.4: 0.30.3
+
 dependencies:
   '@bufbuild/connect':
     specifier: ^0.12.0

@@ -138,10 +138,10 @@ export async function action({ request }: Route.ActionArgs) {
   const response = redirect(returnTo ?? '/')
 
   if (res.status === 400) {
-    const data = await res.json()
+    const responseData = await res.json()
     // if the form is submitted twice the user already has a valid session
     const message: string =
-      data.ui?.messages?.find((m: UiText) => m.type === 'error')?.text ?? ''
+      responseData.ui?.messages?.find((m: UiText) => m.type === 'error')?.text ?? ''
     if (isSessionAlreadyExitsMessage(message)) {
       return response
     }

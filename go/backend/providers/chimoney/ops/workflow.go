@@ -396,7 +396,7 @@ func (a *Activity) CreateChimoneyDepositTransaction(ctx context.Context, walletI
 		decMultiplier := math.Pow10(amount.Scale)
 		cc := currency.ParseCurrency(externalPayment.Currency)
 		netMinorFloat := externalPayment.Meta.ProcessingFee.NetAmount * decMultiplier
-		netMinor := min(uint64(math.Round(netMinorFloat)), amount.Value)
+		netMinor := min(int64(math.Round(netMinorFloat)), amount.Value)
 		netAmount := currency.FromUInt64(netMinor, cc)
 		feeInt := amount.Value - netAmount.Value
 		fee := currency.FromUInt64(feeInt, cc)

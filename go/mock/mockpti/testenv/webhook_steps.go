@@ -164,6 +164,9 @@ func (tc *TestContext) mockptiTransitionsTheTransactionTo(status string) error {
 	if status == "REFUSED" {
 		headers = map[string]string{"x-pti-scenario-id": "REFUSE"}
 	}
+	if status == "RETURNED" {
+		headers = map[string]string{"x-pti-scenario-id": "RETURN"}
+	}
 
 	path := "/transactions/deposits"
 	payload := map[string]interface{}{
@@ -275,6 +278,145 @@ func (tc *TestContext) theWebhookPayloadShouldIncludeStatus(status string) error
 		b, _ := json.Marshal(tc.lastWebhook)
 		return fmt.Errorf("expected status %q, got %q payload=%s", status, asString(tc.lastWebhook["status"]), string(b))
 	}
+	return nil
+}
+
+func (tc *TestContext) mockptiSettlesADeposit() error {
+	payload := map[string]interface{}{
+		"initiator": map[string]interface{}{"id": tc.lastUserID, "type": "PERSON"},
+		"sourceMethod": map[string]interface{}{
+			"currency":           "USD",
+			"paymentMethodType":  "ACH",
+			"paymentInformation": map[string]interface{}{"type": "BANK_ACCOUNT", "id": tc.lastPaymentInformationID},
+		},
+		"destinationMethod": map[string]interface{}{
+			"paymentMethodType":  "WALLET",
+			"paymentInformation": map[string]interface{}{"type": "WALLET", "id": tc.lastWalletID},
+		},
+		"amount": 100.0,
+		"type":   "DEPOSIT",
+	}
+	if _, err := tc.ptiRequest("POST", "/transactions/deposits", payload, true); err != nil {
+		return err
+	}
+	if err := tc.responseStatusShouldBe(200); err != nil {
+		return err
+	}
+	if err := tc.responseShouldIncludeTransactionRequestID(); err != nil {
+		return err
+	}
+	tc.depositRequestID = tc.lastTransactionRequestID
+	tc.depositAmount = 100.0
+	depositID := tc.depositRequestID
+	evt, err := waitForWebhook(5*time.Second, func(evt capturedWebhook) bool {
+		return asString(evt.payload["resourceType"]) == "TRANSACTION_STATUS" &&
+			asString(evt.payload["requestId"]) == depositID &&
+			asString(evt.payload["status"]) == "SETTLED"
+	})
+	if err != nil {
+		return err
+	}
+	tc.lastWebhook = evt.payload
+	tc.lastWebhookEncrypted = evt.encrypted
+	return nil
+}
+
+func (tc *TestContext) mockptiSettlesAWithdrawal() error {
+	payload := map[string]interface{}{
+		"initiator": map[string]interface{}{"id": tc.lastUserID, "type": "PERSON"},
+		"sourceMethod": map[string]interface{}{
+			"paymentMethodType":  "WALLET",
+			"paymentInformation": map[string]interface{}{"type": "WALLET", "id": tc.lastWalletID},
+		},
+		"destinationMethod": map[string]interface{}{
+			"currency":           "USD",
+			"paymentMethodType":  "ACH",
+			"paymentInformation": map[string]interface{}{"type": "BANK_ACCOUNT", "id": tc.lastPaymentInformationID},
+		},
+		"amount": 50.0,
+		"type":   "WITHDRAWAL",
+	}
+	if _, err := tc.ptiRequest("POST", "/transactions/withdrawals", payload, true); err != nil {
+		return err
+	}
+	if err := tc.responseStatusShouldBe(200); err != nil {
+		return err
+	}
+	if err := tc.responseShouldIncludeTransactionRequestID(); err != nil {
+		return err
+	}
+	tc.withdrawalRequestID = tc.lastTransactionRequestID
+	withdrawalID := tc.withdrawalRequestID
+	evt, err := waitForWebhook(5*time.Second, func(evt capturedWebhook) bool {
+		return asString(evt.payload["resourceType"]) == "TRANSACTION_STATUS" &&
+			asString(evt.payload["requestId"]) == withdrawalID &&
+			asString(evt.payload["status"]) == "SETTLED"
+	})
+	if err != nil {
+		return err
+	}
+	tc.lastWebhook = evt.payload
+	tc.lastWebhookEncrypted = evt.encrypted
+	return nil
+}
+
+func (tc *TestContext) mockptiReturnsTheDeposit() error {
+	if tc.depositRequestID == "" {
+		return fmt.Errorf("no deposit request ID saved; call 'mockpti settles a deposit' first")
+	}
+	payload := map[string]interface{}{
+		"transactionId": tc.depositRequestID,
+		"feedback":      "RETURNED",
+		"providerName":  "test-provider",
+		"payload":       `{"status":"RETURNED"}`,
+	}
+	if _, err := tc.ptiRequest("POST", "/transactions/"+tc.depositRequestID+"/updates", payload, true); err != nil {
+		return err
+	}
+	if err := tc.responseStatusShouldBe(200); err != nil {
+		return err
+	}
+	depositID := tc.depositRequestID
+	evt, err := waitForWebhook(5*time.Second, func(evt capturedWebhook) bool {
+		return asString(evt.payload["resourceType"]) == "TRANSACTION_STATUS" &&
+			asString(evt.payload["requestId"]) == depositID &&
+			asString(evt.payload["status"]) == "RETURNED"
+	})
+	if err != nil {
+		return err
+	}
+	tc.lastWebhook = evt.payload
+	tc.lastWebhookEncrypted = evt.encrypted
+	return nil
+}
+
+func (tc *TestContext) mockptiReturnsTheWithdrawal() error {
+	if tc.withdrawalRequestID == "" {
+		return fmt.Errorf("no withdrawal request ID saved; call 'mockpti settles a withdrawal' first")
+	}
+	payload := map[string]interface{}{
+		"transactionId": tc.withdrawalRequestID,
+		"feedback":      "RETURNED",
+		"providerName":  "test-provider",
+		"payload":       `{"status":"RETURNED"}`,
+	}
+	if _, err := tc.ptiRequest("POST", "/transactions/"+tc.withdrawalRequestID+"/updates", payload, true); err != nil {
+		return err
+	}
+	if err := tc.responseStatusShouldBe(200); err != nil {
+		return err
+	}
+	withdrawalID := tc.withdrawalRequestID
+	evt, err := waitForWebhook(5*time.Second, func(evt capturedWebhook) bool {
+		return asString(evt.payload["resourceType"]) == "TRANSACTION_STATUS" &&
+			asString(evt.payload["requestId"]) == withdrawalID &&
+			asString(evt.payload["status"]) == "RETURNED"
+	})
+	if err != nil {
+		return err
+	}
+	tc.lastWebhook = evt.payload
+	tc.lastWebhookEncrypted = evt.encrypted
 	return nil
 }
 

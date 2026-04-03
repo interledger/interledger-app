@@ -110,11 +110,13 @@ func (h *Handler) StartKYC(w http.ResponseWriter, r *http.Request) {
 
 	logger.Info("kyc iframe url generated", zap.String("iframe_url", iframeURL))
 
-	// Move user into action_required so KYC must be completed via iframe submission
-	user.KYCState = consts.KYCStateActionRequired
-	user.RiskLevel = consts.RiskLevelLow
-	if err := h.store.UpdateUser(user); err != nil {
-		logger.Error("failed to update user kyc state", zap.String("user_id", userID), zap.Error(err))
+	// Only move user into action_required if KYC hasn't been completed yet
+	if user.KYCState != consts.KYCStateAccepted {
+		user.KYCState = consts.KYCStateActionRequired
+		user.RiskLevel = consts.RiskLevelLow
+		if err := h.store.UpdateUser(user); err != nil {
+			logger.Error("failed to update user kyc state", zap.String("user_id", userID), zap.Error(err))
+		}
 	}
 
 	response := models.StartKYCResponse{

@@ -1,3 +1,5 @@
+COMPOSE := docker compose
+
 help:
 	@echo "make <command>"
 	@echo "e.g. make infrastructure"
@@ -13,6 +15,9 @@ help:
 	@echo "backend|back            Just backends services"
 	@echo "frontend|front          Just frontends services"
 	@echo "all                     All services (infra, svc, app)"
+	@echo ""
+	@echo "build                   Build backend images"
+	@echo "pull                    Pull all images"
 	@echo ""
 	@echo "down                    Stop all running services"
 	@echo "delete-volumes|reset    Stop all services and remove associated volumes"
@@ -47,6 +52,8 @@ help:
 	backend back \
 	frontend front \
 	all \
+	build \
+	pull \
 	down \
 	delete-volumes reset \
 
@@ -60,41 +67,50 @@ help:
 
 
 infrastructure:
-	docker compose --profile infrastructure up
+	$(COMPOSE) --profile infrastructure up
 
 infra: infrastructure
 
 services:
-	docker compose --profile services up
+	$(COMPOSE) --profile services up
 
 svc: services
 
 application:
-	docker compose --profile application up --watch
+	$(COMPOSE) --profile application up --watch
 
 app: application
 
 backend:
-	docker compose --profile backend up --watch
+	$(COMPOSE) --profile backend up --watch
 
 back: backend
 
 frontend:
-	docker compose --profile frontend up --watch
+	$(COMPOSE) --profile frontend up --watch
 
 front: frontend
 
 all:
-	docker compose --profile "*" up --watch
+	$(COMPOSE) --profile "*" up --watch
 
 all-nowatch:
-	docker compose --profile "*" up -d
+	$(COMPOSE) --profile "*" up -d
+
+all-ci:
+	$(COMPOSE) -f docker-compose.yaml -f protea.runner.mounts.yaml --profile "*" up -d
+
+build:
+	$(COMPOSE) --profile "*" build
+
+pull:
+	$(COMPOSE) --profile "*" pull
 
 down:
-	docker compose --profile "*" down
+	$(COMPOSE) --profile "*" down
 
 delete-volumes:
-	docker compose --profile "*" down -v
+	$(COMPOSE) --profile "*" down -v
 
 reset: delete-volumes
 
@@ -169,6 +185,7 @@ HOSTS := interledger.test \
 	identity.interledger.test \
 	mockgatehub.interledger.test \
 	mockxago.interledger.test \
+	mockpti.interledger.test \
 	docs.interledger.test
 
 hosts:

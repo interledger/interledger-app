@@ -272,17 +272,17 @@ func ListGrants(ctx context.Context, b Backends, walletID string) ([]rafiki.Gran
 
 		var access []rafiki.Access
 		for _, a := range g.Access {
-			var debitAmount uint64
+			var debitAmount int64
 			if a.Limits.DebitAmount.Value != "" {
-				debitAmount, err = strconv.ParseUint(a.Limits.DebitAmount.Value, 10, 64)
+				debitAmount, err = strconv.ParseInt(a.Limits.DebitAmount.Value, 10, 64)
 				if err != nil {
 					return nil, fmt.Errorf("%w %s", rafiki.ErrInternal, err)
 				}
 			}
 
-			var recvAmount uint64
+			var recvAmount int64
 			if a.Limits.ReceiveAmount.Value != "" {
-				recvAmount, err = strconv.ParseUint(a.Limits.ReceiveAmount.Value, 10, 64)
+				recvAmount, err = strconv.ParseInt(a.Limits.ReceiveAmount.Value, 10, 64)
 				if err != nil {
 					return nil, fmt.Errorf("%w %s", rafiki.ErrInternal, err)
 				}
@@ -324,17 +324,17 @@ func GetGrant(ctx context.Context, b Backends, grantID string) (*rafiki.Grant, e
 	createdAt, _ := time.Parse(time.RFC3339, g.CreatedAt)
 	var access []rafiki.Access
 	for _, a := range g.Access {
-		var debitAmount uint64
+		var debitAmount int64
 		if a.Limits.DebitAmount.Value != "" {
-			debitAmount, err = strconv.ParseUint(a.Limits.DebitAmount.Value, 10, 64)
+			debitAmount, err = strconv.ParseInt(a.Limits.DebitAmount.Value, 10, 64)
 			if err != nil {
 				return nil, fmt.Errorf("%w %s", rafiki.ErrInternal, err)
 			}
 		}
 
-		var recvAmount uint64
+		var recvAmount int64
 		if a.Limits.ReceiveAmount.Value != "" {
-			recvAmount, err = strconv.ParseUint(a.Limits.ReceiveAmount.Value, 10, 64)
+			recvAmount, err = strconv.ParseInt(a.Limits.ReceiveAmount.Value, 10, 64)
 			if err != nil {
 				return nil, fmt.Errorf("%w %s", rafiki.ErrInternal, err)
 			}

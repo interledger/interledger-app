@@ -1,0 +1,40 @@
+ARG GOLANG_VERSION=1.25
+
+FROM public.ecr.aws/docker/library/golang:${GOLANG_VERSION} AS base
+
+ARG ATLAS_VERSION=v0.31.0
+ARG GRPC_HEALTH_PROBE_VERSION=v0.4.7
+ARG BUILDARCH=amd64
+ARG BUILDOS=linux
+
+WORKDIR /build
+
+# Fetch grpc health prober until kubernetes 1.23 releases on EKS
+RUN wget -qO/bin/grpc_health_probe "https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-${BUILDOS}-${BUILDARCH}" && \
+	chmod +x /bin/grpc_health_probe
+
+RUN wget -qO/bin/atlas https://release.ariga.io/atlas/atlas-${BUILDOS}-${BUILDARCH}-${ATLAS_VERSION} && \
+	chmod +x /bin/atlas
+
+# Install Delve debugger
+RUN go install github.com/go-delve/delve/cmd/dlv@latest
+
+# Fetch dependencies.
+COPY go.mod go.sum ./
+RUN go mod download
+COPY backend ./backend
+COPY env ./env
+COPY proto ./proto
+COPY pacioli ./pacioli
+COPY log ./log
+COPY tracing ./tracing
+ENTRYPOINT ["/build/backend/entrypoint.sh"]
+
+FROM base AS builder
+
+ENV GOCACHE=/root/.cache/go-build
+# Build with debug info: disable optimizations and inlining
+RUN --mount=type=cache,target="/root/.cache/go-build" go build -gcflags="all=-N -l" -o main ./backend/main.go
+
+EXPOSE 2345
+ENTRYPOINT ["/go/bin/dlv", "--listen=:2345", "--headless=true", "--api-version=2", "--accept-multiclient", "exec", "/build/main"]

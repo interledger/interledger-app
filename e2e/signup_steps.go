@@ -29,7 +29,16 @@ func (sc *E2EContext) iFillInWithUniquePhoneNumber(fieldName string) error {
 		return fmt.Errorf("no emailSuffix defined for user '%s'", sc.currentUser)
 	}
 
-	phoneNumber := generateDeterministicPhone(sc.country, sc.testIdentifier, emailSuffix)
+	var err error
+	phoneNumber := ""
+	if strings.EqualFold(sc.country, "United States") || strings.EqualFold(sc.country, "USA") || strings.EqualFold(sc.country, "US") {
+		phoneNumber, err = sc.getNextAvailableUSPhoneNumber()
+		if err != nil {
+			return fmt.Errorf("failed to allocate US phone number: %w", err)
+		}
+	} else {
+		phoneNumber = generateDeterministicPhone(sc.country, sc.testIdentifier, emailSuffix)
+	}
 	debugPrintf("📱 Generated unique phone number: %s (country %s, emailSuffix %s, user %s)\n", phoneNumber, sc.country, emailSuffix, sc.currentUser)
 
 	// Store in user details for current user
@@ -41,7 +50,7 @@ func (sc *E2EContext) iFillInWithUniquePhoneNumber(fieldName string) error {
 	}
 
 	// Fill in the phone field
-	err := sc.iFillInWith(fieldName, phoneNumber)
+	err = sc.iFillInWith(fieldName, phoneNumber)
 	if err != nil {
 		return fmt.Errorf("failed to fill phone field: %w", err)
 	}

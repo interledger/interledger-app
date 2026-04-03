@@ -31,7 +31,7 @@ type dbPayment struct {
 	ID           string    `db:"id"`
 	FromWalletID string    `db:"from_wallet"`
 	ToWalletID   string    `db:"to_wallet"`
-	Amount       uint64    `db:"amount"`
+	Amount       int64     `db:"amount"`
 	Asset        string    `db:"amount_asset"`
 	Timestamp    time.Time `db:"created_at"`
 }
@@ -40,7 +40,7 @@ type RafikiPayment struct {
 	IDs          pq.StringArray `db:"ids"`
 	FromWalletID string         `db:"from_wallet"`
 	ToWalletID   string         `db:"to_wallet"`
-	Amount       uint64         `db:"amount"`
+	Amount       int64          `db:"amount"`
 	Asset        string         `db:"amount_asset"`
 }
 
