@@ -28,6 +28,7 @@ services:
     build:
       context: ../go
       dockerfile: backend/Dockerfile
+      # dockerfile: backend/Dockerfile.debug # for debugging
       target: builder
     profiles:
       - application
@@ -44,11 +45,18 @@ services:
       - "8082:8082" # authorisation port
       - "8443:8443" # grpc port
       - "8448:8448" # wallet admin port
+      - "2345:2345" # debug port
     labels:
       - "traefik.enable=true"
+
+      - "traefik.http.routers.backend.service=backend"
       - "traefik.http.routers.backend.rule=Host(`interledger.test`) && PathPrefix(`/webhooks`)"
       - "traefik.http.routers.backend.rule=Host(`interledger.test`) && PathPrefix(`/.well-known`)"
       - "traefik.http.services.backend.loadbalancer.server.port=8080"
+
+      - "traefik.tcp.routers.delve.service=delve"
+      - "traefik.tcp.routers.delve.rule=HostSNI(`*`)"
+      - "traefik.tcp.services.delve.loadbalancer.server.port=2345"
 
     environment:
       # Core runtime

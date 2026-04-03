@@ -182,5 +182,54 @@ docker compose down -v
 | https://mockpti.interledger.test          | MockPTI API and SDK stub                    |
 
 
+## Debugging the backend with Delve
+
+The backend service exposes port `2345` for remote debugging via [Delve](https://github.com/go-delve/delve).
+
+To enable it, switch the Dockerfile in [wallet.yaml](./wallet.yaml) to the debug variant:
+
+```yaml
+# wallet.yaml
+build:
+  context: ../go
+  dockerfile: backend/Dockerfile.debug  # switch to this
+  # dockerfile: backend/Dockerfile
+```
+
+The debug build compiles with `-gcflags="all=-N -l"` (optimizations and inlining disabled) and starts the binary under `dlv` in headless mode.
+
+### Attaching with VS Code
+
+Add a launch configuration to `.vscode/launch.json`:
+
+```json
+{
+    "name": "Backend service docker debug",
+    "type": "go",
+    "request": "attach",
+    "mode": "remote",
+    "host": "127.0.0.1",
+    "port": 2345,
+    "substitutePath": [
+        {
+            "from": "${workspaceFolder}/go",
+            "to": "/build"
+        }
+    ]
+}
+```
+
+### Attaching with GoLand / IntelliJ
+
+Go to **Run → Edit Configurations → + → Go Remote** and set host `localhost`, port `2345`.
+
+### Attaching via CLI
+
+```sh
+dlv connect localhost:2345
+```
+
+---
+
 ### TODO
 - [ ] Add instructions for Linux users regarding trusting the self-signed certificates.
