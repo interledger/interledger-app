@@ -250,97 +250,75 @@ func (sc *E2EContext) iTriggerUserVerificationFor(email string) error {
 		kratosAdminURL = "http://localhost:4434"
 	}
 
-	// Step 1: Check if Kratos identity exists (should be created by signup flow)
-	// Retry for up to 120 seconds as Kratos identity creation may be async
+	// Step 1: Resolve Kratos identity by direct DB lookup first.
+	// Under high concurrency this is significantly faster and more reliable
+	// than repeatedly listing all identities via admin API.
 	var identityID string
-	maxRetries := 120
+	maxRetries := 40
 	for i := 0; i < maxRetries; i++ {
-		identities, err := sc.getKratosIdentities()
-		if err != nil {
-			return fmt.Errorf("could not check Kratos identities: %w", err)
-		}
-
-		debugPrintf("   → retrieved %d identities from Kratos\n", len(identities))
-
-		for _, identity := range identities {
-			if traits, ok := identity.Traits["email"]; ok && traits == prefixedEmail {
-				identityID = identity.ID
-				debugPrintf("✓ Found Kratos identity created by signup: %s (after %d seconds)\n", identityID, i+1)
-				break
-			}
-		}
-
-		if identityID != "" {
+		resolvedID, err := sc.lookupKratosIdentityByEmail(prefixedEmail)
+		if err == nil && resolvedID != "" {
+			identityID = resolvedID
+			debugPrintf("✓ Found Kratos identity created by signup: %s (after %d checks)\n", identityID, i+1)
 			break
 		}
 
 		if i < maxRetries-1 {
 			debugPrintf("   ⏳ Waiting for Kratos identity to be created (attempt %d/%d)...\n", i+1, maxRetries)
-			time.Sleep(1 * time.Second)
+			time.Sleep(500 * time.Millisecond)
 		}
 	}
 
 	// Step 2: Fail if identity doesn't exist - it should have been created by the signup process
 	if identityID == "" {
-		// Fallback: try to look up identity_id directly in Kratos Postgres DB
-		debugPrintf("   ⚠️  Identity not found via admin API, falling back to Kratos DB lookup for %s\n", prefixedEmail)
-		var err error
-		identityID, err = sc.lookupKratosIdentityByEmail(prefixedEmail)
+		debugPrintf("   ⚠️  Identity not found via DB lookup, attempting admin API create for %s\n", prefixedEmail)
+		client := &http.Client{Timeout: 30 * time.Second}
+
+		phone, err := sc.getCurrentUserPhone()
 		if err != nil {
-			debugPrintf("   - Kratos DB lookup did not find identity for %s: %v\n", prefixedEmail, err)
-		} else {
-			debugPrintf("   ✓ Found Kratos identity via DB lookup: %s\n", identityID)
+			debugPrintf("   ⚠️  Failed to get phone from user details: %v\n", err)
+			return fmt.Errorf("cannot create Kratos identity without phone: %w", err)
+		}
+
+		payload := map[string]interface{}{"traits": map[string]string{
+			"email":       prefixedEmail,
+			"phone":       phone,
+			"firstName":   sc.firstName,
+			"lastName":    sc.lastName,
+			"countryCode": sc.country,
+		}}
+		b, _ := json.Marshal(payload)
+		req, err := http.NewRequestWithContext(context.Background(), "POST", kratosAdminURL+"/admin/identities", strings.NewReader(string(b)))
+		if err == nil {
+			req.Header.Set("Content-Type", "application/json")
+			resp, err := client.Do(req)
+			if err == nil {
+				defer resp.Body.Close()
+				if resp.StatusCode == http.StatusCreated || resp.StatusCode == http.StatusOK {
+					var created kratosIdentity
+					if err := json.NewDecoder(resp.Body).Decode(&created); err == nil {
+						identityID = created.ID
+						debugPrintf("   ✓ Created Kratos identity via admin API: %s\n", identityID)
+					}
+				} else if resp.StatusCode == http.StatusConflict {
+					// Conflict means an identity already exists for one of the identifiers.
+					// Re-resolve identity from DB instead of failing.
+					if resolvedID, resolveErr := sc.lookupKratosIdentityByEmail(prefixedEmail); resolveErr == nil {
+						identityID = resolvedID
+						debugPrintf("   ✓ Resolved existing Kratos identity after conflict: %s\n", identityID)
+					} else {
+						body, _ := io.ReadAll(resp.Body)
+						debugPrintf("   ⚠️  Conflict creating identity and DB resolve failed: %s\n", string(body))
+					}
+				} else {
+					body, _ := io.ReadAll(resp.Body)
+					debugPrintf("   ⚠️  Failed to create Kratos identity: status %d: %s\n", resp.StatusCode, string(body))
+				}
+			}
 		}
 
 		if identityID == "" {
-			// As a last resort, create a Kratos identity via the admin API to ensure the test can proceed
-			debugPrintf("   ⚠️  Creating Kratos identity via admin API for %s\n", prefixedEmail)
-			client := &http.Client{Timeout: 30 * time.Second}
-
-			// Get phone from user details - fail fast if not present
-			phone, err := sc.getCurrentUserPhone()
-			if err != nil {
-				debugPrintf("   ⚠️  Failed to get phone from user details: %v\n", err)
-				return fmt.Errorf("cannot create Kratos identity without phone: %w", err)
-			}
-
-			// Include basic required traits that the Kratos schema expects
-			payload := map[string]interface{}{"traits": map[string]string{
-				"email":       prefixedEmail,
-				"phone":       phone,
-				"firstName":   sc.firstName,
-				"lastName":    sc.lastName,
-				"countryCode": sc.country,
-			}}
-			b, _ := json.Marshal(payload)
-			req, err := http.NewRequestWithContext(context.Background(), "POST", kratosAdminURL+"/admin/identities", strings.NewReader(string(b)))
-			if err == nil {
-				req.Header.Set("Content-Type", "application/json")
-				resp, err := client.Do(req)
-				if err == nil {
-					defer resp.Body.Close()
-					if resp.StatusCode == http.StatusCreated || resp.StatusCode == http.StatusOK {
-						var created kratosIdentity
-						if err := json.NewDecoder(resp.Body).Decode(&created); err == nil {
-							identityID = created.ID
-							debugPrintf("   ✓ Created Kratos identity via admin API: %s\n", identityID)
-						} else {
-							debugPrintf("   ⚠️  Failed to decode created identity response: %v\n", err)
-						}
-					} else {
-						body, _ := io.ReadAll(resp.Body)
-						debugPrintf("   ⚠️  Failed to create Kratos identity: status %d: %s\n", resp.StatusCode, string(body))
-					}
-				} else {
-					debugPrintf("   ⚠️  Error calling Kratos admin create API: %v\n", err)
-				}
-			} else {
-				debugPrintf("   ⚠️  Error building Kratos admin create request: %v\n", err)
-			}
-
-			if identityID == "" {
-				return fmt.Errorf("Kratos identity not found for %s - signup process should have created it", prefixedEmail)
-			}
+			return fmt.Errorf("Kratos identity not found for %s - signup process should have created it", prefixedEmail)
 		}
 	}
 

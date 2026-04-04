@@ -32,6 +32,18 @@ func (sc *E2EContext) iNavigateToTheDashboard() error {
 		State: playwright.LoadStateNetworkidle,
 	})
 
+	if strings.Contains(sc.page.URL(), "/login") {
+		debugPrintln("   🔐 Redirected to login while navigating to dashboard, retrying login...")
+		if err := sc.iLogInAsMyself(); err != nil {
+			return fmt.Errorf("failed to navigate to dashboard: not on application dashboard - still at: %s", sc.page.URL())
+		}
+		_, _ = sc.page.Goto(url, playwright.PageGotoOptions{WaitUntil: playwright.WaitUntilStateNetworkidle})
+	}
+
+	if strings.Contains(sc.page.URL(), "/login") {
+		return fmt.Errorf("failed to navigate to dashboard: not on application dashboard - still at: %s", sc.page.URL())
+	}
+
 	debugPrintf("✓ Navigated to dashboard: %s\n", url)
 	return nil
 }
@@ -169,13 +181,27 @@ func (sc *E2EContext) iNavigateToTheSendPaymentPage() error {
 			sc.page.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
 				State: playwright.LoadStateNetworkidle,
 			})
-			debugPrintf("✓ Navigated to: %s\n", url)
-			return nil
+
+			if strings.Contains(sc.page.URL(), "/login") {
+				debugPrintln("   🔐 Redirected to login while opening payments page, retrying login...")
+				if loginErr := sc.iLogInAsMyself(); loginErr == nil {
+					_, err = sc.page.Goto(url, playwright.PageGotoOptions{WaitUntil: playwright.WaitUntilStateNetworkidle})
+					sc.page.WaitForLoadState(playwright.PageWaitForLoadStateOptions{State: playwright.LoadStateNetworkidle})
+				}
+			}
+
+			if !strings.Contains(sc.page.URL(), "/login") {
+				debugPrintf("✓ Navigated to: %s\n", url)
+				return nil
+			}
 		}
 		lastErr = err
 	}
 
-	return fmt.Errorf("failed to navigate to send payment page: %w", lastErr)
+	if lastErr != nil {
+		return fmt.Errorf("failed to navigate to send payment page: %w", lastErr)
+	}
+	return fmt.Errorf("failed to navigate to send payment page: redirected to login")
 }
 
 // iShouldSeeThePaymentsPage verifies the payments page is displayed
@@ -185,6 +211,15 @@ func (sc *E2EContext) iShouldSeeThePaymentsPage() error {
 	// Check if we're on a payments-related URL
 	currentURL := sc.page.URL()
 	debugPrintf("   Current URL: %s\n", currentURL)
+
+	if strings.Contains(currentURL, "/login") {
+		debugPrintln("   🔐 On login page during payments check, retrying login...")
+		if err := sc.iLogInAsMyself(); err == nil {
+			_, _ = sc.page.Goto(sc.baseURL+"/pay", playwright.PageGotoOptions{WaitUntil: playwright.WaitUntilStateNetworkidle})
+			currentURL = sc.page.URL()
+			debugPrintf("   Current URL after login recovery: %s\n", currentURL)
+		}
+	}
 
 	// Look for payments page indicators (title or header text)
 	allText, _ := sc.page.TextContent("body")

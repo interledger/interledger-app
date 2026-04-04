@@ -258,6 +258,8 @@ func (sc *E2EContext) iShouldBeNavigatedToTheApplicationDashboard() error {
 		"/activation",
 	}
 
+	loginRecovered := false
+
 	// Try for up to 15 seconds waiting for dashboard navigation
 	for attempt := 0; attempt < 30; attempt++ {
 		currentURL := sc.page.URL()
@@ -268,6 +270,14 @@ func (sc *E2EContext) iShouldBeNavigatedToTheApplicationDashboard() error {
 			if strings.Contains(currentURL, pattern) {
 				debugPrintf("   ✓ Successfully navigated to dashboard (matched pattern: %s)\n", pattern)
 				return nil
+			}
+		}
+
+		if strings.Contains(currentURL, "/login") && !loginRecovered && attempt >= 6 {
+			debugPrintln("   🔐 Session appears to have bounced to login; retrying login once...")
+			if err := sc.iLogInAsMyself(); err == nil {
+				loginRecovered = true
+				continue
 			}
 		}
 

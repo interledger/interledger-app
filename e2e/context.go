@@ -13,6 +13,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"sync/atomic"
 	"strings"
 	"time"
 
@@ -20,6 +21,8 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/playwright-community/playwright-go"
 )
+
+var scenarioIdentifierSeq uint64
 
 // E2EContext holds the test context for signup scenarios
 type E2EContext struct {
@@ -259,9 +262,14 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 // Background step implementations
 
 func (sc *E2EContext) aRandomTestIdentifierIsGenerated() error {
-	// Generate a random test identifier based on current timestamp
-	// This ensures uniqueness across test runs
-	sc.testIdentifier = fmt.Sprintf("%d", time.Now().UnixNano()%1000000)
+	// Use monotonic sequence + timestamp to avoid collisions when scenarios
+	// start concurrently while keeping the identifier digits-only.
+	seq := atomic.AddUint64(&scenarioIdentifierSeq, 1)
+	tsPart := time.Now().UnixMilli() % 1000000000
+	seqPart := seq % 1000
+
+	// 12 digits: 9 from timestamp + 3 from per-process sequence.
+	sc.testIdentifier = fmt.Sprintf("%09d%03d", tsPart, seqPart)
 	debugPrintf("✓ Generated random test identifier: %s\n", sc.testIdentifier)
 	return nil
 }

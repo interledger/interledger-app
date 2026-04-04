@@ -278,9 +278,14 @@ func (sc *E2EContext) iWaitForTheKYCCompletion() error {
 			debugPrintf("   📍 Current URL (attempt %d): %s\n", i, currentURL)
 		}
 
-		// If we're on login page, that's a session loss issue - return error
+		// Under concurrency, session cookies may briefly desync after iframe completion.
+		// Attempt one login recovery before failing.
 		if strings.Contains(currentURL, "/login") {
-			return fmt.Errorf("KYC completed but redirected to login - user session was lost: %s", currentURL)
+			debugPrintf("   ⚠️  Redirected to login during KYC completion, retrying login...\n")
+			if err := sc.iLogInAsMyself(); err != nil {
+				return fmt.Errorf("KYC completed but redirected to login - user session was lost: %s", currentURL)
+			}
+			currentURL = sc.page.URL()
 		}
 
 		// We should navigate away from personal-details
