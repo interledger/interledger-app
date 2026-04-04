@@ -113,7 +113,8 @@ func (sc *E2EContext) iNavigateToTheSignupPage() error {
 
 	// Ensure page is fully loaded by waiting for network
 	sc.page.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
-		State: playwright.LoadStateNetworkidle,
+		State:   playwright.LoadStateNetworkidle,
+		Timeout: playwright.Float(15000),
 	})
 
 	return nil
