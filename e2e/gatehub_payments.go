@@ -37,7 +37,9 @@ func (sc *E2EContext) iNavigateToTheDashboard() error {
 		if err := sc.iLogInAsMyself(); err != nil {
 			return fmt.Errorf("failed to navigate to dashboard: not on application dashboard - still at: %s", sc.page.URL())
 		}
-		_, _ = sc.page.Goto(url, playwright.PageGotoOptions{WaitUntil: playwright.WaitUntilStateNetworkidle})
+		if _, err := sc.page.Goto(url, playwright.PageGotoOptions{WaitUntil: playwright.WaitUntilStateNetworkidle}); err != nil {
+			return fmt.Errorf("failed to navigate to dashboard after re-authentication: %w", err)
+		}
 	}
 
 	if strings.Contains(sc.page.URL(), "/login") {

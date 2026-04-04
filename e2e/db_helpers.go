@@ -497,7 +497,9 @@ func allocatePhoneNumber(country string) (string, error) {
 	defer phoneAllocMu.Unlock()
 
 	prefix, pattern, numDigits := phoneRangeForCountry(country)
-	key := strings.ToLower(country)
+	// Key counters by the resolved allocation range, not the raw country input,
+	// so aliases and fallback countries share the same counter state.
+	key := pattern
 
 	// On first call for this country, seed the counter from the DB so we
 	// don't collide with phones registered by previous test runs.

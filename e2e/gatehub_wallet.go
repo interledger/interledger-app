@@ -199,17 +199,28 @@ func (sc *E2EContext) iClickTheButtonOnTheWalletAddressForm(buttonText string) e
 		}
 	})
 
-	// Find the wallet-address submit button first (most deterministic locator)
-	submitButton := sc.page.Locator("button[form='wallet-address'][type='submit']")
-	btnCount, _ := submitButton.Count()
+	// Find the wallet-address submit button, retrying for up to 10 seconds to
+	// handle the case where the page is still rendering after navigation.
+	var submitButton playwright.Locator
+	for attempt := 0; attempt < 20; attempt++ {
+		// Most deterministic locator first
+		submitButton = sc.page.Locator("button[form='wallet-address'][type='submit']")
+		btnCount, _ := submitButton.Count()
+		if btnCount > 0 {
+			break
+		}
 
-	if btnCount == 0 {
 		// Fallback to text match if the form/type attributes are unavailable
 		submitButton = sc.page.Locator(fmt.Sprintf("button:has-text('%s')", buttonText))
 		btnCount, _ = submitButton.Count()
-		if btnCount == 0 {
-			return fmt.Errorf("could not find wallet-address submit button")
+		if btnCount > 0 {
+			break
 		}
+
+		if attempt == 19 {
+			return fmt.Errorf("could not find wallet-address submit button after 10s")
+		}
+		time.Sleep(500 * time.Millisecond)
 	}
 
 	err := submitButton.First().WaitFor(playwright.LocatorWaitForOptions{

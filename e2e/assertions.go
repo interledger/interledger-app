@@ -37,12 +37,35 @@ func (sc *E2EContext) theSignupShouldBeSubmitted() error {
 		prefixedEmail = fmt.Sprintf("%s-%s", sc.testIdentifier, email)
 	}
 
+	// Open a single Kratos DB connection for the polling loop to avoid
+	// connection churn under concurrent scenarios.
+	kratosConnStr := "host=localhost port=5432 user=postgres password=postgres dbname=kratos sslmode=disable"
+	kratosDB, err := sql.Open("postgres", kratosConnStr)
+	if err != nil {
+		return fmt.Errorf("signup verification: could not connect to Kratos DB: %w", err)
+	}
+	defer kratosDB.Close()
+
 	// Poll for the identity for up to 10 seconds (20 × 500ms)
 	for i := 0; i < 20; i++ {
-		if id, lookupErr := sc.lookupKratosIdentityByEmail(prefixedEmail); lookupErr == nil && id != "" {
-			debugPrintf("✓ Signup verified: Kratos identity %s created for %s\n", id, prefixedEmail)
+		var identityID string
+		row := kratosDB.QueryRow(`SELECT identity_id FROM identity_verifiable_addresses WHERE value = $1 LIMIT 1`, prefixedEmail)
+		if scanErr := row.Scan(&identityID); scanErr == nil && identityID != "" {
+			debugPrintf("✓ Signup verified: Kratos identity %s created for %s\n", identityID, prefixedEmail)
 			return nil
+		} else if scanErr != nil && scanErr != sql.ErrNoRows {
+			return fmt.Errorf("signup verification: Kratos DB query error: %w", scanErr)
 		}
+
+		// Fallback to credential identifiers
+		row = kratosDB.QueryRow(`SELECT identity_id FROM identity_credential_identifiers WHERE identifier = $1 LIMIT 1`, prefixedEmail)
+		if scanErr := row.Scan(&identityID); scanErr == nil && identityID != "" {
+			debugPrintf("✓ Signup verified: Kratos identity %s created for %s\n", identityID, prefixedEmail)
+			return nil
+		} else if scanErr != nil && scanErr != sql.ErrNoRows {
+			return fmt.Errorf("signup verification: Kratos DB query error: %w", scanErr)
+		}
+
 		time.Sleep(500 * time.Millisecond)
 	}
 
