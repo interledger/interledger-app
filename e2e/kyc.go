@@ -126,7 +126,7 @@ func (sc *E2EContext) iWaitForTheKYCCompletion() error {
 	// After KYC submission, we should return to dashboard (not login!)
 	// The page will navigate away from personal-details
 	// Wait for that navigation to happen and validate we don't end up on login
-	for i := 0; i < 120; i++ { // 60 seconds timeout
+	for i := 0; i < 60; i++ { // 30 seconds timeout
 		currentURL := sc.page.URL()
 
 		// Log less frequently for clarity
@@ -151,22 +151,11 @@ func (sc *E2EContext) iWaitForTheKYCCompletion() error {
 			return nil
 		}
 
-		// After 30 seconds of polling, the webhook has likely been processed by the backend
-		// but the frontend may have missed the postMessage from the iframe.
-		// Try navigating to the dashboard directly to check if KYC actually completed.
-		if i == 60 {
-			debugPrintf("   ⚠️  Still on personal-details after 30s, trying dashboard navigation...\n")
-			_, _ = sc.page.Goto(sc.baseURL+"/", playwright.PageGotoOptions{
-				WaitUntil: playwright.WaitUntilStateNetworkidle,
-				Timeout:   playwright.Float(10000),
-			})
-		}
-
-		// Also try waiting for page navigation event
+		// Wait for page navigation event
 		time.Sleep(500 * time.Millisecond)
 	}
 
-	return fmt.Errorf("KYC did not complete within 60 seconds, still on personal-details")
+	return fmt.Errorf("KYC did not complete within 30 seconds, still on personal-details")
 }
 
 // iShouldBeNavigatedBackToTheDashboardWithApprovedKYCStatus verifies KYC approved and shows balance
