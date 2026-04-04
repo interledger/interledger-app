@@ -13,8 +13,8 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"sync/atomic"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/cucumber/godog"

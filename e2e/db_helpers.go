@@ -510,11 +510,11 @@ func allocatePhoneNumber(country string) (string, error) {
 		defer kratosDB.Close()
 
 		var maxSuffix int
-		err = kratosDB.QueryRow(fmt.Sprintf(`
-			SELECT COALESCE(MAX((regexp_match(identifier, '%s'))[1]::int), -1)
+		err = kratosDB.QueryRow(`
+			SELECT COALESCE(MAX((regexp_match(identifier, $1))[1]::int), -1)
 			FROM identity_credential_identifiers
-			WHERE identifier ~ '%s'
-		`, pattern, pattern)).Scan(&maxSuffix)
+			WHERE identifier ~ $2
+		`, pattern, pattern).Scan(&maxSuffix)
 		if err != nil {
 			return "", fmt.Errorf("allocatePhoneNumber: failed to query max phone for %s: %w", country, err)
 		}

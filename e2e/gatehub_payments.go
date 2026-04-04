@@ -179,14 +179,23 @@ func (sc *E2EContext) iNavigateToTheSendPaymentPage() error {
 
 		if err == nil {
 			sc.page.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
-				State: playwright.LoadStateNetworkidle,
+				State:   playwright.LoadStateNetworkidle,
+				Timeout: playwright.Float(5000),
 			})
 
 			if strings.Contains(sc.page.URL(), "/login") {
 				debugPrintln("   🔐 Redirected to login while opening payments page, retrying login...")
 				if loginErr := sc.iLogInAsMyself(); loginErr == nil {
-					_, err = sc.page.Goto(url, playwright.PageGotoOptions{WaitUntil: playwright.WaitUntilStateNetworkidle})
-					sc.page.WaitForLoadState(playwright.PageWaitForLoadStateOptions{State: playwright.LoadStateNetworkidle})
+					_, err = sc.page.Goto(url, playwright.PageGotoOptions{
+						WaitUntil: playwright.WaitUntilStateNetworkidle,
+						Timeout:   playwright.Float(5000),
+					})
+					if err == nil {
+						sc.page.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
+							State:   playwright.LoadStateNetworkidle,
+							Timeout: playwright.Float(5000),
+						})
+					}
 				}
 			}
 

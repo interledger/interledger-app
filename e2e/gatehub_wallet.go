@@ -383,15 +383,23 @@ func (sc *E2EContext) iShouldBeNavigatedBackToTheDashboardWithReservedWalletStat
 		}
 	}
 
-	// Final fallback: if UI is still on /wallet-address, proceed to activation.
-	// This is a known frontend redirect race under high concurrency.
+	// Final fallback: if UI is still on /wallet-address but wallet exists in DB,
+	// the redirect is a known frontend race under high concurrency — proceed.
 	if strings.Contains(lastURL, "/wallet-address") {
-		debugPrintf("   ⚠️  Staying on /wallet-address after save; proceeding to next step\n")
+		if err := sc.waitForStableWalletCount(1, 2, 2*time.Second); err == nil {
+			debugPrintf("   ⚠️  Staying on /wallet-address after save but wallet exists in DB; proceeding\n")
+			return nil
+		}
+	}
+
+	// If wallet exists in DB, the reserved state is confirmed even if the UI
+	// chip is not visible (rendering lag).
+	if err := sc.waitForStableWalletCount(1, 2, 2*time.Second); err == nil {
+		debugPrintf("   ⚠️  Reserved/Activate markers not visible but wallet exists in DB; proceeding\n")
 		return nil
 	}
 
-	debugPrintf("   ⚠️  Reserved/Activate markers not visible after retries; proceeding to avoid flaky UI gate\n")
-	return nil
+	return fmt.Errorf("wallet does not appear to be in 'Reserved' state on URL %s and no wallet found in DB", lastURL)
 }
 
 // normalizeWalletAddressToken strips non-ASCII-alphanumeric characters and lowercases.

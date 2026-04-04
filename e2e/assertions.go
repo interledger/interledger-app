@@ -287,34 +287,39 @@ func (sc *E2EContext) iTriggerUserVerificationFor(email string) error {
 			"lastName":    sc.lastName,
 			"countryCode": sc.country,
 		}}
-		b, _ := json.Marshal(payload)
+		b, err := json.Marshal(payload)
+		if err != nil {
+			return fmt.Errorf("failed to marshal Kratos identity payload: %w", err)
+		}
 		req, err := http.NewRequestWithContext(context.Background(), "POST", kratosAdminURL+"/admin/identities", strings.NewReader(string(b)))
-		if err == nil {
-			req.Header.Set("Content-Type", "application/json")
-			resp, err := client.Do(req)
-			if err == nil {
-				defer resp.Body.Close()
-				if resp.StatusCode == http.StatusCreated || resp.StatusCode == http.StatusOK {
-					var created kratosIdentity
-					if err := json.NewDecoder(resp.Body).Decode(&created); err == nil {
-						identityID = created.ID
-						debugPrintf("   ✓ Created Kratos identity via admin API: %s\n", identityID)
-					}
-				} else if resp.StatusCode == http.StatusConflict {
-					// Conflict means an identity already exists for one of the identifiers.
-					// Re-resolve identity from DB instead of failing.
-					if resolvedID, resolveErr := sc.lookupKratosIdentityByEmail(prefixedEmail); resolveErr == nil {
-						identityID = resolvedID
-						debugPrintf("   ✓ Resolved existing Kratos identity after conflict: %s\n", identityID)
-					} else {
-						body, _ := io.ReadAll(resp.Body)
-						debugPrintf("   ⚠️  Conflict creating identity and DB resolve failed: %s\n", string(body))
-					}
-				} else {
-					body, _ := io.ReadAll(resp.Body)
-					debugPrintf("   ⚠️  Failed to create Kratos identity: status %d: %s\n", resp.StatusCode, string(body))
-				}
+		if err != nil {
+			return fmt.Errorf("failed to build Kratos admin API request: %w", err)
+		}
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := client.Do(req)
+		if err != nil {
+			return fmt.Errorf("Kratos admin API request failed: %w", err)
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode == http.StatusCreated || resp.StatusCode == http.StatusOK {
+			var created kratosIdentity
+			if err := json.NewDecoder(resp.Body).Decode(&created); err == nil {
+				identityID = created.ID
+				debugPrintf("   ✓ Created Kratos identity via admin API: %s\n", identityID)
 			}
+		} else if resp.StatusCode == http.StatusConflict {
+			// Conflict means an identity already exists for one of the identifiers.
+			// Re-resolve identity from DB instead of failing.
+			if resolvedID, resolveErr := sc.lookupKratosIdentityByEmail(prefixedEmail); resolveErr == nil {
+				identityID = resolvedID
+				debugPrintf("   ✓ Resolved existing Kratos identity after conflict: %s\n", identityID)
+			} else {
+				body, _ := io.ReadAll(resp.Body)
+				debugPrintf("   ⚠️  Conflict creating identity and DB resolve failed: %s\n", string(body))
+			}
+		} else {
+			body, _ := io.ReadAll(resp.Body)
+			debugPrintf("   ⚠️  Failed to create Kratos identity: status %d: %s\n", resp.StatusCode, string(body))
 		}
 
 		if identityID == "" {
