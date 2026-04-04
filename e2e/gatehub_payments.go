@@ -556,21 +556,45 @@ func (sc *E2EContext) iNavigateToThePaymentsHistoryPage() error {
 	url := sc.baseURL + "/payments"
 	debugPrintf("   Trying: %s\n", url)
 
-	_, err := sc.page.Goto(url, playwright.PageGotoOptions{
-		WaitUntil: playwright.WaitUntilStateNetworkidle,
-		Timeout:   playwright.Float(5000),
-	})
+	var lastErr error
+	for attempt := 0; attempt < 3; attempt++ {
+		if attempt > 0 {
+			debugPrintf("   🔄 Retry %d/2 after transient error: %v\n", attempt, lastErr)
+			time.Sleep(2 * time.Second)
+		}
 
-	if err != nil {
-		return fmt.Errorf("failed to navigate to payments history: %w", err)
+		_, err := sc.page.Goto(url, playwright.PageGotoOptions{
+			WaitUntil: playwright.WaitUntilStateNetworkidle,
+			Timeout:   playwright.Float(10000),
+		})
+		if err != nil {
+			lastErr = err
+			// Retry on transient network errors
+			errStr := err.Error()
+			if strings.Contains(errStr, "ERR_NETWORK_CHANGED") ||
+				strings.Contains(errStr, "ERR_CONNECTION_RESET") ||
+				strings.Contains(errStr, "ERR_CONNECTION_REFUSED") {
+				continue
+			}
+			return fmt.Errorf("failed to navigate to payments history: %w", err)
+		}
+
+		sc.page.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
+			State: playwright.LoadStateNetworkidle,
+		})
+
+		// Verify we didn't land on an error page
+		currentURL := sc.page.URL()
+		if strings.Contains(currentURL, "chrome-error://") {
+			lastErr = fmt.Errorf("landed on chrome error page")
+			continue
+		}
+
+		debugPrintf("✓ Navigated to: %s\n", url)
+		return nil
 	}
 
-	sc.page.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
-		State: playwright.LoadStateNetworkidle,
-	})
-
-	debugPrintf("✓ Navigated to: %s\n", url)
-	return nil
+	return fmt.Errorf("failed to navigate to payments history after retries: %w", lastErr)
 }
 
 // iGetTheReceiverWalletAddressFor retrieves the wallet address for a user
