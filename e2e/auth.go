@@ -271,9 +271,20 @@ func (sc *E2EContext) iShouldBeNavigatedToTheApplicationDashboard() error {
 		}
 
 		// If not on login/totp page, we might be on an okay page
-		if !strings.Contains(currentURL, "/login") && !strings.Contains(currentURL, "/totp") {
+		// But reject chrome-error:// which means a network-level failure (DNS, SSL, etc.)
+		if !strings.Contains(currentURL, "/login") && !strings.Contains(currentURL, "/totp") &&
+			!strings.HasPrefix(currentURL, "chrome-error://") {
 			debugPrintf("   ✓ On application page (not login/TOTP): %s\n", currentURL)
 			return nil
+		}
+
+		// If we hit a chrome error page, try navigating back to the app
+		if strings.HasPrefix(currentURL, "chrome-error://") {
+			debugPrintln("   ⚠️  Browser hit a network error page, retrying navigation to dashboard...")
+			_, _ = sc.page.Goto(sc.baseURL, playwright.PageGotoOptions{
+				Timeout:   playwright.Float(15000),
+				WaitUntil: playwright.WaitUntilStateNetworkidle,
+			})
 		}
 
 		time.Sleep(500 * time.Millisecond)
@@ -366,6 +377,15 @@ func (sc *E2EContext) iSubmitTheTotpRegistration() error {
 		newURL := sc.page.URL()
 		if newURL != currentURL {
 			debugPrintf("   ✓ Page redirected after TOTP submission (attempt %d)\n", i+1)
+			// If we landed on a chrome error page (transient network failure in CI),
+			// retry navigating to the application root.
+			if strings.HasPrefix(newURL, "chrome-error://") {
+				debugPrintln("   ⚠️  TOTP redirect hit a network error page, retrying navigation...")
+				_, _ = sc.page.Goto(sc.baseURL, playwright.PageGotoOptions{
+					Timeout:   playwright.Float(15000),
+					WaitUntil: playwright.WaitUntilStateNetworkidle,
+				})
+			}
 			return nil
 		}
 	}
