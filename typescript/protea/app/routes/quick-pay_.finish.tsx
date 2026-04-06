@@ -9,6 +9,7 @@ import { type ApplicationProps, Button, GridColumn, Layouts, WalletGrid } from '
 import { mergeMeta } from '~/lib/meta'
 import { QuickPaySession } from '~/lib/types'
 import { FinishCheck, FinishError } from '~/components/QuickPay'
+import {  isWalletLayout } from '~/lib/utils.server'
 
 export type FinishActionData = {
   message?: string
@@ -25,6 +26,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   const sessionData = session.get('quickPay')
   const isRequestPayment = sessionData?.isRequestPayment
   const currentGrant = sessionData?.grants[paymentId]
+  const isWalletView = await isWalletLayout(request)
 
   if (!currentGrant) {
     throw data(
@@ -47,7 +49,8 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 export const handle: ApplicationProps = {
-  layout: Layouts.Focus,
+  layout: (match) =>
+    match.data?.isWalletView ? Layouts.Wallet : Layouts.Marketing,
   scaffold: {
     header: { title: 'Interledger Pay' }
   }
@@ -169,7 +172,6 @@ export async function action({ request }: Route.ActionArgs) {
         quote.receiver,
         isRequestPayment
       )
-      console.log({ result })
       return data(result)
     } catch (err) {
       console.log({ err })

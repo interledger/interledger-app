@@ -8,7 +8,6 @@ import { mergeMeta } from '~/lib/meta'
 
 export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url)
-  console.log({ url })
   const features = null
 
   return data({
@@ -42,8 +41,6 @@ export default function Page() {
 export async function action({ request }: Route.ActionArgs) {
   const form = await request.formData()
   const type = form.get('type') as string
-
-  console.log(type)
 
   return null
 }

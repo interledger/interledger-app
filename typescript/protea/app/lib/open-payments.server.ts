@@ -64,16 +64,6 @@ export async function fetchQuote(
   }
 
   // create quote with debit amount, you don't care how much money receiver gets
-  console.log({
-    url: walletAddress.resourceServer,
-    accessToken: quoteGrant.access_token?.value || ''
-  })
-  console.log({
-    method: 'ilp',
-    walletAddress: walletAddress.id,
-    receiver: incomingPayment.id,
-    debitAmount: amountObj
-  })
   const quote = await opClient.quote
     .create(
       {
@@ -318,7 +308,6 @@ export async function finishPayment(
       interact_ref: interactRef
     }
   )
-  console.log('CONTINUATION RESPONSE:', continuation)
 
   if (!isFinalizedGrantWithAccessToken(continuation)) {
     throw new Error('Expected finalized grant. Received non-finalized grant.')

@@ -9,7 +9,8 @@ import { getSession, commitSession } from '~/session.server'
 import { createError, isWalletLayout, walletSchema } from '~/lib/utils.server'
 import type { loader as rootLoader, RootLoaderData } from '~/root'
 import { type ActionData, QuickPaySession } from '~/lib/types'
-import { getValidWalletAddress} from '~/lib/open-payments.server'
+import { getValidWalletAddress } from '~/lib/open-payments.server'
+import { formatError } from '~/lib/helpers'
 
 export async function loader({ request }: Route.LoaderArgs) {
   const isWalletView = await isWalletLayout(request)
@@ -33,6 +34,7 @@ export const meta: MetaFunction = mergeMeta(() => [
 export default function Page() {
   const actionData = useActionData<ActionData>()
   const { walletAddress } = useRouteLoaderData('root') as RootLoaderData
+  const errors = actionData?.errors
 
   return (
     <WalletGrid>
@@ -47,7 +49,7 @@ export default function Page() {
             name="walletAddress"
             autoFocus
             defaultValue={walletAddress || ""}
-            errorMessage={String(actionData?.errors?.walletAddress || '')}
+            errorMessage={formatError(errors?.walletAddress)}
           />
 
           <Button
