@@ -52,7 +52,10 @@ export async function loader({ request }: Route.LoaderArgs) {
     gatehubWidget: response.gatehubWidget,
     personaWidget: response.personaInquiry,
     chimoneyWidget: response.chimoneyWidget,
-    ptiWidget: response.ptiWidget
+    ptiWidget: response.ptiWidget,
+    personaSdkUrl:
+      process.env.PERSONA_SDK_URL ||
+      'https://cdn.withpersona.com/dist/persona-v4.8.0-alpha.js'
   })
 }
 
@@ -109,11 +112,9 @@ function ChimoneyPage() {
 
 function PersonaPage() {
   const submit = useSubmit()
-  const { personaWidget } = useLoaderData()
+  const { personaWidget, personaSdkUrl } = useLoaderData<typeof loader>()
   const [ready, setReady] = useState(false)
-  const status = useScript(
-    'https://cdn.withpersona.com/dist/persona-v4.8.0-alpha.js'
-  )
+  const scriptStatus = useScript(personaSdkUrl)
   let personaRef = useRef<any>(null)
 
   const [setLoading] = useScaffoldStore((state) => [state.setLoading])
@@ -130,24 +131,24 @@ function PersonaPage() {
   }, [setLoading])
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && status == 'ready') {
-      personaRef.current = window.Persona
-      personaRef.current = new window.Persona!.Client({
+    if (typeof window !== 'undefined' && scriptStatus == 'ready') {
+      personaRef.current = (window as any).Persona
+      personaRef.current = new (window as any).Persona.Client({
         inquiryId: personaWidget?.id,
         sessionToken: personaWidget?.sessionToken,
         onReady: () => setReady(true),
-        onComplete: ({ inquiryId, status, fields }) => {
+        onComplete: ({ inquiryId, status, fields }: { inquiryId: string; status: string; fields: Record<string, unknown> }) => {
           setReady(false)
           submit(null, {
             action: '/personal-details',
             method: 'post'
           })
         },
-        onCancel: ({ inquiryId, sessionToken }) => console.log('onCancel'),
-        onError: (error) => console.log(error)
+        onCancel: ({ inquiryId, sessionToken }: { inquiryId: string; sessionToken: string }) => console.log('onCancel'),
+        onError: (error: Error) => console.log(error)
       })
     }
-  }, [personaWidget, status, submit])
+  }, [personaWidget, scriptStatus, submit])
 
   return <KycIntro onClick={() => personaRef.current.open()} ready={ready} />
 }

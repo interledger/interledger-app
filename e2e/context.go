@@ -185,6 +185,7 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 		return sc.iDepositViaPTIDepositForm(amount, currency)
 	})
 	ctx.Step(`^mockpti returns the deposit$`, func() error { return sc.iMockptiReturnsTheDeposit() })
+	ctx.Step(`^I fill and submit the mockxago KYC iframe$`, func() error { return sc.iFillAndSubmitTheMockxagoiframe() })
 	ctx.Step(`^I wait for the KYC completion$`, func() error { return sc.iWaitForTheKYCCompletion() })
 
 	// Wallet address creation steps

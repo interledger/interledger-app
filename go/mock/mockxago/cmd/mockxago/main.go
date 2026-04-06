@@ -135,6 +135,16 @@ func setupRoutes(router *chi.Mux, h *handler.Handler) {
 		// Public endpoint (no auth required)
 		r.Get("/currencies", h.ListCurrencies)
 
+		// Persona SDK compatible endpoints (no auth required)
+		// These are accessed by the backend Persona client and the browser iframe.
+		r.Post("/inquiries", h.PersonaCreateInquiry)
+		r.Get("/inquiries/{inquiryId}", h.PersonaGetInquiry)
+		r.Get("/inquiries/{inquiryId}/iframe", h.PersonaGetInquiryIframe)
+		r.Post("/inquiries/{inquiryId}/submit", h.PersonaInquirySubmit)
+		r.Get("/accounts/{accountId}", h.PersonaGetAccount)
+		r.Post("/accounts/{accountId}/remove-tag", h.PersonaRemoveTag)
+		r.Get("/persona-sdk.js", h.PersonaSDK)
+
 		r.Group(func(pr chi.Router) {
 			pr.Use(h.AuthMiddleware)
 			pr.Post("/company/accounts", h.CreateSubAccount)

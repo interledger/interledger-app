@@ -7,8 +7,10 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/go-chi/chi/v5"
@@ -240,6 +242,20 @@ func TestPersonaGetAccount_Success(t *testing.T) {
 	json.NewDecoder(subw.Body).Decode(&subresp)
 	require.NotEmpty(t, subresp.AccountID)
 
+	// Seed DOB via KYC submit so PersonaGetAccount can return non-hardcoded birthdate
+	kycForm := url.Values{
+		"user_id":    {subreq.WalletID},
+		"first_name": {"Test"},
+		"last_name":  {"User"},
+		"dob":        {"1990-01-01"},
+		"address":    {"123 Test St"},
+	}
+	kycReq := httptest.NewRequest(http.MethodPost, "/kyc/submit", strings.NewReader(kycForm.Encode()))
+	kycReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	kycW := httptest.NewRecorder()
+	h.KYCIframeSubmit(kycW, kycReq)
+	require.Equal(t, http.StatusOK, kycW.Code)
+
 	// Now get the account via Persona API
 	r := authorizedRequest(http.MethodGet, fmt.Sprintf("/persona/accounts/%s", subresp.AccountID), token, nil)
 
@@ -270,8 +286,8 @@ func TestPersonaGetAccount_NotFound(t *testing.T) {
 	w := httptest.NewRecorder()
 	h.PersonaGetAccount(w, r)
 
-	// Handler returns 200 for nonexistent IDs (returns empty or default data)
-	assert.Equal(t, http.StatusOK, w.Code)
+	// Account doesn't exist, should return 404.
+	assert.Equal(t, http.StatusNotFound, w.Code)
 }
 
 func TestPersonaGetAccount_MissingID(t *testing.T) {
@@ -393,6 +409,7 @@ func TestPersonaInquirySubmit_Success(t *testing.T) {
 		"first_name": "John",
 		"last_name":  "Doe",
 		"dob":        "1990-01-01",
+		"address":    "123 Main Street",
 	}
 
 	submitBody := bytes.NewBufferString("")
@@ -434,8 +451,7 @@ func TestPersonaInquirySubmit_InvalidJSON(t *testing.T) {
 	w := httptest.NewRecorder()
 	h.PersonaInquirySubmit(w, r)
 
-	// Handler doesn't validate JSON properly, still returns 200
-	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
 func TestPersonaInquirySubmit_MissingInquiryID(t *testing.T) {
@@ -461,4 +477,16 @@ func TestPersonaInquirySubmit_MissingInquiryID(t *testing.T) {
 	h.PersonaInquirySubmit(w, r)
 
 	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
+func TestPersonaSDK_ServesScript(t *testing.T) {
+	h := setupTestHandler(t)
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/persona-sdk.js", nil)
+	w := httptest.NewRecorder()
+	h.PersonaSDK(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, "application/javascript; charset=utf-8", w.Header().Get("Content-Type"))
+	assert.Greater(t, w.Body.Len(), 0)
 }
