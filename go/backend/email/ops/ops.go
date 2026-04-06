@@ -505,7 +505,7 @@ func SendPending3DSConfirmation(ctx context.Context, b Backends, walletID, confi
 func SendKYCDocumentsRequiredEmail(ctx context.Context, b Backends, walletID string) {
 	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
 	if err != nil {
-		log.Error("Failed to send KYC documents required email.", zap.Error(err), zap.String("walletID", walletID))
+		log.Error("Failed to retrieve email and greeting when sending KYC documents required email..", zap.Error(err), zap.String("walletID", walletID))
 		return
 	}
 
