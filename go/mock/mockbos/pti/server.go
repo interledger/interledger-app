@@ -220,7 +220,7 @@ func (s *Server) GetUserWalletHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cc := currency.ParseCurrency(wallet.Currency.String)
-	amt := currency.FromUInt64(uint64(wallet.Balance.Int64), cc)
+	amt := currency.FromUInt64(wallet.Balance.Int64, cc)
 	resp := external.Wallet{
 		WalletID: wallet.ID,
 		Currency: cc.String(),
@@ -250,7 +250,7 @@ func (s *Server) ListUserWallets(w http.ResponseWriter, r *http.Request) {
 	resp := []external.Wallet{}
 	for _, w := range wallets {
 		cc := currency.ParseCurrency(w.Currency.String)
-		amt := currency.FromUInt64(uint64(w.Balance.Int64), cc)
+		amt := currency.FromUInt64(w.Balance.Int64, cc)
 		resp = append(resp, external.Wallet{
 			WalletID: w.ID,
 			Currency: w.Currency.String,
@@ -634,7 +634,7 @@ func (s *Server) GetTransaction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cc := currency.ParseCurrency(trx.Currency.String)
-	amt := currency.FromUInt64(uint64(trx.Amount.Int64), cc)
+	amt := currency.FromUInt64(trx.Amount.Int64, cc)
 
 	resp := external.TransactionStatus{
 		ResourceType:    "TRANSACTION_STATUS",

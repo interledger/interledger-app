@@ -38,7 +38,8 @@ import { grpc } from './lib/grpc.server'
 import { getPusherArgs } from './lib/pusher.server'
 import { emailVerificationGuard, recoveryLinkSessionInvalidationGuard, withAAL2Guard } from './lib/totp.server'
 import { usePusher } from './lib/usePusher'
-import type { Route } from './+types/root';
+import { PtiConfigProvider } from './lib/pti-context'
+import { Route } from './+types/root';
 
 export const shouldRevalidate: ShouldRevalidateFunction = ({
   actionResult,
@@ -188,22 +189,24 @@ function Page() {
   usePusher(pusherArgs, ['cardReady'])
 
   return (
-    <Document>
-      {isDisabled ? (
-        <Unavailable walletAddress={walletAddress} />
-      ) : (
-        <>
-          <Scaffold />
-          <PendingConfirmationsLoader walletId={pusherArgs.walletId} />
-          <TotpChallengeGlobal />
-        </>
-      )}
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `window.ENV = ${JSON.stringify(env)}`
-        }}
-      />
-    </Document>
+    <PtiConfigProvider>
+      <Document>
+        {isDisabled ? (
+          <Unavailable walletAddress={walletAddress} />
+        ) : (
+          <>
+            <Scaffold />
+            <PendingConfirmationsLoader walletId={pusherArgs.walletId} />
+            <TotpChallengeGlobal />
+          </>
+        )}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.ENV = ${JSON.stringify(env)}`
+          }}
+        />
+      </Document>
+    </PtiConfigProvider>
   )
 }
 export default Page

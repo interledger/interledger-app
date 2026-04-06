@@ -525,12 +525,12 @@ func (tc *TestContext) responseIndicatesDeclined(status string) error {
 }
 
 func (tc *TestContext) responseHasCardProducts() error {
-	var result map[string]interface{}
+	var result []interface{}
 	if err := json.Unmarshal(tc.lastResponseBody, &result); err != nil {
 		return err
 	}
 
-	if data, ok := result["data"].([]interface{}); !ok || len(data) == 0 {
+	if len(result) == 0 {
 		return fmt.Errorf("missing or empty data array")
 	}
 

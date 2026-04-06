@@ -137,40 +137,42 @@ func createTransfer(ctx context.Context, b Backends, args pacioli.CreateTransfer
 	// Transfer with that ID doesn't exist.
 
 	// Check for overflows
+
+	amount := uint64(args.Amount)
 	if args.Pending {
-		_, carry := bits.Add64(args.Amount, debitAcc.DebitsPending, 0)
+		_, carry := bits.Add64(amount, debitAcc.DebitsPending, 0)
 		if carry > 0 {
 			return pacioli.TransferOverflowsDebitsPending, nil
 		}
-		_, carry = bits.Add64(args.Amount, creditAcc.CreditsPending, 0)
+		_, carry = bits.Add64(amount, creditAcc.CreditsPending, 0)
 		if carry > 0 {
 			return pacioli.TransferOverflowsCreditsPending, nil
 		}
 	}
-	_, carry := bits.Add64(args.Amount, debitAcc.DebitsPosted, 0)
+	_, carry := bits.Add64(amount, debitAcc.DebitsPosted, 0)
 	if carry > 0 {
 		return pacioli.TransferOverflowsDebitsPosted, nil
 	}
-	_, carry = bits.Add64(args.Amount, creditAcc.CreditsPosted, 0)
+	_, carry = bits.Add64(amount, creditAcc.CreditsPosted, 0)
 	if carry > 0 {
 		return pacioli.TransferOverflowsCreditsPosted, nil
 	}
-	_, carry = bits.Add64(args.Amount+debitAcc.DebitsPosted, debitAcc.DebitsPending, 0)
+	_, carry = bits.Add64(amount+debitAcc.DebitsPosted, debitAcc.DebitsPending, 0)
 	if carry > 0 {
 		return pacioli.TransferOverflowsDebits, nil
 	}
-	_, carry = bits.Add64(args.Amount+creditAcc.CreditsPosted, creditAcc.CreditsPending, 0)
+	_, carry = bits.Add64(amount+creditAcc.CreditsPosted, creditAcc.CreditsPending, 0)
 	if carry > 0 {
 		return pacioli.TransferOverflowsCredits, nil
 	}
 
 	if debitAcc.DebitsMustNotExceedCredits &&
-		debitAcc.DebitsPosted+debitAcc.DebitsPending+args.Amount > debitAcc.CreditsPosted {
+		debitAcc.DebitsPosted+debitAcc.DebitsPending+amount > debitAcc.CreditsPosted {
 		return pacioli.TransferExceedsCredits, nil
 	}
 
 	if creditAcc.CreditsMustNotExceedDebits &&
-		debitAcc.CreditsPending+debitAcc.CreditsPosted+args.Amount > debitAcc.DebitsPosted {
+		debitAcc.CreditsPending+debitAcc.CreditsPosted+amount > debitAcc.DebitsPosted {
 		return pacioli.TransferExceedsDebits, nil
 	}
 
@@ -408,7 +410,8 @@ func transferExists(ctx context.Context, b Backends, args pacioli.CreateTransfer
 		}
 	}
 
-	if ex.Amount != args.Amount {
+	amount := uint64(args.Amount)
+	if ex.Amount != amount {
 		return pacioli.TransferExistsWithDifferentAmount, nil
 	}
 	if ex.Code != args.Code {
