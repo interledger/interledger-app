@@ -14,12 +14,15 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/cucumber/godog"
 	_ "github.com/lib/pq"
 	"github.com/playwright-community/playwright-go"
 )
+
+var scenarioIdentifierSeq uint64
 
 // E2EContext holds the test context for signup scenarios
 type E2EContext struct {
@@ -182,6 +185,7 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 		return sc.iDepositViaPTIDepositForm(amount, currency)
 	})
 	ctx.Step(`^mockpti returns the deposit$`, func() error { return sc.iMockptiReturnsTheDeposit() })
+	ctx.Step(`^I fill and submit the mockxago KYC iframe$`, func() error { return sc.iFillAndSubmitTheMockxagoiframe() })
 	ctx.Step(`^I wait for the KYC completion$`, func() error { return sc.iWaitForTheKYCCompletion() })
 
 	// Wallet address creation steps
@@ -259,9 +263,14 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 // Background step implementations
 
 func (sc *E2EContext) aRandomTestIdentifierIsGenerated() error {
-	// Generate a random test identifier based on current timestamp
-	// This ensures uniqueness across test runs
-	sc.testIdentifier = fmt.Sprintf("%d", time.Now().UnixNano()%1000000)
+	// Use monotonic sequence + timestamp to avoid collisions when scenarios
+	// start concurrently while keeping the identifier digits-only.
+	seq := atomic.AddUint64(&scenarioIdentifierSeq, 1)
+	tsPart := time.Now().UnixMilli() % 1000000000
+	seqPart := seq % 1000
+
+	// 12 digits: 9 from timestamp + 3 from per-process sequence.
+	sc.testIdentifier = fmt.Sprintf("%09d%03d", tsPart, seqPart)
 	debugPrintf("✓ Generated random test identifier: %s\n", sc.testIdentifier)
 	return nil
 }

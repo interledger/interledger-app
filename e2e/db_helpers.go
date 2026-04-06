@@ -5,8 +5,18 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 	"time"
 )
+
+// phoneAllocMu serializes phone number allocation across concurrent goroutines.
+var phoneAllocMu sync.Mutex
+
+// phoneCounters tracks the next suffix to allocate per country.
+// Initialized from the DB max on first call, then incremented in-memory
+// so concurrent goroutines never receive the same number — even before
+// Kratos has registered the previous allocation.
+var phoneCounters = map[string]int{}
 
 // waitForStableWalletCount polls the backend DB for the number of wallets
 // associated with the current test user. It returns when the observed
@@ -249,12 +259,23 @@ func (sc *E2EContext) lookupKratosIdentityByEmail(email string) (string, error) 
 	defer kratosDB.Close()
 
 	var identityID string
+
+	// Prefer verifiable addresses when available.
 	row := kratosDB.QueryRow(`SELECT identity_id FROM identity_verifiable_addresses WHERE value = $1 LIMIT 1`, email)
+	if err := row.Scan(&identityID); err == nil {
+		return identityID, nil
+	} else if err != sql.ErrNoRows {
+		return "", fmt.Errorf("lookupKratosIdentityByEmail: verifiable_addresses query error: %w", err)
+	}
+
+	// Fallback to credential identifiers. This catches identities that exist
+	// but have not populated verifiable addresses yet.
+	row = kratosDB.QueryRow(`SELECT identity_id FROM identity_credential_identifiers WHERE identifier = $1 LIMIT 1`, email)
 	if err := row.Scan(&identityID); err != nil {
 		if err == sql.ErrNoRows {
 			return "", fmt.Errorf("lookupKratosIdentityByEmail: identity not found for %s", email)
 		}
-		return "", fmt.Errorf("lookupKratosIdentityByEmail: query error: %w", err)
+		return "", fmt.Errorf("lookupKratosIdentityByEmail: credential_identifiers query error: %w", err)
 	}
 
 	return identityID, nil
@@ -466,48 +487,124 @@ func (sc *E2EContext) getUserWalletCount(kratosUserID string) (int, error) {
 	return count, nil
 }
 
-// getNextAvailableUSPhoneNumber returns the next available Kratos-safe US test phone number.
-// Format: +1202555xxxx (xxxx from 0000 to 9999).
-func (sc *E2EContext) getNextAvailableUSPhoneNumber() (string, error) {
-	kratosConnStr := "host=localhost port=5432 user=postgres password=postgres dbname=kratos sslmode=disable"
-	kratosDB, err := sql.Open("postgres", kratosConnStr)
-	if err != nil {
-		return "", fmt.Errorf("getNextAvailableUSPhoneNumber: could not connect to Kratos DB: %w", err)
-	}
-	defer kratosDB.Close()
+// allocatePhoneNumber returns a phone number for the given country that does not
+// already exist in the Kratos identity_credential_identifiers table.
+// It is safe for concurrent use: a process-level mutex ensures only one goroutine
+// runs the allocation logic at a time, and an in-memory counter ensures each call
+// returns a distinct number even before Kratos has registered the previous one.
+func allocatePhoneNumber(country string) (string, error) {
+	phoneAllocMu.Lock()
+	defer phoneAllocMu.Unlock()
 
-	var maxSuffix int
-	err = kratosDB.QueryRow(`
-		SELECT COALESCE(MAX((regexp_match(identifier, '^\\+1202555([0-9]{4})$'))[1]::int), -1)
-		FROM identity_credential_identifiers
-		WHERE identifier ~ '^\\+1202555[0-9]{4}$'
-	`).Scan(&maxSuffix)
-	if err != nil {
-		return "", fmt.Errorf("getNextAvailableUSPhoneNumber: failed to query max existing phone: %w", err)
-	}
+	prefix, pattern, numDigits := phoneRangeForCountry(country)
+	// Key counters by the resolved allocation range, not the raw country input,
+	// so aliases and fallback countries share the same counter state.
+	key := pattern
 
-	start := 0
-	if maxSuffix >= 0 {
-		start = maxSuffix + 1
-	}
-
-	for i := start; i <= 9999; i++ {
-		candidate := fmt.Sprintf("+1202555%04d", i)
-
-		var exists bool
-		err = kratosDB.QueryRow(`
-			SELECT EXISTS (
-				SELECT 1 FROM identity_credential_identifiers WHERE identifier = $1
-			)
-		`, candidate).Scan(&exists)
+	// On first call for this country, seed the counter from the DB so we
+	// don't collide with phones registered by previous test runs.
+	if _, ok := phoneCounters[key]; !ok {
+		kratosConnStr := "host=localhost port=5432 user=postgres password=postgres dbname=kratos sslmode=disable"
+		kratosDB, err := sql.Open("postgres", kratosConnStr)
 		if err != nil {
-			return "", fmt.Errorf("getNextAvailableUSPhoneNumber: failed existence check for %s: %w", candidate, err)
+			return "", fmt.Errorf("allocatePhoneNumber: could not connect to Kratos DB: %w", err)
+		}
+		defer kratosDB.Close()
+
+		var maxSuffix int
+		err = kratosDB.QueryRow(`
+			SELECT COALESCE(MAX((regexp_match(identifier, $1))[1]::int), -1)
+			FROM identity_credential_identifiers
+			WHERE identifier ~ $2
+		`, pattern, pattern).Scan(&maxSuffix)
+		if err != nil {
+			return "", fmt.Errorf("allocatePhoneNumber: failed to query max phone for %s: %w", country, err)
 		}
 
-		if !exists {
-			return candidate, nil
+		if maxSuffix >= 0 {
+			phoneCounters[key] = maxSuffix + 1
+		} else {
+			phoneCounters[key] = 0
 		}
 	}
 
-	return "", fmt.Errorf("getNextAvailableUSPhoneNumber: exhausted +1202555xxxx range")
+	limit := 1
+	for i := 0; i < numDigits; i++ {
+		limit *= 10
+	}
+
+	suffix := phoneCounters[key]
+	if suffix >= limit {
+		return "", fmt.Errorf("allocatePhoneNumber: exhausted phone range for country %s", country)
+	}
+	phoneCounters[key] = suffix + 1
+
+	return fmt.Sprintf("%s%0*d", prefix, numDigits, suffix), nil
+}
+
+// phoneRangeForCountry returns (prefix, regexPattern, suffixDigits) for the
+// allocation range used in each country.
+func phoneRangeForCountry(country string) (prefix string, pattern string, digits int) {
+	switch strings.ToLower(country) {
+	case "south africa":
+		return "+27710", `^\+27710([0-9]{6})$`, 6
+	case "united states", "usa", "us":
+		return "+1202555", `^\+1202555([0-9]{4})$`, 4
+	default:
+		// Germany / fallback
+		return "+491700", `^\+491700([0-9]{6})$`, 6
+	}
+}
+
+// getWalletIDByEmail looks up the wallet ID for a user by their email address
+func (sc *E2EContext) getWalletIDByEmail(email string) (string, error) {
+	if sc.db == nil {
+		connStr := "host=localhost port=5432 user=postgres password=postgres dbname=backend sslmode=disable"
+		db, err := sql.Open("postgres", connStr)
+		if err != nil {
+			return "", fmt.Errorf("getWalletIDByEmail: failed to open db: %w", err)
+		}
+		sc.db = db
+	}
+
+	kratosID := sc.getKratosUserIDByEmail(email)
+	if kratosID == "" {
+		return "", fmt.Errorf("getWalletIDByEmail: could not resolve kratos user id for %s", email)
+	}
+
+	var walletID string
+	err := sc.db.QueryRow(`SELECT wallet_id FROM user_wallets WHERE user_id = $1 LIMIT 1`, kratosID).Scan(&walletID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", fmt.Errorf("getWalletIDByEmail: no wallet found for user %s", email)
+		}
+		return "", fmt.Errorf("getWalletIDByEmail: query error: %w", err)
+	}
+
+	debugPrintf("   📋 Found wallet ID %s for email %s\n", walletID, email)
+	return walletID, nil
+}
+
+// getKYCStatusByWalletID looks up the KYC status for a wallet
+func (sc *E2EContext) getKYCStatusByWalletID(walletID string) (int, error) {
+	if sc.db == nil {
+		connStr := "host=localhost port=5432 user=postgres password=postgres dbname=backend sslmode=disable"
+		db, err := sql.Open("postgres", connStr)
+		if err != nil {
+			return -1, fmt.Errorf("getKYCStatusByWalletID: failed to open db: %w", err)
+		}
+		sc.db = db
+	}
+
+	var status int
+	err := sc.db.QueryRow(`SELECT status FROM wallet_kyc_status WHERE wallet_id = $1`, walletID).Scan(&status)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return 0, nil // Unknown/not started
+		}
+		return -1, fmt.Errorf("getKYCStatusByWalletID: query error: %w", err)
+	}
+
+	debugPrintf("   📋 KYC status for wallet %s: %d\n", walletID, status)
+	return status, nil
 }

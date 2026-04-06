@@ -98,7 +98,7 @@ all-nowatch:
 	$(COMPOSE) --profile "*" up -d
 
 all-ci:
-	$(COMPOSE) -f docker-compose.yaml -f protea.runner.mounts.yaml --profile "*" up -d
+	$(COMPOSE) -f docker-compose.yaml -f protea.runner.mounts.yaml --profile infrastructure --profile services --profile application --profile backend --profile frontend up -d
 
 build:
 	$(COMPOSE) --profile "*" build

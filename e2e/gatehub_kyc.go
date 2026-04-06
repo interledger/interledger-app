@@ -4,85 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
-
-	"github.com/playwright-community/playwright-go"
 )
-
-// initializeBrowser sets up the Playwright browser if not already initialized
-func (sc *E2EContext) initializeBrowser() error {
-	if sc.browser != nil {
-		return nil // Already initialized
-	}
-
-	pw, err := playwright.Run()
-	if err != nil {
-		return fmt.Errorf("failed to start playwright: %w", err)
-	}
-	sc.pw = pw
-
-	browser, err := pw.Chromium.Launch()
-	if err != nil {
-		return fmt.Errorf("failed to launch browser: %w", err)
-	}
-	sc.browser = browser
-
-	context, err := browser.NewContext(playwright.BrowserNewContextOptions{
-		IgnoreHttpsErrors: playwright.Bool(true),
-	})
-	if err != nil {
-		return fmt.Errorf("failed to create context: %w", err)
-	}
-	sc.context = context
-
-	page, err := context.NewPage()
-	if err != nil {
-		return fmt.Errorf("failed to create page: %w", err)
-	}
-	sc.page = page
-
-	return nil
-}
-
-// iNavigateToThePersonalDetailsPageToActivateWallet navigates to the wallet activation page
-func (sc *E2EContext) iNavigateToThePersonalDetailsPageToActivateWallet() error {
-	debugPrintln("\n🔐 Navigating to personal details / wallet activation page...")
-
-	// Initialize browser if needed
-	if sc.browser == nil {
-		err := sc.initializeBrowser()
-		if err != nil {
-			return fmt.Errorf("failed to initialize browser: %w", err)
-		}
-	}
-
-	// Click "Activate wallet" link on dashboard instead of navigating directly
-	// This ensures the Remix flow is properly initialized through client-side navigation
-	activateLink := sc.page.Locator("a:has-text('Activate wallet')")
-
-	// Wait for the link to be visible
-	if err := activateLink.WaitFor(playwright.LocatorWaitForOptions{
-		State:   playwright.WaitForSelectorStateVisible,
-		Timeout: playwright.Float(10000),
-	}); err != nil {
-		return fmt.Errorf("activate wallet link not found on dashboard: %w", err)
-	}
-
-	// Click the link and wait for navigation
-	if err := activateLink.Click(); err != nil {
-		return fmt.Errorf("failed to click activate wallet link: %w", err)
-	}
-
-	// Wait for navigation to complete
-	if err := sc.page.WaitForURL(sc.baseURL+"/personal-details", playwright.PageWaitForURLOptions{
-		Timeout: playwright.Float(10000),
-	}); err != nil {
-		return fmt.Errorf("failed to navigate to personal-details page: %w", err)
-	}
-
-	debugPrintf("   ✓ Navigated to personal details page via Activate wallet link\n")
-	time.Sleep(500 * time.Millisecond)
-	return nil
-}
 
 // iShouldSeeTheActivateWalletButton verifies the activate wallet button is visible
 func (sc *E2EContext) iShouldSeeTheActivateWalletButton() error {
@@ -109,27 +31,6 @@ func (sc *E2EContext) iShouldSeeTheActivateWalletButton() error {
 	}
 
 	return fmt.Errorf("no activate wallet button found")
-}
-
-// iWaitForTheKYCIframeToLoad waits for the KYC iframe to appear and load
-func (sc *E2EContext) iWaitForTheKYCIframeToLoad() error {
-	debugPrintln("\n🕐 Waiting for KYC iframe to load...")
-
-	// Wait for iframe to appear
-	iframeLocator := sc.page.Locator("iframe")
-
-	// Wait up to 10 seconds for iframe to appear
-	for i := 0; i < 50; i++ {
-		count, _ := iframeLocator.Count()
-		if count > 0 {
-			debugPrintf("   ✓ KYC iframe found\n")
-			time.Sleep(500 * time.Millisecond) // Give iframe time to fully load
-			return nil
-		}
-		time.Sleep(200 * time.Millisecond)
-	}
-
-	return fmt.Errorf("KYC iframe did not load after 10 seconds")
 }
 
 // iFillAndSubmitTheMockgatehubiframe fills and submits the mockgatehub KYC iframe
@@ -235,7 +136,9 @@ func (sc *E2EContext) iFillAndSubmitTheMockgatehubiframe() error {
 		// Look for submit button
 		if strings.Contains(strings.ToLower(buttonText), "submit") {
 			debugPrintf("   ✓ Clicking submit button: %s\n", buttonText)
-			_ = button.Click()
+			if err := button.Click(); err != nil {
+				return fmt.Errorf("failed to click submit button: %w", err)
+			}
 			buttonClicked = true
 			time.Sleep(500 * time.Millisecond)
 			break
@@ -250,181 +153,129 @@ func (sc *E2EContext) iFillAndSubmitTheMockgatehubiframe() error {
 	return nil
 }
 
-// iWaitForTheKYCCompletion waits for KYC to complete and return to dashboard
-func (sc *E2EContext) iWaitForTheKYCCompletion() error {
-	debugPrintln("\n⏳ Waiting for KYC completion...")
-
-	// First, wait for the form submission to complete by checking mockgatehub logs
-	// The backend should receive the webhook and update KYC status
-	time.Sleep(1 * time.Second)
-
-	// Check if the message was received by the parent
-	messageReceived, _ := sc.page.Evaluate(`() => {
-		return window.kycCompleted === true;
-	}`)
-
-	if messageReceived != nil && messageReceived.(bool) {
-		debugPrintf("   ✓ KYC completion message received by parent\n")
-	}
-
-	// After KYC submission, we should return to dashboard (not login!)
-	// The page will navigate away from personal-details
-	// Wait for that navigation to happen and validate we don't end up on login
-	for i := 0; i < 60; i++ { // 30 seconds timeout
-		currentURL := sc.page.URL()
-
-		// Log less frequently for clarity
-		if i%10 == 0 {
-			debugPrintf("   📍 Current URL (attempt %d): %s\n", i, currentURL)
-		}
-
-		// If we're on login page, that's a session loss issue - return error
-		if strings.Contains(currentURL, "/login") {
-			return fmt.Errorf("KYC completed but redirected to login - user session was lost: %s", currentURL)
-		}
-
-		// We should navigate away from personal-details
-		if !strings.Contains(currentURL, "/personal-details") {
-			debugPrintf("   ✓ KYC completed, navigated away from personal-details\n")
-			time.Sleep(500 * time.Millisecond)
-			return nil
-		}
-
-		// Also try waiting for page navigation event
-		time.Sleep(500 * time.Millisecond)
-	}
-
-	return fmt.Errorf("KYC did not complete within 30 seconds, still on personal-details")
-}
-
-// iShouldBeNavigatedBackToTheDashboardWithApprovedKYCStatus verifies KYC approved and shows balance
-func (sc *E2EContext) iShouldBeNavigatedBackToTheDashboardWithApprovedKYCStatus() error {
-	debugPrintln("\n🏠 Verifying dashboard with approved KYC status...")
-
-	// Wait for backend to process the webhook and update KYC status
-	// This may take several seconds as the webhook from mockgatehub needs to be processed
-	for i := 0; i < 15; i++ { // Up to 30 seconds
-		time.Sleep(500 * time.Millisecond)
-
-		currentURL := sc.page.URL()
-		debugPrintf("   📍 Current URL (check %d): %s\n", i+1, currentURL)
-
-		// If on login page, session was lost - that's a failure
-		if strings.Contains(currentURL, "/login") {
-			return fmt.Errorf("user was redirected to login page - session lost after KYC attempt: %s", currentURL)
-		}
-
-		// Should be at root dashboard or related authenticated pages
-		baseURLNormalized := strings.TrimSuffix(sc.baseURL, "/")
-		if !strings.HasPrefix(currentURL, baseURLNormalized) || strings.Contains(currentURL, "/personal-details") || strings.Contains(currentURL, "/wallet-address") {
-			continue
-		}
-
-		// Reload page to get latest KYC status from backend
-		if i%2 == 0 {
-			debugPrintf("   🔄 Reloading page to check for updated KYC status...\n")
-			_, err := sc.page.Reload()
-			if err == nil {
-				time.Sleep(1 * time.Second)
-			}
-		}
-
-		// Check that "Reserved" chip is gone
-		reservedChip := sc.page.Locator("text=Reserved")
-		count, _ := reservedChip.Count()
-		if count == 0 {
-			// Check for wallet card without "Reserved" indicator
-			walletCard := sc.page.Locator("text=Wallet")
-			count, _ = walletCard.Count()
-			if count > 0 {
-				debugPrintf("   ✓ Wallet card visible without 'Reserved' status (attempt %d)\n", i+1)
-				return nil
-			}
-
-			// Also check for balance elements as sign of KYC approval
-			content, _ := sc.page.Content()
-			if strings.Contains(content, "USD") && strings.Contains(content, "balance") {
-				debugPrintf("   ✓ Found balance indicators without Reserved status (attempt %d)\n", i+1)
-				return nil
-			}
-		}
-	}
-
-	// Give one final check - but NOT on login page
-	currentURL := sc.page.URL()
-	if strings.Contains(currentURL, "/login") {
-		return fmt.Errorf("failed KYC check: user is on login page (session lost): %s", currentURL)
-	}
-
-	content, _ := sc.page.Content()
-	if !strings.Contains(content, "Reserved") {
-		debugPrintf("   ✓ 'Reserved' status not found - KYC appears approved\n")
-		return nil
-	}
-
-	return fmt.Errorf("wallet still shows 'Reserved' status after 30 seconds - KYC not approved")
-}
-
-// iShouldSeeMyAccountBalanceWithKYCApproved verifies balance visibility with KYC approved
-func (sc *E2EContext) iShouldSeeMyAccountBalanceWithKYCApproved() error {
-	debugPrintln("\n💰 Verifying account balance with KYC approved...")
+// iFillAndSubmitTheMockxagoiframe fills and submits the MockXago Persona KYC iframe
+func (sc *E2EContext) iFillAndSubmitTheMockxagoiframe() error {
+	debugPrintln("\n📝 Filling and submitting MockXago Persona KYC iframe...")
 
 	time.Sleep(500 * time.Millisecond)
 
-	currentURL := sc.page.URL()
-	debugPrintf("   📍 Current URL: %s\n", currentURL)
+	// Get the iframe src for diagnostics
+	iframeLocator := sc.page.Locator("iframe").First()
+	iframeSrc, _ := iframeLocator.GetAttribute("src")
+	debugPrintf("   📍 Iframe src: %s\n", iframeSrc)
 
-	// Look for balance-related content on the page
-	balanceSelectors := []string{
-		"[class*='balance']",
-		"[data-testid*='balance']",
-		":has-text('Balance')",
-		":has-text('Available')",
-		":has-text('USD')",
-		":has-text('EUR')",
-		"text=/\\d+\\.\\d{2}\\s(USD|EUR|GBP)/", // Look for formatted currency amounts
+	// Set up a listener to capture the postMessage
+	debugPrintf("   📍 Setting up message listener...\n")
+	_, err := sc.page.Evaluate(`() => {
+		window.kycCompleted = false;
+		window.addEventListener('message', (e) => {
+			console.log('Parent received message:', e.data);
+			if (e.data?.type === 'OnboardingCompleted') {
+				let parsed;
+				try { parsed = JSON.parse(e.data.value || '{}'); } catch(ex) { parsed = {}; }
+				if (parsed.applicantStatus === 'submitted') {
+					window.kycCompleted = true;
+					console.log('MockXago KYC completed message received');
+				}
+			}
+		});
+	}`)
+	if err != nil {
+		debugPrintf("   ⚠️  Failed to set up message listener: %v\n", err)
 	}
 
-	for _, selector := range balanceSelectors {
-		element := sc.page.Locator(selector)
-		count, _ := element.Count()
-		if count > 0 {
-			text, _ := element.First().TextContent()
-			trimmedText := strings.TrimSpace(text)
-			// Limit output to first 100 characters to avoid dumping entire page content
-			if len(trimmedText) > 100 {
-				trimmedText = trimmedText[:100] + "..."
-			}
-			debugPrintf("   ✓ Found balance element: %s\n", trimmedText)
-			return nil
+	// Get the frame locator
+	frameLocator := sc.page.FrameLocator("iframe").First()
+
+	// Check if iframe exists
+	iframeCount, _ := iframeLocator.Count()
+	if iframeCount == 0 {
+		return fmt.Errorf("no iframe found on page")
+	}
+
+	debugPrintf("   📍 Found iframe, searching for form elements\n")
+
+	// Wait for iframe to be loaded and interactive
+	time.Sleep(1 * time.Second)
+
+	// Try to find form inputs in the iframe
+	inputs := frameLocator.Locator("input")
+	inputCount, _ := inputs.Count()
+	debugPrintf("   📍 Found %d input fields in iframe\n", inputCount)
+
+	if inputCount == 0 {
+		// Take a screenshot for debugging
+		_ = sc.iTakeAScreenshot("mockxago-iframe-no-inputs")
+		return fmt.Errorf("no input fields found in MockXago iframe")
+	}
+
+	// Fill form fields by name attribute
+	for i := 0; i < inputCount; i++ {
+		input := inputs.Nth(i)
+		name, _ := input.GetAttribute("name")
+		inputType, _ := input.GetAttribute("type")
+		placeholder, _ := input.GetAttribute("placeholder")
+
+		debugPrintf("   📍 Input %d: type=%s, name=%s, placeholder=%s\n", i, inputType, name, placeholder)
+
+		if inputType == "hidden" {
+			continue
+		}
+
+		var fillErr error
+		switch name {
+		case "first_name":
+			fillErr = input.Fill("Thabo")
+		case "last_name":
+			fillErr = input.Fill("Mbeki")
+		case "dob":
+			fillErr = input.Fill("1990-01-15")
+		case "address":
+			fillErr = input.Fill("42 Nelson Mandela Drive")
+		case "city":
+			fillErr = input.Fill("Johannesburg")
+		case "country":
+			fillErr = input.Fill("South Africa")
+		}
+		if fillErr != nil {
+			return fmt.Errorf("failed to fill field %q: %w", name, fillErr)
 		}
 	}
 
-	// Check page content for currency mentions (indicating KYC approved state shows balances)
-	content, _ := sc.page.Content()
-	currencyMatches := 0
-	if strings.Contains(content, "USD") {
-		currencyMatches++
-	}
-	if strings.Contains(content, "EUR") {
-		currencyMatches++
-	}
-	if strings.Contains(content, "balance") || strings.Contains(content, "Balance") {
-		currencyMatches++
+	// Take screenshot of filled form before submission
+	_ = sc.iTakeAScreenshot("mockxago-kyc-form-filled")
+
+	// Look for the submit button and click it
+	buttons := frameLocator.Locator("button")
+	buttonCount, _ := buttons.Count()
+	debugPrintf("   📍 Found %d buttons in iframe\n", buttonCount)
+
+	buttonClicked := false
+	for i := 0; i < buttonCount; i++ {
+		button := buttons.Nth(i)
+		buttonText, _ := button.TextContent()
+		buttonText = strings.TrimSpace(buttonText)
+
+		debugPrintf("   📍 Button %d: %s\n", i, buttonText)
+
+		if strings.Contains(strings.ToLower(buttonText), "submit") {
+			debugPrintf("   ✓ Clicking submit button: %s\n", buttonText)
+			if err := button.Click(); err != nil {
+				return fmt.Errorf("failed to click submit button: %w", err)
+			}
+			buttonClicked = true
+			time.Sleep(500 * time.Millisecond)
+			break
+		}
 	}
 
-	if currencyMatches >= 2 {
-		debugPrintf("   ✓ Found multiple currency/balance indicators on page\n")
-		return nil
+	if !buttonClicked {
+		_ = sc.iTakeAScreenshot("mockxago-no-submit-button")
+		return fmt.Errorf("MockXago KYC iframe submit button not found (found %d buttons)", buttonCount)
 	}
 
-	// Last resort: if we're not in Reserved state and not on personal-details, consider it approved
-	if !strings.Contains(content, "Reserved") && !strings.Contains(currentURL, "/personal-details") {
-		debugPrintf("   ✓ Not in Reserved state and not on personal-details - KYC appears approved\n")
-		return nil
-	}
-
-	return fmt.Errorf("unable to verify KYC approval - no balance information visible")
+	debugPrintf("   ✓ MockXago KYC iframe form submitted\n")
+	return nil
 }
 
 // iCompletedTheKYCFlowFor is a composite step that performs the entire KYC flow from kyc-minimal.feature
