@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"hash/fnv"
 	"math/rand"
 	"strings"
 	"time"
@@ -36,27 +37,27 @@ func getPhoneBaseForCountry(country string) string {
 // It uses the testIdentifier and emailSuffix to produce a unique-per-user phone number.
 func generateDeterministicPhone(country, testIdentifier, emailSuffix string) string {
 	base := getPhoneBaseForCountry(country)
-	overlay := testIdentifier
 
-	if emailSuffix != "" {
-		// Extract the part before @ to get unique username
-		emailParts := strings.Split(emailSuffix, "@")
-		username := emailParts[0]
-
-		// Hash the full username to get 3 unique digits
-		userHash := 0
-		for _, c := range username {
-			userHash = (userHash*31 + int(c)) % 1000
-		}
-		emailHash := fmt.Sprintf("%03d", userHash)
-
-		// Use first 6 digits: testPrefix (3) + email hash (3)
-		if len(overlay) >= 3 {
-			overlay = overlay[:3] + emailHash
-		} else {
-			overlay = overlay + emailHash
-		}
+	// Preserve each country's fixed dial prefix and only replace trailing zeros.
+	trailingZeros := 0
+	for i := len(base) - 1; i >= 0 && base[i] == '0'; i-- {
+		trailingZeros++
 	}
+	if trailingZeros == 0 {
+		trailingZeros = 6
+	}
+
+	// Hash full identity inputs to avoid collisions when many scenarios share
+	// the same emailSuffix but have close start times.
+	h := fnv.New64a()
+	_, _ = h.Write([]byte(strings.ToLower(country)))
+	_, _ = h.Write([]byte("|"))
+	_, _ = h.Write([]byte(strings.ToLower(testIdentifier)))
+	_, _ = h.Write([]byte("|"))
+	_, _ = h.Write([]byte(strings.ToLower(emailSuffix)))
+
+	hashDigits := fmt.Sprintf("%020d", h.Sum64())
+	overlay := hashDigits[len(hashDigits)-trailingZeros:]
 
 	if overlay == "" {
 		overlay = fmt.Sprintf("%06d", rand.Intn(1000000))
@@ -91,16 +92,10 @@ func (sc *E2EContext) iFillInPhoneWithRandomNumber(prefix string) error {
 		return fmt.Errorf("no emailSuffix defined for user '%s'", sc.currentUser)
 	}
 
-	// Use Kratos-safe allocator for US to satisfy Kratos tel validation rules.
-	var err error
-	phoneNumber := ""
-	if strings.EqualFold(sc.country, "United States") || strings.EqualFold(sc.country, "USA") || strings.EqualFold(sc.country, "US") {
-		phoneNumber, err = sc.getNextAvailableUSPhoneNumber()
-		if err != nil {
-			return fmt.Errorf("failed to allocate US phone number: %w", err)
-		}
-	} else {
-		phoneNumber = generateDeterministicPhone(sc.country, sc.testIdentifier, emailSuffix)
+	// Use Kratos-safe allocator for all countries to avoid collisions under concurrency.
+	phoneNumber, err := allocatePhoneNumber(sc.country)
+	if err != nil {
+		return fmt.Errorf("failed to allocate phone number: %w", err)
 	}
 	debugPrintf("📱 Generated phone number: %s (country %s, emailSuffix %s, user %s)\n", phoneNumber, sc.country, emailSuffix, sc.currentUser)
 

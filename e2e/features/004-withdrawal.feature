@@ -20,7 +20,7 @@ Feature: Withdraw Funds
     And I complete the minimal KYC flow `withdrawal-user`
 
   @withdrawal @gatehub
-  Scenario: Successfully deposit and withdraw 50 EUR from wallet
+  Scenario: Successfully deposit and withdraw 50 EUR from Germany based wallet
     When I navigate to the deposit page
     And I deposit "100" "EUR" via the deposit iframe
     Then I should see my balance updated with "100" "EUR"
@@ -40,7 +40,7 @@ Feature: Withdraw Funds
     Then I should see my balance updated with "49" "EUR"
 
   @withdrawal @pti @return
-  Scenario: Balance goes negative when deposit is returned after withdrawal
+  Scenario: Balance goes negative when deposit is returned after withdrawal from PTI wallet
     Given the details of 'withdrawal-return-pti-user' are
       | field           | value                        |
       | emailSuffix     | bob-return-pti@example.com   |
