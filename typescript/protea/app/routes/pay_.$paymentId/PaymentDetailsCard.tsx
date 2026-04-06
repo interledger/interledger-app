@@ -1,4 +1,4 @@
-import { useLoaderData } from '@remix-run/react'
+import { useLoaderData } from 'react-router';
 import { useState } from 'react'
 import {
   Alert,
@@ -21,7 +21,7 @@ import {
 } from '~/components'
 import { Label } from '~/components/Label'
 import type { loader } from './route'
-import { PaymentIdentityType } from './route'
+import { PaymentIdentityType } from '~/lib/types'
 
 export const PaymentDetailsCard = () => {
   const { publicWalletInfo, payment } = useLoaderData<typeof loader>()
@@ -38,7 +38,7 @@ export const PaymentDetailsCard = () => {
               {(payment.receiverIdentityType ===
                 PaymentIdentityType.WalletURL ||
                 payment.receiverIdentityType ===
-                  PaymentIdentityType.WalletID) && <InterledgerIcon />}
+                PaymentIdentityType.WalletID) && <InterledgerIcon />}
               {payment.receiverIdentityType === PaymentIdentityType.Twitter && (
                 <TwitterIcon />
               )}

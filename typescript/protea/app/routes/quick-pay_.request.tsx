@@ -1,20 +1,16 @@
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { json } from '@remix-run/node'
-import { useLoaderData } from '@remix-run/react'
+import type { Route } from './+types/quick-pay_.request'
+import { data } from 'react-router'
+import { useLoaderData } from 'react-router'
+import type { MetaFunction } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Layouts } from '~/components'
 import { mergeMeta } from '~/lib/meta'
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url)
-  console.log({ url })
   const features = null
 
-  return json({
+  return data({
     features
   })
 }
@@ -42,11 +38,9 @@ export default function Page() {
   )
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const form = await request.formData()
   const type = form.get('type') as string
-
-  console.log(type)
 
   return null
 }

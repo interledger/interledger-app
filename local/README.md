@@ -10,8 +10,16 @@ We provide a `docker compose` managed environment that will attempt to automatic
 Service configuration can be overridden through a `.env` file in the `local/` directory. Start by copying [local/example.env](./example.env) to `.env` and editing only the values you want to change.
 
 Environment variable names are prefixed by service to avoid collisions:
-- `BACKEND_*` configures the wallet backend and shared mock credentials used by `mockgatehub` and `mockxago`
+- `BACKEND_*` configures the wallet backend and shared mock credentials used by `mockgatehub`, `mockxago`, and `mockpti`
 - `PROTEA_*` configures the Protea frontend
+
+Build behavior:
+- `PROTEA_BUILD_TARGET` controls the Dockerfile stage used for Protea (`dev` or `runner`).
+- `BOTANIST_BUILD_TARGET` controls the Dockerfile stage used for Botanist (`dev` or `runner`).
+- Default is `dev` for local development.
+- E2E CI sets both to `runner`.
+- Via `make` targets, Protea source bind mounts are applied only when `PROTEA_BUILD_TARGET=dev` (using `protea.dev.mounts.yaml`).
+- When `PROTEA_BUILD_TARGET=runner` (for example in E2E CI), Protea runs without source bind mounts.
 
 ```sh
 cp example.env .env
@@ -40,6 +48,9 @@ application|app         Wallet application, backends + frontends (requires infra
 backend|back            Just backends services
 frontend|front          Just frontends services
 all                     All services (infra, svc, app)
+
+build                   Build all images
+pull                    Pull all images
 
 down                    Stop all running services
 delete-volumes|reset    Stop all services and remove associated volumes
@@ -104,6 +115,17 @@ The ```help``` in the ```Makefile``` should be enough to provide the support in 
 
 > **TIP:** Start ```infra``` first, ```svc``` next followed by ```app```, use 3 terminal tabs or ```tmux``` or ```screen```.
 
+### Building and pulling images
+To build all images without starting any services:
+```sh
+make build
+```
+
+To pull all images without starting any services:
+```sh
+make pull
+```
+
 ### Docker compose interface
 If you prefer using plain docker compose here's some tips.
 
@@ -157,7 +179,57 @@ docker compose down -v
 | https://ngrok.test                        | Ngrok ui                                    |
 | https://mockgatehub.interledger.test      | MockGateHub API (local GateHub replacement) |
 | https://mockxago.interledger.test         | MockXago API (local Xago replacement)       |
+| https://mockpti.interledger.test          | MockPTI API and SDK stub                    |
 
+
+## Debugging the backend with Delve
+
+The backend service exposes port `2345` for remote debugging via [Delve](https://github.com/go-delve/delve).
+
+To enable it, switch the Dockerfile in [wallet.yaml](./wallet.yaml) to the debug variant:
+
+```yaml
+# wallet.yaml
+build:
+  context: ../go
+  dockerfile: backend/Dockerfile.debug  # switch to this
+  # dockerfile: backend/Dockerfile
+```
+
+The debug build compiles with `-gcflags="all=-N -l"` (optimizations and inlining disabled) and starts the binary under `dlv` in headless mode.
+
+### Attaching with VS Code
+
+Add a launch configuration to `.vscode/launch.json`:
+
+```json
+{
+    "name": "Backend service docker debug",
+    "type": "go",
+    "request": "attach",
+    "mode": "remote",
+    "host": "127.0.0.1",
+    "port": 2345,
+    "substitutePath": [
+        {
+            "from": "${workspaceFolder}/go",
+            "to": "/build"
+        }
+    ]
+}
+```
+
+### Attaching with GoLand / IntelliJ
+
+Go to **Run → Edit Configurations → + → Go Remote** and set host `localhost`, port `2345`.
+
+### Attaching via CLI
+
+```sh
+dlv connect localhost:2345
+```
+
+---
 
 ### TODO
 - [ ] Add instructions for Linux users regarding trusting the self-signed certificates.

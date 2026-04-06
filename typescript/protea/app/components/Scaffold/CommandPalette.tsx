@@ -1,5 +1,5 @@
 import { Dialog as HeadlessDialog, Transition } from '@headlessui/react'
-import { useNavigate } from '@remix-run/react'
+import { useNavigate } from 'react-router';
 import clsx from 'clsx'
 import type { FC, ReactNode } from 'react'
 import { Fragment, useEffect } from 'react'

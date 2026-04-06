@@ -1,10 +1,9 @@
-import type {
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { json } from '@remix-run/node'
-import { useLoaderData } from '@remix-run/react'
+import type { Route } from './+types/quick-pay_.amount'
+import { data } from 'react-router'
+import { useLoaderData, useNavigate } from 'react-router'
+import type { MetaFunction } from 'react-router'
 import { useEffect } from 'react'
+import { flushSync } from 'react-dom'
 import type { ApplicationProps } from '~/components'
 import { Button, GridColumn, Layouts, WalletGrid } from '~/components'
 import { BackButton } from '~/components/QuickPay'
@@ -12,25 +11,16 @@ import { DialPad, DialPadIds } from '~/components/QuickPay/Dialpad'
 import { useDialPadContext } from '~/lib/context/dialpad'
 import { mergeMeta } from '~/lib/meta'
 import { getSession } from '~/session.server'
-import { getUserSession } from '~/lib/kratos.server'
+import { routeAllowed } from '~/lib/utils.server'
 
-export async function loader({ request }: LoaderFunctionArgs) {
-  let isLoggedIn
-
-  try {
-    await getUserSession(request)
-    isLoggedIn = true
-
-  } catch (err) {
-    isLoggedIn = false
-  }
-
+export async function loader({ request }: Route.LoaderArgs) {
+  routeAllowed('OP_INTPAY_ENABLED')
   const session = await getSession(request.headers.get('Cookie'))
   const walletAddressInfo = session.get('quickPay')
   const assetCode = walletAddressInfo?.validWalletAddress?.assetCode
 
   if (walletAddressInfo === undefined || assetCode === undefined) {
-    throw json(
+    throw data(
       {
         code: "QUICKPAY_SESSION_ERROR",
         title: "Payment session expired."
@@ -38,15 +28,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
       { status: 400 }
     )
   }
-  return json({
+  return data({
     assetCode,
-    isLoggedIn
   } as const)
 }
 
 export const handle: ApplicationProps = {
-  layout: (match) =>
-    match.data?.isLoggedIn ? Layouts.Wallet : Layouts.Marketing,
+  layout: (_match, context) => context?.isUser ? Layouts.Wallet : Layouts.Marketing,
   scaffold: {
     header: { title: 'Interledger Pay' }
   }
@@ -59,6 +47,7 @@ export const meta: MetaFunction = mergeMeta(() => [
 ])
 
 export default function Page() {
+  const navigate = useNavigate()
   const { assetCode } = useLoaderData<typeof loader>()
   const { amountValue, setAmountValue, setAssetCode } = useDialPadContext()
 
@@ -67,17 +56,23 @@ export default function Page() {
   }, [setAssetCode, assetCode])
 
   const handleNavigation = (e: React.MouseEvent<HTMLElement>, url: string) => {
+    let normalizedAmount: string = amountValue
     if (
       amountValue.indexOf(DialPadIds.Dot) === -1 ||
       amountValue.endsWith(DialPadIds.Dot)
     ) {
-      setAmountValue(Number(amountValue).toFixed(2).toString())
+      normalizedAmount = Number(amountValue).toFixed(2).toString()
     }
 
     if (Number(amountValue) === 0) {
       return e.preventDefault()
     }
-    document.location = url
+
+    flushSync(() => {
+      setAmountValue(normalizedAmount)
+    })
+
+    navigate(url)
   }
 
   return (
@@ -108,4 +103,3 @@ export default function Page() {
     </WalletGrid>
   )
 }
-

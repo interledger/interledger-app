@@ -1,13 +1,19 @@
-version: '3.5'
-
 services:
- crdb:
-   image: cockroachdb/cockroach:latest-v21.2
-   ports:
-     - "26257:26257"
-   command: start-single-node --insecure --store=type=mem,size=641MiB
-   volumes:
-     - "crdb:/cockroach/cockroach-data"
+  postgres:
+    image: postgres:17-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - pacioli_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
-  crdb:
+  pacioli_pg_data:

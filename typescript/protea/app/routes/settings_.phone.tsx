@@ -1,19 +1,10 @@
+import type { Route } from './+types/settings_.phone'
 import { Code } from '@bufbuild/connect'
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { redirect } from '@remix-run/node'
-import type { ShouldRevalidateFunction } from '@remix-run/react'
-import {
-  Form,
-  useActionData,
-  useFetcher,
-  useLoaderData
-} from '@remix-run/react'
+import { redirect } from 'react-router';
+import type { ShouldRevalidateFunction } from 'react-router';
+import { Form, useActionData, useFetcher, useLoaderData } from 'react-router';
 import { useEffect, useState } from 'react'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import type { ApplicationProps, PhoneAutocompleteOptions } from '~/components'
 import {
   Button,
@@ -41,7 +32,7 @@ import {
 import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import type { action as sendOtpAction } from '~/routes/api_.sendOtp'
-import styles from '~/styles/flags.css'
+import styles from '~/styles/flags.css?url'
 
 // The loader generates a new 3ds session. This must only be called on initial page load
 // and not after submitting actions.
@@ -57,7 +48,7 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({
   return defaultShouldRevalidate
 }
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
   const cookie = String(request.headers.get('cookie'))
@@ -79,7 +70,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     if (flowRes.status >= 400) handleFlowError(flow, 'settings/password')
   } else {
     // If we don't have a flow, the user hasn't confirmed their old phone yet
-    throw redirect(route('/otp/challenge'))
+    throw redirect(href('/otp/challenge'))
   }
 
   let response = await grpc.getCountries(request, {})
@@ -100,13 +91,13 @@ export const handle: ApplicationProps = {
   layout: Layouts.Focus,
   scaffold: {
     header: {
-      back: route('/settings'),
+      back: href('/settings'),
       title: 'Set new mobile number'
     }
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Set new mobile number'
   }
@@ -118,9 +109,9 @@ export function links() {
 
 export default function Page() {
   const otpFetcher = useFetcher<typeof sendOtpAction>()
-  const actionData = useActionData<typeof action>()
+  const actionData = useActionData()
   const { flow, countryCode, countries, csrfToken, csrf_token } =
-    useLoaderData<typeof loader>()
+    useLoaderData()
   const [showDialog, setShowDialog] = useState<boolean>(false)
 
   useEffect(() => {
@@ -137,7 +128,7 @@ export default function Page() {
     <>
       <otpFetcher.Form
         id='settings-phone-otp'
-        action={route('/api/sendOtp')}
+        action={href('/api/sendOtp')}
         method='post'
         className='hidden'
       />
@@ -227,7 +218,7 @@ export default function Page() {
   )
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const session = await getUserSession(request)
   const cookie = request.headers.get('Cookie') as string
   const url = new URL(request.url)
@@ -286,7 +277,7 @@ export async function action({ request }: ActionFunctionArgs) {
     return error(request, { errors: errs })
   }
 
-  return redirectWithSnackbar(request, route('/settings/profile-contact'), {
+  return redirectWithSnackbar(request, href('/settings/profile-contact'), {
     message: 'New mobile number successfully saved.',
     icon: 'close'
   })

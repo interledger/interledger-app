@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import { useEffect, useState } from 'react'
 import { useDialPadContext } from '~/lib/context/dialpad'
-import { getCurrencySymbol } from '~/lib/utils'
+import { getCurrencySymbol } from '~/lib/helpers'
 
 export enum DialPadIds {
   Backspace = 'Backspace',

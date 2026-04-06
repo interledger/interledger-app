@@ -1,4 +1,4 @@
-import type { PlainMessage } from '@bufbuild/protobuf/dist/types/message'
+import type { PlainMessage } from '@bufbuild/protobuf'
 import { create } from 'zustand'
 import type { Country } from '~/generated/connect/backend/v1/backend_pb'
 

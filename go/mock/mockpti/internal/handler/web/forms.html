@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mock PTI Form</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: "Segoe UI", Tahoma, sans-serif;
+        background: #f8fafc;
+        color: #0f172a;
+      }
+      .shell {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+      .card {
+        width: 100%;
+        max-width: 560px;
+        border: 1px solid #cbd5e1;
+        border-radius: 12px;
+        background: #ffffff;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+        padding: 20px;
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: 20px;
+      }
+      .meta {
+        font-size: 14px;
+        color: #475569;
+        margin: 4px 0;
+      }
+      .actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 18px;
+      }
+      .field {
+        margin-top: 14px;
+      }
+      label {
+        display: block;
+        font-size: 13px;
+        color: #334155;
+        margin-bottom: 6px;
+      }
+      input[type='date'] {
+        width: 100%;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        padding: 10px;
+        box-sizing: border-box;
+      }
+      button {
+        border: 0;
+        border-radius: 8px;
+        padding: 10px 14px;
+        cursor: pointer;
+      }
+      button:disabled {
+        cursor: not-allowed;
+        opacity: 0.55;
+      }
+      .ok {
+        background: #16a34a;
+        color: #fff;
+      }
+      .alt {
+        background: #e2e8f0;
+        color: #0f172a;
+      }
+      .hint {
+        margin-top: 14px;
+        font-size: 12px;
+        color: #64748b;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="card">
+        <h1>Mock PTI Embedded Form</h1>
+        <p class="meta" id="type"></p>
+        <p class="meta" id="request"></p>
+        <div class="field" id="dobField" style="display:none">
+          <label for="dob">Date of birth</label>
+          <input id="dob" type="date" />
+        </div>
+        <div class="actions">
+          <button class="ok" id="complete">Complete</button>
+          <button class="alt" id="cancel">Cancel</button>
+        </div>
+        <p class="hint">This mock page runs inside an iframe and posts completion events to the parent app.</p>
+      </section>
+    </main>
+
+    <script>
+      (function () {
+        var params = new URLSearchParams(window.location.search);
+        var type = params.get('type') || 'KYC';
+        var requestId = params.get('requestId') || 'default';
+        var auto = params.get('auto') === '1';
+        var parentOrigin = params.get('parentOrigin') || '';
+        var formsToken = params.get('formsToken') || '';
+        var dobField = document.getElementById('dobField');
+        var dobInput = document.getElementById('dob');
+        var completeButton = document.getElementById('complete');
+
+        document.getElementById('type').textContent = 'Type: ' + type;
+        document.getElementById('request').textContent = 'Request ID: ' + requestId;
+        if (type === 'KYC') {
+          var defaultDob = new Date();
+          defaultDob.setFullYear(defaultDob.getFullYear() - 20);
+
+          dobField.style.display = 'block';
+          completeButton.disabled = true;
+          dobInput.required = true;
+          dobInput.value = defaultDob.toISOString().slice(0, 10);
+        }
+
+        function updateCompleteState() {
+          if (type !== 'KYC') {
+            completeButton.disabled = false;
+            return;
+          }
+
+          completeButton.disabled = !(dobInput && dobInput.value);
+        }
+
+        if (dobInput) {
+          dobInput.addEventListener('input', updateCompleteState);
+          dobInput.addEventListener('change', updateCompleteState);
+        }
+
+        updateCompleteState();
+
+        function buildPayload() {
+          if (type === 'ADD_CC') {
+            return {
+              name: 'AddCreditCardCompleted',
+              createdId: 'mock-card-token-' + requestId
+            };
+          }
+
+          return {
+            name: 'UserAssessmentCompleted'
+          };
+        }
+
+        function post(payload) {
+          if (!window.parent || !parentOrigin) {
+            return;
+          }
+
+          window.parent.postMessage(payload, parentOrigin);
+        }
+
+        async function completeOnServer() {
+          const headers = { 'Content-Type': 'application/json' };
+          if (formsToken) {
+            headers['x-mockpti-forms-token'] = formsToken;
+          }
+
+          const response = await fetch('/forms/complete', {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify({
+              userId: params.get('userId') || '',
+              requestId: requestId,
+              dateOfBirth: dobInput && dobInput.value ? dobInput.value : ''
+            })
+          });
+
+          if (!response.ok) {
+            throw new Error('failed to complete assessment on server');
+          }
+        }
+
+        document.getElementById('complete').addEventListener('click', async function () {
+          try {
+            if (type === 'KYC') {
+              if (!dobInput || !dobInput.value) {
+                return;
+              }
+              await completeOnServer();
+            }
+            post(buildPayload());
+          } catch (err) {
+            console.error(err);
+          }
+        });
+
+        document.getElementById('cancel').addEventListener('click', function () {
+          post({ name: 'UserAssessmentCanceled' });
+        });
+
+        if (auto) {
+          window.setTimeout(async function () {
+            try {
+              if (type === 'KYC') {
+                await completeOnServer();
+              }
+              post(buildPayload());
+            } catch (err) {
+              console.error(err);
+            }
+          }, 600);
+        }
+      })();
+    </script>
+  </body>
+</html>

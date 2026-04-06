@@ -1,25 +1,15 @@
+import type { Route } from './+types/withdraw'
 import { Code } from '@bufbuild/connect'
-import type { PlainMessage } from '@bufbuild/protobuf/dist/types/message'
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
-import {
-  Form,
-  useActionData,
-  useLoaderData,
-  useSearchParams,
-  useSubmit
-} from '@remix-run/react'
+import type { PlainMessage } from '@bufbuild/protobuf'
+import { data, redirect } from 'react-router';
+import { Form, useActionData, useLoaderData, useSearchParams, useSubmit } from 'react-router';
 import {
   useCallback,
   useEffect,
   useState,
   type ChangeEventHandler
 } from 'react'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import type { ApplicationProps, SelectOptions } from '~/components'
 import {
   Button,
@@ -52,8 +42,8 @@ import { mergeMeta } from '~/lib/meta'
 import type { IframeMessage } from '~/lib/types'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { PaySelect } from '~/routes/pay_.$paymentId/PaySelect'
-import styles from '~/styles/flags.css'
-import { KycStatus } from './_index/route'
+import styles from '~/styles/flags.css?url'
+import { KycStatus } from '~/lib/types'
 import type { JsonValue } from '@bufbuild/protobuf'
 
 type WithdrawalLoaderData = {
@@ -65,22 +55,22 @@ type WithdrawalLoaderData = {
   balance?: FormattedLinkedAccount | undefined;
 }
 
-export async function loader(args: LoaderFunctionArgs) {
+export async function loader(args: Route.LoaderArgs) {
   const providerResponse = await grpc.getOnOffRampProvider(args.request, {})
   if (isConnectError(providerResponse)) throw providerResponse.error
-  
+
   const { kycStatus } = await getKycStatus(args.request)
   if (kycStatus != KycStatus.Approved)
-    return redirect(route('/personal-details'))
-  
+    return redirect(href('/personal-details'))
+
   if (providerResponse.provider == 'gatehub') {
     return gatehubWithdrawalLoader(args)
-  } else if(providerResponse.provider == 'pti')
+  } else if (providerResponse.provider == 'pti')
     return ptiWithdrawalLoader(args)
   else return fynbosWithdrawalLoader(args)
 }
 
-async function gatehubWithdrawalLoader({ request }: LoaderFunctionArgs) {
+async function gatehubWithdrawalLoader({ request }: Route.LoaderArgs) {
   const widgetResponse = await grpc.getGatehubWithdrawalWidget(request, {})
   if (isConnectError(widgetResponse)) throw widgetResponse.error
 
@@ -90,12 +80,12 @@ async function gatehubWithdrawalLoader({ request }: LoaderFunctionArgs) {
   })
 }
 
-async function fynbosWithdrawalLoader({ request }: LoaderFunctionArgs) {
-  return await addProviderToLoader(request,'interledger')
+async function fynbosWithdrawalLoader({ request }: Route.LoaderArgs) {
+  return await addProviderToLoader(request, 'interledger')
 }
 
-async function ptiWithdrawalLoader({ request }: LoaderFunctionArgs) {
-  return await addProviderToLoader(request,'pti')
+async function ptiWithdrawalLoader({ request }: Route.LoaderArgs) {
+  return await addProviderToLoader(request, 'pti')
 }
 
 export const handle: ApplicationProps = {
@@ -108,7 +98,7 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Withdraw'
   }
@@ -133,7 +123,7 @@ async function addProviderToLoader(request: Request, provider: 'interledger' | '
   }
 
   balance = balances.find((acc) => acc.id == balanceAccount?.linkedAccount)
-  if (!balanceAccount) throw json({}, { status: 404 })
+  if (!balanceAccount) throw data({}, { status: 404 })
 
   const linkedAccounts = await getLinkedAccountsForWithdraw(
     request,
@@ -155,7 +145,7 @@ export function links() {
 }
 
 export default function Page() {
-  const { provider } = useLoaderData<typeof loader>()
+  const { provider } = useLoaderData()
 
   if (provider == 'gatehub') {
     return <GatehubWithdrawalPage />
@@ -164,10 +154,10 @@ export default function Page() {
 
 function GatehubWithdrawalPage() {
   const submit = useSubmit()
-  const { gatehubWidgetUrl } = useLoaderData<typeof gatehubWithdrawalLoader>()
+  const { gatehubWidgetUrl } = useLoaderData()
   useEffect(() => {
     const url = new URL(gatehubWidgetUrl)
-    const handler = (event: MessageEvent<IframeMessage>) => {  
+    const handler = (event: MessageEvent<IframeMessage>) => {
       if (
         event.origin === url.origin &&
         event.data.type === 'WithdrawalCompleted'
@@ -175,22 +165,22 @@ function GatehubWithdrawalPage() {
         const formData = new FormData()
         formData.append('provider', 'gatehub')
         formData.append('withdrawalId', event.data.uuid)
-  
+
         submit(formData, {
           action: '/withdraw',
           method: 'post'
         })
       }
     }
-    if(window) {
+    if (window) {
       window.addEventListener('message', handler)
     }
-      
+
     return () => {
-      if(window) {
+      if (window) {
         window.removeEventListener('message', handler)
       }
-      
+
     }
   })
 
@@ -207,11 +197,11 @@ function GatehubWithdrawalPage() {
 }
 
 function FynbosWithdrawalPage() {
-  const data = useLoaderData<typeof fynbosWithdrawalLoader>()
+  const data = useLoaderData()
   const amountData: WithdrawalLoaderData = {
     balances: data.balances,
     provider: data.provider,
-    balanceAccount:  data.balanceAccount,
+    balanceAccount: data.balanceAccount as any,
     linkedAccounts: data.linkedAccounts,
     csrfToken: data.csrfToken,
     balance: data.balance
@@ -240,7 +230,7 @@ function FynbosWithdrawalPage() {
               <Router
                 prefetch='render'
                 className='text-sm font-medium text-primary'
-                to={route('/accounts')}
+                to={href('/accounts')}
               >
                 Go to accounts page
               </Router>
@@ -249,7 +239,6 @@ function FynbosWithdrawalPage() {
         </CardContent>
       </Card>
     )
-
   return <Amount data={amountData} />
 }
 
@@ -262,12 +251,21 @@ const formatAmount = (amount?: PlainMessage<RpcAmount>): string => {
   return formattedAmount.replace('.00', '')
 }
 
-
-const Amount = ({data}: {data: WithdrawalLoaderData}) => {
+const Amount = ({ data }: { data: WithdrawalLoaderData }) => {
   const { balance, balances, balanceAccount, linkedAccounts, csrfToken, provider } = data
+  // for bigint
+  if(
+    balanceAccount && typeof balanceAccount === 'object' && 
+    !Array.isArray(balanceAccount) && 
+    typeof balanceAccount.balance === 'object' && balanceAccount.balance &&
+    'amount' in balanceAccount.balance
+  ){
+    balanceAccount.balance.amount = String(balanceAccount.balance.amount)  
+  }
+
   const balanceAcc = Balance.fromJson(balanceAccount);
   const [, setSearchParams] = useSearchParams()
-  const actionData = useActionData<typeof action>()
+  const actionData = useActionData()
 
   const [amount, setAmount] = useState<string>('')
 
@@ -300,7 +298,7 @@ const Amount = ({data}: {data: WithdrawalLoaderData}) => {
     <>
       <Form
         id='account-withdraw'
-        action={route('/withdraw')}
+        action={href('/withdraw')}
         method='post'
         className='hidden'
       />
@@ -323,10 +321,10 @@ const Amount = ({data}: {data: WithdrawalLoaderData}) => {
         type='hidden'
       />
       <input
-      form='account-withdraw'
-      value={provider}
-      name='provider'
-      type='hidden'
+        form='account-withdraw'
+        value={provider}
+        name='provider'
+        type='hidden'
       />
       <Card>
         <PaySelect
@@ -411,13 +409,13 @@ function stringToBigInt(amount: string) {
   return BigInt(parseFloat(amount) * 100)
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const form = await request.formData()
   const withdrawAmount = String(form.get('withdrawAmount') || '')
   const toLinkedAccount = form.get('toLinkedAccount') as string
   const fromLinkedAccount = form.get('fromLinkedAccount') as string
   const note = form.get('note') as string
- const provider = form.get('provider') as string
+  const provider = form.get('provider') as string
   await validateCSRFToken(request, form)
 
   if (provider == 'gatehub') {
@@ -472,7 +470,7 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   return redirect(
-    route('/withdraw/:paymentId', {
+    href('/withdraw/:paymentId', {
       paymentId: withdrawResponse.id
     })
   )
@@ -487,7 +485,7 @@ async function createGatehubWithdrawal(request: Request, formData: FormData) {
   }
 
   return redirect(
-    route('/transactions/:transactionId', {
+    href('/transactions/:transactionId', {
       transactionId: withdrawResponse.transactionId
     })
   )
