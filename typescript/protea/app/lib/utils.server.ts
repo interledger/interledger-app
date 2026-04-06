@@ -1,15 +1,9 @@
 import { z } from 'zod'
-import { createClient, getWalletAddress } from './open-payments.server'
 import { Errors, FormattedAmount, FormatAmountArgs, WalletAddressType } from './types'
 import { getUserSession } from '~/lib/kratos.server'
+import { getCurrencySymbol } from '~/lib/helpers'
 
 export class WalletAddressFormatError extends Error { }
-
-export async function getValidWalletAddress(walletAddress: string) {
-  const opClient = await createClient()
-  const response = await getWalletAddress(walletAddress, opClient)
-  return response
-}
 
 export const walletSchema = z.object({
   walletAddress: z
@@ -102,34 +96,12 @@ async function isValidWalletAddress(
   return true
 }
 
-export function formatError(error: Errors | null | undefined) {
-  const filteredErrors = error?.errors?.filter(
-    (e): e is string => Boolean(e)
-  )
-
-  if (!filteredErrors?.length) return undefined
-
-  return filteredErrors.join(', ')
-}
-
 export function createError(key: string, message: string): Errors {
   return {
     [key]: {
       errors: [message],
     },
   }
-}
-
-export const getCurrencySymbol = (assetCode: string): string => {
-  return new Intl.NumberFormat('en-US', {
-    currency: assetCode,
-    style: 'currency',
-    maximumFractionDigits: 0,
-    minimumFractionDigits: 0
-  })
-    .format(0)
-    .replace(/0/g, '')
-    .trim()
 }
 
 export const isWalletAddress = (

@@ -537,3 +537,9 @@ export async function getGrantStatus(
 
   return 'unknown'
 }
+
+export async function getValidWalletAddress(walletAddress: string) {
+  const opClient = await createClient()
+  const response = await getWalletAddress(walletAddress, opClient)
+  return response
+}

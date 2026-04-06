@@ -10,8 +10,7 @@ import { DialPad, DialPadIds } from '~/components/QuickPay/Dialpad'
 import { useDialPadContext } from '~/lib/context/dialpad'
 import { mergeMeta } from '~/lib/meta'
 import { getSession } from '~/session.server'
-import { getUserSession } from '~/lib/kratos.server'
-import { isWalletLayout } from '~/lib/utils'
+import { isWalletLayout } from '~/lib/utils.server'
 
 export async function loader({ request }: Route.LoaderArgs) {
   const isWalletView = await isWalletLayout(request)

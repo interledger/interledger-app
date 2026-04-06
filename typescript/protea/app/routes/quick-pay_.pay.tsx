@@ -8,10 +8,11 @@ import { ActionMessage, type ApplicationProps, Button, GridColumn, Layouts, Text
 import { AmountDisplay, QuoteDialog, PayWithInterledgerMark } from '~/components/QuickPay/'
 import { useDialPadContext } from '~/lib/context/dialpad'
 import { mergeMeta } from '~/lib/meta'
-import { fetchQuote, initializePayment } from '~/lib/open-payments.server'
-import { getValidWalletAddress, paymentSchema, formatAmount, formatError, createError, isWalletLayout } from '~/lib/utils'
+import { fetchQuote, getValidWalletAddress, initializePayment } from '~/lib/open-payments.server'
+import { paymentSchema, formatAmount, createError, isWalletLayout } from '~/lib/utils.server'
 import { commitSession, getSession } from '~/session.server'
 import { type ActionData, QuickPaySession } from '~/lib/types'
+import { formatError } from '~/lib/helpers'
 
 export async function loader({ request }: Route.LoaderArgs) {
   const searchParams = new URL(request.url).searchParams

@@ -1,14 +1,15 @@
 import type { Route } from './+types/quick-pay'
 import { data, redirect } from 'react-router'
 import { Form, useActionData, useRouteLoaderData } from 'react-router'
-import type { MetaFunction, SerializeFrom } from 'react-router'
+import type { MetaFunction } from 'react-router'
 import { z } from 'zod'
 import { type ApplicationProps, Layouts, WalletGrid, GridColumn, TextField, Button } from '~/components'
 import { mergeMeta } from '~/lib/meta'
 import { getSession, commitSession } from '~/session.server'
-import { createError, getValidWalletAddress, isWalletLayout, walletSchema } from '~/lib/utils'
-import type { loader as rootLoader } from '~/root'
+import { createError, isWalletLayout, walletSchema } from '~/lib/utils.server'
+import type { loader as rootLoader, RootLoaderData } from '~/root'
 import { type ActionData, QuickPaySession } from '~/lib/types'
+import { getValidWalletAddress} from '~/lib/open-payments.server'
 
 export async function loader({ request }: Route.LoaderArgs) {
   const isWalletView = await isWalletLayout(request)
@@ -31,9 +32,7 @@ export const meta: MetaFunction = mergeMeta(() => [
 
 export default function Page() {
   const actionData = useActionData<ActionData>()
-  const { walletAddress } = useRouteLoaderData("root") as SerializeFrom<
-    typeof rootLoader
-  >
+  const { walletAddress } = useRouteLoaderData('root') as RootLoaderData
 
   return (
     <WalletGrid>
