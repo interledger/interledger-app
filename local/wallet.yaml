@@ -147,6 +147,13 @@ services:
       - PERSONA_TOKEN=${BACKEND_PERSONA_TOKEN:-}
       - PERSONA_WEBHOOK_TOKEN=${BACKEND_PERSONA_WEBHOOK_TOKEN:-}
 
+      # Xago webhook secret
+      - XAGO_WEBHOOK_SECRET=${BACKEND_XAGO_WEBHOOK_SECRET:-xago-webhook-secret}
+
+      # MockXago Persona endpoint (routes Persona API calls to MockXago in local dev)
+      - MOCKXAGO_ENDPOINT=${BACKEND_MOCKXAGO_ENDPOINT:-http://mockxago:8080}
+      - PERSONA_BASE_URL=${BACKEND_PERSONA_BASE_URL:-http://mockxago:8080/v1/}
+
       # Chimoney
       - CHIMONEY_TOKEN=${BACKEND_CHIMONEY_TOKEN:-}
       - CHIMONEY_WEBHOOK_SECRET=${BACKEND_CHIMONEY_WEBHOOK_SECRET:-}
