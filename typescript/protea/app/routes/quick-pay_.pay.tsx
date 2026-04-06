@@ -1,10 +1,7 @@
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
-import { Form, useActionData, useLoaderData, useNavigation } from '@remix-run/react'
+import type { Route } from './+types/quick-pay_.pay'
+import { data, redirect } from 'react-router'
+import { Form, useActionData, useLoaderData, useNavigation } from 'react-router'
+import type { MetaFunction } from 'react-router'
 import { useEffect, useState } from 'react'
 import { z } from 'zod'
 import { ActionMessage, type ApplicationProps, Button, GridColumn, Layouts, TextField, WalletGrid } from '~/components'
@@ -14,9 +11,9 @@ import { mergeMeta } from '~/lib/meta'
 import { fetchQuote, initializePayment } from '~/lib/open-payments.server'
 import { getValidWalletAddress, paymentSchema, formatAmount, formatError, createError, isWalletLayout } from '~/lib/utils'
 import { commitSession, getSession } from '~/session.server'
-import { ActionData, QuickPaySession } from '~/lib/types'
+import { type ActionData, QuickPaySession } from '~/lib/types'
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const searchParams = new URL(request.url).searchParams
   const isQuote = searchParams.get('quote') || false
   const isWalletView = await isWalletLayout(request)
@@ -29,7 +26,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   let debitAmount = null
 
   if (walletAddressInfo === undefined) {
-    throw json(
+    throw data(
       {
         code: "QUICKPAY_SESSION_ERROR",
         title: "Payment session expired."
@@ -43,7 +40,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const receiver = sessionData.receiverAddress
 
     if (quote === undefined) {
-      throw json(
+      throw data(
         {
           code: "QUICKPAY_SESSION_ERROR",
           title: "Payment session expired."
@@ -67,7 +64,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     })
   }
 
-  return json({
+  return data({
     senderAddress: walletAddressInfo.id,
     receiveAmount: receiveAmount ? receiveAmount.amountWithCurrency : null,
     debitAmount: debitAmount ? debitAmount.amountWithCurrency : null,
@@ -171,7 +168,7 @@ export default function Page() {
     </WalletGrid>)
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const session = await getSession(request.headers.get('Cookie'))
   const sessionData: QuickPaySession = session.get('quickPay') || {}
   const walletAddressInfo = sessionData.validWalletAddress
@@ -192,7 +189,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
     if (!result.success) {
       const errors = z.treeifyError(result.error).properties
-      return json({
+      return data({
         errors
       })
     }
@@ -203,7 +200,7 @@ export async function action({ request }: ActionFunctionArgs) {
       sessionData.receiverAddress = receiverAddress
       session.set('quickPay', sessionData)
     } catch (err) {
-      return json({ errors: createError("receiverAddress", "Your wallet address is not valid.") })
+      return data({ errors: createError("receiverAddress", "Your wallet address is not valid.") })
     }
 
     try {
@@ -213,7 +210,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
     } catch (err) {
       console.log({ err })
-      return json({ errors: createError("actionError", "An error occurred, please try again.") })
+      return data({ errors: createError("actionError", "An error occurred, please try again.") })
     }
     return redirect(`/quick-pay/pay?quote=true`, {
       headers: { 'Set-Cookie': await commitSession(session) }
@@ -223,7 +220,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const quote = sessionData?.quote
   if (intent === 'confirm') {
     if (quote === undefined || walletAddressInfo === undefined) {
-      throw json(
+      throw data(
         {
           code: "QUICKPAY_SESSION_ERROR",
           title: "Payment session expired."
@@ -243,4 +240,3 @@ export async function action({ request }: ActionFunctionArgs) {
     headers: { 'Set-Cookie': await commitSession(session) }
   })
 }
-

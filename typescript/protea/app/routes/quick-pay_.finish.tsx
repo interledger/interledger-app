@@ -1,17 +1,13 @@
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
-import { Form, useFetcher, useLoaderData } from '@remix-run/react'
+import type { Route } from './+types/quick-pay_.finish'
+import { data, redirect } from 'react-router'
+import { Form, useFetcher, useLoaderData } from 'react-router'
+import type { MetaFunction } from 'react-router'
 import { useEffect, useState } from 'react'
 import { finishPayment, checkOutgoingPayment } from '~/lib/open-payments.server'
 import { commitSession, getSession } from '~/session.server'
 import { type ApplicationProps, Button, GridColumn, Layouts, WalletGrid } from '~/components'
 import { mergeMeta } from '~/lib/meta'
 import { QuickPaySession } from '~/lib/types'
-//import {isWalletLayout } from '~/lib/utils'\
 import { FinishCheck, FinishError } from '~/components/QuickPay'
 
 export type FinishActionData = {
@@ -19,7 +15,7 @@ export type FinishActionData = {
   error?: boolean
 }
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const searchParams = new URL(request.url).searchParams
   const paymentId = searchParams.get('paymentId') || ''
   const hash = searchParams.get('hash') || ''
@@ -29,10 +25,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const sessionData = session.get('quickPay')
   const isRequestPayment = sessionData?.isRequestPayment
   const currentGrant = sessionData?.grants[paymentId]
-  //const isWalletView = await isWalletLayout(request)
 
   if (!currentGrant) {
-    throw json(
+    throw data(
       {
         code: "QUICKPAY_SESSION_ERROR",
         title: "Invalid payment grant."
@@ -41,7 +36,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     )
   }
 
-  return json({
+  return data({
     paymentId,
     hash,
     interactRef,
@@ -83,7 +78,6 @@ export default function Page() {
       setStatusAndMessage({ error: true, message: 'Payment was successfully declined.' })
       setLoading(false)
     } else if (!fetcherData) {
-      //waitTime is the duration the grant continuations specifies before calling the next step. In this case the continue.
       const waitTime = currentGrant?.continue?.wait ?? 1
       const timer = setTimeout(() => {
         const intent = 'checkIncomingPayment'
@@ -137,7 +131,7 @@ export default function Page() {
   )
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const session = await getSession(request.headers.get('Cookie'))
   let sessionData: QuickPaySession = session.get('quickPay') || {}
   const formData = Object.fromEntries(await request.formData())
@@ -152,7 +146,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const isRequestPayment = sessionData?.isRequestPayment
 
     if (!quote || !grant || !walletAddressInfo) {
-      throw json(
+      throw data(
         {
           code: "QUICKPAY_SESSION_ERROR",
           title: "Payment session expired."
@@ -161,7 +155,6 @@ export async function action({ request }: ActionFunctionArgs) {
       )
     }
 
-    //Error is generatede on next line
     try {
       const finishPaymentResponse = await finishPayment(
         grant,
@@ -177,11 +170,11 @@ export async function action({ request }: ActionFunctionArgs) {
         isRequestPayment
       )
       console.log({ result })
-      return json(result)
+      return data(result)
     } catch (err) {
       console.log({ err })
 
-      return json({
+      return data({
         error: true,
         message: 'Internal server error'
       })
@@ -190,7 +183,6 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   if (intent === 'finish') {
-    //Reset session info
     sessionData = {}
     session.set('quickPay', sessionData)
     return redirect('/quick-pay', {

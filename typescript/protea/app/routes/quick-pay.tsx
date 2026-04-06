@@ -1,22 +1,18 @@
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction,
-  SerializeFrom
-} from '@remix-run/node'
+import type { Route } from './+types/quick-pay'
+import { data, redirect } from 'react-router'
+import { Form, useActionData, useRouteLoaderData } from 'react-router'
+import type { MetaFunction, SerializeFrom } from 'react-router'
 import { z } from 'zod'
+import { type ApplicationProps, Layouts, WalletGrid, GridColumn, TextField, Button } from '~/components'
 import { mergeMeta } from '~/lib/meta'
 import { getSession, commitSession } from '~/session.server'
-import { Form, useActionData, useRouteLoaderData } from '@remix-run/react'
-import { type ApplicationProps, Layouts, WalletGrid, GridColumn, TextField, Button } from '~/components'
 import { createError, getValidWalletAddress, isWalletLayout, walletSchema } from '~/lib/utils'
-import { json, redirect } from '@remix-run/node'
 import type { loader as rootLoader } from '~/root'
-import { type ActionData, QuickPaySession } from "~/lib/types"
+import { type ActionData, QuickPaySession } from '~/lib/types'
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const isWalletView = await isWalletLayout(request)
-  return json({
+  return data({
     isWalletView
   })
 }
@@ -69,7 +65,7 @@ export default function Page() {
   )
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const session = await getSession(request.headers.get('Cookie'))
   const sessionData: QuickPaySession = {}
   const formData = Object.fromEntries(await request.formData())
@@ -77,7 +73,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   if (!result.success) {
     const errors = z.treeifyError(result.error).properties
-    return json({
+    return data({
       errors
     })
   }
@@ -90,7 +86,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   } catch (err) {
     console.log({ err })
-    return json({ errors: createError("walletAddress", "Your wallet address is not valid.") })
+    return data({ errors: createError("walletAddress", "Your wallet address is not valid.") })
   }
 
   return redirect('/quick-pay/amount', {
