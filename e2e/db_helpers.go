@@ -555,3 +555,56 @@ func phoneRangeForCountry(country string) (prefix string, pattern string, digits
 		return "+491700", `^\+491700([0-9]{6})$`, 6
 	}
 }
+
+// getWalletIDByEmail looks up the wallet ID for a user by their email address
+func (sc *E2EContext) getWalletIDByEmail(email string) (string, error) {
+	if sc.db == nil {
+		connStr := "host=localhost port=5432 user=postgres password=postgres dbname=backend sslmode=disable"
+		db, err := sql.Open("postgres", connStr)
+		if err != nil {
+			return "", fmt.Errorf("getWalletIDByEmail: failed to open db: %w", err)
+		}
+		sc.db = db
+	}
+
+	kratosID := sc.getKratosUserIDByEmail(email)
+	if kratosID == "" {
+		return "", fmt.Errorf("getWalletIDByEmail: could not resolve kratos user id for %s", email)
+	}
+
+	var walletID string
+	err := sc.db.QueryRow(`SELECT wallet_id FROM user_wallets WHERE user_id = $1 LIMIT 1`, kratosID).Scan(&walletID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", fmt.Errorf("getWalletIDByEmail: no wallet found for user %s", email)
+		}
+		return "", fmt.Errorf("getWalletIDByEmail: query error: %w", err)
+	}
+
+	debugPrintf("   📋 Found wallet ID %s for email %s\n", walletID, email)
+	return walletID, nil
+}
+
+// getKYCStatusByWalletID looks up the KYC status for a wallet
+func (sc *E2EContext) getKYCStatusByWalletID(walletID string) (int, error) {
+	if sc.db == nil {
+		connStr := "host=localhost port=5432 user=postgres password=postgres dbname=backend sslmode=disable"
+		db, err := sql.Open("postgres", connStr)
+		if err != nil {
+			return -1, fmt.Errorf("getKYCStatusByWalletID: failed to open db: %w", err)
+		}
+		sc.db = db
+	}
+
+	var status int
+	err := sc.db.QueryRow(`SELECT status FROM wallet_kyc_status WHERE wallet_id = $1`, walletID).Scan(&status)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return 0, nil // Unknown/not started
+		}
+		return -1, fmt.Errorf("getKYCStatusByWalletID: query error: %w", err)
+	}
+
+	debugPrintf("   📋 KYC status for wallet %s: %d\n", walletID, status)
+	return status, nil
+}

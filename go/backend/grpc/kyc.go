@@ -96,15 +96,6 @@ func (s *rpcService) GetKYCProviderWidget(ctx context.Context, req *pb.GetKYCPro
 		return nil, toGRPCError(err)
 	}
 
-	if env.IsLocal() {
-		return &pb.KYCProviderWidget{
-			Provider: "local",
-			PersonaInquiry: &pb.KYCPersonaInquiryResponse{
-				Id: inq.ID,
-			},
-		}, nil
-	}
-
 	return &pb.KYCProviderWidget{
 		Provider: "persona",
 		PersonaInquiry: &pb.KYCPersonaInquiryResponse{
