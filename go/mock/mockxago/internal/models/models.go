@@ -27,6 +27,7 @@ type SubAccount struct {
 	AccountID                 string    `db:"account_id"`
 	FirstName                 string    `db:"first_name"`
 	LastName                  string    `db:"last_name"`
+	DateOfBirth               string    `db:"date_of_birth"`
 	Email                     string    `db:"email"`
 	MobileNumber              string    `db:"mobile_number"`
 	IdentityType              string    `db:"identity_type"`
