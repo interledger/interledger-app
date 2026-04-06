@@ -67,9 +67,8 @@ Feature: User KYC and Account Activation
     # Shows "Complete these steps to confirm your identity and activate your wallet"
     Then I should be shown the "Activate wallet" prompt form
 
-    # Trigger KYC flow and fill MockXago Persona iframe
-    When I click the "Continue" button
-    And I wait for the KYC iframe to load
+    # MockXago renders the KYC iframe directly for this flow
+    When I wait for the KYC iframe to load
     And I fill and submit the mockxago KYC iframe
     And I wait for the KYC completion
     Then I should be navigated back to the dashboard with approved kyc status

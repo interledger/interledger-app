@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -21,6 +22,7 @@ const (
 
 // xagoTokenCache caches the MockXago auth token
 var xagoTokenCache struct {
+	mu     sync.Mutex
 	token  string
 	expiry time.Time
 }
@@ -38,6 +40,9 @@ func xagoHTTPClient() *http.Client {
 // getMockXagoAuthToken authenticates with MockXago and returns a bearer token.
 // Tokens are cached to avoid repeated login calls.
 func getMockXagoAuthToken() (string, error) {
+	xagoTokenCache.mu.Lock()
+	defer xagoTokenCache.mu.Unlock()
+
 	if xagoTokenCache.token != "" && time.Now().Before(xagoTokenCache.expiry) {
 		return xagoTokenCache.token, nil
 	}

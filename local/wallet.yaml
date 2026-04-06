@@ -149,8 +149,8 @@ services:
       - XAGO_LEDGER_ID_USD=${BACKEND_XAGO_LEDGER_ID_USD:-9246873}
 
       # Persona - Used for Xago KYC
-      - PERSONA_TOKEN=${BACKEND_PERSONA_TOKEN:-}
-      - PERSONA_WEBHOOK_TOKEN=${BACKEND_PERSONA_WEBHOOK_TOKEN:-}
+      - PERSONA_TOKEN=${BACKEND_PERSONA_TOKEN:-test-persona-token}
+      - PERSONA_WEBHOOK_TOKEN=${BACKEND_PERSONA_WEBHOOK_TOKEN:-test-persona-webhook-token}
 
       # Xago webhook secret
       - XAGO_WEBHOOK_SECRET=${BACKEND_XAGO_WEBHOOK_SECRET:-xago-webhook-secret}

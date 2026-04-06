@@ -115,6 +115,7 @@ function PersonaPage() {
   const submit = useSubmit()
   const { personaWidget, personaSdkUrl, mockxagoEndpoint } = useLoaderData<typeof loader>()
   const [ready, setReady] = useState(false)
+  const mockXagoIframeRef = useRef<HTMLIFrameElement | null>(null)
   const scriptStatus = useScript(
     mockxagoEndpoint
       ? '' // Don't load Persona SDK when using MockXago
@@ -136,11 +137,30 @@ function PersonaPage() {
   }, [setLoading])
 
   useEffect(() => {
-    if (!mockxagoEndpoint) return
+    if (!mockxagoEndpoint || !personaWidget?.id) return
+
+    let expectedOrigin: string
+    try {
+      expectedOrigin = new URL(mockxagoEndpoint).origin
+    } catch {
+      console.error('[KYC] Invalid MockXago endpoint:', mockxagoEndpoint)
+      return
+    }
 
     setReady(true)
 
     const onKYCComplete = (e: MessageEvent) => {
+      if (e.origin !== expectedOrigin) {
+        console.warn('[KYC] Ignoring MockXago message from unexpected origin:', e.origin)
+        return
+      }
+
+      const iframeWindow = mockXagoIframeRef.current?.contentWindow
+      if (!iframeWindow || e.source !== iframeWindow) {
+        console.warn('[KYC] Ignoring MockXago message from unexpected source')
+        return
+      }
+
       console.log('[KYC] MockXago iframe message received:', e.data)
       if (!e.data?.type || !e.data?.value) return
 
@@ -165,7 +185,7 @@ function PersonaPage() {
 
     window.addEventListener('message', onKYCComplete)
     return () => window.removeEventListener('message', onKYCComplete)
-  }, [mockxagoEndpoint, submit])
+  }, [mockxagoEndpoint, personaWidget?.id, submit])
 
   // Real Persona SDK mode
   useEffect(() => {
@@ -194,6 +214,7 @@ function PersonaPage() {
     const iframeSrc = `${mockxagoEndpoint}/v1/inquiries/${personaWidget.id}/iframe`
     return (
       <iframe
+        ref={mockXagoIframeRef}
         title='Activate wallet'
         src={iframeSrc}
         sandbox='allow-top-navigation allow-forms allow-same-origin allow-popups allow-scripts'
