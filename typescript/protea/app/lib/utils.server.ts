@@ -1,7 +1,8 @@
 import { z } from 'zod'
 import { Errors, FormattedAmount, FormatAmountArgs, WalletAddressType } from './types'
-import { getUserSession } from '~/lib/kratos.server'
+import { redirect } from 'react-router'
 import { getCurrencySymbol } from '~/lib/helpers'
+import { envBool } from '~/env.server'
 
 export class WalletAddressFormatError extends Error { }
 
@@ -148,5 +149,11 @@ export const formatAmount = (args: FormatAmountArgs): FormattedAmount => {
     amount,
     amountWithCurrency,
     symbol
+  }
+}
+
+export const routeAllowed = (featureName: string) => {
+  if (!envBool(featureName)) {
+    throw redirect('/')
   }
 }

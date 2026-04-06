@@ -10,6 +10,7 @@ import { mergeMeta } from '~/lib/meta'
 import { QuickPaySession } from '~/lib/types'
 import { FinishCheck, FinishError } from '~/components/QuickPay'
 import logger from '~/lib/logger.server'
+import { routeAllowed } from '~/lib/utils.server'
 
 export type FinishActionData = {
   message?: string
@@ -17,6 +18,7 @@ export type FinishActionData = {
 }
 
 export async function loader({ request }: Route.LoaderArgs) {
+  routeAllowed('OP_INTPAY_ENABLED')
   const searchParams = new URL(request.url).searchParams
   const paymentId = searchParams.get('paymentId') || ''
   const hash = searchParams.get('hash') || ''

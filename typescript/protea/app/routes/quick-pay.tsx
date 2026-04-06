@@ -6,15 +6,19 @@ import { z } from 'zod'
 import { type ApplicationProps, Layouts, WalletGrid, GridColumn, TextField, Button } from '~/components'
 import { mergeMeta } from '~/lib/meta'
 import { getSession, commitSession } from '~/session.server'
-import { createError, walletSchema } from '~/lib/utils.server'
+import { createError, routeAllowed, walletSchema } from '~/lib/utils.server'
 import type { RootLoaderData } from '~/root'
 import { type ActionData, QuickPaySession } from '~/lib/types'
 import { getValidWalletAddress } from '~/lib/open-payments.server'
 import { formatError } from '~/lib/helpers'
 import logger from '~/lib/logger.server'
 
+export async function loader({ request }: Route.LoaderArgs) {
+  routeAllowed('OP_INTPAY_ENABLED')
+}
+
 export const handle: ApplicationProps = {
-   layout: (_match, context) => context?.isUser ? Layouts.Wallet : Layouts.Marketing,
+  layout: (_match, context) => context?.isUser ? Layouts.Wallet : Layouts.Marketing,
   scaffold: {
     header: { title: 'Interledger Pay' }
   }

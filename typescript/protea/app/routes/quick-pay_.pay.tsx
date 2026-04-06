@@ -9,13 +9,14 @@ import { AmountDisplay, QuoteDialog, PayWithInterledgerMark } from '~/components
 import { useDialPadContext } from '~/lib/context/dialpad'
 import { mergeMeta } from '~/lib/meta'
 import { fetchQuote, getValidWalletAddress, initializePayment } from '~/lib/open-payments.server'
-import { paymentSchema, formatAmount, createError } from '~/lib/utils.server'
+import { paymentSchema, formatAmount, createError, routeAllowed} from '~/lib/utils.server'
 import { commitSession, getSession } from '~/session.server'
 import { type ActionData, QuickPaySession } from '~/lib/types'
 import { formatError } from '~/lib/helpers'
 import logger from '~/lib/logger.server'
 
 export async function loader({ request }: Route.LoaderArgs) {
+  routeAllowed('OP_INTPAY_ENABLED')
   const searchParams = new URL(request.url).searchParams
   const isQuote = searchParams.get('quote') || false
   const session = await getSession(request.headers.get('Cookie'))

@@ -10,8 +10,10 @@ import { DialPad, DialPadIds } from '~/components/QuickPay/Dialpad'
 import { useDialPadContext } from '~/lib/context/dialpad'
 import { mergeMeta } from '~/lib/meta'
 import { getSession } from '~/session.server'
+import { routeAllowed } from '~/lib/utils.server'
 
 export async function loader({ request }: Route.LoaderArgs) {
+  routeAllowed('OP_INTPAY_ENABLED')
   const session = await getSession(request.headers.get('Cookie'))
   const walletAddressInfo = session.get('quickPay')
   const assetCode = walletAddressInfo?.validWalletAddress?.assetCode
