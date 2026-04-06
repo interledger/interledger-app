@@ -755,7 +755,14 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	} else {
 		log.Debug("email disabled; initialising noop email client")
 	}
-	b.email = email_client.New(b, args.EmailEnabled, args.SendgridAPIKey, args.SendgridFromName, args.SendgridFromEmail)
+	b.email = email_client.New(
+		b,
+		args.EmailEnabled,
+		args.SendgridAPIKey,
+		args.SendgridFromName,
+		args.SendgridFromEmail,
+		args.SendgridOneTemplateID,
+	)
 
 	log.Debug("initialising transactions")
 	b.transactions = transactions_client.New(b)

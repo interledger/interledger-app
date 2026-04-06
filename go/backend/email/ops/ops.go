@@ -21,8 +21,6 @@ import (
 	"go.uber.org/zap"
 )
 
-const oneTemplateID = "d-12030774d225454ea91720034b9adb97"
-
 func getEmailsAndGreeting(ctx context.Context, b Backends, walletID string) ([]sendgrid.Email, string, error) {
 	users, err := b.Users().ListUsers(ctx, walletID)
 	if err != nil {
@@ -57,7 +55,7 @@ func SendApplicationDeniedEmail(ctx context.Context, b Backends, walletID string
 		return
 	}
 
-	err = b.External().SendTemplate(ctx, "Application denied", sendTo, oneTemplateID, map[string]interface{}{
+	err = b.External().SendTemplate(ctx, "Application denied", sendTo, b.OneTemplateID(), map[string]interface{}{
 		"subject": "Application denied",
 		"data": []map[string]interface{}{
 			{"paragraph": greeting},
@@ -83,7 +81,7 @@ func SendApplicationApprovedEmail(ctx context.Context, b Backends, walletID stri
 		w = &wallets.Wallet{}
 	}
 
-	err = b.External().SendTemplate(ctx, "Your wallet has been created", sendTo, oneTemplateID, map[string]interface{}{
+	err = b.External().SendTemplate(ctx, "Your wallet has been created", sendTo, b.OneTemplateID(), map[string]interface{}{
 		"subject": "Your wallet has been created",
 		"data": []map[string]interface{}{
 			{"paragraph": greeting},
@@ -108,7 +106,7 @@ func SendApplicationPendingEmail(ctx context.Context, b Backends, walletID strin
 		return
 	}
 
-	err = b.External().SendTemplate(ctx, "Your wallet is under review", sendTo, oneTemplateID, map[string]interface{}{
+	err = b.External().SendTemplate(ctx, "Your wallet is under review", sendTo, b.OneTemplateID(), map[string]interface{}{
 		"subject": "Your wallet is under review",
 		"data": []map[string]interface{}{
 			{"paragraph": greeting},
@@ -144,7 +142,7 @@ func SendConnectedAccountEmail(ctx context.Context, b Backends, la linkedaccount
 		})
 	}
 
-	err = b.External().SendTemplate(ctx, "A new account has been connected", sendTo, oneTemplateID, map[string]interface{}{
+	err = b.External().SendTemplate(ctx, "A new account has been connected", sendTo, b.OneTemplateID(), map[string]interface{}{
 		"subject": "A new account has been connected",
 		"data": []map[string]interface{}{
 			{"paragraph": greeting},
@@ -168,7 +166,7 @@ func SendConnectedAccountDocumentsNeededEmail(ctx context.Context, b Backends, w
 		return
 	}
 
-	err = b.External().SendTemplate(ctx, "We need some documents from you", sendTo, oneTemplateID, map[string]interface{}{
+	err = b.External().SendTemplate(ctx, "We need some documents from you", sendTo, b.OneTemplateID(), map[string]interface{}{
 		"subject": "We need some documents from you",
 		"data": []map[string]interface{}{
 			{"paragraph": greeting},
@@ -203,7 +201,7 @@ func SendPaymentSentEmailV2(ctx context.Context, b Backends, walletID string, pa
 		log.Error("Failed to send payment sent email.", zap.Error(err), zap.String("walletID", walletID), zap.String("trxID", payment.SendTransactionID))
 		return
 	}
-	err = b.External().SendTemplate(ctx, "Payment sent", sendTo, oneTemplateID, map[string]interface{}{
+	err = b.External().SendTemplate(ctx, "Payment sent", sendTo, b.OneTemplateID(), map[string]interface{}{
 		"subject": "Payment sent",
 		"data": []map[string]interface{}{
 			{"paragraph": greeting},
@@ -248,7 +246,7 @@ func SendPaymentReceivedEmailV2(ctx context.Context, b Backends, walletID string
 		log.Error("Failed to send payment received email.", zap.Error(err), zap.String("walletID", walletID), zap.String("trxID", payment.ReceiveTransactionID))
 		return
 	}
-	err = b.External().SendTemplate(ctx, "Payment received", sendTo, oneTemplateID, map[string]interface{}{
+	err = b.External().SendTemplate(ctx, "Payment received", sendTo, b.OneTemplateID(), map[string]interface{}{
 		"subject": "Payment received",
 		"data": []map[string]interface{}{
 			{"paragraph": greeting},
@@ -284,7 +282,7 @@ func SendPaymentFailedEmail(ctx context.Context, b Backends, walletID string) {
 		return
 	}
 
-	err = b.External().SendTemplate(ctx, "Payment unsuccessful", sendTo, oneTemplateID, map[string]interface{}{
+	err = b.External().SendTemplate(ctx, "Payment unsuccessful", sendTo, b.OneTemplateID(), map[string]interface{}{
 		"subject": "Payment unsuccessful",
 		"data": []map[string]interface{}{
 			{"paragraph": greeting},
@@ -316,7 +314,7 @@ func SendDepositReceivedEmail(ctx context.Context, b Backends, walletID string, 
 		tableinfo = append(tableinfo, map[string]interface{}{"label": "Date", "text": date, "large": true})
 	}
 
-	err = b.External().SendTemplate(ctx, "Deposit received", sendTo, oneTemplateID, map[string]interface{}{
+	err = b.External().SendTemplate(ctx, "Deposit received", sendTo, b.OneTemplateID(), map[string]interface{}{
 		"subject": "Deposit received",
 		"data": []map[string]interface{}{
 			{"paragraph": greeting},
@@ -348,7 +346,7 @@ func SendWithdrawalEmail(ctx context.Context, b Backends, walletID string, amt c
 		tableinfo = append(tableinfo, map[string]interface{}{"label": "Date", "text": date, "large": true})
 	}
 
-	err = b.External().SendTemplate(ctx, "Withdrawal complete", sendTo, oneTemplateID, map[string]interface{}{
+	err = b.External().SendTemplate(ctx, "Withdrawal complete", sendTo, b.OneTemplateID(), map[string]interface{}{
 		"subject": "Withdrawal complete",
 		"data": []map[string]interface{}{
 			{"paragraph": greeting},
@@ -372,7 +370,7 @@ func SendWithdrawalFailedEmail(ctx context.Context, b Backends, walletID string)
 		return
 	}
 
-	err = b.External().SendTemplate(ctx, "Withdrawal unsuccessful", sendTo, oneTemplateID, map[string]interface{}{
+	err = b.External().SendTemplate(ctx, "Withdrawal unsuccessful", sendTo, b.OneTemplateID(), map[string]interface{}{
 		"subject": "Withdrawal unsuccessful",
 		"data": []map[string]interface{}{
 			{"paragraph": greeting},
@@ -396,7 +394,7 @@ func SendDepositFailedEmail(ctx context.Context, b Backends, walletID string) {
 		return
 	}
 
-	err = b.External().SendTemplate(ctx, "Deposit unsuccessful", sendTo, oneTemplateID, map[string]interface{}{
+	err = b.External().SendTemplate(ctx, "Deposit unsuccessful", sendTo, b.OneTemplateID(), map[string]interface{}{
 		"subject": "Deposit unsuccessful",
 		"data": []map[string]interface{}{
 			{"paragraph": greeting},
@@ -426,7 +424,7 @@ func SendLimitsExceededEmail(ctx context.Context, b Backends, walletID string) {
 		return
 	}
 
-	err = b.External().SendTemplate(ctx, "Limits Exceeded", sendTo, oneTemplateID, map[string]interface{}{
+	err = b.External().SendTemplate(ctx, "Limits Exceeded", sendTo, b.OneTemplateID(), map[string]interface{}{
 		"subject": "Limits Exceeded",
 		"data": []map[string]interface{}{
 			{"paragraph": greeting},
@@ -455,7 +453,7 @@ func SendCardCreatedEmail(ctx context.Context, b Backends, walletID, cardID stri
 		log.Error("Failed to send card created email.", zap.Error(err), zap.String("walletID", walletID))
 		return
 	}
-	err = b.External().SendTemplate(ctx, "💳 Your new card is ready for use!", sendTo, oneTemplateID, map[string]interface{}{
+	err = b.External().SendTemplate(ctx, "💳 Your new card is ready for use!", sendTo, b.OneTemplateID(), map[string]interface{}{
 		"subject": "💳 Your new card is ready for use!",
 		"data": []map[string]interface{}{
 			{"paragraph": greeting},
@@ -484,7 +482,7 @@ func SendPending3DSConfirmation(ctx context.Context, b Backends, walletID, confi
 		log.Error("Failed to send card created email.", zap.Error(err), zap.String("walletID", walletID))
 		return
 	}
-	err = b.External().SendTemplate(ctx, "⚠️ Action Required: Pending 3D Secure Transaction", sendTo, oneTemplateID, map[string]interface{}{
+	err = b.External().SendTemplate(ctx, "⚠️ Action Required: Pending 3D Secure Transaction", sendTo, b.OneTemplateID(), map[string]interface{}{
 		"subject": "⚠️ Action Required: Pending 3D Secure Transaction",
 		"data": []map[string]interface{}{
 			{"paragraph": greeting},
