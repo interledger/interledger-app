@@ -145,6 +145,8 @@ func (sc *E2EContext) iClickTheButton(buttonText string) error {
 		selector = "button:has-text('Continue'), button:has-text('Next'), button[type='submit']"
 	case "confirm", "submit":
 		selector = "button:has-text('Confirm'), button:has-text('Submit'), button[type='submit']"
+	case "order card":
+		selector = "a:has-text('Order card'), button:has-text('Order card')"
 	default:
 		selector = fmt.Sprintf("button:has-text('%s')", buttonText)
 	}
