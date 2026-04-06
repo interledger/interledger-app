@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -25,7 +24,52 @@ func (sc *E2EContext) theSignupShouldBeSubmitted() error {
 	// Wait for submission to complete
 	time.Sleep(2 * time.Second)
 
-	return nil
+	// Verify the Kratos identity was actually created by the signup form submission.
+	// Under high concurrency the POST registration may silently fail (e.g. timeout,
+	// CSRF expiry). Catching it here gives a clear error rather than a confusing
+	// "invalid credentials" failure later during login.
+	email, err := sc.getCurrentUserEmail()
+	if err != nil {
+		return fmt.Errorf("signup verification: %w", err)
+	}
+	prefixedEmail := email
+	if sc.testIdentifier != "" && !strings.HasPrefix(email, sc.testIdentifier+"-") {
+		prefixedEmail = fmt.Sprintf("%s-%s", sc.testIdentifier, email)
+	}
+
+	// Open a single Kratos DB connection for the polling loop to avoid
+	// connection churn under concurrent scenarios.
+	kratosConnStr := "host=localhost port=5432 user=postgres password=postgres dbname=kratos sslmode=disable"
+	kratosDB, err := sql.Open("postgres", kratosConnStr)
+	if err != nil {
+		return fmt.Errorf("signup verification: could not connect to Kratos DB: %w", err)
+	}
+	defer kratosDB.Close()
+
+	// Poll for the identity for up to 10 seconds (20 × 500ms)
+	for i := 0; i < 20; i++ {
+		var identityID string
+		row := kratosDB.QueryRow(`SELECT identity_id FROM identity_verifiable_addresses WHERE value = $1 LIMIT 1`, prefixedEmail)
+		if scanErr := row.Scan(&identityID); scanErr == nil && identityID != "" {
+			debugPrintf("✓ Signup verified: Kratos identity %s created for %s\n", identityID, prefixedEmail)
+			return nil
+		} else if scanErr != nil && scanErr != sql.ErrNoRows {
+			return fmt.Errorf("signup verification: Kratos DB query error: %w", scanErr)
+		}
+
+		// Fallback to credential identifiers
+		row = kratosDB.QueryRow(`SELECT identity_id FROM identity_credential_identifiers WHERE identifier = $1 LIMIT 1`, prefixedEmail)
+		if scanErr := row.Scan(&identityID); scanErr == nil && identityID != "" {
+			debugPrintf("✓ Signup verified: Kratos identity %s created for %s\n", identityID, prefixedEmail)
+			return nil
+		} else if scanErr != nil && scanErr != sql.ErrNoRows {
+			return fmt.Errorf("signup verification: Kratos DB query error: %w", scanErr)
+		}
+
+		time.Sleep(500 * time.Millisecond)
+	}
+
+	return fmt.Errorf("signup form submission did not create Kratos identity for %s — the registration POST may have failed silently", prefixedEmail)
 }
 
 func (sc *E2EContext) iShouldSeeValidationErrors() error {
@@ -250,98 +294,31 @@ func (sc *E2EContext) iTriggerUserVerificationFor(email string) error {
 		kratosAdminURL = "http://localhost:4434"
 	}
 
-	// Step 1: Check if Kratos identity exists (should be created by signup flow)
-	// Retry for up to 120 seconds as Kratos identity creation may be async
+	// Step 1: Resolve Kratos identity by direct DB lookup first.
+	// Under high concurrency this is significantly faster and more reliable
+	// than repeatedly listing all identities via admin API.
 	var identityID string
-	maxRetries := 120
+	maxRetries := 40
 	for i := 0; i < maxRetries; i++ {
-		identities, err := sc.getKratosIdentities()
-		if err != nil {
-			return fmt.Errorf("could not check Kratos identities: %w", err)
-		}
-
-		debugPrintf("   → retrieved %d identities from Kratos\n", len(identities))
-
-		for _, identity := range identities {
-			if traits, ok := identity.Traits["email"]; ok && traits == prefixedEmail {
-				identityID = identity.ID
-				debugPrintf("✓ Found Kratos identity created by signup: %s (after %d seconds)\n", identityID, i+1)
-				break
-			}
-		}
-
-		if identityID != "" {
+		resolvedID, err := sc.lookupKratosIdentityByEmail(prefixedEmail)
+		if err == nil && resolvedID != "" {
+			identityID = resolvedID
+			debugPrintf("✓ Found Kratos identity created by signup: %s (after %d checks)\n", identityID, i+1)
 			break
 		}
 
 		if i < maxRetries-1 {
 			debugPrintf("   ⏳ Waiting for Kratos identity to be created (attempt %d/%d)...\n", i+1, maxRetries)
-			time.Sleep(1 * time.Second)
+			time.Sleep(500 * time.Millisecond)
 		}
 	}
 
-	// Step 2: Fail if identity doesn't exist - it should have been created by the signup process
+	// Step 2: Fail if identity doesn't exist.
+	// The signup process must have created it (verified by theSignupShouldBeSubmitted).
+	// Do NOT fall back to creating via admin API — that produces an identity without
+	// password credentials, causing a confusing "invalid credentials" login failure.
 	if identityID == "" {
-		// Fallback: try to look up identity_id directly in Kratos Postgres DB
-		debugPrintf("   ⚠️  Identity not found via admin API, falling back to Kratos DB lookup for %s\n", prefixedEmail)
-		var err error
-		identityID, err = sc.lookupKratosIdentityByEmail(prefixedEmail)
-		if err != nil {
-			debugPrintf("   - Kratos DB lookup did not find identity for %s: %v\n", prefixedEmail, err)
-		} else {
-			debugPrintf("   ✓ Found Kratos identity via DB lookup: %s\n", identityID)
-		}
-
-		if identityID == "" {
-			// As a last resort, create a Kratos identity via the admin API to ensure the test can proceed
-			debugPrintf("   ⚠️  Creating Kratos identity via admin API for %s\n", prefixedEmail)
-			client := &http.Client{Timeout: 30 * time.Second}
-
-			// Get phone from user details - fail fast if not present
-			phone, err := sc.getCurrentUserPhone()
-			if err != nil {
-				debugPrintf("   ⚠️  Failed to get phone from user details: %v\n", err)
-				return fmt.Errorf("cannot create Kratos identity without phone: %w", err)
-			}
-
-			// Include basic required traits that the Kratos schema expects
-			payload := map[string]interface{}{"traits": map[string]string{
-				"email":       prefixedEmail,
-				"phone":       phone,
-				"firstName":   sc.firstName,
-				"lastName":    sc.lastName,
-				"countryCode": sc.country,
-			}}
-			b, _ := json.Marshal(payload)
-			req, err := http.NewRequestWithContext(context.Background(), "POST", kratosAdminURL+"/admin/identities", strings.NewReader(string(b)))
-			if err == nil {
-				req.Header.Set("Content-Type", "application/json")
-				resp, err := client.Do(req)
-				if err == nil {
-					defer resp.Body.Close()
-					if resp.StatusCode == http.StatusCreated || resp.StatusCode == http.StatusOK {
-						var created kratosIdentity
-						if err := json.NewDecoder(resp.Body).Decode(&created); err == nil {
-							identityID = created.ID
-							debugPrintf("   ✓ Created Kratos identity via admin API: %s\n", identityID)
-						} else {
-							debugPrintf("   ⚠️  Failed to decode created identity response: %v\n", err)
-						}
-					} else {
-						body, _ := io.ReadAll(resp.Body)
-						debugPrintf("   ⚠️  Failed to create Kratos identity: status %d: %s\n", resp.StatusCode, string(body))
-					}
-				} else {
-					debugPrintf("   ⚠️  Error calling Kratos admin create API: %v\n", err)
-				}
-			} else {
-				debugPrintf("   ⚠️  Error building Kratos admin create request: %v\n", err)
-			}
-
-			if identityID == "" {
-				return fmt.Errorf("Kratos identity not found for %s - signup process should have created it", prefixedEmail)
-			}
-		}
+		return fmt.Errorf("Kratos identity not found for %s after %d retries — signup did not create the identity", prefixedEmail, maxRetries)
 	}
 
 	// Step 3: Mark email as verified in Kratos database (test helper to bypass email verification)

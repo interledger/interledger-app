@@ -19,7 +19,7 @@ Feature: User KYC and Account Activation
 
 
   @kyc @gatehub
-  Scenario: Successfully activate account and complete KYC as verified user
+  Scenario: Successfully activate Germany account and complete KYC as verified user
     Given that my "country" is "germany"
     And I completed the signup workflow
     And I completed the account verification workflow
@@ -39,7 +39,7 @@ Feature: User KYC and Account Activation
     And I take a screenshot "kyc-completed-dashboard"
 
   @kyc @pti
-  Scenario: Successfully activate account and complete KYC as a USA user
+  Scenario: Successfully activate USA account and complete KYC
     Given that my "country" is "United States"
     And mockpti is running at "https://mockpti.interledger.test"
     And I completed the signup workflow
