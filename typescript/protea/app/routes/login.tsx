@@ -27,6 +27,7 @@ import {
 } from '~/lib/kratos/cookie.server'
 import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.server'
 import { mapFlowToFieldErrors, handleFlowError } from '~/lib/kratos/error.server'
+import { flashSnackbar } from '~/lib/snackbar.server'
 import { type KratosError } from '~/lib/kratos/types.server'
 import { requireNoUserSession } from '~/lib/kratos/session.server'
 import { mergeMeta } from '~/lib/meta'
@@ -223,7 +224,19 @@ export async function action({ request }: Route.ActionArgs) {
       if (isSessionAlreadyExistsMessage(errors.form)) {
         return redirect(returnTo)
       }
-      return data({ errors }, { status: 400, headers: buildHeadersWithCookies(errResponse) })
+
+      // Redirect with snackbar instead of returning error codes — we need fresh
+      // flow and CSRF token on retry, otherwise we have stale data in the loader.
+      const redirectParams = new URLSearchParams(searchParams)
+      redirectParams.set('flow', flowId as string)
+      const snackbarCookie = await flashSnackbar(request, {
+        message: errors.form || 'An error occurred, please retry.',
+        icon: 'close',
+        action: 'Contact support'
+      })
+      const redirectHeaders = buildHeadersWithCookies(errResponse)
+      redirectHeaders.append('Set-Cookie', snackbarCookie)
+      return redirect(`/login?${redirectParams.toString()}`, { headers: redirectHeaders })
     }
 
     // Handle AAL2 required

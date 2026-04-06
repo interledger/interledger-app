@@ -10,7 +10,7 @@ import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.server'
 import { mergeMeta } from '~/lib/meta'
 import { safeReturnTo } from '~/lib/url.server'
 import { kratosPublic } from '~/lib/kratos/kratos-client.server'
-import { buildHeadersWithCookies, getCookie, withCookie } from '~/lib/kratos/cookie.server'
+import { buildHeadersWithCookies, getCookie, isSessionAlreadyExistsMessage, withCookie } from '~/lib/kratos/cookie.server'
 import { mapFlowToFieldErrors, printKratosError } from '~/lib/kratos/error.server'
 import type { CreateBrowserLoginFlowResponse, KratosError } from '~/lib/kratos/types.server'
 import logger from '~/lib/logger.server'
@@ -176,6 +176,9 @@ export async function action({ request }: Route.ActionArgs) {
       case 400:
         const errorMapping = { form: '', totp_code: '' }
         mapFlowToFieldErrors(flowData, errorMapping)
+        if (isSessionAlreadyExistsMessage(errorMapping.form)) {
+          return redirect(returnTo)
+        }
         return data({ errors: { totp_code: errorMapping.totp_code || errorMapping.form || 'Unknown error, please retry.' } })
 
       case 410:
