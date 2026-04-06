@@ -150,13 +150,3 @@ export const formatAmount = (args: FormatAmountArgs): FormattedAmount => {
     symbol
   }
 }
-
-export async function isWalletLayout(request: Request) {
-  try {
-      await getUserSession(request)
-      return true
-  
-    } catch (err) {
-      return false
-    }
-}

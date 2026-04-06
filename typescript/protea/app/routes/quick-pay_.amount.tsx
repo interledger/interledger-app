@@ -10,11 +10,8 @@ import { DialPad, DialPadIds } from '~/components/QuickPay/Dialpad'
 import { useDialPadContext } from '~/lib/context/dialpad'
 import { mergeMeta } from '~/lib/meta'
 import { getSession } from '~/session.server'
-import { isWalletLayout } from '~/lib/utils.server'
 
 export async function loader({ request }: Route.LoaderArgs) {
-  const isWalletView = await isWalletLayout(request)
-
   const session = await getSession(request.headers.get('Cookie'))
   const walletAddressInfo = session.get('quickPay')
   const assetCode = walletAddressInfo?.validWalletAddress?.assetCode
@@ -30,13 +27,11 @@ export async function loader({ request }: Route.LoaderArgs) {
   }
   return data({
     assetCode,
-    isWalletView
   } as const)
 }
 
 export const handle: ApplicationProps = {
-  layout: (match) =>
-    match.data?.isWalletView ? Layouts.Wallet : Layouts.Marketing,
+  layout: (_match, context) => context?.isUser ? Layouts.Wallet : Layouts.Marketing,
   scaffold: {
     header: { title: 'Interledger Pay' }
   }

@@ -6,23 +6,15 @@ import { z } from 'zod'
 import { type ApplicationProps, Layouts, WalletGrid, GridColumn, TextField, Button } from '~/components'
 import { mergeMeta } from '~/lib/meta'
 import { getSession, commitSession } from '~/session.server'
-import { createError, isWalletLayout, walletSchema } from '~/lib/utils.server'
-import type { loader as rootLoader, RootLoaderData } from '~/root'
+import { createError, walletSchema } from '~/lib/utils.server'
+import type { RootLoaderData } from '~/root'
 import { type ActionData, QuickPaySession } from '~/lib/types'
 import { getValidWalletAddress } from '~/lib/open-payments.server'
 import { formatError } from '~/lib/helpers'
 import logger from '~/lib/logger.server'
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const isWalletView = await isWalletLayout(request)
-  return data({
-    isWalletView
-  })
-}
-
 export const handle: ApplicationProps = {
-  layout: (match) =>
-    match.data?.isWalletView ? Layouts.Wallet : Layouts.Marketing,
+   layout: (_match, context) => context?.isUser ? Layouts.Wallet : Layouts.Marketing,
   scaffold: {
     header: { title: 'Interledger Pay' }
   }

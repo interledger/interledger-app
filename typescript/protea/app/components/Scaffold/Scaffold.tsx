@@ -43,7 +43,7 @@ import { Fade } from '../Animations/Fade'
 import { NavDrawer } from './NavDrawer'
 
 export type ApplicationProps = {
-  layout: Layouts | ((match: UIMatch<any, ApplicationProps>) => Layouts)
+  layout: Layouts | ((match: UIMatch<any, ApplicationProps>, context?: {isUser: boolean }) => Layouts)
   scaffold?: ScaffoldProps
 }
 
@@ -146,7 +146,7 @@ export function Scaffold() {
   const layoutHandle = currentMatch?.handle?.layout
 
   let layout: Layouts
-  if (typeof layoutHandle === 'function') layout = layoutHandle(currentMatch)
+  if (typeof layoutHandle === 'function') layout = layoutHandle(currentMatch, {isUser})
   else layout = layoutHandle
 
   const actionHandle = scaffold?.header?.actions

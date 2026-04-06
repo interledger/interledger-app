@@ -9,7 +9,7 @@ import { AmountDisplay, QuoteDialog, PayWithInterledgerMark } from '~/components
 import { useDialPadContext } from '~/lib/context/dialpad'
 import { mergeMeta } from '~/lib/meta'
 import { fetchQuote, getValidWalletAddress, initializePayment } from '~/lib/open-payments.server'
-import { paymentSchema, formatAmount, createError, isWalletLayout } from '~/lib/utils.server'
+import { paymentSchema, formatAmount, createError } from '~/lib/utils.server'
 import { commitSession, getSession } from '~/session.server'
 import { type ActionData, QuickPaySession } from '~/lib/types'
 import { formatError } from '~/lib/helpers'
@@ -18,7 +18,6 @@ import logger from '~/lib/logger.server'
 export async function loader({ request }: Route.LoaderArgs) {
   const searchParams = new URL(request.url).searchParams
   const isQuote = searchParams.get('quote') || false
-  const isWalletView = await isWalletLayout(request)
   const session = await getSession(request.headers.get('Cookie'))
   const sessionData = session.get('quickPay')
   const walletAddressInfo = sessionData?.validWalletAddress
@@ -71,14 +70,12 @@ export async function loader({ request }: Route.LoaderArgs) {
     receiveAmount: receiveAmount ? receiveAmount.amountWithCurrency : null,
     debitAmount: debitAmount ? debitAmount.amountWithCurrency : null,
     receiverName: receiverName,
-    isQuote: isQuote,
-    isWalletView
+    isQuote: isQuote
   } as const)
 }
 
 export const handle: ApplicationProps = {
-  layout: (match) =>
-    match.data?.isWalletView ? Layouts.Wallet : Layouts.Marketing,
+   layout: (_match, context) => context?.isUser ? Layouts.Wallet : Layouts.Marketing,
   scaffold: {
     header: { title: 'Interledger Pay' }
   }
