@@ -781,9 +781,7 @@ func (h *Handler) GetCardApplicationProducts(w http.ResponseWriter, r *http.Requ
 		},
 	}
 
-	h.sendJSON(w, http.StatusOK, map[string]interface{}{
-		"data": products,
-	})
+	h.sendJSON(w, http.StatusOK, products)
 }
 
 // OrderPlasticCard orders a physical card
