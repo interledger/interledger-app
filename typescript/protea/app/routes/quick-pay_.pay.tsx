@@ -13,6 +13,7 @@ import { paymentSchema, formatAmount, createError, isWalletLayout } from '~/lib/
 import { commitSession, getSession } from '~/session.server'
 import { type ActionData, QuickPaySession } from '~/lib/types'
 import { formatError } from '~/lib/helpers'
+import logger from '~/lib/logger.server'
 
 export async function loader({ request }: Route.LoaderArgs) {
   const searchParams = new URL(request.url).searchParams
@@ -210,7 +211,7 @@ export async function action({ request }: Route.ActionArgs) {
       session.set('quickPay', sessionData)
 
     } catch (err) {
-      console.log({ err })
+      logger.error({ err }, 'Error getting quote.')
       return data({ errors: createError("actionError", "An error occurred, please try again.") })
     }
     return redirect(`/quick-pay/pay?quote=true`, {

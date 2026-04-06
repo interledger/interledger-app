@@ -10,6 +10,7 @@ import { mergeMeta } from '~/lib/meta'
 import { QuickPaySession } from '~/lib/types'
 import { FinishCheck, FinishError } from '~/components/QuickPay'
 import {  isWalletLayout } from '~/lib/utils.server'
+import logger from '~/lib/logger.server'
 
 export type FinishActionData = {
   message?: string
@@ -174,7 +175,7 @@ export async function action({ request }: Route.ActionArgs) {
       )
       return data(result)
     } catch (err) {
-      console.log({ err })
+      logger.error({ err }, 'Open payments response error.')
 
       return data({
         error: true,

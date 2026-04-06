@@ -11,6 +11,7 @@ import type { loader as rootLoader, RootLoaderData } from '~/root'
 import { type ActionData, QuickPaySession } from '~/lib/types'
 import { getValidWalletAddress } from '~/lib/open-payments.server'
 import { formatError } from '~/lib/helpers'
+import logger from '~/lib/logger.server'
 
 export async function loader({ request }: Route.LoaderArgs) {
   const isWalletView = await isWalletLayout(request)
@@ -86,7 +87,7 @@ export async function action({ request }: Route.ActionArgs) {
     session.set('quickPay', sessionData)
 
   } catch (err) {
-    console.log({ err })
+    logger.error({ err }, 'Invalid wallet address')
     return data({ errors: createError("walletAddress", "Your wallet address is not valid.") })
   }
 
