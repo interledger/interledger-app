@@ -1,12 +1,19 @@
 import { useEffect } from 'react'
 import { useScript } from './useScript'
+import { usePtiConfig } from './pti-context'
 
 export function usePTISdk(sessionId: string, clientId: string) {
-  const scriptStatus = useScript('https://sdk.pearsurge.io/0.0.18/index.js')
+  const ptiConfig = usePtiConfig()
+  const scriptStatus = useScript(ptiConfig?.sdkUrl ?? '')
 
   useEffect(() => {
-    if (scriptStatus == 'ready' && typeof (window as any).PTI !== 'undefined') {
-      ;(window as any).PTI.init({
+    if (
+      scriptStatus == 'ready' &&
+      window.PTI !== undefined &&
+      clientId !== '' &&
+      sessionId !== ''
+    ) {
+      window.PTI.init({
         clientId: clientId,
         sessionId: sessionId
       })

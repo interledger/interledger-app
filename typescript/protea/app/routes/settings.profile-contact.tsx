@@ -1,21 +1,21 @@
-import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
-import { json } from '@remix-run/node'
-import { useLoaderData } from '@remix-run/react'
-import { route } from 'routes-gen'
+import type { Route } from './+types/settings.profile-contact'
+import { data } from 'react-router';
+import { useLoaderData } from 'react-router';
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Card, CardLink, Icon, Layouts } from '~/components'
 import { Label } from '~/components/Label'
 import { getUserSession } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const session = await getUserSession(request)
   const len = session.identity.traits.phone.length
   const phoneMask = session.identity.traits.phone
     .substring(len - 4, len)
     .padStart(len, '*')
 
-  return json({
+  return data({
     phoneMask,
     email: session.identity.traits.email
   })
@@ -25,21 +25,21 @@ export const handle: ApplicationProps = {
   layout: Layouts.Wallet,
   scaffold: {
     header: {
-      back: route('/settings'),
+      back: href('/settings'),
       title: 'Contact information'
     },
     isNested: true
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Contact information'
   }
 ])
 
 export default function Page() {
-  const { phoneMask, email } = useLoaderData<typeof loader>()
+  const { phoneMask, email } = useLoaderData()
   return (
     <Card>
       <Label>Email address</Label>
@@ -52,7 +52,7 @@ export default function Page() {
       <Label className='mt-4'>Mobile phone number</Label>
       <CardLink
         className='items-center justify-between'
-        to={route('/otp/challenge')}
+        to={href('/otp/challenge')}
       >
         <div className='flex space-x-3'>
           <Icon>call</Icon>

@@ -1,5 +1,5 @@
 import { Tab } from '@headlessui/react'
-import { useParams } from '@remix-run/react'
+import { useParams } from 'react-router';
 import clsx from 'clsx'
 import type { MotionProps } from 'framer-motion'
 import { AnimatePresence, motion, useAnimate } from 'framer-motion'

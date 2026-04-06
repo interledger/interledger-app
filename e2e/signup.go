@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/playwright-community/playwright-go"
 )
 
@@ -19,18 +21,24 @@ func (sc *E2EContext) iCompleteSignupFlow(firstName, lastName, email, country, p
 	debugPrintf("   📍 Current URL after navigate: %s\n", sc.page.URL())
 
 	// Removed: iClickTheButton("Sign Up") - now we navigate directly to /signup
-	// Try clicking "Get started" or "Let's get started" button if it exists
-	// Use a short timeout since it might not exist
-	getStartedSelector := "button:has-text('Get started'), button:has-text('Let'), button[data-testid='signup-get-started']"
-	if err := sc.page.Locator(getStartedSelector).First().Click(playwright.LocatorClickOptions{
-		Timeout: playwright.Float(2000),
+	// Click "Let's get started" button if it exists on the signup splash page.
+	// First wait for it to appear (up to 15s under CI load), then click it.
+	// If the button doesn't exist, the signup form is already shown directly.
+	getStartedBtn := sc.page.Locator("button:has-text('Get started'), button:has-text(\"Let's get started\"), button[data-testid='signup-get-started']").First()
+	if err := getStartedBtn.WaitFor(playwright.LocatorWaitForOptions{
+		State:   playwright.WaitForSelectorStateVisible,
+		Timeout: playwright.Float(15000),
 	}); err == nil {
-		// Button was clicked successfully, wait longer for React to transition and render the form
-		// Under high concurrency, the frontend needs more time to process the state change
+		if err := getStartedBtn.Click(playwright.LocatorClickOptions{
+			Timeout: playwright.Float(5000),
+		}); err != nil {
+			return fmt.Errorf("'Get started' button visible but click failed: %w", err)
+		}
+		// Wait for React to transition from splash to form
 		sc.page.WaitForTimeout(2000)
 		debugPrintf("   📍 URL after Get Started: %s\n", sc.page.URL())
 	}
-	// else: button didn't exist or timed out, continue anyway
+	// else: button not present — form is shown directly, continue
 
 	if err := sc.iShouldSeeTheSignupForm(); err != nil {
 		debugPrintln("   ⚠️  Form not visible on initial check, taking screenshot")

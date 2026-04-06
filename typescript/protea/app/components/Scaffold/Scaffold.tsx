@@ -1,5 +1,4 @@
-import type { SerializeFrom } from '@remix-run/node'
-import type { UIMatch } from '@remix-run/react'
+import type { UIMatch } from 'react-router';
 import {
   NavLink,
   Outlet,
@@ -7,15 +6,15 @@ import {
   useMatches,
   useNavigate,
   useRouteLoaderData,
-  useSearchParams
-} from '@remix-run/react'
+  useSearchParams,
+} from 'react-router';
 import clsx from 'clsx'
 import type { MotionProps } from 'framer-motion'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { FC, ReactNode } from 'react'
 import { forwardRef, useEffect, useState } from 'react'
 import { StructuredText } from 'react-datocms'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import {
   AnchorRouter,
   ButtonRouter,
@@ -39,7 +38,7 @@ import { useFormStore } from '~/lib/useFormStore'
 import { PayStep, usePayStore } from '~/lib/usePayStore'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { SignupStep, useSignupStore } from '~/lib/useSignupStore'
-import type { loader as rootLoader } from '~/root'
+import type { RootLoaderData, loader as rootLoader } from '~/root'
 import { Fade } from '../Animations/Fade'
 import { NavDrawer } from './NavDrawer'
 
@@ -83,7 +82,7 @@ export type ScaffoldProps = {
   }
   footer?: (
     match: UIMatch<any, ApplicationProps>
-  ) => SerializeFrom<FooterRecord> | null | undefined
+  ) => FooterRecord | null | undefined
   fab?: Fab
   isNested?: boolean
 }
@@ -101,10 +100,7 @@ export function Scaffold() {
   const matches = useMatches()
   const navigate = useNavigate()
   const [search] = useSearchParams()
-  const { isUser, snackbar, features, showQuickPay } = useRouteLoaderData(
-    'root'
-  ) as SerializeFrom<typeof rootLoader>
-  console.log({ showQuickPay })
+  const { isUser, snackbar, features, showQuickPay } = useRouteLoaderData('root') as RootLoaderData
 
   const currentPath = matches[matches.length - 1]?.pathname
 
@@ -197,7 +193,7 @@ export function Scaffold() {
         <NavDrawerRoot>
           <NavDrawer.List>
             <div className='ml-4'>
-              <Router to={route('/')} aria-label='Interledger Wallet logo'>
+              <Router to={href('/')} aria-label='Interledger Wallet logo'>
                 <InterledgerWalletLogo className='h-8' />
               </Router>
             </div>
@@ -210,26 +206,26 @@ export function Scaffold() {
                 <span className='font-medium'>Pay</span>
               </button>
             )}
-            <NavDrawer.ListItem to={route('/')}>Home</NavDrawer.ListItem>
+            <NavDrawer.ListItem to={href('/')}>Home</NavDrawer.ListItem>
             {showQuickPay &&
-              <NavDrawer.ListItem to={route('/quick-pay')}>
+              <NavDrawer.ListItem to={href('/quick-pay')}>
                 Quick Pay
               </NavDrawer.ListItem>}
-            <NavDrawer.ListItem to={route('/accounts')}>
+            <NavDrawer.ListItem to={href('/accounts')}>
               Accounts
             </NavDrawer.ListItem>
             {features.manageWalletCardsEnabled && (
-              <NavDrawer.ListItem to={route('/cards')}>
+              <NavDrawer.ListItem to={href('/cards')}>
                 Cards
               </NavDrawer.ListItem>
             )}
-            <NavDrawer.ListItem to={route('/payments')}>
+            <NavDrawer.ListItem to={href('/payments')}>
               Payments
             </NavDrawer.ListItem>
-            <NavDrawer.ListItem to={route('/settings')}>
+            <NavDrawer.ListItem to={href('/settings')}>
               Settings
             </NavDrawer.ListItem>
-            <NavDrawer.ListItem to={route('/support')}>
+            <NavDrawer.ListItem to={href('/support')}>
               Support
             </NavDrawer.ListItem>
           </NavDrawer.List>
@@ -259,7 +255,7 @@ export function Scaffold() {
               </IconButton>
             </div>
             <div className='ml-4 lg:ml-0'>
-              <Router to={route('/')} aria-label='Interledger Wallet logo'>
+              <Router to={href('/')} aria-label='Interledger Wallet logo'>
                 <InterledgerWalletLogo className='h-8' />
               </Router>
             </div>
@@ -267,26 +263,26 @@ export function Scaffold() {
               {/*<HeaderLink to='/about' title='About' />*/}
               {/*<HeaderLink to='/wallet' title='Wallet' />*/}
               {/*<HeaderPopover />*/}
-              {/*<HeaderLink to={route('/docs')} title='Docs' />*/}
-              {/*<HeaderLink to={route('/blog')} title='Blog' />*/}
+              {/*<HeaderLink to={href('/docs')} title='Docs' />*/}
+              {/*<HeaderLink to={href('/blog')} title='Blog' />*/}
               {showQuickPay &&
-                <HeaderLink to={route('/quick-pay')} title='Quick Pay' />}
-              <HeaderLink to={route('/contact')} title='Contact' />
+                <HeaderLink to={href('/quick-pay')} title='Quick Pay' />}
+              <HeaderLink to={href('/contact')} title='Contact' />
             </div>
             <div className='ml-auto hidden items-center lg:flex'>
               {!isUser && (
                 <div className='flex space-x-10 pb-2 pt-3'>
-                  <Router to={route('/login')}>
+                  <Router to={href('/login')}>
                     <span className='text-sm font-medium'>Log in</span>
                   </Router>
-                  <Router to={route('/signup')}>
+                  <Router to={href('/signup')}>
                     <span className='text-sm font-medium'>Sign up</span>
                   </Router>
                 </div>
               )}
               {isUser && (
                 <div className='flex items-center '>
-                  <ButtonRouter to={route('/')}>
+                  <ButtonRouter to={href('/')}>
                     <span className='text-sm font-medium'>Go to app</span>
                   </ButtonRouter>
                 </div>
@@ -343,7 +339,7 @@ export function Scaffold() {
                     } else connectDomainStepBack()
                   } else if (scaffold.header.back === 'cards') {
                     if (addCardStep === OrderCardStep.CARD_TYPE) {
-                      navigate(route('/cards'))
+                      navigate(href('/cards'))
                     } else if (
                       addCardStep === OrderCardStep.CONFIRMATION &&
                       cardType &&
@@ -382,7 +378,7 @@ export function Scaffold() {
                 !title && layout !== Layouts.Focus && 'lg:hidden',
                 title && 'hidden'
               )}
-              to={route('/')}
+              to={href('/')}
               aria-label='Interledger Wallet logo'
             >
               <InterledgerWalletLogo className='h-8' />
@@ -540,30 +536,32 @@ export function Scaffold() {
                   >
                     menu_open
                   </IconButton>
-                  <Router to={route('/')} aria-label='Interledger Wallet logo'>
+                  <Router to={href('/')} aria-label='Interledger Wallet logo'>
                     <InterledgerWalletLogo className='h-8' />
                   </Router>
                 </div>
-                <NavDrawer.ListItem to={route('/')}>Home</NavDrawer.ListItem>
-                {showQuickPay &&
-                  <NavDrawer.ListItem to={route('/quick-pay')}>
+                <NavDrawer.ListItem to={href('/')}>Home</NavDrawer.ListItem>
+                {
+                  showQuickPay &&
+                  <NavDrawer.ListItem to={href('/quick-pay')}>
                     Quick Pay
-                  </NavDrawer.ListItem>}
-                <NavDrawer.ListItem to={route('/accounts')}>
+                  </NavDrawer.ListItem>
+                }
+                <NavDrawer.ListItem to={href('/accounts')}>
                   Accounts
                 </NavDrawer.ListItem>
                 {features.manageWalletCardsEnabled && (
-                  <NavDrawer.ListItem to={route('/cards')}>
+                  <NavDrawer.ListItem to={href('/cards')}>
                     Cards
                   </NavDrawer.ListItem>
                 )}
-                <NavDrawer.ListItem to={route('/payments')}>
+                <NavDrawer.ListItem to={href('/payments')}>
                   Payments
                 </NavDrawer.ListItem>
-                <NavDrawer.ListItem to={route('/settings')}>
+                <NavDrawer.ListItem to={href('/settings')}>
                   Settings
                 </NavDrawer.ListItem>
-                <NavDrawer.ListItem to={route('/support')}>
+                <NavDrawer.ListItem to={href('/support')}>
                   Support
                 </NavDrawer.ListItem>
               </NavDrawer.List>
@@ -576,91 +574,98 @@ export function Scaffold() {
                 </Router>
               </footer>
             </>
-          )}
+          )
+          }
 
-          {layout === Layouts.Docs && (
-            <>
-              <NavDrawer.List>
-                {!isUser && (
-                  <div className='flex flex-col space-y-2'>
-                    <Router
-                      className='flex h-11 w-full items-center justify-center'
-                      to={route('/login')}
+          {
+            layout === Layouts.Docs && (
+              <>
+                <NavDrawer.List>
+                  {!isUser && (
+                    <div className='flex flex-col space-y-2'>
+                      <Router
+                        className='flex h-11 w-full items-center justify-center'
+                        to={href('/login')}
+                      >
+                        <span className='font-medium text-medium'>Log in</span>
+                      </Router>
+                      <ButtonRouter className='h-11' to={href('/signup')}>
+                        Sign up
+                      </ButtonRouter>
+                    </div>
+                  )}
+                  {isUser && (
+                    <div className='flex flex-col space-y-2'>
+                      <ButtonRouter className='h-11' to={href('/')}>
+                        Go to app
+                      </ButtonRouter>
+                    </div>
+                  )}
+                </NavDrawer.List>
+              </>
+            )
+          }
+          {
+            layout === Layouts.Marketing && (
+              <>
+                <NavDrawer.List>
+                  <div className='relative mb-8 ml-1 flex items-center space-x-4'>
+                    <IconButton
+                      onClick={() => setOpenNavModal(!openNavModal)}
+                      aria-label='Close menu'
                     >
-                      <span className='font-medium text-medium'>Log in</span>
-                    </Router>
-                    <ButtonRouter className='h-11' to={route('/signup')}>
-                      Sign up
-                    </ButtonRouter>
+                      menu_open
+                    </IconButton>
+                    <div className='ml-4 lg:ml-0'>
+                      <Router to={href('/')} aria-label='Interledger App logo'>
+                        <InterledgerWalletLogo className='h-8' />
+                      </Router>
+                    </div>
                   </div>
-                )}
-                {isUser && (
-                  <div className='flex flex-col space-y-2'>
-                    <ButtonRouter className='h-11' to={route('/')}>
-                      Go to app
-                    </ButtonRouter>
-                  </div>
-                )}
-              </NavDrawer.List>
-            </>
-          )}
-          {layout === Layouts.Marketing && (
-            <>
-              <NavDrawer.List>
-                <div className='relative mb-8 ml-1 flex items-center space-x-4'>
-                  <IconButton
-                    onClick={() => setOpenNavModal(!openNavModal)}
-                    aria-label='Close menu'
-                  >
-                    menu_open
-                  </IconButton>
-                  <div className='ml-4 lg:ml-0'>
-                    <Router to={route('/')} aria-label='Interledger App logo'>
-                      <InterledgerWalletLogo className='h-8' />
-                    </Router>
-                  </div>
-                </div>
-                <NavDrawer.ListItem to={route('/')}>Home</NavDrawer.ListItem>
-                {/*<NavDrawer.ListItem to='/about'>About</NavDrawer.ListItem>*/}
-                {/* <NavDrawer.ListItem to='/wallet'>Wallet</NavDrawer.ListItem> */}
-                {/* <NavDrawer.ListItem to='/wealth'>Wealth</NavDrawer.ListItem> */}
-                {/*<NavDrawer.ListItem to={route('/docs')}>*/}
-                {/*  Docs*/}
-                {/*</NavDrawer.ListItem>*/}
-                {showQuickPay &&
-                  <NavDrawer.ListItem to={route('/quick-pay')}>
-                    Quick Pay
-                  </NavDrawer.ListItem>}
-                <NavDrawer.ListItem to={route('/contact')}>
-                  Contact
-                </NavDrawer.ListItem>
-              </NavDrawer.List>
-              <NavDrawer.List>
-                {!isUser && (
-                  <div className='flex flex-col space-y-2'>
-                    <Router
-                      className='flex h-11 w-full items-center justify-center'
-                      to={route('/login')}
-                    >
-                      <span className='font-medium text-medium'>Log in</span>
-                    </Router>
-                    <ButtonRouter className='h-11' to={route('/signup')}>
-                      Sign up
-                    </ButtonRouter>
-                  </div>
-                )}
-                {isUser && (
-                  <div className='flex flex-col space-y-2'>
-                    <ButtonRouter className='h-11' to={route('/')}>
-                      Go to app
-                    </ButtonRouter>
-                  </div>
-                )}
-              </NavDrawer.List>
-            </>
-          )}
-        </NavDrawer>
-      </NavDrawer.Modal>
+                  <NavDrawer.ListItem to={href('/')}>Home</NavDrawer.ListItem>
+                  {/*<NavDrawer.ListItem to='/about'>About</NavDrawer.ListItem>*/}
+                  {/* <NavDrawer.ListItem to='/wallet'>Wallet</NavDrawer.ListItem> */}
+                  {/* <NavDrawer.ListItem to='/wealth'>Wealth</NavDrawer.ListItem> */}
+                  {/*<NavDrawer.ListItem to={href('/docs')}>*/}
+                  {/*  Docs*/}
+                  {/*</NavDrawer.ListItem>*/}
+                  {
+                    showQuickPay &&
+                    <NavDrawer.ListItem to={href('/quick-pay')}>
+                      Quick Pay
+                    </NavDrawer.ListItem>
+                  }
+                  <NavDrawer.ListItem to={href('/contact')}>
+                    Contact
+                  </NavDrawer.ListItem>
+                </NavDrawer.List>
+                <NavDrawer.List>
+                  {!isUser && (
+                    <div className='flex flex-col space-y-2'>
+                      <Router
+                        className='flex h-11 w-full items-center justify-center'
+                        to={href('/login')}
+                      >
+                        <span className='font-medium text-medium'>Log in</span>
+                      </Router>
+                      <ButtonRouter className='h-11' to={href('/signup')}>
+                        Sign up
+                      </ButtonRouter>
+                    </div>
+                  )}
+                  {isUser && (
+                    <div className='flex flex-col space-y-2'>
+                      <ButtonRouter className='h-11' to={href('/')}>
+                        Go to app
+                      </ButtonRouter>
+                    </div>
+                  )}
+                </NavDrawer.List>
+              </>
+            )
+          }
+        </NavDrawer >
+      </NavDrawer.Modal >
       <div
         className={clsx(
           'fixed bottom-4 left-0 z-50 mx-auto flex w-full flex-col items-end justify-center gap-y-4 overflow-y-visible px-4 text-center lg:bottom-auto lg:top-4 lg:items-center',
@@ -682,7 +687,7 @@ export function Scaffold() {
           </CommandPalette>
         )}
       </div>
-    </div>
+    </div >
   )
 }
 

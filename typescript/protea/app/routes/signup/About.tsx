@@ -1,6 +1,6 @@
-import { useFetcher, useLoaderData } from '@remix-run/react'
+import { useFetcher, useLoaderData } from 'react-router';
 import { useEffect, useState } from 'react'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import {
   Autocomplete,
   Button,
@@ -11,7 +11,8 @@ import {
   TextField
 } from '~/components'
 import { SignupStep, useSignupStore } from '~/lib/useSignupStore'
-import type { detailsAction, loader } from './route'
+import type { action, loader } from './route'
+import { detailsAction } from './route.server';
 
 export function isEUCountry(countryCode: string) {
   const euCountryCodes = [
@@ -79,16 +80,13 @@ export function About() {
     else {
       setFilteredCountries(
         countries.filter((country) => {
-          return (
-            country.name
-              .toLowerCase()
-              .replace(/\s+/g, '')
-              .includes(query.toLowerCase().replace(/\s+/g, '')) ||
-            country.id
-              .toLowerCase()
-              .replace(/\s+/g, '')
-              .includes(query.toLowerCase().replace(/\s+/g, ''))
-          )
+          return (country.name
+            .toLowerCase()
+            .replace(/\s+/g, '')
+            .includes(query.toLowerCase().replace(/\s+/g, '')) || country.id
+            .toLowerCase()
+            .replace(/\s+/g, '')
+            .includes(query.toLowerCase().replace(/\s+/g, '')));
         })
       )
     }
@@ -110,7 +108,7 @@ export function About() {
     <>
       <details.Form
         id='signup-about-details'
-        action={route('/signup')}
+        action={href('/signup')}
         method='post'
         className='hidden'
       />

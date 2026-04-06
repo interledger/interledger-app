@@ -1,20 +1,7 @@
-import { Code } from '@bufbuild/connect'
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  SerializeFrom
-} from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
-import {
-  Form,
-  useActionData,
-  useLoaderData,
-  useRouteLoaderData,
-  useSearchParams
-} from '@remix-run/react'
+import { Form, useActionData, useLoaderData, useRouteLoaderData, useSearchParams } from 'react-router';
 import type { ChangeEventHandler } from 'react'
 import { useCallback, useEffect, useState } from 'react'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import {
   Alert,
   AlertBody,
@@ -32,79 +19,12 @@ import {
   TextField
 } from '~/components'
 import type { FormattedLinkedAccount } from '~/data/accounts.server'
-import {
-  getBalancesForTransfer,
-  getLinkedAccountsForDeposit
-} from '~/data/accounts.server'
-import type {
-  Balance,
-  XagoDepositDetails
-} from '~/generated/connect/backend/v1/backend_pb'
-import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
-import { isConnectError } from '~/lib/error.server'
-import { grpc } from '~/lib/grpc.server'
-import { redirectWithSnackbar } from '~/lib/snackbar.server'
+
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
-import type { loader as rootLoader } from '~/root'
 import { PaySelect } from '../pay_.$paymentId/PaySelect'
+import { RootLoaderData } from '~/root';
+import { fynbosDepositLoader } from './loader.server';
 
-export async function fynbosDepositLoader({ request }: LoaderFunctionArgs) {
-  const providerResponse = await grpc.getOnOffRampProvider(request, {})
-  if (isConnectError(providerResponse)) throw providerResponse.error
-  const url = new URL(request.url)
-  let balanceAccount: Balance | undefined
-  let balance: FormattedLinkedAccount | undefined
-  let depositDetails: XagoDepositDetails | undefined
-
-  const balanceResponse = await grpc.getBalances(request, {})
-  if (isConnectError(balanceResponse)) throw balanceResponse.error
-
-  const balances = await getBalancesForTransfer(request)
-
-  const linkedAccount = url.searchParams.get('linkedAccount')
-
-  if (linkedAccount) {
-    balanceAccount = balanceResponse.balances.find(
-      (acc) => acc.linkedAccount == linkedAccount
-    )
-  } else {
-    balanceAccount = balanceResponse.balances[0]
-  }
-  balance = balances.find((acc) => acc.id == balanceAccount?.linkedAccount)
-  if (
-    !balanceAccount ||
-    typeof balanceAccount == 'undefined' ||
-    !balance ||
-    typeof balance == 'undefined'
-  )
-    throw json({}, { status: 404 })
-
-  const linkedAccounts = await getLinkedAccountsForDeposit(
-    request,
-    balanceAccount.linkedAccount
-  )
-
-  if (linkedAccounts.length == 0 && balanceAccount.countryCode == 'ZA') {
-    let details = await grpc.getXagoDepositDetails(request, {
-      linkedAccount: balanceAccount.linkedAccount
-    })
-    if (isConnectError(details)) throw details.errorResponse
-
-    let ret = details.details.filter(
-      (d) => d.currency == balanceAccount?.currency
-    )
-    depositDetails = ret[0]
-  }
-
-  return jsonWithCSRF(request, {
-    provider: providerResponse.provider,
-    balanceAccount,
-    balance,
-    balances,
-    linkedAccounts,
-    depositDetails
-  })
-}
 
 export function FynbosDepositPage() {
   const { depositDetails } = useLoaderData<typeof fynbosDepositLoader>()
@@ -127,7 +47,7 @@ const Amount = () => {
   const { balance, balances, balanceAccount, linkedAccounts, csrfToken, provider } =
     useLoaderData<typeof fynbosDepositLoader>()
   const [, setSearchParams] = useSearchParams()
-  const actionData = useActionData<typeof fynbosDepositAction>()
+  const actionData = useActionData<any>()
 
   const [amount, setAmount] = useState<string>('')
 
@@ -170,7 +90,7 @@ const Amount = () => {
               <Router
                 prefetch='render'
                 className='text-sm font-medium text-primary'
-                to={route('/accounts')}
+                to={href('/accounts')}
               >
                 Go to accounts page
               </Router>
@@ -184,7 +104,7 @@ const Amount = () => {
     <>
       <Form
         id='account-deposit'
-        action={route('/deposit')}
+        action={href('/deposit')}
         method='post'
         className='hidden'
       />
@@ -283,7 +203,7 @@ const Amount = () => {
 export function DepositDetails() {
   const { depositDetails, csrfToken } =
     useLoaderData<typeof fynbosDepositLoader>()
-  const { env } = useRouteLoaderData('root') as SerializeFrom<typeof rootLoader>
+  const { env } = useRouteLoaderData('root') as RootLoaderData
 
   return (
     <>
@@ -316,7 +236,7 @@ export function DepositDetails() {
       {env.fynbosEnv !== 'prod' ? (
         <Form
           id='xago-test-account-deposit'
-          action={route('/deposit')}
+          action={href('/deposit')}
           method='post'
         >
           <input
@@ -352,91 +272,3 @@ export function stringToBigInt(amount: string) {
   return BigInt(parseFloat(amount) * 100)
 }
 
-export async function fynbosDepositAction({ request }: ActionFunctionArgs) {
-  const form = await request.formData()
-  const depositAmount = String(form.get('depositAmount') || '')
-  const toLinkedAccount = form.get('toLinkedAccount') as string
-  const fromLinkedAccount = form.get('fromLinkedAccount') as string
-  const provider = form.get('provider') as string
-  const note = form.get('note') as string
-
-  await validateCSRFToken(request, form)
-
-  // TODO This needs a mapping
-  const errors = {
-    form: '',
-    depositAmount: '',
-    toLinkedAccount: '',
-    note: ''
-  }
-
-  const cc = provider === 'pit' ? 'USD' : 'ZAR'
-  const depositResponse = await grpc.depositBalance(request, {
-    fromLinkedAccount: fromLinkedAccount,
-    toLinkedAccount: toLinkedAccount,
-    amount: {
-      amount: stringToBigInt(depositAmount),
-      asset: cc,
-      assetScale: 2
-    },
-    note
-  })
-  if (isConnectError(depositResponse)) {
-    if (depositResponse.code == Code.InvalidArgument) {
-      return depositResponse.error({
-        errors: {
-          ...errors,
-          depositAmount: depositResponse?.fieldViolations?.find((v: { field: string }) => v.field === 'amount')?.description ?? ''
-        }
-      })
-    }
-    if (
-      depositResponse.code == Code.FailedPrecondition &&
-      depositResponse.violations.findIndex(
-        (violation) =>
-          violation.type === 'Payment' &&
-          violation.subject === 'insufficientFunds'
-      ) > -1
-    ) {
-      return depositResponse.error({
-        errors: {
-          ...errors,
-          depositAmount: 'You have insufficient funds available.'
-        }
-      })
-    }
-    errors.form = 'Failed to create deposital.'
-    return depositResponse.error(
-      { errors },
-      {},
-      {
-        action: 'Contact support'
-      }
-    )
-  }
-
-  return redirect(
-    route('/deposit/:paymentId', {
-      paymentId: depositResponse.id
-    })
-  )
-}
-
-export async function xagoTestAccountDepositAction({
-  request
-}: ActionFunctionArgs) {
-  const form = await request.formData()
-
-  await validateCSRFToken(request, form)
-
-  const response = await grpc.depositTestXago(request, {})
-
-  if (isConnectError(response)) {
-    return response.errorResponse
-  }
-
-  return redirectWithSnackbar(request, route('/'), {
-    message: 'Test deposit added successfully.',
-    icon: 'close'
-  })
-}

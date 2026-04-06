@@ -1,7 +1,7 @@
-import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
-import { json } from '@remix-run/node'
-import { Outlet, useLoaderData, useLocation } from '@remix-run/react'
-import { route } from 'routes-gen'
+import type { Route } from './+types/accounts'
+import { data } from 'react-router';
+import { Outlet, useLoaderData, useLocation } from 'react-router';
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   Card,
@@ -24,10 +24,10 @@ import { getFeatures, getKycStatus } from '~/data/wallet.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
-import { KycStatus } from '~/routes/_index/route'
-import styles from '~/styles/flags.css'
+import { KycStatus } from '~/lib/types'
+import styles from '~/styles/flags.css?url'
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const { bankAccounts, cardAccounts, interacAccounts } =
     await getLinkedAccounts(request)
   const kycStatus = await getKycStatus(request)
@@ -37,7 +37,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   const features = await getFeatures(request)
 
-  return json({
+  return data({
     kycStatus: kycStatus.kycStatus,
     features,
     bankAccounts,
@@ -62,7 +62,7 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Accounts'
   }
@@ -113,7 +113,7 @@ export default function Page() {
                   <Router
                     prefetch='render'
                     className='text-sm font-medium text-primary'
-                    to={route('/personal-details')}
+                    to={href('/personal-details')}
                   >
                     Activate wallet
                   </Router>
@@ -130,7 +130,7 @@ export default function Page() {
             {cardAccounts.map((method) => (
               <CardLink
                 key={method.id}
-                to={route('/accounts/:accountId', {
+                to={href('/accounts/:accountId', {
                   accountId: method.id
                 })}
                 className='items-center justify-between'
@@ -147,7 +147,7 @@ export default function Page() {
             <CardContent>
               <Router
                 className='mt-4 text-sm font-medium text-primary'
-                to={route('/connect/card')}
+                to={href('/connect/card')}
               >
                 Connect another card
               </Router>
@@ -169,7 +169,7 @@ export default function Page() {
                     </p>
                     <Router
                       className='text-sm font-medium text-primary'
-                      to={route('/connect/card')}
+                      to={href('/connect/card')}
                     >
                       Connect a card
                     </Router>
@@ -186,7 +186,7 @@ export default function Page() {
             {bankAccounts.map((method) => (
               <CardLink
                 key={method.id}
-                to={route('/accounts/:accountId', {
+                to={href('/accounts/:accountId', {
                   accountId: method.id
                 })}
                 className='items-center justify-between'
@@ -203,7 +203,7 @@ export default function Page() {
             {/*<CardContent>*/}
             {/*  <Router*/}
             {/*    className='mt-4 text-sm font-medium text-primary'*/}
-            {/*    to={route('/connect/bank')}*/}
+            {/*    to={href('/connect/bank')}*/}
             {/*  >*/}
             {/*    Connect another bank account*/}
             {/*  </Router>*/}
@@ -218,7 +218,7 @@ export default function Page() {
             {interacAccounts.map((method) => (
               <CardLink
                 key={method.id}
-                to={route('/accounts/:accountId', {
+                to={href('/accounts/:accountId', {
                   accountId: method.id
                 })}
                 className='items-center justify-between'
@@ -247,7 +247,7 @@ export default function Page() {
                   </p>
                   <Router
                     className='text-sm font-medium text-primary'
-                    to={route('/connect/bank/za')}
+                    to={href('/connect/bank/za')}
                   >
                     Connect a bank account
                   </Router>

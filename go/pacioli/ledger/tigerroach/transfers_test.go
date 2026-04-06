@@ -286,17 +286,17 @@ func TestCreateTransfers(t *testing.T) {
 				da, err := tigerroach.GetAccount(ctx, b, args.DebitAccountID)
 				assert.NoError(t, err)
 				if args.Pending {
-					assert.Equal(t, args.Amount, da.DebitsPending)
+					assert.Equal(t, args.Amount, int64(da.DebitsPending))
 				} else {
-					assert.Equal(t, args.Amount, da.DebitsPosted)
+					assert.Equal(t, args.Amount, int64(da.DebitsPosted))
 				}
 
 				ca, err := tigerroach.GetAccount(ctx, b, args.CreditAccountID)
 				assert.NoError(t, err)
 				if args.Pending {
-					assert.Equal(t, args.Amount, ca.CreditsPending)
+					assert.Equal(t, args.Amount, int64(ca.CreditsPending))
 				} else {
-					assert.Equal(t, args.Amount, ca.CreditsPosted)
+					assert.Equal(t, args.Amount, int64(ca.CreditsPosted))
 				}
 			}
 		})
@@ -438,12 +438,12 @@ func TestPostTransfers(t *testing.T) {
 				da, err := tigerroach.GetAccount(ctx, b, args.DebitAccountID)
 				assert.NoError(t, err)
 				assert.Zero(t, da.DebitsPending)
-				assert.Equal(t, args.Amount, da.DebitsPosted)
+				assert.Equal(t, args.Amount, int64(da.DebitsPosted))
 
 				ca, err := tigerroach.GetAccount(ctx, b, args.CreditAccountID)
 				assert.NoError(t, err)
 				assert.Zero(t, ca.CreditsPending)
-				assert.Equal(t, args.Amount, ca.CreditsPosted)
+				assert.Equal(t, args.Amount, int64(ca.CreditsPosted))
 			}
 		})
 	}
