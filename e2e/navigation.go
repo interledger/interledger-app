@@ -112,9 +112,12 @@ func (sc *E2EContext) iNavigateToTheSignupPage() error {
 	}
 
 	// Ensure page is fully loaded by waiting for network
-	sc.page.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
-		State: playwright.LoadStateNetworkidle,
-	})
+	if err = sc.page.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
+		State:   playwright.LoadStateNetworkidle,
+		Timeout: playwright.Float(15000),
+	}); err != nil {
+		return fmt.Errorf("signup page did not reach network idle: %w", err)
+	}
 
 	return nil
 }
