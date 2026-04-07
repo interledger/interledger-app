@@ -9,6 +9,7 @@ import { getCookie, withCookie, buildHeadersWithCookies } from '~/lib/kratos/coo
 import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.server'
 import { handleFlowError, mapFlowToFieldErrors } from '~/lib/kratos/error.server'
 import { getUserSession, getSessionTraits } from '~/lib/kratos/session.server'
+import logger from '~/lib/logger.server'
 import { mergeMeta } from '~/lib/meta'
 
 // 4000001 represents the Kratos message ID when a user already has a privileged session
@@ -44,7 +45,8 @@ export async function loader({ request }: Route.LoaderArgs) {
       })
     } catch (err: any) {
       handleFlowError(err, 'login/challenge')
-      throw err
+      logger.error({ error: err, route: 'login.challenge' }, 'Failed to load login challenge flow')
+      throw new Error('Failed to load login challenge flow')
     }
   }
 
@@ -59,7 +61,8 @@ export async function loader({ request }: Route.LoaderArgs) {
     })
   } catch (err: any) {
     handleFlowError(err, 'login/challenge')
-    throw err
+    logger.error({ error: err, route: 'login.challenge' }, 'Failed to initialize login challenge flow')
+    throw new Error('Failed to initialize login challenge flow')
   }
 }
 

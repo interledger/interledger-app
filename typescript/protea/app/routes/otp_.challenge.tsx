@@ -13,6 +13,7 @@ import {
   TextField
 } from '~/components'
 import { Label } from '~/components/Label'
+import logger from '~/lib/logger.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { ErrorDescriptions } from '~/lib/error.constants'
 import type { TwillioError } from '~/lib/error.mappers';
@@ -175,6 +176,7 @@ export async function action({ request }: Route.ActionArgs) {
     })
   } catch (err: any) {
     handleFlowError(err, 'otp/challenge')
-    throw err
+    logger.error({ error: err, route: 'otp.challenge' }, 'Failed to initialize OTP challenge flow')
+    throw new Error('Failed to initialize OTP challenge flow')
   }
 }

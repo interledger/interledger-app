@@ -30,6 +30,7 @@ import { mapFlowToFieldErrors, handleFlowError } from '~/lib/kratos/error.server
 import { flashSnackbar } from '~/lib/snackbar.server'
 import { type KratosError } from '~/lib/kratos/types.server'
 import { requireNoUserSession } from '~/lib/kratos/session.server'
+import logger from '~/lib/logger.server'
 import { mergeMeta } from '~/lib/meta'
 import { safeReturnTo } from '~/lib/url.server'
 
@@ -74,7 +75,8 @@ export async function loader({ request }: Route.LoaderArgs) {
     )
   } catch (error) {
     handleFlowError(error, 'login')
-    throw error
+    logger.error({ error, route: 'login' }, 'Failed to load login flow')
+    throw new Error('Failed to load login flow')
   }
 }
 
@@ -248,6 +250,7 @@ export async function action({ request }: Route.ActionArgs) {
       )
     }
 
-    throw err
+    logger.error({ error: err, route: 'login' }, 'Failed to submit login')
+    throw new Error('Failed to submit login')
   }
 }

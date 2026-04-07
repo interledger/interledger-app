@@ -8,6 +8,7 @@ import { kratosPublic } from '~/lib/kratos/kratos-client.server'
 import { getCookie, withCookie, buildHeadersWithCookies } from '~/lib/kratos/cookie.server'
 import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.server'
 import { handleFlowError, mapFlowToFieldErrors } from '~/lib/kratos/error.server'
+import logger from '~/lib/logger.server'
 import { requireNoUserSession } from '~/lib/kratos/session.server'
 import { mergeMeta } from '~/lib/meta'
 import { RateLimitKeys, getKey, rateLimit } from '~/lib/rateLimit.server'
@@ -35,7 +36,8 @@ export async function loader({ request }: Route.LoaderArgs) {
       const errResponse = (err as KratosError).response
       if (errResponse.status != 410) {
         handleFlowError(err, 'recovery')
-        throw err
+        logger.error({ error: err, route: 'recovery' }, 'Failed to load recovery flow')
+        throw new Error('Failed to load recovery flow')
       }
       // 410 - generate a new flow
     }
@@ -52,7 +54,8 @@ export async function loader({ request }: Route.LoaderArgs) {
     })
   } catch (err: any) {
     handleFlowError(err, 'recovery')
-    throw err
+    logger.error({ error: err, route: 'recovery' }, 'Failed to initialize recovery flow')
+    throw new Error('Failed to initialize recovery flow')
   }
 }
 

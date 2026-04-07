@@ -23,6 +23,7 @@ import {
   TextField
 } from '~/components'
 import { Label } from '~/components/Label'
+import logger from '~/lib/logger.server'
 import { jsonWithCSRF } from '~/lib/csrf.server'
 import { error, isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
@@ -70,7 +71,8 @@ export async function loader({ request }: Route.LoaderArgs) {
     flow = data
   } catch (err: any) {
     handleFlowError(err, 'settings/phone')
-    throw err
+    logger.error({ error: err, route: 'settings.phone' }, 'Failed to load phone settings flow')
+    throw new Error('Failed to load phone settings flow')
   }
 
   let response = await grpc.getCountries(request, {})
@@ -279,6 +281,7 @@ export async function action({ request }: Route.ActionArgs) {
       return error(request, { errors: errs })
     }
     handleFlowError(err, 'settings/phone')
-    throw err
+    logger.error({ error: err, route: 'settings.phone' }, 'Failed to update phone settings')
+    throw new Error('Failed to update phone settings')
   }
 }

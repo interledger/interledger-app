@@ -7,6 +7,7 @@ import {
   useRevalidator
 } from 'react-router'
 import { useEffect, useState } from 'react'
+import logger from '~/lib/logger.server'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts, TextField } from '~/components'
 import { error } from '~/lib/error.server'
@@ -53,7 +54,8 @@ export async function loader({ request }: Route.LoaderArgs) {
       return data({ flowId: flow.id, csrfToken: getCsrfTokenFromFlow(flow) })
     } catch (err: any) {
       handleFlowError(err, 'recovery/password')
-      throw err
+      logger.error({ error: err, route: 'recovery.password' }, 'Failed to load recovery password flow')
+      throw new Error('Failed to load recovery password flow')
     }
   }
 
@@ -72,7 +74,8 @@ export async function loader({ request }: Route.LoaderArgs) {
       return redirect('/totp/challenge?returnTo=/recovery/password')
     }
     handleFlowError(err, 'recovery/password')
-    throw err
+    logger.error({ error: err, route: 'recovery.password' }, 'Failed to initialize recovery password flow')
+    throw new Error('Failed to initialize recovery password flow')
   }
 }
 
@@ -203,6 +206,7 @@ export async function action({ request }: Route.ActionArgs) {
       return error(request, { errors: errs })
     }
     handleFlowError(err, 'recovery/password')
-    throw err
+    logger.error({ error: err, route: 'recovery.password' }, 'Failed to set recovery password')
+    throw new Error('Failed to set recovery password')
   }
 }

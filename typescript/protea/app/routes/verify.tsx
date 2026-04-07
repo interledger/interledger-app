@@ -13,6 +13,7 @@ import { kratosPublic } from '~/lib/kratos/kratos-client.server'
 import { getCookie, withCookie, buildHeadersWithCookies } from '~/lib/kratos/cookie.server'
 import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.server'
 import { handleFlowError } from '~/lib/kratos/error.server'
+import logger from '~/lib/logger.server'
 import { getUserSession } from '~/lib/kratos/session.server'
 import { mergeMeta } from '~/lib/meta'
 import { safeReturnTo } from '~/lib/url.server'
@@ -55,7 +56,8 @@ export async function loader({ request }: Route.LoaderArgs) {
       })
     } catch (err: any) {
       handleFlowError(err, 'verify')
-      throw err
+      logger.error({ error: err, route: 'verify' }, 'Failed to load verification flow')
+      throw new Error('Failed to load verification flow')
     }
   }
 
@@ -70,7 +72,8 @@ export async function loader({ request }: Route.LoaderArgs) {
     })
   } catch (err: any) {
     handleFlowError(err, 'verify')
-    throw err
+    logger.error({ error: err, route: 'verify' }, 'Failed to initialize verification flow')
+    throw new Error('Failed to initialize verification flow')
   }
 }
 

@@ -36,7 +36,8 @@ export async function loader({ request }: Route.LoaderArgs) {
     )
   } catch (err: any) {
     handleFlowError(err, 'signup')
-    throw err
+    logger.error({ error: err, route: 'signup' }, 'Failed to initialize signup flow')
+    throw new Error('Failed to initialize signup flow')
   }
 
   return jsonWithCSRF(
