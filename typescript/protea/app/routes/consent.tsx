@@ -11,7 +11,7 @@ import {
   TextButton
 } from '~/components'
 import { getWalletInfo } from '~/data/wallet.server'
-import { getUserSession } from '~/lib/kratos.server'
+import { getUserSession } from '~/lib/kratos/session.server'
 import { mergeMeta } from '~/lib/meta'
 import type { Amount } from '~/lib/rafikiauth.server'
 import { consent, getInteraction } from '~/lib/rafikiauth.server'

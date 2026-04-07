@@ -15,7 +15,7 @@ import styles from '~/styles/flags.css?url'
 import { ChimoneyDepositPage } from './chimoney'
 import { FynbosDepositPage } from './fynbos'
 import { GatehubDepositPage } from './gatehub'
-import { KRATOS_URL } from '~/lib/kratos.server'
+import { KRATOS_URL } from '~/lib/kratos/kratos-client.server'
 import { getKycStatus } from '~/data/wallet.server'
 import { KycStatus } from '~/lib/types'
 import { chimoneyDepositLoader, fynbosDepositLoader, gatehubDepositLoader } from './loader.server';
