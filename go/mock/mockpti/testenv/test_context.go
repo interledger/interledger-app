@@ -27,6 +27,9 @@ type TestContext struct {
 	lastWalletID             string
 	lastPaymentInformationID string
 	lastTransactionRequestID string
+	depositRequestID         string
+	withdrawalRequestID      string
+	depositAmount            float64
 	lastUpdateID             string
 	lastWebhook              map[string]interface{}
 	lastWebhookEncrypted     bool
@@ -47,6 +50,9 @@ func (tc *TestContext) Reset() {
 	tc.lastWalletID = ""
 	tc.lastPaymentInformationID = ""
 	tc.lastTransactionRequestID = ""
+	tc.depositRequestID = ""
+	tc.withdrawalRequestID = ""
+	tc.depositAmount = 0
 	tc.lastUpdateID = ""
 	tc.lastWebhook = nil
 	tc.lastWebhookEncrypted = false

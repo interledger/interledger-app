@@ -711,10 +711,9 @@ func TestGetCardApplicationProducts(t *testing.T) {
 	h.GetCardApplicationProducts(w, req)
 
 	assert.Equal(t, http.StatusOK, w.Code)
-	var resp map[string]interface{}
+	var resp []interface{}
 	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
-	data := resp["data"].([]interface{})
-	assert.Len(t, data, 2)
+	assert.Len(t, resp, 2)
 }
 
 // --- OrderPlasticCard ---

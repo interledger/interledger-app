@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -29,13 +30,15 @@ func transactionStatus(scenarioID string) string {
 		return "ERROR"
 	case strings.Contains(upper, "CANCEL"):
 		return "CANCELED"
+	case strings.Contains(upper, "RETURN"):
+		return "RETURNED"
 	default:
 		return "SETTLED"
 	}
 }
 
 // buildTransaction creates a Transaction model from common fields.
-func (h *Handler) buildTransaction(r *http.Request, txType, userID, currency string, amount float64) *models.Transaction {
+func (h *Handler) buildTransaction(r *http.Request, txType, userID, currency, walletID string, amount float64) *models.Transaction {
 	requestID := r.Header.Get("x-pti-request-id")
 	if requestID == "" {
 		requestID = utils.GenerateUUID()
@@ -49,9 +52,31 @@ func (h *Handler) buildTransaction(r *http.Request, txType, userID, currency str
 		Currency:        currency,
 		Date:            time.Now().Format(time.RFC3339),
 		UserID:          userID,
+		WalletID:        walletID,
 		ResourceType:    "TRANSACTION_STATUS",
 		ClientID:        h.config.ClientID,
 	}
+}
+
+// adjustWalletBalance adds delta to a wallet's balance. Silently skips if IDs are empty.
+func (h *Handler) adjustWalletBalance(ctx context.Context, userID, walletID string, delta float64) {
+	if userID == "" || walletID == "" {
+		logger.Infof("adjustWalletBalance: skipping empty IDs userID=%q walletID=%q", userID, walletID)
+		return
+	}
+	wallet, err := h.store.GetWallet(ctx, userID, walletID)
+	if err != nil {
+		logger.Errorf("adjustWalletBalance: get wallet %s/%s: %v", userID, walletID, err)
+		return
+	}
+	wallet.UserID = userID // UserID is json:"-" so not stored in Redis; restore before saving
+	before := wallet.Balance
+	wallet.Balance += delta
+	if err := h.store.SaveWallet(ctx, wallet); err != nil {
+		logger.Errorf("adjustWalletBalance: save wallet %s/%s: %v", userID, walletID, err)
+		return
+	}
+	logger.Infof("adjustWalletBalance: wallet %s/%s: %.2f -> %.2f (delta=%.2f)", userID, walletID, before, wallet.Balance, delta)
 }
 
 // CreateDeposit handles POST /transactions/deposits.
@@ -67,12 +92,16 @@ func (h *Handler) CreateDeposit(w http.ResponseWriter, r *http.Request) {
 		currency = "USD"
 	}
 
-	tx := h.buildTransaction(r, "DEPOSIT", req.Initiator.ID, currency, req.Amount)
+	tx := h.buildTransaction(r, "DEPOSIT", req.Initiator.ID, currency, req.DestinationMethod.PaymentInformation.ID, req.Amount)
 
 	if err := h.store.SaveTransaction(r.Context(), tx); err != nil {
 		logger.Errorf("failed to save deposit transaction: %v", err)
 		h.sendError(w, http.StatusInternalServerError, "internal_error", "failed to create deposit")
 		return
+	}
+
+	if tx.Status == "SETTLED" {
+		h.adjustWalletBalance(r.Context(), tx.UserID, tx.WalletID, tx.Amount)
 	}
 
 	logger.Infof("Created deposit transaction requestId=%s status=%s", tx.RequestID, tx.Status)
@@ -99,12 +128,16 @@ func (h *Handler) CreateWithdrawal(w http.ResponseWriter, r *http.Request) {
 		currency = "USD"
 	}
 
-	tx := h.buildTransaction(r, "WITHDRAWAL", req.Initiator.ID, currency, req.Amount)
+	tx := h.buildTransaction(r, "WITHDRAWAL", req.Initiator.ID, currency, req.SourceMethod.PaymentInformation.ID, req.Amount)
 
 	if err := h.store.SaveTransaction(r.Context(), tx); err != nil {
 		logger.Errorf("failed to save withdrawal transaction: %v", err)
 		h.sendError(w, http.StatusInternalServerError, "internal_error", "failed to create withdrawal")
 		return
+	}
+
+	if tx.Status == "SETTLED" {
+		h.adjustWalletBalance(r.Context(), tx.UserID, tx.WalletID, -tx.Amount)
 	}
 
 	logger.Infof("Created withdrawal transaction requestId=%s status=%s", tx.RequestID, tx.Status)
@@ -126,7 +159,7 @@ func (h *Handler) CreateTransfer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tx := h.buildTransaction(r, "TRANSFER", req.Initiator.ID, "USD", req.Amount)
+	tx := h.buildTransaction(r, "TRANSFER", req.Initiator.ID, "USD", "", req.Amount)
 
 	if err := h.store.SaveTransaction(r.Context(), tx); err != nil {
 		logger.Errorf("failed to save transfer transaction: %v", err)
@@ -176,7 +209,8 @@ func (h *Handler) UpdateTransaction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Verify the transaction exists before accepting the update.
-	if _, err := h.store.GetTransaction(r.Context(), requestID); err != nil {
+	tx, err := h.store.GetTransaction(r.Context(), requestID)
+	if err != nil {
 		if errors.Is(err, storage.ErrTransactionNotFound) {
 			h.sendError(w, http.StatusNotFound, "not_found", "transaction not found")
 			return
@@ -210,6 +244,23 @@ func (h *Handler) UpdateTransaction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	logger.Infof("Saved transaction update requestId=%s updateId=%s", requestID, updateID)
+
+	if req.Feedback == "RETURNED" {
+		tx.Status = "RETURNED"
+		if err := h.store.SaveTransaction(r.Context(), tx); err != nil {
+			logger.Errorf("failed to update transaction status to RETURNED: %v", err)
+		}
+		h.enqueueWebhook(jobs.JobTypeTransactionStatusWebhook, map[string]interface{}{
+			"request_id": tx.RequestID,
+		})
+		// Reversal sign: DEPOSIT credited the wallet so reverse with debit;
+		// WITHDRAWAL debited the wallet so reverse with credit.
+		balanceDelta := -tx.Amount
+		if tx.TransactionType == "WITHDRAWAL" {
+			balanceDelta = tx.Amount
+		}
+		h.adjustWalletBalance(r.Context(), tx.UserID, tx.WalletID, balanceDelta)
+	}
 
 	h.sendJSON(w, http.StatusOK, models.IDResponse{
 		ID:   updateID,

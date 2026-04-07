@@ -4,6 +4,7 @@ go 1.25
 
 require (
 	github.com/Khan/genqlient v0.6.0
+	github.com/alicebob/miniredis/v2 v2.35.0
 	github.com/bxcodec/faker/v3 v3.6.0
 	github.com/cockroachdb/cockroach-go v2.0.1+incompatible
 	github.com/coreos/go-oidc/v3 v3.1.0
@@ -59,7 +60,6 @@ require (
 
 require (
 	dario.cat/mergo v1.0.1 // indirect
-	github.com/alicebob/miniredis/v2 v2.35.0 // indirect
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
 	github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc // indirect
 	github.com/cenkalti/backoff/v3 v3.0.0 // indirect

@@ -3,6 +3,9 @@ package main
 import (
 	"fmt"
 	"strings"
+	"time"
+
+	"github.com/playwright-community/playwright-go"
 )
 
 // thatMyFieldIs dynamically sets a field value for the current user
@@ -113,25 +116,49 @@ func (sc *E2EContext) iFinishedTheTOTPRegistrationWorkflow() error {
 func (sc *E2EContext) iFinishedTheWalletAddressCreationWorkflow() error {
 	debugPrintln("\n🔄 Running wallet address creation workflow...")
 
-	// Verify we're on wallet address creation page
+	// Verify we're on wallet address creation page.
+	// In high-concurrency runs the wallet may already be auto-provisioned, in
+	// which case we skip manual form submission and only verify reserved state.
 	if err := sc.iShouldBeRedirectedToTheWalletAddressCreationPage(); err != nil {
-		return fmt.Errorf("not on wallet address creation page: %w", err)
-	}
+		debugPrintf("   ⚠️  Wallet-address redirect not observed: %v\n", err)
+		if dbErr := sc.waitForStableWalletCount(1, 2, 5*time.Second); dbErr == nil {
+			debugPrintln("   ✓ Wallet already exists in DB; skipping manual wallet-address form")
+		} else {
+			return fmt.Errorf("not on wallet address creation page: %w", err)
+		}
+	} else {
+		// Fill and submit the wallet address form
+		if err := sc.iFillInAndSubmitTheWalletAddressFormWithAUniqueAddress(); err != nil {
+			return fmt.Errorf("failed to fill wallet address form: %w", err)
+		}
 
-	// Fill and submit the wallet address form
-	if err := sc.iFillInAndSubmitTheWalletAddressFormWithAUniqueAddress(); err != nil {
-		return fmt.Errorf("failed to fill wallet address form: %w", err)
-	}
+		// Take screenshot for debugging
+		if err := sc.iTakeAScreenshot("wallet-address-created"); err != nil {
+			debugPrintf("⚠️  Failed to take screenshot: %v\n", err)
+			// Don't fail the workflow for screenshot failure
+		}
 
-	// Take screenshot for debugging
-	if err := sc.iTakeAScreenshot("wallet-address-created"); err != nil {
-		debugPrintf("⚠️  Failed to take screenshot: %v\n", err)
-		// Don't fail the workflow for screenshot failure
-	}
+		// Click save button — retry once if a transient error (e.g. Bad Gateway) replaced the page
+		if err := sc.iClickTheButtonOnTheWalletAddressForm("save"); err != nil {
+			debugPrintf("⚠️  First save attempt failed: %v — reloading and retrying\n", err)
+			sc.iTakeAScreenshot("wallet-address-save-retry")
 
-	// Click save button
-	if err := sc.iClickTheButtonOnTheWalletAddressForm("save"); err != nil {
-		return fmt.Errorf("failed to click save button: %w", err)
+			if _, reloadErr := sc.page.Reload(playwright.PageReloadOptions{
+				Timeout: playwright.Float(15000),
+			}); reloadErr != nil {
+				return fmt.Errorf("failed to reload page after save failure: %w", reloadErr)
+			}
+			time.Sleep(2 * time.Second)
+
+			// Re-fill form on the reloaded page
+			if fillErr := sc.iFillInAndSubmitTheWalletAddressFormWithAUniqueAddress(); fillErr != nil {
+				return fmt.Errorf("failed to refill wallet address form after reload: %w", fillErr)
+			}
+
+			if retryErr := sc.iClickTheButtonOnTheWalletAddressForm("save"); retryErr != nil {
+				return fmt.Errorf("failed to click save button after retry: %w", retryErr)
+			}
+		}
 	}
 
 	// Verify we're back on dashboard with reserved status
