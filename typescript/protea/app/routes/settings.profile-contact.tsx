@@ -5,19 +5,21 @@ import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Card, CardLink, Icon, Layouts } from '~/components'
 import { Label } from '~/components/Label'
-import { getUserSession } from '~/lib/kratos.server'
+import { getUserSession, getSessionTraits } from '~/lib/kratos/session.server'
 import { mergeMeta } from '~/lib/meta'
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await getUserSession(request)
-  const len = session.identity.traits.phone.length
-  const phoneMask = session.identity.traits.phone
+  const { phone, email } = getSessionTraits(session)
+
+  const len = phone.length
+  const phoneMask = phone
     .substring(len - 4, len)
     .padStart(len, '*')
 
   return data({
     phoneMask,
-    email: session.identity.traits.email
+    email
   })
 }
 
