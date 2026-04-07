@@ -425,10 +425,10 @@ func (sc *E2EContext) getWalletDetailsForUser(kratosUserID string) (*WalletDetai
 
 	var walletID, walletName, walletAddress sql.NullString
 	err := sc.db.QueryRow(`
-		SELECT w.id, w.name, w.wallet_address 
-		FROM wallets w 
-		JOIN user_wallets uw ON w.id = uw.wallet_id 
-		WHERE uw.user_id = $1 
+		SELECT w.id, w.name, (SELECT url FROM wallet_addresses WHERE wallet_id = w.id LIMIT 1)
+		FROM wallets w
+		JOIN user_wallets uw ON w.id = uw.wallet_id
+		WHERE uw.user_id = $1
 		ORDER BY w.created_at DESC LIMIT 1
 	`, kratosUserID).Scan(&walletID, &walletName, &walletAddress)
 
