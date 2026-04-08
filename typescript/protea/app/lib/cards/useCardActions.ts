@@ -25,7 +25,7 @@ const getDefaultSensitiveData = (
 ): CardProcessorSensitiveDataResponse => {
   return {
     Pan: card.maskedPan,
-    ExpiryDate: '**/**',
+    ExpiryDate: '****',
     Cvc2: '***'
   }
 }
