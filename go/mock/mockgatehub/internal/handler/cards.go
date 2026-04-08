@@ -162,7 +162,6 @@ func (h *Handler) CreateManagedCustomer(w http.ResponseWriter, r *http.Request) 
 		PanToken:         fmt.Sprintf("pan_%s", cardID),
 		MaskedPan:        generateMaskedPan(),
 		Status:           consts.CardStatusActive,
-		ExpiryDate:       time.Now().AddDate(3, 0, 0).Format("2006-01-02"),
 		RelationType:     "PRIMARY",
 		IsFirstTimeLock:  false,
 		PlasticCreated:   false,
