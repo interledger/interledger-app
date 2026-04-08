@@ -313,10 +313,6 @@ export interface Card {
      */
     lockLevel: CardLockLevel;
     /**
-     * @generated from protobuf field: string expiryDate = 7;
-     */
-    expiryDate: string;
-    /**
      * @generated from protobuf field: backend.v1.CardType type = 8;
      */
     type: CardType;
@@ -3921,13 +3917,12 @@ class Card$Type extends MessageType<Card> {
             { no: 4, name: "status", kind: "enum", T: () => ["backend.v1.CardStatus", CardStatus, "CARD_STATUS_"] },
             { no: 5, name: "statusReasonCode", kind: "enum", T: () => ["backend.v1.CardStatusReasonCode", CardStatusReasonCode, "CARD_STATUS_REASON_CODE_"] },
             { no: 6, name: "lockLevel", kind: "enum", T: () => ["backend.v1.CardLockLevel", CardLockLevel, "CARD_LOCK_LEVEL_"] },
-            { no: 7, name: "expiryDate", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 8, name: "type", kind: "enum", T: () => ["backend.v1.CardType", CardType, "CARD_TYPE_"] },
             { no: 9, name: "productCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Card>): Card {
-        const message = { id: "", nameOnCard: "", maskedPan: "", status: 0, statusReasonCode: 0, lockLevel: 0, expiryDate: "", type: 0, productCode: "" };
+        const message = { id: "", nameOnCard: "", maskedPan: "", status: 0, statusReasonCode: 0, lockLevel: 0, type: 0, productCode: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Card>(this, message, value);
@@ -3955,9 +3950,6 @@ class Card$Type extends MessageType<Card> {
                     break;
                 case /* backend.v1.CardLockLevel lockLevel */ 6:
                     message.lockLevel = reader.int32();
-                    break;
-                case /* string expiryDate */ 7:
-                    message.expiryDate = reader.string();
                     break;
                 case /* backend.v1.CardType type */ 8:
                     message.type = reader.int32();
@@ -3995,9 +3987,6 @@ class Card$Type extends MessageType<Card> {
         /* backend.v1.CardLockLevel lockLevel = 6; */
         if (message.lockLevel !== 0)
             writer.tag(6, WireType.Varint).int32(message.lockLevel);
-        /* string expiryDate = 7; */
-        if (message.expiryDate !== "")
-            writer.tag(7, WireType.LengthDelimited).string(message.expiryDate);
         /* backend.v1.CardType type = 8; */
         if (message.type !== 0)
             writer.tag(8, WireType.Varint).int32(message.type);

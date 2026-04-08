@@ -1,9 +1,13 @@
-import type { Route } from './+types/cards'
-import { data, redirect } from 'react-router';
-import type { ShouldRevalidateFunction } from 'react-router';
-import { Outlet, useLoaderData, useLocation } from 'react-router';
 import { useEffect } from 'react'
-import { href } from 'react-router'
+import type { ShouldRevalidateFunction } from 'react-router'
+import {
+  data,
+  href,
+  Outlet,
+  redirect,
+  useLoaderData,
+  useLocation
+} from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   ButtonRouter,
@@ -19,6 +23,7 @@ import { CardProcessingPlaceholder } from '~/components/Cards'
 import { PhysicalCardChip, VirtualCardChip } from '~/components/Cards/CardChips'
 import { getFeatures } from '~/data/wallet.server'
 import { CardType } from '~/generated/connect/backend/v1/backend_pb'
+import type { SerializedCard } from '~/lib/cards/types'
 import {
   panLastFour,
   toStorableCard,
@@ -27,6 +32,7 @@ import {
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
+import type { Route } from './+types/cards'
 
 /**
  * Let actions declare if they need revalidation via shouldRevalidate field.
@@ -107,7 +113,7 @@ export default function Page() {
               </Card>
             )}
             {cards.length > 0 &&
-              cards.map((card: import("~/lib/cards/types").SerializedCard) => (
+              cards.map((card: SerializedCard) => (
                 <Card key={card.id} className='relative'>
                   <CardLink
                     preventScrollReset={!isMobile}
@@ -120,15 +126,9 @@ export default function Page() {
                     <div className='flex w-7/12 items-center space-x-4'>
                       {/* TODO: Maybe show card itself instead of the icon */}
                       <Icon>credit_card</Icon>
-                      <div className='flex w-full flex-col space-y-1'>
-                        <span className='truncate text-medium'>
-                          &bull;&bull;&bull;&bull; {panLastFour(card.maskedPan)}
-                        </span>
-                        <span className='text-xs text-weak'>
-                          Expires at: {card.expiryDate.slice(0, 2)}/
-                          {card.expiryDate.slice(2)}
-                        </span>
-                      </div>
+                      <span className='truncate text-medium'>
+                        &bull;&bull;&bull;&bull; {panLastFour(card.maskedPan)}
+                      </span>
                     </div>
                     <div className='flex min-w-max flex-initial items-center space-x-2'>
                       {card.type === CardType.VIRTUAL ? (

@@ -3,6 +3,7 @@ syntax = "proto3";
 package backend.v1;
 
 import "google/protobuf/timestamp.proto";
+
 import "google/rpc/code.proto";
 import "google/rpc/error_details.proto";
 import "google/rpc/status.proto";
@@ -326,16 +327,16 @@ enum CardLockLevel {
 }
 
 message Card {
+  reserved 7;
   string id = 1;
   string nameOnCard = 2;
   string maskedPan = 3;
   CardStatus status = 4;
   CardStatusReasonCode statusReasonCode = 5;
   CardLockLevel lockLevel = 6;
-  string expiryDate = 7;
   CardType type = 8;
   string productCode = 9;
-}
+  }
 
 message ListCardsResponse {
   bool isWaitingForCreation = 1;
