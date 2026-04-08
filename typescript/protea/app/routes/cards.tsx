@@ -23,6 +23,7 @@ import { CardProcessingPlaceholder } from '~/components/Cards'
 import { PhysicalCardChip, VirtualCardChip } from '~/components/Cards/CardChips'
 import { getFeatures } from '~/data/wallet.server'
 import { CardType } from '~/generated/connect/backend/v1/backend_pb'
+import type { SerializedCard } from '~/lib/cards/types'
 import {
   panLastFour,
   toStorableCard,
@@ -112,7 +113,7 @@ export default function Page() {
               </Card>
             )}
             {cards.length > 0 &&
-              cards.map((card: import('~/lib/cards/types').SerializedCard) => (
+              cards.map((card: SerializedCard) => (
                 <Card key={card.id} className='relative'>
                   <CardLink
                     preventScrollReset={!isMobile}
