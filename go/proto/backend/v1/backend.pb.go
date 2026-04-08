@@ -1387,7 +1387,6 @@ type Card struct {
 	Status           CardStatus             `protobuf:"varint,4,opt,name=status,proto3,enum=backend.v1.CardStatus" json:"status,omitempty"`
 	StatusReasonCode CardStatusReasonCode   `protobuf:"varint,5,opt,name=statusReasonCode,proto3,enum=backend.v1.CardStatusReasonCode" json:"statusReasonCode,omitempty"`
 	LockLevel        CardLockLevel          `protobuf:"varint,6,opt,name=lockLevel,proto3,enum=backend.v1.CardLockLevel" json:"lockLevel,omitempty"`
-	ExpiryDate       string                 `protobuf:"bytes,7,opt,name=expiryDate,proto3" json:"expiryDate,omitempty"`
 	Type             CardType               `protobuf:"varint,8,opt,name=type,proto3,enum=backend.v1.CardType" json:"type,omitempty"`
 	ProductCode      string                 `protobuf:"bytes,9,opt,name=productCode,proto3" json:"productCode,omitempty"`
 	unknownFields    protoimpl.UnknownFields
@@ -1464,13 +1463,6 @@ func (x *Card) GetLockLevel() CardLockLevel {
 		return x.LockLevel
 	}
 	return CardLockLevel_CARD_LOCK_LEVEL_UNKNOWN
-}
-
-func (x *Card) GetExpiryDate() string {
-	if x != nil {
-		return x.ExpiryDate
-	}
-	return ""
 }
 
 func (x *Card) GetType() CardType {
@@ -10130,7 +10122,7 @@ const file_backend_v1_backend_proto_rawDesc = "" +
 	"\x02id\x18\x02 \x01(\tR\x02id\"w\n" +
 	"\x1aNewCustomerDeliveryAddress\x12A\n" +
 	"\adetails\x18\x01 \x01(\v2'.backend.v1.CustomerDeliveryAddressBaseR\adetails\x12\x16\n" +
-	"\x06reason\x18\x02 \x01(\tR\x06reason\"\xf7\x02\n" +
+	"\x06reason\x18\x02 \x01(\tR\x06reason\"\xdd\x02\n" +
 	"\x04Card\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1e\n" +
 	"\n" +
@@ -10139,12 +10131,9 @@ const file_backend_v1_backend_proto_rawDesc = "" +
 	"\tmaskedPan\x18\x03 \x01(\tR\tmaskedPan\x12.\n" +
 	"\x06status\x18\x04 \x01(\x0e2\x16.backend.v1.CardStatusR\x06status\x12L\n" +
 	"\x10statusReasonCode\x18\x05 \x01(\x0e2 .backend.v1.CardStatusReasonCodeR\x10statusReasonCode\x127\n" +
-	"\tlockLevel\x18\x06 \x01(\x0e2\x19.backend.v1.CardLockLevelR\tlockLevel\x12\x1e\n" +
-	"\n" +
-	"expiryDate\x18\a \x01(\tR\n" +
-	"expiryDate\x12(\n" +
+	"\tlockLevel\x18\x06 \x01(\x0e2\x19.backend.v1.CardLockLevelR\tlockLevel\x12(\n" +
 	"\x04type\x18\b \x01(\x0e2\x14.backend.v1.CardTypeR\x04type\x12 \n" +
-	"\vproductCode\x18\t \x01(\tR\vproductCode\"o\n" +
+	"\vproductCode\x18\t \x01(\tR\vproductCodeJ\x04\b\a\x10\b\"o\n" +
 	"\x11ListCardsResponse\x122\n" +
 	"\x14isWaitingForCreation\x18\x01 \x01(\bR\x14isWaitingForCreation\x12&\n" +
 	"\x05cards\x18\x02 \x03(\v2\x10.backend.v1.CardR\x05cards\"\xa7\x01\n" +

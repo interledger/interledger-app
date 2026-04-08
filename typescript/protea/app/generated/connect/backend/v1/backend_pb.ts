@@ -1127,11 +1127,6 @@ export class Card extends Message<Card> {
   lockLevel = CardLockLevel.UNKNOWN;
 
   /**
-   * @generated from field: string expiryDate = 7;
-   */
-  expiryDate = "";
-
-  /**
    * @generated from field: backend.v1.CardType type = 8;
    */
   type = CardType.UNKNOWN;
@@ -1155,7 +1150,6 @@ export class Card extends Message<Card> {
     { no: 4, name: "status", kind: "enum", T: proto3.getEnumType(CardStatus) },
     { no: 5, name: "statusReasonCode", kind: "enum", T: proto3.getEnumType(CardStatusReasonCode) },
     { no: 6, name: "lockLevel", kind: "enum", T: proto3.getEnumType(CardLockLevel) },
-    { no: 7, name: "expiryDate", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 8, name: "type", kind: "enum", T: proto3.getEnumType(CardType) },
     { no: 9, name: "productCode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
