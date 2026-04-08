@@ -44,7 +44,6 @@ const handleDialPadInputs = (id: string, amountValue: string, setAmountValue: (a
   }
 }
 
-
 export const DialPad = () => {
   const { amountValue, setAmountValue } = useDialPadContext()
   const [activeKey, setActiveKey] = useState<string | null>(null)
@@ -67,7 +66,7 @@ export const DialPad = () => {
     }
   }, [amountValue, setAmountValue, triggerKey])
   return (
-    <div className="flex flex-col gap-10 text-xl">
+    <div className="flex flex-col text-xl">
       <AmountDisplay />
       <DialPadRow
         first={DialPadIds.One}
