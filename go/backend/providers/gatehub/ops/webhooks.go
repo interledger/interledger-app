@@ -123,6 +123,21 @@ type (
 		TransactionID string `json:"transactionId"`
 		CardID        string `json:"cardId"`
 	}
+
+	ActionRequiredWebhook struct {
+		ID          string                    `json:"id"`
+		UUID        string                    `json:"uuid"`
+		EventType   string                    `json:"event_type"`
+		Timestamp   string                    `json:"timestamp"`
+		UserID      string                    `json:"user_uuid"`
+		Environment string                    `json:"environment"`
+		Data        ActionRequiredWebhookData `json:"data"`
+	}
+
+	ActionRequiredWebhookData struct {
+		Gateway        string `json:"gateway"`
+		ExpirationDate string `json:"expiration_date,omitempty"`
+	}
 )
 
 func NewWebhook(b Backends, cfg gatehub.Config) http.HandlerFunc {
@@ -251,7 +266,49 @@ func HandleCardCreatedWebhook(ctx context.Context, b Backends, raw json.RawMessa
 }
 
 func HandleActionRequiredWebhook(ctx context.Context, b Backends, raw json.RawMessage, w http.ResponseWriter) {
-	slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "wallet-info-bot", fmt.Sprintf("gatehub verification action required: %s", string(raw)))
+	var wh ActionRequiredWebhook
+	err := json.Unmarshal(raw, &wh)
+	if err != nil {
+		log.Error("gatehub webhook: Failed to unmarshal action required webhook", zap.Error(err))
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	if !strings.Contains(strings.ToLower(wh.Data.Gateway), "paywiser") {
+		log.Warn("received action required webhook for another gateway",
+			zap.String("webhook_id", wh.UUID),
+			zap.String("user_uuid", wh.UserID),
+			zap.String("gateway", wh.Data.Gateway),
+		)
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	walletID, err := getWalletID(ctx, b, wh.UserID)
+	if err != nil {
+		log.Error("Failed to find wallet for gatehub user", zap.String("external_user_uuid", wh.UserID), zap.Error(err))
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	status := kyc.StatusDocumentsRequired
+
+	log.Info("KYC resubmission required",
+		zap.String("wallet_id", walletID),
+		zap.String("event_type", wh.EventType),
+	)
+
+	err = b.KYC().SetKYCStatus(ctx, walletID, status)
+	if err != nil {
+		log.Error("Failed to update KYC status", zap.String("wallet_id", walletID), zap.Error(err))
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "wallet-info-bot",
+		fmt.Sprintf("KYC resubmission required - walletID: %s, event: %s", walletID, wh.EventType),
+	)
+
 	w.WriteHeader(http.StatusOK)
 }
 
