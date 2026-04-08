@@ -117,7 +117,7 @@ func (s *rpcService) GetCardOrderOptions(ctx context.Context, req *pb.Empty) (*p
 	wg.Wait()
 
 	if firstErr != nil {
-		return nil, toGRPCError(err)
+		return nil, toGRPCError(firstErr)
 	}
 
 	if !externalIDs.IsCustomerCreated() && ghUser != nil {
@@ -695,7 +695,6 @@ func newCard(c gatehub.Card) pb.Card {
 		Type:             cardType,
 		MaskedPan:        c.MaskedPan,
 		Status:           status,
-		ExpiryDate:       c.ExpiryDate,
 		StatusReasonCode: statusReasonCode,
 		LockLevel:        lockLevel,
 		ProductCode:      c.ProductCode,
