@@ -15,7 +15,6 @@ export type StorableCard = SerializedCard & {
   id: string
   nameOnCard: string
   maskedPan: string
-  expiryDate: string
   status: CardStatus
   statusReasonCode: CardStatusReasonCode
   lockLevel: CardLockLevel
