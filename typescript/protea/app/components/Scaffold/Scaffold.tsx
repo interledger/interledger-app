@@ -50,7 +50,8 @@ export enum Layouts {
   Focus = 'Focus',
   Docs = 'Docs',
   Wallet = 'Wallet',
-  Marketing = 'Marketing'
+  Marketing = 'Marketing',
+  LandingPage = 'LandingPage'
 }
 
 export enum Fab {
@@ -178,6 +179,10 @@ export function Scaffold() {
     //     actions = actionHandle(matches[matches.length - 2]) ?? null
     //   else actions = actionHandle ?? null
     // }
+  }
+
+  if (layout === Layouts.LandingPage) {
+    return <Outlet />
   }
 
   return (

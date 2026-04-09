@@ -1,0 +1,27 @@
+:root {
+  /* Spacing Scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-40: 160px;
+
+  /* Section Padding Rules */
+  /* Mobile: two groups */
+  --section-pad-default: 16px;   /* hero, features, send/receive, other features */
+  --section-pad-wide: 24px;      /* cards, ecosystem, editorial */
+
+  /* Tablet: uniform */
+  --section-pad-tablet: 24px;
+
+  /* Desktop */
+  --section-pad-desktop-outer: 40px;
+  --section-pad-desktop-text: 120px;  /* text-only content uses wider inset */
+}

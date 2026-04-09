@@ -1,0 +1,8 @@
+{
+  "status": "needs-verification",
+  "missing_info": "Blur radius, color, exact opacity, backdrop-filter, or box-shadow values are missing. Glow gradients are missing. Requires Figma inspection.",
+  "effects": [
+    "Glow-Blur",
+    "navbg-blur"
+  ]
+}

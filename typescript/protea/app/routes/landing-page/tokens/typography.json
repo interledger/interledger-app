@@ -1,0 +1,16 @@
+{
+  "status": "needs-verification",
+  "missing_info": "Font family, font-size, font-weight, line-height, and letter-spacing are missing for all 30 styles across breakpoints. Requires Figma inspection.",
+  "styles": [
+    "H1",
+    "H2",
+    "H3",
+    "H4",
+    "H5",
+    "body-lg-emphasis",
+    "body-lg-standard",
+    "body-sm-emphasis",
+    "body-sm-standard",
+    "caption"
+  ]
+}

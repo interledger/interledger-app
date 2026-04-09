@@ -1,0 +1,66 @@
+/* Grid Utilities */
+.grid-4-col {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.grid-2-col {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.grid-1-col {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+/* Responsive card grid */
+.grid-cards {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 900px) {
+  .grid-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (min-width: 1440px) {
+  .grid-cards {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* PageSection wrapper layout utilities */
+.page-section {
+  width: 100%;
+}
+
+.page-section-inner {
+  max-width: 1440px;
+  margin-inline: auto;
+}
+
+/* Padding variants for PageSection */
+.pad-default {
+  padding-inline: var(--section-pad-default);
+}
+
+.pad-wide {
+  padding-inline: var(--section-pad-wide);
+}
+
+/* Tablet padding overrides */
+@media (min-width: 900px) {
+  .pad-default,
+  .pad-wide {
+    padding-inline: var(--section-pad-tablet);
+  }
+}
+
+/* Desktop padding overrides */
+@media (min-width: 1440px) {
+  .pad-default,
+  .pad-wide {
+    padding-inline: var(--section-pad-desktop-outer);
+  }
+}

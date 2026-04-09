@@ -1,0 +1,94 @@
+/* 
+  Task 01: Color System 
+  Using placeholder variables as actual values are currently blocked by Task 00.
+*/
+
+:root {
+  /* Layer 1 - Primitives */
+  --color-green-400: #4ade80;
+  --color-green-500: #22c55e;
+  
+  --color-neutral-50: #fafafa;
+  --color-neutral-100: #f5f5f5;
+  --color-neutral-200: #e5e5e5;
+  --color-neutral-300: #d4d4d4;
+  --color-neutral-400: #a3a3a3;
+  --color-neutral-600: #525252;
+  --color-neutral-900: #171717;
+  --color-neutral-950: #0a0a0a;
+
+  --color-white: #ffffff;
+  --color-black: #000000;
+
+  /* Layer 2 - Semantic Tokens */
+  /* Backgrounds */
+  --color-bg-page: var(--color-neutral-50);
+  --color-bg-surface: var(--color-white);
+  --color-bg-surface-raised: var(--color-neutral-100);
+
+  /* Text */
+  --color-text-primary: var(--color-neutral-900);
+  --color-text-secondary: var(--color-neutral-600);
+  --color-text-inverse: var(--color-white);
+  --color-text-brand: var(--color-green-500);
+
+  /* Interactive */
+  --color-interactive-primary: var(--color-green-500);
+  --color-interactive-primary-hover: var(--color-green-400);
+  --color-interactive-primary-disabled: var(--color-neutral-300);
+
+  /* Borders */
+  --color-border-default: var(--color-neutral-200);
+  --color-border-strong: var(--color-neutral-400);
+
+  /* Glow - Temporary Values */
+  --glow-hero: drop-shadow(0 0 20px rgba(34, 197, 94, 0.5));
+  --glow-default: drop-shadow(0 0 10px rgba(34, 197, 94, 0.3));
+  --glow-type2: drop-shadow(0 0 15px rgba(255, 255, 255, 0.5));
+
+  /* Section Backgrounds */
+  --section-bg-hero: var(--color-bg-page);
+  --section-bg-features: var(--color-bg-surface);
+  --section-bg-cards: var(--color-bg-surface-raised);
+  --section-bg-send-receive: var(--color-bg-page);
+  --section-bg-ecosystem: var(--color-bg-surface);
+  --section-bg-editorial: var(--color-bg-surface-raised);
+  --section-bg-footer: var(--color-neutral-900);
+
+  /* Component-Scoped */
+  --nav-bg: rgba(255, 255, 255, 0.8);
+  --nav-backdrop: blur(10px);
+  --nav-border: var(--color-border-default);
+  
+  --card-bg: var(--color-bg-surface-raised);
+  --card-border: var(--color-border-default);
+  
+  --button-primary-bg: var(--color-interactive-primary);
+  --button-primary-text: var(--color-text-inverse);
+}
+
+[data-theme="dark"] {
+  /* Layer 3 - Dark Mode Overrides */
+  --color-bg-page: var(--color-neutral-950);
+  --color-bg-surface: var(--color-neutral-900);
+  --color-bg-surface-raised: var(--color-neutral-800);
+
+  --color-text-primary: var(--color-neutral-50);
+  --color-text-secondary: var(--color-neutral-300);
+  --color-text-inverse: var(--color-neutral-900);
+  
+  --color-border-default: var(--color-neutral-600);
+  --color-border-strong: var(--color-neutral-400);
+
+  /* Section Background Overrides */
+  --section-bg-hero: var(--color-bg-page);
+  --section-bg-features: var(--color-bg-surface);
+  --section-bg-cards: var(--color-bg-surface-raised);
+  --section-bg-send-receive: var(--color-bg-page);
+  --section-bg-ecosystem: var(--color-bg-surface);
+  --section-bg-editorial: var(--color-bg-surface-raised);
+  --section-bg-footer: var(--color-neutral-950);
+
+  /* Component Overrides */
+  --nav-bg: rgba(10, 10, 10, 0.8);
+}
