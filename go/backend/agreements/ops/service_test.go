@@ -106,7 +106,6 @@ func TestListAffectedUserIDsPaginated(t *testing.T) {
 		err := ops.Sign(ctx, b, &agreements.SignArgs{
 			AgreementIDs: []string{tc.agreementID},
 			UserID:       tc.userID,
-			IPAddress:    "1.2.3.4",
 		})
 		require.NoError(t, err)
 	}
@@ -162,7 +161,6 @@ func TestMarkUsersNotified(t *testing.T) {
 		require.NoError(t, ops.Sign(ctx, b, &agreements.SignArgs{
 			AgreementIDs: []string{tc.agreementID},
 			UserID:       tc.userID,
-			IPAddress:    "1.2.3.4",
 		}))
 	}
 
@@ -219,7 +217,6 @@ func TestGetAgreementNamesSignedByUsersFromSet(t *testing.T) {
 		err := ops.Sign(ctx, b, &agreements.SignArgs{
 			AgreementIDs: []string{tc.agreementID},
 			UserID:       tc.userID,
-			IPAddress:    "1.2.3.4",
 		})
 		require.NoError(t, err)
 	}
