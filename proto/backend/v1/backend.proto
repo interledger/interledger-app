@@ -939,7 +939,6 @@ message Agreement {
 message SignAgreementsRequest {
   repeated string agreementIds = 1;
   string userId = 2;
-  string ipAddress = 3;
 }
 
 message SignAgreementsResponse {
