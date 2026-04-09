@@ -102,6 +102,7 @@ type Transaction struct {
 	Currency        string    `json:"currency"`
 	Date            string    `json:"date"`
 	UserID          string    `json:"userId,omitempty"`
+	WalletID        string    `json:"walletId,omitempty"`
 	ResourceType    string    `json:"resourceType"`
 	ClientID        string    `json:"clientId,omitempty"`
 	CreatedAt       time.Time `json:"-"`

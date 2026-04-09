@@ -16,6 +16,8 @@ import (
 	user_mock "gitlab.com/fynbos/backend/user/client/mock"
 	"gitlab.com/fynbos/backend/wallets"
 	pb "gitlab.com/fynbos/proto/backend/v1"
+	"google.golang.org/grpc/codes"
+	gstatus "google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -212,4 +214,103 @@ func TestKYCStatus(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, kyc.StatusApproved.ToInt32(), status.KycStatus)
+}
+
+func TestSetKYCStatusPending_AllowsDocumentsRequired(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	c := NewTestContainer(t, ctrl)
+	_, _, client := startTestServer(t, c)
+
+	u := &user.User{ID: uuid.NewString()}
+	wallet := wallets.Wallet{ID: uuid.NewString(), Name: "testing"}
+
+	c.walletImpl.EXPECT().List(gomock.Any(), u.ID).Return([]wallets.Wallet{wallet}, nil).AnyTimes()
+	c.walletImpl.EXPECT().ForContext(gomock.Any()).Return(&wallet, nil).AnyTimes()
+	c.KYCClient.EXPECT().GetKYCStatus(gomock.Any(), wallet.ID).Return(kyc.StatusDocumentsRequired, nil)
+	c.KYCClient.EXPECT().SetKYCStatus(gomock.Any(), wallet.ID, kyc.StatusPending)
+
+	_, err := client.SetKYCStatusPending(user_mock.ActingAsContext(t, context.Background(), u), &pb.Empty{})
+	require.NoError(t, err)
+}
+
+func TestSetKYCStatusPending_DoesNothingForApproved(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	c := NewTestContainer(t, ctrl)
+	_, _, client := startTestServer(t, c)
+
+	u := &user.User{ID: uuid.NewString()}
+	wallet := wallets.Wallet{ID: uuid.NewString(), Name: "testing"}
+
+	c.walletImpl.EXPECT().List(gomock.Any(), u.ID).Return([]wallets.Wallet{wallet}, nil).AnyTimes()
+	c.walletImpl.EXPECT().ForContext(gomock.Any()).Return(&wallet, nil).AnyTimes()
+	c.KYCClient.EXPECT().GetKYCStatus(gomock.Any(), wallet.ID).Return(kyc.StatusApproved, nil)
+
+	_, err := client.SetKYCStatusPending(user_mock.ActingAsContext(t, context.Background(), u), &pb.Empty{})
+	require.NoError(t, err)
+}
+
+func TestSetKYCStatusPending_DoesNothingForPending(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	c := NewTestContainer(t, ctrl)
+	_, _, client := startTestServer(t, c)
+
+	u := &user.User{ID: uuid.NewString()}
+	wallet := wallets.Wallet{ID: uuid.NewString(), Name: "testing"}
+
+	c.walletImpl.EXPECT().List(gomock.Any(), u.ID).Return([]wallets.Wallet{wallet}, nil).AnyTimes()
+	c.walletImpl.EXPECT().ForContext(gomock.Any()).Return(&wallet, nil).AnyTimes()
+	c.KYCClient.EXPECT().GetKYCStatus(gomock.Any(), wallet.ID).Return(kyc.StatusPending, nil)
+
+	_, err := client.SetKYCStatusPending(user_mock.ActingAsContext(t, context.Background(), u), &pb.Empty{})
+	require.NoError(t, err)
+}
+
+func TestGetKYCProviderWidget_BlockedForApprovedStatus(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	c := NewTestContainer(t, ctrl)
+	_, _, client := startTestServer(t, c)
+
+	u := &user.User{ID: uuid.NewString()}
+	wallet := wallets.Wallet{ID: uuid.NewString(), Name: "testing", Country: "ZA"}
+
+	c.walletImpl.EXPECT().List(gomock.Any(), u.ID).Return([]wallets.Wallet{wallet}, nil).AnyTimes()
+	c.walletImpl.EXPECT().ForContext(gomock.Any()).Return(&wallet, nil).AnyTimes()
+	c.KYCClient.EXPECT().GetKYCStatus(gomock.Any(), wallet.ID).Return(kyc.StatusApproved, nil)
+
+	_, err := client.GetKYCProviderWidget(user_mock.ActingAsContext(t, context.Background(), u), &pb.GetKYCProviderWidgetRequest{})
+	require.Error(t, err)
+
+	st, ok := gstatus.FromError(err)
+	require.True(t, ok)
+	require.Equal(t, codes.InvalidArgument, st.Code())
+}
+
+func TestGetKYCProviderWidget_AllowsDocumentsRequired(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	c := NewTestContainer(t, ctrl)
+	_, _, client := startTestServer(t, c)
+
+	u := &user.User{ID: uuid.NewString()}
+	wallet := wallets.Wallet{ID: uuid.NewString(), Name: "testing", Country: "ZA"}
+
+	c.walletImpl.EXPECT().List(gomock.Any(), u.ID).Return([]wallets.Wallet{wallet}, nil).AnyTimes()
+	c.walletImpl.EXPECT().ForContext(gomock.Any()).Return(&wallet, nil).AnyTimes()
+	c.KYCClient.EXPECT().GetKYCStatus(gomock.Any(), wallet.ID).Return(kyc.StatusDocumentsRequired, nil)
+	c.KYCClient.EXPECT().GetPersonaInquiry(gomock.Any(), wallet.ID, "").Return(&kyc.PersonaInquiry{ID: "inq-1"}, nil)
+
+	resp, err := client.GetKYCProviderWidget(user_mock.ActingAsContext(t, context.Background(), u), &pb.GetKYCProviderWidgetRequest{})
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	require.NotNil(t, resp.PersonaInquiry)
+	require.Equal(t, "inq-1", resp.PersonaInquiry.Id)
 }

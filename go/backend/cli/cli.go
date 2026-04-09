@@ -109,6 +109,8 @@ type StartArgs struct {
 	PTIBaseURL                    string
 	PTIJWK                        string
 	PTIClientID                   string
+	PTISDKURL                     string
+	PTIFormsURL                   string
 	PTIPublicKeyJWK               string
 	AppleAppID                    string
 	AndroidPackageName            string
@@ -384,6 +386,8 @@ func ParseStartArgs() (*StartArgs, error) {
 	ptiBaseURL := os.Getenv("PTI_BASE_URL")
 	ptiJWK := os.Getenv("PTI_JWK")
 	ptiClientID := os.Getenv("PTI_CLIENT_ID")
+	ptiSDKURL := os.Getenv("PTI_SDK_URL")
+	ptiFormsURL := os.Getenv("PTI_FORMS_URL")
 	ptiPublicKeyJWK := os.Getenv("PTI_PUBLIC_KEY_JWK")
 	if ptiEnabled {
 		if ptiBaseURL == "" {
@@ -394,6 +398,12 @@ func ParseStartArgs() (*StartArgs, error) {
 		}
 		if ptiClientID == "" {
 			return nil, errors.New("PTI_CLIENT_ID is required when PTI_ENABLED=true")
+		}
+		if ptiSDKURL == "" {
+			return nil, errors.New("PTI_SDK_URL is required when PTI_ENABLED=true")
+		}
+		if ptiFormsURL == "" {
+			return nil, errors.New("PTI_FORMS_URL is required when PTI_ENABLED=true")
 		}
 		if ptiPublicKeyJWK == "" {
 			return nil, errors.New("PTI_PUBLIC_KEY_JWK is required when PTI_ENABLED=true")
@@ -472,6 +482,8 @@ func ParseStartArgs() (*StartArgs, error) {
 		PTIBaseURL:                    ptiBaseURL,
 		PTIJWK:                        ptiJWK,
 		PTIClientID:                   ptiClientID,
+		PTISDKURL:                     ptiSDKURL,
+		PTIFormsURL:                   ptiFormsURL,
 		PTIPublicKeyJWK:               ptiPublicKeyJWK,
 		AppleAppID:                    appleAppID,
 		AndroidPackageName:            androidPackageName,

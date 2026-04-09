@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/bxcodec/faker/v3"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -27,7 +26,6 @@ func TestSignAgreements(t *testing.T) {
 	err := ops.Sign(ctx, b, &agreements.SignArgs{
 		AgreementIDs: []string{"privacy_policy-2.0.0"},
 		UserID:       uuid.NewString(),
-		IPAddress:    "123.123.123.123",
 	})
 
 	assert.NoError(t, err)
@@ -44,12 +42,10 @@ func TestAgreementSigns(t *testing.T) {
 	b := ops.NewTestBackends(t, db)
 
 	userId := uuid.NewString()
-	userIp := faker.IPv4()
 
 	err := ops.Sign(ctx, b, &agreements.SignArgs{
 		AgreementIDs: []string{"privacy_policy-2.0.0"},
 		UserID:       userId,
-		IPAddress:    userIp,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -64,7 +60,6 @@ func TestAgreementSigns(t *testing.T) {
 
 	assert.Equal(t, "privacy_policy-2.0.0", signature.AgreementID)
 	assert.Equal(t, userId, signature.UserID)
-	assert.Equal(t, userIp, signature.IPAddress)
 }
 
 func TestGetAgreement(t *testing.T) {

@@ -173,7 +173,6 @@ func seedCard(t *testing.T, store *storage.MemoryStorage) (customerID, accountID
 		NameOnCard:       "Test User",
 		Status:           consts.CardStatusActive,
 		MaskedPan:        "123456******7890",
-		ExpiryDate:       "2028-01-01",
 	}
 	require.NoError(t, store.CreateCard(card))
 	return cid, aid, caid
@@ -711,10 +710,9 @@ func TestGetCardApplicationProducts(t *testing.T) {
 	h.GetCardApplicationProducts(w, req)
 
 	assert.Equal(t, http.StatusOK, w.Code)
-	var resp map[string]interface{}
+	var resp []interface{}
 	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
-	data := resp["data"].([]interface{})
-	assert.Len(t, data, 2)
+	assert.Len(t, resp, 2)
 }
 
 // --- OrderPlasticCard ---

@@ -134,6 +134,18 @@ func (mr *MockClientMockRecorder) SendDepositReceivedEmail(ctx, walletID, amt, s
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendDepositReceivedEmail", reflect.TypeOf((*MockClient)(nil).SendDepositReceivedEmail), ctx, walletID, amt, sourceAccountName, date)
 }
 
+// SendKYCDocumentsRequiredEmail mocks base method.
+func (m *MockClient) SendKYCDocumentsRequiredEmail(ctx context.Context, walletID string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SendKYCDocumentsRequiredEmail", ctx, walletID)
+}
+
+// SendKYCDocumentsRequiredEmail indicates an expected call of SendKYCDocumentsRequiredEmail.
+func (mr *MockClientMockRecorder) SendKYCDocumentsRequiredEmail(ctx, walletID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendKYCDocumentsRequiredEmail", reflect.TypeOf((*MockClient)(nil).SendKYCDocumentsRequiredEmail), ctx, walletID)
+}
+
 // SendLimitsExceededEmail mocks base method.
 func (m *MockClient) SendLimitsExceededEmail(ctx context.Context, walletID string) {
 	m.ctrl.T.Helper()

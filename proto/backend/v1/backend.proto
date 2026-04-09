@@ -3,6 +3,7 @@ syntax = "proto3";
 package backend.v1;
 
 import "google/protobuf/timestamp.proto";
+
 import "google/rpc/code.proto";
 import "google/rpc/error_details.proto";
 import "google/rpc/status.proto";
@@ -326,16 +327,16 @@ enum CardLockLevel {
 }
 
 message Card {
+  reserved 7;
   string id = 1;
   string nameOnCard = 2;
   string maskedPan = 3;
   CardStatus status = 4;
   CardStatusReasonCode statusReasonCode = 5;
   CardLockLevel lockLevel = 6;
-  string expiryDate = 7;
   CardType type = 8;
   string productCode = 9;
-}
+  }
 
 message ListCardsResponse {
   bool isWaitingForCreation = 1;
@@ -576,7 +577,7 @@ message CreateSlackAuthURLResponse {
 }
 
 message Amount {
-  uint64 amount = 1;
+  int64 amount = 1;
   string asset = 2;
   int32 assetScale = 3;
   string country = 4;
@@ -938,7 +939,6 @@ message Agreement {
 message SignAgreementsRequest {
   repeated string agreementIds = 1;
   string userId = 2;
-  string ipAddress = 3;
 }
 
 message SignAgreementsResponse {

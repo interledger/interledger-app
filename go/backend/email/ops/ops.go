@@ -505,6 +505,36 @@ func SendPending3DSConfirmation(ctx context.Context, b Backends, walletID, confi
 	}
 }
 
+func SendKYCDocumentsRequiredEmail(ctx context.Context, b Backends, walletID string) {
+	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
+	if err != nil {
+		log.Error("Failed to retrieve email and greeting when sending KYC documents required email..", zap.Error(err), zap.String("walletID", walletID))
+		return
+	}
+
+	kycURL, err := url.JoinPath(env.GetUrl(), "personal-details")
+	if err != nil {
+		log.Error("Failed to send KYC documents required email.", zap.Error(err), zap.String("walletID", walletID))
+		return
+	}
+
+	err = b.External().SendTemplate(ctx, "Action Required – Please Resubmit Your Verification Documents", sendTo, oneTemplateID, map[string]interface{}{
+		"subject": "Action Required – Please Resubmit Your Verification Documents",
+		"data": []map[string]interface{}{
+			{"paragraph": greeting},
+			{"paragraph": "Your KYC submission needs attention."},
+			{"paragraph": "To continue using your wallet, please log in to your account and upload the requested documents."},
+		},
+		"cta": map[string]interface{}{
+			"text": "Upload Documents",
+			"url":  kycURL,
+		},
+	}, nil)
+	if err != nil {
+		log.Error("Failed to send KYC documents required email.", zap.Error(err), zap.String("walletID", walletID))
+	}
+}
+
 func SendAgreementChangedEmail(ctx context.Context, b Backends, userID string, agreements []email.AgreementLink, deadlineDate string) error {
 	u, err := b.Users().GetUser(ctx, userID)
 	if err != nil {

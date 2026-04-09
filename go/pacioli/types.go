@@ -65,7 +65,7 @@ type Transfer struct {
 
 type CreateTransferArgs struct {
 	ID              string `validate:"required,uuid4"`
-	Amount          uint64 `validate:"gt=0"`
+	Amount          int64  `validate:"gt=0"`
 	DebitAccountID  string `validate:"required,uuid4"`
 	CreditAccountID string `validate:"required,uuid4"`
 	Pending         bool

@@ -11,13 +11,12 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"gitlab.com/fynbos/mock/mockxago/internal/logger"
 	"gitlab.com/fynbos/mock/mockxago/internal/models"
+	"gitlab.com/fynbos/mock/mockxago/web"
 )
 
 // KYCIframe serves the KYC verification iframe
@@ -29,29 +28,7 @@ func (h *Handler) KYCIframe(w http.ResponseWriter, r *http.Request) {
 
 	logger.Infof("Serving KYC iframe - token: %s, user_id: %s, wallet_id: %s", token, userID, walletID)
 
-	// Try to find the KYC iframe template
-	possiblePaths := []string{
-		"web/kyc-iframe.html",
-		"./web/kyc-iframe.html",
-		"../../web/kyc-iframe.html",
-		"../../../web/kyc-iframe.html",
-	}
-
-	var templatePath string
-	for _, path := range possiblePaths {
-		if _, err := os.Stat(path); err == nil {
-			templatePath = path
-			break
-		}
-	}
-
-	if templatePath == "" {
-		logger.Errorf("Could not find KYC iframe template, tried: %v", possiblePaths)
-		h.sendError(w, http.StatusInternalServerError, "template_not_found", "KYC template not found")
-		return
-	}
-
-	tmpl, err := template.ParseFiles(templatePath)
+	tmpl, err := template.ParseFS(web.Assets, "kyc-iframe.html")
 	if err != nil {
 		logger.Errorf("Failed to parse KYC iframe template: %v", err)
 		h.sendError(w, http.StatusInternalServerError, "template_error", "Failed to parse template")
@@ -91,8 +68,6 @@ func (h *Handler) KYCIframeSubmit(w http.ResponseWriter, r *http.Request) {
 	firstName := r.FormValue("first_name")
 	lastName := r.FormValue("last_name")
 	address := r.FormValue("address")
-	_ = r.FormValue("city")    // city not currently stored in sub-account
-	_ = r.FormValue("country") // country not currently stored in sub-account
 	dob := r.FormValue("dob")
 
 	logger.Infof("KYC submitted - wallet_id: %s, name: %s %s", walletID, firstName, lastName)
@@ -107,6 +82,22 @@ func (h *Handler) KYCIframeSubmit(w http.ResponseWriter, r *http.Request) {
 		logger.Errorf("name fields are required")
 		h.sendError(w, http.StatusBadRequest, "missing_name", "First and last name are required")
 		return
+	}
+
+	if dob == "" {
+		logger.Errorf("date of birth is required")
+		h.sendError(w, http.StatusBadRequest, "missing_dob", "Date of birth is required")
+		return
+	}
+
+	if _, err := time.Parse("2006-01-02", dob); err != nil {
+		logger.Errorf("invalid dob format: %v", err)
+		h.sendError(w, http.StatusBadRequest, "invalid_dob", "Date of birth must be in YYYY-MM-DD format")
+		return
+	}
+
+	if address == "" {
+		address = "123 Main Street"
 	}
 
 	// Get or create sub-account for this wallet
@@ -125,17 +116,8 @@ func (h *Handler) KYCIframeSubmit(w http.ResponseWriter, r *http.Request) {
 	// Update sub-account with KYC information
 	subAccount.FirstName = firstName
 	subAccount.LastName = lastName
+	subAccount.DateOfBirth = dob
 	subAccount.PhysicalAddress = address
-
-	// Parse date of birth
-	if dob != "" {
-		parts := strings.Split(dob, "-")
-		if len(parts) == 3 {
-			if year, err := strconv.Atoi(parts[0]); err == nil {
-				logger.Infof("Parsed birth year: %d", year)
-			}
-		}
-	}
 
 	// Save or update sub-account
 	if err := h.store.SaveSubAccount(ctx, subAccount); err != nil {

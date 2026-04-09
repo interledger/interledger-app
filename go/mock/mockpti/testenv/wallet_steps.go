@@ -73,6 +73,42 @@ func (tc *TestContext) postWithBankAccountPayload(path string) error {
 	return err
 }
 
+// theWalletBalanceShouldBeNegative fetches the current wallet and asserts its balance is < 0.
+func (tc *TestContext) theWalletBalanceShouldBeNegative() error {
+	if _, err := tc.ptiRequest("GET", "/users/{userId}/wallets/{walletId}", nil, true); err != nil {
+		return fmt.Errorf("failed to get wallet: %w", err)
+	}
+	if err := tc.responseStatusShouldBe(200); err != nil {
+		return err
+	}
+	var wallet walletResponse
+	if err := tc.decodeLastResponse(&wallet); err != nil {
+		return fmt.Errorf("failed to decode wallet response: %w", err)
+	}
+	if wallet.Balance >= 0 {
+		return fmt.Errorf("expected wallet balance to be negative, got %v", wallet.Balance)
+	}
+	return nil
+}
+
+// theWalletBalanceShouldEqualTheDepositedAmount checks that the wallet balance equals the deposit amount.
+func (tc *TestContext) theWalletBalanceShouldEqualTheDepositedAmount() error {
+	if _, err := tc.ptiRequest("GET", "/users/{userId}/wallets/{walletId}", nil, true); err != nil {
+		return fmt.Errorf("failed to get wallet: %w", err)
+	}
+	if err := tc.responseStatusShouldBe(200); err != nil {
+		return err
+	}
+	var wallet walletResponse
+	if err := tc.decodeLastResponse(&wallet); err != nil {
+		return fmt.Errorf("failed to decode wallet response: %w", err)
+	}
+	if wallet.Balance != tc.depositAmount {
+		return fmt.Errorf("expected wallet balance %.2f (deposited amount), got %.2f", tc.depositAmount, wallet.Balance)
+	}
+	return nil
+}
+
 // responseShouldIncludePaymentInformationID stores payment information id.
 func (tc *TestContext) responseShouldIncludePaymentInformationID() error {
 	var resp paymentInformationResponse

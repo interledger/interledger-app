@@ -313,10 +313,6 @@ export interface Card {
      */
     lockLevel: CardLockLevel;
     /**
-     * @generated from protobuf field: string expiryDate = 7;
-     */
-    expiryDate: string;
-    /**
      * @generated from protobuf field: backend.v1.CardType type = 8;
      */
     type: CardType;
@@ -972,7 +968,7 @@ export interface CreateSlackAuthURLResponse {
  */
 export interface Amount {
     /**
-     * @generated from protobuf field: uint64 amount = 1;
+     * @generated from protobuf field: int64 amount = 1;
      */
     amount: string;
     /**
@@ -2071,10 +2067,6 @@ export interface SignAgreementsRequest {
      * @generated from protobuf field: string userId = 2;
      */
     userId: string;
-    /**
-     * @generated from protobuf field: string ipAddress = 3;
-     */
-    ipAddress: string;
 }
 /**
  * @generated from protobuf message backend.v1.SignAgreementsResponse
@@ -3921,13 +3913,12 @@ class Card$Type extends MessageType<Card> {
             { no: 4, name: "status", kind: "enum", T: () => ["backend.v1.CardStatus", CardStatus, "CARD_STATUS_"] },
             { no: 5, name: "statusReasonCode", kind: "enum", T: () => ["backend.v1.CardStatusReasonCode", CardStatusReasonCode, "CARD_STATUS_REASON_CODE_"] },
             { no: 6, name: "lockLevel", kind: "enum", T: () => ["backend.v1.CardLockLevel", CardLockLevel, "CARD_LOCK_LEVEL_"] },
-            { no: 7, name: "expiryDate", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 8, name: "type", kind: "enum", T: () => ["backend.v1.CardType", CardType, "CARD_TYPE_"] },
             { no: 9, name: "productCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Card>): Card {
-        const message = { id: "", nameOnCard: "", maskedPan: "", status: 0, statusReasonCode: 0, lockLevel: 0, expiryDate: "", type: 0, productCode: "" };
+        const message = { id: "", nameOnCard: "", maskedPan: "", status: 0, statusReasonCode: 0, lockLevel: 0, type: 0, productCode: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Card>(this, message, value);
@@ -3955,9 +3946,6 @@ class Card$Type extends MessageType<Card> {
                     break;
                 case /* backend.v1.CardLockLevel lockLevel */ 6:
                     message.lockLevel = reader.int32();
-                    break;
-                case /* string expiryDate */ 7:
-                    message.expiryDate = reader.string();
                     break;
                 case /* backend.v1.CardType type */ 8:
                     message.type = reader.int32();
@@ -3995,9 +3983,6 @@ class Card$Type extends MessageType<Card> {
         /* backend.v1.CardLockLevel lockLevel = 6; */
         if (message.lockLevel !== 0)
             writer.tag(6, WireType.Varint).int32(message.lockLevel);
-        /* string expiryDate = 7; */
-        if (message.expiryDate !== "")
-            writer.tag(7, WireType.LengthDelimited).string(message.expiryDate);
         /* backend.v1.CardType type = 8; */
         if (message.type !== 0)
             writer.tag(8, WireType.Varint).int32(message.type);
@@ -6513,7 +6498,7 @@ export const CreateSlackAuthURLResponse = new CreateSlackAuthURLResponse$Type();
 class Amount$Type extends MessageType<Amount> {
     constructor() {
         super("backend.v1.Amount", [
-            { no: 1, name: "amount", kind: "scalar", T: 4 /*ScalarType.UINT64*/ },
+            { no: 1, name: "amount", kind: "scalar", T: 3 /*ScalarType.INT64*/ },
             { no: 2, name: "asset", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "assetScale", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
             { no: 4, name: "country", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
@@ -6531,8 +6516,8 @@ class Amount$Type extends MessageType<Amount> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* uint64 amount */ 1:
-                    message.amount = reader.uint64().toString();
+                case /* int64 amount */ 1:
+                    message.amount = reader.int64().toString();
                     break;
                 case /* string asset */ 2:
                     message.asset = reader.string();
@@ -6555,9 +6540,9 @@ class Amount$Type extends MessageType<Amount> {
         return message;
     }
     internalBinaryWrite(message: Amount, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* uint64 amount = 1; */
+        /* int64 amount = 1; */
         if (message.amount !== "0")
-            writer.tag(1, WireType.Varint).uint64(message.amount);
+            writer.tag(1, WireType.Varint).int64(message.amount);
         /* string asset = 2; */
         if (message.asset !== "")
             writer.tag(2, WireType.LengthDelimited).string(message.asset);
@@ -9879,12 +9864,11 @@ class SignAgreementsRequest$Type extends MessageType<SignAgreementsRequest> {
     constructor() {
         super("backend.v1.SignAgreementsRequest", [
             { no: 1, name: "agreementIds", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "userId", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "ipAddress", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 2, name: "userId", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<SignAgreementsRequest>): SignAgreementsRequest {
-        const message = { agreementIds: [], userId: "", ipAddress: "" };
+        const message = { agreementIds: [], userId: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<SignAgreementsRequest>(this, message, value);
@@ -9900,9 +9884,6 @@ class SignAgreementsRequest$Type extends MessageType<SignAgreementsRequest> {
                     break;
                 case /* string userId */ 2:
                     message.userId = reader.string();
-                    break;
-                case /* string ipAddress */ 3:
-                    message.ipAddress = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -9922,9 +9903,6 @@ class SignAgreementsRequest$Type extends MessageType<SignAgreementsRequest> {
         /* string userId = 2; */
         if (message.userId !== "")
             writer.tag(2, WireType.LengthDelimited).string(message.userId);
-        /* string ipAddress = 3; */
-        if (message.ipAddress !== "")
-            writer.tag(3, WireType.LengthDelimited).string(message.ipAddress);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

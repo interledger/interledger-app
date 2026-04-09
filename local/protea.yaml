@@ -8,9 +8,7 @@ services:
       - frontend
     restart: always
     volumes:
-      - ../typescript/protea:/app:rw
-      # Exclude node_modules from sync - use container's version
-      - /app/node_modules
+      - ../typescript/protea/app:/app/app:rw
     ports:
       - "3000:3000" # http port
       - "8002:8002" # websocket port
@@ -26,24 +24,48 @@ services:
       - "traefik.http.services.protea-ws.loadbalancer.server.port=8002"
 
     environment:
+      # Core runtime
       - FYNBOS_ENV=${PROTEA_FYNBOS_ENV:-local}
       - LOG_LEVEL=${PROTEA_LOG_LEVEL:-debug}
       # Setting LOG_PRETTY to false will result in json logs
       - LOG_PRETTY=${PROTEA_LOG_PRETTY:-true}
+      - CHOKIDAR_USEPOLLING=${PROTEA_CHOKIDAR_USEPOLLING:-true}
 
+      # Internal service endpoints
       - KRATOS_URL=${PROTEA_KRATOS_URL:-http://kratos:4433}
       - RAFIKI_AUTH_ENDPOINT=${PROTEA_RAFIKI_AUTH_ENDPOINT:-http://rafiki_auth:3009}
-      - RAFIKI_AUTH_SECRET=${PROTEA_RAFIKI_AUTH_SECRET:-my-super-secret-identity-key}
+      - BACKEND_GRPC_URL=${PROTEA_BACKEND_GRPC_URL:-http://backend:8443}
+      - REDIS_URL=${PROTEA_REDIS_URL:-redis://redis:6379/2}
+      - PAYMENT_POINTER_BASE=${PROTEA_PAYMENT_POINTER_BASE:-local.ilp.link} # todo find a way to figure the name
 
-      - CHOKIDAR_USEPOLLING=${PROTEA_CHOKIDAR_USEPOLLING:-true}
+      # Auth and realtime
       - COOKIE_SECRETS=${PROTEA_COOKIE_SECRETS:-"[\"localsecret\"]"}
+      - RAFIKI_AUTH_SECRET=${PROTEA_RAFIKI_AUTH_SECRET:-my-super-secret-identity-key}
       - PUSHER_APP_KEY=${PROTEA_PUSHER_APP_KEY:-91988d6075551d29760a}
       - PUSHER_APP_CLUSTER=${PROTEA_PUSHER_APP_CLUSTER:-eu}
-      - PAYMENT_POINTER_BASE=${PROTEA_PAYMENT_POINTER_BASE:-local.ilp.link} # todo find a way to figure the name
-      - DATO_API_TOKEN=${PROTEA_DATO_API_TOKEN:-b96709bce873f5280722da965b0e9d}
-      - BACKEND_GRPC_URL=${PROTEA_BACKEND_GRPC_URL:-http://backend:8443}
 
-      - REDIS_URL=${PROTEA_REDIS_URL:-redis://redis:6379/2}
+      # Persona SDK URL override (MockXago serves Persona-compatible SDK in local)
+      - PERSONA_SDK_URL=${PROTEA_PERSONA_SDK_URL:-https://mockxago.interledger.test/v1/persona-sdk.js}
+
+      # Provider/runtime integrations
+      - PTI_CLIENT_ID=${PROTEA_PTI_CLIENT_ID:-}
+      - GOOGLE_MAPS_API_KEY=${PROTEA_GOOGLE_MAPS_API_KEY:-}
+
+      # Observability and analytics
+      - SENTRY_DSN=${PROTEA_SENTRY_DSN:-}
+      - SENTRY_RELEASE=${PROTEA_SENTRY_RELEASE:-}
+      - SEGMENT_API_KEY=${PROTEA_SEGMENT_API_KEY:-}
+
+      # Rate limiting
+      - DEFAULT_RATE_LIMIT_REQUESTS=${PROTEA_DEFAULT_RATE_LIMIT_REQUESTS:-4}
+      - DEFAULT_RATE_LIMIT_TIME=${PROTEA_DEFAULT_RATE_LIMIT_TIME:-3600}
+
+      # LEGACY (unused / pending removal)
+      - DATO_API_TOKEN=${PROTEA_DATO_API_TOKEN:-b96709bce873f5280722da965b0e9d}
+      - BT_TOKEN=${PROTEA_BT_TOKEN:-}
+      - CF_TURNSTILE_SITE_KEY=${PROTEA_CF_TURNSTILE_SITE_KEY:-}
+      - CF_TURNSTILE_SECRET_KEY=${PROTEA_CF_TURNSTILE_SECRET_KEY:-}
+      - GATE_SIGNUP=${PROTEA_GATE_SIGNUP:-false}
 
     depends_on:
       - backend

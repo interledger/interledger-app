@@ -60,6 +60,7 @@ func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago
 	w.RegisterWorkflow(jobs.RestartKYCstatusForXagoJob)
 	w.RegisterWorkflow(jobs.BackfillPaywiserAccountsJob)
 	w.RegisterWorkflow(jobs.PtiSettleDepositAndWithdrawsForWallet)
+	w.RegisterWorkflow(jobs.PtiDropOldDataWorkflow)
 	w.RegisterWorkflow(jobs.EnableSendVerificationEmailToUnverifiedUserJob)
 	w.RegisterWorkflow(jobs.UpdateGateHubOrganizationConfig)
 	w.RegisterWorkflow(jobs.NotifyAgreementChangedWorkflow)

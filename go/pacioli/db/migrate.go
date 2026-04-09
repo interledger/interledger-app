@@ -68,7 +68,7 @@ func Migrate(ctx context.Context, connString string) error {
 	}
 
 	log.Info("Pacioli Atlas migration applied successfully", zap.String("output", string(out)))
-	
+
 	return nil
 }
 

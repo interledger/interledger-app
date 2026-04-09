@@ -2,15 +2,14 @@ services:
   botanist:
     build:
       context: ../typescript/botanist
-      target: dev
+      target: ${BOTANIST_BUILD_TARGET:-dev}
     profiles:
       - application
       - frontend
     restart: always
     volumes:
-      - ../typescript/botanist:/app:rw
+      - ../typescript/botanist/app:/app/app:rw
       # Exclude node_modules from sync - use container's version
-      - /app/node_modules
     ports:
       - "13000:3000" # http port
       - "18002:8002" # websocket port
@@ -30,6 +29,8 @@ services:
 
       - CHOKIDAR_USEPOLLING=true
       - BACKEND_GRPC_URL=backend:8448
+
+      - PAYMENT_POINTER_BASE=${BOTANIST_PAYMENT_POINTER_BASE:-local.ilp.link}
 
     depends_on:
       - backend
