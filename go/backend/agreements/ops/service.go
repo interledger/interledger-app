@@ -71,25 +71,12 @@ func Sign(ctx context.Context, b Backends, args *agreements.SignArgs) error {
 func GetSignatures(ctx context.Context, b Backends, userID string) ([]agreements.Signature, error) {
 	var signatures []agreements.Signature
 
-	err := b.DB().SelectContext(ctx, &signatures, "SELECT id, agreement_id, user_id, created_at, updated_at FROM agreement_signatures WHERE user_id = $1", userID)
+	err := b.DB().SelectContext(ctx, &signatures, "SELECT id, agreement_id, user_id, created_at, updated_at, last_notified_agreement_id FROM agreement_signatures WHERE user_id = $1", userID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, agreements.ErrNotFound
 		}
 		return nil, fmt.Errorf("%w %s", agreements.ErrInternal, err.Error())
-	}
-
-	var signatures []agreements.Signature
-	for _, sign := range agreementSigns {
-		signatures = append(signatures, agreements.Signature{
-			ID:                      sign.ID,
-			AgreementID:             sign.AgreementID,
-			UserID:                  sign.UserID,
-			IPAddress:               sign.IPAddress,
-			CreatedAt:               sign.CreatedAt,
-			UpdatedAt:               sign.UpdatedAt,
-			LastNotifiedAgreementID: sign.LastNotifiedAgreementID,
-		})
 	}
 
 	return signatures, nil
