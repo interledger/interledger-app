@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/bxcodec/faker/v3"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -66,7 +65,6 @@ func TestSignAgreement(t *testing.T) {
 			&backendv1.SignAgreementsRequest{
 				AgreementIds: []string{"privacy_policy-2.0.0", "user_policy-1.0.0"},
 				UserId:       uuid.NewString(),
-				IpAddress:    faker.IPv4(),
 			},
 		)
 		if err != nil {
@@ -84,7 +82,6 @@ func TestSignAgreement(t *testing.T) {
 			&backendv1.SignAgreementsRequest{
 				AgreementIds: []string{"privacy_policy-3.0.0", "user_policy-2.0.0"},
 				UserId:       uuid.NewString(),
-				IpAddress:    faker.IPv4(),
 			},
 		)
 		if err == nil {

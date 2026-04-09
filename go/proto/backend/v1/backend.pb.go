@@ -7308,7 +7308,6 @@ type SignAgreementsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	AgreementIds  []string               `protobuf:"bytes,1,rep,name=agreementIds,proto3" json:"agreementIds,omitempty"`
 	UserId        string                 `protobuf:"bytes,2,opt,name=userId,proto3" json:"userId,omitempty"`
-	IpAddress     string                 `protobuf:"bytes,3,opt,name=ipAddress,proto3" json:"ipAddress,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -7353,13 +7352,6 @@ func (x *SignAgreementsRequest) GetAgreementIds() []string {
 func (x *SignAgreementsRequest) GetUserId() string {
 	if x != nil {
 		return x.UserId
-	}
-	return ""
-}
-
-func (x *SignAgreementsRequest) GetIpAddress() string {
-	if x != nil {
-		return x.IpAddress
 	}
 	return ""
 }
@@ -10626,11 +10618,10 @@ const file_backend_v1_backend_proto_rawDesc = "" +
 	"\x13GetAgreementRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"%\n" +
 	"\tAgreement\x12\x18\n" +
-	"\acontent\x18\x01 \x01(\tR\acontent\"q\n" +
+	"\acontent\x18\x01 \x01(\tR\acontent\"S\n" +
 	"\x15SignAgreementsRequest\x12\"\n" +
 	"\fagreementIds\x18\x01 \x03(\tR\fagreementIds\x12\x16\n" +
-	"\x06userId\x18\x02 \x01(\tR\x06userId\x12\x1c\n" +
-	"\tipAddress\x18\x03 \x01(\tR\tipAddress\"0\n" +
+	"\x06userId\x18\x02 \x01(\tR\x06userId\"0\n" +
 	"\x16SignAgreementsResponse\x12\x16\n" +
 	"\x06signed\x18\x01 \x01(\bR\x06signed\"\xb2\x01\n" +
 	"\x13JoinWaitlistRequest\x12\x14\n" +

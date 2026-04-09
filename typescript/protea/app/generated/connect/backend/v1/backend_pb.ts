@@ -5967,11 +5967,6 @@ export class SignAgreementsRequest extends Message<SignAgreementsRequest> {
    */
   userId = "";
 
-  /**
-   * @generated from field: string ipAddress = 3;
-   */
-  ipAddress = "";
-
   constructor(data?: PartialMessage<SignAgreementsRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -5982,7 +5977,6 @@ export class SignAgreementsRequest extends Message<SignAgreementsRequest> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "agreementIds", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
     { no: 2, name: "userId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "ipAddress", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SignAgreementsRequest {

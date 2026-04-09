@@ -14,7 +14,7 @@ table "agreement_signatures" {
     type = text
   }
   column "ip_address" {
-    null = false
+    null = true
     type = text
   }
   column "created_at" {
