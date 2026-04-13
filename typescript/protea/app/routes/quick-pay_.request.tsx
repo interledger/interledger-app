@@ -46,7 +46,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     date: formatDate({
       date: incomingPayment.createdAt
     }),
-    url: `${process.env.OP_INTPAY_HOST}/payment?url=${incomingPayment.id}&receiver=${incomingPayment.walletAddress}`,
+    url: `${process.env.OP_INTPAY_HOST}quick-pay/payment?url=${incomingPayment.id}&receiver=${incomingPayment.walletAddress}`,
     note: incomingPayment?.note
   } : undefined
 
