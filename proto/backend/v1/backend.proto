@@ -164,7 +164,6 @@ service BackendService {
   rpc GetChimoneyInterlocEmail(Empty) returns (ChimoneyInterlocEmail);
   rpc CreateChimoneyWallet(Empty) returns (Empty);
   rpc GetChimoneyDepositLink(Amount) returns (GetChimoneyDepositLinkResponse);
-  rpc CreateChimoneyDeposit(CreateChimoneyDepositRequest) returns (Empty);
 
   // Cards
   rpc ListCards(Empty) returns (ListCardsResponse);
@@ -359,10 +358,6 @@ message PtiTokenResponse {
   string accessToken = 1;
   double expiresAt = 2;
   string tokenType = 3;
-}
-
-message CreateChimoneyDepositRequest {
-  string issueId = 1;
 }
 
 message GetChimoneyDepositLinkResponse {
@@ -581,7 +576,7 @@ message CreateSlackAuthURLResponse {
 }
 
 message Amount {
-  uint64 amount = 1;
+  int64 amount = 1;
   string asset = 2;
   int32 assetScale = 3;
   string country = 4;
@@ -666,6 +661,7 @@ message Payment {
   string receiverLinkedAccountCountryCode = 14;
   string formattedFees = 15;
   string receiverAccount = 16; // Linked account ID. Only populated on withdrawals
+  string receivedNetAmount = 17; // withdrawal net amount received after fees
 }
 
 message CreatePaymentRequest {

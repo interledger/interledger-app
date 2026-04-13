@@ -45,12 +45,12 @@ type dbPayment struct {
 	ThreeDSID            sql.NullString        `db:"action_three_ds_id"`
 	SenderID             string                `db:"sender_id"`
 	SenderIDType         payments.IdentityType `db:"sender_id_type"`
-	SenderAmount         uint64                `db:"sender_amount"`
+	SenderAmount         int64                 `db:"sender_amount"`
 	SenderCurrency       string                `db:"sender_currency"`
 	SenderAccount        sql.NullString        `db:"sender_account"`
 	ReceiverID           string                `db:"receiver_id"`
 	ReceiverIDType       payments.IdentityType `db:"receiver_id_type"`
-	ReceiverAmount       uint64                `db:"receiver_amount"`
+	ReceiverAmount       int64                 `db:"receiver_amount"`
 	ReceiverCurrency     string                `db:"receiver_currency"`
 	ReceiverAccount      sql.NullString        `db:"receiver_account"`
 	SendTransactionID    sql.NullString        `db:"send_transaction_id"`
@@ -162,8 +162,8 @@ func transformPayment(ctx context.Context, b Backends, db dbPayment, senderWalle
 			Identifier: db.ReceiverID,
 			WalletID:   receiverWalletID,
 		},
-		SenderAmount:         currency.FromUInt64(db.SenderAmount, currency.ParseCurrency(db.SenderCurrency)),
-		ReceiverAmount:       currency.FromUInt64(db.ReceiverAmount, currency.ParseCurrency(db.ReceiverCurrency)),
+		SenderAmount:         currency.FromUInt64(int64(db.SenderAmount), currency.ParseCurrency(db.SenderCurrency)),
+		ReceiverAmount:       currency.FromUInt64(int64(db.ReceiverAmount), currency.ParseCurrency(db.ReceiverCurrency)),
 		SenderAccount:        db.SenderAccount.String,
 		ReceiverAccount:      db.ReceiverAccount.String,
 		SendTransactionID:    db.SendTransactionID.String,
@@ -797,6 +797,14 @@ func Confirm(ctx context.Context, b Backends, id string) (*payments.Payment, []p
 		return nil, nil, err
 	}
 
+	fee := currency.FromFloat64(0, currency.USD)
+	if dbp.Type == payments.TypeWithdrawal && la.Provider == chimoney.ProviderName && la.Type == chimoney.AccTypeBalance {
+		fee, err = b.Chimoney().GetEstimatedFee(ctx, dbp.SenderAmount)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+
 	// Do all precursor operations in single TX so we don't get inconsistent state.
 	err = crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
 		err := setStateTX(ctx, tx, id, payments.StateConfirmed)
@@ -823,7 +831,7 @@ func Confirm(ctx context.Context, b Backends, id string) (*payments.Payment, []p
 			title = "Deposit"
 			txType = transactions.TransactionTypeDeposit
 		}
-		fee := currency.FromFloat64(0, currency.USD)
+
 		txID, err := b.Transactions().CreateTransactionTx(ctx, tx, transactions.CreateTransactionArgs{
 			WalletID:                senderWallet.ID,
 			ForeignID:               dbp.ID,
@@ -990,7 +998,7 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 		}()
 	}
 
-	receiveAmount := currency.FromUInt64(payment.ReceiverAmount, currency.Currency(payment.ReceiverCurrency))
+	receiveAmount := currency.FromUInt64(int64(payment.ReceiverAmount), currency.Currency(payment.ReceiverCurrency))
 	if !args.ReceiverAmount.IsEmpty() && !args.ReceiverAmount.IsEqual(receiveAmount) {
 		payment.ReceiverAmount = args.ReceiverAmount.Value
 		payment.ReceiverCurrency = args.ReceiverAmount.Currency.String()

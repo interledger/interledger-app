@@ -1,13 +1,9 @@
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { commitSession, getSession } from '~/session.server'
-import { json, redirect } from '@remix-run/node'
-import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import { useState } from 'react'
-import { type ApplicationProps, Button, Layouts, TextField, WalletGrid, GridColumn } from '~/components'
+import type { Route } from './+types/quick-pay_.request'
+import { data } from 'react-router'
+import { useLoaderData } from 'react-router'
+import type { MetaFunction } from 'react-router'
+import type { ApplicationProps } from '~/components'
+import { Layouts } from '~/components'
 import { mergeMeta } from '~/lib/meta'
 import { AmountDisplay } from '~/components/QuickPay/Dialpad'
 import { createRequestPayment, formatAmount, formatDate, formatError, paymentSchema } from '~/lib/utils'

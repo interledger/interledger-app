@@ -1,9 +1,4 @@
-import type {
-  LinksFunction,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { json } from '@remix-run/node'
+import type { LinksFunction, LoaderFunctionArgs, MetaFunction } from 'react-router';
 import {
   Links,
   Meta,
@@ -13,9 +8,10 @@ import {
   useLoaderData,
   useNavigation,
   useRouteError,
-  type ShouldRevalidateFunction
-} from '@remix-run/react'
-import { captureRemixErrorBoundaryError, withSentry } from '@sentry/remix'
+  data,
+  type ShouldRevalidateFunction,
+} from 'react-router';
+import { captureException } from '@sentry/react-router'
 import clsx from 'clsx'
 import { type ReactNode } from 'react'
 import {
@@ -28,14 +24,13 @@ import {
   QuickPayError,
   GridColumn,
   InterledgerLogo,
-  LiveReload,
   WalletGrid
 } from '~/components'
 import { Scaffold } from '~/components/Scaffold'
 import { TotpChallengeGlobal } from '~/components/TotpChallengeGlobal'
 import { hasUserSession } from '~/lib/kratos.server'
 import { getSnackbar } from '~/lib/snackbar.server'
-import styles from '~/styles/app.css'
+import styles from '~/styles/app.css?url'
 import { PendingConfirmationsLoader } from './components/PendingConfirmationsLoader'
 import { getFeatures } from './data/wallet.server'
 import { Features } from './generated/connect/backend/v1/backend_pb'
@@ -46,6 +41,8 @@ import { emailVerificationGuard, recoveryLinkSessionInvalidationGuard, withAAL2G
 import { usePusher } from './lib/usePusher'
 import { DialPadProvider } from '~/lib/providers/dialPadProvider'
 import { envBool } from '~/env.server'
+import { PtiConfigProvider } from './lib/pti-context'
+import { Route } from './+types/root';
 
 export const shouldRevalidate: ShouldRevalidateFunction = ({
   actionResult,
@@ -125,7 +122,6 @@ function Document({ children, theme = 'theme-system' }: DocumentProps) {
         {children}
         <ScrollRestoration />
         <Scripts />
-        <LiveReload port={443} />
       </body>
     </html>
   )
@@ -133,7 +129,7 @@ function Document({ children, theme = 'theme-system' }: DocumentProps) {
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const isUser = hasUserSession(request)
-  const snackbar = await getSnackbar(request)
+  const { snackbar, headers } = await getSnackbar(request)
   const pusherArgs = await getPusherArgs(request)
 
   const url = new URL(request.url)
@@ -150,16 +146,16 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
 
   if (!isUser) {
-    return json({
+    return data({
       isDisabled,
       walletAddress,
       isUser: false,
       features,
       snackbar,
       pusherArgs,
-      env,
-      showQuickPay
-    })
+      showQuickPay,
+      env
+    }, { headers })
   }
 
   await recoveryLinkSessionInvalidationGuard(pathname, request)
@@ -179,49 +175,53 @@ export async function loader({ request }: LoaderFunctionArgs) {
     }
   })
 
-  return json({
+  return data({
     isDisabled,
     walletAddress,
     isUser,
     features,
     snackbar,
     pusherArgs,
-    env,
-    showQuickPay
-  })
+    showQuickPay,
+    env
+  }, { headers })
 }
+
+export type RootLoaderData = Route.ComponentProps['loaderData']
 
 function Page() {
   const { pusherArgs, env, isDisabled, walletAddress } =
-    useLoaderData<typeof loader>()
+    useLoaderData<RootLoaderData>()
   usePusher(pusherArgs, ['cardReady'])
 
   return (
-    <Document>
-      <DialPadProvider>
-        {isDisabled ? (
-          <Unavailable walletAddress={walletAddress} />
-        ) : (
-          <>
-            <Scaffold />
-            <PendingConfirmationsLoader walletId={pusherArgs.walletId} />
-            <TotpChallengeGlobal />
-          </>
-        )}
-      </DialPadProvider>
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `window.ENV = ${JSON.stringify(env)}`
-        }}
-      />
-    </Document>
+    <PtiConfigProvider>
+      <Document>
+        <DialPadProvider>
+          {isDisabled ? (
+            <Unavailable walletAddress={walletAddress} />
+          ) : (
+            <>
+              <Scaffold />
+              <PendingConfirmationsLoader walletId={pusherArgs.walletId} />
+              <TotpChallengeGlobal />
+            </>
+          )}
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `window.ENV = ${JSON.stringify(env)}`
+            }}
+          />
+        </DialPadProvider>
+      </Document>
+    </PtiConfigProvider>
   )
 }
-export default withSentry(Page)
+export default Page
 
 export function ErrorBoundary() {
   const error = useRouteError()
-  captureRemixErrorBoundaryError(error)
+  captureException(error)
 
   if (isRouteErrorResponse(error)) {
     return error.data?.code === "QUICKPAY_SESSION_ERROR" ? (

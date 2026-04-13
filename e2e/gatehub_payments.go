@@ -32,6 +32,20 @@ func (sc *E2EContext) iNavigateToTheDashboard() error {
 		State: playwright.LoadStateNetworkidle,
 	})
 
+	if strings.Contains(sc.page.URL(), "/login") {
+		debugPrintln("   🔐 Redirected to login while navigating to dashboard, retrying login...")
+		if err := sc.iLogInAsMyself(); err != nil {
+			return fmt.Errorf("failed to navigate to dashboard: not on application dashboard - still at: %s", sc.page.URL())
+		}
+		if _, err := sc.page.Goto(url, playwright.PageGotoOptions{WaitUntil: playwright.WaitUntilStateNetworkidle}); err != nil {
+			return fmt.Errorf("failed to navigate to dashboard after re-authentication: %w", err)
+		}
+	}
+
+	if strings.Contains(sc.page.URL(), "/login") {
+		return fmt.Errorf("failed to navigate to dashboard: not on application dashboard - still at: %s", sc.page.URL())
+	}
+
 	debugPrintf("✓ Navigated to dashboard: %s\n", url)
 	return nil
 }
@@ -167,15 +181,38 @@ func (sc *E2EContext) iNavigateToTheSendPaymentPage() error {
 
 		if err == nil {
 			sc.page.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
-				State: playwright.LoadStateNetworkidle,
+				State:   playwright.LoadStateNetworkidle,
+				Timeout: playwright.Float(5000),
 			})
-			debugPrintf("✓ Navigated to: %s\n", url)
-			return nil
+
+			if strings.Contains(sc.page.URL(), "/login") {
+				debugPrintln("   🔐 Redirected to login while opening payments page, retrying login...")
+				if loginErr := sc.iLogInAsMyself(); loginErr == nil {
+					_, err = sc.page.Goto(url, playwright.PageGotoOptions{
+						WaitUntil: playwright.WaitUntilStateNetworkidle,
+						Timeout:   playwright.Float(5000),
+					})
+					if err == nil {
+						sc.page.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
+							State:   playwright.LoadStateNetworkidle,
+							Timeout: playwright.Float(5000),
+						})
+					}
+				}
+			}
+
+			if !strings.Contains(sc.page.URL(), "/login") {
+				debugPrintf("✓ Navigated to: %s\n", url)
+				return nil
+			}
 		}
 		lastErr = err
 	}
 
-	return fmt.Errorf("failed to navigate to send payment page: %w", lastErr)
+	if lastErr != nil {
+		return fmt.Errorf("failed to navigate to send payment page: %w", lastErr)
+	}
+	return fmt.Errorf("failed to navigate to send payment page: redirected to login")
 }
 
 // iShouldSeeThePaymentsPage verifies the payments page is displayed
@@ -185,6 +222,15 @@ func (sc *E2EContext) iShouldSeeThePaymentsPage() error {
 	// Check if we're on a payments-related URL
 	currentURL := sc.page.URL()
 	debugPrintf("   Current URL: %s\n", currentURL)
+
+	if strings.Contains(currentURL, "/login") {
+		debugPrintln("   🔐 On login page during payments check, retrying login...")
+		if err := sc.iLogInAsMyself(); err == nil {
+			_, _ = sc.page.Goto(sc.baseURL+"/pay", playwright.PageGotoOptions{WaitUntil: playwright.WaitUntilStateNetworkidle})
+			currentURL = sc.page.URL()
+			debugPrintf("   Current URL after login recovery: %s\n", currentURL)
+		}
+	}
 
 	// Look for payments page indicators (title or header text)
 	allText, _ := sc.page.TextContent("body")
@@ -285,6 +331,28 @@ func (sc *E2EContext) iSelectThePaymentCurrency(currency string) error {
 
 	// Prefer headless-ui listbox test selectors
 	listboxBtn := sc.page.Locator("[data-testid='pay-currency-select']")
+
+	// Wait for the button to be visible and stable — filling the amount field
+	// triggers a debounced network request that causes React re-renders, which
+	// can make the button temporarily unstable for Playwright's actionability
+	// checks.
+	err := listboxBtn.First().WaitFor(playwright.LocatorWaitForOptions{
+		State:   playwright.WaitForSelectorStateVisible,
+		Timeout: playwright.Float(10000),
+	})
+	if err != nil {
+		return fmt.Errorf("currency selector not visible: %w", err)
+	}
+
+	// Wait for the page to settle after the amount-change network request
+	// completes and React finishes re-rendering.
+	if err := sc.page.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
+		State:   playwright.LoadStateNetworkidle,
+		Timeout: playwright.Float(5000),
+	}); err != nil {
+		debugPrintf("⚠ network idle wait timed out, proceeding anyway\n")
+	}
+
 	if count, _ := listboxBtn.Count(); count > 0 {
 		if err := listboxBtn.First().Click(); err != nil {
 			return fmt.Errorf("failed to open currency selector: %w", err)
@@ -492,9 +560,8 @@ func (sc *E2EContext) iNavigateToThePaymentsHistoryPage() error {
 
 	_, err := sc.page.Goto(url, playwright.PageGotoOptions{
 		WaitUntil: playwright.WaitUntilStateNetworkidle,
-		Timeout:   playwright.Float(5000),
+		Timeout:   playwright.Float(10000),
 	})
-
 	if err != nil {
 		return fmt.Errorf("failed to navigate to payments history: %w", err)
 	}

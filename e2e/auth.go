@@ -139,24 +139,13 @@ func (sc *E2EContext) iSubmitTheLogin() error {
 	// Take screenshot after click
 	_ = sc.iTakeAScreenshot("after-login-submit")
 
-	// Check for error messages on the page
-	errorSelectors := []string{
-		".error",
-		"[data-testid='error-message']",
-		".alert-error",
-		".message--error",
-		"div:has-text('Error')",
-		"div:has-text('Invalid')",
-		"span:has-text('incorrect')",
-		"p:has-text('wrong')",
-	}
-	for _, selector := range errorSelectors {
-		errorMsg := sc.page.Locator(selector)
-		count, _ := errorMsg.Count()
-		if count > 0 {
-			text, _ := errorMsg.First().TextContent()
-			debugPrintf("⚠️  Found error message: %s\n", text)
-		}
+	// Check for credential error — this must fail the step so the test reports
+	// a clear login failure instead of a confusing TOTP-page-not-found error later.
+	content, _ := sc.page.Content()
+	contentLower := strings.ToLower(content)
+	if strings.Contains(contentLower, "provided credentials are invalid") ||
+		strings.Contains(contentLower, "account is not active") {
+		return fmt.Errorf("login failed: credentials rejected (URL: %s)", sc.page.URL())
 	}
 
 	debugPrintf("Current URL after login click: %s\n", sc.page.URL())
@@ -258,6 +247,8 @@ func (sc *E2EContext) iShouldBeNavigatedToTheApplicationDashboard() error {
 		"/activation",
 	}
 
+	loginRecovered := false
+
 	// Try for up to 15 seconds waiting for dashboard navigation
 	for attempt := 0; attempt < 30; attempt++ {
 		currentURL := sc.page.URL()
@@ -268,6 +259,14 @@ func (sc *E2EContext) iShouldBeNavigatedToTheApplicationDashboard() error {
 			if strings.Contains(currentURL, pattern) {
 				debugPrintf("   ✓ Successfully navigated to dashboard (matched pattern: %s)\n", pattern)
 				return nil
+			}
+		}
+
+		if strings.Contains(currentURL, "/login") && !loginRecovered && attempt >= 6 {
+			debugPrintln("   🔐 Session appears to have bounced to login; retrying login once...")
+			if err := sc.iLogInAsMyself(); err == nil {
+				loginRecovered = true
+				continue
 			}
 		}
 

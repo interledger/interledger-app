@@ -4,7 +4,7 @@ services:
       context: ../documentation
       dockerfile: Dockerfile
     profiles:
-      - infrastructure
+      - docs
     restart: always
     expose:
       - "8000"

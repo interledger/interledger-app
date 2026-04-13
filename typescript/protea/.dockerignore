@@ -1,4 +1,5 @@
 node_modules
+build
 Tiltfile
 
 # yarn 2 (Not zero installs)

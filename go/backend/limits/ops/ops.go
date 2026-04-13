@@ -43,7 +43,7 @@ func exceedsKYCLimitsCAD(ctx context.Context, b Backends, walletID string, amoun
 }
 
 func exceedsKYCLimitsZAR(ctx context.Context, b Backends, walletID string, amount currency.Amount) (bool, limits.LimitType, error) {
-	const limitYear uint64 = 20_000_00 // R20k limit for the year
+	const limitYear int64 = 20_000_00 // R20k limit for the year
 
 	level, err := b.KYC().GetKYCStatus(ctx, walletID)
 	if err != nil {
@@ -70,7 +70,7 @@ func exceedsKYCLimitsZAR(ctx context.Context, b Backends, walletID string, amoun
 		return false, "", nil
 	}
 
-	if uint64(used.Int64)+amount.Value >= limitYear {
+	if int64(used.Int64)+amount.Value >= limitYear {
 		return true, limits.LimitTypeYearly, nil
 	}
 
@@ -127,7 +127,7 @@ func exceedsKYCLimitsUSD(ctx context.Context, b Backends, walletID string, amoun
 		return false, "", nil
 	}
 
-	if uint64(used.Int64)+amount.Value >= limit24Hour {
+	if int64(used.Int64)+amount.Value >= int64(limit24Hour) {
 		return true, limits.LimitTypeDaily, nil
 	}
 
@@ -137,7 +137,7 @@ func exceedsKYCLimitsUSD(ctx context.Context, b Backends, walletID string, amoun
 		return false, "", fmt.Errorf("%w %s", limits.ErrInternal, err)
 	}
 
-	if uint64(used.Int64)+amount.Value >= limit30Day {
+	if int64(used.Int64)+amount.Value >= int64(limit30Day) {
 		return true, limits.LimitTypeMonthly, nil
 	}
 
@@ -147,7 +147,7 @@ func exceedsKYCLimitsUSD(ctx context.Context, b Backends, walletID string, amoun
 		return false, "", fmt.Errorf("%w %s", limits.ErrInternal, err)
 	}
 
-	if uint64(used.Int64)+amount.Value >= limit180Day {
+	if int64(used.Int64)+amount.Value >= int64(limit180Day) {
 		return true, limits.LimitType6Monthly, nil
 	}
 

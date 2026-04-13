@@ -1,6 +1,6 @@
-import { redirect } from '@remix-run/node'
-import { route } from 'routes-gen'
+import { redirect } from 'react-router';
+import { href } from 'react-router'
 
 export async function loader() {
-  return redirect(route('/payments'))
+  return redirect(href('/payments'))
 }

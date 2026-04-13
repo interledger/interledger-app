@@ -2,7 +2,6 @@ import logger from './lib/logger.server'
 
 export function envVarValidation() {
     try {
-
         const missing: string[] = []
 
         // Validation for variables required by Interledger Pay
@@ -32,7 +31,6 @@ function requireEnv(name: string, missing: string[]): string | undefined {
         missing.push(name)
         return undefined
     }
-
     return value
 }
 

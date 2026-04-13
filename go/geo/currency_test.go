@@ -1,6 +1,7 @@
 package geo
 
 import (
+	"encoding/json"
 	"math/big"
 	"testing"
 
@@ -644,6 +645,95 @@ func BenchmarkSetAmountString(b *testing.B) {
 		err := currency.SetAmountString(input)
 		if err != nil {
 			b.Errorf("SetAmountString failed: %v", err)
+		}
+	}
+}
+
+func TestCurrencyMarshalJSON(t *testing.T) {
+	cases := []struct {
+		asset  Asset
+		amount string
+		want   string
+	}{
+		{USD(), "123.45", `{"asset":"USD","amount":"123.45"}`},
+		{EUR(), "0.00", `{"asset":"EUR","amount":"0.00"}`},
+		{JPY(), "500", `{"asset":"JPY","amount":"500"}`},
+		{USD(), "-50.00", `{"asset":"USD","amount":"-50.00"}`},
+	}
+	for _, tc := range cases {
+		c := NewCurrency(tc.asset)
+		c.SetAmountString(tc.amount)
+		data, err := json.Marshal(c)
+		if err != nil {
+			t.Errorf("MarshalJSON(%s %s) error: %v", tc.asset.Code(), tc.amount, err)
+			continue
+		}
+		if string(data) != tc.want {
+			t.Errorf("MarshalJSON(%s %s) = %s, want %s", tc.asset.Code(), tc.amount, data, tc.want)
+		}
+	}
+}
+
+func TestCurrencyUnmarshalJSON(t *testing.T) {
+	cases := []struct {
+		input      string
+		wantAsset  string
+		wantAmount string
+		wantErr    bool
+	}{
+		{`{"asset":"USD","amount":"123.45"}`, "USD", "123.45", false},
+		{`{"asset":"JPY","amount":"500"}`, "JPY", "500", false},
+		{`{"asset":"EUR","amount":"-99.99"}`, "EUR", "-99.99", false},
+		{`{"asset":"USD","amount":"0.00"}`, "USD", "0.00", false},
+		{`{"asset":"XXX","amount":"1.00"}`, "", "", true},  // unsupported asset
+		{`{"asset":"USD","amount":"bad"}`, "", "", true},   // invalid amount
+		{`{"asset":"USD"}`, "", "", true},                  // missing amount
+		{`not json`, "", "", true},                         // malformed
+	}
+	for _, tc := range cases {
+		var c Currency
+		err := json.Unmarshal([]byte(tc.input), &c)
+		if (err != nil) != tc.wantErr {
+			t.Errorf("UnmarshalJSON(%s) error = %v, wantErr %v", tc.input, err, tc.wantErr)
+			continue
+		}
+		if err == nil {
+			if c.Code() != tc.wantAsset {
+				t.Errorf("UnmarshalJSON(%s) asset = %s, want %s", tc.input, c.Code(), tc.wantAsset)
+			}
+			if c.Amount() != tc.wantAmount {
+				t.Errorf("UnmarshalJSON(%s) amount = %s, want %s", tc.input, c.Amount(), tc.wantAmount)
+			}
+		}
+	}
+}
+
+func TestCurrencyRoundTripJSON(t *testing.T) {
+	cases := []struct {
+		asset  Asset
+		amount string
+	}{
+		{USD(), "123.45"},
+		{EUR(), "-0.01"},
+		{JPY(), "10000"},
+		{ZAR(), "0.00"},
+	}
+	for _, tc := range cases {
+		original := NewCurrency(tc.asset)
+		original.SetAmountString(tc.amount)
+
+		data, err := json.Marshal(original)
+		if err != nil {
+			t.Errorf("MarshalJSON(%s %s) error: %v", tc.asset.Code(), tc.amount, err)
+			continue
+		}
+		var got Currency
+		if err := json.Unmarshal(data, &got); err != nil {
+			t.Errorf("UnmarshalJSON(%s %s) error: %v", tc.asset.Code(), tc.amount, err)
+			continue
+		}
+		if !got.Equal(original) {
+			t.Errorf("round-trip(%s %s): got %s %s", tc.asset.Code(), tc.amount, got.Code(), got.Amount())
 		}
 	}
 }
