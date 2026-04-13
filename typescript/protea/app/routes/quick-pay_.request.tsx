@@ -1,19 +1,24 @@
 import type { Route } from './+types/quick-pay_.request'
-import { data } from 'react-router'
-import { useLoaderData } from 'react-router'
+import { data, redirect } from 'react-router'
+import { Form, useActionData, useLoaderData } from 'react-router'
 import type { MetaFunction } from 'react-router'
 import type { ApplicationProps } from '~/components'
-import { Layouts } from '~/components'
+import { Button, GridColumn, Layouts, TextField, WalletGrid } from '~/components'
+import { useState } from 'react'
 import { mergeMeta } from '~/lib/meta'
 import { AmountDisplay } from '~/components/QuickPay/Dialpad'
-import { createRequestPayment, formatAmount, formatDate, formatError, paymentSchema } from '~/lib/utils'
+import { formatAmount, formatDate, requestPaymentSchema, routeAllowed } from '~/lib/utils.server'
 import { useDialPadContext } from '~/lib/context/dialpad'
 import { QuickPaySession } from '~/lib/types'
 import { Icon } from '~/components/Icon'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
+import { formatError } from '~/lib/helpers'
+import { createRequestPayment } from '~/lib/open-payments.server'
+import { commitSession, getSession } from '~/session.server'
 import { z } from 'zod'
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
+  routeAllowed('OP_INTPAY_ENABLED')
   const session = await getSession(request.headers.get('Cookie'))
   const sessionData = session.get('quickPay')
   const walletAddressInfo = sessionData?.validWalletAddress
@@ -23,7 +28,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const showGeneratedRequest = !!incomingPayment
 
   if (walletAddressInfo === undefined) {
-    throw json(
+    throw data(
       {
         code: "QUICKPAY_SESSION_ERROR",
         title: "Payment session expired."
@@ -45,7 +50,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     note: incomingPayment?.note
   } : undefined
 
-  return json({
+  return data({
     walletAddress: walletAddressInfo.id,
     assetCode,
     incomingPaymentData,
@@ -54,7 +59,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export const handle: ApplicationProps = {
-  layout: Layouts.Focus,
+   layout: (_match, context) => context?.isUser ? Layouts.Wallet : Layouts.Marketing,
   scaffold: {
     header: { title: 'Interledger Pay' }
   }
@@ -88,9 +93,9 @@ export default function Page() {
 
     const showFallback = (message: string) => {
       pushSnackbar({
-        id: `share-${Date.now()}`, // unique ID
+        id: `share-${Date.now()}`,
         message,
-        icon: 'info' // optional (matches your UI system)
+        icon: 'info' 
       })
     }
 
@@ -208,10 +213,11 @@ export default function Page() {
   )
 }
 
-export async function action({ request }: LoaderFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const session = await getSession(request.headers.get('Cookie'))
   const sessionData: QuickPaySession = session.get('quickPay') || {}
   const formData = Object.fromEntries(await request.formData())
+  console.log({formData})
   const intent = formData.intent
   const path = '/quick-pay/request'
 
@@ -223,11 +229,12 @@ export async function action({ request }: LoaderFunctionArgs) {
     })
   }
 
-  const result = paymentSchema.safeParse(formData)
+  const result = requestPaymentSchema.safeParse(formData)
 
   if (!result.success || !result.data) {
     const errors = z.treeifyError(result.error).properties
-    return json({
+    console.log({errors})
+    return data({
       errors
     })
   }

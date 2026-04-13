@@ -31,7 +31,7 @@ export const walletSchema = z.object({
 })
 
 export const paymentSchema = z.object({
-  senderAddress: z.string().optional(),
+  senderAddress: z.string(),
   receiverAddress: z
     .string()
     .transform((val) => val.replace('$', 'https://'))
@@ -39,6 +39,10 @@ export const paymentSchema = z.object({
   amount: z.coerce.number(),
   note: z.string().optional()
 })
+
+export const requestPaymentSchema = paymentSchema.extend({
+  senderAddress: paymentSchema.shape.senderAddress.optional(),
+});
 
 function checkHrefFormat(href: string): void {
   let url: URL

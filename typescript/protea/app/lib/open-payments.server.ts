@@ -161,12 +161,12 @@ async function createIncomingPayment({
 }
 
 export async function createRequestPayment(args: {
-  walletAddress: string
+  receiverAddress: string
   amount: number
   note?: string
 }) {
   const opClient = await createClient()
-  const walletAddress = await getWalletAddress(args.walletAddress, opClient)
+  const walletAddress = await getWalletAddress(args.receiverAddress, opClient)
 
   const amountObj = {
     value: BigInt(
