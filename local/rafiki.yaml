@@ -46,6 +46,9 @@ services:
 
       - AUTH_SERVER_URL=https://auth.local.ilp.link
       - IDENTITY_SERVER_URL=https://interledger.test/consent
+      - OPERATOR_TENANT_ID=${BACKEND_OPERATOR_TENANT_ID:-}
+      - ADMIN_API_SECRET=${BACKEND_ADMIN_API_SECRET:-}
+      - SIGNATURE_VERSION=${BACKEND_SIGNATURE_VERSION:-1}
 
       # WTF is this?
       # Who designed this shit?
@@ -135,7 +138,9 @@ services:
       - PUBLIC_HOST=https://local.ilp.link
       - QUOTE_LIFESPAN=300000
 
-      - SIGNATURE_VERSION=1
+      - OPERATOR_TENANT_ID=${BACKEND_OPERATOR_TENANT_ID:-}
+      - ADMIN_API_SECRET=${BACKEND_ADMIN_API_SECRET:-}
+      - SIGNATURE_VERSION=${BACKEND_SIGNATURE_VERSION:-1}
       - SLIPPAGE=0.01
       - TIGERBEETLE_CLUSTER_ID=none
       - TIGERBEETLE_REPLICA_ADDRESSES=none
@@ -166,6 +171,7 @@ services:
       - NODE_ENV=production
 
       - GRAPHQL_URL=http://rafiki_backend:3001/graphql
+      - SIGNATURE_VERSION=${BACKEND_SIGNATURE_VERSION:-1}
 
       - AUTH_ENABLED=false
       - OPEN_PAYMENTS_URL=https://local.ilp.link
