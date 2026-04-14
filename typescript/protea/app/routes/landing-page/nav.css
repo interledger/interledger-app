@@ -1,0 +1,253 @@
+/* ==========================================================================
+   Navigation Bar
+   Identical to Framer reference site: Dark, rounded rectangle, links right
+   ========================================================================== */
+
+/* --- Nav height token (consumed by page content for top offset) --------- */
+
+:root {
+  --nav-height: 104px; /* Space below the 72px floating navbar + 16px offset + padding */
+}
+
+/* --- Nav bar ------------------------------------------------------------ */
+
+.nav {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  height: 72px; /* from subagent */
+  width: calc(100% - 32px);
+  max-width: 960px;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px; /* softer rounded rectangle */
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+}
+
+/* --- Nav inner container ------------------------------------------------ */
+
+.nav-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+  width: 100%;
+  padding-inline: 24px;
+}
+
+/* --- Right Group (Links + Button) --------------------------------------- */
+
+.nav-right-group {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+/* --- Logo --------------------------------------------------------------- */
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-family-heading, 'Inter', sans-serif);
+  font-weight: 600;
+  font-size: 0.875rem; /* ~14px */
+  color: #ffffff;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.nav-logo-icon {
+  width: 48px;
+  height: 48px;
+  /* Instead of pure div, it's an img */
+  object-fit: contain;
+}
+
+/* --- Nav links (center) ------------------------------------------------- */
+
+.nav-links {
+  display: none; /* hidden on mobile */
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 32px;
+}
+
+@media (min-width: 900px) {
+  .nav-links {
+    display: flex;
+    align-items: center;
+    /* absolute centering removed, it lives in normal flex flow */
+  }
+}
+
+.nav-link {
+  font-family: var(--font-family-body, 'Inter', sans-serif);
+  font-size: 0.8125rem; /* ~13px */
+  font-weight: 500;
+  color: #ffffff;
+  text-decoration: none;
+  transition: opacity 150ms ease;
+  padding: 4px 0;
+  opacity: 0.8;
+}
+
+.nav-link:hover {
+  opacity: 1;
+}
+
+/* --- Actions (right side) ----------------------------------------------- */
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+/* CTA button */
+.nav-cta {
+  display: none; /* hidden on mobile */
+  height: 48px; /* Slightly taller for rounded block aesthetic */
+  padding-inline: 20px;
+  font-family: var(--font-family-body, 'Inter', sans-serif);
+  font-size: 0.8125rem; /* ~13px */
+  font-weight: 600;
+  line-height: 48px; /* align text vertically */
+  color: #ffffff;
+  background: rgb(0, 126, 79);
+  border: none;
+  border-radius: 8px; /* Appears square-ish with slight rounding as per report */
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 150ms ease;
+}
+
+.nav-cta:hover {
+  background: rgb(0, 100, 60);
+  transform: scale(1.02);
+}
+
+@media (min-width: 900px) {
+  .nav-cta {
+    display: inline-flex;
+    align-items: center;
+  }
+}
+
+/* --- Menu button (mobile hamburger) ------------------------------------- */
+
+.menu-button {
+  display: flex; /* visible on mobile */
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: #ffffff;
+}
+
+.menu-button-icon {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+@media (min-width: 900px) {
+  .menu-button {
+    display: none; /* hidden on tablet+ */
+  }
+}
+
+/* --- Mobile overlay ----------------------------------------------------- */
+
+.nav-overlay {
+  position: fixed;
+  top: 96px; /* Below the floating nav top + nav height */
+  left: 16px;
+  right: 16px;
+  bottom: auto;
+  border-radius: 24px;
+  z-index: 99;
+  background: rgba(20, 20, 20, 0.95);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4);
+  animation: nav-overlay-enter 200ms ease-out;
+}
+
+@keyframes nav-overlay-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @keyframes nav-overlay-enter {
+    from {
+      opacity: 1;
+      transform: none;
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+
+.nav-overlay-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* Left aligned for mobile */
+  padding: 32px 24px;
+  gap: 24px;
+}
+
+.nav-overlay-links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 24px;
+  width: 100%;
+}
+
+.nav-link--mobile {
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: #ffffff;
+  padding: 8px 0;
+  width: 100%;
+}
+
+.nav-cta--mobile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-top: 16px;
+}
+
+/* --- Page content offset ------------------------------------------------ */
+
+/* Removed padding-top here. The .sticky-viewport inside HeroSection
+   handles its own padding-top so content doesn't overlap the nav,
+   while allowing the section background to stretch to the very top. */
+.page-content {
+}

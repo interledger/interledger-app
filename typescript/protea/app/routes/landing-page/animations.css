@@ -1,0 +1,61 @@
+/* ==========================================================================
+   Animation Utility Classes
+   CSS fallbacks + reduced-motion overrides.
+   Framer Motion handles scroll-driven animations in JS;
+   these classes cover entry effects and non-FM fallbacks.
+   ========================================================================== */
+
+/* --- Enter effect (on-load) ------------------------------------------- */
+
+.anim-enter {
+  opacity: 0;
+  transform: translateY(var(--anim-enter-offset, 24px));
+  transition:
+    opacity var(--anim-enter-duration, 700ms) var(--anim-enter-easing, ease-out),
+    transform var(--anim-enter-duration, 700ms) var(--anim-enter-easing, ease-out);
+}
+
+.anim-enter.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* --- Scroll fade & transform combined ----------------------------------- */
+/* Combine into one class so transition properties don't overwrite each other */
+
+.anim-scroll-fade-up {
+  opacity: 0;
+  transform: translateY(var(--anim-transform-start, 40px));
+  transition: 
+    opacity var(--anim-scroll-duration, 500ms) var(--anim-scroll-easing, ease-out),
+    transform var(--anim-scroll-duration, 500ms) var(--anim-scroll-easing, ease-out);
+}
+
+/* Stagger delay logic */
+.anim-stagger-1 { transition-delay: 50ms, 50ms; }
+.anim-stagger-2 { transition-delay: 150ms, 150ms; }
+.anim-stagger-3 { transition-delay: 250ms, 250ms; }
+
+.anim-scroll-fade-up.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* --- Stagger ----------------------------------------------------------- */
+
+.anim-stagger-child:nth-child(2) {
+  transition-delay: var(--anim-stagger-delay, 120ms);
+}
+
+/* --- Reduced motion override ------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-enter,
+  .anim-scroll-fade,
+  .anim-scroll-transform {
+    opacity: 1;
+    transform: none;
+    transition: none;
+    animation: none;
+  }
+}

@@ -4,7 +4,17 @@ import typographyTokens from "./tokens/typography.css?url";
 import typographyStylesheet from "./typography.css?url";
 import spacingTokens from "./tokens/spacing.css?url";
 import layoutStylesheet from "./layout.css?url";
+import animationTokens from "./tokens/animations.css?url";
+import animationStylesheet from "./animations.css?url";
+import navStylesheet from "./nav.css?url";
+import heroStylesheet from "./hero.css?url";
+import featureStylesheet from "./feature.css?url";
+import cardsStylesheet from "./cards.css?url";
 import { Layouts } from "~/components/Scaffold";
+import { PhoneCarouselProvider } from "./context/PhoneCarouselContext";
+import { Nav } from "./components/Nav";
+import { HeroSection } from "./components/HeroSection";
+import { PhysicalCards } from "./sections/PhysicalCards";
 
 export const handle = {
     layout: Layouts.LandingPage,
@@ -22,13 +32,24 @@ export const links: LinksFunction = () => [
     { rel: "stylesheet", href: typographyStylesheet },
     { rel: "stylesheet", href: spacingTokens },
     { rel: "stylesheet", href: layoutStylesheet },
+    { rel: "stylesheet", href: animationTokens },
+    { rel: "stylesheet", href: animationStylesheet },
+    { rel: "stylesheet", href: navStylesheet },
+    { rel: "stylesheet", href: heroStylesheet },
+    { rel: "stylesheet", href: featureStylesheet },
+    { rel: "stylesheet", href: cardsStylesheet },
 ];
 
 export default function LandingPage() {
     return (
-        <div style={{ backgroundColor: "var(--color-bg-page)", color: "var(--color-text-primary)", minHeight: "100vh" }}>
-            <h1 className="text-h1">Landing Page Route</h1>
-            <p className="text-body-lg-standard">Color and typography systems loaded with placeholder values.</p>
-        </div>
+        <PhoneCarouselProvider>
+            <div data-theme="dark" style={{ backgroundColor: "var(--color-bg-page)", color: "var(--color-text-primary)", minHeight: "100vh" }}>
+                <Nav />
+                <div className="page-content">
+                    <HeroSection />
+                </div>
+                <PhysicalCards />
+            </div>
+        </PhoneCarouselProvider>
     );
 }

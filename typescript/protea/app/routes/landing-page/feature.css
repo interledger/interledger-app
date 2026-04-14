@@ -1,0 +1,181 @@
+/* ==========================================================================
+   Feature Section Styles
+   Scrollytelling feature panels — absolute overlay within sticky viewport.
+   ========================================================================== */
+
+/* --- Feature panel ------------------------------------------------------ */
+/* One panel per feature, shown when its carousel screen is active.        */
+
+.feature-panel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 48px;
+  pointer-events: none;
+}
+
+.feature-panel.is-visible {
+  pointer-events: auto;
+}
+
+/* --- Phone spacer ------------------------------------------------------- */
+/* Transparent gap that mirrors the phone width so columns flank the phone. */
+
+.feature-phone-spacer {
+  flex: 0 0 200px; /* matches mobile phone width */
+}
+
+@media (min-width: 900px) {
+  .feature-phone-spacer {
+    flex: 0 0 260px; /* matches desktop phone width */
+  }
+}
+
+/* --- Feature columns ---------------------------------------------------- */
+
+.feature-col {
+  flex: 1;
+  min-width: 0;
+  padding: 0 32px;
+}
+
+.feature-col--right {
+  transition-delay: var(--anim-stagger-delay, 120ms);
+}
+
+/* --- Feature copy ------------------------------------------------------- */
+
+.feature-heading {
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.feature-body {
+  color: var(--color-text-secondary);
+  margin: 0 0 20px;
+}
+
+/* --- Feature widget (transaction card) ---------------------------------- */
+
+.feature-widget {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: 16px;
+  padding: 16px 20px;
+  max-width: 320px;
+}
+
+.feature-widget__avatar {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.feature-widget__body {
+  min-width: 0;
+  flex: 1;
+}
+
+.feature-widget__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.feature-widget__name {
+  font-size: var(--text-body-size, 16px);
+  font-weight: 500;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+}
+
+.feature-widget__amount {
+  font-size: var(--text-body-size, 16px);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.feature-widget__note {
+  margin: 0;
+  font-size: var(--text-body-sm-standard-size, 14px);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.feature-widget__timestamp {
+  margin: 2px 0 0;
+  font-size: var(--text-caption-size, 12px);
+  color: var(--color-text-secondary);
+  opacity: 0.7;
+}
+
+/* --- Background transition per active screen ---------------------------- */
+
+.animated-hero {
+  transition: background-color 600ms ease;
+}
+
+.animated-hero[data-screen='2'] {
+  background: #0d2818; /* feature 1: dark green */
+}
+
+.animated-hero[data-screen='3'] {
+  background: #002b36; /* feature 2: dark teal */
+}
+
+.animated-hero[data-screen='4'] {
+  background: #101010; /* feature 3: dark */
+}
+
+.animated-hero[data-screen='5'] {
+  background: #2b0d36; /* feature 4: dark purple */
+}
+
+/* --- Feature scroll step heights ---------------------------------------- */
+
+/* Feature 1 has two zones: enter (160px) + dwell (320px) */
+.scroll-step--feature-enter {
+  height: 160px;
+}
+
+.scroll-step--feature-dwell {
+  height: 200px;
+}
+
+/* --- Mobile: stacked layout --------------------------------------------- */
+
+@media (max-width: 899px) {
+  .feature-panel {
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 0 24px 48px;
+  }
+
+  .feature-phone-spacer {
+    display: none;
+  }
+
+  .feature-col {
+    padding: 0;
+    text-align: center;
+  }
+
+  .feature-widget {
+    margin-inline: auto;
+  }
+}

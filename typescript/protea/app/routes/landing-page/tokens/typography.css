@@ -5,7 +5,7 @@
   --font-body: 'Inter', system-ui, sans-serif;
 
   /* H1 */
-  --text-h1-size: 32px;
+  --text-h1-size: 40px;
   --text-h1-weight: 700;
   --text-h1-lh: 1.2;
   --text-h1-ls: -0.02em;
@@ -79,20 +79,20 @@
 
 @media (min-width: 900px) {
   :root {
-    --text-h1-size: 48px;
-    --text-h2-size: 40px;
-    --text-h3-size: 32px;
-    --text-h4-size: 24px;
-    --text-h5-size: 20px;
+    --text-h1-size: 64px;
+    --text-h2-size: 48px;
+    --text-h3-size: 36px;
+    --text-h4-size: 28px;
+    --text-h5-size: 22px;
   }
 }
 
 @media (min-width: 1440px) {
   :root {
-    --text-h1-size: 64px;
-    --text-h2-size: 48px;
-    --text-h3-size: 36px;
-    --text-h4-size: 28px;
-    --text-h5-size: 24px;
+    --text-h1-size: 88px;
+    --text-h2-size: 60px;
+    --text-h3-size: 44px;
+    --text-h4-size: 32px;
+    --text-h5-size: 26px;
   }
 }

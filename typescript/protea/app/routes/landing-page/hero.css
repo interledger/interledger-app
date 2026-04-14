@@ -1,0 +1,186 @@
+/* ==========================================================================
+   Animated Hero Section
+   Scrollytelling container: sticky viewport + scroll step spacers.
+   ========================================================================== */
+
+/* --- Outer container ---------------------------------------------------- */
+/* Total height = sum of scroll-step children. */
+
+.animated-hero {
+  position: relative;
+  overflow: clip; /* clip glow without becoming a scroll container (overflow:hidden breaks sticky) */
+  background: var(--section-bg-hero);
+  transition: background-color 600ms ease;
+  --glow-hero-color: rgba(34, 197, 94, 0.4); /* Green default */
+}
+
+.animated-hero[data-screen='3'] {
+  --glow-hero-color: rgba(0, 188, 212, 0.4); /* Teal */
+}
+
+.animated-hero[data-screen='4'] {
+  --glow-hero-color: rgba(255, 255, 255, 0.15); /* White/Dark */
+}
+
+.animated-hero[data-screen='5'] {
+  --glow-hero-color: rgba(147, 51, 234, 0.4); /* Purple */
+}
+
+/* --- Sticky viewport ---------------------------------------------------- */
+/* Pinned to screen while user scrolls through spacers.                     */
+
+.sticky-viewport {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  width: 100%;
+  overflow: clip; /* clip layout overflow without clipping position:absolute children */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: var(--nav-height, 72px);
+  text-align: center;
+}
+
+/* --- Hero content (headline + subhead) ---------------------------------- */
+
+.hero-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 16px 24px;
+  width: 100%;
+  position: relative;
+  z-index: 1; /* sits below the phone frame */
+}
+
+/* Scroll-parallax wrapper — transform is JS-driven, no CSS transition here */
+.hero-punch-scroll {
+  will-change: transform;
+  width: 100%;
+}
+
+/* Punch text container (h1 + subhead) — from Figma Hero Main punch frame   */
+/* Mobile: 360px full-width, 216px h  Tablet: 900px full-width, 172px h     */
+.hero-punch {
+  max-width: 900px;
+  margin-inline: auto;
+}
+
+.hero-headline {
+  margin: 0 0 16px;
+  color: var(--color-text-brand); /* green — from design reference */
+}
+
+.hero-subhead {
+  margin: 0;
+  color: var(--color-text-secondary);
+}
+
+/* --- Phone container ---------------------------------------------------- */
+
+.hero-phone-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  flex-shrink: 0;
+  width: 200px;
+  height: 433px;
+  margin-top: -24px; /* overlap the subheading text */
+  z-index: 2; /* sits above hero text */
+  transition: transform 800ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animated-hero:not([data-screen='1']) .hero-phone-container {
+  transform: scale(0.9);
+}
+
+@media (min-width: 900px) {
+  .hero-phone-container {
+    width: 260px;
+    height: 563px;
+    margin-top: -48px; /* overlap the subheading text */
+  }
+}
+
+/* --- Phone frame (iPhone chassis) --------------------------------------- */
+
+.phone-frame {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  border-radius: 44px; /* iPhone Pro corner radius */
+  background: #1c1c1e; /* iPhone chassis colour */
+  box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.1); /* subtle edge highlight */
+}
+
+/* Dynamic Island pill */
+.phone-dynamic-island {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90px;
+  height: 28px;
+  background: #000;
+  border-radius: 14px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Screen viewport — inset bezels, clips the screen image */
+.phone-screen-viewport {
+  position: absolute;
+  inset: 8px;
+  border-radius: 37px; /* slightly less than outer frame */
+  overflow: hidden;
+  background: #f5f5f5;
+}
+
+.phone-screen {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* --- Feature content slot ----------------------------------------------- */
+/* Absolute overlay on sticky-viewport; feature panels live inside.        */
+
+.feature-content-slot {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* --- Scroll step spacers ------------------------------------------------ */
+/* Invisible divs that create scroll height. CSS-controlled for responsive. */
+
+.scroll-step {
+  position: relative;
+  pointer-events: none;
+}
+
+/* Hero spacer — height of the hero "dwell" area.                          */
+/* Figma Hero Main: 880px desktop. Responsive approximation below.         */
+.scroll-step--hero {
+  height: 15vh; /* dramatically reduced to speed up first transition */
+}
+
+/* Feature spacers — added in tasks 07/08.                                 */
+/* Each feature gets ~1200px desktop scroll budget.                        */
+.scroll-step--feature {
+  height: 100vh;
+}
+
+@media (min-width: 900px) {
+  .scroll-step--hero {
+    height: 100px;
+  }
+  .scroll-step--feature {
+    height: 1200px;
+  }
+}
