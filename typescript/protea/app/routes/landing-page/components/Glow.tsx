@@ -1,46 +1,59 @@
 import type { CSSProperties } from "react"
+import { motion } from "framer-motion"
 
-type GlowType = "hero" | "default" | "type2"
+export interface GlowScrollTransform {
+  scale: number
+  rotate: number
+  y: number
+  opacity: number
+}
 
 interface GlowProps {
-  type?: GlowType
   x?: number | string
   y?: number | string
   className?: string
+  scrollTransform?: GlowScrollTransform
 }
 
-const GRADIENT_VAR: Record<GlowType, string> = {
-  hero:    "var(--glow-hero-color)",
-  default: "var(--glow-default-color)",
-  type2:   "var(--glow-type2-color)",
+const DEFAULT_TRANSFORM: GlowScrollTransform = {
+  scale: 1,
+  rotate: 0,
+  y: 0,
+  opacity: 0.5,
 }
 
 /**
- * Glow effect component.
- * Always 400×300px, absolutely positioned within its nearest relative parent.
- * Implemented as a CSS gradient + blur(140px) — matches Figma annotation
- * "Linear gradient + 140 Blur" from features-and-animations.md §7.
+ * Glow effect — Figma "Glow Gradient1" component.
+ * 400×300px, rounded-full, linear-gradient #FFBEBE → #48156E, blur 140px, opacity 0.5.
  *
- * Gradient colors are placeholder tokens (needs-verification from Figma visual inspection).
- *
- * @param type  - "hero" | "default" | "type2" (maps to CSS token)
- * @param x     - left offset within parent (px number or CSS string)
- * @param y     - top offset within parent (px number or CSS string)
+ * Enter effect: opacity 0 → target (600ms easeOut).
+ * Scroll transform: driven by scrollTransform prop (scale, rotate, y, opacity per screen).
  */
-export function Glow({ type = "default", x = 0, y = 0, className }: GlowProps) {
+export function Glow({ x = 0, y = 0, className, scrollTransform }: GlowProps) {
+  const t = scrollTransform ?? DEFAULT_TRANSFORM
+
   const style: CSSProperties = {
     position: "absolute",
     left: typeof x === "number" ? `${x}px` : x,
     top:  typeof y === "number" ? `${y}px` : y,
     width:  "400px",
     height: "300px",
-    background: GRADIENT_VAR[type],
-    filter: `blur(var(--glow-blur, 140px))`,
-    opacity: "var(--glow-opacity, 1)",
+    background: "linear-gradient(135deg, #FFBEBE 0%, #48156E 100%)",
+    filter: "blur(140px)",
+    borderRadius: "9999px",
     pointerEvents: "none",
     userSelect: "none",
     zIndex: 0,
   }
 
-  return <div aria-hidden="true" style={style} className={className} />
+  return (
+    <motion.div
+      aria-hidden="true"
+      style={style}
+      className={className}
+      initial={{ opacity: 0, x: "-50%", scale: DEFAULT_TRANSFORM.scale, rotate: DEFAULT_TRANSFORM.rotate, y: DEFAULT_TRANSFORM.y }}
+      animate={{ opacity: t.opacity, x: "-50%", scale: t.scale, rotate: t.rotate, y: t.y }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+    />
+  )
 }

@@ -1,13 +1,26 @@
 import { useRef, useState, useEffect } from "react"
 import { motion, useScroll, useTransform } from "framer-motion"
 import { Glow } from "./Glow"
+import type { GlowScrollTransform } from "./Glow"
 import { PhoneFrame } from "./PhoneFrame"
 import { ScrollStep } from "./ScrollStep"
 import { usePhoneCarousel } from "../context/PhoneCarouselContext"
+import type { CarouselScreen } from "../context/PhoneCarouselContext"
 import { Feature1 } from "../sections/Feature1"
 import { Feature2 } from "../sections/Feature2"
 import { Feature3 } from "../sections/Feature3"
 import { Feature4 } from "../sections/Feature4"
+
+// Per-screen glow transform — sourced from Figma Scroll Transform annotation.
+// Glow lives at sticky-viewport level (not inside phone container) so it persists across all screens.
+// y shifts −250px when entering feature screens; rotation increments 90° per section.
+const GLOW_STATES: Record<CarouselScreen, GlowScrollTransform> = {
+  1: { scale: 1.2, rotate: 0,   y: 0,    opacity: 1   },
+  2: { scale: 1,   rotate: 180, y: -250, opacity: 1   },
+  3: { scale: 1,   rotate: 270, y: -250, opacity: 0.5 },
+  4: { scale: 1,   rotate: 360, y: -250, opacity: 1   },
+  5: { scale: 1,   rotate: 450, y: -250, opacity: 1   },
+}
 
 /**
  * Animated Hero Section — scrollytelling container.
@@ -70,6 +83,9 @@ export function HeroSection() {
             </div>
           </motion.div>
         </div>
+
+        {/* Glow — ambient backdrop behind phone + feature text; persists across all screens */}
+        <Glow x="50%" y={300} scrollTransform={GLOW_STATES[activeScreen]} />
 
         <PhoneFrame />
 

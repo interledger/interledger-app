@@ -7,7 +7,6 @@ import screen2 from "../assets/screen2.png"
 import screen3 from "../assets/screen3.png"
 import screen4 from "../assets/screen4.png"
 import screen5 from "../assets/screen5.png"
-import { Glow } from "./Glow"
 
 const SCREEN_ASSETS: Record<CarouselScreen, string> = {
   1: startScreen,
@@ -33,8 +32,6 @@ export function PhoneFrame() {
 
   return (
     <div className="hero-phone-container">
-      <Glow type="hero" x={-70} y={80} />
-
       <div className="phone-frame" aria-label={`App screen ${activeScreen}`}>
         <div className="phone-dynamic-island" />
         <div className="phone-screen-viewport">
