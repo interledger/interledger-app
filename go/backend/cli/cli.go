@@ -116,6 +116,9 @@ type StartArgs struct {
 	PTISDKURL                     string
 	PTIFormsURL                   string
 	PTIPublicKeyJWK               string
+	PersonaBaseURL                string
+	PersonaToken                  string
+	PersonaWebhookToken           string
 	AppleAppID                    string
 	AndroidPackageName            string
 	AndroidSHA256                 string
@@ -198,14 +201,19 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, errors.New("ZENDESK_TOKEN is required")
 	}
 
+	personaBaseURL := os.Getenv("PERSONA_BASE_URL")
+	if personaBaseURL == "" {
+		personaBaseURL = "https://api.withpersona.com/api/v1/"
+	}
+
 	personaToken := os.Getenv("PERSONA_TOKEN")
-	if personaToken == "" && env.IsProd() {
-		return nil, errors.New("PERSONA_TOKEN is required in prod")
+	if personaToken == "" {
+		return nil, errors.New("PERSONA_TOKEN is required")
 	}
 
 	personaWebhook := os.Getenv("PERSONA_WEBHOOK_TOKEN")
-	if personaWebhook == "" && env.IsProd() {
-		return nil, errors.New("PERSONA_WEBHOOK_TOKEN is required in prod")
+	if personaWebhook == "" {
+		return nil, errors.New("PERSONA_WEBHOOK_TOKEN is required")
 	}
 
 	twitterClientId := os.Getenv("TWITTER_CLIENT_ID")
@@ -520,6 +528,9 @@ func ParseStartArgs() (*StartArgs, error) {
 		PTISDKURL:                     ptiSDKURL,
 		PTIFormsURL:                   ptiFormsURL,
 		PTIPublicKeyJWK:               ptiPublicKeyJWK,
+		PersonaBaseURL:                personaBaseURL,
+		PersonaToken:                  personaToken,
+		PersonaWebhookToken:           personaWebhook,
 		AppleAppID:                    appleAppID,
 		AndroidPackageName:            androidPackageName,
 		AndroidSHA256:                 androidSHA256,

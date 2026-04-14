@@ -1,6 +1,6 @@
 Feature: Deposit Funds
   As a verified user with KYC approved
-  I want to deposit EUR into my wallet
+  I want to deposit funds into my wallet
   So that I can have funds available for payments
 
   Background:
@@ -77,3 +77,31 @@ Feature: Deposit Funds
     And I navigate to the deposit page
     And I deposit "100" "USD" via the PTI deposit form
     Then I should see my balance updated with "100" "USD"
+
+  @deposit @xago
+  Scenario: Successfully deposit 1000 ZAR into Xago wallet
+    Given the details of 'xago-deposit-user' are
+      | field           | value                        |
+      | emailSuffix     | xago-deposit@example.com     |
+      | password        | InterlEdger2025!TestPassword |
+      | country         | South Africa                 |
+      | firstName       | Thabo                        |
+      | lastName        | Mbeki                        |
+      | dateOfBirth     | 1990-01-15                   |
+    And I complete the minimal KYC flow `xago-deposit-user`
+    When I simulate a Xago test deposit of "1000" "ZAR"
+    Then I should see my balance updated with "1000" "ZAR"
+
+  @deposit @xago
+  Scenario: Successfully deposit 2500 ZAR into Xago wallet
+    Given the details of 'xago-deposit-user' are
+      | field           | value                        |
+      | emailSuffix     | xago-deposit@example.com     |
+      | password        | InterlEdger2025!TestPassword |
+      | country         | South Africa                 |
+      | firstName       | Thabo                        |
+      | lastName        | Mbeki                        |
+      | dateOfBirth     | 1990-01-15                   |
+    And I complete the minimal KYC flow `xago-deposit-user`
+    When I simulate a Xago test deposit of "2500" "ZAR"
+    Then I should see my balance updated with "2500" "ZAR"
