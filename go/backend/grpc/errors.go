@@ -21,24 +21,29 @@ import (
 	"gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/log"
+	pb "gitlab.com/fynbos/proto/backend/v1"
+
 	"go.uber.org/zap"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/protoadapt"
 )
 
+const VALIDATION_ERR_MSG = "Some fields are incorrect."
+
 var errorStatus = map[error]error{
-	user.ErrNoUserFound:            status.Error(codes.Unauthenticated, "Unauthenticated"),
-	twilio.ErrInvalidOTP:           NewValidationError("OTP", "Could not validate OTP"),
-	wallets.ErrDuplicateWallet:     status.Error(codes.AlreadyExists, "Wallet already exists"),
-	wallets.ErrWalletConflict:      status.Error(codes.FailedPrecondition, "Wallet already exists but with different configuration than requested (for example, country, currency, or addresses)"),
-	linkedaccounts.ErrNotFound:     NotFoundError("linked account not found"),
-	signup.ErrDuplicatePhone:       status.Error(codes.AlreadyExists, "Phone number already exists with a user."),
-	identities.ErrAlreadyExists:    status.Error(codes.AlreadyExists, "Identity already exists"),
-	wallets.ErrNoWalletFound:       NotFoundError("wallet address not found"),
-	payments.ErrRequiredActions:    status.Error(codes.FailedPrecondition, "Required details missing for payment"),
+	user.ErrNoUserFound:            newError(codes.Unauthenticated, pb.ErrorCode_ERROR_CODE_USER_NO_USER_FOUND, "Unauthenticated", nil),
+	twilio.ErrInvalidOTP:           newValidationErrorSingleField(pb.ErrorCode_ERROR_CODE_TWILIO_INVALID_OTP, "OTP", "Could not validate OTP"),
+	wallets.ErrDuplicateWallet:     newError(codes.AlreadyExists, pb.ErrorCode_ERROR_CODE_WALLETS_DUPLICATE_WALLET, "Wallet already exists", nil),
+	wallets.ErrWalletConflict:      newError(codes.FailedPrecondition, pb.ErrorCode_ERROR_CODE_WALLETS_WALLET_CONFLICT, "Wallet already exists but with different configuration than requested (for example, country, currency, or addresses)", nil),
+	linkedaccounts.ErrNotFound:     newError(codes.NotFound, pb.ErrorCode_ERROR_CODE_LINKEDACC_NOT_FOUND, "Not found: linked account not found", nil),
+	signup.ErrDuplicatePhone:       newError(codes.AlreadyExists, pb.ErrorCode_ERROR_CODE_SIGNUP_DUPLICATE_PHONE, "Phone number already exists with a user.", nil),
+	identities.ErrAlreadyExists:    newError(codes.AlreadyExists, pb.ErrorCode_ERROR_CODE_IDENTITIES_ALREADY_EXISTS, "Identity already exists", nil),
+	wallets.ErrNoWalletFound:       newError(codes.NotFound, pb.ErrorCode_ERROR_CODE_WALLETS_NO_WALLET_FOUND, "Not found: wallet address not found", nil),
+	payments.ErrRequiredActions:    newError(codes.FailedPrecondition, pb.ErrorCode_ERROR_CODE_PAYMENTS_REQUIRED_ACTIONS, "Required details missing for payment", nil),
 	payments.ErrInsufficientFunds:  PaymentInsufficientFundsError(),
-	kyc.ErrKYCResubmissionRequired: status.Error(codes.FailedPrecondition, "KYC resubmission required: please update your verification documents"),
+	kyc.ErrKYCResubmissionRequired: newError(codes.FailedPrecondition, pb.ErrorCode_ERROR_CODE_KYC_RESUBMISSION_REQUIRED, "KYC resubmission required: please update your verification documents", nil),
 }
 
 func validationDesc(fe validator.FieldError) string {
@@ -109,80 +114,70 @@ func toGRPCError(err error) error {
 	// Default to a generic error and log
 	_ = sentry.CaptureException(err)
 	log.Error("Unexpected error", zap.Error(err))
-	return status.Error(codes.Internal, "Internal server error")
+	return newInternalError("Internal server error")
 }
 
 func NewValidationError(field string, description string) error {
-	st := status.New(codes.InvalidArgument, "Some fields are incorrect.")
+	st := status.New(codes.InvalidArgument, VALIDATION_ERR_MSG)
+
 	br := &errdetails.BadRequest{}
+	appendBrFieldViolation(br, field, description)
 
-	v := &errdetails.BadRequest_FieldViolation{
-		Field:       field,
-		Description: description,
+	fields := []*pb.AppErrorField{newAppErrorField(field, description)}
+	appError := &pb.AppError{
+		ErrorCode: pb.ErrorCode_ERROR_CODE_BAD_REQUEST,
+		Message:   VALIDATION_ERR_MSG,
+		Fields:    fields,
 	}
-	br.FieldViolations = append(br.FieldViolations, v)
 
-	st, err := st.WithDetails(br)
-	if err != nil {
-		// If this errored, it will always error
-		// here, so better panic so we can figure
-		// out why than have this silently passing.
-		panic(fmt.Sprintf("Unexpected error attaching metadata: %v", err))
-	}
-	return st.Err()
+	return statusWithDetails(st, br, appError).Err()
 }
 
 func NewTwilioError(field string, description string) error {
-	st := status.New(codes.InvalidArgument, "Some fields are incorrect.")
+	st := status.New(codes.InvalidArgument, VALIDATION_ERR_MSG)
+
 	br := &errdetails.BadRequest{}
-
-	v := &errdetails.BadRequest_FieldViolation{
-		Field:       field,
-		Description: description,
-	}
-	br.FieldViolations = append(br.FieldViolations, v)
-
+	appendBrFieldViolation(br, field, description)
 	metadata := &errdetails.ErrorInfo{
 		Reason: "TwilioError",
 	}
 
-	st, err := st.WithDetails(br, metadata)
-	if err != nil {
-		// If this errored, it will always error
-		// here, so better panic so we can figure
-		// out why than have this silently passing.
-		panic(fmt.Sprintf("Unexpected error attaching metadata: %v", err))
+	// TODO maybe a TWILIO specific error code?
+	fields := []*pb.AppErrorField{newAppErrorField(field, description)}
+	appError := &pb.AppError{
+		ErrorCode: pb.ErrorCode_ERROR_CODE_BAD_REQUEST,
+		Message:   VALIDATION_ERR_MSG,
+		Fields:    fields,
 	}
-	return st.Err()
+
+	return statusWithDetails(st, br, metadata, appError).Err()
 }
 
 // Validation error will build an immutable error representing the status of the response.
 func ValidationError(err error, description func(validator.FieldError) string) error {
 	var validatorError validator.ValidationErrors
+
 	if errors.As(err, &validatorError) {
-		st := status.New(codes.InvalidArgument, "Some fields are incorrect.")
+		st := status.New(codes.InvalidArgument, VALIDATION_ERR_MSG)
 		br := &errdetails.BadRequest{}
 
+		fields := []*pb.AppErrorField{}
 		for _, err := range validatorError {
-			v := &errdetails.BadRequest_FieldViolation{
-				Field:       err.Field(),
-				Description: description(err),
-			}
-			br.FieldViolations = append(br.FieldViolations, v)
+			appendBrFieldViolation(br, err.Field(), description(err))
+			appendAppErrField(fields, err.Field(), description(err))
 		}
 
-		st, err := st.WithDetails(br)
-		if err != nil {
-			// If this errored, it will always error
-			// here, so better panic so we can figure
-			// out why than have this silently passing.
-			panic(fmt.Sprintf("Unexpected error attaching metadata: %v", err))
+		appError := &pb.AppError{
+			ErrorCode: pb.ErrorCode_ERROR_CODE_BAD_REQUEST,
+			Message:   VALIDATION_ERR_MSG,
+			Fields:    fields,
 		}
-		return st.Err()
+
+		return statusWithDetails(st, br, appError).Err()
 	}
 
 	// Default to Internal error if not validation error.
-	return status.Error(codes.Internal, "Internal server error: Validation error")
+	return newInternalError("Internal server error: Validation error")
 }
 
 func CardPreconditionError(subject, description string) error {
@@ -200,7 +195,7 @@ func CardPreconditionError(subject, description string) error {
 	st, err := st.WithDetails(p)
 	if err != nil {
 		log.Error("failed to encode card precondition error", zap.Error(err))
-		return status.Error(codes.Internal, "Internal server error: precondition error")
+		return newInternalError("Internal server error: precondition error")
 	}
 
 	return st.Err()
@@ -250,14 +245,15 @@ func PaymentPreconditionError(preconditions []payments.RequiredActionType) error
 	st, err := st.WithDetails(p)
 	if err != nil {
 		log.Error("failed to encode payment precondition error", zap.Error(err))
-		return status.Error(codes.Internal, "Internal server error: precondition error")
+		return newInternalError("Internal server error: precondition error")
 	}
 
 	return st.Err()
 }
 
 func PaymentInsufficientFundsError() error {
-	st := status.New(codes.FailedPrecondition, "Failed precondition")
+	errMsg := "Failed precondition"
+	st := status.New(codes.FailedPrecondition, errMsg)
 	p := &errdetails.PreconditionFailure{}
 
 	p.Violations = append(p.Violations, &errdetails.PreconditionFailure_Violation{
@@ -266,42 +262,104 @@ func PaymentInsufficientFundsError() error {
 		Description: "Insufficient Funds",
 	})
 
-	st, err := st.WithDetails(p)
+	appError := &pb.AppError{
+		ErrorCode: pb.ErrorCode_ERROR_CODE_PAYMENTS_INSUFFICIENT_FUNDS,
+		Message:   errMsg,
+	}
+
+	st, err := st.WithDetails(p, appError)
 	if err != nil {
 		log.Error("failed to encode payment insufficient funds error", zap.Error(err))
-		return status.Error(codes.Internal, "Internal server error: precondition error")
+		return newInternalError("Internal server error: precondition error")
 	}
 
 	return st.Err()
 }
 
-// Validation error will build an immutable error representing the status of the response.
 func InternalError(message string) error {
-	return status.Error(codes.Internal, "Internal server error: "+message)
+	return newInternalError("Internal server error: " + message)
 }
 
-// Validation error will build an immutable error representing the status of the response.
 func ForbiddenError(message string) error {
-	return status.Error(codes.PermissionDenied, "Forbidden: "+message)
+	return newError(codes.PermissionDenied, pb.ErrorCode_ERROR_CODE_FORBIDDEN, "Forbidden: "+message, nil)
 }
 
 func UnauthenticatedError(message string) error {
-	return status.Error(codes.Unauthenticated, "Unauthenticated: "+message)
+	return newError(codes.Unauthenticated, pb.ErrorCode_ERROR_CODE_UNAUTHENTICATED, "Unauthenticated: "+message, nil)
 }
 
-// Not found error will build an immutable error representing the status of the response.
 func NotFoundError(message string) error {
-	return status.Error(codes.NotFound, "Not found: "+message)
+	return newError(codes.NotFound, pb.ErrorCode_ERROR_CODE_NOT_FOUND, "Not found: "+message, nil)
 }
 
 func AlreadyExistsError(message string) error {
-	return status.Error(codes.AlreadyExists, "Already exists: "+message)
+	return newError(codes.AlreadyExists, pb.ErrorCode_ERROR_CODE_CONFLICT, "Already exists: "+message, nil)
 }
 
 func FailedPreconditionError(message string) error {
-	return status.Error(codes.FailedPrecondition, "Failed precondition: "+message)
+	return newError(codes.FailedPrecondition, pb.ErrorCode_ERROR_CODE_BAD_REQUEST, "Failed precondition: "+message, nil)
 }
 
-func UnavailableError(message string) error {
-	return status.Error(codes.Unavailable, "Unavailable: "+message)
+func newInternalError(msg string) error {
+	return newError(codes.Internal, pb.ErrorCode_ERROR_CODE_INTERNAL, msg, nil)
+}
+
+func newError(grpcCode codes.Code, appErrCode pb.ErrorCode, msg string, fields []*pb.AppErrorField) error {
+	st := status.New(grpcCode, msg)
+
+	appError := &pb.AppError{
+		ErrorCode: appErrCode,
+		Message:   msg,
+		Fields:    fields,
+	}
+
+	return statusWithDetails(st, appError).Err()
+}
+
+func newValidationErrorSingleField(appErrCode pb.ErrorCode, field string, fieldError string) error {
+	return newValidationError(appErrCode, []*pb.AppErrorField{newAppErrorField(field, fieldError)})
+}
+
+func newValidationError(appErrCode pb.ErrorCode, fields []*pb.AppErrorField) error {
+	st := status.New(codes.InvalidArgument, VALIDATION_ERR_MSG)
+
+	appError := &pb.AppError{
+		ErrorCode: appErrCode,
+		Message:   VALIDATION_ERR_MSG,
+		Fields:    fields,
+	}
+
+	return statusWithDetails(st, appError).Err()
+}
+
+func newAppErrorField(field string, description string) *pb.AppErrorField {
+	return &pb.AppErrorField{
+		Field: field,
+		Error: description,
+	}
+}
+
+// statusWithDetails attaches details to a status, panicking if it fails.
+func statusWithDetails(st *status.Status, details ...protoadapt.MessageV1) *status.Status {
+	result, err := st.WithDetails(details...)
+	if err != nil {
+		// If this errored, it will always error
+		// here, so better panic so we can figure
+		// out why than have this silently passing.
+		panic(fmt.Sprintf("Unexpected error attaching metadata: %v", err))
+	}
+	return result
+}
+
+func appendBrFieldViolation(br *errdetails.BadRequest, field string, description string) {
+	v := &errdetails.BadRequest_FieldViolation{
+		Field:       field,
+		Description: description,
+	}
+	br.FieldViolations = append(br.FieldViolations, v)
+}
+
+func appendAppErrField(fields []*pb.AppErrorField, field string, description string) []*pb.AppErrorField {
+	result := append(fields, newAppErrorField(field, description))
+	return result
 }

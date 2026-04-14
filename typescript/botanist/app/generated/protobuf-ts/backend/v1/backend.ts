@@ -2734,6 +2734,40 @@ export interface VerifyIdentityRequest {
     id: string;
 }
 /**
+ * @generated from protobuf message backend.v1.AppError
+ */
+export interface AppError {
+    /**
+     * @generated from protobuf field: backend.v1.ErrorCode errorCode = 1;
+     */
+    errorCode: ErrorCode;
+    /**
+     * @generated from protobuf field: string message = 2;
+     */
+    message: string;
+    /**
+     * @generated from protobuf field: repeated backend.v1.AppErrorField fields = 3;
+     */
+    fields: AppErrorField[];
+    /**
+     * @generated from protobuf field: string reqId = 4;
+     */
+    reqId: string;
+}
+/**
+ * @generated from protobuf message backend.v1.AppErrorField
+ */
+export interface AppErrorField {
+    /**
+     * @generated from protobuf field: string field = 1;
+     */
+    field: string;
+    /**
+     * @generated from protobuf field: string error = 2;
+     */
+    error: string;
+}
+/**
  * @generated from protobuf enum backend.v1.CardTokenType
  */
 export enum CardTokenType {
@@ -2922,6 +2956,100 @@ export enum CardLockLevel {
      * @generated from protobuf enum value: CARD_LOCK_LEVEL_ADMIN = 3;
      */
     ADMIN = 3
+}
+/**
+ * @generated from protobuf enum backend.v1.ErrorCode
+ */
+export enum ErrorCode {
+    /**
+     * Protobuf requires 0 to be the first entry.
+     *
+     * @generated from protobuf enum value: ERROR_CODE_UNSPECIFIED = 0;
+     */
+    UNSPECIFIED = 0,
+    /**
+     * Generic codes, intentionally similar to HTTP status codes
+     *
+     * @generated from protobuf enum value: ERROR_CODE_BAD_REQUEST = 1400;
+     */
+    BAD_REQUEST = 1400,
+    /**
+     * @generated from protobuf enum value: ERROR_CODE_UNAUTHENTICATED = 1401;
+     */
+    UNAUTHENTICATED = 1401,
+    /**
+     * @generated from protobuf enum value: ERROR_CODE_FORBIDDEN = 1403;
+     */
+    FORBIDDEN = 1403,
+    /**
+     * @generated from protobuf enum value: ERROR_CODE_NOT_FOUND = 1404;
+     */
+    NOT_FOUND = 1404,
+    /**
+     * @generated from protobuf enum value: ERROR_CODE_CONFLICT = 1409;
+     */
+    CONFLICT = 1409,
+    /**
+     * @generated from protobuf enum value: ERROR_CODE_INTERNAL = 1500;
+     */
+    INTERNAL = 1500,
+    /**
+     * Business-specific codes. Format:
+     * - First digit: no particular meaning
+     * - Next three digits: package identifier
+     * - Last three digits: error identifier
+     *
+     * @generated from protobuf enum value: ERROR_CODE_USER_NO_USER_FOUND = 1001001;
+     */
+    USER_NO_USER_FOUND = 1001001,
+    /**
+     * @generated from protobuf enum value: ERROR_CODE_USER_AAL1_REQUIRED = 1001002;
+     */
+    USER_AAL1_REQUIRED = 1001002,
+    /**
+     * @generated from protobuf enum value: ERROR_CODE_USER_AAL2_REQUIRED = 1001003;
+     */
+    USER_AAL2_REQUIRED = 1001003,
+    /**
+     * @generated from protobuf enum value: ERROR_CODE_TWILIO_INVALID_OTP = 1002001;
+     */
+    TWILIO_INVALID_OTP = 1002001,
+    /**
+     * @generated from protobuf enum value: ERROR_CODE_WALLETS_DUPLICATE_WALLET = 1003001;
+     */
+    WALLETS_DUPLICATE_WALLET = 1003001,
+    /**
+     * @generated from protobuf enum value: ERROR_CODE_WALLETS_WALLET_CONFLICT = 1003002;
+     */
+    WALLETS_WALLET_CONFLICT = 1003002,
+    /**
+     * @generated from protobuf enum value: ERROR_CODE_WALLETS_NO_WALLET_FOUND = 1003003;
+     */
+    WALLETS_NO_WALLET_FOUND = 1003003,
+    /**
+     * @generated from protobuf enum value: ERROR_CODE_LINKEDACC_NOT_FOUND = 1004001;
+     */
+    LINKEDACC_NOT_FOUND = 1004001,
+    /**
+     * @generated from protobuf enum value: ERROR_CODE_SIGNUP_DUPLICATE_PHONE = 1005001;
+     */
+    SIGNUP_DUPLICATE_PHONE = 1005001,
+    /**
+     * @generated from protobuf enum value: ERROR_CODE_IDENTITIES_ALREADY_EXISTS = 1006001;
+     */
+    IDENTITIES_ALREADY_EXISTS = 1006001,
+    /**
+     * @generated from protobuf enum value: ERROR_CODE_PAYMENTS_REQUIRED_ACTIONS = 1007001;
+     */
+    PAYMENTS_REQUIRED_ACTIONS = 1007001,
+    /**
+     * @generated from protobuf enum value: ERROR_CODE_PAYMENTS_INSUFFICIENT_FUNDS = 1007002;
+     */
+    PAYMENTS_INSUFFICIENT_FUNDS = 1007002,
+    /**
+     * @generated from protobuf enum value: ERROR_CODE_KYC_RESUBMISSION_REQUIRED = 1008001;
+     */
+    KYC_RESUBMISSION_REQUIRED = 1008001
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class PaginationRequest$Type extends MessageType<PaginationRequest> {
@@ -12686,6 +12814,128 @@ class VerifyIdentityRequest$Type extends MessageType<VerifyIdentityRequest> {
  * @generated MessageType for protobuf message backend.v1.VerifyIdentityRequest
  */
 export const VerifyIdentityRequest = new VerifyIdentityRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class AppError$Type extends MessageType<AppError> {
+    constructor() {
+        super("backend.v1.AppError", [
+            { no: 1, name: "errorCode", kind: "enum", T: () => ["backend.v1.ErrorCode", ErrorCode, "ERROR_CODE_"] },
+            { no: 2, name: "message", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "fields", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => AppErrorField },
+            { no: 4, name: "reqId", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<AppError>): AppError {
+        const message = { errorCode: 0, message: "", fields: [], reqId: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<AppError>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: AppError): AppError {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* backend.v1.ErrorCode errorCode */ 1:
+                    message.errorCode = reader.int32();
+                    break;
+                case /* string message */ 2:
+                    message.message = reader.string();
+                    break;
+                case /* repeated backend.v1.AppErrorField fields */ 3:
+                    message.fields.push(AppErrorField.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* string reqId */ 4:
+                    message.reqId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: AppError, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* backend.v1.ErrorCode errorCode = 1; */
+        if (message.errorCode !== 0)
+            writer.tag(1, WireType.Varint).int32(message.errorCode);
+        /* string message = 2; */
+        if (message.message !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.message);
+        /* repeated backend.v1.AppErrorField fields = 3; */
+        for (let i = 0; i < message.fields.length; i++)
+            AppErrorField.internalBinaryWrite(message.fields[i], writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        /* string reqId = 4; */
+        if (message.reqId !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.reqId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.AppError
+ */
+export const AppError = new AppError$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class AppErrorField$Type extends MessageType<AppErrorField> {
+    constructor() {
+        super("backend.v1.AppErrorField", [
+            { no: 1, name: "field", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "error", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<AppErrorField>): AppErrorField {
+        const message = { field: "", error: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<AppErrorField>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: AppErrorField): AppErrorField {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string field */ 1:
+                    message.field = reader.string();
+                    break;
+                case /* string error */ 2:
+                    message.error = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: AppErrorField, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string field = 1; */
+        if (message.field !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.field);
+        /* string error = 2; */
+        if (message.error !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.error);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.AppErrorField
+ */
+export const AppErrorField = new AppErrorField$Type();
 /**
  * @generated ServiceType for protobuf service backend.v1.BackendService
  */
