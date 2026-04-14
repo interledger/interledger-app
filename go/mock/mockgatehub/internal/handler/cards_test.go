@@ -173,7 +173,6 @@ func seedCard(t *testing.T, store *storage.MemoryStorage) (customerID, accountID
 		NameOnCard:       "Test User",
 		Status:           consts.CardStatusActive,
 		MaskedPan:        "123456******7890",
-		ExpiryDate:       "2028-01-01",
 	}
 	require.NoError(t, store.CreateCard(card))
 	return cid, aid, caid

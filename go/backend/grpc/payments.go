@@ -150,6 +150,11 @@ func (s *rpcService) CreatePayment(ctx context.Context, req *pb.CreatePaymentReq
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
+
+	err = s.validateKYCTransactionRestrictions(ctx, w.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
 	// check receiver KYC.
 	receiverWallet, err := s.b.Wallets().GetFromAddress(ctx, req.ReceiverIdentity)
 	if err != nil {
@@ -224,6 +229,12 @@ func (s *rpcService) UpdatePayment(ctx context.Context, req *pb.UpdatePaymentReq
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
+
+	err = s.validateKYCTransactionRestrictions(ctx, w.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
 	p, err := s.b.Payments().Lookup(ctx, req.Id)
 	if err != nil {
 		return nil, toGRPCError(err)
@@ -336,6 +347,11 @@ func (s *rpcService) ConfirmPayment(ctx context.Context, req *pb.ConfirmPaymentR
 	w, err := s.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	err = s.validateKYCTransactionRestrictions(ctx, w.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
 	}
 
 	p, err := s.b.Payments().Lookup(ctx, req.Id)

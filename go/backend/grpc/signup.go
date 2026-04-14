@@ -2,8 +2,13 @@ package grpc
 
 import (
 	"context"
+	"os"
+	"strings"
 
+	"gitlab.com/fynbos/backend/agreements"
 	"gitlab.com/fynbos/backend/signup"
+	"gitlab.com/fynbos/log"
+	"go.uber.org/zap"
 	pb "gitlab.com/fynbos/proto/backend/v1"
 )
 
@@ -76,5 +81,31 @@ func (s *rpcService) CompleteSignup(ctx context.Context, req *pb.CompleteSignupR
 		return nil, toGRPCError(err)
 	}
 
+	agreementIDs := getSignupAgreementIDs()
+	if len(agreementIDs) > 0 {
+		signErr := s.b.Agreements().Sign(ctx, &agreements.SignArgs{
+			AgreementIDs: agreementIDs,
+			UserID:       req.UserId,
+		})
+		if signErr != nil {
+			log.Warn("complete_signup: failed to record agreement signatures", zap.Error(signErr), zap.String("userId", req.UserId))
+		}
+	}
+
 	return &pb.Empty{}, nil
+}
+
+func getSignupAgreementIDs() []string {
+	// SIGNUP_AGREEMENT_IDS is comma-separated (e.g. "privacy_policy-0.0.0,terms_of_service-0.0.0")
+	raw := os.Getenv("SIGNUP_AGREEMENT_IDS")
+	if raw == "" {
+		return nil
+	}
+	var ids []string
+	for _, s := range strings.Split(raw, ",") {
+		if id := strings.TrimSpace(s); id != "" {
+			ids = append(ids, id)
+		}
+	}
+	return ids
 }

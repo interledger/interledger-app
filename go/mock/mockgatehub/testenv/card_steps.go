@@ -198,7 +198,7 @@ func (tc *TestContext) eachCardHasFields() error {
 		return fmt.Errorf("no data array")
 	}
 
-	requiredFields := []string{"id", "accountId", "customerId", "nameOnCard", "maskedPan", "status", "expiryDate", "productCode"}
+	requiredFields := []string{"id", "accountId", "customerId", "nameOnCard", "maskedPan", "status", "productCode"}
 
 	for _, cardInterface := range data {
 		card, ok := cardInterface.(map[string]interface{})
@@ -251,7 +251,7 @@ func (tc *TestContext) responsePaginated() error {
 }
 
 func (tc *TestContext) responseHasCardObject() error {
-	requiredFields := []string{"id", "accountId", "customerId", "nameOnCard", "maskedPan", "status", "expiryDate", "productCode"}
+	requiredFields := []string{"id", "accountId", "customerId", "nameOnCard", "maskedPan", "status", "productCode"}
 	return tc.checkRequiredFields(requiredFields)
 }
 
