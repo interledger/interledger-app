@@ -25,6 +25,6 @@
   --glow-hero-color: radial-gradient(ellipse at center, rgba(200, 140, 90, 0.55) 0%, rgba(160, 100, 50, 0.2) 45%, transparent 70%); /* warm amber/brown — matches Framer reference */
   --glow-default-color: radial-gradient(ellipse at center, rgba(34, 197, 94, 0.3) 0%, transparent 70%);   /* needs-verification */
   --glow-type2-color: radial-gradient(ellipse at center, rgba(34, 197, 94, 0.2) 0%, transparent 70%);     /* needs-verification */
-  --glow-blur: 120px; /* needs-verification */
+  --glow-blur: 140px; /* confirmed: Figma node 220:61602 "Linear gradient + 140 Blur" */
   --glow-opacity: 1; /* needs-verification */
 }

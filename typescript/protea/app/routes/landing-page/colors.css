@@ -1,94 +1,185 @@
-/* 
-  Task 01: Color System 
-  Using placeholder variables as actual values are currently blocked by Task 00.
-*/
+/* ==========================================================================
+   Color System
+   Primitives confirmed from Figma Collection 418:9401
+   Semantic layer mappings based on Figma neutral scale.
+   ⚠️ Brand accent (interactive/CTA color) still requires visual inspection.
+   ========================================================================== */
 
 :root {
-  /* Layer 1 - Primitives */
-  --color-green-400: #4ade80;
-  --color-green-500: #22c55e;
-  
-  --color-neutral-50: #fafafa;
-  --color-neutral-100: #f5f5f5;
-  --color-neutral-200: #e5e5e5;
-  --color-neutral-300: #d4d4d4;
-  --color-neutral-400: #a3a3a3;
-  --color-neutral-600: #525252;
-  --color-neutral-900: #171717;
-  --color-neutral-950: #0a0a0a;
+  /* ---- Layer 1: Primitives — Figma Neutral Scale (light-mode values) ---- */
+  /* In dark mode these are overridden to their inverted values (see below)  */
+  --color-neutral-0:   #FFFFFF;
+  --color-neutral-25:  #E4E4E4;
+  --color-neutral-50:  #C9C9C9;
+  --color-neutral-75:  #595959;   /* same in light and dark */
+  --color-neutral-100: #292929;
+  --color-neutral-150: #0D0D0D;
+  --color-neutral-900: #000000;
 
-  --color-white: #ffffff;
-  --color-black: #000000;
+  /* ---- Layer 1: Primitives — Figma Accent Palette ---- */
+  /* Same hex in light and dark. Use shades: 50 (tint) · 100 (base) · 150 (dark) */
 
-  /* Layer 2 - Semantic Tokens */
+  --color-apricot-50:        #FFE4C4;
+  --color-apricot-100:       #FFB259;
+  --color-apricot-150:       #FFA339;
+
+  --color-aqua-mint-50:      #B5FDED;
+  --color-aqua-mint-100:     #7EDFC8;
+  --color-aqua-mint-150:     #51CEB1;
+
+  --color-blush-50:          #FFE8E8;
+  --color-blush-100:         #FFBEBE;
+  --color-blush-150:         #FFAEAE;
+
+  --color-coral-red-50:      #FFACAF;
+  --color-coral-red-100:     #FF4B51;
+  --color-coral-red-150:     #DF393E;
+
+  --color-cream-orange-50:   #FFF8F0;
+  --color-cream-orange-100:  #FFF0DE;
+  --color-cream-orange-150:  #FFEBD3;
+
+  --color-deep-teal-50:      #98E4D7;
+  --color-deep-teal-100:     #09967E;
+  --color-deep-teal-150:     #037B67;
+
+  --color-emerald-50:        #9AFAC0;
+  --color-emerald-100:       #4EC97E;
+  --color-emerald-150:       #44B871;
+
+  --color-flamingo-50:       #FFCCD6;
+  --color-flamingo-100:      #FF7B95;
+  --color-flamingo-150:      #FF6684;
+
+  --color-forest-green-50:   #67B196;
+  --color-forest-green-100:  #006B49;
+  --color-forest-green-150:  #005439;
+
+  --color-ice-indigo-50:     #F2F3FF;
+  --color-ice-indigo-100:    #EAECFE;
+  --color-ice-indigo-150:    #DADEFF;
+
+  --color-ice-mint-50:       #F3FFFC;
+  --color-ice-mint-100:      #E5F9F4;
+  --color-ice-mint-150:      #C8FAEE;
+
+  --color-lagoon-50:         #8BDAEC;
+  --color-lagoon-100:        #35A6C0;
+  --color-lagoon-150:        #2E97B0;
+
+  --color-lavender-50:       #F7DEFF;   /* Figma: "lavander" (typo) */
+  --color-lavender-100:      #DBAAEC;
+  --color-lavender-150:      #E48EFF;
+
+  --color-ocean-50:          #8BD8F6;
+  --color-ocean-100:         #003E56;
+  --color-ocean-150:         #022836;
+
+  --color-orchid-50:         #DCB4EE;
+  --color-orchid-100:        #80409D;
+  --color-orchid-150:        #662B81;
+
+  --color-periwinkle-50:     #CACAFF;   /* Figma: "periwikinle" (typo) */
+  --color-periwinkle-100:    #6D6CD5;
+  --color-periwinkle-150:    #5D5CD4;
+
+  --color-pistachio-50:      #E1FDBE;
+  --color-pistachio-100:     #B9E188;
+  --color-pistachio-150:     #A6D36F;
+
+  --color-raspberry-50:      #FF96B5;   /* Figma: "raspbery" (typo) */
+  --color-raspberry-100:     #D3295B;
+  --color-raspberry-150:     #C11F4E;
+
+  --color-rose-mint-50:      #FFFBFB;
+  --color-rose-mint-100:     #FFF2F2;
+  --color-rose-mint-150:     #FFE8E8;
+
+  --color-royal-purple-50:   #DAB5F5;
+  --color-royal-purple-100:  #48156E;
+  --color-royal-purple-150:  #320753;
+
+  --color-sea-foam-50:       #B9F0EE;
+  --color-sea-foam-100:      #64B9B5;
+  --color-sea-foam-150:      #54A7A3;
+
+  --color-soft-indigo-50:    #E5E8FF;
+  --color-soft-indigo-100:   #959FF9;
+  --color-soft-indigo-150:   #838FFF;
+
+  --color-tangerine-50:      #FFD3AB;
+  --color-tangerine-100:     #FF8617;
+  --color-tangerine-150:     #DD6A02;
+
+  --color-wine-50:           #F773BC;
+  --color-wine-100:          #790444;
+  --color-wine-150:          #4B042B;
+
+  /* ---- Layer 2: Semantic Tokens ---- */
+
   /* Backgrounds */
-  --color-bg-page: var(--color-neutral-50);
-  --color-bg-surface: var(--color-white);
-  --color-bg-surface-raised: var(--color-neutral-100);
+  --color-bg-page:           var(--color-neutral-0);
+  --color-bg-surface:        var(--color-neutral-0);
+  --color-bg-surface-raised: var(--color-neutral-25);
 
   /* Text */
-  --color-text-primary: var(--color-neutral-900);
-  --color-text-secondary: var(--color-neutral-600);
-  --color-text-inverse: var(--color-white);
-  --color-text-brand: var(--color-green-500);
-
-  /* Interactive */
-  --color-interactive-primary: var(--color-green-500);
-  --color-interactive-primary-hover: var(--color-green-400);
-  --color-interactive-primary-disabled: var(--color-neutral-300);
+  --color-text-primary:   var(--color-neutral-150);
+  --color-text-secondary: var(--color-neutral-75);
+  --color-text-inverse:   var(--color-neutral-0);
 
   /* Borders */
-  --color-border-default: var(--color-neutral-200);
-  --color-border-strong: var(--color-neutral-400);
+  --color-border-default: var(--color-neutral-50);
+  --color-border-strong:  var(--color-neutral-75);
 
-  /* Glow - Temporary Values */
-  --glow-hero: drop-shadow(0 0 20px rgba(34, 197, 94, 0.5));
-  --glow-default: drop-shadow(0 0 10px rgba(34, 197, 94, 0.3));
-  --glow-type2: drop-shadow(0 0 15px rgba(255, 255, 255, 0.5));
+  /* Interactive / Brand
+     ⚠️ TODO: brand primary accent requires visual inspection of Figma brand swatches (node 26:1637).
+     Using soft-indigo as working placeholder — verify before shipping. */
+  --color-brand-50:  var(--color-soft-indigo-50);
+  --color-brand-100: var(--color-soft-indigo-100);
+  --color-brand-150: var(--color-soft-indigo-150);
+
+  --color-interactive-primary:          var(--color-brand-100);
+  --color-interactive-primary-hover:    var(--color-brand-50);
+  --color-interactive-primary-disabled: var(--color-neutral-50);
+
+  --color-text-brand: var(--color-brand-100);
 
   /* Section Backgrounds */
-  --section-bg-hero: var(--color-bg-page);
-  --section-bg-features: var(--color-bg-surface);
-  --section-bg-cards: var(--color-bg-surface-raised);
+  --section-bg-hero:       var(--color-bg-page);
+  --section-bg-features:   var(--color-bg-surface);
+  --section-bg-cards:      var(--color-bg-surface-raised);
   --section-bg-send-receive: var(--color-bg-page);
-  --section-bg-ecosystem: var(--color-bg-surface);
-  --section-bg-editorial: var(--color-bg-surface-raised);
-  --section-bg-footer: var(--color-neutral-900);
+  --section-bg-ecosystem:  var(--color-bg-surface);
+  --section-bg-editorial:  var(--color-bg-surface-raised);
+  --section-bg-footer:     var(--color-neutral-150);
 
-  /* Component-Scoped */
-  --nav-bg: rgba(255, 255, 255, 0.8);
-  --nav-backdrop: blur(10px);
-  --nav-border: var(--color-border-default);
-  
-  --card-bg: var(--color-bg-surface-raised);
+  /* Component-scoped */
+  --nav-bg:       rgba(255, 255, 255, 0.8);
+  --nav-backdrop: blur(10px); /* ⚠️ navbg-blur value pending visual inspection */
+  --nav-border:   var(--color-border-default);
+
+  --card-bg:     var(--color-bg-surface-raised);
   --card-border: var(--color-border-default);
-  
-  --button-primary-bg: var(--color-interactive-primary);
+
+  --button-primary-bg:   var(--color-interactive-primary);
   --button-primary-text: var(--color-text-inverse);
 }
 
+/* ---- Layer 3: Dark Mode Overrides ---- */
 [data-theme="dark"] {
-  /* Layer 3 - Dark Mode Overrides */
-  --color-bg-page: var(--color-neutral-950);
-  --color-bg-surface: var(--color-neutral-900);
-  --color-bg-surface-raised: var(--color-neutral-800);
+  /* Invert neutral primitives to dark-theme Figma values */
+  --color-neutral-0:   #0D0D0D;
+  --color-neutral-25:  #000000;
+  --color-neutral-50:  #292929;
+  /* neutral-75 stays #595959 — same in both themes */
+  --color-neutral-100: #C9C9C9;
+  --color-neutral-150: #E4E4E4;
+  --color-neutral-900: #FFFFFF;
 
-  --color-text-primary: var(--color-neutral-50);
-  --color-text-secondary: var(--color-neutral-300);
-  --color-text-inverse: var(--color-neutral-900);
-  
-  --color-border-default: var(--color-neutral-600);
-  --color-border-strong: var(--color-neutral-400);
+  /* Semantic overrides */
+  --color-bg-surface-raised: var(--color-neutral-50); /* #292929 — dark card surface */
+  --section-bg-footer:       var(--color-neutral-25); /* #000000 — pure black footer */
 
-  /* Section Background Overrides */
-  --section-bg-hero: var(--color-bg-page);
-  --section-bg-features: var(--color-bg-surface);
-  --section-bg-cards: var(--color-bg-surface-raised);
-  --section-bg-send-receive: var(--color-bg-page);
-  --section-bg-ecosystem: var(--color-bg-surface);
-  --section-bg-editorial: var(--color-bg-surface-raised);
-  --section-bg-footer: var(--color-neutral-950);
-
-  /* Component Overrides */
-  --nav-bg: rgba(10, 10, 10, 0.8);
+  /* Nav */
+  --nav-bg: rgba(13, 13, 13, 0.8); /* neutral-0 dark = #0D0D0D */
 }

@@ -1,4 +1,144 @@
 {
-  "status": "needs-verification",
-  "missing_info": "All hex values, semantic aliases, UI palette definitions, and brand swatch colors are missing. Requires Figma inspection."
+  "_source": "Figma Collection frame 418:9401 — Interledger Global UI color palette",
+  "_retrieved": "2026-04-14",
+  "_notes": {
+    "neutral": "Only group with different light/dark theme values — all other groups are same hex in both themes",
+    "figma_typos": ["lavander (should be lavender)", "periwikinle (should be periwinkle)", "raspbery (should be raspberry)", "roundend-full (border-radius typo)"]
+  },
+  "neutral": {
+    "0":   { "light": "#FFFFFF", "dark": "#0D0D0D" },
+    "25":  { "light": "#E4E4E4", "dark": "#000000" },
+    "50":  { "light": "#C9C9C9", "dark": "#292929" },
+    "75":  { "light": "#595959", "dark": "#595959" },
+    "100": { "light": "#292929", "dark": "#C9C9C9" },
+    "150": { "light": "#0D0D0D", "dark": "#E4E4E4" },
+    "900": { "light": "#000000", "dark": "#FFFFFF" }
+  },
+  "apricot": {
+    "50":  "#FFE4C4",
+    "100": "#FFB259",
+    "150": "#FFA339"
+  },
+  "aqua-mint": {
+    "50":  "#B5FDED",
+    "100": "#7EDFC8",
+    "150": "#51CEB1"
+  },
+  "blush": {
+    "50":  "#FFE8E8",
+    "100": "#FFBEBE",
+    "150": "#FFAEAE"
+  },
+  "coral-red": {
+    "50":  "#FFACAF",
+    "100": "#FF4B51",
+    "150": "#DF393E"
+  },
+  "cream-orange": {
+    "50":  "#FFF8F0",
+    "100": "#FFF0DE",
+    "150": "#FFEBD3"
+  },
+  "deep-teal": {
+    "50":  "#98E4D7",
+    "100": "#09967E",
+    "150": "#037B67"
+  },
+  "emerald": {
+    "50":  "#9AFAC0",
+    "100": "#4EC97E",
+    "150": "#44B871"
+  },
+  "flamingo": {
+    "50":  "#FFCCD6",
+    "100": "#FF7B95",
+    "150": "#FF6684"
+  },
+  "forest-green": {
+    "50":  "#67B196",
+    "100": "#006B49",
+    "150": "#005439"
+  },
+  "ice-indigo": {
+    "50":  "#F2F3FF",
+    "100": "#EAECFE",
+    "150": "#DADEFF"
+  },
+  "ice-mint": {
+    "50":  "#F3FFFC",
+    "100": "#E5F9F4",
+    "150": "#C8FAEE"
+  },
+  "lagoon": {
+    "50":  "#8BDAEC",
+    "100": "#35A6C0",
+    "150": "#2E97B0"
+  },
+  "lavender": {
+    "_figma_name": "lavander",
+    "50":  "#F7DEFF",
+    "100": "#DBAAEC",
+    "150": "#E48EFF"
+  },
+  "ocean": {
+    "50":  "#8BD8F6",
+    "100": "#003E56",
+    "150": "#022836"
+  },
+  "orchid": {
+    "50":  "#DCB4EE",
+    "100": "#80409D",
+    "150": "#662B81"
+  },
+  "periwinkle": {
+    "_figma_name": "periwikinle",
+    "50":  "#CACAFF",
+    "100": "#6D6CD5",
+    "150": "#5D5CD4"
+  },
+  "pistachio": {
+    "50":  "#E1FDBE",
+    "100": "#B9E188",
+    "150": "#A6D36F"
+  },
+  "raspberry": {
+    "_figma_name": "raspbery",
+    "50":  "#FF96B5",
+    "100": "#D3295B",
+    "150": "#C11F4E"
+  },
+  "rose-mint": {
+    "50":  "#FFFBFB",
+    "100": "#FFF2F2",
+    "150": "#FFE8E8"
+  },
+  "royal-purple": {
+    "50":  "#DAB5F5",
+    "100": "#48156E",
+    "150": "#320753"
+  },
+  "sea-foam": {
+    "50":  "#B9F0EE",
+    "100": "#64B9B5",
+    "150": "#54A7A3"
+  },
+  "soft-indigo": {
+    "50":  "#E5E8FF",
+    "100": "#959FF9",
+    "150": "#838FFF"
+  },
+  "tangerine": {
+    "50":  "#FFD3AB",
+    "100": "#FF8617",
+    "150": "#DD6A02"
+  },
+  "wine": {
+    "50":  "#F773BC",
+    "100": "#790444",
+    "150": "#4B042B"
+  },
+  "opacity": {
+    "50":  0.5,
+    "100": 1.0
+  }
 }

@@ -1,27 +1,51 @@
+/* ==========================================================================
+   Spacing, Padding & Border Radius Tokens
+   Values confirmed from Figma Collection 418:8859 — Wallet landing page
+   ========================================================================== */
+
 :root {
-  /* Spacing Scale */
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 20px;
-  --space-6: 24px;
-  --space-8: 32px;
-  --space-10: 40px;
-  --space-12: 48px;
-  --space-16: 64px;
-  --space-20: 80px;
-  --space-40: 160px;
+  /* Spacing scale — Figma variable names */
+  --spacing-xs:  4px;
+  --spacing-sm:  8px;
+  --spacing-md:  12px;
+  --spacing-lg:  16px;
+  --spacing-xl:  24px;
+  --spacing-2xl: 32px;
+  --spacing-3xl: 48px;  /* NOTE: padding-3xl differs here — padding uses 40px */
+  --spacing-4xl: 60px;
+  --spacing-5xl: 80px;
+  --spacing-6xl: 120px;
+  --spacing-7xl: 160px;
 
-  /* Section Padding Rules */
-  /* Mobile: two groups */
-  --section-pad-default: 16px;   /* hero, features, send/receive, other features */
-  --section-pad-wide: 24px;      /* cards, ecosystem, editorial */
+  /* Padding scale — Figma variable names */
+  --padding-xs:  4px;
+  --padding-sm:  8px;
+  --padding-md:  12px;
+  --padding-lg:  16px;
+  --padding-xl:  24px;
+  --padding-2xl: 32px;
+  --padding-3xl: 40px;  /* NOTE: differs from spacing-3xl (48px) */
+  --padding-4xl: 60px;
+  --padding-5xl: 80px;
+  --padding-6xl: 120px;
+  --padding-7xl: 160px;
 
-  /* Tablet: uniform */
-  --section-pad-tablet: 24px;
+  /* Border radius — Figma variable names (confirmed from Collection 418:8859) */
+  --rounded-lg:   8px;
+  --rounded-xl:   12px;
+  --rounded-2xl:  16px;
+  --rounded-3xl:  24px;
+  --rounded-full: 999px;  /* Figma spells "roundend-full" — corrected typo */
+
+  /* Section Padding Rules (layout.css consumes these) */
+  /* Mobile */
+  --section-pad-default: var(--padding-lg);  /* 16px — hero, features, send/receive */
+  --section-pad-wide:    var(--padding-xl);  /* 24px — cards, ecosystem, editorial */
+
+  /* Tablet */
+  --section-pad-tablet: var(--padding-xl);   /* 24px */
 
   /* Desktop */
-  --section-pad-desktop-outer: 40px;
-  --section-pad-desktop-text: 120px;  /* text-only content uses wider inset */
+  --section-pad-desktop-outer: var(--padding-3xl); /* 40px — outer margin */
+  --section-pad-desktop-text:  var(--padding-6xl); /* 120px — text-only inset */
 }

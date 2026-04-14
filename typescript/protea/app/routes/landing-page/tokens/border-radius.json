@@ -1,10 +1,13 @@
 {
-  "status": "needs-verification",
-  "missing_info": "Scale 1 through 4 have visual dimensions, but exact pixel border-radius values are missing. Requires Figma inspection.",
-  "items": [
-    {"name": "Scale 1", "relative_size": "smallest", "notes": "inner-most"},
-    {"name": "Scale 2", "relative_size": "small"},
-    {"name": "Scale 3", "relative_size": "medium"},
-    {"name": "Scale 4", "relative_size": "largest", "notes": "outer-most"}
-  ]
+  "border-radius": {
+    "rounded-lg": "8px",
+    "rounded-xl": "12px",
+    "rounded-2xl": "16px",
+    "rounded-3xl": "24px",
+    "rounded-full": "999px"
+  },
+  "_notes": {
+    "source": "Figma Collection frame 418:8859 — Wallet landing page",
+    "figma_typo": "Figma spells 'roundend-full' (typo) — correct token name is 'rounded-full'"
+  }
 }

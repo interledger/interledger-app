@@ -84,12 +84,12 @@ export function HeroSection() {
 
       {/* Scroll spacers — hero dwell + Feature 1 dwell */}
       <ScrollStep screen={1} className="scroll-step scroll-step--hero" />
-      <ScrollStep screen={2} className="scroll-step scroll-step--feature-dwell" />
+      <ScrollStep screen={2} className="scroll-step scroll-step--feature" />
 
       {/* Feature 2, 3, 4 scroll zones (single 320px dwell each) */}
-      <ScrollStep screen={3} className="scroll-step scroll-step--feature-dwell" />
-      <ScrollStep screen={4} className="scroll-step scroll-step--feature-dwell" />
-      <ScrollStep screen={5} className="scroll-step scroll-step--feature-dwell" />
+      <ScrollStep screen={3} className="scroll-step scroll-step--feature" />
+      <ScrollStep screen={4} className="scroll-step scroll-step--feature" />
+      <ScrollStep screen={5} className="scroll-step scroll-step--feature" />
     </section>
   )
 }

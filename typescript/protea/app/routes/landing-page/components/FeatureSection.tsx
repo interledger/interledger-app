@@ -50,7 +50,6 @@ export function FeatureSection({
   columnOrder = "text-left",
 }: FeatureSectionProps) {
   const { activeScreen } = usePhoneCarousel()
-  const visible = activeScreen === screen
 
   const textCol = (
     <motion.div className="feature-col feature-col--left">
@@ -68,7 +67,7 @@ export function FeatureSection({
 
   return (
     <AnimatePresence>
-      {visible && (
+      {activeScreen === screen && (
         <motion.div
           className="feature-panel is-visible"
           variants={containerVariants}

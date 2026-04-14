@@ -24,7 +24,7 @@
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px; /* softer rounded rectangle */
+  border-radius: var(--rounded-xl); /* 12px — Figma: rounded-xl */
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
 }
 
@@ -120,9 +120,9 @@
   font-weight: 600;
   line-height: 48px; /* align text vertically */
   color: #ffffff;
-  background: rgb(0, 126, 79);
+  background: var(--color-interactive-primary);
   border: none;
-  border-radius: 8px; /* Appears square-ish with slight rounding as per report */
+  border-radius: var(--rounded-lg); /* 8px — Figma: rounded-lg */
   text-decoration: none;
   white-space: nowrap;
   cursor: pointer;
@@ -130,7 +130,7 @@
 }
 
 .nav-cta:hover {
-  background: rgb(0, 100, 60);
+  background: var(--color-interactive-primary-hover);
   transform: scale(1.02);
 }
 
@@ -175,7 +175,7 @@
   left: 16px;
   right: 16px;
   bottom: auto;
-  border-radius: 24px;
+  border-radius: var(--rounded-3xl); /* 24px — Figma: rounded-3xl */
   z-index: 99;
   background: rgba(20, 20, 20, 0.95);
   backdrop-filter: blur(24px);
