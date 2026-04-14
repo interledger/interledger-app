@@ -513,7 +513,7 @@ func SendKYCDocumentsRequiredEmail(ctx context.Context, b Backends, walletID str
 		return
 	}
 
-	err = b.External().SendTemplate(ctx, "Action Required – Please Resubmit Your Verification Documents", sendTo, oneTemplateID, map[string]interface{}{
+	err = b.External().SendTemplate(ctx, "Action Required – Please Resubmit Your Verification Documents", sendTo, b.OneTemplateID(), map[string]interface{}{
 		"subject": "Action Required – Please Resubmit Your Verification Documents",
 		"data": []map[string]interface{}{
 			{"paragraph": greeting},

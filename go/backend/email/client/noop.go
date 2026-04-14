@@ -66,3 +66,7 @@ func (n *noopClient) SendCardCreatedEmail(_ context.Context, walletID, cardID st
 func (n *noopClient) SendPending3DSConfirmation(_ context.Context, walletID, confirmationID string) {
 	log.Info("NOT SENDING: pending 3DS confirmation email", zap.String("walletID", walletID), zap.String("confirmationID", confirmationID))
 }
+
+func (n *noopClient) SendKYCDocumentsRequiredEmail(_ context.Context, walletID string) {
+	log.Info("NOT SENDING: KYC documents required email", zap.String("walletID", walletID))
+}
