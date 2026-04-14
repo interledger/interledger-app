@@ -81,27 +81,34 @@
 /* --- Phone container ---------------------------------------------------- */
 
 .hero-phone-container {
-  position: relative;
+  position: absolute;
+  /* Hero state: lower in viewport so phone extends below the fold */
+  top: 38vh;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  flex-shrink: 0;
   width: 200px;
   height: 433px;
-  margin-top: -24px; /* overlap the subheading text */
-  z-index: 2; /* sits above hero text */
-  transition: transform 800ms cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 2;
+  transition: top 800ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* Feature state: phone centered within usable area (below nav) */
+/* Formula: navHeight/2 + 50% - phoneHeight/2 */
 .animated-hero:not([data-screen='1']) .hero-phone-container {
-  transform: scale(0.9);
+  top: calc(52px + 50% - 216px); /* 52px = nav-height/2; centers in sub-nav area */
 }
 
 @media (min-width: 900px) {
   .hero-phone-container {
     width: 260px;
     height: 563px;
-    margin-top: -48px; /* overlap the subheading text */
+    /* top: 38vh inherited — phone partially below fold in hero */
+  }
+  .animated-hero:not([data-screen='1']) .hero-phone-container {
+    top: calc(52px + 50% - 281px); /* 52px = nav-height/2; centers in sub-nav area */
   }
 }
 
