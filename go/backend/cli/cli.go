@@ -69,7 +69,11 @@ type StartArgs struct {
 	ZendeskToken                  string
 	AdminPolicyAud                string
 	AdminTeamDomain               string
+	EmailEnabled                  bool
 	SendgridAPIKey                string
+	SendgridFromName              string
+	SendgridFromEmail             string
+	SendgridOneTemplateID         string
 	SmartyAuthID                  string
 	SmartyAuthToken               string
 	PusherAddr                    string
@@ -234,9 +238,36 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, errors.New("ADMIN_TEAM_DOMAIN is required")
 	}
 
-	sendgridAPIKey := os.Getenv("SENDGRID_API_KEY")
-	if sendgridAPIKey == "" {
-		return nil, errors.New("SENDGRID_API_KEY is required")
+	emailEnabled := true
+	if v := os.Getenv("EMAIL_ENABLED"); v != "" {
+		var err error
+		emailEnabled, err = strconv.ParseBool(v)
+		if err != nil {
+			return nil, errors.New("EMAIL_ENABLED must be a valid boolean (true/false/1/0)")
+		}
+	}
+
+	var sendgridAPIKey, sendgridFromName, sendgridFromEmail, sendgridOneTemplateID string
+	if emailEnabled {
+		sendgridAPIKey = os.Getenv("SENDGRID_API_KEY")
+		if sendgridAPIKey == "" {
+			return nil, errors.New("SENDGRID_API_KEY is required when EMAIL_ENABLED is true")
+		}
+
+		sendgridFromName = os.Getenv("SENDGRID_FROM_NAME")
+		if sendgridFromName == "" {
+			return nil, errors.New("SENDGRID_FROM_NAME is required when EMAIL_ENABLED is true")
+		}
+
+		sendgridFromEmail = os.Getenv("SENDGRID_FROM_EMAIL")
+		if sendgridFromEmail == "" {
+			return nil, errors.New("SENDGRID_FROM_EMAIL is required when EMAIL_ENABLED is true")
+		}
+
+		sendgridOneTemplateID = os.Getenv("SENDGRID_ONE_TEMPLATE_ID")
+		if sendgridOneTemplateID == "" {
+			return nil, errors.New("SENDGRID_ONE_TEMPLATE_ID is required when EMAIL_ENABLED is true")
+		}
 	}
 
 	smartyAuthID := os.Getenv("SMARTY_AUTH_ID")
@@ -446,7 +477,11 @@ func ParseStartArgs() (*StartArgs, error) {
 		TwitterBearerToken:            twitterBearerToken,
 		AdminPolicyAud:                adminPolicyAud,
 		AdminTeamDomain:               adminTeamDomain,
+		EmailEnabled:                  emailEnabled,
 		SendgridAPIKey:                sendgridAPIKey,
+		SendgridFromName:              sendgridFromName,
+		SendgridFromEmail:             sendgridFromEmail,
+		SendgridOneTemplateID:         sendgridOneTemplateID,
 		SmartyAuthID:                  smartyAuthID,
 		SmartyAuthToken:               smartyAuthToken,
 		PusherAddr:                    pusherAddr,
