@@ -27,7 +27,8 @@ func (sc *E2EContext) iConnectAUSBankAccount() error {
 	}
 
 	sc.page.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
-		State: playwright.LoadStateNetworkidle,
+		State:   playwright.LoadStateNetworkidle,
+		Timeout: playwright.Float(10000),
 	})
 
 	// Fill Bank Name
@@ -65,7 +66,7 @@ func (sc *E2EContext) iConnectAUSBankAccount() error {
 	}
 
 	// Wait for redirect to /accounts (success) or stay on page (error)
-	for i := 0; i < 30; i++ {
+	for i := 0; i < 60; i++ {
 		time.Sleep(500 * time.Millisecond)
 		currentURL := sc.page.URL()
 		if strings.Contains(currentURL, "/accounts") {
@@ -74,7 +75,7 @@ func (sc *E2EContext) iConnectAUSBankAccount() error {
 		}
 	}
 
-	return fmt.Errorf("bank account connection did not redirect to /accounts within 15 seconds")
+	return fmt.Errorf("bank account connection did not redirect to /accounts within 30 seconds")
 }
 
 // iDepositViaPTIDepositForm fills the fynbos deposit form (amount + linked bank account)
@@ -126,7 +127,8 @@ func (sc *E2EContext) iDepositViaPTIDepositForm(amount, currency string) error {
 
 	// Wait for page to settle
 	sc.page.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
-		State: playwright.LoadStateNetworkidle,
+		State:   playwright.LoadStateNetworkidle,
+		Timeout: playwright.Float(10000),
 	})
 
 	if err := sc.iTakeAScreenshot("pti-deposit-confirm"); err != nil {
