@@ -51,6 +51,7 @@ import (
 	"gitlab.com/fynbos/backend/kyc"
 	kyc_client "gitlab.com/fynbos/backend/kyc/client"
 	kyc_ops "gitlab.com/fynbos/backend/kyc/ops"
+	"gitlab.com/fynbos/backend/kyc/persona"
 	"gitlab.com/fynbos/backend/limits"
 	limits_client "gitlab.com/fynbos/backend/limits/client"
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -190,7 +191,12 @@ func start(args *cli.StartArgs) {
 	router.Handle("/kratos/logout", analytics_webhook.NewHandleLogout(b))
 	router.Handle("/rafiki", b.rafiki.WebhookHandler())
 	router.Handle("/webhooks/xago", b.xago.WebhookHandler())
-	router.Handle("/webhooks/persona", kyc_ops.NewHandlePersonaWebhook(b))
+	personaClient := persona.New(persona.Config{
+		BaseURL:       args.PersonaBaseURL,
+		BearerToken:   args.PersonaToken,
+		WebhookSecret: args.PersonaWebhookToken,
+	})
+	router.Handle("/webhooks/persona", kyc_ops.NewHandlePersonaWebhook(b, personaClient))
 	router.Handle("/webhooks/chimoney", chimoney_ops.NewWebhook(b))
 	router.Handle("/.well-known/apple-app-site-association", aassassetlinks.AppSiteAssociationHandler(b.aasaConfig))
 	router.Handle("/.well-known/assetlinks.json", aassassetlinks.AssetLinksHandler(b.aasaConfig))
@@ -745,13 +751,33 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 
 	b.agreements = agreements_client.New(b)
 
-	b.kyc, err = kyc_client.New(b, args.SmartyAuthID, args.SmartyAuthToken)
+	b.kyc, err = kyc_client.NewWithPersonaConfig(
+		b,
+		args.SmartyAuthID,
+		args.SmartyAuthToken,
+		persona.Config{
+			BaseURL:       args.PersonaBaseURL,
+			BearerToken:   args.PersonaToken,
+			WebhookSecret: args.PersonaWebhookToken,
+		},
+	)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	log.Debug("initialising SendGrid")
-	b.email = email_client.New(b, args.SendgridAPIKey)
+	if args.EmailEnabled {
+		log.Debug("initialising SendGrid email client")
+	} else {
+		log.Debug("email disabled; initialising noop email client")
+	}
+	b.email = email_client.New(
+		b,
+		args.EmailEnabled,
+		args.SendgridAPIKey,
+		args.SendgridFromName,
+		args.SendgridFromEmail,
+		args.SendgridOneTemplateID,
+	)
 
 	log.Debug("initialising transactions")
 	b.transactions = transactions_client.New(b)
@@ -805,6 +831,7 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	b.xago = xago_client.New(b, b.xagoConfig)
 
 	log.Debug("initialising FIANT")
+	pti_ops.ConfigureWidgetURLs(args.PTISDKURL, args.PTIFormsURL, args.PTIClientID)
 	b.pti = pti_client.New(b)
 
 	log.Debug("initialising Gatehub")

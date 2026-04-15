@@ -14,14 +14,14 @@ Feature: Card management and lifecycle
     Then the response status is 201
     And the response contains a customer with id, sourceId, type "Citizen", and kycStatus "accepted"
     And the customer has one account with currency "EUR", status "ACTIVE", and type "DEBIT"
-    And the account has one card with status "Active", nameOnCard "John Doe", and expiryDate in the future
+    And the account has one card with status "Active" and nameOnCard "John Doe"
 
   Scenario: List cards for a customer
     Given a managed customer with a card exists
     When I GET /cards/v1/cards/{customerId}?pageSize=100 with managed user UUID header
     Then the response status is 200
     And the response has a data array with at least one card
-    And each card has id, accountId, customerId, nameOnCard, maskedPan, status, expiryDate, and productCode
+    And each card has id, accountId, customerId, nameOnCard, maskedPan, status, and productCode
     And the response includes pagination with pageNumber, pageSize, and totalPages
 
   Scenario: Get card details

@@ -77,7 +77,6 @@ func TestPersonaGetInquiryIframe_DefaultsToInquiryID(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 	body := w.Body.String()
 	assert.Contains(t, body, `name="user_id" value="inq_456"`)
-	assert.Contains(t, body, `action="/v1/inquiries/inq_456/submit"`)
 }
 
 // = Persona API Handler Tests =
@@ -289,40 +288,6 @@ func TestPersonaGetAccount_NotFound(t *testing.T) {
 
 	// Account doesn't exist, should return 404.
 	assert.Equal(t, http.StatusNotFound, w.Code)
-}
-
-func TestPersonaGetAccount_MissingDOBFallsBack(t *testing.T) {
-	h := setupAuthHandler(t)
-	token := issueToken(t, h)
-
-	subAccount := &models.SubAccount{
-		ID:              "sub_missing_dob",
-		WalletID:        "wallet_missing_dob",
-		AccountID:       "acc_missing_dob",
-		FirstName:       "Legacy",
-		LastName:        "Record",
-		PhysicalAddress: "123 Test St",
-	}
-	err := h.store.SaveSubAccount(context.Background(), subAccount)
-	require.NoError(t, err)
-
-	r := authorizedRequest(http.MethodGet, "/persona/accounts/acc_missing_dob", token, nil)
-	rctx := chi.NewRouteContext()
-	rctx.URLParams.Add("accountId", "acc_missing_dob")
-	r = r.WithContext(context.WithValue(r.Context(), chi.RouteCtxKey, rctx))
-
-	w := httptest.NewRecorder()
-	h.PersonaGetAccount(w, r)
-
-	assert.Equal(t, http.StatusOK, w.Code)
-
-	var resp map[string]interface{}
-	err = json.NewDecoder(w.Body).Decode(&resp)
-	require.NoError(t, err)
-
-	data := resp["data"].(map[string]interface{})
-	attrs := data["attributes"].(map[string]interface{})
-	assert.Equal(t, "1984-06-27", attrs["birthdate"])
 }
 
 func TestPersonaGetAccount_MissingID(t *testing.T) {

@@ -14,12 +14,15 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/cucumber/godog"
 	_ "github.com/lib/pq"
 	"github.com/playwright-community/playwright-go"
 )
+
+var scenarioIdentifierSeq uint64
 
 // E2EContext holds the test context for signup scenarios
 type E2EContext struct {
@@ -43,6 +46,7 @@ type E2EContext struct {
 
 	// Payment flow state
 	receiverWalletAddress string // Wallet address/identifier for payment receiver
+	ptiDepositRequestID   string // PTI deposit requestId, captured from /deposit/:id URL
 
 	// Test state
 	currentStep     int
@@ -97,6 +101,7 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^the frontend is running at "([^"]*)"$`, func(url string) error { return sc.theFrontendIsRunningAt(url) })
 	ctx.Step(`^mockgatehub is running at "([^"]*)"$`, func(url string) error { return sc.theMockgatehubIsRunningAt(url) })
 	ctx.Step(`^mockxago is running at "([^"]*)"$`, func(url string) error { return sc.theMockxagoIsRunningAt(url) })
+	ctx.Step(`^mockpti is running at "([^"]*)"$`, func(url string) error { return sc.theMockptiIsRunningAt(url) })
 	ctx.Step(`^Rafiki assets are seeded$`, func() error { return sc.rafikiAssetsExist() })
 
 	// User details and impersonation steps
@@ -136,6 +141,12 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^the signup should have last name matching my "([^"]*)"$`, func(fieldKey string) error { return sc.theSignupShouldHaveLastNameMatching(fieldKey) })
 	ctx.Step(`^the signup should have country code matching my "([^"]*)"$`, func(fieldKey string) error { return sc.theSignupShouldHaveCountryCodeMatching(fieldKey) })
 	ctx.Step(`^I should be able to verify the full user status$`, func() error { return sc.iShouldBeAbleToVerifyTheFullUserStatus() })
+	ctx.Step(`^I should have a "([^"]*)" linked balance account$`, func(provider string) error {
+		return sc.iShouldHaveALinkedBalanceAccountForProvider(provider)
+	})
+	ctx.Step(`^I should use the "([^"]*)" on-off-ramp provider$`, func(provider string) error {
+		return sc.iShouldUseOnOffRampProvider(provider)
+	})
 
 	// User verification steps
 	ctx.Step(`^I trigger user verification for myself$`, func() error { return sc.iTriggerUserVerificationForMyself() })
@@ -165,6 +176,15 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I should be shown the "([^"]*)" prompt form$`, func(promptText string) error { return sc.iShouldBeShownTheActivateWalletPromptForm(promptText) })
 	ctx.Step(`^I wait for the KYC iframe to load$`, func() error { return sc.iWaitForTheKYCIframeToLoad() })
 	ctx.Step(`^I fill and submit the mockgatehub KYC iframe$`, func() error { return sc.iFillAndSubmitTheMockgatehubiframe() })
+	ctx.Step(`^I fill and submit the mockpti KYC iframe$`, func() error { return sc.iFillAndSubmitTheMockptiKYCIframe() })
+	ctx.Step("^I complete the minimal PTI KYC flow `([^`]*)`$", func(userName string) error {
+		return sc.iCompleteMinimalPTIKYCFlow(userName)
+	})
+	ctx.Step(`^I connect a US bank account$`, func() error { return sc.iConnectAUSBankAccount() })
+	ctx.Step(`^I deposit "([^"]*)" "([^"]*)" via the PTI deposit form$`, func(amount, currency string) error {
+		return sc.iDepositViaPTIDepositForm(amount, currency)
+	})
+	ctx.Step(`^mockpti returns the deposit$`, func() error { return sc.iMockptiReturnsTheDeposit() })
 	ctx.Step(`^I fill and submit the mockxago KYC iframe$`, func() error { return sc.iFillAndSubmitTheMockxagoiframe() })
 	ctx.Step(`^I wait for the KYC completion$`, func() error { return sc.iWaitForTheKYCCompletion() })
 
@@ -191,33 +211,18 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 		return sc.thatGatehubChargesDepositFee(feePercent)
 	})
 
-	// Xago deposit steps (EFT simulation via MockXago)
-	ctx.Step(`^I get the Xago sub account details for the current user$`, func() error {
-		return sc.iGetTheXagoSubAccountDetailsForTheCurrentUser()
-	})
-	ctx.Step(`^I create a test transaction in MockXago for "([^"]*)" "([^"]*)"$`, func(amount, currency string) error {
-		return sc.iCreateATestTransactionInMockXagoFor(amount, currency)
-	})
-	ctx.Step(`^I perform a test deposit of "([^"]*)" "([^"]*)" in MockXago$`, func(amount, currency string) error {
-		return sc.iPerformATestDepositOfInMockXago(amount, currency)
-	})
-	ctx.Step(`^I initiate a deposit for my Xago linked account$`, func() error {
-		return sc.iInitiateADepositForMyXagoLinkedAccount()
-	})
-	ctx.Step(`^my Xago specific deposit instructions should be displayed to me$`, func() error {
-		return sc.myXagoSpecificDepositInstructionsShouldBeDisplayedToMe()
-	})
-	ctx.Step(`^I simulate a "([^"]*)" "([^"]*)" EFT payment to Xago$`, func(amount, currency string) error {
-		return sc.iSimulateAnEFTPaymentToXago(amount, currency)
-	})
-	ctx.Step(`^I wait "([^"]*)" seconds for the webhook to be processed$`, func(seconds string) error {
-		return sc.iWaitSecondsForTheWebhookToBeProcessed(seconds)
+	// Xago deposit steps
+	ctx.Step(`^I simulate a Xago test deposit of "([^"]*)" "([^"]*)"$`, func(amount, currency string) error {
+		return sc.iSimulateXagoTestDeposit(amount, currency)
 	})
 
 	// Withdrawal steps
 	ctx.Step(`^I navigate to the withdrawal page$`, func() error { return sc.iNavigateToTheWithdrawalPage() })
 	ctx.Step(`^I withdraw "([^"]*)" "([^"]*)" via the withdrawal iframe$`, func(amount, currency string) error {
 		return sc.iWithdrawViATheWithdrawalIframe(amount, currency)
+	})
+	ctx.Step(`^I withdraw "([^"]*)" "([^"]*)" via the PTI withdrawal form$`, func(amount, currency string) error {
+		return sc.iWithdrawViaPTIWithdrawForm(amount, currency)
 	})
 	ctx.Step(`^that Gatehub charges my user a ([0-9.]+)% withdrawal fee$`, func(feePercent string) error {
 		return sc.thatGatehubChargesWithdrawalFee(feePercent)
@@ -258,63 +263,60 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I should see the payment in my transaction history$`, func() error {
 		return sc.iShouldSeeThePaymentInMyTransactionHistory()
 	})
-	ctx.Step(`^I should see text "([^"]*)" on the page$`, func(text string) error {
-		return sc.iShouldSeeTextOnThePage(text)
-	})
 
-	// Bank account linking steps (Xago ZA)
-	ctx.Step(`^I navigate to the dashboard (\w+)$`, func(page string) error {
-		return sc.iNavigateToTheDashboardPage(page)
+	// Card ordering steps
+	ctx.Step(`^I complete the signup workflow for '([^']*)'$`, func(userName string) error {
+		return sc.iCompleteSignupWorkflowFor(userName)
 	})
-	ctx.Step(`^I press on "([^"]*)"$`, func(text string) error {
-		return sc.iPressOn(text)
+	ctx.Step(`^the "([^"]*)" navigation item should not be visible$`, func(label string) error {
+		return sc.theNavItemShouldNotBeVisible(label)
 	})
-	ctx.Step(`^I should see the "([^"]*)" form$`, func(formTitle string) error {
-		return sc.iShouldSeeTheForm(formTitle)
+	ctx.Step(`^I navigate to "([^"]*)"$`, func(path string) error {
+		return sc.iNavigateToPath(path)
 	})
-	ctx.Step(`^I fill in "([^"]*)" with "([^"]*)"$`, func(fieldLabel, value string) error {
-		return sc.iFillInFieldWith(fieldLabel, value)
+	ctx.Step(`^I should be redirected to "([^"]*)"$`, func(path string) error {
+		return sc.iShouldBeRedirectedTo(path)
 	})
-	ctx.Step(`^select Bank option "([^"]*)"$`, func(bankName string) error {
-		return sc.selectBankOption(bankName)
+	ctx.Step(`^I navigate to the cards page$`, func() error {
+		return sc.iNavigateToTheCardsPage()
 	})
-	ctx.Step(`^I should be navigated to dashboard "([^"]*)"$`, func(dashboardName string) error {
-		return sc.iShouldBeNavigatedToDashboard(dashboardName)
+	ctx.Step(`^I should see the cards page with an "([^"]*)" button$`, func(buttonText string) error {
+		return sc.iShouldSeeTheCardsPageWithButton(buttonText)
 	})
-	ctx.Step(`^the linked account should be shown as "([^"]*)"$`, func(displayText string) error {
-		return sc.theLinkedAccountShouldBeShownAs(displayText)
+	ctx.Step(`^I should be on the card order page$`, func() error {
+		return sc.iShouldBeOnTheCardOrderPage()
 	})
-	ctx.Step(`^the "([^"]*)" label should be shown for the account$`, func(label string) error {
-		return sc.theLabelShouldBeShownForTheAccount(label)
+	ctx.Step(`^I select the first available card product$`, func() error {
+		return sc.iSelectTheFirstAvailableCardProduct()
 	})
-	ctx.Step(`^I give the linked account the nickname "([^"]*)"$`, func(nickname string) error {
-		return sc.iGiveTheLinkedAccountTheNickname(nickname)
+	ctx.Step(`^I should be on the delivery address step$`, func() error {
+		return sc.iShouldBeOnTheDeliveryAddressStep()
 	})
-
-	// Xago withdrawal steps
-	ctx.Step(`^I linked a SA bank account with "([^"]*)" and account number "([^"]*)"$`, func(bankName, accountNumber string) error {
-		return sc.iLinkedASABankAccount(bankName, accountNumber)
+	ctx.Step(`^I select the existing delivery address$`, func() error {
+		return sc.iSelectTheExistingDeliveryAddress()
 	})
-	ctx.Step(`^I deposited "([^"]*)" "([^"]*)" into my xago backed wallet$`, func(amount, currency string) error {
-		return sc.iDepositedIntoMyXagoBackedWallet(amount, currency)
+	ctx.Step(`^I should be on the card order confirmation step$`, func() error {
+		return sc.iShouldBeOnTheCardOrderConfirmationStep()
 	})
-	ctx.Step(`^I set the withdraw amount to "([^"]*)"$`, func(amount string) error {
-		return sc.iSetTheWithdrawAmountTo(amount)
+	ctx.Step(`^I confirm the card order$`, func() error {
+		return sc.iConfirmTheCardOrder()
 	})
-	ctx.Step(`^I select the first available linked account to withdraw to$`, func() error {
-		return sc.iSelectFirstAvailableLinkedAccountToWithdrawTo()
-	})
-	ctx.Step(`^I set the withdraw note to "([^"]*)"$`, func(note string) error {
-		return sc.iSetTheWithdrawNoteTo(note)
+	ctx.Step(`^I should see the snackbar "([^"]*)"$`, func(message string) error {
+		return sc.iShouldSeeTheSnackbar(message)
 	})
 }
 
 // Background step implementations
 
 func (sc *E2EContext) aRandomTestIdentifierIsGenerated() error {
-	// Generate a random test identifier based on current timestamp
-	// This ensures uniqueness across test runs
-	sc.testIdentifier = fmt.Sprintf("%d", time.Now().UnixNano()%1000000)
+	// Use monotonic sequence + timestamp to avoid collisions when scenarios
+	// start concurrently while keeping the identifier digits-only.
+	seq := atomic.AddUint64(&scenarioIdentifierSeq, 1)
+	tsPart := time.Now().UnixMilli() % 1000000000
+	seqPart := seq % 1000
+
+	// 12 digits: 9 from timestamp + 3 from per-process sequence.
+	sc.testIdentifier = fmt.Sprintf("%09d%03d", tsPart, seqPart)
 	debugPrintf("✓ Generated random test identifier: %s\n", sc.testIdentifier)
 	return nil
 }
@@ -376,6 +378,21 @@ func (sc *E2EContext) theMockxagoIsRunningAt(urlStr string) error {
 	}
 
 	debugPrintf("🔍 Verifying mockxago health endpoint at %s...\n", urlStr)
+	healthURL := strings.TrimSuffix(urlStr, "/") + "/health"
+	return waitForHealthEndpoint(healthURL, 30*time.Second)
+}
+
+func (sc *E2EContext) theMockptiIsRunningAt(urlStr string) error {
+	parsedURL, err := url.Parse(urlStr)
+	if err != nil {
+		return fmt.Errorf("failed to parse mockpti URL: %w", err)
+	}
+
+	if err := sc.ensureHostsResolve([]string{parsedURL.Hostname()}); err != nil {
+		return err
+	}
+
+	debugPrintf("🔍 Verifying mockpti health endpoint at %s...\n", urlStr)
 	healthURL := strings.TrimSuffix(urlStr, "/") + "/health"
 	return waitForHealthEndpoint(healthURL, 30*time.Second)
 }

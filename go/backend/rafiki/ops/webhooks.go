@@ -166,7 +166,7 @@ func getAccounts(ctx context.Context, b Backends, op outgoingPaymentData) (*link
 
 func immediatePayment(ctx context.Context, b Backends, op outgoingPaymentData) error {
 
-	amt, err := strconv.ParseUint(op.DebitAmount.Value, 10, 64)
+	amt, err := strconv.ParseInt(op.DebitAmount.Value, 10, 64)
 	if err != nil {
 		log.Error("failed to convert rafiki outgoing payment amount", zap.Error(err))
 		return err
@@ -218,8 +218,8 @@ func outgoingPayment(ctx context.Context, b Backends, hook webhook) error {
 		return err
 	}
 
-	var amt uint64
-	amt, err = strconv.ParseUint(op.DebitAmount.Value, 10, 64)
+	var amt int64
+	amt, err = strconv.ParseInt(op.DebitAmount.Value, 10, 64)
 	if err != nil {
 		log.Error("failed to convert rafiki outgoing payment amount", zap.Error(err))
 		return err
@@ -272,7 +272,7 @@ func reserveTransfer(
 	b Backends,
 	senderAcc, receiverAcc *linkedaccounts.LinkedAccount,
 	txID string,
-	amt uint64,
+	amt int64,
 	timeout time.Duration,
 ) error {
 	if senderAcc == nil || receiverAcc == nil {

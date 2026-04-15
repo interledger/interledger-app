@@ -9,6 +9,7 @@ import type { FiantSdkMessage } from '~/lib/fiant'
 import { exitFlow, flowType, requireFlow } from '~/lib/flows.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
+import { usePtiConfig } from '~/lib/pti-context'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { useScript } from '~/lib/useScript'
@@ -54,7 +55,8 @@ export async function loader({ request }: Route.LoaderArgs) {
     ptiWidget: response.ptiWidget,
     personaSdkUrl:
       process.env.PERSONA_SDK_URL ||
-      'https://cdn.withpersona.com/dist/persona-v4.8.0-alpha.js'
+      'https://cdn.withpersona.com/dist/persona-v4.8.0-alpha.js',
+    mockxagoEndpoint: process.env.MOCKXAGO_ENDPOINT || ''
   })
 }
 
@@ -111,9 +113,14 @@ function ChimoneyPage() {
 
 function PersonaPage() {
   const submit = useSubmit()
-  const { personaWidget, personaSdkUrl } = useLoaderData<typeof loader>()
+  const { personaWidget, personaSdkUrl, mockxagoEndpoint } = useLoaderData<typeof loader>()
   const [ready, setReady] = useState(false)
-  const scriptStatus = useScript(personaSdkUrl)
+  const mockXagoIframeRef = useRef<HTMLIFrameElement | null>(null)
+  const scriptStatus = useScript(
+    mockxagoEndpoint
+      ? '' // Don't load Persona SDK when using MockXago
+      : personaSdkUrl
+  )
   let personaRef = useRef<any>(null)
 
   const [setLoading] = useScaffoldStore((state) => [state.setLoading])
@@ -130,6 +137,59 @@ function PersonaPage() {
   }, [setLoading])
 
   useEffect(() => {
+    if (!mockxagoEndpoint || !personaWidget?.id) return
+
+    let expectedOrigin: string
+    try {
+      expectedOrigin = new URL(mockxagoEndpoint).origin
+    } catch {
+      console.error('[KYC] Invalid MockXago endpoint:', mockxagoEndpoint)
+      return
+    }
+
+    setReady(true)
+
+    const onKYCComplete = (e: MessageEvent) => {
+      if (e.origin !== expectedOrigin) {
+        console.warn('[KYC] Ignoring MockXago message from unexpected origin:', e.origin)
+        return
+      }
+
+      const iframeWindow = mockXagoIframeRef.current?.contentWindow
+      if (!iframeWindow || e.source !== iframeWindow) {
+        console.warn('[KYC] Ignoring MockXago message from unexpected source')
+        return
+      }
+
+      console.log('[KYC] MockXago iframe message received:', e.data)
+      if (!e.data?.type || !e.data?.value) return
+
+      let parsedValue
+      try {
+        parsedValue = JSON.parse(e.data.value)
+      } catch {
+        return
+      }
+
+      if (
+        e.data.type === 'OnboardingCompleted' &&
+        parsedValue?.applicantStatus === 'submitted'
+      ) {
+        console.log('[KYC] MockXago KYC completed, submitting form')
+        submit(null, {
+          action: '/personal-details',
+          method: 'post'
+        })
+      }
+    }
+
+    window.addEventListener('message', onKYCComplete)
+    return () => window.removeEventListener('message', onKYCComplete)
+  }, [mockxagoEndpoint, personaWidget?.id, submit])
+
+  // Real Persona SDK mode
+  useEffect(() => {
+    if (mockxagoEndpoint) return
     if (typeof window !== 'undefined' && scriptStatus == 'ready') {
       personaRef.current = (window as any).Persona
       personaRef.current = new (window as any).Persona.Client({
@@ -147,7 +207,23 @@ function PersonaPage() {
         onError: (error: unknown) => console.log(error)
       })
     }
-  }, [personaWidget, scriptStatus, submit])
+  }, [mockxagoEndpoint, personaWidget, scriptStatus, submit])
+
+  // MockXago: render iframe directly
+  if (mockxagoEndpoint && personaWidget?.id) {
+    const iframeSrc = `${mockxagoEndpoint}/v1/inquiries/${personaWidget.id}/iframe`
+    return (
+      <iframe
+        ref={mockXagoIframeRef}
+        title='Activate wallet'
+        src={iframeSrc}
+        sandbox='allow-top-navigation allow-forms allow-same-origin allow-popups allow-scripts'
+        scrolling='yes'
+        allow='camera;microphone'
+        className='h-[750px] sm:min-w-[400px] md:min-w-[400px]'
+      />
+    )
+  }
 
   return <KycIntro onClick={() => personaRef.current.open()} ready={ready} />
 }
@@ -235,9 +311,10 @@ function GatehubPage() {
 function PtiPage() {
   const { ptiWidget } = useLoaderData()
   const submit = useSubmit()
-  const scriptStatus = useScript(
-    ptiWidget?.sdkUrl || 'https://sdk.platform.fiant.io/0.0.23/index.js'
-  )
+  const ptiConfig = usePtiConfig()
+  const sdkUrl = ptiConfig?.sdkUrl || ptiWidget?.sdkUrl || ''
+  const formsUrl = ptiConfig?.formsUrl || ptiWidget?.formsUrl || ''
+  const scriptStatus = useScript(sdkUrl)
   const [setLoading] = useScaffoldStore((state) => [state.setLoading])
 
   // Unmount make sure the loading state is set to false
@@ -252,7 +329,7 @@ function PtiPage() {
       window.PTI.init({
         clientId: ptiWidget?.clientId,
         generateTokenPath: ptiWidget?.generateTokenPath,
-        ptiFormsUrl: ptiWidget?.formsUrl || 'https://forms.platform.fiant.io'
+        ptiFormsUrl: formsUrl
       })
       window.PTI.form({
         type: 'KYC',
@@ -278,7 +355,17 @@ function PtiPage() {
     return () => {
       window.removeEventListener('message', handleMessage)
     }
-  }, [scriptStatus, ptiWidget, setLoading, submit])
+  }, [scriptStatus, ptiWidget, formsUrl, setLoading, submit])
+
+  if (scriptStatus === 'error') {
+    return (
+      <Card>
+        <CardContent>
+          Could not load PTI SDK. Check PTI SDK URL and mockpti service health.
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
     <>

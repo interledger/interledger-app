@@ -94,6 +94,7 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	// Payment information steps
 	ctx.Step(`^I POST "([^"]*)" with bank account payload$`, tc.postWithBankAccountPayload)
 	ctx.Step(`^the response should include a payment information id$`, tc.responseShouldIncludePaymentInformationID)
+	ctx.Step(`^the wallet balance should be negative$`, tc.theWalletBalanceShouldBeNegative)
 
 	// Transaction steps
 	ctx.Step(`^an existing PTI user with a USD wallet and bank account$`, tc.anExistingPTIUserWithUSDWalletAndBankAccount)
@@ -113,6 +114,11 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^an existing PTI deposit transaction in state "([^"]*)"$`, tc.anExistingPTIDepositTransactionInState)
 	ctx.Step(`^an existing PTI withdrawal transaction in state "([^"]*)"$`, tc.anExistingPTIWithdrawalTransactionInState)
 	ctx.Step(`^mockpti transitions the transaction to "([^"]*)"$`, tc.mockptiTransitionsTheTransactionTo)
+	ctx.Step(`^mockpti settles a deposit$`, tc.mockptiSettlesADeposit)
+	ctx.Step(`^mockpti settles a withdrawal$`, tc.mockptiSettlesAWithdrawal)
+	ctx.Step(`^mockpti returns the deposit$`, tc.mockptiReturnsTheDeposit)
+	ctx.Step(`^mockpti returns the withdrawal$`, tc.mockptiReturnsTheWithdrawal)
+	ctx.Step(`^the wallet balance should equal the deposited amount$`, tc.theWalletBalanceShouldEqualTheDepositedAmount)
 	ctx.Step(`^a webhook should be delivered with resource type "([^"]*)"$`, tc.aWebhookShouldBeDeliveredWithResourceType)
 	ctx.Step(`^the webhook payload should be signed and encrypted$`, tc.theWebhookPayloadShouldBeSignedAndEncrypted)
 	ctx.Step(`^the webhook payload should include user id and request id$`, tc.theWebhookPayloadShouldIncludeUserIDAndRequestID)

@@ -9,6 +9,7 @@ import (
 
 type Backends interface {
 	External() sendgrid.Client
+	OneTemplateID() string
 	Users() user.Client
 	KYC() kyc.Client
 	Wallets() wallets.Client

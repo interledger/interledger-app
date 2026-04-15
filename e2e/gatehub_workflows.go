@@ -116,41 +116,48 @@ func (sc *E2EContext) iFinishedTheTOTPRegistrationWorkflow() error {
 func (sc *E2EContext) iFinishedTheWalletAddressCreationWorkflow() error {
 	debugPrintln("\n🔄 Running wallet address creation workflow...")
 
-	// Verify we're on wallet address creation page
+	// Verify we're on wallet address creation page.
+	// In high-concurrency runs the wallet may already be auto-provisioned, in
+	// which case we skip manual form submission and only verify reserved state.
 	if err := sc.iShouldBeRedirectedToTheWalletAddressCreationPage(); err != nil {
-		return fmt.Errorf("not on wallet address creation page: %w", err)
-	}
-
-	// Fill and submit the wallet address form
-	if err := sc.iFillInAndSubmitTheWalletAddressFormWithAUniqueAddress(); err != nil {
-		return fmt.Errorf("failed to fill wallet address form: %w", err)
-	}
-
-	// Take screenshot for debugging
-	if err := sc.iTakeAScreenshot("wallet-address-created"); err != nil {
-		debugPrintf("⚠️  Failed to take screenshot: %v\n", err)
-		// Don't fail the workflow for screenshot failure
-	}
-
-	// Click save button — retry once if a transient error (e.g. Bad Gateway) replaced the page
-	if err := sc.iClickTheButtonOnTheWalletAddressForm("save"); err != nil {
-		debugPrintf("⚠️  First save attempt failed: %v — reloading and retrying\n", err)
-		sc.iTakeAScreenshot("wallet-address-save-retry")
-
-		if _, reloadErr := sc.page.Reload(playwright.PageReloadOptions{
-			Timeout: playwright.Float(15000),
-		}); reloadErr != nil {
-			return fmt.Errorf("failed to reload page after save failure: %w", reloadErr)
+		debugPrintf("   ⚠️  Wallet-address redirect not observed: %v\n", err)
+		if dbErr := sc.waitForStableWalletCount(1, 2, 5*time.Second); dbErr == nil {
+			debugPrintln("   ✓ Wallet already exists in DB; skipping manual wallet-address form")
+		} else {
+			return fmt.Errorf("not on wallet address creation page: %w", err)
 		}
-		time.Sleep(2 * time.Second)
-
-		// Re-fill form on the reloaded page
-		if fillErr := sc.iFillInAndSubmitTheWalletAddressFormWithAUniqueAddress(); fillErr != nil {
-			return fmt.Errorf("failed to refill wallet address form after reload: %w", fillErr)
+	} else {
+		// Fill and submit the wallet address form
+		if err := sc.iFillInAndSubmitTheWalletAddressFormWithAUniqueAddress(); err != nil {
+			return fmt.Errorf("failed to fill wallet address form: %w", err)
 		}
 
-		if retryErr := sc.iClickTheButtonOnTheWalletAddressForm("save"); retryErr != nil {
-			return fmt.Errorf("failed to click save button after retry: %w", retryErr)
+		// Take screenshot for debugging
+		if err := sc.iTakeAScreenshot("wallet-address-created"); err != nil {
+			debugPrintf("⚠️  Failed to take screenshot: %v\n", err)
+			// Don't fail the workflow for screenshot failure
+		}
+
+		// Click save button — retry once if a transient error (e.g. Bad Gateway) replaced the page
+		if err := sc.iClickTheButtonOnTheWalletAddressForm("save"); err != nil {
+			debugPrintf("⚠️  First save attempt failed: %v — reloading and retrying\n", err)
+			sc.iTakeAScreenshot("wallet-address-save-retry")
+
+			if _, reloadErr := sc.page.Reload(playwright.PageReloadOptions{
+				Timeout: playwright.Float(15000),
+			}); reloadErr != nil {
+				return fmt.Errorf("failed to reload page after save failure: %w", reloadErr)
+			}
+			time.Sleep(2 * time.Second)
+
+			// Re-fill form on the reloaded page
+			if fillErr := sc.iFillInAndSubmitTheWalletAddressFormWithAUniqueAddress(); fillErr != nil {
+				return fmt.Errorf("failed to refill wallet address form after reload: %w", fillErr)
+			}
+
+			if retryErr := sc.iClickTheButtonOnTheWalletAddressForm("save"); retryErr != nil {
+				return fmt.Errorf("failed to click save button after retry: %w", retryErr)
+			}
 		}
 	}
 
@@ -179,9 +186,21 @@ func (sc *E2EContext) iShouldBeShownTheActivateWalletPromptForm(promptText strin
 		return fmt.Errorf("failed to navigate to personal details page: %w", err)
 	}
 
-	// Verify the activate wallet button is visible
-	if err := sc.iShouldSeeTheActivateWalletButton(); err != nil {
-		return fmt.Errorf("activate wallet button not visible: %w", err)
+	// South Africa/MockXago renders the iframe directly without a separate
+	// "Continue" button prompt.
+	if strings.EqualFold(sc.country, "south africa") {
+		iframe := sc.page.Locator("iframe[title='Activate wallet'], iframe")
+		if err := iframe.First().WaitFor(playwright.LocatorWaitForOptions{
+			State:   playwright.WaitForSelectorStateVisible,
+			Timeout: playwright.Float(10000),
+		}); err != nil {
+			return fmt.Errorf("activate wallet prompt not visible for south africa flow: %w", err)
+		}
+	} else {
+		// Verify the activate wallet button is visible for non-Xago providers.
+		if err := sc.iShouldSeeTheActivateWalletButton(); err != nil {
+			return fmt.Errorf("activate wallet button not visible: %w", err)
+		}
 	}
 
 	// Take screenshot for debugging

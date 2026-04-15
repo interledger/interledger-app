@@ -18,9 +18,8 @@ Feature: User KYC and Account Activation
       | dateOfBirth     | 1990-01-01                   |
     And I impersonate 'kyc-user'
 
-
-  @kyc @germany
-  Scenario: Successfully complete KYC as a verified user in Germany
+  @kyc @gatehub
+  Scenario: Successfully activate Germany account and complete KYC as verified user
     Given that my "country" is "germany"
     And I completed the signup workflow
     And I completed the account verification workflow
@@ -29,7 +28,7 @@ Feature: User KYC and Account Activation
 
     # Shows "Complete these steps to confirm your identity and activate your wallet"
     Then I should be shown the "Activate wallet" prompt form
-    
+
     # Trigger KYC flow and fill iframe
     When I click the "Continue" button
     And I wait for the KYC iframe to load
@@ -37,8 +36,25 @@ Feature: User KYC and Account Activation
     And I wait for the KYC completion
     Then I should be navigated back to the dashboard with approved kyc status
     And I should see my account balance with kyc approved
-    And I take a screenshot "kyc-completed-dashboard"    
+    And I take a screenshot "kyc-completed-dashboard"
 
+  @kyc @pti
+  Scenario: Successfully activate USA account and complete KYC
+    Given that my "country" is "United States"
+    And mockpti is running at "https://mockpti.interledger.test"
+    And I completed the signup workflow
+    And I completed the account verification workflow
+    And I finished the TOTP registration workflow
+    And I finished the wallet address creation workflow
+
+    # PTI embeds the KYC form directly - no "Continue" button, iframe is injected automatically
+    When I navigate to the personal details page to activate wallet
+    And I wait for the KYC iframe to load
+    And I fill and submit the mockpti KYC iframe
+    And I wait for the KYC completion
+    Then I should be navigated back to the dashboard with approved kyc status
+    And I should see my account balance with kyc approved
+    And I take a screenshot "kyc-pti-completed-dashboard"
 
   @kyc @xago
   Scenario: Successfully complete KYC as a verified user in South Africa
@@ -51,9 +67,8 @@ Feature: User KYC and Account Activation
     # Shows "Complete these steps to confirm your identity and activate your wallet"
     Then I should be shown the "Activate wallet" prompt form
 
-    # Trigger KYC flow and fill MockXago Persona iframe
-    When I click the "Continue" button
-    And I wait for the KYC iframe to load
+    # MockXago renders the KYC iframe directly for this flow
+    When I wait for the KYC iframe to load
     And I fill and submit the mockxago KYC iframe
     And I wait for the KYC completion
     Then I should be navigated back to the dashboard with approved kyc status

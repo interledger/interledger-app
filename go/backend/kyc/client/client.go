@@ -22,6 +22,10 @@ type client struct {
 }
 
 func New(b ops.Backends, smartyAuthID, smartyAuthToken string) (kyc.Client, error) {
+	return NewWithPersonaConfig(b, smartyAuthID, smartyAuthToken, persona.Config{})
+}
+
+func NewWithPersonaConfig(b ops.Backends, smartyAuthID, smartyAuthToken string, personaCfg persona.Config) (kyc.Client, error) {
 	if (smartyAuthID == "" || smartyAuthToken == "") &&
 		(env.IsSandbox() || env.IsProd()) {
 		return nil, errors.New("no auth information for smarty address verification")
@@ -30,7 +34,7 @@ func New(b ops.Backends, smartyAuthID, smartyAuthToken string) (kyc.Client, erro
 	return &client{
 		b:   b,
 		val: address.New(smartyAuthID, smartyAuthToken),
-		pc:  persona.New(),
+		pc:  persona.New(personaCfg),
 	}, nil
 }
 

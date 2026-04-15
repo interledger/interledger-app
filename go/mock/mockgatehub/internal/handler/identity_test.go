@@ -99,6 +99,74 @@ func TestKYCIframeSubmit_Without2FA_NormalFlow(t *testing.T) {
 	assert.Equal(t, consts.KYCStateAccepted, user.KYCState)
 }
 
+func TestKYCIframeSubmit_OutcomeAccepted(t *testing.T) {
+	h, store, userID := setup2FATestHandler(t, "")
+
+	form := baseKYCForm(userID)
+	form.Set("kyc_outcome", "accepted")
+	w := postKYCForm(h, form)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var resp map[string]interface{}
+	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
+	assert.Equal(t, "accepted", resp["status"])
+
+	user, err := store.GetUser(userID)
+	require.NoError(t, err)
+	assert.Equal(t, consts.KYCStateAccepted, user.KYCState)
+}
+
+func TestKYCIframeSubmit_OutcomeRejected(t *testing.T) {
+	h, store, userID := setup2FATestHandler(t, "")
+
+	form := baseKYCForm(userID)
+	form.Set("kyc_outcome", "rejected")
+	w := postKYCForm(h, form)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var resp map[string]interface{}
+	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
+	assert.Equal(t, "rejected", resp["status"])
+
+	user, err := store.GetUser(userID)
+	require.NoError(t, err)
+	assert.Equal(t, consts.KYCStateRejected, user.KYCState)
+}
+
+func TestKYCIframeSubmit_OutcomeActionRequired(t *testing.T) {
+	h, store, userID := setup2FATestHandler(t, "")
+
+	form := baseKYCForm(userID)
+	form.Set("kyc_outcome", "action_required")
+	w := postKYCForm(h, form)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var resp map[string]interface{}
+	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
+	assert.Equal(t, "action_required", resp["status"])
+
+	user, err := store.GetUser(userID)
+	require.NoError(t, err)
+	assert.Equal(t, consts.KYCStateActionRequired, user.KYCState)
+}
+
+func TestKYCIframeSubmit_OutcomeDefaultsToAccepted(t *testing.T) {
+	h, store, userID := setup2FATestHandler(t, "")
+
+	form := baseKYCForm(userID)
+	// No kyc_outcome field set — should default to accepted
+	w := postKYCForm(h, form)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	user, err := store.GetUser(userID)
+	require.NoError(t, err)
+	assert.Equal(t, consts.KYCStateAccepted, user.KYCState)
+}
+
 func TestKYCIframeSubmit_2FA_Success(t *testing.T) {
 	// Create a mock integrator 2FA endpoint that returns success
 	var receivedBody map[string]interface{}

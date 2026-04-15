@@ -50,16 +50,8 @@ func (sc *E2EContext) iLinkedASABankAccount(bankName, accountNumber string) erro
 func (sc *E2EContext) iDepositedIntoMyXagoBackedWallet(amountStr, currency string) error {
 	debugPrintf("\n💰 Depositing %s %s into Xago-backed wallet...\n", amountStr, currency)
 
-	if err := sc.iGetTheXagoSubAccountDetailsForTheCurrentUser(); err != nil {
-		return fmt.Errorf("failed to get Xago sub-account details: %w", err)
-	}
-
-	if err := sc.iCreateATestTransactionInMockXagoFor(amountStr, currency); err != nil {
-		return fmt.Errorf("failed to create test transaction: %w", err)
-	}
-
-	if err := sc.iPerformATestDepositOfInMockXago(amountStr, currency); err != nil {
-		return fmt.Errorf("failed to perform test deposit: %w", err)
+	if err := sc.iSimulateXagoTestDeposit(amountStr, currency); err != nil {
+		return fmt.Errorf("failed to simulate Xago test deposit: %w", err)
 	}
 
 	debugPrintln("   ⏳ Waiting for deposit webhook processing...")
