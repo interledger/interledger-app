@@ -13,11 +13,11 @@ import (
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
-	"github.com/stretchr/testify/mock"
 	"go.temporal.io/sdk/testsuite"
 
 	"gitlab.com/fynbos/backend/currency"
@@ -534,7 +534,7 @@ func TestCreateAndPostLedgerTransferForIncoming_Success(t *testing.T) {
 		DoAndReturn(func(_ context.Context, args []pacioli.CreateTransferArgs) ([]pacioli.TransferResult, error) {
 			require.Len(t, args, 1)
 			assert.Equal(t, ip.ID, args[0].ID)
-			assert.Equal(t, uint64(5000), args[0].Amount)
+			assert.Equal(t, int64(5000), args[0].Amount)
 			assert.Equal(t, laID, args[0].CreditAccountID)
 			assert.Equal(t, gatehub.EUROpsAccount, args[0].DebitAccountID)
 			assert.False(t, args[0].Pending)

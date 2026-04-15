@@ -263,7 +263,7 @@ func getLinkedAccountByWalletAddressAndAsset(
 		if isSender && acc.SendCurrency.String() == assetCode && acc.Type == "balance" {
 			return &acc, nil
 		}
-		if !isSender && acc.ReceiveCurrency.String() == assetCode && acc.Type == "balance"  {
+		if !isSender && acc.ReceiveCurrency.String() == assetCode && acc.Type == "balance" {
 			return &acc, nil
 		}
 	}
