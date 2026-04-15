@@ -27,7 +27,6 @@ import (
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/protoadapt"
 )
 
 const VALIDATION_ERR_MSG = "Some fields are incorrect."
@@ -337,18 +336,6 @@ func newAppErrorField(field string, description string) *pb.AppErrorField {
 		Field: field,
 		Error: description,
 	}
-}
-
-// statusWithDetails attaches details to a status, panicking if it fails.
-func statusWithDetails(st *status.Status, details ...protoadapt.MessageV1) *status.Status {
-	result, err := st.WithDetails(details...)
-	if err != nil {
-		// If this errored, it will always error
-		// here, so better panic so we can figure
-		// out why than have this silently passing.
-		panic(fmt.Sprintf("Unexpected error attaching metadata: %v", err))
-	}
-	return result
 }
 
 func appendBrFieldViolation(br *errdetails.BadRequest, field string, description string) {
