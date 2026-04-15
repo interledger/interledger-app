@@ -67,7 +67,7 @@ export function HeroSection() {
               data-anim="punch-text"
             >
               <h1 className="text-h1 hero-headline">A wallet for what&apos;s next</h1>
-              <p className="text-body-lg hero-subhead">
+              <p className="text-h3 hero-subhead">
                 Built for interoperability, inclusion,<br />and the long run.
               </p>
             </div>

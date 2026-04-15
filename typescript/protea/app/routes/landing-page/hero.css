@@ -64,12 +64,12 @@
 /* Punch text container (h1 + subhead) — from Figma Hero Main punch frame   */
 /* Mobile: 360px full-width, 216px h  Tablet: 900px full-width, 172px h     */
 .hero-punch {
-  max-width: 900px;
+  max-width: 1200px;
   margin-inline: auto;
 }
 
 .hero-headline {
-  margin: 0 0 16px;
+  margin: 0 0 32px;
   color: var(--color-text-brand); /* green — from design reference */
 }
 
