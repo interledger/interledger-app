@@ -3,7 +3,6 @@ package client
 import (
 	"context"
 	"net/http"
-	"os"
 	"time"
 
 	"gitlab.com/fynbos/backend/currency"
@@ -21,14 +20,23 @@ type Client struct {
 	external external.Client
 }
 
-func New(b ops.Backends) *Client {
+func New(b ops.Backends, cfg gatehub.Config) *Client {
 	return &Client{
 		b: b,
 		external: external.NewClient(
-			os.Getenv("GATEHUB_APP_ID"),
-			os.Getenv("GATEHUB_SECRET"),
-			os.Getenv("GATEHUB_CARD_APP_ID"),
-			os.Getenv("GATEHUB_GATEWAY_ID"),
+			cfg.AppID,
+			cfg.Secret,
+			cfg.CardAppID,
+			cfg.GatewayID,
+			cfg.CardAccountProductCode,
+			cfg.PaywiserEuroVaultID,
+			cfg.OnOffRampClientID,
+			cfg.OnboardingClientID,
+			cfg.ExchangeClientID,
+			cfg.APIBaseURL,
+			cfg.OnboardingBaseURL,
+			cfg.OnOffRampBaseURL,
+			cfg.OrganizationID,
 			&http.Client{
 				Transport: otelhttp.NewTransport(
 					httplogger.NewTransport(http.DefaultTransport, b, nil),
@@ -140,6 +148,10 @@ func (c Client) GetPendingThreeDSConfirmations(ctx context.Context, userID strin
 
 func (c Client) ThreeDSPaymentConfirmation(ctx context.Context, userID, txID string, confirmed bool) error {
 	return ops.ThreeDSPaymentConfirmation(ctx, c.external, userID, txID, confirmed)
+}
+
+func (c Client) UpdateOrganizationConfiguration(ctx context.Context, apiBaseURL, twoFAType string) (*external.UpdateOrganizationConfigurationResponse, error) {
+	return ops.UpdateOrganizationConfiguration(ctx, c.external, apiBaseURL, twoFAType)
 }
 
 func (c Client) ExternalClient() external.Client {

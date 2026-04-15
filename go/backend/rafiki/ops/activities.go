@@ -63,8 +63,8 @@ type GatehubLinkedAccountInfo struct {
 	ProviderID string
 }
 
-func parseAmountValue(val string) (uint64, error) {
-	return strconv.ParseUint(val, 10, 64)
+func parseAmountValue(val string) (int64, error) {
+	return strconv.ParseInt(val, 10, 64)
 }
 
 func (a *Activity) ListPaymentsToMake(ctx context.Context) ([]RafikiPayment, error) {
