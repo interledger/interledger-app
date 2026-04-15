@@ -43,7 +43,7 @@ export const links: LinksFunction = () => [
 export default function LandingPage() {
     return (
         <PhoneCarouselProvider>
-            <div data-theme="dark" style={{ backgroundColor: "var(--color-bg-page)", color: "var(--color-text-primary)", minHeight: "100vh" }}>
+            <div style={{ backgroundColor: "var(--color-bg-page)", color: "var(--color-text-primary)", minHeight: "100vh" }}>
                 <Nav />
                 <div className="page-content">
                     <HeroSection />
