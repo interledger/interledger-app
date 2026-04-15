@@ -13,6 +13,8 @@ import (
 	"time"
 )
 
+var _ = (*E2EContext).getKratosIdentities
+
 // Assertion step implementations
 
 func (sc *E2EContext) theSignupShouldBeSubmitted() error {
@@ -310,11 +312,6 @@ func (sc *E2EContext) iTriggerUserVerificationFor(email string) error {
 	prefixedEmail := email
 	if sc.testIdentifier != "" && !strings.HasPrefix(email, sc.testIdentifier+"-") {
 		prefixedEmail = fmt.Sprintf("%s-%s", sc.testIdentifier, email)
-	}
-
-	kratosAdminURL := os.Getenv("KRATOS_ADMIN_URL")
-	if kratosAdminURL == "" {
-		kratosAdminURL = "http://localhost:4434"
 	}
 
 	// Step 1: Resolve Kratos identity by direct DB lookup first.

@@ -18,6 +18,12 @@ var phoneAllocMu sync.Mutex
 // Kratos has registered the previous allocation.
 var phoneCounters = map[string]int{}
 
+var (
+	_ = (*E2EContext).getGatehubWalletIDByEmail
+	_ = (*E2EContext).getWalletIDByEmail
+	_ = (*E2EContext).getKYCStatusByWalletID
+)
+
 // waitForStableWalletCount polls the backend DB for the number of wallets
 // associated with the current test user. It returns when the observed
 // count is >= expectedMin for `stableFor` consecutive checks or when
