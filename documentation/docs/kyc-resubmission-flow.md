@@ -5,32 +5,13 @@ This document describes the improved KYC verification flow (Phase 1) that allows
 
 ## Status Flow (Phase 1)
 
-```
-┌─────────────────┐
-│ StatusUnknown   │
-│    (0)          │
-└────────┬────────┘
-         │ User initiates KYC
-         ▼
-┌─────────────────┐
-│ StatusPending   │
-│    (1)          │
-└────────┬────────┘
-         │
-         ├───────────────┬───────────────┐
-         │               │               │
-         ▼               ▼               ▼
-┌──────────────────┐ ┌──────────────────┐ ┌────────────────────────────┐
-│ StatusApproved   │ │ StatusDenied     │ │ StatusDocumentsRequired    │
-│   (3)            │ │   (4)            │ │   (2)                     │
-└──────────────────┘ └──────────────────┘ └───────────────┬────────────┘
-                                            │
-                                            │ User resubmits
-                                            ▼
-                                 ┌─────────────────┐
-                                 │ StatusPending   │
-                                 │    (1)          │
-                                 └─────────────────┘
+```mermaid
+flowchart TD
+    unknown["StatusUnknown<br/>(0)"] -->|User initiates KYC| pending["StatusPending<br/>(1)"]
+    pending --> approved["StatusApproved<br/>(3)"]
+    pending --> denied["StatusDenied<br/>(4)"]
+    pending --> documentsRequired["StatusDocumentsRequired<br/>(2)"]
+    documentsRequired -->|User resubmits| pending
 ```
 
 - Both `id.verification.action_required` and `id.document_notice.expired` webhook events set status to `StatusDocumentsRequired` (2).
