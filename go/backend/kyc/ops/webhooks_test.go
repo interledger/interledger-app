@@ -131,7 +131,7 @@ func TestNewHandlePersonaWebhook(t *testing.T) {
 			req.Header.Set("Persona-Signature", tc.sigHeader)
 
 			rr := httptest.NewRecorder()
-			handler := ops.NewHandlePersonaWebhook(b)
+			handler := ops.NewHandlePersonaWebhook(b, persona.New(persona.Config{}))
 
 			handler.ServeHTTP(rr, req)
 
@@ -187,7 +187,7 @@ func TestNewHandlePersonaWebhook(t *testing.T) {
 		req.Header.Set("Persona-Signature", tc.sigHeader)
 
 		rr := httptest.NewRecorder()
-		handler := ops.NewHandlePersonaWebhook(b)
+		handler := ops.NewHandlePersonaWebhook(b, persona.New(persona.Config{}))
 
 		handler.ServeHTTP(rr, req)
 

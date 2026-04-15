@@ -44,6 +44,7 @@ Protea is a Remix application serving the user-facing wallet UI.
 | `PTI_CLIENT_ID` | PTI/Fiant payment provider client UUID, passed to the browser for payment widget initialisation | No | Local default: `''` (code default); deployed values TBD |
 | `PTI_SDK_URL` | URL to the Fiant Web SDK JavaScript bundle loaded by the PTI payment widget. Value pattern documented in [Fiant Front-End SDK usage](https://developers.platform.fiant.io/docs/front-end-sdk-usage) as `https://sdk.{env}.fiant.io/latest/index.js` | No | Prod: `https://sdk.platform.fiant.io/0.0.23/index.js`; Sandbox/Dev: `https://sdk.staging.fiant.io/latest/index.js`; Local: `https://mockpti.interledger.test/sdk/index.js` |
 | `PTI_FORMS_URL` | URL to the Fiant hosted forms (Elements) used for KYC, onboarding, and payment collection widgets. Derived from the `ptiDomain` init parameter documented in [Fiant Front-End SDK usage](https://developers.platform.fiant.io/docs/front-end-sdk-usage): `https://forms.{ptiDomain}` | No | Prod: `https://forms.platform.fiant.io`; Sandbox/Dev: `https://forms.staging.fiant.io`; Local: `https://mockpti.interledger.test/forms` |
+| `MOCKXAGO_ENDPOINT` | Base URL for the MockXago iframe used by the South Africa local KYC flow | No | Local default: `https://mockxago.interledger.test`; not set in deployed environments |
 | `SENTRY_RELEASE` | Identifies the deployed version in Sentry error reports | No | Not set by default; deployed values TBD |
 | `CHOKIDAR_USEPOLLING` | Enable filesystem polling for hot-reload in containers (dev only) | No | Local only: `true`; not applicable in deployed environments |
 | `COOKIE_SECRETS` | JSON array of strings used to sign session cookies. Rotate periodically. | Yes | Local default: `["localsecret"]` |
@@ -170,8 +171,9 @@ The Go backend is the core of the wallet, handling payments, provider integratio
 
 | Variable | Description | Secret | Notes |
 |---|---|---|---|
-| `PERSONA_TOKEN` | Persona API token for identity verification | Yes | Not set locally |
-| `PERSONA_WEBHOOK_TOKEN` | Persona webhook verification token | Yes | Not set locally |
+| `PERSONA_TOKEN` | Persona API token for identity verification. Required at backend startup. | Yes | Prod/Sandbox/Dev: secret from 1Password; Local default: `test-persona-token` |
+| `PERSONA_WEBHOOK_TOKEN` | Persona webhook verification token. Required at backend startup. | Yes | Prod/Sandbox/Dev: secret from 1Password; Local default: `test-persona-webhook-token` |
+| `PERSONA_BASE_URL` | Persona API base URL override used by backend Persona client | No | Default when unset: `https://api.withpersona.com/api/v1/`; Local default in compose: `http://mockxago:8080/v1/` |
 
 ### Basis Theory (Card Tokenisation)
 

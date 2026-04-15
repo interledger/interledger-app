@@ -11,7 +11,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -33,17 +32,19 @@ type client struct {
 	webhookSecret string
 }
 
-func New() Client {
-	baseURL := "https://api.withpersona.com/api/v1/"
-	if override := os.Getenv("PERSONA_BASE_URL"); override != "" {
-		baseURL = override
-	}
+type Config struct {
+	BaseURL       string
+	BearerToken   string
+	WebhookSecret string
+}
+
+func New(cfg Config) Client {
 
 	return &client{
 		api:           otelhttp.DefaultClient,
-		bearerToken:   os.Getenv("PERSONA_TOKEN"),
-		webhookSecret: os.Getenv("PERSONA_WEBHOOK_TOKEN"),
-		baseURL:       baseURL,
+		bearerToken:   cfg.BearerToken,
+		webhookSecret: cfg.WebhookSecret,
+		baseURL:       cfg.BaseURL,
 	}
 }
 
