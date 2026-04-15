@@ -1,28 +1,7 @@
 import { motion } from "framer-motion"
-import logoImg from "../assets/interledger-wallet-logo.png"
-
-/**
- * Renders a single CSS-based debit card replica
- */
-function Card({ className }: { className: string }) {
-  return (
-    <div className={`physical-card ${className}`}>
-      <div className="card-top">
-        <div className="card-chip" />
-        <span className="card-debit">Debit</span>
-      </div>
-      
-      <div className="card-logo">Interledger</div>
-      
-      <div className="card-bottom">
-        <div className="mastercard-circles">
-          <div className="mc-circle mc-circle--red" />
-          <div className="mc-circle mc-circle--yellow" />
-        </div>
-      </div>
-    </div>
-  )
-}
+import leftCardUrl from "../assets/cards-section/left.svg"
+import centerCardUrl from "../assets/cards-section/center.svg"
+import rightCardUrl from "../assets/cards-section/right.svg"
 
 // Parent stagger control
 const fanVariants = {
@@ -36,11 +15,40 @@ const fanVariants = {
 }
 
 // Child entry properties
-const cardVariants = {
-  hidden: { opacity: 0, y: 120, scale: 0.9 },
+// Since the SVGs already strictly have their offsets and rotations baked deeply into their bounding boxes in Figma,
+// we just position them at their exact relative offsets on X and Y, with rotate: 0 to respect their internal matrix transforms!
+// Offsets are derived precisely from the Absolute Bounding Boxes of the Figma node
+const leftCardVariants = {
+  hidden: { opacity: 0, y: "calc(-50% - 65.5px + 150px)", x: "calc(-50% - 157px)", rotate: 0, scale: 0.8 },
   visible: { 
     opacity: 1, 
-    y: 0, 
+    y: "calc(-50% - 65.5px)", 
+    x: "calc(-50% - 157px)",
+    rotate: 0,
+    scale: 1,
+    transition: { type: "spring", stiffness: 100, damping: 20 }
+  }
+}
+
+const rightCardVariants = {
+  hidden: { opacity: 0, y: "calc(-50% - 65.5px + 150px)", x: "calc(-50% + 101px)", rotate: 0, scale: 0.8 },
+  visible: { 
+    opacity: 1, 
+    y: "calc(-50% - 65.5px)", 
+    x: "calc(-50% + 101px)",
+    rotate: 0,
+    scale: 1,
+    transition: { type: "spring", stiffness: 100, damping: 20 }
+  }
+}
+
+const centerCardVariants = {
+  hidden: { opacity: 0, y: "calc(-50% + 100px)", x: "-50%", rotate: 0, scale: 0.9 },
+  visible: { 
+    opacity: 1, 
+    y: "-50%", 
+    x: "-50%",
+    rotate: 0,
     scale: 1,
     transition: { type: "spring", stiffness: 120, damping: 20 }
   }
@@ -58,10 +66,6 @@ export function PhysicalCards() {
         <h2 className="text-h1 cards-heading">Virtual and physical cards</h2>
       </motion.div>
 
-      {/* Wrapping the fan container allows the CSS to apply rotate based on desktop media queries immediately when visibly triggered. 
-          Actually, we use CSS classes for the final rotated states, but motion will spring-animate the 'y' and 'scale' upwards smoothly. 
-          To make CSS pick it up, we just apply 'is-visible' based on whileInView automatically by using whileInView="visible" AND having a class that reacts to it. But since we use variants, we will just use motion natively.
-      */}
       <motion.div 
         className="cards-fan-container anim-cards-fan"
         variants={fanVariants}
@@ -69,18 +73,22 @@ export function PhysicalCards() {
         whileInView="visible"
         viewport={{ once: true, amount: 0.3 }}
       >
-        {/* We keep the physical-card--X class for the rotation math, but the spring entry comes from motion's childVariants */}
-        <motion.div variants={cardVariants} className="physical-card-wrapper">
-          <Card className="physical-card--left" />
-        </motion.div>
-        
-        <motion.div variants={cardVariants} className="physical-card-wrapper">
-          <Card className="physical-card--right" />
-        </motion.div>
+        <div className="cards-cluster">
+          {/* Left Card */}
+          <motion.div variants={leftCardVariants} className="physical-card-layer">
+            <img src={leftCardUrl} alt="Left Debit Card" className="physical-card-img physical-card-img--left" />
+          </motion.div>
+          
+          {/* Right Card */}
+          <motion.div variants={rightCardVariants} className="physical-card-layer">
+            <img src={rightCardUrl} alt="Right Debit Card" className="physical-card-img physical-card-img--right" />
+          </motion.div>
 
-        <motion.div variants={cardVariants} className="physical-card-wrapper">
-          <Card className="physical-card--center" />
-        </motion.div>
+          {/* Center Card */}
+          <motion.div variants={centerCardVariants} className="physical-card-layer">
+            <img src={centerCardUrl} alt="Center Debit Card" className="physical-card-img physical-card-img--center" />
+          </motion.div>
+        </div>
       </motion.div>
     </section>
   )
