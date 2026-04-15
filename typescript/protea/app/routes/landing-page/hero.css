@@ -78,6 +78,27 @@
   color: var(--color-text-secondary);
 }
 
+/* --- Phone sizing tokens ------------------------------------------------- */
+
+:root {
+  --phone-width:  200px;
+  --phone-height: 433px;
+}
+
+@media (min-width: 900px) {
+  :root {
+    --phone-width:  260px;
+    --phone-height: 563px;
+  }
+}
+
+@media (min-width: 1280px) {
+  :root {
+    --phone-width:  320px;
+    --phone-height: 693px;
+  }
+}
+
 /* --- Phone container ---------------------------------------------------- */
 
 .hero-phone-container {
@@ -89,27 +110,16 @@
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  width: 200px;
-  height: 433px;
+  width: var(--phone-width);
+  height: var(--phone-height);
   z-index: 2;
   transition: top 800ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Feature state: phone centered within usable area (below nav) */
-/* Formula: navHeight/2 + 50% - phoneHeight/2 */
+/* Formula: nav-height/2 + 50% - phone-height/2 */
 .animated-hero:not([data-screen='1']) .hero-phone-container {
-  top: calc(52px + 50% - 216px); /* 52px = nav-height/2; centers in sub-nav area */
-}
-
-@media (min-width: 900px) {
-  .hero-phone-container {
-    width: 260px;
-    height: 563px;
-    /* top: 38vh inherited — phone partially below fold in hero */
-  }
-  .animated-hero:not([data-screen='1']) .hero-phone-container {
-    top: calc(52px + 50% - 281px); /* 52px = nav-height/2; centers in sub-nav area */
-  }
+  top: calc(var(--nav-height) / 2 + 50% - var(--phone-height) / 2);
 }
 
 /* --- Phone frame (iPhone chassis) --------------------------------------- */

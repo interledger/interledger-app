@@ -17,15 +17,13 @@
   left: 50%;
   transform: translateX(-50%);
   z-index: 100;
-  height: 72px; /* from subagent */
+  height: 72px;
   width: calc(100% - 32px);
-  max-width: 960px;
-  background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: var(--rounded-xl); /* 12px — Figma: rounded-xl */
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+  max-width: 1440px;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: var(--rounded-lg); /* 8px */
 }
 
 /* --- Nav inner container ------------------------------------------------ */
@@ -36,7 +34,7 @@
   justify-content: space-between;
   height: 100%;
   width: 100%;
-  padding-inline: 24px;
+  padding: 10px 10px 10px 20px;
 }
 
 /* --- Right Group (Links + Button) --------------------------------------- */
@@ -62,9 +60,8 @@
 }
 
 .nav-logo-icon {
-  width: 48px;
-  height: 48px;
-  /* Instead of pure div, it's an img */
+  height: 32px;
+  width: auto;
   object-fit: contain;
 }
 
@@ -113,16 +110,16 @@
 /* CTA button */
 .nav-cta {
   display: none; /* hidden on mobile */
-  height: 48px; /* Slightly taller for rounded block aesthetic */
+  height: 52px; /* fills 72px nav minus 10px top/bottom padding */
   padding-inline: 20px;
   font-family: var(--font-family-body, 'Inter', sans-serif);
   font-size: 0.8125rem; /* ~13px */
   font-weight: 600;
-  line-height: 48px; /* align text vertically */
+  line-height: 52px;
   color: #ffffff;
   background: var(--color-interactive-primary);
   border: none;
-  border-radius: var(--rounded-lg); /* 8px — Figma: rounded-lg */
+  border-radius: var(--rounded-lg); /* 8px */
   text-decoration: none;
   white-space: nowrap;
   cursor: pointer;

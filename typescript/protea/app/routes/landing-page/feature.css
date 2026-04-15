@@ -24,13 +24,7 @@
 /* Transparent gap that mirrors the phone width so columns flank the phone. */
 
 .feature-phone-spacer {
-  flex: 0 0 200px; /* matches mobile phone width */
-}
-
-@media (min-width: 900px) {
-  .feature-phone-spacer {
-    flex: 0 0 260px; /* matches desktop phone width */
-  }
+  flex: 0 0 var(--phone-width);
 }
 
 /* --- Feature columns ---------------------------------------------------- */

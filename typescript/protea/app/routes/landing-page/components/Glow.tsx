@@ -4,7 +4,7 @@ import { motion } from "framer-motion"
 export interface GlowScrollTransform {
   scale: number
   rotate: number
-  y: number
+  y: number | string
   opacity: number
 }
 
@@ -18,7 +18,7 @@ interface GlowProps {
 const DEFAULT_TRANSFORM: GlowScrollTransform = {
   scale: 1,
   rotate: 0,
-  y: 0,
+  y: "-50%",
   opacity: 0.5,
 }
 

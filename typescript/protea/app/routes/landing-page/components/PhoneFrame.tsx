@@ -1,6 +1,7 @@
 import { usePhoneCarousel } from "../context/PhoneCarouselContext"
 import type { CarouselScreen } from "../context/PhoneCarouselContext"
 import { motion } from "framer-motion"
+import { Glow, type GlowScrollTransform } from "./Glow"
 
 import startScreen from "../assets/start-screen.svg"
 import screen2 from "../assets/screen2.png"
@@ -14,6 +15,14 @@ const SCREEN_ASSETS: Record<CarouselScreen, string> = {
   3: screen3,
   4: screen4,
   5: screen5,
+}
+
+const GLOW_STATES: Record<CarouselScreen, GlowScrollTransform> = {
+  1: { scale: 1.2, rotate: 0,   y: "-50%", opacity: 1   },
+  2: { scale: 1,   rotate: 180, y: "-50%", opacity: 1   },
+  3: { scale: 1,   rotate: 270, y: "-50%", opacity: 0.5 },
+  4: { scale: 1,   rotate: 360, y: "-50%", opacity: 1   },
+  5: { scale: 1,   rotate: 450, y: "-50%", opacity: 1   },
 }
 
 /**
@@ -32,6 +41,7 @@ export function PhoneFrame() {
 
   return (
     <div className="hero-phone-container">
+      <Glow x="50%" y="50%" scrollTransform={GLOW_STATES[activeScreen]} />
       <div className="phone-frame" aria-label={`App screen ${activeScreen}`}>
         <div className="phone-dynamic-island" />
         <div className="phone-screen-viewport">
