@@ -11,12 +11,14 @@ import heroStylesheet from "./hero.css?url";
 import featureStylesheet from "./feature.css?url";
 import cardsStylesheet from "./cards.css?url";
 import otherFeaturesStylesheet from "./other-features.css?url";
+import sendReceiveStylesheet from "./send-receive.css?url";
 import { Layouts } from "~/components/Scaffold";
 import { PhoneCarouselProvider } from "./context/PhoneCarouselContext";
 import { Nav } from "./components/Nav";
 import { HeroSection } from "./components/HeroSection";
 import { PhysicalCards } from "./sections/PhysicalCards";
 import { OtherFeatures } from "./sections/OtherFeatures";
+import { SendReceive } from "./sections/SendReceive";
 
 export const handle = {
     layout: Layouts.LandingPage,
@@ -41,6 +43,7 @@ export const links: LinksFunction = () => [
     { rel: "stylesheet", href: featureStylesheet },
     { rel: "stylesheet", href: cardsStylesheet },
     { rel: "stylesheet", href: otherFeaturesStylesheet },
+    { rel: "stylesheet", href: sendReceiveStylesheet },
 ];
 
 export default function LandingPage() {
@@ -53,6 +56,7 @@ export default function LandingPage() {
                 </div>
                 <PhysicalCards />
                 <OtherFeatures />
+                <SendReceive />
             </div>
         </PhoneCarouselProvider>
     );
