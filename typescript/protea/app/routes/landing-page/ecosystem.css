@@ -1,0 +1,94 @@
+.ecosystem-section {
+  padding-block: var(--padding-5xl); /* 80px from Figma */
+  background-color: var(--color-bg-page);
+  font-family: 'Poppins', sans-serif !important;
+}
+
+.ecosystem-container {
+  max-width: 1440px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4xl); /* 60px gap from headline to grid */
+  align-items: center;
+}
+
+.ecosystem-title {
+  text-align: center;
+  color: var(--color-text-primary);
+  margin: 0;
+  max-width: 1120px;
+}
+
+.ecosystem-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--spacing-sm); /* Exact 8px gap from Figma */
+  width: 100%;
+  padding-inline: var(--padding-3xl); /* 40px outer padding from Figma */
+}
+
+.open-world-card {
+  height: 200px;
+  border-radius: var(--rounded-2xl); /* 16px from Figma */
+  padding: var(--padding-2xl); /* 32px from Figma */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: left;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.open-world-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+}
+
+.open-world-card p {
+  color: var(--color-text-primary);
+  margin: 0;
+  max-width: 240px;
+}
+
+/* Card variants based on identified palette */
+.card-lavender {
+  background-color: var(--color-lavender-100);
+}
+
+.card-aqua {
+  background-color: var(--color-aqua-mint-100);
+}
+
+.card-pistachio {
+  background-color: var(--color-pistachio-100);
+}
+
+.card-blush {
+  background-color: var(--color-blush-100);
+}
+
+/* Responsive Overrides */
+@media (max-width: 1024px) {
+  .ecosystem-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .ecosystem-grid {
+    grid-template-columns: 1fr;
+    gap: 12px; /* Slightly more breathable on mobile */
+  }
+
+  .ecosystem-section {
+    padding-block: var(--spacing-4xl);
+  }
+
+  .ecosystem-title {
+    font-size: var(--text-h4-size);
+  }
+
+  .open-world-card {
+    height: 160px; /* More compact on mobile */
+  }
+}

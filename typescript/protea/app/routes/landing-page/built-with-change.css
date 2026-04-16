@@ -10,7 +10,7 @@
 .built-with-change-header {
   text-align: center;
   width: 1360px; /* From Figma Fill */
-  padding-inline: 120px; /* Exact 120px text-inset from Figma */
+  padding-inline: var(--padding-6xl); /* Exact 120px text-inset from Figma */
   margin-bottom: var(--spacing-4xl); 
   display: flex;
   flex-direction: column;
