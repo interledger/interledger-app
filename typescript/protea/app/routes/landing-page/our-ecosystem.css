@@ -86,7 +86,7 @@
   border-radius: var(--rounded-2xl); /* 16px */
   padding: var(--padding-5xl) var(--padding-6xl); /* 80px top/bottom, 120px side inset */
   position: relative;
-  overflow: hidden;
+  /* overflow: hidden; Removed to prevent Safari blur-clipping bug which renders the glow as a solid background */
   display: flex;
   flex-direction: column;
   align-items: center;
