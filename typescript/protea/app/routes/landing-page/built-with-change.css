@@ -1,0 +1,58 @@
+.built-with-change {
+  padding-block: var(--padding-5xl); /* 80px top padding matching Figma gap */
+  background-color: var(--color-bg-page);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+}
+
+.built-with-change-header {
+  text-align: center;
+  width: 1360px; /* From Figma Fill */
+  padding-inline: 120px; /* Exact 120px text-inset from Figma */
+  margin-bottom: var(--spacing-4xl); 
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2xl); 
+}
+
+.built-with-change-header h2 {
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.built-with-change-header p {
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.built-with-change-image-wrapper {
+  width: 100%;
+  max-width: 1360px; /* Matching the grid width, not full-bleed */
+  height: 600px;
+  border-radius: var(--rounded-3xl); /* 24px visually confirmed */
+  overflow: hidden;
+  background-color: var(--color-neutral-10);
+}
+
+.built-with-change-image-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .built-with-change-header {
+    gap: var(--spacing-xl);
+    margin-bottom: var(--spacing-2xl);
+  }
+}
+
+@media (max-width: 640px) {
+  .built-with-change-image-wrapper {
+    height: 400px;
+  }
+}

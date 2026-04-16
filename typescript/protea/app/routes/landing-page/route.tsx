@@ -12,6 +12,9 @@ import featureStylesheet from "./feature.css?url";
 import cardsStylesheet from "./cards.css?url";
 import otherFeaturesStylesheet from "./other-features.css?url";
 import sendReceiveStylesheet from "./send-receive.css?url";
+import ecosystemStylesheet from "./ecosystem.css?url";
+import builtWithChangeStylesheet from "./built-with-change.css?url";
+import ourEcosystemStylesheet from "./our-ecosystem.css?url";
 import { Layouts } from "~/components/Scaffold";
 import { PhoneCarouselProvider } from "./context/PhoneCarouselContext";
 import { Nav } from "./components/Nav";
@@ -19,6 +22,9 @@ import { HeroSection } from "./components/HeroSection";
 import { PhysicalCards } from "./sections/PhysicalCards";
 import { OtherFeatures } from "./sections/OtherFeatures";
 import { SendReceive } from "./sections/SendReceive";
+import { Ecosystem } from "./sections/Ecosystem";
+import { BuiltWithChange } from "./sections/BuiltWithChange";
+import { OurEcosystem } from "./sections/OurEcosystem";
 
 export const handle = {
     layout: Layouts.LandingPage,
@@ -44,6 +50,9 @@ export const links: LinksFunction = () => [
     { rel: "stylesheet", href: cardsStylesheet },
     { rel: "stylesheet", href: otherFeaturesStylesheet },
     { rel: "stylesheet", href: sendReceiveStylesheet },
+    { rel: "stylesheet", href: ecosystemStylesheet },
+    { rel: "stylesheet", href: builtWithChangeStylesheet },
+    { rel: "stylesheet", href: ourEcosystemStylesheet },
 ];
 
 export default function LandingPage() {
@@ -57,6 +66,9 @@ export default function LandingPage() {
                 <PhysicalCards />
                 <OtherFeatures />
                 <SendReceive />
+                <Ecosystem />
+                <BuiltWithChange />
+                <OurEcosystem />
             </div>
         </PhoneCarouselProvider>
     );
