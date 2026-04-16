@@ -150,8 +150,9 @@ func (h *Handler) PersonaGetInquiryIframe(w http.ResponseWriter, r *http.Request
 	}
 
 	data := map[string]string{
-		"Token":  r.URL.Query().Get("token"),
-		"UserID": userID,
+		"Token":      r.URL.Query().Get("token"),
+		"UserID":     userID,
+		"SubmitPath": fmt.Sprintf("/v1/inquiries/%s/submit", inquiryID),
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
