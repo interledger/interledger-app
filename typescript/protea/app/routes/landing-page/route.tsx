@@ -10,11 +10,13 @@ import navStylesheet from "./nav.css?url";
 import heroStylesheet from "./hero.css?url";
 import featureStylesheet from "./feature.css?url";
 import cardsStylesheet from "./cards.css?url";
+import otherFeaturesStylesheet from "./other-features.css?url";
 import { Layouts } from "~/components/Scaffold";
 import { PhoneCarouselProvider } from "./context/PhoneCarouselContext";
 import { Nav } from "./components/Nav";
 import { HeroSection } from "./components/HeroSection";
 import { PhysicalCards } from "./sections/PhysicalCards";
+import { OtherFeatures } from "./sections/OtherFeatures";
 
 export const handle = {
     layout: Layouts.LandingPage,
@@ -26,7 +28,7 @@ export const handle = {
 export const links: LinksFunction = () => [
     { rel: "preconnect", href: "https://fonts.googleapis.com" },
     { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-    { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" },
+    { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" },
     { rel: "stylesheet", href: colorStylesheet },
     { rel: "stylesheet", href: typographyTokens },
     { rel: "stylesheet", href: typographyStylesheet },
@@ -38,6 +40,7 @@ export const links: LinksFunction = () => [
     { rel: "stylesheet", href: heroStylesheet },
     { rel: "stylesheet", href: featureStylesheet },
     { rel: "stylesheet", href: cardsStylesheet },
+    { rel: "stylesheet", href: otherFeaturesStylesheet },
 ];
 
 export default function LandingPage() {
@@ -49,6 +52,7 @@ export default function LandingPage() {
                     <HeroSection />
                 </div>
                 <PhysicalCards />
+                <OtherFeatures />
             </div>
         </PhoneCarouselProvider>
     );

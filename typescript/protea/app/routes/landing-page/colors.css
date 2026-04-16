@@ -148,6 +148,7 @@
   --section-bg-hero:       var(--color-bg-page);
   --section-bg-features:   var(--color-bg-surface);
   --section-bg-cards:      var(--color-bg-surface-raised);
+  --section-bg-other-features: var(--color-aqua-mint-100);
   --section-bg-send-receive: var(--color-bg-page);
   --section-bg-ecosystem:  var(--color-bg-surface);
   --section-bg-editorial:  var(--color-bg-surface-raised);
@@ -163,6 +164,9 @@
 
   --button-primary-bg:   var(--color-interactive-primary);
   --button-primary-text: var(--color-text-inverse);
+
+  --button-cta-bg:       var(--color-forest-green-100);
+  --button-cta-text:     var(--color-neutral-0);
 }
 
 /* ---- Layer 3: Dark Mode Overrides ---- */

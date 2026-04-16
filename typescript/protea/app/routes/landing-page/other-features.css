@@ -1,0 +1,132 @@
+/* OTHER FEATURES SECTION */
+
+.other-features-section {
+  padding: var(--spacing-5xl) 0;
+}
+
+.other-features-banner {
+  background-color: var(--section-bg-other-features);
+  border-radius: var(--rounded-2xl);
+  padding: var(--padding-6xl) var(--padding-3xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4xl);
+  max-width: 1360px;
+  margin: 0 auto;
+  overflow: hidden;
+  color: #0D0D0D;
+  align-items: center;
+  font-family: 'Poppins', sans-serif !important;
+}
+
+.other-features-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 1280px;
+}
+
+.other-features-left {
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
+
+.other-features-headline {
+  font-size: 56px !important;
+  line-height: 1.14;
+  font-weight: 600;
+  color: inherit;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.other-features-right {
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+  text-align: right;
+}
+
+.other-features-description {
+  font-size: 24px !important;
+  line-height: 1.41;
+  font-weight: 400;
+  color: inherit;
+  margin: 0;
+}
+
+.other-features-cta-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xl);
+  width: 100%;
+}
+
+.other-features-btn {
+  background-color: var(--button-cta-bg);
+  color: var(--button-cta-text);
+  padding: var(--padding-lg) var(--padding-xl) var(--padding-lg) var(--padding-lg);
+  padding-left: var(--padding-xl);
+  height: 52px;
+  border-radius: var(--rounded-lg);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 13px; /* Exactly from Figma */
+  line-height: 16px;
+  transition: opacity 0.2s ease;
+  text-decoration: none;
+}
+
+.other-features-btn svg {
+  margin-left: 0; /* icon was on the right in figma instance swap */
+}
+
+.other-features-badges {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.browser-availability {
+  font-size: 24px;
+  line-height: 1.41; /* 34/24 */
+  font-weight: 400;
+  color: inherit;
+  text-align: center;
+  margin: 0;
+}
+
+/* Tablet/Mobile Overrides */
+@media (max-width: 900px) {
+  .other-features-header {
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-3xl);
+  }
+
+  .other-features-left, .other-features-right {
+    max-width: 100%;
+    text-align: center;
+  }
+
+  .other-features-headline {
+    font-size: 32px;
+    line-height: 40px;
+  }
+
+  .other-features-description, .browser-availability {
+    font-size: 18px;
+    line-height: 24px;
+  }
+}
