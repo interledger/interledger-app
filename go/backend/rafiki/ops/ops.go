@@ -95,6 +95,9 @@ func GetWalletAddress(ctx context.Context, b Backends, walletID string) (*rafiki
 }
 
 func LookupWalletID(ctx context.Context, b Backends, paymentPointerID string) (string, error) {
+	if b.DB() == nil {
+		return "", fmt.Errorf("%w db not configured", rafiki.ErrInternal)
+	}
 	var wid string
 	err := b.DB().GetContext(ctx, &wid, "SELECT wallet_id FROM rafiki_payment_pointers WHERE payment_pointer_id=$1", paymentPointerID)
 	if err != nil {
@@ -105,6 +108,9 @@ func LookupWalletID(ctx context.Context, b Backends, paymentPointerID string) (s
 }
 
 func LookupPaymentPointerID(ctx context.Context, b Backends, walletID string) (string, error) {
+	if b.DB() == nil {
+		return "", fmt.Errorf("%w db not configured", rafiki.ErrInternal)
+	}
 	var ppID string
 	err := b.DB().GetContext(ctx, &ppID, "SELECT payment_pointer_id FROM rafiki_payment_pointers WHERE wallet_id=$1", walletID)
 	if err != nil && errors.Is(err, sql.ErrNoRows) {

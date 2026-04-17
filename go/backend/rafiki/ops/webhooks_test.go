@@ -4,11 +4,19 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 
 	"github.com/golang/mock/gomock"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"gitlab.com/fynbos/backend/currency"
+	"gitlab.com/fynbos/backend/db"
+	"gitlab.com/fynbos/backend/linkedaccounts"
+	linkedaccounts_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
+	"gitlab.com/fynbos/backend/providers/gatehub"
 	temporal_mock "gitlab.com/fynbos/backend/temporal/mock"
 	"go.temporal.io/sdk/client"
 
@@ -84,6 +92,20 @@ func TestEventWebhookIncomingPaymentCreated_NilDB(t *testing.T) {
 }
 
 func TestEventWebhookWorkflowTypes_StartsWorkflow(t *testing.T) {
+	if os.Getenv("DB_URL") == "" {
+		t.Skip("DB_URL not set; skipping test")
+	}
+
+	ctx := context.Background()
+	conn := db.MigrateTestDB(t, ctx)
+
+	for _, ppID := range []string{"wa_1", "wa_2", "wa_3"} {
+		_, err := conn.ExecContext(ctx,
+			`INSERT INTO rafiki_payment_pointers (wallet_id, payment_pointer_id) VALUES ($1, $2) ON CONFLICT (payment_pointer_id) DO NOTHING`,
+			uuid.NewString(), ppID)
+		require.NoError(t, err)
+	}
+
 	tests := []struct {
 		name     string
 		hookType string
@@ -125,8 +147,24 @@ func TestEventWebhookWorkflowTypes_StartsWorkflow(t *testing.T) {
 			tp.EXPECT().ExecuteWorkflow(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 				Return(&fakeWorkflowRun{}, nil)
 
+			laMock := linkedaccounts_mock.NewMockClient(ctrl)
+			laMock.EXPECT().ListBalances(gomock.Any(), gomock.Any()).
+				Return([]linkedaccounts.LinkedAccount{
+					{
+						ID:              "la_test",
+						Provider:        gatehub.ProviderName,
+						Type:            gatehub.AccTypeBalance,
+						SendCurrency:    currency.EUR,
+						ReceiveCurrency: currency.EUR,
+					},
+				}, nil)
+
 			b := ops.NewTestBackends(
-				func(tb *ops.TestBackends) { tb.SetTemporal(tp) },
+				func(tb *ops.TestBackends) {
+					tb.SetTemporal(tp)
+					tb.SetDB(conn)
+					tb.SetLinkedAccounts(laMock)
+				},
 			)
 			handler := ops.EventWebhook(b)
 
