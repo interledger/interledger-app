@@ -15,6 +15,7 @@ import sendReceiveStylesheet from "./send-receive.css?url";
 import ecosystemStylesheet from "./ecosystem.css?url";
 import builtWithChangeStylesheet from "./built-with-change.css?url";
 import ourEcosystemStylesheet from "./our-ecosystem.css?url";
+import footerStylesheet from "./footer.css?url";
 import { Layouts } from "~/components/Scaffold";
 import { PhoneCarouselProvider } from "./context/PhoneCarouselContext";
 import { Nav } from "./components/Nav";
@@ -25,6 +26,7 @@ import { SendReceive } from "./sections/SendReceive";
 import { Ecosystem } from "./sections/Ecosystem";
 import { BuiltWithChange } from "./sections/BuiltWithChange";
 import { OurEcosystem } from "./sections/OurEcosystem";
+import { Footer } from "./components/Footer";
 
 export const handle = {
     layout: Layouts.LandingPage,
@@ -53,6 +55,7 @@ export const links: LinksFunction = () => [
     { rel: "stylesheet", href: ecosystemStylesheet },
     { rel: "stylesheet", href: builtWithChangeStylesheet },
     { rel: "stylesheet", href: ourEcosystemStylesheet },
+    { rel: "stylesheet", href: footerStylesheet },
 ];
 
 export default function LandingPage() {
@@ -69,6 +72,7 @@ export default function LandingPage() {
                 <Ecosystem />
                 <BuiltWithChange />
                 <OurEcosystem />
+                <Footer />
             </div>
         </PhoneCarouselProvider>
     );
