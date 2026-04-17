@@ -1,9 +1,16 @@
 import { PageSection } from "../components/PageSection"
+import { motion } from "framer-motion"
 
 export function OtherFeatures() {
   return (
-    <PageSection className="other-features-section">
-      <div className="other-features-banner">
+     <PageSection className="other-features-section">
+      <motion.div 
+        className="other-features-banner"
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true, amount: 0.3 }}
+        transition={{ type: "spring", duration: 1, bounce: 0 }}
+      >
         <header className="other-features-header">
           <div className="other-features-left">
             <h2 className="other-features-headline">
@@ -25,7 +32,7 @@ export function OtherFeatures() {
         <div className="other-features-cta-block">
           <a href="#" className="other-features-btn">
             Get the Interledger Wallet
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
               <polyline points="7 10 12 15 17 10" />
               <line x1="12" y1="15" x2="12" y2="3" />
@@ -33,20 +40,27 @@ export function OtherFeatures() {
           </a>
 
           <div className="other-features-badges">
-            {/* TODO: Replace with real badge assets later */}
-            <div className="app-badge-placeholder" style={{ backgroundColor: 'black', color: 'white', borderRadius: '4px', padding: '8px 16px', fontSize: '12px', fontWeight: 'bold' }}>
-              App Store
-            </div>
-            <div className="app-badge-placeholder" style={{ backgroundColor: 'black', color: 'white', borderRadius: '4px', padding: '8px 16px', fontSize: '12px', fontWeight: 'bold' }}>
-              Google Play
-            </div>
+            <a href="#" className="app-badge app-badge--ios">
+              <span className="app-badge__icon"></span>
+              <div className="app-badge__text">
+                <span className="app-badge__sub">Download on the</span>
+                <span className="app-badge__main">App Store</span>
+              </div>
+            </a>
+            <a href="#" className="app-badge app-badge--android">
+              <span className="app-badge__icon">▶</span>
+              <div className="app-badge__text">
+                <span className="app-badge__sub">GET IT ON</span>
+                <span className="app-badge__main">Google Play</span>
+              </div>
+            </a>
           </div>
 
           <p className="browser-availability">
             Also available in browsers
           </p>
         </div>
-      </div>
+      </motion.div>
     </PageSection>
   )
 }
