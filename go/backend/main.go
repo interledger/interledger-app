@@ -437,6 +437,20 @@ func migrate(args *cli.MigrationArgs) {
 			DebitsMustNotExceedCredits: false,
 			CreditsMustNotExceedDebits: false,
 		},
+		{
+			ID:                         xago.LiquidityAccountZAR,
+			LedgerID:                   xago.LiquidityLedgerIDZAR,
+			Code:                       1,
+			DebitsMustNotExceedCredits: false,
+			CreditsMustNotExceedDebits: false,
+		},
+		{
+			ID:                         xago.LiquidityAccountEUR,
+			LedgerID:                   xago.LiquidityLedgerIDEUR,
+			Code:                       1,
+			DebitsMustNotExceedCredits: false,
+			CreditsMustNotExceedDebits: false,
+		},
 	})
 	if err != nil {
 		log.Fatalln(err)
