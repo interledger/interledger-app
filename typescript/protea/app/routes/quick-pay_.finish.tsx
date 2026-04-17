@@ -50,7 +50,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 export const handle: ApplicationProps = {
-   layout: (_match, context) => context?.isUser ? Layouts.Wallet : Layouts.Marketing,
+  layout: (_match, context) => context?.isUser ? Layouts.Wallet : Layouts.Marketing,
   scaffold: {
     header: { title: 'Interledger Pay' }
   }
@@ -104,8 +104,12 @@ export default function Page() {
       <GridColumn className="col-span-full mt-20 mx-auto text-center max-w-md">
         {loading ? (
           <>
-            <div className="animate-spin h-10 w-10 border-b-2 border-current rounded-full mx-auto mb-6" />
-            <div className="text-lg">Checking payment...</div>
+            <div className="fixed inset-0 z-[60] flex w-full h-full bg-page">
+            </div>
+            <div className="z-[70]">
+              <div className="animate-spin h-10 w-10 border-b-2 border-current rounded-full mx-auto mb-6" />
+              <div className="text-lg">Checking payment...</div>
+            </div>
           </>
         ) : (
           <Form method="post">
