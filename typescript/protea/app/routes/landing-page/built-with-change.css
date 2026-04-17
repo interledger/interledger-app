@@ -9,7 +9,8 @@
 
 .built-with-change-header {
   text-align: center;
-  width: 1360px; /* From Figma Fill */
+  width: 100%;
+  max-width: 1360px; /* From Figma Fill */
   padding-inline: var(--padding-6xl); /* Exact 120px text-inset from Figma */
   margin-bottom: var(--spacing-4xl); 
   display: flex;
@@ -46,6 +47,7 @@
 /* Responsive */
 @media (max-width: 1024px) {
   .built-with-change-header {
+    padding-inline: var(--padding-xl);
     gap: var(--spacing-xl);
     margin-bottom: var(--spacing-2xl);
   }
@@ -54,5 +56,6 @@
 @media (max-width: 640px) {
   .built-with-change-image-wrapper {
     height: 400px;
+    border-radius: var(--rounded-2xl);
   }
 }

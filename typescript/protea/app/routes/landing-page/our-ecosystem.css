@@ -82,7 +82,7 @@
 .ecosystem-cta {
   width: 100%;
   max-width: 1360px;
-  height: 308px;
+  min-height: 308px;
   border-radius: var(--rounded-2xl); /* 16px */
   padding: var(--padding-5xl) var(--padding-6xl); /* 80px top/bottom, 120px side inset */
   position: relative;
@@ -97,9 +97,9 @@
 
 .cta-glow-bg {
   position: absolute;
-  top: 20px;
+  top: 50%;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%);
   width: 400px; /* From Figma metadata 111:10233 */
   height: 268px;
   z-index: 0;
@@ -147,13 +147,21 @@
   }
   .ecosystem-cta {
     padding-inline: var(--padding-xl);
-    height: auto;
-    padding-block: var(--padding-3xl);
+    min-height: auto;
+    padding-block: var(--padding-4xl);
+  }
+  .cta-glow-bg {
+    width: 300px;
+    height: 200px;
   }
 }
 
 @media (max-width: 640px) {
   .partners-grid {
     grid-template-columns: 1fr;
+    gap: var(--spacing-lg);
+  }
+  .our-ecosystem-section {
+    padding-bottom: var(--padding-5xl);
   }
 }
