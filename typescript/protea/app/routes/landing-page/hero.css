@@ -122,6 +122,15 @@
   top: calc(var(--nav-height) / 2 + 50% - var(--phone-height) / 2);
 }
 
+@media (max-width: 899px) {
+  /* On mobile, push the phone up, clearing the bottom space for the text and widgets to stack without overlap */
+  .animated-hero:not([data-screen='1']) .hero-phone-container {
+    /* Use dynamic viewport units mixed with default spacing tokens for flexible safe-area clearance */
+    top: calc(var(--nav-height, 72px) + 3vh);
+  }
+}
+
+
 /* --- Phone frame (iPhone chassis) --------------------------------------- */
 
 .phone-frame {

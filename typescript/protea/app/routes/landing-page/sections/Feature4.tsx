@@ -9,18 +9,15 @@ export function Feature4() {
   return (
     <FeatureSection
       screen={5}
-      heading="Designed to adapt. Easy to adopt."
-      body="An API-first approach making integration seamless for anyone."
-      columnOrder="text-right"
+      heading="Designed to adopt. Easy to adopt."
+      body="We are building the wallet in the open and want to participate from the start."
+      columnOrder="text-left"
       widget={
-        <FeatureWidget
-          avatar="SK"
-          avatarColor="#b87ae8"
-          name="Sam K"
-          amount="+ $850"
-          note="freelance work"
-          timestamp="01.11.2026 14:00"
-        />
+        <div style={{ marginTop: "16px", display: "flex", justifyContent: "center" }}>
+          <a href="/signup" className="nav-cta" style={{ display: "inline-flex" }}>
+            Sign up now <span style={{ marginLeft: "4px" }}>&rarr;</span>
+          </a>
+        </div>
       }
     />
   )
