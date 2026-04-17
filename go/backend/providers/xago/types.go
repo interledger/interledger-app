@@ -13,18 +13,15 @@ var (
 
 	LedgerIDZAR uint32 = 9246927 // Spells xagozar on a Nokia 3310 keyboard
 	LedgerIDUSD uint32 = 9246873 // Spells xagousd on a Nokia 3320 keyboard
+	LedgerIDEUR uint32 = 4000
 
 	USDOpsAccount = "868196c3-f6b4-4920-bbfb-d1c7f6a98183"
-	ZAROpsAccount = "b0944908-16e6-4ef4-8677-192165e33c59"
 
-	LedgerIDEUR   uint32 = 4000
-	EUROpsAccount        = "293dd6bb-bb73-4504-b401-8dfb7002032a"
+	ZAROpsAccount       = "b0944908-16e6-4ef4-8677-192165e33c59"
+	ZARLiquidityAccount = "70374e87-9168-42bc-b33d-df956dfab985"
 
-	LedgerIDZARLiquidity uint32 = 4001
-	ZARLiquidityAccount         = "70374e87-9168-42bc-b33d-df956dfab985"
-
-	LedgerIDEURLiquidity uint32 = 4002
-	EURLiquidityAccount         = "ae953d08-bbcb-4d1b-a7cf-319157f4b689"
+	EUROpsAccount       = "293dd6bb-bb73-4504-b401-8dfb7002032a"
+	EURLiquidityAccount = "ae953d08-bbcb-4d1b-a7cf-319157f4b689"
 )
 
 type Await func(ctx context.Context, result interface{}) error

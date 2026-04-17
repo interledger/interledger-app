@@ -367,6 +367,12 @@ func migrate(args *cli.MigrationArgs) {
 			Scale: uint8(currency.USD.Scale()),
 		},
 		{
+			ID:    xago.LedgerIDEUR,
+			Name:  "Xago EURO Ledger",
+			Asset: currency.EUR.String(),
+			Scale: uint8(currency.EUR.Scale()),
+		},
+		{
 			ID:    pti.LedgerIDUSD,
 			Name:  "PTI USD Ledger",
 			Asset: currency.USD.String(),
@@ -438,6 +444,20 @@ func migrate(args *cli.MigrationArgs) {
 			CreditsMustNotExceedDebits: false,
 		},
 		{
+			ID:                         xago.ZARLiquidityAccount,
+			LedgerID:                   xago.LedgerIDZAR,
+			Code:                       1,
+			DebitsMustNotExceedCredits: false,
+			CreditsMustNotExceedDebits: false,
+		},
+		{
+			ID:                         xago.EURLiquidityAccount,
+			LedgerID:                   xago.LedgerIDEUR,
+			Code:                       1,
+			DebitsMustNotExceedCredits: false,
+			CreditsMustNotExceedDebits: false,
+		},
+		{
 			ID:                         xago.EUROpsAccount,
 			LedgerID:                   xago.LedgerIDEUR,
 			Code:                       1,
@@ -445,22 +465,8 @@ func migrate(args *cli.MigrationArgs) {
 			CreditsMustNotExceedDebits: false,
 		},
 		{
-			ID:                         xago.ZARLiquidityAccount,
-			LedgerID:                   xago.LedgerIDZARLiquidity,
-			Code:                       1,
-			DebitsMustNotExceedCredits: false,
-			CreditsMustNotExceedDebits: false,
-		},
-		{
-			ID:                         xago.EURLiquidityAccount,
-			LedgerID:                   xago.LedgerIDEURLiquidity,
-			Code:                       1,
-			DebitsMustNotExceedCredits: false,
-			CreditsMustNotExceedDebits: false,
-		},
-		{
 			ID:                         gatehub.EURLiquidityAccount,
-			LedgerID:                   gatehub.LedgerIDEURLiquidity,
+			LedgerID:                   gatehub.LedgerIDEUR,
 			Code:                       1,
 			DebitsMustNotExceedCredits: false,
 			CreditsMustNotExceedDebits: false,

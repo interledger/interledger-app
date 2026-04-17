@@ -36,11 +36,10 @@ const (
 	ProviderName   = "gatehub"
 	AccTypeBalance = "balance"
 
-	LedgerIDEUR   uint32 = 4482387 // Spells ghubeur on a Nokia 3320 keyboard
-	EUROpsAccount        = "1854f171-eafa-4e30-bf66-7dbfe167ccfa"
+	LedgerIDEUR uint32 = 4482387 // Spells ghubeur on a Nokia 3320 keyboard
 
-	LedgerIDEURLiquidity uint32 = 1000
-	EURLiquidityAccount         = "3bc0e660-6d73-4fb8-8958-45e5e5ff101a"
+	EUROpsAccount       = "1854f171-eafa-4e30-bf66-7dbfe167ccfa"
+	EURLiquidityAccount = "3bc0e660-6d73-4fb8-8958-45e5e5ff101a"
 
 	DeliveryAddressPermanentResidence = "PermanentResidence"
 	DeliveryAddressTemporaryResidence = "TemporaryResidence"
