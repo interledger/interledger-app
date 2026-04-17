@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math/big"
 	"net/http"
+	"strings"
 	"time"
 
 	"gitlab.com/fynbos/mock/mockgatehub/internal/consts"
@@ -74,8 +75,8 @@ func (h *Handler) CreateManagedCustomer(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// Validate currency
-	currency := req.Account.Currency
+	// Validate currency (real GateHub uses product-prefixed codes like "PW_EUR")
+	currency := strings.TrimPrefix(req.Account.Currency, "PW_")
 	if currency == "" {
 		currency = "EUR"
 	}
@@ -161,7 +162,6 @@ func (h *Handler) CreateManagedCustomer(w http.ResponseWriter, r *http.Request) 
 		PanToken:         fmt.Sprintf("pan_%s", cardID),
 		MaskedPan:        generateMaskedPan(),
 		Status:           consts.CardStatusActive,
-		ExpiryDate:       time.Now().AddDate(3, 0, 0).Format("2006-01-02"),
 		RelationType:     "PRIMARY",
 		IsFirstTimeLock:  false,
 		PlasticCreated:   false,
@@ -195,6 +195,20 @@ func (h *Handler) CreateManagedCustomer(w http.ResponseWriter, r *http.Request) 
 	}
 
 	h.sendJSON(w, http.StatusCreated, response)
+
+	// Fire cards.card.created webhook so the backend can store the customer/account IDs
+	go h.webhookManager.SendAsync(consts.WebhookEventCardCreated, userID, map[string]interface{}{
+		"cardId":           cardID,
+		"cardSourceId":     cardID,
+		"nameOnCard":       req.NameOnCard,
+		"productCode":      productCode,
+		"maskedPan":        card.MaskedPan,
+		"accountId":        accountID,
+		"accountSourceId":  accountID,
+		"lockLevel":        nil,
+		"customerId":       customerID,
+		"customerSourceId": userID,
+	}, 0)
 }
 
 // ListCards retrieves cards for a customer
@@ -766,9 +780,7 @@ func (h *Handler) GetCardApplicationProducts(w http.ResponseWriter, r *http.Requ
 		},
 	}
 
-	h.sendJSON(w, http.StatusOK, map[string]interface{}{
-		"data": products,
-	})
+	h.sendJSON(w, http.StatusOK, products)
 }
 
 // OrderPlasticCard orders a physical card

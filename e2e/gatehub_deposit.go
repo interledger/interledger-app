@@ -230,7 +230,21 @@ func (sc *E2EContext) iShouldSeeMyBalanceUpdatedWithAmount(amount, currency stri
 		}
 	}
 
-	return fmt.Errorf("balance update not visible on UI after waiting %d seconds", maxAttempts*2)
+	// Include backend diagnostics in the error so failures are easier to triage.
+	if email, err := sc.getCurrentUserEmail(); err == nil {
+		if kratosID := sc.getKratosUserIDByEmail(email); kratosID != "" {
+			if walletID, walletErr := sc.getWalletIDForUser(kratosID); walletErr == nil {
+				if txCount, txErr := sc.getTransactionCount(walletID); txErr == nil {
+					return fmt.Errorf(
+						"balance update for %s %s not visible on UI after waiting %d seconds (backend wallet %s has %d transaction(s))",
+						amount, currency, maxAttempts*2, walletID, txCount,
+					)
+				}
+			}
+		}
+	}
+
+	return fmt.Errorf("balance update for %s %s not visible on UI after waiting %d seconds", amount, currency, maxAttempts*2)
 }
 
 // thatGatehubChargesDepositFee configures MockGatehub to charge a deposit fee for the current user

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -83,6 +84,13 @@ func prerequisite(t *testing.T) {
 		t.Fatalf("backend not ready: %v", err)
 	}
 
+	// The GateHub organization config workflow is only needed for GateHub/EU tests.
+	// Skip it when running only Xago or other non-GateHub scenarios.
+	if tags != nil && *tags != "" && !needsGateHubPrerequisite(*tags) {
+		t.Logf("Skipping GateHub organization config prerequisite (tags: %s)", *tags)
+		return
+	}
+
 	// We need to update the GateHub organization config before running the tests.
 	// This is done by starting the workflow that makes the update.
 	// Notice: This was introduced with the SCA requirement, so it is only
@@ -115,6 +123,18 @@ func prerequisite(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to get workflow result %v", err)
 	}
+}
+
+// needsGateHubPrerequisite returns true if the tag expression includes scenarios
+// that require the GateHub organization config workflow.
+func needsGateHubPrerequisite(tagExpr string) bool {
+	// If tags explicitly target only xago, skip GateHub prerequisite
+	lower := strings.ToLower(tagExpr)
+	if strings.Contains(lower, "@xago") && !strings.Contains(lower, "@germany") && !strings.Contains(lower, "@gatehub") {
+		return false
+	}
+	// Default: run the prerequisite (safe for mixed or unfiltered runs)
+	return true
 }
 
 // waitForWorkers polls Temporal until at least one workflow worker is

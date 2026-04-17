@@ -239,7 +239,6 @@ function FynbosWithdrawalPage() {
         </CardContent>
       </Card>
     )
-
   return <Amount data={amountData} />
 }
 
@@ -254,6 +253,16 @@ const formatAmount = (amount?: PlainMessage<RpcAmount>): string => {
 
 const Amount = ({ data }: { data: WithdrawalLoaderData }) => {
   const { balance, balances, balanceAccount, linkedAccounts, csrfToken, provider } = data
+  // for bigint
+  if(
+    balanceAccount && typeof balanceAccount === 'object' && 
+    !Array.isArray(balanceAccount) && 
+    typeof balanceAccount.balance === 'object' && balanceAccount.balance &&
+    'amount' in balanceAccount.balance
+  ){
+    balanceAccount.balance.amount = String(balanceAccount.balance.amount)  
+  }
+
   const balanceAcc = Balance.fromJson(balanceAccount);
   const [, setSearchParams] = useSearchParams()
   const actionData = useActionData()

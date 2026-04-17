@@ -54,6 +54,34 @@ export function AppPage() {
             </Router>
           </Alert>
         )}
+        {kycStatus == KycStatus.DocumentsRequired && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Wallet</CardTitle>
+              <Chip color={ChipColor.orange}>Reserved</Chip>
+            </CardHeader>
+            <CardContent>
+              <div className='flex items-start space-x-4'>
+                <CardIcon>
+                  <Icon>account_balance_wallet</Icon>
+                </CardIcon>
+                <div className='flex flex-col space-y-4'>
+                  <p className='text-sm text-medium'>
+                    Your KYC submission needs attention. <br />
+                    Please resubmit your documents to activate your wallet. <br />
+                    Your previous submission may have been incomplete, the photos may have been unclear, or your documents may have expired.
+                  </p>
+                  <Router
+                    className='text-sm font-medium text-primary'
+                    to={href('/personal-details')}
+                  >
+                    Reactivate wallet
+                  </Router>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
         {kycStatus == KycStatus.Unknown && (
           <Card>
             <CardHeader>

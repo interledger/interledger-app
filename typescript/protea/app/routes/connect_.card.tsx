@@ -13,6 +13,7 @@ import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { useScript } from '~/lib/useScript'
+import { usePtiConfig } from '~/lib/pti-context'
 
 export async function loader({ request }: Route.LoaderArgs) {
   const response = await grpc.getKYCProviderWidget(request, {
@@ -47,9 +48,8 @@ export default function Page() {
   const submit = useSubmit()
   // const actionData = useActionData()
   const [setLoading] = useScaffoldStore((state) => [state.setLoading])
-  const scriptStatus = useScript(
-    widget?.sdkUrl || 'https://sdk.platform.fiant.io/0.0.23/index.js'
-  )
+  const ptiConfig = usePtiConfig()
+  const scriptStatus = useScript(ptiConfig?.sdkUrl ?? '')
   useEffect(() => {
     // This ensures that loading is false when this route is unmounted.
     return () => {
@@ -71,7 +71,7 @@ export default function Page() {
       window.PTI.init({
         clientId: widget?.clientId,
         generateTokenPath: widget?.generateTokenPath,
-        ptiFormsUrl: widget?.formsUrl || 'https://forms.platform.fiant.io'
+        ptiFormsUrl: ptiConfig?.formsUrl
       })
       window.PTI.form({
         type: 'ADD_CC',
@@ -102,7 +102,7 @@ export default function Page() {
     return () => {
       window.removeEventListener('message', handleMessage)
     }
-  }, [scriptStatus, widget, setLoading, submit, csrfToken])
+  }, [scriptStatus, widget, ptiConfig, setLoading, submit, csrfToken])
 
   return (
     <>

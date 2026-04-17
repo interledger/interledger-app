@@ -36,3 +36,25 @@ Feature: PTI transactions for deposit, withdrawal, and transfer
     When I POST "/transactions/{requestId}/updates" with feedback payload
     Then the response status should be 200
     And the response should include an update id
+
+  Scenario: Wallet balance goes negative after settled deposit is returned following withdrawal
+    Given webhook delivery is configured to backend "/webhooks/pti"
+    And an existing PTI user with a USD wallet and bank account
+    When mockpti settles a deposit
+    And mockpti settles a withdrawal
+    And mockpti returns the deposit
+    Then a webhook should be delivered with resource type "TRANSACTION_STATUS"
+    And the webhook payload should include transaction type "DEPOSIT"
+    And the webhook payload should include status "RETURNED"
+    And the wallet balance should be negative
+
+  Scenario: Wallet balance is restored to deposit amount after a returned withdrawal
+    Given webhook delivery is configured to backend "/webhooks/pti"
+    And an existing PTI user with a USD wallet and bank account
+    When mockpti settles a deposit
+    And mockpti settles a withdrawal
+    And mockpti returns the withdrawal
+    Then a webhook should be delivered with resource type "TRANSACTION_STATUS"
+    And the webhook payload should include transaction type "WITHDRAWAL"
+    And the webhook payload should include status "RETURNED"
+    And the wallet balance should equal the deposited amount

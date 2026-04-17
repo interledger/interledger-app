@@ -1,5 +1,6 @@
-import type { MetaFunction } from 'react-router';
-import { useLoaderData } from 'react-router';
+import type { Route } from './+types/route'
+import { data } from 'react-router'
+import { useLoaderData } from 'react-router'
 import { useEffect } from 'react'
 import type { ApplicationProps } from '~/components'
 import { Layouts } from '~/components'
@@ -10,8 +11,7 @@ import { Landing } from '~/routes/signup/Landing'
 import { Password } from '~/routes/signup/Password'
 import { Phone } from '~/routes/signup/Phone'
 import styles from '~/styles/flags.css?url'
-import type { loader } from './route.server'
-export { loader, action } from './route.server'
+export { loader } from '~/routes/signup/route.server'
 
 export const handle: ApplicationProps = {
   layout: Layouts.Focus,
@@ -20,7 +20,7 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Sign up'
   }
@@ -31,7 +31,7 @@ export function links() {
 }
 
 export default function Page() {
-  const { countries } = useLoaderData<typeof loader>()
+  const { countries } = useLoaderData()
   const [step, setCountries, reset] = useSignupStore((state) => [
     state.step,
     state.setCountries,
@@ -39,7 +39,6 @@ export default function Page() {
   ])
 
   useEffect(() => {
-    // This ensures that the state is only cleared when this route is unmounted.
     return () => {
       reset()
     }
@@ -56,5 +55,31 @@ export default function Page() {
       {step === SignupStep.PHONE && <Phone />}
       {step === SignupStep.PASSWORD && <Password />}
     </>
+  )
+}
+
+export async function action(args: Route.ActionArgs) {
+  const { detailsAction, otpAction, passwordAction } = await import('~/routes/signup/route.server')
+  const formName = (await args.request.clone().formData()).get(
+    'formName'
+  ) as string
+
+  if (formName === 'details') {
+    return detailsAction(args)
+  }
+
+  if (formName === 'otp') {
+    return otpAction(args)
+  }
+
+  if (formName === 'password') {
+    return passwordAction(args)
+  }
+
+  throw data(
+    { title: "Submitted a form that doesn't exist" },
+    {
+      status: 400
+    }
   )
 }
