@@ -116,28 +116,87 @@
   margin-top: -2px; /* Visual center adjustment for the tick */
 }
 
-.send-receive-visual {
+.hand-visual-container {
   width: 100%;
-}
-
-.feature-illustration-container {
-  width: 100%;
-  position: relative;
+  max-width: 587px;
+  height: 440px;
+  background-color: var(--color-aqua-mint-100);
+  border-radius: 16px;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-end;
+  position: relative;
+  overflow: hidden;
+  margin-inline: auto;
 }
 
-.receive-money-visual-img {
-  width: 100%;
-  height: auto;
-  max-width: 587px;
-  border-radius: var(--rounded-3xl);
+.hand-phone-frame {
+  position: relative;
+  width: auto;
+  height: 90%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  transform-origin: bottom center;
+}
+
+.hand-svg-asset {
+  height: 100%;
+  width: auto;
   display: block;
+  object-fit: contain;
+}
+
+/* Currency Circles (60x60 from Figma) */
+.currency-circle {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+}
+
+.currency-char {
+  color: #FFFFFF;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-body);
+}
+
+.circle-dollar {
+  background-color: var(--color-emerald-100);
+  top: 120px;
+  left: -80px;
+}
+
+.circle-pound {
+  background-color: var(--color-coral-red-100);
+  top: 60px;
+  right: -60px;
+}
+
+.circle-euro {
+  background-color: var(--color-periwinkle-100);
+  bottom: 80px;
+  right: -80px;
 }
 
 /* Responsive Overrides */
 @media (max-width: 1024px) {
+  .hand-visual-container {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 587 / 440;
+  }
+  
   .send-receive-title {
     font-size: var(--text-h3-size);
   }
@@ -163,6 +222,10 @@
 }
 
 @media (max-width: 640px) {
+  .circle-dollar { left: -20px; top: 80px; }
+  .circle-pound { right: -20px; top: 40px; }
+  .circle-euro { right: -20px; bottom: 60px; }
+
   .send-receive-title {
     font-size: var(--text-h4-size);
   }
