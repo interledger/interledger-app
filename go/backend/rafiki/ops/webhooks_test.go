@@ -80,7 +80,7 @@ func TestEventWebhookIncomingPaymentCreated_NilDB(t *testing.T) {
 
 	handler.ServeHTTP(rr, req)
 
-	assert.Equal(t, http.StatusOK, rr.Code, "incoming_payment.created returns 200 even if DB is nil")
+	assert.Equal(t, http.StatusBadRequest, rr.Code, "incoming_payment.created returns 400 if provider lookup fails")
 }
 
 func TestEventWebhookWorkflowTypes_StartsWorkflow(t *testing.T) {
