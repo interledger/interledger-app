@@ -13,7 +13,7 @@ export function OtherFeatures() {
       >
         <header className="other-features-header">
           <div className="other-features-left">
-            <h2 className="other-features-headline">
+            <h2 className="text-h2 other-features-headline">
               Open standards.<br />
               Solid foundations.<br />
               Solid foundations.

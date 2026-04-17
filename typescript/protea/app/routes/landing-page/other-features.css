@@ -45,13 +45,8 @@
 }
 
 .other-features-headline {
-  font-family: var(--font-heading);
-  font-size: var(--text-h1-size); /* Use H1 size (up to 88px) for maximum impact */
-  line-height: 1.1; 
-  font-weight: 700;
   color: inherit;
   margin: 0;
-  letter-spacing: -0.03em;
   white-space: nowrap; /* Prevent individual lines from wrapping internally */
 }
 
@@ -175,8 +170,6 @@
   }
 
   .other-features-headline {
-    font-size: 48px;
-    line-height: 1.1;
     white-space: normal; /* Allow wrapping on very small screens to avoid overflow */
   }
 
