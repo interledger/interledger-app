@@ -45,6 +45,7 @@ export type ActionData = {
   errors?: {
     walletAddress?: Errors
     receiverAddress?: Errors
+    senderAddress?: Errors
     note?: Errors
     actionError?: Errors
   }

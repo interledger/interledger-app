@@ -92,11 +92,11 @@ export async function fetchQuote(
   return response
 }
 export async function fetchRequestQuote(args: {
-  walletAddress: string
+  senderAddress: string
   incomingPaymentUrl: string
 }) {
   const opClient = await createClient()
-  const walletAddress = await getWalletAddress(args.walletAddress, opClient)
+  const walletAddress = await getWalletAddress(args.senderAddress, opClient)
 
   const quoteGrant = await getQuoteGrant({
     authServer: walletAddress.authServer,
@@ -415,7 +415,8 @@ export async function getRequestPaymentDetails(
       url: paymentUrl,
       accessToken: incomingPaymentGrant.access_token?.value || ''
     })
-    .catch(() => {
+    .catch((err) => {
+      console.log({err})
       throw new Error('Could not retrieve payment details.')
     })
 
