@@ -134,7 +134,9 @@
 @media (max-width: 900px) {
   .footer-top {
     flex-direction: column;
+    gap: var(--spacing-4xl);
   }
+
   .footer-right {
     gap: var(--spacing-4xl);
     width: 100%;
@@ -143,12 +145,29 @@
 }
 
 @media (max-width: 640px) {
-  .footer-right {
-    flex-direction: column;
-    gap: var(--spacing-2xl);
+  .footer-top {
+    align-items: center;
+    text-align: center;
   }
+
   .footer-left {
     align-items: center;
     text-align: center;
+    max-width: 100%;
+  }
+
+  .footer-right {
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-3xl);
+  }
+
+  .footer-col {
+    align-items: center;
+    text-align: center;
+  }
+
+  .footer-links {
+    align-items: center;
   }
 }
