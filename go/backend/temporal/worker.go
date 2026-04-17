@@ -84,6 +84,7 @@ func NewTemporalWorker(b Backends, gatehubConfig gatehub.Config, xagoConfig xago
 	w.RegisterWorkflow(xago_workflows.CreateBalanceAccountWorkflow)
 	w.RegisterWorkflow(xago_workflows.XagoDepositPollWorkflow)
 	w.RegisterWorkflow(xago_workflows.UpdateInquiryLinkWorkflow)
+	w.RegisterWorkflow(xago_workflows.FundEUROLiquidityAccountWorkflow)
 
 	xago_workflows.StartDepositsPolling(b)
 

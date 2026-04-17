@@ -475,3 +475,55 @@ func (a *Activity) AddBeneficiaryLinkedAccount(ctx context.Context, walletID, id
 		ReceiveNetwork:  b.BankName,
 	})
 }
+
+func FundEUROLiquidityAccountWorkflow(ctx workflow.Context, amount string) error {
+	currencyAmount, err := currency.FromString(amount, currency.EUR)
+	if err != nil {
+		return err
+	}
+
+	var a *Activity
+	activityOptions := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Second,
+	}
+	ctx = workflow.WithActivityOptions(ctx, activityOptions)
+
+	if err := workflow.ExecuteActivity(ctx, a.FundEUROLiquidityAccountW, currencyAmount).Get(ctx, nil); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (a *Activity) FundEUROLiquidityAccountW(ctx context.Context, amount currency.Amount) error {
+	_, err := a.b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
+		{
+			ID:              uuid.NewString(),
+			Amount:          amount.Value,
+			CreditAccountID: xago.EURLiquidityAccount,
+			DebitAccountID:  xago.EUROpsAccount,
+			Pending:         false,
+			Code:            1, // TODO magic number, but what does it mean, double rainbow?
+			Ledger:          xago.LedgerIDEUR,
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("%w %s", xago.ErrInternal, err)
+	}
+
+	// TODO check if this is needed
+	// if len(tx) > 0 {
+
+	// 	if tx[0].Code == pacioli.TransferExists {
+	// 		return nil
+	// 	}
+	// 	if tx[0].Code == pacioli.TransferExceedsCredits || tx[0].Code == pacioli.TransferExceedsDebits || tx[0].Code == pacioli.TransferExceedsPendingTransferAmount {
+	// 		return fmt.Errorf("%w insufficient balance code (%s)", xago.ErrInsufficientBalance, tx[0].Code.String())
+	// 	}
+	// 	if tx[0].Code != 0 {
+	// 		return fmt.Errorf("%w non success code (%s)", xago.ErrInternal, tx[0].Code.String())
+	// 	}
+	// }
+
+	return nil
+}
