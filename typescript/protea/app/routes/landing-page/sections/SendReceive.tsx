@@ -3,14 +3,33 @@ import sendMoveyRight from "../assets/send-movey-right.svg"
 import secureIcon from "../assets/send-receive-section/icon-secure.svg"
 import privateIcon from "../assets/send-receive-section/icon-private.svg"
 import sendReceiveIcon from "../assets/send-receive-section/icon-sendreceive.svg"
+import { motion } from "framer-motion"
 
 const CheckmarkIcon = () => (
   <div className="checkmark-css" />
 )
 
-function StatusItem({ icon, text }: { icon: React.ReactNode, text: string }) {
+function StatusItem({ icon, text, index = 0 }: { icon: React.ReactNode, text: string, index?: number }) {
+  const animationVariants = {
+    hidden: { x: -800, opacity: 1 },
+    visible: {
+      x: 0,
+      opacity: 1,
+      transition: {
+        type: "spring",
+        stiffness: 500,
+        damping: 60,
+        mass: 1,
+        delay: index * 0.1
+      }
+    }
+  }
+
   return (
-    <div className="status-item">
+    <motion.div
+      className="status-item"
+      variants={animationVariants}
+    >
       <div className="status-icon-container">
         {icon}
       </div>
@@ -18,7 +37,7 @@ function StatusItem({ icon, text }: { icon: React.ReactNode, text: string }) {
       <div className="status-check-container">
         <CheckmarkIcon />
       </div>
-    </div>
+    </motion.div>
   )
 }
 
@@ -35,11 +54,16 @@ export function SendReceive() {
         </header>
 
         <div className="send-receive-content">
-          <div className="send-receive-list">
-            <StatusItem icon={<img src={secureIcon} />} text="Secure by design" />
-            <StatusItem icon={<img src={sendReceiveIcon} />} text="Send & receive money" />
-            <StatusItem icon={<img src={privateIcon} />} text="Private by default" />
-          </div>
+          <motion.div
+            className="send-receive-list"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-50px" }}
+          >
+            <StatusItem index={0} icon={<img src={secureIcon} />} text="Secure by design" />
+            <StatusItem index={1} icon={<img src={sendReceiveIcon} />} text="Send & receive money" />
+            <StatusItem index={2} icon={<img src={privateIcon} />} text="Private by default" />
+          </motion.div>
 
           <div className="send-receive-visual">
             <div className="feature-illustration-container">
@@ -55,3 +79,4 @@ export function SendReceive() {
     </PageSection>
   )
 }
+
