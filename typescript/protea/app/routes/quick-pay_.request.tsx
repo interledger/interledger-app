@@ -47,7 +47,7 @@ export async function loader({ request }: Route.LoaderArgs) {
       date: incomingPayment.createdAt
     }),
     url: `${process.env.OP_INTPAY_HOST}quick-pay/payment?url=${incomingPayment.id}&receiver=${incomingPayment.walletAddress}`,
-    note: incomingPayment?.note
+    note: incomingPayment?.metadata?.description
   } : undefined
 
   return data({
@@ -59,7 +59,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 export const handle: ApplicationProps = {
-   layout: (_match, context) => context?.isUser ? Layouts.Wallet : Layouts.Marketing,
+  layout: (_match, context) => context?.isUser ? Layouts.Wallet : Layouts.Marketing,
   scaffold: {
     header: { title: 'Interledger Pay' }
   }
@@ -95,7 +95,7 @@ export default function Page() {
       pushSnackbar({
         id: `share-${Date.now()}`,
         message,
-        icon: 'info' 
+        icon: 'info'
       })
     }
 
@@ -125,7 +125,7 @@ export default function Page() {
             <Form method="POST">
               <TextField
                 label="Amount requested"
-                defaultValue={incomingPaymentData.amount.amount}
+                defaultValue={incomingPaymentData.amount.amountWithCurrency}
                 disabled
               ></TextField>
               <TextField
@@ -217,7 +217,6 @@ export async function action({ request }: Route.ActionArgs) {
   const session = await getSession(request.headers.get('Cookie'))
   const sessionData: QuickPaySession = session.get('quickPay') || {}
   const formData = Object.fromEntries(await request.formData())
-  console.log({formData})
   const intent = formData.intent
   const path = '/quick-pay/request'
 
@@ -233,7 +232,6 @@ export async function action({ request }: Route.ActionArgs) {
 
   if (!result.success || !result.data) {
     const errors = z.treeifyError(result.error).properties
-    console.log({errors})
     return data({
       errors
     })
