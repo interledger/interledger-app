@@ -18,16 +18,32 @@ const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.15 }
+    transition: { 
+      type: "spring",
+      duration: 1,
+      bounce: 0,
+      staggerChildren: 0.1 
+    }
+  },
+  exit: {
+    opacity: 0,
+    transition: { 
+      type: "spring",
+      duration: 0.8,
+      bounce: 0 
+    }
   }
 }
 
 const childVariants = {
-  hidden: { opacity: 0, y: 40 },
+  hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    y: 0,
-    transition: { type: "spring", stiffness: 300, damping: 30 }
+    transition: { 
+      type: "spring", 
+      duration: 1, 
+      bounce: 0 
+    }
   }
 }
 
@@ -73,7 +89,7 @@ export function FeatureSection({
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          exit={{ opacity: 0, transition: { duration: 0.3 } }}
+          exit="exit"
         >
           {columnOrder === "text-left" ? (
             <>
