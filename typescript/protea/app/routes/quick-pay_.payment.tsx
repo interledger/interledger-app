@@ -4,7 +4,7 @@ import { Form, useActionData, useLoaderData, useRouteLoaderData, useNavigation }
 import type { MetaFunction } from 'react-router'
 import { useEffect, useState } from 'react'
 import { z } from 'zod'
-import { type ApplicationProps, Button, GridColumn, Layouts, TextField, WalletGrid } from '~/components'
+import { ActionMessage, type ApplicationProps, Button, GridColumn, Layouts, TextField, WalletGrid } from '~/components'
 import { AmountDisplay, QuoteDialog, PayWithInterledgerMark } from '~/components/QuickPay/'
 import { mergeMeta } from '~/lib/meta'
 import { fetchRequestQuote, getRequestPaymentDetails, getValidWalletAddress, initializePayment } from '~/lib/open-payments.server'
@@ -30,7 +30,6 @@ export async function loader({ request }: Route.LoaderArgs) {
         const session = await getSession(request.headers.get('Cookie'))
         const sessionData = session.get('quickPay')
         const quote = sessionData?.quote
-        receiver = sessionData.receiverAddress
 
         if (quote === undefined) {
             throw data(
@@ -42,7 +41,17 @@ export async function loader({ request }: Route.LoaderArgs) {
             )
         }
         quoteData = {
-            
+            receiverName: quote.receiver.publicName,
+            receiveAmount: formatAmount({
+                value: quote.receiveAmount.value,
+                assetCode: quote.receiveAmount.assetCode,
+                assetScale: quote.receiveAmount.assetScale
+            }),
+            debitAmount: formatAmount({
+                value: quote.debitAmount.value,
+                assetCode: quote.debitAmount.assetCode,
+                assetScale: quote.debitAmount.assetScale
+            })
         }
     }
 
@@ -117,11 +126,6 @@ export default function Page() {
                 <AmountDisplay displayAmount={String(paymentData.amount.amount)} assetCode={assetCode} />
                 <div className="mx-auto w-full max-w-sm">
                     <Form method="POST">
-                        <input
-                            type="hidden"
-                            name="incomingPaymentUrl"
-                            value={paymentId}
-                        />
                         <div className="flex flex-col gap-4">
                             <TextField
                                 label="Amount requested"
@@ -170,15 +174,16 @@ export default function Page() {
                                     )}
                                 </Button>
                             </div>
+                            <ActionMessage message={formatError(errors?.actionError)} />
                         </div>
                     </Form>
                 </div>
                 <QuoteDialog
                     showDialog={modalOpen}
                     setShowDialog={setModalOpen}
-                    receiverName={paymentData.receiverName}
-                    receiveAmount={String(paymentData.amount.amount) || ''}
-                    debitAmount={String(paymentData.amount.amount) || ''}
+                    receiverName={quoteData?.receiverName ?? ''}
+                    receiveAmount={String(quoteData?.receiveAmount.amount ?? 0)}
+                    debitAmount={String(quoteData?.debitAmount.amount ?? 0)}
                 />
             </GridColumn>
         </WalletGrid >
@@ -188,53 +193,79 @@ export default function Page() {
 export async function action({ request }: Route.ActionArgs) {
     const searchParams = new URL(request.url).searchParams
     const receiver = searchParams.get('receiver') || ''
+    const url = searchParams.get('url') || ''
 
     const session = await getSession(request.headers.get('Cookie'))
     const sessionData: QuickPaySession = session.get('quickPay') || {}
 
     const formData = Object.fromEntries(await request.formData())
     const intent = formData.intent
-    let path = `/quick-pay/payment?url=${formData.incomingPaymentUrl}&receiver=${receiver}`
+    let path = `/quick-pay/payment?url=${url}&receiver=${receiver}`
 
     if (intent !== 'pay' && intent !== 'confirm') {
         sessionData.quote = undefined
         session.set('quickPay', sessionData)
-        return redirect(`/quick-pay/pay`, {
+        return redirect(path, {
             headers: { 'Set-Cookie': await commitSession(session) }
         })
     }
 
     if (intent === 'pay') {
         const result = requestSchema.safeParse(formData)
-    
-        if (!result.success) {
-          const errors = z.treeifyError(result.error).properties
-          return data({
-            errors
-          })
+        
+        if (!url || !receiver) {
+            return data({ errors: createError("actionError", "Invalid url.") })
         }
-    
+
+        if (!result.success) {
+            const errors = z.treeifyError(result.error).properties
+            return data({
+                errors
+            })
+        }
+
         let senderAddress
         try {
-          senderAddress = await getValidWalletAddress(result.data.senderAddress)
-          sessionData.validWalletAddress = senderAddress
-          session.set('quickPay', sessionData)
+            senderAddress = await getValidWalletAddress(result.data.senderAddress)
+            sessionData.validWalletAddress = senderAddress
+            session.set('quickPay', sessionData)
         } catch (err) {
-          return data({ errors: createError("senderAddress", "Your wallet address is not valid.") })
+            return data({ errors: createError("senderAddress", "Your wallet address is not valid.") })
         }
-    
+
         try {
-          const quote = await fetchRequestQuote(result.data)
-          console.log({quote})
-          sessionData.quote = quote
-          session.set('quickPay', sessionData)
+            const requestData = { incomingPaymentUrl: url, senderAddress: result.data.senderAddress }
+            const quote = await fetchRequestQuote(requestData)
+            sessionData.quote = quote
+            session.set('quickPay', sessionData)
         } catch (err) {
-          logger.error({ err }, 'Error getting quote.')
-          return data({ errors: createError("actionError", "An error occurred, please try again.") })
+            logger.error({ err }, 'Error getting quote.')
+            return data({ errors: createError("actionError", "An error occurred, please try again.") })
         }
- path += "&quote=true"       
+        path += "&quote=true"
         return redirect(path, {
-          headers: { 'Set-Cookie': await commitSession(session) }
+            headers: { 'Set-Cookie': await commitSession(session) }
         })
-      }
+    }
+
+    if (intent === 'confirm') {
+        if (sessionData.quote === undefined || sessionData.validWalletAddress === undefined) {
+            throw data(
+                {
+                    code: "QUICKPAY_SESSION_ERROR",
+                    title: "Payment session expired."
+                },
+                { status: 400 }
+            )
+        }
+        const { paymentId, outgoingPaymentGrant } = await initializePayment({
+            walletAddress: sessionData.validWalletAddress.id,
+            quote: sessionData.quote
+        })
+        sessionData.grants = { ...(sessionData?.grants || {}), [paymentId]: outgoingPaymentGrant }
+        session.set('quickPay', sessionData)
+        return redirect(outgoingPaymentGrant.interact.redirect, {
+            headers: { 'Set-Cookie': await commitSession(session) }
+        })
+    }
 }

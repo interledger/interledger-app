@@ -41,8 +41,7 @@ export const paymentSchema = z.object({
 })
 
 export const requestSchema = z.object({
-  senderAddress: z.string(),
-  incomingPaymentUrl: z.string()
+  senderAddress: z.string()
 })
 
 export const requestPaymentSchema = paymentSchema.extend({

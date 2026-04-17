@@ -10,6 +10,7 @@ export function envVarValidation() {
             requireEnv("OP_INTPAY_PRIVATE_KEY", missing)
             requireEnv("OP_INTPAY_WALLET_ADDRESS", missing)
             requireEnv("OP_INTPAY_REDIRECT_URL", missing)
+            requireEnv("OP_INTPAY_HOST", missing)
         }
 
         if (missing.length > 0) {

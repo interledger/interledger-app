@@ -150,7 +150,7 @@ export async function action({ request }: Route.ActionArgs) {
     const paymentId = String(formData?.paymentId) || ''
     const grant = sessionData?.grants[paymentId]
     const quote = sessionData.quote
-    const isRequestPayment = sessionData?.isRequestPayment
+    const isRequestPayment = !!sessionData.request
 
     if (!quote || !grant || !walletAddressInfo) {
       throw data(
