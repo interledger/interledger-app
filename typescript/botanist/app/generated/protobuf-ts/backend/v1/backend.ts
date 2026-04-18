@@ -2994,10 +2994,16 @@ export enum ErrorCode {
      */
     INTERNAL = 1500,
     /**
+     * Other generic codes
+     *
+     * @generated from protobuf enum value: ERROR_CODE_VALIDATION = 2400;
+     */
+    VALIDATION = 2400,
+    /**
      * Business-specific codes. Format:
      * - First digit: no particular meaning
      * - Next three digits: package identifier
-     * - Last three digits: error identifier
+     * - Last three digits: error identifier (unique per package)
      *
      * @generated from protobuf enum value: ERROR_CODE_USER_NO_USER_FOUND = 1001001;
      */

@@ -104,7 +104,7 @@ func TestToGRPCError(t *testing.T) {
 
 		appErr := statusFindDetail[*pb.AppError](st)
 		require.NotNil(t, appErr)
-		assert.Equal(t, pb.ErrorCode_ERROR_CODE_BAD_REQUEST, appErr.ErrorCode)
+		assert.Equal(t, pb.ErrorCode_ERROR_CODE_VALIDATION, appErr.ErrorCode)
 	})
 
 	t.Run("known error maps to correct gRPC code and AppError", func(t *testing.T) {
@@ -186,7 +186,7 @@ func TestNewValidationError(t *testing.T) {
 
 	appErr := statusFindDetail[*pb.AppError](st)
 	require.NotNil(t, appErr)
-	assert.Equal(t, pb.ErrorCode_ERROR_CODE_BAD_REQUEST, appErr.ErrorCode)
+	assert.Equal(t, pb.ErrorCode_ERROR_CODE_VALIDATION, appErr.ErrorCode)
 	require.Len(t, appErr.Fields, 1)
 	assert.Equal(t, "email", appErr.Fields[0].Field)
 }
@@ -210,7 +210,7 @@ func TestNewTwilioError(t *testing.T) {
 
 	appErr := statusFindDetail[*pb.AppError](st)
 	require.NotNil(t, appErr)
-	assert.Equal(t, pb.ErrorCode_ERROR_CODE_BAD_REQUEST, appErr.ErrorCode)
+	assert.Equal(t, pb.ErrorCode_ERROR_CODE_VALIDATION, appErr.ErrorCode)
 	require.Len(t, appErr.Fields, 1)
 	assert.Equal(t, "otp", appErr.Fields[0].Field)
 }
@@ -239,7 +239,7 @@ func TestValidationError(t *testing.T) {
 
 		appErr := statusFindDetail[*pb.AppError](st)
 		require.NotNil(t, appErr)
-		assert.Equal(t, pb.ErrorCode_ERROR_CODE_BAD_REQUEST, appErr.ErrorCode)
+		assert.Equal(t, pb.ErrorCode_ERROR_CODE_VALIDATION, appErr.ErrorCode)
 		assert.NotEmpty(t, appErr.Fields)
 	})
 

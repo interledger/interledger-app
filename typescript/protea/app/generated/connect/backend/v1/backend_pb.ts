@@ -338,10 +338,17 @@ export enum ErrorCode {
   INTERNAL = 1500,
 
   /**
+   * Other generic codes
+   *
+   * @generated from enum value: ERROR_CODE_VALIDATION = 2400;
+   */
+  VALIDATION = 2400,
+
+  /**
    * Business-specific codes. Format:
    * - First digit: no particular meaning
    * - Next three digits: package identifier
-   * - Last three digits: error identifier
+   * - Last three digits: error identifier (unique per package)
    *
    * @generated from enum value: ERROR_CODE_USER_NO_USER_FOUND = 1001001;
    */
@@ -416,6 +423,7 @@ proto3.util.setEnumType(ErrorCode, "backend.v1.ErrorCode", [
   { no: 1404, name: "ERROR_CODE_NOT_FOUND" },
   { no: 1409, name: "ERROR_CODE_CONFLICT" },
   { no: 1500, name: "ERROR_CODE_INTERNAL" },
+  { no: 2400, name: "ERROR_CODE_VALIDATION" },
   { no: 1001001, name: "ERROR_CODE_USER_NO_USER_FOUND" },
   { no: 1001002, name: "ERROR_CODE_USER_AAL1_REQUIRED" },
   { no: 1001003, name: "ERROR_CODE_USER_AAL2_REQUIRED" },

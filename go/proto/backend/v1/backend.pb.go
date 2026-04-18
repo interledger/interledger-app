@@ -397,10 +397,12 @@ const (
 	ErrorCode_ERROR_CODE_NOT_FOUND       ErrorCode = 1404
 	ErrorCode_ERROR_CODE_CONFLICT        ErrorCode = 1409
 	ErrorCode_ERROR_CODE_INTERNAL        ErrorCode = 1500
+	// Other generic codes
+	ErrorCode_ERROR_CODE_VALIDATION ErrorCode = 2400
 	// Business-specific codes. Format:
 	// - First digit: no particular meaning
 	// - Next three digits: package identifier
-	// - Last three digits: error identifier
+	// - Last three digits: error identifier (unique per package)
 	ErrorCode_ERROR_CODE_USER_NO_USER_FOUND          ErrorCode = 1001001
 	ErrorCode_ERROR_CODE_USER_AAL1_REQUIRED          ErrorCode = 1001002
 	ErrorCode_ERROR_CODE_USER_AAL2_REQUIRED          ErrorCode = 1001003
@@ -426,6 +428,7 @@ var (
 		1404:    "ERROR_CODE_NOT_FOUND",
 		1409:    "ERROR_CODE_CONFLICT",
 		1500:    "ERROR_CODE_INTERNAL",
+		2400:    "ERROR_CODE_VALIDATION",
 		1001001: "ERROR_CODE_USER_NO_USER_FOUND",
 		1001002: "ERROR_CODE_USER_AAL1_REQUIRED",
 		1001003: "ERROR_CODE_USER_AAL2_REQUIRED",
@@ -448,6 +451,7 @@ var (
 		"ERROR_CODE_NOT_FOUND":                   1404,
 		"ERROR_CODE_CONFLICT":                    1409,
 		"ERROR_CODE_INTERNAL":                    1500,
+		"ERROR_CODE_VALIDATION":                  2400,
 		"ERROR_CODE_USER_NO_USER_FOUND":          1001001,
 		"ERROR_CODE_USER_AAL1_REQUIRED":          1001002,
 		"ERROR_CODE_USER_AAL2_REQUIRED":          1001003,
@@ -11081,7 +11085,7 @@ const file_backend_v1_backend_proto_rawDesc = "" +
 	"\x17CARD_LOCK_LEVEL_UNKNOWN\x10\x00\x12\x18\n" +
 	"\x14CARD_LOCK_LEVEL_NONE\x10\x01\x12\x1a\n" +
 	"\x16CARD_LOCK_LEVEL_CLIENT\x10\x02\x12\x19\n" +
-	"\x15CARD_LOCK_LEVEL_ADMIN\x10\x03*\xe3\x05\n" +
+	"\x15CARD_LOCK_LEVEL_ADMIN\x10\x03*\xff\x05\n" +
 	"\tErrorCode\x12\x1a\n" +
 	"\x16ERROR_CODE_UNSPECIFIED\x10\x00\x12\x1b\n" +
 	"\x16ERROR_CODE_BAD_REQUEST\x10\xf8\n" +
@@ -11093,7 +11097,8 @@ const file_backend_v1_backend_proto_rawDesc = "" +
 	"\x14ERROR_CODE_NOT_FOUND\x10\xfc\n" +
 	"\x12\x18\n" +
 	"\x13ERROR_CODE_CONFLICT\x10\x81\v\x12\x18\n" +
-	"\x13ERROR_CODE_INTERNAL\x10\xdc\v\x12#\n" +
+	"\x13ERROR_CODE_INTERNAL\x10\xdc\v\x12\x1a\n" +
+	"\x15ERROR_CODE_VALIDATION\x10\xe0\x12\x12#\n" +
 	"\x1dERROR_CODE_USER_NO_USER_FOUND\x10\xa9\x8c=\x12#\n" +
 	"\x1dERROR_CODE_USER_AAL1_REQUIRED\x10\xaa\x8c=\x12#\n" +
 	"\x1dERROR_CODE_USER_AAL2_REQUIRED\x10\xab\x8c=\x12#\n" +
