@@ -88,7 +88,7 @@ func TestToGRPCError(t *testing.T) {
 		assert.Nil(t, toGRPCError(nil))
 	})
 
-	t.Run("validation error returns InvalidArgument", func(t *testing.T) {
+	t.Run("validation error returns proper error codes", func(t *testing.T) {
 		t.Parallel()
 		v := validator.New()
 		type S struct {
@@ -101,26 +101,31 @@ func TestToGRPCError(t *testing.T) {
 		st, ok := status.FromError(result)
 		require.True(t, ok)
 		assert.Equal(t, codes.InvalidArgument, st.Code())
+
+		appErr := statusFindDetail[*pb.AppError](st)
+		require.NotNil(t, appErr)
+		assert.Equal(t, pb.ErrorCode_ERROR_CODE_BAD_REQUEST, appErr.ErrorCode)
 	})
 
-	t.Run("known error maps to correct gRPC code", func(t *testing.T) {
+	t.Run("known error maps to correct gRPC code and AppError", func(t *testing.T) {
 		t.Parallel()
 		tests := []struct {
-			name         string
-			err          error
-			expectedCode codes.Code
+			name            string
+			err             error
+			expectedCode    codes.Code
+			expectedAppCode pb.ErrorCode
 		}{
-			{"user not found", user.ErrNoUserFound, codes.Unauthenticated},
-			{"duplicate wallet", wallets.ErrDuplicateWallet, codes.AlreadyExists},
-			{"wallet conflict", wallets.ErrWalletConflict, codes.FailedPrecondition},
-			{"linked account not found", linkedaccounts.ErrNotFound, codes.NotFound},
-			{"duplicate phone", signup.ErrDuplicatePhone, codes.AlreadyExists},
-			{"identity already exists", identities.ErrAlreadyExists, codes.AlreadyExists},
-			{"no wallet found", wallets.ErrNoWalletFound, codes.NotFound},
-			{"payments required actions", payments.ErrRequiredActions, codes.FailedPrecondition},
-			{"payments insufficient funds", payments.ErrInsufficientFunds, codes.FailedPrecondition},
-			{"kyc resubmission required", kyc.ErrKYCResubmissionRequired, codes.FailedPrecondition},
-			{"twilio invalid otp", twilio.ErrInvalidOTP, codes.InvalidArgument},
+			{"user not found", user.ErrNoUserFound, codes.Unauthenticated, pb.ErrorCode_ERROR_CODE_USER_NO_USER_FOUND},
+			{"duplicate wallet", wallets.ErrDuplicateWallet, codes.AlreadyExists, pb.ErrorCode_ERROR_CODE_WALLETS_DUPLICATE_WALLET},
+			{"wallet conflict", wallets.ErrWalletConflict, codes.FailedPrecondition, pb.ErrorCode_ERROR_CODE_WALLETS_WALLET_CONFLICT},
+			{"linked account not found", linkedaccounts.ErrNotFound, codes.NotFound, pb.ErrorCode_ERROR_CODE_LINKEDACC_NOT_FOUND},
+			{"duplicate phone", signup.ErrDuplicatePhone, codes.AlreadyExists, pb.ErrorCode_ERROR_CODE_SIGNUP_DUPLICATE_PHONE},
+			{"identity already exists", identities.ErrAlreadyExists, codes.AlreadyExists, pb.ErrorCode_ERROR_CODE_IDENTITIES_ALREADY_EXISTS},
+			{"no wallet found", wallets.ErrNoWalletFound, codes.NotFound, pb.ErrorCode_ERROR_CODE_WALLETS_NO_WALLET_FOUND},
+			{"payments required actions", payments.ErrRequiredActions, codes.FailedPrecondition, pb.ErrorCode_ERROR_CODE_PAYMENTS_REQUIRED_ACTIONS},
+			{"payments insufficient funds", payments.ErrInsufficientFunds, codes.FailedPrecondition, pb.ErrorCode_ERROR_CODE_PAYMENTS_INSUFFICIENT_FUNDS},
+			{"kyc resubmission required", kyc.ErrKYCResubmissionRequired, codes.FailedPrecondition, pb.ErrorCode_ERROR_CODE_KYC_RESUBMISSION_REQUIRED},
+			{"twilio invalid otp", twilio.ErrInvalidOTP, codes.InvalidArgument, pb.ErrorCode_ERROR_CODE_TWILIO_INVALID_OTP},
 		}
 
 		for _, tc := range tests {
@@ -130,6 +135,10 @@ func TestToGRPCError(t *testing.T) {
 				st, ok := status.FromError(result)
 				require.True(t, ok)
 				assert.Equal(t, tc.expectedCode, st.Code())
+
+				appErr := statusFindDetail[*pb.AppError](st)
+				require.NotNil(t, appErr)
+				assert.Equal(t, tc.expectedAppCode, appErr.ErrorCode)
 			})
 		}
 	})
@@ -141,6 +150,10 @@ func TestToGRPCError(t *testing.T) {
 		st, ok := status.FromError(result)
 		require.True(t, ok)
 		assert.Equal(t, codes.Unauthenticated, st.Code())
+
+		appErr := statusFindDetail[*pb.AppError](st)
+		require.NotNil(t, appErr)
+		assert.Equal(t, pb.ErrorCode_ERROR_CODE_USER_NO_USER_FOUND, appErr.ErrorCode)
 	})
 
 	t.Run("unknown error returns Internal", func(t *testing.T) {
@@ -149,6 +162,10 @@ func TestToGRPCError(t *testing.T) {
 		st, ok := status.FromError(result)
 		require.True(t, ok)
 		assert.Equal(t, codes.Internal, st.Code())
+
+		appErr := statusFindDetail[*pb.AppError](st)
+		require.NotNil(t, appErr)
+		assert.Equal(t, pb.ErrorCode_ERROR_CODE_INTERNAL, appErr.ErrorCode)
 	})
 }
 
@@ -190,6 +207,12 @@ func TestNewTwilioError(t *testing.T) {
 	errInfo := statusFindDetail[*errdetails.ErrorInfo](st)
 	require.NotNil(t, errInfo)
 	assert.Equal(t, "TwilioError", errInfo.Reason)
+
+	appErr := statusFindDetail[*pb.AppError](st)
+	require.NotNil(t, appErr)
+	assert.Equal(t, pb.ErrorCode_ERROR_CODE_BAD_REQUEST, appErr.ErrorCode)
+	require.Len(t, appErr.Fields, 1)
+	assert.Equal(t, "otp", appErr.Fields[0].Field)
 }
 
 func TestValidationError(t *testing.T) {
@@ -213,6 +236,11 @@ func TestValidationError(t *testing.T) {
 		br := statusFindDetail[*errdetails.BadRequest](st)
 		require.NotNil(t, br)
 		assert.NotEmpty(t, br.FieldViolations)
+
+		appErr := statusFindDetail[*pb.AppError](st)
+		require.NotNil(t, appErr)
+		assert.Equal(t, pb.ErrorCode_ERROR_CODE_BAD_REQUEST, appErr.ErrorCode)
+		assert.NotEmpty(t, appErr.Fields)
 	})
 
 	t.Run("returns Internal for non-validation error", func(t *testing.T) {
@@ -221,6 +249,10 @@ func TestValidationError(t *testing.T) {
 		st, ok := status.FromError(result)
 		require.True(t, ok)
 		assert.Equal(t, codes.Internal, st.Code())
+
+		appErr := statusFindDetail[*pb.AppError](st)
+		require.NotNil(t, appErr)
+		assert.Equal(t, pb.ErrorCode_ERROR_CODE_INTERNAL, appErr.ErrorCode)
 	})
 }
 
@@ -325,18 +357,19 @@ func TestSimpleErrorHelpers(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name         string
-		fn           func(string) error
-		msg          string
-		expectedCode codes.Code
-		msgContains  string
+		name            string
+		fn              func(string) error
+		msg             string
+		expectedCode    codes.Code
+		msgContains     string
+		expectedAppCode pb.ErrorCode
 	}{
-		{"InternalError", InternalError, "db failure", codes.Internal, "db failure"},
-		{"ForbiddenError", ForbiddenError, "read access", codes.PermissionDenied, "read access"},
-		{"UnauthenticatedError", UnauthenticatedError, "missing token", codes.Unauthenticated, "missing token"},
-		{"NotFoundError", NotFoundError, "resource", codes.NotFound, "resource"},
-		{"AlreadyExistsError", AlreadyExistsError, "duplicate name", codes.AlreadyExists, "duplicate name"},
-		{"FailedPreconditionError", FailedPreconditionError, "missing field", codes.FailedPrecondition, "missing field"},
+		{"InternalError", InternalError, "db failure", codes.Internal, "db failure", pb.ErrorCode_ERROR_CODE_INTERNAL},
+		{"ForbiddenError", ForbiddenError, "read access", codes.PermissionDenied, "read access", pb.ErrorCode_ERROR_CODE_FORBIDDEN},
+		{"UnauthenticatedError", UnauthenticatedError, "missing token", codes.Unauthenticated, "missing token", pb.ErrorCode_ERROR_CODE_UNAUTHENTICATED},
+		{"NotFoundError", NotFoundError, "resource", codes.NotFound, "resource", pb.ErrorCode_ERROR_CODE_NOT_FOUND},
+		{"AlreadyExistsError", AlreadyExistsError, "duplicate name", codes.AlreadyExists, "duplicate name", pb.ErrorCode_ERROR_CODE_CONFLICT},
+		{"FailedPreconditionError", FailedPreconditionError, "missing field", codes.FailedPrecondition, "missing field", pb.ErrorCode_ERROR_CODE_BAD_REQUEST},
 	}
 
 	for _, tc := range tests {
@@ -347,6 +380,10 @@ func TestSimpleErrorHelpers(t *testing.T) {
 			require.True(t, ok)
 			assert.Equal(t, tc.expectedCode, st.Code())
 			assert.Contains(t, st.Message(), tc.msgContains)
+
+			appErr := statusFindDetail[*pb.AppError](st)
+			require.NotNil(t, appErr)
+			assert.Equal(t, tc.expectedAppCode, appErr.ErrorCode)
 		})
 	}
 }

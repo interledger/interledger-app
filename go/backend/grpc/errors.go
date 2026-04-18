@@ -163,7 +163,7 @@ func ValidationError(err error, description func(validator.FieldError) string) e
 		fields := []*pb.AppErrorField{}
 		for _, err := range validatorError {
 			appendBrFieldViolation(br, err.Field(), description(err))
-			appendAppErrField(fields, err.Field(), description(err))
+			fields = appendAppErrField(fields, err.Field(), description(err))
 		}
 
 		appError := &pb.AppError{
