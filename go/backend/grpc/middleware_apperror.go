@@ -74,6 +74,10 @@ func withAppError(ctx context.Context, originalErr error) error {
 		}
 	}
 
+	if appError.ReqId != "" && appError.ReqId != reqId {
+		panic("appError.ReqId is already present and different from the one in the context.")
+	}
+
 	// Augment the AppError with the request id
 	appError.ReqId = reqId
 
