@@ -11,7 +11,7 @@ import (
 	httplog "gitlab.com/fynbos/backend/providers/http"
 )
 
-func (c *client) GetAccountConfirmation(ctx context.Context, userID, walletAddress string) (io.ReadCloser, error) {
+func (c *client) GetAccountStatement(ctx context.Context, userID, walletAddress string) (io.ReadCloser, error) {
 	meta, ok := httplog.MetaForContext(ctx)
 	if ok {
 		meta.Method = "GET"

@@ -3,38 +3,33 @@ package v1
 import (
 	"io"
 	"net/http"
-
-	"gitlab.com/fynbos/backend/api/apperrors"
-	"gitlab.com/fynbos/log"
-	"go.uber.org/zap"
 )
 
-func (h *handlers) getAccountConfirmation(w http.ResponseWriter, r *http.Request) {
+func (h *handlers) getAccountStatement(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	if _, err := h.users.UserForContext(ctx); err != nil {
-		apperrors.ToHTTPError(w, r, err)
+	_, err := h.backends.Users().UserForContext(ctx)
+	if err != nil {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
 	}
 
-	wallet, err := h.wallets.ForContext(ctx)
+	wallet, err := h.backends.Wallets().ForContext(ctx)
 	if err != nil {
-		apperrors.ToHTTPError(w, r, err)
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
 	}
 
-	body, err := h.gatehub.GetAccountConfirmation(ctx, wallet.ID)
+	body, err := h.backends.Gatehub().GetAccountStatement(ctx, wallet.ID)
 	if err != nil {
-		apperrors.ToHTTPError(w, r, err)
+		toHTTPError(w, err)
 		return
 	}
 	defer body.Close()
 
 	w.Header().Set("Content-Type", "application/pdf")
-	w.Header().Set("Content-Disposition", "inline; filename=\"account-confirmation.pdf\"")
+	w.Header().Set("Content-Disposition", "attachment; filename=\"account-statement.pdf\"")
 	w.WriteHeader(http.StatusOK)
 
-	if _, err := io.Copy(w, body); err != nil {
-		log.Warn("failed to stream account confirmation", zap.Error(err))
-	}
+	_, _ = io.Copy(w, body)
 }

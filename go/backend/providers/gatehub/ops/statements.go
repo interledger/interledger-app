@@ -2,7 +2,6 @@ package ops
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 
@@ -11,7 +10,7 @@ import (
 	"gitlab.com/fynbos/backend/providers/gatehub/external"
 )
 
-func GetAccountConfirmation(ctx context.Context, b Backends, ec external.Client, walletID string) (io.ReadCloser, error) {
+func GetAccountStatement(ctx context.Context, b Backends, ec external.Client, walletID string) (io.ReadCloser, error) {
 	linkedAccounts, err := b.LinkedAccounts().ListByWalletId(ctx, walletID)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
@@ -34,12 +33,5 @@ func GetAccountConfirmation(ctx context.Context, b Backends, ec external.Client,
 		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
 	}
 
-	result, err := ec.GetAccountConfirmation(ctx, externalIDs.UserID, linkedAccount.ProviderID)
-	if errors.Is(err, external.ErrNotFound) {
-		return nil, fmt.Errorf("%w %s", gatehub.ErrNotFound, err)
-	}
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
-	}
-	return result, nil
+	return ec.GetAccountStatement(ctx, externalIDs.UserID, linkedAccount.ProviderID)
 }
