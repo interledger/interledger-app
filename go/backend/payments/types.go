@@ -84,8 +84,9 @@ const (
 	IdentityTypeWalletID          IdentityType = 2
 	IdentityTypeWalletURL         IdentityType = 3
 	IdentityTypeSlack             IdentityType = 4
-	IdentityTypeExternalWalletURL IdentityType = 5
-	identityTypeSentinel          IdentityType = 6 // End of range value must be last, no need to public
+	IdentityTypeUnused            IdentityType = 5
+	IdentityTypeExternalWalletURL IdentityType = 6
+	identityTypeSentinel          IdentityType = 7 // End of range value must be last, no need to public
 )
 
 func (i IdentityType) Valid() bool {
