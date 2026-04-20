@@ -14,6 +14,8 @@ import {
   WalletGrid
 } from '~/components'
 import { getKycStatus } from '~/data/wallet.server'
+import { isConnectError } from '~/lib/error.server'
+import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
 import { KycStatus } from '~/lib/types'
 
@@ -23,10 +25,17 @@ export async function loader({ request }: Route.LoaderArgs) {
   const flowId = url.searchParams.get('flow')
   if (flowId) return redirect(`${href('/recovery/password')}?flow=${flowId}`)
 
-  const { kycStatus } = await getKycStatus(request)
+  const [{ kycStatus }, providerResponse] = await Promise.all([
+    getKycStatus(request),
+    grpc.getOnOffRampProvider(request, {})
+  ])
+
+  const isGatehub =
+    !isConnectError(providerResponse) && providerResponse.provider === 'gatehub'
 
   return data({
-    kycStatus
+    kycStatus,
+    isGatehub
   })
 }
 
@@ -46,7 +55,7 @@ export const meta = mergeMeta(() => [
 ])
 
 export default function Page() {
-  const { kycStatus } = useLoaderData()
+  const { kycStatus, isGatehub } = useLoaderData()
   const location = useLocation()
   const pathSegments = location.pathname.split('/').filter(Boolean)
 
@@ -127,6 +136,20 @@ export default function Page() {
             </div>
             <Icon>navigate_next</Icon>
           </CardLink>
+          {isGatehub && (
+            <CardLink
+              end
+              preventScrollReset
+              prefetch='intent'
+              to={href('/settings/statements')}
+            >
+              <div className='mr-auto flex space-x-3'>
+                <Icon>description</Icon>
+                <span>Statements</span>
+              </div>
+              <Icon>navigate_next</Icon>
+            </CardLink>
+          )}
         </Card>
         <Card>
           <CardHeader>
