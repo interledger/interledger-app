@@ -1,6 +1,7 @@
 package api
 
 import (
+	"gitlab.com/fynbos/backend/providers/gatehub"
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/backend/wallets"
 )
@@ -8,4 +9,5 @@ import (
 type Backends interface {
 	Users() user.Client
 	Wallets() wallets.Client
+	Gatehub() gatehub.Client
 }
