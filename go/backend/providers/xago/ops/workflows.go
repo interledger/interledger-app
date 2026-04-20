@@ -476,7 +476,7 @@ func (a *Activity) AddBeneficiaryLinkedAccount(ctx context.Context, walletID, id
 	})
 }
 
-func FundEUROLiquidityAccountWorkflow(ctx workflow.Context, amount string) error {
+func FundXagoEURLiquidityAccountWorkflow(ctx workflow.Context, amount string) error {
 	currencyAmount, err := currency.FromString(amount, currency.EUR)
 	if err != nil {
 		return err
@@ -488,20 +488,20 @@ func FundEUROLiquidityAccountWorkflow(ctx workflow.Context, amount string) error
 	}
 	ctx = workflow.WithActivityOptions(ctx, activityOptions)
 
-	if err := workflow.ExecuteActivity(ctx, a.FundEUROLiquidityAccountW, currencyAmount).Get(ctx, nil); err != nil {
+	if err := workflow.ExecuteActivity(ctx, a.FundXagoEURLiquidityAccount, currencyAmount).Get(ctx, nil); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (a *Activity) FundEUROLiquidityAccountW(ctx context.Context, amount currency.Amount) error {
+func (a *Activity) FundXagoEURLiquidityAccount(ctx context.Context, amount currency.Amount) error {
 	_, err := a.b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
 		{
 			ID:              uuid.NewString(),
 			Amount:          amount.Value,
-			CreditAccountID: xago.EURLiquidityAccount,
 			DebitAccountID:  xago.EUROpsAccount,
+			CreditAccountID: xago.EURLiquidityAccount,
 			Pending:         false,
 			Code:            1, // TODO magic number, but what does it mean, double rainbow?
 			Ledger:          xago.LedgerIDEUR,
