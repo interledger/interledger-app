@@ -9,11 +9,14 @@
 .feature-panel {
   position: absolute;
   inset: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 80px);
+  max-width: 1440px;
   display: flex;
   align-items: center;
-  padding: 0 48px;
   pointer-events: none;
-  height: 100vh
+  height: 100vh;
 }
 
 .feature-panel.is-visible {
@@ -168,9 +171,10 @@
 @media (max-width: 899px) {
   .feature-panel {
     flex-direction: column;
-    justify-content: flex-end;
-    padding: 0 var(--spacing-xl) max(60px, 8vh); /* Fluid bottom safe area utilizing dynamic viewport bounds */
-    gap: var(--spacing-2xl); /* Space between the two columns if needed */
+    justify-content: flex-start; /* Start from top to follow the phone frame */
+    padding: calc(var(--nav-height, 72px) + var(--phone-height) + 6vh) var(--spacing-xl) 40px;
+    gap: var(--spacing-2xl); 
+    overflow-y: auto; /* Allow scrolling if content is too tall for viewport */
   }
 
   .feature-phone-spacer {

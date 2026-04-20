@@ -31,11 +31,8 @@
 }
 
 /* PageSection wrapper layout utilities */
-.page-section {
-  width: 100%;
-}
-
 .page-section-inner {
+  width: calc(100% - 80px); /* Guaranteed min 40px margin on each side */
   max-width: 1440px;
   margin-inline: auto;
 }

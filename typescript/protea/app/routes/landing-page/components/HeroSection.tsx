@@ -59,31 +59,31 @@ export function HeroSection() {
   return (
     <section ref={sectionRef} className="animated-hero" data-screen={activeScreen}>
       <div className="sticky-viewport">
-        {/* Hero text — headline, subhead, CTA */}
-        <div className="hero-content">
-          <motion.div style={{ y, opacity }} className="hero-punch-scroll">
-            <div
-              className={`hero-punch anim-enter${isVisible ? " is-visible" : ""}`}
-              data-anim="punch-text"
-            >
-              <h1 className="text-h1 hero-headline">A wallet for what&apos;s next</h1>
-              <p className="text-h3 hero-subhead">
-                Built for interoperability, inclusion,<br />and the long run.
-              </p>
-            </div>
-          </motion.div>
-        </div>
+        <div className="sticky-viewport-content">
+          {/* Hero text — headline, subhead, CTA */}
+          <div className="hero-content">
+            <motion.div style={{ y, opacity }} className="hero-punch-scroll">
+              <div
+                className={`hero-punch anim-enter${isVisible ? " is-visible" : ""}`}
+                data-anim="punch-text"
+              >
+                <h1 className="text-h1 hero-headline">A wallet for what&apos;s next</h1>
+                <p className="text-h3 hero-subhead">
+                  Built for interoperability, inclusion,<br />and the long run.
+                </p>
+              </div>
+            </motion.div>
+          </div>
 
+          <PhoneFrame />
 
-
-        <PhoneFrame />
-
-        {/* Feature content slot — all feature panels live here as absolute overlays */}
-        <div className="feature-content-slot">
-          <Feature1 />
-          <Feature2 />
-          <Feature3 />
-          <Feature4 />
+          {/* Feature content slot — all feature panels live here as absolute overlays */}
+          <div className="feature-content-slot">
+            <Feature1 />
+            <Feature2 />
+            <Feature3 />
+            <Feature4 />
+          </div>
         </div>
       </div>
 

@@ -39,8 +39,17 @@
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  padding-top: var(--nav-height, 72px);
   text-align: center;
+}
+
+/* Constrains children of the sticky viewport (headline, feature columns) */
+.sticky-viewport-content {
+  width: calc(100% - 80px);
+  max-width: 1440px;
+  margin-inline: auto;
+  position: relative;
+  height: 100vh; /* Match full viewport for absolute children reference */
+  pointer-events: none;
 }
 
 /* --- Hero content (headline + subhead) ---------------------------------- */
@@ -49,7 +58,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 40px 16px 24px;
+  padding: calc(var(--nav-height, 72px) + 40px) 16px 24px;
   width: 100%;
   position: relative;
   z-index: 1; /* sits below the phone frame */
