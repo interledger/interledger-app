@@ -147,7 +147,7 @@
   /* Section Backgrounds */
   --section-bg-hero:       var(--color-bg-page);
   --section-bg-features:   var(--color-bg-surface);
-  --section-bg-cards:      var(--color-bg-surface-raised);
+  --section-bg-cards:      var(--color-bg-page);
   --section-bg-other-features: var(--color-aqua-mint-100);
   --section-bg-send-receive: var(--color-bg-page);
   --section-bg-ecosystem:  var(--color-bg-surface);
