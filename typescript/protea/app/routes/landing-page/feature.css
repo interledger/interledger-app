@@ -36,10 +36,20 @@
   flex: 1;
   min-width: 0;
   padding: 0 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.feature-col--left {
+  text-align: left;
+  align-items: flex-start;
 }
 
 .feature-col--right {
   transition-delay: var(--anim-stagger-delay, 120ms);
+  text-align: right;
+  align-items: flex-end;
 }
 
 /* --- Feature copy ------------------------------------------------------- */
@@ -191,15 +201,19 @@
     align-items: center;
     gap: var(--spacing-xl); /* Add gap between heading and body */
   }
-
+  
   /* Force heading column to always be on top for mobile */
   .feature-col--left {
     order: 1;
+    text-align: center;
+    align-items: center;
   }
-
+  
   /* Force body/widget column to be below heading for mobile */
   .feature-col--right {
     order: 2;
+    text-align: center;
+    align-items: center;
   }
 
   .feature-widget {

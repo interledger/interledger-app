@@ -18,19 +18,19 @@ const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { 
+    transition: {
       type: "spring",
       duration: 1,
       bounce: 0,
-      staggerChildren: 0.1 
+      staggerChildren: 0.1
     }
   },
   exit: {
     opacity: 0,
-    transition: { 
+    transition: {
       type: "spring",
       duration: 0.8,
-      bounce: 0 
+      bounce: 0
     }
   }
 }
@@ -39,10 +39,10 @@ const childVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { 
-      type: "spring", 
-      duration: 1, 
-      bounce: 0 
+    transition: {
+      type: "spring",
+      duration: 1,
+      bounce: 0
     }
   }
 }
@@ -63,7 +63,6 @@ export function FeatureSection({
   body,
   widget,
   visual,
-  columnOrder = "text-left",
 }: FeatureSectionProps) {
   const { activeScreen } = usePhoneCarousel()
 
@@ -75,8 +74,8 @@ export function FeatureSection({
 
   const rightCol = (
     <div className="feature-col feature-col--right">
-      {body && <motion.p variants={childVariants} className="text-body-lg feature-body">{body}</motion.p>}
       {widget && <motion.div variants={childVariants}>{widget}</motion.div>}
+      {body && <motion.p variants={childVariants} className="text-body-lg feature-body">{body}</motion.p>}
       {visual && <motion.div variants={childVariants}>{visual}</motion.div>}
     </div>
   )
@@ -91,19 +90,11 @@ export function FeatureSection({
           animate="visible"
           exit="exit"
         >
-          {columnOrder === "text-left" ? (
-            <>
-              {textCol}
-              <div className="feature-phone-spacer" />
-              {rightCol}
-            </>
-          ) : (
-            <>
-              {rightCol}
-              <div className="feature-phone-spacer" />
-              {textCol}
-            </>
-          )}
+          <>
+            {textCol}
+            <div className="feature-phone-spacer" />
+            {rightCol}
+          </>
         </motion.div>
       )}
     </AnimatePresence>

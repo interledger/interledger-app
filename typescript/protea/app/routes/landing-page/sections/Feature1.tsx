@@ -11,7 +11,7 @@ export function Feature1() {
       screen={2}
       heading="Global by design. Inclusive by default."
       body="Designed to meet people where they are, how they are."
-      widget={
+      visual={
         <FeatureWidget
           avatar="MH"
           avatarColor="#e87a7a"
