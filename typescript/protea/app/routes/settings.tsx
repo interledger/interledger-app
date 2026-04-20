@@ -1,12 +1,7 @@
-import {
-  data,
-  href,
-  Outlet,
-  redirect,
-  useLoaderData,
-  useLocation,
-  useOutletContext
-} from 'react-router'
+import type { Route } from './+types/settings'
+import { data, redirect } from 'react-router';
+import { Outlet, useLoaderData, useLocation } from 'react-router';
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   Card,
@@ -23,7 +18,6 @@ import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
 import { KycStatus } from '~/lib/types'
-import type { Route } from './+types/settings'
 
 export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url)
@@ -31,20 +25,17 @@ export async function loader({ request }: Route.LoaderArgs) {
   const flowId = url.searchParams.get('flow')
   if (flowId) return redirect(`${href('/recovery/password')}?flow=${flowId}`)
 
-  const [{ kycStatus }, linkedAccountsResponse] = await Promise.all([
+  const [{ kycStatus }, providerResponse] = await Promise.all([
     getKycStatus(request),
-    grpc.getLinkedAccounts(request, {})
+    grpc.getOnOffRampProvider(request, {})
   ])
 
-  const isDocumentsEnabled =
-    !isConnectError(linkedAccountsResponse) &&
-    linkedAccountsResponse.linkedAccounts.some(
-      (la) => la.type === 'balance' && la.receiveCurrencyCode === 'EUR'
-    )
+  const isGatehub =
+    !isConnectError(providerResponse) && providerResponse.provider === 'gatehub'
 
   return data({
     kycStatus,
-    isDocumentsEnabled
+    isGatehub
   })
 }
 
@@ -63,14 +54,8 @@ export const meta = mergeMeta(() => [
   }
 ])
 
-type SettingsContext = { isDocumentsEnabled: boolean }
-
-export function useSettingsContext() {
-  return useOutletContext<SettingsContext>()
-}
-
 export default function Page() {
-  const { kycStatus, isDocumentsEnabled } = useLoaderData<typeof loader>()
+  const { kycStatus, isGatehub } = useLoaderData()
   const location = useLocation()
   const pathSegments = location.pathname.split('/').filter(Boolean)
 
@@ -151,16 +136,16 @@ export default function Page() {
             </div>
             <Icon>navigate_next</Icon>
           </CardLink>
-          {isDocumentsEnabled && (
+          {isGatehub && (
             <CardLink
               end
               preventScrollReset
               prefetch='intent'
-              to={href('/settings/documents')}
+              to={href('/settings/statements')}
             >
               <div className='mr-auto flex space-x-3'>
                 <Icon>description</Icon>
-                <span>Documents</span>
+                <span>Statements</span>
               </div>
               <Icon>navigate_next</Icon>
             </CardLink>
@@ -209,7 +194,7 @@ export default function Page() {
         </Card>
       </GridColumn>
       <GridColumn className='col-span-full lg:col-span-6 lg:col-start-7'>
-        <Outlet context={{ isDocumentsEnabled } satisfies SettingsContext} />
+        <Outlet />
       </GridColumn>
     </WalletGrid>
   )
