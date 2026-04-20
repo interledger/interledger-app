@@ -25,7 +25,7 @@
 
 .cards-heading {
   margin-bottom: var(--spacing-5xl);
-  max-width: 800px;
+  max-width: var(--content-max-width);
   z-index: 20;
   position: relative;
   color: var(--color-text-primary);
@@ -35,7 +35,7 @@
 .cards-fan-container {
   position: relative;
   width: 100%;
-  max-width: 800px;
+  max-width: var(--content-max-width);
   height: 480px;
   display: flex;
   align-items: center;
