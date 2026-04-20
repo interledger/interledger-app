@@ -150,10 +150,6 @@
 
 /* Tablet/Mobile Overrides */
 @media (max-width: 900px) {
-  .other-features-section {
-    padding: var(--spacing-xl) var(--spacing-md);
-  }
-
   .other-features-banner {
     padding: var(--padding-4xl) var(--padding-xl);
     gap: var(--spacing-3xl);
