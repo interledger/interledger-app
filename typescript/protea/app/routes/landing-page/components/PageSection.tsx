@@ -14,7 +14,7 @@ interface PageSectionProps {
  */
 export function PageSection({ children, className = "", innerClassName = "", id, style }: PageSectionProps) {
   return (
-    <section id={id} className={`page-section pad-default ${className}`} style={style}>
+    <section id={id} className={`page-section ${className}`} style={style}>
       <div className={`page-section-inner ${innerClassName}`}>
         {children}
       </div>

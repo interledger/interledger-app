@@ -11,7 +11,7 @@
   inset: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: calc(100% - 80px);
+  width: 100%;
   max-width: var(--content-max-width);
   display: flex;
   align-items: center;
@@ -35,7 +35,6 @@
 .feature-col {
   flex: 1;
   min-width: 0;
-  padding: 0 32px;
   display: flex;
   flex-direction: column;
   justify-content: center;

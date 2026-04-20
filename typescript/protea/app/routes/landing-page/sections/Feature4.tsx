@@ -12,7 +12,7 @@ export function Feature4() {
       heading="Designed to adopt. Easy to adopt."
       body="We are building the wallet in the open and want to participate from the start."
       columnOrder="text-left"
-      widget={
+      visual={
         <div style={{ marginTop: "16px", display: "flex", justifyContent: "center" }}>
           <a href="/signup" className="nav-cta" style={{ display: "inline-flex" }}>
             Sign up now <span style={{ marginLeft: "4px" }}>&rarr;</span>
