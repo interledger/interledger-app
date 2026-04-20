@@ -10,12 +10,12 @@
 .built-with-change-header {
   text-align: center;
   width: 100%;
-  max-width: 1360px; /* From Figma Fill */
+  max-width: var(--content-max-width); /* From Figma Fill */
   padding-inline: var(--padding-6xl); /* Exact 120px text-inset from Figma */
-  margin-bottom: var(--spacing-4xl); 
+  margin-bottom: var(--spacing-4xl);
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-2xl); 
+  gap: var(--spacing-2xl);
 }
 
 .built-with-change-header h2 {
@@ -30,7 +30,9 @@
 
 .built-with-change-image-wrapper {
   width: 100%;
-  max-width: 1360px; /* Matching the grid width, not full-bleed */
+  max-width: var(
+    --content-max-width
+  ); /* Matching the grid width, not full-bleed */
   height: 600px;
   border-radius: var(--rounded-3xl); /* 24px visually confirmed */
   overflow: hidden;

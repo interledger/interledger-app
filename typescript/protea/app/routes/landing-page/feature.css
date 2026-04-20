@@ -12,7 +12,7 @@
   left: 50%;
   transform: translateX(-50%);
   width: calc(100% - 80px);
-  max-width: 1440px;
+  max-width: var(--content-max-width);
   display: flex;
   align-items: center;
   pointer-events: none;

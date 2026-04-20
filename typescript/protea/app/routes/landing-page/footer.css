@@ -14,7 +14,7 @@
 
 .footer-inner {
   width: 100%;
-  max-width: 1360px;
+  max-width: var(--content-max-width);
   display: flex;
   flex-direction: column;
 }
@@ -42,7 +42,9 @@
 }
 
 .footer-left p {
-  color: var(--color-neutral-0); /* White text for "Do you want to get involved?" */
+  color: var(
+    --color-neutral-0
+  ); /* White text for "Do you want to get involved?" */
   font-family: var(--font-family-body);
   font-weight: 500;
   font-size: 1.125rem; /* ~18px or h4-ish */

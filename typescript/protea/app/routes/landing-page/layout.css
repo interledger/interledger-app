@@ -1,3 +1,20 @@
+/* Content Width Tokens */
+:root {
+  --content-max-width: 322px;
+}
+
+@media (min-width: 810px) {
+  :root {
+    --content-max-width: 900px;
+  }
+}
+
+@media (min-width: 1200px) {
+  :root {
+    --content-max-width: 1440px;
+  }
+}
+
 /* Grid Utilities */
 .grid-4-col {
   display: grid;
@@ -33,7 +50,7 @@
 /* PageSection wrapper layout utilities */
 .page-section-inner {
   width: calc(100% - 80px); /* Guaranteed min 40px margin on each side */
-  max-width: 1440px;
+  max-width: var(--content-max-width);
   margin-inline: auto;
 }
 
