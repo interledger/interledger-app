@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"strconv"
+	"strings"
 )
 
 // Config holds application configuration
@@ -18,6 +19,11 @@ type Config struct {
 	EnforceAuthentication bool
 	ValidCredentials      map[string]string // appID -> secret
 	DefaultOrganizationID string
+	// PublicBaseURL is the externally reachable base URL of mockgatehub
+	// (no trailing slash). It is used to build absolute URLs in API responses
+	// that are followed directly by the browser (e.g. card-data tokenisation
+	// links).
+	PublicBaseURL string
 }
 
 // Load reads configuration from environment variables
@@ -33,6 +39,7 @@ func Load() *Config {
 		EnforceAuthentication: getEnvBool("MOCKGATEHUB_ENFORCE_AUTHENTICATION", true),
 		ValidCredentials:      parseCredentials(getEnv("MOCKGATEHUB_VALID_CREDENTIALS", "local-test-app-id:local-test-app-secret")),
 		DefaultOrganizationID: getEnv("DEFAULT_ORGANIZATION_ID", "default-org"),
+		PublicBaseURL:         strings.TrimRight(getEnv("MOCKGATEHUB_PUBLIC_BASE_URL", "https://mockgatehub.interledger.test"), "/"),
 	}
 
 	// Validate WebhookMinDelaySec: enforce minimum of 2 seconds to prevent

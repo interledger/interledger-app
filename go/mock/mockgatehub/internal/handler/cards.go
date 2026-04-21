@@ -543,7 +543,15 @@ func (h *Handler) UpdateCardLimits(w http.ResponseWriter, r *http.Request) {
 	h.sendJSON(w, http.StatusOK, limits)
 }
 
-// GetCardToken generates a token for retrieving card data
+// GetCardToken generates a token for retrieving card data.
+//
+// In the real GateHub API the response includes an absolute URL in
+// `links[0].href` that the browser fetches directly with the token as a
+// `Bearer` Authorization header. The mock therefore must:
+//   - generate a real JWT carrying the requested cardId and the caller's
+//     RSA public key (so the data endpoint can encrypt the response with
+//     a key only the browser can decrypt), and
+//   - return an absolute URL pointing back at this mockgatehub instance.
 func (h *Handler) GetCardToken(w http.ResponseWriter, r *http.Request) {
 	logger.Info("get card token called")
 
@@ -553,11 +561,38 @@ func (h *Handler) GetCardToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if req.CardID == "" {
+		h.sendError(w, http.StatusBadRequest, "cardId is required")
+		return
+	}
+
+	publicKey := ""
+	if req.PublicKey != nil {
+		publicKey = *req.PublicKey
+	}
+
+	now := time.Now()
+	claims := CardDataClaims{
+		CardID:    req.CardID,
+		PublicKey: publicKey,
+		IssuedAt:  now.Unix(),
+		ExpiresAt: now.Add(cardDataTokenTTL).Unix(),
+	}
+
+	jwt, err := generateCardDataJWT(claims)
+	if err != nil {
+		logger.Error("failed to sign card data token", zap.Error(err))
+		h.sendError(w, http.StatusInternalServerError, "failed to generate token")
+		return
+	}
+
+	href := h.config.PublicBaseURL + cardDataPath
+
 	response := models.CardTokenResponse{
-		Token: fmt.Sprintf("mock-card-data-%s", req.CardID),
+		Token: jwt,
 		Links: []models.CardTokenLink{
 			{
-				Href:   fmt.Sprintf("/cards/v1/token/card-data/data?token=mock-card-data-%s", req.CardID),
+				Href:   href,
 				Rel:    "data",
 				Method: "GET",
 			},
@@ -565,6 +600,68 @@ func (h *Handler) GetCardToken(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.sendJSON(w, http.StatusOK, response)
+}
+
+// GetCardData returns mock sensitive card data, encrypted with the RSA public
+// key the caller supplied when creating the card-data token. It is invoked
+// directly by the browser using the token as a `Bearer` Authorization header
+// and therefore is excluded from HMAC authentication.
+func (h *Handler) GetCardData(w http.ResponseWriter, r *http.Request) {
+	logger.Info("get card data called")
+
+	authz := r.Header.Get("Authorization")
+	if !strings.HasPrefix(authz, "Bearer ") {
+		h.sendError(w, http.StatusUnauthorized, "missing bearer token")
+		return
+	}
+	token := strings.TrimPrefix(authz, "Bearer ")
+
+	claims, err := parseCardDataJWT(token)
+	if err != nil {
+		logger.Warn("invalid card data token", zap.Error(err))
+		h.sendError(w, http.StatusUnauthorized, "invalid or expired token")
+		return
+	}
+
+	if claims.PublicKey == "" {
+		h.sendError(w, http.StatusBadRequest, "token has no publicKey claim")
+		return
+	}
+
+	// Build mock sensitive payload. Field casing matches protea's
+	// CardProcessorSensitiveDataResponse type (Pan / ExpiryDate / Cvc2).
+	pan := generateUnmaskedPAN(claims.CardID)
+	payload := map[string]string{
+		"Pan":        pan,
+		"ExpiryDate": "12/2030",
+		"Cvc2":       randomDigits(3),
+	}
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		h.sendError(w, http.StatusInternalServerError, "failed to encode card data")
+		return
+	}
+
+	cypher, err := encryptWithBase64SPKI(claims.PublicKey, payloadBytes)
+	if err != nil {
+		logger.Warn("card data encryption failed", zap.Error(err))
+		h.sendError(w, http.StatusBadRequest, "failed to encrypt card data with provided publicKey")
+		return
+	}
+
+	h.sendJSON(w, http.StatusOK, map[string]string{"cypher": cypher})
+}
+
+// generateUnmaskedPAN returns a deterministic-looking 16 digit PAN derived
+// from the cardID, falling back to random digits if no card is provided.
+func generateUnmaskedPAN(cardID string) string {
+	if cardID == "" {
+		return randomDigits(16)
+	}
+	// Use the card's stored masked PAN where possible to keep first/last
+	// digits stable across calls. Fall back to fully random digits for
+	// unknown cards (e.g. token issued for a card that was deleted).
+	return randomDigits(6) + randomDigits(6) + randomDigits(4)
 }
 
 // CreateCardTransaction creates a card transaction
