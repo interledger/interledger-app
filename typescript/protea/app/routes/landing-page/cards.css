@@ -31,11 +31,12 @@
   position: relative;
   width: 100%;
   max-width: var(--content-max-width);
-  height: 480px;
+  height: 800px; /* Requested Desktop height */
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0 auto;
+  overflow: visible;
 }
 
 /* Cluster scaling node */
@@ -84,13 +85,19 @@
   z-index: 4;
 }
 
-/* Responsive adjustment for Mobile screens */
-@media (max-width: 768px) {
+/* Responsive adjustment for Tablet/Mobile screens */
+@media (min-width: 810px) and (max-width: 1199px) { /* Tablet range: --breakpoint-tablet-min to --breakpoint-tablet-max */
   .cards-fan-container {
-    height: 380px;
+    height: 650px; /* Requested Tablet height */
+  }
+}
+
+@media (max-width: 809px) { /* Phone range: --breakpoint-mobile */
+  .cards-fan-container {
+    height: 600px; /* Requested Mobile height */
   }
   .cards-cluster {
-    /* Scale uniformly so all coordinate logic remains exactly proportioned */
-    transform: translate(-50%, -50%) scale(0.65);
+    /* Slightly more aggressive scale to fit within mobile width without drastic clipping */
+    transform: translate(-50%, -50%) scale(0.6);
   }
 }

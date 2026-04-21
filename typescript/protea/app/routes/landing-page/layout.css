@@ -1,15 +1,22 @@
-/* Content Width Tokens */
+/* Breakpoint & Content Width Tokens */
 :root {
-  --content-max-width: 322px;
+  /* Breakpoint Definitions (Tokens) */
+  --breakpoint-mobile: 809px;
+  --breakpoint-tablet-min: 810px;
+  --breakpoint-tablet-max: 1199px;
+  --breakpoint-desktop: 1200px;
+
+  /* Responsive Content Max Width */
+  --content-max-width: 322px; /* Default for Phone (< 809px) */
 }
 
-@media (min-width: 810px) {
+@media (min-width: 810px) { /* Tablet range starts */
   :root {
     --content-max-width: 900px;
   }
 }
 
-@media (min-width: 1200px) {
+@media (min-width: 1200px) { /* Desktop range starts */
   :root {
     --content-max-width: 1440px;
   }
