@@ -68,14 +68,16 @@ func (sc *E2EContext) iConnectAUSBankAccount() error {
 		return fmt.Errorf("Continue button never became enabled: %w", err)
 	}
 
-	// Click and wait for the expected post-submit URL in a single
-	// ExpectNavigation window. This races the click against the navigation
-	// so we don't miss a fast redirect, and it uses Playwright's own URL
-	// matcher instead of sleeping-and-polling.
-	_, navErr := sc.page.ExpectNavigation(func() error {
-		return submitBtn.Click()
-	}, playwright.PageExpectNavigationOptions{
-		URL:     "**/accounts**",
+	// Click, then wait for the expected post-submit URL. WaitForURL works
+	// for both native form submissions and Remix/React Router client-side
+	// (same-document) navigations, and it returns immediately if the URL
+	// already matches so a fast redirect can't be missed. ExpectNavigation
+	// is not safe here because SPA URL updates don't always fire a
+	// navigation event.
+	if err := submitBtn.Click(); err != nil {
+		return fmt.Errorf("failed to click Continue button: %w", err)
+	}
+	navErr := sc.page.WaitForURL("**/accounts**", playwright.PageWaitForURLOptions{
 		Timeout: playwright.Float(30000),
 	})
 	if navErr != nil {
@@ -115,10 +117,17 @@ func expectEnabled(loc playwright.Locator, timeout time.Duration) error {
 
 // readActionError returns the first visible form error text on the page,
 // if any. Used only for diagnostic error messages on test failure; a
-// missing selector or timeout is returned as empty string rather than
-// propagated, since the test has already failed for another reason.
+// missing selector, timeout, or no-visible-match is returned as empty
+// string rather than propagated, since the test has already failed for
+// another reason.
 func readActionError(page playwright.Page) string {
-	loc := page.Locator("[role='alert'], [id$='-error'], .error-message").First()
+	loc := page.Locator("[role='alert']:visible, [id$='-error']:visible, .error-message:visible").First()
+	if err := loc.WaitFor(playwright.LocatorWaitForOptions{
+		State:   playwright.WaitForSelectorStateVisible,
+		Timeout: playwright.Float(500),
+	}); err != nil {
+		return ""
+	}
 	txt, err := loc.TextContent(playwright.LocatorTextContentOptions{
 		Timeout: playwright.Float(500),
 	})
