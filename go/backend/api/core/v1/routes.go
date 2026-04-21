@@ -9,19 +9,15 @@ import (
 	"gitlab.com/fynbos/backend/wallets"
 )
 
-type Backends interface {
-	Users() user.Client
-	Wallets() wallets.Client
-	Gatehub() gatehub.Client
-}
-
 type handlers struct {
-	backends Backends
+	users   user.Client
+	wallets wallets.Client
+	gatehub gatehub.Client
 }
 
-func NewRouter(b Backends) http.Handler {
+func NewRouter(uc user.Client, wc wallets.Client, gc gatehub.Client) http.Handler {
 	r := chi.NewRouter()
-	h := &handlers{backends: b}
+	h := &handlers{users: uc, wallets: wc, gatehub: gc}
 
 	r.Route("/statements", func(r chi.Router) {
 		r.Get("/account", h.getAccountStatement)

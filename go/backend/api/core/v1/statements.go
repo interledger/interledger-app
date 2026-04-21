@@ -8,19 +8,19 @@ import (
 func (h *handlers) getAccountStatement(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	_, err := h.backends.Users().UserForContext(ctx)
+	_, err := h.users.UserForContext(ctx)
 	if err != nil {
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
 	}
 
-	wallet, err := h.backends.Wallets().ForContext(ctx)
+	wallet, err := h.wallets.ForContext(ctx)
 	if err != nil {
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
 	}
 
-	body, err := h.backends.Gatehub().GetAccountStatement(ctx, wallet.ID)
+	body, err := h.gatehub.GetAccountStatement(ctx, wallet.ID)
 	if err != nil {
 		toHTTPError(w, err)
 		return
