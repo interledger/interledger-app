@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"sort"
 	"time"
 )
@@ -29,18 +28,13 @@ import (
 //
 // If required env vars are missing, it falls back to the base transport without modifying the request.
 type adminSigningRoundTripper struct {
-	base http.RoundTripper
+	base             http.RoundTripper
+	operatorTenantID string
+	adminAPISecret   string
+	signatureVersion string
 }
 
 func (rt *adminSigningRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
-	tenantID := os.Getenv("OPERATOR_TENANT_ID")
-	apiSecret := os.Getenv("ADMIN_API_SECRET")
-	signatureVersion := os.Getenv("SIGNATURE_VERSION")
-
-	if tenantID == "" || apiSecret == "" || signatureVersion == "" {
-		return rt.base.RoundTrip(req)
-	}
-
 	var bodyBytes []byte
 	if req.Body != nil {
 		b, err := io.ReadAll(req.Body)
@@ -62,12 +56,12 @@ func (rt *adminSigningRoundTripper) RoundTrip(req *http.Request) (*http.Response
 			timestamp := time.Now().UnixMilli()
 			payload := fmt.Sprintf("%d.%s", timestamp, canonicalJSON)
 
-			h := hmac.New(sha256.New, []byte(apiSecret))
+			h := hmac.New(sha256.New, []byte(rt.adminAPISecret))
 			_, _ = h.Write([]byte(payload))
 			digest := hex.EncodeToString(h.Sum(nil))
 
-			req.Header.Set("signature", fmt.Sprintf("t=%d, v%s=%s", timestamp, signatureVersion, digest))
-			req.Header.Set("tenant-id", tenantID)
+			req.Header.Set("signature", fmt.Sprintf("t=%d, v%s=%s", timestamp, rt.signatureVersion, digest))
+			req.Header.Set("tenant-id", rt.operatorTenantID)
 		}
 	}
 

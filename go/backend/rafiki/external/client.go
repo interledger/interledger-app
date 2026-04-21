@@ -46,18 +46,24 @@ type client struct {
 	a             *assets
 }
 
-func New() Client {
+type AdminSigningConfig struct {
+	OperatorTenantID string
+	AdminAPISecret   string
+	SignatureVersion string
+}
+
+func New(signingConfig AdminSigningConfig) Client {
 	backendGraphql := "http://localhost:3001/graphql"
 	if os.Getenv("RAFIKI_BACKEND_GRAPHQL_URL") != "" {
 		backendGraphql = os.Getenv("RAFIKI_BACKEND_GRAPHQL_URL")
 	}
-	cl := graphql.NewClient(backendGraphql, newSignedAdminHTTPClient())
+	cl := graphql.NewClient(backendGraphql, newSignedAdminHTTPClient(signingConfig))
 
 	authGraphql := "http://localhost:3003/graphql"
 	if os.Getenv("RAFIKI_AUTH_GRAPHQL_URL") != "" {
 		authGraphql = os.Getenv("RAFIKI_AUTH_GRAPHQL_URL")
 	}
-	authCl := graphql.NewClient(authGraphql, newSignedAdminHTTPClient())
+	authCl := graphql.NewClient(authGraphql, newSignedAdminHTTPClient(signingConfig))
 
 	return &client{backendClient: cl, authClient: authCl, a: &assets{data: nil}}
 }
@@ -205,7 +211,7 @@ func (c client) GetIncomingPayment(ctx context.Context, id string) (*GetIncoming
 	return &r.IncomingPayment, nil
 }
 
-func newSignedAdminHTTPClient() *http.Client {
+func newSignedAdminHTTPClient(signingConfig AdminSigningConfig) *http.Client {
 	base := otelhttp.DefaultClient
 	baseTransport := base.Transport
 	if baseTransport == nil {
@@ -213,8 +219,13 @@ func newSignedAdminHTTPClient() *http.Client {
 	}
 
 	return &http.Client{
-		Transport: &adminSigningRoundTripper{base: baseTransport},
-		Timeout:   base.Timeout,
+		Transport: &adminSigningRoundTripper{
+			base:             baseTransport,
+			operatorTenantID: signingConfig.OperatorTenantID,
+			adminAPISecret:   signingConfig.AdminAPISecret,
+			signatureVersion: signingConfig.SignatureVersion,
+		},
+		Timeout: base.Timeout,
 	}
 }
 
