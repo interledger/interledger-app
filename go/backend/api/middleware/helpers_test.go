@@ -3,10 +3,7 @@ package middleware
 import (
 	"context"
 
-	"gitlab.com/fynbos/backend/country"
-	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/user"
-	"gitlab.com/fynbos/backend/wallets"
 )
 
 type stubUserClient struct {
@@ -46,38 +43,3 @@ func (s *stubUserClient) GetUserIDForWallet(_ context.Context, _ string) (string
 	panic("unexpected")
 }
 
-type stubWalletClient struct {
-	list    []wallets.Wallet
-	listErr error
-}
-
-func (s *stubWalletClient) List(_ context.Context, _ string) ([]wallets.Wallet, error) {
-	return s.list, s.listErr
-}
-func (s *stubWalletClient) Create(_ context.Context, _ wallets.CreateArgs) (*wallets.Wallet, error) {
-	return nil, nil
-}
-func (s *stubWalletClient) ForContext(_ context.Context) (*wallets.Wallet, error) {
-	panic("unexpected")
-}
-func (s *stubWalletClient) Get(_ context.Context, _ string) (*wallets.Wallet, error) {
-	panic("unexpected")
-}
-func (s *stubWalletClient) ListAll(_ context.Context, _ db.Pagination) ([]wallets.Wallet, error) {
-	panic("unexpected")
-}
-func (s *stubWalletClient) SetWalletName(_ context.Context, _, _ string) (*wallets.Wallet, error) {
-	panic("unexpected")
-}
-func (s *stubWalletClient) GetFromAddress(_ context.Context, _ string) (*wallets.Wallet, error) {
-	panic("unexpected")
-}
-func (s *stubWalletClient) AddAddress(_ context.Context, _, _ string) (*wallets.Wallet, error) {
-	panic("unexpected")
-}
-func (s *stubWalletClient) SetCountry(_ context.Context, _ string, _ country.Country) (*wallets.Wallet, error) {
-	panic("unexpected")
-}
-func (s *stubWalletClient) SetExceededLimits(_ context.Context, _ string, _ bool) (*wallets.Wallet, error) {
-	panic("unexpected")
-}

@@ -8,10 +8,12 @@ import (
 	"testing"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/backend/wallets"
+	wc_mock "gitlab.com/fynbos/backend/wallets/client/mock"
 )
 
 func TestWalletMiddleware(t *testing.T) {
@@ -23,34 +25,50 @@ func TestWalletMiddleware(t *testing.T) {
 	tests := []struct {
 		name            string
 		userInCtx       *user.User
-		walletList      []wallets.Wallet
-		listErr         error
+		setupWC         func(*gomock.Controller) *wc_mock.MockClient
 		wantStatus      int
 		wantWalletInCtx bool
 	}{
 		{
-			name:            "user with wallet gets wallet attached to context",
-			userInCtx:       alice,
-			walletList:      []wallets.Wallet{wallet},
+			name:      "user with wallet gets wallet attached to context",
+			userInCtx: alice,
+			setupWC: func(ctrl *gomock.Controller) *wc_mock.MockClient {
+				wc := wc_mock.NewMockClient(ctrl)
+				wc.EXPECT().List(gomock.Any(), alice.ID).Return([]wallets.Wallet{wallet}, nil)
+				return wc
+			},
 			wantStatus:      http.StatusOK,
 			wantWalletInCtx: true,
 		},
 		{
-			name:            "no user in context passes through without wallet",
+			name: "no user in context passes through without wallet",
+			setupWC: func(ctrl *gomock.Controller) *wc_mock.MockClient {
+				return wc_mock.NewMockClient(ctrl)
+			},
 			wantStatus:      http.StatusOK,
 			wantWalletInCtx: false,
 		},
 		{
-			name:            "user with no wallets creates one and attaches it",
-			userInCtx:       alice,
-			walletList:      []wallets.Wallet{},
+			name:      "user with no wallets creates one and attaches it",
+			userInCtx: alice,
+			setupWC: func(ctrl *gomock.Controller) *wc_mock.MockClient {
+				wc := wc_mock.NewMockClient(ctrl)
+				wc.EXPECT().List(gomock.Any(), alice.ID).Return([]wallets.Wallet{}, nil)
+				wc.EXPECT().Create(gomock.Any(), wallets.CreateArgs{UserID: alice.ID, Country: alice.Country}).Return(&wallet, nil)
+				wc.EXPECT().List(gomock.Any(), alice.ID).Return([]wallets.Wallet{wallet}, nil)
+				return wc
+			},
 			wantStatus:      http.StatusOK,
 			wantWalletInCtx: true,
 		},
 		{
-			name:            "wallet list error passes through without wallet",
-			userInCtx:       alice,
-			listErr:         errors.New("db is down"),
+			name:      "wallet list error passes through without wallet",
+			userInCtx: alice,
+			setupWC: func(ctrl *gomock.Controller) *wc_mock.MockClient {
+				wc := wc_mock.NewMockClient(ctrl)
+				wc.EXPECT().List(gomock.Any(), alice.ID).Return(nil, errors.New("db is down"))
+				return wc
+			},
 			wantStatus:      http.StatusOK,
 			wantWalletInCtx: false,
 		},
@@ -60,17 +78,13 @@ func TestWalletMiddleware(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
+			ctrl := gomock.NewController(t)
+			t.Cleanup(ctrl.Finish)
+
 			var gotWallet *wallets.Wallet
 
-			wc := &stubWalletClient{listErr: tt.listErr}
-
-			wc.list = tt.walletList
-			if len(tt.walletList) == 0 && tt.listErr == nil {
-				wc.list = []wallets.Wallet{wallet}
-			}
-
 			r := chi.NewRouter()
-			r.Use(MakeWalletMiddleware(&stubUserClient{}, wc))
+			r.Use(MakeWalletMiddleware(&stubUserClient{}, tt.setupWC(ctrl)))
 			r.Get("/test", func(w http.ResponseWriter, r *http.Request) {
 				gotWallet, _ = walletForContext(r.Context())
 				w.WriteHeader(http.StatusOK)
@@ -83,6 +97,7 @@ func TestWalletMiddleware(t *testing.T) {
 			}
 			rr := httptest.NewRecorder()
 			r.ServeHTTP(rr, req)
+
 			assert.Equal(t, tt.wantStatus, rr.Code)
 			if tt.wantWalletInCtx {
 				assert.NotNil(t, gotWallet)
