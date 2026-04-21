@@ -899,20 +899,20 @@ func TestCreateCard_ReturnsActiveCard(t *testing.T) {
 // ── Test helpers for card-data crypto ──
 
 func generateTestRSAKey(t *testing.T) *rsa.PrivateKey {
-t.Helper()
-key, err := rsa.GenerateKey(rand.Reader, 2048)
-require.NoError(t, err)
-return key
+	t.Helper()
+	key, err := rsa.GenerateKey(rand.Reader, 2048)
+	require.NoError(t, err)
+	return key
 }
 
 func publicKeyToBase64SPKI(t *testing.T, pub *rsa.PublicKey) string {
-t.Helper()
-der, err := x509.MarshalPKIXPublicKey(pub)
-require.NoError(t, err)
-return base64.StdEncoding.EncodeToString(der)
+	t.Helper()
+	der, err := x509.MarshalPKIXPublicKey(pub)
+	require.NoError(t, err)
+	return base64.StdEncoding.EncodeToString(der)
 }
 
 func generateTestPublicKeyB64(t *testing.T) string {
-t.Helper()
-return publicKeyToBase64SPKI(t, &generateTestRSAKey(t).PublicKey)
+	t.Helper()
+	return publicKeyToBase64SPKI(t, &generateTestRSAKey(t).PublicKey)
 }
