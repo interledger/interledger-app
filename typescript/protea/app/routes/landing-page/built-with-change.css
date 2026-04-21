@@ -1,9 +1,4 @@
 .built-with-change {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
   padding-block: var(--padding-5xl);
   background-color: var(--color-bg-page);
   overflow: hidden;

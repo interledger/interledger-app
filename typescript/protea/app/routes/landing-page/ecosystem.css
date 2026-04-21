@@ -1,9 +1,4 @@
 .ecosystem-section {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
   padding-block: var(--padding-5xl);
   background-color: var(--color-bg-page);
   font-family: 'Poppins', sans-serif !important;

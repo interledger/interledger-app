@@ -1,9 +1,4 @@
 .our-ecosystem-section {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
   padding-block: var(--padding-5xl);
   padding-inline: var(--padding-3xl);
   gap: var(--spacing-4xl);

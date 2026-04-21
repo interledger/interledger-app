@@ -1,11 +1,6 @@
 /* OTHER FEATURES SECTION */
 
 .other-features-section {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
   padding: var(--spacing-6xl) 0;
 }
 

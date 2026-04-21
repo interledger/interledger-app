@@ -78,3 +78,11 @@
     padding-inline: var(--section-pad-desktop-outer);
   }
 }
+
+.content-section {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}

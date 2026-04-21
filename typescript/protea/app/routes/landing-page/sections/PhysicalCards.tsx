@@ -56,7 +56,7 @@ const centerCardVariants = {
 
 export function PhysicalCards() {
   return (
-    <section className="section-physical-cards">
+    <section className="section-physical-cards content-section">
       <motion.div 
         initial={{ opacity: 0, y: 40 }}
         whileInView={{ opacity: 1, y: 0 }}
