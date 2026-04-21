@@ -1,21 +1,28 @@
 package middleware
 
 import (
+	"context"
 	"net/http"
-
-	"github.com/google/uuid"
-	"gitlab.com/fynbos/backend/api/appcontext"
 )
+
+type ctxKeyRequestIDType string
+
+var ctxKeyRequestID = ctxKeyRequestIDType("request-id")
 
 func MakeRequestIDMiddleware() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			reqID := r.Header.Get("X-Request-ID")
-			if reqID == "" {
-				reqID = uuid.NewString()
-			}
-			ctx := appcontext.WithRequestID(r.Context(), reqID)
+			ctx := context.WithValue(r.Context(), ctxKeyRequestID, reqID)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
+}
+
+func RequestIDFromContext(ctx context.Context) string {
+	val := ctx.Value(ctxKeyRequestID)
+	if val == nil {
+		return ""
+	}
+	return val.(string)
 }

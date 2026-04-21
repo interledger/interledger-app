@@ -5,7 +5,6 @@ import (
 	"errors"
 	"net/http"
 
-	"gitlab.com/fynbos/backend/api/apperrors"
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/backend/wallets"
 	"gitlab.com/fynbos/log"
@@ -19,7 +18,7 @@ func MakeWalletMiddleware(uc user.Client, wc wallets.Client) func(http.Handler) 
 
 			u, err := uc.UserForContext(ctx)
 			if err != nil && !errors.Is(err, user.ErrNoUserFound) {
-				apperrors.WriteAppError(w, r, http.StatusInternalServerError, apperrors.ErrCodeInternal, "Error parsing session.")
+				WriteAppError(w, r, http.StatusInternalServerError, ErrCodeInternal, "Error parsing session.")
 				return
 			}
 
