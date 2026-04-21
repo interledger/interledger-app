@@ -93,6 +93,9 @@
 }
 
 @media (max-width: 809px) { /* Phone range: --breakpoint-mobile */
+  .section-physical-cards {
+    padding-block: var(--spacing-xl); /* Reduce vertical padding to let 600px container fit in 100vh */
+  }
   .cards-fan-container {
     height: 600px; /* Requested Mobile height */
   }

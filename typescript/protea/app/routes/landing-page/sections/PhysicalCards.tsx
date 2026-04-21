@@ -19,11 +19,11 @@ const fanVariants = {
 // we just position them at their exact relative offsets on X and Y, with rotate: 0 to respect their internal matrix transforms!
 // Offsets are derived precisely from the Absolute Bounding Boxes of the Figma node
 const leftCardVariants = {
-  hidden: { opacity: 0, y: "calc(-50% - 65.5px + 150px)", x: "calc(-50% - 157px)", rotate: 0, scale: 0.8 },
+  hidden: { opacity: 0, y: "calc(-50% - 65.5px + 150px)", x: "calc(-50% - 129px)", rotate: 0, scale: 0.8 },
   visible: { 
     opacity: 1, 
     y: "calc(-50% - 65.5px)", 
-    x: "calc(-50% - 157px)",
+    x: "calc(-50% - 129px)",
     rotate: 0,
     scale: 1,
     transition: { type: "spring", stiffness: 100, damping: 20 }
@@ -31,11 +31,11 @@ const leftCardVariants = {
 }
 
 const rightCardVariants = {
-  hidden: { opacity: 0, y: "calc(-50% - 65.5px + 150px)", x: "calc(-50% + 101px)", rotate: 0, scale: 0.8 },
+  hidden: { opacity: 0, y: "calc(-50% - 65.5px + 150px)", x: "calc(-50% + 129px)", rotate: 0, scale: 0.8 },
   visible: { 
     opacity: 1, 
     y: "calc(-50% - 65.5px)", 
-    x: "calc(-50% + 101px)",
+    x: "calc(-50% + 129px)",
     rotate: 0,
     scale: 1,
     transition: { type: "spring", stiffness: 100, damping: 20 }
