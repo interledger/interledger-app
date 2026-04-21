@@ -78,7 +78,6 @@
 }
 
 .hero-headline {
-  margin: 0 0 32px;
   color: var(--color-text-brand); /* green — from design reference */
 }
 
@@ -90,21 +89,21 @@
 /* --- Phone sizing tokens ------------------------------------------------- */
 
 :root {
-  --phone-width:  200px;
-  --phone-height: 433px;
+  --phone-width: 180px;
+  --phone-height: 360px;
 }
 
 @media (min-width: 900px) {
   :root {
-    --phone-width:  260px;
+    --phone-width: 260px;
     --phone-height: 563px;
   }
 }
 
 @media (min-width: 1280px) {
   :root {
-    --phone-width:  320px;
-    --phone-height: 693px;
+    --phone-width: 320px;
+    --phone-height: 650px;
   }
 }
 
@@ -132,13 +131,15 @@
 }
 
 @media (max-width: 899px) {
-  /* On mobile, push the phone up, clearing the bottom space for the text and widgets to stack without overlap */
+  .hero-phone-container {
+    top: 40vh; /* Push further down to clearcentered hero text on smaller mobile screens */
+  }
+
+  /* On mobile, push the phone up in feature state, clearing the bottom space */
   .animated-hero:not([data-screen='1']) .hero-phone-container {
-    /* Use dynamic viewport units mixed with default spacing tokens for flexible safe-area clearance */
-    top: calc(var(--nav-height, 72px) + 3vh);
+    top: calc(var(--nav-height, 72px) + 2vh);
   }
 }
-
 
 /* --- Phone frame (iPhone chassis) --------------------------------------- */
 

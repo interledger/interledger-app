@@ -57,9 +57,10 @@
 
 .feature-heading {
   color: var(--feature-text-main, var(--color-text-primary));
-  font-size: clamp(40px, 4vw, 56px); /* Scalable up to 56px for desktop impact */
-  line-height: 1.1;
-  letter-spacing: -0.02em;
+  font-size: var(--text-h2-size);
+  font-weight: var(--text-h2-weight);
+  line-height: var(--text-h2-lh);
+  letter-spacing: var(--text-h2-ls);
   margin: 0;
 }
 
@@ -78,7 +79,8 @@
   border: 1px solid var(--color-border-default);
   border-radius: var(--rounded-2xl); /* 16px — Figma: rounded-2xl */
   padding: 16px 20px;
-  max-width: 320px;
+  max-width: min(100%, 320px);
+  width: 100%;
 }
 
 .feature-widget__avatar {
@@ -143,25 +145,25 @@
 }
 
 .animated-hero[data-screen='2'] {
-  background: var(--color-aqua-mint-100); 
+  background: var(--color-aqua-mint-100);
   --feature-text-main: var(--color-neutral-150);
   --feature-text-sub: var(--color-neutral-100);
 }
 
 .animated-hero[data-screen='3'] {
-  background: var(--color-rose-mint-100); 
+  background: var(--color-rose-mint-100);
   --feature-text-main: var(--color-neutral-150);
   --feature-text-sub: var(--color-neutral-100);
 }
 
 .animated-hero[data-screen='4'] {
-  background: var(--color-ocean-100); 
+  background: var(--color-ocean-100);
   --feature-text-main: var(--color-neutral-0);
   --feature-text-sub: var(--color-neutral-25);
 }
 
 .animated-hero[data-screen='5'] {
-  background: var(--color-orchid-100); 
+  background: var(--color-orchid-100);
   --feature-text-main: var(--color-neutral-0);
   --feature-text-sub: var(--color-neutral-25);
 }
@@ -182,10 +184,10 @@
 @media (max-width: 899px) {
   .feature-panel {
     flex-direction: column;
-    justify-content: flex-start; /* Start from top to follow the phone frame */
-    padding: calc(var(--nav-height, 72px) + var(--phone-height) + 6vh) var(--spacing-xl) 40px;
-    gap: var(--spacing-2xl); 
-    overflow-y: auto; /* Allow scrolling if content is too tall for viewport */
+    justify-content: flex-end; /* Pack from bottom to match Figma Mobile hero features */
+    padding: calc(var(--nav-height, 72px) + 2vh) var(--spacing-xl) 40px;
+    gap: var(--spacing-xl);
+    overflow: visible; /* Remove internal scrolling */
   }
 
   .feature-phone-spacer {
@@ -196,20 +198,22 @@
     padding: 0;
     text-align: center;
     width: 100%;
-    flex: none; /* Do not expand to fill 50vh */
+    max-width: 312px; /* Figma mobile width */
+    margin-inline: auto;
+    flex: none;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: var(--spacing-xl); /* Add gap between heading and body */
+    gap: 16px; /* Tighter gap for content fit */
   }
-  
+
   /* Force heading column to always be on top for mobile */
   .feature-col--left {
     order: 1;
     text-align: center;
     align-items: center;
   }
-  
+
   /* Force body/widget column to be below heading for mobile */
   .feature-col--right {
     order: 2;

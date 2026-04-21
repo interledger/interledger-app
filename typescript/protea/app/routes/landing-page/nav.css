@@ -240,11 +240,3 @@
   width: 100%;
   margin-top: 16px;
 }
-
-/* --- Page content offset ------------------------------------------------ */
-
-/* Removed padding-top here. The .sticky-viewport inside HeroSection
-   handles its own padding-top so content doesn't overlap the nav,
-   while allowing the section background to stretch to the very top. */
-.page-content {
-}
