@@ -313,6 +313,7 @@ func (h *Handler) CreateTransaction(w http.ResponseWriter, r *http.Request) {
 		Fee:              feeStr,
 		Currency:         req.Currency,
 		VaultUUID:        req.VaultUUID,
+		SendingAddress:   req.SendingAddress,
 		ReceivingAddress: req.ReceivingAddress,
 		Type:             req.Type,
 		DepositType:      req.DepositType,
@@ -338,8 +339,19 @@ func (h *Handler) CreateTransaction(w http.ResponseWriter, r *http.Request) {
 		amount := req.Amount
 		feeAmount := feeAmount // Capture fee amount from outer scope
 		depositType := req.DepositType
+		sendingAddr := req.SendingAddress
 		receivingAddr := req.ReceivingAddress
 		hasWebhook := h.webhookManager.HasURL()
+
+		// Determine balance direction for hosted transfers.
+		// If the sending_address is a known user wallet, money is leaving the user → debit.
+		// Otherwise (receiving_address is a known wallet), money is arriving → credit.
+		isDebit := false
+		if depositType == consts.DepositTypeHosted && sendingAddr != "" {
+			if wallet, err := h.store.GetWallet(sendingAddr); err == nil && wallet != nil && wallet.UserID == userID {
+				isDebit = true
+			}
+		}
 
 		pendingPayload := map[string]interface{}{
 			"transaction_id": txID,
@@ -360,20 +372,32 @@ func (h *Handler) CreateTransaction(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 
-			// For deposits, credit the net amount (amount - fee)
-			// For withdrawals, would debit total amount (amount + fee), but that's handled separately
 			netAmount := amount - feeAmount
-			if err := h.store.AddBalance(userID, currency, netAmount); err != nil {
-				logger.Error("failed to update balance for transaction", zap.String("transaction_id", txID), zap.Error(err))
-				return
+			if isDebit {
+				// Hosted transfer where user is the sender → debit
+				if err := h.store.DeductBalance(userID, currency, netAmount); err != nil {
+					logger.Error("failed to deduct balance for transaction", zap.String("transaction_id", txID), zap.Error(err))
+					return
+				}
+				logger.Info("transaction completed (debit)",
+					zap.String("transaction_id", txID),
+					zap.Float64("amount", amount),
+					zap.Float64("fee", feeAmount),
+					zap.Float64("net_amount", netAmount),
+					zap.String("currency", currency))
+			} else {
+				// Deposit or hosted transfer where user is the receiver → credit
+				if err := h.store.AddBalance(userID, currency, netAmount); err != nil {
+					logger.Error("failed to update balance for transaction", zap.String("transaction_id", txID), zap.Error(err))
+					return
+				}
+				logger.Info("transaction completed (credit)",
+					zap.String("transaction_id", txID),
+					zap.Float64("amount", amount),
+					zap.Float64("fee", feeAmount),
+					zap.Float64("net_amount", netAmount),
+					zap.String("currency", currency))
 			}
-
-			logger.Info("transaction completed",
-				zap.String("transaction_id", txID),
-				zap.Float64("amount", amount),
-				zap.Float64("fee", feeAmount),
-				zap.Float64("net_amount", netAmount),
-				zap.String("currency", currency))
 
 			if hasWebhook {
 				completedPayload := map[string]interface{}{

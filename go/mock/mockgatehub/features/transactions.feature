@@ -27,3 +27,15 @@ Feature: Transaction handling
     And fields amount, total_amount, and fee are string formatted with two decimals
     And status is integer 1
     And the transaction can be retrieved via GET /core/v1/transactions/{id} with the same format
+
+  Scenario: Hosted transfer with sending_address debits the sender
+    Given the user has a funded EUR wallet with balance 500.00
+    When I POST /core/v1/transactions with sending_address as the user wallet, receiving_address as "settlement", amount 200.00, currency "EUR", type 2, deposit_type "hosted"
+    Then the response status is 201
+    And the user balance for EUR is 300.00
+
+  Scenario: Hosted transfer with receiving_address credits the receiver
+    Given the user has a funded EUR wallet with balance 500.00
+    When I POST /core/v1/transactions with receiving_address as the user wallet, sending_address as "settlement", amount 200.00, currency "EUR", type 2, deposit_type "hosted"
+    Then the response status is 201
+    And the user balance for EUR is 700.00

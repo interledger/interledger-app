@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 )
 
 // ============ TRANSACTION STEPS ============
@@ -209,6 +210,97 @@ func (tc *TestContext) fieldsAreStringFormatted() error {
 func (tc *TestContext) transactionCanBeRetrievedFormatted(version int) error {
 	// Verify response has consistent formatting
 	return tc.fieldsAreStringFormatted()
+}
+
+func (tc *TestContext) userHasFundedWallet(currency string, wholeAmount, decimalAmount int) error {
+	amount := float64(wholeAmount) + float64(decimalAmount)/100
+	body := map[string]interface{}{
+		"type":              1,
+		"deposit_type":      "external",
+		"receiving_address": tc.walletAddress,
+		"amount":            amount,
+		"currency":          currency,
+	}
+	headers := map[string]string{
+		"x-gatehub-managed-user-uuid": tc.userID,
+	}
+	_, err := tc.request("POST", "/core/v1/transactions", body, headers)
+	return err
+}
+
+func (tc *TestContext) postHostedWithSendingAddress(sendingDesc, receivingDesc string, wholeAmount, decimalAmount int, currency string, txType int, depositType string) error {
+	return tc.postHostedDirectional("sending", sendingDesc, receivingDesc, wholeAmount, decimalAmount, currency, txType, depositType)
+}
+
+func (tc *TestContext) postHostedWithReceivingAddress(receivingDesc, sendingDesc string, wholeAmount, decimalAmount int, currency string, txType int, depositType string) error {
+	return tc.postHostedDirectional("receiving", sendingDesc, receivingDesc, wholeAmount, decimalAmount, currency, txType, depositType)
+}
+
+func (tc *TestContext) postHostedDirectional(leadField, sendingDesc, receivingDesc string, wholeAmount, decimalAmount int, currency string, txType int, depositType string) error {
+	amount := float64(wholeAmount) + float64(decimalAmount)/100
+	body := map[string]interface{}{
+		"amount":       amount,
+		"currency":     currency,
+		"type":         txType,
+		"deposit_type": depositType,
+	}
+	headers := map[string]string{
+		"x-gatehub-managed-user-uuid": tc.userID,
+	}
+
+	resolveSendRecv := func(desc string) string {
+		if desc == "the user wallet" {
+			return tc.walletAddress
+		}
+		return "rSettlementAddress123"
+	}
+
+	if leadField == "sending" {
+		body["sending_address"] = resolveSendRecv(sendingDesc)
+		body["receiving_address"] = resolveSendRecv(receivingDesc)
+	} else {
+		body["receiving_address"] = resolveSendRecv(receivingDesc)
+		body["sending_address"] = resolveSendRecv(sendingDesc)
+	}
+	_, err := tc.request("POST", "/core/v1/transactions", body, headers)
+	return err
+}
+
+func (tc *TestContext) userBalanceForCurrencyIs(currency string, wholeAmount, decimalAmount int) error {
+	expected := float64(wholeAmount) + float64(decimalAmount)/100
+	expectedStr := fmt.Sprintf("%.2f", expected)
+
+	// Transactions complete asynchronously (2s delay when webhooks are configured).
+	// Poll the balance endpoint for up to 5 seconds.
+	var lastBalance string
+	for i := 0; i < 10; i++ {
+		time.Sleep(500 * time.Millisecond)
+
+		_, err := tc.request("GET", fmt.Sprintf("/core/v1/wallets/%s/balances", tc.walletAddress), nil, nil)
+		if err != nil {
+			return err
+		}
+
+		var balances []map[string]interface{}
+		if err := json.Unmarshal(tc.lastResponseBody, &balances); err != nil {
+			return fmt.Errorf("failed to parse balance response: %w", err)
+		}
+
+		for _, b := range balances {
+			vault, ok := b["vault"].(map[string]interface{})
+			if !ok {
+				continue
+			}
+			if vault["asset_code"] == currency {
+				lastBalance, _ = b["available"].(string)
+				if lastBalance == expectedStr {
+					return nil
+				}
+			}
+		}
+	}
+
+	return fmt.Errorf("expected %s balance %s, got %s (after polling)", currency, expectedStr, lastBalance)
 }
 
 // isDecimalFormat checks if a string is in decimal format (X.XX)
