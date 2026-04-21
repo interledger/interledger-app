@@ -13,19 +13,12 @@ import (
 	"strings"
 )
 
-// Private RSA state kept on the test context so the generated public key used
-// to issue a card-data token matches the private key we try to decrypt with
-// later in the scenario.
-var cardDataPrivateKey *rsa.PrivateKey
-var cardDataToken string
-var cardDataLinkHref string
-
 func (tc *TestContext) generateCardDataKeyPair() (string, error) {
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
 		return "", err
 	}
-	cardDataPrivateKey = key
+	tc.cardDataPrivateKey = key
 
 	der, err := x509.MarshalPKIXPublicKey(&key.PublicKey)
 	if err != nil {
@@ -36,7 +29,12 @@ func (tc *TestContext) generateCardDataKeyPair() (string, error) {
 
 // postCardTokenWithPublicKey issues a POST /cards/v1/token/card-data including
 // an RSA publicKey field so the scenario can later decrypt the card data.
+// It resets any previously captured token/href at the start so stale state
+// from earlier steps cannot leak into this one.
 func (tc *TestContext) postCardTokenWithPublicKey(path string) error {
+	tc.cardDataToken = ""
+	tc.cardDataLinkHref = ""
+
 	pubKeyB64, err := tc.generateCardDataKeyPair()
 	if err != nil {
 		return fmt.Errorf("failed to generate key pair: %w", err)
@@ -61,10 +59,11 @@ func (tc *TestContext) postCardTokenWithPublicKey(path string) error {
 	if err := json.Unmarshal(tc.lastResponseBody, &result); err != nil {
 		return fmt.Errorf("failed to decode token response: %w", err)
 	}
-	cardDataToken = result.Token
-	if len(result.Links) > 0 {
-		cardDataLinkHref = result.Links[0].Href
+	if len(result.Links) == 0 {
+		return fmt.Errorf("card-data token response contained no links: %s", string(tc.lastResponseBody))
 	}
+	tc.cardDataToken = result.Token
+	tc.cardDataLinkHref = result.Links[0].Href
 	return nil
 }
 
@@ -140,10 +139,10 @@ func (tc *TestContext) cardDataTokenIssuedForCard() error {
 // returned by the card-data token endpoint: GET with Bearer auth and no HMAC
 // headers at all.
 func (tc *TestContext) browserGetCardDataWithBearer() error {
-	if cardDataLinkHref == "" {
+	if tc.cardDataLinkHref == "" {
 		return fmt.Errorf("no card-data link href has been captured")
 	}
-	return tc.browserGetWithToken(cardDataLinkHref, cardDataToken)
+	return tc.browserGetWithToken(tc.cardDataLinkHref, tc.cardDataToken)
 }
 
 // browserGetCardDataWithInvalidToken tests the 401 path: invalid Bearer, no HMAC.
@@ -184,7 +183,7 @@ func (tc *TestContext) responseContainsCypherField() error {
 // the scenario's private key and verifies the JSON shape the wallet frontend
 // expects (Pan / ExpiryDate / Cvc2).
 func (tc *TestContext) cypherDecryptsToSensitiveData() error {
-	if cardDataPrivateKey == nil {
+	if tc.cardDataPrivateKey == nil {
 		return fmt.Errorf("no card-data private key for this scenario")
 	}
 
@@ -198,7 +197,7 @@ func (tc *TestContext) cypherDecryptsToSensitiveData() error {
 		return fmt.Errorf("cypher is not base64: %w", err)
 	}
 
-	plain, err := rsa.DecryptPKCS1v15(rand.Reader, cardDataPrivateKey, cipher)
+	plain, err := rsa.DecryptPKCS1v15(rand.Reader, tc.cardDataPrivateKey, cipher)
 	if err != nil {
 		return fmt.Errorf("RSA decryption failed: %w", err)
 	}

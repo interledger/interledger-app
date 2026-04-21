@@ -2,6 +2,7 @@ package handler
 
 import (
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"math/big"
@@ -566,10 +567,15 @@ func (h *Handler) GetCardToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	publicKey := ""
-	if req.PublicKey != nil {
-		publicKey = *req.PublicKey
+	// publicKey is required: the data endpoint encrypts its response with
+	// this key, so a token issued without it would be unusable by callers.
+	// Reject up front to keep POST /token/card-data and GET /token/card-data/data
+	// behaviourally coherent.
+	if req.PublicKey == nil || strings.TrimSpace(*req.PublicKey) == "" {
+		h.sendError(w, http.StatusBadRequest, "publicKey is required")
+		return
 	}
+	publicKey := strings.TrimSpace(*req.PublicKey)
 
 	now := time.Now()
 	claims := CardDataClaims{
@@ -579,7 +585,7 @@ func (h *Handler) GetCardToken(w http.ResponseWriter, r *http.Request) {
 		ExpiresAt: now.Add(cardDataTokenTTL).Unix(),
 	}
 
-	jwt, err := generateCardDataJWT(claims)
+	jwt, err := generateCardDataJWT(h.config.CardDataTokenSecret, claims)
 	if err != nil {
 		logger.Error("failed to sign card data token", zap.Error(err))
 		h.sendError(w, http.StatusInternalServerError, "failed to generate token")
@@ -616,7 +622,7 @@ func (h *Handler) GetCardData(w http.ResponseWriter, r *http.Request) {
 	}
 	token := strings.TrimPrefix(authz, "Bearer ")
 
-	claims, err := parseCardDataJWT(token)
+	claims, err := parseCardDataJWT(h.config.CardDataTokenSecret, token)
 	if err != nil {
 		logger.Warn("invalid card data token", zap.Error(err))
 		h.sendError(w, http.StatusUnauthorized, "invalid or expired token")
@@ -652,16 +658,22 @@ func (h *Handler) GetCardData(w http.ResponseWriter, r *http.Request) {
 	h.sendJSON(w, http.StatusOK, map[string]string{"cypher": cypher})
 }
 
-// generateUnmaskedPAN returns a deterministic-looking 16 digit PAN derived
-// from the cardID, falling back to random digits if no card is provided.
+// generateUnmaskedPAN returns a 16-digit PAN derived deterministically from
+// the cardID by hashing it with SHA-256 and mapping the resulting bytes to
+// decimal digits. This keeps repeated calls for the same card stable (so the
+// mock behaves like a real provider that always returns the same PAN for a
+// given card) without requiring any stored PAN. An empty cardID falls back to
+// random digits so the function is still safe for edge cases.
 func generateUnmaskedPAN(cardID string) string {
 	if cardID == "" {
 		return randomDigits(16)
 	}
-	// Use the card's stored masked PAN where possible to keep first/last
-	// digits stable across calls. Fall back to fully random digits for
-	// unknown cards (e.g. token issued for a card that was deleted).
-	return randomDigits(6) + randomDigits(6) + randomDigits(4)
+	sum := sha256.Sum256([]byte(cardID))
+	digits := make([]byte, 16)
+	for i := 0; i < 16; i++ {
+		digits[i] = '0' + (sum[i] % 10)
+	}
+	return string(digits)
 }
 
 // CreateCardTransaction creates a card transaction

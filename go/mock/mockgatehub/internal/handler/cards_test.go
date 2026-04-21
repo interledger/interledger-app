@@ -12,6 +12,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"gitlab.com/fynbos/mock/mockgatehub/internal/consts"
 	"gitlab.com/fynbos/mock/mockgatehub/internal/models"
@@ -555,7 +556,7 @@ func TestGetCardToken_Success(t *testing.T) {
 
 	// Token must be a parseable HS256 JWT carrying the cardId and publicKey.
 	require.NotEmpty(t, resp.Token)
-	claims, err := parseCardDataJWT(resp.Token)
+	claims, err := parseCardDataJWT(h.config.CardDataTokenSecret, resp.Token)
 	require.NoError(t, err)
 	assert.Equal(t, "card-123", claims.CardID)
 	assert.Equal(t, pubKeyB64, claims.PublicKey)
@@ -583,6 +584,27 @@ func TestGetCardToken_MissingCardID(t *testing.T) {
 	w := httptest.NewRecorder()
 	h.GetCardToken(w, req)
 	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
+func TestGetCardToken_MissingPublicKey(t *testing.T) {
+	h, _ := setupCardsHandler(t)
+
+	// Empty / whitespace / absent publicKey all have to be rejected because
+	// the data endpoint cannot encrypt without it.
+	cases := []map[string]interface{}{
+		{"cardId": "card-123"},
+		{"cardId": "card-123", "publicKey": ""},
+		{"cardId": "card-123", "publicKey": "   "},
+	}
+	for _, body := range cases {
+		b, _ := json.Marshal(body)
+		req := httptest.NewRequest(http.MethodPost, "/cards/v1/token/card-data", bytes.NewReader(b))
+		req.Header.Set("Content-Type", "application/json")
+
+		w := httptest.NewRecorder()
+		h.GetCardToken(w, req)
+		assert.Equal(t, http.StatusBadRequest, w.Code, "body=%v -> %s", body, w.Body.String())
+	}
 }
 
 // --- GetCardData ---
@@ -653,11 +675,14 @@ func TestGetCardData_InvalidToken(t *testing.T) {
 func TestGetCardData_TokenWithoutPublicKey(t *testing.T) {
 	h, _ := setupCardsHandler(t)
 
-	// Sign a JWT directly with no publicKey claim.
-	jwt, err := generateCardDataJWT(CardDataClaims{
+	// Sign a JWT directly with an empty publicKey claim. Since `publicKey`
+	// is `omitempty`, the marshalled payload will omit it entirely — which
+	// is exactly the case this test exercises: the data endpoint must
+	// reject any token whose publicKey is missing or empty.
+	jwt, err := generateCardDataJWT(h.config.CardDataTokenSecret, CardDataClaims{
 		CardID:    "card-x",
-		IssuedAt:  1,
-		ExpiresAt: 9999999999,
+		IssuedAt:  time.Now().Unix(),
+		ExpiresAt: time.Now().Add(time.Minute).Unix(),
 	})
 	require.NoError(t, err)
 

@@ -1,6 +1,8 @@
 package config
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"os"
 	"strconv"
 	"strings"
@@ -24,6 +26,11 @@ type Config struct {
 	// that are followed directly by the browser (e.g. card-data tokenisation
 	// links).
 	PublicBaseURL string
+	// CardDataTokenSecret is the HMAC secret used to sign card-data JWTs
+	// returned by POST /cards/v1/token/card-data. It must not be a hard-coded
+	// constant: when unset we generate a random value at startup so mock
+	// deployments never share a signing key across processes.
+	CardDataTokenSecret string
 }
 
 // Load reads configuration from environment variables
@@ -40,6 +47,15 @@ func Load() *Config {
 		ValidCredentials:      parseCredentials(getEnv("MOCKGATEHUB_VALID_CREDENTIALS", "local-test-app-id:local-test-app-secret")),
 		DefaultOrganizationID: getEnv("DEFAULT_ORGANIZATION_ID", "default-org"),
 		PublicBaseURL:         strings.TrimRight(getEnv("MOCKGATEHUB_PUBLIC_BASE_URL", "https://mockgatehub.interledger.test"), "/"),
+		CardDataTokenSecret:   getEnv("MOCKGATEHUB_CARD_DATA_TOKEN_SECRET", ""),
+	}
+
+	// If no card-data token secret was supplied, generate a random one so
+	// mock deployments never ship with a known signing key. If randomness
+	// is unavailable (should never happen) fall back to a process-unique
+	// value so mockgatehub still boots.
+	if cfg.CardDataTokenSecret == "" {
+		cfg.CardDataTokenSecret = randomSecret(32)
 	}
 
 	// Validate WebhookMinDelaySec: enforce minimum of 2 seconds to prevent
@@ -105,6 +121,17 @@ func parseCredentials(credStr string) map[string]string {
 		}
 	}
 	return creds
+}
+
+// randomSecret returns a base64-encoded cryptographically random byte string
+// of the requested size. Falls back to a deterministic process-local value
+// only if the system RNG fails, which should never happen on Linux.
+func randomSecret(nBytes int) string {
+	b := make([]byte, nBytes)
+	if _, err := rand.Read(b); err != nil {
+		return "mockgatehub-rng-unavailable"
+	}
+	return base64.RawURLEncoding.EncodeToString(b)
 }
 
 // splitString splits a string by delimiter (helper for parsing)
