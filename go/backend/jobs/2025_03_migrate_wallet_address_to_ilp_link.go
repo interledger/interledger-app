@@ -89,7 +89,6 @@ func (a *Activity) UpdateBackendWalletRootToIlpActivity(ctx context.Context, dom
 
 		{"UPDATE payments SET receiver_id = replace(receiver_id, $1, $2) WHERE receiver_id ILIKE '%' || $1 || '%';", []interface{}{domainInfo.CurrentWalletAddress, domainInfo.NewWalletAddress}},
 		{"UPDATE contacts SET payment_pointer = replace(payment_pointer, $1, $2) WHERE payment_pointer ILIKE '%' || $1 || '%';", []interface{}{domainInfo.CurrentWalletAddress, domainInfo.NewWalletAddress}},
-		{"UPDATE discord_authorizations SET redirect_url = replace(redirect_url, $1, $2) WHERE redirect_url ILIKE '%' || $1 || '%';", []interface{}{domainInfo.CurrentWalletAddress, domainInfo.NewWalletAddress}},
 
 		{"UPDATE transactions SET source = replace(source, $1, $2) WHERE source ILIKE '%' || $1 || '%';", []interface{}{domainInfo.CurrentWalletAddress, domainInfo.NewWalletAddress}},
 		{"UPDATE transactions SET destination_identity = replace(destination_identity, $1, $2) WHERE destination_identity ILIKE '%' || $1 || '%';", []interface{}{domainInfo.CurrentWalletAddress, domainInfo.NewWalletAddress}},
@@ -99,7 +98,6 @@ func (a *Activity) UpdateBackendWalletRootToIlpActivity(ctx context.Context, dom
 		{"UPDATE wallet_addresses SET url = replace(url, $1, $2) WHERE url ILIKE '%' || $1 || '%';", []interface{}{domainInfo.CurrentWalletAddress, domainInfo.NewWalletAddress}},
 		{"UPDATE wallet_keys SET name = replace(name, $1, $2);", []interface{}{domainInfo.CurrentNamespace, domainInfo.NewNamespace}},
 
-		{"UPDATE discord_authorizations SET redirect_url = replace(redirect_url, $1, $2) WHERE redirect_url ILIKE '%' || $1 || '%';", []interface{}{domainInfo.CurrentAppDomain, domainInfo.NewAppDomain}},
 		{"UPDATE slack_authorizations SET redirect_url = replace(redirect_url, $1, $2) WHERE redirect_url ILIKE '%' || $1 || '%';", []interface{}{domainInfo.CurrentAppDomain, domainInfo.NewAppDomain}},
 		{"UPDATE twitter_authorizations SET redirect_url = replace(redirect_url, $1, $2) WHERE redirect_url ILIKE '%' || $1 || '%';", []interface{}{domainInfo.CurrentAppDomain, domainInfo.NewAppDomain}},
 	}

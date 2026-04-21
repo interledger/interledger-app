@@ -231,31 +231,6 @@ export const mockTransactions: Transaction[] = [
     senderAccountId: 'acc-123'
   }),
 
-  // Discord payment
-  new Transaction({
-    id: 'tx-10',
-    type: 'sent',
-    amount: new Amount({
-      amount: BigInt(500),
-      asset: 'USD',
-      assetScale: 2,
-      country: 'US'
-    }),
-    source: 'wallet-123',
-    destination: 'discord-user-1',
-    timestamp: Timestamp.fromDate(new Date('2024-10-19T09:15:00Z')),
-    state: 'Completed',
-    title: 'Payment to DiscordUser#1234',
-    formattedAmount: '$5.00',
-    formattedTime: '9:15 AM',
-    formattedDate: 'Oct 19, 2024',
-    subtotal: '-$5.00',
-    destinationIdentity: 'DiscordUser#1234',
-    destinationIdentityType: 'Discord',
-    receiverAccountId: 'discord-acc-1',
-    senderAccountId: 'acc-123'
-  }),
-
   // Slack payment
   new Transaction({
     id: 'tx-11',
