@@ -100,8 +100,11 @@ export default function handleRequest(
 
   return handler
     .then((response) => {
-      // Log response
-      logger.info(
+      // Per-request access logs are routine and noisy (especially health checks
+      // like /healthz and /live hit by Kubernetes probes). Per the logging policy,
+      // info is reserved for noteworthy events, so access logs belong at debug.
+      // Errors are still logged at error level in the .catch below.
+      logger.debug(
         {
           ...addRequestId(requestId),
           method: request.method,
