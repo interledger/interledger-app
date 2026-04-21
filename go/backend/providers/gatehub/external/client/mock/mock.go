@@ -138,19 +138,19 @@ func (mr *MockClientMockRecorder) FreezeCard(ctx, userID, cardID, args interface
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FreezeCard", reflect.TypeOf((*MockClient)(nil).FreezeCard), ctx, userID, cardID, args)
 }
 
-// GetAccountConfirmation mocks base method.
-func (m *MockClient) GetAccountConfirmation(ctx context.Context, userID, walletAddress string) (io.ReadCloser, error) {
+// GetAccountStatement mocks base method.
+func (m *MockClient) GetAccountStatement(ctx context.Context, userID, walletAddress string) (io.ReadCloser, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAccountConfirmation", ctx, userID, walletAddress)
+	ret := m.ctrl.Call(m, "GetAccountStatement", ctx, userID, walletAddress)
 	ret0, _ := ret[0].(io.ReadCloser)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetAccountConfirmation indicates an expected call of GetAccountConfirmation.
-func (mr *MockClientMockRecorder) GetAccountConfirmation(ctx, userID, walletAddress interface{}) *gomock.Call {
+// GetAccountStatement indicates an expected call of GetAccountStatement.
+func (mr *MockClientMockRecorder) GetAccountStatement(ctx, userID, walletAddress interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccountConfirmation", reflect.TypeOf((*MockClient)(nil).GetAccountConfirmation), ctx, userID, walletAddress)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccountStatement", reflect.TypeOf((*MockClient)(nil).GetAccountStatement), ctx, userID, walletAddress)
 }
 
 // GetCardApplicationProducts mocks base method.
