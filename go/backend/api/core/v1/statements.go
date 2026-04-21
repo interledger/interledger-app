@@ -3,6 +3,8 @@ package v1
 import (
 	"io"
 	"net/http"
+
+	api_middleware "gitlab.com/fynbos/backend/api/middleware"
 )
 
 func (h *handlers) getAccountStatement(w http.ResponseWriter, r *http.Request) {
@@ -10,19 +12,19 @@ func (h *handlers) getAccountStatement(w http.ResponseWriter, r *http.Request) {
 
 	_, err := h.users.UserForContext(ctx)
 	if err != nil {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		api_middleware.WriteAppError(w, r, http.StatusUnauthorized, api_middleware.ErrCodeUnauthorized, "unauthorized")
 		return
 	}
 
 	wallet, err := h.wallets.ForContext(ctx)
 	if err != nil {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		api_middleware.WriteAppError(w, r, http.StatusUnauthorized, api_middleware.ErrCodeUnauthorized, "unauthorized")
 		return
 	}
 
 	body, err := h.gatehub.GetAccountStatement(ctx, wallet.ID)
 	if err != nil {
-		toHTTPError(w, err)
+		toHTTPError(w, r, err)
 		return
 	}
 	defer body.Close()

@@ -18,7 +18,7 @@ func MakeWalletMiddleware(uc user.Client, wc wallets.Client) func(http.Handler) 
 
 			u, err := uc.UserForContext(ctx)
 			if err != nil && !errors.Is(err, user.ErrNoUserFound) {
-				http.Error(w, "Error parsing session.", http.StatusInternalServerError)
+				WriteAppError(w, r, http.StatusInternalServerError, ErrCodeInternal, "Error parsing session.")
 				return
 			}
 

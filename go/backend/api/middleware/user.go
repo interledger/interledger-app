@@ -32,11 +32,11 @@ func MakeUserMiddleware(uc user.Client) func(http.Handler) http.Handler {
 				u, err := uc.UserForToken(ctx, token)
 				if err != nil {
 					if errors.Is(err, user.ErrAAL1Required) || errors.Is(err, user.ErrAAL2Required) {
-						http.Error(w, aalReason(err), http.StatusUnauthorized)
+						WriteAppError(w, r, http.StatusUnauthorized, ErrCodeUnauthorized, aalReason(err))
 						return
 					}
 					if !errors.Is(err, user.ErrNoUserFound) {
-						http.Error(w, "Error verifying bearer token.", http.StatusInternalServerError)
+						WriteAppError(w, r, http.StatusInternalServerError, ErrCodeInternal, "Error verifying bearer token.")
 						return
 					}
 				}
@@ -56,11 +56,11 @@ func MakeUserMiddleware(uc user.Client) func(http.Handler) http.Handler {
 			u, err := uc.UserForCookie(ctx, cookie.Value)
 			if err != nil {
 				if errors.Is(err, user.ErrAAL1Required) || errors.Is(err, user.ErrAAL2Required) {
-					http.Error(w, aalReason(err), http.StatusUnauthorized)
+					WriteAppError(w, r, http.StatusUnauthorized, ErrCodeUnauthorized, aalReason(err))
 					return
 				}
 				if !errors.Is(err, user.ErrNoUserFound) {
-					http.Error(w, "Error parsing session.", http.StatusInternalServerError)
+					WriteAppError(w, r, http.StatusInternalServerError, ErrCodeInternal, "Error parsing session.")
 					return
 				}
 			}
