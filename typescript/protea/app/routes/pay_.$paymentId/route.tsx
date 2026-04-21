@@ -73,7 +73,14 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         {
           id: payment.receiverWalletUrl,
           wallet: '',
-          platform: 'slack',
+          platform: (
+            {
+              [PaymentIdentityType.Twitter]: 'twitter',
+              [PaymentIdentityType.Slack]: 'slack',
+              [PaymentIdentityType.WalletID]: 'domain',
+              [PaymentIdentityType.WalletURL]: 'domain',
+            } as Record<number, string>
+          )[payment.receiverIdentityType] ?? '',
           identifier: payment.receiverIdentity,
           state: '',
           keyId: '',
