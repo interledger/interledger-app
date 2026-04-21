@@ -50,6 +50,9 @@ dependencies:
   '@protobuf-ts/runtime-rpc':
     specifier: ^2.9.0
     version: 2.9.0
+  '@react-router/express':
+    specifier: ^7.13.1
+    version: 7.13.1(express@4.22.1)(react-router@7.14.0)(typescript@5.2.2)
   '@react-router/node':
     specifier: ^7.13.1
     version: 7.13.1(react-router@7.14.0)(typescript@5.2.2)
@@ -71,12 +74,18 @@ dependencies:
   clsx:
     specifier: ^1.2.1
     version: 1.2.1
+  compression:
+    specifier: ^1.7.4
+    version: 1.8.1
   datocms-structured-text-utils:
     specifier: ^2.0.4
     version: 2.0.4
   dompurify:
     specifier: ^3.2.4
     version: 3.4.11
+  express:
+    specifier: ^4.18.2
+    version: 4.22.1
   framer-motion:
     specifier: ^10.16.4
     version: 10.16.4(react-dom@18.2.0)(react@18.2.0)
@@ -89,6 +98,9 @@ dependencies:
   luxon:
     specifier: ^3.3.0
     version: 3.3.0
+  morgan:
+    specifier: ^1.10.0
+    version: 1.10.1
   node-rsa:
     specifier: ^1.1.1
     version: 1.1.1
