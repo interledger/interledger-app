@@ -37,6 +37,12 @@ import { Amount } from './Amount'
 import { Confirm } from './Confirm'
 import { confirmPaymentAction, updatePaymentAction } from './action.server';
 
+const IDENTITY_TYPE_TO_PLATFORM: Record<number, string> = {
+  [PaymentIdentityType.Twitter]: 'twitter',
+  [PaymentIdentityType.Slack]: 'slack',
+  [PaymentIdentityType.WalletID]: 'domain',
+  [PaymentIdentityType.WalletURL]: 'domain',
+}
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   let account: FormattedLinkedAccount
@@ -73,14 +79,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         {
           id: payment.receiverWalletUrl,
           wallet: '',
-          platform: (
-            {
-              [PaymentIdentityType.Twitter]: 'twitter',
-              [PaymentIdentityType.Slack]: 'slack',
-              [PaymentIdentityType.WalletID]: 'domain',
-              [PaymentIdentityType.WalletURL]: 'domain',
-            } as Record<number, string>
-          )[payment.receiverIdentityType] ?? '',
+          platform: IDENTITY_TYPE_TO_PLATFORM[payment.receiverIdentityType] ?? '',
           identifier: payment.receiverIdentity,
           state: '',
           keyId: '',
