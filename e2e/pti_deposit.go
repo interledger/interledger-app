@@ -19,19 +19,13 @@ func (sc *E2EContext) iConnectAUSBankAccount() error {
 	debugPrintln("\n🏦 Connecting US bank account...")
 
 	url := sc.baseURL + "/connect/bank/us"
-	_, err := sc.page.Goto(url, playwright.PageGotoOptions{
+	if _, err := sc.page.Goto(url, playwright.PageGotoOptions{
 		WaitUntil: playwright.WaitUntilStateNetworkidle,
-	})
-	if err != nil {
+	}); err != nil {
 		return fmt.Errorf("failed to navigate to /connect/bank/us: %w", err)
 	}
 
-	sc.page.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
-		State:   playwright.LoadStateNetworkidle,
-		Timeout: playwright.Float(10000),
-	})
-
-	// Fill Bank Name
+	// Fill Bank Name (also serves as our "form is interactive" gate).
 	bankNameField := sc.page.Locator("#bankName, input[name='bankName']").First()
 	if err := bankNameField.WaitFor(playwright.LocatorWaitForOptions{
 		State:   playwright.WaitForSelectorStateVisible,
@@ -43,13 +37,11 @@ func (sc *E2EContext) iConnectAUSBankAccount() error {
 		return fmt.Errorf("failed to fill bank name: %w", err)
 	}
 
-	// Fill Account Number
 	accountNumberField := sc.page.Locator("#accountNumber, input[name='accountNumber']").First()
 	if err := accountNumberField.Fill("123456789"); err != nil {
 		return fmt.Errorf("failed to fill account number: %w", err)
 	}
 
-	// Fill Routing Number
 	routingNumberField := sc.page.Locator("#routingNumber, input[name='routingNumber']").First()
 	if err := routingNumberField.Fill("021000021"); err != nil {
 		return fmt.Errorf("failed to fill routing number: %w", err)
@@ -59,23 +51,81 @@ func (sc *E2EContext) iConnectAUSBankAccount() error {
 		debugPrintf("   ⚠️  Failed to take screenshot: %v\n", err)
 	}
 
-	// Click the Continue / submit button
-	submitBtn := sc.page.Locator("button[type='submit']:has-text('Continue'), button[form='connect-bank-us']").First()
-	if err := submitBtn.Click(); err != nil {
-		return fmt.Errorf("failed to click Continue on bank form: %w", err)
+	// The submit button is rendered outside the (hidden) <Form>, and uses the
+	// `form` attribute to associate with it. React Router's client hydration
+	// upgrades this to a SPA submission; before hydration, clicking triggers
+	// a native form submit. Either path is fine, but we must ensure the
+	// button is actually attached + enabled (not in a loading state) before
+	// clicking, otherwise the click is a no-op and the test times out.
+	submitBtn := sc.page.Locator("button[form='connect-bank-us'][type='submit']").First()
+	if err := submitBtn.WaitFor(playwright.LocatorWaitForOptions{
+		State:   playwright.WaitForSelectorStateVisible,
+		Timeout: playwright.Float(10000),
+	}); err != nil {
+		return fmt.Errorf("Continue button not found: %w", err)
+	}
+	if err := expectEnabled(submitBtn, 10*time.Second); err != nil {
+		return fmt.Errorf("Continue button never became enabled: %w", err)
 	}
 
-	// Wait for redirect to /accounts (success) or stay on page (error)
-	for i := 0; i < 60; i++ {
-		time.Sleep(500 * time.Millisecond)
+	// Click and wait for the expected post-submit URL in a single
+	// ExpectNavigation window. This races the click against the navigation
+	// so we don't miss a fast redirect, and it uses Playwright's own URL
+	// matcher instead of sleeping-and-polling.
+	_, navErr := sc.page.ExpectNavigation(func() error {
+		return submitBtn.Click()
+	}, playwright.PageExpectNavigationOptions{
+		URL:     "**/accounts**",
+		Timeout: playwright.Float(30000),
+	})
+	if navErr != nil {
+		// Capture the state of the page on failure so we can diagnose
+		// from CI artifacts rather than having to reproduce locally.
+		if ssErr := sc.iTakeAScreenshot("connect-bank-us-submit-failed"); ssErr != nil {
+			debugPrintf("   ⚠️  Failed to take screenshot: %v\n", ssErr)
+		}
 		currentURL := sc.page.URL()
-		if strings.Contains(currentURL, "/accounts") {
-			debugPrintf("   ✓ Bank account connected, redirected to /accounts\n")
+		formError := readActionError(sc.page)
+		return fmt.Errorf("bank account connection did not redirect to /accounts: currentURL=%q formError=%q: %w", currentURL, formError, navErr)
+	}
+
+	debugPrintf("   ✓ Bank account connected, redirected to: %s\n", sc.page.URL())
+	return nil
+}
+
+// expectEnabled polls a locator until it reports enabled, or returns an
+// error after the timeout. Playwright-go doesn't expose an explicit
+// "wait for enabled" assertion like the JS API; this fills that gap.
+func expectEnabled(loc playwright.Locator, timeout time.Duration) error {
+	deadline := time.Now().Add(timeout)
+	for {
+		enabled, err := loc.IsEnabled()
+		if err == nil && enabled {
 			return nil
 		}
+		if time.Now().After(deadline) {
+			if err != nil {
+				return err
+			}
+			return fmt.Errorf("still disabled after %s", timeout)
+		}
+		time.Sleep(100 * time.Millisecond)
 	}
+}
 
-	return fmt.Errorf("bank account connection did not redirect to /accounts within 30 seconds")
+// readActionError returns the first visible form error text on the page,
+// if any. Used only for diagnostic error messages on test failure; a
+// missing selector or timeout is returned as empty string rather than
+// propagated, since the test has already failed for another reason.
+func readActionError(page playwright.Page) string {
+	loc := page.Locator("[role='alert'], [id$='-error'], .error-message").First()
+	txt, err := loc.TextContent(playwright.LocatorTextContentOptions{
+		Timeout: playwright.Float(500),
+	})
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(txt)
 }
 
 // iDepositViaPTIDepositForm fills the fynbos deposit form (amount + linked bank account)
