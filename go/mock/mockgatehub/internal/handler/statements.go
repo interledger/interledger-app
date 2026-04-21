@@ -29,7 +29,16 @@ func (h *Handler) GetAccountStatement(w http.ResponseWriter, r *http.Request) {
 	}
 
 	year := chi.URLParam(r, "year")
+	if year == "" {
+		h.sendError(w, http.StatusBadRequest, "Year is required")
+		return
+	}
+
 	month := chi.URLParam(r, "month")
+	if month == "" {
+		h.sendError(w, http.StatusBadRequest, "Month is required")
+		return
+	}
 
 	logger.Info("getting account statement",
 		zap.String("wallet_address", walletAddress),
