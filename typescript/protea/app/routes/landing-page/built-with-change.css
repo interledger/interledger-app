@@ -1,9 +1,11 @@
 .built-with-change {
-  padding-block: var(--padding-5xl); /* 80px top padding matching Figma gap */
-  background-color: var(--color-bg-page);
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   align-items: center;
+  padding-block: var(--padding-5xl);
+  background-color: var(--color-bg-page);
   overflow: hidden;
 }
 

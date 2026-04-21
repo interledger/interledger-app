@@ -1,7 +1,12 @@
 /* OTHER FEATURES SECTION */
 
 .other-features-section {
-  padding: var(--spacing-5xl) 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: var(--spacing-6xl) 0;
 }
 
 .other-features-banner {

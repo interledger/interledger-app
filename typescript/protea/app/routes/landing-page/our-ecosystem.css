@@ -1,11 +1,12 @@
 .our-ecosystem-section {
-  padding-top: var(--padding-5xl); /* 80px */
-  padding-bottom: var(--padding-7xl); /* 160px bottom padding from Figma */
-  padding-inline: var(--padding-3xl); /* 40px */
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-4xl); /* 60px between header and grid */
+  justify-content: center;
   align-items: center;
+  padding-block: var(--padding-5xl);
+  padding-inline: var(--padding-3xl);
+  gap: var(--spacing-4xl);
 }
 
 .our-ecosystem-header {
