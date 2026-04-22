@@ -97,6 +97,15 @@ const (
 	NetworkXRPLedger = 30
 )
 
+// Card defaults (match GateHub sandbox behavior)
+const (
+	DefaultCardProductCode = "PWSR_DEBP_2404"
+	DefaultCustomerType    = "Citizen"
+	DefaultAccountType     = "DEBIT"
+	CardRelationPrimary    = "PRIMARY"
+	DefaultAddressStatus   = "ACTIVE"
+)
+
 // Webhook event types
 const (
 	WebhookEventKYCAccepted       = "id.verification.accepted"
