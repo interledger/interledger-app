@@ -2,6 +2,7 @@ package ops
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 
@@ -33,5 +34,12 @@ func GetAccountStatement(ctx context.Context, b Backends, ec external.Client, wa
 		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
 	}
 
-	return ec.GetAccountStatement(ctx, externalIDs.UserID, linkedAccount.ProviderID)
+	result, err := ec.GetAccountStatement(ctx, externalIDs.UserID, linkedAccount.ProviderID)
+	if errors.Is(err, external.ErrNotFound) {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrNotFound, err)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+	return result, nil
 }

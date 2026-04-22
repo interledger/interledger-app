@@ -11,7 +11,10 @@ export async function loader({ request }: Route.LoaderArgs) {
   )
 
   if (!response.ok) {
-    return new Response(null, { status: response.status })
+    return new Response(response.body, {
+      status: response.status,
+      headers: { 'Content-Type': response.headers.get('Content-Type') ?? 'application/json' }
+    })
   }
 
   return new Response(response.body, {
