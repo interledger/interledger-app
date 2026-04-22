@@ -412,6 +412,43 @@ export class ThreeDSPaymentConfirmationRequest extends Message<ThreeDSPaymentCon
 }
 
 /**
+ * @generated from message backend.v1.ConfirmUserPhoneRequest
+ */
+export class ConfirmUserPhoneRequest extends Message<ConfirmUserPhoneRequest> {
+  /**
+   * @generated from field: string otp = 1;
+   */
+  otp = "";
+
+  constructor(data?: PartialMessage<ConfirmUserPhoneRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.ConfirmUserPhoneRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "otp", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConfirmUserPhoneRequest {
+    return new ConfirmUserPhoneRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ConfirmUserPhoneRequest {
+    return new ConfirmUserPhoneRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ConfirmUserPhoneRequest {
+    return new ConfirmUserPhoneRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ConfirmUserPhoneRequest | PlainMessage<ConfirmUserPhoneRequest> | undefined, b: ConfirmUserPhoneRequest | PlainMessage<ConfirmUserPhoneRequest> | undefined): boolean {
+    return proto3.util.equals(ConfirmUserPhoneRequest, a, b);
+  }
+}
+
+/**
  * @generated from message backend.v1.PendingThreeDSConfirmation
  */
 export class PendingThreeDSConfirmation extends Message<PendingThreeDSConfirmation> {

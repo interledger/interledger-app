@@ -171,12 +171,19 @@ service BackendService {
   rpc UnfreezeCard(UnfreezeCardRequest) returns (Empty);
   rpc BlockCard(BlockCardRequest) returns (Empty);
   rpc GetPendingThreeDSConfirmations(Empty) returns (GetPendingThreeDSConfirmationsResponse);
-  rpc ThreeDSPaymentConfirmation(ThreeDSPaymentConfirmationRequest) returns (Empty); 
+  rpc ThreeDSPaymentConfirmation(ThreeDSPaymentConfirmationRequest) returns (Empty);
+
+  // Phone confirmation
+  rpc ConfirmUserPhone(ConfirmUserPhoneRequest) returns (Empty);
 }
 
 message ThreeDSPaymentConfirmationRequest {
   string transactionId = 1;
   bool confirmed = 2;
+}
+
+message ConfirmUserPhoneRequest {
+  string otp = 1;
 }
 
 message PendingThreeDSConfirmation {

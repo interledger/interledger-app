@@ -23,6 +23,36 @@ func (s *rpcService) SendOTP(ctx context.Context, _ *pb.Empty) (*pb.Empty, error
 	return &pb.Empty{}, nil
 }
 
+func (s *rpcService) ConfirmUserPhone(ctx context.Context, req *pb.ConfirmUserPhoneRequest) (*pb.Empty, error) {
+	u, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	vc, err := s.b.Twilio().CheckVerificationCode(ctx, &twilio.CheckVerificationCodeArgs{
+		PhoneNumber: u.PhoneNumber,
+		Code:        req.GetOtp(),
+	})
+	if err != nil {
+		if errors.Is(err, twilio.ErrInvalidOTP) {
+			return nil, NewTwilioError("otp", "Invalid verification code")
+		}
+		if errors.Is(err, twilio.ErrInvalidArgument) {
+			return nil, NewTwilioError("otp", "Invalid OTP format")
+		}
+		return nil, toGRPCError(err)
+	}
+	if !vc.IsValid() {
+		return nil, NewValidationError("otp", "Invalid OTP")
+	}
+
+	if err = s.b.Users().SetPhoneVerified(ctx, u.ID); err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &pb.Empty{}, nil
+}
+
 func (s *rpcService) SendPhoneVerification(
 	ctx context.Context,
 	req *pb.SendPhoneVerificationRequest,
