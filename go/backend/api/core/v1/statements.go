@@ -8,8 +8,7 @@ import (
 func (h *handlers) getAccountStatement(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	_, err := h.users.UserForContext(ctx)
-	if err != nil {
+	if _, err := h.users.UserForContext(ctx); err != nil {
 		toHTTPError(w, r, err)
 		return
 	}
@@ -31,5 +30,5 @@ func (h *handlers) getAccountStatement(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Disposition", "attachment; filename=\"account-statement.pdf\"")
 	w.WriteHeader(http.StatusOK)
 
-	_, _ = io.Copy(w, body)
+	io.Copy(w, body)
 }
