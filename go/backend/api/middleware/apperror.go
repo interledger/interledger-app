@@ -24,9 +24,6 @@ const (
 
 	ErrCodeKYCResubmissionRequired = "KYC_RESUBMISSION_REQUIRED"
 
-	ErrCodeGatehubNotFound = "GATEHUB_NOT_FOUND"
-	ErrCodeGatehubInternal = "INTERNAL"
-	ErrCodeGatehubTimedOut = "GATEHUB_TIMED_OUT"
 )
 
 type appError struct {

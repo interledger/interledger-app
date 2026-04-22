@@ -26,9 +26,9 @@ var errorStatus = map[error]struct {
 	wallets.ErrWalletConflict:      {http.StatusConflict, api_middleware.ErrCodeWalletsWalletConflict},
 	linkedaccounts.ErrNotFound:     {http.StatusNotFound, api_middleware.ErrCodeLinkedAccNotFound},
 	kyc.ErrKYCResubmissionRequired: {http.StatusForbidden, api_middleware.ErrCodeKYCResubmissionRequired},
-	gatehub.ErrNotFound:            {http.StatusNotFound, api_middleware.ErrCodeGatehubNotFound},
-	gatehub.ErrInternal:            {http.StatusInternalServerError, api_middleware.ErrCodeGatehubInternal},
-	gatehub.ErrTimedOut:            {http.StatusGatewayTimeout, api_middleware.ErrCodeGatehubTimedOut},
+	gatehub.ErrNotFound:            {http.StatusNotFound, api_middleware.ErrCodeNotFound},
+	gatehub.ErrInternal:            {http.StatusInternalServerError, api_middleware.ErrCodeInternal},
+	gatehub.ErrTimedOut:            {http.StatusGatewayTimeout, api_middleware.ErrCodeGatewayTimeout},
 }
 
 func toHTTPError(w http.ResponseWriter, r *http.Request, err error) {
