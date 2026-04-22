@@ -664,7 +664,7 @@ type TestContext struct {
 ```yaml
 services:
   redis:
-    image: redis:7-alpine
+    image: valkey/valkey:8-alpine
     ports:
       - "26379:6379"
     healthcheck:
@@ -843,7 +843,7 @@ cd documentation && mkdocs build
 
 ```bash
 # Start Redis (required for webhooks and job queue)
-docker run -d --name mockxago-redis -p 6379:6379 redis:7-alpine
+docker run -d --name mockxago-redis -p 6379:6379 valkey/valkey:8-alpine
 
 # Set environment variables
 export XAGO_API_PUBLIC_KEY=test-public-key
@@ -1232,7 +1232,7 @@ logger.Log.Debug("token validated",
 
 **"connection refused" errors**:
 - **Cause**: Redis not running or wrong port
-- **Solution**: `docker run -d -p 6379:6379 redis:7-alpine`
+- **Solution**: `docker run -d -p 6379:6379 valkey/valkey:8-alpine`
 
 **Balance not updating**:
 - **Cause**: Using in-memory storage instead of Redis
