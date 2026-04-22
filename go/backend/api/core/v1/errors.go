@@ -11,7 +11,6 @@ import (
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/backend/wallets"
-	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
 )
@@ -32,9 +31,7 @@ var errorStatus = map[error]struct {
 }
 
 func toHTTPError(w http.ResponseWriter, r *http.Request, err error) {
-	if !env.IsTest() {
-		log.Info("http error", zap.Error(err))
-	}
+	log.Info("http error", zap.Error(err))
 
 	if v, ok := errorStatus[err]; ok {
 		api_middleware.WriteAppError(w, r, v.status, v.code, http.StatusText(v.status))
@@ -48,7 +45,7 @@ func toHTTPError(w http.ResponseWriter, r *http.Request, err error) {
 		}
 	}
 
-	_ = sentry.CaptureException(err)
+	sentry.CaptureException(err)
 	log.Error("unexpected error", zap.Error(err))
 	api_middleware.WriteAppError(w, r, http.StatusInternalServerError, api_middleware.ErrCodeInternal, "Internal server error")
 }

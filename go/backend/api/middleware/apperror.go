@@ -6,15 +6,15 @@ import (
 )
 
 const (
-	ErrCodeInternal     = "INTERNAL"
-	ErrCodeUnauthorized = "UNAUTHORIZED"
-	ErrCodeNotFound     = "NOT_FOUND"
-	ErrCodeConflict     = "CONFLICT"
-	ErrCodeForbidden    = "FORBIDDEN"
-	ErrCodeBadRequest   = "BAD_REQUEST"
+	ErrCodeInternal       = "INTERNAL"
+	ErrCodeUnauthorized   = "UNAUTHORIZED"
+	ErrCodeNotFound       = "NOT_FOUND"
+	ErrCodeConflict       = "CONFLICT"
+	ErrCodeForbidden      = "FORBIDDEN"
+	ErrCodeBadRequest     = "BAD_REQUEST"
 	ErrCodeGatewayTimeout = "GATEWAY_TIMEOUT"
 
-	ErrCodeUserNoUserFound  = "USER_NO_USER_FOUND"
+	ErrCodeUserNoUserFound = "USER_NO_USER_FOUND"
 
 	ErrCodeWalletsNoWalletFound   = "WALLETS_NO_WALLET_FOUND"
 	ErrCodeWalletsDuplicateWallet = "WALLETS_DUPLICATE_WALLET"
@@ -23,7 +23,6 @@ const (
 	ErrCodeLinkedAccNotFound = "LINKEDACC_NOT_FOUND"
 
 	ErrCodeKYCResubmissionRequired = "KYC_RESUBMISSION_REQUIRED"
-
 )
 
 type appError struct {
@@ -36,7 +35,7 @@ func WriteAppError(w http.ResponseWriter, r *http.Request, status int, code, mes
 	reqID := RequestIDFromContext(r.Context())
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	_ = json.NewEncoder(w).Encode(appError{
+	json.NewEncoder(w).Encode(appError{
 		ErrorCode: code,
 		Message:   message,
 		ReqID:     reqID,
