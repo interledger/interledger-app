@@ -45,6 +45,11 @@
         },
         "countryCode": {
           "type": "string"
+        },
+        "phone_verified": {
+          "title": "Phone Verified",
+          "type": "boolean",
+          "default": false
         }
       },
       "required": ["email", "phone", "firstName", "lastName", "countryCode"],
