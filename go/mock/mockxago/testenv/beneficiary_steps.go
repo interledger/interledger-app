@@ -299,27 +299,51 @@ func (tc *TestContext) beneficiaryIsCreated() error {
 }
 
 func (tc *TestContext) beneficiaryStatusTransitionedTo(status string) error {
-	found := false
-	for _, b := range tc.lastBeneficiaries.Data {
-		if b.UUID == tc.lastBeneficiary.UUID {
-			if b.Status != status {
-				return fmt.Errorf("beneficiary %s: expected status %q but got %q", b.UUID, status, b.Status)
+	// Poll the list endpoint to avoid flakiness caused by scheduling jitter
+	// between the handler's background auto-approval goroutine and the test's
+	// fixed-duration wait. We give the handler up to an additional grace
+	// window on top of the caller's wait before failing.
+	const (
+		pollTimeout  = 5 * time.Second
+		pollInterval = 100 * time.Millisecond
+	)
+
+	check := func() (bool, string, string, error) {
+		for _, b := range tc.lastBeneficiaries.Data {
+			if b.UUID == tc.lastBeneficiary.UUID {
+				return b.Status == status, b.UUID, b.Status, nil
 			}
-			found = true
-			break
 		}
-	}
-	if !found {
-		// Maybe the last list call refreshed all beneficiaries; check the first one.
 		if len(tc.lastBeneficiaries.Data) == 0 {
-			return fmt.Errorf("no beneficiaries in last list response")
+			return false, "", "", fmt.Errorf("no beneficiaries in last list response")
 		}
 		b := tc.lastBeneficiaries.Data[0]
-		if b.Status != status {
-			return fmt.Errorf("beneficiary %s: expected status %q but got %q", b.UUID, status, b.Status)
+		return b.Status == status, b.UUID, b.Status, nil
+	}
+
+	ok, id, got, err := check()
+	if err != nil {
+		return err
+	}
+	if ok {
+		return nil
+	}
+
+	deadline := time.Now().Add(pollTimeout)
+	for time.Now().Before(deadline) {
+		time.Sleep(pollInterval)
+		if err := tc.listBeneficiaries(); err != nil {
+			return fmt.Errorf("failed to re-list beneficiaries while polling for status %q: %w", status, err)
+		}
+		ok, id, got, err = check()
+		if err != nil {
+			return err
+		}
+		if ok {
+			return nil
 		}
 	}
-	return nil
+	return fmt.Errorf("beneficiary %s: expected status %q but got %q (after polling %s)", id, status, got, pollTimeout)
 }
 
 func (tc *TestContext) responseIncludesNBeneficiaries(n int) error {

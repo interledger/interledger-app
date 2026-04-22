@@ -1,6 +1,6 @@
 services:
   redis:
-    image: redis:7-alpine
+    image: valkey/valkey:8-alpine
     container_name: mockgatehub-test-redis
     ports:
       - "26380:6379"  # Use different port to avoid conflicts
