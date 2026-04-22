@@ -7,6 +7,7 @@
 - [Terminology](terminology.md) — Core vocabulary and provider translation
 - [Payment Troubleshooting](payment-troubleshooting-guide.md) — Using logs to debug payment issues
 - [Signup Flow](signup-guide.md) — What can and cannot be logged during registration
+- [Environment Variables](env-variables.md) — `LOG_LEVEL`, OpenTelemetry, and other runtime logging config
 
 **Quick Navigation:**
 

@@ -89,8 +89,6 @@ const (
 	BackendService_GetLinkedAccountsForDeposit_FullMethodName    = "/backend.v1.BackendService/GetLinkedAccountsForDeposit"
 	BackendService_DepositBalance_FullMethodName                 = "/backend.v1.BackendService/DepositBalance"
 	BackendService_SearchWallets_FullMethodName                  = "/backend.v1.BackendService/SearchWallets"
-	BackendService_DiscordCallback_FullMethodName                = "/backend.v1.BackendService/DiscordCallback"
-	BackendService_CreateDiscordAuthURL_FullMethodName           = "/backend.v1.BackendService/CreateDiscordAuthURL"
 	BackendService_CreateSlackAuthURL_FullMethodName             = "/backend.v1.BackendService/CreateSlackAuthURL"
 	BackendService_SlackCallback_FullMethodName                  = "/backend.v1.BackendService/SlackCallback"
 	BackendService_AddXagoBankAccount_FullMethodName             = "/backend.v1.BackendService/AddXagoBankAccount"
@@ -221,9 +219,6 @@ type BackendServiceClient interface {
 	DepositBalance(ctx context.Context, in *TransferBalanceRequest, opts ...grpc.CallOption) (*Payment, error)
 	// Search
 	SearchWallets(ctx context.Context, in *SearchWalletsRequest, opts ...grpc.CallOption) (*SearchWalletsResponse, error)
-	// Discord
-	DiscordCallback(ctx context.Context, in *DiscordCallbackRequest, opts ...grpc.CallOption) (*DiscordCallbackResponse, error)
-	CreateDiscordAuthURL(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*CreateDiscordAuthURLResponse, error)
 	// Slack
 	CreateSlackAuthURL(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*CreateSlackAuthURLResponse, error)
 	SlackCallback(ctx context.Context, in *SlackCallbackRequest, opts ...grpc.CallOption) (*SlackCallbackResponse, error)
@@ -976,26 +971,6 @@ func (c *backendServiceClient) SearchWallets(ctx context.Context, in *SearchWall
 	return out, nil
 }
 
-func (c *backendServiceClient) DiscordCallback(ctx context.Context, in *DiscordCallbackRequest, opts ...grpc.CallOption) (*DiscordCallbackResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(DiscordCallbackResponse)
-	err := c.cc.Invoke(ctx, BackendService_DiscordCallback_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *backendServiceClient) CreateDiscordAuthURL(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*CreateDiscordAuthURLResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CreateDiscordAuthURLResponse)
-	err := c.cc.Invoke(ctx, BackendService_CreateDiscordAuthURL_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *backendServiceClient) CreateSlackAuthURL(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*CreateSlackAuthURLResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CreateSlackAuthURLResponse)
@@ -1439,9 +1414,6 @@ type BackendServiceServer interface {
 	DepositBalance(context.Context, *TransferBalanceRequest) (*Payment, error)
 	// Search
 	SearchWallets(context.Context, *SearchWalletsRequest) (*SearchWalletsResponse, error)
-	// Discord
-	DiscordCallback(context.Context, *DiscordCallbackRequest) (*DiscordCallbackResponse, error)
-	CreateDiscordAuthURL(context.Context, *Empty) (*CreateDiscordAuthURLResponse, error)
 	// Slack
 	CreateSlackAuthURL(context.Context, *Empty) (*CreateSlackAuthURLResponse, error)
 	SlackCallback(context.Context, *SlackCallbackRequest) (*SlackCallbackResponse, error)
@@ -1702,12 +1674,6 @@ func (UnimplementedBackendServiceServer) DepositBalance(context.Context, *Transf
 }
 func (UnimplementedBackendServiceServer) SearchWallets(context.Context, *SearchWalletsRequest) (*SearchWalletsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SearchWallets not implemented")
-}
-func (UnimplementedBackendServiceServer) DiscordCallback(context.Context, *DiscordCallbackRequest) (*DiscordCallbackResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method DiscordCallback not implemented")
-}
-func (UnimplementedBackendServiceServer) CreateDiscordAuthURL(context.Context, *Empty) (*CreateDiscordAuthURLResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method CreateDiscordAuthURL not implemented")
 }
 func (UnimplementedBackendServiceServer) CreateSlackAuthURL(context.Context, *Empty) (*CreateSlackAuthURLResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateSlackAuthURL not implemented")
@@ -3094,42 +3060,6 @@ func _BackendService_SearchWallets_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BackendService_DiscordCallback_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DiscordCallbackRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).DiscordCallback(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: BackendService_DiscordCallback_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).DiscordCallback(ctx, req.(*DiscordCallbackRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _BackendService_CreateDiscordAuthURL_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Empty)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).CreateDiscordAuthURL(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: BackendService_CreateDiscordAuthURL_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).CreateDiscordAuthURL(ctx, req.(*Empty))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _BackendService_CreateSlackAuthURL_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Empty)
 	if err := dec(in); err != nil {
@@ -4046,14 +3976,6 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SearchWallets",
 			Handler:    _BackendService_SearchWallets_Handler,
-		},
-		{
-			MethodName: "DiscordCallback",
-			Handler:    _BackendService_DiscordCallback_Handler,
-		},
-		{
-			MethodName: "CreateDiscordAuthURL",
-			Handler:    _BackendService_CreateDiscordAuthURL_Handler,
 		},
 		{
 			MethodName: "CreateSlackAuthURL",

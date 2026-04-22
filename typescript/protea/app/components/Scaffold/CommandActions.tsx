@@ -9,7 +9,6 @@ import {
   Card,
   CardButton,
   CardContent,
-  DiscordIcon,
   Icon,
   InterledgerIcon,
   TextField,
@@ -171,7 +170,6 @@ export function CommandActions() {
                       <InterledgerIcon />
                     )}
                   {result.identifierType == 'twitter' && <TwitterIcon />}
-                  {result.identifierType == 'discord' && <DiscordIcon />}
                   {result.identifierType == 'domain' && (
                     <Icon>captive_portal</Icon>
                   )}

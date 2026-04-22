@@ -360,8 +360,6 @@ func TestClient(t *testing.T) {
 					switch tc.Args.Receiver.Type {
 					case payments.IdentityTypeSlack:
 						platform = identities.PlatformSlack
-					case payments.IdentityTypeDiscord:
-						platform = identities.PlatformDiscord
 					case payments.IdentityTypeTwitter:
 						platform = identities.PlatformTwitter
 					}

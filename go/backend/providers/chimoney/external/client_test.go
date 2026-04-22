@@ -526,7 +526,7 @@ func TestConvertToUSD_Mock_Success(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, amt)
 	require.Equal(t, currency.USD, amt.Currency)
-	require.Equal(t, uint64(7550), amt.Value) // 75.50 USD in cents
+	require.Equal(t, int64(7550), amt.Value) // 75.50 USD in cents
 }
 
 func TestConvertToUSD_Mock_InvalidCurrency(t *testing.T) {
@@ -695,7 +695,7 @@ func TestConvertToUSD_Mock_MissingData(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, amt)
 	require.Equal(t, currency.USD, amt.Currency)
-	require.Equal(t, uint64(0), amt.Value)
+	require.Equal(t, int64(0), amt.Value)
 }
 
 func TestCreateWallet_Mock_Success(t *testing.T) {

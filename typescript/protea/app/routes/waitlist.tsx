@@ -19,7 +19,7 @@ import {
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
-import { requireNoUserSession } from '~/lib/kratos.server'
+import { requireNoUserSession } from '~/lib/kratos/session.server'
 import { mergeMeta } from '~/lib/meta'
 
 type Country = {
