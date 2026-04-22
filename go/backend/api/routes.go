@@ -15,7 +15,6 @@ func NewRouter(uc user.Client, wc wallets.Client, gc gatehub.Client) http.Handle
 	r := chi.NewRouter()
 
 	r.Use(api_middleware.MakeRequestIDMiddleware())
-	r.Use(api_middleware.MakeRecoveryMiddleware())
 	r.Use(api_middleware.MakeUserMiddleware(uc))
 	r.Use(api_middleware.MakeWalletMiddleware(uc, wc))
 
