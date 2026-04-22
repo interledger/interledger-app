@@ -224,8 +224,42 @@ func (tc *TestContext) userHasFundedWallet(currency string, wholeAmount, decimal
 	headers := map[string]string{
 		"x-gatehub-managed-user-uuid": tc.userID,
 	}
-	_, err := tc.request("POST", "/core/v1/transactions", body, headers)
-	return err
+	if _, err := tc.request("POST", "/core/v1/transactions", body, headers); err != nil {
+		return err
+	}
+
+	expectedStr := fmt.Sprintf("%.2f", amount)
+	balancesPath := fmt.Sprintf("/core/v1/wallets/%s/balances", tc.walletAddress)
+	deadline := time.Now().Add(10 * time.Second)
+
+	for {
+		time.Sleep(200 * time.Millisecond)
+
+		if time.Now().After(deadline) {
+			return fmt.Errorf("timed out waiting for wallet %s to have %s %s after funding", tc.walletAddress, expectedStr, currency)
+		}
+
+		if _, err := tc.request("GET", balancesPath, nil, nil); err != nil {
+			continue
+		}
+
+		var balances []map[string]interface{}
+		if err := json.Unmarshal(tc.lastResponseBody, &balances); err != nil {
+			continue
+		}
+
+		for _, b := range balances {
+			vault, ok := b["vault"].(map[string]interface{})
+			if !ok {
+				continue
+			}
+			if vault["asset_code"] == currency {
+				if avail, _ := b["available"].(string); avail == expectedStr {
+					return nil
+				}
+			}
+		}
+	}
 }
 
 func (tc *TestContext) postHostedWithSendingAddress(sendingDesc, receivingDesc string, wholeAmount, decimalAmount int, currency string, txType int, depositType string) error {
@@ -249,10 +283,14 @@ func (tc *TestContext) postHostedDirectional(leadField, sendingDesc, receivingDe
 	}
 
 	resolveSendRecv := func(desc string) string {
-		if desc == "the user wallet" {
+		switch strings.ToLower(strings.TrimSpace(desc)) {
+		case "the user wallet":
 			return tc.walletAddress
+		case "settlement", "the settlement wallet", "settlement wallet":
+			return "rSettlementAddress123"
+		default:
+			return desc
 		}
-		return "rSettlementAddress123"
 	}
 
 	if leadField == "sending" {

@@ -372,11 +372,31 @@ func (h *Handler) CreateTransaction(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 
+			markFailed := func() {
+				if !hasWebhook {
+					return
+				}
+				if statusErr := h.store.UpdateTransactionStatus(txID, consts.TransactionStatusFailed); statusErr != nil {
+					logger.Error("failed to mark transaction as failed", zap.String("transaction_id", txID), zap.Error(statusErr))
+				}
+				failedPayload := map[string]interface{}{
+					"transaction_id": txID,
+					"tx_uuid":        txID,
+					"amount":         fmt.Sprintf("%.2f", amount),
+					"currency":       currency,
+					"address":        receivingAddr,
+					"deposit_type":   depositType,
+					"status":         "failed",
+				}
+				h.webhookManager.SendAsync(consts.WebhookEventDepositCompleted, userID, failedPayload, 0)
+			}
+
 			netAmount := amount - feeAmount
 			if isDebit {
 				// Hosted transfer where user is the sender → debit
 				if err := h.store.DeductBalance(userID, currency, netAmount); err != nil {
 					logger.Error("failed to deduct balance for transaction", zap.String("transaction_id", txID), zap.Error(err))
+					markFailed()
 					return
 				}
 				logger.Info("transaction completed (debit)",
@@ -389,6 +409,7 @@ func (h *Handler) CreateTransaction(w http.ResponseWriter, r *http.Request) {
 				// Deposit or hosted transfer where user is the receiver → credit
 				if err := h.store.AddBalance(userID, currency, netAmount); err != nil {
 					logger.Error("failed to update balance for transaction", zap.String("transaction_id", txID), zap.Error(err))
+					markFailed()
 					return
 				}
 				logger.Info("transaction completed (credit)",
