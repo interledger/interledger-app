@@ -45,7 +45,7 @@ export default function Page() {
         </CardContent>
       </Card>
 
-      <ButtonRouter to='/api/statements/accountStatement' reloadDocument>
+      <ButtonRouter to={href('/api/statements/accountStatement')} reloadDocument>
         Download Statement
       </ButtonRouter>
     </>

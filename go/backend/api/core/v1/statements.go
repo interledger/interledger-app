@@ -3,8 +3,6 @@ package v1
 import (
 	"io"
 	"net/http"
-
-	api_middleware "gitlab.com/fynbos/backend/api/middleware"
 )
 
 func (h *handlers) getAccountStatement(w http.ResponseWriter, r *http.Request) {
@@ -12,13 +10,13 @@ func (h *handlers) getAccountStatement(w http.ResponseWriter, r *http.Request) {
 
 	_, err := h.users.UserForContext(ctx)
 	if err != nil {
-		api_middleware.WriteAppError(w, r, http.StatusUnauthorized, api_middleware.ErrCodeUnauthorized, "unauthorized")
+		toHTTPError(w, r, err)
 		return
 	}
 
 	wallet, err := h.wallets.ForContext(ctx)
 	if err != nil {
-		api_middleware.WriteAppError(w, r, http.StatusUnauthorized, api_middleware.ErrCodeUnauthorized, "unauthorized")
+		toHTTPError(w, r, err)
 		return
 	}
 
