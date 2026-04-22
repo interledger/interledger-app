@@ -22,6 +22,7 @@ var (
 
 	EUROpsAccount       = "293dd6bb-bb73-4504-b401-8dfb7002032a"
 	EURLiquidityAccount = "ae953d08-bbcb-4d1b-a7cf-319157f4b689"
+	EURPositionAccount  = "9d9f69eb-c6ea-4117-857c-c807c45df213"
 )
 
 type Await func(ctx context.Context, result interface{}) error
