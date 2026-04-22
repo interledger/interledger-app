@@ -20,6 +20,10 @@ var PublicEndpoints = map[string]bool{
 	"/transaction/complete": true, // Iframe completion callback
 	"/api/user-currencies":  true, // Iframe currency lookup
 	"/admin/fees":           true, // Admin fee configuration (test support)
+	// Card data is fetched directly from the browser using a short-lived
+	// JWT (Bearer Authorization). Real GateHub authenticates this endpoint
+	// with the JWT only — no HMAC headers — so we must skip HMAC checks here.
+	"/cards/v1/token/card-data/data": true,
 }
 
 // PublicEndpointPatterns are path patterns (with placeholders) that don't require authentication
