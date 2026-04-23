@@ -910,3 +910,78 @@ func (c *client) UpdateSubAccount(ctx context.Context, accountID string, reqStru
 
 	return nil
 }
+
+func (c *client) GetQuote(ctx context.Context, reqStruct GetQuoteReq) (*GetQuoteResp, error) {
+	// TODO exchange service url
+	reqUrl, err := url.JoinPath(c.identityBaseURL, "currencyconvert")
+	if err != nil {
+		return nil, err
+	}
+
+	reqBody, err := json.Marshal(reqStruct)
+	if err != nil {
+		return nil, err
+	}
+
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "POST"
+		meta.Provider = "xago"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "POST",
+			Provider: "xago",
+		})
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqUrl, bytes.NewReader(reqBody))
+	if err != nil {
+		return nil, err
+	}
+	token, err := c.AccessToken(ctx, false)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token.Token)
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		token, err = c.AccessToken(ctx, true)
+		if err != nil {
+			return nil, err
+		}
+		req.Header.Set("Authorization", "Bearer "+token.Token)
+
+		resp, err = c.api.Do(req)
+		if err != nil {
+			return nil, err
+		}
+		if resp.StatusCode == http.StatusUnauthorized {
+			log.Info("refreshed xago token not authorized for add beneficiary")
+		}
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to add xargo beneficiary (%d - %s)", resp.StatusCode, resp.Status)
+	}
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var quote GetQuoteResp
+	err = json.Unmarshal(respBody, &quote)
+	if err != nil {
+		return nil, err
+	}
+
+	return &quote, nil
+}

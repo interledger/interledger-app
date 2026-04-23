@@ -88,6 +88,16 @@ type CreateBeneficiaryReq struct {
 	KYCRequest                 CreateBeneficiaryKYCRequest `json:"kycRequest"`
 }
 
+type GetQuoteReq struct {
+	Amount              int    `json:"amount"`
+	ConvertCurrencyPair string `json:"convertCurrencyPair"`
+	EstimateCalculation bool   `json:"estimateCalculation"`
+}
+
+type GetQuoteResp struct {
+	// TODO
+}
+
 type CreateBeneficiaryKYCRequest struct {
 	IsOwn        bool   `json:"isOwn,omitempty"`
 	SubAccountID string `json:"existingIdentityId,omitempty"`
