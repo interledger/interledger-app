@@ -13,18 +13,19 @@ func _() {
 	_ = x[IdentityTypeWalletID-2]
 	_ = x[IdentityTypeWalletURL-3]
 	_ = x[IdentityTypeSlack-4]
-	_ = x[IdentityTypeDiscord-5]
+	_ = x[IdentityTypeUnused-5]
 	_ = x[IdentityTypeExternalWalletURL-6]
 	_ = x[identityTypeSentinel-7]
 }
 
-const _IdentityType_name = "UnknownTwitterWalletIDWalletURLSlackDiscordExternalWalletURLidentityTypeSentinel"
+const _IdentityType_name = "UnknownTwitterWalletIDWalletURLSlackUnusedExternalWalletURLidentityTypeSentinel"
 
-var _IdentityType_index = [...]uint8{0, 7, 14, 22, 31, 36, 43, 60, 80}
+var _IdentityType_index = [...]uint8{0, 7, 14, 22, 31, 36, 42, 59, 79}
 
 func (i IdentityType) String() string {
-	if i < 0 || i >= IdentityType(len(_IdentityType_index)-1) {
+	idx := int(i) - 0
+	if i < 0 || idx >= len(_IdentityType_index)-1 {
 		return "IdentityType(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
-	return _IdentityType_name[_IdentityType_index[i]:_IdentityType_index[i+1]]
+	return _IdentityType_name[_IdentityType_index[idx]:_IdentityType_index[idx+1]]
 }

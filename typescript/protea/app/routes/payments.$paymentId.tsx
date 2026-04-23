@@ -20,7 +20,6 @@ import {
   Chip,
   ChipColor,
   Dialog,
-  DiscordIcon,
   Icon,
   InterledgerIcon,
   Layouts,
@@ -223,9 +222,6 @@ export default function Page() {
                   )}
                   {identity.platform.toLowerCase() == 'linkedin' && (
                     <LinkedInIcon />
-                  )}
-                  {identity.platform.toLowerCase() == 'discord' && (
-                    <DiscordIcon />
                   )}
                   {identity.platform.toLowerCase() == 'slack' && <SlackIcon />}
                   <span>{identity.identifier}</span>
@@ -585,8 +581,6 @@ function Sent({ openDialog }: { openDialog: () => void }) {
               {transaction.destinationIdentityType.toLowerCase() ===
                 'linkedin' && <LinkedInIcon />}
               {transaction.destinationIdentityType.toLowerCase() ===
-                'discord' && <DiscordIcon />}
-              {transaction.destinationIdentityType.toLowerCase() ===
                 'slack' && <SlackIcon />}
               <span>{transaction.title}</span>
             </div>
@@ -759,8 +753,6 @@ function Received({ openDialog }: { openDialog: () => void }) {
                 'twitter' && <TwitterIcon />}
               {transaction.destinationIdentityType.toLowerCase() ===
                 'linkedin' && <LinkedInIcon />}
-              {transaction.destinationIdentityType.toLowerCase() ===
-                'discord' && <DiscordIcon />}
               {transaction.destinationIdentityType.toLowerCase() ===
                 'slack' && <SlackIcon />}
               <span>{transaction.title}</span>

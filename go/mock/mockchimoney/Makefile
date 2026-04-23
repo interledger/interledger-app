@@ -38,7 +38,7 @@ e2e-tests:
 		cleanup() { docker rm -f $(REDIS_TEST_CONTAINER) >/dev/null 2>&1 || true; }; \
 		trap cleanup EXIT; \
 		docker rm -f $(REDIS_TEST_CONTAINER) >/dev/null 2>&1 || true; \
-		docker run -d --name $(REDIS_TEST_CONTAINER) -p $(REDIS_TEST_PORT):6379 redis:7-alpine >/dev/null; \
+		docker run -d --name $(REDIS_TEST_CONTAINER) -p $(REDIS_TEST_PORT):6379 valkey/valkey:8-alpine >/dev/null; \
 		MOCKCHIMONEY_REDIS_URL=redis://localhost:$(REDIS_TEST_PORT) MOCKCHIMONEY_REDIS_DB=$(REDIS_TEST_DB) go test -tags e2e -v -count=1 ./testenv/ -run TestFeatures; \
 	else \
 		echo "Skipping e2e tests (testenv not yet created)"; \
