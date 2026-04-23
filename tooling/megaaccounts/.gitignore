@@ -1,0 +1,31 @@
+# Binaries
+megaaccounts
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test artifacts
+coverage.out
+*.test
+
+# Build output
+dist/
+
+# Local SQLite database
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Go workspace
+go.work
+go.work.sum
+
+# Editor and OS
+.DS_Store
+*.swp
+*.swo
+.idea/
+.vscode/
