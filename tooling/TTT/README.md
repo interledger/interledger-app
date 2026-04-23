@@ -84,7 +84,6 @@ Main view continuously runs and displays:
 - `engine/memory/`: in-memory store backend
 - `engine/sqlite/`: SQLite store backend and persistence tests
 - `gui/`: Bubble Tea model/update/view and workflow forms
-- `specs/`: phase docs and architecture/requirements notes
 
 ## Requirements
 
