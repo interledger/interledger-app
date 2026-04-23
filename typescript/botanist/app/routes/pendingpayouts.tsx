@@ -7,7 +7,6 @@ import type { FC } from 'react'
 import {
   Chip,
   ChipColor,
-  DiscordIcon,
   LinkedInIcon,
   SlackIcon,
   TwitterIcon
@@ -42,7 +41,6 @@ const ListItem: FC<Payment> = ({
         <div className='flex space-x-2'>
           {receiverIdentityType == 'twitter' && <TwitterIcon />}
           {receiverIdentityType == 'linkedin' && <LinkedInIcon />}
-          {receiverIdentityType == 'discord' && <DiscordIcon />}
           {receiverIdentityType == 'slack' && <SlackIcon />}
           <span>{receiverIdentity}</span>
         </div>
