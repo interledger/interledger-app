@@ -19,7 +19,7 @@ import (
 	"gitlab.com/fynbos/backend/providers/gatehub/ops"
 )
 
-func TestGetAccountStatement_LinkedAccountsError(t *testing.T) {
+func TestGetAccountConfirmation_LinkedAccountsError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -27,13 +27,13 @@ func TestGetAccountStatement_LinkedAccountsError(t *testing.T) {
 	laMock.EXPECT().ListByWalletId(gomock.Any(), gomock.Any()).Return(nil, errors.New("db error"))
 
 	b := Backends{la: laMock}
-	_, err := ops.GetAccountStatement(context.Background(), b, nil, "wallet-id")
+	_, err := ops.GetAccountConfirmation(context.Background(), b, nil, "wallet-id")
 
 	require.Error(t, err)
 	assert.ErrorIs(t, err, gatehub.ErrInternal)
 }
 
-func TestGetAccountStatement_NoGatehubLinkedAccount(t *testing.T) {
+func TestGetAccountConfirmation_NoGatehubLinkedAccount(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -43,13 +43,13 @@ func TestGetAccountStatement_NoGatehubLinkedAccount(t *testing.T) {
 	}, nil)
 
 	b := Backends{la: laMock}
-	_, err := ops.GetAccountStatement(context.Background(), b, nil, "wallet-id")
+	_, err := ops.GetAccountConfirmation(context.Background(), b, nil, "wallet-id")
 
 	require.Error(t, err)
 	assert.ErrorIs(t, err, gatehub.ErrNotFound)
 }
 
-func TestGetAccountStatement_ExternalIDsError(t *testing.T) {
+func TestGetAccountConfirmation_ExternalIDsError(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -62,13 +62,13 @@ func TestGetAccountStatement_ExternalIDsError(t *testing.T) {
 	}, nil)
 
 	b := Backends{db: testDB, la: laMock}
-	_, err := ops.GetAccountStatement(ctx, b, nil, "wallet-id-with-no-db-entry")
+	_, err := ops.GetAccountConfirmation(ctx, b, nil, "wallet-id-with-no-db-entry")
 
 	require.Error(t, err)
 	assert.ErrorIs(t, err, gatehub.ErrInternal)
 }
 
-func TestGetAccountStatement_Success(t *testing.T) {
+func TestGetAccountConfirmation_Success(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -89,11 +89,11 @@ func TestGetAccountStatement_Success(t *testing.T) {
 	}, nil)
 
 	ecMock := ec_mock.NewMockClient(ctrl)
-	ecMock.EXPECT().GetAccountStatement(gomock.Any(), externalUserID, providerID).
+	ecMock.EXPECT().GetAccountConfirmation(gomock.Any(), externalUserID, providerID).
 		Return(io.NopCloser(strings.NewReader("pdf-content")), nil)
 
 	b := Backends{db: testDB, la: laMock}
-	body, err := ops.GetAccountStatement(ctx, b, ecMock, walletID)
+	body, err := ops.GetAccountConfirmation(ctx, b, ecMock, walletID)
 
 	require.NoError(t, err)
 	require.NotNil(t, body)

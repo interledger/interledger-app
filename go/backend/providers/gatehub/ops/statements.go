@@ -11,7 +11,7 @@ import (
 	"gitlab.com/fynbos/backend/providers/gatehub/external"
 )
 
-func GetAccountStatement(ctx context.Context, b Backends, ec external.Client, walletID string) (io.ReadCloser, error) {
+func GetAccountConfirmation(ctx context.Context, b Backends, ec external.Client, walletID string) (io.ReadCloser, error) {
 	linkedAccounts, err := b.LinkedAccounts().ListByWalletId(ctx, walletID)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
@@ -34,7 +34,7 @@ func GetAccountStatement(ctx context.Context, b Backends, ec external.Client, wa
 		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
 	}
 
-	result, err := ec.GetAccountStatement(ctx, externalIDs.UserID, linkedAccount.ProviderID)
+	result, err := ec.GetAccountConfirmation(ctx, externalIDs.UserID, linkedAccount.ProviderID)
 	if errors.Is(err, external.ErrNotFound) {
 		return nil, fmt.Errorf("%w %s", gatehub.ErrNotFound, err)
 	}

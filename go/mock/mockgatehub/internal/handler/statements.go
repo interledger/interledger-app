@@ -16,7 +16,7 @@ func (h *Handler) GetAccountConfirmation(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	logger.Info("getting account confirmation statement", zap.String("wallet_address", walletAddress))
+	logger.Info("getting account confirmation", zap.String("wallet_address", walletAddress))
 
 	h.sendStatementPDF(w, "account-confirmation.pdf")
 }
@@ -66,5 +66,5 @@ func (h *Handler) sendStatementPDF(w http.ResponseWriter, filename string) {
 	w.Header().Set("Content-Disposition", "attachment; filename=\""+filename+"\"")
 	w.WriteHeader(http.StatusOK)
 
-	_, _ = w.Write(assets.BlankPDF)
+	w.Write(assets.MockStatementPDF)
 }

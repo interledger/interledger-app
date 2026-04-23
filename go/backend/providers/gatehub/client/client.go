@@ -205,6 +205,6 @@ func (c Client) UpdateOrganizationConfiguration(ctx context.Context, apiBaseURL,
 	return ops.UpdateOrganizationConfiguration(ctx, c.external, apiBaseURL, twoFAType)
 }
 
-func (c Client) GetAccountStatement(ctx context.Context, walletID string) (io.ReadCloser, error) {
-	return ops.GetAccountStatement(ctx, c.b, c.external, walletID)
+func (c Client) GetAccountConfirmation(ctx context.Context, walletID string) (io.ReadCloser, error) {
+	return ops.GetAccountConfirmation(ctx, c.b, c.external, walletID)
 }
