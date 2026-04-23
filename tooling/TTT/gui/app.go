@@ -64,12 +64,12 @@ type Model struct {
 	formErr  string
 
 	// Cross-provider transfer wizard
-	crossStep           crossWizardStep
-	crossSenderUserID   string
-	crossSenderAcct     *engine.Account
+	crossStep            crossWizardStep
+	crossSenderUserID    string
+	crossSenderAcct      *engine.Account
 	crossRecipientUserID string
-	crossRecipientAcct  *engine.Account
-	crossAmountInput    string
+	crossRecipientAcct   *engine.Account
+	crossAmountInput     string
 
 	// Cached integrity checks (updated after each workflow)
 	checks []checkResult
