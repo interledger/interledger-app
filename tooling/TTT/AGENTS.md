@@ -36,13 +36,31 @@ Keep `engine` correctness first, keep `gui` thin, and preserve accounting invari
 
 - Default runtime: SQLite (`modernc.org/sqlite`), no CGO dependency.
 - DB path from `TTT_DB`, default `ttt.db`.
+- `config` table stores the selected paradigm (`POS_TWO`/`Single GateHub EUR POS`).
+- Missing/invalid paradigm config is a startup error (fail fast; no backward compatibility fallback).
 - `Reset()` semantics: wipe providers/accounts/entries safely.
+- `Reset()` should preserve the configured paradigm so re-seeding uses the same topology.
+
+## Paradigm expectations
+
+- `Standard` is an alias for the latest approved paradigm (`POS_TWO` currently).
+- First run must prompt user to choose a paradigm before seeding.
+- Seeding must be idempotent for the chosen paradigm.
+- Prefer a simple enum + switch approach unless a future phase requires a plugin/strategy abstraction.
 
 ## UI expectations
 
 - Main table must remain navigable with frozen metadata columns.
 - Workflow menu should keep dangerous actions explicit (`CLEAR` confirmation).
 - Balances panel reflects state at highlighted row (time-travel style view).
+- Cross-provider transfer should remain a guided wizard flow:
+  - sender user lookup
+  - recipient user lookup
+  - amount entry
+  - confirmation summary with FX context
+- Cross-provider user IDs are treated as globally unique (single provider per user).
+- Settlement form should clearly show direction and amount as a positive value
+  (`who pays whom`) before submission.
 - Keep error messages short and actionable.
 
 ## Dev commands
@@ -64,6 +82,8 @@ Lint + tests (requires golangci-lint):
 ```bash
 make test
 ```
+
+- `make test` must fail if total coverage for `./engine/...` drops below `80%`.
 
 Run app:
 

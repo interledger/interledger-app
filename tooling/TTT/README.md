@@ -31,12 +31,17 @@ The app is built with a strict split between:
 - **User Offboard**
   - Debits user and credits provider system account.
 - **Cross-Provider Transfer**
-  - Moves value from sender user/provider/currency to recipient user/provider/currency.
+  - Runs as a guided multi-step wizard.
+  - Sender and recipient are looked up by globally unique user IDs.
+  - Provider/currency are auto-derived from user account lookup.
+  - Shows a pre-submit summary with FX and expected recipient amount.
   - Automatically creates missing position accounts.
   - Stores FX metadata on each ledger entry.
   - Uses internal FX service (no manual rate input in UI).
 - **Bilateral Settlement**
   - Settles net position between two providers for a currency up to a cutoff time.
+  - Cutoff defaults to `now` in the form.
+  - UI shows a live preview of who should pay whom and how much (positive amount).
 - **Clear Everything (DANGER)**
   - Wipes providers/accounts/entries from the store after explicit confirmation (`CLEAR`).
   - Re-seeds default demo providers/accounts.
@@ -60,6 +65,7 @@ Main view continuously runs and displays:
 - Main ledger table with horizontal and vertical navigation.
 - Frozen metadata columns (`Time`, `Workflow`, `Step`).
 - Wide step descriptions including FX rate marker in step text.
+- Cross-provider wizard with user lookup and confirmation step.
 - **Balances panel** at the top:
   - Shows account balances at the point in time of the currently highlighted row.
   - Includes event/workflow context for that highlighted entry.
@@ -71,6 +77,9 @@ Main view continuously runs and displays:
 - DB path defaults to `ttt.db` in the working directory.
 - Override with environment variable:
   - `TTT_DB=/path/to/file.db`
+- A `config` table stores the selected account-topology paradigm.
+- On first run, the app prompts for paradigm selection and persists it.
+- On later runs, startup requires a valid stored paradigm; invalid/missing config fails fast.
 - In-memory store implementation also exists for tests/dev.
 
 ### Test coverage
@@ -119,6 +128,8 @@ Run lint + coverage workflow from Makefile:
 make test
 ```
 
+`make test` enforces a minimum total coverage of **80%** across `./engine/...`.
+
 ## Cross-compile for macOS
 
 Apple Silicon:
@@ -136,14 +147,21 @@ CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o dist/ttt-darwin-amd64 .
 ## Notes for simulation use
 
 - Amounts are entered as decimal values in UI forms and converted to base units internally.
-- On startup, demo entities are seeded idempotently:
+- On first run, choose a paradigm in the setup screen:
+  - `Standard` (alias: `POS_TWO`, recommended): GateHub EUR + Xago EUR/ZAR topology.
+  - `Single GateHub EUR POS` (legacy): GateHub EUR + Xago ZAR topology.
+- On startup, demo entities for the stored paradigm are seeded idempotently:
   - Providers: `gatehub`, `xago`
-  - Accounts: system/liquidity combos for EUR/ZAR as configured
   - Users:
     - `alice` on `gatehub` (`EUR`)
     - `bob` on `gatehub` (`EUR`)
     - `carlos` on `xago` (`ZAR`)
 - Because seeding is idempotent, restarting the app preserves existing DB data.
+- `Clear Everything` preserves the stored paradigm and re-seeds that same topology.
+
+### Onboarding note
+
+- Xago onboarding is restricted to `ZAR` in the provider/currency drill-down menus.
 
 ## License
 

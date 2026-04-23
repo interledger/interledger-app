@@ -45,6 +45,8 @@ func (m Model) View() tea.View {
 		content = m.renderMenu()
 	case stateForm:
 		content = m.renderForm()
+	case stateCrossProviderWizard:
+		content = m.renderCrossProviderWizard()
 	}
 	v := tea.NewView(content)
 	v.AltScreen = true
@@ -141,6 +143,14 @@ func (m Model) renderForm() string {
 		content.WriteString("\n")
 	}
 
+	if wf.name == "Bilateral Settlement" {
+		if summary := m.renderSettlementFormSummary(); summary != "" {
+			content.WriteString("\n")
+			content.WriteString(subtleStyle.Render(summary))
+			content.WriteString("\n")
+		}
+	}
+
 	if m.formErr != "" {
 		content.WriteString("\n")
 		wrapWidth := m.width - 12
@@ -158,6 +168,22 @@ func (m Model) renderForm() string {
 	b.WriteString(titleStyle.Render("Toy Treasury Time") + "\n\n")
 	b.WriteString(panelStyle.Render(content.String()))
 	return b.String()
+}
+
+func (m Model) renderSettlementFormSummary() string {
+	if len(m.inputs) < 3 {
+		return ""
+	}
+	providerA := trim(m.inputs[0].val())
+	providerB := trim(m.inputs[1].val())
+	if providerA == "" || providerB == "" {
+		return ""
+	}
+	cur, err := parseCurrency(m.inputs[2].val())
+	if err != nil {
+		return ""
+	}
+	return settlementPreviewText(m.eng, providerA, providerB, cur)
 }
 
 // ── integrity checks panel ────────────────────────────────────────────────────

@@ -16,6 +16,16 @@ const (
 	stateMain appState = iota
 	stateMenu
 	stateForm
+	stateCrossProviderWizard
+)
+
+type crossWizardStep int
+
+const (
+	crossStepSender crossWizardStep = iota
+	crossStepRecipient
+	crossStepAmount
+	crossStepConfirm
 )
 
 type checkResult struct {
@@ -52,6 +62,14 @@ type Model struct {
 	inputs   []formInput
 	inputIdx int
 	formErr  string
+
+	// Cross-provider transfer wizard
+	crossStep           crossWizardStep
+	crossSenderUserID   string
+	crossSenderAcct     *engine.Account
+	crossRecipientUserID string
+	crossRecipientAcct  *engine.Account
+	crossAmountInput    string
 
 	// Cached integrity checks (updated after each workflow)
 	checks []checkResult

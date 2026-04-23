@@ -20,6 +20,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m.updateMenu(msg)
 		case stateForm:
 			return m.updateForm(msg)
+		case stateCrossProviderWizard:
+			return m.updateCrossProviderWizard(msg)
 		}
 	}
 	return m, nil
@@ -109,6 +111,12 @@ func (m Model) updateMenu(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 				title: sel.label,
 				items: sel.children,
 			})
+			return m, nil
+		}
+		if workflowDefs[sel.wfIndex].name == "Cross-Provider Transfer" {
+			m.state = stateCrossProviderWizard
+			m.wfIndex = sel.wfIndex
+			m.resetCrossWizard()
 			return m, nil
 		}
 		// Leaf: open form with presets applied.

@@ -18,7 +18,7 @@ var providerCurrencies = []struct {
 	currencies []string
 }{
 	{id: "gatehub", label: "Gatehub", currencies: []string{"EUR"}},
-	{id: "xago", label: "Xago", currencies: []string{"EUR", "ZAR"}},
+	{id: "xago", label: "Xago", currencies: []string{"ZAR"}},
 }
 
 type workflowParam struct {
@@ -387,7 +387,11 @@ func makeInputs(wf workflowDef, presets map[string]string, overrides map[string]
 			}
 			inputs[i] = sel
 		} else {
-			inputs[i] = &simpleInput{label: p.label, placeholder: p.placeholder}
+			si := &simpleInput{label: p.label, placeholder: p.placeholder}
+			if p.label == "Cutoff (RFC3339 or 'now')" {
+				si.value = "now"
+			}
+			inputs[i] = si
 		}
 	}
 	return inputs
