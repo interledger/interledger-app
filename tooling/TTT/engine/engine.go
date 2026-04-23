@@ -204,6 +204,27 @@ func (e *Engine) validateProviderCurrency(providerID string, currency Currency) 
 	return validateCurrency(currency)
 }
 
+// SetCharge configures the per-direction transfer charge between two providers.
+// Passing nil clears the charge (feature disabled for that direction).
+// Num must be >= 0 and Den > 0 when charge is non-nil.
+func (e *Engine) SetCharge(fromProviderID, toProviderID string, charge *ChargeRate) error {
+	if charge != nil {
+		if charge.Den <= 0 {
+			return fmt.Errorf("charge rate denominator must be positive, got %d", charge.Den)
+		}
+		if charge.Num < 0 {
+			return fmt.Errorf("charge rate numerator must be non-negative, got %d", charge.Num)
+		}
+	}
+	return e.store.SetCharge(fromProviderID, toProviderID, charge)
+}
+
+// GetCharge returns the configured charge for a provider direction, or nil if
+// no charge has been set.
+func (e *Engine) GetCharge(fromProviderID, toProviderID string) (*ChargeRate, error) {
+	return e.store.GetCharge(fromProviderID, toProviderID)
+}
+
 // GetAllEntries returns every ledger entry across all accounts.
 func (e *Engine) GetAllEntries() ([]LedgerEntry, error) {
 	return e.store.GetAllEntries()

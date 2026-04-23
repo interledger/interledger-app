@@ -92,6 +92,13 @@ func (s *Store) migrate() error {
 			key   TEXT PRIMARY KEY,
 			value TEXT NOT NULL
 		);`,
+		`CREATE TABLE IF NOT EXISTS charges (
+			from_provider TEXT NOT NULL,
+			to_provider   TEXT NOT NULL,
+			charge_num    INTEGER NOT NULL,
+			charge_den    INTEGER NOT NULL,
+			PRIMARY KEY (from_provider, to_provider)
+		);`,
 	}
 	for _, stmt := range stmts {
 		if _, err := s.db.Exec(stmt); err != nil {
@@ -448,6 +455,40 @@ func (s *Store) Reset() error {
 		}
 	}
 	return tx.Commit()
+}
+
+// ── Charges ──────────────────────────────────────────────────────────────────
+
+func (s *Store) GetCharge(fromProviderID, toProviderID string) (*engine.ChargeRate, error) {
+	var num, den int64
+	err := s.db.QueryRow(
+		`SELECT charge_num, charge_den FROM charges WHERE from_provider = ? AND to_provider = ?`,
+		fromProviderID, toProviderID,
+	).Scan(&num, &den)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &engine.ChargeRate{Num: num, Den: den}, nil
+}
+
+func (s *Store) SetCharge(fromProviderID, toProviderID string, charge *engine.ChargeRate) error {
+	if charge == nil {
+		_, err := s.db.Exec(
+			`DELETE FROM charges WHERE from_provider = ? AND to_provider = ?`,
+			fromProviderID, toProviderID,
+		)
+		return err
+	}
+	_, err := s.db.Exec(
+		`INSERT INTO charges (from_provider, to_provider, charge_num, charge_den) VALUES (?, ?, ?, ?)
+		 ON CONFLICT(from_provider, to_provider) DO UPDATE SET
+		 	charge_num = excluded.charge_num, charge_den = excluded.charge_den`,
+		fromProviderID, toProviderID, charge.Num, charge.Den,
+	)
+	return err
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────

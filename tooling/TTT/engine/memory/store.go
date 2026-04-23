@@ -15,6 +15,7 @@ type Store struct {
 	accounts  map[string]engine.Account
 	lines     []engine.JournalLine
 	legacy    []engine.LedgerEntry
+	charges   map[[2]string]*engine.ChargeRate
 }
 
 // New returns an empty in-memory Store.
@@ -22,6 +23,7 @@ func New() *Store {
 	return &Store{
 		providers: make(map[string]engine.Provider),
 		accounts:  make(map[string]engine.Account),
+		charges:   make(map[[2]string]*engine.ChargeRate),
 	}
 }
 
@@ -176,5 +178,32 @@ func (s *Store) Reset() error {
 	s.accounts = make(map[string]engine.Account)
 	s.lines = nil
 	s.legacy = nil
+	// charges are config — not cleared by Reset.
+	return nil
+}
+
+// ── Charges ───────────────────────────────────────────────────────────────────
+
+func (s *Store) GetCharge(fromProviderID, toProviderID string) (*engine.ChargeRate, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	c, ok := s.charges[[2]string{fromProviderID, toProviderID}]
+	if !ok {
+		return nil, nil
+	}
+	cp := *c
+	return &cp, nil
+}
+
+func (s *Store) SetCharge(fromProviderID, toProviderID string, charge *engine.ChargeRate) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	key := [2]string{fromProviderID, toProviderID}
+	if charge == nil {
+		delete(s.charges, key)
+		return nil
+	}
+	cp := *charge
+	s.charges[key] = &cp
 	return nil
 }

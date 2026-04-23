@@ -32,4 +32,9 @@ type Store interface {
 	// Reset erases all providers, accounts, and ledger entries. Intended
 	// for the "Clear Everything" UI action and for tests.
 	Reset() error
+
+	// Charge configuration — persists per-direction transfer charges.
+	// Charges are not cleared by Reset; they survive "Clear Everything".
+	GetCharge(fromProviderID, toProviderID string) (*ChargeRate, error)
+	SetCharge(fromProviderID, toProviderID string, charge *ChargeRate) error
 }

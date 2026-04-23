@@ -84,3 +84,20 @@ func SignedAmount(e LedgerEntry) int64 {
 	}
 	return -e.Amount
 }
+
+// ChargeRate is the per-direction transfer charge expressed as a fraction of
+// the dispatch amount: chargeAmount = dispatch * Num / Den (floor division).
+// Nil means no charge is configured for that direction.
+type ChargeRate struct {
+	Num int64 // numerator; must be >= 0 when non-nil
+	Den int64 // denominator; must be > 0 when non-nil
+}
+
+// ChargeAmount computes the integer charge for the given dispatch amount using
+// floor division. Returns 0 when the receiver is nil or Num is zero.
+func (r *ChargeRate) ChargeAmount(dispatch int64) int64 {
+	if r == nil || r.Den == 0 || r.Num == 0 {
+		return 0
+	}
+	return dispatch * r.Num / r.Den
+}

@@ -218,6 +218,24 @@ var workflowDefs = []workflowDef{
 		},
 	},
 	{
+		name: "Configure Transfer Charge",
+		flat: true,
+		params: []workflowParam{
+			{label: "From Provider", options: providerIDs()},
+			{label: "To Provider", options: providerIDs()},
+			{label: "Charge % (empty = clear)", placeholder: ""},
+		},
+		run: func(e *engine.Engine, v []string) error {
+			fromProvider := trim(v[0])
+			toProvider := trim(v[1])
+			charge, err := parseChargePercent(trim(v[2]))
+			if err != nil {
+				return err
+			}
+			return e.SetCharge(fromProvider, toProvider, charge)
+		},
+	},
+	{
 		name:   "Clear Everything (DANGER)",
 		flat:   true,
 		danger: true,
@@ -521,4 +539,33 @@ func parseAmount(s string, scale int) (int64, error) {
 
 func trim(s string) string {
 	return strings.TrimSpace(s)
+}
+
+// parseChargePercent parses a percentage string (e.g. "2.5" for 2.5%) into a
+// ChargeRate. An empty string returns nil (clears the charge). The percentage
+// is stored as basis points over 10000 (e.g. 2.5% → {250, 10000}).
+func parseChargePercent(s string) (*engine.ChargeRate, error) {
+	if s == "" {
+		return nil, nil
+	}
+	// parseAmount with scale=2 gives basis points: "2.5" → 250.
+	bp, err := parseAmount(s, 2)
+	if err != nil {
+		return nil, fmt.Errorf("invalid charge percentage %q: %w", s, err)
+	}
+	if bp < 0 {
+		return nil, fmt.Errorf("charge percentage must be non-negative, got %s%%", s)
+	}
+	return &engine.ChargeRate{Num: bp, Den: 10000}, nil
+}
+
+// formatChargePercent renders a ChargeRate as a human-readable percentage
+// string with two decimal places (e.g. "2.50%").
+func formatChargePercent(r engine.ChargeRate) string {
+	if r.Den == 0 {
+		return "0.00%"
+	}
+	// Convert to basis points then format as X.XX%.
+	bp := r.Num * 10000 / r.Den
+	return fmt.Sprintf("%d.%02d%%", bp/100, bp%100)
 }

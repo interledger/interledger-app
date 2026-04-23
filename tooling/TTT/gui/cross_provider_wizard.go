@@ -106,6 +106,24 @@ func (m Model) advanceCrossWizard() (tea.Model, tea.Cmd) {
 			m.formErr = err.Error()
 			return m, nil
 		}
+		// Pre-flight: check sender can cover dispatch + charge before submitting.
+		senderBal, err := m.eng.Balance(m.crossSenderAcct.ID)
+		if err != nil {
+			m.formErr = "balance lookup failed: " + err.Error()
+			return m, nil
+		}
+		charge, _ := m.eng.GetCharge(m.crossSenderAcct.ProviderID, m.crossRecipientAcct.ProviderID)
+		chargeAmount := charge.ChargeAmount(amount)
+		totalCost := amount + chargeAmount
+		if senderBal < totalCost {
+			cur := m.crossSenderAcct.Currency
+			m.formErr = fmt.Sprintf(
+				"insufficient balance: need %s %s (dispatch + charge), have %s %s — adjust the amount or add funds",
+				formatMinor(totalCost, cur.AssetScale), cur.Code,
+				formatMinor(senderBal, cur.AssetScale), cur.Code,
+			)
+			return m, nil
+		}
 		_, rate, err := m.eng.CrossProviderTransferAutoLines(
 			trim(m.crossSenderUserID), m.crossSenderAcct.ProviderID, m.crossSenderAcct.Currency,
 			trim(m.crossRecipientUserID), m.crossRecipientAcct.ProviderID, m.crossRecipientAcct.Currency,
@@ -210,15 +228,52 @@ func (m Model) renderCrossWizardSummary() string {
 	if err != nil {
 		return subtleStyle.Render("FX rate unavailable for this currency pair.")
 	}
+
+	srcCur := m.crossSenderAcct.Currency
+	dstCur := m.crossRecipientAcct.Currency
 	destAmount := (amount * rate.Num) / rate.Den
-	return subtleStyle.Render(fmt.Sprintf(
-		"Summary: %s (%s/%s) sends %s %s to %s (%s/%s), expected recipient amount ≈ %s %s at rate %s",
-		trim(m.crossSenderUserID), m.crossSenderAcct.ProviderID, m.crossSenderAcct.Currency.Code,
-		formatMinor(amount, m.crossSenderAcct.Currency.AssetScale), m.crossSenderAcct.Currency.Code,
-		trim(m.crossRecipientUserID), m.crossRecipientAcct.ProviderID, m.crossRecipientAcct.Currency.Code,
-		formatMinor(destAmount, m.crossRecipientAcct.Currency.AssetScale), m.crossRecipientAcct.Currency.Code,
-		rate.String(),
+
+	// Look up configured charge for this direction.
+	charge, _ := m.eng.GetCharge(m.crossSenderAcct.ProviderID, m.crossRecipientAcct.ProviderID)
+	chargeAmount := charge.ChargeAmount(amount)
+	totalCost := amount + chargeAmount
+
+	var lines []string
+	lines = append(lines, fmt.Sprintf(
+		"Dispatch:  %s %s  →  %s (%s)",
+		formatMinor(amount, srcCur.AssetScale), srcCur.Code,
+		trim(m.crossRecipientUserID), m.crossRecipientAcct.ProviderID,
 	))
+
+	if charge != nil {
+		lines = append(lines, fmt.Sprintf(
+			"Charge:    %s %s (%s, paid by sender, stays with %s)",
+			formatMinor(chargeAmount, srcCur.AssetScale), srcCur.Code,
+			formatChargePercent(*charge),
+			m.crossSenderAcct.ProviderID,
+		))
+		lines = append(lines, fmt.Sprintf(
+			"Total:     %s %s debited from sender",
+			formatMinor(totalCost, srcCur.AssetScale), srcCur.Code,
+		))
+	}
+
+	lines = append(lines, fmt.Sprintf(
+		"FX rate:   1 %s = %s %s  →  recipient gets ≈ %s %s",
+		srcCur.Code, formatRate(rate), dstCur.Code,
+		formatMinor(destAmount, dstCur.AssetScale), dstCur.Code,
+	))
+
+	// Balance warning when charge pushes total above sender's available balance.
+	if senderBal, err := m.eng.Balance(m.crossSenderAcct.ID); err == nil && senderBal < totalCost {
+		lines = append(lines, fmt.Sprintf(
+			"⚠ Insufficient balance: need %s, have %s %s — cannot submit",
+			formatMinor(totalCost, srcCur.AssetScale),
+			formatMinor(senderBal, srcCur.AssetScale), srcCur.Code,
+		))
+	}
+
+	return subtleStyle.Render(strings.Join(lines, "\n"))
 }
 
 func stepLine(active bool, label, value string) string {

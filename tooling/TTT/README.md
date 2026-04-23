@@ -45,14 +45,29 @@ The app is built with a strict split between:
   - Settles net position between two providers for a currency up to a cutoff time.
   - Cutoff defaults to `now` in the form.
   - UI shows a live preview of who should pay whom and how much (positive amount).
+- **Configure Transfer Charge**
+  - Sets or clears a per-direction charge (e.g. GateHub → Xago) as a percentage of the dispatch amount.
+  - Charges survive "Clear Everything" — they are config, not ledger data.
+  - Empty percentage field clears the charge back to nil (feature disabled for that direction).
 - **Clear Everything (DANGER)**
   - Wipes providers/accounts/entries from the store after explicit confirmation (`CLEAR`).
   - Re-seeds default demo providers/accounts.
 
-### Variable FX simulation (Phase 4)
+### Transfer charges (Phase 4)
+- Per-direction charge configured independently for each provider pair (e.g. GH → XG and XG → GH are separate).
+- Stored in the database and changeable at runtime through the **Configure Transfer Charge** menu.
+- A `nil` charge means the feature is entirely skipped — no extra entries are created.
+- A charge of `0%` is valid (set but has no financial effect).
+- Charge is applied **before FX conversion**, denominated in the sender's currency.
+- Sender is debited `dispatch amount + charge`; the transfer is rejected if the balance is insufficient.
+- Charge amount is credited back into the **sending provider's liquidity account** and does not cross provider boundaries.
+- All ledger lines in a charged event carry `charge.rate_num`, `charge.rate_den`, and `charge.amount` metadata.
+- The confirmation screen itemises dispatch, charge (with percentage), total sender cost, FX rate, and expected recipient amount. The submit action is blocked with a clear message when the sender's balance is insufficient.
+
+### Variable FX simulation
 - Internal FX service with integer rational rates (`num/den`).
 - Starts with `1 EUR = 15 ZAR` at app boot.
-- Each successful cross-provider conversion mutates the rate by exactly `+5%` or `-5%`.
+- Each **successful** cross-provider conversion mutates the rate by exactly `+5%` or `−5%`.
 - Mutation direction is random in production and injectable/deterministic for tests.
 - Failed conversions do **not** mutate the FX rate.
 - Historical event metadata preserves the exact rate used at execution time.

@@ -41,10 +41,28 @@ func (e *Engine) CrossProviderTransfer(
 }
 
 // CrossProviderTransferLines is the line-native variant of CrossProviderTransfer.
+// It does not apply any configured charge; use CrossProviderTransferAutoLines for
+// the charge-aware path driven by the FX service and stored charge config.
 func (e *Engine) CrossProviderTransferLines(
 	senderUserID, senderProviderID string, senderCurrency Currency,
 	recipientUserID, recipientProviderID string, recipientCurrency Currency,
 	srcAmount int64, rateNum, rateDen int64,
+) ([]JournalLine, error) {
+	return e.crossProviderTransferCoreLines(
+		senderUserID, senderProviderID, senderCurrency,
+		recipientUserID, recipientProviderID, recipientCurrency,
+		srcAmount, rateNum, rateDen, nil,
+	)
+}
+
+// crossProviderTransferCoreLines is the shared implementation used by both the
+// explicit-rate public API and the FX-service / charge-aware Auto variant.
+// charge may be nil (no charge applied).
+func (e *Engine) crossProviderTransferCoreLines(
+	senderUserID, senderProviderID string, senderCurrency Currency,
+	recipientUserID, recipientProviderID string, recipientCurrency Currency,
+	srcAmount int64, rateNum, rateDen int64,
+	charge *ChargeRate,
 ) ([]JournalLine, error) {
 	if srcAmount <= 0 {
 		return nil, fmt.Errorf("amount must be positive, got %d", srcAmount)
@@ -80,10 +98,15 @@ func (e *Engine) CrossProviderTransferLines(
 	if err != nil {
 		return nil, err
 	}
-	if senderBalance < srcAmount {
+
+	// Compute charge (may be zero when nil or 0% rate). Balance check covers
+	// dispatch + charge so the sender cannot be over-debited.
+	chargeAmount := charge.ChargeAmount(srcAmount)
+	totalRequired := srcAmount + chargeAmount
+	if senderBalance < totalRequired {
 		return nil, fmt.Errorf("insufficient balance: have %s, need %s %s",
 			formatScaledAmount(senderBalance, senderCurrency.AssetScale),
-			formatScaledAmount(srcAmount, senderCurrency.AssetScale),
+			formatScaledAmount(totalRequired, senderCurrency.AssetScale),
 			senderCurrency.Code)
 	}
 
@@ -163,6 +186,17 @@ func (e *Engine) CrossProviderTransferLines(
 		MetaFXBase:    senderCurrency.Code,
 		MetaFXQuote:   recipientCurrency.Code,
 	}
+	// Attach charge metadata to all lines in this event when a charge is applied.
+	if charge != nil && chargeAmount > 0 {
+		baseMeta[MetaChargeRateNum] = strconv.FormatInt(charge.Num, 10)
+		baseMeta[MetaChargeRateDen] = strconv.FormatInt(charge.Den, 10)
+		baseMeta[MetaChargeAmount] = strconv.FormatInt(chargeAmount, 10)
+	}
+
+	// The first line debits the sender for the dispatch amount plus any charge.
+	// When chargeAmount > 0 the extra funds stay in senderLiqSrc (net of the
+	// second line which only moves srcAmount to system/position).
+	firstLineAmount := srcAmount + chargeAmount
 
 	var lines []JournalLine
 	if senderCanConvert {
@@ -180,7 +214,7 @@ func (e *Engine) CrossProviderTransferLines(
 		}
 
 		lines = []JournalLine{
-			{EventID: eventID, Timestamp: ts, DebitAccountID: senderUser.ID, CreditAccountID: senderLiqSrc.ID, Amount: srcAmount, Metadata: baseMeta,
+			{EventID: eventID, Timestamp: ts, DebitAccountID: senderUser.ID, CreditAccountID: senderLiqSrc.ID, Amount: firstLineAmount, Metadata: baseMeta,
 				DebitMetadata:  map[string]string{MetaStep: "debit sender user"},
 				CreditMetadata: map[string]string{MetaStep: "credit sender liquidity"}},
 			{EventID: eventID, Timestamp: ts, DebitAccountID: senderLiqSrc.ID, CreditAccountID: senderSysSrc.ID, Amount: srcAmount, Metadata: baseMeta,
@@ -227,7 +261,7 @@ func (e *Engine) CrossProviderTransferLines(
 		}
 
 		lines = []JournalLine{
-			{EventID: eventID, Timestamp: ts, DebitAccountID: senderUser.ID, CreditAccountID: senderLiqSrc.ID, Amount: srcAmount, Metadata: baseMeta,
+			{EventID: eventID, Timestamp: ts, DebitAccountID: senderUser.ID, CreditAccountID: senderLiqSrc.ID, Amount: firstLineAmount, Metadata: baseMeta,
 				DebitMetadata:  map[string]string{MetaStep: "debit sender user"},
 				CreditMetadata: map[string]string{MetaStep: "credit sender liquidity"}},
 			{EventID: eventID, Timestamp: ts, DebitAccountID: senderLiqSrc.ID, CreditAccountID: senderPos.ID, Amount: srcAmount, Metadata: baseMeta,
@@ -462,10 +496,15 @@ func (e *Engine) CrossProviderTransferAutoLines(
 	if err != nil {
 		return nil, Rate{}, err
 	}
-	lines, err := e.CrossProviderTransferLines(
+	// Look up the configured charge for this provider direction (nil = no charge).
+	charge, err := e.store.GetCharge(senderProviderID, recipientProviderID)
+	if err != nil {
+		return nil, Rate{}, fmt.Errorf("looking up charge config: %w", err)
+	}
+	lines, err := e.crossProviderTransferCoreLines(
 		senderUserID, senderProviderID, senderCurrency,
 		recipientUserID, recipientProviderID, recipientCurrency,
-		srcAmount, rate.Num, rate.Den,
+		srcAmount, rate.Num, rate.Den, charge,
 	)
 	if err != nil {
 		// Per spec: do NOT mutate on failure.

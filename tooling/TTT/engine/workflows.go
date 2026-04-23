@@ -18,6 +18,11 @@ const (
 	// Settlement metadata keys.
 	MetaSettlementCounterparty = "settlement.counterparty"
 	MetaSettlementCutoff       = "settlement.cutoff"
+
+	// Charge metadata keys — present on cross-provider events when a charge is applied.
+	MetaChargeRateNum = "charge.rate_num"
+	MetaChargeRateDen = "charge.rate_den"
+	MetaChargeAmount  = "charge.amount"
 )
 
 // Workflow name constants.
