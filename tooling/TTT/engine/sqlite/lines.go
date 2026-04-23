@@ -3,7 +3,7 @@ package sqlite
 import (
 	"time"
 
-	"megaaccounts/engine"
+	"ttt/engine"
 )
 
 func (s *Store) PostLines(lines []engine.JournalLine) error {

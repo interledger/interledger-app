@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"megaaccounts/engine"
-	"megaaccounts/engine/memory"
+	"ttt/engine"
+	"ttt/engine/memory"
 )
 
 var (

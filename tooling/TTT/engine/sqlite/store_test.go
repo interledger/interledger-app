@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"megaaccounts/engine"
-	"megaaccounts/engine/memory"
-	"megaaccounts/engine/sqlite"
+	"ttt/engine"
+	"ttt/engine/memory"
+	"ttt/engine/sqlite"
 )
 
 // runScenario exercises a representative cross-section of the engine — covering

@@ -10,7 +10,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	btable "github.com/evertras/bubble-table/table"
 
-	"megaaccounts/engine"
+	"ttt/engine"
 )
 
 // ── styles ────────────────────────────────────────────────────────────────────
@@ -56,7 +56,7 @@ func (m Model) View() tea.View {
 func (m Model) renderMain() string {
 	var b strings.Builder
 
-	b.WriteString(titleStyle.Render("MegaAccounts"))
+	b.WriteString(titleStyle.Render("Toy Treasury Time"))
 	b.WriteString("  ")
 	b.WriteString(subtleStyle.Render("[m] menu  [q] quit  [← →] scroll  [↑ ↓ / j k] navigate"))
 	b.WriteString("\n\n")
@@ -113,7 +113,7 @@ func (m Model) renderMenu() string {
 	content.WriteString(subtleStyle.Render("[↑↓ / jk] select  [Enter] open  [Esc] back"))
 
 	var b strings.Builder
-	b.WriteString(titleStyle.Render("MegaAccounts") + "\n\n")
+	b.WriteString(titleStyle.Render("Toy Treasury Time") + "\n\n")
 	b.WriteString(panelStyle.Render(content.String()))
 	return b.String()
 }
@@ -155,7 +155,7 @@ func (m Model) renderForm() string {
 	content.WriteString(subtleStyle.Render("[Tab / Enter] next field  [← →] cycle option  [Enter on last] submit  [Esc] back"))
 
 	var b strings.Builder
-	b.WriteString(titleStyle.Render("MegaAccounts") + "\n\n")
+	b.WriteString(titleStyle.Render("Toy Treasury Time") + "\n\n")
 	b.WriteString(panelStyle.Render(content.String()))
 	return b.String()
 }

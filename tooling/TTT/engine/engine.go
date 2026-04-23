@@ -1,4 +1,4 @@
-// Package engine implements the core accounting domain logic for MegaAccounts.
+// Package engine implements the core accounting domain logic for Toy Treasury Time (TTT).
 // It has no dependency on any TUI package and can be used headlessly.
 package engine
 

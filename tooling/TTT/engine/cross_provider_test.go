@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"megaaccounts/engine"
+	"ttt/engine"
 )
 
 // setupCrossProvider bootstraps two providers and all accounts required for

@@ -1,6 +1,6 @@
-# MegaAccounts
+# Toy Treasury Time (TTT)
 
-MegaAccounts is a terminal-based ledger simulator for multi-provider wallet flows.
+Toy Treasury Time (TTT) is a terminal-based ledger simulator for multi-provider wallet flows.
 It models double-entry bookkeeping across providers, currencies, users, liquidity pools, and bilateral settlement.
 
 The app is built with a strict split between:
@@ -68,9 +68,9 @@ Main view continuously runs and displays:
 
 ### Storage
 - Default runtime store is SQLite via `modernc.org/sqlite` (pure Go; no CGO required).
-- DB path defaults to `megaaccounts.db` in the working directory.
+- DB path defaults to `ttt.db` in the working directory.
 - Override with environment variable:
-  - `MEGAACCOUNTS_DB=/path/to/file.db`
+  - `TTT_DB=/path/to/file.db`
 - In-memory store implementation also exists for tests/dev.
 
 ### Test coverage
@@ -125,13 +125,13 @@ make test
 Apple Silicon:
 
 ```bash
-CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -o dist/megaaccounts-darwin-arm64 .
+CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -o dist/ttt-darwin-arm64 .
 ```
 
 Intel macOS:
 
 ```bash
-CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o dist/megaaccounts-darwin-amd64 .
+CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o dist/ttt-darwin-amd64 .
 ```
 
 ## Notes for simulation use

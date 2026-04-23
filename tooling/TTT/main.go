@@ -5,19 +5,19 @@ import (
 	"os"
 	"strings"
 
-	"megaaccounts/engine"
-	"megaaccounts/engine/sqlite"
-	"megaaccounts/gui"
+	"ttt/engine"
+	"ttt/engine/sqlite"
+	"ttt/gui"
 
 	tea "charm.land/bubbletea/v2"
 )
 
-// defaultDBPath is where the ledger is persisted. Override with MEGAACCOUNTS_DB.
-const defaultDBPath = "megaaccounts.db"
+// defaultDBPath is where the ledger is persisted. Override with TTT_DB.
+const defaultDBPath = "ttt.db"
 
 func main() {
 	dbPath := defaultDBPath
-	if v := os.Getenv("MEGAACCOUNTS_DB"); v != "" {
+	if v := os.Getenv("TTT_DB"); v != "" {
 		dbPath = v
 	}
 

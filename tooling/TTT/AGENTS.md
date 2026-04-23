@@ -35,7 +35,7 @@ Keep `engine` correctness first, keep `gui` thin, and preserve accounting invari
 ## Storage expectations
 
 - Default runtime: SQLite (`modernc.org/sqlite`), no CGO dependency.
-- DB path from `MEGAACCOUNTS_DB`, default `megaaccounts.db`.
+- DB path from `TTT_DB`, default `ttt.db`.
 - `Reset()` semantics: wipe providers/accounts/entries safely.
 
 ## UI expectations

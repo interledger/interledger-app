@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"megaaccounts/engine"
+	"ttt/engine"
 )
 
 func TestPostJournalLines(t *testing.T) {

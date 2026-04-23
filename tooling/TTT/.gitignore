@@ -1,5 +1,5 @@
 # Binaries
-megaaccounts
+ttt
 *.exe
 *.exe~
 *.dll
@@ -29,3 +29,6 @@ go.work.sum
 *.swo
 .idea/
 .vscode/
+
+# Don't commit planning docs
+specs/

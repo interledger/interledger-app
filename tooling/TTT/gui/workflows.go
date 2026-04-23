@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"megaaccounts/engine"
+	"ttt/engine"
 )
 
 // providerCurrencies declares which currencies each provider supports.

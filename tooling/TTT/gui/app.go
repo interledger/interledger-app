@@ -1,10 +1,10 @@
-// Package gui implements the Bubble Tea TUI for MegaAccounts.
+// Package gui implements the Bubble Tea TUI for Toy Treasury Time (TTT).
 // All business rules live in the engine package; this package handles rendering,
 // navigation, and parameter collection only.
 package gui
 
 import (
-	"megaaccounts/engine"
+	"ttt/engine"
 
 	tea "charm.land/bubbletea/v2"
 	btable "github.com/evertras/bubble-table/table"
@@ -31,7 +31,7 @@ type menuFrame struct {
 	cursor int
 }
 
-// Model is the root Bubble Tea v2 model for MegaAccounts.
+// Model is the root Bubble Tea v2 model for Toy Treasury Time (TTT).
 type Model struct {
 	eng    *engine.Engine
 	seed   func(*engine.Engine) // optional: invoked after Reset to re-seed

@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"megaaccounts/engine"
-	"megaaccounts/engine/memory"
+	"ttt/engine"
+	"ttt/engine/memory"
 )
 
 // newEngine returns a fresh Engine backed by an empty in-memory store.

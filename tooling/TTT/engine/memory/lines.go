@@ -1,6 +1,6 @@
 package memory
 
-import "megaaccounts/engine"
+import "ttt/engine"
 
 func (s *Store) PostLines(lines []engine.JournalLine) error {
 	s.mu.Lock()
