@@ -1,3 +1,5 @@
+export GOWORK=off
+
 .PHONY: test lint
 
 test: lint
