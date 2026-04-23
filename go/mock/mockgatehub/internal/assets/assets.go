@@ -2,5 +2,5 @@ package assets
 
 import _ "embed"
 
-//go:embed blank.pdf
-var BlankPDF []byte
+//go:embed mock_statement.pdf
+var MockStatementPDF []byte
