@@ -8252,9 +8252,11 @@ export class VerifyIdentityRequest extends Message<VerifyIdentityRequest> {
  */
 export class AppError extends Message<AppError> {
   /**
-   * @generated from field: backend.v1.ErrorCode errorCode = 1;
+   * See ErrorCode enum for valid values
+   *
+   * @generated from field: string errorCode = 1;
    */
-  errorCode = ErrorCode.UNSPECIFIED;
+  errorCode = "";
 
   /**
    * @generated from field: string message = 2;
@@ -8279,7 +8281,7 @@ export class AppError extends Message<AppError> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "backend.v1.AppError";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "errorCode", kind: "enum", T: proto3.getEnumType(ErrorCode) },
+    { no: 1, name: "errorCode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "message", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "fields", kind: "message", T: AppErrorField, repeated: true },
     { no: 4, name: "reqId", kind: "scalar", T: 9 /* ScalarType.STRING */ },

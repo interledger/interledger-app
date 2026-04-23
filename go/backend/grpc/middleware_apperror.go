@@ -69,7 +69,7 @@ func withAppError(ctx context.Context, originalErr error) error {
 	// Create the AppError if it didn't exist.
 	if appError == nil {
 		appError = &pb.AppError{
-			ErrorCode: pb.ErrorCode_ERROR_CODE_INTERNAL,
+			ErrorCode: pb.ErrorCode_ERROR_CODE_INTERNAL.String(),
 			Message:   st.Message(),
 		}
 	}

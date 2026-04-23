@@ -2707,9 +2707,9 @@ export interface VerifyIdentityRequest {
  */
 export interface AppError {
     /**
-     * @generated from protobuf field: backend.v1.ErrorCode errorCode = 1;
+     * @generated from protobuf field: string errorCode = 1;
      */
-    errorCode: ErrorCode;
+    errorCode: string; // See ErrorCode enum for valid values
     /**
      * @generated from protobuf field: string message = 2;
      */
@@ -12645,14 +12645,14 @@ export const VerifyIdentityRequest = new VerifyIdentityRequest$Type();
 class AppError$Type extends MessageType<AppError> {
     constructor() {
         super("backend.v1.AppError", [
-            { no: 1, name: "errorCode", kind: "enum", T: () => ["backend.v1.ErrorCode", ErrorCode, "ERROR_CODE_"] },
+            { no: 1, name: "errorCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "message", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "fields", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => AppErrorField },
             { no: 4, name: "reqId", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<AppError>): AppError {
-        const message = { errorCode: 0, message: "", fields: [], reqId: "" };
+        const message = { errorCode: "", message: "", fields: [], reqId: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<AppError>(this, message, value);
@@ -12663,8 +12663,8 @@ class AppError$Type extends MessageType<AppError> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* backend.v1.ErrorCode errorCode */ 1:
-                    message.errorCode = reader.int32();
+                case /* string errorCode */ 1:
+                    message.errorCode = reader.string();
                     break;
                 case /* string message */ 2:
                     message.message = reader.string();
@@ -12687,9 +12687,9 @@ class AppError$Type extends MessageType<AppError> {
         return message;
     }
     internalBinaryWrite(message: AppError, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* backend.v1.ErrorCode errorCode = 1; */
-        if (message.errorCode !== 0)
-            writer.tag(1, WireType.Varint).int32(message.errorCode);
+        /* string errorCode = 1; */
+        if (message.errorCode !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.errorCode);
         /* string message = 2; */
         if (message.message !== "")
             writer.tag(2, WireType.LengthDelimited).string(message.message);

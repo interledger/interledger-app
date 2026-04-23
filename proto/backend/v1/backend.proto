@@ -1181,7 +1181,7 @@ message VerifyIdentityRequest {
 }
 
 message AppError {
-  ErrorCode errorCode = 1;
+  string errorCode = 1; // See ErrorCode enum for valid values
   string message = 2;
   repeated AppErrorField fields = 3;
   string reqId = 4;

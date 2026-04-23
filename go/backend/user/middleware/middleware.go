@@ -39,7 +39,7 @@ func aalErrorToStatus(err error) error {
 	}
 
 	appError := &pb.AppError{
-		ErrorCode: appErrorCode,
+		ErrorCode: appErrorCode.String(),
 		Message:   reason,
 	}
 

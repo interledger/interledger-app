@@ -124,7 +124,7 @@ func NewValidationError(field string, description string) error {
 
 	fields := []*pb.AppErrorField{newAppErrorField(field, description)}
 	appError := &pb.AppError{
-		ErrorCode: pb.ErrorCode_ERROR_CODE_VALIDATION,
+		ErrorCode: pb.ErrorCode_ERROR_CODE_VALIDATION.String(),
 		Message:   VALIDATION_ERR_MSG,
 		Fields:    fields,
 	}
@@ -144,7 +144,7 @@ func NewTwilioError(field string, description string) error {
 	// TODO maybe a TWILIO specific error code?
 	fields := []*pb.AppErrorField{newAppErrorField(field, description)}
 	appError := &pb.AppError{
-		ErrorCode: pb.ErrorCode_ERROR_CODE_VALIDATION,
+		ErrorCode: pb.ErrorCode_ERROR_CODE_VALIDATION.String(),
 		Message:   VALIDATION_ERR_MSG,
 		Fields:    fields,
 	}
@@ -167,7 +167,7 @@ func ValidationError(err error, description func(validator.FieldError) string) e
 		}
 
 		appError := &pb.AppError{
-			ErrorCode: pb.ErrorCode_ERROR_CODE_VALIDATION,
+			ErrorCode: pb.ErrorCode_ERROR_CODE_VALIDATION.String(),
 			Message:   VALIDATION_ERR_MSG,
 			Fields:    fields,
 		}
@@ -262,7 +262,7 @@ func PaymentInsufficientFundsError() error {
 	})
 
 	appError := &pb.AppError{
-		ErrorCode: pb.ErrorCode_ERROR_CODE_PAYMENTS_INSUFFICIENT_FUNDS,
+		ErrorCode: pb.ErrorCode_ERROR_CODE_PAYMENTS_INSUFFICIENT_FUNDS.String(),
 		Message:   errMsg,
 	}
 
@@ -307,7 +307,7 @@ func newError(grpcCode codes.Code, appErrCode pb.ErrorCode, msg string, fields [
 	st := status.New(grpcCode, msg)
 
 	appError := &pb.AppError{
-		ErrorCode: appErrCode,
+		ErrorCode: appErrCode.String(),
 		Message:   msg,
 		Fields:    fields,
 	}
@@ -323,7 +323,7 @@ func newValidationError(appErrCode pb.ErrorCode, fields []*pb.AppErrorField) err
 	st := status.New(codes.InvalidArgument, VALIDATION_ERR_MSG)
 
 	appError := &pb.AppError{
-		ErrorCode: appErrCode,
+		ErrorCode: appErrCode.String(),
 		Message:   VALIDATION_ERR_MSG,
 		Fields:    fields,
 	}
