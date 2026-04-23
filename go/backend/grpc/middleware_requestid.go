@@ -23,15 +23,23 @@ func MakeUnaryInterceptorRequestId() grpc.ServerOption {
 			return nil, status.Error(codes.Internal, "Failed to parse metadata.")
 		}
 
-		ctx = ctxWithRequestIdFromMeta(ctx, meta)
+		ctx, err := ctxWithRequestIdFromMeta(ctx, meta)
+		if err != nil {
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+
 		result, err := handler(ctx, req)
 
 		return result, err
 	})
 }
 
-func ctxWithRequestIdFromMeta(ctx context.Context, meta metadata.MD) context.Context {
-	reqId := RequestIdFromMetadata(meta)
+func ctxWithRequestIdFromMeta(ctx context.Context, meta metadata.MD) (context.Context, error) {
+	reqId, err := RequestIdFromMetadata(meta)
+	if err != nil {
+		return nil, err
+	}
+
 	ctx = context.WithValue(ctx, ctxKeyRequestId, reqId)
-	return ctx
+	return ctx, nil
 }
