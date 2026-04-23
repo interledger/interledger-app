@@ -7,6 +7,9 @@ The app is built with a strict split between:
 - `engine`: accounting domain logic and invariants
 - `gui`: Bubble Tea TUI for running workflows and inspecting state
 
+![TTT screenshot](./screenshot.png)
+
+
 ## Features
 
 ### Ledger and accounting model
