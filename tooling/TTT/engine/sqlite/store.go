@@ -88,6 +88,10 @@ func (s *Store) migrate() error {
 		`CREATE INDEX IF NOT EXISTS idx_lines_event ON journal_lines (event_id);`,
 		`CREATE INDEX IF NOT EXISTS idx_lines_debit_account ON journal_lines (debit_account_id);`,
 		`CREATE INDEX IF NOT EXISTS idx_lines_credit_account ON journal_lines (credit_account_id);`,
+		`CREATE TABLE IF NOT EXISTS config (
+			key   TEXT PRIMARY KEY,
+			value TEXT NOT NULL
+		);`,
 	}
 	for _, stmt := range stmts {
 		if _, err := s.db.Exec(stmt); err != nil {

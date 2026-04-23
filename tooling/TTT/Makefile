@@ -10,3 +10,11 @@ test: lint
 lint:
 	@echo "--- running linter ---"
 	golangci-lint run ./...
+
+build:
+	@echo "--- building TTT ---"
+	go build -o ttt .
+
+run:
+	@echo "--- running TTT ---"
+	go run .
