@@ -18,7 +18,7 @@ var providerCurrencies = []struct {
 	currencies []string
 }{
 	{id: "gatehub", label: "Gatehub", currencies: []string{"EUR"}},
-	{id: "xago", label: "Xago", currencies: []string{"ZAR"}},
+	{id: "xago", label: "Xago", currencies: []string{"ZAR", "EUR"}},
 }
 
 type workflowParam struct {
@@ -34,7 +34,11 @@ type workflowDef struct {
 	flat   bool // true: top-level leaf (no provider/currency drill-down)
 	// danger: require an explicit confirmation step before running.
 	danger bool
-	run    func(e *engine.Engine, values []string) error
+	// skipProviderCurrencies lists provider/currency pairs to omit from the
+	// drill-down menu for this workflow. Map key is provider ID, value is a
+	// set of currency codes to suppress.
+	skipProviderCurrencies map[string]map[string]bool
+	run                    func(e *engine.Engine, values []string) error
 	// postSubmit runs after a successful run. Used for side effects that
 	// need access to Model state (re-seeding after Clear Everything).
 	postSubmit func(m *Model)
@@ -92,6 +96,10 @@ var workflowDefs = []workflowDef{
 	},
 	{
 		name: "User Onboard",
+		// Xago users are ZAR-only; EUR is a liquidity/position currency only.
+		skipProviderCurrencies: map[string]map[string]bool{
+			"xago": {"EUR": true},
+		},
 		params: []workflowParam{
 			{label: "User ID", placeholder: "alice"},
 			providerParam(),
@@ -299,6 +307,9 @@ func buildProviderMenu(eng *engine.Engine, wfIdx int) []menuItem {
 		p := p
 		var currencies []menuItem
 		for _, c := range p.currencies {
+			if wf.skipProviderCurrencies[p.id][c] {
+				continue
+			}
 			cur, err := parseCurrency(c)
 			var users []string
 			if err == nil {
@@ -320,7 +331,9 @@ func buildProviderMenu(eng *engine.Engine, wfIdx int) []menuItem {
 				optionOverrides: overrides,
 			})
 		}
-		provs = append(provs, menuItem{label: p.label, children: currencies})
+		if len(currencies) > 0 {
+			provs = append(provs, menuItem{label: p.label, children: currencies})
+		}
 	}
 	return provs
 }
