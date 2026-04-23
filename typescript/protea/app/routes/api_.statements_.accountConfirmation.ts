@@ -1,6 +1,4 @@
-import { href } from 'react-router'
 import type { Route } from './+types/api_.statements_.accountConfirmation'
-import { redirectWithSnackbar } from '~/lib/snackbar.server'
 
 const BACKEND_HTTP_URL = process.env.BACKEND_HTTP_URL || 'http://backend:8080'
 
@@ -13,16 +11,18 @@ export async function loader({ request }: Route.LoaderArgs) {
   )
 
   if (!response.ok) {
-    return redirectWithSnackbar(request, href('/settings/documents'), {
-      message: 'Failed to download account confirmation statement.',
-      icon: 'close'
+    return new Response(response.body, {
+      status: response.status,
+      headers: {
+        'Content-Type':
+          response.headers.get('Content-Type') ?? 'application/json'
+      }
     })
   }
 
   return new Response(response.body, {
     headers: {
       'Content-Type': 'application/pdf',
-      'Cache-Control': 'private, max-age=0',
       'Content-Disposition':
         response.headers.get('Content-Disposition') ??
         'inline; filename="account-confirmation.pdf"'

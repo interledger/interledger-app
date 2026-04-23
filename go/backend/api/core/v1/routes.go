@@ -20,7 +20,7 @@ func NewRouter(uc user.Client, wc wallets.Client, gc gatehub.Client) http.Handle
 	h := &handlers{users: uc, wallets: wc, gatehub: gc}
 
 	r.Route("/statements", func(r chi.Router) {
-		r.Get("/account", h.getAccountStatement)
+		r.Get("/account-confirmation", h.getAccountConfirmation)
 	})
 
 	return r
