@@ -207,10 +207,6 @@ export function Scaffold() {
               </button>
             )}
             <NavDrawer.ListItem to={href('/')}>Home</NavDrawer.ListItem>
-            {showQuickPay &&
-              <NavDrawer.ListItem to={href('/quick-pay')}>
-                Quick Pay
-              </NavDrawer.ListItem>}
             <NavDrawer.ListItem to={href('/accounts')}>
               Accounts
             </NavDrawer.ListItem>
@@ -541,12 +537,6 @@ export function Scaffold() {
                   </Router>
                 </div>
                 <NavDrawer.ListItem to={href('/')}>Home</NavDrawer.ListItem>
-                {
-                  showQuickPay &&
-                  <NavDrawer.ListItem to={href('/quick-pay')}>
-                    Quick Pay
-                  </NavDrawer.ListItem>
-                }
                 <NavDrawer.ListItem to={href('/accounts')}>
                   Accounts
                 </NavDrawer.ListItem>
