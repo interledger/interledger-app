@@ -35,6 +35,7 @@ services:
       - KRATOS_URL=${PROTEA_KRATOS_URL:-http://kratos:4433}
       - RAFIKI_AUTH_ENDPOINT=${PROTEA_RAFIKI_AUTH_ENDPOINT:-http://rafiki_auth:3009}
       - BACKEND_GRPC_URL=${PROTEA_BACKEND_GRPC_URL:-http://backend:8443}
+      - BACKEND_HTTP_URL=${PROTEA_BACKEND_HTTP_URL:-http://backend:8080}
       - REDIS_URL=${PROTEA_REDIS_URL:-redis://redis:6379/2}
       - PAYMENT_POINTER_BASE=${PROTEA_PAYMENT_POINTER_BASE:-local.ilp.link} # todo find a way to figure the name
 

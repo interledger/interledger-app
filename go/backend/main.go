@@ -186,7 +186,7 @@ func start(args *cli.StartArgs) {
 	router.Handle("/healthz", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
 	}))
-	router.Mount("/api", api.NewRouter(b))
+	router.Mount("/api", api.NewRouter(b.Users(), b.Wallets(), b.Gatehub()))
 	router.Handle("/kratos/signup", analytics_webhook.NewHandleSignup(b))
 	router.Handle("/kratos/login", analytics_webhook.NewHandleLogin(b))
 	router.Handle("/kratos/logout", analytics_webhook.NewHandleLogout(b))

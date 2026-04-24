@@ -39,6 +39,7 @@ Protea is a Remix application serving the user-facing wallet UI.
 | `RAFIKI_AUTH_ENDPOINT` | Internal URL for the Rafiki auth gRPC/GraphQL endpoint | No | Deployed: `http://rafiki-auth-service:3009`; Local: `http://rafiki_auth:3009` |
 | `PAYMENT_POINTER_BASE` | Domain used to build Open Payments payment pointer addresses | No | Prod: `ilp.link`; Sandbox: `sandbox.ilp.link`; Dev: `development.ilp.link`; Local: `local.ilp.link` |
 | `BACKEND_GRPC_URL` | Internal URL for the wallet backend gRPC server | No | Deployed: `http://wallet-backend-service-grpc:8443`; Local: `http://backend:8443` |
+| `BACKEND_HTTP_URL` | Internal URL for the wallet backend HTTP server | No | Deployed: `http://wallet-backend-service:8080`; Local: `http://backend:8080` |
 | `DEFAULT_RATE_LIMIT_REQUESTS` | Max requests allowed per time window before rate limiting kicks in | No | Local default: `4` (code default); deployed values TBD |
 | `DEFAULT_RATE_LIMIT_TIME` | Rate limit time window in seconds | No | Local default: `3600` (code default); deployed values TBD |
 | `PTI_CLIENT_ID` | PTI/Fiant payment provider client UUID, passed to the browser for payment widget initialisation | No | Local default: `''` (code default); deployed values TBD |
