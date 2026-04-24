@@ -14,7 +14,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   if (!response.ok) {
     return redirectWithSnackbar(request, href('/settings/documents'), {
-      message: 'Failed to download account confirmation letter.',
+      message: 'Failed to download account confirmation statement.',
       icon: 'close'
     })
   }
