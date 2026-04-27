@@ -181,9 +181,9 @@ services:
       - BT_TOKEN=${BACKEND_BT_TOKEN:-}
 
       # Mobile app links
-      - APPLE_APP_ID=6B7AFCRT3V.app.wallet.interledger.test
-      - ANDROID_PACKAGE_NAME=org.interledger.walletandroid.test
-      - ANDROID_SHA256=25:D0:6A:A1:4F:BD:F6:05:93:2C:80:A2:AC:DA:DE:E4:2F:72:BC:23:9C:8F:2C:78:85:49:9A:AC:D2:4B:A4:FF
+      - APPLE_APP_ID=6B7AFCRT3V.app.wallet.interledger.dev
+      - ANDROID_PACKAGE_NAME=org.interledger.wallet.debug
+      - ANDROID_SHA256=19:6D:4E:28:00:95:8B:F4:5C:72:EE:B5:82:70:75:57:48:E6:B7:C1:54:29:75:33:72:47:89:28:D4:E0:BF:F3
 
       # Observability
       - OTEL_EXPORTER_OTLP_ENDPOINT=${BACKEND_OTEL_EXPORTER_OTLP_ENDPOINT:-grpc://api.honeycomb.io:443}
