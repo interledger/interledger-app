@@ -119,9 +119,10 @@ export const PhoneTextField = forwardRef<
                 <input
                   ref={inputRef}
                   {...inputProps}
-                  defaultValue={`+${getCountryCallingCode(
-                    defaultCountry as CountryCode
-                  )}`}
+                  defaultValue={
+                    (inputProps.defaultValue as string) ||
+                    `+${getCountryCallingCode(defaultCountry as CountryCode)}`
+                  }
                   type='tel'
                   onChange={_onChangeInput}
                   className='w-full overflow-hidden border-none bg-transparent px-4 focus:ring-0'
@@ -148,8 +149,7 @@ export const PhoneTextField = forwardRef<
                     <Listbox.Option
                       key={index}
                       className={({ active }) =>
-                        `relative flex h-12 cursor-pointer select-none items-center justify-between rounded-lg pl-4 pr-3 ${
-                          active ? 'bg-nav-hover' : 'text-medium'
+                        `relative flex h-12 cursor-pointer select-none items-center justify-between rounded-lg pl-4 pr-3 ${active ? 'bg-nav-hover' : 'text-medium'
                         }`
                       }
                       value={option}

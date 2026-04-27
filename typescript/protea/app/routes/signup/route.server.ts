@@ -1,19 +1,25 @@
-import type { Route } from './+types/route'
-import { data, redirect } from 'react-router'
-import logger from '~/lib/logger.server'
 import { Code } from '@bufbuild/connect'
 import type { SuccessfulNativeRegistration } from '@ory/client'
-import { href } from 'react-router'
+import { data, href, redirect } from 'react-router'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { error, isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
-import { kratosPublic } from '~/lib/kratos/kratos-client.server'
-import { getCookie, withCookie, buildHeadersWithCookies } from '~/lib/kratos/cookie.server'
+import {
+  buildHeadersWithCookies,
+  getCookie,
+  withCookie
+} from '~/lib/kratos/cookie.server'
+import {
+  handleFlowError,
+  mapFlowToFieldErrors
+} from '~/lib/kratos/error.server'
 import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.server'
-import { handleFlowError, mapFlowToFieldErrors } from '~/lib/kratos/error.server'
+import { kratosPublic } from '~/lib/kratos/kratos-client.server'
 import { requireNoUserSession } from '~/lib/kratos/session.server'
+import logger from '~/lib/logger.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { isEUCountry } from '~/routes/signup/About'
+import type { Route } from './+types/route'
 
 export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url)
@@ -36,7 +42,10 @@ export async function loader({ request }: Route.LoaderArgs) {
     )
   } catch (err: any) {
     handleFlowError(err, 'signup')
-    logger.error({ error: err, route: 'signup' }, 'Failed to initialize signup flow')
+    logger.error(
+      { error: err, route: 'signup' },
+      'Failed to initialize signup flow'
+    )
     throw new Error('Failed to initialize signup flow')
   }
 
@@ -64,12 +73,14 @@ export async function detailsAction({ request }: Route.ActionArgs) {
     firstName: '',
     lastName: '',
     email: '',
+    phone: '',
     errors: {
       form: '',
       firstName: '',
       lastName: '',
       country: '',
-      email: ''
+      email: '',
+      phone: ''
     }
   }
   const mapping = { country: 'CountryOfResidence' }
@@ -78,6 +89,7 @@ export async function detailsAction({ request }: Route.ActionArgs) {
   const lastName = form.get('lastName') as string
   const country = form.get('country') as string
   const email = form.get('email') as string
+  const phone = form.get('phone') as string
 
   if (
     !(
@@ -102,7 +114,8 @@ export async function detailsAction({ request }: Route.ActionArgs) {
   if (isConnectError(response)) {
     if (response.code == Code.InvalidArgument) {
       return response.error(actionData, mapping)
-    } else return response.error(actionData, mapping, { action: 'Contact support' })
+    } else
+      return response.error(actionData, mapping, { action: 'Contact support' })
   }
 
   return data({
@@ -110,6 +123,7 @@ export async function detailsAction({ request }: Route.ActionArgs) {
     firstName,
     lastName,
     email,
+    phone,
     errors: actionData.errors
   })
 }
@@ -136,12 +150,15 @@ export async function otpAction({ request }: Route.ActionArgs) {
   const otp = form.get('otp') as string
   const phone = form.get('phone') as string
 
-  logger.info({
-    id,
-    phone,
-    hasOtp: !!otp,
-    flow: 'signup'
-  }, 'Setting mobile number for signup')
+  logger.info(
+    {
+      id,
+      phone,
+      hasOtp: !!otp,
+      flow: 'signup'
+    },
+    'Setting mobile number for signup'
+  )
 
   const response = await grpc.setSignupMobileNumber(request, {
     id,
@@ -150,11 +167,14 @@ export async function otpAction({ request }: Route.ActionArgs) {
   })
 
   if (isConnectError(response)) {
-    logger.error({
-      code: response.code,
-      hasPhone: !!phone,
-      flow: 'signup'
-    }, 'Failed to set mobile number')
+    logger.error(
+      {
+        code: response.code,
+        hasPhone: !!phone,
+        flow: 'signup'
+      },
+      'Failed to set mobile number'
+    )
 
     if (response.code == Code.InvalidArgument) {
       actionData.errors.phone = 'Mobile phone number is invalid.'
@@ -167,7 +187,10 @@ export async function otpAction({ request }: Route.ActionArgs) {
     }
   }
 
-  logger.info({ id, flow: 'signup' }, 'Mobile number set successfully for signup')
+  logger.info(
+    { id, flow: 'signup' },
+    'Mobile number set successfully for signup'
+  )
   return data({ id, phone, errors: actionData.errors })
 }
 
@@ -224,14 +247,17 @@ export async function passwordAction({ request }: Route.ActionArgs) {
     password,
     csrf_token: kratosCsrfToken
   }
-  logger.info({
-    flowId: kratosFlowId,
-    countryCode: kratosRequestPayload.traits.countryCode,
-    hasTraits: !!kratosRequestPayload.traits,
-    hasPassword: !!password,
-    hasCsrfToken: !!kratosCsrfToken,
-    flow: 'signup'
-  }, 'Sending registration request to Kratos')
+  logger.info(
+    {
+      flowId: kratosFlowId,
+      countryCode: kratosRequestPayload.traits.countryCode,
+      hasTraits: !!kratosRequestPayload.traits,
+      hasPassword: !!password,
+      hasCsrfToken: !!kratosCsrfToken,
+      flow: 'signup'
+    },
+    'Sending registration request to Kratos'
+  )
 
   let kratosResponse
   try {
@@ -242,18 +268,24 @@ export async function passwordAction({ request }: Route.ActionArgs) {
       },
       withCookie(cookie)
     )
-    logger.info({
-      status: kratosResponse.status,
-      statusText: kratosResponse.statusText,
-      headers: kratosResponse.headers?.['set-cookie'],
-      flow: 'signup'
-    }, 'Kratos registration response')
+    logger.info(
+      {
+        status: kratosResponse.status,
+        statusText: kratosResponse.statusText,
+        headers: kratosResponse.headers?.['set-cookie'],
+        flow: 'signup'
+      },
+      'Kratos registration response'
+    )
   } catch (err: any) {
-    logger.error({
-      status: err.response?.status,
-      statusText: err.response?.statusText,
-      flow: 'signup'
-    }, 'Kratos registration error')
+    logger.error(
+      {
+        status: err.response?.status,
+        statusText: err.response?.statusText,
+        flow: 'signup'
+      },
+      'Kratos registration error'
+    )
     const flowData = err.response?.data
     const errs = mapFlowToFieldErrors(flowData, errors)
     if ((errs as any)[KratosErrorTraits.PHONE]) {
@@ -264,13 +296,19 @@ export async function passwordAction({ request }: Route.ActionArgs) {
   }
 
   const successData = kratosResponse.data as SuccessfulNativeRegistration
-  logger.info({
-    identityId: successData.identity.id,
-    signupId: id,
-    flow: 'signup'
-  }, 'Kratos registration successful')
+  logger.info(
+    {
+      identityId: successData.identity.id,
+      signupId: id,
+      flow: 'signup'
+    },
+    'Kratos registration successful'
+  )
 
-  logger.info({ id, userId: successData.identity.id, flow: 'signup' }, 'Completing signup in backend')
+  logger.info(
+    { id, userId: successData.identity.id, flow: 'signup' },
+    'Completing signup in backend'
+  )
   await grpc.completeSignup(request, {
     id,
     userId: successData.identity.id
