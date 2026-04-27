@@ -33,7 +33,7 @@ const MONTHS: SelectOptions[] = [
   { id: '10', name: 'October' },
   { id: '11', name: 'November' },
   { id: '12', name: 'December' }
-] as const
+]
 
 function getStatementDates(accountCreatedAt?: string) {
   const now = new Date()
