@@ -5,8 +5,9 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"gitlab.com/fynbos/env"
 	"strings"
+
+	"gitlab.com/fynbos/env"
 
 	"github.com/jmoiron/sqlx"
 	"google.golang.org/grpc"
@@ -20,6 +21,10 @@ func MakeAuditInterceptor(db *sqlx.DB) grpc.ServerOption {
 		req interface{},
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler) (interface{}, error) {
+
+		if strings.HasPrefix(info.FullMethod, "/grpc.health.v1.Health/") {
+			return handler(ctx, req)
+		}
 
 		adminUser, ok := ctx.Value(userCtxKey).(*AdminUser)
 		if !ok || adminUser == nil {
