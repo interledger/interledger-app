@@ -1,24 +1,17 @@
 import { href } from 'react-router'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
-import type { Route } from './+types/api_.statements_.accountStatement'
+import type { Route } from './+types/api_.statements_.monthly.$year.$month'
 
 const BACKEND_HTTP_URL = process.env.BACKEND_HTTP_URL || 'http://backend:8080'
 
-export async function loader({ request }: Route.LoaderArgs) {
+export async function loader({ request, params }: Route.LoaderArgs) {
   const cookies = request.headers.get('cookie') || ''
-  const url = new URL(request.url)
-  const year = url.searchParams.get('year') ?? ''
-  const month = url.searchParams.get('month') ?? ''
+  const { year, month } = params
 
-  const backendURL = new URL(
-    `${BACKEND_HTTP_URL}/api/core/v1/statements/account-statement`
+  const response = await fetch(
+    `${BACKEND_HTTP_URL}/api/core/v1/statements/monthly/${year}/${month}`,
+    { headers: { cookie: cookies } }
   )
-  backendURL.searchParams.set('year', year)
-  backendURL.searchParams.set('month', month)
-
-  const response = await fetch(backendURL.toString(), {
-    headers: { cookie: cookies }
-  })
 
   if (!response.ok) {
     return redirectWithSnackbar(request, href('/settings/documents'), {

@@ -146,7 +146,12 @@ export default function Page() {
                       setMonth(undefined)
                     }}
                   />
-                  <div className={clsx('w-1/2 min-w-0', !year && 'cursor-not-allowed opacity-50')}>
+                  <div
+                    className={clsx(
+                      'w-1/2 min-w-0',
+                      !year && 'cursor-not-allowed opacity-50'
+                    )}
+                  >
                     <Select
                       key={year?.id}
                       className='min-w-full'
@@ -163,12 +168,10 @@ export default function Page() {
                   <ButtonRouter
                     reloadDocument
                     target='_blank'
-                    to={`${href(
-                      '/api/statements/accountStatement'
-                    )}?${new URLSearchParams({
+                    to={href('/api/statements/monthly/:year/:month', {
                       year: year.id,
                       month: month.id
-                    })}`}
+                    })}
                   >
                     Generate
                   </ButtonRouter>

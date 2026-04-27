@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/go-chi/chi/v5"
 	"gitlab.com/fynbos/backend/api/apperrors"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
@@ -25,13 +26,13 @@ func (h *handlers) getAccountStatement(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	year, err := strconv.Atoi(r.URL.Query().Get("year"))
+	year, err := strconv.Atoi(chi.URLParam(r, "year"))
 	if err != nil {
 		apperrors.WriteAppError(w, r, http.StatusBadRequest, apperrors.ErrCodeBadRequest, "year must be a valid number")
 		return
 	}
 
-	month, err := strconv.Atoi(r.URL.Query().Get("month"))
+	month, err := strconv.Atoi(chi.URLParam(r, "month"))
 	if err != nil {
 		apperrors.WriteAppError(w, r, http.StatusBadRequest, apperrors.ErrCodeBadRequest, "month must be a valid number")
 		return
