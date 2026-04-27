@@ -1,6 +1,11 @@
-import { redirect, href } from "react-router"
-import { KratosError, KratosErrorId, KratosMessage, type UiNode } from "./types.server"
-import logger from "../logger.server"
+import { href, redirect } from 'react-router'
+import logger from '../logger.server'
+import {
+  KratosError,
+  KratosErrorId,
+  KratosMessage,
+  type UiNode
+} from './types.server'
 
 export class UserDisplayableError extends Error {
   constructor(public message: string) {
@@ -24,28 +29,32 @@ export const printKratosError = (err: any) => {
  */
 export function handleFlowError(
   error: any,
-  redirectTo: 'login' |
-    'signup' |
-    'settings' |
-    'settings/password' |
-    'settings/phone' |
-    'otp/challenge' |
-    'login/challenge' |
-    'recovery' |
-    'recovery/password' |
-    'verify' |
-    'logout' |
-    'totp' |
-    'totp/challenge'
+  redirectTo:
+    | 'login'
+    | 'signup'
+    | 'settings'
+    | 'settings/password'
+    | 'settings/phone'
+    | 'otp/challenge'
+    | 'login/challenge'
+    | 'recovery'
+    | 'recovery/password'
+    | 'verify'
+    | 'logout'
+    | 'totp'
+    | 'totp/challenge'
 ): void {
   const flowData = error.response?.data ?? error
 
   if (!flowData?.error?.id) {
-    logger.error({
-      flow: "handleErrorFlow",
-      status: error.response?.status,
-      data: flowData
-    }, "Unrecognized error shape")
+    logger.error(
+      {
+        flow: 'handleErrorFlow',
+        status: error.response?.status,
+        data: flowData
+      },
+      'Unrecognized error shape'
+    )
     return
   }
 
@@ -103,15 +112,14 @@ export function mapFlowToFieldErrors<T extends object>(
     if (node.messages && node.messages.length > 0) {
       const attrName = (node.attributes as any).name
       if (attrName) {
-        (fieldErrors as any)[attrName] = kratosErrorMessage(node.messages[0])
+        ;(fieldErrors as any)[attrName] = kratosErrorMessage(node.messages[0])
       }
     }
   }
 
   if (flowData.ui.messages?.length > 0) {
-    (fieldErrors as any).form = kratosErrorMessage(flowData.ui.messages[0])
+    ;(fieldErrors as any).form = kratosErrorMessage(flowData.ui.messages[0])
   }
 
   return fieldErrors
 }
-

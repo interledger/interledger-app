@@ -24,37 +24,27 @@ import type { TwillioError } from '~/lib/error.mappers'
 import { TwillioErrorMapper } from '~/lib/error.mappers'
 import { isConnectError, isTwilioError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
-import {
-  buildHeadersWithCookies,
-  getCookie,
-  withCookie
-} from '~/lib/kratos/cookie.server'
-import { handleFlowError } from '~/lib/kratos/error.server'
-import { kratosPublic } from '~/lib/kratos/kratos-client.server'
 import { getSessionTraits, getUserSession } from '~/lib/kratos/session.server'
-import logger from '~/lib/logger.server'
 import { mergeMeta } from '~/lib/meta'
 import { RateLimitKeys, getKey, rateLimit } from '~/lib/rateLimit.server'
-import { safeReturnTo } from '~/lib/url.server'
 import { useCountdown } from '~/lib/useCountdown'
-import type { Route } from './+types/otp_.challenge'
+import type { Route } from './+types/phone-confirmation'
 
 const RESEND_DELAY = 60 * 1000 // 1 minute
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await getUserSession(request)
-  const { phone } = getSessionTraits(session)
+  const traits = getSessionTraits(session)
+  const { phone } = traits
+
+  if (traits.phoneVerified) {
+    throw redirect('/wallet-address')
+  }
 
   const len = phone.length
   const phoneMask = phone.substring(len - 4, len).padStart(len, '*')
 
-  const url = new URL(request.url)
-  const returnTo = safeReturnTo(url.searchParams.get('returnTo'))
-
-  return jsonWithCSRF(request, {
-    phoneMask,
-    returnTo
-  })
+  return jsonWithCSRF(request, { phoneMask })
 }
 
 export const handle: ApplicationProps = {
@@ -62,20 +52,20 @@ export const handle: ApplicationProps = {
   scaffold: {
     header: {
       back: href('/'),
-      title: 'Confirmation'
+      title: 'Phone confirmation'
     }
   }
 }
 
 export const meta = mergeMeta(() => [
   {
-    title: "Confirm it's you"
+    title: 'Phone confirmation'
   }
 ])
 
 export default function Page() {
-  const actionData = useActionData()
-  const { csrfToken, phoneMask, returnTo } = useLoaderData()
+  const actionData = useActionData<typeof action>()
+  const { csrfToken, phoneMask } = useLoaderData<typeof loader>()
   const resendFetcher = useFetcher()
   const { start, isActive, remainingSeconds } = useCountdown()
   const [otpSent, setOtpSent] = useState(false)
@@ -94,26 +84,26 @@ export default function Page() {
   return (
     <>
       <Form
-        id='otp-challenge'
-        action='/otp/challenge'
+        id='phone-confirmation'
+        action='/phone-confirmation'
         method='post'
         className='hidden'
       />
       <input
-        form='otp-challenge'
+        form='phone-confirmation'
         defaultValue={csrfToken}
         name='csrf_token'
         type='hidden'
       />
       <input
-        form='otp-challenge'
-        value={returnTo}
-        name='returnTo'
+        form='phone-confirmation'
+        value='verify'
+        name='intent'
         type='hidden'
       />
       <Card>
         <CardContent>
-          <p>Enter the six digit code sent to your current mobile number.</p>
+          <p>Enter the six digit code sent to your mobile number.</p>
         </CardContent>
         <Label className='mt-2'>Your mobile phone number</Label>
         <div className='mt-1 flex space-x-2 rounded-xl bg-nav p-3 text-medium'>
@@ -123,28 +113,26 @@ export default function Page() {
         {otpSent && (
           <TextField
             id='otp'
-            form='otp-challenge'
+            form='phone-confirmation'
             label='Verification code'
             name='otp'
             type='number'
             className='mt-4'
-            aria-invalid={Boolean(actionData?.errors.otp) || undefined}
-            aria-describedby={
-              actionData?.errors.otp ? 'email-error' : undefined
-            }
+            aria-invalid={Boolean(actionData?.errors?.otp) || undefined}
+            aria-describedby={actionData?.errors?.otp ? 'otp-error' : undefined}
             required
-            errorMessage={actionData?.errors.otp}
+            errorMessage={actionData?.errors?.otp}
           />
         )}
       </Card>
       {otpSent && (
-        <Button form='otp-challenge' type='submit'>
-          Continue
+        <Button form='phone-confirmation' type='submit'>
+          Verify
         </Button>
       )}
       <resendFetcher.Form
         method='post'
-        action='/otp/challenge'
+        action='/phone-confirmation'
         className='mt-2'
       >
         <input type='hidden' name='intent' value='resend' />
@@ -155,8 +143,8 @@ export default function Page() {
               ? 'Sending...'
               : 'Send code'
             : isActive
-            ? `Resend in ${remainingSeconds}s`
-            : 'Resend code'}
+              ? `Resend in ${remainingSeconds}s`
+              : 'Resend code'}
         </Button>
       </resendFetcher.Form>
     </>
@@ -166,79 +154,75 @@ export default function Page() {
 export async function action({ request }: Route.ActionArgs) {
   const form = await request.formData()
   const intent = form.get('intent') as string
-  const otp = form.get('otp') as string
-  const returnTo = form.get('returnTo') as string
 
-  const session = await getUserSession(request)
-  const { phone } = getSessionTraits(session)
+  console.log('[phone-confirmation] action called, intent:', intent)
 
   await validateCSRFToken(request, form)
 
+  console.log('[phone-confirmation] CSRF passed, getting session...')
+  const session = await getUserSession(request)
+  console.log(
+    '[phone-confirmation] session ok, traits:',
+    JSON.stringify(getSessionTraits(session))
+  )
+  const { phone } = getSessionTraits(session)
+
   if (intent === 'resend') {
+    console.log(
+      '[phone-confirmation] resend intent, checking rate limit for phone:',
+      phone
+    )
     const rateLimitError = await rateLimit(
       getKey(RateLimitKeys.PhoneOTP, phone),
       { limit: 1, ttlSeconds: 60 }
     )
     if (rateLimitError) {
+      console.log('[phone-confirmation] rate limited:', rateLimitError)
       return { codeSent: false, error: 'rateLimited', retryAfter: 60 }
     }
 
+    console.log('[phone-confirmation] calling sendPhoneVerification...')
     const response = await grpc.sendPhoneVerification(request, { to: phone })
-    if (isConnectError(response)) throw response.errorResponse
+    if (isConnectError(response)) {
+      console.log(
+        '[phone-confirmation] sendPhoneVerification connect error:',
+        response.code
+      )
+      throw response.errorResponse
+    }
+
+    console.log('[phone-confirmation] resend success')
     return { codeSent: true }
   }
+
+  // intent === 'verify'
+  const otp = form.get('otp') as string
 
   const errors: Partial<TwillioError> = {
     otp: ''
   }
-  console.log('Verifying phone OTP for', phone, 'with OTP', otp)
-  const response = await grpc.checkPhoneVerification(request, {
-    to: phone,
-    otp
-  })
+
+  const response = await grpc.confirmUserPhone(request, { otp })
 
   if (isConnectError(response)) {
     if (isTwilioError(response)) {
-      const e = response.error(
+      return response.error(
         { errors },
         {
           otp: TwillioErrorMapper.otp
         },
         { action: 'Contact support', message: ErrorDescriptions.INVALID_OTP }
       )
-      return e
-    } else if (response.code == Code.InvalidArgument) {
-      const e = response.error({ errors })
-      return e
+    } else if (response.code === Code.InvalidArgument) {
+      return response.error({ errors })
     } else {
-      const e = response.error(
+      return response.error(
         { errors },
         {},
         { action: 'Contact support', message: ErrorDescriptions.DEFAULT }
       )
-      return e
     }
   }
 
-  if (returnTo) {
-    return redirect(returnTo)
-  }
-
-  const cookie = getCookie(request)
-  try {
-    const response = await kratosPublic.createBrowserSettingsFlow(
-      {},
-      withCookie(cookie)
-    )
-    return redirect(`/settings/phone?flow=${response.data.id}`, {
-      headers: buildHeadersWithCookies(response)
-    })
-  } catch (err: any) {
-    handleFlowError(err, 'otp/challenge')
-    logger.error(
-      { error: err, route: 'otp.challenge' },
-      'Failed to initialize OTP challenge flow'
-    )
-    throw new Error('Failed to initialize OTP challenge flow')
-  }
+  throw redirect('/wallet-address')
 }

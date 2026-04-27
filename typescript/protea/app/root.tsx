@@ -36,7 +36,7 @@ import { Features } from './generated/connect/backend/v1/backend_pb'
 import { isConnectError } from './lib/error.server'
 import { grpc } from './lib/grpc.server'
 import { getPusherArgs } from './lib/pusher.server'
-import { emailVerificationGuard, recoveryLinkSessionInvalidationGuard, withAAL2Guard } from './lib/totp.server'
+import { emailVerificationGuard, phoneConfirmationGuard, recoveryLinkSessionInvalidationGuard, withAAL2Guard } from './lib/totp.server'
 import { usePusher } from './lib/usePusher'
 import { PtiConfigProvider } from './lib/pti-context'
 import { Route } from './+types/root';
@@ -156,6 +156,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   await recoveryLinkSessionInvalidationGuard(pathname, request)
   await emailVerificationGuard(pathname, request)
   await withAAL2Guard(pathname, request, async () => {
+    await phoneConfirmationGuard(pathname, request)
     features = await getFeatures(request)
     if (
       features &&

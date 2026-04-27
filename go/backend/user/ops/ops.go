@@ -306,8 +306,7 @@ func SetPhoneVerified(ctx context.Context, b Backends, userID string) error {
 	if !ok {
 		return fmt.Errorf("%w: invalid traits format", user.ErrInternal)
 	}
-
-	traits["phone_verified"] = true
+	traits["phoneVerified"] = true
 
 	update := client.UpdateIdentityBody{Traits: traits}
 	_, _, err = b.Kratos().IdentityApi.UpdateIdentity(ctx, userID).UpdateIdentityBody(update).Execute()

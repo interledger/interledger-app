@@ -46,7 +46,7 @@
         "countryCode": {
           "type": "string"
         },
-        "phone_verified": {
+        "phoneVerified": {
           "title": "Phone Verified",
           "type": "boolean",
           "default": false
