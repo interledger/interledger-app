@@ -9,11 +9,12 @@ import { AmountDisplay, QuoteDialog, PayWithInterledgerMark } from '~/components
 import { useDialPadContext } from '~/lib/context/dialpad'
 import { mergeMeta } from '~/lib/meta'
 import { fetchQuote, getValidWalletAddress, initializePayment } from '~/lib/open-payments.server'
-import { paymentSchema, formatAmount, createError, routeAllowed} from '~/lib/utils.server'
+import { paymentSchema, formatAmount, createError, handleSessionUpdate, routeAllowed } from '~/lib/utils.server'
 import { commitSession, getSession } from '~/session.server'
 import { type ActionData, QuickPaySession } from '~/lib/types'
 import { formatError } from '~/lib/helpers'
 import logger from '~/lib/logger.server'
+import { BackButton } from '~/components/QuickPay'
 
 export async function loader({ request }: Route.LoaderArgs) {
   routeAllowed('OP_INTPAY_ENABLED')
@@ -76,7 +77,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 export const handle: ApplicationProps = {
-   layout: (_match, context) => context?.isUser ? Layouts.Wallet : Layouts.Marketing,
+  layout: (_match, context) => context?.isUser ? Layouts.Wallet : Layouts.Marketing,
   scaffold: {
     header: { title: 'Interledger Pay' }
   }
@@ -96,6 +97,7 @@ export default function Page() {
   const { amountValue } = useDialPadContext()
   const [modalOpen, setModalOpen] = useState(false)
   const errors = actionData?.errors
+  const clearSessionKeys: Array<keyof QuickPaySession>  = ['receiverAddress']
 
   useEffect(() => {
     setModalOpen(Boolean(isQuote))
@@ -106,6 +108,7 @@ export default function Page() {
       <GridColumn
         className='col-span-full mt-20 mx-auto'
       >
+        <BackButton title="Back" to="/quick-pay/amount" clearSessionKeys={clearSessionKeys}/>
         <AmountDisplay />
         <div className="mx-auto w-full max-w-sm">
           <Form method="POST">
@@ -175,6 +178,9 @@ export async function action({ request }: Route.ActionArgs) {
 
   const formData = Object.fromEntries(await request.formData())
   const intent = formData.intent
+
+  //Used by BackButton logic
+  await handleSessionUpdate(session, formData)
 
   if (intent !== 'pay' && intent !== 'confirm') {
     sessionData.quote = undefined
