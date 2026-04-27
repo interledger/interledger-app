@@ -36,15 +36,16 @@ export async function loader({ request }: Route.LoaderArgs) {
     grpc.getLinkedAccounts(request, {})
   ])
 
-  const isDocumentsEnabled =
-    !isConnectError(linkedAccountsResponse) &&
-    linkedAccountsResponse.linkedAccounts.some(
-      (la) => la.type === 'balance' && la.receiveCurrencyCode === 'EUR'
-    )
+  const eurBalanceAccount = isConnectError(linkedAccountsResponse)
+    ? undefined
+    : linkedAccountsResponse.linkedAccounts.find(
+        (la) => la.type === 'balance' && la.receiveCurrencyCode === 'EUR'
+      )
 
   return data({
     kycStatus,
-    isDocumentsEnabled
+    isDocumentsEnabled: !!eurBalanceAccount,
+    accountCreatedAt: eurBalanceAccount?.createdAt
   })
 }
 
@@ -63,14 +64,18 @@ export const meta = mergeMeta(() => [
   }
 ])
 
-type SettingsContext = { isDocumentsEnabled: boolean }
+type SettingsContext = {
+  isDocumentsEnabled: boolean
+  accountCreatedAt?: string
+}
 
 export function useSettingsContext() {
   return useOutletContext<SettingsContext>()
 }
 
 export default function Page() {
-  const { kycStatus, isDocumentsEnabled } = useLoaderData<typeof loader>()
+  const { kycStatus, isDocumentsEnabled, accountCreatedAt } =
+    useLoaderData<typeof loader>()
   const location = useLocation()
   const pathSegments = location.pathname.split('/').filter(Boolean)
 
@@ -209,7 +214,11 @@ export default function Page() {
         </Card>
       </GridColumn>
       <GridColumn className='col-span-full lg:col-span-6 lg:col-start-7'>
-        <Outlet context={{ isDocumentsEnabled } satisfies SettingsContext} />
+        <Outlet
+          context={
+            { isDocumentsEnabled, accountCreatedAt } satisfies SettingsContext
+          }
+        />
       </GridColumn>
     </WalletGrid>
   )
