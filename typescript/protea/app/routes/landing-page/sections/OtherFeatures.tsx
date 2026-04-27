@@ -3,8 +3,8 @@ import { motion } from "framer-motion"
 
 export function OtherFeatures() {
   return (
-     <PageSection className="other-features-section">
-      <motion.div 
+    <PageSection>
+      <motion.div
         className="other-features-banner"
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
@@ -13,11 +13,11 @@ export function OtherFeatures() {
       >
         <header className="other-features-header">
           <div className="other-features-left">
-            <h2 className="text-h2 other-features-headline">
-              Open standards.<br />
-              Solid foundations.<br />
-              Intentionally simple.
-            </h2>
+            <div className="other-features-headline-stack">
+              <h2 className="text-h2 other-features-headline">Open standards.</h2>
+              <h2 className="text-h2 other-features-headline">Solid foundations.</h2>
+              <h2 className="text-h2 other-features-headline">Intentionally simple.</h2>
+            </div>
           </div>
           <div className="other-features-right">
             <p className="other-features-description">

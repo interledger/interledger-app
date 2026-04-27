@@ -1,13 +1,9 @@
 /* OTHER FEATURES SECTION */
 
-.other-features-section {
-  padding: var(--spacing-6xl) 0;
-}
-
 .other-features-banner {
   background-color: var(--section-bg-other-features);
   border-radius: var(--rounded-2xl);
-  padding: var(--padding-lg) var(--padding-2xl);
+  padding: var(--padding-6xl) var(--padding-3xl);
   display: flex;
   flex-direction: column;
   gap: var(--spacing-4xl);
@@ -42,6 +38,13 @@
   gap: var(--spacing-xl);
   text-align: right;
   align-items: flex-end;
+}
+
+.other-features-headline-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+  max-width: 560px;
 }
 
 .other-features-headline {
@@ -165,6 +168,11 @@
   .other-features-right {
     max-width: 100%;
     text-align: center;
+  }
+
+  .other-features-headline-stack {
+    align-items: center;
+    margin: 0 auto;
   }
 
   .other-features-headline {
