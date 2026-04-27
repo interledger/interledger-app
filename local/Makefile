@@ -116,6 +116,9 @@ unit-test-db-down:
 	$(COMPOSE) stop postgres-unit-tests
 	$(COMPOSE) rm -f postgres-unit-tests
 
+build-ci:
+	$(COMPOSE) -f docker-compose.yaml -f protea.runner.mounts.yaml --profile infrastructure --profile services --profile application --profile backend --profile frontend build
+
 build:
 	$(COMPOSE) --profile "*" build
 
