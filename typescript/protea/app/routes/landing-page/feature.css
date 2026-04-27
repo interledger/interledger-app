@@ -57,9 +57,7 @@
 
 .feature-heading {
   color: var(--feature-text-main, var(--color-text-primary));
-  font-size: var(--text-h2-size);
-  font-weight: var(--text-h2-weight);
-  line-height: var(--text-h2-lh);
+  font: var(--text-h2);
   letter-spacing: var(--text-h2-ls);
   margin: 0;
 }
@@ -117,21 +115,21 @@
 }
 
 .feature-widget__name {
-  font-size: var(--text-body-size, 16px);
+  font: var(--text-body);
   font-weight: 500;
   color: var(--color-text-primary);
   white-space: nowrap;
 }
 
 .feature-widget__amount {
-  font-size: var(--text-body-size, 16px);
+  font: var(--text-body);
   font-weight: 600;
   white-space: nowrap;
 }
 
 .feature-widget__note {
   margin: 0;
-  font-size: var(--text-body-sm-standard-size, 14px);
+  font: var(--text-body-sm-standard);
   color: var(--color-text-secondary);
   white-space: nowrap;
   overflow: hidden;
@@ -140,7 +138,7 @@
 
 .feature-widget__timestamp {
   margin: 0;
-  font-size: var(--text-caption-size, 12px);
+  font: var(--text-caption);
   color: var(--color-text-secondary);
   opacity: 0.7;
 }

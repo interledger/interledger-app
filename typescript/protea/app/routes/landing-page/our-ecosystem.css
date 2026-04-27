@@ -125,9 +125,8 @@
   justify-content: center;
   cursor: pointer;
   transition: transform 0.2s ease, background-color 0.2s ease;
-  font-family: inherit;
+  font: var(--text-body);
   font-weight: 500;
-  font-size: var(--text-body-size);
 }
 
 .cta-button-primary:hover {

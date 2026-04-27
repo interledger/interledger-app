@@ -21,17 +21,14 @@
 }
 
 .send-receive-title {
-  font-size: var(--text-h2-size);
-  line-height: var(--text-h2-lh);
-  font-weight: var(--text-h2-weight);
+  font: var(--text-h2);
   color: var(--color-text-primary);
   margin: 0;
   letter-spacing: var(--text-h2-ls);
 }
 
 .send-receive-description {
-  font-size: var(--text-body-lg-standard-size);
-  line-height: var(--text-body-lg-standard-lh);
+  font: var(--text-body-lg-standard);
   color: var(--color-text-secondary);
   margin: 0;
 }
@@ -78,8 +75,7 @@
 }
 
 .status-text {
-  font-size: var(--text-body-lg-emphasis-size);
-  font-weight: var(--text-body-lg-emphasis-weight);
+  font: var(--text-body-lg-emphasis);
   color: var(--color-text-primary);
   flex: 1;
 }
@@ -196,7 +192,7 @@
   }
   
   .send-receive-title {
-    font-size: var(--text-h3-size);
+    font: var(--text-h3);
   }
   
   .send-receive-content {
@@ -225,15 +221,15 @@
   .circle-euro { right: -20px; bottom: 60px; }
 
   .send-receive-title {
-    font-size: var(--text-h4-size);
+    font: var(--text-h4);
   }
   
   .send-receive-description {
-    font-size: var(--text-body-size);
+    font: var(--text-body);
   }
   
   .status-text {
-    font-size: var(--text-body-size);
+    font: var(--text-body);
   }
 
   .status-item {

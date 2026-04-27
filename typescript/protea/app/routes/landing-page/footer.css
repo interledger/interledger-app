@@ -64,7 +64,7 @@
 
 .footer-col h4 {
   color: var(--color-neutral-0);
-  font-size: var(--text-body-size);
+  font: var(--text-body);
   font-weight: 600;
   margin: 0;
 }
@@ -122,9 +122,8 @@
   justify-content: center;
   cursor: pointer;
   transition: transform 0.2s ease, background-color 0.2s ease;
-  font-family: inherit;
+  font: var(--text-body);
   font-weight: 500;
-  font-size: var(--text-body-size);
   gap: 8px;
 }
 

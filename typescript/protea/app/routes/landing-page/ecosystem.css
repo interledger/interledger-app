@@ -84,7 +84,7 @@
   }
 
   .ecosystem-title {
-    font-size: var(--text-h4-size);
+    font: var(--text-h4);
   }
 
   .open-world-card {
