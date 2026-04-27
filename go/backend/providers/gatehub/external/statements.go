@@ -23,17 +23,28 @@ func (c *client) GetAccountStatement(ctx context.Context, userID, walletAddress 
 		})
 	}
 
-	endpoint, err := url.JoinPath(c.baseURL, "statement", "v1", "statements", "account-statement", walletAddress, fmt.Sprintf("%d", year), fmt.Sprintf("%d", month))
+	endpointStr, err := url.JoinPath(c.baseURL, "statement", "v1", "statements", "account-statement", walletAddress, fmt.Sprintf("%d", year), fmt.Sprintf("%d", month))
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
+	endpoint, err := url.Parse(endpointStr)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	q := endpoint.Query()
+	q.Add("networks", "0")
+	q.Add("gateways", c.gatewayID)
+
+	endpoint.RawQuery = q.Encode()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint.String(), nil)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 	req.Header.Set(managedUserHeader, userID)
-	err = c.Sign(ctx, req, time.Now(), nil, endpoint)
+	err = c.Sign(ctx, req, time.Now(), nil, endpoint.String())
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
