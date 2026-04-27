@@ -215,6 +215,18 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I simulate a Xago test deposit of "([^"]*)" "([^"]*)"$`, func(amount, currency string) error {
 		return sc.iSimulateXagoTestDeposit(amount, currency)
 	})
+	ctx.Step(`^I initiate a deposit for my Xago linked account$`, func() error {
+		return sc.iInitiateDepositForXagoLinkedAccount()
+	})
+	ctx.Step(`^my Xago specific deposit instructions should be displayed to me$`, func() error {
+		return sc.myXagoSpecificDepositInstructionsShouldBeDisplayedToMe()
+	})
+	ctx.Step(`^I simulate a "([^"]*)" "ZAR" EFT payment to Xago$`, func(amount string) error {
+		return sc.iSimulateXagoTestDeposit(amount, "ZAR")
+	})
+	ctx.Step(`^I wait "([^"]*)" seconds for the webhook to be processed$`, func(seconds string) error {
+		return sc.iWaitSeconds(seconds)
+	})
 
 	// Withdrawal steps
 	ctx.Step(`^I navigate to the withdrawal page$`, func() error { return sc.iNavigateToTheWithdrawalPage() })

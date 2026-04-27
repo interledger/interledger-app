@@ -249,9 +249,9 @@ func (h *Handler) PersonaInquirySubmit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Update inquiry status to approved
-	// In a real implementation, this would trigger background verification
-	// For testing, we mark it as approved immediately
+	// Fire the Persona webhook chain (inquiry.approved → account.tag-added) so that
+	// the backend's SetKYCStatusWorkflow starts and the Xago sub-account gets created.
+	go h.sendPersonaInquiryApproved(inquiryID)
 
 	// Return success response
 	h.sendJSON(w, http.StatusOK, map[string]string{
