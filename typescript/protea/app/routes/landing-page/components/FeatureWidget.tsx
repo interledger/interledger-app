@@ -24,29 +24,29 @@ export function FeatureWidget({
   timestamp,
 }: FeatureWidgetProps) {
   return (
-    <motion.div 
+    <motion.div
       className="feature-widget"
       initial={{ opacity: 0, scale: 0.8 }}
-      animate={{ 
-        opacity: 1, 
+      animate={{
+        opacity: 1,
         scale: 1,
         y: [0, 20],
       }}
       transition={{
         // Enter animation: Physics Spring as specified
-        opacity: { 
-          type: "spring", 
-          stiffness: 400, 
-          damping: 58, 
+        opacity: {
+          type: "spring",
+          stiffness: 400,
+          damping: 58,
           mass: 1,
-          delay: 0.8 
+          delay: 0.8
         },
-        scale: { 
-          type: "spring", 
-          stiffness: 400, 
-          damping: 58, 
+        scale: {
+          type: "spring",
+          stiffness: 400,
+          damping: 58,
           mass: 1,
-          delay: 0.8 
+          delay: 0.8
         },
         // Loop animation: Time Ease as specified
         y: {
@@ -67,8 +67,10 @@ export function FeatureWidget({
             {amount}
           </span>
         </div>
-        {note && <p className="feature-widget__note">{note}</p>}
-        {timestamp && <p className="feature-widget__timestamp">{timestamp}</p>}
+        <div className="feature-widget__row">
+          {note && <p className="feature-widget__note">{note}</p>}
+          {timestamp && <p className="feature-widget__timestamp">{timestamp}</p>}
+        </div>
       </div>
     </motion.div>
   )

@@ -134,9 +134,9 @@
   /* Interactive / Brand
      ⚠️ TODO: brand primary accent requires visual inspection of Figma brand swatches (node 26:1637).
      Using soft-indigo as working placeholder — verify before shipping. */
-  --color-brand-50:  var(--color-soft-indigo-50);
-  --color-brand-100: var(--color-soft-indigo-100);
-  --color-brand-150: var(--color-soft-indigo-150);
+  --color-brand-50:  var(--color-forest-green-50);
+  --color-brand-100: var(--color-forest-green-100);
+  --color-brand-150: var(--color-forest-green-150);
 
   --color-interactive-primary:          var(--color-brand-100);
   --color-interactive-primary-hover:    var(--color-brand-50);
