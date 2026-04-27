@@ -16,55 +16,48 @@ const fanVariants = {
 
 // Child entry properties
 // Since the SVGs already strictly have their offsets and rotations baked deeply into their bounding boxes in Figma,
-// we just position them at their exact relative offsets on X and Y, with rotate: 0 to respect their internal matrix transforms!
-// Offsets are derived precisely from the Absolute Bounding Boxes of the Figma node
+// we just position them at their exact relative offsets on X and Y.
+// To satisfy "I want only a rotation", we keep X and Y static across hidden and visible states.
+// We apply an initial CSS rotation to counter-act the baked-in tilt, giving a pure rotation-only drop-in effect.
 const leftCardVariants = {
-  hidden: { opacity: 0, y: "calc(-50% - 65.5px + 150px)", x: "calc(-50% - 129px)", rotate: 0, scale: 0.8 },
+  hidden: { rotate: 20, scale: 1, x: "calc(-50% - 129px)", y: "calc(-50% - 65.5px)" },
   visible: { 
-    opacity: 1, 
-    y: "calc(-50% - 65.5px)", 
-    x: "calc(-50% - 129px)",
     rotate: 0,
     scale: 1,
-    transition: { type: "spring", stiffness: 100, damping: 20 }
+    x: "calc(-50% - 129px)", 
+    y: "calc(-50% - 65.5px)",
+    transition: { duration: 0.6, ease: "easeOut" }
   }
 }
 
 const rightCardVariants = {
-  hidden: { opacity: 0, y: "calc(-50% - 65.5px + 150px)", x: "calc(-50% + 129px)", rotate: 0, scale: 0.8 },
+  hidden: { rotate: -20, scale: 1, x: "calc(-50% + 129px)", y: "calc(-50% - 65.5px)" },
   visible: { 
-    opacity: 1, 
-    y: "calc(-50% - 65.5px)", 
-    x: "calc(-50% + 129px)",
     rotate: 0,
     scale: 1,
-    transition: { type: "spring", stiffness: 100, damping: 20 }
+    x: "calc(-50% + 129px)", 
+    y: "calc(-50% - 65.5px)",
+    transition: { duration: 0.6, ease: "easeOut" }
   }
 }
 
 const centerCardVariants = {
-  hidden: { opacity: 0, y: "calc(-50% + 100px)", x: "-50%", rotate: 0, scale: 0.9 },
+  hidden: { rotate: 0, scale: 1, x: "-50%", y: "-50%" },
   visible: { 
-    opacity: 1, 
-    y: "-50%", 
-    x: "-50%",
     rotate: 0,
     scale: 1,
-    transition: { type: "spring", stiffness: 120, damping: 20 }
+    x: "-50%", 
+    y: "-50%",
+    transition: { duration: 0.6, ease: "easeOut" }
   }
 }
 
 export function PhysicalCards() {
   return (
     <section className="section-physical-cards content-section">
-      <motion.div 
-        initial={{ opacity: 0, y: 40 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, amount: 0.3 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-      >
+      <div className="cards-heading-container">
         <h2 className="text-h1 cards-heading">Virtual and physical cards</h2>
-      </motion.div>
+      </div>
 
       <motion.div 
         className="cards-fan-container anim-cards-fan"
