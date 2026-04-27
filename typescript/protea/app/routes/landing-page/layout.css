@@ -12,7 +12,7 @@
 
 @media (min-width: 810px) { /* Tablet range starts */
   :root {
-    --content-max-width: 900px;
+    --content-max-width: 1199px;
   }
 }
 
