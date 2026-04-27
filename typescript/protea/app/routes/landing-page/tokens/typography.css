@@ -1,98 +1,85 @@
-/* TYPOGRAPHY TOKENS (Functional Placeholders) */
+/* TYPOGRAPHY TOKENS (Font Shorthand Implementation) */
 :root {
   /* Font Families */
-  --font-heading: 'Inter', system-ui, sans-serif;
-  --font-body: 'Inter', system-ui, sans-serif;
+  --font-family: 'Poppins', system-ui, sans-serif;
+  --font-heading: var(--font-family);
+  --font-body: var(--font-family);
 
-  /* H1 */
-  --text-h1-size: 40px;
-  --text-h1-weight: 700;
-  --text-h1-lh: 1.2;
+  /* Font Weights */
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+
+  /* H1 Style */
+  --text-h1: var(--font-weight-semibold) 100px/100px var(--font-heading);
   --text-h1-ls: -0.02em;
 
-  /* H2 */
-  --text-h2-size: 28px;
-  --text-h2-weight: 700;
-  --text-h2-lh: 1.2;
+  /* H2 Style */
+  --text-h2: var(--font-weight-semibold) 56px/64px var(--font-heading);
   --text-h2-ls: -0.01em;
 
-  /* H3 */
-  --text-h3-size: 24px;
-  --text-h3-weight: 600;
-  --text-h3-lh: 1.25;
+  /* H3 Style */
+  --text-h3: var(--font-weight-regular) 40px/56px var(--font-heading);
   --text-h3-ls: 0;
 
-  /* H4 */
-  --text-h4-size: 20px;
-  --text-h4-weight: 600;
-  --text-h4-lh: 1.3;
+  /* H4 Style */
+  --text-h4: var(--font-weight-regular) 24px/34px var(--font-heading);
   --text-h4-ls: 0;
 
-  /* H5 */
-  --text-h5-size: 18px;
-  --text-h5-weight: 600;
-  --text-h5-lh: 1.3;
+  /* H5 Style */
+  --text-h5: var(--font-weight-regular) 20px/30px var(--font-heading);
   --text-h5-ls: 0;
 
-  /* Body Lg Emphasis */
-  --text-body-lg-emphasis-size: 18px;
-  --text-body-lg-emphasis-weight: 500;
-  --text-body-lg-emphasis-lh: 1.5;
+  /* Body Lg Emphasis (Medium) */
+  --text-body-lg-emphasis: var(--font-weight-medium) 16px/26px var(--font-body);
   --text-body-lg-emphasis-ls: 0;
 
-  /* Body Lg Standard */
-  --text-body-lg-standard-size: 18px;
-  --text-body-lg-standard-weight: 400;
-  --text-body-lg-standard-lh: 1.5;
+  /* Body Lg Standard (Regular) */
+  --text-body-lg-standard: var(--font-weight-regular) 16px/26px var(--font-body);
   --text-body-lg-standard-ls: 0;
 
-  /* Body Default (Assuming an implicit default size) */
-  --text-body-size: 16px;
-  --text-body-weight: 400;
-  --text-body-lh: 1.5;
+  /* Body Default */
+  --text-body: var(--font-weight-regular) 14px/24px var(--font-body);
   --text-body-ls: 0;
 
-  /* Body Sm Emphasis */
-  --text-body-sm-emphasis-size: 14px;
-  --text-body-sm-emphasis-weight: 500;
-  --text-body-sm-emphasis-lh: 1.5;
+  /* Body Sm Emphasis (Medium) */
+  --text-body-sm-emphasis: var(--font-weight-medium) 14px/24px var(--font-body);
   --text-body-sm-emphasis-ls: 0;
 
-  /* Body Sm Standard */
-  --text-body-sm-standard-size: 14px;
-  --text-body-sm-standard-weight: 400;
-  --text-body-sm-standard-lh: 1.5;
+  /* Body Sm Standard (Regular) */
+  --text-body-sm-standard: var(--font-weight-regular) 14px/24px var(--font-body);
   --text-body-sm-standard-ls: 0;
 
-  /* Caption */
-  --text-caption-size: 12px;
-  --text-caption-weight: 400;
-  --text-caption-lh: 1.4;
+  /* Caption Style */
+  --text-caption: var(--font-weight-regular) 13px/16px var(--font-body);
   --text-caption-ls: 0;
 
-  /* Label */
-  --text-label-size: 12px;
-  --text-label-weight: 600;
-  --text-label-lh: 1;
+  /* Label Style */
+  --text-label: var(--font-weight-semibold) 11px/11px var(--font-body);
   --text-label-ls: 0.05em;
 }
 
-@media (min-width: 900px) {
+/* MOBILE (approx < 900px) overrides */
+@media (max-width: 899px) {
   :root {
-    --text-h1-size: 64px;
-    --text-h2-size: 48px;
-    --text-h3-size: 36px;
-    --text-h4-size: 28px;
-    --text-h5-size: 22px;
+    --text-h1: var(--font-weight-semibold) 56px/68px var(--font-heading);
+    --text-h2: var(--font-weight-semibold) 32px/40px var(--font-heading);
+    --text-h3: var(--font-weight-medium) 20px/28px var(--font-heading);
+    --text-h4: var(--font-weight-regular) 18px/28px var(--font-heading);
+    --text-h5: var(--font-weight-regular) 16px/26px var(--font-heading);
+
+    --text-body-lg-standard: var(--font-weight-regular) 15px/24px var(--font-body);
+    --text-body-lg-emphasis: var(--font-weight-medium) 15px/24px var(--font-body);
   }
 }
 
-@media (min-width: 1440px) {
+/* TABLET (approx 900px - 1439px) overrides */
+@media (min-width: 900px) and (max-width: 1439px) {
   :root {
-    --text-h1-size: 88px;
-    --text-h2-size: 60px;
-    --text-h3-size: 44px;
-    --text-h4-size: 32px;
-    --text-h5-size: 26px;
+    --text-h1: var(--font-weight-semibold) 70px/76px var(--font-heading);
+    --text-h2: var(--font-weight-semibold) 36px/48px var(--font-heading);
+    --text-h3: var(--font-weight-regular) 28px/36px var(--font-heading);
+    --text-h4: var(--font-weight-regular) 20px/30px var(--font-heading);
+    --text-h5: var(--font-weight-regular) 18px/28px var(--font-heading);
   }
 }
