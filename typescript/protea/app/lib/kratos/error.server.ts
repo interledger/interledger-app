@@ -35,7 +35,6 @@ export function handleFlowError(
     | 'settings'
     | 'settings/password'
     | 'settings/phone'
-    | 'otp/challenge'
     | 'login/challenge'
     | 'recovery'
     | 'recovery/password'

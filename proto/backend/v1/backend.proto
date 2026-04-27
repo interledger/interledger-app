@@ -175,6 +175,7 @@ service BackendService {
 
   // Phone confirmation
   rpc ConfirmUserPhone(ConfirmUserPhoneRequest) returns (Empty);
+  rpc UpdateUserPhone(UpdateUserPhoneRequest) returns (Empty);
 }
 
 message ThreeDSPaymentConfirmationRequest {
@@ -184,6 +185,10 @@ message ThreeDSPaymentConfirmationRequest {
 
 message ConfirmUserPhoneRequest {
   string otp = 1;
+}
+
+message UpdateUserPhoneRequest {
+  string phone = 1;
 }
 
 message PendingThreeDSConfirmation {

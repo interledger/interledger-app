@@ -4,6 +4,7 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { BackendService } from "./backend";
+import type { UpdateUserPhoneRequest } from "./backend";
 import type { ConfirmUserPhoneRequest } from "./backend";
 import type { ThreeDSPaymentConfirmationRequest } from "./backend";
 import type { GetPendingThreeDSConfirmationsResponse } from "./backend";
@@ -621,6 +622,10 @@ export interface IBackendServiceClient {
      * @generated from protobuf rpc: ConfirmUserPhone(backend.v1.ConfirmUserPhoneRequest) returns (backend.v1.Empty);
      */
     confirmUserPhone(input: ConfirmUserPhoneRequest, options?: RpcOptions): UnaryCall<ConfirmUserPhoneRequest, Empty>;
+    /**
+     * @generated from protobuf rpc: UpdateUserPhone(backend.v1.UpdateUserPhoneRequest) returns (backend.v1.Empty);
+     */
+    updateUserPhone(input: UpdateUserPhoneRequest, options?: RpcOptions): UnaryCall<UpdateUserPhoneRequest, Empty>;
 }
 /**
  * @generated from protobuf service backend.v1.BackendService
@@ -1426,5 +1431,12 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
     confirmUserPhone(input: ConfirmUserPhoneRequest, options?: RpcOptions): UnaryCall<ConfirmUserPhoneRequest, Empty> {
         const method = this.methods[105], opt = this._transport.mergeOptions(options);
         return stackIntercept<ConfirmUserPhoneRequest, Empty>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: UpdateUserPhone(backend.v1.UpdateUserPhoneRequest) returns (backend.v1.Empty);
+     */
+    updateUserPhone(input: UpdateUserPhoneRequest, options?: RpcOptions): UnaryCall<UpdateUserPhoneRequest, Empty> {
+        const method = this.methods[106], opt = this._transport.mergeOptions(options);
+        return stackIntercept<UpdateUserPhoneRequest, Empty>("unary", this._transport, method, opt, input);
     }
 }

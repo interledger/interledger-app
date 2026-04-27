@@ -316,3 +316,28 @@ func SetPhoneVerified(ctx context.Context, b Backends, userID string) error {
 
 	return nil
 }
+
+func UpdateUserPhone(ctx context.Context, b Backends, userID string, phone string) error {
+	// Required for kratos to use admin server
+	ctx = context.WithValue(ctx, client.ContextServerIndex, 1)
+
+	identity, _, err := b.Kratos().IdentityApi.GetIdentity(ctx, userID).Execute()
+	if err != nil {
+		return fmt.Errorf("%w %s", user.ErrInternal, err)
+	}
+
+	traits, ok := identity.Traits.(map[string]any)
+	if !ok {
+		return fmt.Errorf("%w: invalid traits format", user.ErrInternal)
+	}
+	traits["phone"] = phone
+	traits["phoneVerified"] = false
+
+	update := client.UpdateIdentityBody{Traits: traits}
+	_, _, err = b.Kratos().IdentityApi.UpdateIdentity(ctx, userID).UpdateIdentityBody(update).Execute()
+	if err != nil {
+		return fmt.Errorf("%w %s", user.ErrInternal, err)
+	}
+
+	return nil
+}

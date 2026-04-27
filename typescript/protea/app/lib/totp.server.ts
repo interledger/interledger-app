@@ -118,6 +118,7 @@ export async function withAAL2Guard(
  */
 export const NON_PHONE_CONFIRMED_ROUTES = [
   '/phone-confirmation',
+  '/settings/phone',
   '/totp/two-factor-authentication',
   '/totp/challenge',
   '/login',

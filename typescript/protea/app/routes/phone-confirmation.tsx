@@ -8,13 +8,15 @@ import {
   useFetcher,
   useLoaderData
 } from 'react-router'
-import type { ApplicationProps } from '~/components'
+import type { ApplicationProps, PhoneAutocompleteOptions } from '~/components'
 import {
   Button,
   Card,
   CardContent,
+  ChangePhoneForm,
   Icon,
   Layouts,
+  TextButton,
   TextField
 } from '~/components'
 import { Label } from '~/components/Label'
@@ -28,6 +30,7 @@ import { getSessionTraits, getUserSession } from '~/lib/kratos/session.server'
 import { mergeMeta } from '~/lib/meta'
 import { RateLimitKeys, getKey, rateLimit } from '~/lib/rateLimit.server'
 import { useCountdown } from '~/lib/useCountdown'
+import styles from '~/styles/flags.css?url'
 import type { Route } from './+types/phone-confirmation'
 
 const RESEND_DELAY = 60 * 1000 // 1 minute
@@ -35,16 +38,24 @@ const RESEND_DELAY = 60 * 1000 // 1 minute
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await getUserSession(request)
   const traits = getSessionTraits(session)
-  const { phone } = traits
+  const { phone, countryCode } = traits
 
   if (traits.phoneVerified) {
     throw redirect('/wallet-address')
   }
 
-  const len = phone.length
-  const phoneMask = phone.substring(len - 4, len).padStart(len, '*')
+  const countriesResponse = await grpc.getCountries(request, {})
+  if (isConnectError(countriesResponse)) throw countriesResponse.errorResponse
 
-  return jsonWithCSRF(request, { phoneMask })
+  return jsonWithCSRF(request, {
+    phone,
+    countryCode,
+    countries: countriesResponse.countries
+  })
+}
+
+export function links() {
+  return [{ rel: 'stylesheet', href: styles }]
 }
 
 export const handle: ApplicationProps = {
@@ -65,10 +76,14 @@ export const meta = mergeMeta(() => [
 
 export default function Page() {
   const actionData = useActionData<typeof action>()
-  const { csrfToken, phoneMask } = useLoaderData<typeof loader>()
+  const { csrfToken, phone, countryCode, countries } =
+    useLoaderData<typeof loader>()
   const resendFetcher = useFetcher()
+  const updateFetcher = useFetcher()
   const { start, isActive, remainingSeconds } = useCountdown()
   const [otpSent, setOtpSent] = useState(false)
+  const [currentPhone, setCurrentPhone] = useState(phone)
+  const [showChangePhone, setShowChangePhone] = useState(false)
 
   // Start countdown after a successful send/resend
   useEffect(() => {
@@ -77,6 +92,16 @@ export default function Page() {
       start(RESEND_DELAY)
     }
   }, [resendFetcher.data, start])
+
+  // After phone update: refresh displayed number, hide form, show OTP field
+  useEffect(() => {
+    if (updateFetcher.data?.codeSent) {
+      setCurrentPhone(updateFetcher.data.phone)
+      setShowChangePhone(false)
+      setOtpSent(true)
+      start(RESEND_DELAY)
+    }
+  }, [updateFetcher.data, start])
 
   const isResendDisabled =
     (otpSent && isActive) || resendFetcher.state !== 'idle'
@@ -106,10 +131,32 @@ export default function Page() {
           <p>Enter the six digit code sent to your mobile number.</p>
         </CardContent>
         <Label className='mt-2'>Your mobile phone number</Label>
-        <div className='mt-1 flex space-x-2 rounded-xl bg-nav p-3 text-medium'>
-          <Icon>phone_android</Icon>
-          <span>{phoneMask}</span>
+        <div className='mt-1 flex items-center justify-between rounded-xl bg-nav p-3 text-medium'>
+          <div className='flex space-x-2'>
+            <Icon>phone_android</Icon>
+            <span>{currentPhone}</span>
+          </div>
+          {!showChangePhone && (
+            <TextButton
+              type='button'
+              className='text-sm'
+              onClick={() => setShowChangePhone(true)}
+            >
+              Change
+            </TextButton>
+          )}
         </div>
+        {showChangePhone && (
+          <ChangePhoneForm
+            fetcher={updateFetcher}
+            csrfToken={csrfToken}
+            defaultCountry={countryCode}
+            countries={countries as PhoneAutocompleteOptions[]}
+            action='/phone-confirmation'
+            onCancel={() => setShowChangePhone(false)}
+            className='mt-3'
+          />
+        )}
         {otpSent && (
           <TextField
             id='otp'
@@ -130,23 +177,25 @@ export default function Page() {
           Verify
         </Button>
       )}
-      <resendFetcher.Form
-        method='post'
-        action='/phone-confirmation'
-        className='mt-2'
-      >
-        <input type='hidden' name='intent' value='resend' />
-        <input type='hidden' name='csrf_token' value={csrfToken} />
-        <Button type='submit' disabled={isResendDisabled} className='w-full'>
-          {!otpSent
-            ? resendFetcher.state !== 'idle'
-              ? 'Sending...'
-              : 'Send code'
-            : isActive
-              ? `Resend in ${remainingSeconds}s`
-              : 'Resend code'}
-        </Button>
-      </resendFetcher.Form>
+      {!showChangePhone && (
+        <resendFetcher.Form
+          method='post'
+          action='/phone-confirmation'
+          className='mt-2'
+        >
+          <input type='hidden' name='intent' value='resend' />
+          <input type='hidden' name='csrf_token' value={csrfToken} />
+          <Button type='submit' disabled={isResendDisabled} className='w-full'>
+            {!otpSent
+              ? resendFetcher.state !== 'idle'
+                ? 'Sending...'
+                : 'Send code'
+              : isActive
+                ? `Resend in ${remainingSeconds}s`
+                : 'Resend code'}
+          </Button>
+        </resendFetcher.Form>
+      )}
     </>
   )
 }
@@ -155,43 +204,41 @@ export async function action({ request }: Route.ActionArgs) {
   const form = await request.formData()
   const intent = form.get('intent') as string
 
-  console.log('[phone-confirmation] action called, intent:', intent)
-
   await validateCSRFToken(request, form)
-
-  console.log('[phone-confirmation] CSRF passed, getting session...')
   const session = await getUserSession(request)
-  console.log(
-    '[phone-confirmation] session ok, traits:',
-    JSON.stringify(getSessionTraits(session))
-  )
   const { phone } = getSessionTraits(session)
 
+  if (intent === 'updatePhone') {
+    const newPhone = form.get('phone') as string
+
+    const updateResponse = await grpc.updateUserPhone(request, { phone: newPhone })
+    if (isConnectError(updateResponse)) {
+      if (updateResponse.code === Code.InvalidArgument) {
+        return { errors: { phone: 'Invalid phone number. Please check the format.' } }
+      }
+      throw updateResponse.errorResponse
+    }
+
+    const sendResponse = await grpc.sendPhoneVerification(request, {
+      to: newPhone
+    })
+    if (isConnectError(sendResponse)) throw sendResponse.errorResponse
+
+    return { codeSent: true, phone: newPhone }
+  }
+
   if (intent === 'resend') {
-    console.log(
-      '[phone-confirmation] resend intent, checking rate limit for phone:',
-      phone
-    )
     const rateLimitError = await rateLimit(
       getKey(RateLimitKeys.PhoneOTP, phone),
       { limit: 1, ttlSeconds: 60 }
     )
     if (rateLimitError) {
-      console.log('[phone-confirmation] rate limited:', rateLimitError)
       return { codeSent: false, error: 'rateLimited', retryAfter: 60 }
     }
 
-    console.log('[phone-confirmation] calling sendPhoneVerification...')
     const response = await grpc.sendPhoneVerification(request, { to: phone })
-    if (isConnectError(response)) {
-      console.log(
-        '[phone-confirmation] sendPhoneVerification connect error:',
-        response.code
-      )
-      throw response.errorResponse
-    }
+    if (isConnectError(response)) throw response.errorResponse
 
-    console.log('[phone-confirmation] resend success')
     return { codeSent: true }
   }
 

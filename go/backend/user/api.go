@@ -15,4 +15,5 @@ type Client interface {
 	GetTotpURL(ctx context.Context, userID string) (string, error)
 	GetUserIDForWallet(ctx context.Context, walletID string) (string, error)
 	SetPhoneVerified(ctx context.Context, userID string) error
+	UpdateUserPhone(ctx context.Context, userID string, phone string) error
 }
