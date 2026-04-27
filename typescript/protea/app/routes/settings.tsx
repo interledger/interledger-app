@@ -1,7 +1,12 @@
-import type { Route } from './+types/settings'
-import { data, redirect } from 'react-router';
-import { Outlet, useLoaderData, useLocation } from 'react-router';
-import { href } from 'react-router'
+import {
+  data,
+  href,
+  Outlet,
+  redirect,
+  useLoaderData,
+  useLocation,
+  useOutletContext
+} from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   Card,
@@ -14,8 +19,11 @@ import {
   WalletGrid
 } from '~/components'
 import { getKycStatus } from '~/data/wallet.server'
+import { isConnectError } from '~/lib/error.server'
+import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
 import { KycStatus } from '~/lib/types'
+import type { Route } from './+types/settings'
 
 export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url)
@@ -23,10 +31,20 @@ export async function loader({ request }: Route.LoaderArgs) {
   const flowId = url.searchParams.get('flow')
   if (flowId) return redirect(`${href('/recovery/password')}?flow=${flowId}`)
 
-  const { kycStatus } = await getKycStatus(request)
+  const [{ kycStatus }, linkedAccountsResponse] = await Promise.all([
+    getKycStatus(request),
+    grpc.getLinkedAccounts(request, {})
+  ])
+
+  const isDocumentsEnabled =
+    !isConnectError(linkedAccountsResponse) &&
+    linkedAccountsResponse.linkedAccounts.some(
+      (la) => la.type === 'balance' && la.receiveCurrencyCode === 'EUR'
+    )
 
   return data({
-    kycStatus
+    kycStatus,
+    isDocumentsEnabled
   })
 }
 
@@ -45,8 +63,14 @@ export const meta = mergeMeta(() => [
   }
 ])
 
+type SettingsContext = { isDocumentsEnabled: boolean }
+
+export function useSettingsContext() {
+  return useOutletContext<SettingsContext>()
+}
+
 export default function Page() {
-  const { kycStatus } = useLoaderData()
+  const { kycStatus, isDocumentsEnabled } = useLoaderData<typeof loader>()
   const location = useLocation()
   const pathSegments = location.pathname.split('/').filter(Boolean)
 
@@ -127,6 +151,20 @@ export default function Page() {
             </div>
             <Icon>navigate_next</Icon>
           </CardLink>
+          {isDocumentsEnabled && (
+            <CardLink
+              end
+              preventScrollReset
+              prefetch='intent'
+              to={href('/settings/documents')}
+            >
+              <div className='mr-auto flex space-x-3'>
+                <Icon>description</Icon>
+                <span>Documents</span>
+              </div>
+              <Icon>navigate_next</Icon>
+            </CardLink>
+          )}
         </Card>
         <Card>
           <CardHeader>
@@ -171,7 +209,7 @@ export default function Page() {
         </Card>
       </GridColumn>
       <GridColumn className='col-span-full lg:col-span-6 lg:col-start-7'>
-        <Outlet />
+        <Outlet context={{ isDocumentsEnabled } satisfies SettingsContext} />
       </GridColumn>
     </WalletGrid>
   )

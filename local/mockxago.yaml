@@ -22,6 +22,7 @@ services:
       # Webhook configuration
       WEBHOOK_URL: http://backend:8080/webhooks/xago
       WEBHOOK_SECRET: ${BACKEND_XAGO_WEBHOOK_SECRET:-xago-webhook-secret}
+      PERSONA_WEBHOOK_TOKEN: ${BACKEND_PERSONA_WEBHOOK_TOKEN:-test-persona-webhook-token}
       WEBHOOK_MIN_DELAY_SEC: '2'
       
       # API credentials
