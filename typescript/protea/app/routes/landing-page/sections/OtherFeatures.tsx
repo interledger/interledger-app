@@ -16,7 +16,7 @@ export function OtherFeatures() {
             <h2 className="text-h2 other-features-headline">
               Open standards.<br />
               Solid foundations.<br />
-              Solid foundations.
+              Intentionally simple.
             </h2>
           </div>
           <div className="other-features-right">

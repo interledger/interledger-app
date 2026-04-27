@@ -7,7 +7,7 @@
   --breakpoint-desktop: 1200px;
 
   /* Responsive Content Max Width */
-  --content-max-width: 322px; /* Default for Phone (< 809px) */
+  --content-max-width: 899px; /* Default for Phone (< 809px) */
 }
 
 @media (min-width: 810px) { /* Tablet range starts */
@@ -56,7 +56,7 @@
 
 /* PageSection wrapper layout utilities */
 .page-section-inner {
-  width: calc(100% - 80px); /* Guaranteed min 40px margin on each side */
+  width: calc(100% - 32px); /* Guaranteed min 40px margin on each side */
   max-width: var(--content-max-width);
   margin-inline: auto;
 }

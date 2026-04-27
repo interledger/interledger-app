@@ -7,7 +7,7 @@
 .other-features-banner {
   background-color: var(--section-bg-other-features);
   border-radius: var(--rounded-2xl);
-  padding: var(--padding-6xl) var(--padding-3xl);
+  padding: var(--padding-lg) var(--padding-2xl);
   display: flex;
   flex-direction: column;
   gap: var(--spacing-4xl);
