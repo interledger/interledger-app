@@ -171,7 +171,7 @@ export function Password() {
             </Router>
             ,&nbsp;
             <Router className='text-primary' to='/legal/terms-of-service'>
-              Terms of Use
+              Terms of Use&nbsp;
             </Router>
             and &nbsp;
             <Router className='text-primary' to='/legal/us/e-sign-agreement'>
