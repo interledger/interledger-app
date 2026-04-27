@@ -44,7 +44,7 @@
 
 /* Constrains children of the sticky viewport (headline, feature columns) */
 .sticky-viewport-content {
-  width: calc(100% - 80px);
+  width: calc(100% - 32px);
   max-width: var(--content-max-width);
   margin-inline: auto;
   position: relative;
