@@ -34,7 +34,7 @@
   justify-content: space-between;
   height: 100%;
   width: 100%;
-  padding: 10px 10px 10px 20px;
+  padding: var(--padding-sm) var(--padding-md);
 }
 
 /* --- Right Group (Links + Button) --------------------------------------- */

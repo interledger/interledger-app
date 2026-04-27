@@ -130,7 +130,7 @@
   top: calc(var(--nav-height) / 2 + 50% - var(--phone-height) / 2);
 }
 
-@media (max-width: 899px) {
+@media (max-width: 810px) {
   .hero-phone-container {
     top: 40vh; /* Push further down to clearcentered hero text on smaller mobile screens */
   }

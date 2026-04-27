@@ -79,7 +79,7 @@
 }
 
 .footer-links a {
-  color: var(--color-text-secondary);
+  color: var(--color-neutral-50);
   font-size: 0.875rem; /* 14px */
   text-decoration: none;
   transition: color 0.2s ease;
