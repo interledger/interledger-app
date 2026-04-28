@@ -215,25 +215,18 @@ func (sc *E2EContext) iCompletedTheKYCFlowFor(email string) error {
 		return fmt.Errorf("TOTP registration failed: %w", err)
 	}
 
-	if err := sc.iShouldBeNavigatedToTheApplicationDashboard(); err != nil {
+	currentURL := sc.page.URL()
+	if strings.Contains(currentURL, "/phone-confirmation") {
+		if err := sc.iFinishedThePhoneConfirmationWorkflow(); err != nil {
+			return fmt.Errorf("phone confirmation workflow failed: %w", err)
+		}
+	} else if err := sc.iShouldBeNavigatedToTheApplicationDashboard(); err != nil {
 		return fmt.Errorf("dashboard navigation failed: %w", err)
 	}
 
 	// 4. Create wallet address (required after signup)
-	if err := sc.iShouldBeOnTheWalletAddressCreationPage(); err != nil {
-		return fmt.Errorf("wallet address page check failed: %w", err)
-	}
-
-	if err := sc.iFillInAndSubmitTheWalletAddressFormWithAUniqueAddress(); err != nil {
-		return fmt.Errorf("fill wallet address form failed: %w", err)
-	}
-
-	if err := sc.iClickTheButtonOnTheWalletAddressForm("save"); err != nil {
-		return fmt.Errorf("click save button failed: %w", err)
-	}
-
-	if err := sc.iShouldBeNavigatedBackToTheDashboardWithReservedWalletStatus(); err != nil {
-		return fmt.Errorf("dashboard with reserved status failed: %w", err)
+	if err := sc.iFinishedTheWalletAddressCreationWorkflow(); err != nil {
+		return fmt.Errorf("wallet address workflow failed: %w", err)
 	}
 
 	// 5. Navigate to wallet activation
