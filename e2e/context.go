@@ -211,6 +211,11 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 		return sc.thatGatehubChargesDepositFee(feePercent)
 	})
 
+	// Xago deposit steps
+	ctx.Step(`^I simulate a Xago test deposit of "([^"]*)" "([^"]*)"$`, func(amount, currency string) error {
+		return sc.iSimulateXagoTestDeposit(amount, currency)
+	})
+
 	// Withdrawal steps
 	ctx.Step(`^I navigate to the withdrawal page$`, func() error { return sc.iNavigateToTheWithdrawalPage() })
 	ctx.Step(`^I withdraw "([^"]*)" "([^"]*)" via the withdrawal iframe$`, func(amount, currency string) error {

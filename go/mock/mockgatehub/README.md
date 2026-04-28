@@ -117,6 +117,14 @@ Two test users are automatically created at startup:
 | `POST` | `/transactions` | Create deposit/hosted/withdrawal transaction |
 | `GET` | `/transactions/{txID}` | Get transaction details |
 
+### Statements (`/statement/v1/`)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/statements/account-confirmation/{walletAddress}` | Get account confirmation PDF |
+| `GET` | `/statements/account-statement/{walletAddress}/{year}/{month}` | Get monthly account statement PDF |
+| `GET` | `/statements/transfer-confirmation/{transactionUUID}` | Get transfer confirmation PDF |
+
 ### Rates (`/rates/v1/`)
 
 | Method | Path | Description |
