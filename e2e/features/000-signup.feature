@@ -23,6 +23,7 @@ Feature: User Signup
     And I completed the signup workflow
     And I completed the account verification workflow
     And I finished the TOTP registration workflow
+    And I finished the phone confirmation workflow
     And I finished the wallet address creation workflow
     Then I should be navigated back to the dashboard with reserved wallet status
     And I take a screenshot "signup-complete"
@@ -33,6 +34,7 @@ Feature: User Signup
     And I completed the signup workflow
     And I completed the account verification workflow
     And I finished the TOTP registration workflow
+    And I finished the phone confirmation workflow
     And I finished the wallet address creation workflow
     Then I should be navigated back to the dashboard with reserved wallet status
     And I take a screenshot "signup-complete"
@@ -44,6 +46,7 @@ Feature: User Signup
     And I completed the signup workflow
     And I completed the account verification workflow
     And I finished the TOTP registration workflow
+    And I finished the phone confirmation workflow
     And I finished the wallet address creation workflow
     Then I should be navigated back to the dashboard with reserved wallet status
     And I should use the "pti" on-off-ramp provider

@@ -24,6 +24,7 @@ Feature: User KYC and Account Activation
     And I completed the signup workflow
     And I completed the account verification workflow
     And I finished the TOTP registration workflow
+    And I finished the phone confirmation workflow
     And I finished the wallet address creation workflow
 
     # Shows "Complete these steps to confirm your identity and activate your wallet"
@@ -45,6 +46,7 @@ Feature: User KYC and Account Activation
     And I completed the signup workflow
     And I completed the account verification workflow
     And I finished the TOTP registration workflow
+    And I finished the phone confirmation workflow
     And I finished the wallet address creation workflow
 
     # PTI embeds the KYC form directly - no "Continue" button, iframe is injected automatically
@@ -62,6 +64,7 @@ Feature: User KYC and Account Activation
     And I completed the signup workflow
     And I completed the account verification workflow
     And I finished the TOTP registration workflow
+    And I finished the phone confirmation workflow
     And I finished the wallet address creation workflow
 
     # Shows "Complete these steps to confirm your identity and activate your wallet"

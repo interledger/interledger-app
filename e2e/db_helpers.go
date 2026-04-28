@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -251,6 +252,62 @@ func (sc *E2EContext) markKratosEmailAsVerified(email string) error {
 	}
 
 	debugPrintf("✓ Marked email as verified in Kratos: %s\n", email)
+	return nil
+}
+
+// markKratosPhoneAsVerified marks the current user's phone as verified in Kratos traits.
+func (sc *E2EContext) markKratosPhoneAsVerified(email string) error {
+	kratosConnStr := "host=localhost port=5432 user=postgres password=postgres dbname=kratos sslmode=disable"
+	kratosDB, err := sql.Open("postgres", kratosConnStr)
+	if err != nil {
+		return fmt.Errorf("markKratosPhoneAsVerified: could not connect to Kratos DB: %w", err)
+	}
+	defer kratosDB.Close()
+
+	identityID, err := sc.lookupKratosIdentityByEmail(email)
+	if err != nil {
+		return fmt.Errorf("markKratosPhoneAsVerified: failed to resolve identity for %s: %w", email, err)
+	}
+
+	var traitsRaw []byte
+	if err := kratosDB.QueryRow(`SELECT traits FROM identities WHERE id = $1`, identityID).Scan(&traitsRaw); err != nil {
+		return fmt.Errorf("markKratosPhoneAsVerified: failed to load traits for %s: %w", identityID, err)
+	}
+
+	var traits map[string]interface{}
+	if err := json.Unmarshal(traitsRaw, &traits); err != nil {
+		return fmt.Errorf("markKratosPhoneAsVerified: failed to decode traits for %s: %w", identityID, err)
+	}
+
+	phone, hasPhone := traits["phone"].(string)
+	if !hasPhone || strings.TrimSpace(phone) == "" {
+		return fmt.Errorf("markKratosPhoneAsVerified: no phone trait found for %s", identityID)
+	}
+
+	traits["phoneVerified"] = true
+	updatedTraits, err := json.Marshal(traits)
+	if err != nil {
+		return fmt.Errorf("markKratosPhoneAsVerified: failed to encode traits for %s: %w", identityID, err)
+	}
+
+	result, err := kratosDB.Exec(`
+		UPDATE identities
+		SET traits = $2, updated_at = NOW()
+		WHERE id = $1
+	`, identityID, updatedTraits)
+	if err != nil {
+		return fmt.Errorf("markKratosPhoneAsVerified: failed to update traits for %s: %w", identityID, err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("markKratosPhoneAsVerified: could not check rows affected: %w", err)
+	}
+	if rowsAffected == 0 {
+		return fmt.Errorf("markKratosPhoneAsVerified: no identity row updated for %s", identityID)
+	}
+
+	debugPrintf("✓ Marked phone as verified in Kratos: %s (%s)\n", phone, identityID)
 	return nil
 }
 

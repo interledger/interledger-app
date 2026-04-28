@@ -111,6 +111,7 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I completed the signup workflow$`, func() error { return sc.iCompletedTheSignupWorkflow() })
 	ctx.Step(`^I completed the account verification workflow$`, func() error { return sc.iCompletedTheAccountVerificationWorkflow() })
 	ctx.Step(`^I finished the TOTP registration workflow$`, func() error { return sc.iFinishedTheTOTPRegistrationWorkflow() })
+	ctx.Step(`^I finished the phone confirmation workflow$`, func() error { return sc.iFinishedThePhoneConfirmationWorkflow() })
 	ctx.Step(`^I finished the wallet address creation workflow$`, func() error { return sc.iFinishedTheWalletAddressCreationWorkflow() })
 	ctx.Step(`^I fill in "([^"]*)" with my "([^"]*)"$`, func(fieldName, fieldKey string) error { return sc.iFillInWithMy(fieldName, fieldKey) })
 	ctx.Step(`^I fill in "([^"]*)" with "([^"]*)" prefixed with the random identifier$`, func(fieldName, fieldKey string) error { return sc.iFillInWithPrefixed(fieldName, fieldKey) })

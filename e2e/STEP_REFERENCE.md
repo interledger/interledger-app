@@ -451,15 +451,15 @@ Feature: Signup Form Validation
     When I fill in "first name" with "John"
     And I fill in "email" with "john@example.com"
     And I select "Germany" from the country dropdown
+    And I fill in "phone" with "+493012345678"
     And I click the "Continue" button
     Then I should be on step 2
-    When I fill in "phone" with "+493012345678"
-    And I try to fill in "password" with "SecurePass2025!"
-    And I click the "Continue" button
-    Then I take a screenshot "signup-step-3"
+    When I try to fill in "password" with "SecurePass2025!"
+    And I take a screenshot "signup-step-2-password"
 ```
 - **Time:** ~30 seconds
 - **Coverage:** Signup form flow and validation
+- **Note:** Phone is now on step 1 (About form), alongside name/email/country. Step 2 is the password form.
 
 ## Tips & Best Practices
 
