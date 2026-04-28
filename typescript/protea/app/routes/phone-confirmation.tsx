@@ -84,6 +84,10 @@ export default function Page() {
   const [otpSent, setOtpSent] = useState(false)
   const [currentPhone, setCurrentPhone] = useState(phone)
   const [showChangePhone, setShowChangePhone] = useState(false)
+  const otpError =
+    actionData?.errors && 'otp' in actionData.errors
+      ? actionData.errors.otp
+      : undefined
 
   // Start countdown after a successful send/resend
   useEffect(() => {
@@ -165,10 +169,10 @@ export default function Page() {
             name='otp'
             type='number'
             className='mt-4'
-            aria-invalid={Boolean(actionData?.errors?.otp) || undefined}
-            aria-describedby={actionData?.errors?.otp ? 'otp-error' : undefined}
+            aria-invalid={Boolean(otpError) || undefined}
+            aria-describedby={otpError ? 'otp-error' : undefined}
             required
-            errorMessage={actionData?.errors?.otp}
+            errorMessage={otpError}
           />
         )}
       </Card>

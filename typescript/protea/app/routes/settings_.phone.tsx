@@ -73,14 +73,28 @@ export default function Page() {
   const { start, isActive, remainingSeconds } = useCountdown()
   const [otpSent, setOtpSent] = useState(false)
   const [newPhone, setNewPhone] = useState<string | null>(null)
+  const updateCodeSent =
+    updateFetcher.data &&
+    'codeSent' in updateFetcher.data &&
+    Boolean(updateFetcher.data.codeSent)
+  const updatedPhone =
+    updateFetcher.data &&
+      'phone' in updateFetcher.data &&
+      typeof updateFetcher.data.phone === 'string'
+      ? updateFetcher.data.phone
+      : undefined
+  const otpError =
+    actionData?.errors && 'otp' in actionData.errors
+      ? actionData.errors.otp
+      : undefined
 
   useEffect(() => {
-    if (updateFetcher.data?.codeSent) {
-      setNewPhone(updateFetcher.data.phone)
+    if (updateCodeSent && updatedPhone) {
+      setNewPhone(updatedPhone)
       setOtpSent(true)
       start(RESEND_DELAY)
     }
-  }, [updateFetcher.data, start])
+  }, [start, updateCodeSent, updatedPhone])
 
   useEffect(() => {
     if (resendFetcher.data?.codeSent) {
@@ -153,12 +167,10 @@ export default function Page() {
               name='otp'
               type='number'
               className='mt-4'
-              aria-invalid={Boolean(actionData?.errors?.otp) || undefined}
-              aria-describedby={
-                actionData?.errors?.otp ? 'otp-error' : undefined
-              }
+              aria-invalid={Boolean(otpError) || undefined}
+              aria-describedby={otpError ? 'otp-error' : undefined}
               required
-              errorMessage={actionData?.errors?.otp}
+              errorMessage={otpError}
             />
           </>
         )}
