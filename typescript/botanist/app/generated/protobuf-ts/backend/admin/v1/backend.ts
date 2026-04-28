@@ -1118,7 +1118,7 @@ export interface GetWalletXagoBalanceResponse {
  */
 export interface Amount {
     /**
-     * @generated from protobuf field: uint64 amount = 1;
+     * @generated from protobuf field: int64 amount = 1;
      */
     amount: string;
     /**
@@ -4766,7 +4766,7 @@ export const GetWalletXagoBalanceResponse = new GetWalletXagoBalanceResponse$Typ
 class Amount$Type extends MessageType<Amount> {
     constructor() {
         super("backend.admin.v1.Amount", [
-            { no: 1, name: "amount", kind: "scalar", T: 4 /*ScalarType.UINT64*/ },
+            { no: 1, name: "amount", kind: "scalar", T: 3 /*ScalarType.INT64*/ },
             { no: 2, name: "asset", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "assetScale", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
             { no: 4, name: "country", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
@@ -4784,8 +4784,8 @@ class Amount$Type extends MessageType<Amount> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* uint64 amount */ 1:
-                    message.amount = reader.uint64().toString();
+                case /* int64 amount */ 1:
+                    message.amount = reader.int64().toString();
                     break;
                 case /* string asset */ 2:
                     message.asset = reader.string();
@@ -4808,9 +4808,9 @@ class Amount$Type extends MessageType<Amount> {
         return message;
     }
     internalBinaryWrite(message: Amount, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* uint64 amount = 1; */
+        /* int64 amount = 1; */
         if (message.amount !== "0")
-            writer.tag(1, WireType.Varint).uint64(message.amount);
+            writer.tag(1, WireType.Varint).int64(message.amount);
         /* string asset = 2; */
         if (message.asset !== "")
             writer.tag(2, WireType.LengthDelimited).string(message.asset);

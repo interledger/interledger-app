@@ -9,6 +9,7 @@
 - [Wallets vs Accounts](wallets-accounts-addresses-guide.md) — Wallet activation architecture
 - [Payments Guide](payments-guide.md) — How KYC and wallet setup enable transactions
 - [Logging Policy](logging-reference.md) — What information can be safely logged during signup
+- [Environment Variables](env-variables.md) — Signup/auth runtime configuration (Kratos, Twilio, and related settings)
 
 **Quick Navigation:**
 
@@ -104,6 +105,7 @@ sequenceDiagram
     K-->>FE: Registration complete
     FE->>BE: CompleteSignup gRPC
     BE->>DB: UPDATE signups SET user_id
+    BE->>DB: INSERT agreement_signatures (when SIGNUP_AGREEMENT_IDS set)
     BE-->>FE: success
     end
 ```

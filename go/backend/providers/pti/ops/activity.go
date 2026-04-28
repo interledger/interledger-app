@@ -473,7 +473,7 @@ func (a *Activity) CreatePtiBankAccount(ctx context.Context, args pti.CreateBank
 		AccountBankName: args.Bank,
 	})
 	if err != nil {
-		return nil, err
+		return nil, temporal.NewNonRetryableApplicationError("create pti bank account fail, invalid bank account numbers", "ErrBankAccountInvalid", err)
 	}
 
 	return bank, nil
@@ -793,7 +793,7 @@ func (a *Activity) ReservePTIBalance(ctx context.Context, walletID, id string) e
 	}
 
 	timeout := time.Hour * 24 * 365 // Pending transfers must have a timeout.
-	var fee uint64 = 0
+	var fee int64 = 0
 	if tx.ProviderFee != nil {
 		fee = tx.ProviderFee.Value
 	}

@@ -313,7 +313,6 @@ type (
 		Status                     string  `json:"status"`
 		StatusReasonCode           *string `json:"statusReasonCode"`
 		LockLevel                  *string `json:"lockLevel"`
-		ExpiryDate                 string  `json:"expiryDate"`
 		RelationType               string  `json:"relationType"`
 		MembershipFeeEffectiveDate *string `json:"membershipFeeEffectiveDate"`
 		IsFirstTimeLock            bool    `json:"isFirstTimeLock"`

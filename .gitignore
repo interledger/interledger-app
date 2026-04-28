@@ -35,3 +35,5 @@ coverage.out
 # AI
 openspec
 .claude
+.agent
+CLAUDE.md

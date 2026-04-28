@@ -19,6 +19,8 @@ import (
 	"gitlab.com/fynbos/backend/kyc"
 
 	pb "gitlab.com/fynbos/proto/backend/v1"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type validateIndividualKYC struct {
@@ -39,6 +41,15 @@ func (s *rpcService) GetKYCProviderWidget(ctx context.Context, req *pb.GetKYCPro
 	wallet, err := s.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	kycStatus, err := s.b.KYC().GetKYCStatus(ctx, wallet.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	if kycStatus != kyc.StatusUnknown && kycStatus != kyc.StatusPending && kycStatus != kyc.StatusDocumentsRequired {
+		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("KYC widget not available for status: %s", kycStatus.String()))
 	}
 
 	if _, isEU := country.EUCountries[wallet.Country]; isEU {
@@ -94,15 +105,6 @@ func (s *rpcService) GetKYCProviderWidget(ctx context.Context, req *pb.GetKYCPro
 	inq, err := wrappedOperation()
 	if err != nil {
 		return nil, toGRPCError(err)
-	}
-
-	if env.IsLocal() {
-		return &pb.KYCProviderWidget{
-			Provider: "local",
-			PersonaInquiry: &pb.KYCPersonaInquiryResponse{
-				Id: inq.ID,
-			},
-		}, nil
 	}
 
 	return &pb.KYCProviderWidget{
@@ -375,7 +377,7 @@ func (s *rpcService) SetKYCStatusPending(ctx context.Context, req *pb.Empty) (*p
 		return nil, toGRPCError(err)
 	}
 
-	if kycStatus != kyc.StatusUnknown {
+	if kycStatus != kyc.StatusUnknown && kycStatus != kyc.StatusDocumentsRequired {
 		return &pb.Empty{}, nil
 	}
 

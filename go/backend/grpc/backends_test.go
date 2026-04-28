@@ -14,7 +14,6 @@ import (
 
 	"gitlab.com/fynbos/backend/rafiki"
 
-	"gitlab.com/fynbos/backend/discord"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/slack"
 
@@ -102,10 +101,6 @@ func (t TestContainer) Rafiki() rafiki.Client {
 }
 
 func (t TestContainer) Slack() slack.Client {
-	return nil
-}
-
-func (t TestContainer) Discord() discord.Client {
 	return nil
 }
 
