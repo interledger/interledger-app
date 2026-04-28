@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -11,8 +10,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/fynbos/mock/mockxago/internal/logger"
-	"gitlab.com/fynbos/mock/mockxago/internal/models"
-	"gitlab.com/fynbos/mock/mockxago/internal/storage"
 	"gitlab.com/fynbos/mock/mockxago/web"
 )
 
@@ -223,35 +220,11 @@ func (h *Handler) PersonaInquirySubmit(w http.ResponseWriter, r *http.Request) {
 		address = "123 Main Street"
 	}
 
-	ctx := r.Context()
-	subAccount, err := h.store.GetSubAccountByWalletID(ctx, inquiryID)
-	if err != nil {
-		if !errors.Is(err, storage.ErrSubAccountNotFound) {
-			logger.Errorf("Failed to look up sub-account for inquiry %s: %v", inquiryID, err)
-			h.sendError(w, http.StatusInternalServerError, "storage_error", "Failed to retrieve account")
-			return
-		}
-		subAccount = &models.SubAccount{
-			ID:        generateID(),
-			WalletID:  inquiryID,
-			AccountID: generateID(),
-		}
-	}
-
-	subAccount.FirstName = firstName
-	subAccount.LastName = lastName
-	subAccount.DateOfBirth = dob
-	subAccount.PhysicalAddress = address
-
-	if err := h.store.SaveSubAccount(ctx, subAccount); err != nil {
-		logger.Errorf("Failed to save sub-account from persona submit: %v", err)
+	if err := h.saveKYCAndFireWebhooks(r.Context(), inquiryID, firstName, lastName, dob, address); err != nil {
+		logger.Errorf("Failed to save KYC for inquiry %s: %v", inquiryID, err)
 		h.sendError(w, http.StatusInternalServerError, "save_error", "Failed to save account")
 		return
 	}
-
-	// Fire the Persona webhook chain (inquiry.approved → account.tag-added) so that
-	// the backend's SetKYCStatusWorkflow starts and the Xago sub-account gets created.
-	go h.sendPersonaInquiryApproved(inquiryID)
 
 	// Return success response
 	h.sendJSON(w, http.StatusOK, map[string]string{

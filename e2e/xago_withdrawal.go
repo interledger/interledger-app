@@ -67,10 +67,11 @@ func (sc *E2EContext) iSetTheWithdrawAmountTo(amount string) error {
 
 	amountInput := sc.page.Locator("input[name='amount'], input#amount, input[placeholder*='amount' i]")
 	if count, _ := amountInput.Count(); count > 0 {
-		if err := amountInput.First().Fill(amount); err == nil {
-			debugPrintf("✓ Set withdraw amount: %s\n", amount)
-			return nil
+		if err := amountInput.First().Fill(amount); err != nil {
+			return fmt.Errorf("failed to fill withdraw amount: %w", err)
 		}
+		debugPrintf("✓ Set withdraw amount: %s\n", amount)
+		return nil
 	}
 
 	return fmt.Errorf("could not find withdraw amount input")
@@ -82,10 +83,11 @@ func (sc *E2EContext) iSelectFirstAvailableLinkedAccountToWithdrawTo() error {
 
 	accountOption := sc.page.Locator("[data-testid='withdraw-account-option'], input[type='radio']").First()
 	if count, _ := accountOption.Count(); count > 0 {
-		if err := accountOption.Click(); err == nil {
-			debugPrintln("✓ Selected first linked account")
-			return nil
+		if err := accountOption.Click(); err != nil {
+			return fmt.Errorf("failed to click linked account option: %w", err)
 		}
+		debugPrintln("✓ Selected first linked account")
+		return nil
 	}
 
 	return fmt.Errorf("could not find linked account options for withdrawal")
@@ -97,10 +99,11 @@ func (sc *E2EContext) iSetTheWithdrawNoteTo(note string) error {
 
 	noteInput := sc.page.Locator("input[name='reference'], input[name='note'], input[placeholder*='note' i], input[placeholder*='reference' i]")
 	if count, _ := noteInput.Count(); count > 0 {
-		if err := noteInput.First().Fill(note); err == nil {
-			debugPrintf("✓ Set withdraw note: %s\n", note)
-			return nil
+		if err := noteInput.First().Fill(note); err != nil {
+			return fmt.Errorf("failed to fill withdraw note: %w", err)
 		}
+		debugPrintf("✓ Set withdraw note: %s\n", note)
+		return nil
 	}
 
 	return fmt.Errorf("could not find withdraw note/reference input")

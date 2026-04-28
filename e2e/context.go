@@ -221,6 +221,9 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^my Xago specific deposit instructions should be displayed to me$`, func() error {
 		return sc.myXagoSpecificDepositInstructionsShouldBeDisplayedToMe()
 	})
+	ctx.Step(`^I click the Test Deposit button$`, func() error {
+		return sc.iClickTheXagoTestDepositButton()
+	})
 	ctx.Step(`^I simulate a "([^"]*)" "ZAR" EFT payment to Xago$`, func(amount string) error {
 		return sc.iSimulateXagoTestDeposit(amount, "ZAR")
 	})

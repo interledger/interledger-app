@@ -50,7 +50,7 @@ Feature: Peer-to-Peer Payments
     And I navigate to the send payment page
     Then I should see the payments page
 
-  @p2p-payment @quick @gatehub
+  @p2p-payment @gatehub
   Scenario: Successfully send payment from one Germany based user to another Germany based user
     # Set up sender user with KYC
     Given the details of 'sender' are

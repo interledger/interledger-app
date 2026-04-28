@@ -100,13 +100,8 @@ func getMockXagoAuthToken() (string, error) {
 // getXagoAccountIDByEmail retrieves the Xago sub-account account_id for a user by email.
 // It queries the xago_sub_accounts table via the user's wallet.
 func (sc *E2EContext) getXagoAccountIDByEmail(email string) (string, error) {
-	if sc.db == nil {
-		connStr := "host=localhost port=5432 user=postgres password=postgres dbname=backend sslmode=disable"
-		db, err := sql.Open("postgres", connStr)
-		if err != nil {
-			return "", fmt.Errorf("getXagoAccountIDByEmail: failed to open db: %w", err)
-		}
-		sc.db = db
+	if err := sc.ensureDB(); err != nil {
+		return "", fmt.Errorf("getXagoAccountIDByEmail: %w", err)
 	}
 
 	kratosID := sc.getKratosUserIDByEmail(email)
@@ -226,6 +221,28 @@ func (sc *E2EContext) iSimulateXagoTestDeposit(amount, currency string) error {
 // deposit details so the instructions are shown directly on arrival.
 func (sc *E2EContext) iInitiateDepositForXagoLinkedAccount() error {
 	return sc.iNavigateToTheDepositPage()
+}
+
+// iClickTheXagoTestDepositButton clicks the "Test Deposit" button on the EFT
+// deposit instructions page. This exercises the frontend UI path through the
+// backend's DepositTestXago gRPC handler, which posts a hardcoded 200 ZAR
+// deposit to MockXago.
+func (sc *E2EContext) iClickTheXagoTestDepositButton() error {
+	debugPrintln("\n🖱️  Clicking Test Deposit button on deposit page...")
+
+	if err := sc.myXagoSpecificDepositInstructionsShouldBeDisplayedToMe(); err != nil {
+		return fmt.Errorf("iClickTheXagoTestDepositButton: EFT instructions not shown: %w", err)
+	}
+
+	btn := sc.page.Locator("button:has-text('Test Deposit')")
+	if err := btn.Click(); err != nil {
+		_ = sc.iTakeAScreenshot("xago-test-deposit-button-missing")
+		return fmt.Errorf("iClickTheXagoTestDepositButton: failed to click button: %w", err)
+	}
+
+	_ = sc.iTakeAScreenshot("xago-test-deposit-clicked")
+	debugPrintln("   ✓ Clicked Test Deposit button")
+	return nil
 }
 
 // myXagoSpecificDepositInstructionsShouldBeDisplayedToMe asserts that the EFT

@@ -216,13 +216,8 @@ func (sc *E2EContext) iShouldHaveALinkedBalanceAccountForProvider(provider strin
 		return fmt.Errorf("provider cannot be empty")
 	}
 
-	if sc.db == nil {
-		connStr := "host=localhost port=5432 user=postgres password=postgres dbname=backend sslmode=disable"
-		db, err := sql.Open("postgres", connStr)
-		if err != nil {
-			return fmt.Errorf("failed to open db: %w", err)
-		}
-		sc.db = db
+	if err := sc.ensureDB(); err != nil {
+		return fmt.Errorf("iShouldHaveALinkedBalanceAccountForProvider: %w", err)
 	}
 
 	email, err := sc.getCurrentUserEmail()
@@ -264,13 +259,8 @@ func (sc *E2EContext) iShouldUseOnOffRampProvider(provider string) error {
 		return fmt.Errorf("provider cannot be empty")
 	}
 
-	if sc.db == nil {
-		connStr := "host=localhost port=5432 user=postgres password=postgres dbname=backend sslmode=disable"
-		db, err := sql.Open("postgres", connStr)
-		if err != nil {
-			return fmt.Errorf("failed to open db: %w", err)
-		}
-		sc.db = db
+	if err := sc.ensureDB(); err != nil {
+		return fmt.Errorf("iShouldUseOnOffRampProvider: %w", err)
 	}
 
 	email, err := sc.getCurrentUserEmail()
