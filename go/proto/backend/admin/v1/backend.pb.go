@@ -3656,7 +3656,7 @@ func (x *GetWalletXagoBalanceResponse) GetAvailable() *Amount {
 
 type Amount struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Amount        uint64                 `protobuf:"varint,1,opt,name=amount,proto3" json:"amount,omitempty"`
+	Amount        int64                  `protobuf:"varint,1,opt,name=amount,proto3" json:"amount,omitempty"`
 	Asset         string                 `protobuf:"bytes,2,opt,name=asset,proto3" json:"asset,omitempty"`
 	AssetScale    int32                  `protobuf:"varint,3,opt,name=assetScale,proto3" json:"assetScale,omitempty"`
 	Country       string                 `protobuf:"bytes,4,opt,name=country,proto3" json:"country,omitempty"`
@@ -3694,7 +3694,7 @@ func (*Amount) Descriptor() ([]byte, []int) {
 	return file_backend_admin_v1_backend_proto_rawDescGZIP(), []int{55}
 }
 
-func (x *Amount) GetAmount() uint64 {
+func (x *Amount) GetAmount() int64 {
 	if x != nil {
 		return x.Amount
 	}
@@ -4027,7 +4027,7 @@ const file_backend_admin_v1_backend_proto_rawDesc = "" +
 	"\abalance\x18\x01 \x01(\v2\x18.backend.admin.v1.AmountR\abalance\x126\n" +
 	"\tavailable\x18\x02 \x01(\v2\x18.backend.admin.v1.AmountR\tavailable\"p\n" +
 	"\x06Amount\x12\x16\n" +
-	"\x06amount\x18\x01 \x01(\x04R\x06amount\x12\x14\n" +
+	"\x06amount\x18\x01 \x01(\x03R\x06amount\x12\x14\n" +
 	"\x05asset\x18\x02 \x01(\tR\x05asset\x12\x1e\n" +
 	"\n" +
 	"assetScale\x18\x03 \x01(\x05R\n" +
