@@ -87,7 +87,7 @@ func TestSimulateTestDeposit(t *testing.T) {
 				"currencyCode": "ZAR",
 			},
 			wantStatus:      http.StatusBadRequest,
-			wantErrContains: "amount must be greater than 0",
+			wantErrContains: "amount must be positive",
 		},
 		{
 			name:         "missing currency code returns 400",

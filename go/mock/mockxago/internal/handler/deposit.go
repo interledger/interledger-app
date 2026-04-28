@@ -28,7 +28,11 @@ func (h *Handler) SimulateTestDeposit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate required fields
-	if req.Amount <= 0 {
+	if req.Amount < 0 {
+		h.sendError(w, http.StatusBadRequest, "invalid_request", "amount must be positive")
+		return
+	}
+	if req.Amount == 0 {
 		h.sendError(w, http.StatusBadRequest, "invalid_request", "amount must be greater than 0")
 		return
 	}
