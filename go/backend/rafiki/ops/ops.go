@@ -90,7 +90,7 @@ func GetWalletAddress(ctx context.Context, b Backends, walletID string) (*rafiki
 		ID:         address.Id,
 		AssetCode:  address.Asset.Code,
 		AssetScale: address.Asset.Scale,
-		URL:        address.Url,
+		URL:        address.Address,
 	}, nil
 }
 

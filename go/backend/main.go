@@ -74,6 +74,7 @@ import (
 	xago_external "gitlab.com/fynbos/backend/providers/xago/external"
 	"gitlab.com/fynbos/backend/rafiki"
 	rafiki_client "gitlab.com/fynbos/backend/rafiki/client"
+	rafiki_external "gitlab.com/fynbos/backend/rafiki/external"
 	"gitlab.com/fynbos/backend/signup"
 	signup_client "gitlab.com/fynbos/backend/signup/client"
 	"gitlab.com/fynbos/backend/slack"
@@ -799,7 +800,11 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	b.val = validator.New()
 
 	log.Debug("initialising rafiki")
-	b.rafiki = rafiki_client.New(b)
+	b.rafiki = rafiki_client.New(b, rafiki_external.AdminSigningConfig{
+		OperatorTenantID: args.OperatorTenantID,
+		AdminAPISecret:   args.AdminAPISecret,
+		SignatureVersion: args.SignatureVersion,
+	})
 
 	log.Debug("initialising pacioli")
 	pacDB, err := otelsqlx.Connect("postgres", args.PacioliDBConString, otelsql.WithAttributes(semconv.DBSystemCockroachdb), otelsql.WithDBName("cockroachdb"))
