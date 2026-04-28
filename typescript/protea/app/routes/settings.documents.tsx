@@ -6,6 +6,7 @@ import {
   AlertBody,
   ButtonRouter,
   Card,
+  CardButton,
   CardContent,
   CardHeader,
   CardLink,
@@ -113,18 +114,13 @@ export default function Page() {
         <CardHeader>
           <CardTitle>Statements</CardTitle>
         </CardHeader>
-        <CardLink
-          end
-          preventScrollReset
-          onClick={() => setExpanded((v) => !v)}
-          to='#'
-        >
+        <CardButton onClick={() => setExpanded((v) => !v)}>
           <div className='mr-auto flex space-x-3'>
             <Icon>description</Icon>
             <span>Account statement</span>
           </div>
           <Icon>{expanded ? 'expand_less' : 'expand_more'}</Icon>
-        </CardLink>
+        </CardButton>
         {expanded && (
           <CardContent className='flex flex-col gap-4'>
             {statementDates.length === 0 ? (
