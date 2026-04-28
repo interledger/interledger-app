@@ -34,7 +34,6 @@ func (c *client) GetAccountStatement(ctx context.Context, userID, walletAddress 
 	}
 
 	q := endpoint.Query()
-	q.Add("networks", "0")
 	q.Add("gateways", c.gatewayID)
 
 	endpoint.RawQuery = q.Encode()
