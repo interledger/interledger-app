@@ -1,4 +1,3 @@
-import clsx from 'clsx'
 import { useState } from 'react'
 import { href, Navigate } from 'react-router'
 import type { ApplicationProps, SelectOptions } from '~/components'
@@ -35,20 +34,19 @@ const MONTHS: SelectOptions[] = [
   { id: '12', name: 'December' }
 ]
 
-function getStatementDates(accountCreatedAt?: string) {
+function getStatementDates(accountCreatedAt?: string): StatementDate[] {
+  if (!accountCreatedAt) return []
+
   const now = new Date()
-  const lastMonth = new Date(
+  // assumed GateHub only provides statements up to last month — subject to change
+  const lastAvailableDate = new Date(
     Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1)
   )
-  const lastAvailableMonth = lastMonth.getUTCMonth() + 1
-  const lastAvailableYear = lastMonth.getUTCFullYear()
+  const lastAvailableMonth = lastAvailableDate.getUTCMonth() + 1
+  const lastAvailableYear = lastAvailableDate.getUTCFullYear()
 
-  const firstAvailableYear = accountCreatedAt
-    ? new Date(accountCreatedAt).getUTCFullYear()
-    : lastAvailableYear
-  const firstAvailableMonth = accountCreatedAt
-    ? new Date(accountCreatedAt).getUTCMonth() + 1
-    : 1
+  const firstAvailableYear = new Date(accountCreatedAt).getUTCFullYear()
+  const firstAvailableMonth = new Date(accountCreatedAt).getUTCMonth() + 1
 
   return Array.from(
     { length: lastAvailableYear - firstAvailableYear + 1 },
@@ -62,7 +60,7 @@ function getStatementDates(accountCreatedAt?: string) {
         months: MONTHS.slice(monthStart - 1, monthEnd)
       }
     }
-  )
+  ).filter((d) => d.months.length > 0)
 }
 
 export const handle: ApplicationProps = {
@@ -79,14 +77,16 @@ export const handle: ApplicationProps = {
 export const meta = mergeMeta(() => [{ title: 'Documents' }])
 
 export default function Page() {
-  const { isDocumentsEnabled, accountCreatedAt } = useSettingsContext()
+  const { eurBalanceAccountCreatedAt } = useSettingsContext()
   const [expanded, setExpanded] = useState(false)
-  const [year, setYear] = useState<StatementDate>()
-  const [month, setMonth] = useState<SelectOptions>()
 
-  const statementDates = getStatementDates(accountCreatedAt)
+  const statementDates = getStatementDates(eurBalanceAccountCreatedAt)
 
-  if (!isDocumentsEnabled) return <Navigate to={href('/settings')} replace />
+  const [year, setYear] = useState(statementDates.at(0))
+  const [month, setMonth] = useState(statementDates.at(0)?.months.at(-1))
+
+  if (!eurBalanceAccountCreatedAt)
+    return <Navigate to={href('/settings')} replace />
 
   return (
     <>
@@ -127,7 +127,7 @@ export default function Page() {
         </CardLink>
         {expanded && (
           <CardContent className='flex flex-col gap-4'>
-            {statementDates.every((p) => p.months.length === 0) ? (
+            {statementDates.length === 0 ? (
               <Alert>
                 <Icon>error</Icon>
                 <AlertBody>No statements available yet.</AlertBody>
@@ -139,30 +139,22 @@ export default function Page() {
                     className='w-1/2 min-w-0'
                     id='year'
                     label='Year'
-                    options={statementDates.filter((p) => p.months.length > 0)}
+                    options={statementDates}
                     value={year}
                     onChange={(v) => {
-                      setYear(v as StatementDate)
-                      setMonth(undefined)
+                      const selected = v as StatementDate
+                      setYear(selected)
+                      setMonth(selected.months.at(-1))
                     }}
                   />
-                  <div
-                    className={clsx(
-                      'w-1/2 min-w-0',
-                      !year && 'cursor-not-allowed opacity-50'
-                    )}
-                  >
-                    <Select
-                      key={year?.id}
-                      className='min-w-full'
-                      id='month'
-                      label='Month'
-                      options={year?.months ?? []}
-                      value={month}
-                      disabled={!year}
-                      onChange={setMonth}
-                    />
-                  </div>
+                  <Select
+                    className='w-1/2 min-w-0'
+                    id='month'
+                    label='Month'
+                    options={year?.months ?? []}
+                    value={month}
+                    onChange={setMonth}
+                  />
                 </div>
                 {year && month && (
                   <ButtonRouter

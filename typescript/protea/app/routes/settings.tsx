@@ -44,8 +44,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   return data({
     kycStatus,
-    isDocumentsEnabled: !!eurBalanceAccount,
-    accountCreatedAt: eurBalanceAccount?.createdAt
+    eurBalanceAccount
   })
 }
 
@@ -65,8 +64,7 @@ export const meta = mergeMeta(() => [
 ])
 
 type SettingsContext = {
-  isDocumentsEnabled: boolean
-  accountCreatedAt?: string
+  eurBalanceAccountCreatedAt?: string
 }
 
 export function useSettingsContext() {
@@ -74,8 +72,7 @@ export function useSettingsContext() {
 }
 
 export default function Page() {
-  const { kycStatus, isDocumentsEnabled, accountCreatedAt } =
-    useLoaderData<typeof loader>()
+  const { kycStatus, eurBalanceAccount } = useLoaderData<typeof loader>()
   const location = useLocation()
   const pathSegments = location.pathname.split('/').filter(Boolean)
 
@@ -156,7 +153,7 @@ export default function Page() {
             </div>
             <Icon>navigate_next</Icon>
           </CardLink>
-          {isDocumentsEnabled && (
+          {eurBalanceAccount && (
             <CardLink
               end
               preventScrollReset
@@ -216,7 +213,9 @@ export default function Page() {
       <GridColumn className='col-span-full lg:col-span-6 lg:col-start-7'>
         <Outlet
           context={
-            { isDocumentsEnabled, accountCreatedAt } satisfies SettingsContext
+            {
+              eurBalanceAccountCreatedAt: eurBalanceAccount?.createdAt
+            } satisfies SettingsContext
           }
         />
       </GridColumn>
