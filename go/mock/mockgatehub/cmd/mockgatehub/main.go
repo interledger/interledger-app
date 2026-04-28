@@ -260,6 +260,9 @@ func setupRoutes(r chi.Router, h *handler.Handler) {
 
 		// Card tokenization and security
 		r.Post("/token/card-data", h.GetCardToken)
+		// Browser-facing endpoint that returns the encrypted sensitive
+		// card data. Excluded from HMAC auth in auth.PublicEndpoints.
+		r.Get("/token/card-data/data", h.GetCardData)
 
 		// Card transactions
 		r.Post("/transactions", h.CreateCardTransaction)

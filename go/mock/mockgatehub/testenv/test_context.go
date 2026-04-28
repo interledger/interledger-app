@@ -3,6 +3,7 @@
 package main
 
 import (
+	"crypto/rsa"
 	"net/http"
 	"time"
 )
@@ -49,6 +50,12 @@ type TestContext struct {
 	customerID      string
 	cardID          string
 	transactionID   string
+
+	// Card-data token scenario state. Held per-scenario (cleared in Reset)
+	// so concurrent scenarios never bleed RSA keys/tokens into each other.
+	cardDataPrivateKey *rsa.PrivateKey
+	cardDataToken      string
+	cardDataLinkHref   string
 }
 
 // Reset initializes the test context to a clean state
@@ -80,4 +87,7 @@ func (tc *TestContext) Reset() {
 	tc.lastResponse = nil
 	tc.lastResponseBody = nil
 	tc.lastError = nil
+	tc.cardDataPrivateKey = nil
+	tc.cardDataToken = ""
+	tc.cardDataLinkHref = ""
 }
