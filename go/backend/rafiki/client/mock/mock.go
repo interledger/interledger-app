@@ -21,20 +21,6 @@ type MockClient struct {
 	recorder *MockClientMockRecorder
 }
 
-// UpdateWalletAddressStatus mocks base method.
-func (m *MockClient) UpdateWalletAddressStatus(ctx context.Context, wallet rafiki.UpdateAddressStatus, status bool) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateWalletAddressStatus", ctx, wallet, status)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateWalletAddressStatus indicates an expected call of UpdateWalletAddressStatus.
-func (mr *MockClientMockRecorder) UpdateWalletAddressStatus(ctx, wallet rafiki.UpdateAddressStatus, status bool) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateWalletAddressStatus", reflect.TypeOf((*MockClient)(nil).UpdateWalletAddressStatus), ctx, wallet, status)
-}
-
 // MockClientMockRecorder is the mock recorder for MockClient.
 type MockClientMockRecorder struct {
 	mock *MockClient
@@ -209,6 +195,20 @@ func (m *MockClient) RollbackWebMonetization(ctx context.Context, paymentID stri
 func (mr *MockClientMockRecorder) RollbackWebMonetization(ctx, paymentID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RollbackWebMonetization", reflect.TypeOf((*MockClient)(nil).RollbackWebMonetization), ctx, paymentID)
+}
+
+// UpdateWalletAddressStatus mocks base method.
+func (m *MockClient) UpdateWalletAddressStatus(ctx context.Context, walletId rafiki.UpdateAddressStatus, isActive bool) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateWalletAddressStatus", ctx, walletId, isActive)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateWalletAddressStatus indicates an expected call of UpdateWalletAddressStatus.
+func (mr *MockClientMockRecorder) UpdateWalletAddressStatus(ctx, walletId, isActive interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateWalletAddressStatus", reflect.TypeOf((*MockClient)(nil).UpdateWalletAddressStatus), ctx, walletId, isActive)
 }
 
 // WebhookHandler mocks base method.

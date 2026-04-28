@@ -82,6 +82,9 @@ services:
       - TEMPORAL_URL=${BACKEND_TEMPORAL_URL:-temporal:7233}
       - RAFIKI_BACKEND_GRAPHQL_URL=${BACKEND_RAFIKI_BACKEND_GRAPHQL_URL:-http://rafiki_backend:3001/graphql}
       - RAFIKI_AUTH_GRAPHQL_URL=${BACKEND_RAFIKI_AUTH_GRAPHQL_URL:-http://rafiki_auth:3003/graphql}
+      - OPERATOR_TENANT_ID=${BACKEND_OPERATOR_TENANT_ID:-6b1f9f73-3d4b-4f52-9f2a-9f6a8d0a7c5e}
+      - ADMIN_API_SECRET=${BACKEND_ADMIN_API_SECRET:-test-admin-api-key}
+      - SIGNATURE_VERSION=${BACKEND_SIGNATURE_VERSION:-1}
 
       # Wallet rules and ledger controls
       - USD_LEDGER_ID=${BACKEND_USD_LEDGER_ID:-1}
