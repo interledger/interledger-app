@@ -206,9 +206,11 @@ export function Scaffold() {
               </button>
             )}
             <NavDrawer.ListItem to={href('/')}>Home</NavDrawer.ListItem>
-            <NavDrawer.ListItem to={href('/accounts')}>
-              Accounts
-            </NavDrawer.ListItem>
+            {features.accountsTabEnabled && (
+              <NavDrawer.ListItem to={href('/accounts')}>
+                Accounts
+              </NavDrawer.ListItem>
+            )}
             {features.manageWalletCardsEnabled && (
               <NavDrawer.ListItem to={href('/cards')}>
                 Cards
