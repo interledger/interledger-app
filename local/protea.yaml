@@ -8,9 +8,7 @@ services:
       - frontend
     restart: always
     volumes:
-      - ../typescript/protea:/app:rw
-      # Exclude node_modules from sync - use container's version
-      - /app/node_modules
+      - ../typescript/protea/app:/app/app:rw
     ports:
       - "3000:3000" # http port
       - "8002:8002" # websocket port
@@ -37,6 +35,7 @@ services:
       - KRATOS_URL=${PROTEA_KRATOS_URL:-http://kratos:4433}
       - RAFIKI_AUTH_ENDPOINT=${PROTEA_RAFIKI_AUTH_ENDPOINT:-http://rafiki_auth:3009}
       - BACKEND_GRPC_URL=${PROTEA_BACKEND_GRPC_URL:-http://backend:8443}
+      - BACKEND_HTTP_URL=${PROTEA_BACKEND_HTTP_URL:-http://backend:8080}
       - REDIS_URL=${PROTEA_REDIS_URL:-redis://redis:6379/2}
       - PAYMENT_POINTER_BASE=${PROTEA_PAYMENT_POINTER_BASE:-local.ilp.link} # todo find a way to figure the name
 
@@ -45,6 +44,12 @@ services:
       - RAFIKI_AUTH_SECRET=${PROTEA_RAFIKI_AUTH_SECRET:-my-super-secret-identity-key}
       - PUSHER_APP_KEY=${PROTEA_PUSHER_APP_KEY:-91988d6075551d29760a}
       - PUSHER_APP_CLUSTER=${PROTEA_PUSHER_APP_CLUSTER:-eu}
+
+      # Persona SDK URL override (MockXago serves Persona-compatible SDK in local)
+      - PERSONA_SDK_URL=${PROTEA_PERSONA_SDK_URL:-https://mockxago.interledger.test/v1/persona-sdk.js}
+
+      # MockXago endpoint (browser-accessible URL via Traefik for Persona iframe)
+      - MOCKXAGO_ENDPOINT=${PROTEA_MOCKXAGO_ENDPOINT:-https://mockxago.interledger.test}
 
       # Provider/runtime integrations
       - PTI_CLIENT_ID=${PROTEA_PTI_CLIENT_ID:-}

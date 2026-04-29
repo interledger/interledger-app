@@ -14,7 +14,6 @@ export const mockCards: Card[] = [
     nameOnCard: 'John Doe',
     maskedPan: '************1234',
     status: CardStatus.ACTIVE,
-    expiryDate: '1225',
     statusReasonCode: CardStatusReasonCode.UNKNOWN,
     lockLevel: CardLockLevel.UNKNOWN
   }),
@@ -24,7 +23,6 @@ export const mockCards: Card[] = [
     nameOnCard: 'Jane Smith',
     maskedPan: '************5678',
     status: CardStatus.BLOCKED,
-    expiryDate: '0826',
     statusReasonCode: CardStatusReasonCode.CLIENT_REQUESTED_LOCK,
     lockLevel: CardLockLevel.CLIENT
   }),
@@ -34,7 +32,6 @@ export const mockCards: Card[] = [
     nameOnCard: 'Ion Macelarul',
     maskedPan: '************9012',
     status: CardStatus.IN_CREATION,
-    expiryDate: '0327',
     statusReasonCode: CardStatusReasonCode.UNKNOWN,
     lockLevel: CardLockLevel.UNKNOWN
   }),
@@ -44,7 +41,6 @@ export const mockCards: Card[] = [
     nameOnCard: 'Admin Blocked Card',
     maskedPan: '************9012',
     status: CardStatus.IN_CREATION,
-    expiryDate: '0327',
     statusReasonCode: CardStatusReasonCode.UNKNOWN,
     lockLevel: CardLockLevel.ADMIN
   })

@@ -218,6 +218,12 @@ func setupRoutes(r chi.Router, h *handler.Handler) {
 		r.Post("/transactions", h.CreateTransaction)
 		r.Get("/transactions/{txID}", h.GetTransaction)
 	})
+	r.Route("/statement/v1", func(r chi.Router) {
+		logger.Info("REGISTERING /statement/v1 ROUTES")
+		r.Get("/statements/account-confirmation/{walletAddress}", h.GetAccountConfirmation)
+		r.Get("/statements/account-statement/{walletAddress}/{year}/{month}", h.GetAccountStatement)
+		r.Get("/statements/transfer-confirmation/{transactionUUID}", h.GetTransferConfirmation)
+	})
 	r.Route("/rates/v1", func(r chi.Router) {
 		logger.Info("REGISTERING /rates/v1 ROUTES")
 		r.Get("/rates/current", h.GetCurrentRates)
@@ -254,6 +260,9 @@ func setupRoutes(r chi.Router, h *handler.Handler) {
 
 		// Card tokenization and security
 		r.Post("/token/card-data", h.GetCardToken)
+		// Browser-facing endpoint that returns the encrypted sensitive
+		// card data. Excluded from HMAC auth in auth.PublicEndpoints.
+		r.Get("/token/card-data/data", h.GetCardData)
 
 		// Card transactions
 		r.Post("/transactions", h.CreateCardTransaction)

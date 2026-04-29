@@ -103,18 +103,29 @@ func (sc *E2EContext) iNavigateToTheSignupPage() error {
 
 	// Navigate directly to the signup page
 	signupURL := sc.baseURL + "/signup"
-	_, err = sc.page.Goto(signupURL, playwright.PageGotoOptions{
-		Timeout:   playwright.Float(30000),
-		WaitUntil: playwright.WaitUntilStateNetworkidle,
-	})
-	if err != nil {
-		return fmt.Errorf("failed to navigate to signup: %w", err)
+	var navErr error
+	for attempt := 0; attempt < 3; attempt++ {
+		_, navErr = sc.page.Goto(signupURL, playwright.PageGotoOptions{
+			Timeout:   playwright.Float(30000),
+			WaitUntil: playwright.WaitUntilStateNetworkidle,
+		})
+		if navErr == nil {
+			break
+		}
+		debugPrintf("   ⚠️  Navigation attempt %d failed: %v — retrying\n", attempt+1, navErr)
+		time.Sleep(2 * time.Second)
+	}
+	if navErr != nil {
+		return fmt.Errorf("failed to navigate to signup: %w", navErr)
 	}
 
 	// Ensure page is fully loaded by waiting for network
-	sc.page.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
-		State: playwright.LoadStateNetworkidle,
-	})
+	if err = sc.page.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
+		State:   playwright.LoadStateNetworkidle,
+		Timeout: playwright.Float(15000),
+	}); err != nil {
+		return fmt.Errorf("signup page did not reach network idle: %w", err)
+	}
 
 	return nil
 }
@@ -134,6 +145,8 @@ func (sc *E2EContext) iClickTheButton(buttonText string) error {
 		selector = "button:has-text('Continue'), button:has-text('Next'), button[type='submit']"
 	case "confirm", "submit":
 		selector = "button:has-text('Confirm'), button:has-text('Submit'), button[type='submit']"
+	case "order card":
+		selector = "a:has-text('Order card'), button:has-text('Order card')"
 	default:
 		selector = fmt.Sprintf("button:has-text('%s')", buttonText)
 	}
@@ -143,11 +156,14 @@ func (sc *E2EContext) iClickTheButton(buttonText string) error {
 		Timeout: playwright.Float(5000),
 	})
 	if err != nil {
-		// Timeout on final submit is expected
 		if strings.Contains(strings.ToLower(buttonText), "confirm") ||
 			strings.Contains(strings.ToLower(buttonText), "submit") {
+			// Give the UI a moment in case navigation was already triggered.
 			time.Sleep(1 * time.Second)
-			return nil
+			currentURL := sc.page.URL()
+			if !strings.Contains(currentURL, "/signup") {
+				return nil
+			}
 		}
 		return fmt.Errorf("failed to click button '%s': %w", buttonText, err)
 	}

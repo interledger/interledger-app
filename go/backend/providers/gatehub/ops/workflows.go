@@ -101,7 +101,7 @@ func CreateGatehubDeposit(ctx workflow.Context, wh DepositWebhook) (string, erro
 	}
 
 	//get transaction and fee from it
-	var providerFeeValue uint64
+	var providerFeeValue int64
 	args := &FeeFromGhArgs{UserID: wh.UserID, TrxID: wh.Data.TrxID}
 	err = workflow.ExecuteActivity(ctx, a.GetFeeFromGatehubTrasaction, args).Get(ctx, &providerFeeValue)
 	if err != nil {
@@ -341,7 +341,7 @@ func BackfillAccountWorkflow(ctx workflow.Context, walletID string) error {
 
 	logger := workflow.GetLogger(ctx)
 	logger.Info("Backfill gatehub account.")
-	
+
 	// The activity will check if the config has SendingUserID set
 	var externalID string
 	err := workflow.ExecuteActivity(ctx, a.CheckIfBackfillWasDone, walletID).Get(ctx, &externalID)

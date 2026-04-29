@@ -1,6 +1,7 @@
 package geo
 
 import (
+	"encoding/json"
 	"math/big"
 	"testing"
 
@@ -226,6 +227,72 @@ func TestAssetToProtoGeoV1(t *testing.T) {
 				t.Errorf("ToProtoGeoV1().Scale = %v, want %v", pb.Scale, tt.asset.Scale())
 			}
 		})
+	}
+}
+
+func TestAssetMarshalJSON(t *testing.T) {
+	cases := []struct {
+		asset Asset
+		want  string
+	}{
+		{USD(), `"USD"`},
+		{EUR(), `"EUR"`},
+		{JPY(), `"JPY"`},
+	}
+	for _, tc := range cases {
+		data, err := json.Marshal(tc.asset)
+		if err != nil {
+			t.Errorf("MarshalJSON(%s) error: %v", tc.asset.Code(), err)
+			continue
+		}
+		if string(data) != tc.want {
+			t.Errorf("MarshalJSON(%s) = %s, want %s", tc.asset.Code(), data, tc.want)
+		}
+	}
+}
+
+func TestAssetUnmarshalJSON(t *testing.T) {
+	cases := []struct {
+		input    string
+		wantCode string
+		wantErr  bool
+	}{
+		{`"USD"`, "USD", false},
+		{`"EUR"`, "EUR", false},
+		{`"JPY"`, "JPY", false},
+		{`"XXX"`, "", true},  // unsupported
+		{`"usd"`, "", true},  // case-sensitive
+		{`123`, "", true},    // not a string
+		{`""`, "", true},     // empty code
+	}
+	for _, tc := range cases {
+		var a Asset
+		err := json.Unmarshal([]byte(tc.input), &a)
+		if (err != nil) != tc.wantErr {
+			t.Errorf("UnmarshalJSON(%s) error = %v, wantErr %v", tc.input, err, tc.wantErr)
+			continue
+		}
+		if err == nil && a.Code() != tc.wantCode {
+			t.Errorf("UnmarshalJSON(%s) code = %s, want %s", tc.input, a.Code(), tc.wantCode)
+		}
+	}
+}
+
+func TestAssetRoundTripJSON(t *testing.T) {
+	for _, asset := range AllAssets() {
+		data, err := json.Marshal(asset)
+		if err != nil {
+			t.Errorf("MarshalJSON(%s) error: %v", asset.Code(), err)
+			continue
+		}
+		var got Asset
+		if err := json.Unmarshal(data, &got); err != nil {
+			t.Errorf("UnmarshalJSON(%s) error: %v", asset.Code(), err)
+			continue
+		}
+		if !got.Equal(asset) {
+			t.Errorf("round-trip(%s): got %s", asset.Code(), got.Code())
+		}
 	}
 }
 

@@ -1,6 +1,6 @@
 services:
   redis:
-    image: redis:7-alpine
+    image: valkey/valkey:8-alpine
     container_name: mockgatehub-test-redis
     ports:
       - "26380:6379"  # Use different port to avoid conflicts
@@ -23,6 +23,8 @@ services:
       - WEBHOOK_URL=http://mockgatehub:8080/test-webhook
       - WEBHOOK_SECRET=test-webhook-secret
       - MOCKGATEHUB_ENFORCE_AUTHENTICATION=true
+      # Tests invoke card-data links from the host via the mapped port.
+      - MOCKGATEHUB_PUBLIC_BASE_URL=http://localhost:25151
     depends_on:
       - redis
     networks:

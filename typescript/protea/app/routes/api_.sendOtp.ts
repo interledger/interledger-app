@@ -6,7 +6,7 @@ import { parsePhoneNumberWithError } from 'libphonenumber-js'
 import { validateCSRFToken } from '~/lib/csrf.server'
 import { error, isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
-import { getUserSession } from '~/lib/kratos.server'
+import { getUserSession, getSessionTraits } from '~/lib/kratos/session.server'
 
 export async function action({ request }: Route.ActionArgs) {
   const form = await request.formData()
@@ -57,7 +57,7 @@ export async function action({ request }: Route.ActionArgs) {
     }
   } else {
     data.phone = await getUserSession(request).then(
-      (v) => v.identity.traits.phone
+      (session) => getSessionTraits(session).phone
     )
   }
 

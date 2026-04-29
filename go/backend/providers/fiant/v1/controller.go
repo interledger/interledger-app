@@ -17,6 +17,8 @@ import (
 var allowedURLs = []string{
 	"https://api.platform.fiant.io/v1/",
 	"https://api.staging.fiant.io/v1/",
+	"http://mockpti:8080",
+	"http://mockpti:8080/",
 }
 
 /*

@@ -21,6 +21,7 @@ Users get a single wallet tied to one payment provider (GateHub, PTI, Xago, or C
 | [Core Concepts](terminology.md) | Terminology reference — maps provider vocabularies to Interledger App concepts |
 | [Signup Flow](signup-guide.md) | The complete registration process: profile, phone verification, TOTP, wallet address |
 | [KYC & Identity Verification](kyc-guide.md) | How identity verification gates wallet activation, per provider |
+| [KYC Resubmission Flow (Phase 1)](kyc-resubmission-flow.md) | How users can resubmit KYC documents in-app (Phase 1) |
 
 ### Architecture
 

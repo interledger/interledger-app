@@ -198,7 +198,7 @@ func (tc *TestContext) eachCardHasFields() error {
 		return fmt.Errorf("no data array")
 	}
 
-	requiredFields := []string{"id", "accountId", "customerId", "nameOnCard", "maskedPan", "status", "expiryDate", "productCode"}
+	requiredFields := []string{"id", "accountId", "customerId", "nameOnCard", "maskedPan", "status", "productCode"}
 
 	for _, cardInterface := range data {
 		card, ok := cardInterface.(map[string]interface{})
@@ -251,7 +251,7 @@ func (tc *TestContext) responsePaginated() error {
 }
 
 func (tc *TestContext) responseHasCardObject() error {
-	requiredFields := []string{"id", "accountId", "customerId", "nameOnCard", "maskedPan", "status", "expiryDate", "productCode"}
+	requiredFields := []string{"id", "accountId", "customerId", "nameOnCard", "maskedPan", "status", "productCode"}
 	return tc.checkRequiredFields(requiredFields)
 }
 
@@ -525,12 +525,12 @@ func (tc *TestContext) responseIndicatesDeclined(status string) error {
 }
 
 func (tc *TestContext) responseHasCardProducts() error {
-	var result map[string]interface{}
+	var result []interface{}
 	if err := json.Unmarshal(tc.lastResponseBody, &result); err != nil {
 		return err
 	}
 
-	if data, ok := result["data"].([]interface{}); !ok || len(data) == 0 {
+	if len(result) == 0 {
 		return fmt.Errorf("missing or empty data array")
 	}
 

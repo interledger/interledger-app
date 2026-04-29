@@ -20,7 +20,7 @@ import (
 	"github.com/riandyrn/otelchi"
 	"github.com/uptrace/opentelemetry-go-extra/otelsql"
 	"github.com/uptrace/opentelemetry-go-extra/otelsqlx"
-	aassassetlinks "gitlab.com/fynbos/backend/aass_assetlinks"
+	aasa_assetlinks "gitlab.com/fynbos/backend/aasa_assetlinks"
 	"gitlab.com/fynbos/backend/admin"
 	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/agreements"
@@ -29,13 +29,13 @@ import (
 	"gitlab.com/fynbos/backend/analytics"
 	analytics_client "gitlab.com/fynbos/backend/analytics/client"
 	analytics_webhook "gitlab.com/fynbos/backend/analytics/webhook"
+	"gitlab.com/fynbos/backend/api"
 	"gitlab.com/fynbos/backend/cli"
 	"gitlab.com/fynbos/backend/contacts"
 	contacts_client "gitlab.com/fynbos/backend/contacts/client"
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/discord"
-	discord_client "gitlab.com/fynbos/backend/discord/client"
+
 	"gitlab.com/fynbos/backend/email"
 	email_client "gitlab.com/fynbos/backend/email/client"
 	"gitlab.com/fynbos/backend/features"
@@ -51,6 +51,7 @@ import (
 	"gitlab.com/fynbos/backend/kyc"
 	kyc_client "gitlab.com/fynbos/backend/kyc/client"
 	kyc_ops "gitlab.com/fynbos/backend/kyc/ops"
+	"gitlab.com/fynbos/backend/kyc/persona"
 	"gitlab.com/fynbos/backend/limits"
 	limits_client "gitlab.com/fynbos/backend/limits/client"
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -73,6 +74,7 @@ import (
 	xago_external "gitlab.com/fynbos/backend/providers/xago/external"
 	"gitlab.com/fynbos/backend/rafiki"
 	rafiki_client "gitlab.com/fynbos/backend/rafiki/client"
+	rafiki_external "gitlab.com/fynbos/backend/rafiki/external"
 	"gitlab.com/fynbos/backend/signup"
 	signup_client "gitlab.com/fynbos/backend/signup/client"
 	"gitlab.com/fynbos/backend/slack"
@@ -185,15 +187,21 @@ func start(args *cli.StartArgs) {
 	router.Handle("/healthz", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
 	}))
+	router.Mount("/api", api.NewRouter(b.Users(), b.Wallets(), b.Gatehub()))
 	router.Handle("/kratos/signup", analytics_webhook.NewHandleSignup(b))
 	router.Handle("/kratos/login", analytics_webhook.NewHandleLogin(b))
 	router.Handle("/kratos/logout", analytics_webhook.NewHandleLogout(b))
 	router.Handle("/rafiki", b.rafiki.WebhookHandler())
 	router.Handle("/webhooks/xago", b.xago.WebhookHandler())
-	router.Handle("/webhooks/persona", kyc_ops.NewHandlePersonaWebhook(b))
+	personaClient := persona.New(persona.Config{
+		BaseURL:       args.PersonaBaseURL,
+		BearerToken:   args.PersonaToken,
+		WebhookSecret: args.PersonaWebhookToken,
+	})
+	router.Handle("/webhooks/persona", kyc_ops.NewHandlePersonaWebhook(b, personaClient))
 	router.Handle("/webhooks/chimoney", chimoney_ops.NewWebhook(b))
-	router.Handle("/.well-known/apple-app-site-association", aassassetlinks.AppSiteAssociationHandler(b.aasaConfig))
-	router.Handle("/.well-known/assetlinks.json", aassassetlinks.AssetLinksHandler(b.aasaConfig))
+	router.Handle("/.well-known/apple-app-site-association", aasa_assetlinks.AppSiteAssociationHandler(b.aasaConfig))
+	router.Handle("/.well-known/assetlinks.json", aasa_assetlinks.AssetLinksHandler(b.aasaConfig))
 
 	if args.PTIEnabled {
 		ptiWebhook, err := pti_ops.Webhook(b)
@@ -511,7 +519,6 @@ type backends struct {
 	img            images.Client
 	wallet         wallets.Client
 	payment        payments.Client
-	discord        discord.Client
 	slack          slack.Client
 	rafiki         rafiki.Client
 	xago           xago.Client
@@ -521,7 +528,7 @@ type backends struct {
 	gatehub        gatehub.Client
 	gatehubConfig  gatehub.Config
 	chimoney       chimoney.Client
-	aasaConfig     aassassetlinks.Config
+	aasaConfig     aasa_assetlinks.Config
 }
 
 func (b backends) Chimoney() chimoney.Client {
@@ -546,10 +553,6 @@ func (b backends) Slack() slack.Client {
 
 func (b backends) Rafiki() rafiki.Client {
 	return b.rafiki
-}
-
-func (b backends) Discord() discord.Client {
-	return b.discord
 }
 
 func (b backends) Payments() payments.Client {
@@ -702,14 +705,6 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 		BearerToken:   args.TwitterBearerToken,
 	})
 
-	b.discord = discord_client.New(b, &discord_client.NewClientArgs{
-		ClientID:      args.DiscordClientID,
-		ClientSecret:  args.DiscordClientSecret,
-		AuthEndpoint:  "https://discord.com/oauth2/authorize",
-		TokenEndpoint: "https://discord.com/api/oauth2/token",
-		RedirectURL:   args.DiscordRedirectURL,
-	})
-
 	b.slack, err = slack_client.New(b)
 	if err != nil {
 		log.Fatalln(err)
@@ -745,13 +740,33 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 
 	b.agreements = agreements_client.New(b)
 
-	b.kyc, err = kyc_client.New(b, args.SmartyAuthID, args.SmartyAuthToken)
+	b.kyc, err = kyc_client.NewWithPersonaConfig(
+		b,
+		args.SmartyAuthID,
+		args.SmartyAuthToken,
+		persona.Config{
+			BaseURL:       args.PersonaBaseURL,
+			BearerToken:   args.PersonaToken,
+			WebhookSecret: args.PersonaWebhookToken,
+		},
+	)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	log.Debug("initialising SendGrid")
-	b.email = email_client.New(b, args.SendgridAPIKey)
+	if args.EmailEnabled {
+		log.Debug("initialising SendGrid email client")
+	} else {
+		log.Debug("email disabled; initialising noop email client")
+	}
+	b.email = email_client.New(
+		b,
+		args.EmailEnabled,
+		args.SendgridAPIKey,
+		args.SendgridFromName,
+		args.SendgridFromEmail,
+		args.SendgridOneTemplateID,
+	)
 
 	log.Debug("initialising transactions")
 	b.transactions = transactions_client.New(b)
@@ -785,7 +800,11 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	b.val = validator.New()
 
 	log.Debug("initialising rafiki")
-	b.rafiki = rafiki_client.New(b)
+	b.rafiki = rafiki_client.New(b, rafiki_external.AdminSigningConfig{
+		OperatorTenantID: args.OperatorTenantID,
+		AdminAPISecret:   args.AdminAPISecret,
+		SignatureVersion: args.SignatureVersion,
+	})
 
 	log.Debug("initialising pacioli")
 	pacDB, err := otelsqlx.Connect("postgres", args.PacioliDBConString, otelsql.WithAttributes(semconv.DBSystemCockroachdb), otelsql.WithDBName("cockroachdb"))
@@ -805,6 +824,7 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	b.xago = xago_client.New(b, b.xagoConfig)
 
 	log.Debug("initialising FIANT")
+	pti_ops.ConfigureWidgetURLs(args.PTISDKURL, args.PTIFormsURL, args.PTIClientID)
 	b.pti = pti_client.New(b)
 
 	log.Debug("initialising Gatehub")
@@ -837,7 +857,7 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	log.Debug("initialising Chimoney")
 	b.chimoney = chimoney_client.New(b)
 
-	b.aasaConfig = aassassetlinks.Config{
+	b.aasaConfig = aasa_assetlinks.Config{
 		AppleAppID:         args.AppleAppID,
 		AndroidPackageName: args.AndroidPackageName,
 		AndroidSHA256:      args.AndroidSHA256,
