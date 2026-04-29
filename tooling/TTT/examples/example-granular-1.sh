@@ -1,6 +1,8 @@
 # This example expands the higher-level self-exchange scenario into explicit
 # account creation and direct ledger moves. It should land on the same balances
 # as example-1.sh, but with every accounting leg spelled out.
+./ttt reset
+./ttt init --standard
 
 # Create user accounts. User account creation also creates the provider plus
 # matching system/liquidity accounts for that currency when needed.
@@ -32,8 +34,6 @@
 ./ttt move --from gatehub/system          --to gatehub/alice           --currency EUR --amount 1000   --workflow "User Onboard"            --step "onboard alice"
 ./ttt move --from xago/system             --to xago/carlos             --currency ZAR --amount 75000  --workflow "User Onboard"            --step "onboard carlos"
 
-# Equivalent to:
-#
 # The fixed example rate is 1 EUR = 15 ZAR, so Alice's 100 EUR becomes
 # 1500 ZAR for Carlos. The EUR leg creates the bilateral position; the ZAR leg
 # pays Carlos from Xago's prefunded ZAR liquidity through Xago's FX account.
@@ -43,8 +43,7 @@
 ./ttt move --from xago/liquidity          --to xago/fx                 --currency ZAR --amount 1500   --workflow "Cross-Provider Transfer" --step "debit recipient liquidity; credit recipient FX account"
 ./ttt move --from xago/fx                 --to xago/carlos             --currency ZAR --amount 1500   --workflow "Cross-Provider Transfer" --step "debit recipient FX account; credit recipient user"
 
-# Equivalent to:
-#
+
 # GateHub is owed 100 EUR, so its position is cleared into liquidity while
 # Xago pays out of liquidity to clear the mirrored position.
 ./ttt move --from gatehub/position:xago   --to gatehub/liquidity       --currency EUR --amount 100    --workflow "Bilateral Settlement"    --step "debit creditor position; credit creditor liquidity"
