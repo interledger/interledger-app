@@ -26,7 +26,7 @@ function StatusItem({ icon, text }: { icon: React.ReactNode, text: string }) {
 
 function HandAnimation() {
   const ref = useRef<HTMLDivElement>(null)
-  const isInView = useInView(ref, { once: true, margin: "-100px" })
+  const isInView = useInView(ref, { once: false, margin: "-100px" })
 
   return (
     <div ref={ref} className={`hand-visual-container ${isInView ? "is-visible" : ""}`}>
@@ -57,7 +57,7 @@ export function SendReceive() {
     <PageSection className="send-receive-section">
       <div className="send-receive-container">
         <header className="send-receive-header">
-          <h2 className="send-receive-title section-heading">Today, the wallet lets you send and receive money</h2>
+          <div className="text-h2 send-receive-title section-heading">Today, the wallet lets you send and receive money</div>
           <p className="send-receive-description">
             Starting with the fundamentals keeps the wallet reliable, while allowing it to scale responsibly.
             Our aim is to remain true to the protocol it supports over the long run.

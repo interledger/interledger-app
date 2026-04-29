@@ -18,7 +18,12 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-xl);
-  padding-inline: var(--padding-6xl);
+}
+
+@media (min-width: 1200px) {
+  .send-receive-header {
+    padding-inline: var(--padding-6xl);
+  }
 }
 
 .send-receive-title {
@@ -113,11 +118,12 @@
 }
 
 .hand-visual-container {
+  container-type: inline-size;
   width: 100%;
   max-width: 587px;
-  height: 440px;
+  aspect-ratio: 587 / 440;
   background-color: var(--color-aqua-mint-100);
-  border-radius: 16px;
+  border-radius: var(--rounded-2xl);
   display: flex;
   justify-content: center;
   align-items: flex-end;
@@ -143,22 +149,22 @@
   object-fit: contain;
 }
 
-/* Currency Circles (60x60 from Figma) */
+/* Currency Circles (Relative scaling) */
 .currency-circle {
   position: absolute;
-  width: 60px;
-  height: 60px;
+  width: 10.2cqi;
+  height: 10.2cqi;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0.6cqi 2cqi rgba(0, 0, 0, 0.1);
   z-index: 10;
 }
 
 .currency-char {
   color: #FFFFFF;
-  font-size: 24px;
+  font-size: 4.1cqi;
   font-weight: 700;
   line-height: 1;
   display: flex;
@@ -169,20 +175,20 @@
 
 .circle-dollar {
   background-color: var(--color-emerald-100);
-  top: 120px;
-  left: -80px;
+  top: 20.4cqi;
+  left: -13.6cqi;
 }
 
 .circle-pound {
   background-color: var(--color-coral-red-100);
-  top: 60px;
-  right: -60px;
+  top: 10.2cqi;
+  right: -10.2cqi;
 }
 
 .circle-euro {
   background-color: var(--color-periwinkle-100);
-  bottom: 80px;
-  right: -80px;
+  bottom: 13.6cqi;
+  right: -13.6cqi;
 }
 
 /* --- CSS Animations for SendReceive (Issue 4) --- */
@@ -224,17 +230,15 @@
 }
 
 /* Responsive Overrides */
-@media (max-width: 1024px) {
+@media (max-width: 810px) {
   .hand-visual-container {
     width: 100%;
-    height: auto;
-    aspect-ratio: 587 / 440;
   }
   
   .send-receive-title {
     font: var(--text-h3);
   }
-  
+
   .send-receive-content {
     grid-template-columns: 1fr;
     gap: var(--spacing-4xl);
@@ -256,10 +260,6 @@
 }
 
 @media (max-width: 640px) {
-  .circle-dollar { left: -20px; top: 80px; }
-  .circle-pound { right: -20px; top: 40px; }
-  .circle-euro { right: -20px; bottom: 60px; }
-
   .send-receive-title {
     font: var(--text-h4);
   }
