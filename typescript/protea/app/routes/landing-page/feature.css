@@ -11,8 +11,7 @@
   inset: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: calc(100% - 2 * var(--padding-3xl));
-  max-width: var(--content-max-width);
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
