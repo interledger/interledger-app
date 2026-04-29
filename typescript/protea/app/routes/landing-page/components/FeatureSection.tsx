@@ -1,4 +1,5 @@
 import type { ReactNode } from "react"
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { usePhoneCarousel } from "../context/PhoneCarouselContext"
 import type { CarouselScreen } from "../context/PhoneCarouselContext"
@@ -39,7 +40,6 @@ const childVariants = {
   }
 }
 
-
 /**
  * Absolute overlay panel inside .feature-content-slot.
  * Rendered for every feature; only the panel whose `screen` matches
@@ -57,6 +57,8 @@ export function FeatureSection({
   visual,
 }: FeatureSectionProps) {
   const { activeScreen } = usePhoneCarousel()
+  const isActive = activeScreen === screen
+  const isFirst = screen === 2
 
   const textCol = (
     <motion.div className="feature-col feature-col--left">
@@ -72,11 +74,9 @@ export function FeatureSection({
     </motion.div>
   )
 
-  const isActive = activeScreen === screen
-
   return (
     <motion.div
-      className={`feature-panel ${isActive ? "is-visible" : ""}`}
+      className={`feature-panel ${isActive ? "is-visible" : ""} ${isFirst ? "feature-panel--first" : ""}`}
       variants={containerVariants}
       initial="hidden"
       animate={isActive ? "visible" : "hidden"}

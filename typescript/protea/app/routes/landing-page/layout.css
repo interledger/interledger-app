@@ -65,6 +65,12 @@
   margin-inline: auto;
 }
 
+@media (max-width: 1199px) {
+  .page-section-inner {
+    width: calc(100% - 2 * var(--padding-lg));
+  }
+}
+
 /* Padding variants for PageSection */
 .pad-default {
   padding-inline: var(--section-pad-default);
@@ -107,6 +113,12 @@
 }
 
 .section-heading {
-  max-width: 60vw;
+  max-width: 90%;
   margin-inline: auto;
+}
+
+@media (min-width: 900px) {
+  .section-heading {
+    max-width: 60vw;
+  }
 }
