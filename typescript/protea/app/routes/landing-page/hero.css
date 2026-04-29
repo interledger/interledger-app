@@ -111,33 +111,36 @@
 
 .hero-phone-container {
   position: absolute;
-  /* Hero state: lower in viewport so phone extends below the fold */
-  top: 38vh;
+  top: 50%;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate(-50%, calc(-50% + var(--phone-offset, 0px)));
   display: flex;
   justify-content: center;
   align-items: flex-start;
   width: var(--phone-width);
   height: var(--phone-height);
   z-index: 2;
-  transition: top 800ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 800ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animated-hero[data-screen='1'] .hero-phone-container {
+  --phone-offset: calc(-12vh + var(--phone-height) / 2);
 }
 
 /* Feature state: phone centered within usable area (below nav) */
 /* Formula: nav-height/2 + 50% - phone-height/2 */
 .animated-hero:not([data-screen='1']) .hero-phone-container {
-  top: calc(var(--nav-height) / 2 + 50% - var(--phone-height) / 2);
+  --phone-offset: calc(var(--nav-height) / 2);
 }
 
 @media (max-width: 810px) {
-  .hero-phone-container {
-    top: 40vh; /* Push further down to clearcentered hero text on smaller mobile screens */
+  .animated-hero[data-screen='1'] .hero-phone-container {
+    --phone-offset: calc(-10vh + var(--phone-height) / 2); /* 40vh instead of 50% = -10vh */
   }
 
   /* On mobile, push the phone up in feature state, clearing the bottom space */
   .animated-hero:not([data-screen='1']) .hero-phone-container {
-    top: calc(var(--nav-height, 72px) + 2vh);
+    --phone-offset: calc(var(--nav-height, 72px) + 2vh - 50vh + var(--phone-height) / 2);
   }
 }
 
@@ -203,13 +206,13 @@
 /* Hero spacer — height of the hero "dwell" area.                          */
 /* Figma Hero Main: 880px desktop. Responsive approximation below.         */
 .scroll-step--hero {
-  height: 15vh; /* dramatically reduced to speed up first transition */
+  height: 15dvh; /* dramatically reduced to speed up first transition */
 }
 
 /* Feature spacers — added in tasks 07/08.                                 */
 /* Each feature gets ~1200px desktop scroll budget.                        */
 .scroll-step--feature {
-  height: 100vh;
+  height: 100dvh;
 }
 
 @media (min-width: 900px) {

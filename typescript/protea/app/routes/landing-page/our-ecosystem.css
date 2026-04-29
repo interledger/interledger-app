@@ -99,7 +99,6 @@
   width: 400px; /* From Figma metadata 111:10233 */
   height: 268px;
   z-index: 0;
-  opacity: 0.3 !important;
 }
 
 .ecosystem-cta h3 {

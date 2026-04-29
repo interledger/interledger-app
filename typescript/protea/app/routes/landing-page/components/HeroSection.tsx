@@ -1,16 +1,55 @@
-import { useRef, useState, useEffect } from "react"
-import { motion, useScroll, useTransform } from "framer-motion"
+import { useRef } from "react"
+import { motion, useScroll, useTransform, useMotionValueEvent } from "framer-motion"
 
 import { PhoneFrame } from "./PhoneFrame"
 import { ScrollStep } from "./ScrollStep"
 import { usePhoneCarousel } from "../context/PhoneCarouselContext"
 import type { CarouselScreen } from "../context/PhoneCarouselContext"
-import { Feature1 } from "../sections/Feature1"
-import { Feature2 } from "../sections/Feature2"
-import { Feature3 } from "../sections/Feature3"
-import { Feature4 } from "../sections/Feature4"
+import { FeatureSection } from "./FeatureSection"
+import { FeatureWidget } from "./FeatureWidget"
+import orbitSvg from "../orbit.svg"
 
-
+const FEATURES = [
+  {
+    screen: 2,
+    heading: "Global by design. Inclusive by default.",
+    body: "Designed to meet people where they are, how they are.",
+    visual: (
+      <FeatureWidget
+        avatar="MH"
+        avatarColor="#e87a7a"
+        name="Mike H"
+        amount="+ $348"
+        note="tnx for the adventure"
+        timestamp="28.10.2026 21:57"
+      />
+    ),
+  },
+  {
+    screen: 3,
+    heading: "Broad in reach. Borderless by design.",
+    body: "Built broad, built borderless. Designed to work everywhere.",
+    widget: <img src={orbitSvg} alt="Orbit graphic" style={{ width: "80px", marginTop: "16px", display: "block", marginInline: "auto" }} />,
+  },
+  {
+    screen: 4,
+    heading: "One system. Many contexts.",
+    body: "Ready to diverse environments and needs.",
+    widget: <img src={orbitSvg} alt="Orbit graphic" style={{ width: "80px", marginTop: "16px", display: "block", marginInline: "auto" }} />,
+  },
+  {
+    screen: 5,
+    heading: "Designed to adopt. Easy to adopt.",
+    body: "We are building the wallet in the open and want to participate from the start.",
+    visual: (
+      <div style={{ marginTop: "16px", display: "flex", justifyContent: "center" }}>
+        <a href="/signup" className="nav-cta" style={{ display: "inline-flex" }}>
+          Sign up now <span style={{ marginLeft: "4px" }}>&rarr;</span>
+        </a>
+      </div>
+    ),
+  },
+]
 
 /**
  * Animated Hero Section — scrollytelling container.
@@ -37,8 +76,7 @@ import { Feature4 } from "../sections/Feature4"
  */
 export function HeroSection() {
   const sectionRef = useRef<HTMLElement>(null)
-  const [isVisible, setIsVisible] = useState(false)
-  const { activeScreen } = usePhoneCarousel()
+  const { activeScreen, setActiveScreen } = usePhoneCarousel()
 
   // Scope scroll progress to the full animated-hero section
   const { scrollYProgress } = useScroll({
@@ -46,11 +84,12 @@ export function HeroSection() {
     offset: ["start start", "end end"],
   })
 
-  // Trigger enter animation after first paint
-  useEffect(() => {
-    const raf = requestAnimationFrame(() => setIsVisible(true))
-    return () => cancelAnimationFrame(raf)
-  }, [])
+  // C2 & C3: Single scroll observer to derive active screen
+  const thresholds = [0.20, 0.40, 0.60, 0.80] // screen 2..5
+  useMotionValueEvent(scrollYProgress, "change", v => {
+    const next = (1 + thresholds.filter(t => v >= t).length) as CarouselScreen
+    if (next !== activeScreen) setActiveScreen(next)
+  })
 
   // Scroll parallax: drift down (-40px) and fade opacity natively
   const y = useTransform(scrollYProgress, [0, 0.2], [0, -40])
@@ -64,7 +103,7 @@ export function HeroSection() {
           <div className="hero-content">
             <motion.div style={{ y, opacity }} className="hero-punch-scroll">
               <div
-                className={`hero-punch anim-enter${isVisible ? " is-visible" : ""}`}
+                className="hero-punch anim-enter"
                 data-anim="punch-text"
               >
                 <h1 className="text-h1 hero-headline">A wallet for what&apos;s next</h1>
@@ -79,10 +118,16 @@ export function HeroSection() {
 
           {/* Feature content slot — all feature panels live here as absolute overlays */}
           <div className="feature-content-slot">
-            <Feature1 />
-            <Feature2 />
-            <Feature3 />
-            <Feature4 />
+            {FEATURES.map(f => (
+              <FeatureSection
+                key={f.screen}
+                screen={f.screen as CarouselScreen}
+                heading={f.heading}
+                body={f.body}
+                widget={f.widget}
+                visual={f.visual}
+              />
+            ))}
           </div>
         </div>
       </div>

@@ -2,10 +2,9 @@ import { useState, useEffect } from "react"
 
 export type Breakpoint = "mobile" | "tablet" | "desktop"
 
-// Matches Figma breakpoints from layout-and-heights.md:
-// mobile = 360px, tablet = 900px, desktop = 1440px
+// Matches Figma breakpoints: mobile < 900px, tablet < 1440px, desktop >= 1440px
 const TABLET_MIN = 900
-const DESKTOP_MIN = 1280
+const DESKTOP_MIN = 1440
 
 function getBreakpoint(width: number): Breakpoint {
   if (width < TABLET_MIN) return "mobile"
@@ -25,11 +24,20 @@ export function useBreakpoint(): Breakpoint {
   })
 
   useEffect(() => {
-    function handleResize() {
+    const tabletMql = window.matchMedia(`(min-width: ${TABLET_MIN}px)`)
+    const desktopMql = window.matchMedia(`(min-width: ${DESKTOP_MIN}px)`)
+
+    function update() {
       setBreakpoint(getBreakpoint(window.innerWidth))
     }
-    window.addEventListener("resize", handleResize)
-    return () => window.removeEventListener("resize", handleResize)
+
+    tabletMql.addEventListener("change", update)
+    desktopMql.addEventListener("change", update)
+
+    return () => {
+      tabletMql.removeEventListener("change", update)
+      desktopMql.removeEventListener("change", update)
+    }
   }, [])
 
   return breakpoint

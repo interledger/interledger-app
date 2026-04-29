@@ -232,3 +232,25 @@
     align-items: center;
   }
 }
+
+/* --- Feature Widget Animation (C6) -------------------------------------- */
+
+@keyframes feature-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(20px); }
+}
+
+.feature-widget-bob {
+  width: 100%;
+  animation: feature-bob 2s cubic-bezier(0.54, 0.01, 0.51, 1) infinite;
+}
+
+.feature-widget-bob:not(.is-visible) {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .feature-widget-bob {
+    animation: none;
+  }
+}

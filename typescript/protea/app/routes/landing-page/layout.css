@@ -93,3 +93,11 @@
   justify-content: center;
   align-items: center;
 }
+
+/* --- Root layout wrapper (S2) --- */
+.landing-shell {
+  background-color: var(--color-bg-page);
+  color: var(--color-text-primary);
+  font-family: var(--font-family);
+  min-height: 100vh;
+}

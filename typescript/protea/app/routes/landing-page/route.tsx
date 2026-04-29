@@ -1,21 +1,21 @@
 import type { LinksFunction } from "react-router";
-import colorStylesheet from "./colors.css?url";
-import typographyTokens from "./tokens/typography.css?url";
-import typographyStylesheet from "./typography.css?url";
-import spacingTokens from "./tokens/spacing.css?url";
-import layoutStylesheet from "./layout.css?url";
-import animationTokens from "./tokens/animations.css?url";
-import animationStylesheet from "./animations.css?url";
-import navStylesheet from "./nav.css?url";
-import heroStylesheet from "./hero.css?url";
-import featureStylesheet from "./feature.css?url";
-import cardsStylesheet from "./cards.css?url";
-import otherFeaturesStylesheet from "./other-features.css?url";
-import sendReceiveStylesheet from "./send-receive.css?url";
-import ecosystemStylesheet from "./ecosystem.css?url";
-import builtWithChangeStylesheet from "./built-with-change.css?url";
-import ourEcosystemStylesheet from "./our-ecosystem.css?url";
-import footerStylesheet from "./footer.css?url";
+import "./colors.css";
+import "./tokens/typography.css";
+import "./typography.css";
+import "./tokens/spacing.css";
+import "./layout.css";
+import "./tokens/animations.css";
+import "./animations.css";
+import "./nav.css";
+import "./hero.css";
+import "./feature.css";
+import "./cards.css";
+import "./other-features.css";
+import "./send-receive.css";
+import "./ecosystem.css";
+import "./built-with-change.css";
+import "./our-ecosystem.css";
+import "./footer.css";
 import { Layouts } from "~/components/Scaffold";
 import { PhoneCarouselProvider } from "./context/PhoneCarouselContext";
 import { Nav } from "./components/Nav";
@@ -38,30 +38,13 @@ export const handle = {
 export const links: LinksFunction = () => [
     { rel: "preconnect", href: "https://fonts.googleapis.com" },
     { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-    { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" },
-    { rel: "stylesheet", href: colorStylesheet },
-    { rel: "stylesheet", href: typographyTokens },
-    { rel: "stylesheet", href: typographyStylesheet },
-    { rel: "stylesheet", href: spacingTokens },
-    { rel: "stylesheet", href: layoutStylesheet },
-    { rel: "stylesheet", href: animationTokens },
-    { rel: "stylesheet", href: animationStylesheet },
-    { rel: "stylesheet", href: navStylesheet },
-    { rel: "stylesheet", href: heroStylesheet },
-    { rel: "stylesheet", href: featureStylesheet },
-    { rel: "stylesheet", href: cardsStylesheet },
-    { rel: "stylesheet", href: otherFeaturesStylesheet },
-    { rel: "stylesheet", href: sendReceiveStylesheet },
-    { rel: "stylesheet", href: ecosystemStylesheet },
-    { rel: "stylesheet", href: builtWithChangeStylesheet },
-    { rel: "stylesheet", href: ourEcosystemStylesheet },
-    { rel: "stylesheet", href: footerStylesheet },
+    { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" }
 ];
 
 export default function LandingPage() {
     return (
         <PhoneCarouselProvider>
-            <div style={{ backgroundColor: "var(--color-bg-page)", color: "var(--color-text-primary)", fontFamily: "var(--font-family)", minHeight: "100vh" }}>
+            <div className="landing-shell">
                 <Nav />
                 <div className="page-content">
                     <HeroSection />

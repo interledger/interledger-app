@@ -73,11 +73,11 @@ export function FeatureSection({
   )
 
   const rightCol = (
-    <div className="feature-col feature-col--right">
+    <motion.div className="feature-col feature-col--right">
       {body && <motion.p variants={childVariants} className="text-body-lg feature-body">{body}</motion.p>}
       {widget && <motion.div variants={childVariants}>{widget}</motion.div>}
       {visual && <motion.div variants={childVariants}>{visual}</motion.div>}
-    </div>
+    </motion.div>
   )
 
   return (
@@ -90,11 +90,9 @@ export function FeatureSection({
           animate="visible"
           exit="exit"
         >
-          <>
-            {textCol}
-            <div className="feature-phone-spacer" />
-            {rightCol}
-          </>
+          {textCol}
+          <div className="feature-phone-spacer" />
+          {rightCol}
         </motion.div>
       )}
     </AnimatePresence>
