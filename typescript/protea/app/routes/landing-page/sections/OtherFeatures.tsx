@@ -4,7 +4,7 @@ import { PageSection } from "../components/PageSection"
 
 export function OtherFeatures() {
   const ref = useRef<HTMLDivElement>(null)
-  const isInView = useInView(ref, { once: true, amount: 0.3 })
+  const isInView = useInView(ref, { once: false, amount: 0.3 })
 
   return (
     <PageSection>

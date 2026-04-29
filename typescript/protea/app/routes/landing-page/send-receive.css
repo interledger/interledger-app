@@ -1,7 +1,6 @@
 .send-receive-section {
   padding-block: var(--spacing-6xl);
   background-color: var(--color-bg-page);
-  font-family: 'Poppins', sans-serif !important;
 }
 
 .send-receive-container {

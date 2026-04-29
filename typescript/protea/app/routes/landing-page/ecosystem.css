@@ -1,7 +1,6 @@
 .ecosystem-section {
   padding-block: var(--padding-5xl);
   background-color: var(--color-bg-page);
-  font-family: 'Poppins', sans-serif !important;
 }
 
 .ecosystem-container {
@@ -17,7 +16,6 @@
   text-align: center;
   color: var(--color-text-primary);
   margin: 0;
-  max-width: 1120px;
 }
 
 .ecosystem-grid {
