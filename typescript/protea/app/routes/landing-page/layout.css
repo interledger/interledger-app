@@ -10,13 +10,15 @@
   --content-max-width: 899px; /* Default for Phone (< 809px) */
 }
 
-@media (min-width: 900px) { /* Tablet range starts */
+@media (min-width: 900px) {
+  /* Tablet range starts */
   :root {
     --content-max-width: 1199px;
   }
 }
 
-@media (min-width: 1200px) { /* Desktop range starts */
+@media (min-width: 1200px) {
+  /* Desktop range starts */
   :root {
     --content-max-width: 1440px;
   }
@@ -56,7 +58,9 @@
 
 /* PageSection wrapper layout utilities */
 .page-section-inner {
-  width: calc(100% - 32px); /* Guaranteed min 40px margin on each side */
+  width: calc(
+    100% - 2 * var(--padding-3xl)
+  ); /* Guaranteed min 40px margin on each side */
   max-width: var(--content-max-width);
   margin-inline: auto;
 }

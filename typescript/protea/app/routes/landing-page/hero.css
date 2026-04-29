@@ -44,7 +44,7 @@
 
 /* Constrains children of the sticky viewport (headline, feature columns) */
 .sticky-viewport-content {
-  width: calc(100% - 32px);
+  width: calc(100% - 2 * var(--padding-3xl));
   max-width: var(--content-max-width);
   margin-inline: auto;
   position: relative;
@@ -92,9 +92,9 @@
   --phone-width: 180px;
   --phone-height: 360px;
   /* Safe vertical boundary below which phone can sit */
-  --hero-text-bottom: 340px; 
+  --hero-text-bottom: 340px;
   /* How much the phone is cut off by viewport bottom on screen 1 */
-  --phone-peek: 0px; 
+  --phone-peek: 0px;
 }
 
 @media (min-width: 900px) {
@@ -144,10 +144,9 @@
     */
     --phone-offset: calc(
       max(
-        var(--hero-text-bottom),
-        100vh - var(--phone-height) + var(--phone-peek)
-      )
-      - 50vh + var(--phone-height) / 2
+          var(--hero-text-bottom),
+          100vh - var(--phone-height) + var(--phone-peek)
+        ) - 50vh + var(--phone-height) / 2
     );
   }
 }
@@ -160,12 +159,16 @@
 
 @media (max-width: 899px) {
   .animated-hero[data-screen='1'] .hero-phone-container {
-    --phone-offset: calc(-10vh + var(--phone-height) / 2); /* 40vh instead of 50% = -10vh */
+    --phone-offset: calc(
+      -10vh + var(--phone-height) / 2
+    ); /* 40vh instead of 50% = -10vh */
   }
 
   /* On mobile, align phone to the top-anchored stack */
   .animated-hero:not([data-screen='1']) .hero-phone-container {
-    --phone-offset: calc(var(--nav-height, 72px) + min(10vh, 40px) + var(--phone-height) / 2 - 50vh);
+    --phone-offset: calc(
+      var(--nav-height, 72px) + min(10vh, 40px) + var(--phone-height) / 2 - 50vh
+    );
   }
 
   /* Short screens (iPhone SE) adjustment */
@@ -174,7 +177,9 @@
       --phone-height: 330px;
     }
     .animated-hero:not([data-screen='1']) .hero-phone-container {
-      --phone-offset: calc(var(--nav-height, 72px) + 12px + var(--phone-height) / 2 - 50vh);
+      --phone-offset: calc(
+        var(--nav-height, 72px) + 12px + var(--phone-height) / 2 - 50vh
+      );
     }
   }
 }
