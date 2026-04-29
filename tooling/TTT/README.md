@@ -25,12 +25,19 @@ The app is built with a strict split between:
 - **User account** per user + provider + currency.
 
 ### Implemented workflows
+- **Create Account**
+  - Creates a user account from the CLI with `ttt create-account --provider <provider> --user <user> --currency <currency>`.
+  - If the provider is new, it is created and the provider's system/liquidity accounts are initialized for that currency.
+  - Can also create internal account types with `--type system|liquidity|fx|position`; positions use `--counterparty <provider>`.
 - **Fund Provider Liquidity**
   - Debits provider system account and credits provider liquidity.
 - **User Onboard**
   - Debits provider system account and credits user account.
 - **P2P Transfer (Same Provider)**
   - Debits sender and credits recipient.
+- **Direct Move**
+  - Directly moves funds between two user accounts in the same currency with `ttt move --from <provider/user> --to <provider/user> --currency <currency> --amount <amount> --workflow <name> --step <name>`.
+  - Can target internal refs such as `provider/system`, `provider/liquidity`, `provider/fx`, and `provider/position:<counterparty>` for granular examples.
 - **User Offboard**
   - Debits user and credits provider system account.
 - **Cross-Provider Transfer**

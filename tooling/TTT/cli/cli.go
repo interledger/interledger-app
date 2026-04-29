@@ -29,6 +29,8 @@ func Run(store *sqlite.Store, eng *engine.Engine, args []string) int {
 		return cmdInit(store, eng, args[1:])
 	case "reset":
 		return cmdReset(eng, args[1:])
+	case "create-account":
+		return cmdCreateAccount(eng, args[1:])
 	case "fund-liquidity":
 		return cmdFundLiquidity(eng, args[1:])
 	case "onboard":
@@ -37,6 +39,8 @@ func Run(store *sqlite.Store, eng *engine.Engine, args []string) int {
 		return cmdOffboard(eng, args[1:])
 	case "p2p":
 		return cmdP2P(eng, args[1:])
+	case "move":
+		return cmdMove(eng, args[1:])
 	case "transfer":
 		return cmdTransfer(eng, args[1:])
 	case "settle":
@@ -118,6 +122,65 @@ func cmdFundLiquidity(eng *engine.Engine, args []string) int {
 	return 0
 }
 
+// ttt create-account --provider <provider> --user <user> --currency <currency> [--provider-name <name>]
+func cmdCreateAccount(eng *engine.Engine, args []string) int {
+	fs := flag.NewFlagSet("create-account", flag.ContinueOnError)
+	providerID := fs.String("provider", "", "provider ID")
+	providerName := fs.String("provider-name", "", "display name used when creating a new provider")
+	userID := fs.String("user", "", "user/account ID")
+	currency := fs.String("currency", "", "account currency: EUR | ZAR")
+	accountType := fs.String("type", "user", "account type: user | system | liquidity | fx | position")
+	counterpartyID := fs.String("counterparty", "", "counterparty provider ID for position accounts")
+	if err := fs.Parse(args); err != nil {
+		return cliErr(err)
+	}
+	if fs.NArg() != 0 {
+		return fail("usage: create-account --provider <provider> --user <user> --currency <currency> [--provider-name <name>]")
+	}
+	*providerID = strings.TrimSpace(*providerID)
+	*providerName = strings.TrimSpace(*providerName)
+	*userID = strings.TrimSpace(*userID)
+	if *providerID == "" {
+		return fail("create-account requires --provider <provider>")
+	}
+	*accountType = strings.ToLower(strings.TrimSpace(*accountType))
+	*counterpartyID = strings.TrimSpace(*counterpartyID)
+	if *accountType == "" {
+		*accountType = "user"
+	}
+	if *accountType == "user" && *userID == "" {
+		return fail("create-account requires --user <user>")
+	}
+	if *currency == "" {
+		return fail("create-account requires --currency <EUR|ZAR>")
+	}
+	cur, err := parseCurrency(*currency)
+	if err != nil {
+		return cliErr(err)
+	}
+
+	providerCreated, err := ensureProvider(eng, *providerID, *providerName)
+	if err != nil {
+		return cliErr(err)
+	}
+	account, systemCreated, liquidityCreated, err := createAccount(eng, *accountType, *providerID, *providerName, *userID, *counterpartyID, cur)
+	if err != nil {
+		return cliErr(err)
+	}
+
+	fmt.Printf("Created account %s\n", accountLabel(account))
+	if providerCreated {
+		fmt.Printf("Created provider %s\n", *providerID)
+	}
+	if systemCreated {
+		fmt.Printf("Created system account %s/system(%s)\n", *providerID, cur.Code)
+	}
+	if liquidityCreated {
+		fmt.Printf("Created liquidity account %s/liquidity(%s)\n", *providerID, cur.Code)
+	}
+	return 0
+}
+
 // ttt onboard <user> <provider> <currency> <amount>
 func cmdOnboard(eng *engine.Engine, args []string) int {
 	if len(args) != 4 {
@@ -175,6 +238,67 @@ func cmdP2P(eng *engine.Engine, args []string) int {
 		return cliErr(err)
 	}
 	fmt.Printf("P2P %s → %s @ %s/%s %s\n", args[2], args[3], args[0], cur.Code, fmtAmount(amount, cur.AssetScale))
+	return 0
+}
+
+// ttt move --from <provider/user> --to <provider/user> --currency <currency> --amount <amount> [--workflow <name>] [--step <name>]
+func cmdMove(eng *engine.Engine, args []string) int {
+	fs := flag.NewFlagSet("move", flag.ContinueOnError)
+	from := fs.String("from", "", "sender account reference: provider/user")
+	to := fs.String("to", "", "recipient account reference: provider/user")
+	currency := fs.String("currency", "", "currency: EUR | ZAR")
+	amountText := fs.String("amount", "", "amount to move")
+	workflow := fs.String("workflow", engine.WorkflowDirectMove, "journal workflow metadata")
+	step := fs.String("step", "direct move", "journal step metadata")
+	if err := fs.Parse(args); err != nil {
+		return cliErr(err)
+	}
+	if fs.NArg() != 0 {
+		return fail("usage: move --from <provider/user> --to <provider/user> --currency <currency> --amount <amount> [--workflow <name>] [--step <name>]")
+	}
+	srcProvider, srcUser, err := parseAccountRef(*from)
+	if err != nil {
+		return cliErr(fmt.Errorf("--from: %w", err))
+	}
+	dstProvider, dstUser, err := parseAccountRef(*to)
+	if err != nil {
+		return cliErr(fmt.Errorf("--to: %w", err))
+	}
+	if strings.TrimSpace(*currency) == "" {
+		return fail("move requires --currency <EUR|ZAR>")
+	}
+	cur, err := parseCurrency(*currency)
+	if err != nil {
+		return cliErr(err)
+	}
+	if strings.TrimSpace(*amountText) == "" {
+		return fail("move requires --amount <amount>")
+	}
+	amount, err := parseAmount(*amountText, cur.AssetScale)
+	if err != nil {
+		return cliErr(err)
+	}
+	accounts, err := eng.ListAccounts()
+	if err != nil {
+		return cliErr(err)
+	}
+	srcAccount, err := resolveAccountRef(accounts, srcProvider, srcUser, cur)
+	if err != nil {
+		return cliErr(fmt.Errorf("--from: %w", err))
+	}
+	dstAccount, err := resolveAccountRef(accounts, dstProvider, dstUser, cur)
+	if err != nil {
+		return cliErr(fmt.Errorf("--to: %w", err))
+	}
+	if _, err := eng.MoveAccountsLinesWithMetadata(srcAccount, dstAccount, cur, amount, *workflow, *step); err != nil {
+		return cliErr(err)
+	}
+	fmt.Printf("Moved %s %s %s/%s → %s/%s\n",
+		fmtAmount(amount, cur.AssetScale),
+		cur.Code,
+		srcProvider, srcUser,
+		dstProvider, dstUser,
+	)
 	return 0
 }
 
@@ -437,9 +561,9 @@ func cmdLedger(eng *engine.Engine, args []string) int {
 		return 0
 	}
 
-	fmt.Printf("%-20s %-10s %-28s %-38s %-38s %s\n",
-		"Timestamp", "Event", "Workflow", "Debit", "Credit", "Amount")
-	fmt.Println(strings.Repeat("-", 145))
+	fmt.Printf("%-20s %-10s %-28s %-24s %-38s %-38s %s\n",
+		"Timestamp", "Event", "Workflow", "Step", "Debit", "Credit", "Amount")
+	fmt.Println(strings.Repeat("-", 170))
 
 	for _, l := range lines {
 		ts := l.Timestamp.Format("2006-01-02 15:04:05")
@@ -451,14 +575,18 @@ func cmdLedger(eng *engine.Engine, args []string) int {
 		if len(workflow) > 26 {
 			workflow = workflow[:26]
 		}
+		step := l.Metadata[engine.MetaStep]
+		if len(step) > 22 {
+			step = step[:22]
+		}
 		debit := accountLabel(byID[l.DebitAccountID])
 		credit := accountLabel(byID[l.CreditAccountID])
 
 		cur := byID[l.DebitAccountID].Currency
 		amtStr := fmtAmount(l.Amount, cur.AssetScale) + " " + cur.Code
 
-		fmt.Printf("%-20s %-10s %-28s %-38s %-38s %s\n",
-			ts, eventShort, workflow, debit, credit, amtStr)
+		fmt.Printf("%-20s %-10s %-28s %-24s %-38s %-38s %s\n",
+			ts, eventShort, workflow, step, debit, credit, amtStr)
 	}
 	return 0
 }
@@ -490,6 +618,141 @@ func cliErr(err error) int {
 func fail(msg string) int {
 	fmt.Fprintln(os.Stderr, "error:", msg)
 	return 1
+}
+
+func ensureProvider(eng *engine.Engine, id, name string) (bool, error) {
+	providers, err := eng.ListProviders()
+	if err != nil {
+		return false, err
+	}
+	for _, provider := range providers {
+		if provider.ID == id {
+			return false, nil
+		}
+	}
+	if name == "" {
+		name = id
+	}
+	if _, err := eng.CreateProvider(id, name); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+func createAccount(eng *engine.Engine, accountType, providerID, providerName, userID, counterpartyID string, currency engine.Currency) (engine.Account, bool, bool, error) {
+	systemCreated := false
+	liquidityCreated := false
+	switch accountType {
+	case "user":
+		var err error
+		systemCreated, liquidityCreated, err = ensureProviderCurrencyAccounts(eng, providerID, currency)
+		if err != nil {
+			return engine.Account{}, false, false, err
+		}
+		account, err := eng.CreateUserAccount(userID, providerID, currency)
+		return account, systemCreated, liquidityCreated, err
+	case "system":
+		account, err := eng.CreateSystemAccount(providerID, currency)
+		return account, true, false, err
+	case "liquidity":
+		account, err := eng.CreateLiquidityAccount(providerID, currency)
+		return account, false, true, err
+	case "fx":
+		account, err := eng.CreateFXAccount(providerID, currency)
+		return account, false, false, err
+	case "position":
+		if counterpartyID == "" {
+			return engine.Account{}, false, false, fmt.Errorf("create-account --type position requires --counterparty <provider>")
+		}
+		if _, err := ensureProvider(eng, counterpartyID, counterpartyID); err != nil {
+			return engine.Account{}, false, false, err
+		}
+		systemCreated, liquidityCreated, err := ensureProviderCurrencyAccounts(eng, providerID, currency)
+		if err != nil {
+			return engine.Account{}, false, false, err
+		}
+		accounts, err := eng.ListAccounts()
+		if err != nil {
+			return engine.Account{}, false, false, err
+		}
+		liquidity, err := resolveAccountRef(accounts, providerID, "liquidity", currency)
+		if err != nil {
+			return engine.Account{}, false, false, err
+		}
+		account, err := eng.CreatePositionAccount(liquidity.ID, counterpartyID)
+		return account, systemCreated, liquidityCreated, err
+	default:
+		return engine.Account{}, false, false, fmt.Errorf("unknown account type %q — supported: user, system, liquidity, fx, position", accountType)
+	}
+}
+
+func ensureProviderCurrencyAccounts(eng *engine.Engine, providerID string, currency engine.Currency) (bool, bool, error) {
+	accounts, err := eng.ListAccounts()
+	if err != nil {
+		return false, false, err
+	}
+	systemCreated := false
+	liquidityCreated := false
+
+	if !hasProviderCurrencyAccount(accounts, engine.AccountTypeSystem, providerID, currency) {
+		if _, err := eng.CreateSystemAccount(providerID, currency); err != nil {
+			return false, false, err
+		}
+		systemCreated = true
+	}
+	if !hasProviderCurrencyAccount(accounts, engine.AccountTypeLiquidity, providerID, currency) {
+		if _, err := eng.CreateLiquidityAccount(providerID, currency); err != nil {
+			return false, false, err
+		}
+		liquidityCreated = true
+	}
+	return systemCreated, liquidityCreated, nil
+}
+
+func hasProviderCurrencyAccount(accounts []engine.Account, typ engine.AccountType, providerID string, currency engine.Currency) bool {
+	for _, account := range accounts {
+		if account.Type == typ && account.ProviderID == providerID && account.Currency.Code == currency.Code {
+			return true
+		}
+	}
+	return false
+}
+
+func parseAccountRef(ref string) (string, string, error) {
+	ref = strings.TrimSpace(ref)
+	if ref == "" {
+		return "", "", fmt.Errorf("account reference is required")
+	}
+	provider, user, ok := strings.Cut(ref, "/")
+	provider = strings.TrimSpace(provider)
+	user = strings.TrimSpace(user)
+	if !ok || provider == "" || user == "" || strings.Contains(user, "/") {
+		return "", "", fmt.Errorf("expected <provider>/<user>, got %q", ref)
+	}
+	return provider, user, nil
+}
+
+func resolveAccountRef(accounts []engine.Account, providerID, name string, currency engine.Currency) (engine.Account, error) {
+	for _, account := range accounts {
+		if account.ProviderID != providerID || account.Currency.Code != currency.Code {
+			continue
+		}
+		switch {
+		case name == "system" && account.Type == engine.AccountTypeSystem:
+			return account, nil
+		case name == "liquidity" && account.Type == engine.AccountTypeLiquidity:
+			return account, nil
+		case name == "fx" && account.Type == engine.AccountTypeFX:
+			return account, nil
+		case strings.HasPrefix(name, "position:") && account.Type == engine.AccountTypePosition:
+			if account.CounterpartyID == strings.TrimPrefix(name, "position:") {
+				return account, nil
+			}
+		case account.Type == engine.AccountTypeUser && account.UserID == name:
+			return account, nil
+		}
+	}
+	return engine.Account{}, fmt.Errorf("account %s/%s(%s) not found", providerID, name, currency.Code)
 }
 
 func accountLabel(a engine.Account) string {
@@ -644,6 +907,13 @@ Commands:
     Wipe all ledger data (providers, accounts, journal lines).
     Paradigm config and charges are preserved.
 
+  create-account --provider <provider> --user <user> --currency <currency>
+                 [--provider-name <name>] [--type <type>] [--counterparty <provider>]
+    Create an account. Default type is user; system, liquidity, fx, and position are also supported.
+    Example: ttt create-account --provider gatehub --user alice --currency EUR
+    Example: ttt create-account --provider blue --provider-name Blue --user bob --currency EUR
+    Example: ttt create-account --provider gatehub --type position --currency EUR --counterparty xago
+
   fund-liquidity <provider> <currency> <amount>
     Credit a provider's liquidity from its system account.
     Example: ttt fund-liquidity xago zar 15000
@@ -659,6 +929,12 @@ Commands:
   p2p <provider> <currency> <sender> <recipient> <amount>
     Transfer between two users on the same provider.
     Example: ttt p2p gatehub eur alice bob 50
+
+  move --from <provider/user> --to <provider/user> --currency <currency> --amount <amount>
+       [--workflow <name>] [--step <name>]
+    Directly move funds between two user accounts in the same currency.
+    Built-in refs are supported: provider/system, provider/liquidity, provider/fx, provider/position:<counterparty>.
+    Example: ttt move --from gatehub/alice --to xago/bob --currency EUR --amount 10 --workflow "doing-something" --step "part 0 out of 3"
 
   transfer <sender-user> <sender-provider> <sender-currency>
            <recipient-user> <recipient-provider> <recipient-currency>

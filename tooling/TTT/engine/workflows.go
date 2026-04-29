@@ -1,6 +1,9 @@
 package engine
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 // Metadata keys used by the engine's built-in workflows.
 const (
@@ -33,6 +36,7 @@ const (
 	WorkflowFundProviderLiquidity = "Fund Provider Liquidity"
 	WorkflowUserOnboard           = "User Onboard"
 	WorkflowP2PSameProvider       = "P2P Transfer (Same Provider)"
+	WorkflowDirectMove            = "Direct Move"
 	WorkflowUserOffboard          = "User Offboard"
 	WorkflowCrossProviderXfer     = "Cross-Provider Transfer"
 	WorkflowBilateralSettlement   = "Bilateral Settlement"
@@ -185,6 +189,111 @@ func (e *Engine) SameProviderP2PTransferLines(senderUserID, recipientUserID, pro
 		return nil, err
 	}
 	return posted, nil
+}
+
+// DirectMove moves funds directly between two user accounts in the same currency.
+// The accounts may belong to different providers. No system, liquidity, position,
+// POS, FX, or settlement account is involved.
+func (e *Engine) DirectMove(senderUserID, senderProviderID, recipientUserID, recipientProviderID string, currency Currency, amount int64) ([]LedgerEntry, error) {
+	lines, err := e.DirectMoveLines(senderUserID, senderProviderID, recipientUserID, recipientProviderID, currency, amount)
+	if err != nil {
+		return nil, err
+	}
+	return ExpandJournalLines(lines, ""), nil
+}
+
+// DirectMoveLines is the line-native variant of DirectMove.
+func (e *Engine) DirectMoveLines(senderUserID, senderProviderID, recipientUserID, recipientProviderID string, currency Currency, amount int64) ([]JournalLine, error) {
+	return e.DirectMoveLinesWithMetadata(senderUserID, senderProviderID, recipientUserID, recipientProviderID, currency, amount, WorkflowDirectMove, "direct move")
+}
+
+// DirectMoveLinesWithMetadata is the metadata-aware variant of DirectMoveLines.
+func (e *Engine) DirectMoveLinesWithMetadata(senderUserID, senderProviderID, recipientUserID, recipientProviderID string, currency Currency, amount int64, workflow, step string) ([]JournalLine, error) {
+	if amount <= 0 {
+		return nil, fmt.Errorf("amount must be positive, got %d", amount)
+	}
+	sender, ok, err := e.store.FindUserAccount(senderUserID, senderProviderID, currency)
+	if err != nil {
+		return nil, err
+	}
+	if !ok {
+		return nil, fmt.Errorf("sender account for user %q provider %q currency %q not found", senderUserID, senderProviderID, currency.Code)
+	}
+	recipient, ok, err := e.store.FindUserAccount(recipientUserID, recipientProviderID, currency)
+	if err != nil {
+		return nil, err
+	}
+	if !ok {
+		return nil, fmt.Errorf("recipient account for user %q provider %q currency %q not found", recipientUserID, recipientProviderID, currency.Code)
+	}
+	if sender.ID == recipient.ID {
+		return nil, fmt.Errorf("sender and recipient accounts must be different")
+	}
+	senderBalance, err := e.Balance(sender.ID)
+	if err != nil {
+		return nil, err
+	}
+	if senderBalance < amount {
+		return nil, fmt.Errorf("insufficient balance: have %s, need %s %s",
+			formatScaledAmount(senderBalance, currency.AssetScale),
+			formatScaledAmount(amount, currency.AssetScale),
+			currency.Code)
+	}
+	return e.MoveAccountsLinesWithMetadata(sender, recipient, currency, amount, workflow, step)
+}
+
+// MoveAccountsLinesWithMetadata moves funds between two already-resolved accounts.
+// User, liquidity, and FX debit accounts must have enough funds. System and
+// position accounts may go negative because they model issuance and obligations.
+func (e *Engine) MoveAccountsLinesWithMetadata(sender, recipient Account, currency Currency, amount int64, workflow, step string) ([]JournalLine, error) {
+	if amount <= 0 {
+		return nil, fmt.Errorf("amount must be positive, got %d", amount)
+	}
+	if sender.ID == recipient.ID {
+		return nil, fmt.Errorf("sender and recipient accounts must be different")
+	}
+	if sender.Currency.Code != currency.Code {
+		return nil, fmt.Errorf("sender account currency %q does not match %q", sender.Currency.Code, currency.Code)
+	}
+	if recipient.Currency.Code != currency.Code {
+		return nil, fmt.Errorf("recipient account currency %q does not match %q", recipient.Currency.Code, currency.Code)
+	}
+	if requiresSpendableBalance(sender.Type) {
+		senderBalance, err := e.Balance(sender.ID)
+		if err != nil {
+			return nil, err
+		}
+		if senderBalance < amount {
+			return nil, fmt.Errorf("insufficient balance: have %s, need %s %s",
+				formatScaledAmount(senderBalance, currency.AssetScale),
+				formatScaledAmount(amount, currency.AssetScale),
+				currency.Code)
+		}
+	}
+	workflow = strings.TrimSpace(workflow)
+	step = strings.TrimSpace(step)
+	if workflow == "" {
+		workflow = WorkflowDirectMove
+	}
+	if step == "" {
+		step = "direct move"
+	}
+	meta := workflowMeta(workflow, step)
+	line := JournalLine{
+		DebitAccountID:  sender.ID,
+		CreditAccountID: recipient.ID,
+		Amount:          amount,
+		Metadata:        meta,
+	}
+	posted, err := e.PostJournalLines([]JournalLine{line})
+	if err != nil {
+		return nil, err
+	}
+	return posted, nil
+}
+
+func requiresSpendableBalance(accountType AccountType) bool {
+	return accountType == AccountTypeUser || accountType == AccountTypeLiquidity || accountType == AccountTypeFX
 }
 
 // UserOffboard records a user withdrawing money from the system back to their provider.

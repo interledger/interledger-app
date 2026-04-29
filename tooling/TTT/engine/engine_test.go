@@ -588,6 +588,84 @@ func TestSameProviderP2PTransfer(t *testing.T) {
 	})
 }
 
+// ----- DirectMove -------------------------------------------------------------
+
+func TestDirectMove(t *testing.T) {
+	setup := func(t *testing.T) (*engine.Engine, engine.Account, engine.Account) {
+		t.Helper()
+		e := newEngine()
+		setupProvider(t, e, "gh", "GateHub")
+		setupProvider(t, e, "xg", "Xago")
+		setupSystemAccount(t, e, "gh", eur)
+		setupUserAccount(t, e, "alice", "gh", eur)
+		setupUserAccount(t, e, "bob", "xg", eur)
+		if _, err := e.UserOnboard("alice", "gh", eur, 50000); err != nil {
+			t.Fatal(err)
+		}
+		alice := mustFindUserAccount(t, e, "alice", "gh", eur)
+		bob := mustFindUserAccount(t, e, "bob", "xg", eur)
+		return e, alice, bob
+	}
+
+	t.Run("moves across providers in the same currency", func(t *testing.T) {
+		e, alice, bob := setup(t)
+		lines, err := e.DirectMoveLines("alice", "gh", "bob", "xg", eur, 10000)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(lines) != 1 {
+			t.Fatalf("expected 1 line, got %d", len(lines))
+		}
+		if lines[0].Metadata[engine.MetaWorkflow] != engine.WorkflowDirectMove {
+			t.Fatalf("workflow metadata: got %q", lines[0].Metadata[engine.MetaWorkflow])
+		}
+
+		aliceBalance, _ := e.Balance(alice.ID)
+		bobBalance, _ := e.Balance(bob.ID)
+		if aliceBalance != 40000 {
+			t.Errorf("alice balance: want 40000, got %d", aliceBalance)
+		}
+		if bobBalance != 10000 {
+			t.Errorf("bob balance: want 10000, got %d", bobBalance)
+		}
+	})
+
+	t.Run("records supplied workflow and step metadata", func(t *testing.T) {
+		e, _, _ := setup(t)
+		lines, err := e.DirectMoveLinesWithMetadata("alice", "gh", "bob", "xg", eur, 10000, "doing-something", "part 0 out of 3")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if lines[0].Metadata[engine.MetaWorkflow] != "doing-something" {
+			t.Fatalf("workflow metadata: got %q", lines[0].Metadata[engine.MetaWorkflow])
+		}
+		if lines[0].Metadata[engine.MetaStep] != "part 0 out of 3" {
+			t.Fatalf("step metadata: got %q", lines[0].Metadata[engine.MetaStep])
+		}
+	})
+
+	t.Run("insufficient balance", func(t *testing.T) {
+		e, _, _ := setup(t)
+		if _, err := e.DirectMove("alice", "gh", "bob", "xg", eur, 99999); err == nil {
+			t.Error("expected insufficient balance error")
+		}
+	})
+
+	t.Run("missing currency account", func(t *testing.T) {
+		e, _, _ := setup(t)
+		if _, err := e.DirectMove("alice", "gh", "bob", "xg", zar, 100); err == nil {
+			t.Error("expected missing sender account error")
+		}
+	})
+
+	t.Run("same account", func(t *testing.T) {
+		e, _, _ := setup(t)
+		if _, err := e.DirectMove("alice", "gh", "alice", "gh", eur, 100); err == nil {
+			t.Error("expected same account error")
+		}
+	})
+}
+
 // ----- UserOffboard -----------------------------------------------------------
 
 func TestUserOffboard(t *testing.T) {

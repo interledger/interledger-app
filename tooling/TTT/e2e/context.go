@@ -51,7 +51,10 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 }
 
 func (sc *TTTContext) iRun(cmdline string) error {
-	args := strings.Fields(cmdline)
+	args, err := splitCommandLine(cmdline)
+	if err != nil {
+		return err
+	}
 	if len(args) == 0 {
 		return fmt.Errorf("empty command")
 	}
@@ -66,7 +69,7 @@ func (sc *TTTContext) iRun(cmdline string) error {
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 
-	err := cmd.Run()
+	err = cmd.Run()
 	sc.lastOut = stdout.String()
 	sc.lastErr = stderr.String()
 	sc.lastRC = 0
@@ -82,6 +85,55 @@ func (sc *TTTContext) iRun(cmdline string) error {
 
 	sc.printDebug(cmdline)
 	return nil
+}
+
+func splitCommandLine(cmdline string) ([]string, error) {
+	var args []string
+	var b strings.Builder
+	var quote rune
+	escaped := false
+	inToken := false
+
+	for _, r := range cmdline {
+		switch {
+		case escaped:
+			b.WriteRune(r)
+			escaped = false
+			inToken = true
+		case r == '\\':
+			escaped = true
+			inToken = true
+		case quote != 0:
+			if r == quote {
+				quote = 0
+			} else {
+				b.WriteRune(r)
+			}
+			inToken = true
+		case r == '\'' || r == '"':
+			quote = r
+			inToken = true
+		case r == ' ' || r == '\t' || r == '\n' || r == '\r':
+			if inToken {
+				args = append(args, b.String())
+				b.Reset()
+				inToken = false
+			}
+		default:
+			b.WriteRune(r)
+			inToken = true
+		}
+	}
+	if escaped {
+		return nil, fmt.Errorf("unterminated escape in command %q", cmdline)
+	}
+	if quote != 0 {
+		return nil, fmt.Errorf("unterminated quote in command %q", cmdline)
+	}
+	if inToken {
+		args = append(args, b.String())
+	}
+	return args, nil
 }
 
 func (sc *TTTContext) printDebug(cmdline string) {
