@@ -81,10 +81,6 @@
     padding-block: var(--spacing-4xl);
   }
 
-  .ecosystem-title {
-    font: var(--text-h4);
-  }
-
   .open-world-card {
     height: 160px; /* More compact on mobile */
   }

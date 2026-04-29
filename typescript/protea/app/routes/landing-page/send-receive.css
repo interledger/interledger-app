@@ -234,10 +234,6 @@
     width: 100%;
   }
   
-  .send-receive-title {
-    font: var(--text-h3);
-  }
-
   .send-receive-content {
     grid-template-columns: 1fr;
     gap: var(--spacing-4xl);
@@ -259,10 +255,6 @@
 }
 
 @media (max-width: 640px) {
-  .send-receive-title {
-    font: var(--text-h4);
-  }
-  
   .send-receive-description {
     font: var(--text-body);
   }
