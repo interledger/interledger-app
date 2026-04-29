@@ -49,6 +49,10 @@ The app is built with a strict split between:
   - Sets or clears a per-direction charge (e.g. GateHub → Xago) as a percentage of the dispatch amount.
   - Charges survive "Clear Everything" — they are config, not ledger data.
   - Empty percentage field clears the charge back to nil (feature disabled for that direction).
+- **Export ODS**
+  - Exports the current SQLite ledger database as an OpenDocument spreadsheet.
+  - Available from the workflow menu and from the CLI: `ttt export-ods [path]`.
+  - Default CLI path is `output/ttt-export.ods`.
 - **Clear Everything (DANGER)**
   - Wipes providers/accounts/entries from the store after explicit confirmation (`CLEAR`).
   - Re-seeds default demo providers/accounts.
@@ -111,6 +115,7 @@ Main view continuously runs and displays:
 - `engine/memory/`: in-memory store backend
 - `engine/sqlite/`: SQLite store backend and persistence tests
 - `gui/`: Bubble Tea model/update/view and workflow forms
+- `ods/`: OpenDocument spreadsheet export
 
 ## Requirements
 

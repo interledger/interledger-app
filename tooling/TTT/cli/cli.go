@@ -14,6 +14,7 @@ import (
 
 	"ttt/engine"
 	"ttt/engine/sqlite"
+	"ttt/ods"
 )
 
 // Run dispatches args (os.Args[1:]) to the matching subcommand.
@@ -48,6 +49,8 @@ func Run(store *sqlite.Store, eng *engine.Engine, args []string) int {
 		return cmdStatus(store, eng, args[1:])
 	case "ledger":
 		return cmdLedger(eng, args[1:])
+	case "export-ods":
+		return cmdExportODS(store, args[1:])
 	case "help", "--help", "-h":
 		printUsage(os.Stdout)
 		return 0
@@ -176,8 +179,9 @@ func cmdP2P(eng *engine.Engine, args []string) int {
 }
 
 // ttt transfer <sender-user> <sender-provider> <sender-currency>
-//              <recipient-user> <recipient-provider> <recipient-currency>
-//              <amount>
+//
+//	<recipient-user> <recipient-provider> <recipient-currency>
+//	<amount>
 func cmdTransfer(eng *engine.Engine, args []string) int {
 	if len(args) != 7 {
 		return fail("usage: transfer <sender-user> <sender-provider> <sender-currency>" +
@@ -459,6 +463,23 @@ func cmdLedger(eng *engine.Engine, args []string) int {
 	return 0
 }
 
+// ttt export-ods [path]
+// Exports the current database as an OpenDocument spreadsheet.
+func cmdExportODS(store *sqlite.Store, args []string) int {
+	if len(args) > 1 {
+		return fail("usage: export-ods [path]")
+	}
+	path := "output/ttt-export.ods"
+	if len(args) == 1 && strings.TrimSpace(args[0]) != "" {
+		path = args[0]
+	}
+	if err := ods.ExportStore(store, path); err != nil {
+		return cliErr(err)
+	}
+	fmt.Printf("Exported ODS: %s\n", path)
+	return 0
+}
+
 // ── helpers ───────────────────────────────────────────────────────────────────
 
 func cliErr(err error) int {
@@ -663,5 +684,10 @@ Commands:
     Print account balances, FX rates, charges, and integrity checks.
 
   ledger
-    Dump all journal lines in insertion order.`)
+    Dump all journal lines in insertion order.
+
+  export-ods [path]
+    Export the current database as an OpenDocument spreadsheet.
+    Default path: output/ttt-export.ods
+    Example: ttt export-ods output/demo.ods`)
 }

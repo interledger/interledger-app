@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"ttt/engine"
+	"ttt/ods"
 )
 
 // providerCurrencies declares which currencies each provider supports.
@@ -233,6 +234,28 @@ var workflowDefs = []workflowDef{
 				return err
 			}
 			return e.SetCharge(fromProvider, toProvider, charge)
+		},
+	},
+	{
+		name: "Export ODS",
+		flat: true,
+		params: []workflowParam{
+			{label: "Path", placeholder: "output/ttt-export.ods"},
+		},
+		run: func(e *engine.Engine, v []string) error {
+			path := trim(v[0])
+			if path == "" {
+				path = "output/ttt-export.ods"
+			}
+			accounts, err := e.ListAccounts()
+			if err != nil {
+				return err
+			}
+			lines, err := e.GetAllLines()
+			if err != nil {
+				return err
+			}
+			return ods.Export(path, accounts, lines)
 		},
 	},
 	{
