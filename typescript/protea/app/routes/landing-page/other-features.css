@@ -13,6 +13,16 @@
   color: #0d0d0d;
   align-items: center;
   font-family: 'Poppins', sans-serif !important;
+
+  /* CSS-driven entrance animation (Issue 4) */
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1), transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.other-features-banner.is-visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .other-features-header {

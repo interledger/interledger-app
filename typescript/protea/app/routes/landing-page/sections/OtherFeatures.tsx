@@ -1,15 +1,16 @@
+import { useRef } from "react"
+import { useInView } from "framer-motion"
 import { PageSection } from "../components/PageSection"
-import { motion } from "framer-motion"
 
 export function OtherFeatures() {
+  const ref = useRef<HTMLDivElement>(null)
+  const isInView = useInView(ref, { once: true, amount: 0.3 })
+
   return (
     <PageSection>
-      <motion.div
-        className="other-features-banner"
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: true, amount: 0.3 }}
-        transition={{ type: "spring", duration: 1, bounce: 0 }}
+      <div
+        ref={ref}
+        className={`other-features-banner ${isInView ? "is-visible" : ""}`}
       >
         <header className="other-features-header">
           <div className="other-features-left">
@@ -60,7 +61,7 @@ export function OtherFeatures() {
             Also available in browsers
           </p>
         </div>
-      </motion.div>
+      </div>
     </PageSection>
   )
 }

@@ -79,6 +79,17 @@
   padding: var(--padding-lg);
   width: 100%;
   margin-inline: auto;
+
+  /* CSS-driven entrance animation (Issue 4) */
+  opacity: 0;
+  transform: scale(0.8);
+  transition: opacity 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition-delay: 0.8s;
+}
+
+.feature-widget-bob.is-visible .feature-widget {
+  opacity: 1;
+  transform: scale(1);
 }
 
 .feature-widget__avatar {
