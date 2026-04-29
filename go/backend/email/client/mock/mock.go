@@ -37,6 +37,20 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
 }
 
+// NotifyAccountDeletionRequested mocks base method.
+func (m *MockClient) NotifyAccountDeletionRequested(ctx context.Context, userID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NotifyAccountDeletionRequested", ctx, userID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// NotifyAccountDeletionRequested indicates an expected call of NotifyAccountDeletionRequested.
+func (mr *MockClientMockRecorder) NotifyAccountDeletionRequested(ctx, userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyAccountDeletionRequested", reflect.TypeOf((*MockClient)(nil).NotifyAccountDeletionRequested), ctx, userID)
+}
+
 // SendApplicationApprovedEmail mocks base method.
 func (m *MockClient) SendApplicationApprovedEmail(ctx context.Context, walletID string) {
 	m.ctrl.T.Helper()

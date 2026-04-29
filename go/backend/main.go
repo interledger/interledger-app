@@ -21,6 +21,8 @@ import (
 	"github.com/uptrace/opentelemetry-go-extra/otelsql"
 	"github.com/uptrace/opentelemetry-go-extra/otelsqlx"
 	aasa_assetlinks "gitlab.com/fynbos/backend/aasa_assetlinks"
+	"gitlab.com/fynbos/backend/accountdeletion"
+	accountdeletion_client "gitlab.com/fynbos/backend/accountdeletion/client"
 	"gitlab.com/fynbos/backend/admin"
 	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/agreements"
@@ -529,6 +531,8 @@ type backends struct {
 	gatehubConfig  gatehub.Config
 	chimoney       chimoney.Client
 	aasaConfig     aasa_assetlinks.Config
+
+	accountDeletion accountdeletion.Client
 }
 
 func (b backends) Chimoney() chimoney.Client {
@@ -663,6 +667,10 @@ func (b backends) PTI() pti.Client {
 	return b.pti
 }
 
+func (b backends) AccountDeletion() accountdeletion.Client {
+	return b.accountDeletion
+}
+
 func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	b := &backends{}
 
@@ -693,6 +701,8 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	b.linkedaccounts = linked_account_client.New(b)
 
 	b.signup = signup_client.New(b)
+
+	b.accountDeletion = accountdeletion_client.New(b)
 
 	b.waitlist = waitlist_client.New(b, log.Logger())
 
@@ -766,6 +776,7 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 		args.SendgridFromName,
 		args.SendgridFromEmail,
 		args.SendgridOneTemplateID,
+		args.SupportEmail,
 	)
 
 	log.Debug("initialising transactions")

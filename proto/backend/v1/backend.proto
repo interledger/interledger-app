@@ -171,7 +171,13 @@ service BackendService {
   rpc UnfreezeCard(UnfreezeCardRequest) returns (Empty);
   rpc BlockCard(BlockCardRequest) returns (Empty);
   rpc GetPendingThreeDSConfirmations(Empty) returns (GetPendingThreeDSConfirmationsResponse);
-  rpc ThreeDSPaymentConfirmation(ThreeDSPaymentConfirmationRequest) returns (Empty); 
+  rpc ThreeDSPaymentConfirmation(ThreeDSPaymentConfirmationRequest) returns (Empty);
+
+  // Records a pending account-deletion request and notifies support. Actual
+  // data deletion is performed manually for now. Requires a valid TOTP code.
+  rpc RequestAccountDeletion(RequestAccountDeletionRequest) returns (Empty);
+  // Returns whether the authenticated user has a pending account deletion request.
+  rpc GetAccountDeletionStatus(Empty) returns (AccountDeletionStatus);
 }
 
 message ThreeDSPaymentConfirmationRequest {
@@ -906,6 +912,7 @@ message Signup {
   bool completed = 8;
 }
 
+
 message CompleteSignupRequest {
   string id = 1;
   string userId = 2;
@@ -1178,4 +1185,14 @@ message CreateDomainIdentityResponse {
 
 message VerifyIdentityRequest {
   string id = 1;
+}
+
+message RequestAccountDeletionRequest {
+  string totp_code = 1;
+}
+
+message AccountDeletionStatus {
+  // Set when the authenticated user has a pending account deletion request.
+  // Unset means no pending request.
+  optional google.protobuf.Timestamp requested_at = 1;
 }

@@ -6,6 +6,8 @@ import (
 
 	"github.com/getsentry/sentry-go"
 
+	"gitlab.com/fynbos/backend/accountdeletion"
+	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/payments"
 
@@ -28,17 +30,22 @@ import (
 )
 
 var errorStatus = map[error]error{
-	user.ErrNoUserFound:            status.Error(codes.Unauthenticated, "Unauthenticated"),
-	twilio.ErrInvalidOTP:           NewValidationError("OTP", "Could not validate OTP"),
-	wallets.ErrDuplicateWallet:     status.Error(codes.AlreadyExists, "Wallet already exists"),
-	wallets.ErrWalletConflict:      status.Error(codes.FailedPrecondition, "Wallet already exists but with different configuration than requested (for example, country, currency, or addresses)"),
-	linkedaccounts.ErrNotFound:     NotFoundError("linked account not found"),
-	signup.ErrDuplicatePhone:       status.Error(codes.AlreadyExists, "Phone number already exists with a user."),
-	identities.ErrAlreadyExists:    status.Error(codes.AlreadyExists, "Identity already exists"),
-	wallets.ErrNoWalletFound:       NotFoundError("wallet address not found"),
-	payments.ErrRequiredActions:    status.Error(codes.FailedPrecondition, "Required details missing for payment"),
-	payments.ErrInsufficientFunds:  PaymentInsufficientFundsError(),
-	kyc.ErrKYCResubmissionRequired: status.Error(codes.FailedPrecondition, "KYC resubmission required: please update your verification documents"),
+	user.ErrNoUserFound:                 status.Error(codes.Unauthenticated, "Unauthenticated"),
+	twilio.ErrInvalidOTP:                NewValidationError("OTP", "Could not validate OTP"),
+	wallets.ErrDuplicateWallet:          status.Error(codes.AlreadyExists, "Wallet already exists"),
+	wallets.ErrWalletConflict:           status.Error(codes.FailedPrecondition, "Wallet already exists but with different configuration than requested (for example, country, currency, or addresses)"),
+	linkedaccounts.ErrNotFound:          NotFoundError("linked account not found"),
+	signup.ErrDuplicatePhone:            status.Error(codes.AlreadyExists, "Phone number already exists with a user."),
+	identities.ErrAlreadyExists:         status.Error(codes.AlreadyExists, "Identity already exists"),
+	wallets.ErrNoWalletFound:            NotFoundError("wallet address not found"),
+	payments.ErrRequiredActions:         status.Error(codes.FailedPrecondition, "Required details missing for payment"),
+	payments.ErrInsufficientFunds:       PaymentInsufficientFundsError(),
+	kyc.ErrKYCResubmissionRequired:      status.Error(codes.FailedPrecondition, "KYC resubmission required: please update your verification documents"),
+	user.ErrInvalidTotpCode:             NewValidationError("totp_code", "Invalid verification code."),
+	user.ErrTotpNotConfigured:           status.Error(codes.FailedPrecondition, "Two-factor authentication is not configured on this account."),
+	user.ErrInvalidTotpConfig:           status.Error(codes.FailedPrecondition, "Two-factor authentication configuration is invalid."),
+	email.ErrSupportInboxNotConfigured:  status.Error(codes.FailedPrecondition, "Support email is not configured."),
+	accountdeletion.ErrAlreadyRequested: status.Error(codes.AlreadyExists, "Account deletion is already pending."),
 }
 
 func validationDesc(fe validator.FieldError) string {

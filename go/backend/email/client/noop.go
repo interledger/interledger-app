@@ -70,3 +70,8 @@ func (n *noopClient) SendPending3DSConfirmation(_ context.Context, walletID, con
 func (n *noopClient) SendKYCDocumentsRequiredEmail(_ context.Context, walletID string) {
 	log.Info("NOT SENDING: KYC documents required email", zap.String("walletID", walletID))
 }
+
+func (n *noopClient) NotifyAccountDeletionRequested(_ context.Context, userID string) error {
+	log.Info("NOT SENDING: account deletion notification to support", zap.String("userID", userID))
+	return nil
+}

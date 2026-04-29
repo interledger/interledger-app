@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { Address, AddXagoBalanceAccountRequest, AddXagoBankAccountRequest, Agreement, Amount, BlockCardRequest, CanSignupRequest, CanSignupResponse, CardDetails, CheckPhoneVerificationRequest, ChimoneyInterlocEmail, CompleteSignupRequest, ConfirmPaymentRequest, Connection, Contact, CreateCardRequest, CreateConnectionRequest, CreateContactRequest, CreateDomainIdentityRequest, CreateDomainIdentityResponse, CreateGatehubWithdrawalRequest, CreateGatehubWithdrawalResponse, CreatePaymentRequest, CreatePtiBankAccountRequest, CreatePTIWithdrawalRequest, CreatePTIWithdrawalResponse, CreateSlackAuthURLResponse, CreateTwitterAuthURLResponse, CreateUserDefaultWalletRequest, CreateWalletAddressRequest, DeleteConnectionRequest, DeleteIdentityRequest, DeleteLinkedAccountRequest, Empty, Features, FreezeCardRequest, GatehubWidget, GetAgreementRequest, GetBalancesResponse, GetCardDetailsRequest, GetCardOrderOptionsResponse, GetCardTokenRequest, GetCardTokenResponse, GetChimoneyDepositLinkResponse, GetConnectionRequest, GetCountriesResponse, GetCurrentWalletResponse, GetIdentityBySignatureHashRequest, GetIdentityRequest, GetIdentityResponse, GetKYCProviderWidgetRequest, GetLinkedAccountRequest, GetLinkedAccountsForPaymentRequest, GetLinkedAccountsForPaymentResponse, GetLinkedAccountsForTransferRequest, GetLinkedAccountsResponse, GetOnOffRampProviderResponse, GetPaymentAddressRequest, GetPaymentAddressResponse, GetPaymentRequest, GetPendingThreeDSConfirmationsResponse, GetPtiBalancesResponse, GetPublicWalletDetailsRequest, GetPublicWalletDetailsResponse, GetPublicWalletInfoRequest, GetRafikiGrantRequest, GetSignupRequest, GetXagoBalanceResponse, GetXagoDepositDetailsRequest, GetXagoDepositDetailsResponse, Identity, IndividualKYCResponse, IsMugAvailableRequest, IsMugAvailableResponse, IsUSPSAddressResponse, JoinWaitlistRequest, JoinWaitlistResponse, KYCPersonaInquiryRequest, KYCPersonaInquiryResponse, KYCProviderWidget, KYCStatusResponse, LinkedAccount, ListCardsResponse, ListConnectionsResponse, ListContactsRequest, ListContactsResponse, ListIdentitiesResponse, ListPublicIdentitiesRequest, ListRafikiGrantsResponse, ListTransactionsResponse, LookupTransactionRequest, OrderCardRequest, PaginationRequest, Payment, PtiCreateDepositRequest, PtiTokenRequest, PtiTokenResponse, PublicWalletInfo, RafikiGrant, RevokeRafikiGrantRequest, SearchWalletsRequest, SearchWalletsResponse, SendPhoneVerificationRequest, SetChimoneyInterlocEmailRequest, SetDefaultReceiveLinkedAccountRequest, SetDefaultSendLinkedAccountRequest, SetIdentityPublicRequest, SetNicknameLinkedAccountRequest, SetSignupCompleteRequest, SetSignupMobileNumberRequest, SetSignupUserDataRequest, SetSignupUserDataResponse, SetWalletNameRequest, SignAgreementsRequest, SignAgreementsResponse, Signup, SlackCallbackRequest, SlackCallbackResponse, ThreeDSPaymentConfirmationRequest, Transaction, TransferBalanceRequest, TwitterCallbackRequest, TwitterCallbackResponse, UnfreezeCardRequest, UpdateIndividualKYCRequest, UpdatePaymentRequest, VerifyIdentityRequest, WalletAddressValidRequest, WalletAddressValidResponse, WalletInfo, WithdrawXagoBalanceRequest } from "./backend_pb.js";
+import { AccountDeletionStatus, Address, AddXagoBalanceAccountRequest, AddXagoBankAccountRequest, Agreement, Amount, BlockCardRequest, CanSignupRequest, CanSignupResponse, CardDetails, CheckPhoneVerificationRequest, ChimoneyInterlocEmail, CompleteSignupRequest, ConfirmPaymentRequest, Connection, Contact, CreateCardRequest, CreateConnectionRequest, CreateContactRequest, CreateDomainIdentityRequest, CreateDomainIdentityResponse, CreateGatehubWithdrawalRequest, CreateGatehubWithdrawalResponse, CreatePaymentRequest, CreatePtiBankAccountRequest, CreatePTIWithdrawalRequest, CreatePTIWithdrawalResponse, CreateSlackAuthURLResponse, CreateTwitterAuthURLResponse, CreateUserDefaultWalletRequest, CreateWalletAddressRequest, DeleteConnectionRequest, DeleteIdentityRequest, DeleteLinkedAccountRequest, Empty, Features, FreezeCardRequest, GatehubWidget, GetAgreementRequest, GetBalancesResponse, GetCardDetailsRequest, GetCardOrderOptionsResponse, GetCardTokenRequest, GetCardTokenResponse, GetChimoneyDepositLinkResponse, GetConnectionRequest, GetCountriesResponse, GetCurrentWalletResponse, GetIdentityBySignatureHashRequest, GetIdentityRequest, GetIdentityResponse, GetKYCProviderWidgetRequest, GetLinkedAccountRequest, GetLinkedAccountsForPaymentRequest, GetLinkedAccountsForPaymentResponse, GetLinkedAccountsForTransferRequest, GetLinkedAccountsResponse, GetOnOffRampProviderResponse, GetPaymentAddressRequest, GetPaymentAddressResponse, GetPaymentRequest, GetPendingThreeDSConfirmationsResponse, GetPtiBalancesResponse, GetPublicWalletDetailsRequest, GetPublicWalletDetailsResponse, GetPublicWalletInfoRequest, GetRafikiGrantRequest, GetSignupRequest, GetXagoBalanceResponse, GetXagoDepositDetailsRequest, GetXagoDepositDetailsResponse, Identity, IndividualKYCResponse, IsMugAvailableRequest, IsMugAvailableResponse, IsUSPSAddressResponse, JoinWaitlistRequest, JoinWaitlistResponse, KYCPersonaInquiryRequest, KYCPersonaInquiryResponse, KYCProviderWidget, KYCStatusResponse, LinkedAccount, ListCardsResponse, ListConnectionsResponse, ListContactsRequest, ListContactsResponse, ListIdentitiesResponse, ListPublicIdentitiesRequest, ListRafikiGrantsResponse, ListTransactionsResponse, LookupTransactionRequest, OrderCardRequest, PaginationRequest, Payment, PtiCreateDepositRequest, PtiTokenRequest, PtiTokenResponse, PublicWalletInfo, RafikiGrant, RequestAccountDeletionRequest, RevokeRafikiGrantRequest, SearchWalletsRequest, SearchWalletsResponse, SendPhoneVerificationRequest, SetChimoneyInterlocEmailRequest, SetDefaultReceiveLinkedAccountRequest, SetDefaultSendLinkedAccountRequest, SetIdentityPublicRequest, SetNicknameLinkedAccountRequest, SetSignupCompleteRequest, SetSignupMobileNumberRequest, SetSignupUserDataRequest, SetSignupUserDataResponse, SetWalletNameRequest, SignAgreementsRequest, SignAgreementsResponse, Signup, SlackCallbackRequest, SlackCallbackResponse, ThreeDSPaymentConfirmationRequest, Transaction, TransferBalanceRequest, TwitterCallbackRequest, TwitterCallbackResponse, UnfreezeCardRequest, UpdateIndividualKYCRequest, UpdatePaymentRequest, VerifyIdentityRequest, WalletAddressValidRequest, WalletAddressValidResponse, WalletInfo, WithdrawXagoBalanceRequest } from "./backend_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -1007,6 +1007,29 @@ export const BackendService = {
       name: "ThreeDSPaymentConfirmation",
       I: ThreeDSPaymentConfirmationRequest,
       O: Empty,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * Records a pending account-deletion request and notifies support. Actual
+     * data deletion is performed manually for now. Requires a valid TOTP code.
+     *
+     * @generated from rpc backend.v1.BackendService.RequestAccountDeletion
+     */
+    requestAccountDeletion: {
+      name: "RequestAccountDeletion",
+      I: RequestAccountDeletionRequest,
+      O: Empty,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * Returns whether the authenticated user has a pending account deletion request.
+     *
+     * @generated from rpc backend.v1.BackendService.GetAccountDeletionStatus
+     */
+    getAccountDeletionStatus: {
+      name: "GetAccountDeletionStatus",
+      I: Empty,
+      O: AccountDeletionStatus,
       kind: MethodKind.Unary,
     },
   }

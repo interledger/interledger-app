@@ -74,6 +74,7 @@ type StartArgs struct {
 	SendgridFromName              string
 	SendgridFromEmail             string
 	SendgridOneTemplateID         string
+	SupportEmail                  string
 	SmartyAuthID                  string
 	SmartyAuthToken               string
 	PusherAddr                    string
@@ -255,7 +256,7 @@ func ParseStartArgs() (*StartArgs, error) {
 		}
 	}
 
-	var sendgridAPIKey, sendgridFromName, sendgridFromEmail, sendgridOneTemplateID string
+	var sendgridAPIKey, sendgridFromName, sendgridFromEmail, sendgridOneTemplateID, supportEmail string
 	if emailEnabled {
 		sendgridAPIKey = os.Getenv("SENDGRID_API_KEY")
 		if sendgridAPIKey == "" {
@@ -275,6 +276,11 @@ func ParseStartArgs() (*StartArgs, error) {
 		sendgridOneTemplateID = os.Getenv("SENDGRID_ONE_TEMPLATE_ID")
 		if sendgridOneTemplateID == "" {
 			return nil, errors.New("SENDGRID_ONE_TEMPLATE_ID is required when EMAIL_ENABLED is true")
+		}
+
+		supportEmail = os.Getenv("SUPPORT_EMAIL")
+		if supportEmail == "" {
+			return nil, errors.New("SUPPORT_EMAIL is required when EMAIL_ENABLED is true")
 		}
 	}
 
@@ -505,6 +511,7 @@ func ParseStartArgs() (*StartArgs, error) {
 		SendgridFromName:              sendgridFromName,
 		SendgridFromEmail:             sendgridFromEmail,
 		SendgridOneTemplateID:         sendgridOneTemplateID,
+		SupportEmail:                  supportEmail,
 		SmartyAuthID:                  smartyAuthID,
 		SmartyAuthToken:               smartyAuthToken,
 		PusherAddr:                    pusherAddr,

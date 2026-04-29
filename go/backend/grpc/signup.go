@@ -8,8 +8,8 @@ import (
 	"gitlab.com/fynbos/backend/agreements"
 	"gitlab.com/fynbos/backend/signup"
 	"gitlab.com/fynbos/log"
-	"go.uber.org/zap"
 	pb "gitlab.com/fynbos/proto/backend/v1"
+	"go.uber.org/zap"
 )
 
 func (s *rpcService) SetSignupUserData(ctx context.Context, req *pb.SetSignupUserDataRequest) (*pb.SetSignupUserDataResponse, error) {

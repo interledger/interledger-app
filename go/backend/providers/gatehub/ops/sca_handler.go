@@ -10,8 +10,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
-	"github.com/pquerna/otp"
-	"github.com/pquerna/otp/totp"
 	"gitlab.com/fynbos/backend/providers/gatehub"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
@@ -147,36 +145,13 @@ func HandleSCAVerification(ctx context.Context, b Backends, req SCARequest, gate
 		return false
 	}
 
-	totpURL, err := b.Users().GetTotpURL(ctx, userID)
+	err = b.Users().ValidateTotpCode(ctx, userID, *req.Code, t)
 	if err != nil {
-		log.Error("failed to retrieve user totp URL", zap.String("user", userID), zap.String("walletID", walletID), zap.Error(err))
+		log.Error("failed to validate totp", zap.String("user", userID), zap.String("walletID", walletID), zap.Error(err))
 		return false
 	}
 
-	if totpURL == "" {
-		log.Error("totpURL is empty after a successful retrieval", zap.String("user", userID), zap.String("walletID", walletID))
-		return false
-	}
-
-	otpKey, err := otp.NewKeyFromURL(totpURL)
-	if err != nil {
-		log.Error("failed to parse totp URL", zap.String("user", userID), zap.String("walletID", walletID), zap.Error(err))
-		return false
-	}
-
-	valid, err := totp.ValidateCustom(*req.Code, otpKey.Secret(), t, totp.ValidateOpts{
-		Period:    30,
-		Skew:      1,
-		Digits:    otpKey.Digits(),
-		Algorithm: otpKey.Algorithm(),
-	})
-
-	if err != nil {
-		log.Error("failed to validate totp", zap.Error(err))
-		return false
-	}
-
-	return valid
+	return true
 }
 
 // sendResponse is a helper function to send the SCA response.

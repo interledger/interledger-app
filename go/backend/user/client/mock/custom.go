@@ -6,11 +6,13 @@ import (
 	"net/http"
 	"net/url"
 	"testing"
+	"time"
 
 	"gitlab.com/fynbos/backend/db"
 
 	"github.com/machinebox/graphql"
 	"gitlab.com/fynbos/backend/user"
+	userops "gitlab.com/fynbos/backend/user/ops"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -98,9 +100,17 @@ func (mc MockClient) Delete2FATotpEnrollment(ctx context.Context, token string) 
 func (mc MockClient) GetTotpURL(ctx context.Context, userID string) (string, error) {
 	totpURL, ok := mc.UserTotpURL[userID]
 	if !ok {
-		return "", user.ErrNoUserFound
+		return "", user.ErrTotpNotConfigured
 	}
 	return totpURL, nil
+}
+
+func (mc MockClient) ValidateTotpCode(ctx context.Context, userID, code string, now time.Time) error {
+	totpURL, err := mc.GetTotpURL(ctx, userID)
+	if err != nil {
+		return err
+	}
+	return userops.ValidateTotpAgainstURL(totpURL, code, now)
 }
 
 func (mc MockClient) UserForContext(ctx context.Context) (*user.User, error) {

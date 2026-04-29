@@ -21,7 +21,7 @@ type client struct {
 func New(
 	b Backends,
 	emailEnabled bool,
-	sendgridAPIKey, sendgridFromName, sendgridFromEmail, sendgridOneTemplateID string,
+	sendgridAPIKey, sendgridFromName, sendgridFromEmail, sendgridOneTemplateID, supportEmail string,
 ) email.Client {
 	if !emailEnabled {
 		return &noopClient{}
@@ -30,9 +30,10 @@ func New(
 	externalClient := sendgrid.NewClient(sendgridAPIKey, sendgridFromName, sendgridFromEmail)
 
 	ob := &opsBackends{
-		Backends:   b,
-		external:   externalClient,
-		templateID: sendgridOneTemplateID,
+		Backends:     b,
+		external:     externalClient,
+		templateID:   sendgridOneTemplateID,
+		supportEmail: supportEmail,
 	}
 
 	return &client{
@@ -102,4 +103,8 @@ func (c *client) SendPending3DSConfirmation(ctx context.Context, walletID, confi
 
 func (c *client) SendKYCDocumentsRequiredEmail(ctx context.Context, walletID string) {
 	ops.SendKYCDocumentsRequiredEmail(ctx, c.b, walletID)
+}
+
+func (c *client) NotifyAccountDeletionRequested(ctx context.Context, userID string) error {
+	return ops.SendAccountDeletionRequestedEmail(ctx, c.b, userID)
 }

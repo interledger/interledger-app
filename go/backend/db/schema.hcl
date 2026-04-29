@@ -648,6 +648,30 @@ table "signups" {
     columns = [column.id]
   }
 }
+table "account_deletion_requests" {
+  schema = schema.public
+  column "id" {
+    null    = false
+    type    = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "user_id" {
+    null = false
+    type = uuid
+  }
+  column "requested_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now()::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "account_deletion_requests_user_id_uniq" {
+    unique  = true
+    columns = [column.user_id]
+  }
+}
 table "user_wallets" {
   schema = schema.public
   column "user_id" {

@@ -529,3 +529,59 @@ func SendKYCDocumentsRequiredEmail(ctx context.Context, b Backends, walletID str
 		log.Error("Failed to send KYC documents required email.", zap.Error(err), zap.String("walletID", walletID))
 	}
 }
+
+func orNone(s string) string {
+	if strings.TrimSpace(s) == "" {
+		return "(none)"
+	}
+	return s
+}
+
+func SendAccountDeletionRequestedEmail(ctx context.Context, b Backends, userID string) error {
+	support := strings.TrimSpace(b.SupportEmail())
+	if support == "" {
+		return email.ErrSupportInboxNotConfigured
+	}
+
+	u, err := b.Users().GetUser(ctx, userID)
+	if err != nil {
+		return fmt.Errorf("%w: %w", email.ErrInternal, err)
+	}
+
+	userWallets, err := b.Wallets().List(ctx, userID)
+	if err != nil {
+		return fmt.Errorf("%w: %w", email.ErrInternal, err)
+	}
+
+	paragraphs := []string{
+		"A user requested app account deletion.",
+		"Environment: " + env.GetEnv(),
+		"User ID: " + u.ID,
+		"Email: " + orNone(u.Email),
+		"Phone: " + orNone(u.PhoneNumber),
+		"Country: " + orNone(u.Country.String()),
+		fmt.Sprintf("Wallet count: %d", len(userWallets)),
+	}
+	for _, w := range userWallets {
+		walletLine := "Wallet ID: " + w.ID
+		if addr := w.AddressString(); addr != "" {
+			walletLine += " — Address: " + addr
+		}
+		paragraphs = append(paragraphs, walletLine)
+	}
+
+	data := make([]map[string]interface{}, 0, len(paragraphs))
+	for _, p := range paragraphs {
+		data = append(data, map[string]interface{}{"paragraph": p})
+	}
+
+	sendTo := []sendgrid.Email{{Name: "Support", Address: support}}
+	subject := "[" + env.GetEnv() + "] Account deletion requested — user " + userID
+	if err := b.External().SendTemplate(ctx, subject, sendTo, b.OneTemplateID(), map[string]interface{}{
+		"subject": subject,
+		"data":    data,
+	}, nil); err != nil {
+		return fmt.Errorf("%w: %w", email.ErrInternal, err)
+	}
+	return nil
+}
