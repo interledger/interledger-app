@@ -38,8 +38,8 @@ func GetAccountStatement(ctx context.Context, b Backends, ec external.Client, wa
 	if requestedDate.Before(accountCreatedAt) {
 		return nil, fmt.Errorf("%w: requested date is before account creation", gatehub.ErrBadRequest)
 	}
-	if !requestedDate.Before(currentMonth) {
-		return nil, fmt.Errorf("%w: requested date must be a past month", gatehub.ErrBadRequest)
+	if requestedDate.After(currentMonth) {
+		return nil, fmt.Errorf("%w: requested date must not be in the future", gatehub.ErrBadRequest)
 	}
 
 	externalIDs, err := GetExternalIDs(ctx, b, walletID)

@@ -156,28 +156,6 @@ func TestGetAccountStatement_DateBeforeAccountCreation(t *testing.T) {
 	assert.ErrorIs(t, err, gatehub.ErrBadRequest)
 }
 
-func TestGetAccountStatement_DateIsCurrentMonth(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	now := time.Now().UTC()
-	laMock := la_mock.NewMockClient(ctrl)
-	laMock.EXPECT().ListByWalletId(gomock.Any(), gomock.Any()).Return([]linkedaccounts.LinkedAccount{
-		{
-			Provider:   gatehub.ProviderName,
-			Type:       gatehub.AccTypeBalance,
-			ProviderID: "rWalletAddress",
-			CreatedAt:  time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
-		},
-	}, nil)
-
-	b := Backends{la: laMock}
-	_, err := ops.GetAccountStatement(context.Background(), b, nil, "wallet-id", now.Year(), int(now.Month()))
-
-	require.Error(t, err)
-	assert.ErrorIs(t, err, gatehub.ErrBadRequest)
-}
-
 func TestGetAccountStatement_DateInFuture(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()

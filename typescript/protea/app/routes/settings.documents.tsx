@@ -39,12 +39,8 @@ function getStatementDates(accountCreatedAt?: string): StatementDate[] {
   if (!accountCreatedAt) return []
 
   const now = new Date()
-  // assumed GateHub only provides statements up to last month — subject to change
-  const lastAvailableDate = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1)
-  )
-  const lastAvailableMonth = lastAvailableDate.getUTCMonth() + 1
-  const lastAvailableYear = lastAvailableDate.getUTCFullYear()
+  const lastAvailableMonth = now.getUTCMonth() + 1
+  const lastAvailableYear = now.getUTCFullYear()
 
   const firstAvailableYear = new Date(accountCreatedAt).getUTCFullYear()
   const firstAvailableMonth = new Date(accountCreatedAt).getUTCMonth() + 1
