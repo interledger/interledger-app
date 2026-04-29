@@ -252,6 +252,13 @@ func (s *Store) FindUserAccount(userID, providerID string, currency engine.Curre
 	)
 }
 
+func (s *Store) FindFXAccount(providerID string, currency engine.Currency) (engine.Account, bool, error) {
+	return s.findAccount(
+		`type = ? AND provider_id = ? AND currency_code = ?`,
+		int(engine.AccountTypeFX), providerID, currency.Code,
+	)
+}
+
 // ── Ledger ───────────────────────────────────────────────────────────────────
 
 func (s *Store) PostEntries(entries []engine.LedgerEntry) error {

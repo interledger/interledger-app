@@ -10,6 +10,7 @@ const (
 	AccountTypeLiquidity                    // per-provider + currency reserve pool
 	AccountTypePosition                     // sub-account of liquidity tracking inter-provider settlement
 	AccountTypeUser                         // individual user balance
+	AccountTypeFX                           // per-provider + currency pass-through for self-exchange payouts
 )
 
 // EntryType is either Debit or Credit.

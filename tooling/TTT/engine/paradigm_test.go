@@ -134,6 +134,46 @@ func TestSeedParadigm_SingleGHEUR(t *testing.T) {
 	}
 }
 
+func TestSeedParadigm_SelfExchange(t *testing.T) {
+	e := newEngine()
+
+	if err := engine.SeedParadigm(engine.ParadigmSelfExchange, e); err != nil {
+		t.Fatalf("SeedParadigm SelfExchange: %v", err)
+	}
+	// Idempotency.
+	if err := engine.SeedParadigm(engine.ParadigmSelfExchange, e); err != nil {
+		t.Fatalf("SeedParadigm SelfExchange second run: %v", err)
+	}
+
+	accounts, err := e.ListAccounts()
+	if err != nil {
+		t.Fatalf("ListAccounts: %v", err)
+	}
+
+	checks := []struct {
+		typ      engine.AccountType
+		provider string
+		currency string
+		userID   string
+	}{
+		{engine.AccountTypeSystem, "gatehub", "EUR", ""},
+		{engine.AccountTypeLiquidity, "gatehub", "EUR", ""},
+		{engine.AccountTypeSystem, "xago", "ZAR", ""},
+		{engine.AccountTypeLiquidity, "xago", "ZAR", ""},
+		{engine.AccountTypeFX, "xago", "ZAR", ""},
+		{engine.AccountTypeSystem, "xago", "EUR", ""},
+		{engine.AccountTypeLiquidity, "xago", "EUR", ""},
+		{engine.AccountTypeUser, "gatehub", "EUR", "alice"},
+		{engine.AccountTypeUser, "gatehub", "EUR", "bob"},
+		{engine.AccountTypeUser, "xago", "ZAR", "carlos"},
+	}
+	for _, c := range checks {
+		if !hasAccount(accounts, c.typ, c.provider, c.currency, c.userID) {
+			t.Fatalf("missing account: type=%v provider=%s currency=%s user=%s", c.typ, c.provider, c.currency, c.userID)
+		}
+	}
+}
+
 func TestSeedParadigm_Unknown(t *testing.T) {
 	e := newEngine()
 	if err := engine.SeedParadigm(engine.Paradigm(777), e); err == nil {

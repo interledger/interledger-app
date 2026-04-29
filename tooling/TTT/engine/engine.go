@@ -144,6 +144,31 @@ func (e *Engine) CreatePositionAccount(liquidityAccountID, counterpartyID string
 	return a, e.store.SaveAccount(a)
 }
 
+// CreateFXAccount creates the self-exchange pass-through account for a provider + currency pair.
+// At most one FX account may exist per provider + currency combination.
+func (e *Engine) CreateFXAccount(providerID string, currency Currency) (Account, error) {
+	if err := e.validateProviderCurrency(providerID, currency); err != nil {
+		return Account{}, err
+	}
+	if _, exists, err := e.store.FindFXAccount(providerID, currency); err != nil {
+		return Account{}, err
+	} else if exists {
+		return Account{}, fmt.Errorf("FX account for provider %q currency %q already exists", providerID, currency.Code)
+	}
+	a := Account{
+		ID:         newID(),
+		Type:       AccountTypeFX,
+		ProviderID: providerID,
+		Currency:   currency,
+	}
+	return a, e.store.SaveAccount(a)
+}
+
+// FindFXAccount returns the self-exchange FX account for the given provider and currency.
+func (e *Engine) FindFXAccount(providerID string, currency Currency) (Account, bool, error) {
+	return e.store.FindFXAccount(providerID, currency)
+}
+
 // CreateUserAccount creates a user balance account for a given user + provider + currency triple.
 // At most one such account may exist per combination.
 func (e *Engine) CreateUserAccount(userID, providerID string, currency Currency) (Account, error) {

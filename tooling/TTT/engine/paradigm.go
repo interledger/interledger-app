@@ -18,13 +18,21 @@ const (
 	// Only GateHub carries EUR accounts; Xago operates in ZAR only.
 	ParadigmSingleGHEUR Paradigm = 2
 
+	// ParadigmSelfExchange is the self-exchange setup.
+	// Xago pre-funds a large ZAR liquidity pool and services ZAR payouts
+	// directly via a per-provider FX account, without a per-transaction
+	// EUR→ZAR conversion through system accounts.
+	// EUR still flows through bilateral position accounts so SettleBilateral
+	// can close out the net obligation periodically.
+	ParadigmSelfExchange Paradigm = 3
+
 	// ParadigmStandard is an alias for the currently recommended paradigm.
 	// It always points to the latest accepted setup.
 	ParadigmStandard = ParadigmPOSTwo
 )
 
 // ValidParadigms lists every paradigm available at init time.
-var ValidParadigms = []Paradigm{ParadigmPOSTwo, ParadigmSingleGHEUR}
+var ValidParadigms = []Paradigm{ParadigmPOSTwo, ParadigmSingleGHEUR, ParadigmSelfExchange}
 
 // Name returns the human-readable display name for the paradigm.
 func (p Paradigm) Name() string {
@@ -33,6 +41,8 @@ func (p Paradigm) Name() string {
 		return "Standard — two-POS setup (recommended)"
 	case ParadigmSingleGHEUR:
 		return "Single GateHub EUR POS (legacy)"
+	case ParadigmSelfExchange:
+		return "Self-exchange — Xago pre-funded ZAR pool"
 	default:
 		return fmt.Sprintf("unknown(%d)", int(p))
 	}
@@ -57,6 +67,8 @@ func SeedParadigm(p Paradigm, eng *Engine) error {
 		return seedPOSTwo(eng)
 	case ParadigmSingleGHEUR:
 		return seedSingleGHEUR(eng)
+	case ParadigmSelfExchange:
+		return seedSelfExchange(eng)
 	default:
 		return fmt.Errorf("SeedParadigm: unknown paradigm %d", int(p))
 	}
@@ -100,6 +112,55 @@ func seedPOSTwo(eng *Engine) error {
 		{func() (Account, error) { return eng.CreateLiquidityAccount("gatehub", EUR) }},
 		{func() (Account, error) { return eng.CreateSystemAccount("xago", ZAR) }},
 		{func() (Account, error) { return eng.CreateLiquidityAccount("xago", ZAR) }},
+		{func() (Account, error) { return eng.CreateSystemAccount("xago", EUR) }},
+		{func() (Account, error) { return eng.CreateLiquidityAccount("xago", EUR) }},
+		{func() (Account, error) { return eng.CreateUserAccount("alice", "gatehub", EUR) }},
+		{func() (Account, error) { return eng.CreateUserAccount("bob", "gatehub", EUR) }},
+		{func() (Account, error) { return eng.CreateUserAccount("carlos", "xago", ZAR) }},
+	}
+	for _, s := range seeds {
+		if _, err := s.fn(); err != nil {
+			if err := skipAlreadyExists(err); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// seedSelfExchange seeds the self-exchange paradigm.
+//
+// Account topology:
+//   - GateHub: system(EUR), liquidity(EUR)
+//   - Xago:    system(ZAR), liquidity(ZAR), FX account(ZAR), system(EUR), liquidity(EUR)
+//
+// Xago's FX account (ZAR) is the pass-through used during self-exchange payouts.
+// EUR flows through bilateral position accounts as normal; SettleBilateral can
+// close the net obligation periodically.
+// Xago's ZAR liquidity must be pre-funded via Fund Provider Liquidity before
+// cross-provider transfers will succeed.
+func seedSelfExchange(eng *Engine) error {
+	type providerSeed struct{ id, name string }
+	for _, ps := range []providerSeed{
+		{"gatehub", "GateHub"},
+		{"xago", "Xago"},
+	} {
+		if _, err := eng.CreateProvider(ps.id, ps.name); err != nil {
+			if err := skipAlreadyExists(err); err != nil {
+				return err
+			}
+		}
+	}
+
+	type acctSeed struct {
+		fn func() (Account, error)
+	}
+	seeds := []acctSeed{
+		{func() (Account, error) { return eng.CreateSystemAccount("gatehub", EUR) }},
+		{func() (Account, error) { return eng.CreateLiquidityAccount("gatehub", EUR) }},
+		{func() (Account, error) { return eng.CreateSystemAccount("xago", ZAR) }},
+		{func() (Account, error) { return eng.CreateLiquidityAccount("xago", ZAR) }},
+		{func() (Account, error) { return eng.CreateFXAccount("xago", ZAR) }},
 		{func() (Account, error) { return eng.CreateSystemAccount("xago", EUR) }},
 		{func() (Account, error) { return eng.CreateLiquidityAccount("xago", EUR) }},
 		{func() (Account, error) { return eng.CreateUserAccount("alice", "gatehub", EUR) }},

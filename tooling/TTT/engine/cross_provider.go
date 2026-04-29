@@ -151,7 +151,7 @@ func (e *Engine) crossProviderTransferCoreLines(
 	}
 	senderCanConvert := senderHasSysDst && senderHasLiqDst
 
-	// Source-currency capabilities on recipient (fallback route).
+	// Source-currency capabilities on recipient (Mode B fallback).
 	recipientSysSrc, recipientHasSysSrc, err := e.store.FindSystemAccount(recipientProviderID, senderCurrency)
 	if err != nil {
 		return nil, err
@@ -162,9 +162,17 @@ func (e *Engine) crossProviderTransferCoreLines(
 	}
 	recipientCanConvert := recipientHasSysSrc && recipientHasLiqSrc
 
-	if !senderCanConvert && !recipientCanConvert {
-		return nil, fmt.Errorf("cross-provider transfer requires either sender conversion (%s/%s on %s) or recipient conversion (%s/%s on %s)",
+	// Self-exchange capability: recipient has a pre-funded FX account in the
+	// destination currency. Preferred over Mode B when present.
+	recipientFXDst, recipientHasFXDst, err := e.store.FindFXAccount(recipientProviderID, recipientCurrency)
+	if err != nil {
+		return nil, err
+	}
+
+	if !senderCanConvert && !recipientHasFXDst && !recipientCanConvert {
+		return nil, fmt.Errorf("cross-provider transfer requires either sender conversion (%s/%s on %s), recipient self-exchange FX account (%s on %s), or recipient conversion (%s/%s on %s)",
 			recipientCurrency.Code, recipientCurrency.Code, senderProviderID,
+			recipientCurrency.Code, recipientProviderID,
 			senderCurrency.Code, senderCurrency.Code, recipientProviderID)
 	}
 
@@ -199,6 +207,9 @@ func (e *Engine) crossProviderTransferCoreLines(
 	firstLineAmount := srcAmount + chargeAmount
 
 	var lines []JournalLine
+	if recipientHasFXDst {
+		baseMeta[MetaSelfExchange] = "true"
+	}
 	if senderCanConvert {
 		if !recipientHasLiqDst {
 			return nil, fmt.Errorf("recipient liquidity account for provider %q currency %q not found",
@@ -231,6 +242,54 @@ func (e *Engine) crossProviderTransferCoreLines(
 				CreditMetadata: map[string]string{MetaStep: "credit recipient liquidity"}},
 			{EventID: eventID, Timestamp: ts, DebitAccountID: recipientLiqDst.ID, CreditAccountID: recipientUser.ID, Amount: destAmount, Metadata: baseMeta,
 				DebitMetadata:  map[string]string{MetaStep: "debit recipient liquidity"},
+				CreditMetadata: map[string]string{MetaStep: "credit recipient user"}},
+		}
+	} else if recipientHasFXDst {
+		// Self-exchange routing: EUR flows through bilateral position accounts and
+		// accumulates in recipientLiqSrc; ZAR is drawn from the pre-funded ZAR
+		// liquidity pool and routed via the FX pass-through account to the recipient.
+		if !recipientHasLiqSrc {
+			return nil, fmt.Errorf("recipient liquidity account for provider %q currency %q not found",
+				recipientProviderID, senderCurrency.Code)
+		}
+		if !recipientHasLiqDst {
+			return nil, fmt.Errorf("recipient liquidity account for provider %q currency %q not found",
+				recipientProviderID, recipientCurrency.Code)
+		}
+		liqDstBal, err := e.Balance(recipientLiqDst.ID)
+		if err != nil {
+			return nil, err
+		}
+		if liqDstBal < destAmount {
+			return nil, fmt.Errorf("insufficient %s liquidity on %q for self-exchange: have %s, need %s",
+				recipientCurrency.Code, recipientProviderID,
+				formatScaledAmount(liqDstBal, recipientCurrency.AssetScale),
+				formatScaledAmount(destAmount, recipientCurrency.AssetScale))
+		}
+		senderPos, err := e.ensurePositionAccount(senderLiqSrc.ID, recipientProviderID)
+		if err != nil {
+			return nil, fmt.Errorf("sender position: %w", err)
+		}
+		recipientPos, err := e.ensurePositionAccount(recipientLiqSrc.ID, senderProviderID)
+		if err != nil {
+			return nil, fmt.Errorf("recipient position: %w", err)
+		}
+
+		lines = []JournalLine{
+			{EventID: eventID, Timestamp: ts, DebitAccountID: senderUser.ID, CreditAccountID: senderLiqSrc.ID, Amount: firstLineAmount, Metadata: baseMeta,
+				DebitMetadata:  map[string]string{MetaStep: "debit sender user"},
+				CreditMetadata: map[string]string{MetaStep: "credit sender liquidity"}},
+			{EventID: eventID, Timestamp: ts, DebitAccountID: senderLiqSrc.ID, CreditAccountID: senderPos.ID, Amount: srcAmount, Metadata: baseMeta,
+				DebitMetadata:  map[string]string{MetaStep: "debit sender liquidity"},
+				CreditMetadata: map[string]string{MetaStep: "credit sender position"}},
+			{EventID: eventID, Timestamp: ts, DebitAccountID: recipientPos.ID, CreditAccountID: recipientLiqSrc.ID, Amount: srcAmount, Metadata: baseMeta,
+				DebitMetadata:  map[string]string{MetaStep: "debit recipient position"},
+				CreditMetadata: map[string]string{MetaStep: "credit recipient liquidity (EUR)"}},
+			{EventID: eventID, Timestamp: ts, DebitAccountID: recipientLiqDst.ID, CreditAccountID: recipientFXDst.ID, Amount: destAmount, Metadata: baseMeta,
+				DebitMetadata:  map[string]string{MetaStep: "debit recipient liquidity (ZAR)"},
+				CreditMetadata: map[string]string{MetaStep: "credit recipient FX account"}},
+			{EventID: eventID, Timestamp: ts, DebitAccountID: recipientFXDst.ID, CreditAccountID: recipientUser.ID, Amount: destAmount, Metadata: baseMeta,
+				DebitMetadata:  map[string]string{MetaStep: "debit recipient FX account"},
 				CreditMetadata: map[string]string{MetaStep: "credit recipient user"}},
 		}
 	} else {

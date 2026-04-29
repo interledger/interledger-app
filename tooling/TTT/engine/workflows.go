@@ -23,6 +23,9 @@ const (
 	MetaChargeRateNum = "charge.rate_num"
 	MetaChargeRateDen = "charge.rate_den"
 	MetaChargeAmount  = "charge.amount"
+
+	// MetaSelfExchange is set to "true" on events routed through the self-exchange path.
+	MetaSelfExchange = "fx.self_exchange"
 )
 
 // Workflow name constants.

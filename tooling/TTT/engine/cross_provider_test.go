@@ -356,6 +356,154 @@ func TestCheckLiquidityDecomposition(t *testing.T) {
 	})
 }
 
+// setupSelfExchange bootstraps the self-exchange paradigm accounts and
+// pre-funds Xago ZAR liquidity. Returns the sender and recipient user accounts.
+func setupSelfExchange(t *testing.T) (*engine.Engine, engine.Account, engine.Account) {
+	t.Helper()
+	e := newEngine()
+	setupProvider(t, e, "gh", "GateHub")
+	setupProvider(t, e, "xg", "Xago")
+
+	setupSystemAccount(t, e, "gh", eur)
+	setupLiquidityAccount(t, e, "gh", eur)
+	setupSystemAccount(t, e, "xg", eur)
+	setupLiquidityAccount(t, e, "xg", eur)
+	setupSystemAccount(t, e, "xg", zar)
+	setupLiquidityAccount(t, e, "xg", zar)
+	setupFXAccount(t, e, "xg", zar)
+
+	sender := setupUserAccount(t, e, "alice", "gh", eur)
+	recipient := setupUserAccount(t, e, "carlos", "xg", zar)
+
+	// Onboard sender with 500 EUR.
+	if _, err := e.UserOnboard("alice", "gh", eur, 50000); err != nil {
+		t.Fatalf("UserOnboard: %v", err)
+	}
+	// Pre-fund Xago ZAR pool with 150 000 ZAR.
+	if _, err := e.FundProviderLiquidity("xg", zar, 15000000); err != nil {
+		t.Fatalf("FundProviderLiquidity xg ZAR: %v", err)
+	}
+	return e, sender, recipient
+}
+
+func TestSelfExchangeTransfer(t *testing.T) {
+	t.Run("happy path uses 5 lines", func(t *testing.T) {
+		e, sender, recipient := setupSelfExchange(t)
+
+		lines, err := e.CrossProviderTransferLines(
+			"alice", "gh", eur,
+			"carlos", "xg", zar,
+			10000, 15, 1, // 100 EUR → 1500 ZAR
+		)
+		if err != nil {
+			t.Fatalf("CrossProviderTransferLines: %v", err)
+		}
+		if len(lines) != 5 {
+			t.Fatalf("expected 5 journal lines for self-exchange, got %d", len(lines))
+		}
+
+		// Sender loses 100 EUR.
+		if bal, _ := e.Balance(sender.ID); bal != 40000 {
+			t.Errorf("sender balance: want 40000, got %d", bal)
+		}
+		// Recipient receives 1500 ZAR.
+		if bal, _ := e.Balance(recipient.ID); bal != 150000 {
+			t.Errorf("recipient balance: want 150000, got %d", bal)
+		}
+
+		// FX metadata present on all lines.
+		for _, l := range lines {
+			if l.Metadata[engine.MetaFXRateNum] != "15" {
+				t.Errorf("line missing fx.rate_num: %v", l.Metadata)
+			}
+			if l.Metadata[engine.MetaSelfExchange] != "true" {
+				t.Errorf("line missing fx.self_exchange flag: %v", l.Metadata)
+			}
+		}
+
+		// Integrity checks.
+		if err := e.CheckPerEventBalance(lines[0].EventID); err != nil {
+			t.Errorf("per-event balance: %v", err)
+		}
+		if _, err := e.CheckGlobalBalance(); err != nil {
+			t.Errorf("global balance: %v", err)
+		}
+		if _, err := e.CheckBilateralPositions(); err != nil {
+			t.Errorf("bilateral mirror: %v", err)
+		}
+	})
+
+	t.Run("FX account passes through to zero balance", func(t *testing.T) {
+		e, _, _ := setupSelfExchange(t)
+
+		if _, err := e.CrossProviderTransferLines(
+			"alice", "gh", eur,
+			"carlos", "xg", zar,
+			10000, 15, 1,
+		); err != nil {
+			t.Fatalf("CrossProviderTransferLines: %v", err)
+		}
+
+		fxAcct, ok, err := e.FindFXAccount("xg", zar)
+		if err != nil || !ok {
+			t.Fatalf("FindFXAccount: ok=%v err=%v", ok, err)
+		}
+		if bal, _ := e.Balance(fxAcct.ID); bal != 0 {
+			t.Errorf("FX account balance: want 0 (transient), got %d", bal)
+		}
+	})
+
+	t.Run("insufficient ZAR liquidity rejected", func(t *testing.T) {
+		e := newEngine()
+		setupProvider(t, e, "gh", "GateHub")
+		setupProvider(t, e, "xg", "Xago")
+		setupSystemAccount(t, e, "gh", eur)
+		setupLiquidityAccount(t, e, "gh", eur)
+		setupSystemAccount(t, e, "xg", eur)
+		setupLiquidityAccount(t, e, "xg", eur)
+		setupSystemAccount(t, e, "xg", zar)
+		setupLiquidityAccount(t, e, "xg", zar) // zero balance
+		setupFXAccount(t, e, "xg", zar)
+		if _, err := e.UserOnboard("alice", "gh", eur, 50000); err != nil {
+			t.Fatalf("UserOnboard: %v", err)
+		}
+		// ZAR liquidity is empty — transfer must fail.
+		if _, err := e.CrossProviderTransferLines(
+			"alice", "gh", eur,
+			"carlos", "xg", zar,
+			10000, 15, 1,
+		); err == nil {
+			t.Error("expected insufficient ZAR liquidity error")
+		}
+	})
+
+	t.Run("bilateral settlement still works after self-exchange transfers", func(t *testing.T) {
+		e, _, _ := setupSelfExchange(t)
+
+		if _, err := e.CrossProviderTransferLines(
+			"alice", "gh", eur,
+			"carlos", "xg", zar,
+			10000, 15, 1,
+		); err != nil {
+			t.Fatalf("CrossProviderTransferLines: %v", err)
+		}
+
+		// Fund GH EUR liquidity so settlement can proceed.
+		if _, err := e.FundProviderLiquidity("gh", eur, 50000); err != nil {
+			t.Fatalf("FundProviderLiquidity gh EUR: %v", err)
+		}
+
+		// EUR bilateral settlement closes the position created during self-exchange.
+		future := time.Now().UTC().Add(time.Hour)
+		if _, err := e.SettleBilateralLines("gh", "xg", eur, future); err != nil {
+			t.Fatalf("SettleBilateralLines EUR: %v", err)
+		}
+		if _, err := e.CheckBilateralPositions(); err != nil {
+			t.Errorf("bilateral mirror after settlement: %v", err)
+		}
+	})
+}
+
 func TestCheckBilateralPositions(t *testing.T) {
 	t.Run("healthy after cross-provider transfer", func(t *testing.T) {
 		e, _, _ := setupCrossProvider(t)

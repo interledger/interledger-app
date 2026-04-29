@@ -57,6 +57,16 @@ func setupUserAccount(t *testing.T, e *engine.Engine, userID, providerID string,
 	return a
 }
 
+// setupFXAccount creates a FX pass-through account; fatals on error.
+func setupFXAccount(t *testing.T, e *engine.Engine, providerID string, currency engine.Currency) engine.Account {
+	t.Helper()
+	a, err := e.CreateFXAccount(providerID, currency)
+	if err != nil {
+		t.Fatalf("CreateFXAccount: %v", err)
+	}
+	return a
+}
+
 // ----- Provider ----------------------------------------------------------------
 
 func TestCreateProvider(t *testing.T) {

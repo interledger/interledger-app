@@ -1,6 +1,6 @@
 export GOWORK=off
 
-.PHONY: test lint
+.PHONY: test lint e2e
 
 test: lint
 	@echo "--- running unit tests ---"
@@ -13,6 +13,10 @@ test: lint
 lint:
 	@echo "--- running linter ---"
 	golangci-lint run ./...
+
+e2e:
+	@echo "--- running e2e tests ---"
+	cd e2e && GOCACHE=/tmp/ttt-go-cache go test -count=1 ./... $(if $(or $(E2E_TAGS),$(E2E_DEBUG)),-args) $(if $(E2E_TAGS),-tags="$(E2E_TAGS)") $(if $(E2E_DEBUG),--debug="$(E2E_DEBUG)")
 
 build:
 	@echo "--- building TTT ---"

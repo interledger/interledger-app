@@ -125,6 +125,17 @@ func (s *Store) FindUserAccount(userID, providerID string, currency engine.Curre
 	return engine.Account{}, false, nil
 }
 
+func (s *Store) FindFXAccount(providerID string, currency engine.Currency) (engine.Account, bool, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	for _, a := range s.accounts {
+		if a.Type == engine.AccountTypeFX && a.ProviderID == providerID && a.Currency == currency {
+			return a, true, nil
+		}
+	}
+	return engine.Account{}, false, nil
+}
+
 func (s *Store) PostEntries(entries []engine.LedgerEntry) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()

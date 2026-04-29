@@ -12,6 +12,7 @@ coverage.out
 
 # Build output
 dist/
+output/
 
 # Local SQLite database
 *.db

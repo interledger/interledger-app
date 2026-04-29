@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"ttt/cli"
 	"ttt/engine"
 	"ttt/engine/sqlite"
 	"ttt/gui"
@@ -37,6 +38,12 @@ func main() {
 		os.Exit(1)
 	}
 	eng.WithFX(fx)
+
+	// ── CLI mode ─────────────────────────────────────────────────────────
+	// If any positional argument is present, run headless CLI and exit.
+	if len(os.Args) > 1 {
+		os.Exit(cli.Run(store, eng, os.Args[1:]))
+	}
 
 	// ── Paradigm selection ───────────────────────────────────────────────
 	// On first run, prompt the user to pick an account topology.

@@ -16,6 +16,7 @@ type Store interface {
 	FindLiquidityAccount(providerID string, currency Currency) (Account, bool, error)
 	FindPositionAccount(liquidityAccountID, counterpartyID string) (Account, bool, error)
 	FindUserAccount(userID, providerID string, currency Currency) (Account, bool, error)
+	FindFXAccount(providerID string, currency Currency) (Account, bool, error)
 
 	// Journal-line ledger API.
 	PostLines(lines []JournalLine) error

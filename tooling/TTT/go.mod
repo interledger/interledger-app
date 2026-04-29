@@ -6,6 +6,7 @@ require (
 	charm.land/bubbletea/v2 v2.0.6
 	github.com/charmbracelet/lipgloss v1.1.0
 	github.com/evertras/bubble-table v0.19.2
+	modernc.org/sqlite v1.49.1
 )
 
 require (
@@ -43,5 +44,4 @@ require (
 	modernc.org/libc v1.72.0 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
-	modernc.org/sqlite v1.49.1 // indirect
 )
