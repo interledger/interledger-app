@@ -132,11 +132,15 @@ export default function Page() {
             confirm it.
           </p>
         </CardContent>
-        <Label className='mt-4'>Current mobile number</Label>
-        <div className='mt-1 flex space-x-2 rounded-xl bg-nav p-3 text-medium'>
-          <Icon>phone_android</Icon>
-          <span>{phone}</span>
-        </div>
+        {!otpSent && (
+          <>
+            <Label className='mt-4'>Current mobile number</Label>
+            <div className='mt-1 flex space-x-2 rounded-xl bg-nav p-3 text-medium'>
+              <Icon>phone_android</Icon>
+              <span>{phone}</span>
+            </div>
+          </>
+        )}
         {!otpSent && (
           <ChangePhoneForm
             fetcher={updateFetcher}
