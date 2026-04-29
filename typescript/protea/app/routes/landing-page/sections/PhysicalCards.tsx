@@ -6,7 +6,7 @@ import rightCardUrl from "../assets/cards-section/right.svg"
 
 export function PhysicalCards() {
   const ref = useRef<HTMLDivElement>(null)
-  const isInView = useInView(ref, { once: true, amount: 0.3 })
+  const isInView = useInView(ref, { once: false, amount: 0.3 })
 
   return (
     <section className="section-physical-cards content-section">
