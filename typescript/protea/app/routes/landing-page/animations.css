@@ -67,7 +67,6 @@
 .glow-base {
   position: absolute;
   filter: blur(140px);
-  will-change: filter;
   pointer-events: none;
   user-select: none;
   z-index: 0;
@@ -80,7 +79,7 @@
   border-radius: 9999px;
 }
 
-@media (max-width: 810px) {
+@media (max-width: 899px) {
   .glow-inner {
     width: 280px;
     height: 210px;

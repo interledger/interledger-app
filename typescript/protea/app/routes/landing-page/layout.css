@@ -1,8 +1,8 @@
 /* Breakpoint & Content Width Tokens */
 :root {
   /* Breakpoint Definitions (Tokens) */
-  --breakpoint-mobile: 809px;
-  --breakpoint-tablet-min: 810px;
+  --breakpoint-mobile: 899px;
+  --breakpoint-tablet-min: 900px;
   --breakpoint-tablet-max: 1199px;
   --breakpoint-desktop: 1200px;
 
@@ -10,7 +10,7 @@
   --content-max-width: 899px; /* Default for Phone (< 809px) */
 }
 
-@media (min-width: 810px) { /* Tablet range starts */
+@media (min-width: 900px) { /* Tablet range starts */
   :root {
     --content-max-width: 1199px;
   }

@@ -85,14 +85,50 @@
   z-index: 4;
 }
 
+/* CSS Animations for Physical Cards (Issue 4) */
+.physical-card-layer {
+  opacity: 0;
+  transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.6s ease-out;
+}
+
+/* Left Card */
+.physical-card-layer:nth-child(1) {
+  transform: translate(calc(-50% - 129px), calc(-50% - 65.5px)) rotate(20deg) scale(1);
+  transition-delay: 100ms;
+}
+.anim-cards-fan.is-visible .physical-card-layer:nth-child(1) {
+  opacity: 1;
+  transform: translate(calc(-50% - 129px), calc(-50% - 65.5px)) rotate(0deg) scale(1);
+}
+
+/* Right Card */
+.physical-card-layer:nth-child(2) {
+  transform: translate(calc(-50% + 129px), calc(-50% - 65.5px)) rotate(-20deg) scale(1);
+  transition-delay: 250ms;
+}
+.anim-cards-fan.is-visible .physical-card-layer:nth-child(2) {
+  opacity: 1;
+  transform: translate(calc(-50% + 129px), calc(-50% - 65.5px)) rotate(0deg) scale(1);
+}
+
+/* Center Card */
+.physical-card-layer:nth-child(3) {
+  transform: translate(-50%, -50%) rotate(0deg) scale(1);
+  transition-delay: 400ms;
+}
+.anim-cards-fan.is-visible .physical-card-layer:nth-child(3) {
+  opacity: 1;
+  transform: translate(-50%, -50%) rotate(0deg) scale(1);
+}
+
 /* Responsive adjustment for Tablet/Mobile screens */
-@media (min-width: 810px) and (max-width: 1199px) { /* Tablet range: --breakpoint-tablet-min to --breakpoint-tablet-max */
+@media (min-width: 900px) and (max-width: 1199px) { /* Tablet range: --breakpoint-tablet-min to --breakpoint-tablet-max */
   .cards-fan-container {
     height: 650px; /* Requested Tablet height */
   }
 }
 
-@media (max-width: 809px) { /* Phone range: --breakpoint-mobile */
+@media (max-width: 899px) { /* Phone range: --breakpoint-mobile */
   .section-physical-cards {
     padding-block: var(--spacing-xl); /* Reduce vertical padding to let 600px container fit in 100vh */
   }

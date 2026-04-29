@@ -1,5 +1,5 @@
 import type { ReactNode } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
 import { usePhoneCarousel } from "../context/PhoneCarouselContext"
 import type { CarouselScreen } from "../context/PhoneCarouselContext"
 
@@ -15,7 +15,7 @@ interface FeatureSectionProps {
 
 
 const containerVariants = {
-  hidden: { opacity: 0 },
+  hidden: { opacity: 0, transition: { type: "spring", duration: 0.8, bounce: 0 } },
   visible: {
     opacity: 1,
     transition: {
@@ -23,14 +23,6 @@ const containerVariants = {
       duration: 1,
       bounce: 0,
       staggerChildren: 0.1
-    }
-  },
-  exit: {
-    opacity: 0,
-    transition: {
-      type: "spring",
-      duration: 0.8,
-      bounce: 0
     }
   }
 }
@@ -80,21 +72,19 @@ export function FeatureSection({
     </motion.div>
   )
 
+  const isActive = activeScreen === screen
+
   return (
-    <AnimatePresence>
-      {activeScreen === screen && (
-        <motion.div
-          className="feature-panel is-visible"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          exit="exit"
-        >
-          {textCol}
-          <div className="feature-phone-spacer" />
-          {rightCol}
-        </motion.div>
-      )}
-    </AnimatePresence>
+    <motion.div
+      className={`feature-panel ${isActive ? "is-visible" : ""}`}
+      variants={containerVariants}
+      initial="hidden"
+      animate={isActive ? "visible" : "hidden"}
+      style={{ pointerEvents: isActive ? "auto" : "none" }}
+    >
+      {textCol}
+      <div className="feature-phone-spacer" />
+      {rightCol}
+    </motion.div>
   )
 }

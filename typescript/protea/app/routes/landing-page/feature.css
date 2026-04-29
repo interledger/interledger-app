@@ -11,7 +11,7 @@
   inset: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: 100%;
+  width: calc(100% - 32px); /* Guarantee 16px edge padding */
   max-width: var(--content-max-width);
   display: flex;
   align-items: center;
@@ -36,7 +36,7 @@
 .feature-col {
   flex: 1;
   min-width: 0;
-  max-width: 30%;
+  max-width: 400px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -195,41 +195,56 @@
 @media (max-width: 899px) {
   .feature-panel {
     flex-direction: column;
-    justify-content: flex-end; /* Pack from bottom to match Figma Mobile hero features */
-    padding: calc(var(--nav-height, 72px) + 2vh) 0px 40px;
-    gap: var(--spacing-xl);
-    overflow: visible; /* Remove internal scrolling */
+    justify-content: flex-start; /* Group elements starting from a fixed top anchor */
+    padding: calc(var(--nav-height, 72px) + min(10vh, 40px)) 0px 40px;
+    gap: min(24px, 3vh);
+    overflow: visible;
   }
 
   .feature-phone-spacer {
-    display: none;
+    display: block;
+    flex: 0 0 360px; /* Exact match for phone height */
+    width: 100%;
+    order: 1;
   }
 
   .feature-col {
     padding: 0;
     text-align: center;
     width: 100%;
-    max-width: 312px; /* Figma mobile width */
+    max-width: 340px; /* Slightly wider for tablet comfort */
     margin-inline: auto;
-    flex: none;
+    flex: 0 0 auto;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 16px; /* Tighter gap for content fit */
+    gap: 16px;
   }
 
-  /* Force heading column to always be on top for mobile */
+  /* Adjustments for short screens (iPhone SE, small mobile) */
+  @media (max-height: 720px) {
+    .feature-panel {
+      padding-top: calc(var(--nav-height, 72px) + 12px);
+      gap: 12px;
+    }
+    .feature-phone-spacer {
+      flex-basis: 330px;
+    }
+    .feature-col {
+      gap: 8px;
+    }
+  }
+
   .feature-col--left {
-    order: 1;
     text-align: center;
     align-items: center;
+    order: 2;
   }
 
-  /* Force body/widget column to be below heading for mobile */
   .feature-col--right {
-    order: 2;
     text-align: center;
     align-items: center;
+    order: 3;
   }
 }
 

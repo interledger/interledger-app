@@ -45,6 +45,7 @@ export function Glow({ x = 0, y = 0, className, scrollTransform }: GlowProps) {
     >
       <motion.div
         className="glow-inner"
+        style={{ willChange: "transform, opacity" }}
         initial={{ opacity: 0, x: "-50%", scale: DEFAULT_TRANSFORM.scale, rotate: DEFAULT_TRANSFORM.rotate, y: DEFAULT_TRANSFORM.y }}
         animate={{ opacity: t.opacity, x: "-50%", scale: t.scale, rotate: t.rotate, y: t.y }}
         transition={{ duration: 0.6, ease: "easeOut" }}

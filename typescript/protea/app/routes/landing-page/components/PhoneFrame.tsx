@@ -57,18 +57,16 @@ export function PhoneFrame() {
           >
             {Object.entries(SCREEN_ASSETS).map(([screen, src]) => {
               const s = Number(screen) as CarouselScreen
-              const isAdjacent = Math.abs(s - activeScreen) <= 1
               return (
                 <div key={s} style={{ width: "20%", height: "100%", flexShrink: 0 }}>
-                  {isAdjacent && (
-                    <img
-                      src={src}
-                      alt=""
-                      className="phone-screen"
-                      loading={s === 1 ? "eager" : undefined}
-                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                    />
-                  )}
+                  <img
+                    src={src}
+                    alt=""
+                    className="phone-screen"
+                    loading={s === 1 ? "eager" : "lazy"}
+                    decoding="async"
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  />
                 </div>
               )
             })}

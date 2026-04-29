@@ -1,35 +1,18 @@
+import { useRef } from "react"
+import { useInView } from "framer-motion"
 import { PageSection } from "../components/PageSection"
 import secureIcon from "../assets/send-receive-section/icon-secure.svg"
 import privateIcon from "../assets/send-receive-section/icon-private.svg"
 import sendReceiveIcon from "../assets/send-receive-section/icon-sendreceive.svg"
 import handHoldingPhone from "../assets/send-receive-section/hand-hodling-phone.svg"
-import { motion } from "framer-motion"
 
 const CheckmarkIcon = () => (
   <div className="checkmark-css" />
 )
 
-function StatusItem({ icon, text, index = 0 }: { icon: React.ReactNode, text: string, index?: number }) {
-  const animationVariants = {
-    hidden: { x: -800, opacity: 1 },
-    visible: {
-      x: 0,
-      opacity: 1,
-      transition: {
-        type: "spring",
-        stiffness: 500,
-        damping: 60,
-        mass: 1,
-        delay: index * 0.1
-      }
-    }
-  }
-
+function StatusItem({ icon, text }: { icon: React.ReactNode, text: string }) {
   return (
-    <motion.div
-      className="status-item"
-      variants={animationVariants}
-    >
+    <div className="status-item">
       <div className="status-icon-container">
         {icon}
       </div>
@@ -37,75 +20,39 @@ function StatusItem({ icon, text, index = 0 }: { icon: React.ReactNode, text: st
       <div className="status-check-container">
         <CheckmarkIcon />
       </div>
-    </motion.div>
+    </div>
   )
 }
 
 function HandAnimation() {
-  const handVariants = {
-    hidden: { 
-      rotate: 20, 
-      y: 80, 
-      opacity: 1, 
-      scale: 1 
-    },
-    visible: { 
-      rotate: 0, 
-      y: 0, 
-      opacity: 1, 
-      scale: 1,
-      transition: { 
-        type: "spring", 
-        stiffness: 650, 
-        damping: 60, 
-        mass: 1 
-      } 
-    }
-  }
-
-  const circleVariants = (delay: number) => ({
-    hidden: { opacity: 0, scale: 0 },
-    visible: { 
-      opacity: 1, 
-      scale: 1,
-      transition: { 
-        delay: 0.5 + delay,
-        type: "spring", 
-        stiffness: 400, 
-        damping: 25 
-      } 
-    }
-  })
+  const ref = useRef<HTMLDivElement>(null)
+  const isInView = useInView(ref, { once: true, margin: "-100px" })
 
   return (
-    <div className="hand-visual-container">
-      <motion.div 
-        className="hand-phone-frame"
-        variants={handVariants}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-100px" }}
-      >
+    <div ref={ref} className={`hand-visual-container ${isInView ? "is-visible" : ""}`}>
+      <div className="hand-phone-frame">
         <img src={handHoldingPhone} alt="Hand holding phone" className="hand-svg-asset" />
         
         {/* Currency Circles */}
-        <motion.div className="currency-circle circle-dollar" variants={circleVariants(0)}>
+        <div className="currency-circle circle-dollar">
           <span className="currency-char">$</span>
-        </motion.div>
+        </div>
         
-        <motion.div className="currency-circle circle-pound" variants={circleVariants(0.1)}>
+        <div className="currency-circle circle-pound">
           <span className="currency-char">£</span>
-        </motion.div>
+        </div>
         
-        <motion.div className="currency-circle circle-euro" variants={circleVariants(0.2)}>
+        <div className="currency-circle circle-euro">
           <span className="currency-char">€</span>
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
     </div>
   )
 }
 
 export function SendReceive() {
+  const ref = useRef<HTMLDivElement>(null)
+  const isInView = useInView(ref, { once: true, margin: "-50px" })
   return (
     <PageSection className="send-receive-section">
       <div className="send-receive-container">
@@ -118,16 +65,14 @@ export function SendReceive() {
         </header>
 
         <div className="send-receive-content">
-          <motion.div
-            className="send-receive-list"
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-50px" }}
+          <div
+            ref={ref}
+            className={`send-receive-list ${isInView ? "is-visible" : ""}`}
           >
-            <StatusItem index={0} icon={<img src={secureIcon} />} text="Secure by design" />
-            <StatusItem index={1} icon={<img src={sendReceiveIcon} />} text="Send & receive money" />
-            <StatusItem index={2} icon={<img src={privateIcon} />} text="Private by default" />
-          </motion.div>
+            <StatusItem icon={<img src={secureIcon} />} text="Secure by design" />
+            <StatusItem icon={<img src={sendReceiveIcon} />} text="Send & receive money" />
+            <StatusItem icon={<img src={privateIcon} />} text="Private by default" />
+          </div>
 
           <div className="send-receive-visual">
             <HandAnimation />

@@ -86,17 +86,23 @@
   color: var(--color-text-secondary);
 }
 
-/* --- Phone sizing tokens ------------------------------------------------- */
+/* --- Phone sizing and positioning tokens --------------------------------- */
 
 :root {
   --phone-width: 180px;
   --phone-height: 360px;
+  /* Safe vertical boundary below which phone can sit */
+  --hero-text-bottom: 340px; 
+  /* How much the phone is cut off by viewport bottom on screen 1 */
+  --phone-peek: 0px; 
 }
 
 @media (min-width: 900px) {
   :root {
     --phone-width: 260px;
     --phone-height: 563px;
+    --hero-text-bottom: 380px;
+    --phone-peek: 40px;
   }
 }
 
@@ -104,6 +110,8 @@
   :root {
     --phone-width: 320px;
     --phone-height: 650px;
+    --hero-text-bottom: 440px;
+    --phone-peek: 80px;
   }
 }
 
@@ -127,20 +135,47 @@
   --phone-offset: calc(-12vh + var(--phone-height) / 2);
 }
 
+@media (min-width: 1280px) {
+  .animated-hero[data-screen='1'] .hero-phone-container {
+    /* 
+      Robust positioning for desktop only: 
+      Prevents overlap with text on short laptops (like 14-inch) 
+      while anchoring to the bottom on tall monitors.
+    */
+    --phone-offset: calc(
+      max(
+        var(--hero-text-bottom),
+        100vh - var(--phone-height) + var(--phone-peek)
+      )
+      - 50vh + var(--phone-height) / 2
+    );
+  }
+}
+
 /* Feature state: phone centered within usable area (below nav) */
 /* Formula: nav-height/2 + 50% - phone-height/2 */
 .animated-hero:not([data-screen='1']) .hero-phone-container {
   --phone-offset: calc(var(--nav-height) / 2);
 }
 
-@media (max-width: 810px) {
+@media (max-width: 899px) {
   .animated-hero[data-screen='1'] .hero-phone-container {
     --phone-offset: calc(-10vh + var(--phone-height) / 2); /* 40vh instead of 50% = -10vh */
   }
 
-  /* On mobile, push the phone up in feature state, clearing the bottom space */
+  /* On mobile, align phone to the top-anchored stack */
   .animated-hero:not([data-screen='1']) .hero-phone-container {
-    --phone-offset: calc(var(--nav-height, 72px) + 2vh - 50vh + var(--phone-height) / 2);
+    --phone-offset: calc(var(--nav-height, 72px) + min(10vh, 40px) + var(--phone-height) / 2 - 50vh);
+  }
+
+  /* Short screens (iPhone SE) adjustment */
+  @media (max-height: 720px) {
+    :root {
+      --phone-height: 330px;
+    }
+    .animated-hero:not([data-screen='1']) .hero-phone-container {
+      --phone-offset: calc(var(--nav-height, 72px) + 12px + var(--phone-height) / 2 - 50vh);
+    }
   }
 }
 

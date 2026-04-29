@@ -73,6 +73,18 @@
   }
 }
 
+/* SMALL MOBILE (approx < 480px) overrides */
+@media (max-width: 479px) {
+  :root {
+    --text-h1: var(--font-weight-semibold) 40px/48px var(--font-heading);
+    --text-h2: var(--font-weight-semibold) 24px/32px var(--font-heading);
+    --text-h3: var(--font-weight-medium) 18px/24px var(--font-heading);
+    --text-body-lg-standard: var(--font-weight-regular) 14px/22px var(--font-body);
+    --text-body-lg-emphasis: var(--font-weight-medium) 14px/22px var(--font-body);
+    --text-body: var(--font-weight-regular) 13px/20px var(--font-body);
+  }
+}
+
 /* TABLET (approx 900px - 1439px) overrides */
 @media (min-width: 900px) and (max-width: 1439px) {
   :root {
