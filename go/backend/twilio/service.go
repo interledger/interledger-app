@@ -105,7 +105,6 @@ func (s *service) SendVerificationCode(ctx context.Context, phoneNumber string) 
 	params.SetChannel("sms")
 
 	res, err := s.twilioClient.VerifyV2.CreateVerification(s.serviceSid, params)
-	log.Debug("Twilio CreateVerification result: res:", zap.Any("res", res), zap.Error(err))
 	if err != nil {
 		twilioError, ok := err.(*client.TwilioRestError)
 		if ok {

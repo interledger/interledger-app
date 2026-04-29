@@ -1,11 +1,11 @@
-import type { useFetcher } from 'react-router'
+import type { FetcherWithComponents } from 'react-router'
 import { Button, TextButton } from './Buttons'
 import type { PhoneAutocompleteOptions } from './PhoneTextField'
 import { PhoneTextField } from './PhoneTextField'
 
-type PhoneUpdateFetcher = ReturnType<
-  typeof useFetcher<{ errors?: { phone?: string } }>
->
+type PhoneUpdateFetcher = FetcherWithComponents<{
+  errors?: { phone?: string }
+}>
 
 interface ChangePhoneFormProps {
   fetcher: PhoneUpdateFetcher
@@ -32,7 +32,7 @@ export function ChangePhoneForm({
   return (
     <fetcher.Form method='post' action={action} className={className}>
       <input type='hidden' name='intent' value='updatePhone' />
-      <input type='hidden' name='csrf_token' value={csrfToken} />
+      <input type='hidden' name='csrfToken' value={csrfToken} />
       <PhoneTextField
         id='newPhone'
         name='phone'

@@ -50,7 +50,7 @@ sequenceDiagram
     BE->>DB: INSERT INTO signups
     DB-->>BE: OK
     BE-->>FE: signup_id
-    FE-->>U: Show password step (OTP challenge sent via SMS)
+    FE-->>U: Show password step
     end
 ```
 

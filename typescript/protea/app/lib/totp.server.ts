@@ -92,7 +92,7 @@ export async function emailVerificationGuard(
 export async function withAAL2Guard(
   pathname: string,
   request: Request,
-  fn: () => Promise<void>
+  fn: (session: Session) => Promise<void>
 ) {
   if (NON_FULL_SESSION_ROUTES.includes(pathname)) {
     return
@@ -110,7 +110,7 @@ export async function withAAL2Guard(
     throw redirect('/totp/two-factor-authentication')
   }
 
-  await fn()
+  await fn(session)
 }
 
 /**
@@ -131,13 +131,11 @@ export const NON_PHONE_CONFIRMED_ROUTES = [
   '/unavailable'
 ]
 
-export async function phoneConfirmationGuard(
+export function phoneConfirmationGuard(
   pathname: string,
-  request: Request
+  session: Session | null
 ) {
   if (NON_PHONE_CONFIRMED_ROUTES.includes(pathname)) return
-
-  const session = await getUserSession(request, true)
   if (!session) return // Not yet AAL2 — skip guard
 
   // Skip guard for users without a phone number (legacy users)

@@ -116,7 +116,7 @@ export default function Page() {
       <input
         form='settings-phone-verify'
         defaultValue={csrfToken}
-        name='csrf_token'
+        name='csrfToken'
         type='hidden'
       />
       <input
@@ -187,7 +187,7 @@ export default function Page() {
           className='mt-2'
         >
           <input type='hidden' name='intent' value='resend' />
-          <input type='hidden' name='csrf_token' value={csrfToken} />
+          <input type='hidden' name='csrfToken' value={csrfToken} />
           <input type='hidden' name='phone' value={newPhone ?? ''} />
           <Button type='submit' disabled={isResendDisabled} className='w-full'>
             {isActive ? `Resend in ${remainingSeconds}s` : 'Resend code'}

@@ -79,8 +79,7 @@ export async function detailsAction({ request }: Route.ActionArgs) {
       firstName: '',
       lastName: '',
       country: '',
-      email: '',
-      phone: ''
+      email: ''
     }
   }
   const mapping = { country: 'CountryOfResidence' }

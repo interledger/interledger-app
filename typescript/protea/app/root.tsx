@@ -155,8 +155,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   await recoveryLinkSessionInvalidationGuard(pathname, request)
   await emailVerificationGuard(pathname, request)
-  await withAAL2Guard(pathname, request, async () => {
-    await phoneConfirmationGuard(pathname, request)
+  await withAAL2Guard(pathname, request, async (session) => {
+    phoneConfirmationGuard(pathname, session)
     features = await getFeatures(request)
     if (
       features &&
