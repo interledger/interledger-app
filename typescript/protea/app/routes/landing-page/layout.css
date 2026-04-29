@@ -105,3 +105,8 @@
   font-family: var(--font-family);
   min-height: 100vh;
 }
+
+.section-heading {
+  max-width: 60vw;
+  margin-inline: auto;
+}

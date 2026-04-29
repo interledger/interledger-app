@@ -7,7 +7,7 @@ import { usePhoneCarousel } from "../context/PhoneCarouselContext"
 import type { CarouselScreen } from "../context/PhoneCarouselContext"
 import { FeatureSection } from "./FeatureSection"
 import { FeatureWidget } from "./FeatureWidget"
-import orbitSvg from "../orbit.svg"
+import orbitSvg from "../assets/orbit.svg"
 
 const FEATURES = [
   {

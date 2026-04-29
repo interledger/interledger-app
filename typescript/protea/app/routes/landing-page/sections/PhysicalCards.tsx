@@ -11,7 +11,7 @@ export function PhysicalCards() {
   return (
     <section className="section-physical-cards content-section">
       <div className="cards-heading-container">
-        <h2 className="text-h2 cards-heading">Virtual and physical cards</h2>
+        <h2 className="text-h2 cards-heading section-heading">Virtual and physical cards</h2>
       </div>
 
       <div 

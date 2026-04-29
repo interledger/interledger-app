@@ -90,7 +90,7 @@
 
 :root {
   --phone-width: 180px;
-  --phone-height: 360px;
+  --phone-height: min(360px, 80vh);
   /* Safe vertical boundary below which phone can sit */
   --hero-text-bottom: 340px;
   /* How much the phone is cut off by viewport bottom on screen 1 */
@@ -100,7 +100,7 @@
 @media (min-width: 900px) {
   :root {
     --phone-width: 260px;
-    --phone-height: 563px;
+    --phone-height: min(563px, 80vh);
     --hero-text-bottom: 380px;
     --phone-peek: 40px;
   }
@@ -109,7 +109,7 @@
 @media (min-width: 1280px) {
   :root {
     --phone-width: 320px;
-    --phone-height: 650px;
+    --phone-height: min(650px, 80vh);
     --hero-text-bottom: 440px;
     --phone-peek: 80px;
   }
@@ -174,7 +174,7 @@
   /* Short screens (iPhone SE) adjustment */
   @media (max-height: 720px) {
     :root {
-      --phone-height: 330px;
+      --phone-height: min(330px, 80vh);
     }
     .animated-hero:not([data-screen='1']) .hero-phone-container {
       --phone-offset: calc(

@@ -18,13 +18,15 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-xl);
+  padding-inline: var(--padding-6xl);
 }
 
 .send-receive-title {
   font: var(--text-h2);
   color: var(--color-text-primary);
-  margin: 0;
   letter-spacing: var(--text-h2-ls);
+  text-align: center;
+  width: 100%;
 }
 
 .send-receive-description {

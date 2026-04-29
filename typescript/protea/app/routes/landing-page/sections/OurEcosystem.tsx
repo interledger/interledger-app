@@ -35,7 +35,7 @@ export function OurEcosystem() {
   return (
     <PageSection className="our-ecosystem-section">
       <div className="our-ecosystem-header">
-        <h2 className="text-h2">Our ecosystem</h2>
+        <h2 className="text-h2 section-heading">Our ecosystem</h2>
         <p className="text-body-lg-standard">
           Unlock the potential of Open Payments and Web Monetization 
           through the Interledger Wallet and help drive the evolution 
@@ -51,7 +51,7 @@ export function OurEcosystem() {
 
       <div className="ecosystem-cta">
         <Glow scrollTransform={{ scale: 1, rotate: 0, y: 0, opacity: 0.3 }} x="50%" y="20px" className="cta-glow-bg" />
-        <h3 className="text-h2">You know a potential partner?</h3>
+        <h3 className="text-h2 section-heading">You know a potential partner?</h3>
         <button className="cta-button-primary">
           Contact us
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: '8px' }}>

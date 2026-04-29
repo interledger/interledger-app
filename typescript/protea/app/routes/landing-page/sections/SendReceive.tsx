@@ -57,7 +57,7 @@ export function SendReceive() {
     <PageSection className="send-receive-section">
       <div className="send-receive-container">
         <header className="send-receive-header">
-          <h2 className="send-receive-title">Today, the wallet lets you send and receive money</h2>
+          <h2 className="send-receive-title section-heading">Today, the wallet lets you send and receive money</h2>
           <p className="send-receive-description">
             Starting with the fundamentals keeps the wallet reliable, while allowing it to scale responsibly.
             Our aim is to remain true to the protocol it supports over the long run.
