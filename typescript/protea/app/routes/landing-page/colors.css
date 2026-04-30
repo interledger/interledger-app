@@ -172,24 +172,22 @@
 }
 
 /* ---- Layer 3: Dark Mode Overrides ---- */
-[data-theme='dark'] {
-  /* Invert neutral primitives to dark-theme Figma values */
-  --color-neutral-0: #0d0d0d;
-  --color-neutral-25: #000000;
-  --color-neutral-50: #292929;
-  /* neutral-75 stays #595959 — same in both themes */
-  --color-neutral-100: #c9c9c9;
-  --color-neutral-150: #e4e4e4;
-  --color-neutral-900: #ffffff;
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Invert neutral primitives to dark-theme Figma values */
+    --color-neutral-0: #0d0d0d;
+    --color-neutral-25: #000000;
+    --color-neutral-50: #292929;
+    /* neutral-75 stays #595959 — same in both themes */
+    --color-neutral-100: #c9c9c9;
+    --color-neutral-150: #e4e4e4;
+    --color-neutral-900: #ffffff;
 
-  /* Semantic overrides */
-  --color-bg-surface-raised: var(
-    --color-neutral-50
-  ); /* #292929 — dark card surface */
-  --section-bg-footer: var(
-    --color-neutral-25
-  ); /* #000000 — pure black footer */
+    /* Semantic overrides */
+    --color-bg-surface-raised: var(--color-neutral-50); /* #292929 — dark card surface */
+    --section-bg-footer: var(--color-neutral-25); /* #000000 — pure black footer */
 
-  /* Nav */
-  --nav-bg: rgba(13, 13, 13, 0.8); /* neutral-0 dark = #0D0D0D */
+    /* Nav */
+    --nav-bg: rgba(13, 13, 13, 0.8); /* neutral-0 dark = #0D0D0D */
+  }
 }

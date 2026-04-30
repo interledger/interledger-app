@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import type { LinksFunction, LoaderFunctionArgs } from "react-router";
 import { redirect } from "react-router";
 import "./colors.css";
@@ -54,26 +53,6 @@ export const links: LinksFunction = () => [
 ];
 
 export default function LandingPage() {
-    useEffect(() => {
-        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-        
-        const updateTheme = (e: MediaQueryListEvent | MediaQueryList) => {
-            if (e.matches) {
-                document.documentElement.setAttribute('data-theme', 'dark');
-            } else {
-                document.documentElement.setAttribute('data-theme', 'light');
-            }
-        };
-
-        updateTheme(mediaQuery);
-        mediaQuery.addEventListener('change', updateTheme);
-        
-        return () => {
-            mediaQuery.removeEventListener('change', updateTheme);
-            document.documentElement.removeAttribute('data-theme');
-        };
-    }, []);
-
     return (
         <PhoneCarouselProvider>
             <div className="landing-shell">
