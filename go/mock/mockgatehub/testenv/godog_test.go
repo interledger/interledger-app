@@ -144,6 +144,16 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	// Card token and transaction steps
 	ctx.Step(`^I POST (.+) with cardId and managed user UUID header$`, tc.postCardTokenWithManagedUser)
 	ctx.Step(`^the response contains a links array with at least one entry$`, tc.responseContainsLinksArray)
+
+	// Card-data token + browser-fetch steps
+	ctx.Step(`^I POST (.+) with cardId, RSA publicKey and managed user UUID header$`, tc.postCardTokenWithPublicKey)
+	ctx.Step(`^the response contains a JWT token carrying the cardId and publicKey$`, tc.responseContainsJWT)
+	ctx.Step(`^the first link href is an absolute URL to "([^"]*)"$`, tc.firstLinkHrefIsAbsoluteURLTo)
+	ctx.Step(`^a card-data token has been issued for the card with an RSA publicKey$`, tc.cardDataTokenIssuedForCard)
+	ctx.Step(`^the browser GETs the card-data link with the token as a Bearer header \(no HMAC headers\)$`, tc.browserGetCardDataWithBearer)
+	ctx.Step(`^the browser GETs (.+) with an invalid Bearer token \(no HMAC headers\)$`, tc.browserGetCardDataWithInvalidToken)
+	ctx.Step(`^the response contains a "cypher" field$`, tc.responseContainsCypherField)
+	ctx.Step(`^the cypher decrypts with the matching private key to a JSON object with Pan, ExpiryDate and Cvc2$`, tc.cypherDecryptsToSensitiveData)
 	ctx.Step(`^I PUT (.+) with managed user UUID header and updated dailyOverall limit (\d+)$`, tc.putCardLimitsWithUpdate)
 	ctx.Step(`^I POST (.+) with cardId, amount "([^"]*)", currency "([^"]*)", and managed user UUID header$`, tc.postCardTransaction)
 	ctx.Step(`^the response contains a card transaction with transactionId and ghResponseCode "([^"]*)"$`, tc.responseContainsCardTransactionWithGH)

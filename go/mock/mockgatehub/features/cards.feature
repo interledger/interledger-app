@@ -51,10 +51,23 @@ Feature: Card management and lifecycle
 
   Scenario: Get card token for secure data access
     Given a managed customer with a card exists
-    When I POST /cards/v1/token/card-data with cardId and managed user UUID header
+    When I POST /cards/v1/token/card-data with cardId, RSA publicKey and managed user UUID header
     Then the response status is 200
-    And the response contains a token starting with "mock-card-data-"
+    And the response contains a JWT token carrying the cardId and publicKey
     And the response contains a links array with at least one entry
+    And the first link href is an absolute URL to "/cards/v1/token/card-data/data"
+
+  Scenario: Browser fetches encrypted card data using the token
+    Given a managed customer with a card exists
+    And a card-data token has been issued for the card with an RSA publicKey
+    When the browser GETs the card-data link with the token as a Bearer header (no HMAC headers)
+    Then the response status is 200
+    And the response contains a "cypher" field
+    And the cypher decrypts with the matching private key to a JSON object with Pan, ExpiryDate and Cvc2
+
+  Scenario: Card data endpoint rejects requests without a valid token
+    When the browser GETs /cards/v1/token/card-data/data with an invalid Bearer token (no HMAC headers)
+    Then the response status is 401
 
   Scenario: Get card limits
     Given a managed customer with a card exists
