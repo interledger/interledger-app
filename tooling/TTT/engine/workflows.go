@@ -40,6 +40,7 @@ const (
 	WorkflowUserOffboard          = "User Offboard"
 	WorkflowCrossProviderXfer     = "Cross-Provider Transfer"
 	WorkflowBilateralSettlement   = "Bilateral Settlement"
+	WorkflowSinglePOSSettlement   = "Single-POS Settlement"
 )
 
 // FundProviderLiquidity seeds a provider's liquidity account from its system (printer) account.

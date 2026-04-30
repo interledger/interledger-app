@@ -69,6 +69,136 @@ func Export(path string, accounts []engine.Account, lines []engine.JournalLine) 
 	return os.WriteFile(path, buf.Bytes(), 0o644)
 }
 
+// ExportSheetStore writes or updates a named sheet in an ODS workbook.
+// If the file does not exist it is created. If it exists the named sheet is
+// added or replaced; other sheets are preserved.
+func ExportSheetStore(store engine.Store, path, sheetName string) error {
+	accounts, err := store.ListAccounts()
+	if err != nil {
+		return fmt.Errorf("list accounts: %w", err)
+	}
+	lines, err := store.GetAllLines()
+	if err != nil {
+		return fmt.Errorf("list journal lines: %w", err)
+	}
+	return ExportSheet(path, sheetName, accounts, lines)
+}
+
+// ExportSheet writes or updates a named sheet in an ODS workbook at path.
+// If the file does not exist it is created. If it exists the named sheet is
+// added or replaced; other sheets are preserved.
+func ExportSheet(path, sheetName string, accounts []engine.Account, lines []engine.JournalLine) error {
+	if dir := filepath.Dir(path); dir != "." && dir != "" {
+		if err := os.MkdirAll(dir, 0o755); err != nil {
+			return fmt.Errorf("create output dir: %w", err)
+		}
+	}
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return exportSingleSheet(path, sheetName, accounts, lines)
+	}
+	return upsertSheet(path, sheetName, accounts, lines)
+}
+
+func exportSingleSheet(path, sheetName string, accounts []engine.Account, lines []engine.JournalLine) error {
+	var buf bytes.Buffer
+	zw := zip.NewWriter(&buf)
+	if err := addMimetype(zw); err != nil {
+		return err
+	}
+	files := map[string]string{
+		"META-INF/manifest.xml": manifestXML(),
+		"content.xml":           contentXMLNamed(sheetName, accounts, lines),
+		"styles.xml":            stylesXML(),
+		"meta.xml":              metaXML(),
+	}
+	for name, body := range files {
+		w, err := createZipFile(zw, name, zip.Deflate)
+		if err != nil {
+			return err
+		}
+		if _, err := io.WriteString(w, body); err != nil {
+			return err
+		}
+	}
+	if err := zw.Close(); err != nil {
+		return err
+	}
+	return os.WriteFile(path, buf.Bytes(), 0o644)
+}
+
+func upsertSheet(path, sheetName string, accounts []engine.Account, lines []engine.JournalLine) error {
+	r, err := zip.OpenReader(path)
+	if err != nil {
+		return fmt.Errorf("open ods: %w", err)
+	}
+	existing := make(map[string][]byte)
+	for _, f := range r.File {
+		rc, err := f.Open()
+		if err != nil {
+			r.Close()
+			return err
+		}
+		data, err := io.ReadAll(rc)
+		rc.Close()
+		if err != nil {
+			r.Close()
+			return err
+		}
+		existing[f.Name] = data
+	}
+	r.Close()
+
+	contentData, ok := existing["content.xml"]
+	if !ok {
+		return fmt.Errorf("content.xml not found in ODS file")
+	}
+
+	newTable := tableBodyXML(sheetName, accounts, lines)
+	content := string(contentData)
+	startTag := `<table:table table:name="` + esc(sheetName) + `"`
+
+	if idx := strings.Index(content, startTag); idx >= 0 {
+		after := content[idx:]
+		endTag := `</table:table>`
+		endIdx := strings.Index(after, endTag)
+		if endIdx < 0 {
+			return fmt.Errorf("malformed ODS: unclosed table %q", sheetName)
+		}
+		endAbs := idx + endIdx + len(endTag)
+		content = content[:idx] + newTable + content[endAbs:]
+	} else {
+		insertAt := strings.LastIndex(content, `</office:spreadsheet>`)
+		if insertAt < 0 {
+			return fmt.Errorf("malformed ODS: </office:spreadsheet> not found")
+		}
+		content = content[:insertAt] + newTable + content[insertAt:]
+	}
+	existing["content.xml"] = []byte(content)
+
+	var buf bytes.Buffer
+	zw := zip.NewWriter(&buf)
+	if err := addMimetype(zw); err != nil {
+		return err
+	}
+	for _, name := range []string{"META-INF/manifest.xml", "content.xml", "styles.xml", "meta.xml"} {
+		data, ok := existing[name]
+		if !ok {
+			continue
+		}
+		w, err := createZipFile(zw, name, zip.Deflate)
+		if err != nil {
+			return err
+		}
+		if _, err := w.Write(data); err != nil {
+			return err
+		}
+	}
+	if err := zw.Close(); err != nil {
+		return err
+	}
+	return os.WriteFile(path, buf.Bytes(), 0o644)
+}
+
 func addMimetype(zw *zip.Writer) error {
 	h := &zip.FileHeader{
 		Name:               "mimetype",
@@ -109,6 +239,21 @@ func dosTime(hour, minute, second int) uint16 {
 }
 
 func contentXML(accounts []engine.Account, lines []engine.JournalLine) string {
+	return contentXMLNamed("Scenario", accounts, lines)
+}
+
+func contentXMLNamed(sheetName string, accounts []engine.Account, lines []engine.JournalLine) string {
+	var b strings.Builder
+	b.WriteString(xml.Header)
+	b.WriteString(`<office:document-content xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0" xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0" xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0" xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0" xmlns:of="urn:oasis:names:tc:opendocument:xmlns:of:1.2" xmlns:number="urn:oasis:names:tc:opendocument:xmlns:datastyle:1.0" office:version="1.2" office:mimetype="application/vnd.oasis.opendocument.spreadsheet">`)
+	b.WriteString(automaticStylesXML())
+	b.WriteString(`<office:body><office:spreadsheet>`)
+	b.WriteString(tableBodyXML(sheetName, accounts, lines))
+	b.WriteString(`</office:spreadsheet></office:body></office:document-content>`)
+	return b.String()
+}
+
+func tableBodyXML(sheetName string, accounts []engine.Account, lines []engine.JournalLine) string {
 	activeAccounts := activeAccountColumns(accounts, lines)
 	accountGroups := providerGroups(activeAccounts)
 	accountTotals := totalsByAccount(activeAccounts, lines)
@@ -118,10 +263,9 @@ func contentXML(accounts []engine.Account, lines []engine.JournalLine) string {
 	}
 
 	var b strings.Builder
-	b.WriteString(xml.Header)
-	b.WriteString(`<office:document-content xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0" xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0" xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0" xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0" xmlns:of="urn:oasis:names:tc:opendocument:xmlns:of:1.2" xmlns:number="urn:oasis:names:tc:opendocument:xmlns:datastyle:1.0" office:version="1.2" office:mimetype="application/vnd.oasis.opendocument.spreadsheet">`)
-	b.WriteString(automaticStylesXML())
-	b.WriteString(`<office:body><office:spreadsheet><table:table table:name="Scenario">`)
+	b.WriteString(`<table:table table:name="`)
+	b.WriteString(esc(sheetName))
+	b.WriteString(`">`)
 	b.WriteString(`<table:table-column table:number-columns-repeated="1" table:style-name="col-small"/>`)
 	b.WriteString(`<table:table-column table:number-columns-repeated="2" table:style-name="col-medium"/>`)
 	b.WriteString(`<table:table-column table:number-columns-repeated="5" table:style-name="col-wide"/>`)
@@ -243,7 +387,7 @@ func contentXML(accounts []engine.Account, lines []engine.JournalLine) string {
 		styledTextCell("Balanced when difference is 0", "summary-label"),
 	)
 
-	b.WriteString(`</table:table></office:spreadsheet></office:body></office:document-content>`)
+	b.WriteString(`</table:table>`)
 	return b.String()
 }
 

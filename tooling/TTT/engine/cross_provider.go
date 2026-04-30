@@ -169,13 +169,6 @@ func (e *Engine) crossProviderTransferCoreLines(
 		return nil, err
 	}
 
-	if !senderCanConvert && !recipientHasFXDst && !recipientCanConvert {
-		return nil, fmt.Errorf("cross-provider transfer requires either sender conversion (%s/%s on %s), recipient self-exchange FX account (%s on %s), or recipient conversion (%s/%s on %s)",
-			recipientCurrency.Code, recipientCurrency.Code, senderProviderID,
-			recipientCurrency.Code, recipientProviderID,
-			senderCurrency.Code, senderCurrency.Code, recipientProviderID)
-	}
-
 	recipientSysDst, recipientHasSysDst, err := e.store.FindSystemAccount(recipientProviderID, recipientCurrency)
 	if err != nil {
 		return nil, err
@@ -183,6 +176,21 @@ func (e *Engine) crossProviderTransferCoreLines(
 	recipientLiqDst, recipientHasLiqDst, err := e.store.FindLiquidityAccount(recipientProviderID, recipientCurrency)
 	if err != nil {
 		return nil, err
+	}
+
+	// Single-POS: each provider only has native-currency accounts. The position
+	// is tracked on whichever side holds the source currency (the hub side).
+	// Forward: senderLiqSrc is the hub (e.g. GateHub/EUR); create position there.
+	// Reverse: recipientLiqDst is the hub (e.g. GateHub/EUR); reduce that position.
+	// senderLiqSrc is always present here (early-return above ensures it).
+	singlePOS := !senderCanConvert && !recipientHasFXDst && !recipientCanConvert &&
+		recipientHasLiqDst && !recipientHasLiqSrc && !senderHasLiqDst
+
+	if !senderCanConvert && !recipientHasFXDst && !recipientCanConvert && !singlePOS {
+		return nil, fmt.Errorf("cross-provider transfer requires either sender conversion (%s/%s on %s), recipient self-exchange FX account (%s on %s), recipient conversion (%s/%s on %s), or single-POS routing (each provider holds only its native currency)",
+			recipientCurrency.Code, recipientCurrency.Code, senderProviderID,
+			recipientCurrency.Code, recipientProviderID,
+			senderCurrency.Code, senderCurrency.Code, recipientProviderID)
 	}
 
 	eventID := newID()
@@ -291,6 +299,63 @@ func (e *Engine) crossProviderTransferCoreLines(
 			{EventID: eventID, Timestamp: ts, DebitAccountID: recipientFXDst.ID, CreditAccountID: recipientUser.ID, Amount: destAmount, Metadata: baseMeta,
 				DebitMetadata:  map[string]string{MetaStep: "debit recipient FX account"},
 				CreditMetadata: map[string]string{MetaStep: "credit recipient user"}},
+		}
+	} else if singlePOS {
+		// Single-POS routing: each provider only holds its native currency.
+		//
+		// Forward (hub sender, e.g. GateHub/EUR → Xago/ZAR):
+		//   1. debit senderUser → credit senderLiqSrc   (srcAmount + charge)
+		//   2. debit senderLiqSrc → credit senderPos     (srcAmount; position grows)
+		//   3. debit recipientSysDst → credit recipientUser (destAmount; paid from sys)
+		//
+		// Reverse (hub recipient, e.g. Xago/ZAR → GateHub/EUR):
+		//   1. debit senderUser → credit senderSysSrc    (srcAmount; ZAR returns to sys)
+		//   2. debit recipientPos → credit recipientLiqDst (destAmount; position shrinks)
+		//   3. debit recipientLiqDst → credit recipientUser (destAmount; paid from liq)
+		if !recipientHasSysDst {
+			return nil, fmt.Errorf("recipient system account for provider %q currency %q not found",
+				recipientProviderID, recipientCurrency.Code)
+		}
+
+		// Detect direction by checking whether the hub position already lives under
+		// recipientLiqDst (set by a prior forward transfer). If it does, this is a
+		// reverse transfer; otherwise it is a new or repeat forward transfer.
+		revHubPos, revPosExists, err := e.store.FindPositionAccount(recipientLiqDst.ID, senderProviderID)
+		if err != nil {
+			return nil, err
+		}
+
+		if !revPosExists {
+			// Forward: hub is on the sender side; position grows under senderLiqSrc.
+			hubPos, err := e.ensurePositionAccount(senderLiqSrc.ID, recipientProviderID)
+			if err != nil {
+				return nil, fmt.Errorf("hub position: %w", err)
+			}
+			lines = []JournalLine{
+				{EventID: eventID, Timestamp: ts, DebitAccountID: senderUser.ID, CreditAccountID: senderLiqSrc.ID, Amount: firstLineAmount, Metadata: baseMeta,
+					DebitMetadata:  map[string]string{MetaStep: "debit sender user"},
+					CreditMetadata: map[string]string{MetaStep: "credit sender liquidity"}},
+				{EventID: eventID, Timestamp: ts, DebitAccountID: senderLiqSrc.ID, CreditAccountID: hubPos.ID, Amount: srcAmount, Metadata: baseMeta,
+					DebitMetadata:  map[string]string{MetaStep: "debit sender liquidity"},
+					CreditMetadata: map[string]string{MetaStep: "credit hub position"}},
+				{EventID: eventID, Timestamp: ts, DebitAccountID: recipientSysDst.ID, CreditAccountID: recipientUser.ID, Amount: destAmount, Metadata: baseMeta,
+					DebitMetadata:  map[string]string{MetaStep: "debit recipient system"},
+					CreditMetadata: map[string]string{MetaStep: "credit recipient user"}},
+			}
+		} else {
+			// Reverse: hub is on the recipient side; position shrinks under recipientLiqDst.
+			// Sender's currency returns to sender's system account.
+			lines = []JournalLine{
+				{EventID: eventID, Timestamp: ts, DebitAccountID: senderUser.ID, CreditAccountID: senderSysSrc.ID, Amount: firstLineAmount, Metadata: baseMeta,
+					DebitMetadata:  map[string]string{MetaStep: "debit sender user"},
+					CreditMetadata: map[string]string{MetaStep: "credit sender system"}},
+				{EventID: eventID, Timestamp: ts, DebitAccountID: revHubPos.ID, CreditAccountID: recipientLiqDst.ID, Amount: destAmount, Metadata: baseMeta,
+					DebitMetadata:  map[string]string{MetaStep: "debit hub position"},
+					CreditMetadata: map[string]string{MetaStep: "credit recipient liquidity"}},
+				{EventID: eventID, Timestamp: ts, DebitAccountID: recipientLiqDst.ID, CreditAccountID: recipientUser.ID, Amount: destAmount, Metadata: baseMeta,
+					DebitMetadata:  map[string]string{MetaStep: "debit recipient liquidity"},
+					CreditMetadata: map[string]string{MetaStep: "credit recipient user"}},
+			}
 		}
 	} else {
 		if !recipientHasSysSrc {
@@ -482,6 +547,96 @@ func (e *Engine) SettleBilateralLines(
 		return nil, err
 	}
 	return posted, nil
+}
+
+// SinglePOSBalance returns the current balance of the one-sided position held
+// by hubProviderID against counterpartyID in the given currency, or an error if
+// no such position exists.
+func (e *Engine) SinglePOSBalance(hubProviderID, counterpartyID string, currency Currency) (int64, error) {
+	liqHub, ok, err := e.store.FindLiquidityAccount(hubProviderID, currency)
+	if err != nil {
+		return 0, err
+	}
+	if !ok {
+		return 0, fmt.Errorf("liquidity account for provider %q currency %q not found", hubProviderID, currency.Code)
+	}
+	posHub, ok, err := e.store.FindPositionAccount(liqHub.ID, counterpartyID)
+	if err != nil {
+		return 0, err
+	}
+	if !ok {
+		return 0, fmt.Errorf("no single-POS position in %q for counterparty %q", hubProviderID, counterpartyID)
+	}
+	return e.Balance(posHub.ID)
+}
+
+// SettleSinglePOS closes a one-sided (single-POS) position held by hubProviderID
+// against counterpartyID in the given currency. Used when only the hub provider
+// has liquidity in the settlement currency (legacy / single-GH-EUR mode).
+// Compatibility wrapper: returns expanded legacy entry view.
+func (e *Engine) SettleSinglePOS(
+	hubProviderID, counterpartyID string, currency Currency, cutoff time.Time,
+) ([]LedgerEntry, error) {
+	lines, err := e.SettleSinglePOSLines(hubProviderID, counterpartyID, currency, cutoff)
+	if err != nil {
+		return nil, err
+	}
+	return ExpandJournalLines(lines, ""), nil
+}
+
+// SettleSinglePOSLines is the line-native variant of SettleSinglePOS.
+func (e *Engine) SettleSinglePOSLines(
+	hubProviderID, counterpartyID string, currency Currency, cutoff time.Time,
+) ([]JournalLine, error) {
+	if hubProviderID == counterpartyID {
+		return nil, fmt.Errorf("settlement requires distinct providers")
+	}
+	liqHub, ok, err := e.store.FindLiquidityAccount(hubProviderID, currency)
+	if err != nil {
+		return nil, err
+	}
+	if !ok {
+		return nil, fmt.Errorf("liquidity account for provider %q currency %q not found", hubProviderID, currency.Code)
+	}
+	posHub, ok, err := e.store.FindPositionAccount(liqHub.ID, counterpartyID)
+	if err != nil {
+		return nil, err
+	}
+	if !ok {
+		return nil, fmt.Errorf("no single-POS position in %q liquidity for counterparty %q", hubProviderID, counterpartyID)
+	}
+	bal, err := e.balanceAsOf(posHub.ID, cutoff)
+	if err != nil {
+		return nil, err
+	}
+	if bal == 0 {
+		return nil, fmt.Errorf("nothing to settle between %q and %q for %s up to %s",
+			hubProviderID, counterpartyID, currency.Code, cutoff.Format(time.RFC3339))
+	}
+	amount := bal
+	if amount < 0 {
+		amount = -amount
+	}
+	eventID := newID()
+	ts := now()
+	meta := map[string]string{
+		MetaWorkflow:               WorkflowSinglePOSSettlement,
+		MetaSettlementCounterparty: counterpartyID,
+		MetaSettlementCutoff:       cutoff.UTC().Format(time.RFC3339),
+	}
+	// Debit the position (zeros it), credit the hub liquidity (reserves restored).
+	lines := []JournalLine{
+		{
+			EventID: eventID, Timestamp: ts,
+			DebitAccountID:  posHub.ID,
+			CreditAccountID: liqHub.ID,
+			Amount:          amount,
+			Metadata:        meta,
+			DebitMetadata:   map[string]string{MetaStep: "debit hub position"},
+			CreditMetadata:  map[string]string{MetaStep: "credit hub liquidity"},
+		},
+	}
+	return e.PostJournalLines(lines)
 }
 
 // ensurePositionAccount returns the position account for a given liquidity

@@ -368,10 +368,23 @@ func cmdSettle(eng *engine.Engine, args []string) int {
 		return cliErr(err)
 	}
 	if _, err := eng.SettleBilateralLines(pos[0], pos[1], cur, cutoff); err != nil {
-		return cliErr(err)
+		// Fall back to single-POS settlement (legacy mode: only one provider has
+		// the settlement currency). Try each provider as the hub in turn.
+		err2 := trySettleSinglePOS(eng, pos[0], pos[1], cur, cutoff)
+		if err2 != nil {
+			err3 := trySettleSinglePOS(eng, pos[1], pos[0], cur, cutoff)
+			if err3 != nil {
+				return cliErr(fmt.Errorf("bilateral: %v", err))
+			}
+		}
 	}
 	fmt.Printf("Settled %s ↔ %s (%s) up to %s\n", pos[0], pos[1], cur.Code, cutoff.Format(time.RFC3339))
 	return 0
+}
+
+func trySettleSinglePOS(eng *engine.Engine, hub, counterparty string, cur engine.Currency, cutoff time.Time) error {
+	_, err := eng.SettleSinglePOSLines(hub, counterparty, cur, cutoff)
+	return err
 }
 
 // ttt settlement-preview <provider-a> <provider-b> <currency>
@@ -384,11 +397,10 @@ func cmdSettlementPreview(eng *engine.Engine, args []string) int {
 	if err != nil {
 		return cliErr(err)
 	}
-	pairs, err := eng.CheckBilateralPositions()
-	if err != nil && len(pairs) == 0 {
-		return cliErr(fmt.Errorf("reading positions: %w", err))
-	}
 	pA, pB := args[0], args[1]
+
+	// Try bilateral first (standard / self-exchange modes).
+	pairs, _ := eng.CheckBilateralPositions()
 	for _, p := range pairs {
 		if p.Currency != cur.Code {
 			continue
@@ -400,7 +412,6 @@ func cmdSettlementPreview(eng *engine.Engine, args []string) int {
 			fmt.Printf("Settlement preview: %s ↔ %s (%s)\nNothing to settle.\n", pA, pB, cur.Code)
 			return 0
 		}
-		// Positive balance means creditor; the provider with positive balance is owed money.
 		creditor, debtor := p.ProviderA, p.ProviderB
 		amount := p.BalanceA
 		if amount < 0 {
@@ -414,6 +425,39 @@ func cmdSettlementPreview(eng *engine.Engine, args []string) int {
 		)
 		return 0
 	}
+
+	// Fall back to single-POS (legacy mode): look for a one-sided position under
+	// whichever provider holds hub currency liquidity.
+	for _, hub := range []string{pA, pB} {
+		counterparty := pB
+		if hub == pB {
+			counterparty = pA
+		}
+		bal, err := eng.SinglePOSBalance(hub, counterparty, cur)
+		if err != nil {
+			continue
+		}
+		if bal == 0 {
+			fmt.Printf("Settlement preview: %s ↔ %s (%s)\nNothing to settle.\n", pA, pB, cur.Code)
+			return 0
+		}
+		amount := bal
+		if amount < 0 {
+			amount = -amount
+		}
+		// Positive position balance: hub is the creditor (counterparty owes hub).
+		creditor, debtor := hub, counterparty
+		if bal < 0 {
+			creditor, debtor = counterparty, hub
+		}
+		fmt.Printf("Settlement preview: %s ↔ %s (%s)\n%s owes %s  %s %s\n",
+			pA, pB, cur.Code,
+			debtor, creditor,
+			fmtAmount(amount, cur.AssetScale), cur.Code,
+		)
+		return 0
+	}
+
 	fmt.Printf("Settlement preview: %s ↔ %s (%s)\nNo position accounts found — run transfers first.\n", pA, pB, cur.Code)
 	return 0
 }
@@ -591,18 +635,41 @@ func cmdLedger(eng *engine.Engine, args []string) int {
 	return 0
 }
 
-// ttt export-ods [path]
+// ttt export-ods [--sheet=name] [path]
 // Exports the current database as an OpenDocument spreadsheet.
+// With --sheet=name, adds or replaces only that sheet in an existing file.
 func cmdExportODS(store *sqlite.Store, args []string) int {
-	if len(args) > 1 {
-		return fail("usage: export-ods [path]")
+	var sheetName string
+	var pathArgs []string
+	for i := 0; i < len(args); i++ {
+		arg := args[i]
+		if strings.HasPrefix(arg, "--sheet=") {
+			sheetName = strings.TrimPrefix(arg, "--sheet=")
+		} else if arg == "--sheet" {
+			if i+1 >= len(args) {
+				return fail("--sheet requires a value")
+			}
+			i++
+			sheetName = args[i]
+		} else {
+			pathArgs = append(pathArgs, arg)
+		}
+	}
+	if len(pathArgs) > 1 {
+		return fail("usage: export-ods [--sheet=name] [path]")
 	}
 	path := "output/ttt-export.ods"
-	if len(args) == 1 && strings.TrimSpace(args[0]) != "" {
-		path = args[0]
+	if len(pathArgs) == 1 && strings.TrimSpace(pathArgs[0]) != "" {
+		path = pathArgs[0]
 	}
-	if err := ods.ExportStore(store, path); err != nil {
-		return cliErr(err)
+	if sheetName != "" {
+		if err := ods.ExportSheetStore(store, path, sheetName); err != nil {
+			return cliErr(err)
+		}
+	} else {
+		if err := ods.ExportStore(store, path); err != nil {
+			return cliErr(err)
+		}
 	}
 	fmt.Printf("Exported ODS: %s\n", path)
 	return 0
