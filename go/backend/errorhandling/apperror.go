@@ -9,6 +9,7 @@ import (
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
+	"gitlab.com/fynbos/backend/providers/gatehub"
 	"gitlab.com/fynbos/backend/signup"
 	"gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/backend/user"
@@ -18,17 +19,20 @@ import (
 const VALIDATION_ERR_MSG = "Some fields are incorrect."
 
 var appErrors = map[error]*AppError{
-	user.ErrNoUserFound:            newError(ErrCodeUnauthorized, "Unauthenticated", nil, user.ErrNoUserFound),
-	twilio.ErrInvalidOTP:           newErrorSingleField(ErrCodeTwilioInvalidOTP, VALIDATION_ERR_MSG, "OTP", "Could not validate OTP", twilio.ErrInvalidOTP),
+	user.ErrNoUserFound:            newError(ErrCodeUserNoUserFound, "Unauthenticated", nil, user.ErrNoUserFound),
+	wallets.ErrNoWalletFound:       newError(ErrCodeWalletsNoWalletFound, "Not found: wallet address not found", nil, wallets.ErrNoWalletFound),
 	wallets.ErrDuplicateWallet:     newError(ErrCodeWalletsDuplicateWallet, "Wallet already exists", nil, wallets.ErrDuplicateWallet),
 	wallets.ErrWalletConflict:      newError(ErrCodeWalletsWalletConflict, "Wallet already exists but with different configuration than requested (for example, country, currency, or addresses)", nil, wallets.ErrWalletConflict),
 	linkedaccounts.ErrNotFound:     newError(ErrCodeLinkedAccNotFound, "Not found: linked account not found", nil, linkedaccounts.ErrNotFound),
+	kyc.ErrKYCResubmissionRequired: newError(ErrCodeKYCResubmissionRequired, "KYC resubmission required: please update your verification documents", nil, kyc.ErrKYCResubmissionRequired),
+	twilio.ErrInvalidOTP:           newErrorSingleField(ErrCodeTwilioInvalidOTP, VALIDATION_ERR_MSG, "OTP", "Could not validate OTP", twilio.ErrInvalidOTP),
 	signup.ErrDuplicatePhone:       newError(ErrCodeSignupDuplicatePhone, "Phone number already exists with a user.", nil, signup.ErrDuplicatePhone),
 	identities.ErrAlreadyExists:    newError(ErrCodeIdentitiesAlreadyExists, "Identity already exists", nil, identities.ErrAlreadyExists),
-	wallets.ErrNoWalletFound:       newError(ErrCodeWalletsNoWalletFound, "Not found: wallet address not found", nil, wallets.ErrNoWalletFound),
 	payments.ErrRequiredActions:    newError(ErrCodePaymentsRequiredActions, "Required details missing for payment", nil, payments.ErrRequiredActions),
 	payments.ErrInsufficientFunds:  newError(ErrCodePaymentsInsufficientFunds, "Insufficient Funds", nil, payments.ErrInsufficientFunds),
-	kyc.ErrKYCResubmissionRequired: newError(ErrCodeKYCResubmissionRequired, "KYC resubmission required: please update your verification documents", nil, kyc.ErrKYCResubmissionRequired),
+	gatehub.ErrNotFound:            newError(ErrCodeNotFound, ErrCodeNotFound, nil, gatehub.ErrNotFound),
+	gatehub.ErrInternal:            newError(ErrCodeInternal, ErrCodeInternal, nil, gatehub.ErrInternal),
+	gatehub.ErrTimedOut:            newError(ErrCodeGatewayTimeout, ErrCodeGatewayTimeout, nil, gatehub.ErrTimedOut),
 }
 
 func validationDesc(fe validator.FieldError) string {

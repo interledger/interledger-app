@@ -12,9 +12,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/appcontext"
 	"gitlab.com/fynbos/backend/errorhandling"
-	"gitlab.com/fynbos/backend/providers/gatehub"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/backend/providers/gatehub"
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/backend/wallets"
 )

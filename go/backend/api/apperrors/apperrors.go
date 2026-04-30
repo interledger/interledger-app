@@ -2,54 +2,58 @@ package apperrors
 
 import (
 	"encoding/json"
-	"errors"
 	"net/http"
 
 	"github.com/getsentry/sentry-go"
 	"gitlab.com/fynbos/backend/appcontext"
 	"gitlab.com/fynbos/backend/errorhandling"
-	"gitlab.com/fynbos/backend/kyc"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/providers/gatehub"
-	"gitlab.com/fynbos/backend/user"
-	"gitlab.com/fynbos/backend/wallets"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
 )
 
-var errorStatus = map[error]struct {
-	status int
-	code   errorhandling.AppErrorCode
-}{
-	user.ErrNoUserFound:            {http.StatusUnauthorized, errorhandling.ErrCodeUserNoUserFound},
-	wallets.ErrNoWalletFound:       {http.StatusNotFound, errorhandling.ErrCodeWalletsNoWalletFound},
-	wallets.ErrDuplicateWallet:     {http.StatusConflict, errorhandling.ErrCodeWalletsDuplicateWallet},
-	wallets.ErrWalletConflict:      {http.StatusConflict, errorhandling.ErrCodeWalletsWalletConflict},
-	linkedaccounts.ErrNotFound:     {http.StatusNotFound, errorhandling.ErrCodeLinkedAccNotFound},
-	kyc.ErrKYCResubmissionRequired: {http.StatusForbidden, errorhandling.ErrCodeKYCResubmissionRequired},
-	gatehub.ErrNotFound:            {http.StatusNotFound, errorhandling.ErrCodeNotFound},
-	gatehub.ErrInternal:            {http.StatusInternalServerError, errorhandling.ErrCodeInternal},
-	gatehub.ErrTimedOut:            {http.StatusGatewayTimeout, errorhandling.ErrCodeGatewayTimeout},
+var errorStatus = map[errorhandling.AppErrorCode]int{
+	errorhandling.ErrCodeInternal:                  http.StatusInternalServerError,
+	errorhandling.ErrCodeUnauthorized:              http.StatusUnauthorized,
+	errorhandling.ErrCodeNotFound:                  http.StatusNotFound,
+	errorhandling.ErrCodeConflict:                  http.StatusConflict,
+	errorhandling.ErrCodeForbidden:                 http.StatusForbidden,
+	errorhandling.ErrCodeBadRequest:                http.StatusBadRequest,
+	errorhandling.ErrCodeGatewayTimeout:            http.StatusGatewayTimeout,
+	errorhandling.ErrCodeValidation:                http.StatusBadRequest,
+	errorhandling.ErrCodeUserNoUserFound:           http.StatusUnauthorized,
+	errorhandling.ErrCodeUserAAL1Required:          http.StatusForbidden,
+	errorhandling.ErrCodeUserAAL2Required:          http.StatusForbidden,
+	errorhandling.ErrCodeTwilioInvalidOTP:          http.StatusBadRequest,
+	errorhandling.ErrCodeWalletsNoWalletFound:      http.StatusNotFound,
+	errorhandling.ErrCodeWalletsDuplicateWallet:    http.StatusConflict,
+	errorhandling.ErrCodeWalletsWalletConflict:     http.StatusConflict,
+	errorhandling.ErrCodeLinkedAccNotFound:         http.StatusNotFound,
+	errorhandling.ErrCodeSignupDuplicatePhone:      http.StatusConflict,
+	errorhandling.ErrCodeIdentitiesAlreadyExists:   http.StatusConflict,
+	errorhandling.ErrCodePaymentsRequiredActions:   http.StatusBadRequest,
+	errorhandling.ErrCodePaymentsInsufficientFunds: http.StatusBadRequest,
+	errorhandling.ErrCodeKYCResubmissionRequired:   http.StatusForbidden,
 }
 
 func ToHTTPError(w http.ResponseWriter, r *http.Request, err error) {
 	log.Info("http error", zap.Error(err))
 
-	if v, ok := errorStatus[err]; ok {
-		WriteAppError(w, r, v.status, v.code, http.StatusText(v.status))
+	appErr := errorhandling.ToAppError(err)
+
+	status, ok := errorStatus[appErr.ErrorCode]
+	if !ok {
+		sentry.CaptureException(err)
+		log.Error("unexpected error", zap.Error(err))
+		WriteAppError(w, r, http.StatusInternalServerError, errorhandling.ErrCodeInternal, "Internal server error")
 		return
 	}
 
-	for k, v := range errorStatus {
-		if errors.Is(err, k) {
-			WriteAppError(w, r, v.status, v.code, http.StatusText(v.status))
-			return
-		}
+	if appErr.ErrorCode == errorhandling.ErrCodeInternal {
+		sentry.CaptureException(err)
+		log.Error("unexpected error", zap.Error(err))
 	}
 
-	sentry.CaptureException(err)
-	log.Error("unexpected error", zap.Error(err))
-	WriteAppError(w, r, http.StatusInternalServerError, errorhandling.ErrCodeInternal, "Internal server error")
+	WriteAppError(w, r, status, appErr.ErrorCode, http.StatusText(status))
 }
 
 func WriteAppError(w http.ResponseWriter, r *http.Request, status int, code errorhandling.AppErrorCode, message string) {
