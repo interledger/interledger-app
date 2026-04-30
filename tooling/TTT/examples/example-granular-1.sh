@@ -49,5 +49,7 @@
 ./ttt move --from gatehub/position:xago   --to gatehub/liquidity       --currency EUR --amount 100    --workflow "Bilateral Settlement"    --step "debit creditor position; credit creditor liquidity"
 ./ttt move --from xago/liquidity          --to xago/position:gatehub   --currency EUR --amount 100    --workflow "Bilateral Settlement"    --step "debit debtor liquidity; credit debtor position"
 
+./ttt settle gatehub xago eur
+
 # Write the spreadsheet report for this granular run.
 ./ttt export-ods
