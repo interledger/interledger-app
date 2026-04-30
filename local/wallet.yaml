@@ -82,6 +82,9 @@ services:
       - TEMPORAL_URL=${BACKEND_TEMPORAL_URL:-temporal:7233}
       - RAFIKI_BACKEND_GRAPHQL_URL=${BACKEND_RAFIKI_BACKEND_GRAPHQL_URL:-http://rafiki_backend:3001/graphql}
       - RAFIKI_AUTH_GRAPHQL_URL=${BACKEND_RAFIKI_AUTH_GRAPHQL_URL:-http://rafiki_auth:3003/graphql}
+      - OPERATOR_TENANT_ID=${BACKEND_OPERATOR_TENANT_ID:-6b1f9f73-3d4b-4f52-9f2a-9f6a8d0a7c5e}
+      - ADMIN_API_SECRET=${BACKEND_ADMIN_API_SECRET:-test-admin-api-key}
+      - SIGNATURE_VERSION=${BACKEND_SIGNATURE_VERSION:-1}
 
       # Wallet rules and ledger controls
       - USD_LEDGER_ID=${BACKEND_USD_LEDGER_ID:-1}
@@ -181,9 +184,9 @@ services:
       - BT_TOKEN=${BACKEND_BT_TOKEN:-}
 
       # Mobile app links
-      - APPLE_APP_ID=6B7AFCRT3V.app.wallet.interledger.test
-      - ANDROID_PACKAGE_NAME=org.interledger.walletandroid.test
-      - ANDROID_SHA256=25:D0:6A:A1:4F:BD:F6:05:93:2C:80:A2:AC:DA:DE:E4:2F:72:BC:23:9C:8F:2C:78:85:49:9A:AC:D2:4B:A4:FF
+      - APPLE_APP_ID=6B7AFCRT3V.app.wallet.interledger.dev
+      - ANDROID_PACKAGE_NAME=org.interledger.wallet.debug
+      - ANDROID_SHA256=19:6D:4E:28:00:95:8B:F4:5C:72:EE:B5:82:70:75:57:48:E6:B7:C1:54:29:75:33:72:47:89:28:D4:E0:BF:F3
 
       # Observability
       - OTEL_EXPORTER_OTLP_ENDPOINT=${BACKEND_OTEL_EXPORTER_OTLP_ENDPOINT:-grpc://api.honeycomb.io:443}
