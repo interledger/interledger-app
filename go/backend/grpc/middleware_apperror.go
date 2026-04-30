@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"gitlab.com/fynbos/backend/appcontext"
 	"gitlab.com/fynbos/log"
 	pb "gitlab.com/fynbos/proto/backend/v1"
 
@@ -39,7 +40,7 @@ func MakeUnaryInterceptorAppError() grpc.ServerOption {
 //   - An existing gRPC status: the AppError detail is extracted and augmented;
 //     if no AppError was present, a new one is created.
 func withAppError(ctx context.Context, originalErr error) error {
-	reqId := RequestIdFromContext(ctx)
+	reqId := appcontext.RequestIDFromContext(ctx)
 
 	st, ok := status.FromError(originalErr)
 	if !ok {

@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 
+	"gitlab.com/fynbos/backend/appcontext"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -35,11 +36,11 @@ func MakeUnaryInterceptorRequestId() grpc.ServerOption {
 }
 
 func ctxWithRequestIdFromMeta(ctx context.Context, meta metadata.MD) (context.Context, error) {
-	reqId, err := RequestIdFromMetadata(meta)
+	reqId, err := RequestIDFromMetadata(meta)
 	if err != nil {
 		return nil, err
 	}
 
-	ctx = context.WithValue(ctx, ctxKeyRequestId, reqId)
+	ctx = context.WithValue(ctx, appcontext.KeyRequestID, reqId)
 	return ctx, nil
 }

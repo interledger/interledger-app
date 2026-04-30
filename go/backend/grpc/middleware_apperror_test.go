@@ -7,13 +7,14 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gitlab.com/fynbos/backend/appcontext"
 	pb "gitlab.com/fynbos/proto/backend/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 func ctxWithRequestId(id string) context.Context {
-	return context.WithValue(context.Background(), ctxKeyRequestId, id)
+	return context.WithValue(context.Background(), appcontext.KeyRequestID, id)
 }
 
 func TestWithAppError(t *testing.T) {

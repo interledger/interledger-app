@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/getsentry/sentry-go"
-	"gitlab.com/fynbos/backend/api/appcontext"
+	"gitlab.com/fynbos/backend/appcontext"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/gatehub"
