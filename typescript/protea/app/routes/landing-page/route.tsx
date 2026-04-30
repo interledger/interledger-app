@@ -1,4 +1,5 @@
-import type { LinksFunction } from "react-router";
+import type { LinksFunction, LoaderFunctionArgs } from "react-router";
+import { redirect } from "react-router";
 import "./colors.css";
 import "./tokens/typography.css";
 import "./typography.css";
@@ -33,6 +34,16 @@ export const handle = {
     scaffold: {
         header: {}
     }
+};
+
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+    const url = new URL(request.url);
+    const password = url.searchParams.get("landingPagePassword");
+
+    if (password !== "interledger2026") {
+        return redirect("/");
+    }
+    return null;
 };
 
 export const links: LinksFunction = () => [
