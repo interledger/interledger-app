@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"gitlab.com/fynbos/backend/api/apperrors"
+	"gitlab.com/fynbos/backend/errorhandling"
 	"gitlab.com/fynbos/backend/user"
 )
 
@@ -33,11 +34,11 @@ func MakeUserMiddleware(uc user.Client) func(http.Handler) http.Handler {
 				u, err := uc.UserForToken(ctx, token)
 				if err != nil {
 					if errors.Is(err, user.ErrAAL1Required) || errors.Is(err, user.ErrAAL2Required) {
-						apperrors.WriteAppError(w, r, http.StatusUnauthorized, apperrors.ErrCodeUnauthorized, aalReason(err))
+						apperrors.WriteAppError(w, r, http.StatusUnauthorized, errorhandling.ErrCodeUnauthorized, aalReason(err))
 						return
 					}
 					if !errors.Is(err, user.ErrNoUserFound) {
-						apperrors.WriteAppError(w, r, http.StatusInternalServerError, apperrors.ErrCodeInternal, "Error verifying bearer token.")
+						apperrors.WriteAppError(w, r, http.StatusInternalServerError, errorhandling.ErrCodeInternal, "Error verifying bearer token.")
 						return
 					}
 				}
@@ -57,11 +58,11 @@ func MakeUserMiddleware(uc user.Client) func(http.Handler) http.Handler {
 			u, err := uc.UserForCookie(ctx, cookie.Value)
 			if err != nil {
 				if errors.Is(err, user.ErrAAL1Required) || errors.Is(err, user.ErrAAL2Required) {
-					apperrors.WriteAppError(w, r, http.StatusUnauthorized, apperrors.ErrCodeUnauthorized, aalReason(err))
+					apperrors.WriteAppError(w, r, http.StatusUnauthorized, errorhandling.ErrCodeUnauthorized, aalReason(err))
 					return
 				}
 				if !errors.Is(err, user.ErrNoUserFound) {
-					apperrors.WriteAppError(w, r, http.StatusInternalServerError, apperrors.ErrCodeInternal, "Error parsing session.")
+					apperrors.WriteAppError(w, r, http.StatusInternalServerError, errorhandling.ErrCodeInternal, "Error parsing session.")
 					return
 				}
 			}
