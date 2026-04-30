@@ -19,7 +19,7 @@ import (
 
 var errorStatus = map[error]struct {
 	status int
-	code   string
+	code   errorhandling.AppErrorCode
 }{
 	user.ErrNoUserFound:            {http.StatusUnauthorized, errorhandling.ErrCodeUserNoUserFound},
 	wallets.ErrNoWalletFound:       {http.StatusNotFound, errorhandling.ErrCodeWalletsNoWalletFound},
@@ -52,7 +52,7 @@ func ToHTTPError(w http.ResponseWriter, r *http.Request, err error) {
 	WriteAppError(w, r, http.StatusInternalServerError, errorhandling.ErrCodeInternal, "Internal server error")
 }
 
-func WriteAppError(w http.ResponseWriter, r *http.Request, status int, code, message string) {
+func WriteAppError(w http.ResponseWriter, r *http.Request, status int, code errorhandling.AppErrorCode, message string) {
 	reqID := appcontext.RequestIDFromContext(r.Context())
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
