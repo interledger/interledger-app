@@ -5,6 +5,7 @@ import (
 	"errors"
 	"strings"
 
+	"gitlab.com/fynbos/backend/errorhandling"
 	"gitlab.com/fynbos/backend/user"
 	pb "gitlab.com/fynbos/proto/backend/v1"
 
@@ -21,13 +22,13 @@ const (
 
 func aalErrorToStatus(err error) error {
 	var reason string
-	var appErrorCode pb.ErrorCode
+	var appErrorCode errorhandling.AppErrorCode
 	if errors.Is(err, user.ErrAAL1Required) {
 		reason = "aal1_required"
-		appErrorCode = pb.ErrorCode_ERROR_CODE_USER_AAL1_REQUIRED
+		appErrorCode = errorhandling.ErrCodeUserAAL1Required
 	} else if errors.Is(err, user.ErrAAL2Required) {
 		reason = "aal2_required"
-		appErrorCode = pb.ErrorCode_ERROR_CODE_USER_AAL2_REQUIRED
+		appErrorCode = errorhandling.ErrCodeUserAAL2Required
 	} else {
 		return nil
 	}
@@ -39,7 +40,7 @@ func aalErrorToStatus(err error) error {
 	}
 
 	appError := &pb.AppError{
-		ErrorCode: appErrorCode.String(),
+		ErrorCode: appErrorCode,
 		Message:   reason,
 	}
 

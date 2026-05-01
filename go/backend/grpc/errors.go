@@ -6,6 +6,7 @@ import (
 
 	"github.com/getsentry/sentry-go"
 
+	"gitlab.com/fynbos/backend/errorhandling"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/payments"
 
@@ -32,17 +33,17 @@ import (
 const VALIDATION_ERR_MSG = "Some fields are incorrect."
 
 var errorStatus = map[error]error{
-	user.ErrNoUserFound:            newError(codes.Unauthenticated, pb.ErrorCode_ERROR_CODE_USER_NO_USER_FOUND, "Unauthenticated", nil),
-	twilio.ErrInvalidOTP:           newValidationErrorSingleField(pb.ErrorCode_ERROR_CODE_TWILIO_INVALID_OTP, "OTP", "Could not validate OTP"),
-	wallets.ErrDuplicateWallet:     newError(codes.AlreadyExists, pb.ErrorCode_ERROR_CODE_WALLETS_DUPLICATE_WALLET, "Wallet already exists", nil),
-	wallets.ErrWalletConflict:      newError(codes.FailedPrecondition, pb.ErrorCode_ERROR_CODE_WALLETS_WALLET_CONFLICT, "Wallet already exists but with different configuration than requested (for example, country, currency, or addresses)", nil),
-	linkedaccounts.ErrNotFound:     newError(codes.NotFound, pb.ErrorCode_ERROR_CODE_LINKEDACC_NOT_FOUND, "Not found: linked account not found", nil),
-	signup.ErrDuplicatePhone:       newError(codes.AlreadyExists, pb.ErrorCode_ERROR_CODE_SIGNUP_DUPLICATE_PHONE, "Phone number already exists with a user.", nil),
-	identities.ErrAlreadyExists:    newError(codes.AlreadyExists, pb.ErrorCode_ERROR_CODE_IDENTITIES_ALREADY_EXISTS, "Identity already exists", nil),
-	wallets.ErrNoWalletFound:       newError(codes.NotFound, pb.ErrorCode_ERROR_CODE_WALLETS_NO_WALLET_FOUND, "Not found: wallet address not found", nil),
-	payments.ErrRequiredActions:    newError(codes.FailedPrecondition, pb.ErrorCode_ERROR_CODE_PAYMENTS_REQUIRED_ACTIONS, "Required details missing for payment", nil),
+	user.ErrNoUserFound:            newError(codes.Unauthenticated, errorhandling.ErrCodeUserNoUserFound, "Unauthenticated", nil),
+	twilio.ErrInvalidOTP:           newValidationErrorSingleField(errorhandling.ErrCodeTwilioInvalidOTP, "OTP", "Could not validate OTP"),
+	wallets.ErrDuplicateWallet:     newError(codes.AlreadyExists, errorhandling.ErrCodeWalletsDuplicateWallet, "Wallet already exists", nil),
+	wallets.ErrWalletConflict:      newError(codes.FailedPrecondition, errorhandling.ErrCodeWalletsWalletConflict, "Wallet already exists but with different configuration than requested (for example, country, currency, or addresses)", nil),
+	linkedaccounts.ErrNotFound:     newError(codes.NotFound, errorhandling.ErrCodeLinkedAccNotFound, "Not found: linked account not found", nil),
+	signup.ErrDuplicatePhone:       newError(codes.AlreadyExists, errorhandling.ErrCodeSignupDuplicatePhone, "Phone number already exists with a user.", nil),
+	identities.ErrAlreadyExists:    newError(codes.AlreadyExists, errorhandling.ErrCodeIdentitiesAlreadyExists, "Identity already exists", nil),
+	wallets.ErrNoWalletFound:       newError(codes.NotFound, errorhandling.ErrCodeWalletsNoWalletFound, "Not found: wallet address not found", nil),
+	payments.ErrRequiredActions:    newError(codes.FailedPrecondition, errorhandling.ErrCodePaymentsRequiredActions, "Required details missing for payment", nil),
 	payments.ErrInsufficientFunds:  PaymentInsufficientFundsError(),
-	kyc.ErrKYCResubmissionRequired: newError(codes.FailedPrecondition, pb.ErrorCode_ERROR_CODE_KYC_RESUBMISSION_REQUIRED, "KYC resubmission required: please update your verification documents", nil),
+	kyc.ErrKYCResubmissionRequired: newError(codes.FailedPrecondition, errorhandling.ErrCodeKYCResubmissionRequired, "KYC resubmission required: please update your verification documents", nil),
 }
 
 func validationDesc(fe validator.FieldError) string {
@@ -124,7 +125,7 @@ func NewValidationError(field string, description string) error {
 
 	fields := []*pb.AppErrorField{newAppErrorField(field, description)}
 	appError := &pb.AppError{
-		ErrorCode: pb.ErrorCode_ERROR_CODE_VALIDATION.String(),
+		ErrorCode: errorhandling.ErrCodeValidation,
 		Message:   VALIDATION_ERR_MSG,
 		Fields:    fields,
 	}
@@ -144,7 +145,7 @@ func NewTwilioError(field string, description string) error {
 	// TODO maybe a TWILIO specific error code?
 	fields := []*pb.AppErrorField{newAppErrorField(field, description)}
 	appError := &pb.AppError{
-		ErrorCode: pb.ErrorCode_ERROR_CODE_VALIDATION.String(),
+		ErrorCode: errorhandling.ErrCodeValidation,
 		Message:   VALIDATION_ERR_MSG,
 		Fields:    fields,
 	}
@@ -167,7 +168,7 @@ func ValidationError(err error, description func(validator.FieldError) string) e
 		}
 
 		appError := &pb.AppError{
-			ErrorCode: pb.ErrorCode_ERROR_CODE_VALIDATION.String(),
+			ErrorCode: errorhandling.ErrCodeValidation,
 			Message:   VALIDATION_ERR_MSG,
 			Fields:    fields,
 		}
@@ -262,7 +263,7 @@ func PaymentInsufficientFundsError() error {
 	})
 
 	appError := &pb.AppError{
-		ErrorCode: pb.ErrorCode_ERROR_CODE_PAYMENTS_INSUFFICIENT_FUNDS.String(),
+		ErrorCode: errorhandling.ErrCodePaymentsInsufficientFunds,
 		Message:   errMsg,
 	}
 
@@ -280,34 +281,34 @@ func InternalError(message string) error {
 }
 
 func ForbiddenError(message string) error {
-	return newError(codes.PermissionDenied, pb.ErrorCode_ERROR_CODE_FORBIDDEN, "Forbidden: "+message, nil)
+	return newError(codes.PermissionDenied, errorhandling.ErrCodeForbidden, "Forbidden: "+message, nil)
 }
 
 func UnauthenticatedError(message string) error {
-	return newError(codes.Unauthenticated, pb.ErrorCode_ERROR_CODE_UNAUTHENTICATED, "Unauthenticated: "+message, nil)
+	return newError(codes.Unauthenticated, errorhandling.ErrCodeUnauthorized, "Unauthenticated: "+message, nil)
 }
 
 func NotFoundError(message string) error {
-	return newError(codes.NotFound, pb.ErrorCode_ERROR_CODE_NOT_FOUND, "Not found: "+message, nil)
+	return newError(codes.NotFound, errorhandling.ErrCodeNotFound, "Not found: "+message, nil)
 }
 
 func AlreadyExistsError(message string) error {
-	return newError(codes.AlreadyExists, pb.ErrorCode_ERROR_CODE_CONFLICT, "Already exists: "+message, nil)
+	return newError(codes.AlreadyExists, errorhandling.ErrCodeConflict, "Already exists: "+message, nil)
 }
 
 func FailedPreconditionError(message string) error {
-	return newError(codes.FailedPrecondition, pb.ErrorCode_ERROR_CODE_BAD_REQUEST, "Failed precondition: "+message, nil)
+	return newError(codes.FailedPrecondition, errorhandling.ErrCodeBadRequest, "Failed precondition: "+message, nil)
 }
 
 func newInternalError(msg string) error {
-	return newError(codes.Internal, pb.ErrorCode_ERROR_CODE_INTERNAL, msg, nil)
+	return newError(codes.Internal, errorhandling.ErrCodeInternal, msg, nil)
 }
 
-func newError(grpcCode codes.Code, appErrCode pb.ErrorCode, msg string, fields []*pb.AppErrorField) error {
+func newError(grpcCode codes.Code, appErrCode errorhandling.AppErrorCode, msg string, fields []*pb.AppErrorField) error {
 	st := status.New(grpcCode, msg)
 
 	appError := &pb.AppError{
-		ErrorCode: appErrCode.String(),
+		ErrorCode: appErrCode,
 		Message:   msg,
 		Fields:    fields,
 	}
@@ -315,15 +316,15 @@ func newError(grpcCode codes.Code, appErrCode pb.ErrorCode, msg string, fields [
 	return statusWithDetails(st, appError).Err()
 }
 
-func newValidationErrorSingleField(appErrCode pb.ErrorCode, field string, fieldError string) error {
+func newValidationErrorSingleField(appErrCode errorhandling.AppErrorCode, field string, fieldError string) error {
 	return newValidationError(appErrCode, []*pb.AppErrorField{newAppErrorField(field, fieldError)})
 }
 
-func newValidationError(appErrCode pb.ErrorCode, fields []*pb.AppErrorField) error {
+func newValidationError(appErrCode errorhandling.AppErrorCode, fields []*pb.AppErrorField) error {
 	st := status.New(codes.InvalidArgument, VALIDATION_ERR_MSG)
 
 	appError := &pb.AppError{
-		ErrorCode: appErrCode.String(),
+		ErrorCode: appErrCode,
 		Message:   VALIDATION_ERR_MSG,
 		Fields:    fields,
 	}

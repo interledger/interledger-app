@@ -2709,7 +2709,7 @@ export interface AppError {
     /**
      * @generated from protobuf field: string errorCode = 1;
      */
-    errorCode: string; // See ErrorCode enum for valid values
+    errorCode: string; // See AppErrorCode values
     /**
      * @generated from protobuf field: string message = 2;
      */
@@ -2925,106 +2925,6 @@ export enum CardLockLevel {
      * @generated from protobuf enum value: CARD_LOCK_LEVEL_ADMIN = 3;
      */
     ADMIN = 3
-}
-/**
- * @generated from protobuf enum backend.v1.ErrorCode
- */
-export enum ErrorCode {
-    /**
-     * Protobuf requires 0 to be the first entry.
-     *
-     * @generated from protobuf enum value: ERROR_CODE_UNSPECIFIED = 0;
-     */
-    UNSPECIFIED = 0,
-    /**
-     * Generic codes, intentionally similar to HTTP status codes
-     *
-     * @generated from protobuf enum value: ERROR_CODE_BAD_REQUEST = 1400;
-     */
-    BAD_REQUEST = 1400,
-    /**
-     * @generated from protobuf enum value: ERROR_CODE_UNAUTHENTICATED = 1401;
-     */
-    UNAUTHENTICATED = 1401,
-    /**
-     * @generated from protobuf enum value: ERROR_CODE_FORBIDDEN = 1403;
-     */
-    FORBIDDEN = 1403,
-    /**
-     * @generated from protobuf enum value: ERROR_CODE_NOT_FOUND = 1404;
-     */
-    NOT_FOUND = 1404,
-    /**
-     * @generated from protobuf enum value: ERROR_CODE_CONFLICT = 1409;
-     */
-    CONFLICT = 1409,
-    /**
-     * @generated from protobuf enum value: ERROR_CODE_INTERNAL = 1500;
-     */
-    INTERNAL = 1500,
-    /**
-     * Other generic codes
-     *
-     * @generated from protobuf enum value: ERROR_CODE_VALIDATION = 2400;
-     */
-    VALIDATION = 2400,
-    /**
-     * Business-specific codes. Format:
-     * - First digit: no particular meaning
-     * - Next three digits: package identifier
-     * - Last three digits: error identifier (unique per package)
-     *
-     * @generated from protobuf enum value: ERROR_CODE_USER_NO_USER_FOUND = 1001001;
-     */
-    USER_NO_USER_FOUND = 1001001,
-    /**
-     * @generated from protobuf enum value: ERROR_CODE_USER_AAL1_REQUIRED = 1001002;
-     */
-    USER_AAL1_REQUIRED = 1001002,
-    /**
-     * @generated from protobuf enum value: ERROR_CODE_USER_AAL2_REQUIRED = 1001003;
-     */
-    USER_AAL2_REQUIRED = 1001003,
-    /**
-     * @generated from protobuf enum value: ERROR_CODE_TWILIO_INVALID_OTP = 1002001;
-     */
-    TWILIO_INVALID_OTP = 1002001,
-    /**
-     * @generated from protobuf enum value: ERROR_CODE_WALLETS_DUPLICATE_WALLET = 1003001;
-     */
-    WALLETS_DUPLICATE_WALLET = 1003001,
-    /**
-     * @generated from protobuf enum value: ERROR_CODE_WALLETS_WALLET_CONFLICT = 1003002;
-     */
-    WALLETS_WALLET_CONFLICT = 1003002,
-    /**
-     * @generated from protobuf enum value: ERROR_CODE_WALLETS_NO_WALLET_FOUND = 1003003;
-     */
-    WALLETS_NO_WALLET_FOUND = 1003003,
-    /**
-     * @generated from protobuf enum value: ERROR_CODE_LINKEDACC_NOT_FOUND = 1004001;
-     */
-    LINKEDACC_NOT_FOUND = 1004001,
-    /**
-     * @generated from protobuf enum value: ERROR_CODE_SIGNUP_DUPLICATE_PHONE = 1005001;
-     */
-    SIGNUP_DUPLICATE_PHONE = 1005001,
-    /**
-     * @generated from protobuf enum value: ERROR_CODE_IDENTITIES_ALREADY_EXISTS = 1006001;
-     */
-    IDENTITIES_ALREADY_EXISTS = 1006001,
-    /**
-     * @generated from protobuf enum value: ERROR_CODE_PAYMENTS_REQUIRED_ACTIONS = 1007001;
-     */
-    PAYMENTS_REQUIRED_ACTIONS = 1007001,
-    /**
-     * @generated from protobuf enum value: ERROR_CODE_PAYMENTS_INSUFFICIENT_FUNDS = 1007002;
-     */
-    PAYMENTS_INSUFFICIENT_FUNDS = 1007002,
-    /**
-     * @generated from protobuf enum value: ERROR_CODE_KYC_RESUBMISSION_REQUIRED = 1008001;
-     */
-    KYC_RESUBMISSION_REQUIRED = 1008001
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class PaginationRequest$Type extends MessageType<PaginationRequest> {

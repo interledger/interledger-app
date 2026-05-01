@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/appcontext"
+	"gitlab.com/fynbos/backend/errorhandling"
 	pb "gitlab.com/fynbos/proto/backend/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -30,7 +31,7 @@ func TestWithAppError(t *testing.T) {
 
 		appErr := statusFindDetail[*pb.AppError](st)
 		require.NotNil(t, appErr)
-		assert.Equal(t, pb.ErrorCode_ERROR_CODE_INTERNAL.String(), appErr.ErrorCode)
+		assert.Equal(t, errorhandling.ErrCodeInternal, appErr.ErrorCode)
 		assert.Equal(t, "db failure", appErr.Message)
 	})
 
@@ -44,7 +45,7 @@ func TestWithAppError(t *testing.T) {
 
 		appErr := statusFindDetail[*pb.AppError](st)
 		require.NotNil(t, appErr)
-		assert.Equal(t, pb.ErrorCode_ERROR_CODE_INTERNAL.String(), appErr.ErrorCode)
+		assert.Equal(t, errorhandling.ErrCodeInternal, appErr.ErrorCode)
 		assert.Equal(t, "thing not found", appErr.Message)
 	})
 
@@ -52,7 +53,7 @@ func TestWithAppError(t *testing.T) {
 		t.Parallel()
 		base := status.New(codes.PermissionDenied, "forbidden")
 		original := statusWithDetails(base, &pb.AppError{
-			ErrorCode: pb.ErrorCode_ERROR_CODE_FORBIDDEN.String(),
+			ErrorCode: errorhandling.ErrCodeForbidden,
 			Message:   "access denied",
 		}).Err()
 
@@ -63,7 +64,7 @@ func TestWithAppError(t *testing.T) {
 
 		appErr := statusFindDetail[*pb.AppError](st)
 		require.NotNil(t, appErr)
-		assert.Equal(t, pb.ErrorCode_ERROR_CODE_FORBIDDEN.String(), appErr.ErrorCode)
+		assert.Equal(t, errorhandling.ErrCodeForbidden, appErr.ErrorCode)
 		assert.Equal(t, "access denied", appErr.Message)
 	})
 
@@ -84,7 +85,7 @@ func TestWithAppError(t *testing.T) {
 		ctx := ctxWithRequestId("ctx-req-id")
 		base := status.New(codes.Internal, "error")
 		original := statusWithDetails(base, &pb.AppError{
-			ErrorCode: pb.ErrorCode_ERROR_CODE_INTERNAL.String(),
+			ErrorCode: errorhandling.ErrCodeInternal,
 			ReqId:     "unexpected-req-id",
 		}).Err()
 

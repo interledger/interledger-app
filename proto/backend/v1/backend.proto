@@ -1181,7 +1181,7 @@ message VerifyIdentityRequest {
 }
 
 message AppError {
-  string errorCode = 1; // See ErrorCode enum for valid values
+  string errorCode = 1; // See AppErrorCode values
   string message = 2;
   repeated AppErrorField fields = 3;
   string reqId = 4;
@@ -1190,45 +1190,4 @@ message AppError {
 message AppErrorField {
   string field = 1;
   string error = 2;
-}
-
-enum ErrorCode {
-  // Protobuf requires 0 to be the first entry.
-  ERROR_CODE_UNSPECIFIED                    = 0;
-  
-  // Generic codes, intentionally similar to HTTP status codes
-  ERROR_CODE_BAD_REQUEST                    = 1400;
-  ERROR_CODE_UNAUTHENTICATED                = 1401;
-  ERROR_CODE_FORBIDDEN                      = 1403;
-  ERROR_CODE_NOT_FOUND                      = 1404;
-  ERROR_CODE_CONFLICT                       = 1409;
-  ERROR_CODE_INTERNAL                       = 1500;
-
-  // Other generic codes
-  ERROR_CODE_VALIDATION                     = 2400;
-
-  // Business-specific codes. Format:
-  // - First digit: no particular meaning
-  // - Next three digits: package identifier
-  // - Last three digits: error identifier (unique per package)
-  ERROR_CODE_USER_NO_USER_FOUND             = 1001001;
-  ERROR_CODE_USER_AAL1_REQUIRED             = 1001002;
-  ERROR_CODE_USER_AAL2_REQUIRED             = 1001003;
-
-  ERROR_CODE_TWILIO_INVALID_OTP             = 1002001;
-
-  ERROR_CODE_WALLETS_DUPLICATE_WALLET       = 1003001;
-  ERROR_CODE_WALLETS_WALLET_CONFLICT        = 1003002;
-  ERROR_CODE_WALLETS_NO_WALLET_FOUND        = 1003003;
-
-  ERROR_CODE_LINKEDACC_NOT_FOUND            = 1004001;
-
-  ERROR_CODE_SIGNUP_DUPLICATE_PHONE         = 1005001;
-
-  ERROR_CODE_IDENTITIES_ALREADY_EXISTS      = 1006001;
-
-  ERROR_CODE_PAYMENTS_REQUIRED_ACTIONS      = 1007001;
-  ERROR_CODE_PAYMENTS_INSUFFICIENT_FUNDS    = 1007002;
-
-  ERROR_CODE_KYC_RESUBMISSION_REQUIRED      = 1008001;
 }

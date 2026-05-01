@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"gitlab.com/fynbos/backend/appcontext"
+	"gitlab.com/fynbos/backend/errorhandling"
 	"gitlab.com/fynbos/log"
 	pb "gitlab.com/fynbos/proto/backend/v1"
 
@@ -70,7 +71,7 @@ func withAppError(ctx context.Context, originalErr error) error {
 	// Create the AppError if it didn't exist.
 	if appError == nil {
 		appError = &pb.AppError{
-			ErrorCode: pb.ErrorCode_ERROR_CODE_INTERNAL.String(),
+			ErrorCode: errorhandling.ErrCodeInternal,
 			Message:   st.Message(),
 		}
 	}
