@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/appcontext"
-	"gitlab.com/fynbos/backend/errorhandling"
+	"gitlab.com/fynbos/backend/errcodes"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/gatehub"
@@ -47,13 +47,13 @@ func TestWriteAppError(t *testing.T) {
 		w := httptest.NewRecorder()
 		r := newRequest(t)
 
-		WriteAppError(w, r, http.StatusNotFound, errorhandling.ErrCodeNotFound, "not found")
+		WriteAppError(w, r, http.StatusNotFound, errcodes.ErrCodeNotFound, "not found")
 
 		assert.Equal(t, http.StatusNotFound, w.Code)
 		assert.Equal(t, "application/json", w.Header().Get("Content-Type"))
 
 		body := decodeBody(t, w)
-		assert.Equal(t, errorhandling.ErrCodeNotFound, body.ErrorCode)
+		assert.Equal(t, errcodes.ErrCodeNotFound, body.ErrorCode)
 		assert.Equal(t, "not found", body.Message)
 		assert.Empty(t, body.ReqID)
 	})
@@ -64,7 +64,7 @@ func TestWriteAppError(t *testing.T) {
 		r := newRequest(t)
 		r = r.WithContext(appcontext.WithRequestID(r.Context(), "req-abc-123"))
 
-		WriteAppError(w, r, http.StatusBadRequest, errorhandling.ErrCodeBadRequest, "bad request")
+		WriteAppError(w, r, http.StatusBadRequest, errcodes.ErrCodeBadRequest, "bad request")
 
 		body := decodeBody(t, w)
 		assert.Equal(t, "req-abc-123", body.ReqID)
@@ -91,15 +91,15 @@ func TestToHTTPError(t *testing.T) {
 		expectedStatus int
 		expectedCode   string
 	}{
-		{"user not found", user.ErrNoUserFound, http.StatusUnauthorized, errorhandling.ErrCodeUserNoUserFound},
-		{"no wallet found", wallets.ErrNoWalletFound, http.StatusNotFound, errorhandling.ErrCodeWalletsNoWalletFound},
-		{"duplicate wallet", wallets.ErrDuplicateWallet, http.StatusConflict, errorhandling.ErrCodeWalletsDuplicateWallet},
-		{"wallet conflict", wallets.ErrWalletConflict, http.StatusConflict, errorhandling.ErrCodeWalletsWalletConflict},
-		{"linked account not found", linkedaccounts.ErrNotFound, http.StatusNotFound, errorhandling.ErrCodeLinkedAccNotFound},
-		{"kyc resubmission required", kyc.ErrKYCResubmissionRequired, http.StatusForbidden, errorhandling.ErrCodeKYCResubmissionRequired},
-		{"gatehub not found", gatehub.ErrNotFound, http.StatusNotFound, errorhandling.ErrCodeNotFound},
-		{"gatehub internal", gatehub.ErrInternal, http.StatusInternalServerError, errorhandling.ErrCodeInternal},
-		{"gatehub timed out", gatehub.ErrTimedOut, http.StatusGatewayTimeout, errorhandling.ErrCodeGatewayTimeout},
+		{"user not found", user.ErrNoUserFound, http.StatusUnauthorized, errcodes.ErrCodeUserNoUserFound},
+		{"no wallet found", wallets.ErrNoWalletFound, http.StatusNotFound, errcodes.ErrCodeWalletsNoWalletFound},
+		{"duplicate wallet", wallets.ErrDuplicateWallet, http.StatusConflict, errcodes.ErrCodeWalletsDuplicateWallet},
+		{"wallet conflict", wallets.ErrWalletConflict, http.StatusConflict, errcodes.ErrCodeWalletsWalletConflict},
+		{"linked account not found", linkedaccounts.ErrNotFound, http.StatusNotFound, errcodes.ErrCodeLinkedAccNotFound},
+		{"kyc resubmission required", kyc.ErrKYCResubmissionRequired, http.StatusForbidden, errcodes.ErrCodeKYCResubmissionRequired},
+		{"gatehub not found", gatehub.ErrNotFound, http.StatusNotFound, errcodes.ErrCodeNotFound},
+		{"gatehub internal", gatehub.ErrInternal, http.StatusInternalServerError, errcodes.ErrCodeInternal},
+		{"gatehub timed out", gatehub.ErrTimedOut, http.StatusGatewayTimeout, errcodes.ErrCodeGatewayTimeout},
 	}
 
 	for _, tc := range tests {
@@ -125,7 +125,7 @@ func TestToHTTPError(t *testing.T) {
 
 		assert.Equal(t, http.StatusUnauthorized, w.Code)
 		body := decodeBody(t, w)
-		assert.Equal(t, errorhandling.ErrCodeUserNoUserFound, body.ErrorCode)
+		assert.Equal(t, errcodes.ErrCodeUserNoUserFound, body.ErrorCode)
 	})
 
 	t.Run("unknown error returns 500 internal", func(t *testing.T) {
@@ -137,6 +137,6 @@ func TestToHTTPError(t *testing.T) {
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 		body := decodeBody(t, w)
-		assert.Equal(t, errorhandling.ErrCodeInternal, body.ErrorCode)
+		assert.Equal(t, errcodes.ErrCodeInternal, body.ErrorCode)
 	})
 }

@@ -7,7 +7,7 @@ import (
 
 	"github.com/getsentry/sentry-go"
 	"gitlab.com/fynbos/backend/appcontext"
-	"gitlab.com/fynbos/backend/errorhandling"
+	"gitlab.com/fynbos/backend/errcodes"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/gatehub"
@@ -19,17 +19,17 @@ import (
 
 var errorStatus = map[error]struct {
 	status int
-	code   errorhandling.AppErrorCode
+	code   errcodes.AppErrorCode
 }{
-	user.ErrNoUserFound:            {http.StatusUnauthorized, errorhandling.ErrCodeUserNoUserFound},
-	wallets.ErrNoWalletFound:       {http.StatusNotFound, errorhandling.ErrCodeWalletsNoWalletFound},
-	wallets.ErrDuplicateWallet:     {http.StatusConflict, errorhandling.ErrCodeWalletsDuplicateWallet},
-	wallets.ErrWalletConflict:      {http.StatusConflict, errorhandling.ErrCodeWalletsWalletConflict},
-	linkedaccounts.ErrNotFound:     {http.StatusNotFound, errorhandling.ErrCodeLinkedAccNotFound},
-	kyc.ErrKYCResubmissionRequired: {http.StatusForbidden, errorhandling.ErrCodeKYCResubmissionRequired},
-	gatehub.ErrNotFound:            {http.StatusNotFound, errorhandling.ErrCodeNotFound},
-	gatehub.ErrInternal:            {http.StatusInternalServerError, errorhandling.ErrCodeInternal},
-	gatehub.ErrTimedOut:            {http.StatusGatewayTimeout, errorhandling.ErrCodeGatewayTimeout},
+	user.ErrNoUserFound:            {http.StatusUnauthorized, errcodes.ErrCodeUserNoUserFound},
+	wallets.ErrNoWalletFound:       {http.StatusNotFound, errcodes.ErrCodeWalletsNoWalletFound},
+	wallets.ErrDuplicateWallet:     {http.StatusConflict, errcodes.ErrCodeWalletsDuplicateWallet},
+	wallets.ErrWalletConflict:      {http.StatusConflict, errcodes.ErrCodeWalletsWalletConflict},
+	linkedaccounts.ErrNotFound:     {http.StatusNotFound, errcodes.ErrCodeLinkedAccNotFound},
+	kyc.ErrKYCResubmissionRequired: {http.StatusForbidden, errcodes.ErrCodeKYCResubmissionRequired},
+	gatehub.ErrNotFound:            {http.StatusNotFound, errcodes.ErrCodeNotFound},
+	gatehub.ErrInternal:            {http.StatusInternalServerError, errcodes.ErrCodeInternal},
+	gatehub.ErrTimedOut:            {http.StatusGatewayTimeout, errcodes.ErrCodeGatewayTimeout},
 }
 
 func ToHTTPError(w http.ResponseWriter, r *http.Request, err error) {
@@ -49,10 +49,10 @@ func ToHTTPError(w http.ResponseWriter, r *http.Request, err error) {
 
 	sentry.CaptureException(err)
 	log.Error("unexpected error", zap.Error(err))
-	WriteAppError(w, r, http.StatusInternalServerError, errorhandling.ErrCodeInternal, "Internal server error")
+	WriteAppError(w, r, http.StatusInternalServerError, errcodes.ErrCodeInternal, "Internal server error")
 }
 
-func WriteAppError(w http.ResponseWriter, r *http.Request, status int, code errorhandling.AppErrorCode, message string) {
+func WriteAppError(w http.ResponseWriter, r *http.Request, status int, code errcodes.AppErrorCode, message string) {
 	reqID := appcontext.RequestIDFromContext(r.Context())
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)

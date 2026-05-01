@@ -1,6 +1,4 @@
-package errorhandling
-
-// shared error handling
+package errcodes
 
 type AppErrorCode = string
 
