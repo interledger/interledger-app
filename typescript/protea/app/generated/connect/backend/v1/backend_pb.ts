@@ -8107,7 +8107,7 @@ export class VerifyIdentityRequest extends Message<VerifyIdentityRequest> {
  */
 export class AppError extends Message<AppError> {
   /**
-   * See AppErrorCode values
+   * See errcodes.go for all possible values
    *
    * @generated from field: string errorCode = 1;
    */

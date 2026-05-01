@@ -2709,7 +2709,7 @@ export interface AppError {
     /**
      * @generated from protobuf field: string errorCode = 1;
      */
-    errorCode: string; // See AppErrorCode values
+    errorCode: string; // See errcodes.go for all possible values
     /**
      * @generated from protobuf field: string message = 2;
      */

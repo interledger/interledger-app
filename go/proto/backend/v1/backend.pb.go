@@ -9900,7 +9900,7 @@ func (x *VerifyIdentityRequest) GetId() string {
 
 type AppError struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	ErrorCode     string                 `protobuf:"bytes,1,opt,name=errorCode,proto3" json:"errorCode,omitempty"` // See AppErrorCode values
+	ErrorCode     string                 `protobuf:"bytes,1,opt,name=errorCode,proto3" json:"errorCode,omitempty"` // See errcodes.go for all possible values
 	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
 	Fields        []*AppErrorField       `protobuf:"bytes,3,rep,name=fields,proto3" json:"fields,omitempty"`
 	ReqId         string                 `protobuf:"bytes,4,opt,name=reqId,proto3" json:"reqId,omitempty"`

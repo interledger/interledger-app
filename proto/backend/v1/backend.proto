@@ -1181,7 +1181,7 @@ message VerifyIdentityRequest {
 }
 
 message AppError {
-  string errorCode = 1; // See AppErrorCode values
+  string errorCode = 1; // See errcodes.go for all possible values
   string message = 2;
   repeated AppErrorField fields = 3;
   string reqId = 4;
