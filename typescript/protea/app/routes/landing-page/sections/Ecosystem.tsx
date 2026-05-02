@@ -8,7 +8,7 @@ interface CardProps {
 function OpenWorldCard({ text, className }: CardProps) {
   return (
     <article className={`open-world-card ${className}`}>
-      <p className="text-body-lg-emphasis">{text}</p>
+      <p className="text-h5">{text}</p>
     </article>
   )
 }

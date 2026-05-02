@@ -79,9 +79,9 @@
   --color-orchid-100: #80409d;
   --color-orchid-150: #662b81;
 
-  --color-periwinkle-50: #cacaff; /* Figma: "periwikinle" (typo) */
-  --color-periwinkle-100: #6d6cd5;
-  --color-periwinkle-150: #5d5cd4;
+  --color-periwikinle-50: #cacaff; /* Figma: "periwikinle" (typo) */
+  --color-periwikinle-100: #6d6cd5;
+  --color-periwikinle-150: #5d5cd4;
 
   --color-pistachio-50: #e1fdbe;
   --color-pistachio-100: #b9e188;
@@ -124,7 +124,7 @@
 
   /* Text */
   --color-text-primary: var(--color-neutral-150);
-  --color-text-secondary: var(--color-neutral-75);
+  --color-text-secondary: var(--color-neutral-100);
   --color-text-inverse: var(--color-neutral-0);
 
   /* Borders */
@@ -142,11 +142,10 @@
   --color-interactive-primary-hover: var(--color-brand-50);
   --color-interactive-primary-disabled: var(--color-neutral-50);
 
-  --color-text-brand: var(--color-brand-100);
+  --color-text-brand: var(--color-brand-50);
 
   /* Section Backgrounds */
   --section-bg-hero: var(--color-bg-page);
-  --section-bg-features: var(--color-bg-surface);
   --section-bg-cards: var(--color-bg-page);
   --section-bg-other-features: var(--color-aqua-mint-100);
   --section-bg-send-receive: var(--color-bg-page);
@@ -168,24 +167,41 @@
   --button-primary-text: var(--color-text-inverse);
 
   --button-cta-bg: var(--color-forest-green-100);
-  --button-cta-text: var(--color-neutral-0);
+  --button-cta-text: var(--color-neutral-150);
+
+  --main-screen-1-bg: var(--color-aqua-mint-100);
+  --feature-screen-1-bg: var(--color-aqua-mint-100);
+  --feature-screen-2-bg: var(--color-rose-mint-100);
+  --feature-screen-3-bg: var(--color-ocean-100);
+  --feature-screen-4-bg: var(--color-orchid-100);
 }
 
 /* ---- Layer 3: Dark Mode Overrides ---- */
 @media (prefers-color-scheme: dark) {
   :root {
     /* Invert neutral primitives to dark-theme Figma values */
-    --color-neutral-0: #0d0d0d;
+    --color-neutral-0: #0D0D0D;
     --color-neutral-25: #000000;
     --color-neutral-50: #292929;
-    /* neutral-75 stays #595959 — same in both themes */
     --color-neutral-100: #c9c9c9;
     --color-neutral-150: #e4e4e4;
     --color-neutral-900: #ffffff;
+    
+    --main-screen-1-bg: var(--color-aqua-mint-100); /* TODO this is white? */
+    --feature-screen-1-bg: var(--color-deep-teal-100);
+    --feature-screen-2-bg: var(--color-periwikinle-100);
+    --feature-screen-3-bg: var(--color-ocean-100);
+    --feature-screen-4-bg: var(--color-royal-purple-100);
+
+    --section-bg-other-features: var(--color-ocean-100);
 
     /* Semantic overrides */
-    --color-bg-surface-raised: var(--color-neutral-50); /* #292929 — dark card surface */
-    --section-bg-footer: var(--color-neutral-25); /* #000000 — pure black footer */
+    --color-bg-surface-raised: var(
+      --color-neutral-50
+    ); /* #292929 — dark card surface */
+    --section-bg-footer: var(
+      --color-neutral-25
+    ); /* #000000 — pure black footer */
 
     /* Nav */
     --nav-bg: rgba(13, 13, 13, 0.8); /* neutral-0 dark = #0D0D0D */

@@ -36,7 +36,7 @@ export function OurEcosystem() {
     <PageSection className="our-ecosystem-section">
       <div className="our-ecosystem-header">
         <h2 className="text-h2 section-heading">Our ecosystem</h2>
-        <p className="text-body-lg-standard">
+        <p className="text-h4">
           Unlock the potential of Open Payments and Web Monetization 
           through the Interledger Wallet and help drive the evolution 
           of digital finances.

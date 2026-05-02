@@ -26,16 +26,13 @@
 }
 
 .send-receive-title {
-  font: var(--text-h2);
-  color: var(--color-text-primary);
-  letter-spacing: var(--text-h2-ls);
+  color: var(--color-neutral-900);
   text-align: center;
   width: 100%;
 }
 
 .send-receive-description {
-  font: var(--text-body-lg-standard);
-  color: var(--color-text-secondary);
+  color: var(--color-neutral-150);
   margin: 0;
 }
 
@@ -81,8 +78,7 @@
 }
 
 .status-text {
-  font: var(--text-body-lg-emphasis);
-  color: var(--color-text-primary);
+  color: var(--color-neutral-150);
   flex: 1;
 }
 

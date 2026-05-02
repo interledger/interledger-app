@@ -58,7 +58,7 @@
 }
 
 .other-features-headline {
-  color: inherit;
+  color: var(--color-neutral-900);
   margin: 0;
   white-space: nowrap; /* Prevent individual lines from wrapping internally */
 }
@@ -67,7 +67,7 @@
   font-size: 24px;
   line-height: 1.4;
   font-weight: 400;
-  color: inherit;
+  color: var(--color-neutral-150);
   margin: 0;
 }
 
@@ -154,11 +154,8 @@
 }
 
 .browser-availability {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--color-text-secondary);
+  color: var(--color-neutral-150);
   text-align: center;
-  margin: 8px 0 0;
 }
 
 /* Tablet/Mobile Overrides */

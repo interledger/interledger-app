@@ -8,7 +8,7 @@ export function Footer() {
           {/* Left Side: Logo and CTA */}
           <div className="footer-left">
             <img src={logoImg} alt="Interledger Wallet" className="footer-logo" />
-            <p className="text-body-lg-emphasis">Do you want to get involved?</p>
+            <p className="text-h4">Do you want to get involved?</p>
             <button className="footer-cta">
               Contact us
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -23,7 +23,7 @@ export function Footer() {
           <div className="footer-right">
             <div className="footer-col">
               <h4>Useful Links</h4>
-              <ul className="footer-links">
+              <ul className="footer-links text-body-sm-standard">
                 <li><a href="#contact">Contact</a></li>
                 <li><a href="#download">Download Interledger Wallet</a></li>
                 <li><a href="#testnet">Test Wallet</a></li>
@@ -33,7 +33,7 @@ export function Footer() {
             
             <div className="footer-col">
               <h4>Community</h4>
-              <ul className="footer-links">
+              <ul className="footer-links text-body-sm-standard">
                 <li><a href="#github">Contact</a></li>
                 <li><a href="#wm">Visit WebMonetization</a></li>
               </ul>

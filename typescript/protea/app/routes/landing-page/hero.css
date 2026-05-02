@@ -84,7 +84,7 @@
 
 .hero-subhead {
   margin: 0;
-  color: var(--color-text-secondary);
+  color: var(--color-neutral-100);
 }
 
 /* --- Phone sizing and positioning tokens --------------------------------- */

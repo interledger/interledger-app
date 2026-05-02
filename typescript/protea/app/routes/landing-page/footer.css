@@ -43,7 +43,7 @@
 
 .footer-left p {
   color: var(
-    --color-neutral-0
+    --color-neutral-150
   ); /* White text for "Do you want to get involved?" */
   font-family: var(--font-family-body);
   font-weight: 500;
@@ -64,8 +64,6 @@
 
 .footer-col h4 {
   color: var(--color-neutral-0);
-  font: var(--text-body);
-  font-weight: 600;
   margin: 0;
 }
 
@@ -80,7 +78,6 @@
 
 .footer-links a {
   color: var(--color-neutral-50);
-  font-size: 0.875rem; /* 14px */
   text-decoration: none;
   transition: color 0.2s ease;
 }

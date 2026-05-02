@@ -16,12 +16,12 @@
 }
 
 .built-with-change-header h2 {
-  color: var(--color-text-primary);
+  color: var(--color-neutral-900);
   margin: 0;
 }
 
 .built-with-change-header p {
-  color: var(--color-text-secondary);
+  color: var(--color-neutral-150);
   margin: 0;
 }
 

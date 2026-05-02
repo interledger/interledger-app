@@ -16,7 +16,7 @@ function StatusItem({ icon, text }: { icon: React.ReactNode, text: string }) {
       <div className="status-icon-container">
         {icon}
       </div>
-      <span className="status-text">{text}</span>
+      <span className="text-h5 status-text">{text}</span>
       <div className="status-check-container">
         <CheckmarkIcon />
       </div>
@@ -58,7 +58,7 @@ export function SendReceive() {
       <div className="send-receive-container">
         <header className="send-receive-header">
           <div className="text-h2 send-receive-title section-heading">Today, the wallet lets you send and receive money</div>
-          <p className="send-receive-description">
+          <p className="text-h4 send-receive-description">
             Starting with the fundamentals keeps the wallet reliable, while allowing it to scale responsibly.
             Our aim is to remain true to the protocol it supports over the long run.
           </p>

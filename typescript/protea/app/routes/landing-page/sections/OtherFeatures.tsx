@@ -57,7 +57,7 @@ export function OtherFeatures() {
             </a>
           </div>
 
-          <p className="browser-availability">
+          <p className="text-h4 browser-availability">
             Also available in browsers
           </p>
         </div>

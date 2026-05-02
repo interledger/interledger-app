@@ -68,7 +68,7 @@ export function FeatureSection({
 
   const rightCol = (
     <motion.div className="feature-col feature-col--right">
-      {body && <motion.p variants={childVariants} className="text-body-lg feature-body">{body}</motion.p>}
+      {body && <motion.p variants={childVariants} className="text-h4 feature-body">{body}</motion.p>}
       {widget && <motion.div variants={childVariants}>{widget}</motion.div>}
       {visual && <motion.div variants={childVariants}>{visual}</motion.div>}
     </motion.div>

@@ -11,15 +11,17 @@
   flex-direction: column;
   align-items: center;
   gap: var(--spacing-xl);
+  padding-right: var(--padding-6xl);
+  padding-left: var(--padding-6xl);
 }
 
 .our-ecosystem-header h2 {
-  color: var(--color-text-primary);
+  color: var(--color-neutral-900);
   margin: 0;
 }
 
 .our-ecosystem-header p {
-  color: var(--color-text-secondary);
+  color: var(--color-neutral-150);
   margin: 0;
 }
 
@@ -105,7 +107,7 @@
 .ecosystem-cta h3 {
   position: relative;
   z-index: 1;
-  color: var(--color-text-primary);
+  color: var(--color-neutral-900);
   margin: 0;
 }
 
@@ -115,7 +117,7 @@
   height: 52px;
   padding-inline: var(--padding-xl);
   background-color: var(--color-forest-green-100);
-  color: var(--color-neutral-0);
+  color: var(--color-neutral-150);
   border: none;
   border-radius: var(
     --rounded-lg
