@@ -69,10 +69,6 @@ const FEATURES = [
  *     <div class="scroll-step scroll-step--feature">    ← feature 2 spacer (task 08)
  *     ...
  *   </section>
- *
- * Punch text animations:
- *   Enter effect  — CSS .anim-enter + .is-visible toggled after first paint (opacity 0→1, translateY 24px→0)
- *   Scroll parallax — useMotionValueEvent drifts text up -40px over first 30% of hero scroll
  */
 export function HeroSection() {
   const sectionRef = useRef<HTMLElement>(null)
@@ -84,62 +80,61 @@ export function HeroSection() {
     offset: ["start start", "end end"],
   })
 
-  // C2 & C3: Single scroll observer to derive active screen
   const thresholds = [0.20, 0.40, 0.60, 0.80] // screen 2..5
   useMotionValueEvent(scrollYProgress, "change", v => {
     const next = (1 + thresholds.filter(t => v >= t).length) as CarouselScreen
     if (next !== activeScreen) setActiveScreen(next)
   })
 
-  // Scroll parallax: drift down (-40px) and fade opacity natively
   const y = useTransform(scrollYProgress, [0, 0.2], [0, -40])
   const opacity = useTransform(scrollYProgress, [0, 0.125], [1, 0])
 
   return (
-    <section ref={sectionRef} className="animated-hero" data-screen={activeScreen}>
-      <div className="sticky-viewport">
-        <div className="sticky-viewport-content">
-          {/* Hero text — headline, subhead, CTA */}
-          <div className="hero-content">
-            <motion.div style={{ y, opacity }} className="hero-punch-scroll">
-              <div
-                className="hero-punch anim-enter"
-                data-anim="punch-text"
-              >
-                <h1 className="text-h1 hero-headline">A wallet for what&apos;s next</h1>
-                <p className="text-h3 hero-subhead">
-                  Built for interoperability, inclusion,<br />and the long run.
-                </p>
-              </div>
-            </motion.div>
-          </div>
 
-          <PhoneFrame />
+    <div className="page-content">
+      <section ref={sectionRef} className="animated-hero" data-screen={activeScreen}>
+        <div className="sticky-viewport">
+          <div className="sticky-viewport-content">
+            {/* Hero text — headline, subhead, CTA */}
+            <div className="hero-content">
+              <motion.div style={{ y, opacity }} className="hero-punch-scroll">
+                <div
+                  className="hero-punch anim-enter"
+                  data-anim="punch-text"
+                >
+                  <h1 className="text-h1 hero-headline">A wallet for what&apos;s next</h1>
+                  <p className="text-h3 hero-subhead">
+                    Built for interoperability, inclusion,<br />and the long run.
+                  </p>
+                </div>
+              </motion.div>
+            </div>
 
-          {/* Feature content slot — all feature panels live here as absolute overlays */}
-          <div className="feature-content-slot">
-            {FEATURES.map(f => (
-              <FeatureSection
-                key={f.screen}
-                screen={f.screen as CarouselScreen}
-                heading={f.heading}
-                body={f.body}
-                widget={f.widget}
-                visual={f.visual}
-              />
-            ))}
+            <PhoneFrame />
+
+            {/* Feature content slot — all feature panels live here as absolute overlays */}
+            <div className="feature-content-slot">
+              {FEATURES.map(f => (
+                <FeatureSection
+                  key={f.screen}
+                  screen={f.screen as CarouselScreen}
+                  heading={f.heading}
+                  body={f.body}
+                  widget={f.widget}
+                  visual={f.visual}
+                />
+              ))}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Scroll spacers — hero dwell + Feature 1 dwell */}
-      <ScrollStep screen={1} className="scroll-step scroll-step--hero" />
-      <ScrollStep screen={2} className="scroll-step scroll-step--feature" />
-
-      {/* Feature 2, 3, 4 scroll zones (single 320px dwell each) */}
-      <ScrollStep screen={3} className="scroll-step scroll-step--feature" />
-      <ScrollStep screen={4} className="scroll-step scroll-step--feature" />
-      <ScrollStep screen={5} className="scroll-step scroll-step--feature" />
-    </section>
+        {/* Scroll spacers */}
+        <ScrollStep screen={1} className="scroll-step scroll-step--hero" />
+        <ScrollStep screen={2} className="scroll-step scroll-step--feature" />
+        <ScrollStep screen={3} className="scroll-step scroll-step--feature" />
+        <ScrollStep screen={4} className="scroll-step scroll-step--feature" />
+        <ScrollStep screen={5} className="scroll-step scroll-step--feature" />
+      </section>
+    </div>
   )
 }

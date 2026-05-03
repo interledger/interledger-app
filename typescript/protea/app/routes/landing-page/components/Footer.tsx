@@ -5,7 +5,7 @@ export function Footer() {
     <footer className="page-footer">
       <div className="footer-inner">
         <div className="footer-top">
-          {/* Left Side: Logo and CTA */}
+
           <div className="footer-left">
             <img src={logoImg} alt="Interledger Wallet" className="footer-logo" />
             <p className="text-h4">Do you want to get involved?</p>
@@ -19,7 +19,6 @@ export function Footer() {
             </button>
           </div>
 
-          {/* Right Side: Links Columns */}
           <div className="footer-right">
             <div className="footer-col">
               <h4>Useful Links</h4>
@@ -41,10 +40,8 @@ export function Footer() {
           </div>
         </div>
 
-        {/* Divider */}
         <div className="footer-divider" />
 
-        {/* Bottom copyright */}
         <div className="footer-bottom">
           <p>© All Right Reserved by Interledger Foundation</p>
         </div>

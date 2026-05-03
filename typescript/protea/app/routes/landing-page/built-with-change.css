@@ -27,11 +27,9 @@
 
 .built-with-change-image-wrapper {
   width: 100%;
-  max-width: var(
-    --content-max-width
-  ); /* Matching the grid width, not full-bleed */
+  max-width: var(--content-max-width);
   height: 600px;
-  border-radius: var(--rounded-3xl); /* 24px visually confirmed */
+  border-radius: var(--rounded-3xl);
   overflow: hidden;
   background-color: var(--color-neutral-10);
 }

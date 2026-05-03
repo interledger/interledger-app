@@ -8,7 +8,7 @@
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-4xl); /* 60px gap from headline to grid */
+  gap: var(--spacing-4xl);
   align-items: center;
 }
 
@@ -21,14 +21,14 @@
 .ecosystem-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: var(--spacing-sm); /* Exact 8px gap from Figma */
+  gap: var(--spacing-sm);
   width: 100%;
 }
 
 .open-world-card {
   height: 200px;
-  border-radius: var(--rounded-2xl); /* 16px from Figma */
-  padding: var(--padding-2xl); /* 32px from Figma */
+  border-radius: var(--rounded-2xl);
+  padding: var(--padding-2xl);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -81,7 +81,6 @@
   }
 }
 
-/* Responsive Overrides */
 @media (max-width: 1024px) {
   .ecosystem-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -91,7 +90,7 @@
 @media (max-width: 640px) {
   .ecosystem-grid {
     grid-template-columns: 1fr;
-    gap: 12px; /* Slightly more breathable on mobile */
+    gap: 12px;
   }
 
   .ecosystem-section {
@@ -99,6 +98,6 @@
   }
 
   .open-world-card {
-    height: 160px; /* More compact on mobile */
+    height: 160px;
   }
 }

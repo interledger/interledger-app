@@ -8,7 +8,6 @@ interface NavProps {
 
 /**
  * Fixed navigation bar for the landing page.
- * Styled to exactly match the Framer framer reference site.
  */
 export function Nav({ className }: NavProps) {
   const [isOpen, setIsOpen] = useState(false)
@@ -18,7 +17,7 @@ export function Nav({ className }: NavProps) {
     <>
       <nav className={`nav ${className ?? ""}`}>
         <div className="nav-inner">
-          {/* Logo — updated to use PNG icon */}
+          {/* Logo  */}
           <a href="/" className="nav-logo" aria-label="Interledger Wallet home">
             <img src={logoImg} alt="" className="nav-logo-icon" />
           </a>

@@ -57,9 +57,7 @@ export default function LandingPage() {
         <PhoneCarouselProvider>
             <div className="landing-shell">
                 <Nav />
-                <div className="page-content">
-                    <HeroSection />
-                </div>
+                <HeroSection />
                 <PhysicalCards />
                 <OtherFeatures />
                 <SendReceive />
