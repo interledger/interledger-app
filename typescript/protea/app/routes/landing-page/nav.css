@@ -20,7 +20,8 @@
   height: 72px;
   width: calc(100% - 2 * var(--padding-3xl));
   max-width: var(--content-max-width);
-  background: rgba(0, 0, 0, 0.8);
+  /* background: rgba(0, 0, 0, 0.8); */
+  background: var(--nav-bg);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   border-radius: var(--rounded-lg); /* 8px */

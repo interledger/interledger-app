@@ -47,9 +47,8 @@
   max-width: 240px;
 }
 
-/* Card variants based on identified palette */
 .card-lavender {
-  background-color: var(--color-lavender-100);
+  background-color: var(--color-lavander-100);
 }
 
 .card-aqua {
@@ -62,6 +61,24 @@
 
 .card-blush {
   background-color: var(--color-blush-100);
+}
+
+@media (prefers-color-scheme: dark) {
+  .card-lavender {
+    background-color: var(--color-royal-purple-100);
+  }
+
+  .card-aqua {
+    background-color: var(--color-periwikinle-100);
+  }
+
+  .card-pistachio {
+    background-color: var(--color-ocean-100);
+  }
+
+  .card-blush {
+    background-color: var(--color-wine-100);
+  }
 }
 
 /* Responsive Overrides */

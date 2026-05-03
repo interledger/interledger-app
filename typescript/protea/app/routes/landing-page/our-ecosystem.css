@@ -1,6 +1,4 @@
 .our-ecosystem-section {
-  padding-block: var(--padding-5xl);
-  padding-inline: var(--padding-3xl);
   gap: var(--spacing-4xl);
 }
 
@@ -36,7 +34,7 @@
 
 .shout-out-card {
   height: 200px;
-  border: 1px solid var(--color-border-standard);
+  border: 1px solid var(--color-aqua-mint-100);
   border-radius: var(--rounded-2xl); /* 16px */
   padding: var(--padding-2xl); /* 32px */
   display: flex;
@@ -82,6 +80,7 @@
   width: 100%;
   max-width: var(--content-max-width);
   min-height: 308px;
+  border: 1px solid var(--color-aqua-mint-100);
   border-radius: var(--rounded-2xl); /* 16px */
   padding: var(--padding-5xl) var(--padding-6xl); /* 80px top/bottom, 120px side inset */
   position: relative;

@@ -67,9 +67,9 @@
   --color-lagoon-100: #35a6c0;
   --color-lagoon-150: #2e97b0;
 
-  --color-lavender-50: #f7deff; /* Figma: "lavander" (typo) */
-  --color-lavender-100: #dbaaec;
-  --color-lavender-150: #e48eff;
+  --color-lavander-50: #f7deff; /* Figma: "lavander" (typo) */
+  --color-lavander-100: #dbaaec;
+  --color-lavander-150: #e48eff;
 
   --color-ocean-50: #8bd8f6;
   --color-ocean-100: #003e56;
@@ -151,23 +151,19 @@
   --section-bg-send-receive: var(--color-bg-page);
   --section-bg-ecosystem: var(--color-bg-surface);
   --section-bg-editorial: var(--color-bg-surface-raised);
-  --section-bg-footer: var(--color-neutral-150);
 
   /* Component-scoped */
-  --nav-bg: rgba(255, 255, 255, 0.8);
+  --nav-bg: #FFFFFF;
   --nav-backdrop: blur(
     10px
   ); /* ⚠️ navbg-blur value pending visual inspection */
   --nav-border: var(--color-border-default);
 
-  --card-bg: var(--color-bg-surface-raised);
-  --card-border: var(--color-border-default);
-
   --button-primary-bg: var(--color-interactive-primary);
   --button-primary-text: var(--color-text-inverse);
 
   --button-cta-bg: var(--color-forest-green-100);
-  --button-cta-text: var(--color-neutral-150);
+  --button-cta-text: var(--color-neutral-0);
 
   --main-screen-1-bg: var(--color-aqua-mint-100);
   --feature-screen-1-bg: var(--color-aqua-mint-100);
@@ -195,15 +191,14 @@
 
     --section-bg-other-features: var(--color-ocean-100);
 
+    --button-cta-text: var(--color-neutral-150);
+
     /* Semantic overrides */
     --color-bg-surface-raised: var(
       --color-neutral-50
     ); /* #292929 — dark card surface */
-    --section-bg-footer: var(
-      --color-neutral-25
-    ); /* #000000 — pure black footer */
 
     /* Nav */
-    --nav-bg: rgba(13, 13, 13, 0.8); /* neutral-0 dark = #0D0D0D */
+    --nav-bg: #000000;
   }
 }

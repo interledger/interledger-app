@@ -22,7 +22,7 @@ export function Ecosystem() {
         <div className="ecosystem-grid">
           <OpenWorldCard 
             text="Builders exploring Interledger" 
-            className="card-lavender" 
+            className="card-lavender"
           />
           <OpenWorldCard 
             text="Developers testing open payments" 
