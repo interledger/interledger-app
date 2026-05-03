@@ -7,8 +7,8 @@
 .built-with-change-header {
   text-align: center;
   width: 100%;
-  max-width: var(--content-max-width); /* From Figma Fill */
-  padding-inline: var(--padding-6xl); /* Exact 120px text-inset from Figma */
+  max-width: var(--content-max-width);
+  padding-inline: var(--padding-6xl);
   margin-bottom: var(--spacing-4xl);
   display: flex;
   flex-direction: column;

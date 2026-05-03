@@ -1,13 +1,7 @@
-/* ==========================================================================
-   Color System
-   Primitives confirmed from Figma Collection 418:9401
-   Semantic layer mappings based on Figma neutral scale.
-   ⚠️ Brand accent (interactive/CTA color) still requires visual inspection.
-   ========================================================================== */
-
 :root {
-  /* ---- Layer 1: Primitives — Figma Neutral Scale (light-mode values) ---- */
-  /* In dark mode these are overridden to their inverted values (see below)  */
+  --color-white: #ffffff;
+  --color-black: #000000;
+
   --color-neutral-0: #ffffff;
   --color-neutral-25: #e4e4e4;
   --color-neutral-50: #c9c9c9;
@@ -16,9 +10,7 @@
   --color-neutral-150: #0d0d0d;
   --color-neutral-900: #000000;
 
-  /* ---- Layer 1: Primitives — Figma Accent Palette ---- */
   /* Same hex in light and dark. Use shades: 50 (tint) · 100 (base) · 150 (dark) */
-
   --color-apricot-50: #ffe4c4;
   --color-apricot-100: #ffb259;
   --color-apricot-150: #ffa339;
@@ -67,7 +59,7 @@
   --color-lagoon-100: #35a6c0;
   --color-lagoon-150: #2e97b0;
 
-  --color-lavander-50: #f7deff; /* Figma: "lavander" (typo) */
+  --color-lavander-50: #f7deff;
   --color-lavander-100: #dbaaec;
   --color-lavander-150: #e48eff;
 
@@ -79,7 +71,7 @@
   --color-orchid-100: #80409d;
   --color-orchid-150: #662b81;
 
-  --color-periwikinle-50: #cacaff; /* Figma: "periwikinle" (typo) */
+  --color-periwikinle-50: #cacaff;
   --color-periwikinle-100: #6d6cd5;
   --color-periwikinle-150: #5d5cd4;
 
@@ -87,7 +79,7 @@
   --color-pistachio-100: #b9e188;
   --color-pistachio-150: #a6d36f;
 
-  --color-raspberry-50: #ff96b5; /* Figma: "raspbery" (typo) */
+  --color-raspberry-50: #ff96b5;
   --color-raspberry-100: #d3295b;
   --color-raspberry-150: #c11f4e;
 
@@ -115,12 +107,9 @@
   --color-wine-100: #790444;
   --color-wine-150: #4b042b;
 
-  /* ---- Layer 2: Semantic Tokens ---- */
-
   /* Backgrounds */
   --color-bg-page: var(--color-neutral-0);
   --color-bg-surface: var(--color-neutral-0);
-  --color-bg-surface-raised: var(--color-neutral-25);
 
   /* Text */
   --color-text-primary: var(--color-neutral-150);
@@ -131,9 +120,7 @@
   --color-border-default: var(--color-neutral-50);
   --color-border-strong: var(--color-neutral-75);
 
-  /* Interactive / Brand
-     ⚠️ TODO: brand primary accent requires visual inspection of Figma brand swatches (node 26:1637).
-     Using soft-indigo as working placeholder — verify before shipping. */
+  /* Interactive / Brand */
   --color-brand-50: var(--color-forest-green-50);
   --color-brand-100: var(--color-forest-green-100);
   --color-brand-150: var(--color-forest-green-150);
@@ -142,26 +129,14 @@
   --color-interactive-primary-hover: var(--color-brand-50);
   --color-interactive-primary-disabled: var(--color-neutral-50);
 
-  --color-text-brand: var(--color-brand-50);
-
   /* Section Backgrounds */
   --section-bg-hero: var(--color-bg-page);
   --section-bg-cards: var(--color-bg-page);
   --section-bg-other-features: var(--color-aqua-mint-100);
   --section-bg-send-receive: var(--color-bg-page);
   --section-bg-ecosystem: var(--color-bg-surface);
-  --section-bg-editorial: var(--color-bg-surface-raised);
 
   /* Component-scoped */
-  --nav-bg: #FFFFFF;
-  --nav-backdrop: blur(
-    10px
-  ); /* ⚠️ navbg-blur value pending visual inspection */
-  --nav-border: var(--color-border-default);
-
-  --button-primary-bg: var(--color-interactive-primary);
-  --button-primary-text: var(--color-text-inverse);
-
   --button-cta-bg: var(--color-forest-green-100);
   --button-cta-text: var(--color-neutral-0);
 
@@ -183,7 +158,7 @@
     --color-neutral-150: #e4e4e4;
     --color-neutral-900: #ffffff;
     
-    --main-screen-1-bg: var(--color-aqua-mint-100); /* TODO this is white? */
+    --main-screen-1-bg: var(--color-aqua-mint-100);
     --feature-screen-1-bg: var(--color-deep-teal-100);
     --feature-screen-2-bg: var(--color-periwikinle-100);
     --feature-screen-3-bg: var(--color-ocean-100);
@@ -192,11 +167,6 @@
     --section-bg-other-features: var(--color-ocean-100);
 
     --button-cta-text: var(--color-neutral-150);
-
-    /* Semantic overrides */
-    --color-bg-surface-raised: var(
-      --color-neutral-50
-    ); /* #292929 — dark card surface */
 
     /* Nav */
     --nav-bg: #000000;

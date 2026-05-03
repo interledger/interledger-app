@@ -8,22 +8,10 @@
 
 .animated-hero {
   position: relative;
-  overflow: clip; /* clip glow without becoming a scroll container (overflow:hidden breaks sticky) */
+  overflow: clip;
   background: var(--section-bg-hero);
   transition: background-color 600ms ease;
   --glow-hero-color: rgba(34, 197, 94, 0.4); /* Green default */
-}
-
-.animated-hero[data-screen='3'] {
-  --glow-hero-color: rgba(0, 188, 212, 0.4); /* Teal */
-}
-
-.animated-hero[data-screen='4'] {
-  --glow-hero-color: rgba(255, 255, 255, 0.15); /* White/Dark */
-}
-
-.animated-hero[data-screen='5'] {
-  --glow-hero-color: rgba(147, 51, 234, 0.4); /* Purple */
 }
 
 /* --- Sticky viewport ---------------------------------------------------- */
@@ -34,7 +22,7 @@
   top: 0;
   height: 100vh;
   width: 100%;
-  overflow: clip; /* clip layout overflow without clipping position:absolute children */
+  overflow: clip;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -48,17 +36,15 @@
   max-width: var(--content-max-width);
   margin-inline: auto;
   position: relative;
-  height: 100vh; /* Match full viewport for absolute children reference */
+  height: 100vh;
   pointer-events: none;
 }
 
 /* --- Hero content (headline + subhead) ---------------------------------- */
-
 .hero-content {
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* padding: calc(var(--nav-height, 72px) + var(--padding-3xl)) 16px 24px; */
   padding-top: calc(var(--nav-height, 72px) + var(--padding-2xl));
   width: 100%;
   position: relative;
@@ -79,7 +65,7 @@
 }
 
 .hero-headline {
-  color: var(--color-text-brand); /* green — from design reference */
+  color: var(--color-brand-50);
 }
 
 .hero-subhead {
@@ -171,7 +157,6 @@
     ); /* 40vh instead of 50% = -10vh */
   }
 
-  /* On mobile, align phone to the top-anchored stack */
   .animated-hero:not([data-screen='1']) .hero-phone-container {
     --phone-height: min(360px, 40vh);
     --phone-width: calc(var(--phone-height) / 2.08);
@@ -194,7 +179,6 @@
 }
 
 /* --- Phone frame (iPhone chassis) --------------------------------------- */
-
 .phone-frame {
   width: 100%;
   height: 100%;
@@ -204,7 +188,6 @@
   box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.1); /* subtle edge highlight */
 }
 
-/* Dynamic Island pill */
 .phone-dynamic-island {
   position: absolute;
   top: 12px;
@@ -218,11 +201,10 @@
   pointer-events: none;
 }
 
-/* Screen viewport — inset bezels, clips the screen image */
 .phone-screen-viewport {
   position: absolute;
   inset: 8px;
-  border-radius: 37px; /* slightly less than outer frame */
+  border-radius: 37px;
   overflow: hidden;
   background: #f5f5f5;
 }
@@ -236,7 +218,6 @@
 
 /* --- Feature content slot ----------------------------------------------- */
 /* Absolute overlay on sticky-viewport; feature panels live inside.        */
-
 .feature-content-slot {
   position: absolute;
   inset: 0;
@@ -246,20 +227,16 @@
 
 /* --- Scroll step spacers ------------------------------------------------ */
 /* Invisible divs that create scroll height. CSS-controlled for responsive. */
-
 .scroll-step {
   position: relative;
   pointer-events: none;
 }
 
 /* Hero spacer — height of the hero "dwell" area.                          */
-/* Figma Hero Main: 880px desktop. Responsive approximation below.         */
 .scroll-step--hero {
   height: 15dvh; /* dramatically reduced to speed up first transition */
 }
 
-/* Feature spacers — added in tasks 07/08.                                 */
-/* Each feature gets ~1200px desktop scroll budget.                        */
 .scroll-step--feature {
   height: 100dvh;
 }
