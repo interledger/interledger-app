@@ -33,12 +33,12 @@ export function OurEcosystem() {
   ]
 
   return (
-    <PageSection className="our-ecosystem-section">
+    <PageSection>
       <div className="our-ecosystem-header">
         <h2 className="text-h2 section-heading">Our ecosystem</h2>
         <p className="text-h4">
-          Unlock the potential of Open Payments and Web Monetization 
-          through the Interledger Wallet and help drive the evolution 
+          Unlock the potential of Open Payments and Web Monetization
+          through the Interledger Wallet and help drive the evolution
           of digital finances.
         </p>
       </div>
