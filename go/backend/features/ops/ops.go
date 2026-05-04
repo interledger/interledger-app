@@ -142,7 +142,6 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		res.AddCardsEnabled = false
 		res.ManageWalletCardsEnabled = true
 		res.AccountEnabled = true
-		res.AccountsTabEnabled = false
 	}
 	if wallet.Country == country.CA {
 		res.ReceiveEnabled = true

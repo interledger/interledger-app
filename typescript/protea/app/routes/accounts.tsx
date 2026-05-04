@@ -1,5 +1,5 @@
 import type { Route } from './+types/accounts'
-import { data, redirect } from 'react-router';
+import { data } from 'react-router';
 import { Outlet, useLoaderData, useLocation } from 'react-router';
 import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
@@ -36,10 +36,6 @@ export async function loader({ request }: Route.LoaderArgs) {
   if (isConnectError(balancesResponse)) throw balancesResponse.error
 
   const features = await getFeatures(request)
-
-  if (!features.accountsTabEnabled) {
-    throw redirect('/')
-  }
 
   return data({
     kycStatus: kycStatus.kycStatus,
