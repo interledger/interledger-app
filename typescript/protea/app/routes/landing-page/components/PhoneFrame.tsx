@@ -8,6 +8,7 @@ import screen2 from "../assets/screen2.png"
 import screen3 from "../assets/screen3.png"
 import screen4 from "../assets/screen4.png"
 import screen5 from "../assets/screen5.png"
+import phoneSkeleton from "../assets/phone-skeleton.png"
 
 const SCREEN_ASSETS: Record<CarouselScreen, string> = {
   1: startScreen,
@@ -35,7 +36,6 @@ export function PhoneFrame() {
     <div className="hero-phone-container">
       <Glow x="50%" y="50%" scrollTransform={GLOW_STATES[activeScreen]} />
       <div className="phone-frame" aria-label={`App screen ${activeScreen}`}>
-        <div className="phone-dynamic-island" />
         <div className="phone-screen-viewport">
           <motion.div
             style={{
@@ -64,6 +64,14 @@ export function PhoneFrame() {
             })}
           </motion.div>
         </div>
+        {/* PNG overlay: contains phone bezel, frame, and dynamic island */}
+        <img
+          src={phoneSkeleton}
+          alt=""
+          className="phone-skeleton-overlay"
+          aria-hidden="true"
+          draggable={false}
+        />
       </div>
     </div>
   )
