@@ -27,14 +27,6 @@ const GLOW_STATES: Record<CarouselScreen, GlowScrollTransform> = {
 
 /**
  * Phone mockup that displays the active carousel screen.
- *
- * Dimensions (from Figma):
- *   Mobile viewport:  170 × 354px
- *   Desktop viewport: 195 × 410px (rendered at 200 × 416px frame)
- *
- * Screen 1 is loaded eagerly (LCP-critical — visible on page load).
- * Screens 2–5 are lazy-loaded (only visible after significant scroll).
- * See design/concerns/05-phone-screen-images.md
  */
 export function PhoneFrame() {
   const { activeScreen } = usePhoneCarousel()

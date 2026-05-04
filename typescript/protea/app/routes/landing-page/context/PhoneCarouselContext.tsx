@@ -16,11 +16,6 @@ export const PhoneCarouselContext = createContext<PhoneCarouselContextValue>({
 /**
  * Provides the active phone carousel screen (1–5) to all descendant components.
  *
- * The sticky hero section drives this via useMotionValueEvent — it calls
- * setActiveScreen when scroll progress crosses a threshold.
- * Only 5 state transitions occur during a full hero scroll, so
- * React re-renders are negligible.
- *
  * Usage:
  *   const { activeScreen, setActiveScreen } = usePhoneCarousel()
  */

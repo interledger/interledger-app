@@ -2,18 +2,14 @@ import { useState } from "react"
 import { motion } from "framer-motion"
 
 interface FeatureWidgetProps {
-  avatar: string        // initials (e.g. "MH")
-  avatarColor?: string  // background hex
+  avatar: string
+  avatarColor?: string
   name: string
   amount: string
   note?: string
   timestamp?: string
 }
 
-/**
- * Transaction card widget used in feature sections.
- * Matches the design reference card: avatar | name + amount | note.
- */
 export function FeatureWidget({
   avatar,
   avatarColor = "#e87a7a",

@@ -22,13 +22,6 @@ const DEFAULT_TRANSFORM: GlowScrollTransform = {
   opacity: 0.5,
 }
 
-/**
- * Glow effect — Figma "Glow Gradient1" component.
- * 400×300px, rounded-full, linear-gradient #FFBEBE → #48156E, blur 140px, opacity 0.5.
- *
- * Enter effect: opacity 0 → target (600ms easeOut).
- * Scroll transform: driven by scrollTransform prop (scale, rotate, y, opacity per screen).
- */
 export function Glow({ x = 0, y = 0, className, scrollTransform }: GlowProps) {
   const t = scrollTransform ?? DEFAULT_TRANSFORM
 

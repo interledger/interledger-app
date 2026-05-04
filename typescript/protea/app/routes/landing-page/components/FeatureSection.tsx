@@ -1,11 +1,9 @@
 import type { ReactNode } from "react"
-import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { usePhoneCarousel } from "../context/PhoneCarouselContext"
 import type { CarouselScreen } from "../context/PhoneCarouselContext"
 
 interface FeatureSectionProps {
-  /** Show this panel when carousel activeScreen matches */
   screen: CarouselScreen
   heading: string
   body?: string
@@ -43,11 +41,6 @@ const childVariants = {
 /**
  * Absolute overlay panel inside .feature-content-slot.
  * Rendered for every feature; only the panel whose `screen` matches
- * PhoneCarouselContext.activeScreen is interactive + visible (via .is-visible).
- *
- * Layout: [text col] [phone spacer] [visual col]
- * The phone spacer creates a transparent gap that mirrors the phone width,
- * so the two columns naturally flank the sticky phone frame.
  */
 export function FeatureSection({
   screen,
