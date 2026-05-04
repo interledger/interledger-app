@@ -80,7 +80,7 @@ export function HeroSection() {
     offset: ["start start", "end end"],
   })
 
-  const thresholds = [0.20, 0.40, 0.60, 0.80] // screen 2..5
+  const thresholds = [0.14, 0.36, 0.57, 0.79]
   useMotionValueEvent(scrollYProgress, "change", v => {
     const next = (1 + thresholds.filter(t => v >= t).length) as CarouselScreen
     if (next !== activeScreen) setActiveScreen(next)

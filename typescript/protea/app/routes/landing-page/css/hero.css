@@ -173,7 +173,6 @@
 
 .phone-screen-viewport {
   position: absolute;
-  /* Inset so screen content sits inside the PNG bezel area */
   inset: 1.5% 3%;
   border-radius: min(37px, 12%);
   overflow: hidden;
@@ -201,18 +200,13 @@
 }
 
 .scroll-step--hero {
-  height: 15dvh;
+  --step-content: 80vh;   /* time spent reading the hero */
+  --step-buffer: 20vh;    /* scroll buffer before feature 1 fires */
+  height: calc(var(--step-content) + var(--step-buffer));
 }
 
 .scroll-step--feature {
-  height: 100dvh;
-}
-
-@media (min-width: 900px) {
-  .scroll-step--hero {
-    height: 100px;
-  }
-  .scroll-step--feature {
-    height: 1200px;
-  }
+  --step-content: 100vh;  /* time spent reading each feature */
+  --step-buffer: 50vh;    /* scroll buffer before next feature fires */
+  height: calc(var(--step-content) + var(--step-buffer));
 }
