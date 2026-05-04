@@ -85,10 +85,11 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		return nil, fmt.Errorf("%w %s", features.ErrInternal, err)
 	}
 
-	// Identities are enabled default everywhere
+	// Identities and accounts tab are enabled default everywhere
 	res = features.WalletFeatures{
-		IdentitiesEnabled: true,
-		TwitterEnabled:    true,
+		IdentitiesEnabled:  true,
+		TwitterEnabled:     true,
+		AccountsTabEnabled: true,
 	}
 
 	lal, err := b.LinkedAccounts().ListByWalletId(ctx, walletID)
@@ -118,7 +119,6 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		res.ManageWalletCardsEnabled = false
 		// it enables the feature by default for sandbox / dev
 		res.AccountEnabled = true
-		res.AccountsTabEnabled = true
 	}
 
 	if wallet.Country == country.ZA {
@@ -130,7 +130,6 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		res.AddCardsEnabled = false
 		res.ManageWalletCardsEnabled = false
 		res.AccountEnabled = true
-		res.AccountsTabEnabled = true
 	}
 	if country.EUCountries[wallet.Country] {
 		res.ReceiveEnabled = true
@@ -155,7 +154,6 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		res.InteraccEnabled = canAddInterac
 		res.ManageWalletCardsEnabled = false
 		res.AccountEnabled = true
-		res.AccountsTabEnabled = true
 	}
 
 	return &res, nil
