@@ -21,17 +21,17 @@ export function PhysicalCards() {
         <div className="cards-cluster">
           {/* Left Card */}
           <div className="physical-card-layer">
-            <img src={leftCardUrl} alt="Left Debit Card" className="physical-card-img physical-card-img--left" />
+            <img src={leftCardUrl} alt="Left Debit Card" className="physical-card-img physical-card-img--left" loading="lazy" decoding="async" />
           </div>
           
           {/* Right Card */}
           <div className="physical-card-layer">
-            <img src={rightCardUrl} alt="Right Debit Card" className="physical-card-img physical-card-img--right" />
+            <img src={rightCardUrl} alt="Right Debit Card" className="physical-card-img physical-card-img--right" loading="lazy" decoding="async" />
           </div>
 
           {/* Center Card */}
           <div className="physical-card-layer">
-            <img src={centerCardUrl} alt="Center Debit Card" className="physical-card-img physical-card-img--center" />
+            <img src={centerCardUrl} alt="Center Debit Card" className="physical-card-img physical-card-img--center" loading="lazy" decoding="async" />
           </div>
         </div>
       </div>

@@ -7,7 +7,7 @@ export function Footer() {
         <div className="footer-top">
 
           <div className="footer-left">
-            <img src={logoImg} alt="Interledger Wallet" className="footer-logo" />
+            <img src={logoImg} alt="Interledger Wallet" className="footer-logo" loading="lazy" decoding="async" />
             <p className="text-h4">Do you want to get involved?</p>
             <button className="footer-cta">
               Contact us

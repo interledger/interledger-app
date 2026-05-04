@@ -15,7 +15,7 @@ function ShoutOutCard({ name, region, logo }: PartnerProps) {
   return (
     <div className="shout-out-card">
       <div className="partner-logo">
-        <img src={logo} alt={`${name} logo`} />
+        <img src={logo} alt={`${name} logo`} loading="lazy" decoding="async" />
       </div>
       <div className="partner-info">
         <p className="text-body-sm-standard">{region}</p>

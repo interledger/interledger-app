@@ -31,7 +31,7 @@ function HandAnimation() {
   return (
     <div ref={ref} className={`hand-visual-container ${isInView ? "is-visible" : ""}`}>
       <div className="hand-phone-frame">
-        <img src={handHoldingPhone} alt="Hand holding phone" className="hand-svg-asset" />
+        <img src={handHoldingPhone} alt="Hand holding phone" className="hand-svg-asset" loading="lazy" decoding="async" />
         
         {/* Currency Circles */}
         <div className="currency-circle circle-dollar">
@@ -69,9 +69,9 @@ export function SendReceive() {
             ref={ref}
             className={`send-receive-list ${isInView ? "is-visible" : ""}`}
           >
-            <StatusItem icon={<img src={secureIcon} />} text="Secure by design" />
-            <StatusItem icon={<img src={sendReceiveIcon} />} text="Send & receive money" />
-            <StatusItem icon={<img src={privateIcon} />} text="Private by default" />
+            <StatusItem icon={<img src={secureIcon} alt="" loading="lazy" decoding="async" />} text="Secure by design" />
+            <StatusItem icon={<img src={sendReceiveIcon} alt="" loading="lazy" decoding="async" />} text="Send & receive money" />
+            <StatusItem icon={<img src={privateIcon} alt="" loading="lazy" decoding="async" />} text="Private by default" />
           </div>
 
           <div className="send-receive-visual">

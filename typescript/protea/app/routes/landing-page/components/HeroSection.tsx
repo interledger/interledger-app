@@ -29,13 +29,13 @@ const FEATURES = [
     screen: 3,
     heading: "Broad in reach. Borderless by design.",
     body: "Built broad, built borderless. Designed to work everywhere.",
-    widget: <img src={orbitSvg} alt="Orbit graphic" style={{ width: "80px", marginTop: "16px", display: "block", marginInline: "auto" }} />,
+    widget: <img src={orbitSvg} alt="Orbit graphic" loading="lazy" decoding="async" style={{ width: "80px", marginTop: "16px", display: "block", marginInline: "auto" }} />,
   },
   {
     screen: 4,
     heading: "One system. Many contexts.",
     body: "Ready to diverse environments and needs.",
-    widget: <img src={orbitSvg} alt="Orbit graphic" style={{ width: "80px", marginTop: "16px", display: "block", marginInline: "auto" }} />,
+    widget: <img src={orbitSvg} alt="Orbit graphic" loading="lazy" decoding="async" style={{ width: "80px", marginTop: "16px", display: "block", marginInline: "auto" }} />,
   },
   {
     screen: 5,
