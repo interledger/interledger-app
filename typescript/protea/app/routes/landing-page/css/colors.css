@@ -114,11 +114,6 @@
   /* Text */
   --color-text-primary: var(--color-neutral-150);
   --color-text-secondary: var(--color-neutral-100);
-  --color-text-inverse: var(--color-neutral-0);
-
-  /* Borders */
-  --color-border-default: var(--color-neutral-50);
-  --color-border-strong: var(--color-neutral-75);
 
   /* Interactive / Brand */
   --color-brand-50: var(--color-forest-green-50);
@@ -127,7 +122,6 @@
 
   --color-interactive-primary: var(--color-brand-100);
   --color-interactive-primary-hover: var(--color-brand-50);
-  --color-interactive-primary-disabled: var(--color-neutral-50);
 
   /* Section Backgrounds */
   --section-bg-hero: var(--color-bg-page);

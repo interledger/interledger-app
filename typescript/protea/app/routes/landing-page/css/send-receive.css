@@ -144,7 +144,6 @@
   object-fit: contain;
 }
 
-/* Currency Circles (Relative scaling) */
 .currency-circle {
   position: absolute;
   width: 10.2cqi;
@@ -186,7 +185,6 @@
   right: -13.6cqi;
 }
 
-/* --- CSS Animations for SendReceive (Issue 4) --- */
 .status-item {
   opacity: 0;
   transform: translateX(-100px);

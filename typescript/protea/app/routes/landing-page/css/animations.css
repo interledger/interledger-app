@@ -1,12 +1,3 @@
-/* ==========================================================================
-   Animation Utility Classes
-   CSS fallbacks + reduced-motion overrides.
-   Framer Motion handles scroll-driven animations in JS;
-   these classes cover entry effects and non-FM fallbacks.
-   ========================================================================== */
-
-/* --- Enter effect (on-load) ------------------------------------------- */
-
 .anim-enter {
   animation: anim-enter-keyframes var(--anim-enter-duration, 700ms) var(--anim-enter-easing, ease-out) forwards;
 }
@@ -21,9 +12,6 @@
     transform: none;
   }
 }
-
-/* --- Scroll fade & transform combined ----------------------------------- */
-/* Combine into one class so transition properties don't overwrite each other */
 
 .anim-scroll-fade-up {
   opacity: 0;
@@ -44,13 +32,11 @@
 }
 
 /* --- Stagger ----------------------------------------------------------- */
-
 .anim-stagger-child:nth-child(2) {
   transition-delay: var(--anim-stagger-delay, 120ms);
 }
 
 /* --- Reduced motion override ------------------------------------------ */
-
 @media (prefers-reduced-motion: reduce) {
   .anim-enter,
   .anim-scroll-fade,
@@ -61,8 +47,6 @@
     animation: none;
   }
 }
-
-/* --- Glow Component (C1 & S15) ---------------------------------------- */
 
 .glow-base {
   position: absolute;

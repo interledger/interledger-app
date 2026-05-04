@@ -1,15 +1,6 @@
-/* ==========================================================================
-   Navigation Bar
-   Identical to Framer reference site: Dark, rounded rectangle, links right
-   ========================================================================== */
-
-/* --- Nav height token (consumed by page content for top offset) --------- */
-
 :root {
   --nav-height: 104px; /* Space below the 72px floating navbar + 16px offset + padding */
 }
-
-/* --- Nav bar ------------------------------------------------------------ */
 
 .nav {
   position: fixed;
@@ -20,11 +11,10 @@
   height: 72px;
   width: calc(100% - 2 * var(--padding-3xl));
   max-width: var(--content-max-width);
-  /* background: rgba(0, 0, 0, 0.8); */
   background: var(--nav-bg);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
-  border-radius: var(--rounded-lg); /* 8px */
+  border-radius: var(--rounded-lg);
 }
 
 @media (max-width: 1199px) {
@@ -36,8 +26,6 @@
   }
 }
 
-/* --- Nav inner container ------------------------------------------------ */
-
 .nav-inner {
   display: flex;
   align-items: center;
@@ -47,15 +35,11 @@
   padding: var(--padding-sm) var(--padding-md);
 }
 
-/* --- Right Group (Links + Button) --------------------------------------- */
-
 .nav-right-group {
   display: flex;
   align-items: center;
   gap: 32px;
 }
-
-/* --- Logo --------------------------------------------------------------- */
 
 .nav-logo {
   display: flex;
@@ -63,7 +47,7 @@
   gap: 12px;
   font-family: var(--font-family-heading, 'Inter', sans-serif);
   font-weight: 600;
-  font-size: 0.875rem; /* ~14px */
+  font-size: 0.875rem;
   color: #ffffff;
   text-decoration: none;
   flex-shrink: 0;
@@ -75,10 +59,8 @@
   object-fit: contain;
 }
 
-/* --- Nav links (center) ------------------------------------------------- */
-
 .nav-links {
-  display: none; /* hidden on mobile */
+  display: none;
   list-style: none;
   margin: 0;
   padding: 0;
@@ -89,13 +71,12 @@
   .nav-links {
     display: flex;
     align-items: center;
-    /* absolute centering removed, it lives in normal flex flow */
   }
 }
 
 .nav-link {
   font-family: var(--font-family-body, 'Inter', sans-serif);
-  font-size: 0.8125rem; /* ~13px */
+  font-size: 0.8125rem;
   font-weight: 500;
   color: #ffffff;
   text-decoration: none;
@@ -108,8 +89,6 @@
   opacity: 1;
 }
 
-/* --- Actions (right side) ----------------------------------------------- */
-
 .nav-actions {
   display: flex;
   align-items: center;
@@ -117,19 +96,18 @@
   flex-shrink: 0;
 }
 
-/* CTA button */
 .nav-cta {
-  display: none; /* hidden on mobile */
-  height: 52px; /* fills 72px nav minus 10px top/bottom padding */
+  display: none;
+  height: 52px;
   padding-inline: 20px;
   font-family: var(--font-family-body, 'Inter', sans-serif);
-  font-size: 0.8125rem; /* ~13px */
+  font-size: 0.8125rem;
   font-weight: 600;
   line-height: 52px;
   color: #ffffff;
   background: var(--color-interactive-primary);
   border: none;
-  border-radius: var(--rounded-lg); /* 8px */
+  border-radius: var(--rounded-lg);
   text-decoration: none;
   white-space: nowrap;
   cursor: pointer;
@@ -148,10 +126,8 @@
   }
 }
 
-/* --- Menu button (mobile hamburger) ------------------------------------- */
-
 .menu-button {
-  display: flex; /* visible on mobile */
+  display: flex;
   align-items: center;
   justify-content: center;
   width: 32px;
@@ -170,19 +146,17 @@
 
 @media (min-width: 900px) {
   .menu-button {
-    display: none; /* hidden on tablet+ */
+    display: none;
   }
 }
 
-/* --- Mobile overlay ----------------------------------------------------- */
-
 .nav-overlay {
   position: fixed;
-  top: 96px; /* Below the floating nav top + nav height */
+  top: 96px;
   left: 16px;
   right: 16px;
   bottom: auto;
-  border-radius: var(--rounded-3xl); /* 24px — Figma: rounded-3xl */
+  border-radius: var(--rounded-3xl);
   z-index: 99;
   background: rgba(20, 20, 20, 0.95);
   backdrop-filter: blur(12px);
@@ -194,7 +168,7 @@
 .nav-overlay-inner {
   display: flex;
   flex-direction: column;
-  align-items: flex-start; /* Left aligned for mobile */
+  align-items: flex-start;
   padding: 32px 24px;
   gap: 24px;
 }

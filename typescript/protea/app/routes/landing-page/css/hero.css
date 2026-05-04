@@ -1,11 +1,5 @@
-/* ==========================================================================
-   Animated Hero Section
-   Scrollytelling container: sticky viewport + scroll step spacers.
-   ========================================================================== */
-
 /* --- Outer container ---------------------------------------------------- */
 /* Total height = sum of scroll-step children. */
-
 .animated-hero {
   position: relative;
   overflow: clip;
@@ -16,7 +10,6 @@
 
 /* --- Sticky viewport ---------------------------------------------------- */
 /* Pinned to screen while user scrolls through spacers.                     */
-
 .sticky-viewport {
   position: sticky;
   top: 0;
@@ -30,7 +23,6 @@
   text-align: center;
 }
 
-/* Constrains children of the sticky viewport (headline, feature columns) */
 .sticky-viewport-content {
   width: calc(100% - 2 * var(--padding-3xl));
   max-width: var(--content-max-width);
@@ -40,7 +32,6 @@
   pointer-events: none;
 }
 
-/* --- Hero content (headline + subhead) ---------------------------------- */
 .hero-content {
   display: flex;
   flex-direction: column;
@@ -48,17 +39,14 @@
   padding-top: calc(var(--nav-height, 72px) + var(--padding-2xl));
   width: 100%;
   position: relative;
-  z-index: 1; /* sits below the phone frame */
+  z-index: 1;
 }
 
-/* Scroll-parallax wrapper — transform is JS-driven, no CSS transition here */
 .hero-punch-scroll {
   will-change: transform;
   width: 100%;
 }
 
-/* Punch text container (h1 + subhead) — from Figma Hero Main punch frame   */
-/* Mobile: 360px full-width, 216px h  Tablet: 900px full-width, 172px h     */
 .hero-punch {
   max-width: 1200px;
   margin-inline: auto;
@@ -73,14 +61,10 @@
   color: var(--color-neutral-100);
 }
 
-/* --- Phone sizing and positioning tokens --------------------------------- */
-
 :root {
   --phone-height: min(360px, 80vh);
   --phone-width: calc(var(--phone-height) / 2.08);
-  /* Safe vertical boundary below which phone can sit */
   --hero-text-bottom: 340px;
-  /* How much the phone is cut off by viewport bottom on screen 1 */
   --phone-peek: 0px;
 }
 
@@ -101,8 +85,6 @@
     --phone-peek: 80px;
   }
 }
-
-/* --- Phone container ---------------------------------------------------- */
 
 .hero-phone-container {
   position: absolute;
@@ -138,8 +120,6 @@
   }
 }
 
-/* Feature state: phone centered within usable area (below nav) */
-/* Formula: nav-height/2 + 50% - phone-height/2 */
 .animated-hero:not([data-screen='1']) .hero-phone-container {
   --phone-offset: calc(var(--nav-height) / 2);
 }
@@ -152,9 +132,7 @@
 
 @media (max-width: 899px) {
   .animated-hero[data-screen='1'] .hero-phone-container {
-    --phone-offset: calc(
-      -10vh + var(--phone-height) / 2
-    ); /* 40vh instead of 50% = -10vh */
+    --phone-offset: calc(-10vh + var(--phone-height) / 2);
   }
 
   .animated-hero:not([data-screen='1']) .hero-phone-container {
@@ -166,7 +144,6 @@
     );
   }
 
-  /* Extra tight for small/short mobiles like iPhone SE */
   @media (max-height: 720px) {
     .animated-hero:not([data-screen='1']) .hero-phone-container {
       --phone-height: min(330px, 40vh);
@@ -178,14 +155,13 @@
   }
 }
 
-/* --- Phone frame (iPhone chassis) --------------------------------------- */
 .phone-frame {
   width: 100%;
   height: 100%;
   position: relative;
-  border-radius: 44px; /* iPhone Pro corner radius */
-  background: #1c1c1e; /* iPhone chassis colour */
-  box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.1); /* subtle edge highlight */
+  border-radius: min(44px, 14%);
+  background: #1c1c1e;
+  box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.1);
 }
 
 .phone-dynamic-island {
@@ -204,7 +180,7 @@
 .phone-screen-viewport {
   position: absolute;
   inset: 8px;
-  border-radius: 37px;
+  border-radius: min(37px, 12%);
   overflow: hidden;
   background: #f5f5f5;
 }
@@ -216,8 +192,6 @@
   object-fit: cover;
 }
 
-/* --- Feature content slot ----------------------------------------------- */
-/* Absolute overlay on sticky-viewport; feature panels live inside.        */
 .feature-content-slot {
   position: absolute;
   inset: 0;
@@ -225,16 +199,13 @@
   z-index: 1;
 }
 
-/* --- Scroll step spacers ------------------------------------------------ */
-/* Invisible divs that create scroll height. CSS-controlled for responsive. */
 .scroll-step {
   position: relative;
   pointer-events: none;
 }
 
-/* Hero spacer — height of the hero "dwell" area.                          */
 .scroll-step--hero {
-  height: 15dvh; /* dramatically reduced to speed up first transition */
+  height: 15dvh;
 }
 
 .scroll-step--feature {

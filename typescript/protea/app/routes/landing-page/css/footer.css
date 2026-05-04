@@ -1,7 +1,4 @@
-/* ==========================================================================
-   Footer Section
-   Coordinates aligned to Figma variables and collection 418:8859
-   ========================================================================== */
+
 :root {
   --color-footer: var(--color-neutral-150);
   --color-head: var(--color-neutral-0);
@@ -17,9 +14,9 @@
 }
 
 .page-footer {
-  background-color: var(--color-footer); /* Neutral 150 / #0D0D0D */
-  padding-block: var(--padding-5xl); /* 80px */
-  padding-inline: var(--padding-3xl); /* 40px */
+  background-color: var(--color-footer);
+  padding-block: var(--padding-5xl); 
+  padding-inline: var(--padding-3xl);
   display: flex;
   justify-content: center;
   width: 100%;
@@ -36,7 +33,7 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  padding-bottom: var(--spacing-4xl); /* roughly 60px down to divider */
+  padding-bottom: var(--spacing-4xl);
   width: 100%;
   gap: var(--spacing-4xl);
 }
@@ -45,7 +42,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: var(--spacing-2xl); /* 32px gap between logo/text and button */
+  gap: var(--spacing-2xl);
   max-width: 400px;
 }
 
@@ -58,19 +55,19 @@
   color: var(--color-head);
   font-family: var(--font-family-body);
   font-weight: 500;
-  font-size: 1.125rem; /* ~18px or h4-ish */
+  font-size: 1.125rem;
   margin: 0;
 }
 
 .footer-right {
   display: flex;
-  gap: 120px; /* Space between the two link columns */
+  gap: 120px;
 }
 
 .footer-col {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg); /* 16px */
+  gap: var(--spacing-lg);
 }
 
 .footer-col h4 {
@@ -84,7 +81,7 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md); /* 12px */
+  gap: var(--spacing-md);
 }
 
 .footer-links a {
@@ -113,11 +110,10 @@
 
 .footer-bottom p {
   color: var(--color-neutral-0);
-  font-size: 0.75rem; /* 12px */
+  font-size: 0.75rem;
   margin: 0;
 }
 
-/* Call to action button reusable in footer */
 .footer-cta {
   height: 52px;
   padding-inline: var(--padding-xl);

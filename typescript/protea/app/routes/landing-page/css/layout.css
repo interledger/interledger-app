@@ -1,30 +1,24 @@
-/* Breakpoint & Content Width Tokens */
 :root {
-  /* Breakpoint Definitions (Tokens) */
   --breakpoint-mobile: 899px;
   --breakpoint-tablet-min: 900px;
   --breakpoint-tablet-max: 1199px;
   --breakpoint-desktop: 1200px;
 
-  /* Responsive Content Max Width */
-  --content-max-width: 899px; /* Default for Phone (< 809px) */
+  --content-max-width: 899px;
 }
 
 @media (min-width: 900px) {
-  /* Tablet range starts */
   :root {
     --content-max-width: 1199px;
   }
 }
 
 @media (min-width: 1200px) {
-  /* Desktop range starts */
   :root {
     --content-max-width: 1440px;
   }
 }
 
-/* Grid Utilities */
 .grid-4-col {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -40,7 +34,6 @@
   grid-template-columns: 1fr;
 }
 
-/* Responsive card grid */
 .grid-cards {
   display: grid;
   grid-template-columns: 1fr;
@@ -56,11 +49,8 @@
   }
 }
 
-/* PageSection wrapper layout utilities */
 .page-section-inner {
-  width: calc(
-    100% - 2 * var(--padding-3xl)
-  ); /* Guaranteed min 40px margin on each side */
+  width: calc(100% - 2 * var(--padding-3xl));
   max-width: var(--content-max-width);
   margin-inline: auto;
 }
@@ -71,7 +61,6 @@
   }
 }
 
-/* Padding variants for PageSection */
 .pad-default {
   padding-inline: var(--section-pad-default);
 }
@@ -104,7 +93,6 @@
   align-items: center;
 }
 
-/* --- Root layout wrapper (S2) --- */
 .landing-shell {
   background-color: var(--color-bg-page);
   color: var(--color-text-primary);
