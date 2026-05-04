@@ -119,6 +119,9 @@ type StartArgs struct {
 	AppleAppID                    string
 	AndroidPackageName            string
 	AndroidSHA256                 string
+	OperatorTenantID              string
+	AdminAPISecret                string
+	SignatureVersion              string
 }
 
 func ParseStartArgs() (*StartArgs, error) {
@@ -461,6 +464,21 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, errors.New("ANDROID_SHA256 is required")
 	}
 
+	operatorTenantID := os.Getenv("OPERATOR_TENANT_ID")
+	if operatorTenantID == "" {
+		return nil, errors.New("OPERATOR_TENANT_ID is required")
+	}
+
+	adminAPISecret := os.Getenv("ADMIN_API_SECRET")
+	if adminAPISecret == "" {
+		return nil, errors.New("ADMIN_API_SECRET is required")
+	}
+
+	signatureVersion := os.Getenv("SIGNATURE_VERSION")
+	if signatureVersion == "" {
+		return nil, errors.New("SIGNATURE_VERSION is required")
+	}
+
 	return &StartArgs{
 		Port:                          port,
 		AuthorisationPort:             authorisationPort,
@@ -528,5 +546,8 @@ func ParseStartArgs() (*StartArgs, error) {
 		AppleAppID:                    appleAppID,
 		AndroidPackageName:            androidPackageName,
 		AndroidSHA256:                 androidSHA256,
+		OperatorTenantID:              operatorTenantID,
+		AdminAPISecret:                adminAPISecret,
+		SignatureVersion:              signatureVersion,
 	}, nil
 }
