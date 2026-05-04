@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import logoImg from "../assets/interledger-wallet-logo.png"
+import logoDarkImg from "../assets/interledger-wallet-logo-dark.png"
 
 interface NavProps {
   className?: string
@@ -19,7 +20,12 @@ export function Nav({ className }: NavProps) {
         <div className="nav-inner">
           {/* Logo  */}
           <a href="/" className="nav-logo" aria-label="Interledger Wallet home">
-            <img src={logoImg} alt="" className="nav-logo-icon" />
+            <picture>
+              {/* Light theme → use dark logo for contrast */}
+              <source srcSet={logoDarkImg} media="(prefers-color-scheme: light)" />
+              {/* Dark theme fallback → white logo */}
+              <img src={logoImg} alt="" className="nav-logo-icon" />
+            </picture>
           </a>
 
           {/* Right side container connecting Links and the Button */}
@@ -44,7 +50,7 @@ export function Nav({ className }: NavProps) {
                 aria-label={isOpen ? "Close menu" : "Open menu"}
               >
                 <span className="menu-button-icon" aria-hidden="true">
-                  {isOpen ? "\u2715" : "\u2630"}
+                  {isOpen ? "✕" : "☰"}
                 </span>
               </button>
             </div>

@@ -139,6 +139,13 @@
   --feature-screen-2-bg: var(--color-rose-mint-100);
   --feature-screen-3-bg: var(--color-ocean-100);
   --feature-screen-4-bg: var(--color-orchid-100);
+
+  /* Nav */
+  --nav-bg: rgba(255, 255, 255, 0.72);
+  --nav-text: var(--color-neutral-150);           /* dark text on light nav */
+  --nav-overlay-bg: rgba(248, 248, 248, 0.97);   /* light overlay */
+  --nav-overlay-text: var(--color-neutral-150);  /* dark text on light overlay */
+  --nav-overlay-border: rgba(0, 0, 0, 0.08);
 }
 
 /* ---- Layer 3: Dark Mode Overrides ---- */
@@ -163,6 +170,10 @@
     --button-cta-text: var(--color-neutral-150);
 
     /* Nav */
-    --nav-bg: #000000;
+    --nav-bg: rgba(13, 13, 13, 0.82);
+    --nav-text: var(--color-neutral-900);           /* white text on dark nav */
+    --nav-overlay-bg: rgba(20, 20, 20, 0.97);      /* dark overlay */
+    --nav-overlay-text: var(--color-neutral-900);  /* white text on dark overlay */
+    --nav-overlay-border: rgba(255, 255, 255, 0.1);
   }
 }
