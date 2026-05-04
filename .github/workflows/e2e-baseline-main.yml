@@ -1,0 +1,206 @@
+name: E2E Baseline Publish (Main)
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'documentation/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish-baseline:
+    runs-on: e2e-tester-dynamic
+    timeout-minutes: 90
+    environment: e2e-tester
+    env:
+      PROTEA_BUILD_TARGET: runner
+      BOTANIST_BUILD_TARGET: runner
+      BASELINE_BUCKET: ${{ vars.E2E_BASELINE_BUCKET }}
+      BASELINE_PREFIX: ${{ vars.E2E_BASELINE_PREFIX }}
+      BASELINE_TEST_NAME: ${{ vars.E2E_BASELINE_TEST_NAME }}
+      BASELINE_TAGS: ${{ vars.E2E_BASELINE_TAGS }}
+      GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.E2E_BASELINE_GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      GCP_SERVICE_ACCOUNT: ${{ secrets.E2E_BASELINE_GCP_SERVICE_ACCOUNT_EMAIL }}
+    concurrency:
+      group: e2e-baseline-main
+      cancel-in-progress: false
+
+    steps:
+      - name: Fix workspace ownership
+        run: sudo chown -R "$(id -u):$(id -g)" "$GITHUB_WORKSPACE"
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          clean: true
+
+      - name: Clean workspace
+        run: sudo git clean -ffdx
+
+      - name: Login to GHCR (private images)
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.1'
+
+      - name: Configure local hosts and certs
+        working-directory: local
+        run: |
+          set -e
+
+          sudo apt-get update
+          sudo apt-get install -y netcat-openbsd libnss3-tools
+
+          sudo make hosts
+          make certs HEADLESS=1
+          rm -rf "$HOME/.pki/nssdb"
+          mkdir -p "$HOME/.pki/nssdb"
+          certutil -d sql:"$HOME/.pki/nssdb" -N --empty-password
+          sudo make trust-debian
+
+      - name: Install Playwright browsers
+        working-directory: e2e
+        run: |
+          go mod download
+          go run github.com/playwright-community/playwright-go/cmd/playwright install chromium
+
+      - name: Cleanup from previous runs
+        working-directory: local
+        run: make down && make reset
+
+      - name: Clean Docker build cache
+        run: docker builder prune -af --verbose
+
+      - name: Build containers in parallel
+        working-directory: local
+        run: docker compose --parallel 8 --profile="*" build
+
+      - name: Build local-dev-tool
+        working-directory: local/scripts
+        run: make build
+
+      - name: Start infrastructure
+        working-directory: local
+        run: docker compose --profile="infrastructure" up -d
+
+      - name: Wait 10 seconds
+        run: sleep 10
+
+      - name: Start services
+        working-directory: local
+        run: docker compose --profile="services" up -d
+
+      - name: Start application
+        working-directory: local
+        run: make all-ci
+
+      - name: Seed Rafiki assets
+        working-directory: local/scripts
+        run: ./local-dev-tool rafiki --skip-ui --wait-for-ready 120
+
+      - name: Wait for application
+        run: sleep 10
+
+      - name: Run pilot GateHub P2P e2e screenshots
+        working-directory: e2e
+        run: |
+          TAGS="${BASELINE_TAGS:-@p2p-payment&&@gatehub&&@quick}"
+          go test -v -timeout 20m -args -concurrency=1 -debug=false -tags "$TAGS" -report=debug/report.md
+
+      - name: Export baseline files + manifest
+        run: |
+          chmod +x tooling/github-scripts/export-e2e-baseline.sh
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          TEST_NAME="${BASELINE_TEST_NAME:-gatehub-p2p-payment}"
+          tooling/github-scripts/export-e2e-baseline.sh \
+            e2e/debug \
+            e2e/baseline-export \
+            "$TEST_NAME" \
+            "${{ github.sha }}" \
+            "${{ github.run_id }}" \
+            "$RUN_URL" \
+            "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+      - name: Validate baseline configuration
+        run: |
+          : "${BASELINE_BUCKET:?Missing repository variable E2E_BASELINE_BUCKET}"
+          : "${BASELINE_PREFIX:=interledger-app}"
+          : "${BASELINE_TEST_NAME:=gatehub-p2p-payment}"
+          : "${GCP_WORKLOAD_IDENTITY_PROVIDER:?Missing secret E2E_BASELINE_GCP_WORKLOAD_IDENTITY_PROVIDER}"
+          : "${GCP_SERVICE_ACCOUNT:?Missing secret E2E_BASELINE_GCP_SERVICE_ACCOUNT_EMAIL}"
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ env.GCP_SERVICE_ACCOUNT }}
+
+      - name: Set up gcloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Publish baseline to GCS
+        run: |
+          set -euo pipefail
+
+          TEST_NAME="${BASELINE_TEST_NAME:-gatehub-p2p-payment}"
+          PREFIX="${BASELINE_PREFIX:-interledger-app}"
+
+          LATEST_PATH="gs://${BASELINE_BUCKET}/${PREFIX}/latest/${TEST_NAME}"
+          HISTORY_PATH="gs://${BASELINE_BUCKET}/${PREFIX}/history/${GITHUB_SHA}/${GITHUB_RUN_ID}/${TEST_NAME}"
+
+          echo "Publishing history snapshot: ${HISTORY_PATH}"
+          gsutil -m rsync -r e2e/baseline-export "${HISTORY_PATH}"
+
+          echo "Refreshing latest baseline: ${LATEST_PATH}"
+          gsutil -m rsync -r -d e2e/baseline-export "${LATEST_PATH}"
+
+      - name: Upload baseline export artifact
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: e2e-baseline-export
+          path: e2e/baseline-export
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload markdown report
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: e2e-baseline-markdown-report
+          path: e2e/debug/report.md
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Dump docker logs if tests failed
+        if: failure()
+        working-directory: local
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/logs"
+          for container in $(docker compose ps -a --format "{{.Name}}"); do
+            docker logs "$container" > "$GITHUB_WORKSPACE/logs/$container.log" 2>&1 || true
+          done
+        continue-on-error: true
+
+      - name: Upload container logs if tests failed
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: e2e-baseline-container-logs
+          path: logs
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Clean up Docker containers and volumes
+        if: always()
+        run: |
+          docker container prune -f
+          docker volume prune -f

@@ -235,7 +235,8 @@ func (sc *E2EContext) iTakeAScreenshot(name string) error {
 		shotName = "screenshot"
 	}
 	sc.screenshotCount++
-	path := filepath.Join(shotDir, fmt.Sprintf("%s-%02d-%s.png", sc.testIdentifier, sc.screenshotCount, shotName))
+	// Deterministic filename for approval testing comparisons.
+	path := filepath.Join(shotDir, fmt.Sprintf("%02d-%s.png", sc.screenshotCount, shotName))
 	_, err := sc.page.Screenshot(playwright.PageScreenshotOptions{
 		Path: playwright.String(path),
 	})
