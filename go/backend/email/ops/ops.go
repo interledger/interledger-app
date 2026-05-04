@@ -530,13 +530,6 @@ func SendKYCDocumentsRequiredEmail(ctx context.Context, b Backends, walletID str
 	}
 }
 
-func orNone(s string) string {
-	if strings.TrimSpace(s) == "" {
-		return "(none)"
-	}
-	return s
-}
-
 func SendAccountDeletionRequestedEmail(ctx context.Context, b Backends, userID string) error {
 	support := strings.TrimSpace(b.SupportEmail())
 	if support == "" {
@@ -557,31 +550,47 @@ func SendAccountDeletionRequestedEmail(ctx context.Context, b Backends, userID s
 		"A user requested app account deletion.",
 		"Environment: " + env.GetEnv(),
 		"User ID: " + u.ID,
-		"Email: " + orNone(u.Email),
-		"Phone: " + orNone(u.PhoneNumber),
-		"Country: " + orNone(u.Country.String()),
+		"Email: " + strings.TrimSpace(u.Email),
 		fmt.Sprintf("Wallet count: %d", len(userWallets)),
 	}
 	for _, w := range userWallets {
-		walletLine := "Wallet ID: " + w.ID
-		if addr := w.AddressString(); addr != "" {
-			walletLine += " — Address: " + addr
-		}
-		paragraphs = append(paragraphs, walletLine)
-	}
-
-	data := make([]map[string]interface{}, 0, len(paragraphs))
-	for _, p := range paragraphs {
-		data = append(data, map[string]interface{}{"paragraph": p})
+		paragraphs = append(paragraphs, "Wallet ID: "+w.ID)
 	}
 
 	sendTo := []sendgrid.Email{{Name: "Support", Address: support}}
 	subject := "[" + env.GetEnv() + "] Account deletion requested — user " + userID
+	supportData := make([]map[string]interface{}, 0, len(paragraphs))
+	for _, p := range paragraphs {
+		supportData = append(supportData, map[string]interface{}{"paragraph": p})
+	}
 	if err := b.External().SendTemplate(ctx, subject, sendTo, b.OneTemplateID(), map[string]interface{}{
 		"subject": subject,
-		"data":    data,
+		"data":    supportData,
 	}, nil); err != nil {
 		return fmt.Errorf("%w: %w", email.ErrInternal, err)
+	}
+
+	// User-facing acknowledgement is courtesy only — log failures, don't fail the RPC.
+	if strings.TrimSpace(u.Email) == "" {
+		log.Warn("skipping account deletion confirmation email; user has no address on file",
+			zap.String("userID", userID))
+		return nil
+	}
+	name := strings.TrimSpace(u.FirstName + " " + u.LastName)
+	confirmTo := []sendgrid.Email{{Name: name, Address: u.Email}}
+	confirmSubject := "We've received your account deletion request"
+	userData := []map[string]interface{}{
+		{"paragraph": "We've received your request to delete your account."},
+		{"paragraph": "If you still have funds in your account, please withdraw them within the next 2–3 days."},
+		{"paragraph": "Our support team will contact you if anything else is needed."},
+	}
+	if err := b.External().SendTemplate(ctx, confirmSubject, confirmTo, b.OneTemplateID(), map[string]interface{}{
+		"subject": confirmSubject,
+		"data":    userData,
+	}, nil); err != nil {
+		log.Error("Failed to send account deletion confirmation email to user.",
+			zap.Error(err),
+			zap.String("userID", userID))
 	}
 	return nil
 }

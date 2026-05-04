@@ -32,6 +32,15 @@ export interface PaginationRequest {
 export interface Empty {
 }
 /**
+ * @generated from protobuf message backend.v1.RequestAccountDeletionRequest
+ */
+export interface RequestAccountDeletionRequest {
+    /**
+     * @generated from protobuf field: string totp_code = 1;
+     */
+    totpCode: string;
+}
+/**
  * @generated from protobuf message backend.v1.ThreeDSPaymentConfirmationRequest
  */
 export interface ThreeDSPaymentConfirmationRequest {
@@ -1994,6 +2003,23 @@ export interface Signup {
     completed: boolean;
 }
 /**
+ * @generated from protobuf message backend.v1.AccountDeletionStatus
+ */
+export interface AccountDeletionStatus {
+    /**
+     * @generated from protobuf field: backend.v1.AccountDeletionRequestStatus status = 1;
+     */
+    status: AccountDeletionRequestStatus;
+    /**
+     * @generated from protobuf field: optional google.protobuf.Timestamp created_at = 2;
+     */
+    createdAt?: Timestamp;
+    /**
+     * @generated from protobuf field: optional google.protobuf.Timestamp updated_at = 3;
+     */
+    updatedAt?: Timestamp;
+}
+/**
  * @generated from protobuf message backend.v1.CompleteSignupRequest
  */
 export interface CompleteSignupRequest {
@@ -2703,27 +2729,6 @@ export interface VerifyIdentityRequest {
     id: string;
 }
 /**
- * @generated from protobuf message backend.v1.RequestAccountDeletionRequest
- */
-export interface RequestAccountDeletionRequest {
-    /**
-     * @generated from protobuf field: string totp_code = 1;
-     */
-    totpCode: string;
-}
-/**
- * @generated from protobuf message backend.v1.AccountDeletionStatus
- */
-export interface AccountDeletionStatus {
-    /**
-     * Set when the authenticated user has a pending account deletion request.
-     * Unset means no pending request.
-     *
-     * @generated from protobuf field: optional google.protobuf.Timestamp requested_at = 1;
-     */
-    requestedAt?: Timestamp;
-}
-/**
  * @generated from protobuf enum backend.v1.CardTokenType
  */
 export enum CardTokenType {
@@ -2913,6 +2918,27 @@ export enum CardLockLevel {
      */
     ADMIN = 3
 }
+/**
+ * @generated from protobuf enum backend.v1.AccountDeletionRequestStatus
+ */
+export enum AccountDeletionRequestStatus {
+    /**
+     * @generated from protobuf enum value: ACCOUNT_DELETION_REQUEST_STATUS_UNSPECIFIED = 0;
+     */
+    UNSPECIFIED = 0,
+    /**
+     * @generated from protobuf enum value: ACCOUNT_DELETION_REQUEST_STATUS_PENDING = 1;
+     */
+    PENDING = 1,
+    /**
+     * @generated from protobuf enum value: ACCOUNT_DELETION_REQUEST_STATUS_IN_PROGRESS = 2;
+     */
+    IN_PROGRESS = 2,
+    /**
+     * @generated from protobuf enum value: ACCOUNT_DELETION_REQUEST_STATUS_COMPLETED = 3;
+     */
+    COMPLETED = 3
+}
 // @generated message type with reflection information, may provide speed optimized methods
 class PaginationRequest$Type extends MessageType<PaginationRequest> {
     constructor() {
@@ -2993,6 +3019,53 @@ class Empty$Type extends MessageType<Empty> {
  * @generated MessageType for protobuf message backend.v1.Empty
  */
 export const Empty = new Empty$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class RequestAccountDeletionRequest$Type extends MessageType<RequestAccountDeletionRequest> {
+    constructor() {
+        super("backend.v1.RequestAccountDeletionRequest", [
+            { no: 1, name: "totp_code", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<RequestAccountDeletionRequest>): RequestAccountDeletionRequest {
+        const message = { totpCode: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<RequestAccountDeletionRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: RequestAccountDeletionRequest): RequestAccountDeletionRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string totp_code */ 1:
+                    message.totpCode = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: RequestAccountDeletionRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string totp_code = 1; */
+        if (message.totpCode !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.totpCode);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.RequestAccountDeletionRequest
+ */
+export const RequestAccountDeletionRequest = new RequestAccountDeletionRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class ThreeDSPaymentConfirmationRequest$Type extends MessageType<ThreeDSPaymentConfirmationRequest> {
     constructor() {
@@ -9554,6 +9627,67 @@ class Signup$Type extends MessageType<Signup> {
  */
 export const Signup = new Signup$Type();
 // @generated message type with reflection information, may provide speed optimized methods
+class AccountDeletionStatus$Type extends MessageType<AccountDeletionStatus> {
+    constructor() {
+        super("backend.v1.AccountDeletionStatus", [
+            { no: 1, name: "status", kind: "enum", T: () => ["backend.v1.AccountDeletionRequestStatus", AccountDeletionRequestStatus, "ACCOUNT_DELETION_REQUEST_STATUS_"] },
+            { no: 2, name: "created_at", kind: "message", T: () => Timestamp },
+            { no: 3, name: "updated_at", kind: "message", T: () => Timestamp }
+        ]);
+    }
+    create(value?: PartialMessage<AccountDeletionStatus>): AccountDeletionStatus {
+        const message = { status: 0 };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<AccountDeletionStatus>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: AccountDeletionStatus): AccountDeletionStatus {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* backend.v1.AccountDeletionRequestStatus status */ 1:
+                    message.status = reader.int32();
+                    break;
+                case /* optional google.protobuf.Timestamp created_at */ 2:
+                    message.createdAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.createdAt);
+                    break;
+                case /* optional google.protobuf.Timestamp updated_at */ 3:
+                    message.updatedAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.updatedAt);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: AccountDeletionStatus, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* backend.v1.AccountDeletionRequestStatus status = 1; */
+        if (message.status !== 0)
+            writer.tag(1, WireType.Varint).int32(message.status);
+        /* optional google.protobuf.Timestamp created_at = 2; */
+        if (message.createdAt)
+            Timestamp.internalBinaryWrite(message.createdAt, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        /* optional google.protobuf.Timestamp updated_at = 3; */
+        if (message.updatedAt)
+            Timestamp.internalBinaryWrite(message.updatedAt, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.AccountDeletionStatus
+ */
+export const AccountDeletionStatus = new AccountDeletionStatus$Type();
+// @generated message type with reflection information, may provide speed optimized methods
 class CompleteSignupRequest$Type extends MessageType<CompleteSignupRequest> {
     constructor() {
         super("backend.v1.CompleteSignupRequest", [
@@ -12528,100 +12662,6 @@ class VerifyIdentityRequest$Type extends MessageType<VerifyIdentityRequest> {
  * @generated MessageType for protobuf message backend.v1.VerifyIdentityRequest
  */
 export const VerifyIdentityRequest = new VerifyIdentityRequest$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class RequestAccountDeletionRequest$Type extends MessageType<RequestAccountDeletionRequest> {
-    constructor() {
-        super("backend.v1.RequestAccountDeletionRequest", [
-            { no: 1, name: "totp_code", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
-        ]);
-    }
-    create(value?: PartialMessage<RequestAccountDeletionRequest>): RequestAccountDeletionRequest {
-        const message = { totpCode: "" };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<RequestAccountDeletionRequest>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: RequestAccountDeletionRequest): RequestAccountDeletionRequest {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string totp_code */ 1:
-                    message.totpCode = reader.string();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: RequestAccountDeletionRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string totp_code = 1; */
-        if (message.totpCode !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.totpCode);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message backend.v1.RequestAccountDeletionRequest
- */
-export const RequestAccountDeletionRequest = new RequestAccountDeletionRequest$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class AccountDeletionStatus$Type extends MessageType<AccountDeletionStatus> {
-    constructor() {
-        super("backend.v1.AccountDeletionStatus", [
-            { no: 1, name: "requested_at", kind: "message", T: () => Timestamp }
-        ]);
-    }
-    create(value?: PartialMessage<AccountDeletionStatus>): AccountDeletionStatus {
-        const message = {};
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<AccountDeletionStatus>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: AccountDeletionStatus): AccountDeletionStatus {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* optional google.protobuf.Timestamp requested_at */ 1:
-                    message.requestedAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.requestedAt);
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: AccountDeletionStatus, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* optional google.protobuf.Timestamp requested_at = 1; */
-        if (message.requestedAt)
-            Timestamp.internalBinaryWrite(message.requestedAt, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message backend.v1.AccountDeletionStatus
- */
-export const AccountDeletionStatus = new AccountDeletionStatus$Type();
 /**
  * @generated ServiceType for protobuf service backend.v1.BackendService
  */

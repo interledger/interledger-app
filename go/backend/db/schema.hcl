@@ -659,7 +659,17 @@ table "account_deletion_requests" {
     null = false
     type = uuid
   }
-  column "requested_at" {
+  column "status" {
+    null    = false
+    type    = text
+    default = "pending"
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now()::TIMESTAMP")
+  }
+  column "updated_at" {
     null    = false
     type    = timestamp
     default = sql("now()::TIMESTAMP")

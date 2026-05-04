@@ -39,7 +39,9 @@ func TestRequest_FirstTimeInsertsRow(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, got)
 	assert.Equal(t, userID, got.UserID)
-	assert.False(t, got.RequestedAt.IsZero())
+	assert.Equal(t, accountdeletion.StatusPending, got.Status)
+	assert.False(t, got.CreatedAt.IsZero())
+	assert.False(t, got.UpdatedAt.IsZero())
 }
 
 func TestRequest_DuplicateReturnsAlreadyRequested(t *testing.T) {
@@ -52,7 +54,6 @@ func TestRequest_DuplicateReturnsAlreadyRequested(t *testing.T) {
 	require.Error(t, err)
 	require.True(t, errors.Is(err, accountdeletion.ErrAlreadyRequested))
 
-	// Original row remains intact — no new insert, no update.
 	var count int
 	require.NoError(t, b.DB().GetContext(ctx, &count,
 		"SELECT count(*) FROM account_deletion_requests WHERE user_id = $1", userID))

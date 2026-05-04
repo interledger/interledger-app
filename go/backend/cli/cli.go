@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 
 	"gitlab.com/fynbos/env"
 
@@ -278,7 +279,7 @@ func ParseStartArgs() (*StartArgs, error) {
 			return nil, errors.New("SENDGRID_ONE_TEMPLATE_ID is required when EMAIL_ENABLED is true")
 		}
 
-		supportEmail = os.Getenv("SUPPORT_EMAIL")
+		supportEmail = strings.TrimSpace(os.Getenv("SUPPORT_EMAIL"))
 		if supportEmail == "" {
 			return nil, errors.New("SUPPORT_EMAIL is required when EMAIL_ENABLED is true")
 		}

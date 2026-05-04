@@ -105,6 +105,6 @@ func (c *client) SendKYCDocumentsRequiredEmail(ctx context.Context, walletID str
 	ops.SendKYCDocumentsRequiredEmail(ctx, c.b, walletID)
 }
 
-func (c *client) NotifyAccountDeletionRequested(ctx context.Context, userID string) error {
+func (c *client) SendAccountDeletionRequested(ctx context.Context, userID string) error {
 	return ops.SendAccountDeletionRequestedEmail(ctx, c.b, userID)
 }

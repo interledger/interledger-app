@@ -12,8 +12,9 @@ import (
 func Request(ctx context.Context, b Backends, userID string) error {
 	// ON CONFLICT DO NOTHING surfaces duplicates as 0 rows affected, not a SQLSTATE error.
 	r, err := b.DB().ExecContext(ctx,
-		"INSERT INTO account_deletion_requests (user_id) VALUES ($1) ON CONFLICT (user_id) DO NOTHING",
-		userID)
+		"INSERT INTO account_deletion_requests (user_id, status) VALUES ($1, $2) ON CONFLICT (user_id) DO NOTHING",
+		userID, accountdeletion.StatusPending,
+	)
 	if err != nil {
 		return fmt.Errorf("%w: %w", accountdeletion.ErrInternal, err)
 	}
@@ -40,7 +41,7 @@ func Delete(ctx context.Context, b Backends, userID string) error {
 func GetForUser(ctx context.Context, b Backends, userID string) (*accountdeletion.Request, error) {
 	var req accountdeletion.Request
 	err := b.DB().GetContext(ctx, &req,
-		"SELECT id, user_id, requested_at FROM account_deletion_requests WHERE user_id = $1 LIMIT 1;",
+		"SELECT id, user_id, status, created_at, updated_at FROM account_deletion_requests WHERE user_id = $1 LIMIT 1;",
 		userID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil

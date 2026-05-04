@@ -17,6 +17,10 @@ message PaginationRequest {
 
 message Empty {}
 
+message RequestAccountDeletionRequest {
+  string totp_code = 1;
+}
+
 service BackendService {
   rpc UpdateIndividualKYC(UpdateIndividualKYCRequest) returns (Empty);
   rpc GetIndividualKYC(Empty) returns (IndividualKYCResponse);
@@ -912,6 +916,19 @@ message Signup {
   bool completed = 8;
 }
 
+enum AccountDeletionRequestStatus {
+  ACCOUNT_DELETION_REQUEST_STATUS_UNSPECIFIED = 0;
+  ACCOUNT_DELETION_REQUEST_STATUS_PENDING = 1;
+  ACCOUNT_DELETION_REQUEST_STATUS_IN_PROGRESS = 2;
+  ACCOUNT_DELETION_REQUEST_STATUS_COMPLETED = 3;
+}
+
+message AccountDeletionStatus {
+  AccountDeletionRequestStatus status = 1;
+  optional google.protobuf.Timestamp created_at = 2;
+  optional google.protobuf.Timestamp updated_at = 3;
+}
+
 
 message CompleteSignupRequest {
   string id = 1;
@@ -1187,12 +1204,3 @@ message VerifyIdentityRequest {
   string id = 1;
 }
 
-message RequestAccountDeletionRequest {
-  string totp_code = 1;
-}
-
-message AccountDeletionStatus {
-  // Set when the authenticated user has a pending account deletion request.
-  // Unset means no pending request.
-  optional google.protobuf.Timestamp requested_at = 1;
-}
