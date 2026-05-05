@@ -1,19 +1,14 @@
 import { Code } from '@bufbuild/connect'
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { redirect } from '@remix-run/node'
-import type { ShouldRevalidateFunction } from '@remix-run/react'
+import type { Route } from './+types/settings_.phone'
+import { redirect, href } from 'react-router'
+import type { ShouldRevalidateFunction } from 'react-router'
 import {
   Form,
   useActionData,
   useFetcher,
   useLoaderData
-} from '@remix-run/react'
+} from 'react-router'
 import { useEffect, useState } from 'react'
-import { route } from 'routes-gen'
 import type { ApplicationProps, PhoneAutocompleteOptions } from '~/components'
 import {
   Button,
@@ -28,20 +23,19 @@ import {
   TextField
 } from '~/components'
 import { Label } from '~/components/Label'
+import logger from '~/lib/logger.server'
 import { jsonWithCSRF } from '~/lib/csrf.server'
 import { error, isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
-import {
-  KRATOS_URL,
-  getCsrfTokenFromFlow,
-  getUserSession,
-  handleFlowError,
-  kratosErrorMapping
-} from '~/lib/kratos.server'
+import { kratosPublic } from '~/lib/kratos/kratos-client.server'
+import { getCookie, withCookie } from '~/lib/kratos/cookie.server'
+import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.server'
+import { handleFlowError, mapFlowToFieldErrors } from '~/lib/kratos/error.server'
+import { getUserSession, getSessionTraits } from '~/lib/kratos/session.server'
 import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import type { action as sendOtpAction } from '~/routes/api_.sendOtp'
-import styles from '~/styles/flags.css'
+import styles from '~/styles/flags.css?url'
 
 // The loader generates a new 3ds session. This must only be called on initial page load
 // and not after submitting actions.
@@ -57,29 +51,28 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({
   return defaultShouldRevalidate
 }
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
-  const cookie = String(request.headers.get('cookie'))
+  const cookie = getCookie(request)
   const session = await getUserSession(request)
 
-  let flow
-  if (flowId) {
-    // If ?flow=.. was in the URL, we fetch it
-    const flowRes = await fetch(
-      `${KRATOS_URL}/self-service/settings/flows?id=${flowId}`,
-      {
-        headers: {
-          cookie: cookie,
-          Accept: 'application/json'
-        }
-      }
-    )
-    flow = await flowRes.json()
-    if (flowRes.status >= 400) handleFlowError(flow, 'settings/password')
-  } else {
+  if (!flowId) {
     // If we don't have a flow, the user hasn't confirmed their old phone yet
-    throw redirect(route('/otp/challenge'))
+    throw redirect(href('/otp/challenge'))
+  }
+
+  let flow
+  try {
+    const { data } = await kratosPublic.getSettingsFlow(
+      { id: flowId },
+      withCookie(cookie)
+    )
+    flow = data
+  } catch (err: any) {
+    handleFlowError(err, 'settings/phone')
+    logger.error({ error: err, route: 'settings.phone' }, 'Failed to load phone settings flow')
+    throw new Error('Failed to load phone settings flow')
   }
 
   let response = await grpc.getCountries(request, {})
@@ -90,7 +83,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   return jsonWithCSRF(request, {
     flow,
-    countryCode: session.identity.traits.countryCode,
+    countryCode: getSessionTraits(session).countryCode,
     countries,
     csrf_token: getCsrfTokenFromFlow(flow)
   })
@@ -100,13 +93,13 @@ export const handle: ApplicationProps = {
   layout: Layouts.Focus,
   scaffold: {
     header: {
-      back: route('/settings'),
+      back: href('/settings'),
       title: 'Set new mobile number'
     }
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Set new mobile number'
   }
@@ -118,9 +111,9 @@ export function links() {
 
 export default function Page() {
   const otpFetcher = useFetcher<typeof sendOtpAction>()
-  const actionData = useActionData<typeof action>()
+  const actionData = useActionData()
   const { flow, countryCode, countries, csrfToken, csrf_token } =
-    useLoaderData<typeof loader>()
+    useLoaderData()
   const [showDialog, setShowDialog] = useState<boolean>(false)
 
   useEffect(() => {
@@ -137,7 +130,7 @@ export default function Page() {
     <>
       <otpFetcher.Form
         id='settings-phone-otp'
-        action={route('/api/sendOtp')}
+        action={href('/api/sendOtp')}
         method='post'
         className='hidden'
       />
@@ -227,11 +220,11 @@ export default function Page() {
   )
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const session = await getUserSession(request)
-  const cookie = request.headers.get('Cookie') as string
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
+  if (!flowId) return redirect('/otp/challenge')
 
   const form = await request.formData()
   const csrfToken = form.get('csrf_token') as string
@@ -259,35 +252,36 @@ export async function action({ request }: ActionFunctionArgs) {
       return response.error({ errors }, mapping, { action: 'Contact support' })
   }
 
-  const res = await fetch(
-    `${KRATOS_URL}/self-service/settings?flow=${flowId}`,
-    {
-      method: 'POST',
-      body: JSON.stringify({
-        method: 'profile',
-        traits: {
-          ...session.identity.traits,
-          phone
-        },
-        csrf_token: csrfToken
-      }),
-      headers: {
-        'Content-type': 'application/json',
-        Accept: 'application/json',
-        cookie
-      }
+  const cookie = getCookie(request)
+
+  try {
+    await kratosPublic.updateSettingsFlow(
+      {
+        flow: flowId,
+        updateSettingsFlowBody: {
+          method: 'profile',
+          traits: {
+            ...getSessionTraits(session),
+            phone
+          },
+          csrf_token: csrfToken
+        }
+      },
+      withCookie(cookie)
+    )
+    return redirectWithSnackbar(request, href('/settings/profile-contact'), {
+      message: 'New mobile number successfully saved.',
+      icon: 'close'
+    })
+  } catch (err: any) {
+    const status = err.response?.status
+    const flowData = err.response?.data
+    if (status === 400) {
+      const errs = mapFlowToFieldErrors(flowData, errors)
+      return error(request, { errors: errs })
     }
-  )
-  const data = await res.json()
-
-  if (res.status > 400) handleFlowError(data, 'settings/phone')
-  if (res.status == 400) {
-    const errs = await kratosErrorMapping(res, errors)
-    return error(request, { errors: errs })
+    handleFlowError(err, 'settings/phone')
+    logger.error({ error: err, route: 'settings.phone' }, 'Failed to update phone settings')
+    throw new Error('Failed to update phone settings')
   }
-
-  return redirectWithSnackbar(request, route('/settings/profile-contact'), {
-    message: 'New mobile number successfully saved.',
-    icon: 'close'
-  })
 }

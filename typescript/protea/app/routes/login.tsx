@@ -1,16 +1,11 @@
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
+import type { Route } from './+types/login'
+import { data, redirect, href } from 'react-router'
 import {
   Form,
   useActionData,
   useLoaderData,
   useSearchParams
-} from '@remix-run/react'
-import { route } from 'routes-gen'
+} from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   Button,
@@ -21,60 +16,68 @@ import {
   Router,
   TextField
 } from '~/components'
-import { error } from '~/lib/error.server'
-import { trimHeaders } from '~/lib/headers.server'
 import {
-  KRATOS_URL,
-  getCsrfTokenFromFlow,
-  handleFlowError,
-  isSessionAlreadyExitsMessage,
-  kratosErrorMapping,
-  requireNoUserSession
-} from '~/lib/kratos.server'
+  kratosPublic
+} from '~/lib/kratos/kratos-client.server'
+import {
+  getCookie,
+  isSessionAlreadyExistsMessage,
+  buildHeadersWithCookies,
+  withCookie
+} from '~/lib/kratos/cookie.server'
+import { getCsrfTokenFromFlow } from '~/lib/kratos/flow.server'
+import { mapFlowToFieldErrors, handleFlowError } from '~/lib/kratos/error.server'
+import { flashSnackbar } from '~/lib/snackbar.server'
+import { type KratosError } from '~/lib/kratos/types.server'
+import { requireNoUserSession } from '~/lib/kratos/session.server'
+import logger from '~/lib/logger.server'
 import { mergeMeta } from '~/lib/meta'
 import { safeReturnTo } from '~/lib/url.server'
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   await requireNoUserSession(request)
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
-  const cookie = String(request.headers.get('cookie'))
+  const cookie = getCookie(request)
 
-  let flow
-  let headers: Headers | null = null
-  if (flowId) {
-    // If ?flow=.. was in the URL, we fetch it
-    const flowRes = await fetch(
-      `${KRATOS_URL}/self-service/login/flows?id=${flowId}`,
+  try {
+    let flow
+    let responseHeaders: Headers | undefined
+
+    if (flowId) {
+      // If ?flow=.. was in the URL, we fetch it
+      const { data: flowData } = await kratosPublic.getLoginFlow({ id: flowId, cookie })
+      flow = flowData
+    } else {
+      // Otherwise we initialize it
+      const returnTo = safeReturnTo(url.searchParams.get('returnTo'))
+      const aal = url.searchParams.get('aal') as 'aal1' | 'aal2' | undefined
+      const refresh = url.searchParams.get('refresh') === 'true'
+
+      const response = await kratosPublic.createBrowserLoginFlow({
+        returnTo,
+        aal,
+        refresh
+      })
+      flow = response.data
+
+      responseHeaders = buildHeadersWithCookies(response)
+    }
+
+    return data(
       {
-        headers: {
-          cookie: cookie,
-          Accept: 'application/json'
-        }
+        flowId: flow.id,
+        csrfToken: getCsrfTokenFromFlow(flow)
+      },
+      {
+        headers: responseHeaders
       }
     )
-    flow = await flowRes.json()
-    if (flowRes.status >= 400) handleFlowError(flow, 'login')
-  } else {
-    // Otherwise we initialize it
-    const flowRes = await fetch(
-      `${KRATOS_URL}/self-service/login/browser${url.search}`,
-      { headers: { Accept: 'application/json' } }
-    )
-    flow = await flowRes.json()
-    if (flowRes.status >= 400) handleFlowError(flow, 'login')
-    headers = trimHeaders(flowRes.headers, ['set-cookie'])
+  } catch (error) {
+    handleFlowError(error, 'login')
+    logger.error({ error, route: 'login' }, 'Failed to load login flow')
+    throw new Error('Failed to load login flow')
   }
-
-  return json(
-    {
-      flowId: flow.id,
-      csrfToken: getCsrfTokenFromFlow(flow)
-    },
-    {
-      headers: headers ?? undefined
-    }
-  )
 }
 
 export const handle: ApplicationProps = {
@@ -84,15 +87,15 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Log in'
   }
 ])
 
 export default function Page() {
-  const actionData = useActionData<typeof action>()
-  const { csrfToken, flowId } = useLoaderData<typeof loader>()
+  const actionData = useActionData()
+  const { csrfToken, flowId } = useLoaderData()
   const searchParams = useSearchParams()
 
   return (
@@ -132,7 +135,7 @@ export default function Page() {
           id='password'
           label='Password'
           labelLink='Forgot password?'
-          labelLinkTo={route('/recovery')}
+          labelLinkTo={href('/recovery')}
           name='password'
           type='password'
           form='login'
@@ -150,7 +153,7 @@ export default function Page() {
       </Button>
       <p className='text-center text-sm font-medium text-medium'>
         New to the Interledger Wallet?{' '}
-        <Router className='text-primary' to={route('/signup')}>
+        <Router className='text-primary' to={href('/signup')}>
           Sign up
         </Router>
       </p>
@@ -158,12 +161,17 @@ export default function Page() {
   )
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const form = await request.formData()
   const csrfToken = form.get('csrf_token')
   const email = form.get('email')
   const password = form.get('password')
   const flowId = form.get('flow_id')
+  const cookie = getCookie(request)
+
+  if (!flowId) {
+    return redirect('/login')
+  }
 
   // Theoretically, this should 100% safe, since in Remix `request.url` should
   // always be a valid URL.
@@ -172,75 +180,77 @@ export async function action({ request }: ActionFunctionArgs) {
   const searchParams = new URLSearchParams()
   searchParams.set('returnTo', returnTo)
 
-  const fieldErrors = {
-    form: '',
-    email: '',
-    password: ''
-  }
-
-  const res = await fetch(`${KRATOS_URL}/self-service/login?flow=${flowId}`, {
-    method: 'POST',
-    body: JSON.stringify({
-      method: 'password',
-      identifier: email,
-      password: password,
-      csrf_token: csrfToken
-    }),
-    headers: {
-      Accept: 'application/json',
-      'Content-type': 'application/json',
-      cookie: String(request.headers.get('cookie'))
-    }
-  })
-
-  if (res.status >= 400 && res.status !== 422) {
-    const errors = await kratosErrorMapping(res, fieldErrors)
-
-    // In case the user clicks a link from the email or from another website,
-    // our cookie will not be sent (we have SameSite=Strict). Therefore, the
-    // user will be redirected to the login page. Once the users logs in,
-    // and if by any chance they already have a valid session, Kratos will throw
-    // an error (no error ID but ...) similar to the one for the TOTP challenge
-    // when someone double submits.
-    if (isSessionAlreadyExitsMessage(errors.form)) {
-      return redirect(returnTo || '/')
-    }
-    return error(request, { errors }, { action: 'Contact support' })
-  }
-
-  // Remove all headers besides set-cookie
-  const headers = trimHeaders(res.headers, ['set-cookie'])
-
-  if (res.status === 422) {
-    return redirect(`${route('/totp/challenge')}?${searchParams.toString()}`, {
-      headers
-    })
-  }
-
   try {
-    const responseCopy = res.clone()
-    const checkTOTP = await responseCopy.json()
-    if (checkTOTP?.session?.authenticator_assurance_level === 'aal1') {
+    const response = await kratosPublic.updateLoginFlow({
+      flow: flowId as string,
+      updateLoginFlowBody: {
+        method: 'password' as const,
+        identifier: email as string,
+        password: password as string,
+        csrf_token: csrfToken as string
+      },
+    },
+      withCookie(cookie)
+    )
+
+    const headers = buildHeadersWithCookies(response)
+
+    // Check for AAL1 (needs TOTP setup)
+    if (response.data.session?.authenticator_assurance_level === 'aal1') {
       return redirect(
-        `${route(
-          '/totp/two-factor-authentication'
-        )}?${searchParams.toString()}`,
-        {
-          headers
-        }
+        `${href('/totp/two-factor-authentication')}?${searchParams.toString()}`,
+        { headers }
       )
     }
-  } catch (error) {
-    // If the response is not JSON, we can ignore it
-  }
 
-  if (returnTo) {
-    return redirect(returnTo, {
-      headers: headers
-    })
-  }
+    return redirect(returnTo, { headers })
+  } catch (err) {
+    const errResponse = (err as KratosError).response
 
-  return redirect(route('/'), {
-    headers: headers
-  })
+    // Handle validation errors
+    if (errResponse.status === 400) {
+      const flowData = errResponse.data
+      const fieldErrors = {
+        form: '',
+        email: '',
+        password: ''
+      }
+      const errors = mapFlowToFieldErrors(flowData, fieldErrors)
+
+      // In case the user clicks a link from the email or from another website,
+      // our cookie will not be sent (we have SameSite=Strict). Therefore, the
+      // user will be redirected to the login page. Once the users logs in,
+      // and if by any chance they already have a valid session, Kratos will throw
+      // an error (no error ID but ...) similar to the one for the TOTP challenge
+      // when someone double submits.
+      if (isSessionAlreadyExistsMessage(errors.form)) {
+        return redirect(returnTo)
+      }
+
+      // Redirect with snackbar instead of returning error codes — we need fresh
+      // flow and CSRF token on retry, otherwise we have stale data in the loader.
+      const redirectParams = new URLSearchParams(searchParams)
+      redirectParams.set('flow', flowId as string)
+      const snackbarCookie = await flashSnackbar(request, {
+        message: errors.form || 'An error occurred, please retry.',
+        icon: 'close',
+        action: 'Contact support'
+      })
+      const redirectHeaders = buildHeadersWithCookies(errResponse)
+      redirectHeaders.append('Set-Cookie', snackbarCookie)
+      return redirect(`/login?${redirectParams.toString()}`, { headers: redirectHeaders })
+    }
+
+    // Handle AAL2 required
+    if (errResponse.status === 422) {
+      const headers = buildHeadersWithCookies(errResponse)
+      return redirect(
+        `${href('/totp/challenge')}?${searchParams.toString()}`,
+        { headers }
+      )
+    }
+
+    logger.error({ error: err, route: 'login' }, 'Failed to submit login')
+    throw new Error('Failed to submit login')
+  }
 }

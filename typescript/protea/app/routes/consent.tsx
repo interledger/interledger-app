@@ -1,10 +1,6 @@
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
-import { Form, useLoaderData, useSearchParams } from '@remix-run/react'
+import type { Route } from './+types/consent'
+import { data, redirect } from 'react-router';
+import { Form, useLoaderData, useSearchParams } from 'react-router';
 import type { ApplicationProps } from '~/components'
 import {
   Button,
@@ -15,12 +11,12 @@ import {
   TextButton
 } from '~/components'
 import { getWalletInfo } from '~/data/wallet.server'
-import { getUserSession } from '~/lib/kratos.server'
+import { getUserSession } from '~/lib/kratos/session.server'
 import { mergeMeta } from '~/lib/meta'
-import type { Amount } from '~/lib/rafikiauth'
-import { consent, getInteraction } from '~/lib/rafikiauth'
+import type { Amount } from '~/lib/rafikiauth.server'
+import { consent, getInteraction } from '~/lib/rafikiauth.server'
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   await getUserSession(request)
 
   const url = new URL(request.url)
@@ -32,10 +28,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   // there should be a grant. Throw 404 for now.
   if (grants.length < 1) {
-    throw json({}, 404)
+    throw data({}, 404)
   }
 
-  return json({
+  return data({
     ...grants[0],
     clientName,
     clientUri,
@@ -48,14 +44,14 @@ export const handle: ApplicationProps = {
   layout: Layouts.Focus
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Consent'
   }
 ])
 
 export default function Page() {
-  const { type } = useLoaderData<typeof loader>()
+  const { type } = useLoaderData()
   const [params] = useSearchParams()
 
   return (
@@ -84,7 +80,7 @@ export default function Page() {
 }
 
 function QuoteGrant() {
-  const { clientName, clientUri } = useLoaderData<typeof loader>()
+  const { clientName, clientUri } = useLoaderData()
   return (
     <>
       <Card>
@@ -109,7 +105,7 @@ function QuoteGrant() {
 }
 
 function IncomingPaymentGrant() {
-  const { clientName, clientUri } = useLoaderData<typeof loader>()
+  const { clientName, clientUri } = useLoaderData()
   return (
     <>
       <Card>
@@ -135,7 +131,7 @@ function IncomingPaymentGrant() {
 }
 
 function OutgoingPaymentGrant() {
-  const { clientName, limits, clientUri } = useLoaderData<typeof loader>()
+  const { clientName, limits, clientUri } = useLoaderData()
   return (
     <>
       <Card>
@@ -179,7 +175,7 @@ function formatAmount(amount: Amount): string {
   return `${currency} ${amt.toFixed(2)}`
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const form = await request.formData()
   const action = String(form.get('action') || '')
   const url = new URL(request.url)
@@ -190,7 +186,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   // there should be a grant. Throw 404 for now.
   if (grants.length < 1) {
-    throw json({}, 404)
+    throw data({}, 404)
   }
 
   let walletInfo = await getWalletInfo(request)
@@ -201,7 +197,7 @@ export async function action({ request }: ActionFunctionArgs) {
     }
   })
   if (!ownsResource) {
-    throw json({}, 403)
+    throw data({}, 403)
   }
 
   let userDecision: 'accept' | 'reject' =

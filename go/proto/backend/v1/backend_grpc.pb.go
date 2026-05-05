@@ -89,8 +89,6 @@ const (
 	BackendService_GetLinkedAccountsForDeposit_FullMethodName    = "/backend.v1.BackendService/GetLinkedAccountsForDeposit"
 	BackendService_DepositBalance_FullMethodName                 = "/backend.v1.BackendService/DepositBalance"
 	BackendService_SearchWallets_FullMethodName                  = "/backend.v1.BackendService/SearchWallets"
-	BackendService_DiscordCallback_FullMethodName                = "/backend.v1.BackendService/DiscordCallback"
-	BackendService_CreateDiscordAuthURL_FullMethodName           = "/backend.v1.BackendService/CreateDiscordAuthURL"
 	BackendService_CreateSlackAuthURL_FullMethodName             = "/backend.v1.BackendService/CreateSlackAuthURL"
 	BackendService_SlackCallback_FullMethodName                  = "/backend.v1.BackendService/SlackCallback"
 	BackendService_AddXagoBankAccount_FullMethodName             = "/backend.v1.BackendService/AddXagoBankAccount"
@@ -117,7 +115,6 @@ const (
 	BackendService_GetChimoneyInterlocEmail_FullMethodName       = "/backend.v1.BackendService/GetChimoneyInterlocEmail"
 	BackendService_CreateChimoneyWallet_FullMethodName           = "/backend.v1.BackendService/CreateChimoneyWallet"
 	BackendService_GetChimoneyDepositLink_FullMethodName         = "/backend.v1.BackendService/GetChimoneyDepositLink"
-	BackendService_CreateChimoneyDeposit_FullMethodName          = "/backend.v1.BackendService/CreateChimoneyDeposit"
 	BackendService_ListCards_FullMethodName                      = "/backend.v1.BackendService/ListCards"
 	BackendService_GetCardOrderOptions_FullMethodName            = "/backend.v1.BackendService/GetCardOrderOptions"
 	BackendService_OrderCard_FullMethodName                      = "/backend.v1.BackendService/OrderCard"
@@ -222,9 +219,6 @@ type BackendServiceClient interface {
 	DepositBalance(ctx context.Context, in *TransferBalanceRequest, opts ...grpc.CallOption) (*Payment, error)
 	// Search
 	SearchWallets(ctx context.Context, in *SearchWalletsRequest, opts ...grpc.CallOption) (*SearchWalletsResponse, error)
-	// Discord
-	DiscordCallback(ctx context.Context, in *DiscordCallbackRequest, opts ...grpc.CallOption) (*DiscordCallbackResponse, error)
-	CreateDiscordAuthURL(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*CreateDiscordAuthURLResponse, error)
 	// Slack
 	CreateSlackAuthURL(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*CreateSlackAuthURLResponse, error)
 	SlackCallback(ctx context.Context, in *SlackCallbackRequest, opts ...grpc.CallOption) (*SlackCallbackResponse, error)
@@ -257,7 +251,6 @@ type BackendServiceClient interface {
 	GetChimoneyInterlocEmail(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ChimoneyInterlocEmail, error)
 	CreateChimoneyWallet(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
 	GetChimoneyDepositLink(ctx context.Context, in *Amount, opts ...grpc.CallOption) (*GetChimoneyDepositLinkResponse, error)
-	CreateChimoneyDeposit(ctx context.Context, in *CreateChimoneyDepositRequest, opts ...grpc.CallOption) (*Empty, error)
 	// Cards
 	ListCards(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListCardsResponse, error)
 	GetCardOrderOptions(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetCardOrderOptionsResponse, error)
@@ -978,26 +971,6 @@ func (c *backendServiceClient) SearchWallets(ctx context.Context, in *SearchWall
 	return out, nil
 }
 
-func (c *backendServiceClient) DiscordCallback(ctx context.Context, in *DiscordCallbackRequest, opts ...grpc.CallOption) (*DiscordCallbackResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(DiscordCallbackResponse)
-	err := c.cc.Invoke(ctx, BackendService_DiscordCallback_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *backendServiceClient) CreateDiscordAuthURL(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*CreateDiscordAuthURLResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CreateDiscordAuthURLResponse)
-	err := c.cc.Invoke(ctx, BackendService_CreateDiscordAuthURL_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *backendServiceClient) CreateSlackAuthURL(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*CreateSlackAuthURLResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CreateSlackAuthURLResponse)
@@ -1258,16 +1231,6 @@ func (c *backendServiceClient) GetChimoneyDepositLink(ctx context.Context, in *A
 	return out, nil
 }
 
-func (c *backendServiceClient) CreateChimoneyDeposit(ctx context.Context, in *CreateChimoneyDepositRequest, opts ...grpc.CallOption) (*Empty, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Empty)
-	err := c.cc.Invoke(ctx, BackendService_CreateChimoneyDeposit_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *backendServiceClient) ListCards(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListCardsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListCardsResponse)
@@ -1451,9 +1414,6 @@ type BackendServiceServer interface {
 	DepositBalance(context.Context, *TransferBalanceRequest) (*Payment, error)
 	// Search
 	SearchWallets(context.Context, *SearchWalletsRequest) (*SearchWalletsResponse, error)
-	// Discord
-	DiscordCallback(context.Context, *DiscordCallbackRequest) (*DiscordCallbackResponse, error)
-	CreateDiscordAuthURL(context.Context, *Empty) (*CreateDiscordAuthURLResponse, error)
 	// Slack
 	CreateSlackAuthURL(context.Context, *Empty) (*CreateSlackAuthURLResponse, error)
 	SlackCallback(context.Context, *SlackCallbackRequest) (*SlackCallbackResponse, error)
@@ -1486,7 +1446,6 @@ type BackendServiceServer interface {
 	GetChimoneyInterlocEmail(context.Context, *Empty) (*ChimoneyInterlocEmail, error)
 	CreateChimoneyWallet(context.Context, *Empty) (*Empty, error)
 	GetChimoneyDepositLink(context.Context, *Amount) (*GetChimoneyDepositLinkResponse, error)
-	CreateChimoneyDeposit(context.Context, *CreateChimoneyDepositRequest) (*Empty, error)
 	// Cards
 	ListCards(context.Context, *Empty) (*ListCardsResponse, error)
 	GetCardOrderOptions(context.Context, *Empty) (*GetCardOrderOptionsResponse, error)
@@ -1716,12 +1675,6 @@ func (UnimplementedBackendServiceServer) DepositBalance(context.Context, *Transf
 func (UnimplementedBackendServiceServer) SearchWallets(context.Context, *SearchWalletsRequest) (*SearchWalletsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SearchWallets not implemented")
 }
-func (UnimplementedBackendServiceServer) DiscordCallback(context.Context, *DiscordCallbackRequest) (*DiscordCallbackResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method DiscordCallback not implemented")
-}
-func (UnimplementedBackendServiceServer) CreateDiscordAuthURL(context.Context, *Empty) (*CreateDiscordAuthURLResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method CreateDiscordAuthURL not implemented")
-}
 func (UnimplementedBackendServiceServer) CreateSlackAuthURL(context.Context, *Empty) (*CreateSlackAuthURLResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateSlackAuthURL not implemented")
 }
@@ -1799,9 +1752,6 @@ func (UnimplementedBackendServiceServer) CreateChimoneyWallet(context.Context, *
 }
 func (UnimplementedBackendServiceServer) GetChimoneyDepositLink(context.Context, *Amount) (*GetChimoneyDepositLinkResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetChimoneyDepositLink not implemented")
-}
-func (UnimplementedBackendServiceServer) CreateChimoneyDeposit(context.Context, *CreateChimoneyDepositRequest) (*Empty, error) {
-	return nil, status.Error(codes.Unimplemented, "method CreateChimoneyDeposit not implemented")
 }
 func (UnimplementedBackendServiceServer) ListCards(context.Context, *Empty) (*ListCardsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListCards not implemented")
@@ -3110,42 +3060,6 @@ func _BackendService_SearchWallets_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BackendService_DiscordCallback_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DiscordCallbackRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).DiscordCallback(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: BackendService_DiscordCallback_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).DiscordCallback(ctx, req.(*DiscordCallbackRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _BackendService_CreateDiscordAuthURL_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Empty)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).CreateDiscordAuthURL(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: BackendService_CreateDiscordAuthURL_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).CreateDiscordAuthURL(ctx, req.(*Empty))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _BackendService_CreateSlackAuthURL_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Empty)
 	if err := dec(in); err != nil {
@@ -3614,24 +3528,6 @@ func _BackendService_GetChimoneyDepositLink_Handler(srv interface{}, ctx context
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BackendService_CreateChimoneyDeposit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateChimoneyDepositRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).CreateChimoneyDeposit(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: BackendService_CreateChimoneyDeposit_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).CreateChimoneyDeposit(ctx, req.(*CreateChimoneyDepositRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _BackendService_ListCards_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Empty)
 	if err := dec(in); err != nil {
@@ -4082,14 +3978,6 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _BackendService_SearchWallets_Handler,
 		},
 		{
-			MethodName: "DiscordCallback",
-			Handler:    _BackendService_DiscordCallback_Handler,
-		},
-		{
-			MethodName: "CreateDiscordAuthURL",
-			Handler:    _BackendService_CreateDiscordAuthURL_Handler,
-		},
-		{
 			MethodName: "CreateSlackAuthURL",
 			Handler:    _BackendService_CreateSlackAuthURL_Handler,
 		},
@@ -4192,10 +4080,6 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetChimoneyDepositLink",
 			Handler:    _BackendService_GetChimoneyDepositLink_Handler,
-		},
-		{
-			MethodName: "CreateChimoneyDeposit",
-			Handler:    _BackendService_CreateChimoneyDeposit_Handler,
 		},
 		{
 			MethodName: "ListCards",

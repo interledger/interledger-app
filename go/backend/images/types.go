@@ -11,8 +11,6 @@ type Assets struct {
 	TwitterOG    image.Image
 	Domain       image.Image
 	DomainOG     image.Image
-	Discord      image.Image
-	DiscordOG    image.Image
 	Slack        image.Image
 	SlackOG      image.Image
 	InterMedium  *truetype.Font

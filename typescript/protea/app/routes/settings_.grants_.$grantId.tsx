@@ -1,11 +1,8 @@
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaFunction
-} from '@remix-run/node'
-import type { UIMatch } from '@remix-run/react'
-import { Form, useLoaderData } from '@remix-run/react'
-import { route } from 'routes-gen'
+import type { Route } from './+types/settings_.grants_.$grantId'
+import type { PlainMessage } from '@bufbuild/protobuf'
+import type { UIMatch } from 'react-router';
+import { Form, useLoaderData } from 'react-router';
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import {
   Card,
@@ -19,6 +16,7 @@ import { Label } from '~/components/Label'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
+import type { RafikiAccess } from '~/generated/connect/backend/v1/backend_pb'
 import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 
@@ -27,9 +25,11 @@ export const handle: ApplicationProps = {
   scaffold: {
     header: {
       back: '/settings/grants',
-      title: (match: UIMatch<typeof loader>) => match.data.grant.client,
-      actions: (match: UIMatch<typeof loader>) => {
-        switch (match.data.grant.state) {
+      title: (match: UIMatch<Route.ComponentProps['loaderData']>) => match.loaderData?.grant.client ?? '',
+      actions: (match: UIMatch<Route.ComponentProps['loaderData']>) => {
+        if (!match.loaderData) return null
+        const { grant } = match.loaderData
+        switch (grant.state) {
           case 'GRANTED':
             return {
               key: 'Approved',
@@ -58,13 +58,12 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction<typeof loader> = mergeMeta(({ data }) => [
-  {
-    title: data?.grant.client || 'Grant'
-  }
-])
+export const meta = mergeMeta(({ data }) => {
+  const d = data as Route.ComponentProps['loaderData'] | undefined
+  return [{ title: d?.grant.client || 'Grant' }]
+})
 
-export async function loader({ request, params }: LoaderFunctionArgs) {
+export async function loader({ request, params }: Route.LoaderArgs) {
   const grant = await grpc.getRafikiGrant(request, {
     id: params.grantId as string
   })
@@ -96,7 +95,7 @@ export default function Page() {
         </CardContent>
       </Card>
 
-      {grant.access.map((a) => (
+      {grant.access.map((a: PlainMessage<RafikiAccess>) => (
         <Card key={a.id}>
           <Label>{a.type}</Label>
           <CardContent className='mt-2 flex flex-col gap-y-4'>
@@ -131,7 +130,7 @@ export default function Page() {
   )
 }
 
-export async function action({ request, params }: ActionFunctionArgs) {
+export async function action({ request, params }: Route.ActionArgs) {
   const form = await request.formData()
 
   await validateCSRFToken(request, form)
@@ -148,7 +147,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     return response.error({ errors })
   }
 
-  return redirectWithSnackbar(request, route('/settings/grants'), {
+  return redirectWithSnackbar(request, href('/settings/grants'), {
     message: 'Grant was revoked.',
     icon: 'close'
   })

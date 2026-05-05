@@ -2,8 +2,9 @@ name: Go Tests
 
 on:
   pull_request:
-    branches:
-      - main
+    paths-ignore:
+      - 'documentation/**'
+      - 'local/**'
 
 jobs:
   backend-tests:
@@ -18,3 +19,27 @@ jobs:
       test_path: './go/pacioli'
       coverage_key: 'pacioli'
       db_name: 'pacioli'
+
+  mockxago-tests:
+    uses: ./.github/workflows/mock-tester.yml
+    with:
+      test_path: './go/mock/mockxago'
+      coverage_key: 'mockxago'
+
+  mockgatehub-tests:
+    uses: ./.github/workflows/mock-tester.yml
+    with:
+      test_path: './go/mock/mockgatehub'
+      coverage_key: 'mockgatehub'
+
+  mockchimoney-tests:
+    uses: ./.github/workflows/mock-tester.yml
+    with:
+      test_path: './go/mock/mockchimoney'
+      coverage_key: 'mockchimoney'
+
+  mockpti-tests:
+    uses: ./.github/workflows/mock-tester.yml
+    with:
+      test_path: './go/mock/mockpti'
+      coverage_key: 'mockpti'

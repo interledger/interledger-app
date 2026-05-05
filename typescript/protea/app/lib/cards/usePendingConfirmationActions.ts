@@ -1,6 +1,6 @@
-import { useFetcher } from '@remix-run/react'
+import { useFetcher } from 'react-router';
 import { useCallback, useEffect } from 'react'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import { useActionExecute } from '~/lib/cards/useActionExecute'
 import type { PaymentConfirmationResponse } from '~/routes/api_.paymentConfirmation'
 import { useScaffoldStore } from '../useScaffoldStore'
@@ -35,7 +35,7 @@ export const usePendingConfirmationActions = (
         formData.append('confirmed', confirmed)
         fetcher.submit(formData, {
           method: 'post',
-          action: route('/api/paymentConfirmation')
+          action: href('/api/paymentConfirmation')
         })
       })
     },

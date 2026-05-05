@@ -1,5 +1,9 @@
-import { json, type ActionFunctionArgs } from '@remix-run/node'
-import { KRATOS_URL } from '~/lib/kratos.server'
+import type { Route } from './+types/api.totp-challenge-verify'
+import { data } from 'react-router'
+import { kratosPublic } from '~/lib/kratos/kratos-client.server'
+import { getCookie, withCookie, buildHeadersWithCookies } from '~/lib/kratos/cookie.server'
+import { mapFlowToFieldErrors } from '~/lib/kratos/error.server'
+import type { KratosError } from '~/lib/kratos/types.server'
 import logger, { addRequestId, withErrorLog } from '~/lib/logger.server'
 import { extractOrGenerateRequestId } from '~/lib/requestContext.server'
 
@@ -8,69 +12,36 @@ import { extractOrGenerateRequestId } from '~/lib/requestContext.server'
  * This handles the inline TOTP verification without redirects
  * IMPORTANT: Forwards Set-Cookie header to update the session
  */
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   try {
-    const cookie = request.headers.get('cookie') ?? ''
     const formData = await request.formData()
-
-    const flowId = formData.get('flow') as string
+    const flow = formData.get('flow') as string
     const totpCode = formData.get('totp_code') as string
     const csrfToken = formData.get('csrf_token') as string
+    const cookie = getCookie(request)
 
-    if (!flowId || !totpCode) {
-      return json(
-        { success: false, error: 'Missing required fields' },
+    if (!flow || !totpCode) {
+      return data(
+        { success: false, error: 'Please reinitialize the verification.' },
         { status: 400 }
       )
     }
 
-    const verifyTotpCodeResponse = await fetch(
-      `${KRATOS_URL}/self-service/login?flow=${flowId}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-          cookie
-        },
-        body: JSON.stringify({
-          method: 'totp',
-          totp_code: totpCode,
-          csrf_token: csrfToken
-        })
+    const submitTotpResponse = await kratosPublic.updateLoginFlow({
+      flow,
+      updateLoginFlowBody: {
+        method: 'totp',
+        totp_code: totpCode,
+        csrf_token: csrfToken
       }
-    )
+    }, withCookie(cookie))
+    const headers = buildHeadersWithCookies(submitTotpResponse)
 
-    const setCookieHeader = verifyTotpCodeResponse.headers.get('set-cookie')
-    if (verifyTotpCodeResponse.ok || verifyTotpCodeResponse.status === 200) {
-      return json(
-        { success: true, shouldRevalidate: false },
-        setCookieHeader
-          ? { headers: { 'Set-Cookie': setCookieHeader } }
-          : undefined
-      )
-    }
-
-    const errorData = await verifyTotpCodeResponse.json()
-
-    let errorMessage = 'Invalid TOTP code'
-    if (errorData?.ui?.messages && errorData.ui.messages.length > 0) {
-      errorMessage = errorData.ui.messages[0].text
-    } else if (errorData?.ui?.nodes) {
-      const totpNode = errorData.ui.nodes.find(
-        (node: any) => node.attributes?.name === 'totp_code'
-      )
-      if (totpNode?.messages && totpNode.messages.length > 0) {
-        errorMessage = totpNode.messages[0].text
-      }
-    }
-
-    return json({
-      success: false,
-      error: errorMessage,
-      flowId: errorData.id,
-    })
+    return data({ success: true, shouldRevalidate: false }, { headers })
   } catch (error) {
+    const kratosError = error as KratosError
+    const flowStatus = kratosError.response?.status
+    const flowData = kratosError.response?.data
     const requestId = extractOrGenerateRequestId(request)
     logger.error(
       {
@@ -79,7 +50,25 @@ export async function action({ request }: ActionFunctionArgs) {
       },
       'Unexpected error verifying TOTP challenge'
     )
-    return json({
+
+    if (flowStatus === 400 && flowData) {
+      const errorMapping: Record<string, string> = {}
+      mapFlowToFieldErrors(flowData, errorMapping)
+      return data({
+        success: false,
+        error: errorMapping.form || errorMapping.totp_code || 'Invalid TOTP code',
+        flowId: flowData.id
+      })
+    }
+
+    if (flowStatus === 410) {
+      return data({
+        success: false,
+        error: 'Flow expired. Please reinitialize the verification.'
+      })
+    }
+
+    return data({
       success: false,
       error: 'An unexpected error occurred'
     })

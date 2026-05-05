@@ -7,6 +7,7 @@ import (
 	"encoding/base32"
 	"errors"
 	"fmt"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -193,8 +194,8 @@ func GetBalance(ctx context.Context, b Backends, linkedAccountID string) (*gateh
 	}
 
 	return &gatehub.Balance{
-		Total:     currency.FromUInt64(accs[0].CreditsPosted-accs[0].DebitsPosted, la.SendCurrency),
-		Available: currency.FromUInt64(accs[0].CreditsPosted-accs[0].DebitsPosted-accs[0].DebitsPending, la.SendCurrency),
+		Total:     currency.FromUInt64(int64(accs[0].CreditsPosted)-int64(accs[0].DebitsPosted), la.SendCurrency),
+		Available: currency.FromUInt64(int64(accs[0].CreditsPosted)-int64(accs[0].DebitsPosted)-int64(accs[0].DebitsPending), la.SendCurrency),
 	}, nil
 }
 
@@ -314,7 +315,7 @@ func validateWithdrawal(ctx context.Context, b Backends, ec external.Client, wal
 	}
 
 	return currency.Amount{
-			Value:    value * 100, // EUR scale = 2
+			Value:    int64(value) * 100, // EUR scale = 2
 			Currency: cc,
 		}, balance, currency.Amount{
 			Value:    fee,
@@ -409,8 +410,8 @@ func ReserveBalance(ctx context.Context, b Backends, linkedAccountID, txID strin
 	}
 
 	return &gatehub.Balance{
-		Total:     currency.FromUInt64(accs[0].CreditsPosted-accs[0].DebitsPosted, la.SendCurrency),
-		Available: currency.FromUInt64(accs[0].CreditsPosted-accs[0].DebitsPosted-accs[0].DebitsPending, la.SendCurrency),
+		Total:     currency.FromUInt64(int64(accs[0].CreditsPosted)-int64(accs[0].DebitsPosted), la.SendCurrency),
+		Available: currency.FromUInt64(int64(accs[0].CreditsPosted)-int64(accs[0].DebitsPosted)-int64(accs[0].DebitsPending), la.SendCurrency),
 	}, nil
 }
 
@@ -507,8 +508,8 @@ func AssignBalance(ctx context.Context, b Backends, linkedAccountID, txID string
 	}
 
 	return &gatehub.Balance{
-		Total:     currency.FromUInt64(accs[0].CreditsPosted-accs[0].DebitsPosted, la.SendCurrency),
-		Available: currency.FromUInt64(accs[0].CreditsPosted-accs[0].DebitsPosted-accs[0].DebitsPending, la.SendCurrency),
+		Total:     currency.FromUInt64(int64(accs[0].CreditsPosted)-int64(accs[0].DebitsPosted), la.SendCurrency),
+		Available: currency.FromUInt64(int64(accs[0].CreditsPosted)-int64(accs[0].DebitsPosted)-int64(accs[0].DebitsPending), la.SendCurrency),
 	}, nil
 }
 
@@ -914,6 +915,31 @@ func GetPendingCardTransactions(ctx context.Context, b Backends) ([]pendingTrans
 	}
 
 	return txs, nil
+}
+
+func UpdateOrganizationConfiguration(ctx context.Context, ec external.Client, apiBaseURL, twoFAType string) (*external.UpdateOrganizationConfigurationResponse, error) {
+	baseURL, err := url.Parse(apiBaseURL)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	if !env.IsLocal() && baseURL.Scheme != "https" {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, "api url must be https")
+	}
+
+	if env.IsLocal() && baseURL.Scheme != "http" && baseURL.Scheme != "https" {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, "api url must be http or https")
+	}
+
+	t, err := external.ParseTwoFA(twoFAType)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", gatehub.ErrInternal, err)
+	}
+
+	return ec.UpdateOrganizationConfiguration(ctx, external.UpdateOrganizationConfigurationArgs{
+		APIBaseURL: baseURL.String(),
+		TwoFAType:  t,
+	})
 }
 
 func updateCardTransactionStatus(ctx context.Context, b Backends, txID, status string) error {

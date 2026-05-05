@@ -1,5 +1,4 @@
-import type { MetaFunction } from '@remix-run/node'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { ButtonRouter, Card, Layouts, SuccessShapes } from '~/components'
 import { mergeMeta } from '~/lib/meta'
@@ -8,13 +7,13 @@ export const handle: ApplicationProps = {
   layout: Layouts.Focus,
   scaffold: {
     header: {
-      back: route('/contact'),
+      back: href('/contact'),
       title: 'Success'
     }
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Contact | Success'
   }
@@ -30,7 +29,7 @@ export default function Page() {
           One of our team members will get back to you in due course.
         </span>
       </Card>
-      <ButtonRouter to={route('/')}>Close</ButtonRouter>
+      <ButtonRouter to={href('/')}>Close</ButtonRouter>
     </>
   )
 }

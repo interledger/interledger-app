@@ -6,6 +6,7 @@ import (
 
 	"github.com/getsentry/sentry-go"
 
+	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/payments"
 
 	"gitlab.com/fynbos/env"
@@ -27,16 +28,17 @@ import (
 )
 
 var errorStatus = map[error]error{
-	user.ErrNoUserFound:           status.Error(codes.Unauthenticated, "Unauthenticated"),
-	twilio.ErrInvalidOTP:          NewValidationError("OTP", "Could not validate OTP"),
-	wallets.ErrDuplicateWallet:    status.Error(codes.AlreadyExists, "Wallet already exists"),
-	wallets.ErrWalletConflict:     status.Error(codes.FailedPrecondition, "Wallet already exists but with different configuration than requested (for example, country, currency, or addresses)"),
-	linkedaccounts.ErrNotFound:    NotFoundError("linked account not found"),
-	signup.ErrDuplicatePhone:      status.Error(codes.AlreadyExists, "Phone number already exists with a user."),
-	identities.ErrAlreadyExists:   status.Error(codes.AlreadyExists, "Identity already exists"),
-	wallets.ErrNoWalletFound:      NotFoundError("wallet address not found"),
-	payments.ErrRequiredActions:   status.Error(codes.FailedPrecondition, "Required details missing for payment"),
-	payments.ErrInsufficientFunds: PaymentInsufficientFundsError(),
+	user.ErrNoUserFound:            status.Error(codes.Unauthenticated, "Unauthenticated"),
+	twilio.ErrInvalidOTP:           NewValidationError("OTP", "Could not validate OTP"),
+	wallets.ErrDuplicateWallet:     status.Error(codes.AlreadyExists, "Wallet already exists"),
+	wallets.ErrWalletConflict:      status.Error(codes.FailedPrecondition, "Wallet already exists but with different configuration than requested (for example, country, currency, or addresses)"),
+	linkedaccounts.ErrNotFound:     NotFoundError("linked account not found"),
+	signup.ErrDuplicatePhone:       status.Error(codes.AlreadyExists, "Phone number already exists with a user."),
+	identities.ErrAlreadyExists:    status.Error(codes.AlreadyExists, "Identity already exists"),
+	wallets.ErrNoWalletFound:       NotFoundError("wallet address not found"),
+	payments.ErrRequiredActions:    status.Error(codes.FailedPrecondition, "Required details missing for payment"),
+	payments.ErrInsufficientFunds:  PaymentInsufficientFundsError(),
+	kyc.ErrKYCResubmissionRequired: status.Error(codes.FailedPrecondition, "KYC resubmission required: please update your verification documents"),
 }
 
 func validationDesc(fe validator.FieldError) string {

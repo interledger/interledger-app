@@ -1,15 +1,14 @@
-import type { PlainMessage } from '@bufbuild/protobuf/dist/types/message'
+import type { PlainMessage } from '@bufbuild/protobuf'
 import { Combobox } from '@headlessui/react'
-import { Form, useFetcher, useNavigate } from '@remix-run/react'
+import { Form, useFetcher, useNavigate } from 'react-router';
 import clsx from 'clsx'
 import type { ChangeEventHandler } from 'react'
 import { useCallback, useEffect, useState } from 'react'
-import { route } from 'routes-gen'
+import { href } from 'react-router'
 import {
   Card,
   CardButton,
   CardContent,
-  DiscordIcon,
   Icon,
   InterledgerIcon,
   TextField,
@@ -18,7 +17,8 @@ import {
 import { Label } from '~/components/Label'
 import type { SearchResult } from '~/generated/connect/backend/v1/backend_pb'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
-import type { searchLoader } from '~/routes/pay/route'
+import { loader } from '~/routes/pay/route';
+
 
 type Action = {
   icon: string
@@ -42,18 +42,18 @@ const defaultActions = [
     icon: 'south_west',
     title: 'Deposit',
     kbd: 'D',
-    route: route('/deposit')
+    route: href('/deposit')
   },
   {
     icon: 'north_east',
     title: 'Withdraw',
     kbd: 'W',
-    route: route('/withdraw')
+    route: href('/withdraw')
   }
 ]
 
 export function CommandActions() {
-  const search = useFetcher<typeof searchLoader>()
+  const search = useFetcher<typeof loader>()
 
   const navigate = useNavigate()
 
@@ -94,7 +94,7 @@ export function CommandActions() {
         submit.submit(
           { walletUrl: event.walletUrl },
           {
-            action: route('/pay'),
+            action: href('/pay'),
             method: 'POST'
           }
         )
@@ -117,7 +117,7 @@ export function CommandActions() {
     <Combobox onChange={_onChangeCombobox}>
       <Form
         id='pay-search-form'
-        action={route('/pay')}
+        action={href('/pay')}
         method='post'
         className='hidden'
       />
@@ -167,10 +167,9 @@ export function CommandActions() {
                 <div className='flex gap-x-3'>
                   {(result.identifierType == 'wallet' ||
                     result.identifierType == 'wallet_url') && (
-                    <InterledgerIcon />
-                  )}
+                      <InterledgerIcon />
+                    )}
                   {result.identifierType == 'twitter' && <TwitterIcon />}
-                  {result.identifierType == 'discord' && <DiscordIcon />}
                   {result.identifierType == 'domain' && (
                     <Icon>captive_portal</Icon>
                   )}

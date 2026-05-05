@@ -1,5 +1,5 @@
-import { NavLink } from '@remix-run/react'
-import type { RemixNavLinkProps } from '@remix-run/react/dist/components'
+import { NavLink } from 'react-router';
+import type { NavLinkProps } from 'react-router';
 import clsx from 'clsx'
 import type { ButtonHTMLAttributes, HTMLAttributes, RefAttributes } from 'react'
 import { forwardRef, useEffect, useState } from 'react'
@@ -70,7 +70,7 @@ CardContent.displayName = 'CardContent'
 
 const CardLink = forwardRef<
   any,
-  RemixNavLinkProps & RefAttributes<HTMLAnchorElement>
+  NavLinkProps & RefAttributes<HTMLAnchorElement>
 >(({ children, className, ...props }, ref) => {
   return (
     <NavLink

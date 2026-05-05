@@ -1,40 +1,42 @@
-import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
-import { json } from '@remix-run/node'
-import { useLoaderData } from '@remix-run/react'
-import { route } from 'routes-gen'
+import type { Route } from './+types/settings.grants'
+import type { PlainMessage } from '@bufbuild/protobuf'
+import type { RafikiGrant } from '~/generated/connect/backend/v1/backend_pb'
+import { data } from 'react-router';
+import { useLoaderData } from 'react-router';
+import { href } from 'react-router'
 import type { ApplicationProps } from '~/components'
 import { Alert, AlertBody, Card, CardLink, Icon, Layouts } from '~/components'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   let response = await grpc.listRafikiGrants(request, {})
 
   if (isConnectError(response)) throw response.errorResponse
 
-  return json({ grants: response.grants })
+  return data({ grants: response.grants })
 }
 
 export const handle: ApplicationProps = {
   layout: Layouts.Wallet,
   scaffold: {
     header: {
-      back: route('/settings'),
+      back: href('/settings'),
       title: 'Grants'
     },
     isNested: true
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta = mergeMeta(() => [
   {
     title: 'Grants'
   }
 ])
 
 export default function Page() {
-  const { grants } = useLoaderData<typeof loader>()
+  const { grants } = useLoaderData()
 
   return (
     <>
@@ -47,9 +49,9 @@ export default function Page() {
 
       {grants.length > 0 && (
         <Card>
-          {grants.map((grant) => (
+          {grants.map((grant: PlainMessage<RafikiGrant>) => (
             <CardLink
-              to={route('/settings/grants/:grantId', {
+              to={href('/settings/grants/:grantId', {
                 grantId: grant.id
               })}
               className='flex items-center justify-between'

@@ -1,4 +1,4 @@
-import { useLoaderData } from '@remix-run/react'
+import { useLoaderData } from 'react-router';
 import { useState } from 'react'
 import {
   Alert,
@@ -11,7 +11,6 @@ import {
   Chip,
   ChipColor,
   Dialog,
-  DiscordIcon,
   Icon,
   InterledgerIcon,
   LinkedInIcon,
@@ -21,7 +20,7 @@ import {
 } from '~/components'
 import { Label } from '~/components/Label'
 import type { loader } from './route'
-import { PaymentIdentityType } from './route'
+import { PaymentIdentityType } from '~/lib/types'
 
 export const PaymentDetailsCard = () => {
   const { publicWalletInfo, payment } = useLoaderData<typeof loader>()
@@ -38,12 +37,9 @@ export const PaymentDetailsCard = () => {
               {(payment.receiverIdentityType ===
                 PaymentIdentityType.WalletURL ||
                 payment.receiverIdentityType ===
-                  PaymentIdentityType.WalletID) && <InterledgerIcon />}
+                PaymentIdentityType.WalletID) && <InterledgerIcon />}
               {payment.receiverIdentityType === PaymentIdentityType.Twitter && (
                 <TwitterIcon />
-              )}
-              {payment.receiverIdentityType === PaymentIdentityType.Discord && (
-                <DiscordIcon />
               )}
               {payment.receiverIdentityType === PaymentIdentityType.Slack && (
                 <SlackIcon />
@@ -113,7 +109,6 @@ export const PaymentDetailsCard = () => {
                 <div className='flex space-x-2'>
                   {identity.platform == 'twitter' && <TwitterIcon />}
                   {identity.platform == 'linkedin' && <LinkedInIcon />}
-                  {identity.platform == 'discord' && <DiscordIcon />}
                   {identity.platform == 'slack' && <SlackIcon />}
                   {identity.platform == 'domain' && <Icon>captive_portal</Icon>}
                   <span>{identity.identifier}</span>

@@ -1,6 +1,9 @@
 package external
 
-import "context"
+import (
+	"context"
+	"io"
+)
 
 type Client interface {
 	IssueToken(ctx context.Context, userID string, product Product) (*IssueTokenResponse, error)
@@ -30,4 +33,7 @@ type Client interface {
 	LinkUserToGateway(ctx context.Context, gatehubUserID string) error
 	GetCardDetails(ctx context.Context, userID, cardID string) (*Card, error)
 	GetCardTransaction(ctx context.Context, userID, txID string) (*CardTransaction, error)
+	UpdateOrganizationConfiguration(ctx context.Context, args UpdateOrganizationConfigurationArgs) (*UpdateOrganizationConfigurationResponse, error)
+	GetAccountConfirmation(ctx context.Context, userID, walletAddress string) (io.ReadCloser, error)
+	GetAccountStatement(ctx context.Context, userID, walletAddress string, year, month int) (io.ReadCloser, error)
 }

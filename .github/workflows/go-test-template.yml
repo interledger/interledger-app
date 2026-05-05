@@ -15,15 +15,19 @@ on:
       db_name:
         required: true
         type: string
+      additional-tests:
+        required: false
+        type: string
+        description: 'Additional commands to run after unit tests (e.g., "make test")'
 
 jobs:
   run-go-tests:
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/interledger/builders/gotester:v1.1.0
     services:
       postgres:
         image: postgres:17
-        ports:
-          - 5432:5432
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: password
@@ -34,32 +38,26 @@ jobs:
           --health-retries 5
     env:
       PGSSLMODE: disable
+      GOFLAGS: -buildvcs=false
+      GOCACHE: ${{ github.workspace }}/.cache/go-build
+      GOMODCACHE: ${{ github.workspace }}/.cache/go-mod
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: '1.25'
+        uses: actions/checkout@v4
 
       - name: Cache Go modules and build cache
         uses: actions/cache@v3
         with:
           path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+            ${{ github.workspace }}/.cache/go-build
+            ${{ github.workspace }}/.cache/go-mod
+          key: ${{ runner.os }}-go-container-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            ${{ runner.os }}-go-
-
-      - name: Install Atlas CLI
-        run: |
-          curl -sSf https://atlasgo.sh | sh
+            ${{ runner.os }}-go-container-
 
       - name: Wait for Postgres to be ready
         run: |
-          until pg_isready -h localhost -p 5432; do
+          until pg_isready -h postgres -p 5432; do
             echo "Waiting for postgres..."
             sleep 2
           done
@@ -72,7 +70,7 @@ jobs:
           cd ${{ inputs.test_path }}
           # If the current folder has a sub folder called db
           if [ -d "db" ]; then
-            export DB_URL=postgres://postgres:password@127.0.0.1:5432?sslmode=disable
+            export DB_URL=postgres://postgres:password@postgres:5432?sslmode=disable
             atlas migrate diff create_all \
               --dir "file://db/testmigrations" \
               --to  "file://db/schema.hcl" \
@@ -82,6 +80,8 @@ jobs:
           fi
 
       - name: Run go tests and check coverage
+        env:
+          DB_URL: "postgres://postgres:password@postgres:5432/%s?sslmode=disable"
         run: |
           go test -coverprofile=coverage.out ${{ inputs.test_path }}/...
           COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}')
@@ -102,6 +102,13 @@ jobs:
           else
             echo "::notice::coverage check passed ($COVERAGE_NUM% ≥ $THRESHOLD%)"
           fi
+        shell: bash
+
+      - name: Run additional tests
+        if: ${{ inputs.additional-tests != '' }}
+        run: |
+          set -e
+          ${{ inputs.additional-tests }}
         shell: bash
 
       - name: Upload coverage report

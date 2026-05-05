@@ -107,6 +107,30 @@ func TestPhoneGenerationFormat(t *testing.T) {
 	}
 }
 
+func TestDeterministicPhoneAvoidsPrefixCollision(t *testing.T) {
+	country := "Germany"
+	emailSuffix := "alice@example.com"
+
+	// These identifiers share the same first digits, which previously caused
+	// collisions when only a small prefix of testIdentifier was used.
+	idA := "315788120002"
+	idB := "315788121010"
+
+	phoneA := generateDeterministicPhone(country, idA, emailSuffix)
+	phoneB := generateDeterministicPhone(country, idB, emailSuffix)
+
+	if phoneA == phoneB {
+		t.Fatalf("expected distinct phones for distinct test identifiers, got %s", phoneA)
+	}
+
+	if err := validatePhoneForKratos(phoneA); err != nil {
+		t.Fatalf("phoneA invalid: %v", err)
+	}
+	if err := validatePhoneForKratos(phoneB); err != nil {
+		t.Fatalf("phoneB invalid: %v", err)
+	}
+}
+
 // generateRandomPhone simulates phone number generation
 func generateRandomPhone(prefix string, digits int) string {
 	// In real code this would use rand.Intn() for each digit

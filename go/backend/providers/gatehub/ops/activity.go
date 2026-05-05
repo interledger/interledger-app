@@ -55,6 +55,7 @@ func NewActivity(b Backends, cfg gatehub.Config) *Activity {
 		cfg.APIBaseURL,
 		cfg.OnboardingBaseURL,
 		cfg.OnOffRampBaseURL,
+		cfg.OrganizationID,
 		&http.Client{
 			Transport: otelhttp.NewTransport(
 				httplogger.NewTransport(http.DefaultTransport, b, nil),
@@ -391,7 +392,7 @@ type FeeFromGhArgs struct {
 	TrxID  string
 }
 
-func (a *Activity) GetFeeFromGatehubTrasaction(ctx context.Context, args FeeFromGhArgs) (uint64, error) {
+func (a *Activity) GetFeeFromGatehubTrasaction(ctx context.Context, args FeeFromGhArgs) (int64, error) {
 	if strings.TrimSpace(args.TrxID) == "" || strings.TrimSpace(args.UserID) == "" {
 		return 0, fmt.Errorf("%w missing args", gatehub.ErrInternal)
 	}

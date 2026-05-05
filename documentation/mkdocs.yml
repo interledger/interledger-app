@@ -1,0 +1,69 @@
+site_name: Interledger App Wallet
+site_description: >-
+  Documentation for the Interledger App Wallet — a reference implementation
+  for Account Servicing Entities (ASEs) integrating with the Interledger network.
+
+validation:
+  links:
+    anchors: warn
+
+theme:
+  name: material
+  palette:
+    scheme: slate
+    primary: deep purple
+    accent: deep purple
+  features:
+    - navigation.sections
+    - navigation.top
+    - navigation.indexes
+    - search.highlight
+    - search.suggest
+    - content.code.copy
+    - toc.follow
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Terminology: terminology.md
+      - Signup Flow: signup-guide.md
+      - KYC & Identity Verification: kyc-guide.md
+      - KYC Resubmission Flow: kyc-resubmission-flow.md
+  - Architecture:
+      - Wallets, Accounts & Addresses: wallets-accounts-addresses-guide.md
+      - Dual-Ledger System: ledger-system-guide.md
+  - Payments:
+      - Payments & Transactions: payments-guide.md
+      - Transaction Types Reference: transaction-types-reference.md
+      - Provider Comparison: provider-payments-reference.md
+  - Integrations:
+      - GateHub Cards: gatehub-cards-guide.md
+  - Operations:
+      - Payment Troubleshooting: payment-troubleshooting-guide.md
+  - Developers:
+      - Logging Reference: logging-reference.md
+      - Environment Variables: env-variables.md
+
+markdown_extensions:
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.details
+  - pymdownx.snippets
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+
+plugins:
+  - search
+

@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 
@@ -77,6 +78,7 @@ func New(b ops.Backends, cfg gatehub.Config) *Client {
 		cfg.APIBaseURL,
 		cfg.OnboardingBaseURL,
 		cfg.OnOffRampBaseURL,
+		cfg.OrganizationID,
 		&http.Client{
 			Transport: otelhttp.NewTransport(
 				httplogger.NewTransport(http.DefaultTransport, b, nil),
@@ -197,4 +199,16 @@ func (c Client) GetPendingThreeDSConfirmations(ctx context.Context, userID strin
 
 func (c Client) ThreeDSPaymentConfirmation(ctx context.Context, userID, txID string, confirmed bool) error {
 	return ops.ThreeDSPaymentConfirmation(ctx, c.external, userID, txID, confirmed)
+}
+
+func (c Client) UpdateOrganizationConfiguration(ctx context.Context, apiBaseURL, twoFAType string) (*external.UpdateOrganizationConfigurationResponse, error) {
+	return ops.UpdateOrganizationConfiguration(ctx, c.external, apiBaseURL, twoFAType)
+}
+
+func (c Client) GetAccountConfirmation(ctx context.Context, walletID string) (io.ReadCloser, error) {
+	return ops.GetAccountConfirmation(ctx, c.b, c.external, walletID)
+}
+
+func (c Client) GetAccountStatement(ctx context.Context, walletID string, year, month int) (io.ReadCloser, error) {
+	return ops.GetAccountStatement(ctx, c.b, c.external, walletID, year, month)
 }
