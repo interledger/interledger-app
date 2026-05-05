@@ -35,4 +35,5 @@ type Client interface {
 	GetCardTransaction(ctx context.Context, userID, txID string) (*CardTransaction, error)
 	UpdateOrganizationConfiguration(ctx context.Context, args UpdateOrganizationConfigurationArgs) (*UpdateOrganizationConfigurationResponse, error)
 	GetAccountConfirmation(ctx context.Context, userID, walletAddress string) (io.ReadCloser, error)
+	GetAccountStatement(ctx context.Context, userID, walletAddress string, year, month int) (io.ReadCloser, error)
 }
