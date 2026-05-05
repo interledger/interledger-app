@@ -11,14 +11,14 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
-type BackfillAccountsTabDisabledParams struct {
+type DisabledAccountsTabParams struct {
 	// Region — disables accounts tab for all countries in a region. Supported values: "EU"
 	Region string
 	// Country — disables accounts tab for a single ISO country code (e.g. "DE", "FR", "US", "GB")
 	Country string
 }
 
-func DisabledAccountsTabWorkflow(ctx workflow.Context, params BackfillAccountsTabDisabledParams) error {
+func DisabledAccountsTabWorkflow(ctx workflow.Context, params DisabledAccountsTabParams) error {
 	if _, err := resolveCountries(params); err != nil {
 		return err
 	}
@@ -42,7 +42,7 @@ func DisabledAccountsTabWorkflow(ctx workflow.Context, params BackfillAccountsTa
 	return nil
 }
 
-func (a *Activity) DisableAccountsTab(ctx context.Context, params BackfillAccountsTabDisabledParams) (int64, error) {
+func (a *Activity) DisableAccountsTab(ctx context.Context, params DisabledAccountsTabParams) (int64, error) {
 	countries, err := resolveCountries(params)
 	if err != nil {
 		return 0, err
@@ -67,7 +67,7 @@ func (a *Activity) DisableAccountsTab(ctx context.Context, params BackfillAccoun
 	return result.RowsAffected()
 }
 
-func resolveCountries(params BackfillAccountsTabDisabledParams) ([]country.Country, error) {
+func resolveCountries(params DisabledAccountsTabParams) ([]country.Country, error) {
 	if params.Region != "" && params.Country != "" {
 		return nil, fmt.Errorf("provide either Region or Country, not both")
 	}
