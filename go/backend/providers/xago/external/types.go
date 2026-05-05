@@ -88,16 +88,6 @@ type CreateBeneficiaryReq struct {
 	KYCRequest                 CreateBeneficiaryKYCRequest `json:"kycRequest"`
 }
 
-type GetQuoteReq struct {
-	Amount              int    `json:"amount"`
-	ConvertCurrencyPair string `json:"convertCurrencyPair"`
-	EstimateCalculation bool   `json:"estimateCalculation"`
-}
-
-type GetQuoteResp struct {
-	// TODO
-}
-
 type CreateBeneficiaryKYCRequest struct {
 	IsOwn        bool   `json:"isOwn,omitempty"`
 	SubAccountID string `json:"existingIdentityId,omitempty"`
@@ -209,3 +199,35 @@ type DepositFields struct {
 	AccountAddress string `json:"accountAddress"`
 	BranchCode     string `json:"branchCode"`
 }
+
+type ConvertCurrencyPairEnum string
+
+func (cc ConvertCurrencyPairEnum) String() string {
+	return string(cc)
+}
+
+const (
+	ZARtoEUR ConvertCurrencyPairEnum = "ZAR/EUR"
+	EURtoZAR ConvertCurrencyPairEnum = "EUR/ZAR"
+)
+
+// ConvertCurrencyRequest is the actual payload that is sent to Xago, used by both EstimateConvertCurrency and ConvertCurrency
+type ConvertCurrencyRequest struct {
+	ConvertCurrencyPair ConvertCurrencyPairEnum `json:"convertCurrencyPair"`
+
+	Amount              float64 `json:"amount"`
+	EstimateCalculation bool    `json:"estimateCalculation"`
+}
+
+type EstimateConvertCurrencyResponse struct {
+	BuyAveragePrice float64 `json:"buyAveragePrice"`
+	BuyOrders       float64 `json:"buyOrders"`
+	EstimatedRate   float64 `json:"estimatedRate"`
+	FinalBuyAmount  float64 `json:"finalBuyAmount"`
+	FinalSellAmount float64 `json:"finalSellAmount"`
+	QuoteAmount     int     `json:"quoteAmount"`
+	ReceivedAmount  float64 `json:"receivedAmount"`
+	SellOrders      float64 `json:"sellOrders"`
+}
+
+type ConvertCurrencyResponse string

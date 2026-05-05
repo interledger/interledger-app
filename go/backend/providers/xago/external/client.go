@@ -36,6 +36,8 @@ type Client interface {
 	UpdateSubAccount(ctx context.Context, accountID string, reqStruct UpdateSubAccountRequest) error
 	BankAccounts(ctx context.Context) (*[]Currency, error)
 	GetDeposit(ctx context.Context, id string) (*Deposit, error)
+	EstimateConvertCurrency(ctx context.Context, currencyPair ConvertCurrencyPairEnum, amount float64) (*EstimateConvertCurrencyResponse, error)
+	ConvertCurrency(ctx context.Context, currencyPair ConvertCurrencyPairEnum, amount float64) (*ConvertCurrencyResponse, error)
 }
 
 // Config holds the configuration for the Xago external client.
@@ -911,11 +913,17 @@ func (c *client) UpdateSubAccount(ctx context.Context, accountID string, reqStru
 	return nil
 }
 
-func (c *client) GetQuote(ctx context.Context, reqStruct GetQuoteReq) (*GetQuoteResp, error) {
+func (c *client) EstimateConvertCurrency(ctx context.Context, currencyPair ConvertCurrencyPairEnum, amount float64) (*EstimateConvertCurrencyResponse, error) {
 	// TODO exchange service url
-	reqUrl, err := url.JoinPath(c.identityBaseURL, "currencyconvert")
+	reqUrl, err := url.JoinPath(c.baseURL, "currencyconvert")
 	if err != nil {
 		return nil, err
+	}
+
+	reqStruct := ConvertCurrencyRequest{
+		ConvertCurrencyPair: currencyPair,
+		Amount:              amount,
+		EstimateCalculation: true,
 	}
 
 	reqBody, err := json.Marshal(reqStruct)
@@ -964,12 +972,12 @@ func (c *client) GetQuote(ctx context.Context, reqStruct GetQuoteReq) (*GetQuote
 			return nil, err
 		}
 		if resp.StatusCode == http.StatusUnauthorized {
-			log.Info("refreshed xago token not authorized for add beneficiary")
+			log.Info("refreshed xago token not authorized for EstimateConvertCurrency")
 		}
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to add xargo beneficiary (%d - %s)", resp.StatusCode, resp.Status)
+		return nil, fmt.Errorf("failed to estimate currency conversion (%d - %s)", resp.StatusCode, resp.Status)
 	}
 
 	respBody, err := io.ReadAll(resp.Body)
@@ -977,7 +985,88 @@ func (c *client) GetQuote(ctx context.Context, reqStruct GetQuoteReq) (*GetQuote
 		return nil, err
 	}
 
-	var quote GetQuoteResp
+	var quote EstimateConvertCurrencyResponse
+	err = json.Unmarshal(respBody, &quote)
+	if err != nil {
+		return nil, err
+	}
+
+	return &quote, nil
+}
+
+func (c *client) ConvertCurrency(ctx context.Context, currencyPair ConvertCurrencyPairEnum, amount float64) (*ConvertCurrencyResponse, error) {
+	// TODO exchange service url
+	reqUrl, err := url.JoinPath(c.baseURL, "currencyconvert")
+	if err != nil {
+		return nil, err
+	}
+
+	reqStruct := ConvertCurrencyRequest{
+		ConvertCurrencyPair: currencyPair,
+		Amount:              amount,
+		EstimateCalculation: false,
+	}
+
+	reqBody, err := json.Marshal(reqStruct)
+	if err != nil {
+		return nil, err
+	}
+
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "POST"
+		meta.Provider = "xago"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "POST",
+			Provider: "xago",
+		})
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqUrl, bytes.NewReader(reqBody))
+	if err != nil {
+		return nil, err
+	}
+	token, err := c.AccessToken(ctx, false)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token.Token)
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		token, err = c.AccessToken(ctx, true)
+		if err != nil {
+			return nil, err
+		}
+		req.Header.Set("Authorization", "Bearer "+token.Token)
+
+		resp, err = c.api.Do(req)
+		if err != nil {
+			return nil, err
+		}
+		if resp.StatusCode == http.StatusUnauthorized {
+			log.Info("refreshed xago token not authorized for ConvertCurrency")
+		}
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to currency conversion (%d - %s)", resp.StatusCode, resp.Status)
+	}
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var quote ConvertCurrencyResponse
 	err = json.Unmarshal(respBody, &quote)
 	if err != nil {
 		return nil, err

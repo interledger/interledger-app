@@ -68,6 +68,21 @@ func (mr *MockClientMockRecorder) BankAccounts(ctx interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BankAccounts", reflect.TypeOf((*MockClient)(nil).BankAccounts), ctx)
 }
 
+// ConvertCurrency mocks base method.
+func (m *MockClient) ConvertCurrency(ctx context.Context, currencyPair external.ConvertCurrencyPairEnum, amount float64) (*external.ConvertCurrencyResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ConvertCurrency", ctx, currencyPair, amount)
+	ret0, _ := ret[0].(*external.ConvertCurrencyResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ConvertCurrency indicates an expected call of ConvertCurrency.
+func (mr *MockClientMockRecorder) ConvertCurrency(ctx, currencyPair, amount interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConvertCurrency", reflect.TypeOf((*MockClient)(nil).ConvertCurrency), ctx, currencyPair, amount)
+}
+
 // CreateSubAccount mocks base method.
 func (m *MockClient) CreateSubAccount(ctx context.Context, user user.User, details kyc.IndividualDetails, idNumber, personaInquiryURL string) (*external.SubAccount, error) {
 	m.ctrl.T.Helper()
@@ -96,6 +111,21 @@ func (m *MockClient) CreateTransaction(ctx context.Context, amt currency.Amount,
 func (mr *MockClientMockRecorder) CreateTransaction(ctx, amt, idempotencyKey, beneficiaryID, reference interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTransaction", reflect.TypeOf((*MockClient)(nil).CreateTransaction), ctx, amt, idempotencyKey, beneficiaryID, reference)
+}
+
+// EstimateConvertCurrency mocks base method.
+func (m *MockClient) EstimateConvertCurrency(ctx context.Context, currencyPair external.ConvertCurrencyPairEnum, amount float64) (*external.EstimateConvertCurrencyResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "EstimateConvertCurrency", ctx, currencyPair, amount)
+	ret0, _ := ret[0].(*external.EstimateConvertCurrencyResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// EstimateConvertCurrency indicates an expected call of EstimateConvertCurrency.
+func (mr *MockClientMockRecorder) EstimateConvertCurrency(ctx, currencyPair, amount interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EstimateConvertCurrency", reflect.TypeOf((*MockClient)(nil).EstimateConvertCurrency), ctx, currencyPair, amount)
 }
 
 // GetDeposit mocks base method.
