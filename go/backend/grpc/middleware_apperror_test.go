@@ -80,20 +80,6 @@ func TestWithAppError(t *testing.T) {
 		assert.Equal(t, "req-abc-123", appErr.ReqId)
 	})
 
-	t.Run("panics if ReqId is different between ctx and appError", func(t *testing.T) {
-		t.Parallel()
-		ctx := ctxWithRequestId("ctx-req-id")
-		base := status.New(codes.Internal, "error")
-		original := statusWithDetails(base, &pb.AppError{
-			ErrorCode: errcodes.ErrCodeInternal,
-			ReqId:     "unexpected-req-id",
-		}).Err()
-
-		require.Panics(t, func() {
-			withAppError(ctx, original)
-		})
-	})
-
 	t.Run("empty request id in context sets empty req_id", func(t *testing.T) {
 		t.Parallel()
 		err := withAppError(context.Background(), errors.New("error"))

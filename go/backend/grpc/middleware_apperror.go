@@ -8,6 +8,7 @@ import (
 	"gitlab.com/fynbos/backend/errcodes"
 	"gitlab.com/fynbos/log"
 	pb "gitlab.com/fynbos/proto/backend/v1"
+	"go.uber.org/zap"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -59,7 +60,7 @@ func withAppError(ctx context.Context, originalErr error) error {
 			if appError == nil {
 				appError = existingAppError
 			} else {
-				log.Error("Found multiple AppError details")
+				log.Error("Found multiple AppError details", zap.Any("unexpected", existingAppError))
 			}
 		} else if msg, ok := detail.(protoadapt.MessageV1); ok {
 			details = append(details, msg)
@@ -77,7 +78,7 @@ func withAppError(ctx context.Context, originalErr error) error {
 	}
 
 	if appError.ReqId != "" && appError.ReqId != reqId {
-		panic("appError.ReqId is already present and different from the one in the context.")
+		log.Error("appError.ReqId is already present and different from the one in the context.")
 	}
 
 	// Augment the AppError with the request id
