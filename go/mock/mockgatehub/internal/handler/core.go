@@ -291,7 +291,7 @@ func (h *Handler) CreateTransaction(w http.ResponseWriter, r *http.Request) {
 	switch req.DepositType {
 	case consts.DepositTypeExternal:
 		feePercent, _ = h.feeConfig.GetDepositFeeForUser(req.UserID)
-	case "withdrawal":
+	case consts.DepositTypeWithdrawal:
 		feePercent, _ = h.feeConfig.GetWithdrawalFeeForUser(req.UserID)
 	}
 	feeAmount := CalculateFee(req.Amount, feePercent)
@@ -299,7 +299,7 @@ func (h *Handler) CreateTransaction(w http.ResponseWriter, r *http.Request) {
 	// For deposits: total_amount = amount (fee is charged separately by GateHub)
 	// For withdrawals: total_amount = amount + fee (total deducted)
 	totalAmountStr := amountStr
-	if req.DepositType == "withdrawal" {
+	if req.DepositType == consts.DepositTypeWithdrawal {
 		totalAmountStr = formatAmount(req.Amount + feeAmount)
 	}
 
@@ -343,7 +343,7 @@ func (h *Handler) CreateTransaction(w http.ResponseWriter, r *http.Request) {
 
 		// Determine balance direction for hosted transfers.
 		// If the sending_address is a known user wallet, money is leaving the user → debit.
-		// Otherwise (receiving_address is a known wallet), money is arriving → credit.
+		// Otherwise, treat the transfer as a credit.
 		isDebit := false
 		if depositType == consts.DepositTypeHosted && sendingAddr != "" {
 			if wallet, err := h.store.GetWallet(sendingAddr); err == nil && wallet != nil && wallet.UserID == userID {
@@ -371,22 +371,21 @@ func (h *Handler) CreateTransaction(w http.ResponseWriter, r *http.Request) {
 			}
 
 			markFailed := func() {
-				if !hasWebhook {
-					return
-				}
 				if statusErr := h.store.UpdateTransactionStatus(txID, consts.TransactionStatusFailed); statusErr != nil {
 					logger.Error("failed to mark transaction as failed", zap.String("transaction_id", txID), zap.Error(statusErr))
 				}
-				failedPayload := map[string]interface{}{
-					"transaction_id": txID,
-					"tx_uuid":        txID,
-					"amount":         formatAmount(amount),
-					"currency":       currency,
-					"address":        receivingAddr,
-					"deposit_type":   depositType,
-					"status":         "failed",
+				if hasWebhook {
+					failedPayload := map[string]interface{}{
+						"transaction_id": txID,
+						"tx_uuid":        txID,
+						"amount":         formatAmount(amount),
+						"currency":       currency,
+						"address":        receivingAddr,
+						"deposit_type":   depositType,
+						"status":         "failed",
+					}
+					h.webhookManager.SendAsync(consts.WebhookEventDepositCompleted, userID, failedPayload, 0)
 				}
-				h.webhookManager.SendAsync(consts.WebhookEventDepositCompleted, userID, failedPayload, 0)
 			}
 
 			netAmount := amount - feeAmount

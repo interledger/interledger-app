@@ -103,7 +103,10 @@ const (
 	DefaultCustomerType    = "Citizen"
 	DefaultAccountType     = "DEBIT"
 	CardRelationPrimary    = "PRIMARY"
-	DefaultAddressStatus   = "ACTIVE"
+	DefaultStatusActive    = "ACTIVE"
+
+	// DefaultAddressStatus is a compatibility alias for address-specific callers.
+	DefaultAddressStatus = DefaultStatusActive
 )
 
 // Webhook event types
