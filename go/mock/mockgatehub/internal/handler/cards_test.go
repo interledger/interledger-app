@@ -3,10 +3,16 @@ package handler
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/base64"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
+	"time"
 
 	"gitlab.com/fynbos/mock/mockgatehub/internal/consts"
 	"gitlab.com/fynbos/mock/mockgatehub/internal/models"
@@ -173,7 +179,6 @@ func seedCard(t *testing.T, store *storage.MemoryStorage) (customerID, accountID
 		NameOnCard:       "Test User",
 		Status:           consts.CardStatusActive,
 		MaskedPan:        "123456******7890",
-		ExpiryDate:       "2028-01-01",
 	}
 	require.NoError(t, store.CreateCard(card))
 	return cid, aid, caid
@@ -536,7 +541,8 @@ func TestUpdateCardLimits_Success(t *testing.T) {
 func TestGetCardToken_Success(t *testing.T) {
 	h, _ := setupCardsHandler(t)
 
-	body := map[string]interface{}{"cardId": "card-123"}
+	pubKeyB64 := generateTestPublicKeyB64(t)
+	body := map[string]interface{}{"cardId": "card-123", "publicKey": pubKeyB64}
 	b, _ := json.Marshal(body)
 	req := httptest.NewRequest(http.MethodPost, "/cards/v1/token/card-data", bytes.NewReader(b))
 	req.Header.Set("Content-Type", "application/json")
@@ -547,8 +553,144 @@ func TestGetCardToken_Success(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 	var resp models.CardTokenResponse
 	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
-	assert.Contains(t, resp.Token, "mock-card-data-card-123")
-	assert.Len(t, resp.Links, 1)
+
+	// Token must be a parseable HS256 JWT carrying the cardId and publicKey.
+	require.NotEmpty(t, resp.Token)
+	claims, err := parseCardDataJWT(h.config.CardDataTokenSecret, resp.Token)
+	require.NoError(t, err)
+	assert.Equal(t, "card-123", claims.CardID)
+	assert.Equal(t, pubKeyB64, claims.PublicKey)
+
+	// Link must be an absolute URL pointing at the public base URL so the
+	// browser can fetch it directly.
+	require.Len(t, resp.Links, 1)
+	assert.True(t,
+		strings.HasPrefix(resp.Links[0].Href, "https://") || strings.HasPrefix(resp.Links[0].Href, "http://"),
+		"expected absolute URL, got %q", resp.Links[0].Href,
+	)
+	assert.Contains(t, resp.Links[0].Href, "/cards/v1/token/card-data/data")
+	assert.Equal(t, "GET", resp.Links[0].Method)
+	assert.Equal(t, "data", resp.Links[0].Rel)
+}
+
+func TestGetCardToken_MissingCardID(t *testing.T) {
+	h, _ := setupCardsHandler(t)
+
+	body := map[string]interface{}{"publicKey": "ignored"}
+	b, _ := json.Marshal(body)
+	req := httptest.NewRequest(http.MethodPost, "/cards/v1/token/card-data", bytes.NewReader(b))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	h.GetCardToken(w, req)
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
+func TestGetCardToken_MissingPublicKey(t *testing.T) {
+	h, _ := setupCardsHandler(t)
+
+	// Empty / whitespace / absent publicKey all have to be rejected because
+	// the data endpoint cannot encrypt without it.
+	cases := []map[string]interface{}{
+		{"cardId": "card-123"},
+		{"cardId": "card-123", "publicKey": ""},
+		{"cardId": "card-123", "publicKey": "   "},
+	}
+	for _, body := range cases {
+		b, _ := json.Marshal(body)
+		req := httptest.NewRequest(http.MethodPost, "/cards/v1/token/card-data", bytes.NewReader(b))
+		req.Header.Set("Content-Type", "application/json")
+
+		w := httptest.NewRecorder()
+		h.GetCardToken(w, req)
+		assert.Equal(t, http.StatusBadRequest, w.Code, "body=%v -> %s", body, w.Body.String())
+	}
+}
+
+// --- GetCardData ---
+
+func TestGetCardData_RoundTripDecryption(t *testing.T) {
+	h, _ := setupCardsHandler(t)
+
+	priv := generateTestRSAKey(t)
+	pubKeyB64 := publicKeyToBase64SPKI(t, &priv.PublicKey)
+
+	// 1. Get a card-data token using the public key.
+	tokenBody := map[string]interface{}{"cardId": "card-123", "publicKey": pubKeyB64}
+	tb, _ := json.Marshal(tokenBody)
+	tReq := httptest.NewRequest(http.MethodPost, "/cards/v1/token/card-data", bytes.NewReader(tb))
+	tReq.Header.Set("Content-Type", "application/json")
+	tw := httptest.NewRecorder()
+	h.GetCardToken(tw, tReq)
+	require.Equal(t, http.StatusOK, tw.Code)
+
+	var tokenResp models.CardTokenResponse
+	require.NoError(t, json.Unmarshal(tw.Body.Bytes(), &tokenResp))
+
+	// 2. Call the data endpoint with that token as a Bearer header.
+	dReq := httptest.NewRequest(http.MethodGet, cardDataPath, nil)
+	dReq.Header.Set("Authorization", "Bearer "+tokenResp.Token)
+	dw := httptest.NewRecorder()
+	h.GetCardData(dw, dReq)
+	require.Equal(t, http.StatusOK, dw.Code, "body=%s", dw.Body.String())
+
+	var dataResp struct {
+		Cypher string `json:"cypher"`
+	}
+	require.NoError(t, json.Unmarshal(dw.Body.Bytes(), &dataResp))
+	require.NotEmpty(t, dataResp.Cypher)
+
+	// 3. Decrypt the cypher with the matching private key and verify shape.
+	cipher, err := base64.StdEncoding.DecodeString(dataResp.Cypher)
+	require.NoError(t, err)
+	plain, err := rsa.DecryptPKCS1v15(rand.Reader, priv, cipher)
+	require.NoError(t, err)
+
+	var sensitive map[string]string
+	require.NoError(t, json.Unmarshal(plain, &sensitive))
+	assert.NotEmpty(t, sensitive["Pan"])
+	assert.NotEmpty(t, sensitive["ExpiryDate"])
+	assert.NotEmpty(t, sensitive["Cvc2"])
+}
+
+func TestGetCardData_MissingBearer(t *testing.T) {
+	h, _ := setupCardsHandler(t)
+
+	req := httptest.NewRequest(http.MethodGet, cardDataPath, nil)
+	w := httptest.NewRecorder()
+	h.GetCardData(w, req)
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+}
+
+func TestGetCardData_InvalidToken(t *testing.T) {
+	h, _ := setupCardsHandler(t)
+
+	req := httptest.NewRequest(http.MethodGet, cardDataPath, nil)
+	req.Header.Set("Authorization", "Bearer not-a-real-jwt")
+	w := httptest.NewRecorder()
+	h.GetCardData(w, req)
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+}
+
+func TestGetCardData_TokenWithoutPublicKey(t *testing.T) {
+	h, _ := setupCardsHandler(t)
+
+	// Sign a JWT directly with an empty publicKey claim. Since `publicKey`
+	// is `omitempty`, the marshalled payload will omit it entirely — which
+	// is exactly the case this test exercises: the data endpoint must
+	// reject any token whose publicKey is missing or empty.
+	jwt, err := generateCardDataJWT(h.config.CardDataTokenSecret, CardDataClaims{
+		CardID:    "card-x",
+		IssuedAt:  time.Now().Unix(),
+		ExpiresAt: time.Now().Add(time.Minute).Unix(),
+	})
+	require.NoError(t, err)
+
+	req := httptest.NewRequest(http.MethodGet, cardDataPath, nil)
+	req.Header.Set("Authorization", "Bearer "+jwt)
+	w := httptest.NewRecorder()
+	h.GetCardData(w, req)
+	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
 // --- CreateCardTransaction ---
@@ -777,4 +919,25 @@ func TestCreateCard_ReturnsActiveCard(t *testing.T) {
 	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.NotEmpty(t, resp["id"])
 	assert.Equal(t, consts.CardStatusActive, resp["status"])
+}
+
+// ── Test helpers for card-data crypto ──
+
+func generateTestRSAKey(t *testing.T) *rsa.PrivateKey {
+	t.Helper()
+	key, err := rsa.GenerateKey(rand.Reader, 2048)
+	require.NoError(t, err)
+	return key
+}
+
+func publicKeyToBase64SPKI(t *testing.T, pub *rsa.PublicKey) string {
+	t.Helper()
+	der, err := x509.MarshalPKIXPublicKey(pub)
+	require.NoError(t, err)
+	return base64.StdEncoding.EncodeToString(der)
+}
+
+func generateTestPublicKeyB64(t *testing.T) string {
+	t.Helper()
+	return publicKeyToBase64SPKI(t, &generateTestRSAKey(t).PublicKey)
 }

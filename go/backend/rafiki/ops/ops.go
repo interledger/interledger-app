@@ -20,6 +20,8 @@ import (
 
 	"gitlab.com/fynbos/backend/db"
 
+	"gitlab.com/fynbos/backend/kyc"
+
 	"gitlab.com/fynbos/backend/rafiki"
 	"gitlab.com/fynbos/backend/wallets"
 )
@@ -66,6 +68,14 @@ func CreatePaymentPointer(ctx context.Context, b Backends, w wallets.Wallet) (st
 }
 
 func GetWalletAddress(ctx context.Context, b Backends, walletID string) (*rafiki.WalletAddress, error) {
+	status, err := b.KYC().GetKYCStatus(ctx, walletID)
+	if err != nil {
+		return nil, err
+	}
+	if status == kyc.StatusDocumentsRequired {
+		return nil, kyc.ErrKYCResubmissionRequired
+	}
+
 	externalID, err := LookupPaymentPointerID(ctx, b, walletID)
 	if err != nil {
 		return nil, err
@@ -80,7 +90,7 @@ func GetWalletAddress(ctx context.Context, b Backends, walletID string) (*rafiki
 		ID:         address.Id,
 		AssetCode:  address.Asset.Code,
 		AssetScale: address.Asset.Scale,
-		URL:        address.Url,
+		URL:        address.Address,
 	}, nil
 }
 

@@ -186,9 +186,21 @@ func (sc *E2EContext) iShouldBeShownTheActivateWalletPromptForm(promptText strin
 		return fmt.Errorf("failed to navigate to personal details page: %w", err)
 	}
 
-	// Verify the activate wallet button is visible
-	if err := sc.iShouldSeeTheActivateWalletButton(); err != nil {
-		return fmt.Errorf("activate wallet button not visible: %w", err)
+	// South Africa/MockXago renders the iframe directly without a separate
+	// "Continue" button prompt.
+	if strings.EqualFold(sc.country, "south africa") {
+		iframe := sc.page.Locator("iframe[title='Activate wallet'], iframe")
+		if err := iframe.First().WaitFor(playwright.LocatorWaitForOptions{
+			State:   playwright.WaitForSelectorStateVisible,
+			Timeout: playwright.Float(10000),
+		}); err != nil {
+			return fmt.Errorf("activate wallet prompt not visible for south africa flow: %w", err)
+		}
+	} else {
+		// Verify the activate wallet button is visible for non-Xago providers.
+		if err := sc.iShouldSeeTheActivateWalletButton(); err != nil {
+			return fmt.Errorf("activate wallet button not visible: %w", err)
+		}
 	}
 
 	// Take screenshot for debugging

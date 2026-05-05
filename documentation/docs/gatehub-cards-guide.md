@@ -125,7 +125,6 @@ erDiagram
 - `maskedPan` — BIN + last 4 digits (e.g. `512345******2346`)
 - `nameOnCard` — Embossed name (max 26 characters)
 - `status` — Active, TemporaryBlocked, Blocked, SoftDelete, InCreation, Pending
-- `expiryDate` — Typically 3 years from creation
 - `relationType` — PRIMARY (first card) or SECONDARY/Supplementary
 - `isFirstTimeLock` / `plasticCreated` — Tracking flags
 

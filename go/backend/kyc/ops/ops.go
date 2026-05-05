@@ -187,6 +187,7 @@ func convertDBDetails(details dbIndividualDetails) (*kyc.IndividualDetails, erro
 }
 
 func SetKYCStatus(ctx context.Context, b Backends, walletID string, status kyc.Status) error {
+
 	wo := client.StartWorkflowOptions{
 		ID:                       "kyc_set_status_" + walletID + "_" + status.String(),
 		TaskQueue:                "backend",
