@@ -13,12 +13,12 @@ import (
 
 type BackfillAccountsTabDisabledParams struct {
 	// Region — disables accounts tab for all countries in a region. Supported values: "EU"
-	Region  string
+	Region string
 	// Country — disables accounts tab for a single ISO country code (e.g. "DE", "FR", "US", "GB")
 	Country string
 }
 
-func BackfillAccountsTabDisabled(ctx workflow.Context, params BackfillAccountsTabDisabledParams) error {
+func DisabledAccountsTabWorkflow(ctx workflow.Context, params BackfillAccountsTabDisabledParams) error {
 	if _, err := resolveCountries(params); err != nil {
 		return err
 	}
@@ -29,16 +29,16 @@ func BackfillAccountsTabDisabled(ctx workflow.Context, params BackfillAccountsTa
 	}
 	ctx = workflow.WithActivityOptions(ctx, ao)
 	logger := workflow.GetLogger(ctx)
-	logger.Info("BackfillAccountsTabDisabled started", "region", params.Region, "country", params.Country)
+	logger.Info("DisabledAccountsTabWorkflow started", "region", params.Region, "country", params.Country)
 
 	var rowsAffected int64
 	err := workflow.ExecuteActivity(ctx, a.DisableAccountsTab, params).Get(ctx, &rowsAffected)
 	if err != nil {
-		logger.Error("DisableAccountsTab failed", "error", err)
+		logger.Error("DisabledAccountsTabWorkflow failed", "error", err)
 		return err
 	}
 
-	logger.Info("BackfillAccountsTabDisabled complete", "region", params.Region, "country", params.Country, "rowsAffected", rowsAffected)
+	logger.Info("DisabledAccountsTabWorkflow complete", "region", params.Region, "country", params.Country, "rowsAffected", rowsAffected)
 	return nil
 }
 
