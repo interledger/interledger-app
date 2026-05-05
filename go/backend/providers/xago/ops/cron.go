@@ -13,7 +13,7 @@ import (
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/xago"
-	"gitlab.com/fynbos/backend/providers/xago/external"
+	"gitlab.com/fynbos/backend/providers/xago/external/domain/dto"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/log"
 	"gitlab.com/fynbos/pacioli"
@@ -52,7 +52,7 @@ func XagoDepositPollWorkflow(ctx workflow.Context) error {
 
 	logger.Info("starting xago deposits")
 
-	var deposits []external.Deposit
+	var deposits []dto.Deposit
 	err := workflow.ExecuteActivity(ctx, a.PollDeposits).Get(ctx, &deposits)
 	if err != nil {
 		return err
@@ -77,9 +77,9 @@ func XagoDepositPollWorkflow(ctx workflow.Context) error {
 	return nil
 }
 
-func (a *Activity) PollDeposits(ctx context.Context) ([]external.Deposit, error) {
+func (a *Activity) PollDeposits(ctx context.Context) ([]dto.Deposit, error) {
 	var page int = 1
-	var deposits []external.Deposit
+	var deposits []dto.Deposit
 	for {
 		deps, err := a.b.External().ListDeposits(ctx, page)
 		if err != nil {
@@ -117,7 +117,7 @@ func (a *Activity) PollDeposits(ctx context.Context) ([]external.Deposit, error)
 	return deposits, nil
 }
 
-func (a *Activity) SaveDeposits(ctx context.Context, deposits []external.Deposit) error {
+func (a *Activity) SaveDeposits(ctx context.Context, deposits []dto.Deposit) error {
 	stmt, err := a.b.DB().PrepareContext(ctx, "INSERT INTO xago_deposits (transaction_id, origin_amount, amount, status, account_id) VALUES ($1, $2,$3, $4,$5)")
 	if err != nil {
 		return err
@@ -145,7 +145,7 @@ func (a *Activity) SaveDeposits(ctx context.Context, deposits []external.Deposit
 	return nil
 }
 
-func (a *Activity) CreateDepositTransactions(ctx context.Context, deposits []external.Deposit) error {
+func (a *Activity) CreateDepositTransactions(ctx context.Context, deposits []dto.Deposit) error {
 	for _, dep := range deposits {
 		subAcc, err := LookupByAccountID(ctx, a.b, dep.AccountID)
 		if err != nil {

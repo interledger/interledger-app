@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/providers/xago"
-	"gitlab.com/fynbos/backend/providers/xago/external"
+	"gitlab.com/fynbos/backend/providers/xago/external/domain/dto"
 	"gitlab.com/fynbos/backend/slack"
 	"gitlab.com/fynbos/pacioli"
 	"go.temporal.io/api/enums/v1"
@@ -397,8 +397,8 @@ func GetBankAccount(ctx context.Context, b Backends) (*xago.DepositDetails, erro
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", xago.ErrInternal, err)
 	}
-	var found *external.BankProvider
-	for _, a := range *accounts {
+	var found *dto.BankProvider
+	for _, a := range accounts {
 		if a.CurrencyCode == currency.ZAR.String() && a.DepositEnabled {
 			for _, b := range a.BankingProviders {
 				if b.DepositAvailable {
@@ -423,7 +423,7 @@ func GetBankAccount(ctx context.Context, b Backends) (*xago.DepositDetails, erro
 // TestDeposit is only going to make the POST request. The deposit is going to
 // be processed by the cronjob that is polling Xago deposits or by using the webhook listerner.
 func TestDeposit(ctx context.Context, b Backends, sa xago.SubAccount) error {
-	reqStruct := external.TestDepositReq{
+	reqStruct := dto.TestDepositRequest{
 		RunTestDeposit:    true,
 		Amount:            200.00,
 		DepositReference:  sa.DepositReference,

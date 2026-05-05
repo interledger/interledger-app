@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"testing"
 
-	"gitlab.com/fynbos/backend/providers/xago/external"
-
 	"github.com/golang/mock/gomock"
+	"gitlab.com/fynbos/backend/providers/xago/external/domain/dto"
 	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/currency"
 )
@@ -29,7 +28,7 @@ func SetupDevMock(t *testing.T) *MockClient {
 		return uuid.NewString(), nil
 	}).AnyTimes()
 
-	cl.EXPECT().GetWithdrawal(gomock.Any(), gomock.Any()).Return(&external.Withdrawal{
+	cl.EXPECT().GetWithdrawal(gomock.Any(), gomock.Any()).Return(dto.Withdrawal{
 		ID:         "asdf",
 		Total:      10,
 		Amount:     10,

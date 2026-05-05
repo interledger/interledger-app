@@ -11,7 +11,7 @@ import (
 	gomock "github.com/golang/mock/gomock"
 	currency "gitlab.com/fynbos/backend/currency"
 	kyc "gitlab.com/fynbos/backend/kyc"
-	external "gitlab.com/fynbos/backend/providers/xago/external"
+	dto "gitlab.com/fynbos/backend/providers/xago/external/domain/dto"
 	user "gitlab.com/fynbos/backend/user"
 )
 
@@ -39,10 +39,10 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 }
 
 // AddBeneficiary mocks base method.
-func (m *MockClient) AddBeneficiary(ctx context.Context, reqStruct external.CreateBeneficiaryReq) (*external.AccountBeneficiaries, error) {
+func (m *MockClient) AddBeneficiary(ctx context.Context, reqStruct dto.CreateBeneficiaryRequest) (dto.AccountBeneficiaries, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddBeneficiary", ctx, reqStruct)
-	ret0, _ := ret[0].(*external.AccountBeneficiaries)
+	ret0, _ := ret[0].(dto.AccountBeneficiaries)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -54,10 +54,10 @@ func (mr *MockClientMockRecorder) AddBeneficiary(ctx, reqStruct interface{}) *go
 }
 
 // BankAccounts mocks base method.
-func (m *MockClient) BankAccounts(ctx context.Context) (*[]external.Currency, error) {
+func (m *MockClient) BankAccounts(ctx context.Context) ([]dto.Currency, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BankAccounts", ctx)
-	ret0, _ := ret[0].(*[]external.Currency)
+	ret0, _ := ret[0].([]dto.Currency)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -69,10 +69,10 @@ func (mr *MockClientMockRecorder) BankAccounts(ctx interface{}) *gomock.Call {
 }
 
 // CreateSubAccount mocks base method.
-func (m *MockClient) CreateSubAccount(ctx context.Context, user user.User, details kyc.IndividualDetails, idNumber, personaInquiryURL string) (*external.SubAccount, error) {
+func (m *MockClient) CreateSubAccount(ctx context.Context, user user.User, details kyc.IndividualDetails, idNumber, personaInquiryURL string) (dto.SubAccount, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateSubAccount", ctx, user, details, idNumber, personaInquiryURL)
-	ret0, _ := ret[0].(*external.SubAccount)
+	ret0, _ := ret[0].(dto.SubAccount)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -99,10 +99,10 @@ func (mr *MockClientMockRecorder) CreateTransaction(ctx, amt, idempotencyKey, be
 }
 
 // GetDeposit mocks base method.
-func (m *MockClient) GetDeposit(ctx context.Context, id string) (*external.Deposit, error) {
+func (m *MockClient) GetDeposit(ctx context.Context, id string) (dto.Deposit, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDeposit", ctx, id)
-	ret0, _ := ret[0].(*external.Deposit)
+	ret0, _ := ret[0].(dto.Deposit)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -114,10 +114,10 @@ func (mr *MockClientMockRecorder) GetDeposit(ctx, id interface{}) *gomock.Call {
 }
 
 // GetWithdrawal mocks base method.
-func (m *MockClient) GetWithdrawal(ctx context.Context, id string) (*external.Withdrawal, error) {
+func (m *MockClient) GetWithdrawal(ctx context.Context, id string) (dto.Withdrawal, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetWithdrawal", ctx, id)
-	ret0, _ := ret[0].(*external.Withdrawal)
+	ret0, _ := ret[0].(dto.Withdrawal)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -129,10 +129,10 @@ func (mr *MockClientMockRecorder) GetWithdrawal(ctx, id interface{}) *gomock.Cal
 }
 
 // ListBeneficiaries mocks base method.
-func (m *MockClient) ListBeneficiaries(ctx context.Context, limit, page uint) (*external.ListBeneficiariesResponse, error) {
+func (m *MockClient) ListBeneficiaries(ctx context.Context, limit, page uint) (dto.ListBeneficiariesResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListBeneficiaries", ctx, limit, page)
-	ret0, _ := ret[0].(*external.ListBeneficiariesResponse)
+	ret0, _ := ret[0].(dto.ListBeneficiariesResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -144,10 +144,10 @@ func (mr *MockClientMockRecorder) ListBeneficiaries(ctx, limit, page interface{}
 }
 
 // ListDeposits mocks base method.
-func (m *MockClient) ListDeposits(ctx context.Context, page int) ([]external.Deposit, error) {
+func (m *MockClient) ListDeposits(ctx context.Context, page int) ([]dto.Deposit, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListDeposits", ctx, page)
-	ret0, _ := ret[0].([]external.Deposit)
+	ret0, _ := ret[0].([]dto.Deposit)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -159,7 +159,7 @@ func (mr *MockClientMockRecorder) ListDeposits(ctx, page interface{}) *gomock.Ca
 }
 
 // TestDeposit mocks base method.
-func (m *MockClient) TestDeposit(ctx context.Context, reqStruct external.TestDepositReq) error {
+func (m *MockClient) TestDeposit(ctx context.Context, reqStruct dto.TestDepositRequest) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "TestDeposit", ctx, reqStruct)
 	ret0, _ := ret[0].(error)
@@ -173,7 +173,7 @@ func (mr *MockClientMockRecorder) TestDeposit(ctx, reqStruct interface{}) *gomoc
 }
 
 // UpdateSubAccount mocks base method.
-func (m *MockClient) UpdateSubAccount(ctx context.Context, accountID string, reqStruct external.UpdateSubAccountRequest) error {
+func (m *MockClient) UpdateSubAccount(ctx context.Context, accountID string, reqStruct dto.UpdateSubAccountRequest) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateSubAccount", ctx, accountID, reqStruct)
 	ret0, _ := ret[0].(error)

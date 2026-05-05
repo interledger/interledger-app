@@ -18,6 +18,7 @@ import (
 	httplogger "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/backend/providers/xago"
 	"gitlab.com/fynbos/backend/providers/xago/external"
+	dto "gitlab.com/fynbos/backend/providers/xago/external/domain/dto"
 	"gitlab.com/fynbos/pacioli"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.temporal.io/sdk/temporal"
@@ -59,7 +60,7 @@ func (a *Activity) WalletHasSubAccount(ctx context.Context, walletID string) (bo
 	return acc != nil, nil
 }
 
-func (a *Activity) SaveSubAccount(ctx context.Context, walletID, accountID string, sa external.SubAccount) error {
+func (a *Activity) SaveSubAccount(ctx context.Context, walletID, accountID string, sa dto.SubAccount) error {
 	var depositRef string
 	for _, b := range sa.Beneficiaries {
 		if strings.EqualFold(b.BeneficiaryType, "rollup") {
@@ -112,35 +113,35 @@ func (a *Activity) UpdateSubAccountActivity(ctx context.Context, args xago.Inqui
 		return err
 	}
 
-	return a.b.External().UpdateSubAccount(ctx, args.AccountID, external.UpdateSubAccountRequest{
+	return a.b.External().UpdateSubAccount(ctx, args.AccountID, dto.UpdateSubAccountRequest{
 		ThirdPartyVerificationURL: personaInquiry,
 		IDNumber:                  idNumber,
 		PhysicalAddress:           kycDetails.Address.String(),
 	})
 }
 
-func (a *Activity) CreateSubAccount(ctx context.Context, walletID string) (*external.SubAccount, error) {
+func (a *Activity) CreateSubAccount(ctx context.Context, walletID string) (dto.SubAccount, error) {
 	ul, err := a.b.Users().ListUsers(ctx, walletID)
 	if err != nil {
-		return nil, err
+		return dto.SubAccount{}, err
 	}
 
 	id, err := a.b.KYC().GetIndividualDetails(ctx, walletID)
 	if err != nil {
-		return nil, err
+		return dto.SubAccount{}, err
 	}
 
 	personaInquiry, err := a.b.KYC().GetApprovedPersonaInquiryURL(ctx, walletID)
 	if errors.Is(err, kyc.ErrNoKYCInfo) {
-		return nil, temporal.NewNonRetryableApplicationError("xago internal error: wallet does not have an approved persona inquiry.", "ErrInternal", err)
+		return dto.SubAccount{}, temporal.NewNonRetryableApplicationError("xago internal error: wallet does not have an approved persona inquiry.", "ErrInternal", err)
 	}
 	if err != nil {
-		return nil, err
+		return dto.SubAccount{}, err
 	}
 
 	idNumber, err := a.b.KYC().GetPersonaZAIDNumber(ctx, walletID)
 	if err != nil {
-		return nil, err
+		return dto.SubAccount{}, err
 	}
 
 	return a.b.External().CreateSubAccount(ctx, ul[0], *id, idNumber, personaInquiry)
@@ -164,7 +165,7 @@ func CreateBalanceAccountWorkflow(ctx workflow.Context, args xago.CreateBalanceA
 	}
 
 	if !hasSubAcc {
-		var subAcc external.SubAccount
+		var subAcc dto.SubAccount
 		err = workflow.ExecuteActivity(ctx, a.CreateSubAccount, args.WalletID).Get(ctx, &subAcc)
 		if err != nil {
 			return nil, err
@@ -289,7 +290,7 @@ func CreateBeneficiaryWorkflow(ctx workflow.Context, bankAcc xago.CreateBankAcco
 	}
 
 	if !hasSubAcc {
-		var subAcc external.SubAccount
+		var subAcc dto.SubAccount
 		err = workflow.ExecuteActivity(ctx, a.CreateSubAccount, bankAcc.WalletID).Get(ctx, &subAcc)
 		if err != nil {
 			return nil, err
@@ -310,7 +311,7 @@ func CreateBeneficiaryWorkflow(ctx workflow.Context, bankAcc xago.CreateBankAcco
 		}
 	}
 
-	var beneficiary external.AccountBeneficiaries
+	var beneficiary dto.AccountBeneficiaries
 	err = workflow.ExecuteActivity(ctx, a.CreateExternalBeneficiaries, bankAcc).Get(ctx, &beneficiary)
 	if err != nil {
 		return nil, err
@@ -339,7 +340,7 @@ func CreateBeneficiaryWorkflow(ctx workflow.Context, bankAcc xago.CreateBankAcco
 	return &la, nil
 }
 
-func (a *Activity) CreateExternalBeneficiaries(ctx context.Context, bankAcc xago.CreateBankAccountArgs) (*external.AccountBeneficiaries, error) {
+func (a *Activity) CreateExternalBeneficiaries(ctx context.Context, bankAcc xago.CreateBankAccountArgs) (*dto.AccountBeneficiaries, error) {
 	subAccount, err := LookupSubAccount(ctx, a.b, bankAcc.WalletID)
 	if err != nil {
 		return nil, err
@@ -359,7 +360,7 @@ func (a *Activity) CreateExternalBeneficiaries(ctx context.Context, bankAcc xago
 		return nil, err
 	}
 
-	reqStruct := external.CreateBeneficiaryReq{
+	reqStruct := dto.CreateBeneficiaryRequest{
 		Name:          details.FirstName + " " + details.LastName,
 		Scope:         "bank",
 		CurrencyCode:  "ZAR",
@@ -372,7 +373,7 @@ func (a *Activity) CreateExternalBeneficiaries(ctx context.Context, bankAcc xago
 		Iban:          bankAcc.IBAN,
 		Bic:           bankAcc.BIC,
 		AccountType:   "typeAccountNumber",
-		KYCRequest: external.CreateBeneficiaryKYCRequest{
+		KYCRequest: dto.CreateBeneficiaryKYCRequest{
 			SubAccountID: subAccount.AccountID,
 		},
 		MobileNumber: userList[0].PhoneNumber,
@@ -391,13 +392,13 @@ func (a *Activity) CreateExternalBeneficiaries(ctx context.Context, bankAcc xago
 		return nil, err
 	}
 
-	return beneficiary, nil
+	return &beneficiary, nil
 }
 
 // Not used at the moment; can be removed once the Xago integration is updated
-func (a *Activity) GetExternalBeneficiary(ctx context.Context, externalID string) (*external.AccountBeneficiaries, error) {
+func (a *Activity) GetExternalBeneficiary(ctx context.Context, externalID string) (*dto.AccountBeneficiaries, error) {
 	var err error
-	var response *external.ListBeneficiariesResponse
+	var response dto.ListBeneficiariesResponse
 	limit, page := uint(20), uint(1)
 	hasNextPage := true
 	for {
@@ -423,7 +424,7 @@ func (a *Activity) GetExternalBeneficiary(ctx context.Context, externalID string
 	return nil, temporal.NewNonRetryableApplicationError("xago beneficiary not found in list", "external", nil)
 }
 
-func (a *Activity) SaveBeneficiary(ctx context.Context, walletID string, sa external.AccountBeneficiaries) error {
+func (a *Activity) SaveBeneficiary(ctx context.Context, walletID string, sa dto.AccountBeneficiaries) error {
 	_, err := a.b.DB().ExecContext(ctx, `INSERT INTO xago_beneficiaries (id, wallet_id, address, reference, status, currency, scope, name) 
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
 		sa.ID, walletID, sa.BeneficiaryAddress, sa.Reference, sa.Status, sa.CurrencyCode, sa.Scope, sa.Name)
@@ -434,7 +435,7 @@ func (a *Activity) SaveBeneficiary(ctx context.Context, walletID string, sa exte
 	return err
 }
 
-func (a *Activity) AddBeneficiaryLinkedAccount(ctx context.Context, walletID, id string, b external.AccountBeneficiaries) (*linkedaccounts.LinkedAccount, error) {
+func (a *Activity) AddBeneficiaryLinkedAccount(ctx context.Context, walletID, id string, b dto.AccountBeneficiaries) (*linkedaccounts.LinkedAccount, error) {
 
 	la, _ := a.b.LinkedAccounts().Get(ctx, id)
 	if la != nil {

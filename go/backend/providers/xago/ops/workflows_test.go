@@ -10,6 +10,7 @@ import (
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/providers/xago"
 	"gitlab.com/fynbos/backend/providers/xago/external"
+	dto "gitlab.com/fynbos/backend/providers/xago/external/domain/dto"
 	"gitlab.com/fynbos/backend/providers/xago/ops"
 )
 
@@ -24,7 +25,7 @@ func TestActivity_SaveBeneficiary(t *testing.T) {
 	walletID := uuid.NewString()
 	beneficiaryID := uuid.NewString()
 
-	err := a.SaveBeneficiary(ctx, walletID, external.AccountBeneficiaries{
+	err := a.SaveBeneficiary(ctx, walletID, dto.AccountBeneficiaries{
 		BranchCode:         "branchy face",
 		Reference:          "Ref me",
 		BeneficiaryAddress: "Dark side of the moon",

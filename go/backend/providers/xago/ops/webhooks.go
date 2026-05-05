@@ -70,11 +70,6 @@ func EventWebhook(b Backends) http.HandlerFunc {
 			return
 
 		}
-		if xagoTransaction == nil {
-			log.Error("failed to get xago transaction for xago webhook")
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
 		if xagoTransaction.Amount != hook.Amount {
 			log.Error("failed verify amount on xago webhook")
 			w.WriteHeader(http.StatusInternalServerError)

@@ -1,0 +1,115 @@
+package dto
+
+import "encoding/json"
+
+type CreateBeneficiaryKYCRequest struct {
+	IsOwn        bool   `json:"isOwn,omitempty"`
+	SubAccountID string `json:"existingIdentityId,omitempty"`
+}
+
+type CreateBeneficiaryRequest struct {
+	Name string `json:"name,omitempty"`
+
+	Scope         string `json:"scope,omitempty"`
+	CurrencyCode  string `json:"currencyCode,omitempty"`
+	AccountNumber string `json:"accountNumber,omitempty"`
+	BranchCode    string `json:"branchCode,omitempty"`
+	BankName      string `json:"bankName,omitempty"`
+	BankCountry   string `json:"bankCountry,omitempty"`
+	AccountName   string `json:"accountName,omitempty"`
+	Reference     string `json:"reference,omitempty"`
+	Iban          string `json:"IBAN,omitempty"`
+	Bic           string `json:"BIC,omitempty"`
+
+	BeneficiaryPhysicalAddress string `json:"beneficiaryPhysicalAddress,omitempty"`
+	BeneficiaryDistrict        string `json:"beneficiaryDistrict,omitempty"`
+	BeneficiaryCity            string `json:"beneficiaryCity,omitempty"`
+	BeneficiaryCountry         string `json:"beneficiaryCountry,omitempty"`
+	BeneficiaryPostalCode      string `json:"beneficiaryPostalCode,omitempty"`
+	BeneficiaryAddress         string `json:"beneficiaryAddress,omitempty"`
+
+	AccountType  string `json:"accountType,omitempty"`
+	MobileNumber string `json:"mobileNumber,omitempty"`
+
+	KYCRequest CreateBeneficiaryKYCRequest `json:"kycRequest"`
+}
+
+type AccountBeneficiaries struct {
+	BranchCode         string          `json:"branchCode"`
+	Reference          string          `json:"reference"`
+	BeneficiaryAddress string          `json:"beneficiaryAddress"`
+	BankName           string          `json:"bankName"`
+	AccountNumber      string          `json:"accountNumber"`
+	Status             string          `json:"status"`
+	CurrencyCode       string          `json:"currencyCode"`
+	ID                 string          `json:"uuid"`
+	Scope              string          `json:"scope"`
+	Name               string          `json:"name"`
+	Wallet             json.RawMessage `json:"wallet"`
+}
+
+type CreateBeneficiaryResp struct {
+	Status        int                    `json:"status,omitempty"`
+	Beneficiaries []AccountBeneficiaries `json:"beneficiaries"`
+}
+
+type Pagination struct {
+	NumberOfPages int `json:"numberOfPages,omitempty"`
+	Limit         int `json:"limit"`
+	PageNumber    int `json:"pageNumber"`
+}
+
+type ListBeneficiariesResponse struct {
+	Pagination    Pagination             `json:"meta,omitempty"`
+	Beneficiaries []AccountBeneficiaries `json:"values,omitempty"`
+}
+
+type UpdateSubAccountRequest struct {
+	ThirdPartyVerificationURL string `json:"thirdPartyVerificationUrl"`
+	IDNumber                  string `json:"idNumber"`
+	PhysicalAddress           string `json:"physicalAddress"`
+}
+
+type SubAccountBeneficiary struct {
+	BeneficiaryID      string `json:"beneficiaryId,omitempty"`
+	BeneficiaryType    string `json:"beneficiaryType,omitempty"`
+	CurrencyID         string `json:"currencyId,omitempty"`
+	BankName           string `json:"bankName,omitempty"`
+	AccountNumber      string `json:"accountNumber,omitempty"`
+	AccountName        string `json:"accountName,omitempty"`
+	DepositReference   string `json:"depositReference,omitempty"`
+	BeneficiaryAction  string `json:"beneficiaryAction,omitempty"`
+	DestinationAddress string `json:"destinationAddress,omitempty"`
+	DestinationTag     string `json:"destinationTag,omitempty"`
+	Reference          string `json:"reference,omitempty"`
+}
+
+type SubAccountDepositDetails struct {
+	BankName       string `json:"bankName,omitempty"`
+	AccountName    string `json:"accountName,omitempty"`
+	AccountNumber  string `json:"accountNumber,omitempty"`
+	Iban           string `json:"IBAN,omitempty"`
+	BankAddress    string `json:"bankAddress:,omitempty"`
+	AccountAddress string `json:"accountAddress,omitempty"`
+	SwiftBIC       string `json:"swiftBIC,omitempty"`
+	BranchCode     string `json:"branchCode,omitempty"`
+}
+
+type SubAccountRequest struct {
+	FirstName       string `json:"firstName,omitempty"`
+	LastName        string `json:"lastName,omitempty"`
+	Email           string `json:"email,omitempty"`
+	MobileNumber    string `json:"mobileNumber,omitempty"`
+	IdentityType    string `json:"identityType,omitempty"`
+	IDNumber        string `json:"idNumber,omitempty"`
+	PhysicalAddress string `json:"physicalAddress,omitempty"`
+	PersonaURL      string `json:"thirdPartyVerificationUrl,omitempty"`
+}
+
+type SubAccount struct {
+	AccountID      string                                `json:"accountId,omitempty"`
+	DepositAddress string                                `json:"depositAddress,omitempty"`
+	DepositTag     int                                   `json:"depositTag,omitempty"`
+	DepositDetails map[string][]SubAccountDepositDetails `json:"bankDepositDetails,omitempty"`
+	Beneficiaries  []SubAccountBeneficiary               `json:"beneficiaries,omitempty"`
+}
