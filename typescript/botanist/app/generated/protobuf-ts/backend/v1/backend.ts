@@ -1895,6 +1895,10 @@ export interface LinkedAccount {
      * @generated from protobuf field: string state = 15;
      */
     state: string;
+    /**
+     * @generated from protobuf field: string createdAt = 16;
+     */
+    createdAt: string;
 }
 /**
  * @generated from protobuf message backend.v1.GetSignupRequest
@@ -9113,11 +9117,12 @@ class LinkedAccount$Type extends MessageType<LinkedAccount> {
             { no: 12, name: "receiveCurrencyCountryCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 13, name: "defaultSend", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 14, name: "defaultReceive", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 15, name: "state", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 15, name: "state", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 16, name: "createdAt", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<LinkedAccount>): LinkedAccount {
-        const message = { id: "", type: "", name: "", mask: "", nickname: "", canSend: false, canReceive: false, title: "", sendCurrencyCode: "", sendCurrencyCountryCode: "", receiveCurrencyCode: "", receiveCurrencyCountryCode: "", defaultSend: false, defaultReceive: false, state: "" };
+        const message = { id: "", type: "", name: "", mask: "", nickname: "", canSend: false, canReceive: false, title: "", sendCurrencyCode: "", sendCurrencyCountryCode: "", receiveCurrencyCode: "", receiveCurrencyCountryCode: "", defaultSend: false, defaultReceive: false, state: "", createdAt: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<LinkedAccount>(this, message, value);
@@ -9172,6 +9177,9 @@ class LinkedAccount$Type extends MessageType<LinkedAccount> {
                     break;
                 case /* string state */ 15:
                     message.state = reader.string();
+                    break;
+                case /* string createdAt */ 16:
+                    message.createdAt = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -9230,6 +9238,9 @@ class LinkedAccount$Type extends MessageType<LinkedAccount> {
         /* string state = 15; */
         if (message.state !== "")
             writer.tag(15, WireType.LengthDelimited).string(message.state);
+        /* string createdAt = 16; */
+        if (message.createdAt !== "")
+            writer.tag(16, WireType.LengthDelimited).string(message.createdAt);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

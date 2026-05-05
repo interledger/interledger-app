@@ -30,6 +30,7 @@ var errorStatus = map[error]struct {
 	gatehub.ErrNotFound:            {http.StatusNotFound, errcodes.ErrCodeNotFound},
 	gatehub.ErrInternal:            {http.StatusInternalServerError, errcodes.ErrCodeInternal},
 	gatehub.ErrTimedOut:            {http.StatusGatewayTimeout, errcodes.ErrCodeGatewayTimeout},
+	gatehub.ErrBadRequest:          {http.StatusBadRequest, errcodes.ErrCodeBadRequest},
 }
 
 func ToHTTPError(w http.ResponseWriter, r *http.Request, err error) {
