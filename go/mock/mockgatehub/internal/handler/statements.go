@@ -44,6 +44,8 @@ func (h *Handler) GetAccountStatement(w http.ResponseWriter, r *http.Request) {
 		zap.String("wallet_address", walletAddress),
 		zap.String("year", year),
 		zap.String("month", month),
+		zap.String("networks", r.URL.Query().Get("networks")),
+		zap.String("gateways", r.URL.Query().Get("gateways")),
 	)
 
 	h.sendStatementPDF(w, "account-statement.pdf")
